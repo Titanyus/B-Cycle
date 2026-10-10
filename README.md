@@ -9,18 +9,18 @@ Cycplus-Herzfrequenz kommt in einem späteren Schritt.
 
 ## APK herunterladen
 
-[Installierbare Test-APK 0.1.7 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.7-test.apk).
+[Installierbare Test-APK 0.1.8 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.8-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Falls GitHub eine Dateiseite öffnet, dort
 „Download raw file“ auswählen. Bei einem privaten Repository vorher bei GitHub anmelden.
 
 Die APK ist 91.639 Byte groß, optimiert und mit demselben lokalen Testschlüssel wie
 die bisherigen Versionen signiert. Sie kann als Update installiert werden.
-SHA-256: `01c31397e59b8c6601b2d7839f84c9f461ea8acf1bb3a0016452260e4ff2861f`.
-Build, 36 Tests (zehn LDI-Decoder-, zehn MCSP-Protokoll-, sieben Diagnose-, fünf
+SHA-256: `234d7e6ced977be9e21777d8ea6b90019d3295ecfb0e8d24ad050cfa82c3ed75`.
+Build, 40 Tests (zehn LDI-Decoder-, zehn MCSP-Protokoll-, elf Diagnose-, fünf
 Schreibwarteschlangen- und vier Freigabe-Tests), Android-Lint und APK-Signatur wurden geprüft.
 
-## Live-Test mit 0.1.7
+## Live-Test mit 0.1.8
 
 1. APK als Update installieren und Fahrrad mit Flow entsperren. **Flow darf weiterlaufen**;
    seine Verbindung muss nicht beendet werden.
@@ -29,10 +29,13 @@ Schreibwarteschlangen- und vier Freigabe-Tests), Android-Lint und APK-Signatur w
 3. **„Live-Test starten“** antippen. Die App öffnet den Bosch-Smart-System-Datenkanal,
    abonniert Geschwindigkeit und Fahrerleistung und fordert beide Werte aktiv an.
    Eine Suche nach einer Smartphone-App im Flow-Zubehörmenü ist nicht erforderlich.
-4. Etwa 30 Sekunden treten und Anzeige sowie **Empfangszähler** prüfen.
-   Bei fehlenden Werten zwei- oder dreimal **„Werte erneut lesen“** antippen.
-   Die Schaltfläche ist aktiv, sobald weitere Anfragen möglich sind.
-5. **„Diagnose speichern“** und `B-Cycle-0.1.7-diagnose.txt` hochladen.
+4. Bei einer kurzen Fahrt unter normaler Last die Watt-Anzeige prüfen. Ein frei
+   drehendes Hinterrad beim Test im Stand verlangt wenig Fahrerleistung; dort
+   beobachtete 0 W belegen noch keinen Fehler unter Fahrbedingungen. Starten und
+   Bedienen im Stand, anschließend anhalten und den Empfangszähler prüfen.
+   Die Watt-Zeile zeigt Anzahl empfangener Werte, Maximum und Alter des letzten
+   Wattwerts. Geschwindigkeitsupdates setzen dieses Alter nicht zurück.
+5. **„Diagnose speichern“** und `B-Cycle-0.1.8-diagnose.txt` hochladen.
    Vor dem Export keine neue Suche starten, da diese die Diagnose zurücksetzt.
 
 Die App hält das Display während des Tests an und beendet ihren Datenzugriff beim
@@ -46,7 +49,25 @@ Testsitzung. Andere Bosch-Pakete können den Empfangszähler erhöhen, ohne die 
 Messwerte zu liefern. Transport- oder Startdialog-Pakete aktualisieren deshalb auch
 nicht das angezeigte Alter des letzten Messwertpakets.
 
-## Was 0.1.7 anders macht
+## Getrennte Watt-Diagnose in 0.1.8
+
+Der erste erfolgreiche Hardwaretest mit 0.1.7 lieferte in rund 32 Sekunden
+**182 Benachrichtigungen, Geschwindigkeitswerte und keine Decoderfehler**.
+Das Rad bestätigte beide Abonnements; der Decoder erkannte auch das Leistungsfeld.
+Laut Nutzer blieb die Anzeige bei **0 W**. Getestet wurde im Stand mit einem
+frei drehenden Hinterrad, erst direkt angetrieben, dann durch Treten.
+Positive Fahrerleistung unter Last ist damit noch nicht bestätigt.
+
+Die alte gemeinsame Historie enthielt nur die letzten 24 Messwerte; häufige
+Geschwindigkeitswerte verdrängten die Wattwerte. 0.1.8 behält eine eigene, begrenzte
+Watt-Historie sowie Anzahl, Anzahl ungleich null, Minimum, Maximum, letzten Wert
+und Zeitpunkt des ersten und letzten Werts für die gesamte Testsitzung.
+Diese Statistik bleibt auch erhalten, wenn ältere Einzelwerte aus der Historie
+fallen. Der Bluetooth-Ablauf und die Messwertauswertung sind unverändert.
+Diese Version verbessert die Diagnose; ein Fix für fehlende positive Wattwerte
+ist damit nicht nachgewiesen.
+
+## MCSP-Datenweg seit 0.1.7
 
 Das Protokoll von 0.1.6 bestätigt einen erfolgreichen Zugriff auf den dokumentierten
 LDI-Dienst: Kopplung, MTU 247, Dienstsuche und Benachrichtigungsfreigabe gelangen.
@@ -77,9 +98,9 @@ Datenweg Locus verwendet, ist unbekannt.** Der Unterstützungsmodus steht nicht 
 offiziellen PDF, wurde öffentlich aber auch als zusätzliches LDI-Feld beobachtet;
 dieser Wert allein beweist daher keinen anderen Datenweg.
 
-Der MCSP-Empfang durch B-Cycle ist auf dem Nutzerfahrrad **noch nicht bestätigt**.
-Der neue Test basiert auf einer anderen belegten Schnittstelle; er ist kein
-nachgewiesener Fix für die Ursache der leeren LDI-Antworten.
+Der MCSP-Empfang von Geschwindigkeit ist mit 0.1.7 auf dem Nutzerfahrrad
+**bestätigt**. Positive Fahrerleistung unter Last muss noch geprüft werden.
+Die Ursache der leeren LDI-Antworten bleibt offen.
 
 Protokollablauf, Grenzen und Quellen: [Bosch-MCSP-Datenzugriff](docs/bosch-mcsp.md).
 
@@ -126,9 +147,10 @@ Das angezeigte Paketalter beweist deshalb nicht die Aktualität jeder Messgröß
 Der Bericht enthält App-Version, Smartphone-Modell, Android-Version, Sitzungszeit,
 GATT-Ablauf mit Statuscodes, Dienst- und Characteristic-UUIDs, Paketzähler und Decoderfehler.
 Beim MCSP-Test werden Anfragen, Startdialog und Antwortstatus protokolliert.
-Von empfangenen MCSP-Nutzdaten werden ausschließlich die letzten 24 erkannten numerischen
-Geschwindigkeits- und Fahrerleistungswerte behalten. Gemischte MCSP-Rohpakete, Komponenten-
-Kennungen und gespeicherte Fahrradlogs werden verworfen.
+Von empfangenen MCSP-Nutzdaten werden ausschließlich erkannte numerische
+Geschwindigkeits- und Fahrerleistungswerte behalten: die letzten 24 gemeinsamen
+Messwerte, unabhängig davon die letzten 24 Wattwerte sowie eine Sitzungsstatistik.
+Gemischte MCSP-Rohpakete, Komponenten-Kennungen und gespeicherte Fahrradlogs werden verworfen.
 Beim PDF-Test bleiben die letzten vier Leseantworten und letzten 24 LDI-Notifications als
 Hexdaten erhalten. Beide Messwerte werden als empfangene Felder gezählt, auch bei Nullwerten.
 
@@ -152,7 +174,7 @@ Vollständiges JDK 17 oder 21 mit `javac`, Android-SDK Plattform 35 und Build-To
 
 Debug-APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Release-APK: `app/build/outputs/apk/release/app-release-unsigned.apk`, mit R8 optimiert,
-noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.7-test.apk` ist eine optimierte APK
+noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.8-test.apk` ist eine optimierte APK
 mit dem lokalen Android-Testschlüssel, nicht mit einem Veröffentlichungsschlüssel.
 
 In der eingerichteten Cloud-Umgebung:
@@ -167,7 +189,10 @@ cd /workspace/B-Cycle
 ```
 
 Die JVM-Tests nutzen Googles Protobuf-Encoder als unabhängige Quelle für Testpakete;
-diese Bibliothek wird nicht in die App eingebunden. MCSP-Tests prüfen veröffentlichte
+diese Bibliothek wird nicht in die App eingebunden. Diagnose-Tests prüfen unter
+anderem, dass Geschwindigkeitsverkehr keine Watt-Historie verdrängt oder deren
+Empfangsalter verändert und dass leere Antworten von empfangenen 0 W unterschieden
+werden. MCSP-Tests prüfen veröffentlichte
 Hexbeispiele, gepackte Frames, Fragmentierung, Statusantworten, den Startdialog,
 Puffergrenzen und das Verwerfen fremder Daten. Die Warteschlange wird auf Reihenfolge,
 fehlende Callbacks, begrenzten Rückstau und Stoppen mit späten Callbacks geprüft.

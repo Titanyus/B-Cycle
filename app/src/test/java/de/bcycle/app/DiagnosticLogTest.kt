@@ -77,7 +77,8 @@ class DiagnosticLogTest {
         assertTrue(report.contains("event 999\n"))
         assertTrue(report.contains("bytes=10000"))
         assertTrue(report.contains("[truncated in log]"))
-        assertTrue(report.length < 2000)
+        // Fixed report headings/statistics plus the bounded event and hex payload.
+        assertTrue(report.length < 3000)
     }
 
     @Test fun stopEventsPreserveFailureAndANewSessionClearsOldData() {
@@ -112,5 +113,63 @@ class DiagnosticLogTest {
         assertTrue(report.contains("address=0x185b raw=100 source=push"))
         assertFalse(report.contains("private bike serial"))
         assertFalse(report.contains("70726976617465"))
+    }
+
+    @Test fun speedTrafficCannotEvictPowerEvidenceOrRefreshItsAge() {
+        var now = 1000L
+        val log = DiagnosticLog({ now }, maxPackets = 2)
+        val protocol = McspProtocol()
+        log.reset("power regression")
+        now += 100
+        log.mcspOutcome(protocol.receive(byteArrayOf(0x30, 4, 0x98.toByte(), 0x5b, 8, 79)))
+        now += 200
+        log.mcspOutcome(protocol.receive(byteArrayOf(0x30, 2, 0x98.toByte(), 0x5b)))
+        now += 10_000
+        repeat(100) { log.mcspOutcome(protocol.receive(byteArrayOf(0x30, 4, 0x98.toByte(), 0x2d, 8, 100))) }
+        val report = log.report()
+        assertTrue(report.contains("Rider power samples (watts): count=2 nonzero=1 min=0 max=79 last=0 firstAtMs=100 lastAtMs=300"))
+        assertTrue(report.contains("100ms mcsp address=0x185b raw=79 source=push"))
+        assertTrue(report.contains("300ms mcsp address=0x185b raw=0 source=push"))
+        assertTrue(log.receptionSummary().contains("Watt: 2 Werte · max. 79 W · letzter vor 10 s"))
+    }
+
+    @Test fun statisticsIncludeEveryPackedPowerSampleEvenAfterHistoryEviction() {
+        val log = DiagnosticLog({ 0 }, maxPackets = 1)
+        val packet = byteArrayOf(
+            0x30, 4, 0x98.toByte(), 0x5b, 8, 79,
+            0x30, 5, 0x98.toByte(), 0x5b, 8, 0xb2.toByte(), 4,
+            0x30, 2, 0x98.toByte(), 0x5b,
+        )
+        log.mcspOutcome(McspProtocol().receive(packet))
+        val report = log.report()
+        assertTrue(report.contains("Rider power samples (watts): count=3 nonzero=2 min=0 max=562 last=0"))
+        assertFalse(report.contains("raw=562"))
+        assertTrue(report.contains("raw=0"))
+        log.reset("next ride")
+        assertTrue(log.report().contains("Rider power samples (watts): count=0 nonzero=0 min=null max=null last=null"))
+        assertFalse(log.report().contains("address=0x185b"))
+        assertTrue(log.receptionSummary().contains("Noch kein Wattwert empfangen"))
+    }
+
+    @Test fun emptyReadReplyIsDistinguishedFromReceivedZeroPower() {
+        val protocol = McspProtocol()
+        val log = DiagnosticLog({ 0 })
+        log.mcspOutcome(protocol.receive(byteArrayOf(0x30, 5, 0x18, 0x5b, 0xc0.toByte(), 0x80.toByte(), 0x13)))
+        assertTrue(log.report().contains("Rider power samples (watts): count=0"))
+        assertTrue(log.receptionSummary().contains("Watt: fehlt"))
+        log.mcspOutcome(protocol.receive(byteArrayOf(0x30, 2, 0x98.toByte(), 0x5b)))
+        assertTrue(log.report().contains("Rider power samples (watts): count=1 nonzero=0 min=0 max=0 last=0"))
+        assertTrue(log.receptionSummary().contains("Watt: erkannt"))
+    }
+
+    @Test fun ldiPartialSpeedUpdatesPreserveIndependentPowerStatistics() {
+        val log = DiagnosticLog({ 0 }, maxPackets = 1)
+        log.decoded(LiveData(1000, 120))
+        repeat(100) { log.decoded(LiveData(speedHundredths = 1000)) }
+        log.decoded(LiveData(riderPowerWatts = 0))
+        val report = log.report()
+        assertTrue(report.contains("Rider power samples (watts): count=2 nonzero=1 min=0 max=120 last=0"))
+        assertFalse(report.contains("ldi riderPowerWatts=120"))
+        assertTrue(report.contains("ldi riderPowerWatts=0"))
     }
 }

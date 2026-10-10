@@ -11,6 +11,9 @@ class DiagnosticLog(
     private val events = ArrayDeque<String>()
     private val packets = ArrayDeque<String>()
     private val initialReads = ArrayDeque<String>()
+    private val powerSamples = ArrayDeque<String>()
+    private val speedStats = MeasurementStats()
+    private val powerStats = MeasurementStats()
     private var eventChars = 0
     private var started = clockMillis()
     private var metadata = ""
@@ -29,6 +32,7 @@ class DiagnosticLog(
 
     fun reset(header: String) {
         events.clear(); packets.clear(); initialReads.clear(); eventChars = 0
+        powerSamples.clear(); speedStats.reset(); powerStats.reset()
         reads = 0; notifications = 0; decodeErrors = 0
         speedSeen = false; powerSeen = false
         mcspNotifications = 0; mcspBytes = 0
@@ -64,6 +68,10 @@ class DiagnosticLog(
     fun decoded(value: LiveData) {
         speedSeen = speedSeen || value.speedHundredths != null
         powerSeen = powerSeen || value.riderPowerWatts != null
+        value.speedHundredths?.let { speedStats.add(it, elapsed()) }
+        value.riderPowerWatts?.let {
+            recordPower(it, "${elapsed()}ms ldi riderPowerWatts=$it\n")
+        }
     }
 
     fun mcspNotification(byteCount: Int) {
@@ -75,12 +83,25 @@ class DiagnosticLog(
         mcspIgnored += outcome.ignoredMessages
         mcspControls += outcome.controlFrames
         reads += outcome.readResponses
-        decoded(outcome.update)
         for (sample in outcome.samples) {
             // No raw MCSP packet: a notification can also contain serials, keys or stored logs.
-            packets.addLast("${elapsed()}ms mcsp address=0x${sample.address.toString(16)} raw=${sample.value} source=${if (sample.isPush) "push" else "reply"}\n")
+            val line = "${elapsed()}ms mcsp address=0x${sample.address.toString(16)} raw=${sample.value} source=${if (sample.isPush) "push" else "reply"}\n"
+            if (sample.address == 0x185b) {
+                powerSeen = true
+                recordPower(sample.value, line)
+            } else {
+                speedSeen = true
+                speedStats.add(sample.value, elapsed())
+            }
+            packets.addLast(line)
             while (packets.size > maxPackets) packets.removeFirst()
         }
+    }
+
+    private fun recordPower(value: Int, line: String) {
+        powerStats.add(value, elapsed())
+        powerSamples.addLast(line)
+        while (powerSamples.size > maxPackets) powerSamples.removeFirst()
     }
 
     fun decodeFailed(reason: String) {
@@ -89,7 +110,9 @@ class DiagnosticLog(
     }
 
     fun receptionSummary() = "Empfang: $notifications Benachrichtigungen · $reads Leseantworten\n" +
-        "Tempo: ${if (speedSeen) "erkannt" else "fehlt"} · Watt: ${if (powerSeen) "erkannt" else "fehlt"} · Paketfehler: $decodeErrors"
+        "Tempo: ${if (speedSeen) "erkannt" else "fehlt"} · Watt: ${if (powerSeen) "erkannt" else "fehlt"} · Paketfehler: $decodeErrors\n" +
+        if (powerStats.count == 0L) "Noch kein Wattwert empfangen" else
+            "Watt: ${powerStats.count} Werte · max. ${powerStats.maximum} W · letzter vor ${(elapsed() - powerStats.lastAt!!) / 1000} s"
 
     fun report() = buildString {
         append("B-Cycle BLE diagnostic report\n")
@@ -97,6 +120,9 @@ class DiagnosticLog(
         append("Counters: reads=$reads notifications=$notifications decodeErrors=$decodeErrors ")
         append("speedFieldSeen=$speedSeen riderPowerFieldSeen=$powerSeen\n")
         append("MCSP: notifications=$mcspNotifications bytes=$mcspBytes messages=$mcspMessages ignored=$mcspIgnored controlFrames=$mcspControls\n")
+        append("Measurement statistics cover the entire session; times are milliseconds since session start.\n")
+        append("Speed samples (MCSP may include both speed addresses): ${speedStats.report()}\n")
+        append("Rider power samples (watts): ${powerStats.report()}\n")
         append("No device names or Bluetooth addresses are logged. Raw payloads are limited to Bosch LDI; MCSP retains only numeric speed/power samples.\n")
         append("Events (bounded history):\n")
         for (line in events) append(line)
@@ -104,6 +130,34 @@ class DiagnosticLog(
         for (line in initialReads) append(line)
         append("Bosch LDI notifications / filtered MCSP samples (last $maxPackets):\n")
         for (line in packets) append(line)
+        append("Independent rider power history (last $maxPackets; speed cannot evict these samples):\n")
+        for (line in powerSamples) append(line)
+    }
+
+    private class MeasurementStats {
+        var count = 0L; private set
+        private var nonzero = 0L
+        private var minimum: Int? = null
+        var maximum: Int? = null; private set
+        private var firstAt: Long? = null
+        var lastAt: Long? = null; private set
+        private var last: Int? = null
+
+        fun add(value: Int, at: Long) {
+            count++
+            if (value != 0) nonzero++
+            minimum = minOf(minimum ?: value, value)
+            maximum = maxOf(maximum ?: value, value)
+            if (firstAt == null) firstAt = at
+            lastAt = at; last = value
+        }
+
+        fun reset() {
+            count = 0; nonzero = 0; minimum = null; maximum = null
+            firstAt = null; lastAt = null; last = null
+        }
+
+        fun report() = "count=$count nonzero=$nonzero min=$minimum max=$maximum last=$last firstAtMs=$firstAt lastAtMs=$lastAt"
     }
 
     private fun elapsed() = clockMillis() - started

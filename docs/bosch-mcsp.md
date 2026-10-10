@@ -1,9 +1,13 @@
-# Read-only Bosch MCSP subset in B-Cycle 0.1.7
+# Read-only Bosch MCSP subset in B-Cycle 0.1.8
 
 This is a new experimental route for live speed and rider power. It is separate
 from the official LDI service in the supplied Bosch PDF. The user's 0.1.6 log
 already lists this service, its notify characteristic, and its write-without-response
-characteristic. That establishes GATT availability, not successful telemetry access.
+characteristic. The subsequent 0.1.7 hardware test confirms speed telemetry: 182
+notifications over about 32 seconds, no decoder errors, both subscriptions
+acknowledged, and rider power detected at least once. The user reports a constant
+0 W display while turning a freely spinning rear wheel, including by pedaling.
+Positive rider power under riding load has not yet been confirmed.
 
 ## Sources and attribution
 
@@ -121,14 +125,25 @@ messages, control frames and errors. Retain only numeric speed/power samples and
 the known startup/request/status events. Do not retain raw MCSP notifications:
 they can combine live values with component identifiers or stored-log traffic.
 The UI shows reception counts even when there are no recognized measurements.
+Version 0.1.8 adds independent power history (last 24 samples) and whole-session
+sample count, nonzero count, minimum, maximum, last value, and first/last receipt
+times. The statistics include every sample in packed MCSP messages, not only the
+last merged value. Speed traffic cannot evict power history or refresh power age.
+The UI shows power sample count, maximum watts and last-power receipt age.
+An empty READ reply remains acknowledgement without a measurement; a received
+zero-valued push counts as a sample. No silence is converted into zero watts.
+Transport and measurement decoding remain unchanged from 0.1.7.
 
 The exact Locus implementation is unknown. Assist mode alone does not establish
 which channel Locus uses: redundo.app also reports it as undocumented LDI field 8.
 The new MCSP route is justified by the user's repeatedly empty LDI responses,
 the presence of MCSP in their service discovery, and public hardware-tested
-protocol references. B-Cycle itself still needs a hardware test. If neither
-values nor useful responses arrive, a capture of the working Locus BLE traffic
-would provide stronger evidence than another speculative startup command.
+protocol references. Speed reception is now confirmed on the user’s hardware;
+rider power needs a test under normal riding load, optionally compared with Locus
+under similar conditions. The unloaded stationary test does not establish
+whether constant zero is a load-dependent measurement or absent further power
+updates. The improved diagnostics distinguish those cases without changing the
+working connection or speculating about additional startup commands.
 
 ## MIT license notice for the cross-checked protocol implementation
 
