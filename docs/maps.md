@@ -1,7 +1,7 @@
 # Karten und Dashboards (ab 0.5.0)
 
-Diese Beschreibung umfasst den aktuellen Code nach APK 0.6.6. Für die jüngsten
-Bedienungsänderungen ist auf Wunsch noch keine neue APK gebaut.
+Diese Beschreibung umfasst APK 0.6.7 mit den jüngsten Bedienungsänderungen
+und dem gemeinsamen GPX-/FIT-Streckenmanager.
 
 Mapsforge 0.25.0 ist als native Android-View eingebunden. Die Single-Activity,
 die vorhandene GPS-Filterung, Sensoren und FIT-Aufzeichnung bleiben bestehen.

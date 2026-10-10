@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.6 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.6-test.apk).
+[Installierbare APK 0.6.7 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.7-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,11 +16,11 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 387.384 Byte (rund 387 KB).
-SHA-256: `c7fd69789137cc296a21047ab2ad3292cecc14f7257800cd97fc429bcc1ce790`.
+APK-Größe: 571.779 Byte (rund 572 KB).
+SHA-256: `51296fbbfda5807fa9520d2c14bf9b325579d87a92d082caadb3785829120491`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 99 Tests sind bestanden.
-Android-Lint meldet 28 Warnungen und keine Fehler.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 111 Tests sind bestanden.
+Android-Lint meldet 30 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
 Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
@@ -30,7 +30,7 @@ vom Nutzer auf dem Handy bestätigt. Version 0.6.2 ergänzt Rücknavigation zum 
 sechste Dashboard-Vorlage und eine grafische Vorlagenauswahl. Die neuen Abläufe sind automatisiert geprüft;
 der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.md).
 
-## Benutzung der APK 0.6.6
+## Benutzung der APK 0.6.7
 
 1. Als Update installieren, Fahrrad mit Bosch Flow entsperren. **Flow darf weiterlaufen.**
 2. **☰ → Sensoren verwalten → Sensor hinzufügen** öffnet die Auswahl für Bosch
@@ -41,10 +41,10 @@ der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.
 3. Rad und Pulsmesser werden lokal gespeichert und verbinden sich automatisch
    beim Öffnen und während gestarteter Fahrten. Der Sensormanager zeigt ihren
    Zustand und ermöglicht Verbinden/Trennen; dort wird auch GPS ein-/ausgeschaltet.
-4. Ein Datenfeld antippen: zunächst sind **GPS**, **E-Bike** und **Pulsmesser**
-   eingeklappt. Kategorie öffnen und einen Wert wählen. Alle sieben Felder sind
+4. Im Stand ein Datenfeld antippen: oben die Quelle **GPS**, **E-Bike** oder
+   **Pulsmesser** im Dropdown auswählen, darunter einen Wert wählen. Alle sieben Felder sind
    frei belegbar. Fahrerleistung (eigene Watt) und Motorleistung bleiben getrennt.
-5. **☰ → Aufzeichnungsmanager** bestimmt die zu speichernden Werte und getrennt
+5. **☰ → FIT-Aufzeichnung** bestimmt die zu speichernden Werte und getrennt
    die FIT-Hauptquellen für Geschwindigkeit und Distanz (jeweils GPS oder E-Bike).
    Die andere Quelle bleibt als zusätzliches FIT-Developer-Feld erhalten, wenn sie
    angehakt ist. GPS-Route/Position ist ebenfalls abwählbar. Die Auswahl gilt für
@@ -57,7 +57,7 @@ der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.
    **Download/B-Cycle/** ab. Auch die Benachrichtigung hat eine STOPP-Aktion.
    Der Aufzeichnungsdienst bleibt bis zum Abschluss des Exports aktiv.
 8. Bei fehlgeschlagenem Speichern bleiben private Zwischendaten erhalten.
-   **☰ → Ungespeicherte Fahrten speichern** versucht den Export erneut; das gilt
+   **☰ → Erweitert → Ungespeicherte Fahrten speichern** versucht den Export erneut; das gilt
    auch für vollständige Messpunkte einer unterbrochenen Fahrt nach Prozessende.
 
 Die Messung läuft außerhalb gestarteter Fahrten bei sichtbarer App und endet
@@ -226,7 +226,7 @@ Kartengesten durch. Kartenquellenangabe und GPS-Status werden nicht überdeckt.
 
 Das Sensoren-Symbol ist ab 0.6.6 etwas kleiner; die äußeren Bögen werden nicht mehr abgeschnitten.
 
-Änderungen im aktuellen Code nach APK 0.6.6 (noch keine neue APK): Die Quellenwahl
+Neu in APK 0.6.7: Die Quellenwahl
 für Dashboard- und Kartenfelder erfolgt über ein feststehendes Dropdown;
 darunter scrollt nur die nach Themen gruppierte Werteliste. Auf der Karte
 öffnet das Streckensymbol links oben direkt den Streckenmanager. Zentrierung,
@@ -240,7 +240,7 @@ Bewegung. Frische E-Bike-Geschwindigkeit hat Vorrang, ersatzweise gilt gefiltert
 Fehlende Geschwindigkeit während einer Aufzeichnung sperrt ebenfalls; vor einer
 Fahrt ist Einrichtung ohne Sensoren möglich. Die Auswahl prüft auch vor dem Speichern.
 
-**Neuer gemeinsamer Streckenmanager (noch nicht in APK 0.6.6):** **☰ → FIT-Aufzeichnung**
+**Gemeinsamer Streckenmanager ab APK 0.6.7:** **☰ → FIT-Aufzeichnung**
 legt weiterhin nur Speicherfelder und Hauptquellen fest. **☰ → Streckenmanager** zeigt
 FIT-Fahrten und importierte GPX-/FIT-Strecken mit festem Filter Alle/Gefahren/Importiert,
 Datum, verfügbarer Distanz/Dauer und kleiner Streckenvorschau. Das Auge schaltet die
@@ -256,5 +256,5 @@ unverändert. Nextcloud und automatische Uploads sind noch nicht implementiert.
 Details: [Streckenverwaltung](docs/routes.md).
 
 Der aktuelle Code wurde kompiliert: 111 Tests bestanden, Android-Lint ohne Fehler
-(30 Warnungen). Auch die Release-Optimierung mit R8 wurde ohne APK-Erzeugung geprüft.
-Die neue Kartenbedienung und Streckenverwaltung sind noch nicht auf dem Poco getestet; keine neue APK gebaut.
+(30 Warnungen). Auch die Release-Optimierung mit R8 und die installierbare APK wurden geprüft.
+Die neue Kartenbedienung und Streckenverwaltung sind noch nicht auf dem Poco getestet.

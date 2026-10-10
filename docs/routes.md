@@ -1,6 +1,6 @@
 # Gemeinsame Streckenverwaltung
 
-Code auf main nach APK 0.6.6; auf Benutzerwunsch noch keine neue APK.
+Ab APK 0.6.7; Quellcode und installierbare APK sind im Repository gespeichert.
 
 `MapState` betreibt den vorhandenen Manager weiter: eine gemeinsame Liste und
 Kartenauswahl für GPX-Importe und FIT-Aktivitäten. `RouteManagerView` verwendet
