@@ -1,0 +1,93 @@
+package de.bcycle.app
+
+import android.content.ContentValues
+import android.content.Context
+import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
+import java.io.File
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.UUID
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.atomic.AtomicInteger
+
+/** All journal/FIT/download I/O is serialized outside the main thread. */
+class RecordingStore(private val context: Context, private val changed: (String, Boolean) -> Unit) {
+    private val directory = File(context.filesDir, "pending-rides").apply { mkdirs() }
+    private val handler = Handler(Looper.getMainLooper())
+    private val worker = ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, ArrayBlockingQueue(32)) { task -> Thread(task, "B-Cycle-FIT") }
+    private var journal: RideJournal? = null
+    private val queuedSamples = AtomicInteger()
+    @Volatile var failed = false; private set
+    private fun report(text: String, busy: Boolean) { handler.post { changed(text, busy) } }
+    private fun submit(action: () -> Unit): Boolean {
+        return try { worker.execute(action); true } catch (_: RejectedExecutionException) {
+            failed = true; report("Speicher überlastet · bitte STOPP drücken", false); false
+        }
+    }
+    fun begin(start: Long, config: RecordingConfig) {
+        failed = false
+        submit {
+            try {
+                val name = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(start)) + "_" + UUID.randomUUID().toString().take(8)
+                journal = RideJournal(File(directory, "$name.ride"), start, config)
+            } catch (_: Exception) { failed = true; report("Aufzeichnung konnte nicht angelegt werden · bitte STOPP", false) }
+        }
+    }
+    fun append(sample: RideSample) {
+        if (failed) return
+        if (queuedSamples.incrementAndGet() > 24) {
+            queuedSamples.decrementAndGet(); failed = true
+            report("Speicher überlastet · bitte STOPP drücken", false); return
+        }
+        val accepted = submit {
+            try {
+                if (!failed) journal?.append(sample)
+            } catch (_: Exception) { failed = true; report("Fehler beim Schreiben · Zwischendatei bleibt erhalten", false) }
+            finally { queuedSamples.decrementAndGet() }
+        }
+        if (!accepted) queuedSamples.decrementAndGet()
+    }
+    fun finish() = submit {
+        val current = journal; journal = null
+        try { current?.close() } catch (_: Exception) { failed = true }
+        if (current == null) { report("Keine Aufzeichnungsdatei vorhanden", false); return@submit }
+        report("FIT wird gespeichert …", true)
+        report(export(current.file), false)
+    }
+    fun retryPending() = submit {
+        val files = directory.listFiles { file -> file.extension == "ride" && file != journal?.file }.orEmpty()
+        if (files.isEmpty()) { report("Keine ungespeicherten Fahrten", false); return@submit }
+        report("FIT wird gespeichert …", true)
+        var saved = 0
+        var last = ""
+        for (file in files) { last = export(file); if (last.startsWith("Gespeichert:")) saved++ }
+        report(if (files.size == 1) last else "$saved von ${files.size} Fahrten gespeichert · übrige Daten bleiben erhalten", false)
+    }
+    private fun export(source: File): String {
+        val encoded = File(directory, source.nameWithoutExtension + ".fit")
+        try {
+            FitWriter.encode(source, encoded)
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, "B-Cycle-" + encoded.name)
+                put(MediaStore.Downloads.MIME_TYPE, "application/vnd.ant.fit")
+                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/B-Cycle")
+                put(MediaStore.Downloads.IS_PENDING, 1)
+            }
+            val resolver = context.contentResolver
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: error("Download entry unavailable")
+            try {
+                resolver.openOutputStream(uri, "w")?.use { output -> encoded.inputStream().use { it.copyTo(output) } } ?: error("Download stream unavailable")
+                check(resolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }, null, null) == 1)
+            } catch (error: Exception) { resolver.delete(uri, null, null); throw error }
+            source.delete(); encoded.delete()
+            return "Gespeichert: Download/B-Cycle/B-Cycle-${encoded.name}" + if (failed) " · enthält Daten bis zum Speicherfehler" else ""
+        } catch (_: Exception) { return "FIT nicht gespeichert · Daten bleiben erhalten. Im Menü erneut speichern." }
+    }
+}

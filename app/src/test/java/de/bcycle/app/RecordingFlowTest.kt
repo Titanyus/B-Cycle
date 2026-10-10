@@ -1,0 +1,146 @@
+package de.bcycle.app
+
+import android.Manifest
+import android.content.ContentProvider
+import android.content.ContentValues
+import android.content.Intent
+import android.content.pm.ProviderInfo
+import android.database.Cursor
+import android.location.Location
+import android.location.LocationManager
+import android.net.Uri
+import android.os.Looper
+import android.os.ParcelFileDescriptor
+import android.os.SystemClock
+import android.provider.MediaStore
+import com.garmin.fit.FitDecoder
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
+import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowContentResolver
+import java.io.File
+import java.io.FileNotFoundException
+import java.time.Duration
+
+/** Exercises real runtime/service/journal/export against a native ContentProvider test double. */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [33, 35])
+class RecordingFlowTest {
+    private fun provider(): DownloadsProvider {
+        val app = RuntimeEnvironment.getApplication()
+        return DownloadsProvider(File(app.cacheDir, "test-downloads").apply { mkdirs() }).also {
+            it.attachInfo(app, ProviderInfo().apply { authority = MediaStore.AUTHORITY })
+            ShadowContentResolver.registerProviderInternal(MediaStore.AUTHORITY, it)
+        }
+    }
+    private fun await(condition: () -> Boolean) {
+        val deadline = System.nanoTime() + 10_000_000_000L
+        while (!condition() && System.nanoTime() < deadline) {
+            shadowOf(Looper.getMainLooper()).idle(); Thread.sleep(10)
+        }
+        assertTrue("Worker did not finish", condition())
+    }
+    @Test fun recordingContinuesWithoutActivityAndStopPublishesSelectedGpsRouteInDownloads() {
+        val app = RuntimeEnvironment.getApplication()
+        shadowOf(app).grantPermissions(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.POST_NOTIFICATIONS)
+        val provider = provider()
+        val runtime = RideRuntime.get(app)
+        runtime.saveConfig(RecordingConfig(setOf("GPS_POSITION", "GPS_SPEED", "GPS_DISTANCE"), "GPS_SPEED", "GPS_DISTANCE"))
+        val manager = app.getSystemService(LocationManager::class.java)
+        shadowOf(manager).setProviderEnabled(LocationManager.GPS_PROVIDER, true)
+        runtime.setVisible(true)
+        val controller = Robolectric.buildService(RecordingService::class.java).create()
+        val service = controller.get()
+        service.onStartCommand(Intent(app, RecordingService::class.java).setAction(RecordingService.START), 0, 1)
+        assertTrue(runtime.recording)
+        runtime.setVisible(false) // Equivalent to Activity.onStop / display off.
+        assertTrue(runtime.gpsSensor.active)
+        // Changing next-ride settings must not alter this ride's frozen field selection.
+        runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER")))
+        repeat(6) { index ->
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+            shadowOf(manager).simulateLocation(Location(LocationManager.GPS_PROVIDER).apply {
+                latitude = 50.0 + index * 0.000045; longitude = 8.0; accuracy = 3f
+                speed = 5f; speedAccuracyMetersPerSecond = 0.2f
+                elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos(); time = System.currentTimeMillis()
+            })
+            shadowOf(Looper.getMainLooper()).idle()
+        }
+        service.onStartCommand(Intent(app, RecordingService::class.java).setAction(RecordingService.STOP), 0, 2)
+        assertFalse(runtime.recording)
+        assertTrue(runtime.saving)
+        assertFalse(shadowOf(service).isForegroundStopped)
+        assertFalse(runtime.gpsSensor.active)
+        await { !runtime.saving }
+        assertTrue(shadowOf(service).isForegroundStopped)
+        assertTrue(runtime.recordingStatus.startsWith("Gespeichert:"))
+        assertEquals(1, provider.published.size)
+        assertEquals("Download/B-Cycle", provider.lastValues!!.getAsString(MediaStore.Downloads.RELATIVE_PATH))
+        assertTrue(provider.lastValues!!.getAsString(MediaStore.Downloads.DISPLAY_NAME).endsWith(".fit"))
+        val records = provider.published.single().inputStream().use { FitDecoder().decode(it).recordMesgs }
+        assertTrue(records.size >= 6)
+        assertTrue(records.any { it.positionLat != null && it.speed != null })
+        assertTrue(records.last().distance > 0f)
+        assertTrue(records.all { it.power == null })
+        // STOP is idempotent: it must not publish a duplicate ride.
+        service.onStartCommand(Intent(app, RecordingService::class.java).setAction(RecordingService.STOP), 0, 3)
+        assertEquals(1, provider.published.size)
+        controller.destroy()
+    }
+    @Test fun failedDownloadLeavesPrivateJournalAndRetryPublishesOneValidFit() {
+        val app = RuntimeEnvironment.getApplication()
+        val provider = provider().apply { failWriting = true }
+        var status = ""
+        val store = RecordingStore(app) { message, _ -> status = message }
+        val start = 1_791_626_400_000L
+        store.begin(start, RecordingConfig(setOf("HEART_RATE")))
+        store.append(RideSample(start, 0, values = mapOf("HEART_RATE" to 130.0)))
+        store.append(RideSample(start + 1000, 1000, values = mapOf("HEART_RATE" to 140.0)))
+        store.finish()
+        await { status.startsWith("FIT nicht gespeichert") }
+        val directory = File(app.filesDir, "pending-rides")
+        assertEquals(1, directory.listFiles { file -> file.extension == "ride" }!!.size)
+        assertTrue(provider.published.isEmpty())
+        assertTrue(provider.files.isEmpty()) // Incomplete public entry was deleted.
+        provider.failWriting = false
+        store.retryPending()
+        await { status.startsWith("Gespeichert:") }
+        assertEquals(1, provider.published.size)
+        assertTrue(directory.listFiles()!!.isEmpty())
+        val records = provider.published.single().inputStream().use { FitDecoder().decode(it).recordMesgs }
+        assertEquals(listOf(130, 140), records.map { it.heartRate.toInt() })
+    }
+
+    private class DownloadsProvider(private val directory: File) : ContentProvider() {
+        val files = linkedMapOf<Uri, File>()
+        val published = mutableListOf<File>()
+        var failWriting = false
+        var lastValues: ContentValues? = null
+        private var nextId = 0
+        override fun onCreate() = true
+        override fun insert(uri: Uri, values: ContentValues?): Uri {
+            lastValues = ContentValues(values!!)
+            assertEquals(1, values.getAsInteger(MediaStore.Downloads.IS_PENDING).toInt())
+            val entry = Uri.withAppendedPath(uri, (++nextId).toString())
+            files[entry] = File(directory, "entry-$nextId.fit")
+            return entry
+        }
+        override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
+            if (failWriting) throw FileNotFoundException("Simulated unavailable storage")
+            return ParcelFileDescriptor.open(files.getValue(uri), ParcelFileDescriptor.MODE_CREATE or ParcelFileDescriptor.MODE_TRUNCATE or ParcelFileDescriptor.MODE_WRITE_ONLY)
+        }
+        override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
+            assertEquals(0, values!!.getAsInteger(MediaStore.Downloads.IS_PENDING).toInt())
+            published.add(files.getValue(uri)); return 1
+        }
+        override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int { files.remove(uri)?.delete(); return 1 }
+        override fun getType(uri: Uri) = "application/vnd.ant.fit"
+        override fun query(uri: Uri, projection: Array<out String>?, selection: String?, selectionArgs: Array<out String>?, sortOrder: String?): Cursor? = null
+    }
+}

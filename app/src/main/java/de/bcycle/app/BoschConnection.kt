@@ -20,6 +20,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         fun onStatus(message: String)
         fun onData(data: LiveData, packetReceived: Boolean)
         fun onDevice(device: BluetoothDevice, name: String)
+        fun onSamples(samples: List<McspSample>) {}
     }
     private enum class Phase { STOPPED, SCANNING, CHOOSING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, LIVE }
     private val appContext = context.applicationContext
@@ -40,7 +41,6 @@ class BoschConnection(context: Context, private val listener: Listener, private 
     private var mcsp = McspProtocol()
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var writes: SerialWriteQueue<McspTransmission>? = null
-    val canReread: Boolean get() = phase == Phase.LIVE && writes?.idle == true
     private var phase = Phase.STOPPED
     val isActive: Boolean get() = phase != Phase.STOPPED
     val isLive: Boolean get() = phase == Phase.LIVE
@@ -165,13 +165,6 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         val requested = gatt.requestMtu(247)
         diagnostics.event("MTU_REQUEST value=247 started=$requested")
         if (!requested) fail("MTU-Anfrage konnte nicht gestartet werden")
-    }
-
-    /** Explicit snapshots; normal operation relies on subscribed updates. */
-    fun reread() {
-        if (!canReread) return
-        diagnostics.event("MCSP_MANUAL_READ known live measurement requests")
-        writes?.enqueue(mcsp.reads())
     }
 
     private fun clientCallback(session: Int) = object : BluetoothGattCallback() {
@@ -323,6 +316,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         if (outcome.replies.isNotEmpty()) writes?.enqueue(outcome.replies, urgent = true)
         if (phase == Phase.STOPPED) return
         if (outcome.update.hasValues) {
+            listener.onSamples(outcome.samples)
             liveMeasurementsReceived = liveMeasurementsReceived || outcome.samples.any { it.isPush }
             liveData = liveData.merge(outcome.update)
             listener.onData(liveData, true)

@@ -1,15 +1,16 @@
-# GPS-Fahrtwerte in 0.3.0
+# GPS-Fahrtwerte ab 0.4.0
 
 Native `LocationManager.GPS_PROVIDER`, ungefähr eine Messung je Sekunde. Kein
 Google-Play-Services-SDK, kein Netzwerkstandort, keine Internetberechtigung.
 Android fragt bei Auswahl eines GPS-Felds oder beim Aktivieren im Menü nach
 präzisem Standort während der App-Nutzung. Bluetooth funktioniert ohne GPS-Freigabe.
 
-Die Messung läuft nur bei sichtbarer Activity; das Display bleibt dabei an.
-Beim Verlassen wird der Listener entfernt, bei Rückkehr wieder angemeldet, wenn
-GPS aktiviert ist. Fahrtzähler bleiben im Speicher über Pausen und Bildschirmdrehung
-erhalten. Vollständiges Beenden bzw. Prozessende oder „Neue Fahrt“ startet neue
-Zähler. Es gibt noch keine Routenaufzeichnung, dauerhafte Fahrtdatei oder GPX-Export.
+Außerhalb einer gestarteten Fahrt läuft die Messung bei sichtbarer Activity.
+Nach START hält der Aufzeichnungsdienst GPS auch bei ausgeschaltetem Display
+und beim Wechsel in andere Apps aktiv. STOPP beendet und speichert die Fahrt.
+START setzt die Fahrtzähler zurück. GPS-Positionen werden in FIT gespeichert,
+wenn „GPS-Route / Position“ im Aufzeichnungsmanager ausgewählt ist.
+Es gibt keinen GPX-Export; Details: [FIT-Aufzeichnung](fit.md).
 
 ## Quellen und Zeiten
 
@@ -18,7 +19,7 @@ ersetzt stillschweigend einen anderen. E-Bike-Fahrdistanz summiert positive
 Differenzen des empfangenen Bosch-Kilometerstands. Wiederholte Teilupdates zählen
 keine zusätzliche Strecke. Nach einer Unterbrechung beginnt eine neue Referenz;
 der Gesamtkilometerstand bleibt ein separater Wert. Ein Radwechsel setzt nur den
-E-Bike-Fahrtzähler zurück. „Neue Fahrt“ setzt beide Quellen zurück.
+E-Bike-Fahrtzähler zurück. START setzt beide Quellen zurück.
 
 - **Bewegungsdurchschnitt:** GPS-Strecke / bestätigte GPS-Bewegungszeit.
 - **Gesamtdurchschnitt:** GPS-Strecke / aktive GPS-Fahrtdauer, einschließlich
@@ -26,12 +27,12 @@ E-Bike-Fahrtzähler zurück. „Neue Fahrt“ setzt beide Quellen zurück.
 - **Standzeit:** Intervalle mit bestätigtem Stillstand. Empfangslücken sind keine
   bestätigte Standzeit und erscheinen deshalb nicht automatisch darin.
 - **Fahrtdauer:** aktive GPS-Zeit ab erster brauchbarer Position, inklusive
-  Empfangswarten. Offscreen-Zeit und manuelles GPS-Pausieren zählen nicht.
+  Empfangswarten. Bei gestarteter Fahrt zählt auch Offscreen-Zeit; manuelles GPS-Trennen zählt nicht.
 - **Maximaltempo:** Maximum der gefilterten Geschwindigkeit aus zusammenhängenden
   Messungen. Eine einzelne erste Position erzeugt noch kein Maximum.
 
-Es handelt sich um geschätzte Intervalle zwischen Positionen, keine automatische
-Aufzeichnung im Hintergrund. Bei kurzen Aussetzern können GPS und Radstrecke
+Es handelt sich um geschätzte Intervalle zwischen Positionen. Die Aufzeichnung
+im Hintergrund beginnt ausschließlich durch START. Bei kurzen Aussetzern können GPS und Radstrecke
 abweichen. Beide Distanzen beginnen beim jeweils ersten brauchbaren Quellenwert.
 
 ## Filter und Grenzen
@@ -74,6 +75,7 @@ und Steigung brauchen einen Vergleich auf einer echten Fahrt. Für genauere Höh
 könnte später ein vorhandenes Barometer mit GPS-Korrektur ergänzt werden.
 
 Nur ein Positionsanker, die letzte Messung, fünf Höhen und höchstens 100 Paare
-aus Wegstrecke/Höhe liegen im Speicher. Es gibt keine gespeicherte Positionsroute
-und keine Koordinaten im Diagnosebericht. Der Bericht enthält Zähler und aggregierte
+aus Wegstrecke/Höhe liegen für die GPS-Berechnung im Speicher. Während einer
+Aufzeichnung liegen ausgewählte Positionen im privaten Journal und später in FIT,
+aber nicht im Diagnosebericht. Der Bericht enthält Zähler und aggregierte
 Fahrtwerte ausschließlich nach ausdrücklich gewähltem Export.

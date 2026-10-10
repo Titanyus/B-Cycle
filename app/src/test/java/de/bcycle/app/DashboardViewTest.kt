@@ -76,7 +76,7 @@ class DashboardViewTest {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         val activity = controller.get()
         val content = activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
-        activity.onData(LiveData(2530, 183, mapOf(
+        RideRuntime.get(activity).onData(LiveData(2530, 183, mapOf(
             LiveMetric.CADENCE to 170L, LiveMetric.BATTERY to 96L,
             LiveMetric.ASSIST_MODE to 2L, LiveMetric.ODOMETER to 14_791_937L,
             LiveMetric.MOTOR_POWER to 320L,
@@ -89,11 +89,13 @@ class DashboardViewTest {
         val dashboard = descendants(content).filterIsInstance<DashboardView>().single()
         descendants(dashboard).filter { it.isClickable }[2].performClick()
         val picker = ShadowAlertDialog.getLatestAlertDialog()
+        descendants(picker.window!!.decorView).single { it.tag == "category_E-Bike" }.performClick()
         descendants(picker.window!!.decorView).single { it.tag == "RIDER_POWER" }.performClick()
         assertEquals("RIDER_POWER", DashboardLayout.decode(context.getSharedPreferences("bike", 0).getString("dashboard", null)).fields[2].id)
         controller.pause().stop().destroy()
         val restarted = Robolectric.buildActivity(MainActivity::class.java).setup()
         val next = descendants(restarted.get().findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
+        measure(next, 1080, 1950)
         assertTrue(descendants(next).filter { it.isClickable }[2].contentDescription.toString().startsWith("E-Bike · Fahrerleistung:"))
         restarted.pause().stop().destroy()
     }
@@ -103,18 +105,19 @@ class DashboardViewTest {
         context.getSharedPreferences("bike", 0).edit().clear().commit()
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         val dashboard = descendants(controller.get().findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
+        measure(dashboard, 1080, 1950)
         val tiles = descendants(dashboard).filter { it.isClickable }
         tiles[2].performClick()
         val picker = ShadowAlertDialog.getLatestAlertDialog()
         val all = descendants(picker.window!!.decorView)
-        assertTrue(all.filterIsInstance<TextView>().any { it.text.toString() == "GPS" })
-        assertTrue(all.filterIsInstance<TextView>().any { it.text.toString() == "E-Bike" })
-        assertEquals(1, all.count { it.tag == "GPS_DISTANCE" })
-        assertEquals(1, all.count { it.tag == "BIKE_DISTANCE" })
-        all.single { it.tag == "GPS_SPEED" }.performClick()
+        assertEquals(3, all.count { it.tag?.toString()?.startsWith("category_") == true })
+        assertEquals(0, all.count { it.tag == "GPS_DISTANCE" }) // Initially collapsed.
+        all.single { it.tag == "category_GPS" }.performClick()
+        val expanded = descendants(picker.window!!.decorView)
+        assertEquals(1, expanded.count { it.tag == "GPS_DISTANCE" })
+        expanded.single { it.tag == "GPS_SPEED" }.performClick()
         val prefs = context.getSharedPreferences("bike", 0)
         assertEquals("GPS_SPEED", DashboardLayout.decode(prefs.getString("dashboard", null)).fields[2].id)
-        assertTrue(prefs.getBoolean("gpsEnabled", false))
         assertTrue(tiles[2].contentDescription.toString().startsWith("GPS · Geschwindigkeit:"))
         assertTrue(tiles[0].contentDescription.toString().startsWith("E-Bike · Fahrerleistung:"))
         controller.pause().stop().destroy()

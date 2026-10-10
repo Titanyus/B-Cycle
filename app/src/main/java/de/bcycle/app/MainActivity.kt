@@ -8,448 +8,300 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Build
-import android.os.Looper
 import android.os.SystemClock
-import android.view.Gravity
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.ScrollView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import java.io.IOException
-import java.time.Instant
 
-class MainActivity : Activity(), BoschConnection.Listener {
-    private lateinit var connection: BoschConnection
-    private val diagnostics = DiagnosticLog()
-    private var pendingReport: String? = null
+/** Native Views remain the UI; the runtime also survives while the recording service is active. */
+class MainActivity : Activity() {
+    private lateinit var runtime: RideRuntime
+    private lateinit var dashboard: DashboardView
+    private lateinit var summary: TextView
     private lateinit var status: TextView
     private lateinit var packetAge: TextView
-    private lateinit var devices: LinearLayout
-    private lateinit var selectedBikeSummary: TextView
-    private val seenAddresses = mutableSetOf<String>()
-    private val handler = Handler(Looper.getMainLooper())
-    private var lastPacketAt: Long? = null
-    private val reconnect = AutoReconnect()
-    private lateinit var dashboard: DashboardView
-    private lateinit var connectionButton: Button
+    private lateinit var sensorsStatus: TextView
+    private lateinit var recordingStatus: TextView
+    private lateinit var startButton: Button
     private var dashboardLayout = DashboardLayout.defaults
-    private var liveData = LiveData()
-    private lateinit var ride: RideSession
-    private lateinit var gpsSensor: GpsSensor
-    private lateinit var gpsStatusView: TextView
-    private var gpsEnabled = false
-    private var gpsMessage = "GPS · Aus"
-    private var deviceDialog: AlertDialog? = null
-    private var fieldDialog: AlertDialog? = null
-    private var menuDialog: AlertDialog? = null
-    private var scanStatus: TextView? = null
-    private var selectedAddress: String? = null
-    private var selectedName = "E-Bike"
-    private var permissionAsked = false
-    private val preferences by lazy { getSharedPreferences("bike", MODE_PRIVATE) }
-    private val permissions = arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
-    private val tick = object : Runnable {
-        override fun run() {
-            packetAge.text = lastPacketAt?.let {
-                "Letztes Datenpaket vor ${(SystemClock.elapsedRealtime() - it) / 1000} s"
-            } ?: getString(R.string.no_data)
-            refreshDashboard()
-            tryAutoConnect()
-            handler.postDelayed(this, 1000)
-        }
+    private var picker: AlertDialog? = null
+    private var menu: AlertDialog? = null
+    private var sensorManager: AlertDialog? = null
+    private var sensorRows: LinearLayout? = null
+    private var scan: HeartRateScan? = null
+    private var scanningBike = false
+    private var pendingSensor: String? = null
+    private var pendingStart = false
+    private var pendingReport: String? = null
+    private val observer: () -> Unit = { render(); refreshSensorRows() }
+    private val preferences get() = runtime.preferences
+    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+    private fun label(text: String, size: Float = 14f, color: Int = Color.WHITE) = TextView(this).apply {
+        this.text = text; textSize = size; setTextColor(color)
     }
-
+    private fun column() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(8)) }
+    private fun button(text: String, action: () -> Unit) = Button(this).apply { this.text = text; isAllCaps = false; setOnClickListener { action() } }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        runtime = RideRuntime.get(this)
         pendingReport = savedInstanceState?.getString("pendingReport")
-        selectedAddress = preferences.getString("address", null)?.takeIf { android.bluetooth.BluetoothAdapter.checkBluetoothAddress(it) }
-        selectedName = preferences.getString("name", "E-Bike") ?: "E-Bike"
-        reconnect.enabled = savedInstanceState?.getBoolean("autoConnect", true) ?: true
-        reconnect.exporting = pendingReport != null
-        reconnect.selecting = savedInstanceState?.getBoolean("selecting", false) ?: false
-        permissionAsked = savedInstanceState?.getBoolean("permissionAsked", false) ?: false
         dashboardLayout = DashboardLayout.decode(preferences.getString("dashboard", null))
-        ride = lastNonConfigurationInstance as? RideSession ?: RideSession()
-        gpsEnabled = preferences.getBoolean("gpsEnabled", false)
-        gpsSensor = GpsSensor(this, ride.gps) { message ->
-            gpsMessage = message
-            refreshDashboard()
-            updateScreenAwake()
-        }
-        diagnostics.reset(diagnosticHeader())
-        connection = BoschConnection(this, this, diagnostics)
-        val column = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.BLACK)
-        }
-        column.setOnApplyWindowInsetsListener { view, insets ->
+        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
+        root.setOnApplyWindowInsetsListener { view, insets ->
             val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
-            insets
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
         }
-        setContentView(column)
-        val header = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(8), dp(14), dp(6))
-        }
-        selectedBikeSummary = label("", 12f)
-        selectedBikeSummary.isSingleLine = true
-        updateBikeSummary()
-        status = label("Nicht verbunden", 12f, Color.rgb(170, 170, 170)).apply {
-            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
-            maxLines = 2
-        }
-        packetAge = label(getString(R.string.no_data), 11f, Color.rgb(119, 119, 119))
-        header.addView(selectedBikeSummary)
-        header.addView(status)
-        header.addView(packetAge)
-        gpsStatusView = label(gpsMessage, 11f, Color.rgb(163, 163, 163))
-        header.addView(gpsStatusView)
-        column.addView(header)
-        dashboard = DashboardView(this) { index -> chooseField(index) }
-        dashboard.show(dashboardLayout, liveData)
-        column.addView(dashboard, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        setContentView(root)
+        val header = column()
+        summary = label("", 12f).apply { isSingleLine = true }
+        status = label("", 12f, Color.LTGRAY).apply { maxLines = 2; accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
+        packetAge = label("", 11f, Color.GRAY)
+        sensorsStatus = label("", 11f, Color.LTGRAY).apply { maxLines = 2 }
+        recordingStatus = label("", 11f, Color.LTGRAY).apply { maxLines = 2 }
+        listOf(summary, status, packetAge, sensorsStatus, recordingStatus).forEach { header.addView(it) }
+        root.addView(header)
+        dashboard = DashboardView(this) { chooseField(it) }
+        root.addView(dashboard, LinearLayout.LayoutParams(-1, 0, 1f))
         val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        connectionButton = toolbarButton("VERBINDEN", Color.rgb(208, 0, 0)) {
-            if (connection.isActive || (reconnect.enabled && selectedAddress != null)) {
-                reconnect.enabled = false; reconnect.selecting = false
-                deviceDialog?.dismiss(); stopConnection()
-            } else {
-                reconnect.start()
-                if (selectedAddress == null) selectBike() else ensurePermissions()
-                tryAutoConnect()
-            }
+        fun toolbarButton(title: String, action: () -> Unit) = button(title, action).apply {
+            textSize = 20f; setTextColor(Color.WHITE); minWidth = 0; minHeight = 0
+            setPadding(dp(4), 0, dp(4), 0)
+            background = android.graphics.drawable.GradientDrawable().apply { setColor(Color.rgb(208, 0, 0)); setStroke(1, Color.rgb(70, 0, 0)) }
         }
-        toolbar.addView(connectionButton, LinearLayout.LayoutParams(0, dp(58), 2f))
-        toolbar.addView(toolbarButton("RAD", Color.rgb(158, 0, 0)) { selectBike() }, LinearLayout.LayoutParams(0, dp(58), 1f))
-        toolbar.addView(toolbarButton("MENÜ", Color.rgb(158, 0, 0)) { showMenu() }, LinearLayout.LayoutParams(0, dp(58), 1f))
-        column.addView(toolbar)
-        devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-    }
-
-    private fun toolbarButton(title: String, color: Int, action: () -> Unit) = Button(this).apply {
-        text = title; textSize = 16f
-        setTextColor(Color.WHITE)
-        setPadding(dp(4), 0, dp(4), 0)
-        minWidth = 0; minHeight = 0
-        background = android.graphics.drawable.GradientDrawable().apply {
-            setColor(color); setStroke(1, Color.rgb(70, 0, 0))
+        startButton = toolbarButton("START") {
+            if (runtime.recording) startService(Intent(this, RecordingService::class.java).setAction(RecordingService.STOP)) else startRide()
         }
-        setOnClickListener { action() }
+        toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), 3f))
+        toolbar.addView(toolbarButton("☰") { showMenu() }.apply { contentDescription = "Menü öffnen" }, LinearLayout.LayoutParams(0, dp(58), 1f))
+        root.addView(toolbar)
+        render()
     }
-
-    private fun chooseField(index: Int) {
-        val selected = dashboardLayout.fields[index]
-        fieldDialog?.dismiss()
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(8), dp(16), dp(8))
-        }
-        val gps = ride.gps.snapshot(SystemClock.elapsedRealtime())
-        var source: String? = null
-        for (group in DashboardField.groups(liveData, selected)) {
-            if (group.source != source) {
-                source = group.source
-                content.addView(label(source, 22f).apply {
-                    setPadding(0, dp(18), 0, dp(4)); isAccessibilityHeading = true
-                })
-            }
-            content.addView(label(group.title, 14f, Color.rgb(190, 190, 190)).apply {
-                setPadding(0, dp(12), 0, dp(4)); isAccessibilityHeading = true
-            })
-            for (field in group.fields) {
-                val value = field.value(liveData, gps, ride.bike.distanceM)
-                val title = if (field.id == "RIDER_POWER") "Fahrerleistung (eigene)" else field.title(liveData, gps)
-                content.addView(RadioButton(this).apply {
-                    tag = field.id
-                    text = "$title${if (value.unit.isNotEmpty()) " · ${value.unit}" else ""}"
-                    textSize = 16f; setTextColor(Color.WHITE)
-                    isChecked = field == selected
-                    minHeight = dp(48)
-                    contentDescription = "${field.source} · $text"
-                    setOnClickListener {
-                        dashboardLayout = dashboardLayout.replace(index, field)
-                        preferences.edit().putString("dashboard", dashboardLayout.encode()).apply()
-                        refreshDashboard()
-                        fieldDialog?.dismiss()
-                        if (field.source == "GPS") enableGps()
-                    }
-                })
-            }
-        }
-        fieldDialog = AlertDialog.Builder(this)
-            .setTitle("Feld ${index + 1} belegen${if (index == 2) " · großes Feld" else ""}")
-            .setView(ScrollView(this).apply { addView(content) })
-            .setNegativeButton("Abbrechen", null)
-            .show()
-    }
-
-    private fun showMenu() {
-        val gpsAction = if (gpsEnabled && hasGpsPermission()) "GPS pausieren" else "GPS aktivieren"
-        menuDialog = AlertDialog.Builder(this).setTitle("B-Cycle")
-            .setItems(arrayOf(gpsAction, "Neue Fahrt · Zähler zurücksetzen", "GPS-Messung erklärt", "Werte erneut lesen", "Diagnose speichern", "Standardbelegung herstellen", "Schrift & Lizenz")) { _, item ->
-                when (item) {
-                    0 -> if (gpsEnabled && hasGpsPermission()) {
-                        gpsEnabled = false; preferences.edit().putBoolean("gpsEnabled", false).apply()
-                        gpsSensor.stop(); gpsMessage = "GPS · Aus"; refreshDashboard(); updateScreenAwake()
-                    } else enableGps()
-                    1 -> {
-                        ride.gps.reset()
-                        ride.bike.reset(if (connection.isLive) liveData.value(LiveMetric.ODOMETER) else null)
-                        gpsMessage = if (gpsSensor.active) "GPS · Suche Position" else "GPS · Aus"
-                        refreshDashboard()
-                        Toast.makeText(this, "GPS- und E-Bike-Fahrtzähler zurückgesetzt", Toast.LENGTH_SHORT).show()
-                    }
-                    2 -> menuDialog = AlertDialog.Builder(this).setTitle("GPS-Messung")
-                        .setMessage("GPS misst bei sichtbarer App; das Display bleibt an. Beim Verlassen pausiert die Messung. Neue Fahrt setzt beide Strecken und alle GPS-Zähler zurück. Nach vollständigem Beenden beginnt eine neue Fahrt.\n\nBewegungsdurchschnitt zählt nur Bewegungszeit; Gesamtdurchschnitt enthält auch Pausen und Wartezeiten nach der ersten Position. Standzeit zählt nur bestätigten Stillstand. Empfangslücken werden nicht als gefahrene Strecke ergänzt.\n\nUngenaue Positionen und Sprünge werden verworfen. Bewegung unter etwa 2,5 km/h wird als Stillstand behandelt. Höhe wird geglättet, Höhenmeter zählen ab 3 m Änderung. Steigung braucht etwa 30–40 m Strecke und reagiert verzögert.\n\nFalls das Handy Meereshöhe (MSL) liefert, wird diese genutzt; sonst GPS-Ellipsoidhöhe. Höhe, Höhenmeter und Steigung sind Näherungen. Es wird noch keine Route gespeichert.")
-                        .setPositiveButton("Schließen", null).show()
-                    3 -> if (connection.canReread) connection.reread() else Toast.makeText(this, "Aktuell keine erneute Datenanfrage möglich", Toast.LENGTH_SHORT).show()
-                    4 -> exportDiagnostic()
-                    5 -> {
-                        dashboardLayout = DashboardLayout.defaults
-                        preferences.edit().putString("dashboard", dashboardLayout.encode()).apply()
-                        refreshDashboard()
-                    }
-                    6 -> {
-                        val license = assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }
-                        menuDialog = AlertDialog.Builder(this).setTitle("Bebas Neue · Dharma Type")
-                            .setMessage(license).setPositiveButton("Schließen", null).show()
-                    }
-                }
-            }.show()
-    }
-
-    private fun hasPermissions() = permissions.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
-    private fun hasGpsPermission() = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    private fun enableGps() {
-        gpsEnabled = true
-        preferences.edit().putBoolean("gpsEnabled", true).apply()
-        if (hasGpsPermission()) {
-            if (reconnect.foreground) gpsSensor.start()
-        } else {
-            gpsMessage = "GPS · Präzisen Standort erlauben"; refreshDashboard()
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 3)
-        }
-    }
-
-    private fun refreshDashboard() {
-        val gps = ride.gps.snapshot(SystemClock.elapsedRealtime())
-        dashboard.show(dashboardLayout, liveData, gps, ride.bike.distanceM)
-        gpsStatusView.text = if (gpsMessage == "GPS · Live" && gps.speedKmh == null) "GPS · Signal unterbrochen" else gpsMessage
-    }
-
-    private fun updateScreenAwake() {
-        if (reconnect.foreground && (connection.isActive || gpsSensor.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    private fun render() {
+        if (!::dashboard.isInitialized) return
+        summary.text = runtime.bikeAddress?.let { runtime.bikeName } ?: "Noch kein Fahrrad ausgewählt"
+        status.text = runtime.bikeStatus
+        packetAge.text = runtime.lastPacketAt?.let { "Letztes Fahrradpaket vor ${(SystemClock.elapsedRealtime() - it) / 1000} s" } ?: "Noch keine Fahrraddaten"
+        val gps = runtime.gpsValues
+        val gpsStatus = if (runtime.gpsStatus == "GPS · Live" && gps.speedKmh == null) "GPS · Signal unterbrochen" else runtime.gpsStatus
+        sensorsStatus.text = "$gpsStatus · ${runtime.heartStatus}"
+        recordingStatus.text = if (runtime.recording && runtime.recordingStatus == "Aufzeichnung läuft")
+            "● Aufzeichnung · ${runtime.elapsedMs / 60000} min" else runtime.recordingStatus
+        startButton.text = if (runtime.recording) "STOPP · SPEICHERN" else if (runtime.saving) "SPEICHERN …" else "START"
+        startButton.isEnabled = !runtime.saving || runtime.recording
+        dashboard.show(dashboardLayout, runtime.bikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
+        if (runtime.visible && (runtime.connection.isActive || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
-    private fun updateBikeSummary() {
-        selectedBikeSummary.text = if (selectedAddress == null) getString(R.string.no_bike_selected) else
-            getString(R.string.selected_bike_name, selectedName)
-    }
-
-    private fun ensurePermissions() {
-        if (!hasPermissions()) {
-            permissionAsked = true
-            requestPermissions(permissions, 1)
-        }
-    }
-
-    private fun selectBike() {
-        reconnect.selecting = true
-        if (hasPermissions()) startSelection() else ensurePermissions()
-    }
-
-    private fun startSelection() {
-        diagnostics.reset(diagnosticHeader())
-        seenAddresses.clear()
-        devices.removeAllViews()
-        (devices.parent as? android.view.ViewGroup)?.removeView(devices)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        // One native picker keeps the riding screen limited to the seven chosen fields.
-        val content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(8)) }
-        scanStatus = label("Suche nach BLE-Geräten", 14f)
-        content.addView(scanStatus)
-        content.addView(devices)
-        val scroll = ScrollView(this).apply { addView(content) }
-        val dialog = AlertDialog.Builder(this).setTitle("Fahrrad auswählen")
-            .setView(scroll).setNegativeButton("Abbrechen", null).create()
-        deviceDialog?.setOnDismissListener(null)
-        deviceDialog?.dismiss()
-        deviceDialog = dialog
-        dialog.setOnDismissListener {
-            if (deviceDialog === dialog) {
-                deviceDialog = null; scanStatus = null
-                (devices.parent as? android.view.ViewGroup)?.removeView(devices)
-                if (reconnect.selecting) {
-                    reconnect.selecting = false
-                    connection.stop()
-                    tryAutoConnect()
+    /** Starts with three collapsed source categories, builds only the opened source's rows. */
+    private fun chooseField(index: Int) {
+        picker?.dismiss()
+        val root = column()
+        val groups = DashboardField.groups(runtime.bikeData, dashboardLayout.fields[index]).groupBy { it.source }
+        for ((source, sections) in groups) {
+            val inner = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; visibility = View.GONE }
+            val heading = button("▸ $source") {}.apply { tag = "category_$source"; isAccessibilityHeading = true; stateDescription = "Eingeklappt" }
+            var built = false
+            heading.setOnClickListener {
+                val expand = inner.visibility != View.VISIBLE
+                if (expand && !built) {
+                    for (section in sections) {
+                        inner.addView(label(section.title, 14f, Color.LTGRAY).apply { setPadding(0, dp(10), 0, dp(4)); isAccessibilityHeading = true })
+                        for (field in section.fields) {
+                            val value = field.value(runtime.bikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues)
+                            val title = if (field.id == "RIDER_POWER") "Fahrerleistung (eigene)" else field.title(runtime.bikeData, runtime.gpsValues)
+                            inner.addView(RadioButton(this).apply {
+                                tag = field.id; text = "$title${if (value.unit.isNotEmpty()) " · ${value.unit}" else ""}"
+                                textSize = 16f; setTextColor(Color.WHITE); minHeight = dp(48)
+                                isChecked = dashboardLayout.fields[index] == field
+                                contentDescription = "$source · $text"
+                                setOnClickListener {
+                                    dashboardLayout = dashboardLayout.replace(index, field); preferences.edit().putString("dashboard", dashboardLayout.encode()).apply()
+                                    render(); picker?.dismiss(); if (source == "GPS") enableGps()
+                                }
+                            })
+                        }
+                    }
+                    built = true
                 }
+                inner.visibility = if (expand) View.VISIBLE else View.GONE
+                heading.text = "${if (expand) "▾" else "▸"} $source"
+                heading.stateDescription = if (expand) "Ausgeklappt" else "Eingeklappt"
+            }
+            root.addView(heading); root.addView(inner)
+        }
+        picker = AlertDialog.Builder(this).setTitle("Feld ${index + 1} belegen").setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).show()
+    }
+    private fun showMenu() {
+        val choices = arrayOf("Sensoren verwalten", "Fahrrad auswählen", "Aufzeichnung einstellen", "Ungespeicherte Fahrten speichern", "GPS-Messung erklärt", "Diagnose speichern", "Standardbelegung herstellen", "Schrift & Lizenz")
+        menu = AlertDialog.Builder(this).setTitle("B-Cycle").setItems(choices) { _, item -> when (item) {
+            0 -> showSensorManager()
+            1 -> selectSensor("bike")
+            2 -> recordingSettings()
+            3 -> runtime.retryPending()
+            4 -> menu = AlertDialog.Builder(this).setTitle("GPS-Messung").setMessage("Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").setPositiveButton("Schließen", null).show()
+            5 -> exportDiagnostic()
+            6 -> { dashboardLayout = DashboardLayout.defaults; preferences.edit().putString("dashboard", dashboardLayout.encode()).apply(); render() }
+            7 -> menu = AlertDialog.Builder(this).setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
+        } }.show()
+    }
+    private fun showSensorManager() {
+        sensorManager?.dismiss()
+        val root = column(); sensorRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        root.addView(sensorRows)
+        root.addView(button("Sensor hinzufügen") {
+            menu = AlertDialog.Builder(this).setTitle("Sensor hinzufügen").setItems(arrayOf("Bosch E-Bike", "BLE-Pulsmesser")) { _, index -> selectSensor(if (index == 0) "bike" else "heart") }.show()
+        })
+        refreshSensorRows()
+        sensorManager = AlertDialog.Builder(this).setTitle("Sensoren").setView(ScrollView(this).apply { addView(root) }).setPositiveButton("Schließen", null).create().apply {
+            setOnDismissListener { sensorRows = null }; show()
+        }
+    }
+    private fun refreshSensorRows() {
+        val rows = sensorRows ?: return
+        // Keep focused controls stable when only live status text changes.
+        if (rows.childCount > 0) {
+            rows.findViewWithTag<TextView>("bike_state")?.text = runtime.bikeStatus
+            rows.findViewWithTag<TextView>("heart_state")?.text = runtime.heartStatus
+            rows.findViewWithTag<TextView>("gps_state")?.text = runtime.gpsStatus
+            return
+        }
+        fun sensor(title: String, state: String, tag: String, enabled: Boolean, toggle: () -> Unit) {
+            rows.addView(label(title, 18f).apply { setPadding(0, dp(12), 0, dp(4)) })
+            rows.addView(label(state, 13f, Color.LTGRAY).apply { this.tag = tag })
+            rows.addView(button(if (enabled) "Trennen" else "Verbinden") { toggle(); rows.removeAllViews(); refreshSensorRows() })
+        }
+        sensor("GPS", runtime.gpsStatus, "gps_state", runtime.gpsEnabled) { if (runtime.gpsEnabled) runtime.setGpsEnabled(false) else enableGps() }
+        sensor("E-Bike · ${if (runtime.bikeAddress == null) "Kein Rad gespeichert" else runtime.bikeName}", runtime.bikeStatus, "bike_state", runtime.bikeEnabled && runtime.bikeAddress != null) {
+            if (runtime.bikeAddress == null) selectSensor("bike") else if (!runtime.hasBluetooth()) requestSensorPermission("bikeConnect") else runtime.setBikeEnabled(!runtime.bikeEnabled)
+        }
+        sensor("Pulsmesser · ${if (runtime.heartAddress == null) "Kein Sensor gespeichert" else runtime.heartName}", runtime.heartStatus, "heart_state", runtime.heartEnabled && runtime.heartAddress != null) {
+            if (runtime.heartAddress == null) selectSensor("heart") else if (!runtime.hasBluetooth()) requestSensorPermission("heartConnect") else runtime.setHeartEnabled(!runtime.heartEnabled)
+        }
+    }
+    private fun selectSensor(kind: String) {
+        sensorManager?.dismiss()
+        if (!runtime.hasBluetooth()) { requestSensorPermission(kind); return }
+        picker?.dismiss(); stopScan()
+        val root = column(); val scanLabel = label("Suche …"); root.addView(scanLabel)
+        val devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }; root.addView(devices)
+        val seen = mutableSetOf<String>()
+        fun found(device: BluetoothDevice, name: String) {
+            val address = try { device.address } catch (_: SecurityException) { return }
+            if (!seen.add(address)) return
+            devices.addView(button("$name\n$address") {
+                if (kind == "bike") { scanningBike = false; runtime.selectBike(device, name) } else runtime.selectHeart(device, name)
+                picker?.dismiss(); stopScan(); render()
+            })
+        }
+        picker = AlertDialog.Builder(this).setTitle(if (kind == "bike") "Fahrrad auswählen" else "Pulsmesser auswählen")
+            .setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).create().apply { setOnDismissListener { stopScan() }; show() }
+        if (kind == "bike") {
+            scanningBike = true; runtime.scanFound = ::found; runtime.scanStatus = { scanLabel.text = it }; runtime.beginBikeScan()
+        } else {
+            scan = HeartRateScan(this, ::found) { scanLabel.text = it }.also { it.start() }
+        }
+    }
+    private fun stopScan() {
+        scan?.stop(); scan = null; runtime.scanFound = null; runtime.scanStatus = null
+        if (scanningBike) { scanningBike = false; runtime.endBikeScan() }
+    }
+    private fun requestSensorPermission(kind: String) {
+        pendingSensor = kind
+        requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT), 1)
+    }
+    private fun enableGps() {
+        if (!runtime.hasGps()) requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 3)
+        else {
+            runtime.setGpsEnabled(true)
+            if (runtime.recording) startForegroundService(Intent(this, RecordingService::class.java).setAction(RecordingService.START))
+        }
+    }
+    private fun recordingSettings() {
+        val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column()
+        root.addView(label("Gilt für die nächste Fahrt. Nur angehakte Werte werden gespeichert. Fehlende Sensorwerte bleiben unbekannt.", 14f, Color.LTGRAY))
+        fun source(title: String, chosen: String, bikeId: String): Spinner {
+            root.addView(label(title, 16f).apply { setPadding(0, dp(12), 0, 0) })
+            return Spinner(this).apply {
+                adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, listOf("E-Bike", "GPS"))
+                setSelection(if (chosen == bikeId) 0 else 1); root.addView(this)
             }
         }
-        dialog.show()
-        connection.discover()
-    }
-
-    private fun tryAutoConnect() {
-        val address = selectedAddress ?: return
-        if (!hasPermissions() || !reconnect.due(SystemClock.elapsedRealtime(), connection.isActive)) return
-        reconnect.attempted(SystemClock.elapsedRealtime())
-        diagnostics.reset(diagnosticHeader())
-        try {
-            val manager = getSystemService(android.bluetooth.BluetoothManager::class.java)
-            val adapter = manager.adapter
-            if (adapter == null || !adapter.isEnabled) { onStatus("Bitte Bluetooth einschalten"); return }
-            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            connection.connect(adapter.getRemoteDevice(address))
-        } catch (_: SecurityException) { onStatus("Bluetooth-Zugriff ist für die Verbindung erforderlich") }
-        catch (_: IllegalStateException) { onStatus("Bluetooth ist nicht verfügbar") }
-    }
-
-    private fun diagnosticHeader(): String {
-        val version = packageManager.getPackageInfo(packageName, 0).versionName
-        return "App=$version device=${Build.MANUFACTURER} ${Build.MODEL} Android=${Build.VERSION.RELEASE} API=${Build.VERSION.SDK_INT}\n" +
-            "Session UTC=${Instant.now()}\nMode=MCSP"
-    }
-
-    private fun exportDiagnostic() {
-        diagnostics.event("EXPORT requested; leaving foreground will stop the BLE session")
-        val gps = ride.gps.snapshot(SystemClock.elapsedRealtime())
-        pendingReport = diagnostics.report() + "\nGPS foreground: enabled=$gpsEnabled accepted=${ride.gps.accepted} rejected=${ride.gps.rejected}\n" +
-            GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" } +
-            "\nBIKE_DISTANCE=${ride.bike.distanceM ?: "unavailable"} m\n"
-        reconnect.exporting = true
-        stopConnection()
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/plain"
-            val version = packageManager.getPackageInfo(packageName, 0).versionName
-            putExtra(Intent.EXTRA_TITLE, "B-Cycle-$version-diagnose.txt")
+        val speed = source("FIT-Hauptquelle · Geschwindigkeit", current.speedSource, "SPEED")
+        val distance = source("FIT-Hauptquelle · Strecke", current.distanceSource, "BIKE_DISTANCE")
+        for ((source, fields) in RecordField.options.groupBy { it.source }) {
+            root.addView(label(source, 20f).apply { setPadding(0, dp(18), 0, dp(6)); isAccessibilityHeading = true })
+            for (field in fields) root.addView(CheckBox(this).apply {
+                text = field.title; tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
+                setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id) }
+            })
         }
-        try { startActivityForResult(intent, 2) }
-        catch (_: android.content.ActivityNotFoundException) {
-            pendingReport = null
-            reconnect.exporting = false
-            Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show()
+        menu = AlertDialog.Builder(this).setTitle("Aufzeichnungsmanager").setView(ScrollView(this).apply { addView(root) })
+            .setPositiveButton("Speichern") { _, _ ->
+                runtime.saveConfig(RecordingConfig(selected.toSet(), if (speed.selectedItemPosition == 0) "SPEED" else "GPS_SPEED", if (distance.selectedItemPosition == 0) "BIKE_DISTANCE" else "GPS_DISTANCE"))
+                Toast.makeText(this, "Auswahl für die nächste Fahrt gespeichert", Toast.LENGTH_SHORT).show()
+            }.setNegativeButton("Abbrechen", null).show()
+    }
+    private fun startRide() {
+        if (runtime.recording || runtime.saving) return
+        val permissions = mutableListOf<String>()
+        if (!runtime.hasBluetooth()) permissions += listOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
+        if (!preferences.getBoolean("recordPermissionsAsked", false)) {
+            if (runtime.config.fields.any { it.startsWith("GPS_") } && !runtime.hasGps()) permissions += listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) permissions += Manifest.permission.POST_NOTIFICATIONS
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString("pendingReport", pendingReport)
-        outState.putBoolean("autoConnect", reconnect.enabled)
-        outState.putBoolean("selecting", reconnect.selecting)
-        outState.putBoolean("permissionAsked", permissionAsked)
-        super.onSaveInstanceState(outState)
-    }
-
-    @Deprecated("Platform document picker callback; no AndroidX dependency is needed")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != 2) return
-        val report = pendingReport
-        pendingReport = null
-        reconnect.exporting = false
-        val uri = data?.data
-        if (resultCode != RESULT_OK || report == null || uri == null) return
-        Thread({
-            val success = try {
-                val stream = contentResolver.openOutputStream(uri, "wt") ?: throw IOException("No output stream")
-                stream.bufferedWriter(Charsets.UTF_8).use { it.write(report) }
-                true
-            } catch (_: IOException) { false }
-            catch (_: SecurityException) { false }
-            runOnUiThread {
-                Toast.makeText(applicationContext, if (success) R.string.export_saved else R.string.export_failed, Toast.LENGTH_LONG).show()
-            }
-        }, "B-Cycle-diagnostic-export").start()
-    }
-    private fun stopConnection() {
-        connection.stop()
-        updateScreenAwake()
+        if (permissions.isNotEmpty()) {
+            pendingStart = true; preferences.edit().putBoolean("recordPermissionsAsked", true).apply(); requestPermissions(permissions.toTypedArray(), 5); return
+        }
+        try { startForegroundService(Intent(this, RecordingService::class.java).setAction(RecordingService.START)) }
+        catch (_: SecurityException) { Toast.makeText(this, "Aufzeichnung konnte nicht starten. Sensorberechtigungen prüfen.", Toast.LENGTH_LONG).show() }
+        catch (_: IllegalStateException) { Toast.makeText(this, "Aufzeichnung bitte bei sichtbarer App starten.", Toast.LENGTH_LONG).show() }
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1) {
-            if (hasPermissions()) {
-                if (reconnect.selecting) startSelection() else tryAutoConnect()
-            } else { reconnect.selecting = false; onStatus("Bluetooth-Zugriff ist für die Verbindung erforderlich") }
-        }
-        if (requestCode == 3) {
-            if (hasGpsPermission() && gpsEnabled && reconnect.foreground) gpsSensor.start()
-            else { gpsMessage = "GPS · Präzisen Standort erlauben"; refreshDashboard() }
-        }
-    }
-    override fun onStatus(message: String) {
-        status.text = message
-        scanStatus?.text = message
-        connectionButton.text = if (connection.isActive || (reconnect.enabled && selectedAddress != null)) "STOPPEN" else "VERBINDEN"
-        if (connection.isLive) reconnect.connected()
-        updateScreenAwake()
-    }
-    override fun onDevice(device: BluetoothDevice, name: String) {
-        val address = try { device.address } catch (_: SecurityException) { return }
-        if (!seenAddresses.add(address)) return
-        devices.addView(Button(this).apply {
-            text = getString(R.string.device_name_address, name, address)
-            isAllCaps = false
-            setOnClickListener {
-                if (hasPermissions()) {
-                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    selectedAddress = address
-                    if (preferences.getString("address", null) != address) ride.bike.reset()
-                    selectedName = name
-                    preferences.edit().putString("address", address).putString("name", name).apply()
-                    updateBikeSummary()
-                    connection.stop()
-                    devices.removeAllViews()
-                    reconnect.start()
-                    deviceDialog?.dismiss()
-                    tryAutoConnect()
-                } else onStatus("Bitte erneut suchen und Bluetooth-Zugriff erlauben")
+        when (requestCode) {
+            1 -> {
+                val kind = pendingSensor; pendingSensor = null
+                if (runtime.hasBluetooth()) when (kind) { "bikeConnect" -> runtime.setBikeEnabled(true); "heartConnect" -> runtime.setHeartEnabled(true); "bike", "heart" -> selectSensor(kind) }
+                else Toast.makeText(this, "Bluetooth-Zugriff fehlt", Toast.LENGTH_SHORT).show()
             }
-        })
+            3 -> if (runtime.hasGps()) enableGps() else Toast.makeText(this, "GPS braucht präzisen Standort", Toast.LENGTH_SHORT).show()
+            5 -> if (pendingStart) {
+                pendingStart = false
+                if (runtime.hasBluetooth()) {
+                    if (runtime.config.fields.any { it.startsWith("GPS_") } && !runtime.hasGps()) Toast.makeText(this, "Aufzeichnung startet ohne GPS; präzisen Standort später im Sensormanager erlauben.", Toast.LENGTH_LONG).show()
+                    startRide()
+                } else Toast.makeText(this, "Bluetooth-Zugriff ist für die Aufzeichnung erforderlich", Toast.LENGTH_LONG).show()
+            }
+        }
+        runtime.reconnectSensors(); render()
     }
-    override fun onData(data: LiveData, packetReceived: Boolean) {
-        liveData = data
-        if (packetReceived) ride.bike.update(data.value(LiveMetric.ODOMETER)) else ride.bike.pause()
-        refreshDashboard()
-        if (packetReceived) lastPacketAt = SystemClock.elapsedRealtime()
-        else { lastPacketAt = null; packetAge.setText(R.string.no_data) }
+    private fun exportDiagnostic() {
+        val gps = runtime.gpsValues
+        pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
+            GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
+        try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.4.0-diagnose.txt"), 2) }
+        catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
-    override fun onStart() {
-        super.onStart()
-        reconnect.foreground = true
-        connection.onForegroundChanged(true)
-        if (selectedAddress != null && !hasPermissions() && !permissionAsked) ensurePermissions()
-        if (reconnect.selecting && hasPermissions()) startSelection()
-        tryAutoConnect()
-        if (gpsEnabled) gpsSensor.start()
-        updateScreenAwake()
-        handler.post(tick)
+    override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); super.onSaveInstanceState(outState) }
+    @Deprecated("Native document picker callback")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != 2) return
+        val report = pendingReport; pendingReport = null
+        val uri = data?.data ?: return
+        if (resultCode != RESULT_OK || report == null) return
+        Thread({
+            val ok = try { contentResolver.openOutputStream(uri, "wt")?.bufferedWriter(Charsets.UTF_8)?.use { it.write(report) } ?: throw IOException(); true }
+            catch (_: IOException) { false } catch (_: SecurityException) { false }
+            runOnUiThread { Toast.makeText(applicationContext, if (ok) R.string.export_saved else R.string.export_failed, Toast.LENGTH_LONG).show() }
+        }, "B-Cycle-diagnostic-export").start()
     }
+    override fun onStart() { super.onStart(); runtime.observers.add(observer); runtime.setVisible(true); render() }
     override fun onStop() {
-        reconnect.foreground = false
-        ride.gps.snapshot(SystemClock.elapsedRealtime())
-        gpsSensor.stop(); ride.bike.pause()
-        deviceDialog?.dismiss(); fieldDialog?.dismiss(); menuDialog?.dismiss()
-        devices.removeAllViews()
-        connection.onForegroundChanged(false)
-        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        handler.removeCallbacks(tick)
-        super.onStop()
+        picker?.dismiss(); menu?.dismiss(); sensorManager?.dismiss(); stopScan()
+        runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
-    override fun onDestroy() { connection.close(); super.onDestroy() }
-    @Deprecated("Retain the small in-memory trip counters across screen rotation without a UI dependency")
-    override fun onRetainNonConfigurationInstance(): Any = ride
-    private fun label(value: String, size: Float, color: Int = Color.WHITE) = TextView(this).apply {
-        text = value; textSize = size; setTextColor(color)
-    }
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 }

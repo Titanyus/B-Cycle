@@ -21,6 +21,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var data = LiveData()
     private var gps = GpsValues()
     private var bikeDistanceM: Long? = null
+    private var pulse = PulseValues()
     private var landscape = false
 
     init {
@@ -43,7 +44,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 right.addView(pair(indexes, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
             }
             addView(right, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-            show(layout, data, gps, bikeDistanceM)
+            show(layout, data, gps, bikeDistanceM, pulse)
             return
         }
         val groups = listOf(listOf(0, 1), listOf(2), listOf(3, 4), listOf(5, 6))
@@ -57,7 +58,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
             addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, if (rowIndex == 1) 2f else 1f))
         }
-        show(layout, data, gps, bikeDistanceM)
+        show(layout, data, gps, bikeDistanceM, pulse)
     }
 
     private fun pair(indexes: List<Int>, indexed: List<Tile>) = LinearLayout(context).apply {
@@ -74,8 +75,9 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
-    fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null) {
+    fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()) {
         this.layout = layout; this.data = data; this.gps = gps; this.bikeDistanceM = bikeDistanceM
+        this.pulse = pulse
         tiles.forEachIndexed { index, tile -> tile.show(layout.fields[index], data) }
     }
 
@@ -104,7 +106,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
 
         fun show(field: DashboardField, data: LiveData) {
-            val next = field.value(data, gps, bikeDistanceM)
+            val next = field.value(data, gps, bikeDistanceM, pulse)
             val caption = "${field.source} · ${field.title(data, gps)}"
             setText(title, caption.uppercase(Locale.GERMANY))
             setText(value, next.text)

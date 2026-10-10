@@ -7,7 +7,7 @@ with a freely spinning rear wheel displayed zero rider watts. The official PDF's
 LDI service repeatedly produced empty reads; that comparison path is removed.
 The user subsequently confirmed the automatic connection and all additional fields
 in 0.2.0. The attached diagnostic contained all 18 numeric fields, 721 notifications
-and no decoding errors. The 0.3.0 dashboard/GPS change preserves this BLE path.
+and no decoding errors. The dashboard, GPS and 0.4.0 recording changes preserve this BLE path.
 
 ## Sources and attribution
 
@@ -133,9 +133,10 @@ switch are stored in private SharedPreferences;
 Android backup/device transfer is disabled. Selection connects immediately.
 Opening/resuming the activity connects to the saved device. Foreground retries use
 3/6/12/24/30-second backoff; successful setup resets it. No concurrent attempts.
-Manual stop persists across activity recreation within that app session. Selection
-and export suspend automatic attempts. Leaving the foreground stops this app's
-GATT client; resuming restarts it if enabled. No boot receiver or background service.
+Sensor enable/disable preferences persist across app restarts. Leaving the foreground
+stops this app's GATT client unless an explicitly started recording is running.
+During recording the foreground service shares the same sensor runtime as the
+Activity and keeps it active until STOP. No boot receiver is used.
 Retired clients are closed after their disconnect callback, with a bounded fallback.
 Late callbacks cannot resume stopped requests or update a new session.
 
@@ -146,7 +147,7 @@ freshness of each field; cadence can be missing depending on session timing, and
 activity summaries may update sparsely and reset on Bosch's activity boundaries.
 Bosch activity summaries are not B-Cycle trip counters and are not reset by the
 app. B-Cycle's new bike trip-distance field sums positive odometer deltas; its
-"New ride" action resets only that derived counter and its own GPS counters.
+START action resets only that derived counter and its own GPS counters.
 GPS has independent fields and processing; see [GPS notes](gps.md).
 
 Diagnostics remain bounded in memory until explicit document-picker export. Count
@@ -155,7 +156,7 @@ errors. Keep known numeric per-field session statistics, last 24 numeric samples
 and independently last 24 rider-power samples. Do not retain raw mixed MCSP packets,
 Bluetooth addresses, device/mode names, component identifiers or stored logs.
 Each new connection attempt starts a new diagnostic report; export freezes the
-report before stopping and opening the picker. No automatic upload or internet use.
+report before opening the picker; a started recording continues independently. No automatic upload or internet use.
 
 ## MIT license notice for the cross-checked protocol implementation
 

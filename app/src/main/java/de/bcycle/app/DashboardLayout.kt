@@ -52,19 +52,27 @@ data class DashboardField(val id: String) {
     private val metric get() = LiveMetric.entries.find { it.name == id }
     private val gpsMetric get() = GpsMetric.entries.find { it.name == id }
     private val rangeIndex get() = id.removePrefix("RANGE_").toIntOrNull()
-    val source get() = if (gpsMetric != null) "GPS" else "E-Bike"
+    val source get() = if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
     val numeric get() = metric != LiveMetric.ASSIST_MODE && id != "RANGES"
 
     fun title(data: LiveData, gps: GpsValues = GpsValues()): String = metric?.title ?: gpsMetric?.let {
         if (it == GpsMetric.GPS_ALTITUDE && gps.altitudeM != null) "Höhe (${if (gps.seaLevel) "MSL" else "Ellipsoid"})" else it.title
     } ?: when (id) {
         "BIKE_DISTANCE" -> "Gefahrene Distanz"
+        "HEART_RATE" -> "Herzfrequenz"
+        "HEART_AVERAGE" -> "Ø Herzfrequenz"
+        "HEART_MAXIMUM" -> "Max. Herzfrequenz"
+        "HEART_BATTERY" -> "Sensorakku"
         "CURRENT_RANGE" -> "Reichweite aktuell"
         "RANGES" -> "Reichweiten je Modus"
         else -> "Reichweite · ${rangeNames(data)?.getOrNull(rangeIndex ?: -1) ?: "Stufe ${(rangeIndex ?: 0) + 1}"}"
     }
 
-    fun value(data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null): DashboardValue {
+    fun value(data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()): DashboardValue {
+        if (id.startsWith("HEART_")) {
+            val raw = when (id) { "HEART_RATE" -> pulse.bpm?.toDouble(); "HEART_AVERAGE" -> pulse.average; "HEART_MAXIMUM" -> pulse.maximum?.toDouble(); else -> pulse.battery?.toDouble() }
+            return DashboardValue(raw?.let { String.format(Locale.GERMANY, "%.0f", it) } ?: "—", if (id == "HEART_BATTERY") "%" else "bpm", raw != null)
+        }
         gpsMetric?.let { return it.value(gps) }
         if (id == "BIKE_DISTANCE") return DashboardValue(bikeDistanceM?.let { String.format(Locale.GERMANY, "%.2f", it / 1000.0) } ?: "—", "km", bikeDistanceM != null)
         metric?.let {
@@ -97,7 +105,7 @@ data class DashboardField(val id: String) {
 
     companion object {
         val baseOptions = LiveMetric.entries.map { DashboardField(it.name) } +
-            listOf("BIKE_DISTANCE", "CURRENT_RANGE", "RANGES").map { DashboardField(it) } +
+            listOf("BIKE_DISTANCE", "CURRENT_RANGE", "RANGES", "HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY").map { DashboardField(it) } +
             GpsMetric.entries.map { DashboardField(it.name) }
         fun options(data: LiveData) = baseOptions + List(data.rangesKm?.size ?: 0) { DashboardField("RANGE_$it") }
         fun groups(data: LiveData, selected: DashboardField? = null): List<FieldGroup> {
@@ -113,6 +121,7 @@ data class DashboardField(val id: String) {
                 FieldGroup("E-Bike", "Akku", fields("BATTERY", "BATTERY_TEMPERATURE", "REMAINING_ENERGY", "DELIVERED_ENERGY")),
                 FieldGroup("E-Bike", "Reichweite", fields("CURRENT_RANGE") + ranges + fields("RANGES")),
                 FieldGroup("E-Bike", "Bosch-Aktivität", fields("AVERAGE_SPEED", "AVERAGE_POWER", "MAXIMUM_POWER", "AVERAGE_CADENCE", "MAXIMUM_CADENCE", "RIDER_ENERGY_SHARE")),
+                FieldGroup("Pulsmesser", "Puls & Sensor", fields("HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY")),
             )
         }
         fun fromId(id: String): DashboardField? = baseOptions.find { it.id == id } ?: id.takeIf {

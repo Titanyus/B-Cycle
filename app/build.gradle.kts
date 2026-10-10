@@ -13,6 +13,8 @@ dependencies {
     testImplementation("com.google.protobuf:protobuf-java:3.25.5")
     // Native Android layout/font verification only; absent from the APK.
     testImplementation("org.robolectric:robolectric:4.14.1")
+    // Official Garmin decoder/profile validation only, absent from the APK.
+    testImplementation("com.garmin:fit:21.218.0")
     robolectricSdk33("org.robolectric:android-all-instrumented:13-robolectric-9030017-i7")
     robolectricSdk35("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
 }
@@ -24,8 +26,8 @@ android {
         applicationId = "de.bcycle.app"
         minSdk = 33
         targetSdk = 35
-        versionCode = 11
-        versionName = "0.3.0"
+        versionCode = 12
+        versionName = "0.4.0"
     }
     buildTypes {
         release {

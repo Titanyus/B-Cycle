@@ -15,6 +15,7 @@ data class GpsValues(
     val maximumKmh: Double? = null, val movingMs: Long? = null, val stoppedMs: Long? = null,
     val elapsedMs: Long? = null, val altitudeM: Double? = null, val ascentM: Double? = null,
     val descentM: Double? = null, val gradientPercent: Double? = null, val seaLevel: Boolean = false,
+    val latitude: Double? = null, val longitude: Double? = null,
 )
 
 /** Conservative foreground trip estimates. Coordinates are held only as a distance anchor. */
@@ -69,6 +70,7 @@ class GpsRide {
             if (hasFix) stoppedTime else null, if (hasFix) elapsed else null,
             if (fresh && heightTime?.let { now - it <= 5_000 } == true) height else null,
             ascent, descent, if (fresh) gradient else null, heightDatum,
+            if (fresh) last?.latitude else null, if (fresh) last?.longitude else null,
         )
     }
 

@@ -1,68 +1,70 @@
 # B-Cycle
 
-Schlanker Radcomputer für Android 13+ (API 33), mit nativer Kotlin-Oberfläche und
-Androids Bluetooth-LE-API. Keine UI-, Netzwerk-, Analyse- oder BLE-Bibliotheken im
-APK, keine Internetberechtigung und kein dauerhafter Hintergrunddienst.
-Sieben frei belegbare Datenfelder, Bosch-MCSP und native GPS-Messung.
-Cycplus-Herzfrequenz folgt später.
+Schlanker Radcomputer für Android 13+ (API 33), mit nativen Kotlin-Views,
+Android-Bluetooth-LE und GPS. Keine UI-, Netzwerk-, Analyse- oder BLE-Bibliotheken
+im APK, keine Internetberechtigung. Sieben frei belegbare Datenfelder,
+Bosch-MCSP, Standard-BLE-Pulsmesser und lokale FIT-Fahrtaufzeichnung.
 
 ## APK herunterladen
 
-[Installierbare APK 0.3.0 mit neuem App-Icon herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.3.0-icon-test.apk).
-
-Dieses Update übernimmt das vom Nutzer bereitgestellte weiße Logo auf rotem
-Hintergrund als adaptives Vektor-Icon, einschließlich monochromer Android-Icons.
-Die App-Funktionen und die Versionsnummer bleiben auf dem Stand 0.3.0.
+[Installierbare APK 0.4.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.4.0-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
-Die APK ist 165.494 Byte groß, optimiert und mit demselben lokalen Testschlüssel
-wie die bisherigen Versionen signiert. Sie kann als Update installiert werden.
-SHA-256: `6accfea0e314e5501a8a0f0123d488c0adf4f06573a7ab66a6c09a0dbe9f4aa3`.
+Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
+Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
+auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-Build, 56 Tests einschließlich nativer Android-Darstellung, Android-Lint und
-APK-Signatur wurden geprüft. Das neue Dashboard und GPS benötigen noch den
-Hardwaretest. Der Nutzer hat die automatische Verbindung und alle zusätzlichen
-Bosch-Werte in 0.2.0 bestätigt. Der BLE-Verbindungsweg bleibt unverändert.
+APK-Größe: 226.990 Byte.
+SHA-256: `d19d8782bf6afc2e11a2544a0e577eee2d43f93a2bf1f6e7ff34f3b676d3bb62`.
+
+Build und APK-Signatur wurden geprüft; alle 69 Tests sind bestanden.
+Android-Lint meldet 13 Warnungen und keine Fehler.
+Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
+bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
+Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Ein echter
+Cycplus-Test sowie eine Fahrt mit ausgeschaltetem Display auf dem Poco stehen aus.
 
 ## Benutzung
 
 1. Als Update installieren, Fahrrad mit Bosch Flow entsperren. **Flow darf weiterlaufen.**
-2. Einmal **„RAD“** antippen, Bluetooth-Zugriff erlauben und das eigene
-   E-Bike wählen. Die App speichert Name und Bluetooth-Adresse lokal und verbindet
-   sich unmittelbar. Auch nach vollständigem Schließen bleibt die Auswahl erhalten.
-3. Beim nächsten Öffnen verbindet sich B-Cycle automatisch mit diesem Rad. Bei
-   Verbindungsabbruch erfolgen weitere Versuche, mit Wartezeiten bis zu 30 Sekunden.
-   Bluetooth muss eingeschaltet und das Rad erreichbar und entsperrt sein.
-4. **„Stoppen“** hält die automatische Verbindung für diese App-Sitzung an.
-   **„Verbinden“** setzt sie fort. Mit „RAD“ kann ein anderes Rad
-   gespeichert werden; die bisherige Auswahl bleibt bis zur neuen Auswahl erhalten.
+2. **☰ → Sensoren verwalten → Sensor hinzufügen** öffnet die Auswahl für Bosch
+   E-Bike oder BLE-Pulsmesser. „Fahrrad auswählen“ steht zusätzlich direkt im Menü.
+   Bluetooth-Zugriff erlauben und Sensor wählen. Aktivierten Pulsmesser tragen,
+   damit er sendet; er muss den Standard-Heart-Rate-Service unterstützen.
+3. Rad und Pulsmesser werden lokal gespeichert und verbinden sich automatisch
+   beim Öffnen und während gestarteter Fahrten. Der Sensormanager zeigt ihren
+   Zustand und ermöglicht Verbinden/Trennen; dort wird auch GPS ein-/ausgeschaltet.
+4. Ein Datenfeld antippen: zunächst sind **GPS**, **E-Bike** und **Pulsmesser**
+   eingeklappt. Kategorie öffnen und einen Wert wählen. Alle sieben Felder sind
+   frei belegbar. Fahrerleistung (eigene Watt) und Motorleistung bleiben getrennt.
+5. **☰ → Aufzeichnung einstellen** bestimmt die zu speichernden Werte und getrennt
+   die FIT-Hauptquellen für Geschwindigkeit und Distanz (jeweils GPS oder E-Bike).
+   Die andere Quelle bleibt als zusätzliches FIT-Developer-Feld erhalten, wenn sie
+   angehakt ist. GPS-Route/Position ist ebenfalls abwählbar. Die Auswahl gilt für
+   die nächste Fahrt und ist unabhängig von den angezeigten Dashboard-Feldern.
+6. **START** setzt die Fahrtzähler zurück und beginnt die Aufzeichnung. Für GPS
+   präzisen Standort erlauben, für die Aufzeichnungsanzeige Benachrichtigungen.
+   Die Fahrt läuft mit Aufzeichnungsbenachrichtigung und CPU-Wake-Lock auch bei
+   ausgeschaltetem Display oder beim Wechsel in andere Apps weiter.
+7. **STOPP · SPEICHERN** beendet die Fahrt und legt automatisch eine `.fit` unter
+   **Download/B-Cycle/** ab. Auch die Benachrichtigung hat eine STOPP-Aktion.
+   Der Aufzeichnungsdienst bleibt bis zum Abschluss des Exports aktiv.
+8. Bei fehlgeschlagenem Speichern bleiben private Zwischendaten erhalten.
+   **☰ → Ungespeicherte Fahrten speichern** versucht den Export erneut; das gilt
+   auch für vollständige Messpunkte einer unterbrochenen Fahrt nach Prozessende.
 
-5. Ein Datenfeld antippen und seinen Wert auswählen. Die Liste gliedert sich in
-   **GPS** (Fahrt, Höhe) und **E-Bike** (Fahrt, Leistung & Tritt, Akku, Reichweite,
-   Bosch-Aktivität). **Alle sieben Felder**, einschließlich des großen mittleren,
-   lassen sich frei belegen und dürfen denselben Wert mehrfach anzeigen.
-   Eigene Fahrerleistung und Motorleistung sind getrennte Auswahlwerte.
-6. Bei Auswahl eines GPS-Felds **präzisen Standort während der App-Nutzung** erlauben.
-   Alternativ GPS über **MENÜ → GPS aktivieren** einschalten. GPS funktioniert
-   unabhängig von der E-Bike-Verbindung; am besten draußen testen.
-7. **MENÜ → Neue Fahrt** setzt GPS-Fahrtwerte und E-Bike-Fahrdistanz gemeinsam zurück.
-   **GPS pausieren** stoppt nur GPS. Diagnose und erneute Bosch-Leseanfragen liegen
-   ebenfalls im Menü.
-
-Die App hält das Display während einer aktiven Bluetooth- oder GPS-Messung an. Sie beendet ihren
-Datenzugriff beim Verlassen des Vordergrunds und verbindet sich bei der Rückkehr
-wieder, sofern nicht manuell gestoppt wurde. Während der Geräteauswahl und des
-Diagnose-Dateidialogs ist die automatische Verbindung pausiert.
-Keine Suche nach einer Smartphone-App im Flow-Zubehörmenü ist erforderlich.
+Die Messung läuft außerhalb gestarteter Fahrten bei sichtbarer App und endet
+beim Verlassen. Während einer Fahrt teilen sich Activity und Aufzeichnungsdienst
+Sensorverbindungen; es entsteht kein zweiter Bosch-GATT-Client. Keine Suche nach
+einer Smartphone-App im Flow-Zubehörmenü ist erforderlich. „Werte erneut lesen“
+wurde aus der Bedienoberfläche entfernt. WebDAV folgt später.
 
 Das Dashboard verwendet Schwarz, Weiß, dünne graue Linien, große schmale Ziffern
 und eine rote Bedienleiste. Hochformat: zwei Felder, großes Feld, zweimal zwei
-Felder. Querformat: großes Feld links, sechs Felder rechts. Die Belegung sowie die
-Rad-Auswahl und der GPS-Schalter werden lokal gespeichert. Fahrtzähler bleiben
-bei Drehung und kurzem Verlassen der App im Speicher, werden beim vollständigen
-Beenden neu gestartet. Es gibt noch keine gespeicherte Route oder GPX-Datei.
-Die mitgelieferte Ziffernschrift ist [Bebas Neue, SIL OFL](docs/fonts.md).
+Felder. Querformat: großes Feld links, sechs Felder rechts. Belegung, Sensoren und
+Aufzeichnungsauswahl werden lokal gespeichert. Die Ziffernschrift ist
+[Bebas Neue, SIL OFL](docs/fonts.md). Details: [FIT-Aufzeichnung](docs/fit.md).
 
 ## Angezeigte Daten
 
@@ -73,17 +75,18 @@ Die mitgelieferte Ziffernschrift ist [Bebas Neue, SIL OFL](docs/fonts.md).
 | Fahrt | Geschwindigkeit, Fahrerleistung, Kadenz, Unterstützungsmodus, Motorleistung, Fahrer- und Motordrehmoment |
 | E-Bike · Strecke | Gefahrene Distanz aus Kilometerstand-Differenzen, Gesamtkilometerstand |
 | Fahrrad & Akku | Akkustand, Akkutemperatur, verbleibende Energie, insgesamt vom Akku abgegebene Energie, Reichweite je Modus |
+| Pulsmesser | Puls, Durchschnittspuls, Maximalpuls, Akkustand (wenn unterstützt) |
 | Bosch-Aktivität | Durchschnitt und Maximum der Fahrerleistung und Kadenz, Durchschnittsgeschwindigkeit, Fahreranteil an der Antriebsenergie |
 
 Die App abonniert diese belegten MCSP-Felder und fordert Ausgangswerte an.
 GPS-Felder sind eigene Quellen und beeinflussen den Bosch-Datenzugriff nicht.
 Geschwindigkeit und gefahrene Distanz sind ausdrücklich aus **beiden Quellen**
 auswählbar. Die E-Bike-Fahrdistanz beginnt beim ersten empfangenen Kilometerstand;
-der Gesamtkilometerstand wird durch „Neue Fahrt“ nicht verändert.
+der Gesamtkilometerstand wird durch START nicht verändert.
 GPS-Positionen werden auf Genauigkeit, Alter und Sprünge geprüft. Geschwindigkeit
 wird leicht, Höhe stärker geglättet; Höhenmeter haben eine Änderungsschwelle,
 Steigung ein Streckenfenster. Details und Grenzen: [GPS-Fahrtwerte](docs/gps.md).
-„Werte erneut lesen“ wiederholt die Leseanfragen. Namen der Unterstützungsmodi
+Namen der Unterstützungsmodi
 werden vom Fahrrad gelesen; die App setzt keine feste ECO/TOUR/eMTB/TURBO-Liste voraus.
 Bei fehlenden Namen wird die Stufe angezeigt. Reichweiten werden nur bei passender
 Listenlänge mit Modusnamen beschriftet, sonst mit Stufennummern.
@@ -158,7 +161,10 @@ native Android-Schrift und Größen, Standortberechtigung und GPS-Abmeldung,
 Stillstand mit Positions-/Höhenrauschen, Sprünge, Geschwindigkeitsspitzen,
 Empfangslücken, Bewegung ohne gelieferten GPS-Speed, Durchschnittswerte,
 Steigung sowie getrennten Auf-/Abstieg. Googles Protobuf-Encoder und Robolectric
-dienen ausschließlich Tests und werden nicht in die App eingebunden.
+sowie der offizielle Garmin-FIT-Decoder dienen ausschließlich Tests und werden nicht in die App eingebunden.
+Weitere Tests prüfen BLE-Pulsdaten, CCCD-Freigabe und veraltete GATT-Callbacks,
+Aufzeichnung ohne sichtbare Activity, STOPP, Download-Veröffentlichung, feste
+Speicherfeld-Auswahl und Wiederholung nach einem Speicherfehler.
 Robolectric-SDKs werden durch Gradle bezogen und im Test über den Offline-Resolver
 geladen, damit die Proxy-Konfiguration auch in der Cloud gilt.
 Tests ersetzen keinen Hardwaretest.
