@@ -224,3 +224,15 @@ Die Felder bleiben sichtbar, wenn die Kartenbuttons verschwinden, und lassen
 Kartengesten durch. Kartenquellenangabe und GPS-Status werden nicht überdeckt.
 
 Das Sensoren-Symbol ist ab 0.6.6 etwas kleiner; die äußeren Bögen werden nicht mehr abgeschnitten.
+
+Änderungen im aktuellen Code nach APK 0.6.6 (noch keine neue APK): Die Quellenwahl
+für Dashboard- und Kartenfelder erfolgt über ein feststehendes Dropdown;
+darunter scrollt nur die nach Themen gruppierte Werteliste. Auf der Karte
+öffnet das Streckensymbol links oben direkt den Streckenmanager. Zentrierung,
+Ausrichtung und Vollbild bleiben oben rechts; Zoom +/− steht unten rechts
+vertikal. Die Seitenpfeile entfallen; Dashboard-Wechsel erfolgt weiterhin durch
+Wischen auf Datenfeldern. Strecke, Live-Track und Positionsmarker werden im
+Mapsforge-Kartenbild gezeichnet und skalieren während Pinch-Zoom mit.
+
+Der aktuelle Code wurde kompiliert: 102 Tests bestanden, Android-Lint ohne Fehler.
+Die neue Kartenbedienung ist noch nicht auf dem Poco getestet; keine neue APK gebaut.

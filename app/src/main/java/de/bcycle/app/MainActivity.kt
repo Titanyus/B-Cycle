@@ -69,7 +69,7 @@ class MainActivity : Activity() {
         dashboard = DashboardView(this) { chooseField(it) }
         dashboard.changePage = ::changeDashboard
         dashboard.setTemplate(currentTemplate())
-        mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::changeDashboard, ::enableGps, ::openMapLink)
+        mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::routeSettings, ::enableGps, ::openMapLink)
         dashboardArea = object : LinearLayout(this) {
             override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
                 val available = View.MeasureSpec.getSize(heightMeasureSpec) - if (controlsVisible) 0 else dp(58)
@@ -132,10 +132,9 @@ class MainActivity : Activity() {
         if (runtime.visible && (runtime.connection.isActive || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
-    /** Starts with three collapsed source categories, builds only the opened source's rows. */
+    /** Source selector stays outside the scrollable list for dashboard and map fields. */
     private fun chooseField(index: Int, mapField: Boolean = false, changed: (() -> Unit)? = null) {
         picker?.dismiss()
-        val root = column()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         fun select(field: DashboardField?) {
             if (mapField) {
@@ -150,43 +149,10 @@ class MainActivity : Activity() {
             render(); picker?.dismiss()
             if (field?.source == "GPS") enableGps()
         }
-        if (mapField) root.addView(RadioButton(settingsContext).apply {
-            text = "Leer"; tag = "map_field_empty"; isChecked = selected == null
-            setOnClickListener { select(null) }
-        })
-        val groups = DashboardField.groups(runtime.bikeData, selected).groupBy { it.source }
-        for ((source, sections) in groups) {
-            val inner = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; visibility = View.GONE }
-            val heading = button("▸ $source") {}.apply { tag = "category_$source"; isAccessibilityHeading = true; stateDescription = "Eingeklappt" }
-            var built = false
-            heading.setOnClickListener {
-                val expand = inner.visibility != View.VISIBLE
-                if (expand && !built) {
-                    for (section in sections) {
-                        inner.addView(label(section.title, 14f, Color.LTGRAY).apply { setPadding(0, dp(10), 0, dp(4)); isAccessibilityHeading = true })
-                        for (field in section.fields) {
-                            val value = field.value(runtime.bikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues)
-                            val title = if (field.id == "RIDER_POWER") "Fahrerleistung (eigene)" else field.title(runtime.bikeData, runtime.gpsValues)
-                            inner.addView(RadioButton(settingsContext).apply {
-                                tag = field.id; text = "$title${if (value.unit.isNotEmpty()) " · ${value.unit}" else ""}"
-                                textSize = 16f; setTextColor(Color.WHITE); minHeight = dp(48)
-                                isChecked = selected == field
-                                contentDescription = if (field.showSource) "$source · $text" else text
-                                setOnClickListener {
-                                    select(field)
-                                }
-                            })
-                        }
-                    }
-                    built = true
-                }
-                inner.visibility = if (expand) View.VISIBLE else View.GONE
-                heading.text = "${if (expand) "▾" else "▸"} $source"
-                heading.stateDescription = if (expand) "Ausgeklappt" else "Eingeklappt"
-            }
-            root.addView(heading); root.addView(inner)
-        }
-        picker = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen").setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).show()
+        val content = FieldPickerView(settingsContext, runtime.bikeData, runtime.gpsValues,
+            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, ::select)
+        picker = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen")
+            .setView(content).setNegativeButton("Abbrechen", null).show()
     }
     private fun showMenu() {
         val content = SettingsMenuView(settingsContext) { action ->

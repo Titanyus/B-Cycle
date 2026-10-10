@@ -214,7 +214,7 @@ class DashboardViewTest {
         val dashboard = descendants(content).filterIsInstance<DashboardView>().single()
         descendants(dashboard).filter { it.isClickable }[2].performClick()
         val picker = ShadowAlertDialog.getLatestAlertDialog()
-        descendants(picker.window!!.decorView).single { it.tag == "category_E-Bike" }.performClick()
+        selectTestSource(picker, "E-Bike")
         descendants(picker.window!!.decorView).single { it.tag == "RIDER_POWER" }.performClick()
         assertEquals("RIDER_POWER", DashboardLayout.decode(context.getSharedPreferences("bike", 0).getString("dashboard", null)).fields[2].id)
         controller.pause().stop().destroy()
@@ -235,16 +235,18 @@ class DashboardViewTest {
         tiles[2].performClick()
         val picker = ShadowAlertDialog.getLatestAlertDialog()
         val all = descendants(picker.window!!.decorView)
-        assertEquals(3, all.count { it.tag?.toString()?.startsWith("category_") == true })
-        assertEquals(0, all.count { it.tag == "GPS_DISTANCE" }) // Initially collapsed.
-        all.single { it.tag == "category_GPS" }.performClick()
+        assertEquals(3, (all.single { it.tag == "field_source" } as android.widget.Spinner).adapter.count)
+        assertEquals(0, all.count { it.tag == "GPS_DISTANCE" }) // GPS is not the currently selected source.
+        selectTestSource(picker, "GPS")
         val expanded = descendants(picker.window!!.decorView)
         assertEquals(1, expanded.count { it.tag == "GPS_DISTANCE" })
         expanded.single { it.tag == "GPS_SPEED" }.performClick()
         val prefs = context.getSharedPreferences("bike", 0)
         assertEquals("GPS_SPEED", DashboardLayout.decode(prefs.getString("dashboard", null)).fields[2].id)
-        assertTrue(tiles[2].contentDescription.toString().startsWith("GPS · Geschwindigkeit:"))
-        assertTrue(tiles[0].contentDescription.toString().startsWith("Fahrerleistung:"))
+        measure(dashboard, 1080, 1950)
+        val refreshed = descendants(dashboard).filter { it.isClickable }
+        assertTrue(refreshed[2].contentDescription.toString().startsWith("GPS · Geschwindigkeit:"))
+        assertTrue(refreshed[0].contentDescription.toString().startsWith("Fahrerleistung:"))
         controller.pause().stop().destroy()
     }
 }

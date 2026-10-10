@@ -81,6 +81,47 @@ class MapPanelTest {
             assertEquals(.5f, panel.mapView.mapViewCenterY, .001f)
         } finally { controller.pause().stop().destroy() }
     }
+    @Test @Config(qualifiers = "xxhdpi") fun mapControlsUseRequestedCornersOpenRoutesAndHideTogether() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val root = controller.get().findViewById<ViewGroup>(android.R.id.content)
+            measure(root, 1080, 2100)
+            val panel = descendants(root).filterIsInstance<MapPanel>().single()
+            assertFalse(descendants(panel).any { it.contentDescription == "Nächstes Dashboard" || it.contentDescription == "Vorheriges Dashboard" })
+            val center = descendants(panel).single { it.contentDescription == "GPS-Zentrierung aktivieren" }
+            assertEquals(3, (center.parent as ViewGroup).childCount)
+            val zoom = descendants(panel).single { it.tag == "map_zoom_controls" } as ViewGroup
+            assertEquals(2, zoom.childCount)
+            assertTrue(zoom.getChildAt(0).top < zoom.getChildAt(1).top)
+            assertEquals("Karte vergrößern", zoom.getChildAt(0).contentDescription)
+            assertTrue(zoom.left > panel.width / 2)
+            val routes = descendants(panel).single { it.contentDescription == "Streckenmanager öffnen" }
+            assertTrue(routes.left < panel.width / 2)
+            routes.performClick()
+            val dialog = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            assertTrue(descendants(dialog.window!!.decorView).filterIsInstance<android.widget.TextView>().any { it.text == "GPX-Strecke importieren" })
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+            assertEquals(View.GONE, zoom.visibility); assertEquals(View.GONE, routes.visibility)
+            panel.revealControls(); measure(root, 1080, 2100)
+            assertEquals(View.VISIBLE, zoom.visibility); assertEquals(View.VISIBLE, routes.visibility)
+            val topControls = center.parent as View
+            assertTrue(topControls.right <= zoom.left || topControls.bottom <= zoom.top)
+            assertTrue(panel.mapView.layerManager.layers[1] is RouteTrackLayer)
+            val output = java.io.File("build/reports/maps/controls.png").apply { parentFile!!.mkdirs() }
+            val image = android.graphics.Bitmap.createBitmap(panel.width, panel.height, android.graphics.Bitmap.Config.ARGB_8888)
+            panel.draw(android.graphics.Canvas(image))
+            output.outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            measure(root, 1950, 750)
+            assertTrue(zoom.top >= 0)
+            assertTrue(zoom.bottom <= panel.height)
+            assertTrue(topControls.right <= zoom.left || topControls.bottom <= zoom.top)
+            assertTrue(zoom.getChildAt(0).height > 0 && zoom.getChildAt(1).height > 0)
+            val source = RideRuntime.get(controller.get()).preferences
+            source.edit().putString("mapSource", MapSource.OSM.name).commit(); panel.refreshSettings()
+            assertTrue(panel.mapView.layerManager.layers[1] is RouteTrackLayer)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun fourPagesHaveOneResizableMapAndIndependentPersistedFields() {
         val app = RuntimeEnvironment.getApplication()
         val prefs = app.getSharedPreferences("bike", 0)
@@ -91,10 +132,9 @@ class MapPanelTest {
             measure(root, 1080, 2100)
             val panel = descendants(root).filterIsInstance<MapPanel>().single()
             val smallHeight = panel.height
-            val next = descendants(panel).single { it.contentDescription == "Nächstes Dashboard" }
             val expected = listOf(4, 2, 3, 7)
             expected.forEachIndexed { index, count ->
-                next.performClick(); measure(root, 1080, 2100)
+                swipeTestDashboard(root); measure(root, 1080, 2100)
                 val dashboard = descendants(root).filterIsInstance<DashboardView>().single()
                 assertEquals(count, descendants(dashboard).count { it.isClickable })
                 assertSame(panel, descendants(root).filterIsInstance<MapPanel>().single())

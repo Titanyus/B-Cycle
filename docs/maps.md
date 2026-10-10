@@ -1,5 +1,8 @@
 # Karten und Dashboards (ab 0.5.0)
 
+Diese Beschreibung umfasst den aktuellen Code nach APK 0.6.6. Für die jüngsten
+Bedienungsänderungen ist auf Wunsch noch keine neue APK gebaut.
+
 Mapsforge 0.25.0 ist als native Android-View eingebunden. Die Single-Activity,
 die vorhandene GPS-Filterung, Sensoren und FIT-Aufzeichnung bleiben bestehen.
 Mapsforge und AndroidSVG sind die zusätzlichen Laufzeitbibliotheken;
@@ -26,10 +29,14 @@ als Originaldateien im Arbeitsbereich abrufbar.
   Zuerst Seite 1–4 wählen, dann eine Vorlage; erst Speichern übernimmt die Auswahl.
   Abbrechen verwirft sie. Die bisherigen sieben Felder bleiben
   auf Seite 1 erhalten. Verdeckte Felder bleiben beim Vorlagenwechsel gespeichert.
-- Seitenwechsel über **‹/›** in den Kartenbuttons oder horizontales Wischen auf
+- Seitenwechsel über horizontales Wischen auf
   einem Messwertfeld. Wischen auf der Karte bewegt die Karte und wechselt keine Seite.
 - **◎** aktiviert die GPS-Verfolgung und fragt nötigenfalls den präzisen Standort
   an. Der Kartenhinweis „GPS aus“ kann ebenfalls angetippt werden.
+- Links oben öffnet das Streckensymbol direkt den Streckenmanager zum Importieren
+  oder Auswählen einer GPX-Strecke. Oben rechts bleiben Zentrierung, Ausrichtung
+  und Vollbild. **+/−** steht unten rechts übereinander, oberhalb von Messwerten
+  und Kartenquellenangabe. Die Buttons blenden sich gemeinsam aus.
 - **↑/N** wechselt zwischen Fahrtrichtung und Norden, **+/−** ändert den Zoom,
   **⛶** öffnet dieselbe Karte im Vollbild; Zurück oder **↙** schließt das Vollbild.
   Ein Kartentipp macht START/STOPP und das Hauptmenü wieder erreichbar.
@@ -170,3 +177,12 @@ nur den Messwert in Schwarz, ohne Titel, Quellenzeichen oder Einheit. Ohne
 Belegung bzw. verfügbare Daten bleibt die Position unsichtbar. Kartengesten gehen
 durch die Anzeige hindurch; die Werte bleiben auch ohne Bedienbuttons sichtbar.
 Es entstehen keine zusätzlichen Sensorverbindungen oder Aufzeichnungsfelder.
+
+Die Feldbelegung verwendet im aktuellen Code ein Dropdown für GPS, E-Bike und
+Pulsmesser. Es bleibt über der scrollbaren Werteliste stehen; der gewählte Wert
+bestimmt die anfängliche Quelle. Die bisherige Gruppierung nach Themen bleibt.
+Die Kartenfelder besitzen weiterhin die Option Leer. GPX-Strecke, Live-Track
+und Positionsmarker sind Teil des Mapsforge-Framebuffers: Zoommaßstab und
+Zoommittelpunkt gelten damit bereits während der Geste für alle gemeinsam.
+Unveränderliche Momentaufnahmen trennen die UI vom Karten-Zeichenthread;
+Track-Listen werden nur bei geänderter Track-Revision kopiert.
