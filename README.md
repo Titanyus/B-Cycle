@@ -3,23 +3,49 @@
 Minimaler experimenteller Radcomputer für Android 13+ (API 33).
 Live-Anzeige von Geschwindigkeit in km/h und **Fahrerleistung** in Watt.
 Kotlin mit Android-Plattform-Views; keine UI-, Netzwerk-, Analyse- oder BLE-Bibliotheken.
-Keine Internetberechtigung, GPS-Aufzeichnung oder Hintergrunddienste.
+Keine Internetberechtigung, GPS-Aufzeichnung oder dauerhaften Hintergrunddienste.
 Diagnosedaten bleiben im Arbeitsspeicher, bis ausdrücklich eine Textdatei exportiert wird.
 Cycplus-Herzfrequenz kommt in einem späteren Schritt.
 
 ## APK herunterladen
 
-[Installierbare Test-APK 0.1.2 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.2-test.apk).
+[Installierbare Test-APK 0.1.3 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.3-test.apk).
 Die Datei liegt auch im Ordner `downloads`. Falls GitHub eine Dateiseite öffnet, dort
 „Download raw file“ auswählen. Bei einem privaten Repository vorher bei GitHub anmelden.
 
-Die APK ist 67.063 Byte groß, optimiert und mit demselben lokalen Testschlüssel wie
+Die APK ist 75.255 Byte groß, optimiert und mit demselben lokalen Testschlüssel wie
 die bisherigen Versionen signiert. Sie kann als Update installiert werden.
-SHA-256: `eb00300c0f773506088b2fc0b903a4492a580ee43c396cbe4fd1e62814257531`.
-Build, 16 Tests (zehn Decoder-Tests und sechs Diagnose-Tests), Android-Lint und
+SHA-256: `2de0bf984557f83ba6ed8fd4da98db5e919cd2f3cc2c8db26bb9aeb093856076`.
+Build, 20 Tests (zehn Decoder-, sechs Diagnose- und vier Informationsdienst-Tests), Android-Lint und
 APK-Signatur wurden geprüft.
 
-## Testablauf
+## Neuer Zubehörtest mit 0.1.3
+
+1. APK als Update installieren, Fahrrad mit Flow entsperren.
+2. In B-Cycle **„Als Zubehör anbieten“** antippen, Bluetooth-Zugriff erlauben und das
+   eigene Fahrrad aus der Liste auswählen. Diese Auswahl legt fest, von welchem Rad eine
+   eingehende Verbindung angenommen wird; sie startet noch keine ausgehende Verbindung.
+3. Auf „Als Zubehör sichtbar“ warten. Die Ankündigung läuft höchstens zwei Minuten.
+   Falls das Rad nicht von selbst verbindet, währenddessen die Zubehörsuche am Rad oder
+   in Flow starten. Der genaue Menüweg für System Controller + Mini Remote ist nicht
+   in der Bosch-PDF beschrieben. In der Liste könnte der **Bluetooth-Gerätename des Handys**
+   erscheinen, nicht „B-Cycle“. Ein langer Gerätename wird bei Platzmangel aus der Ankündigung
+   weggelassen; die Bosch-Service-Solicitation bleibt erhalten.
+4. Zum Wechsel in Flow darf B-Cycle im Zubehör-Modus höchstens zwei Minuten im Hintergrund
+   bleiben. Danach zeitnah zu B-Cycle zurückkehren. Android kann den Prozess zuvor beenden;
+   es gibt keinen dauerhaften Hintergrunddienst.
+5. Nach einer Verbindung treten und Messwerte prüfen. Bei fehlenden Werten „Werte erneut lesen“
+   verwenden. Anschließend **„Diagnose speichern“** und `B-Cycle-0.1.3-diagnose.txt` hochladen.
+   Auch bei „Als Zubehör sichtbar“ ohne anschließende Verbindung ist der Bericht hilfreich.
+
+Dieser Modus testet eine konkrete Abweichung der bisherigen APK zur PDF: Das Zubehör
+kündigt den Bosch-Dienst an, das Fahrrad soll den BLE-Link initiieren. Erst wenn Android
+eine eingehende GATT-Server-Verbindung vom ausgewählten Rad meldet, öffnet B-Cycle den
+GATT-Client für die Bosch-Daten auf dem vorhandenen Link. Ob Android diesen Link in der
+vorgesehenen Rollenverteilung weiterverwendet und Bosch darüber Daten liefert, ist am
+Fahrrad **noch nicht bestätigt**. Das ist ein neuer Verbindungsversuch, kein nachgewiesener Fix.
+
+## Bisheriger direkter Verbindungsweg zum Vergleich
 
 1. Test-APK installieren. Fahrrad mit Bosch Flow verbinden und entsperren.
 2. B-Cycle öffnen, „Fahrrad suchen“ antippen und Bluetooth-Zugriff erlauben.
@@ -32,7 +58,8 @@ APK-Signatur wurden geprüft.
    Auch Stillstand, Treten, Aussetzen des Tretens, „Stoppen“ und Wiederverbindung prüfen.
 
 Zielhardware: Xiaomi Poco F7 Ultra, Bosch Smart System mit System Controller und Mini Remote
-ohne Display, laut Nutzer aktuelle Firmware. Beim ersten Hardwaretest mit 0.1.0 wurde
+ohne Display, Firmware laut Nutzer **v20.9.0**, Smartphone Android 16 laut Diagnose.
+Beim ersten Hardwaretest mit 0.1.0 wurde
 „Live verbunden · MTU 247“ erreicht, aber beim Drehen des Rads erschienen keine Messwerte.
 Dieser Status bedeutet im Programm, dass der LDI-Dienst gefunden, das Abonnement bestätigt
 und das initiale Paket gelesen und akzeptiert wurde. Welche Felder darin enthalten waren
@@ -42,7 +69,11 @@ MTU 247, den LDI-Dienst und ein erfolgreich bestätigtes Notification-Abonnement
 Die initiale Leseantwort enthielt jedoch **0 Byte**; während der folgenden rund 19 Sekunden
 kamen **keine Notifications** an. Es wurden weder Geschwindigkeit und Leistung noch
 explizite Nullwerte geliefert. Die leere Antwort ist eine gültige Protobuf-Nachricht,
-enthält aber keinerlei Messwerte. Die Firmware-Version und die Ursache sind noch ungeklärt.
+enthält aber keinerlei Messwerte. Mit 0.1.2 waren anschließend acht Leseantworten leer,
+ohne Notifications während rund 30 Sekunden Verbindung. Ein weiterer Test mit von Anfang
+an beendeter Flow-App und entsperrtem Rad ergab ebenfalls sechs leere Antworten und keine
+Notifications während rund 25 Sekunden Verbindung. Eine parallel laufende Flow-App erklärt
+dieses Verhalten damit nicht. Die Ursache ist weiterhin ungeklärt.
 
 Version 0.1.2 ersetzt in diesem Fall „Live verbunden“ durch „Verbunden · noch keine Fahrdaten“.
 Gelesene Fahrdaten und durch Notifications empfangene Live-Messwerte werden im Status
@@ -52,9 +83,10 @@ LDI-Lesezugriff; Notifications bleiben aktiv. Eine Behebung des Datenzugriffs am
 ist noch nicht bestätigt.
 Flow bleibt für das Entsperren zuständig; B-Cycle hat keine Entsperrfunktion.
 
-## Diagnose bei fehlenden Messwerten
+## Diagnose beim direkten Verbindungsweg
 
-1. Version 0.1.2 als Update installieren, Fahrrad mit Flow entsperren und in B-Cycle verbinden.
+1. Version 0.1.3 als Update installieren, Fahrrad mit Flow entsperren und in B-Cycle
+   über „Fahrrad suchen“ verbinden.
 2. Nach dem Verbinden etwa 20–30 Sekunden mit drehendem Rad testen; für Fahrerleistung
    muss getreten werden. Das Smartphone dabei sicher bedienen, nicht während der Fahrt.
 3. Während des Tests zwei- oder dreimal „Werte erneut lesen“ antippen, jeweils die Antwort
@@ -62,7 +94,7 @@ Flow bleibt für das Entsperren zuständig; B-Cycle hat keine Entsperrfunktion.
 4. Danach „Diagnose speichern“ antippen und im Android-Dateidialog beispielsweise
    „Downloads“ als Speicherort wählen. Beim Öffnen dieses Dialogs stoppt die BLE-Verbindung;
    der Diagnosebericht wird unmittelbar vorher festgehalten.
-5. Die gespeicherte Datei `B-Cycle-0.1.2-diagnose.txt` für die Fehlersuche hochladen.
+5. Die gespeicherte Datei `B-Cycle-0.1.3-diagnose.txt` für die Fehlersuche hochladen.
    Vor dem Export keine neue Suche starten: Diese setzt die Diagnose zurück.
 
 Für einen separaten Vergleichstest kann Flow nach dem Entsperren vollständig beendet werden
@@ -82,8 +114,10 @@ werden keine Nutzdaten gelesen oder gespeichert. Die Historie ist begrenzt, wird
 der App verworfen und wird nicht automatisch hochgeladen. Der Export benötigt keine zusätzliche
 Speicherberechtigung.
 
-Die App arbeitet nur im Vordergrund und hält das Display während des Tests an.
-Beim Verlassen des Vordergrunds oder einer Trennung werden beide Messwerte zurückgesetzt.
+Die App hält das Display während des Tests an. Der direkte Verbindungsweg stoppt beim
+Verlassen des Vordergrunds. Der Zubehör-Modus erlaubt einen Wechsel in Flow für höchstens
+zwei Minuten; danach wird auch er beendet. Trennungen setzen beide Messwerte zurück.
+Der Diagnoseexport hält den Bericht fest und stoppt die Verbindung vor dem Dateidialog.
 Wiederverbindung erfolgt manuell über die Suche bzw. erneute Geräteauswahl.
 
 ## Schnittstelle und Grenzen
@@ -94,14 +128,33 @@ Grundlage: `20260501_LiveDataInterface_V1_28042026.pdf`, Bosch Live Data Interfa
 Die PDF verlangt eine ungewöhnliche Rollenverteilung: Fahrrad als GAP Central / GATT Server,
 Zubehör als GAP Peripheral / GATT Client. Smartphone-Unterstützung ist ausdrücklich außerhalb
 ihres Geltungsbereichs (S. 7). „Zubehör“ bezeichnet ein BLE-Gerät, keine andere App im Flow-Menü.
-Flow auf demselben Smartphone kann das eigene BLE-Advertising nicht wie einen externen Sensor entdecken.
+Die PDF legt nicht fest, wie die Flow-Zubehörsuche auf einem Smartphone umgesetzt ist.
+Die frühere pauschale Aussage, Flow auf demselben Smartphone könne diesen Zubehörweg nicht
+nutzen, ließ sich daraus nicht ableiten. Maßgeblich ist die vom Rad initiierte Verbindung.
 Der Zubehör-Koppelweg für den System Controller ohne Display ist in der PDF nicht beschrieben.
 
-**Diese erste APK ist bewusst ein Diagnosetest über Androids normalen BLE-Clientweg.**
+**„Fahrrad suchen“ bleibt ein Diagnosetest über Androids normalen BLE-Clientweg.**
 Sie versucht, einen vorhandenen Flow-Link zu nutzen oder eine direkte BLE-Verbindung zum
 gewählten Fahrrad aufzubauen. Ob LDI auf diesem Link erreichbar ist, muss am Fahrrad
 geprüft werden. Dies ist keine vollständige Implementierung des vorgeschriebenen GAP-Profils.
 Eine funktionierende Flow-Verbindung garantiert nicht die Freigabe des separaten LDI-Dienstes.
+
+**„Als Zubehör anbieten“ ergänzt ab 0.1.3 einen experimentellen Peripheral-Modus:**
+
+- Connectable BLE-Advertising mit Bosch-LDI-UUID im **Service-Solicitation-Feld** (AD-Typ `0x15`).
+- Scan Response mit optionalem Android-Bluetooth-Gerätenamen und eigenem Device Information
+  Service. Der globale Bluetooth-Name des Handys wird nicht verändert.
+- Eigener GATT-Server mit drei lesbaren DIS-Characteristics: Hersteller „B-Cycle“, Modell
+  „B-Cycle Android“, App-Version. Keine Seriennummer, erfundenen Sensorwerte oder Motorbefehle.
+- Eingehende Verbindung muss zum ausgewählten Rad gehören. Erst danach GATT-Client öffnen,
+  Bonding prüfen, MTU anfragen, LDI suchen und abonnieren.
+- Ankündigung endet nach Verbindungsannahme, Stoppen, Zeitlimit oder Zerstörung der Activity.
+  Späte Callbacks früherer Sitzungen werden verworfen; DIS bleibt auf dem aktiven Link verfügbar.
+
+Androids öffentliche Advertising-API bietet kein frei konfigurierbares Appearance-AD-Feld.
+Dieses in der PDF geforderte Feld fehlt; ein DIS-Feld oder Manufacturer Data ersetzt es nicht.
+Auch die physische GAP-Rolle nach dem GATT-Client-Anhängen wird nicht unabhängig verifiziert.
+Die APK beansprucht deshalb weiterhin keine vollständige Konformität mit dem Zubehörprofil.
 
 Der GATT-Datenablauf folgt der PDF:
 
@@ -134,7 +187,7 @@ Vollständiges JDK 17 oder 21 mit `javac`, Android-SDK Plattform 35 und Build-To
 
 Debug-APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Release-APK: `app/build/outputs/apk/release/app-release-unsigned.apk`, mit R8 optimiert,
-noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.2-test.apk` ist eine optimierte APK
+noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.3-test.apk` ist eine optimierte APK
 mit dem lokalen Android-Testschlüssel, nicht mit einem Veröffentlichungsschlüssel.
 
 In der eingerichteten Cloud-Umgebung:

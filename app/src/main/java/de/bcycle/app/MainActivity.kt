@@ -36,7 +36,8 @@ class MainActivity : Activity(), BoschConnection.Listener {
     private val seenAddresses = mutableSetOf<String>()
     private val handler = Handler(Looper.getMainLooper())
     private var lastPacketAt: Long? = null
-    private val permissions = arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
+    private var accessoryRequested = false
+    private val permissions = arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
     private val tick = object : Runnable {
         override fun run() {
             packetAge.text = lastPacketAt?.let {
@@ -50,6 +51,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
         super.onCreate(savedInstanceState)
         diagnostics.reset(diagnosticHeader())
         pendingReport = savedInstanceState?.getString("pendingReport")
+        accessoryRequested = savedInstanceState?.getBoolean("accessoryRequested") ?: false
         connection = BoschConnection(this, this, diagnostics)
         val column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -80,6 +82,14 @@ class MainActivity : Activity(), BoschConnection.Listener {
         column.addView(Button(this).apply {
             setText(R.string.find_bike)
             setOnClickListener {
+                accessoryRequested = false
+                if (hasPermissions()) startConnection() else requestPermissions(permissions, 1)
+            }
+        })
+        column.addView(Button(this).apply {
+            setText(R.string.offer_accessory)
+            setOnClickListener {
+                accessoryRequested = true
                 if (hasPermissions()) startConnection() else requestPermissions(permissions, 1)
             }
         })
@@ -96,8 +106,8 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setOnClickListener { exportDiagnostic() }
         })
         column.addView(label(
-            "Fahrrad mit Flow entsperren, dann hier suchen und auswählen. Die Liste enthält auch andere BLE-Geräte. Android kann eine Kopplungsbestätigung anzeigen.\n\n" +
-                "Experimenteller Test: Smartphone-Unterstützung ist von Bosch nicht zugesichert. Die App arbeitet nur im Vordergrund.",
+            "Fahrrad mit Flow entsperren. Für den neuen Zubehörtest: „Als Zubehör anbieten“, dann das Fahrrad auswählen. Danach wartet die App auf eine Verbindung vom Rad. Falls nötig, die Zubehörsuche am Rad bzw. in Flow starten; dazu darf die App kurz im Hintergrund bleiben.\n\n" +
+                "Experimenteller Test: Smartphone-Unterstützung ist von Bosch nicht zugesichert. Die Live-Anzeige läuft im Vordergrund; der Zubehörtest darf bis zu zwei Minuten im Hintergrund bleiben. In Flow erscheint gegebenenfalls der Bluetooth-Gerätename des Handys, nicht „B-Cycle“.",
             14f,
         ).apply { setPadding(0, dp(12), 0, 0) })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -111,17 +121,19 @@ class MainActivity : Activity(), BoschConnection.Listener {
         seenAddresses.clear()
         devices.removeAllViews()
         connection.discover()
+        if (accessoryRequested) onStatus("Zubehörtest · zunächst das Fahrrad aus der Liste auswählen")
     }
 
     private fun diagnosticHeader(): String {
         val version = packageManager.getPackageInfo(packageName, 0).versionName
         return "App=$version device=${Build.MANUFACTURER} ${Build.MODEL} Android=${Build.VERSION.RELEASE} API=${Build.VERSION.SDK_INT}\n" +
-            "Session UTC=${Instant.now()}\nConnection mode=Android BLE client (existing/direct link)"
+            "Session UTC=${Instant.now()}\nRequested mode=${if (accessoryRequested) "accessory advertising / incoming link" else "direct Android BLE client"}"
     }
 
     private fun exportDiagnostic() {
         diagnostics.event("EXPORT requested; leaving foreground will stop the BLE session")
         pendingReport = diagnostics.report()
+        stopConnection()
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "text/plain"
@@ -137,6 +149,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("pendingReport", pendingReport)
+        outState.putBoolean("accessoryRequested", accessoryRequested)
         super.onSaveInstanceState(outState)
     }
 
@@ -180,7 +193,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setOnClickListener {
                 if (hasPermissions()) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    connection.connect(device)
+                    if (accessoryRequested) connection.offerAccessory(device) else connection.connect(device)
                 } else onStatus("Bitte erneut suchen und Bluetooth-Zugriff erlauben")
             }
         })
@@ -191,9 +204,15 @@ class MainActivity : Activity(), BoschConnection.Listener {
         if (packetReceived) lastPacketAt = SystemClock.elapsedRealtime()
         else { lastPacketAt = null; packetAge.setText(R.string.no_data) }
     }
-    override fun onStart() { super.onStart(); handler.post(tick) }
+    override fun onStart() {
+        super.onStart()
+        connection.onForegroundChanged(true)
+        if (connection.isActive) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        handler.post(tick)
+    }
     override fun onStop() {
-        stopConnection()
+        connection.onForegroundChanged(false)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         handler.removeCallbacks(tick)
         super.onStop()
     }

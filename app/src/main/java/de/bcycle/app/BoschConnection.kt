@@ -13,19 +13,25 @@ import android.os.Handler
 import android.os.Looper
 import java.util.UUID
 
-/** Pilot: probe LDI on an existing or conventional Android BLE connection. */
-@SuppressLint("MissingPermission") // MainActivity checks SCAN and CONNECT before use.
+/** Pilot: direct BLE client or an accessory advertisement followed by an incoming link. */
+@SuppressLint("MissingPermission") // MainActivity checks Bluetooth permissions before use.
 class BoschConnection(context: Context, private val listener: Listener, private val diagnostics: DiagnosticLog) {
     interface Listener {
         fun onStatus(message: String)
         fun onData(data: LiveData, packetReceived: Boolean)
         fun onDevice(device: BluetoothDevice, name: String)
     }
-    private enum class Phase { STOPPED, SCANNING, CHOOSING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, READING, REREADING, LIVE }
+    private enum class Phase { STOPPED, SCANNING, CHOOSING, ADVERTISING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, READING, REREADING, LIVE }
     private val appContext = context.applicationContext
     private val manager = appContext.getSystemService(BluetoothManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
+    private val accessory = AccessoryAdvertiser(appContext, diagnostics)
+    private var accessoryMode = false
+    private val backgroundTimeout = Runnable {
+        if (accessoryMode) fail("Zubehörtest nach zwei Minuten im Hintergrund beendet")
+    }
     private var phase = Phase.STOPPED
+    val isActive: Boolean get() = phase != Phase.STOPPED
     private var epoch = 0
     private var client: BluetoothGatt? = null
     private var bike: BluetoothDevice? = null
@@ -113,14 +119,57 @@ class BoschConnection(context: Context, private val listener: Listener, private 
 
     fun connect(device: BluetoothDevice) {
         stop()
+        diagnostics.event("MODE direct Android BLE client")
+        beginClient(device, ++epoch)
+    }
+
+    fun offerAccessory(device: BluetoothDevice) {
+        stop()
+        accessoryMode = true
+        bike = device
+        phase = Phase.ADVERTISING
+        val session = ++epoch
+        diagnostics.event("MODE accessory; await incoming GAP connection from selected bike")
+        reportStatus("Zubehör-Modus · BLE-Ankündigung wird vorbereitet")
+        armTimeout(20_000)
+        try {
+            accessory.start(device, object : AccessoryAdvertiser.Listener {
+                override fun onReady() {
+                    if (!isCurrent(session) || phase != Phase.ADVERTISING) return
+                    reportStatus("Als Zubehör sichtbar · warte bis zu 2 Minuten auf das Fahrrad")
+                    armTimeout(120_000)
+                }
+                override fun onIncomingConnection(device: BluetoothDevice) {
+                    if (!isCurrent(session) || phase != Phase.ADVERTISING) return
+                    diagnostics.event("ACCESSORY_ACCEPTED selectedBike=true; attach GATT client to incoming link")
+                    accessory.stopAdvertising()
+                    beginClient(device, session)
+                }
+                override fun onFailure(message: String) {
+                    if (isCurrent(session)) fail(message)
+                }
+            })
+        } catch (_: SecurityException) { fail("Bluetooth-Berechtigung fehlt") }
+        catch (_: IllegalStateException) { fail("Bluetooth ist nicht verfügbar") }
+    }
+
+    /** Allow a bounded switch to Flow during accessory setup; no permanent background work. */
+    fun onForegroundChanged(foreground: Boolean) {
+        handler.removeCallbacks(backgroundTimeout)
+        diagnostics.event("FOREGROUND value=$foreground accessory=$accessoryMode phase=$phase")
+        if (!foreground) {
+            if (accessoryMode) handler.postDelayed(backgroundTimeout, 120_000) else stop()
+        }
+    }
+
+    private fun beginClient(device: BluetoothDevice, session: Int) {
         phase = Phase.CONNECTING
         bike = device
-        val session = ++epoch
         try {
             diagnostics.event("CONNECT_BEGIN session=$session deviceType=${device.type} bondState=${device.bondState}")
             appContext.registerReceiver(bondReceiver, IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED), Context.RECEIVER_EXPORTED)
             receiverRegistered = true
-            reportStatus("Android-GATT-Verbindung wird aufgebaut")
+            reportStatus(if (accessoryMode) "Fahrrad hat verbunden · GATT-Datenzugriff wird geöffnet" else "Android-GATT-Verbindung wird aufgebaut")
             armTimeout(20_000)
             client = device.connectGatt(appContext, false, clientCallback(session), BluetoothDevice.TRANSPORT_LE)
             diagnostics.event("CONNECT_REQUEST clientCreated=${client != null}")
@@ -342,7 +391,10 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         phase = Phase.STOPPED
         epoch++
         handler.removeCallbacks(timeout)
+        handler.removeCallbacks(backgroundTimeout)
         stopScan()
+        accessory.stop()
+        accessoryMode = false
         if (receiverRegistered) { appContext.unregisterReceiver(bondReceiver); receiverRegistered = false }
         val oldClient = client
         client = null; bike = null; characteristic = null

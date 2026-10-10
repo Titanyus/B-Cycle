@@ -1,6 +1,7 @@
 <resources>
     <color name="icon_background">#101613</color>
     <string name="find_bike">Fahrrad suchen</string>
+    <string name="offer_accessory">Als Zubehör anbieten</string>
     <string name="stop">Stoppen</string>
     <string name="no_data">Noch keine Fahrdaten</string>
     <string name="device_name_address">%1$s\n%2$s</string>
