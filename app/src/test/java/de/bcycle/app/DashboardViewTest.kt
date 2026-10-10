@@ -116,6 +116,47 @@ class DashboardViewTest {
         controller.pause().stop().destroy()
     }
 
+    @Test fun presetsShareReferenceTileHeightsAndSmallFontsInsteadOfStretchingToFillTheirArea() {
+        val context = RuntimeEnvironment.getApplication()
+        val fieldLayout = DashboardLayout.decode(List(7) { "RIDER_POWER" }.joinToString("|"))
+        for ((width, available) in listOf(1080 to 2100, 720 to 1440, 1950 to 750)) {
+            fun rendered(template: DashboardTemplate): Pair<DashboardView, List<ViewGroup>> {
+                val view = DashboardView(context) {}
+                view.setTemplate(template)
+                view.show(fieldLayout, LiveData(riderPowerWatts = 83))
+                measure(view, width, view.heightForViewport(width, available))
+                return view to descendants(view).filter { it.isClickable }.map { it as ViewGroup }
+            }
+            val (reference, dataTiles) = rendered(DashboardTemplate.DATA)
+            val small = dataTiles.minBy { it.height }
+            val big = dataTiles.maxBy { it.height }
+            val smallValue = (small.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
+            for (template in DashboardTemplate.entries) {
+                val (view, tiles) = rendered(template)
+                for (tile in tiles) {
+                    val isBig = template == DashboardTemplate.HERO && tile === tiles.first() ||
+                        template == DashboardTemplate.DATA && tile.height > small.height + 3
+                    assertEquals("${template.name} at $width", (if (isBig) big.height else small.height).toDouble(), tile.height.toDouble(), 3.0)
+                    assertEquals(small.paddingBottom, tile.paddingBottom)
+                    val value = (tile.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
+                    if (!isBig) assertEquals("${template.name}: font at $width", smallValue.textSize, value.textSize, 1f)
+                    if (width == 1080 && template == DashboardTemplate.HERO && isBig) {
+                        val referenceValue = (big.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
+                        assertEquals(referenceValue.textSize, value.textSize, 1f)
+                    }
+                }
+                if (template != DashboardTemplate.DATA) assertTrue(view.height < available)
+                if (width == 1080) {
+                    val output = File("build/reports/dashboard/uniform-${template.name.lowercase()}.png").apply { parentFile!!.mkdirs() }
+                    val bitmap = Bitmap.createBitmap(width, view.height, Bitmap.Config.ARGB_8888)
+                    view.draw(Canvas(bitmap))
+                    output.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                }
+            }
+            assertTrue(reference.height < available)
+        }
+    }
+
     @Test fun bikeSelectionLivesInSensorManagerAlongsidePulseSelection() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         descendants(controller.get().findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()

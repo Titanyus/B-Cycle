@@ -24,10 +24,23 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var bikeDistanceM: Long? = null
     private var pulse = PulseValues()
     private var landscape = false
+    private var viewportWide: Boolean? = null
+    private var viewportWidth = 0
+    private var viewportDataHeight = 0
     private var captionSignature = ""
     var template = DashboardTemplate.DATA
         private set
     var changePage: ((Int) -> Unit)? = null
+
+    /** Use the whole dashboard/map viewport so short presets do not look like landscape. */
+    fun heightForViewport(width: Int, available: Int): Int {
+        val wide = width > DashboardTemplate.DATA.heightForViewport(available, dp(4))
+        viewportWide = wide
+        viewportWidth = width
+        viewportDataHeight = template.heightForViewport(available, dp(4), wide)
+        if (wide != landscape) { landscape = wide; buildTiles(wide) }
+        return viewportDataHeight
+    }
 
     fun setTemplate(next: DashboardTemplate) {
         if (next == template) return
@@ -48,7 +61,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             orientation = VERTICAL
             template.rows.forEachIndexed { index, slots ->
                 if (index > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, 1))
-                addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(index)))
+                addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(index, wide)))
             }
             show(layout, data, gps, bikeDistanceM, pulse)
             return
@@ -89,7 +102,10 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val wide = MeasureSpec.getSize(widthMeasureSpec) > MeasureSpec.getSize(heightMeasureSpec)
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
+        val wide = if (width == viewportWidth && measuredHeight == viewportDataHeight) viewportWide ?: false
+            else width > measuredHeight
         if (wide != landscape) { landscape = wide; buildTiles(wide) }
         val available = MeasureSpec.getSize(heightMeasureSpec)
         // Keep the former title/value space; reclaim the unit row and removed header.
@@ -141,7 +157,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         })
         val container = LinearLayout(context).apply {
             orientation = VERTICAL
-            setPadding(dp(10), dp(8), dp(10), dp(8))
+            setPadding(dp(10), dp(8), dp(10), dp(4))
             isClickable = true; isFocusable = true
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
             background = StateListDrawable().apply {

@@ -153,3 +153,10 @@ Ab 0.6.3 verwendet der Hauptdialog das bereitgestellte komplette B|Cycle-SVG als
 native Android-Vektorgrafik. Das unveränderte Original liegt unter
 `app/src/main/assets/BCycle_complete.svg`; der zentrierte Kopfbereich verwendet
 denselben hellroten Farbwert wie START. Das Menü darunter bleibt dunkelrot.
+
+Ab 0.6.5 verwenden alle Vorlagen dieselben kleinen Feldhöhen; das große
+Vier-Werte-Feld entspricht dem großen Feld der Sieben-Werte-Vorlage. Die
+unteren Innenabstände sind von 8 auf 4 dp reduziert. Die Höhen orientieren
+sich am gesamten verfügbaren Dashboard-/Kartenbereich, auch beim Ausblenden
+der Bedienleiste; zusätzlicher Platz geht an die Karte. Im Querformat bleiben
+die kleinen Felder ebenfalls zwischen den Vorlagen gleich hoch.

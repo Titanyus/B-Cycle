@@ -3,11 +3,11 @@ package de.bcycle.app
 /** Fixed templates; metric selection remains independent of map geometry. */
 enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFraction: Float) {
     DATA("7 Werte · kleine Karte", listOf(0, 1, 2, 3, 4, 5, 6), .70f),
-    BALANCED("4 Werte · mittlere Karte", listOf(0, 1, 3, 4), .45f),
-    MAP("2 Werte · große Karte", listOf(0, 1), .24f),
-    OVERVIEW("3 Werte · Kartenübersicht", listOf(0, 1, 2), .20f),
-    FIVE("5 Werte · 2 oben / 3 unten", listOf(0, 1, 2, 3, 4), .40f),
-    HERO("4 Werte · groß oben / 3 unten", listOf(2, 3, 4, 5), .55f);
+    BALANCED("4 Werte · mittlere Karte", listOf(0, 1, 3, 4), .28f),
+    MAP("2 Werte · große Karte", listOf(0, 1), .14f),
+    OVERVIEW("3 Werte · Kartenübersicht", listOf(0, 1, 2), .14f),
+    FIVE("5 Werte · 2 oben / 3 unten", listOf(0, 1, 2, 3, 4), .28f),
+    HERO("4 Werte · groß oben / 3 unten", listOf(2, 3, 4, 5), .42f);
     val rows: List<List<Int>> get() = when (this) {
         DATA -> listOf(listOf(0, 1), listOf(2), listOf(3, 4), listOf(5, 6))
         OVERVIEW -> listOf(slots)
@@ -15,6 +15,20 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
         HERO -> listOf(slots.take(1), slots.drop(1))
         else -> slots.chunked(2)
     }
-    fun rowWeight(index: Int) = if ((this == DATA && index == 1) || (this == HERO && index == 0)) 2f else 1f
+    fun rowWeight(index: Int, wide: Boolean = false) = when {
+        this == DATA && index == 1 -> 2f
+        this == HERO && index == 0 -> if (wide) 3f else 2f
+        else -> 1f
+    }
+    /** Calibrate all presets against DATA, rather than stretching fewer rows. */
+    fun heightForViewport(available: Int, bottomSpaceSaved: Int, wide: Boolean = false): Int {
+        val reference = available * DATA.dataFraction
+        val rowCount = if (wide) 3 else 5
+        val smallRow = ((reference - if (wide) 2 else 3) / rowCount).toInt().coerceAtLeast(0)
+        val compactRow = (smallRow - bottomSpaceSaved).coerceAtLeast(0)
+        val height = if (this == DATA && wide) compactRow * 3 + 2 else
+            rows.indices.sumOf { (compactRow * rowWeight(it, wide)).toInt() } + rows.size - 1
+        return height.coerceIn(0, available.coerceAtLeast(0))
+    }
     companion object { fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: DATA }
 }

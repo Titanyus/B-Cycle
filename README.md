@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.4 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.4-test.apk).
+[Installierbare APK 0.6.5 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.5-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,10 +16,10 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 379.192 Byte (rund 379 KB).
-SHA-256: `6fc531ec166be380e2d8fbc4aa648eb96bf1a84fd9420ee9ea1b35625c0daf32`.
+APK-Größe: 383.288 Byte (rund 383 KB).
+SHA-256: `0738fdc4704b5f6e0409addd018d3366a85321923304940a127314140e2b0948`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 95 Tests sind bestanden.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 96 Tests sind bestanden.
 Android-Lint meldet 26 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
@@ -209,3 +209,8 @@ Tests ersetzen keinen Hardwaretest.
 Ab 0.6.4 erscheinen Quellenzeichen nur bei Tempo, Distanz, Gesamt-km und
 Durchschnitts-/Maximaltempo. Eindeutige Felder wie Kadenz, Leistung, Puls und
 Höhenwerte verwenden nur ihren Namen. Die Quellkategorien in der Auswahl bleiben erhalten.
+
+Ab 0.6.5 teilen die Vorlagen gemeinsame Höhen für kleine und große Messwertfelder.
+Das Sieben-Werte-Layout dient als Maßstab; der untere Innenabstand ist leicht
+reduziert. Weniger Zeilen lassen mehr Platz für die Karte, statt größere Ziffern
+und zusätzliche Leerflächen zu erzeugen. Lange Werte passen sich weiterhin der Breite an.
