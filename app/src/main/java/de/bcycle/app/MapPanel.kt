@@ -39,7 +39,7 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
         override fun getDefaultTimeToLive() = 7L * 24 * 60 * 60 * 1_000
     }.setProtocol("https").setBaseUrl(path)
         .setName(name).setParallelRequestsLimit(2).setZoomLevelMax(19).apply {
-            setUserAgent("B-Cycle/0.6.1 (https://github.com/Titanyus/B-Cycle)")
+            setUserAgent("B-Cycle/0.6.2 (https://github.com/Titanyus/B-Cycle)")
         }
     companion object { fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: CYCLOSM }
 }

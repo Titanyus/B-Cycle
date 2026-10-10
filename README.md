@@ -1,14 +1,14 @@
 # B-Cycle
 
 Schlanker Radcomputer für Android 13+ (API 33), mit nativen Kotlin-Views,
-Android-Bluetooth-LE und GPS. Mapsforge-Fahrradkarte, fünf feste Dashboard-Vorlagen
+Android-Bluetooth-LE und GPS. Mapsforge-Fahrradkarte, sechs feste Dashboard-Vorlagen
 mit frei belegbaren Messwertfeldern, Bosch-MCSP, Standard-BLE-Pulsmesser und lokale
 FIT-Fahrtaufzeichnung. Die Online-Karte benötigt Internet; keine Analyse- oder
 zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.1 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.1-test.apk).
+[Installierbare APK 0.6.2 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.2-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,18 +16,18 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 370.872 Byte (rund 371 KB).
-SHA-256: `c843a9abe787afd983087f6cd28417e168943f7dec5bdf37b96f610bdd393f2d`.
+APK-Größe: 379.064 Byte (rund 379 KB).
+SHA-256: `28fabc9f0437cfdb06be7f49de46c3f106b54316c4b72549972a82b5b0748506`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 92 Tests sind bestanden.
-Android-Lint meldet 21 Warnungen und keine Fehler.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 95 Tests sind bestanden.
+Android-Lint meldet 26 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
 Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
 Pulsmesser-Test wurde vom Nutzer bestätigt. Eine Fahrt mit ausgeschaltetem
 Display auf dem Poco steht noch aus. Die Kachelcache-Korrektur aus 0.5.1 wurde
-vom Nutzer auf dem Handy bestätigt. Version 0.6.1 ergänzt das einheitliche Einstellungsmenü mit Symbolraster und
-eigenen Dialogen für die erweiterten Punkte. Die neuen Abläufe sind automatisiert geprüft;
+vom Nutzer auf dem Handy bestätigt. Version 0.6.2 ergänzt Rücknavigation zum vorherigen Einstellungsdialog, die
+sechste Dashboard-Vorlage und eine grafische Vorlagenauswahl. Die neuen Abläufe sind automatisiert geprüft;
 der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.md).
 
 ## Benutzung
@@ -76,7 +76,8 @@ in zwei Zeilen mit je drei Spalten: Sensoren, Aufzeichnungsmanager, Kartenmanage
 Dashboards, Streckenmanager und Erweitert. **Erweitert** klappt weitere Punkte
 unterhalb einer 1-Pixel-Linie auf; jeder öffnet einen eigenen Dialog. Aktionen
 werden dort gezielt über einen Button ausgelöst. Die beiden Lizenzpunkte stehen
-am Ende. Alle App-Einstellungsdialoge verwenden denselben dunkelroten Hintergrund.
+am Ende von Erweitert. Schließen, Abbrechen und Zurück führen aus Unterdialogen
+zum vorherigen Dialog zurück; aufgeklappte Bereiche bleiben erhalten. Alle App-Einstellungsdialoge verwenden denselben dunkelroten Hintergrund.
 
 **☰ → Streckenmanager** enthält Import, Streckennamen, Auge zum Anzeigen/Ausblenden
 und Mülleimer zum Löschen. Jeweils eine gespeicherte GPX-Strecke wird angezeigt.
@@ -84,11 +85,16 @@ und Mülleimer zum Löschen. Jeweils eine gespeicherte GPX-Strecke wird angezeig
 Kartenicons und START/Menü blenden sich nach fünf Sekunden gemeinsam aus; ein
 Kartentipp zeigt sie wieder. Der zusätzliche Platz kommt ausschließlich der Karte zugute.
 Die fünfte Vorlage zeigt oben zwei und unten drei frei belegbare Messwerte.
+Die sechste Vorlage zeigt einen großen Wert oben und drei Werte darunter.
+Unter Dashboards lassen sich die sechs Vorlagen als Vorschau-Icons in zwei Zeilen
+mit je drei Spalten für jede der vier Seiten auswählen. Änderungen werden erst
+mit Speichern übernommen.
 
 Das Dashboard verwendet Schwarz, Weiß, dünne graue Linien, große schmale Ziffern
 und eine rote Bedienleiste mit dunklerem Hamburger-Button. Das obere Infofeld
-ist entfernt. Einheiten stehen rechts neben den weiterhin mittigen Messwerten,
-mit unveränderten Schriftarten und Größenbereichen. Die Datenfelder sind kompakter;
+ist entfernt. Einheiten stehen rechts neben den weiterhin mittigen Messwerten
+und sind vertikal in der Messwertzeile zentriert. Feldnamen verwenden eine gemeinsame
+Schriftgröße innerhalb des Dashboards, die auch für die längsten sichtbaren Titel passt. Die Datenfelder sind kompakter;
 darunter steht nun die Karte. Speicherbestätigung und Fehler
 erscheinen als kurze Hinweise statt in einer dauerhaften Kopfzeile. Die Sieben-Werte-Vorlage
 hat im Hochformat zwei Felder, ein großes Feld und zweimal zwei Felder;

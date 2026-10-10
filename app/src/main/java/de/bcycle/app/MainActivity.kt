@@ -43,7 +43,10 @@ class MainActivity : Activity() {
     private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows() }
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
-    private fun dialog() = AlertDialog.Builder(this, R.style.SettingsDialogTheme)
+    private val dialogs = DialogNavigation()
+    private fun dialog() = object : AlertDialog.Builder(this, R.style.SettingsDialogTheme) {
+        override fun create(): AlertDialog = super.create().also { dialogs.track(it) }
+    }
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private fun label(text: String, size: Float = 14f, color: Int = Color.WHITE) = TextView(settingsContext).apply {
         this.text = text; textSize = size; setTextColor(color)
@@ -170,7 +173,6 @@ class MainActivity : Activity() {
     }
     private fun showMenu() {
         val content = SettingsMenuView(settingsContext) { action ->
-            menu?.dismiss()
             when (action) {
                 SettingsAction.SENSORS -> showSensorManager()
                 SettingsAction.RECORDING -> recordingSettings()
@@ -215,7 +217,6 @@ class MainActivity : Activity() {
         menu = dialog().setTitle("Standardbelegung").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
     }
     private fun showSensorManager() {
-        sensorManager?.dismiss()
         val root = column(); sensorRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(sensorRows)
         root.addView(button("Sensor hinzufügen") {
@@ -223,7 +224,7 @@ class MainActivity : Activity() {
         })
         refreshSensorRows()
         sensorManager = dialog().setTitle("Sensoren").setView(ScrollView(this).apply { addView(root) }).setPositiveButton("Schließen", null).create().apply {
-            setOnDismissListener { sensorRows = null }; show()
+            dialogs.onDismiss(this) { sensorRows = null }; show()
         }
     }
     private fun refreshSensorRows() {
@@ -250,7 +251,6 @@ class MainActivity : Activity() {
         }
     }
     private fun selectSensor(kind: String) {
-        sensorManager?.dismiss()
         if (!runtime.hasBluetooth()) { requestSensorPermission(kind); return }
         picker?.dismiss(); stopScan()
         val root = column(); val scanLabel = label("Suche …"); root.addView(scanLabel)
@@ -265,7 +265,7 @@ class MainActivity : Activity() {
             })
         }
         picker = dialog().setTitle(if (kind == "bike") "Fahrrad auswählen" else "Pulsmesser auswählen")
-            .setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).create().apply { setOnDismissListener { stopScan() }; show() }
+            .setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).create().apply { dialogs.onDismiss(this) { stopScan() }; show() }
         if (kind == "bike") {
             scanningBike = true; runtime.scanFound = ::found; runtime.scanStatus = { scanLabel.text = it }; runtime.beginBikeScan()
         } else {
@@ -351,7 +351,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.1-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.2-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
@@ -359,10 +359,12 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 8) {
-            if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.import(it); routeSettings() }
+            if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.import(it) }
+            if (dialogs.empty) { showMenu(); routeSettings() }
             return
         }
         if (requestCode != 2) return
+        if (dialogs.empty) { showMenu(); diagnosticSettings() }
         val report = pendingReport; pendingReport = null
         val uri = data?.data ?: return
         if (resultCode != RESULT_OK || report == null) return
@@ -374,7 +376,7 @@ class MainActivity : Activity() {
     }
     override fun onStart() { super.onStart(); mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
     override fun onStop() {
-        picker?.dismiss(); menu?.dismiss(); sensorManager?.dismiss(); stopScan()
+        dialogs.closeAll(); stopScan()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() { mapPanel.destroy(); super.onDestroy() }
@@ -398,19 +400,13 @@ class MainActivity : Activity() {
     private fun dashboardSettings() {
         val root = column()
         root.addView(label("Vier Seiten mit festen Vorlagen. Die Messwerte jeder Seite sind unabhängig frei belegbar. Wechsel über ‹/› auf der Karte.", 14f, Color.LTGRAY))
-        val spinners = (0 until 4).map { page ->
-            root.addView(label("Dashboard ${page + 1}", 18f))
-            Spinner(settingsContext).apply {
-                adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, DashboardTemplate.entries.map { it.title })
-                val selected = DashboardTemplate.decode(preferences.getString("dashboardTemplate_$page", DashboardTemplate.entries[page].name))
-                setSelection(selected.ordinal); root.addView(this)
-            }
-        }
-        root.addView(button("Vorheriges Dashboard") { changeDashboard(-1) })
-        root.addView(button("Nächstes Dashboard") { changeDashboard(1) })
+        val presets = DashboardPresetPicker(settingsContext, (0 until 4).map { page ->
+            DashboardTemplate.decode(preferences.getString("dashboardTemplate_$page", DashboardTemplate.entries[page].name))
+        }, dashboardPage)
+        root.addView(presets)
         menu = dialog().setTitle("Dashboards").setView(ScrollView(this).apply { addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
-                val edit = preferences.edit(); spinners.forEachIndexed { page, spinner -> edit.putString("dashboardTemplate_$page", DashboardTemplate.entries[spinner.selectedItemPosition].name) }; edit.apply()
+                val edit = preferences.edit(); presets.selection.forEachIndexed { page, template -> edit.putString("dashboardTemplate_$page", template.name) }; edit.apply()
                 changeDashboard(0)
             }.setNegativeButton("Abbrechen", null).show()
     }
@@ -447,11 +443,11 @@ class MainActivity : Activity() {
     private fun routeSettings() {
         val root = column()
         root.addView(label("Gespeicherte GPX-Strecken. Das Auge zeigt eine Strecke an oder blendet sie aus. Keine Routenberechnung oder Abbiegehinweise.", 14f, Color.LTGRAY))
-        root.addView(button("GPX-Strecke importieren") { menu?.dismiss(); importGpx() })
+        root.addView(button("GPX-Strecke importieren") { importGpx() })
         routeRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }; root.addView(routeRows)
         refreshRouteRows()
         menu = dialog().setTitle("Streckenmanager").setView(ScrollView(this).apply { addView(root) })
-            .setPositiveButton("Schließen", null).create().apply { setOnDismissListener { routeRows = null }; show() }
+            .setPositiveButton("Schließen", null).create().apply { dialogs.onDismiss(this) { routeRows = null }; show() }
     }
     private fun refreshRouteRows() {
         val rows = routeRows ?: return
@@ -484,7 +480,7 @@ class MainActivity : Activity() {
             }, LinearLayout.LayoutParams(dp(48), dp(48)))
             rows.addView(row)
         }
-        if (state.route != null) rows.addView(button("Angezeigte Strecke vollständig zeigen") { menu?.dismiss(); mapPanel.fitRoute() }.apply { isEnabled = !state.busy })
+        if (state.route != null) rows.addView(button("Angezeigte Strecke vollständig zeigen") { dialogs.closeAll(); mapPanel.fitRoute() }.apply { isEnabled = !state.busy })
     }
     private fun openMapLink(url: String) {
         try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }

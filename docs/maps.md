@@ -11,15 +11,20 @@ Ab 0.6.1 zeigt **☰** ein dunkelrotes Symbolraster (drei Spalten, zwei Zeilen).
 Die sechste Kachel **Erweitert** klappt zusätzliche Einstellungen unter einer
 1-Pixel-Trennlinie auf. Alle Punkte öffnen eigene Dialoge mit demselben Hintergrund;
 Aktionen wie Diagnoseexport und Zurücksetzen benötigen dort einen Buttondruck.
-Die Lizenzpunkte stehen ganz unten. Die weißen Menü-Vektoren sind nach dem
+Ab 0.6.2 stehen die Lizenzpunkte am Ende von Erweitert. Unterdialoge kehren
+beim Schließen, Abbrechen oder Zurück zum vorherigen Dialog zurück; dessen
+aufgeklappte Bereiche und Auswahl bleiben erhalten. Die weißen Menü-Vektoren sind nach dem
 bereitgestellten Mockup gezeichnet; eingebettete PNG-Vorschauen waren nicht
 als Originaldateien im Arbeitsbereich abrufbar.
 
-- Vier Dashboard-Seiten, jede mit einer der fünf festen Vorlagen: sieben Werte
+- Vier Dashboard-Seiten, jede mit einer der sechs festen Vorlagen: sieben Werte
   mit kleiner Karte, vier mit mittlerer Karte, zwei mit großer Karte oder drei
   kompakte Werte mit Kartenübersicht sowie fünf Werte in zwei Zeilen (oben zwei,
-  unten drei). Jede Seite speichert ihre eigene Belegung.
-  Vorlagen unter **☰ → Dashboards** wählen; die bisherigen sieben Felder bleiben
+  unten drei) oder ein großer Wert oben mit drei kleineren darunter. Jede Seite
+  speichert ihre eigene Belegung.
+  Vorlagen unter **☰ → Dashboards** als Vorschau-Icons im 2×3-Raster wählen.
+  Zuerst Seite 1–4 wählen, dann eine Vorlage; erst Speichern übernimmt die Auswahl.
+  Abbrechen verwirft sie. Die bisherigen sieben Felder bleiben
   auf Seite 1 erhalten. Verdeckte Felder bleiben beim Vorlagenwechsel gespeichert.
 - Seitenwechsel über **‹/›** in den Kartenbuttons oder horizontales Wischen auf
   einem Messwertfeld. Wischen auf der Karte bewegt die Karte und wechselt keine Seite.
@@ -41,6 +46,8 @@ als Originaldateien im Arbeitsbereich abrufbar.
   Kartenposition bleiben lokal gespeichert.
 
 Die Dashboard-Beschriftungen sind kurz (z. B. Tempo, Distanz, Fahreranteil).
+Alle sichtbaren Titel verwenden dieselbe, gemeinsam passende Schriftgröße.
+Einheiten stehen rechts vom Messwert und mittig in dessen Zeile.
 Ein weißes Fahrrad steht für E-Bike, eine weiße Weltkugel für GPS. Feldauswahl
 und TalkBack behalten die ausführlichen Beschreibungen und Quellen.
 

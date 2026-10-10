@@ -49,6 +49,20 @@ class DashboardViewTest {
         assertTrue(tiles.first().contentDescription.toString().contains("GPS · Ø Geschwindigkeit · Bewegung"))
     }
 
+    @Test fun heroPresetShowsOneLargeValueAboveThreeIndependentlySelectableValues() {
+        val clicked = mutableListOf<Int>()
+        val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }
+        view.setTemplate(DashboardTemplate.HERO)
+        measure(view, 1080, 900)
+        val tiles = descendants(view).filter { it.isClickable }
+        assertEquals(4, tiles.size)
+        assertTrue(tiles.first().height > tiles.last().height * 1.9)
+        assertSame(tiles[1].parent, tiles[2].parent); assertSame(tiles[2].parent, tiles[3].parent)
+        tiles.forEach { it.performClick() }
+        assertEquals(listOf(2, 3, 4, 5), clicked)
+        assertEquals(1, tiles.map { ((it as ViewGroup).getChildAt(0) as TextView).textSize }.distinct().size)
+    }
+
     @Test fun sevenAccessibleTilesFitPortraitAndLandscapeAndEveryTileCanBeSelected() {
         val clicked = mutableListOf<Int>()
         val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }
@@ -80,6 +94,8 @@ class DashboardViewTest {
             assertTrue(dashboard.height < (dashboard.parent as View).height)
             val tiles = descendants(dashboard).filter { it.isClickable }.map { it as ViewGroup }
             assertEquals(7, tiles.size)
+            val captionSizes = tiles.map { (it.getChildAt(0) as TextView).textSize }
+            assertEquals(1, captionSizes.distinct().size)
             for (tile in tiles) {
                 val row = tile.getChildAt(1) as ViewGroup
                 val value = row.getChildAt(0) as TextView
@@ -88,7 +104,7 @@ class DashboardViewTest {
                 if (unit.visibility == View.VISIBLE) {
                     assertTrue("${value.text} ${unit.text}: unit outside tile", unit.right <= row.width)
                     assertTrue(unit.left >= row.width / 2f + value.layout.getLineWidth(0) / 2f)
-                    assertEquals(value.top + value.baseline, unit.top + unit.baseline)
+                    assertEquals(row.height / 2.0, (unit.top + unit.bottom) / 2.0, 1.0)
                 }
             }
         }

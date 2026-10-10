@@ -53,11 +53,11 @@ class SettingsMenuTest {
             val advanced = views(dialog).single { it.tag == "settings_advanced_content" } as ViewGroup
             assertEquals(View.GONE, advanced.visibility); assertEquals(0, advanced.childCount)
             val toggle = views(dialog).single { it.tag == "settings_ADVANCED" }
-            toggle.performClick(); assertEquals(View.VISIBLE, advanced.visibility); assertEquals(4, advanced.childCount)
+            toggle.performClick(); assertEquals(View.VISIBLE, advanced.visibility); assertEquals(6, advanced.childCount)
             assertEquals("Ausgeklappt", toggle.stateDescription)
             toggle.performClick(); assertEquals(View.GONE, advanced.visibility)
-            assertEquals("settings_FONT_LICENSE", menu.getChildAt(menu.childCount - 2).tag)
-            assertEquals("settings_MAP_LICENSE", menu.getChildAt(menu.childCount - 1).tag)
+            assertEquals("settings_FONT_LICENSE", advanced.getChildAt(advanced.childCount - 2).tag)
+            assertEquals("settings_MAP_LICENSE", advanced.getChildAt(advanced.childCount - 1).tag)
             assertEquals(1, views(dialog).single { it.tag == "settings_separator" }.layoutParams.height)
             // Produce a native Android render for visual review of colour, symbols and spacing.
             menu.measure(View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
@@ -68,6 +68,53 @@ class SettingsMenuTest {
             output.outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) }
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun closeCancelAndBackRestoreSameParentWithExpandedAdvancedSection() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val root = open(controller.get())
+            views(root).single { it.tag == "settings_ADVANCED" }.performClick()
+            views(root).single { it.tag == "settings_FONT_LICENSE" }.performClick()
+            val license = ShadowAlertDialog.getLatestAlertDialog()
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.GONE, root.window!!.decorView.visibility)
+            license.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
+            assertEquals(View.VISIBLE, views(root).single { it.tag == "settings_advanced_content" }.visibility)
+            views(root).single { it.tag == "settings_MAP" }.performClick()
+            val map = ShadowAlertDialog.getLatestAlertDialog()
+            map.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
+            views(root).single { it.tag == "settings_DIAGNOSTIC" }.performClick()
+            ShadowAlertDialog.getLatestAlertDialog().cancel(); shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
+        } finally { controller.pause().stop().destroy() }
+    }
+
+    @Test fun graphicalPresetGridEditsPagesAsDraftAndSavePersistsTheNewLayout() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity = controller.get(); val prefs = activity.getSharedPreferences("bike", 0)
+            val root = open(activity)
+            views(root).single { it.tag == "settings_DASHBOARDS" }.performClick()
+            val cancelled = ShadowAlertDialog.getLatestAlertDialog()
+            views(cancelled).single { it.tag == "preset_HERO" }.performClick()
+            cancelled.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            assertNull(prefs.getString("dashboardTemplate_0", null))
+            views(root).single { it.tag == "settings_DASHBOARDS" }.performClick()
+            val dialog = ShadowAlertDialog.getLatestAlertDialog()
+            for (i in 0..1) assertEquals(3, (views(dialog).single { it.tag == "preset_row_$i" } as ViewGroup).childCount)
+            views(dialog).single { it.tag == "preset_HERO" }.performClick()
+            assertTrue(views(dialog).single { it.tag == "preset_HERO" }.isSelected)
+            views(dialog).single { it.tag == "preset_page_1" }.performClick()
+            views(dialog).single { it.tag == "preset_FIVE" }.performClick()
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            assertEquals("HERO", prefs.getString("dashboardTemplate_0", null))
+            assertEquals("FIVE", prefs.getString("dashboardTemplate_1", null))
+            assertEquals(DashboardTemplate.HERO, descendants(activity.findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single().template)
+            assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
+        } finally { controller.pause().stop().destroy() }
+    }
+
     @Test fun everyMainAndAdvancedEntryOpensItsOwnRedDialogWithoutExecutingActions() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -77,7 +124,7 @@ class SettingsMenuTest {
             prefs.edit().putString("dashboard", custom).commit()
             for (action in SettingsAction.entries.filter { it != SettingsAction.ADVANCED }) {
                 val menu = open(activity)
-                if (action.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.RESET.ordinal)
+                if (action.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal)
                     views(menu).single { it.tag == "settings_ADVANCED" }.performClick()
                 views(menu).single { it.tag == "settings_${action.name}" }.performClick()
                 val child = ShadowAlertDialog.getLatestAlertDialog()
@@ -91,6 +138,7 @@ class SettingsMenuTest {
                     assertEquals(DashboardLayout.defaults.encode(), prefs.getString("dashboard", null))
                 } else child.dismiss()
                 shadowOf(Looper.getMainLooper()).idle()
+                menu.dismiss(); shadowOf(Looper.getMainLooper()).idle()
             }
         } finally { controller.pause().stop().destroy() }
     }

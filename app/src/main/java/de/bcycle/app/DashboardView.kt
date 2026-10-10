@@ -24,6 +24,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var bikeDistanceM: Long? = null
     private var pulse = PulseValues()
     private var landscape = false
+    private var captionSignature = ""
     var template = DashboardTemplate.DATA
         private set
     var changePage: ((Int) -> Unit)? = null
@@ -40,19 +41,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     }
 
     private fun buildTiles(wide: Boolean) {
-        removeAllViews(); tiles.clear()
+        removeAllViews(); tiles.clear(); captionSignature = ""
         val indexed = List(7) { Tile(it) }
         tiles.addAll(indexed)
         if (template != DashboardTemplate.DATA) {
             orientation = VERTICAL
-            val rows = when (template) {
-                DashboardTemplate.OVERVIEW -> listOf(template.slots)
-                DashboardTemplate.FIVE -> listOf(template.slots.take(2), template.slots.drop(2))
-                else -> template.slots.chunked(2)
-            }
-            rows.forEachIndexed { index, slots ->
+            template.rows.forEachIndexed { index, slots ->
                 if (index > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, 1))
-                addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+                addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(index)))
             }
             show(layout, data, gps, bikeDistanceM, pulse)
             return
@@ -70,7 +66,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             show(layout, data, gps, bikeDistanceM, pulse)
             return
         }
-        val groups = listOf(listOf(0, 1), listOf(2), listOf(3, 4), listOf(5, 6))
+        val groups = template.rows
         for ((rowIndex, indexes) in groups.withIndex()) {
             if (rowIndex > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, 1))
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; isBaselineAligned = false }
@@ -79,7 +75,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 val tile = indexed[index]
                 row.addView(tile.container, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
             }
-            addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, if (rowIndex == 1) 2f else 1f))
+            addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(rowIndex)))
         }
         show(layout, data, gps, bikeDistanceM, pulse)
     }
@@ -103,6 +99,24 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         val height = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST)
             MeasureSpec.makeMeasureSpec(compact, MeasureSpec.EXACTLY) else heightMeasureSpec
         super.onMeasure(widthMeasureSpec, height)
+        val titles = template.slots.map { tiles[it].title }
+        val signature = titles.joinToString("|") { "${it.text}:${it.measuredWidth}:${it.measuredHeight}" }
+        if (signature != captionSignature && titles.all { it.measuredWidth > 0 && it.measuredHeight > 0 }) {
+            captionSignature = signature
+            val paint = android.text.TextPaint(titles.first().paint)
+            fun pixels(sp: Int) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp.toFloat(), resources.displayMetrics)
+            val size = (18 downTo 6).firstOrNull { sp ->
+                paint.textSize = pixels(sp)
+                titles.all { title ->
+                    val layout = android.text.StaticLayout.Builder.obtain(title.text, 0, title.text.length, paint, title.measuredWidth)
+                        .setIncludePad(false).setBreakStrategy(android.graphics.text.LineBreaker.BREAK_STRATEGY_SIMPLE).build()
+                    layout.lineCount <= 2 && layout.height <= title.measuredHeight &&
+                        (0 until layout.lineCount).all { layout.getLineWidth(it) <= title.measuredWidth }
+                }
+            } ?: 6
+            titles.forEach { it.setTextSize(TypedValue.COMPLEX_UNIT_PX, pixels(size)) }
+            super.onMeasure(widthMeasureSpec, height)
+        }
     }
 
     fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()) {
@@ -137,7 +151,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             setOnClickListener { selectField(index) }
             setOnTouchListener { _, event -> swipe.onTouchEvent(event) }
         }
-        private val title = text(6, 18, captions, 2)
+        val title = text(6, 18, captions, 2).apply { setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE); textSize = 12f }
         private val value = text(10, 240, numbers, 1)
         private val unit = text(5, 16, captions, 1)
 
@@ -189,11 +203,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val start = (width - value.measuredWidth) / 2
             value.layout(start, 0, start + value.measuredWidth, value.measuredHeight)
             if (unit.visibility != GONE) {
-                // TextView finalises automatic font sizing during layout, before baseline alignment.
+                // TextView finalises automatic font sizing during layout, before vertical centring.
                 unit.layout(0, 0, unit.measuredWidth, unit.measuredHeight)
                 val textWidth = value.layout?.getLineWidth(0) ?: 0f
                 val x = (width / 2f + textWidth / 2f + dp(6)).toInt()
-                val y = (value.baseline - unit.baseline).coerceIn(0, (height - unit.measuredHeight).coerceAtLeast(0))
+                val y = (height - unit.measuredHeight).coerceAtLeast(0) / 2
                 unit.offsetLeftAndRight(x); unit.offsetTopAndBottom(y)
             }
         }

@@ -50,7 +50,7 @@ internal class SettingsMenuView(context: Context, private val selected: (Setting
         fun toggleAdvanced() {
             val expand = advanced.visibility != VISIBLE
             if (expand && !built) {
-                SettingsAction.entries.filter { it.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.RESET.ordinal }.forEach { action ->
+                SettingsAction.entries.filter { it.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal }.forEach { action ->
                     advanced.addView(entry(action.title) { selected(action) }.apply { tag = "settings_${action.name}" })
                 }
                 built = true
@@ -71,9 +71,7 @@ internal class SettingsMenuView(context: Context, private val selected: (Setting
         }
         addView(View(context).apply { tag = "settings_separator"; setBackgroundColor(Color.argb(150, 255, 255, 255)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(-1, 1).apply { topMargin = dp(12); bottomMargin = dp(4) })
         addView(advanced)
-        for (action in listOf(SettingsAction.FONT_LICENSE, SettingsAction.MAP_LICENSE)) {
-            addView(entry(action.title) { selected(action) }.apply { tag = "settings_${action.name}"; textSize = 12f; setTextColor(Color.rgb(220, 190, 190)) })
-        }
+
     }
     private fun tile(action: SettingsAction, onClick: () -> Unit) = LinearLayout(context).apply {
         orientation = VERTICAL; gravity = Gravity.CENTER; setPadding(dp(3), dp(12), dp(3), dp(12))
