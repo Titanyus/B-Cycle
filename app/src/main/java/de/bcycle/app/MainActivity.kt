@@ -88,6 +88,10 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setOnClickListener { stopConnection() }
         })
         column.addView(Button(this).apply {
+            setText(R.string.reread_data)
+            setOnClickListener { connection.reread() }
+        })
+        column.addView(Button(this).apply {
             setText(R.string.save_diagnostic)
             setOnClickListener { exportDiagnostic() }
         })
@@ -121,7 +125,8 @@ class MainActivity : Activity(), BoschConnection.Listener {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "text/plain"
-            putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.1.1-diagnose.txt")
+            val version = packageManager.getPackageInfo(packageName, 0).versionName
+            putExtra(Intent.EXTRA_TITLE, "B-Cycle-$version-diagnose.txt")
         }
         try { startActivityForResult(intent, 2) }
         catch (_: android.content.ActivityNotFoundException) {

@@ -5,6 +5,7 @@
     <string name="no_data">Noch keine Fahrdaten</string>
     <string name="device_name_address">%1$s\n%2$s</string>
     <string name="save_diagnostic">Diagnose speichern</string>
+    <string name="reread_data">Werte erneut lesen</string>
     <string name="export_saved">Diagnose gespeichert. Die Textdatei kann jetzt hochgeladen werden.</string>
     <string name="export_failed">Diagnose konnte nicht gespeichert werden. Bitte erneut versuchen.</string>
     <string name="export_unavailable">Auf diesem Gerät ist keine Dateiauswahl verfügbar.</string>

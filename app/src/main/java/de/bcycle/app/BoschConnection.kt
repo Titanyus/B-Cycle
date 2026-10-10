@@ -21,7 +21,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         fun onData(data: LiveData, packetReceived: Boolean)
         fun onDevice(device: BluetoothDevice, name: String)
     }
-    private enum class Phase { STOPPED, SCANNING, CHOOSING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, READING, LIVE }
+    private enum class Phase { STOPPED, SCANNING, CHOOSING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, READING, REREADING, LIVE }
     private val appContext = context.applicationContext
     private val manager = appContext.getSystemService(BluetoothManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
@@ -33,6 +33,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
     private var negotiatedMtu = 23
     private var liveData = LiveData()
     private var updatesDuringRead = LiveData()
+    private var liveMeasurementsReceived = false
     private var receiverRegistered = false
     private var lastDiagnosticStatus: String? = null
     private var scanCallback: ScanCallback? = null
@@ -140,6 +141,30 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         if (!requested) fail("MTU-Anfrage konnte nicht gestartet werden")
     }
 
+    /** One explicit read at a time; notifications remain active throughout. */
+    fun reread() {
+        if (phase != Phase.LIVE) {
+            diagnostics.event("MANUAL_READ ignored phase=$phase")
+            return
+        }
+        val gatt = client ?: return
+        val item = characteristic ?: return
+        try {
+            phase = Phase.REREADING
+            updatesDuringRead = LiveData()
+            reportStatus("Verbunden · Fahrdaten werden erneut gelesen")
+            armTimeout(20_000)
+            val requested = gatt.readCharacteristic(item)
+            diagnostics.event("MANUAL_READ_REQUEST started=$requested")
+            if (!requested) {
+                handler.removeCallbacks(timeout)
+                phase = Phase.LIVE
+                reportStatus("Erneutes Lesen konnte nicht gestartet werden")
+            }
+        } catch (_: SecurityException) { fail("Bluetooth-Berechtigung fehlt") }
+        catch (_: IllegalStateException) { fail("Bluetooth ist nicht verfügbar") }
+    }
+
     private fun clientCallback(session: Int) = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             dispatch {
@@ -232,33 +257,46 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         override fun onCharacteristicRead(gatt: BluetoothGatt, item: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
             val payload = value.copyOf()
             dispatch {
-                if (!isClient(session, gatt) || phase != Phase.READING || item.uuid != LIVE_CHARACTERISTIC) return@dispatch
-                diagnostics.event("INITIAL_READ_RESULT status=$status bytes=${payload.size}")
+                if (!isClient(session, gatt) || (phase != Phase.READING && phase != Phase.REREADING) || item.uuid != LIVE_CHARACTERISTIC) return@dispatch
+                val initial = phase == Phase.READING
+                val prefix = if (initial) "INITIAL" else "MANUAL"
+                diagnostics.event("${prefix}_READ_RESULT status=$status bytes=${payload.size}")
                 diagnostics.packet("read", payload)
                 if (status != BluetoothGatt.GATT_SUCCESS) { fail("Lesen fehlgeschlagen ($status)"); return@dispatch }
-                val snapshot = decode(payload) ?: run { fail("Initiales Bosch-Datenpaket ungültig"); return@dispatch }
-                diagnostics.event("INITIAL_FIELDS speedHundredths=${snapshot.speedHundredths} riderPowerWatts=${snapshot.riderPowerWatts}")
-                liveData = snapshot.merge(updatesDuringRead)
+                val snapshot = decode(payload) ?: run { fail("Gelesenes Bosch-Datenpaket ungültig"); return@dispatch }
+                diagnostics.event("${prefix}_FIELDS speedHundredths=${snapshot.speedHundredths} riderPowerWatts=${snapshot.riderPowerWatts}")
+                liveData = (if (initial) snapshot else liveData.merge(snapshot)).merge(updatesDuringRead)
                 updatesDuringRead = LiveData()
                 phase = Phase.LIVE
                 handler.removeCallbacks(timeout)
-                reportStatus("Live verbunden · MTU $negotiatedMtu")
-                listener.onData(liveData, true)
+                reportMeasurementsStatus()
+                // Empty protobuf is valid, but is no evidence of a received measurement.
+                if (payload.isNotEmpty()) listener.onData(liveData, true)
             }
         }
         override fun onCharacteristicChanged(gatt: BluetoothGatt, item: BluetoothGattCharacteristic, value: ByteArray) {
             val payload = value.copyOf()
             dispatch {
                 if (!isClient(session, gatt) || item.uuid != LIVE_CHARACTERISTIC ||
-                    (phase != Phase.SUBSCRIBING && phase != Phase.READING && phase != Phase.LIVE)) return@dispatch
+                    (phase != Phase.SUBSCRIBING && phase != Phase.READING && phase != Phase.REREADING && phase != Phase.LIVE)) return@dispatch
                 diagnostics.packet("notification", payload)
                 val update = decode(payload) ?: return@dispatch
+                if (update.speedHundredths != null || update.riderPowerWatts != null) liveMeasurementsReceived = true
                 if (phase != Phase.LIVE) updatesDuringRead = updatesDuringRead.merge(update)
                 liveData = liveData.merge(update)
-                listener.onData(liveData, true)
-                if (phase == Phase.LIVE) reportStatus("Live verbunden · MTU $negotiatedMtu")
+                if (payload.isNotEmpty()) listener.onData(liveData, true)
+                if (phase == Phase.LIVE) reportMeasurementsStatus()
             }
         }
+    }
+
+    private fun reportMeasurementsStatus() {
+        val message = when {
+            liveData.speedHundredths == null && liveData.riderPowerWatts == null -> "Verbunden · noch keine Fahrdaten"
+            liveMeasurementsReceived -> "Live-Messwerte empfangen"
+            else -> "Fahrdaten gelesen · warte auf Live-Messwerte"
+        }
+        reportStatus("$message · MTU $negotiatedMtu")
     }
 
     private fun decode(payload: ByteArray): LiveData? = try {
@@ -311,6 +349,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         try { oldClient?.disconnect() } catch (_: SecurityException) { }
         try { oldClient?.close() } catch (_: SecurityException) { }
         liveData = LiveData(); updatesDuringRead = LiveData(); negotiatedMtu = 23
+        liveMeasurementsReceived = false
         listener.onData(liveData, false)
         if (wasActive) reportStatus("Gestoppt")
     }

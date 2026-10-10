@@ -9,14 +9,14 @@ Cycplus-Herzfrequenz kommt in einem späteren Schritt.
 
 ## APK herunterladen
 
-[Installierbare Test-APK 0.1.1 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.1-test.apk).
+[Installierbare Test-APK 0.1.2 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.2-test.apk).
 Die Datei liegt auch im Ordner `downloads`. Falls GitHub eine Dateiseite öffnet, dort
 „Download raw file“ auswählen. Bei einem privaten Repository vorher bei GitHub anmelden.
 
 Die APK ist 67.063 Byte groß, optimiert und mit demselben lokalen Testschlüssel wie
-Version 0.1.0 signiert. Sie kann als Update installiert werden.
-SHA-256: `ba89696211a286588b9499ffb883543cf963babb358d069063237d024027596b`.
-Build, 14 Tests (zehn Decoder-Tests und vier Diagnose-Tests), Android-Lint und
+die bisherigen Versionen signiert. Sie kann als Update installiert werden.
+SHA-256: `eb00300c0f773506088b2fc0b903a4492a580ee43c396cbe4fd1e62814257531`.
+Build, 16 Tests (zehn Decoder-Tests und sechs Diagnose-Tests), Android-Lint und
 APK-Signatur wurden geprüft.
 
 ## Testablauf
@@ -36,24 +36,46 @@ ohne Display, laut Nutzer aktuelle Firmware. Beim ersten Hardwaretest mit 0.1.0 
 „Live verbunden · MTU 247“ erreicht, aber beim Drehen des Rads erschienen keine Messwerte.
 Dieser Status bedeutet im Programm, dass der LDI-Dienst gefunden, das Abonnement bestätigt
 und das initiale Paket gelesen und akzeptiert wurde. Welche Felder darin enthalten waren
-und ob Notifications ankamen, ist noch ungeklärt. Version 0.1.1 ergänzt hierfür einen
-Diagnoseexport; eine Behebung des Problems am Fahrrad ist noch nicht bestätigt.
+und ob Notifications ankamen, wurde mit dem Diagnoseexport in 0.1.1 untersucht.
+Der Nutzer trat während des Tests. Das Protokoll zeigt eine erfolgreiche Kopplung,
+MTU 247, den LDI-Dienst und ein erfolgreich bestätigtes Notification-Abonnement.
+Die initiale Leseantwort enthielt jedoch **0 Byte**; während der folgenden rund 19 Sekunden
+kamen **keine Notifications** an. Es wurden weder Geschwindigkeit und Leistung noch
+explizite Nullwerte geliefert. Die leere Antwort ist eine gültige Protobuf-Nachricht,
+enthält aber keinerlei Messwerte. Die Firmware-Version und die Ursache sind noch ungeklärt.
+
+Version 0.1.2 ersetzt in diesem Fall „Live verbunden“ durch „Verbunden · noch keine Fahrdaten“.
+Gelesene Fahrdaten und durch Notifications empfangene Live-Messwerte werden im Status
+unterschieden. Leere Antworten aktualisieren das angezeigte Paketalter nicht mehr.
+„Werte erneut lesen“ startet während einer bestehenden Verbindung genau einen weiteren
+LDI-Lesezugriff; Notifications bleiben aktiv. Eine Behebung des Datenzugriffs am Fahrrad
+ist noch nicht bestätigt.
 Flow bleibt für das Entsperren zuständig; B-Cycle hat keine Entsperrfunktion.
 
 ## Diagnose bei fehlenden Messwerten
 
-1. Version 0.1.1 als Update installieren, Fahrrad mit Flow entsperren und in B-Cycle verbinden.
-2. Nach „Live verbunden“ etwa 20–30 Sekunden mit drehendem Rad testen; für Fahrerleistung
+1. Version 0.1.2 als Update installieren, Fahrrad mit Flow entsperren und in B-Cycle verbinden.
+2. Nach dem Verbinden etwa 20–30 Sekunden mit drehendem Rad testen; für Fahrerleistung
    muss getreten werden. Das Smartphone dabei sicher bedienen, nicht während der Fahrt.
-3. Danach „Diagnose speichern“ antippen und im Android-Dateidialog beispielsweise
+3. Während des Tests zwei- oder dreimal „Werte erneut lesen“ antippen, jeweils die Antwort
+   abwarten. Das prüft, ob inzwischen Werte zum Abruf bereitstehen, obwohl Notifications fehlen.
+4. Danach „Diagnose speichern“ antippen und im Android-Dateidialog beispielsweise
    „Downloads“ als Speicherort wählen. Beim Öffnen dieses Dialogs stoppt die BLE-Verbindung;
    der Diagnosebericht wird unmittelbar vorher festgehalten.
-4. Die gespeicherte Datei `B-Cycle-0.1.1-diagnose.txt` für die Fehlersuche hochladen.
+5. Die gespeicherte Datei `B-Cycle-0.1.2-diagnose.txt` für die Fehlersuche hochladen.
    Vor dem Export keine neue Suche starten: Diese setzt die Diagnose zurück.
+
+Für einen separaten Vergleichstest kann Flow nach dem Entsperren vollständig beendet werden
+(Android-App-Info → „Beenden erzwingen“), anschließend B-Cycle neu verbinden.
+Das normale Wegwischen beendet Flow möglicherweise nicht. Falls das Fahrrad dadurch wieder
+gesperrt wird, Flow erneut öffnen und diesen Vergleich abbrechen. Ein Einfluss der parallelen
+Flow-Verbindung ist eine Hypothese, kein aus dem Protokoll nachgewiesener Fehler.
+Für beide Tests getrennte Diagnose-Dateien speichern und die genaue System-Controller-Firmware
+aus Flow notieren; die PDF beschreibt experimentelle LDI-Unterstützung ab v19.
 
 Der Bericht enthält App-Version, Smartphone-Modell, Android-Version, Sitzungszeit,
 GATT-Ablauf mit Statuscodes, Dienst- und Characteristic-UUIDs, Paketzähler, Decoderfehler,
-die letzten vier initialen Leseantworten sowie die letzten 24 LDI-Notifications als Hexdaten.
+die letzten vier Leseantworten (initial und manuell) sowie die letzten 24 LDI-Notifications als Hexdaten.
 Geschwindigkeit und Fahrerleistung werden als empfangene Felder gezählt, auch bei Nullwerten.
 Gerätenamen und Bluetooth-Adressen werden nicht protokolliert. Aus anderen Characteristics
 werden keine Nutzdaten gelesen oder gespeichert. Die Historie ist begrenzt, wird beim Beenden
@@ -112,7 +134,7 @@ Vollständiges JDK 17 oder 21 mit `javac`, Android-SDK Plattform 35 und Build-To
 
 Debug-APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Release-APK: `app/build/outputs/apk/release/app-release-unsigned.apk`, mit R8 optimiert,
-noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.1-test.apk` ist eine optimierte APK
+noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.2-test.apk` ist eine optimierte APK
 mit dem lokalen Android-Testschlüssel, nicht mit einem Veröffentlichungsschlüssel.
 
 In der eingerichteten Cloud-Umgebung:

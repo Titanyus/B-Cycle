@@ -4,6 +4,36 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class DiagnosticLogTest {
+    @Test fun emptySuccessfulReadsNeverBecomeZeroMeasurements() {
+        val log = DiagnosticLog({ 0 })
+        log.reset("empty LDI response regression")
+        log.event("CCCD_WRITE_RESULT status=0")
+        repeat(2) {
+            val packet = byteArrayOf()
+            log.packet("read", packet)
+            log.decoded(LiveDataDecoder.decode(packet))
+        }
+        val report = log.report()
+        assertTrue(report.contains("reads=2 notifications=0 decodeErrors=0"))
+        assertTrue(report.contains("speedFieldSeen=false riderPowerFieldSeen=false"))
+        assertTrue(report.contains("read bytes=0 hex="))
+    }
+
+    @Test fun repeatedManualReadsRetainOnlyTheLastFourWithoutLosingTotals() {
+        val log = DiagnosticLog({ 0 })
+        log.reset("manual reads")
+        log.event("CCCD_WRITE_RESULT status=0")
+        for (power in 1..6) {
+            log.packet("read", byteArrayOf(40, power.toByte()))
+        }
+        val report = log.report()
+        assertTrue(report.contains("reads=6 notifications=0"))
+        assertTrue(report.contains("CCCD_WRITE_RESULT status=0"))
+        assertFalse(report.contains("hex=2801"))
+        assertFalse(report.contains("hex=2802"))
+        for (hex in listOf("2803", "2804", "2805", "2806")) assertTrue(report.contains("hex=$hex"))
+    }
+
     @Test fun reportsReadAndNotificationCountsIncludingExplicitZeroFields() {
         var now = 1000L
         val log = DiagnosticLog({ now })

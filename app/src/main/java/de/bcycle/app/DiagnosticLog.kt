@@ -47,7 +47,7 @@ class DiagnosticLog(
             }
         }
         val detail = "$kind bytes=${payload.size} hex=$hex${if (payload.size > 514) " [truncated in log]" else ""}"
-        // Initial reads and high-rate notifications cannot evict the handshake events.
+        // Reads and high-rate notifications cannot evict the handshake events.
         val destination = if (kind == "read") initialReads else packets
         destination.addLast("${elapsed()}ms $detail\n")
         val limit = if (kind == "read") 4 else maxPackets
@@ -72,7 +72,7 @@ class DiagnosticLog(
         append("No device names or Bluetooth addresses are logged. Raw payloads are limited to Bosch LDI.\n")
         append("Events (bounded history):\n")
         for (line in events) append(line)
-        append("Bosch LDI initial reads (last 4):\n")
+        append("Bosch LDI reads, initial/manual (last 4):\n")
         for (line in initialReads) append(line)
         append("Bosch LDI notifications (last $maxPackets):\n")
         for (line in packets) append(line)
