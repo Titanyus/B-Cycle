@@ -50,8 +50,10 @@ FIT, GPS-Messung und importierte Dateien werden nicht hochgeladen. Attribution
 bleibt dauerhaft sichtbar. Es gibt keine Werbung oder Analyseintegration.
 
 Die App lädt nur zur Anzeige benötigte Kacheln, mit identifizierbarem User-Agent
-und zwei Download-Threads. Der begrenzte Cache umfasst 48 Kacheln im RAM und
-512 auf Disk je Quelle. Expires-Angaben werden durch Mapsforge berücksichtigt;
+und zwei Download-Threads. Ab 0.5.1 passt sich der RAM-Cache an die tatsächlich
+zum Rendern benötigten Kacheln an, einschließlich Überstand und Drehung. Er wächst
+nicht mit der Fahrtdauer und schrumpft bei deutlich kleinerem Kartenausschnitt.
+Auf Disk bleiben maximal 512 Kacheln je Quelle. Expires-Angaben werden durch Mapsforge berücksichtigt;
 die zusätzliche Cache-Lebensdauer beträgt sieben Tage. Kein Vorladen von Regionen,
 kein Massendownload. Normale Cachetreffer ersetzen keine zugesicherte Offline-Karte.
 Nicht sichtbare Karten pausieren Render- und Download-Arbeit; die Aufzeichnung
@@ -102,6 +104,13 @@ Trackspeicher, Kursglättung über Norden, Kartenbuttons, Vollbild, vier Vorlage
 und getrennte Feldbelegung. Die Aufzeichnungstests prüfen dieselben Trackpunkte
 im Hintergrund und abgewählte Positionen; bestehende Garmin-FIT-Tests bleiben aktiv.
 
-Der Cloud-Zugriff auf den echten CyclOSM-Kachelserver war durch die Netzwerkfreigabe
-gesperrt. Deshalb sind echte Kacheln, Sonnentauglichkeit, Kartenbewegung während
-einer Fahrt und Energieverbrauch auf dem Poco noch nicht verifiziert.
+Ab 0.5.1 prüfen zusätzliche Tests echtes Mapsforge-Raster-Rendering mit lokal
+gespeicherten Testkacheln bei Zoom, Verschieben und Drehung. Der bisherige feste
+RAM-Cache mit 48 Kacheln reproduziert dabei die gemeldeten Lücken; der angepasste
+Cache hält alle benötigten Kacheln auch über wiederholte Zeichenzyklen bereit.
+Ein weiterer Test prüft das Verkleinern des Caches.
+
+Der Nutzer hat Online-Kacheln auf dem Poco getestet und dabei diese Lücken gemeldet.
+Die Korrektur benötigt noch den Vergleich auf dem Handy. Der Cloud-Zugriff auf den
+echten CyclOSM-Kachelserver war durch die Netzwerkfreigabe gesperrt; Sonnentauglichkeit,
+Kartenbewegung während einer Fahrt und Energieverbrauch sind hier nicht verifiziert.

@@ -24,7 +24,6 @@ import org.mapsforge.core.util.MercatorProjection
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
 import org.mapsforge.map.android.view.MapView
 import org.mapsforge.map.layer.cache.FileSystemTileCache
-import org.mapsforge.map.layer.cache.InMemoryTileCache
 import org.mapsforge.map.layer.cache.TwoLevelTileCache
 import org.mapsforge.map.layer.download.TileDownloadLayer
 import org.mapsforge.map.layer.download.tilesource.OnlineTileSource
@@ -40,7 +39,7 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
         override fun getDefaultTimeToLive() = 7L * 24 * 60 * 60 * 1_000
     }.setProtocol("https").setBaseUrl(path)
         .setName(name).setParallelRequestsLimit(2).setZoomLevelMax(19).apply {
-            setUserAgent("B-Cycle/0.5.0 (https://github.com/Titanyus/B-Cycle)")
+            setUserAgent("B-Cycle/0.5.1 (https://github.com/Titanyus/B-Cycle)")
         }
     companion object { fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: CYCLOSM }
 }
@@ -151,7 +150,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
 
     private fun createDownloadLayer(source: MapSource): TileDownloadLayer {
         // A bounded normal cache, never a region prefetch/offline download.
-        val memory = InMemoryTileCache(48)
+        val memory = ViewportTileCache()
         val disk = FileSystemTileCache(512, File(context.cacheDir, "tiles-${source.name}").apply { mkdirs() }, AndroidGraphicFactory.INSTANCE, true)
         return TileDownloadLayer(TwoLevelTileCache(memory, disk), mapView.model.mapViewPosition, source.tiles(), AndroidGraphicFactory.INSTANCE)
     }

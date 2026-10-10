@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.5.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.5.0-test.apk).
+[Installierbare APK 0.5.1 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.5.1-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -17,17 +17,19 @@ Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
 APK-Größe: 345.848 Byte (rund 346 KB).
-SHA-256: `080a7498e66b1243f99a6c6d6e18c9b3d44832f16287c26f0ee2c92781889ff2`.
+SHA-256: `63860ed2eb62db0288824830dfa525c1b0103b252f098bd2da3716ca81c7ad38`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 82 Tests sind bestanden.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 85 Tests sind bestanden.
 Android-Lint meldet 18 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
 Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
 Pulsmesser-Test wurde vom Nutzer bestätigt. Eine Fahrt mit ausgeschaltetem
-Display auf dem Poco steht noch aus. Auch echte Kartenkacheln und Kartenbedienung
-auf dem Poco sind noch zu prüfen: Die Cloud-Netzwerkfreigabe blockierte den
-CyclOSM-Kachelserver. Details und Grenzen stehen in [Karten](docs/maps.md).
+Display auf dem Poco steht noch aus. Die Kartenkacheln wurden inzwischen auf dem Poco getestet. Version 0.5.1
+behebt den dabei gemeldeten zu kleinen RAM-Kachelcache, der Lücken und Flimmern
+verursacht. Drei Regressionstests prüfen den Fehler und die Korrektur mit lokal
+gespeicherten Kacheln. Zoom und Verschieben mit dem Fix benötigen noch den
+Vergleich auf dem Handy; die Cloud-Netzwerkfreigabe blockiert den CyclOSM-Kachelserver. Details und Grenzen stehen in [Karten](docs/maps.md).
 
 ## Benutzung
 
