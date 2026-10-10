@@ -134,9 +134,17 @@ class MainActivity : Activity() {
     }
     /** Source selector stays outside the scrollable list for dashboard and map fields. */
     private fun chooseField(index: Int, mapField: Boolean = false, changed: (() -> Unit)? = null) {
+        fun permitted(): Boolean {
+            if (runtime.canEditDataFields) return true
+            Toast.makeText(this, "Datenfelder nur im Stand ändern · bitte anhalten", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        if (!permitted()) return
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         fun select(field: DashboardField?) {
+            // The bike may have started moving while the selection was open.
+            if (!permitted()) { picker?.dismiss(); return }
             if (mapField) {
                 preferences.edit().apply {
                     if (field == null) remove(MapFieldSelection.key(index)) else putString(MapFieldSelection.key(index), field.id)

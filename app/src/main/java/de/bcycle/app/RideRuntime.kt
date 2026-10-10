@@ -60,6 +60,13 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     val elapsedMs get() = if (recording) SystemClock.elapsedRealtime() - startElapsed else 0L
     val pulseValues get() = pulse.copy(bpm = pulse.bpm.takeIf { heartAt?.let { at -> SystemClock.elapsedRealtime() - at <= 5_000 } == true && heart.live })
     val gpsValues get() = ride.gps.snapshot(SystemClock.elapsedRealtime())
+    /** Prefer fresh wheel speed; GPS already filters stationary jitter. Unknown is not zero. */
+    val canEditDataFields: Boolean get() {
+        val now = SystemClock.elapsedRealtime()
+        val speed = bikeData.speedHundredths?.takeIf { fresh(LiveMetric.SPEED, now) }?.div(100.0)
+            ?: ride.gps.snapshot(now).speedKmh
+        return if (speed == null) !recording else speed == 0.0
+    }
     val config get() = RecordingConfig.decode(preferences.getStringSet("recordFields", null), preferences.getString("recordSpeed", null), preferences.getString("recordDistance", null))
     private val tick = object : Runnable {
         override fun run() {
