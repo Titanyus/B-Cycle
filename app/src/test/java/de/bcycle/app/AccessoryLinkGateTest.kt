@@ -5,52 +5,44 @@ import org.junit.Test
 import de.bcycle.app.AccessoryLinkGate.Decision.*
 
 class AccessoryLinkGateTest {
-    @Test fun replays013ConnectionBeforeAdvertisingWithoutAcceptingTheExistingLink() {
+    @Test fun replays013ButWaitsForAdvertisingBeforeAttachingTheExistingLink() {
         val gate = AccessoryLinkGate(false)
         // Uploaded trace: 2714 ms CONNECTED, 2717 ms AD request, 2763 ms AD started.
-        assertEquals(BEFORE_ADVERTISING, gate.onConnected())
-        assertTrue(gate.waitingForDisconnect)
-        gate.onAdvertisingStarted()
-        assertTrue(gate.waitingForDisconnect)
-        assertEquals(WAIT_FOR_DISCONNECT, gate.onConnected())
-        gate.onDisconnected()
-        assertFalse(gate.waitingForDisconnect)
-        assertEquals(ACCEPT, gate.onConnected())
+        assertEquals(WAIT_FOR_ADVERTISING, gate.onConnected())
+        assertFalse(gate.advertisingStarted)
+        assertEquals(ATTACH_EXISTING, gate.onAdvertisingStarted())
+        assertEquals(ALREADY_ATTACHED, gate.onConnected())
     }
 
-    @Test fun delayedExistingConnectionCallbackIsRejectedEvenAfterAdvertisingStarts() {
+    @Test fun persistentFlowLinkDoesNotRequireDisconnectOrAnotherConnectedCallback() {
         val gate = AccessoryLinkGate(true)
-        gate.onAdvertisingStarted()
-        assertEquals(WAIT_FOR_DISCONNECT, gate.onConnected())
-        gate.onDisconnected()
-        assertEquals(ACCEPT, gate.onConnected())
+        // 0.1.5 trace: existing peer at start, advertising succeeds, no disconnect follows.
+        assertEquals(ATTACH_EXISTING, gate.onAdvertisingStarted())
+        assertEquals(ALREADY_ATTACHED, gate.onConnected())
     }
 
     @Test fun newConnectionAfterAdvertisingIsAcceptedOnlyOnce() {
         val gate = AccessoryLinkGate(false)
-        gate.onAdvertisingStarted()
-        assertEquals(ACCEPT, gate.onConnected())
-        assertFalse(gate.waitingForDisconnect)
-        assertEquals(ALREADY_ACCEPTED, gate.onConnected())
+        assertEquals(WAIT_FOR_PEER, gate.onAdvertisingStarted())
+        assertEquals(ATTACH_NEW, gate.onConnected())
+        assertEquals(ALREADY_ATTACHED, gate.onConnected())
         gate.onDisconnected()
-        assertEquals(ALREADY_ACCEPTED, gate.onConnected())
+        assertEquals(ALREADY_ATTACHED, gate.onConnected())
     }
 
     @Test fun oldLinkCanDisconnectBeforeAdvertisingStartConfirmation() {
         val gate = AccessoryLinkGate(true)
         gate.onDisconnected()
-        gate.onAdvertisingStarted()
-        assertFalse(gate.waitingForDisconnect)
-        assertEquals(ACCEPT, gate.onConnected())
+        assertEquals(WAIT_FOR_PEER, gate.onAdvertisingStarted())
+        assertEquals(ATTACH_NEW, gate.onConnected())
     }
 
     @Test fun stoppedSessionCannotBeRevivedByLateCallbacks() {
         val gate = AccessoryLinkGate(false)
         gate.stop()
-        gate.onAdvertisingStarted()
+        assertEquals(STOPPED, gate.onAdvertisingStarted())
         gate.onDisconnected()
         assertFalse(gate.advertisingStarted)
-        assertFalse(gate.waitingForDisconnect)
         assertEquals(STOPPED, gate.onConnected())
     }
 
@@ -58,6 +50,20 @@ class AccessoryLinkGateTest {
         val gate = AccessoryLinkGate(false)
         gate.onAdvertisingStarted()
         gate.onAdvertisingStopped()
-        assertEquals(BEFORE_ADVERTISING, gate.onConnected())
+        assertEquals(WAIT_FOR_ADVERTISING, gate.onConnected())
+    }
+
+    @Test fun peerThatLeavesDuringAdvertisingSetupIsNotAttachedAsAStaleSharedLink() {
+        val gate = AccessoryLinkGate(false)
+        assertEquals(WAIT_FOR_ADVERTISING, gate.onConnected())
+        gate.onDisconnected()
+        assertEquals(WAIT_FOR_PEER, gate.onAdvertisingStarted())
+        assertEquals(ATTACH_NEW, gate.onConnected())
+    }
+
+    @Test fun duplicateAdvertisingConfirmationCannotCreateASecondGattClient() {
+        val gate = AccessoryLinkGate(true)
+        assertEquals(ATTACH_EXISTING, gate.onAdvertisingStarted())
+        assertEquals(ALREADY_ATTACHED, gate.onAdvertisingStarted())
     }
 }

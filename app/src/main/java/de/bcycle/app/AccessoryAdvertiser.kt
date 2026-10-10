@@ -16,9 +16,8 @@ import java.util.UUID
 @SuppressLint("MissingPermission") // Activity requests ADVERTISE and CONNECT before starting.
 class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticLog) {
     interface Listener {
-        fun onReady(waitingForDisconnect: Boolean)
-        fun onPeerStateChanged(waitingForDisconnect: Boolean)
-        fun onIncomingConnection(device: BluetoothDevice)
+        fun onReady()
+        fun onConnectionAvailable(device: BluetoothDevice, existingLink: Boolean)
         fun onFailure(message: String)
     }
     private val appContext = context.applicationContext
@@ -52,6 +51,14 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
         val gate = AccessoryLinkGate(existingLink)
         linkGate = gate
         diagnostics.event("ACCESSORY_LINK_BASELINE selectedPeerConnected=$existingLink")
+        fun attach(decision: AccessoryLinkGate.Decision, device: BluetoothDevice) {
+            diagnostics.event("ACCESSORY_LINK_DECISION result=$decision")
+            when (decision) {
+                AccessoryLinkGate.Decision.ATTACH_EXISTING -> listener.onConnectionAvailable(device, true)
+                AccessoryLinkGate.Decision.ATTACH_NEW -> listener.onConnectionAvailable(device, false)
+                else -> Unit
+            }
+        }
         val gattCallback = object : BluetoothGattServerCallback() {
             override fun onServiceAdded(status: Int, service: BluetoothGattService) = dispatch {
                 diagnostics.event("ACCESSORY_SERVICE_ADDED status=$status uuid=${service.uuid}")
@@ -82,9 +89,17 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
                                 try { sessionAdvertiser.stopAdvertising(completedCallback) } catch (_: SecurityException) { }
                                 return@post
                             }
-                            gate.onAdvertisingStarted()
-                            diagnostics.event("ACCESSORY_ADVERTISE_STARTED waitingForDisconnect=${gate.waitingForDisconnect}")
-                            listener.onReady(gate.waitingForDisconnect)
+                            val decision = gate.onAdvertisingStarted()
+                            diagnostics.event("ACCESSORY_ADVERTISE_STARTED")
+                            listener.onReady()
+                            // A shared link is not proof of a new physical GAP connection.
+                            attach(decision, target)
+                            handler.postDelayed({
+                                if (session == generation && callback === completedCallback) {
+                                    diagnostics.event("ACCESSORY_ADVERTISE_ENDED timeout=120s; GATT client remains independent")
+                                    stopAdvertising()
+                                }
+                            }, 120_000)
                         }
                     }
                     override fun onStartFailure(errorCode: Int) = dispatch {
@@ -105,12 +120,8 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
                 if (!selected) return@dispatch
                 if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     gate.onDisconnected()
-                    if (gate.advertisingStarted) listener.onPeerStateChanged(false)
                 } else if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
-                    val decision = gate.onConnected()
-                    diagnostics.event("ACCESSORY_LINK_DECISION result=$decision")
-                    if (decision == AccessoryLinkGate.Decision.ACCEPT) listener.onIncomingConnection(device)
-                    else if (gate.advertisingStarted && gate.waitingForDisconnect) listener.onPeerStateChanged(true)
+                    attach(gate.onConnected(), device)
                 }
             }
 

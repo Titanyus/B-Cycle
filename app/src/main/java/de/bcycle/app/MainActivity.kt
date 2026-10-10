@@ -34,6 +34,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
     private lateinit var power: TextView
     private lateinit var packetAge: TextView
     private lateinit var devices: LinearLayout
+    private lateinit var rereadButton: Button
     private lateinit var selectedBikeSummary: TextView
     private val seenAddresses = mutableSetOf<String>()
     private val handler = Handler(Looper.getMainLooper())
@@ -97,10 +98,12 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setText(R.string.stop)
             setOnClickListener { stopConnection() }
         })
-        column.addView(Button(this).apply {
+        rereadButton = Button(this).apply {
             setText(R.string.reread_data)
+            isEnabled = false
             setOnClickListener { connection.reread() }
-        })
+        }
+        column.addView(rereadButton)
         column.addView(Button(this).apply {
             setText(R.string.save_diagnostic)
             setOnClickListener { exportDiagnostic() }
@@ -110,7 +113,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setOnClickListener { requestAction(Action.DIRECT) }
         })
         column.addView(label(
-            "„Fahrrad auswählen“ öffnet eine Geräteliste und baut keine Verbindung auf. Nach der Auswahl „Als Zubehör anbieten“ antippen. B-Cycle trennt eine eigene frühere Verbindung automatisch und wartet danach auf eine neue Verbindung vom Rad. Ein Hinweis auf einen bestehenden Link sagt nicht, welche App ihn hält. Falls nötig, die Zubehörsuche am Rad bzw. in Flow starten.\n\n" +
+            "„Fahrrad auswählen“ öffnet eine Geräteliste und baut keine Verbindung auf. Nach der Auswahl „Live-Test starten“ antippen. Flow kann zum Entsperren und Aufzeichnen weiterlaufen. B-Cycle kündigt die Bosch-Schnittstelle an und öffnet einen eigenen Datenzugriff auf einen vorhandenen oder neu gemeldeten Rad-Link.\n\n" +
                 "Experimenteller Test: Smartphone-Unterstützung ist von Bosch nicht zugesichert. Die Live-Anzeige läuft im Vordergrund; der Zubehörtest darf bis zu zwei Minuten im Hintergrund bleiben. In Flow erscheint gegebenenfalls der Bluetooth-Gerätename des Handys, nicht „B-Cycle“.",
             14f,
         ).apply { setPadding(0, dp(12), 0, 0) })
@@ -200,7 +203,10 @@ class MainActivity : Activity(), BoschConnection.Listener {
             if (hasPermissions()) runRequestedAction() else onStatus("Bluetooth-Zugriff ist für die Verbindung erforderlich")
         }
     }
-    override fun onStatus(message: String) { status.text = message }
+    override fun onStatus(message: String) {
+        status.text = message
+        rereadButton.isEnabled = connection.canReread
+    }
     override fun onDevice(device: BluetoothDevice, name: String) {
         val address = try { device.address } catch (_: SecurityException) { return }
         if (!seenAddresses.add(address)) return

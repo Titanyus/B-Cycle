@@ -1,28 +1,31 @@
 package de.bcycle.app
 
-/** Android can report an existing peer immediately after opening a GATT server. */
+/** Defer GATT attachment until advertising starts; both existing and new links are usable. */
 class AccessoryLinkGate(connectedAtStart: Boolean) {
-    enum class Decision { ACCEPT, BEFORE_ADVERTISING, WAIT_FOR_DISCONNECT, ALREADY_ACCEPTED, STOPPED }
+    enum class Decision { ATTACH_EXISTING, ATTACH_NEW, WAIT_FOR_ADVERTISING, WAIT_FOR_PEER, ALREADY_ATTACHED, STOPPED }
 
     private var active = true
     private var peerConnected = connectedAtStart
-    private var accepted = false
+    private var attached = false
     var advertisingStarted = false
         private set
-    val waitingForDisconnect: Boolean get() = active && !accepted && peerConnected
-
-    fun onAdvertisingStarted() {
-        if (active) advertisingStarted = true
+    fun onAdvertisingStarted(): Decision {
+        if (!active) return Decision.STOPPED
+        advertisingStarted = true
+        if (attached) return Decision.ALREADY_ATTACHED
+        if (!peerConnected) return Decision.WAIT_FOR_PEER
+        attached = true
+        return Decision.ATTACH_EXISTING
     }
 
     fun onConnected(): Decision {
         if (!active) return Decision.STOPPED
-        if (accepted) return Decision.ALREADY_ACCEPTED
-        if (peerConnected) return Decision.WAIT_FOR_DISCONNECT
+        val wasConnected = peerConnected
         peerConnected = true
-        if (!advertisingStarted) return Decision.BEFORE_ADVERTISING
-        accepted = true
-        return Decision.ACCEPT
+        if (attached) return Decision.ALREADY_ATTACHED
+        if (!advertisingStarted) return Decision.WAIT_FOR_ADVERTISING
+        attached = true
+        return if (wasConnected) Decision.ATTACH_EXISTING else Decision.ATTACH_NEW
     }
 
     fun onDisconnected() { peerConnected = false }

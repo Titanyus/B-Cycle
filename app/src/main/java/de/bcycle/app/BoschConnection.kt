@@ -39,6 +39,8 @@ class BoschConnection(context: Context, private val listener: Listener, private 
     )
     private val accessory = AccessoryAdvertiser(appContext, diagnostics)
     private var accessoryMode = false
+    private var sharedAccessoryLink = false
+    val canReread: Boolean get() = phase == Phase.LIVE
     private val backgroundTimeout = Runnable {
         if (accessoryMode) fail("Zubehörtest nach zwei Minuten im Hintergrund beendet")
     }
@@ -151,7 +153,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         bike = device
         phase = Phase.PREPARING_ACCESSORY
         ++epoch
-        diagnostics.event("MODE accessory; await incoming GAP connection from selected bike")
+        diagnostics.event("MODE accessory advertising; existing and new Android links supported")
         reportStatus(if (retiredClients.isEmpty) "Zubehör-Modus · BLE-Ankündigung wird vorbereitet"
             else "Zubehör-Modus · eigene B-Cycle-Verbindung wird zuerst getrennt")
         armTimeout(30_000)
@@ -164,18 +166,17 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         armTimeout(20_000)
         try {
             accessory.start(device, object : AccessoryAdvertiser.Listener {
-                override fun onReady(waitingForDisconnect: Boolean) {
+                override fun onReady() {
                     if (!isCurrent(session) || phase != Phase.ADVERTISING) return
-                    reportAccessoryWaitingStatus(waitingForDisconnect)
+                    reportStatus("BLE-Ankündigung aktiv · vorhandenen Rad-Link nutzen oder auf das Fahrrad warten")
                     armTimeout(120_000)
                 }
-                override fun onPeerStateChanged(waitingForDisconnect: Boolean) {
-                    if (isCurrent(session) && phase == Phase.ADVERTISING) reportAccessoryWaitingStatus(waitingForDisconnect)
-                }
-                override fun onIncomingConnection(device: BluetoothDevice) {
+                override fun onConnectionAvailable(device: BluetoothDevice, existingLink: Boolean) {
                     if (!isCurrent(session) || phase != Phase.ADVERTISING) return
-                    diagnostics.event("ACCESSORY_ACCEPTED selectedBike=true; attach GATT client to incoming link")
-                    accessory.stopAdvertising()
+                    sharedAccessoryLink = existingLink
+                    diagnostics.event(if (existingLink) "ACCESSORY_SHARED_LINK_ATTACH; GAP role not verified"
+                        else "ACCESSORY_NEW_LINK_ATTACH; GAP role not verified")
+                    // Continue solicitation while asking the bike for live data.
                     beginClient(device, session)
                 }
                 override fun onFailure(message: String) {
@@ -184,12 +185,6 @@ class BoschConnection(context: Context, private val listener: Listener, private 
             })
         } catch (_: SecurityException) { fail("Bluetooth-Berechtigung fehlt") }
         catch (_: IllegalStateException) { fail("Bluetooth ist nicht verfügbar") }
-    }
-
-    private fun reportAccessoryWaitingStatus(waitingForDisconnect: Boolean) {
-        reportStatus(if (waitingForDisconnect)
-            "Als Zubehör sichtbar · Android meldet noch eine bestehende Rad-Verbindung; warte auf Trennung"
-        else "Als Zubehör sichtbar · warte bis zu 2 Minuten auf eine neue Verbindung vom Fahrrad")
     }
 
     /** Allow a bounded switch to Flow during accessory setup; no permanent background work. */
@@ -208,7 +203,11 @@ class BoschConnection(context: Context, private val listener: Listener, private 
             diagnostics.event("CONNECT_BEGIN session=$session deviceType=${device.type} bondState=${device.bondState}")
             appContext.registerReceiver(bondReceiver, IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED), Context.RECEIVER_EXPORTED)
             receiverRegistered = true
-            reportStatus(if (accessoryMode) "Fahrrad hat verbunden · GATT-Datenzugriff wird geöffnet" else "Android-GATT-Verbindung wird aufgebaut")
+            reportStatus(when {
+                accessoryMode && sharedAccessoryLink -> "Vorhandener Rad-Link · B-Cycle öffnet eigenen Datenzugriff"
+                accessoryMode -> "Neue Rad-Verbindung gemeldet · GATT-Datenzugriff wird geöffnet"
+                else -> "Android-GATT-Verbindung wird aufgebaut"
+            })
             armTimeout(20_000)
             client = device.connectGatt(appContext, false, clientCallback(session), BluetoothDevice.TRANSPORT_LE)
             diagnostics.event("CONNECT_REQUEST clientCreated=${client != null}")
@@ -358,6 +357,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
                 val snapshot = decode(payload) ?: run { fail("Gelesenes Bosch-Datenpaket ungültig"); return@dispatch }
                 diagnostics.event("${prefix}_FIELDS speedHundredths=${snapshot.speedHundredths} riderPowerWatts=${snapshot.riderPowerWatts}")
                 liveData = (if (initial) snapshot else liveData.merge(snapshot)).merge(updatesDuringRead)
+                if (liveData.speedHundredths != null || liveData.riderPowerWatts != null) accessory.stopAdvertising()
                 updatesDuringRead = LiveData()
                 phase = Phase.LIVE
                 handler.removeCallbacks(timeout)
@@ -374,6 +374,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
                 diagnostics.packet("notification", payload)
                 val update = decode(payload) ?: return@dispatch
                 if (update.speedHundredths != null || update.riderPowerWatts != null) liveMeasurementsReceived = true
+                if (liveMeasurementsReceived) accessory.stopAdvertising()
                 if (phase != Phase.LIVE) updatesDuringRead = updatesDuringRead.merge(update)
                 liveData = liveData.merge(update)
                 if (payload.isNotEmpty()) listener.onData(liveData, true)
@@ -439,6 +440,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         stopScan()
         accessory.stop()
         accessoryMode = false
+        sharedAccessoryLink = false
         if (receiverRegistered) { appContext.unregisterReceiver(bondReceiver); receiverRegistered = false }
         val oldClient = client
         client = null; bike = null; characteristic = null
