@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.2 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.2-test.apk).
+[Installierbare APK 0.6.3 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.3-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,8 +16,8 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 379.064 Byte (rund 379 KB).
-SHA-256: `28fabc9f0437cfdb06be7f49de46c3f106b54316c4b72549972a82b5b0748506`.
+APK-Größe: 379.192 Byte (rund 379 KB).
+SHA-256: `0da8e27ecf78dc0795fb2f87616973c877831c36082fd24f6ebc2c719cfc9344`.
 
 Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 95 Tests sind bestanden.
 Android-Lint meldet 26 Warnungen und keine Fehler.
@@ -71,7 +71,8 @@ Die Karte nutzt die bestehende GPS-Quelle. Vier Seiten speichern unabhängige
 Messwertbelegungen und wählbare feste Layouts mit unterschiedlichen Kartengrößen.
 CyclOSM zeigt Radwege und Fahrradrouten; eigene Belagsfarben sind bei diesen
 fertigen Online-Rasterkacheln nicht vorgesehen. GPX-Import, eine persistente Streckenverwaltung und Live-Track sind eingebaut.
-Das neue dunkelrote Einstellungsfenster zeigt **B|Cycle** und sechs Symbolkacheln
+Das dunkelrote Einstellungsfenster zeigt ab 0.6.3 das bereitgestellte komplette **B|Cycle**-SVG
+zentriert auf einem hellroten Kopfbereich im START-Rotton. Es folgt ein Raster aus sechs Symbolkacheln
 in zwei Zeilen mit je drei Spalten: Sensoren, Aufzeichnungsmanager, Kartenmanager,
 Dashboards, Streckenmanager und Erweitert. **Erweitert** klappt weitere Punkte
 unterhalb einer 1-Pixel-Linie auf; jeder öffnet einen eigenen Dialog. Aktionen

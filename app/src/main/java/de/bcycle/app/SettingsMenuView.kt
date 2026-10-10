@@ -33,17 +33,19 @@ internal class SettingsMenuView(context: Context, private val selected: (Setting
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private fun ripple() = RippleDrawable(ColorStateList.valueOf(Color.argb(45, 255, 255, 255)), null, ColorDrawable(Color.WHITE))
     init {
-        orientation = VERTICAL; setPadding(dp(12), dp(12), dp(12), dp(8))
-        val brand = LinearLayout(context).apply { gravity = Gravity.CENTER; orientation = HORIZONTAL; setPadding(0, dp(8), 0, dp(20)) }
-        brand.addView(ImageView(context).apply {
-            setImageResource(R.drawable.ic_brand); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-        }, LayoutParams(dp(72), dp(72)))
-        brand.addView(TextView(context).apply {
-            text = "B|Cycle"; setTextColor(Color.WHITE); typeface = Typeface.create("serif", Typeface.NORMAL)
-            gravity = Gravity.CENTER; maxLines = 1; includeFontPadding = false
-            setAutoSizeTextTypeUniformWithConfiguration(22, 42, 1, TypedValue.COMPLEX_UNIT_SP)
-        }, LayoutParams(0, dp(72), 1f))
-        addView(brand)
+        orientation = VERTICAL
+        addView(ImageView(context).apply {
+            tag = "settings_brand"
+            contentDescription = "B|Cycle"
+            setImageResource(R.drawable.ic_settings_brand)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setPadding(dp(24), dp(24), dp(24), dp(24))
+            setBackgroundResource(R.drawable.settings_header_background)
+        }, LayoutParams(-1, dp(124)))
+        val body = LinearLayout(context).apply {
+            orientation = VERTICAL; setPadding(dp(12), dp(12), dp(12), dp(8))
+        }
+        addView(body, LayoutParams(-1, -2))
         val advanced = LinearLayout(context).apply { orientation = VERTICAL; visibility = GONE; tag = "settings_advanced_content" }
         var advancedTile: View? = null
         var built = false
@@ -67,10 +69,10 @@ internal class SettingsMenuView(context: Context, private val selected: (Setting
                 if (action == SettingsAction.ADVANCED) { advancedTile = tile; tile.stateDescription = "Eingeklappt" }
                 row.addView(tile, LayoutParams(0, dp(148), 1f))
             }
-            addView(row, LayoutParams(-1, -2))
+            body.addView(row, LayoutParams(-1, -2))
         }
-        addView(View(context).apply { tag = "settings_separator"; setBackgroundColor(Color.argb(150, 255, 255, 255)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(-1, 1).apply { topMargin = dp(12); bottomMargin = dp(4) })
-        addView(advanced)
+        body.addView(View(context).apply { tag = "settings_separator"; setBackgroundColor(Color.argb(150, 255, 255, 255)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(-1, 1).apply { topMargin = dp(12); bottomMargin = dp(4) })
+        body.addView(advanced)
 
     }
     private fun tile(action: SettingsAction, onClick: () -> Unit) = LinearLayout(context).apply {

@@ -49,7 +49,11 @@ class SettingsMenuTest {
                     for (line in 0 until layout.lineCount) assertTrue("Too wide ${text.text} at $width: ${layout.getLineWidth(line)} > ${text.width}", layout.getLineWidth(line) <= text.width + 1)
                 }
             }
-            assertTrue(views(dialog).filterIsInstance<TextView>().any { it.text.toString() == "B|Cycle" })
+            val brand = descendants(menu).single { it.tag == "settings_brand" } as android.widget.ImageView
+            assertEquals("B|Cycle", brand.contentDescription)
+            assertEquals(menu.width, brand.width)
+            assertEquals(android.widget.ImageView.ScaleType.FIT_CENTER, brand.scaleType)
+            assertEquals(controller.get().getColor(R.color.start_red), (brand.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             val advanced = views(dialog).single { it.tag == "settings_advanced_content" } as ViewGroup
             assertEquals(View.GONE, advanced.visibility); assertEquals(0, advanced.childCount)
             val toggle = views(dialog).single { it.tag == "settings_ADVANCED" }

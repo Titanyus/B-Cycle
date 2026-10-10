@@ -145,3 +145,8 @@ Der Nutzer hat Online-Kacheln auf dem Poco getestet und dabei diese Lücken geme
 Der Nutzer hat die Korrektur auf dem Handy bestätigt. Der Cloud-Zugriff auf den
 echten CyclOSM-Kachelserver war durch die Netzwerkfreigabe gesperrt; Sonnentauglichkeit,
 Kartenbewegung während einer Fahrt und Energieverbrauch sind hier nicht verifiziert.
+
+Ab 0.6.3 verwendet der Hauptdialog das bereitgestellte komplette B|Cycle-SVG als
+native Android-Vektorgrafik. Das unveränderte Original liegt unter
+`app/src/main/assets/BCycle_complete.svg`; der zentrierte Kopfbereich verwendet
+denselben hellroten Farbwert wie START. Das Menü darunter bleibt dunkelrot.

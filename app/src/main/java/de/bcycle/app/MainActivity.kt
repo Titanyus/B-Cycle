@@ -85,7 +85,7 @@ class MainActivity : Activity() {
         mapPanel.showFullscreen(mapFullscreen)
         root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
         val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar" }
-        fun toolbarButton(title: String, color: Int = Color.rgb(208, 0, 0), action: () -> Unit) = button(title, action).apply {
+        fun toolbarButton(title: String, color: Int = getColor(R.color.start_red), action: () -> Unit) = button(title, action).apply {
             textSize = 20f; setTextColor(Color.WHITE); minWidth = 0; minHeight = 0
             setPadding(dp(4), 0, dp(4), 0)
             background = android.graphics.drawable.GradientDrawable().apply { setColor(color); setStroke(1, Color.rgb(70, 0, 0)) }
@@ -188,7 +188,10 @@ class MainActivity : Activity() {
                 SettingsAction.MAP_LICENSE -> menu = dialog().setTitle("Mapsforge · LGPL-3.0 mit Ausnahme").setMessage(assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
             }
         }
-        menu = dialog().setView(ScrollView(settingsContext).apply { addView(content) }).setNegativeButton("Schließen", null).show()
+        menu = dialog().setNegativeButton("Schließen", null).create().apply {
+            setView(ScrollView(settingsContext).apply { addView(content) }, 0, 0, 0, 0)
+            show()
+        }
     }
     private fun recoverySettings() {
         val root = column()
@@ -351,7 +354,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.2-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.3-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }

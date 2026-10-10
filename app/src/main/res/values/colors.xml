@@ -1,3 +1,4 @@
 <resources>
+    <color name="start_red">#D00000</color>
     <color name="settings_red">#900000</color>
 </resources>
