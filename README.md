@@ -9,39 +9,44 @@ Cycplus-Herzfrequenz kommt in einem späteren Schritt.
 
 ## APK herunterladen
 
-[Installierbare Test-APK 0.1.4 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.4-test.apk).
+[Installierbare Test-APK 0.1.5 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.5-test.apk).
 Die Datei liegt auch im Ordner `downloads`. Falls GitHub eine Dateiseite öffnet, dort
 „Download raw file“ auswählen. Bei einem privaten Repository vorher bei GitHub anmelden.
 
-Die APK ist 79.351 Byte groß, optimiert und mit demselben lokalen Testschlüssel wie
+Die APK ist 87.543 Byte groß, optimiert und mit demselben lokalen Testschlüssel wie
 die bisherigen Versionen signiert. Sie kann als Update installiert werden.
-SHA-256: `83bc0c073bb234f70caf9ec94e223e0186d9286b5d2c67181c1129e9c696ceaf`.
-Build, 26 Tests (zehn Decoder-, sechs Diagnose-, vier Informationsdienst- und sechs
-Verbindungsablauf-Tests), Android-Lint und
+SHA-256: `c7194fa61d456ee045a8ba556913334f398ec4d94441d3d41cb700dd7973e3a6`.
+Build, 30 Tests (zehn Decoder-, sechs Diagnose-, vier Informationsdienst-, sechs
+Verbindungsablauf- und vier Freigabe-Tests), Android-Lint und
 APK-Signatur wurden geprüft.
 
-## Zubehörtest mit 0.1.4
+## Zubehörtest mit 0.1.5
 
 1. APK als Update installieren, Fahrrad mit Flow entsperren. Danach Flow über
    Android-App-Info → „Beenden erzwingen“ beenden und einige Sekunden warten.
    Auch andere aktive Rad-Apps wie Locus beenden, damit kein vorhandener Link übernommen wird.
-2. In B-Cycle **„Als Zubehör anbieten“** antippen, Bluetooth-Zugriff erlauben und das
-   eigene Fahrrad aus der Liste auswählen. Diese Auswahl legt fest, von welchem Rad eine
-   eingehende Verbindung angenommen wird; sie startet noch keine ausgehende Verbindung.
-3. Auf „Als Zubehör sichtbar“ warten. Falls dabei **„bestehende Rad-Verbindung muss erst
-   getrennt werden“** steht, wartet B-Cycle auf deren tatsächliche Trennung. Bleibt der Hinweis
-   bestehen, den Diagnosebericht speichern; nicht über „Fahrrad suchen“ weiterverbinden.
+2. In B-Cycle **„Fahrrad auswählen“** antippen, Bluetooth-Zugriff erlauben und das eigene
+   Fahrrad aus der Liste auswählen. **Die Auswahl verbindet nicht mehr automatisch.**
+   Das ausgewählte Fahrrad wird separat angezeigt.
+3. **„Als Zubehör anbieten“** antippen. Ist noch eine eigene B-Cycle-Verbindung aktiv,
+   trennt die App sie zuerst und wartet auf Androids Disconnect-Rückmeldung. Danach
+   startet sie die Ankündigung. „Als Zubehör anbieten“ ohne vorherige Auswahl öffnet
+   ebenfalls die Auswahl und startet den Modus nach Auswahl des Fahrrads.
+4. Auf „Als Zubehör sichtbar“ warten. Falls dabei **„Android meldet noch eine bestehende
+   Rad-Verbindung“** steht, wartet B-Cycle auf deren tatsächliche Trennung. Diese Meldung
+   weist die Verbindung **keiner bestimmten App** zu: Android gibt deren Besitzer nicht an.
+   Bleibt der Hinweis bestehen, den Diagnosebericht speichern.
    Die Ankündigung läuft höchstens zwei Minuten.
    Falls das Rad nicht von selbst verbindet, währenddessen die Zubehörsuche am Rad oder
    in Flow starten. Der genaue Menüweg für System Controller + Mini Remote ist nicht
    in der Bosch-PDF beschrieben. In der Liste könnte der **Bluetooth-Gerätename des Handys**
    erscheinen, nicht „B-Cycle“. Ein langer Gerätename wird bei Platzmangel aus der Ankündigung
    weggelassen; die Bosch-Service-Solicitation bleibt erhalten.
-4. Zum Wechsel in Flow darf B-Cycle im Zubehör-Modus höchstens zwei Minuten im Hintergrund
+5. Zum Wechsel in Flow darf B-Cycle im Zubehör-Modus höchstens zwei Minuten im Hintergrund
    bleiben. Danach zeitnah zu B-Cycle zurückkehren. Android kann den Prozess zuvor beenden;
    es gibt keinen dauerhaften Hintergrunddienst.
-5. Nach einer Verbindung treten und Messwerte prüfen. Bei fehlenden Werten „Werte erneut lesen“
-   verwenden. Anschließend **„Diagnose speichern“** und `B-Cycle-0.1.4-diagnose.txt` hochladen.
+6. Nach einer Verbindung treten und Messwerte prüfen. Bei fehlenden Werten „Werte erneut lesen“
+   verwenden. Anschließend **„Diagnose speichern“** und `B-Cycle-0.1.5-diagnose.txt` hochladen.
    Auch bei „Als Zubehör sichtbar“ ohne anschließende Verbindung ist der Bericht hilfreich.
 
 Dieser Modus testet eine konkrete Abweichung der bisherigen APK zur PDF: Das Zubehör
@@ -67,13 +72,31 @@ Sechs Regressionstests prüfen unter anderem die Ereignisfolge aus dem hochgelad
 Die korrigierte Abfolge ist noch nicht am Fahrrad getestet und beweist auch weiterhin nicht
 unabhängig die physische GAP-Rolle.
 
+Das nächste Protokoll mit 0.1.4 begann beim Wechsel aus einer vorhandenen B-Cycle-Live-Sitzung.
+Android meldete beim Ankündigungsstart noch einen bestehenden Link. Erst bei 24176 ms
+wurde dessen Trennung gemeldet; bis zum Stoppen bei 28701 ms blieb anschließend nur ein
+kurzes Fenster für einen neuen Link. Die Formulierung „Flow beenden“ war irreführend:
+Android weist diese Verbindung keiner App zu. Außerdem öffnete die frühere Geräteauswahl
+im direkten Modus selbst eine Verbindung, was den Wechsel unnötig erschwerte.
+
+0.1.5 trennt Auswahl und Verbindungsaufbau. **„Fahrrad auswählen“** sucht und wählt nur;
+**„Als Zubehör anbieten“** startet den Zubehörtest, **„Direkt verbinden (Test)“** den
+expliziten Vergleichstest. Beim Wechsel wird die eigene GATT-Verbindung zunächst per
+Disconnect freigegeben. Der Client wird erst nach dessen Callback oder spätestens nach
+20 Sekunden geschlossen; beim Zerstören der Activity werden ausstehende Clients sofort
+geschlossen. Die Ankündigung wartet auf diese eigene Freigabe. Vier Tests prüfen die
+Reihenfolge, Timeout-Begrenzung, späte Callbacks und begrenzten Ressourcenverbrauch.
+Das löst die irreführende Bedienung und verbessert die Freigabe; ein Erfolg des Bosch-
+Datenzugriffs am Fahrrad ist weiterhin nicht bestätigt.
+
 ## Bisheriger direkter Verbindungsweg zum Vergleich
 
 1. Test-APK installieren. Fahrrad mit Bosch Flow verbinden und entsperren.
-2. B-Cycle öffnen, „Fahrrad suchen“ antippen und Bluetooth-Zugriff erlauben.
+2. B-Cycle öffnen, „Fahrrad auswählen“ antippen und Bluetooth-Zugriff erlauben.
 3. Fahrrad aus der Liste auswählen. Die Liste enthält bereits verbundene bzw. gekoppelte
    BLE-Geräte sowie Ergebnisse einer zehnsekündigen Suche, auch Geräte anderer Hersteller.
-4. Falls Android eine Kopplungsbestätigung zeigt, diese bestätigen.
+4. **„Direkt verbinden (Test)“** antippen. Falls Android eine Kopplungsbestätigung zeigt,
+   diese bestätigen.
 5. Status verfolgen: GATT-Verbindung, Kopplung, MTU, Bosch-Dienst, Notification-Abonnement,
    initiales Lesen, Live-Daten. Fehlende oder ungültige Werte werden nicht als Null angezeigt.
 6. Geschwindigkeit und Fahrerleistung mit einer Fahrradanzeige vergleichen.
@@ -107,8 +130,8 @@ Flow bleibt für das Entsperren zuständig; B-Cycle hat keine Entsperrfunktion.
 
 ## Diagnose beim direkten Verbindungsweg
 
-1. Version 0.1.4 als Update installieren, Fahrrad mit Flow entsperren und in B-Cycle
-   über „Fahrrad suchen“ verbinden.
+1. Version 0.1.5 als Update installieren, Fahrrad mit Flow entsperren und in B-Cycle
+   auswählen. Anschließend „Direkt verbinden (Test)“ antippen.
 2. Nach dem Verbinden etwa 20–30 Sekunden mit drehendem Rad testen; für Fahrerleistung
    muss getreten werden. Das Smartphone dabei sicher bedienen, nicht während der Fahrt.
 3. Während des Tests zwei- oder dreimal „Werte erneut lesen“ antippen, jeweils die Antwort
@@ -116,7 +139,7 @@ Flow bleibt für das Entsperren zuständig; B-Cycle hat keine Entsperrfunktion.
 4. Danach „Diagnose speichern“ antippen und im Android-Dateidialog beispielsweise
    „Downloads“ als Speicherort wählen. Beim Öffnen dieses Dialogs stoppt die BLE-Verbindung;
    der Diagnosebericht wird unmittelbar vorher festgehalten.
-5. Die gespeicherte Datei `B-Cycle-0.1.4-diagnose.txt` für die Fehlersuche hochladen.
+5. Die gespeicherte Datei `B-Cycle-0.1.5-diagnose.txt` für die Fehlersuche hochladen.
    Vor dem Export keine neue Suche starten: Diese setzt die Diagnose zurück.
 
 Für einen separaten Vergleichstest kann Flow nach dem Entsperren vollständig beendet werden
@@ -155,7 +178,7 @@ Die frühere pauschale Aussage, Flow auf demselben Smartphone könne diesen Zube
 nutzen, ließ sich daraus nicht ableiten. Maßgeblich ist die vom Rad initiierte Verbindung.
 Der Zubehör-Koppelweg für den System Controller ohne Display ist in der PDF nicht beschrieben.
 
-**„Fahrrad suchen“ bleibt ein Diagnosetest über Androids normalen BLE-Clientweg.**
+**„Direkt verbinden (Test)“ verwendet Androids normalen BLE-Clientweg.**
 Sie versucht, einen vorhandenen Flow-Link zu nutzen oder eine direkte BLE-Verbindung zum
 gewählten Fahrrad aufzubauen. Ob LDI auf diesem Link erreichbar ist, muss am Fahrrad
 geprüft werden. Dies ist keine vollständige Implementierung des vorgeschriebenen GAP-Profils.
@@ -210,7 +233,7 @@ Vollständiges JDK 17 oder 21 mit `javac`, Android-SDK Plattform 35 und Build-To
 
 Debug-APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Release-APK: `app/build/outputs/apk/release/app-release-unsigned.apk`, mit R8 optimiert,
-noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.4-test.apk` ist eine optimierte APK
+noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.5-test.apk` ist eine optimierte APK
 mit dem lokalen Android-Testschlüssel, nicht mit einem Veröffentlichungsschlüssel.
 
 In der eingerichteten Cloud-Umgebung:

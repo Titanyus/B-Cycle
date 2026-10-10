@@ -25,6 +25,7 @@ import java.time.Instant
 import java.util.Locale
 
 class MainActivity : Activity(), BoschConnection.Listener {
+    private enum class Action { SELECT, ACCESSORY, DIRECT }
     private lateinit var connection: BoschConnection
     private val diagnostics = DiagnosticLog()
     private var pendingReport: String? = null
@@ -33,10 +34,12 @@ class MainActivity : Activity(), BoschConnection.Listener {
     private lateinit var power: TextView
     private lateinit var packetAge: TextView
     private lateinit var devices: LinearLayout
+    private lateinit var selectedBikeSummary: TextView
     private val seenAddresses = mutableSetOf<String>()
     private val handler = Handler(Looper.getMainLooper())
     private var lastPacketAt: Long? = null
-    private var accessoryRequested = false
+    private var nextAction = Action.SELECT
+    private var selectedBike: BluetoothDevice? = null
     private val permissions = arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
     private val tick = object : Runnable {
         override fun run() {
@@ -49,9 +52,10 @@ class MainActivity : Activity(), BoschConnection.Listener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        diagnostics.reset(diagnosticHeader())
         pendingReport = savedInstanceState?.getString("pendingReport")
-        accessoryRequested = savedInstanceState?.getBoolean("accessoryRequested") ?: false
+        nextAction = Action.entries.getOrNull(savedInstanceState?.getInt("nextAction") ?: 0) ?: Action.SELECT
+        selectedBike = savedInstanceState?.getParcelable("selectedBike", BluetoothDevice::class.java)
+        diagnostics.reset(diagnosticHeader())
         connection = BoschConnection(this, this, diagnostics)
         val column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -79,19 +83,15 @@ class MainActivity : Activity(), BoschConnection.Listener {
         packetAge = label(getString(R.string.no_data), 14f)
         column.addView(status)
         column.addView(packetAge)
+        selectedBikeSummary = label(getString(if (selectedBike == null) R.string.no_bike_selected else R.string.bike_selected), 14f)
+        column.addView(selectedBikeSummary)
         column.addView(Button(this).apply {
             setText(R.string.find_bike)
-            setOnClickListener {
-                accessoryRequested = false
-                if (hasPermissions()) startConnection() else requestPermissions(permissions, 1)
-            }
+            setOnClickListener { requestAction(Action.SELECT) }
         })
         column.addView(Button(this).apply {
             setText(R.string.offer_accessory)
-            setOnClickListener {
-                accessoryRequested = true
-                if (hasPermissions()) startConnection() else requestPermissions(permissions, 1)
-            }
+            setOnClickListener { requestAction(Action.ACCESSORY) }
         })
         column.addView(Button(this).apply {
             setText(R.string.stop)
@@ -105,8 +105,12 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setText(R.string.save_diagnostic)
             setOnClickListener { exportDiagnostic() }
         })
+        column.addView(Button(this).apply {
+            setText(R.string.connect_direct)
+            setOnClickListener { requestAction(Action.DIRECT) }
+        })
         column.addView(label(
-            "Fahrrad mit Flow entsperren, dann Flow über „Beenden erzwingen“ schließen. Für den Zubehörtest: „Als Zubehör anbieten“, dann das Fahrrad auswählen. Eine bestehende Verbindung muss erst getrennt sein. Danach wartet die App auf eine neue Verbindung vom Rad. Falls nötig, die Zubehörsuche am Rad bzw. in Flow starten; dazu darf die App kurz im Hintergrund bleiben.\n\n" +
+            "„Fahrrad auswählen“ öffnet eine Geräteliste und baut keine Verbindung auf. Nach der Auswahl „Als Zubehör anbieten“ antippen. B-Cycle trennt eine eigene frühere Verbindung automatisch und wartet danach auf eine neue Verbindung vom Rad. Ein Hinweis auf einen bestehenden Link sagt nicht, welche App ihn hält. Falls nötig, die Zubehörsuche am Rad bzw. in Flow starten.\n\n" +
                 "Experimenteller Test: Smartphone-Unterstützung ist von Bosch nicht zugesichert. Die Live-Anzeige läuft im Vordergrund; der Zubehörtest darf bis zu zwei Minuten im Hintergrund bleiben. In Flow erscheint gegebenenfalls der Bluetooth-Gerätename des Handys, nicht „B-Cycle“.",
             14f,
         ).apply { setPadding(0, dp(12), 0, 0) })
@@ -115,19 +119,31 @@ class MainActivity : Activity(), BoschConnection.Listener {
     }
 
     private fun hasPermissions() = permissions.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
-    private fun startConnection() {
+    private fun requestAction(action: Action) {
+        nextAction = action
+        if (hasPermissions()) runRequestedAction() else requestPermissions(permissions, 1)
+    }
+    private fun runRequestedAction() {
+        val bike = selectedBike
+        if (nextAction == Action.SELECT || bike == null) { startSelection(); return }
         diagnostics.reset(diagnosticHeader())
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (nextAction == Action.ACCESSORY) connection.offerAccessory(bike) else connection.connect(bike)
+    }
+    private fun startSelection() {
+        diagnostics.reset(diagnosticHeader())
+        selectedBike = null
+        selectedBikeSummary.setText(R.string.no_bike_selected)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         seenAddresses.clear()
         devices.removeAllViews()
         connection.discover()
-        if (accessoryRequested) onStatus("Zubehörtest · zunächst das Fahrrad aus der Liste auswählen")
     }
 
     private fun diagnosticHeader(): String {
         val version = packageManager.getPackageInfo(packageName, 0).versionName
         return "App=$version device=${Build.MANUFACTURER} ${Build.MODEL} Android=${Build.VERSION.RELEASE} API=${Build.VERSION.SDK_INT}\n" +
-            "Session UTC=${Instant.now()}\nRequested mode=${if (accessoryRequested) "accessory advertising / incoming link" else "direct Android BLE client"}"
+            "Session UTC=${Instant.now()}\nRequested mode=$nextAction"
     }
 
     private fun exportDiagnostic() {
@@ -149,7 +165,8 @@ class MainActivity : Activity(), BoschConnection.Listener {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("pendingReport", pendingReport)
-        outState.putBoolean("accessoryRequested", accessoryRequested)
+        outState.putInt("nextAction", nextAction.ordinal)
+        outState.putParcelable("selectedBike", selectedBike)
         super.onSaveInstanceState(outState)
     }
 
@@ -180,7 +197,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
-            if (hasPermissions()) startConnection() else onStatus("Bluetooth-Zugriff ist für die Verbindung erforderlich")
+            if (hasPermissions()) runRequestedAction() else onStatus("Bluetooth-Zugriff ist für die Verbindung erforderlich")
         }
     }
     override fun onStatus(message: String) { status.text = message }
@@ -193,7 +210,11 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setOnClickListener {
                 if (hasPermissions()) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    if (accessoryRequested) connection.offerAccessory(device) else connection.connect(device)
+                    selectedBike = device
+                    selectedBikeSummary.text = getString(R.string.selected_bike_name, name)
+                    connection.stop()
+                    devices.removeAllViews()
+                    if (nextAction == Action.SELECT) onStatus(getString(R.string.bike_selected)) else runRequestedAction()
                 } else onStatus("Bitte erneut suchen und Bluetooth-Zugriff erlauben")
             }
         })

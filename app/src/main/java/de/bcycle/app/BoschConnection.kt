@@ -21,14 +21,36 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         fun onData(data: LiveData, packetReceived: Boolean)
         fun onDevice(device: BluetoothDevice, name: String)
     }
-    private enum class Phase { STOPPED, SCANNING, CHOOSING, ADVERTISING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, READING, REREADING, LIVE }
+    private enum class Phase { STOPPED, SCANNING, CHOOSING, PREPARING_ACCESSORY, ADVERTISING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, READING, REREADING, LIVE }
     private val appContext = context.applicationContext
     private val manager = appContext.getSystemService(BluetoothManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
+    private val retiredClients = DeferredConnectionClose<BluetoothGatt>(
+        disconnect = {
+            diagnostics.event("OWN_GATT_RELEASE disconnect requested")
+            try { it.disconnect() } catch (_: SecurityException) { } catch (_: IllegalStateException) { }
+        },
+        close = {
+            diagnostics.event("OWN_GATT_RELEASE client closed")
+            try { it.close() } catch (_: SecurityException) { }
+        },
+        schedule = { task, delay -> handler.postDelayed(task, delay) },
+        cancel = { handler.removeCallbacks(it) },
+    )
     private val accessory = AccessoryAdvertiser(appContext, diagnostics)
     private var accessoryMode = false
     private val backgroundTimeout = Runnable {
         if (accessoryMode) fail("Zubehörtest nach zwei Minuten im Hintergrund beendet")
+    }
+    private val prepareAccessory = object : Runnable {
+        override fun run() {
+            if (phase != Phase.PREPARING_ACCESSORY) return
+            if (!retiredClients.isEmpty) {
+                handler.postDelayed(this, 250)
+                return
+            }
+            bike?.let { startAccessoryServer(it, epoch) }
+        }
     }
     private var phase = Phase.STOPPED
     val isActive: Boolean get() = phase != Phase.STOPPED
@@ -127,9 +149,17 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         stop()
         accessoryMode = true
         bike = device
-        phase = Phase.ADVERTISING
-        val session = ++epoch
+        phase = Phase.PREPARING_ACCESSORY
+        ++epoch
         diagnostics.event("MODE accessory; await incoming GAP connection from selected bike")
+        reportStatus(if (retiredClients.isEmpty) "Zubehör-Modus · BLE-Ankündigung wird vorbereitet"
+            else "Zubehör-Modus · eigene B-Cycle-Verbindung wird zuerst getrennt")
+        armTimeout(30_000)
+        prepareAccessory.run()
+    }
+
+    private fun startAccessoryServer(device: BluetoothDevice, session: Int) {
+        phase = Phase.ADVERTISING
         reportStatus("Zubehör-Modus · BLE-Ankündigung wird vorbereitet")
         armTimeout(20_000)
         try {
@@ -158,7 +188,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
 
     private fun reportAccessoryWaitingStatus(waitingForDisconnect: Boolean) {
         reportStatus(if (waitingForDisconnect)
-            "Als Zubehör sichtbar · bestehende Rad-Verbindung muss erst getrennt werden (Flow beenden)"
+            "Als Zubehör sichtbar · Android meldet noch eine bestehende Rad-Verbindung; warte auf Trennung"
         else "Als Zubehör sichtbar · warte bis zu 2 Minuten auf eine neue Verbindung vom Fahrrad")
     }
 
@@ -226,6 +256,10 @@ class BoschConnection(context: Context, private val listener: Listener, private 
     private fun clientCallback(session: Int) = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             dispatch {
+                if (newState == BluetoothProfile.STATE_DISCONNECTED && retiredClients.onDisconnected(gatt)) {
+                    diagnostics.event("OWN_GATT_RELEASE disconnected status=$status")
+                    return@dispatch
+                }
                 if (!isClient(session, gatt)) return@dispatch
                 diagnostics.event("CONNECTION_STATE status=$status newState=$newState phase=$phase")
                 if (status != BluetoothGatt.GATT_SUCCESS || newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -401,20 +435,20 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         epoch++
         handler.removeCallbacks(timeout)
         handler.removeCallbacks(backgroundTimeout)
+        handler.removeCallbacks(prepareAccessory)
         stopScan()
         accessory.stop()
         accessoryMode = false
         if (receiverRegistered) { appContext.unregisterReceiver(bondReceiver); receiverRegistered = false }
         val oldClient = client
         client = null; bike = null; characteristic = null
-        try { oldClient?.disconnect() } catch (_: SecurityException) { }
-        try { oldClient?.close() } catch (_: SecurityException) { }
+        oldClient?.let { retiredClients.release(it) }
         liveData = LiveData(); updatesDuringRead = LiveData(); negotiatedMtu = 23
         liveMeasurementsReceived = false
         listener.onData(liveData, false)
         if (wasActive) reportStatus("Gestoppt")
     }
-    fun close() { stop(); handler.removeCallbacksAndMessages(null) }
+    fun close() { stop(); retiredClients.closeAll(); handler.removeCallbacksAndMessages(null) }
 
     private companion object {
         val LIVE_SERVICE: UUID = UUID.fromString("0000eb20-eaa2-11e9-81b4-2a2ae2dbcce4")
