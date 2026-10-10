@@ -8,13 +8,17 @@ Cycplus-Herzfrequenz folgt später.
 
 ## APK herunterladen
 
-[Installierbare APK 0.3.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.3.0-test.apk).
+[Installierbare APK 0.3.0 mit neuem App-Icon herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.3.0-icon-test.apk).
+
+Dieses Update übernimmt das vom Nutzer bereitgestellte weiße Logo auf rotem
+Hintergrund als adaptives Vektor-Icon, einschließlich monochromer Android-Icons.
+Die App-Funktionen und die Versionsnummer bleiben auf dem Stand 0.3.0.
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
 Die APK ist 165.494 Byte groß, optimiert und mit demselben lokalen Testschlüssel
 wie die bisherigen Versionen signiert. Sie kann als Update installiert werden.
-SHA-256: `19b110d0b1571a15fdd94b8f9083a5e65e0e9addf2eed185c236283df9b47e3c`.
+SHA-256: `6accfea0e314e5501a8a0f0123d488c0adf4f06573a7ab66a6c09a0dbe9f4aa3`.
 
 Build, 56 Tests einschließlich nativer Android-Darstellung, Android-Lint und
 APK-Signatur wurden geprüft. Das neue Dashboard und GPS benötigen noch den
