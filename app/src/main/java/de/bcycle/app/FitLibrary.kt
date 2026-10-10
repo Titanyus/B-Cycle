@@ -140,16 +140,17 @@ internal class FitLibrary(root: File) {
             }
         }
         /** Recording worker writes only immutable originals; MapState alone owns the index. */
-        fun retainRecording(root: File, encoded: File) {
+        fun retainRecording(root: File, encoded: File): File {
             val directory = File(root, "fit-library").apply { mkdirs() }
             val destination = AtomicFile(File(directory, "recorded-${hash(encoded)}.fit"))
             if (destination.baseFile.exists()) {
                 check(hash(destination.baseFile) == hash(encoded)) { "Vorhandene FIT-Kopie ist beschädigt · Original bleibt erhalten" }
-                return
+                return destination.baseFile
             }
             val output = destination.startWrite()
             try { encoded.inputStream().use { it.copyTo(output) }; destination.finishWrite(output) }
             catch (e: Exception) { destination.failWrite(output); throw e }
+            return destination.baseFile
         }
     }
 }

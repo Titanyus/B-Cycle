@@ -170,7 +170,7 @@ der Bedienleiste; zusätzlicher Platz geht an die Karte. Im Querformat bleiben
 die kleinen Felder ebenfalls zwischen den Vorlagen gleich hoch.
 
 Ab 0.6.6 gibt es drei globale transparente Messwertfelder am unteren Kartenrand,
-oberhalb der Urheberangabe. Sie werden unter **Kartenmanager → Karten-Datenfelder**
+oberhalb der Urheberangabe. Sie werden ab dem aktuellen Quellcode nach APK 0.6.7 unter **Dashboards → Karten-Datenfelder** (in APK 0.6.7 noch Kartenmanager)
 über **Links / Mitte / Rechts** belegt, mit derselben kategorisierten Werteauswahl
 wie das Dashboard. **Leer** entfernt die Belegung. Jeder gewählte Wert wird sofort
 gespeichert; Abbrechen lässt die bisherige Belegung bestehen. Die Anzeige enthält

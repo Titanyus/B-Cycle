@@ -11,6 +11,10 @@ dependencies {
     implementation("org.mapsforge:mapsforge-map-android:0.25.0")
     // Official streaming FIT decoder, reused for activity metadata and map previews.
     implementation("com.garmin:fit:21.218.0")
+    // Android URLConnection rejects PROPFIND/MKCOL; WebDAV needs a full HTTP client.
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("com.squareup.okhttp3:okhttp-tls:4.12.0")
     testImplementation("junit:junit:4.13.2")
     // Independent wire-format encoder used only in JVM tests; absent from the APK.
     testImplementation("com.google.protobuf:protobuf-java:3.25.5")

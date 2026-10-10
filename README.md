@@ -258,3 +258,23 @@ Details: [Streckenverwaltung](docs/routes.md).
 Der aktuelle Code wurde kompiliert: 111 Tests bestanden, Android-Lint ohne Fehler
 (30 Warnungen). Auch die Release-Optimierung mit R8 und die installierbare APK wurden geprüft.
 Die neue Kartenbedienung und Streckenverwaltung sind noch nicht auf dem Poco getestet.
+
+## Aktueller Quellcode nach APK 0.6.7
+
+- Karten-Datenfelder sind unter **Dashboards** erreichbar.
+- Streckenmanager: größeres weißes Auge; rechts neben der Überschrift öffnet **⋮**
+  die neuen Streckeneinstellungen.
+- Lokale Ordnerspeicherung und Nextcloud-WebDAV-Upload sind unabhängig schaltbar.
+  Eine originale private FIT-Datei bleibt immer in der Sammlung.
+- Wählbarer Android-Zielordner mit dauerhaftem Zugriff, HTTPS-Nextcloud-Zugang,
+  verschlüsseltes App-Passwort, Verbindungstest und optionale WLAN-Beschränkung.
+- Dauerhafte Hintergrund-Uploadjobs, Status und manuelle Wiederholung; unveränderte
+  FIT-Dateien, feste Dateinamen, bedingter PUT und SHA-256-Prüfung vermeiden Cloud-Duplikate.
+
+Die oben verlinkte APK 0.6.7 enthält diese Ergänzungen noch nicht. Es wird hier
+noch keine neue APK veröffentlicht. Alle 125 Tests bestehen; Android-Lint meldet
+37 Warnungen und keine Fehler, die R8-Release-Kompilierung ist erfolgreich.
+Ordnerprovider, HTTPS-WebDAV, Wiederholungen, unabhängige Ausgaben und
+Rücknavigation sind automatisiert geprüft; Poco/Nextcloud müssen noch praktisch
+geprüft werden. Details stehen in
+[Streckenverwaltung](docs/routes.md).

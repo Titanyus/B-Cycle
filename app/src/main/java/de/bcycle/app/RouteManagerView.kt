@@ -20,7 +20,8 @@ import kotlin.math.cos
 /** Fixed filter and native recycled rows. No per-row map, decoder or sensor subscriptions. */
 internal class RouteManagerView(context: Context, import: () -> Unit, recover: () -> Unit,
                                 private val toggle: (ManagedRoute) -> Unit,
-                                private val actions: (ManagedRoute) -> Unit) : LinearLayout(context) {
+                                private val actions: (ManagedRoute) -> Unit, settings: () -> Unit = {},
+                                private val uploadStatus: (String) -> String = { "" }) : LinearLayout(context) {
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private var all: List<ManagedRoute> = emptyList()
     private var filtered: List<ManagedRoute> = emptyList()
@@ -45,8 +46,14 @@ internal class RouteManagerView(context: Context, import: () -> Unit, recover: (
             contentDescription = "B|Cycle"; setPadding(dp(24), dp(12), dp(24), dp(12))
             setBackgroundResource(R.drawable.settings_header_background)
         }, LayoutParams(-1, dp(88)))
-        addView(TextView(context).apply { text = "Streckenmanager"; textSize = 23f; setTextColor(Color.WHITE)
-            setTypeface(typeface, Typeface.BOLD); setPadding(dp(12), dp(12), dp(12), dp(8)); isAccessibilityHeading = true })
+        addView(LinearLayout(context).apply {
+            orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            addView(TextView(context).apply { text = "Streckenmanager"; textSize = 23f; setTextColor(Color.WHITE)
+                setTypeface(typeface, Typeface.BOLD); setPadding(dp(12), dp(12), 0, dp(8)); isAccessibilityHeading = true }, LayoutParams(0, -2, 1f))
+            addView(Button(context).apply { text = "⋮"; textSize = 28f; setTextColor(Color.WHITE); background = null
+                tag = "route_settings"; contentDescription = "Streckeneinstellungen öffnen"; minWidth = 0; minimumWidth = 0
+                setPadding(0, 0, 0, 0); setOnClickListener { settings() } }, LayoutParams(dp(48), dp(48)))
+        }, LayoutParams(-1, -2))
         filter.adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, listOf("Alle", "Gefahren", "Importiert"))
         addView(filter, LayoutParams(-1, dp(48)).apply { leftMargin = dp(8); rightMargin = dp(8) })
         filter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -93,7 +100,7 @@ internal class RouteManagerView(context: Context, import: () -> Unit, recover: (
         private val date = text(12f)
         private val metrics = text(14f)
         private val local = text(12f)
-        private val eye = ImageButton(context).apply { setPadding(dp(12), dp(12), dp(12), dp(12)); background = null }
+        private val eye = ImageButton(context).apply { setPadding(dp(3), dp(3), dp(3), dp(3)); scaleType = ImageView.ScaleType.FIT_CENTER; background = null }
         private val more = Button(context).apply { text = "⋮"; textSize = 26f; setTextColor(Color.WHITE); background = null
             minWidth = 0; minimumWidth = 0; setPadding(0, 0, 0, 0) }
         init {
@@ -118,8 +125,8 @@ internal class RouteManagerView(context: Context, import: () -> Unit, recover: (
             metrics.text = listOfNotNull(entry.details.distanceM?.let { String.format(Locale.GERMANY, "%.1f km", it / 1000) },
                 entry.details.durationMs?.let { val minutes = it / 60000; "%d:%02d h".format(minutes / 60, minutes % 60) }).joinToString("  |  ")
             metrics.visibility = if (metrics.text.isEmpty()) GONE else VISIBLE
-            local.text = if (entry.recorded) "Lokal gespeichert" else ""
-            local.visibility = if (entry.recorded) VISIBLE else GONE
+            local.text = uploadStatus(entry.id).ifEmpty { if (entry.recorded) "Lokal gespeichert" else "" }
+            local.visibility = if (local.text.isNotEmpty()) VISIBLE else GONE
             preview.points = entry.details.preview; preview.contentDescription = if (entry.hasRoute) "Streckenvorschau" else "Keine GPS-Strecke gespeichert"
             eye.tag = "route_eye_${entry.id}"; eye.setImageDrawable(RouteActionIcon(false, entry.id == selected))
             eye.contentDescription = if (entry.id == selected) "${entry.name} ausblenden" else "${entry.name} anzeigen"

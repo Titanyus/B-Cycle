@@ -11,7 +11,7 @@ import android.graphics.drawable.Drawable
 /** Small scalable eye/trash icons, without another icon library. */
 internal class RouteActionIcon(private val trash: Boolean, private val selected: Boolean = false) : Drawable() {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = if (trash) Color.rgb(235, 90, 90) else if (selected) Color.rgb(100, 225, 130) else Color.LTGRAY
+        color = if (trash) Color.rgb(235, 90, 90) else Color.WHITE
         style = Paint.Style.STROKE; strokeWidth = 1.8f; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
     }
     private val path = Path()

@@ -75,7 +75,7 @@ class MapDataFieldsTest {
         try {
             val activity = controller.get()
             descendants(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-            click(latest(), "settings_MAP")
+            click(latest(), "settings_DASHBOARDS")
             val manager = latest()
             click(manager, "map_fields_manage")
             val fields = latest()
@@ -98,7 +98,7 @@ class MapDataFieldsTest {
         try {
             assertEquals("BATTERY", MapFieldSelection.read(preferences, 0)?.id)
             descendants(restarted.get().findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-            click(latest(), "settings_MAP"); click(latest(), "map_fields_manage"); click(latest(), "map_field_slot_0")
+            click(latest(), "settings_DASHBOARDS"); click(latest(), "map_fields_manage"); click(latest(), "map_field_slot_0")
             click(latest(), "map_field_empty")
             assertNull(MapFieldSelection.read(preferences, 0))
         } finally { restarted.pause().stop().destroy() }

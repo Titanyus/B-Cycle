@@ -21,8 +21,47 @@ enthalten höchstens 97 Punkte; es werden keine zusätzlichen Karten oder Sensor
   Koordinaten sind auch als geplante Strecke auswählbar. Kein Routing/Abbiegehinweis.
 - Abbrechen/Schließen eines Unterdialogs kehrt zum vorherigen Dialog zurück.
 
-Nextcloud-Konfiguration, Sicherungsstatus und Uploadaktionen folgen später und
-werden noch nicht als funktionslose Menüpunkte angezeigt.
+## Neue Streckeneinstellungen im Quellcode nach APK 0.6.7
+
+Das ⋮ rechts neben der Überschrift öffnet die Streckeneinstellungen. Die
+Schalter **Speichern im Zielverzeichnis** und **WebDAV** sind unabhängig.
+Standard: lokaler Export nach Downloads/B-Cycle aktiv, WebDAV aus. Androids
+Ordnerauswahl gewährt dauerhaften Zugriff auf ein anderes Ziel; bei entzogenem
+Zugriff gibt es einen Fehler statt eines stillen Rückfalls nach Downloads.
+Abbrechen/Schließen kehrt zur Streckenliste zurück. Karten-Datenfelder liegen
+jetzt unter **Dashboards**. Das Auge ist größer und immer weiß; durchgestrichen
+bedeutet ausgeblendet.
+
+WebDAV-Eingaben: HTTPS-Nextcloud-Basisadresse (auch mit Installations-Unterordner),
+Benutzername, separates App-Passwort, Zielverzeichnis und optional WLAN ohne
+Datenlimit. Kein kompletter /remote.php/dav/files/...-Link. Der Verbindungstest
+prüft PROPFIND am Benutzerverzeichnis und legt fehlende Zielordner an. Das
+App-Passwort wird mit AES-GCM und einem Android-Keystore-Schlüssel verschlüsselt;
+Passwörter stehen nicht in Jobs, FIT, Diagnosen oder Backups.
+
+STOPP bewahrt zuerst die originale FIT-Datei privat. Danach wird ein aktivierter
+Upload dauerhaft vorgemerkt und ein aktivierter Ordnerexport geschrieben.
+Der Upload wartet nicht auf den Ordnerexport und blockiert nicht die Oberfläche.
+Androids JobScheduler führt ihn bei passendem Netzwerk im Hintergrund aus,
+auch nach Neustart. Vorübergehende Netzwerk-/Serverfehler verwenden exponentielle
+Wiederholungen; Zugang-/Zertifikatsfehler sind in der Liste sichtbar und erfordern
+korrigierte Einstellungen oder die FIT-Aktion **Zu Nextcloud hochladen / erneut
+versuchen**. WebDAV aus pausiert die Warteschlange. Beim Wechsel des Servers oder
+Zielordners werden alte Jobs nicht ungefragt auf das neue Ziel umgeleitet; eine
+bewusste Wiederholung verwendet den aktuellen Zugang.
+
+Dateinamen bleiben bei Wiederholungen stabil. PUT verwendet If-None-Match: *;
+anschließend prüft GET den SHA-256 der gesamten Datei. Eine bereits identische
+Zieldatei gilt als gesichert, eine abweichende wird nicht überschrieben.
+Es gibt keine Weiterleitungen mit Zugangsdaten, keine Cloud-Löschungen und keine
+bidirektionale Synchronisation. Manuelles Löschen in der Sammlung entfernt
+weiterhin nur die private Kopie. Appdaten löschen/Deinstallation entfernt auch
+Zugang und Warteschlange; externe Ordner und Nextcloud bleiben bestehen.
+
+Android darf Hintergrundjobs verzögern; ein STOPP garantiert eine lokale
+Sammlungskopie und eine dauerhafte Upload-Vormerkung, keine sofort abgeschlossene
+Netzübertragung. Energiespar-/Netzwerkeinstellungen am Poco und eine echte
+Nextcloud-Instanz müssen noch praktisch geprüft werden.
 
 ## Dauerhafte Dateien und Migration
 
@@ -32,7 +71,7 @@ auf dem Datei-Worker nachgetragen. GPX-Originale werden nicht neu serialisiert.
 
 `FitLibrary` verwaltet originale private FIT-Dateien und einen atomaren JSON-Index.
 Neue Aufzeichnungen werden nach FIT-Finalisierung zunächst atomar privat bewahrt,
-dann weiterhin nach Download/B-Cycle exportiert. Ein Prozessabbruch zwischen
+dann entsprechend der Streckeneinstellungen exportiert und/oder zum Upload vorgemerkt. Ein Prozessabbruch zwischen
 Originalspeicherung und Indexeintrag ist durch das Einlesen neuer privater Dateien
 beim nächsten Start abgedeckt. Ein Downloadfehler erhält auch das Journal für die
 bestehende Wiederholungsfunktion. SHA-256 dient als stabile Dateiidentität und
@@ -63,7 +102,8 @@ Kartenpunkte werden durch den bestehenden MapTrack begrenzt; nur die ausgewählt
 Strecke wird für die Karte vollständig als begrenzte Punktfolge gelesen.
 Dateioperationen und Decoder laufen außerhalb des UI-Threads. Der Recording-Worker
 schreibt unveränderliche FIT-Originale; allein der MapState-Worker verwaltet den Index.
-Keine Datenbank, keine neue GPS-Quelle, kein Upload- oder Hintergrunddienst.
+Keine Datenbank und keine neue GPS-Quelle. Uploads verwenden einen nativen JobService;
+OkHttp 4.12.0 ermöglicht die von Android URLConnection abgelehnten WebDAV-Methoden.
 
 Automatisierte Prüfungen decken Garmin-Einheiten/CRC, FIT ohne GPS, unveränderte
 Originale, doppelte Importe, private Speicherung trotz Downloadfehler, GPX-

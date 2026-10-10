@@ -72,13 +72,18 @@ class RecordingStore(private val context: Context, private val changed: (String,
         var retained = false
         try {
             FitWriter.encode(source, encoded)
-            FitLibrary.retainRecording(context.filesDir, encoded)
+            val original = FitLibrary.retainRecording(context.filesDir, encoded)
             retained = true
-            DownloadFiles.write(context, encoded, "B-Cycle-" + encoded.name)
+            val config = RouteExportSettings(context).read()
+            val upload = runCatching { RouteUploads.enqueue(context, original, "B-Cycle-" + encoded.name) }
+            val local = runCatching { if (config.save) LocalRouteExport.write(context, encoded, "B-Cycle-" + encoded.name, config.tree) }
+            upload.getOrThrow(); local.getOrThrow()
             source.delete(); encoded.delete()
-            return "Gespeichert: Download/B-Cycle/B-Cycle-${encoded.name}" + if (failed) " · enthält Daten bis zum Speicherfehler" else ""
+            return "Gespeichert: FIT in Streckensammlung" +
+                (if (RouteExportSettings(context).read().save) " · auch im Zielordner" else "") +
+                (if (RouteExportSettings(context).read().webdav) " · Nextcloud-Upload vorgemerkt" else "") + if (failed) " · enthält Daten bis zum Speicherfehler" else ""
         } catch (_: Exception) {
-            return if (retained) "FIT lokal gespeichert · Download fehlgeschlagen. Im Menü erneut versuchen."
+            return if (retained) "FIT lokal gespeichert · Ordnerexport oder Upload-Vormerkung fehlgeschlagen. Im Menü erneut versuchen."
             else "FIT nicht gespeichert · Daten bleiben erhalten. Im Menü erneut speichern."
         }
     }

@@ -23,6 +23,8 @@ class MainActivity : Activity() {
     private lateinit var dashboardArea: LinearLayout
     private var routeManager: RouteManagerView? = null
     private var routeSignature = ""
+    private var exportDraft: RouteExportConfig? = null
+    private var exportPasswordDraft: String? = null
     private var pendingMapRoute: String? = null
     private var dashboardPage = 0
     private var mapFullscreen = false
@@ -178,9 +180,11 @@ class MainActivity : Activity() {
                 SettingsAction.DIAGNOSTIC -> diagnosticSettings()
                 SettingsAction.RESET -> resetDashboardSettings()
                 SettingsAction.FONT_LICENSE -> menu = dialog().setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
-                SettingsAction.MAP_LICENSE -> menu = dialog().setTitle("Mapsforge & Garmin FIT · Lizenzen").setMessage(
+                SettingsAction.MAP_LICENSE -> menu = dialog().setTitle("Bibliotheken · Lizenzen").setMessage(
                     "Mapsforge · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
-                    "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() })
+                    "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +
+                    "\n\nOkHttp 4.12.0 · Apache-2.0\n\n" + assets.open("OkHttp-LICENSE.txt").bufferedReader().use { it.readText() } +
+                    "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() })
                     .setPositiveButton("Schließen", null).show()
             }
         }
@@ -357,6 +361,18 @@ class MainActivity : Activity() {
     @Deprecated("Native document picker callback")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 10) {
+            if (resultCode == RESULT_OK) data?.data?.let { uri ->
+                try {
+                    val flags = data.flags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    if (flags and Intent.FLAG_GRANT_WRITE_URI_PERMISSION == 0) error("Keine Schreibberechtigung")
+                    contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    exportDraft = (exportDraft ?: RouteExportSettings(this).read()).copy(tree = uri.toString())
+                } catch (_: Exception) { Toast.makeText(this, "Ordnerzugriff konnte nicht gespeichert werden", Toast.LENGTH_LONG).show() }
+            }
+            if (dialogs.empty) { showMenu(); routeSettings(); routeExportSettings() }
+            return
+        }
         if (requestCode == 8 || requestCode == 9) {
             if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.import(it, recorded = requestCode == 9) }
             if (dialogs.empty) { showMenu(); routeSettings() }
@@ -398,11 +414,12 @@ class MainActivity : Activity() {
     }
     private fun dashboardSettings() {
         val root = column()
-        root.addView(label("Vier Seiten mit festen Vorlagen. Die Messwerte jeder Seite sind unabhängig frei belegbar. Wechsel über ‹/› auf der Karte.", 14f, Color.LTGRAY))
+        root.addView(label("Vier Seiten mit festen Vorlagen. Die Messwerte jeder Seite sind unabhängig frei belegbar. Wechsel durch Wischen über die Datenfelder.", 14f, Color.LTGRAY))
         val presets = DashboardPresetPicker(settingsContext, (0 until 4).map { page ->
             DashboardTemplate.decode(preferences.getString("dashboardTemplate_$page", DashboardTemplate.entries[page].name))
         }, dashboardPage)
         root.addView(presets)
+        root.addView(button("Karten-Datenfelder") { mapDataFieldSettings() }.apply { tag = "map_fields_manage" })
         menu = dialog().setTitle("Dashboards").setView(ScrollView(this).apply { addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
                 val edit = preferences.edit(); presets.selection.forEachIndexed { page, template -> edit.putString("dashboardTemplate_$page", template.name) }; edit.apply()
@@ -411,8 +428,7 @@ class MainActivity : Activity() {
     }
     private fun mapSettings() {
         val root = column()
-        root.addView(label("Online-Karten benötigen Internet. Der Kartenserver erhält die angefragten Kartenausschnitte. GPS und FIT bleiben lokal. Bei CyclOSM sind Radwege, Fahrradrouten und Belagsangaben Teil der fertigen Karte; sie können nicht einzeln ausgeblendet werden.", 14f, Color.LTGRAY))
-        root.addView(button("Karten-Datenfelder") { mapDataFieldSettings() }.apply { tag = "map_fields_manage" })
+        root.addView(label("Online-Karten benötigen Internet. Der Kartenserver erhält die angefragten Kartenausschnitte. GPS-Abfragen bleiben lokal; FIT wird nur bei aktiviertem WebDAV zu deiner Nextcloud hochgeladen. Bei CyclOSM sind Radwege, Fahrradrouten und Belagsangaben Teil der fertigen Karte; sie können nicht einzeln ausgeblendet werden.", 14f, Color.LTGRAY))
         root.addView(label("Kartenquelle", 18f))
         val source = Spinner(settingsContext).apply {
             adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.title })
@@ -471,13 +487,71 @@ class MainActivity : Activity() {
         val content = RouteManagerView(settingsContext, { importRoute() }, { importRoute(true) }, { entry ->
             preferences.edit().putBoolean("mapGpxVisible", true).apply()
             state.selectRoute(if (state.selectedRoute == entry.id) null else entry.id)
-        }, ::routeActions)
+        }, ::routeActions, ::routeExportSettings) { id -> RouteUploads.status(this, id) }
         routeManager = content
         refreshRouteRows()
         menu = dialog().setView(content).setPositiveButton("Schließen", null).create().apply {
             dialogs.onDismiss(this) { if (routeManager === content) routeManager = null }; show()
         }
         state.refreshLibrary()
+    }
+    private fun routeExportSettings() {
+        val settings = RouteExportSettings(this)
+        lateinit var content: RouteExportView
+        content = RouteExportView(settingsContext, exportDraft ?: settings.read(), settings.hasPassword(), {
+            exportDraft = content.read(); exportPasswordDraft = content.password.text.toString().takeIf { it.isNotEmpty() }
+            try {
+                startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION), 10)
+            } catch (_: android.content.ActivityNotFoundException) {
+                Toast.makeText(this, "Keine Ordnerauswahl verfügbar", Toast.LENGTH_LONG).show()
+            }
+        }, {
+            val config = content.read()
+            val newPassword = content.password.text.toString().takeIf { it.isNotEmpty() }
+            content.testing(true)
+            Thread({
+                val message = try {
+                    WebDavClient(config, newPassword ?: settings.password()).test(); "Verbindung erfolgreich · Zielverzeichnis erreichbar"
+                } catch (e: Exception) {
+                    when (e) {
+                        is DavFailure -> e.message ?: "Verbindung fehlgeschlagen"
+                        is IllegalArgumentException -> e.message ?: "Einstellungen prüfen"
+                        else -> "Verbindung fehlgeschlagen · Adresse, Netzwerk und App-Passwort prüfen"
+                    }
+                }
+                runOnUiThread { content.testing(false); content.result.text = message }
+            }, "B-Cycle-WebDAV-Test").start()
+        })
+        exportPasswordDraft?.let { content.password.setText(it) }
+        exportDraft = null; exportPasswordDraft = null
+        val screen = dialog().setTitle("Streckeneinstellungen").setView(ScrollView(settingsContext).apply { addView(content) })
+            .setPositiveButton("Speichern", null).setNegativeButton("Abbrechen", null).create()
+        screen.show()
+        screen.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            try {
+                val config = content.read()
+                val password = content.password.text.toString().takeIf { it.isNotEmpty() }
+                if (config.webdav) {
+                    WebDavClient.directory(config)
+                    require(password != null || settings.hasPassword()) { "Bitte ein Nextcloud-App-Passwort eingeben" }
+                }
+                screen.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                val appContext = applicationContext
+                Thread({
+                    val success = runCatching { settings.write(config, password); RouteUploads.settingsChanged(appContext) }.isSuccess
+                    runOnUiThread {
+                        if (!isDestroyed) {
+                            screen.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
+                            if (success) { routeSignature = ""; refreshRouteRows(); screen.dismiss() }
+                            else content.result.text = "Einstellungen konnten nicht gespeichert werden · App-Passwort prüfen"
+                        }
+                    }
+                }, "B-Cycle-Streckeneinstellungen").start()
+            } catch (e: Exception) {
+                content.result.text = if (e is IllegalArgumentException) e.message else "Einstellungen konnten nicht gespeichert werden · App-Passwort prüfen"
+            }
+        }
     }
     private fun refreshRouteRows() {
         val state = runtime.mapState
@@ -488,7 +562,7 @@ class MainActivity : Activity() {
             pendingMapRoute = null
         }
         val manager = routeManager ?: return
-        val signature = "${state.routeRevision}:${state.busy}"
+        val signature = "${state.routeRevision}:${state.busy}:${RouteUploads.revision(this)}"
         if (routeSignature == signature) return
         routeSignature = signature
         manager.submit(state.entries, state.selectedRoute, state.busy)
@@ -517,6 +591,10 @@ class MainActivity : Activity() {
                 if (name.isEmpty()) input.error = "Bitte einen Namen eingeben"
                 else { state.renameRoute(entry.id, name); rename.dismiss() }
             }
+        }
+        if (entry.format == "FIT") actions += "Zu Nextcloud hochladen / erneut versuchen" to {
+            try { RouteUploads.retry(this, entry.id); routeSignature = ""; refreshRouteRows() }
+            catch (_: Exception) { Toast.makeText(this, "WebDAV-Zugang bitte in den Streckeneinstellungen aktivieren und prüfen", Toast.LENGTH_LONG).show() }
         }
         actions += "Nach Downloads exportieren" to { state.exportRoute(entry.id) }
         actions += "Aus Sammlung löschen" to {
