@@ -4,57 +4,49 @@ import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.util.AtomicFile
-import java.io.File
+import android.provider.OpenableColumns
 import java.util.concurrent.Executors
 
-/** Shared route and display track. No GPS client or additional ride recording. */
+/** Shared route library and display track. No GPS client or additional ride recording. */
 class MapState(private val context: Context, private val changed: () -> Unit) {
     val track = MapTrack()
     var route: GpxRoute? = null; private set
+    var routes: List<StoredGpx> = emptyList(); private set
+    var selectedRoute: String? = null; private set
     var routeRevision = 0L; private set
-    var busy = false; private set
+    var busy = true; private set
     var message = ""; private set
     private val handler = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "B-Cycle-GPX") }
-    private val stored = AtomicFile(File(context.filesDir, "map-route.gpx"))
-    init {
-        worker.execute {
-            val loaded = try { stored.openRead().use { GpxImport.read(it) } } catch (_: Exception) { null }
-            handler.post { route = loaded; routeRevision++; changed() }
+    private val library = GpxLibrary(context.filesDir)
+    init { worker.execute { finishOperation("GPX-Bibliothek geladen") { library.load() } } }
+
+    private fun finishOperation(success: String, action: () -> GpxRoute?) {
+        var next = route; var text = success
+        try { next = action() }
+        catch (e: Exception) { text = "GPX nicht geändert: ${e.message ?: "ungültige Datei"}" }
+        val entries = library.entries; val selected = library.selected
+        handler.post {
+            route = next; routes = entries; selectedRoute = selected; routeRevision++
+            busy = false; message = if (success == "GPX-Bibliothek geladen" && text == success) "" else text
+            changed()
         }
     }
-    fun import(uri: Uri) {
+    private fun operate(success: String, action: () -> GpxRoute?) {
         if (busy) return
-        busy = true; message = "GPX wird geladen …"; changed()
-        worker.execute {
-            var result: GpxRoute? = null
-            var text: String
-            val temp = File(context.cacheDir, "gpx-import.tmp")
-            try {
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    temp.outputStream().use { output ->
-                        val buffer = ByteArray(16 * 1024); var bytes = 0L
-                        while (true) { val n = input.read(buffer); if (n < 0) break; bytes += n
-                            require(bytes <= GpxImport.MAX_BYTES) { "GPX ist größer als 20 MB" }; output.write(buffer, 0, n) }
-                    }
-                } ?: error("Datei kann nicht geöffnet werden")
-                result = temp.inputStream().use { GpxImport.read(it) }
-                val stream = stored.startWrite()
-                try { temp.inputStream().use { it.copyTo(stream) }; stored.finishWrite(stream) }
-                catch (e: Exception) { stored.failWrite(stream); throw e }
-                text = "GPX geladen · ${result.originalPoints} Punkte"
-            } catch (e: Exception) { result = null; text = "GPX nicht geladen: ${e.message ?: "ungültige Datei"}" }
-            finally { temp.delete() }
-            handler.post { if (result != null) { route = result; routeRevision++ }; busy = false; message = text; changed() }
-        }
+        busy = true; changed()
+        worker.execute { finishOperation(success, action) }
     }
-    fun removeRoute() {
-        if (busy) return
-        busy = true
-        worker.execute {
-            stored.delete()
-            handler.post { route = null; routeRevision++; busy = false; message = "GPX entfernt"; changed() }
-        }
+    fun import(uri: Uri) = operate("GPX gespeichert und angezeigt") {
+        val name = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
+            if (it.moveToFirst()) it.getString(0) else null
+        } ?: "GPX-Strecke"
+        context.contentResolver.openInputStream(uri)?.use { library.add(it, name) } ?: error("Datei kann nicht geöffnet werden")
+    }
+    fun selectRoute(id: String?) = operate(if (id == null) "GPX ausgeblendet" else "GPX angezeigt") { library.select(id) }
+    fun deleteRoute(id: String) = operate("GPX gelöscht") {
+        val active = library.selected == id
+        library.delete(id)
+        if (active) null else route
     }
 }

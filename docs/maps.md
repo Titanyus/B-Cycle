@@ -7,9 +7,10 @@ MapLibre, Compose, Play Services und eine weitere GPS-Quelle werden nicht verwen
 
 ## Bedienung
 
-- Vier Dashboard-Seiten, jede mit einer der vier festen Vorlagen: sieben Werte
+- Vier Dashboard-Seiten, jede mit einer der fünf festen Vorlagen: sieben Werte
   mit kleiner Karte, vier mit mittlerer Karte, zwei mit großer Karte oder drei
-  kompakte Werte mit Kartenübersicht. Jede Seite speichert ihre eigene Belegung.
+  kompakte Werte mit Kartenübersicht sowie fünf Werte in zwei Zeilen (oben zwei,
+  unten drei). Jede Seite speichert ihre eigene Belegung.
   Vorlagen unter **☰ → Dashboards** wählen; die bisherigen sieben Felder bleiben
   auf Seite 1 erhalten. Verdeckte Felder bleiben beim Vorlagenwechsel gespeichert.
 - Seitenwechsel über **‹/›** in den Kartenbuttons oder horizontales Wischen auf
@@ -18,9 +19,10 @@ MapLibre, Compose, Play Services und eine weitere GPS-Quelle werden nicht verwen
   an. Der Kartenhinweis „GPS aus“ kann ebenfalls angetippt werden.
 - **↑/N** wechselt zwischen Fahrtrichtung und Norden, **+/−** ändert den Zoom,
   **⛶** öffnet dieselbe Karte im Vollbild; Zurück oder **↙** schließt das Vollbild.
-  START/STOPP und das Hauptmenü bleiben erreichbar.
-- Kartenbuttons verschwinden nach fünf Sekunden ohne Bedienung. Ein kurzer
-  Kartentipp zeigt sie wieder. Kartenattribution, Position und Strecken bleiben
+  Ein Kartentipp macht START/STOPP und das Hauptmenü wieder erreichbar.
+- Kartenbuttons und die untere START/Menü-Leiste verschwinden gemeinsam nach
+  fünf Sekunden ohne Bedienung. Ein kurzer Kartentipp zeigt beide wieder.
+  Die frei werdende Höhe geht vollständig an die Karte; die Datenfelder bleiben gleich groß. Kartenattribution, Position und Strecken bleiben
   sichtbar. Bei aktivierter TalkBack-Tastenerkundung bleiben Buttons sichtbar.
 - Manuelles Verschieben pausiert GPS-Folgen. Ein Kartentipp setzt es nicht fort;
   dazu **◎** verwenden. In Fahrtrichtung liegt die Position etwa im unteren Drittel.
@@ -29,6 +31,10 @@ MapLibre, Compose, Play Services und eine weitere GPS-Quelle werden nicht verwen
 - **☰ → Karte einstellen** speichert Kartenquelle, Ausrichtung, Verfolgung sowie
   Sichtbarkeit des Live-Tracks und der importierten Strecke. Zoom und letzte
   Kartenposition bleiben lokal gespeichert.
+
+Die Dashboard-Beschriftungen sind kurz (z. B. Tempo, Distanz, Fahreranteil).
+Ein weißes Fahrrad steht für E-Bike, eine weiße Weltkugel für GPS. Feldauswahl
+und TalkBack behalten die ausführlichen Beschreibungen und Quellen.
 
 ## Online-Karten und Daten
 
@@ -71,17 +77,25 @@ Linien. Die originalen FIT-Punkte werden dadurch nicht ausgedünnt. Ohne gewähl
 Positionsaufzeichnung entsteht keine Trackhistorie. STOPP lässt die Vorschau bis
 zum nächsten START stehen; nach Prozessende wird sie nicht aus FIT wiederhergestellt.
 
-**☰ → GPX-Strecke importieren** nutzt die Android-Dateiauswahl. Tracks (`trk`),
-Trackabschnitte (`trkseg`) und Routen (`rte`) werden unterstützt. Unter
-**GPX-Strecke verwalten** lässt sich die Strecke vollständig anzeigen, ersetzen
-oder entfernen. Die gestrichelte violette Linie unterscheidet sich vom Live-Track;
-Start und Ende erscheinen grün bzw. rot.
+**☰ → Kartenverwaltung** bewahrt mehrere importierte GPX-Strecken mit ihrem
+Dateinamen auf. **GPX-Strecke importieren** öffnet dort die Android-Dateiauswahl.
+Tracks (`trk`), Trackabschnitte (`trkseg`) und Routen (`rte`) werden unterstützt.
+Das Auge zeigt jeweils eine Strecke an oder blendet sie aus; die anderen bleiben
+auf dem Gerät gespeichert. Ein neuer Import wird ausgewählt, ersetzt jedoch
+keine vorhandene Strecke. Auswahl und Dateien bleiben bei einem Neustart erhalten.
+Die bisherige einzelne GPX-Datei wird beim Update automatisch übernommen.
+
+Der Mülleimer löscht nach Bestätigung die private Kopie; die ursprüngliche Datei
+bleibt erhalten. **Angezeigte Strecke vollständig zeigen** passt den Kartenausschnitt
+an. Die gestrichelte violette Linie unterscheidet sich vom Live-Track; Start und
+Ende erscheinen grün bzw. rot. Dies ist eine GPX-Streckenverwaltung; lokale
+Offline-Basiskarten sind weiterhin nicht implementiert.
 
 Import und Speicherung laufen außerhalb des UI-Threads. Grenzen: 20 MB,
 200.000 Punkte, 1.000 Abschnitte und XML-Tiefe 32. DTD/externe Entitäten sind
 nicht zugelassen. Falsches Format, ungültige Koordinaten und unvollständiges XML
-werden abgewiesen. Ein fehlgeschlagener Ersatz lässt die alte Strecke erhalten.
-Die Originaldatei wird atomar privat gespeichert; die Darstellung wird auf etwa
+werden abgewiesen. Ein fehlgeschlagener Import lässt alle bisherigen Strecken und die Auswahl erhalten.
+Originaldateien und Verwaltungsindex werden atomar privat gespeichert; die Darstellung wird auf etwa
 20.000 Punkte plus Abschnittsenden reduziert. Es gibt keine Routenberechnung,
 Abbiegehinweise oder automatische Neuberechnung.
 
@@ -101,7 +115,9 @@ Import, Downloadmanager und ein eigener XML-Kartenstil sind noch nicht implement
 
 Automatisierte Tests prüfen GPX-Segmente, Fehler, große Dateien, begrenzten
 Trackspeicher, Kursglättung über Norden, Kartenbuttons, Vollbild, vier Vorlagen
-und getrennte Feldbelegung. Die Aufzeichnungstests prüfen dieselben Trackpunkte
+und getrennte Feldbelegung. Ab 0.6.0 werden zusätzlich die Fünf-Werte-Vorlage,
+kurze Beschriftungen, die gemeinsam ausblendende Bedienleiste mit wachsender Karte
+sowie GPX-Verwaltung, Neustart, Löschung, fehlerhafter Import und Migration geprüft. Die Aufzeichnungstests prüfen dieselben Trackpunkte
 im Hintergrund und abgewählte Positionen; bestehende Garmin-FIT-Tests bleiben aktiv.
 
 Ab 0.5.1 prüfen zusätzliche Tests echtes Mapsforge-Raster-Rendering mit lokal
@@ -111,6 +127,6 @@ Cache hält alle benötigten Kacheln auch über wiederholte Zeichenzyklen bereit
 Ein weiterer Test prüft das Verkleinern des Caches.
 
 Der Nutzer hat Online-Kacheln auf dem Poco getestet und dabei diese Lücken gemeldet.
-Die Korrektur benötigt noch den Vergleich auf dem Handy. Der Cloud-Zugriff auf den
+Der Nutzer hat die Korrektur auf dem Handy bestätigt. Der Cloud-Zugriff auf den
 echten CyclOSM-Kachelserver war durch die Netzwerkfreigabe gesperrt; Sonnentauglichkeit,
 Kartenbewegung während einer Fahrt und Energieverbrauch sind hier nicht verifiziert.

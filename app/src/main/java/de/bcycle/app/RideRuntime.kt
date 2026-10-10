@@ -69,7 +69,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             notifyChanged(); handler.postDelayed(this, 1000)
         }
     }
-    init { diagnostics.reset("App=0.5.1 Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
+    init { diagnostics.reset("App=0.6.0 Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
     fun notifyChanged() { observers.toList().forEach { it() } }
     fun setVisible(value: Boolean) { visible = value; updateActivity() }
     private fun updateActivity() {

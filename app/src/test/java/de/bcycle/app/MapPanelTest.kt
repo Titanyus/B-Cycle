@@ -34,14 +34,26 @@ class MapPanelTest {
             val panel = descendants(root).filterIsInstance<MapPanel>().single()
             val full = descendants(panel).single { it.contentDescription == "Karte im Vollbild" }
             val controls = full.parent as View
+            val toolbar = descendants(root).single { it.tag == "ride_toolbar" }
+            val dashboard = descendants(root).filterIsInstance<DashboardView>().single()
+            val dataHeight = dashboard.height
+            val mapHeight = panel.height
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
             assertEquals(View.GONE, controls.visibility)
+            assertEquals(View.GONE, toolbar.visibility)
+            measure(root, 1080, 2100)
+            assertEquals(dataHeight, dashboard.height)
+            assertTrue(panel.height > mapHeight)
             panel.setFollow(false)
             val now = SystemClock.uptimeMillis()
             MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, 100f, 100f, 0).also { panel.mapView.dispatchTouchEvent(it); it.recycle() }
             MotionEvent.obtain(now, now + 50, MotionEvent.ACTION_UP, 100f, 100f, 0).also { panel.mapView.dispatchTouchEvent(it); it.recycle() }
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(400))
             assertEquals(View.VISIBLE, controls.visibility)
+            assertEquals(View.VISIBLE, toolbar.visibility)
+            measure(root, 1080, 2100)
+            assertEquals(dataHeight, dashboard.height)
+            assertEquals(mapHeight, panel.height)
             assertFalse(controller.get().getSharedPreferences("bike", 0).getBoolean("mapFollow", true))
             full.performClick(); measure(root, 1080, 2100)
             assertEquals(View.GONE, descendants(root).filterIsInstance<DashboardView>().single().visibility)

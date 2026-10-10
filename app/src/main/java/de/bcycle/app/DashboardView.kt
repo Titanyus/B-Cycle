@@ -45,7 +45,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         tiles.addAll(indexed)
         if (template != DashboardTemplate.DATA) {
             orientation = VERTICAL
-            val rows = if (template == DashboardTemplate.OVERVIEW) listOf(template.slots) else template.slots.chunked(2)
+            val rows = when (template) {
+                DashboardTemplate.OVERVIEW -> listOf(template.slots)
+                DashboardTemplate.FIVE -> listOf(template.slots.take(2), template.slots.drop(2))
+                else -> template.slots.chunked(2)
+            }
             rows.forEachIndexed { index, slots ->
                 if (index > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, 1))
                 addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
@@ -145,7 +149,16 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         fun show(field: DashboardField, data: LiveData) {
             val next = field.value(data, gps, bikeDistanceM, pulse)
             val caption = "${field.source} · ${field.title(data, gps)}"
-            setText(title, caption.uppercase(Locale.GERMANY))
+            val short = field.dashboardTitle(data).uppercase(Locale.GERMANY)
+            val captionKey = "${field.source}:$short"
+            if (title.tag != captionKey) {
+                title.tag = captionKey
+                title.text = if (field.source == "GPS" || field.source == "E-Bike") {
+                    android.text.SpannableString("\uFFFC $short").apply {
+                        setSpan(SourceIconSpan(field.source), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    }
+                } else short
+            }
             setText(value, next.text)
             setText(unit, next.unit)
             unit.visibility = if (next.unit.isEmpty()) GONE else VISIBLE

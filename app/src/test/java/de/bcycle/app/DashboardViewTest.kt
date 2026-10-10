@@ -28,6 +28,27 @@ class DashboardViewTest {
         view.layout(0, 0, width, height)
     }
 
+    @Test fun fiveValueTemplateHasTwoTopAndThreeBottomFieldsWithCompactCaptions() {
+        val clicked = mutableListOf<Int>()
+        val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }
+        view.setTemplate(DashboardTemplate.FIVE)
+        view.show(DashboardLayout.defaults.replace(0, DashboardField("GPS_MOVING_AVERAGE")), LiveData())
+        measure(view, 1080, 750)
+        val tiles = descendants(view).filter { it.isClickable }
+        assertEquals(5, tiles.size)
+        assertSame(tiles[0].parent, tiles[1].parent)
+        assertSame(tiles[2].parent, tiles[3].parent)
+        assertSame(tiles[3].parent, tiles[4].parent)
+        assertNotSame(tiles[0].parent, tiles[2].parent)
+        tiles.forEach { it.performClick() }; assertEquals((0..4).toList(), clicked)
+        val texts = descendants(view).filterIsInstance<TextView>().map { it.text.toString() }
+        assertTrue(texts.contains("\uFFFC Ø TEMPO · FAHRT"))
+        assertTrue(texts.contains("\uFFFC TEMPO"))
+        val caption = descendants(view).filterIsInstance<TextView>().first().text as android.text.Spanned
+        assertEquals("GPS", caption.getSpans(0, 1, SourceIconSpan::class.java).single().source)
+        assertTrue(tiles.first().contentDescription.toString().contains("GPS · Ø Geschwindigkeit · Bewegung"))
+    }
+
     @Test fun sevenAccessibleTilesFitPortraitAndLandscapeAndEveryTileCanBeSelected() {
         val clicked = mutableListOf<Int>()
         val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }
@@ -107,7 +128,7 @@ class DashboardViewTest {
         val configured = DashboardLayout.defaults.replace(2, DashboardField("RIDER_ENERGY_SHARE"))
         view.show(configured, data.copy(otherValues = data.otherValues + (LiveMetric.RIDER_ENERGY_SHARE to 37L)))
         measure(view, 1080, 1950)
-        val layout = descendants(view).filterIsInstance<TextView>().single { it.text.toString() == "E-BIKE · FAHRERANTEIL AN ANTRIEBSENERGIE" }.layout
+        val layout = descendants(view).filterIsInstance<TextView>().single { it.text.toString() == "\uFFFC FAHRERANTEIL" }.layout
         assertNotNull(layout)
         assertTrue(layout.lineCount <= 2)
     }

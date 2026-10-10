@@ -68,6 +68,41 @@ data class DashboardField(val id: String) {
         else -> "Reichweite · ${rangeNames(data)?.getOrNull(rangeIndex ?: -1) ?: "Stufe ${(rangeIndex ?: 0) + 1}"}"
     }
 
+    /** Short visual captions; picker and accessibility retain the full description. */
+    fun dashboardTitle(data: LiveData): String {
+        val short = when (id) {
+            "SPEED", "GPS_SPEED" -> "Tempo"
+            "BIKE_DISTANCE", "GPS_DISTANCE" -> "Distanz"
+            "GPS_MOVING_AVERAGE" -> "Ø Tempo · Fahrt"
+            "GPS_OVERALL_AVERAGE" -> "Ø Tempo · gesamt"
+            "GPS_MAXIMUM_SPEED" -> "Max. Tempo"
+            "GPS_ELAPSED_TIME" -> "Dauer"
+            "GPS_MOVING_TIME" -> "Fahrzeit"
+            "GPS_STOPPED_TIME" -> "Standzeit"
+            "GPS_ALTITUDE" -> "Höhe"
+            "GPS_ASCENT" -> "Aufstieg"
+            "GPS_DESCENT" -> "Abstieg"
+            "GPS_GRADIENT" -> "Steigung"
+            "ODOMETER" -> "Gesamt-km"
+            "RIDER_POWER" -> "Fahrerleistung"
+            "RIDER_TORQUE" -> "Drehmoment · Fahrer"
+            "MOTOR_TORQUE" -> "Drehmoment · Motor"
+            "REMAINING_ENERGY" -> "Restenergie"
+            "DELIVERED_ENERGY" -> "Energie abgegeben"
+            "RIDER_ENERGY_SHARE" -> "Fahreranteil"
+            "AVERAGE_SPEED" -> "Ø Tempo"
+            "AVERAGE_POWER" -> "Ø Leistung"
+            "MAXIMUM_POWER" -> "Max. Leistung"
+            "HEART_RATE" -> "Puls"
+            "HEART_AVERAGE" -> "Ø Puls"
+            "HEART_MAXIMUM" -> "Max. Puls"
+            "CURRENT_RANGE" -> "Reichweite"
+            "RANGES" -> "Reichweiten"
+            else -> title(data)
+        }
+        return short
+    }
+
     fun value(data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()): DashboardValue {
         if (id.startsWith("HEART_")) {
             val raw = when (id) { "HEART_RATE" -> pulse.bpm?.toDouble(); "HEART_AVERAGE" -> pulse.average; "HEART_MAXIMUM" -> pulse.maximum?.toDouble(); else -> pulse.battery?.toDouble() }

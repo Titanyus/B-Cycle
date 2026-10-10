@@ -21,8 +21,10 @@ class MainActivity : Activity() {
     private lateinit var startButton: Button
     private lateinit var mapPanel: MapPanel
     private lateinit var dashboardArea: LinearLayout
+    private var routeRows: LinearLayout? = null
     private var dashboardPage = 0
     private var mapFullscreen = false
+    private var controlsVisible = true
     private var displayedMapMessage = ""
     private val dashboardKey get() = if (dashboardPage == 0) "dashboard" else "dashboard_$dashboardPage"
     private val templateKey get() = "dashboardTemplate_$dashboardPage"
@@ -38,7 +40,7 @@ class MainActivity : Activity() {
     private var pendingStart = false
     private var pendingReport: String? = null
     private var displayedRecordingStatus: String? = null
-    private val observer: () -> Unit = { render(); refreshSensorRows() }
+    private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows() }
     private val preferences get() = runtime.preferences
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private fun label(text: String, size: Float = 14f, color: Int = Color.WHITE) = TextView(this).apply {
@@ -63,13 +65,21 @@ class MainActivity : Activity() {
         dashboard.changePage = ::changeDashboard
         dashboard.setTemplate(currentTemplate())
         mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::changeDashboard, ::enableGps, ::openMapLink)
-        dashboardArea = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        dashboardArea = object : LinearLayout(this) {
+            override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                val available = View.MeasureSpec.getSize(heightMeasureSpec) - if (controlsVisible) 0 else dp(58)
+                (dashboard.layoutParams as? LayoutParams)?.let {
+                    it.height = (available.coerceAtLeast(0) * currentTemplate().dataFraction).toInt(); it.weight = 0f
+                }
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            }
+        }.apply { orientation = LinearLayout.VERTICAL }
         dashboardArea.addView(dashboard, LinearLayout.LayoutParams(-1, 0, currentTemplate().dataFraction))
         dashboardArea.addView(mapPanel, LinearLayout.LayoutParams(-1, 0, 1f - currentTemplate().dataFraction))
         dashboard.visibility = if (mapFullscreen) View.GONE else View.VISIBLE
         mapPanel.showFullscreen(mapFullscreen)
         root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
-        val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar" }
         fun toolbarButton(title: String, color: Int = Color.rgb(208, 0, 0), action: () -> Unit) = button(title, action).apply {
             textSize = 20f; setTextColor(Color.WHITE); minWidth = 0; minHeight = 0
             setPadding(dp(4), 0, dp(4), 0)
@@ -81,6 +91,17 @@ class MainActivity : Activity() {
         toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), 3f))
         toolbar.addView(toolbarButton("☰", Color.rgb(144, 0, 0)) { showMenu() }.apply { contentDescription = "Menü öffnen" }, LinearLayout.LayoutParams(0, dp(58), 1f))
         root.addView(toolbar)
+        // Keep the data area height stable; all reclaimed toolbar space goes to the map.
+        mapPanel.controlsVisibilityChanged = { visible ->
+            controlsVisible = visible
+            toolbar.visibility = if (visible) View.VISIBLE else View.GONE
+            dashboardArea.requestLayout()
+        }
+        for (i in 0 until toolbar.childCount) toolbar.getChildAt(i).setOnTouchListener { _, event ->
+            if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) mapPanel.holdControls()
+            if (event.actionMasked == android.view.MotionEvent.ACTION_UP || event.actionMasked == android.view.MotionEvent.ACTION_CANCEL) mapPanel.revealControls()
+            false
+        }
         render()
     }
     private fun render() {
@@ -146,7 +167,7 @@ class MainActivity : Activity() {
         picker = AlertDialog.Builder(this).setTitle("Feld ${index + 1} belegen").setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).show()
     }
     private fun showMenu() {
-        val choices = arrayOf("Sensoren verwalten", "Aufzeichnung einstellen", "Ungespeicherte Fahrten speichern", "GPS-Messung erklärt", "Diagnose speichern", "Standardbelegung herstellen", "Schrift & Lizenz", "Karte einstellen", "Dashboards", "GPX-Strecke importieren", "GPX-Strecke verwalten", "Kartenbibliothek & Lizenz")
+        val choices = arrayOf("Sensoren verwalten", "Aufzeichnung einstellen", "Ungespeicherte Fahrten speichern", "GPS-Messung erklärt", "Diagnose speichern", "Standardbelegung herstellen", "Schrift & Lizenz", "Karte einstellen", "Dashboards", "Kartenverwaltung", "Kartenbibliothek & Lizenz")
         menu = AlertDialog.Builder(this).setTitle("B-Cycle").setItems(choices) { _, item -> when (item) {
             0 -> showSensorManager()
             1 -> recordingSettings()
@@ -157,9 +178,8 @@ class MainActivity : Activity() {
             6 -> menu = AlertDialog.Builder(this).setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
             7 -> mapSettings()
             8 -> dashboardSettings()
-            9 -> importGpx()
-            10 -> routeSettings()
-            11 -> menu = AlertDialog.Builder(this).setTitle("Mapsforge · LGPL-3.0 mit Ausnahme").setMessage(assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
+            9 -> routeSettings()
+            10 -> menu = AlertDialog.Builder(this).setTitle("Mapsforge · LGPL-3.0 mit Ausnahme").setMessage(assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
         } }.show()
     }
     private fun showSensorManager() {
@@ -299,7 +319,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.5.1-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.0-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
@@ -307,7 +327,7 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 8) {
-            if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.import(it) }
+            if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.import(it); routeSettings() }
             return
         }
         if (requestCode != 2) return
@@ -320,7 +340,7 @@ class MainActivity : Activity() {
             runOnUiThread { Toast.makeText(applicationContext, if (ok) R.string.export_saved else R.string.export_failed, Toast.LENGTH_LONG).show() }
         }, "B-Cycle-diagnostic-export").start()
     }
-    override fun onStart() { super.onStart(); mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render() }
+    override fun onStart() { super.onStart(); mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
     override fun onStop() {
         picker?.dismiss(); menu?.dismiss(); sensorManager?.dismiss(); stopScan()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
@@ -338,7 +358,7 @@ class MainActivity : Activity() {
         preferences.edit().putInt("dashboardPage", dashboardPage).apply()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
         val template = currentTemplate(); dashboard.setTemplate(template)
-        (dashboard.layoutParams as LinearLayout.LayoutParams).weight = template.dataFraction
+        dashboardArea.requestLayout()
         (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
         setMapFullscreen(false); render()
         Toast.makeText(this, "Dashboard ${dashboardPage + 1}/4 · ${template.title}", Toast.LENGTH_SHORT).show()
@@ -346,7 +366,7 @@ class MainActivity : Activity() {
     private fun dashboardSettings() {
         val root = column()
         root.addView(label("Vier Seiten mit festen Vorlagen. Die Messwerte jeder Seite sind unabhängig frei belegbar. Wechsel über ‹/› auf der Karte.", 14f, Color.LTGRAY))
-        val spinners = DashboardTemplate.entries.indices.map { page ->
+        val spinners = (0 until 4).map { page ->
             root.addView(label("Dashboard ${page + 1}", 18f))
             Spinner(this).apply {
                 adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, DashboardTemplate.entries.map { it.title })
@@ -393,16 +413,46 @@ class MainActivity : Activity() {
         } catch (_: android.content.ActivityNotFoundException) { Toast.makeText(this, "Dateiauswahl nicht verfügbar", Toast.LENGTH_LONG).show() }
     }
     private fun routeSettings() {
-        val route = runtime.mapState.route
         val root = column()
-        root.addView(label(if (route == null) "Keine GPX-Strecke geladen" else "${route.originalPoints} Punkte · ${route.segments} Abschnitte", 18f))
-        root.addView(label("GPX wird nur als Strecke angezeigt. Keine Routenberechnung oder Abbiegehinweise.", 14f, Color.LTGRAY))
-        root.addView(button("GPX importieren / ersetzen") { menu?.dismiss(); importGpx() })
-        if (route != null) {
-            root.addView(button("Gesamte GPX-Strecke anzeigen") { menu?.dismiss(); mapPanel.fitRoute() })
-            root.addView(button("GPX entfernen") { runtime.mapState.removeRoute(); menu?.dismiss() })
+        root.addView(label("Gespeicherte GPX-Strecken. Das Auge zeigt eine Strecke an oder blendet sie aus. Keine Routenberechnung oder Abbiegehinweise.", 14f, Color.LTGRAY))
+        root.addView(button("GPX-Strecke importieren") { menu?.dismiss(); importGpx() })
+        routeRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }; root.addView(routeRows)
+        refreshRouteRows()
+        menu = AlertDialog.Builder(this).setTitle("Kartenverwaltung").setView(ScrollView(this).apply { addView(root) })
+            .setPositiveButton("Schließen", null).create().apply { setOnDismissListener { routeRows = null }; show() }
+    }
+    private fun refreshRouteRows() {
+        val rows = routeRows ?: return
+        val state = runtime.mapState
+        val signature = "${state.routeRevision}:${state.busy}"
+        if (rows.tag == signature) return
+        rows.tag = signature; rows.removeAllViews()
+        if (state.busy) rows.addView(label("GPX wird verarbeitet …", 14f, Color.LTGRAY))
+        if (state.routes.isEmpty()) rows.addView(label("Noch keine GPX-Strecke gespeichert", 16f))
+        for (entry in state.routes) {
+            val selected = state.selectedRoute == entry.id
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
+            row.addView(label("${entry.name}\n${entry.points} Punkte · ${entry.segments} Abschnitte", 15f).apply { tag = "route_name_${entry.id}" }, LinearLayout.LayoutParams(0, -2, 1f))
+            val eye = ImageButton(this).apply {
+                tag = "route_eye_${entry.id}"; setPadding(dp(12), dp(12), dp(12), dp(12)); setImageDrawable(RouteActionIcon(false, selected))
+                contentDescription = if (selected) "${entry.name} ausblenden" else "${entry.name} anzeigen"
+                isEnabled = !state.busy; setOnClickListener {
+                    preferences.edit().putBoolean("mapGpxVisible", true).apply()
+                    state.selectRoute(if (selected) null else entry.id)
+                }
+            }
+            row.addView(eye, LinearLayout.LayoutParams(dp(48), dp(48)))
+            row.addView(ImageButton(this).apply {
+                tag = "route_delete_${entry.id}"; setPadding(dp(12), dp(12), dp(12), dp(12)); setImageDrawable(RouteActionIcon(true))
+                contentDescription = "${entry.name} löschen"; isEnabled = !state.busy
+                setOnClickListener {
+                    AlertDialog.Builder(this@MainActivity).setTitle("GPX-Strecke löschen?").setMessage(entry.name)
+                        .setPositiveButton("Löschen") { _, _ -> state.deleteRoute(entry.id) }.setNegativeButton("Abbrechen", null).show()
+                }
+            }, LinearLayout.LayoutParams(dp(48), dp(48)))
+            rows.addView(row)
         }
-        menu = AlertDialog.Builder(this).setTitle("GPX-Strecke").setView(root).setPositiveButton("Schließen", null).show()
+        if (state.route != null) rows.addView(button("Angezeigte Strecke vollständig zeigen") { menu?.dismiss(); mapPanel.fitRoute() }.apply { isEnabled = !state.busy })
     }
     private fun openMapLink(url: String) {
         try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }

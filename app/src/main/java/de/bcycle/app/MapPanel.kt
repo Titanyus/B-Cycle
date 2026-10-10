@@ -39,7 +39,7 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
         override fun getDefaultTimeToLive() = 7L * 24 * 60 * 60 * 1_000
     }.setProtocol("https").setBaseUrl(path)
         .setName(name).setParallelRequestsLimit(2).setZoomLevelMax(19).apply {
-            setUserAgent("B-Cycle/0.5.1 (https://github.com/Titanyus/B-Cycle)")
+            setUserAgent("B-Cycle/0.6.0 (https://github.com/Titanyus/B-Cycle)")
         }
     companion object { fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: CYCLOSM }
 }
@@ -67,7 +67,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var lastBearing: Double? = null
     private var lastTrack = -1L
     private var lastRoute = -1L
-    private val hideControls = Runnable { controls.visibility = GONE }
+    var controlsVisibilityChanged: ((Boolean) -> Unit)? = null
+    private val hideControls = Runnable { controls.visibility = GONE; controlsVisibilityChanged?.invoke(false) }
     val mapView: MapView
     private val overlay: Overlay
     private val observer = Observer { if (running) post { overlay.invalidate() } }
@@ -236,7 +237,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         preferences.edit().putInt("mapZoom", position.zoomLevel.toInt()).putFloat("mapLatitude", position.center.latitude.toFloat())
             .putFloat("mapLongitude", position.center.longitude.toFloat()).apply()
     }
-    fun revealControls() { controls.visibility = VISIBLE; scheduleHide() }
+    fun revealControls() { controls.visibility = VISIBLE; controlsVisibilityChanged?.invoke(true); scheduleHide() }
+    fun holdControls() { handler.removeCallbacks(hideControls) }
     private fun scheduleHide() {
         handler.removeCallbacks(hideControls)
         if (running && !context.getSystemService(AccessibilityManager::class.java).isTouchExplorationEnabled)

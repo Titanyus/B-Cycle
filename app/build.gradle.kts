@@ -27,8 +27,8 @@ android {
         applicationId = "de.bcycle.app"
         minSdk = 33
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.5.1"
+        versionCode = 16
+        versionName = "0.6.0"
     }
     buildTypes {
         release {

@@ -1,14 +1,14 @@
 # B-Cycle
 
 Schlanker Radcomputer für Android 13+ (API 33), mit nativen Kotlin-Views,
-Android-Bluetooth-LE und GPS. Mapsforge-Fahrradkarte, vier feste Dashboard-Vorlagen
+Android-Bluetooth-LE und GPS. Mapsforge-Fahrradkarte, fünf feste Dashboard-Vorlagen
 mit frei belegbaren Messwertfeldern, Bosch-MCSP, Standard-BLE-Pulsmesser und lokale
 FIT-Fahrtaufzeichnung. Die Online-Karte benötigt Internet; keine Analyse- oder
 zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.5.1 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.5.1-test.apk).
+[Installierbare APK 0.6.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.0-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,20 +16,20 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 345.848 Byte (rund 346 KB).
-SHA-256: `63860ed2eb62db0288824830dfa525c1b0103b252f098bd2da3716ca81c7ad38`.
+APK-Größe: 358.136 Byte (rund 358 KB).
+SHA-256: `3776cc7c0f38a4f5f713af59283079a26d9a2ab173ec4822e4cae6c083070909`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 85 Tests sind bestanden.
-Android-Lint meldet 18 Warnungen und keine Fehler.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 90 Tests sind bestanden.
+Android-Lint meldet 19 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
 Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
 Pulsmesser-Test wurde vom Nutzer bestätigt. Eine Fahrt mit ausgeschaltetem
-Display auf dem Poco steht noch aus. Die Kartenkacheln wurden inzwischen auf dem Poco getestet. Version 0.5.1
-behebt den dabei gemeldeten zu kleinen RAM-Kachelcache, der Lücken und Flimmern
-verursacht. Drei Regressionstests prüfen den Fehler und die Korrektur mit lokal
-gespeicherten Kacheln. Zoom und Verschieben mit dem Fix benötigen noch den
-Vergleich auf dem Handy; die Cloud-Netzwerkfreigabe blockiert den CyclOSM-Kachelserver. Details und Grenzen stehen in [Karten](docs/maps.md).
+Display auf dem Poco steht noch aus. Die Kachelcache-Korrektur aus 0.5.1 wurde
+vom Nutzer auf dem Handy bestätigt. Version 0.6.0 ergänzt kurze Beschriftungen
+mit weißen Quellensymbolen, die Fünf-Werte-Vorlage, eine gemeinsam ausblendende
+Bedienleiste und die GPX-Verwaltung. Die neuen Abläufe sind automatisiert geprüft;
+der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.md).
 
 ## Benutzung
 
@@ -71,7 +71,13 @@ Ab 0.5.0: [Kartenbedienung, Dashboards, GPX und Grenzen](docs/maps.md).
 Die Karte nutzt die bestehende GPS-Quelle. Vier Seiten speichern unabhängige
 Messwertbelegungen und wählbare feste Layouts mit unterschiedlichen Kartengrößen.
 CyclOSM zeigt Radwege und Fahrradrouten; eigene Belagsfarben sind bei diesen
-fertigen Online-Rasterkacheln nicht vorgesehen. GPX-Import und Live-Track sind eingebaut.
+fertigen Online-Rasterkacheln nicht vorgesehen. GPX-Import, eine persistente Streckenverwaltung und Live-Track sind eingebaut.
+**☰ → Kartenverwaltung** enthält Import, Streckennamen, Auge zum Anzeigen/Ausblenden
+und Mülleimer zum Löschen. Jeweils eine gespeicherte GPX-Strecke wird angezeigt.
+
+Kartenicons und START/Menü blenden sich nach fünf Sekunden gemeinsam aus; ein
+Kartentipp zeigt sie wieder. Der zusätzliche Platz kommt ausschließlich der Karte zugute.
+Die fünfte Vorlage zeigt oben zwei und unten drei frei belegbare Messwerte.
 
 Das Dashboard verwendet Schwarz, Weiß, dünne graue Linien, große schmale Ziffern
 und eine rote Bedienleiste mit dunklerem Hamburger-Button. Das obere Infofeld
