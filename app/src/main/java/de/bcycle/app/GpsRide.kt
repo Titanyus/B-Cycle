@@ -7,6 +7,7 @@ data class GpsFix(
     val timeMs: Long, val latitude: Double, val longitude: Double, val accuracyM: Double,
     val speedMps: Double? = null, val speedAccuracyMps: Double? = null,
     val altitudeM: Double? = null, val verticalAccuracyM: Double? = null, val seaLevel: Boolean = false,
+    val bearingDegrees: Double? = null, val bearingAccuracyDegrees: Double? = null,
 )
 
 data class GpsValues(
@@ -16,6 +17,7 @@ data class GpsValues(
     val elapsedMs: Long? = null, val altitudeM: Double? = null, val ascentM: Double? = null,
     val descentM: Double? = null, val gradientPercent: Double? = null, val seaLevel: Boolean = false,
     val latitude: Double? = null, val longitude: Double? = null,
+    val bearingDegrees: Double? = null,
 )
 
 /** Conservative foreground trip estimates. Coordinates are held only as a distance anchor. */
@@ -40,11 +42,12 @@ class GpsRide {
     private var descent: Double? = null
     private val slope = ArrayDeque<Pair<Double, Double>>()
     private var gradient: Double? = null
+    private var bearing: Double? = null
     var accepted = 0; private set
     var rejected = 0; private set
 
     fun pause() {
-        last = null; anchor = null; clock = null; speed = null
+        last = null; anchor = null; clock = null; speed = null; bearing = null
         clearHeightContinuity()
     }
 
@@ -71,6 +74,7 @@ class GpsRide {
             if (fresh && heightTime?.let { now - it <= 5_000 } == true) height else null,
             ascent, descent, if (fresh) gradient else null, heightDatum,
             if (fresh) last?.latitude else null, if (fresh) last?.longitude else null,
+            if (fresh) bearing else null,
         )
     }
 
@@ -93,7 +97,7 @@ class GpsRide {
         if (clock == null) clock = fix.timeMs
         hasFix = true; accepted++
         val continuous = dt != null && dt in 0.001..10.0
-        if (!continuous) { anchor = fix; speed = null; clearHeightContinuity() }
+        if (!continuous) { anchor = fix; speed = null; bearing = null; clearHeightContinuity() }
 
         val direct = fix.speedMps?.takeIf { it.isFinite() && it in 0.0..35.0 &&
             (fix.speedAccuracyMps == null || (fix.speedAccuracyMps.isFinite() && fix.speedAccuracyMps in 0.0..1.5)) &&
@@ -122,13 +126,27 @@ class GpsRide {
                 anchor = fix
             } else if (!moving && (direct != null || fallbackStopped)) anchor = fix
         }
+        if (moving) {
+            val direction = fix.bearingDegrees?.takeIf { it.isFinite() && it in 0.0..360.0 &&
+                (fix.bearingAccuracyDegrees?.let { accuracy -> accuracy.isFinite() && accuracy in 0.0..35.0 } == true) }
+                ?: previous?.takeIf { continuous && metres(it, fix) >= max(5.0, it.accuracyM + fix.accuracyM) }?.let {
+                    val a = Math.toRadians(it.latitude); val b = Math.toRadians(fix.latitude)
+                    val dl = Math.toRadians(fix.longitude - it.longitude)
+                    (Math.toDegrees(atan2(sin(dl) * cos(b), cos(a) * sin(b) - sin(a) * cos(b) * cos(dl))) + 360) % 360
+                }
+            direction?.let { next ->
+                val old = bearing
+                bearing = if (old == null || !continuous) next % 360 else
+                    (old + (((next - old + 540) % 360) - 180) * .4 + 360) % 360
+            }
+        }
         last = fix
         updateHeight(fix, moving)
         return true
     }
 
     private fun breakFix() {
-        last = null; anchor = null; speed = null; clearHeightContinuity()
+        last = null; anchor = null; speed = null; bearing = null; clearHeightContinuity()
     }
 
     private fun clearHeightContinuity() {

@@ -1,13 +1,14 @@
 # B-Cycle
 
 Schlanker Radcomputer für Android 13+ (API 33), mit nativen Kotlin-Views,
-Android-Bluetooth-LE und GPS. Keine UI-, Netzwerk-, Analyse- oder BLE-Bibliotheken
-im APK, keine Internetberechtigung. Sieben frei belegbare Datenfelder,
-Bosch-MCSP, Standard-BLE-Pulsmesser und lokale FIT-Fahrtaufzeichnung.
+Android-Bluetooth-LE und GPS. Mapsforge-Fahrradkarte, vier feste Dashboard-Vorlagen
+mit frei belegbaren Messwertfeldern, Bosch-MCSP, Standard-BLE-Pulsmesser und lokale
+FIT-Fahrtaufzeichnung. Die Online-Karte benötigt Internet; keine Analyse- oder
+zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.4.1 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.4.1-test.apk).
+[Installierbare APK 0.5.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.5.0-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -15,16 +16,18 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 226.990 Byte.
-SHA-256: `f6f95297879b7507ccd92aee8357976f7f7a4add2a497bee047a77ecc6bc5be8`.
+APK-Größe: 345.848 Byte (rund 346 KB).
+SHA-256: `080a7498e66b1243f99a6c6d6e18c9b3d44832f16287c26f0ee2c92781889ff2`.
 
-Build und APK-Signatur wurden geprüft; alle 71 Tests sind bestanden.
-Android-Lint meldet 12 Warnungen und keine Fehler.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 82 Tests sind bestanden.
+Android-Lint meldet 18 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
 Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
 Pulsmesser-Test wurde vom Nutzer bestätigt. Eine Fahrt mit ausgeschaltetem
-Display auf dem Poco steht noch aus.
+Display auf dem Poco steht noch aus. Auch echte Kartenkacheln und Kartenbedienung
+auf dem Poco sind noch zu prüfen: Die Cloud-Netzwerkfreigabe blockierte den
+CyclOSM-Kachelserver. Details und Grenzen stehen in [Karten](docs/maps.md).
 
 ## Benutzung
 
@@ -62,13 +65,20 @@ Sensorverbindungen; es entsteht kein zweiter Bosch-GATT-Client. Keine Suche nach
 einer Smartphone-App im Flow-Zubehörmenü ist erforderlich. „Werte erneut lesen“
 wurde aus der Bedienoberfläche entfernt. WebDAV folgt später.
 
+Ab 0.5.0: [Kartenbedienung, Dashboards, GPX und Grenzen](docs/maps.md).
+Die Karte nutzt die bestehende GPS-Quelle. Vier Seiten speichern unabhängige
+Messwertbelegungen und wählbare feste Layouts mit unterschiedlichen Kartengrößen.
+CyclOSM zeigt Radwege und Fahrradrouten; eigene Belagsfarben sind bei diesen
+fertigen Online-Rasterkacheln nicht vorgesehen. GPX-Import und Live-Track sind eingebaut.
+
 Das Dashboard verwendet Schwarz, Weiß, dünne graue Linien, große schmale Ziffern
 und eine rote Bedienleiste mit dunklerem Hamburger-Button. Das obere Infofeld
 ist entfernt. Einheiten stehen rechts neben den weiterhin mittigen Messwerten,
 mit unveränderten Schriftarten und Größenbereichen. Die Datenfelder sind kompakter;
-darunter bleibt Platz für eine spätere Karte. Speicherbestätigung und Fehler
-erscheinen als kurze Hinweise statt in einer dauerhaften Kopfzeile. Hochformat: zwei Felder, großes Feld, zweimal zwei
-Felder. Querformat: großes Feld links, sechs Felder rechts. Belegung, Sensoren und
+darunter steht nun die Karte. Speicherbestätigung und Fehler
+erscheinen als kurze Hinweise statt in einer dauerhaften Kopfzeile. Die Sieben-Werte-Vorlage
+hat im Hochformat zwei Felder, ein großes Feld und zweimal zwei Felder;
+bei breiter Darstellung ein großes Feld links und sechs rechts. Belegung, Sensoren und
 Aufzeichnungsauswahl werden lokal gespeichert. Die Ziffernschrift ist
 [Bebas Neue, SIL OFL](docs/fonts.md). Details: [FIT-Aufzeichnung](docs/fit.md).
 

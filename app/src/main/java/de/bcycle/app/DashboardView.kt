@@ -24,6 +24,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var bikeDistanceM: Long? = null
     private var pulse = PulseValues()
     private var landscape = false
+    var template = DashboardTemplate.DATA
+        private set
+    var changePage: ((Int) -> Unit)? = null
+
+    fun setTemplate(next: DashboardTemplate) {
+        if (next == template) return
+        template = next; buildTiles(landscape); requestLayout()
+    }
 
     init {
         orientation = VERTICAL
@@ -35,6 +43,16 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         removeAllViews(); tiles.clear()
         val indexed = List(7) { Tile(it) }
         tiles.addAll(indexed)
+        if (template != DashboardTemplate.DATA) {
+            orientation = VERTICAL
+            val rows = if (template == DashboardTemplate.OVERVIEW) listOf(template.slots) else template.slots.chunked(2)
+            rows.forEachIndexed { index, slots ->
+                if (index > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, 1))
+                addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+            }
+            show(layout, data, gps, bikeDistanceM, pulse)
+            return
+        }
         orientation = if (wide) HORIZONTAL else VERTICAL
         if (wide) {
             addView(indexed[2].container, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
@@ -92,6 +110,17 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private fun line() = View(context).apply { setBackgroundColor(Color.rgb(44, 44, 44)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 
     private inner class Tile(index: Int) {
+        private val swipe = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                val first = e1 ?: return false
+                val change = changePage ?: return false
+                val dx = e2.x - first.x; val dy = e2.y - first.y
+                if (kotlin.math.abs(dx) > dp(70) && kotlin.math.abs(dx) > 2 * kotlin.math.abs(dy)) {
+                    change(if (dx < 0) 1 else -1); return true
+                }
+                return false
+            }
+        })
         val container = LinearLayout(context).apply {
             orientation = VERTICAL
             setPadding(dp(10), dp(8), dp(10), dp(8))
@@ -102,6 +131,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 addState(intArrayOf(), ColorDrawable(Color.BLACK))
             }
             setOnClickListener { selectField(index) }
+            setOnTouchListener { _, event -> swipe.onTouchEvent(event) }
         }
         private val title = text(6, 18, captions, 2)
         private val value = text(10, 240, numbers, 1)

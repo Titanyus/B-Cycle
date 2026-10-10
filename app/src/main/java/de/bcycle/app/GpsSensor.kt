@@ -25,7 +25,9 @@ class GpsSensor(private val context: Context, private val ride: GpsRide, private
                 if (location.hasAccuracy()) location.accuracy.toDouble() else Double.POSITIVE_INFINITY,
                 if (location.hasSpeed()) location.speed.toDouble() else null,
                 if (location.hasSpeedAccuracy()) location.speedAccuracyMetersPerSecond.toDouble() else null,
-                altitude, vertical, msl)
+                altitude, vertical, msl,
+                if (location.hasBearing()) location.bearing.toDouble() else null,
+                if (location.hasBearingAccuracy()) location.bearingAccuracyDegrees.toDouble() else null)
             val accepted = ride.accept(fix, SystemClock.elapsedRealtime())
             changed(if (accepted) "GPS · Live" else "GPS · Warte auf brauchbare Messung")
         }

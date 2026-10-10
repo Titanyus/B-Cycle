@@ -40,6 +40,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private var startElapsed = 0L
     private var startUtc = 0L
     private var activeConfig = RecordingConfig()
+    val mapState = MapState(context) { notifyChanged() }
+    var mapTrackEnabled = true; private set
     private val store = RecordingStore(context) { text, busy -> saving = busy; recordingStatus = text; notifyChanged() }
     val heart: HeartRateConnection = HeartRateConnection(context, { heartStatus = it; if (heartIsLive()) heartReconnect.connected(); if (!heartActive()) { pulse = pulse.copy(bpm = null); heartAt = null }; notifyChanged() }, {
         heartAt = SystemClock.elapsedRealtime()
@@ -63,11 +65,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         override fun run() {
             if (!active) return
             reconnectSensors()
-            if (recording) store.append(sample())
+            if (recording) appendSample()
             notifyChanged(); handler.postDelayed(this, 1000)
         }
     }
-    init { diagnostics.reset("App=0.4.1 Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
+    init { diagnostics.reset("App=0.5.0 Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
     fun notifyChanged() { observers.toList().forEach { it() } }
     fun setVisible(value: Boolean) { visible = value; updateActivity() }
     private fun updateActivity() {
@@ -129,17 +131,23 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     fun beginRecording() {
         if (recording || saving) return
         activeConfig = config
+        mapState.track.clear(); mapTrackEnabled = "GPS_POSITION" in activeConfig.fields
         ride.gps.reset(); ride.bike.reset(bikeData.value(LiveMetric.ODOMETER).takeIf { connection.isLive })
         heartSum = 0; heartCount = 0; pulse = pulse.copy(average = null, maximum = null)
         startElapsed = SystemClock.elapsedRealtime(); startUtc = System.currentTimeMillis()
         store.begin(startUtc, activeConfig); recording = true
         if (activeConfig.fields.any { it.startsWith("GPS_") } && hasGps()) setGpsEnabled(true)
-        recordingStatus = "Aufzeichnung läuft"; store.append(sample()); updateActivity()
+        recordingStatus = "Aufzeichnung läuft"; appendSample(); updateActivity()
     }
     fun stopRecording() {
         if (!recording) return
-        store.append(sample()); recording = false; saving = true; recordingStatus = "FIT wird gespeichert …"
+        appendSample(); recording = false; saving = true; recordingStatus = "FIT wird gespeichert …"
         store.finish(); updateActivity()
+    }
+    private fun appendSample() {
+        val sample = sample()
+        store.append(sample)
+        if (mapTrackEnabled) mapState.track.append(sample)
     }
     private fun sample(): RideSample {
         val now = SystemClock.elapsedRealtime(); val gps = gpsValues

@@ -88,10 +88,28 @@ class RecordingFlowTest {
         assertTrue(records.any { it.positionLat != null && it.speed != null })
         assertTrue(records.last().distance > 0f)
         assertTrue(records.all { it.power == null })
+        assertTrue(runtime.mapTrackEnabled) // Frozen START selection, independent of next-ride preferences.
+        assertTrue(runtime.mapState.track.points.size >= 3) // Same samples also populate the map while Activity is absent.
         // STOP is idempotent: it must not publish a duplicate ride.
         service.onStartCommand(Intent(app, RecordingService::class.java).setAction(RecordingService.STOP), 0, 3)
         assertEquals(1, provider.published.size)
         controller.destroy()
+    }
+    @Test fun unselectedGpsPositionDoesNotCreateMapHistoryEvenWithGpsFixes() {
+        val app = RuntimeEnvironment.getApplication()
+        shadowOf(app).grantPermissions(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+        provider()
+        val runtime = RideRuntime.get(app)
+        runtime.saveConfig(RecordingConfig(setOf("HEART_RATE")))
+        runtime.setVisible(true); runtime.beginRecording()
+        val now = SystemClock.elapsedRealtime()
+        runtime.ride.gps.accept(GpsFix(now, 50.0, 8.0, 3.0, 5.0, .2), now)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+        assertFalse(runtime.mapTrackEnabled)
+        assertTrue(runtime.mapState.track.points.isEmpty())
+        runtime.stopRecording(); runtime.setVisible(false)
+        await { !runtime.saving }
     }
     @Test fun failedDownloadLeavesPrivateJournalAndRetryPublishesOneValidFit() {
         val app = RuntimeEnvironment.getApplication()
