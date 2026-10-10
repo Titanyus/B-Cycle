@@ -25,7 +25,6 @@ import java.time.Instant
 import java.util.Locale
 
 class MainActivity : Activity(), BoschConnection.Listener {
-    private enum class Action { SELECT, MCSP, LDI }
     private lateinit var connection: BoschConnection
     private val diagnostics = DiagnosticLog()
     private var pendingReport: String? = null
@@ -33,22 +32,26 @@ class MainActivity : Activity(), BoschConnection.Listener {
     private lateinit var speed: TextView
     private lateinit var power: TextView
     private lateinit var packetAge: TextView
-    private lateinit var reception: TextView
     private lateinit var devices: LinearLayout
     private lateinit var rereadButton: Button
     private lateinit var selectedBikeSummary: TextView
     private val seenAddresses = mutableSetOf<String>()
     private val handler = Handler(Looper.getMainLooper())
     private var lastPacketAt: Long? = null
-    private var nextAction = Action.SELECT
-    private var selectedBike: BluetoothDevice? = null
+    private val reconnect = AutoReconnect()
+    private val metricViews = linkedMapOf<LiveMetric, TextView>()
+    private lateinit var ranges: TextView
+    private var selectedAddress: String? = null
+    private var selectedName = "E-Bike"
+    private var permissionAsked = false
+    private val preferences by lazy { getSharedPreferences("bike", MODE_PRIVATE) }
     private val permissions = arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
     private val tick = object : Runnable {
         override fun run() {
             packetAge.text = lastPacketAt?.let {
                 "Letztes Datenpaket vor ${(SystemClock.elapsedRealtime() - it) / 1000} s"
             } ?: getString(R.string.no_data)
-            reception.text = diagnostics.receptionSummary()
+            tryAutoConnect()
             handler.postDelayed(this, 1000)
         }
     }
@@ -56,8 +59,12 @@ class MainActivity : Activity(), BoschConnection.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pendingReport = savedInstanceState?.getString("pendingReport")
-        nextAction = Action.entries.getOrNull(savedInstanceState?.getInt("nextAction") ?: 0) ?: Action.SELECT
-        selectedBike = savedInstanceState?.getParcelable("selectedBike", BluetoothDevice::class.java)
+        selectedAddress = preferences.getString("address", null)?.takeIf { android.bluetooth.BluetoothAdapter.checkBluetoothAddress(it) }
+        selectedName = preferences.getString("name", "E-Bike") ?: "E-Bike"
+        reconnect.enabled = savedInstanceState?.getBoolean("autoConnect", true) ?: true
+        reconnect.exporting = pendingReport != null
+        reconnect.selecting = savedInstanceState?.getBoolean("selecting", false) ?: false
+        permissionAsked = savedInstanceState?.getBoolean("permissionAsked", false) ?: false
         diagnostics.reset(diagnosticHeader())
         connection = BoschConnection(this, this, diagnostics)
         val column = LinearLayout(this).apply {
@@ -72,35 +79,60 @@ class MainActivity : Activity(), BoschConnection.Listener {
             insets
         }
         setContentView(scroll)
-        column.addView(label("B-CYCLE · BOSCH-TEST", 18f, Color.rgb(167, 235, 117)))
+        column.addView(label("B-CYCLE", 18f, Color.rgb(167, 235, 117)))
+        status = label("Nicht verbunden", 16f).apply {
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            setPadding(0, dp(20), 0, dp(8))
+        }
+        packetAge = label(getString(R.string.no_data), 14f)
+        column.addView(status)
+        column.addView(packetAge)
+        selectedBikeSummary = label("", 14f)
+        updateBikeSummary()
+        column.addView(selectedBikeSummary)
         column.addView(label("Geschwindigkeit · km/h", 18f).apply { setPadding(0, dp(24), 0, 0) })
         speed = label("—", 76f).apply { gravity = Gravity.CENTER }
         column.addView(speed)
         column.addView(label("Fahrerleistung · W", 18f))
         power = label("—", 64f).apply { gravity = Gravity.CENTER }
         column.addView(power)
-        status = label("Nicht verbunden", 16f).apply {
-            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
-            setPadding(0, dp(12), 0, dp(8))
+        for (group in 0..2) {
+            column.addView(label(listOf("Fahrt", "Fahrrad & Akku", "Bosch-Aktivität")[group], 18f,
+                Color.rgb(167, 235, 117)).apply { setPadding(0, dp(20), 0, dp(8)) })
+            for (metric in LiveMetric.entries.filter { it.group == group && it != LiveMetric.SPEED && it != LiveMetric.RIDER_POWER }) {
+                val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(6), 0, dp(6)) }
+                row.addView(label(metric.title, 16f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                val value = label("—", 20f).apply { gravity = Gravity.END; setPadding(dp(12), 0, 0, 0) }
+                row.addView(value, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                metricViews[metric] = value
+                column.addView(row)
+            }
+            if (group == 1) {
+                column.addView(label("Reichweite je Unterstützungsmodus", 16f).apply { setPadding(0, dp(8), 0, 0) })
+                ranges = label("—", 18f)
+                column.addView(ranges)
+            }
         }
-        packetAge = label(getString(R.string.no_data), 14f)
-        reception = label(diagnostics.receptionSummary(), 14f).apply { setPadding(0, dp(8), 0, dp(8)) }
-        column.addView(status)
-        column.addView(packetAge)
-        column.addView(reception)
-        selectedBikeSummary = label(getString(if (selectedBike == null) R.string.no_bike_selected else R.string.bike_selected), 14f)
-        column.addView(selectedBikeSummary)
         column.addView(Button(this).apply {
             setText(R.string.find_bike)
-            setOnClickListener { requestAction(Action.SELECT) }
+            setOnClickListener { selectBike() }
         })
         column.addView(Button(this).apply {
             setText(R.string.start_live)
-            setOnClickListener { requestAction(Action.MCSP) }
+            setOnClickListener {
+                reconnect.start()
+                devices.removeAllViews()
+                if (!connection.isLive) connection.stop()
+                if (selectedAddress == null) selectBike() else ensurePermissions()
+                tryAutoConnect()
+            }
         })
         column.addView(Button(this).apply {
             setText(R.string.stop)
-            setOnClickListener { stopConnection() }
+            setOnClickListener {
+                reconnect.enabled = false; reconnect.selecting = false
+                devices.removeAllViews(); stopConnection()
+            }
         })
         rereadButton = Button(this).apply {
             setText(R.string.reread_data)
@@ -112,13 +144,9 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setText(R.string.save_diagnostic)
             setOnClickListener { exportDiagnostic() }
         })
-        column.addView(Button(this).apply {
-            setText(R.string.connect_direct)
-            setOnClickListener { requestAction(Action.LDI) }
-        })
         column.addView(label(
-            "Fahrrad mit Flow entsperren, hier auswählen und „Live-Test starten“ antippen. Flow darf weiterlaufen. Die Live-Anzeige läuft im Vordergrund.\n\n" +
-                "Experimenteller Test. Bei fehlenden Werten „Werte erneut lesen“ und anschließend „Diagnose speichern“ verwenden. „PDF-Schnittstelle (Test)“ prüft den bisherigen Datenweg separat.",
+            "Fahrrad mit Flow entsperren. Das ausgewählte E-Bike wird gespeichert und beim Öffnen automatisch verbunden. Flow darf weiterlaufen.\n\n" +
+                "Die Live-Anzeige läuft im Vordergrund. Nicht gelieferte Werte bleiben als — sichtbar. Aktivitätswerte stammen vom Fahrrad und können seltener aktualisiert werden.",
             14f,
         ).apply { setPadding(0, dp(12), 0, 0) })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -126,36 +154,56 @@ class MainActivity : Activity(), BoschConnection.Listener {
     }
 
     private fun hasPermissions() = permissions.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
-    private fun requestAction(action: Action) {
-        nextAction = action
-        if (hasPermissions()) runRequestedAction() else requestPermissions(permissions, 1)
+    private fun updateBikeSummary() {
+        selectedBikeSummary.text = if (selectedAddress == null) getString(R.string.no_bike_selected) else
+            getString(R.string.selected_bike_name, selectedName)
     }
-    private fun runRequestedAction() {
-        val bike = selectedBike
-        if (nextAction == Action.SELECT || bike == null) { startSelection(); return }
-        diagnostics.reset(diagnosticHeader())
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        connection.connect(bike, useMcsp = nextAction == Action.MCSP)
+
+    private fun ensurePermissions() {
+        if (!hasPermissions()) {
+            permissionAsked = true
+            requestPermissions(permissions, 1)
+        }
     }
+
+    private fun selectBike() {
+        reconnect.selecting = true
+        if (hasPermissions()) startSelection() else ensurePermissions()
+    }
+
     private fun startSelection() {
         diagnostics.reset(diagnosticHeader())
-        selectedBike = null
-        selectedBikeSummary.setText(R.string.no_bike_selected)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         seenAddresses.clear()
         devices.removeAllViews()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         connection.discover()
+    }
+
+    private fun tryAutoConnect() {
+        val address = selectedAddress ?: return
+        if (!hasPermissions() || !reconnect.due(SystemClock.elapsedRealtime(), connection.isActive)) return
+        reconnect.attempted(SystemClock.elapsedRealtime())
+        diagnostics.reset(diagnosticHeader())
+        try {
+            val manager = getSystemService(android.bluetooth.BluetoothManager::class.java)
+            val adapter = manager.adapter
+            if (adapter == null || !adapter.isEnabled) { onStatus("Bitte Bluetooth einschalten"); return }
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            connection.connect(adapter.getRemoteDevice(address))
+        } catch (_: SecurityException) { onStatus("Bluetooth-Zugriff ist für die Verbindung erforderlich") }
+        catch (_: IllegalStateException) { onStatus("Bluetooth ist nicht verfügbar") }
     }
 
     private fun diagnosticHeader(): String {
         val version = packageManager.getPackageInfo(packageName, 0).versionName
         return "App=$version device=${Build.MANUFACTURER} ${Build.MODEL} Android=${Build.VERSION.RELEASE} API=${Build.VERSION.SDK_INT}\n" +
-            "Session UTC=${Instant.now()}\nRequested mode=$nextAction"
+            "Session UTC=${Instant.now()}\nMode=MCSP"
     }
 
     private fun exportDiagnostic() {
         diagnostics.event("EXPORT requested; leaving foreground will stop the BLE session")
         pendingReport = diagnostics.report()
+        reconnect.exporting = true
         stopConnection()
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -166,14 +214,16 @@ class MainActivity : Activity(), BoschConnection.Listener {
         try { startActivityForResult(intent, 2) }
         catch (_: android.content.ActivityNotFoundException) {
             pendingReport = null
+            reconnect.exporting = false
             Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show()
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("pendingReport", pendingReport)
-        outState.putInt("nextAction", nextAction.ordinal)
-        outState.putParcelable("selectedBike", selectedBike)
+        outState.putBoolean("autoConnect", reconnect.enabled)
+        outState.putBoolean("selecting", reconnect.selecting)
+        outState.putBoolean("permissionAsked", permissionAsked)
         super.onSaveInstanceState(outState)
     }
 
@@ -183,6 +233,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
         if (requestCode != 2) return
         val report = pendingReport
         pendingReport = null
+        reconnect.exporting = false
         val uri = data?.data
         if (resultCode != RESULT_OK || report == null || uri == null) return
         Thread({
@@ -204,12 +255,16 @@ class MainActivity : Activity(), BoschConnection.Listener {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
-            if (hasPermissions()) runRequestedAction() else onStatus("Bluetooth-Zugriff ist für die Verbindung erforderlich")
+            if (hasPermissions()) {
+                if (reconnect.selecting) startSelection() else tryAutoConnect()
+            } else { reconnect.selecting = false; onStatus("Bluetooth-Zugriff ist für die Verbindung erforderlich") }
         }
     }
     override fun onStatus(message: String) {
         status.text = message
         rereadButton.isEnabled = connection.canReread
+        if (connection.isLive) reconnect.connected()
+        if (!connection.isActive) window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     override fun onDevice(device: BluetoothDevice, name: String) {
         val address = try { device.address } catch (_: SecurityException) { return }
@@ -220,11 +275,14 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setOnClickListener {
                 if (hasPermissions()) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    selectedBike = device
-                    selectedBikeSummary.text = getString(R.string.selected_bike_name, name)
+                    selectedAddress = address
+                    selectedName = name
+                    preferences.edit().putString("address", address).putString("name", name).apply()
+                    updateBikeSummary()
                     connection.stop()
                     devices.removeAllViews()
-                    if (nextAction == Action.SELECT) onStatus(getString(R.string.bike_selected)) else runRequestedAction()
+                    reconnect.start()
+                    tryAutoConnect()
                 } else onStatus("Bitte erneut suchen und Bluetooth-Zugriff erlauben")
             }
         })
@@ -232,16 +290,24 @@ class MainActivity : Activity(), BoschConnection.Listener {
     override fun onData(data: LiveData, packetReceived: Boolean) {
         speed.text = data.speedHundredths?.let { String.format(Locale.GERMANY, "%.1f", it / 100.0) } ?: "—"
         power.text = data.riderPowerWatts?.toString() ?: "—"
+        for ((metric, view) in metricViews) view.text = data.display(metric)
+        ranges.text = data.displayRanges()
         if (packetReceived) lastPacketAt = SystemClock.elapsedRealtime()
         else { lastPacketAt = null; packetAge.setText(R.string.no_data) }
     }
     override fun onStart() {
         super.onStart()
+        reconnect.foreground = true
         connection.onForegroundChanged(true)
+        if (selectedAddress != null && !hasPermissions() && !permissionAsked) ensurePermissions()
+        if (reconnect.selecting && hasPermissions()) startSelection()
+        tryAutoConnect()
         if (connection.isActive) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         handler.post(tick)
     }
     override fun onStop() {
+        reconnect.foreground = false
+        devices.removeAllViews()
         connection.onForegroundChanged(false)
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         handler.removeCallbacks(tick)

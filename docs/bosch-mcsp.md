@@ -1,149 +1,156 @@
-# Read-only Bosch MCSP subset in B-Cycle 0.1.8
+# Read-only Bosch MCSP in B-Cycle 0.2.0
 
-This is a new experimental route for live speed and rider power. It is separate
-from the official LDI service in the supplied Bosch PDF. The user's 0.1.6 log
-already lists this service, its notify characteristic, and its write-without-response
-characteristic. The subsequent 0.1.7 hardware test confirms speed telemetry: 182
-notifications over about 32 seconds, no decoder errors, both subscriptions
-acknowledged, and rider power detected at least once. The user reports a constant
-0 W display while turning a freely spinning rear wheel, including by pedaling.
-Positive rider power under riding load has not yet been confirmed.
+B-Cycle now uses only the hardware-tested MCSP path. The user confirmed speed and
+rider power during a real ride with a System Controller v20.9.0 and Mini Remote,
+a Xiaomi Poco F7 Ultra / Android 16, alongside Bosch Flow. Earlier stationary tests
+with a freely spinning rear wheel displayed zero rider watts. The official PDF's
+LDI service repeatedly produced empty reads; that comparison path is removed.
+Additional measurements are based on published verified field mappings; availability
+on this specific bike and this version's automatic connection still need testing.
 
 ## Sources and attribution
 
-Protocol facts, field mapping and this adapted summary are based on **redundo.app**,
+Protocol facts, mapping and this adapted summary are based on **redundo.app**,
 *Bosch Smart System — verified BLE field map*, under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/):
 
 - [Transport](https://github.com/radiohound/bosch-smart-system-ble/blob/97def2bbbfae0d373e67d9cd3911c1dae35f4323/docs/TRANSPORT.md)
 - [Decoder card](https://github.com/radiohound/bosch-smart-system-ble/blob/97def2bbbfae0d373e67d9cd3911c1dae35f4323/docs/DECODER-CARD.md)
-- [Request/response grammar](https://github.com/radiohound/bosch-smart-system-ble/blob/97def2bbbfae0d373e67d9cd3911c1dae35f4323/docs/BLE-ACCESS.md)
-- [MobileApp startup handshake](https://github.com/radiohound/bosch-smart-system-ble/blob/97def2bbbfae0d373e67d9cd3911c1dae35f4323/docs/STARTUP-HANDSHAKE.md)
+- [Request grammar](https://github.com/radiohound/bosch-smart-system-ble/blob/97def2bbbfae0d373e67d9cd3911c1dae35f4323/docs/BLE-ACCESS.md)
+- [Startup handshake](https://github.com/radiohound/bosch-smart-system-ble/blob/97def2bbbfae0d373e67d9cd3911c1dae35f4323/docs/STARTUP-HANDSHAKE.md)
 
-Adaptations: a two-measurement subset, a native Kotlin implementation, bounded
-reassembly, serialized requests, and filtering of diagnostic output. This does
-not imply endorsement by redundo.app or Bosch. The source's hardware findings
-primarily concern a BDU3740 / firmware 20.x with LED Remote and Kiox 300; the user's
-System Controller is a different configuration.
+Names, readability/subscribability and the mode-name/list schemas were cross-checked
+against Remko Weijnen's [Bosch BES3 address registry](https://github.com/rweijnen/bosch-bes3-reader/blob/cd9a5510ae1091c467d8d5a586a23723c17a9249/src/address-registry.json)
+(CC BY 4.0) and [protocol definitions](https://github.com/rweijnen/bosch-bes3-reader/blob/cd9a5510ae1091c467d8d5a586a23723c17a9249/src/protocol.js)
+(MIT, notice below). Startup replies were checked against its
+[BLE transport](https://github.com/rweijnen/bosch-bes3-reader/blob/cd9a5510ae1091c467d8d5a586a23723c17a9249/web/transport-webble-mcsp.js).
+Published rider-power fixtures, including empty zero-valued pushes, were checked
+against [RobbyPee's examples](https://github.com/RobbyPee/Bosch-Smart-System-Ebike-Garmin-Android).
+No GPL source code is included. The Kotlin implementation is independent.
 
-The startup response framing was cross-checked against Remko Weijnen's
-[BLE-MCSP transport](https://github.com/rweijnen/bosch-bes3-reader/blob/cd9a5510ae1091c467d8d5a586a23723c17a9249/web/transport-webble-mcsp.js)
-and message-type definitions (MIT license). Its acknowledgement format was
-independently implemented below; its license notice is included at the end.
-Published rider-power fixtures, including an empty zero-valued push, were also
-cross-checked against [RobbyPee's examples](https://github.com/RobbyPee/Bosch-Smart-System-Ebike-Garmin-Android).
-No source code from that GPL project is included.
+Adaptations: a bounded read-only telemetry subset, native Android UI, foreground
+retry policy and filtering diagnostics. No endorsement by the authors or Bosch
+is implied. The redundo.app measurements primarily concern a BDU3740 / firmware
+20.x with LED Remote and Kiox 300; delivery of all fields is not guaranteed on
+other configurations. Fields with uncertain meanings/scales are not displayed.
 
-## GATT and startup
+## GATT, startup and requests
 
-The phone uses the ordinary Android GATT-client path and its existing OS bond.
-It can attach to an existing bike link. Flow may remain connected.
-There is no accessory advertisement or local GATT server.
+Use the normal Android GATT-client path and existing OS bond. No accessory
+advertisement or local GATT server. Flow can keep its connection.
 
 | Purpose | UUID |
 | --- | --- |
-| MCSP service | `00000010-eaa2-11e9-81b4-2a2ae2dbcce4` |
-| Bike → phone, notify | `00000011-eaa2-11e9-81b4-2a2ae2dbcce4` |
-| Phone → bike, write without response | `00000012-eaa2-11e9-81b4-2a2ae2dbcce4` |
+| Service | `00000010-eaa2-11e9-81b4-2a2ae2dbcce4` |
+| Bike → phone notify | `00000011-eaa2-11e9-81b4-2a2ae2dbcce4` |
+| Phone → bike write without response | `00000012-eaa2-11e9-81b4-2a2ae2dbcce4` |
 
 Request MTU 247, discover services, enable notify locally, then write CCCD `0100`.
-Only after the descriptor-write callback succeeds does the characteristic-write
-queue start. Subscribe to `0x182D` and `0x185B`, then issue READ requests for both.
-The manual reread button repeats the two READ requests. No periodic polling or
-background service is added.
+Only after the successful descriptor callback start the write queue. Subscribe to
+18 numeric fields and the mode-name/range fields below, then request snapshots
+for all 20. Speed and rider power remain first. Manual reread repeats snapshots;
+there is no periodic polling. Requests are serialized with a 300 ms callback gap,
+a five-second write-callback timeout and a bounded 64-write backlog (40 initial
+requests plus room for startup replies). Requests take about 12 seconds to finish;
+notifications are accepted throughout. Refused optional reads do not stop reception.
+The sources disagree about whether range READ is accepted on every bike; it is
+subscribed as well, and refusal is logged without inventing a value.
 
-The host identity is `0x4080`, verified in the redundo.app request examples.
-The full-response destination must match that host; a response to Flow's distinct
-`0x4180` identity is ignored. Unsolicited measurement pushes have no destination.
+Host identity `0x4080` follows published examples. Full responses must address this
+host; Flow's `0x4180` responses are discarded. Unsolicited pushes have no destination.
+Message types READ=0 / reply=1, SUBSCRIBE=6 / reply=7, sequence is four bits.
 
-If the bike READs MobileApp field `0x40AA`, answer with protobuf field 3 = true
-(`18 01`, staged startup supported). If the bike WRITEs startup stage to local
-field `0x40A9`, acknowledge the received stage and sequence. Accept stages 0–10;
-do not wait for stage 9, because a bike already running may not send boot stages.
-Do not acknowledge arbitrary MobileApp fields or send requests to bike settings.
-
-Example, requester `0x2080`, READ sequence 5:
+If the bike READs local MobileApp field `0x40AA`, answer field 3=true (`18 01`).
+If it WRITEs startup stage `0x40A9`, acknowledge stages 0–10 with matching sequence.
+Do not wait for boot stage 9 on an already-running bike or acknowledge other app
+fields. Exact published examples:
 
 ```text
 RX 30 05 20 80 C0 AA 05
 TX 30 07 40 AA A0 80 15 18 01
-
 RX 30 07 20 80 C0 A9 27 08 09
 TX 30 05 40 A9 A0 80 37
 ```
 
-Every outgoing GATT write contains only a READ, SUBSCRIBE or one of these two
-local startup replies. There are no WRITE/RPC commands to motor, lock, pairing,
-configuration, navigation or firmware addresses.
+Outgoing writes contain only READ, SUBSCRIBE or these two local startup replies.
+There are no motor, assist-mode, lock, pairing, configuration or firmware writes/RPCs.
 
-## Framing and measurements
-
-Each MCSP segment starts with two bytes:
+## Framing and fields
 
 ```text
 header = channel << 5 | endOfMessage << 4 | length >> 8
 lengthLow = length & 255
 ```
 
-Walk headers and lengths; do not split on byte `30`. Several segments can be
-packed into a notification. Reassemble channel-1 continuations until their
-end bit is set. Ignore transport commands and stored-log channels.
-Allow at most 514 bytes per notification at the parser boundary, additionally
-check the negotiated MTU in the Android connection, and bound an assembled
-message to 4096 bytes. A malformed packet clears partial reassembly without
-partially replacing displayed values.
+Walk segment lengths; never split on literal byte `30`. Reassemble channel-1
+continuations, skip transport and stored-log channels. Bounds: at most 514 bytes
+per notification, also checked against negotiated MTU; 4096 bytes per reassembled
+message. Malformed packets do not partially replace values and reset reassembly.
 
-| Bus field | Measurement | Conversion |
+| Address (top bit cleared) | Displayed measurement | Conversion |
 | --- | --- | --- |
-| `0x182D` / push `98 2D` | Displayed bike speed | raw / 100 km/h |
-| `0x1808` / push `98 08` | Bike speed, accepted if auto-pushed | raw / 100 km/h |
-| `0x185B` / push `98 5B` | Rider power | raw watts |
+| `182D` | Displayed speed | /100 km/h |
+| `185B` | Rider power | W |
+| `185A` | Rider cadence | /2 rpm |
+| `1809` | Assist mode | index into bike-supplied names |
+| `185D` | Motor power | W |
+| `1814`, `1815` | Rider / motor torque | /20 Nm |
+| `0088` | Battery state of charge | % |
+| `1818` | Odometer | metres → /1000 km |
+| `008B` | Internal battery-cell temperature | zigzag-decode, /10 °C |
+| `0091` | Remaining rider-facing battery energy | /10 Wh |
+| `009C` | Cumulative delivered battery energy | Wh, lifetime counter |
+| `224A`, `224B` | Activity average / maximum rider power | W |
+| `2248`, `2249` | Activity average / maximum cadence | /2 rpm |
+| `2246` | Activity average speed | /100 km/h |
+| `2254` | Activity rider share of propulsion energy | % |
+| `180D` | Configured long mode names | repeated field-1 UTF-8 strings |
+| `1857` | Range estimates per configured mode | repeated uint32 field 1, packed or unpacked, km |
 
-For a push, the source's top bit is set and its two-byte address is followed
-directly by a protobuf scalar wrapper. An addressed push with a missing
-non-optional field 1 represents its default zero. For a full READ/SUBSCRIBE
-response, skip the source, destination and type/sequence envelope before
-decoding. A cleared success bit is a refusal; log the status code without
-decoding it as data. An empty response is acknowledgement without a sample,
-which differs from an empty, addressed zero-valued push.
+Numeric values use uint32 protobuf field 1. Domain limits remain uint16 for
+speed/power/torque/cadence, 0–100 for percentages and 0–255 for mode index; counters
+support the full uint32 range. Temperature is a zigzag signed integer, not raw/10.
+Unsolicited true speed `1808` is accepted as a fallback until displayed speed
+`182D` is first received; afterwards it cannot overwrite displayed speed, including
+an explicit displayed zero. Both addresses remain separately identifiable in logs.
 
-Only READ and SUBSCRIBE for the two requested measurement addresses can be
-generated. Request sequence numbers are four bits. There is one Android GATT
-write in flight, a 300 ms gap after its callback, a five-second callback timeout,
-and a maximum backlog of 16 writes. Startup replies precede queued measurements.
-Stop cancels queued work; retired-client callbacks cannot revive it.
+A push sets the source's top bit and appends the scalar directly. Its missing
+non-optional scalar defaults to zero. Full READ/SUBSCRIBE replies have a five-byte
+source/destination/type envelope: check the destination success bit and skip the
+envelope before parsing. Empty full responses acknowledge without a measurement.
+An explicit zero-valued push is different. No silence is converted into zero.
 
-Only recognized measurement values refresh the displayed packet age. READ
-snapshots and live pushes are distinguished in status. A speed update still does
-not prove that the last power value is fresh; this test does not infer zeros from
-silence.
+Mode-name/range lists are limited to 16 entries; names to 128 UTF-8 bytes with no
+control characters. Mode names are read, not hardcoded. A range list may omit OFF;
+only align names when lengths match (or names have one extra leading OFF), otherwise
+show numbered slots. List defaults are empty lists, not fabricated range values.
 
-## Diagnostics and limits
+## Persistence, lifecycle and diagnostics
 
-Count all selected-channel notifications, bytes, complete messages, ignored
-messages, control frames and errors. Retain only numeric speed/power samples and
-the known startup/request/status events. Do not retain raw MCSP notifications:
-they can combine live values with component identifiers or stored-log traffic.
-The UI shows reception counts even when there are no recognized measurements.
-Version 0.1.8 adds independent power history (last 24 samples) and whole-session
-sample count, nonzero count, minimum, maximum, last value, and first/last receipt
-times. The statistics include every sample in packed MCSP messages, not only the
-last merged value. Speed traffic cannot evict power history or refresh power age.
-The UI shows power sample count, maximum watts and last-power receipt age.
-An empty READ reply remains acknowledgement without a measurement; a received
-zero-valued push counts as a sample. No silence is converted into zero watts.
-Transport and measurement decoding remain unchanged from 0.1.7.
+Only selected device name/address are stored in private SharedPreferences;
+Android backup/device transfer is disabled. Selection connects immediately.
+Opening/resuming the activity connects to the saved device. Foreground retries use
+3/6/12/24/30-second backoff; successful setup resets it. No concurrent attempts.
+Manual stop persists across activity recreation within that app session. Selection
+and export suspend automatic attempts. Leaving the foreground stops this app's
+GATT client; resuming restarts it if enabled. No boot receiver or background service.
+Retired clients are closed after their disconnect callback, with a bounded fallback.
+Late callbacks cannot resume stopped requests or update a new session.
 
-The exact Locus implementation is unknown. Assist mode alone does not establish
-which channel Locus uses: redundo.app also reports it as undocumented LDI field 8.
-The new MCSP route is justified by the user's repeatedly empty LDI responses,
-the presence of MCSP in their service discovery, and public hardware-tested
-protocol references. Speed reception is now confirmed on the user’s hardware;
-rider power needs a test under normal riding load, optionally compared with Locus
-under similar conditions. The unloaded stationary test does not establish
-whether constant zero is a load-dependent measurement or absent further power
-updates. The improved diagnostics distinguish those cases without changing the
-working connection or speculating about additional startup commands.
+UI shows simple connection status and last recognized data-packet age; no protocol
+selection or packet counters. Values unavailable in this connection appear as a
+dash. Partial updates retain earlier values. Common packet age does not establish
+freshness of each field; cadence can be missing depending on session timing, and
+activity summaries may update sparsely and reset on Bosch's activity boundaries.
+B-Cycle does not record or reset a ride itself.
+
+Diagnostics remain bounded in memory until explicit document-picker export. Count
+notifications, bytes, complete/ignored messages, control frames, responses and
+errors. Keep known numeric per-field session statistics, last 24 numeric samples,
+and independently last 24 rider-power samples. Do not retain raw mixed MCSP packets,
+Bluetooth addresses, device/mode names, component identifiers or stored logs.
+Each new connection attempt starts a new diagnostic report; export freezes the
+report before stopping and opening the picker. No automatic upload or internet use.
 
 ## MIT license notice for the cross-checked protocol implementation
 

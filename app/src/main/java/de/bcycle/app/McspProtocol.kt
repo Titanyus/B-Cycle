@@ -2,7 +2,7 @@ package de.bcycle.app
 
 /** Read-only MCSP subset. Protocol references and attribution: docs/bosch-mcsp.md. */
 data class McspTransmission(val description: String, val bytes: ByteArray)
-data class McspSample(val address: Int, val value: Int, val isPush: Boolean)
+data class McspSample(val address: Int, val value: Long, val isPush: Boolean)
 data class McspOutcome(
     val update: LiveData,
     val samples: List<McspSample>,
@@ -17,11 +17,12 @@ data class McspOutcome(
 class McspProtocol {
     private var partial = byteArrayOf()
     private var sequence = 0
+    private var displayedSpeedSeen = false
 
     fun subscriptions() = requests(6)
     fun reads() = requests(0)
 
-    private fun requests(type: Int) = listOf(SPEED, POWER).map { address ->
+    private fun requests(type: Int) = (LiveMetric.entries.map { it.address } + listOf(MODE_NAMES, RANGES)).map { address ->
         val seq = sequence
         sequence = (sequence + 1) and 15
         val description = "${if (type == 6) "SUBSCRIBE" else "READ"} address=${hex(address)} seq=$seq"
@@ -31,7 +32,7 @@ class McspProtocol {
         )))
     }
 
-    /** Nothing outside the two measurements and two local startup fields is retained. */
+    /** Only known live measurements, mode names/ranges and local startup fields are retained. */
     fun receive(packet: ByteArray): McspOutcome {
         try {
             require(packet.size <= 514) { "MCSP packet exceeds BLE notification limit" }
@@ -62,6 +63,7 @@ class McspProtocol {
                 }
             }
             var update = LiveData()
+            var speedSeen = displayedSpeedSeen
             val samples = mutableListOf<McspSample>()
             val replies = mutableListOf<McspTransmission>()
             val events = mutableListOf<String>()
@@ -71,11 +73,12 @@ class McspProtocol {
                 require(body.size >= 2) { "MCSP message has no source address" }
                 val source = address(body, 0)
                 val field = source and 0x7fff
-                var value: Int? = null
+                var value: Long? = null
+                var measurementPayload: ByteArray? = null
                 if (source and 0x8000 != 0) {
                     if (isMeasurement(field)) {
                         // A zero-length push is a proto3 scalar wrapper at its default, zero.
-                        value = scalar(body.copyOfRange(2, body.size)) ?: 0
+                        measurementPayload = body.copyOfRange(2, body.size)
                     } else ignored++
                 } else {
                     require(body.size >= 5) { "Truncated MCSP envelope" }
@@ -102,18 +105,31 @@ class McspProtocol {
                             } else {
                                 events += "MCSP_RESPONSE address=${hex(field)} type=$type seq=$seq payloadBytes=${payload.size}"
                                 // An empty reply can acknowledge a subscription without a value.
-                                if (payload.isNotEmpty()) value = scalar(payload) ?: 0
+                                if (payload.isNotEmpty()) measurementPayload = payload
                             }
                         }
                         else -> ignored++
                     }
                 }
+                if (measurementPayload != null) {
+                    when (field) {
+                        MODE_NAMES -> update = update.merge(LiveData(assistNames = strings(measurementPayload)))
+                        RANGES -> update = update.merge(LiveData(rangesKm = numbers(measurementPayload)))
+                        else -> {
+                            val metric = requireNotNull(LiveMetric.forAddress(field))
+                            value = scalar(measurementPayload) ?: 0
+                            require(value in 0..metric.maxRaw) { "MCSP measurement outside field range" }
+                            if (field != 0x1808 || !speedSeen) update = update.merge(LiveData.sample(metric, value))
+                            if (field == LiveMetric.SPEED.address) speedSeen = true
+                        }
+                    }
+                }
                 if (value != null) {
                     samples += McspSample(field, value, source and 0x8000 != 0)
-                    update = update.merge(if (field == POWER) LiveData(riderPowerWatts = value) else LiveData(speedHundredths = value))
                 }
             }
             partial = pending
+            displayedSpeedSeen = speedSeen
             return McspOutcome(update, samples, replies, events, bodies.size, ignored, controls, readResponses)
         } catch (error: IllegalArgumentException) {
             // Never join the next notification onto a damaged partial message.
@@ -130,29 +146,72 @@ class McspProtocol {
         return McspTransmission("STARTUP_REPLY field=${hex(field)} type=$type seq=$seq", frame(body))
     }
 
-    private fun scalar(payload: ByteArray): Int? {
-        val reader = LiveDataDecoder.Reader(payload)
-        var result: Int? = null
+    private fun scalar(payload: ByteArray): Long? {
+        val reader = ProtoReader(payload)
+        var result: Long? = null
         while (!reader.finished()) {
             val tag = reader.tag()
             if (tag ushr 3 == 1) {
                 require(tag == 8) { "MCSP scalar has invalid wire type" }
                 val value = reader.varint()
-                require(value in 0..65535) { "MCSP measurement outside uint16 range" }
-                result = value.toInt()
+                require(value in 0..0xffffffffL) { "MCSP scalar outside uint32 range" }
+                result = value
             } else reader.skip(tag ushr 3, tag and 7, 0)
         }
         return result
     }
 
+    private fun strings(payload: ByteArray): List<String> {
+        val reader = ProtoReader(payload)
+        val values = mutableListOf<String>()
+        while (!reader.finished()) {
+            val tag = reader.tag()
+            if (tag ushr 3 == 1) {
+                require(tag == 10 && values.size < 16) { "Invalid MCSP mode-name list" }
+                val bytes = reader.bytes()
+                require(bytes.size <= 128) { "MCSP mode name too long" }
+                val text = try {
+                    Charsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(bytes)).toString()
+                } catch (_: java.nio.charset.CharacterCodingException) {
+                    throw IllegalArgumentException("Invalid UTF-8 MCSP mode name")
+                }
+                require(text.none { it.isISOControl() }) { "Invalid MCSP mode name" }
+                values += text
+            } else reader.skip(tag ushr 3, tag and 7, 0)
+        }
+        return values
+    }
+
+    private fun numbers(payload: ByteArray): List<Long> {
+        val reader = ProtoReader(payload)
+        val values = mutableListOf<Long>()
+        fun add(value: Long) {
+            require(values.size < 16 && value in 0..0xffffffffL) { "Invalid MCSP range list" }
+            values += value
+        }
+        while (!reader.finished()) {
+            val tag = reader.tag()
+            when {
+                tag == 8 -> add(reader.varint())
+                tag == 10 -> {
+                    val packed = ProtoReader(reader.bytes())
+                    while (!packed.finished()) add(packed.varint())
+                }
+                tag ushr 3 == 1 -> throw IllegalArgumentException("Invalid MCSP range wire type")
+                else -> reader.skip(tag ushr 3, tag and 7, 0)
+            }
+        }
+        return values
+    }
+
     private data class Segment(val channel: Int, val complete: Boolean, val body: ByteArray)
     private companion object {
         const val HOST = 0x4080
-        const val SPEED = 0x182d
-        const val POWER = 0x185b
+        const val MODE_NAMES = 0x180d
+        const val RANGES = 0x1857
         const val FEATURES = 0x40aa
         const val STAGE = 0x40a9
-        fun isMeasurement(field: Int) = field == SPEED || field == 0x1808 || field == POWER
+        fun isMeasurement(field: Int) = LiveMetric.forAddress(field) != null || field == MODE_NAMES || field == RANGES
         fun address(bytes: ByteArray, offset: Int) = ((bytes[offset].toInt() and 255) shl 8) or (bytes[offset + 1].toInt() and 255)
         fun hex(value: Int) = "0x${value.toString(16).padStart(4, '0')}"
         fun frame(body: ByteArray) = byteArrayOf((0x30 or (body.size ushr 8)).toByte(), body.size.toByte()) + body

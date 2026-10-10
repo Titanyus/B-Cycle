@@ -63,7 +63,8 @@ class McspProtocolTest {
                 val type = (request.bytes[6].toInt() and 255) ushr 4
                 assertTrue(type == 0 || type == 6)
                 assertEquals(7, request.bytes.size)
-                assertTrue(request.bytes[5] == 0x2d.toByte() || request.bytes[5] == 0x5b.toByte())
+                val address = ((request.bytes[4].toInt() and 0x7f) shl 8) or (request.bytes[5].toInt() and 255)
+                assertTrue(address in LiveMetric.entries.map { it.address } + listOf(0x180d, 0x1857))
             }
         }
     }
@@ -117,5 +118,68 @@ class McspProtocolTest {
         assertTrue(result.samples.isEmpty()); assertTrue(result.events.isEmpty()); assertTrue(result.replies.isEmpty())
         val zeroSpeed = segment(hex("98 2d") + proto { writeBool(2, true) }, true)
         assertEquals(LiveData(0), protocol.receive(zeroSpeed).update)
+    }
+
+    @Test fun decodesAdditionalLiveFieldsAtPublishedScalesAndUint32Odometer() {
+        val protocol = McspProtocol()
+        val fixtures = listOf(
+            Triple("98 5a", 170L, LiveMetric.CADENCE),
+            Triple("98 5d", 600L, LiveMetric.MOTOR_POWER),
+            Triple("98 14", 490L, LiveMetric.RIDER_TORQUE),
+            Triple("98 15", 1700L, LiveMetric.MOTOR_TORQUE),
+            Triple("98 09", 4L, LiveMetric.ASSIST_MODE),
+            Triple("80 88", 80L, LiveMetric.BATTERY),
+            Triple("98 18", 4_294_967_295L, LiveMetric.ODOMETER),
+            Triple("80 8b", 572L, LiveMetric.BATTERY_TEMPERATURE),
+            Triple("80 91", 4200L, LiveMetric.REMAINING_ENERGY),
+            Triple("80 9c", 100_000L, LiveMetric.DELIVERED_ENERGY),
+            Triple("a2 4a", 181L, LiveMetric.AVERAGE_POWER),
+            Triple("a2 4b", 478L, LiveMetric.MAXIMUM_POWER),
+            Triple("a2 48", 174L, LiveMetric.AVERAGE_CADENCE),
+            Triple("a2 49", 252L, LiveMetric.MAXIMUM_CADENCE),
+            Triple("a2 46", 2087L, LiveMetric.AVERAGE_SPEED),
+            Triple("a2 54", 44L, LiveMetric.RIDER_ENERGY_SHARE),
+        )
+        for ((address, raw, metric) in fixtures) {
+            val result = protocol.receive(segment(hex(address) + proto { writeUInt32(1, raw.toInt()) }, true))
+            assertEquals(raw, result.update.value(metric))
+            assertEquals(raw, result.samples.single().value)
+        }
+    }
+
+    @Test fun decodesBikeModeNamesAndPackedOrUnpackedRangeLists() {
+        val protocol = McspProtocol()
+        val names = segment(hex("98 0d") + proto {
+            writeString(1, "OFF"); writeString(1, "ECO"); writeString(1, "TOUR+")
+        }, true)
+        assertEquals(listOf("OFF", "ECO", "TOUR+"), protocol.receive(names).update.assistNames)
+        // Published packed-varint example: 135, 87, 72, 68 km. 135 uses two bytes.
+        assertEquals(listOf(135L, 87L, 72L, 68L), protocol.receive(hex("30 09 98 57 0a 05 87 01 57 48 44")).update.rangesKm)
+        val unpacked = segment(hex("98 57") + proto { writeUInt32(1, 135); writeUInt32(1, 87) }, true)
+        assertEquals(listOf(135L, 87L), protocol.receive(unpacked).update.rangesKm)
+        val reply = protocol.receive(hex("30 0c 18 57 c0 80 10 0a 05 87 01 57 48 44"))
+        assertEquals(listOf(135L, 87L, 72L, 68L), reply.update.rangesKm)
+    }
+
+    @Test fun malformedOptionalDataCannotPartiallyReplaceGoodMeasurements() {
+        val protocol = McspProtocol()
+        for (bad in listOf(
+            hex("30 04 80 88 08 65"), // percent above 100
+            hex("30 05 98 0d 0a 02 41"), // truncated name
+            hex("30 05 98 0d 0a 01 ff"), // invalid UTF-8
+            hex("30 05 98 57 0a 01 80"), // truncated packed varint
+            segment(hex("98 0d") + proto { repeat(17) { writeString(1, "ECO") } }, true),
+        )) assertThrows(IllegalArgumentException::class.java) {
+            protocol.receive(hex("30 04 98 5b 08 64") + bad)
+        }
+        assertEquals(LiveData(riderPowerWatts = 79), protocol.receive(hex("30 04 98 5b 08 4f")).update)
+    }
+
+    @Test fun displayedSpeedTakesPriorityOverAlternateSpeedIncludingExplicitZero() {
+        val protocol = McspProtocol()
+        assertEquals(100, protocol.receive(hex("30 04 98 08 08 64")).update.speedHundredths)
+        assertEquals(90, protocol.receive(hex("30 04 98 2d 08 5a 30 04 98 08 08 64")).update.speedHundredths)
+        assertNull(protocol.receive(hex("30 04 98 08 08 64")).update.speedHundredths)
+        assertEquals(0, protocol.receive(hex("30 02 98 2d")).update.speedHundredths)
     }
 }

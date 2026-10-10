@@ -13,7 +13,7 @@ import android.os.Handler
 import android.os.Looper
 import java.util.UUID
 
-/** Native BLE client: read-only Smart System telemetry, with a separate LDI comparison. */
+/** Native BLE client: read-only Smart System telemetry, over the hardware-tested MCSP path. */
 @SuppressLint("MissingPermission") // MainActivity checks Bluetooth permissions before use.
 class BoschConnection(context: Context, private val listener: Listener, private val diagnostics: DiagnosticLog) {
     interface Listener {
@@ -21,8 +21,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         fun onData(data: LiveData, packetReceived: Boolean)
         fun onDevice(device: BluetoothDevice, name: String)
     }
-    private enum class Phase { STOPPED, SCANNING, CHOOSING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, READING, REREADING, LIVE }
-    private enum class Protocol { LDI, MCSP }
+    private enum class Phase { STOPPED, SCANNING, CHOOSING, CONNECTING, BONDING, MTU, DISCOVERY, SUBSCRIBING, LIVE }
     private val appContext = context.applicationContext
     private val manager = appContext.getSystemService(BluetoothManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
@@ -38,20 +37,19 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         schedule = { task, delay -> handler.postDelayed(task, delay) },
         cancel = { handler.removeCallbacks(it) },
     )
-    private var protocol = Protocol.LDI
     private var mcsp = McspProtocol()
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var writes: SerialWriteQueue<McspTransmission>? = null
-    val canReread: Boolean get() = phase == Phase.LIVE && (protocol == Protocol.LDI || writes?.idle == true)
+    val canReread: Boolean get() = phase == Phase.LIVE && writes?.idle == true
     private var phase = Phase.STOPPED
     val isActive: Boolean get() = phase != Phase.STOPPED
+    val isLive: Boolean get() = phase == Phase.LIVE
     private var epoch = 0
     private var client: BluetoothGatt? = null
     private var bike: BluetoothDevice? = null
     private var characteristic: BluetoothGattCharacteristic? = null
     private var negotiatedMtu = 23
     private var liveData = LiveData()
-    private var updatesDuringRead = LiveData()
     private var liveMeasurementsReceived = false
     private var receiverRegistered = false
     private var lastDiagnosticStatus: String? = null
@@ -130,15 +128,14 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         }
     }
 
-    fun connect(device: BluetoothDevice, useMcsp: Boolean = true) {
+    fun connect(device: BluetoothDevice) {
         stop()
-        protocol = if (useMcsp) Protocol.MCSP else Protocol.LDI
-        diagnostics.event("MODE direct Android BLE client protocol=$protocol")
+        diagnostics.event("MODE direct Android BLE client protocol=MCSP")
         beginClient(device, ++epoch)
     }
 
     fun onForegroundChanged(foreground: Boolean) {
-        diagnostics.event("FOREGROUND value=$foreground protocol=$protocol phase=$phase")
+        diagnostics.event("FOREGROUND value=$foreground protocol=MCSP phase=$phase")
         if (!foreground) stop()
     }
 
@@ -149,7 +146,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
             diagnostics.event("CONNECT_BEGIN session=$session deviceType=${device.type} bondState=${device.bondState}")
             appContext.registerReceiver(bondReceiver, IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED), Context.RECEIVER_EXPORTED)
             receiverRegistered = true
-            reportStatus("Android-GATT-Verbindung wird aufgebaut · $protocol")
+            reportStatus("Verbindung zum E-Bike wird aufgebaut")
             armTimeout(20_000)
             client = device.connectGatt(appContext, false, clientCallback(session), BluetoothDevice.TRANSPORT_LE)
             diagnostics.event("CONNECT_REQUEST clientCreated=${client != null}")
@@ -163,40 +160,18 @@ class BoschConnection(context: Context, private val listener: Listener, private 
 
     private fun negotiateMtu(gatt: BluetoothGatt) {
         phase = Phase.MTU
-        reportStatus("Gekoppelt · MTU wird ausgehandelt")
+        reportStatus("Verbindung wird vorbereitet")
         armTimeout(20_000)
         val requested = gatt.requestMtu(247)
         diagnostics.event("MTU_REQUEST value=247 started=$requested")
         if (!requested) fail("MTU-Anfrage konnte nicht gestartet werden")
     }
 
-    /** One explicit read at a time; notifications remain active throughout. */
+    /** Explicit snapshots; normal operation relies on subscribed updates. */
     fun reread() {
-        if (!canReread) {
-            diagnostics.event("MANUAL_READ ignored phase=$phase")
-            return
-        }
-        val gatt = client ?: return
-        val item = characteristic ?: return
-        try {
-            if (protocol == Protocol.MCSP) {
-                diagnostics.event("MCSP_MANUAL_READ two measurement requests")
-                writes?.enqueue(mcsp.reads())
-                return
-            }
-            phase = Phase.REREADING
-            updatesDuringRead = LiveData()
-            reportStatus("Verbunden · Fahrdaten werden erneut gelesen")
-            armTimeout(20_000)
-            val requested = gatt.readCharacteristic(item)
-            diagnostics.event("MANUAL_READ_REQUEST started=$requested")
-            if (!requested) {
-                handler.removeCallbacks(timeout)
-                phase = Phase.LIVE
-                reportStatus("Erneutes Lesen konnte nicht gestartet werden")
-            }
-        } catch (_: SecurityException) { fail("Bluetooth-Berechtigung fehlt") }
-        catch (_: IllegalStateException) { fail("Bluetooth ist nicht verfügbar") }
+        if (!canReread) return
+        diagnostics.event("MCSP_MANUAL_READ known live measurement requests")
+        writes?.enqueue(mcsp.reads())
     }
 
     private fun clientCallback(session: Int) = object : BluetoothGattCallback() {
@@ -238,7 +213,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
                 }
                 negotiatedMtu = mtu
                 phase = Phase.DISCOVERY
-                reportStatus("MTU $mtu · Bosch-Dienst wird gesucht")
+                reportStatus("Fahrdatenzugriff wird vorbereitet")
                 armTimeout(20_000)
                 val requested = gatt.discoverServices()
                 diagnostics.event("DISCOVER_SERVICES started=$requested")
@@ -256,45 +231,41 @@ class BoschConnection(context: Context, private val listener: Listener, private 
                         diagnostics.event("  CHARACTERISTIC uuid=${attribute.uuid} properties=${attribute.properties} descriptors=${attribute.descriptors.map { it.uuid }}")
                     }
                 }
-                val item = gatt.getService(if (protocol == Protocol.MCSP) MCSP_SERVICE else LIVE_SERVICE)
-                    ?.getCharacteristic(if (protocol == Protocol.MCSP) MCSP_RX else LIVE_CHARACTERISTIC)
+                val item = gatt.getService(MCSP_SERVICE)?.getCharacteristic(MCSP_RX)
                 val descriptor = item?.getDescriptor(CCCD)
-                val required = BluetoothGattCharacteristic.PROPERTY_NOTIFY or
-                    (if (protocol == Protocol.LDI) BluetoothGattCharacteristic.PROPERTY_READ else 0)
-                diagnostics.event("${protocol}_CHECK characteristicFound=${item != null} cccdFound=${descriptor != null} properties=${item?.properties}")
+                val required = BluetoothGattCharacteristic.PROPERTY_NOTIFY
+                diagnostics.event("MCSP_CHECK characteristicFound=${item != null} cccdFound=${descriptor != null} properties=${item?.properties}")
                 if (item == null || descriptor == null || item.properties and required != required) {
-                    fail("Bosch-$protocol-Datenkanal nicht verfügbar")
+                    fail("Bosch-MCSP-Datenkanal nicht verfügbar")
                     return@dispatch
                 }
-                if (protocol == Protocol.MCSP) {
-                    val tx = gatt.getService(MCSP_SERVICE)?.getCharacteristic(MCSP_TX)
-                    if (tx == null || tx.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE == 0) {
-                        fail("Bosch-MCSP-Anfragekanal nicht verfügbar")
-                        return@dispatch
-                    }
-                    writeCharacteristic = tx
-                    writes = SerialWriteQueue(
-                        send = { request ->
-                            diagnostics.event("MCSP_TX ${request.description}")
-                            try {
-                                val result = gatt.writeCharacteristic(tx, request.bytes, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
-                                diagnostics.event("MCSP_TX_STARTED result=$result")
-                                result == BluetoothStatusCodes.SUCCESS
-                            } catch (_: SecurityException) {
-                                diagnostics.event("MCSP_TX_EXCEPTION SecurityException"); false
-                            } catch (_: IllegalStateException) {
-                                diagnostics.event("MCSP_TX_EXCEPTION IllegalStateException"); false
-                            }
-                        },
-                        schedule = { task, delay -> handler.postDelayed(task, delay) },
-                        cancel = { handler.removeCallbacks(it) },
-                        changed = { if (phase == Phase.LIVE) reportMeasurementsStatus() },
-                        failed = { fail(it) },
-                    )
+                val tx = gatt.getService(MCSP_SERVICE)?.getCharacteristic(MCSP_TX)
+                if (tx == null || tx.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE == 0) {
+                    fail("Bosch-MCSP-Anfragekanal nicht verfügbar")
+                    return@dispatch
                 }
+                writeCharacteristic = tx
+                writes = SerialWriteQueue(
+                    send = { request ->
+                        diagnostics.event("MCSP_TX ${request.description}")
+                        try {
+                            val result = gatt.writeCharacteristic(tx, request.bytes, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+                            diagnostics.event("MCSP_TX_STARTED result=$result")
+                            result == BluetoothStatusCodes.SUCCESS
+                        } catch (_: SecurityException) {
+                            diagnostics.event("MCSP_TX_EXCEPTION SecurityException"); false
+                        } catch (_: IllegalStateException) {
+                            diagnostics.event("MCSP_TX_EXCEPTION IllegalStateException"); false
+                        }
+                    },
+                    schedule = { task, delay -> handler.postDelayed(task, delay) },
+                    cancel = { handler.removeCallbacks(it) },
+                    changed = { if (phase == Phase.LIVE) reportMeasurementsStatus() },
+                    failed = { fail(it) },
+                )
                 characteristic = item
                 phase = Phase.SUBSCRIBING
-                reportStatus("Bosch-$protocol-Dienst gefunden · Live-Daten werden abonniert")
+                reportStatus("Fahrdaten werden abonniert")
                 armTimeout(20_000)
                 val localEnabled = gatt.setCharacteristicNotification(item, true)
                 diagnostics.event("NOTIFICATION_LOCAL enabled=$localEnabled")
@@ -313,64 +284,25 @@ class BoschConnection(context: Context, private val listener: Listener, private 
                     descriptor.characteristic !== characteristic) return@dispatch
                 diagnostics.event("CCCD_WRITE_RESULT status=$status")
                 if (status != BluetoothGatt.GATT_SUCCESS) { fail("Benachrichtigungsfreigabe fehlgeschlagen ($status)"); return@dispatch }
-                if (protocol == Protocol.MCSP) {
-                    phase = Phase.LIVE
-                    handler.removeCallbacks(timeout)
-                    diagnostics.event("MCSP_READY; subscribing to speed and rider power, then requesting snapshots")
-                    writes?.enqueue(mcsp.subscriptions() + mcsp.reads())
-                    writes?.start()
-                    if (isClient(session, gatt)) reportMeasurementsStatus()
-                    return@dispatch
-                }
-                phase = Phase.READING
-                reportStatus("Live-Daten aktiviert · Ausgangswerte werden gelesen")
-                armTimeout(20_000)
-                val requested = gatt.readCharacteristic(characteristic)
-                diagnostics.event("INITIAL_READ_REQUEST started=$requested")
-                if (!requested) fail("Initiales Lesen konnte nicht gestartet werden")
-            }
-        }
-        override fun onCharacteristicRead(gatt: BluetoothGatt, item: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
-            val payload = value.copyOf()
-            dispatch {
-                if (!isClient(session, gatt) || (phase != Phase.READING && phase != Phase.REREADING) || item.uuid != LIVE_CHARACTERISTIC) return@dispatch
-                val initial = phase == Phase.READING
-                val prefix = if (initial) "INITIAL" else "MANUAL"
-                diagnostics.event("${prefix}_READ_RESULT status=$status bytes=${payload.size}")
-                diagnostics.packet("read", payload)
-                if (status != BluetoothGatt.GATT_SUCCESS) { fail("Lesen fehlgeschlagen ($status)"); return@dispatch }
-                val snapshot = decode(payload) ?: run { fail("Gelesenes Bosch-Datenpaket ungültig"); return@dispatch }
-                diagnostics.event("${prefix}_FIELDS speedHundredths=${snapshot.speedHundredths} riderPowerWatts=${snapshot.riderPowerWatts}")
-                liveData = (if (initial) snapshot else liveData.merge(snapshot)).merge(updatesDuringRead)
-                updatesDuringRead = LiveData()
                 phase = Phase.LIVE
                 handler.removeCallbacks(timeout)
-                reportMeasurementsStatus()
-                // Empty protobuf is valid, but is no evidence of a received measurement.
-                if (payload.isNotEmpty()) listener.onData(liveData, true)
+                diagnostics.event("MCSP_READY; subscribing to known live fields, then requesting snapshots")
+                writes?.enqueue(mcsp.subscriptions() + mcsp.reads())
+                writes?.start()
+                if (isClient(session, gatt)) reportMeasurementsStatus()
             }
         }
         override fun onCharacteristicChanged(gatt: BluetoothGatt, item: BluetoothGattCharacteristic, value: ByteArray) {
             val payload = value.copyOf()
             dispatch {
                 if (!isClient(session, gatt) || item.uuid != characteristic?.uuid ||
-                    (phase != Phase.SUBSCRIBING && phase != Phase.READING && phase != Phase.REREADING && phase != Phase.LIVE)) return@dispatch
-                if (protocol == Protocol.MCSP) {
-                    receiveMcsp(payload)
-                    return@dispatch
-                }
-                diagnostics.packet("notification", payload)
-                val update = decode(payload) ?: return@dispatch
-                if (update.speedHundredths != null || update.riderPowerWatts != null) liveMeasurementsReceived = true
-                if (phase != Phase.LIVE) updatesDuringRead = updatesDuringRead.merge(update)
-                liveData = liveData.merge(update)
-                if (payload.isNotEmpty()) listener.onData(liveData, true)
-                if (phase == Phase.LIVE) reportMeasurementsStatus()
+                    (phase != Phase.SUBSCRIBING && phase != Phase.LIVE)) return@dispatch
+                receiveMcsp(payload)
             }
         }
         override fun onCharacteristicWrite(gatt: BluetoothGatt, item: BluetoothGattCharacteristic, status: Int) {
             dispatch {
-                if (!isClient(session, gatt) || protocol != Protocol.MCSP || item.uuid != writeCharacteristic?.uuid) return@dispatch
+                if (!isClient(session, gatt) || item.uuid != writeCharacteristic?.uuid) return@dispatch
                 diagnostics.event("MCSP_TX_RESULT status=$status")
                 writes?.complete(status == BluetoothGatt.GATT_SUCCESS)
             }
@@ -390,7 +322,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         for (event in outcome.events) diagnostics.event(event)
         if (outcome.replies.isNotEmpty()) writes?.enqueue(outcome.replies, urgent = true)
         if (phase == Phase.STOPPED) return
-        if (outcome.update.speedHundredths != null || outcome.update.riderPowerWatts != null) {
+        if (outcome.update.hasValues) {
             liveMeasurementsReceived = liveMeasurementsReceived || outcome.samples.any { it.isPush }
             liveData = liveData.merge(outcome.update)
             listener.onData(liveData, true)
@@ -400,22 +332,14 @@ class BoschConnection(context: Context, private val listener: Listener, private 
 
     private fun reportMeasurementsStatus() {
         val message = when {
-            liveData.speedHundredths == null && liveData.riderPowerWatts == null -> "Verbunden · noch keine Fahrdaten"
+            !liveData.hasValues -> "Verbunden · noch keine Fahrdaten"
             liveMeasurementsReceived -> "Live-Messwerte empfangen"
             else -> "Fahrdaten gelesen · warte auf Live-Messwerte"
         }
-        val requesting = if (protocol == Protocol.MCSP && writes?.idle == false) " · Datenanfrage läuft" else ""
-        reportStatus("$message · $protocol · MTU $negotiatedMtu$requesting")
+        val requesting = if (writes?.idle == false) " · Werte werden angefragt" else ""
+        reportStatus("$message$requesting")
     }
 
-    private fun decode(payload: ByteArray): LiveData? = try {
-        require(payload.size <= negotiatedMtu - 3)
-        LiveDataDecoder.decode(payload).also { diagnostics.decoded(it) }
-    } catch (error: IllegalArgumentException) {
-        diagnostics.decodeFailed(error.message ?: "payload exceeds negotiated MTU")
-        reportStatus("Ungültiges Datenpaket verworfen · keine neuen Messwerte übernommen")
-        null
-    }
     private fun reportStatus(message: String) {
         val event = "STATUS phase=$phase $message"
         if (event != lastDiagnosticStatus) {
@@ -459,7 +383,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         val oldClient = client
         client = null; bike = null; characteristic = null
         oldClient?.let { retiredClients.release(it) }
-        liveData = LiveData(); updatesDuringRead = LiveData(); negotiatedMtu = 23
+        liveData = LiveData(); negotiatedMtu = 23
         liveMeasurementsReceived = false
         listener.onData(liveData, false)
         if (wasActive) reportStatus("Gestoppt")
@@ -467,8 +391,6 @@ class BoschConnection(context: Context, private val listener: Listener, private 
     fun close() { stop(); retiredClients.closeAll(); handler.removeCallbacksAndMessages(null) }
 
     private companion object {
-        val LIVE_SERVICE: UUID = UUID.fromString("0000eb20-eaa2-11e9-81b4-2a2ae2dbcce4")
-        val LIVE_CHARACTERISTIC: UUID = UUID.fromString("0000eb21-eaa2-11e9-81b4-2a2ae2dbcce4")
         val CCCD: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         val MCSP_SERVICE: UUID = UUID.fromString("00000010-eaa2-11e9-81b4-2a2ae2dbcce4")
         val MCSP_RX: UUID = UUID.fromString("00000011-eaa2-11e9-81b4-2a2ae2dbcce4")

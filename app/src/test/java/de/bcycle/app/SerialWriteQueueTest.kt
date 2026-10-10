@@ -70,10 +70,25 @@ class SerialWriteQueueTest {
 
     @Test fun backlogIsBoundedAndFailedAcknowledgementsCancelPendingWrites() {
         val overflow = Harness()
-        overflow.queue.enqueue((1..17).toList())
+        overflow.queue.enqueue((1..65).toList())
         assertEquals(1, overflow.failures.size); assertTrue(overflow.sent.isEmpty())
         val failed = Harness()
         failed.queue.enqueue(listOf(1, 2)); failed.queue.start(); failed.queue.complete(false)
         assertEquals(1, failed.failures.size); assertTrue(failed.scheduled.isEmpty())
+    }
+
+    @Test fun expandedLiveStartupFitsAndStillGivesHandshakeRepliesPriority() {
+        val protocol = McspProtocol()
+        val requests = protocol.subscriptions() + protocol.reads()
+        val test = Harness()
+        test.queue.enqueue(requests.indices.toList())
+        test.queue.start()
+        test.queue.enqueue(listOf(100), urgent = true)
+        test.queue.complete(true); test.runDelay(300)
+        assertEquals(listOf(0, 100), test.sent)
+        repeat(requests.size - 1) { test.queue.complete(true); test.runDelay(300) }
+        test.queue.complete(true)
+        assertEquals(listOf(0, 100) + (1 until requests.size).toList(), test.sent)
+        assertTrue(test.queue.idle); assertTrue(test.failures.isEmpty())
     }
 }

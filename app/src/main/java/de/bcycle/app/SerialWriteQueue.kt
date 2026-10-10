@@ -20,7 +20,7 @@ class SerialWriteQueue<T>(
 
     fun enqueue(items: List<T>, urgent: Boolean = false) {
         if (stopped || items.isEmpty()) return
-        if (pending.size + items.size + (if (inFlight) 1 else 0) > 16) {
+        if (pending.size + items.size + (if (inFlight) 1 else 0) > 64) {
             abort("Zu viele ausstehende Bosch-Datenanfragen")
             return
         }
