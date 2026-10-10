@@ -1,11 +1,8 @@
 package de.bcycle.app
 
-import android.content.ContentValues
 import android.content.Context
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.provider.MediaStore
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
@@ -72,22 +69,17 @@ class RecordingStore(private val context: Context, private val changed: (String,
     }
     private fun export(source: File): String {
         val encoded = File(directory, source.nameWithoutExtension + ".fit")
+        var retained = false
         try {
             FitWriter.encode(source, encoded)
-            val values = ContentValues().apply {
-                put(MediaStore.Downloads.DISPLAY_NAME, "B-Cycle-" + encoded.name)
-                put(MediaStore.Downloads.MIME_TYPE, "application/vnd.ant.fit")
-                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/B-Cycle")
-                put(MediaStore.Downloads.IS_PENDING, 1)
-            }
-            val resolver = context.contentResolver
-            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: error("Download entry unavailable")
-            try {
-                resolver.openOutputStream(uri, "w")?.use { output -> encoded.inputStream().use { it.copyTo(output) } } ?: error("Download stream unavailable")
-                check(resolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }, null, null) == 1)
-            } catch (error: Exception) { resolver.delete(uri, null, null); throw error }
+            FitLibrary.retainRecording(context.filesDir, encoded)
+            retained = true
+            DownloadFiles.write(context, encoded, "B-Cycle-" + encoded.name)
             source.delete(); encoded.delete()
             return "Gespeichert: Download/B-Cycle/B-Cycle-${encoded.name}" + if (failed) " · enthält Daten bis zum Speicherfehler" else ""
-        } catch (_: Exception) { return "FIT nicht gespeichert · Daten bleiben erhalten. Im Menü erneut speichern." }
+        } catch (_: Exception) {
+            return if (retained) "FIT lokal gespeichert · Download fehlgeschlagen. Im Menü erneut versuchen."
+            else "FIT nicht gespeichert · Daten bleiben erhalten. Im Menü erneut speichern."
+        }
     }
 }

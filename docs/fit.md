@@ -13,8 +13,9 @@ und Profil 21.218. Die Referenz sind das
 Profil 21.218.0 (Referenz-Commit `dd12be0bf9757df80e2308f4b8c808553d09b42c`),
 die [FIT-Protokollspezifikation](https://developer.garmin.com/fit/fit-protocol/)
 und die [Activity-Datei-Anleitung](https://developer.garmin.com/fit/cookbook/encoding-activity-files/).
-Garmins Decoder und ActivityFileValidationPlugin werden nur in Tests verwendet,
-nicht in die APK eingebunden. Die Tests prüfen auch Skalierungen und Einheiten,
+Garmins ActivityFileValidationPlugin wird nur in Tests verwendet. Im aktuellen Code
+nach APK 0.6.6 wird der offizielle Decoder auch auf dem Datei-Worker für Metadaten
+und Kartenanzeige gespeicherter FIT-Dateien verwendet. Die Tests prüfen auch Skalierungen und Einheiten,
 Quellwahl, fehlende Werte und eine abgebrochene letzte Journalzeile.
 
 Enthalten sind `file_id`, `device_info`, Timer-Start/Stop-Events, Sekunden-Records,
@@ -76,8 +77,10 @@ ein Android-13/15-Test mit simulierten Sensoren ersetzt keinen Poco-Hardwaretest
 Ein Worker schreibt gewählte Messwerte ungefähr einmal pro Sekunde in ein
 privates Journal. Die Arbeitswarteschlange ist begrenzt; Synchronisation erfolgt
 am Anfang, alle fünf Messpunkte und am Ende. RAM wächst nicht mit Fahrtdauer.
-Bei STOPP wird dieses Journal zum FIT-Stream, anschließend über MediaStore in
-Downloads veröffentlicht. Eine allgemeine Speicherberechtigung ist nicht nötig.
+Bei STOPP wird dieses Journal zum FIT-Stream. Im aktuellen Code bleibt eine atomar
+gespeicherte originale FIT-Kopie in der appinternen Sammlung, anschließend wird
+über MediaStore in Downloads veröffentlicht. Der gemeinsame Streckenmanager
+registriert die private Kopie; diese ist auch nach einem Downloadfehler wieder auffindbar. Eine allgemeine Speicherberechtigung ist nicht nötig.
 Private Zwischendateien werden erst nach erfolgreichem Export entfernt. Bei
 Fehlern bleibt das Journal für „Ungespeicherte Fahrten speichern“ erhalten.
 Nach Prozessabbruch sind vollständige gespeicherte Messpunkte exportierbar;
@@ -86,6 +89,11 @@ Prozessende nicht automatisch weitergeführt. Eine teilweise erhaltene Fahrt
 endet am letzten vollständigen Messpunkt.
 
 GPS-Route und Sensorwerte verlassen das Handy nur durch selbst gewähltes Teilen
-der FIT-Datei. Keine Internetberechtigung und keine Standortkoordinaten im
-Diagnosebericht. Speicherbedarf hängt von der Auswahl ab; standardmäßig alle
+der FIT-Datei. Die Internetberechtigung dient den Online-Karten; kein FIT-Upload und keine
+Standortkoordinaten im Diagnosebericht. Speicherbedarf hängt von der Auswahl ab; standardmäßig alle
 numerischen Felder bedeuten grob 1–2 MB pro Stunde einschließlich FIT-Zusatzfeldern.
+
+Der Menüpunkt heißt im aktuellen Code **FIT-Aufzeichnung**. Die gespeicherten
+Fahrten werden ausschließlich im gemeinsamen [Streckenmanager](routes.md) verwaltet.
+Garmins Lizenztext ist unter Erweitert → Bibliotheken & Lizenzen und in
+`app/src/main/assets/Garmin-FIT-LICENSE.txt` enthalten.

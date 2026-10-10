@@ -7,7 +7,8 @@ import java.io.File
 import java.io.InputStream
 import java.util.UUID
 
-data class StoredGpx(val id: String, val name: String, val points: Int, val segments: Int)
+data class StoredGpx(val id: String, val name: String, val points: Int, val segments: Int,
+                     val details: RouteDetails = RouteDetails())
 
 /** Worker-thread storage. Originals stay on disk; only the selected route is decoded. */
 internal class GpxLibrary(private val root: File) {
@@ -15,7 +16,7 @@ internal class GpxLibrary(private val root: File) {
     private val index = AtomicFile(File(directory, "index.json"))
     var entries: List<StoredGpx> = emptyList(); private set
     var selected: String? = null; private set
-    private fun file(id: String): File {
+    internal fun file(id: String): File {
         require(id.matches(Regex("[a-f0-9-]{36}"))) { "Ungültige Strecken-ID" }
         return File(directory, "$id.gpx")
     }
@@ -25,7 +26,8 @@ internal class GpxLibrary(private val root: File) {
             val array = json.getJSONArray("entries")
             entries = List(array.length()) { i ->
                 val item = array.getJSONObject(i)
-                StoredGpx(item.getString("id"), item.getString("name"), item.getInt("points"), item.getInt("segments")).also { file(it.id) }
+                StoredGpx(item.getString("id"), item.getString("name"), item.getInt("points"), item.getInt("segments"),
+                    RouteDetails.from(item.optJSONObject("details"))).also { file(it.id) }
             }
             selected = json.optString("selected").takeIf { id -> entries.any { it.id == id } }
         } else {
@@ -34,6 +36,13 @@ internal class GpxLibrary(private val root: File) {
                 legacy.openRead().use { add(it, "Bisherige GPX-Strecke") }
                 legacy.delete()
             }
+        }
+        if (entries.any { it.details.dateMs == 0L }) {
+            val upgraded = entries.map { entry -> if (entry.details.dateMs != 0L) entry else {
+                val original = file(entry.id); val route = original.inputStream().use(GpxImport::read)
+                entry.copy(details = RouteDetails(original.lastModified(), route.distanceM, route.durationMs, routePreview(route.points)))
+            } }
+            save(upgraded, selected)
         }
         return selected?.let { file(it).inputStream().use(GpxImport::read) }
     }
@@ -53,7 +62,8 @@ internal class GpxLibrary(private val root: File) {
             } catch (e: Exception) { stored.failWrite(stream); throw e }
             val route = stored.openRead().use(GpxImport::read)
             val title = name.substringAfterLast('/').substringAfterLast('\\').removeSuffix(".gpx").removeSuffix(".GPX").trim().take(120).ifBlank { "GPX-Strecke" }
-            save(entries + StoredGpx(id, title, route.originalPoints, route.segments), id)
+            save(entries + StoredGpx(id, title, route.originalPoints, route.segments,
+                RouteDetails(System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points))), id)
             return route
         } catch (e: Exception) { stored.delete(); throw e }
     }
@@ -68,9 +78,14 @@ internal class GpxLibrary(private val root: File) {
         save(entries.filter { it.id != id }, selected?.takeUnless { it == id })
         AtomicFile(file(id)).delete()
     }
+    fun rename(id: String, name: String) {
+        require(entries.any { it.id == id })
+        val title = name.trim().take(120); require(title.isNotEmpty()) { "Bitte einen Namen eingeben" }
+        save(entries.map { if (it.id == id) it.copy(name = title) else it }, selected)
+    }
     private fun save(next: List<StoredGpx>, active: String?) {
         val array = JSONArray()
-        next.forEach { array.put(JSONObject().put("id", it.id).put("name", it.name).put("points", it.points).put("segments", it.segments)) }
+        next.forEach { array.put(JSONObject().put("id", it.id).put("name", it.name).put("points", it.points).put("segments", it.segments).put("details", it.details.json())) }
         val bytes = JSONObject().put("entries", array).put("selected", active ?: "").toString().toByteArray(Charsets.UTF_8)
         val stream = index.startWrite()
         try { stream.write(bytes); index.finishWrite(stream) }

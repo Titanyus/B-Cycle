@@ -21,7 +21,9 @@ class MainActivity : Activity() {
     private lateinit var startButton: Button
     private lateinit var mapPanel: MapPanel
     private lateinit var dashboardArea: LinearLayout
-    private var routeRows: LinearLayout? = null
+    private var routeManager: RouteManagerView? = null
+    private var routeSignature = ""
+    private var pendingMapRoute: String? = null
     private var dashboardPage = 0
     private var mapFullscreen = false
     private var controlsVisible = true
@@ -117,7 +119,7 @@ class MainActivity : Activity() {
         val message = runtime.recordingStatus
         if (message != displayedRecordingStatus) {
             displayedRecordingStatus = message
-            if (message.startsWith("Gespeichert:") || message.startsWith("FIT nicht gespeichert") ||
+            if (message.startsWith("Gespeichert:") || message.startsWith("FIT nicht gespeichert") || message.startsWith("FIT lokal gespeichert") ||
                 message.contains("Fehler") || message.contains("überlastet") ||
                 message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
@@ -176,7 +178,10 @@ class MainActivity : Activity() {
                 SettingsAction.DIAGNOSTIC -> diagnosticSettings()
                 SettingsAction.RESET -> resetDashboardSettings()
                 SettingsAction.FONT_LICENSE -> menu = dialog().setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
-                SettingsAction.MAP_LICENSE -> menu = dialog().setTitle("Mapsforge · LGPL-3.0 mit Ausnahme").setMessage(assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
+                SettingsAction.MAP_LICENSE -> menu = dialog().setTitle("Mapsforge & Garmin FIT · Lizenzen").setMessage(
+                    "Mapsforge · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
+                    "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() })
+                    .setPositiveButton("Schließen", null).show()
             }
         }
         menu = dialog().setNegativeButton("Schließen", null).create().apply {
@@ -300,7 +305,7 @@ class MainActivity : Activity() {
                 setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id) }
             })
         }
-        menu = dialog().setTitle("Aufzeichnungsmanager").setView(ScrollView(this).apply { addView(root) })
+        menu = dialog().setTitle("FIT-Aufzeichnung").setView(ScrollView(this).apply { addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
                 runtime.saveConfig(RecordingConfig(selected.toSet(), if (speed.selectedItemPosition == 0) "SPEED" else "GPS_SPEED", if (distance.selectedItemPosition == 0) "BIKE_DISTANCE" else "GPS_DISTANCE"))
                 Toast.makeText(this, "Auswahl für die nächste Fahrt gespeichert", Toast.LENGTH_SHORT).show()
@@ -352,8 +357,8 @@ class MainActivity : Activity() {
     @Deprecated("Native document picker callback")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 8) {
-            if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.import(it) }
+        if (requestCode == 8 || requestCode == 9) {
+            if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.import(it, recorded = requestCode == 9) }
             if (dialogs.empty) { showMenu(); routeSettings() }
             return
         }
@@ -449,53 +454,82 @@ class MainActivity : Activity() {
         menu = dialog().setTitle("Karten-Datenfelder").setView(ScrollView(settingsContext).apply { addView(root) })
             .setPositiveButton("Schließen", null).show()
     }
-    private fun importGpx() {
-        if (runtime.mapState.busy) { Toast.makeText(this, "GPX wird noch verarbeitet", Toast.LENGTH_SHORT).show(); return }
+    private fun importRoute(recorded: Boolean = false) {
         try {
-            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"), 8)
-        } catch (_: android.content.ActivityNotFoundException) { Toast.makeText(this, "Dateiauswahl nicht verfügbar", Toast.LENGTH_LONG).show() }
+            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, if (recorded)
+                    arrayOf("application/vnd.ant.fit", "application/octet-stream") else
+                    arrayOf("application/gpx+xml", "application/xml", "text/xml", "application/vnd.ant.fit", "application/octet-stream")),
+                if (recorded) 9 else 8)
+        } catch (_: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, "Keine Dateiauswahl verfügbar", Toast.LENGTH_LONG).show()
+        }
     }
     private fun routeSettings() {
-        val root = column()
-        root.addView(label("Gespeicherte GPX-Strecken. Das Auge zeigt eine Strecke an oder blendet sie aus. Keine Routenberechnung oder Abbiegehinweise.", 14f, Color.LTGRAY))
-        root.addView(button("GPX-Strecke importieren") { importGpx() })
-        routeRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }; root.addView(routeRows)
+        val state = runtime.mapState
+        routeSignature = ""
+        val content = RouteManagerView(settingsContext, { importRoute() }, { importRoute(true) }, { entry ->
+            preferences.edit().putBoolean("mapGpxVisible", true).apply()
+            state.selectRoute(if (state.selectedRoute == entry.id) null else entry.id)
+        }, ::routeActions)
+        routeManager = content
         refreshRouteRows()
-        menu = dialog().setTitle("Streckenmanager").setView(ScrollView(this).apply { addView(root) })
-            .setPositiveButton("Schließen", null).create().apply { dialogs.onDismiss(this) { routeRows = null }; show() }
+        menu = dialog().setView(content).setPositiveButton("Schließen", null).create().apply {
+            dialogs.onDismiss(this) { if (routeManager === content) routeManager = null }; show()
+        }
+        state.refreshLibrary()
     }
     private fun refreshRouteRows() {
-        val rows = routeRows ?: return
         val state = runtime.mapState
-        val signature = "${state.routeRevision}:${state.busy}"
-        if (rows.tag == signature) return
-        rows.tag = signature; rows.removeAllViews()
-        if (state.busy) rows.addView(label("GPX wird verarbeitet …", 14f, Color.LTGRAY))
-        if (state.routes.isEmpty()) rows.addView(label("Noch keine GPX-Strecke gespeichert", 16f))
-        for (entry in state.routes) {
-            val selected = state.selectedRoute == entry.id
-            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
-            row.addView(label("${entry.name}\n${entry.points} Punkte · ${entry.segments} Abschnitte", 15f).apply { tag = "route_name_${entry.id}" }, LinearLayout.LayoutParams(0, -2, 1f))
-            val eye = ImageButton(settingsContext).apply {
-                tag = "route_eye_${entry.id}"; setPadding(dp(12), dp(12), dp(12), dp(12)); setImageDrawable(RouteActionIcon(false, selected))
-                contentDescription = if (selected) "${entry.name} ausblenden" else "${entry.name} anzeigen"
-                isEnabled = !state.busy; setOnClickListener {
-                    preferences.edit().putBoolean("mapGpxVisible", true).apply()
-                    state.selectRoute(if (selected) null else entry.id)
-                }
+        if (!state.busy && pendingMapRoute != null) {
+            if (pendingMapRoute == state.selectedRoute && state.route != null) {
+                dialogs.closeAll(); mapPanel.fitRoute()
             }
-            row.addView(eye, LinearLayout.LayoutParams(dp(48), dp(48)))
-            row.addView(ImageButton(settingsContext).apply {
-                tag = "route_delete_${entry.id}"; setPadding(dp(12), dp(12), dp(12), dp(12)); setImageDrawable(RouteActionIcon(true))
-                contentDescription = "${entry.name} löschen"; isEnabled = !state.busy
-                setOnClickListener {
-                    dialog().setTitle("GPX-Strecke löschen?").setMessage(entry.name)
-                        .setPositiveButton("Löschen") { _, _ -> state.deleteRoute(entry.id) }.setNegativeButton("Abbrechen", null).show()
-                }
-            }, LinearLayout.LayoutParams(dp(48), dp(48)))
-            rows.addView(row)
+            pendingMapRoute = null
         }
-        if (state.route != null) rows.addView(button("Angezeigte Strecke vollständig zeigen") { dialogs.closeAll(); mapPanel.fitRoute() }.apply { isEnabled = !state.busy })
+        val manager = routeManager ?: return
+        val signature = "${state.routeRevision}:${state.busy}"
+        if (routeSignature == signature) return
+        routeSignature = signature
+        manager.submit(state.entries, state.selectedRoute, state.busy)
+    }
+    private fun routeActions(entry: ManagedRoute) {
+        val state = runtime.mapState
+        if (state.busy) return
+        val actions = mutableListOf<Pair<String, () -> Unit>>()
+        if (entry.hasRoute) {
+            actions += "Auf Karte ansehen" to {
+                preferences.edit().putBoolean("mapGpxVisible", true).apply()
+                pendingMapRoute = entry.id; state.selectRoute(entry.id)
+            }
+            if (!entry.recorded) actions += "Als geplante Strecke auswählen" to {
+                preferences.edit().putBoolean("mapGpxVisible", true).apply(); state.selectRoute(entry.id)
+            }
+        }
+        actions += "Umbenennen" to {
+            val input = EditText(settingsContext).apply { setText(entry.name); setSingleLine(); selectAll()
+                filters = arrayOf(android.text.InputFilter.LengthFilter(120)); tag = "route_rename" }
+            val rename = dialog().setTitle("Strecke umbenennen").setView(input)
+                .setPositiveButton("Speichern", null).setNegativeButton("Abbrechen", null).create()
+            rename.show()
+            rename.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val name = input.text.toString().trim()
+                if (name.isEmpty()) input.error = "Bitte einen Namen eingeben"
+                else { state.renameRoute(entry.id, name); rename.dismiss() }
+            }
+        }
+        actions += "Nach Downloads exportieren" to { state.exportRoute(entry.id) }
+        actions += "Aus Sammlung löschen" to {
+            dialog().setTitle("Strecke aus Sammlung löschen?")
+                .setMessage("${entry.name}\n\nDie appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der Importquelle bleiben erhalten.")
+                .setPositiveButton("Löschen") { _, _ -> state.deleteRoute(entry.id) }
+                .setNegativeButton("Abbrechen", null).show()
+        }
+        // Opening a child after the choice is dismissed keeps the manager as its parent.
+        dialog().setTitle(entry.name).setItems(actions.map { it.first }.toTypedArray()) { choice, which ->
+            choice.dismiss()
+            android.os.Handler(mainLooper).post { actions[which].second() }
+        }.setNegativeButton("Abbrechen", null).show()
     }
     private fun openMapLink(url: String) {
         try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }

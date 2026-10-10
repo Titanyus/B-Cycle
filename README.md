@@ -30,7 +30,7 @@ vom Nutzer auf dem Handy bestätigt. Version 0.6.2 ergänzt Rücknavigation zum 
 sechste Dashboard-Vorlage und eine grafische Vorlagenauswahl. Die neuen Abläufe sind automatisiert geprüft;
 der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.md).
 
-## Benutzung
+## Benutzung der APK 0.6.6
 
 1. Als Update installieren, Fahrrad mit Bosch Flow entsperren. **Flow darf weiterlaufen.**
 2. **☰ → Sensoren verwalten → Sensor hinzufügen** öffnet die Auswahl für Bosch
@@ -198,7 +198,8 @@ native Android-Schrift und Größen, Standortberechtigung und GPS-Abmeldung,
 Stillstand mit Positions-/Höhenrauschen, Sprünge, Geschwindigkeitsspitzen,
 Empfangslücken, Bewegung ohne gelieferten GPS-Speed, Durchschnittswerte,
 Steigung sowie getrennten Auf-/Abstieg. Googles Protobuf-Encoder und Robolectric
-sowie der offizielle Garmin-FIT-Decoder dienen ausschließlich Tests und werden nicht in die App eingebunden.
+dienen ausschließlich Tests. Garmins offizieller FIT-Decoder ist im aktuellen Code auch
+für Streckenmetadaten und FIT-Kartenanzeige eingebunden; er läuft auf dem Datei-Worker.
 Weitere Tests prüfen BLE-Pulsdaten, CCCD-Freigabe und veraltete GATT-Callbacks,
 Aufzeichnung ohne sichtbare Activity, STOPP, Download-Veröffentlichung, feste
 Speicherfeld-Auswahl und Wiederholung nach einem Speicherfehler.
@@ -234,5 +235,26 @@ vertikal. Die Seitenpfeile entfallen; Dashboard-Wechsel erfolgt weiterhin durch
 Wischen auf Datenfeldern. Strecke, Live-Track und Positionsmarker werden im
 Mapsforge-Kartenbild gezeichnet und skalieren während Pinch-Zoom mit.
 
-Der aktuelle Code wurde kompiliert: 102 Tests bestanden, Android-Lint ohne Fehler.
-Die neue Kartenbedienung ist noch nicht auf dem Poco getestet; keine neue APK gebaut.
+Zusätzlich sperrt der aktuelle Code Änderungen an Dashboard- und Kartenfeldern bei
+Bewegung. Frische E-Bike-Geschwindigkeit hat Vorrang, ersatzweise gilt gefiltertes GPS.
+Fehlende Geschwindigkeit während einer Aufzeichnung sperrt ebenfalls; vor einer
+Fahrt ist Einrichtung ohne Sensoren möglich. Die Auswahl prüft auch vor dem Speichern.
+
+**Neuer gemeinsamer Streckenmanager (noch nicht in APK 0.6.6):** **☰ → FIT-Aufzeichnung**
+legt weiterhin nur Speicherfelder und Hauptquellen fest. **☰ → Streckenmanager** zeigt
+FIT-Fahrten und importierte GPX-/FIT-Strecken mit festem Filter Alle/Gefahren/Importiert,
+Datum, verfügbarer Distanz/Dauer und kleiner Streckenvorschau. Das Auge schaltet die
+Kartenanzeige, ⋮ bietet Ansehen, Umbenennen, Export und bestätigtes Löschen; bei
+importierten Strecken mit Koordinaten außerdem Auswahl als geplante Strecke.
+FIT-Dateien ohne GPS erhalten keine funktionslose Kartenaktion.
+Neue Fahrten bleiben zusätzlich als originale FIT-Datei in der appinternen Sammlung.
+Downloads werden weiterhin automatisch geschrieben. Lesbare alte B-Cycle-FIT-Dateien
+in Download/B-Cycle werden übernommen; andernfalls **FIT-Fahrt übernehmen** verwenden.
+**Strecke importieren** übernimmt GPX oder FIT als geplante/importierte Strecke.
+Löschen entfernt nur die appinterne Sammlungskopie; Downloads und Importquellen bleiben
+unverändert. Nextcloud und automatische Uploads sind noch nicht implementiert.
+Details: [Streckenverwaltung](docs/routes.md).
+
+Der aktuelle Code wurde kompiliert: 111 Tests bestanden, Android-Lint ohne Fehler
+(30 Warnungen). Auch die Release-Optimierung mit R8 wurde ohne APK-Erzeugung geprüft.
+Die neue Kartenbedienung und Streckenverwaltung sind noch nicht auf dem Poco getestet; keine neue APK gebaut.

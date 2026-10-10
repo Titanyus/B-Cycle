@@ -99,7 +99,7 @@ class MapPanelTest {
             assertTrue(routes.left < panel.width / 2)
             routes.performClick()
             val dialog = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            assertTrue(descendants(dialog.window!!.decorView).filterIsInstance<android.widget.TextView>().any { it.text == "GPX-Strecke importieren" })
+            assertTrue(descendants(dialog.window!!.decorView).any { it.tag == "route_import" })
             dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
             assertEquals(View.GONE, zoom.visibility); assertEquals(View.GONE, routes.visibility)

@@ -5,7 +5,8 @@ Bedienungsänderungen ist auf Wunsch noch keine neue APK gebaut.
 
 Mapsforge 0.25.0 ist als native Android-View eingebunden. Die Single-Activity,
 die vorhandene GPS-Filterung, Sensoren und FIT-Aufzeichnung bleiben bestehen.
-Mapsforge und AndroidSVG sind die zusätzlichen Laufzeitbibliotheken;
+Mapsforge, AndroidSVG und der Garmin-FIT-Decoder für gespeicherte Strecken sind
+die zusätzlichen Laufzeitbibliotheken;
 MapLibre, Compose, Play Services und eine weitere GPS-Quelle werden nicht verwendet.
 
 ## Bedienung
@@ -186,3 +187,8 @@ und Positionsmarker sind Teil des Mapsforge-Framebuffers: Zoommaßstab und
 Zoommittelpunkt gelten damit bereits während der Geste für alle gemeinsam.
 Unveränderliche Momentaufnahmen trennen die UI vom Karten-Zeichenthread;
 Track-Listen werden nur bei geänderter Track-Revision kopiert.
+
+Der aktuelle Code erweitert den bisherigen GPX-Manager zum gemeinsamen
+[Streckenmanager für GPX und FIT](routes.md). Kartenanzeige und geplante Strecke
+verwenden weiterhin dieselbe MapState-Auswahl; es gibt keine zusätzliche Karte
+oder GPX-Konvertierung der FIT-Dateien.

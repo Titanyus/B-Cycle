@@ -1,0 +1,49 @@
+package de.bcycle.app
+
+import com.garmin.fit.Decode
+import com.garmin.fit.MesgListener
+import java.io.File
+
+internal data class ReadFit(val details: RouteDetails, val route: GpxRoute?)
+
+/** Garmin's official streaming decoder. Never accumulate sensor records in memory. */
+internal object FitRead {
+    const val MAX_BYTES = 100L * 1024 * 1024
+    fun read(file: File): ReadFit {
+        require(file.length() in 14..MAX_BYTES) { "FIT-Datei leer oder größer als 100 MB" }
+        require(file.inputStream().buffered().use { Decode().checkFileIntegrity(it) }) { "FIT-Datei unvollständig oder Prüfsumme ungültig" }
+        val track = MapTrack(); var count = 0; var positions = 0
+        var date: Long? = null; var first: Long? = null; var last: Long? = null
+        var distance: Double? = null; var duration: Double? = null
+        var sessionDistance = 0.0; var sessionDuration = 0.0; var hasDistance = false; var hasDuration = false
+        val listener = MesgListener { message ->
+            fun value(name: String) = message.getFieldDoubleValue(name)?.takeIf { it.isFinite() }
+            when (message.num) {
+                0 -> value("time_created")?.let { date = (it * 1000 + 631065600000L).toLong() }
+                20 -> {
+                    count++; require(count <= 600_000) { "FIT enthält zu viele Messpunkte" }
+                    val stamp = value("timestamp")?.let { (it * 1000 + 631065600000L).toLong() }
+                    if (stamp != null) { first = minOf(first ?: stamp, stamp); last = maxOf(last ?: stamp, stamp) }
+                    val lat = value("position_lat")?.times(180.0 / 2147483648.0)
+                    val lon = value("position_long")?.times(180.0 / 2147483648.0)
+                    val valid = lat != null && lon != null && lat in -85.05112878..85.05112878 && lon in -180.0..180.0
+                    if (valid) positions++
+                    track.append(RideSample(stamp ?: 0, stamp ?: count * 1000L, if (valid) lat else null, if (valid) lon else null))
+                    value("distance")?.takeIf { it >= 0 }?.let { distance = maxOf(distance ?: 0.0, it) }
+                }
+                18 -> {
+                    value("total_distance")?.takeIf { it >= 0 }?.let { sessionDistance += it; hasDistance = true }
+                    value("total_timer_time")?.takeIf { it >= 0 }?.let { sessionDuration += it; hasDuration = true }
+                }
+            }
+        }
+        require(file.inputStream().buffered().use { Decode().read(it, listener) }) { "FIT-Datei kann nicht gelesen werden" }
+        if (hasDistance) distance = sessionDistance
+        if (hasDuration) duration = sessionDuration
+        val points = track.points.toList()
+        val usable = points.zipWithNext().any { !it.second.segmentStart }
+        val details = RouteDetails(date ?: first ?: file.lastModified(), distance ?: points.takeIf { usable }?.let(::routeDistance),
+            duration?.times(1000)?.toLong() ?: first?.let { start -> last?.minus(start)?.takeIf { it >= 0 } }, routePreview(points))
+        return ReadFit(details, if (usable) GpxRoute(points, positions, points.count { it.segmentStart }, details.distanceM, details.durationMs) else null)
+    }
+}

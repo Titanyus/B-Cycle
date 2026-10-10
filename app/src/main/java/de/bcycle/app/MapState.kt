@@ -7,29 +7,43 @@ import android.os.Looper
 import android.provider.OpenableColumns
 import java.util.concurrent.Executors
 
-/** Shared route library and display track. No GPS client or additional ride recording. */
+/** Shared GPX/FIT manager and map selection. All original-file I/O stays on one worker. */
 class MapState(private val context: Context, private val changed: () -> Unit) {
     val track = MapTrack()
     var route: GpxRoute? = null; private set
     var routes: List<StoredGpx> = emptyList(); private set
+    var activities: List<StoredFit> = emptyList(); private set
     var selectedRoute: String? = null; private set
     var routeRevision = 0L; private set
     var busy = true; private set
     var message = ""; private set
     private val handler = Handler(Looper.getMainLooper())
-    private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "B-Cycle-GPX") }
+    private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "B-Cycle-routes") }
     private val library = GpxLibrary(context.filesDir)
-    init { worker.execute { finishOperation("GPX-Bibliothek geladen") { library.load() } } }
-
+    private val fits = FitLibrary(context.filesDir)
+    private val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
+    private var selectedFit: String? = null
+    private var workerRoute: GpxRoute? = null
+    val entries: List<ManagedRoute> get() = (routes.map { ManagedRoute(it.id, it.name, false, "GPX", it.details, true) } +
+        activities.map { ManagedRoute(it.id, it.name, it.recorded, "FIT", it.details, it.hasRoute) })
+        .sortedByDescending { it.details.dateMs }
+    init {
+        worker.execute { finishOperation("") {
+            workerRoute = library.load(); fits.load(); fits.discoverDownloads(context)
+            selectedFit = preferences.getString("displayFitId", null)?.takeIf { id -> fits.entries.any { it.id == id && it.hasRoute } }
+            if (selectedFit != null) workerRoute = FitRead.read(fits.file(selectedFit!!)).route
+            workerRoute
+        } }
+    }
     private fun finishOperation(success: String, action: () -> GpxRoute?) {
-        var next = route; var text = success
-        try { next = action() }
-        catch (e: Exception) { text = "GPX nicht geändert: ${e.message ?: "ungültige Datei"}" }
-        val entries = library.entries; val selected = library.selected
+        var text = success
+        try { workerRoute = action() }
+        catch (e: Exception) { text = "Strecke nicht geändert: ${e.message ?: "Datei nicht verfügbar"}" }
+        val gpxEntries = library.entries; val fitEntries = fits.entries; val selected = selectedFit ?: library.selected
+        val displayed = workerRoute
         handler.post {
-            route = next; routes = entries; selectedRoute = selected; routeRevision++
-            busy = false; message = if (success == "GPX-Bibliothek geladen" && text == success) "" else text
-            changed()
+            route = displayed; routes = gpxEntries; activities = fitEntries; selectedRoute = selected; routeRevision++
+            busy = false; message = text; changed()
         }
     }
     private fun operate(success: String, action: () -> GpxRoute?) {
@@ -37,16 +51,60 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         busy = true; changed()
         worker.execute { finishOperation(success, action) }
     }
-    fun import(uri: Uri) = operate("GPX gespeichert und angezeigt") {
+    fun refreshLibrary() {
+        // A completed recording must be registered even while another operation is queued.
+        busy = true; changed()
+        worker.execute {
+            var inaccessible = 0
+            finishOperation("") {
+                fits.refresh(); inaccessible = fits.discoverDownloads(context); workerRoute
+            }
+            if (inaccessible > 0) handler.post {
+                message = "Einige alte FIT-Dateien nicht lesbar · bitte über FIT-Fahrt übernehmen auswählen"; changed()
+            }
+        }
+    }
+    fun import(uri: Uri, recorded: Boolean = false) = operate("Strecke gespeichert und angezeigt") {
         val name = context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
             if (it.moveToFirst()) it.getString(0) else null
-        } ?: "GPX-Strecke"
-        context.contentResolver.openInputStream(uri)?.use { library.add(it, name) } ?: error("Datei kann nicht geöffnet werden")
+        } ?: if (recorded) "FIT-Fahrt.fit" else "GPX-Strecke"
+        context.contentResolver.openInputStream(uri)?.buffered()?.use { input ->
+            input.mark(16); val header = ByteArray(12); val bytes = input.read(header); input.reset()
+            val isFit = bytes == 12 && header.copyOfRange(8, 12).contentEquals(".FIT".toByteArray())
+            if (recorded || isFit || name.endsWith(".fit", true)) {
+                val entry = fits.add(input, name, recorded) ?: error("FIT konnte nicht übernommen werden")
+                val displayed = FitRead.read(fits.file(entry.id)).route
+                if (displayed != null) { library.select(null); setSelectedFit(entry.id) }
+                displayed ?: workerRoute
+            } else {
+                val displayed = library.add(input, name); setSelectedFit(null); displayed
+            }
+        } ?: error("Datei kann nicht geöffnet werden")
     }
-    fun selectRoute(id: String?) = operate(if (id == null) "GPX ausgeblendet" else "GPX angezeigt") { library.select(id) }
-    fun deleteRoute(id: String) = operate("GPX gelöscht") {
-        val active = library.selected == id
-        library.delete(id)
-        if (active) null else route
+    private fun setSelectedFit(id: String?) { selectedFit = id; preferences.edit().apply { if (id == null) remove("displayFitId") else putString("displayFitId", id) }.apply() }
+    fun selectRoute(id: String?) = operate(if (id == null) "Strecke ausgeblendet" else "Strecke angezeigt") {
+        if (id != null && fits.entries.any { it.id == id }) {
+            val displayed = FitRead.read(fits.file(id)).route ?: error("Diese FIT-Datei enthält keine darstellbaren GPS-Punkte")
+            library.select(null); setSelectedFit(id); displayed
+        } else { val displayed = library.select(id); setSelectedFit(null); displayed }
+    }
+    fun renameRoute(id: String, name: String) = operate("Strecke umbenannt") {
+        if (fits.entries.any { it.id == id }) fits.rename(id, name) else library.rename(id, name)
+        workerRoute
+    }
+    fun exportRoute(id: String) = operate("Nach Download/B-Cycle exportiert") {
+        val fit = fits.entries.firstOrNull { it.id == id }
+        val file = if (fit != null) fits.file(id) else library.file(id)
+        val name = fit?.name ?: library.entries.single { it.id == id }.name
+        DownloadFiles.write(context, file, "$name.${file.extension}")
+        workerRoute
+    }
+    fun deleteRoute(id: String) = operate("Aus der Sammlung gelöscht · vorhandene Downloads bleiben erhalten") {
+        val active = (selectedFit ?: library.selected) == id
+        if (fits.entries.any { it.id == id }) { fits.delete(id); if (selectedFit == id) setSelectedFit(null) } else library.delete(id)
+        if (active) null else workerRoute
     }
 }
+
+data class ManagedRoute(val id: String, val name: String, val recorded: Boolean, val format: String,
+                        val details: RouteDetails, val hasRoute: Boolean)

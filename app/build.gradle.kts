@@ -9,13 +9,13 @@ val robolectricSdk35 by configurations.creating
 
 dependencies {
     implementation("org.mapsforge:mapsforge-map-android:0.25.0")
+    // Official streaming FIT decoder, reused for activity metadata and map previews.
+    implementation("com.garmin:fit:21.218.0")
     testImplementation("junit:junit:4.13.2")
     // Independent wire-format encoder used only in JVM tests; absent from the APK.
     testImplementation("com.google.protobuf:protobuf-java:3.25.5")
     // Native Android layout/font verification only; absent from the APK.
     testImplementation("org.robolectric:robolectric:4.14.1")
-    // Official Garmin decoder/profile validation only, absent from the APK.
-    testImplementation("com.garmin:fit:21.218.0")
     robolectricSdk33("org.robolectric:android-all-instrumented:13-robolectric-9030017-i7")
     robolectricSdk35("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
 }

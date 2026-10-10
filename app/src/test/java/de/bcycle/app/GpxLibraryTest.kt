@@ -12,6 +12,23 @@ import java.io.File
 @Config(sdk = [33])
 class GpxLibraryTest {
     private val xml = "<gpx><rte><rtept lat='50' lon='8'/><rtept lat='50.01' lon='8.01'/></rte></gpx>"
+    @Test fun metadataAndRenameSurviveRestartWithoutChangingOriginalGpxBytes() {
+        val root = Files.createTempDirectory("gpx-metadata").toFile()
+        try {
+            val text = "<gpx><trk><trkseg><trkpt lat='50' lon='8'><time>2026-10-11T10:00:00Z</time></trkpt>" +
+                "<trkpt lat='50.01' lon='8.01'><time>2026-10-11T10:02:00Z</time></trkpt></trkseg>" +
+                "<trkseg><trkpt lat='51' lon='9'/><trkpt lat='51.01' lon='9.01'/></trkseg></trk></gpx>"
+            val library = GpxLibrary(root); library.load(); library.add(text.byteInputStream(), "Runde.gpx")
+            val entry = library.entries.single()
+            assertTrue(entry.details.distanceM!! in 2600.0..2700.0) // No invented line across the segment gap.
+            assertEquals(120000L, entry.details.durationMs)
+            library.rename(entry.id, "Neue Runde")
+            val restarted = GpxLibrary(root); restarted.load()
+            assertEquals("Neue Runde", restarted.entries.single().name)
+            assertEquals(entry.details, restarted.entries.single().details)
+            assertEquals(text, restarted.file(entry.id).readText())
+        } finally { root.deleteRecursively() }
+    }
     @Test fun storesMultipleOriginalsSwitchesVisibilityAndRestoresAfterRestart() {
         val root = Files.createTempDirectory("gpx-test").toFile()
         try {

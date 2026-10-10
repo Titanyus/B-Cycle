@@ -15,7 +15,7 @@ import android.widget.TextView
 
 internal enum class SettingsAction(val title: String, val icon: Int = 0) {
     SENSORS("Sensoren verwalten", R.drawable.ic_settings_sensors),
-    RECORDING("Aufzeichnungsmanager", R.drawable.ic_settings_recording),
+    RECORDING("FIT-Aufzeichnung", R.drawable.ic_settings_recording),
     MAP("Kartenmanager", R.drawable.ic_settings_map),
     DASHBOARDS("Dashboards", R.drawable.ic_settings_dashboards),
     ROUTES("Streckenmanager", R.drawable.ic_settings_routes),
@@ -25,7 +25,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0) {
     DIAGNOSTIC("Diagnose speichern"),
     RESET("Standardbelegung herstellen"),
     FONT_LICENSE("Schrift & Lizenz"),
-    MAP_LICENSE("Kartenbibliothek & Lizenz")
+    MAP_LICENSE("Bibliotheken & Lizenzen")
 }
 
 /** Native, scrollable menu content. Six fixed actions in two rows of three. */
@@ -82,7 +82,7 @@ internal class SettingsMenuView(context: Context, private val selected: (Setting
         setOnClickListener { onClick() }
         addView(ImageView(context).apply { setImageResource(action.icon); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(dp(64), dp(64)))
         addView(TextView(context).apply {
-            text = when (action) { SettingsAction.SENSORS -> "Sensoren\nverwalten"; SettingsAction.RECORDING -> "Aufzeichnungs-\nmanager"; SettingsAction.MAP -> "Karten-\nmanager"; SettingsAction.ROUTES -> "Strecken-\nmanager"; else -> action.title }
+            text = when (action) { SettingsAction.SENSORS -> "Sensoren\nverwalten"; SettingsAction.RECORDING -> "FIT-\nAufzeichnung"; SettingsAction.MAP -> "Karten-\nmanager"; SettingsAction.ROUTES -> "Strecken-\nmanager"; else -> action.title }
             gravity = Gravity.CENTER; setTextColor(Color.WHITE); maxLines = 2; includeFontPadding = false
             typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO

@@ -121,16 +121,20 @@ class RecordingFlowTest {
         store.append(RideSample(start, 0, values = mapOf("HEART_RATE" to 130.0)))
         store.append(RideSample(start + 1000, 1000, values = mapOf("HEART_RATE" to 140.0)))
         store.finish()
-        await { status.startsWith("FIT nicht gespeichert") }
+        await { status.startsWith("FIT lokal gespeichert") }
         val directory = File(app.filesDir, "pending-rides")
         assertEquals(1, directory.listFiles { file -> file.extension == "ride" }!!.size)
         assertTrue(provider.published.isEmpty())
+        val privateFits = File(app.filesDir, "fit-library").listFiles { file -> file.extension == "fit" }!!
+        assertEquals(1, privateFits.size) // Finalized activity survives even an unavailable Downloads provider.
+        val preserved = privateFits.single().readBytes()
         assertTrue(provider.files.isEmpty()) // Incomplete public entry was deleted.
         provider.failWriting = false
         store.retryPending()
         await { status.startsWith("Gespeichert:") }
         assertEquals(1, provider.published.size)
         assertTrue(directory.listFiles()!!.isEmpty())
+        assertArrayEquals(preserved, File(app.filesDir, "fit-library").listFiles { file -> file.extension == "fit" }!!.single().readBytes())
         val records = provider.published.single().inputStream().use { FitDecoder().decode(it).recordMesgs }
         assertEquals(listOf(130, 140), records.map { it.heartRate.toInt() })
     }

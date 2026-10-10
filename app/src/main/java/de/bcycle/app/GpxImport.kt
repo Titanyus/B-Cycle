@@ -5,7 +5,8 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.io.FilterInputStream
 import java.io.InputStream
 
-data class GpxRoute(val points: List<MapPoint>, val originalPoints: Int, val segments: Int)
+data class GpxRoute(val points: List<MapPoint>, val originalPoints: Int, val segments: Int,
+                    val distanceM: Double? = null, val durationMs: Long? = null)
 
 /** Streaming parser: bounded input, points, nesting and segments; no external entities. */
 object GpxImport {
@@ -24,6 +25,7 @@ object GpxImport {
         val points = ArrayList<MapPoint>()
         var total = 0; var segments = 0; var start = true
         var root = false; var trackDepth = -1; var segmentDepth = -1; var routeDepth = -1
+        var pointDepth = -1; var firstTime: Long? = null; var lastTime: Long? = null
         var event = parser.eventType
         while (event != XmlPullParser.END_DOCUMENT) {
             require(parser.depth <= 32) { "GPX zu stark verschachtelt" }
@@ -46,9 +48,14 @@ object GpxImport {
                     total++; require(total <= MAX_POINTS) { "GPX enthält mehr als 200.000 Punkte" }
                     if (start) { segments++; require(segments <= 1_000) { "GPX enthält zu viele Abschnitte" } }
                     points.add(MapPoint(lat, lon, start)); start = false
+                    pointDepth = parser.depth
+                } else if (name == "time" && pointDepth > 0 && parser.depth == pointDepth + 1) {
+                    val time = runCatching { java.time.Instant.parse(parser.nextText()).toEpochMilli() }.getOrNull()
+                    if (time != null) { firstTime = minOf(firstTime ?: time, time); lastTime = maxOf(lastTime ?: time, time) }
                 }
             } else if (event == XmlPullParser.END_TAG) {
                 when (parser.name) {
+                    "trkpt", "rtept" -> pointDepth = -1
                     "trk" -> if (parser.depth == trackDepth) trackDepth = -1
                     "trkseg" -> if (parser.depth == segmentDepth) { segmentDepth = -1; start = true }
                     "rte" -> if (parser.depth == routeDepth) { routeDepth = -1; start = true }
@@ -61,6 +68,7 @@ object GpxImport {
         val step = ((total + 19_999) / 20_000).coerceAtLeast(1)
         val display = points.filterIndexed { index, p -> p.segmentStart || index % step == 0 ||
             index == points.lastIndex || points[index + 1].segmentStart }
-        return GpxRoute(display, total, segments)
+        return GpxRoute(display, total, segments, routeDistance(points),
+            firstTime?.let { first -> lastTime?.minus(first)?.takeIf { it > 0 } })
     }
 }

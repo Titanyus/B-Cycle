@@ -42,7 +42,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private var activeConfig = RecordingConfig()
     val mapState = MapState(context) { notifyChanged() }
     var mapTrackEnabled = true; private set
-    private val store = RecordingStore(context) { text, busy -> saving = busy; recordingStatus = text; notifyChanged() }
+    private val store = RecordingStore(context) { text, busy ->
+        saving = busy; recordingStatus = text
+        if (!busy && (text.startsWith("Gespeichert:") || text.startsWith("FIT nicht") || text.startsWith("FIT lokal gespeichert") || text.contains("Fahrten gespeichert"))) mapState.refreshLibrary()
+        notifyChanged()
+    }
     val heart: HeartRateConnection = HeartRateConnection(context, { heartStatus = it; if (heartIsLive()) heartReconnect.connected(); if (!heartActive()) { pulse = pulse.copy(bpm = null); heartAt = null }; notifyChanged() }, {
         heartAt = SystemClock.elapsedRealtime()
         it.bpm?.let { bpm -> heartSum += bpm; heartCount++; pulse = pulse.copy(average = heartSum.toDouble() / heartCount, maximum = maxOf(pulse.maximum ?: bpm, bpm)) }
