@@ -106,7 +106,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setOnClickListener { exportDiagnostic() }
         })
         column.addView(label(
-            "Fahrrad mit Flow entsperren. Für den neuen Zubehörtest: „Als Zubehör anbieten“, dann das Fahrrad auswählen. Danach wartet die App auf eine Verbindung vom Rad. Falls nötig, die Zubehörsuche am Rad bzw. in Flow starten; dazu darf die App kurz im Hintergrund bleiben.\n\n" +
+            "Fahrrad mit Flow entsperren, dann Flow über „Beenden erzwingen“ schließen. Für den Zubehörtest: „Als Zubehör anbieten“, dann das Fahrrad auswählen. Eine bestehende Verbindung muss erst getrennt sein. Danach wartet die App auf eine neue Verbindung vom Rad. Falls nötig, die Zubehörsuche am Rad bzw. in Flow starten; dazu darf die App kurz im Hintergrund bleiben.\n\n" +
                 "Experimenteller Test: Smartphone-Unterstützung ist von Bosch nicht zugesichert. Die Live-Anzeige läuft im Vordergrund; der Zubehörtest darf bis zu zwei Minuten im Hintergrund bleiben. In Flow erscheint gegebenenfalls der Bluetooth-Gerätename des Handys, nicht „B-Cycle“.",
             14f,
         ).apply { setPadding(0, dp(12), 0, 0) })

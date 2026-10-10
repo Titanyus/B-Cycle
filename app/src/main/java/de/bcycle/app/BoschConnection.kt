@@ -134,10 +134,13 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         armTimeout(20_000)
         try {
             accessory.start(device, object : AccessoryAdvertiser.Listener {
-                override fun onReady() {
+                override fun onReady(waitingForDisconnect: Boolean) {
                     if (!isCurrent(session) || phase != Phase.ADVERTISING) return
-                    reportStatus("Als Zubehör sichtbar · warte bis zu 2 Minuten auf das Fahrrad")
+                    reportAccessoryWaitingStatus(waitingForDisconnect)
                     armTimeout(120_000)
+                }
+                override fun onPeerStateChanged(waitingForDisconnect: Boolean) {
+                    if (isCurrent(session) && phase == Phase.ADVERTISING) reportAccessoryWaitingStatus(waitingForDisconnect)
                 }
                 override fun onIncomingConnection(device: BluetoothDevice) {
                     if (!isCurrent(session) || phase != Phase.ADVERTISING) return
@@ -151,6 +154,12 @@ class BoschConnection(context: Context, private val listener: Listener, private 
             })
         } catch (_: SecurityException) { fail("Bluetooth-Berechtigung fehlt") }
         catch (_: IllegalStateException) { fail("Bluetooth ist nicht verfügbar") }
+    }
+
+    private fun reportAccessoryWaitingStatus(waitingForDisconnect: Boolean) {
+        reportStatus(if (waitingForDisconnect)
+            "Als Zubehör sichtbar · bestehende Rad-Verbindung muss erst getrennt werden (Flow beenden)"
+        else "Als Zubehör sichtbar · warte bis zu 2 Minuten auf eine neue Verbindung vom Fahrrad")
     }
 
     /** Allow a bounded switch to Flow during accessory setup; no permanent background work. */

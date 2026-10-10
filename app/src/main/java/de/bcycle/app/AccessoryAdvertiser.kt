@@ -16,7 +16,8 @@ import java.util.UUID
 @SuppressLint("MissingPermission") // Activity requests ADVERTISE and CONNECT before starting.
 class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticLog) {
     interface Listener {
-        fun onReady()
+        fun onReady(waitingForDisconnect: Boolean)
+        fun onPeerStateChanged(waitingForDisconnect: Boolean)
         fun onIncomingConnection(device: BluetoothDevice)
         fun onFailure(message: String)
     }
@@ -27,6 +28,7 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
     private var server: BluetoothGattServer? = null
     private var advertiser: BluetoothLeAdvertiser? = null
     private var callback: AdvertiseCallback? = null
+    private var linkGate: AccessoryLinkGate? = null
 
     fun start(target: BluetoothDevice, listener: Listener) {
         stop()
@@ -41,6 +43,15 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
             }
         }
         fun matches(device: BluetoothDevice) = device.address == target.address
+        val adapter = manager.adapter
+        if (adapter == null || !adapter.isEnabled) { listener.onFailure("Bitte Bluetooth einschalten"); return }
+        advertiser = adapter.bluetoothLeAdvertiser
+        val sessionAdvertiser = advertiser
+        if (sessionAdvertiser == null) { listener.onFailure("Dieses Smartphone kann kein BLE-Zubehör ankündigen"); return }
+        val existingLink = manager.getConnectedDevices(BluetoothProfile.GATT).any { matches(it) }
+        val gate = AccessoryLinkGate(existingLink)
+        linkGate = gate
+        diagnostics.event("ACCESSORY_LINK_BASELINE selectedPeerConnected=$existingLink")
         val gattCallback = object : BluetoothGattServerCallback() {
             override fun onServiceAdded(status: Int, service: BluetoothGattService) = dispatch {
                 diagnostics.event("ACCESSORY_SERVICE_ADDED status=$status uuid=${service.uuid}")
@@ -60,12 +71,21 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
                     val response = AdvertiseData.Builder().addServiceUuid(ParcelUuid(DIS))
                         .setIncludeDeviceName(includeName).build()
                     diagnostics.event("ACCESSORY_ADVERTISE_REQUEST solicitation=$LDI connectable=true nameIncluded=$includeName appearanceAD=unavailable")
-                    advertiser?.startAdvertising(settings, data, response, advertisingCallback)
+                    sessionAdvertiser.startAdvertising(settings, data, response, advertisingCallback)
                 }
                 advertisingCallback = object : AdvertiseCallback() {
-                    override fun onStartSuccess(settingsInEffect: AdvertiseSettings) = dispatch {
-                        diagnostics.event("ACCESSORY_ADVERTISE_STARTED")
-                        listener.onReady()
+                    override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+                        val completedCallback = this
+                        handler.post {
+                            // Stop may precede Android's asynchronous start confirmation.
+                            if (session != generation || callback !== completedCallback) {
+                                try { sessionAdvertiser.stopAdvertising(completedCallback) } catch (_: SecurityException) { }
+                                return@post
+                            }
+                            gate.onAdvertisingStarted()
+                            diagnostics.event("ACCESSORY_ADVERTISE_STARTED waitingForDisconnect=${gate.waitingForDisconnect}")
+                            listener.onReady(gate.waitingForDisconnect)
+                        }
                     }
                     override fun onStartFailure(errorCode: Int) = dispatch {
                         diagnostics.event("ACCESSORY_ADVERTISE_FAILED code=$errorCode")
@@ -80,10 +100,17 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
             }
 
             override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) = dispatch {
-                val accepted = matches(device)
-                diagnostics.event("ACCESSORY_INCOMING status=$status state=$newState selectedPeer=$accepted")
-                if (accepted && status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
-                    listener.onIncomingConnection(device)
+                val selected = matches(device)
+                diagnostics.event("ACCESSORY_PEER_STATE status=$status state=$newState selectedPeer=$selected advertisingConfirmed=${gate.advertisingStarted}")
+                if (!selected) return@dispatch
+                if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    gate.onDisconnected()
+                    if (gate.advertisingStarted) listener.onPeerStateChanged(false)
+                } else if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
+                    val decision = gate.onConnected()
+                    diagnostics.event("ACCESSORY_LINK_DECISION result=$decision")
+                    if (decision == AccessoryLinkGate.Decision.ACCEPT) listener.onIncomingConnection(device)
+                    else if (gate.advertisingStarted && gate.waitingForDisconnect) listener.onPeerStateChanged(true)
                 }
             }
 
@@ -105,10 +132,6 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
                 if (responseNeeded) server?.sendResponse(device, requestId, BluetoothGatt.GATT_WRITE_NOT_PERMITTED, offset, null)
             }
         }
-        val adapter = manager.adapter
-        if (adapter == null || !adapter.isEnabled) { listener.onFailure("Bitte Bluetooth einschalten"); return }
-        advertiser = adapter.bluetoothLeAdvertiser
-        if (advertiser == null) { listener.onFailure("Dieses Smartphone kann kein BLE-Zubehör ankündigen"); return }
         server = manager.openGattServer(appContext, gattCallback)
         val service = BluetoothGattService(DIS, BluetoothGattService.SERVICE_TYPE_PRIMARY)
         for (uuid in identity.values.keys) {
@@ -119,6 +142,7 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
     }
 
     fun stopAdvertising() {
+        linkGate?.onAdvertisingStopped()
         val oldCallback = callback
         callback = null
         if (oldCallback != null) {
@@ -128,6 +152,8 @@ class AccessoryAdvertiser(context: Context, private val diagnostics: DiagnosticL
 
     fun stop() {
         generation++
+        linkGate?.stop()
+        linkGate = null
         stopAdvertising()
         val oldServer = server
         server = null; advertiser = null
