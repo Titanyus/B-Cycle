@@ -1,6 +1,6 @@
 # Karten und Dashboards (ab 0.5.0)
 
-Diese Beschreibung umfasst APK 0.6.7 mit den jüngsten Bedienungsänderungen
+Diese Beschreibung umfasst APK 0.6.8 mit den jüngsten Bedienungsänderungen
 und dem gemeinsamen GPX-/FIT-Streckenmanager.
 
 Mapsforge 0.25.0 ist als native Android-View eingebunden. Die Single-Activity,
@@ -170,7 +170,7 @@ der Bedienleiste; zusätzlicher Platz geht an die Karte. Im Querformat bleiben
 die kleinen Felder ebenfalls zwischen den Vorlagen gleich hoch.
 
 Ab 0.6.6 gibt es drei globale transparente Messwertfelder am unteren Kartenrand,
-oberhalb der Urheberangabe. Sie werden ab dem aktuellen Quellcode nach APK 0.6.7 unter **Dashboards → Karten-Datenfelder** (in APK 0.6.7 noch Kartenmanager)
+oberhalb der Urheberangabe. Sie werden ab APK 0.6.8 unter **Dashboards → Karten-Datenfelder** (in APK 0.6.7 noch Kartenmanager)
 über **Links / Mitte / Rechts** belegt, mit derselben kategorisierten Werteauswahl
 wie das Dashboard. **Leer** entfernt die Belegung. Jeder gewählte Wert wird sofort
 gespeichert; Abbrechen lässt die bisherige Belegung bestehen. Die Anzeige enthält

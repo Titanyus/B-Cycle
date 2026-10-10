@@ -3,7 +3,7 @@
 START startet eine Fahrt, STOPP beendet sie und speichert in `Download/B-Cycle/`.
 Die Dashboard-Belegung und die Speicherfeld-Auswahl sind unabhängig. Die Auswahl
 wird bei START eingefroren; spätere Änderungen gelten für die nächste Fahrt.
-Ab dem Quellcode nach APK 0.6.7 bleibt die fertige FIT-Datei immer privat in der
+Ab APK 0.6.8 bleibt die fertige FIT-Datei immer privat in der
 Streckensammlung. **Streckenmanager → ⋮ → Streckeneinstellungen** legt getrennt
 fest, ob zusätzlich in den gewählten Android-Ordner gespeichert und/oder per
 WebDAV zur Nextcloud hochgeladen wird. Siehe [Streckeneinstellungen](routes.md).

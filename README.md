@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.7 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.7-test.apk).
+[Installierbare APK 0.6.8 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.8-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,11 +16,11 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 571.779 Byte (rund 572 KB).
-SHA-256: `51296fbbfda5807fa9520d2c14bf9b325579d87a92d082caadb3785829120491`.
+APK-Größe: 830.142 Byte (rund 830 KB).
+SHA-256: `d9c71dd942cb349f1be193711b67aa2a123e7120b581600dfba02cee154dbd0d`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 111 Tests sind bestanden.
-Android-Lint meldet 30 Warnungen und keine Fehler.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 125 Tests sind bestanden.
+Android-Lint meldet 37 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
 Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
@@ -30,7 +30,7 @@ vom Nutzer auf dem Handy bestätigt. Version 0.6.2 ergänzt Rücknavigation zum 
 sechste Dashboard-Vorlage und eine grafische Vorlagenauswahl. Die neuen Abläufe sind automatisiert geprüft;
 der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.md).
 
-## Benutzung der APK 0.6.7
+## Benutzung der APK 0.6.8
 
 1. Als Update installieren, Fahrrad mit Bosch Flow entsperren. **Flow darf weiterlaufen.**
 2. **☰ → Sensoren verwalten → Sensor hinzufügen** öffnet die Auswahl für Bosch
@@ -53,9 +53,11 @@ der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.
    präzisen Standort erlauben, für die Aufzeichnungsanzeige Benachrichtigungen.
    Die Fahrt läuft mit Aufzeichnungsbenachrichtigung und CPU-Wake-Lock auch bei
    ausgeschaltetem Display oder beim Wechsel in andere Apps weiter.
-7. **STOPP · SPEICHERN** beendet die Fahrt und legt automatisch eine `.fit` unter
-   **Download/B-Cycle/** ab. Auch die Benachrichtigung hat eine STOPP-Aktion.
-   Der Aufzeichnungsdienst bleibt bis zum Abschluss des Exports aktiv.
+7. **STOPP · SPEICHERN** beendet die Fahrt und behält die originale `.fit` in der
+   Streckensammlung. **☰ → Streckenmanager → ⋮** stellt Ordnerspeicherung und
+   Nextcloud-Upload unabhängig ein. Standard: Downloads/B-Cycle aktiv, WebDAV aus.
+   Auch die Benachrichtigung hat eine STOPP-Aktion; aktivierte Uploads laufen danach
+   über Androids JobScheduler im Hintergrund.
 8. Bei fehlgeschlagenem Speichern bleiben private Zwischendaten erhalten.
    **☰ → Erweitert → Ungespeicherte Fahrten speichern** versucht den Export erneut; das gilt
    auch für vollständige Messpunkte einer unterbrochenen Fahrt nach Prozessende.
@@ -64,7 +66,7 @@ Die Messung läuft außerhalb gestarteter Fahrten bei sichtbarer App und endet
 beim Verlassen. Während einer Fahrt teilen sich Activity und Aufzeichnungsdienst
 Sensorverbindungen; es entsteht kein zweiter Bosch-GATT-Client. Keine Suche nach
 einer Smartphone-App im Flow-Zubehörmenü ist erforderlich. „Werte erneut lesen“
-wurde aus der Bedienoberfläche entfernt. WebDAV folgt später.
+wurde aus der Bedienoberfläche entfernt. WebDAV ist ab 0.6.8 verfügbar.
 
 Ab 0.5.0: [Kartenbedienung, Dashboards, GPX und Grenzen](docs/maps.md).
 Die Karte nutzt die bestehende GPS-Quelle. Vier Seiten speichern unabhängige
@@ -216,7 +218,7 @@ Das Sieben-Werte-Layout dient als Maßstab; der untere Innenabstand ist leicht
 reduziert. Weniger Zeilen lassen mehr Platz für die Karte, statt größere Ziffern
 und zusätzliche Leerflächen zu erzeugen. Lange Werte passen sich weiterhin der Breite an.
 
-Ab 0.6.6: **☰ → Kartenmanager → Karten-Datenfelder** belegt links, Mitte und rechts
+Ab 0.6.6, ab 0.6.8 unter **☰ → Dashboards → Karten-Datenfelder** belegt links, Mitte und rechts
 über die vorhandene Auswahl aus GPS, E-Bike und Pulsmesser. **Leer** entfernt die
 Belegung; Abbrechen verändert sie nicht. Die drei Positionen gelten gemeinsam
 für alle Seiten und das Karten-Vollbild. Nur empfangene Werte werden in schwarzer
@@ -248,18 +250,18 @@ Kartenanzeige, ⋮ bietet Ansehen, Umbenennen, Export und bestätigtes Löschen;
 importierten Strecken mit Koordinaten außerdem Auswahl als geplante Strecke.
 FIT-Dateien ohne GPS erhalten keine funktionslose Kartenaktion.
 Neue Fahrten bleiben zusätzlich als originale FIT-Datei in der appinternen Sammlung.
-Downloads werden weiterhin automatisch geschrieben. Lesbare alte B-Cycle-FIT-Dateien
+In APK 0.6.7 werden Downloads immer geschrieben; ab 0.6.8 ist das Ausgabeziel wählbar. Lesbare alte B-Cycle-FIT-Dateien
 in Download/B-Cycle werden übernommen; andernfalls **FIT-Fahrt übernehmen** verwenden.
 **Strecke importieren** übernimmt GPX oder FIT als geplante/importierte Strecke.
 Löschen entfernt nur die appinterne Sammlungskopie; Downloads und Importquellen bleiben
-unverändert. Nextcloud und automatische Uploads sind noch nicht implementiert.
+unverändert. Nextcloud und automatische Uploads sind ab 0.6.8 implementiert.
 Details: [Streckenverwaltung](docs/routes.md).
 
-Der aktuelle Code wurde kompiliert: 111 Tests bestanden, Android-Lint ohne Fehler
+APK 0.6.7 wurde kompiliert: 111 Tests bestanden, Android-Lint ohne Fehler
 (30 Warnungen). Auch die Release-Optimierung mit R8 und die installierbare APK wurden geprüft.
 Die neue Kartenbedienung und Streckenverwaltung sind noch nicht auf dem Poco getestet.
 
-## Aktueller Quellcode nach APK 0.6.7
+## Neu in APK 0.6.8
 
 - Karten-Datenfelder sind unter **Dashboards** erreichbar.
 - Streckenmanager: größeres weißes Auge; rechts neben der Überschrift öffnet **⋮**
@@ -271,8 +273,7 @@ Die neue Kartenbedienung und Streckenverwaltung sind noch nicht auf dem Poco get
 - Dauerhafte Hintergrund-Uploadjobs, Status und manuelle Wiederholung; unveränderte
   FIT-Dateien, feste Dateinamen, bedingter PUT und SHA-256-Prüfung vermeiden Cloud-Duplikate.
 
-Die oben verlinkte APK 0.6.7 enthält diese Ergänzungen noch nicht. Es wird hier
-noch keine neue APK veröffentlicht. Alle 125 Tests bestehen; Android-Lint meldet
+Die oben verlinkte APK 0.6.8 enthält diese Ergänzungen. Alle 125 Tests bestehen; Android-Lint meldet
 37 Warnungen und keine Fehler, die R8-Release-Kompilierung ist erfolgreich.
 Ordnerprovider, HTTPS-WebDAV, Wiederholungen, unabhängige Ausgaben und
 Rücknavigation sind automatisiert geprüft; Poco/Nextcloud müssen noch praktisch

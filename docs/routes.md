@@ -21,7 +21,7 @@ enthalten höchstens 97 Punkte; es werden keine zusätzlichen Karten oder Sensor
   Koordinaten sind auch als geplante Strecke auswählbar. Kein Routing/Abbiegehinweis.
 - Abbrechen/Schließen eines Unterdialogs kehrt zum vorherigen Dialog zurück.
 
-## Neue Streckeneinstellungen im Quellcode nach APK 0.6.7
+## Neue Streckeneinstellungen ab APK 0.6.8
 
 Das ⋮ rechts neben der Überschrift öffnet die Streckeneinstellungen. Die
 Schalter **Speichern im Zielverzeichnis** und **WebDAV** sind unabhängig.
