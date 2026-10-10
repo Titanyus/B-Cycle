@@ -95,4 +95,22 @@ class DiagnosticLogTest {
         assertTrue(report.contains("reads=0 notifications=0 decodeErrors=0"))
         assertTrue(report.contains("speedFieldSeen=false riderPowerFieldSeen=false"))
     }
+
+    @Test fun mcspReportRetainsOnlyWhitelistedNumericSamplesAndCountsAllNotifications() {
+        val protocol = McspProtocol()
+        val log = DiagnosticLog({ 0 })
+        val private = "private bike serial".toByteArray()
+        val unknown = byteArrayOf(0x30, (private.size + 4).toByte(), 0xa0.toByte(), 0x81.toByte(), 0x0a, private.size.toByte()) + private
+        val measurement = byteArrayOf(0x30, 4, 0x98.toByte(), 0x5b, 8, 100)
+        for (packet in listOf(unknown, measurement)) {
+            log.mcspNotification(packet.size)
+            log.mcspOutcome(protocol.receive(packet))
+        }
+        val report = log.report()
+        assertTrue(report.contains("notifications=2"))
+        assertTrue(report.contains("messages=2 ignored=1"))
+        assertTrue(report.contains("address=0x185b raw=100 source=push"))
+        assertFalse(report.contains("private bike serial"))
+        assertFalse(report.contains("70726976617465"))
+    }
 }

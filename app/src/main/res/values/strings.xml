@@ -1,11 +1,11 @@
 <resources>
     <color name="icon_background">#101613</color>
     <string name="find_bike">Fahrrad auswählen</string>
-    <string name="connect_direct">Direkt verbinden (Test)</string>
+    <string name="connect_direct">PDF-Schnittstelle (Test)</string>
     <string name="no_bike_selected">Noch kein Fahrrad ausgewählt</string>
     <string name="bike_selected">Fahrrad ausgewählt · jetzt „Live-Test starten“ antippen</string>
     <string name="selected_bike_name">Ausgewählt: %1$s</string>
-    <string name="offer_accessory">Live-Test starten</string>
+    <string name="start_live">Live-Test starten</string>
     <string name="stop">Stoppen</string>
     <string name="no_data">Noch keine Fahrdaten</string>
     <string name="device_name_address">%1$s\n%2$s</string>

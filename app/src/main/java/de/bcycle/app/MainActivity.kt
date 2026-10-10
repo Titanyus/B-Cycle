@@ -25,7 +25,7 @@ import java.time.Instant
 import java.util.Locale
 
 class MainActivity : Activity(), BoschConnection.Listener {
-    private enum class Action { SELECT, ACCESSORY, DIRECT }
+    private enum class Action { SELECT, MCSP, LDI }
     private lateinit var connection: BoschConnection
     private val diagnostics = DiagnosticLog()
     private var pendingReport: String? = null
@@ -33,6 +33,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
     private lateinit var speed: TextView
     private lateinit var power: TextView
     private lateinit var packetAge: TextView
+    private lateinit var reception: TextView
     private lateinit var devices: LinearLayout
     private lateinit var rereadButton: Button
     private lateinit var selectedBikeSummary: TextView
@@ -41,12 +42,13 @@ class MainActivity : Activity(), BoschConnection.Listener {
     private var lastPacketAt: Long? = null
     private var nextAction = Action.SELECT
     private var selectedBike: BluetoothDevice? = null
-    private val permissions = arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADVERTISE)
+    private val permissions = arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
     private val tick = object : Runnable {
         override fun run() {
             packetAge.text = lastPacketAt?.let {
                 "Letztes Datenpaket vor ${(SystemClock.elapsedRealtime() - it) / 1000} s"
             } ?: getString(R.string.no_data)
+            reception.text = diagnostics.receptionSummary()
             handler.postDelayed(this, 1000)
         }
     }
@@ -82,8 +84,10 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setPadding(0, dp(12), 0, dp(8))
         }
         packetAge = label(getString(R.string.no_data), 14f)
+        reception = label(diagnostics.receptionSummary(), 14f).apply { setPadding(0, dp(8), 0, dp(8)) }
         column.addView(status)
         column.addView(packetAge)
+        column.addView(reception)
         selectedBikeSummary = label(getString(if (selectedBike == null) R.string.no_bike_selected else R.string.bike_selected), 14f)
         column.addView(selectedBikeSummary)
         column.addView(Button(this).apply {
@@ -91,8 +95,8 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setOnClickListener { requestAction(Action.SELECT) }
         })
         column.addView(Button(this).apply {
-            setText(R.string.offer_accessory)
-            setOnClickListener { requestAction(Action.ACCESSORY) }
+            setText(R.string.start_live)
+            setOnClickListener { requestAction(Action.MCSP) }
         })
         column.addView(Button(this).apply {
             setText(R.string.stop)
@@ -110,11 +114,11 @@ class MainActivity : Activity(), BoschConnection.Listener {
         })
         column.addView(Button(this).apply {
             setText(R.string.connect_direct)
-            setOnClickListener { requestAction(Action.DIRECT) }
+            setOnClickListener { requestAction(Action.LDI) }
         })
         column.addView(label(
-            "„Fahrrad auswählen“ öffnet eine Geräteliste und baut keine Verbindung auf. Nach der Auswahl „Live-Test starten“ antippen. Flow kann zum Entsperren und Aufzeichnen weiterlaufen. B-Cycle kündigt die Bosch-Schnittstelle an und öffnet einen eigenen Datenzugriff auf einen vorhandenen oder neu gemeldeten Rad-Link.\n\n" +
-                "Experimenteller Test: Smartphone-Unterstützung ist von Bosch nicht zugesichert. Die Live-Anzeige läuft im Vordergrund; der Zubehörtest darf bis zu zwei Minuten im Hintergrund bleiben. In Flow erscheint gegebenenfalls der Bluetooth-Gerätename des Handys, nicht „B-Cycle“.",
+            "Fahrrad mit Flow entsperren, hier auswählen und „Live-Test starten“ antippen. Flow darf weiterlaufen. Die Live-Anzeige läuft im Vordergrund.\n\n" +
+                "Experimenteller Test. Bei fehlenden Werten „Werte erneut lesen“ und anschließend „Diagnose speichern“ verwenden. „PDF-Schnittstelle (Test)“ prüft den bisherigen Datenweg separat.",
             14f,
         ).apply { setPadding(0, dp(12), 0, 0) })
         devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -131,7 +135,7 @@ class MainActivity : Activity(), BoschConnection.Listener {
         if (nextAction == Action.SELECT || bike == null) { startSelection(); return }
         diagnostics.reset(diagnosticHeader())
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        if (nextAction == Action.ACCESSORY) connection.offerAccessory(bike) else connection.connect(bike)
+        connection.connect(bike, useMcsp = nextAction == Action.MCSP)
     }
     private fun startSelection() {
         diagnostics.reset(diagnosticHeader())

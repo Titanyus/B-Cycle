@@ -30,7 +30,7 @@ object LiveDataDecoder {
         return LiveData(speed, power)
     }
 
-    private class Reader(private val bytes: ByteArray) {
+    internal class Reader(private val bytes: ByteArray) {
         private var position = 0
         fun finished() = position == bytes.size
         fun varint(): Long {
