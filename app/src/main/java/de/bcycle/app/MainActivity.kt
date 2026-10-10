@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.os.SystemClock
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -19,11 +18,6 @@ import java.io.IOException
 class MainActivity : Activity() {
     private lateinit var runtime: RideRuntime
     private lateinit var dashboard: DashboardView
-    private lateinit var summary: TextView
-    private lateinit var status: TextView
-    private lateinit var packetAge: TextView
-    private lateinit var sensorsStatus: TextView
-    private lateinit var recordingStatus: TextView
     private lateinit var startButton: Button
     private var dashboardLayout = DashboardLayout.defaults
     private var picker: AlertDialog? = null
@@ -35,6 +29,7 @@ class MainActivity : Activity() {
     private var pendingSensor: String? = null
     private var pendingStart = false
     private var pendingReport: String? = null
+    private var displayedRecordingStatus: String? = null
     private val observer: () -> Unit = { render(); refreshSensorRows() }
     private val preferences get() = runtime.preferences
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
@@ -54,42 +49,38 @@ class MainActivity : Activity() {
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
         }
         setContentView(root)
-        val header = column()
-        summary = label("", 12f).apply { isSingleLine = true }
-        status = label("", 12f, Color.LTGRAY).apply { maxLines = 2; accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
-        packetAge = label("", 11f, Color.GRAY)
-        sensorsStatus = label("", 11f, Color.LTGRAY).apply { maxLines = 2 }
-        recordingStatus = label("", 11f, Color.LTGRAY).apply { maxLines = 2 }
-        listOf(summary, status, packetAge, sensorsStatus, recordingStatus).forEach { header.addView(it) }
-        root.addView(header)
         dashboard = DashboardView(this) { chooseField(it) }
-        root.addView(dashboard, LinearLayout.LayoutParams(-1, 0, 1f))
+        val dashboardArea = FrameLayout(this).apply {
+            addView(dashboard, FrameLayout.LayoutParams(-1, -2, android.view.Gravity.TOP))
+        }
+        root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
         val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        fun toolbarButton(title: String, action: () -> Unit) = button(title, action).apply {
+        fun toolbarButton(title: String, color: Int = Color.rgb(208, 0, 0), action: () -> Unit) = button(title, action).apply {
             textSize = 20f; setTextColor(Color.WHITE); minWidth = 0; minHeight = 0
             setPadding(dp(4), 0, dp(4), 0)
-            background = android.graphics.drawable.GradientDrawable().apply { setColor(Color.rgb(208, 0, 0)); setStroke(1, Color.rgb(70, 0, 0)) }
+            background = android.graphics.drawable.GradientDrawable().apply { setColor(color); setStroke(1, Color.rgb(70, 0, 0)) }
         }
         startButton = toolbarButton("START") {
             if (runtime.recording) startService(Intent(this, RecordingService::class.java).setAction(RecordingService.STOP)) else startRide()
         }
         toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), 3f))
-        toolbar.addView(toolbarButton("☰") { showMenu() }.apply { contentDescription = "Menü öffnen" }, LinearLayout.LayoutParams(0, dp(58), 1f))
+        toolbar.addView(toolbarButton("☰", Color.rgb(144, 0, 0)) { showMenu() }.apply { contentDescription = "Menü öffnen" }, LinearLayout.LayoutParams(0, dp(58), 1f))
         root.addView(toolbar)
         render()
     }
     private fun render() {
         if (!::dashboard.isInitialized) return
-        summary.text = runtime.bikeAddress?.let { runtime.bikeName } ?: "Noch kein Fahrrad ausgewählt"
-        status.text = runtime.bikeStatus
-        packetAge.text = runtime.lastPacketAt?.let { "Letztes Fahrradpaket vor ${(SystemClock.elapsedRealtime() - it) / 1000} s" } ?: "Noch keine Fahrraddaten"
         val gps = runtime.gpsValues
-        val gpsStatus = if (runtime.gpsStatus == "GPS · Live" && gps.speedKmh == null) "GPS · Signal unterbrochen" else runtime.gpsStatus
-        sensorsStatus.text = "$gpsStatus · ${runtime.heartStatus}"
-        recordingStatus.text = if (runtime.recording && runtime.recordingStatus == "Aufzeichnung läuft")
-            "● Aufzeichnung · ${runtime.elapsedMs / 60000} min" else runtime.recordingStatus
         startButton.text = if (runtime.recording) "STOPP · SPEICHERN" else if (runtime.saving) "SPEICHERN …" else "START"
         startButton.isEnabled = !runtime.saving || runtime.recording
+        val message = runtime.recordingStatus
+        if (message != displayedRecordingStatus) {
+            displayedRecordingStatus = message
+            if (message.startsWith("Gespeichert:") || message.startsWith("FIT nicht gespeichert") ||
+                message.contains("Fehler") || message.contains("überlastet") ||
+                message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        }
         dashboard.show(dashboardLayout, runtime.bikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
         if (runtime.visible && (runtime.connection.isActive || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -134,16 +125,15 @@ class MainActivity : Activity() {
         picker = AlertDialog.Builder(this).setTitle("Feld ${index + 1} belegen").setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).show()
     }
     private fun showMenu() {
-        val choices = arrayOf("Sensoren verwalten", "Fahrrad auswählen", "Aufzeichnung einstellen", "Ungespeicherte Fahrten speichern", "GPS-Messung erklärt", "Diagnose speichern", "Standardbelegung herstellen", "Schrift & Lizenz")
+        val choices = arrayOf("Sensoren verwalten", "Aufzeichnung einstellen", "Ungespeicherte Fahrten speichern", "GPS-Messung erklärt", "Diagnose speichern", "Standardbelegung herstellen", "Schrift & Lizenz")
         menu = AlertDialog.Builder(this).setTitle("B-Cycle").setItems(choices) { _, item -> when (item) {
             0 -> showSensorManager()
-            1 -> selectSensor("bike")
-            2 -> recordingSettings()
-            3 -> runtime.retryPending()
-            4 -> menu = AlertDialog.Builder(this).setTitle("GPS-Messung").setMessage("Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").setPositiveButton("Schließen", null).show()
-            5 -> exportDiagnostic()
-            6 -> { dashboardLayout = DashboardLayout.defaults; preferences.edit().putString("dashboard", dashboardLayout.encode()).apply(); render() }
-            7 -> menu = AlertDialog.Builder(this).setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
+            1 -> recordingSettings()
+            2 -> runtime.retryPending()
+            3 -> menu = AlertDialog.Builder(this).setTitle("GPS-Messung").setMessage("Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").setPositiveButton("Schließen", null).show()
+            4 -> exportDiagnostic()
+            5 -> { dashboardLayout = DashboardLayout.defaults; preferences.edit().putString("dashboard", dashboardLayout.encode()).apply(); render() }
+            6 -> menu = AlertDialog.Builder(this).setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
         } }.show()
     }
     private fun showSensorManager() {
@@ -167,16 +157,17 @@ class MainActivity : Activity() {
             rows.findViewWithTag<TextView>("gps_state")?.text = runtime.gpsStatus
             return
         }
-        fun sensor(title: String, state: String, tag: String, enabled: Boolean, toggle: () -> Unit) {
+        fun sensor(title: String, state: String, tag: String, enabled: Boolean, choose: String? = null, kind: String? = null, toggle: () -> Unit) {
             rows.addView(label(title, 18f).apply { setPadding(0, dp(12), 0, dp(4)) })
             rows.addView(label(state, 13f, Color.LTGRAY).apply { this.tag = tag })
+            if (choose != null && kind != null) rows.addView(button(choose) { selectSensor(kind) })
             rows.addView(button(if (enabled) "Trennen" else "Verbinden") { toggle(); rows.removeAllViews(); refreshSensorRows() })
         }
         sensor("GPS", runtime.gpsStatus, "gps_state", runtime.gpsEnabled) { if (runtime.gpsEnabled) runtime.setGpsEnabled(false) else enableGps() }
-        sensor("E-Bike · ${if (runtime.bikeAddress == null) "Kein Rad gespeichert" else runtime.bikeName}", runtime.bikeStatus, "bike_state", runtime.bikeEnabled && runtime.bikeAddress != null) {
+        sensor("E-Bike · ${if (runtime.bikeAddress == null) "Kein Rad gespeichert" else runtime.bikeName}", runtime.bikeStatus, "bike_state", runtime.bikeEnabled && runtime.bikeAddress != null, "Fahrrad auswählen", "bike") {
             if (runtime.bikeAddress == null) selectSensor("bike") else if (!runtime.hasBluetooth()) requestSensorPermission("bikeConnect") else runtime.setBikeEnabled(!runtime.bikeEnabled)
         }
-        sensor("Pulsmesser · ${if (runtime.heartAddress == null) "Kein Sensor gespeichert" else runtime.heartName}", runtime.heartStatus, "heart_state", runtime.heartEnabled && runtime.heartAddress != null) {
+        sensor("Pulsmesser · ${if (runtime.heartAddress == null) "Kein Sensor gespeichert" else runtime.heartName}", runtime.heartStatus, "heart_state", runtime.heartEnabled && runtime.heartAddress != null, "Sensor auswählen", "heart") {
             if (runtime.heartAddress == null) selectSensor("heart") else if (!runtime.hasBluetooth()) requestSensorPermission("heartConnect") else runtime.setHeartEnabled(!runtime.heartEnabled)
         }
     }
@@ -282,7 +273,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.4.0-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.4.1-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); super.onSaveInstanceState(outState) }

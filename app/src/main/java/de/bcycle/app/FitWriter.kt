@@ -58,7 +58,7 @@ object FitWriter {
                 if (developerIds.isNotEmpty()) {
                     val uuid = UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
                     val appId = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN).putLong(uuid.mostSignificantBits).putLong(uuid.leastSignificantBits).array()
-                    message(2, 207, listOf(Field(1, 13, appId), u8(3, 0.0), u32(4, 400.0)))
+                    message(2, 207, listOf(Field(1, 13, appId), u8(3, 0.0), u32(4, 401.0)))
                     developerIds.forEachIndexed { index, id ->
                         val field = RecordField.options.find { it.id == id }
                         message(3, 206, listOf(u8(0, 0.0), u8(1, index.toDouble()), u8(2, 0x89.toDouble()),

@@ -8,6 +8,7 @@ import android.graphics.drawable.StateListDrawable
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import java.util.Locale
@@ -72,7 +73,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val wide = MeasureSpec.getSize(widthMeasureSpec) > MeasureSpec.getSize(heightMeasureSpec)
         if (wide != landscape) { landscape = wide; buildTiles(wide) }
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val available = MeasureSpec.getSize(heightMeasureSpec)
+        // Keep the former title/value space; reclaim the unit row and removed header.
+        // Short viewports use their full reference area so text remains readable.
+        val reference = available - if (available >= dp(450)) dp(88) else 0
+        val compact = (reference * .85f + dp(16) * (if (wide) 3 else 4) * .15f).toInt().coerceAtMost(available)
+        val height = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST)
+            MeasureSpec.makeMeasureSpec(compact, MeasureSpec.EXACTLY) else heightMeasureSpec
+        super.onMeasure(widthMeasureSpec, height)
     }
 
     fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()) {
@@ -97,12 +105,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
         private val title = text(6, 18, captions, 2)
         private val value = text(10, 240, numbers, 1)
-        private val unit = text(5, 16, captions, 2)
+        private val unit = text(5, 16, captions, 1)
 
         init {
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0, .20f))
-            container.addView(value, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
-            container.addView(unit, LayoutParams(LayoutParams.MATCH_PARENT, 0, .15f))
+            container.addView(ValueRow(value, unit), LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
         }
 
         fun show(field: DashboardField, data: LiveData) {
@@ -111,12 +118,41 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             setText(title, caption.uppercase(Locale.GERMANY))
             setText(value, next.text)
             setText(unit, next.unit)
+            unit.visibility = if (next.unit.isEmpty()) GONE else VISIBLE
             val font = if (field.numeric) numbers else captions
             if (value.typeface !== font) value.typeface = font
             val color = if (next.available) Color.WHITE else Color.rgb(119, 119, 119)
             if (value.currentTextColor != color) value.setTextColor(color)
             unit.setTextColor(Color.rgb(163, 163, 163))
             container.contentDescription = "$caption: ${if (next.available) "${next.text} ${next.unit}" else "noch kein Wert"}. Antippen, um das Feld zu ändern."
+        }
+    }
+
+    /** Keep the number centred in its tile, with the unit following its actual text edge. */
+    private inner class ValueRow(private val value: TextView, private val unit: TextView) : ViewGroup(context) {
+        init { addView(value); addView(unit) }
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            val width = MeasureSpec.getSize(widthMeasureSpec)
+            val height = MeasureSpec.getSize(heightMeasureSpec)
+            if (unit.visibility != GONE) unit.measure(
+                MeasureSpec.makeMeasureSpec(width / 4, MeasureSpec.AT_MOST),
+                MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
+            val reserve = if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(6)
+            value.measure(MeasureSpec.makeMeasureSpec((width - 2 * reserve).coerceAtLeast(1), MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
+            setMeasuredDimension(width, height)
+        }
+        override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+            val start = (width - value.measuredWidth) / 2
+            value.layout(start, 0, start + value.measuredWidth, value.measuredHeight)
+            if (unit.visibility != GONE) {
+                // TextView finalises automatic font sizing during layout, before baseline alignment.
+                unit.layout(0, 0, unit.measuredWidth, unit.measuredHeight)
+                val textWidth = value.layout?.getLineWidth(0) ?: 0f
+                val x = (width / 2f + textWidth / 2f + dp(6)).toInt()
+                val y = (value.baseline - unit.baseline).coerceIn(0, (height - unit.measuredHeight).coerceAtLeast(0))
+                unit.offsetLeftAndRight(x); unit.offsetTopAndBottom(y)
+            }
         }
     }
 

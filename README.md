@@ -7,7 +7,7 @@ Bosch-MCSP, Standard-BLE-Pulsmesser und lokale FIT-Fahrtaufzeichnung.
 
 ## APK herunterladen
 
-[Installierbare APK 0.4.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.4.0-test.apk).
+[Installierbare APK 0.4.1 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.4.1-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,20 +16,22 @@ Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
 APK-Größe: 226.990 Byte.
-SHA-256: `d19d8782bf6afc2e11a2544a0e577eee2d43f93a2bf1f6e7ff34f3b676d3bb62`.
+SHA-256: `f6f95297879b7507ccd92aee8357976f7f7a4add2a497bee047a77ecc6bc5be8`.
 
-Build und APK-Signatur wurden geprüft; alle 69 Tests sind bestanden.
-Android-Lint meldet 13 Warnungen und keine Fehler.
+Build und APK-Signatur wurden geprüft; alle 71 Tests sind bestanden.
+Android-Lint meldet 12 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
-Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Ein echter
-Cycplus-Test sowie eine Fahrt mit ausgeschaltetem Display auf dem Poco stehen aus.
+Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
+Pulsmesser-Test wurde vom Nutzer bestätigt. Eine Fahrt mit ausgeschaltetem
+Display auf dem Poco steht noch aus.
 
 ## Benutzung
 
 1. Als Update installieren, Fahrrad mit Bosch Flow entsperren. **Flow darf weiterlaufen.**
 2. **☰ → Sensoren verwalten → Sensor hinzufügen** öffnet die Auswahl für Bosch
-   E-Bike oder BLE-Pulsmesser. „Fahrrad auswählen“ steht zusätzlich direkt im Menü.
+   E-Bike oder BLE-Pulsmesser. „Fahrrad auswählen“ und „Sensor auswählen“ stehen
+   direkt bei den jeweiligen Sensoren; die separate Fahrradauswahl im Hauptmenü entfällt.
    Bluetooth-Zugriff erlauben und Sensor wählen. Aktivierten Pulsmesser tragen,
    damit er sendet; er muss den Standard-Heart-Rate-Service unterstützen.
 3. Rad und Pulsmesser werden lokal gespeichert und verbinden sich automatisch
@@ -61,7 +63,11 @@ einer Smartphone-App im Flow-Zubehörmenü ist erforderlich. „Werte erneut les
 wurde aus der Bedienoberfläche entfernt. WebDAV folgt später.
 
 Das Dashboard verwendet Schwarz, Weiß, dünne graue Linien, große schmale Ziffern
-und eine rote Bedienleiste. Hochformat: zwei Felder, großes Feld, zweimal zwei
+und eine rote Bedienleiste mit dunklerem Hamburger-Button. Das obere Infofeld
+ist entfernt. Einheiten stehen rechts neben den weiterhin mittigen Messwerten,
+mit unveränderten Schriftarten und Größenbereichen. Die Datenfelder sind kompakter;
+darunter bleibt Platz für eine spätere Karte. Speicherbestätigung und Fehler
+erscheinen als kurze Hinweise statt in einer dauerhaften Kopfzeile. Hochformat: zwei Felder, großes Feld, zweimal zwei
 Felder. Querformat: großes Feld links, sechs Felder rechts. Belegung, Sensoren und
 Aufzeichnungsauswahl werden lokal gespeichert. Die Ziffernschrift ist
 [Bebas Neue, SIL OFL](docs/fonts.md). Details: [FIT-Aufzeichnung](docs/fit.md).

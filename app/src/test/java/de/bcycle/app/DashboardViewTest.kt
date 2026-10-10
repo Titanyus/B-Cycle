@@ -36,13 +36,55 @@ class DashboardViewTest {
         for ((index, tile) in tiles.withIndex()) { tile.performClick(); assertEquals(index, clicked.last()) }
         for ((width, height) in listOf(1080 to 1950, 1950 to 750, 720 to 960)) {
             measure(view, width, height)
-            for (text in descendants(view).filterIsInstance<TextView>()) {
+            for (text in descendants(view).filterIsInstance<TextView>().filter { it.visibility == View.VISIBLE }) {
                 assertTrue(text.width > 0 && text.height > 0)
                 val layout = requireNotNull(text.layout)
                 assertTrue("${text.text} at ${width}x$height: layout=${layout.height}, cell=${text.height}", layout.height <= text.height)
                 for (line in 0 until layout.lineCount) assertTrue(layout.getLineWidth(line) <= text.width + 1)
             }
         }
+    }
+
+    @Test fun compactDashboardKeepsValuesCentredAndUnitsToTheirRightWithSpaceAboveToolbar() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        val content = controller.get().findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
+        val runtime = RideRuntime.get(controller.get())
+        runtime.onData(LiveData(2530, 183, mapOf(LiveMetric.CADENCE to 170L, LiveMetric.BATTERY to 96L,
+            LiveMetric.ASSIST_MODE to 2L, LiveMetric.ODOMETER to 14_791_937L, LiveMetric.MOTOR_POWER to 320L),
+            listOf("OFF", "ECO", "TOUR+")), true)
+        for ((width, height) in listOf(1080 to 2130, 2130 to 1080, 720 to 1280)) {
+            measure(content, width, height)
+            val dashboard = descendants(content).filterIsInstance<DashboardView>().single()
+            assertEquals(0, dashboard.top)
+            assertTrue(dashboard.height < (dashboard.parent as View).height)
+            val tiles = descendants(dashboard).filter { it.isClickable }.map { it as ViewGroup }
+            assertEquals(7, tiles.size)
+            for (tile in tiles) {
+                val row = tile.getChildAt(1) as ViewGroup
+                val value = row.getChildAt(0) as TextView
+                val unit = row.getChildAt(1) as TextView
+                assertEquals(row.width / 2.0, (value.left + value.right) / 2.0, 1.0)
+                if (unit.visibility == View.VISIBLE) {
+                    assertTrue("${value.text} ${unit.text}: unit outside tile", unit.right <= row.width)
+                    assertTrue(unit.left >= row.width / 2f + value.layout.getLineWidth(0) / 2f)
+                    assertEquals(value.top + value.baseline, unit.top + unit.baseline)
+                }
+            }
+        }
+        controller.pause().stop().destroy()
+    }
+
+    @Test fun bikeSelectionLivesInSensorManagerAlongsidePulseSelection() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        descendants(controller.get().findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
+        val menu = ShadowAlertDialog.getLatestAlertDialog()
+        val choices = (0 until menu.listView.adapter.count).map { menu.listView.adapter.getItem(it).toString() }
+        assertFalse(choices.contains("Fahrrad auswählen"))
+        menu.listView.performItemClick(null, choices.indexOf("Sensoren verwalten"), 0)
+        val manager = descendants(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
+        assertTrue(manager.contains("Fahrrad auswählen"))
+        assertTrue(manager.contains("Sensor auswählen"))
+        controller.pause().stop().destroy()
     }
 
     @Test fun realAndroidRenderUsesPowerDistinctFromMotorAndShrinksLongValues() {
