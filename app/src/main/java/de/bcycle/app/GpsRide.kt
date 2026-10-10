@@ -1,0 +1,198 @@
+package de.bcycle.app
+
+import kotlin.math.*
+
+/** Monotonic timestamps and SI units; independent of Android and of the bike sensor. */
+data class GpsFix(
+    val timeMs: Long, val latitude: Double, val longitude: Double, val accuracyM: Double,
+    val speedMps: Double? = null, val speedAccuracyMps: Double? = null,
+    val altitudeM: Double? = null, val verticalAccuracyM: Double? = null, val seaLevel: Boolean = false,
+)
+
+data class GpsValues(
+    val speedKmh: Double? = null, val distanceM: Double? = null,
+    val movingAverageKmh: Double? = null, val overallAverageKmh: Double? = null,
+    val maximumKmh: Double? = null, val movingMs: Long? = null, val stoppedMs: Long? = null,
+    val elapsedMs: Long? = null, val altitudeM: Double? = null, val ascentM: Double? = null,
+    val descentM: Double? = null, val gradientPercent: Double? = null, val seaLevel: Boolean = false,
+)
+
+/** Conservative foreground trip estimates. Coordinates are held only as a distance anchor. */
+class GpsRide {
+    private var seenTime = -1L
+    private var last: GpsFix? = null
+    private var anchor: GpsFix? = null
+    private var clock: Long? = null
+    private var hasFix = false
+    private var speed: Double? = null
+    private var distance = 0.0
+    private var movingTime = 0L
+    private var stoppedTime = 0L
+    private var elapsed = 0L
+    private var maximum = 0.0
+    private var height: Double? = null
+    private var heightReference: Double? = null
+    private var heightTime: Long? = null
+    private var heightDatum = false
+    private val heights = ArrayDeque<Double>()
+    private var ascent: Double? = null
+    private var descent: Double? = null
+    private val slope = ArrayDeque<Pair<Double, Double>>()
+    private var gradient: Double? = null
+    var accepted = 0; private set
+    var rejected = 0; private set
+
+    fun pause() {
+        last = null; anchor = null; clock = null; speed = null
+        clearHeightContinuity()
+    }
+
+    fun reset() {
+        pause(); seenTime = -1L; hasFix = false; distance = 0.0
+        movingTime = 0; stoppedTime = 0; elapsed = 0; maximum = 0.0
+        height = null; ascent = null; descent = null; accepted = 0; rejected = 0
+    }
+
+    private fun advance(now: Long) {
+        clock?.let { if (now > it) elapsed += now - it }
+        if (clock != null) clock = max(now, clock!!)
+    }
+
+    fun snapshot(now: Long): GpsValues {
+        advance(now)
+        val fresh = last?.let { now - it.timeMs in 0..5_000 } == true
+        return GpsValues(
+            if (fresh) speed?.times(3.6) else null, if (hasFix) distance else null,
+            if (movingTime > 0) distance * 3600 / movingTime else if (hasFix) 0.0 else null,
+            if (elapsed > 0) distance * 3600 / elapsed else if (hasFix) 0.0 else null,
+            if (hasFix) maximum else null, if (hasFix) movingTime else null,
+            if (hasFix) stoppedTime else null, if (hasFix) elapsed else null,
+            if (fresh && heightTime?.let { now - it <= 5_000 } == true) height else null,
+            ascent, descent, if (fresh) gradient else null, heightDatum,
+        )
+    }
+
+    fun accept(fix: GpsFix, now: Long): Boolean {
+        // Late, out-of-order and cached fixes must never change counters or revive old speed.
+        if (fix.timeMs <= seenTime || now - fix.timeMs !in 0..5_000) { rejected++; return false }
+        seenTime = fix.timeMs
+        if (!fix.latitude.isFinite() || fix.latitude !in -90.0..90.0 ||
+            !fix.longitude.isFinite() || fix.longitude !in -180.0..180.0 ||
+            !fix.accuracyM.isFinite() || fix.accuracyM !in 0.0..20.0) {
+            rejected++; breakFix(); return false
+        }
+        val previous = last
+        val dt = previous?.let { (fix.timeMs - it.timeMs) / 1000.0 }
+        if (previous != null && dt != null && dt <= 10 &&
+            metres(previous, fix) > 35 * dt + max(previous.accuracyM, fix.accuracyM) + 5) {
+            rejected++; breakFix(); return false
+        }
+        advance(fix.timeMs)
+        if (clock == null) clock = fix.timeMs
+        hasFix = true; accepted++
+        val continuous = dt != null && dt in 0.001..10.0
+        if (!continuous) { anchor = fix; speed = null; clearHeightContinuity() }
+
+        val direct = fix.speedMps?.takeIf { it.isFinite() && it in 0.0..35.0 &&
+            (fix.speedAccuracyMps == null || (fix.speedAccuracyMps.isFinite() && fix.speedAccuracyMps in 0.0..1.5)) &&
+            (!continuous || speed == null || abs(it - speed!!) <= max(4.0, 6 * dt!!)) }
+        val origin = anchor
+        val displacement = origin?.let { metres(it, fix) } ?: 0.0
+        val anchorSeconds = origin?.let { (fix.timeMs - it.timeMs) / 1000.0 } ?: 0.0
+        // GNSS Doppler speed is preferred; position-only speed needs displacement above uncertainty.
+        val derived = if (continuous && origin != null && anchorSeconds > 0 &&
+            displacement >= max(4.0, origin.accuracyM + fix.accuracyM)) displacement / anchorSeconds else null
+        val fallbackStopped = direct == null && derived == null && anchorSeconds >= 5
+        val measured = direct ?: derived ?: if (fallbackStopped) 0.0 else speed ?: 0.0
+        val moving = measured >= 0.7
+        speed = if (!moving) 0.0 else {
+            val old = speed
+            if (old == null || !continuous) measured else old + (measured - old) *
+                (1 - exp(-(if (direct == null && derived != null) anchorSeconds else dt!!) / 1.5))
+        }
+        if (continuous) maximum = max(maximum, speed!! * 3.6)
+        if (continuous) {
+            val interval = fix.timeMs - previous!!.timeMs
+            if (moving) movingTime += interval else stoppedTime += interval
+            if (moving && origin != null && (direct != null || derived != null) &&
+                displacement >= max(2.5, (origin.accuracyM + fix.accuracyM) * 0.35)) {
+                distance += displacement
+                anchor = fix
+            } else if (!moving && (direct != null || fallbackStopped)) anchor = fix
+        }
+        last = fix
+        updateHeight(fix, moving)
+        return true
+    }
+
+    private fun breakFix() {
+        last = null; anchor = null; speed = null; clearHeightContinuity()
+    }
+
+    private fun clearHeightContinuity() {
+        heights.clear(); heightReference = null; heightTime = null; slope.clear(); gradient = null
+    }
+
+    private fun updateHeight(fix: GpsFix, moving: Boolean) {
+        val raw = fix.altitudeM
+        val accuracy = fix.verticalAccuracyM
+        if (raw == null || !raw.isFinite() || raw !in -1000.0..10000.0 ||
+            accuracy == null || !accuracy.isFinite() || accuracy !in 0.0..12.0) {
+            clearHeightContinuity(); return
+        }
+        if (heightTime == null || heightDatum != fix.seaLevel) {
+            clearHeightContinuity(); height = raw; heightDatum = fix.seaLevel
+        }
+        heights.addLast(raw)
+        if (heights.size > 5) heights.removeFirst()
+        val sorted = heights.sorted()
+        val median = sorted[sorted.size / 2]
+        val dt = heightTime?.let { (fix.timeMs - it) / 1000.0 } ?: 0.0
+        if (dt > 0) height = height!! + (median - height!!) * (1 - exp(-dt / 6.0))
+        heightTime = fix.timeMs
+        val filtered = height!!
+        if (ascent == null) { ascent = 0.0; descent = 0.0 }
+        if (!moving) {
+            heightReference = filtered; slope.clear(); gradient = null; return
+        }
+        val reference = heightReference
+        if (reference == null) heightReference = filtered
+        else if (abs(filtered - reference) >= max(3.0, accuracy * 0.5)) {
+            if (filtered > reference) ascent = ascent!! + filtered - reference
+            else descent = descent!! + reference - filtered
+            heightReference = filtered
+        }
+        if (slope.lastOrNull()?.first != distance) slope.addLast(distance to filtered)
+        while (slope.size > 2 && slope.elementAt(1).first <= distance - 40) slope.removeFirst()
+        while (slope.size > 100) slope.removeFirst()
+        val start = slope.firstOrNull()
+        gradient = if (start != null && distance - start.first >= 30) {
+            ((filtered - start.second) / (distance - start.first) * 100).takeIf { it.isFinite() && abs(it) <= 50 }
+        } else null
+    }
+
+    companion object {
+        fun metres(a: GpsFix, b: GpsFix): Double {
+            val lat = Math.toRadians(b.latitude - a.latitude)
+            val lon = Math.toRadians(b.longitude - a.longitude)
+            val h = sin(lat / 2).pow(2) + cos(Math.toRadians(a.latitude)) *
+                cos(Math.toRadians(b.latitude)) * sin(lon / 2).pow(2)
+            return 6_371_008.8 * 2 * asin(sqrt(h.coerceIn(0.0, 1.0)))
+        }
+    }
+}
+
+class BikeRide {
+    private var previous: Long? = null
+    var distanceM: Long? = null; private set
+    fun update(odometer: Long?) {
+        if (odometer == null) return
+        previous?.let { if (odometer >= it) distanceM = (distanceM ?: 0) + odometer - it }
+        if (distanceM == null) distanceM = 0
+        previous = odometer
+    }
+    fun pause() { previous = null }
+    fun reset(odometer: Long? = null) { previous = odometer; distanceM = if (odometer == null) null else 0 }
+}
+
+class RideSession(val gps: GpsRide = GpsRide(), val bike: BikeRide = BikeRide())

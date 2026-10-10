@@ -2,52 +2,83 @@
 
 Schlanker Radcomputer für Android 13+ (API 33), mit nativer Kotlin-Oberfläche und
 Androids Bluetooth-LE-API. Keine UI-, Netzwerk-, Analyse- oder BLE-Bibliotheken im
-APK, keine Internetberechtigung, kein GPS und kein dauerhafter Hintergrunddienst.
+APK, keine Internetberechtigung und kein dauerhafter Hintergrunddienst.
+Sieben frei belegbare Datenfelder, Bosch-MCSP und native GPS-Messung.
 Cycplus-Herzfrequenz folgt später.
 
 ## APK herunterladen
 
-[Installierbare APK 0.2.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.2.0-test.apk).
+[Installierbare APK 0.3.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.3.0-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
-Die APK ist 95.735 Byte groß, optimiert und mit demselben lokalen Testschlüssel
+Die APK ist 165.494 Byte groß, optimiert und mit demselben lokalen Testschlüssel
 wie die bisherigen Versionen signiert. Sie kann als Update installiert werden.
-SHA-256: `7dab6b06b082e4b8b0574c4a8592b84bbccd92ad4bbe29a4378eede28d1f3b9d`.
+SHA-256: `19b110d0b1571a15fdd94b8f9083a5e65e0e9addf2eed185c236283df9b47e3c`.
 
-Build, 36 JVM-Tests, Android-Lint und APK-Signatur wurden geprüft.
-Die automatische Verbindung und die zusätzlichen Felder benötigen noch den
-Hardwaretest dieser Version. Geschwindigkeit und Fahrerleistung über denselben
-MCSP-Verbindungsweg wurden vom Nutzer bei einer echten Fahrt bestätigt.
+Build, 56 Tests einschließlich nativer Android-Darstellung, Android-Lint und
+APK-Signatur wurden geprüft. Das neue Dashboard und GPS benötigen noch den
+Hardwaretest. Der Nutzer hat die automatische Verbindung und alle zusätzlichen
+Bosch-Werte in 0.2.0 bestätigt. Der BLE-Verbindungsweg bleibt unverändert.
 
 ## Benutzung
 
 1. Als Update installieren, Fahrrad mit Bosch Flow entsperren. **Flow darf weiterlaufen.**
-2. Einmal **„Fahrrad auswählen“** antippen, Bluetooth-Zugriff erlauben und das eigene
+2. Einmal **„RAD“** antippen, Bluetooth-Zugriff erlauben und das eigene
    E-Bike wählen. Die App speichert Name und Bluetooth-Adresse lokal und verbindet
    sich unmittelbar. Auch nach vollständigem Schließen bleibt die Auswahl erhalten.
 3. Beim nächsten Öffnen verbindet sich B-Cycle automatisch mit diesem Rad. Bei
    Verbindungsabbruch erfolgen weitere Versuche, mit Wartezeiten bis zu 30 Sekunden.
    Bluetooth muss eingeschaltet und das Rad erreichbar und entsperrt sein.
 4. **„Stoppen“** hält die automatische Verbindung für diese App-Sitzung an.
-   **„Verbinden“** setzt sie fort. Mit „Fahrrad auswählen“ kann ein anderes Rad
+   **„Verbinden“** setzt sie fort. Mit „RAD“ kann ein anderes Rad
    gespeichert werden; die bisherige Auswahl bleibt bis zur neuen Auswahl erhalten.
 
-Die App hält das Display während einer aktiven Verbindung an. Sie beendet ihren
+5. Ein Datenfeld antippen und seinen Wert auswählen. Die Liste gliedert sich in
+   **GPS** (Fahrt, Höhe) und **E-Bike** (Fahrt, Leistung & Tritt, Akku, Reichweite,
+   Bosch-Aktivität). **Alle sieben Felder**, einschließlich des großen mittleren,
+   lassen sich frei belegen und dürfen denselben Wert mehrfach anzeigen.
+   Eigene Fahrerleistung und Motorleistung sind getrennte Auswahlwerte.
+6. Bei Auswahl eines GPS-Felds **präzisen Standort während der App-Nutzung** erlauben.
+   Alternativ GPS über **MENÜ → GPS aktivieren** einschalten. GPS funktioniert
+   unabhängig von der E-Bike-Verbindung; am besten draußen testen.
+7. **MENÜ → Neue Fahrt** setzt GPS-Fahrtwerte und E-Bike-Fahrdistanz gemeinsam zurück.
+   **GPS pausieren** stoppt nur GPS. Diagnose und erneute Bosch-Leseanfragen liegen
+   ebenfalls im Menü.
+
+Die App hält das Display während einer aktiven Bluetooth- oder GPS-Messung an. Sie beendet ihren
 Datenzugriff beim Verlassen des Vordergrunds und verbindet sich bei der Rückkehr
 wieder, sofern nicht manuell gestoppt wurde. Während der Geräteauswahl und des
 Diagnose-Dateidialogs ist die automatische Verbindung pausiert.
 Keine Suche nach einer Smartphone-App im Flow-Zubehörmenü ist erforderlich.
 
+Das Dashboard verwendet Schwarz, Weiß, dünne graue Linien, große schmale Ziffern
+und eine rote Bedienleiste. Hochformat: zwei Felder, großes Feld, zweimal zwei
+Felder. Querformat: großes Feld links, sechs Felder rechts. Die Belegung sowie die
+Rad-Auswahl und der GPS-Schalter werden lokal gespeichert. Fahrtzähler bleiben
+bei Drehung und kurzem Verlassen der App im Speicher, werden beim vollständigen
+Beenden neu gestartet. Es gibt noch keine gespeicherte Route oder GPX-Datei.
+Die mitgelieferte Ziffernschrift ist [Bebas Neue, SIL OFL](docs/fonts.md).
+
 ## Angezeigte Daten
 
 | Bereich | Werte |
 | --- | --- |
+| GPS · Fahrt | Geschwindigkeit, gefahrene Distanz, Bewegungs- und Gesamtdurchschnitt, Maximaltempo, Fahrtdauer, Bewegungszeit, Standzeit |
+| GPS · Höhe | Höhe, Höhenzugewinn, Höhenverlust, Steigung |
 | Fahrt | Geschwindigkeit, Fahrerleistung, Kadenz, Unterstützungsmodus, Motorleistung, Fahrer- und Motordrehmoment |
-| Fahrrad & Akku | Akkustand, Gesamtkilometer, Akkutemperatur, verbleibende Energie, insgesamt vom Akku abgegebene Energie, Reichweite je Modus |
+| E-Bike · Strecke | Gefahrene Distanz aus Kilometerstand-Differenzen, Gesamtkilometerstand |
+| Fahrrad & Akku | Akkustand, Akkutemperatur, verbleibende Energie, insgesamt vom Akku abgegebene Energie, Reichweite je Modus |
 | Bosch-Aktivität | Durchschnitt und Maximum der Fahrerleistung und Kadenz, Durchschnittsgeschwindigkeit, Fahreranteil an der Antriebsenergie |
 
 Die App abonniert diese belegten MCSP-Felder und fordert Ausgangswerte an.
+GPS-Felder sind eigene Quellen und beeinflussen den Bosch-Datenzugriff nicht.
+Geschwindigkeit und gefahrene Distanz sind ausdrücklich aus **beiden Quellen**
+auswählbar. Die E-Bike-Fahrdistanz beginnt beim ersten empfangenen Kilometerstand;
+der Gesamtkilometerstand wird durch „Neue Fahrt“ nicht verändert.
+GPS-Positionen werden auf Genauigkeit, Alter und Sprünge geprüft. Geschwindigkeit
+wird leicht, Höhe stärker geglättet; Höhenmeter haben eine Änderungsschwelle,
+Steigung ein Streckenfenster. Details und Grenzen: [GPS-Fahrtwerte](docs/gps.md).
 „Werte erneut lesen“ wiederholt die Leseanfragen. Namen der Unterstützungsmodi
 werden vom Fahrrad gelesen; die App setzt keine feste ECO/TOUR/eMTB/TURBO-Liste voraus.
 Bei fehlenden Namen wird die Stufe angezeigt. Reichweiten werden nur bei passender
@@ -62,7 +93,7 @@ Aktivitätswerte stammen vom Bosch-System und aktualisieren sich teilweise selte
 sie sind keine von B-Cycle aufgezeichnete Tour. Akkuenergie gesamt ist ein kumulativer
 Akkuwert, kein Energieverbrauch dieser Fahrt.
 
-0.2.0 nutzt ausschließlich den erprobten MCSP-Kanal. Der PDF/LDI-Vergleich, dessen
+Ab 0.2.0 nutzt die Bosch-Anbindung ausschließlich den erprobten MCSP-Kanal. Der PDF/LDI-Vergleich, dessen
 Decoder und die Diagnosezähler auf der Hauptseite sind entfernt. Eine begrenzte
 Diagnose bleibt für die Überprüfung zusätzlicher Daten verfügbar. Der Test im Stand
 mit frei drehendem Rad lieferte 0 W; bei echter Fahrt bestätigte der Nutzer auch
@@ -81,6 +112,8 @@ Paketzähler, Decoderfehler und Statistiken der bekannten numerischen Felder.
 Die letzten 24 numerischen Messwerte sowie unabhängig davon die letzten 24 Wattwerte
 bleiben erhalten. Gesamte MCSP-Rohpakete, Gerätenamen, Bluetooth-Adressen,
 Modusnamen und Komponentenkennungen werden nicht protokolliert.
+GPS ergänzt Annahme-/Verwerfungszähler und die zusammengefassten Fahrtwerte,
+ohne Koordinaten oder Positionshistorie.
 
 Die Historie ist begrenzt, bleibt bis zum Export im Arbeitsspeicher und wird nicht
 automatisch hochgeladen. Ein neuer Verbindungsversuch startet einen neuen Bericht.
@@ -116,5 +149,12 @@ cd /workspace/B-Cycle
 Die Tests prüfen MCSP-Frames, Fragmentierung, den Startdialog, zusätzliche Feldtypen,
 Skalierungen, unsigned Kilometerstände, gepackte Reichweiten, Modusnamen, Teilupdates,
 begrenzte Diagnosehistorien, serielle Anfragen und automatische Verbindungsversuche.
-Googles Protobuf-Encoder dient ausschließlich als unabhängige Quelle von Testpaketen
-und wird nicht in die App eingebunden. Tests ersetzen keinen Hardwaretest.
+Zusätzlich prüfen sie sieben frei belegbare Felder, gespeicherte Auswahl, Quellgruppen,
+native Android-Schrift und Größen, Standortberechtigung und GPS-Abmeldung,
+Stillstand mit Positions-/Höhenrauschen, Sprünge, Geschwindigkeitsspitzen,
+Empfangslücken, Bewegung ohne gelieferten GPS-Speed, Durchschnittswerte,
+Steigung sowie getrennten Auf-/Abstieg. Googles Protobuf-Encoder und Robolectric
+dienen ausschließlich Tests und werden nicht in die App eingebunden.
+Robolectric-SDKs werden durch Gradle bezogen und im Test über den Offline-Resolver
+geladen, damit die Proxy-Konfiguration auch in der Cloud gilt.
+Tests ersetzen keinen Hardwaretest.

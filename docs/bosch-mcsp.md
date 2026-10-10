@@ -1,12 +1,13 @@
-# Read-only Bosch MCSP in B-Cycle 0.2.0
+# Read-only Bosch MCSP in B-Cycle
 
 B-Cycle now uses only the hardware-tested MCSP path. The user confirmed speed and
 rider power during a real ride with a System Controller v20.9.0 and Mini Remote,
 a Xiaomi Poco F7 Ultra / Android 16, alongside Bosch Flow. Earlier stationary tests
 with a freely spinning rear wheel displayed zero rider watts. The official PDF's
 LDI service repeatedly produced empty reads; that comparison path is removed.
-Additional measurements are based on published verified field mappings; availability
-on this specific bike and this version's automatic connection still need testing.
+The user subsequently confirmed the automatic connection and all additional fields
+in 0.2.0. The attached diagnostic contained all 18 numeric fields, 721 notifications
+and no decoding errors. The 0.3.0 dashboard/GPS change preserves this BLE path.
 
 ## Sources and attribution
 
@@ -127,7 +128,8 @@ show numbered slots. List defaults are empty lists, not fabricated range values.
 
 ## Persistence, lifecycle and diagnostics
 
-Only selected device name/address are stored in private SharedPreferences;
+Selected device name/address, seven stable dashboard field IDs and the GPS enable
+switch are stored in private SharedPreferences;
 Android backup/device transfer is disabled. Selection connects immediately.
 Opening/resuming the activity connects to the saved device. Foreground retries use
 3/6/12/24/30-second backoff; successful setup resets it. No concurrent attempts.
@@ -142,7 +144,10 @@ selection or packet counters. Values unavailable in this connection appear as a
 dash. Partial updates retain earlier values. Common packet age does not establish
 freshness of each field; cadence can be missing depending on session timing, and
 activity summaries may update sparsely and reset on Bosch's activity boundaries.
-B-Cycle does not record or reset a ride itself.
+Bosch activity summaries are not B-Cycle trip counters and are not reset by the
+app. B-Cycle's new bike trip-distance field sums positive odometer deltas; its
+"New ride" action resets only that derived counter and its own GPS counters.
+GPS has independent fields and processing; see [GPS notes](gps.md).
 
 Diagnostics remain bounded in memory until explicit document-picker export. Count
 notifications, bytes, complete/ignored messages, control frames, responses and

@@ -3,10 +3,18 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Resolve Android test SDKs through Gradle's configured repositories/proxy.
+val robolectricSdk33 by configurations.creating
+val robolectricSdk35 by configurations.creating
+
 dependencies {
     testImplementation("junit:junit:4.13.2")
     // Independent wire-format encoder used only in JVM tests; absent from the APK.
     testImplementation("com.google.protobuf:protobuf-java:3.25.5")
+    // Native Android layout/font verification only; absent from the APK.
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    robolectricSdk33("org.robolectric:android-all-instrumented:13-robolectric-9030017-i7")
+    robolectricSdk35("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
 }
 
 android {
@@ -16,8 +24,8 @@ android {
         applicationId = "de.bcycle.app"
         minSdk = 33
         targetSdk = 35
-        versionCode = 10
-        versionName = "0.2.0"
+        versionCode = 11
+        versionName = "0.3.0"
     }
     buildTypes {
         release {
@@ -31,4 +39,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        unitTests.all {
+            val sdkDir = layout.buildDirectory.dir("robolectric-sdk").get().asFile
+            it.systemProperty("robolectric.offline", "true")
+            it.systemProperty("robolectric.dependency.dir", sdkDir.absolutePath)
+            it.doFirst { copy { from(robolectricSdk33, robolectricSdk35); into(sdkDir) } }
+        }
+    }
 }
