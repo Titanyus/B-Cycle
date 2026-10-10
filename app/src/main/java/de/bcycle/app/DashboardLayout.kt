@@ -53,6 +53,12 @@ data class DashboardField(val id: String) {
     private val gpsMetric get() = GpsMetric.entries.find { it.name == id }
     private val rangeIndex get() = id.removePrefix("RANGE_").toIntOrNull()
     val source get() = if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
+    /** Only speed and distance captions need a source to distinguish related ride values. */
+    val showSource get() = when (id) {
+        "SPEED", "GPS_SPEED", "BIKE_DISTANCE", "GPS_DISTANCE", "ODOMETER",
+        "AVERAGE_SPEED", "GPS_MOVING_AVERAGE", "GPS_OVERALL_AVERAGE", "GPS_MAXIMUM_SPEED" -> true
+        else -> false
+    }
     val numeric get() = metric != LiveMetric.ASSIST_MODE && id != "RANGES"
 
     fun title(data: LiveData, gps: GpsValues = GpsValues()): String = metric?.title ?: gpsMetric?.let {

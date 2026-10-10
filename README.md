@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.3 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.3-test.apk).
+[Installierbare APK 0.6.4 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.4-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -17,7 +17,7 @@ Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
 APK-Größe: 379.192 Byte (rund 379 KB).
-SHA-256: `0da8e27ecf78dc0795fb2f87616973c877831c36082fd24f6ebc2c719cfc9344`.
+SHA-256: `6fc531ec166be380e2d8fbc4aa648eb96bf1a84fd9420ee9ea1b35625c0daf32`.
 
 Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 95 Tests sind bestanden.
 Android-Lint meldet 26 Warnungen und keine Fehler.
@@ -205,3 +205,7 @@ Speicherfeld-Auswahl und Wiederholung nach einem Speicherfehler.
 Robolectric-SDKs werden durch Gradle bezogen und im Test über den Offline-Resolver
 geladen, damit die Proxy-Konfiguration auch in der Cloud gilt.
 Tests ersetzen keinen Hardwaretest.
+
+Ab 0.6.4 erscheinen Quellenzeichen nur bei Tempo, Distanz, Gesamt-km und
+Durchschnitts-/Maximaltempo. Eindeutige Felder wie Kadenz, Leistung, Puls und
+Höhenwerte verwenden nur ihren Namen. Die Quellkategorien in der Auswahl bleiben erhalten.

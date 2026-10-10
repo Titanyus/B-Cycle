@@ -162,12 +162,12 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
         fun show(field: DashboardField, data: LiveData) {
             val next = field.value(data, gps, bikeDistanceM, pulse)
-            val caption = "${field.source} · ${field.title(data, gps)}"
+            val caption = if (field.showSource) "${field.source} · ${field.title(data, gps)}" else field.title(data, gps)
             val short = field.dashboardTitle(data).uppercase(Locale.GERMANY)
-            val captionKey = "${field.source}:$short"
+            val captionKey = "${if (field.showSource) field.source else ""}:$short"
             if (title.tag != captionKey) {
                 title.tag = captionKey
-                title.text = if (field.source == "GPS" || field.source == "E-Bike") {
+                title.text = if (field.showSource) {
                     android.text.SpannableString("\uFFFC $short").apply {
                         setSpan(SourceIconSpan(field.source), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                     }

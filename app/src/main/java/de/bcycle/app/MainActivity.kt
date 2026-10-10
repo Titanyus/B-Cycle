@@ -153,7 +153,7 @@ class MainActivity : Activity() {
                                 tag = field.id; text = "$title${if (value.unit.isNotEmpty()) " · ${value.unit}" else ""}"
                                 textSize = 16f; setTextColor(Color.WHITE); minHeight = dp(48)
                                 isChecked = dashboardLayout.fields[index] == field
-                                contentDescription = "$source · $text"
+                                contentDescription = if (field.showSource) "$source · $text" else text
                                 setOnClickListener {
                                     dashboardLayout = dashboardLayout.replace(index, field); preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
                                     render(); picker?.dismiss(); if (source == "GPS") enableGps()
@@ -354,7 +354,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.3-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.4-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }

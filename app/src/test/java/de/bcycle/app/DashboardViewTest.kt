@@ -44,6 +44,11 @@ class DashboardViewTest {
         val texts = descendants(view).filterIsInstance<TextView>().map { it.text.toString() }
         assertTrue(texts.contains("\uFFFC Ø TEMPO · FAHRT"))
         assertTrue(texts.contains("\uFFFC TEMPO"))
+        assertTrue(texts.contains("KADENZ"))
+        assertFalse(texts.any { it == "\uFFFC KADENZ" })
+        view.show(DashboardLayout.defaults.replace(0, DashboardField("GPS_ALTITUDE")), LiveData())
+        assertEquals("HÖHE", descendants(view).filterIsInstance<TextView>().first().text.toString())
+        view.show(DashboardLayout.defaults.replace(0, DashboardField("GPS_MOVING_AVERAGE")), LiveData())
         val caption = descendants(view).filterIsInstance<TextView>().first().text as android.text.Spanned
         assertEquals("GPS", caption.getSpans(0, 1, SourceIconSpan::class.java).single().source)
         assertTrue(tiles.first().contentDescription.toString().contains("GPS · Ø Geschwindigkeit · Bewegung"))
@@ -144,7 +149,7 @@ class DashboardViewTest {
         val configured = DashboardLayout.defaults.replace(2, DashboardField("RIDER_ENERGY_SHARE"))
         view.show(configured, data.copy(otherValues = data.otherValues + (LiveMetric.RIDER_ENERGY_SHARE to 37L)))
         measure(view, 1080, 1950)
-        val layout = descendants(view).filterIsInstance<TextView>().single { it.text.toString() == "\uFFFC FAHRERANTEIL" }.layout
+        val layout = descendants(view).filterIsInstance<TextView>().single { it.text.toString() == "FAHRERANTEIL" }.layout
         assertNotNull(layout)
         assertTrue(layout.lineCount <= 2)
     }
@@ -175,7 +180,7 @@ class DashboardViewTest {
         val restarted = Robolectric.buildActivity(MainActivity::class.java).setup()
         val next = descendants(restarted.get().findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
         measure(next, 1080, 1950)
-        assertTrue(descendants(next).filter { it.isClickable }[2].contentDescription.toString().startsWith("E-Bike · Fahrerleistung:"))
+        assertTrue(descendants(next).filter { it.isClickable }[2].contentDescription.toString().startsWith("Fahrerleistung:"))
         restarted.pause().stop().destroy()
     }
 
@@ -198,7 +203,7 @@ class DashboardViewTest {
         val prefs = context.getSharedPreferences("bike", 0)
         assertEquals("GPS_SPEED", DashboardLayout.decode(prefs.getString("dashboard", null)).fields[2].id)
         assertTrue(tiles[2].contentDescription.toString().startsWith("GPS · Geschwindigkeit:"))
-        assertTrue(tiles[0].contentDescription.toString().startsWith("E-Bike · Fahrerleistung:"))
+        assertTrue(tiles[0].contentDescription.toString().startsWith("Fahrerleistung:"))
         controller.pause().stop().destroy()
     }
 }

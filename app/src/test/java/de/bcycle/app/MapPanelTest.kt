@@ -101,7 +101,7 @@ class MapPanelTest {
                 assertTrue(panel.height > 0)
                 if (index == 0) {
                     assertTrue(panel.height > smallHeight)
-                    assertTrue(descendants(dashboard).first { it.isClickable }.contentDescription.toString().startsWith("Pulsmesser"))
+                    assertTrue(descendants(dashboard).first { it.isClickable }.contentDescription.toString().startsWith("Herzfrequenz:"))
                 }
             }
             assertEquals(0, prefs.getInt("dashboardPage", -1))

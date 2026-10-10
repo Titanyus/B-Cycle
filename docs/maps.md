@@ -48,8 +48,11 @@ als Originaldateien im Arbeitsbereich abrufbar.
 Die Dashboard-Beschriftungen sind kurz (z. B. Tempo, Distanz, Fahreranteil).
 Alle sichtbaren Titel verwenden dieselbe, gemeinsam passende Schriftgröße.
 Einheiten stehen rechts vom Messwert und mittig in dessen Zeile.
-Ein weißes Fahrrad steht für E-Bike, eine weiße Weltkugel für GPS. Feldauswahl
-und TalkBack behalten die ausführlichen Beschreibungen und Quellen.
+Ein weißes Fahrrad steht für E-Bike, eine weiße Weltkugel für GPS. Ab 0.6.4
+erscheinen diese Quellenzeichen nur bei Tempo, Distanz, Gesamt-km und
+Durchschnitts-/Maximaltempo. Eindeutige Werte wie Kadenz, Leistung und Höhe
+tragen keine Quellenkennzeichnung. Die ausführlichen Beschreibungen bleiben
+erhalten; die Feldauswahl ist weiterhin nach Quellen gruppiert.
 
 ## Online-Karten und Daten
 
