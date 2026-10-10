@@ -54,6 +54,14 @@ class SettingsMenuTest {
             assertEquals(menu.width, brand.width)
             assertEquals(android.widget.ImageView.ScaleType.FIT_CENTER, brand.scaleType)
             assertEquals(controller.get().getColor(R.color.start_red), (brand.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            val sensorIcon = controller.get().getDrawable(R.drawable.ic_settings_sensors)!!
+            val iconPixels = Bitmap.createBitmap(192, 192, Bitmap.Config.ARGB_8888)
+            sensorIcon.setBounds(0, 0, 192, 192); sensorIcon.draw(Canvas(iconPixels))
+            assertEquals(android.graphics.Color.WHITE, iconPixels.getPixel(96, 96))
+            for (y in 0 until 192) {
+                assertEquals("Sensor arc clipped on left", 0, android.graphics.Color.alpha(iconPixels.getPixel(0, y)))
+                assertEquals("Sensor arc clipped on right", 0, android.graphics.Color.alpha(iconPixels.getPixel(191, y)))
+            }
             val advanced = views(dialog).single { it.tag == "settings_advanced_content" } as ViewGroup
             assertEquals(View.GONE, advanced.visibility); assertEquals(0, advanced.childCount)
             val toggle = views(dialog).single { it.tag == "settings_ADVANCED" }

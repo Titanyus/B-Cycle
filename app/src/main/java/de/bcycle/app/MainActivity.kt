@@ -133,10 +133,28 @@ class MainActivity : Activity() {
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     /** Starts with three collapsed source categories, builds only the opened source's rows. */
-    private fun chooseField(index: Int) {
+    private fun chooseField(index: Int, mapField: Boolean = false, changed: (() -> Unit)? = null) {
         picker?.dismiss()
         val root = column()
-        val groups = DashboardField.groups(runtime.bikeData, dashboardLayout.fields[index]).groupBy { it.source }
+        val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
+        fun select(field: DashboardField?) {
+            if (mapField) {
+                preferences.edit().apply {
+                    if (field == null) remove(MapFieldSelection.key(index)) else putString(MapFieldSelection.key(index), field.id)
+                }.apply()
+                mapPanel.refreshSettings(); changed?.invoke()
+            } else if (field != null) {
+                dashboardLayout = dashboardLayout.replace(index, field)
+                preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
+            }
+            render(); picker?.dismiss()
+            if (field?.source == "GPS") enableGps()
+        }
+        if (mapField) root.addView(RadioButton(settingsContext).apply {
+            text = "Leer"; tag = "map_field_empty"; isChecked = selected == null
+            setOnClickListener { select(null) }
+        })
+        val groups = DashboardField.groups(runtime.bikeData, selected).groupBy { it.source }
         for ((source, sections) in groups) {
             val inner = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; visibility = View.GONE }
             val heading = button("▸ $source") {}.apply { tag = "category_$source"; isAccessibilityHeading = true; stateDescription = "Eingeklappt" }
@@ -152,11 +170,10 @@ class MainActivity : Activity() {
                             inner.addView(RadioButton(settingsContext).apply {
                                 tag = field.id; text = "$title${if (value.unit.isNotEmpty()) " · ${value.unit}" else ""}"
                                 textSize = 16f; setTextColor(Color.WHITE); minHeight = dp(48)
-                                isChecked = dashboardLayout.fields[index] == field
+                                isChecked = selected == field
                                 contentDescription = if (field.showSource) "$source · $text" else text
                                 setOnClickListener {
-                                    dashboardLayout = dashboardLayout.replace(index, field); preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
-                                    render(); picker?.dismiss(); if (source == "GPS") enableGps()
+                                    select(field)
                                 }
                             })
                         }
@@ -169,7 +186,7 @@ class MainActivity : Activity() {
             }
             root.addView(heading); root.addView(inner)
         }
-        picker = dialog().setTitle("Feld ${index + 1} belegen").setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).show()
+        picker = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen").setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).show()
     }
     private fun showMenu() {
         val content = SettingsMenuView(settingsContext) { action ->
@@ -354,7 +371,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.5-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.6-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
@@ -416,6 +433,7 @@ class MainActivity : Activity() {
     private fun mapSettings() {
         val root = column()
         root.addView(label("Online-Karten benötigen Internet. Der Kartenserver erhält die angefragten Kartenausschnitte. GPS und FIT bleiben lokal. Bei CyclOSM sind Radwege, Fahrradrouten und Belagsangaben Teil der fertigen Karte; sie können nicht einzeln ausgeblendet werden.", 14f, Color.LTGRAY))
+        root.addView(button("Karten-Datenfelder") { mapDataFieldSettings() }.apply { tag = "map_fields_manage" })
         root.addView(label("Kartenquelle", 18f))
         val source = Spinner(settingsContext).apply {
             adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.title })
@@ -436,6 +454,26 @@ class MainActivity : Activity() {
                     .putBoolean("mapTrackVisible", track.isChecked).putBoolean("mapGpxVisible", gpx.isChecked).apply()
                 mapPanel.refreshSettings()
             }.setNegativeButton("Abbrechen", null).show()
+    }
+    private fun mapDataFieldSettings() {
+        val root = column()
+        root.addView(label("Drei transparente Messwerte unten auf der Karte, gemeinsam für alle Dashboards und das Vollbild. Wähle links, Mitte oder rechts. Leer entfernt einen Wert; ohne empfangene Daten bleibt das Feld unsichtbar. Die Belegung wird beim Auswählen übernommen.", 14f, Color.LTGRAY))
+        for (index in MapFieldSelection.positions.indices) {
+            val slot = button("") {}.apply { tag = "map_field_slot_$index" }
+            fun updateTitle() {
+                val field = MapFieldSelection.read(preferences, index)
+                val title = field?.let {
+                    val name = it.title(runtime.bikeData, runtime.gpsValues)
+                    if (it.showSource) "${it.source} · $name" else name
+                } ?: "Leer"
+                slot.text = "${MapFieldSelection.positions[index]} · $title"
+            }
+            updateTitle()
+            slot.setOnClickListener { chooseField(index, mapField = true, changed = ::updateTitle) }
+            root.addView(slot)
+        }
+        menu = dialog().setTitle("Karten-Datenfelder").setView(ScrollView(settingsContext).apply { addView(root) })
+            .setPositiveButton("Schließen", null).show()
     }
     private fun importGpx() {
         if (runtime.mapState.busy) { Toast.makeText(this, "GPX wird noch verarbeitet", Toast.LENGTH_SHORT).show(); return }

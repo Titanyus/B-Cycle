@@ -160,3 +160,13 @@ unteren Innenabstände sind von 8 auf 4 dp reduziert. Die Höhen orientieren
 sich am gesamten verfügbaren Dashboard-/Kartenbereich, auch beim Ausblenden
 der Bedienleiste; zusätzlicher Platz geht an die Karte. Im Querformat bleiben
 die kleinen Felder ebenfalls zwischen den Vorlagen gleich hoch.
+
+Ab 0.6.6 gibt es drei globale transparente Messwertfelder am unteren Kartenrand,
+oberhalb der Urheberangabe. Sie werden unter **Kartenmanager → Karten-Datenfelder**
+über **Links / Mitte / Rechts** belegt, mit derselben kategorisierten Werteauswahl
+wie das Dashboard. **Leer** entfernt die Belegung. Jeder gewählte Wert wird sofort
+gespeichert; Abbrechen lässt die bisherige Belegung bestehen. Die Anzeige enthält
+nur den Messwert in Schwarz, ohne Titel, Quellenzeichen oder Einheit. Ohne
+Belegung bzw. verfügbare Daten bleibt die Position unsichtbar. Kartengesten gehen
+durch die Anzeige hindurch; die Werte bleiben auch ohne Bedienbuttons sichtbar.
+Es entstehen keine zusätzlichen Sensorverbindungen oder Aufzeichnungsfelder.

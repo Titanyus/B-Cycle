@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.5 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.5-test.apk).
+[Installierbare APK 0.6.6 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.6-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,11 +16,11 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 383.288 Byte (rund 383 KB).
-SHA-256: `0738fdc4704b5f6e0409addd018d3366a85321923304940a127314140e2b0948`.
+APK-Größe: 387.384 Byte (rund 387 KB).
+SHA-256: `c7fd69789137cc296a21047ab2ad3292cecc14f7257800cd97fc429bcc1ce790`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 96 Tests sind bestanden.
-Android-Lint meldet 26 Warnungen und keine Fehler.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 99 Tests sind bestanden.
+Android-Lint meldet 28 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
 Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
@@ -214,3 +214,13 @@ Ab 0.6.5 teilen die Vorlagen gemeinsame Höhen für kleine und große Messwertfe
 Das Sieben-Werte-Layout dient als Maßstab; der untere Innenabstand ist leicht
 reduziert. Weniger Zeilen lassen mehr Platz für die Karte, statt größere Ziffern
 und zusätzliche Leerflächen zu erzeugen. Lange Werte passen sich weiterhin der Breite an.
+
+Ab 0.6.6: **☰ → Kartenmanager → Karten-Datenfelder** belegt links, Mitte und rechts
+über die vorhandene Auswahl aus GPS, E-Bike und Pulsmesser. **Leer** entfernt die
+Belegung; Abbrechen verändert sie nicht. Die drei Positionen gelten gemeinsam
+für alle Seiten und das Karten-Vollbild. Nur empfangene Werte werden in schwarzer
+Schrift ohne Titel oder Einheit auf transparentem Hintergrund angezeigt.
+Die Felder bleiben sichtbar, wenn die Kartenbuttons verschwinden, und lassen
+Kartengesten durch. Kartenquellenangabe und GPS-Status werden nicht überdeckt.
+
+Das Sensoren-Symbol ist ab 0.6.6 etwas kleiner; die äußeren Bögen werden nicht mehr abgeschnitten.

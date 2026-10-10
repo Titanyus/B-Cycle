@@ -39,7 +39,7 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
         override fun getDefaultTimeToLive() = 7L * 24 * 60 * 60 * 1_000
     }.setProtocol("https").setBaseUrl(path)
         .setName(name).setParallelRequestsLimit(2).setZoomLevelMax(19).apply {
-            setUserAgent("B-Cycle/0.6.5 (https://github.com/Titanyus/B-Cycle)")
+            setUserAgent("B-Cycle/0.6.6 (https://github.com/Titanyus/B-Cycle)")
         }
     companion object { fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: CYCLOSM }
 }
@@ -53,6 +53,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private val controls = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
     private val credit = TextView(context)
     private val status = TextView(context)
+    private val dataFields = MapDataFieldsView(context)
     private lateinit var directionButton: Button
     private lateinit var centerButton: Button
     private lateinit var fullButton: Button
@@ -133,6 +134,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         icon("−", "Karte verkleinern") { zoom(-1) }
         fullButton = icon("⛶", "Karte im Vollbild") { fullscreen() }
         addView(controls, LayoutParams(-2, dp(48), Gravity.TOP or Gravity.END).apply { topMargin = dp(6); marginEnd = dp(6) })
+        dataFields.reload(preferences)
+        addView(dataFields, LayoutParams(-1, dp(48), Gravity.BOTTOM).apply { bottomMargin = dp(23) })
         credit.apply {
             text = source.attribution; textSize = 11f; setTextColor(Color.BLACK)
             setPadding(dp(5), dp(3), dp(5), dp(3)); setBackgroundColor(Color.argb(220, 255, 255, 255))
@@ -168,6 +171,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             if (running) downloads.onResume()
             credit.text = source.attribution
         }
+        dataFields.reload(preferences)
+        refreshDataFields()
         heading = preferences.getBoolean("mapHeading", true)
         follow = preferences.getBoolean("mapFollow", true)
         updateCamera(); overlay.invalidate()
@@ -175,6 +180,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     fun refresh() {
         if (!running) return
         gps = runtime.gpsValues
+        refreshDataFields()
         val track = runtime.mapState.track.revision; val route = runtime.mapState.routeRevision
         // BLE packets and elapsed-time changes must not redraw an unchanged map.
         if (gps.latitude != lastLatitude || gps.longitude != lastLongitude || gps.bearingDegrees != lastBearing ||
@@ -186,6 +192,21 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             else if (runtime.recording && !runtime.mapTrackEnabled) "Track-Aufzeichnung aus" else ""
         if (status.text.toString() != next) status.text = next
         status.visibility = if (next.isEmpty()) GONE else VISIBLE
+    }
+    private fun refreshDataFields() {
+        dataFields.show(runtime.bikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues)
+    }
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        // Keep legal attribution and GPS status readable, including larger system fonts.
+        val creditHeight = credit.measuredHeight
+        val fieldMargin = dataFields.layoutParams as LayoutParams
+        val statusMargin = status.layoutParams as LayoutParams
+        val nextStatusMargin = creditHeight + if (dataFields.visibility == VISIBLE) dataFields.measuredHeight else 0
+        if (fieldMargin.bottomMargin != creditHeight || statusMargin.bottomMargin != nextStatusMargin) {
+            fieldMargin.bottomMargin = creditHeight; statusMargin.bottomMargin = nextStatusMargin
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        }
     }
     fun showFullscreen(value: Boolean) { fullButton.text = if (value) "↙" else "⛶"; fullButton.contentDescription = if (value) "Zurück zum Dashboard" else "Karte im Vollbild"; revealControls() }
     fun setFollow(value: Boolean) {
