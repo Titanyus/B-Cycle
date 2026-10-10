@@ -7,6 +7,14 @@ MapLibre, Compose, Play Services und eine weitere GPS-Quelle werden nicht verwen
 
 ## Bedienung
 
+Ab 0.6.1 zeigt **☰** ein dunkelrotes Symbolraster (drei Spalten, zwei Zeilen).
+Die sechste Kachel **Erweitert** klappt zusätzliche Einstellungen unter einer
+1-Pixel-Trennlinie auf. Alle Punkte öffnen eigene Dialoge mit demselben Hintergrund;
+Aktionen wie Diagnoseexport und Zurücksetzen benötigen dort einen Buttondruck.
+Die Lizenzpunkte stehen ganz unten. Die weißen Menü-Vektoren sind nach dem
+bereitgestellten Mockup gezeichnet; eingebettete PNG-Vorschauen waren nicht
+als Originaldateien im Arbeitsbereich abrufbar.
+
 - Vier Dashboard-Seiten, jede mit einer der fünf festen Vorlagen: sieben Werte
   mit kleiner Karte, vier mit mittlerer Karte, zwei mit großer Karte oder drei
   kompakte Werte mit Kartenübersicht sowie fünf Werte in zwei Zeilen (oben zwei,
@@ -28,7 +36,7 @@ MapLibre, Compose, Play Services und eine weitere GPS-Quelle werden nicht verwen
   dazu **◎** verwenden. In Fahrtrichtung liegt die Position etwa im unteren Drittel.
   Im Stand bleibt die letzte brauchbare Richtung erhalten; ohne Richtung erscheint
   ein Positionspunkt. Veraltete GPS-Positionen werden nicht als aktuell dargestellt.
-- **☰ → Karte einstellen** speichert Kartenquelle, Ausrichtung, Verfolgung sowie
+- **☰ → Kartenmanager** speichert Kartenquelle, Ausrichtung, Verfolgung sowie
   Sichtbarkeit des Live-Tracks und der importierten Strecke. Zoom und letzte
   Kartenposition bleiben lokal gespeichert.
 
@@ -77,7 +85,7 @@ Linien. Die originalen FIT-Punkte werden dadurch nicht ausgedünnt. Ohne gewähl
 Positionsaufzeichnung entsteht keine Trackhistorie. STOPP lässt die Vorschau bis
 zum nächsten START stehen; nach Prozessende wird sie nicht aus FIT wiederhergestellt.
 
-**☰ → Kartenverwaltung** bewahrt mehrere importierte GPX-Strecken mit ihrem
+**☰ → Streckenmanager** bewahrt mehrere importierte GPX-Strecken mit ihrem
 Dateinamen auf. **GPX-Strecke importieren** öffnet dort die Android-Dateiauswahl.
 Tracks (`trk`), Trackabschnitte (`trkseg`) und Routen (`rte`) werden unterstützt.
 Das Auge zeigt jeweils eine Strecke an oder blendet sie aus; die anderen bleiben

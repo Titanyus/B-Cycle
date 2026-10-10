@@ -39,9 +39,9 @@ class GpxManagerTest {
             val activity = controller.get(); val state = RideRuntime.get(activity).mapState; await(state)
             descendants(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
             val menu = ShadowAlertDialog.getLatestAlertDialog()
-            val choices = (0 until menu.listView.adapter.count).map { menu.listView.adapter.getItem(it).toString() }
-            assertFalse(choices.contains("GPX-Strecke importieren"))
-            menu.listView.performItemClick(null, choices.indexOf("Kartenverwaltung"), 0)
+            val items = descendants(menu.window!!.decorView)
+            assertFalse(items.filterIsInstance<TextView>().any { it.text.toString() == "GPX-Strecke importieren" })
+            items.single { it.tag == "settings_ROUTES" }.performClick()
             val manager = ShadowAlertDialog.getLatestAlertDialog()
             fun views() = descendants(manager.window!!.decorView)
             assertTrue(views().filterIsInstance<TextView>().any { it.text.toString() == "GPX-Strecke importieren" })

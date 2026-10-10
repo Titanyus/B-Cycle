@@ -99,9 +99,9 @@ class DashboardViewTest {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         descendants(controller.get().findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
         val menu = ShadowAlertDialog.getLatestAlertDialog()
-        val choices = (0 until menu.listView.adapter.count).map { menu.listView.adapter.getItem(it).toString() }
-        assertFalse(choices.contains("Fahrrad auswählen"))
-        menu.listView.performItemClick(null, choices.indexOf("Sensoren verwalten"), 0)
+        val items = descendants(menu.window!!.decorView)
+        assertFalse(items.filterIsInstance<TextView>().any { it.text.toString() == "Fahrrad auswählen" })
+        items.single { it.tag == "settings_SENSORS" }.performClick()
         val manager = descendants(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
         assertTrue(manager.contains("Fahrrad auswählen"))
         assertTrue(manager.contains("Sensor auswählen"))

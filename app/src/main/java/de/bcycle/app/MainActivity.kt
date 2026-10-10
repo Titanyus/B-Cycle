@@ -42,12 +42,14 @@ class MainActivity : Activity() {
     private var displayedRecordingStatus: String? = null
     private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows() }
     private val preferences get() = runtime.preferences
+    private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
+    private fun dialog() = AlertDialog.Builder(this, R.style.SettingsDialogTheme)
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
-    private fun label(text: String, size: Float = 14f, color: Int = Color.WHITE) = TextView(this).apply {
+    private fun label(text: String, size: Float = 14f, color: Int = Color.WHITE) = TextView(settingsContext).apply {
         this.text = text; textSize = size; setTextColor(color)
     }
-    private fun column() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(8)) }
-    private fun button(text: String, action: () -> Unit) = Button(this).apply { this.text = text; isAllCaps = false; setOnClickListener { action() } }
+    private fun column() = LinearLayout(settingsContext).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(8)) }
+    private fun button(text: String, action: () -> Unit) = Button(settingsContext).apply { this.text = text; isAllCaps = false; setOnClickListener { action() } }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         runtime = RideRuntime.get(this)
@@ -89,7 +91,7 @@ class MainActivity : Activity() {
             if (runtime.recording) startService(Intent(this, RecordingService::class.java).setAction(RecordingService.STOP)) else startRide()
         }
         toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), 3f))
-        toolbar.addView(toolbarButton("☰", Color.rgb(144, 0, 0)) { showMenu() }.apply { contentDescription = "Menü öffnen" }, LinearLayout.LayoutParams(0, dp(58), 1f))
+        toolbar.addView(toolbarButton("☰", getColor(R.color.settings_red)) { showMenu() }.apply { contentDescription = "Menü öffnen" }, LinearLayout.LayoutParams(0, dp(58), 1f))
         root.addView(toolbar)
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->
@@ -144,7 +146,7 @@ class MainActivity : Activity() {
                         for (field in section.fields) {
                             val value = field.value(runtime.bikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues)
                             val title = if (field.id == "RIDER_POWER") "Fahrerleistung (eigene)" else field.title(runtime.bikeData, runtime.gpsValues)
-                            inner.addView(RadioButton(this).apply {
+                            inner.addView(RadioButton(settingsContext).apply {
                                 tag = field.id; text = "$title${if (value.unit.isNotEmpty()) " · ${value.unit}" else ""}"
                                 textSize = 16f; setTextColor(Color.WHITE); minHeight = dp(48)
                                 isChecked = dashboardLayout.fields[index] == field
@@ -164,33 +166,63 @@ class MainActivity : Activity() {
             }
             root.addView(heading); root.addView(inner)
         }
-        picker = AlertDialog.Builder(this).setTitle("Feld ${index + 1} belegen").setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).show()
+        picker = dialog().setTitle("Feld ${index + 1} belegen").setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).show()
     }
     private fun showMenu() {
-        val choices = arrayOf("Sensoren verwalten", "Aufzeichnung einstellen", "Ungespeicherte Fahrten speichern", "GPS-Messung erklärt", "Diagnose speichern", "Standardbelegung herstellen", "Schrift & Lizenz", "Karte einstellen", "Dashboards", "Kartenverwaltung", "Kartenbibliothek & Lizenz")
-        menu = AlertDialog.Builder(this).setTitle("B-Cycle").setItems(choices) { _, item -> when (item) {
-            0 -> showSensorManager()
-            1 -> recordingSettings()
-            2 -> runtime.retryPending()
-            3 -> menu = AlertDialog.Builder(this).setTitle("GPS-Messung").setMessage("Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").setPositiveButton("Schließen", null).show()
-            4 -> exportDiagnostic()
-            5 -> { dashboardLayout = DashboardLayout.defaults; preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply(); render() }
-            6 -> menu = AlertDialog.Builder(this).setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
-            7 -> mapSettings()
-            8 -> dashboardSettings()
-            9 -> routeSettings()
-            10 -> menu = AlertDialog.Builder(this).setTitle("Mapsforge · LGPL-3.0 mit Ausnahme").setMessage(assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
-        } }.show()
+        val content = SettingsMenuView(settingsContext) { action ->
+            menu?.dismiss()
+            when (action) {
+                SettingsAction.SENSORS -> showSensorManager()
+                SettingsAction.RECORDING -> recordingSettings()
+                SettingsAction.MAP -> mapSettings()
+                SettingsAction.DASHBOARDS -> dashboardSettings()
+                SettingsAction.ROUTES -> routeSettings()
+                SettingsAction.ADVANCED -> Unit // Expanded within SettingsMenuView.
+                SettingsAction.RECOVERY -> recoverySettings()
+                SettingsAction.GPS_HELP -> menu = dialog().setTitle("GPS-Messung").setMessage("Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").setPositiveButton("Schließen", null).show()
+                SettingsAction.DIAGNOSTIC -> diagnosticSettings()
+                SettingsAction.RESET -> resetDashboardSettings()
+                SettingsAction.FONT_LICENSE -> menu = dialog().setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
+                SettingsAction.MAP_LICENSE -> menu = dialog().setTitle("Mapsforge · LGPL-3.0 mit Ausnahme").setMessage(assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
+            }
+        }
+        menu = dialog().setView(ScrollView(settingsContext).apply { addView(content) }).setNegativeButton("Schließen", null).show()
+    }
+    private fun recoverySettings() {
+        val root = column()
+        root.addView(label("Vollständige Messpunkte aus noch nicht gespeicherten Fahrten werden erneut als FIT-Dateien nach Download/B-Cycle exportiert.", 15f))
+        root.addView(label(runtime.recordingStatus, 14f, Color.LTGRAY).apply { setPadding(0, dp(12), 0, dp(12)) })
+        root.addView(button("Speichern erneut versuchen") { menu?.dismiss(); runtime.retryPending() }.apply {
+            tag = "recovery_execute"; isEnabled = !runtime.recording && !runtime.saving
+        })
+        menu = dialog().setTitle("Ungespeicherte Fahrten").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
+    }
+    private fun diagnosticSettings() {
+        val root = column()
+        root.addView(label("Exportiert die aktuelle Diagnose als Textdatei. Sie enthält Verbindungsprotokolle, Sensorstatus und GPS-Messwerte. Den Speicherort wählst du im nächsten Schritt.", 15f))
+        root.addView(button("Diagnose als Datei speichern") { menu?.dismiss(); exportDiagnostic() }.apply { tag = "diagnostic_execute" })
+        menu = dialog().setTitle("Diagnose").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
+    }
+    private fun resetDashboardSettings() {
+        val root = column()
+        root.addView(label("Stellt die Standard-Messwertbelegung für Dashboard ${dashboardPage + 1} wieder her. Die anderen Dashboard-Seiten, Vorlagen, Sensoren und gespeicherten Fahrten bleiben erhalten.", 15f))
+        root.addView(button("Belegung zurücksetzen") {
+            dashboardLayout = DashboardLayout.defaults
+            preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
+            render(); menu?.dismiss()
+            Toast.makeText(this, "Standardbelegung hergestellt", Toast.LENGTH_SHORT).show()
+        }.apply { tag = "reset_execute" })
+        menu = dialog().setTitle("Standardbelegung").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
     }
     private fun showSensorManager() {
         sensorManager?.dismiss()
         val root = column(); sensorRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(sensorRows)
         root.addView(button("Sensor hinzufügen") {
-            menu = AlertDialog.Builder(this).setTitle("Sensor hinzufügen").setItems(arrayOf("Bosch E-Bike", "BLE-Pulsmesser")) { _, index -> selectSensor(if (index == 0) "bike" else "heart") }.show()
+            menu = dialog().setTitle("Sensor hinzufügen").setItems(arrayOf("Bosch E-Bike", "BLE-Pulsmesser")) { _, index -> selectSensor(if (index == 0) "bike" else "heart") }.show()
         })
         refreshSensorRows()
-        sensorManager = AlertDialog.Builder(this).setTitle("Sensoren").setView(ScrollView(this).apply { addView(root) }).setPositiveButton("Schließen", null).create().apply {
+        sensorManager = dialog().setTitle("Sensoren").setView(ScrollView(this).apply { addView(root) }).setPositiveButton("Schließen", null).create().apply {
             setOnDismissListener { sensorRows = null }; show()
         }
     }
@@ -232,7 +264,7 @@ class MainActivity : Activity() {
                 picker?.dismiss(); stopScan(); render()
             })
         }
-        picker = AlertDialog.Builder(this).setTitle(if (kind == "bike") "Fahrrad auswählen" else "Pulsmesser auswählen")
+        picker = dialog().setTitle(if (kind == "bike") "Fahrrad auswählen" else "Pulsmesser auswählen")
             .setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).create().apply { setOnDismissListener { stopScan() }; show() }
         if (kind == "bike") {
             scanningBike = true; runtime.scanFound = ::found; runtime.scanStatus = { scanLabel.text = it }; runtime.beginBikeScan()
@@ -260,8 +292,8 @@ class MainActivity : Activity() {
         root.addView(label("Gilt für die nächste Fahrt. Nur angehakte Werte werden gespeichert. Fehlende Sensorwerte bleiben unbekannt.", 14f, Color.LTGRAY))
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             root.addView(label(title, 16f).apply { setPadding(0, dp(12), 0, 0) })
-            return Spinner(this).apply {
-                adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, listOf("E-Bike", "GPS"))
+            return Spinner(settingsContext).apply {
+                adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, listOf("E-Bike", "GPS"))
                 setSelection(if (chosen == bikeId) 0 else 1); root.addView(this)
             }
         }
@@ -269,12 +301,12 @@ class MainActivity : Activity() {
         val distance = source("FIT-Hauptquelle · Strecke", current.distanceSource, "BIKE_DISTANCE")
         for ((source, fields) in RecordField.options.groupBy { it.source }) {
             root.addView(label(source, 20f).apply { setPadding(0, dp(18), 0, dp(6)); isAccessibilityHeading = true })
-            for (field in fields) root.addView(CheckBox(this).apply {
+            for (field in fields) root.addView(CheckBox(settingsContext).apply {
                 text = field.title; tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
                 setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id) }
             })
         }
-        menu = AlertDialog.Builder(this).setTitle("Aufzeichnungsmanager").setView(ScrollView(this).apply { addView(root) })
+        menu = dialog().setTitle("Aufzeichnungsmanager").setView(ScrollView(this).apply { addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
                 runtime.saveConfig(RecordingConfig(selected.toSet(), if (speed.selectedItemPosition == 0) "SPEED" else "GPS_SPEED", if (distance.selectedItemPosition == 0) "BIKE_DISTANCE" else "GPS_DISTANCE"))
                 Toast.makeText(this, "Auswahl für die nächste Fahrt gespeichert", Toast.LENGTH_SHORT).show()
@@ -319,7 +351,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.0-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.1-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
@@ -368,15 +400,15 @@ class MainActivity : Activity() {
         root.addView(label("Vier Seiten mit festen Vorlagen. Die Messwerte jeder Seite sind unabhängig frei belegbar. Wechsel über ‹/› auf der Karte.", 14f, Color.LTGRAY))
         val spinners = (0 until 4).map { page ->
             root.addView(label("Dashboard ${page + 1}", 18f))
-            Spinner(this).apply {
-                adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, DashboardTemplate.entries.map { it.title })
+            Spinner(settingsContext).apply {
+                adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, DashboardTemplate.entries.map { it.title })
                 val selected = DashboardTemplate.decode(preferences.getString("dashboardTemplate_$page", DashboardTemplate.entries[page].name))
                 setSelection(selected.ordinal); root.addView(this)
             }
         }
         root.addView(button("Vorheriges Dashboard") { changeDashboard(-1) })
         root.addView(button("Nächstes Dashboard") { changeDashboard(1) })
-        menu = AlertDialog.Builder(this).setTitle("Dashboards").setView(ScrollView(this).apply { addView(root) })
+        menu = dialog().setTitle("Dashboards").setView(ScrollView(this).apply { addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
                 val edit = preferences.edit(); spinners.forEachIndexed { page, spinner -> edit.putString("dashboardTemplate_$page", DashboardTemplate.entries[spinner.selectedItemPosition].name) }; edit.apply()
                 changeDashboard(0)
@@ -386,11 +418,11 @@ class MainActivity : Activity() {
         val root = column()
         root.addView(label("Online-Karten benötigen Internet. Der Kartenserver erhält die angefragten Kartenausschnitte. GPS und FIT bleiben lokal. Bei CyclOSM sind Radwege, Fahrradrouten und Belagsangaben Teil der fertigen Karte; sie können nicht einzeln ausgeblendet werden.", 14f, Color.LTGRAY))
         root.addView(label("Kartenquelle", 18f))
-        val source = Spinner(this).apply {
-            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.title })
+        val source = Spinner(settingsContext).apply {
+            adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.title })
             setSelection(MapSource.decode(preferences.getString("mapSource", null)).ordinal); root.addView(this)
         }
-        fun check(title: String, key: String, fallback: Boolean) = CheckBox(this).apply { text = title; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
+        fun check(title: String, key: String, fallback: Boolean) = CheckBox(settingsContext).apply { text = title; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
         val heading = check("Fahrtrichtung oben (sonst Norden)", "mapHeading", true)
         val follow = check("GPS automatisch folgen", "mapFollow", true)
         val track = check("Gefahrenen Track anzeigen", "mapTrackVisible", true)
@@ -398,7 +430,7 @@ class MainActivity : Activity() {
         root.addView(label("Live-Track nur nach START und bei aktivierter GPS-Route im Aufzeichnungsmanager. Befestigt bedeutet nicht automatisch rennradtauglich; fehlende OSM-Angaben bleiben unbekannt.", 14f, Color.LTGRAY))
         root.addView(button("GPS aktivieren / Berechtigung erlauben") { enableGps() })
         root.addView(button("CyclOSM-Legende öffnen") { openMapLink(MapSource.CYCLOSM.creditUrl) })
-        menu = AlertDialog.Builder(this).setTitle("Karte").setView(ScrollView(this).apply { addView(root) })
+        menu = dialog().setTitle("Kartenmanager").setView(ScrollView(this).apply { addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
                 preferences.edit().putString("mapSource", MapSource.entries[source.selectedItemPosition].name)
                     .putBoolean("mapHeading", heading.isChecked).putBoolean("mapFollow", follow.isChecked)
@@ -418,7 +450,7 @@ class MainActivity : Activity() {
         root.addView(button("GPX-Strecke importieren") { menu?.dismiss(); importGpx() })
         routeRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }; root.addView(routeRows)
         refreshRouteRows()
-        menu = AlertDialog.Builder(this).setTitle("Kartenverwaltung").setView(ScrollView(this).apply { addView(root) })
+        menu = dialog().setTitle("Streckenmanager").setView(ScrollView(this).apply { addView(root) })
             .setPositiveButton("Schließen", null).create().apply { setOnDismissListener { routeRows = null }; show() }
     }
     private fun refreshRouteRows() {
@@ -433,7 +465,7 @@ class MainActivity : Activity() {
             val selected = state.selectedRoute == entry.id
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
             row.addView(label("${entry.name}\n${entry.points} Punkte · ${entry.segments} Abschnitte", 15f).apply { tag = "route_name_${entry.id}" }, LinearLayout.LayoutParams(0, -2, 1f))
-            val eye = ImageButton(this).apply {
+            val eye = ImageButton(settingsContext).apply {
                 tag = "route_eye_${entry.id}"; setPadding(dp(12), dp(12), dp(12), dp(12)); setImageDrawable(RouteActionIcon(false, selected))
                 contentDescription = if (selected) "${entry.name} ausblenden" else "${entry.name} anzeigen"
                 isEnabled = !state.busy; setOnClickListener {
@@ -442,11 +474,11 @@ class MainActivity : Activity() {
                 }
             }
             row.addView(eye, LinearLayout.LayoutParams(dp(48), dp(48)))
-            row.addView(ImageButton(this).apply {
+            row.addView(ImageButton(settingsContext).apply {
                 tag = "route_delete_${entry.id}"; setPadding(dp(12), dp(12), dp(12), dp(12)); setImageDrawable(RouteActionIcon(true))
                 contentDescription = "${entry.name} löschen"; isEnabled = !state.busy
                 setOnClickListener {
-                    AlertDialog.Builder(this@MainActivity).setTitle("GPX-Strecke löschen?").setMessage(entry.name)
+                    dialog().setTitle("GPX-Strecke löschen?").setMessage(entry.name)
                         .setPositiveButton("Löschen") { _, _ -> state.deleteRoute(entry.id) }.setNegativeButton("Abbrechen", null).show()
                 }
             }, LinearLayout.LayoutParams(dp(48), dp(48)))

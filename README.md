@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.0 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.0-test.apk).
+[Installierbare APK 0.6.1 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.1-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -16,19 +16,18 @@ Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
 Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
-APK-Größe: 358.136 Byte (rund 358 KB).
-SHA-256: `3776cc7c0f38a4f5f713af59283079a26d9a2ab173ec4822e4cae6c083070909`.
+APK-Größe: 370.872 Byte (rund 371 KB).
+SHA-256: `c843a9abe787afd983087f6cd28417e168943f7dec5bdf37b96f610bdd393f2d`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 90 Tests sind bestanden.
-Android-Lint meldet 19 Warnungen und keine Fehler.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 92 Tests sind bestanden.
+Android-Lint meldet 21 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
 Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
 Pulsmesser-Test wurde vom Nutzer bestätigt. Eine Fahrt mit ausgeschaltetem
 Display auf dem Poco steht noch aus. Die Kachelcache-Korrektur aus 0.5.1 wurde
-vom Nutzer auf dem Handy bestätigt. Version 0.6.0 ergänzt kurze Beschriftungen
-mit weißen Quellensymbolen, die Fünf-Werte-Vorlage, eine gemeinsam ausblendende
-Bedienleiste und die GPX-Verwaltung. Die neuen Abläufe sind automatisiert geprüft;
+vom Nutzer auf dem Handy bestätigt. Version 0.6.1 ergänzt das einheitliche Einstellungsmenü mit Symbolraster und
+eigenen Dialogen für die erweiterten Punkte. Die neuen Abläufe sind automatisiert geprüft;
 der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.md).
 
 ## Benutzung
@@ -45,7 +44,7 @@ der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.
 4. Ein Datenfeld antippen: zunächst sind **GPS**, **E-Bike** und **Pulsmesser**
    eingeklappt. Kategorie öffnen und einen Wert wählen. Alle sieben Felder sind
    frei belegbar. Fahrerleistung (eigene Watt) und Motorleistung bleiben getrennt.
-5. **☰ → Aufzeichnung einstellen** bestimmt die zu speichernden Werte und getrennt
+5. **☰ → Aufzeichnungsmanager** bestimmt die zu speichernden Werte und getrennt
    die FIT-Hauptquellen für Geschwindigkeit und Distanz (jeweils GPS oder E-Bike).
    Die andere Quelle bleibt als zusätzliches FIT-Developer-Feld erhalten, wenn sie
    angehakt ist. GPS-Route/Position ist ebenfalls abwählbar. Die Auswahl gilt für
@@ -72,7 +71,14 @@ Die Karte nutzt die bestehende GPS-Quelle. Vier Seiten speichern unabhängige
 Messwertbelegungen und wählbare feste Layouts mit unterschiedlichen Kartengrößen.
 CyclOSM zeigt Radwege und Fahrradrouten; eigene Belagsfarben sind bei diesen
 fertigen Online-Rasterkacheln nicht vorgesehen. GPX-Import, eine persistente Streckenverwaltung und Live-Track sind eingebaut.
-**☰ → Kartenverwaltung** enthält Import, Streckennamen, Auge zum Anzeigen/Ausblenden
+Das neue dunkelrote Einstellungsfenster zeigt **B|Cycle** und sechs Symbolkacheln
+in zwei Zeilen mit je drei Spalten: Sensoren, Aufzeichnungsmanager, Kartenmanager,
+Dashboards, Streckenmanager und Erweitert. **Erweitert** klappt weitere Punkte
+unterhalb einer 1-Pixel-Linie auf; jeder öffnet einen eigenen Dialog. Aktionen
+werden dort gezielt über einen Button ausgelöst. Die beiden Lizenzpunkte stehen
+am Ende. Alle App-Einstellungsdialoge verwenden denselben dunkelroten Hintergrund.
+
+**☰ → Streckenmanager** enthält Import, Streckennamen, Auge zum Anzeigen/Ausblenden
 und Mülleimer zum Löschen. Jeweils eine gespeicherte GPX-Strecke wird angezeigt.
 
 Kartenicons und START/Menü blenden sich nach fünf Sekunden gemeinsam aus; ein
