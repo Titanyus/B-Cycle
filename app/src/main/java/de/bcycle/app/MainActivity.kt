@@ -3,10 +3,12 @@ package de.bcycle.app
 import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
+import android.os.Build
 import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
@@ -17,10 +19,15 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
+import java.io.IOException
+import java.time.Instant
 import java.util.Locale
 
 class MainActivity : Activity(), BoschConnection.Listener {
     private lateinit var connection: BoschConnection
+    private val diagnostics = DiagnosticLog()
+    private var pendingReport: String? = null
     private lateinit var status: TextView
     private lateinit var speed: TextView
     private lateinit var power: TextView
@@ -41,7 +48,9 @@ class MainActivity : Activity(), BoschConnection.Listener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        connection = BoschConnection(this, this)
+        diagnostics.reset(diagnosticHeader())
+        pendingReport = savedInstanceState?.getString("pendingReport")
+        connection = BoschConnection(this, this, diagnostics)
         val column = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(24), dp(20), dp(24), dp(20))
@@ -78,6 +87,10 @@ class MainActivity : Activity(), BoschConnection.Listener {
             setText(R.string.stop)
             setOnClickListener { stopConnection() }
         })
+        column.addView(Button(this).apply {
+            setText(R.string.save_diagnostic)
+            setOnClickListener { exportDiagnostic() }
+        })
         column.addView(label(
             "Fahrrad mit Flow entsperren, dann hier suchen und auswählen. Die Liste enthält auch andere BLE-Geräte. Android kann eine Kopplungsbestätigung anzeigen.\n\n" +
                 "Experimenteller Test: Smartphone-Unterstützung ist von Bosch nicht zugesichert. Die App arbeitet nur im Vordergrund.",
@@ -89,10 +102,58 @@ class MainActivity : Activity(), BoschConnection.Listener {
 
     private fun hasPermissions() = permissions.all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
     private fun startConnection() {
+        diagnostics.reset(diagnosticHeader())
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         seenAddresses.clear()
         devices.removeAllViews()
         connection.discover()
+    }
+
+    private fun diagnosticHeader(): String {
+        val version = packageManager.getPackageInfo(packageName, 0).versionName
+        return "App=$version device=${Build.MANUFACTURER} ${Build.MODEL} Android=${Build.VERSION.RELEASE} API=${Build.VERSION.SDK_INT}\n" +
+            "Session UTC=${Instant.now()}\nConnection mode=Android BLE client (existing/direct link)"
+    }
+
+    private fun exportDiagnostic() {
+        diagnostics.event("EXPORT requested; leaving foreground will stop the BLE session")
+        pendingReport = diagnostics.report()
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.1.1-diagnose.txt")
+        }
+        try { startActivityForResult(intent, 2) }
+        catch (_: android.content.ActivityNotFoundException) {
+            pendingReport = null
+            Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("pendingReport", pendingReport)
+        super.onSaveInstanceState(outState)
+    }
+
+    @Deprecated("Platform document picker callback; no AndroidX dependency is needed")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != 2) return
+        val report = pendingReport
+        pendingReport = null
+        val uri = data?.data
+        if (resultCode != RESULT_OK || report == null || uri == null) return
+        Thread({
+            val success = try {
+                val stream = contentResolver.openOutputStream(uri, "wt") ?: throw IOException("No output stream")
+                stream.bufferedWriter(Charsets.UTF_8).use { it.write(report) }
+                true
+            } catch (_: IOException) { false }
+            catch (_: SecurityException) { false }
+            runOnUiThread {
+                Toast.makeText(applicationContext, if (success) R.string.export_saved else R.string.export_failed, Toast.LENGTH_LONG).show()
+            }
+        }, "B-Cycle-diagnostic-export").start()
     }
     private fun stopConnection() {
         connection.stop()

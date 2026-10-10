@@ -1,0 +1,68 @@
+package de.bcycle.app
+
+import org.junit.Assert.*
+import org.junit.Test
+
+class DiagnosticLogTest {
+    @Test fun reportsReadAndNotificationCountsIncludingExplicitZeroFields() {
+        var now = 1000L
+        val log = DiagnosticLog({ now })
+        log.reset("App 0.1.1")
+        now += 50
+        log.packet("read", byteArrayOf(8, 0))
+        log.decoded(LiveData(0))
+        log.packet("notification", byteArrayOf(40, 0))
+        log.decoded(LiveData(riderPowerWatts = 0))
+        log.decodeFailed("truncated varint")
+        val report = log.report()
+        assertTrue(report.contains("reads=1 notifications=1 decodeErrors=1"))
+        assertTrue(report.contains("speedFieldSeen=true riderPowerFieldSeen=true"))
+        assertTrue(report.contains("50ms read bytes=2 hex=0800"))
+        assertTrue(report.contains("DECODE_ERROR truncated varint"))
+    }
+
+    @Test fun packetHistoryCannotEvictTheHandshakeAndRetainsTotalCounts() {
+        val log = DiagnosticLog({ 0 }, maxPackets = 2)
+        log.reset("device metadata")
+        log.event("MTU_CHANGED mtu=247")
+        log.packet("read", byteArrayOf(8, 100))
+        log.packet("notification", byteArrayOf(1))
+        log.packet("notification", byteArrayOf(2))
+        log.packet("notification", byteArrayOf(3))
+        val report = log.report()
+        assertTrue(report.contains("MTU_CHANGED mtu=247"))
+        assertTrue(report.contains("read bytes=2 hex=0864"))
+        assertTrue(report.contains("notifications=3"))
+        assertFalse(report.contains("hex=01"))
+        assertTrue(report.contains("hex=02"))
+        assertTrue(report.contains("hex=03"))
+    }
+
+    @Test fun eventAndPayloadStorageAreBounded() {
+        val log = DiagnosticLog({ 0 }, maxEventChars = 128, maxPackets = 1)
+        repeat(1000) { log.event("event $it") }
+        log.packet("read", ByteArray(10_000) { -1 })
+        val report = log.report()
+        assertFalse(report.contains("event 0\n"))
+        assertTrue(report.contains("event 999\n"))
+        assertTrue(report.contains("bytes=10000"))
+        assertTrue(report.contains("[truncated in log]"))
+        assertTrue(report.length < 2000)
+    }
+
+    @Test fun stopEventsPreserveFailureAndANewSessionClearsOldData() {
+        val log = DiagnosticLog({ 0 })
+        log.reset("first session")
+        log.event("FAIL no Bosch service")
+        log.event("STOP")
+        assertTrue(log.report().contains("FAIL no Bosch service"))
+        log.packet("read", byteArrayOf(8, 0))
+        log.decoded(LiveData(0))
+        log.reset("second session")
+        val report = log.report()
+        assertFalse(report.contains("first session"))
+        assertFalse(report.contains("FAIL"))
+        assertTrue(report.contains("reads=0 notifications=0 decodeErrors=0"))
+        assertTrue(report.contains("speedFieldSeen=false riderPowerFieldSeen=false"))
+    }
+}

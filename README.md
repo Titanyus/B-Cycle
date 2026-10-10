@@ -3,19 +3,21 @@
 Minimaler experimenteller Radcomputer für Android 13+ (API 33).
 Live-Anzeige von Geschwindigkeit in km/h und **Fahrerleistung** in Watt.
 Kotlin mit Android-Plattform-Views; keine UI-, Netzwerk-, Analyse- oder BLE-Bibliotheken.
-Keine Internetberechtigung, Speicherung, GPS-Aufzeichnung oder Hintergrunddienste.
+Keine Internetberechtigung, GPS-Aufzeichnung oder Hintergrunddienste.
+Diagnosedaten bleiben im Arbeitsspeicher, bis ausdrücklich eine Textdatei exportiert wird.
 Cycplus-Herzfrequenz kommt in einem späteren Schritt.
 
 ## APK herunterladen
 
-[Installierbare Test-APK 0.1.0 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.0-test.apk).
+[Installierbare Test-APK 0.1.1 für Android 13+ herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.1.1-test.apk).
 Die Datei liegt auch im Ordner `downloads`. Falls GitHub eine Dateiseite öffnet, dort
 „Download raw file“ auswählen. Bei einem privaten Repository vorher bei GitHub anmelden.
 
-Die APK ist 54.775 Byte groß, optimiert und mit einem lokalen Testschlüssel signiert.
-SHA-256: `b2e18d5e82476a6f7ebfc154bb41048bd5f23d43f2fc883e128af0e934068f16`.
-Build, zehn Decoder-Tests, Android-Lint und APK-Signatur wurden geprüft; der reale
-Bosch-Verbindungstest steht aus.
+Die APK ist 67.063 Byte groß, optimiert und mit demselben lokalen Testschlüssel wie
+Version 0.1.0 signiert. Sie kann als Update installiert werden.
+SHA-256: `ba89696211a286588b9499ffb883543cf963babb358d069063237d024027596b`.
+Build, 14 Tests (zehn Decoder-Tests und vier Diagnose-Tests), Android-Lint und
+APK-Signatur wurden geprüft.
 
 ## Testablauf
 
@@ -30,10 +32,33 @@ Bosch-Verbindungstest steht aus.
    Auch Stillstand, Treten, Aussetzen des Tretens, „Stoppen“ und Wiederverbindung prüfen.
 
 Zielhardware: Xiaomi Poco F7 Ultra, Bosch Smart System mit System Controller und Mini Remote
-ohne Display, laut Nutzer aktuelle Firmware. Der tatsächliche Datenzugriff auf dieser Hardware
-ist **noch nicht getestet**. Bei Fehlern bitte den angezeigten Status und die exakte
-Bedieneinheit-Firmware notieren. Android- und Geräte-Bluetooth-Einstellungen alleine bestätigen
-keinen LDI-Zugriff. Flow bleibt für das Entsperren zuständig; B-Cycle hat keine Entsperrfunktion.
+ohne Display, laut Nutzer aktuelle Firmware. Beim ersten Hardwaretest mit 0.1.0 wurde
+„Live verbunden · MTU 247“ erreicht, aber beim Drehen des Rads erschienen keine Messwerte.
+Dieser Status bedeutet im Programm, dass der LDI-Dienst gefunden, das Abonnement bestätigt
+und das initiale Paket gelesen und akzeptiert wurde. Welche Felder darin enthalten waren
+und ob Notifications ankamen, ist noch ungeklärt. Version 0.1.1 ergänzt hierfür einen
+Diagnoseexport; eine Behebung des Problems am Fahrrad ist noch nicht bestätigt.
+Flow bleibt für das Entsperren zuständig; B-Cycle hat keine Entsperrfunktion.
+
+## Diagnose bei fehlenden Messwerten
+
+1. Version 0.1.1 als Update installieren, Fahrrad mit Flow entsperren und in B-Cycle verbinden.
+2. Nach „Live verbunden“ etwa 20–30 Sekunden mit drehendem Rad testen; für Fahrerleistung
+   muss getreten werden. Das Smartphone dabei sicher bedienen, nicht während der Fahrt.
+3. Danach „Diagnose speichern“ antippen und im Android-Dateidialog beispielsweise
+   „Downloads“ als Speicherort wählen. Beim Öffnen dieses Dialogs stoppt die BLE-Verbindung;
+   der Diagnosebericht wird unmittelbar vorher festgehalten.
+4. Die gespeicherte Datei `B-Cycle-0.1.1-diagnose.txt` für die Fehlersuche hochladen.
+   Vor dem Export keine neue Suche starten: Diese setzt die Diagnose zurück.
+
+Der Bericht enthält App-Version, Smartphone-Modell, Android-Version, Sitzungszeit,
+GATT-Ablauf mit Statuscodes, Dienst- und Characteristic-UUIDs, Paketzähler, Decoderfehler,
+die letzten vier initialen Leseantworten sowie die letzten 24 LDI-Notifications als Hexdaten.
+Geschwindigkeit und Fahrerleistung werden als empfangene Felder gezählt, auch bei Nullwerten.
+Gerätenamen und Bluetooth-Adressen werden nicht protokolliert. Aus anderen Characteristics
+werden keine Nutzdaten gelesen oder gespeichert. Die Historie ist begrenzt, wird beim Beenden
+der App verworfen und wird nicht automatisch hochgeladen. Der Export benötigt keine zusätzliche
+Speicherberechtigung.
 
 Die App arbeitet nur im Vordergrund und hält das Display während des Tests an.
 Beim Verlassen des Vordergrunds oder einer Trennung werden beide Messwerte zurückgesetzt.
@@ -87,7 +112,7 @@ Vollständiges JDK 17 oder 21 mit `javac`, Android-SDK Plattform 35 und Build-To
 
 Debug-APK: `app/build/outputs/apk/debug/app-debug.apk`.
 Release-APK: `app/build/outputs/apk/release/app-release-unsigned.apk`, mit R8 optimiert,
-noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.0-test.apk` ist eine optimierte APK
+noch nicht signiert. Die bereitgestellte `B-Cycle-0.1.1-test.apk` ist eine optimierte APK
 mit dem lokalen Android-Testschlüssel, nicht mit einem Veröffentlichungsschlüssel.
 
 In der eingerichteten Cloud-Umgebung:
