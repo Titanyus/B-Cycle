@@ -1,313 +1,172 @@
-# B-Cycle
+# B|Cycle
 
-Schlanker Radcomputer für Android 13+ (API 33), mit nativen Kotlin-Views,
-Android-Bluetooth-LE und GPS. Mapsforge-Fahrradkarte, sechs feste Dashboard-Vorlagen
-mit frei belegbaren Messwertfeldern, Bosch-MCSP, Standard-BLE-Pulsmesser und lokale
-FIT-Fahrtaufzeichnung. Die Online-Karte benötigt Internet; keine Analyse- oder
-zusätzlichen BLE-/GPS-Bibliotheken.
+Schlanker Radcomputer für **Android 13+**: Bosch-E-Bike-Daten, GPS,
+BLE-Pulsmesser, Fahrradkarte und FIT-Aufzeichnung. Native Kotlin-Views,
+kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.11 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.11-test.apk).
+**[APK 0.6.19 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/cef8d5623ae9850991396ab2e1d9cc6496efc4f8/downloads/B-Cycle-0.6.19-test.apk)**
 
-Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
-„Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
-Die optimierte APK ist mit demselben lokalen Testschlüssel wie die bisherigen
-Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
-auf Rot unterstützt adaptive und monochrome Android-Icons.
+- Größe: **930.421 Byte**, rund **930 KB**.
+- Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
+  als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
+- Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
+  bei einem privaten Repository vorher anmelden.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.6.19-test.apk.sha256):
+  `c70f06b1e826af38f881c7dd1bbb61942512d9868a99820abcbbbe3a614eca03`.
 
-APK-Größe: 834.238 Byte (rund 834 KB).
-SHA-256: `44807e682b8e5c077667c13b7c57646af6747fa8853405ad3375f5ba28dcdf5d`.
+Für diesen APK-Build: **211 Tests bestanden**, Signatur und Version geprüft.
+Tests und optimierter Release-Build dauerten zusammen **1 Minute 14 Sekunden**.
+Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`;
+für diesen Build wurde kein neuer vollständiger Android-Lint-Lauf durchgeführt.
+Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 127 Tests sind bestanden.
-Android-Lint meldet 36 Warnungen und keine Fehler.
-Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
-bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
-Android 13/15, die FIT-Dateien mit dem offiziellen Garmin-SDK geprüft. Der
-Pulsmesser-Test wurde vom Nutzer bestätigt. Eine Fahrt mit ausgeschaltetem
-Display auf dem Poco steht noch aus. Die Kachelcache-Korrektur aus 0.5.1 wurde
-vom Nutzer auf dem Handy bestätigt. Version 0.6.2 ergänzt Rücknavigation zum vorherigen Einstellungsdialog, die
-sechste Dashboard-Vorlage und eine grafische Vorlagenauswahl. Die neuen Abläufe sind automatisiert geprüft;
-der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.md).
+## Neu in 0.6.19
 
-## Benutzung der APK 0.6.11
+- **Wetter → Sonne & Tageslicht**: Sonnenaufgang, Sonnenuntergang,
+  Zeit bis Sonnenuntergang und verbleibendes Tageslicht.
+  Vollständig offline aus gültiger GPS-Position und Datum berechnet;
+  Sonnenzeiten in der Zeitzone des Handys, Restzeiten als `HH:mm`.
+  Ohne frisches GPS keine Werte; nach Sonnenuntergang Restzeit `00:00`.
+  Berechnung nur beim ersten Fix, Tages-/Zeitzonenwechsel, größerer Ortsänderung
+  oder nach einer Stunde. Sunrise-/Sunset-Icons im Dashboard.
+- **Fahrradlicht** unter E-Bike → Licht: An/Aus-Wert zur freien Feldbelegung
+  und zur optionalen FIT-Speicherung. Eine rote Glühbirne rechts neben dem
+  mittleren Kartenwert signalisiert eingeschaltetes Licht; links steht während
+  der Aufzeichnung der rote Record-Punkt. Beide funktionieren auch ohne belegtes Feld.
+- Der Streckenmanager-Shortcut unten verwendet dasselbe `route`-Icon wie das Einstellungsmenü.
 
-1. Als Update installieren, Fahrrad mit Bosch Flow entsperren. **Flow darf weiterlaufen.**
-2. **☰ → Sensoren verwalten → Sensor hinzufügen** öffnet die Auswahl für Bosch
-   E-Bike oder BLE-Pulsmesser. „Fahrrad auswählen“ und „Sensor auswählen“ stehen
-   direkt bei den jeweiligen Sensoren; die separate Fahrradauswahl im Hauptmenü entfällt.
-   Bluetooth-Zugriff erlauben und Sensor wählen. Aktivierten Pulsmesser tragen,
-   damit er sendet; er muss den Standard-Heart-Rate-Service unterstützen.
-3. Rad und Pulsmesser werden lokal gespeichert und verbinden sich automatisch
-   beim Öffnen und während gestarteter Fahrten. Der Sensormanager zeigt ihren
-   Zustand und ermöglicht Verbinden/Trennen; dort wird auch GPS ein-/ausgeschaltet.
-4. Im Stand ein Datenfeld antippen: oben die Quelle **GPS**, **E-Bike** oder
-   **Pulsmesser** im Dropdown auswählen, darunter einen Wert wählen. Alle sieben Felder sind
-   frei belegbar. Fahrerleistung (eigene Watt) und Motorleistung bleiben getrennt.
-5. **☰ → FIT-Aufzeichnung** bestimmt die zu speichernden Werte und getrennt
-   die FIT-Hauptquellen für Geschwindigkeit und Distanz (jeweils GPS oder E-Bike).
-   Die andere Quelle bleibt als zusätzliches FIT-Developer-Feld erhalten, wenn sie
-   angehakt ist. GPS-Route/Position ist ebenfalls abwählbar. Die Auswahl gilt für
-   die nächste Fahrt und ist unabhängig von den angezeigten Dashboard-Feldern.
-6. **START** setzt die Fahrtzähler zurück und beginnt die Aufzeichnung. Für GPS
-   präzisen Standort erlauben, für die Aufzeichnungsanzeige Benachrichtigungen.
-   Die Fahrt läuft mit Aufzeichnungsbenachrichtigung und CPU-Wake-Lock auch bei
-   ausgeschaltetem Display oder beim Wechsel in andere Apps weiter.
-7. **STOPP · SPEICHERN** beendet die Fahrt und behält die originale `.fit` in der
-   Streckensammlung. **☰ → Streckenmanager → ⋮** stellt Ordnerspeicherung und
-   Nextcloud-Upload unabhängig ein. Standard: Downloads/B-Cycle aktiv, WebDAV aus.
-   Auch die Benachrichtigung hat eine STOPP-Aktion; aktivierte Uploads laufen danach
-   über Androids JobScheduler im Hintergrund.
-8. Bei fehlgeschlagenem Speichern bleiben private Zwischendaten erhalten.
-   **☰ → Erweitert → Ungespeicherte Fahrten speichern** versucht den Export erneut; das gilt
-   auch für vollständige Messpunkte einer unterbrochenen Fahrt nach Prozessende.
+**Der Lichtstatus ist noch nicht am Fahrrad bestätigt.** Unsere erprobte Verbindung
+nutzt MCSP und fragt den optionalen Booleanwert unter `0x181C` ab. Das Enum-Feld
+`bike_light = 17` der Bosch-PDF gehört zur anderen LDI-Schnittstelle und wird nicht
+mit der MCSP-Kodierung vermischt. Unbekannt ist kein „Aus“; bei fehlendem oder
+veraltetem Status bleibt die Glühbirne verborgen. FIT speichert den Lichtstatus
+als standardkonformes Developer Field, 0 = aus, 1 = an.
 
-Die Messung läuft außerhalb gestarteter Fahrten bei sichtbarer App und endet
-beim Verlassen. Während einer Fahrt teilen sich Activity und Aufzeichnungsdienst
-Sensorverbindungen; es entsteht kein zweiter Bosch-GATT-Client. Keine Suche nach
-einer Smartphone-App im Flow-Zubehörmenü ist erforderlich. „Werte erneut lesen“
-wurde aus der Bedienoberfläche entfernt. WebDAV ist ab 0.6.8 verfügbar.
+Sonnenzeiten sind Näherungen ohne örtliche Berge oder Hindernisse.
+Details: [Offline-Sonnenwerte](docs/solar-weather.md) und
+[Bosch-MCSP](docs/bosch-mcsp.md).
 
-Ab 0.5.0: [Kartenbedienung, Dashboards, GPX und Grenzen](docs/maps.md).
-Die Karte nutzt die bestehende GPS-Quelle. Vier Seiten speichern unabhängige
-Messwertbelegungen und wählbare feste Layouts mit unterschiedlichen Kartengrößen.
-CyclOSM zeigt Radwege und Fahrradrouten; eigene Belagsfarben sind bei diesen
-fertigen Online-Rasterkacheln nicht vorgesehen. GPX-Import, eine persistente Streckenverwaltung und Live-Track sind eingebaut.
-Das dunkelrote Einstellungsfenster zeigt ab 0.6.3 das bereitgestellte komplette **B|Cycle**-SVG
-zentriert auf einem hellroten Kopfbereich im START-Rotton. Es folgt ein Raster aus sechs Symbolkacheln
-in zwei Zeilen mit je drei Spalten: Sensoren, Aufzeichnungsmanager, Kartenmanager,
-Dashboards, Streckenmanager und Erweitert. **Erweitert** klappt weitere Punkte
-unterhalb einer 1-Pixel-Linie auf; jeder öffnet einen eigenen Dialog. Aktionen
-werden dort gezielt über einen Button ausgelöst. Die beiden Lizenzpunkte stehen
-am Ende von Erweitert. Schließen, Abbrechen und Zurück führen aus Unterdialogen
-zum vorherigen Dialog zurück; aufgeklappte Bereiche bleiben erhalten. Alle App-Einstellungsdialoge verwenden denselben dunkelroten Hintergrund.
+## Benutzung
 
-**☰ → Streckenmanager** enthält Import, Streckennamen, Auge zum Anzeigen/Ausblenden
-und Mülleimer zum Löschen. Jeweils eine gespeicherte GPX-Strecke wird angezeigt.
+1. APK als Update installieren und das Fahrrad mit Bosch Flow entsperren.
+   **Flow darf weiterlaufen.** B|Cycle benötigt keine Registrierung als App im Flow-Zubehörmenü.
+2. **☰ → Sensoren & Aufzeichnung → Sensor hinzufügen**: Bosch-E-Bike oder
+   Standard-BLE-Pulsmesser auswählen, Bluetooth-Zugriff erlauben.
+   Aktivierten Pulsmesser tragen, damit er sendet.
+   Die Geräteauswahl wird lokal gespeichert; aktivierte Sensoren verbinden sich automatisch.
+   GPS lässt sich im selben Manager aktivieren; dafür präzisen Standort erlauben.
+3. **Im Stand ein Datenfeld antippen** und im festen Dropdown GPS, E-Bike,
+   Pulsmesser oder Wetter auswählen. Darunter stehen die Werte in Gruppen.
+   Während der Bewegung bleibt ein Klick ohne Wirkung und ohne Hinweis.
+   Fahrerleistung und Motorleistung sind getrennte Felder.
+4. **☰ → Design & UI**: Farbpalette, Dashboard-Vorlagen, Belegungen der drei
+   transparenten Kartenfelder und optionalen Fahrmodus-Glow einstellen.
+   Vier Dashboard-Seiten verwenden sechs feste Layout-Vorlagen.
+   Die Menüoberfläche hat zwei Zeilen mit je drei Plätzen; das `activity`-Icon
+   ist derzeit ein Dummy ohne Funktion.
+5. **☰ → Sensoren & Aufzeichnung → FIT-Aufzeichnung** aufklappen:
+   Speicherfelder und die FIT-Hauptquellen für Geschwindigkeit und Distanz wählen.
+   GPS und E-Bike können beide gespeichert werden; die zweite Quelle wird ein
+   zusätzliches Developer Field. Anzeige und Aufzeichnungsauswahl sind unabhängig.
+   Sonnenwerte dienen derzeit nur der Anzeige.
+6. **START** setzt die Fahrtzähler zurück und beginnt die Aufzeichnung.
+   Eine dauerhafte Benachrichtigung zeigt die aktive Fahrt.
+   Die Aufzeichnung läuft auch bei ausgeschaltetem Display oder in anderen Apps weiter.
+7. **STOPP** beendet die Fahrt und speichert die FIT-Datei in der privaten
+   Streckensammlung. **Streckenmanager → ⋮** konfiguriert zusätzlich die lokale
+   Ordnerspeicherung und Nextcloud-WebDAV; beide sind unabhängig schaltbar.
+   Cloud-Upload ist für selbst aufgezeichnete Fahrten vorgesehen, nicht für manuell importierte Tracks.
+8. **Streckenmanager** zeigt eigene Fahrten und importierte GPX-/FIT-Strecken:
+   Vorschau, Datum, Distanz und Bewegungszeit, Auge zur Kartenanzeige sowie ein
+   Dropdown mit Streckenaktionen. Wolke und Speichersymbol zeigen den Ausgabestatus.
+   Bei einem Speicherfehler sind vollständige Zwischendaten unter
+   **Erweitert → Ungespeicherte Fahrten speichern** erneut exportierbar.
 
-Kartenicons und START/Menü blenden sich nach fünf Sekunden gemeinsam aus; ein
-Kartentipp zeigt sie wieder. Der zusätzliche Platz kommt ausschließlich der Karte zugute.
-Die fünfte Vorlage zeigt oben zwei und unten drei frei belegbare Messwerte.
-Die sechste Vorlage zeigt einen großen Wert oben und drei Werte darunter.
-Unter Dashboards lassen sich die sechs Vorlagen als Vorschau-Icons in zwei Zeilen
-mit je drei Spalten für jede der vier Seiten auswählen. Änderungen werden erst
-mit Speichern übernommen.
+## Dashboard und Karte
 
-Das Dashboard verwendet Schwarz, Weiß, dünne graue Linien, große schmale Ziffern
-und eine rote Bedienleiste mit dunklerem Hamburger-Button. Das obere Infofeld
-ist entfernt. Einheiten stehen rechts neben den weiterhin mittigen Messwerten
-und sind vertikal in der Messwertzeile zentriert. Feldnamen verwenden eine gemeinsame
-Schriftgröße innerhalb des Dashboards, die auch für die längsten sichtbaren Titel passt. Die Datenfelder sind kompakter;
-darunter steht nun die Karte. Speicherbestätigung und Fehler
-erscheinen als kurze Hinweise statt in einer dauerhaften Kopfzeile. Die Sieben-Werte-Vorlage
-hat im Hochformat zwei Felder, ein großes Feld und zweimal zwei Felder;
-bei breiter Darstellung ein großes Feld links und sechs rechts. Belegung, Sensoren und
-Aufzeichnungsauswahl werden lokal gespeichert. Die Ziffernschrift ist
-[Bebas Neue, SIL OFL](docs/fonts.md). Details: [FIT-Aufzeichnung](docs/fit.md).
+- Schwarzes Dashboard mit großen schmalen Ziffern, einheitlichen Feldgrößen,
+  kurzen Bezeichnungen und Einheiten rechts vom Wert.
+- Sieben Farbpaletten; einheitliche Dialoggeometrie unabhängig vom Theme.
+  START, Streckenmanager-Shortcut und Menü übernehmen die gewählten Farben.
+- Durchschnittskadenz ohne Tretpausen; die Aufzeichnung erhält weiterhin die
+  tatsächlichen Sensorwerte einschließlich Nullwerten. Durchschnittsfelder
+  besitzen einen Richtungsindikator.
+- Mapsforge-Karte mit CyclOSM-Online-Kacheln und importierbaren Offline-Karten.
+  Online-Kacheln benötigen Internet.
+- Importierte Strecke: dunkelblau, **6 dp**, **35 % Deckkraft**.
+  Aktuelle Position mit Höhenangabe bei verfügbarem GPS-Höhenwert;
+  bei genordeter, nachgeführter Karte liegt die Position auf zwei Dritteln der Höhe.
+- Das Auge links oben blendet die gewählte Strecke ein/aus und behält die Auswahl.
+  Ohne frühere Auswahl wird die letzte eigene Fahrt mit Positionsdaten verwendet.
+- Zentrieren, Norden und Vollbild oben rechts; Zoom +/− unten rechts.
+  Kartenbuttons und untere Bedienleiste blenden sich gemeinsam nach fünf Sekunden aus;
+  ein Kartentipp zeigt sie wieder.
+- Drei globale Kartenfelder: schwarze Werte ohne Titel auf transparentem Hintergrund,
+  frei belegbar unter **Design & UI**; leere Felder bleiben unsichtbar.
 
-## Angezeigte Daten
+## Daten und Aufzeichnung
 
-| Bereich | Werte |
+| Quelle | Verfügbare Werte |
 | --- | --- |
-| GPS · Fahrt | Geschwindigkeit, gefahrene Distanz, Bewegungs- und Gesamtdurchschnitt, Maximaltempo, Fahrtdauer, Bewegungszeit, Standzeit |
-| GPS · Höhe | Höhe, Höhenzugewinn, Höhenverlust, Steigung |
-| Fahrt | Geschwindigkeit, Fahrerleistung, Kadenz, Unterstützungsmodus, Motorleistung, Fahrer- und Motordrehmoment |
-| E-Bike · Strecke | Gefahrene Distanz aus Kilometerstand-Differenzen, Gesamtkilometerstand |
-| Fahrrad & Akku | Akkustand, Akkutemperatur, verbleibende Energie, insgesamt vom Akku abgegebene Energie, Reichweite je Modus |
-| Pulsmesser | Puls, Durchschnittspuls, Maximalpuls, Akkustand (wenn unterstützt) |
-| Bosch-Aktivität | Durchschnitt und Maximum der Fahrerleistung und Kadenz, Durchschnittsgeschwindigkeit, Fahreranteil an der Antriebsenergie |
+| GPS · Fahrt | Tempo, Distanz, Bewegungs-/Gesamtdurchschnitt, Maximaltempo, Fahrtdauer, Bewegungszeit, Standzeit |
+| GPS · Höhe | Höhe, Aufstieg, Abstieg, Steigung |
+| E-Bike | Tempo, Distanz, Gesamtkilometer, Fahrer-/Motorleistung, Kadenz, Drehmomente, Unterstützungsmodus, Fahrradlicht |
+| E-Bike · Akku | Akkustand, Temperatur, verbleibende und abgegebene Energie, Reichweiten |
+| E-Bike · Statistik | Leistungs-/Kadenzdurchschnitt und Spitzenwerte, Durchschnittstempo, Fahreranteil |
+| Pulsmesser | Puls, Durchschnitt, Maximum, Sensorakku, soweit unterstützt |
+| Wetter | Sonnenaufgang, Sonnenuntergang, Zeit bis Sonnenuntergang, verbleibendes Tageslicht |
 
-Die App abonniert diese belegten MCSP-Felder und fordert Ausgangswerte an.
-GPS-Felder sind eigene Quellen und beeinflussen den Bosch-Datenzugriff nicht.
-Geschwindigkeit und gefahrene Distanz sind ausdrücklich aus **beiden Quellen**
-auswählbar. Die E-Bike-Fahrdistanz beginnt beim ersten empfangenen Kilometerstand;
-der Gesamtkilometerstand wird durch START nicht verändert.
-GPS-Positionen werden auf Genauigkeit, Alter und Sprünge geprüft. Geschwindigkeit
-wird leicht, Höhe stärker geglättet; Höhenmeter haben eine Änderungsschwelle,
-Steigung ein Streckenfenster. Details und Grenzen: [GPS-Fahrtwerte](docs/gps.md).
-Namen der Unterstützungsmodi
-werden vom Fahrrad gelesen; die App setzt keine feste ECO/TOUR/eMTB/TURBO-Liste voraus.
-Bei fehlenden Namen wird die Stufe angezeigt. Reichweiten werden nur bei passender
-Listenlänge mit Modusnamen beschriftet, sonst mit Stufennummern.
+FIT unterstützt die ausgewählten GPS-, E-Bike- und Pulswerte sowie optionale
+Fahrtkennzahlen: Normalized Power, mechanische Arbeit, geschätzte Kalorien,
+Speed-to-Power Ratio und Efficiency Factor. Native Garmin-Felder werden verwendet,
+wo ihre Bedeutung passt; zusätzliche Werte erhalten Developer Fields.
+Garmins offizieller Decoder und Activity Validator prüfen die erzeugten Dateien.
 
-**Die Verfügbarkeit hängt vom Fahrrad und seiner laufenden Sitzung ab.** Noch nicht
-empfangene Werte erscheinen als „—“, empfangene Nullwerte als 0. Teilupdates erhalten
-vorherige Werte; fehlende Pakete werden nicht als Null interpretiert. Das gemeinsame
-Paketalter beweist nicht die Aktualität jedes einzelnen Werts. Insbesondere Kadenz
-kann laut öffentlichen Beobachtungen je nach Verbindungszeitpunkt fehlen.
-Aktivitätswerte stammen vom Bosch-System und aktualisieren sich teilweise selten;
-sie sind keine von B-Cycle aufgezeichnete Tour. Akkuenergie gesamt ist ein kumulativer
-Akkuwert, kein Energieverbrauch dieser Fahrt.
+GPS wird auf Genauigkeit, Alter und Sprünge geprüft. Höhenmeter und Steigung sind
+gefilterte Näherungen. Fehlende Werte erscheinen als „—“ und werden nicht als Null
+interpretiert. Die Verfügbarkeit von Bosch-Feldern hängt vom Rad und seiner Sitzung ab.
+Bosch-Aktivitätswerte können eigene Zeitgrenzen haben; die Durchschnittskadenzanzeige
+wird dagegen ohne Tretpausen berechnet. Namen der Unterstützungsmodi stammen vom Rad.
 
-Ab 0.2.0 nutzt die Bosch-Anbindung ausschließlich den erprobten MCSP-Kanal. Der PDF/LDI-Vergleich, dessen
-Decoder und die Diagnosezähler auf der Hauptseite sind entfernt. Eine begrenzte
-Diagnose bleibt für die Überprüfung zusätzlicher Daten verfügbar. Der Test im Stand
-mit frei drehendem Rad lieferte 0 W; bei echter Fahrt bestätigte der Nutzer auch
-Fahrerleistung. Dieses Verhalten begründet keinen zusätzlichen Startbefehl.
+## Technik und Tests
 
-Zielhardware: Xiaomi Poco F7 Ultra, Android 16, Bosch Smart System mit System
-Controller und Mini Remote ohne Display, Bedieneinheit-Firmware **v20.9.0**.
-Flow bleibt für das Entsperren zuständig; B-Cycle verändert keine Fahrradeinstellungen.
-Protokoll, Einheiten, Quellen und Grenzen: [Bosch-MCSP-Datenzugriff](docs/bosch-mcsp.md).
+Kotlin, native Android-Views, eine Activity mit getrennten Sensor-/Datenkomponenten.
+Android 13+ (`minSdk 33`), Zielplattform Android 15 (`targetSdk 35`).
+Kein Compose, keine zusätzlichen BLE-/GPS-Bibliotheken.
+Mapsforge, Garmin FIT SDK und OkHttp werden für Karte, FIT und WebDAV genutzt.
+JUnit, Robolectric und die zusätzlichen Prüfwerkzeuge bleiben außerhalb der APK.
 
-## Diagnose
+Der APK-Build wurde mit 211 Tests geprüft: MCSP-Frames und schreibgeschützte Requests,
+BLE-Puls, GPS-Filter und Durchschnittswerte, Speicherabläufe und Rücknavigation,
+Themes und native UI-Darstellung, Performance-/Energiekennzahlen, Garmin-FIT,
+Offline-Sonnenzeiten sowie Lichtstatus und Kartenoverlay. Tests ersetzen keinen
+Hardwaretest. Bosch-Livedaten und Pulsmesser wurden in früheren Versionen am Rad
+bestätigt; die neue Lichtfunktion muss noch praktisch getestet werden.
 
-„Diagnose speichern“ exportiert nach eigener Auswahl eine Textdatei. Der Bericht
-enthält App-/Android-Version, Sitzungszeit, GATT-Ablauf, Anfrage- und Antwortstatus,
-Paketzähler, Decoderfehler und Statistiken der bekannten numerischen Felder.
-Die letzten 24 numerischen Messwerte sowie unabhängig davon die letzten 24 Wattwerte
-bleiben erhalten. Gesamte MCSP-Rohpakete, Gerätenamen, Bluetooth-Adressen,
-Modusnamen und Komponentenkennungen werden nicht protokolliert.
-GPS ergänzt Annahme-/Verwerfungszähler und die zusammengefassten Fahrtwerte,
-ohne Koordinaten oder Positionshistorie.
-
-Die Historie ist begrenzt, bleibt bis zum Export im Arbeitsspeicher und wird nicht
-automatisch hochgeladen. Ein neuer Verbindungsversuch startet einen neuen Bericht.
-Für den Export ist keine zusätzliche Speicherberechtigung nötig.
-Die gespeicherte Geräteauswahl liegt ausschließlich in privaten App-Einstellungen;
-Android-Backup und Geräteübertragung dieser Einstellungen sind deaktiviert.
-
-## Bauen
-
-Vollständiges JDK 17 oder 21, Android-SDK Plattform 35 und Build-Tools 35.0.0.
-`ANDROID_HOME` auf das SDK setzen oder eine ignorierte `local.properties` mit
-`sdk.dir` anlegen.
+Zum Kompilieren des jeweiligen Quellcode-Standes: JDK 17 oder 21,
+Android-SDK Plattform 35 und Build-Tools 35.0.0; `ANDROID_HOME` auf das SDK setzen.
 
 ```sh
 ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug :app:assembleRelease
 ```
 
 Debug-APK: `app/build/outputs/apk/debug/app-debug.apk`.
-Release-APK: `app/build/outputs/apk/release/app-release-unsigned.apk`.
-Die bereitgestellte APK ist eine optimierte Release-APK mit lokalem Android-Testschlüssel.
+Release-APK: `app/build/outputs/apk/release/app-release-unsigned.apk`;
+vor Installation signieren.
 
-In der eingerichteten Cloud-Umgebung:
+## Dokumentation und Lizenzen
 
-```sh
-export JAVA_HOME=/workspace/.tooling/jdk-21.0.8+9
-export ANDROID_HOME=/workspace/.android-sdk
-export ANDROID_USER_HOME=/workspace/.android-user
-export GRADLE_USER_HOME=/workspace/.gradle-home
-cd /workspace/B-Cycle
-./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug :app:assembleRelease
-```
+- [Bosch-MCSP: Protokoll, Feldmapping und Quellen](docs/bosch-mcsp.md)
+- [GPS: Filterung und Grenzen](docs/gps.md)
+- [Sonnenwerte: Berechnung und Grenzen](docs/solar-weather.md)
+- [Karten und Offline-Dateien](docs/maps.md)
+- [FIT-Aufzeichnung](docs/fit.md)
+- [Streckenverwaltung und WebDAV](docs/routes.md)
+- [Bebas Neue: SIL Open Font License](docs/fonts.md)
 
-Die Tests prüfen MCSP-Frames, Fragmentierung, den Startdialog, zusätzliche Feldtypen,
-Skalierungen, unsigned Kilometerstände, gepackte Reichweiten, Modusnamen, Teilupdates,
-begrenzte Diagnosehistorien, serielle Anfragen und automatische Verbindungsversuche.
-Zusätzlich prüfen sie sieben frei belegbare Felder, gespeicherte Auswahl, Quellgruppen,
-native Android-Schrift und Größen, Standortberechtigung und GPS-Abmeldung,
-Stillstand mit Positions-/Höhenrauschen, Sprünge, Geschwindigkeitsspitzen,
-Empfangslücken, Bewegung ohne gelieferten GPS-Speed, Durchschnittswerte,
-Steigung sowie getrennten Auf-/Abstieg. Googles Protobuf-Encoder und Robolectric
-dienen ausschließlich Tests. Garmins offizieller FIT-Decoder ist im aktuellen Code auch
-für Streckenmetadaten und FIT-Kartenanzeige eingebunden; er läuft auf dem Datei-Worker.
-Weitere Tests prüfen BLE-Pulsdaten, CCCD-Freigabe und veraltete GATT-Callbacks,
-Aufzeichnung ohne sichtbare Activity, STOPP, Download-Veröffentlichung, feste
-Speicherfeld-Auswahl und Wiederholung nach einem Speicherfehler.
-Robolectric-SDKs werden durch Gradle bezogen und im Test über den Offline-Resolver
-geladen, damit die Proxy-Konfiguration auch in der Cloud gilt.
-Tests ersetzen keinen Hardwaretest.
-
-Ab 0.6.4 erscheinen Quellenzeichen nur bei Tempo, Distanz, Gesamt-km und
-Durchschnitts-/Maximaltempo. Eindeutige Felder wie Kadenz, Leistung, Puls und
-Höhenwerte verwenden nur ihren Namen. Die Quellkategorien in der Auswahl bleiben erhalten.
-
-Ab 0.6.5 teilen die Vorlagen gemeinsame Höhen für kleine und große Messwertfelder.
-Das Sieben-Werte-Layout dient als Maßstab; der untere Innenabstand ist leicht
-reduziert. Weniger Zeilen lassen mehr Platz für die Karte, statt größere Ziffern
-und zusätzliche Leerflächen zu erzeugen. Lange Werte passen sich weiterhin der Breite an.
-
-Ab 0.6.6, ab 0.6.8 unter **☰ → Dashboards → Karten-Datenfelder** belegt links, Mitte und rechts
-über die vorhandene Auswahl aus GPS, E-Bike und Pulsmesser. **Leer** entfernt die
-Belegung; Abbrechen verändert sie nicht. Die drei Positionen gelten gemeinsam
-für alle Seiten und das Karten-Vollbild. Nur empfangene Werte werden in schwarzer
-Schrift ohne Titel oder Einheit auf transparentem Hintergrund angezeigt.
-Die Felder bleiben sichtbar, wenn die Kartenbuttons verschwinden, und lassen
-Kartengesten durch. Kartenquellenangabe und GPS-Status werden nicht überdeckt.
-
-Das Sensoren-Symbol ist ab 0.6.6 etwas kleiner; die äußeren Bögen werden nicht mehr abgeschnitten.
-
-Neu in APK 0.6.7: Die Quellenwahl
-für Dashboard- und Kartenfelder erfolgt über ein feststehendes Dropdown;
-darunter scrollt nur die nach Themen gruppierte Werteliste. Auf der Karte
-öffnet das Streckensymbol links oben direkt den Streckenmanager. Zentrierung,
-Ausrichtung und Vollbild bleiben oben rechts; Zoom +/− steht unten rechts
-vertikal. Die Seitenpfeile entfallen; Dashboard-Wechsel erfolgt weiterhin durch
-Wischen auf Datenfeldern. Strecke, Live-Track und Positionsmarker werden im
-Mapsforge-Kartenbild gezeichnet und skalieren während Pinch-Zoom mit.
-
-Zusätzlich sperrt der aktuelle Code Änderungen an Dashboard- und Kartenfeldern bei
-Bewegung. Frische E-Bike-Geschwindigkeit hat Vorrang, ersatzweise gilt gefiltertes GPS.
-Fehlende Geschwindigkeit während einer Aufzeichnung sperrt ebenfalls; vor einer
-Fahrt ist Einrichtung ohne Sensoren möglich. Die Auswahl prüft auch vor dem Speichern.
-
-**Gemeinsamer Streckenmanager ab APK 0.6.7:** **☰ → FIT-Aufzeichnung**
-legt weiterhin nur Speicherfelder und Hauptquellen fest. **☰ → Streckenmanager** zeigt
-FIT-Fahrten und importierte GPX-/FIT-Strecken mit festem Filter Alle/Gefahren/Importiert,
-Datum, verfügbarer Distanz/Dauer und kleiner Streckenvorschau. Das Auge schaltet die
-Kartenanzeige, ⋮ bietet Ansehen, Umbenennen, Export und bestätigtes Löschen; bei
-importierten Strecken mit Koordinaten außerdem Auswahl als geplante Strecke.
-FIT-Dateien ohne GPS erhalten keine funktionslose Kartenaktion.
-Neue Fahrten bleiben zusätzlich als originale FIT-Datei in der appinternen Sammlung.
-In APK 0.6.7 werden Downloads immer geschrieben; ab 0.6.8 ist das Ausgabeziel wählbar. Lesbare alte B-Cycle-FIT-Dateien
-in Download/B-Cycle werden übernommen; andernfalls **FIT-Fahrt übernehmen** verwenden.
-**Strecke importieren** übernimmt GPX oder FIT als geplante/importierte Strecke.
-Löschen entfernt nur die appinterne Sammlungskopie; Downloads und Importquellen bleiben
-unverändert. Nextcloud und automatische Uploads sind ab 0.6.8 implementiert.
-Details: [Streckenverwaltung](docs/routes.md).
-
-APK 0.6.7 wurde kompiliert: 111 Tests bestanden, Android-Lint ohne Fehler
-(30 Warnungen). Auch die Release-Optimierung mit R8 und die installierbare APK wurden geprüft.
-Die neue Kartenbedienung und Streckenverwaltung sind noch nicht auf dem Poco getestet.
-
-## Neu in APK 0.6.8
-
-- Karten-Datenfelder sind unter **Dashboards** erreichbar.
-- Streckenmanager: größeres weißes Auge; rechts neben der Überschrift öffnet **⋮**
-  die neuen Streckeneinstellungen.
-- Lokale Ordnerspeicherung und Nextcloud-WebDAV-Upload sind unabhängig schaltbar.
-  Eine originale private FIT-Datei bleibt immer in der Sammlung.
-- Wählbarer Android-Zielordner mit dauerhaftem Zugriff, HTTPS-Nextcloud-Zugang,
-  verschlüsseltes App-Passwort, Verbindungstest und optionale WLAN-Beschränkung.
-- Dauerhafte Hintergrund-Uploadjobs, Status und manuelle Wiederholung; unveränderte
-  FIT-Dateien, feste Dateinamen, bedingter PUT und SHA-256-Prüfung vermeiden Cloud-Duplikate.
-
-Diese Funktionen sind ab APK 0.6.8 enthalten.
-Ordnerprovider, HTTPS-WebDAV, Wiederholungen, unabhängige Ausgaben und
-Rücknavigation sind automatisiert geprüft; Poco/Nextcloud müssen noch praktisch
-geprüft werden. Details stehen in
-[Streckenverwaltung](docs/routes.md).
-
-## Neu in APK 0.6.9
-
-Der Streckenmanager hat einen gemeinsamen **Importieren**-Button unten links
-neben **Schließen**. Danach wird zwischen **Geplante Strecke** (GPX/FIT, Importiert)
-und **Aufgezeichnete Fahrt** (FIT, Gefahren) gewählt. Beide Aktionen haben Symbole.
-Das Quellen-Dropdown ist dunkler rot, Titel bleiben einzeilig mit Auslassung.
-Herkunft, Dateiformat und Speicher-/Uploadstatus stehen als weiße Kennzeichen auf
-hellrotem Hintergrund oben rechts; Details sind über langes Drücken und TalkBack
-lesbar. Datum, Distanz und Dauer haben weiße Symbole und dieselbe Schriftgröße
-(14 sp). ⋮ und das große weiße Auge stehen rechts in jeder kompakten Streckenzeile.
-Diese Änderungen wurden mit APK 0.6.9 eingeführt; die aktuelle APK enthält sie ebenfalls.
-
-
-## Neu in APK 0.6.10
-
-Die Importauswahl erscheint direkt am unteren **Importieren**-Button als Dropdown,
-ohne zusätzlichen Dialog. Der Filter bleibt im zuvor verwendeten Dunkelrot der Streckenkarten.
-Weiße Statussymbole (Fahrrad, Download-Pfeil, FIT/GPX, Smartphone und gegebenenfalls
-Cloud) stehen auf Flächen im Rot des Einstellungsfensters. Das kleinere weiße Auge
-und das Drei-Punkte-Menü stehen rechts unten nebeneinander; die Berührungsflächen
-bleiben jeweils 48 dp groß. Datum, Distanz und Dauer bleiben einheitlich in 14 sp.
-Die Fahrten stehen direkt auf dem Fensterhintergrund, ohne Kästen; zwischen den
-Einträgen verläuft eine dünne weiße Linie.
-
-
-## Neu in APK 0.6.11
-
-Die Drei-Punkte-Buttons der Fahrten stehen auf derselben senkrechten Linie wie
-der Button im Titel des Streckenmanagers. Das Auge rückt mit nach rechts.
-Streckenaktionen öffnen sich direkt am Drei-Punkte-Button als Dropdown, mit
-demselben Stil wie die Importauswahl. Texteingabe zum Umbenennen und
-Löschbestätigung bleiben eigene Dialoge mit Rückkehr zur Streckenliste.
+Lizenztexte der verwendeten Bibliotheken und Icons sind in der App unter
+**Erweitert → Bibliotheken & Lizenzen** bzw. **Schrift & Lizenz** zugänglich.
+B|Cycle verändert keine Fahrradeinstellungen. Eine Diagnose wird nur nach
+expliziter Auswahl exportiert; keine automatische Analyse oder Telemetrie.

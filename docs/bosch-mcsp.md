@@ -181,3 +181,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Fahrradlicht (0.6.19)
+
+Zusätzlich wird DriveUnit `BIKE_LIGHT`, Adresse **0x181C / 6172**, als optionale,
+rein lesende Subscription und READ angefragt. Mapping: MCSP-Boolean **0 = aus,
+1 = an**. Quelle: oben verlinkte BES3-Registry (`BIKE_LIGHT`, `kind: bool`,
+readable/subscribable). Die Registry kennzeichnet diese Zuordnung noch nicht als
+hardwarebestätigt; ein Test am tatsächlichen System Controller steht aus.
+Keine WRITE-/Toggle-/Konfigurationsbefehle werden gesendet. Unbekannte Werte werden
+protokolliert und verworfen, ohne die übrigen Messwerte desselben Pakets zu verlieren.
+
+Die offizielle Bosch-PDF V1 vom 01.05.2026 nennt auf S. 18–19 dagegen das
+**LDI-Protobuf**-Feld `bike_light = 17` mit Enum 0=invalid, 1=off, 2=on.
+Das ist ein anderer Transport und ausdrücklich **nicht** die Kodierung von MCSP.
+Der funktionierende MCSP-Verbindungsweg bleibt bestehen. Ein leerer Subscription-ACK
+ist kein Zustand; ein expliziter leerer scalar-Push entspricht dem Booleanwert false.
+
+„Fahrradlicht“ steht in der Feldauswahl unter E-Bike → Licht und im FIT-Abschnitt
+von „Sensoren & Aufzeichnung“. Textanzeige An/Aus, bei fehlendem/ungültigem Zustand
+„—“. Für Anzeige/Overlay und FIT wird der Status bei Verbindungsverlust oder nach
+60 Sekunden ohne Update nicht weiter als aktuell verwendet (wie andere seltene
+Status-/Akkuwerte). Nur ein bekanntes, frisches An zeigt die statische rote Lucide-
+Glühbirne rechts neben dem mittleren Kartenfeld; Record-Punkt und Glühbirne funktionieren
+auch ohne belegtes mittleres Feld. Kein Touchziel, keine Animation, kein weiterer Timer.
+
+FIT enthält bei Auswahl das Developer Field `BIKE_LIGHT`, Einheit `bool`,
+standardkonforme Float64-Werte 0/1 je Record, fehlend als FIT-invalid. Es gibt keine
+Zuordnung zu einem erfundenen Garmin-Nativfeld. Garmins Decoder/Activity Validator
+prüfen Licht an, aus und fehlend; MCSP-Tests prüfen Requests, ACK/Push und unbekannte
+Werte neben anderen Messwerten; ein nativer UI-Test prüft Farbe/Position und das
+Zusammenspiel mit dem Record-Punkt. Wetterfelder bleiben ausschließlich Anzeigegrößen.
