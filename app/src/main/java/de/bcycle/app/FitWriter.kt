@@ -31,8 +31,8 @@ object FitWriter {
         RandomAccessFile(destination, "rw").use { output ->
             output.setLength(0); output.write(ByteArray(14))
             val definitions = mutableMapOf<Int, String>()
-            fun message(local: Int, global: Int, fields: List<Field>, developers: List<Double?> = emptyList()) {
-                val key = "$global:${fields.map { Triple(it.number, it.type, it.bytes.size) }}:${developers.size}"
+            fun message(local: Int, global: Int, fields: List<Field>, developers: List<Double?> = emptyList(), developerIndices: List<Int> = developers.indices.toList()) {
+                val key = "$global:${fields.map { Triple(it.number, it.type, it.bytes.size) }}:${developerIndices}"
                 if (definitions[local] != key) {
                     output.write(0x40 or local or if (developers.isNotEmpty()) 0x20 else 0)
                     output.write(0); output.write(0); output.write(global and 255); output.write(global ushr 8)
@@ -40,7 +40,7 @@ object FitWriter {
                     fields.forEach { output.write(it.number); output.write(it.bytes.size); output.write(it.type) }
                     if (developers.isNotEmpty()) {
                         output.write(developers.size)
-                        developers.indices.forEach { output.write(it); output.write(8); output.write(0) }
+                        developerIndices.forEach { output.write(it); output.write(8); output.write(0) }
                     }
                     definitions[local] = key
                 }
@@ -55,7 +55,7 @@ object FitWriter {
                 message(0, 0, listOf(en(0, 4), u16(1, 255.0), u16(2, 0.0), number(3, 0x8c, 4, 1), u32(4, startStamp)))
                 // Device metadata identifies the generating application, not a fabricated Garmin device.
                 message(0, 23, listOf(u32(253, startStamp), u8(0, 0.0), u16(2, 255.0), u16(4, 0.0), u16(5, 0.4, 100.0), string(27, "B-Cycle")))
-                if (developerIds.isNotEmpty()) {
+                if (developerIds.isNotEmpty() || config.fields.any { id -> RecordField.summaries.any { it.id == id } }) {
                     val uuid = UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
                     val appId = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN).putLong(uuid.mostSignificantBits).putLong(uuid.leastSignificantBits).array()
                     message(2, 207, listOf(Field(1, 13, appId), u8(3, 0.0), u32(4, 401.0)))
@@ -69,11 +69,16 @@ object FitWriter {
                 event(startStamp, 0)
                 var last: RideSample? = null
                 val sums = mutableMapOf<String, Double>(); val counts = mutableMapOf<String, Int>(); val maxima = mutableMapOf<String, Double>()
+                val performance = PerformanceEngine()
+                val moving = MovingTime()
                 var count = 0
                 for (sample in records) {
+                    sample.performanceEvents.forEach(performance::accept)
+                    performance.advance(sample.elapsedMs)
                     val v = sample.values
                     fun selected(id: String) = v[id].takeIf { id in config.fields }
                     val speed = selected(config.speedSource)
+                    moving.add(sample.elapsedMs, speed)
                     val distance = selected(config.distanceSource)
                     val cadence = selected("CADENCE")
                     val height = selected("GPS_ALTITUDE").takeIf { v["GPS_ALTITUDE_MSL"] == 1.0 }
@@ -84,6 +89,7 @@ object FitWriter {
                         u8(53, cadence?.let { it - floor(it) }, 128.0), u32(73, speed, 1000.0), u32(78, height, 5.0, 500.0),
                         u8(81, selected("BATTERY"), 2.0), u16(82, selected("MOTOR_POWER"))), developerIds.map { v[it] })
                     for (id in listOf("RIDER_POWER", "HEART_RATE", "CADENCE", config.speedSource)) selected(id)?.let {
+                        if (id == "CADENCE" && it <= 0.0) return@let
                         sums[id] = (sums[id] ?: 0.0) + it; counts[id] = (counts[id] ?: 0) + 1; maxima[id] = max(maxima[id] ?: it, it)
                     }
                     last = sample; count++
@@ -91,6 +97,7 @@ object FitWriter {
                 require(count > 0) { "No complete samples in ride journal" }
                 val end = last!!; val endStamp = timestamp(end.utcMs).toDouble(); val seconds = end.elapsedMs / 1000.0
                 event(endStamp, 4)
+                val calculated = performance.snapshot()
                 fun average(id: String) = counts[id]?.let { sums[id]!! / it }
                 fun summary(session: Boolean): List<Field> {
                     val speedId = if (session) 14 else 13
@@ -106,11 +113,50 @@ object FitWriter {
                         u8(cadId, average("CADENCE")), u8(cadId + 1, maxima["CADENCE"]),
                         u16(powerId, average("RIDER_POWER")), u16(powerId + 1, maxima["RIDER_POWER"]),
                         u16(ascentId, end.values["GPS_ASCENT"]), u16(ascentId + 1, end.values["GPS_DESCENT"]))
-                    if (session) fields += listOf(en(5, 2), en(6, 28), u16(25, 0.0), u16(26, 1.0))
+                    if (session) fields += listOf(u32(com.garmin.fit.SessionMesg.TotalMovingTimeFieldNum, moving.value?.div(1000.0), 1000.0), en(5, 2), en(6, 28), u16(25, 0.0), u16(26, 1.0))
                     else fields += listOf(en(24, 7), en(25, 2), en(39, 28))
+                    fun optional(id: String, value: Double?, maximum: Double, field: (Double) -> Field) {
+                        if (id in config.fields && value != null && value.isFinite() && value in 0.0..maximum) fields += field(value)
+                    }
+                    optional("NORMALIZED_POWER", calculated.normalizedPowerW, 65534.0) {
+                        u16(if (session) com.garmin.fit.SessionMesg.NormalizedPowerFieldNum else com.garmin.fit.LapMesg.NormalizedPowerFieldNum, it)
+                    }
+                    optional("MECHANICAL_WORK", calculated.mechanicalWorkKj?.times(1000), 4294967294.0) {
+                        u32(if (session) com.garmin.fit.SessionMesg.TotalWorkFieldNum else com.garmin.fit.LapMesg.TotalWorkFieldNum, it)
+                    }
+                    optional("CALORIES", calculated.caloriesKcal, 65534.0) { u16(11, it) }
                     return fields
                 }
-                message(5, 19, summary(false)); message(6, 18, summary(true))
+                val custom = mutableListOf<Triple<String, String, Double>>()
+                fun selectedSummary(id: String, value: Double?, unit: String) {
+                    if (id in config.fields && value != null && value.isFinite()) custom += Triple(id, unit, value)
+                }
+                selectedSummary("SPEED_POWER_RATIO", calculated.speedToPowerRatio, "km/h/W")
+                selectedSummary("EFFICIENCY_FACTOR", calculated.efficiencyFactor, "W/bpm")
+                val exported = RecordField.summaries.any { field -> field.id in config.fields && when (field.id) {
+                    "NORMALIZED_POWER" -> calculated.normalizedPowerW != null
+                    "MECHANICAL_WORK" -> calculated.mechanicalWorkKj != null
+                    "CALORIES" -> calculated.caloriesKcal != null
+                    "SPEED_POWER_RATIO" -> calculated.speedToPowerRatio != null
+                    else -> calculated.efficiencyFactor != null
+                } }
+                if (exported) {
+                    custom += Triple("POWER_DATA_COVERAGE", "%", calculated.quality.powerCoverage * 100)
+                    custom += Triple("POWER_MISSING_TIME", "s", (calculated.quality.activeMs - calculated.quality.powerMs) / 1000.0)
+                    custom += Triple("POWER_MAX_GAP", "s", calculated.quality.longestPowerGapMs / 1000.0)
+                    custom += Triple("PERFORMANCE_MODEL_VERSION", "version", PerformanceEngine.MODEL_VERSION.toDouble())
+                    if ("CALORIES" in config.fields && calculated.caloriesKcal != null) custom += Triple("ENERGY_GROSS_EFFICIENCY", "ratio", .24)
+                }
+                // Distinct field indices associate the same semantic metric with Lap and Session correctly.
+                fun writeSummary(session: Boolean, local: Int, global: Int) {
+                    val indices = custom.indices.map { developerIds.size + (if (session) custom.size else 0) + it }
+                    custom.forEachIndexed { i, metric ->
+                        message(3, 206, listOf(u8(0, 0.0), u8(1, indices[i].toDouble()), u8(2, 0x89.toDouble()),
+                            string(3, metric.first), u8(6, 1.0), number(7, 1, 1, 0), string(8, metric.second), u16(14, global.toDouble())))
+                    }
+                    message(local, global, summary(session), custom.map { it.third }, indices)
+                }
+                writeSummary(false, 5, 19); writeSummary(true, 6, 18)
                 val localStamp = endStamp + TimeZone.getDefault().getOffset(end.utcMs) / 1000
                 message(7, 34, listOf(u32(253, endStamp), u32(0, seconds, 1000.0), u16(1, 1.0), en(2, 0), en(3, 26), en(4, 1), u32(5, localStamp)))
             }

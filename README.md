@@ -6,23 +6,34 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.6.19 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/cef8d5623ae9850991396ab2e1d9cc6496efc4f8/downloads/B-Cycle-0.6.19-test.apk)**
+**[APK 0.6.20 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.6.20/downloads/B-Cycle-0.6.20-test.apk)**
 
-- Größe: **930.421 Byte**, rund **930 KB**.
+- Größe: **934.741 Byte**, rund **935 KB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.6.19-test.apk.sha256):
-  `c70f06b1e826af38f881c7dd1bbb61942512d9868a99820abcbbbe3a614eca03`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.6.20-test.apk.sha256):
+  `d24963f43c6c4e4c764f85fe79e19d96144aabf13ef0e2bbc33cf594b8930009`.
 
 Für diesen APK-Build: **211 Tests bestanden**, Signatur und Version geprüft.
-Tests und optimierter Release-Build dauerten zusammen **1 Minute 14 Sekunden**.
+Tests und optimierter Release-Build dauerten zusammen **1 Minute**.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`;
 für diesen Build wurde kein neuer vollständiger Android-Lint-Lauf durchgeführt.
 Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
 
-## Neu in 0.6.19
+## Meilenstein 0.6.20
+
+Der Tag [v0.6.20](https://github.com/Titanyus/B-Cycle/tree/v0.6.20) sichert den
+vollständigen Quellcode, Tests, Build-Konfiguration, Dokumentation und die signierte APK.
+Er dient als Ausgangspunkt für spätere Bereinigungs- und Optimierungsarbeiten.
+Vorherige Versionen und die bisherigen Einstellungsicons bleiben erhalten.
+
+## Neu in 0.6.20
+
+- Kartenicons: `locate-fixed` zum Zentrieren, `compass` für die Ausrichtung und
+  `maximize` für Vollbild. Geschlossene Augen verwenden überall `eye-closed`,
+  offene Augen weiterhin `eye`. Bedienung, Größen und Touchflächen bleiben bestehen.
 
 - **Wetter → Sonne & Tageslicht**: Sonnenaufgang, Sonnenuntergang,
   Zeit bis Sonnenuntergang und verbleibendes Tageslicht.

@@ -18,12 +18,14 @@ data class GpsValues(
     val descentM: Double? = null, val gradientPercent: Double? = null, val seaLevel: Boolean = false,
     val latitude: Double? = null, val longitude: Double? = null,
     val bearingDegrees: Double? = null,
+    val solar: SolarValues = SolarValues(),
 )
 
 /** Conservative foreground trip estimates. Coordinates are held only as a distance anchor. */
 class GpsRide {
     private var seenTime = -1L
     private var last: GpsFix? = null
+    val lastObservationTimeMs get() = last?.timeMs
     private var anchor: GpsFix? = null
     private var clock: Long? = null
     private var hasFix = false
@@ -32,6 +34,7 @@ class GpsRide {
     private var movingTime = 0L
     private var stoppedTime = 0L
     private var elapsed = 0L
+    private var observedElapsed = 0L
     private var maximum = 0.0
     private var height: Double? = null
     private var heightReference: Double? = null
@@ -53,7 +56,7 @@ class GpsRide {
 
     fun reset() {
         pause(); seenTime = -1L; hasFix = false; distance = 0.0
-        movingTime = 0; stoppedTime = 0; elapsed = 0; maximum = 0.0
+        movingTime = 0; stoppedTime = 0; elapsed = 0; observedElapsed = 0; maximum = 0.0
         height = null; ascent = null; descent = null; accepted = 0; rejected = 0
     }
 
@@ -68,7 +71,7 @@ class GpsRide {
         return GpsValues(
             if (fresh) speed?.times(3.6) else null, if (hasFix) distance else null,
             if (movingTime > 0) distance * 3600 / movingTime else if (hasFix) 0.0 else null,
-            if (elapsed > 0) distance * 3600 / elapsed else if (hasFix) 0.0 else null,
+            if (observedElapsed > 0) distance * 3600 / observedElapsed else if (hasFix) 0.0 else null,
             if (hasFix) maximum else null, if (hasFix) movingTime else null,
             if (hasFix) stoppedTime else null, if (hasFix) elapsed else null,
             if (fresh && heightTime?.let { now - it <= 5_000 } == true) height else null,
@@ -95,6 +98,8 @@ class GpsRide {
         }
         advance(fix.timeMs)
         if (clock == null) clock = fix.timeMs
+        // Match the distance observation to its own timestamp, even after UI ticks or delivery delays.
+        observedElapsed = elapsed - ((clock ?: fix.timeMs) - fix.timeMs).coerceAtLeast(0)
         hasFix = true; accepted++
         val continuous = dt != null && dt in 0.001..10.0
         if (!continuous) { anchor = fix; speed = null; bearing = null; clearHeightContinuity() }

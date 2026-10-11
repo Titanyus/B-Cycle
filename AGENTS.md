@@ -10,3 +10,5 @@
 8. Ändere funktionierende Bereiche nur, wenn es für die Aufgabe notwendig ist.
 9. Arbeite schrittweise und konzentriere dich auf die angeforderte Funktion.
 10. Schließe mit einer kurzen, verständlichen Zusammenfassung der Änderungen und Testergebnisse; benenne ungeprüfte Punkte.
+
+UI: Verwende für neue Dialoge die zentralen BicycleDesign-/BicycleComponents-/BicycleDialog-Komponenten, ThemeManager und BicycleIcons; keine eigenen Farb- oder Geometrievarianten. Footer: Abbrechen = X (Cancel), Schließen = Tür mit Pfeil (Close). Funktionale Bosch-Modusfarben bleiben vom App-Theme getrennt.

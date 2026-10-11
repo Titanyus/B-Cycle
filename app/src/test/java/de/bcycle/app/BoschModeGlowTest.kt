@@ -1,0 +1,149 @@
+package de.bcycle.app
+
+import android.app.AlertDialog
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.os.Looper
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Switch
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowAlertDialog
+import java.time.Duration
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [33], qualifiers = "xxhdpi")
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class BoschModeGlowTest {
+    private fun views(view: View): List<View> = listOf(view) + if (view is ViewGroup)
+        (0 until view.childCount).flatMap { views(view.getChildAt(it)) } else emptyList()
+    private fun layout(view: View, width: Int, height: Int) {
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, width, height)
+    }
+    @Test fun verifiedMcspSlotsOffUnknownAndBikeSuppliedNamesDoNotGuessAColor() {
+        assertEquals(listOf(0xff80ff28.toInt(), 0xff009dff.toInt(), 0xffff36ba.toInt(), 0xffff3030.toInt()),
+            (1L..4L).map { BoschModeColors.color(it) })
+        listOf(null, -1L, 0L, 5L, 255L).forEach { assertNull(BoschModeColors.color(it)) }
+        assertNull(BoschModeColors.color(2, listOf("OFF", "ECO", "OFF")))
+        assertNull(BoschModeColors.color(4, listOf("OFF", "ECO")))
+        assertEquals(BoschModeColors.color(3), BoschModeColors.color(3, listOf("OFF", "ECO", "TOUR+", "eMTB", "TURBO")))
+    }
+    @Test fun cachedGradientIsSymmetricFadesInAllDirectionsAndNeverPaintsOutsideDataBounds() {
+        var now = 0L
+        val glow = BoschModeGlow(24f) { now }
+        glow.setBounds(10, 20, 210, 320)
+        glow.update(BoschModeColors.color(1)); now = 1500
+        val bitmap = Bitmap.createBitmap(230, 360, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(Color.MAGENTA); glow.draw(Canvas(bitmap))
+        assertEquals(Color.MAGENTA, bitmap.getPixel(0, 170))
+        assertEquals(Color.MAGENTA, bitmap.getPixel(100, 340))
+        assertEquals(Color.BLACK, bitmap.getPixel(100, 170))
+        val center = Color.green(bitmap.getPixel(11, 170))
+        assertTrue(center > 40)
+        assertEquals(center, Color.green(bitmap.getPixel(208, 170)))
+        assertTrue(center > Color.green(bitmap.getPixel(11, 25)))
+        assertTrue(center > Color.green(bitmap.getPixel(28, 170)))
+        val shader = glow.leftShader
+        repeat(50) { glow.update(BoschModeColors.color(1)) }
+        assertSame(shader, glow.leftShader)
+        glow.setBounds(10, 20, 210, 160); assertNotSame(shader, glow.leftShader)
+        glow.update(null); now += 1500; assertNull(glow.leftShader)
+        bitmap.eraseColor(Color.MAGENTA); glow.draw(Canvas(bitmap)); assertEquals(Color.BLACK, bitmap.getPixel(11, 80))
+    }
+    @Test fun transitionsFadeFor1500msIncludingOffAndInterruptedChangesWithoutShaderChurn() {
+        var now = 0L
+        val glow = BoschModeGlow(24f) { now }; glow.setBounds(0, 0, 200, 300)
+        val bitmap = Bitmap.createBitmap(200, 300, Bitmap.Config.ARGB_8888)
+        fun pixel(): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(18, 150) }
+        glow.update(BoschModeColors.color(1)); assertEquals(Color.BLACK, pixel())
+        now = 750; val halfway = pixel(); assertTrue(Color.green(halfway) > 0)
+        val shader = glow.leftShader
+        now = 1500; val bright = pixel(); assertTrue(Color.green(bright) > Color.green(halfway))
+        assertSame(shader, glow.leftShader)
+        glow.update(BoschModeColors.color(2)); assertEquals(bright, pixel())
+        now = 2250; val mixed = pixel(); assertTrue(Color.green(mixed) > 0); assertTrue(Color.blue(mixed) > 0)
+        glow.update(null); val interrupted = pixel()
+        assertTrue(kotlin.math.abs(Color.green(mixed) - Color.green(interrupted)) <= 3)
+        now = 3000; assertTrue(Color.green(pixel()) < Color.green(interrupted))
+        now = 3750; assertEquals(Color.BLACK, pixel())
+    }
+    @Test fun everyDashboardKeepsGeometryTouchAndTextWhileGlowTracksActualSizeAndMode() {
+        val app = RuntimeEnvironment.getApplication()
+        var selected = -1
+        val dashboard = DashboardView(app) { selected = it }
+        for (template in DashboardTemplate.entries) {
+            dashboard.setTemplate(template)
+            for (height in listOf(360, 900)) {
+                layout(dashboard, 1080, height)
+                val before = views(dashboard).map { listOf(it.left, it.top, it.width, it.height) }
+                val clicks = views(dashboard).filter { it.isClickable }
+                val data = LiveData(otherValues = mapOf(LiveMetric.ASSIST_MODE to 1L))
+                dashboard.showModeGlow(true, 1)
+                assertEquals(height, dashboard.modeGlow.bounds.height())
+                assertEquals(1080, dashboard.modeGlow.bounds.width())
+                val cached = dashboard.modeGlow.leftShader
+                repeat(10) { dashboard.show(DashboardLayout.defaults, data); dashboard.showModeGlow(true, 1) }
+                assertSame(cached, dashboard.modeGlow.leftShader)
+                assertEquals(before, views(dashboard).map { listOf(it.left, it.top, it.width, it.height) })
+                assertTrue(clicks.first().performClick()); assertTrue(selected >= 0)
+                dashboard.showModeGlow(true, 4); assertEquals(BoschModeColors.color(4), dashboard.modeGlow.modeColor)
+                dashboard.showModeGlow(false, 4); assertNull(dashboard.modeGlow.modeColor)
+            }
+        }
+    }
+    @Test fun liveStatusDropsOnDisconnectStalenessAndRestoresOnlyAfterNewModeSample() {
+        val app = RuntimeEnvironment.getApplication(); val runtime = RideRuntime.get(app)
+        val phase = runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible = true }
+        val live = requireNotNull(phase.type.enumConstants).single { it.toString() == "LIVE" }
+        val stopped = requireNotNull(phase.type.enumConstants).single { it.toString() == "STOPPED" }
+        phase.set(runtime.connection, live)
+        runtime.onSamples(listOf(McspSample(LiveMetric.ASSIST_MODE.address, 2, true)))
+        runtime.onData(LiveData(otherValues = mapOf(LiveMetric.ASSIST_MODE to 2L)), true)
+        assertEquals(2L, runtime.currentAssistMode)
+        phase.set(runtime.connection, stopped); assertNull(runtime.currentAssistMode)
+        runtime.onData(LiveData(), false)
+        phase.set(runtime.connection, live); assertNull(runtime.currentAssistMode)
+        runtime.onSamples(listOf(McspSample(LiveMetric.ASSIST_MODE.address, 3, true)))
+        runtime.onData(LiveData(otherValues = mapOf(LiveMetric.ASSIST_MODE to 3L)), true)
+        assertEquals(3L, runtime.currentAssistMode)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(61)); assertNull(runtime.currentAssistMode)
+    }
+    @Test fun switchDefaultsOffSaveRestoresAndCancelKeepsPreviousChoiceWithThemeIndependentColor() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            var activity = controller.get(); val runtime = RideRuntime.get(activity)
+            assertFalse(ModeGlowSettings.enabled(runtime.preferences))
+            fun open(): AlertDialog {
+                views(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
+                val menu = ShadowAlertDialog.getLatestAlertDialog()
+                views(menu.window!!.decorView).single { it.tag == "settings_DASHBOARDS" }.performClick()
+                return ShadowAlertDialog.getLatestAlertDialog()
+            }
+            val screen = open()
+            val toggle = views(screen.window!!.decorView).single { it.tag == "mode_glow_enabled" } as Switch
+            assertFalse(toggle.isChecked); toggle.isChecked = true
+            screen.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(ModeGlowSettings.enabled(activity.getSharedPreferences("bike", 0)))
+            ShadowAlertDialog.getLatestAlertDialog().dismiss(); shadowOf(Looper.getMainLooper()).idle()
+            controller.recreate(); activity = controller.get()
+            val next = open()
+            val restored = views(next.window!!.decorView).single { it.tag == "mode_glow_enabled" } as Switch
+            assertTrue(restored.isChecked); restored.isChecked = false
+            runtime.themes.activate("preset:solar-flare"); shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(runtime.themes.active.tokens.foreground, restored.currentTextColor)
+            assertEquals(0xff80ff28.toInt(), BoschModeColors.color(1))
+            next.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(ModeGlowSettings.enabled(activity.getSharedPreferences("bike", 0)))
+        } finally { controller.pause().stop().destroy() }
+    }
+}

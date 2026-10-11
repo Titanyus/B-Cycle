@@ -12,6 +12,9 @@ import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
+internal enum class UploadState { NOT_UPLOADED, WAITING, UPLOADING, UPLOADED, FAILED }
+internal data class RouteUploadStatus(val state: UploadState, val message: String = "")
+
 /** Durable upload queue, using Android's scheduler instead of another runtime library. */
 internal object RouteUploads {
     private const val JOB = 8301
@@ -25,42 +28,64 @@ internal object RouteUploads {
         check(prefs(context).edit().putString("entries", entries.toString()).putLong("revision", System.nanoTime()).commit())
     }
     fun revision(context: Context) = prefs(context).getLong("revision", 0)
-    fun status(context: Context, id: String): String = synchronized(lock) {
+    fun status(context: Context, id: String): String = state(context, id).message
+    fun state(context: Context, id: String, stamp: RouteFileStamp? = null): RouteUploadStatus = synchronized(lock) {
         val key = context.filesDir.path + ":" + revision(context)
         if (statusCacheKey != key) { statusCache = entries(context); statusCacheKey = key }
-        val item = statusCache.optJSONObject(id) ?: return@synchronized ""
+        val item = statusCache.optJSONObject(id) ?: return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED)
+        val currentTarget = runCatching { target(RouteExportSettings(context).read()) }.getOrNull()
+        if (item.optString("target") != currentTarget) return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED, "Uploadziel geändert")
+        if (stamp != null && (item.optLong("length", -1) != stamp.length || item.optLong("modified", -1) != stamp.modified))
+            return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED, "Datei geändert · Upload erneut prüfen")
         when (item.optString("state")) {
-            "saved" -> "Nextcloud gesichert"
-            "failed" -> "Upload fehlgeschlagen · ${item.optString("error")}"
-            "uploading" -> "Nextcloud-Upload läuft …"
-            else -> if (RouteExportSettings(context).read().webdav) "Nextcloud-Upload ausstehend" +
-                item.optString("error").takeIf { it.isNotEmpty() }?.let { " · $it" }.orEmpty() else "Upload pausiert"
+            "saved" -> if (item.optString("hash").isNotEmpty()) RouteUploadStatus(UploadState.UPLOADED, "Nextcloud gesichert")
+                else RouteUploadStatus(UploadState.NOT_UPLOADED, "Früheren Upload erneut prüfen")
+            "failed" -> RouteUploadStatus(UploadState.FAILED, "Upload fehlgeschlagen · ${item.optString("error")}")
+            "uploading" -> RouteUploadStatus(UploadState.UPLOADING, "Nextcloud-Upload läuft …")
+            else -> RouteUploadStatus(UploadState.WAITING, if (RouteExportSettings(context).read().webdav)
+                "Nextcloud-Upload ausstehend" + item.optString("error").takeIf { it.isNotEmpty() }?.let { " · $it" }.orEmpty() else "Upload pausiert")
         }
     }
+    private fun fingerprint(file: File) = WebDavClient.hash(file)
     private fun target(config: RouteExportConfig) = WebDavClient.directory(config).toString()
     fun enqueue(context: Context, file: File, name: String) {
         val config = RouteExportSettings(context).read()
         if (!config.webdav) return
-        synchronized(lock) {
-            val all = entries(context)
-            val id = file.nameWithoutExtension
-            val destination = target(config)
-            val existing = all.optJSONObject(id)
-            if (existing?.optString("target") == destination && existing.optString("state") == "saved") return
-            all.put(id, JSONObject().put("name", existing?.optString("name")?.takeIf { it.isNotEmpty() } ?: name).put("target", destination).put("state", "pending"))
-            save(context, all)
-        }
-        schedule(context)
+        queue(context, file, name, config)
     }
     fun retry(context: Context, id: String) {
         val config = RouteExportSettings(context).read()
         check(config.webdav) { "WebDAV bitte in den Streckeneinstellungen aktivieren" }
         val file = File(context.filesDir, "fit-library/$id.fit")
         require(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}")) && file.isFile)
+        // MapState verifies RECORDED metadata before exposing this action; restored rides
+        // may retain an imported-prefixed immutable original after metadata recovery.
+        queue(context, file, "B-Cycle-$id.fit", config)
+    }
+    private fun eligible(context: Context, id: String): Boolean {
+        val index = File(context.filesDir, "fit-library/index.json")
+        if (!index.isFile) return id.startsWith("recorded-")
+        val known = runCatching { JSONObject(index.readText()).getJSONArray("entries") }.getOrNull() ?: return false
+        for (i in 0 until known.length()) {
+            val item = known.getJSONObject(i)
+            if (item.optString("id") == id) return if (item.has("origin")) item.optString("origin") == "RECORDED"
+                else item.opt("recorded") == true
+        }
+        // A recording worker retains the original before MapState registers its index entry.
+        return id.startsWith("recorded-")
+    }
+    private fun queue(context: Context, file: File, name: String, config: RouteExportConfig) {
+        require(eligible(context, file.nameWithoutExtension)) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
+        val hash = fingerprint(file) // Only recording/library workers call this method.
         synchronized(lock) {
-            val all = entries(context)
-            val name = all.optJSONObject(id)?.optString("name")?.takeIf { it.isNotEmpty() } ?: "B-Cycle-$id.fit"
-            all.put(id, JSONObject().put("name", name).put("target", target(config)).put("state", "pending"))
+            val all = entries(context); val id = file.nameWithoutExtension
+            val destination = target(config); val existing = all.optJSONObject(id)
+            if (existing?.optString("target") == destination && existing.optString("hash") == hash &&
+                existing.optLong("length") == file.length() && existing.optLong("modified") == file.lastModified() &&
+                existing.optString("state") in setOf("pending", "uploading", "saved")) return@synchronized
+            all.put(id, JSONObject().put("name", existing?.optString("name")?.takeIf { it.isNotEmpty() } ?: name)
+                .put("target", destination).put("state", "pending").put("hash", hash)
+                .put("length", file.length()).put("modified", file.lastModified()))
             save(context, all)
         }
         schedule(context)
@@ -104,15 +129,26 @@ internal object RouteUploads {
             val item = synchronized(lock) { entries(context).getJSONObject(id) }
             val file = File(context.filesDir, "fit-library/$id.fit")
             try {
+                check(eligible(context, id)) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
                 check(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}")) && file.isFile) { "Lokale FIT-Datei fehlt" }
                 check(item.getString("target") == target(config)) { "Ziel geändert · Upload erneut anstoßen" }
-                update(context, id, "uploading")
+                val hash = fingerprint(file)
+                if (item.optString("hash").isNotEmpty()) check(item.getString("hash") == hash) { "Datei geändert" }
+                item.put("hash", hash).put("length", file.length()).put("modified", file.lastModified())
+                val sameGeneration = synchronized(lock) {
+                    val all = entries(context); val current = all.getJSONObject(id)
+                    if (current.optString("target") != item.getString("target") ||
+                        (current.optString("hash").isNotEmpty() && current.optString("hash") != hash)) false
+                    else { item.put("state", "uploading"); all.put(id, item); save(context, all); true }
+                }
+                if (!sameGeneration) { retry = true; continue }
                 upload(config, file, item.getString("name")) {
                     cancelled() || RouteExportSettings(context).read().let { current ->
                         !current.webdav || runCatching { target(current) }.getOrNull() != item.getString("target")
                     }
                 }
-                update(context, id, "saved")
+                check(fingerprint(file) == hash && file.length() == item.getLong("length") && file.lastModified() == item.getLong("modified")) { "Datei während Upload geändert" }
+                update(context, id, "saved", expectedHash = hash, expectedTarget = item.getString("target"))
             } catch (e: Exception) {
                 val temporary = cancelled() || (e is DavFailure && e.retryable) || (e is java.io.IOException && e !is DavFailure && e !is javax.net.ssl.SSLHandshakeException)
                 retry = retry || temporary
@@ -125,14 +161,17 @@ internal object RouteUploads {
                     !file.isFile -> "Lokale FIT-Datei fehlt"
                     else -> "Einstellungen prüfen oder Upload erneut anstoßen"
                 }
-                update(context, id, if (temporary) "pending" else "failed", message)
+                update(context, id, if (temporary) "pending" else "failed", message, item.optString("hash").takeIf { it.isNotEmpty() }, item.optString("target"))
             }
         }
         return retry || synchronized(lock) { val all = entries(context); all.keys().asSequence().any {
             all.getJSONObject(it).optString("state") in setOf("pending", "uploading") } }
     }
-    private fun update(context: Context, id: String, state: String, error: String = "") = synchronized(lock) {
-        val all = entries(context); all.optJSONObject(id)?.put("state", state)?.put("error", error); save(context, all)
+    private fun update(context: Context, id: String, state: String, error: String = "", expectedHash: String? = null, expectedTarget: String? = null) = synchronized(lock) {
+        val all = entries(context); val current = all.optJSONObject(id) ?: return@synchronized
+        if (expectedHash != null && current.optString("hash") != expectedHash) return@synchronized
+        if (expectedTarget != null && current.optString("target") != expectedTarget) return@synchronized
+        current.put("state", state).put("error", error); save(context, all)
     }
 }
 

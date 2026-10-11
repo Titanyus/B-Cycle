@@ -14,10 +14,10 @@ class FitLibraryTest {
     private val start = 1_791_626_400_000L
     private fun fit(root: File, gps: Boolean = true): File {
         val journal = File(root, "sample.ride")
-        RideJournal(journal, start, RecordingConfig(if (gps) setOf("GPS_POSITION", "SPEED", "BIKE_DISTANCE") else setOf("HEART_RATE"))).use {
+        RideJournal(journal, start, RecordingConfig(if (gps) setOf("GPS_POSITION", "SPEED", "BIKE_DISTANCE", "GPS_ASCENT") else setOf("HEART_RATE"))).use {
             for (i in 0..10) it.append(RideSample(start + i * 1000, i * 1000L,
                 if (gps) 50.0 + i * .0001 else null, if (gps) 8.0 else null,
-                mapOf("SPEED" to 7.0, "BIKE_DISTANCE" to i * 7.0, "HEART_RATE" to 140.0)))
+                mapOf("SPEED" to 7.0, "BIKE_DISTANCE" to i * 7.0, "HEART_RATE" to 140.0, "GPS_ASCENT" to i * 3.0)))
         }
         return File(root, "sample.fit").also { FitWriter.encode(journal, it) }
     }
@@ -32,12 +32,18 @@ class FitLibraryTest {
             assertEquals(start, entry.details.dateMs)
             assertEquals(70.0, entry.details.distanceM!!, .001)
             assertEquals(10000L, entry.details.durationMs)
+            assertEquals(10000L, entry.details.movingMs)
+            assertEquals(25.2, entry.details.movingAverageKmh!!, .001)
+            assertEquals(entry.details.movingMs, RouteDetails.from(entry.details.json()).movingMs)
+            assertEquals(30.0, entry.details.ascentM!!, .01)
+            assertEquals(TrackOrigin.RECORDED, entry.origin)
             val decoded = FitRead.read(library.file(entry.id))
             assertEquals(11, decoded.route!!.originalPoints)
             assertEquals(50.001, decoded.route.points.last().latitude, .000001)
             library.rename(entry.id, "Meine Runde")
             val restarted = FitLibrary(root); restarted.load()
             assertEquals("Meine Runde", restarted.entries.single().name)
+            assertEquals(entry.details.movingMs, restarted.entries.single().details.movingMs)
             assertArrayEquals(bytes, restarted.file(entry.id).readBytes())
             assertEquals(0, File(root, "fit-library").listFiles()!!.count { it.extension == "gpx" })
         } finally { root.deleteRecursively() }

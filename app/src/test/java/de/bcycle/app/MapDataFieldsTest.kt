@@ -130,4 +130,69 @@ class MapDataFieldsTest {
             assertEquals("BATTERY", MapFieldSelection.read(preferences, 0)?.id)
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun recordingDotAppearsBeforeMiddleValueOrAloneAndDisappearsOnStop() {
+        val context = RuntimeEnvironment.getApplication()
+        val prefs = context.getSharedPreferences("record-dot-test", 0)
+        val view = MapDataFieldsView(context)
+        view.reload(prefs)
+        fun show(recording: Boolean) = view.show(LiveData(), GpsValues(elapsedMs = 42000), null, PulseValues(), recording)
+        show(false); assertEquals(View.GONE, view.visibility)
+        show(true)
+        val middle = descendants(view).filterIsInstance<TextView>()[1]
+        assertEquals(View.VISIBLE, view.visibility); assertEquals(View.VISIBLE, middle.visibility)
+        assertEquals("Aufzeichnung läuft", middle.contentDescription)
+        assertFalse(middle.isClickable)
+        view.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(144, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, 1080, 144)
+        val bitmap = android.graphics.Bitmap.createBitmap(1080, 144, android.graphics.Bitmap.Config.ARGB_8888)
+        view.draw(android.graphics.Canvas(bitmap))
+        val red = mutableListOf<Int>()
+        for (y in 0 until 144) for (x in 0 until 1080) {
+            val color = bitmap.getPixel(x, y)
+            if (Color.alpha(color) > 100 && Color.red(color) > 200 && Color.green(color) < 40) red += x
+        }
+        assertTrue(red.isNotEmpty()); assertEquals(540.0, red.average(), 2.0)
+        prefs.edit().putString(MapFieldSelection.key(1), "GPS_ELAPSED_TIME").commit()
+        view.reload(prefs); show(true)
+        assertTrue(middle.text.toString().endsWith("0:00:42"))
+        assertTrue(middle.contentDescription.toString().startsWith("Aufzeichnung läuft"))
+        show(false)
+        assertEquals("0:00:42", middle.text.toString())
+        assertFalse(middle.contentDescription.toString().contains("Aufzeichnung läuft"))
+        prefs.edit().clear().commit(); view.reload(prefs); show(false)
+        assertEquals(View.GONE, view.visibility)
+    }
+
+    @Test fun lightIconIsRedAfterMiddleValueAndWorksTogetherWithRecordDotOrEmptyField() {
+        val context = RuntimeEnvironment.getApplication()
+        val prefs = context.getSharedPreferences("light_overlay_test", 0)
+        prefs.edit().clear().putString(MapFieldSelection.key(1), "GPS_ELAPSED_TIME").commit()
+        val view = MapDataFieldsView(context); view.reload(prefs)
+        val middle = descendants(view).filterIsInstance<TextView>()[1]
+        fun show(recording: Boolean, light: Boolean?) = view.show(LiveData(), GpsValues(elapsedMs = 42000), null, PulseValues(), recording, light)
+        show(false, true)
+        assertTrue(middle.text.toString().startsWith("0:00:42 "))
+        assertTrue(middle.contentDescription.toString().contains("Fahrradlicht an"))
+        assertFalse(middle.isClickable)
+        view.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(144, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, 1080, 144)
+        val bitmap = android.graphics.Bitmap.createBitmap(1080, 144, android.graphics.Bitmap.Config.ARGB_8888)
+        view.draw(android.graphics.Canvas(bitmap))
+        val red = mutableListOf<Int>()
+        for (y in 0 until 144) for (x in 0 until 1080) {
+            val c = bitmap.getPixel(x, y)
+            if (Color.alpha(c) > 100 && Color.red(c) > 200 && Color.green(c) < 40) red += x
+        }
+        assertTrue(red.isNotEmpty()); assertTrue(red.min() > 540)
+        show(true, true)
+        assertEquals(2, middle.text.count { it == '\uFFFC' })
+        assertTrue(middle.contentDescription.toString().contains("Aufzeichnung läuft"))
+        show(false, false); assertEquals("0:00:42", middle.text.toString())
+        prefs.edit().clear().commit(); view.reload(prefs)
+        show(false, true); assertEquals(View.VISIBLE, view.visibility)
+        show(false, null); assertEquals(View.GONE, view.visibility)
+        show(true, null); assertEquals(1, middle.text.count { it == '\uFFFC' })
+        show(false, true); assertEquals("Fahrradlicht an", middle.contentDescription)
+    }
+
 }

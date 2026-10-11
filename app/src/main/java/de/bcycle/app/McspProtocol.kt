@@ -118,6 +118,12 @@ class McspProtocol {
                         else -> {
                             val metric = requireNotNull(LiveMetric.forAddress(field))
                             value = scalar(measurementPayload) ?: 0
+                            // Optional light status must never discard other measurements in this notification.
+                            if (metric == LiveMetric.BIKE_LIGHT && value !in 0..1) {
+                                events += "MCSP_UNKNOWN_LIGHT_STATE value=$value"
+                                value = null
+                                continue
+                            }
                             require(value in 0..metric.maxRaw) { "MCSP measurement outside field range" }
                             if (field != 0x1808 || !speedSeen) update = update.merge(LiveData.sample(metric, value))
                             if (field == LiveMetric.SPEED.address) speedSeen = true

@@ -26,6 +26,30 @@ class MapPanelTest {
         view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
         view.layout(0, 0, width, height)
     }
+    @Test fun routeShortcutMatchesSettingsWidthAndThemeAndOpensTheManagerDirectly() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity = controller.get()
+            val root = activity.findViewById<ViewGroup>(android.R.id.content)
+            measure(root, 1080, 2100)
+            val toolbar = descendants(root).single { it.tag == "ride_toolbar" } as ViewGroup
+            assertEquals(3, toolbar.childCount)
+            val route = toolbar.getChildAt(1) as android.widget.ImageButton
+            val settings = toolbar.getChildAt(2)
+            assertEquals("Streckenmanager öffnen", route.contentDescription)
+            assertEquals(route.width, settings.width)
+            val runtime = RideRuntime.get(activity); runtime.themes.activate("preset:electric-blue")
+            val theme = runtime.themes.active.tokens
+            assertEquals(theme.foreground, route.imageTintList!!.defaultColor)
+            assertEquals(theme.secondary, (route.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            assertEquals(theme.secondary, (settings.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            route.performClick()
+            val dialog = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            assertTrue(descendants(dialog.window!!.decorView).any { it is RouteManagerView })
+            dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE)?.performClick()
+            dialog.dismiss()
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun controlsHideAfterFiveSecondsAndFullscreenReusesMap() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -78,10 +102,13 @@ class MapPanelTest {
             assertEquals(panel.height * .68, pixel.y, 1.0)
             descendants(panel).single { it.contentDescription == "Fahrtrichtung oben · wechseln zu Norden" }.performClick()
             assertEquals(0f, panel.mapView.mapRotation.degrees, .001f)
-            assertEquals(.5f, panel.mapView.mapViewCenterY, .001f)
+            assertEquals(2f / 3f, panel.mapView.mapViewCenterY, .001f)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test @Config(qualifiers = "xxhdpi") fun mapControlsUseRequestedCornersOpenRoutesAndHideTogether() {
+    @Test @Config(qualifiers = "xxhdpi") fun mapControlsUseRequestedCornersToggleRouteAndHideTogether() {
+        val app = RuntimeEnvironment.getApplication()
+        val library = GpxLibrary(app.filesDir); library.load()
+        library.add("<gpx><rte><rtept lat='50' lon='8'/><rtept lat='50.01' lon='8.01'/></rte></gpx>".byteInputStream(), "Test.gpx")
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val root = controller.get().findViewById<ViewGroup>(android.R.id.content)
@@ -95,12 +122,18 @@ class MapPanelTest {
             assertTrue(zoom.getChildAt(0).top < zoom.getChildAt(1).top)
             assertEquals("Karte vergrößern", zoom.getChildAt(0).contentDescription)
             assertTrue(zoom.left > panel.width / 2)
-            val routes = descendants(panel).single { it.contentDescription == "Streckenmanager öffnen" }
+            val state = RideRuntime.get(controller.get()).mapState
+            val deadline = System.nanoTime() + 10_000_000_000L
+            while (state.busy && System.nanoTime() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
+            assertFalse(state.busy); panel.refresh()
+            val routes = descendants(panel).single { it.contentDescription == "Strecke ausblenden" }
             assertTrue(routes.left < panel.width / 2)
-            routes.performClick()
-            val dialog = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            assertTrue(descendants(dialog.window!!.decorView).any { it.tag == "route_import" })
-            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
+            routes.performClick(); panel.refresh()
+            assertFalse(RideRuntime.get(controller.get()).preferences.getBoolean("mapGpxVisible", true))
+            assertEquals(library.selected, state.selectedRoute)
+            assertEquals("Strecke einblenden", routes.contentDescription)
+            routes.performClick(); panel.refresh()
+            assertTrue(RideRuntime.get(controller.get()).preferences.getBoolean("mapGpxVisible", false))
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
             assertEquals(View.GONE, zoom.visibility); assertEquals(View.GONE, routes.visibility)
             panel.revealControls(); measure(root, 1080, 2100)

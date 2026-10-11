@@ -6,7 +6,7 @@ import java.io.FilterInputStream
 import java.io.InputStream
 
 data class GpxRoute(val points: List<MapPoint>, val originalPoints: Int, val segments: Int,
-                    val distanceM: Double? = null, val durationMs: Long? = null)
+                    val distanceM: Double? = null, val durationMs: Long? = null, val ascentM: Double? = null, val movingMs: Long? = null)
 
 /** Streaming parser: bounded input, points, nesting and segments; no external entities. */
 object GpxImport {
@@ -26,6 +26,9 @@ object GpxImport {
         var total = 0; var segments = 0; var start = true
         var root = false; var trackDepth = -1; var segmentDepth = -1; var routeDepth = -1
         var pointDepth = -1; var firstTime: Long? = null; var lastTime: Long? = null
+        val moving = MovingTime(); var pointTime: Long? = null; var previousPointTime: Long? = null
+        var previousPoint: MapPoint? = null
+        val elevation = RouteElevation(); var pointHeight: Double? = null; var heightStart = false
         var event = parser.eventType
         while (event != XmlPullParser.END_DOCUMENT) {
             require(parser.depth <= 32) { "GPX zu stark verschachtelt" }
@@ -47,15 +50,28 @@ object GpxImport {
                         lon != null && lon.isFinite() && lon in -180.0..180.0) { "Ungültige GPX-Koordinaten" }
                     total++; require(total <= MAX_POINTS) { "GPX enthält mehr als 200.000 Punkte" }
                     if (start) { segments++; require(segments <= 1_000) { "GPX enthält zu viele Abschnitte" } }
-                    points.add(MapPoint(lat, lon, start)); start = false
+                    points.add(MapPoint(lat, lon, start)); heightStart = start; pointHeight = null; pointTime = null; start = false
                     pointDepth = parser.depth
+                } else if (name == "ele" && pointDepth > 0 && parser.depth == pointDepth + 1) {
+                    pointHeight = parser.nextText().toDoubleOrNull()
                 } else if (name == "time" && pointDepth > 0 && parser.depth == pointDepth + 1) {
                     val time = runCatching { java.time.Instant.parse(parser.nextText()).toEpochMilli() }.getOrNull()
+                    pointTime = time
                     if (time != null) { firstTime = minOf(firstTime ?: time, time); lastTime = maxOf(lastTime ?: time, time) }
                 }
             } else if (event == XmlPullParser.END_TAG) {
                 when (parser.name) {
-                    "trkpt", "rtept" -> pointDepth = -1
+                    "trkpt", "rtept" -> if (parser.depth == pointDepth) {
+                        elevation.add(pointHeight, heightStart)
+                        val current = points.last()
+                        val dt = pointTime?.let { stamp -> previousPointTime?.let { stamp - it } }
+                        val speed = if (!heightStart && dt != null && dt > 0 && previousPoint != null)
+                            routeDistance(listOf(previousPoint!!, current)) * 1000 / dt else null
+                        // A segment's first point establishes time only; no cross-segment movement.
+                        if (heightStart) moving.add(null, null)
+                        moving.add(pointTime, speed ?: if (heightStart && pointTime != null) 0.0 else null)
+                        previousPointTime = pointTime; previousPoint = current; pointDepth = -1
+                    }
                     "trk" -> if (parser.depth == trackDepth) trackDepth = -1
                     "trkseg" -> if (parser.depth == segmentDepth) { segmentDepth = -1; start = true }
                     "rte" -> if (parser.depth == routeDepth) { routeDepth = -1; start = true }
@@ -69,6 +85,6 @@ object GpxImport {
         val display = points.filterIndexed { index, p -> p.segmentStart || index % step == 0 ||
             index == points.lastIndex || points[index + 1].segmentStart }
         return GpxRoute(display, total, segments, routeDistance(points),
-            firstTime?.let { first -> lastTime?.minus(first)?.takeIf { it > 0 } })
+            firstTime?.let { first -> lastTime?.minus(first)?.takeIf { it > 0 } }, elevation.ascent, moving.value)
     }
 }

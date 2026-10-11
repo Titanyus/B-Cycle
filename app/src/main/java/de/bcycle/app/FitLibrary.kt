@@ -16,7 +16,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-data class StoredFit(val id: String, val name: String, val recorded: Boolean, val details: RouteDetails, val hasRoute: Boolean)
+data class StoredFit(val id: String, val name: String, val recorded: Boolean, val details: RouteDetails, val hasRoute: Boolean, val origin: TrackOrigin = if (recorded) TrackOrigin.RECORDED else TrackOrigin.IMPORTED)
 
 /** Private immutable FIT originals plus a small atomic index. Downloads stay independent. */
 internal class FitLibrary(root: File) {
@@ -33,12 +33,21 @@ internal class FitLibrary(root: File) {
         if (index.baseFile.exists() || File(index.baseFile.path + ".bak").exists()) {
             val json = index.openRead().bufferedReader().use { JSONObject(it.readText()) }
             val array = json.getJSONArray("entries")
+            val missingAscent = mutableSetOf<String>()
             entries = List(array.length()) { i -> val item = array.getJSONObject(i)
-                StoredFit(item.getString("id"), item.getString("name"), item.getBoolean("recorded"),
-                    RouteDetails.from(item.getJSONObject("details")), item.getBoolean("hasRoute")).also { file(it.id) }
+                if (!item.getJSONObject("details").has("moving")) missingAscent += item.getString("id")
+                val origin = if (item.has("origin")) runCatching { TrackOrigin.valueOf(item.getString("origin")) }.getOrDefault(TrackOrigin.UNKNOWN)
+                    else if (item.opt("recorded") is Boolean) { if (item.getBoolean("recorded")) TrackOrigin.RECORDED else TrackOrigin.IMPORTED }
+                    else TrackOrigin.UNKNOWN
+                StoredFit(item.getString("id"), item.getString("name"), origin == TrackOrigin.RECORDED,
+                    RouteDetails.from(item.getJSONObject("details")), item.getBoolean("hasRoute"), origin).also { file(it.id) }
+            }
+            val upgraded = entries.map { entry -> if (entry.id !in missingAscent || !file(entry.id).isFile) entry else
+                runCatching { entry.copy(details = FitRead.read(file(entry.id)).details.copy(dateMs = entry.details.dateMs)) }.getOrDefault(entry)
             }
             json.optJSONArray("excluded")?.let { a -> repeat(a.length()) { excluded += a.getString(it) } }
             json.optJSONArray("seenDownloads")?.let { a -> repeat(a.length()) { seenDownloads += a.getString(it) } }
+            if (missingAscent.isNotEmpty()) save(upgraded)
         }
         refresh()
     }
@@ -64,8 +73,13 @@ internal class FitLibrary(root: File) {
             if (automatic && hash in excluded) return null
             val existing = entries.firstOrNull { it.id.endsWith(hash) }
             if (existing != null) {
+                if (!file(existing.id).isFile) {
+                    val original = AtomicFile(file(existing.id)); val output = original.startWrite()
+                    try { temporary.inputStream().use { it.copyTo(output) }; original.finishWrite(output) }
+                    catch (e: Exception) { original.failWrite(output); throw e }
+                }
                 if (recorded && !existing.recorded) {
-                    val upgraded = existing.copy(recorded = true, details = FitRead.read(file(existing.id)).details)
+                    val upgraded = existing.copy(recorded = true, origin = TrackOrigin.RECORDED, details = FitRead.read(file(existing.id)).details)
                     save(entries.map { if (it.id == existing.id) upgraded else it }); return upgraded
                 }
                 return existing
@@ -118,7 +132,7 @@ internal class FitLibrary(root: File) {
     private fun save(next: List<StoredFit>) {
         val array = JSONArray()
         next.forEach { array.put(JSONObject().put("id", it.id).put("name", it.name).put("recorded", it.recorded)
-            .put("details", it.details.json()).put("hasRoute", it.hasRoute)) }
+            .put("origin", it.origin.name).put("details", it.details.json()).put("hasRoute", it.hasRoute)) }
         val bytes = JSONObject().put("entries", array).put("excluded", JSONArray(excluded.toList()))
             .put("seenDownloads", JSONArray(seenDownloads.toList())).toString().toByteArray()
         val stream = index.startWrite()

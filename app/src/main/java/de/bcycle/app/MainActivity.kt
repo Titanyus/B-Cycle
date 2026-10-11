@@ -50,15 +50,20 @@ class MainActivity : Activity() {
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
     private val dialogs = DialogNavigation()
-    private fun dialog() = object : AlertDialog.Builder(this, R.style.SettingsDialogTheme) {
-        override fun create(): AlertDialog = super.create().also { dialogs.track(it) }
-    }
+    private fun dialog() = BicycleDialogBuilder(this, runtime.themes, dialogs)
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
-    private fun label(text: String, size: Float = 14f, color: Int = Color.WHITE) = TextView(settingsContext).apply {
-        this.text = text; textSize = size; setTextColor(color)
+    private fun label(text: String, size: Float = BicycleDesign.bodySp) = BicycleComponents.text(settingsContext, runtime.themes, text).apply {
+        isAccessibilityHeading = size >= BicycleDesign.inputSp
+        BicycleDialogStyle.control(this, runtime.themes)
     }
-    private fun column() = LinearLayout(settingsContext).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), dp(8), dp(16), dp(8)) }
-    private fun button(text: String, action: () -> Unit) = Button(settingsContext).apply { this.text = text; isAllCaps = false; setOnClickListener { action() } }
+    private fun column() = LinearLayout(settingsContext).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding))
+    }
+    private fun button(text: String, icon: BicycleIcon? = null, action: () -> Unit) = BicycleComponents.action(settingsContext, runtime.themes, text, action).apply {
+        BicycleDialogStyle.control(this, runtime.themes)
+        icon?.let { BicycleDialogStyle.actionIcon(this, runtime.themes, it) }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         runtime = RideRuntime.get(this)
@@ -75,7 +80,7 @@ class MainActivity : Activity() {
         dashboard = DashboardView(this) { chooseField(it) }
         dashboard.changePage = ::changeDashboard
         dashboard.setTemplate(currentTemplate())
-        mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::routeSettings, ::enableGps, ::openMapLink)
+        mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink)
         dashboardArea = object : LinearLayout(this) {
             override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
                 val available = View.MeasureSpec.getSize(heightMeasureSpec) - if (controlsVisible) 0 else dp(58)
@@ -91,16 +96,37 @@ class MainActivity : Activity() {
         mapPanel.showFullscreen(mapFullscreen)
         root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
         val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar" }
-        fun toolbarButton(title: String, color: Int = getColor(R.color.start_red), action: () -> Unit) = button(title, action).apply {
-            textSize = 20f; setTextColor(Color.WHITE); minWidth = 0; minHeight = 0
+        fun toolbarButton(title: String, role: ThemeRole = ThemeRole.PRIMARY, action: () -> Unit) = Button(this).apply {
+            text = title; isAllCaps = false; setOnClickListener { action() }
+            textSize = 20f; minWidth = 0; minHeight = 0
             setPadding(dp(4), 0, dp(4), 0)
-            background = android.graphics.drawable.GradientDrawable().apply { setColor(color); setStroke(1, Color.rgb(70, 0, 0)) }
+            BicycleComponents.bindTheme(this, runtime.themes) { tokens ->
+                setTextColor(tokens.foreground)
+                backgroundTintList = null
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    setColor(tokens.color(role)); setStroke(1, tokens.tertiary)
+                }
+            }
         }
         startButton = toolbarButton("START") {
             if (runtime.recording) startService(Intent(this, RecordingService::class.java).setAction(RecordingService.STOP)) else startRide()
         }
         toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), 3f))
-        toolbar.addView(toolbarButton("☰", getColor(R.color.settings_red)) { showMenu() }.apply { contentDescription = "Menü öffnen" }, LinearLayout.LayoutParams(0, dp(58), 1f))
+        toolbar.addView(android.widget.ImageButton(this).apply {
+            contentDescription = "Streckenmanager öffnen"; tag = "dashboard_routes"
+            setImageResource(BicycleIcon.Route.resource)
+            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+            setPadding(dp(17), dp(17), dp(17), dp(17))
+            setOnClickListener { routeSettings() }
+            BicycleComponents.bindTheme(this, runtime.themes) { tokens ->
+                imageTintList = android.content.res.ColorStateList.valueOf(tokens.foreground)
+                backgroundTintList = null
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    setColor(tokens.secondary); setStroke(1, tokens.tertiary)
+                }
+            }
+        }, LinearLayout.LayoutParams(0, dp(58), 1f))
+        toolbar.addView(toolbarButton("☰", ThemeRole.SECONDARY) { showMenu() }.apply { contentDescription = "Menü öffnen" }, LinearLayout.LayoutParams(0, dp(58), 1f))
         root.addView(toolbar)
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->
@@ -128,7 +154,8 @@ class MainActivity : Activity() {
                 message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
-        dashboard.show(dashboardLayout, runtime.bikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
+        dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
+        dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames)
         if (::mapPanel.isInitialized) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
         if (mapMessage != displayedMapMessage) {
@@ -140,11 +167,7 @@ class MainActivity : Activity() {
     }
     /** Source selector stays outside the scrollable list for dashboard and map fields. */
     private fun chooseField(index: Int, mapField: Boolean = false, changed: (() -> Unit)? = null) {
-        fun permitted(): Boolean {
-            if (runtime.canEditDataFields) return true
-            Toast.makeText(this, "Datenfelder nur im Stand ändern · bitte anhalten", Toast.LENGTH_SHORT).show()
-            return false
-        }
+        fun permitted(): Boolean = runtime.canEditDataFields
         if (!permitted()) return
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
@@ -161,18 +184,17 @@ class MainActivity : Activity() {
                 preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
             }
             render(); picker?.dismiss()
-            if (field?.source == "GPS") enableGps()
+            if (field?.requiresGps == true) enableGps()
         }
-        val content = FieldPickerView(settingsContext, runtime.bikeData, runtime.gpsValues,
-            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, ::select)
+        val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
+            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, ::select)
         picker = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen")
             .setView(content).setNegativeButton("Abbrechen", null).show()
     }
     private fun showMenu() {
-        val content = SettingsMenuView(settingsContext) { action ->
+        val content = SettingsMenuView(settingsContext, runtime.themes) { action ->
             when (action) {
                 SettingsAction.SENSORS -> showSensorManager()
-                SettingsAction.RECORDING -> recordingSettings()
                 SettingsAction.MAP -> mapSettings()
                 SettingsAction.DASHBOARDS -> dashboardSettings()
                 SettingsAction.ROUTES -> routeSettings()
@@ -186,7 +208,8 @@ class MainActivity : Activity() {
                     "Mapsforge · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkHttp 4.12.0 · Apache-2.0\n\n" + assets.open("OkHttp-LICENSE.txt").bufferedReader().use { it.readText() } +
-                    "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() })
+                    "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() } +
+                    "\n\nLucide 0.468.0 · ISC / Feather MIT\n\n" + assets.open("Lucide-LICENSE.txt").bufferedReader().use { it.readText() })
                     .setPositiveButton("Schließen", null).show()
             }
         }
@@ -197,23 +220,20 @@ class MainActivity : Activity() {
     }
     private fun recoverySettings() {
         val root = column()
-        root.addView(label("Vollständige Messpunkte aus noch nicht gespeicherten Fahrten werden erneut als FIT-Dateien nach Download/B-Cycle exportiert.", 15f))
-        root.addView(label(runtime.recordingStatus, 14f, Color.LTGRAY).apply { setPadding(0, dp(12), 0, dp(12)) })
-        root.addView(button("Speichern erneut versuchen") { menu?.dismiss(); runtime.retryPending() }.apply {
+        root.addView(label(runtime.recordingStatus, 14f).apply { setPadding(0, dp(12), 0, dp(12)) })
+        root.addView(button("Speichern erneut versuchen", BicycleIcon.ExportTrack) { menu?.dismiss(); runtime.retryPending() }.apply {
             tag = "recovery_execute"; isEnabled = !runtime.recording && !runtime.saving
         })
         menu = dialog().setTitle("Ungespeicherte Fahrten").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
     }
     private fun diagnosticSettings() {
         val root = column()
-        root.addView(label("Exportiert die aktuelle Diagnose als Textdatei. Sie enthält Verbindungsprotokolle, Sensorstatus und GPS-Messwerte. Den Speicherort wählst du im nächsten Schritt.", 15f))
-        root.addView(button("Diagnose als Datei speichern") { menu?.dismiss(); exportDiagnostic() }.apply { tag = "diagnostic_execute" })
+        root.addView(button("Diagnose als Datei speichern", BicycleIcon.ExportTrack) { menu?.dismiss(); exportDiagnostic() }.apply { tag = "diagnostic_execute" })
         menu = dialog().setTitle("Diagnose").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
     }
     private fun resetDashboardSettings() {
         val root = column()
-        root.addView(label("Stellt die Standard-Messwertbelegung für Dashboard ${dashboardPage + 1} wieder her. Die anderen Dashboard-Seiten, Vorlagen, Sensoren und gespeicherten Fahrten bleiben erhalten.", 15f))
-        root.addView(button("Belegung zurücksetzen") {
+        root.addView(button("Belegung zurücksetzen", BicycleIcon.Reset) {
             dashboardLayout = DashboardLayout.defaults
             preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
             render(); menu?.dismiss()
@@ -224,11 +244,25 @@ class MainActivity : Activity() {
     private fun showSensorManager() {
         val root = column(); sensorRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(sensorRows)
-        root.addView(button("Sensor hinzufügen") {
+        root.addView(button("Sensor hinzufügen", BicycleIcon.AddSensor) {
             menu = dialog().setTitle("Sensor hinzufügen").setItems(arrayOf("Bosch E-Bike", "BLE-Pulsmesser")) { _, index -> selectSensor(if (index == 0) "bike" else "heart") }.show()
         })
+        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
+        val recordingContent = LinearLayout(settingsContext).apply {
+            orientation = LinearLayout.VERTICAL; visibility = View.GONE; tag = "sensor_recording_content"
+        }
+        var recordingBuilt = false
+        root.addView(button("FIT-Aufzeichnung", BicycleIcon.Expand) {
+            val expand = recordingContent.visibility != View.VISIBLE
+            if (expand && !recordingBuilt) {
+                recordingContent.addView(recordingControls()); recordingBuilt = true
+            }
+            recordingContent.visibility = if (expand) View.VISIBLE else View.GONE
+            root.findViewWithTag<View>("sensor_recording_toggle").stateDescription = if (expand) "Ausgeklappt" else "Eingeklappt"
+        }.apply { tag = "sensor_recording_toggle"; stateDescription = "Eingeklappt" })
+        root.addView(recordingContent)
         refreshSensorRows()
-        sensorManager = dialog().setTitle("Sensoren").setView(ScrollView(this).apply { addView(root) }).setPositiveButton("Schließen", null).create().apply {
+        sensorManager = dialog().setTitle("Sensoren & Aufzeichnung").setView(ScrollView(this).apply { addView(root) }).setPositiveButton("Schließen", null).create().apply {
             dialogs.onDismiss(this) { sensorRows = null }; show()
         }
     }
@@ -242,10 +276,11 @@ class MainActivity : Activity() {
             return
         }
         fun sensor(title: String, state: String, tag: String, enabled: Boolean, choose: String? = null, kind: String? = null, toggle: () -> Unit) {
-            rows.addView(label(title, 18f).apply { setPadding(0, dp(12), 0, dp(4)) })
-            rows.addView(label(state, 13f, Color.LTGRAY).apply { this.tag = tag })
-            if (choose != null && kind != null) rows.addView(button(choose) { selectSensor(kind) })
-            rows.addView(button(if (enabled) "Trennen" else "Verbinden") { toggle(); rows.removeAllViews(); refreshSensorRows() })
+            if (rows.childCount > 0) rows.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
+            rows.addView(label(title, BicycleDesign.inputSp).apply { setPadding(0, dp(12), 0, dp(4)) })
+            rows.addView(label(state, 13f).apply { this.tag = tag })
+            if (choose != null && kind != null) rows.addView(button(choose, BicycleIcon.Bluetooth) { selectSensor(kind) })
+            rows.addView(button(if (enabled) "Trennen" else "Verbinden", if (enabled) BicycleIcon.Disconnect else BicycleIcon.Bluetooth) { toggle(); rows.removeAllViews(); refreshSensorRows() })
         }
         sensor("GPS", runtime.gpsStatus, "gps_state", runtime.gpsEnabled) { if (runtime.gpsEnabled) runtime.setGpsEnabled(false) else enableGps() }
         sensor("E-Bike · ${if (runtime.bikeAddress == null) "Kein Rad gespeichert" else runtime.bikeName}", runtime.bikeStatus, "bike_state", runtime.bikeEnabled && runtime.bikeAddress != null, "Fahrrad auswählen", "bike") {
@@ -264,7 +299,7 @@ class MainActivity : Activity() {
         fun found(device: BluetoothDevice, name: String) {
             val address = try { device.address } catch (_: SecurityException) { return }
             if (!seen.add(address)) return
-            devices.addView(button("$name\n$address") {
+            devices.addView(button("$name\n$address", BicycleIcon.Bluetooth) {
                 if (kind == "bike") { scanningBike = false; runtime.selectBike(device, name) } else runtime.selectHeart(device, name)
                 picker?.dismiss(); stopScan(); render()
             })
@@ -292,9 +327,8 @@ class MainActivity : Activity() {
             if (runtime.recording) startForegroundService(Intent(this, RecordingService::class.java).setAction(RecordingService.START))
         }
     }
-    private fun recordingSettings() {
-        val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column()
-        root.addView(label("Gilt für die nächste Fahrt. Nur angehakte Werte werden gespeichert. Fehlende Sensorwerte bleiben unbekannt.", 14f, Color.LTGRAY))
+    private fun recordingControls(): LinearLayout {
+        val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { setPadding(0, 0, 0, 0) }
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             root.addView(label(title, 16f).apply { setPadding(0, dp(12), 0, 0) })
             return Spinner(settingsContext).apply {
@@ -305,24 +339,28 @@ class MainActivity : Activity() {
         val speed = source("FIT-Hauptquelle · Geschwindigkeit", current.speedSource, "SPEED")
         val distance = source("FIT-Hauptquelle · Strecke", current.distanceSource, "BIKE_DISTANCE")
         for ((source, fields) in RecordField.options.groupBy { it.source }) {
-            root.addView(label(source, 20f).apply { setPadding(0, dp(18), 0, dp(6)); isAccessibilityHeading = true })
+            root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
+            root.addView(label(source, BicycleDesign.inputSp).apply { setPadding(0, dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.smallGap)); isAccessibilityHeading = true })
             for (field in fields) root.addView(CheckBox(settingsContext).apply {
                 text = field.title; tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
                 setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id) }
             })
         }
-        menu = dialog().setTitle("FIT-Aufzeichnung").setView(ScrollView(this).apply { addView(root) })
-            .setPositiveButton("Speichern") { _, _ ->
-                runtime.saveConfig(RecordingConfig(selected.toSet(), if (speed.selectedItemPosition == 0) "SPEED" else "GPS_SPEED", if (distance.selectedItemPosition == 0) "BIKE_DISTANCE" else "GPS_DISTANCE"))
-                Toast.makeText(this, "Auswahl für die nächste Fahrt gespeichert", Toast.LENGTH_SHORT).show()
-            }.setNegativeButton("Abbrechen", null).show()
+        root.addView(button("Speichern", BicycleIcon.Save) {
+            runtime.saveConfig(RecordingConfig(selected.toSet(), if (speed.selectedItemPosition == 0) "SPEED" else "GPS_SPEED", if (distance.selectedItemPosition == 0) "BIKE_DISTANCE" else "GPS_DISTANCE"))
+            Toast.makeText(this, "Auswahl für die nächste Fahrt gespeichert", Toast.LENGTH_SHORT).show()
+        }.apply { tag = "record_save" })
+        // The accordion is built after the dialog opens; apply the same central styles to its children.
+        BicycleDialogStyle.content(root, runtime.themes)
+        return root
     }
+
     private fun startRide() {
         if (runtime.recording || runtime.saving) return
         val permissions = mutableListOf<String>()
         if (!runtime.hasBluetooth()) permissions += listOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
         if (!preferences.getBoolean("recordPermissionsAsked", false)) {
-            if (runtime.config.fields.any { it.startsWith("GPS_") } && !runtime.hasGps()) permissions += listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            if (runtime.config.needsGps && !runtime.hasGps()) permissions += listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) permissions += Manifest.permission.POST_NOTIFICATIONS
         }
         if (permissions.isNotEmpty()) {
@@ -344,7 +382,7 @@ class MainActivity : Activity() {
             5 -> if (pendingStart) {
                 pendingStart = false
                 if (runtime.hasBluetooth()) {
-                    if (runtime.config.fields.any { it.startsWith("GPS_") } && !runtime.hasGps()) Toast.makeText(this, "Aufzeichnung startet ohne GPS; präzisen Standort später im Sensormanager erlauben.", Toast.LENGTH_LONG).show()
+                    if (runtime.config.needsGps && !runtime.hasGps()) Toast.makeText(this, "Aufzeichnung startet ohne GPS; präzisen Standort später im Sensormanager erlauben.", Toast.LENGTH_LONG).show()
                     startRide()
                 } else Toast.makeText(this, "Bluetooth-Zugriff ist für die Aufzeichnung erforderlich", Toast.LENGTH_LONG).show()
             }
@@ -412,38 +450,47 @@ class MainActivity : Activity() {
         dashboardArea.requestLayout()
         (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
         setMapFullscreen(false); render()
-        Toast.makeText(this, "Dashboard ${dashboardPage + 1}/4 · ${template.title}", Toast.LENGTH_SHORT).show()
     }
     private fun dashboardSettings() {
         val root = column()
-        root.addView(label("Vier Seiten mit festen Vorlagen. Die Messwerte jeder Seite sind unabhängig frei belegbar. Wechsel durch Wischen über die Datenfelder.", 14f, Color.LTGRAY))
+        root.addView(ThemePickerView(settingsContext, runtime.themes))
         val presets = DashboardPresetPicker(settingsContext, (0 until 4).map { page ->
             DashboardTemplate.decode(preferences.getString("dashboardTemplate_$page", DashboardTemplate.entries[page].name))
-        }, dashboardPage)
+        }, dashboardPage, runtime.themes)
         root.addView(presets)
-        root.addView(button("Karten-Datenfelder") { mapDataFieldSettings() }.apply { tag = "map_fields_manage" })
-        menu = dialog().setTitle("Dashboards").setView(ScrollView(this).apply { addView(root) })
+        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
+        root.addView(label("Fahrmodus-Glow", BicycleDesign.inputSp))
+        root.addView(label("Zeigt den aktiven Bosch-Fahrmodus durch einen farbigen Lichtschein am Rand der Datenfelder."))
+        val glow = Switch(settingsContext).apply {
+            text = "Fahrmodus-Glow"; tag = "mode_glow_enabled"
+            isChecked = ModeGlowSettings.enabled(preferences)
+        }
+        root.addView(glow)
+        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
+        root.addView(button("Karten-Datenfelder", BicycleIcon.ShowOnMap) { mapDataFieldSettings() }.apply { tag = "map_fields_manage" })
+        menu = dialog().setTitle("Design & UI").setView(ScrollView(this).apply { tag = "design_ui_scroll"; addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
                 val edit = preferences.edit(); presets.selection.forEachIndexed { page, template -> edit.putString("dashboardTemplate_$page", template.name) }; edit.apply()
+                ModeGlowSettings.save(preferences, glow.isChecked)
                 changeDashboard(0)
             }.setNegativeButton("Abbrechen", null).show()
     }
     private fun mapSettings() {
         val root = column()
-        root.addView(label("Online-Karten benötigen Internet. Der Kartenserver erhält die angefragten Kartenausschnitte. GPS-Abfragen bleiben lokal; FIT wird nur bei aktiviertem WebDAV zu deiner Nextcloud hochgeladen. Bei CyclOSM sind Radwege, Fahrradrouten und Belagsangaben Teil der fertigen Karte; sie können nicht einzeln ausgeblendet werden.", 14f, Color.LTGRAY))
-        root.addView(label("Kartenquelle", 18f))
+        root.addView(label("Kartenquelle", BicycleDesign.inputSp))
         val source = Spinner(settingsContext).apply {
             adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.title })
             setSelection(MapSource.decode(preferences.getString("mapSource", null)).ordinal); root.addView(this)
         }
         fun check(title: String, key: String, fallback: Boolean) = CheckBox(settingsContext).apply { text = title; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
+        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         val heading = check("Fahrtrichtung oben (sonst Norden)", "mapHeading", true)
         val follow = check("GPS automatisch folgen", "mapFollow", true)
         val track = check("Gefahrenen Track anzeigen", "mapTrackVisible", true)
         val gpx = check("Importierte GPX-Strecke anzeigen", "mapGpxVisible", true)
-        root.addView(label("Live-Track nur nach START und bei aktivierter GPS-Route im Aufzeichnungsmanager. Befestigt bedeutet nicht automatisch rennradtauglich; fehlende OSM-Angaben bleiben unbekannt.", 14f, Color.LTGRAY))
-        root.addView(button("GPS aktivieren / Berechtigung erlauben") { enableGps() })
-        root.addView(button("CyclOSM-Legende öffnen") { openMapLink(MapSource.CYCLOSM.creditUrl) })
+        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
+        root.addView(button("GPS aktivieren / Berechtigung erlauben", BicycleIcon.Map) { enableGps() })
+        root.addView(button("CyclOSM-Legende öffnen", BicycleIcon.Info) { openMapLink(MapSource.CYCLOSM.creditUrl) })
         menu = dialog().setTitle("Kartenmanager").setView(ScrollView(this).apply { addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
                 preferences.edit().putString("mapSource", MapSource.entries[source.selectedItemPosition].name)
@@ -454,7 +501,6 @@ class MainActivity : Activity() {
     }
     private fun mapDataFieldSettings() {
         val root = column()
-        root.addView(label("Drei transparente Messwerte unten auf der Karte, gemeinsam für alle Dashboards und das Vollbild. Wähle links, Mitte oder rechts. Leer entfernt einen Wert; ohne empfangene Daten bleibt das Feld unsichtbar. Die Belegung wird beim Auswählen übernommen.", 14f, Color.LTGRAY))
         for (index in MapFieldSelection.positions.indices) {
             val slot = button("") {}.apply { tag = "map_field_slot_$index" }
             fun updateTitle() {
@@ -487,48 +533,75 @@ class MainActivity : Activity() {
         val state = runtime.mapState
         routeSignature = ""
         val content = RouteManagerView(settingsContext, { entry ->
-            preferences.edit().putBoolean("mapGpxVisible", true).apply()
-            state.selectRoute(if (state.selectedRoute == entry.id) null else entry.id)
-        }, ::routeActions, ::routeExportSettings) { id -> RouteUploads.status(this, id) }
+            val displayed = state.selectedRoute == entry.id && state.route != null && preferences.getBoolean("mapGpxVisible", true)
+            state.setRouteVisible(!displayed)
+            if (!displayed && state.selectedRoute != entry.id) state.selectRoute(entry.id)
+        }, ::routeActions, ::routeExportSettings, themes = runtime.themes,
+            uploadState = { RouteUploads.state(this, it.id, it.fileStamp) },
+            upload = { state.uploadRoute(it.id) }, local = { state.saveRouteLocally(it.id) })
         routeManager = content
         refreshRouteRows()
         menu = dialog().setView(content).setNeutralButton("Importieren", null).setPositiveButton("Schließen", null).create().apply {
+            setView(content, 0, 0, 0, 0)
             dialogs.onDismiss(this) { if (routeManager === content) { routePopup?.dismiss(); routePopup = null; routeManager = null; routeImportButton = null } }; show()
             routeImportButton = getButton(AlertDialog.BUTTON_NEUTRAL).apply {
                 tag = "route_import"; isEnabled = !state.busy
-                setCompoundDrawablesRelative(RouteSymbolDrawable(RouteSymbol.IMPORT).apply { setBounds(0, 0, dp(20), dp(20)) }, null, null, null)
-                compoundDrawablePadding = dp(6); setOnClickListener { if (!state.busy) routeImportChoice() }
+                setCompoundDrawablesRelative(BicycleIcons.drawable(this@MainActivity, BicycleIcon.Import, runtime.themes.active.tokens.foreground)
+                    .apply { setBounds(0, 0, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)) }, null, null, null)
+                compoundDrawablePadding = dp(BicycleDesign.verticalPadding); setOnClickListener { if (!state.busy) routeImportChoice() }
             }
         }
+        val screen = menu!!
+        val decor = screen.window!!.decorView
+        BicycleComponents.bindTheme(decor, runtime.themes) { tokens ->
+            screen.window!!.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
+                setColor(tokens.secondary); cornerRadius = dp(BicycleDesign.dialogRadius).toFloat()
+            })
+            decor.clipToOutline = true
+            listOf(AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_POSITIVE).forEach { which ->
+                screen.getButton(which).apply {
+                    setTextColor(tokens.foreground); typeface = android.graphics.Typeface.DEFAULT; textSize = BicycleDesign.bodySp
+                    backgroundTintList = null; background = null
+                    (parent as? View)?.setBackgroundColor(tokens.secondary)
+                }
+            }
+            screen.getButton(AlertDialog.BUTTON_NEUTRAL).compoundDrawablesRelative[0]?.setTint(tokens.foreground)
+        }
+        BicycleDialogStyle.actionIcon(screen.getButton(AlertDialog.BUTTON_POSITIVE), runtime.themes, BicycleIcon.Close)
         state.refreshLibrary()
     }
     private fun routeImportChoice() {
         val anchor = routeImportButton ?: return
         routeDropdown(anchor, listOf("Geplante Strecke (GPX / FIT)", "Aufgezeichnete Fahrt (FIT)"),
-            listOf(RouteSymbol.IMPORT, RouteSymbol.RIDE), listOf("route_import_planned", "route_import_recorded")) {
+            listOf(BicycleIcon.TrackImported, BicycleIcon.TrackRecorded), listOf("route_import_planned", "route_import_recorded")) {
             importRoute(it == 1)
         }
     }
     /** The same anchored native dropdown serves imports and each route's actions. */
-    private fun routeDropdown(anchor: View, choices: List<String>, icons: List<RouteSymbol> = emptyList(),
+    private fun routeDropdown(anchor: View, choices: List<String>, icons: List<BicycleIcon> = emptyList(),
                               tags: List<String> = emptyList(), selected: (Int) -> Unit) {
         routePopup?.dismiss()
         val popup = ListPopupWindow(settingsContext).apply {
             anchorView = anchor; isModal = true
-            width = minOf(dp(300), resources.displayMetrics.widthPixels - dp(32))
+            width = minOf(dp(BicycleDesign.popupWidth), resources.displayMetrics.widthPixels - dp(BicycleDesign.horizontalPadding * 2))
             setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
-                setColor(Color.rgb(116, 0, 0)); cornerRadius = dp(6).toFloat()
+                setColor(runtime.themes.active.tokens.tertiary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             })
             setAdapter(object : ArrayAdapter<String>(settingsContext, android.R.layout.simple_list_item_1, choices) {
                 override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View =
-                    ((convertView as? TextView) ?: TextView(settingsContext)).apply {
-                        text = getItem(position); textSize = 16f; setTextColor(Color.WHITE)
-                        gravity = android.view.Gravity.CENTER_VERTICAL; minHeight = dp(56)
-                        setPadding(dp(12), dp(8), dp(12), dp(8))
+                    ((convertView as? TextView) ?: TextView(settingsContext).apply {
+                        BicycleComponents.bindTheme(this, runtime.themes) { tokens ->
+                            setTextColor(tokens.foreground)
+                            compoundDrawablesRelative.filterNotNull().forEach { it.setTint(tokens.foreground) }
+                        }
+                    }).apply {
+                        text = getItem(position); textSize = BicycleDesign.bodySp
+                        gravity = android.view.Gravity.CENTER_VERTICAL; minHeight = dp(BicycleDesign.popupRowHeight)
+                        setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding))
                         tag = tags.getOrNull(position)
-                        setCompoundDrawablesRelative(icons.getOrNull(position)?.let { kind -> RouteSymbolDrawable(kind)
-                            .apply { setBounds(0, 0, dp(24), dp(24)) } }, null, null, null)
-                        compoundDrawablePadding = dp(10)
+                        setCompoundDrawablesRelative(icons.getOrNull(position)?.let { kind -> BicycleIcons.drawable(settingsContext, kind, runtime.themes.active.tokens.foreground)
+                            .apply { setBounds(0, 0, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)) } }, null, null, null)
+                        compoundDrawablePadding = dp(BicycleDesign.verticalPadding)
                     }
             })
             setOnItemClickListener { _, _, position, _ ->
@@ -539,6 +612,15 @@ class MainActivity : Activity() {
         }
         routePopup = popup
         popup.show()
+        popup.listView?.let { list -> BicycleComponents.bindTheme(list, runtime.themes) { tokens ->
+            popup.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
+                setColor(tokens.tertiary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
+            })
+            list.selector = android.graphics.drawable.GradientDrawable().apply {
+                setColor(tokens.tertiary); setStroke(BicycleDesign.dividerPixels, tokens.foreground)
+                cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
+            }
+        } }
     }
     private fun routeExportSettings() {
         val settings = RouteExportSettings(this)
@@ -567,7 +649,13 @@ class MainActivity : Activity() {
                 }
                 runOnUiThread { content.testing(false); content.result.text = message }
             }, "B-Cycle-WebDAV-Test").start()
+        }, runtime.themes, storedPassword = {
+            runCatching { settings.password() }.getOrElse {
+                content.result.text = "Gespeichertes Passwort konnte nicht gelesen werden"
+                ""
+            }
         })
+        BicycleDialogStyle.content(content, runtime.themes)
         exportPasswordDraft?.let { content.password.setText(it) }
         exportDraft = null; exportPasswordDraft = null
         val screen = dialog().setTitle("Streckeneinstellungen").setView(ScrollView(settingsContext).apply { addView(content) })
@@ -608,10 +696,11 @@ class MainActivity : Activity() {
         }
         val manager = routeManager ?: return
         routeImportButton?.isEnabled = !state.busy
-        val signature = "${state.routeRevision}:${state.busy}:${RouteUploads.revision(this)}"
+        val displayed = state.selectedRoute.takeIf { state.route != null && preferences.getBoolean("mapGpxVisible", true) }
+        val signature = "${state.routeRevision}:${state.busy}:${RouteUploads.revision(this)}:$displayed"
         if (routeSignature == signature) return
         routeSignature = signature
-        manager.submit(state.entries, state.selectedRoute, state.busy)
+        manager.submit(state.entries, displayed, state.busy)
     }
     private fun routeActions(entry: ManagedRoute) {
         val state = runtime.mapState
@@ -638,9 +727,8 @@ class MainActivity : Activity() {
                 else { state.renameRoute(entry.id, name); rename.dismiss() }
             }
         }
-        if (entry.format == "FIT") actions += "Zu Nextcloud hochladen / erneut versuchen" to {
-            try { RouteUploads.retry(this, entry.id); routeSignature = ""; refreshRouteRows() }
-            catch (_: Exception) { Toast.makeText(this, "WebDAV-Zugang bitte in den Streckeneinstellungen aktivieren und prüfen", Toast.LENGTH_LONG).show() }
+        if (entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED) actions += "Zu Nextcloud hochladen / erneut versuchen" to {
+            state.uploadRoute(entry.id)
         }
         actions += "Nach Downloads exportieren" to { state.exportRoute(entry.id) }
         actions += "Aus Sammlung löschen" to {
@@ -650,7 +738,13 @@ class MainActivity : Activity() {
                 .setNegativeButton("Abbrechen", null).show()
         }
         val anchor = routeManager?.findViewWithTag<View>("route_more_${entry.id}") ?: return
-        routeDropdown(anchor, actions.map { it.first }) { which -> actions[which].second() }
+        routeDropdown(anchor, actions.map { it.first }, actions.map { when (it.first) {
+            "Auf Karte ansehen", "Als geplante Strecke auswählen" -> BicycleIcon.ShowOnMap
+            "Umbenennen" -> BicycleIcon.RenameTrack
+            "Zu Nextcloud hochladen / erneut versuchen" -> BicycleIcon.CloudUploaded
+            "Nach Downloads exportieren" -> BicycleIcon.ExportTrack
+            else -> BicycleIcon.DeleteTrack
+        } }) { which -> actions[which].second() }
     }
     private fun openMapLink(url: String) {
         try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }

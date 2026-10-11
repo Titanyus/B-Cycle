@@ -32,6 +32,10 @@ class RouteExportNavigationTest {
             val state = RideRuntime.get(activity).mapState
             val deadline = System.currentTimeMillis() + 5000
             while (state.busy && System.currentTimeMillis() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
+            val close = manager.getButton(AlertDialog.BUTTON_POSITIVE)
+            assertNotNull(close.compoundDrawablesRelative[0])
+            assertEquals(R.drawable.ic_lucide_log_out, BicycleIcon.Close.resource)
+            assertEquals(R.drawable.ic_lucide_x, BicycleIcon.Cancel.resource)
             val import = manager.getButton(AlertDialog.BUTTON_NEUTRAL)
             assertEquals("route_import", import.tag)
             assertNotNull(import.compoundDrawablesRelative[0])

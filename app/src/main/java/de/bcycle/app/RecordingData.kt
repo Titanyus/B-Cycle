@@ -3,40 +3,53 @@ package de.bcycle.app
 data class PulseValues(val bpm: Int? = null, val average: Double? = null, val maximum: Int? = null, val battery: Int? = null)
 
 data class RecordingConfig(
-    val fields: Set<String> = RecordField.options.map { it.id }.toSet(),
+    val fields: Set<String> = RecordField.defaults,
     val speedSource: String = "SPEED", val distanceSource: String = "BIKE_DISTANCE",
 ) {
+    val needsGps get() = fields.any { it.startsWith("GPS_") } || speedSource == "GPS_SPEED"
     companion object {
         fun decode(fields: Set<String>?, speed: String?, distance: String?) = RecordingConfig(
-            fields?.filter { id -> RecordField.options.any { it.id == id } }?.toSet() ?: RecordField.options.map { it.id }.toSet(),
+            fields?.filter { id -> RecordField.options.any { it.id == id } }?.toSet() ?: RecordField.defaults,
             speed?.takeIf { it in listOf("SPEED", "GPS_SPEED") } ?: "SPEED",
             distance?.takeIf { it in listOf("BIKE_DISTANCE", "GPS_DISTANCE") } ?: "BIKE_DISTANCE",
         )
     }
 }
 
-data class RecordField(val id: String, val title: String, val source: String, val group: String, val unit: String) {
+enum class FitFieldScope { RECORD, SUMMARY }
+
+data class RecordField(val id: String, val title: String, val source: String, val group: String, val unit: String, val scope: FitFieldScope = FitFieldScope.RECORD) {
     companion object {
+        val summaries = listOf(
+            RecordField("NORMALIZED_POWER", "Normalized Power (W)", "Performance & Energie", "Fahrtkennzahlen", "W", FitFieldScope.SUMMARY),
+            RecordField("MECHANICAL_WORK", "Mechanical Work (kJ)", "Performance & Energie", "Fahrtkennzahlen", "kJ", FitFieldScope.SUMMARY),
+            RecordField("CALORIES", "Calories (kcal, geschätzt)", "Performance & Energie", "Fahrtkennzahlen", "kcal", FitFieldScope.SUMMARY),
+            RecordField("SPEED_POWER_RATIO", "Speed-to-Power Ratio (km/h/W)", "Performance & Energie", "Fahrtkennzahlen", "km/h/W", FitFieldScope.SUMMARY),
+            RecordField("EFFICIENCY_FACTOR", "Efficiency Factor (W/bpm)", "Performance & Energie", "Fahrtkennzahlen", "W/bpm", FitFieldScope.SUMMARY),
+        )
+        val defaults get() = options.filter { it.scope == FitFieldScope.RECORD }.map { it.id }.toSet()
         val options: List<RecordField> = listOf(RecordField("GPS_POSITION", "GPS-Route / Position", "GPS", "Fahrt", "semicircles")) +
-            DashboardField.groups(LiveData()).flatMap { group -> group.fields.filter { it.id != "RANGES" }.map { field ->
+            DashboardField.groups(LiveData()).flatMap { group -> group.fields.filter { it.id != "RANGES" && it.source != "Wetter" }.map { field ->
                 val unit = when (field.id) {
                     "SPEED", "AVERAGE_SPEED", "GPS_SPEED", "GPS_MOVING_AVERAGE", "GPS_OVERALL_AVERAGE", "GPS_MAXIMUM_SPEED" -> "m/s"
                     "ODOMETER", "BIKE_DISTANCE", "GPS_DISTANCE" -> "m"
                     "GPS_ELAPSED_TIME", "GPS_MOVING_TIME", "GPS_STOPPED_TIME" -> "s"
                     "ASSIST_MODE" -> "index"
+                    "BIKE_LIGHT" -> "bool"
                     else -> field.value(LiveData()).unit
                 }
                 RecordField(field.id, field.title(LiveData()), group.source, group.title, unit)
-            } }
+            } } + summaries
     }
 }
 
 data class RideSample(val utcMs: Long, val elapsedMs: Long, val latitude: Double? = null, val longitude: Double? = null,
-                      val values: Map<String, Double> = emptyMap())
+                      val values: Map<String, Double> = emptyMap(), val performanceEvents: List<PerformanceEvent> = emptyList())
 
 /** Never parse formatted display strings or confuse motor power with rider power. */
 fun recordingValues(bike: LiveData, gps: GpsValues, distanceM: Long?, pulse: PulseValues): Map<String, Double> = buildMap {
     for (metric in LiveMetric.entries) bike.value(metric)?.let { raw ->
+        if (metric == LiveMetric.BIKE_LIGHT && raw !in 0..1) return@let
         val signed = if (metric == LiveMetric.BATTERY_TEMPERATURE) (raw ushr 1) xor -(raw and 1) else raw
         val value = signed / metric.divisor
         put(metric.name, if (metric == LiveMetric.SPEED || metric == LiveMetric.AVERAGE_SPEED) value / 3.6 else if (metric == LiveMetric.ODOMETER) raw.toDouble() else value)

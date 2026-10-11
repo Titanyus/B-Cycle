@@ -18,7 +18,7 @@ import org.robolectric.annotation.GraphicsMode
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33])
+@Config(sdk = [33], qualifiers = "xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class GpxManagerTest {
     private fun descendants(v: View): List<View> = listOf(v) + if (v is ViewGroup)
@@ -53,8 +53,21 @@ class GpxManagerTest {
             await(state)
             assertTrue(views().any { it.tag == "route_import" })
             assertTrue(views().filterIsInstance<TextView>().any { it.text.toString() == "Testfahrt" })
+            activity.getSharedPreferences("bike", 0).edit().putBoolean("mapGpxVisible", false).apply()
+            RideRuntime.get(activity).observers.toList().forEach { it() }
+            assertTrue(views().single { it.tag == "route_eye_$id" }.contentDescription.toString().endsWith("anzeigen"))
             views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
-            assertNull(state.route); assertNull(GpxLibrary(app.filesDir).load()); assertEquals(1, state.routes.size)
+            assertNotNull(state.route); assertEquals(id, state.selectedRoute)
+            assertTrue(activity.getSharedPreferences("bike", 0).getBoolean("mapGpxVisible", false))
+            val decor = manager.window!!.decorView
+            val bitmap = android.graphics.Bitmap.createBitmap(decor.width, decor.height, android.graphics.Bitmap.Config.ARGB_8888)
+            decor.draw(android.graphics.Canvas(bitmap))
+            java.io.File("build/reports/settings/route-manager-dialog.png").apply { parentFile!!.mkdirs()
+                outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            }
+            views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
+            assertNotNull(state.route); assertNotNull(GpxLibrary(app.filesDir).load()); assertEquals(1, state.routes.size)
+            assertFalse(activity.getSharedPreferences("bike", 0).getBoolean("mapGpxVisible", true))
             views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
             assertNotNull(state.route)
             views().single { it.tag == "route_more_$id" }.performClick()

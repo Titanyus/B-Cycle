@@ -66,6 +66,7 @@ class WebDavClientTest {
         server.enqueue(MockResponse().setResponseCode(207).setBody(directoryXml))
         WebDavClient(config, "secret", client).test()
         val first = server.takeRequest(); assertEquals("PROPFIND", first.method); assertEquals("0", first.getHeader("Depth"))
+        assertEquals("/cloud/remote.php/dav/files/rider/", first.path)
         assertEquals("MKCOL", server.takeRequest().method); assertEquals("MKCOL", server.takeRequest().method)
         assertEquals("PROPFIND", server.takeRequest().method)
     }
@@ -76,6 +77,29 @@ class WebDavClientTest {
             server.enqueue(MockResponse().setResponseCode(207).setBody(body))
             assertFalse(assertThrows(DavFailure::class.java) { dav.test() }.retryable)
             assertEquals("PROPFIND", server.takeRequest().method)
+        }
+    }
+    @Test fun emptyTargetProbesUserRootWithExactlyOneTrailingSlash() = server { server, client, config ->
+        server.enqueue(MockResponse().setResponseCode(207).setBody(directoryXml))
+        WebDavClient(config.copy(folder = ""), "secret", client).test()
+        val request = server.takeRequest()
+        assertEquals("PROPFIND", request.method)
+        assertEquals("/cloud/remote.php/dav/files/rider/", request.path)
+        assertEquals(1, server.requestCount)
+        assertEquals("https://cloud.example.org/remote.php/dav/files/rider/",
+            WebDavClient.directory(config.copy(server = "https://cloud.example.org/", folder = "")).toASCIIString())
+    }
+    @Test fun copiedDavUserRootWorksWithEmailLoginAndEncodedNamesWithoutDuplicatingEndpoint() = server { server, client, config ->
+        val direct = config.copy(server = server.url("/cloud/remote.php/dav/files/internal%20id/").toString(),
+            user = "rider@example.org", folder = "")
+        server.enqueue(MockResponse().setResponseCode(207).setBody(directoryXml))
+        WebDavClient(direct, "secret", client).test()
+        assertEquals("/cloud/remote.php/dav/files/internal%20id/", server.takeRequest().path)
+        assertEquals("/cloud/remote.php/dav/files/internal id/Sport/Fahrten/",
+            WebDavClient.directory(direct.copy(folder = "Sport/Fahrten")).path)
+        assertEquals("/cloud/remote.php/webdav/", WebDavClient.directory(direct.copy(server = server.url("/cloud/remote.php/webdav/").toString())).path)
+        assertThrows(IllegalArgumentException::class.java) {
+            WebDavClient.directory(direct.copy(server = server.url("/cloud/remote.php/dav/files/internal-id/already-a-folder/").toString()))
         }
     }
     @Test fun addressesRejectInsecureSchemesEmbeddedSecretsAndPathTraversalAndEncodeNames() {

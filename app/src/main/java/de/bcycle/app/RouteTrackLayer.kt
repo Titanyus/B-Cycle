@@ -1,6 +1,5 @@
 package de.bcycle.app
 
-import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import org.mapsforge.core.graphics.Canvas
@@ -11,20 +10,24 @@ import org.mapsforge.core.util.MercatorProjection
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
 import org.mapsforge.map.layer.Layer
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /** Routes share the map framebuffer, including its live pinch scale and zoom pivot. */
 internal class RouteTrackLayer(private val density: Float) : Layer() {
     private data class State(val route: GpxRoute?, val track: List<MapPoint>, val gps: GpsValues,
-        val showRoute: Boolean, val showTrack: Boolean)
+        val showRoute: Boolean, val showTrack: Boolean, val heightLabel: String? = null)
     @Volatile private var state = State(null, emptyList(), GpsValues(), false, false)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeJoin = Paint.Join.ROUND; strokeCap = Paint.Cap.ROUND }
     private val path = Path()
     private val arrow = Path()
-    private val dash = DashPathEffect(floatArrayOf(dp(10), dp(7)), 0f)
+    private val heightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = dp(14); typeface = android.graphics.Typeface.DEFAULT_BOLD
+    }
     private fun dp(n: Int) = n * density
     fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean) {
         // Publish an immutable snapshot; drawing occurs on Mapsforge's layer thread.
-        state = State(route, track, gps, showRoute, showTrack); requestRedraw()
+        state = State(route, track, gps, showRoute, showTrack,
+            gps.altitudeM?.takeIf { it.isFinite() }?.let { "${it.roundToInt()} m" }); requestRedraw()
     }
     override fun draw(boundingBox: BoundingBox, zoomLevel: Byte, canvas: Canvas, topLeftPoint: Point, rotation: Rotation) {
         val snapshot = state
@@ -37,21 +40,22 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
             return offset.toFloat()
         }
         fun y(lat: Double) = (MercatorProjection.latitudeToPixelY(lat, mapSize) - topLeftPoint.y).toFloat()
-        fun line(points: List<MapPoint>, color: Int, dashed: Boolean) {
+        fun line(points: List<MapPoint>, color: Int, planned: Boolean) {
             path.reset(); var lastX = 0f
             points.forEachIndexed { index, point ->
                 val px = x(point.longitude); val py = y(point.latitude)
                 if (index == 0 || point.segmentStart || abs(px - lastX) > mapSize / 2f) path.moveTo(px, py) else path.lineTo(px, py)
                 lastX = px
             }
-            paint.style = Paint.Style.STROKE; paint.pathEffect = if (dashed) dash else null
-            paint.color = android.graphics.Color.WHITE; paint.strokeWidth = dp(5); target.drawPath(path, paint)
-            paint.color = color; paint.strokeWidth = dp(3); target.drawPath(path, paint)
-            paint.pathEffect = null
+            paint.style = Paint.Style.STROKE
+            if (!planned) {
+                paint.color = android.graphics.Color.WHITE; paint.strokeWidth = dp(5); target.drawPath(path, paint)
+            }
+            paint.color = color; paint.strokeWidth = dp(if (planned) 6 else 3); target.drawPath(path, paint)
         }
         val route = snapshot.route
         if (snapshot.showRoute && route != null && route.points.isNotEmpty()) {
-            line(route.points, android.graphics.Color.rgb(170, 30, 200), true)
+            line(route.points, android.graphics.Color.argb(89, 18, 59, 117), true)
             paint.style = Paint.Style.FILL
             fun endpoint(point: MapPoint, color: Int) {
                 paint.color = android.graphics.Color.WHITE; target.drawCircle(x(point.longitude), y(point.latitude), dp(7), paint)
@@ -76,6 +80,20 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
                 paint.color = android.graphics.Color.rgb(0, 100, 245); paint.style = Paint.Style.FILL; target.drawPath(arrow, paint)
             }
             target.restore()
+            snapshot.heightLabel?.let { text ->
+                target.save(); target.translate(x(longitude), y(latitude))
+                // Mapsforge rotates the whole framebuffer; keep the attached label upright.
+                target.rotate(-rotation.degrees)
+                val left = dp(18); val inset = dp(5)
+                val metrics = heightPaint.fontMetrics
+                val halfHeight = (metrics.descent - metrics.ascent) / 2 + dp(3)
+                heightPaint.color = android.graphics.Color.argb(220, 255, 255, 255)
+                target.drawRoundRect(left, -halfHeight, left + heightPaint.measureText(text) + inset * 2,
+                    halfHeight, dp(4), dp(4), heightPaint)
+                heightPaint.color = android.graphics.Color.BLACK
+                target.drawText(text, left + inset, -(metrics.ascent + metrics.descent) / 2, heightPaint)
+                target.restore()
+            }
         }
     }
 }

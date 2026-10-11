@@ -43,6 +43,11 @@ class FieldPickerTest {
         dropdown.setSelection(2); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertTrue(testDescendants(list).any { it.tag == "HEART_RATE" })
         assertFalse(testDescendants(list).any { it.tag == "GPS_SPEED" })
+        dropdown.setSelection(3); shadowOf(Looper.getMainLooper()).idle(); measure()
+        assertEquals("Wetter", dropdown.selectedItem)
+        assertTrue(testDescendants(list).any { it.tag == "WEATHER_SUNRISE" })
+        testDescendants(list).single { it.tag == "WEATHER_DAYLIGHT" }.performClick()
+        assertEquals(DashboardField("WEATHER_DAYLIGHT"), selected.last())
         testDescendants(view).single { it.tag == "map_field_empty" }.performClick()
         assertNull(selected.last())
     }

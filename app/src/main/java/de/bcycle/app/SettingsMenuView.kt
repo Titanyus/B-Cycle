@@ -2,7 +2,6 @@ package de.bcycle.app
 
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.RippleDrawable
@@ -14,12 +13,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 internal enum class SettingsAction(val title: String, val icon: Int = 0) {
-    SENSORS("Sensoren verwalten", R.drawable.ic_settings_sensors),
-    RECORDING("FIT-Aufzeichnung", R.drawable.ic_settings_recording),
-    MAP("Kartenmanager", R.drawable.ic_settings_map),
-    DASHBOARDS("Dashboards", R.drawable.ic_settings_dashboards),
-    ROUTES("Streckenmanager", R.drawable.ic_settings_routes),
-    ADVANCED("Erweitert", R.drawable.ic_settings_advanced),
+    SENSORS("Sensoren & Aufzeichnung", BicycleIcon.Sensors.resource),
+    MAP("Kartenmanager", BicycleIcon.MapManager.resource),
+    DASHBOARDS("Design & UI", BicycleIcon.Dashboard.resource),
+    ROUTES("Streckenmanager", BicycleIcon.Route.resource),
+    ADVANCED("Erweitert", BicycleIcon.Advanced.resource),
     RECOVERY("Ungespeicherte Fahrten speichern"),
     GPS_HELP("GPS-Messung erklärt"),
     DIAGNOSTIC("Diagnose speichern"),
@@ -28,22 +26,26 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0) {
     MAP_LICENSE("Bibliotheken & Lizenzen")
 }
 
-/** Native, scrollable menu content. Six fixed actions in two rows of three. */
-internal class SettingsMenuView(context: Context, private val selected: (SettingsAction) -> Unit) : LinearLayout(context) {
-    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
-    private fun ripple() = RippleDrawable(ColorStateList.valueOf(Color.argb(45, 255, 255, 255)), null, ColorDrawable(Color.WHITE))
+/** Native, scrollable menu content. Five fixed actions and one reserved slot in two rows of three. */
+internal class SettingsMenuView(context: Context, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)), private val selected: (SettingsAction) -> Unit) : LinearLayout(context) {
+    private fun dp(value: Int) = BicycleDesign.dp(context, value)
+    private fun ripple(view: View) = BicycleComponents.bindTheme(view, themes) { tokens ->
+        view.background = RippleDrawable(ColorStateList.valueOf((tokens.foreground and 0x00ffffff) or (45 shl 24)), null, ColorDrawable(tokens.foreground))
+    }
     init {
         orientation = VERTICAL
+        BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
         addView(ImageView(context).apply {
             tag = "settings_brand"
             contentDescription = "B|Cycle"
             setImageResource(R.drawable.ic_settings_brand)
             scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(24), dp(24), dp(24), dp(24))
-            setBackgroundResource(R.drawable.settings_header_background)
-        }, LayoutParams(-1, dp(124)))
+            setPadding(dp(BicycleDesign.headerHorizontalPadding), dp(BicycleDesign.headerHorizontalPadding), dp(BicycleDesign.headerHorizontalPadding), dp(BicycleDesign.headerHorizontalPadding))
+            BicycleComponents.background(this, themes, ThemeRole.PRIMARY, BicycleDesign.dialogRadius, header = true)
+            BicycleComponents.bindTheme(this, themes) { setColorFilter(it.foreground) }
+        }, LayoutParams(-1, dp(BicycleDesign.menuHeaderHeight)))
         val body = LinearLayout(context).apply {
-            orientation = VERTICAL; setPadding(dp(12), dp(12), dp(12), dp(8))
+            orientation = VERTICAL; setPadding(dp(BicycleDesign.rowGap), dp(BicycleDesign.rowGap), dp(BicycleDesign.rowGap), dp(BicycleDesign.verticalPadding))
         }
         addView(body, LayoutParams(-1, -2))
         val advanced = LinearLayout(context).apply { orientation = VERTICAL; visibility = GONE; tag = "settings_advanced_content" }
@@ -60,38 +62,50 @@ internal class SettingsMenuView(context: Context, private val selected: (Setting
             advanced.visibility = if (expand) VISIBLE else GONE
             advancedTile?.stateDescription = if (expand) "Ausgeklappt" else "Eingeklappt"
         }
-        val actions = SettingsAction.entries.take(6)
+        val actions = listOf(SettingsAction.SENSORS, null, SettingsAction.MAP, SettingsAction.DASHBOARDS, SettingsAction.ROUTES, SettingsAction.ADVANCED)
         for (rowIndex in 0..1) {
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; isBaselineAligned = false; tag = "settings_row_$rowIndex" }
             for (column in 0..2) {
                 val action = actions[rowIndex * 3 + column]
-                val tile = tile(action) { if (action == SettingsAction.ADVANCED) toggleAdvanced() else selected(action) }
+                val tile = if (action == null) dummyTile() else tile(action) { if (action == SettingsAction.ADVANCED) toggleAdvanced() else selected(action) }
                 if (action == SettingsAction.ADVANCED) { advancedTile = tile; tile.stateDescription = "Eingeklappt" }
-                row.addView(tile, LayoutParams(0, dp(148), 1f))
+                row.addView(tile, LayoutParams(0, dp(BicycleDesign.menuTileHeight), 1f))
             }
             body.addView(row, LayoutParams(-1, -2))
         }
-        body.addView(View(context).apply { tag = "settings_separator"; setBackgroundColor(Color.argb(150, 255, 255, 255)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(-1, 1).apply { topMargin = dp(12); bottomMargin = dp(4) })
+        body.addView(BicycleComponents.sectionDivider(context, themes).apply { tag = "settings_separator" })
         body.addView(advanced)
 
     }
+    private fun dummyTile() = LinearLayout(context).apply {
+        orientation = VERTICAL; gravity = Gravity.CENTER
+        setPadding(dp(BicycleDesign.menuTileHorizontalPadding), dp(BicycleDesign.rowGap), dp(BicycleDesign.menuTileHorizontalPadding), dp(BicycleDesign.rowGap))
+        tag = "settings_recording_empty"
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        addView(ImageView(context).apply {
+            setImageResource(R.drawable.ic_lucide_activity)
+            BicycleComponents.bindTheme(this, themes) { setColorFilter(it.foreground) }
+        }, LayoutParams(dp(BicycleDesign.menuIconSize), dp(BicycleDesign.menuIconSize)))
+        // Reserve the same label space as the functional tiles to align their icons.
+        addView(View(context), LayoutParams(-1, dp(BicycleDesign.touchSize)).apply { topMargin = dp(BicycleDesign.verticalPadding) })
+    }
     private fun tile(action: SettingsAction, onClick: () -> Unit) = LinearLayout(context).apply {
-        orientation = VERTICAL; gravity = Gravity.CENTER; setPadding(dp(3), dp(12), dp(3), dp(12))
-        background = ripple(); isClickable = true; isFocusable = true
+        orientation = VERTICAL; gravity = Gravity.CENTER; setPadding(dp(BicycleDesign.menuTileHorizontalPadding), dp(BicycleDesign.rowGap), dp(BicycleDesign.menuTileHorizontalPadding), dp(BicycleDesign.rowGap))
+        ripple(this); isClickable = true; isFocusable = true
         contentDescription = action.title; tag = "settings_${action.name}"
         setOnClickListener { onClick() }
-        addView(ImageView(context).apply { setImageResource(action.icon); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(dp(64), dp(64)))
+        addView(ImageView(context).apply { setImageResource(action.icon); BicycleComponents.bindTheme(this, themes) { setColorFilter(it.foreground) }; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(dp(BicycleDesign.menuIconSize), dp(BicycleDesign.menuIconSize)))
         addView(TextView(context).apply {
-            text = when (action) { SettingsAction.SENSORS -> "Sensoren\nverwalten"; SettingsAction.RECORDING -> "FIT-\nAufzeichnung"; SettingsAction.MAP -> "Karten-\nmanager"; SettingsAction.ROUTES -> "Strecken-\nmanager"; else -> action.title }
-            gravity = Gravity.CENTER; setTextColor(Color.WHITE); maxLines = 2; includeFontPadding = false
-            typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
+            text = when (action) { SettingsAction.SENSORS -> "Sensoren &\nAufzeichnung"; SettingsAction.MAP -> "Karten-\nmanager"; SettingsAction.ROUTES -> "Strecken-\nmanager"; else -> action.title }
+            gravity = Gravity.CENTER; BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground) }; maxLines = 2; includeFontPadding = false
+            typeface = Typeface.DEFAULT
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
             setAutoSizeTextTypeUniformWithConfiguration(10, 14, 1, TypedValue.COMPLEX_UNIT_SP)
-        }, LayoutParams(-1, dp(48)).apply { topMargin = dp(8) })
+        }, LayoutParams(-1, dp(BicycleDesign.touchSize)).apply { topMargin = dp(BicycleDesign.verticalPadding) })
     }
     private fun entry(title: String, action: () -> Unit) = TextView(context).apply {
-        text = title; textSize = 15f; setTextColor(Color.WHITE); gravity = Gravity.CENTER_VERTICAL
-        minHeight = dp(48); setPadding(dp(12), dp(8), dp(12), dp(8))
-        background = ripple(); isClickable = true; isFocusable = true; setOnClickListener { action() }
+        text = title; textSize = 15f; BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground) }; gravity = Gravity.CENTER_VERTICAL
+        minHeight = dp(BicycleDesign.touchSize); setPadding(dp(BicycleDesign.rowGap), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), dp(BicycleDesign.verticalPadding))
+        ripple(this); isClickable = true; isFocusable = true; setOnClickListener { action() }
     }
 }

@@ -56,7 +56,7 @@ class RouteTrackLayerTest {
                 val pixels = mutableListOf<Int>()
                 for (y in 0 until 512) for (x in 0 until 512) {
                     val color = output.getPixel(x, y)
-                    if (Color.red(color) > 100 && Color.blue(color) > 100 && Color.green(color) < 80) pixels += y
+                    if (Color.blue(color) > Color.red(color) + 30 && Color.blue(color) > Color.green(color) + 20) pixels += y
                 }
                 val debug = java.io.File("build/reports/maps/route-scale.png").apply { parentFile!!.mkdirs() }
                 debug.outputStream().use { output.compress(Bitmap.CompressFormat.PNG, 100, it) }
@@ -73,4 +73,39 @@ class RouteTrackLayerTest {
             assertTrue(before - during > 50)
         } finally { controller.destroy(); framebuffer.destroy(); model.mapViewPosition.destroy() }
     }
+    @Test fun plannedRouteHasSixPixelWidthAtDensityOneAndThirtyFivePercentOpacity() {
+        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
+        val model = Model(); model.displayModel.setFixedTileSize(256)
+        val mapSize = MercatorProjection.getMapSize(10, 256)
+        val origin = mapSize / 2.0 - 256
+        fun point(x: Double, y: Double) = MapPoint(MercatorProjection.pixelYToLatitude(origin + y, mapSize),
+            MercatorProjection.pixelXToLongitude(origin + x, mapSize))
+        val layer = RouteTrackLayer(1f); layer.setDisplayModel(model.displayModel)
+        layer.update(GpxRoute(listOf(point(100.0, 256.0), point(400.0, 256.0)), 2, 1), emptyList(), GpsValues(), true, false)
+        val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
+        layer.draw(BoundingBox(-1.0, -1.0, 1.0, 1.0), 10,
+            AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)), Point(origin, origin), Rotation.NULL_ROTATION)
+        val color = bitmap.getPixel(250, 256)
+        assertEquals(89, Color.alpha(color)); assertEquals(18.0, Color.red(color).toDouble(), 2.0)
+        assertEquals(59.0, Color.green(color).toDouble(), 2.0); assertEquals(117.0, Color.blue(color).toDouble(), 2.0)
+        assertEquals(6, (0 until 512).count { Color.alpha(bitmap.getPixel(250, it)) > 0 })
+        model.mapViewPosition.destroy()
+    }
+    @Test fun attachedHeightLabelIncludesValidZeroAndHidesUnavailableHeight() {
+        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
+        val model = Model(); model.displayModel.setFixedTileSize(256)
+        val origin = MercatorProjection.getMapSize(10, 256) / 2.0 - 256
+        val layer = RouteTrackLayer(1f); layer.setDisplayModel(model.displayModel)
+        fun labelPixels(height: Double?): Int {
+            layer.update(null, emptyList(), GpsValues(latitude = 0.0, longitude = 0.0, altitudeM = height), false, false)
+            val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
+            layer.draw(BoundingBox(-1.0, -1.0, 1.0, 1.0), 10,
+                AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)), Point(origin, origin), Rotation.NULL_ROTATION)
+            return (245..270).sumOf { y -> (274..340).count { x -> Color.alpha(bitmap.getPixel(x, y)) > 0 } }
+        }
+        assertEquals(0, labelPixels(null)); assertEquals(0, labelPixels(Double.NaN))
+        assertTrue(labelPixels(0.0) > 100); assertTrue(labelPixels(487.0) > 100)
+        model.mapViewPosition.destroy()
+    }
+
 }

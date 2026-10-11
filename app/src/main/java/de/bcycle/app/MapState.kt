@@ -24,25 +24,42 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
     private var selectedFit: String? = null
     private var workerRoute: GpxRoute? = null
-    val entries: List<ManagedRoute> get() = (routes.map { ManagedRoute(it.id, it.name, false, "GPX", it.details, true) } +
-        activities.map { ManagedRoute(it.id, it.name, it.recorded, "FIT", it.details, it.hasRoute) })
+    private var retainedFiles: Map<String, RouteFileStamp> = emptyMap()
+    val entries: List<ManagedRoute> get() = (routes.map { ManagedRoute(it.id, it.name, false, "GPX", it.details, true, it.origin, it.id in retainedFiles, retainedFiles[it.id]) } +
+        activities.map { ManagedRoute(it.id, it.name, it.recorded, "FIT", it.details, it.hasRoute, it.origin, it.id in retainedFiles, retainedFiles[it.id]) })
         .sortedByDescending { it.details.dateMs }
     init {
         worker.execute { finishOperation("") {
             workerRoute = library.load(); fits.load(); fits.discoverDownloads(context)
             selectedFit = preferences.getString("displayFitId", null)?.takeIf { id -> fits.entries.any { it.id == id && it.hasRoute } }
             if (selectedFit != null) workerRoute = FitRead.read(fits.file(selectedFit!!)).route
-            workerRoute
+            defaultRouteIfUnselected()
         } }
+    }
+    /** Worker only: use a GPS-capable recorded ride, never an arbitrary imported track. */
+    private fun defaultRouteIfUnselected(): GpxRoute? {
+        if (selectedFit != null || library.selected != null) return workerRoute
+        val latest = fits.entries.filter { it.origin == TrackOrigin.RECORDED && it.hasRoute && fits.file(it.id).canRead() }
+            .maxByOrNull { it.details.dateMs } ?: return workerRoute
+        val displayed = FitRead.read(fits.file(latest.id)).route ?: return workerRoute
+        setSelectedFit(latest.id)
+        return displayed
+    }
+    fun setRouteVisible(visible: Boolean) {
+        if (preferences.getBoolean("mapGpxVisible", true) == visible) return
+        preferences.edit().putBoolean("mapGpxVisible", visible).apply()
+        routeRevision++; changed()
     }
     private fun finishOperation(success: String, action: () -> GpxRoute?) {
         var text = success
         try { workerRoute = action() }
         catch (e: Exception) { text = "Strecke nicht geändert: ${e.message ?: "Datei nicht verfügbar"}" }
         val gpxEntries = library.entries; val fitEntries = fits.entries; val selected = selectedFit ?: library.selected
+        val files = (gpxEntries.map { it.id to library.file(it.id) } + fitEntries.map { it.id to fits.file(it.id) })
+            .mapNotNull { (id, file) -> if (file.isFile && file.canRead()) id to RouteFileStamp(file.length(), file.lastModified()) else null }.toMap()
         val displayed = workerRoute
         handler.post {
-            route = displayed; routes = gpxEntries; activities = fitEntries; selectedRoute = selected; routeRevision++
+            retainedFiles = files; route = displayed; routes = gpxEntries; activities = fitEntries; selectedRoute = selected; routeRevision++
             busy = false; message = text; changed()
         }
     }
@@ -57,7 +74,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         worker.execute {
             var inaccessible = 0
             finishOperation("") {
-                fits.refresh(); inaccessible = fits.discoverDownloads(context); workerRoute
+                fits.refresh(); inaccessible = fits.discoverDownloads(context); defaultRouteIfUnselected()
             }
             if (inaccessible > 0) handler.post {
                 message = "Einige alte FIT-Dateien nicht lesbar · bitte über FIT-Fahrt übernehmen auswählen"; changed()
@@ -99,6 +116,16 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         DownloadFiles.write(context, file, "$name.${file.extension}")
         workerRoute
     }
+    fun uploadRoute(id: String) = operate("Nextcloud-Upload vorgemerkt") {
+        val entry = fits.entries.singleOrNull { it.id == id }
+        require(entry?.origin == TrackOrigin.RECORDED) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
+        RouteUploads.retry(context, id); workerRoute
+    }
+    fun saveRouteLocally(id: String) = operate("") {
+        val file = if (fits.entries.any { it.id == id }) fits.file(id) else library.file(id)
+        require(file.isFile && file.canRead()) { "Lokale Originaldatei fehlt · bitte erneut importieren" }
+        workerRoute
+    }
     fun deleteRoute(id: String) = operate("Aus der Sammlung gelöscht · vorhandene Downloads bleiben erhalten") {
         val active = (selectedFit ?: library.selected) == id
         if (fits.entries.any { it.id == id }) { fits.delete(id); if (selectedFit == id) setSelectedFit(null) } else library.delete(id)
@@ -107,4 +134,6 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
 }
 
 data class ManagedRoute(val id: String, val name: String, val recorded: Boolean, val format: String,
-                        val details: RouteDetails, val hasRoute: Boolean)
+                        val details: RouteDetails, val hasRoute: Boolean,
+                        val origin: TrackOrigin = if (recorded) TrackOrigin.RECORDED else TrackOrigin.IMPORTED,
+                        val locallySaved: Boolean = false, val fileStamp: RouteFileStamp? = null)

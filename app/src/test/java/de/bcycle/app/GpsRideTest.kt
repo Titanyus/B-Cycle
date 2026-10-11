@@ -43,6 +43,24 @@ class GpsRideTest {
         assertNull(values.gradientPercent)
     }
 
+    @Test fun overallAverageUsesTheDistanceObservationTimeNotScreenTicksOrDeliveryDelay() {
+        val ride = GpsRide()
+        for (second in 0..60) feed(ride, fix(second, second * 5.0, 5.0))
+        var previous = ride.snapshot(70_000).overallAverageKmh!!
+        for (second in 61..75) {
+            val measured = fix(second, 300 + (second - 60) * 8.0, 8.0)
+            // Extra pulse/Bosch/UI redraws and delayed GPS delivery must not dilute the average.
+            assertEquals(previous, ride.snapshot(measured.timeMs - 100).overallAverageKmh!!, .000001)
+            assertTrue(ride.accept(measured, measured.timeMs + 300))
+            val current = ride.snapshot(measured.timeMs + 300).overallAverageKmh!!
+            assertTrue(current > previous)
+            assertEquals(current, ride.snapshot(measured.timeMs + 900).overallAverageKmh!!, .000001)
+            previous = current
+        }
+        feed(ride, fix(76, 420.0, 0.0))
+        assertTrue(ride.snapshot(86_000).overallAverageKmh!! < previous)
+        assertEquals(76_000L, ride.snapshot(86_000).elapsedMs)
+    }
     @Test fun descendingCountsSeparatelyAndIsNegativeGradient() {
         val ride = GpsRide()
         for (second in 0..60) feed(ride, fix(second, second * 5.0, 5.0, 100 - second * 0.5))

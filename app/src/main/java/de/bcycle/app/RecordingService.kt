@@ -37,7 +37,7 @@ class RecordingService : Service() {
         }
         if (!runtime.hasBluetooth()) { stopSelf(); return START_NOT_STICKY }
         var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
-        if (runtime.hasGps() && (runtime.gpsEnabled || runtime.config.fields.any { it.startsWith("GPS_") })) types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        if (runtime.hasGps() && (runtime.gpsEnabled || runtime.config.needsGps)) types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         try {
             startForeground(1, notification(), types)
             runtime.beginRecording(); handler.removeCallbacks(refresh); handler.post(refresh)

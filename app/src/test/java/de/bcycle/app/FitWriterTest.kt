@@ -89,6 +89,26 @@ class FitWriterTest {
         assertEquals(121.0, (record.developerFields.single { it.name == "GPS_ALTITUDE" }.getValue(0) as Number).toDouble(), 0.001)
         assertEquals(0.0, (record.developerFields.single { it.name == "GPS_ALTITUDE_MSL" }.getValue(0) as Number).toDouble(), 0.001)
     }
+    @Test fun cadenceSummaryOmitsPedalingPausesButOfficialRecordsKeepZeroAndMovingTimeExcludesStops() {
+        val journal = folder.newFile("pauses.ride")
+        RideJournal(journal, start, RecordingConfig()).use { writer ->
+            for (i in 0..4) writer.append(RideSample(start + i * 1000, i * 1000L, values = mapOf(
+                "CADENCE" to listOf(80.0, 0.0, 100.0, 0.0, 0.0)[i],
+                "SPEED" to if (i < 3) 5.0 else 0.0, "BIKE_DISTANCE" to minOf(i, 2) * 5.0)))
+        }
+        val file = folder.newFile("pauses.fit"); FitWriter.encode(journal, file)
+        val validator = ActivityFileValidationPlugin()
+        val decoded = file.inputStream().use { FitDecoder().decode(it, validator) }
+        assertFalse(validator.results.any { it.status == ActivityFileValidationResult.Status.FAILED })
+        assertEquals(listOf(80, 0, 100, 0, 0), decoded.recordMesgs.map { it.cadence.toInt() })
+        assertEquals(90, decoded.sessionMesgs.single().avgCadence.toInt())
+        assertEquals(90, decoded.lapMesgs.single().avgCadence.toInt())
+        assertEquals(2.0, decoded.sessionMesgs.single().totalMovingTime.toDouble(), .001)
+        assertEquals(4.0, decoded.sessionMesgs.single().totalTimerTime.toDouble(), .001)
+        val details = FitRead.read(file).details
+        assertEquals(2_000L, details.movingMs)
+        assertEquals(18.0, details.movingAverageKmh!!, .001)
+    }
     @Test fun pureRecordingMappingUsesSiUnitsAndKeepsBatteryTemperatureSeparateFromAmbient() {
         val bike = LiveData(2520, 183, mapOf(LiveMetric.CADENCE to 171L, LiveMetric.BATTERY_TEMPERATURE to 354L, LiveMetric.ODOMETER to 14791937L))
         val values = recordingValues(bike, GpsValues(speedKmh = 21.6), 70, PulseValues(bpm = 145))

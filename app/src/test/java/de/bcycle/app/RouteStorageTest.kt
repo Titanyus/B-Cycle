@@ -29,8 +29,7 @@ class RouteStorageTest {
         do { shadowOf(Looper.getMainLooper()).idle(); Thread.sleep(5) } while (state.busy && System.nanoTime() < deadline)
         assertFalse(state.message, state.busy)
     }
-    private fun fit(context: Context): File {
-        val start = 1_791_626_400_000L
+    private fun fit(context: Context, start: Long = 1_791_626_400_000L): File {
         val journal = File(context.cacheDir, "recorded.ride")
         RideJournal(journal, start, RecordingConfig(setOf("GPS_POSITION", "BIKE_DISTANCE"))).use {
             for (i in 0..3) it.append(RideSample(start + i * 1000, i * 1000L, 50.0 + i * .0001, 8.0, mapOf("BIKE_DISTANCE" to i * 10.0)))
@@ -81,6 +80,25 @@ class RouteStorageTest {
         state.selectRoute(entry.id); await(state)
         val restarted = MapState(context) {}; await(restarted)
         assertEquals(entry.id, restarted.selectedRoute); assertNotNull(restarted.route)
+    }
+    @Test fun unselectedMapDefaultsToLatestRecordedRideAndHidingKeepsChoiceAcrossRestart() {
+        val context = RuntimeEnvironment.getApplication()
+        val fits = FitLibrary(context.filesDir); fits.load()
+        fit(context, 1_791_626_400_000L).inputStream().use { fits.add(it, "Alt.fit", true) }
+        val latest = fit(context, 1_791_630_000_000L).inputStream().use { fits.add(it, "Neu.fit", true) }!!
+        fit(context, 1_791_633_600_000L).inputStream().use { fits.add(it, "Import.fit", false) }
+        val state = MapState(context) {}; await(state)
+        assertEquals(latest.id, state.selectedRoute); assertNotNull(state.route)
+        val original = state.route
+        state.setRouteVisible(false)
+        assertSame(original, state.route); assertEquals(latest.id, state.selectedRoute)
+        val prefs = context.getSharedPreferences("bike", 0)
+        assertFalse(prefs.getBoolean("mapGpxVisible", true))
+        val restored = MapState(context) {}; await(restored)
+        assertEquals(latest.id, restored.selectedRoute); assertNotNull(restored.route)
+        assertFalse(prefs.getBoolean("mapGpxVisible", true))
+        restored.setRouteVisible(true)
+        assertEquals(latest.id, restored.selectedRoute); assertTrue(prefs.getBoolean("mapGpxVisible", false))
     }
     private class Downloads(private val root: File) : ContentProvider() {
         val files = linkedMapOf<Uri, File>()

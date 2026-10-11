@@ -139,6 +139,27 @@ class RecordingFlowTest {
         assertEquals(listOf(130, 140), records.map { it.heartRate.toInt() })
     }
 
+    @Test fun powerEngineAndJournalRunWithoutDashboardAndWithoutPowerExportCheckbox() {
+        val app = RuntimeEnvironment.getApplication()
+        val provider = provider()
+        val runtime = RideRuntime.get(app)
+        runtime.saveConfig(RecordingConfig(setOf("MECHANICAL_WORK")))
+        runtime.beginRecording(); runtime.setVisible(false)
+        repeat(10) {
+            runtime.onSamples(listOf(McspSample(LiveMetric.RIDER_POWER.address, 200, true)))
+            // Repeated cached packets must not create extra actual observations.
+            repeat(10) { runtime.onData(LiveData(riderPowerWatts = 200), true) }
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+        }
+        runtime.stopRecording()
+        assertEquals(2.0, runtime.performanceValues.mechanicalWorkKj!!, 1e-9)
+        await { !runtime.saving }
+        val decoded = provider.published.single().inputStream().use { FitDecoder().decode(it) }
+        assertEquals(2000L, decoded.sessionMesgs.single().totalWork)
+        assertTrue(decoded.recordMesgs.all { it.power == null })
+        assertNull(decoded.sessionMesgs.single().normalizedPower)
+    }
+
     private class DownloadsProvider(private val directory: File) : ContentProvider() {
         val files = linkedMapOf<Uri, File>()
         val published = mutableListOf<File>()

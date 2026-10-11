@@ -8,7 +8,7 @@ import java.io.InputStream
 import java.util.UUID
 
 data class StoredGpx(val id: String, val name: String, val points: Int, val segments: Int,
-                     val details: RouteDetails = RouteDetails())
+                     val details: RouteDetails = RouteDetails(), val origin: TrackOrigin = TrackOrigin.IMPORTED)
 
 /** Worker-thread storage. Originals stay on disk; only the selected route is decoded. */
 internal class GpxLibrary(private val root: File) {
@@ -24,11 +24,19 @@ internal class GpxLibrary(private val root: File) {
         if (index.baseFile.exists() || File(index.baseFile.path + ".bak").exists()) {
             val json = index.openRead().bufferedReader().use { JSONObject(it.readText()) }
             val array = json.getJSONArray("entries")
+            val missingAscent = mutableSetOf<String>()
             entries = List(array.length()) { i ->
                 val item = array.getJSONObject(i)
+                if (item.optJSONObject("details")?.has("moving") != true) missingAscent += item.getString("id")
                 StoredGpx(item.getString("id"), item.getString("name"), item.getInt("points"), item.getInt("segments"),
-                    RouteDetails.from(item.optJSONObject("details"))).also { file(it.id) }
+                    RouteDetails.from(item.optJSONObject("details")),
+                    if (!item.has("origin")) TrackOrigin.IMPORTED else runCatching { TrackOrigin.valueOf(item.getString("origin")) }.getOrDefault(TrackOrigin.UNKNOWN)).also { file(it.id) }
             }
+            val upgraded = entries.map { entry -> if (entry.id !in missingAscent || !file(entry.id).isFile) entry else {
+                runCatching { val route = file(entry.id).inputStream().use(GpxImport::read)
+                    entry.copy(details = entry.details.copy(ascentM = route.ascentM, movingMs = route.movingMs)) }.getOrDefault(entry)
+            } }
+            if (upgraded != entries || missingAscent.isNotEmpty()) save(upgraded, json.optString("selected").takeIf { id -> entries.any { it.id == id } })
             selected = json.optString("selected").takeIf { id -> entries.any { it.id == id } }
         } else {
             val legacy = AtomicFile(File(root, "map-route.gpx"))
@@ -38,13 +46,13 @@ internal class GpxLibrary(private val root: File) {
             }
         }
         if (entries.any { it.details.dateMs == 0L }) {
-            val upgraded = entries.map { entry -> if (entry.details.dateMs != 0L) entry else {
+            val upgraded = entries.map { entry -> if (entry.details.dateMs != 0L || !file(entry.id).isFile) entry else {
                 val original = file(entry.id); val route = original.inputStream().use(GpxImport::read)
-                entry.copy(details = RouteDetails(original.lastModified(), route.distanceM, route.durationMs, routePreview(route.points)))
+                entry.copy(details = RouteDetails(original.lastModified(), route.distanceM, route.durationMs, routePreview(route.points), route.ascentM, route.movingMs))
             } }
             save(upgraded, selected)
         }
-        return selected?.let { file(it).inputStream().use(GpxImport::read) }
+        return selected?.takeIf { file(it).isFile }?.let { file(it).inputStream().use(GpxImport::read) }
     }
     fun add(input: InputStream, name: String): GpxRoute {
         val id = UUID.randomUUID().toString()
@@ -63,7 +71,7 @@ internal class GpxLibrary(private val root: File) {
             val route = stored.openRead().use(GpxImport::read)
             val title = name.substringAfterLast('/').substringAfterLast('\\').removeSuffix(".gpx").removeSuffix(".GPX").trim().take(120).ifBlank { "GPX-Strecke" }
             save(entries + StoredGpx(id, title, route.originalPoints, route.segments,
-                RouteDetails(System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points))), id)
+                RouteDetails(System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points), route.ascentM, route.movingMs)), id)
             return route
         } catch (e: Exception) { stored.delete(); throw e }
     }
@@ -85,7 +93,7 @@ internal class GpxLibrary(private val root: File) {
     }
     private fun save(next: List<StoredGpx>, active: String?) {
         val array = JSONArray()
-        next.forEach { array.put(JSONObject().put("id", it.id).put("name", it.name).put("points", it.points).put("segments", it.segments).put("details", it.details.json())) }
+        next.forEach { array.put(JSONObject().put("id", it.id).put("name", it.name).put("points", it.points).put("segments", it.segments).put("details", it.details.json()).put("origin", it.origin.name)) }
         val bytes = JSONObject().put("entries", array).put("selected", active ?: "").toString().toByteArray(Charsets.UTF_8)
         val stream = index.startWrite()
         try { stream.write(bytes); index.finishWrite(stream) }

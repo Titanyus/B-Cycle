@@ -29,8 +29,18 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
             require(config.user.isNotBlank() && config.user !in setOf(".", "..") && !config.user.any { it == '/' || it == '\\' || it == ':' || it.isISOControl() }) { "Benutzername ungültig" }
             val folders = config.folder.trim('/').split('/').filter { it.isNotEmpty() }
             require(folders.none { it == "." || it == ".." || it.contains('\\') || it.any(Char::isISOControl) }) { "Zielverzeichnis ungültig" }
-            val root = base.path.trimEnd('/') + "/remote.php/dav/files/" + config.user
-            return URI("https", null, base.host, base.port, root + "/" + folders.joinToString("/") + "/", null, null)
+            val path = base.path.trimEnd('/')
+            // Nextcloud's copied WebDAV URL already contains the internal user ID.
+            // The login may instead be an email address; never append a second DAV endpoint.
+            val completeDavRoot = Regex(".*/remote\\.php/dav/files/[^/]+")
+            val root = when {
+                completeDavRoot.matches(path) || path.endsWith("/remote.php/webdav") -> path
+                else -> {
+                    require(!path.contains("/remote.php/")) { "Bitte die Nextcloud-Startadresse oder die WebDAV-Adresse des Hauptverzeichnisses eingeben" }
+                    path + "/remote.php/dav/files/" + config.user
+                }
+            }
+            return URI("https", null, base.host, base.port, (listOf(root) + folders).joinToString("/") + "/", null, null)
         }
         fun hash(file: File): String = file.inputStream().use { input ->
             val digest = MessageDigest.getInstance("SHA-256")

@@ -31,6 +31,35 @@ class RouteExportTest {
         context.getSharedPreferences("route-export", 0).edit().putString("password", raw.dropLast(4) + "AAAA").commit()
         assertThrows(Exception::class.java) { settings.password() }
     }
+    @Test fun passwordEyePreservesDraftCursorAndMaskingAndLoadsStoredSecretOnlyOnExplicitClick() {
+        var reads = 0
+        val config = RouteExportConfig(tree = "content://chosen/tree", folder = "Sport/Fahrten")
+        val view = RouteExportView(context, config, true, {}, {}, storedPassword = { reads++; "saved-test-password" })
+        fun descendants(node: View): List<View> = listOf(node) + if (node is android.view.ViewGroup)
+            (0 until node.childCount).flatMap { descendants(node.getChildAt(it)) } else emptyList()
+        assertFalse(descendants(view).filterIsInstance<android.widget.Button>().any { it.text.toString() == "Downloads / B-Cycle verwenden" })
+        val eye = descendants(view).single { it.tag == "export_password_visibility" }
+        val inputType = view.password.inputType
+        assertTrue(view.password.text.isEmpty()); assertEquals(0, reads)
+        assertTrue(view.password.transformationMethod is android.text.method.PasswordTransformationMethod)
+        assertFalse(view.password.isSaveEnabled)
+        view.password.setText("typed-test-password"); view.password.setSelection(5)
+        eye.performClick()
+        assertNull(view.password.transformationMethod); assertEquals(5, view.password.selectionStart)
+        assertEquals("typed-test-password", view.password.text.toString()); assertEquals(0, reads)
+        assertEquals(inputType, view.password.inputType); assertEquals("Passwort verbergen", eye.contentDescription)
+        eye.performClick()
+        assertTrue(view.password.transformationMethod is android.text.method.PasswordTransformationMethod)
+        assertEquals(5, view.password.selectionStart); assertEquals("Passwort anzeigen", eye.contentDescription)
+        view.password.setText(""); eye.performClick()
+        assertEquals(1, reads); assertEquals("saved-test-password", view.password.text.toString())
+        assertNull(view.password.transformationMethod)
+        eye.performClick(); assertTrue(view.password.transformationMethod is android.text.method.PasswordTransformationMethod)
+        assertEquals(config.tree, view.read().tree); assertEquals(config.folder, view.read().folder)
+        val reopened = RouteExportView(context, config, true, {}, {}, storedPassword = { reads++; "saved-test-password" })
+        assertTrue(reopened.password.text.isEmpty()); assertEquals(1, reads)
+        assertTrue(reopened.password.transformationMethod is android.text.method.PasswordTransformationMethod)
+    }
     @Test fun durableJobsRetryTransientFailuresPreserveTargetAndNeverRequeueCompletedUpload() {
         val settings = RouteExportSettings(context)
         val config = RouteExportConfig(save = false, webdav = true, server = "https://cloud.example.org", user = "rider", wifiOnly = false)
@@ -45,10 +74,11 @@ class RouteExportTest {
         RouteUploads.enqueue(context, file, "B-Cycle-test.fit")
         var count = 0
         assertFalse(RouteUploads.run(context, { false }) { _, _, _, _ -> count++ }); assertEquals(0, count)
+        file.appendText("changed")
         RouteUploads.retry(context, file.nameWithoutExtension)
         settings.write(config.copy(server = "https://other.example.org"))
         assertFalse(RouteUploads.run(context, { false }) { _, _, _, _ -> fail("Changed target must not receive queued FIT") })
-        assertTrue(RouteUploads.status(context, file.nameWithoutExtension).contains("fehlgeschlagen"))
+        assertEquals(UploadState.NOT_UPLOADED, RouteUploads.state(context, file.nameWithoutExtension).state)
         assertTrue(file.isFile)
         settings.write(config.copy(webdav = false)); RouteUploads.settingsChanged(context)
         assertTrue(context.getSystemService(JobScheduler::class.java).allPendingJobs.isEmpty())

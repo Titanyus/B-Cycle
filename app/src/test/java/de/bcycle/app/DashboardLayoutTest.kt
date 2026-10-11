@@ -6,7 +6,7 @@ import org.junit.Test
 class DashboardLayoutTest {
     @Test fun pickerGroupsBothSourcesWithoutDuplicatesAndEveryGpsFieldPersistsInEverySlot() {
         val groups = DashboardField.groups(LiveData(rangesKm = listOf(100, 80)))
-        assertEquals(listOf("GPS", "E-Bike", "Pulsmesser"), groups.map { it.source }.distinct())
+        assertEquals(listOf("GPS", "E-Bike", "Pulsmesser", "Wetter"), groups.map { it.source }.distinct())
         val fields = groups.flatMap { it.fields }
         assertEquals(DashboardField.options(LiveData(rangesKm = listOf(100, 80))).toSet(), fields.toSet())
         assertEquals(fields.size, fields.distinct().size)

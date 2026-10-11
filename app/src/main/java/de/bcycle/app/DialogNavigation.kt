@@ -7,9 +7,10 @@ internal class DialogNavigation {
     private val stack = mutableListOf<AlertDialog>()
     private val cleanup = mutableMapOf<AlertDialog, () -> Unit>()
     val empty get() = stack.isEmpty()
-    fun track(dialog: AlertDialog) {
+    fun track(dialog: AlertDialog, shown: () -> Unit = {}) {
         dialog.setOnShowListener {
             if (dialog !in stack) { stack.lastOrNull()?.hide(); stack.add(dialog) }
+            shown()
         }
         dialog.setOnDismissListener {
             cleanup.remove(dialog)?.invoke()

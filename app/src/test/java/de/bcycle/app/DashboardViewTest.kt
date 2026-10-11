@@ -235,7 +235,7 @@ class DashboardViewTest {
         tiles[2].performClick()
         val picker = ShadowAlertDialog.getLatestAlertDialog()
         val all = descendants(picker.window!!.decorView)
-        assertEquals(3, (all.single { it.tag == "field_source" } as android.widget.Spinner).adapter.count)
+        assertEquals(4, (all.single { it.tag == "field_source" } as android.widget.Spinner).adapter.count)
         assertEquals(0, all.count { it.tag == "GPS_DISTANCE" }) // GPS is not the currently selected source.
         selectTestSource(picker, "GPS")
         val expanded = descendants(picker.window!!.decorView)

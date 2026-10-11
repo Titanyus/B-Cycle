@@ -29,7 +29,7 @@ class SettingsMenuTest {
         return ShadowAlertDialog.getLatestAlertDialog()
     }
     private fun views(dialog: AlertDialog) = descendants(dialog.window!!.decorView)
-    @Test fun sixTilesHaveThreeColumnsBrandAndCollapsedAdvancedWithLicensesLast() {
+    @Test fun fiveTilesAndReservedSlotHaveThreeColumnsBrandAndCollapsedAdvancedWithLicensesLast() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val dialog = open(controller.get())
@@ -40,7 +40,8 @@ class SettingsMenuTest {
                 for (i in 0..1) {
                     val row = views(dialog).single { it.tag == "settings_row_$i" } as ViewGroup
                     assertEquals(3, row.childCount)
-                    assertEquals(3, (0..2).count { row.getChildAt(it).isClickable })
+                    assertEquals(if (i == 0) 2 else 3, (0..2).count { row.getChildAt(it).isClickable })
+                    if (i == 0) assertEquals("settings_recording_empty", row.getChildAt(1).tag)
                     for (column in 0..2) assertTrue(row.getChildAt(column).width >= width / 4)
                 }
                 for (text in descendants(menu).filterIsInstance<TextView>()) {
@@ -53,7 +54,7 @@ class SettingsMenuTest {
             assertEquals("B|Cycle", brand.contentDescription)
             assertEquals(menu.width, brand.width)
             assertEquals(android.widget.ImageView.ScaleType.FIT_CENTER, brand.scaleType)
-            assertEquals(controller.get().getColor(R.color.start_red), (brand.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            assertEquals(BicycleThemes.red.tokens.primary, (brand.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             val sensorIcon = controller.get().getDrawable(R.drawable.ic_settings_sensors)!!
             val iconPixels = Bitmap.createBitmap(192, 192, Bitmap.Config.ARGB_8888)
             sensorIcon.setBounds(0, 0, 192, 192); sensorIcon.draw(Canvas(iconPixels))

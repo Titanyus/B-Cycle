@@ -15,6 +15,11 @@ import java.util.Locale
 
 /** Seven native, accessible tiles: 2 / 1 large / 2 / 2. No drawing or UI dependency. */
 class DashboardView(context: Context, private val selectField: (Int) -> Unit) : LinearLayout(context) {
+    internal val modeGlow = BoschModeGlow(BicycleDesign.dp(context, BicycleDesign.modeGlowWidth).toFloat())
+    fun showModeGlow(enabled: Boolean, mode: Long?, names: List<String>? = null) {
+        modeGlow.update(if (enabled) BoschModeColors.color(mode, names) else null)
+    }
+    private val trends = AverageTrends()
     private val numbers = resources.getFont(R.font.bebas_neue)
     private val captions = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
     private val tiles = mutableListOf<Tile>()
@@ -49,8 +54,13 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     init {
         orientation = VERTICAL
-        setBackgroundColor(Color.BLACK)
+        background = modeGlow
         buildTiles(false)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        modeGlow.setBounds(0, 0, w, h)
     }
 
     private fun buildTiles(wide: Boolean) {
@@ -162,7 +172,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
             background = StateListDrawable().apply {
                 addState(intArrayOf(android.R.attr.state_pressed), ColorDrawable(Color.rgb(24, 24, 24)))
-                addState(intArrayOf(), ColorDrawable(Color.BLACK))
+                addState(intArrayOf(), ColorDrawable(Color.TRANSPARENT))
             }
             setOnClickListener { selectField(index) }
             setOnTouchListener { _, event -> swipe.onTouchEvent(event) }
@@ -171,24 +181,27 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private val value = text(10, 240, numbers, 1)
         private val unit = text(5, 16, captions, 1)
 
+        private val row = ValueRow(value, unit)
+
         init {
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0, .20f))
-            container.addView(ValueRow(value, unit), LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
+            container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
         }
 
         fun show(field: DashboardField, data: LiveData) {
             val next = field.value(data, gps, bikeDistanceM, pulse)
             val caption = if (field.showSource) "${field.source} · ${field.title(data, gps)}" else field.title(data, gps)
             val short = field.dashboardTitle(data).uppercase(Locale.GERMANY)
-            val captionKey = "${if (field.showSource) field.source else ""}:$short"
+            val captionKey = "${field.captionIcon ?: ""}:$short"
             if (title.tag != captionKey) {
                 title.tag = captionKey
-                title.text = if (field.showSource) {
+                title.text = if (field.captionIcon != null) {
                     android.text.SpannableString("\uFFFC $short").apply {
-                        setSpan(SourceIconSpan(field.source), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        setSpan(SourceIconSpan(field.captionIcon!!, context), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                     }
                 } else short
             }
+            row.direction = trends.direction(field.id, field.averageNumber(data, gps, pulse), android.os.SystemClock.elapsedRealtime())
             setText(value, next.text)
             setText(unit, next.unit)
             unit.visibility = if (next.unit.isEmpty()) GONE else VISIBLE
@@ -203,7 +216,21 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     /** Keep the number centred in its tile, with the unit following its actual text edge. */
     private inner class ValueRow(private val value: TextView, private val unit: TextView) : ViewGroup(context) {
+        var direction = 0
+            set(next) { if (field != next) { field = next; invalidate() } }
+        private val chevronPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            style = android.graphics.Paint.Style.STROKE; strokeCap = android.graphics.Paint.Cap.ROUND
+        }
         init { addView(value); addView(unit) }
+        override fun dispatchDraw(canvas: android.graphics.Canvas) {
+            super.dispatchDraw(canvas)
+            if (direction != 0) {
+                val size = minOf(dp(14).toFloat(), value.textSize * .28f)
+                val textWidth = value.layout?.getLineWidth(0) ?: 0f
+                drawChevron(canvas, chevronPaint, (width / 2f - textWidth / 2f - dp(6) - size).coerceAtLeast(0f),
+                    height / 2f, size, direction, value.currentTextColor)
+            }
+        }
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
             val width = MeasureSpec.getSize(widthMeasureSpec)
             val height = MeasureSpec.getSize(heightMeasureSpec)

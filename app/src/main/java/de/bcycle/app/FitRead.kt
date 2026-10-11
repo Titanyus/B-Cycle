@@ -16,6 +16,9 @@ internal object FitRead {
         var date: Long? = null; var first: Long? = null; var last: Long? = null
         var distance: Double? = null; var duration: Double? = null
         var sessionDistance = 0.0; var sessionDuration = 0.0; var hasDistance = false; var hasDuration = false
+        var sessionAscent = 0.0; var hasAscent = false
+        val moving = MovingTime(); var sessionMoving = 0.0; var hasMoving = false
+        val elevation = RouteElevation()
         val listener = MesgListener { message ->
             fun value(name: String) = message.getFieldDoubleValue(name)?.takeIf { it.isFinite() }
             when (message.num) {
@@ -24,14 +27,18 @@ internal object FitRead {
                     count++; require(count <= 600_000) { "FIT enthält zu viele Messpunkte" }
                     val stamp = value("timestamp")?.let { (it * 1000 + 631065600000L).toLong() }
                     if (stamp != null) { first = minOf(first ?: stamp, stamp); last = maxOf(last ?: stamp, stamp) }
+                    moving.add(stamp, value("enhanced_speed") ?: value("speed"))
                     val lat = value("position_lat")?.times(180.0 / 2147483648.0)
                     val lon = value("position_long")?.times(180.0 / 2147483648.0)
                     val valid = lat != null && lon != null && lat in -85.05112878..85.05112878 && lon in -180.0..180.0
+                    elevation.add(if (valid) value("enhanced_altitude") ?: value("altitude") else null)
                     if (valid) positions++
                     track.append(RideSample(stamp ?: 0, stamp ?: count * 1000L, if (valid) lat else null, if (valid) lon else null))
                     value("distance")?.takeIf { it >= 0 }?.let { distance = maxOf(distance ?: 0.0, it) }
                 }
                 18 -> {
+                    value("total_moving_time")?.takeIf { it >= 0 }?.let { sessionMoving += it; hasMoving = true }
+                    value("total_ascent")?.takeIf { it >= 0 }?.let { sessionAscent += it; hasAscent = true }
                     value("total_distance")?.takeIf { it >= 0 }?.let { sessionDistance += it; hasDistance = true }
                     value("total_timer_time")?.takeIf { it >= 0 }?.let { sessionDuration += it; hasDuration = true }
                 }
@@ -43,7 +50,8 @@ internal object FitRead {
         val points = track.points.toList()
         val usable = points.zipWithNext().any { !it.second.segmentStart }
         val details = RouteDetails(date ?: first ?: file.lastModified(), distance ?: points.takeIf { usable }?.let(::routeDistance),
-            duration?.times(1000)?.toLong() ?: first?.let { start -> last?.minus(start)?.takeIf { it >= 0 } }, routePreview(points))
-        return ReadFit(details, if (usable) GpxRoute(points, positions, points.count { it.segmentStart }, details.distanceM, details.durationMs) else null)
+            duration?.times(1000)?.toLong() ?: first?.let { start -> last?.minus(start)?.takeIf { it >= 0 } }, routePreview(points), if (hasAscent) sessionAscent else elevation.ascent,
+            if (hasMoving) (sessionMoving * 1000).toLong() else moving.value)
+        return ReadFit(details, if (usable) GpxRoute(points, positions, points.count { it.segmentStart }, details.distanceM, details.durationMs, details.ascentM, details.movingMs) else null)
     }
 }

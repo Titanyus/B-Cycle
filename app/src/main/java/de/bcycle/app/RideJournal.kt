@@ -2,18 +2,20 @@ package de.bcycle.app
 
 import java.io.*
 
-/** Disk-backed, fixed-size samples; memory does not grow with ride duration. Worker thread only. */
+/** Disk-backed, bounded sensor-event batches in the existing samples; memory does not grow with ride duration. Worker thread only. */
 class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingConfig) : Closeable {
-    private val fields = RecordField.options.filter { it.id in config.fields && it.id != "GPS_POSITION" }.map { it.id } +
+    private val fields = RecordField.options.filter { it.id in config.fields && it.id != "GPS_POSITION" && it.scope == FitFieldScope.RECORD }.map { it.id } +
         if ("GPS_ALTITUDE" in config.fields) listOf("GPS_ALTITUDE_MSL") else emptyList()
     private val stream = FileOutputStream(file)
     private val output = DataOutputStream(BufferedOutputStream(stream))
     private var count = 0
     init {
-        output.writeInt(0x42435934); output.writeLong(startUtcMs)
+        output.writeInt(0x42435935); output.writeLong(startUtcMs)
         output.writeUTF(config.speedSource); output.writeUTF(config.distanceSource)
         output.writeBoolean("GPS_POSITION" in config.fields)
         output.writeInt(fields.size); fields.forEach { output.writeUTF(it) }
+        output.writeInt(PerformanceEngine.MODEL_VERSION)
+        output.writeInt(config.fields.size); config.fields.sorted().forEach { output.writeUTF(it) }
         output.flush(); stream.fd.sync()
     }
     fun append(sample: RideSample) {
@@ -21,6 +23,14 @@ class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingCon
         output.writeDouble(if ("GPS_POSITION" in config.fields) sample.latitude ?: Double.NaN else Double.NaN)
         output.writeDouble(if ("GPS_POSITION" in config.fields) sample.longitude ?: Double.NaN else Double.NaN)
         fields.forEach { output.writeDouble(sample.values[it] ?: Double.NaN) }
+        require(sample.performanceEvents.size <= 256)
+        output.writeInt(sample.performanceEvents.size)
+        sample.performanceEvents.forEach { event ->
+            require(event.source.length <= 128)
+            output.writeByte(event.channel.ordinal); output.writeLong(event.atMs); output.writeLong(event.receivedAtMs)
+            output.writeLong(event.sensorTimeMs ?: Long.MIN_VALUE); output.writeDouble(event.value ?: Double.NaN)
+            output.writeBoolean(event.connected); output.writeUTF(event.source)
+        }
         output.flush()
         if (++count % 5 == 0) stream.fd.sync()
     }
@@ -29,19 +39,36 @@ class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingCon
     companion object {
         fun read(file: File, consume: (Long, RecordingConfig, List<String>, Sequence<RideSample>) -> Unit) {
             DataInputStream(BufferedInputStream(FileInputStream(file))).use { input ->
-                require(input.readInt() == 0x42435934) { "Unknown ride journal" }
+                val version = input.readInt()
+                require(version in listOf(0x42435934, 0x42435935)) { "Unknown ride journal" }
                 val start = input.readLong(); val speed = input.readUTF(); val distance = input.readUTF()
                 val positions = input.readBoolean(); val size = input.readInt()
                 require(size in 0..100)
                 val fields = List(size) { input.readUTF() }
-                val config = RecordingConfig(fields.toSet() + if (positions) setOf("GPS_POSITION") else emptySet(), speed, distance)
+                val selected = if (version == 0x42435935) {
+                    require(input.readInt() == PerformanceEngine.MODEL_VERSION) { "Unknown performance model" }
+                    val selectedCount = input.readInt(); require(selectedCount in 0..100)
+                    List(selectedCount) { input.readUTF() }.toSet()
+                } else fields.toSet() + if (positions) setOf("GPS_POSITION") else emptySet()
+                val config = RecordingConfig(selected, speed, distance)
                 val records = sequence {
                     while (true) {
                         val record = try {
                             val utc = input.readLong(); val elapsed = input.readLong()
                             val lat = input.readDouble(); val lon = input.readDouble()
                             val values = buildMap { fields.forEach { id -> val v = input.readDouble(); if (v.isFinite()) put(id, v) } }
-                            RideSample(utc, elapsed, lat.takeIf { it.isFinite() }, lon.takeIf { it.isFinite() }, values)
+                            val events = if (version == 0x42435935) {
+                                val eventCount = input.readInt(); require(eventCount in 0..256)
+                                List(eventCount) {
+                                    val kind = input.readUnsignedByte(); require(kind in PerformanceChannel.entries.indices)
+                                    val at = input.readLong(); val received = input.readLong(); val sensor = input.readLong()
+                                    val value = input.readDouble(); val connected = input.readBoolean(); val source = input.readUTF()
+                                    require(source.length <= 128 && at in 0..elapsed)
+                                    PerformanceEvent(PerformanceChannel.entries[kind], at, value.takeIf { it.isFinite() }, received,
+                                        sensor.takeIf { it != Long.MIN_VALUE }, source, connected)
+                                }
+                            } else emptyList()
+                            RideSample(utc, elapsed, lat.takeIf { it.isFinite() }, lon.takeIf { it.isFinite() }, values, events)
                         } catch (_: EOFException) { break } // Recover complete records after interruption.
                         yield(record)
                     }

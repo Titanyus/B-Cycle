@@ -50,18 +50,26 @@ data class FieldGroup(val source: String, val title: String, val fields: List<Da
 /** Stable IDs keep field choices independent of enum order and of current reception. */
 data class DashboardField(val id: String) {
     private val metric get() = LiveMetric.entries.find { it.name == id }
+    private val weatherMetric get() = WeatherMetric.entries.find { it.name == id }
     private val gpsMetric get() = GpsMetric.entries.find { it.name == id }
     private val rangeIndex get() = id.removePrefix("RANGE_").toIntOrNull()
-    val source get() = if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
+    val source get() = if (weatherMetric != null) "Wetter" else if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
     /** Only speed and distance captions need a source to distinguish related ride values. */
     val showSource get() = when (id) {
         "SPEED", "GPS_SPEED", "BIKE_DISTANCE", "GPS_DISTANCE", "ODOMETER",
         "AVERAGE_SPEED", "GPS_MOVING_AVERAGE", "GPS_OVERALL_AVERAGE", "GPS_MAXIMUM_SPEED" -> true
         else -> false
     }
-    val numeric get() = metric != LiveMetric.ASSIST_MODE && id != "RANGES"
+    val requiresGps get() = gpsMetric != null || weatherMetric != null
+    val captionIcon get() = when (id) {
+        "BIKE_LIGHT" -> "Light"
+        "WEATHER_SUNRISE" -> "Sunrise"
+        "WEATHER_SUNSET", "WEATHER_UNTIL_SUNSET", "WEATHER_DAYLIGHT" -> "Sunset"
+        else -> if (showSource) source else null
+    }
+    val numeric get() = metric != LiveMetric.ASSIST_MODE && metric != LiveMetric.BIKE_LIGHT && id != "RANGES"
 
-    fun title(data: LiveData, gps: GpsValues = GpsValues()): String = metric?.title ?: gpsMetric?.let {
+    fun title(data: LiveData, gps: GpsValues = GpsValues()): String = if (id == "AVERAGE_CADENCE") "Ø Kadenz · ohne Tretpausen" else metric?.title ?: weatherMetric?.title ?: gpsMetric?.let {
         if (it == GpsMetric.GPS_ALTITUDE && gps.altitudeM != null) "Höhe (${if (gps.seaLevel) "MSL" else "Ellipsoid"})" else it.title
     } ?: when (id) {
         "BIKE_DISTANCE" -> "Gefahrene Distanz"
@@ -98,6 +106,7 @@ data class DashboardField(val id: String) {
             "RIDER_ENERGY_SHARE" -> "Fahreranteil"
             "AVERAGE_SPEED" -> "Ø Tempo"
             "AVERAGE_POWER" -> "Ø Leistung"
+            "AVERAGE_CADENCE" -> "Ø Kadenz"
             "MAXIMUM_POWER" -> "Max. Leistung"
             "HEART_RATE" -> "Puls"
             "HEART_AVERAGE" -> "Ø Puls"
@@ -114,10 +123,12 @@ data class DashboardField(val id: String) {
             val raw = when (id) { "HEART_RATE" -> pulse.bpm?.toDouble(); "HEART_AVERAGE" -> pulse.average; "HEART_MAXIMUM" -> pulse.maximum?.toDouble(); else -> pulse.battery?.toDouble() }
             return DashboardValue(raw?.let { String.format(Locale.GERMANY, "%.0f", it) } ?: "—", if (id == "HEART_BATTERY") "%" else "bpm", raw != null)
         }
+        weatherMetric?.let { return it.value(gps.solar) }
         gpsMetric?.let { return it.value(gps) }
         if (id == "BIKE_DISTANCE") return DashboardValue(bikeDistanceM?.let { String.format(Locale.GERMANY, "%.2f", it / 1000.0) } ?: "—", "km", bikeDistanceM != null)
         metric?.let {
             val raw = data.value(it)
+            if (it == LiveMetric.BIKE_LIGHT) return DashboardValue(it.format(raw ?: -1), "", raw in 0L..1L)
             val formatted = data.display(it)
             return DashboardValue(if (it.unit.isEmpty()) formatted else formatted.removeSuffix(" ${it.unit}"), it.unit, raw != null)
         }
@@ -147,7 +158,7 @@ data class DashboardField(val id: String) {
     companion object {
         val baseOptions = LiveMetric.entries.map { DashboardField(it.name) } +
             listOf("BIKE_DISTANCE", "CURRENT_RANGE", "RANGES", "HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY").map { DashboardField(it) } +
-            GpsMetric.entries.map { DashboardField(it.name) }
+            GpsMetric.entries.map { DashboardField(it.name) } + WeatherMetric.entries.map { DashboardField(it.name) }
         fun options(data: LiveData) = baseOptions + List(data.rangesKm?.size ?: 0) { DashboardField("RANGE_$it") }
         fun groups(data: LiveData, selected: DashboardField? = null): List<FieldGroup> {
             fun fields(vararg ids: String) = ids.map { DashboardField(it) }
@@ -159,10 +170,12 @@ data class DashboardField(val id: String) {
                 FieldGroup("GPS", "Höhe", GpsMetric.entries.filter { it.category == "Höhe" }.map { DashboardField(it.name) }),
                 FieldGroup("E-Bike", "Fahrt", fields("SPEED", "BIKE_DISTANCE", "ODOMETER", "ASSIST_MODE")),
                 FieldGroup("E-Bike", "Leistung & Tritt", fields("RIDER_POWER", "MOTOR_POWER", "CADENCE", "RIDER_TORQUE", "MOTOR_TORQUE")),
+                FieldGroup("E-Bike", "Licht", fields("BIKE_LIGHT")),
                 FieldGroup("E-Bike", "Akku", fields("BATTERY", "BATTERY_TEMPERATURE", "REMAINING_ENERGY", "DELIVERED_ENERGY")),
                 FieldGroup("E-Bike", "Reichweite", fields("CURRENT_RANGE") + ranges + fields("RANGES")),
-                FieldGroup("E-Bike", "Bosch-Aktivität", fields("AVERAGE_SPEED", "AVERAGE_POWER", "MAXIMUM_POWER", "AVERAGE_CADENCE", "MAXIMUM_CADENCE", "RIDER_ENERGY_SHARE")),
+                FieldGroup("E-Bike", "Durchschnitt & Spitzenwerte", fields("AVERAGE_SPEED", "AVERAGE_POWER", "MAXIMUM_POWER", "AVERAGE_CADENCE", "MAXIMUM_CADENCE", "RIDER_ENERGY_SHARE")),
                 FieldGroup("Pulsmesser", "Puls & Sensor", fields("HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY")),
+                FieldGroup("Wetter", "Sonne & Tageslicht", WeatherMetric.entries.map { DashboardField(it.name) }),
             )
         }
         fun fromId(id: String): DashboardField? = baseOptions.find { it.id == id } ?: id.takeIf {

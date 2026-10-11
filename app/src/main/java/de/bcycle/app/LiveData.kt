@@ -12,6 +12,7 @@ enum class LiveMetric(val address: Int, val title: String, val unit: String, val
     MOTOR_POWER(0x185d, "Motorleistung", "W", maxRaw = 65535),
     RIDER_TORQUE(0x1814, "Fahrerdrehmoment", "Nm", 20.0, maxRaw = 65535),
     MOTOR_TORQUE(0x1815, "Motordrehmoment", "Nm", 20.0, maxRaw = 65535),
+    BIKE_LIGHT(0x181c, "Fahrradlicht", "", group = 1, maxRaw = 1),
     BATTERY(0x0088, "Akku", "%", group = 1, maxRaw = 100),
     ODOMETER(0x1818, "Gesamtkilometer", "km", 1000.0, group = 1),
     BATTERY_TEMPERATURE(0x008b, "Akkutemperatur", "°C", 10.0, group = 1),
@@ -25,6 +26,7 @@ enum class LiveMetric(val address: Int, val title: String, val unit: String, val
     RIDER_ENERGY_SHARE(0x2254, "Fahreranteil an Antriebsenergie", "%", group = 2, maxRaw = 100);
 
     fun format(raw: Long): String {
+        if (this == BIKE_LIGHT) return when (raw) { 0L -> "Aus"; 1L -> "An"; else -> "—" }
         val value = if (this == BATTERY_TEMPERATURE) (raw ushr 1) xor -(raw and 1) else raw
         return if (divisor == 1.0) "$value $unit".trim() else
             String.format(Locale.GERMANY, "%.1f %s", value / divisor, unit)

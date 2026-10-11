@@ -41,13 +41,14 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
 
 /** One resizable map. Sensor ownership remains entirely in RideRuntime. */
 class MapPanel(context: Context, private val runtime: RideRuntime, private val fullscreen: () -> Unit,
-               private val openRoutes: () -> Unit, private val requestGps: () -> Unit,
+               private val requestGps: () -> Unit,
                private val openCredit: (String) -> Unit) : FrameLayout(context) {
     private val preferences = runtime.preferences
     private val handler = Handler(Looper.getMainLooper())
     private val controls = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
     private val zoomControls = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "map_zoom_controls" }
     private lateinit var routeButton: Button
+    private var routeShown: Boolean? = null
     private val credit = TextView(context)
     private val status = TextView(context)
     private val dataFields = MapDataFieldsView(context)
@@ -63,6 +64,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var lastLatitude: Double? = null
     private var lastLongitude: Double? = null
     private var lastBearing: Double? = null
+    private var lastAltitude: Double? = null
     private var lastTrack = -1L
     private var lastRoute = -1L
     private var layerTrackRevision = -1L
@@ -123,21 +125,31 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
                 if (parent.orientation == LinearLayout.VERTICAL) topMargin = dp(2) else marginStart = dp(2)
             })
         }
-        centerButton = icon("◎", "GPS-Zentrierung aktivieren") {
+        centerButton = icon("", "GPS-Zentrierung aktivieren") {
             setFollow(true); requestGps(); updateCamera()
         }
-        directionButton = icon("↑", "Kartenausrichtung ändern") {
+        directionButton = icon("", "Kartenausrichtung ändern") {
             heading = !heading; preferences.edit().putBoolean("mapHeading", heading).apply(); updateCamera()
         }
         icon("+", "Karte vergrößern", zoomControls) { zoom(1) }
         icon("−", "Karte verkleinern", zoomControls) { zoom(-1) }
-        fullButton = icon("⛶", "Karte im Vollbild") { fullscreen() }
-        addView(controls, LayoutParams(-2, dp(48), Gravity.TOP or Gravity.END).apply { topMargin = dp(6); marginEnd = dp(6) })
-        routeButton = icon("", "Streckenmanager öffnen", null) { openRoutes() }.apply {
-            val image = context.getDrawable(R.drawable.ic_settings_routes)!!.apply { setBounds(0, 0, dp(28), dp(28)) }
-            setCompoundDrawables(null, image, null, null); gravity = Gravity.CENTER
-            setPadding(dp(8), dp(10), dp(8), 0)
+        fullButton = icon("", "Karte im Vollbild") { fullscreen() }
+        fun graphic(button: Button, symbol: BicycleIcon) {
+            val drawable = BicycleIcons.drawable(context, symbol, Color.WHITE).apply { setBounds(0, 0, dp(24), dp(24)) }
+            button.gravity = Gravity.CENTER
+            button.setPadding(dp(10), 0, dp(10), 0)
+            button.setCompoundDrawables(drawable, null, null, null)
         }
+        graphic(centerButton, BicycleIcon.Locate)
+        graphic(directionButton, BicycleIcon.Compass)
+        graphic(fullButton, BicycleIcon.Maximize)
+        addView(controls, LayoutParams(-2, dp(48), Gravity.TOP or Gravity.END).apply { topMargin = dp(6); marginEnd = dp(6) })
+        routeButton = icon("", "Strecke ein-/ausblenden", null) {
+            runtime.mapState.setRouteVisible(!preferences.getBoolean("mapGpxVisible", true))
+        }.apply {
+            gravity = Gravity.CENTER; setPadding(dp(8), dp(10), dp(8), 0)
+        }
+        refreshRouteButton()
         addView(routeButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.START).apply { topMargin = dp(6); marginStart = dp(6) })
         addView(zoomControls, LayoutParams(dp(44), -2, Gravity.BOTTOM or Gravity.END).apply { bottomMargin = dp(77); marginEnd = dp(6) })
         dataFields.reload(preferences)
@@ -178,6 +190,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             credit.text = source.attribution
         }
         dataFields.reload(preferences)
+        refreshRouteButton()
         refreshDataFields()
         heading = preferences.getBoolean("mapHeading", true)
         follow = preferences.getBoolean("mapFollow", true)
@@ -186,18 +199,32 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     fun refresh() {
         if (!running) return
         gps = runtime.gpsValues
+        refreshRouteButton()
         refreshDataFields()
         val track = runtime.mapState.track.revision; val route = runtime.mapState.routeRevision
         // BLE packets and elapsed-time changes must not redraw an unchanged map.
-        if (gps.latitude != lastLatitude || gps.longitude != lastLongitude || gps.bearingDegrees != lastBearing ||
+        if (gps.latitude != lastLatitude || gps.longitude != lastLongitude || gps.bearingDegrees != lastBearing || gps.altitudeM != lastAltitude ||
             track != lastTrack || route != lastRoute) {
-            lastLatitude = gps.latitude; lastLongitude = gps.longitude; lastBearing = gps.bearingDegrees
+            lastLatitude = gps.latitude; lastLongitude = gps.longitude; lastBearing = gps.bearingDegrees; lastAltitude = gps.altitudeM
             lastTrack = track; lastRoute = route; updateCamera(); refreshRoutes()
         }
         val next = if (!runtime.gpsEnabled) "GPS aus · antippen" else if (gps.latitude == null) "GPS · Warte auf Position"
             else if (runtime.recording && !runtime.mapTrackEnabled) "Track-Aufzeichnung aus" else ""
         if (status.text.toString() != next) status.text = next
         status.visibility = if (next.isEmpty()) GONE else VISIBLE
+    }
+    private fun refreshRouteButton() {
+        val available = runtime.mapState.route != null
+        val shown = available && preferences.getBoolean("mapGpxVisible", true)
+        routeButton.isEnabled = available && !runtime.mapState.busy
+        routeButton.alpha = if (routeButton.isEnabled) 1f else .45f
+        routeButton.contentDescription = if (!available) "Keine Strecke verfügbar" else if (shown) "Strecke ausblenden" else "Strecke einblenden"
+        if (routeShown != shown) {
+            val image = BicycleIcons.drawable(context, BicycleIcon.ShowOnMap, Color.WHITE, negative = !shown)
+                .apply { setBounds(0, 0, dp(28), dp(28)) }
+            routeButton.setCompoundDrawables(null, image, null, null)
+            routeShown = shown
+        }
     }
     private fun refreshRoutes() {
         if (layerTrackRevision != runtime.mapState.track.revision) {
@@ -208,7 +235,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             preferences.getBoolean("mapGpxVisible", true), preferences.getBoolean("mapTrackVisible", true))
     }
     private fun refreshDataFields() {
-        dataFields.show(runtime.bikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues)
+        dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight)
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -236,17 +263,17 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         }
     }
-    fun showFullscreen(value: Boolean) { fullButton.text = if (value) "↙" else "⛶"; fullButton.contentDescription = if (value) "Zurück zum Dashboard" else "Karte im Vollbild"; revealControls() }
+    fun showFullscreen(value: Boolean) { fullButton.contentDescription = if (value) "Zurück zum Dashboard" else "Karte im Vollbild"; revealControls() }
     fun setFollow(value: Boolean) {
         if (follow == value) return
         follow = value; preferences.edit().putBoolean("mapFollow", value).apply()
-        if (::centerButton.isInitialized) centerButton.setTextColor(if (value) Color.rgb(110, 230, 130) else Color.WHITE)
+        if (::centerButton.isInitialized) centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (value) Color.rgb(110, 230, 130) else Color.WHITE)
     }
     private fun updateCamera() {
         if (width <= 0 || height <= 0) return
         val bearing = if (heading) gps.bearingDegrees else null
         // Preserve the manual viewport when following is paused; avoid a jump on the next GPS tick.
-        val centerY = if (!follow) mapView.mapViewCenterY else if (heading) .68f else .5f
+        val centerY = if (!follow) mapView.mapViewCenterY else if (heading) .68f else 2f / 3f
         if (mapView.mapViewCenterY != centerY) mapView.setMapViewCenterY(centerY)
         val rotation = Rotation(-(bearing ?: 0.0).toFloat(), width / 2f, height / 2f)
         if (mapView.mapRotation != rotation) mapView.rotate(rotation)
@@ -254,9 +281,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             val center = LatLong(gps.latitude!!, gps.longitude!!)
             if (mapView.model.mapViewPosition.center != center) mapView.setCenter(center)
         }
-        directionButton.text = if (heading) "↑" else "N"
         directionButton.contentDescription = if (heading) "Fahrtrichtung oben · wechseln zu Norden" else "Norden oben · wechseln zur Fahrtrichtung"
-        centerButton.setTextColor(if (follow) Color.rgb(110, 230, 130) else Color.WHITE)
+        centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (follow) Color.rgb(110, 230, 130) else Color.WHITE)
     }
     fun fitRoute() {
         val points = runtime.mapState.route?.points ?: return
