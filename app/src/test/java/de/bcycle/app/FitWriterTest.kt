@@ -42,6 +42,9 @@ class FitWriterTest {
     @Test fun officialGarminDecoderAndActivityValidatorAcceptAllSourcesAndCorrectScales() {
         val messages = generate().first
         assertEquals(11, messages.recordMesgs.size)
+        assertEquals(AppVersion.fitSoftwareVersion, messages.deviceInfoMesgs.single().softwareVersion.toDouble(), .00001)
+        assertEquals("B-Cycle", messages.deviceInfoMesgs.single().productName)
+        assertEquals(AppVersion.code.toLong(), messages.developerDataIdMesgs.single().applicationVersion.toLong())
         val record = messages.recordMesgs.last()
         assertEquals(7.0, record.speed.toDouble(), 0.001)
         assertEquals(70.0, record.distance.toDouble(), 0.001)

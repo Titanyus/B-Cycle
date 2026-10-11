@@ -6,27 +6,34 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.6.21 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.6.21/downloads/B-Cycle-0.6.21-test.apk)**
+**[APK 0.7.0 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.0/downloads/B-Cycle-0.7.0-test.apk)**
 
 - Größe: **934,741 Byte**, rund **935 KB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.6.21-test.apk.sha256):
-  `01215120eb80efdeb2ec58fe4e53705b806571046da62f31f1f3f40fb5fc775e`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.0-test.apk.sha256):
+  `4dce5ff37d6587005af93beeb443917e39541fd6484b5be16ca7ed9e3ad1b4e3`.
 
 Für diesen APK-Build: **213 Tests bestanden**, Signatur und Version geprüft.
-Tests und optimierter Release-Build dauerten zusammen **1 Minute 7 Sekunden**.
 Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
+Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
 
-## Meilenstein 0.6.21
+## Gesicherte Stände
 
-Der Tag [v0.6.21](https://github.com/Titanyus/B-Cycle/tree/v0.6.21) sichert den
-vollständigen Quellcode, Tests, Build-Konfiguration, Dokumentation und die signierte APK.
-Die früheren Meilensteine bleiben erhalten, einschließlich der Vergleichsbasis v0.6.20.
-Details: [Meilenstein 0.6.21](docs/milestone-0621.md).
+[v0.6.21](https://github.com/Titanyus/B-Cycle/tree/v0.6.21) sichert den vollständigen
+Meilenstein vor der Bereinigung: Quellcode, Tests, Ressourcen, Build-Konfiguration,
+Dokumentation und signierte APK. [v0.7.0](https://github.com/Titanyus/B-Cycle/tree/v0.7.0)
+sichert zusätzlich den bereinigten Stand. Auch v0.6.20 und ältere Versionen bleiben erhalten.
+
+## Neu in 0.7.0
+
+Kleine Altlastenbereinigung: zentrale Versionsquelle für Diagnose, Karten-User-Agent
+und FIT-Metadaten; zwei unbenutzte alte Icon-Renderer entfernt. Frühere Einstellungsicons
+bleiben erhalten. Keine neuen Bibliotheken oder Änderungen an den Sensorfunktionen.
+Details: [Bereinigung 0.7.0](docs/cleanup-070.md) und [gesicherter Build](docs/milestone-070.md).
 
 ## Neu in 0.6.21
 

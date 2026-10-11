@@ -27,7 +27,7 @@ class BicycleComponentsTest {
             val text = BicycleComponents.text(activity, manager, "Test", title = true)
             val input = BicycleComponents.input(activity, manager)
             val button = BicycleComponents.action(activity, manager, "Action") {}
-            val icon = BicycleComponents.icon(activity, manager, RouteSymbolDrawable(RouteSymbol.MORE), "More") {}
+            val icon = BicycleComponents.icon(activity, manager, BicycleIcons.drawable(activity, BicycleIcon.MoreOptions, manager.active.tokens.foreground), "More") {}
             val divider = BicycleComponents.divider(activity, manager)
             body.addView(input); body.addView(button); body.addView(icon); body.addView(divider)
             root.addView(header); root.addView(text); root.addView(body); root.addView(grid); root.addView(scroll)

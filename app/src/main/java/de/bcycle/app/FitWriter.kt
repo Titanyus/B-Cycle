@@ -54,11 +54,11 @@ object FitWriter {
                 val startStamp = timestamp(start).toDouble()
                 message(0, 0, listOf(en(0, 4), u16(1, 255.0), u16(2, 0.0), number(3, 0x8c, 4, 1), u32(4, startStamp)))
                 // Device metadata identifies the generating application, not a fabricated Garmin device.
-                message(0, 23, listOf(u32(253, startStamp), u8(0, 0.0), u16(2, 255.0), u16(4, 0.0), u16(5, 0.4, 100.0), string(27, "B-Cycle")))
+                message(0, 23, listOf(u32(253, startStamp), u8(0, 0.0), u16(2, 255.0), u16(4, 0.0), u16(5, AppVersion.fitSoftwareVersion, 100.0), string(27, "B-Cycle")))
                 if (developerIds.isNotEmpty() || config.fields.any { id -> RecordField.summaries.any { it.id == id } }) {
                     val uuid = UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
                     val appId = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN).putLong(uuid.mostSignificantBits).putLong(uuid.leastSignificantBits).array()
-                    message(2, 207, listOf(Field(1, 13, appId), u8(3, 0.0), u32(4, 401.0)))
+                    message(2, 207, listOf(Field(1, 13, appId), u8(3, 0.0), u32(4, AppVersion.code.toDouble())))
                     developerIds.forEachIndexed { index, id ->
                         val field = RecordField.options.find { it.id == id }
                         message(3, 206, listOf(u8(0, 0.0), u8(1, index.toDouble()), u8(2, 0x89.toDouble()),
