@@ -8,7 +8,7 @@ zusätzlichen BLE-/GPS-Bibliotheken.
 
 ## APK herunterladen
 
-[Installierbare APK 0.6.10 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.10-test.apk).
+[Installierbare APK 0.6.11 herunterladen](https://github.com/Titanyus/B-Cycle/raw/refs/heads/main/downloads/B-Cycle-0.6.11-test.apk).
 
 Die Datei liegt auch im Ordner `downloads`. Bei einer GitHub-Dateiseite
 „Download raw file“ auswählen; bei einem privaten Repository vorher anmelden.
@@ -17,9 +17,9 @@ Versionen signiert und kann als Update installiert werden. Das neue weiße Logo
 auf Rot unterstützt adaptive und monochrome Android-Icons.
 
 APK-Größe: 834.238 Byte (rund 834 KB).
-SHA-256: `de234845c1e5a9ffb84e47fca8a0f3cfcda2bbfc849994e8b0d7106506b44101`.
+SHA-256: `44807e682b8e5c077667c13b7c57646af6747fa8853405ad3375f5ba28dcdf5d`.
 
-Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 126 Tests sind bestanden.
+Build, APK-Signatur und Update-Zertifikat wurden geprüft; alle 127 Tests sind bestanden.
 Android-Lint meldet 36 Warnungen und keine Fehler.
 Dashboard, GPS und Bosch-Daten wurden in den früheren Versionen vom Nutzer am Rad
 bestätigt. Die neuen Hintergrund- und Speicherabläufe werden mit Robolectric auf
@@ -30,7 +30,7 @@ vom Nutzer auf dem Handy bestätigt. Version 0.6.2 ergänzt Rücknavigation zum 
 sechste Dashboard-Vorlage und eine grafische Vorlagenauswahl. Die neuen Abläufe sind automatisiert geprüft;
 der Vergleich auf dem Poco steht noch aus. Details stehen in [Karten](docs/maps.md).
 
-## Benutzung der APK 0.6.10
+## Benutzung der APK 0.6.11
 
 1. Als Update installieren, Fahrrad mit Bosch Flow entsperren. **Flow darf weiterlaufen.**
 2. **☰ → Sensoren verwalten → Sensor hinzufügen** öffnet die Auswahl für Bosch
@@ -302,3 +302,12 @@ und das Drei-Punkte-Menü stehen rechts unten nebeneinander; die Berührungsflä
 bleiben jeweils 48 dp groß. Datum, Distanz und Dauer bleiben einheitlich in 14 sp.
 Die Fahrten stehen direkt auf dem Fensterhintergrund, ohne Kästen; zwischen den
 Einträgen verläuft eine dünne weiße Linie.
+
+
+## Neu in APK 0.6.11
+
+Die Drei-Punkte-Buttons der Fahrten stehen auf derselben senkrechten Linie wie
+der Button im Titel des Streckenmanagers. Das Auge rückt mit nach rechts.
+Streckenaktionen öffnen sich direkt am Drei-Punkte-Button als Dropdown, mit
+demselben Stil wie die Importauswahl. Texteingabe zum Umbenennen und
+Löschbestätigung bleiben eigene Dialoge mit Rückkehr zur Streckenliste.

@@ -57,6 +57,12 @@ class RouteManagerViewTest {
         assertTrue(list.height > 0)
         assertEquals(View.GONE, view.findViewWithTag<View>("route_eye_route-0").visibility)
         view.findViewWithTag<View>("route_more_route-0").performClick(); assertEquals(entries.first(), clicked.last())
+        fun centerX(child: View): Int {
+            val bounds = android.graphics.Rect(0, 0, child.width, child.height)
+            view.offsetDescendantRectToMyCoords(child, bounds)
+            return bounds.centerX()
+        }
+        assertEquals(centerX(view.findViewWithTag("route_settings")), centerX(view.findViewWithTag("route_more_route-0")))
         val top = filter.top
         list.setSelection(14); measure(); assertEquals(top, filter.top)
         filter.setSelection(1); shadowOf(Looper.getMainLooper()).idle(); measure()

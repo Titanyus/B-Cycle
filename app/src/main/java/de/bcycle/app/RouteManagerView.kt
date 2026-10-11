@@ -80,7 +80,7 @@ internal class RouteManagerView(context: Context,
         val list = ListView(context).apply {
             tag = "route_list"; adapter = rows
             divider = android.graphics.drawable.ColorDrawable(Color.WHITE); dividerHeight = 1
-            setPadding(dp(8), 0, dp(8), dp(8)); clipToPadding = false
+            setPadding(dp(8), 0, 0, dp(8)); clipToPadding = false
             setOnItemClickListener { _, _, position, _ -> if (!busy) actions(filtered[position]) }
         }
         addView(list, LayoutParams(-1, 0, 1f))
@@ -127,9 +127,9 @@ internal class RouteManagerView(context: Context,
         private val eye = action().apply { setPadding(dp(10), dp(10), dp(10), dp(10)) }
         private val more = action().apply { setPadding(dp(10), dp(10), dp(10), dp(10)); setImageDrawable(RouteSymbolDrawable(RouteSymbol.MORE)) }
         init {
-            orientation = VERTICAL; setPadding(dp(10), dp(8), dp(4), dp(8))
+            orientation = VERTICAL; setPadding(dp(10), dp(8), 0, dp(8))
             addView(LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-                addView(title, LayoutParams(0, dp(28), 1f).apply { rightMargin = dp(6) }); addView(badges) }, LayoutParams(-1, -2))
+                addView(title, LayoutParams(0, dp(28), 1f).apply { rightMargin = dp(6) }); addView(badges, LayoutParams(-2, -2).apply { marginEnd = dp(12) }) }, LayoutParams(-1, -2))
             addView(LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
                 addView(preview, LayoutParams(dp(58), dp(76)))
                 addView(LinearLayout(context).apply { orientation = VERTICAL; setPadding(dp(8), 0, 0, 0)

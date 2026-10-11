@@ -139,3 +139,10 @@ dadurch die volle restliche Zeilenbreite.
 Ab 0.6.10 haben die Fahrteinträge keine eigene Hintergrundbox mehr. Eine weiße
 horizontale Linie von einem Pixel trennt die Einträge; das Filter-Dropdown behält
 den zuvor verwendeten dunkleren Rotton.
+
+Ab 0.6.11 sind die Drei-Punkte-Buttons der Einträge mit dem Titelbutton
+ausgerichtet; das Auge rückt ebenfalls nach rechts. Die Streckenaktionen
+verwenden das gleiche native `ListPopupWindow` wie die Importauswahl, direkt
+am jeweiligen Drei-Punkte-Button. Das Schließen des Dropdowns verändert die
+Streckenauswahl nicht. Umbenennen und die Bestätigung vor dem Löschen behalten
+ihre Dialoge und kehren beim Abbrechen zur vorhandenen Streckenliste zurück.

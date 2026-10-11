@@ -23,7 +23,7 @@ class MainActivity : Activity() {
     private lateinit var dashboardArea: LinearLayout
     private var routeManager: RouteManagerView? = null
     private var routeImportButton: Button? = null
-    private var routeImportPopup: ListPopupWindow? = null
+    private var routePopup: ListPopupWindow? = null
     private var routeSignature = ""
     private var exportDraft: RouteExportConfig? = null
     private var exportPasswordDraft: String? = null
@@ -356,7 +356,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.10-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.11-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
@@ -493,7 +493,7 @@ class MainActivity : Activity() {
         routeManager = content
         refreshRouteRows()
         menu = dialog().setView(content).setNeutralButton("Importieren", null).setPositiveButton("Schließen", null).create().apply {
-            dialogs.onDismiss(this) { if (routeManager === content) { routeImportPopup?.dismiss(); routeImportPopup = null; routeManager = null; routeImportButton = null } }; show()
+            dialogs.onDismiss(this) { if (routeManager === content) { routePopup?.dismiss(); routePopup = null; routeManager = null; routeImportButton = null } }; show()
             routeImportButton = getButton(AlertDialog.BUTTON_NEUTRAL).apply {
                 tag = "route_import"; isEnabled = !state.busy
                 setCompoundDrawablesRelative(RouteSymbolDrawable(RouteSymbol.IMPORT).apply { setBounds(0, 0, dp(20), dp(20)) }, null, null, null)
@@ -504,8 +504,15 @@ class MainActivity : Activity() {
     }
     private fun routeImportChoice() {
         val anchor = routeImportButton ?: return
-        routeImportPopup?.dismiss()
-        val choices = listOf("Geplante Strecke (GPX / FIT)", "Aufgezeichnete Fahrt (FIT)")
+        routeDropdown(anchor, listOf("Geplante Strecke (GPX / FIT)", "Aufgezeichnete Fahrt (FIT)"),
+            listOf(RouteSymbol.IMPORT, RouteSymbol.RIDE), listOf("route_import_planned", "route_import_recorded")) {
+            importRoute(it == 1)
+        }
+    }
+    /** The same anchored native dropdown serves imports and each route's actions. */
+    private fun routeDropdown(anchor: View, choices: List<String>, icons: List<RouteSymbol> = emptyList(),
+                              tags: List<String> = emptyList(), selected: (Int) -> Unit) {
+        routePopup?.dismiss()
         val popup = ListPopupWindow(settingsContext).apply {
             anchorView = anchor; isModal = true
             width = minOf(dp(300), resources.displayMetrics.widthPixels - dp(32))
@@ -518,19 +525,19 @@ class MainActivity : Activity() {
                         text = getItem(position); textSize = 16f; setTextColor(Color.WHITE)
                         gravity = android.view.Gravity.CENTER_VERTICAL; minHeight = dp(56)
                         setPadding(dp(12), dp(8), dp(12), dp(8))
-                        tag = if (position == 0) "route_import_planned" else "route_import_recorded"
-                        setCompoundDrawablesRelative(RouteSymbolDrawable(if (position == 0) RouteSymbol.IMPORT else RouteSymbol.RIDE)
-                            .apply { setBounds(0, 0, dp(24), dp(24)) }, null, null, null)
+                        tag = tags.getOrNull(position)
+                        setCompoundDrawablesRelative(icons.getOrNull(position)?.let { kind -> RouteSymbolDrawable(kind)
+                            .apply { setBounds(0, 0, dp(24), dp(24)) } }, null, null, null)
                         compoundDrawablePadding = dp(10)
                     }
             })
             setOnItemClickListener { _, _, position, _ ->
                 dismiss()
-                if (!runtime.mapState.busy) importRoute(position == 1)
+                if (!runtime.mapState.busy) selected(position)
             }
-            setOnDismissListener { if (routeImportPopup === this) routeImportPopup = null }
+            setOnDismissListener { if (routePopup === this) routePopup = null }
         }
-        routeImportPopup = popup
+        routePopup = popup
         popup.show()
     }
     private fun routeExportSettings() {
@@ -642,11 +649,8 @@ class MainActivity : Activity() {
                 .setPositiveButton("Löschen") { _, _ -> state.deleteRoute(entry.id) }
                 .setNegativeButton("Abbrechen", null).show()
         }
-        // Opening a child after the choice is dismissed keeps the manager as its parent.
-        dialog().setTitle(entry.name).setItems(actions.map { it.first }.toTypedArray()) { choice, which ->
-            choice.dismiss()
-            android.os.Handler(mainLooper).post { actions[which].second() }
-        }.setNegativeButton("Abbrechen", null).show()
+        val anchor = routeManager?.findViewWithTag<View>("route_more_${entry.id}") ?: return
+        routeDropdown(anchor, actions.map { it.first }) { which -> actions[which].second() }
     }
     private fun openMapLink(url: String) {
         try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }

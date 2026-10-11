@@ -12,6 +12,7 @@ import org.robolectric.Robolectric
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowAlertDialog
+import org.robolectric.shadows.ShadowListPopupWindow
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.RobolectricTestRunner
@@ -57,7 +58,7 @@ class GpxManagerTest {
             views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
             assertNotNull(state.route)
             views().single { it.tag == "route_more_$id" }.performClick()
-            val choices = ShadowAlertDialog.getLatestAlertDialog().listView
+            val choices = ShadowListPopupWindow.getLatestListPopupWindow().listView!!
             choices.performItemClick(null, choices.adapter.count - 1, 0)
             shadowOf(Looper.getMainLooper()).idle()
             ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
@@ -65,7 +66,7 @@ class GpxManagerTest {
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             assertEquals(1, state.routes.size)
             views().single { it.tag == "route_more_$id" }.performClick()
-            val deleteChoices = ShadowAlertDialog.getLatestAlertDialog().listView
+            val deleteChoices = ShadowListPopupWindow.getLatestListPopupWindow().listView!!
             deleteChoices.performItemClick(null, deleteChoices.adapter.count - 1, 0)
             shadowOf(Looper.getMainLooper()).idle()
             ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick(); await(state)
