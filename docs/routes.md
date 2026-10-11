@@ -13,8 +13,9 @@ enthalten höchstens 97 Punkte; es werden keine zusätzlichen Karten oder Sensor
 - **Streckenmanager**: Dropdown Alle, Gefahren, Importiert; Datum, Format, Herkunft,
   verfügbare Distanz/Dauer und Streckenvorschau. Bei GPX ist das Datum der Import;
   bei eigenen FIT-Fahrten der FIT-Zeitstempel. Ohne GPX-Zeitangaben keine erfundene Dauer.
-- **Strecke importieren**: GPX/FIT über Androids Dateiauswahl als importierte Strecke.
-- **FIT-Fahrt übernehmen**: bestehende FIT-Aufzeichnung über Dateiauswahl als gefahrene Aktivität.
+- **Importieren** unten links (ab APK 0.6.9): anschließend **Geplante Strecke**
+  für GPX/FIT als importierte Strecke oder **Aufgezeichnete Fahrt** für eine
+  bestehende FIT-Aufzeichnung als gefahrene Aktivität wählen.
 - Auge: die gewählte Strecke ein-/ausblenden. Eine gemeinsame Kartenauswahl.
 - ⋮: Ansehen (bei Koordinaten), Umbenennen, unverändertes Original nach Downloads
   exportieren und bestätigtes Löschen aus der Sammlung. Importierte Strecken mit
@@ -109,3 +110,21 @@ Automatisierte Prüfungen decken Garmin-Einheiten/CRC, FIT ohne GPS, unveränder
 Originale, doppelte Importe, private Speicherung trotz Downloadfehler, GPX-
 Metadaten und Migration, Auswahl/Rename/Export/Delete nach Neustart sowie
 Filter/Recycling/Rücknavigation ab. Die Bedienung am Poco muss noch getestet werden.
+
+## Kompakte Oberfläche ab APK 0.6.9
+
+Die beiden Importbuttons oberhalb der Liste werden durch **Importieren** unten
+links neben **Schließen** ersetzt. Die Auswahl mit Symbolen ordnet eine geplante
+GPX-/FIT-Strecke weiterhin als importiert und eine übernommene FIT-Aufzeichnung
+als gefahren ein; Datei- und Speicherabläufe bleiben erhalten. Abbrechen bringt
+dieselbe Streckenliste zurück. Während Dateioperationen ist Importieren gesperrt.
+
+Der feste Filter ist dunkelrot. Einzeilige Titel enden bei Bedarf mit „…“.
+Herkunft, FIT/GPX und private Speicherung werden durch weiße Symbole auf Hellrot
+oben rechts angezeigt; WebDAV-Status erhält ein zusätzliches Cloud-Symbol
+(gesichert, ausstehend/pausiert/laufend oder Fehler). Alle Kennzeichen haben
+sprechende Beschreibungen für TalkBack und Tooltips mit den vollständigen Angaben.
+Die bisherigen Herkunfts-/Dateiformat-/Speichertextzeilen entfallen. Vor Datum,
+Distanz und Dauer stehen Symbole; alle drei Texte verwenden 14 sp. Bei zu wenig
+Breite stehen Kilometer und Dauer untereinander, ohne Schriftverkleinerung.
+Rechts sind ⋮ und das weiße Auge in eigenen 48-dp-Berührungsflächen angeordnet.

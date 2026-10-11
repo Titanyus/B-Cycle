@@ -7,6 +7,7 @@ import android.os.Looper
 import android.view.View
 import android.widget.ListView
 import android.widget.Spinner
+import android.widget.TextView
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,7 +25,7 @@ class RouteManagerViewTest {
     @Test fun commonListFiltersBothOriginsAndKeepsFilterFixedWhileRowsScrollAndRefresh() {
         val context = android.view.ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.SettingsDialogTheme)
         val clicked = mutableListOf<ManagedRoute>()
-        val view = RouteManagerView(context, {}, {}, { clicked += it }, { clicked += it })
+        val view = RouteManagerView(context, { clicked += it }, { clicked += it }).apply { layoutDirection = resources.configuration.layoutDirection }
         val preview = listOf(MapPoint(50.0, 8.0, true), MapPoint(50.01, 8.01), MapPoint(50.02, 8.0))
         val entries = (0..19).map { i -> ManagedRoute("route-$i", "Testrunde $i", i % 2 == 0,
             if (i % 2 == 0) "FIT" else "GPX", RouteDetails(1_791_626_400_000, 52300.0, 8280000, preview), i != 0) }
@@ -37,6 +38,14 @@ class RouteManagerViewTest {
         val list = view.findViewWithTag<ListView>("route_list")
         val filter = view.findViewWithTag<Spinner>("route_filter")
         assertEquals(20, list.adapter.count)
+        val firstCard = list.adapter.getView(1, null, list)
+        val title = firstCard.findViewWithTag<TextView>("route_name_route-1")
+        val date = firstCard.findViewWithTag<TextView>("route_date_route-1")
+        val distance = firstCard.findViewWithTag<TextView>("route_distance_route-1")
+        val duration = firstCard.findViewWithTag<TextView>("route_duration_route-1")
+        assertEquals(1, title.maxLines)
+        assertEquals(distance.textSize, date.textSize, 0f); assertEquals(duration.textSize, date.textSize, 0f)
+        assertNotNull(date.compoundDrawablesRelative[0]); assertNotNull(distance.compoundDrawablesRelative[0]); assertNotNull(duration.compoundDrawablesRelative[0])
         assertTrue(list.height > 0)
         assertEquals(View.GONE, view.findViewWithTag<View>("route_eye_route-0").visibility)
         view.findViewWithTag<View>("route_more_route-0").performClick(); assertEquals(entries.first(), clicked.last())
@@ -45,7 +54,7 @@ class RouteManagerViewTest {
         filter.setSelection(1); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertEquals(10, list.adapter.count); assertTrue((list.adapter.getItem(0) as ManagedRoute).recorded)
         view.submit(entries, null, true); assertEquals(1, filter.selectedItemPosition)
-        assertFalse(view.findViewWithTag<View>("route_import").isEnabled)
+        assertFalse(list.adapter.getView(0, null, list).findViewWithTag<View>("route_more_route-0").isEnabled)
         filter.setSelection(2); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertEquals(10, list.adapter.count); assertFalse((list.adapter.getItem(0) as ManagedRoute).recorded)
         view.submit(entries, null, false); filter.setSelection(0); shadowOf(Looper.getMainLooper()).idle(); measure()

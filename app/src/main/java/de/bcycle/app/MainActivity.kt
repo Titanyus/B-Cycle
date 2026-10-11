@@ -22,6 +22,7 @@ class MainActivity : Activity() {
     private lateinit var mapPanel: MapPanel
     private lateinit var dashboardArea: LinearLayout
     private var routeManager: RouteManagerView? = null
+    private var routeImportButton: Button? = null
     private var routeSignature = ""
     private var exportDraft: RouteExportConfig? = null
     private var exportPasswordDraft: String? = null
@@ -354,7 +355,7 @@ class MainActivity : Activity() {
         pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
-            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.8-diagnose.txt"), 2) }
+            .putExtra(Intent.EXTRA_TITLE, "B-Cycle-0.6.9-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
@@ -484,16 +485,37 @@ class MainActivity : Activity() {
     private fun routeSettings() {
         val state = runtime.mapState
         routeSignature = ""
-        val content = RouteManagerView(settingsContext, { importRoute() }, { importRoute(true) }, { entry ->
+        val content = RouteManagerView(settingsContext, { entry ->
             preferences.edit().putBoolean("mapGpxVisible", true).apply()
             state.selectRoute(if (state.selectedRoute == entry.id) null else entry.id)
         }, ::routeActions, ::routeExportSettings) { id -> RouteUploads.status(this, id) }
         routeManager = content
         refreshRouteRows()
-        menu = dialog().setView(content).setPositiveButton("Schließen", null).create().apply {
-            dialogs.onDismiss(this) { if (routeManager === content) routeManager = null }; show()
+        menu = dialog().setView(content).setNeutralButton("Importieren", null).setPositiveButton("Schließen", null).create().apply {
+            dialogs.onDismiss(this) { if (routeManager === content) { routeManager = null; routeImportButton = null } }; show()
+            routeImportButton = getButton(AlertDialog.BUTTON_NEUTRAL).apply {
+                tag = "route_import"; isEnabled = !state.busy
+                setCompoundDrawablesRelative(RouteSymbolDrawable(RouteSymbol.IMPORT).apply { setBounds(0, 0, dp(20), dp(20)) }, null, null, null)
+                compoundDrawablePadding = dp(6); setOnClickListener { if (!state.busy) routeImportChoice() }
+            }
         }
         state.refreshLibrary()
+    }
+    private fun routeImportChoice() {
+        val root = column()
+        lateinit var choice: AlertDialog
+        fun option(title: String, tagName: String, kind: RouteSymbol, recorded: Boolean) = button(title) {
+            choice.dismiss()
+            android.os.Handler(mainLooper).post { importRoute(recorded) }
+        }.apply {
+            tag = tagName
+            setCompoundDrawablesRelative(RouteSymbolDrawable(kind).apply { setBounds(0, 0, dp(24), dp(24)) }, null, null, null)
+            compoundDrawablePadding = dp(10)
+        }
+        root.addView(option("Geplante Strecke", "route_import_planned", RouteSymbol.ROUTE, false))
+        root.addView(option("Aufgezeichnete Fahrt", "route_import_recorded", RouteSymbol.RIDE, true))
+        choice = dialog().setTitle("Importieren").setView(root).setNegativeButton("Abbrechen", null).create()
+        choice.show()
     }
     private fun routeExportSettings() {
         val settings = RouteExportSettings(this)
@@ -562,6 +584,7 @@ class MainActivity : Activity() {
             pendingMapRoute = null
         }
         val manager = routeManager ?: return
+        routeImportButton?.isEnabled = !state.busy
         val signature = "${state.routeRevision}:${state.busy}:${RouteUploads.revision(this)}"
         if (routeSignature == signature) return
         routeSignature = signature

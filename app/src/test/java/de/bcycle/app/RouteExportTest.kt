@@ -111,7 +111,7 @@ class RouteExportTest {
     @Test fun managerHeaderOpensSettingsAndViewKeepsBothOutputFlagsIndependent() {
         val theme = android.view.ContextThemeWrapper(context, R.style.SettingsDialogTheme)
         var opened = false
-        val manager = RouteManagerView(theme, {}, {}, {}, {}, { opened = true })
+        val manager = RouteManagerView(theme, {}, {}, { opened = true })
         manager.findViewWithTag<View>("route_settings").performClick(); assertTrue(opened)
         val view = RouteExportView(theme, RouteExportConfig(save = false, webdav = true), false, {}, {})
         assertFalse(view.read().save); assertTrue(view.read().webdav)
