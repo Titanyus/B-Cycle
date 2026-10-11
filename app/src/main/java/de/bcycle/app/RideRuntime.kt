@@ -114,12 +114,13 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         return gps.copy(solar = solarWeather.snapshot(gps.latitude, gps.longitude, java.time.Instant.now(), java.time.ZoneId.systemDefault()))
     }
     /** Prefer fresh wheel speed; GPS already filters stationary jitter. Unknown is not zero. */
-    val canEditDataFields: Boolean get() {
+    val currentSpeedKmh: Double? get() {
         val now = SystemClock.elapsedRealtime()
-        val speed = bikeData.speedHundredths?.takeIf { fresh(LiveMetric.SPEED, now) }?.div(100.0)
+        return bikeData.speedHundredths?.takeIf { fresh(LiveMetric.SPEED, now) }?.div(100.0)
             ?: ride.gps.snapshot(now).speedKmh
-        return if (speed == null) !recording else speed == 0.0
     }
+    val isMoving: Boolean get() = currentSpeedKmh?.let { it > 0.0 } == true
+    val canEditDataFields: Boolean get() = currentSpeedKmh?.let { it == 0.0 } ?: !recording
     /** Reuse the existing connection/freshness rules; never expose a stale mode to the visual status. */
     val currentBikeLight: Boolean? get() = bikeData.value(LiveMetric.BIKE_LIGHT)
         ?.takeIf { it in 0..1 && fresh(LiveMetric.BIKE_LIGHT, SystemClock.elapsedRealtime()) }?.let { it == 1L }

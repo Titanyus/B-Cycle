@@ -188,7 +188,8 @@ Zusätzlich wird DriveUnit `BIKE_LIGHT`, Adresse **0x181C / 6172**, als optional
 rein lesende Subscription und READ angefragt. Mapping: MCSP-Boolean **0 = aus,
 1 = an**. Quelle: oben verlinkte BES3-Registry (`BIKE_LIGHT`, `kind: bool`,
 readable/subscribable). Die Registry kennzeichnet diese Zuordnung noch nicht als
-hardwarebestätigt; ein Test am tatsächlichen System Controller steht aus.
+hardwarebestätigt. Der Nutzer hat die Funktion inzwischen am tatsächlichen
+System Controller (Firmware v20.9.0) bestätigt.
 Keine WRITE-/Toggle-/Konfigurationsbefehle werden gesendet. Unbekannte Werte werden
 protokolliert und verworfen, ohne die übrigen Messwerte desselben Pakets zu verlieren.
 

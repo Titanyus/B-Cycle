@@ -56,6 +56,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private lateinit var centerButton: Button
     private lateinit var fullButton: Button
     private var running = false
+    private var moving = false
     private var source = MapSource.decode(preferences.getString("mapSource", null))
     private var downloads: TileDownloadLayer
     private var follow = preferences.getBoolean("mapFollow", true)
@@ -71,6 +72,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var layerTrack: List<MapPoint> = emptyList()
     var controlsVisibilityChanged: ((Boolean) -> Unit)? = null
     private val hideControls = Runnable {
+        if (!running || !runtime.isMoving) return@Runnable
         controls.visibility = GONE; zoomControls.visibility = GONE; routeButton.visibility = GONE
         controlsVisibilityChanged?.invoke(false)
     }
@@ -153,7 +155,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addView(routeButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.START).apply { topMargin = dp(6); marginStart = dp(6) })
         addView(zoomControls, LayoutParams(dp(44), -2, Gravity.BOTTOM or Gravity.END).apply { bottomMargin = dp(77); marginEnd = dp(6) })
         dataFields.reload(preferences)
-        addView(dataFields, LayoutParams(-1, dp(48), Gravity.BOTTOM).apply { bottomMargin = dp(23) })
+        addView(dataFields, LayoutParams(-1, dp(62), Gravity.BOTTOM).apply { bottomMargin = dp(23) })
         credit.apply {
             text = source.attribution; textSize = 11f; setTextColor(Color.BLACK)
             setPadding(dp(5), dp(3), dp(5), dp(3)); setBackgroundColor(Color.argb(220, 255, 255, 255))
@@ -199,6 +201,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     fun refresh() {
         if (!running) return
         gps = runtime.gpsValues
+        updateMotionControls()
         refreshRouteButton()
         refreshDataFields()
         val track = runtime.mapState.track.revision; val route = runtime.mapState.routeRevision
@@ -314,9 +317,18 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; controlsVisibilityChanged?.invoke(true); scheduleHide() }
     fun holdControls() { handler.removeCallbacks(hideControls) }
+    private fun updateMotionControls() {
+        val next = runtime.isMoving
+        if (next == moving) {
+            if (!next && controls.visibility != VISIBLE) revealControls()
+            return
+        }
+        moving = next
+        if (next) scheduleHide() else revealControls()
+    }
     private fun scheduleHide() {
         handler.removeCallbacks(hideControls)
-        if (running && !context.getSystemService(AccessibilityManager::class.java).isTouchExplorationEnabled)
+        if (running && runtime.isMoving && !context.getSystemService(AccessibilityManager::class.java).isTouchExplorationEnabled)
             handler.postDelayed(hideControls, 5_000)
     }
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()

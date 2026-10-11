@@ -86,7 +86,7 @@ class RouteTrackLayerTest {
         layer.draw(BoundingBox(-1.0, -1.0, 1.0, 1.0), 10,
             AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)), Point(origin, origin), Rotation.NULL_ROTATION)
         val color = bitmap.getPixel(250, 256)
-        assertEquals(89, Color.alpha(color)); assertEquals(18.0, Color.red(color).toDouble(), 2.0)
+        assertEquals(128, Color.alpha(color)); assertEquals(18.0, Color.red(color).toDouble(), 2.0)
         assertEquals(59.0, Color.green(color).toDouble(), 2.0); assertEquals(117.0, Color.blue(color).toDouble(), 2.0)
         assertEquals(6, (0 until 512).count { Color.alpha(bitmap.getPixel(250, it)) > 0 })
         model.mapViewPosition.destroy()

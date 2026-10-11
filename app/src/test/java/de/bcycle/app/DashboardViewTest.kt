@@ -136,7 +136,9 @@ class DashboardViewTest {
                 for (tile in tiles) {
                     val isBig = template == DashboardTemplate.HERO && tile === tiles.first() ||
                         template == DashboardTemplate.DATA && tile.height > small.height + 3
-                    assertEquals("${template.name} at $width", (if (isBig) big.height else small.height).toDouble(), tile.height.toDouble(), 3.0)
+                    if (isBig && template == DashboardTemplate.HERO && width > available) {
+                        assertTrue("Landscape hero retains a compact large field", tile.height < big.height && tile.height > small.height)
+                    } else assertEquals("${template.name} at $width", (if (isBig) big.height else small.height).toDouble(), tile.height.toDouble(), 3.0)
                     assertEquals(small.paddingBottom, tile.paddingBottom)
                     val value = (tile.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
                     if (!isBig) assertEquals("${template.name}: font at $width", smallValue.textSize, value.textSize, 1f)

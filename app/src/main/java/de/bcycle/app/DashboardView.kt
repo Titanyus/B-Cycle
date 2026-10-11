@@ -184,7 +184,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private val row = ValueRow(value, unit)
 
         init {
-            container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0, .20f))
+            container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
+                if (index == 2 && template in listOf(DashboardTemplate.DATA, DashboardTemplate.HERO)) .10f else .20f))
             container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
         }
 

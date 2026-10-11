@@ -55,7 +55,7 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
         }
         val route = snapshot.route
         if (snapshot.showRoute && route != null && route.points.isNotEmpty()) {
-            line(route.points, android.graphics.Color.argb(89, 18, 59, 117), true)
+            line(route.points, android.graphics.Color.argb(128, 18, 59, 117), true)
             paint.style = Paint.Style.FILL
             fun endpoint(point: MapPoint, color: Int) {
                 paint.color = android.graphics.Color.WHITE; target.drawCircle(x(point.longitude), y(point.latitude), dp(7), paint)

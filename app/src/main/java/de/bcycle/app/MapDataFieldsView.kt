@@ -30,7 +30,7 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
         gravity = Gravity.CENTER
         typeface = resources.getFont(R.font.bebas_neue)
         setTextColor(Color.BLACK); includeFontPadding = false; maxLines = 1
-        setAutoSizeTextTypeUniformWithConfiguration(12, 32, 1, TypedValue.COMPLEX_UNIT_SP)
+        setAutoSizeTextTypeUniformWithConfiguration(16, 42, 1, TypedValue.COMPLEX_UNIT_SP)
         val inset = (4 * resources.displayMetrics.density).toInt()
         setPadding(inset, 0, inset, 0)
     } }
@@ -76,7 +76,7 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
 
 /** A static status mark; no animation or extra timer, and no touch interception. */
 private class RecordingDotSpan(density: Float) : android.text.style.ReplacementSpan() {
-    private val radius = 5 * density
+    private val radius = 6.5f * density
     private val dot = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = Color.RED }
     override fun getSize(paint: android.graphics.Paint, text: CharSequence, start: Int, end: Int,
                          fm: android.graphics.Paint.FontMetricsInt?): Int {
@@ -92,7 +92,7 @@ private class RecordingDotSpan(density: Float) : android.text.style.ReplacementS
 
 /** Same static red as the recording dot; cached drawable, no extra layout or touch target. */
 private class LightStatusSpan(context: Context) : android.text.style.ReplacementSpan() {
-    private val size = (14 * context.resources.displayMetrics.density).toInt()
+    private val size = (21 * context.resources.displayMetrics.density).toInt()
     private val icon = BicycleIcons.drawable(context, BicycleIcon.Light, Color.RED).apply { setBounds(0, 0, size, size) }
     override fun getSize(paint: android.graphics.Paint, text: CharSequence, start: Int, end: Int,
                          fm: android.graphics.Paint.FontMetricsInt?): Int {

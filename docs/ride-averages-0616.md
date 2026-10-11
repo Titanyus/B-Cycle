@@ -17,3 +17,12 @@ Die automatisierten Prüfungen ersetzen keine echte Fahrt oder den Test mit dem 
 Vollständige Testsuite und geschrumpfter Release-Build: 164 Tests, 0 Fehler, 0 Auslassungen; 1 Minute 7 Sekunden. Neue Regressionen prüfen synchronisierte GPS-Durchschnitte bei zusätzlichen Bildschirmticks/verzögerter Zustellung, Kadenzpausen ohne Veränderung der offiziellen FIT-Records, Garmin-Validierung inklusive Bewegungszeit, begrenzte Trendhistorie, unterbrochene Glow-Fades sowie Breite/Theme/Navigationsziel der neuen Dashboard-Abkürzung. Bewegungszeit bleibt beim Index-Neuladen erhalten.
 
 APK 0.6.16 (Code 32): 901.581 Bytes, vorhandenes Testzertifikat, Signatur erfolgreich geprüft. Nur APK und SHA-256-Datei wurden auf GitHub veröffentlicht (Commit `26d64e1d4a0dc1a3e17d6c8e317717b4ccd5a7d3`); heruntergeladene APK bytegenau verglichen. Bekannte Warnung: veraltetes Android-`onBackPressed()` in bestehender Navigation; keine neue Compilerwarnung.
+
+## Chevron bei langsam veränderlichen Durchschnittswerten
+
+Die Trendanzeige vergleicht weiterhin Werte über ungefähr zehn Sekunden. Die frühere
+Mindeständerung von 0,05 ließ den Pfeil auf längeren Fahrten verschwinden, obwohl
+der Schnitt kontinuierlich stieg. Jetzt wird nur numerisches Rundungsrauschen
+(Änderung bis 0,000001) ignoriert. Ein unveränderter Schnitt hat keinen Pfeil.
+Nach mehr als 15 Sekunden ohne Anzeige beginnt das Beobachtungsfenster neu;
+bei anhaltendem Trend erscheint das Chevron nach acht Sekunden wieder.

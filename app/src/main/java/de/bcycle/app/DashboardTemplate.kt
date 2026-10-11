@@ -16,8 +16,8 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
         else -> slots.chunked(2)
     }
     fun rowWeight(index: Int, wide: Boolean = false) = when {
-        this == DATA && index == 1 -> 2f
-        this == HERO && index == 0 -> if (wide) 3f else 2f
+        this == DATA && index == 1 -> 2f * LARGE_COMPACT_RATIO
+        this == HERO && index == 0 -> (if (wide) 3f else 2f) * LARGE_COMPACT_RATIO
         else -> 1f
     }
     /** Calibrate all presets against DATA, rather than stretching fewer rows. */
@@ -30,5 +30,8 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
             rows.indices.sumOf { (compactRow * rowWeight(it, wide)).toInt() } + rows.size - 1
         return height.coerceIn(0, available.coerceAtLeast(0))
     }
-    companion object { fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: DATA }
+    companion object {
+        // Halve the large label area while keeping the original value-row space.
+        const val LARGE_COMPACT_RATIO = .75f / .85f
+        fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: DATA }
 }

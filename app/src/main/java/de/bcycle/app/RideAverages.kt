@@ -24,7 +24,9 @@ internal class AverageTrends {
         val first = points.first()
         if (now - first.first < 8_000) return 0
         val delta = number - first.second
-        return when { delta > .05 -> 1; delta < -.05 -> -1; else -> 0 }
+        // Cumulative averages change progressively less as the ride gets longer.
+        // Ignore floating-point noise, rather than requiring a visible decimal step.
+        return when { delta > .000001 -> 1; delta < -.000001 -> -1; else -> 0 }
     }
 }
 

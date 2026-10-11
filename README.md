@@ -6,28 +6,38 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.6.20 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.6.20/downloads/B-Cycle-0.6.20-test.apk)**
+**[APK 0.6.21 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.6.21/downloads/B-Cycle-0.6.21-test.apk)**
 
-- Größe: **934.741 Byte**, rund **935 KB**.
+- Größe: **934,741 Byte**, rund **935 KB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.6.20-test.apk.sha256):
-  `d24963f43c6c4e4c764f85fe79e19d96144aabf13ef0e2bbc33cf594b8930009`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.6.21-test.apk.sha256):
+  `01215120eb80efdeb2ec58fe4e53705b806571046da62f31f1f3f40fb5fc775e`.
 
-Für diesen APK-Build: **211 Tests bestanden**, Signatur und Version geprüft.
-Tests und optimierter Release-Build dauerten zusammen **1 Minute**.
-Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`;
-für diesen Build wurde kein neuer vollständiger Android-Lint-Lauf durchgeführt.
+Für diesen APK-Build: **213 Tests bestanden**, Signatur und Version geprüft.
+Tests und optimierter Release-Build dauerten zusammen **1 Minute 7 Sekunden**.
+Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
 Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
 
-## Meilenstein 0.6.20
+## Meilenstein 0.6.21
 
-Der Tag [v0.6.20](https://github.com/Titanyus/B-Cycle/tree/v0.6.20) sichert den
+Der Tag [v0.6.21](https://github.com/Titanyus/B-Cycle/tree/v0.6.21) sichert den
 vollständigen Quellcode, Tests, Build-Konfiguration, Dokumentation und die signierte APK.
-Er dient als Ausgangspunkt für spätere Bereinigungs- und Optimierungsarbeiten.
-Vorherige Versionen und die bisherigen Einstellungsicons bleiben erhalten.
+Die früheren Meilensteine bleiben erhalten, einschließlich der Vergleichsbasis v0.6.20.
+Details: [Meilenstein 0.6.21](docs/milestone-0621.md).
+
+## Neu in 0.6.21
+
+- Kartenwerte und Record-Punkt rund 30 % größer, Lichtanzeige 50 % größer.
+- Große Dashboard-Felder kompakter, mehr Platz für die Karte; kleine Felder unverändert.
+- GPX-Linie dunkelblau, 6 dp breit, jetzt mit 50 % Deckkraft.
+- Kartenbuttons und untere Bedienleiste verschwinden nach fünf Sekunden nur während
+  erkannter Bewegung und erscheinen bei Stillstand oder fehlender frischer Geschwindigkeit.
+- Durchschnitts-Chevrons erkennen auch die langsame Änderung nach längeren Fahrten.
+  Nach längerer App-Pause werden etwa acht Sekunden neue Werte für den Trend benötigt.
+- Lichtstatus inzwischen am echten Fahrrad bestätigt.
 
 ## Neu in 0.6.20
 
@@ -48,7 +58,7 @@ Vorherige Versionen und die bisherigen Einstellungsicons bleiben erhalten.
   der Aufzeichnung der rote Record-Punkt. Beide funktionieren auch ohne belegtes Feld.
 - Der Streckenmanager-Shortcut unten verwendet dasselbe `route`-Icon wie das Einstellungsmenü.
 
-**Der Lichtstatus ist noch nicht am Fahrrad bestätigt.** Unsere erprobte Verbindung
+**Der Lichtstatus wurde inzwischen am Fahrrad bestätigt.** Unsere erprobte Verbindung
 nutzt MCSP und fragt den optionalen Booleanwert unter `0x181C` ab. Das Enum-Feld
 `bike_light = 17` der Bosch-PDF gehört zur anderen LDI-Schnittstelle und wird nicht
 mit der MCSP-Kodierung vermischt. Unbekannt ist kein „Aus“; bei fehlendem oder
@@ -106,7 +116,7 @@ Details: [Offline-Sonnenwerte](docs/solar-weather.md) und
   besitzen einen Richtungsindikator.
 - Mapsforge-Karte mit CyclOSM-Online-Kacheln und importierbaren Offline-Karten.
   Online-Kacheln benötigen Internet.
-- Importierte Strecke: dunkelblau, **6 dp**, **35 % Deckkraft**.
+- Importierte Strecke: dunkelblau, **6 dp**, **50 % Deckkraft**.
   Aktuelle Position mit Höhenangabe bei verfügbarem GPS-Höhenwert;
   bei genordeter, nachgeführter Karte liegt die Position auf zwei Dritteln der Höhe.
 - Das Auge links oben blendet die gewählte Strecke ein/aus und behält die Auswahl.
@@ -154,7 +164,7 @@ BLE-Puls, GPS-Filter und Durchschnittswerte, Speicherabläufe und Rücknavigatio
 Themes und native UI-Darstellung, Performance-/Energiekennzahlen, Garmin-FIT,
 Offline-Sonnenzeiten sowie Lichtstatus und Kartenoverlay. Tests ersetzen keinen
 Hardwaretest. Bosch-Livedaten und Pulsmesser wurden in früheren Versionen am Rad
-bestätigt; die neue Lichtfunktion muss noch praktisch getestet werden.
+bestätigt; inzwischen auch die Lichtfunktion.
 
 Zum Kompilieren des jeweiligen Quellcode-Standes: JDK 17 oder 21,
 Android-SDK Plattform 35 und Build-Tools 35.0.0; `ANDROID_HOME` auf das SDK setzen.

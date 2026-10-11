@@ -26,6 +26,40 @@ class MapPanelTest {
         view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
         view.layout(0, 0, width, height)
     }
+    private fun speed(panel: MapPanel, mps: Double) {
+        val runtime = RideRuntime.get(panel.context)
+        val now = SystemClock.elapsedRealtime()
+        runtime.ride.gps.accept(GpsFix(now, 51.0, 10.0, 3.0, speedMps = mps), now)
+        panel.refresh()
+    }
+    private fun hideWhileMoving(panel: MapPanel) {
+        speed(panel, 5.0)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(4))
+        speed(panel, 5.0)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2))
+    }
+    @Test fun stationaryAndUnknownSpeedKeepControlsVisibleAndStoppingRestoresThem() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val root = controller.get().findViewById<ViewGroup>(android.R.id.content)
+            measure(root, 1080, 2100)
+            val panel = descendants(root).filterIsInstance<MapPanel>().single()
+            val toolbar = descendants(root).single { it.tag == "ride_toolbar" }
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+            assertEquals(View.VISIBLE, toolbar.visibility)
+            hideWhileMoving(panel)
+            assertEquals(View.GONE, toolbar.visibility)
+            speed(panel, 0.0)
+            assertEquals(View.VISIBLE, toolbar.visibility)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+            assertEquals(View.VISIBLE, toolbar.visibility)
+            hideWhileMoving(panel)
+            assertEquals(View.GONE, toolbar.visibility)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+            panel.refresh()
+            assertEquals(View.VISIBLE, toolbar.visibility)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun routeShortcutMatchesSettingsWidthAndThemeAndOpensTheManagerDirectly() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -62,7 +96,7 @@ class MapPanelTest {
             val dashboard = descendants(root).filterIsInstance<DashboardView>().single()
             val dataHeight = dashboard.height
             val mapHeight = panel.height
-            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+            hideWhileMoving(panel)
             assertEquals(View.GONE, controls.visibility)
             assertEquals(View.GONE, toolbar.visibility)
             measure(root, 1080, 2100)
@@ -134,7 +168,7 @@ class MapPanelTest {
             assertEquals("Strecke einblenden", routes.contentDescription)
             routes.performClick(); panel.refresh()
             assertTrue(RideRuntime.get(controller.get()).preferences.getBoolean("mapGpxVisible", false))
-            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+            hideWhileMoving(panel)
             assertEquals(View.GONE, zoom.visibility); assertEquals(View.GONE, routes.visibility)
             panel.revealControls(); measure(root, 1080, 2100)
             assertEquals(View.VISIBLE, zoom.visibility); assertEquals(View.VISIBLE, routes.visibility)
