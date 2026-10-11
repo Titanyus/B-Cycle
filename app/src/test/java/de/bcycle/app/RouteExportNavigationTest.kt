@@ -14,13 +14,14 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowAlertDialog
+import org.robolectric.shadows.ShadowListPopupWindow
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class RouteExportNavigationTest {
     private fun descendants(view: View): List<View> = listOf(view) +
         if (view is ViewGroup) (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
-    @Test fun footerImportOffersBothOriginsWithIconsAndKeepsManagerOnCancel() {
+    @Test fun footerDropdownOffersBothOriginsWithIconsWithoutOpeningAnotherDialog() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity = controller.get()
@@ -36,22 +37,29 @@ class RouteExportNavigationTest {
             assertNotNull(import.compoundDrawablesRelative[0])
             assertFalse(descendants(manager.window!!.decorView).any { it.tag == "route_recover" })
             import.performClick()
-            var choice = ShadowAlertDialog.getLatestAlertDialog()
-            for (tag in listOf("route_import_planned", "route_import_recorded")) {
-                val button = descendants(choice.window!!.decorView).single { it.tag == tag } as android.widget.Button
-                assertNotNull(button.compoundDrawablesRelative[0])
+            var choice = ShadowListPopupWindow.getLatestListPopupWindow()
+            assertSame(manager, ShadowAlertDialog.getLatestAlertDialog())
+            assertTrue(choice.isShowing)
+            for (position in 0..1) {
+                val row = choice.listView!!.adapter.getView(position, null, choice.listView) as android.widget.TextView
+                assertNotNull(row.compoundDrawablesRelative[0])
             }
-            choice.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            choice.dismiss(); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
-            for ((tag, code) in listOf("route_import_planned" to 8, "route_import_recorded" to 9)) {
-                import.performClick(); choice = ShadowAlertDialog.getLatestAlertDialog()
-                descendants(choice.window!!.decorView).single { it.tag == tag }.performClick()
+            for ((position, code) in listOf(0 to 8, 1 to 9)) {
+                import.performClick(); choice = ShadowListPopupWindow.getLatestListPopupWindow()
+                val list = choice.listView!!
+                list.performItemClick(list.adapter.getView(position, null, list), position, position.toLong())
                 shadowOf(Looper.getMainLooper()).idle()
+                assertFalse(choice.isShowing)
                 val request = shadowOf(activity).nextStartedActivityForResult
                 assertEquals(android.content.Intent.ACTION_OPEN_DOCUMENT, request.intent.action)
                 assertEquals(code, request.requestCode)
                 assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
+                assertSame(manager, ShadowAlertDialog.getLatestAlertDialog())
             }
+            import.performClick(); choice = ShadowListPopupWindow.getLatestListPopupWindow()
+            manager.dismiss(); shadowOf(Looper.getMainLooper()).idle(); assertFalse(choice.isShowing)
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun settingsCancelReturnsToSameManagerAndSaveAppliesIndependentOutputsWithoutClosingRootMenu() {

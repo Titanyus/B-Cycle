@@ -32,10 +32,11 @@ internal class RouteSymbolDrawable(private val symbol: RouteSymbol) : Drawable()
                 canvas.drawCircle(17f, 5f, 3f, paint); line(15f, 7f, 17f, 10f); line(17f, 10f, 19f, 7f)
             }
             RouteSymbol.RIDE -> {
-                line(5f, 3f, 5f, 21f); canvas.drawRect(5f, 3f, 20f, 14f, paint)
-                paint.style = Paint.Style.FILL
-                for (row in 0..1) for (col in 0..2) if ((row + col) % 2 == 0)
-                    canvas.drawRect(5f + col * 5, 3f + row * 5.5f, 10f + col * 5, 8.5f + row * 5.5f, paint)
+                canvas.drawCircle(5f, 16f, 4f, paint); canvas.drawCircle(19f, 16f, 4f, paint)
+                path.reset(); path.moveTo(5f, 16f); path.lineTo(9f, 8f); path.lineTo(14f, 16f)
+                path.lineTo(5f, 16f); path.lineTo(16f, 8f); path.lineTo(19f, 16f); canvas.drawPath(path, paint)
+                line(7f, 6f, 11f, 6f); line(9f, 6f, 9f, 8f)
+                line(16f, 8f, 15f, 4f); line(15f, 4f, 19f, 4f)
             }
             RouteSymbol.FIT, RouteSymbol.GPX -> {
                 path.reset(); path.moveTo(5f, 3f); path.lineTo(15f, 3f); path.lineTo(20f, 8f); path.lineTo(20f, 21f); path.lineTo(5f, 21f); path.close()
@@ -44,8 +45,9 @@ internal class RouteSymbolDrawable(private val symbol: RouteSymbol) : Drawable()
                 canvas.drawText(symbol.name, 12.5f, 16.5f, paint)
             }
             RouteSymbol.LOCAL -> {
-                canvas.drawRoundRect(4f, 3f, 20f, 21f, 1.5f, 1.5f, paint)
-                canvas.drawRect(8f, 3f, 16f, 9f, paint); canvas.drawRect(8f, 14f, 16f, 21f, paint)
+                canvas.drawRoundRect(6f, 2f, 18f, 22f, 1.5f, 1.5f, paint)
+                line(6f, 18f, 18f, 18f)
+                paint.style = Paint.Style.FILL; canvas.drawCircle(12f, 20f, .7f, paint)
             }
             RouteSymbol.CLOUD, RouteSymbol.PENDING, RouteSymbol.ERROR -> {
                 path.reset(); path.moveTo(5f, 19f); path.cubicTo(0f, 18f, 2f, 11f, 6f, 11f)

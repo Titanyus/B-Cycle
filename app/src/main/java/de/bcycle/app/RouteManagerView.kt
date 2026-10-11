@@ -56,7 +56,7 @@ internal class RouteManagerView(context: Context,
                 tag = "route_settings"; contentDescription = "Streckeneinstellungen öffnen"; minWidth = 0; minimumWidth = 0
                 setPadding(0, 0, 0, 0); setOnClickListener { settings() } }, LayoutParams(dp(48), dp(48)))
         }, LayoutParams(-1, -2))
-        val filterColor = Color.rgb(98, 0, 0)
+        val filterColor = Color.rgb(116, 0, 0)
         fun filterBackground() = GradientDrawable().apply { setColor(filterColor); cornerRadius = dp(6).toFloat() }
         filter.background = LayerDrawable(arrayOf(filterBackground(), RouteSymbolDrawable(RouteSymbol.DOWN))).apply {
             setLayerSize(1, dp(20), dp(20)); setLayerGravity(1, Gravity.END or Gravity.CENTER_VERTICAL); setLayerInsetEnd(1, dp(12))
@@ -78,7 +78,8 @@ internal class RouteManagerView(context: Context,
         }
         addView(status)
         val list = ListView(context).apply {
-            tag = "route_list"; adapter = rows; divider = null; dividerHeight = dp(8)
+            tag = "route_list"; adapter = rows
+            divider = android.graphics.drawable.ColorDrawable(Color.WHITE); dividerHeight = 1
             setPadding(dp(8), 0, dp(8), dp(8)); clipToPadding = false
             setOnItemClickListener { _, _, position, _ -> if (!busy) actions(filtered[position]) }
         }
@@ -123,20 +124,21 @@ internal class RouteManagerView(context: Context,
         private fun action() = ImageButton(context).apply {
             setPadding(dp(3), dp(3), dp(3), dp(3)); scaleType = ImageView.ScaleType.FIT_CENTER; background = null
         }
-        private val eye = action()
+        private val eye = action().apply { setPadding(dp(10), dp(10), dp(10), dp(10)) }
         private val more = action().apply { setPadding(dp(10), dp(10), dp(10), dp(10)); setImageDrawable(RouteSymbolDrawable(RouteSymbol.MORE)) }
         init {
             orientation = VERTICAL; setPadding(dp(10), dp(8), dp(4), dp(8))
-            background = GradientDrawable().apply { setColor(Color.rgb(116, 0, 0)); cornerRadius = dp(12).toFloat() }
             addView(LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
                 addView(title, LayoutParams(0, dp(28), 1f).apply { rightMargin = dp(6) }); addView(badges) }, LayoutParams(-1, -2))
             addView(LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
                 addView(preview, LayoutParams(dp(58), dp(76)))
                 addView(LinearLayout(context).apply { orientation = VERTICAL; setPadding(dp(8), 0, 0, 0)
                     addView(date, LayoutParams(-1, -2).apply { bottomMargin = dp(8) })
-                    addView(metrics, LayoutParams(-1, -2)) }, LayoutParams(0, -2, 1f))
-                addView(LinearLayout(context).apply { orientation = VERTICAL
-                    addView(more, LayoutParams(dp(48), dp(48))); addView(eye, LayoutParams(dp(48), dp(48))) }) }, LayoutParams(-1, -2))
+                    addView(metrics, LayoutParams(-1, -2))
+                    addView(LinearLayout(context).apply { orientation = HORIZONTAL; gravity = Gravity.END
+                        addView(eye, LayoutParams(dp(48), dp(48))); addView(more, LayoutParams(dp(48), dp(48)))
+                    }, LayoutParams(-1, dp(48))) }, LayoutParams(0, -2, 1f))
+            }, LayoutParams(-1, -2))
         }
         private fun TextView.symbol(kind: RouteSymbol) {
             setCompoundDrawablesRelative(RouteSymbolDrawable(kind).apply { setBounds(0, 0, dp(18), dp(18)) }, null, null, null)
@@ -151,7 +153,7 @@ internal class RouteManagerView(context: Context,
                 setImageDrawable(RouteSymbolDrawable(kind)); scaleType = ImageView.ScaleType.FIT_CENTER
                 contentDescription = description; tooltipText = description
                 setPadding(dp(3), dp(3), dp(3), dp(3))
-                background = GradientDrawable().apply { setColor(context.getColor(R.color.start_red)); cornerRadius = dp(4).toFloat() }
+                background = GradientDrawable().apply { setColor(context.getColor(R.color.settings_red)); cornerRadius = dp(4).toFloat() }
             }, LayoutParams(dp(26), dp(26)).apply { marginStart = dp(3) })
         }
         fun bind(entry: ManagedRoute) {

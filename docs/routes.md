@@ -116,15 +116,26 @@ Filter/Recycling/Rücknavigation ab. Die Bedienung am Poco muss noch getestet we
 Die beiden Importbuttons oberhalb der Liste werden durch **Importieren** unten
 links neben **Schließen** ersetzt. Die Auswahl mit Symbolen ordnet eine geplante
 GPX-/FIT-Strecke weiterhin als importiert und eine übernommene FIT-Aufzeichnung
-als gefahren ein; Datei- und Speicherabläufe bleiben erhalten. Abbrechen bringt
-dieselbe Streckenliste zurück. Während Dateioperationen ist Importieren gesperrt.
+als gefahren ein; Datei- und Speicherabläufe bleiben erhalten. Ab Version 0.6.10
+öffnet sich diese Auswahl als Dropdown direkt am Importieren-Button, ohne
+zusätzlichen Dialog. Schließen des Dropdowns lässt die Streckenliste geöffnet.
+Während Dateioperationen ist Importieren gesperrt.
 
-Der feste Filter ist dunkelrot. Einzeilige Titel enden bei Bedarf mit „…“.
-Herkunft, FIT/GPX und private Speicherung werden durch weiße Symbole auf Hellrot
-oben rechts angezeigt; WebDAV-Status erhält ein zusätzliches Cloud-Symbol
+Der feste Filter verwendet ab 0.6.10 dasselbe Dunkelrot wie die Streckenkarten.
+Einzeilige Titel enden bei Bedarf mit „…“.
+Herkunft, FIT/GPX und private Speicherung werden durch weiße Symbole
+oben rechts angezeigt. Ab 0.6.10 zeigen sie Fahrrad, Download-Pfeil, FIT-/GPX-Datei
+und Smartphone; ihre Flächen verwenden das Rot des Einstellungsfensters.
+Der WebDAV-Status erhält ein zusätzliches Cloud-Symbol
 (gesichert, ausstehend/pausiert/laufend oder Fehler). Alle Kennzeichen haben
 sprechende Beschreibungen für TalkBack und Tooltips mit den vollständigen Angaben.
 Die bisherigen Herkunfts-/Dateiformat-/Speichertextzeilen entfallen. Vor Datum,
 Distanz und Dauer stehen Symbole; alle drei Texte verwenden 14 sp. Bei zu wenig
 Breite stehen Kilometer und Dauer untereinander, ohne Schriftverkleinerung.
-Rechts sind ⋮ und das weiße Auge in eigenen 48-dp-Berührungsflächen angeordnet.
+Rechts unten stehen das kleinere weiße Auge und ⋮ ab 0.6.10 nebeneinander
+in eigenen 48-dp-Berührungsflächen. Die Vorschau und Datentexte nutzen
+dadurch die volle restliche Zeilenbreite.
+
+Ab 0.6.10 haben die Fahrteinträge keine eigene Hintergrundbox mehr. Eine weiße
+horizontale Linie von einem Pixel trennt die Einträge; das Filter-Dropdown behält
+den zuvor verwendeten dunkleren Rotton.
