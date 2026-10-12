@@ -22,7 +22,7 @@ Beim Speichern wird nur der jeweilige Teil in die frisch gelesene vorhandene `Ro
 | Sicherungsbereich | Exportierte Werte / Quelle |
 | --- | --- |
 | Design & UI | Aktive Theme-ID, vorhandene Custom-Themes mit fünf validierten Farbrollen (`ThemeManager`), Fahrmodus-Glow (`ModeGlowSettings`) |
-| Dashboard | Vier Seiten mit sieben stabilen Datenfeld-IDs (`DashboardLayout`) und Layout-ID (`DashboardTemplate`), drei globale Karten-Datenfeldbelegungen |
+| Dashboard | Vier Seiten mit acht stabilen Datenfeld-IDs (`DashboardLayout`) und Layout-ID (`DashboardTemplate`), drei globale Karten-Datenfeldbelegungen |
 | Aufzeichnung & FIT | Auswahl aus `RecordField.options`, Geschwindigkeits-/Distanzquelle (`RecordingConfig`), automatischer lokaler Speicherschalter aus `RouteExportConfig` |
 | Karten & Navigation | Kartenquelle (`MapSource`), Nachtmodus, Folgen, Ausrichtung, Track-/GPX-Sichtbarkeitspräferenzen |
 | Fahrerprofil | Sechs optionale Angaben aus `RiderProfileStore`; Karvonen-Zonen/Alter werden neu berechnet |
@@ -44,7 +44,7 @@ Import verwendet `ACTION_OPEN_DOCUMENT`, liest ein begrenztes UTF-8-Dokument und
 
 - Maximal 256 KiB; UTF-8 muss gültig sein. Vor dem JSON-Parser maximal 32 Ebenen; nach dem Rootobjekt keine angehängten Inhalte.
 - Bekannte Werte besitzen strikt geprüfte Typen. Keine Boolean-/Zahlen-Strings, unvollständigen Zahlen oder unzulässigen Werte übernehmen.
-- Dashboard-/Recording-/Layout-/Karten-IDs müssen in den vorhandenen Definitionen vorkommen; Seitenindizes eindeutig, jeweils 0–3; sieben Felder je angegebener Seite, drei Kartenbelegungen.
+- Dashboard-/Recording-/Layout-/Karten-IDs müssen in den vorhandenen Definitionen vorkommen; Seitenindizes eindeutig, jeweils 0–3; acht Felder je angegebener Seite, drei Kartenbelegungen. Ältere Sicherungen mit sieben Feldern bleiben gültig; das vorhandene achte Feld bleibt dann erhalten.
 - Custom-Themes: höchstens 32, eindeutige IDs, vorhandene `ThemeValidator`-Prüfung einschließlich Kontrast. Presets werden nicht überschrieben.
 - Profile: vorhandene `RiderProfileValidation`, einschließlich Geburt/Dezimalgewicht/Pulsordnung/FTP. Keine Alters-/Zonenwerte speichern.
 - Cloud: HTTPS ohne URL-Zugangsdaten, Query oder Fragment; gültiger Benutzer, relativer Ordner ohne Traversal/Backslashes. Keine lokalen Dateipfade/URIs übernehmen. Auch der Export verweigert ungültige Konfigurationen bzw. in URLs eingebettete Zugangsdaten.

@@ -122,10 +122,10 @@ class SettingsMenuTest {
             views(dialog).single { it.tag == "preset_HERO_SEVEN" }.performClick()
             assertTrue(views(dialog).single { it.tag == "preset_HERO_SEVEN" }.isSelected)
             views(dialog).single { it.tag == "preset_page_1" }.performClick()
-            views(dialog).single { it.tag == "preset_HERO_FIVE" }.performClick()
+            views(dialog).single { it.tag == "preset_EIGHT" }.performClick()
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
             assertEquals("HERO_SEVEN", prefs.getString("dashboardTemplate_0", null))
-            assertEquals("HERO_FIVE", prefs.getString("dashboardTemplate_1", null))
+            assertEquals("EIGHT", prefs.getString("dashboardTemplate_1", null))
             assertEquals(DashboardTemplate.HERO_SEVEN, descendants(activity.findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single().template)
             assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }

@@ -61,6 +61,28 @@ class SettingsBackupTest {
         before.filterKeys { !it.startsWith("dashboard") && !it.startsWith("mapDataField") }.forEach { (k,v)->assertEquals(k,v,bike.all[k]) }
         assertEquals(300,RiderProfileStore(context.getSharedPreferences("bike",0)).read().ftpW)
     }
+    @Test fun eightFieldDashboardBackupRoundTripsAndLegacyBackupPreservesTheNewSlot() {
+        seed()
+        val original=DashboardLayout.defaults.replace(7,DashboardField("GPS_MOVING_TIME"))
+        bike.edit().putString("dashboard",original.encode()).putString("dashboardTemplate_0","EIGHT").commit()
+        val b=backup();val bytes=b.export(setOf(BackupSection.DASHBOARD))
+        bike.edit().putString("dashboard",DashboardLayout.defaults.encode()).putString("dashboardTemplate_0","DATA").commit()
+        val doc=b.decode(bytes);b.apply(b.plan(doc,doc.sections.keys))
+        assertEquals(original.encode(),bike.getString("dashboard",null))
+        assertEquals("EIGHT",bike.getString("dashboardTemplate_0",null))
+        val old=json(bytes)
+        old.getJSONObject("sections").getJSONObject("dashboard").getJSONArray("pages").getJSONObject(0)
+            .put("fields",JSONArray(original.fields.take(7).map { it.id })).put("layout","DATA")
+        val updated=original.replace(7,DashboardField("HEART_AVERAGE"))
+        bike.edit().putString("dashboard",updated.encode()).commit()
+        val legacy=b.decode(old.toString().toByteArray());b.apply(b.plan(legacy,legacy.sections.keys))
+        assertEquals(updated.encode(),bike.getString("dashboard",null))
+        val invalid=json(bytes)
+        invalid.getJSONObject("sections").getJSONObject("dashboard").getJSONArray("pages").getJSONObject(0)
+            .getJSONArray("fields").put("HEART_RATE")
+        failAs(BackupProblem.INVALID) { b.decode(invalid.toString().toByteArray()) }
+    }
+
     @Test fun multiSectionRestoreRecolorsThemeAndRestoresProfileZonesButKeepsLocalUriAndSecrets() {
         seed();val theme=ThemeManager(bike)
         val custom=CustomTheme("custom:backup-light","My theme",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),0xff000000.toInt()))

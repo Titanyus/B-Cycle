@@ -188,13 +188,14 @@ data class DashboardValue(val text: String, val unit: String, val available: Boo
 
 class DashboardLayout private constructor(val fields: List<DashboardField>) {
     fun replace(index: Int, field: DashboardField): DashboardLayout {
-        require(index in 0..6 && DashboardField.fromId(field.id) != null)
+        require(index in fields.indices && DashboardField.fromId(field.id) != null)
         return DashboardLayout(fields.mapIndexed { position, previous -> if (position == index) field else previous })
     }
     fun encode() = fields.joinToString("|") { it.id }
 
     companion object {
-        val defaults get() = DashboardLayout(listOf("RIDER_POWER", "CADENCE", "SPEED", "BATTERY", "ASSIST_MODE", "ODOMETER", "MOTOR_POWER").map { DashboardField(it) })
+        const val FIELD_COUNT = 8
+        val defaults get() = DashboardLayout(listOf("RIDER_POWER", "CADENCE", "SPEED", "BATTERY", "ASSIST_MODE", "ODOMETER", "MOTOR_POWER", "HEART_RATE").map { DashboardField(it) })
         fun decode(encoded: String?): DashboardLayout {
             val saved = encoded?.split('|').orEmpty()
             return DashboardLayout(defaults.fields.mapIndexed { index, fallback ->

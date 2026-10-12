@@ -124,7 +124,14 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     if(row.has("pages")) {
                         val a=array(row,"pages",4);val indices=mutableSetOf<Int>()
                         repeat(a.length()) { i -> val page=a.opt(i) as? JSONObject ?: fail();val index=integer(page,"index");check(index in 0..3 && indices.add(index))
-                            if(page.has("fields")) { val fields=strings(array(page,"fields",7));check(fields.size==7 && fields.all { DashboardField.fromId(it)!=null });b[if(index==0) "dashboard" else "dashboard_$index"]=fields.joinToString("|") }
+                            if(page.has("fields")) {
+                                val fields=strings(array(page,"fields",DashboardLayout.FIELD_COUNT))
+                                check(fields.size in 7..DashboardLayout.FIELD_COUNT && fields.all { DashboardField.fromId(it)!=null })
+                                val key=if(index==0) "dashboard" else "dashboard_$index"
+                                // Older backups contain seven slots; keep the new slot's current choice.
+                                val current=DashboardLayout.decode(bike.getString(key,null)).fields
+                                b[key]=(fields + current.drop(fields.size).map { it.id }).joinToString("|")
+                            }
                             if(page.has("layout")) { val layout=field(page,"layout",30);check(DashboardTemplate.entries.any { it.name==layout });b["dashboardTemplate_$index"]=layout }
                         }
                     }

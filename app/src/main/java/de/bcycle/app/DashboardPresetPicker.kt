@@ -10,7 +10,7 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 
-/** Four saved pages; eight graphical presets with a draft until Save is pressed. */
+/** Four saved pages; nine graphical presets with a draft until Save is pressed. */
 internal class DashboardPresetPicker(context: Context, initial: List<DashboardTemplate>, initialPage: Int, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0))) : LinearLayout(context) {
     val selection = initial.toMutableList()
     private var page = initialPage

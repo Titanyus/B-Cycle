@@ -118,7 +118,7 @@ class DashboardViewTest {
 
     @Test fun presetsShareReferenceTileHeightsAndSmallFontsInsteadOfStretchingToFillTheirArea() {
         val context = RuntimeEnvironment.getApplication()
-        val fieldLayout = DashboardLayout.decode(List(7) { "RIDER_POWER" }.joinToString("|"))
+        val fieldLayout = DashboardLayout.decode(List(DashboardLayout.FIELD_COUNT) { "RIDER_POWER" }.joinToString("|"))
         for ((width, available) in listOf(1080 to 2100, 720 to 1440, 1950 to 750)) {
             fun rendered(template: DashboardTemplate): Pair<DashboardView, List<ViewGroup>> {
                 val view = DashboardView(context) {}
@@ -179,6 +179,24 @@ class DashboardViewTest {
         }
     }
 
+    @Test fun ninthPresetShowsEightIndependentFieldsInTwoThreeThreeRows() {
+        val clicked = mutableListOf<Int>()
+        val context = RuntimeEnvironment.getApplication()
+        val view = DashboardView(context) { clicked += it }
+        view.setTemplate(DashboardTemplate.EIGHT)
+        for ((width, available) in listOf(720 to 1440, 1080 to 2100, 1950 to 750)) {
+            measure(view, width, view.heightForViewport(width, available))
+            val rows = (0 until view.childCount).map { view.getChildAt(it) }.filterIsInstance<android.widget.LinearLayout>()
+            assertEquals(listOf(2, 3, 3), rows.map { row -> descendants(row).count { it.isClickable } })
+            val tiles = descendants(view).filter { it.isClickable }
+            assertTrue(tiles.maxOf { it.height } - tiles.minOf { it.height } <= 1)
+            assertTrue(view.height < available)
+            clicked.clear(); tiles.forEach { it.performClick() }
+            assertEquals((0 until DashboardLayout.FIELD_COUNT).toList(), clicked)
+        }
+        assertEquals(DashboardTemplate.EIGHT, DashboardTemplate.decode("EIGHT"))
+    }
+
     @Test fun allPresetCaptionsKeepExactlyTheSameSmallerSizeAndUnitGrayEvenForLongNames() {
         val context = RuntimeEnvironment.getApplication()
         val expected = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
@@ -187,7 +205,7 @@ class DashboardViewTest {
             val view = DashboardView(context) {}
             view.setTemplate(template)
             for (field in listOf(DashboardField("CADENCE"), DashboardField("GPS_MOVING_AVERAGE"), DashboardField("MOTOR_POWER"))) {
-                view.show(DashboardLayout.decode(List(7) { field.id }.joinToString("|")), LiveData())
+                view.show(DashboardLayout.decode(List(DashboardLayout.FIELD_COUNT) { field.id }.joinToString("|")), LiveData())
                 for ((width, height) in listOf(720 to 1440, 1080 to 2100, 1950 to 750)) {
                     measure(view, width, view.heightForViewport(width, height))
                     descendants(view).filter { it.isClickable }.forEach { tile ->
@@ -202,7 +220,7 @@ class DashboardViewTest {
         }
     }
 
-    @Test fun eightPreviewTilesKeepExistingOrderAndNewChoicesRemainIndependentPerPage() {
+    @Test fun ninePreviewTilesKeepExistingOrderAndNewChoicesRemainIndependentPerPage() {
         val context = RuntimeEnvironment.getApplication()
         val initial = DashboardTemplate.entries.take(4)
         val picker = DashboardPresetPicker(context, initial, 0)
@@ -216,6 +234,9 @@ class DashboardViewTest {
         tiles.single { it.tag == "preset_HERO_FIVE" }.performClick()
         assertEquals(listOf(DashboardTemplate.HERO_SEVEN, DashboardTemplate.HERO_FIVE) + initial.drop(2), picker.selection)
         assertEquals(DashboardTemplate.entries.take(4), initial)
+        descendants(picker).single { it.tag == "preset_page_2" }.performClick()
+        tiles.single { it.tag == "preset_EIGHT" }.performClick()
+        assertEquals(DashboardTemplate.EIGHT, picker.selection[2])
     }
 
     @Test fun bikeSelectionLivesInSensorManagerAlongsidePulseSelection() {
@@ -284,6 +305,32 @@ class DashboardViewTest {
         measure(next, 1080, 1950)
         assertTrue(descendants(next).filter { it.isClickable }[2].contentDescription.toString().startsWith("Fahrerleistung:"))
         restarted.pause().stop().destroy()
+    }
+
+    @Test fun eighthFieldSelectionPersistsAfterActivityRestartWithoutChangingOlderSlots() {
+        val context = RuntimeEnvironment.getApplication()
+        val prefs = context.getSharedPreferences("bike", 0)
+        val oldFields = DashboardLayout.defaults.fields.take(7).joinToString("|") { it.id }
+        prefs.edit().clear().putString("dashboardTemplate_0", "EIGHT").putString("dashboard", oldFields).commit()
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val dashboard = descendants(controller.get().findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
+            measure(dashboard, 1080, 900)
+            descendants(dashboard).filter { it.isClickable }[7].performClick()
+            val picker = ShadowAlertDialog.getLatestAlertDialog()
+            selectTestSource(picker, "E-Bike")
+            descendants(picker.window!!.decorView).single { it.tag == "BATTERY" }.performClick()
+            val saved = DashboardLayout.decode(prefs.getString("dashboard", null))
+            assertEquals(oldFields, saved.fields.take(7).joinToString("|") { it.id })
+            assertEquals("BATTERY", saved.fields[7].id)
+        } finally { controller.pause().stop().destroy() }
+        val restarted = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val dashboard = descendants(restarted.get().findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
+            measure(dashboard, 1080, 900)
+            assertEquals(DashboardTemplate.EIGHT, dashboard.template)
+            assertTrue(descendants(dashboard).filter { it.isClickable }[7].contentDescription.toString().startsWith("Akku"))
+        } finally { restarted.pause().stop().destroy() }
     }
 
     @Test fun groupedPickerSelectsGpsSeparatelyFromBikeAndRequestsLocationOnlyWhenChosen() {

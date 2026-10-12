@@ -34,3 +34,24 @@ Die Android-Debug-Kompilierung ist Bestandteil dieses Testlaufs. Keine neue APK 
 visuelle Prüfung auf einem echten Gerät steht noch aus.
 
 Der Stand ist inzwischen in [APK 0.7.7](milestone-077.md) enthalten.
+
+## Ergänzung: Dashboard 9
+
+Dashboard 9 (`EIGHT`) enthält acht unabhängige Slots in drei gleich hohen Reihen:
+2 / 3 / 3. Das Thumbnail verwendet dieselben Reihen und Gewichtungen; die dritte
+Auswahlreihe ist damit vollständig. Die ersten acht Vorlagen behalten IDs und Positionen.
+
+`DashboardLayout.FIELD_COUNT` erweitert die Belegung auf acht Slots. Die bisherigen
+sieben Default-IDs bleiben unverändert; Slot 7 hat initial `HEART_RATE`. Gespeicherte
+Sieben-Feld-Belegungen werden beim Lesen ergänzt, ohne ältere Entscheidungen zu ändern.
+Das achte Feld ist wie alle anderen frei auswählbar und über die vorhandenen Präferenzschlüssel persistent.
+
+Sicherungen enthalten nun acht IDs pro Seite. Alte Sicherungen mit sieben IDs werden
+weiterhin akzeptiert; beim selektiven Wiederherstellen bleibt die bestehende achte
+Belegung erhalten. Unbekannte Feld-IDs oder mehr als acht IDs werden abgewiesen.
+Neue Acht-Feld-Sicherungen benötigen eine App-Version mit dieser Erweiterung.
+
+44 gezielte Tests prüfen bestehende und neue Reihen, Thumbnails, Speicherung, Änderung
+des achten Feldes einschließlich Activity-Neustart, Sieben-Feld-Migration, Backup-Roundtrip
+und alte Backups sowie einheitliche Typografie/Farbe und Glow. Keine neue APK für diese
+Ergänzung; die oben genannte APK 0.7.7 enthält die ersten acht Vorlagen.

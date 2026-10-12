@@ -13,7 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import java.util.Locale
 
-/** Seven native, accessible tiles: 2 / 1 large / 2 / 2. No drawing or UI dependency. */
+/** Native, accessible metric tiles arranged by the selected template. */
 class DashboardView(context: Context, private val selectField: (Int) -> Unit) : LinearLayout(context) {
     internal val modeGlow = BoschModeGlow(BicycleDesign.dp(context, BicycleDesign.modeGlowWidth).toFloat())
     fun showModeGlow(enabled: Boolean, mode: Long?, names: List<String>? = null, batteryPercent: Long? = null) {
@@ -65,7 +65,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     private fun buildTiles(wide: Boolean) {
         removeAllViews(); tiles.clear(); captionGeometry = ""
-        val indexed = List(7) { Tile(it) }
+        val indexed = List(DashboardLayout.FIELD_COUNT) { Tile(it) }
         tiles.addAll(indexed)
         if (template != DashboardTemplate.DATA) {
             orientation = VERTICAL

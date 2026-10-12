@@ -14,7 +14,7 @@ class DashboardLayoutTest {
         assertEquals("E-Bike", fields.single { it.id == "SPEED" }.source)
         assertTrue(fields.any { it.id == "GPS_DISTANCE" })
         assertTrue(fields.any { it.id == "BIKE_DISTANCE" })
-        for (gps in GpsMetric.entries) for (slot in 0..6) {
+        for (gps in GpsMetric.entries) for (slot in DashboardLayout.defaults.fields.indices) {
             val layout = DashboardLayout.defaults.replace(slot, DashboardField(gps.name))
             assertEquals(gps.name, DashboardLayout.decode(layout.encode()).fields[slot].id)
         }
@@ -22,15 +22,25 @@ class DashboardLayoutTest {
         assertEquals(DashboardValue("0,19", "km", true), DashboardField("BIKE_DISTANCE").value(LiveData(), bikeDistanceM = 188))
         assertEquals(DashboardValue("1:01:01", "h:mm:ss", true), DashboardField("GPS_MOVING_TIME").value(LiveData(), GpsValues(movingMs = 3_661_000)))
     }
-    @Test fun allSevenFieldsIncludingLargeCenterCanBeChangedAndRestored() {
+    @Test fun allEightFieldsIncludingLargeCenterCanBeChangedAndRestored() {
         var layout = DashboardLayout.defaults
-        for (index in 0..6) layout = layout.replace(index, DashboardField("RIDER_POWER"))
+        for (index in DashboardLayout.defaults.fields.indices) layout = layout.replace(index, DashboardField("RIDER_POWER"))
         val restored = DashboardLayout.decode(layout.encode())
-        assertEquals(List(7) { DashboardField("RIDER_POWER") }, restored.fields)
+        assertEquals(List(DashboardLayout.FIELD_COUNT) { DashboardField("RIDER_POWER") }, restored.fields)
         assertEquals("83", restored.fields[2].value(LiveData(riderPowerWatts = 83)).text)
         // Rider power has no reserved position and can be removed entirely.
-        for (index in 0..6) layout = layout.replace(index, DashboardField("BATTERY"))
+        for (index in DashboardLayout.defaults.fields.indices) layout = layout.replace(index, DashboardField("BATTERY"))
         assertTrue(layout.fields.none { it.id == "RIDER_POWER" })
+    }
+
+    @Test fun legacySevenFieldSettingsKeepEveryChoiceAndAddOnlyTheEighthFallback() {
+        val original = listOf("BATTERY", "HEART_RATE", "GPS_SPEED", "CADENCE", "RIDER_POWER", "GPS_DISTANCE", "MOTOR_POWER")
+        val restored = DashboardLayout.decode(original.joinToString("|"))
+        assertEquals(original, restored.fields.take(7).map { it.id })
+        assertEquals(DashboardLayout.defaults.fields[7], restored.fields[7])
+        val changed = restored.replace(7, DashboardField("GPS_MOVING_TIME"))
+        assertEquals("GPS_MOVING_TIME", DashboardLayout.decode(changed.encode()).fields[7].id)
+        assertEquals(original, changed.fields.take(7).map { it.id })
     }
 
     @Test fun defaultsIncludeOwnPowerSeparatelyFromMotorPowerAndStableIdsSurviveInvalidSettings() {
