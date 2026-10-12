@@ -193,7 +193,9 @@ Details: [Offline-Sonnenwerte](docs/solar-weather.md) und
    Fahrerleistung und Motorleistung sind getrennte Felder.
 4. **☰ → Design & UI**: Farbpalette, Dashboard-Vorlagen, Belegungen der drei
    transparenten Kartenfelder und optionalen Fahrmodus-Glow einstellen.
-   Vier Dashboard-Seiten verwenden sechs feste Layout-Vorlagen.
+   Vier Dashboard-Seiten verwenden acht feste Layout-Vorlagen. Die neuen Vorlagen
+   zeigen ein großes Feld über zwei Reihen mit je drei beziehungsweise zwei Feldern.
+   Alle Feldbezeichnungen verwenden dieselbe feste Größe (13,5 sp) und den Grauton der Einheiten.
    Die Menüoberfläche hat zwei Zeilen mit je drei Plätzen; das `activity`-Icon
    ist derzeit ein Dummy ohne Funktion.
 5. **☰ → Sensoren & Aufzeichnung → FIT-Aufzeichnung** aufklappen:

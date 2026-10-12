@@ -207,4 +207,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="route_export_need_password">Bitte ein Nextcloud-App-Passwort eingeben</string>
     <string name="route_export_save_failed">Einstellungen konnten nicht gespeichert werden · App-Passwort prüfen</string>
     <string name="backup_filename">BICYCLE_Settings_%1$s.json</string>
+    <string name="dashboard_preset_seven">Dashboard 7 · groß oben / 3 / 3</string>
+    <string name="dashboard_preset_eight">Dashboard 8 · groß oben / 2 / 2</string>
+    <string name="dashboard_preset_values">%1$d Werte</string>
 </resources>

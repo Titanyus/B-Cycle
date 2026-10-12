@@ -10,7 +10,7 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 
-/** Four saved pages; six graphical presets with a draft until Save is pressed. */
+/** Four saved pages; eight graphical presets with a draft until Save is pressed. */
 internal class DashboardPresetPicker(context: Context, initial: List<DashboardTemplate>, initialPage: Int, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0))) : LinearLayout(context) {
     val selection = initial.toMutableList()
     private var page = initialPage
@@ -27,21 +27,21 @@ internal class DashboardPresetPicker(context: Context, initial: List<DashboardTe
             setOnClickListener { page = i; refresh() }
         }, RadioGroup.LayoutParams(0, dp(BicycleDesign.touchSize), 1f))
         addView(pages)
-        for (rowIndex in 0..1) {
+        for ((rowIndex, templates) in DashboardTemplate.entries.chunked(3).withIndex()) {
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; tag = "preset_row_$rowIndex" }
-            for (column in 0..2) {
-                val template = DashboardTemplate.entries[rowIndex * 3 + column]
+            for (template in templates) {
                 val tile = LinearLayout(context).apply {
                     orientation = VERTICAL; gravity = Gravity.CENTER; setPadding(dp(BicycleDesign.inputRadius), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.inputRadius), dp(BicycleDesign.verticalPadding))
-                    tag = "preset_${template.name}"; isClickable = true; isFocusable = true; contentDescription = template.title
+                    tag = "preset_${template.name}"; isClickable = true; isFocusable = true; contentDescription = template.displayTitle(context)
                     setOnClickListener { selection[page] = template; refresh() }
                     addView(ImageView(context).apply { setImageDrawable(DashboardPreview(template)); BicycleComponents.bindTheme(this, themes) { setColorFilter(it.foreground) }; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(dp(BicycleDesign.presetPreviewWidth), dp(BicycleDesign.presetPreviewHeight)))
-                    addView(TextView(context).apply { text = "${template.slots.size} Werte"; BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.bodySp; gravity = Gravity.CENTER; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(-1, dp(BicycleDesign.iconSize)))
+                    addView(TextView(context).apply { text = context.getString(R.string.dashboard_preset_values, template.slots.size); BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.bodySp; gravity = Gravity.CENTER; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(-1, dp(BicycleDesign.iconSize)))
                 }
                 BicycleComponents.bindTheme(tile, themes) { paintChoice(tile, it) }
                 choices[template] = tile
                 row.addView(tile, LayoutParams(0, dp(BicycleDesign.presetTileHeight), 1f).apply { setMargins(dp(BicycleDesign.presetTileGap), dp(BicycleDesign.presetTileGap), dp(BicycleDesign.presetTileGap), dp(BicycleDesign.presetTileGap)) })
             }
+            repeat(3 - templates.size) { row.addView(View(context), LayoutParams(0, dp(BicycleDesign.presetTileHeight), 1f).apply { setMargins(dp(BicycleDesign.presetTileGap), dp(BicycleDesign.presetTileGap), dp(BicycleDesign.presetTileGap), dp(BicycleDesign.presetTileGap)) }) }
             addView(row)
         }
         refresh()

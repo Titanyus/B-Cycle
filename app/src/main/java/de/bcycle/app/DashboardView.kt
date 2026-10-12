@@ -31,8 +31,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var landscape = false
     private var viewportWide: Boolean? = null
     private var viewportWidth = 0
+    private var captionGeometry = ""
     private var viewportDataHeight = 0
-    private var captionSignature = ""
     var template = DashboardTemplate.DATA
         private set
     var changePage: ((Int) -> Unit)? = null
@@ -64,7 +64,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     }
 
     private fun buildTiles(wide: Boolean) {
-        removeAllViews(); tiles.clear(); captionSignature = ""
+        removeAllViews(); tiles.clear(); captionGeometry = ""
         val indexed = List(7) { Tile(it) }
         tiles.addAll(indexed)
         if (template != DashboardTemplate.DATA) {
@@ -124,25 +124,27 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         val compact = (reference * .85f + dp(16) * (if (wide) 3 else 4) * .15f).toInt().coerceAtMost(available)
         val height = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST)
             MeasureSpec.makeMeasureSpec(compact, MeasureSpec.EXACTLY) else heightMeasureSpec
-        super.onMeasure(widthMeasureSpec, height)
-        val titles = template.slots.map { tiles[it].title }
-        val signature = titles.joinToString("|") { "${it.text}:${it.measuredWidth}:${it.measuredHeight}" }
-        if (signature != captionSignature && titles.all { it.measuredWidth > 0 && it.measuredHeight > 0 }) {
-            captionSignature = signature
-            val paint = android.text.TextPaint(titles.first().paint)
-            fun pixels(sp: Int) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp.toFloat(), resources.displayMetrics)
-            val size = (18 downTo 6).firstOrNull { sp ->
-                paint.textSize = pixels(sp)
-                titles.all { title ->
-                    val layout = android.text.StaticLayout.Builder.obtain(title.text, 0, title.text.length, paint, title.measuredWidth)
-                        .setIncludePad(false).setBreakStrategy(android.graphics.text.LineBreaker.BREAK_STRATEGY_SIMPLE).build()
-                    layout.lineCount <= 2 && layout.height <= title.measuredHeight &&
-                        (0 until layout.lineCount).all { layout.getLineWidth(it) <= title.measuredWidth }
-                }
-            } ?: 6
-            titles.forEach { it.setTextSize(TypedValue.COMPLEX_UNIT_PX, pixels(size)) }
-            super.onMeasure(widthMeasureSpec, height)
+        val geometry = "$width:$height:" + template.slots.joinToString("|") { tiles[it].title.text.toString() }
+        if (geometry != captionGeometry) {
+            captionGeometry = geometry
+            for (index in template.slots) {
+                tiles[index].title.layoutParams = (tiles[index].title.layoutParams as LayoutParams).apply { this.height = 0; weight = tiles[index].captionWeight }
+            }
         }
+        super.onMeasure(widthMeasureSpec, height)
+        // A fixed caption font must not be shrunk to fit a short row. Reserve its
+        // actual text height when needed, leaving the value the remaining space.
+        var captionsChanged = false
+        for (index in template.slots) {
+            val title = tiles[index].title
+            val needed = title.layout?.height ?: continue
+            if (needed > title.measuredHeight) {
+                title.layoutParams = (title.layoutParams as LayoutParams).apply { this.height = needed; weight = 0f }
+                captionsChanged = true
+            }
+        }
+        if (captionsChanged) super.onMeasure(widthMeasureSpec, height)
+
     }
 
     fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()) {
@@ -177,7 +179,12 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             setOnClickListener { selectField(index) }
             setOnTouchListener { _, event -> swipe.onTouchEvent(event) }
         }
-        val title = text(6, 18, captions, 2).apply { setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE); textSize = 12f }
+        val captionWeight = if (index == 2 && (template == DashboardTemplate.DATA || template.largeTop)) .10f else .20f
+        val title = TextView(context).apply {
+            typeface = captions; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 2
+            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+            textSize = BicycleDesign.dashboardCaptionSp; setTextColor(BicycleDesign.dashboardUnitColor)
+        }
         private val value = text(10, 240, numbers, 1)
         private val unit = text(5, 16, captions, 1)
 
@@ -185,7 +192,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
         init {
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
-                if (index == 2 && template in listOf(DashboardTemplate.DATA, DashboardTemplate.HERO)) .10f else .20f))
+                captionWeight))
             container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
         }
 

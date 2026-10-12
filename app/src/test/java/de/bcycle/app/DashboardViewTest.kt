@@ -134,15 +134,18 @@ class DashboardViewTest {
             for (template in DashboardTemplate.entries) {
                 val (view, tiles) = rendered(template)
                 for (tile in tiles) {
-                    val isBig = template == DashboardTemplate.HERO && tile === tiles.first() ||
+                    val isBig = template.largeTop && tile === tiles.first() ||
                         template == DashboardTemplate.DATA && tile.height > small.height + 3
-                    if (isBig && template == DashboardTemplate.HERO && width > available) {
+                    if (isBig && template.largeTop && width > available) {
                         assertTrue("Landscape hero retains a compact large field", tile.height < big.height && tile.height > small.height)
                     } else assertEquals("${template.name} at $width", (if (isBig) big.height else small.height).toDouble(), tile.height.toDouble(), 3.0)
                     assertEquals(small.paddingBottom, tile.paddingBottom)
                     val value = (tile.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
-                    if (!isBig) assertEquals("${template.name}: font at $width", smallValue.textSize, value.textSize, 1f)
-                    if (width == 1080 && template == DashboardTemplate.HERO && isBig) {
+                    if (!isBig) {
+                        if (tile.width < small.width) assertTrue("Narrow three-column values fit their available width", value.textSize <= smallValue.textSize)
+                        else assertEquals("${template.name}: font at $width", smallValue.textSize, value.textSize, 1f)
+                    }
+                    if (width == 1080 && template.largeTop && isBig) {
                         val referenceValue = (big.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
                         assertEquals(referenceValue.textSize, value.textSize, 1f)
                     }
@@ -157,6 +160,62 @@ class DashboardViewTest {
             }
             assertTrue(reference.height < available)
         }
+    }
+
+    @Test fun newPresetsHaveLargeTopAndTwoCompactRowsWithIndependentFieldSelection() {
+        val context = RuntimeEnvironment.getApplication()
+        for ((template, counts) in listOf(DashboardTemplate.HERO_SEVEN to listOf(1, 3, 3), DashboardTemplate.HERO_FIVE to listOf(1, 2, 2))) {
+            val clicked = mutableListOf<Int>()
+            val view = DashboardView(context) { clicked += it }
+            view.setTemplate(template)
+            measure(view, 720, view.heightForViewport(720, 1440))
+            val rows = (0 until view.childCount).map { view.getChildAt(it) }.filterIsInstance<android.widget.LinearLayout>()
+            assertEquals(counts, rows.map { row -> descendants(row).count { it.isClickable } })
+            val tiles = descendants(view).filter { it.isClickable }
+            assertTrue(tiles.first().height > tiles.last().height * 1.7)
+            tiles.forEach { it.performClick() }
+            assertEquals(template.slots, clicked)
+            assertEquals(template, DashboardTemplate.decode(template.name))
+        }
+    }
+
+    @Test fun allPresetCaptionsKeepExactlyTheSameSmallerSizeAndUnitGrayEvenForLongNames() {
+        val context = RuntimeEnvironment.getApplication()
+        val expected = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
+            18f * .75f, context.resources.displayMetrics)
+        for (template in DashboardTemplate.entries) {
+            val view = DashboardView(context) {}
+            view.setTemplate(template)
+            for (field in listOf(DashboardField("CADENCE"), DashboardField("GPS_MOVING_AVERAGE"), DashboardField("MOTOR_POWER"))) {
+                view.show(DashboardLayout.decode(List(7) { field.id }.joinToString("|")), LiveData())
+                for ((width, height) in listOf(720 to 1440, 1080 to 2100, 1950 to 750)) {
+                    measure(view, width, view.heightForViewport(width, height))
+                    descendants(view).filter { it.isClickable }.forEach { tile ->
+                        val caption = (tile as ViewGroup).getChildAt(0) as TextView
+                        assertEquals("${template.name}: ${caption.text}", expected, caption.textSize, .01f)
+                        assertEquals(BicycleDesign.dashboardUnitColor, caption.currentTextColor)
+                        assertEquals(TextView.AUTO_SIZE_TEXT_TYPE_NONE, caption.autoSizeTextType)
+                        assertTrue("${template.name}: ${caption.text} fits its caption area", caption.layout.height <= caption.height)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test fun eightPreviewTilesKeepExistingOrderAndNewChoicesRemainIndependentPerPage() {
+        val context = RuntimeEnvironment.getApplication()
+        val initial = DashboardTemplate.entries.take(4)
+        val picker = DashboardPresetPicker(context, initial, 0)
+        measure(picker, 960, 1400)
+        val tiles = descendants(picker).filter { it.tag?.toString()?.startsWith("preset_") == true && it.isClickable && !it.tag.toString().startsWith("preset_page_") }
+        assertEquals(DashboardTemplate.entries.map { "preset_${it.name}" }, tiles.map { it.tag })
+        tiles.forEach { assertNotNull(descendants(it).filterIsInstance<android.widget.ImageView>().single().drawable) }
+        tiles.single { it.tag == "preset_HERO_SEVEN" }.performClick()
+        assertEquals(DashboardTemplate.HERO_SEVEN, picker.selection[0])
+        descendants(picker).single { it.tag == "preset_page_1" }.performClick()
+        tiles.single { it.tag == "preset_HERO_FIVE" }.performClick()
+        assertEquals(listOf(DashboardTemplate.HERO_SEVEN, DashboardTemplate.HERO_FIVE) + initial.drop(2), picker.selection)
+        assertEquals(DashboardTemplate.entries.take(4), initial)
     }
 
     @Test fun bikeSelectionLivesInSensorManagerAlongsidePulseSelection() {
