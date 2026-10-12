@@ -6,34 +6,35 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.6 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.6/downloads/B-Cycle-0.7.6-test.apk)**
+**[APK 0.7.7 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.7/downloads/B-Cycle-0.7.7-test.apk)**
 
-- Größe: **1,021,457 Byte**, rund **1.02 MB**.
+- Größe: **1,054,393 Byte**, rund **1.05 MB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.6-test.apk.sha256):
-  `7c0d6939f4b1b195fc11e08062cdad36619cd2e8faf0c696c92b6b88510382a6`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.7-test.apk.sha256):
+  `dba9a21fd52aeb5a78b6fa483376eb284bceea622cd23f0a1b216cf7ed9b6508`.
 
-Vollständige Suite mit **280 Tests bestanden** und Release-Build erfolgreich in **2 Minuten**.
-Nach der anschließenden APK-Versionierung bestanden **19 gezielte Profil-/Zonen-/FIT-Tests**;
-Release-Build erfolgreich in **53 Sekunden**. Signatur und Version 0.7.6/44 separat geprüft.
-Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
+**40 gezielte Tests bestanden**, Release-Build und Release-Lint-Vital erfolgreich;
+Gesamtlauf nach Versionierung **56 Sekunden**. Signatur und Version 0.7.7/45 separat geprüft.
+Für Daten & Speicher wurde zuvor die vollständige Suite mit **294 Tests** ausgeführt;
+keine erneute vollständige Suite bei diesem APK-Build.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 
-## Entwicklungsstand nach APK 0.7.6
+## Neu in 0.7.7
 
 - **Daten & Speicher** als siebte Kategorie im vorhandenen Einstellungsraster.
 - Speicherort und Cloud-/WebDAV-Konfiguration aus dem Streckenmanager hierher verschoben;
   streckenbezogene Detailaktionen und gespeicherte Zugänge bleiben erhalten.
 - Manuelle, selektive JSON-Sicherung/Wiederherstellung für sechs Einstellungsbereiche,
   mit Prüfung, Bestätigung und Rollback. Keine Streckendateien, Kopplungen oder Geheimnisse im Backup.
-- Vollständige Suite mit **294 Tests** und Release-Build erfolgreich.
+- Zwei zusätzliche Dashboard-Vorlagen mit Thumbnails: groß / 3 / 3 und groß / 2 / 2.
+- Feldbezeichnungen auf allen acht Vorlagen gleich groß, 13,5 sp und im Grau der Einheiten.
 
-Diese Änderungen sind noch nicht in der oben angebotenen APK 0.7.6 enthalten.
-Architektur, Backupformat, Quellen, Merge-Regeln, Ausschlüsse und Prüfungen:
-[Daten & Speicher](docs/data-storage-backup.md).
+Diese Änderungen sind in APK 0.7.7 enthalten. Dokumentation:
+[Daten & Speicher](docs/data-storage-backup.md), [Dashboard-Vorlagen](docs/dashboard-presets.md),
+[Buildnachweis 0.7.7](docs/milestone-077.md).
 
 ## Neu in 0.7.6
 

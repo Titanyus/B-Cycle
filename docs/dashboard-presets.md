@@ -32,3 +32,5 @@ Vorschauen, getrennte Seitenauswahl und Speicherung, feste Caption-Größe/Farbe
 Bezeichnungen, Hoch-/Querformat sowie bestehende Glow- und Backup-Funktionen.
 Die Android-Debug-Kompilierung ist Bestandteil dieses Testlaufs. Keine neue APK erzeugt;
 visuelle Prüfung auf einem echten Gerät steht noch aus.
+
+Der Stand ist inzwischen in [APK 0.7.7](milestone-077.md) enthalten.
