@@ -32,6 +32,8 @@ Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 - Live-Vergleichspfeile für Tempo, Fahrerleistung, Kadenz und Puls; Watt-Durchschnittstrend auch zwischen ganzzahligen Watt-Schritten.
 - Alle Glow-Effekte 25 % breiter in der Mitte und 25 % stärker.
 - FIT-Detail-Neuberechnung berücksichtigt bestätigte lange Rollphasen und verkraftet kurze echte Datenlücken bei ausreichender Abdeckung.
+- Streckenliste mit zweistelligem Jahr und drei dp tieferem Kennzahlenblock.
+- Fahrtdetails mit deutschen Bezeichnungen; Kadenz & Puls steht vor Leistung.
 
 Diese Ergänzungen sind noch nicht in der oben verlinkten APK 0.7.7 enthalten.
 Details: [Dashboard-Vorlagen](docs/dashboard-presets.md).

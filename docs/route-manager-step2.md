@@ -13,3 +13,10 @@ Nachweis für APK 0.7.5: vollständige Testsuite nach der korrigierten Dashboard
 Nachfolgende Detailkorrekturen: kein Verarbeitungshinweis mehr beim Augen-Toggle. Die zentrale Header-Komponente verwendet das gemeinsame Höhenmaß auch als Mindesthöhe, damit der native Dialog den Details-Titelbereich nicht auf die kleinere Inhaltshöhe schrumpft. Die vier Spalten verwenden native TextView-Autoskalierung ohne horizontales Textscrollen, damit Datum, Werte und Einheiten auf schmalen Bildschirmen vollständig passen. Diese Änderungen erfolgen nach APK 0.7.5 und sind in APK 0.7.6 enthalten.
 
 Gezielte Prüfung der Detailkorrekturen: 19 Tests aus RouteManagerViewTest, RouteAnalysisViewTest, GpxManagerTest, FullscreenDialogTest und RouteMovingAverageTest bestanden, 0 Fehler/Fehlschläge/übersprungene Tests, Laufzeit 24s. Native Layout-/Font-Prüfungen für schmale und breite Displays, Themewechsel, zentrierte Untertexte und Einheiten, drei vertikale Trenner, die entfernten Symbole, fehlende Daten, Filter/Sichtbarkeit und die reale Headerhöhe im Vollbild-Host sind enthalten. Kein neuer Release-/APK-Build für diese Detailkorrekturen.
+
+## Kleine Darstellungskorrektur
+
+Die Streckenliste zeigt das Datum als `dd.MM.yy` (beispielsweise 12.10.26).
+Der gemeinsame Block aus Datum, Distanz, Zeit und Ø Tempo sitzt drei dp tiefer;
+`BicycleDesign.routeMetricTopOffset` hält diesen Versatz zentral. Datum/Uhrzeit
+im Detailscreen und gespeicherte Zeitstempel bleiben unverändert.

@@ -177,7 +177,7 @@ internal class RouteManagerView(context: Context,
                     addView(title, LayoutParams(0, dp(BicycleDesign.touchSize), 1f))
                     addView(eye, LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize)))
                 }, LayoutParams(-1, -2))
-                addView(metrics, LayoutParams(-1, -2).apply { topMargin = -dp(BicycleDesign.metadataSpacingTrim) })
+                addView(metrics, LayoutParams(-1, -2).apply { topMargin = -dp(BicycleDesign.metadataSpacingTrim) + dp(BicycleDesign.routeMetricTopOffset) })
             }, LayoutParams(0, -2, 1f))
             BicycleComponents.bindTheme(this, themes) { paintState(it) }
         }

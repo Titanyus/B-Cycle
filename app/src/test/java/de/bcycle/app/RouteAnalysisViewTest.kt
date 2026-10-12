@@ -44,7 +44,9 @@ class RouteAnalysisViewTest {
                 for (width in listOf(960, 1440)) {
                     measure(content, width, 1800)
                     val rows = descendants(content).filterIsInstance<LinearLayout>().filter { it.tag?.toString()?.startsWith("analysis_group_") == true }
-                    assertEquals(listOf(4, 3, 3, 2, 2, 3), rows.map { row -> (0 until row.childCount).count { row.getChildAt(it) is AnalysisMetricTile } })
+                    assertEquals(listOf(R.string.analysis_overview,R.string.analysis_ebike,R.string.analysis_cadence_heart_group,
+                        R.string.analysis_power_group,R.string.analysis_energy_group,R.string.analysis_performance_group).map { "analysis_group_$it" },rows.map { it.tag })
+                    assertEquals(listOf(4, 3, 2, 3, 2, 3), rows.map { row -> (0 until row.childCount).count { row.getChildAt(it) is AnalysisMetricTile } })
                     rows.forEach { row ->
                         assertTrue((0 until row.childCount).count { row.getChildAt(it) is AnalysisMetricTile } <= 4)
                         val children = (0 until row.childCount).map(row::getChildAt).filterIsInstance<AnalysisMetricTile>()
@@ -122,6 +124,13 @@ class RouteAnalysisViewTest {
             assertEquals("string", context.resources.getResourceTypeName(metric.unit)); if (metric != AnalysisMetric.RIDER_BIKE_RATIO) assertFalse(context.getString(metric.unit).isBlank())
         }
         AnalysisGroups.groups.forEach { assertEquals("string", context.resources.getResourceTypeName(it.first)) }
+        assertEquals("Allgemeine Daten",context.getString(R.string.analysis_overview))
+        assertEquals("Kadenz & Puls",context.getString(R.string.analysis_cadence_heart_group))
+        assertEquals("Leistung",context.getString(R.string.analysis_power_group))
+        assertEquals("Ø Tempo",context.getString(AnalysisMetric.AVG_SPEED.label))
+        assertEquals("Ø Puls",context.getString(AnalysisMetric.AVG_HEART.label))
+        assertEquals("Kadenz",context.getString(AnalysisChart.CADENCE.label))
+        assertEquals("Normalisierte Leistung",context.getString(AnalysisMetric.NP.label))
         AnalysisChart.entries.forEach { assertEquals("string", context.resources.getResourceTypeName(it.label)) }
         assertEquals("11.10.2026 · 14:40 h", java.time.format.DateTimeFormatter.ofPattern(context.getString(R.string.analysis_date_format)).withZone(java.time.ZoneOffset.UTC).format(java.time.Instant.ofEpochMilli(1_791_729_600_000)))
     }

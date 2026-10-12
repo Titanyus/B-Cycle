@@ -29,6 +29,7 @@ object BicycleDesign {
     const val routeMetricSp = 20f
     const val riderZoneRangeWidth = 116
     const val routeMetricHeight = 24
+    const val routeMetricTopOffset = 3
     const val routeMetricLabelSp = 10f
     const val formatSp = 12f
     const val metadataHeight = 28

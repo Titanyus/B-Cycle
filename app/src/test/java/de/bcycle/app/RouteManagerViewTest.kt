@@ -55,7 +55,11 @@ class RouteManagerViewTest {
         assertEquals("22,7", firstCard.findViewWithTag<TextView>("route_average_route-1").text.toString())
         assertNull(date.compoundDrawablesRelative[0])
         val at = java.time.Instant.ofEpochMilli(entries[1].details.dateMs).atZone(java.time.ZoneId.systemDefault())
-        assertEquals(at.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")), date.text.toString())
+        assertEquals(at.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yy")), date.text.toString())
+        val metricRow=firstCard.findViewWithTag<View>("route_metrics_route-1")
+        val margin=(metricRow.layoutParams as android.widget.LinearLayout.LayoutParams).topMargin
+        val density=view.resources.displayMetrics.density
+        assertEquals(-(BicycleDesign.metadataSpacingTrim*density).toInt()+(3*density).toInt(),margin)
         assertEquals(at.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm 'h'")), firstCard.findViewWithTag<TextView>("route_clock_route-1").text.toString())
         assertNull(firstCard.findViewWithTag<View>("route_more_route-1"))
         assertNull(firstCard.findViewWithTag<View>("route_cloud_route-1"))

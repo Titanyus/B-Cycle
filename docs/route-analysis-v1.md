@@ -60,3 +60,21 @@ Die Kartenbedienung/Netzdownloads, Android-Schriftgrößenskalierung am Gerät (
 Vollständige Testsuite und Release-Build am 12.10.2026 erfolgreich: **250 Tests, 0 Fehler, 0 Fehlschläge, 0 übersprungen**, inklusive 11 neuer Analyse-/UI-Tests. Letzter gemeinsamer Lauf: **1m 8s**. Release-Lint-Vital erfolgreich. Die bekannte Produktionswarnung `onBackPressed()` bleibt; der neue Android-Zurück-Test verwendet dieselbe veraltete native API gezielt. Kein zusätzlicher vollständiger Lint-Lauf.
 
 Danach: Dashboard-Kartenänderung mit zwei minimalen Kartentests geprüft; zusätzlicher Lifecycle-Test stellt sicher, dass die Vollbildkarte das Umsetzen in den globalen Host übersteht und erst beim Schließen freigegeben wird. Abschließender Lauf: **3 Tests erfolgreich und Release-Build erfolgreich in 48s**. Die vollständige Suite wurde nach diesen anschließenden Änderungen nicht erneut ausgeführt. Version 0.7.3/41, signierte Test-APK und Quellcode auf Wunsch des Nutzers veröffentlicht; vorherige Stände bleiben erhalten.
+
+## Deutsche Bezeichnungen und Gruppenfolge
+
+Sichtbare Kennzahlen, Diagrammbezeichnungen und die zugehörigen Accessibility-Texte
+verwenden weiterhin zentrale Android-Textressourcen, jetzt mit deutschen Bezeichnungen:
+Tempo, Fahrerleistung, Kadenz, Puls, Höhe, Bewegungszeit/Gesamtzeit, Aufstieg/Abstieg,
+Normalisierte Leistung, Mechanische Arbeit, Kalorien, Effizienzfaktor, Tempo/Leistung,
+Geschätzte FTP, Ø Motorleistung, Fahrer/Motor und Akkuverbrauch. Die Kadenz-Einheit
+lautet wie im Hauptdashboard `U/min`; Rohdaten und FIT-Einheiten bleiben unverändert.
+
+Gruppenfolge: Allgemeine Daten, E-Bike, Kadenz & Puls, Leistung, Energie, Performance.
+Der Tausch betrifft nur die Kennzahlengruppen. Die feste Diagrammreihenfolge bleibt
+Tempo, Kadenz, Fahrerleistung, Puls, Höhe. Zahlenformate, Berechnung, Farben und Aktionen
+bleiben erhalten.
+
+Nur drei gezielte Darstellungstests für Datumsformat/Versatz, deutsche Ressourcen
+und Gruppenfolge einschließlich schmaler Theme-Layouts ausgeführt; keine vollständige
+Suite und keine neue APK für diese kosmetische Änderung.

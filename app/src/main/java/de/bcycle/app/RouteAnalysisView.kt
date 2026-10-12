@@ -15,8 +15,8 @@ internal object AnalysisGroups {
         R.string.analysis_overview to listOf(listOf(AnalysisMetric.DISTANCE), listOf(AnalysisMetric.MOVING, AnalysisMetric.ELAPSED),
             listOf(AnalysisMetric.AVG_SPEED, AnalysisMetric.MAX_SPEED), listOf(AnalysisMetric.ASCENT, AnalysisMetric.DESCENT)),
         R.string.analysis_ebike to listOf(listOf(AnalysisMetric.AVG_MOTOR), listOf(AnalysisMetric.RIDER_BIKE_RATIO), listOf(AnalysisMetric.BATTERY_USAGE)),
-        R.string.analysis_power_group to listOf(listOf(AnalysisMetric.AVG_POWER), listOf(AnalysisMetric.MAX_POWER), listOf(AnalysisMetric.NP)),
         R.string.analysis_cadence_heart_group to listOf(listOf(AnalysisMetric.AVG_CADENCE, AnalysisMetric.MAX_CADENCE), listOf(AnalysisMetric.AVG_HEART, AnalysisMetric.MAX_HEART)),
+        R.string.analysis_power_group to listOf(listOf(AnalysisMetric.AVG_POWER), listOf(AnalysisMetric.MAX_POWER), listOf(AnalysisMetric.NP)),
         R.string.analysis_energy_group to listOf(listOf(AnalysisMetric.WORK), listOf(AnalysisMetric.CALORIES)),
         R.string.analysis_performance_group to listOf(listOf(AnalysisMetric.FTP), listOf(AnalysisMetric.EF), listOf(AnalysisMetric.RATIO)))
 }
