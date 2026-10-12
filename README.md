@@ -6,23 +6,25 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.7 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.7/downloads/B-Cycle-0.7.7-test.apk)**
+**[APK 0.7.8 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.8/downloads/B-Cycle-0.7.8-test.apk)**
 
 - Größe: **1,054,393 Byte**, rund **1.05 MB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.7-test.apk.sha256):
-  `dba9a21fd52aeb5a78b6fa483376eb284bceea622cd23f0a1b216cf7ed9b6508`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.8-test.apk.sha256):
+  `b23dd70ae34f9ba1368f6976ad68a4865479b9b8fd1ab2235009e4548bc9c568`.
 
-**40 gezielte Tests bestanden**, Release-Build und Release-Lint-Vital erfolgreich;
-Gesamtlauf nach Versionierung **56 Sekunden**. Signatur und Version 0.7.7/45 separat geprüft.
-Für Daten & Speicher wurde zuvor die vollständige Suite mit **294 Tests** ausgeführt;
-keine erneute vollständige Suite bei diesem APK-Build.
-Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
+Release-Build einschließlich Release-Lint-Vital und **3 gezielte Darstellungstests**
+nach Versionierung erfolgreich in **1m 4s**. Signatur und Version 0.7.8/46 separat geprüft.
+Die Änderungen an Performance und Dashboard wurden zuvor mit **307 Tests der vollständigen
+Suite** geprüft; danach 43 gezielte UI-Tests und die drei Tests der letzten kosmetischen Änderungen.
+Keine erneute vollständige Suite bei diesem APK-Build. Die bekannte Compilerwarnung
+zum veralteten Android-`onBackPressed()` bleibt bestehen.
+[Buildnachweis 0.7.8](docs/milestone-078.md).
 
-## Entwicklungsstand nach APK 0.7.7
+## Neu in 0.7.8
 
 - Dashboard 9 mit acht unabhängig belegbaren Feldern: **2 / 3 / 3**.
 - Passendes Thumbnail vervollständigt die drei Reihen mit je drei Vorlagen.
@@ -35,7 +37,7 @@ Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 - Streckenliste mit zweistelligem Jahr und drei dp tieferem Kennzahlenblock.
 - Fahrtdetails mit deutschen Bezeichnungen; Kadenz & Puls steht vor Leistung.
 
-Diese Ergänzungen sind noch nicht in der oben verlinkten APK 0.7.7 enthalten.
+Diese Ergänzungen sind in der oben verlinkten APK 0.7.8 enthalten.
 Details: [Dashboard-Vorlagen](docs/dashboard-presets.md).
 
 ## Neu in 0.7.7
