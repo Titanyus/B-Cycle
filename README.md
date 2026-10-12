@@ -320,6 +320,7 @@ vor Installation signieren.
 
 - [Bosch-MCSP: Protokoll, Feldmapping und Quellen](docs/bosch-mcsp.md)
 - [Matrix ICR50: vorgemerkte BLE-/FTMS-Integration](docs/ble-trainer-matrix-icr50.md)
+- [Compile-/Target-SDK-Modernisierung: vorgemerkter Upgradeplan](docs/sdk-modernization.md)
 - [GPS: Filterung und Grenzen](docs/gps.md)
 - [Sonnenwerte: Berechnung und Grenzen](docs/solar-weather.md)
 - [Karten und Offline-Dateien](docs/maps.md)
