@@ -22,6 +22,19 @@ Release-Build erfolgreich in **53 Sekunden**. Signatur und Version 0.7.6/44 sepa
 Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 
+## Entwicklungsstand nach APK 0.7.6
+
+- **Daten & Speicher** als siebte Kategorie im vorhandenen Einstellungsraster.
+- Speicherort und Cloud-/WebDAV-Konfiguration aus dem Streckenmanager hierher verschoben;
+  streckenbezogene Detailaktionen und gespeicherte Zugänge bleiben erhalten.
+- Manuelle, selektive JSON-Sicherung/Wiederherstellung für sechs Einstellungsbereiche,
+  mit Prüfung, Bestätigung und Rollback. Keine Streckendateien, Kopplungen oder Geheimnisse im Backup.
+- Vollständige Suite mit **294 Tests** und Release-Build erfolgreich.
+
+Diese Änderungen sind noch nicht in der oben angebotenen APK 0.7.6 enthalten.
+Architektur, Backupformat, Quellen, Merge-Regeln, Ausschlüsse und Prüfungen:
+[Daten & Speicher](docs/data-storage-backup.md).
+
 ## Neu in 0.7.6
 
 - Streckenliste mit vier kompakten Spalten: Datum/Uhrzeit, Distanz, Bewegungszeit und Ø Tempo.

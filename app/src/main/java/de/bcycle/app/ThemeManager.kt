@@ -28,6 +28,11 @@ class ThemeManager(private val preferences: SharedPreferences) {
         check(presets.all { ThemeValidator.validate(it).valid } && presets.map { it.id }.distinct().size == presets.size)
         if (savedActiveId() != current.id) preferences.edit().putString(activeKey, current.id).apply()
     }
+    /** Apply externally restored validated configuration without retaining stale theme objects. */
+    fun reloadFromPreferences() {
+        synchronized(lock) { customs = loadCustoms(); current = find(savedActiveId()) ?: BicycleThemes.red }
+        publish()
+    }
     private fun savedActiveId(): String? = runCatching { preferences.getString(activeKey, null) }.getOrNull()
     private fun find(id: String?): BicycleTheme? = presets.find { it.id == id } ?: customs.find { it.id == id }
     /** Invalid or removed IDs restore the standard palette and persist that fallback. */

@@ -29,7 +29,7 @@ class SettingsMenuTest {
         return ShadowAlertDialog.getLatestAlertDialog()
     }
     private fun views(dialog: AlertDialog) = descendants(dialog.window!!.decorView)
-    @Test fun sixTilesHaveThreeColumnsBrandAndCollapsedAdvancedWithLicensesLast() {
+    @Test fun sevenTilesKeepExistingThreeColumnsAndCollapsedAdvancedWithLicensesLast() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val dialog = open(controller.get())
@@ -44,6 +44,9 @@ class SettingsMenuTest {
                     if (i == 0) assertEquals("settings_PROFILE", row.getChildAt(1).tag)
                     for (column in 0..2) assertTrue(row.getChildAt(column).width >= width / 4)
                 }
+                val lastRow = views(dialog).single { it.tag == "settings_row_2" } as ViewGroup
+                assertEquals(3,lastRow.childCount);assertEquals("settings_DATA",lastRow.getChildAt(0).tag)
+                assertEquals(1,(0..2).count { lastRow.getChildAt(it).isClickable })
                 for (text in descendants(menu).filterIsInstance<TextView>()) {
                     val layout = requireNotNull(text.layout)
                     assertTrue("Clipped ${text.text}", layout.height <= text.height)

@@ -21,7 +21,7 @@ import kotlin.math.cos
 
 /** Fixed header/filter, one native recycled list, no per-row decoding or disk/network I/O. */
 internal class RouteManagerView(context: Context,
-    private val toggle: (ManagedRoute) -> Unit, settings: () -> Unit = {},
+    private val toggle: (ManagedRoute) -> Unit,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
     private val details: (ManagedRoute) -> Unit = {}) : LinearLayout(context) {
     private fun dp(value: Int) = BicycleDesign.dp(context, value)
@@ -48,8 +48,6 @@ internal class RouteManagerView(context: Context,
         header.setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
         header.addView(FrameLayout(context).apply {
             addView(BicycleComponents.heading(context, themes, "Streckenmanager"), FrameLayout.LayoutParams(-1, -1))
-            addView(BicycleComponents.icon(context, themes, BicycleIcon.SettingsOptions, "Streckeneinstellungen öffnen", settings)
-                .apply { tag = "route_settings" }, FrameLayout.LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize), Gravity.END or Gravity.CENTER_VERTICAL))
         }, LayoutParams(-1, -1))
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
         fun filterBackground(tokens: ThemeTokens) = GradientDrawable().apply {

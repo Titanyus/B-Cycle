@@ -19,6 +19,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     ROUTES("Streckenmanager", BicycleIcon.Route.resource),
     ADVANCED("Erweitert", BicycleIcon.Advanced.resource),
     PROFILE("", BicycleIcon.RiderProfile.resource, R.string.rider_profile),
+    DATA("", BicycleIcon.DataStorage.resource, R.string.data_title),
     RECOVERY("Ungespeicherte Fahrten speichern"),
     GPS_HELP("GPS-Messung erklärt"),
     DIAGNOSTIC("Diagnose speichern"),
@@ -28,7 +29,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 
-/** Native, scrollable menu content. Six fixed actions in two rows of three. */
+/** Native, scrollable menu content. Seven fixed actions in the existing three-column rows. */
 internal class SettingsMenuView(context: Context, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)), private val selected: (SettingsAction) -> Unit) : LinearLayout(context) {
     private fun dp(value: Int) = BicycleDesign.dp(context, value)
     private fun ripple(view: View) = BicycleComponents.bindTheme(view, themes) { tokens ->
@@ -64,12 +65,12 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             advanced.visibility = if (expand) VISIBLE else GONE
             advancedTile?.stateDescription = if (expand) "Ausgeklappt" else "Eingeklappt"
         }
-        val actions = listOf(SettingsAction.SENSORS, SettingsAction.PROFILE, SettingsAction.MAP, SettingsAction.DASHBOARDS, SettingsAction.ROUTES, SettingsAction.ADVANCED)
-        for (rowIndex in 0..1) {
+        val actions = listOf(SettingsAction.SENSORS, SettingsAction.PROFILE, SettingsAction.MAP, SettingsAction.DASHBOARDS, SettingsAction.ROUTES, SettingsAction.ADVANCED, SettingsAction.DATA)
+        for (rowIndex in 0..2) {
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; isBaselineAligned = false; tag = "settings_row_$rowIndex" }
             for (column in 0..2) {
-                val action = actions[rowIndex * 3 + column]
-                val tile = tile(action) { if (action == SettingsAction.ADVANCED) toggleAdvanced() else selected(action) }
+                val action = actions.getOrNull(rowIndex * 3 + column)
+                val tile = if (action == null) View(context) else tile(action) { if (action == SettingsAction.ADVANCED) toggleAdvanced() else selected(action) }
                 if (action == SettingsAction.ADVANCED) { advancedTile = tile; tile.stateDescription = "Eingeklappt" }
                 row.addView(tile, LayoutParams(0, dp(BicycleDesign.menuTileHeight), 1f))
             }

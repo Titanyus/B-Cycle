@@ -66,12 +66,7 @@ class RouteManagerViewTest {
         firstCard.performClick(); assertEquals(entries[1], clicked.last())
         val count = clicked.size
         eye.performClick(); assertEquals(count + 1, clicked.size); assertEquals(entries[1], clicked.last())
-        fun centerX(child: View): Int {
-            val bounds = android.graphics.Rect(0, 0, child.width, child.height)
-            view.offsetDescendantRectToMyCoords(child, bounds)
-            return bounds.centerX()
-        }
-        assertEquals(centerX(view.findViewWithTag("route_settings")), centerX(view.findViewWithTag("route_eye_route-0")))
+        assertNull(view.findViewWithTag<View>("route_settings"))
         val top = filter.top
         list.setSelection(14); measure(); assertEquals(top, filter.top)
         filter.setSelection(1); shadowOf(Looper.getMainLooper()).idle(); measure()

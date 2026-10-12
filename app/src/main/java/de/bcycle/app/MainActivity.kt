@@ -27,6 +27,8 @@ class MainActivity : Activity() {
     private var routeSignature = ""
     private var exportDraft: RouteExportConfig? = null
     private var exportPasswordDraft: String? = null
+    private var pendingBackupExport: ByteArray? = null
+    private var dataSettingsScreen: AlertDialog? = null
     private var pendingMapRoute: String? = null
     private var dashboardPage = 0
     private var mapFullscreen = false
@@ -70,6 +72,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         runtime = RideRuntime.get(this)
         pendingReport = savedInstanceState?.getString("pendingReport")
+        pendingBackupExport = savedInstanceState?.getByteArray("settingsBackupPendingExport")
         dashboardPage = preferences.getInt("dashboardPage", 0).coerceIn(0, 3)
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
         mapFullscreen = savedInstanceState?.getBoolean("mapFullscreen", false) ?: false
@@ -197,6 +200,7 @@ class MainActivity : Activity() {
         val content = SettingsMenuView(settingsContext, runtime.themes) { action ->
             when (action) {
                 SettingsAction.SENSORS -> showSensorManager()
+                SettingsAction.DATA -> dataSettings()
                 SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, runtime.themes, dialogs, runtime.riderProfiles) }
                 SettingsAction.MAP -> mapSettings()
                 SettingsAction.DASHBOARDS -> dashboardSettings()
@@ -400,10 +404,11 @@ class MainActivity : Activity() {
             .putExtra(Intent.EXTRA_TITLE, "B-Cycle-${AppVersion.name}-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; Toast.makeText(this, R.string.export_unavailable, Toast.LENGTH_LONG).show() }
     }
-    override fun onSaveInstanceState(outState: Bundle) { outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
+    override fun onSaveInstanceState(outState: Bundle) { outState.putByteArray("settingsBackupPendingExport", pendingBackupExport); outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
     @Deprecated("Native document picker callback")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == 12 || requestCode == 13) { backupResult(requestCode,resultCode,data);return }
         if (requestCode == 10) {
             if (resultCode == RESULT_OK) data?.data?.let { uri ->
                 try {
@@ -413,7 +418,7 @@ class MainActivity : Activity() {
                     exportDraft = (exportDraft ?: RouteExportSettings(this).read()).copy(tree = uri.toString())
                 } catch (_: Exception) { Toast.makeText(this, "Ordnerzugriff konnte nicht gespeichert werden", Toast.LENGTH_LONG).show() }
             }
-            if (dialogs.empty) { showMenu(); routeSettings(); routeExportSettings() }
+            if (dialogs.empty) { showMenu(); dataSettings(); routeExportSettings(RouteExportPart.LOCAL) }
             return
         }
         if (requestCode == 8 || requestCode == 9) {
@@ -595,7 +600,7 @@ class MainActivity : Activity() {
             val displayed = state.selectedRoute == entry.id && state.route != null && preferences.getBoolean("mapGpxVisible", true)
             state.setRouteVisible(!displayed)
             if (!displayed && state.selectedRoute != entry.id) state.selectRoute(entry.id)
-        }, ::routeExportSettings, themes = runtime.themes, details = ::routeAnalysis)
+        }, themes = runtime.themes, details = ::routeAnalysis)
         routeManager = content
         refreshRouteRows()
         menu = dialog().setView(content).setNeutralButton("Importieren", null).setPositiveButton("Schließen", null).create().apply {
@@ -679,7 +684,110 @@ class MainActivity : Activity() {
             }
         } }
     }
-    private fun routeExportSettings() {
+    private fun dataDialog(title: Int, body: View, action: Int? = null): AlertDialog {
+        val builder = dialog().setTitle(title).setView(body).setNegativeButton(if(action == null) R.string.analysis_close else R.string.route_cancel, null)
+        action?.let { builder.setPositiveButton(it, null) }
+        val screen = builder.create()
+        screen.setCustomTitle(BicycleComponents.header(settingsContext, runtime.themes).apply {
+            tag = "bicycle_dialog_header"; setPadding(dp(BicycleDesign.smallGap),0,dp(BicycleDesign.verticalPadding),0)
+            addView(BicycleComponents.icon(settingsContext,runtime.themes,BicycleIcon.Back,getString(R.string.data_back)) { screen.dismiss() })
+            addView(BicycleComponents.heading(settingsContext,runtime.themes,getString(title)).apply {
+                tag="bicycle_dialog_title";setAutoSizeTextTypeUniformWithConfiguration(18,BicycleDesign.headingSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
+            },LinearLayout.LayoutParams(0,dp(BicycleDesign.headerHeight),1f))
+        })
+        screen.show(); return screen
+    }
+    private fun dataSettings() {
+        val content = DataSettingsView(settingsContext,runtime.themes) { action -> when(action) {
+            DataAction.BACKUP -> backupSettings()
+            DataAction.RESTORE -> try {
+                startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")
+                    .putExtra(Intent.EXTRA_MIME_TYPES,arrayOf("application/json","text/json","text/plain")),13)
+            } catch(_:android.content.ActivityNotFoundException) { Toast.makeText(this,R.string.backup_picker_error,Toast.LENGTH_LONG).show() }
+            DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
+            DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)
+        } }
+        val screen=dataDialog(R.string.data_title,ScrollView(settingsContext).apply { addView(content) })
+        dataSettingsScreen=screen;menu=screen
+        dialogs.onDismiss(screen) { if(dataSettingsScreen===screen) dataSettingsScreen=null }
+    }
+    private fun backupError(error: Throwable): Int = when((error as? SettingsBackupFailure)?.problem) {
+        BackupProblem.FORMAT->R.string.backup_format_error;BackupProblem.VERSION->R.string.backup_version_error
+        BackupProblem.TOO_LARGE->R.string.backup_size_error;BackupProblem.SELECTION->R.string.backup_selection_error
+        BackupProblem.INVALID->R.string.backup_invalid_error;BackupProblem.ROLLBACK->R.string.backup_rollback_error
+        else->R.string.backup_io_error
+    }
+    private fun backupSettings(document: SettingsBackupDocument? = null) {
+        val backup=SettingsBackup(this,runtime.themes)
+        val choices=BackupSelectionView(settingsContext,runtime.themes,document?.sections?.keys ?: BackupSection.entries.toSet())
+        val screen=dataDialog(if(document==null) R.string.data_backup else R.string.data_restore,
+            ScrollView(settingsContext).apply { addView(choices) },if(document==null) R.string.backup_execute else R.string.backup_restore_execute)
+        val button=screen.getButton(AlertDialog.BUTTON_POSITIVE)
+        BicycleDialogStyle.actionIcon(button,runtime.themes,if(document==null) BicycleIcon.ExportTrack else BicycleIcon.RestoreSettings)
+        choices.changed={ button.isEnabled=choices.selected().isNotEmpty() }
+        button.setOnClickListener {
+            val selected=choices.selected()
+            if(document==null) {
+                try {
+                    pendingBackupExport=backup.export(selected)
+                    startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")
+                        .putExtra(Intent.EXTRA_TITLE,getString(R.string.backup_filename,java.time.LocalDate.now().toString())),12)
+                } catch(e:Exception) { pendingBackupExport=null;Toast.makeText(this,if(e is android.content.ActivityNotFoundException) R.string.backup_picker_error else backupError(e),Toast.LENGTH_LONG).show() }
+            } else {
+                dialog(fullscreen=false).setTitle(R.string.backup_confirm_title)
+                    .setMessage(getString(R.string.backup_confirm_message,selected.joinToString(", ") { getString(it.title) }))
+                    .setNegativeButton(R.string.route_cancel,null).setPositiveButton(R.string.backup_restore_execute) { _,_->
+                        button.isEnabled=false
+                        Thread({
+                            val result=runCatching {
+                                val plan=backup.plan(document,selected);backup.apply(plan)
+                                if(BackupSection.DESIGN in selected) runtime.themes.reloadFromPreferences()
+                                if(BackupSection.CLOUD in selected) RouteUploads.settingsChanged(applicationContext)
+                                plan
+                            }
+                            runOnUiThread {
+                                if(!isDestroyed) {
+                                    button.isEnabled=choices.selected().isNotEmpty()
+                                    result.fold({ plan ->
+                                        if(BackupSection.DASHBOARD in selected) {
+                                            dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
+                                            dashboard.setTemplate(currentTemplate());dashboardArea.requestLayout()
+                                            (mapPanel.layoutParams as LinearLayout.LayoutParams).weight=1f-currentTemplate().dataFraction
+                                        }
+                                        if(BackupSection.MAPS in selected || BackupSection.DASHBOARD in selected) mapPanel.refreshSettings()
+                                        render();screen.dismiss()
+                                        Toast.makeText(this,if(plan.cloudNeedsPassword) R.string.backup_cloud_secret else R.string.backup_restored,Toast.LENGTH_LONG).show()
+                                    },{ Toast.makeText(this,backupError(it),Toast.LENGTH_LONG).show() })
+                                }
+                            }
+                        },"B-Cycle-settings-restore").start()
+                    }.show()
+            }
+        }
+    }
+    private fun backupResult(requestCode:Int,resultCode:Int,data:Intent?) {
+        if(dialogs.empty) { showMenu();dataSettings() }
+        val bytes=if(requestCode==12) pendingBackupExport.also { pendingBackupExport=null } else null
+        val uri=data?.data ?: return
+        if(resultCode!=RESULT_OK) return
+        val origin=dataSettingsScreen
+        Thread({
+            val result=runCatching {
+                val backup=SettingsBackup(applicationContext,runtime.themes)
+                if(requestCode==12) {
+                    val payload=bytes ?: throw SettingsBackupFailure(BackupProblem.IO)
+                    val output=contentResolver.openOutputStream(uri,"wt") ?: throw IOException()
+                    backup.write(output,payload);null
+                } else backup.read(contentResolver.openInputStream(uri) ?: throw IOException())
+            }
+            runOnUiThread {
+                if(!isDestroyed && dataSettingsScreen===origin && origin?.isShowing==true) result.fold({ document ->
+                    if(document==null) Toast.makeText(this,R.string.backup_written,Toast.LENGTH_LONG).show() else backupSettings(document)
+                },{ Toast.makeText(this,backupError(it),Toast.LENGTH_LONG).show() })
+            }
+        },"B-Cycle-settings-document").start()
+    }
+    private fun routeExportSettings(part: RouteExportPart) {
         val settings = RouteExportSettings(this)
         lateinit var content: RouteExportView
         content = RouteExportView(settingsContext, exportDraft ?: settings.read(), settings.hasPassword(), {
@@ -688,7 +796,7 @@ class MainActivity : Activity() {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION), 10)
             } catch (_: android.content.ActivityNotFoundException) {
-                Toast.makeText(this, "Keine Ordnerauswahl verfügbar", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.route_export_no_picker), Toast.LENGTH_LONG).show()
             }
         }, {
             val config = content.read()
@@ -696,35 +804,36 @@ class MainActivity : Activity() {
             content.testing(true)
             Thread({
                 val message = try {
-                    WebDavClient(config, newPassword ?: settings.password()).test(); "Verbindung erfolgreich · Zielverzeichnis erreichbar"
+                    WebDavClient(config, newPassword ?: settings.password()).test(); getString(R.string.route_export_test_ok)
                 } catch (e: Exception) {
                     when (e) {
                         is DavFailure -> e.message ?: "Verbindung fehlgeschlagen"
                         is IllegalArgumentException -> e.message ?: "Einstellungen prüfen"
-                        else -> "Verbindung fehlgeschlagen · Adresse, Netzwerk und App-Passwort prüfen"
+                        else -> getString(R.string.route_export_test_failed)
                     }
                 }
                 runOnUiThread { content.testing(false); content.result.text = message }
             }, "B-Cycle-WebDAV-Test").start()
         }, runtime.themes, storedPassword = {
             runCatching { settings.password() }.getOrElse {
-                content.result.text = "Gespeichertes Passwort konnte nicht gelesen werden"
+                content.result.text = getString(R.string.route_export_password_failed)
                 ""
             }
-        })
+        }, part = part)
         BicycleDialogStyle.content(content, runtime.themes)
         exportPasswordDraft?.let { content.password.setText(it) }
         exportDraft = null; exportPasswordDraft = null
-        val screen = dialog().setTitle("Streckeneinstellungen").setView(ScrollView(settingsContext).apply { addView(content) })
-            .setPositiveButton("Speichern", null).setNegativeButton("Abbrechen", null).create()
-        screen.show()
+        val screen = dataDialog(if(part == RouteExportPart.LOCAL) R.string.data_local else R.string.data_cloud,
+            ScrollView(settingsContext).apply { addView(content) }, R.string.route_action_save)
         screen.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             try {
-                val config = content.read()
-                val password = content.password.text.toString().takeIf { it.isNotEmpty() }
-                if (config.webdav) {
+                val draft = content.read(); val current = settings.read()
+                val config = if(part == RouteExportPart.LOCAL) current.copy(save = draft.save, tree = draft.tree)
+                    else current.copy(webdav = draft.webdav, server = draft.server, user = draft.user, folder = draft.folder, wifiOnly = draft.wifiOnly)
+                val password = if(part == RouteExportPart.LOCAL) null else content.password.text.toString().takeIf { it.isNotEmpty() }
+                if (part == RouteExportPart.CLOUD && config.webdav) {
                     WebDavClient.directory(config)
-                    require(password != null || settings.hasPassword()) { "Bitte ein Nextcloud-App-Passwort eingeben" }
+                    require(password != null || settings.hasPassword()) { getString(R.string.route_export_need_password) }
                 }
                 screen.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
                 val appContext = applicationContext
@@ -734,12 +843,12 @@ class MainActivity : Activity() {
                         if (!isDestroyed) {
                             screen.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
                             if (success) { routeSignature = ""; refreshRouteRows(); screen.dismiss() }
-                            else content.result.text = "Einstellungen konnten nicht gespeichert werden · App-Passwort prüfen"
+                            else content.result.text = getString(R.string.route_export_save_failed)
                         }
                     }
                 }, "B-Cycle-Streckeneinstellungen").start()
             } catch (e: Exception) {
-                content.result.text = if (e is IllegalArgumentException) e.message else "Einstellungen konnten nicht gespeichert werden · App-Passwort prüfen"
+                content.result.text = if (e is IllegalArgumentException) e.message else getString(R.string.route_export_save_failed)
             }
         }
     }

@@ -138,11 +138,10 @@ class RouteExportTest {
         assertFalse(RouteUploads.run(context, { false }) { _, _, _, _ -> fail("Disabled upload must not run") })
         assertEquals("Upload pausiert", RouteUploads.status(context, second.nameWithoutExtension))
     }
-    @Test fun managerHeaderOpensSettingsAndViewKeepsBothOutputFlagsIndependent() {
+    @Test fun managerHasNoConfigurationEntryAndViewsKeepBothOutputFlagsIndependent() {
         val theme = android.view.ContextThemeWrapper(context, R.style.SettingsDialogTheme)
-        var opened = false
-        val manager = RouteManagerView(theme, {}, { opened = true })
-        manager.findViewWithTag<View>("route_settings").performClick(); assertTrue(opened)
+        val manager = RouteManagerView(theme, {})
+        assertNull(manager.findViewWithTag<View>("route_settings"))
         val view = RouteExportView(theme, RouteExportConfig(save = false, webdav = true), false, {}, {})
         assertFalse(view.read().save); assertTrue(view.read().webdav)
         (view.findViewWithTag<View>("export_save") as android.widget.CheckBox).isChecked = true

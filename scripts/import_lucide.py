@@ -4,7 +4,7 @@ import concurrent.futures, urllib.request, xml.etree.ElementTree as ET, re, sys
 VERSION = '0.468.0'
 ICON_REFS = {'cloud-check': '70562c1ee1c4fdcf736fe97bc893fb8511927934', 'save-check': '70562c1ee1c4fdcf736fe97bc893fb8511927934'}
 ICONS = ['bike', 'log-in', 'log-out', 'file', 'ellipsis', 'ellipsis-vertical', 'eye', 'cloud-upload', 'cloud-alert', 'smartphone', 'trash-2', 'pencil', 'download', 'x', 'arrow-left', 'calendar-days', 'clock', 'chart-no-axes-combined', 'mountain', 'chevron-down', 'circle-help', 'loader-circle', 'bluetooth', 'unplug', 'map', 'save', 'folder-open', 'rotate-ccw', 'plus', 'link', 'info', 'radio', 'map-pinned', 'layout-dashboard', 'route', 'settings']
-ICONS.extend(['user-round', 'activity', 'sunrise', 'sunset', 'lightbulb', 'locate-fixed', 'compass', 'maximize', 'eye-closed', 'sun', 'moon', 'gauge', 'zap', 'heart', 'flame', 'repeat-2', 'minus', 'cloud', 'check', 'cloud-check', 'save-check'])
+ICONS.extend(['database', 'upload', 'chevron-right', 'user-round', 'activity', 'sunrise', 'sunset', 'lightbulb', 'locate-fixed', 'compass', 'maximize', 'eye-closed', 'sun', 'moon', 'gauge', 'zap', 'heart', 'flame', 'repeat-2', 'minus', 'cloud', 'check', 'cloud-check', 'save-check'])
 if sys.argv[1:]:
     assert all(name in ICONS for name in sys.argv[1:]), 'Unknown Lucide icon'
     ICONS = sys.argv[1:]
@@ -20,6 +20,9 @@ def path(node):
         values = re.split(r'[\s,]+', a['points'].strip())
         return 'M'+ ' L'.join(','.join(values[i:i+2]) for i in range(0,len(values),2)) + (' Z' if tag == 'polygon' else '')
     if tag == 'line': return f"M{a['x1']},{a['y1']} L{a['x2']},{a['y2']}"
+    if tag == 'ellipse':
+        x,y,rx,ry = (float(a[k]) for k in ('cx','cy','rx','ry'))
+        return f'M{x-rx},{y} a{rx},{ry} 0 1,0 {2*rx},0 a{rx},{ry} 0 1,0 {-2*rx},0'
     if tag == 'circle':
         x,y,r = (float(a[k]) for k in ('cx','cy','r'))
         return f'M{x-r},{y} a{r},{r} 0 1,0 {2*r},0 a{r},{r} 0 1,0 {-2*r},0'

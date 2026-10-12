@@ -99,18 +99,18 @@ class RouteExportNavigationTest {
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun settingsCancelReturnsToSameManagerAndSaveAppliesIndependentOutputsWithoutClosingRootMenu() {
+    @Test fun localSettingsCancelReturnsToSameDataScreenAndSaveKeepsCloudConfiguration() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         fun latest() = ShadowAlertDialog.getLatestAlertDialog()
         fun click(screen: AlertDialog, tag: String) = descendants(screen.window!!.decorView).single { it.tag == tag }.performClick()
         try {
             descendants(controller.get().findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-            click(latest(), "settings_ROUTES")
+            click(latest(), "settings_DATA")
             val manager = latest()
-            click(manager, "route_settings")
+            click(manager, "data_LOCAL")
             latest().getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
-            click(manager, "route_settings")
+            click(manager, "data_LOCAL")
             val settings = latest()
             (descendants(settings.window!!.decorView).single { it.tag == "export_save" } as CheckBox).isChecked = false
             settings.getButton(AlertDialog.BUTTON_POSITIVE).performClick()

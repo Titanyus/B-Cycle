@@ -41,7 +41,7 @@ class RiderProfileViewTest {
             val tile=parent.window!!.decorView.findViewWithTag<View>("settings_PROFILE")
             assertTrue(tile.isClickable);assertEquals(activity.getString(R.string.rider_profile),tile.contentDescription)
             tile.performClick();val screen=ShadowAlertDialog.getLatestAlertDialog();measure(screen)
-            assertEquals(6,views(parent.window!!.decorView).count { it.tag?.toString() in listOf("settings_SENSORS","settings_PROFILE","settings_MAP","settings_DASHBOARDS","settings_ROUTES","settings_ADVANCED") })
+            assertEquals(7,views(parent.window!!.decorView).count { it.tag?.toString() in listOf("settings_SENSORS","settings_PROFILE","settings_MAP","settings_DASHBOARDS","settings_ROUTES","settings_ADVANCED","settings_DATA") })
             edit(screen,"weight").setText("76,");screen.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
             assertTrue(screen.isShowing);assertNotNull(edit(screen,"weight").error);assertEquals(RiderProfile(),runtime.riderProfiles.read())
             edit(screen,"weight").setText("76,4");edit(screen,"resting_heart_rate").setText("55");edit(screen,"maximum_heart_rate").setText("185");edit(screen,"ftp").setText("245")

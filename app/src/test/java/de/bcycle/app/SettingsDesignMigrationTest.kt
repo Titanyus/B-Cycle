@@ -94,12 +94,12 @@ class SettingsDesignMigrationTest {
         try {
             val activity = controller.get(); val themes = RideRuntime.get(activity).themes
             val root = open(activity)
-            views(root).single { it.tag == "settings_ROUTES" }.performClick()
+            views(root).single { it.tag == "settings_DATA" }.performClick()
             val manager = ShadowAlertDialog.getLatestAlertDialog()
-            views(manager).single { it.tag == "route_settings" }.performClick()
+            views(manager).single { it.tag == "data_CLOUD" }.performClick()
             val screen = ShadowAlertDialog.getLatestAlertDialog()
             val server = views(screen).single { it.tag == "export_server" } as EditText
-            val folderButton = views(screen).single { it.tag == "export_folder_choose" }
+            val folderButton = views(screen).single { it.tag == "export_test" }
             assertEquals((server.layoutParams as ViewGroup.MarginLayoutParams).topMargin,
                 (folderButton.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
             server.setText("https://example.test"); server.requestFocus()
@@ -118,7 +118,7 @@ class SettingsDesignMigrationTest {
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             assertEquals("", RouteExportSettings(activity).read().server)
             themes.activate(BicycleThemes.red.id)
-            views(manager).single { it.tag == "route_settings" }.performClick()
+            views(manager).single { it.tag == "data_CLOUD" }.performClick()
             val fresh = ShadowAlertDialog.getLatestAlertDialog(); shadowOf(Looper.getMainLooper()).idle(); measure(fresh); snapshot(fresh, "webdav")
         } finally { controller.pause().stop().destroy() }
     }

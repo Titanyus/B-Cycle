@@ -19,8 +19,9 @@ internal class RouteExportSettings(context: Context, private val secretKey: (() 
     fun read() = RouteExportConfig(prefs.getBoolean("save", true), prefs.getString("tree", "")!!,
         prefs.getBoolean("webdav", false), prefs.getString("server", "")!!, prefs.getString("user", "")!!,
         prefs.getString("folder", "B-Cycle")!!, prefs.getBoolean("wifi", true))
-    fun hasPassword() = prefs.contains("password")
+    fun hasPassword() = prefs.contains("password") && !prefs.getBoolean("needsPassword", false)
     fun password(): String {
+        if (prefs.getBoolean("needsPassword", false)) return ""
         val stored = prefs.getString("password", null) ?: return ""
         val parts = stored.split(":")
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
@@ -32,6 +33,7 @@ internal class RouteExportSettings(context: Context, private val secretKey: (() 
             .putBoolean("webdav", config.webdav).putString("server", config.server).putString("user", config.user)
             .putString("folder", config.folder).putBoolean("wifi", config.wifiOnly)
         if (newPassword != null) {
+            edit.remove("needsPassword")
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
             cipher.init(Cipher.ENCRYPT_MODE, key())
             edit.putString("password", Base64.encodeToString(cipher.iv, Base64.NO_WRAP) + ":" +
