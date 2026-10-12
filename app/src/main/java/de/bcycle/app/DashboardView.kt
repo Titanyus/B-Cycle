@@ -260,7 +260,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val height = MeasureSpec.getSize(heightMeasureSpec)
             if (threeColumns) {
                 if (unit.visibility != GONE) unit.measure(MeasureSpec.makeMeasureSpec(width / 2, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
-                val reserve = chevronSpace + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(4)
+                val reserve = (if (direction == 0) 0 else chevronSpace) + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(4)
                 value.measure(MeasureSpec.makeMeasureSpec((width - reserve).coerceAtLeast(1), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
                 setMeasuredDimension(width, height)
                 return

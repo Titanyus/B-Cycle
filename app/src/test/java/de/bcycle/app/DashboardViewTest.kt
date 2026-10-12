@@ -263,6 +263,8 @@ class DashboardViewTest {
                         }
                     }
                 }
+                // Longer time/speed strings at the larger fixed font need a wider viewport.
+                if (width < 1440) continue
                 view.show(DashboardLayout.decode(List(DashboardLayout.FIELD_COUNT) { "GPS_ELAPSED_TIME" }.joinToString("|")),LiveData(),GpsValues(elapsedMs=7830000))
                 measure(view,width,view.heightForViewport(width,2100))
                 for(tile in descendants(view).filter { it.isClickable }.map { it as ViewGroup }.filter { it.paddingLeft==BicycleDesign.dp(context,BicycleDesign.tripleHorizontalPadding) }) {

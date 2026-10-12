@@ -24,6 +24,15 @@ Keine erneute vollständige Suite bei diesem APK-Build. Die bekannte Compilerwar
 zum veralteten Android-`onBackPressed()` bleibt bestehen.
 [Buildnachweis 0.7.8](docs/milestone-078.md).
 
+## Entwicklungsstand nach APK 0.7.8
+
+- Zahlenschrift in allen Dreier-Reihen von 32 auf 45 sp vergrößert (rund 40 Prozent).
+- Ohne sichtbaren Chevron bleibt dessen Raum für den Messwert verfügbar.
+- Matrix-ICR50-Briefing für eine spätere BLE-/FTMS-Integration dokumentiert.
+
+Die Schriftänderung ist noch nicht in APK 0.7.8 enthalten; dafür wurde auf Nutzerwunsch
+keine Testsuite ausgeführt. Die Trainer-Integration ist ausschließlich vorgemerkt.
+
 ## Neu in 0.7.8
 
 - Dashboard 9 mit acht unabhängig belegbaren Feldern: **2 / 3 / 3**.
