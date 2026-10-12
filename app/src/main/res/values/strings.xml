@@ -107,8 +107,10 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="route_list_show_named">%1$s im Dashboard einblenden</string>
     <string name="route_list_hide_named">%1$s im Dashboard ausblenden</string>
     <string name="route_list_distance">Distanz</string>
-    <string name="route_list_moving">Bewegungszeit</string>
+    <string name="route_list_moving">Zeit</string>
     <string name="route_list_average">Ø Tempo</string>
     <string name="route_list_original_saved">Originaldatei in der Streckensammlung vorhanden</string>
     <string name="route_list_original_missing">Originaldatei fehlt</string>
+    <string name="route_list_clock_format">HH:mm \'h\'</string>
+    <string name="route_list_date_format">dd.MM.yyyy</string>
 </resources>

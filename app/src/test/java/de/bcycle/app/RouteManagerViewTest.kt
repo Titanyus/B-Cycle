@@ -22,6 +22,9 @@ import java.io.File
 @Config(sdk = [33], qualifiers = "xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RouteManagerViewTest {
+    private fun descendants(view: View): List<View> = listOf(view) + if (view is android.view.ViewGroup)
+        (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
+
     @Test fun commonListFiltersBothOriginsAndKeepsFilterFixedWhileRowsScrollAndRefresh() {
         val context = android.view.ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.SettingsDialogTheme)
         val clicked = mutableListOf<ManagedRoute>()
@@ -50,11 +53,14 @@ class RouteManagerViewTest {
         assertEquals("52,3", firstCard.findViewWithTag<TextView>("route_distance_route-1").text.toString())
         assertEquals("2:18", firstCard.findViewWithTag<TextView>("route_moving_route-1").text.toString())
         assertEquals("22,7", firstCard.findViewWithTag<TextView>("route_average_route-1").text.toString())
-        assertNotNull(date.compoundDrawablesRelative[0])
+        assertNull(date.compoundDrawablesRelative[0])
+        val at = java.time.Instant.ofEpochMilli(entries[1].details.dateMs).atZone(java.time.ZoneId.systemDefault())
+        assertEquals(at.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")), date.text.toString())
+        assertEquals(at.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm 'h'")), firstCard.findViewWithTag<TextView>("route_clock_route-1").text.toString())
         assertNull(firstCard.findViewWithTag<View>("route_more_route-1"))
         assertNull(firstCard.findViewWithTag<View>("route_cloud_route-1"))
         assertNull(firstCard.findViewWithTag<View>("route_local_route-1"))
-        assertFalse(firstCard.findViewWithTag<View>("route_storage_route-1").isClickable)
+        assertNull(firstCard.findViewWithTag<View>("route_storage_route-1"))
         assertTrue(list.height > 0)
         assertFalse(view.findViewWithTag<View>("route_eye_route-0").isEnabled)
         firstCard.performClick(); assertEquals(entries[1], clicked.last())
@@ -71,6 +77,7 @@ class RouteManagerViewTest {
         filter.setSelection(1); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertEquals(10, list.adapter.count); assertTrue((list.adapter.getItem(0) as ManagedRoute).recorded)
         view.submit(entries, null, true); assertEquals(1, filter.selectedItemPosition)
+        assertFalse(descendants(view).filterIsInstance<TextView>().any { it.text.toString().contains("Dateien werden verarbeitet") })
         assertFalse(list.adapter.getView(0, null, list).findViewWithTag<View>("route_eye_route-0").isEnabled)
         filter.setSelection(2); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertEquals(10, list.adapter.count); assertFalse((list.adapter.getItem(0) as ManagedRoute).recorded)
@@ -128,10 +135,24 @@ class RouteManagerViewTest {
             descendants(manager.findViewWithTag<View>("route_metrics_recorded")).filterIsInstance<AnalysisValueRow>().forEach { row ->
                 val value = row.getChildAt(0) as TextView; val unit = row.getChildAt(1) as TextView
                 assertEquals(BicycleDesign.dashboardUnitColor, unit.currentTextColor)
-                assertEquals((value.top + value.bottom) / 2f, (unit.top + unit.bottom) / 2f, 1f)
-                assertTrue(value.textSize > unit.textSize)
+                if (unit.visibility != View.GONE) {
+                    assertEquals((value.top + value.bottom) / 2f, (unit.top + unit.bottom) / 2f, 1f)
+                    assertTrue(value.textSize > unit.textSize)
+                }
                 assertEquals(1, value.maxLines)
             }
+            val readings = descendants(manager.findViewWithTag<View>("route_metrics_recorded")).filterIsInstance<AnalysisValueRow>()
+            assertEquals(4, readings.size)
+            val separators = descendants(manager.findViewWithTag<View>("route_metrics_recorded")).filter { it.tag == "route_metric_divider" }
+            assertEquals(3, separators.size)
+            separators.forEach { assertEquals(BicycleDesign.dividerPixels, it.width); assertTrue(it.height > 0) }
+            readings.forEach { reading ->
+                val label = (reading.parent as android.widget.LinearLayout).getChildAt(1) as TextView
+                assertEquals(android.view.Gravity.CENTER, label.gravity)
+                assertEquals(reading.width, label.width)
+            }
+            assertTrue(descendants(manager.findViewWithTag<View>("route_metrics_recorded")).filterIsInstance<TextView>().any { it.text.toString() == "Zeit" })
+            assertFalse(descendants(manager).any { it.tag?.toString()?.startsWith("route_storage_") == true })
             val light = CustomTheme("custom:light", "Light", ThemeTokens(0xffeeeeee.toInt(), 0xffcccccc.toInt(), 0xffaaaaaa.toInt(), 0xff000000.toInt()))
             assertTrue(themes.saveCustom(light).valid); assertTrue(themes.activate(light.id)); layout(1080, 1750)
             assertEquals(before, geometry())

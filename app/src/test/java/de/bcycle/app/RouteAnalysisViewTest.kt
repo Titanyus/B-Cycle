@@ -190,6 +190,7 @@ class RouteAnalysisViewTest {
             assertNotNull(details.window!!.decorView.findViewWithTag<View>("route_analysis_$second"))
             assertNull(details.window!!.decorView.findViewWithTag<View>("route_analysis_$first"))
             measure(details.window!!.decorView, 1080, 2000)
+            assertEquals(BicycleDesign.dp(activity, BicycleDesign.headerHeight), details.window!!.decorView.findViewWithTag<View>("route_analysis_header").height)
             assertTrue(descendants(details.window!!.decorView).joinToString { "${it.javaClass.simpleName}:${it.tag}" }, details.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen") != null)
             assertEquals(descendants(details.window!!.decorView).filterIsInstance<ScrollView>().joinToString { "${it.tag} shown=${it.isShown} parent=${(it.parent as View).tag}" }, 1, descendants(details.window!!.decorView).count { it is ScrollView && it.isShown && it.tag != "bicycle_fullscreen_footer" })
             // Closing immediately also exercises cancellation while the shared worker is still decoding.

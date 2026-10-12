@@ -22,7 +22,6 @@ object BicycleDesign {
     const val headerHeight = 64
     const val headingSp = 32f
     const val rowTitleSp = 16f
-    const val routeStorageIconSize = 16
     const val routeMetricSp = 20f
     const val routeMetricHeight = 24
     const val routeMetricLabelSp = 10f
@@ -124,6 +123,7 @@ object BicycleComponents {
     fun header(context: Context, manager: ThemeManager) = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
         layoutParams = ViewGroup.LayoutParams(-1, dp(context, BicycleDesign.headerHeight))
+        minimumHeight = dp(context, BicycleDesign.headerHeight)
         setPadding(dp(context, BicycleDesign.headerHorizontalPadding), dp(context, BicycleDesign.headerVerticalPadding),
             dp(context, BicycleDesign.headerHorizontalPadding), dp(context, BicycleDesign.headerVerticalPadding))
         surface(this, manager, ThemeRole.PRIMARY, BicycleDesign.dialogRadius, header = true)

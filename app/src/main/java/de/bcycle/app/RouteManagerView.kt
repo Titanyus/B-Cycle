@@ -100,7 +100,7 @@ internal class RouteManagerView(context: Context,
         filtered = all.filter { when (filter.selectedItemPosition) {
             1 -> it.origin == TrackOrigin.RECORDED; 2 -> it.origin == TrackOrigin.IMPORTED; else -> true
         } }
-        status.text = if (busy) "Dateien werden verarbeitet …" else if (filtered.isEmpty()) "Keine Strecken in dieser Auswahl" else ""
+        status.text = if (!busy && filtered.isEmpty()) "Keine Strecken in dieser Auswahl" else ""
         status.visibility = if (status.text.isEmpty()) GONE else VISIBLE
         rows.notifyDataSetChanged()
     }
@@ -118,50 +118,47 @@ internal class RouteManagerView(context: Context,
         private val title = BicycleComponents.text(context, themes, "").apply {
             textSize = BicycleDesign.rowTitleSp; maxLines = 1; ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.CENTER_VERTICAL
         }
-        private fun metric(kind: BicycleIcon) = BicycleComponents.text(context, themes, "").apply {
-            textSize = BicycleDesign.bodySp; gravity = Gravity.CENTER_VERTICAL
-            BicycleComponents.bindTheme(this, themes) { tokens ->
-                setCompoundDrawablesRelative(BicycleIcons.drawable(context, kind, tokens.foreground).apply {
-                    setBounds(0, 0, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize))
-                }, null, null, null)
-            }
-            compoundDrawablePadding = dp(BicycleDesign.verticalPadding)
-        }
-        private val date = metric(BicycleIcon.Date).apply { setSingleLine(true); ellipsize = TextUtils.TruncateAt.END }
-        private val storage = ImageView(context)
         private val eye = BicycleComponents.icon(context, themes, BicycleIcon.ShowOnMap,
             context.getString(R.string.route_list_visibility)) { entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let(toggle) }
-        private inner class Reading(labelId: Int, unitId: Int) : LinearLayout(context) {
+        private inner class Reading(labelId: Int? = null, unitId: Int? = null) : LinearLayout(context) {
             val number = BicycleComponents.text(context, themes, "").apply {
                 typeface = resources.getFont(R.font.bebas_neue); textSize = BicycleDesign.routeMetricSp
-                gravity = Gravity.CENTER; includeFontPadding = false; setSingleLine(true)
-                setAutoSizeTextTypeUniformWithConfiguration(12, BicycleDesign.routeMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+                gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
+                setAutoSizeTextTypeUniformWithConfiguration(if (labelId == null) 10 else 12, BicycleDesign.routeMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
             }
             val unit = TextView(context).apply {
-                text = context.getString(unitId); typeface = resources.getFont(R.font.bebas_neue)
-                textSize = BicycleDesign.formatSp; gravity = Gravity.CENTER; includeFontPadding = false; setSingleLine(true)
+                text = unitId?.let(context::getString).orEmpty(); typeface = resources.getFont(R.font.bebas_neue)
+                textSize = BicycleDesign.formatSp; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
                 setTextColor(BicycleDesign.dashboardUnitColor)
                 setAutoSizeTextTypeUniformWithConfiguration(8, BicycleDesign.formatSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+            }
+            val label = BicycleComponents.text(context, themes, labelId?.let(context::getString).orEmpty()).apply {
+                textSize = BicycleDesign.routeMetricLabelSp; gravity = Gravity.CENTER; includeFontPadding = false
+                maxLines = 1; ellipsize = TextUtils.TruncateAt.END
             }
             init {
                 orientation = VERTICAL
                 addView(AnalysisValueRow(context, number, unit), LayoutParams(-1, dp(BicycleDesign.routeMetricHeight)))
-                addView(BicycleComponents.text(context, themes, context.getString(labelId)).apply {
-                    textSize = BicycleDesign.routeMetricLabelSp; gravity = Gravity.CENTER; includeFontPadding = false
-                    setSingleLine(true); ellipsize = TextUtils.TruncateAt.END
-                }, LayoutParams(-1, -2))
+                addView(label, LayoutParams(-1, -2))
             }
             fun bind(value: String?, id: String, kind: String) {
                 number.text = value.orEmpty(); number.tag = "route_${kind}_$id"
-                unit.visibility = if (value == null) GONE else VISIBLE
+                unit.visibility = if (value == null || unit.text.isEmpty()) GONE else VISIBLE
             }
         }
+        private val date = Reading()
         private val distance = Reading(R.string.route_list_distance, R.string.analysis_km)
         private val moving = Reading(R.string.route_list_moving, R.string.analysis_hours)
         private val average = Reading(R.string.route_list_average, R.string.analysis_kmh)
         private val metrics = LinearLayout(context).apply {
             orientation = HORIZONTAL
-            listOf(distance, moving, average).forEach { addView(it, LayoutParams(0, -2, 1f)) }
+            listOf(date, distance, moving, average).forEachIndexed { index, reading ->
+                if (index > 0) addView(View(context).apply {
+                    tag = "route_metric_divider"; alpha = BicycleDesign.dividerAlpha
+                    BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.foreground) }
+                }, LayoutParams(BicycleDesign.dividerPixels, -1))
+                addView(reading, LayoutParams(0, -2, 1f))
+            }
         }
         init {
             orientation = HORIZONTAL; gravity = Gravity.TOP
@@ -174,10 +171,7 @@ internal class RouteManagerView(context: Context,
                     addView(origin, LayoutParams(dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)))
                     addView(format, LayoutParams(-2, -2).apply { marginStart = dp(BicycleDesign.verticalPadding) })
                 }, LayoutParams(-1, dp(BicycleDesign.touchSize)))
-                addView(FrameLayout(context).apply {
-                    addView(preview, FrameLayout.LayoutParams(-1, -1))
-                    addView(storage, FrameLayout.LayoutParams(dp(BicycleDesign.routeStorageIconSize), dp(BicycleDesign.routeStorageIconSize), Gravity.END or Gravity.BOTTOM))
-                }, LayoutParams(-1, dp(BicycleDesign.previewHeight)))
+                addView(preview, LayoutParams(-1, dp(BicycleDesign.previewHeight)))
             }, LayoutParams(dp(BicycleDesign.previewWidth), -2).apply { marginEnd = dp(BicycleDesign.rowGap) })
             addView(LinearLayout(context).apply {
                 orientation = VERTICAL
@@ -185,7 +179,6 @@ internal class RouteManagerView(context: Context,
                     addView(title, LayoutParams(0, dp(BicycleDesign.touchSize), 1f))
                     addView(eye, LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize)))
                 }, LayoutParams(-1, -2))
-                addView(date, LayoutParams(-1, -2).apply { topMargin = -dp(BicycleDesign.metadataSpacingTrim) })
                 addView(metrics, LayoutParams(-1, -2).apply { topMargin = -dp(BicycleDesign.metadataSpacingTrim) })
             }, LayoutParams(0, -2, 1f))
             BicycleComponents.bindTheme(this, themes) { paintState(it) }
@@ -199,7 +192,6 @@ internal class RouteManagerView(context: Context,
             val eyeKind = if (selected == route.id) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
             eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, selected != route.id))
             eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, selected != route.id))
-            storage.setImageDrawable(BicycleIcons.drawable(context, BicycleIcon.LocalSaved, tokens.foreground, !route.locallySaved))
         }
         fun bind(route: ManagedRoute) {
             entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
@@ -207,8 +199,10 @@ internal class RouteManagerView(context: Context,
             title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name
             origin.contentDescription = when (route.origin) { TrackOrigin.IMPORTED -> "Importierte Strecke"; TrackOrigin.RECORDED -> "Aufgezeichnete Fahrt"; TrackOrigin.UNKNOWN -> "Herkunft unbekannt" }
             format.text = route.format; format.contentDescription = "${route.format}-Datei"
-            date.text = if (route.details.dateMs > 0) DateTimeFormatter.ofPattern("dd.MM.yyyy · HH:mm 'h'").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(route.details.dateMs)) else "Datum unbekannt"
-            date.tag = "route_date_${route.id}"
+            val recordedAt = route.details.dateMs.takeIf { it > 0 }?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()) }
+            date.bind(recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_date_format))), route.id, "date")
+            date.label.text = recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_clock_format))).orEmpty()
+            date.label.tag = "route_clock_${route.id}"
             distance.bind(route.details.distanceM?.takeIf { it.isFinite() && it >= 0 }?.let {
                 String.format(Locale.GERMANY, "%.1f", it / 1000)
             }, route.id, "distance")
@@ -220,8 +214,6 @@ internal class RouteManagerView(context: Context,
             preview.points = route.details.preview; preview.contentDescription = if (route.hasRoute) "Streckenvorschau" else "Keine GPS-Strecke gespeichert"
             eye.tag = "route_eye_${route.id}"; eye.isEnabled = !busy && route.hasRoute && route.locallySaved
             eye.contentDescription = context.getString(if (selected == route.id) R.string.route_list_hide_named else R.string.route_list_show_named, route.name)
-            storage.tag = "route_storage_${route.id}"
-            storage.contentDescription = context.getString(if (route.locallySaved) R.string.route_list_original_saved else R.string.route_list_original_missing)
             paintState(themes.active.tokens)
         }
     }
