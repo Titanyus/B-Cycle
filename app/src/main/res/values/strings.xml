@@ -86,4 +86,29 @@
     <string name="analysis_fit_route">Gesamte Strecke anzeigen</string>
     <string name="analysis_ftp_explanation">Schätzung aus der besten zusammenhängenden 20-Minuten-Leistung dieser Fahrt, kein bestätigter persönlicher FTP-Wert.</string>
     <string name="analysis_missing">—</string>
+    <string name="route_action_map">Auf Karte ansehen</string>
+    <string name="route_action_rename">Umbenennen</string>
+    <string name="route_action_cloud">Cloud-Upload</string>
+    <string name="route_action_save">Speichern</string>
+    <string name="route_action_delete">Löschen</string>
+    <string name="route_rename_title">Strecke umbenennen</string>
+    <string name="route_name_required">Bitte einen Namen eingeben</string>
+    <string name="route_cancel">Abbrechen</string>
+    <string name="route_delete_title">Strecke aus Sammlung löschen?</string>
+    <string name="route_delete_message">%1$s
+
+Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der Importquelle bleiben erhalten.</string>
+    <string name="route_action_cloud_unavailable">Cloud-Upload nur für selbst gefahrene FIT-Fahrten</string>
+    <string name="route_cloud_confirmed">Cloud-Upload erfolgreich abgeschlossen</string>
+    <string name="route_save_confirmed">Speichern erfolgreich abgeschlossen</string>
+    <string name="route_save_cancelled">Speichern abgebrochen</string>
+    <string name="route_source_changed">Streckendatei während des Vorgangs geändert</string>
+    <string name="route_list_visibility">Track im Dashboard ein- oder ausblenden</string>
+    <string name="route_list_show_named">%1$s im Dashboard einblenden</string>
+    <string name="route_list_hide_named">%1$s im Dashboard ausblenden</string>
+    <string name="route_list_distance">Distanz</string>
+    <string name="route_list_moving">Bewegungszeit</string>
+    <string name="route_list_average">Ø Tempo</string>
+    <string name="route_list_original_saved">Originaldatei in der Streckensammlung vorhanden</string>
+    <string name="route_list_original_missing">Originaldatei fehlt</string>
 </resources>

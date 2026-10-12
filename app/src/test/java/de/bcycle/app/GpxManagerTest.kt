@@ -12,7 +12,6 @@ import org.robolectric.Robolectric
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowAlertDialog
-import org.robolectric.shadows.ShadowListPopupWindow
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.RobolectricTestRunner
@@ -29,7 +28,7 @@ class GpxManagerTest {
         while (state.busy && System.nanoTime() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
         assertFalse("GPX worker did not complete", state.busy)
     }
-    @Test fun menuMovesImportIntoLibraryAndEyeAndTrashUpdateStoredRoutes() {
+    @Test fun libraryEyeTogglesDashboardTrackAndDetailFooterDeletionUpdatesStoredRoutes() {
         val app = RuntimeEnvironment.getApplication()
         val library = GpxLibrary(app.filesDir)
         library.load()
@@ -55,9 +54,17 @@ class GpxManagerTest {
             assertTrue(views().filterIsInstance<TextView>().any { it.text.toString() == "Testfahrt" })
             activity.getSharedPreferences("bike", 0).edit().putBoolean("mapGpxVisible", false).apply()
             RideRuntime.get(activity).observers.toList().forEach { it() }
-            assertTrue(views().single { it.tag == "route_eye_$id" }.contentDescription.toString().endsWith("anzeigen"))
+            assertEquals(activity.getString(R.string.route_list_show_named, "Testfahrt"), views().single { it.tag == "route_eye_$id" }.contentDescription)
             views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
+            assertSame(manager, ShadowAlertDialog.getLatestAlertDialog())
             assertNotNull(state.route); assertEquals(id, state.selectedRoute)
+            assertTrue(activity.getSharedPreferences("bike", 0).getBoolean("mapGpxVisible", false))
+            assertEquals(activity.getString(R.string.route_list_hide_named, "Testfahrt"), views().single { it.tag == "route_eye_$id" }.contentDescription)
+            views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
+            assertSame(manager, ShadowAlertDialog.getLatestAlertDialog())
+            assertFalse(activity.getSharedPreferences("bike", 0).getBoolean("mapGpxVisible", true))
+            assertNotNull(state.route); assertEquals(id, state.selectedRoute)
+            views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
             assertTrue(activity.getSharedPreferences("bike", 0).getBoolean("mapGpxVisible", false))
             val decor = manager.window!!.decorView
             val bitmap = android.graphics.Bitmap.createBitmap(decor.width, decor.height, android.graphics.Bitmap.Config.ARGB_8888)
@@ -65,25 +72,20 @@ class GpxManagerTest {
             java.io.File("build/reports/settings/route-manager-dialog.png").apply { parentFile!!.mkdirs()
                 outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
             }
-            views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
-            assertNotNull(state.route); assertNotNull(GpxLibrary(app.filesDir).load()); assertEquals(1, state.routes.size)
-            assertFalse(activity.getSharedPreferences("bike", 0).getBoolean("mapGpxVisible", true))
-            views().single { it.tag == "route_eye_$id" }.performClick(); await(state)
-            assertNotNull(state.route)
-            views().single { it.tag == "route_more_$id" }.performClick()
-            val choices = ShadowListPopupWindow.getLatestListPopupWindow().listView!!
-            choices.performItemClick(null, choices.adapter.count - 1, 0)
-            shadowOf(Looper.getMainLooper()).idle()
+            assertNotNull(GpxLibrary(app.filesDir).load()); assertEquals(1, state.routes.size)
+            assertFalse(views().any { it.tag == "route_more_$id" })
+            views().single { it.tag == "route_entry_$id" }.performClick(); shadowOf(Looper.getMainLooper()).idle()
+            val details = ShadowAlertDialog.getLatestAlertDialog()
+            details.window!!.decorView.findViewWithTag<View>("detail_delete").performClick()
             ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
             shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
+            assertEquals(View.VISIBLE, details.window!!.decorView.visibility)
             assertEquals(1, state.routes.size)
-            views().single { it.tag == "route_more_$id" }.performClick()
-            val deleteChoices = ShadowListPopupWindow.getLatestListPopupWindow().listView!!
-            deleteChoices.performItemClick(null, deleteChoices.adapter.count - 1, 0)
-            shadowOf(Looper.getMainLooper()).idle()
+            details.window!!.decorView.findViewWithTag<View>("detail_delete").performClick()
             ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick(); await(state)
             assertTrue(state.routes.isEmpty()); assertNull(state.route)
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             val restored = GpxLibrary(app.filesDir); assertNull(restored.load()); assertTrue(restored.entries.isEmpty())
         } finally { controller.pause().stop().destroy() }
     }

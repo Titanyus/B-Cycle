@@ -25,10 +25,10 @@ class RouteManagerViewTest {
     @Test fun commonListFiltersBothOriginsAndKeepsFilterFixedWhileRowsScrollAndRefresh() {
         val context = android.view.ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.SettingsDialogTheme)
         val clicked = mutableListOf<ManagedRoute>()
-        val view = RouteManagerView(context, { clicked += it }, { clicked += it }).apply { layoutDirection = resources.configuration.layoutDirection }
+        val view = RouteManagerView(context, { clicked += it }, details = { clicked += it }).apply { layoutDirection = resources.configuration.layoutDirection }
         val preview = listOf(MapPoint(50.0, 8.0, true), MapPoint(50.01, 8.01), MapPoint(50.02, 8.0))
         val entries = (0..19).map { i -> ManagedRoute("route-$i", "Testrunde $i", i % 2 == 0,
-            if (i % 2 == 0) "FIT" else "GPX", RouteDetails(1_791_626_400_000, 52300.0, 9000000, preview, movingMs = 8280000), i != 0) }
+            if (i % 2 == 0) "FIT" else "GPX", RouteDetails(1_791_626_400_000, 52300.0, 9000000, preview, movingMs = 8280000), i != 0, locallySaved = true) }
         fun measure(width: Int = 1080, height: Int = 1700) {
             view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.AT_MOST))
             view.layout(0, 0, width, view.measuredHeight)
@@ -44,33 +44,34 @@ class RouteManagerViewTest {
         assertEquals(android.graphics.Color.WHITE, (list.divider as android.graphics.drawable.ColorDrawable).color)
         val title = firstCard.findViewWithTag<TextView>("route_name_route-1")
         val date = firstCard.findViewWithTag<TextView>("route_date_route-1")
-        val metrics = firstCard.findViewWithTag<TextView>("route_metrics_route-1")
         val eye = firstCard.findViewWithTag<View>("route_eye_route-1")
-        val more = firstCard.findViewWithTag<View>("route_more_route-1")
-        assertSame(eye.parent, firstCard.findViewWithTag<View>("route_local_route-1").parent)
-        assertSame(eye.parent, firstCard.findViewWithTag<View>("route_cloud_route-1").parent)
-        assertEquals(android.widget.LinearLayout.HORIZONTAL, (eye.parent as android.widget.LinearLayout).orientation)
-        assertTrue(eye.paddingLeft > 3 * context.resources.displayMetrics.density)
+        assertSame(title.parent, eye.parent)
         assertEquals(1, title.maxLines)
-        assertEquals(metrics.textSize, date.textSize, 0f)
-        assertEquals("52,3 km · 2:18 h", metrics.text.toString())
-        assertEquals(1, metrics.maxLines)
-        assertNotNull(date.compoundDrawablesRelative[0]); assertNotNull(metrics.compoundDrawablesRelative[0])
+        assertEquals("52,3", firstCard.findViewWithTag<TextView>("route_distance_route-1").text.toString())
+        assertEquals("2:18", firstCard.findViewWithTag<TextView>("route_moving_route-1").text.toString())
+        assertEquals("22,7", firstCard.findViewWithTag<TextView>("route_average_route-1").text.toString())
+        assertNotNull(date.compoundDrawablesRelative[0])
+        assertNull(firstCard.findViewWithTag<View>("route_more_route-1"))
+        assertNull(firstCard.findViewWithTag<View>("route_cloud_route-1"))
+        assertNull(firstCard.findViewWithTag<View>("route_local_route-1"))
+        assertFalse(firstCard.findViewWithTag<View>("route_storage_route-1").isClickable)
         assertTrue(list.height > 0)
         assertFalse(view.findViewWithTag<View>("route_eye_route-0").isEnabled)
-        view.findViewWithTag<View>("route_more_route-0").performClick(); assertEquals(entries.first(), clicked.last())
+        firstCard.performClick(); assertEquals(entries[1], clicked.last())
+        val count = clicked.size
+        eye.performClick(); assertEquals(count + 1, clicked.size); assertEquals(entries[1], clicked.last())
         fun centerX(child: View): Int {
             val bounds = android.graphics.Rect(0, 0, child.width, child.height)
             view.offsetDescendantRectToMyCoords(child, bounds)
             return bounds.centerX()
         }
-        assertEquals(centerX(view.findViewWithTag("route_settings")), centerX(view.findViewWithTag("route_more_route-0")))
+        assertEquals(centerX(view.findViewWithTag("route_settings")), centerX(view.findViewWithTag("route_eye_route-0")))
         val top = filter.top
         list.setSelection(14); measure(); assertEquals(top, filter.top)
         filter.setSelection(1); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertEquals(10, list.adapter.count); assertTrue((list.adapter.getItem(0) as ManagedRoute).recorded)
         view.submit(entries, null, true); assertEquals(1, filter.selectedItemPosition)
-        assertFalse(list.adapter.getView(0, null, list).findViewWithTag<View>("route_more_route-0").isEnabled)
+        assertFalse(list.adapter.getView(0, null, list).findViewWithTag<View>("route_eye_route-0").isEnabled)
         filter.setSelection(2); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertEquals(10, list.adapter.count); assertFalse((list.adapter.getItem(0) as ManagedRoute).recorded)
         view.submit(entries, null, false); filter.setSelection(0); shadowOf(Looper.getMainLooper()).idle(); measure()
@@ -84,11 +85,9 @@ class RouteManagerViewTest {
         try {
             val activity = controller.get()
             val themes = ThemeManager(activity.getSharedPreferences("bike", 0))
-            val statuses = mutableMapOf("recorded" to RouteUploadStatus(UploadState.WAITING, "Nextcloud-Upload ausstehend"))
             val clicked = mutableListOf<String>()
-            val manager = RouteManagerView(activity, { clicked += "map:${it.id}" }, { clicked += "more:${it.id}" },
-                themes = themes, uploadState = { statuses[it.id] ?: RouteUploadStatus(UploadState.NOT_UPLOADED) },
-                upload = { clicked += "cloud:${it.id}" }, local = { clicked += "local:${it.id}" })
+            val manager = RouteManagerView(activity, { clicked += "map:${it.id}" },
+                themes = themes, details = { clicked += "details:${it.id}" })
             activity.setContentView(manager)
             val preview = listOf(MapPoint(50.0, 8.0, true), MapPoint(50.01, 8.01), MapPoint(50.02, 8.0))
             val entries = listOf(
@@ -110,24 +109,29 @@ class RouteManagerViewTest {
             }
             layout(1080, 1750); snapshot("route-manager-red")
             val before = geometry()
-            assertEquals(View.GONE, manager.findViewWithTag<View>("route_cloud_imported").visibility)
             val importedEye = manager.findViewWithTag<View>("route_eye_imported")
-            val importedLocal = manager.findViewWithTag<View>("route_local_imported")
-            assertEquals(importedEye.right, importedLocal.left) // No empty cloud slot.
-            val importedDistance = manager.findViewWithTag<View>("route_metrics_imported")
-            assertSame(importedDistance.parent.parent, importedEye.parent.parent)
-            assertEquals("53,7 km · 1:53 h", (importedDistance as TextView).text.toString())
-            assertEquals("1,0 km", manager.findViewWithTag<TextView>("route_metrics_unknown").text.toString())
-            assertEquals(1, importedDistance.maxLines)
-            assertTrue(importedDistance.layout.getLineWidth(0) <= importedDistance.width - importedDistance.compoundPaddingLeft - importedDistance.compoundPaddingRight)
-            assertFalse(manager.findViewWithTag<View>("route_cloud_recorded").isEnabled)
+            val importedName = manager.findViewWithTag<View>("route_name_imported")
+            assertSame(importedName.parent, importedEye.parent)
+            assertEquals("53,7", manager.findViewWithTag<TextView>("route_distance_imported").text.toString())
+            assertEquals("1:53", manager.findViewWithTag<TextView>("route_moving_imported").text.toString())
+            assertEquals("28,5", manager.findViewWithTag<TextView>("route_average_imported").text.toString())
+            assertEquals("1,0", manager.findViewWithTag<TextView>("route_distance_unknown").text.toString())
+            assertEquals("", manager.findViewWithTag<TextView>("route_moving_unknown").text.toString())
+            assertEquals("", manager.findViewWithTag<TextView>("route_average_unknown").text.toString())
+            assertFalse(manager.findViewWithTag<View>("route_eye_unknown").isEnabled)
             assertFalse(descendants(manager).filterIsInstance<TextView>().any { it.text.toString().contains("Nextcloud-Upload") })
-            assertEquals(android.widget.LinearLayout.HORIZONTAL,
-                (manager.findViewWithTag<View>("route_metrics_recorded").parent.parent as android.widget.LinearLayout).orientation)
-            manager.findViewWithTag<View>("route_local_recorded").performClick(); assertEquals("local:recorded", clicked.last())
-            manager.findViewWithTag<View>("route_more_recorded").performClick(); assertEquals("more:recorded", clicked.last())
-            assertEquals(BicycleDesign.compactActionWidth * activity.resources.displayMetrics.density,
+            assertFalse(descendants(manager).any { it.tag?.toString()?.startsWith("route_cloud_") == true || it.tag?.toString()?.startsWith("route_local_") == true || it.tag?.toString()?.startsWith("route_more_") == true })
+            importedEye.performClick(); assertEquals(listOf("map:imported"), clicked)
+            manager.findViewWithTag<View>("route_entry_imported").performClick(); assertEquals("details:imported", clicked.last())
+            assertEquals(BicycleDesign.touchSize * activity.resources.displayMetrics.density,
                 manager.findViewWithTag<View>("route_eye_recorded").width.toFloat(), 1f)
+            descendants(manager.findViewWithTag<View>("route_metrics_recorded")).filterIsInstance<AnalysisValueRow>().forEach { row ->
+                val value = row.getChildAt(0) as TextView; val unit = row.getChildAt(1) as TextView
+                assertEquals(BicycleDesign.dashboardUnitColor, unit.currentTextColor)
+                assertEquals((value.top + value.bottom) / 2f, (unit.top + unit.bottom) / 2f, 1f)
+                assertTrue(value.textSize > unit.textSize)
+                assertEquals(1, value.maxLines)
+            }
             val light = CustomTheme("custom:light", "Light", ThemeTokens(0xffeeeeee.toInt(), 0xffcccccc.toInt(), 0xffaaaaaa.toInt(), 0xff000000.toInt()))
             assertTrue(themes.saveCustom(light).valid); assertTrue(themes.activate(light.id)); layout(1080, 1750)
             assertEquals(before, geometry())
@@ -140,9 +144,16 @@ class RouteManagerViewTest {
             assertEquals(1, manager.findViewWithTag<ListView>("route_list").count)
             filter.setSelection(0); shadowOf(Looper.getMainLooper()).idle(); layout(1080, 1750)
             themes.activate(BicycleThemes.red.id)
-            statuses["recorded"] = RouteUploadStatus(UploadState.FAILED, "Upload fehlgeschlagen · Zugang prüfen")
             manager.submit(entries, null, false); layout(840, 1500); snapshot("route-manager-narrow")
-            manager.findViewWithTag<View>("route_cloud_recorded").performClick(); assertEquals("cloud:recorded", clicked.last())
+            descendants(manager.findViewWithTag<View>("route_metrics_recorded")).filterIsInstance<TextView>().filter { it.tag != null }.forEach {
+                assertTrue(it.layout.getLineWidth(0) <= it.width + 1)
+            }
+            manager.submit(entries, null, true); layout(840, 1500)
+            val count = clicked.size
+            manager.findViewWithTag<View>("route_eye_recorded").performClick()
+            manager.findViewWithTag<View>("route_entry_recorded").performClick()
+            assertEquals(count, clicked.size)
+            manager.submit(entries, null, false)
             layout(1950, 750); snapshot("route-manager-landscape")
             manager.submit(emptyList(), null, false); layout(1080, 1750); snapshot("route-manager-empty")
             assertEquals(0, manager.findViewWithTag<ListView>("route_list").count)

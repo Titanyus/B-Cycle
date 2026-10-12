@@ -21,13 +21,8 @@ import kotlin.math.cos
 
 /** Fixed header/filter, one native recycled list, no per-row decoding or disk/network I/O. */
 internal class RouteManagerView(context: Context,
-    private val toggle: (ManagedRoute) -> Unit,
-    private val actions: (ManagedRoute) -> Unit, settings: () -> Unit = {},
-    private val uploadStatus: (String) -> String = { "" },
+    private val toggle: (ManagedRoute) -> Unit, settings: () -> Unit = {},
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
-    private val uploadState: (ManagedRoute) -> RouteUploadStatus = { RouteUploadStatus(UploadState.NOT_UPLOADED, uploadStatus(it.id)) },
-    private val upload: (ManagedRoute) -> Unit = {},
-    private val local: (ManagedRoute) -> Unit = {},
     private val details: (ManagedRoute) -> Unit = {}) : LinearLayout(context) {
     private fun dp(value: Int) = BicycleDesign.dp(context, value)
     internal var fullscreen = false
@@ -132,19 +127,42 @@ internal class RouteManagerView(context: Context,
             }
             compoundDrawablePadding = dp(BicycleDesign.verticalPadding)
         }
-        private val date = metric(BicycleIcon.Date)
-        private val metrics = metric(BicycleIcon.Distance).apply { setSingleLine(true) }
-        private fun action(kind: BicycleIcon, description: String, click: (ManagedRoute) -> Unit) =
-            BicycleComponents.icon(context, themes, kind, description) { entry?.let(click) }
-        private val more = action(BicycleIcon.MoreOptions, "Streckenaktionen", actions)
-        private val eye = action(BicycleIcon.ShowOnMap, "Kartenanzeige", toggle)
-        private val cloud = action(BicycleIcon.CloudNotUploaded, "Cloud-Upload") { route ->
-            val state = uploadState(route)
-            if (state.state == UploadState.FAILED && state.message.isNotEmpty())
-                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-            upload(route)
+        private val date = metric(BicycleIcon.Date).apply { setSingleLine(true); ellipsize = TextUtils.TruncateAt.END }
+        private val storage = ImageView(context)
+        private val eye = BicycleComponents.icon(context, themes, BicycleIcon.ShowOnMap,
+            context.getString(R.string.route_list_visibility)) { entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let(toggle) }
+        private inner class Reading(labelId: Int, unitId: Int) : LinearLayout(context) {
+            val number = BicycleComponents.text(context, themes, "").apply {
+                typeface = resources.getFont(R.font.bebas_neue); textSize = BicycleDesign.routeMetricSp
+                gravity = Gravity.CENTER; includeFontPadding = false; setSingleLine(true)
+                setAutoSizeTextTypeUniformWithConfiguration(12, BicycleDesign.routeMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+            }
+            val unit = TextView(context).apply {
+                text = context.getString(unitId); typeface = resources.getFont(R.font.bebas_neue)
+                textSize = BicycleDesign.formatSp; gravity = Gravity.CENTER; includeFontPadding = false; setSingleLine(true)
+                setTextColor(BicycleDesign.dashboardUnitColor)
+                setAutoSizeTextTypeUniformWithConfiguration(8, BicycleDesign.formatSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+            }
+            init {
+                orientation = VERTICAL
+                addView(AnalysisValueRow(context, number, unit), LayoutParams(-1, dp(BicycleDesign.routeMetricHeight)))
+                addView(BicycleComponents.text(context, themes, context.getString(labelId)).apply {
+                    textSize = BicycleDesign.routeMetricLabelSp; gravity = Gravity.CENTER; includeFontPadding = false
+                    setSingleLine(true); ellipsize = TextUtils.TruncateAt.END
+                }, LayoutParams(-1, -2))
+            }
+            fun bind(value: String?, id: String, kind: String) {
+                number.text = value.orEmpty(); number.tag = "route_${kind}_$id"
+                unit.visibility = if (value == null) GONE else VISIBLE
+            }
         }
-        private val saved = action(BicycleIcon.LocalSaved, "Lokale Speicherung", local)
+        private val distance = Reading(R.string.route_list_distance, R.string.analysis_km)
+        private val moving = Reading(R.string.route_list_moving, R.string.analysis_hours)
+        private val average = Reading(R.string.route_list_average, R.string.analysis_kmh)
+        private val metrics = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            listOf(distance, moving, average).forEach { addView(it, LayoutParams(0, -2, 1f)) }
+        }
         init {
             orientation = HORIZONTAL; gravity = Gravity.TOP
             setOnClickListener { entry?.takeIf { !busy }?.let(details) }
@@ -156,46 +174,19 @@ internal class RouteManagerView(context: Context,
                     addView(origin, LayoutParams(dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)))
                     addView(format, LayoutParams(-2, -2).apply { marginStart = dp(BicycleDesign.verticalPadding) })
                 }, LayoutParams(-1, dp(BicycleDesign.touchSize)))
-                addView(preview, LayoutParams(-1, dp(BicycleDesign.previewHeight)))
+                addView(FrameLayout(context).apply {
+                    addView(preview, FrameLayout.LayoutParams(-1, -1))
+                    addView(storage, FrameLayout.LayoutParams(dp(BicycleDesign.routeStorageIconSize), dp(BicycleDesign.routeStorageIconSize), Gravity.END or Gravity.BOTTOM))
+                }, LayoutParams(-1, dp(BicycleDesign.previewHeight)))
             }, LayoutParams(dp(BicycleDesign.previewWidth), -2).apply { marginEnd = dp(BicycleDesign.rowGap) })
             addView(LinearLayout(context).apply {
                 orientation = VERTICAL
                 addView(LinearLayout(context).apply {
                     addView(title, LayoutParams(0, dp(BicycleDesign.touchSize), 1f))
-                    addView(more, LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize)))
+                    addView(eye, LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize)))
                 }, LayoutParams(-1, -2))
                 addView(date, LayoutParams(-1, -2).apply { topMargin = -dp(BicycleDesign.metadataSpacingTrim) })
-                val metadata = LinearLayout(context).apply {
-                    orientation = VERTICAL
-                    addView(metrics, LayoutParams(-1, -2))
-                }
-                val buttons = LinearLayout(context).apply {
-                    orientation = HORIZONTAL; gravity = Gravity.END
-                    listOf(eye, cloud, saved).forEach {
-                        it.setPadding(dp((BicycleDesign.compactActionWidth - BicycleDesign.iconSize) / 2),
-                            dp((BicycleDesign.touchSize - BicycleDesign.iconSize) / 2),
-                            dp((BicycleDesign.compactActionWidth - BicycleDesign.iconSize) / 2),
-                            dp((BicycleDesign.touchSize - BicycleDesign.iconSize) / 2))
-                        addView(it, LayoutParams(dp(BicycleDesign.compactActionWidth), dp(BicycleDesign.touchSize)))
-                    }
-                }
-                addView(object : LinearLayout(context) {
-                    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-                        val free = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-                        metrics.measure(free, free)
-                        val labelWidth = if (metrics.visibility == GONE) 0 else metrics.measuredWidth
-                        val buttonWidth = listOf(eye, cloud, saved).count { it.visibility != GONE } * dp(BicycleDesign.compactActionWidth)
-                        val beside = labelWidth + buttonWidth <= MeasureSpec.getSize(widthMeasureSpec)
-                        orientation = if (beside) HORIZONTAL else VERTICAL
-                        (metadata.layoutParams as LayoutParams).apply { width = if (beside) 0 else -1; weight = if (beside) 1f else 0f }
-                        (buttons.layoutParams as LayoutParams).width = if (beside) -2 else -1
-                        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-                    }
-                }.apply {
-                    gravity = Gravity.CENTER_VERTICAL
-                    addView(metadata, LayoutParams(0, -2, 1f))
-                    addView(buttons, LayoutParams(-2, dp(BicycleDesign.touchSize)))
-                }, LayoutParams(-1, -2).apply { topMargin = -dp(BicycleDesign.metadataSpacingTrim) })
+                addView(metrics, LayoutParams(-1, -2).apply { topMargin = -dp(BicycleDesign.metadataSpacingTrim) })
             }, LayoutParams(0, -2, 1f))
             BicycleComponents.bindTheme(this, themes) { paintState(it) }
         }
@@ -208,17 +199,7 @@ internal class RouteManagerView(context: Context,
             val eyeKind = if (selected == route.id) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
             eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, selected != route.id))
             eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, selected != route.id))
-            val state = uploadState(route)
-            val cloudKind = when (state.state) {
-                UploadState.UPLOADING -> BicycleIcon.Loading
-                UploadState.FAILED -> BicycleIcon.CloudFailed
-                else -> BicycleIcon.CloudUploaded
-            }
-            val notUploaded = state.state == UploadState.NOT_UPLOADED || state.state == UploadState.WAITING
-            cloud.setImageDrawable(BicycleIcons.drawable(context, cloudKind, tokens, notUploaded))
-            cloud.setColorFilter(BicycleIcons.color(tokens, cloudKind, notUploaded))
-            saved.setImageDrawable(BicycleIcons.drawable(context, BicycleIcon.LocalSaved, tokens, !route.locallySaved))
-            saved.setColorFilter(BicycleIcons.color(tokens, BicycleIcon.LocalSaved, !route.locallySaved))
+            storage.setImageDrawable(BicycleIcons.drawable(context, BicycleIcon.LocalSaved, tokens.foreground, !route.locallySaved))
         }
         fun bind(route: ManagedRoute) {
             entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
@@ -228,21 +209,19 @@ internal class RouteManagerView(context: Context,
             format.text = route.format; format.contentDescription = "${route.format}-Datei"
             date.text = if (route.details.dateMs > 0) DateTimeFormatter.ofPattern("dd.MM.yyyy · HH:mm 'h'").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(route.details.dateMs)) else "Datum unbekannt"
             date.tag = "route_date_${route.id}"
-            val distanceText = route.details.distanceM?.let { String.format(Locale.GERMANY, "%.1f km", it / 1000) }
-            val durationText = route.details.movingMs?.let { val minutes = it / 60000; "%d:%02d h".format(Locale.GERMANY, minutes / 60, minutes % 60) }
-            metrics.text = listOfNotNull(distanceText, durationText).joinToString(" · ")
-            metrics.visibility = if (metrics.text.isEmpty()) GONE else VISIBLE
+            distance.bind(route.details.distanceM?.takeIf { it.isFinite() && it >= 0 }?.let {
+                String.format(Locale.GERMANY, "%.1f", it / 1000)
+            }, route.id, "distance")
+            moving.bind(route.details.movingMs?.takeIf { it >= 0 && (route.details.durationMs == null || it <= route.details.durationMs) }?.let {
+                val minutes = it / 60000; "%d:%02d".format(Locale.GERMANY, minutes / 60, minutes % 60)
+            }, route.id, "moving")
+            average.bind(route.details.movingAverageKmh?.let { String.format(Locale.GERMANY, "%.1f", it) }, route.id, "average")
             metrics.tag = "route_metrics_${route.id}"
             preview.points = route.details.preview; preview.contentDescription = if (route.hasRoute) "Streckenvorschau" else "Keine GPS-Strecke gespeichert"
             eye.tag = "route_eye_${route.id}"; eye.isEnabled = !busy && route.hasRoute && route.locallySaved
-            eye.contentDescription = if (selected == route.id) "${route.name} ausblenden" else if (!route.hasRoute) "Keine GPS-Strecke gespeichert" else "${route.name} anzeigen"
-            val state = uploadState(route)
-            cloud.visibility = if (route.origin == TrackOrigin.RECORDED && route.format == "FIT") VISIBLE else GONE
-            cloud.tag = "route_cloud_${route.id}"; cloud.isEnabled = !busy && route.locallySaved && state.state !in setOf(UploadState.WAITING, UploadState.UPLOADING, UploadState.UPLOADED)
-            cloud.contentDescription = state.message.ifEmpty { "${route.name} zu Nextcloud hochladen" }
-            saved.tag = "route_local_${route.id}"; saved.isEnabled = !busy
-            saved.contentDescription = if (route.locallySaved) "In der Streckensammlung gespeichert" else "Lokale Originaldatei fehlt · erneut importieren"
-            more.tag = "route_more_${route.id}"; more.contentDescription = "Aktionen für ${route.name}"; more.isEnabled = !busy
+            eye.contentDescription = context.getString(if (selected == route.id) R.string.route_list_hide_named else R.string.route_list_show_named, route.name)
+            storage.tag = "route_storage_${route.id}"
+            storage.contentDescription = context.getString(if (route.locallySaved) R.string.route_list_original_saved else R.string.route_list_original_missing)
             paintState(themes.active.tokens)
         }
     }

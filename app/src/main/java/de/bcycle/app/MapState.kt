@@ -55,7 +55,11 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
                 require(fit != null || gpx != null)
                 val entry = if (fit != null) ManagedRoute(fit.id, fit.name, fit.recorded, "FIT", fit.details, fit.hasRoute, fit.origin)
                     else gpx!!.let { ManagedRoute(it.id, it.name, false, "GPX", it.details, true, it.origin) }
-                RouteAnalysisRead.read(if (fit != null) fits.file(id) else library.file(id), entry, cancelled::get)
+                val original = if (fit != null) fits.file(id) else library.file(id)
+                val stamp = RouteFileStamp(original.length(), original.lastModified(), WebDavClient.hash(original))
+                val analysis = RouteAnalysisRead.read(original, entry.copy(locallySaved = original.isFile, fileStamp = stamp), cancelled::get)
+                check(original.length() == stamp.length && original.lastModified() == stamp.modified)
+                analysis
             }
             if (!cancelled.get()) handler.post { if (!cancelled.get()) complete(result) }
         }
@@ -129,7 +133,9 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         val fit = fits.entries.firstOrNull { it.id == id }
         val file = if (fit != null) fits.file(id) else library.file(id)
         val name = fit?.name ?: library.entries.single { it.id == id }.name
-        DownloadFiles.write(context, file, "$name.${file.extension}")
+        RouteLocalSaves.perform(context, id, file, "Downloads/B-Cycle") {
+            DownloadFiles.write(context, file, "$name.${file.extension}")
+        }
         workerRoute
     }
     fun uploadRoute(id: String) = operate("Nextcloud-Upload vorgemerkt") {
@@ -145,6 +151,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     fun deleteRoute(id: String) = operate("Aus der Sammlung gelöscht · vorhandene Downloads bleiben erhalten") {
         val active = (selectedFit ?: library.selected) == id
         if (fits.entries.any { it.id == id }) { fits.delete(id); if (selectedFit == id) setSelectedFit(null) } else library.delete(id)
+        RouteLocalSaves.forget(context, id)
         if (active) null else workerRoute
     }
 }

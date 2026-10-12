@@ -6,7 +6,11 @@ import kotlin.math.*
 
 data class RouteDetails(val dateMs: Long = 0, val distanceM: Double? = null, val durationMs: Long? = null,
                         val preview: List<MapPoint> = emptyList(), val ascentM: Double? = null, val movingMs: Long? = null) {
-    val movingAverageKmh get() = movingMs?.takeIf { it > 0 }?.let { distanceM?.times(3600)?.div(it) }
+    val movingAverageKmh: Double? get() {
+        val moving = movingMs?.takeIf { it > 0 && (durationMs == null || it <= durationMs) } ?: return null
+        val distance = distanceM?.takeIf { it.isFinite() && it >= 0 } ?: return null
+        return (distance * 3600 / moving).takeIf { it.isFinite() }
+    }
     internal fun json() = JSONObject().put("date", dateMs).put("distance", distanceM)
         .put("moving", movingMs ?: JSONObject.NULL).put("duration", durationMs).put("ascent", ascentM ?: JSONObject.NULL).put("preview", JSONArray().also { array ->
             preview.forEach { array.put(JSONArray().put(it.latitude).put(it.longitude).put(it.segmentStart)) }

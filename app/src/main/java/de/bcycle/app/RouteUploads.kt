@@ -35,7 +35,8 @@ internal object RouteUploads {
         val item = statusCache.optJSONObject(id) ?: return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED)
         val currentTarget = runCatching { target(RouteExportSettings(context).read()) }.getOrNull()
         if (item.optString("target") != currentTarget) return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED, "Uploadziel geändert")
-        if (stamp != null && (item.optLong("length", -1) != stamp.length || item.optLong("modified", -1) != stamp.modified))
+        if (stamp != null && (item.optLong("length", -1) != stamp.length || item.optLong("modified", -1) != stamp.modified ||
+                (stamp.hash != null && item.optString("hash") != stamp.hash)))
             return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED, "Datei geändert · Upload erneut prüfen")
         when (item.optString("state")) {
             "saved" -> if (item.optString("hash").isNotEmpty()) RouteUploadStatus(UploadState.UPLOADED, "Nextcloud gesichert")
@@ -147,6 +148,7 @@ internal object RouteUploads {
                         !current.webdav || runCatching { target(current) }.getOrNull() != item.getString("target")
                     }
                 }
+                if (cancelled() || RouteExportSettings(context).read().let { !it.webdav || runCatching { target(it) }.getOrNull() != item.getString("target") }) throw java.io.IOException("Upload cancelled")
                 check(fingerprint(file) == hash && file.length() == item.getLong("length") && file.lastModified() == item.getLong("modified")) { "Datei während Upload geändert" }
                 update(context, id, "saved", expectedHash = hash, expectedTarget = item.getString("target"))
             } catch (e: Exception) {

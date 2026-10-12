@@ -181,10 +181,9 @@ class RouteAnalysisViewTest {
             val card = list.adapter.getView((0 until list.adapter.count).single { (list.adapter.getItem(it) as ManagedRoute).id == second }, null, list)
             val selectedBefore = state.selectedRoute
             card.findViewWithTag<View>("route_eye_$second").performClick()
+            shadowOf(Looper.getMainLooper()).idle()
             assertSame(manager, ShadowAlertDialog.getLatestAlertDialog())
-            card.findViewWithTag<View>("route_more_$second").performClick()
-            assertSame(manager, ShadowAlertDialog.getLatestAlertDialog())
-            org.robolectric.shadows.ShadowListPopupWindow.getLatestListPopupWindow().dismiss()
+            assertNull(card.findViewWithTag<View>("route_more_$second"))
             card.performClick(); shadowOf(Looper.getMainLooper()).idle()
             val details = ShadowAlertDialog.getLatestAlertDialog()
             assertNotSame(manager, details)
@@ -194,7 +193,7 @@ class RouteAnalysisViewTest {
             assertTrue(descendants(details.window!!.decorView).joinToString { "${it.javaClass.simpleName}:${it.tag}" }, details.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen") != null)
             assertEquals(descendants(details.window!!.decorView).filterIsInstance<ScrollView>().joinToString { "${it.tag} shown=${it.isShown} parent=${(it.parent as View).tag}" }, 1, descendants(details.window!!.decorView).count { it is ScrollView && it.isShown && it.tag != "bicycle_fullscreen_footer" })
             // Closing immediately also exercises cancellation while the shared worker is still decoding.
-            details.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            descendants(details.window!!.decorView).single { it.contentDescription == activity.getString(R.string.analysis_back) }.performClick(); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             assertEquals(selectedBefore, state.selectedRoute)
             assertEquals(2, filter.selectedItemPosition); assertSame(list, manager.window!!.decorView.findViewWithTag("route_list"))

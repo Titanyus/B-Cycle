@@ -9,6 +9,7 @@ internal class DialogNavigation {
     val empty get() = stack.isEmpty()
     fun track(dialog: AlertDialog, overlay: Boolean = false, shown: () -> Unit = {}) {
         dialog.setOnShowListener {
+            if (!dialog.isShowing) return@setOnShowListener
             if (dialog !in stack) { if (!overlay) stack.lastOrNull()?.hide(); stack.add(dialog) }
             shown()
         }
@@ -16,7 +17,8 @@ internal class DialogNavigation {
             cleanup.remove(dialog)?.invoke()
             val top = stack.lastOrNull() === dialog
             stack.remove(dialog)
-            if (top) stack.lastOrNull()?.show()
+            // A parent's dismiss event may still be queued when a child closes. Never resurrect it.
+            if (top) stack.lastOrNull()?.takeIf { it.window?.decorView?.isAttachedToWindow == true }?.show()
         }
     }
     fun onDismiss(dialog: AlertDialog, action: () -> Unit) { cleanup[dialog] = action }

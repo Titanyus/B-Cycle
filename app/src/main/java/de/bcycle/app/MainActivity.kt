@@ -38,6 +38,8 @@ class MainActivity : Activity() {
     private var dashboardLayout = DashboardLayout.defaults
     private var picker: AlertDialog? = null
     private var menu: AlertDialog? = null
+    private data class DetailSession(val id: String, val screen: AlertDialog, val content: RouteAnalysisView, val footer: LinearLayout, var analysis: RouteAnalysis? = null, var signature: String = "")
+    private var routeDetail: DetailSession? = null
     private var sensorManager: AlertDialog? = null
     private var sensorRows: LinearLayout? = null
     private var scan: HeartRateScan? = null
@@ -531,15 +533,38 @@ class MainActivity : Activity() {
     }
     private fun routeAnalysis(entry: ManagedRoute) {
         val content = RouteAnalysisView(settingsContext, runtime.themes, entry.id, ::routeAnalysisMap)
-        val screen = dialog().setView(content).setPositiveButton(getString(R.string.analysis_close), null).create()
-        screen.setCustomTitle(analysisHeader(settingsContext, runtime.themes, entry) { screen.dismiss() })
-        dialogs.onDismiss(screen, content::dispose)
+        val footer = LinearLayout(settingsContext).apply { orientation = LinearLayout.HORIZONTAL; tag = "route_analysis_footer" }
+        BicycleComponents.background(footer, runtime.themes, ThemeRole.SECONDARY)
+        val root = LinearLayout(settingsContext).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
+            addView(footer, LinearLayout.LayoutParams(-1, dp(BicycleDesign.touchSize)))
+        }
+        val screen = dialog().setView(root).create()
+        val detail = DetailSession(entry.id, screen, content, footer)
+        val labels = listOf(R.string.route_action_map, R.string.route_action_rename, R.string.route_action_cloud, R.string.route_action_save, R.string.route_action_delete)
+        val icons = listOf(BicycleIcon.ShowOnMap, BicycleIcon.RenameTrack, BicycleIcon.CloudNotUploaded, BicycleIcon.Save, BicycleIcon.DeleteTrack)
+        val tags = listOf("detail_map", "detail_rename", "detail_cloud", "detail_save", "detail_delete")
+        labels.indices.forEach { index ->
+            footer.addView(BicycleComponents.icon(settingsContext, runtime.themes, icons[index], getString(labels[index])) {
+                executeDetailAction(detail, index)
+            }.apply { tag = tags[index] }, LinearLayout.LayoutParams(0, dp(BicycleDesign.touchSize), 1f))
+        }
+        routeDetail = detail
+        screen.setCustomTitle(analysisHeader(settingsContext, runtime.themes, entry, { screen.dismiss() }))
+        dialogs.onDismiss(screen) {
+            content.dispose()
+            if (routeDetail === detail) { routePopup?.dismiss(); routePopup = null; routeDetail = null }
+        }
         screen.show()
+        refreshDetails()
         fun load() {
             content.loading()
             content.cancellation(runtime.mapState.loadAnalysis(entry.id) { result ->
                 result.fold({ analysis ->
+                    detail.analysis = analysis
                     content.show(analysis)
+                    refreshDetails()
                     screen.window?.decorView?.findViewWithTag<TextView>("analysis_date")?.let { date ->
                         date.text = java.time.format.DateTimeFormatter.ofPattern(getString(R.string.analysis_date_format))
                             .withZone(java.time.ZoneId.systemDefault()).format(java.time.Instant.ofEpochMilli(analysis.entry.details.dateMs))
@@ -569,9 +594,7 @@ class MainActivity : Activity() {
             val displayed = state.selectedRoute == entry.id && state.route != null && preferences.getBoolean("mapGpxVisible", true)
             state.setRouteVisible(!displayed)
             if (!displayed && state.selectedRoute != entry.id) state.selectRoute(entry.id)
-        }, ::routeActions, ::routeExportSettings, themes = runtime.themes,
-            uploadState = { RouteUploads.state(this, it.id, it.fileStamp) },
-            upload = { state.uploadRoute(it.id) }, local = { state.saveRouteLocally(it.id) }, details = ::routeAnalysis)
+        }, ::routeExportSettings, themes = runtime.themes, details = ::routeAnalysis)
         routeManager = content
         refreshRouteRows()
         menu = dialog().setView(content).setNeutralButton("Importieren", null).setPositiveButton("Schließen", null).create().apply {
@@ -720,6 +743,7 @@ class MainActivity : Activity() {
         }
     }
     private fun refreshRouteRows() {
+        refreshDetails()
         val state = runtime.mapState
         if (!state.busy && pendingMapRoute != null) {
             if (pendingMapRoute == state.selectedRoute && state.route != null) {
@@ -735,49 +759,69 @@ class MainActivity : Activity() {
         routeSignature = signature
         manager.submit(state.entries, displayed, state.busy)
     }
-    private fun routeActions(entry: ManagedRoute) {
-        val state = runtime.mapState
-        if (state.busy) return
-        val actions = mutableListOf<Pair<String, () -> Unit>>()
-        if (entry.hasRoute) {
-            actions += "Auf Karte ansehen" to {
-                preferences.edit().putBoolean("mapGpxVisible", true).apply()
-                pendingMapRoute = entry.id; state.selectRoute(entry.id)
+    private fun renameRoute(entry: ManagedRoute) {
+        val input = EditText(settingsContext).apply { setText(entry.name); setSingleLine(); selectAll()
+            filters = arrayOf(android.text.InputFilter.LengthFilter(120)); tag = "route_rename" }
+        val rename = dialog().setTitle(getString(R.string.route_rename_title)).setView(input)
+            .setPositiveButton(getString(R.string.route_action_save), null).setNegativeButton(getString(R.string.route_cancel), null).create()
+        rename.show()
+        rename.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val name = input.text.toString().trim()
+            if (name.isEmpty()) input.error = getString(R.string.route_name_required)
+            else { runtime.mapState.renameRoute(entry.id, name); rename.dismiss() }
+        }
+    }
+    private fun deleteRoute(entry: ManagedRoute) {
+        dialog(fullscreen = false).setTitle(getString(R.string.route_delete_title))
+            .setMessage(getString(R.string.route_delete_message, entry.name))
+            .setPositiveButton(getString(R.string.route_action_delete)) { _, _ -> runtime.mapState.deleteRoute(entry.id) }
+            .setNegativeButton(getString(R.string.route_cancel), null).show()
+    }
+    private fun detailEntry(detail: DetailSession): ManagedRoute? {
+        val current = runtime.mapState.entries.firstOrNull { it.id == detail.id } ?: return null
+        val verified = detail.analysis?.entry?.fileStamp
+        val stamp = if (verified != null && verified.length == current.fileStamp?.length && verified.modified == current.fileStamp.modified) verified else current.fileStamp
+        return current.copy(fileStamp = stamp)
+    }
+    private fun refreshDetails() {
+        val detail = routeDetail ?: return
+        val entry = detailEntry(detail)
+        if (!runtime.mapState.busy) {
+            if (entry == null) { detail.screen.dismiss(); return }
+            detail.screen.window?.decorView?.findViewWithTag<TextView>("analysis_title")?.apply {
+                if (text.toString() != entry.name) text = entry.name
+                contentDescription = entry.name
             }
-            if (!entry.recorded) actions += "Als geplante Strecke auswählen" to {
-                preferences.edit().putBoolean("mapGpxVisible", true).apply(); state.selectRoute(entry.id)
+            detail.analysis = detail.analysis?.let { it.copy(entry = it.entry.copy(name = entry.name, fileStamp = entry.fileStamp)) }
+        }
+        val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${RouteUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${runtime.themes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
+        if (signature == detail.signature) return
+        detail.signature = signature
+        val cloud = if (entry != null && RouteUploads.state(this, entry.id, entry.fileStamp).state == UploadState.UPLOADED) BicycleIcon.CloudConfirmed else BicycleIcon.CloudNotUploaded
+        val local = if (entry != null && RouteLocalSaves.completed(this, entry.id, entry.fileStamp)) BicycleIcon.SaveConfirmed else BicycleIcon.Save
+        val kinds = listOf(BicycleIcon.ShowOnMap, BicycleIcon.RenameTrack, cloud, local, BicycleIcon.DeleteTrack)
+        kinds.indices.forEach { index ->
+            val button = detail.footer.getChildAt(index) as android.widget.ImageButton
+            button.setImageDrawable(BicycleIcons.drawable(settingsContext, kinds[index], runtime.themes.active.tokens.foreground))
+            if (index == 2) button.contentDescription = getString(if (cloud == BicycleIcon.CloudConfirmed) R.string.route_cloud_confirmed else R.string.route_action_cloud)
+            if (index == 3) button.contentDescription = getString(if (local == BicycleIcon.SaveConfirmed) R.string.route_save_confirmed else R.string.route_action_save)
+            button.isEnabled = !runtime.mapState.busy && entry != null && when (index) {
+                0 -> detail.analysis?.route != null
+                2 -> entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED && entry.locallySaved
+                else -> true
             }
         }
-        actions += "Umbenennen" to {
-            val input = EditText(settingsContext).apply { setText(entry.name); setSingleLine(); selectAll()
-                filters = arrayOf(android.text.InputFilter.LengthFilter(120)); tag = "route_rename" }
-            val rename = dialog().setTitle("Strecke umbenennen").setView(input)
-                .setPositiveButton("Speichern", null).setNegativeButton("Abbrechen", null).create()
-            rename.show()
-            rename.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val name = input.text.toString().trim()
-                if (name.isEmpty()) input.error = "Bitte einen Namen eingeben"
-                else { state.renameRoute(entry.id, name); rename.dismiss() }
-            }
+    }
+    private fun executeDetailAction(detail: DetailSession, index: Int) {
+        if (runtime.mapState.busy) return
+        val entry = detailEntry(detail) ?: return
+        when (index) {
+            0 -> detail.analysis?.let(::routeAnalysisMap)
+            1 -> renameRoute(entry)
+            2 -> if (entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED) runtime.mapState.uploadRoute(entry.id)
+            3 -> runtime.mapState.exportRoute(entry.id)
+            4 -> deleteRoute(entry)
         }
-        if (entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED) actions += "Zu Nextcloud hochladen / erneut versuchen" to {
-            state.uploadRoute(entry.id)
-        }
-        actions += "Nach Downloads exportieren" to { state.exportRoute(entry.id) }
-        actions += "Aus Sammlung löschen" to {
-            dialog(fullscreen = false).setTitle("Strecke aus Sammlung löschen?")
-                .setMessage("${entry.name}\n\nDie appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der Importquelle bleiben erhalten.")
-                .setPositiveButton("Löschen") { _, _ -> state.deleteRoute(entry.id) }
-                .setNegativeButton("Abbrechen", null).show()
-        }
-        val anchor = routeManager?.findViewWithTag<View>("route_more_${entry.id}") ?: return
-        routeDropdown(anchor, actions.map { it.first }, actions.map { when (it.first) {
-            "Auf Karte ansehen", "Als geplante Strecke auswählen" -> BicycleIcon.ShowOnMap
-            "Umbenennen" -> BicycleIcon.RenameTrack
-            "Zu Nextcloud hochladen / erneut versuchen" -> BicycleIcon.CloudUploaded
-            "Nach Downloads exportieren" -> BicycleIcon.ExportTrack
-            else -> BicycleIcon.DeleteTrack
-        } }) { which -> actions[which].second() }
     }
     private fun openMapLink(url: String) {
         try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }

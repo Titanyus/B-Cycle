@@ -23,7 +23,7 @@ internal object BicycleFullscreen {
         val context = screen.context
         fun panel(name: String): ViewGroup? = window.decorView.findViewById(
             context.resources.getIdentifier(name, "id", "android"))
-        val footer = panel("buttonPanel")?.takeIf { it.visibility != View.GONE }
+        val nativeFooter = panel("buttonPanel")?.takeIf { it.visibility != View.GONE }
         val nativeHeader = panel("topPanel")?.takeIf { it.visibility != View.GONE }
         val custom = panel("custom")?.let { if (it.childCount > 0) it.getChildAt(0) else null }
         val content = custom ?: panel("contentPanel")?.takeIf { it.visibility != View.GONE }
@@ -31,6 +31,7 @@ internal object BicycleFullscreen {
             child.tag == "settings_brand" || child.tag == "route_manager_header"
         } }
         val header = embeddedHeader ?: nativeHeader
+        val footer = nativeFooter ?: content?.let { descendants(it).firstOrNull { child -> child.tag == "route_analysis_footer" } }
         fun detach(view: View) { (view.parent as? ViewGroup)?.removeView(view) }
         val host = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "bicycle_fullscreen" }
         BicycleComponents.bindTheme(host, themes) { _ ->

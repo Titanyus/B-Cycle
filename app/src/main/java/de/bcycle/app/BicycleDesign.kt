@@ -22,6 +22,10 @@ object BicycleDesign {
     const val headerHeight = 64
     const val headingSp = 32f
     const val rowTitleSp = 16f
+    const val routeStorageIconSize = 16
+    const val routeMetricSp = 20f
+    const val routeMetricHeight = 24
+    const val routeMetricLabelSp = 10f
     const val formatSp = 12f
     const val metadataHeight = 28
     const val metadataSpacingTrim = 4

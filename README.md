@@ -6,20 +6,18 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.4 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.4/downloads/B-Cycle-0.7.4-test.apk)**
+**[APK 0.7.5 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.5/downloads/B-Cycle-0.7.5-test.apk)**
 
-- Größe: **996,685 Byte**, rund **997 KB**.
+- Größe: **1,005,073 Byte**, rund **1.01 MB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.4-test.apk.sha256):
-  `eb89b21325cba4a4af71dd91e59bec2dc80d3672251090f7688bd37dfe80d5dd`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.5-test.apk.sha256):
+  `4cdb67ae905d9b415852db99e888af749d25f859f320b94dff977c25e290039e`.
 
-Für das FTP-/Details-Update: vollständige Suite mit **259 Tests bestanden** und
-Release-Build erfolgreich in **1:15 Minuten**. Für die anschließende APK-Versionierung
-wurden 6 FIT-Tests erneut erfolgreich ausgeführt; Release-Build erfolgreich
-in **33 Sekunden**. Signatur und Version separat geprüft.
+Vollständige Suite mit **267 Tests bestanden** und Release-Build erfolgreich.
+Signatur, Version 0.7.5/43 und APK-Prüfsumme separat geprüft.
 Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
@@ -31,6 +29,23 @@ Meilenstein vor der Bereinigung: Quellcode, Tests, Ressourcen, Build-Konfigurati
 Dokumentation und signierte APK. [v0.7.0](https://github.com/Titanyus/B-Cycle/tree/v0.7.0)
 sichert zusätzlich den bereinigten Stand. [v0.7.1](https://github.com/Titanyus/B-Cycle/tree/v0.7.1)
 sichert den aktuellen vollständigen Stand. Auch v0.6.20 und ältere Versionen bleiben erhalten.
+
+## Neu in 0.7.5
+
+- Fünf feste Aktionen im Streckendetail-Footer: Karte, Umbenennen, Cloud-Upload,
+  lokal speichern und Löschen. Bestätigte Upload-/Speichererfolge bleiben erhalten;
+  Fehlversuche und Abbrüche erzeugen keine Erfolgsanzeige.
+- Originale Lucide-Icons `cloud-check` und `save-check`, ohne neue Icon-Bibliothek.
+- Kompakte Streckenliste ohne Drei-Punkte-, Upload- oder Speicherbuttons.
+  Das Auge rechts neben dem Titel blendet den Track auf der Dashboard-Karte ein/aus;
+  die übrige Zeile öffnet die Details.
+- Distanz, Bewegungszeit und Bewegungsdurchschnitt nebeneinander, mit schmalen
+  Messwerten und kleinen, mittig ausgerichteten Einheiten im Dashboard-Grau.
+  Fehlende oder widersprüchliche Daten werden nicht durch erfundene Werte ersetzt.
+- Filter, Import, Herkunft, lokaler Originaldateistatus und sämtliche Verwaltungsfunktionen bleiben erhalten.
+
+Details: [Detailaktionen](docs/route-detail-actions.md),
+[Streckenliste Schritt 2](docs/route-manager-step2.md), [Buildnachweis](docs/milestone-075.md).
 
 ## Neu in 0.7.4
 

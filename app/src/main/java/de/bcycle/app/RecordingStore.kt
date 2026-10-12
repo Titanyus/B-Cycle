@@ -76,7 +76,9 @@ class RecordingStore(private val context: Context, private val changed: (String,
             retained = true
             val config = RouteExportSettings(context).read()
             val upload = runCatching { RouteUploads.enqueue(context, original, "B-Cycle-" + encoded.name) }
-            val local = runCatching { if (config.save) LocalRouteExport.write(context, encoded, "B-Cycle-" + encoded.name, config.tree) }
+            val local = runCatching { if (config.save) RouteLocalSaves.perform(context, original.nameWithoutExtension, original, config.tree.ifEmpty { "Downloads/B-Cycle" }) {
+                LocalRouteExport.write(context, encoded, "B-Cycle-" + encoded.name, config.tree)
+            } }
             upload.getOrThrow(); local.getOrThrow()
             source.delete(); encoded.delete()
             return "Gespeichert: FIT in Streckensammlung" +

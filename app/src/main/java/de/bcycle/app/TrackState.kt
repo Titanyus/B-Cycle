@@ -3,7 +3,7 @@ package de.bcycle.app
 /** Persisted provenance, distinct from a file format or the currently selected map route. */
 enum class TrackOrigin { IMPORTED, RECORDED, UNKNOWN }
 
-data class RouteFileStamp(val length: Long, val modified: Long)
+data class RouteFileStamp(val length: Long, val modified: Long, val hash: String? = null)
 
 /** Bounded streaming accumulation with 3 m hysteresis; missing heights/segments never join. */
 internal class RouteElevation {
