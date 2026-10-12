@@ -36,8 +36,6 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     } }
     init {
         tag = "map_data_fields"; orientation = HORIZONTAL; isBaselineAligned = false
-        // Leave a small text clearance above the attribution while the overlay itself sits lower.
-        setPadding(0, 0, 0, (6 * resources.displayMetrics.density).toInt())
         values.forEach { addView(it, LayoutParams(0, -1, 1f)) }
         visibility = GONE
     }

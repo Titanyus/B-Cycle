@@ -45,6 +45,22 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         setSelectedFit(latest.id)
         return displayed
     }
+    /** Details share the existing worker; decoding never mutates the displayed route or library. */
+    internal fun loadAnalysis(id: String, complete: (Result<RouteAnalysis>) -> Unit): () -> Unit {
+        val cancelled = java.util.concurrent.atomic.AtomicBoolean(false)
+        worker.execute {
+            val result = runCatching {
+                val fit = fits.entries.singleOrNull { it.id == id }
+                val gpx = library.entries.singleOrNull { it.id == id }
+                require(fit != null || gpx != null)
+                val entry = if (fit != null) ManagedRoute(fit.id, fit.name, fit.recorded, "FIT", fit.details, fit.hasRoute, fit.origin)
+                    else gpx!!.let { ManagedRoute(it.id, it.name, false, "GPX", it.details, true, it.origin) }
+                RouteAnalysisRead.read(if (fit != null) fits.file(id) else library.file(id), entry, cancelled::get)
+            }
+            if (!cancelled.get()) handler.post { if (!cancelled.get()) complete(result) }
+        }
+        return { cancelled.set(true) }
+    }
     fun setRouteVisible(visible: Boolean) {
         if (preferences.getBoolean("mapGpxVisible", true) == visible) return
         preferences.edit().putBoolean("mapGpxVisible", visible).apply()

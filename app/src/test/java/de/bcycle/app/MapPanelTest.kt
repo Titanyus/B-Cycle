@@ -218,6 +218,12 @@ class MapPanelTest {
             assertTrue(zoom.bottom <= panel.height)
             assertTrue(topControls.right <= zoom.left || topControls.bottom <= zoom.top)
             assertTrue(zoom.getChildAt(0).height > 0 && zoom.getChildAt(1).height > 0)
+            val credit = descendants(panel).filterIsInstance<MapCreditView>().single()
+            assertEquals(0, credit.left); assertEquals(panel.height, credit.bottom)
+            assertTrue(credit.top >= 0)
+            assertEquals(-90f, credit.label.rotation, 0f)
+            assertEquals(MapSource.CYCLOSM.attribution, credit.text.toString())
+            assertTrue((0 until credit.label.layout.lineCount).all { credit.label.layout.getEllipsisCount(it) == 0 })
             val source = RideRuntime.get(controller.get()).preferences
             source.edit().putString("mapSource", MapSource.OSM.name).commit(); panel.refreshSettings()
             assertTrue(panel.mapView.layerManager.layers[1] is RouteTrackLayer)

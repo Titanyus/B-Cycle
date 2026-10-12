@@ -31,6 +31,11 @@ object BicycleDesign {
     const val popupWidth = 300
     const val managerMaxHeight = 680
     const val managerDefaultHeight = 580
+    const val analysisTileMinHeight = 140
+    const val analysisMetricIconSize = 32
+    const val analysisMetricSp = 28f
+    const val analysisChartHeight = 120
+    const val analysisMapHeight = 180
     const val touchSize = 48
     const val compactActionWidth = 36
     const val iconSize = 24

@@ -103,7 +103,7 @@ class MapDataFieldsTest {
             assertNull(MapFieldSelection.read(preferences, 0))
         } finally { restarted.pause().stop().destroy() }
     }
-    @Test fun valuesRemainAboveAttributionAcrossPagesFullscreenAndAutoHiddenControls() {
+    @Test fun valuesRemainClearOfRotatedAttributionAcrossPagesFullscreenAndAutoHiddenControls() {
         val app = RuntimeEnvironment.getApplication()
         val preferences = app.getSharedPreferences("bike", 0)
         preferences.edit().clear().putString(MapFieldSelection.key(0), "BATTERY").commit()
@@ -116,9 +116,11 @@ class MapDataFieldsTest {
                 fields.show(LiveData(otherValues = mapOf(LiveMetric.BATTERY to 75L)), GpsValues(), null, PulseValues())
                 measure(root)
                 val credit = descendants(panel).single { it.contentDescription == "Kartenquelle, Urheber und Legende" }
-                val value = descendants(fields).filterIsInstance<TextView>().first { it.visibility == View.VISIBLE }
-                val textBottom = fields.top + value.top + value.baseline + value.paint.fontMetrics.descent
-                assertTrue("textBottom=$textBottom creditTop=${credit.top} fieldsBottom=${fields.bottom} height=${fields.height} baseline=${value.baseline}", textBottom <= credit.top)
+                assertTrue(credit is MapCreditView)
+                assertEquals(-90f, (credit as MapCreditView).label.rotation, 0f)
+                assertEquals(0, credit.left); assertEquals(panel.height, credit.bottom)
+                assertTrue(credit.top >= 0 && credit.width > 0)
+                assertTrue(fields.left >= credit.right)
                 val zoom = descendants(panel).single { it.tag == "map_zoom_controls" }
                 assertEquals(fields.bottom, zoom.bottom)
                 assertEquals((12 * panel.resources.displayMetrics.density).toInt(), panel.height - fields.bottom)

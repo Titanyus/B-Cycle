@@ -6,19 +6,20 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.2 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.2/downloads/B-Cycle-0.7.2-test.apk)**
+**[APK 0.7.3 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.3/downloads/B-Cycle-0.7.3-test.apk)**
 
-- Größe: **951,293 Byte**, rund **951 KB**.
+- Größe: **988.437 Byte**, rund **988 KB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.2-test.apk.sha256):
-  `d50d6ea3b89f3213ed7d89014870f12c2f6054e10cf8c7a15328b90a88e6dea7`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.3-test.apk.sha256):
+  `5a5ce402f9cc4383fa78acb3077d3f5d0cd2027d34299e6b1c1ad35856a02ddb`.
 
-Für diese kleine Layoutkorrektur: **15 gezielte Kartentests bestanden** und
-Release-Build erfolgreich; Signatur und Version geprüft. Die vollständige Suite
-mit 239 Tests wurde beim vorigen Stand 0.7.1 erfolgreich ausgeführt.
+Für Streckendetails: vollständige Suite mit **250 Tests bestanden** und
+Release-Build erfolgreich in **1:08 Minuten**. Danach Kartenlayout und
+Karten-Lifecycle gezielt mit **3 Tests** geprüft; abschließender Release-Build
+erfolgreich in **48 Sekunden**. Signatur und Version geprüft.
 Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
@@ -30,6 +31,21 @@ Meilenstein vor der Bereinigung: Quellcode, Tests, Ressourcen, Build-Konfigurati
 Dokumentation und signierte APK. [v0.7.0](https://github.com/Titanyus/B-Cycle/tree/v0.7.0)
 sichert zusätzlich den bereinigten Stand. [v0.7.1](https://github.com/Titanyus/B-Cycle/tree/v0.7.1)
 sichert den aktuellen vollständigen Stand. Auch v0.6.20 und ältere Versionen bleiben erhalten.
+
+## Neu in 0.7.3
+
+- **Streckendetails:** gesamten Streckeneintrag antippen. Kennzahlen, Streckenkarte
+  und fünf kompakte Diagramme in einer Vollbildansicht. Zeit, Tempo, Höhenmeter,
+  Kadenz und Puls lassen sich innerhalb ihrer Kachel umschalten, sofern verfügbar.
+- Gemeinsame Distanzachse (Zeit als Fallback), tatsächliche Sensorwerte mit Lücken;
+  Fahrerleistung bleibt von Motorleistung getrennt. FIT-Dateien bleiben unverändert.
+- Alle neuen Texte in zentralen Ressourcen; Darstellung folgt dem aktiven Theme.
+- Dashboard-Kartenquellenhinweis um 90° gedreht links unten, weiterhin antippbar
+  und dauerhaft sichtbar. Auf kurzen Kartenflächen wird der Hinweis umgebrochen.
+- Bisherige Streckenmanager-Aktionen und Filter bleiben erhalten.
+
+Details: [Streckendetails V1](docs/route-analysis-v1.md),
+[Kartenlayout](docs/map-bottom-layout.md), [Buildnachweis](docs/milestone-073.md).
 
 ## Neu in 0.7.2
 

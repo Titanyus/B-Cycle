@@ -12,7 +12,8 @@ data class GpxRoute(val points: List<MapPoint>, val originalPoints: Int, val seg
 object GpxImport {
     const val MAX_BYTES = 20L * 1024 * 1024
     const val MAX_POINTS = 200_000
-    fun read(input: InputStream): GpxRoute {
+    fun read(input: InputStream): GpxRoute = read(input, null)
+    internal fun read(input: InputStream, observed: ((MapPoint, Long?, Double?, Double?) -> Unit)?): GpxRoute {
         val limited = object : FilterInputStream(input) {
             var bytes = 0L
             fun count(n: Int) { if (n > 0) { bytes += n; require(bytes <= MAX_BYTES) { "GPX ist größer als 20 MB" } } }
@@ -70,6 +71,7 @@ object GpxImport {
                         // A segment's first point establishes time only; no cross-segment movement.
                         if (heightStart) moving.add(null, null)
                         moving.add(pointTime, speed ?: if (heightStart && pointTime != null) 0.0 else null)
+                        observed?.invoke(current, pointTime, pointHeight, speed)
                         previousPointTime = pointTime; previousPoint = current; pointDepth = -1
                     }
                     "trk" -> if (parser.depth == trackDepth) trackDepth = -1

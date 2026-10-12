@@ -49,7 +49,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private val zoomControls = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "map_zoom_controls" }
     private lateinit var routeButton: Button
     private var routeShown: Boolean? = null
-    private val credit = TextView(context)
+    private val credit = MapCreditView(context)
     private val status = TextView(context)
     private val dataFields = MapDataFieldsView(context)
     private lateinit var directionButton: Button
@@ -163,12 +163,11 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         dataFields.reload(preferences)
         addView(dataFields, LayoutParams(-1, dp(62), Gravity.BOTTOM).apply { bottomMargin = dp(12) })
         credit.apply {
-            text = source.attribution; textSize = 11f; setTextColor(Color.BLACK)
-            setPadding(dp(5), dp(3), dp(5), dp(3)); setBackgroundColor(Color.argb(220, 255, 255, 255))
+            text = source.attribution
             contentDescription = "Kartenquelle, Urheber und Legende"
             setOnClickListener { openCredit(source.creditUrl) }
         }
-        addView(credit, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.END))
+        addView(credit, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.START))
         status.apply {
             textSize = 11f; setTextColor(Color.BLACK); setBackgroundColor(Color.argb(220, 255, 255, 255))
             setPadding(dp(5), dp(3), dp(5), dp(3)); maxLines = 1
@@ -262,20 +261,15 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        // Keep legal attribution and GPS status readable, including larger system fonts.
-        val creditHeight = credit.measuredHeight
+        // Reserve a narrow left strip for the rotated attribution, including wrapped text on short maps.
+        val creditInset = credit.measuredWidth + dp(4)
         val fieldMargin = dataFields.layoutParams as LayoutParams
         val statusMargin = status.layoutParams as LayoutParams
         val zoomMargin = zoomControls.layoutParams as LayoutParams
         val nextFieldMargin = dp(12)
-        val nextStatusMargin = maxOf(creditHeight, nextFieldMargin + if (dataFields.visibility == VISIBLE) dataFields.measuredHeight else 0)
+        val nextStatusMargin = nextFieldMargin + if (dataFields.visibility == VISIBLE) dataFields.measuredHeight else 0
         // Share the lower edge with the values; do not add their height to the zoom inset.
         val nextZoomMargin = nextFieldMargin
-        val creditMargin = credit.layoutParams as LayoutParams
-        val nextCreditEnd = if (zoomControls.visibility == VISIBLE) dp(56) else 0
-        val creditChanged = creditMargin.marginEnd != nextCreditEnd
-        creditMargin.marginEnd = nextCreditEnd
-        if (creditChanged) credit.layoutParams = creditMargin
         // Short map panels still need both zoom buttons; reserve their column if it meets the top row.
         val buttonHeight = ((measuredHeight - nextZoomMargin - dp(4)) / 2).coerceIn(dp(24), dp(48))
         val topMargin = controls.layoutParams as LayoutParams
@@ -292,9 +286,11 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             val params = zoomControls.getChildAt(index).layoutParams
             if (params.height != buttonHeight) { params.height = buttonHeight; changed = true }
         }
-        if (changed || creditChanged || fieldMargin.bottomMargin != nextFieldMargin || statusMargin.bottomMargin != nextStatusMargin ||
+        if (changed || fieldMargin.marginStart != creditInset || statusMargin.marginStart != creditInset || fieldMargin.bottomMargin != nextFieldMargin || statusMargin.bottomMargin != nextStatusMargin ||
             zoomMargin.bottomMargin != nextZoomMargin || topMargin.marginEnd != nextTopEnd) {
-            fieldMargin.bottomMargin = nextFieldMargin; statusMargin.bottomMargin = nextStatusMargin
+            fieldMargin.bottomMargin = nextFieldMargin; fieldMargin.marginStart = creditInset
+            statusMargin.bottomMargin = nextStatusMargin; statusMargin.marginStart = creditInset
+            dataFields.layoutParams = fieldMargin; status.layoutParams = statusMargin
             zoomMargin.bottomMargin = nextZoomMargin; topMargin.marginEnd = nextTopEnd
             controls.layoutParams = topMargin
             nightMargin.marginEnd = nextTopEnd; nightButton.layoutParams = nightMargin

@@ -27,7 +27,8 @@ internal class RouteManagerView(context: Context,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
     private val uploadState: (ManagedRoute) -> RouteUploadStatus = { RouteUploadStatus(UploadState.NOT_UPLOADED, uploadStatus(it.id)) },
     private val upload: (ManagedRoute) -> Unit = {},
-    private val local: (ManagedRoute) -> Unit = {}) : LinearLayout(context) {
+    private val local: (ManagedRoute) -> Unit = {},
+    private val details: (ManagedRoute) -> Unit = {}) : LinearLayout(context) {
     private fun dp(value: Int) = BicycleDesign.dp(context, value)
     internal var fullscreen = false
     private var all: List<ManagedRoute> = emptyList()
@@ -146,6 +147,7 @@ internal class RouteManagerView(context: Context,
         private val saved = action(BicycleIcon.LocalSaved, "Lokale Speicherung", local)
         init {
             orientation = HORIZONTAL; gravity = Gravity.TOP
+            setOnClickListener { entry?.takeIf { !busy }?.let(details) }
             setPadding(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.rowGap))
             addView(LinearLayout(context).apply {
                 orientation = VERTICAL
@@ -219,7 +221,9 @@ internal class RouteManagerView(context: Context,
             saved.setColorFilter(BicycleIcons.color(tokens, BicycleIcon.LocalSaved, !route.locallySaved))
         }
         fun bind(route: ManagedRoute) {
-            entry = route; title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name
+            entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
+            contentDescription = context.getString(R.string.analysis_open, route.name)
+            title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name
             origin.contentDescription = when (route.origin) { TrackOrigin.IMPORTED -> "Importierte Strecke"; TrackOrigin.RECORDED -> "Aufgezeichnete Fahrt"; TrackOrigin.UNKNOWN -> "Herkunft unbekannt" }
             format.text = route.format; format.contentDescription = "${route.format}-Datei"
             date.text = if (route.details.dateMs > 0) DateTimeFormatter.ofPattern("dd.MM.yyyy · HH:mm 'h'").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(route.details.dateMs)) else "Datum unbekannt"

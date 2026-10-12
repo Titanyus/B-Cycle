@@ -434,7 +434,7 @@ class MainActivity : Activity() {
         dialogs.closeAll(); stopScan()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
-    override fun onDestroy() { mapPanel.destroy(); super.onDestroy() }
+    override fun onDestroy() { dialogs.closeAll(); mapPanel.destroy(); super.onDestroy() }
     @Deprecated("Native Activity back handling")
     override fun onBackPressed() { if (mapFullscreen) setMapFullscreen(false) else super.onBackPressed() }
 
@@ -529,6 +529,39 @@ class MainActivity : Activity() {
             Toast.makeText(this, "Keine Dateiauswahl verfügbar", Toast.LENGTH_LONG).show()
         }
     }
+    private fun routeAnalysis(entry: ManagedRoute) {
+        val content = RouteAnalysisView(settingsContext, runtime.themes, entry.id, ::routeAnalysisMap)
+        val screen = dialog().setView(content).setPositiveButton(getString(R.string.analysis_close), null).create()
+        screen.setCustomTitle(analysisHeader(settingsContext, runtime.themes, entry) { screen.dismiss() })
+        dialogs.onDismiss(screen, content::dispose)
+        screen.show()
+        fun load() {
+            content.loading()
+            content.cancellation(runtime.mapState.loadAnalysis(entry.id) { result ->
+                result.fold({ analysis ->
+                    content.show(analysis)
+                    screen.window?.decorView?.findViewWithTag<TextView>("analysis_date")?.let { date ->
+                        date.text = java.time.format.DateTimeFormatter.ofPattern(getString(R.string.analysis_date_format))
+                            .withZone(java.time.ZoneId.systemDefault()).format(java.time.Instant.ofEpochMilli(analysis.entry.details.dateMs))
+                    }
+                }) { content.failed { load() } }
+            })
+        }
+        load()
+    }
+    private fun routeAnalysisMap(analysis: RouteAnalysis) {
+        val route = analysis.route ?: return
+        val map = RouteAnalysisMap(settingsContext, route, true)
+        val screen = dialog().setTitle(analysis.entry.name).setView(map)
+            .setPositiveButton(getString(R.string.analysis_map_close), null).create()
+        dialogs.onDismiss(screen, map::dispose)
+        screen.show()
+        screen.getButton(AlertDialog.BUTTON_POSITIVE).let { button ->
+            val icon = BicycleIcons.drawable(this, BicycleIcon.Back, runtime.themes.active.tokens.foreground)
+            icon.setBounds(0, 0, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize))
+            button.setCompoundDrawablesRelative(icon, null, null, null)
+        }
+    }
     private fun routeSettings() {
         val state = runtime.mapState
         routeSignature = ""
@@ -538,7 +571,7 @@ class MainActivity : Activity() {
             if (!displayed && state.selectedRoute != entry.id) state.selectRoute(entry.id)
         }, ::routeActions, ::routeExportSettings, themes = runtime.themes,
             uploadState = { RouteUploads.state(this, it.id, it.fileStamp) },
-            upload = { state.uploadRoute(it.id) }, local = { state.saveRouteLocally(it.id) })
+            upload = { state.uploadRoute(it.id) }, local = { state.saveRouteLocally(it.id) }, details = ::routeAnalysis)
         routeManager = content
         refreshRouteRows()
         menu = dialog().setView(content).setNeutralButton("Importieren", null).setPositiveButton("Schließen", null).create().apply {
