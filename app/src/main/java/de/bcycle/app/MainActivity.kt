@@ -342,7 +342,7 @@ class MainActivity : Activity() {
             root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
             root.addView(label(source, BicycleDesign.inputSp).apply { setPadding(0, dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.smallGap)); isAccessibilityHeading = true })
             for (field in fields) root.addView(CheckBox(settingsContext).apply {
-                text = field.title; tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
+                text = field.titleResource?.let(::getString) ?: field.title; tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
                 setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id) }
             })
         }

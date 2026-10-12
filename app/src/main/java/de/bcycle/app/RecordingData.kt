@@ -18,7 +18,7 @@ data class RecordingConfig(
 
 enum class FitFieldScope { RECORD, SUMMARY }
 
-data class RecordField(val id: String, val title: String, val source: String, val group: String, val unit: String, val scope: FitFieldScope = FitFieldScope.RECORD) {
+data class RecordField(val id: String, val title: String, val source: String, val group: String, val unit: String, val scope: FitFieldScope = FitFieldScope.RECORD, val titleResource: Int? = null) {
     companion object {
         val summaries = listOf(
             RecordField("NORMALIZED_POWER", "Normalized Power (W)", "Performance & Energie", "Fahrtkennzahlen", "W", FitFieldScope.SUMMARY),
@@ -26,6 +26,7 @@ data class RecordField(val id: String, val title: String, val source: String, va
             RecordField("CALORIES", "Calories (kcal, geschätzt)", "Performance & Energie", "Fahrtkennzahlen", "kcal", FitFieldScope.SUMMARY),
             RecordField("SPEED_POWER_RATIO", "Speed-to-Power Ratio (km/h/W)", "Performance & Energie", "Fahrtkennzahlen", "km/h/W", FitFieldScope.SUMMARY),
             RecordField("EFFICIENCY_FACTOR", "Efficiency Factor (W/bpm)", "Performance & Energie", "Fahrtkennzahlen", "W/bpm", FitFieldScope.SUMMARY),
+            RecordField("ESTIMATED_FTP", "", "Performance & Energie", "Fahrtkennzahlen", "W", FitFieldScope.SUMMARY, R.string.analysis_ftp_export),
         )
         val defaults get() = options.filter { it.scope == FitFieldScope.RECORD }.map { it.id }.toSet()
         val options: List<RecordField> = listOf(RecordField("GPS_POSITION", "GPS-Route / Position", "GPS", "Fahrt", "semicircles")) +

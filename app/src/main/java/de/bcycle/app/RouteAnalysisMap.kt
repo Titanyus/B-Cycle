@@ -15,7 +15,8 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
     private val prefs = context.getSharedPreferences("bike", 0)
     private val night = prefs.getBoolean("mapNight", false)
     private val source = runCatching { MapSource.valueOf(prefs.getString("mapSource", MapSource.CYCLOSM.name)!!) }.getOrDefault(MapSource.CYCLOSM)
-    private lateinit var map: MapView
+    internal lateinit var map: MapView
+        private set
     private lateinit var layer: MapNightLayer
     private var destroyed = false; private var fitted = false
     init {
@@ -34,6 +35,18 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
         map.layerManager.layers.add(layer)
         map.layerManager.layers.add(RouteTrackLayer(resources.displayMetrics.density).apply { update(route, emptyList(), GpsValues(), true, false, night) })
         addView(map, LayoutParams(-1, -1))
+        if (interactive) {
+            val buttons = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }
+            val themes = ThemeManager(prefs)
+            fun control(icon: BicycleIcon, description: Int, action: () -> Unit) {
+                buttons.addView(BicycleComponents.icon(context, themes, icon, context.getString(description), action), android.widget.LinearLayout.LayoutParams(BicycleDesign.dp(context, BicycleDesign.touchSize), BicycleDesign.dp(context, BicycleDesign.touchSize)))
+            }
+            control(BicycleIcon.ZoomIn, R.string.analysis_zoom_in) { map.model.mapViewPosition.zoomIn() }
+            control(BicycleIcon.ZoomOut, R.string.analysis_zoom_out) { map.model.mapViewPosition.zoomOut() }
+            control(BicycleIcon.Locate, R.string.analysis_fit_route) { fit(width, height) }
+            BicycleComponents.background(buttons, themes, ThemeRole.TERTIARY, BicycleDesign.inputRadius)
+            addView(buttons, LayoutParams(-2, -2, android.view.Gravity.TOP or android.view.Gravity.END))
+        }
         addView(android.widget.TextView(context).apply {
             text = source.attribution; textSize = 11f; setTextColor(Color.BLACK)
             setBackgroundColor(Color.argb(220, 255, 255, 255)); setPadding(4, 2, 4, 2)

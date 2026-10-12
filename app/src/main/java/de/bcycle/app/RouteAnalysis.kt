@@ -7,6 +7,10 @@ import java.io.File
 import java.util.UUID
 
 internal enum class AnalysisMetric(val label: Int, val unit: Int, val icon: BicycleIcon) {
+    FTP(R.string.analysis_ftp, R.string.analysis_watts, BicycleIcon.Power),
+    AVG_MOTOR(R.string.analysis_motor_power, R.string.analysis_watts, BicycleIcon.Power),
+    RIDER_BIKE_RATIO(R.string.analysis_rider_bike_ratio, R.string.analysis_no_unit, BicycleIcon.Distance),
+    BATTERY_USAGE(R.string.analysis_battery_usage, R.string.analysis_percent, BicycleIcon.Work),
     DISTANCE(R.string.analysis_distance, R.string.analysis_km, BicycleIcon.TrackRecorded),
     MOVING(R.string.analysis_moving, R.string.analysis_hours, BicycleIcon.Duration),
     ELAPSED(R.string.analysis_elapsed, R.string.analysis_hours, BicycleIcon.Duration),
@@ -92,7 +96,7 @@ internal object RouteAnalysisRead {
         if (entry.format == "GPX") {
             val route = file.inputStream().buffered().use { GpxImport.read(it) { point, time, height, speed ->
                 check(!cancelled())
-                builder.record(time, null, point, speed, null, null, null, height)
+                builder.record(time, null, point, speed, null, null, null, height, null, null)
             } }
             return builder.finish(route)
         }
@@ -113,7 +117,8 @@ internal object RouteAnalysisRead {
                     builder.record(time, v("distance") ?: dev("GPS_DISTANCE", "m") ?: dev("BIKE_DISTANCE", "m"), point,
                         v("enhanced_speed") ?: v("speed") ?: dev("SPEED", "m/s") ?: dev("GPS_SPEED", "m/s"),
                         v("power") ?: dev("RIDER_POWER", "W"), v("cadence") ?: dev("CADENCE", "rpm") ?: dev("CADENCE", "U/min"),
-                        v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("GPS_ALTITUDE", "m"))
+                        v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("GPS_ALTITUDE", "m"),
+                        v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"))
                 }
                 18, 19 -> builder.summary(message, message.num == 18)
                 21 -> if (number(message, "event") == 0.0) builder.timer(number(message, "timestamp"), number(message, "event_type"))
@@ -135,6 +140,7 @@ internal object RouteAnalysisRead {
         val laps = mutableListOf<Map<AnalysisMetric, Double>>()
         val cadence = PedalingAverage(); val moving = MovingTime(); val elevation = RouteElevation(); val descent = RouteElevation()
         val performance = PerformanceEngine()
+        val rideMeans = RideAnalysisMeans()
         var count = 0; var firstTime: Long? = null; var lastTime: Long? = null
         var previousRecordTime: Long? = null
         var previous: MapPoint? = null; var geoDistance = 0.0; var nativeStart: Double? = null
@@ -148,7 +154,7 @@ internal object RouteAnalysisRead {
             if (kind == 0.0 || kind == 1.0 || kind == 4.0) performance.accept(PerformanceEvent(
                 if (kind == 0.0) PerformanceChannel.RESUME else PerformanceChannel.PAUSE, time))
         }
-        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?) {
+        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?) {
             count++; require(count <= 600_000)
             val stamp = time?.takeIf { firstTime == null || it >= (lastTime ?: it) }
             if (stamp != null) { if (firstTime == null) firstTime = stamp; lastTime = stamp }
@@ -171,6 +177,7 @@ internal object RouteAnalysisRead {
             val s = valid(speed, 0.0..35.0); val p = valid(power, 0.0..65535.0)
             val c = valid(rpm, 0.0..254.0); val h = valid(heart, 1.0..254.0); val a = valid(altitude, -500.0..10000.0)
             c?.let(cadence::add); moving.add(stamp, s)
+            rideMeans.add(stamp, p, valid(motor, 0.0..65535.0), valid(battery, 0.0..100.0))
             elevation.add(a, point?.segmentStart == true); descent.add(a?.let { 9500 - it }, point?.segmentStart == true)
             listOf(AnalysisMetric.MAX_SPEED to s?.times(3.6), AnalysisMetric.MAX_POWER to p,
                 AnalysisMetric.MAX_CADENCE to c, AnalysisMetric.MAX_HEART to h).forEach { (key, value) ->
@@ -201,6 +208,7 @@ internal object RouteAnalysisRead {
             add(AnalysisMetric.AVG_POWER, "avg_power"); add(AnalysisMetric.MAX_POWER, "max_power")
             add(AnalysisMetric.MAX_CADENCE, "max_cadence"); add(AnalysisMetric.AVG_HEART, "avg_heart_rate"); add(AnalysisMetric.MAX_HEART, "max_heart_rate")
             add(AnalysisMetric.NP, "normalized_power"); add(AnalysisMetric.WORK, "total_work", .001); add(AnalysisMetric.CALORIES, "total_calories")
+            developer(message, "ESTIMATED_FTP", "W")?.let { values[AnalysisMetric.FTP] = it }
             developer(message, "EFFICIENCY_FACTOR", "W/bpm")?.let { values[AnalysisMetric.EF] = it }
             developer(message, "SPEED_POWER_RATIO", "km/h/W")?.let { values[AnalysisMetric.RATIO] = it }
             if (session) sessions += values else laps += values
@@ -233,7 +241,12 @@ internal object RouteAnalysisRead {
             maxima.forEach { (key, value) -> fallback(key, value) }
             val duration = metrics[AnalysisMetric.MOVING]
             if (duration != null && duration > 0) metrics[AnalysisMetric.DISTANCE]?.let { metrics[AnalysisMetric.AVG_SPEED] = it * 3600 / duration }
+            fallback(AnalysisMetric.AVG_POWER, rideMeans.riderMean)
+            fallback(AnalysisMetric.AVG_MOTOR, rideMeans.motorMean)
+            fallback(AnalysisMetric.RIDER_BIKE_RATIO, rideMeans.pairedRatio)
+            fallback(AnalysisMetric.BATTERY_USAGE, rideMeans.batteryUsage)
             val calculated = performance.snapshot()
+            fallback(AnalysisMetric.FTP, calculated.estimatedFtpW)
             fallback(AnalysisMetric.NP, calculated.normalizedPowerW); fallback(AnalysisMetric.WORK, calculated.mechanicalWorkKj)
             fallback(AnalysisMetric.CALORIES, calculated.caloriesKcal); fallback(AnalysisMetric.EF, calculated.efficiencyFactor)
             fallback(AnalysisMetric.RATIO, calculated.speedToPowerRatio)

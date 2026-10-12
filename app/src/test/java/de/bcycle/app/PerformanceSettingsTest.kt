@@ -37,18 +37,21 @@ class PerformanceSettingsTest {
         for (field in RecordField.summaries) assertFalse(checkboxes.getValue("record_${field.id}").isChecked)
         assertTrue(checkboxes.getValue("record_RIDER_POWER").isChecked)
         checkboxes.getValue("record_EFFICIENCY_FACTOR").isChecked = true
+        assertEquals(app.getString(R.string.analysis_ftp_export), checkboxes.getValue("record_ESTIMATED_FTP").text.toString())
+        checkboxes.getValue("record_ESTIMATED_FTP").isChecked = true
         assertFalse(checkboxes.getValue("record_NORMALIZED_POWER").isChecked)
         assertFalse(checkboxes.getValue("record_HEART_RATE").isChecked)
         val before = prefs.all.filterKeys { !it.startsWith("record") }
         views(dialog.window!!.decorView).single { it.tag == "record_save" }.performClick()
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals(setOf("RIDER_POWER", "CADENCE", "EFFICIENCY_FACTOR"), runtime.config.fields)
+        assertEquals(setOf("RIDER_POWER", "CADENCE", "EFFICIENCY_FACTOR", "ESTIMATED_FTP"), runtime.config.fields)
         assertEquals(before, prefs.all.filterKeys { !it.startsWith("record") })
         controller.pause().stop().destroy()
         val recreated = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val restored = views(open(recreated.get()).window!!.decorView).filterIsInstance<CheckBox>().associateBy { it.tag }
             assertTrue(restored.getValue("record_EFFICIENCY_FACTOR").isChecked)
+            assertTrue(restored.getValue("record_ESTIMATED_FTP").isChecked)
             assertFalse(restored.getValue("record_NORMALIZED_POWER").isChecked)
             assertEquals(runtime.config, RecordingConfig.decode(prefs.getStringSet("recordFields", null), prefs.getString("recordSpeed", null), prefs.getString("recordDistance", null)))
         } finally { recreated.pause().stop().destroy() }

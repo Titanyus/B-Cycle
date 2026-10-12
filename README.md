@@ -6,20 +6,20 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.3 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.3/downloads/B-Cycle-0.7.3-test.apk)**
+**[APK 0.7.4 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.4/downloads/B-Cycle-0.7.4-test.apk)**
 
-- Größe: **988.437 Byte**, rund **988 KB**.
+- Größe: **996,685 Byte**, rund **997 KB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.3-test.apk.sha256):
-  `5a5ce402f9cc4383fa78acb3077d3f5d0cd2027d34299e6b1c1ad35856a02ddb`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.4-test.apk.sha256):
+  `eb89b21325cba4a4af71dd91e59bec2dc80d3672251090f7688bd37dfe80d5dd`.
 
-Für Streckendetails: vollständige Suite mit **250 Tests bestanden** und
-Release-Build erfolgreich in **1:08 Minuten**. Danach Kartenlayout und
-Karten-Lifecycle gezielt mit **3 Tests** geprüft; abschließender Release-Build
-erfolgreich in **48 Sekunden**. Signatur und Version geprüft.
+Für das FTP-/Details-Update: vollständige Suite mit **259 Tests bestanden** und
+Release-Build erfolgreich in **1:15 Minuten**. Für die anschließende APK-Versionierung
+wurden 6 FIT-Tests erneut erfolgreich ausgeführt; Release-Build erfolgreich
+in **33 Sekunden**. Signatur und Version separat geprüft.
 Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
@@ -31,6 +31,23 @@ Meilenstein vor der Bereinigung: Quellcode, Tests, Ressourcen, Build-Konfigurati
 Dokumentation und signierte APK. [v0.7.0](https://github.com/Titanyus/B-Cycle/tree/v0.7.0)
 sichert zusätzlich den bereinigten Stand. [v0.7.1](https://github.com/Titanyus/B-Cycle/tree/v0.7.1)
 sichert den aktuellen vollständigen Stand. Auch v0.6.20 und ältere Versionen bleiben erhalten.
+
+## Neu in 0.7.4
+
+- **Estimated FTP:** beste zusammenhängende, zeitgewichtete 20-Minuten-Leistung
+  × 0,95. Nur Fahrerleistung; Nullwerte zählen, Lücken und Pausen verbinden keine
+  getrennten Abschnitte. Eine Schätzung dieser Fahrt, kein persönlicher FTP-Nachweis.
+- Optionales, standardmäßig ausgeschaltetes FIT-Session-Developer-Field;
+  Detailberechnung unabhängig von der Exportauswahl.
+- Details im flächigen Dashboard-Stil mit vertikalen Trennlinien, Standardheader
+  und Datum darunter. Einheiten mittig neben den Zahlen im identischen Dashboard-Grau.
+- Neue **E-Bike**-Gruppe mit mittlerer Motorleistung, Rider/Bike Ratio und Akkuverbrauch
+  bei geeigneten Daten. **Power** zeigt Average, Max und NP gemeinsam.
+- Vollbildkarte erhält die tatsächliche Bildschirmfläche, native Pan-/Zoom-Gesten
+  und Buttons zum Zoomen und erneuten Einpassen der Strecke.
+
+Details: [Estimated FTP und Details-Update](docs/estimated-ftp.md),
+[Buildnachweis 0.7.4](docs/milestone-074.md).
 
 ## Neu in 0.7.3
 

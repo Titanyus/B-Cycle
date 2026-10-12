@@ -44,10 +44,10 @@ class RouteAnalysisViewTest {
                 for (width in listOf(960, 1440)) {
                     measure(content, width, 1800)
                     val rows = descendants(content).filterIsInstance<LinearLayout>().filter { it.tag?.toString()?.startsWith("analysis_group_") == true }
-                    assertEquals(listOf(4, 3, 2, 2, 2), rows.map { it.childCount })
+                    assertEquals(listOf(4, 3, 3, 2, 2, 3), rows.map { row -> (0 until row.childCount).count { row.getChildAt(it) is AnalysisMetricTile } })
                     rows.forEach { row ->
-                        assertTrue(row.childCount <= 4)
-                        val children = (0 until row.childCount).map(row::getChildAt)
+                        assertTrue((0 until row.childCount).count { row.getChildAt(it) is AnalysisMetricTile } <= 4)
+                        val children = (0 until row.childCount).map(row::getChildAt).filterIsInstance<AnalysisMetricTile>()
                         assertEquals(1, children.map { it.height }.distinct().size)
                         assertTrue(children.all { it.height > 0 && it.right <= row.width })
                     }
@@ -90,10 +90,11 @@ class RouteAnalysisViewTest {
         val header = analysisHeader(context, themes, sample().entry) {}
         measure(header, 960, BicycleDesign.dp(context, BicycleDesign.headerHeight))
         val title = header.findViewWithTag<TextView>("analysis_title")
-        val date = header.findViewWithTag<TextView>("analysis_date")
-        assertTrue(title.height > 0 && date.height > 0)
-        assertTrue(title.bottom <= date.top)
-        assertTrue(date.bottom <= header.height)
+        assertNull(header.findViewWithTag<TextView>("analysis_date"))
+        assertTrue(title.height > 0 && title.bottom <= header.height)
+        val date = content.findViewWithTag<TextView>("analysis_date")
+        assertEquals(android.view.Gravity.CENTER, date.gravity)
+        assertEquals(BicycleDesign.dp(context, BicycleDesign.headerHeight), header.height)
     }
     @Test fun tileSwitchesValueUnitLabelAndAccessibleActionWithoutChangingGeometry() {
         val context = RuntimeEnvironment.getApplication(); val themes = ThemeManager(context.getSharedPreferences("bike", 0))
@@ -118,7 +119,7 @@ class RouteAnalysisViewTest {
         assertFalse(descendants(content).any { it is RouteChartView })
         for (metric in AnalysisMetric.entries) {
             assertEquals("string", context.resources.getResourceTypeName(metric.label)); assertFalse(context.getString(metric.label).isBlank())
-            assertEquals("string", context.resources.getResourceTypeName(metric.unit)); assertFalse(context.getString(metric.unit).isBlank())
+            assertEquals("string", context.resources.getResourceTypeName(metric.unit)); if (metric != AnalysisMetric.RIDER_BIKE_RATIO) assertFalse(context.getString(metric.unit).isBlank())
         }
         AnalysisGroups.groups.forEach { assertEquals("string", context.resources.getResourceTypeName(it.first)) }
         AnalysisChart.entries.forEach { assertEquals("string", context.resources.getResourceTypeName(it.label)) }
@@ -138,6 +139,19 @@ class RouteAnalysisViewTest {
             val destroyed = RouteAnalysisMap::class.java.getDeclaredField("destroyed").apply { isAccessible = true }
             assertFalse(destroyed.getBoolean(map))
             assertTrue(map.isAttachedToWindow)
+            assertTrue("map size ${map.width}x${map.height}", map.width > 0 && map.height > 600)
+            assertTrue(map.map.width > 0 && map.map.height > 600)
+            assertTrue(map.map.layerManager.layers[1] is RouteTrackLayer)
+            val zoom = map.map.model.mapViewPosition.zoomLevel
+            descendants(map).single { it.contentDescription == activity.getString(R.string.analysis_zoom_in) }.performClick()
+            assertEquals((zoom + 1).toByte(), map.map.model.mapViewPosition.zoomLevel)
+            descendants(map).single { it.contentDescription == activity.getString(R.string.analysis_zoom_out) }.performClick()
+            assertEquals(zoom, map.map.model.mapViewPosition.zoomLevel)
+            val center = map.map.model.mapViewPosition.center
+            map.map.model.mapViewPosition.moveCenter(100.0, 0.0)
+            assertNotEquals(center, map.map.model.mapViewPosition.center)
+            descendants(map).single { it.contentDescription == activity.getString(R.string.analysis_fit_route) }.performClick()
+            assertEquals(center, map.map.model.mapViewPosition.center)
             assertNotNull(screen.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen"))
             screen.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
             assertTrue(destroyed.getBoolean(map))

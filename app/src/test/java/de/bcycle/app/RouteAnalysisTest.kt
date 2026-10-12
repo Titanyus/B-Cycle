@@ -22,7 +22,7 @@ class RouteAnalysisTest {
                     val at = i * 1000L
                     val raw = mutableMapOf("SPEED" to 10.0, "BIKE_DISTANCE" to i * 10.0, "RIDER_POWER" to 200.0,
                         "MOTOR_POWER" to 800.0, "CADENCE" to if (i < 30) 90.0 else 0.0, "HEART_RATE" to 150.0,
-                        "GPS_ALTITUDE" to 600.0 + i, "GPS_ASCENT" to i.toDouble())
+                        "GPS_ALTITUDE" to 600.0 + i, "GPS_ASCENT" to i.toDouble(), "BATTERY" to 80.0 - i * .5)
                     if (i == 40) raw.remove("RIDER_POWER")
                     if (i == 41) raw["RIDER_POWER"] = 0.0
                     writer.append(RideSample(start + at, at, 50.0 + i * .0001, 8.0, raw, performanceEvents = listOf(
@@ -34,6 +34,9 @@ class RouteAnalysisTest {
             val original = file.readBytes()
             val analysis = RouteAnalysisRead.read(file, entry("FIT"))
             assertEquals("selected-id", analysis.entry.id)
+            assertEquals(800.0, analysis.metrics.getValue(AnalysisMetric.AVG_MOTOR), .001)
+            assertEquals(11600.0 / 47200.0, analysis.metrics.getValue(AnalysisMetric.RIDER_BIKE_RATIO), .000001)
+            assertEquals(30.0, analysis.metrics.getValue(AnalysisMetric.BATTERY_USAGE), .001)
             assertEquals(start, analysis.entry.details.dateMs)
             assertEquals(90.0, analysis.metrics.getValue(AnalysisMetric.AVG_CADENCE), .001)
             assertEquals(200.0, analysis.metrics.getValue(AnalysisMetric.NP), .001)

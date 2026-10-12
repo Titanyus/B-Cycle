@@ -72,4 +72,18 @@
     <string name="analysis_ratio_format">%1$.2f</string>
     <string name="analysis_axis_format">%1$.1f</string>
     <string name="analysis_no_data">Keine auswertbaren Fahrtdaten vorhanden.</string>
+    <string name="analysis_ftp">Estimated FTP</string>
+    <string name="analysis_ftp_export">Estimated FTP (W, Schätzung dieser Fahrt)</string>
+    <string name="analysis_ebike">E-Bike</string>
+    <string name="analysis_motor_power">Avg E-Bike Power</string>
+    <string name="analysis_rider_bike_ratio">Rider/Bike Ratio</string>
+    <string name="analysis_battery_usage">Battery Usage</string>
+    <string name="analysis_percent">%</string>
+    <string name="analysis_no_unit"></string>
+    <string name="analysis_map_heading">Map</string>
+    <string name="analysis_zoom_in">Karte vergrößern</string>
+    <string name="analysis_zoom_out">Karte verkleinern</string>
+    <string name="analysis_fit_route">Gesamte Strecke anzeigen</string>
+    <string name="analysis_ftp_explanation">Schätzung aus der besten zusammenhängenden 20-Minuten-Leistung dieser Fahrt, kein bestätigter persönlicher FTP-Wert.</string>
+    <string name="analysis_missing">—</string>
 </resources>

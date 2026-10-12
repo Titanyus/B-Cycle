@@ -210,7 +210,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             if (value.typeface !== font) value.typeface = font
             val color = if (next.available) Color.WHITE else Color.rgb(119, 119, 119)
             if (value.currentTextColor != color) value.setTextColor(color)
-            unit.setTextColor(Color.rgb(163, 163, 163))
+            unit.setTextColor(BicycleDesign.dashboardUnitColor)
             container.contentDescription = "$caption: ${if (next.available) "${next.text} ${next.unit}" else "noch kein Wert"}. Antippen, um das Feld zu ändern."
         }
     }

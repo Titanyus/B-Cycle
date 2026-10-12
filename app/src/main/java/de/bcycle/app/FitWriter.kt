@@ -133,10 +133,12 @@ object FitWriter {
                 }
                 selectedSummary("SPEED_POWER_RATIO", calculated.speedToPowerRatio, "km/h/W")
                 selectedSummary("EFFICIENCY_FACTOR", calculated.efficiencyFactor, "W/bpm")
+                selectedSummary("ESTIMATED_FTP", calculated.estimatedFtpW, "W")
                 val exported = RecordField.summaries.any { field -> field.id in config.fields && when (field.id) {
                     "NORMALIZED_POWER" -> calculated.normalizedPowerW != null
                     "MECHANICAL_WORK" -> calculated.mechanicalWorkKj != null
                     "CALORIES" -> calculated.caloriesKcal != null
+                    "ESTIMATED_FTP" -> calculated.estimatedFtpW != null
                     "SPEED_POWER_RATIO" -> calculated.speedToPowerRatio != null
                     else -> calculated.efficiencyFactor != null
                 } }
@@ -150,12 +152,14 @@ object FitWriter {
                 }
                 // Distinct field indices associate the same semantic metric with Lap and Session correctly.
                 fun writeSummary(session: Boolean, local: Int, global: Int) {
-                    val indices = custom.indices.map { developerIds.size + (if (session) custom.size else 0) + it }
-                    custom.forEachIndexed { i, metric ->
+                    val chosen = custom.withIndex().filter { session || it.value.first != "ESTIMATED_FTP" }
+                    val indices = chosen.map { developerIds.size + (if (session) custom.size else 0) + it.index }
+                    chosen.forEachIndexed { i, selected ->
+                        val metric = selected.value
                         message(3, 206, listOf(u8(0, 0.0), u8(1, indices[i].toDouble()), u8(2, 0x89.toDouble()),
                             string(3, metric.first), u8(6, 1.0), number(7, 1, 1, 0), string(8, metric.second), u16(14, global.toDouble())))
                     }
-                    message(local, global, summary(session), custom.map { it.third }, indices)
+                    message(local, global, summary(session), chosen.map { it.value.third }, indices)
                 }
                 writeSummary(false, 5, 19); writeSummary(true, 6, 18)
                 val localStamp = endStamp + TimeZone.getDefault().getOffset(end.utcMs) / 1000

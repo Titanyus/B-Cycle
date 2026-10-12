@@ -15,6 +15,7 @@ import android.widget.TextView
 
 /** Global geometry and typography, deliberately independent of every palette. DP unless noted. */
 object BicycleDesign {
+    val dashboardUnitColor = android.graphics.Color.rgb(163, 163, 163)
     const val titleSp = 23f
     const val bodySp = 14f
     const val inputSp = 16f
