@@ -23,6 +23,7 @@ object BicycleDesign {
     const val headingSp = 32f
     const val rowTitleSp = 16f
     const val routeMetricSp = 20f
+    const val riderZoneRangeWidth = 116
     const val routeMetricHeight = 24
     const val routeMetricLabelSp = 10f
     const val formatSp = 12f

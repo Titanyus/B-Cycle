@@ -6,21 +6,34 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.5 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.5/downloads/B-Cycle-0.7.5-test.apk)**
+**[APK 0.7.6 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.6/downloads/B-Cycle-0.7.6-test.apk)**
 
-- Größe: **1,005,073 Byte**, rund **1.01 MB**.
+- Größe: **1,021,457 Byte**, rund **1.02 MB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.5-test.apk.sha256):
-  `4cdb67ae905d9b415852db99e888af749d25f859f320b94dff977c25e290039e`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.6-test.apk.sha256):
+  `7c0d6939f4b1b195fc11e08062cdad36619cd2e8faf0c696c92b6b88510382a6`.
 
-Vollständige Suite mit **267 Tests bestanden** und Release-Build erfolgreich.
-Signatur, Version 0.7.5/43 und APK-Prüfsumme separat geprüft.
+Vollständige Suite mit **280 Tests bestanden** und Release-Build erfolgreich in **2 Minuten**.
+Nach der anschließenden APK-Versionierung bestanden **19 gezielte Profil-/Zonen-/FIT-Tests**;
+Release-Build erfolgreich in **53 Sekunden**. Signatur und Version 0.7.6/44 separat geprüft.
 Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
-Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
+
+## Neu in 0.7.6
+
+- Streckenliste mit vier kompakten Spalten: Datum/Uhrzeit, Distanz, Bewegungszeit und Ø Tempo.
+  Vorschau-Speichersymbol und kurzer Verarbeitungshinweis entfernt; Titelhöhe vereinheitlicht.
+- **Fahrerprofil** im bislang freien sechsten Einstellungsplatz, mit `user-round`.
+  Sechs optionale persönliche Angaben, lokale Speicherung und sofortige Vorschau der
+  fünf Karvonen-Herzfrequenzzonen. Persönliche FTP bleibt von Estimated FTP getrennt.
+- Keine Cloud-Synchronisierung persönlicher Daten, keine neuen FIT-Felder oder Trainingsanalysen.
+
+Diese Änderungen sind in APK 0.7.6 enthalten.
+Architektur, Rundung, Speicherung und Tests: [Fahrerprofil](docs/rider-profile.md),
+[Streckenlisten-Detailkorrekturen](docs/route-manager-step2.md), [Buildnachweis 0.7.6](docs/milestone-076.md).
 
 ## Gesicherte Stände
 

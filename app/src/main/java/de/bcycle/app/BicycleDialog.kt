@@ -98,7 +98,7 @@ internal object BicycleDialogStyle {
     }
     fun content(view: View, themes: ThemeManager) {
         // This reference screen owns every detail, including its compact action geometry.
-        if (view is RouteManagerView || view is ThemePickerView || view is RouteAnalysisView || view is RouteAnalysisMap || view.tag == "route_analysis_header" || view.tag == "bicycle_dialog_header") return
+        if (view is RiderProfileView || view is RouteManagerView || view is ThemePickerView || view is RouteAnalysisView || view is RouteAnalysisMap || view.tag == "route_analysis_header" || view.tag == "bicycle_dialog_header") return
         if (view is Spinner) { spinner(view, themes); return }
         if (view is ListView) {
             BicycleComponents.bindTheme(view, themes) { tokens ->

@@ -197,6 +197,7 @@ class MainActivity : Activity() {
         val content = SettingsMenuView(settingsContext, runtime.themes) { action ->
             when (action) {
                 SettingsAction.SENSORS -> showSensorManager()
+                SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, runtime.themes, dialogs, runtime.riderProfiles) }
                 SettingsAction.MAP -> mapSettings()
                 SettingsAction.DASHBOARDS -> dashboardSettings()
                 SettingsAction.ROUTES -> routeSettings()

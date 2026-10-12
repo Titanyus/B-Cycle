@@ -14,6 +14,7 @@ import android.os.SystemClock
 class RideRuntime private constructor(val context: Context) : BoschConnection.Listener {
     val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
     val themes = ThemeManager(preferences)
+    val riderProfiles = RiderProfileStore(preferences)
     val diagnostics = DiagnosticLog()
     val ride = RideSession()
     val connection = BoschConnection(context, this, diagnostics)

@@ -29,7 +29,7 @@ class SettingsMenuTest {
         return ShadowAlertDialog.getLatestAlertDialog()
     }
     private fun views(dialog: AlertDialog) = descendants(dialog.window!!.decorView)
-    @Test fun fiveTilesAndReservedSlotHaveThreeColumnsBrandAndCollapsedAdvancedWithLicensesLast() {
+    @Test fun sixTilesHaveThreeColumnsBrandAndCollapsedAdvancedWithLicensesLast() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val dialog = open(controller.get())
@@ -40,8 +40,8 @@ class SettingsMenuTest {
                 for (i in 0..1) {
                     val row = views(dialog).single { it.tag == "settings_row_$i" } as ViewGroup
                     assertEquals(3, row.childCount)
-                    assertEquals(if (i == 0) 2 else 3, (0..2).count { row.getChildAt(it).isClickable })
-                    if (i == 0) assertEquals("settings_recording_empty", row.getChildAt(1).tag)
+                    assertEquals(3, (0..2).count { row.getChildAt(it).isClickable })
+                    if (i == 0) assertEquals("settings_PROFILE", row.getChildAt(1).tag)
                     for (column in 0..2) assertTrue(row.getChildAt(column).width >= width / 4)
                 }
                 for (text in descendants(menu).filterIsInstance<TextView>()) {

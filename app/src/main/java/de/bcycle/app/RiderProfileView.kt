@@ -1,0 +1,219 @@
+package de.bcycle.app
+
+import android.app.AlertDialog
+import android.content.Context
+import android.graphics.Typeface
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
+import android.view.Gravity
+import android.view.View
+import android.widget.*
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
+
+/** Independent draft; only the fixed Save action writes the application-owned store. */
+internal class RiderProfileView(context: Context, private val themes: ThemeManager, initial: RiderProfile,
+    private val navigation: DialogNavigation, private val today: () -> LocalDate = LocalDate::now) : ScrollView(context) {
+    private fun dp(n: Int) = BicycleDesign.dp(context, n)
+    private val locale get() = resources.configuration.locales[0]
+    private var birthDate = initial.birthDate
+    private val root = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding))
+        BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
+    }
+    private val inputs = linkedMapOf<RiderField, EditText>()
+    private val birth = Button(context).apply { tag = "rider_birth"; isAllCaps = false }
+    private val clearBirth = BicycleComponents.icon(context, themes, BicycleIcon.Cancel, context.getString(R.string.rider_birth_clear)) {
+        birthDate = null; birth.error = null; updateBirth()
+    }.apply { tag = "rider_birth_clear" }
+    private val age = text("").apply { tag = "rider_age" }
+    private val hint = text("").apply { tag = "rider_zone_hint"; accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE }
+    private val ranges = mutableListOf<TextView>()
+    private val zoneRows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "rider_zones" }
+    private val saveError = text("").apply { tag = "rider_save_error"; visibility = GONE; accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE }
+    private fun text(value: String) = BicycleComponents.text(context, themes, value).apply { typeface = Typeface.DEFAULT }
+    private fun section(title: Int) {
+        if (root.childCount > 0) root.addView(BicycleComponents.sectionDivider(context, themes))
+        root.addView(text(context.getString(title)).apply {
+            textSize = BicycleDesign.inputSp; isAccessibilityHeading = true
+            setPadding(0, dp(BicycleDesign.smallGap), 0, dp(BicycleDesign.verticalPadding))
+        }, LinearLayout.LayoutParams(-1, -2))
+    }
+    private fun label(title: Int, target: View) {
+        root.addView(text(context.getString(title)).apply { labelFor = target.id }, LinearLayout.LayoutParams(-1, -2))
+    }
+    private fun input(field: RiderField, title: Int, unit: Int, value: String, decimal: Boolean = false) {
+        val edit = EditText(context).apply {
+            id = generateViewId(); tag = "rider_${field.name.lowercase(Locale.ROOT)}"; contentDescription = context.getString(title)
+            inputType = InputType.TYPE_CLASS_NUMBER or if (decimal) InputType.TYPE_NUMBER_FLAG_DECIMAL else 0
+            maxLines = 1; setText(value)
+        }
+        BicycleDialogStyle.control(edit, themes)
+        inputs[field] = edit; label(title, edit)
+        root.addView(LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(edit, LinearLayout.LayoutParams(0, -2, 1f))
+            addView(TextView(context).apply {
+                text = context.getString(unit); tag = "rider_unit"; textSize = BicycleDesign.formatSp
+                typeface = Typeface.DEFAULT; setTextColor(BicycleDesign.dashboardUnitColor)
+                gravity = Gravity.CENTER; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+            }, LinearLayout.LayoutParams(dp(BicycleDesign.touchSize), -1))
+        }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.verticalPadding) })
+    }
+    init {
+        tag = "rider_profile"; isFillViewport = BicycleDesign.scrollFillViewport; clipToPadding = BicycleDesign.scrollClipToPadding
+        scrollBarSize = dp(BicycleDesign.scrollbarSize)
+        BicycleComponents.bindTheme(this, themes) {
+            setBackgroundColor(it.secondary); verticalScrollbarThumbDrawable = android.graphics.drawable.ColorDrawable(it.foreground)
+        }
+        addView(root, LayoutParams(-1, -2))
+        section(R.string.rider_personal)
+        birth.id = generateViewId(); birth.contentDescription = context.getString(R.string.rider_birth)
+        BicycleDialogStyle.control(birth, themes); label(R.string.rider_birth, birth)
+        root.addView(LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(birth, LinearLayout.LayoutParams(0, dp(BicycleDesign.touchSize), 1f).apply { topMargin = dp(BicycleDesign.verticalPadding) })
+            addView(clearBirth)
+        }, LinearLayout.LayoutParams(-1, -2))
+        root.addView(age, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.verticalPadding) })
+        birth.setOnClickListener { chooseBirthDate() }; updateBirth()
+        input(RiderField.HEIGHT, R.string.rider_height, R.string.rider_cm, initial.heightCm?.toString().orEmpty())
+        val decimal = DecimalFormat("0.################", DecimalFormatSymbols.getInstance(locale)).apply { isGroupingUsed = false }
+        input(RiderField.WEIGHT, R.string.rider_weight, R.string.rider_kg, initial.weightKg?.let(decimal::format).orEmpty(), true)
+        section(R.string.rider_training)
+        input(RiderField.RESTING_HEART_RATE, R.string.rider_resting, R.string.analysis_bpm, initial.restingHeartRate?.toString().orEmpty())
+        input(RiderField.MAXIMUM_HEART_RATE, R.string.rider_maximum, R.string.analysis_bpm, initial.maximumHeartRate?.toString().orEmpty())
+        input(RiderField.FTP, R.string.rider_ftp, R.string.analysis_watts, initial.ftpW?.toString().orEmpty())
+        section(R.string.rider_zones)
+        root.addView(text(context.getString(R.string.rider_karvonen)), LinearLayout.LayoutParams(-1, -2))
+        root.addView(hint, LinearLayout.LayoutParams(-1, -2))
+        val names = listOf(R.string.rider_z1, R.string.rider_z2, R.string.rider_z3, R.string.rider_z4, R.string.rider_z5)
+        names.forEachIndexed { i, name ->
+            zoneRows.addView(LinearLayout(context).apply {
+                gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(BicycleDesign.touchSize)
+                addView(View(context).apply { setBackgroundColor(TrainingZoneColors.values[i]); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO },
+                    LinearLayout.LayoutParams(dp(BicycleDesign.smallGap), dp(BicycleDesign.iconSize)).apply { marginEnd = dp(BicycleDesign.verticalPadding) })
+                addView(text(context.getString(R.string.rider_zone_name, i + 1, context.getString(name))).apply {
+                    maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+                }, LinearLayout.LayoutParams(0, -2, 1f))
+                val value = BicycleComponents.text(context, themes, "").apply {
+                    tag = "rider_zone_value_${i + 1}"; typeface = resources.getFont(R.font.bebas_neue)
+                    textSize = BicycleDesign.analysisMetricSp; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
+                    setAutoSizeTextTypeUniformWithConfiguration(16, BicycleDesign.analysisMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+                }
+                val unit = TextView(context).apply {
+                    text = context.getString(R.string.analysis_bpm); tag = "rider_unit"; typeface = resources.getFont(R.font.bebas_neue)
+                    textSize = BicycleDesign.formatSp; setTextColor(BicycleDesign.dashboardUnitColor)
+                    gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
+                }
+                ranges += value
+                addView(AnalysisValueRow(context, value, unit), LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth), dp(BicycleDesign.touchSize)))
+            }, LinearLayout.LayoutParams(-1, -2))
+        }
+        root.addView(zoneRows, LinearLayout.LayoutParams(-1, -2)); root.addView(saveError)
+        inputs.forEach { (field, edit) -> edit.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                edit.error = null; saveError.visibility = GONE
+                if (field == RiderField.RESTING_HEART_RATE || field == RiderField.MAXIMUM_HEART_RATE) updateZones()
+            }
+            override fun afterTextChanged(s: Editable?) = Unit
+        }) }
+        updateZones()
+    }
+    private fun updateBirth() {
+        birth.text = birthDate?.let { formatBirthDate(it, locale) } ?: context.getString(R.string.rider_birth_choose)
+        clearBirth.isEnabled = birthDate != null
+        val years = birthDate?.let { RiderProfile(birthDate = it).ageYears(today()) }
+        age.text = years?.let { resources.getQuantityString(R.plurals.rider_age, it, it) }.orEmpty()
+        age.visibility = if (years == null) GONE else VISIBLE
+    }
+    private fun chooseBirthDate() {
+        val initial = (birthDate ?: today()).coerceIn(RiderProfileValidation.minimumBirthDate(today()), today())
+        val picker = DatePicker(context).apply {
+            tag = "rider_birth_picker"; maxDate = today().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            minDate = RiderProfileValidation.minimumBirthDate(today()).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            updateDate(initial.year, initial.monthValue - 1, initial.dayOfMonth)
+        }
+        BicycleDialogBuilder(context, themes, navigation, fullscreen = false).setTitle(R.string.rider_birth).setView(picker)
+            .setNegativeButton(R.string.route_cancel, null).setPositiveButton(R.string.route_action_save) { _, _ ->
+                birthDate = LocalDate.of(picker.year, picker.month + 1, picker.dayOfMonth); birth.error = null; updateBirth()
+            }.show()
+    }
+    internal fun draft() = RiderProfileValidation.parse(birthDate, inputs.mapValues { it.value.text.toString() }, locale, today())
+    private fun updateZones() {
+        val draft = draft()
+        val hearts = setOf(RiderField.RESTING_HEART_RATE, RiderField.MAXIMUM_HEART_RATE)
+        val result = if (draft.errors.keys.any { it in hearts }) null else draft.profile.heartZones()
+        hint.visibility = if (result == null) VISIBLE else GONE; zoneRows.visibility = if (result == null) GONE else VISIBLE
+        if (result != null) inputs.filterKeys { it in hearts }.values.forEach { it.error = null }
+        if (result == null) {
+            hint.text = context.getString(when {
+                draft.errors[RiderField.MAXIMUM_HEART_RATE] == RiderInputError.HEART_ORDER -> R.string.rider_hint_order
+                draft.errors.keys.any { it in hearts } -> R.string.rider_hint_invalid
+                draft.profile.restingHeartRate == null && draft.profile.maximumHeartRate == null -> R.string.rider_hint_both
+                draft.profile.restingHeartRate == null -> R.string.rider_hint_resting
+                else -> R.string.rider_hint_maximum
+            })
+        } else result.zones.forEachIndexed { i, zone ->
+            ranges[i].text = if (zone.isEmpty) context.getString(R.string.analysis_missing) else context.getString(R.string.rider_zone_range, zone.lowerBpm, zone.upperBpm)
+            (ranges[i].parent.parent as View).contentDescription = context.getString(R.string.rider_zone_description, zone.index,
+                zone.fromPercent, zone.toPercent, ranges[i].text, context.getString(R.string.analysis_bpm))
+        }
+    }
+    internal fun validate(): RiderProfile? {
+        val draft = draft()
+        draft.errors.forEach { (field, error) ->
+            val target: TextView = if (field == RiderField.BIRTH_DATE) birth else inputs.getValue(field)
+            target.error = context.getString(when (error) {
+                RiderInputError.NUMBER -> if (field == RiderField.WEIGHT) R.string.rider_error_decimal else R.string.rider_error_integer
+                RiderInputError.FUTURE_DATE -> R.string.rider_error_future
+                RiderInputError.BIRTH_DATE -> R.string.rider_error_birth
+                RiderInputError.HEART_ORDER -> R.string.rider_hint_order
+                RiderInputError.RANGE -> when (field) {
+                    RiderField.HEIGHT -> R.string.rider_error_height; RiderField.WEIGHT -> R.string.rider_error_weight
+                    RiderField.RESTING_HEART_RATE -> R.string.rider_error_resting; RiderField.MAXIMUM_HEART_RATE -> R.string.rider_error_maximum
+                    else -> R.string.rider_error_ftp
+                }
+            })
+        }
+        draft.errors.keys.firstOrNull()?.let { (inputs[it] ?: birth).requestFocus() }
+        return draft.profile.takeIf { draft.valid }
+    }
+    internal fun saveFailed() { saveError.text = context.getString(R.string.rider_save_failed); saveError.visibility = VISIBLE }
+    companion object {
+        fun formatBirthDate(date: LocalDate, locale: Locale): String = date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale))
+    }
+}
+
+/** Semantic intensity markers, independent of themes and never applied to text or icons. */
+internal object TrainingZoneColors {
+    val values = listOf(0xff8696a5.toInt(), 0xff35c977.toInt(), 0xffeacb38.toInt(), 0xffee902e.toInt(), 0xffe05252.toInt())
+}
+
+internal fun showRiderProfile(context: Context, themes: ThemeManager, navigation: DialogNavigation, store: RiderProfileStore): AlertDialog {
+    val body = RiderProfileView(context, themes, store.read(), navigation)
+    val screen = BicycleDialogBuilder(context, themes, navigation).setTitle(R.string.rider_profile).setView(body)
+        .setNegativeButton(R.string.route_cancel, null).setPositiveButton(R.string.route_action_save, null).create()
+    screen.setCustomTitle(BicycleComponents.header(context, themes).apply {
+        tag = "bicycle_dialog_header"; setPadding(BicycleDesign.dp(context, BicycleDesign.smallGap), 0, BicycleDesign.dp(context, BicycleDesign.verticalPadding), 0)
+        addView(BicycleComponents.icon(context, themes, BicycleIcon.Back, context.getString(R.string.rider_back)) { screen.dismiss() })
+        addView(BicycleComponents.heading(context, themes, context.getString(R.string.rider_profile)).apply {
+            tag = "bicycle_dialog_title"
+            setAutoSizeTextTypeUniformWithConfiguration(18, BicycleDesign.headingSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+        },
+            LinearLayout.LayoutParams(0, BicycleDesign.dp(context, BicycleDesign.headerHeight), 1f))
+    })
+    screen.show()
+    screen.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+        body.validate()?.let { profile -> if (runCatching { store.write(profile) }.getOrDefault(false)) screen.dismiss() else body.saveFailed() }
+    }
+    return screen
+}

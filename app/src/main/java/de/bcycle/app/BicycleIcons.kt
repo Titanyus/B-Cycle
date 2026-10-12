@@ -11,7 +11,7 @@ import android.graphics.drawable.Drawable
 internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = ThemeRole.FOREGROUND) {
     Sensors(R.drawable.ic_lucide_radio), MapManager(R.drawable.ic_lucide_map_pinned),
     Dashboard(R.drawable.ic_lucide_layout_dashboard), Route(R.drawable.ic_lucide_route),
-    Advanced(R.drawable.ic_lucide_settings), Light(R.drawable.ic_lucide_lightbulb),
+    RiderProfile(R.drawable.ic_lucide_user_round), Advanced(R.drawable.ic_lucide_settings), Light(R.drawable.ic_lucide_lightbulb),
     TrackImported(R.drawable.ic_lucide_log_in), TrackRecorded(R.drawable.ic_lucide_bike),
     TrackUnknown(R.drawable.ic_lucide_circle_help), FileGPX(R.drawable.ic_lucide_file), FileFIT(R.drawable.ic_lucide_file),
     MoreOptions(R.drawable.ic_lucide_ellipsis), SettingsOptions(R.drawable.ic_lucide_ellipsis_vertical),
