@@ -267,8 +267,15 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val fieldMargin = dataFields.layoutParams as LayoutParams
         val statusMargin = status.layoutParams as LayoutParams
         val zoomMargin = zoomControls.layoutParams as LayoutParams
-        val nextStatusMargin = creditHeight + if (dataFields.visibility == VISIBLE) dataFields.measuredHeight else 0
-        val nextZoomMargin = creditHeight + if (dataFields.visibility == VISIBLE) dp(54) else dp(6)
+        val nextFieldMargin = dp(12)
+        val nextStatusMargin = maxOf(creditHeight, nextFieldMargin + if (dataFields.visibility == VISIBLE) dataFields.measuredHeight else 0)
+        // Share the lower edge with the values; do not add their height to the zoom inset.
+        val nextZoomMargin = nextFieldMargin
+        val creditMargin = credit.layoutParams as LayoutParams
+        val nextCreditEnd = if (zoomControls.visibility == VISIBLE) dp(56) else 0
+        val creditChanged = creditMargin.marginEnd != nextCreditEnd
+        creditMargin.marginEnd = nextCreditEnd
+        if (creditChanged) credit.layoutParams = creditMargin
         // Short map panels still need both zoom buttons; reserve their column if it meets the top row.
         val buttonHeight = ((measuredHeight - nextZoomMargin - dp(4)) / 2).coerceIn(dp(24), dp(48))
         val topMargin = controls.layoutParams as LayoutParams
@@ -285,9 +292,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             val params = zoomControls.getChildAt(index).layoutParams
             if (params.height != buttonHeight) { params.height = buttonHeight; changed = true }
         }
-        if (changed || fieldMargin.bottomMargin != creditHeight || statusMargin.bottomMargin != nextStatusMargin ||
+        if (changed || creditChanged || fieldMargin.bottomMargin != nextFieldMargin || statusMargin.bottomMargin != nextStatusMargin ||
             zoomMargin.bottomMargin != nextZoomMargin || topMargin.marginEnd != nextTopEnd) {
-            fieldMargin.bottomMargin = creditHeight; statusMargin.bottomMargin = nextStatusMargin
+            fieldMargin.bottomMargin = nextFieldMargin; statusMargin.bottomMargin = nextStatusMargin
             zoomMargin.bottomMargin = nextZoomMargin; topMargin.marginEnd = nextTopEnd
             controls.layoutParams = topMargin
             nightMargin.marginEnd = nextTopEnd; nightButton.layoutParams = nightMargin

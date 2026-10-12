@@ -6,18 +6,19 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.1 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.1/downloads/B-Cycle-0.7.1-test.apk)**
+**[APK 0.7.2 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.2/downloads/B-Cycle-0.7.2-test.apk)**
 
-- Größe: **951.293 Byte**, rund **951 KB**.
+- Größe: **951,293 Byte**, rund **951 KB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.1-test.apk.sha256):
-  `181c474a6013cfe845d6f5df62cf2fe82ec55ad283baab540df6e28294c768de`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.2-test.apk.sha256):
+  `d50d6ea3b89f3213ed7d89014870f12c2f6054e10cf8c7a15328b90a88e6dea7`.
 
-Für diesen APK-Build: **239 Tests bestanden**, Signatur und Version geprüft.
-Vollständige Testsuite und Release-Build erfolgreich in **1 Minute 34 Sekunden**.
+Für diese kleine Layoutkorrektur: **15 gezielte Kartentests bestanden** und
+Release-Build erfolgreich; Signatur und Version geprüft. Die vollständige Suite
+mit 239 Tests wurde beim vorigen Stand 0.7.1 erfolgreich ausgeführt.
 Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
@@ -29,6 +30,13 @@ Meilenstein vor der Bereinigung: Quellcode, Tests, Ressourcen, Build-Konfigurati
 Dokumentation und signierte APK. [v0.7.0](https://github.com/Titanyus/B-Cycle/tree/v0.7.0)
 sichert zusätzlich den bereinigten Stand. [v0.7.1](https://github.com/Titanyus/B-Cycle/tree/v0.7.1)
 sichert den aktuellen vollständigen Stand. Auch v0.6.20 und ältere Versionen bleiben erhalten.
+
+## Neu in 0.7.2
+
+Die drei unteren Kartenwerte sitzen tiefer; Minus ist mit ihrer Unterkante ausgerichtet,
+Plus bleibt darüber. Die dynamische Layoutregel überschreibt den Abstand nicht mehr.
+Kartenquellenangabe und Werte bleiben getrennt.
+Details: [unteres Kartenlayout](docs/map-bottom-layout.md).
 
 ## Neu in 0.7.1
 

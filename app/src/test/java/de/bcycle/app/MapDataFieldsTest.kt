@@ -116,7 +116,13 @@ class MapDataFieldsTest {
                 fields.show(LiveData(otherValues = mapOf(LiveMetric.BATTERY to 75L)), GpsValues(), null, PulseValues())
                 measure(root)
                 val credit = descendants(panel).single { it.contentDescription == "Kartenquelle, Urheber und Legende" }
-                assertTrue(fields.bottom <= credit.top)
+                val value = descendants(fields).filterIsInstance<TextView>().first { it.visibility == View.VISIBLE }
+                val textBottom = fields.top + value.top + value.baseline + value.paint.fontMetrics.descent
+                assertTrue("textBottom=$textBottom creditTop=${credit.top} fieldsBottom=${fields.bottom} height=${fields.height} baseline=${value.baseline}", textBottom <= credit.top)
+                val zoom = descendants(panel).single { it.tag == "map_zoom_controls" }
+                assertEquals(fields.bottom, zoom.bottom)
+                assertEquals((12 * panel.resources.displayMetrics.density).toInt(), panel.height - fields.bottom)
+                assertTrue(credit.right <= zoom.left || zoom.visibility != View.VISIBLE)
                 assertTrue(fields.top >= 0)
             }
             display()
