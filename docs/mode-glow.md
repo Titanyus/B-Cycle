@@ -77,3 +77,11 @@ Breathing läuft mit rund 30 Frames/s nur bei sichtbarem Drawable. Die bisherige
 Regressionstests prüfen Schwellen, ungültige/veraltete Werte und Verbindungstrennung,
 Farben/Mischung, Vier-Sekunden-Zyklus, Breitenänderung, Shader-Wiederverwendung,
 Warnung bei deaktiviertem Modus-Glow sowie Aussetzen der Frameplanung bei Unsichtbarkeit.
+
+## Gemeinsame Verstärkung aller Effekte
+
+Die radiale Breite in der Mitte wächst gegenüber dem bisherigen Faktor 1,2 auf 1,5,
+also um 25 %. Die zentrale Intensität (`modeGlowAlpha`) steigt von 140 auf 175, ebenfalls
+um 25 %. Beides gilt für Modusfarben, Übergänge, OFF-Fades und Akkuwarnung. Die additive
+Darstellung bleibt an die maximale Displayhelligkeit begrenzt. Vier-Sekunden-Breathing,
+1,5-Sekunden-Fade, zusätzliche Warnbreite, Farben und Shader-Wiederverwendung bleiben erhalten.

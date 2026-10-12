@@ -46,7 +46,7 @@ internal class BoschModeGlow(private val edgeWidth: Float,
     private val matrix = Matrix()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val frame = Runnable { invalidateSelf() }
-    private val width get() = (edgeWidth * 1.2f).coerceAtMost(bounds.width() / 2f)
+    private val width get() = (edgeWidth * 1.5f).coerceAtMost(bounds.width() / 2f)
     private fun progress() = if (started < 0) 1f else ((clock() - started) / 1500f).coerceIn(0f, 1f)
     private fun currentColor(): Int {
         val t = progress()

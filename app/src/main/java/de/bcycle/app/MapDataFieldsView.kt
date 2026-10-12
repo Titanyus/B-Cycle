@@ -47,7 +47,7 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
             val value = field?.value(data, gps, bikeDistanceM, pulse)
             val next = value?.takeIf { it.available }?.text.orEmpty()
             val view = values[index]
-            val direction = field?.let { trends.direction(it.id, it.averageNumber(data, gps, pulse), android.os.SystemClock.elapsedRealtime()) } ?: 0
+            val direction = field?.let { trends.indicator(it, data, gps, pulse, android.os.SystemClock.elapsedRealtime()) } ?: 0
             val hasDot = index == 1 && recording
             val hasLight = index == 1 && bikeLight == true
             val hasValue = next.isNotEmpty()

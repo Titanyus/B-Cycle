@@ -15,12 +15,59 @@ internal class PedalingAverage {
 /** One observation per second and at most 12 points per average, independent of UI redraw frequency. */
 internal class AverageTrends {
     private val histories = mutableMapOf<String, ArrayDeque<Pair<Long, Double>>>()
-    fun direction(id: String, number: Double?, now: Long): Int {
-        if (number == null || !number.isFinite()) { histories.remove(id); return 0 }
-        val points = histories.getOrPut(id) { ArrayDeque() }
+    private val recentPower = ArrayDeque<Pair<Long, Double>>()
+    /** Live fields compare with their own average even when no average tile is visible. */
+    fun indicator(field: DashboardField, data: LiveData, gps: GpsValues, pulse: PulseValues, now: Long): Int {
+        val reference = when (field.id) {
+            "SPEED" -> DashboardField("AVERAGE_SPEED").averageNumber(data, gps, pulse)
+            "GPS_SPEED" -> gps.movingAverageKmh
+            "RIDER_POWER" -> DashboardField("AVERAGE_POWER").averageNumber(data, gps, pulse)
+            "CADENCE" -> DashboardField("AVERAGE_CADENCE").averageNumber(data, gps, pulse)
+            "HEART_RATE" -> pulse.average
+            else -> null
+        }
+        val current = when (field.id) {
+            "SPEED" -> data.speedHundredths?.div(100.0)
+            "GPS_SPEED" -> gps.speedKmh
+            "RIDER_POWER" -> data.riderPowerWatts?.toDouble()
+            "CADENCE" -> data.value(LiveMetric.CADENCE)?.div(LiveMetric.CADENCE.divisor)
+            "HEART_RATE" -> pulse.bpm?.toDouble()
+            else -> null
+        }
+        if (field.id in LIVE_IDS) return compare(current, reference)
+        if (field.id == "AVERAGE_POWER") {
+            val power = data.riderPowerWatts?.toDouble()
+            val average = field.averageNumber(data, gps, pulse)
+            if (power == null || average == null) { recentPower.clear(); return 0 }
+            observe(recentPower, power, now)
+            val duration = now - recentPower.first().first
+            if (duration < 8_000) return 0
+            var energy = 0.0
+            var previous = recentPower.first()
+            for (point in recentPower.drop(1)) {
+                energy += previous.second * (point.first - previous.first)
+                previous = point
+            }
+            energy += previous.second * (now - previous.first)
+            return compare(energy / duration, average)
+        }
+        return direction(field.id, field.averageNumber(data, gps, pulse), now)
+    }
+    private fun observe(points: ArrayDeque<Pair<Long, Double>>, number: Double, now: Long) {
         if (points.lastOrNull()?.let { now < it.first || now - it.first > 15_000 } == true) points.clear()
         if (points.lastOrNull()?.let { now - it.first >= 1000 } != false) points.addLast(now to number)
         while (points.size > 12 || points.size > 1 && now - points.elementAt(1).first >= 10_000) points.removeFirst()
+    }
+    private fun compare(current: Double?, reference: Double?): Int {
+        if (current == null || reference == null || !current.isFinite() || !reference.isFinite()) return 0
+        val delta = current - reference
+        return when { delta > .000001 -> 1; delta < -.000001 -> -1; else -> 0 }
+    }
+    companion object { private val LIVE_IDS = setOf("SPEED", "GPS_SPEED", "RIDER_POWER", "CADENCE", "HEART_RATE") }
+    fun direction(id: String, number: Double?, now: Long): Int {
+        if (number == null || !number.isFinite()) { histories.remove(id); return 0 }
+        val points = histories.getOrPut(id) { ArrayDeque() }
+        observe(points, number, now)
         val first = points.first()
         if (now - first.first < 8_000) return 0
         val delta = number - first.second

@@ -42,7 +42,7 @@ data class PerformanceValues(
 /** Only bounded state: actual events -> time integral -> complete 1 s bins -> complete 30 s windows. */
 class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
     companion object {
-        const val MODEL_VERSION = 2
+        const val MODEL_VERSION = 3
         const val MAX_HOLD_MS = 5_000L
         const val MIN_COVERAGE = .95
     }
@@ -171,15 +171,17 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
     private fun clearWindow() { window.clear(); windowSum = 0.0 }
     fun snapshot(): PerformanceValues {
         val quality = PerformanceQuality(activeMs, powerMs, speedMs, heartMs, longestGap, gapCount, windowCount, heartAvailableMs, continuedZeroMs)
-        val enough = activeMs > 0 && quality.powerCoverage >= MIN_COVERAGE && longestGap <= MAX_HOLD_MS
+        // A local gap breaks its 30 s windows and FTP continuity, not an otherwise
+        // well-covered ride. Coverage and complete-window coverage remain required.
+        val enough = activeMs > 0 && quality.powerCoverage >= MIN_COVERAGE
         val np = if (enough && windowCount > 0 && potentialWindows > 0 && windowCount.toDouble() / potentialWindows >= MIN_COVERAGE)
             fourthMean.coerceAtLeast(0.0).pow(.25).takeIf { it.isFinite() } else null
         // Work is the observed integral, not a rescaled estimate for unobserved seconds.
         val work = (workJ / 1000).takeIf { enough && it.isFinite() }
         val ratio = if (enough && speedMs.toDouble() / activeMs >= MIN_COVERAGE && pairedWorkJ > 0)
             (speedIntegral / speedMs * 3.6) / (pairedWorkJ * 1000 / speedMs) else null
-        // EF needs precisely the same complete evaluation period, not unmatched HR-only time.
-        val ef = if (np != null && heartMs == activeMs && powerMs == activeMs && heartIntegral > 0)
+        // EF uses the same observed power intervals, never unrelated HR-only time.
+        val ef = if (np != null && powerMs > 0 && heartMs == powerMs && heartIntegral > 0)
             np / (heartIntegral / heartMs) else null
         val estimate = energy.estimate(EnergyInput(work, heartAvailableIntegral.takeIf { heartAvailableMs > 0 }?.div(heartAvailableMs),
                 activeMs, quality.powerCoverage, if (activeMs > 0) heartAvailableMs.toDouble() / activeMs else 0.0))

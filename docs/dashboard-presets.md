@@ -55,3 +55,21 @@ Neue Acht-Feld-Sicherungen benötigen eine App-Version mit dieser Erweiterung.
 des achten Feldes einschließlich Activity-Neustart, Sieben-Feld-Migration, Backup-Roundtrip
 und alte Backups sowie einheitliche Typografie/Farbe und Glow. Keine neue APK für diese
 Ergänzung; die oben genannte APK 0.7.7 enthält die ersten acht Vorlagen.
+
+## Einheitliche Zahlen in Dreier-Reihen
+
+Alle Dreier-Kacheln verwenden zentral feste `tripleValueSp = 32 sp` und `tripleUnitSp = 10 sp`.
+Automatische Größenänderungen nach Wertlänge sind dort deaktiviert. Drei dp seitlicher
+Innenabstand und eine gemeinsame zentrierte Anordnung von Zahl, kleiner Einheit und
+gegebenenfalls Chevron sichern Platz. Das Chevron hat reservierten Messraum und wird
+bei Gleichstand ausgeblendet. Die numerische Schriftfamilie und das Einheitengrau bleiben erhalten.
+
+Distanzen bis unter 100 km zeigen zwei Dezimalstellen, ab 100 km eine, nur in diesen Kacheln.
+Dauerwerte behalten Sekunden; ihre redundante Formateinheit wird dort als vorhandenes `h`
+angezeigt. Auswahlen und Rohwerte bleiben unverändert. Werte außerhalb der vorgesehenen
+Breite werden sauber gekürzt statt die feste Schriftgröße aufzuheben.
+
+Tests mit mindestens 320 dp breiten Displays prüfen `99,99 km`, `999,9 km`, `999,9 km/h`
+mit Chevron und `2:10:30 h`, feste Schriftgröße, vollständige Darstellung dieser Werte,
+mittige Einheiten und alle Dreier-Reihen. Feldbreiten unterscheiden sich höchstens
+um einen physischen Pixel durch Rundung des verfügbaren Rasters, nicht um unterschiedliche Gewichte.

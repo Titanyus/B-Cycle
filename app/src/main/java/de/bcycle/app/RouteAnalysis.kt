@@ -118,7 +118,7 @@ internal object RouteAnalysisRead {
                         v("enhanced_speed") ?: v("speed") ?: dev("SPEED", "m/s") ?: dev("GPS_SPEED", "m/s"),
                         v("power") ?: dev("RIDER_POWER", "W"), v("cadence") ?: dev("CADENCE", "rpm") ?: dev("CADENCE", "U/min"),
                         v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("GPS_ALTITUDE", "m"),
-                        v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"))
+                        v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"), dev("SPEED", "m/s"))
                 }
                 18, 19 -> builder.summary(message, message.num == 18)
                 21 -> if (number(message, "event") == 0.0) builder.timer(number(message, "timestamp"), number(message, "event_type"))
@@ -154,7 +154,7 @@ internal object RouteAnalysisRead {
             if (kind == 0.0 || kind == 1.0 || kind == 4.0) performance.accept(PerformanceEvent(
                 if (kind == 0.0) PerformanceChannel.RESUME else PerformanceChannel.PAUSE, time))
         }
-        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?) {
+        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null) {
             count++; require(count <= 600_000)
             val stamp = time?.takeIf { firstTime == null || it >= (lastTime ?: it) }
             if (stamp != null) { if (firstTime == null) firstTime = stamp; lastTime = stamp }
@@ -192,9 +192,17 @@ internal object RouteAnalysisRead {
             }
             if (seconds != null) {
                 val at = (seconds * 1000).toLong()
-                listOf(PerformanceChannel.POWER to p, PerformanceChannel.SPEED to s, PerformanceChannel.HEART_RATE to h).forEach { (channel, value) ->
-                    performance.accept(PerformanceEvent(channel, at, value, source = if (channel == PerformanceChannel.POWER) PowerSource.BOSCH_RIDER.name else "FIT"))
+                // Only our verified bike SPEED developer field proves bike telemetry;
+                // GPS/native FIT speed alone cannot extend a Bosch zero state.
+                valid(bikeSpeed, 0.0..35.0)?.let {
+                    performance.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY, at, it, source = "SPEED"))
                 }
+                // An absent FIT sample is not an explicit invalidation of a known zero.
+                // The central engine still expires it when bike telemetry becomes stale.
+                if (p != null || performance.latestPower?.watts != 0.0)
+                    performance.accept(PerformanceEvent(PerformanceChannel.POWER, at, p, source = PowerSource.BOSCH_RIDER.name))
+                performance.accept(PerformanceEvent(PerformanceChannel.SPEED, at, s, source = "FIT"))
+                performance.accept(PerformanceEvent(PerformanceChannel.HEART_RATE, at, h, source = "FIT"))
             }
         }
         fun summary(message: Mesg, session: Boolean) {

@@ -190,6 +190,32 @@ class PerformanceEngineTest {
         assertEquals(119000L, e.snapshot().quality.powerMs)
         assertNull(e.snapshot().normalizedPowerW)
     }
+    @Test fun longRideWithConfirmedCoastingAndSmallUnknownGapKeepsValidMetricsWithoutFillingTheGap() {
+        val engine=PerformanceEngine()
+        val samples=List<Double?>(7200) { when(it) { in 3600 until 3780->0.0;in 4500 until 4560->null;else->200.0 } }
+        for(second in samples.indices) {
+            val at=second*1000L
+            engine.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY,at,10.0,source="SPEED"))
+            if(second !in 3601 until 3780) engine.accept(power(at,samples[second]))
+            engine.accept(PerformanceEvent(PerformanceChannel.SPEED,at,10.0,source="SPEED"))
+            engine.accept(PerformanceEvent(PerformanceChannel.HEART_RATE,at,150.0))
+        }
+        engine.advance(7200000)
+        val actual=engine.snapshot()
+        val means=(29 until samples.size).mapNotNull { last->
+            val window=samples.subList(last-29,last+1)
+            if(window.any { it==null }) null else window.sumOf { it!! }/30
+        }
+        val expected=kotlin.math.sqrt(kotlin.math.sqrt(means.sumOf { it*it*it*it }/means.size))
+        assertEquals(expected,actual.normalizedPowerW!!,1e-8)
+        assertEquals(1392.0,actual.mechanicalWorkKj!!,1e-8)
+        assertEquals(60000L,actual.quality.longestPowerGapMs)
+        assertEquals(7140000L,actual.quality.powerMs)
+        assertTrue(actual.quality.continuedZeroMs>=174000L)
+        assertEquals(expected/150,actual.efficiencyFactor!!,1e-8)
+        assertNotNull(actual.speedToPowerRatio);assertNotNull(actual.caloriesKcal)
+    }
+
     @Test fun comparisonSourceCannotOverwriteOrInvalidateBoschAndRetainsItsOwnAge() {
         val engine = PerformanceEngine()
         engine.accept(power(0, 200.0))

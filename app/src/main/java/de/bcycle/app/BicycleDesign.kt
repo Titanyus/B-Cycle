@@ -17,6 +17,9 @@ import android.widget.TextView
 object BicycleDesign {
     val dashboardUnitColor = android.graphics.Color.rgb(163, 163, 163)
     const val dashboardCaptionSp = 13.5f
+    const val tripleValueSp = 32f
+    const val tripleUnitSp = 10f
+    const val tripleHorizontalPadding = 3
     const val titleSp = 23f
     const val bodySp = 14f
     const val inputSp = 16f
@@ -69,7 +72,7 @@ object BicycleDesign {
     const val presetTileHeight = 132
     const val presetTileGap = 2
     const val modeGlowWidth = 24
-    const val modeGlowAlpha = 140
+    const val modeGlowAlpha = 175
     const val themeColumns = 4
     const val themeTileMinimumWidth = 68
     const val themeTileHeight = 136

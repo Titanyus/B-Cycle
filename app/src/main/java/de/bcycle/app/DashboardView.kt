@@ -156,6 +156,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private fun line() = View(context).apply { setBackgroundColor(Color.rgb(44, 44, 44)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 
     private inner class Tile(index: Int) {
+        private val threeColumns = template.rows.any { it.size == 3 && index in it }
         private val swipe = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
             override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, velocityX: Float, velocityY: Float): Boolean {
                 val first = e1 ?: return false
@@ -169,7 +170,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         })
         val container = LinearLayout(context).apply {
             orientation = VERTICAL
-            setPadding(dp(10), dp(8), dp(10), dp(4))
+            val horizontal = if (threeColumns) BicycleDesign.tripleHorizontalPadding else 10
+            setPadding(dp(horizontal), dp(8), dp(horizontal), dp(4))
             isClickable = true; isFocusable = true
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
             background = StateListDrawable().apply {
@@ -185,10 +187,17 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
             textSize = BicycleDesign.dashboardCaptionSp; setTextColor(BicycleDesign.dashboardUnitColor)
         }
-        private val value = text(10, 240, numbers, 1)
-        private val unit = text(5, 16, captions, 1)
+        private val value = text(10, 240, numbers, 1).apply {
+            if (threeColumns) {
+                setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE)
+                textSize = BicycleDesign.tripleValueSp; ellipsize = android.text.TextUtils.TruncateAt.END
+            }
+        }
+        private val unit = text(5, 16, captions, 1).apply {
+            if (threeColumns) { setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE); textSize = BicycleDesign.tripleUnitSp }
+        }
 
-        private val row = ValueRow(value, unit)
+        private val row = ValueRow(value, unit, threeColumns)
 
         init {
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
@@ -209,9 +218,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                     }
                 } else short
             }
-            row.direction = trends.direction(field.id, field.averageNumber(data, gps, pulse), android.os.SystemClock.elapsedRealtime())
-            setText(value, next.text)
-            setText(unit, next.unit)
+            row.direction = trends.indicator(field, data, gps, pulse, android.os.SystemClock.elapsedRealtime())
+            val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }
+                ?.let { String.format(Locale.GERMANY, "%.1f", it) } else null
+            setText(value, compactDistance ?: next.text)
+            setText(unit, if (threeColumns && next.unit == "h:mm:ss") context.getString(R.string.analysis_hours) else next.unit)
             unit.visibility = if (next.unit.isEmpty()) GONE else VISIBLE
             val font = if (field.numeric) numbers else captions
             if (value.typeface !== font) value.typeface = font
@@ -223,25 +234,37 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     }
 
     /** Keep the number centred in its tile, with the unit following its actual text edge. */
-    private inner class ValueRow(private val value: TextView, private val unit: TextView) : ViewGroup(context) {
+    private inner class ValueRow(private val value: TextView, private val unit: TextView, private val threeColumns: Boolean) : ViewGroup(context) {
         var direction = 0
-            set(next) { if (field != next) { field = next; invalidate() } }
+            set(next) { if (field != next) {
+                val spacingChanged = (field == 0) != (next == 0)
+                field = next; if (threeColumns && spacingChanged) requestLayout(); invalidate()
+            } }
         private val chevronPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
             style = android.graphics.Paint.Style.STROKE; strokeCap = android.graphics.Paint.Cap.ROUND
         }
+        private val chevronSpace get() = kotlin.math.ceil(minOf(dp(14).toFloat(), value.textSize * .28f) + dp(4)).toInt()
         init { addView(value); addView(unit) }
         override fun dispatchDraw(canvas: android.graphics.Canvas) {
             super.dispatchDraw(canvas)
             if (direction != 0) {
                 val size = minOf(dp(14).toFloat(), value.textSize * .28f)
                 val textWidth = value.layout?.getLineWidth(0) ?: 0f
-                drawChevron(canvas, chevronPaint, (width / 2f - textWidth / 2f - dp(6) - size).coerceAtLeast(0f),
+                val x = if (threeColumns) value.left - dp(4) - size else width / 2f - textWidth / 2f - dp(6) - size
+                drawChevron(canvas, chevronPaint, x.coerceAtLeast(0f),
                     height / 2f, size, direction, value.currentTextColor)
             }
         }
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
             val width = MeasureSpec.getSize(widthMeasureSpec)
             val height = MeasureSpec.getSize(heightMeasureSpec)
+            if (threeColumns) {
+                if (unit.visibility != GONE) unit.measure(MeasureSpec.makeMeasureSpec(width / 2, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
+                val reserve = chevronSpace + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(4)
+                value.measure(MeasureSpec.makeMeasureSpec((width - reserve).coerceAtLeast(1), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
+                setMeasuredDimension(width, height)
+                return
+            }
             if (unit.visibility != GONE) unit.measure(
                 MeasureSpec.makeMeasureSpec(width / 4, MeasureSpec.AT_MOST),
                 MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
@@ -251,6 +274,17 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             setMeasuredDimension(width, height)
         }
         override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+            if (threeColumns) {
+                val reserve = if (direction == 0) 0 else chevronSpace
+                val unitWidth = if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(4)
+                val start = (width - reserve - value.measuredWidth - unitWidth) / 2
+                value.layout(start + reserve, 0, start + reserve + value.measuredWidth, value.measuredHeight)
+                if (unit.visibility != GONE) {
+                    val y = (height - unit.measuredHeight).coerceAtLeast(0) / 2
+                    unit.layout(value.right + dp(4), y, value.right + dp(4) + unit.measuredWidth, y + unit.measuredHeight)
+                }
+                return
+            }
             val start = (width - value.measuredWidth) / 2
             value.layout(start, 0, start + value.measuredWidth, value.measuredHeight)
             if (unit.visibility != GONE) {

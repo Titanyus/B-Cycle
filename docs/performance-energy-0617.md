@@ -41,10 +41,10 @@ Zwischen zwei Beobachtungen wird der letzte gültige Wert stückweise konstant v
 - 0 W ist ein gültiger Messwert, einschließlich echter Tretpausen.
 - Fehlend, NaN, Infinity, negative Leistung, zukünftige Zeitstempel und ungültige Werte liefern keinen Null-Ersatz.
 - Leistung gültig 0…65.535 W (Protokollbereich), Puls 1…255 bpm, Geschwindigkeit 0…35 m/s.
-- Exportierbare Arbeit/Ratio: mindestens 95 % zeitliche Leistungsabdeckung und keine unbekannte Leistungslücke länger als fünf Sekunden.
+- Exportierbare Arbeit/Ratio: mindestens 95 % zeitliche Leistungsabdeckung. Unbekannte Abschnitte werden nicht ergänzt; eine einzelne längere Lücke sperrt eine ansonsten ausreichend belegte Fahrt nicht pauschal.
 - Arbeit ist auch dann ausschließlich das Integral der bekannten Abschnitte. Bis zu 5 % fehlende Zeit wird **nicht extrapoliert**. Der Wert kann daher den vollständigen Fahrtwert unterschätzen. Qualitätsfelder machen dies nachvollziehbar.
 - NP zusätzlich: mindestens ein vollständiges 30-s-Fenster und mindestens 95 % nutzbare vollständige Fenster im aktiven Auswertungszeitraum. Eine Lücke verwirft alle über sie laufenden Fenster.
-- EF erfordert konservativ vollständige zeitgleiche Leistungs- und Pulsabdeckung. Fehlender Puls macht EF unverfügbar, nicht aber gültige Leistungskennzahlen.
+- EF erfordert vollständige Pulsabdeckung aller tatsächlich ausgewerteten Leistungsabschnitte. Fehlender Puls macht EF unverfügbar, nicht aber gültige Leistungskennzahlen.
 - Sehr kurze Fahrten können Arbeit/Kalorien liefern, aber vor 30 vollständigen Sekunden keine NP/EF.
 
 Abdeckung ist **keine Genauigkeit**. Es gibt keine erfundenen Sensor-Genauigkeitsprozente. `knownMechanicalWorkKj` stellt intern auch bei zu schlechter Abdeckung nur die bekannte Teil-Arbeit bereit; diese wird dann nicht als gültige Gesamt-Arbeit exportiert.
@@ -63,7 +63,7 @@ Die App hat weiterhin START/STOP, keine neue Pausenbedienung. Stillstand oder 0 
 
 **Speed-to-Power Ratio:** zeitgewichtete mittlere Geschwindigkeit in km/h / zeitgewichtete mittlere Fahrerleistung in W über exakt dieselben gültigen gemeinsamen Abschnitte. Geschwindigkeit aus der bei START gewählten FIT-Hauptquelle (GPS oder Rad), nicht aus formatierten Dashboardwerten. Die Distanz-Auswahl für FIT bleibt unabhängig erhalten. Gemeinsame Abdeckung mindestens 95 %, keine Division durch 0. 36 km/h und 200 W → 0,18 km/h/W. Dieser Vergleichsindikator ist bei E-Bikes von Unterstützung, Wind und Gelände abhängig; kein physikalischer Wirkungsgrad.
 
-**EF:** zentrale NP / zeitgewichteter Puls über denselben vollständigen aktiven Zeitraum. 200 W und 150 bpm → 1,333… W/bpm. Keine Verwendung des bestehenden nach Nachrichtenanzahl gebildeten Live-Pulsmittels. Trainingsvergleich unter ähnlichen Bedingungen, keine direkte Fitnessmessung.
+**EF:** zentrale NP / zeitgewichteter Puls über dieselben gültigen Leistungsintervalle. 200 W und 150 bpm → 1,333… W/bpm. Keine Verwendung des bestehenden nach Nachrichtenanzahl gebildeten Live-Pulsmittels. Trainingsvergleich unter ähnlichen Bedingungen, keine direkte Fitnessmessung.
 
 Bestehende Puls-/Kadenzmittel bleiben im Rahmen dieser Aufgabe funktional unverändert. Eine spätere Umstellung dieser allgemeinen Mittel auf Zeitgewichtung ist separat sinnvoll; sie beeinflusst die fünf neuen zeitgewichteten Kennzahlen nicht.
 
@@ -137,7 +137,7 @@ Kalorien, Speed-to-Power und EF werden aus dem gemeinsamen Modell berechnet.
 `POWER_ZERO_STATE_TIME` in Lap/Session (Developer Field, Sekunden) kennzeichnet
 die Zeit, in der eine explizite Null durch frische Bike-Telemetrie fortgeführt wurde.
 Diese Zeit ist in der berechneten Leistungsabdeckung enthalten. Die Grenzen von
-95 % Abdeckung und fünf Sekunden echter Lücke bleiben bestehen. EF erfordert Puls.
+95 % Leistungsabdeckung und für NP zusätzlich 95 % vollständige 30-Sekunden-Fenster bleiben erforderlich. Die fünf Sekunden begrenzen die Fortschreibung einzelner Messungen; sie sind kein pauschales Ausschlusskriterium für eine ganze lange Fahrt. EF erfordert Puls über alle ausgewerteten Leistungsabschnitte.
 
 Das neue, am Ende des Enums ergänzte BIKE_ACTIVITY-Ereignis hält Rad-Telemetrie
 auch bei ausgewählter GPS-Hauptquelle separat fest. Journal-Version 5 bleibt lesbar;
@@ -148,3 +148,41 @@ Bestehende exportierte FIT-Dateien werden nicht nachträglich verändert.
 Tests vergleichen zwei Minuten schweigende Nullzustände mit laufend empfangenen
 Nullwerten, prüfen GPS-only, Geschwindigkeitsausfall und Nichtnull-Veraltung sowie
 FIT-Metadaten, fehlende Rohwerte und den offiziellen Garmin Activity Validator.
+
+## FIT-Neuberechnung und lange Rollphasen (Modell 3)
+
+Die Detailansicht berechnet Kennzahlen bei fehlendem Session-Export aus den Rohdaten.
+FIT-Checkboxen steuern die Speicherung der abgeleiteten Werte, nicht ihre Berechenbarkeit in der Detailansicht.
+
+Beim Lesen eigener FIT-Dateien bestätigt ausschließlich das nach BICYCLE-App-UUID,
+Feldname und Einheit geprüfte Bike-`SPEED`-Developer-Feld die Bike-Telemetrie. Es wird
+als BIKE_ACTIVITY an die vorhandene Performance Engine übergeben. Ein fehlender
+Power-Record hebt einen vorher ausdrücklich gemeldeten Nullzustand nicht sofort auf.
+Die Engine hält ihn nur während frischer Bike-Telemetrie; nach abgerissener Kontinuität
+kann ein späteres Geschwindigkeitssignal keinen alten Nullzustand wiederbeleben.
+Fehlende Leistung nach Nichtnullwerten, GPS allein, Timerpausen und echte Verbindungs-
+beziehungsweise Aufzeichnungslücken bleiben unbekannt oder unterbrechen das Fenster.
+
+Diese Interpretation ändert keine FIT-Records, keine Dateien und keine Rohkurven.
+Geschwindigkeit und echte Nullwerte werden weder in UI-Kurven noch im Journal erfunden.
+Die globale Gültigkeit nutzt die zeitliche Leistungsabdeckung (95 %) und für NP die
+Abdeckung vollständiger 30-s-Fenster (95 %). Dadurch entwertet ein kurzer Akku-Ausfall
+nicht automatisch eine sonst gut belegte lange Fahrt. Arbeit bleibt ausschließlich
+beobachtete Arbeit ohne Hochrechnung. EF verwendet vollständig gepaarte Pulsdaten
+über die gültigen Leistungsintervalle. FTP bleibt an exakt 20 Minuten unterbrechungs-
+freien, auswertbaren Leistungsverlauf gebunden; unbekannte Abschnitte werden nicht verkettet.
+
+Regressionen prüfen lange stille Nullphasen, eine zweistündige Fahrt mit kurzer echter
+Lücke, unabhängige 30-s-Referenzrechnung, EF-Paarung, GPS ohne Bike-Beleg, fehlende
+Nichtnullleistung, FIT-Roundtrip und unveränderte Rohdateien. Zusätzlich wurde eine
+hochgeladene reale FIT-Datei lokal mit dem produktiven Detail-Leser neu ausgewertet.
+Die private Datei und ihre Messwerte werden nicht im Repository gespeichert.
+
+## Abschlussprüfung dieser Änderungen
+
+Vollständige Suite: **307 Tests bestanden**, keine Fehler, Fehlschläge oder übersprungenen
+Tests; Release-Build und Release-Lint-Vital erfolgreich in **2m 6s**. Nach der abschließenden
+kleinen Dreier-Kachel-Dauer-/Einheitenanpassung wurden **43 gezielte UI-/Trend-/Glow-Tests**
+und der Release-Build erneut erfolgreich ausgeführt (**57s**). Keine erneute vollständige
+Suite nach dieser reinen Darstellungskorrektur. Bestehende `onBackPressed()`-Warnung bleibt;
+kein zusätzlicher vollständiger Lint-Lauf oder Gerätetest. Keine neue signierte APK veröffentlicht.

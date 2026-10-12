@@ -27,9 +27,13 @@ Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 - Dashboard 9 mit acht unabhängig belegbaren Feldern: **2 / 3 / 3**.
 - Passendes Thumbnail vervollständigt die drei Reihen mit je drei Vorlagen.
 - Bisherige Feldbelegungen und ältere Sicherungen mit sieben Feldern bleiben kompatibel.
-- Schriftgröße und Grauton entsprechen unverändert den übrigen Dashboards.
+- Bezeichnungen behalten die gemeinsame Größe und das Einheitengrau.
+- Dreier-Kacheln mit festen 32-sp-Zahlen, gleichmäßigem Raster und kompakter Einheitenanordnung.
+- Live-Vergleichspfeile für Tempo, Fahrerleistung, Kadenz und Puls; Watt-Durchschnittstrend auch zwischen ganzzahligen Watt-Schritten.
+- Alle Glow-Effekte 25 % breiter in der Mitte und 25 % stärker.
+- FIT-Detail-Neuberechnung berücksichtigt bestätigte lange Rollphasen und verkraftet kurze echte Datenlücken bei ausreichender Abdeckung.
 
-Diese Ergänzung ist noch nicht in der oben verlinkten APK 0.7.7 enthalten.
+Diese Ergänzungen sind noch nicht in der oben verlinkten APK 0.7.7 enthalten.
 Details: [Dashboard-Vorlagen](docs/dashboard-presets.md).
 
 ## Neu in 0.7.7

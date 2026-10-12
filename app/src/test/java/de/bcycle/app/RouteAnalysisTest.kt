@@ -56,6 +56,38 @@ class RouteAnalysisTest {
             assertNotNull(analysis.route)
         } finally { root.deleteRecursively() }
     }
+    @Test fun fitRecalculationRetainsConfirmedSilentZeroButGpsOnlyOrMissingPositivePowerRemainUnknown() {
+        val root=Files.createTempDirectory("analysis-coasting").toFile()
+        try {
+            fun fixture(name:String,bike:Boolean,zero:Boolean):java.io.File {
+                val fields=setOf("RIDER_POWER","HEART_RATE",if(bike) "SPEED" else "GPS_SPEED")
+                val config=RecordingConfig(fields,speedSource=if(bike) "SPEED" else "GPS_SPEED")
+                val journal=java.io.File(root,"$name.ride")
+                RideJournal(journal,start,config).use { writer->
+                    for(second in 0..300) {
+                        val at=second*1000L
+                        val values=mutableMapOf((if(bike) "SPEED" else "GPS_SPEED") to 10.0,"HEART_RATE" to 150.0)
+                        if(second<60 || second>=240) values["RIDER_POWER"]=200.0
+                        else if(second==60 && zero) values["RIDER_POWER"]=0.0
+                        writer.append(RideSample(start+at,at,null,null,values))
+                    }
+                }
+                return java.io.File(root,"$name.fit").also { FitWriter.encode(journal,it) }
+            }
+            val file=fixture("bike",true,true);val before=file.readBytes()
+            val good=RouteAnalysisRead.read(file,entry("FIT"))
+            assertNotNull(good.metrics[AnalysisMetric.NP]);assertNotNull(good.metrics[AnalysisMetric.WORK])
+            assertNotNull(good.metrics[AnalysisMetric.EF]);assertNotNull(good.metrics[AnalysisMetric.CALORIES])
+            assertEquals(24.0,good.metrics.getValue(AnalysisMetric.WORK),.001)
+            val raw=good.series.single { it.chart==AnalysisChart.POWER }.points
+            assertTrue(raw.any { it.seconds != null && it.seconds in 61.0..239.0 && it.value==null })
+            assertFalse(raw.any { it.seconds != null && it.seconds in 61.0..239.0 && it.value==0.0 })
+            assertArrayEquals(before,file.readBytes())
+            assertNull(RouteAnalysisRead.read(fixture("gps",false,true),entry("FIT")).metrics[AnalysisMetric.NP])
+            assertNull(RouteAnalysisRead.read(fixture("unknown",true,false),entry("FIT")).metrics[AnalysisMetric.NP])
+        } finally { root.deleteRecursively() }
+    }
+
     @Test fun gpxElevationWithoutTimeHasSharedDistanceAndNoInventedSensorData() {
         val file = Files.createTempFile("analysis", ".gpx").toFile()
         try {

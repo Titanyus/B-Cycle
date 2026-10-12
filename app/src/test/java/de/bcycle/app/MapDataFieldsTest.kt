@@ -65,6 +65,20 @@ class MapDataFieldsTest {
         view.show(LiveData(otherValues = mapOf(LiveMetric.BATTERY to 0L)), GpsValues(), null, PulseValues())
         assertEquals("0", text[2].text.toString()) // Valid zero is not an empty field.
     }
+    @Test fun liveMapValueShowsChevronWithoutAnyAverageFieldAndHidesItAtEquality() {
+        val context=RuntimeEnvironment.getApplication();val prefs=context.getSharedPreferences("map_trend_test",0)
+        prefs.edit().clear().putString(MapFieldSelection.key(0),"HEART_RATE").commit()
+        val view=MapDataFieldsView(context);view.reload(prefs)
+        view.show(LiveData(),GpsValues(),null,PulseValues(bpm=145,average=130.0))
+        val text=descendants(view).filterIsInstance<TextView>().first()
+        val span=text.text as android.text.Spanned
+        assertEquals(1,span.getSpans(0,span.length,AverageChevronSpan::class.java).size)
+        view.show(LiveData(),GpsValues(),null,PulseValues(bpm=130,average=130.0))
+        assertEquals("130",text.text.toString())
+        view.show(LiveData(),GpsValues(),null,PulseValues(bpm=145))
+        assertEquals("145",text.text.toString())
+    }
+
     @Test fun managerSelectsClearsAndPersistsMapFieldsWithoutChangingDashboardAndReturnsToParent() {
         val app = RuntimeEnvironment.getApplication()
         val preferences = app.getSharedPreferences("bike", 0)

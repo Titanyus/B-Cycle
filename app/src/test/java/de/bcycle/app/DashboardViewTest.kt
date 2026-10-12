@@ -142,7 +142,8 @@ class DashboardViewTest {
                     assertEquals(small.paddingBottom, tile.paddingBottom)
                     val value = (tile.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
                     if (!isBig) {
-                        if (tile.width < small.width) assertTrue("Narrow three-column values fit their available width", value.textSize <= smallValue.textSize)
+                        if (template.rows.any { it.size == 3 } && tile.paddingLeft == BicycleDesign.dp(context, BicycleDesign.tripleHorizontalPadding))
+                            assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, BicycleDesign.tripleValueSp, context.resources.displayMetrics), value.textSize, .01f)
                         else assertEquals("${template.name}: font at $width", smallValue.textSize, value.textSize, 1f)
                     }
                     if (width == 1080 && template.largeTop && isBig) {
@@ -237,6 +238,47 @@ class DashboardViewTest {
         descendants(picker).single { it.tag == "preset_page_2" }.performClick()
         tiles.single { it.tag == "preset_EIGHT" }.performClick()
         assertEquals(DashboardTemplate.EIGHT, picker.selection[2])
+    }
+
+    @Test fun threeColumnTilesHaveEqualWidthsFixedNumbersAndFitRequiredDistancesOnNarrowPhones() {
+        val context=RuntimeEnvironment.getApplication()
+        val pixels=android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.tripleValueSp,context.resources.displayMetrics)
+        for(template in DashboardTemplate.entries.filter { it.rows.any { row->row.size==3 } }) {
+            val view=DashboardView(context) {};view.setTemplate(template)
+            for(width in listOf(960,1080,1440)) {
+                for(distance in listOf(99990.0,999900.0)) {
+                    view.show(DashboardLayout.decode(List(DashboardLayout.FIELD_COUNT) { "GPS_DISTANCE" }.joinToString("|")),LiveData(),GpsValues(distanceM=distance))
+                    measure(view,width,view.heightForViewport(width,2100))
+                    for(row in (0 until view.childCount).map { view.getChildAt(it) }.filterIsInstance<android.widget.LinearLayout>()) {
+                        val tiles=descendants(row).filter { it.isClickable }.map { it as ViewGroup }
+                        if(tiles.size!=3) continue
+                        assertTrue("${template.name}: equal three-column widths",tiles.maxOf { it.width }-tiles.minOf { it.width }<=1)
+                        tiles.forEach { tile->
+                            val values=tile.getChildAt(1) as ViewGroup;val number=values.getChildAt(0) as TextView;val unit=values.getChildAt(1) as TextView
+                            assertEquals(pixels,number.textSize,.01f);assertEquals(TextView.AUTO_SIZE_TEXT_TYPE_NONE,number.autoSizeTextType)
+                            assertEquals(if(distance<100000) "99,99" else "999,9",number.text.toString())
+                            assertEquals(0,number.layout.getEllipsisCount(0));assertTrue(number.layout.getLineWidth(0)<=number.width+1)
+                            assertTrue(number.left>=0 && unit.right<=values.width)
+                            assertEquals(values.height/2.0,(unit.top+unit.bottom)/2.0,1.0)
+                        }
+                    }
+                }
+                view.show(DashboardLayout.decode(List(DashboardLayout.FIELD_COUNT) { "GPS_ELAPSED_TIME" }.joinToString("|")),LiveData(),GpsValues(elapsedMs=7830000))
+                measure(view,width,view.heightForViewport(width,2100))
+                for(tile in descendants(view).filter { it.isClickable }.map { it as ViewGroup }.filter { it.paddingLeft==BicycleDesign.dp(context,BicycleDesign.tripleHorizontalPadding) }) {
+                    val row=tile.getChildAt(1) as ViewGroup;val number=row.getChildAt(0) as TextView;val unit=row.getChildAt(1) as TextView
+                    assertEquals("2:10:30",number.text.toString());assertEquals("h",unit.text.toString())
+                    assertEquals(pixels,number.textSize,.01f);assertEquals(0,number.layout.getEllipsisCount(0));assertTrue(unit.right<=row.width)
+                }
+                view.show(DashboardLayout.decode(List(DashboardLayout.FIELD_COUNT) { "GPS_SPEED" }.joinToString("|")),LiveData(),GpsValues(speedKmh=999.9,movingAverageKmh=30.0))
+                measure(view,width,view.heightForViewport(width,2100))
+                for(tile in descendants(view).filter { it.isClickable }.map { it as ViewGroup }.filter { it.paddingLeft==BicycleDesign.dp(context,BicycleDesign.tripleHorizontalPadding) }) {
+                    val row=tile.getChildAt(1) as ViewGroup;val number=row.getChildAt(0) as TextView;val unit=row.getChildAt(1) as TextView
+                    assertEquals(pixels,number.textSize,.01f);assertEquals(0,number.layout.getEllipsisCount(0))
+                    assertTrue(number.left>=BicycleDesign.dp(context,12));assertTrue(unit.right<=row.width)
+                }
+            }
+        }
     }
 
     @Test fun bikeSelectionLivesInSensorManagerAlongsidePulseSelection() {

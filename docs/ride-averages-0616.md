@@ -26,3 +26,22 @@ der Schnitt kontinuierlich stieg. Jetzt wird nur numerisches Rundungsrauschen
 (Änderung bis 0,000001) ignoriert. Ein unveränderter Schnitt hat keinen Pfeil.
 Nach mehr als 15 Sekunden ohne Anzeige beginnt das Beobachtungsfenster neu;
 bei anhaltendem Trend erscheint das Chevron nach acht Sekunden wieder.
+
+## Live-Vergleichspfeile und Watt-Trend
+
+Die sechs Durchschnittsfelder behalten ihren Indikator. Zusätzlich vergleichen SPEED,
+GPS_SPEED, RIDER_POWER, CADENCE und HEART_RATE ihren aktuellen Wert mit dem zugehörigen
+Durchschnitt. GPS_SPEED verwendet den Bewegungsschnitt; GPS hat damit einen Live-Wert
+für zwei unterschiedliche Durchschnittsfelder. Die Vergleichslogik ist zentral in
+`AverageTrends.indicator` und gilt auch für die drei Kartenfelder. Ein Durchschnitt
+muss nicht als eigene Kachel sichtbar sein. Gleiche Werte und fehlende Vergleichsdaten
+zeigen keinen Pfeil. Motorleistung und andere Kennzahlen erhalten keine neuen Indikatoren.
+
+Bosch liefert Ø Fahrerleistung in ganzen Watt. Die bisherige Änderung dieses gerundeten
+Werts über zehn Sekunden ließ den Pfeil auf längeren Fahrten meist verschwinden. Deshalb
+vergleicht dieser Durchschnittsindikator jetzt die zeitgewichtete Fahrerleistung der
+jüngsten rund zehn Sekunden mit dem Bosch-Durchschnitt. Echte 0 W sind enthalten; acht
+Sekunden Anlauf und Zurücksetzen bei fehlenden Daten beziehungsweise langen UI-Unterbrechungen
+bleiben erhalten. Andere Durchschnittsfelder behalten ihren geprüften Verlaufstrend.
+Maximal zwölf Beobachtungen, höchstens eine pro Sekunde; kein zusätzlicher Timer.
+Sensorwerte, Aufzeichnung und dargestellter Bosch-Durchschnitt bleiben unverändert.
