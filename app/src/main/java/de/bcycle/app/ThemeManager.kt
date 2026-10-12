@@ -98,14 +98,15 @@ class ThemeManager(private val preferences: SharedPreferences) {
         fun hex(color: Int) = "#%06X".format(java.util.Locale.ROOT, color and 0xffffff)
         for (theme in customs) rows.put(JSONObject().put("id", theme.id).put("name", theme.name).put("kind", "custom")
             .put("primary", hex(theme.tokens.primary)).put("secondary", hex(theme.tokens.secondary))
-            .put("tertiary", hex(theme.tokens.tertiary)).put("foreground", hex(theme.tokens.foreground)))
-        preferences.edit().putString(customsKey, JSONObject().put("version", 1).put("themes", rows).toString())
+            .put("tertiary", hex(theme.tokens.tertiary)).put("foreground", hex(theme.tokens.foreground))
+            .put("accent", hex(theme.tokens.accent)))
+        preferences.edit().putString(customsKey, JSONObject().put("version", 2).put("themes", rows).toString())
             .putString(activeKey, current.id).apply()
     }
     private fun loadCustoms(): List<CustomTheme> = runCatching {
         val raw = preferences.getString(customsKey, null) ?: return emptyList()
         require(raw.length <= 32_768)
-        val root = JSONObject(raw); require(root.opt("version") is Int && root.getInt("version") == 1)
+        val root = JSONObject(raw); require(root.opt("version") is Int && root.getInt("version") in 1..2)
         val rows = root.getJSONArray("themes"); require(rows.length() <= maximumCustomThemes)
         fun color(row: JSONObject, key: String): Int {
             require(row.opt(key) is String)
@@ -116,7 +117,8 @@ class ThemeManager(private val preferences: SharedPreferences) {
             val row = rows.getJSONObject(index)
             require(row.opt("kind") == "custom" && row.opt("id") is String && row.opt("name") is String)
             CustomTheme(row.getString("id"), row.getString("name"),
-                ThemeTokens(color(row, "primary"), color(row, "secondary"), color(row, "tertiary"), color(row, "foreground")))
+                ThemeTokens(color(row, "primary"), color(row, "secondary"), color(row, "tertiary"), color(row, "foreground"),
+                    if (row.has("accent")) color(row, "accent") else color(row, "foreground")))
                 .takeIf { ThemeValidator.validate(it).valid }
         }.getOrNull() }.groupBy { it.id }.values.filter { it.size == 1 }.map { it.single() }
     }.getOrDefault(emptyList())

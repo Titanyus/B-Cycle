@@ -44,7 +44,8 @@ class SettingsDesignMigrationTest {
         decor.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
         decor.layout(0, 0, width, height)
     }
-    private fun geometry(dialog: AlertDialog) = views(dialog).map {
+    // Native AlertController contains hidden spacer views whose stale rectangles are not UI geometry.
+    private fun geometry(dialog: AlertDialog) = views(dialog).filter { it.isShown }.map {
         listOf(it.left, it.top, it.width, it.height, it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom)
     }
     private fun snapshot(dialog: AlertDialog, name: String) {

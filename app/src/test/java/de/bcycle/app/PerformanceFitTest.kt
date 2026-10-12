@@ -78,6 +78,39 @@ class PerformanceFitTest {
         val example = File("build/reports/fit/performance-garmin-validated.fit").apply { parentFile!!.mkdirs() }
         file.copyTo(example, true)
     }
+    @Test fun longCoastingExportsSummariesWithoutReplacingMissingRawRecords() {
+        val journal = folder.newFile("coasting.ride")
+        val selection = RecordingConfig().fields + RecordField.summaries.map { it.id }
+        RideJournal(journal, start, RecordingConfig(selection)).use { writer ->
+            for (second in 0..180) {
+                val time = second * 1000L
+                val freshPower = second < 30 || second >= 150 || second == 30
+                val watts = if (second == 30) 0.0 else 200.0
+                val events = mutableListOf(
+                    PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY, time, 10.0, source = "SPEED"),
+                    PerformanceEvent(PerformanceChannel.SPEED, time, 10.0, source = "SPEED"),
+                    PerformanceEvent(PerformanceChannel.HEART_RATE, time, 150.0))
+                if (freshPower) events += PerformanceEvent(PerformanceChannel.POWER, time, watts, source = PowerSource.BOSCH_RIDER.name)
+                val raw = mutableMapOf("SPEED" to 10.0, "BIKE_DISTANCE" to second * 10.0, "HEART_RATE" to 150.0)
+                if (freshPower) raw["RIDER_POWER"] = watts
+                writer.append(RideSample(start + time, time, values = raw, performanceEvents = events))
+            }
+        }
+        val file = folder.newFile("coasting.fit"); FitWriter.encode(journal, file)
+        val plugin = ActivityFileValidationPlugin()
+        val messages = file.inputStream().use { FitDecoder().decode(it, plugin) }
+        assertTrue(plugin.results.none { it.status == ActivityFileValidationResult.Status.FAILED })
+        assertNull(messages.recordMesgs[60].power)
+        assertEquals(0, messages.recordMesgs[30].power.toInt())
+        assertEquals(200, messages.recordMesgs[150].power.toInt())
+        val session = messages.sessionMesgs.single()
+        assertNotNull(session.normalizedPower); assertEquals(12000L, session.totalWork)
+        assertNotNull(session.totalCalories)
+        for (name in listOf("SPEED_POWER_RATIO", "EFFICIENCY_FACTOR"))
+            assertNotNull(session.developerFields.single { it.name == name }.getValue(0))
+        val continued = session.developerFields.single { it.name == "POWER_ZERO_STATE_TIME" }
+        assertEquals(115.0, (continued.getValue(0) as Number).toDouble(), .001)
+    }
     @Test fun efUsesInternalNpEvenWhenNpAndPowerRecordCheckboxesAreOff() {
         val messages = create(setOf("EFFICIENCY_FACTOR")).second
         assertNull(messages.sessionMesgs.single().normalizedPower)

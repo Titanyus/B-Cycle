@@ -28,7 +28,7 @@ internal object BoschModeColors {
     }
 }
 
-/** Cached shaders, additive light, and a bounded 1.5 s fade. No animation runs while idle. */
+/** Cached shaders, additive light, 1.5 s mode fades and a visible-only low-battery breath. */
 internal class BoschModeGlow(private val edgeWidth: Float,
                             private val clock: () -> Long = { android.os.SystemClock.uptimeMillis() }) : Drawable() {
     internal var modeColor: Int? = null; private set
@@ -39,6 +39,11 @@ internal class BoschModeGlow(private val edgeWidth: Float,
     private var fromColor = Color.TRANSPARENT
     private var targetColor = Color.TRANSPARENT
     private var started = -1L
+    internal var warningColor: Int? = null; private set
+    internal var warningLeft: Shader? = null; private set
+    private var warningRight: Shader? = null
+    private var breathingStarted = 0L
+    private val matrix = Matrix()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val frame = Runnable { invalidateSelf() }
     private val width get() = (edgeWidth * 1.2f).coerceAtMost(bounds.width() / 2f)
@@ -52,7 +57,17 @@ internal class BoschModeGlow(private val edgeWidth: Float,
         fun channel(f: (Int) -> Int) = ((f(fromColor) * a + f(targetColor) * b) / alpha).toInt()
         return Color.argb(alpha.toInt(), channel(Color::red), channel(Color::green), channel(Color::blue))
     }
-    fun update(color: Int?) {
+    fun update(color: Int?, batteryPercent: Long? = null) {
+        val warning = when (batteryPercent) {
+            in 0L..10L -> 0xffff3030.toInt()
+            in 11L..20L -> 0xffffb000.toInt()
+            else -> null
+        }
+        if (warningColor != warning) {
+            warningColor = warning; breathingStarted = clock()
+            edges(warning ?: Color.TRANSPARENT).let { warningLeft = it.first; warningRight = it.second }
+            invalidateSelf()
+        }
         if (modeColor == color) return
         fromColor = currentColor(); targetColor = color ?: Color.TRANSPARENT
         modeColor = color; started = clock(); rebuild(); invalidateSelf()
@@ -71,33 +86,48 @@ internal class BoschModeGlow(private val edgeWidth: Float,
     private fun rebuild() {
         edges(fromColor).let { fromLeft = it.first; fromRight = it.second }
         edges(targetColor).let { leftShader = it.first; rightShader = it.second }
+        edges(warningColor ?: Color.TRANSPARENT).let { warningLeft = it.first; warningRight = it.second }
     }
     override fun draw(canvas: Canvas) {
         paint.shader = null; paint.blendMode = null; paint.alpha = 255; paint.color = Color.BLACK
         canvas.drawRect(bounds, paint)
         val t = progress()
+        // Cosine easing has zero velocity at both ends: 2 s in, 2 s out.
+        val breath = if (warningColor == null) 0f else
+            ((1.0 - kotlin.math.cos(((clock() - breathingStarted).coerceAtLeast(0) % 4000) * kotlin.math.PI / 2000)) / 2).toFloat()
+        val animatedWidth = (width * (1 + .5f * breath)).coerceAtMost(bounds.width() / 2f)
         val save = canvas.save(); canvas.clipRect(bounds)
         paint.color = Color.WHITE; paint.blendMode = android.graphics.BlendMode.PLUS
         fun layer(left: Shader?, right: Shader?, fraction: Float) {
             if (left == null || fraction <= 0) return
             paint.alpha = (255 * fraction).toInt()
+            fun position(shader: Shader?, x: Float) {
+                matrix.reset(); matrix.setScale(animatedWidth, bounds.height() / 2f)
+                matrix.postTranslate(x, bounds.exactCenterY()); shader?.setLocalMatrix(matrix)
+            }
+            position(left, bounds.left.toFloat()); position(right, bounds.right.toFloat())
             // Three light contributions = three times the former intensity, capped by the display.
             repeat(3) {
                 paint.shader = left
-                canvas.drawRect(bounds.left.toFloat(), bounds.top.toFloat(), bounds.left + width, bounds.bottom.toFloat(), paint)
+                canvas.drawRect(bounds.left.toFloat(), bounds.top.toFloat(), bounds.left + animatedWidth, bounds.bottom.toFloat(), paint)
                 paint.shader = right
-                canvas.drawRect(bounds.right - width, bounds.top.toFloat(), bounds.right.toFloat(), bounds.bottom.toFloat(), paint)
+                canvas.drawRect(bounds.right - animatedWidth, bounds.top.toFloat(), bounds.right.toFloat(), bounds.bottom.toFloat(), paint)
             }
         }
-        layer(fromLeft, fromRight, 1 - t); layer(leftShader, rightShader, t)
+        layer(fromLeft, fromRight, (1 - t) * (1 - breath))
+        layer(leftShader, rightShader, t * (1 - breath))
+        layer(warningLeft, warningRight, breath)
         paint.shader = null; paint.blendMode = null; paint.alpha = 255; canvas.restoreToCount(save)
         unscheduleSelf(frame)
-        if (t < 1 && isVisible) scheduleSelf(frame, android.os.SystemClock.uptimeMillis() + 16)
-        else { fromLeft = null; fromRight = null }
+        if (t >= 1) { fromLeft = null; fromRight = null }
+        if (isVisible && (t < 1 || warningColor != null))
+            scheduleSelf(frame, android.os.SystemClock.uptimeMillis() + if (t < 1) 16 else 33)
     }
     override fun setVisible(visible: Boolean, restart: Boolean): Boolean {
         if (!visible) unscheduleSelf(frame)
-        return super.setVisible(visible, restart)
+        val changed = super.setVisible(visible, restart)
+        if (visible && changed) invalidateSelf()
+        return changed
     }
     override fun setAlpha(alpha: Int) { /* Functional status controls its own intensity. */ }
     override fun setColorFilter(colorFilter: ColorFilter?) { /* Never tint Bosch colors with the theme. */ }

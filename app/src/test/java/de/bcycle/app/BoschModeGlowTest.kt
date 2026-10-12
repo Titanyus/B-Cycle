@@ -77,6 +77,68 @@ class BoschModeGlowTest {
         now = 3000; assertTrue(Color.green(pixel()) < Color.green(interrupted))
         now = 3750; assertEquals(Color.BLACK, pixel())
     }
+    @Test fun batteryBreathBlendsToWarningWidensAtPeakAndRepeatsWithoutShaderChurn() {
+        var now = 0L
+        val glow = BoschModeGlow(24f) { now }; glow.setBounds(0, 0, 200, 300)
+        val bitmap = Bitmap.createBitmap(200, 300, Bitmap.Config.ARGB_8888)
+        fun pixel(x: Int = 4): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(x, 150) }
+        glow.update(BoschModeColors.color(2)); now = 1500
+        val base = pixel(); assertEquals(Color.BLACK, pixel(36))
+        glow.update(BoschModeColors.color(2), 20); val shader = glow.warningLeft
+        assertEquals(base, pixel())
+        now = 2500; val half = pixel()
+        assertTrue(Color.red(half) > 0 && Color.blue(half) > 0)
+        repeat(30) { glow.update(BoschModeColors.color(2), 19) }
+        assertSame(shader, glow.warningLeft)
+        now = 3500; val peak = pixel()
+        assertTrue(Color.red(peak) > Color.red(half)); assertEquals(0, Color.blue(peak))
+        assertTrue(Color.red(pixel(36)) > 0)
+        now = 5500; assertEquals(base, pixel()); assertEquals(Color.BLACK, pixel(36))
+        glow.update(BoschModeColors.color(2), 10); now = 7500
+        assertTrue(Color.red(pixel()) > Color.green(pixel()))
+        glow.update(BoschModeColors.color(2), 21)
+        assertNull(glow.warningColor); assertEquals(base, pixel())
+    }
+    @Test fun lowBatteryWarnsWithModeDisabledAndStopsSchedulingWhenHiddenOrCleared() {
+        var now = 0L
+        val glow = BoschModeGlow(24f) { now }; glow.setBounds(0, 0, 200, 300)
+        var schedules = 0
+        glow.callback = object : android.graphics.drawable.Drawable.Callback {
+            override fun invalidateDrawable(who: android.graphics.drawable.Drawable) {}
+            override fun scheduleDrawable(who: android.graphics.drawable.Drawable, what: Runnable, whenMillis: Long) { schedules++ }
+            override fun unscheduleDrawable(who: android.graphics.drawable.Drawable, what: Runnable) {}
+        }
+        val bitmap = Bitmap.createBitmap(200, 300, Bitmap.Config.ARGB_8888)
+        fun pixel(): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(4, 150) }
+        glow.update(null, 10); assertNull(glow.modeColor); assertEquals(Color.BLACK, pixel())
+        now = 1000; val half = pixel(); assertTrue(Color.red(half) > 0)
+        now = 2000; assertTrue(Color.red(pixel()) > Color.red(half))
+        now = 4000; assertEquals(Color.BLACK, pixel())
+        assertTrue(schedules > 0)
+        glow.setVisible(false, false); val before = schedules; pixel(); assertEquals(before, schedules)
+        glow.setVisible(true, false); pixel(); assertTrue(schedules > before)
+        for (level in listOf(null, -1L, 101L, 21L)) {
+            glow.update(null, level); val count = schedules
+            assertEquals(Color.BLACK, pixel()); assertNull(glow.warningColor); assertEquals(count, schedules)
+        }
+        glow.update(null, 20); assertEquals(0xffffb000.toInt(), glow.warningColor)
+        glow.update(null, 11); assertEquals(0xffffb000.toInt(), glow.warningColor)
+        glow.update(null, 0); assertEquals(0xffff3030.toInt(), glow.warningColor)
+    }
+    @Test fun batteryWarningInputRequiresAFreshLiveBikeSample() {
+        val runtime = RideRuntime.get(RuntimeEnvironment.getApplication())
+        val phase = runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible = true }
+        val live = requireNotNull(phase.type.enumConstants).single { it.toString() == "LIVE" }
+        val stopped = requireNotNull(phase.type.enumConstants).single { it.toString() == "STOPPED" }
+        assertNull(runtime.currentBikeBattery)
+        phase.set(runtime.connection, live)
+        runtime.onSamples(listOf(McspSample(LiveMetric.BATTERY.address, 20, true)))
+        runtime.onData(LiveData(otherValues = mapOf(LiveMetric.BATTERY to 20L)), true)
+        assertEquals(20L, runtime.currentBikeBattery)
+        phase.set(runtime.connection, stopped); assertNull(runtime.currentBikeBattery)
+        phase.set(runtime.connection, live)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(61)); assertNull(runtime.currentBikeBattery)
+    }
     @Test fun everyDashboardKeepsGeometryTouchAndTextWhileGlowTracksActualSizeAndMode() {
         val app = RuntimeEnvironment.getApplication()
         var selected = -1
@@ -98,6 +160,10 @@ class BoschModeGlowTest {
                 assertTrue(clicks.first().performClick()); assertTrue(selected >= 0)
                 dashboard.showModeGlow(true, 4); assertEquals(BoschModeColors.color(4), dashboard.modeGlow.modeColor)
                 dashboard.showModeGlow(false, 4); assertNull(dashboard.modeGlow.modeColor)
+                dashboard.showModeGlow(false, 4, batteryPercent = 20)
+                assertNull(dashboard.modeGlow.modeColor)
+                assertEquals(0xffffb000.toInt(), dashboard.modeGlow.warningColor)
+                assertEquals(before, views(dashboard).map { listOf(it.left, it.top, it.width, it.height) })
             }
         }
     }

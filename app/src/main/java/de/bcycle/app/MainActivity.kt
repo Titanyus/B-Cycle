@@ -50,7 +50,7 @@ class MainActivity : Activity() {
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
     private val dialogs = DialogNavigation()
-    private fun dialog() = BicycleDialogBuilder(this, runtime.themes, dialogs)
+    private fun dialog(fullscreen: Boolean = true) = BicycleDialogBuilder(this, runtime.themes, dialogs, fullscreen)
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private fun label(text: String, size: Float = BicycleDesign.bodySp) = BicycleComponents.text(settingsContext, runtime.themes, text).apply {
         isAccessibilityHeading = size >= BicycleDesign.inputSp
@@ -155,7 +155,7 @@ class MainActivity : Activity() {
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
-        dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames)
+        dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
         if (::mapPanel.isInitialized) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
         if (mapMessage != displayedMapMessage) {
@@ -555,7 +555,7 @@ class MainActivity : Activity() {
         val decor = screen.window!!.decorView
         BicycleComponents.bindTheme(decor, runtime.themes) { tokens ->
             screen.window!!.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
-                setColor(tokens.secondary); cornerRadius = dp(BicycleDesign.dialogRadius).toFloat()
+                setColor(tokens.secondary); cornerRadius = 0f
             })
             decor.clipToOutline = true
             listOf(AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_POSITIVE).forEach { which ->
@@ -732,7 +732,7 @@ class MainActivity : Activity() {
         }
         actions += "Nach Downloads exportieren" to { state.exportRoute(entry.id) }
         actions += "Aus Sammlung löschen" to {
-            dialog().setTitle("Strecke aus Sammlung löschen?")
+            dialog(fullscreen = false).setTitle("Strecke aus Sammlung löschen?")
                 .setMessage("${entry.name}\n\nDie appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der Importquelle bleiben erhalten.")
                 .setPositiveButton("Löschen") { _, _ -> state.deleteRoute(entry.id) }
                 .setNegativeButton("Abbrechen", null).show()

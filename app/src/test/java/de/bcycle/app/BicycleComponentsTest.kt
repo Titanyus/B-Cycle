@@ -57,5 +57,38 @@ class BicycleComponentsTest {
             assertEquals(light.tokens.foreground, text.currentTextColor)
             root.addView(text); assertEquals(BicycleThemes.red.tokens.foreground, text.currentTextColor)
         } finally { controller.pause().stop().destroy() }
+    }    @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    fun semanticHighlightIconsUseAccentWhileStandardIconsAndGeometryStayUnchanged() {
+        val controller = Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val activity = controller.get(); val manager = ThemeManager(activity.getSharedPreferences("accent-ui", 0))
+            val root = LinearLayout(activity)
+            val standard = BicycleComponents.icon(activity, manager, BicycleIcon.MoreOptions, "Standard") {}
+            val highlight = BicycleComponents.icon(activity, manager, BicycleIcon.ActiveOnMap, "Active") {}
+            root.addView(standard); root.addView(highlight); activity.setContentView(root)
+            fun layout() {
+                root.measure(View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY))
+                root.layout(0, 0, 720, 200)
+            }
+            fun pixel(view: android.widget.ImageButton): Int {
+                val bitmap = android.graphics.Bitmap.createBitmap(view.width, view.height, android.graphics.Bitmap.Config.ARGB_8888)
+                view.draw(android.graphics.Canvas(bitmap))
+                return (0 until bitmap.width).flatMap { x -> (0 until bitmap.height).map { y -> bitmap.getPixel(x, y) } }
+                    .maxBy { android.graphics.Color.alpha(it) }
+            }
+            layout(); val before = listOf(standard.width, standard.height, highlight.width, highlight.height)
+            val tokens = ThemeTokens(0xff535353.toInt(), 0xff292929.toInt(), 0xff000000.toInt(), 0xffffffff.toInt(), 0xffffaa55.toInt())
+            assertTrue(manager.saveCustom(CustomTheme("custom:accent", "Accent", tokens)).valid)
+            assertTrue(manager.activate("custom:accent")); layout()
+            assertEquals(tokens.foreground and 0xffffff, pixel(standard) and 0xffffff)
+            assertEquals(tokens.accent and 0xffffff, pixel(highlight) and 0xffffff)
+            assertEquals(before, listOf(standard.width, standard.height, highlight.width, highlight.height))
+            assertEquals(tokens.foreground, BicycleIcons.color(tokens, BicycleIcon.LocalSaved, negative = true))
+            assertEquals(tokens.accent, BicycleIcons.color(tokens, BicycleIcon.CloudUploaded))
+            assertEquals(tokens.foreground, BicycleIcons.color(tokens, BicycleIcon.ShowOnMap))
+            manager.activate(BicycleThemes.red.id)
+            assertEquals(BicycleThemes.red.tokens.foreground and 0xffffff, pixel(highlight) and 0xffffff)
+        } finally { controller.pause().stop().destroy() }
     }
+
 }

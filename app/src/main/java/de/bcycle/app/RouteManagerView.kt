@@ -29,6 +29,7 @@ internal class RouteManagerView(context: Context,
     private val upload: (ManagedRoute) -> Unit = {},
     private val local: (ManagedRoute) -> Unit = {}) : LinearLayout(context) {
     private fun dp(value: Int) = BicycleDesign.dp(context, value)
+    internal var fullscreen = false
     private var all: List<ManagedRoute> = emptyList()
     private var filtered: List<ManagedRoute> = emptyList()
     private var selected: String? = null
@@ -47,7 +48,7 @@ internal class RouteManagerView(context: Context,
     init {
         orientation = VERTICAL
         BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
-        val header = BicycleComponents.header(context, themes)
+        val header = BicycleComponents.header(context, themes).apply { tag = "route_manager_header" }
         header.setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
         header.addView(FrameLayout(context).apply {
             addView(BicycleComponents.heading(context, themes, "Streckenmanager"), FrameLayout.LayoutParams(-1, -1))
@@ -108,6 +109,7 @@ internal class RouteManagerView(context: Context,
         rows.notifyDataSetChanged()
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (fullscreen) { super.onMeasure(widthMeasureSpec, heightMeasureSpec); return }
         val desired = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) dp(BicycleDesign.managerDefaultHeight)
             else minOf(MeasureSpec.getSize(heightMeasureSpec), dp(BicycleDesign.managerMaxHeight))
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(desired, MeasureSpec.EXACTLY))
@@ -201,14 +203,20 @@ internal class RouteManagerView(context: Context,
             origin.setImageDrawable(BicycleIcons.drawable(context, when (route.origin) {
                 TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BicycleIcon.TrackRecorded; TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
             }, tokens.foreground))
-            eye.setImageDrawable(BicycleIcons.drawable(context, BicycleIcon.ShowOnMap, tokens.foreground, selected != route.id))
+            val eyeKind = if (selected == route.id) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
+            eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, selected != route.id))
+            eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, selected != route.id))
             val state = uploadState(route)
-            cloud.setImageDrawable(BicycleIcons.drawable(context, when (state.state) {
+            val cloudKind = when (state.state) {
                 UploadState.UPLOADING -> BicycleIcon.Loading
                 UploadState.FAILED -> BicycleIcon.CloudFailed
                 else -> BicycleIcon.CloudUploaded
-            }, tokens.foreground, state.state == UploadState.NOT_UPLOADED || state.state == UploadState.WAITING))
-            saved.setImageDrawable(BicycleIcons.drawable(context, BicycleIcon.LocalSaved, tokens.foreground, !route.locallySaved))
+            }
+            val notUploaded = state.state == UploadState.NOT_UPLOADED || state.state == UploadState.WAITING
+            cloud.setImageDrawable(BicycleIcons.drawable(context, cloudKind, tokens, notUploaded))
+            cloud.setColorFilter(BicycleIcons.color(tokens, cloudKind, notUploaded))
+            saved.setImageDrawable(BicycleIcons.drawable(context, BicycleIcon.LocalSaved, tokens, !route.locallySaved))
+            saved.setColorFilter(BicycleIcons.color(tokens, BicycleIcon.LocalSaved, !route.locallySaved))
         }
         fun bind(route: ManagedRoute) {
             entry = route; title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name

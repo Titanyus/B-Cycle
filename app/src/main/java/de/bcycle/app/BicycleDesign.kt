@@ -68,13 +68,19 @@ object BicycleDesign {
     fun dp(context: Context, value: Int) = (value * context.resources.displayMetrics.density).toInt()
 }
 
-enum class ThemeRole { PRIMARY, SECONDARY, TERTIARY, FOREGROUND }
+enum class ThemeRole { PRIMARY, SECONDARY, TERTIARY, FOREGROUND, ACCENT }
 fun ThemeTokens.color(role: ThemeRole) = when (role) {
     ThemeRole.PRIMARY -> primary
     ThemeRole.SECONDARY -> secondary
     ThemeRole.TERTIARY -> tertiary
     ThemeRole.FOREGROUND -> foreground
+    ThemeRole.ACCENT -> accent
 }
+
+/** Contrast is contextual; no theme-name or header-specific color exception. */
+fun ThemeTokens.iconColor(role: ThemeRole, backgroundRole: ThemeRole = ThemeRole.SECONDARY): Int =
+    if (role == ThemeRole.ACCENT && ThemeValidator.contrast(accent, color(backgroundRole)) < ThemeValidator.minimumIconContrast)
+        foreground else color(role)
 
 /** Shared native components. Geometry is independent of the active palette. */
 object BicycleComponents {
@@ -103,7 +109,7 @@ object BicycleComponents {
     }
     internal fun icon(context: Context, manager: ThemeManager, icon: BicycleIcon, description: String,
                       click: () -> Unit) = icon(context, manager,
-        BicycleIcons.drawable(context, icon, manager.active.tokens.foreground), description, click)
+        BicycleIcons.drawable(context, icon, manager.active.tokens), description, icon.colorRole, click)
     internal fun background(view: View, manager: ThemeManager, role: ThemeRole, radius: Int = 0, header: Boolean = false) = surface(view, manager, role, radius, header)
     fun header(context: Context, manager: ThemeManager) = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
@@ -157,12 +163,12 @@ object BicycleComponents {
         setOnClickListener { click() }
     }
     fun icon(context: Context, manager: ThemeManager, drawable: android.graphics.drawable.Drawable,
-             description: String, click: () -> Unit) = ImageButton(context).apply {
+             description: String, colorRole: ThemeRole = ThemeRole.FOREGROUND, click: () -> Unit) = ImageButton(context).apply {
         setImageDrawable(drawable); contentDescription = description
         layoutParams = ViewGroup.LayoutParams(dp(context, BicycleDesign.touchSize), dp(context, BicycleDesign.touchSize))
         val inset = dp(context, (BicycleDesign.touchSize - BicycleDesign.iconSize) / 2)
         setPadding(inset, inset, inset, inset); background = null
-        bindTheme(this, manager) { setColorFilter(it.foreground) }
+        bindTheme(this, manager) { setColorFilter(it.iconColor(colorRole)) }
         setOnClickListener { click() }
     }
     fun divider(context: Context, manager: ThemeManager) = View(context).apply {

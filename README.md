@@ -6,17 +6,18 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.0 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.0/downloads/B-Cycle-0.7.0-test.apk)**
+**[APK 0.7.1 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.1/downloads/B-Cycle-0.7.1-test.apk)**
 
-- Größe: **934,741 Byte**, rund **935 KB**.
+- Größe: **951.293 Byte**, rund **951 KB**.
 - Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
   als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
 - Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
   bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.0-test.apk.sha256):
-  `4dce5ff37d6587005af93beeb443917e39541fd6484b5be16ca7ed9e3ad1b4e3`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.1-test.apk.sha256):
+  `181c474a6013cfe845d6f5df62cf2fe82ec55ad283baab540df6e28294c768de`.
 
-Für diesen APK-Build: **213 Tests bestanden**, Signatur und Version geprüft.
+Für diesen APK-Build: **239 Tests bestanden**, Signatur und Version geprüft.
+Vollständige Testsuite und Release-Build erfolgreich in **1 Minute 34 Sekunden**.
 Release-Lint-Vital erfolgreich; kein neuer vollständiger Android-Lint-Lauf.
 Es bleibt die bekannte Compilerwarnung zum veralteten Android-`onBackPressed()`.
 Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
@@ -26,7 +27,26 @@ Die Testergebnisse beziehen sich auf den bereitgestellten APK-Arbeitsstand.
 [v0.6.21](https://github.com/Titanyus/B-Cycle/tree/v0.6.21) sichert den vollständigen
 Meilenstein vor der Bereinigung: Quellcode, Tests, Ressourcen, Build-Konfiguration,
 Dokumentation und signierte APK. [v0.7.0](https://github.com/Titanyus/B-Cycle/tree/v0.7.0)
-sichert zusätzlich den bereinigten Stand. Auch v0.6.20 und ältere Versionen bleiben erhalten.
+sichert zusätzlich den bereinigten Stand. [v0.7.1](https://github.com/Titanyus/B-Cycle/tree/v0.7.1)
+sichert den aktuellen vollständigen Stand. Auch v0.6.20 und ältere Versionen bleiben erhalten.
+
+## Neu in 0.7.1
+
+- Manuelle Tages-/Nachtkarte mit Mond-/Sonnenbutton direkt unter Vollbild;
+  Auswahl bleibt gespeichert. Dashboard-Datenfelder bleiben unverändert.
+- Einstellungsansichten im Vollbild mit festem Header und Footer.
+- Zentrale fünfte Theme-Farbrolle ACCENT; BLACK OPS mit schwarzer Dialogfläche
+  und grauen Eingabefeldern, kompatibel mit bisherigen Themes.
+- Aufnahmezeit folgt dem START/STOPP-Zeitraum und bleibt nach STOPP stehen.
+- Performanceberechnung berücksichtigt bestätigte 0-Watt-Ausrollphasen auch
+  bei längerer Sensorpause, solange frische E-Bike-Geschwindigkeit vorliegt.
+- Akkuwarn-Glow: vier Sekunden Breathing bei ≤20 % orange, bei ≤10 % rot,
+  auch bei ausgeschaltetem Fahrmodus-Glow.
+
+Details: [Nachtkarte](docs/map-night.md), [Vollbild-UI](docs/fullscreen-ui.md),
+[Accent](docs/color-engine-v2.md), [Aufnahmezeit](docs/recording-clock.md),
+[Performance](docs/performance-energy-0617.md), [Glow](docs/mode-glow.md)
+und [gesicherter Build](docs/milestone-071.md).
 
 ## Neu in 0.7.0
 

@@ -46,7 +46,7 @@ class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingCon
                 require(size in 0..100)
                 val fields = List(size) { input.readUTF() }
                 val selected = if (version == 0x42435935) {
-                    require(input.readInt() == PerformanceEngine.MODEL_VERSION) { "Unknown performance model" }
+                    require(input.readInt() in 1..PerformanceEngine.MODEL_VERSION) { "Unknown performance model" }
                     val selectedCount = input.readInt(); require(selectedCount in 0..100)
                     List(selectedCount) { input.readUTF() }.toSet()
                 } else fields.toSet() + if (positions) setOf("GPS_POSITION") else emptySet()

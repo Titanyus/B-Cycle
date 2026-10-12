@@ -49,6 +49,10 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private var heartSum = 0L; private var heartCount = 0
     private var startElapsed = 0L
     private var startUtc = 0L
+    private var completedElapsedMs: Long? = null
+    private var hasRecordingClock = false
+    private var nextTickUptime = 0L
+    private var lastSlowTickLoggedAt = -5000L
     private var activeConfig = RecordingConfig()
     var performance = PerformanceEngine(); private set
     val performanceValues get() = performance.snapshot()
@@ -68,7 +72,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if (pendingPerformance.size >= 256) {
             val gapAt = pendingPerformance.first().atMs
             pendingPerformance.clear()
-            listOf(PerformanceChannel.POWER, PerformanceChannel.HEART_RATE, PerformanceChannel.SPEED).forEach {
+            listOf(PerformanceChannel.POWER, PerformanceChannel.HEART_RATE, PerformanceChannel.SPEED, PerformanceChannel.BIKE_ACTIVITY).forEach {
                 pendingPerformance += PerformanceEvent(it, gapAt, connected = false)
             }
             performanceOverflow = true
@@ -106,12 +110,12 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     val bikeEnabled get() = preferences.getBoolean("bikeEnabled", true)
     val heartEnabled get() = preferences.getBoolean("heartEnabled", true)
     val active get() = visible || recording
-    val elapsedMs get() = if (recording) SystemClock.elapsedRealtime() - startElapsed else 0L
+    val elapsedMs get() = if (recording) SystemClock.elapsedRealtime() - startElapsed else completedElapsedMs ?: 0L
     val pulseValues get() = pulse.copy(bpm = pulse.bpm.takeIf { heartAt?.let { at -> SystemClock.elapsedRealtime() - at <= 5_000 } == true && heart.live })
     private val solarWeather = SolarWeather()
     val gpsValues get(): GpsValues {
         val gps = ride.gps.snapshot(SystemClock.elapsedRealtime())
-        return gps.copy(solar = solarWeather.snapshot(gps.latitude, gps.longitude, java.time.Instant.now(), java.time.ZoneId.systemDefault()))
+        return gps.copy(elapsedMs = if (hasRecordingClock) elapsedMs else gps.elapsedMs, solar = solarWeather.snapshot(gps.latitude, gps.longitude, java.time.Instant.now(), java.time.ZoneId.systemDefault()))
     }
     /** Prefer fresh wheel speed; GPS already filters stationary jitter. Unknown is not zero. */
     val currentSpeedKmh: Double? get() {
@@ -124,15 +128,38 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     /** Reuse the existing connection/freshness rules; never expose a stale mode to the visual status. */
     val currentBikeLight: Boolean? get() = bikeData.value(LiveMetric.BIKE_LIGHT)
         ?.takeIf { it in 0..1 && fresh(LiveMetric.BIKE_LIGHT, SystemClock.elapsedRealtime()) }?.let { it == 1L }
+    val currentBikeBattery: Long? get() = bikeData.value(LiveMetric.BATTERY)
+        ?.takeIf { it in 0..100 && fresh(LiveMetric.BATTERY, SystemClock.elapsedRealtime()) }
     val currentAssistMode: Long? get() = bikeData.value(LiveMetric.ASSIST_MODE)
         .takeIf { fresh(LiveMetric.ASSIST_MODE, SystemClock.elapsedRealtime()) }
     val config get() = RecordingConfig.decode(preferences.getStringSet("recordFields", null), preferences.getString("recordSpeed", null), preferences.getString("recordDistance", null))
+    private fun scheduleTick() {
+        handler.removeCallbacks(tick)
+        if (!active) return
+        val now = SystemClock.elapsedRealtime()
+        val phase = if (recording) now - startElapsed else now
+        nextTickUptime = SystemClock.uptimeMillis() + 1000 - phase % 1000
+        handler.postAtTime(tick, nextTickUptime)
+    }
     private val tick = object : Runnable {
         override fun run() {
             if (!active) return
+            val entered = SystemClock.uptimeMillis()
+            val lateMs = (entered - nextTickUptime).coerceAtLeast(0)
             reconnectSensors()
+            val captureStarted = SystemClock.uptimeMillis()
             if (recording) appendSample()
-            notifyChanged(); handler.postDelayed(this, 1000)
+            val captureMs = SystemClock.uptimeMillis() - captureStarted
+            val uiStarted = SystemClock.uptimeMillis()
+            notifyChanged()
+            val uiMs = SystemClock.uptimeMillis() - uiStarted
+            val finished = SystemClock.uptimeMillis()
+            if ((lateMs >= 150 || finished - entered >= 150) && finished - lastSlowTickLoggedAt >= 5000) {
+                lastSlowTickLoggedAt = finished
+                diagnostics.event("RUNTIME_TICK_SLOW lateMs=$lateMs captureMs=$captureMs uiMs=$uiMs recording=$recording")
+            }
+            // Skip missed boundaries; never queue a burst of artificial catch-up samples.
+            scheduleTick()
         }
     }
     init { RouteUploads.schedule(context); diagnostics.reset("App=${AppVersion.name} Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
@@ -143,7 +170,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         handler.removeCallbacks(tick)
         if (active) {
             if (gpsEnabled) gpsSensor.start()
-            reconnectSensors(); handler.postDelayed(tick, 1000)
+            reconnectSensors(); scheduleTick()
         } else {
             connection.onForegroundChanged(false); heart.stop(); gpsSensor.stop(); ride.bike.pause(); heartAt = null
         }
@@ -202,13 +229,15 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         cadenceAverage.reset()
         heartSum = 0; heartCount = 0; pulse = pulse.copy(average = null, maximum = null)
         startElapsed = SystemClock.elapsedRealtime(); startUtc = System.currentTimeMillis()
+        completedElapsedMs = null; hasRecordingClock = true
         performance = PerformanceEngine(); pendingPerformance.clear(); performanceOverflow = false
         if (activeConfig.speedSource == "GPS_SPEED") captureGpsPerformance()
-        listOf(PerformanceChannel.POWER, PerformanceChannel.HEART_RATE, PerformanceChannel.SPEED).forEach { channel ->
+        listOf(PerformanceChannel.POWER, PerformanceChannel.HEART_RATE, PerformanceChannel.SPEED, PerformanceChannel.BIKE_ACTIVITY).forEach { channel ->
             val event = latestPerformance[channel]
             val connected = when (channel) {
                 PerformanceChannel.POWER -> connection.isLive
                 PerformanceChannel.HEART_RATE -> heart.live
+                PerformanceChannel.BIKE_ACTIVITY -> connection.isLive
                 else -> if (activeConfig.speedSource == "GPS_SPEED") gpsSensor.active else connection.isLive
             }
             if (event != null && connected && (channel != PerformanceChannel.SPEED || event.source == activeConfig.speedSource))
@@ -221,16 +250,17 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     fun stopRecording() {
         if (!recording) return
-        appendSample(); recording = false; saving = true; recordingStatus = "FIT wird gespeichert …"
+        completedElapsedMs = appendSample(); recording = false; saving = true; recordingStatus = "FIT wird gespeichert …"
         store.finish(); updateActivity()
     }
-    private fun appendSample() {
+    private fun appendSample(): Long {
         val sample = sample()
         sample.performanceEvents.forEach(performance::accept)
         performance.advance(sample.elapsedMs)
         pendingPerformance.clear(); performanceOverflow = false
         store.append(sample)
         if (mapTrackEnabled) mapState.track.append(sample)
+        return sample.elapsedMs
     }
     private fun sample(): RideSample {
         val now = SystemClock.elapsedRealtime(); val gps = gpsValues
@@ -253,10 +283,14 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         samples.forEach { sample -> LiveMetric.forAddress(sample.address)?.let {
             times[it] = now
             if (it == LiveMetric.CADENCE && sample.value in 0..it.maxRaw) cadenceAverage.add(sample.value / it.divisor)
+            if (it == LiveMetric.SPEED) {
+                if (sample.address == LiveMetric.SPEED.address) mainBikeSpeedSeen = true
+                if (sample.address == LiveMetric.SPEED.address || !mainBikeSpeedSeen)
+                    capturePerformance(PerformanceChannel.BIKE_ACTIVITY, sample.value / 360.0, "SPEED", now)
+            }
             if (it == LiveMetric.RIDER_POWER) capturePerformance(PerformanceChannel.POWER, sample.value.toDouble(), PowerSource.BOSCH_RIDER.name, now)
             val chosen = if (recording) activeConfig else config
             if (it == LiveMetric.SPEED && chosen.speedSource == "SPEED") {
-                if (sample.address == LiveMetric.SPEED.address) mainBikeSpeedSeen = true
                 if (sample.address == LiveMetric.SPEED.address || !mainBikeSpeedSeen)
                     capturePerformance(PerformanceChannel.SPEED, sample.value / 360.0, "SPEED", now)
             }
@@ -268,6 +302,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         else {
             times.clear(); ride.bike.pause(); lastPacketAt = null; mainBikeSpeedSeen = false
             capturePerformance(PerformanceChannel.POWER, null, PowerSource.BOSCH_RIDER.name)
+            capturePerformance(PerformanceChannel.BIKE_ACTIVITY, null, "SPEED")
             val chosen = if (recording) activeConfig else config
             if (chosen.speedSource == "SPEED") capturePerformance(PerformanceChannel.SPEED, null, "SPEED")
         }

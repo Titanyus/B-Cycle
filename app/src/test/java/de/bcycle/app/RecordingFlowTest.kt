@@ -95,6 +95,49 @@ class RecordingFlowTest {
         assertEquals(1, provider.published.size)
         controller.destroy()
     }
+    @Test fun recordingClockWorksWithoutGpsFreezesAtStopAndMatchesFitTerminalSample() {
+        val app = RuntimeEnvironment.getApplication()
+        val downloads = provider(); val runtime = RideRuntime.get(app)
+        runtime.saveConfig(RecordingConfig(setOf("GPS_ELAPSED_TIME")))
+        runtime.setVisible(true); runtime.beginRecording()
+        assertEquals(0L, runtime.gpsValues.elapsedMs)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2250))
+        assertEquals(2250L, runtime.elapsedMs); assertEquals(2250L, runtime.gpsValues.elapsedMs)
+        runtime.stopRecording()
+        val stopped = runtime.elapsedMs
+        val now = SystemClock.elapsedRealtime()
+        runtime.ride.gps.accept(GpsFix(now, 50.0, 8.0, 3.0, speedMps = 5.0), now)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(10))
+        assertEquals(stopped, runtime.elapsedMs); assertEquals(stopped, runtime.gpsValues.elapsedMs)
+        await { !runtime.saving }
+        val fit = downloads.published.single().inputStream().use { FitDecoder().decode(it) }
+        assertEquals(stopped / 1000.0, fit.sessionMesgs.single().totalTimerTime.toDouble(), .001)
+        val duration = fit.recordMesgs.last().developerFields.single { it.name == "GPS_ELAPSED_TIME" }
+        assertEquals(stopped / 1000.0, (duration.getValue(0) as Number).toDouble(), .001)
+        runtime.beginRecording(); assertEquals(0L, runtime.elapsedMs); assertEquals(0L, runtime.gpsValues.elapsedMs)
+        runtime.stopRecording(); runtime.setVisible(false); await { !runtime.saving }
+    }
+    @Test fun slowUiWorkDoesNotAccumulateDriftBetweenRecordingSeconds() {
+        val app = RuntimeEnvironment.getApplication(); provider()
+        val runtime = RideRuntime.get(app); runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER")))
+        runtime.setVisible(true)
+        val seconds = mutableListOf<Long>()
+        val observer: () -> Unit = {
+            if (runtime.recording && runtime.elapsedMs >= 1000) {
+                seconds += runtime.elapsedMs
+                org.robolectric.shadows.ShadowSystemClock.advanceBy(Duration.ofMillis(350))
+            }
+        }
+        runtime.observers.add(observer)
+        try {
+            runtime.beginRecording(); seconds.clear()
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(3))
+            assertEquals(listOf(1000L, 2000L, 3000L), seconds)
+        } finally {
+            runtime.observers.remove(observer); runtime.stopRecording(); runtime.setVisible(false)
+            await { !runtime.saving }
+        }
+    }
     @Test fun unselectedGpsPositionDoesNotCreateMapHistoryEvenWithGpsFixes() {
         val app = RuntimeEnvironment.getApplication()
         shadowOf(app).grantPermissions(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN,

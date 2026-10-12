@@ -55,10 +55,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private lateinit var directionButton: Button
     private lateinit var centerButton: Button
     private lateinit var fullButton: Button
+    private lateinit var nightButton: Button
+    private var night = preferences.getBoolean("mapNight", false)
     private var running = false
     private var moving = false
     private var source = MapSource.decode(preferences.getString("mapSource", null))
-    private var downloads: TileDownloadLayer
+    private var downloads: MapNightLayer
     private var follow = preferences.getBoolean("mapFollow", true)
     private var heading = preferences.getBoolean("mapHeading", true)
     private var gps = GpsValues()
@@ -73,7 +75,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     var controlsVisibilityChanged: ((Boolean) -> Unit)? = null
     private val hideControls = Runnable {
         if (!running || !runtime.isMoving) return@Runnable
-        controls.visibility = GONE; zoomControls.visibility = GONE; routeButton.visibility = GONE
+        controls.visibility = GONE; zoomControls.visibility = GONE; routeButton.visibility = GONE; nightButton.visibility = GONE
         controlsVisibilityChanged?.invoke(false)
     }
     val mapView: MapView
@@ -146,6 +148,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         graphic(directionButton, BicycleIcon.Compass)
         graphic(fullButton, BicycleIcon.Maximize)
         addView(controls, LayoutParams(-2, dp(48), Gravity.TOP or Gravity.END).apply { topMargin = dp(6); marginEnd = dp(6) })
+        nightButton = icon("", "Nachtkarte einschalten", null) {
+            night = !night; preferences.edit().putBoolean("mapNight", night).apply(); applyNight()
+        }.apply { tag = "map_night" }
+        addView(nightButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.END).apply { topMargin = dp(56); marginEnd = dp(6) })
         routeButton = icon("", "Strecke ein-/ausblenden", null) {
             runtime.mapState.setRouteVisible(!preferences.getBoolean("mapGpxVisible", true))
         }.apply {
@@ -153,9 +159,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         }
         refreshRouteButton()
         addView(routeButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.START).apply { topMargin = dp(6); marginStart = dp(6) })
-        addView(zoomControls, LayoutParams(dp(44), -2, Gravity.BOTTOM or Gravity.END).apply { bottomMargin = dp(77); marginEnd = dp(6) })
+        addView(zoomControls, LayoutParams(dp(44), -2, Gravity.BOTTOM or Gravity.END).apply { bottomMargin = dp(12); marginEnd = dp(6) })
         dataFields.reload(preferences)
-        addView(dataFields, LayoutParams(-1, dp(62), Gravity.BOTTOM).apply { bottomMargin = dp(23) })
+        addView(dataFields, LayoutParams(-1, dp(62), Gravity.BOTTOM).apply { bottomMargin = dp(12) })
         credit.apply {
             text = source.attribution; textSize = 11f; setTextColor(Color.BLACK)
             setPadding(dp(5), dp(3), dp(5), dp(3)); setBackgroundColor(Color.argb(220, 255, 255, 255))
@@ -169,14 +175,27 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             setOnClickListener { requestGps(); revealControls() }
         }
         addView(status, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.START).apply { bottomMargin = dp(23) })
+        applyNight()
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCamera() }
     }
 
-    private fun createDownloadLayer(source: MapSource): TileDownloadLayer {
+    private fun createDownloadLayer(source: MapSource): MapNightLayer {
         // A bounded normal cache, never a region prefetch/offline download.
         val memory = ViewportTileCache()
         val disk = FileSystemTileCache(512, File(context.cacheDir, "tiles-${source.name}").apply { mkdirs() }, AndroidGraphicFactory.INSTANCE, true)
-        return TileDownloadLayer(TwoLevelTileCache(memory, disk), mapView.model.mapViewPosition, source.tiles(), AndroidGraphicFactory.INSTANCE)
+        return MapNightLayer(TwoLevelTileCache(memory, disk), mapView.model.mapViewPosition, source.tiles()).apply { night = this@MapPanel.night }
+    }
+    private fun applyNight() {
+        downloads.night = night
+        val color = if (night) MapNightPalette.background else Color.rgb(225, 225, 225)
+        setBackgroundColor(color); mapView.model.displayModel.backgroundColor = color
+        val icon = if (night) BicycleIcon.Sun else BicycleIcon.Moon
+        nightButton.contentDescription = if (night) "Tageskarte einschalten" else "Nachtkarte einschalten"
+        nightButton.gravity = Gravity.CENTER; nightButton.setPadding(dp(10), 0, dp(10), 0)
+        nightButton.setCompoundDrawables(BicycleIcons.drawable(context, icon, Color.WHITE).apply {
+            setBounds(0, 0, dp(24), dp(24))
+        }, null, null, null)
+        downloads.requestRedraw(); refreshRoutes()
     }
     fun resume() { running = true; mapView.layerManager.proceed(); downloads.onResume(); revealControls(); refresh() }
     fun pause() {
@@ -191,6 +210,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             if (running) downloads.onResume()
             credit.text = source.attribution
         }
+        night = preferences.getBoolean("mapNight", false); applyNight()
         dataFields.reload(preferences)
         refreshRouteButton()
         refreshDataFields()
@@ -235,7 +255,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             layerTrack = runtime.mapState.track.points.toList()
         }
         routes.update(runtime.mapState.route, layerTrack, runtime.gpsValues,
-            preferences.getBoolean("mapGpxVisible", true), preferences.getBoolean("mapTrackVisible", true))
+            preferences.getBoolean("mapGpxVisible", true), preferences.getBoolean("mapTrackVisible", true), night)
     }
     private fun refreshDataFields() {
         dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight)
@@ -252,8 +272,15 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         // Short map panels still need both zoom buttons; reserve their column if it meets the top row.
         val buttonHeight = ((measuredHeight - nextZoomMargin - dp(4)) / 2).coerceIn(dp(24), dp(48))
         val topMargin = controls.layoutParams as LayoutParams
-        val nextTopEnd = if (measuredHeight - nextZoomMargin - 2 * buttonHeight - dp(4) < dp(60)) dp(56) else dp(6)
-        var changed = false
+        val topHeight = ((measuredHeight - dp(14)) / 2).coerceIn(dp(24), dp(48))
+        val topChanged = controls.layoutParams.height != topHeight || nightButton.layoutParams.height != topHeight ||
+            (nightButton.layoutParams as LayoutParams).topMargin != dp(8) + topHeight
+        controls.layoutParams.height = topHeight
+        for (i in 0 until controls.childCount) controls.getChildAt(i).layoutParams.height = topHeight
+        val nightMargin = nightButton.layoutParams as LayoutParams
+        nightMargin.height = topHeight; nightMargin.topMargin = dp(8) + topHeight
+        val nextTopEnd = if (measuredHeight - nextZoomMargin - 2 * buttonHeight - dp(4) < topHeight * 2 + dp(12)) dp(56) else dp(6)
+        var changed = topChanged
         for (index in 0 until zoomControls.childCount) {
             val params = zoomControls.getChildAt(index).layoutParams
             if (params.height != buttonHeight) { params.height = buttonHeight; changed = true }
@@ -263,6 +290,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             fieldMargin.bottomMargin = creditHeight; statusMargin.bottomMargin = nextStatusMargin
             zoomMargin.bottomMargin = nextZoomMargin; topMargin.marginEnd = nextTopEnd
             controls.layoutParams = topMargin
+            nightMargin.marginEnd = nextTopEnd; nightButton.layoutParams = nightMargin
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         }
     }
@@ -315,7 +343,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         preferences.edit().putInt("mapZoom", position.zoomLevel.toInt()).putFloat("mapLatitude", position.center.latitude.toFloat())
             .putFloat("mapLongitude", position.center.longitude.toFloat()).apply()
     }
-    fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; controlsVisibilityChanged?.invoke(true); scheduleHide() }
+    fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; nightButton.visibility = VISIBLE; controlsVisibilityChanged?.invoke(true); scheduleHide() }
     fun holdControls() { handler.removeCallbacks(hideControls) }
     private fun updateMotionControls() {
         val next = runtime.isMoving

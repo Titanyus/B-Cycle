@@ -16,8 +16,8 @@ import java.util.Locale
 /** Seven native, accessible tiles: 2 / 1 large / 2 / 2. No drawing or UI dependency. */
 class DashboardView(context: Context, private val selectField: (Int) -> Unit) : LinearLayout(context) {
     internal val modeGlow = BoschModeGlow(BicycleDesign.dp(context, BicycleDesign.modeGlowWidth).toFloat())
-    fun showModeGlow(enabled: Boolean, mode: Long?, names: List<String>? = null) {
-        modeGlow.update(if (enabled) BoschModeColors.color(mode, names) else null)
+    fun showModeGlow(enabled: Boolean, mode: Long?, names: List<String>? = null, batteryPercent: Long? = null) {
+        modeGlow.update(if (enabled) BoschModeColors.color(mode, names) else null, batteryPercent)
     }
     private val trends = AverageTrends()
     private val numbers = resources.getFont(R.font.bebas_neue)

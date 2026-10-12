@@ -1,5 +1,8 @@
 # Design Engine – Phase 1
 
+Historischer Stand. Die aktuelle fünfte Farbrolle und Speichermigration sind in
+[Color Engine V2](color-engine-v2.md) dokumentiert.
+
 Diese Phase ist eine technische Grundlage. Es gibt keinen Farbwähler, keinen
 Theme-Menüpunkt und keine festgelegte Einstellungsseite. Bestehende Dialoge,
 Streckenmanager, Dashboard und Karte werden noch nicht umgestellt. Ihr Aussehen

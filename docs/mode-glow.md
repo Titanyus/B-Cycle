@@ -56,3 +56,24 @@ Die fünf neuen Tests prüfen:
 Die Verbindungsszenarien simulieren vorhandene Verbindungsszustände und Sensorcallbacks; es wurde kein echtes Bosch-Rad für diese Tests verwendet. Die native Robolectric-Grafikprüfung ersetzt keine Sichtprüfung auf dem Smartphone/GPU.
 
 Vollständige Testsuite und Release-Build: **153 Tests bestanden, keine Fehler oder übersprungenen Tests; BUILD SUCCESSFUL in 1 Minute 1 Sekunde.** Die bestehende `onBackPressed()`-Deprecation bleibt; keine neuen Kotlin-Warnungen durch den Glow. Bestehende Tests bleiben erhalten. Nach Abschluss keine Veröffentlichung oder zusätzliche Funktionen ohne Freigabe.
+
+## Akkuwarnung mit Breathing
+
+Bei gültigem, aktuellem E-Bike-Akkustand ≤20 % wird Gelb/Orange (`#FFB000`),
+bei ≤10 % Rot (`#FF3030`) eingeblendet. Cosinus-Überblendung: zwei Sekunden
+zur Warnfarbe, zwei Sekunden zurück zur aktuellen Modusfarbe. Bei ausgeschaltetem
+Modus-Glow oder Modus OFF/fehlendem Modus pulsiert die Warnung aus Schwarz zur Farbe
+und zurück. Der Warnungs-Höhepunkt ist 50 % breiter; die ursprüngliche Breite kehrt
+am Zyklusende zurück. Die Farben sind funktionale Statusfarben, unabhängig vom Theme.
+
+Keine neue Sensorabfrage oder dauerhafte Hintergrundanimation: Der vorhandene
+Akkustand muss LIVE, gültig (0–100) und höchstens 60 Sekunden alt sein. Andernfalls
+oder oberhalb von 20 % endet die Warnung. Unveränderte Warnstufen und UI-Updates
+setzen den Zyklus nicht zurück. Shader und Matrix werden wiederverwendet;
+Breathing läuft mit rund 30 Frames/s nur bei sichtbarem Drawable. Die bisherige
+1,5-Sekunden-Modusüberblendung bleibt erhalten. Felder, Touchflächen und Layout
+ändern sich nicht. Automatische Warnung ist unabhängig vom gespeicherten Glow-Schalter.
+
+Regressionstests prüfen Schwellen, ungültige/veraltete Werte und Verbindungstrennung,
+Farben/Mischung, Vier-Sekunden-Zyklus, Breitenänderung, Shader-Wiederverwendung,
+Warnung bei deaktiviertem Modus-Glow sowie Aussetzen der Frameplanung bei Unsichtbarkeit.

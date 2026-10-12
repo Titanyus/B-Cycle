@@ -4,7 +4,7 @@ import kotlin.math.*
 
 /** Sources are identities, not claims about accuracy or about where a future meter is mounted. */
 enum class PowerSource { BOSCH_RIDER, CYCLING_POWER_BLE, ANT_PLUS, PEDAL }
-enum class PerformanceChannel { POWER, HEART_RATE, SPEED, PAUSE, RESUME }
+enum class PerformanceChannel { POWER, HEART_RATE, SPEED, PAUSE, RESUME, BIKE_ACTIVITY }
 
 /** All times use the ride's monotonic epoch. Null sensor time means receipt time, never invented timing. */
 data class PerformanceEvent(
@@ -25,8 +25,9 @@ data class PowerMeasurement(
 data class PerformanceQuality(
     val activeMs: Long, val powerMs: Long, val pairedSpeedMs: Long, val pairedHeartMs: Long,
     val longestPowerGapMs: Long, val powerGapCount: Long, val npWindows: Long, val heartAvailableMs: Long,
+    val continuedZeroMs: Long = 0,
 ) {
-    /** Coverage is observed time, explicitly not a sensor-accuracy percentage. */
+    /** Coverage includes telemetry-supported explicit zero states; it is not sensor accuracy. */
     val powerCoverage get() = if (activeMs > 0) powerMs.toDouble() / activeMs else 0.0
 }
 
@@ -40,14 +41,14 @@ data class PerformanceValues(
 /** Only bounded state: actual events -> time integral -> complete 1 s bins -> complete 30 s windows. */
 class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
     companion object {
-        const val MODEL_VERSION = 1
+        const val MODEL_VERSION = 2
         const val MAX_HOLD_MS = 5_000L
         const val MIN_COVERAGE = .95
     }
     private var cursor = 0L
     private var paused = false
     private val readings = mutableMapOf<PerformanceChannel, PerformanceEvent>()
-    private var activeMs = 0L; private var powerMs = 0L
+    private var activeMs = 0L; private var powerMs = 0L; private var continuedZeroMs = 0L
     private var workJ = 0.0; private var speedMs = 0L; private var speedIntegral = 0.0; private var pairedWorkJ = 0.0
     private var heartMs = 0L; private var heartIntegral = 0.0
     private var heartAvailableMs = 0L; private var heartAvailableIntegral = 0.0
@@ -77,9 +78,11 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
                 val finite = event.value?.isFinite() == true
                 val valid = finite && event.connected && event.receivedAtMs <= event.atMs &&
                     (event.sensorTimeMs == null || event.sensorTimeMs <= event.receivedAtMs) && when (event.channel) {
-                        PerformanceChannel.POWER -> event.source == PowerSource.BOSCH_RIDER.name && event.value!! in 0.0..65535.0
+                        PerformanceChannel.POWER -> event.source == PowerSource.BOSCH_RIDER.name && event.value!! in 0.0..65535.0 &&
+                            (event.value != 0.0 || observedDeadline(event) > event.atMs)
                         PerformanceChannel.HEART_RATE -> event.value!! in 1.0..255.0
                         PerformanceChannel.SPEED -> event.value!! in 0.0..35.0
+                        PerformanceChannel.BIKE_ACTIVITY -> event.source == "SPEED" && event.value!! in 0.0..35.0
                         else -> false
                     }
                 if (valid) readings[event.channel] = event else readings.remove(event.channel)
@@ -91,9 +94,25 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
             }
         }
     }
-    private fun deadline(event: PerformanceEvent) = minOf(event.receivedAtMs,
+    private fun observedDeadline(event: PerformanceEvent) = minOf(event.receivedAtMs,
         event.sensorTimeMs ?: event.receivedAtMs) + MAX_HOLD_MS
-    private fun reading(channel: PerformanceChannel) = readings[channel]?.takeIf { cursor < deadline(it) }
+    private fun deadline(event: PerformanceEvent): Long {
+        val observed = observedDeadline(event)
+        if (event.channel != PerformanceChannel.POWER || event.value != 0.0) return observed
+        // Bosch may stop repeating an unchanged zero. Only live bike telemetry can
+        // maintain that explicit state; GPS alone never proves bike connectivity.
+        val heartbeat = readings[PerformanceChannel.BIKE_ACTIVITY]
+            ?: readings[PerformanceChannel.SPEED]?.takeIf { it.source == "SPEED" }
+        val until = heartbeat?.let(::observedDeadline) ?: observed
+        return if (until > cursor) maxOf(observed, until) else observed
+    }
+    private fun reading(channel: PerformanceChannel): PerformanceEvent? {
+        val event = readings[channel] ?: return null
+        if (cursor < deadline(event)) return event
+        // Once continuity is lost, a later heartbeat cannot revive an old zero.
+        readings.remove(channel)
+        return null
+    }
 
     fun advance(untilMs: Long) {
         require(untilMs >= cursor) { "Performance clock must be monotonic" }
@@ -118,11 +137,13 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
                 continue
             }
             var end = minOf(untilMs, binEnd, deadline(power))
+            if (power.value == 0.0 && cursor < observedDeadline(power)) end = minOf(end, observedDeadline(power))
             speed?.let { end = minOf(end, deadline(it)) }; heart?.let { end = minOf(end, deadline(it)) }
             val dt = end - cursor
             check(dt > 0)
             val joules = power.value!! * dt / 1000
             activeMs += dt; powerMs += dt; workJ += joules
+            if (power.value == 0.0 && cursor >= observedDeadline(power)) continuedZeroMs += dt
             binPowerMs += dt; binWorkJ += joules; gapMs = 0
             if (speed != null) { speedMs += dt; speedIntegral += speed.value!! * dt; pairedWorkJ += joules }
             if (heart != null) { heartMs += dt; heartIntegral += heart.value!! * dt
@@ -145,7 +166,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
     }
     private fun clearWindow() { window.clear(); windowSum = 0.0 }
     fun snapshot(): PerformanceValues {
-        val quality = PerformanceQuality(activeMs, powerMs, speedMs, heartMs, longestGap, gapCount, windowCount, heartAvailableMs)
+        val quality = PerformanceQuality(activeMs, powerMs, speedMs, heartMs, longestGap, gapCount, windowCount, heartAvailableMs, continuedZeroMs)
         val enough = activeMs > 0 && quality.powerCoverage >= MIN_COVERAGE && longestGap <= MAX_HOLD_MS
         val np = if (enough && windowCount > 0 && potentialWindows > 0 && windowCount.toDouble() / potentialWindows >= MIN_COVERAGE)
             fourthMean.coerceAtLeast(0.0).pow(.25).takeIf { it.isFinite() } else null

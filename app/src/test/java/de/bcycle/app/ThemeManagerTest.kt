@@ -61,6 +61,26 @@ class ThemeManagerTest {
         prefs.edit().putInt(ThemeManager.customsKey, 42).apply()
         assertTrue(ThemeManager(prefs).customThemes.isEmpty())
     }
+    @Test fun legacyFourColorThemesMigrateAndDistinctAccentSurvivesSaveCopyAndRestart() {
+        val manager = ThemeManager(prefs); assertTrue(manager.saveCustom(light).valid)
+        val root = JSONObject(prefs.getString(ThemeManager.customsKey, null)!!)
+        root.put("version", 1); root.getJSONArray("themes").getJSONObject(0).remove("accent")
+        prefs.edit().putString(ThemeManager.customsKey, root.toString()).putString(ThemeManager.activeKey, light.id).apply()
+        val restored = ThemeManager(prefs)
+        assertEquals(light.id, restored.active.id); assertEquals(light.tokens.foreground, restored.active.tokens.accent)
+        val colored = CustomTheme("custom:accent", "Accent", ThemeTokens(0xff535353.toInt(), 0xff292929.toInt(),
+            0xff000000.toInt(), 0xffffffff.toInt(), 0xffffaa55.toInt()))
+        assertTrue(restored.saveCustom(colored).valid); assertTrue(restored.activate(colored.id))
+        assertEquals(colored, ThemeManager(prefs).active)
+        assertEquals(colored.tokens, restored.copyTheme(colored.id, "Copy")!!.tokens)
+        val saved = JSONObject(prefs.getString(ThemeManager.customsKey, null)!!)
+        assertEquals(2, saved.getInt("version"))
+        assertTrue(saved.getJSONArray("themes").getJSONObject(0).has("accent"))
+        // A supplied but malformed fifth value is rejected, rather than silently migrated.
+        val row = saved.getJSONArray("themes").getJSONObject(1); row.put("accent", JSONObject.NULL)
+        prefs.edit().putString(ThemeManager.customsKey, saved.toString()).apply()
+        assertFalse(ThemeManager(prefs).customThemes.any { it.id == colored.id })
+    }
     @Test fun backgroundActivationDeliversOnMainAndClosingSubscriptionCancelsQueuedCallbacks() {
         val manager = ThemeManager(prefs); manager.saveCustom(light)
         val deliveries = mutableListOf<String>()

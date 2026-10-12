@@ -3,7 +3,7 @@ from pathlib import Path
 import concurrent.futures, urllib.request, xml.etree.ElementTree as ET, re, sys
 VERSION = '0.468.0'
 ICONS = ['bike', 'log-in', 'log-out', 'file', 'ellipsis', 'ellipsis-vertical', 'eye', 'cloud-upload', 'cloud-alert', 'smartphone', 'trash-2', 'pencil', 'download', 'x', 'arrow-left', 'calendar-days', 'clock', 'chart-no-axes-combined', 'mountain', 'chevron-down', 'circle-help', 'loader-circle', 'bluetooth', 'unplug', 'map', 'save', 'folder-open', 'rotate-ccw', 'plus', 'link', 'info', 'radio', 'map-pinned', 'layout-dashboard', 'route', 'settings']
-ICONS.extend(['activity', 'sunrise', 'sunset', 'lightbulb', 'locate-fixed', 'compass', 'maximize', 'eye-closed'])
+ICONS.extend(['activity', 'sunrise', 'sunset', 'lightbulb', 'locate-fixed', 'compass', 'maximize', 'eye-closed', 'sun', 'moon'])
 if sys.argv[1:]:
     assert all(name in ICONS for name in sys.argv[1:]), 'Unknown Lucide icon'
     ICONS = sys.argv[1:]

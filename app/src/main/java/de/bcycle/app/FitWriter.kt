@@ -142,6 +142,7 @@ object FitWriter {
                 } }
                 if (exported) {
                     custom += Triple("POWER_DATA_COVERAGE", "%", calculated.quality.powerCoverage * 100)
+                    custom += Triple("POWER_ZERO_STATE_TIME", "s", calculated.quality.continuedZeroMs / 1000.0)
                     custom += Triple("POWER_MISSING_TIME", "s", (calculated.quality.activeMs - calculated.quality.powerMs) / 1000.0)
                     custom += Triple("POWER_MAX_GAP", "s", calculated.quality.longestPowerGapMs / 1000.0)
                     custom += Triple("PERFORMANCE_MODEL_VERSION", "version", PerformanceEngine.MODEL_VERSION.toDouble())

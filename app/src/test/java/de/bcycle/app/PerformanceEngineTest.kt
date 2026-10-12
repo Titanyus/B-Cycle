@@ -60,6 +60,46 @@ class PerformanceEngineTest {
         assertEquals(.520, e.snapshot().mechanicalWorkKj!!, 1e-9)
         assertNull(e.snapshot().normalizedPowerW)
     }
+    @Test fun twoMinuteCoastingWithSilentZeroMatchesExplicitZeroSamples() {
+        val engine = PerformanceEngine()
+        val reference = series(List(30) { 200.0 } + List(120) { 0.0 } + List(30) { 200.0 })
+        for (second in 0 until 180) {
+            val at = second * 1000L
+            if (second < 30 || second >= 150 || second == 30)
+                engine.accept(power(at, if (second == 30) 0.0 else 200.0))
+            engine.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY, at, 10.0, source = "SPEED"))
+            engine.accept(PerformanceEvent(PerformanceChannel.SPEED, at, 10.0, source = "GPS_SPEED"))
+            engine.accept(PerformanceEvent(PerformanceChannel.HEART_RATE, at, 150.0))
+        }
+        engine.advance(180000)
+        val actual = engine.snapshot()
+        assertEquals(reference.normalizedPowerW!!, actual.normalizedPowerW!!, 1e-8)
+        assertEquals(reference.mechanicalWorkKj!!, actual.mechanicalWorkKj!!, 1e-8)
+        assertEquals(reference.caloriesKcal!!, actual.caloriesKcal!!, 1e-8)
+        assertEquals(reference.speedToPowerRatio!!, actual.speedToPowerRatio!!, 1e-8)
+        assertEquals(reference.efficiencyFactor!!, actual.efficiencyFactor!!, 1e-8)
+        assertEquals(115000L, actual.quality.continuedZeroMs)
+        assertEquals(1.0, actual.quality.powerCoverage, 0.0)
+    }
+    @Test fun gpsCannotMaintainBikeZeroAndLostBikeContinuityRequiresNewPower() {
+        val stale = PerformanceEngine(); stale.accept(power(0, 0.0).copy(receivedAtMs = -10000))
+        stale.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY, 0, 10.0, source = "SPEED")); stale.advance(1000)
+        assertEquals(0L, stale.snapshot().quality.powerMs)
+        val gpsOnly = PerformanceEngine(); gpsOnly.accept(power(0, 0.0))
+        for (second in 0..60) gpsOnly.accept(PerformanceEvent(PerformanceChannel.SPEED, second * 1000L, 10.0, source = "GPS_SPEED"))
+        assertNull(gpsOnly.snapshot().mechanicalWorkKj)
+        val engine = PerformanceEngine(); engine.accept(power(0, 0.0))
+        engine.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY, 0, 10.0, source = "SPEED"))
+        engine.advance(20000)
+        engine.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY, 20000, 10.0, source = "SPEED"))
+        engine.advance(21000)
+        assertEquals(5000L, engine.snapshot().quality.powerMs)
+        assertEquals(0L, engine.snapshot().quality.continuedZeroMs)
+        val nonzero = PerformanceEngine(); nonzero.accept(power(0, 200.0))
+        for (second in 0..60) nonzero.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY, second * 1000L, 10.0, source = "SPEED"))
+        assertEquals(1.0, nonzero.snapshot().knownMechanicalWorkKj, 1e-9)
+        assertNull(nonzero.snapshot().mechanicalWorkKj)
+    }
     @Test fun longGapsStopTheIntegralAndCannotBecomeFakeZeroWindows() {
         val e = PerformanceEngine(); e.accept(power(0, 200.0)); e.advance(60_000)
         val v = e.snapshot()

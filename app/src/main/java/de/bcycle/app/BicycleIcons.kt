@@ -8,16 +8,16 @@ import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 
 /** Semantic names keep UI independent of Lucide's asset names. Lucide 0.468.0, local vectors. */
-internal enum class BicycleIcon(val resource: Int) {
+internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = ThemeRole.FOREGROUND) {
     Sensors(R.drawable.ic_lucide_radio), MapManager(R.drawable.ic_lucide_map_pinned),
     Dashboard(R.drawable.ic_lucide_layout_dashboard), Route(R.drawable.ic_lucide_route),
     Advanced(R.drawable.ic_lucide_settings), Light(R.drawable.ic_lucide_lightbulb),
     TrackImported(R.drawable.ic_lucide_log_in), TrackRecorded(R.drawable.ic_lucide_bike),
     TrackUnknown(R.drawable.ic_lucide_circle_help), FileGPX(R.drawable.ic_lucide_file), FileFIT(R.drawable.ic_lucide_file),
     MoreOptions(R.drawable.ic_lucide_ellipsis), SettingsOptions(R.drawable.ic_lucide_ellipsis_vertical),
-    ShowOnMap(R.drawable.ic_lucide_eye), HideOnMap(R.drawable.ic_lucide_eye_closed),
-    Locate(R.drawable.ic_lucide_locate_fixed), Compass(R.drawable.ic_lucide_compass), Maximize(R.drawable.ic_lucide_maximize), CloudUploaded(R.drawable.ic_lucide_cloud_upload),
-    CloudNotUploaded(R.drawable.ic_lucide_cloud_upload), CloudFailed(R.drawable.ic_lucide_cloud_alert), LocalSaved(R.drawable.ic_lucide_hard_drive_download),
+    ShowOnMap(R.drawable.ic_lucide_eye), ActiveOnMap(R.drawable.ic_lucide_eye, ThemeRole.ACCENT), HideOnMap(R.drawable.ic_lucide_eye_closed),
+    Locate(R.drawable.ic_lucide_locate_fixed), Compass(R.drawable.ic_lucide_compass), Maximize(R.drawable.ic_lucide_maximize), Sun(R.drawable.ic_lucide_sun), Moon(R.drawable.ic_lucide_moon), CloudUploaded(R.drawable.ic_lucide_cloud_upload, ThemeRole.ACCENT),
+    CloudNotUploaded(R.drawable.ic_lucide_cloud_upload), CloudFailed(R.drawable.ic_lucide_cloud_alert), LocalSaved(R.drawable.ic_lucide_hard_drive_download, ThemeRole.ACCENT),
     LocalNotSaved(R.drawable.ic_lucide_hard_drive_download), DeleteTrack(R.drawable.ic_lucide_trash_2),
     RenameTrack(R.drawable.ic_lucide_pencil), ExportTrack(R.drawable.ic_lucide_download),
     Cancel(R.drawable.ic_lucide_x), Close(R.drawable.ic_lucide_log_out), Back(R.drawable.ic_lucide_arrow_left), Import(R.drawable.ic_lucide_download),
@@ -31,9 +31,15 @@ internal enum class BicycleIcon(val resource: Int) {
 }
 
 internal object BicycleIcons {
+    // Only positive semantic status icons opt into ACCENT. Negative/inactive states remain standard.
+    fun color(tokens: ThemeTokens, icon: BicycleIcon, negative: Boolean = false,
+              backgroundRole: ThemeRole = ThemeRole.SECONDARY): Int =
+        tokens.iconColor(if (negative) ThemeRole.FOREGROUND else icon.colorRole, backgroundRole)
+    fun drawable(context: Context, icon: BicycleIcon, tokens: ThemeTokens, negative: Boolean = false): Drawable =
+        drawable(context, icon, color(tokens, icon, negative), negative)
     fun drawable(context: Context, icon: BicycleIcon, foreground: Int, negative: Boolean = false): Drawable {
         // Eyes use Lucide's dedicated closed state; other status icons retain the shared slash.
-        val closedEye = negative && icon == BicycleIcon.ShowOnMap
+        val closedEye = negative && (icon == BicycleIcon.ShowOnMap || icon == BicycleIcon.ActiveOnMap)
         val vector = requireNotNull(context.getDrawable(if (closedEye) BicycleIcon.HideOnMap.resource else icon.resource)).mutate()
         return (if (negative && !closedEye) SlashedIcon(vector) else vector).apply { setTint(foreground) }
     }

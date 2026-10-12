@@ -119,3 +119,32 @@ Garmin FIT SDK / Profile / Developer Fields: https://developer.garmin.com/fit/ov
 NP-Hintergrund: TrainingPeaks, https://www.trainingpeaks.com/learn/articles/normalized-power-intensity-factor-training-stress/ . Effizienz-Hintergrund: Ettema/Lorås (2009), https://doi.org/10.1007/s00421-009-1008-7 . Die Online-Seiten waren aus dieser Umgebung beim Abruf nicht lesbar (HTTP 403); deshalb keine Behauptung einer vollständigen Literaturprüfung oder individuellen Validierung. Die dokumentierte Berechnung und Referenzfixtures sind unabhängig nachvollziehbar.
 
 Offen für echten Hardwaretest: Bosch-Zeit-/Glättungsverhalten unter Fahrtbedingungen, absolute Genauigkeit gegen unabhängigen Leistungsmesser, individuelle Kalorienmodellabweichung und Anzeige der Developer Fields in Dreeve/anderen Fremdprogrammen. Der Garmin-Validator ersetzt diese Prüfungen nicht. Bei sporadischen Bosch-Lücken kann NP/EF bewusst fehlen. Vollständige Sensorabdeckung beweist keine Sensor-Genauigkeit.
+
+## Bosch-Rollphasen mit ausbleibenden Nullwert-Updates (Modell 2)
+
+Ein ausdrücklich empfangener Fahrerleistungswert 0 W bleibt für die Berechnung
+gültig, solange frische Geschwindigkeitswerte vom E-Bike dessen Verbindung bestätigen.
+Damit sind auch ein bis zwei Minuten ohne neue Leistungs-/Kadenzwerte während
+des Rollens möglich. Die letzten Nichtnullwerte bleiben auf fünf Sekunden begrenzt.
+GPS-Geschwindigkeit allein, Verbindungstrennung, ungültige Messungen oder ein
+Geschwindigkeitsausfall verlängern den Nullzustand nicht. Nach unterbrochener
+Kontinuität ist wieder eine neue Leistungsmessung erforderlich.
+
+Kadenzmittel berücksichtigen weiterhin nur tatsächlich empfangene positive Werte;
+Null und fehlende Werte verwässern den Tretgeschwindigkeitsdurchschnitt nicht.
+FIT-Record-Rohwerte und Sensortimestamps werden nicht aufgefüllt. NP, Arbeit,
+Kalorien, Speed-to-Power und EF werden aus dem gemeinsamen Modell berechnet.
+`POWER_ZERO_STATE_TIME` in Lap/Session (Developer Field, Sekunden) kennzeichnet
+die Zeit, in der eine explizite Null durch frische Bike-Telemetrie fortgeführt wurde.
+Diese Zeit ist in der berechneten Leistungsabdeckung enthalten. Die Grenzen von
+95 % Abdeckung und fünf Sekunden echter Lücke bleiben bestehen. EF erfordert Puls.
+
+Das neue, am Ende des Enums ergänzte BIKE_ACTIVITY-Ereignis hält Rad-Telemetrie
+auch bei ausgewählter GPS-Hauptquelle separat fest. Journal-Version 5 bleibt lesbar;
+Modellversion 1 und 2 werden akzeptiert. Alte Modell-1-Journale können bestätigende
+SPEED-Ereignisse verwenden, soweit deren Quelle tatsächlich das Rad ist.
+Bestehende exportierte FIT-Dateien werden nicht nachträglich verändert.
+
+Tests vergleichen zwei Minuten schweigende Nullzustände mit laufend empfangenen
+Nullwerten, prüfen GPS-only, Geschwindigkeitsausfall und Nichtnull-Veraltung sowie
+FIT-Metadaten, fehlende Rohwerte und den offiziellen Garmin Activity Validator.

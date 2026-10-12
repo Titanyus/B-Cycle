@@ -60,6 +60,40 @@ class MapPanelTest {
             assertEquals(View.VISIBLE, toolbar.visibility)
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun nightButtonFormsAnLPersistsAndHidesTogetherWithoutChangingDashboard() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            var root = controller.get().findViewById<ViewGroup>(android.R.id.content)
+            measure(root, 1080, 2100)
+            val panel = descendants(root).filterIsInstance<MapPanel>().single()
+            val night = descendants(panel).single { it.tag == "map_night" }
+            val full = descendants(panel).single { it.contentDescription == "Karte im Vollbild" }
+            val row = full.parent as View
+            assertEquals(row.right, night.right)
+            assertTrue(night.top > row.bottom)
+            val dashboard = descendants(root).filterIsInstance<DashboardView>().single()
+            val geometry = listOf(dashboard.width, dashboard.height, dashboard.top)
+            val center = panel.mapView.model.mapViewPosition.center
+            val zoom = panel.mapView.model.mapViewPosition.zoomLevel
+            val rawLayer = panel.mapView.layerManager.layers[0]
+            night.performClick(); measure(root, 1080, 2100)
+            assertEquals("Tageskarte einschalten", night.contentDescription)
+            assertTrue((rawLayer as MapNightLayer).night)
+            assertSame(rawLayer, panel.mapView.layerManager.layers[0])
+            assertEquals(center, panel.mapView.model.mapViewPosition.center)
+            assertEquals(zoom, panel.mapView.model.mapViewPosition.zoomLevel)
+            assertEquals(geometry, listOf(dashboard.width, dashboard.height, dashboard.top))
+            hideWhileMoving(panel); assertEquals(View.GONE, night.visibility)
+            speed(panel, 0.0); assertEquals(View.VISIBLE, night.visibility)
+            controller.recreate(); root = controller.get().findViewById(android.R.id.content)
+            measure(root, 1080, 2100)
+            val restored = descendants(root).single { it.tag == "map_night" }
+            assertEquals("Tageskarte einschalten", restored.contentDescription)
+            restored.performClick()
+            assertEquals("Nachtkarte einschalten", restored.contentDescription)
+            assertFalse(RideRuntime.get(controller.get()).preferences.getBoolean("mapNight", true))
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun routeShortcutMatchesSettingsWidthAndThemeAndOpensTheManagerDirectly() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {

@@ -15,7 +15,7 @@ import kotlin.math.roundToInt
 /** Routes share the map framebuffer, including its live pinch scale and zoom pivot. */
 internal class RouteTrackLayer(private val density: Float) : Layer() {
     private data class State(val route: GpxRoute?, val track: List<MapPoint>, val gps: GpsValues,
-        val showRoute: Boolean, val showTrack: Boolean, val heightLabel: String? = null)
+        val showRoute: Boolean, val showTrack: Boolean, val heightLabel: String? = null, val night: Boolean = false)
     @Volatile private var state = State(null, emptyList(), GpsValues(), false, false)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeJoin = Paint.Join.ROUND; strokeCap = Paint.Cap.ROUND }
     private val path = Path()
@@ -24,10 +24,10 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
         textSize = dp(14); typeface = android.graphics.Typeface.DEFAULT_BOLD
     }
     private fun dp(n: Int) = n * density
-    fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean) {
+    fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean, night: Boolean = false) {
         // Publish an immutable snapshot; drawing occurs on Mapsforge's layer thread.
         state = State(route, track, gps, showRoute, showTrack,
-            gps.altitudeM?.takeIf { it.isFinite() }?.let { "${it.roundToInt()} m" }); requestRedraw()
+            gps.altitudeM?.takeIf { it.isFinite() }?.let { "${it.roundToInt()} m" }, night); requestRedraw()
     }
     override fun draw(boundingBox: BoundingBox, zoomLevel: Byte, canvas: Canvas, topLeftPoint: Point, rotation: Rotation) {
         val snapshot = state
@@ -55,7 +55,7 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
         }
         val route = snapshot.route
         if (snapshot.showRoute && route != null && route.points.isNotEmpty()) {
-            line(route.points, android.graphics.Color.argb(128, 18, 59, 117), true)
+            line(route.points, if (snapshot.night) android.graphics.Color.argb(128, 90, 150, 255) else android.graphics.Color.argb(128, 18, 59, 117), true)
             paint.style = Paint.Style.FILL
             fun endpoint(point: MapPoint, color: Int) {
                 paint.color = android.graphics.Color.WHITE; target.drawCircle(x(point.longitude), y(point.latitude), dp(7), paint)

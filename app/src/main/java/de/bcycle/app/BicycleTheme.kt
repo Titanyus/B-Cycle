@@ -2,8 +2,9 @@ package de.bcycle.app
 
 import kotlin.math.pow
 
-/** Only these four roles may vary with a palette. All colors are opaque ARGB. */
-data class ThemeTokens(val primary: Int, val secondary: Int, val tertiary: Int, val foreground: Int)
+/** Only these five roles may vary with a palette. All colors are opaque ARGB. */
+data class ThemeTokens(val primary: Int, val secondary: Int, val tertiary: Int, val foreground: Int,
+                       val accent: Int = foreground)
 
 sealed interface BicycleTheme {
     val id: String
@@ -24,13 +25,13 @@ data class CustomTheme(override val id: String, override val name: String,
 
 object BicycleThemes {
     private fun preset(id: String, name: String, primary: Long, secondary: Long, tertiary: Long,
-                       foreground: Long = 0xffffffff) = PresetTheme("preset:$id", name,
-        ThemeTokens(primary.toInt(), secondary.toInt(), tertiary.toInt(), foreground.toInt()))
+                       foreground: Long = 0xffffffff, accent: Long = foreground) = PresetTheme("preset:$id", name,
+        ThemeTokens(primary.toInt(), secondary.toInt(), tertiary.toInt(), foreground.toInt(), accent.toInt()))
     val red = preset("bicycle-red", "BICYCLE RED", 0xffbf281b, 0xff89190e, 0xff680e07)
     /** Immutable templates; stored custom themes cannot overwrite these stable IDs. */
     val presets: List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
         red,
-        preset("black-ops", "BLACK OPS", 0xff535353, 0xff292929, 0xff000000),
+        preset("black-ops", "BLACK OPS", 0xff535353, 0xff000000, 0xff292929, accent = 0xffd1261b),
         // Approved contrast correction: original #C92817 gave only 3.37:1 with #17120D.
         preset("solar-flare", "SOLAR FLARE", 0xffffcb19, 0xfff47713, 0xffe83d24, 0xff17120d),
         preset("electric-blue", "ELECTRIC BLUE", 0xff1168b8, 0xff10508c, 0xff09294d),
@@ -46,6 +47,7 @@ data class ThemeValidation(val problems: List<String>) {
 
 object ThemeValidator {
     const val minimumTextContrast = 4.5
+    const val minimumIconContrast = 3.0
     const val minimumSurfaceStep = 0.01
     fun validate(theme: BicycleTheme): ThemeValidation {
         val problems = mutableListOf<String>()
@@ -56,13 +58,17 @@ object ThemeValidator {
             theme.name.any { it.isISOControl() }) problems += "Theme-Name muss 1–60 lesbare Zeichen enthalten"
         val t = theme.tokens
         val surfaces = listOf(t.primary, t.secondary, t.tertiary)
-        if ((surfaces + t.foreground).any { it ushr 24 != 255 }) problems += "Vier deckende ARGB-Farben erforderlich"
+        if ((surfaces + listOf(t.foreground, t.accent)).any { it ushr 24 != 255 }) problems += "Fünf deckende ARGB-Farben erforderlich"
         val light = surfaces.map(::luminance)
         val steps = listOf(light[1] - light[0], light[2] - light[1])
-        if (!(steps.all { it >= minimumSurfaceStep } || steps.all { it <= -minimumSurfaceStep }))
-            problems += "Flächen müssen gleichgerichtet und erkennbar heller oder dunkler abgestuft sein"
+        if (steps.any { kotlin.math.abs(it) < minimumSurfaceStep })
+            problems += "Benachbarte Flächen müssen erkennbar heller oder dunkler abgestuft sein"
         if (surfaces.any { contrast(t.foreground, it) < minimumTextContrast })
             problems += "Text und Icons benötigen mindestens 4,5:1 Kontrast zu jeder Fläche"
+        // Semantic highlights currently live on SECONDARY. Other surfaces use
+        // the shared per-surface foreground fallback when accent is unreadable.
+        if (contrast(t.accent, t.secondary) < minimumIconContrast)
+            problems += "Accent-Icons benötigen mindestens 3:1 Kontrast zur Dialogfläche"
         return ThemeValidation(problems.toList())
     }
     fun luminance(color: Int): Double {
