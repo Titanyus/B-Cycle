@@ -20,11 +20,11 @@ internal data class GraphFrame(val version: Long, val distanceM: Double, val ser
 internal class GraphScaleManager {
     private val ranges = mutableMapOf<AnalysisChart, GraphRange>()
     fun include(chart: AnalysisChart, value: Double) {
-        val step = when(chart) { AnalysisChart.SPEED -> 10.0; AnalysisChart.CADENCE -> 20.0
-            AnalysisChart.POWER -> 50.0; AnalysisChart.HEART -> 20.0; AnalysisChart.ELEVATION -> 25.0 }
-        val initial = when(chart) { AnalysisChart.SPEED -> GraphRange(0.0,40.0); AnalysisChart.CADENCE -> GraphRange(0.0,120.0)
-            AnalysisChart.POWER -> GraphRange(0.0,300.0); AnalysisChart.HEART -> GraphRange(60.0,180.0)
-            AnalysisChart.ELEVATION -> (floor(value/step)*step).let { GraphRange(it-50,it+50) } }
+        val step = when(chart) { AnalysisChart.SPEED -> 5.0; AnalysisChart.CADENCE -> 10.0
+            AnalysisChart.POWER -> 30.0; AnalysisChart.HEART -> 20.0; AnalysisChart.ELEVATION -> 25.0 }
+        val initial = when(chart) { AnalysisChart.SPEED -> GraphRange(0.0,20.0); AnalysisChart.CADENCE -> GraphRange(0.0,60.0)
+            AnalysisChart.POWER -> GraphRange(0.0,120.0); AnalysisChart.HEART -> GraphRange(50.0,100.0)
+            AnalysisChart.ELEVATION -> (round(value/step)*step).let { GraphRange(it-25,it+25) } }
         val old = ranges[chart] ?: initial
         val margin = (old.high-old.low)*.1
         var low = old.low; var high = old.high

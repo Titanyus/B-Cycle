@@ -67,10 +67,10 @@ Dashboardwechsel und App-Wechsel unterbrechen den gemeinsamen Verlauf nicht.
 ## Skalierung und Glättung
 
 Die Y-Skalen erweitern sich anhand plausibler Originalwerte und schrumpfen während einer
-Fahrt nicht. Schritte: Geschwindigkeit 10 km/h, Kadenz 20 U/min, Leistung 50 W,
+Fahrt nicht. Schritte: Geschwindigkeit 5 km/h, Kadenz 10 U/min, Leistung 30 W,
 Puls 20 bpm, Höhe 25 m. Etwa zehn Prozent Sicherheitsabstand lösen mindestens einen
 vollen Erweiterungsschritt aus. Große Sprünge werden vollständig umfasst. Höhe beginnt
-um den ersten gültigen Messwert, zum Beispiel 450–550 m bei 500 m.
+um den auf die nächste 25-m-Stufe gerundeten ersten Messwert, zum Beispiel 475–525 m bei 500 m.
 
 Nach distanz- und pixelbezogener Verdichtung wird eine leichte, lokale Medianmischung
 verwendet: 75 Prozent Originalpunkt, 25 Prozent benachbarter Median, nur innerhalb eines
@@ -220,3 +220,23 @@ Dropdown-Darstellungen einschließlich Tint und Zeilen-Recycling, Graph-Punktfar
 bestehende Auswahlgrenzen/Persistenz. **4 Tests bestanden**, Release-Kotlin-Kompilierung
 erfolgreich; zusammen 12 Sekunden. Keine vollständige Suite und keine neue APK.
 Diese Änderungen sind noch nicht in APK 0.7.10 enthalten.
+
+## Kleinere Anfangsbereiche (13.10.2026)
+
+| Graph | Anfangsbereich | Erweiterungsschritt |
+| --- | --- | --- |
+| Tempo | 0–20 km/h | 5 km/h |
+| Kadenz | 0–60 U/min | 10 U/min |
+| Fahrerleistung | 0–120 W | 30 W |
+| Puls | 50–100 bpm | 20 bpm |
+| Höhe | ungefähr ±25 m um die erste Höhe | 25 m |
+
+Für Höhe wird die Ausgangsmitte auf die nächstgelegene 25-m-Stufe gerundet, damit
+nahezu gleiche erste Messwerte nicht direkt eine unnötige Erweiterung auslösen.
+Die Skalen wachsen weiterhin mit etwa zehn Prozent Sicherheitsabstand und schrumpfen
+während einer Fahrt nicht. Werte nahe oder außerhalb der Startgrenzen erweitern die
+Skala bereits beim ersten Messwert. Keine Änderung an Kurvenzeichnung oder Sensordaten.
+
+Zwei gezielte Skalierungstests prüfen die neuen Anfangswerte und Schritte, Sicherheitsabstand,
+große Sprünge, unabhängige Skalen und ausbleibende Verkleinerung. Beide bestanden;
+Release-Kotlin-Kompilierung erfolgreich. Zusammen 2 Sekunden. Keine neue APK.

@@ -26,6 +26,8 @@ keine erneute vollständige Suite für diese Versions-/APK-Erstellung.
 
 ## Entwicklungsstand nach APK 0.7.10
 
+- Kleinere Graph-Anfangsbereiche und Schritte: Tempo 0–20/5 km/h, Kadenz 0–60/10 U/min,
+  Leistung 0–120/30 W, Puls 50–100/20 bpm, Höhe ungefähr ±25/25 m; zwei Skalierungstests bestanden.
 - Graph-Overlay-Auswahl mit passenden Farbpunkten wie im Dashboard.
 - Quellen-Dropdown mit den bestehenden GPS-/Fahrradsymbolen, Herz für Pulsmesser
   und Wolke mit Sonne für Wetter; Icons verwenden die Theme-Vordergrundfarbe.

@@ -12,14 +12,30 @@ class LiveGraphDataTest {
         GraphPoint(1_790_000_000_000+t,t,distance,listOf(speed,cadence,power,heart,height),breaks)
     @Test fun independentScalesGrowInFixedStepsWithHeadroomAndNeverShrink() {
         val s=GraphScaleManager();AnalysisChart.entries.forEach { s.include(it,if(it==AnalysisChart.ELEVATION) 500.0 else 100.0) }
-        assertEquals(GraphRange(450.0,550.0),s.range(AnalysisChart.ELEVATION))
+        assertEquals(GraphRange(475.0,525.0),s.range(AnalysisChart.ELEVATION))
         s.include(AnalysisChart.ELEVATION,540.0);val h=s.range(AnalysisChart.ELEVATION)!!
-        assertEquals(450.0,h.low,0.0);assertTrue(h.high>550);assertEquals(0.0,h.high%25,0.0)
+        assertEquals(475.0,h.low,0.0);assertTrue(h.high>525);assertEquals(0.0,h.high%25,0.0)
         s.include(AnalysisChart.POWER,2000.0);val p=s.range(AnalysisChart.POWER)!!
-        assertTrue(p.high-2000 >= (p.high-p.low)*.1);assertEquals(0.0,p.high%50,0.0)
+        assertTrue(p.high-2000 >= (p.high-p.low)*.1);assertEquals(0.0,p.high%30,0.0)
         s.include(AnalysisChart.POWER,0.0);assertEquals(p,s.range(AnalysisChart.POWER))
         s.include(AnalysisChart.ELEVATION,500.0);assertEquals(h,s.range(AnalysisChart.ELEVATION))
         assertNotEquals(p,s.range(AnalysisChart.CADENCE))
+    }
+    @Test fun compactInitialRangesExpandByTheRequestedStepsWithSafetyMargin() {
+        val s=GraphScaleManager()
+        val starts=listOf(Triple(AnalysisChart.SPEED,10.0,GraphRange(0.0,20.0)),
+            Triple(AnalysisChart.CADENCE,30.0,GraphRange(0.0,60.0)),
+            Triple(AnalysisChart.POWER,60.0,GraphRange(0.0,120.0)),
+            Triple(AnalysisChart.HEART,75.0,GraphRange(50.0,100.0)),
+            Triple(AnalysisChart.ELEVATION,499.0,GraphRange(475.0,525.0)))
+        starts.forEach { (chart,value,range) -> s.include(chart,value);assertEquals(chart.name,range,s.range(chart)) }
+        val nearLimits=listOf(Triple(AnalysisChart.SPEED,18.0,25.0),Triple(AnalysisChart.CADENCE,54.0,70.0),
+            Triple(AnalysisChart.POWER,108.0,150.0),Triple(AnalysisChart.HEART,95.0,120.0),Triple(AnalysisChart.ELEVATION,520.0,550.0))
+        nearLimits.forEach { (chart,value,high) ->
+            s.include(chart,value);val range=s.range(chart)!!
+            assertEquals(chart.name,high,range.high,0.0)
+            assertTrue(chart.name,range.high-value >= (range.high-range.low)*.1)
+        }
     }
     @Test fun missingAndRegressingDistanceBreakContinuityWithoutInventingProgress() {
         val h=GraphHistoryBuffer();h.append(point(0,0.0));h.append(point(1000,10.0));h.append(point(2000,null))
