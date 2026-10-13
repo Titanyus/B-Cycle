@@ -211,4 +211,9 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="dashboard_preset_eight">Dashboard 8 · groß oben / 2 / 2</string>
     <string name="dashboard_preset_values">%1$d Werte</string>
     <string name="dashboard_preset_nine">Dashboard 9 · 2 / 3 / 3</string>
+    <string name="graph_overlay">Graph-Overlay</string>
+    <string name="graph_none">Kein Graph</string>
+    <string name="graph_speed">Geschwindigkeit</string>
+    <string name="graph_heart">Herzfrequenz</string>
+    <string name="graph_apply">Speichern</string>
 </resources>

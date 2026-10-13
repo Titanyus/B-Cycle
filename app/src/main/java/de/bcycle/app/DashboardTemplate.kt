@@ -38,6 +38,8 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
             rows.indices.sumOf { (compactRow * rowWeight(it, wide)).toInt() } + rows.size - 1
         return height.coerceIn(0, available.coerceAtLeast(0))
     }
+    fun supportsGraph(slot: Int) = rows.any { it.size == 1 && it.single() == slot }
+
     companion object {
         // Halve the large label area while keeping the original value-row space.
         const val LARGE_COMPACT_RATIO = .75f / .85f

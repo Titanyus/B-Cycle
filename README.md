@@ -26,12 +26,19 @@ zum veralteten Android-`onBackPressed()` bleibt bestehen.
 
 ## Entwicklungsstand nach APK 0.7.8
 
-- Zahlenschrift in allen Dreier-Reihen von 32 auf 45 sp vergrößert (rund 40 Prozent).
-- Ohne sichtbaren Chevron bleibt dessen Raum für den Messwert verfügbar.
+- Live-Graphen für große Dashboardfelder: bis zu zwei transparente, leicht geglättete
+  Kurven direkt hinter dem Messwert; Auswahl im vorhandenen Felddialog.
+- Ganze Fahrtdistanz, ruhige stufenweise Skalen, Aktualisierung alle zehn Sekunden.
+  Sensorwerte, FIT und Performance Engine unverändert.
+- Graph-Auswahl persistent je Feld/Seite und in der Dashboard-Sicherung enthalten.
+- Compile-/Target-SDK 36, weiterhin Android 13+; native Zurück-Anbindung.
+- Zahlenschrift in Dreier-Reihen von 32 auf 45 sp vergrößert (rund 40 Prozent).
+- UX- und Konfigurationsgrundsätze verbindlich in [AGENTS.md](AGENTS.md) hinterlegt.
 - Matrix-ICR50-Briefing für eine spätere BLE-/FTMS-Integration dokumentiert.
 
-Die Schriftänderung ist noch nicht in APK 0.7.8 enthalten; dafür wurde auf Nutzerwunsch
-keine Testsuite ausgeführt. Die Trainer-Integration ist ausschließlich vorgemerkt.
+**336 Tests und Release-Build erfolgreich.** Diese Änderungen sind noch nicht in der
+oben verlinkten APK 0.7.8 enthalten. Freigabe und eine neue signierte Test-APK stehen aus.
+[Implementierung und Prüfnachweis](docs/live-graph-overlays.md).
 
 ## Neu in 0.7.8
 

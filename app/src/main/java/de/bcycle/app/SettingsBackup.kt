@@ -55,6 +55,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("modeGlow", ModeGlowSettings.enabled(bike))
             BackupSection.DASHBOARD -> JSONObject().put("pages", JSONArray().apply { repeat(4) { i ->
                 put(JSONObject().put("index", i).put("fields", jsonArray(DashboardLayout.decode(bike.getString(if(i==0) "dashboard" else "dashboard_$i", null)).fields.map { it.id }))
+                    .put("graphs", JSONArray().apply { GraphOverlayConfig.read(bike,i).slots.forEach { put(jsonArray(it.map { chart -> chart.name })) } })
                     .put("layout", DashboardTemplate.decode(bike.getString("dashboardTemplate_$i", DashboardTemplate.entries[i].name)).name))
             } }).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null)).let {
@@ -131,6 +132,16 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                                 // Older backups contain seven slots; keep the new slot's current choice.
                                 val current=DashboardLayout.decode(bike.getString(key,null)).fields
                                 b[key]=(fields + current.drop(fields.size).map { it.id }).joinToString("|")
+                            }
+                            if(page.has("graphs")) {
+                                val graphs=array(page,"graphs",DashboardLayout.FIELD_COUNT);check(graphs.length()==DashboardLayout.FIELD_COUNT)
+                                val slots=(0 until graphs.length()).map { slot ->
+                                    val values=graphs.opt(slot) as? JSONArray ?: fail()
+                                    check(values.length()<=2)
+                                    val names=strings(values);check(names.distinct().size==names.size && names.all { name -> AnalysisChart.entries.any { it.name==name } })
+                                    names.map { AnalysisChart.valueOf(it) }
+                                }
+                                b[GraphOverlayConfig.key(index)]=GraphOverlayConfig(slots).encode()
                             }
                             if(page.has("layout")) { val layout=field(page,"layout",30);check(DashboardTemplate.entries.any { it.name==layout });b["dashboardTemplate_$index"]=layout }
                         }

@@ -29,7 +29,7 @@ import java.time.Duration
 
 /** Exercises real runtime/service/journal/export against a native ContentProvider test double. */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33, 35])
+@Config(sdk = [33, 35, 36])
 class RecordingFlowTest {
     private fun provider(): DownloadsProvider {
         val app = RuntimeEnvironment.getApplication()

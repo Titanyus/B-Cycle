@@ -1,7 +1,26 @@
-# Vorgemerkte Compile-/Target-SDK-Modernisierung
+# Compile-/Target-SDK-Modernisierung
 
-Stand: 12.10.2026. Technischer Folgeauftrag; noch keine Änderung der SDK-Werte oder Toolchain.
-Android 13+ bleibt unterstützt. Das Mindest-SDK wird nicht auf Android 16 angehoben.
+Stand: 13.10.2026. Der folgende vorgemerkte Auftrag ist umgesetzt.
+Compile-/Target-SDK: **36**, Mindest-SDK: weiterhin **33** (Android 13).
+AGP 8.9.2, Gradle 8.11.1, Kotlin 2.1.20 und JVM-Ziel 17 bleiben erhalten;
+Build-JDK 21. Android-36-Plattform Revision 2 ist installiert.
+
+Robolectric wurde für API 36 von 4.14.1 auf 4.16.1 erweitert. Die Offline-Testartefakte
+für API 33, 35 und 36 sind zentral in Gradle definiert. Der native Zurück-Callback
+wird für Karten-Vollbild registriert und danach wieder freigegeben. Native Dialoge
+behalten ihre vorhandene Zurück-Navigation und Elternansichten. Keine neue Bibliothek
+für App-Navigation und keine Änderungen an Sensor-/FIT-Berechnung.
+
+Fullscreen, IME/Insets, Zurück-Navigation, Pulsmesser-GATT und Aufzeichnungslifecycle
+sind auf API 33/35/36 geprüft. Die vollständige Suite mit **336 Tests** und der
+Release-Build einschließlich Release-Lint-Vital bestehen. Eine tatsächliche Fahrt
+unter Android 16 sowie Dateiprovider und JobScheduler-Quoten müssen zusätzlich am
+Gerät geprüft werden. SDK-Anhebung allein verspricht keine kleinere oder schnellere APK.
+Die API-34-Abfrage für MSL-Höhe bleibt erforderlich.
+
+[Gesamter Implementierungs- und Buildnachweis](live-graph-overlays.md).
+
+## Ursprünglicher Prüfplan (12.10.2026)
 
 ## Bestandsaufnahme
 
@@ -17,7 +36,7 @@ Android 13+ bleibt unterstützt. Das Mindest-SDK wird nicht auf Android 16 angeh
 | Build-JDK | Bestehendes JDK 21 | Kompatibilität der endgültigen Toolchain prüfen |
 | Testumgebung | Robolectric 4.14.1, SDK-Tests 33/35 | API-36-Unterstützung prüfen und gezielt ergänzen |
 
-In der aktuellen Arbeitsumgebung ist nur die Android-35-Plattform installiert.
+Zum Zeitpunkt der ursprünglichen Bestandsaufnahme war nur die Android-35-Plattform installiert.
 Die erforderliche Android-36-Plattform und passende Testartefakte sind bei Umsetzung bereitzustellen.
 
 `compileSdk` bestimmt die verfügbaren Android-APIs beim Kompilieren. `targetSdk` aktiviert
@@ -89,8 +108,8 @@ erforderlich. Sensor-, FIT-, Performance- und Theme-Verhalten nicht nebenbei ver
 - Signierte Test-APK separat bereitstellen; reale Android-16-Prüfung für BLE, Display-Off,
   Dateiprovider und Hintergrundverhalten zusätzlich zu JVM-/Robolectric-Tests vorsehen.
 
-Für diese Vormerkung wurden nur vorhandene Konfiguration und relevante Codebereiche
-analysiert. Keine SDK-Installation, keine Versionsänderung, keine Testsuite oder neue APK.
+Die ursprüngliche Vormerkung enthielt nur die Analyse. Die oben dokumentierte Umsetzung
+installiert API 36 und prüft die aktualisierte Konfiguration; noch keine neue signierte Test-APK.
 
 ## Offizielle Referenzen für die Umsetzung
 

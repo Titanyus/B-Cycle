@@ -14,6 +14,7 @@ import android.widget.TextView
 internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     bikeDistanceM: Long?, pulse: PulseValues, selected: DashboardField?, allowEmpty: Boolean,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
+    graphPicker: GraphOverlayPicker? = null,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
@@ -58,6 +59,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                     })
                 }
             }
+            if (graphPicker != null) rows.addView(graphPicker)
         }
         selector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = populate(position)

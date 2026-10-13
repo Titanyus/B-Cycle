@@ -6,6 +6,7 @@ plugins {
 // Resolve Android test SDKs through Gradle's configured repositories/proxy.
 val robolectricSdk33 by configurations.creating
 val robolectricSdk35 by configurations.creating
+val robolectricSdk36 by configurations.creating
 
 dependencies {
     implementation("org.mapsforge:mapsforge-map-android:0.25.0")
@@ -19,18 +20,19 @@ dependencies {
     // Independent wire-format encoder used only in JVM tests; absent from the APK.
     testImplementation("com.google.protobuf:protobuf-java:3.25.5")
     // Native Android layout/font verification only; absent from the APK.
-    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("org.robolectric:robolectric:4.16.1")
     robolectricSdk33("org.robolectric:android-all-instrumented:13-robolectric-9030017-i7")
-    robolectricSdk35("org.robolectric:android-all-instrumented:15-robolectric-12650502-i7")
+    robolectricSdk35("org.robolectric:android-all-instrumented:15-robolectric-13954326-i7")
+    robolectricSdk36("org.robolectric:android-all-instrumented:16-robolectric-13921718-i7")
 }
 
 android {
     namespace = "de.bcycle.app"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "de.bcycle.app"
         minSdk = 33
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 46
         versionName = "0.7.8"
     }
@@ -53,7 +55,7 @@ android {
             val sdkDir = layout.buildDirectory.dir("robolectric-sdk").get().asFile
             it.systemProperty("robolectric.offline", "true")
             it.systemProperty("robolectric.dependency.dir", sdkDir.absolutePath)
-            it.doFirst { copy { from(robolectricSdk33, robolectricSdk35); into(sdkDir) } }
+            it.doFirst { copy { from(robolectricSdk33, robolectricSdk35, robolectricSdk36); into(sdkDir) } }
         }
     }
 }

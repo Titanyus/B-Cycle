@@ -17,7 +17,7 @@ import org.robolectric.shadow.api.Shadow
 import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33, 35], shadows = [HeartRateConnectionTest.GattShadow::class])
+@Config(sdk = [33, 35, 36], shadows = [HeartRateConnectionTest.GattShadow::class])
 class HeartRateConnectionTest {
     @Test fun subscribesToStandardHeartRateNotificationsAndIgnoresOldClientAfterDisconnect() {
         val app = RuntimeEnvironment.getApplication()
@@ -60,7 +60,7 @@ class HeartRateConnectionTest {
         var writtenDescriptor: BluetoothGattDescriptor? = null
         var writtenValue: ByteArray? = null
         @Implementation(minSdk = 33)
-        protected fun writeDescriptor(descriptor: BluetoothGattDescriptor, value: ByteArray): Int {
+        public override fun writeDescriptor(descriptor: BluetoothGattDescriptor, value: ByteArray): Int {
             writtenDescriptor = descriptor; writtenValue = value.copyOf()
             return BluetoothStatusCodes.SUCCESS
         }

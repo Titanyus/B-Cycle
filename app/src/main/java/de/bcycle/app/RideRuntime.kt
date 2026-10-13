@@ -28,6 +28,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private val heartReconnect = AutoReconnect()
     private val times = mutableMapOf<LiveMetric, Long>()
     val observers = linkedSetOf<() -> Unit>()
+    internal val liveGraphs = LiveGraphProvider { if (visible) notifyChanged() }
+    private var graphContinuedZeroMs = 0L
     var scanFound: ((BluetoothDevice, String) -> Unit)? = null
     var scanStatus: ((String) -> Unit)? = null
     var bikeData = LiveData(); private set
@@ -232,6 +234,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         startElapsed = SystemClock.elapsedRealtime(); startUtc = System.currentTimeMillis()
         completedElapsedMs = null; hasRecordingClock = true
         performance = PerformanceEngine(); pendingPerformance.clear(); performanceOverflow = false
+        graphContinuedZeroMs=0; liveGraphs.begin()
         if (activeConfig.speedSource == "GPS_SPEED") captureGpsPerformance()
         listOf(PerformanceChannel.POWER, PerformanceChannel.HEART_RATE, PerformanceChannel.SPEED, PerformanceChannel.BIKE_ACTIVITY).forEach { channel ->
             val event = latestPerformance[channel]
@@ -252,12 +255,16 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     fun stopRecording() {
         if (!recording) return
         completedElapsedMs = appendSample(); recording = false; saving = true; recordingStatus = "FIT wird gespeichert …"
-        store.finish(); updateActivity()
+        liveGraphs.stop(); store.finish(); updateActivity()
     }
     private fun appendSample(): Long {
         val sample = sample()
         sample.performanceEvents.forEach(performance::accept)
         performance.advance(sample.elapsedMs)
+        val continued=performance.snapshot().quality.continuedZeroMs
+        liveGraphs.append(graphPoint(sample,activeConfig,continued > graphContinuedZeroMs,
+            connection.isLive && bikeData.value(LiveMetric.CADENCE)==0L))
+        graphContinuedZeroMs=continued
         pendingPerformance.clear(); performanceOverflow = false
         store.append(sample)
         if (mapTrackEnabled) mapState.track.append(sample)

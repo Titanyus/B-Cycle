@@ -38,6 +38,15 @@ class MainActivity : Activity() {
     private val templateKey get() = "dashboardTemplate_$dashboardPage"
     private fun currentTemplate() = DashboardTemplate.decode(preferences.getString(templateKey, DashboardTemplate.entries[dashboardPage].name))
     private var dashboardLayout = DashboardLayout.defaults
+    private var dashboardGraphs = GraphOverlayConfig()
+    private val mapBack = android.window.OnBackInvokedCallback { setMapFullscreen(false) }
+    private var mapBackRegistered = false
+    private fun updateMapBack() {
+        if (mapFullscreen == mapBackRegistered) return
+        if (mapFullscreen) onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,mapBack)
+        else onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
+        mapBackRegistered=mapFullscreen
+    }
     private var picker: AlertDialog? = null
     private var menu: AlertDialog? = null
     private data class DetailSession(val id: String, val screen: AlertDialog, val content: RouteAnalysisView, val footer: LinearLayout, var analysis: RouteAnalysis? = null, var signature: String = "")
@@ -75,6 +84,7 @@ class MainActivity : Activity() {
         pendingBackupExport = savedInstanceState?.getByteArray("settingsBackupPendingExport")
         dashboardPage = preferences.getInt("dashboardPage", 0).coerceIn(0, 3)
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
+        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage)
         mapFullscreen = savedInstanceState?.getBoolean("mapFullscreen", false) ?: false
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
         root.setOnApplyWindowInsetsListener { view, insets ->
@@ -83,6 +93,8 @@ class MainActivity : Activity() {
         }
         setContentView(root)
         dashboard = DashboardView(this) { chooseField(it) }
+        dashboard.graphWidthChanged={ runtime.liveGraphs.width=it }
+        updateMapBack()
         dashboard.changePage = ::changeDashboard
         dashboard.setTemplate(currentTemplate())
         mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink)
@@ -159,6 +171,7 @@ class MainActivity : Activity() {
                 message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
+        dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
         dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
         if (::mapPanel.isInitialized) mapPanel.refresh()
@@ -176,6 +189,14 @@ class MainActivity : Activity() {
         if (!permitted()) return
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
+        val graphs=if(!mapField && dashboard.template.supportsGraph(index))
+            GraphOverlayPicker(settingsContext,runtime.themes,dashboardGraphs.slots[index]) else null
+        fun saveGraphs() {
+            if(graphs!=null) {
+                dashboardGraphs=dashboardGraphs.replace(index,graphs.selected)
+                preferences.edit().putString(GraphOverlayConfig.key(dashboardPage),dashboardGraphs.encode()).apply()
+            }
+        }
         fun select(field: DashboardField?) {
             // The bike may have started moving while the selection was open.
             if (!permitted()) { picker?.dismiss(); return }
@@ -188,13 +209,17 @@ class MainActivity : Activity() {
                 dashboardLayout = dashboardLayout.replace(index, field)
                 preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
             }
-            render(); picker?.dismiss()
+            saveGraphs(); render(); picker?.dismiss()
             if (field?.requiresGps == true) enableGps()
         }
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
-            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, ::select)
-        picker = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen")
-            .setView(content).setNegativeButton("Abbrechen", null).show()
+            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, ::select)
+        val builder = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen")
+            .setView(content).setNegativeButton("Abbrechen", null)
+        if(graphs!=null) builder.setPositiveButton(getString(R.string.graph_apply)) { _,_ ->
+            if(permitted()) { saveGraphs(); render() }
+        }
+        picker=builder.show()
     }
     private fun showMenu() {
         val content = SettingsMenuView(settingsContext, runtime.themes) { action ->
@@ -442,18 +467,20 @@ class MainActivity : Activity() {
         dialogs.closeAll(); stopScan()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
-    override fun onDestroy() { dialogs.closeAll(); mapPanel.destroy(); super.onDestroy() }
-    @Deprecated("Native Activity back handling")
-    override fun onBackPressed() { if (mapFullscreen) setMapFullscreen(false) else super.onBackPressed() }
+    override fun onDestroy() {
+        if(mapBackRegistered) onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
+        dialogs.closeAll(); mapPanel.destroy(); super.onDestroy()
+    }
 
     private fun setMapFullscreen(full: Boolean) {
-        mapFullscreen = full; dashboard.visibility = if (full) View.GONE else View.VISIBLE
+        mapFullscreen = full; updateMapBack(); dashboard.visibility = if (full) View.GONE else View.VISIBLE
         mapPanel.showFullscreen(full); dashboardArea.requestLayout()
     }
     private fun changeDashboard(delta: Int) {
         dashboardPage = (dashboardPage + delta + 4) % 4
         preferences.edit().putInt("dashboardPage", dashboardPage).apply()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
+        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage)
         val template = currentTemplate(); dashboard.setTemplate(template)
         dashboardArea.requestLayout()
         (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
@@ -751,6 +778,7 @@ class MainActivity : Activity() {
                                     result.fold({ plan ->
                                         if(BackupSection.DASHBOARD in selected) {
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
+                                            dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage)
                                             dashboard.setTemplate(currentTemplate());dashboardArea.requestLayout()
                                             (mapPanel.layoutParams as LinearLayout.LayoutParams).weight=1f-currentTemplate().dataFraction
                                         }

@@ -23,6 +23,12 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private val numbers = resources.getFont(R.font.bebas_neue)
     private val captions = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
     private val tiles = mutableListOf<Tile>()
+    private var graphConfig = GraphOverlayConfig()
+    private var graphFrame: GraphFrame? = null
+    var graphWidthChanged: ((Int) -> Unit)? = null
+    internal fun showGraphs(config: GraphOverlayConfig, frame: GraphFrame?) {
+        graphConfig=config; graphFrame=frame; tiles.forEach { it.updateGraph() }
+    }
     private var layout = DashboardLayout.defaults
     private var data = LiveData()
     private var gps = GpsValues()
@@ -155,7 +161,19 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     private fun line() = View(context).apply { setBackgroundColor(Color.rgb(44, 44, 44)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 
-    private inner class Tile(index: Int) {
+    private inner class Tile(private val index: Int) {
+        private val overlay=DashboardGraphDrawable(resources.displayMetrics.density)
+        private var graphShown=false
+        private var plainBackground: android.graphics.drawable.Drawable?=null
+        fun updateGraph() {
+            val selected=if(template.supportsGraph(index)) graphConfig.slots[index] else emptyList()
+            if(selected.isNotEmpty()!=graphShown) {
+                if(plainBackground==null) plainBackground=container.background
+                graphShown=selected.isNotEmpty()
+                container.background=if(graphShown) android.graphics.drawable.LayerDrawable(arrayOf(plainBackground!!,overlay)) else plainBackground
+            }
+            if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom))
+        }
         private val threeColumns = template.rows.any { it.size == 3 && index in it }
         private val swipe = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
             override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, velocityX: Float, velocityY: Float): Boolean {
@@ -168,7 +186,12 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 return false
             }
         })
-        val container = LinearLayout(context).apply {
+        val container = object : LinearLayout(context) {
+            override fun onSizeChanged(w: Int,h: Int,oldw: Int,oldh: Int) {
+                super.onSizeChanged(w,h,oldw,oldh)
+                if(template.supportsGraph(index)) graphWidthChanged?.invoke((w-paddingLeft-paddingRight).coerceAtLeast(64))
+            }
+        }.apply {
             orientation = VERTICAL
             val horizontal = if (threeColumns) BicycleDesign.tripleHorizontalPadding else 10
             setPadding(dp(horizontal), dp(8), dp(horizontal), dp(4))
@@ -200,6 +223,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private val row = ValueRow(value, unit, threeColumns)
 
         init {
+            updateGraph()
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
                 captionWeight))
             container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))

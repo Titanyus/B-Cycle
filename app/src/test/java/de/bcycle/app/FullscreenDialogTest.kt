@@ -20,7 +20,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33, 35], qualifiers = "mdpi")
+@Config(sdk = [33, 35, 36], qualifiers = "mdpi")
 class FullscreenDialogTest {
     private fun views(v: View): List<View> = listOf(v) + if (v is ViewGroup)
         (0 until v.childCount).flatMap { views(v.getChildAt(it)) } else emptyList()
@@ -38,7 +38,7 @@ class FullscreenDialogTest {
                 var saved = false; var cancelled = false
                 val body = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL
                     repeat(count) { addView(TextView(activity).apply { text = "Eintrag $it"; minHeight = 48 }) } }
-                val scroll = ScrollView(activity).apply { addView(body) }
+                val scroll = ScrollView(activity).apply { isSmoothScrollingEnabled=false; addView(body) }
                 val dialog = BicycleDialogBuilder(activity, themes, DialogNavigation()).setTitle("Referenz")
                     .setView(scroll).setNegativeButton("Abbrechen") { _, _ -> cancelled = true }
                     .setPositiveButton("Speichern") { _, _ -> saved = true }.show()
@@ -71,7 +71,7 @@ class FullscreenDialogTest {
             val activity = controller.get(); val themes = ThemeManager(activity.getSharedPreferences("insets", 0))
             val body = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
             repeat(30) { body.addView(EditText(activity).apply { setText("Feld $it"); minHeight = 48 }) }
-            val scroll = ScrollView(activity).apply { addView(body) }
+            val scroll = ScrollView(activity).apply { isSmoothScrollingEnabled=false; addView(body) }
             val dialog = BicycleDialogBuilder(activity, themes, DialogNavigation()).setTitle("Eingaben")
                 .setView(scroll).setNegativeButton("Abbrechen", null).setPositiveButton("Speichern", null).show()
             measure(dialog, 800, 1200)
