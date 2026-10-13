@@ -90,4 +90,5 @@ Shader-Wiederverwendung bleiben erhalten.
 
 Für die Rücknahme wurden nur die beiden vorhandenen nativen Pixeltests für symmetrische
 Verläufe/Clipping und Akku-Breathing/Breitenverhalten ausgeführt. Beide bestanden;
-Kompilierung und gezielter Testlauf zusammen 7 Sekunden. Keine neue APK.
+Kompilierung und gezielter Testlauf zusammen 7 Sekunden. Die Korrektur ist inzwischen
+in der [Test-APK 0.7.10](milestone-0710.md) enthalten.

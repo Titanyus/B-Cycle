@@ -6,25 +6,25 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.9 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.9/downloads/B-Cycle-0.7.9-test.apk)**
+**[APK 0.7.10 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.10/downloads/B-Cycle-0.7.10-test.apk)**
 
 - Größe: **1.074.873 Byte**, rund **1,07 MB**.
 - Signierte, optimierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
 - Android 13+ (minSdk 33), Compile-/Target-SDK 36.
-- Enthält Live-Graphen, sanfte Anzeige-Glättung, Dashboard-Backup und die größere
-  Zahlenschrift für Dreier-Reihen.
-- Bei einem privaten Repository vorher auf GitHub anmelden; alte APKs bleiben unter
+- Enthält die neuesten Graph-Anpassungen, synchronisierte Direktwert-/Durchschnitts-Chevrons
+  und die zurückgenommene Glow-Helligkeit bei unveränderter Breite.
+- Bei einem privaten Repository vorher auf GitHub anmelden; ältere APKs bleiben unter
   [downloads](downloads) erhalten.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.9-test.apk.sha256):
-  `81f59aa5cf691a4de4d5bce98da3da5acddefc8bb33e68d4779370515c3d854e`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.10-test.apk.sha256):
+  `e2bc75ba9c2ace5f6826ea6ad3ec24c197edd915ce5fb783154de0f1cf25f7bb`.
 
-Release-Build einschließlich Release-Lint-Vital und **6 FIT-/Garmin-Versionsprüfungen**
-erfolgreich in **37 Sekunden**. Signatur, Version 0.7.9/47 sowie SDK-Werte separat geprüft.
-Der unveränderte Funktionsstand wurde unmittelbar zuvor mit **336 Tests der vollständigen
-Suite** geprüft. Keine erneute vollständige Suite für die reine Versions-/APK-Erstellung.
-[Buildnachweis 0.7.9](docs/milestone-079.md).
+Release-Build inklusive Release-Lint-Vital und **6 FIT-/Garmin-Versionsprüfungen**
+erfolgreich in **39 Sekunden**. Signatur, Version 0.7.10/48 und SDK-Werte separat geprüft.
+Die vorausgehenden Änderungen wurden mit gezielten Chevron-, Glow- und Graph-Tests geprüft;
+keine erneute vollständige Suite für diese Versions-/APK-Erstellung.
+[Buildnachweis 0.7.10](docs/milestone-0710.md).
 
-## Entwicklungsstand nach APK 0.7.9
+## Neu in APK 0.7.10
 
 - Direktwert-Chevrons zeigen denselben Trend wie ihre jeweiligen Durchschnittsfelder;
   GPS-Tempo folgt dem Durchschnitt in Bewegung.
@@ -33,8 +33,7 @@ Suite** geprüft. Keine erneute vollständige Suite für die reine Versions-/APK
 - Dünne Grenzlinien links/rechts laufen oben und unten transparent aus; Kurven und Lichtsaum enden an den Grenzen.
 - Sieben gezielte Darstellungstests und Release-Kompilierung für diese Anpassungen bestanden.
 - Glow-Helligkeit wieder auf dem vorherigen Niveau, verbreiterter Glow unverändert; zwei gezielte Pixeltests bestanden.
-- Acht gezielte Tests für Chevron-/Graph-Korrekturen und Release-Kompilierung erfolgreich. Noch keine neue APK;
-  die oben verlinkte 0.7.9 enthält diese Korrektur noch nicht.
+- Acht gezielte Tests für die zuvor umgesetzte Chevron-/Graph-Korrektur und Release-Kompilierung erfolgreich.
 
 ## Entwicklungsstand nach APK 0.7.8
 

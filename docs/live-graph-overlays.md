@@ -1,7 +1,8 @@
 # Live-Graph-Overlays und SDK-Modernisierung
 
 Stand: 13.10.2026. Implementierung und Prüfung abgeschlossen und freigegeben.
-Die signierte Test-APK 0.7.9 enthält diese Änderungen; [Buildnachweis](milestone-079.md).
+Die signierte Test-APK 0.7.10 enthält sämtliche folgenden Änderungen und Korrekturen;
+[Buildnachweis](milestone-0710.md).
 
 ## Bedienung und Darstellung
 
@@ -187,3 +188,10 @@ bestand ebenfalls. Keine Änderung an Produktivcode oder Trendberechnung für di
 
 Insgesamt wurden für diese Darstellungsanpassungen **sieben unterschiedliche gezielte
 Tests** geprüft; keine vollständige Suite und keine neue APK.
+
+## APK-Veröffentlichung
+
+Alle oben beschriebenen Korrekturen einschließlich Grenzlinien sind in der signierten
+Test-APK **0.7.10** enthalten. Die Hinweise „keine neue APK“ in den einzelnen
+Änderungsschritten beziehen sich auf deren damalige gezielte Prüfung.
+[Release-Nachweis](milestone-0710.md).
