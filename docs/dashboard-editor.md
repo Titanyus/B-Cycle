@@ -114,5 +114,4 @@ Die ehemaligen Stillstandssperren-Tests wurden durch neun Editor-Tests ersetzt,
 zusätzlich kamen drei reine Interpolations-Tests und ein Karten-Lebenszyklustest hinzu.
 Vorhandene Bedienungs- und Layouttests nutzen den neuen Editor-Einstieg beziehungsweise
 unterschiedliche Hochformat-Größen. Sensorverarbeitung, FIT-Rohdaten und Performance-
-Berechnungen wurden nicht geändert. Release-Artefakt liegt im lokalen Build-Verzeichnis;
-die veröffentlichte Test-APK 0.7.10 enthält diesen Entwicklungsstand noch nicht.
+Berechnungen wurden nicht geändert. Dieser Entwicklungsstand ist jetzt in der signierten [Test-APK 0.7.11](milestone-0711.md) enthalten.

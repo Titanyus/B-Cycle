@@ -6,25 +6,22 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.10 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.10/downloads/B-Cycle-0.7.10-test.apk)**
+**[APK 0.7.11 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.11/downloads/B-Cycle-0.7.11-test.apk)**
 
-- Größe: **1.074.873 Byte**, rund **1,07 MB**.
+- Größe: **1.083.121 Byte**, rund **1,08 MB**.
 - Signierte, optimierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36.
-- Enthält die neuesten Graph-Anpassungen, synchronisierte Direktwert-/Durchschnitts-Chevrons
-  und die zurückgenommene Glow-Helligkeit bei unveränderter Breite.
-- Bei einem privaten Repository vorher auf GitHub anmelden; ältere APKs bleiben unter
-  [downloads](downloads) erhalten.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.10-test.apk.sha256):
-  `e2bc75ba9c2ace5f6826ea6ad3ec24c197edd915ce5fb783154de0f1cf25f7bb`.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.11/49.
+- Dashboard-Editor, weiche GPS-Kartenbewegung, verbindliches Hochformat und die aktuellen Graph-/Feldauswahl-Anpassungen.
+- Bei einem privaten Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads) erhalten.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.11-test.apk.sha256):
+  `c7144088edb07fe15ba599a4dcfd5bd580e209422b731dccbc94d57a56e59022`.
 
-Release-Build inklusive Release-Lint-Vital und **6 FIT-/Garmin-Versionsprüfungen**
-erfolgreich in **39 Sekunden**. Signatur, Version 0.7.10/48 und SDK-Werte separat geprüft.
-Die vorausgehenden Änderungen wurden mit gezielten Chevron-, Glow- und Graph-Tests geprüft;
-keine erneute vollständige Suite für diese Versions-/APK-Erstellung.
-[Buildnachweis 0.7.10](docs/milestone-0710.md).
+Der Funktionsstand hat **354 Tests und den Release-Build** bestanden.
+Für diese Versions-/APK-Erstellung: **6 FIT-/Garmin-Prüfungen und Release-Build bestanden**
+in **45 Sekunden**. Signaturgleichheit mit APK 0.7.10, ZIP-Ausrichtung, Version und SDK-Werte separat geprüft.
+[Buildnachweis 0.7.11](docs/milestone-0711.md).
 
-## Entwicklungsstand nach APK 0.7.10
+## Neu in APK 0.7.11
 
 - [Weiche Kartenbewegung](docs/map-motion.md): 450-ms-Übergänge mit gemeinsamer Position
   und Drehung; nur bei Bewegung und sichtbarer GPS-Verfolgung.
@@ -38,7 +35,7 @@ keine erneute vollständige Suite für diese Versions-/APK-Erstellung.
 - Graph-Overlay-Auswahl mit passenden Farbpunkten wie im Dashboard.
 - Quellen-Dropdown mit den bestehenden GPS-/Fahrradsymbolen, Herz für Pulsmesser
   und Wolke mit Sonne für Wetter; Icons verwenden die Theme-Vordergrundfarbe.
-- Vier gezielte Tests und Release-Kompilierung bestanden. Noch nicht in APK 0.7.10 enthalten.
+- Alle genannten Änderungen sind in APK 0.7.11 enthalten.
 
 ## Neu in APK 0.7.10
 
