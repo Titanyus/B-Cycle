@@ -165,14 +165,16 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private val overlay=DashboardGraphDrawable(resources.displayMetrics.density)
         private var graphShown=false
         private var plainBackground: android.graphics.drawable.Drawable?=null
+        private fun selectedGraphs() = if(template.supportsGraph(index)) graphConfig.slots[index] else emptyList()
         fun updateGraph() {
-            val selected=if(template.supportsGraph(index)) graphConfig.slots[index] else emptyList()
+            val selected=selectedGraphs()
             if(selected.isNotEmpty()!=graphShown) {
                 if(plainBackground==null) plainBackground=container.background
                 graphShown=selected.isNotEmpty()
                 container.background=if(graphShown) android.graphics.drawable.LayerDrawable(arrayOf(plainBackground!!,overlay)) else plainBackground
             }
             if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom))
+            showCaption(layout.fields[index])
         }
         private val threeColumns = template.rows.any { it.size == 3 && index in it }
         private val swipe = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
@@ -229,19 +231,27 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
         }
 
+        private fun showCaption(field: DashboardField) {
+            val short = field.dashboardTitle(data).uppercase(Locale.GERMANY)
+            val graphs = selectedGraphs()
+            val captionKey = "${field.captionIcon ?: ""}:$short:${graphs.joinToString { it.name }}"
+            if (title.tag == captionKey) return
+            title.tag = captionKey
+            if (graphs.isEmpty() && field.captionIcon == null) { title.text=short; return }
+            val prefix=if(field.captionIcon!=null) "\uFFFC $short" else short
+            val text=android.text.SpannableString(prefix+graphs.joinToString("") { "  \uFFFC" })
+            if(field.captionIcon!=null) text.setSpan(SourceIconSpan(field.captionIcon!!,context),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            graphs.forEachIndexed { i,chart ->
+                val at=prefix.length+i*3+2
+                text.setSpan(RecordingDotSpan(resources.displayMetrics.density,chart.color(Color.BLACK),7f),at,at+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            title.text=text
+        }
+
         fun show(field: DashboardField, data: LiveData) {
             val next = field.value(data, gps, bikeDistanceM, pulse)
             val caption = if (field.showSource) "${field.source} · ${field.title(data, gps)}" else field.title(data, gps)
-            val short = field.dashboardTitle(data).uppercase(Locale.GERMANY)
-            val captionKey = "${field.captionIcon ?: ""}:$short"
-            if (title.tag != captionKey) {
-                title.tag = captionKey
-                title.text = if (field.captionIcon != null) {
-                    android.text.SpannableString("\uFFFC $short").apply {
-                        setSpan(SourceIconSpan(field.captionIcon!!, context), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    }
-                } else short
-            }
+            showCaption(field)
             row.direction = trends.indicator(field, data, gps, pulse, android.os.SystemClock.elapsedRealtime())
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }
                 ?.let { String.format(Locale.GERMANY, "%.1f", it) } else null

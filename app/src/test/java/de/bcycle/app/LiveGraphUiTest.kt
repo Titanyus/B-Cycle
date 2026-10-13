@@ -46,10 +46,10 @@ class LiveGraphUiTest {
         for(template in DashboardTemplate.entries) for((w,h) in listOf(960 to 1500,1440 to 780)) {
             val view=DashboardView(context) {};view.setTemplate(template);measure(view,w,h)
             val tiles=all(view).filter { it.isClickable };val geometry=tiles.map { listOf(it.left,it.top,it.width,it.height) }
-            val fonts=all(view).filterIsInstance<TextView>().map { Triple(it.textSize,it.currentTextColor,it.text.toString()) }
+            val fonts=all(view).filterIsInstance<TextView>().map { Pair(it.textSize,it.currentTextColor) }
             view.showGraphs(GraphOverlayConfig().replace(2,listOf(AnalysisChart.SPEED,AnalysisChart.POWER)),history());measure(view,w,h)
             assertEquals(geometry,all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) })
-            assertEquals(fonts,all(view).filterIsInstance<TextView>().map { Triple(it.textSize,it.currentTextColor,it.text.toString()) })
+            assertEquals(fonts,all(view).filterIsInstance<TextView>().map { Pair(it.textSize,it.currentTextColor) })
             assertEquals(if(template.supportsGraph(2)) 1 else 0,all(view).count { it.background is LayerDrawable })
             // Draw a real bitmap to exercise clipping/cached paths on narrow and landscape fields.
             view.draw(Canvas(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)))
@@ -63,7 +63,7 @@ class LiveGraphUiTest {
         val b=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888);d.draw(Canvas(b))
         for(y in 0 until 200) if(y<plot.top.toInt() || y>plot.bottom.toInt()) for(x in 0 until 400) assertEquals(0,b.getPixel(x,y))
         d.update(f,listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),intArrayOf(10,8,10,4));assertEquals(2,d.axisCount)
-        assertTrue(LiveGraphStyle.FILL_ALPHA<LiveGraphStyle.LINE_ALPHA);assertTrue(LiveGraphStyle.LINE_ALPHA<160)
+        assertTrue(LiveGraphStyle.FILL_ALPHA<LiveGraphStyle.LINE_ALPHA);assertTrue(LiveGraphStyle.LINE_ALPHA<255)
         assertEquals(AnalysisChart.SPEED.darkColor,AnalysisChart.SPEED.color(Color.BLACK))
     }
     @Test fun dashboardBackupRoundTripsGraphsPreservesLegacyAndRejectsThirdChoice() {
@@ -121,6 +121,64 @@ class LiveGraphUiTest {
         p.stop();worker.submit {}.get(5,TimeUnit.SECONDS);shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(10));worker.submit {}.get(5,TimeUnit.SECONDS)
         assertEquals(31,p.frame!!.series.getValue(AnalysisChart.POWER).points.last().breaks)
         worker.shutdownNow()
+    }
+
+    @Test fun overlayDotsFollowSelectedColorsAndOrderOnlyOnLargeFieldCaptions() {
+        val view=DashboardView(context) {};view.show(DashboardLayout.defaults,LiveData(speedHundredths=3000))
+        measure(view,1080,1500)
+        val before=all(view).filter { it.isClickable }.map { listOf(it.width,it.height) }
+        val cfg=GraphOverlayConfig().replace(2,listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE))
+        view.showGraphs(cfg,history());measure(view,1080,1500)
+        val caption=all(view).filterIsInstance<TextView>().single { it.text is android.text.Spanned &&
+            (it.text as android.text.Spanned).getSpans(0,it.text.length,RecordingDotSpan::class.java).isNotEmpty() }
+        val text=caption.text as android.text.Spanned
+        val dots=text.getSpans(0,text.length,RecordingDotSpan::class.java)
+        assertEquals(2,dots.size);assertTrue(text.toString().contains("TEMPO"))
+        dots.forEachIndexed { i,dot ->
+            val b=Bitmap.createBitmap(30,30,Bitmap.Config.ARGB_8888)
+            dot.draw(Canvas(b),"x",0,1,0f,0,20,30,Paint().apply { textSize=18f })
+            val colors=(0 until 30).flatMap { y -> (0 until 30).map { x -> b.getPixel(x,y) } }
+            assertTrue(colors.contains(cfg.slots[2][i].color(Color.BLACK)))
+        }
+        assertEquals(before,all(view).filter { it.isClickable }.map { listOf(it.width,it.height) })
+        assertTrue(all(view).filterIsInstance<TextView>().any { it.text.toString()=="30,0" })
+        view.showGraphs(GraphOverlayConfig(),null)
+        assertFalse(all(view).filterIsInstance<TextView>().any { it.text is android.text.Spanned &&
+            (it.text as android.text.Spanned).getSpans(0,it.text.length,RecordingDotSpan::class.java).isNotEmpty() })
+        view.showGraphs(cfg,history());view.setTemplate(DashboardTemplate.FIVE)
+        assertFalse(all(view).filterIsInstance<TextView>().any { it.text is android.text.Spanned &&
+            (it.text as android.text.Spanned).getSpans(0,it.text.length,RecordingDotSpan::class.java).isNotEmpty() })
+    }
+    @Test fun luminousCurveHasSoftHaloAndFillFadesDownWithoutConnectingMissingSections() {
+        val p=listOf(GraphPoint(0,0,0.0,listOf(30.0,null,null,null,null)),
+            GraphPoint(1000,1000,100.0,listOf(30.0,null,null,null,null)))
+        val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
+        fun draw(points: List<GraphPoint>): Bitmap {
+            d.update(GraphFrame(1,100.0,mapOf(AnalysisChart.SPEED to GraphSeries(points,GraphRange(0.0,40.0)))),listOf(AnalysisChart.SPEED),intArrayOf(0,0,0,0))
+            return Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888).also { d.draw(Canvas(it)) }
+        }
+        val b=draw(p)
+        assertTrue(Color.alpha(b.getPixel(200,60))>=200)
+        assertTrue(Color.alpha(b.getPixel(200,56))>0) // Soft glow above the line, outside its core.
+        assertTrue(Color.alpha(b.getPixel(200,80))>Color.alpha(b.getPixel(200,170)))
+        assertEquals(0,Color.alpha(b.getPixel(200,190)))
+        val gap=draw(listOf(p.first(),p.first().copy(distanceM=30.0),p.first().copy(distanceM=50.0,values=List(5) { null }),
+            p.last().copy(distanceM=70.0),p.last()))
+        assertEquals(0,Color.alpha(gap.getPixel(200,60)));assertEquals(0,Color.alpha(gap.getPixel(200,80)))
+    }
+
+    @Test fun curveBoundaryLinesAreSymmetricAndFadeAtBothVerticalEnds() {
+        val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
+        // Missing samples retain valid scales, isolating the boundary from curve/fill pixels.
+        val series=GraphSeries(emptyList(),GraphRange(0.0,40.0))
+        d.update(GraphFrame(1,100.0,mapOf(AnalysisChart.SPEED to series,AnalysisChart.CADENCE to series)),
+            listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),intArrayOf(0,0,0,0))
+        val b=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888);d.draw(Canvas(b))
+        fun opacity(x: Int,y: Int)=maxOf(Color.alpha(b.getPixel(x,y)),Color.alpha(b.getPixel(x-1,y)))
+        val middle=opacity(26,100)
+        assertTrue(middle>0);assertEquals(middle,opacity(374,100))
+        assertTrue(opacity(26,30)<middle);assertTrue(opacity(26,170)<middle)
+        assertEquals(0,opacity(26,10));assertEquals(0,opacity(374,190))
     }
 
 }

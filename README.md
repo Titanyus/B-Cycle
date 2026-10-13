@@ -28,7 +28,10 @@ Suite** geprüft. Keine erneute vollständige Suite für die reine Versions-/APK
 
 - Direktwert-Chevrons zeigen denselben Trend wie ihre jeweiligen Durchschnittsfelder;
   GPS-Tempo folgt dem Durchschnitt in Bewegung.
-- Live-Graphlinien auf 2,6 dp verdoppelt; höhere Deckkraft für kräftigere Farben.
+- Live-Graphlinien mit kräftigerem 2,6-dp-Kern, sanftem Leuchtsaum und nach unten auslaufender Füllung.
+- Live-Graph-Skalenschrift um 80 % vergrößert; farbige Overlay-Punkte neben der großen Feldbezeichnung.
+- Dünne Grenzlinien links/rechts laufen oben und unten transparent aus; Kurven und Lichtsaum enden an den Grenzen.
+- Sieben gezielte Darstellungstests und Release-Kompilierung für diese Anpassungen bestanden.
 - Glow-Helligkeit wieder auf dem vorherigen Niveau, verbreiterter Glow unverändert; zwei gezielte Pixeltests bestanden.
 - Acht gezielte Tests für Chevron-/Graph-Korrekturen und Release-Kompilierung erfolgreich. Noch keine neue APK;
   die oben verlinkte 0.7.9 enthält diese Korrektur noch nicht.

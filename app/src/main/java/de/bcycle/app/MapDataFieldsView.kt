@@ -75,9 +75,9 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
 }
 
 /** A static status mark; no animation or extra timer, and no touch interception. */
-private class RecordingDotSpan(density: Float) : android.text.style.ReplacementSpan() {
-    private val radius = 6.5f * density
-    private val dot = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = Color.RED }
+internal class RecordingDotSpan(density: Float, color: Int = Color.RED, diameterDp: Float = 13f) : android.text.style.ReplacementSpan() {
+    private val radius = diameterDp / 2 * density
+    private val dot = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
     override fun getSize(paint: android.graphics.Paint, text: CharSequence, start: Int, end: Int,
                          fm: android.graphics.Paint.FontMetricsInt?): Int {
         // A dot-only TextView still needs line metrics, otherwise Android may skip drawing it.

@@ -25,8 +25,9 @@ pro Feld werden abgelehnt.
 Eine Drawable-Ebene liegt unter den vorhandenen Texten und Icons, über dem bisherigen
 Hintergrund. Feldhöhe, Raster, Typografie und Touch-Flächen bleiben identisch. Alle
 Graphbestandteile einschließlich Achsen sind auf die mittleren 80 Prozent des tatsächlichen
-Innenbereichs begrenzt. Die zentralen Deckkräfte betragen 140/255 für Linien und 30/255
-für Flächen; die Linienstärke beträgt 2,6 dp. Die Farben stammen direkt aus `AnalysisChart`, derselben Definition wie in
+Innenbereichs begrenzt. Die Linie verwendet 225/255 Deckkraft bei 2,6 dp Stärke. Ein weicher Lichtsaum aus
+zwei breiteren, transparenten Strichen umgibt die Linie. Die Füllung startet mit maximal
+65/255 Deckkraft und läuft nach unten vollständig transparent aus. Die Farben stammen direkt aus `AnalysisChart`, derselben Definition wie in
 den Streckendetails. Pro verfügbarer Datenreihe erscheinen zwei zurückhaltende Achsenwerte
 mit einem kleinen farbigen Zuordnungsstrich. Vordergrundwerte bleiben unverändert.
 
@@ -143,3 +144,46 @@ Nur gezielt geprüft: sieben `RideAveragesTest`-Tests plus der native Pixel-/Cli
 **8 Tests bestanden**, Release-Kotlin-Kompilierung erfolgreich; zusammen 10 Sekunden.
 Keine vollständige Testsuite und keine neue APK für diese Korrektur.
 Die oben beschriebenen Änderungen sind noch nicht in der veröffentlichten APK 0.7.9 enthalten.
+
+## Größere Skalen, Overlay-Punkte und Graph-Leuchtsaum (13.10.2026)
+
+Die Skalenschrift der Live-Graphen ist um 80 Prozent vergrößert: 9 → 16,2 dp.
+Direkt rechts neben der Bezeichnung eines großen Feldes erscheinen kleine farbige Punkte
+für dessen aktivierte Overlays, in Auswahlreihenfolge und den bestehenden Graphfarben.
+Die Punkte verwenden dieselbe Kreis-Darstellung wie die Aufnahmeanzeige; ihre Größe ist
+an die kleinere Feldbezeichnung angepasst. Bei deaktivierten Overlays und auf kleinen
+Feldern gibt es keine Punkte. Der rote Aufnahmepunkt bleibt unverändert.
+
+Die Linie erhält einen dezenten Lichtsaum aus zwei transparenten, breiteren Strichen
+und einen kräftigeren Kern. Unter der Kurve wird ein vertikaler Farbverlauf gezeichnet,
+der vollständig nach unten ausläuft. Pfade und Farbverläufe werden nur bei einem neuen
+Graphbild oder einer Größenänderung vorbereitet. Keine Blur-Filter, zusätzlichen
+Bitmaps, Animationen oder Timer. Der Lichtsaum bleibt mit der gesamten Graphdarstellung
+auf die mittleren 80 Prozent des Feldinnenbereichs begrenzt. Datenlücken bleiben offen.
+Die Bosch-/Akku-Randglüheffekte sind hiervon unabhängig und werden nicht geändert.
+
+Nur fünf gezielte native Tests: Skalen-/Pixel-Clipping, unveränderte Feldgeometrie und
+Typografie, Auswahl-/Farbfolge der Punkte, Leuchtsaum/Farbverlauf/Datenlücken sowie der
+bestehende rote Aufnahmepunkt. **5 Tests bestanden**, Release-Kotlin-Kompilierung
+bestanden; zusammen 11 Sekunden. Keine vollständige Testsuite und keine neue APK.
+Diese Änderungen sind noch nicht in APK 0.7.9 enthalten.
+
+## Auslaufende Grenzlinien (13.10.2026)
+
+Links und rechts an der eigentlichen Kurvenfläche stehen dünne neutrale Linien im
+bestehenden Dashboard-Grauton. Ihre Deckkraft nimmt zur Mitte zu und an beiden
+vertikalen Enden bis Null ab. Beide verwenden einen gemeinsam vorbereiteten Farbverlauf.
+Kurven, Füllung und Lichtsaum werden horizontal an diesen Grenzen abgeschnitten;
+Skalen bleiben außerhalb der Kurvenfläche und innerhalb des vorhandenen 80-Prozent-Bereichs.
+Keine Änderung an Daten, Skalierung, Hauptmesswerten, Touch-Flächen oder Timern.
+
+Drei gezielte native Tests für die beiden symmetrischen Fade-Linien, Pixel-Clipping
+und Leuchtsaum/Füllung/Datenlücken sowie Release-Kotlin-Kompilierung: erfolgreich in
+6 Sekunden. Die zuvor geprüften Punkte-/Geometrie-/Aufnahmepunkt-Tests bleiben gültig.
+Zusätzlich wurde ein alter Kartentest an die bereits freigegebene Chevron-Regel angepasst:
+Auch der Direktwert über der Karte folgt dem Verlauf seines nicht angezeigten Durchschnitts,
+statt den aktuellen Wert mit dem Durchschnitt zu vergleichen. Dieser einzelne UI-Test
+bestand ebenfalls. Keine Änderung an Produktivcode oder Trendberechnung für diese Testkorrektur.
+
+Insgesamt wurden für diese Darstellungsanpassungen **sieben unterschiedliche gezielte
+Tests** geprüft; keine vollständige Suite und keine neue APK.

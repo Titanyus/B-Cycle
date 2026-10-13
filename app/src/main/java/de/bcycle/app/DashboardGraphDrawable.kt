@@ -8,7 +8,9 @@ import java.util.Locale
 internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val plot=RectF()
-    private data class Shape(val line: Path, val fill: Path, val chart: AnalysisChart, val range: GraphRange)
+    private val curve=RectF()
+    private var boundaryShader: Shader?=null
+    private data class Shape(val line: Path, val fill: Path, val chart: AnalysisChart, val range: GraphRange, val fillShader: Shader)
     private var shapes=emptyList<Shape>()
     private var selected=emptyList<AnalysisChart>()
     private var frame: GraphFrame?=null
@@ -28,8 +30,13 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         if(f==null || plot.width()<=0 || plot.height()<=0) { shapes=emptyList(); return }
         val axis=minOf(26*density,plot.width()*.14f)
         val left=plot.left+axis; val right=plot.right-if(selected.size==2) axis else 0f
+        curve.set(left,plot.top,right,plot.bottom)
+        val boundaryColor=BicycleDesign.dashboardUnitColor and 0x00ffffff
+        boundaryShader=LinearGradient(0f,plot.top,0f,plot.bottom,
+            intArrayOf(boundaryColor,boundaryColor or (140 shl 24),boundaryColor),
+            floatArrayOf(0f,.5f,1f),Shader.TileMode.CLAMP)
         shapes=selected.mapNotNull { chart -> f.series[chart]?.let { series ->
-            val line=Path(); val fill=Path(); val segment=Path(); var active=false; var startX=0f; var lastX=0f
+            val line=Path(); val fill=Path(); val segment=Path(); var active=false; var startX=0f; var lastX=0f; var fillTop=plot.bottom
             fun finish() { if(active) { segment.lineTo(lastX,plot.bottom); segment.lineTo(startX,plot.bottom); segment.close(); fill.addPath(segment); segment.reset(); active=false } }
             for(point in series.points) {
                 if(point.breaks and (1 shl chart.ordinal)!=0) finish()
@@ -37,23 +44,44 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
                 if(v==null || point.distanceM==null) { finish(); continue }
                 val x=if(f.distanceM>0) left+(point.distanceM/f.distanceM).toFloat()*(right-left) else left
                 val y=plot.bottom-((v-series.range.low)/(series.range.high-series.range.low)).toFloat()*plot.height()
+                fillTop=minOf(fillTop,y)
                 if(!active) { line.moveTo(x,y); segment.moveTo(x,y); startX=x; active=true } else { line.lineTo(x,y); segment.lineTo(x,y) }
                 lastX=x
             }
-            finish(); Shape(line,fill,chart,series.range)
+            finish()
+            val color=chart.color(Color.BLACK) and 0x00ffffff
+            val gradient=LinearGradient(0f,fillTop.coerceAtMost(plot.bottom-1f),0f,plot.bottom,
+                intArrayOf(color or (LiveGraphStyle.FILL_ALPHA shl 24),color or ((LiveGraphStyle.FILL_ALPHA/3) shl 24),color),
+                floatArrayOf(0f,.55f,1f),Shader.TileMode.CLAMP)
+            Shape(line,fill,chart,series.range,gradient)
         } }
     }
     override fun draw(canvas: Canvas) {
         if(shapes.isEmpty()) return
         val save=canvas.save(); canvas.clipRect(plot)
-        paint.typeface=Typeface.DEFAULT; paint.textSize=9*density
+        paint.typeface=Typeface.DEFAULT; paint.textSize=16.2f*density
+        paint.style=Paint.Style.STROKE; paint.strokeWidth=density
+        paint.color=Color.WHITE; paint.alpha=255; paint.shader=boundaryShader
+        canvas.drawLine(curve.left,curve.top,curve.left,curve.bottom,paint)
+        val boundaryRight=minOf(curve.right,plot.right-density/2)
+        canvas.drawLine(boundaryRight,curve.top,boundaryRight,curve.bottom,paint)
+        paint.shader=null
         shapes.forEachIndexed { index,s ->
             val color=s.chart.color(Color.BLACK)
-            paint.color=color; paint.alpha=LiveGraphStyle.FILL_ALPHA; paint.style=Paint.Style.FILL
+            val graphSave=canvas.save(); canvas.clipRect(curve)
+            paint.color=color; paint.alpha=255; paint.style=Paint.Style.FILL; paint.shader=s.fillShader
             canvas.drawPath(s.fill,paint)
-            paint.alpha=LiveGraphStyle.LINE_ALPHA; paint.style=Paint.Style.STROKE; paint.strokeWidth=LiveGraphStyle.LINE_WIDTH_DP*density
+            paint.shader=null; paint.style=Paint.Style.STROKE
+            paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND
+            // Cached paths and a pair of soft strokes: no blur filter or offscreen bitmap.
+            paint.alpha=24; paint.strokeWidth=(LiveGraphStyle.LINE_WIDTH_DP+7f)*density
+            canvas.drawPath(s.line,paint)
+            paint.alpha=60; paint.strokeWidth=(LiveGraphStyle.LINE_WIDTH_DP+3f)*density
+            canvas.drawPath(s.line,paint)
+            paint.alpha=LiveGraphStyle.LINE_ALPHA; paint.strokeWidth=LiveGraphStyle.LINE_WIDTH_DP*density
             paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND
             canvas.drawPath(s.line,paint)
+            canvas.restoreToCount(graphSave)
             paint.style=Paint.Style.FILL; paint.color=BicycleDesign.dashboardUnitColor; paint.alpha=125
             paint.textAlign=if(index==0) Paint.Align.LEFT else Paint.Align.RIGHT
             val x=if(index==0) plot.left+2*density else plot.right-2*density

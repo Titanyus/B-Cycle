@@ -5,8 +5,8 @@ import kotlin.math.*
 internal object LiveGraphStyle {
     const val INTERVAL_MS = 10_000L
     const val MAX_POINTS = 2048
-    const val LINE_ALPHA = 140
-    const val FILL_ALPHA = 30
+    const val LINE_ALPHA = 225
+    const val FILL_ALPHA = 65
     const val LINE_WIDTH_DP = 2.6f
     const val HEIGHT_FRACTION = .8f
 }
