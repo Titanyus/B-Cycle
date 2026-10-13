@@ -109,7 +109,8 @@ erforderlich. Sensor-, FIT-, Performance- und Theme-Verhalten nicht nebenbei ver
   Dateiprovider und Hintergrundverhalten zusätzlich zu JVM-/Robolectric-Tests vorsehen.
 
 Die ursprüngliche Vormerkung enthielt nur die Analyse. Die oben dokumentierte Umsetzung
-installiert API 36 und prüft die aktualisierte Konfiguration; noch keine neue signierte Test-APK.
+installiert API 36 und prüft die aktualisierte Konfiguration; die signierte Test-APK 0.7.9
+ist im [Buildnachweis](milestone-079.md) dokumentiert.
 
 ## Offizielle Referenzen für die Umsetzung
 

@@ -6,23 +6,23 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.8 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.8/downloads/B-Cycle-0.7.8-test.apk)**
+**[APK 0.7.9 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.9/downloads/B-Cycle-0.7.9-test.apk)**
 
-- Größe: **1,054,393 Byte**, rund **1.05 MB**.
-- Optimierte Release-APK, mit dem bisherigen Android-Testschlüssel signiert;
-  als Update installierbar. Vorherige APKs bleiben unter [downloads](downloads) erhalten.
-- Bei einer GitHub-Dateiseite „Download raw file“ auswählen;
-  bei einem privaten Repository vorher anmelden.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.8-test.apk.sha256):
-  `b23dd70ae34f9ba1368f6976ad68a4865479b9b8fd1ab2235009e4548bc9c568`.
+- Größe: **1.074.873 Byte**, rund **1,07 MB**.
+- Signierte, optimierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36.
+- Enthält Live-Graphen, sanfte Anzeige-Glättung, Dashboard-Backup und die größere
+  Zahlenschrift für Dreier-Reihen.
+- Bei einem privaten Repository vorher auf GitHub anmelden; alte APKs bleiben unter
+  [downloads](downloads) erhalten.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.9-test.apk.sha256):
+  `81f59aa5cf691a4de4d5bce98da3da5acddefc8bb33e68d4779370515c3d854e`.
 
-Release-Build einschließlich Release-Lint-Vital und **3 gezielte Darstellungstests**
-nach Versionierung erfolgreich in **1m 4s**. Signatur und Version 0.7.8/46 separat geprüft.
-Die Änderungen an Performance und Dashboard wurden zuvor mit **307 Tests der vollständigen
-Suite** geprüft; danach 43 gezielte UI-Tests und die drei Tests der letzten kosmetischen Änderungen.
-Keine erneute vollständige Suite bei diesem APK-Build. Die bekannte Compilerwarnung
-zum veralteten Android-`onBackPressed()` bleibt bestehen.
-[Buildnachweis 0.7.8](docs/milestone-078.md).
+Release-Build einschließlich Release-Lint-Vital und **6 FIT-/Garmin-Versionsprüfungen**
+erfolgreich in **37 Sekunden**. Signatur, Version 0.7.9/47 sowie SDK-Werte separat geprüft.
+Der unveränderte Funktionsstand wurde unmittelbar zuvor mit **336 Tests der vollständigen
+Suite** geprüft. Keine erneute vollständige Suite für die reine Versions-/APK-Erstellung.
+[Buildnachweis 0.7.9](docs/milestone-079.md).
 
 ## Entwicklungsstand nach APK 0.7.8
 
@@ -36,8 +36,7 @@ zum veralteten Android-`onBackPressed()` bleibt bestehen.
 - UX- und Konfigurationsgrundsätze verbindlich in [AGENTS.md](AGENTS.md) hinterlegt.
 - Matrix-ICR50-Briefing für eine spätere BLE-/FTMS-Integration dokumentiert.
 
-**336 Tests und Release-Build erfolgreich.** Diese Änderungen sind noch nicht in der
-oben verlinkten APK 0.7.8 enthalten. Freigabe und eine neue signierte Test-APK stehen aus.
+**In APK 0.7.9 enthalten.** Der Funktionsstand wurde mit 336 Tests und Release-Build geprüft.
 [Implementierung und Prüfnachweis](docs/live-graph-overlays.md).
 
 ## Neu in 0.7.8

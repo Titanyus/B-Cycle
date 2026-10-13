@@ -1,7 +1,7 @@
 # Live-Graph-Overlays und SDK-Modernisierung
 
-Stand: 13.10.2026. Implementierung und Prüfung abgeschlossen; Freigabe und eine neue
-signierte Test-APK stehen aus. Die bisher veröffentlichte APK 0.7.8 enthält diese Änderungen nicht.
+Stand: 13.10.2026. Implementierung und Prüfung abgeschlossen und freigegeben.
+Die signierte Test-APK 0.7.9 enthält diese Änderungen; [Buildnachweis](milestone-079.md).
 
 ## Bedienung und Darstellung
 
@@ -123,4 +123,4 @@ Performance-, FIT-/Garmin- und UI-Tests bleiben erhalten.
 
 Eine reale Android-16-Fahrt mit Bosch/Pulsmesser, Display-Off, Dateiprovidern und
 WebDAV-Job-Verhalten ist in dieser Cloud-Umgebung nicht möglich und bleibt Teil des
-Gerätetests. Es wurde noch keine neue signierte APK auf GitHub veröffentlicht.
+Gerätetests. Die signierte APK 0.7.9 ist auf GitHub veröffentlicht.
