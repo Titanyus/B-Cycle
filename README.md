@@ -29,7 +29,8 @@ Suite** geprüft. Keine erneute vollständige Suite für die reine Versions-/APK
 - Direktwert-Chevrons zeigen denselben Trend wie ihre jeweiligen Durchschnittsfelder;
   GPS-Tempo folgt dem Durchschnitt in Bewegung.
 - Live-Graphlinien auf 2,6 dp verdoppelt; höhere Deckkraft für kräftigere Farben.
-- Acht gezielte Tests und Release-Kompilierung erfolgreich. Noch keine neue APK;
+- Glow-Helligkeit wieder auf dem vorherigen Niveau, verbreiterter Glow unverändert; zwei gezielte Pixeltests bestanden.
+- Acht gezielte Tests für Chevron-/Graph-Korrekturen und Release-Kompilierung erfolgreich. Noch keine neue APK;
   die oben verlinkte 0.7.9 enthält diese Korrektur noch nicht.
 
 ## Entwicklungsstand nach APK 0.7.8
@@ -55,7 +56,7 @@ Suite** geprüft. Keine erneute vollständige Suite für die reine Versions-/APK
 - Bezeichnungen behalten die gemeinsame Größe und das Einheitengrau.
 - Dreier-Kacheln mit festen 32-sp-Zahlen, gleichmäßigem Raster und kompakter Einheitenanordnung.
 - Direktwert-Chevrons für Tempo, Fahrerleistung, Kadenz und Puls verwenden den zugehörigen Durchschnittstrend; Watt-Trend auch zwischen ganzzahligen Watt-Schritten.
-- Alle Glow-Effekte 25 % breiter in der Mitte und 25 % stärker.
+- Alle Glow-Effekte weiterhin 25 % breiter in der Mitte; die letzte Helligkeitserhöhung ist zurückgenommen.
 - FIT-Detail-Neuberechnung berücksichtigt bestätigte lange Rollphasen und verkraftet kurze echte Datenlücken bei ausreichender Abdeckung.
 - Streckenliste mit zweistelligem Jahr und drei dp tieferem Kennzahlenblock.
 - Fahrtdetails mit deutschen Bezeichnungen; Kadenz & Puls steht vor Leistung.

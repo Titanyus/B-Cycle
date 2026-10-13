@@ -78,10 +78,16 @@ Regressionstests prüfen Schwellen, ungültige/veraltete Werte und Verbindungstr
 Farben/Mischung, Vier-Sekunden-Zyklus, Breitenänderung, Shader-Wiederverwendung,
 Warnung bei deaktiviertem Modus-Glow sowie Aussetzen der Frameplanung bei Unsichtbarkeit.
 
-## Gemeinsame Verstärkung aller Effekte
+## Breite und Intensität aller Effekte
 
-Die radiale Breite in der Mitte wächst gegenüber dem bisherigen Faktor 1,2 auf 1,5,
-also um 25 %. Die zentrale Intensität (`modeGlowAlpha`) steigt von 140 auf 175, ebenfalls
-um 25 %. Beides gilt für Modusfarben, Übergänge, OFF-Fades und Akkuwarnung. Die additive
-Darstellung bleibt an die maximale Displayhelligkeit begrenzt. Vier-Sekunden-Breathing,
-1,5-Sekunden-Fade, zusätzliche Warnbreite, Farben und Shader-Wiederverwendung bleiben erhalten.
+Die radiale Breite in der Mitte bleibt beim Faktor 1,5 gegenüber dem ursprünglichen
+Faktor 1,2, also 25 % breiter. Am 13.10.2026 wurde ausschließlich die letzte
+Helligkeitserhöhung zurückgenommen: `modeGlowAlpha` wieder 140 statt 175.
+Dies gilt zentral für Modusfarben, Übergänge, OFF-Fades und Akkuwarnung.
+Die additive Darstellung bleibt an die maximale Displayhelligkeit begrenzt.
+Vier-Sekunden-Breathing, 1,5-Sekunden-Fade, zusätzliche Warnbreite, Farben und
+Shader-Wiederverwendung bleiben erhalten.
+
+Für die Rücknahme wurden nur die beiden vorhandenen nativen Pixeltests für symmetrische
+Verläufe/Clipping und Akku-Breathing/Breitenverhalten ausgeführt. Beide bestanden;
+Kompilierung und gezielter Testlauf zusammen 7 Sekunden. Keine neue APK.
