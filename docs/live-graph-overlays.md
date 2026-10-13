@@ -25,8 +25,8 @@ pro Feld werden abgelehnt.
 Eine Drawable-Ebene liegt unter den vorhandenen Texten und Icons, über dem bisherigen
 Hintergrund. Feldhöhe, Raster, Typografie und Touch-Flächen bleiben identisch. Alle
 Graphbestandteile einschließlich Achsen sind auf die mittleren 80 Prozent des tatsächlichen
-Innenbereichs begrenzt. Die zentralen Deckkräfte betragen 100/255 für Linien und 22/255
-für Flächen. Die Farben stammen direkt aus `AnalysisChart`, derselben Definition wie in
+Innenbereichs begrenzt. Die zentralen Deckkräfte betragen 140/255 für Linien und 30/255
+für Flächen; die Linienstärke beträgt 2,6 dp. Die Farben stammen direkt aus `AnalysisChart`, derselben Definition wie in
 den Streckendetails. Pro verfügbarer Datenreihe erscheinen zwei zurückhaltende Achsenwerte
 mit einem kleinen farbigen Zuordnungsstrich. Vordergrundwerte bleiben unverändert.
 
@@ -124,3 +124,22 @@ Performance-, FIT-/Garmin- und UI-Tests bleiben erhalten.
 Eine reale Android-16-Fahrt mit Bosch/Pulsmesser, Display-Off, Dateiprovidern und
 WebDAV-Job-Verhalten ist in dieser Cloud-Umgebung nicht möglich und bleibt Teil des
 Gerätetests. Die signierte APK 0.7.9 ist auf GitHub veröffentlicht.
+
+## Korrektur nach APK 0.7.9 (13.10.2026)
+
+Die Direktwert-Chevrons für Bike-Tempo, GPS-Tempo, Fahrerleistung, Kadenz und Puls
+verwenden jetzt direkt die vorhandene Berechnung und denselben Verlauf wie ihre
+zugehörigen Durchschnittsfelder. GPS-Tempo folgt dem Durchschnitt in Bewegung.
+Der getrennte Vergleich von momentanem Wert gegen Durchschnitt wurde entfernt.
+Es gibt keine zusätzliche Trendberechnung. Insbesondere folgt Fahrerleistung weiterhin
+dem bereits vorhandenen geglätteten Watt-Durchschnittstrend, auch bei kurzen Tretpausen.
+
+Graphlinien: 1,3 → 2,6 dp. Kräftigere Darstellung durch zentral erhöhte Deckkraft:
+Linien 100 → 140/255, Flächen 22 → 30/255. Die semantischen Farben aus den
+Streckendetails werden weiterhin unverändert wiederverwendet.
+
+Nur gezielt geprüft: sieben `RideAveragesTest`-Tests plus der native Pixel-/Clipping-Test
+`LiveGraphUiTest.axesAndEveryGraphPixelStayInsideEightyPercentOfInnerHeight`.
+**8 Tests bestanden**, Release-Kotlin-Kompilierung erfolgreich; zusammen 10 Sekunden.
+Keine vollständige Testsuite und keine neue APK für diese Korrektur.
+Die oben beschriebenen Änderungen sind noch nicht in der veröffentlichten APK 0.7.9 enthalten.

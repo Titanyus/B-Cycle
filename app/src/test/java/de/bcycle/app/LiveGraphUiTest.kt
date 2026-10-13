@@ -63,7 +63,7 @@ class LiveGraphUiTest {
         val b=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888);d.draw(Canvas(b))
         for(y in 0 until 200) if(y<plot.top.toInt() || y>plot.bottom.toInt()) for(x in 0 until 400) assertEquals(0,b.getPixel(x,y))
         d.update(f,listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),intArrayOf(10,8,10,4));assertEquals(2,d.axisCount)
-        assertTrue(LiveGraphStyle.FILL_ALPHA<LiveGraphStyle.LINE_ALPHA);assertTrue(LiveGraphStyle.LINE_ALPHA<128)
+        assertTrue(LiveGraphStyle.FILL_ALPHA<LiveGraphStyle.LINE_ALPHA);assertTrue(LiveGraphStyle.LINE_ALPHA<160)
         assertEquals(AnalysisChart.SPEED.darkColor,AnalysisChart.SPEED.color(Color.BLACK))
     }
     @Test fun dashboardBackupRoundTripsGraphsPreservesLegacyAndRejectsThirdChoice() {

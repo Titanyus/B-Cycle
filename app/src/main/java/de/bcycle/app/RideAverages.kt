@@ -16,25 +16,17 @@ internal class PedalingAverage {
 internal class AverageTrends {
     private val histories = mutableMapOf<String, ArrayDeque<Pair<Long, Double>>>()
     private val recentPower = ArrayDeque<Pair<Long, Double>>()
-    /** Live fields compare with their own average even when no average tile is visible. */
+    /** Direct values reuse their corresponding average's existing trend and history. */
     fun indicator(field: DashboardField, data: LiveData, gps: GpsValues, pulse: PulseValues, now: Long): Int {
-        val reference = when (field.id) {
-            "SPEED" -> DashboardField("AVERAGE_SPEED").averageNumber(data, gps, pulse)
-            "GPS_SPEED" -> gps.movingAverageKmh
-            "RIDER_POWER" -> DashboardField("AVERAGE_POWER").averageNumber(data, gps, pulse)
-            "CADENCE" -> DashboardField("AVERAGE_CADENCE").averageNumber(data, gps, pulse)
-            "HEART_RATE" -> pulse.average
+        val averageId = when (field.id) {
+            "SPEED" -> "AVERAGE_SPEED"
+            "GPS_SPEED" -> "GPS_MOVING_AVERAGE"
+            "RIDER_POWER" -> "AVERAGE_POWER"
+            "CADENCE" -> "AVERAGE_CADENCE"
+            "HEART_RATE" -> "HEART_AVERAGE"
             else -> null
         }
-        val current = when (field.id) {
-            "SPEED" -> data.speedHundredths?.div(100.0)
-            "GPS_SPEED" -> gps.speedKmh
-            "RIDER_POWER" -> data.riderPowerWatts?.toDouble()
-            "CADENCE" -> data.value(LiveMetric.CADENCE)?.div(LiveMetric.CADENCE.divisor)
-            "HEART_RATE" -> pulse.bpm?.toDouble()
-            else -> null
-        }
-        if (field.id in LIVE_IDS) return compare(current, reference)
+        if (averageId != null) return indicator(DashboardField(averageId), data, gps, pulse, now)
         if (field.id == "AVERAGE_POWER") {
             val power = data.riderPowerWatts?.toDouble()
             val average = field.averageNumber(data, gps, pulse)
@@ -63,7 +55,6 @@ internal class AverageTrends {
         val delta = current - reference
         return when { delta > .000001 -> 1; delta < -.000001 -> -1; else -> 0 }
     }
-    companion object { private val LIVE_IDS = setOf("SPEED", "GPS_SPEED", "RIDER_POWER", "CADENCE", "HEART_RATE") }
     fun direction(id: String, number: Double?, now: Long): Int {
         if (number == null || !number.isFinite()) { histories.remove(id); return 0 }
         val points = histories.getOrPut(id) { ArrayDeque() }

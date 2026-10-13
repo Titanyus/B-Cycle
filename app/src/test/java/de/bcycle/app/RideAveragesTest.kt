@@ -34,19 +34,41 @@ class RideAveragesTest {
         for (second in 71..81) trend.direction("GPS_OVERALL_AVERAGE", mean(70) - (second - 70) * .0004, second * 1000L)
         assertEquals(-1, trend.direction("GPS_OVERALL_AVERAGE", mean(70) - .0044, 81000))
     }
-    @Test fun liveIndicatorsCompareAgainstHiddenAveragesAndUseGpsMovingAverage() {
+    @Test fun directValuesReuseHiddenAverageTrendsEvenWhenInstantaneousComparisonDisagrees() {
         val trend=AverageTrends()
-        val data=LiveData(3000,200,mapOf(LiveMetric.AVERAGE_SPEED to 2500L,LiveMetric.AVERAGE_POWER to 150L,
-            LiveMetric.CADENCE to 180L,LiveMetric.AVERAGE_CADENCE to 160L))
-        val gps=GpsValues(speedKmh=30.0,movingAverageKmh=32.0,overallAverageKmh=20.0)
-        val pulse=PulseValues(bpm=145,average=130.0)
-        for(id in listOf("SPEED","RIDER_POWER","CADENCE","HEART_RATE")) assertEquals(id,1,trend.indicator(DashboardField(id),data,gps,pulse,0))
-        assertEquals(-1,trend.indicator(DashboardField("GPS_SPEED"),data,gps,pulse,0))
-        assertEquals(0,trend.indicator(DashboardField("GPS_SPEED"),data,gps.copy(speedKmh=32.0),pulse,1))
-        assertEquals(0,trend.indicator(DashboardField("RIDER_POWER"),data.copy(riderPowerWatts=150),gps,pulse,1))
-        assertEquals(0,trend.indicator(DashboardField("RIDER_POWER"),LiveData(riderPowerWatts=200),gps,pulse,1))
-        assertEquals(0,trend.indicator(DashboardField("HEART_RATE"),data,gps,PulseValues(average=130.0),1))
-        assertEquals(0,trend.indicator(DashboardField("MOTOR_POWER"),data,gps,pulse,1))
+        val pairs=listOf("SPEED" to "AVERAGE_SPEED", "GPS_SPEED" to "GPS_MOVING_AVERAGE",
+            "CADENCE" to "AVERAGE_CADENCE", "HEART_RATE" to "HEART_AVERAGE")
+        fun sample(second: Int, rising: Boolean) {
+            val step=if(rising) second else 20-second
+            // All direct values are below their rising averages, then above falling averages.
+            val live=if(rising) 1 else 200
+            val data=LiveData(live*100,otherValues=mapOf(LiveMetric.AVERAGE_SPEED to 2500L+step*10L,
+                LiveMetric.CADENCE to live*2L, LiveMetric.AVERAGE_CADENCE to 160L+step*2L))
+            val gps=GpsValues(speedKmh=live.toDouble(),movingAverageKmh=25.0+step*.1,overallAverageKmh=100.0-step)
+            val pulse=PulseValues(live,130.0+step)
+            for((direct,average) in pairs) {
+                val actual=trend.indicator(DashboardField(direct),data,gps,pulse,second*1000L)
+                val expected=trend.indicator(DashboardField(average),data,gps,pulse,second*1000L)
+                assertEquals(direct,expected,actual)
+                if(second==10 || second==20) assertEquals(direct,if(rising) 1 else -1,actual)
+                if(second<8) assertEquals(direct,0,actual)
+            }
+        }
+        for(second in 0..10) sample(second,true)
+        for(second in 11..20) sample(second,false)
+        for((direct,average) in pairs) assertEquals(trend.indicator(DashboardField(average),LiveData(),GpsValues(),PulseValues(),21000),
+            trend.indicator(DashboardField(direct),LiveData(),GpsValues(),PulseValues(),21000))
+        assertEquals(0,trend.indicator(DashboardField("MOTOR_POWER"),LiveData(),GpsValues(),PulseValues(),21000))
+    }
+    @Test fun directPowerUsesTheSameSmoothedAverageChevronThroughInstantaneousPedalingStops() {
+        val trend=AverageTrends()
+        for(second in 0..10) {
+            val data=LiveData(riderPowerWatts=if(second==10) 0 else 300,otherValues=mapOf(LiveMetric.AVERAGE_POWER to 150L))
+            val direct=trend.indicator(DashboardField("RIDER_POWER"),data,GpsValues(),PulseValues(),second*1000L)
+            val average=trend.indicator(DashboardField("AVERAGE_POWER"),data,GpsValues(),PulseValues(),second*1000L)
+            assertEquals(average,direct)
+            if(second>=8) assertEquals(1,direct)
+        }
     }
     @Test fun powerAverageDirectionSurvivesWholeWattPlateausAndIncludesRealZeroAndStaleReset() {
         val trend=AverageTrends();val field=DashboardField("AVERAGE_POWER")

@@ -24,6 +24,14 @@ Der unveränderte Funktionsstand wurde unmittelbar zuvor mit **336 Tests der vol
 Suite** geprüft. Keine erneute vollständige Suite für die reine Versions-/APK-Erstellung.
 [Buildnachweis 0.7.9](docs/milestone-079.md).
 
+## Entwicklungsstand nach APK 0.7.9
+
+- Direktwert-Chevrons zeigen denselben Trend wie ihre jeweiligen Durchschnittsfelder;
+  GPS-Tempo folgt dem Durchschnitt in Bewegung.
+- Live-Graphlinien auf 2,6 dp verdoppelt; höhere Deckkraft für kräftigere Farben.
+- Acht gezielte Tests und Release-Kompilierung erfolgreich. Noch keine neue APK;
+  die oben verlinkte 0.7.9 enthält diese Korrektur noch nicht.
+
 ## Entwicklungsstand nach APK 0.7.8
 
 - Live-Graphen für große Dashboardfelder: bis zu zwei transparente, leicht geglättete
@@ -46,7 +54,7 @@ Suite** geprüft. Keine erneute vollständige Suite für die reine Versions-/APK
 - Bisherige Feldbelegungen und ältere Sicherungen mit sieben Feldern bleiben kompatibel.
 - Bezeichnungen behalten die gemeinsame Größe und das Einheitengrau.
 - Dreier-Kacheln mit festen 32-sp-Zahlen, gleichmäßigem Raster und kompakter Einheitenanordnung.
-- Live-Vergleichspfeile für Tempo, Fahrerleistung, Kadenz und Puls; Watt-Durchschnittstrend auch zwischen ganzzahligen Watt-Schritten.
+- Direktwert-Chevrons für Tempo, Fahrerleistung, Kadenz und Puls verwenden den zugehörigen Durchschnittstrend; Watt-Trend auch zwischen ganzzahligen Watt-Schritten.
 - Alle Glow-Effekte 25 % breiter in der Mitte und 25 % stärker.
 - FIT-Detail-Neuberechnung berücksichtigt bestätigte lange Rollphasen und verkraftet kurze echte Datenlücken bei ausreichender Abdeckung.
 - Streckenliste mit zweistelligem Jahr und drei dp tieferem Kennzahlenblock.

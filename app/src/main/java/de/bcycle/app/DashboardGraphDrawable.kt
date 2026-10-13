@@ -51,7 +51,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             val color=s.chart.color(Color.BLACK)
             paint.color=color; paint.alpha=LiveGraphStyle.FILL_ALPHA; paint.style=Paint.Style.FILL
             canvas.drawPath(s.fill,paint)
-            paint.alpha=LiveGraphStyle.LINE_ALPHA; paint.style=Paint.Style.STROKE; paint.strokeWidth=1.3f*density
+            paint.alpha=LiveGraphStyle.LINE_ALPHA; paint.style=Paint.Style.STROKE; paint.strokeWidth=LiveGraphStyle.LINE_WIDTH_DP*density
             paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND
             canvas.drawPath(s.line,paint)
             paint.style=Paint.Style.FILL; paint.color=BicycleDesign.dashboardUnitColor; paint.alpha=125
