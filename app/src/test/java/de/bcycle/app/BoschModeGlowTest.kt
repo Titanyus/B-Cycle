@@ -142,10 +142,11 @@ class BoschModeGlowTest {
     @Test fun everyDashboardKeepsGeometryTouchAndTextWhileGlowTracksActualSizeAndMode() {
         val app = RuntimeEnvironment.getApplication()
         var selected = -1
-        val dashboard = DashboardView(app) { selected = it }
+        val dashboard = DashboardView(app) { selected = it }.apply { setEditing(true) }
         for (template in DashboardTemplate.entries) {
             dashboard.setTemplate(template)
-            for (height in listOf(360, 900)) {
+            for (available in listOf(1680, 2100)) {
+                val height = dashboard.heightForViewport(1080, available)
                 layout(dashboard, 1080, height)
                 val before = views(dashboard).map { listOf(it.left, it.top, it.width, it.height) }
                 val clicks = views(dashboard).filter { it.isClickable }

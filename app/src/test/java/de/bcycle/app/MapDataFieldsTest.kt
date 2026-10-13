@@ -86,40 +86,37 @@ class MapDataFieldsTest {
         assertEquals("145",text.text.toString())
     }
 
-    @Test fun managerSelectsClearsAndPersistsMapFieldsWithoutChangingDashboardAndReturnsToParent() {
+    @Test fun editorSelectsClearsAndPersistsMapFieldsWithoutChangingDashboard() {
         val app = RuntimeEnvironment.getApplication()
         val preferences = app.getSharedPreferences("bike", 0)
         preferences.edit().clear().commit()
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         fun latest() = ShadowAlertDialog.getLatestAlertDialog()
         fun click(dialog: AlertDialog, tag: String) = descendants(dialog.window!!.decorView).single { it.tag == tag }.performClick()
+        fun fields(activity: MainActivity) = descendants(activity.findViewById(android.R.id.content))
+        fun enter(activity: MainActivity) {
+            fields(activity).single { it.contentDescription == "Menü öffnen" }.performClick()
+            click(latest(), "settings_DASHBOARDS"); click(latest(), "dashboard_editor_open")
+            assertFalse(latest().isShowing); assertTrue(activity.dashboardEditing)
+        }
         try {
-            val activity = controller.get()
-            descendants(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-            click(latest(), "settings_DASHBOARDS")
-            val manager = latest()
-            click(manager, "map_fields_manage")
-            val fields = latest()
-            click(fields, "map_field_slot_0")
-            val picker = latest()
-            selectTestSource(picker, "E-Bike"); click(picker, "BATTERY")
+            val activity = controller.get(); enter(activity)
+            fields(activity).single { it.tag == "map_value_0" }.performClick()
+            selectTestSource(latest(), "E-Bike"); click(latest(), "BATTERY")
             shadowOf(Looper.getMainLooper()).idle()
             assertEquals("BATTERY", MapFieldSelection.read(preferences, 0)?.id)
-            assertNull(preferences.getString("dashboard", null))
-            assertEquals(View.VISIBLE, fields.window!!.decorView.visibility)
-            assertTrue((descendants(fields.window!!.decorView).single { it.tag == "map_field_slot_0" } as TextView).text.contains("Akku"))
-            click(fields, "map_field_slot_1")
-            val cancelled = latest(); selectTestSource(cancelled, "GPS"); cancelled.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
-            shadowOf(Looper.getMainLooper()).idle()
+            assertNull(preferences.getString("dashboard", null)); assertTrue(activity.dashboardEditing)
+            fields(activity).single { it.tag == "map_value_1" }.performClick()
+            latest().getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
             assertNull(MapFieldSelection.read(preferences, 1))
-            fields.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
+            fields(activity).single { it.tag == "dashboard_editor_finish" }.performClick()
+            assertFalse(activity.dashboardEditing)
         } finally { controller.pause().stop().destroy() }
         val restarted = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
+            assertFalse(restarted.get().dashboardEditing)
             assertEquals("BATTERY", MapFieldSelection.read(preferences, 0)?.id)
-            descendants(restarted.get().findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-            click(latest(), "settings_DASHBOARDS"); click(latest(), "map_fields_manage"); click(latest(), "map_field_slot_0")
+            enter(restarted.get()); fields(restarted.get()).single { it.tag == "map_value_0" }.performClick()
             click(latest(), "map_field_empty")
             assertNull(MapFieldSelection.read(preferences, 0))
         } finally { restarted.pause().stop().destroy() }

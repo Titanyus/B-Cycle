@@ -1,11 +1,26 @@
 # Globale Vollbild-Einstellungsansichten
 
+## Verbindliche Ausrichtung
+
+BICYCLE wird ausschließlich im **Hochformat** verwendet. Das gilt für Dashboard,
+Karte, Einstellungsdialoge, Streckenmanager, Details und neue Ansichten. Querformat
+ist derzeit kein unterstützter Nutzungsmodus und keine Anforderung an neue Layouts.
+
+Die Single-Activity ist auf `screenOrientation="portrait"` festgelegt. Die Android-16-
+Kompatibilitätseigenschaft erhält diese Vorgabe auch bei großen Displays unter Target-SDK 36.
+UI-Tests prüfen mehrere Hochformat-Größen, Schrift-/Datenvarianten, Themes und
+Scrollverhalten. Sie müssen keine Querformatdarstellung absichern. Rechteckige
+Diagramm- und Kacheltests sind weiterhin sinnvoll; eine breite Kachel ist kein
+Querformat-Screen.
+
+Diese Konvention steht ebenfalls in `AGENTS.md` und gilt für künftige Erweiterungen.
+
 ## Bestandsaufnahme und Migration
 
 Alle appinternen Einstellungs- und Verwaltungsfenster verwenden bereits
 BicycleDialogBuilder und DialogNavigation. Umgestellt sind Hauptmenü/Erweitert,
 Sensoren & Aufzeichnung mit FIT-Accordion, Sensor hinzufügen/Geräteauswahl,
-Design & UI mit Themes/Dashboards, Feldauswahl/Karten-Datenfelder, Kartenmanager,
+Design & UI mit Themes/Dashboards, Feldauswahl im [Dashboard-Editor](dashboard-editor.md), Kartenmanager,
 Streckenmanager, Streckeneinstellungen/WebDAV, Umbenennen, Wiederherstellung,
 Diagnose, Standardbelegung, GPS-Informationen und Lizenzansichten.
 
@@ -49,7 +64,7 @@ Touchflächen mindestens 48 dp. Keine neuen oder entfernten Footer-Aktionen.
 
 ## Prüfungen und Grenzen
 
-Neue Layouttests auf API 33 und 35: kleine/große/Querformat-Flächen, kurze/lange Inhalte,
+Neue Layouttests auf API 33 und 35: kleine und große Hochformat-Flächen, kurze/lange Inhalte,
 fixe Header/Footer, scrollbarer Rest, native Speicher-/Abbruchaktionen, ursprüngliche
 Buttonanordnung, Systemleisten/Cutout, simulierte IME-Insets, Eltern-Draft und Zurück,
 kompakte Bestätigung sowie Hauptmenü/Streckenmanager mit eigenen Headern/Listen.

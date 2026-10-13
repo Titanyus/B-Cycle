@@ -52,6 +52,23 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private val credit = MapCreditView(context)
     private val status = TextView(context)
     private val dataFields = MapDataFieldsView(context)
+    private var editing = false
+    var finishEditor: (() -> Unit)? = null
+    var selectMapField: ((Int) -> Unit)? = null
+    private val editorFinish = BicycleComponents.action(context, runtime.themes, context.getString(R.string.dashboard_editor_finish)) { finishEditor?.invoke() }.apply {
+        tag = "dashboard_editor_finish"; visibility = GONE
+    }
+    fun setEditing(value: Boolean) {
+        editing = value
+        dataFields.setEditing(value, runtime.themes.active.tokens.primary)
+        editorFinish.visibility = if (value) VISIBLE else GONE
+        for (i in 0 until controls.childCount) controls.getChildAt(i).isEnabled = !value
+        for (i in 0 until zoomControls.childCount) zoomControls.getChildAt(i).isEnabled = !value
+        nightButton.isEnabled = !value
+        refreshRouteButton()
+        if (value) handler.removeCallbacks(hideControls) else scheduleHide()
+        refreshDataFields()
+    }
     private lateinit var directionButton: Button
     private lateinit var centerButton: Button
     private lateinit var fullButton: Button
@@ -64,6 +81,33 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var follow = preferences.getBoolean("mapFollow", true)
     private var heading = preferences.getBoolean("mapHeading", true)
     private var gps = GpsValues()
+    private var displayedGps = GpsValues()
+    private val motion = MapMotion()
+    private var touchingMap = false
+    var cameraVisible: () -> Boolean = { true }
+    private val animateCamera = object : Runnable {
+        override fun run() {
+            if (!running || !follow || !runtime.isMoving || touchingMap || !isShown || !cameraVisible()) {
+                stopMotion()
+                // Finish the shared pose once when occluded/stopped, without a frame loop.
+                if (running && follow && !touchingMap) { updateCamera(updateControls = false); refreshRoutes() }
+                return
+            }
+            displayedGps = motion.at(android.os.SystemClock.uptimeMillis())
+            updateCamera(updateControls = false); refreshRoutes()
+            if (motion.active) handler.postDelayed(this, MapMotion.frameMs)
+        }
+    }
+    private fun stopMotion() {
+        handler.removeCallbacks(animateCamera)
+        displayedGps = motion.snap(gps)
+    }
+    private fun receivePosition() {
+        handler.removeCallbacks(animateCamera)
+        displayedGps = motion.move(gps, android.os.SystemClock.uptimeMillis(), running && follow && runtime.isMoving && !touchingMap && isShown && cameraVisible())
+        updateCamera(); refreshRoutes()
+        if (motion.active) handler.postDelayed(animateCamera, MapMotion.frameMs)
+    }
     private var lastLatitude: Double? = null
     private var lastLongitude: Double? = null
     private var lastBearing: Double? = null
@@ -74,7 +118,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var layerTrack: List<MapPoint> = emptyList()
     var controlsVisibilityChanged: ((Boolean) -> Unit)? = null
     private val hideControls = Runnable {
-        if (!running || !runtime.isMoving) return@Runnable
+        if (!running || editing || !runtime.isMoving) return@Runnable
         controls.visibility = GONE; zoomControls.visibility = GONE; routeButton.visibility = GONE; nightButton.visibility = GONE
         controlsVisibilityChanged?.invoke(false)
     }
@@ -107,10 +151,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean { revealControls(); return true }
         })
         mapView.setOnTouchListener { _, event ->
+            if (editing) return@setOnTouchListener true
             detector.onTouchEvent(event)
             // Native Mapsforge handles pan/zoom. A tap never resumes GPS following.
-            if (event.actionMasked == MotionEvent.ACTION_DOWN) handler.removeCallbacks(hideControls)
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) { touchingMap = true; stopMotion(); refreshRoutes(); handler.removeCallbacks(hideControls) }
             if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                touchingMap = false
                 if (controls.visibility == VISIBLE) scheduleHide()
             }
             false
@@ -130,10 +176,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             })
         }
         centerButton = icon("", "GPS-Zentrierung aktivieren") {
-            setFollow(true); requestGps(); updateCamera()
+            setFollow(true); requestGps(); stopMotion(); updateCamera(); refreshRoutes()
         }
         directionButton = icon("", "Kartenausrichtung ändern") {
-            heading = !heading; preferences.edit().putBoolean("mapHeading", heading).apply(); updateCamera()
+            heading = !heading; preferences.edit().putBoolean("mapHeading", heading).apply(); stopMotion(); updateCamera(); refreshRoutes()
         }
         icon("+", "Karte vergrößern", zoomControls) { zoom(1) }
         icon("−", "Karte verkleinern", zoomControls) { zoom(-1) }
@@ -161,6 +207,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addView(routeButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.START).apply { topMargin = dp(6); marginStart = dp(6) })
         addView(zoomControls, LayoutParams(dp(44), -2, Gravity.BOTTOM or Gravity.END).apply { bottomMargin = dp(12); marginEnd = dp(6) })
         dataFields.reload(preferences)
+        dataFields.bindEditorTheme(runtime.themes)
+        dataFields.selectField = { selectMapField?.invoke(it) }
+        addView(editorFinish, LayoutParams(-2, -2, Gravity.CENTER))
         addView(dataFields, LayoutParams(-1, dp(62), Gravity.BOTTOM).apply { bottomMargin = dp(12) })
         credit.apply {
             text = source.attribution
@@ -196,9 +245,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         }, null, null, null)
         downloads.requestRedraw(); refreshRoutes()
     }
-    fun resume() { running = true; mapView.layerManager.proceed(); downloads.onResume(); revealControls(); refresh() }
+    fun resume() { motion.reset(); lastTrack = -1L; running = true; mapView.layerManager.proceed(); downloads.onResume(); revealControls(); refresh() }
     fun pause() {
-        running = false; handler.removeCallbacksAndMessages(null); downloads.onPause(); mapView.layerManager.pause(); saveCamera()
+        running = false; stopMotion(); handler.removeCallbacksAndMessages(null); downloads.onPause(); mapView.layerManager.pause(); saveCamera()
     }
     fun destroy() { pause(); mapView.destroyAll() }
     fun refreshSettings() {
@@ -215,11 +264,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         refreshDataFields()
         heading = preferences.getBoolean("mapHeading", true)
         follow = preferences.getBoolean("mapFollow", true)
-        updateCamera(); refreshRoutes()
+        stopMotion(); updateCamera(); refreshRoutes()
     }
     fun refresh() {
         if (!running) return
         gps = runtime.gpsValues
+        if (motion.active && !runtime.isMoving) { stopMotion(); updateCamera(); refreshRoutes() }
         updateMotionControls()
         refreshRouteButton()
         refreshDataFields()
@@ -228,7 +278,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         if (gps.latitude != lastLatitude || gps.longitude != lastLongitude || gps.bearingDegrees != lastBearing || gps.altitudeM != lastAltitude ||
             track != lastTrack || route != lastRoute) {
             lastLatitude = gps.latitude; lastLongitude = gps.longitude; lastBearing = gps.bearingDegrees; lastAltitude = gps.altitudeM
-            lastTrack = track; lastRoute = route; updateCamera(); refreshRoutes()
+            lastTrack = track; lastRoute = route; receivePosition()
         }
         val next = if (!runtime.gpsEnabled) "GPS aus · antippen" else if (gps.latitude == null) "GPS · Warte auf Position"
             else if (runtime.recording && !runtime.mapTrackEnabled) "Track-Aufzeichnung aus" else ""
@@ -238,7 +288,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private fun refreshRouteButton() {
         val available = runtime.mapState.route != null
         val shown = available && preferences.getBoolean("mapGpxVisible", true)
-        routeButton.isEnabled = available && !runtime.mapState.busy
+        routeButton.isEnabled = available && !runtime.mapState.busy && !editing
         routeButton.alpha = if (routeButton.isEnabled) 1f else .45f
         routeButton.contentDescription = if (!available) "Keine Strecke verfügbar" else if (shown) "Strecke ausblenden" else "Strecke einblenden"
         if (routeShown != shown) {
@@ -253,7 +303,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             layerTrackRevision = runtime.mapState.track.revision
             layerTrack = runtime.mapState.track.points.toList()
         }
-        routes.update(runtime.mapState.route, layerTrack, runtime.gpsValues,
+        routes.update(runtime.mapState.route, layerTrack, displayedGps,
             preferences.getBoolean("mapGpxVisible", true), preferences.getBoolean("mapTrackVisible", true), night)
     }
     private fun refreshDataFields() {
@@ -300,21 +350,23 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     fun showFullscreen(value: Boolean) { fullButton.contentDescription = if (value) "Zurück zum Dashboard" else "Karte im Vollbild"; revealControls() }
     fun setFollow(value: Boolean) {
         if (follow == value) return
+        if (!value) { stopMotion(); refreshRoutes() }
         follow = value; preferences.edit().putBoolean("mapFollow", value).apply()
         if (::centerButton.isInitialized) centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (value) Color.rgb(110, 230, 130) else Color.WHITE)
     }
-    private fun updateCamera() {
+    private fun updateCamera(updateControls: Boolean = true) {
         if (width <= 0 || height <= 0) return
-        val bearing = if (heading) gps.bearingDegrees else null
+        val bearing = if (heading) displayedGps.bearingDegrees else null
         // Preserve the manual viewport when following is paused; avoid a jump on the next GPS tick.
         val centerY = if (!follow) mapView.mapViewCenterY else if (heading) .68f else 2f / 3f
         if (mapView.mapViewCenterY != centerY) mapView.setMapViewCenterY(centerY)
         val rotation = Rotation(-(bearing ?: 0.0).toFloat(), width / 2f, height / 2f)
         if (mapView.mapRotation != rotation) mapView.rotate(rotation)
-        if (follow && gps.latitude != null && gps.longitude != null && abs(gps.latitude!!) <= 85.05112878) {
-            val center = LatLong(gps.latitude!!, gps.longitude!!)
+        if (follow && displayedGps.latitude != null && displayedGps.longitude != null && abs(displayedGps.latitude!!) <= 85.05112878) {
+            val center = LatLong(displayedGps.latitude!!, displayedGps.longitude!!)
             if (mapView.model.mapViewPosition.center != center) mapView.setCenter(center)
         }
+        if (!updateControls) return
         directionButton.contentDescription = if (heading) "Fahrtrichtung oben · wechseln zu Norden" else "Norden oben · wechseln zur Fahrtrichtung"
         centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (follow) Color.rgb(110, 230, 130) else Color.WHITE)
     }
@@ -359,7 +411,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     private fun scheduleHide() {
         handler.removeCallbacks(hideControls)
-        if (running && runtime.isMoving && !context.getSystemService(AccessibilityManager::class.java).isTouchExplorationEnabled)
+        if (running && !editing && runtime.isMoving && !context.getSystemService(AccessibilityManager::class.java).isTouchExplorationEnabled)
             handler.postDelayed(hideControls, 5_000)
     }
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()

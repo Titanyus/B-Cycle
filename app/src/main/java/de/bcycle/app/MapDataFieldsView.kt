@@ -19,6 +19,30 @@ internal object MapFieldSelection {
 /** Three global value-only overlays. Non-interactive views let map gestures pass through. */
 internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     private val directions = IntArray(3)
+    private val occupied = BooleanArray(3)
+    var editing = false; private set
+    var selectField: ((Int) -> Unit)? = null
+    internal fun bindEditorTheme(themes: ThemeManager) {
+        values.forEach { view -> BicycleComponents.bindTheme(view, themes) { tokens ->
+            (view.foreground as? DashboardEditOutline)?.color = tokens.primary
+        } }
+    }
+    fun setEditing(value: Boolean, primary: Int) {
+        editing = value
+        values.forEach { view ->
+            view.foreground = if (value) DashboardEditOutline(resources.displayMetrics.density, primary) else null
+            view.isClickable = value; view.isFocusable = value
+        }
+        updateVisibility()
+    }
+    private fun updateVisibility() {
+        values.forEachIndexed { index, view ->
+            view.visibility = if (editing || occupied[index]) VISIBLE else INVISIBLE
+            view.importantForAccessibility = if (editing || occupied[index]) IMPORTANT_FOR_ACCESSIBILITY_YES else IMPORTANT_FOR_ACCESSIBILITY_NO
+            if (editing && !occupied[index]) view.contentDescription = resources.getString(R.string.dashboard_editor_map_slot, index + 1)
+        }
+        visibility = if (editing || occupied.any { it }) VISIBLE else GONE
+    }
     private var wasRecording = false
     private var wasLightOn = false
     private val lightIcon = LightStatusSpan(context)
@@ -27,6 +51,8 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     private var fields = List<DashboardField?>(3) { null }
     private val values = List(3) { index -> TextView(context).apply {
         tag = "map_value_$index"
+        setOnClickListener { if (editing) selectField?.invoke(index) }
+        isClickable = false; isFocusable = false
         gravity = Gravity.CENTER
         typeface = resources.getFont(R.font.bebas_neue)
         setTextColor(Color.BLACK); includeFontPadding = false; maxLines = 1
@@ -64,13 +90,14 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
                 view.text = displayed; directions[index] = direction
             }
             val visible = hasValue || hasDot || hasLight
-            view.visibility = if (visible) VISIBLE else INVISIBLE
+            occupied[index] = visible
+            view.visibility = if (editing || visible) VISIBLE else INVISIBLE
             view.importantForAccessibility = if (visible) View.IMPORTANT_FOR_ACCESSIBILITY_YES else View.IMPORTANT_FOR_ACCESSIBILITY_NO
             val description = if (hasValue) "${field!!.title(data, gps)}: $next ${value!!.unit}" else null
             view.contentDescription = listOfNotNull("Aufzeichnung läuft".takeIf { hasDot }, description, "Fahrradlicht an".takeIf { hasLight }).joinToString(" · ").takeIf { it.isNotEmpty() }
         }
         wasRecording = recording; wasLightOn = bikeLight == true
-        visibility = if (values.any { it.visibility == VISIBLE }) VISIBLE else GONE
+        updateVisibility()
     }
 }
 

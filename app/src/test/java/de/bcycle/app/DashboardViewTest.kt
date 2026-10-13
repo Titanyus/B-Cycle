@@ -30,7 +30,7 @@ class DashboardViewTest {
 
     @Test fun fiveValueTemplateHasTwoTopAndThreeBottomFieldsWithCompactCaptions() {
         val clicked = mutableListOf<Int>()
-        val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }
+        val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }.apply { setEditing(true) }
         view.setTemplate(DashboardTemplate.FIVE)
         view.show(DashboardLayout.defaults.replace(0, DashboardField("GPS_MOVING_AVERAGE")), LiveData())
         measure(view, 1080, 750)
@@ -56,7 +56,7 @@ class DashboardViewTest {
 
     @Test fun heroPresetShowsOneLargeValueAboveThreeIndependentlySelectableValues() {
         val clicked = mutableListOf<Int>()
-        val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }
+        val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }.apply { setEditing(true) }
         view.setTemplate(DashboardTemplate.HERO)
         measure(view, 1080, 900)
         val tiles = descendants(view).filter { it.isClickable }
@@ -68,13 +68,13 @@ class DashboardViewTest {
         assertEquals(1, tiles.map { ((it as ViewGroup).getChildAt(0) as TextView).textSize }.distinct().size)
     }
 
-    @Test fun sevenAccessibleTilesFitPortraitAndLandscapeAndEveryTileCanBeSelected() {
+    @Test fun sevenAccessibleTilesFitPortraitSizesAndEveryTileCanBeSelected() {
         val clicked = mutableListOf<Int>()
-        val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }
+        val view = DashboardView(RuntimeEnvironment.getApplication()) { clicked += it }.apply { setEditing(true) }
         val tiles = descendants(view).filter { it.isClickable }
         assertEquals(7, tiles.size)
         for ((index, tile) in tiles.withIndex()) { tile.performClick(); assertEquals(index, clicked.last()) }
-        for ((width, height) in listOf(1080 to 1950, 1950 to 750, 720 to 960)) {
+        for ((width, height) in listOf(1080 to 1950, 840 to 1680, 720 to 960)) {
             measure(view, width, height)
             for (text in descendants(view).filterIsInstance<TextView>().filter { it.visibility == View.VISIBLE }) {
                 assertTrue(text.width > 0 && text.height > 0)
@@ -92,7 +92,7 @@ class DashboardViewTest {
         runtime.onData(LiveData(2530, 183, mapOf(LiveMetric.CADENCE to 170L, LiveMetric.BATTERY to 96L,
             LiveMetric.ASSIST_MODE to 2L, LiveMetric.ODOMETER to 14_791_937L, LiveMetric.MOTOR_POWER to 320L),
             listOf("OFF", "ECO", "TOUR+")), true)
-        for ((width, height) in listOf(1080 to 2130, 2130 to 1080, 720 to 1280)) {
+        for ((width, height) in listOf(1080 to 2130, 840 to 1680, 720 to 1280)) {
             measure(content, width, height)
             val dashboard = descendants(content).filterIsInstance<DashboardView>().single()
             assertEquals(0, dashboard.top)
@@ -119,7 +119,7 @@ class DashboardViewTest {
     @Test fun presetsShareReferenceTileHeightsAndSmallFontsInsteadOfStretchingToFillTheirArea() {
         val context = RuntimeEnvironment.getApplication()
         val fieldLayout = DashboardLayout.decode(List(DashboardLayout.FIELD_COUNT) { "RIDER_POWER" }.joinToString("|"))
-        for ((width, available) in listOf(1080 to 2100, 720 to 1440, 1950 to 750)) {
+        for ((width, available) in listOf(1080 to 2100, 720 to 1440, 840 to 1680)) {
             fun rendered(template: DashboardTemplate): Pair<DashboardView, List<ViewGroup>> {
                 val view = DashboardView(context) {}
                 view.setTemplate(template)
@@ -136,9 +136,7 @@ class DashboardViewTest {
                 for (tile in tiles) {
                     val isBig = template.largeTop && tile === tiles.first() ||
                         template == DashboardTemplate.DATA && tile.height > small.height + 3
-                    if (isBig && template.largeTop && width > available) {
-                        assertTrue("Landscape hero retains a compact large field", tile.height < big.height && tile.height > small.height)
-                    } else assertEquals("${template.name} at $width", (if (isBig) big.height else small.height).toDouble(), tile.height.toDouble(), 3.0)
+                    assertEquals("${template.name} at $width", (if (isBig) big.height else small.height).toDouble(), tile.height.toDouble(), 3.0)
                     assertEquals(small.paddingBottom, tile.paddingBottom)
                     val value = (tile.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
                     if (!isBig) {
@@ -167,7 +165,7 @@ class DashboardViewTest {
         val context = RuntimeEnvironment.getApplication()
         for ((template, counts) in listOf(DashboardTemplate.HERO_SEVEN to listOf(1, 3, 3), DashboardTemplate.HERO_FIVE to listOf(1, 2, 2))) {
             val clicked = mutableListOf<Int>()
-            val view = DashboardView(context) { clicked += it }
+            val view = DashboardView(context) { clicked += it }.apply { setEditing(true) }
             view.setTemplate(template)
             measure(view, 720, view.heightForViewport(720, 1440))
             val rows = (0 until view.childCount).map { view.getChildAt(it) }.filterIsInstance<android.widget.LinearLayout>()
@@ -183,9 +181,9 @@ class DashboardViewTest {
     @Test fun ninthPresetShowsEightIndependentFieldsInTwoThreeThreeRows() {
         val clicked = mutableListOf<Int>()
         val context = RuntimeEnvironment.getApplication()
-        val view = DashboardView(context) { clicked += it }
+        val view = DashboardView(context) { clicked += it }.apply { setEditing(true) }
         view.setTemplate(DashboardTemplate.EIGHT)
-        for ((width, available) in listOf(720 to 1440, 1080 to 2100, 1950 to 750)) {
+        for ((width, available) in listOf(720 to 1440, 1080 to 2100, 840 to 1680)) {
             measure(view, width, view.heightForViewport(width, available))
             val rows = (0 until view.childCount).map { view.getChildAt(it) }.filterIsInstance<android.widget.LinearLayout>()
             assertEquals(listOf(2, 3, 3), rows.map { row -> descendants(row).count { it.isClickable } })
@@ -207,7 +205,7 @@ class DashboardViewTest {
             view.setTemplate(template)
             for (field in listOf(DashboardField("CADENCE"), DashboardField("GPS_MOVING_AVERAGE"), DashboardField("MOTOR_POWER"))) {
                 view.show(DashboardLayout.decode(List(DashboardLayout.FIELD_COUNT) { field.id }.joinToString("|")), LiveData())
-                for ((width, height) in listOf(720 to 1440, 1080 to 2100, 1950 to 750)) {
+                for ((width, height) in listOf(720 to 1440, 1080 to 2100, 840 to 1680)) {
                     measure(view, width, view.heightForViewport(width, height))
                     descendants(view).filter { it.isClickable }.forEach { tile ->
                         val caption = (tile as ViewGroup).getChildAt(0) as TextView
@@ -338,6 +336,7 @@ class DashboardViewTest {
         val output = File("build/reports/dashboard/dashboard-app.png").apply { parentFile!!.mkdirs() }
         output.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         val dashboard = descendants(content).filterIsInstance<DashboardView>().single()
+        descendants(dashboard).filter { it.isClickable }[2].performLongClick()
         descendants(dashboard).filter { it.isClickable }[2].performClick()
         val picker = ShadowAlertDialog.getLatestAlertDialog()
         selectTestSource(picker, "E-Bike")
@@ -360,6 +359,7 @@ class DashboardViewTest {
         try {
             val dashboard = descendants(controller.get().findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
             measure(dashboard, 1080, 900)
+            descendants(dashboard).filter { it.isClickable }[7].performLongClick()
             descendants(dashboard).filter { it.isClickable }[7].performClick()
             val picker = ShadowAlertDialog.getLatestAlertDialog()
             selectTestSource(picker, "E-Bike")
@@ -384,6 +384,7 @@ class DashboardViewTest {
         val dashboard = descendants(controller.get().findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
         measure(dashboard, 1080, 1950)
         val tiles = descendants(dashboard).filter { it.isClickable }
+        tiles[2].performLongClick()
         tiles[2].performClick()
         val picker = ShadowAlertDialog.getLatestAlertDialog()
         val all = descendants(picker.window!!.decorView)

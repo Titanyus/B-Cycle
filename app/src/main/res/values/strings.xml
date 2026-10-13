@@ -216,4 +216,8 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="graph_speed">Geschwindigkeit</string>
     <string name="graph_heart">Herzfrequenz</string>
     <string name="graph_apply">Speichern</string>
+    <string name="dashboard_editor_open">Dashboard bearbeiten</string>
+    <string name="dashboard_editor_finish">EDITOR BEENDEN</string>
+    <string name="dashboard_editor_map_slot">Kartenfeld %1$d bearbeiten</string>
+    <string name="dashboard_editor_save_failed">Einstellungen konnten nicht gespeichert werden. Bitte erneut versuchen.</string>
 </resources>

@@ -26,6 +26,13 @@ keine erneute vollständige Suite für diese Versions-/APK-Erstellung.
 
 ## Entwicklungsstand nach APK 0.7.10
 
+- [Weiche Kartenbewegung](docs/map-motion.md): 450-ms-Übergänge mit gemeinsamer Position
+  und Drehung; nur bei Bewegung und sichtbarer GPS-Verfolgung.
+- [Dashboard-Editor V2](docs/dashboard-editor.md): Long-Press oder „Design & UI → Dashboard
+  bearbeiten“, gemeinsame Bearbeitung der oberen Kacheln und drei Kartenfelder,
+  gestrichelte PRIMARY-Rahmen und „EDITOR BEENDEN“ mittig auf der Karte.
+- Oberfläche auf Hochformat festgelegt; Layoutprüfungen verwenden Hochformat-Größen.
+- Abschluss für Editor/Kartenanimation: **354 Tests und Release-Build bestanden** (1 min 57 s).
 - Kleinere Graph-Anfangsbereiche und Schritte: Tempo 0–20/5 km/h, Kadenz 0–60/10 U/min,
   Leistung 0–120/30 W, Puls 50–100/20 bpm, Höhe ungefähr ±25/25 m; zwei Skalierungstests bestanden.
 - Graph-Overlay-Auswahl mit passenden Farbpunkten wie im Dashboard.

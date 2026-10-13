@@ -129,7 +129,7 @@ class DataSettingsNavigationTest {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get();val (_,data)=open(activity);val themes=RideRuntime.get(activity).themes
-            for((w,h) in listOf(280 to 640,360 to 640,640 to 360)) {
+            for((w,h) in listOf(280 to 640,360 to 640,480 to 800)) {
                 measure(data,w,h);val root=data.window!!.decorView.findViewWithTag<ViewGroup>("bicycle_fullscreen")
                 assertEquals(BicycleDesign.headerHeight,root.getChildAt(0).height)
                 assertEquals(h,root.findViewWithTag<View>("bicycle_fullscreen_footer").bottom)

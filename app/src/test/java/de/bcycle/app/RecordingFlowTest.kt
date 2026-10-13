@@ -121,9 +121,12 @@ class RecordingFlowTest {
         val app = RuntimeEnvironment.getApplication(); provider()
         val runtime = RideRuntime.get(app); runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER")))
         runtime.setVisible(true)
+        // Finish initial library notifications before measuring just the recording clock.
+        await { !runtime.mapState.busy }
         val seconds = mutableListOf<Long>()
         val observer: () -> Unit = {
-            if (runtime.recording && runtime.elapsedMs >= 1000) {
+            // Graph publication can notify between ticks; it is not another recording second.
+            if (runtime.recording && runtime.elapsedMs >= 1000 && runtime.elapsedMs % 1000L == 0L) {
                 seconds += runtime.elapsedMs
                 org.robolectric.shadows.ShadowSystemClock.advanceBy(Duration.ofMillis(350))
             }

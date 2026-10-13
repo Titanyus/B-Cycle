@@ -34,7 +34,7 @@ class FullscreenDialogTest {
         val controller = Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val activity = controller.get(); val themes = ThemeManager(activity.getSharedPreferences("full", 0))
-            for ((width, height) in listOf(360 to 640, 800 to 1200, 640 to 360)) for (count in listOf(1, 60)) {
+            for ((width, height) in listOf(360 to 640, 800 to 1200, 480 to 800)) for (count in listOf(1, 60)) {
                 var saved = false; var cancelled = false
                 val body = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL
                     repeat(count) { addView(TextView(activity).apply { text = "Eintrag $it"; minHeight = 48 }) } }

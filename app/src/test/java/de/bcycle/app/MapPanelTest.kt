@@ -154,6 +154,49 @@ class MapPanelTest {
             assertEquals(View.VISIBLE, descendants(root).filterIsInstance<DashboardView>().single().visibility)
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun movingCameraInterpolatesButManualPanPauseAndStandstillCancelFrames() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val root = controller.get().findViewById<ViewGroup>(android.R.id.content); measure(root,1080,2100)
+            val panel = descendants(root).filterIsInstance<MapPanel>().single()
+            val runtime = RideRuntime.get(controller.get())
+            fun fix(lon: Double, speed: Double) {
+                val now = SystemClock.elapsedRealtime()
+                assertTrue(runtime.ride.gps.accept(GpsFix(now,51.0,lon,3.0,speed,.2,bearingDegrees=90.0,bearingAccuracyDegrees=3.0),now))
+                panel.refresh()
+            }
+            fix(10.0,5.0)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
+            fix(10.00005,5.0)
+            val raw = runtime.gpsValues
+            assertEquals(10.0,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(225))
+            val midway = panel.mapView.model.mapViewPosition.center.longitude
+            assertTrue(midway > 10.0 && midway < raw.longitude!!)
+            assertEquals(raw.longitude,runtime.gpsValues.longitude)
+            panel.setFollow(false)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
+            assertEquals(midway,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
+            panel.setFollow(true); panel.pause(); panel.resume()
+            assertEquals(raw.longitude!!,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
+            fix(10.0001,5.0); panel.pause()
+            val paused = panel.mapView.model.mapViewPosition.center
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
+            assertEquals(paused,panel.mapView.model.mapViewPosition.center)
+            panel.resume()
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
+            fix(10.00012,5.0); panel.cameraVisible = { false }
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(50))
+            assertEquals(runtime.gpsValues.longitude!!,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
+            panel.cameraVisible = { true }
+            // The GPS acceleration plausibility filter needs a realistic deceleration interval.
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000))
+            fix(10.00015,0.0)
+            assertFalse(runtime.isMoving)
+            assertEquals(runtime.gpsValues.longitude!!,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun headingUpCameraKeepsGpsInLowerThirdAndNorthSettingResetsRotation() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -213,7 +256,7 @@ class MapPanelTest {
             val image = android.graphics.Bitmap.createBitmap(panel.width, panel.height, android.graphics.Bitmap.Config.ARGB_8888)
             panel.draw(android.graphics.Canvas(image))
             output.outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
-            measure(root, 1950, 750)
+            measure(root, 840, 1680)
             assertTrue(zoom.top >= 0)
             assertTrue(zoom.bottom <= panel.height)
             assertTrue(topControls.right <= zoom.left || topControls.bottom <= zoom.top)

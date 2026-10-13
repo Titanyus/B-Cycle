@@ -13,6 +13,12 @@
 
 UI: Verwende für neue Dialoge die zentralen BicycleDesign-/BicycleComponents-/BicycleDialog-Komponenten, ThemeManager und BicycleIcons; keine eigenen Farb- oder Geometrievarianten. Einstellungsansichten verwenden den Vollbild-Host mit fixem Header/Footer; kurze Bestätigungen bleiben kompakt. Footer: Abbrechen = X (Cancel), Schließen = Tür mit Pfeil (Close). Funktionale Bosch-Modusfarben bleiben vom App-Theme getrennt.
 
+## Ausrichtung und Dashboard-Bearbeitung
+
+Die App-Oberfläche wird ausschließlich im Hochformat verwendet. Layout- und UI-Tests prüfen unterschiedliche Hochformat-Größen; keine neuen Querformat-Fälle hinzufügen. Bestehende responsive Komponenten nicht ohne konkreten Auftrag umbauen.
+
+Dashboardfelder werden nur im bewusst aktivierten Editor bearbeitet: Long-Press auf eine obere Kachel oder „Design & UI → Dashboard bearbeiten“. Kartenfelder haben keinen Long-Press-Einstieg. Der gemeinsame Editor verwendet PRIMARY-Rahmen und den zentralen Beenden-Button auf der Karte. Keine Stillstandssperre für diese Bearbeitung ergänzen; bestätigte Änderungen verwenden die bestehende Persistenz.
+
 ## Grundsätzliche UX- und Konfigurationsphilosophie
 
 BICYCLE ist ein leistungsfähiger, individuell anpassbarer Fahrradcomputer. Seine Bedienung bleibt trotz umfangreicher Funktionen einfach, logisch und übersichtlich.

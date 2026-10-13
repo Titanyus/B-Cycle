@@ -166,13 +166,13 @@ Ab 0.6.5 verwenden alle Vorlagen dieselben kleinen Feldhöhen; das große
 Vier-Werte-Feld entspricht dem großen Feld der Sieben-Werte-Vorlage. Die
 unteren Innenabstände sind von 8 auf 4 dp reduziert. Die Höhen orientieren
 sich am gesamten verfügbaren Dashboard-/Kartenbereich, auch beim Ausblenden
-der Bedienleiste; zusätzlicher Platz geht an die Karte. Im Querformat bleiben
-die kleinen Felder ebenfalls zwischen den Vorlagen gleich hoch.
+der Bedienleiste; zusätzlicher Platz geht an die Karte.
 
 Ab 0.6.6 gibt es drei globale transparente Messwertfelder am unteren Kartenrand,
-oberhalb der Urheberangabe. Sie werden ab APK 0.6.8 unter **Dashboards → Karten-Datenfelder** (in APK 0.6.7 noch Kartenmanager)
-über **Links / Mitte / Rechts** belegt, mit derselben kategorisierten Werteauswahl
-wie das Dashboard. **Leer** entfernt die Belegung. Jeder gewählte Wert wird sofort
+oberhalb der Urheberangabe. Sie werden im aktuellen Entwicklungsstand direkt über den
+[Dashboard-Editor](dashboard-editor.md) belegt: langer Druck auf eine obere Kachel
+oder **Design & UI → Dashboard bearbeiten**, anschließend auf das gewünschte Kartenfeld
+tippen. Die kategorisierte Werteauswahl ist dieselbe wie für das Dashboard. **Leer** entfernt die Belegung. Jeder gewählte Wert wird sofort
 gespeichert; Abbrechen lässt die bisherige Belegung bestehen. Die Anzeige enthält
 nur den Messwert in Schwarz, ohne Titel, Quellenzeichen oder Einheit. Ohne
 Belegung bzw. verfügbare Daten bleibt die Position unsichtbar. Kartengesten gehen
@@ -192,3 +192,9 @@ Der aktuelle Code erweitert den bisherigen GPX-Manager zum gemeinsamen
 [Streckenmanager für GPX und FIT](routes.md). Kartenanzeige und geplante Strecke
 verwenden weiterhin dieselbe MapState-Auswahl; es gibt keine zusätzliche Karte
 oder GPX-Konvertierung der FIT-Dateien.
+
+## Weiche Kartenbewegung (Entwicklungsstand nach APK 0.7.10)
+
+Die Kamera und das Positionssymbol wechseln bei Bewegung und GPS-Verfolgung mit
+einem kurzen gemeinsamen Übergang zum nächsten empfangenen GPS-Punkt. Details,
+Lebenszyklusregeln und Prüfungen: [Weiche GPS-Kartenbewegung](map-motion.md).

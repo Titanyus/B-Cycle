@@ -84,9 +84,9 @@ class RouteManagerViewTest {
         val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         view.draw(Canvas(bitmap))
         File("build/reports/settings/route-manager.png").apply { parentFile!!.mkdirs(); outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) } }
-        measure(1950, 750); assertTrue(list.height > 0) // Short landscape dialogs retain a usable list.
+        measure(840, 1500); assertTrue(list.height > 0) // Narrow portrait dialogs retain a usable list.
     }
-    @Test fun twoThemesKeepGeometryAndActionsIdenticalAcrossNarrowLandscapeAndEmptyLists() {
+    @Test fun twoThemesKeepGeometryAndActionsIdenticalAcrossPortraitSizesAndEmptyLists() {
         val controller = org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
             val activity = controller.get()
@@ -174,7 +174,7 @@ class RouteManagerViewTest {
             manager.findViewWithTag<View>("route_entry_recorded").performClick()
             assertEquals(count, clicked.size)
             manager.submit(entries, null, false)
-            layout(1950, 750); snapshot("route-manager-landscape")
+            layout(960, 1750); snapshot("route-manager-portrait")
             manager.submit(emptyList(), null, false); layout(1080, 1750); snapshot("route-manager-empty")
             assertEquals(0, manager.findViewWithTag<ListView>("route_list").count)
         } finally { controller.pause().stop().destroy() }

@@ -114,7 +114,7 @@ class RiderProfileViewTest {
             val activity=controller.get();val prefs=activity.getSharedPreferences("bike",0)
             val store=RiderProfileStore(prefs);assertTrue(store.write(RiderProfile(heightCm=182,weightKg=76.4,restingHeartRate=55,maximumHeartRate=185,ftpW=245)))
             val themes=ThemeManager(prefs);val screen=showRiderProfile(activity,themes,DialogNavigation(),store)
-            for((width,height) in listOf(280 to 640,360 to 640,640 to 360)) {
+            for((width,height) in listOf(280 to 640,360 to 640,480 to 800)) {
                 measure(screen,width,height)
                 val root=screen.window!!.decorView.findViewWithTag<ViewGroup>("bicycle_fullscreen")
                 val header=root.getChildAt(0);val footer=root.findViewWithTag<View>("bicycle_fullscreen_footer")

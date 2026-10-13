@@ -23,6 +23,19 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private val numbers = resources.getFont(R.font.bebas_neue)
     private val captions = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
     private val tiles = mutableListOf<Tile>()
+    var editing = false; private set
+    private var editorColor = BicycleThemes.red.tokens.primary
+    var activateEditor: (() -> Unit)? = null
+    internal fun bindEditorTheme(themes: ThemeManager) {
+        BicycleComponents.bindTheme(this, themes) { tokens ->
+            editorColor = tokens.primary
+            tiles.forEach { (it.container.foreground as? DashboardEditOutline)?.color = editorColor }
+        }
+    }
+    fun setEditing(value: Boolean) {
+        editing = value
+        tiles.forEach { it.markEditable() }
+    }
     private var graphConfig = GraphOverlayConfig()
     private var graphFrame: GraphFrame? = null
     var graphWidthChanged: ((Int) -> Unit)? = null
@@ -178,6 +191,9 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
         private val threeColumns = template.rows.any { it.size == 3 && index in it }
         private val swipe = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
+            override fun onScroll(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+                container.cancelLongPress(); container.isPressed = false; return false
+            }
             override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, velocityX: Float, velocityY: Float): Boolean {
                 val first = e1 ?: return false
                 val change = changePage ?: return false
@@ -188,7 +204,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 return false
             }
         })
-        val container = object : LinearLayout(context) {
+        val container: LinearLayout = object : LinearLayout(context) {
             override fun onSizeChanged(w: Int,h: Int,oldw: Int,oldh: Int) {
                 super.onSizeChanged(w,h,oldw,oldh)
                 if(template.supportsGraph(index)) graphWidthChanged?.invoke((w-paddingLeft-paddingRight).coerceAtLeast(64))
@@ -203,8 +219,13 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 addState(intArrayOf(android.R.attr.state_pressed), ColorDrawable(Color.rgb(24, 24, 24)))
                 addState(intArrayOf(), ColorDrawable(Color.TRANSPARENT))
             }
-            setOnClickListener { selectField(index) }
+            tag = "dashboard_tile_$index"
+            setOnClickListener { if (editing) selectField(index) }
+            setOnLongClickListener { activateEditor?.invoke(); true }
             setOnTouchListener { _, event -> swipe.onTouchEvent(event) }
+        }
+        fun markEditable() {
+            container.foreground = if (editing) DashboardEditOutline(resources.displayMetrics.density, editorColor) else null
         }
         val captionWeight = if (index == 2 && (template == DashboardTemplate.DATA || template.largeTop)) .10f else .20f
         val title = TextView(context).apply {
@@ -225,6 +246,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private val row = ValueRow(value, unit, threeColumns)
 
         init {
+            markEditable()
             updateGraph()
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
                 captionWeight))

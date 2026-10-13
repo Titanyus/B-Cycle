@@ -47,6 +47,22 @@ class MainActivity : Activity() {
         else onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
         mapBackRegistered=mapFullscreen
     }
+    internal var dashboardEditing = false; private set
+    internal fun setDashboardEditing(value: Boolean) {
+        dashboardEditing = value
+        dashboard.setEditing(value); mapPanel.setEditing(value)
+        if (value && mapFullscreen) setMapFullscreen(false)
+    }
+    private fun finishDashboardEditor() {
+        // commit waits for the existing field/graph apply writes; retain EDIT on a reported disk failure.
+        if (!preferences.edit().commit()) {
+            Toast.makeText(this, R.string.dashboard_editor_save_failed, Toast.LENGTH_LONG).show(); return
+        }
+        setDashboardEditing(false)
+    }
+    private fun enterDashboardEditor() {
+        dialogs.closeAll(); setDashboardEditing(true)
+    }
     private var picker: AlertDialog? = null
     private var menu: AlertDialog? = null
     private data class DetailSession(val id: String, val screen: AlertDialog, val content: RouteAnalysisView, val footer: LinearLayout, var analysis: RouteAnalysis? = null, var signature: String = "")
@@ -93,11 +109,16 @@ class MainActivity : Activity() {
         }
         setContentView(root)
         dashboard = DashboardView(this) { chooseField(it) }
+        dashboard.bindEditorTheme(runtime.themes)
+        dashboard.activateEditor = { setDashboardEditing(true) }
         dashboard.graphWidthChanged={ runtime.liveGraphs.width=it }
         updateMapBack()
         dashboard.changePage = ::changeDashboard
         dashboard.setTemplate(currentTemplate())
         mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink)
+        mapPanel.cameraVisible = { dialogs.empty }
+        mapPanel.finishEditor = ::finishDashboardEditor
+        mapPanel.selectMapField = { chooseField(it, mapField = true) }
         dashboardArea = object : LinearLayout(this) {
             override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
                 val available = View.MeasureSpec.getSize(heightMeasureSpec) - if (controlsVisible) 0 else dp(58)
@@ -184,8 +205,8 @@ class MainActivity : Activity() {
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     /** Source selector stays outside the scrollable list for dashboard and map fields. */
-    private fun chooseField(index: Int, mapField: Boolean = false, changed: (() -> Unit)? = null) {
-        fun permitted(): Boolean = runtime.canEditDataFields
+    private fun chooseField(index: Int, mapField: Boolean = false) {
+        fun permitted(): Boolean = dashboardEditing
         if (!permitted()) return
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
@@ -198,13 +219,13 @@ class MainActivity : Activity() {
             }
         }
         fun select(field: DashboardField?) {
-            // The bike may have started moving while the selection was open.
+            // Ignore stale selections after the dashboard editor has been exited.
             if (!permitted()) { picker?.dismiss(); return }
             if (mapField) {
                 preferences.edit().apply {
                     if (field == null) remove(MapFieldSelection.key(index)) else putString(MapFieldSelection.key(index), field.id)
                 }.apply()
-                mapPanel.refreshSettings(); changed?.invoke()
+                mapPanel.refreshSettings()
             } else if (field != null) {
                 dashboardLayout = dashboardLayout.replace(index, field)
                 preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
@@ -222,6 +243,7 @@ class MainActivity : Activity() {
         picker=builder.show()
     }
     private fun showMenu() {
+        setDashboardEditing(false)
         val content = SettingsMenuView(settingsContext, runtime.themes) { action ->
             when (action) {
                 SettingsAction.SENSORS -> showSensorManager()
@@ -502,7 +524,7 @@ class MainActivity : Activity() {
         }
         root.addView(glow)
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-        root.addView(button("Karten-Datenfelder", BicycleIcon.ShowOnMap) { mapDataFieldSettings() }.apply { tag = "map_fields_manage" })
+        root.addView(button(getString(R.string.dashboard_editor_open), BicycleIcon.EditDashboard) { enterDashboardEditor() }.apply { tag = "dashboard_editor_open" })
         menu = dialog().setTitle("Design & UI").setView(ScrollView(this).apply { tag = "design_ui_scroll"; addView(root) })
             .setPositiveButton("Speichern") { _, _ ->
                 val edit = preferences.edit(); presets.selection.forEachIndexed { page, template -> edit.putString("dashboardTemplate_$page", template.name) }; edit.apply()
@@ -533,25 +555,6 @@ class MainActivity : Activity() {
                     .putBoolean("mapTrackVisible", track.isChecked).putBoolean("mapGpxVisible", gpx.isChecked).apply()
                 mapPanel.refreshSettings()
             }.setNegativeButton("Abbrechen", null).show()
-    }
-    private fun mapDataFieldSettings() {
-        val root = column()
-        for (index in MapFieldSelection.positions.indices) {
-            val slot = button("") {}.apply { tag = "map_field_slot_$index" }
-            fun updateTitle() {
-                val field = MapFieldSelection.read(preferences, index)
-                val title = field?.let {
-                    val name = it.title(runtime.bikeData, runtime.gpsValues)
-                    if (it.showSource) "${it.source} · $name" else name
-                } ?: "Leer"
-                slot.text = "${MapFieldSelection.positions[index]} · $title"
-            }
-            updateTitle()
-            slot.setOnClickListener { chooseField(index, mapField = true, changed = ::updateTitle) }
-            root.addView(slot)
-        }
-        menu = dialog().setTitle("Karten-Datenfelder").setView(ScrollView(settingsContext).apply { addView(root) })
-            .setPositiveButton("Schließen", null).show()
     }
     private fun importRoute(recorded: Boolean = false) {
         try {
@@ -621,6 +624,7 @@ class MainActivity : Activity() {
         }
     }
     private fun routeSettings() {
+        setDashboardEditing(false)
         val state = runtime.mapState
         routeSignature = ""
         val content = RouteManagerView(settingsContext, { entry ->

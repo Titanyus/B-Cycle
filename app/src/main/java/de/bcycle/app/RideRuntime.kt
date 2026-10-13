@@ -127,7 +127,6 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             ?: ride.gps.snapshot(now).speedKmh
     }
     val isMoving: Boolean get() = currentSpeedKmh?.let { it > 0.0 } == true
-    val canEditDataFields: Boolean get() = currentSpeedKmh?.let { it == 0.0 } ?: !recording
     /** Reuse the existing connection/freshness rules; never expose a stale mode to the visual status. */
     val currentBikeLight: Boolean? get() = bikeData.value(LiveMetric.BIKE_LIGHT)
         ?.takeIf { it in 0..1 && fresh(LiveMetric.BIKE_LIGHT, SystemClock.elapsedRealtime()) }?.let { it == 1L }

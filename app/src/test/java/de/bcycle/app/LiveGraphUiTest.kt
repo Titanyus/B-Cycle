@@ -43,7 +43,7 @@ class LiveGraphUiTest {
         boxes.first().performClick();assertTrue(chooser.selected.isEmpty())
     }
     @Test fun overlaysDoNotChangeGeometryFontsForegroundOrUnsupportedTiles() {
-        for(template in DashboardTemplate.entries) for((w,h) in listOf(960 to 1500,1440 to 780)) {
+        for(template in DashboardTemplate.entries) for((w,h) in listOf(960 to 1500,1440 to 2400)) {
             val view=DashboardView(context) {};view.setTemplate(template);measure(view,w,h)
             val tiles=all(view).filter { it.isClickable };val geometry=tiles.map { listOf(it.left,it.top,it.width,it.height) }
             val fonts=all(view).filterIsInstance<TextView>().map { Pair(it.textSize,it.currentTextColor) }
@@ -51,7 +51,7 @@ class LiveGraphUiTest {
             assertEquals(geometry,all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) })
             assertEquals(fonts,all(view).filterIsInstance<TextView>().map { Pair(it.textSize,it.currentTextColor) })
             assertEquals(if(template.supportsGraph(2)) 1 else 0,all(view).count { it.background is LayerDrawable })
-            // Draw a real bitmap to exercise clipping/cached paths on narrow and landscape fields.
+            // Draw a real bitmap to exercise clipping/cached paths on narrow and wider portrait dashboards.
             view.draw(Canvas(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)))
             view.showGraphs(GraphOverlayConfig(),null);assertFalse(all(view).any { it.background is LayerDrawable })
         }
