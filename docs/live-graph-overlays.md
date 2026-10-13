@@ -195,3 +195,28 @@ Alle oben beschriebenen Korrekturen einschließlich Grenzlinien sind in der sign
 Test-APK **0.7.10** enthalten. Die Hinweise „keine neue APK“ in den einzelnen
 Änderungsschritten beziehen sich auf deren damalige gezielte Prüfung.
 [Release-Nachweis](milestone-0710.md).
+
+## Farbpunkte und Quellen-Symbole in der Feldauswahl (13.10.2026)
+
+Jede der fünf Graph-Checkboxen enthält einen kleinen Punkt in exakt derselben Farbe
+wie ihr Gegenstück neben der Dashboard-Feldbezeichnung. Wiederverwendung der vorhandenen
+Kreis-Darstellung und `AnalysisChart`-Palette. „Kein Graph“ bleibt ohne Punkt.
+Auswahlreihenfolge, Begrenzung auf zwei, Speichern/Abbrechen und persistente IDs bleiben gleich.
+
+Das bestehende Quellen-Dropdown zeigt dieselben GPS-/Fahrradglyphen wie das Dashboard,
+ein Lucide-Herz für Pulsmesser und `cloud-sun` für Wetter. Symbole stehen vor dem Text
+und werden in der Theme-Vordergrundfarbe gezeichnet, sowohl bei der aktuellen Auswahl
+als auch in der geöffneten Liste. Die ursprünglichen String-Einträge des Dropdown-Modells
+bleiben erhalten. Die zentrale Spinner-Darstellung unterstützt dafür optional formatierte
+Labels; andere Dropdowns behalten ihre bisherige Darstellung. Recycelte Zeilen behalten
+die richtige Quelle; Theme-Bindings verwenden deren jeweils aktuelle Quelle.
+
+`cloud-sun` ist ein lokaler VectorDrawable aus der bereits verwendeten Lucide-Version
+0.468.0. Keine zusätzliche Bibliothek. Das vorhandene Importskript enthält das Symbol
+zur Reproduzierbarkeit; die bestehende Lizenz bleibt unverändert.
+
+Vier gezielte Tests: bestehendes Quellen-Umschalten/Scrollen, Quellen-Icons in beiden
+Dropdown-Darstellungen einschließlich Tint und Zeilen-Recycling, Graph-Punktfarben sowie
+bestehende Auswahlgrenzen/Persistenz. **4 Tests bestanden**, Release-Kotlin-Kompilierung
+erfolgreich; zusammen 12 Sekunden. Keine vollständige Suite und keine neue APK.
+Diese Änderungen sind noch nicht in APK 0.7.10 enthalten.

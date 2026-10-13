@@ -24,6 +24,13 @@ Die vorausgehenden Änderungen wurden mit gezielten Chevron-, Glow- und Graph-Te
 keine erneute vollständige Suite für diese Versions-/APK-Erstellung.
 [Buildnachweis 0.7.10](docs/milestone-0710.md).
 
+## Entwicklungsstand nach APK 0.7.10
+
+- Graph-Overlay-Auswahl mit passenden Farbpunkten wie im Dashboard.
+- Quellen-Dropdown mit den bestehenden GPS-/Fahrradsymbolen, Herz für Pulsmesser
+  und Wolke mit Sonne für Wetter; Icons verwenden die Theme-Vordergrundfarbe.
+- Vier gezielte Tests und Release-Kompilierung bestanden. Noch nicht in APK 0.7.10 enthalten.
+
 ## Neu in APK 0.7.10
 
 - Direktwert-Chevrons zeigen denselben Trend wie ihre jeweiligen Durchschnittsfelder;

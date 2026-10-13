@@ -26,7 +26,11 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             tag = "field_source"; contentDescription = "Sensorquelle auswählen"
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, sources)
         }
-        BicycleDialogStyle.spinner(selector, themes)
+        BicycleDialogStyle.spinner(selector, themes) { source, foreground ->
+            android.text.SpannableString("\uFFFC $source").apply {
+                setSpan(SourceIconSpan(source,context,foreground),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
         addView(selector, LayoutParams(-1, dp(BicycleDesign.touchSize)))
         if (allowEmpty) addView(RadioButton(context).apply {
             text = "Leer"; tag = "map_field_empty"; isChecked = selected == null

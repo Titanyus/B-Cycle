@@ -51,4 +51,44 @@ class FieldPickerTest {
         testDescendants(view).single { it.tag == "map_field_empty" }.performClick()
         assertNull(selected.last())
     }
+    @Test fun selectedSourceAndDropdownRowsReuseDashboardIconsWithThemeForeground() {
+        val context=RuntimeEnvironment.getApplication()
+        val themes=ThemeManager(context.getSharedPreferences("source-icons",0))
+        val view=FieldPickerView(context,LiveData(),GpsValues(),null,PulseValues(),DashboardField("RIDER_POWER"),false,themes) {}
+        val spinner=testDescendants(view).single { it.tag=="field_source" } as Spinner
+        val sources=listOf("GPS","E-Bike","Pulsmesser","Wetter")
+        for((index,source) in sources.withIndex()) for(dropdown in listOf(false,true)) {
+            val row=(if(dropdown) spinner.adapter.getDropDownView(index,null,spinner) else spinner.adapter.getView(index,null,spinner)) as android.widget.TextView
+            assertEquals(source,spinner.adapter.getItem(index));assertEquals(source,row.contentDescription)
+            assertEquals("\uFFFC $source",row.text.toString())
+            val text=row.text as android.text.Spanned
+            val icon=text.getSpans(0,text.length,SourceIconSpan::class.java).single()
+            assertEquals(source,icon.source)
+            // Verify tint through native drawing without depending on vector/raster internals.
+            val bitmap=android.graphics.Bitmap.createBitmap(40,40,android.graphics.Bitmap.Config.ARGB_8888)
+            icon.draw(android.graphics.Canvas(bitmap),row.text,0,1,3f,0,30,40,android.graphics.Paint().apply { textSize=24f })
+            val colors=(0 until 40).flatMap { y -> (0 until 40).map { x -> bitmap.getPixel(x,y) } }.filter { android.graphics.Color.alpha(it)>0 }
+            assertTrue(colors.isNotEmpty());assertTrue(colors.all { it and 0x00ffffff == themes.active.tokens.foreground and 0x00ffffff })
+        }
+        val row=spinner.adapter.getView(0,null,spinner) as android.widget.TextView
+        val reused=spinner.adapter.getView(3,row,spinner) as android.widget.TextView
+        assertSame(row,reused);assertEquals("Wetter",(reused.text as android.text.Spanned).getSpans(0,reused.text.length,SourceIconSpan::class.java).single().source)
+    }
+    @Test fun graphChoicesHaveTheirCorrespondingDashboardColoredDotsAndKeepSelectionLimit() {
+        val context=RuntimeEnvironment.getApplication();val themes=ThemeManager(context.getSharedPreferences("graph-dots-picker",0))
+        val picker=GraphOverlayPicker(context,themes,emptyList())
+        val choices=testDescendants(picker).filterIsInstance<android.widget.CheckBox>()
+        assertFalse(choices.first().text is android.text.Spanned)
+        AnalysisChart.entries.forEachIndexed { index,chart ->
+            val box=choices[index+1];val text=box.text as android.text.Spanned
+            assertTrue(box.contentDescription.isNotEmpty());val dot=text.getSpans(0,text.length,RecordingDotSpan::class.java).single()
+            val b=android.graphics.Bitmap.createBitmap(30,30,android.graphics.Bitmap.Config.ARGB_8888)
+            dot.draw(android.graphics.Canvas(b),text,0,1,0f,0,20,30,android.graphics.Paint().apply { textSize=18f })
+            assertTrue((0 until 30).any { y -> (0 until 30).any { x -> b.getPixel(x,y)==chart.color(android.graphics.Color.BLACK) } })
+        }
+        choices[1].performClick();choices[2].performClick()
+        assertEquals(listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),picker.selected)
+        assertFalse(choices[3].isEnabled);choices[1].performClick();assertTrue(choices[3].isEnabled)
+    }
+
 }

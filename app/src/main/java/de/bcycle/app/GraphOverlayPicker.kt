@@ -18,7 +18,12 @@ internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initia
         none.setOnClickListener { choice.clear(); refresh() }; addView(none)
         AnalysisChart.entries.forEach { chart ->
             val label=when(chart) { AnalysisChart.SPEED -> R.string.graph_speed; AnalysisChart.HEART -> R.string.graph_heart; else -> chart.label }
-            val box=CheckBox(context).apply { tag="graph_${chart.name}"; setText(label); BicycleDialogStyle.control(this,themes)
+            val box=CheckBox(context).apply { tag="graph_${chart.name}"
+                val title=context.getString(label)
+                text=android.text.SpannableString("\uFFFC  $title").apply {
+                    setSpan(RecordingDotSpan(resources.displayMetrics.density,chart.color(android.graphics.Color.BLACK),7f),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                contentDescription=title; BicycleDialogStyle.control(this,themes)
                 minHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
                 setOnClickListener { if(chart in choice) choice.remove(chart) else if(choice.size<2) choice.add(chart); refresh() } }
             boxes[chart]=box; addView(box)

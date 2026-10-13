@@ -177,7 +177,7 @@ internal object BicycleDialogStyle {
             button.compoundDrawablesRelative.filterNotNull().forEach { it.setTint(tokens.foreground) }
         }
     }
-    fun spinner(view: Spinner, themes: ThemeManager) {
+    fun spinner(view: Spinner, themes: ThemeManager, renderLabel: ((String, Int) -> CharSequence)? = null) {
         if (styled.put(view, true) != null) return
         view.minimumHeight = dp(view, BicycleDesign.touchSize)
         BicycleComponents.bindTheme(view, themes) { tokens ->
@@ -200,9 +200,14 @@ internal object BicycleDialogStyle {
                 ((recycled as? TextView) ?: BicycleComponents.text(view.context, themes, "").apply {
                     typeface = Typeface.DEFAULT; gravity = Gravity.CENTER_VERTICAL
                     minHeight = dp(view, BicycleDesign.touchSize); textSize = BicycleDesign.inputSp
-                    BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.tertiary else Color.TRANSPARENT) }
+                    BicycleComponents.bindTheme(this, themes) {
+                        setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.tertiary else Color.TRANSPARENT)
+                        if (renderLabel != null && tag is String) text=renderLabel(tag as String,it.foreground)
+                    }
                 }).apply {
-                    text = getItem(position).toString()
+                    val label=getItem(position).toString()
+                    if (renderLabel != null) { tag=label; contentDescription=label }
+                    text = renderLabel?.invoke(label,themes.active.tokens.foreground) ?: label
                     setPadding(dp(view, BicycleDesign.horizontalPadding), dp(view, BicycleDesign.verticalPadding),
                         dp(view, if (dropdown) BicycleDesign.horizontalPadding else BicycleDesign.touchSize), dp(view, BicycleDesign.verticalPadding))
                 }
