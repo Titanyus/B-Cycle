@@ -5,7 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
 
-/** Same vertical system-font labeling as charts; group labels retain the shared Black weight. */
+/** Vertical system-font labeling shared with charts, using the central Black weight and size. */
 internal class AnalysisSideLabel(context: Context, themes: ThemeManager, resource: Int) : View(context) {
     val title=context.getString(resource)
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.strongTypeface; textAlign=Paint.Align.CENTER }

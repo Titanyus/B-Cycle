@@ -10,6 +10,10 @@ import android.view.View
 /** Compact native Canvas chart; geometry/labels cached when its size changes, not while scrolling. */
 internal class RouteChartView(context: Context, themes: ThemeManager, val analysis: RouteAnalysis, val series: AnalysisSeries) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        typeface = BicycleDesign.strongTypeface
+        textAlign = Paint.Align.CENTER
+    }
     private val line = Path()
     private val area = Path()
     private var foreground = 0; private var curve = 0
@@ -70,11 +74,12 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
         }
         paint.textAlign = Paint.Align.RIGHT; canvas.drawText(unit, plotRight, top - 2 * density, paint)
         canvas.drawText(axisUnit, plotRight, height.toFloat(), paint)
-        paint.alpha = 255; paint.textSize = BicycleDesign.analysisSideLabelSp * scaled
-        val available = height - 12 * density
-        if (paint.measureText(title) > available) paint.textSize *= available / paint.measureText(title)
-        paint.textAlign = Paint.Align.CENTER
-        canvas.save(); canvas.translate(12 * density, height / 2f); canvas.rotate(-90f)
-        canvas.drawText(title, 0f, paint.textSize / 3, paint); canvas.restore()
+        titlePaint.color = foreground
+        titlePaint.textSize = BicycleDesign.analysisSideLabelSp * scaled
+        val available = (height - BicycleDesign.dp(context, BicycleDesign.verticalPadding) * 2).coerceAtLeast(1)
+        val measured = titlePaint.measureText(title)
+        if (measured > available) titlePaint.textSize *= available / measured
+        canvas.save(); canvas.translate(BicycleDesign.dp(context, BicycleDesign.analysisSideLabelWidth) / 2f, height / 2f); canvas.rotate(-90f)
+        canvas.drawText(title, 0f, -(titlePaint.ascent() + titlePaint.descent()) / 2, titlePaint); canvas.restore()
     }
 }
