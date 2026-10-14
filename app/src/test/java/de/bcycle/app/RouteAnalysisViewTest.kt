@@ -59,7 +59,7 @@ class RouteAnalysisViewTest {
                     assertEquals(1, charts.map { it.plotRight }.distinct().size)
                     assertEquals(1, charts.map { it.screenX(16.0) }.distinct().size)
                     assertEquals(1, charts.map { it.height }.distinct().size)
-                    assertTrue(charts.all { it.contentDescription.toString().contains(context.getString(it.series.chart.label)) })
+                    assertTrue(charts.all { it.contentDescription.toString().contains(context.getString(it.series.chart.detailLabel)) })
                     for (chart in AnalysisChart.entries) assertTrue("${theme.name}/${chart.name}", ThemeValidator.contrast(chart.color(theme.tokens.secondary), theme.tokens.secondary) >= 3)
                     for (gray in listOf(60, 100, 128, 160, 200)) {
                         val background = android.graphics.Color.rgb(gray, gray, gray)
@@ -74,6 +74,22 @@ class RouteAnalysisViewTest {
                 }
             }
         } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun sectionLabelsAreVerticalWithThinSeparatorsAndDateIsLargerWithoutExtraHeadings() {
+        val context=RuntimeEnvironment.getApplication();val themes=ThemeManager(context.getSharedPreferences("analysis-side",0))
+        val content=RouteAnalysisView(context,themes,"side") {}
+        content.show(sample());measure(content,360,800)
+        val labels=descendants(content).filterIsInstance<AnalysisSideLabel>()
+        assertEquals(AnalysisGroups.groups.map { context.getString(it.first) },labels.map { it.title })
+        labels.forEach { assertTrue(it.isAccessibilityHeading);assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisSideLabelWidth),it.width);assertTrue(it.height>=BicycleDesign.dp(context,BicycleDesign.analysisTileMinHeight)) }
+        val dividers=descendants(content).filter { it.tag=="analysis_section_divider" }
+        assertEquals(5,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.dividerPixels && it.alpha==BicycleDesign.dividerAlpha })
+        val date=content.findViewWithTag<TextView>("analysis_date")
+        assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.bodySp,context.resources.displayMetrics),date.textSize,0f)
+        val texts=descendants(content).filterIsInstance<TextView>().map { it.text.toString() }
+        for(resource in listOf(R.string.analysis_overview,R.string.analysis_map_heading,R.string.analysis_charts)) assertFalse(texts.contains(context.getString(resource)))
+        assertEquals("Leistung",context.getString(AnalysisChart.POWER.detailLabel))
+        content.draw(android.graphics.Canvas(android.graphics.Bitmap.createBitmap(360,800,android.graphics.Bitmap.Config.ARGB_8888)))
     }
     @Test fun largeSystemFontKeepsNarrowTilesAndHeaderWithinTheirAllocatedBounds() {
         val app = RuntimeEnvironment.getApplication()

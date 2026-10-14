@@ -44,23 +44,27 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         reset()
         if (analysis.entry.details.dateMs > 0) body.addView(BicycleComponents.text(context, themes,
             DateTimeFormatter.ofPattern(context.getString(R.string.analysis_date_format)).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(analysis.entry.details.dateMs))).apply {
-            gravity = Gravity.CENTER; typeface = Typeface.DEFAULT; tag = "analysis_date"; textSize = 12f
+            gravity = Gravity.CENTER; typeface = Typeface.DEFAULT; tag = "analysis_date"; textSize = BicycleDesign.bodySp
         }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.smallGap) })
+        var groupsShown=0
         AnalysisGroups.groups.forEach { (heading, alternatives) ->
             val available = if (heading == R.string.analysis_power_group && alternatives.flatten().any { it in analysis.metrics }) alternatives
                 else alternatives.map { group -> group.filter { it in analysis.metrics } }.filter { it.isNotEmpty() }
             if (available.isNotEmpty()) {
-                body.addView(text(heading, true).apply { isAccessibilityHeading = true }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.smallGap); topMargin = dp(BicycleDesign.verticalPadding) })
+                if(groupsShown++>0) body.addView(BicycleComponents.sectionDivider(context,themes).apply { tag="analysis_section_divider" })
                 val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; tag = "analysis_group_$heading"; isBaselineAligned = false }
                 available.forEachIndexed { index, metrics ->
                     if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f; tag = "analysis_vertical_divider" }, LinearLayout.LayoutParams(BicycleDesign.dividerPixels, -1))
                     row.addView(AnalysisMetricTile(context, themes, metrics, analysis.metrics), LinearLayout.LayoutParams(0, -1, 1f))
                 }
-                body.addView(row, LinearLayout.LayoutParams(-1, -2))
+                body.addView(LinearLayout(context).apply {
+                    orientation=LinearLayout.HORIZONTAL;isBaselineAligned=false
+                    addView(AnalysisSideLabel(context,themes,heading),LinearLayout.LayoutParams(dp(BicycleDesign.analysisSideLabelWidth),-1))
+                    addView(row,LinearLayout.LayoutParams(0,-2,1f))
+                }, LinearLayout.LayoutParams(-1, -2))
             }
         }
         analysis.route?.let { route ->
-            body.addView(text(R.string.analysis_map_heading, true).apply { isAccessibilityHeading = true })
             val frame = FrameLayout(context)
             preview = RouteAnalysisMap(context, route, false)
             frame.addView(preview, FrameLayout.LayoutParams(-1, -1))
@@ -69,7 +73,6 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             body.addView(frame, LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisMapHeight)).apply { topMargin = dp(BicycleDesign.rowGap) })
         }
         if (analysis.series.isNotEmpty()) {
-            body.addView(text(R.string.analysis_charts, true).apply { isAccessibilityHeading = true }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(BicycleDesign.verticalPadding) })
             analysis.series.forEach { body.addView(RouteChartView(context, themes, analysis, it), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
         }
         if (body.childCount == 0) body.addView(text(R.string.analysis_no_data))

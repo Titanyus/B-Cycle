@@ -37,6 +37,7 @@ internal enum class AnalysisChart(val label: Int, val unit: Int, val darkColor: 
     POWER(R.string.analysis_rider_power, R.string.analysis_watts, 0xff68b5ff.toInt(), 0xff003569.toInt()),
     HEART(R.string.analysis_heart, R.string.analysis_bpm, 0xffff7c8a.toInt(), 0xff720018.toInt()),
     ELEVATION(R.string.analysis_elevation, R.string.analysis_meters, 0xffc6ccd3.toInt(), 0xff424950.toInt());
+    val detailLabel get() = if(this==POWER) R.string.analysis_power_group else label
     fun color(background: Int): Int {
         val chosen = if (ThemeValidator.contrast(darkColor, background) >= ThemeValidator.contrast(lightColor, background)) darkColor else lightColor
         if (ThemeValidator.contrast(chosen, background) >= 3) return chosen

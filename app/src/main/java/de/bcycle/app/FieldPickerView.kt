@@ -15,19 +15,22 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     bikeDistanceM: Long?, pulse: PulseValues, selected: DashboardField?, allowEmpty: Boolean,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
     graphPicker: GraphOverlayPicker? = null,
+    visualization: ZoneGlowPicker? = null,
+    training: TrainingSnapshot = TrainingSnapshot(),
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
         orientation = VERTICAL; setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
         BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
-        val groups = DashboardField.groups(data, selected).groupBy { it.source }
+        val groups = DashboardField.groups(data, selected, includeTraining = !allowEmpty).groupBy { it.source }
         val sources = groups.keys.toList()
         val selector = Spinner(context).apply {
             tag = "field_source"; contentDescription = "Sensorquelle auswählen"
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, sources)
         }
         BicycleDialogStyle.spinner(selector, themes) { source, foreground ->
-            android.text.SpannableString("\uFFFC $source").apply {
+            val title=if(source=="Leistung") context.getString(R.string.training_category) else source
+            android.text.SpannableString("\uFFFC $title").apply {
                 setSpan(SourceIconSpan(source,context,foreground),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
         }
@@ -48,12 +51,12 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             shown = position; rows.removeAllViews(); list.scrollTo(0, 0)
             for (section in groups.getValue(sources[position])) {
                 rows.addView(TextView(context).apply {
-                    text = section.title; isAccessibilityHeading=true; textSize = BicycleDesign.bodySp; BicycleDialogStyle.control(this, themes)
+                    text = if(section.source=="Leistung") context.getString(R.string.training_category) else section.title; isAccessibilityHeading=true; textSize = BicycleDesign.bodySp; BicycleDialogStyle.control(this, themes)
                     setPadding(0, dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.smallGap)); isAccessibilityHeading = true
                 })
                 for (field in section.fields) {
-                    val value = field.value(data, gps, bikeDistanceM, pulse)
-                    val title = if (field.id == "RIDER_POWER") "Fahrerleistung (eigene)" else field.title(data, gps)
+                    val value = field.value(data, gps, bikeDistanceM, pulse, training)
+                    val title = if (field.id == "RIDER_POWER") "Fahrerleistung (eigene)" else field.title(context,data, gps)
                     rows.addView(RadioButton(context).apply {
                         tag = field.id; text = "$title${if (value.unit.isNotEmpty()) " · ${value.unit}" else ""}"
                         BicycleDialogStyle.control(this, themes); minHeight = dp(BicycleDesign.touchSize)
@@ -64,6 +67,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                 }
             }
             if (graphPicker != null) rows.addView(graphPicker)
+            if (visualization != null) rows.addView(visualization)
         }
         selector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = populate(position)

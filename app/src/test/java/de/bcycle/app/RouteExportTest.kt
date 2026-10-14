@@ -144,7 +144,11 @@ class RouteExportTest {
         assertNull(manager.findViewWithTag<View>("route_settings"))
         val view = RouteExportView(theme, RouteExportConfig(save = false, webdav = true), false, {}, {})
         assertFalse(view.read().save); assertTrue(view.read().webdav)
-        (view.findViewWithTag<View>("export_save") as android.widget.CheckBox).isChecked = true
+        (view.findViewWithTag<View>("export_save") as android.widget.Switch).isChecked = true
         assertTrue(view.read().save); assertTrue(view.read().webdav)
+        (view.findViewWithTag<View>("export_webdav") as android.widget.Switch).isChecked = false
+        assertTrue(view.read().save); assertFalse(view.read().webdav)
+        val wifi = testDescendants(view).filterIsInstance<android.widget.Switch>().single { it.text == context.getString(R.string.route_export_wifi) }
+        wifi.isChecked = false; assertFalse(view.read().wifiOnly)
     }
 }

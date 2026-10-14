@@ -91,4 +91,35 @@ class BicycleComponentsTest {
         } finally { controller.pause().stop().destroy() }
     }
 
+    @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    fun checkboxCirclesFillOnSelectionRemainIndependentAndFollowTheme() {
+        val controller=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("circle-ui",0))
+            val root=LinearLayout(activity)
+            val first=android.widget.CheckBox(activity);val second=android.widget.CheckBox(activity)
+            val toggle=android.widget.Switch(activity);val thumb=toggle.thumbDrawable
+            for(view in listOf(first,second,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
+            activity.setContentView(root)
+            fun draw(box: android.widget.CheckBox): android.graphics.Bitmap {
+                val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
+                box.buttonDrawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
+                return bitmap
+            }
+            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,24)))
+            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(6,6)))
+            val width=first.buttonDrawable!!.intrinsicWidth
+            first.performClick();second.performClick()
+            assertTrue(first.isChecked);assertTrue(second.isChecked)
+            assertEquals(themes.active.tokens.foreground,draw(first).getPixel(24,24))
+            first.performClick();assertFalse(first.isChecked);assertTrue(second.isChecked)
+            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,24)))
+            val light=CustomTheme("custom:circle-light","Light",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),0xff000000.toInt()))
+            assertTrue(themes.saveCustom(light).valid);assertTrue(themes.activate(light.id))
+            assertEquals(light.tokens.foreground,draw(second).getPixel(24,24))
+            assertEquals(width,first.buttonDrawable!!.intrinsicWidth)
+            assertSame(thumb,toggle.thumbDrawable)
+        } finally { controller.pause().stop().destroy() }
+    }
+
 }

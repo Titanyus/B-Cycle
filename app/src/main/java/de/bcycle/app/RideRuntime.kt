@@ -134,6 +134,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         ?.takeIf { it in 0..100 && fresh(LiveMetric.BATTERY, SystemClock.elapsedRealtime()) }
     val currentAssistMode: Long? get() = bikeData.value(LiveMetric.ASSIST_MODE)
         .takeIf { fresh(LiveMetric.ASSIST_MODE, SystemClock.elapsedRealtime()) }
+    internal fun trainingInputs(now: Long = SystemClock.elapsedRealtime()): TrainingInputs = TrainingInputs(
+        bikeData.riderPowerWatts?.toDouble()?.takeIf { fresh(LiveMetric.RIDER_POWER, now) }, times[LiveMetric.RIDER_POWER],
+        bikeData.value(LiveMetric.AVERAGE_POWER)?.toDouble()?.takeIf { fresh(LiveMetric.AVERAGE_POWER, now) },
+        pulse.bpm?.toDouble()?.takeIf { heart.live && heartAt?.let { now - it in 0..5000 } == true }, heartAt,
+        pulse.average.takeIf { heart.live && heartAt?.let { now - it in 0..5000 } == true })
     val config get() = RecordingConfig.decode(preferences.getStringSet("recordFields", null), preferences.getString("recordSpeed", null), preferences.getString("recordDistance", null))
     private fun scheduleTick() {
         handler.removeCallbacks(tick)

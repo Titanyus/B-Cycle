@@ -11,6 +11,7 @@ import java.util.Locale
 data class RiderProfile(val birthDate: LocalDate? = null, val heightCm: Int? = null, val weightKg: Double? = null,
                         val restingHeartRate: Int? = null, val maximumHeartRate: Int? = null, val ftpW: Int? = null) {
     fun ageYears(today: LocalDate = LocalDate.now()): Int? = birthDate?.takeIf { it <= today }?.let { Period.between(it, today).years }
+    fun powerZones(): List<PowerZone>? = Coggan.zones(ftpW)
     fun heartZones(): KarvonenResult? = Karvonen.calculate(restingHeartRate, maximumHeartRate)
     /** Adapter for the existing energy architecture; no new estimator is enabled. */
     fun energyProfile(today: LocalDate = LocalDate.now()) = EnergyProfile(weightKg, ageYears(today), heightCm?.toDouble(),

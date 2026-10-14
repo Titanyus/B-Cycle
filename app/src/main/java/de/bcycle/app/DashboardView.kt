@@ -36,6 +36,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         editing = value
         tiles.forEach { it.markEditable() }
     }
+    private var training = TrainingSnapshot()
+    private var zoneConfig = ZoneGlowConfig()
+    internal fun showTraining(config: ZoneGlowConfig, snapshot: TrainingSnapshot) {
+        zoneConfig=config;training=snapshot;tiles.forEach { it.updateGlow() }
+    }
     private var graphConfig = GraphOverlayConfig()
     private var graphFrame: GraphFrame? = null
     var graphWidthChanged: ((Int) -> Unit)? = null
@@ -175,6 +180,21 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private fun line() = View(context).apply { setBackgroundColor(Color.rgb(44, 44, 44)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 
     private inner class Tile(private val index: Int) {
+        internal val zoneGlow=ZoneAmbientGlow()
+        private var zoneShown=false
+        fun updateGlow() {
+            if(!zoneShown && zoneConfig.sources[index]!=ZoneGlowSource.OFF) {
+                if(plainBackground==null) plainBackground=container.background
+                zoneShown=true;updateBackground()
+            }
+            zoneGlow.update(training.glow(zoneConfig.sources[index]))
+        }
+        private fun updateBackground() {
+            val layers=mutableListOf(plainBackground!!)
+            if(zoneShown) layers+=zoneGlow
+            if(graphShown) layers+=overlay
+            container.background=if(layers.size==1) layers.single() else android.graphics.drawable.LayerDrawable(layers.toTypedArray())
+        }
         private val overlay=DashboardGraphDrawable(resources.displayMetrics.density)
         private var graphShown=false
         private var plainBackground: android.graphics.drawable.Drawable?=null
@@ -185,7 +205,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             if(selected.isNotEmpty()!=graphShown) {
                 if(plainBackground==null) plainBackground=container.background
                 graphShown=selected.isNotEmpty()
-                container.background=if(graphShown) android.graphics.drawable.LayerDrawable(arrayOf(plainBackground!!,overlay)) else plainBackground
+                updateBackground()
             }
             if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom),graphDisplay)
             row.visibility=if(graphShown && graphDisplay==GraphDisplayMode.GRAPH_ONLY) INVISIBLE else VISIBLE
@@ -252,11 +272,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
                 captionWeight))
             container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
-            updateGraph()
+            updateGraph();updateGlow()
         }
 
         private fun showCaption(field: DashboardField) {
-            val short = field.dashboardTitle(data).uppercase(Locale.GERMANY)
+            val short = field.dashboardTitle(context,data).uppercase(Locale.GERMANY)
             val graphs = selectedGraphs()
             val captionKey = "${field.captionIcon ?: ""}:$short:${graphs.joinToString { it.name }}"
             if (title.tag == captionKey) return
@@ -273,8 +293,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
 
         fun show(field: DashboardField, data: LiveData) {
-            val next = field.value(data, gps, bikeDistanceM, pulse)
-            val caption = if (field.showSource) "${field.source} · ${field.title(data, gps)}" else field.title(data, gps)
+            val next = field.value(data, gps, bikeDistanceM, pulse, training)
+            val caption = if (field.showSource) "${field.source} · ${field.title(context,data, gps)}" else field.title(context,data, gps)
             showCaption(field)
             row.direction = trends.indicator(field, data, gps, pulse, android.os.SystemClock.elapsedRealtime())
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }

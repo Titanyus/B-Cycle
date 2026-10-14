@@ -8,6 +8,7 @@ import android.text.style.ReplacementSpan
 /** Monochrome source symbols that scale with TextView's automatic font sizing. */
 internal class SourceIconSpan(val source: String, context: android.content.Context, color: Int = Color.WHITE) : ReplacementSpan() {
     private val dish = context.getDrawable(when (source) {
+        "Leistung" -> R.drawable.ic_lucide_zap
         "Pulsmesser" -> R.drawable.ic_lucide_heart
         "Wetter" -> R.drawable.ic_lucide_cloud_sun
         "Light" -> R.drawable.ic_lucide_lightbulb
@@ -24,7 +25,7 @@ internal class SourceIconSpan(val source: String, context: android.content.Conte
     override fun draw(canvas: Canvas, text: CharSequence, start: Int, end: Int, x: Float, top: Int, y: Int, bottom: Int, paint: Paint) {
         val size = paint.textSize
         canvas.save(); canvas.translate(x, y + paint.ascent() * .95f); canvas.scale(size / 24f, size / 24f)
-        if (source == "GPS" || source == "Pulsmesser" || source == "Wetter" || source == "Sunrise" || source == "Sunset" || source == "Light") {
+        if (source == "Leistung" || source == "GPS" || source == "Pulsmesser" || source == "Wetter" || source == "Sunrise" || source == "Sunset" || source == "Light") {
             dish.draw(canvas)
         } else {
             canvas.drawCircle(5f, 17f, 4f, stroke); canvas.drawCircle(19f, 17f, 4f, stroke)

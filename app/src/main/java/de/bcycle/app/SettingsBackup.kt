@@ -58,6 +58,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 put(JSONObject().put("index", i).put("fields", jsonArray(DashboardLayout.decode(bike.getString(if(i==0) "dashboard" else "dashboard_$i", null)).fields.map { it.id }))
                     .put("graphs", JSONArray().apply { GraphOverlayConfig.read(bike,i).slots.forEach { put(jsonArray(it.map { chart -> chart.name })) } })
                     .put("graphDisplayModes",jsonArray(GraphOverlayConfig.read(bike,i).displayModes.map { it.name }))
+                    .put("zoneGlowSources",jsonArray(ZoneGlowConfig.read(bike,i).sources.map { it.name }))
                     .put("layout", DashboardTemplate.decode(bike.getString("dashboardTemplate_$i", DashboardTemplate.entries[i].name)).name))
             } }).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null)).let {
@@ -149,6 +150,11 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                                     names.map { AnalysisChart.valueOf(it) }
                                 }
                                 b[GraphOverlayConfig.key(index)]=GraphOverlayConfig(slots).encode()
+                            }
+                            if(page.has("zoneGlowSources")) {
+                                val sources=strings(array(page,"zoneGlowSources",DashboardLayout.FIELD_COUNT))
+                                check(sources.size==DashboardLayout.FIELD_COUNT && sources.all { name -> ZoneGlowSource.entries.any { it.name==name } })
+                                b[ZoneGlowConfig.key(index)]=sources.joinToString("|")
                             }
                             if(page.has("graphDisplayModes")) {
                                 val modes=strings(array(page,"graphDisplayModes",DashboardLayout.FIELD_COUNT))

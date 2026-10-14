@@ -29,7 +29,7 @@ class SettingsMenuTest {
         return ShadowAlertDialog.getLatestAlertDialog()
     }
     private fun views(dialog: AlertDialog) = descendants(dialog.window!!.decorView)
-    @Test fun sevenRowsUseDoubleHeightAndAdvancedHasNormalRowsWithLicensesLast() {
+    @Test fun sevenRowsUseCompactHeightAndAdvancedHasNormalRowsWithLicensesLast() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val menu = open(controller.get())
@@ -40,7 +40,7 @@ class SettingsMenuTest {
                 body.layout(0,0,width,body.measuredHeight)
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
                 assertEquals(7,rows.size)
-                rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.touchSize*2)) }
+                rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()
             val advanced=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()

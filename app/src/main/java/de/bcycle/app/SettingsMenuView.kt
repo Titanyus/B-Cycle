@@ -29,7 +29,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 
-/** One row per destination; the main menu alone uses double-height rows. */
+/** One row per destination; the main menu uses section typography and taller rows. */
 internal class SettingsMenuView(context: Context, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
     private val advanced: Boolean = false, private val selected: (SettingsAction) -> Unit) : LinearLayout(context) {
     init {
@@ -41,13 +41,13 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.dividerPixels))
             addView(BicycleComponents.listRow(context,themes).apply {
                 tag="settings_${action.name}";contentDescription=action.label(context);isClickable=true;isFocusable=true
-                minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize*(if(advanced) 1 else 2))
+                minimumHeight=BicycleDesign.dp(context,if(advanced) BicycleDesign.touchSize else BicycleDesign.settingsRowHeight)
                 setOnClickListener { selected(action) }
                 if(action.icon!=0) addView(ImageView(context).apply {
                     setImageResource(action.icon);BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
                     importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-                },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize*(if(advanced) 1 else 2)),BicycleDesign.dp(context,BicycleDesign.iconSize*(if(advanced) 1 else 2))))
-                addView(BicycleComponents.text(context,themes,action.label(context)).apply { gravity=Gravity.CENTER_VERTICAL; textSize=BicycleDesign.bodySp*(if(advanced) 1 else 2) },
+                },LayoutParams(BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsIconSize),BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsIconSize)))
+                addView(BicycleComponents.text(context,themes,action.label(context)).apply { gravity=Gravity.CENTER_VERTICAL; textSize=if(advanced) BicycleDesign.bodySp else BicycleDesign.titleSp; if(!advanced) typeface=BicycleDesign.strongTypeface },
                     LayoutParams(0,-2,1f).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.verticalPadding) })
                 addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
                     importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))

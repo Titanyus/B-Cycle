@@ -19,7 +19,7 @@ Die Änderungen sind ab Test-APK 0.7.12 enthalten.
 - Löschen, Standardbelegung zurücksetzen und Backup-Wiederherstellung erfordern
   weiterhin eine ausdrückliche Bestätigung. Zurück führt sie nicht aus.
 - Jeder Einstellungs-Menüpunkt öffnet einen separaten Unterdialog. Erweitert ist ein
-  eigener Screen. Hauptmenüzeilen haben Icons und doppelte normale Höhe (96 dp),
+  eigener Screen. Hauptmenüzeilen haben 32-dp-Icons und 72 dp Mindesthöhe,
   ausschließlich dort; Untermenüs bleiben bei mindestens 48 dp.
 - Die gesamte App ist ausschließlich für Hochformat vorgesehen.
 
@@ -94,7 +94,8 @@ Systemfont (Roboto auf Standard-Android; Geräte ohne diese Familie verwenden di
 System-Ersatzschrift). Es wird keine zusätzliche Schriftdatei eingebunden.
 Bebas-Neue-Fenstertitel und Messwerte bleiben unverändert. Das gilt auch für dynamisch
 aufgebaute Feldauswahl-/FIT-Abschnitte und Profile. Nur im Haupt-Einstellungsmenü
-werden Menüschrift und führende Menü-Icons verdoppelt: 28 sp und 48 dp.
+verwenden Menütexte dieselbe Abschnittstypografie (23 sp / 900 Black); führende
+Icons sind 32 dp groß. Die Mindesthöhe der Zeilen beträgt 72 dp statt 96 dp.
 Untermenüs sowie Navigations-Chevrons behalten ihre üblichen Maße.
 
 Sonne/Mond steht nun links oben direkt rechts neben dem Track-Auge (2 dp Abstand).

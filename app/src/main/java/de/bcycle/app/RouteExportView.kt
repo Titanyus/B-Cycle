@@ -12,9 +12,9 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
     chooseFolder: () -> Unit, test: () -> Unit,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
     private val storedPassword: () -> String = { "" }, private val part: RouteExportPart = RouteExportPart.ALL) : LinearLayout(context) {
-    private val save = CheckBox(context).apply { text = context.getString(R.string.route_export_save); tag = "export_save"; isChecked = config.save }
-    private val dav = CheckBox(context).apply { text = context.getString(R.string.route_export_dav); tag = "export_webdav"; isChecked = config.webdav }
-    private val wifi = CheckBox(context).apply { text = context.getString(R.string.route_export_wifi); isChecked = config.wifiOnly }
+    private val save = Switch(context).apply { text = context.getString(R.string.route_export_save); tag = "export_save"; isChecked = config.save }
+    private val dav = Switch(context).apply { text = context.getString(R.string.route_export_dav); tag = "export_webdav"; isChecked = config.webdav }
+    private val wifi = Switch(context).apply { text = context.getString(R.string.route_export_wifi); isChecked = config.wifiOnly }
     private fun text(title: String) = TextView(context).apply { text = title; textSize = BicycleDesign.bodySp }
     private fun input(title: String, value: String, name: String) = EditText(context).apply {
         hint = title; setText(value); tag = name; setSingleLine(); inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS

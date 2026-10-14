@@ -6,19 +6,35 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.13 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.13/downloads/B-Cycle-0.7.13-test.apk)**
+**[APK 0.7.14 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.14/downloads/B-Cycle-0.7.14-test.apk)**
 
-- Größe: **1,087,274 Byte**, rund **1.09 MB**.
+- Größe: **1,107,922 Byte**, rund **1,11 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.13/51.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.14/52.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.13-test.apk.sha256):
-  `57b78752fbf1ef4e40b82de54efff51435c2c9ce1fcc2183e4aa86d1917d442f`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.14-test.apk.sha256):
+  `a0ec27b98db351a1b58b82edbd142be662979e4cf81c0cc6e61fb0b0152af8cf`.
 
-**Sechs gezielte FIT-Prüfungen und Release-Build bestanden** (33 Sekunden).
-Die enthaltenen UI-Anpassungen haben vorher vier gezielte Tests bestanden.
-Signaturgleichheit, ZIP-Ausrichtung und Paket-/SDK-Metadaten separat geprüft.
-[Buildnachweis](docs/milestone-0713.md).
+**Release-Build, Signaturvergleich und APK-Metadaten geprüft.** Die vollständige
+Suite mit 374 Tests bestand nach der Zonen-Erweiterung; die danach geänderten
+Streckendetails haben 14 gezielte Tests bestanden. [Buildnachweis](docs/milestone-0714.md).
+
+## Neu in APK 0.7.14
+
+- Haupt-Einstellungen: 23 sp / 900 Black, 32-dp-Icons und 72-dp-Zeilenhöhe.
+- Daten & Speicher und Kartenmanager: Schalter für aktivierbare Optionen;
+  verbliebene Checkboxen als Kreis mit gefüllter Mitte, weiterhin Mehrfachauswahl.
+- Fahrerprofil: sieben persönliche Coggan-Leistungszonen. Dashboard-Kategorie
+  „Leistung“ mit Leistungszone, HF-Zone, FTP-Auslastung und HF-Reserve.
+- Feldauswahl: Accordions „Graph“ und „Visualisierung“, unabhängiger Zonen-Glow
+  je Kachel, aktuelle 3-Sekunden-Mittel oder vorhandene Fahrt-Durchschnitte.
+  Weiche Zonenfarben und 1,5-Sekunden-Übergänge, kompatible Einstellungssicherung.
+- Streckendetails: größere Datumszeile, seitliche Gruppenbezeichnungen und feine
+  Trenner; Überschriften über Karte und Diagrammen entfallen.
+- Diagramme: auf fünf Einheiten aufgerundete Obergrenzen, maximal drei runde
+  Zwischenmarken; Puls und Höhe ab gemessenem Minimum. Diagramm „Leistung“.
+- Native Kotlin-Views im Hauptbranch; das Compose-Experiment bleibt separat.
+  Sensorverarbeitung, FIT-Felder und Performance-Berechnung bleiben erhalten.
 
 ## Neu in APK 0.7.13
 

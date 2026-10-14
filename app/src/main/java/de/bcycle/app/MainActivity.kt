@@ -40,6 +40,9 @@ class MainActivity : Activity() {
     private fun currentTemplate() = DashboardTemplate.decode(preferences.getString(templateKey, DashboardTemplate.entries[dashboardPage].name))
     private var dashboardLayout = DashboardLayout.defaults
     private var dashboardGraphs = GraphOverlayConfig()
+    private var dashboardZoneGlow = ZoneGlowConfig()
+    private val trainingPresentation = TrainingPresentation()
+    private var trainingSnapshot = TrainingSnapshot()
     private val mapBack = android.window.OnBackInvokedCallback { setMapFullscreen(false) }
     private var mapBackRegistered = false
     private fun updateMapBack() {
@@ -101,7 +104,7 @@ class MainActivity : Activity() {
         pendingBackupExport = savedInstanceState?.getByteArray("settingsBackupPendingExport")
         dashboardPage = preferences.getInt("dashboardPage", 0).coerceIn(0, 3)
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
-        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage)
+        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage)
         mapFullscreen = savedInstanceState?.getBoolean("mapFullscreen", false) ?: false
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
         root.setOnApplyWindowInsetsListener { view, insets ->
@@ -193,6 +196,9 @@ class MainActivity : Activity() {
                 message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
+        val trainingNow=android.os.SystemClock.elapsedRealtime()
+        trainingSnapshot=trainingPresentation.update(runtime.trainingInputs(trainingNow),runtime.riderProfiles.read(),trainingNow)
+        dashboard.showTraining(dashboardZoneGlow,trainingSnapshot)
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
         dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
@@ -213,6 +219,13 @@ class MainActivity : Activity() {
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         val graphs=if(!mapField && dashboard.template.supportsGraph(index))
             GraphOverlayPicker(settingsContext,runtime.themes,dashboardGraphs.slots[index],dashboardGraphs.displayModes[index]) else null
+        val visualization=if(!mapField) ZoneGlowPicker(settingsContext,runtime.themes,dashboardZoneGlow.sources[index]) else null
+        visualization?.changed = {
+            if(permitted()) {
+                dashboardZoneGlow=dashboardZoneGlow.replace(index,visualization.selected)
+                preferences.edit().putString(ZoneGlowConfig.key(dashboardPage),dashboardZoneGlow.encode()).apply();render()
+            }
+        }
         fun saveGraphs() {
             if(graphs!=null) {
                 dashboardGraphs=dashboardGraphs.replace(index,graphs.selected).withDisplay(index,graphs.displayMode)
@@ -237,7 +250,7 @@ class MainActivity : Activity() {
             if (field?.requiresGps == true) enableGps()
         }
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
-            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, ::select)
+            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, visualization, trainingSnapshot, ::select)
         val builder = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen")
             .setView(content)
         picker=builder.show()
@@ -505,7 +518,7 @@ class MainActivity : Activity() {
         dashboardPage = (dashboardPage + delta + 4) % 4
         preferences.edit().putInt("dashboardPage", dashboardPage).apply()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
-        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage)
+        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage)
         val template = currentTemplate(); dashboard.setTemplate(template)
         dashboardArea.requestLayout()
         (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
@@ -541,12 +554,12 @@ class MainActivity : Activity() {
             adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.title })
             setSelection(MapSource.decode(preferences.getString("mapSource", null)).ordinal); root.addView(this)
         }
-        fun check(title: String, key: String, fallback: Boolean) = CheckBox(settingsContext).apply { text = title; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
+        fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-        val heading = check("Fahrtrichtung oben (sonst Norden)", "mapHeading", true)
-        val follow = check("GPS automatisch folgen", "mapFollow", true)
-        val track = check("Gefahrenen Track anzeigen", "mapTrackVisible", true)
-        val gpx = check("Importierte GPX-Strecke anzeigen", "mapGpxVisible", true)
+        val heading = toggle("Fahrtrichtung oben (sonst Norden)", "mapHeading", true)
+        val follow = toggle("GPS automatisch folgen", "mapFollow", true)
+        val track = toggle("Gefahrenen Track anzeigen", "mapTrackVisible", true)
+        val gpx = toggle("Importierte GPX-Strecke anzeigen", "mapGpxVisible", true)
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(button("GPS aktivieren / Berechtigung erlauben", BicycleIcon.Map) { enableGps() })
         root.addView(button("CyclOSM-Legende öffnen", BicycleIcon.Info) { openMapLink(MapSource.CYCLOSM.creditUrl) })
@@ -778,7 +791,7 @@ class MainActivity : Activity() {
                                     result.fold({ plan ->
                                         if(BackupSection.DASHBOARD in selected) {
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
-                                            dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage)
+                                            dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage)
                                             dashboard.setTemplate(currentTemplate());dashboardArea.requestLayout()
                                             (mapPanel.layoutParams as LinearLayout.LayoutParams).weight=1f-currentTemplate().dataFraction
                                         }

@@ -33,8 +33,8 @@ android {
         applicationId = "de.bcycle.app"
         minSdk = 33
         targetSdk = 36
-        versionCode = 51
-        versionName = "0.7.13"
+        versionCode = 52
+        versionName = "0.7.14"
     }
     buildFeatures { buildConfig = true }
     buildTypes {

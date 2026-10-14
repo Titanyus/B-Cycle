@@ -4,7 +4,7 @@ import android.app.AlertDialog
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
+import android.widget.Switch
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -112,7 +112,7 @@ class RouteExportNavigationTest {
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             click(manager, "data_LOCAL")
             val settings = latest()
-            (descendants(settings.window!!.decorView).single { it.tag == "export_save" } as CheckBox).isChecked = false
+            (descendants(settings.window!!.decorView).single { it.tag == "export_save" } as Switch).isChecked = false
             testBack(settings)
             val deadline = System.currentTimeMillis() + 5000
             while (RouteExportSettings(controller.get()).read().save && System.currentTimeMillis() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }

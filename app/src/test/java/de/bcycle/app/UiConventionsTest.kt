@@ -27,7 +27,7 @@ class UiConventionsTest {
     private fun layout(v: View) {
         v.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2130,View.MeasureSpec.EXACTLY));v.layout(0,0,1080,2130)
     }
-    @Test fun menuUsesDoubleHeightRowsAdvancedIsSeparateAndEmptyFooterHasNoSpace() {
+    @Test fun menuUsesSectionTypographyCompactRowsAdvancedIsSeparateAndEmptyFooterHasNoSpace() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get();views(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
@@ -35,11 +35,12 @@ class UiConventionsTest {
             val entries=views(decor).filter { it.tag?.toString()?.startsWith("settings_")==true && it.isClickable }
             assertEquals(7,entries.size)
             entries.forEach {
-                assertEquals(BicycleDesign.dp(activity,BicycleDesign.touchSize*2),it.minimumHeight)
+                assertEquals(BicycleDesign.dp(activity,BicycleDesign.settingsRowHeight),it.minimumHeight)
                 val text=views(it).filterIsInstance<TextView>().single()
-                assertEquals(BicycleDesign.bodySp*2*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,text.textSize,.1f)
+                assertEquals(BicycleDesign.titleSp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,text.textSize,.1f)
+                assertEquals(900,text.typeface.weight)
                 val icon=views(it).filterIsInstance<ImageView>().first()
-                assertEquals(BicycleDesign.dp(activity,BicycleDesign.iconSize*2),icon.width)
+                assertEquals(BicycleDesign.dp(activity,BicycleDesign.settingsIconSize),icon.width)
             }
             assertFalse(views(decor).any { it.tag=="bicycle_fullscreen_footer" })
             val title=views(decor).single { it.tag=="bicycle_dialog_title" }
@@ -50,6 +51,31 @@ class UiConventionsTest {
             val advancedText=views(advanced.window!!.decorView).filterIsInstance<SettingsMenuView>().single().let { views(it).filterIsInstance<TextView>().first() }
             assertEquals(BicycleDesign.bodySp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,advancedText.textSize,.1f)
             testBack(advanced);assertTrue(menu.isShowing);assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun mapSwitchesPersistIndependentlyAndKeepValuesWhenReopened() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get()
+            views(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
+            val menu=latest();click(menu.window!!.decorView,"settings_MAP")
+            val screen=latest()
+            val keys=listOf("mapHeading","mapFollow","mapTrackVisible","mapGpxVisible")
+            val prefs=RideRuntime.get(activity).preferences
+            keys.forEach { key ->
+                val toggle=views(screen.window!!.decorView).single { it.tag==key } as Switch
+                assertTrue(toggle.isChecked)
+                toggle.performClick()
+                assertFalse(prefs.getBoolean(key,true))
+            }
+            (views(screen.window!!.decorView).single { it.tag=="mapFollow" } as Switch).performClick()
+            assertTrue(prefs.getBoolean("mapFollow",false))
+            keys.filter { it!="mapFollow" }.forEach { assertFalse(prefs.getBoolean(it,true)) }
+            testBack(screen);click(menu.window!!.decorView,"settings_MAP")
+            val reopened=latest()
+            keys.forEach { key ->
+                assertEquals(prefs.getBoolean(key,true),(views(reopened.window!!.decorView).single { it.tag==key } as Switch).isChecked)
+            }
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun profileAndDateChangesPersistWithoutSaveAndInvalidNumberPreservesLastValue() {

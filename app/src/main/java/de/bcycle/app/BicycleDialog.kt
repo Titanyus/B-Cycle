@@ -153,6 +153,7 @@ internal object BicycleDialogStyle {
             (view.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = dp(view, BicycleDesign.verticalPadding)
         } else if (view is CompoundButton) {
             view.minimumHeight = dp(view, BicycleDesign.touchSize)
+            if (view is CheckBox) view.setButtonDrawable(R.drawable.selection_circle)
             BicycleComponents.bindTheme(view, themes) {
                 view.setTextColor(colors(it.foreground)); view.buttonTintList = colors(it.foreground)
                 if (view is Switch) {

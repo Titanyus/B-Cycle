@@ -40,6 +40,9 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     }.apply { tag = "rider_birth_clear" }
     private val age = text("").apply { tag = "rider_age" }
     private val hint = text("").apply { tag = "rider_zone_hint"; accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE }
+    private val powerRanges = mutableListOf<TextView>()
+    private val powerHint = text("").apply { tag="rider_power_zone_hint" }
+    private val powerRows = LinearLayout(context).apply { orientation=LinearLayout.VERTICAL; tag="rider_power_zones" }
     private val ranges = mutableListOf<TextView>()
     private val zoneRows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "rider_zones" }
     private val saveError = text("").apply { tag = "rider_save_error"; visibility = GONE; accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE }
@@ -122,12 +125,34 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                 addView(AnalysisValueRow(context, value, unit), LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth), dp(BicycleDesign.touchSize)))
             }, LinearLayout.LayoutParams(-1, -2))
         }
-        root.addView(zoneRows, LinearLayout.LayoutParams(-1, -2)); root.addView(saveError)
+        root.addView(zoneRows, LinearLayout.LayoutParams(-1, -2))
+        section(R.string.training_power_zones)
+        root.addView(text(context.getString(R.string.training_coggan)))
+        root.addView(powerHint)
+        val powerNames=listOf(R.string.training_power_z1,R.string.training_power_z2,R.string.training_power_z3,R.string.training_power_z4,R.string.training_power_z5,R.string.training_power_z6,R.string.training_power_z7)
+        powerNames.forEachIndexed { i,name ->
+            powerRows.addView(LinearLayout(context).apply {
+                gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(BicycleDesign.touchSize)
+                addView(View(context).apply { setBackgroundColor(ZoneGlowColors.powerColors[i]);importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },
+                    LinearLayout.LayoutParams(dp(BicycleDesign.smallGap),dp(BicycleDesign.iconSize)).apply { marginEnd=dp(BicycleDesign.verticalPadding) })
+                addView(text(context.getString(R.string.rider_zone_name,i+1,context.getString(name))).apply { maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END },LinearLayout.LayoutParams(0,-2,1f))
+                val value=BicycleComponents.text(context,themes,"").apply {
+                    tag="rider_power_zone_value_${i+1}";typeface=resources.getFont(R.font.bebas_neue);textSize=BicycleDesign.analysisMetricSp
+                    gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1
+                    setAutoSizeTextTypeUniformWithConfiguration(16,BicycleDesign.analysisMetricSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
+                }
+                val unit=TextView(context).apply { text=context.getString(R.string.analysis_watts);tag="rider_unit";typeface=resources.getFont(R.font.bebas_neue)
+                    textSize=BicycleDesign.formatSp;setTextColor(BicycleDesign.dashboardUnitColor);gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1 }
+                powerRanges+=value
+                addView(AnalysisValueRow(context,value,unit),LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth),dp(BicycleDesign.touchSize)))
+            },LinearLayout.LayoutParams(-1,-2))
+        }
+        root.addView(powerRows);root.addView(saveError)
         inputs.forEach { (field, edit) -> edit.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 edit.error = null; saveError.visibility = GONE
-                if (field == RiderField.RESTING_HEART_RATE || field == RiderField.MAXIMUM_HEART_RATE) updateZones()
+                if (field == RiderField.RESTING_HEART_RATE || field == RiderField.MAXIMUM_HEART_RATE || field == RiderField.FTP) updateZones()
             }
             override fun afterTextChanged(s: Editable?) {
                 val value=s?.toString().orEmpty()
@@ -166,6 +191,17 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     internal fun draft() = RiderProfileValidation.parse(birthDate, inputs.mapValues { it.value.text.toString() }, locale, today())
     private fun updateZones() {
         val draft = draft()
+        val zones=if(RiderField.FTP in draft.errors) null else draft.profile.powerZones()
+        powerHint.visibility=if(zones==null) VISIBLE else GONE;powerRows.visibility=if(zones==null) GONE else VISIBLE
+        powerHint.text=context.getString(R.string.training_ftp_required)
+        zones?.forEachIndexed { i,zone ->
+            powerRanges[i].text=when {
+                zone.isEmpty -> context.getString(R.string.analysis_missing)
+                zone.upperW==null -> context.getString(R.string.training_power_open,zone.lowerW)
+                else -> context.getString(R.string.rider_zone_range,zone.lowerW,zone.upperW)
+            }
+            (powerRanges[i].parent.parent as View).contentDescription=context.getString(R.string.training_power_description,zone.index,powerRanges[i].text)
+        }
         val hearts = setOf(RiderField.RESTING_HEART_RATE, RiderField.MAXIMUM_HEART_RATE)
         val result = if (draft.errors.keys.any { it in hearts }) null else draft.profile.heartZones()
         hint.visibility = if (result == null) VISIBLE else GONE; zoneRows.visibility = if (result == null) GONE else VISIBLE

@@ -49,7 +49,11 @@ object BicycleDesign {
     const val analysisMetricIconSize = 32
     const val analysisMetricSp = 28f
     const val analysisChartHeight = 120
+    const val analysisSideLabelWidth = 24
+    const val analysisSideLabelSp = 12f
     const val analysisMapHeight = 180
+    const val settingsRowHeight = 72
+    const val settingsIconSize = 32
     const val touchSize = 48
     const val compactActionWidth = 36
     const val iconSize = 24
