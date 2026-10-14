@@ -105,6 +105,6 @@ und gemeinsames Ausblenden bleiben erhalten.
 
 Abschlussprüfung: vier gezielte Tests (Menügrößen, Kachel-Modus/Persistenz/Backup,
 23-sp-/900-Typografie sowie Kartenposition/Nachtzustand) und Release-Kotlin-
-Kompilierung erfolgreich in 12 Sekunden. Keine vollständige Suite oder neue APK
-für diese Änderungen. Die bestehenden Tests wurden auf die geänderte Bedienung
+Kompilierung erfolgreich in 12 Sekunden. Keine vollständige Suite für diese Änderungen. Der Stand ist anschließend in
+[Test-APK 0.7.13](milestone-0713.md) enthalten. Die bestehenden Tests wurden auf die geänderte Bedienung
 angepasst, nicht deaktiviert.

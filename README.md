@@ -6,26 +6,27 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.12 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.12/downloads/B-Cycle-0.7.12-test.apk)**
+**[APK 0.7.13 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.13/downloads/B-Cycle-0.7.13-test.apk)**
 
 - Größe: **1,087,274 Byte**, rund **1.09 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.12/50.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.13/51.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.12-test.apk.sha256):
-  `6b89a133dbda0d62b5935188fed24ccbac4f7e1fd64f8a2e87e58c175ec09cd3`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.13-test.apk.sha256):
+  `57b78752fbf1ef4e40b82de54efff51435c2c9ce1fcc2183e4aa86d1917d442f`.
 
-**42 gezielte Tests und Release-Build bestanden**; Signaturgleichheit, ZIP-Ausrichtung
-und Paket-/SDK-Metadaten separat geprüft. [Buildnachweis](docs/milestone-0712.md).
-Die vorausgehende globale UI-Migration hat die vollständige Suite mit **357 Tests** bestanden.
+**Sechs gezielte FIT-Prüfungen und Release-Build bestanden** (33 Sekunden).
+Die enthaltenen UI-Anpassungen haben vorher vier gezielte Tests bestanden.
+Signaturgleichheit, ZIP-Ausrichtung und Paket-/SDK-Metadaten separat geprüft.
+[Buildnachweis](docs/milestone-0713.md).
 
-## Entwicklungsstand nach APK 0.7.12
+## Neu in APK 0.7.13
 
 - Haupt-Einstellungen: Menüschrift 28 sp und führende Menü-Icons 48 dp, passend zu den hohen Zeilen.
 - Abschnittsüberschriften appweit 23 sp, wie die Streckendetails. Bisherige System-Fettschriften verwenden zentral Gewicht 900 Black (Roboto/Systemfont).
 - Graph-Darstellung direkt im Datenauswahl-Dialog der Kachel; unabhängig pro Seite/Kachel gespeichert. Die bisherige globale Auswahl dient als Ausgangswert.
 - Sonne/Mond links oben direkt neben dem Track-Auge; rechts entfällt die zweite Buttonzeile.
-- Vier gezielte Tests und Release-Kotlin-Kompilierung bestanden. Noch nicht in einer neuen APK enthalten.
+- Vier gezielte Tests und Release-Kotlin-Kompilierung bestanden. Alle genannten Änderungen sind in APK 0.7.13 enthalten.
 
 ## Neu in APK 0.7.12
 
