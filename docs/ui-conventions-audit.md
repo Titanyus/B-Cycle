@@ -40,7 +40,7 @@ Eingabe-/Einheitenzeilen und Gruppenabstände bleiben Teil der folgenden Prüfun
 | --- | --- |
 | Überschriften-/Gruppenabstände | RiderProfileView.section verwendet 4/8 dp Padding, FieldPickerView 12/4 dp. Sensor-/FIT-Abschnitte in MainActivity haben eigene Kombinationen. Es fehlt ein gemeinsamer Aufbau aus Überschrift + nachfolgender Feldgruppe. |
 | Kleine Zusatztexte und Kennzahlentypografie | AnalysisMetricTile enthält 13-sp-Einheiten und 11-sp-Labels samt lokalen Autosize-Grenzen. MapPanel/MapCreditView haben 11-sp-Texte. Hauptgrößen/Grauton sind zentral, die Unterrollen noch nicht vollständig. |
-| Kachelinnenraum und Messwert-/Einheitenabstände | DashboardView enthält lokale 10/8/4-dp-Innenabstände, 4/6-dp-Zahlen-/Einheitengaps und Chevron-Geometrie. AnalysisValueRow ist gemeinsam, das Dashboard verwendet einen eigenen ValueRow. |
+| Weitere Kennzahlen-/Chevron-Geometrie | Dashboard-Kacheln nutzen jetzt drei zentrale DashboardTileStyle-Varianten. AnalysisValueRow ist gemeinsam; das Dashboard behält seinen eigenen ValueRow und lokale Chevron-Größen. |
 | Karten-/Toolbar-Geometrie | MapPanel enthält 44/48-dp-Controls, 2/6-dp-Abstände, 5-dp-Radius und lokale dunkle Farben. MainActivity setzt Toolbarhöhe 58 dp und Iconinsets. Funktionale Sonderlayouts sind sinnvoll; benannte Spezial-Tokens fehlen teilweise. |
 | Dropdown-/Popup-Darstellung | BicycleDialogStyle.spinner ist gemeinsam. RouteManagerView implementiert Filterhintergrund und Adapter zusätzlich selbst, trotz weitgehend gleicher Theme-Rollen/Schriften. Popup-Menüs haben weitere eigene Aufbaupfade. |
 | Anpassungsgrenzen außerhalb von Dialogen | Kartencontrols und Dashboard haben eigene Anpassungsformeln. Dialog-Scrolling und die Höhenbegrenzung der Feldauswahl sind jetzt zentral geregelt; Karten-Spezialmaße bleiben getrennt. |
@@ -88,3 +88,34 @@ Gezielte Verifikation dieser Änderung: 24 Tests bestanden (Feldauswahl,
 Fullscreen-Dialoge auf API 33/35/36, Tastatur/Insets, Themewechsel, Import-Dropdown
 und Detailaktionen inklusive persistenter Erfolgsicons). Debug-Kotlin-Kompilierung
 erfolgreich; keine vollständige Testsuite und keine APK gebaut.
+
+## Drei Dashboard-Kachelstile (Darstellung erhalten)
+
+`DashboardTileStyle` definiert ONE, TWO und THREE. Alle Presets verwenden diese
+Varianten über `DashboardTemplate.tileStyle`. Bestehende Werte wurden übernommen:
+
+| Eigenschaft | ONE (groß) | TWO | THREE |
+| --- | --- | --- | --- |
+| Zahl | Auto 10–240 sp | Auto 10–240 sp | Fest 45 sp |
+| Einheit | Auto 5–16 sp | Auto 5–16 sp | Fest 10 sp |
+| Innenpadding horizontal | 10 dp | 10 dp | 3 dp |
+| Innenpadding oben/unten | 8/4 dp | 8/4 dp | 8/4 dp |
+| Zahl/Einheit-Abstand | 6 dp | 6 dp | 4 dp |
+| Beschriftungsgewicht | 0,10 | 0,20 | 0,20 |
+| Wertgewicht | 0,65 | 0,65 | 0,65 |
+| Höhe relativ zur kleinen Zeile | 2 × 0,75/0,85 | 1 | 1 |
+
+Beschreibung weiterhin 13,5 sp; Schriftfamilien und Messwert-/Einheiten-Ausrichtung
+bleiben erhalten. Vorhandene Höhenkalibrierung und Spezialfall kurzer Viewports
+bleiben unverändert. Diese Zentralisierung gleicht nicht die Schriftgrößen
+zwischen den drei verschiedenen Varianten an.
+
+Sekundäre Schrift verwendet jetzt Weiß mit 65 % Deckkraft (`#A6FFFFFF`) statt
+deckendem Grau: Einheiten, Dashboard-Beschriftungen, Graph-Skalentexte und fehlende
+Dashboard-Werte. Das gemeinsame Token bindet auch Profil, Streckenliste und
+Streckendetails an. Strukturelle Graph-Grenzlinien und Zonenfarben bleiben erhalten.
+
+Verifikation: vier gezielte Prüfungen für transparente Einheiten, Profil und
+Streckenliste sowie vier Dashboard-Prüfungen für gemeinsame Höhen/Schriftregeln,
+Dreierfeld-Breiten, lange Werte und mittige Einheiten bestanden. Keine vollständige
+Testsuite und keine APK erstellt.

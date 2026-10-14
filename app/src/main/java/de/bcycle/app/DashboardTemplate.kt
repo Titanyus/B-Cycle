@@ -24,9 +24,14 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
         else -> slots.chunked(2)
     }
     fun rowWeight(index: Int, wide: Boolean = false) = when {
-        this == DATA && index == 1 -> 2f * LARGE_COMPACT_RATIO
-        largeTop && index == 0 -> (if (wide && this == HERO) 3f else 2f) * LARGE_COMPACT_RATIO
-        else -> 1f
+        this == DATA && index == 1 -> DashboardTileStyle.ONE.heightWeight
+        largeTop && index == 0 -> if (wide && this == HERO) 3f * LARGE_COMPACT_RATIO else DashboardTileStyle.ONE.heightWeight
+        else -> DashboardTileStyle.TWO.heightWeight
+    }
+    internal fun tileStyle(slot: Int) = when {
+        rows.any { it.size == 3 && slot in it } -> DashboardTileStyle.THREE
+        slot == 2 && (this == DATA || largeTop) -> DashboardTileStyle.ONE
+        else -> DashboardTileStyle.TWO
     }
     /** Calibrate all presets against DATA, rather than stretching fewer rows. */
     fun heightForViewport(available: Int, bottomSpaceSaved: Int, wide: Boolean = false): Int {
@@ -42,6 +47,6 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
 
     companion object {
         // Halve the large label area while keeping the original value-row space.
-        const val LARGE_COMPACT_RATIO = .75f / .85f
+        const val LARGE_COMPACT_RATIO = BicycleDesign.dashboardLargeCompactRatio
         fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: DATA }
 }

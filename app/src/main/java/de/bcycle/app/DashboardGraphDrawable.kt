@@ -32,7 +32,8 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         val axis=minOf(26*density,plot.width()*.14f)
         val left=plot.left+axis; val right=plot.right-if(selected.size==2) axis else 0f
         curve.set(left,plot.top,right,plot.bottom)
-        val boundaryColor=BicycleDesign.dashboardUnitColor and 0x00ffffff
+        // Graph boundaries are structural lines, independent of secondary text opacity.
+        val boundaryColor=Color.rgb(163,163,163) and 0x00ffffff
         boundaryShader=LinearGradient(0f,plot.top,0f,plot.bottom,
             intArrayOf(boundaryColor,boundaryColor or (140 shl 24),boundaryColor),
             floatArrayOf(0f,.5f,1f),Shader.TileMode.CLAMP)
@@ -84,7 +85,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND
             canvas.drawPath(s.line,paint)
             canvas.restoreToCount(graphSave)
-            paint.style=Paint.Style.FILL; paint.color=BicycleDesign.dashboardUnitColor; paint.alpha=125
+            paint.style=Paint.Style.FILL; paint.color=BicycleDesign.dashboardUnitColor
             paint.textAlign=if(index==0) Paint.Align.LEFT else Paint.Align.RIGHT
             val x=if(index==0) plot.left+2*density else plot.right-2*density
             val top=plot.top+paint.textSize; val bottom=plot.bottom-2*density

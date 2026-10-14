@@ -217,7 +217,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             title.visibility=row.visibility
             showCaption(layout.fields[index])
         }
-        private val threeColumns = template.rows.any { it.size == 3 && index in it }
+        private val style = template.tileStyle(index)
+        private val threeColumns = style == DashboardTileStyle.THREE
         private val swipe = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
             override fun onScroll(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, distanceX: Float, distanceY: Float): Boolean {
                 container.cancelLongPress(); container.isPressed = false; return false
@@ -239,8 +240,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
         }.apply {
             orientation = VERTICAL
-            val horizontal = if (threeColumns) BicycleDesign.tripleHorizontalPadding else 10
-            setPadding(dp(horizontal), dp(8), dp(horizontal), dp(4))
+            setPadding(dp(style.horizontalPadding), dp(style.topPadding), dp(style.horizontalPadding), dp(style.bottomPadding))
             isClickable = true; isFocusable = true
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
             background = StateListDrawable().apply {
@@ -255,29 +255,29 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         fun markEditable() {
             container.foreground = if (editing) DashboardEditOutline(resources.displayMetrics.density, editorColor) else null
         }
-        val captionWeight = if (index == 2 && (template == DashboardTemplate.DATA || template.largeTop)) .10f else .20f
+        val captionWeight = style.captionWeight
         val title = TextView(context).apply {
             typeface = captions; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 2
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-            textSize = BicycleDesign.dashboardCaptionSp; setTextColor(BicycleDesign.dashboardUnitColor)
+            textSize = style.captionSp; setTextColor(BicycleDesign.dashboardUnitColor)
         }
-        private val value = text(10, 240, numbers, 1).apply {
-            if (threeColumns) {
+        private val value = text(style.valueMinSp, style.valueMaxSp, numbers, 1).apply {
+            style.fixedValueSp?.let { fixed ->
                 setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE)
-                textSize = BicycleDesign.tripleValueSp; ellipsize = android.text.TextUtils.TruncateAt.END
+                textSize = fixed; ellipsize = android.text.TextUtils.TruncateAt.END
             }
         }
-        private val unit = text(5, 16, captions, 1).apply {
-            if (threeColumns) { setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE); textSize = BicycleDesign.tripleUnitSp }
+        private val unit = text(style.unitMinSp, style.unitMaxSp, captions, 1).apply {
+            style.fixedUnitSp?.let { fixed -> setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE); textSize = fixed }
         }
 
-        private val row = ValueRow(value, unit, threeColumns)
+        private val row = ValueRow(value, unit, style)
 
         init {
             markEditable()
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
                 captionWeight))
-            container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
+            container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, style.valueWeight))
             updateGraph();updateGlow()
         }
 
@@ -310,7 +310,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             unit.visibility = if (next.unit.isEmpty()) GONE else VISIBLE
             val font = if (field.numeric) numbers else captions
             if (value.typeface !== font) value.typeface = font
-            val color = if (next.available) Color.WHITE else Color.rgb(119, 119, 119)
+            val color = if (next.available) Color.WHITE else BicycleDesign.dashboardUnitColor
             if (value.currentTextColor != color) value.setTextColor(color)
             unit.setTextColor(BicycleDesign.dashboardUnitColor)
             container.contentDescription = if(!dataVisibility.visible[index]) context.getString(R.string.dashboard_no_data) else "$caption: ${if (next.available) "${next.text} ${next.unit}" else "noch kein Wert"}. Antippen, um das Feld zu ändern."
@@ -318,7 +318,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     }
 
     /** Keep the number centred in its tile, with the unit following its actual text edge. */
-    private inner class ValueRow(private val value: TextView, private val unit: TextView, private val threeColumns: Boolean) : ViewGroup(context) {
+    private inner class ValueRow(private val value: TextView, private val unit: TextView, private val style: DashboardTileStyle) : ViewGroup(context) {
+        private val threeColumns = style == DashboardTileStyle.THREE
         var direction = 0
             set(next) { if (field != next) {
                 val spacingChanged = (field == 0) != (next == 0)
@@ -327,14 +328,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private val chevronPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
             style = android.graphics.Paint.Style.STROKE; strokeCap = android.graphics.Paint.Cap.ROUND
         }
-        private val chevronSpace get() = kotlin.math.ceil(minOf(dp(14).toFloat(), value.textSize * .28f) + dp(4)).toInt()
+        private val chevronSpace get() = kotlin.math.ceil(minOf(dp(14).toFloat(), value.textSize * .28f) + dp(style.valueUnitGap)).toInt()
         init { addView(value); addView(unit) }
         override fun dispatchDraw(canvas: android.graphics.Canvas) {
             super.dispatchDraw(canvas)
             if (direction != 0) {
                 val size = minOf(dp(14).toFloat(), value.textSize * .28f)
                 val textWidth = value.layout?.getLineWidth(0) ?: 0f
-                val x = if (threeColumns) value.left - dp(4) - size else width / 2f - textWidth / 2f - dp(6) - size
+                val x = if (threeColumns) value.left - dp(style.valueUnitGap) - size else width / 2f - textWidth / 2f - dp(style.valueUnitGap) - size
                 drawChevron(canvas, chevronPaint, x.coerceAtLeast(0f),
                     height / 2f, size, direction, value.currentTextColor)
             }
@@ -343,16 +344,16 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val width = MeasureSpec.getSize(widthMeasureSpec)
             val height = MeasureSpec.getSize(heightMeasureSpec)
             if (threeColumns) {
-                if (unit.visibility != GONE) unit.measure(MeasureSpec.makeMeasureSpec(width / 2, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
-                val reserve = (if (direction == 0) 0 else chevronSpace) + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(4)
+                if (unit.visibility != GONE) unit.measure(MeasureSpec.makeMeasureSpec(width / style.unitWidthDivisor, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
+                val reserve = (if (direction == 0) 0 else chevronSpace) + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
                 value.measure(MeasureSpec.makeMeasureSpec((width - reserve).coerceAtLeast(1), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
                 setMeasuredDimension(width, height)
                 return
             }
             if (unit.visibility != GONE) unit.measure(
-                MeasureSpec.makeMeasureSpec(width / 4, MeasureSpec.AT_MOST),
+                MeasureSpec.makeMeasureSpec(width / style.unitWidthDivisor, MeasureSpec.AT_MOST),
                 MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
-            val reserve = if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(6)
+            val reserve = if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
             value.measure(MeasureSpec.makeMeasureSpec((width - 2 * reserve).coerceAtLeast(1), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
             setMeasuredDimension(width, height)
@@ -360,12 +361,12 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
             if (threeColumns) {
                 val reserve = if (direction == 0) 0 else chevronSpace
-                val unitWidth = if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(4)
+                val unitWidth = if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
                 val start = (width - reserve - value.measuredWidth - unitWidth) / 2
                 value.layout(start + reserve, 0, start + reserve + value.measuredWidth, value.measuredHeight)
                 if (unit.visibility != GONE) {
                     val y = (height - unit.measuredHeight).coerceAtLeast(0) / 2
-                    unit.layout(value.right + dp(4), y, value.right + dp(4) + unit.measuredWidth, y + unit.measuredHeight)
+                    unit.layout(value.right + dp(style.valueUnitGap), y, value.right + dp(style.valueUnitGap) + unit.measuredWidth, y + unit.measuredHeight)
                 }
                 return
             }
@@ -375,7 +376,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 // TextView finalises automatic font sizing during layout, before vertical centring.
                 unit.layout(0, 0, unit.measuredWidth, unit.measuredHeight)
                 val textWidth = value.layout?.getLineWidth(0) ?: 0f
-                val x = (width / 2f + textWidth / 2f + dp(6)).toInt()
+                val x = (width / 2f + textWidth / 2f + dp(style.valueUnitGap)).toInt()
                 val y = (height - unit.measuredHeight).coerceAtLeast(0) / 2
                 unit.offsetLeftAndRight(x); unit.offsetTopAndBottom(y)
             }

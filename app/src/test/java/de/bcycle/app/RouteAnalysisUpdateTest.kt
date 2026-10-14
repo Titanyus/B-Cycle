@@ -19,7 +19,7 @@ import org.robolectric.annotation.GraphicsMode
 class RouteAnalysisUpdateTest {
     private fun all(v: View): List<View> = listOf(v) + if (v is ViewGroup) (0 until v.childCount).flatMap { all(v.getChildAt(it)) } else emptyList()
     private fun measure(v: View, width: Int, height: Int) { v.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)); v.layout(0, 0, width, height) }
-    @Test fun transparentTilesUseSharedDashboardUnitGrayAndCenterCombinedGlyphsAtAllWidths() {
+    @Test fun transparentTilesUseSharedTranslucentWhiteUnitsAndCenterCombinedGlyphsAtAllWidths() {
         val app = RuntimeEnvironment.getApplication()
         val themes = ThemeManager(app.getSharedPreferences("bike", 0))
         for (fontScale in listOf(1f, 1.5f)) {
@@ -32,7 +32,7 @@ class RouteAnalysisUpdateTest {
                 val children = (0 until row.childCount).map { row.getChildAt(it) as TextView }
                 val number = children[0]; val unit = children[1]
                 assertEquals(BicycleDesign.dashboardUnitColor, unit.currentTextColor)
-                assertEquals(Color.rgb(163, 163, 163), unit.currentTextColor)
+                assertEquals(Color.argb(166, 255, 255, 255), unit.currentTextColor)
                 if (unit.visibility == View.VISIBLE) {
                     assertEquals(number.top + number.height / 2.0, unit.top + unit.height / 2.0, 1.0)
                     val numberWidth = number.layout.getLineWidth(0)

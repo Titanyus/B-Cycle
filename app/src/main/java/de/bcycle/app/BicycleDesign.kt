@@ -19,11 +19,13 @@ object BicycleDesign {
     val strongTypeface: android.graphics.Typeface by lazy {
         android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.NORMAL),900,false)
     }
-    val dashboardUnitColor = android.graphics.Color.rgb(163, 163, 163)
+    // Secondary metric text composites with its actual surface instead of using opaque gray.
+    val dashboardUnitColor = android.graphics.Color.argb(166, 255, 255, 255) // 65% opacity (8-bit alpha)
     const val dashboardCaptionSp = 13.5f
     const val tripleValueSp = 45f
     const val tripleUnitSp = 10f
     const val tripleHorizontalPadding = 3
+    const val dashboardLargeCompactRatio = .75f / .85f
     const val titleSp = 23f
     const val bodySp = 14f
     const val inputSp = 16f
