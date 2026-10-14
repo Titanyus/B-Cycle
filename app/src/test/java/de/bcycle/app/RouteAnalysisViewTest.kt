@@ -84,6 +84,11 @@ class RouteAnalysisViewTest {
         labels.forEach { assertTrue(it.isAccessibilityHeading);assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisSideLabelWidth),it.width);assertTrue(it.height>=BicycleDesign.dp(context,BicycleDesign.analysisTileMinHeight)) }
         val dividers=descendants(content).filter { it.tag=="analysis_section_divider" }
         assertEquals(5,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.dividerPixels && it.alpha==BicycleDesign.dividerAlpha })
+        dividers.forEach {
+            val margins=it.layoutParams as LinearLayout.LayoutParams
+            assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisDividerGap),margins.topMargin)
+            assertEquals(margins.topMargin,margins.bottomMargin)
+        }
         val date=content.findViewWithTag<TextView>("analysis_date")
         assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.bodySp,context.resources.displayMetrics),date.textSize,0f)
         val texts=descendants(content).filterIsInstance<TextView>().map { it.text.toString() }

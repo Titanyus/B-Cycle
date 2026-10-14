@@ -51,7 +51,12 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             val available = if (heading == R.string.analysis_power_group && alternatives.flatten().any { it in analysis.metrics }) alternatives
                 else alternatives.map { group -> group.filter { it in analysis.metrics } }.filter { it.isNotEmpty() }
             if (available.isNotEmpty()) {
-                if(groupsShown++>0) body.addView(BicycleComponents.sectionDivider(context,themes).apply { tag="analysis_section_divider" })
+                if(groupsShown++>0) body.addView(BicycleComponents.sectionDivider(context,themes).apply {
+                    tag="analysis_section_divider"
+                    (layoutParams as LinearLayout.LayoutParams).apply {
+                        topMargin=dp(BicycleDesign.analysisDividerGap);bottomMargin=dp(BicycleDesign.analysisDividerGap)
+                    }
+                })
                 val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; tag = "analysis_group_$heading"; isBaselineAligned = false }
                 available.forEachIndexed { index, metrics ->
                     if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f; tag = "analysis_vertical_divider" }, LinearLayout.LayoutParams(BicycleDesign.dividerPixels, -1))

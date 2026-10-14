@@ -6,8 +6,10 @@ Ihre bisherigen Überschriften oberhalb entfallen. Stattdessen zeigt eine
 24-dp-Seitenspalte links die Gruppenbezeichnung um 90° gedreht, in FOREGROUND
 und Systemfont 900 Black. Wie bei den Diagrammbezeichnungen sind 12 sp die
 Ausgangsgröße; lange Titel werden innerhalb der verfügbaren Höhe angepasst.
-Zwischen den tatsächlich vorhandenen Gruppen liegen die zentralen feinen,
-teiltransparenten FOREGROUND-Trenner. Fehlende Gruppen erzeugen keine Leerflächen.
+Kennzahlenzeilen verwenden mindestens 120 dp statt 140 dp; Schrift-/Icongrößen
+bleiben erhalten. Zwischen den tatsächlich vorhandenen Gruppen liegen die zentralen feinen,
+teiltransparenten FOREGROUND-Trenner mit nur 2 dp Abstand oben und unten
+(statt 12/8 dp). Fehlende Gruppen erzeugen keine Leerflächen.
 Über Karte und Diagrammen stehen keine zusätzlichen Überschriften mehr.
 
 RouteChartScale berechnet ausschließlich Darstellungsgrenzen:
