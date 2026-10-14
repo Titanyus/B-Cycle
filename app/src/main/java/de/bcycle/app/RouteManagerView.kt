@@ -83,8 +83,8 @@ internal class RouteManagerView(context: Context,
         addView(status, LayoutParams(-1, -2))
         addView(ListView(context).apply {
             tag = "route_list"; adapter = rows; dividerHeight = BicycleDesign.dividerPixels
-            setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0); clipToPadding = false
-            scrollBarSize = dp(BicycleDesign.scrollbarSize)
+            setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
+            BicycleComponents.scrollStyle(this)
             BicycleComponents.bindTheme(this, themes) {
                 divider = ColorDrawable(it.foreground); dividerHeight = BicycleDesign.dividerPixels
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)

@@ -28,7 +28,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private var preview: RouteAnalysisMap? = null
     private var cancelled: (() -> Unit)? = null
     private var closed = false
-    init { tag = "route_analysis_$id"; addView(body); loading() }
+    init { tag = "route_analysis_$id"; BicycleComponents.scrollStyle(this); addView(body); loading() }
     fun cancellation(cancel: () -> Unit) { cancelled = cancel }
     fun dispose() { closed = true; cancelled?.invoke(); preview?.dispose() }
     private fun text(resource: Int, heading: Boolean = false) = BicycleComponents.text(context, themes, context.getString(resource), heading)

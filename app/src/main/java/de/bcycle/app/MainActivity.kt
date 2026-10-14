@@ -22,7 +22,7 @@ class MainActivity : Activity() {
     private lateinit var mapPanel: MapPanel
     private lateinit var dashboardArea: LinearLayout
     private var routeManager: RouteManagerView? = null
-    private var routeImportButton: Button? = null
+    private var routeImportButton: BicycleFooterAction? = null
     private var routePopup: ListPopupWindow? = null
     private var routeSignature = ""
     private val settingsWriter = java.util.concurrent.Executors.newSingleThreadExecutor { task -> Thread(task,"Bicycle-settings") }
@@ -591,22 +591,22 @@ class MainActivity : Activity() {
     }
     private fun routeAnalysis(entry: ManagedRoute) {
         val content = RouteAnalysisView(settingsContext, runtime.themes, entry.id, ::routeAnalysisMap)
-        val footer = LinearLayout(settingsContext).apply { orientation = LinearLayout.HORIZONTAL; tag = "route_analysis_footer" }
-        BicycleComponents.background(footer, runtime.themes, ThemeRole.SECONDARY)
+        val footer = bicycleFooter(settingsContext, runtime.themes)
         val root = LinearLayout(settingsContext).apply {
             orientation = LinearLayout.VERTICAL
             addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
-            addView(footer, LinearLayout.LayoutParams(-1, dp(BicycleDesign.touchSize)))
+            addView(footer, LinearLayout.LayoutParams(-1, dp(BicycleDesign.footerHeight)))
         }
         val screen = dialog().setView(root).create()
         val detail = DetailSession(entry.id, screen, content, footer)
         val labels = listOf(R.string.route_action_map, R.string.route_action_rename, R.string.route_action_cloud, R.string.route_action_save, R.string.route_action_delete)
+        val captions = listOf(R.string.footer_show, R.string.route_action_rename, R.string.footer_cloud_upload, R.string.route_action_save, R.string.route_action_delete)
         val icons = listOf(BicycleIcon.ShowOnMap, BicycleIcon.RenameTrack, BicycleIcon.CloudNotUploaded, BicycleIcon.Save, BicycleIcon.DeleteTrack)
         val tags = listOf("detail_map", "detail_rename", "detail_cloud", "detail_save", "detail_delete")
         labels.indices.forEach { index ->
-            footer.addView(BicycleComponents.icon(settingsContext, runtime.themes, icons[index], getString(labels[index])) {
+            footer.addView(BicycleFooterAction(settingsContext, runtime.themes, icons[index], getString(captions[index]), getString(labels[index])) {
                 executeDetailAction(detail, index)
-            }.apply { tag = tags[index] }, LinearLayout.LayoutParams(0, dp(BicycleDesign.touchSize), 1f))
+            }.apply { tag = tags[index] }, LinearLayout.LayoutParams(0, dp(BicycleDesign.footerHeight), 1f))
         }
         routeDetail = detail
         screen.setCustomTitle(analysisHeader(settingsContext, runtime.themes, entry, { screen.dismiss() }))
@@ -651,31 +651,20 @@ class MainActivity : Activity() {
         }, themes = runtime.themes, details = ::routeAnalysis)
         routeManager = content
         refreshRouteRows()
-        menu = dialog().setView(content).setNeutralButton("Importieren", null).create().apply {
-            setView(content, 0, 0, 0, 0)
-            dialogs.onDismiss(this) { if (routeManager === content) { routePopup?.dismiss(); routePopup = null; routeManager = null; routeImportButton = null } }; show()
-            routeImportButton = getButton(AlertDialog.BUTTON_NEUTRAL).apply {
-                tag = "route_import"; isEnabled = !state.busy
-                setCompoundDrawablesRelative(BicycleIcons.drawable(this@MainActivity, BicycleIcon.Import, runtime.themes.active.tokens.foreground)
-                    .apply { setBounds(0, 0, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)) }, null, null, null)
-                compoundDrawablePadding = dp(BicycleDesign.verticalPadding); setOnClickListener { if (!state.busy) routeImportChoice() }
-            }
+        val footer = bicycleFooter(settingsContext, runtime.themes)
+        val import = BicycleFooterAction(settingsContext, runtime.themes, BicycleIcon.Import, getString(R.string.footer_import_route)) {
+            if (!state.busy) routeImportChoice()
+        }.apply { tag = "route_import"; isEnabled = !state.busy }
+        footer.addView(import, LinearLayout.LayoutParams(dp(BicycleDesign.footerHeight * 2), dp(BicycleDesign.footerHeight)))
+        val root = LinearLayout(settingsContext).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
+            addView(footer, LinearLayout.LayoutParams(-1, dp(BicycleDesign.footerHeight)))
         }
-        val screen = menu!!
-        val decor = screen.window!!.decorView
-        BicycleComponents.bindTheme(decor, runtime.themes) { tokens ->
-            screen.window!!.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
-                setColor(tokens.secondary); cornerRadius = 0f
-            })
-            decor.clipToOutline = true
-            listOf(AlertDialog.BUTTON_NEUTRAL).forEach { which ->
-                screen.getButton(which).apply {
-                    setTextColor(tokens.foreground); typeface = android.graphics.Typeface.DEFAULT; textSize = BicycleDesign.bodySp
-                    backgroundTintList = null; background = null
-                    (parent as? View)?.setBackgroundColor(tokens.secondary)
-                }
-            }
-            screen.getButton(AlertDialog.BUTTON_NEUTRAL).compoundDrawablesRelative[0]?.setTint(tokens.foreground)
+        routeImportButton = import
+        menu = dialog().setView(root).create().apply {
+            setView(root, 0, 0, 0, 0)
+            dialogs.onDismiss(this) { if (routeManager === content) { routePopup?.dismiss(); routePopup = null; routeManager = null; routeImportButton = null } }; show()
         }
         state.refreshLibrary()
     }
@@ -974,8 +963,8 @@ class MainActivity : Activity() {
         val local = if (entry != null && RouteLocalSaves.completed(this, entry.id, entry.fileStamp)) BicycleIcon.SaveConfirmed else BicycleIcon.Save
         val kinds = listOf(BicycleIcon.ShowOnMap, BicycleIcon.RenameTrack, cloud, local, BicycleIcon.DeleteTrack)
         kinds.indices.forEach { index ->
-            val button = detail.footer.getChildAt(index) as android.widget.ImageButton
-            button.setImageDrawable(BicycleIcons.drawable(settingsContext, kinds[index], runtime.themes.active.tokens.foreground))
+            val button = detail.footer.getChildAt(index) as BicycleFooterAction
+            button.setIcon(kinds[index], runtime.themes.active.tokens.foreground)
             if (index == 2) button.contentDescription = getString(if (cloud == BicycleIcon.CloudConfirmed) R.string.route_cloud_confirmed else R.string.route_action_cloud)
             if (index == 3) button.contentDescription = getString(if (local == BicycleIcon.SaveConfirmed) R.string.route_save_confirmed else R.string.route_action_save)
             button.isEnabled = !runtime.mapState.busy && entry != null && when (index) {

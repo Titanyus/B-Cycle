@@ -23,7 +23,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     private lateinit var fieldList: ScrollView
     override fun onMeasure(widthMeasureSpec: Int,heightMeasureSpec: Int) {
         val available=MeasureSpec.getSize(heightMeasureSpec)
-        val limit=(available*.55f).toInt().coerceIn(dp(144),dp(360))
+        val limit=BicycleDesign.fieldListHeight(context,available)
         if(fieldList.layoutParams.height!=limit) fieldList.layoutParams.height=limit
         super.onMeasure(widthMeasureSpec,heightMeasureSpec)
     }
@@ -31,7 +31,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         orientation = VERTICAL; setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
         BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
         val panels=LinearLayout(context).apply { orientation=VERTICAL }
-        val scroll=ScrollView(context).apply { tag="field_picker_scroll";addView(panels);isFillViewport=false }
+        val scroll=ScrollView(context).apply { tag="field_picker_scroll";BicycleComponents.scrollStyle(this);addView(panels) }
         addView(scroll,LayoutParams(-1,-1))
         val dataContent=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="field_data_content" }
         lateinit var dataToggle: android.widget.Button
@@ -64,7 +64,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         val list = ScrollView(context).apply { tag = "field_list"; addView(rows) }
         BicycleDialogStyle.content(list, themes)
         fieldList=list
-        dataContent.addView(list, LayoutParams(-1, dp(320)))
+        dataContent.addView(list, LayoutParams(-1, dp(BicycleDesign.fieldListInitialHeight)))
         if(graphPicker!=null) panels.addView(graphPicker)
         if(visualization!=null) panels.addView(visualization)
         var shown = -1

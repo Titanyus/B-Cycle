@@ -76,8 +76,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
         }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.verticalPadding) })
     }
     init {
-        tag = "rider_profile"; isFillViewport = BicycleDesign.scrollFillViewport; clipToPadding = BicycleDesign.scrollClipToPadding
-        scrollBarSize = dp(BicycleDesign.scrollbarSize)
+        tag = "rider_profile"; BicycleComponents.scrollStyle(this)
         BicycleComponents.bindTheme(this, themes) {
             setBackgroundColor(it.secondary); verticalScrollbarThumbDrawable = android.graphics.drawable.ColorDrawable(it.foreground)
         }

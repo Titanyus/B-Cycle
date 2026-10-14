@@ -87,6 +87,9 @@
     <string name="analysis_ftp_explanation">Schätzung aus der besten zusammenhängenden 20-Minuten-Leistung dieser Fahrt, kein bestätigter persönlicher FTP-Wert.</string>
     <string name="analysis_missing">—</string>
     <string name="route_action_map">Auf Karte ansehen</string>
+    <string name="footer_show">Anzeigen</string>
+    <string name="footer_cloud_upload">Cloudupload</string>
+    <string name="footer_import_route">Strecke importieren</string>
     <string name="route_action_rename">Umbenennen</string>
     <string name="route_action_cloud">Cloud-Upload</string>
     <string name="route_action_save">Speichern</string>

@@ -30,6 +30,10 @@ class FieldPickerTest {
         val dropdown = testDescendants(view).single { it.tag == "field_source" } as Spinner
         val list = testDescendants(view).single { it.tag == "field_list" } as ScrollView
         assertEquals("E-Bike", dropdown.selectedItem)
+        assertEquals((900 * .55f).toInt(), list.height)
+        assertEquals(BicycleDesign.dp(view.context, 144), BicycleDesign.fieldListHeight(view.context, 300))
+        assertEquals(BicycleDesign.dp(view.context, 360), BicycleDesign.fieldListHeight(view.context, 3000))
+        assertEquals(BicycleDesign.scrollClipToPadding, list.clipToPadding)
         assertTrue(list.height > 0)
         assertTrue(list.getChildAt(0).height > list.height)
         assertFalse(testDescendants(list).contains(dropdown))

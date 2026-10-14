@@ -31,7 +31,7 @@ internal object BicycleFullscreen {
             child.tag == "settings_brand" || child.tag == "route_manager_header"
         } }
         val header = embeddedHeader ?: nativeHeader
-        val footer = nativeFooter ?: content?.let { descendants(it).firstOrNull { child -> child.tag == "route_analysis_footer" } }
+        val footer = nativeFooter ?: content?.let { descendants(it).firstOrNull { child -> child.tag == "bicycle_action_footer" || child.tag == "route_analysis_footer" } }
         fun detach(view: View) { (view.parent as? ViewGroup)?.removeView(view) }
         val host = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "bicycle_fullscreen" }
         BicycleComponents.bindTheme(host, themes) { _ ->
@@ -48,10 +48,12 @@ internal object BicycleFullscreen {
         }
         content?.let { original ->
             detach(original)
-            if (original is RouteManagerView) original.fullscreen = true
-            val scrolling = descendants(original).any { it is ScrollView || it is ListView }
+            descendants(original).filterIsInstance<RouteManagerView>().forEach { it.fullscreen = true }
+            val scrollContainers = descendants(original).filter { it is ScrollView || it is ListView }.toList()
+            scrollContainers.forEach { BicycleComponents.scrollStyle(it as ViewGroup) }
+            val scrolling = scrollContainers.isNotEmpty()
             val body = if (scrolling || original is RouteAnalysisMap) original else ScrollView(context).apply {
-                isFillViewport = false
+                BicycleComponents.scrollStyle(this)
                 addView(original, ViewGroup.LayoutParams(-1, -2))
             }
             body.tag = body.tag ?: "bicycle_fullscreen_content"

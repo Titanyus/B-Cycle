@@ -105,6 +105,7 @@ internal object BicycleDialogStyle {
         }
     }
     fun content(view: View, themes: ThemeManager) {
+        if (view is BicycleFooterAction || view.tag == "bicycle_action_footer") return
         // This reference screen owns every detail, including its compact action geometry.
         if (view is SettingsMenuView || view is RiderProfileView || view is RouteManagerView || view is ThemePickerView || view is RouteAnalysisView || view is RouteAnalysisMap || view.tag == "route_analysis_header" || view.tag == "bicycle_dialog_header") return
         if (view is Spinner) { spinner(view, themes); return }
@@ -116,14 +117,14 @@ internal object BicycleDialogStyle {
                 view.dividerHeight = BicycleDesign.dividerPixels
                 view.verticalScrollbarThumbDrawable = ColorDrawable(tokens.foreground)
             }
-            view.scrollBarSize = dp(view, BicycleDesign.scrollbarSize)
+            BicycleComponents.scrollStyle(view)
             val source = view.adapter
             if (source != null && source !is StyledListAdapter) view.adapter = StyledListAdapter(source, themes)
             return
         }
         if (view is TextView && view.id !in setOf(android.R.id.button1, android.R.id.button2, android.R.id.button3)) control(view, themes)
         if (view is ScrollView) {
-            view.scrollBarSize = dp(view, BicycleDesign.scrollbarSize)
+            BicycleComponents.scrollStyle(view)
             BicycleComponents.bindTheme(view, themes) {
                 view.setBackgroundColor(it.secondary); view.verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)
             }

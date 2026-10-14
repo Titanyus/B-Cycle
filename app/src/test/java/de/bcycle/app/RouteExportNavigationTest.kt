@@ -33,12 +33,13 @@ class RouteExportNavigationTest {
             val deadline = System.currentTimeMillis() + 5000
             while (state.busy && System.currentTimeMillis() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
             val close = manager.getButton(AlertDialog.BUTTON_POSITIVE)
-            assertFalse(close.isShown)
+            assertTrue(close == null || !close.isShown)
             assertEquals(R.drawable.ic_lucide_log_out, BicycleIcon.Close.resource)
             assertEquals(R.drawable.ic_lucide_x, BicycleIcon.Cancel.resource)
-            val import = manager.getButton(AlertDialog.BUTTON_NEUTRAL)
+            val import = manager.window!!.decorView.findViewWithTag<BicycleFooterAction>("route_import")
             assertEquals("route_import", import.tag)
-            assertNotNull(import.compoundDrawablesRelative[0])
+            assertNotNull(import.image.drawable)
+            assertEquals("Strecke importieren", (import.getChildAt(1) as android.widget.TextView).text.toString())
             assertFalse(descendants(manager.window!!.decorView).any { it.tag == "route_recover" })
             import.performClick()
             var choice = ShadowListPopupWindow.getLatestListPopupWindow()

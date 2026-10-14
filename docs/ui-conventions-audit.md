@@ -43,7 +43,7 @@ Eingabe-/Einheitenzeilen und Gruppenabstände bleiben Teil der folgenden Prüfun
 | Kachelinnenraum und Messwert-/Einheitenabstände | DashboardView enthält lokale 10/8/4-dp-Innenabstände, 4/6-dp-Zahlen-/Einheitengaps und Chevron-Geometrie. AnalysisValueRow ist gemeinsam, das Dashboard verwendet einen eigenen ValueRow. |
 | Karten-/Toolbar-Geometrie | MapPanel enthält 44/48-dp-Controls, 2/6-dp-Abstände, 5-dp-Radius und lokale dunkle Farben. MainActivity setzt Toolbarhöhe 58 dp und Iconinsets. Funktionale Sonderlayouts sind sinnvoll; benannte Spezial-Tokens fehlen teilweise. |
 | Dropdown-/Popup-Darstellung | BicycleDialogStyle.spinner ist gemeinsam. RouteManagerView implementiert Filterhintergrund und Adapter zusätzlich selbst, trotz weitgehend gleicher Theme-Rollen/Schriften. Popup-Menüs haben weitere eigene Aufbaupfade. |
-| Scroll-/Anpassungsgrenzen | FieldPickerView definiert 55 % bzw. 144–360 dp für die innere Liste; Kartencontrols und Dashboard haben eigene Anpassungsformeln. Die Regeln liegen in den jeweiligen Komponenten, nicht in benannten Designrollen. |
+| Anpassungsgrenzen außerhalb von Dialogen | Kartencontrols und Dashboard haben eigene Anpassungsformeln. Dialog-Scrolling und die Höhenbegrenzung der Feldauswahl sind jetzt zentral geregelt; Karten-Spezialmaße bleiben getrennt. |
 | Sichtbare Texte und Accessibility | Neue Bereiche verwenden Strings-Ressourcen, ältere Labels und Beschreibungen in MainActivity/DashboardPresetPicker/FieldPickerView sind teilweise noch direkt im Code. Keine vollständige zentrale lokalisierbare Textbasis. |
 | Rückmeldungen und Ladezustände | MainActivity verwendet verschiedene direkte Toast-Aufrufe; RouteExportView und RouteAnalysisView eigene Status-/Fehlerzeilen. Die Funktionen existieren, aber es gibt keine gemeinsame Darstellungskomponente für diese Zustände. |
 
@@ -62,3 +62,29 @@ FieldPickerTest, DashboardPresentationTest, UiConventionsTest und RiderProfileVi
 Sie prüfen Stil-/Themewechsel, Dropdowns, Hochformat, neue Accordions, Profile und
 bestehende Navigation. 23 gezielte Tests bestanden, zusätzlich zwei Streckenmanager-Tests nach Anbindung
 des eigenen Filters; Kotlin-Kompilierung erfolgreich. Keine neue APK erstellt.
+
+## Scrollverhalten und Aktionsfooter zentralisiert
+
+`BicycleComponents.scrollStyle` verwendet die vorhandenen Scrolltokens: kein
+Aufdehnen kurzer Inhalte (`fillViewport=false`), kein Abschneiden am Innenpadding
+(`clipToPadding=false`) und 2-dp-Scrollbar. Fullscreen-Host, generische Dialogstile,
+Profil, Feldauswahl, Detailansicht und Streckenliste verwenden dieselbe Geometrie.
+Native Gesten, Adapter und Scrollpositionen werden nicht neu initialisiert.
+Vorhandene Listen werden weiterhin nicht zusätzlich in eine ScrollView gesetzt.
+Header/Footer bleiben fest; Insets und Tastaturanpassung bleiben beim Fullscreen-Host.
+
+Die bisherige Höhenregel der inneren Feldauswahl wurde unverändert als benannte
+Designrolle übernommen: 55 % der verfügbaren Höhe, mindestens 144 und höchstens
+360 dp, initial 320 dp. Quellenwahl bleibt außerhalb der inneren Liste.
+
+Aktionsfooter verwenden `bicycleFooter` und `BicycleFooterAction`: 64 dp Höhe,
+24-dp-Icon und 11-sp-Systemfont darunter, zentriert und bei knapper Breite leicht
+verkleinerbar. Die gesamte Kachel ist eine einzige zugängliche Touchfläche.
+Import links im Streckenmanager und die fünf Detailaktionen teilen diesen Aufbau.
+Neue Texte liegen in Android-Stringressourcen. Themewechsel verändern keine Geometrie;
+Cloud-/Speicher-Erfolg und Busy-Sperren bleiben erhalten.
+
+Gezielte Verifikation dieser Änderung: 24 Tests bestanden (Feldauswahl,
+Fullscreen-Dialoge auf API 33/35/36, Tastatur/Insets, Themewechsel, Import-Dropdown
+und Detailaktionen inklusive persistenter Erfolgsicons). Debug-Kotlin-Kompilierung
+erfolgreich; keine vollständige Testsuite und keine APK gebaut.

@@ -4,7 +4,6 @@ import android.app.AlertDialog
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.EditText
 import android.widget.ListView
 import android.widget.TextView
@@ -58,7 +57,9 @@ class RouteDetailActionsTest {
             var activeFooter = footer
             assertEquals(5, footer.childCount)
             assertEquals(listOf("detail_map", "detail_rename", "detail_cloud", "detail_save", "detail_delete"), (0 until footer.childCount).map { footer.getChildAt(it).tag })
-            assertTrue((0 until footer.childCount).all { footer.getChildAt(it) is ImageButton })
+            assertTrue((0 until footer.childCount).all { footer.getChildAt(it) is BicycleFooterAction })
+            assertEquals(listOf("Anzeigen", "Umbenennen", "Cloudupload", "Speichern", "Löschen"),
+                (0 until footer.childCount).map { (footer.getChildAt(it) as android.widget.LinearLayout).getChildAt(1) as TextView }.map { it.text.toString() })
             assertFalse(detail.window!!.decorView.findViewWithTag<View>("detail_cloud").isEnabled)
             assertNull(detail.window!!.decorView.findViewWithTag<View>("analysis_actions"))
             assertFalse(views(detail.window!!.decorView).filterIsInstance<TextView>().any { it.isShown && it.text.toString() == activity.getString(R.string.analysis_close) })
@@ -67,29 +68,29 @@ class RouteDetailActionsTest {
             assertTrue(views(map.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single().height > 600)
             testBack(map); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, detail.window!!.decorView.visibility)
-            fun matches(button: ImageButton, kind: BicycleIcon): Boolean {
+            fun matches(button: BicycleFooterAction, kind: BicycleIcon): Boolean {
                 fun pixels(drawable: android.graphics.drawable.Drawable): android.graphics.Bitmap {
                     val bitmap = android.graphics.Bitmap.createBitmap(72, 72, android.graphics.Bitmap.Config.ARGB_8888)
                     drawable.setBounds(0, 0, 72, 72); drawable.draw(android.graphics.Canvas(bitmap)); return bitmap
                 }
-                val actual = pixels(button.drawable)
+                val actual = pixels(button.image.drawable)
                 val expected = pixels(BicycleIcons.drawable(activity, kind, RideRuntime.get(activity).themes.active.tokens.foreground))
                 val same = actual.sameAs(expected); actual.recycle(); expected.recycle(); return same
             }
-            val saveButton = footer.getChildAt(3) as ImageButton
+            val saveButton = footer.getChildAt(3) as BicycleFooterAction
             assertTrue(matches(saveButton, BicycleIcon.Save))
             saveButton.performClick(); saveButton.performClick()
             waitFor { !state.busy && RouteLocalSaves.completed(activity, id, state.entries.single { it.id == id }.fileStamp) }
             assertEquals(1, provider.writes)
             assertTrue(matches(saveButton, BicycleIcon.SaveConfirmed))
-            assertTrue(matches(footer.getChildAt(2) as ImageButton, BicycleIcon.CloudNotUploaded))
+            assertTrue(matches(footer.getChildAt(2) as BicycleFooterAction, BicycleIcon.CloudNotUploaded))
             // Returning and reopening must show the durable save receipt, not reset it.
             testBack(detail)
             shadowOf(Looper.getMainLooper()).idle()
             card.performClick(); shadowOf(Looper.getMainLooper()).idle()
             val reopened = ShadowAlertDialog.getLatestAlertDialog()
             waitFor { reopened.window!!.decorView.findViewWithTag<View>("detail_map").isEnabled }
-            val restored = reopened.window!!.decorView.findViewWithTag<ImageButton>("detail_save")
+            val restored = reopened.window!!.decorView.findViewWithTag<BicycleFooterAction>("detail_save")
             assertTrue(matches(restored, BicycleIcon.SaveConfirmed))
             testBack(reopened)
             shadowOf(Looper.getMainLooper()).idle()
@@ -141,7 +142,7 @@ class RouteDetailActionsTest {
             }
             fun refresh() { MainActivity::class.java.getDeclaredMethod("refreshRouteRows").apply { isAccessible = true }.invoke(activity) }
             val first = open()
-            val cloud = first.window!!.decorView.findViewWithTag<ImageButton>("detail_cloud")
+            val cloud = first.window!!.decorView.findViewWithTag<BicycleFooterAction>("detail_cloud")
             assertEquals(activity.getString(R.string.route_action_cloud), cloud.contentDescription)
             cloud.performClick(); cloud.performClick(); waitFor { !state.busy }
             assertNotEquals(UploadState.UPLOADED, RouteUploads.state(activity, entry.id).state)

@@ -62,6 +62,11 @@ object BicycleDesign {
     const val gridRows = 2
     const val scrollFillViewport = false
     const val scrollClipToPadding = false
+    // Data source stays above this bounded inner list; other accordions scroll in the outer body.
+    const val fieldListViewportFraction = .55f
+    const val fieldListMinHeight = 144
+    const val fieldListMaxHeight = 360
+    const val fieldListInitialHeight = 320
     const val horizontalPadding = 16
     const val verticalPadding = 8
     const val controlGap = 8
@@ -70,6 +75,8 @@ object BicycleDesign {
     const val dialogRadius = 18
     const val inputRadius = 6
     const val scrollbarSize = 2
+    const val footerHeight = 64
+    const val footerLabelSp = 11f
     const val dividerPixels = 1
     const val dividerAlpha = .55f
     const val inputHorizontalPadding = 12
@@ -91,6 +98,9 @@ object BicycleDesign {
     const val themeNameSp = 14f
     const val themeSelectedBorder = 2
     fun dp(context: Context, value: Int) = (value * context.resources.displayMetrics.density).toInt()
+    fun fieldListHeight(context: Context, availablePixels: Int) =
+        (availablePixels * fieldListViewportFraction).toInt().coerceIn(
+            dp(context, fieldListMinHeight), dp(context, fieldListMaxHeight))
 }
 
 enum class ThemeRole { PRIMARY, SECONDARY, TERTIARY, FOREGROUND, ACCENT }
@@ -110,6 +120,13 @@ fun ThemeTokens.iconColor(role: ThemeRole, backgroundRole: ThemeRole = ThemeRole
 /** Shared native components. Geometry is independent of the active palette. */
 object BicycleComponents {
     private fun dp(context: Context, value: Int) = BicycleDesign.dp(context, value)
+    /** Geometry only: keep children, adapters, gestures and the current scroll position intact. */
+    internal fun scrollStyle(view: ViewGroup) {
+        if (view !is ScrollView && view !is android.widget.AbsListView) return
+        view.clipToPadding = BicycleDesign.scrollClipToPadding
+        view.scrollBarSize = dp(view.context, BicycleDesign.scrollbarSize)
+        if (view is ScrollView) view.isFillViewport = BicycleDesign.scrollFillViewport
+    }
     private val spacedControls = java.util.WeakHashMap<View, Boolean>()
     /** Form controls only: preserve caller dimensions, weights and intentional larger margins. */
     internal fun controlSpacing(view: View) {
@@ -192,7 +209,7 @@ object BicycleComponents {
         surface(this, manager, ThemeRole.SECONDARY, 0)
     }
     fun scrollBody(context: Context, manager: ThemeManager) = ScrollView(context).apply {
-        isFillViewport = BicycleDesign.scrollFillViewport; clipToPadding = BicycleDesign.scrollClipToPadding
+        scrollStyle(this)
         addView(dialogBody(context, manager))
     }
     fun text(context: Context, manager: ThemeManager, value: String, title: Boolean = false) = TextView(context).apply {

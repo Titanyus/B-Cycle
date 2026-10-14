@@ -43,3 +43,13 @@ Vollständige Testsuite und Release-Build erfolgreich am 12.10.2026 in **1m 24s*
 
 
 Die anschließende Listenvereinfachung ist in [Schritt 2](route-manager-step2.md) dokumentiert; die alten Manageraktionen sind jetzt entfernt.
+
+## Gemeinsamer Aktionsfooter (14.10.2026)
+
+Die fünf Aktionen besitzen jetzt zusätzlich kleine sichtbare Beschriftungen unter
+den Icons: Anzeigen, Umbenennen, Cloudupload, Speichern, Löschen. Der Streckenmanager
+verwendet denselben Footer mit Importicon und „Strecke importieren“ links.
+`BicycleFooterAction` bündelt Icon/Label zu einer Touchfläche; Statusicons und
+Accessibility-Erfolgsbeschreibungen bleiben unabhängig von der kurzen Beschriftung.
+Der feste Fullscreen-Footer wird aus dem Scrollinhalt herausgelöst. Keine zusätzliche
+Schließen-Schaltfläche, keine Änderung an den fünf Aktionen oder ihren Services.
