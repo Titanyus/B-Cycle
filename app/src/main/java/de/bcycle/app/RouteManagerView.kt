@@ -75,6 +75,7 @@ internal class RouteManagerView(context: Context,
         addView(filter, LayoutParams(-1, dp(BicycleDesign.touchSize)).apply {
             setMargins(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), dp(BicycleDesign.verticalPadding), 0)
         })
+        BicycleComponents.controlSpacing(filter)
         filter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { updateRows() }

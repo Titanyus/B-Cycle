@@ -132,6 +132,7 @@ internal object BicycleDialogStyle {
         if (view is DatePicker) BicycleNavigation.dateHeader(view,themes)
     }
     fun control(view: TextView, themes: ThemeManager) {
+        if(view is Button) BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) {
             if(view.isAccessibilityHeading) { view.typeface=BicycleDesign.strongTypeface;view.textSize=BicycleDesign.titleSp }
             return
@@ -150,7 +151,7 @@ internal object BicycleDialogStyle {
                 view.textSelectHandleLeft?.mutate()?.setTint(tokens.foreground)
                 view.textSelectHandleRight?.mutate()?.setTint(tokens.foreground)
             }
-            (view.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = dp(view, BicycleDesign.verticalPadding)
+            (view.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = dp(view, BicycleDesign.controlGap)
         } else if (view is CompoundButton) {
             view.minimumHeight = dp(view, BicycleDesign.touchSize)
             if (view is CheckBox) view.setButtonDrawable(R.drawable.selection_circle)
@@ -164,10 +165,6 @@ internal object BicycleDialogStyle {
                 view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), null, ColorDrawable(Color.WHITE))
             }
         } else if (view is Button) {
-            view.layoutParams = ((view.layoutParams as? ViewGroup.MarginLayoutParams)
-                ?: LinearLayout.LayoutParams(-1, -2)).apply {
-                topMargin = dp(view, BicycleDesign.verticalPadding)
-            }
             view.minimumHeight = dp(view, BicycleDesign.touchSize); view.isAllCaps = false
             view.setPadding(dp(view, BicycleDesign.horizontalPadding), dp(view, BicycleDesign.verticalPadding),
                 dp(view, BicycleDesign.horizontalPadding), dp(view, BicycleDesign.verticalPadding))
@@ -191,6 +188,7 @@ internal object BicycleDialogStyle {
         }
     }
     fun spinner(view: Spinner, themes: ThemeManager, renderLabel: ((String, Int) -> CharSequence)? = null) {
+        BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) return
         view.minimumHeight = dp(view, BicycleDesign.touchSize)
         BicycleComponents.bindTheme(view, themes) { tokens ->

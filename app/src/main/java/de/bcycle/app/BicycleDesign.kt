@@ -64,6 +64,7 @@ object BicycleDesign {
     const val scrollClipToPadding = false
     const val horizontalPadding = 16
     const val verticalPadding = 8
+    const val controlGap = 8
     const val headerHorizontalPadding = 24
     const val headerVerticalPadding = 12
     const val dialogRadius = 18
@@ -109,6 +110,35 @@ fun ThemeTokens.iconColor(role: ThemeRole, backgroundRole: ThemeRole = ThemeRole
 /** Shared native components. Geometry is independent of the active palette. */
 object BicycleComponents {
     private fun dp(context: Context, value: Int) = BicycleDesign.dp(context, value)
+    private val spacedControls = java.util.WeakHashMap<View, Boolean>()
+    /** Form controls only: preserve caller dimensions, weights and intentional larger margins. */
+    internal fun controlSpacing(view: View) {
+        fun apply() {
+            val margins=view.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+            val gap=dp(view.context,BicycleDesign.controlGap)
+            var changed=false
+            if(margins.topMargin<gap) { margins.topMargin=gap;changed=true }
+            val parent=view.parent as? LinearLayout
+            if(parent?.orientation==LinearLayout.HORIZONTAL) {
+                val index=parent.indexOfChild(view)
+                val previous=(index-1 downTo 0).firstOrNull { parent.getChildAt(it).visibility!=View.GONE }?.let(parent::getChildAt)
+                if(previous is android.widget.Button || previous is android.widget.Spinner) {
+                    val previousEnd=(previous.layoutParams as? ViewGroup.MarginLayoutParams)?.marginEnd ?: 0
+                    if(previousEnd+margins.marginStart<gap) {
+                        margins.marginStart=gap-previousEnd;changed=true
+                    }
+                }
+            }
+            if(changed) view.requestLayout()
+        }
+        apply()
+        if(spacedControls.put(view,true)!=null) return
+        // Constructors often style before addView assigns/replaces the final LayoutParams.
+        view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) = apply()
+            override fun onViewDetachedFromWindow(v: View) = Unit
+        })
+    }
     internal fun bindTheme(view: View, manager: ThemeManager, apply: (ThemeTokens) -> Unit) {
         apply(manager.active.tokens)
         var subscription: ThemeSubscription? = null
@@ -186,6 +216,7 @@ object BicycleComponents {
         surface(this, manager, ThemeRole.TERTIARY, BicycleDesign.inputRadius)
         bindTheme(this, manager) { setTextColor(it.foreground); backgroundTintList = null }
         setOnClickListener { click() }
+        controlSpacing(this)
     }
     fun icon(context: Context, manager: ThemeManager, drawable: android.graphics.drawable.Drawable,
              description: String, colorRole: ThemeRole = ThemeRole.FOREGROUND, click: () -> Unit) = ImageButton(context).apply {

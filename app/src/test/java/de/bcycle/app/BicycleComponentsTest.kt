@@ -14,6 +14,37 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class BicycleComponentsTest {
+    @Test fun formSpacingSurvivesLateLayoutParametersAndReattachmentWithoutDoublingHorizontalGaps() {
+        val controller=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("spacing",0))
+            val root=LinearLayout(activity).apply { orientation=LinearLayout.VERTICAL }
+            val button=BicycleComponents.action(activity,themes,"Action") {}
+            BicycleDialogStyle.control(button,themes)
+            val spinner=android.widget.Spinner(activity).apply { adapter=android.widget.ArrayAdapter(activity,android.R.layout.simple_spinner_dropdown_item,listOf("A","B")) }
+            BicycleDialogStyle.spinner(spinner,themes)
+            val toggle=android.widget.Switch(activity);BicycleDialogStyle.control(toggle,themes)
+            val gap=BicycleDesign.dp(activity,BicycleDesign.controlGap)
+            val height=BicycleDesign.dp(activity,BicycleDesign.touchSize)
+            listOf(button,spinner,toggle).forEach { root.addView(it,LinearLayout.LayoutParams(-1,height)) }
+            val row=LinearLayout(activity).apply { orientation=LinearLayout.HORIZONTAL }
+            val left=BicycleComponents.action(activity,themes,"Left") {};val right=BicycleComponents.action(activity,themes,"Right") {}
+            row.addView(left,LinearLayout.LayoutParams(0,height,1f).apply { marginEnd=gap })
+            row.addView(right,LinearLayout.LayoutParams(0,height,1f))
+            root.addView(row);activity.setContentView(root)
+            for(view in listOf(button,spinner,toggle,left,right)) {
+                val margins=view.layoutParams as android.view.ViewGroup.MarginLayoutParams
+                assertEquals(gap,margins.topMargin);assertEquals(height,margins.height)
+            }
+            assertEquals(0,(right.layoutParams as LinearLayout.LayoutParams).marginStart)
+            assertEquals(1f,(right.layoutParams as LinearLayout.LayoutParams).weight,0f)
+            root.removeView(button);root.addView(button);assertEquals(gap,(button.layoutParams as LinearLayout.LayoutParams).topMargin)
+            row.removeView(right);row.addView(right);assertEquals(0,(right.layoutParams as LinearLayout.LayoutParams).marginStart)
+            (left.layoutParams as LinearLayout.LayoutParams).marginEnd=0
+            BicycleDialogStyle.control(right,themes)
+            assertEquals(gap,(right.layoutParams as LinearLayout.LayoutParams).marginStart)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun paletteChangesOnlyColorsAndDetachedComponentsStopObservingUntilReattached() {
         val controller = Robolectric.buildActivity(Activity::class.java).setup()
         try {
