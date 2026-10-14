@@ -1,6 +1,11 @@
 package de.bcycle.app
 
 import android.Manifest
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import android.app.Activity
 import android.app.AlertDialog
 import android.bluetooth.BluetoothDevice
@@ -211,7 +216,7 @@ class MainActivity : Activity() {
         if (!permitted()) return
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
-        val graphs=if(!mapField && dashboard.template.supportsGraph(index))
+        val graphs=if(!BuildConfig.COMPOSE_SETTINGS && !mapField && dashboard.template.supportsGraph(index))
             GraphOverlayPicker(settingsContext,runtime.themes,dashboardGraphs.slots[index],dashboardGraphs.displayModes[index]) else null
         fun saveGraphs() {
             if(graphs!=null) {
@@ -236,6 +241,19 @@ class MainActivity : Activity() {
             saveGraphs(); render(); picker?.dismiss()
             if (field?.requiresGps == true) enableGps()
         }
+        if(BuildConfig.COMPOSE_SETTINGS) {
+            picker=composeScreen(if(mapField) getString(R.string.compose_map_field_title,MapFieldSelection.positions[index]) else getString(R.string.compose_field_title,index+1)) {
+                ComposeFieldPicker(runtime.dashboardBikeData,runtime.gpsValues,runtime.ride.bike.distanceM,runtime.pulseValues,selected,mapField,
+                    if(!mapField && dashboard.template.supportsGraph(index)) dashboardGraphs.slots[index] else null,
+                    dashboardGraphs.displayModes[index],::select) { choices,mode ->
+                    if(permitted()) {
+                        dashboardGraphs=dashboardGraphs.replace(index,choices).withDisplay(index,mode)
+                        preferences.edit().putString(GraphOverlayConfig.key(dashboardPage),dashboardGraphs.encode())
+                            .putString(GraphDisplaySettings.key(dashboardPage),dashboardGraphs.encodeModes()).apply();render()
+                    }
+                }
+            };return
+        }
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
             runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, ::select)
         val builder = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen")
@@ -244,35 +262,42 @@ class MainActivity : Activity() {
     }
     private fun showMenu(advanced: Boolean = false) {
         setDashboardEditing(false)
-        val content = SettingsMenuView(settingsContext, runtime.themes, advanced) { action ->
+        val choose:(SettingsAction)->Unit = { action ->
             when (action) {
                 SettingsAction.SENSORS -> showSensorManager()
                 SettingsAction.DATA -> dataSettings()
-                SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, runtime.themes, dialogs, runtime.riderProfiles) }
+                SettingsAction.PROFILE -> { if(BuildConfig.COMPOSE_SETTINGS) composeProfile() else menu = showRiderProfile(settingsContext, runtime.themes, dialogs, runtime.riderProfiles) }
                 SettingsAction.MAP -> mapSettings()
                 SettingsAction.DASHBOARDS -> dashboardSettings()
                 SettingsAction.ROUTES -> routeSettings()
                 SettingsAction.ADVANCED -> showMenu(advanced = true)
                 SettingsAction.RECOVERY -> recoverySettings()
-                SettingsAction.GPS_HELP -> menu = dialog().setTitle("GPS-Messung").setMessage("Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").show()
+                SettingsAction.GPS_HELP -> menu = informationDialog("GPS-Messung","Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").show()
                 SettingsAction.DIAGNOSTIC -> diagnosticSettings()
                 SettingsAction.RESET -> resetDashboardSettings()
-                SettingsAction.FONT_LICENSE -> menu = dialog().setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).show()
-                SettingsAction.MAP_LICENSE -> menu = dialog().setTitle("Bibliotheken · Lizenzen").setMessage(
+                SettingsAction.FONT_LICENSE -> menu = informationDialog("Bebas Neue · Dharma Type",assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).show()
+                SettingsAction.MAP_LICENSE -> menu = informationDialog("Bibliotheken · Lizenzen",
                     "Mapsforge · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkHttp 4.12.0 · Apache-2.0\n\n" + assets.open("OkHttp-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() } +
-                    "\n\nLucide 0.468.0 · ISC / Feather MIT\n\n" + assets.open("Lucide-LICENSE.txt").bufferedReader().use { it.readText() })
+                    "\n\nLucide 0.468.0 · ISC / Feather MIT\n\n" + assets.open("Lucide-LICENSE.txt").bufferedReader().use { it.readText() } +
+                    (if(BuildConfig.COMPOSE_SETTINGS) "\n\nAndroidX · Jetpack Compose / Lifecycle / SavedState · Apache-2.0\n\n" + assets.open("AndroidX-LICENSE.txt").bufferedReader().use { it.readText() } else ""))
                     .show()
             }
         }
+        if(BuildConfig.COMPOSE_SETTINGS) { menu=composeScreen(getString(if(advanced) R.string.ui_advanced else R.string.ui_settings)) { ComposeSettingsMenu(advanced,choose) };return }
+        val content=SettingsMenuView(settingsContext,runtime.themes,advanced,choose)
         menu = dialog().setTitle(if(advanced) R.string.ui_advanced else R.string.ui_settings).create().apply {
             setView(ScrollView(settingsContext).apply { addView(content) }, 0, 0, 0, 0)
             show()
         }
     }
     private fun recoverySettings() {
+        if(BuildConfig.COMPOSE_SETTINGS) { menu=composeScreen(getString(R.string.compose_recovery_title)) { runtimeRevision(runtime);BicycleBody {
+            BicycleText(runtime.recordingStatus)
+            BicycleAction(getString(R.string.compose_recovery_action),BicycleIcon.ExportTrack,!runtime.recording && !runtime.saving,"recovery_execute") { menu?.dismiss();runtime.retryPending() }
+        } };return }
         val root = column()
         root.addView(label(runtime.recordingStatus, 14f).apply { setPadding(0, dp(12), 0, dp(12)) })
         root.addView(button("Speichern erneut versuchen", BicycleIcon.ExportTrack) { menu?.dismiss(); runtime.retryPending() }.apply {
@@ -281,11 +306,13 @@ class MainActivity : Activity() {
         menu = dialog().setTitle("Ungespeicherte Fahrten").setView(ScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun diagnosticSettings() {
+        if(BuildConfig.COMPOSE_SETTINGS) { menu=composeScreen(getString(R.string.compose_diagnostic_title)) { BicycleBody { BicycleAction(getString(R.string.compose_diagnostic_action),BicycleIcon.ExportTrack) { menu?.dismiss();exportDiagnostic() } } };return }
         val root = column()
         root.addView(button("Diagnose als Datei speichern", BicycleIcon.ExportTrack) { menu?.dismiss(); exportDiagnostic() }.apply { tag = "diagnostic_execute" })
         menu = dialog().setTitle("Diagnose").setView(ScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun resetDashboardSettings() {
+        if(BuildConfig.COMPOSE_SETTINGS) { menu=composeScreen(getString(R.string.ui_reset_title)) { BicycleBody { BicycleAction(getString(R.string.ui_reset_action),BicycleIcon.Reset) { composeReset() } } };return }
         val root = column()
         root.addView(button("Belegung zurücksetzen", BicycleIcon.Reset) {
             dialog(fullscreen=false).setTitle(R.string.ui_reset_title).setMessage(R.string.ui_reset_confirm)
@@ -299,6 +326,14 @@ class MainActivity : Activity() {
         menu = dialog().setTitle("Standardbelegung").setView(ScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun showSensorManager() {
+        if(BuildConfig.COMPOSE_SETTINGS) {
+            sensorManager=composeScreen(getString(R.string.compose_sensors_title)) { ComposeSensors(runtime,{ kind ->
+                if(kind=="add") menu=composeScreen(getString(R.string.compose_sensor_add)) { BicycleBody {
+                    BicycleAction(getString(R.string.compose_bike_choose),BicycleIcon.Bluetooth) { selectSensor("bike") }
+                    BicycleAction(getString(R.string.compose_sensor_choose),BicycleIcon.Heart) { selectSensor("heart") }
+                } } else selectSensor(kind)
+            },::composeToggleSensor) };return
+        }
         val root = column(); sensorRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.addView(sensorRows)
         root.addView(button("Sensor hinzufügen", BicycleIcon.AddSensor) {
@@ -350,6 +385,7 @@ class MainActivity : Activity() {
     private fun selectSensor(kind: String) {
         if (!runtime.hasBluetooth()) { requestSensorPermission(kind); return }
         picker?.dismiss(); stopScan()
+        if(BuildConfig.COMPOSE_SETTINGS) { composeSensorPicker(kind);return }
         val root = column(); val scanLabel = label("Suche …"); root.addView(scanLabel)
         val devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }; root.addView(devices)
         val seen = mutableSetOf<String>()
@@ -512,6 +548,7 @@ class MainActivity : Activity() {
         setMapFullscreen(false); render()
     }
     private fun dashboardSettings() {
+        if(BuildConfig.COMPOSE_SETTINGS) { menu=composeScreen(getString(R.string.compose_design_title)) { ComposeDesignSettings(preferences,runtime.themes,dashboardPage,{ changeDashboard(0) },::enterDashboardEditor) };return }
         val root = column()
         root.addView(ThemePickerView(settingsContext, runtime.themes))
         val presets = DashboardPresetPicker(settingsContext, (0 until 4).map { page ->
@@ -535,6 +572,7 @@ class MainActivity : Activity() {
         menu = dialog().setTitle("Design & UI").setView(ScrollView(this).apply { tag="design_ui_scroll";addView(root) }).show()
     }
     private fun mapSettings() {
+        if(BuildConfig.COMPOSE_SETTINGS) { menu=composeScreen(getString(R.string.compose_map_title)) { ComposeMapSettings(preferences,{ mapPanel.refreshSettings() },::enableGps) { openMapLink(MapSource.CYCLOSM.creditUrl) } };return }
         val root = column()
         root.addView(label("Kartenquelle", BicycleDesign.inputSp))
         val source = Spinner(settingsContext).apply {
@@ -725,7 +763,7 @@ class MainActivity : Activity() {
         screen.show(); return screen
     }
     private fun dataSettings() {
-        val content = DataSettingsView(settingsContext,runtime.themes) { action -> when(action) {
+        val choose:(DataAction)->Unit = { action -> when(action) {
             DataAction.BACKUP -> backupSettings()
             DataAction.RESTORE -> try {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")
@@ -734,7 +772,8 @@ class MainActivity : Activity() {
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
             DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)
         } }
-        val screen=dataDialog(R.string.data_title,ScrollView(settingsContext).apply { addView(content) })
+        val content=if(BuildConfig.COMPOSE_SETTINGS) composeBody { ComposeDataSettings(choose) } else ScrollView(settingsContext).apply { addView(DataSettingsView(settingsContext,runtime.themes,choose)) }
+        val screen=dataDialog(R.string.data_title,content)
         dataSettingsScreen=screen;menu=screen
         dialogs.onDismiss(screen) { if(dataSettingsScreen===screen) dataSettingsScreen=null }
     }
@@ -746,14 +785,20 @@ class MainActivity : Activity() {
     }
     private fun backupSettings(document: SettingsBackupDocument? = null) {
         val backup=SettingsBackup(this,runtime.themes)
-        val choices=BackupSelectionView(settingsContext,runtime.themes,document?.sections?.keys ?: BackupSection.entries.toSet())
+        val available=document?.sections?.keys ?: BackupSection.entries.toSet()
+        var composeSelected by mutableStateOf(available)
+        val choices=if(BuildConfig.COMPOSE_SETTINGS) null else BackupSelectionView(settingsContext,runtime.themes,available)
+        fun selected()=choices?.selected() ?: composeSelected
+        var selectionChanged:()->Unit={}
+        val content=if(BuildConfig.COMPOSE_SETTINGS) composeBody { ComposeBackupSelection(available,composeSelected) { composeSelected=it;selectionChanged() } }
+            else ScrollView(settingsContext).apply { addView(choices!!) }
         val screen=dataDialog(if(document==null) R.string.data_backup else R.string.data_restore,
-            ScrollView(settingsContext).apply { addView(choices) },if(document==null) R.string.backup_execute else R.string.backup_restore_execute)
+            content,if(document==null) R.string.backup_execute else R.string.backup_restore_execute)
         val button=screen.getButton(AlertDialog.BUTTON_POSITIVE)
         BicycleDialogStyle.actionIcon(button,runtime.themes,if(document==null) BicycleIcon.ExportTrack else BicycleIcon.RestoreSettings)
-        choices.changed={ button.isEnabled=choices.selected().isNotEmpty() }
+        selectionChanged={ button.isEnabled=selected().isNotEmpty() };choices?.changed=selectionChanged
         button.setOnClickListener {
-            val selected=choices.selected()
+            val selected=selected()
             if(document==null) {
                 try {
                     pendingBackupExport=backup.export(selected)
@@ -774,7 +819,7 @@ class MainActivity : Activity() {
                             }
                             runOnUiThread {
                                 if(!isDestroyed) {
-                                    button.isEnabled=choices.selected().isNotEmpty()
+                                    button.isEnabled=selected().isNotEmpty()
                                     result.fold({ plan ->
                                         if(BackupSection.DASHBOARD in selected) {
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
@@ -816,6 +861,7 @@ class MainActivity : Activity() {
         },"B-Cycle-settings-document").start()
     }
     private fun routeExportSettings(part: RouteExportPart) {
+        if(BuildConfig.COMPOSE_SETTINGS) { composeExport(part);return }
         val settings = RouteExportSettings(this)
         lateinit var content: RouteExportView
         content = RouteExportView(settingsContext, exportDraft ?: settings.read(), settings.hasPassword(), {
@@ -904,6 +950,17 @@ class MainActivity : Activity() {
         manager.submit(state.entries, displayed, state.busy)
     }
     private fun renameRoute(entry: ManagedRoute) {
+        if(BuildConfig.COMPOSE_SETTINGS) {
+            var name by mutableStateOf(entry.name)
+            val handler=android.os.Handler(android.os.Looper.getMainLooper())
+            var pending:String?=null
+            val save=object:Runnable { override fun run() { val next=pending ?: return;if(runtime.mapState.busy) { handler.postDelayed(this,50);return };pending=null;runtime.mapState.renameRoute(entry.id,next) } }
+            composeScreen(getString(R.string.route_rename_title)) { BicycleBody {
+                BicycleInput(getString(R.string.route_rename_title),name,"route_rename",error=if(name.isBlank()) getString(R.string.route_name_required) else null) {
+                    name=it.take(120);if(name.isNotBlank()) { pending=name.trim();handler.removeCallbacks(save);handler.postDelayed(save,200) }
+                }
+            } };return
+        }
         val input = EditText(settingsContext).apply { setText(entry.name); setSingleLine(); selectAll()
             filters = arrayOf(android.text.InputFilter.LengthFilter(120)); tag = "route_rename" }
         val rename = dialog().setTitle(getString(R.string.route_rename_title)).setView(input)
@@ -975,6 +1032,92 @@ class MainActivity : Activity() {
             3 -> runtime.mapState.exportRoute(entry.id)
             4 -> deleteRoute(entry)
         }
+    }
+    private fun composeBody(content:@Composable ()->Unit)=ComposeDialogContent(settingsContext).apply { content(runtime.themes,content) }
+    private fun composeScreen(title:String,content:@Composable ()->Unit)=dialog().setTitle(title).setView(composeBody(content)).show()
+    private fun informationDialog(title:String,message:String):AlertDialog.Builder = if(BuildConfig.COMPOSE_SETTINGS)
+        dialog().setTitle(title).setView(composeBody { BicycleBody { BicycleText(message) } }) else dialog().setTitle(title).setMessage(message)
+    private fun composeReset() {
+        dialog(fullscreen=false).setTitle(R.string.ui_reset_title).setMessage(R.string.ui_reset_confirm).setPositiveButton(R.string.ui_reset_action) { _,_->
+            dashboardLayout=DashboardLayout.defaults;preferences.edit().putString(dashboardKey,dashboardLayout.encode()).apply();render()
+            Toast.makeText(this,R.string.ui_reset_done,Toast.LENGTH_SHORT).show()
+        }.show()
+    }
+    private fun composeToggleSensor(kind:String) {
+        when(kind) {
+            "gps" -> if(runtime.gpsEnabled) runtime.setGpsEnabled(false) else enableGps()
+            "bike" -> if(runtime.bikeAddress==null) selectSensor("bike") else if(!runtime.hasBluetooth()) requestSensorPermission("bikeConnect") else runtime.setBikeEnabled(!runtime.bikeEnabled)
+            "heart" -> if(runtime.heartAddress==null) selectSensor("heart") else if(!runtime.hasBluetooth()) requestSensorPermission("heartConnect") else runtime.setHeartEnabled(!runtime.heartEnabled)
+        }
+    }
+    private fun composeSensorPicker(kind:String) {
+        val found=mutableStateListOf<Pair<BluetoothDevice,String>>()
+        var status by mutableStateOf(getString(R.string.compose_scanning))
+        val seen=mutableSetOf<String>()
+        fun device(device:BluetoothDevice,name:String) {
+            val address=try { device.address } catch(_:SecurityException) { return }
+            if(seen.add(address)) found+=device to name
+        }
+        picker=composeScreen(getString(if(kind=="bike") R.string.compose_bike_choose else R.string.compose_sensor_choose)) { BicycleBody {
+            BicycleText(status)
+            found.forEach { (device,name) -> BicycleAction(name+"\n"+runCatching { device.address }.getOrDefault(""),BicycleIcon.Bluetooth) {
+                if(kind=="bike") { scanningBike=false;runtime.selectBike(device,name) } else runtime.selectHeart(device,name)
+                picker?.dismiss();stopScan();render()
+            } }
+        } }
+        dialogs.onDismiss(picker!!) { stopScan() }
+        if(kind=="bike") { scanningBike=true;runtime.scanFound=::device;runtime.scanStatus={ status=it };runtime.beginBikeScan() }
+        else scan=HeartRateScan(this,::device) { status=it }.also { it.start() }
+    }
+    private fun composeProfile() {
+        menu=composeScreen(getString(R.string.rider_profile)) { ComposeRiderProfile(runtime.riderProfiles) { current,selected ->
+            val now=java.time.LocalDate.now();val initial=current ?: now
+            var ready=false
+            val date=android.widget.DatePicker(settingsContext).apply {
+                minDate=RiderProfileValidation.minimumBirthDate(now).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                maxDate=now.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                init(initial.year,initial.monthValue-1,initial.dayOfMonth) { _,year,month,day -> if(ready) selected(java.time.LocalDate.of(year,month+1,day)) }
+            }
+            ready=true;dialog(fullscreen=false).setTitle(R.string.rider_birth).setView(date).show()
+        } }
+    }
+    private fun composeExport(part:RouteExportPart) {
+        val settings=RouteExportSettings(this);val draft=ComposeExportDraft(settings.read());var revision=0L
+        val content=composeBody { ComposeExportSettings(draft,part,settings.hasPassword(),{
+            runCatching { settings.password() }.getOrElse { draft.message=getString(R.string.route_export_password_failed);"" }
+        },{
+            try { startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION),10) }
+            catch(_:android.content.ActivityNotFoundException) { draft.message=getString(R.string.route_export_no_picker) }
+        },{
+            draft.testing=true;draft.message=getString(R.string.route_export_testing)
+            val config=draft.config;val password=draft.password
+            Thread({
+                val message=runCatching { WebDavClient(config,password.ifEmpty { settings.password() }).test();getString(R.string.route_export_test_ok) }.getOrElse { it.message ?: getString(R.string.route_export_test_failed) }
+                runOnUiThread { if(!isDestroyed) { draft.testing=false;draft.message=message } }
+            },"B-Cycle-WebDAV-Test").start()
+        }) { value,password ->
+            val sequence=++revision
+            try {
+                val config=value.copy(server=value.server.trim().trimEnd('/'),user=value.user.trim(),folder=value.folder.trim().trim('/'))
+                if(part==RouteExportPart.CLOUD && config.webdav) {
+                    WebDavClient.directory(config);require(password!=null || settings.hasPassword()) { getString(R.string.route_export_need_password) }
+                }
+                val app=applicationContext
+                settingsWriter.execute {
+                    val result=runCatching {
+                        val current=settings.read()
+                        val merged=if(part==RouteExportPart.LOCAL) current.copy(save=config.save) else
+                            current.copy(webdav=config.webdav,server=config.server,user=config.user,folder=config.folder,wifiOnly=config.wifiOnly)
+                        settings.write(merged,if(part==RouteExportPart.CLOUD) password else null);RouteUploads.settingsChanged(app)
+                    }
+                    runOnUiThread { if(!isDestroyed && sequence==revision) {
+                        draft.message=if(result.isSuccess) "" else getString(R.string.route_export_save_failed)
+                        if(result.isSuccess) { routeSignature="";refreshRouteRows() }
+                    } }
+                }
+            } catch(e:Exception) { draft.message=e.message ?: getString(R.string.route_export_save_failed) }
+        } }
+        menu=dataDialog(if(part==RouteExportPart.LOCAL) R.string.data_local else R.string.data_cloud,content)
     }
     private fun openMapLink(url: String) {
         try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) }

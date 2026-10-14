@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 // Resolve Android test SDKs through Gradle's configured repositories/proxy.
@@ -9,6 +10,14 @@ val robolectricSdk35 by configurations.creating
 val robolectricSdk36 by configurations.creating
 
 dependencies {
+    implementation(platform("androidx.compose:compose-bom:2025.03.00"))
+    implementation("androidx.compose.runtime:runtime")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.foundation:foundation")
+    implementation("androidx.lifecycle:lifecycle-runtime:2.8.7")
+    implementation("androidx.savedstate:savedstate:1.2.1")
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("org.mapsforge:mapsforge-map-android:0.25.0")
     // Official streaming FIT decoder, reused for activity metadata and map previews.
     implementation("com.garmin:fit:21.218.0")
@@ -36,9 +45,17 @@ android {
         versionCode = 51
         versionName = "0.7.13"
     }
-    buildFeatures { buildConfig = true }
+    buildFeatures { buildConfig = true; compose = true }
     buildTypes {
+        debug { buildConfigField("boolean","COMPOSE_SETTINGS","false") }
+        create("composeDebug") {
+            initWith(getByName("debug")); matchingFallbacks += "debug"
+            buildConfigField("boolean","COMPOSE_SETTINGS","true")
+            applicationIdSuffix=".compose";versionNameSuffix="-compose"
+        }
         release {
+            buildConfigField("boolean","COMPOSE_SETTINGS","true")
+            applicationIdSuffix=".compose";versionNameSuffix="-compose"
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
@@ -59,3 +76,5 @@ android {
         }
     }
 }
+
+dependencies { add("composeDebugImplementation","androidx.compose.ui:ui-test-manifest") }

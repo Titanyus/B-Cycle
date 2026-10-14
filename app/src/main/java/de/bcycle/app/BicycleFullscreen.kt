@@ -49,7 +49,7 @@ internal object BicycleFullscreen {
         content?.let { original ->
             detach(original)
             if (original is RouteManagerView) original.fullscreen = true
-            val scrolling = descendants(original).any { it is ScrollView || it is ListView }
+            val scrolling = original.tag == "bicycle_compose_content" || descendants(original).any { it is ScrollView || it is ListView }
             val body = if (scrolling || original is RouteAnalysisMap) original else ScrollView(context).apply {
                 isFillViewport = false
                 addView(original, ViewGroup.LayoutParams(-1, -2))

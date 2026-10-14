@@ -2,7 +2,7 @@
 
 1. Entwickle in Kotlin für Android 13+ (minSdk 33).
 2. Priorisiere Performance, geringen Ressourcenverbrauch und schnelle Reaktionen.
-3. Behalte die bestehende Single-Activity-Struktur mit nativen Kotlin-Views und getrennten Sensor-/Datenkomponenten bei, sofern keine wichtigen technischen Gründe dagegensprechen.
+3. Behalte die Single-Activity und getrennten Sensor-/Datenkomponenten bei. Im ausdrücklich beauftragten Branch feature/compose-settings verwenden Einstellungs- und Formularinhalte Jetpack Compose; Dashboard, Karte, Streckenliste und Analyse bleiben native Views. Der gemeinsame Dialograhmen, Navigation und Speicherarchitektur werden weiterverwendet.
 4. Implementiere neue Funktionen möglichst schlank.
 5. Vermeide unnötige Bibliotheken, Abhängigkeiten und Refactorings.
 6. Verwende vorhandene Komponenten und Funktionen wieder.
@@ -45,3 +45,16 @@ BICYCLE ist ein leistungsfähiger, individuell anpassbarer Fahrradcomputer. Sein
 Vor jeder neuen Konfigurationsoption prüfen: Hat sie klaren praktischen Nutzen? Gibt es unterschiedliche legitime Nutzungsbedürfnisse? Ist sie verständlich? Ist ihr Effekt unmittelbar nachvollziehbar? Ist sie logisch auffindbar? Wenn diese Kriterien nicht erfüllt sind, einen sinnvollen internen Standard bevorzugen.
 
 Produktziel: Flexibilität eines leistungsfähigen Fahrradcomputers mit der Klarheit und unmittelbaren Bedienbarkeit einer durchdachten, reduzierten Oberfläche. **Nicht maximale Konfigurierbarkeit, sondern maximale Nutzbarkeit.**
+
+## Compose-Branch
+
+Release und composeDebug verwenden Compose-Einstellungen und die separate App-ID
+`de.bcycle.app.compose` (B-Cycle Compose). Debug behält die native Vergleichsoberfläche
+für die bisherigen UI-Tests. Das ist ein Build-Schalter, keine neue Nutzeroption.
+Compose verwendet die bestehenden BicycleDesign-/ThemeTokens-/Lucide-Ressourcen;
+keine Material-Palette oder zweite Konfigurationsablage hinzufügen. Formulare verwenden
+die vorhandenen Validierungen, Sensoren und Export-/Speicherdienste. Native Datums-
+und Dateiauswahl sowie kurze Bestätigungen bleiben erlaubt. ComposeDialogContent
+verwaltet seine Composition/Lifecycle, übersteht die Übertragung in BicycleFullscreen
+und gibt Beobachter beim endgültigen Schließen frei. Keine AndroidView-Wrapper um
+alte Formularlayouts als vermeintliche Migration verwenden.

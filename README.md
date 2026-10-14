@@ -4,6 +4,22 @@ Schlanker Radcomputer für **Android 13+**: Bosch-E-Bike-Daten, GPS,
 BLE-Pulsmesser, Fahrradkarte und FIT-Aufzeichnung. Native Kotlin-Views,
 kompakte Dashboards und frei belegbare Datenfelder.
 
+## Separater Compose-Testbranch
+
+**[Compose-Test-APK 0.7.13 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/refs/heads/feature/compose-settings/downloads/B-Cycle-0.7.13-compose-test.apk)**
+
+Einstellungen und Dashboard-Feldauswahl verwenden in diesem Branch Jetpack Compose.
+Die App **B-Cycle Compose** (`de.bcycle.app.compose`) lässt sich parallel zur bisherigen
+App installieren und hat eigene Einstellungen und Dateien. Über die vorhandene
+Backup-Funktion können Einstellungen übertragen werden; Passwörter sind nicht enthalten.
+Dashboard, Karte, Streckendetails und Sensor-/FIT-Verarbeitung bleiben nativ.
+
+- Optimierte, signierte Release-APK: **2,87 MB** (2.873.785 Byte).
+- **44 gezielte Tests bestanden**, Release-Build erfolgreich.
+- [Umfang, Build und Testnachweis](docs/compose-settings.md).
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.13-compose-test.apk.sha256).
+- Nur im Branch `feature/compose-settings`; der Hauptbranch bleibt unverändert.
+
 ## APK herunterladen
 
 **[APK 0.7.13 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.13/downloads/B-Cycle-0.7.13-test.apk)**
