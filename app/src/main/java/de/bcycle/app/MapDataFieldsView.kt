@@ -11,6 +11,7 @@ import android.util.TypedValue
 
 internal object MapFieldSelection {
     val positions = listOf("Links", "Mitte", "Rechts")
+    fun positionLabel(context: Context, index: Int) = context.getString(listOf(R.string.ui_map_position_left, R.string.ui_map_position_center, R.string.ui_map_position_right)[index])
     fun key(index: Int) = "mapDataField_$index"
     fun read(preferences: SharedPreferences, index: Int) =
         preferences.getString(key(index), null)?.let(DashboardField::fromId)
@@ -93,8 +94,8 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
             occupied[index] = visible
             view.visibility = if (editing || visible) VISIBLE else INVISIBLE
             view.importantForAccessibility = if (visible) View.IMPORTANT_FOR_ACCESSIBILITY_YES else View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            val description = if (hasValue) "${field!!.title(data, gps)}: $next ${value!!.unit}" else null
-            view.contentDescription = listOfNotNull("Aufzeichnung läuft".takeIf { hasDot }, description, "Fahrradlicht an".takeIf { hasLight }).joinToString(" · ").takeIf { it.isNotEmpty() }
+            val description = if (hasValue) context.getString(R.string.ui_field_reading, field!!.title(context, data, gps), next, value!!.unit) else null
+            view.contentDescription = listOfNotNull(context.getString(R.string.ui_recording_running).takeIf { hasDot }, description, context.getString(R.string.ui_bike_light_on).takeIf { hasLight }).joinToString(" · ").takeIf { it.isNotEmpty() }
         }
         wasRecording = recording; wasLightOn = bikeLight == true
         updateVisibility()

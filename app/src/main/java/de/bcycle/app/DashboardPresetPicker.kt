@@ -19,12 +19,12 @@ internal class DashboardPresetPicker(context: Context, initial: List<DashboardTe
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
         orientation = VERTICAL
-        addView(TextView(context).apply { text = "Dashboard-Seite wählen"; isAccessibilityHeading=true; BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.titleSp })
+        addView(TextView(context).apply { text = context.getString(R.string.ui_dashboard_page_choose); isAccessibilityHeading=true; BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.titleSp })
         val pages = RadioGroup(context).apply { orientation = HORIZONTAL }
         for (i in 0..3) pages.addView(RadioButton(context).apply {
             id = View.generateViewId(); text = "${i + 1}"; tag = "preset_page_$i"
             BicycleDialogStyle.control(this, themes)
-            contentDescription = "Dashboard ${i + 1} bearbeiten"; isChecked = i == page
+            contentDescription = context.getString(R.string.ui_dashboard_page_edit, i + 1); isChecked = i == page
             setOnClickListener { page = i; refresh() }
         }, RadioGroup.LayoutParams(0, dp(BicycleDesign.touchSize), 1f))
         addView(pages)
@@ -57,7 +57,7 @@ internal class DashboardPresetPicker(context: Context, initial: List<DashboardTe
     private fun refresh() {
         choices.forEach { (template, tile) ->
             val active = selection[page] == template
-            tile.isSelected = active; tile.stateDescription = if (active) "Ausgewählt" else "Nicht ausgewählt"
+            tile.isSelected = active; tile.stateDescription = if (active) context.getString(R.string.ui_selected) else context.getString(R.string.ui_not_selected)
             paintChoice(tile, themes.active.tokens)
         }
     }

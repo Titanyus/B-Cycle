@@ -6,18 +6,31 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.14 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.14/downloads/B-Cycle-0.7.14-test.apk)**
+**[APK 0.7.15 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.15/downloads/B-Cycle-0.7.15-test.apk)**
 
-- Größe: **1,107,922 Byte**, rund **1,11 MB**.
+- Größe: **1,128,402 Byte**, rund **1,13 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.14/52.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.15/53.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.14-test.apk.sha256):
-  `a0ec27b98db351a1b58b82edbd142be662979e4cf81c0cc6e61fb0b0152af8cf`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.15-test.apk.sha256):
+  `4db4384e8bf9812f5579b8539dcd11892df5356aec47ee084fb2032dfd54b755`.
 
-**Release-Build, Signaturvergleich und APK-Metadaten geprüft.** Die vollständige
-Suite mit 374 Tests bestand nach der Zonen-Erweiterung; die danach geänderten
-Streckendetails haben 14 gezielte Tests bestanden. [Buildnachweis](docs/milestone-0714.md).
+**386 Tests vollständig bestanden**, Release-Build einschließlich R8/Resource-Shrinking
+und Lint-Vital erfolgreich. Signaturvergleich, ZIP-Ausrichtung und APK-Metadaten
+geprüft. [Buildnachweis](docs/milestone-0715.md).
+
+## Neu in APK 0.7.15
+
+- Gemeinsame Scrollregeln und beschriftete Aktionsfooter für Streckenmanager und Details.
+- Drei zentrale Dashboard-Kachelstile mit erhaltenen Größen und Schriftregeln.
+- Einheiten und sekundäre Kennzahlentexte in Weiß mit 65 % Deckkraft.
+- Zentrale Kartensteuerungsmaße, kleine Schriftrollen, UI-Texte und Bedienbeschreibungen.
+- Gemeinsame Toast-/Statusdarstellung; keine Änderung an Sensoren, FIT oder Performanceberechnung.
+- Korrekte Zentrierung des frei positionierten Editor-Beenden-Buttons ohne Formularspacing.
+
+Die geplante Benachrichtigungsfunktion ist [vorbereitet](docs/notifications-preparation.md),
+aber noch nicht Teil dieser APK. Ihr Ziel ist eine längere, ausführlichere Anzeige
+ohne dauerhafte Speicherung von Nachrichten.
 
 ## Neu in APK 0.7.14
 
@@ -46,7 +59,7 @@ Streckendetails haben 14 gezielte Tests bestanden. [Buildnachweis](docs/mileston
 
 ## Neu in APK 0.7.12
 
-- **Design & UI → Graph-Darstellung:** „Graph mit Daten“ oder „Nur Graph“, sofort gespeichert.
+- **Dashboard-Feldauswahl:** Daten, Graph und Visualisierung sind unabhängig wählbar; „Keine Daten“ blendet Wert/Einheit/Beschriftung aus und erhält die Feld-ID.
 - Graph-Farbverlauf um 80 % verstärkt; bei überlagerten Daten Hauptlinie 30 % und Farbverlauf 15 % dunkler.
 - Doppelte Leuchtsaum-Breiten: 11,2/19,2 dp, Hauptlinie unverändert 2,6 dp.
 - [Einheitliche Navigation](docs/ui-navigation.md): Zurück-Chevron in jedem Header,

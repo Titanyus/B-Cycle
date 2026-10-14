@@ -13,19 +13,19 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 internal enum class SettingsAction(val title: String, val icon: Int = 0, val titleResource: Int = 0) {
-    SENSORS("Sensoren & Aufzeichnung", BicycleIcon.Sensors.resource),
-    MAP("Kartenmanager", BicycleIcon.MapManager.resource),
-    DASHBOARDS("Design & UI", BicycleIcon.Dashboard.resource),
-    ROUTES("Streckenmanager", BicycleIcon.Route.resource),
-    ADVANCED("Erweitert", BicycleIcon.Advanced.resource),
+    SENSORS("", BicycleIcon.Sensors.resource, titleResource = R.string.ui_settings_sensors),
+    MAP("", BicycleIcon.MapManager.resource, titleResource = R.string.ui_settings_map),
+    DASHBOARDS("", BicycleIcon.Dashboard.resource, titleResource = R.string.ui_settings_dashboards),
+    ROUTES("", BicycleIcon.Route.resource, titleResource = R.string.ui_settings_routes),
+    ADVANCED("", BicycleIcon.Advanced.resource, titleResource = R.string.ui_settings_advanced),
     PROFILE("", BicycleIcon.RiderProfile.resource, R.string.rider_profile),
     DATA("", BicycleIcon.DataStorage.resource, R.string.data_title),
-    RECOVERY("Ungespeicherte Fahrten speichern"),
-    GPS_HELP("GPS-Messung erklärt"),
-    DIAGNOSTIC("Diagnose speichern"),
-    RESET("Standardbelegung herstellen"),
-    FONT_LICENSE("Schrift & Lizenz"),
-    MAP_LICENSE("Bibliotheken & Lizenzen");
+    RECOVERY("", titleResource = R.string.ui_settings_recovery),
+    GPS_HELP("", titleResource = R.string.ui_settings_gps_help),
+    DIAGNOSTIC("", titleResource = R.string.ui_settings_diagnostic),
+    RESET("", titleResource = R.string.ui_settings_reset),
+    FONT_LICENSE("", titleResource = R.string.ui_settings_font_license),
+    MAP_LICENSE("", titleResource = R.string.ui_settings_map_license);
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 

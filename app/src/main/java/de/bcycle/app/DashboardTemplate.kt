@@ -2,12 +2,12 @@ package de.bcycle.app
 
 /** Fixed templates; metric selection remains independent of map geometry. */
 enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFraction: Float, val titleResource: Int = 0) {
-    DATA("7 Werte · kleine Karte", listOf(0, 1, 2, 3, 4, 5, 6), .70f),
-    BALANCED("4 Werte · mittlere Karte", listOf(0, 1, 3, 4), .28f),
-    MAP("2 Werte · große Karte", listOf(0, 1), .14f),
-    OVERVIEW("3 Werte · Kartenübersicht", listOf(0, 1, 2), .14f),
-    FIVE("5 Werte · 2 oben / 3 unten", listOf(0, 1, 2, 3, 4), .28f),
-    HERO("4 Werte · groß oben / 3 unten", listOf(2, 3, 4, 5), .42f),
+    DATA("", listOf(0, 1, 2, 3, 4, 5, 6), .70f, R.string.ui_preset_data),
+    BALANCED("", listOf(0, 1, 3, 4), .28f, R.string.ui_preset_balanced),
+    MAP("", listOf(0, 1), .14f, R.string.ui_preset_map),
+    OVERVIEW("", listOf(0, 1, 2), .14f, R.string.ui_preset_overview),
+    FIVE("", listOf(0, 1, 2, 3, 4), .28f, R.string.ui_preset_five),
+    HERO("", listOf(2, 3, 4, 5), .42f, R.string.ui_preset_hero),
     HERO_SEVEN("", listOf(2, 0, 1, 3, 4, 5, 6), .56f, R.string.dashboard_preset_seven),
     HERO_FIVE("", listOf(2, 0, 1, 3, 4), .56f, R.string.dashboard_preset_eight),
     EIGHT("", (0 until DashboardLayout.FIELD_COUNT).toList(), .42f, R.string.dashboard_preset_nine);

@@ -300,7 +300,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
         fun show(field: DashboardField, data: LiveData) {
             val next = field.value(data, gps, bikeDistanceM, pulse, training)
-            val caption = if (field.showSource) "${field.source} · ${field.title(context,data, gps)}" else field.title(context,data, gps)
+            val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source), field.title(context,data, gps)) else field.title(context,data, gps)
             showCaption(field)
             row.direction = trends.indicator(field, data, gps, pulse, android.os.SystemClock.elapsedRealtime())
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }
@@ -313,7 +313,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val color = if (next.available) Color.WHITE else BicycleDesign.dashboardUnitColor
             if (value.currentTextColor != color) value.setTextColor(color)
             unit.setTextColor(BicycleDesign.dashboardUnitColor)
-            container.contentDescription = if(!dataVisibility.visible[index]) context.getString(R.string.dashboard_no_data) else "$caption: ${if (next.available) "${next.text} ${next.unit}" else "noch kein Wert"}. Antippen, um das Feld zu ändern."
+            container.contentDescription = if(!dataVisibility.visible[index]) context.getString(R.string.dashboard_no_data) else context.getString(R.string.ui_field_description, caption, if (next.available) "${next.text} ${next.unit}" else context.getString(R.string.ui_field_missing_value))
         }
     }
 

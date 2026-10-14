@@ -120,9 +120,13 @@ data class DashboardField(val id: String) {
     }
 
     fun title(context: android.content.Context, data: LiveData, gps: GpsValues = GpsValues()): String =
-        trainingMetric?.let { context.getString(it.label) } ?: title(data, gps)
+        trainingMetric?.let { context.getString(it.label) } ?: when {
+            id == "GPS_ALTITUDE" && gps.altitudeM != null -> context.getString(R.string.ui_altitude_reference, if (gps.seaLevel) "MSL" else "Ellipsoid")
+            rangeIndex != null -> context.getString(R.string.ui_range_named, rangeNames(data)?.getOrNull(rangeIndex!!) ?: context.getString(R.string.ui_assist_level, rangeIndex!! + 1))
+            else -> DashboardTextResources.title(context, id) ?: title(data, gps)
+        }
     fun dashboardTitle(context: android.content.Context, data: LiveData): String =
-        trainingMetric?.let { context.getString(it.label) } ?: dashboardTitle(data)
+        trainingMetric?.let { context.getString(it.label) } ?: DashboardTextResources.caption(context, id) ?: title(context, data)
     internal fun value(data: LiveData, gps: GpsValues, bikeDistanceM: Long?, pulse: PulseValues, training: TrainingSnapshot): DashboardValue =
         trainingMetric?.value(training) ?: value(data, gps, bikeDistanceM, pulse)
     fun value(data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()): DashboardValue {

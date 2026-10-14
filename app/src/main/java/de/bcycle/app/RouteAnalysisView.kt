@@ -33,10 +33,10 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     fun dispose() { closed = true; cancelled?.invoke(); preview?.dispose() }
     private fun text(resource: Int, heading: Boolean = false) = BicycleComponents.text(context, themes, context.getString(resource), heading)
     private fun reset() { preview?.dispose(); preview = null; body.removeAllViews() }
-    fun loading() { reset(); body.addView(text(R.string.analysis_loading)) }
+    fun loading() { reset(); body.addView(BicycleFeedback.status(context, themes, context.getString(R.string.analysis_loading))) }
     fun failed(retry: () -> Unit) {
         if (closed) return
-        reset(); body.addView(text(R.string.analysis_failed))
+        reset(); body.addView(BicycleFeedback.status(context, themes, context.getString(R.string.analysis_failed)))
         body.addView(BicycleComponents.action(context, themes, context.getString(R.string.analysis_retry), retry))
     }
     fun show(analysis: RouteAnalysis) {
@@ -94,12 +94,12 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
     }
     private val unit = TextView(context).apply {
         typeface = resources.getFont(R.font.bebas_neue); gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
-        textSize = 13f; setTextColor(BicycleDesign.dashboardUnitColor)
-        setAutoSizeTextTypeUniformWithConfiguration(8, 13, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+        textSize = BicycleDesign.analysisUnitSp; setTextColor(BicycleDesign.dashboardUnitColor)
+        setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp, BicycleDesign.analysisUnitSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
         tag = "analysis_unit"
     }
     private val label = BicycleComponents.text(context, themes, "").apply {
-        typeface = Typeface.DEFAULT; textSize = 11f; gravity = Gravity.CENTER; maxLines = 3
+        typeface = Typeface.DEFAULT; textSize = BicycleDesign.analysisLabelSp; gravity = Gravity.CENTER; maxLines = 3
     }
     private val icon = ImageView(context)
     private val switching = ImageView(context)

@@ -29,7 +29,7 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
     }
     private val folder = input(context.getString(R.string.route_export_folder), config.folder, "export_folder")
     private val testButton = Button(context).apply { text = context.getString(R.string.route_export_test); isAllCaps = false; tag = "export_test"; setOnClickListener { test() } }
-    val result = text("").apply { tag = "export_result" }
+    val result = BicycleFeedback.status(context, themes).apply { tag = "export_result" }
     var tree: String = config.tree
     val folderButton = Button(context).apply { isAllCaps = false; tag = "export_folder_choose"; setOnClickListener { chooseFolder() } }
     init {
@@ -73,6 +73,6 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
     }
     fun read() = RouteExportConfig(save.isChecked, tree, dav.isChecked, server.text.toString().trim().trimEnd('/'),
         user.text.toString().trim(), folder.text.toString().trim().trim('/'), wifi.isChecked)
-    fun testing(busy: Boolean) { testButton.isEnabled = !busy; result.text = if (busy) context.getString(R.string.route_export_testing) else result.text }
+    fun testing(busy: Boolean) { testButton.isEnabled = !busy; BicycleFeedback.update(result, if (busy) context.getString(R.string.route_export_testing) else result.text) }
     fun refreshFolder() { folderButton.text = if (tree.isEmpty()) context.getString(R.string.route_export_default_folder) else context.getString(R.string.route_export_chosen_folder, Uri.parse(tree).lastPathSegment) }
 }

@@ -60,7 +60,7 @@ class ThemePickerTest {
             val toolbarGeometry = views(toolbar).map { listOf(it.width, it.height, it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom) }
             views(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
             val menu = ShadowAlertDialog.getLatestAlertDialog()
-            assertEquals("Design & UI", SettingsAction.DASHBOARDS.title)
+            assertEquals("Design & UI", SettingsAction.DASHBOARDS.label(activity))
             views(menu.window!!.decorView).single { it.tag == "settings_DASHBOARDS" }.performClick()
             val design = ShadowAlertDialog.getLatestAlertDialog()
             assertEquals("Design & UI", views(design.window!!.decorView).filterIsInstance<TextView>().single { it.tag == "bicycle_dialog_title" }.text.toString())

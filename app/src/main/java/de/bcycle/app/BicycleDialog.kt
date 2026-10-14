@@ -218,8 +218,9 @@ internal object BicycleDialogStyle {
                     }
                 }).apply {
                     val label=getItem(position).toString()
-                    if (renderLabel != null) { tag=label; contentDescription=label }
+                    if (renderLabel != null) tag=label
                     text = renderLabel?.invoke(label,themes.active.tokens.foreground) ?: label
+                    if (renderLabel != null) contentDescription=text.toString().removePrefix("\uFFFC ")
                     setPadding(dp(view, BicycleDesign.horizontalPadding), dp(view, BicycleDesign.verticalPadding),
                         dp(view, if (dropdown) BicycleDesign.horizontalPadding else BicycleDesign.touchSize), dp(view, BicycleDesign.verticalPadding))
                 }

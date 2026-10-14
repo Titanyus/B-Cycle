@@ -39,7 +39,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             val buttons = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }
             val themes = ThemeManager(prefs)
             fun control(icon: BicycleIcon, description: Int, action: () -> Unit) {
-                buttons.addView(BicycleComponents.icon(context, themes, icon, context.getString(description), action), android.widget.LinearLayout.LayoutParams(BicycleDesign.dp(context, BicycleDesign.touchSize), BicycleDesign.dp(context, BicycleDesign.touchSize)))
+                buttons.addView(BicycleComponents.icon(context, themes, icon, context.getString(description), action), android.widget.LinearLayout.LayoutParams(BicycleDesign.dp(context, MapControlDesign.detailWidth), BicycleDesign.dp(context, MapControlDesign.buttonHeight)))
             }
             control(BicycleIcon.ZoomIn, R.string.analysis_zoom_in) { map.model.mapViewPosition.zoomIn() }
             control(BicycleIcon.ZoomOut, R.string.analysis_zoom_out) { map.model.mapViewPosition.zoomOut() }
@@ -48,7 +48,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             addView(buttons, LayoutParams(-2, -2, android.view.Gravity.TOP or android.view.Gravity.END))
         }
         addView(android.widget.TextView(context).apply {
-            text = source.attribution; textSize = 11f; setTextColor(Color.BLACK)
+            text = source.attribution; textSize = BicycleDesign.mapAttributionSp; setTextColor(Color.BLACK)
             setBackgroundColor(Color.argb(220, 255, 255, 255)); setPadding(4, 2, 4, 2)
         }, LayoutParams(-2, -2, android.view.Gravity.BOTTOM or android.view.Gravity.END))
     }

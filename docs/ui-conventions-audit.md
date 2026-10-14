@@ -39,13 +39,13 @@ Eingabe-/Einheitenzeilen und Gruppenabstände bleiben Teil der folgenden Prüfun
 | Bereich | Konkrete Fundstellen / heutige Regel |
 | --- | --- |
 | Überschriften-/Gruppenabstände | RiderProfileView.section verwendet 4/8 dp Padding, FieldPickerView 12/4 dp. Sensor-/FIT-Abschnitte in MainActivity haben eigene Kombinationen. Es fehlt ein gemeinsamer Aufbau aus Überschrift + nachfolgender Feldgruppe. |
-| Kleine Zusatztexte und Kennzahlentypografie | AnalysisMetricTile enthält 13-sp-Einheiten und 11-sp-Labels samt lokalen Autosize-Grenzen. MapPanel/MapCreditView haben 11-sp-Texte. Hauptgrößen/Grauton sind zentral, die Unterrollen noch nicht vollständig. |
+| Weitere Spezialtypografie | Einheiten-/Beschriftungsgrößen der Analyse, Sensorstatus, Kartenstatus und Attribution sind jetzt eigene zentrale Rollen. Weitere spezielle Renderinggrößen, etwa Graphachsen, behalten ihre fachlichen Styledefinitionen. |
 | Weitere Kennzahlen-/Chevron-Geometrie | Dashboard-Kacheln nutzen jetzt drei zentrale DashboardTileStyle-Varianten. AnalysisValueRow ist gemeinsam; das Dashboard behält seinen eigenen ValueRow und lokale Chevron-Größen. |
-| Karten-/Toolbar-Geometrie | MapPanel enthält 44/48-dp-Controls, 2/6-dp-Abstände, 5-dp-Radius und lokale dunkle Farben. MainActivity setzt Toolbarhöhe 58 dp und Iconinsets. Funktionale Sonderlayouts sind sinnvoll; benannte Spezial-Tokens fehlen teilweise. |
+| Toolbar-Geometrie | Kartensteuerung und kompakte Anpassungsgrenzen liegen in MapControlDesign. MainActivity setzt weiterhin Toolbarhöhe 58 dp und Iconinsets; diese Dashboard-Spezialmaße bleiben lokal. |
 | Dropdown-/Popup-Darstellung | BicycleDialogStyle.spinner ist gemeinsam. RouteManagerView implementiert Filterhintergrund und Adapter zusätzlich selbst, trotz weitgehend gleicher Theme-Rollen/Schriften. Popup-Menüs haben weitere eigene Aufbaupfade. |
 | Anpassungsgrenzen außerhalb von Dialogen | Kartencontrols und Dashboard haben eigene Anpassungsformeln. Dialog-Scrolling und die Höhenbegrenzung der Feldauswahl sind jetzt zentral geregelt; Karten-Spezialmaße bleiben getrennt. |
-| Sichtbare Texte und Accessibility | Neue Bereiche verwenden Strings-Ressourcen, ältere Labels und Beschreibungen in MainActivity/DashboardPresetPicker/FieldPickerView sind teilweise noch direkt im Code. Keine vollständige zentrale lokalisierbare Textbasis. |
-| Rückmeldungen und Ladezustände | MainActivity verwendet verschiedene direkte Toast-Aufrufe; RouteExportView und RouteAnalysisView eigene Status-/Fehlerzeilen. Die Funktionen existieren, aber es gibt keine gemeinsame Darstellungskomponente für diese Zustände. |
+| Fachliche Statusgeneratoren und Metadaten | UI-Beschriftungen/Bedienhinweise der bestehenden Dialoge, Dashboard-/Quellen-/Feldwahl und Kartensteuerung sind jetzt ressourcenbasiert. Bestehende rohe Protokoll-/Diagnosetexte und Statusgeneratoren außerhalb des UI bleiben erhalten; keine vollständige Übersetzung der gesamten App. |
+| Rückmeldungslogik | Toasts und Inline-Statusdarstellung sind über BicycleFeedback gemeinsam. Fachliche Auslöser und Statusklassifizierung bleiben in ihren bestehenden Komponenten; keine zweite Statusmaschine. |
 
 „Nicht zentral“ heißt nicht automatisch „falsch“. Karten und Diagramme benötigen
 passende Spezialmaße; diese können als eigene zentrale Rollen dokumentiert werden,
@@ -119,3 +119,33 @@ Verifikation: vier gezielte Prüfungen für transparente Einheiten, Profil und
 Streckenliste sowie vier Dashboard-Prüfungen für gemeinsame Höhen/Schriftregeln,
 Dreierfeld-Breiten, lange Werte und mittige Einheiten bestanden. Keine vollständige
 Testsuite und keine APK erstellt.
+
+## Kartensteuerung, Texte, Schriftrollen und Rückmeldungen
+
+`MapControlDesign` enthält die bestehenden Dashboard- und Detailkartenrollen.
+Die Werte wurden erhalten, einschließlich des größeren Track-Auges und der
+Anpassung kleiner Kartenflächen; der Wechsel zu zentralen Werten verschiebt keine
+Controls. Der Editor-Beenden-Button ist eine Kartenaktion und kein Formularbutton.
+
+Bestehende UI-Texte, Menütitel, Preset-/Quellen-/Feldnamen und Accessibility-Hinweise
+liegen in Android-Ressourcen. `DashboardTextResources` bildet bestehende stabile
+IDs auf diese Ressourcen ab. Die alten kontextfreien Fach-APIs bleiben für Daten,
+FIT und Tests erhalten; UI verwendet die kontextbezogenen Ressourcen-APIs.
+Sensor-/Quellen-IDs, Dateinamen, Gerätenamen, Lizenzinhalte und Protokolltexte werden
+nicht übersetzt oder als persistente Schlüssel ersetzt.
+
+Kleine Texte haben eigene Rollen: Analyse-Einheiten 13 sp (Autosize 8–13),
+Analyse-Beschriftung 11 sp, Sensorstatus 13 sp, Kartenstatus und Attribution je
+11 sp. Das bedeutet gemeinsame Definitionen, keine globale Einheitsgröße.
+
+`BicycleFeedback` bündelt Toasts und Inline-Statuszeilen. Bestehende Dauer,
+Wortlaut, Erfolg-/Fehlerentscheidungen und Retry-Funktionen bleiben erhalten.
+Inline-Updates nutzen höfliche Accessibility-Live-Regionen und setzen identischen
+Text nicht wiederholt. Leerzustände behalten ihre bisherige Sichtbarkeitsregel.
+
+Vollständige Abschlussprüfung für 0.7.15: 386 Tests, 0 Fehler/Fehlschläge,
+0 übersprungen. Die Suite deckt auch die vorher zentralisierten Kachelstile,
+transparente Einheiten, Footer und Scrollbereiche ab. Die zwei anfangs gemeldeten
+Befunde wurden behoben: Formularspacing greift nicht auf den frei positionierten
+Karten-Editorbutton über; der Theme-Test prüft den Ressourcen-Menütitel statt
+des alten internen Literal-Felds.

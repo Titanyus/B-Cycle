@@ -30,8 +30,8 @@ internal class RouteManagerView(context: Context,
     private var filtered: List<ManagedRoute> = emptyList()
     private var selected: String? = null
     private var busy = false
-    private val filter = Spinner(context).apply { tag = "route_filter"; contentDescription = "Strecken filtern" }
-    private val status = BicycleComponents.text(context, themes, "").apply {
+    private val filter = Spinner(context).apply { tag = "route_filter"; contentDescription = context.getString(R.string.ui_routes_filter) }
+    private val status = BicycleFeedback.status(context, themes).apply {
         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
     }
     private val rows = object : BaseAdapter() {
@@ -47,7 +47,7 @@ internal class RouteManagerView(context: Context,
         val header = BicycleComponents.header(context, themes).apply { tag = "route_manager_header" }
         header.setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
         header.addView(FrameLayout(context).apply {
-            addView(BicycleComponents.heading(context, themes, "Streckenmanager"), FrameLayout.LayoutParams(-1, -1))
+            addView(BicycleComponents.heading(context, themes, context.getString(R.string.ui_route_manager_title)), FrameLayout.LayoutParams(-1, -1))
         }, LayoutParams(-1, -1))
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
         fun filterBackground(tokens: ThemeTokens) = GradientDrawable().apply {
@@ -60,7 +60,7 @@ internal class RouteManagerView(context: Context,
             }
             filter.setPopupBackgroundDrawable(filterBackground(tokens))
         }
-        filter.adapter = object : ArrayAdapter<String>(context, android.R.layout.simple_spinner_dropdown_item, listOf("Alle", "Gefahren", "Importiert")) {
+        filter.adapter = object : ArrayAdapter<String>(context, android.R.layout.simple_spinner_dropdown_item, listOf(context.getString(R.string.ui_routes_filter_all), context.getString(R.string.ui_routes_filter_recorded), context.getString(R.string.ui_routes_filter_imported))) {
             private fun row(position: Int, recycled: View?, dropdown: Boolean): View =
                 ((recycled as? TextView) ?: BicycleComponents.text(context, themes, "").apply {
                     gravity = Gravity.CENTER_VERTICAL; minHeight = dp(BicycleDesign.touchSize)
@@ -99,8 +99,7 @@ internal class RouteManagerView(context: Context,
         filtered = all.filter { when (filter.selectedItemPosition) {
             1 -> it.origin == TrackOrigin.RECORDED; 2 -> it.origin == TrackOrigin.IMPORTED; else -> true
         } }
-        status.text = if (!busy && filtered.isEmpty()) "Keine Strecken in dieser Auswahl" else ""
-        status.visibility = if (status.text.isEmpty()) GONE else VISIBLE
+        BicycleFeedback.update(status, if (!busy && filtered.isEmpty()) context.getString(R.string.ui_routes_empty) else "", hideWhenEmpty = true)
         rows.notifyDataSetChanged()
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -196,8 +195,8 @@ internal class RouteManagerView(context: Context,
             entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
             contentDescription = context.getString(R.string.analysis_open, route.name)
             title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name
-            origin.contentDescription = when (route.origin) { TrackOrigin.IMPORTED -> "Importierte Strecke"; TrackOrigin.RECORDED -> "Aufgezeichnete Fahrt"; TrackOrigin.UNKNOWN -> "Herkunft unbekannt" }
-            format.text = route.format; format.contentDescription = "${route.format}-Datei"
+            origin.contentDescription = when (route.origin) { TrackOrigin.IMPORTED -> context.getString(R.string.ui_route_imported); TrackOrigin.RECORDED -> context.getString(R.string.ui_route_recorded); TrackOrigin.UNKNOWN -> context.getString(R.string.ui_route_unknown_origin) }
+            format.text = route.format; format.contentDescription = context.getString(R.string.ui_file_format_description, route.format)
             val recordedAt = route.details.dateMs.takeIf { it > 0 }?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()) }
             date.bind(recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_date_format))), route.id, "date")
             date.label.text = recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_clock_format))).orEmpty()
@@ -210,7 +209,7 @@ internal class RouteManagerView(context: Context,
             }, route.id, "moving")
             average.bind(route.details.movingAverageKmh?.let { String.format(Locale.GERMANY, "%.1f", it) }, route.id, "average")
             metrics.tag = "route_metrics_${route.id}"
-            preview.points = route.details.preview; preview.contentDescription = if (route.hasRoute) "Streckenvorschau" else "Keine GPS-Strecke gespeichert"
+            preview.points = route.details.preview; preview.contentDescription = if (route.hasRoute) context.getString(R.string.ui_route_preview) else context.getString(R.string.ui_route_no_gps)
             eye.tag = "route_eye_${route.id}"; eye.isEnabled = !busy && route.hasRoute && route.locallySaved
             eye.contentDescription = context.getString(if (selected == route.id) R.string.route_list_hide_named else R.string.route_list_show_named, route.name)
             paintState(themes.active.tokens)

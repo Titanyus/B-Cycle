@@ -30,6 +30,7 @@ import kotlin.math.abs
 enum class MapSource(val title: String, val host: String, val path: String, val attribution: String, val creditUrl: String) {
     CYCLOSM("CyclOSM · Fahrradkarte", "a.tile-cyclosm.openstreetmap.fr", "/cyclosm/", "CyclOSM · © OpenStreetMap", "https://www.cyclosm.org/legend.html"),
     OSM("OpenStreetMap · Standardkarte", "tile.openstreetmap.org", "/", "© OpenStreetMap", "https://www.openstreetmap.org/copyright");
+    fun label(context: Context) = context.getString(if (this == CYCLOSM) R.string.ui_map_source_cyclosm else R.string.ui_map_source_osm)
     fun tiles() = object : OnlineTileSource(arrayOf(host), 443) {
         override fun getDefaultTimeToLive() = 7L * 24 * 60 * 60 * 1_000
     }.setProtocol("https").setBaseUrl(path)
@@ -55,7 +56,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var editing = false
     var finishEditor: (() -> Unit)? = null
     var selectMapField: ((Int) -> Unit)? = null
-    private val editorFinish = BicycleComponents.action(context, runtime.themes, context.getString(R.string.dashboard_editor_finish)) { finishEditor?.invoke() }.apply {
+    private val editorFinish = BicycleComponents.action(context, runtime.themes, context.getString(R.string.dashboard_editor_finish), false) { finishEditor?.invoke() }.apply {
         tag = "dashboard_editor_finish"; visibility = GONE
         setPadding(BicycleDesign.dp(context,BicycleDesign.horizontalPadding),paddingTop,BicycleDesign.dp(context,BicycleDesign.horizontalPadding),paddingBottom)
     }
@@ -164,50 +165,45 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             false
         }
         fun icon(symbol: String, description: String, parent: LinearLayout? = controls, action: () -> Unit): Button = Button(context).apply {
-            text = symbol; textSize = 20f; setTextColor(Color.WHITE); isAllCaps = false
+            text = symbol; textSize = MapControlDesign.symbolSp; setTextColor(MapControlDesign.foreground); isAllCaps = false
             contentDescription = description; minWidth = 0; minHeight = 0; setPadding(0, 0, 0, 0)
-            background = GradientDrawable().apply { setColor(Color.argb(225, 25, 25, 25)); cornerRadius = dp(5).toFloat(); setStroke(dp(1), Color.DKGRAY) }
+            background = MapControlDesign.background(context)
             setOnClickListener { action(); revealControls() }
             setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) handler.removeCallbacks(hideControls)
                 if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) scheduleHide()
                 false
             }
-            parent?.addView(this, LinearLayout.LayoutParams(dp(44), dp(48)).apply {
-                if (parent.orientation == LinearLayout.VERTICAL) topMargin = dp(2) else marginStart = dp(2)
+            parent?.addView(this, LinearLayout.LayoutParams(dp(MapControlDesign.dashboardWidth), dp(MapControlDesign.buttonHeight)).apply {
+                if (parent.orientation == LinearLayout.VERTICAL) topMargin = dp(MapControlDesign.buttonGap) else marginStart = dp(MapControlDesign.buttonGap)
             })
         }
-        centerButton = icon("", "GPS-Zentrierung aktivieren") {
+        centerButton = icon("", context.getString(R.string.ui_map_center)) {
             setFollow(true); requestGps(); stopMotion(); updateCamera(); refreshRoutes()
         }
-        directionButton = icon("", "Kartenausrichtung ändern") {
+        directionButton = icon("", context.getString(R.string.ui_map_orientation)) {
             heading = !heading; preferences.edit().putBoolean("mapHeading", heading).apply(); stopMotion(); updateCamera(); refreshRoutes()
         }
-        icon("+", "Karte vergrößern", zoomControls) { zoom(1) }
-        icon("−", "Karte verkleinern", zoomControls) { zoom(-1) }
-        fullButton = icon("", "Karte im Vollbild") { fullscreen() }
-        fun graphic(button: Button, symbol: BicycleIcon) {
-            val drawable = BicycleIcons.drawable(context, symbol, Color.WHITE).apply { setBounds(0, 0, dp(24), dp(24)) }
-            button.gravity = Gravity.CENTER
-            button.setPadding(dp(10), 0, dp(10), 0)
-            button.setCompoundDrawables(drawable, null, null, null)
-        }
+        icon("+", context.getString(R.string.ui_map_zoom_in), zoomControls) { zoom(1) }
+        icon("−", context.getString(R.string.ui_map_zoom_out), zoomControls) { zoom(-1) }
+        fullButton = icon("", context.getString(R.string.ui_map_fullscreen)) { fullscreen() }
+        fun graphic(button: Button, symbol: BicycleIcon) = MapControlDesign.icon(button, symbol)
         graphic(centerButton, BicycleIcon.Locate)
         graphic(directionButton, BicycleIcon.Compass)
         graphic(fullButton, BicycleIcon.Maximize)
-        addView(controls, LayoutParams(-2, dp(48), Gravity.TOP or Gravity.END).apply { topMargin = dp(6); marginEnd = dp(6) })
-        nightButton = icon("", "Nachtkarte einschalten", null) {
+        addView(controls, LayoutParams(-2, dp(MapControlDesign.buttonHeight), Gravity.TOP or Gravity.END).apply { topMargin = dp(MapControlDesign.edgeGap); marginEnd = dp(MapControlDesign.edgeGap) })
+        nightButton = icon("", context.getString(R.string.ui_map_night_enable), null) {
             night = !night; preferences.edit().putBoolean("mapNight", night).apply(); applyNight()
         }.apply { tag = "map_night" }
-        addView(nightButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.START).apply { topMargin = dp(6); marginStart = dp(52) })
-        routeButton = icon("", "Strecke ein-/ausblenden", null) {
+        addView(nightButton, LayoutParams(dp(MapControlDesign.dashboardWidth), dp(MapControlDesign.buttonHeight), Gravity.TOP or Gravity.START).apply { topMargin = dp(MapControlDesign.edgeGap); marginStart = dp(MapControlDesign.nightOffset) })
+        routeButton = icon("", context.getString(R.string.ui_map_track_toggle), null) {
             runtime.mapState.setRouteVisible(!preferences.getBoolean("mapGpxVisible", true))
         }.apply {
-            tag="map_route_toggle"; gravity = Gravity.CENTER; setPadding(dp(8), dp(10), dp(8), 0)
+            tag="map_route_toggle"; gravity = Gravity.CENTER; setPadding(dp(MapControlDesign.trackHorizontalPadding), dp(MapControlDesign.trackTopPadding), dp(MapControlDesign.trackHorizontalPadding), 0)
         }
         refreshRouteButton()
-        addView(routeButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.START).apply { topMargin = dp(6); marginStart = dp(6) })
-        addView(zoomControls, LayoutParams(dp(44), -2, Gravity.BOTTOM or Gravity.END).apply { bottomMargin = 0; marginEnd = dp(6) })
+        addView(routeButton, LayoutParams(dp(MapControlDesign.dashboardWidth), dp(MapControlDesign.buttonHeight), Gravity.TOP or Gravity.START).apply { topMargin = dp(MapControlDesign.edgeGap); marginStart = dp(MapControlDesign.edgeGap) })
+        addView(zoomControls, LayoutParams(dp(MapControlDesign.dashboardWidth), -2, Gravity.BOTTOM or Gravity.END).apply { bottomMargin = 0; marginEnd = dp(MapControlDesign.edgeGap) })
         dataFields.reload(preferences)
         dataFields.bindEditorTheme(runtime.themes)
         dataFields.selectField = { selectMapField?.invoke(it) }
@@ -215,12 +211,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addView(dataFields, LayoutParams(-1, dp(62), Gravity.BOTTOM).apply { bottomMargin = 0 })
         credit.apply {
             text = source.attribution
-            contentDescription = "Kartenquelle, Urheber und Legende"
+            contentDescription = context.getString(R.string.ui_map_attribution)
             setOnClickListener { openCredit(source.creditUrl) }
         }
         addView(credit, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.START))
         status.apply {
-            textSize = 11f; setTextColor(Color.BLACK); setBackgroundColor(Color.argb(220, 255, 255, 255))
+            textSize = BicycleDesign.mapStatusSp; setTextColor(Color.BLACK); setBackgroundColor(Color.argb(220, 255, 255, 255))
             setPadding(dp(5), dp(3), dp(5), dp(3)); maxLines = 1
             setOnClickListener { requestGps(); revealControls() }
         }
@@ -240,11 +236,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val color = if (night) MapNightPalette.background else Color.rgb(225, 225, 225)
         setBackgroundColor(color); mapView.model.displayModel.backgroundColor = color
         val icon = if (night) BicycleIcon.Moon else BicycleIcon.Sun
-        nightButton.contentDescription = if (night) "Tageskarte einschalten" else "Nachtkarte einschalten"
-        nightButton.gravity = Gravity.CENTER; nightButton.setPadding(dp(10), 0, dp(10), 0)
-        nightButton.setCompoundDrawables(BicycleIcons.drawable(context, icon, Color.WHITE).apply {
-            setBounds(0, 0, dp(24), dp(24))
-        }, null, null, null)
+        nightButton.contentDescription = if (night) context.getString(R.string.ui_map_day_enable) else context.getString(R.string.ui_map_night_enable)
+        MapControlDesign.icon(nightButton, icon)
         downloads.requestRedraw(); refreshRoutes()
     }
     fun resume() { motion.reset(); lastTrack = -1L; running = true; mapView.layerManager.proceed(); downloads.onResume(); revealControls(); refresh() }
@@ -292,10 +285,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val shown = available && preferences.getBoolean("mapGpxVisible", true)
         routeButton.isEnabled = available && !runtime.mapState.busy && !editing
         routeButton.alpha = if (routeButton.isEnabled) 1f else .45f
-        routeButton.contentDescription = if (!available) "Keine Strecke verfügbar" else if (shown) "Strecke ausblenden" else "Strecke einblenden"
+        routeButton.contentDescription = if (!available) context.getString(R.string.ui_map_route_missing) else if (shown) context.getString(R.string.ui_map_route_hide) else context.getString(R.string.ui_map_route_show)
         if (routeShown != shown) {
             val image = BicycleIcons.drawable(context, BicycleIcon.ShowOnMap, Color.WHITE, negative = !shown)
-                .apply { setBounds(0, 0, dp(28), dp(28)) }
+                .apply { setBounds(0, 0, dp(MapControlDesign.trackIconSize), dp(MapControlDesign.trackIconSize)) }
             routeButton.setCompoundDrawables(null, image, null, null)
             routeShown = shown
         }
@@ -323,8 +316,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         // Keep zoom above the complete value row so the right-hand field remains unobstructed.
         val nextZoomMargin = nextFieldMargin + dataFields.measuredHeight + dp(BicycleDesign.smallGap)
         // Short map panels still need both zoom buttons; reserve their column if it meets the top row.
-        val topHeight = (measuredHeight-nextZoomMargin-dp(58)).coerceIn(dp(24),dp(48))
-        val buttonHeight = ((measuredHeight-nextZoomMargin-topHeight-dp(10))/2).coerceIn(dp(24),dp(48))
+        val topHeight = (measuredHeight-nextZoomMargin-dp(MapControlDesign.topRowReserve)).coerceIn(dp(MapControlDesign.compactMinHeight),dp(MapControlDesign.buttonHeight))
+        val buttonHeight = ((measuredHeight-nextZoomMargin-topHeight-dp(MapControlDesign.zoomClearance))/2).coerceIn(dp(MapControlDesign.compactMinHeight),dp(MapControlDesign.buttonHeight))
         val topMargin = controls.layoutParams as LayoutParams
         val topChanged = controls.layoutParams.height != topHeight || nightButton.layoutParams.height != topHeight ||
             routeButton.layoutParams.height != topHeight
@@ -333,7 +326,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val nightMargin = nightButton.layoutParams as LayoutParams
         nightMargin.height = topHeight
         routeButton.layoutParams.height=topHeight
-        val nextTopEnd = if (measuredHeight - nextZoomMargin - 2 * buttonHeight - dp(4) < topHeight + dp(6)) dp(56) else dp(6)
+        val nextTopEnd = if (measuredHeight - nextZoomMargin - 2 * buttonHeight - dp(MapControlDesign.collisionGap) < topHeight + dp(MapControlDesign.edgeGap)) dp(MapControlDesign.compactRowOffset) else dp(MapControlDesign.edgeGap)
         var changed = topChanged
         for (index in 0 until zoomControls.childCount) {
             val params = zoomControls.getChildAt(index).layoutParams
@@ -352,8 +345,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         }
     }
     fun showFullscreen(value: Boolean) {
-        fullButton.setCompoundDrawables(BicycleIcons.drawable(context,if(value) BicycleIcon.Maximize else BicycleIcon.Minimize,Color.WHITE).apply { setBounds(0,0,dp(24),dp(24)) },null,null,null)
-        fullButton.contentDescription = if (value) "Zurück zum Dashboard" else "Karte im Vollbild"; revealControls() }
+        MapControlDesign.icon(fullButton, if(value) BicycleIcon.Maximize else BicycleIcon.Minimize)
+        fullButton.contentDescription = if (value) context.getString(R.string.ui_map_return_dashboard) else context.getString(R.string.ui_map_fullscreen); revealControls() }
     fun setFollow(value: Boolean) {
         if (follow == value) return
         if (!value) { stopMotion(); refreshRoutes() }
@@ -375,9 +368,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         if (!updateControls) return
         if(directionIconHeading!=heading) {
             directionIconHeading=heading
-            directionButton.setCompoundDrawables(BicycleIcons.drawable(context,if(heading) BicycleIcon.HeadingUp else BicycleIcon.Compass,Color.WHITE).apply { setBounds(0,0,dp(24),dp(24)) },null,null,null)
+            MapControlDesign.icon(directionButton, if(heading) BicycleIcon.HeadingUp else BicycleIcon.Compass)
         }
-        directionButton.contentDescription = if (heading) "Fahrtrichtung oben · wechseln zu Norden" else "Norden oben · wechseln zur Fahrtrichtung"
+        directionButton.contentDescription = if (heading) context.getString(R.string.ui_map_heading_to_north) else context.getString(R.string.ui_map_north_to_heading)
         centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (follow) Color.rgb(110, 230, 130) else Color.WHITE)
     }
     fun fitRoute() {

@@ -8,7 +8,7 @@ import android.widget.TextView
 /** Real rotated text layout with matching bounds/touch area; wraps instead of clipping on short maps. */
 internal class MapCreditView(context: Context) : ViewGroup(context) {
     internal val label = TextView(context).apply {
-        textSize = 11f; setTextColor(Color.BLACK)
+        textSize = BicycleDesign.mapAttributionSp; setTextColor(Color.BLACK)
         setPadding(dp(5), dp(3), dp(5), dp(3))
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
         rotation = -90f

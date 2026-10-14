@@ -51,6 +51,12 @@ object BicycleDesign {
     const val analysisDividerGap = 2
     const val analysisMetricIconSize = 32
     const val analysisMetricSp = 28f
+    const val analysisUnitSp = 13f
+    const val analysisUnitMinSp = 8
+    const val analysisLabelSp = 11f
+    const val sensorStatusSp = 13f
+    const val mapStatusSp = 11f
+    const val mapAttributionSp = 11f
     const val analysisChartHeight = 120
     const val analysisSideLabelWidth = 24
     const val analysisSideLabelSp = 12f
@@ -229,13 +235,15 @@ object BicycleComponents {
             textSelectHandle?.mutate()?.setTint(it.foreground); textSelectHandleLeft?.mutate()?.setTint(it.foreground); textSelectHandleRight?.mutate()?.setTint(it.foreground)
         }
     }
-    fun action(context: Context, manager: ThemeManager, label: String, click: () -> Unit) = Button(context).apply {
+    fun action(context: Context, manager: ThemeManager, label: String, click: () -> Unit) =
+        action(context, manager, label, true, click)
+    internal fun action(context: Context, manager: ThemeManager, label: String, formSpacing: Boolean, click: () -> Unit) = Button(context).apply {
         text = label; textSize = BicycleDesign.bodySp; isAllCaps = false
         minimumWidth = dp(context, BicycleDesign.touchSize); minimumHeight = dp(context, BicycleDesign.touchSize)
         surface(this, manager, ThemeRole.TERTIARY, BicycleDesign.inputRadius)
         bindTheme(this, manager) { setTextColor(it.foreground); backgroundTintList = null }
         setOnClickListener { click() }
-        controlSpacing(this)
+        if (formSpacing) controlSpacing(this)
     }
     fun icon(context: Context, manager: ThemeManager, drawable: android.graphics.drawable.Drawable,
              description: String, colorRole: ThemeRole = ThemeRole.FOREGROUND, click: () -> Unit) = ImageButton(context).apply {
