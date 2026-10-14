@@ -59,6 +59,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     .put("graphs", JSONArray().apply { GraphOverlayConfig.read(bike,i).slots.forEach { put(jsonArray(it.map { chart -> chart.name })) } })
                     .put("graphDisplayModes",jsonArray(GraphOverlayConfig.read(bike,i).displayModes.map { it.name }))
                     .put("zoneGlowSources",jsonArray(ZoneGlowConfig.read(bike,i).sources.map { it.name }))
+                    .put("dataVisible",JSONArray(DashboardDataVisibility.read(bike,i).visible))
                     .put("layout", DashboardTemplate.decode(bike.getString("dashboardTemplate_$i", DashboardTemplate.entries[i].name)).name))
             } }).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null)).let {
@@ -150,6 +151,12 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                                     names.map { AnalysisChart.valueOf(it) }
                                 }
                                 b[GraphOverlayConfig.key(index)]=GraphOverlayConfig(slots).encode()
+                            }
+                            if(page.has("dataVisible")) {
+                                val values=array(page,"dataVisible",DashboardLayout.FIELD_COUNT)
+                                check(values.length()==DashboardLayout.FIELD_COUNT)
+                                val flags=(0 until values.length()).map { slot -> values.opt(slot) as? Boolean ?: fail() }
+                                b[DashboardDataVisibility.key(index)]=DashboardDataVisibility(flags).encode()
                             }
                             if(page.has("zoneGlowSources")) {
                                 val sources=strings(array(page,"zoneGlowSources",DashboardLayout.FIELD_COUNT))

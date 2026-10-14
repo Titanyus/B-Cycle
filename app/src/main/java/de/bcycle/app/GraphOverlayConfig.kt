@@ -2,7 +2,7 @@ package de.bcycle.app
 
 import android.content.SharedPreferences
 
-/** Ordered display-only selection, kept beside each existing dashboard page. */
+/** Ordered graph choices; displayModes is retained only for old preference/backup compatibility. */
 internal data class GraphOverlayConfig(val slots: List<List<AnalysisChart>> = List(DashboardLayout.FIELD_COUNT) { emptyList() },
     val displayModes: List<GraphDisplayMode> = List(DashboardLayout.FIELD_COUNT) { GraphDisplayMode.WITH_DATA }) {
     fun withDisplay(slot: Int,mode: GraphDisplayMode)=copy(displayModes=displayModes.mapIndexed { i,old -> if(i==slot) mode else old })
@@ -27,7 +27,7 @@ internal data class GraphOverlayConfig(val slots: List<List<AnalysisChart>> = Li
     }
 }
 
-/** Per-page tile modes; the former global value is only a migration fallback. */
+/** Internal graph brightness states and legacy visibility migration; no graph-mode selector UI. */
 internal enum class GraphDisplayMode { WITH_DATA, GRAPH_ONLY }
 internal object GraphDisplaySettings {
     const val key="dashboardGraphDisplay"

@@ -10,18 +10,43 @@ import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
 
-/** Fixed source dropdown with a separate scrolling list. Reuses all existing field groups. */
+/** Three independent accordions; source stays above the bounded field list inside Data. */
 internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     bikeDistanceM: Long?, pulse: PulseValues, selected: DashboardField?, allowEmpty: Boolean,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
     graphPicker: GraphOverlayPicker? = null,
     visualization: ZoneGlowPicker? = null,
     training: TrainingSnapshot = TrainingSnapshot(),
+    dataVisible: Boolean = true,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
+    private lateinit var fieldList: ScrollView
+    override fun onMeasure(widthMeasureSpec: Int,heightMeasureSpec: Int) {
+        val available=MeasureSpec.getSize(heightMeasureSpec)
+        val limit=(available*.55f).toInt().coerceIn(dp(144),dp(360))
+        if(fieldList.layoutParams.height!=limit) fieldList.layoutParams.height=limit
+        super.onMeasure(widthMeasureSpec,heightMeasureSpec)
+    }
     init {
         orientation = VERTICAL; setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
         BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
+        val panels=LinearLayout(context).apply { orientation=VERTICAL }
+        val scroll=ScrollView(context).apply { tag="field_picker_scroll";addView(panels);isFillViewport=false }
+        addView(scroll,LayoutParams(-1,-1))
+        val dataContent=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="field_data_content" }
+        lateinit var dataToggle: android.widget.Button
+        dataToggle=BicycleComponents.action(context,themes,context.getString(R.string.field_data_title)) {
+            dataContent.visibility=if(dataContent.visibility==VISIBLE) GONE else VISIBLE
+            dataToggle.stateDescription=context.getString(if(dataContent.visibility==VISIBLE) R.string.zone_expanded else R.string.zone_collapsed)
+        }.apply { tag="field_data_toggle";isAccessibilityHeading=true;stateDescription=context.getString(R.string.zone_collapsed) }
+        BicycleDialogStyle.control(dataToggle,themes)
+        BicycleDialogStyle.actionIcon(dataToggle,themes,BicycleIcon.Expand)
+        panels.addView(dataToggle);panels.addView(dataContent)
+        dataContent.addView(RadioButton(context).apply {
+            setText(R.string.field_no_data);tag=if(allowEmpty) "map_field_empty" else "dashboard_field_empty"
+            isChecked=!dataVisible || selected==null
+            BicycleDialogStyle.control(this,themes);setOnClickListener { choose(null) }
+        },LayoutParams(-1,dp(BicycleDesign.touchSize)))
         val groups = DashboardField.groups(data, selected, includeTraining = !allowEmpty).groupBy { it.source }
         val sources = groups.keys.toList()
         val selector = Spinner(context).apply {
@@ -34,17 +59,14 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                 setSpan(SourceIconSpan(source,context,foreground),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
         }
-        addView(selector, LayoutParams(-1, dp(BicycleDesign.touchSize)))
-        if (allowEmpty) addView(RadioButton(context).apply {
-            text = "Leer"; tag = "map_field_empty"; isChecked = selected == null
-            BicycleDialogStyle.control(this, themes)
-            setOnClickListener { choose(null) }
-        }, LayoutParams(-1, dp(BicycleDesign.touchSize)))
+        dataContent.addView(selector, LayoutParams(-1, dp(BicycleDesign.touchSize)))
         val rows = LinearLayout(context).apply { orientation = VERTICAL }
         val list = ScrollView(context).apply { tag = "field_list"; addView(rows) }
         BicycleDialogStyle.content(list, themes)
-        // AT_MOST measurement keeps this bounded by the dialog even on short screens.
-        addView(list, LayoutParams(-1, 0, 1f))
+        fieldList=list
+        dataContent.addView(list, LayoutParams(-1, dp(320)))
+        if(graphPicker!=null) panels.addView(graphPicker)
+        if(visualization!=null) panels.addView(visualization)
         var shown = -1
         fun populate(position: Int) {
             if (shown == position) return
@@ -60,14 +82,13 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                     rows.addView(RadioButton(context).apply {
                         tag = field.id; text = "$title${if (value.unit.isNotEmpty()) " · ${value.unit}" else ""}"
                         BicycleDialogStyle.control(this, themes); minHeight = dp(BicycleDesign.touchSize)
-                        isChecked = selected == field
+                        isChecked = dataVisible && selected == field
                         contentDescription = if (field.showSource) "${field.source} · $text" else text
                         setOnClickListener { choose(field) }
                     })
                 }
             }
-            if (graphPicker != null) rows.addView(graphPicker)
-            if (visualization != null) rows.addView(visualization)
+
         }
         selector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = populate(position)

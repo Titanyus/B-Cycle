@@ -102,7 +102,7 @@ class LiveGraphUiTest {
             assertEquals(listOf(AnalysisChart.HEART,AnalysisChart.ELEVATION),graph.selected)
         }
         source.setSelection(0);shadowOf(Looper.getMainLooper()).idle()
-        all(picker).filterIsInstance<android.widget.RadioButton>().first().performClick()
+        all(picker).filterIsInstance<android.widget.RadioButton>().single { it.tag=="GPS_SPEED" }.performClick()
         assertNotNull(chosen);assertEquals(listOf(AnalysisChart.HEART,AnalysisChart.ELEVATION),graph.selected)
     }
     @Test fun workerOverloadDropsOnlyDisplaySamplesAndMarksTheNextSegmentAsAGap() {
@@ -181,7 +181,7 @@ class LiveGraphUiTest {
         assertEquals(0,opacity(26,10));assertEquals(0,opacity(374,190))
     }
 
-    @Test fun graphOnlyKeepsGeometryCaptionAndSelectionWhileHidingOnlyOverlayNumbers() {
+    @Test fun hiddenDataKeepsGeometryAndGraphSelectionIndependentFromNumberAndCaptionVisibility() {
         val frame=history()
         for(template in DashboardTemplate.entries) {
             val slot=if(2 in template.slots) 2 else template.slots.first()
@@ -192,11 +192,13 @@ class LiveGraphUiTest {
             val before=all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) }
             val tile=all(view).single { it.tag=="dashboard_tile_$slot" }
             val value=all(tile).filterIsInstance<TextView>().single { it.text.toString()=="30,0" }
-            view.showGraphs(config.withDisplay(slot,GraphDisplayMode.GRAPH_ONLY),frame);measure(view,1080,1500)
+            view.showDataVisibility(DashboardDataVisibility().replace(slot,false));measure(view,1080,1500)
             assertEquals(before,all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) })
-            assertEquals(if(template.supportsGraph(slot)) View.INVISIBLE else View.VISIBLE,(value.parent as View).visibility)
-            assertTrue(all(tile).filterIsInstance<TextView>().any { it.text.toString().contains("TEMPO") && it.visibility==View.VISIBLE })
-            view.showGraphs(GraphOverlayConfig().withDisplay(slot,GraphDisplayMode.GRAPH_ONLY),frame)
+            assertEquals(View.INVISIBLE,(value.parent as View).visibility)
+            assertTrue(all(tile).filterIsInstance<TextView>().any { it.text.toString().contains("TEMPO") && it.visibility==View.INVISIBLE })
+            view.showGraphs(GraphOverlayConfig(),frame)
+            assertEquals(View.INVISIBLE,(value.parent as View).visibility)
+            view.showDataVisibility(DashboardDataVisibility())
             assertEquals(View.VISIBLE,(value.parent as View).visibility)
         }
     }
@@ -216,7 +218,7 @@ class LiveGraphUiTest {
         assertEquals(160f,d.plotBounds().height(),.01f)
         assertEquals(19.2f,LiveGraphStyle.OUTER_GLOW_WIDTH_DP,.01f);assertEquals(11.2f,LiveGraphStyle.INNER_GLOW_WIDTH_DP,.01f)
     }
-    @Test fun tileSelectorPersistsIndependentlyAndBackupRestoresModesWithLegacyCompatibility() {
+    @Test fun dataChoicePersistsIndependentlyAndBackupRestoresVisibilityWithLegacyCompatibility() {
         val controller=org.robolectric.Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get();val prefs=activity.getSharedPreferences("bike",0)
@@ -229,13 +231,15 @@ class LiveGraphUiTest {
                 all(activity.findViewById(android.R.id.content)).single { it.tag=="dashboard_tile_2" }.performClick()
                 shadowOf(Looper.getMainLooper()).idle();return org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             }
-            val screen=choose();val selector=all(screen.window!!.decorView).filterIsInstance<android.widget.Spinner>().single { it.tag=="graph_display_mode" }
-            assertEquals(1,selector.selectedItemPosition)
-            selector.setSelection(0);shadowOf(Looper.getMainLooper()).idle();testBack(screen)
-            assertEquals(GraphDisplayMode.WITH_DATA,GraphOverlayConfig.read(prefs,0).displayModes[2])
-            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphOverlayConfig.read(prefs,0).displayModes[0])
-            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphOverlayConfig.read(prefs,1).displayModes[2])
-            val reopened=choose();assertEquals(0,all(reopened.window!!.decorView).filterIsInstance<android.widget.Spinner>().single { it.tag=="graph_display_mode" }.selectedItemPosition);testBack(reopened)
+            val screen=choose()
+            assertFalse(all(screen.window!!.decorView).any { it.tag=="graph_display_mode" })
+            all(screen.window!!.decorView).single { it.tag=="dashboard_field_empty" }.performClick()
+            assertFalse(DashboardDataVisibility.read(prefs,0).visible[2])
+            assertTrue(DashboardDataVisibility.read(prefs,0).visible[0])
+            assertTrue(DashboardDataVisibility.read(prefs,1).visible[2])
+            val reopened=choose()
+            assertTrue((all(reopened.window!!.decorView).single { it.tag=="dashboard_field_empty" } as android.widget.RadioButton).isChecked)
+            testBack(reopened)
             val backup=SettingsBackup(prefs,activity.getSharedPreferences("route-export",0),ThemeManager(prefs))
             val bytes=backup.export(setOf(BackupSection.DASHBOARD))
             val original=GraphOverlayConfig.read(prefs,0)

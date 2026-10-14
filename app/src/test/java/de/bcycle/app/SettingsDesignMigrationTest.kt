@@ -132,6 +132,7 @@ class SettingsDesignMigrationTest {
             val activity = controller.get(); val themes = RideRuntime.get(activity).themes
             val selected = mutableListOf<DashboardField?>()
             val content = FieldPickerView(activity, LiveData(), GpsValues(), null, PulseValues(), DashboardField("RIDER_POWER"), true, themes) { selected += it }
+            content.findViewWithTag<View>("field_data_toggle").performClick()
             val screen = BicycleDialogBuilder(activity, themes, DialogNavigation()).setTitle("Ein besonders langer Titel zur Auswahl der Karten-Datenfelder")
                 .setView(content).setNegativeButton("Abbrechen", null).show()
             measure(screen, 720, 1200)

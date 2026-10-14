@@ -256,4 +256,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="zone_graph_toggle">Graph</string>
     <string name="zone_expanded">Ausgeklappt</string>
     <string name="zone_collapsed">Eingeklappt</string>
+    <string name="field_data_title">Daten</string>
+    <string name="field_no_data">Keine Daten anzeigen</string>
+    <string name="dashboard_no_data">Daten ausgeblendet. Antippen, um das Feld zu bearbeiten.</string>
 </resources>

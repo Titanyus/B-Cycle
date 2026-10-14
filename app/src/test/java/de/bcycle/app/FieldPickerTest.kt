@@ -21,6 +21,7 @@ class FieldPickerTest {
         val selected = mutableListOf<DashboardField?>()
         val view = FieldPickerView(RuntimeEnvironment.getApplication(), LiveData(), GpsValues(), null,
             PulseValues(), DashboardField("RIDER_POWER"), true) { selected += it }
+        view.findViewWithTag<View>("field_data_toggle").performClick()
         fun measure() {
             view.measure(View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(900, View.MeasureSpec.AT_MOST))
             view.layout(0, 0, 720, view.measuredHeight)

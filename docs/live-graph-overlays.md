@@ -1,5 +1,8 @@
 # Live-Graph-Overlays und SDK-Modernisierung
 
+Aktueller Auswahlaufbau: [Daten, Graph und Visualisierung unabhängig](independent-dashboard-layers.md). Die frühere Graph-Darstellung-Auswahl wird nicht mehr angeboten.
+
+
 Stand: 13.10.2026. Implementierung und Prüfung abgeschlossen und freigegeben.
 Die signierte Test-APK 0.7.10 enthält sämtliche folgenden Änderungen und Korrekturen;
 [Buildnachweis](milestone-0710.md).

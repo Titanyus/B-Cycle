@@ -41,6 +41,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     internal fun showTraining(config: ZoneGlowConfig, snapshot: TrainingSnapshot) {
         zoneConfig=config;training=snapshot;tiles.forEach { it.updateGlow() }
     }
+    private var dataVisibility = DashboardDataVisibility()
+    internal fun showDataVisibility(config: DashboardDataVisibility) {
+        if(dataVisibility==config) return
+        dataVisibility=config;tiles.forEach { it.updateGraph() }
+    }
     private var graphConfig = GraphOverlayConfig()
     private var graphFrame: GraphFrame? = null
     var graphWidthChanged: ((Int) -> Unit)? = null
@@ -200,7 +205,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private var plainBackground: android.graphics.drawable.Drawable?=null
         private fun selectedGraphs() = if(template.supportsGraph(index)) graphConfig.slots[index] else emptyList()
         fun updateGraph() {
-            val graphDisplay=graphConfig.displayModes[index]
+            val graphDisplay=if(dataVisibility.visible[index]) GraphDisplayMode.WITH_DATA else GraphDisplayMode.GRAPH_ONLY
             val selected=selectedGraphs()
             if(selected.isNotEmpty()!=graphShown) {
                 if(plainBackground==null) plainBackground=container.background
@@ -208,7 +213,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 updateBackground()
             }
             if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom),graphDisplay)
-            row.visibility=if(graphShown && graphDisplay==GraphDisplayMode.GRAPH_ONLY) INVISIBLE else VISIBLE
+            row.visibility=if(dataVisibility.visible[index]) VISIBLE else INVISIBLE
+            title.visibility=row.visibility
             showCaption(layout.fields[index])
         }
         private val threeColumns = template.rows.any { it.size == 3 && index in it }
@@ -307,7 +313,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val color = if (next.available) Color.WHITE else Color.rgb(119, 119, 119)
             if (value.currentTextColor != color) value.setTextColor(color)
             unit.setTextColor(BicycleDesign.dashboardUnitColor)
-            container.contentDescription = "$caption: ${if (next.available) "${next.text} ${next.unit}" else "noch kein Wert"}. Antippen, um das Feld zu ändern."
+            container.contentDescription = if(!dataVisibility.visible[index]) context.getString(R.string.dashboard_no_data) else "$caption: ${if (next.available) "${next.text} ${next.unit}" else "noch kein Wert"}. Antippen, um das Feld zu ändern."
         }
     }
 
