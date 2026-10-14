@@ -39,9 +39,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var graphConfig = GraphOverlayConfig()
     private var graphFrame: GraphFrame? = null
     var graphWidthChanged: ((Int) -> Unit)? = null
-    private var graphDisplay=GraphDisplayMode.WITH_DATA
-    internal fun showGraphs(config: GraphOverlayConfig, frame: GraphFrame?, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA) {
-        graphConfig=config; graphFrame=frame; graphDisplay=display; tiles.forEach { it.updateGraph() }
+    internal fun showGraphs(config: GraphOverlayConfig, frame: GraphFrame?) {
+        graphConfig=config; graphFrame=frame; tiles.forEach { it.updateGraph() }
     }
     private var layout = DashboardLayout.defaults
     private var data = LiveData()
@@ -181,6 +180,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private var plainBackground: android.graphics.drawable.Drawable?=null
         private fun selectedGraphs() = if(template.supportsGraph(index)) graphConfig.slots[index] else emptyList()
         fun updateGraph() {
+            val graphDisplay=graphConfig.displayModes[index]
             val selected=selectedGraphs()
             if(selected.isNotEmpty()!=graphShown) {
                 if(plainBackground==null) plainBackground=container.background

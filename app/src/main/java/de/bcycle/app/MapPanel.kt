@@ -199,11 +199,11 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         nightButton = icon("", "Nachtkarte einschalten", null) {
             night = !night; preferences.edit().putBoolean("mapNight", night).apply(); applyNight()
         }.apply { tag = "map_night" }
-        addView(nightButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.END).apply { topMargin = dp(56); marginEnd = dp(6) })
+        addView(nightButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.START).apply { topMargin = dp(6); marginStart = dp(52) })
         routeButton = icon("", "Strecke ein-/ausblenden", null) {
             runtime.mapState.setRouteVisible(!preferences.getBoolean("mapGpxVisible", true))
         }.apply {
-            gravity = Gravity.CENTER; setPadding(dp(8), dp(10), dp(8), 0)
+            tag="map_route_toggle"; gravity = Gravity.CENTER; setPadding(dp(8), dp(10), dp(8), 0)
         }
         refreshRouteButton()
         addView(routeButton, LayoutParams(dp(44), dp(48), Gravity.TOP or Gravity.START).apply { topMargin = dp(6); marginStart = dp(6) })
@@ -323,16 +323,17 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         // Keep zoom above the complete value row so the right-hand field remains unobstructed.
         val nextZoomMargin = nextFieldMargin + dataFields.measuredHeight + dp(BicycleDesign.smallGap)
         // Short map panels still need both zoom buttons; reserve their column if it meets the top row.
-        val buttonHeight = ((measuredHeight - nextZoomMargin - dp(4)) / 2).coerceIn(dp(24), dp(48))
+        val topHeight = (measuredHeight-nextZoomMargin-dp(58)).coerceIn(dp(24),dp(48))
+        val buttonHeight = ((measuredHeight-nextZoomMargin-topHeight-dp(10))/2).coerceIn(dp(24),dp(48))
         val topMargin = controls.layoutParams as LayoutParams
-        val topHeight = ((measuredHeight - dp(14)) / 2).coerceIn(dp(24), dp(48))
         val topChanged = controls.layoutParams.height != topHeight || nightButton.layoutParams.height != topHeight ||
-            (nightButton.layoutParams as LayoutParams).topMargin != dp(8) + topHeight
+            routeButton.layoutParams.height != topHeight
         controls.layoutParams.height = topHeight
         for (i in 0 until controls.childCount) controls.getChildAt(i).layoutParams.height = topHeight
         val nightMargin = nightButton.layoutParams as LayoutParams
-        nightMargin.height = topHeight; nightMargin.topMargin = dp(8) + topHeight
-        val nextTopEnd = if (measuredHeight - nextZoomMargin - 2 * buttonHeight - dp(4) < topHeight * 2 + dp(12)) dp(56) else dp(6)
+        nightMargin.height = topHeight
+        routeButton.layoutParams.height=topHeight
+        val nextTopEnd = if (measuredHeight - nextZoomMargin - 2 * buttonHeight - dp(4) < topHeight + dp(6)) dp(56) else dp(6)
         var changed = topChanged
         for (index in 0 until zoomControls.childCount) {
             val params = zoomControls.getChildAt(index).layoutParams
@@ -345,7 +346,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             dataFields.layoutParams = fieldMargin; status.layoutParams = statusMargin
             zoomMargin.bottomMargin = nextZoomMargin; topMargin.marginEnd = nextTopEnd
             controls.layoutParams = topMargin
-            nightMargin.marginEnd = nextTopEnd; nightButton.layoutParams = nightMargin
+            nightButton.layoutParams = nightMargin
+            routeButton.layoutParams=routeButton.layoutParams
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         }
     }

@@ -60,7 +60,7 @@ class MapPanelTest {
             assertEquals(View.VISIBLE, toolbar.visibility)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun nightButtonFormsAnLPersistsAndHidesTogetherWithoutChangingDashboard() {
+    @Test fun nightButtonSitsBesideTrackPersistsAndHidesTogetherWithoutChangingDashboard() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             var root = controller.get().findViewById<ViewGroup>(android.R.id.content)
@@ -69,8 +69,17 @@ class MapPanelTest {
             val night = descendants(panel).single { it.tag == "map_night" }
             val full = descendants(panel).single { it.contentDescription == "Karte im Vollbild" }
             val row = full.parent as View
-            assertEquals(row.right, night.right)
-            assertTrue(night.top > row.bottom)
+            val track=descendants(panel).single { it.tag=="map_route_toggle" }
+            assertEquals(track.top,night.top);assertEquals(track.bottom,night.bottom)
+            assertEquals(track.right+BicycleDesign.dp(panel.context,2),night.left)
+            assertTrue(night.right<=row.left)
+            for(height in listOf(180,240,360)) {
+                measure(panel,1080,BicycleDesign.dp(panel.context,height))
+                assertEquals(track.top,night.top);assertEquals(track.bottom,night.bottom)
+                assertEquals(BicycleDesign.dp(panel.context,6),panel.width-row.right)
+                assertTrue(night.right<=row.left)
+            }
+            measure(root,1080,2100)
             val dashboard = descendants(root).filterIsInstance<DashboardView>().single()
             val geometry = listOf(dashboard.width, dashboard.height, dashboard.top)
             val center = panel.mapView.model.mapViewPosition.center

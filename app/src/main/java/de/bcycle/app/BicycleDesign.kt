@@ -15,6 +15,10 @@ import android.widget.TextView
 
 /** Global geometry and typography, deliberately independent of every palette. DP unless noted. */
 object BicycleDesign {
+    // Android's sans-serif family uses Roboto on stock Android; request Black without bundling a font.
+    val strongTypeface: android.graphics.Typeface by lazy {
+        android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.NORMAL),900,false)
+    }
     val dashboardUnitColor = android.graphics.Color.rgb(163, 163, 163)
     const val dashboardCaptionSp = 13.5f
     const val tripleValueSp = 45f
@@ -158,7 +162,7 @@ object BicycleComponents {
     }
     fun text(context: Context, manager: ThemeManager, value: String, title: Boolean = false) = TextView(context).apply {
         text = value; textSize = if (title) BicycleDesign.titleSp else BicycleDesign.bodySp
-        if (title) setTypeface(typeface, android.graphics.Typeface.BOLD)
+        if (title) { typeface=BicycleDesign.strongTypeface;isAccessibilityHeading=true }
         bindTheme(this, manager) { setTextColor(it.foreground) }
     }
     fun input(context: Context, manager: ThemeManager) = EditText(context).apply {

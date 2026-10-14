@@ -270,3 +270,23 @@ Geometrien, sichtbare Beschriftungen, Wiederherstellung normaler Werte und
 sofortige persistente Auswahl inklusive kompatibler Settings-Sicherung.
 Sensorverarbeitung, Graphdaten, Zehn-Sekunden-Takt, FIT und Performanceberechnung
 werden durch die Darstellung nicht verändert.
+
+## Kachelbezogene Auswahl nach APK 0.7.12
+
+Die globale Auswahl in Design & UI entfällt. Stattdessen enthält der vorhandene
+Datenauswahl-Dialog jeder graphfähigen Kachel direkt bei der Graph-Auswahl
+„Graph-Darstellung“. „Nur Graph“ bzw. „Graph mit Daten“ gelten unabhängig pro
+Dashboardseite und Slot. Änderungen werden sofort gespeichert; Quellwechsel
+im Dialog erhalten Graphauswahl und Darstellungsmodus.
+
+GraphOverlayConfig verwaltet die Modi gemeinsam mit der bestehenden Auswahl.
+Die bisherigen Graph-Schlüssel/Graphnamen bleiben unverändert. Modi liegen in
+`dashboardGraphDisplay_<Seite>` als Slot-Liste. Ohne gespeicherten Slotmodus wird
+die bisherige globale Einstellung als Ausgangswert übernommen; neue Installationen
+verwenden „Graph mit Daten“. Die Renderkomponente verwendet jeweils den Modus
+der betroffenen Kachel. Helligkeiten, Leuchtsaum und Geometrie bleiben unverändert.
+
+Settings-Sicherungen speichern die Modi bei den Dashboardseiten unter
+`graphDisplayModes`, nicht mehr als globale Designoption. Ältere Sicherungen ohne
+Slotmodi erhalten die aktuelle Kachelbelegung; ungültige Modi werden abgelehnt.
+Die alte globale Designangabe bleibt beim Einlesen alter Sicherungen unterstützt.

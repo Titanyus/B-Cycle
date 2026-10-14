@@ -84,3 +84,27 @@ Android-Analytics-Verzeichnishinweis bleiben bestehen. Ein Praxistest mit realer
 Tastatur und Systemnavigation auf dem Telefon steht noch aus. Der Quellstand ist
 auf GitHub gesichert. Er ist anschließend zusammen mit der Graph-Anpassung in
 [Test-APK 0.7.12](milestone-0712.md) enthalten.
+
+## Präzisierung nach APK 0.7.12
+
+Abschnittsüberschriften übernehmen appweit die Größe der Streckendetails:
+23 sp über BicycleDesign.titleSp. System-Fettschriften verwenden zentral
+BicycleDesign.strongTypeface, angefordertes Gewicht 900 Black im Android-sans-serif-
+Systemfont (Roboto auf Standard-Android; Geräte ohne diese Familie verwenden die
+System-Ersatzschrift). Es wird keine zusätzliche Schriftdatei eingebunden.
+Bebas-Neue-Fenstertitel und Messwerte bleiben unverändert. Das gilt auch für dynamisch
+aufgebaute Feldauswahl-/FIT-Abschnitte und Profile. Nur im Haupt-Einstellungsmenü
+werden Menüschrift und führende Menü-Icons verdoppelt: 28 sp und 48 dp.
+Untermenüs sowie Navigations-Chevrons behalten ihre üblichen Maße.
+
+Sonne/Mond steht nun links oben direkt rechts neben dem Track-Auge (2 dp Abstand).
+Die rechte obere Leiste besteht nur aus Zentrierung, Ausrichtung und Vollbild.
+Auf kurzen Karten werden die vorhandenen Buttonhöhen im verfügbaren Raum angepasst;
+die zweite rechte Buttonzeile entfällt. Verhalten, Nachtfarben, gespeicherter Zustand
+und gemeinsames Ausblenden bleiben erhalten.
+
+Abschlussprüfung: vier gezielte Tests (Menügrößen, Kachel-Modus/Persistenz/Backup,
+23-sp-/900-Typografie sowie Kartenposition/Nachtzustand) und Release-Kotlin-
+Kompilierung erfolgreich in 12 Sekunden. Keine vollständige Suite oder neue APK
+für diese Änderungen. Die bestehenden Tests wurden auf die geänderte Bedienung
+angepasst, nicht deaktiviert.

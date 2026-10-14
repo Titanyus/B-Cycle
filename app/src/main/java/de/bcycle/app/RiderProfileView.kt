@@ -47,7 +47,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     private fun section(title: Int) {
         if (root.childCount > 0) root.addView(BicycleComponents.sectionDivider(context, themes))
         root.addView(text(context.getString(title)).apply {
-            textSize = BicycleDesign.inputSp; isAccessibilityHeading = true; typeface = Typeface.DEFAULT_BOLD
+            textSize = BicycleDesign.titleSp; isAccessibilityHeading = true; typeface = BicycleDesign.strongTypeface
             setPadding(0, dp(BicycleDesign.smallGap), 0, dp(BicycleDesign.verticalPadding))
         }, LinearLayout.LayoutParams(-1, -2))
     }

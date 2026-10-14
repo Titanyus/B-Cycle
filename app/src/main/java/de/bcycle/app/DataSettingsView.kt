@@ -15,7 +15,7 @@ internal class DataSettingsView(context: Context, themes: ThemeManager, selected
         fun section(title:Int, actions:List<DataAction>) {
             if(childCount>0) addView(BicycleComponents.sectionDivider(context,themes))
             addView(BicycleComponents.text(context,themes,context.getString(title)).apply {
-                textSize=BicycleDesign.inputSp;isAccessibilityHeading=true;typeface=android.graphics.Typeface.DEFAULT_BOLD
+                textSize=BicycleDesign.titleSp;isAccessibilityHeading=true;typeface=BicycleDesign.strongTypeface
                 setPadding(BicycleDesign.dp(context,BicycleDesign.horizontalPadding),BicycleDesign.dp(context,BicycleDesign.verticalPadding),0,0)
             })
             actions.forEach { action -> addView(BicycleComponents.listRow(context,themes).apply {

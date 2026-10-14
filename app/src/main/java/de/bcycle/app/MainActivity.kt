@@ -193,7 +193,7 @@ class MainActivity : Activity() {
                 message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
-        dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame,GraphDisplaySettings.read(preferences))
+        dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
         dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
         if (::mapPanel.isInitialized) mapPanel.refresh()
@@ -212,11 +212,12 @@ class MainActivity : Activity() {
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         val graphs=if(!mapField && dashboard.template.supportsGraph(index))
-            GraphOverlayPicker(settingsContext,runtime.themes,dashboardGraphs.slots[index]) else null
+            GraphOverlayPicker(settingsContext,runtime.themes,dashboardGraphs.slots[index],dashboardGraphs.displayModes[index]) else null
         fun saveGraphs() {
             if(graphs!=null) {
-                dashboardGraphs=dashboardGraphs.replace(index,graphs.selected)
-                preferences.edit().putString(GraphOverlayConfig.key(dashboardPage),dashboardGraphs.encode()).apply()
+                dashboardGraphs=dashboardGraphs.replace(index,graphs.selected).withDisplay(index,graphs.displayMode)
+                preferences.edit().putString(GraphOverlayConfig.key(dashboardPage),dashboardGraphs.encode())
+                    .putString(GraphDisplaySettings.key(dashboardPage),dashboardGraphs.encodeModes()).apply()
             }
         }
         graphs?.changed = { saveGraphs(); render() }
@@ -521,18 +522,6 @@ class MainActivity : Activity() {
         }
         root.addView(presets)
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-        root.addView(label(getString(R.string.graph_display_title),BicycleDesign.inputSp))
-        val graphDisplay=Spinner(settingsContext).apply {
-            tag="graph_display_mode"
-            adapter=ArrayAdapter(settingsContext,android.R.layout.simple_spinner_dropdown_item,listOf(getString(R.string.graph_display_with_data),getString(R.string.graph_display_only)))
-            setSelection(GraphDisplaySettings.read(preferences).ordinal)
-        }
-        BicycleDialogStyle.spinner(graphDisplay,runtime.themes)
-        root.addView(graphDisplay)
-        observeSettings(graphDisplay) {
-            preferences.edit().putString(GraphDisplaySettings.key,GraphDisplayMode.entries[graphDisplay.selectedItemPosition].name).apply();render()
-        }
-        root.addView(BicycleComponents.sectionDivider(settingsContext,runtime.themes))
         root.addView(label("Fahrmodus-Glow", BicycleDesign.inputSp))
         root.addView(label("Zeigt den aktiven Bosch-Fahrmodus durch einen farbigen Lichtschein am Rand der Datenfelder."))
         val glow = Switch(settingsContext).apply {

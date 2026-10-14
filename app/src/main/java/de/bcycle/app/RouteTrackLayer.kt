@@ -21,7 +21,7 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
     private val path = Path()
     private val arrow = Path()
     private val heightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = dp(14); typeface = android.graphics.Typeface.DEFAULT_BOLD
+        textSize = dp(14); typeface = BicycleDesign.strongTypeface
     }
     private fun dp(n: Int) = n * density
     fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean, night: Boolean = false) {

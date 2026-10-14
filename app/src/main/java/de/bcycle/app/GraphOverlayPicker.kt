@@ -4,13 +4,17 @@ import android.content.Context
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Spinner
+import android.widget.ArrayAdapter
 
-internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initial: List<AnalysisChart>) : LinearLayout(context) {
+internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initial: List<AnalysisChart>, initialDisplay: GraphDisplayMode=GraphDisplayMode.WITH_DATA) : LinearLayout(context) {
     private val choice=initial.distinct().take(2).toMutableList()
     var changed: () -> Unit = {}
     val selected get()=choice.toList()
     private val boxes=linkedMapOf<AnalysisChart,CheckBox>()
     private val none=CheckBox(context)
+    private val displaySelector=Spinner(context)
+    val displayMode get()=GraphDisplayMode.entries[displaySelector.selectedItemPosition.coerceAtLeast(0)]
     init {
         orientation=VERTICAL; tag="graph_overlay_picker"
         addView(TextView(context).apply { setText(R.string.graph_overlay); isAccessibilityHeading=true
@@ -29,6 +33,15 @@ internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initia
                 setOnClickListener { if(chart in choice) choice.remove(chart) else if(choice.size<2) choice.add(chart); refresh(); changed() } }
             boxes[chart]=box; addView(box)
         }
+        addView(TextView(context).apply { setText(R.string.graph_display_title);isAccessibilityHeading=true;BicycleDialogStyle.control(this,themes) })
+        displaySelector.apply {
+            tag="graph_display_mode";contentDescription=context.getString(R.string.graph_display_title)
+            adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,listOf(context.getString(R.string.graph_display_with_data),context.getString(R.string.graph_display_only)))
+            setSelection(initialDisplay.ordinal)
+        }
+        BicycleDialogStyle.spinner(displaySelector,themes);addView(displaySelector)
+        var shown=initialDisplay.ordinal
+        observeSettings(displaySelector) { if(displaySelector.selectedItemPosition!=shown) { shown=displaySelector.selectedItemPosition;changed() } }
         refresh()
     }
     private fun refresh() { none.isChecked=choice.isEmpty(); boxes.forEach { (chart,box) -> box.isChecked=chart in choice; box.isEnabled=chart in choice || choice.size<2 } }

@@ -34,13 +34,21 @@ class UiConventionsTest {
             val menu=latest();val decor=menu.window!!.decorView;layout(decor)
             val entries=views(decor).filter { it.tag?.toString()?.startsWith("settings_")==true && it.isClickable }
             assertEquals(7,entries.size)
-            entries.forEach { assertEquals(BicycleDesign.dp(activity,BicycleDesign.touchSize*2),it.minimumHeight) }
+            entries.forEach {
+                assertEquals(BicycleDesign.dp(activity,BicycleDesign.touchSize*2),it.minimumHeight)
+                val text=views(it).filterIsInstance<TextView>().single()
+                assertEquals(BicycleDesign.bodySp*2*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,text.textSize,.1f)
+                val icon=views(it).filterIsInstance<ImageView>().first()
+                assertEquals(BicycleDesign.dp(activity,BicycleDesign.iconSize*2),icon.width)
+            }
             assertFalse(views(decor).any { it.tag=="bicycle_fullscreen_footer" })
             val title=views(decor).single { it.tag=="bicycle_dialog_title" }
             assertEquals(decor.width/2f,(title.left+title.right)/2f,1f)
             click(decor,"settings_ADVANCED");val advanced=latest();assertNotSame(menu,advanced)
             assertEquals(View.GONE,menu.window!!.decorView.visibility)
             assertFalse(views(advanced.window!!.decorView).any { it.tag=="settings_advanced_content" })
+            val advancedText=views(advanced.window!!.decorView).filterIsInstance<SettingsMenuView>().single().let { views(it).filterIsInstance<TextView>().first() }
+            assertEquals(BicycleDesign.bodySp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,advancedText.textSize,.1f)
             testBack(advanced);assertTrue(menu.isShowing);assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
@@ -52,7 +60,17 @@ class UiConventionsTest {
             click(latest().window!!.decorView,"settings_PROFILE");val profile=latest()
             val body=views(profile.window!!.decorView).filterIsInstance<RiderProfileView>().single()
             val headings=views(body).filterIsInstance<TextView>().filter { it.isAccessibilityHeading }
-            assertTrue(headings.isNotEmpty());headings.forEach { assertTrue(it.typeface.isBold) }
+            assertTrue(headings.isNotEmpty());headings.forEach { assertEquals(900,it.typeface.weight);assertEquals(BicycleDesign.titleSp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,it.textSize,.1f) }
+            val themes=runtime.themes
+            val field=FieldPickerView(activity,LiveData(),GpsValues(),null,PulseValues(),DashboardField("SPEED"),false,themes) {}
+            val data=DataSettingsView(activity,themes) {}
+            for(view in listOf(field,data,GraphOverlayPicker(activity,themes,emptyList()))) {
+                val sections=views(view).filterIsInstance<TextView>().filter { it.isAccessibilityHeading }
+                assertTrue(sections.isNotEmpty());sections.forEach {
+                    assertEquals(900,it.typeface.weight)
+                    assertEquals(BicycleDesign.titleSp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,it.textSize,.1f)
+                }
+            }
             val height=views(body).filterIsInstance<EditText>().single { it.tag=="rider_height" }
             height.setText("180");assertEquals(180,runtime.riderProfiles.read().heightCm)
             height.setText("9999");assertEquals(180,runtime.riderProfiles.read().heightCm)

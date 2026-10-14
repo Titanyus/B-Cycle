@@ -19,6 +19,14 @@ kompakte Dashboards und frei belegbare Datenfelder.
 und Paket-/SDK-Metadaten separat geprüft. [Buildnachweis](docs/milestone-0712.md).
 Die vorausgehende globale UI-Migration hat die vollständige Suite mit **357 Tests** bestanden.
 
+## Entwicklungsstand nach APK 0.7.12
+
+- Haupt-Einstellungen: Menüschrift 28 sp und führende Menü-Icons 48 dp, passend zu den hohen Zeilen.
+- Abschnittsüberschriften appweit 23 sp, wie die Streckendetails. Bisherige System-Fettschriften verwenden zentral Gewicht 900 Black (Roboto/Systemfont).
+- Graph-Darstellung direkt im Datenauswahl-Dialog der Kachel; unabhängig pro Seite/Kachel gespeichert. Die bisherige globale Auswahl dient als Ausgangswert.
+- Sonne/Mond links oben direkt neben dem Track-Auge; rechts entfällt die zweite Buttonzeile.
+- Vier gezielte Tests und Release-Kotlin-Kompilierung bestanden. Noch nicht in einer neuen APK enthalten.
+
 ## Neu in APK 0.7.12
 
 - **Design & UI → Graph-Darstellung:** „Graph mit Daten“ oder „Nur Graph“, sofort gespeichert.

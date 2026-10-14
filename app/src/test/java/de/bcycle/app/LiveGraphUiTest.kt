@@ -95,7 +95,7 @@ class LiveGraphUiTest {
         val graph=GraphOverlayPicker(context,themes,listOf(AnalysisChart.HEART,AnalysisChart.ELEVATION))
         var chosen: DashboardField?=null
         val picker=FieldPickerView(context,LiveData(),GpsValues(),null,PulseValues(),DashboardField("SPEED"),false,themes,graph) { chosen=it }
-        val source=all(picker).filterIsInstance<android.widget.Spinner>().single()
+        val source=all(picker).filterIsInstance<android.widget.Spinner>().single { it.tag=="field_source" }
         for(i in 0 until source.count) {
             source.setSelection(i);shadowOf(Looper.getMainLooper()).idle()
             assertEquals(1,all(picker).count { it===graph })
@@ -192,11 +192,11 @@ class LiveGraphUiTest {
             val before=all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) }
             val tile=all(view).single { it.tag=="dashboard_tile_$slot" }
             val value=all(tile).filterIsInstance<TextView>().single { it.text.toString()=="30,0" }
-            view.showGraphs(config,frame,GraphDisplayMode.GRAPH_ONLY);measure(view,1080,1500)
+            view.showGraphs(config.withDisplay(slot,GraphDisplayMode.GRAPH_ONLY),frame);measure(view,1080,1500)
             assertEquals(before,all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) })
             assertEquals(if(template.supportsGraph(slot)) View.INVISIBLE else View.VISIBLE,(value.parent as View).visibility)
             assertTrue(all(tile).filterIsInstance<TextView>().any { it.text.toString().contains("TEMPO") && it.visibility==View.VISIBLE })
-            view.showGraphs(GraphOverlayConfig(),frame,GraphDisplayMode.GRAPH_ONLY)
+            view.showGraphs(GraphOverlayConfig().withDisplay(slot,GraphDisplayMode.GRAPH_ONLY),frame)
             assertEquals(View.VISIBLE,(value.parent as View).visibility)
         }
     }
@@ -216,31 +216,39 @@ class LiveGraphUiTest {
         assertEquals(160f,d.plotBounds().height(),.01f)
         assertEquals(19.2f,LiveGraphStyle.OUTER_GLOW_WIDTH_DP,.01f);assertEquals(11.2f,LiveGraphStyle.INNER_GLOW_WIDTH_DP,.01f)
     }
-    @Test fun designSelectorPersistsImmediatelyAndBackupRestoresModeWithLegacyCompatibility() {
+    @Test fun tileSelectorPersistsIndependentlyAndBackupRestoresModesWithLegacyCompatibility() {
         val controller=org.robolectric.Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get();val prefs=activity.getSharedPreferences("bike",0)
-            assertEquals(GraphDisplayMode.WITH_DATA,GraphDisplaySettings.read(prefs))
-            all(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
-            val menu=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            all(menu.window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
-            val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
-            val selector=all(screen.window!!.decorView).filterIsInstance<android.widget.Spinner>().single { it.tag=="graph_display_mode" }
-            selector.setSelection(1);shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphDisplaySettings.read(prefs));testBack(screen)
-            all(menu.window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
-            val reopened=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(1,all(reopened.window!!.decorView).filterIsInstance<android.widget.Spinner>().single { it.tag=="graph_display_mode" }.selectedItemPosition)
+            prefs.edit().putString(GraphDisplaySettings.key,GraphDisplayMode.GRAPH_ONLY.name).commit()
+            // A fresh read inherits the old global choice for every unconfigured page/tile.
+            assertTrue(GraphOverlayConfig.read(prefs,0).displayModes.all { it==GraphDisplayMode.GRAPH_ONLY })
+            MainActivity::class.java.getDeclaredMethod("changeDashboard",Int::class.javaPrimitiveType).apply { isAccessible=true }.invoke(activity,0)
+            activity.setDashboardEditing(true)
+            fun choose():android.app.AlertDialog {
+                all(activity.findViewById(android.R.id.content)).single { it.tag=="dashboard_tile_2" }.performClick()
+                shadowOf(Looper.getMainLooper()).idle();return org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            }
+            val screen=choose();val selector=all(screen.window!!.decorView).filterIsInstance<android.widget.Spinner>().single { it.tag=="graph_display_mode" }
+            assertEquals(1,selector.selectedItemPosition)
+            selector.setSelection(0);shadowOf(Looper.getMainLooper()).idle();testBack(screen)
+            assertEquals(GraphDisplayMode.WITH_DATA,GraphOverlayConfig.read(prefs,0).displayModes[2])
+            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphOverlayConfig.read(prefs,0).displayModes[0])
+            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphOverlayConfig.read(prefs,1).displayModes[2])
+            val reopened=choose();assertEquals(0,all(reopened.window!!.decorView).filterIsInstance<android.widget.Spinner>().single { it.tag=="graph_display_mode" }.selectedItemPosition);testBack(reopened)
             val backup=SettingsBackup(prefs,activity.getSharedPreferences("route-export",0),ThemeManager(prefs))
-            val bytes=backup.export(setOf(BackupSection.DESIGN))
-            prefs.edit().putString(GraphDisplaySettings.key,GraphDisplayMode.WITH_DATA.name).commit()
+            val bytes=backup.export(setOf(BackupSection.DASHBOARD))
+            val original=GraphOverlayConfig.read(prefs,0)
+            prefs.edit().remove(GraphDisplaySettings.key(0)).commit()
             val doc=backup.decode(bytes);backup.apply(backup.plan(doc,doc.sections.keys))
-            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphDisplaySettings.read(prefs))
-            val json=JSONObject(String(bytes));val design=json.getJSONObject("sections").getJSONObject("designUi")
-            design.remove("graphDisplay");val old=backup.decode(json.toString().toByteArray());backup.apply(backup.plan(old,old.sections.keys))
-            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphDisplaySettings.read(prefs))
-            design.put("graphDisplay","invalid")
-            try { backup.decode(json.toString().toByteArray());fail("invalid display mode accepted") } catch(_:SettingsBackupFailure) {}
+            assertEquals(original,GraphOverlayConfig.read(prefs,0))
+            val json=JSONObject(String(bytes));val page=json.getJSONObject("sections").getJSONObject("dashboard").getJSONArray("pages").getJSONObject(0)
+            page.remove("graphDisplayModes");val legacy=backup.decode(json.toString().toByteArray());backup.apply(backup.plan(legacy,legacy.sections.keys));assertEquals(original,GraphOverlayConfig.read(prefs,0))
+            page.put("graphDisplayModes",JSONArray(List(DashboardLayout.FIELD_COUNT) { "invalid" }))
+            try { backup.decode(json.toString().toByteArray());fail("invalid tile mode accepted") } catch(_:SettingsBackupFailure) {}
+            all(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
+            all(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
+            assertFalse(all(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).any { it.tag=="graph_display_mode" })
         } finally { controller.pause().stop().destroy() }
     }
 

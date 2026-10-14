@@ -46,8 +46,8 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
                 if(action.icon!=0) addView(ImageView(context).apply {
                     setImageResource(action.icon);BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
                     importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-                },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
-                addView(BicycleComponents.text(context,themes,action.label(context)).apply { gravity=Gravity.CENTER_VERTICAL },
+                },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize*(if(advanced) 1 else 2)),BicycleDesign.dp(context,BicycleDesign.iconSize*(if(advanced) 1 else 2))))
+                addView(BicycleComponents.text(context,themes,action.label(context)).apply { gravity=Gravity.CENTER_VERTICAL; textSize=BicycleDesign.bodySp*(if(advanced) 1 else 2) },
                     LayoutParams(0,-2,1f).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.verticalPadding) })
                 addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
                     importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))

@@ -19,7 +19,7 @@ internal class DashboardPresetPicker(context: Context, initial: List<DashboardTe
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
         orientation = VERTICAL
-        addView(TextView(context).apply { text = "Dashboard-Seite wählen"; isAccessibilityHeading=true; BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.inputSp })
+        addView(TextView(context).apply { text = "Dashboard-Seite wählen"; isAccessibilityHeading=true; BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.titleSp })
         val pages = RadioGroup(context).apply { orientation = HORIZONTAL }
         for (i in 0..3) pages.addView(RadioButton(context).apply {
             id = View.generateViewId(); text = "${i + 1}"; tag = "preset_page_$i"

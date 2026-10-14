@@ -106,7 +106,7 @@ internal object BicycleDialogStyle {
     }
     fun content(view: View, themes: ThemeManager) {
         // This reference screen owns every detail, including its compact action geometry.
-        if (view is RiderProfileView || view is RouteManagerView || view is ThemePickerView || view is RouteAnalysisView || view is RouteAnalysisMap || view.tag == "route_analysis_header" || view.tag == "bicycle_dialog_header") return
+        if (view is SettingsMenuView || view is RiderProfileView || view is RouteManagerView || view is ThemePickerView || view is RouteAnalysisView || view is RouteAnalysisMap || view.tag == "route_analysis_header" || view.tag == "bicycle_dialog_header") return
         if (view is Spinner) { spinner(view, themes); return }
         if (view is ListView) {
             BicycleComponents.bindTheme(view, themes) { tokens ->
@@ -133,11 +133,11 @@ internal object BicycleDialogStyle {
     }
     fun control(view: TextView, themes: ThemeManager) {
         if (styled.put(view, true) != null) {
-            if(view.isAccessibilityHeading) view.typeface=Typeface.DEFAULT_BOLD
+            if(view.isAccessibilityHeading) { view.typeface=BicycleDesign.strongTypeface;view.textSize=BicycleDesign.titleSp }
             return
         }
-        view.typeface = if(view.isAccessibilityHeading) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
-        if (view !is EditText) view.textSize = if (view.isAccessibilityHeading) BicycleDesign.inputSp else BicycleDesign.bodySp
+        view.typeface = if(view.isAccessibilityHeading) BicycleDesign.strongTypeface else Typeface.DEFAULT
+        if (view !is EditText) view.textSize = if (view.isAccessibilityHeading) BicycleDesign.titleSp else BicycleDesign.bodySp
         if (view is EditText) {
             view.textSize = BicycleDesign.inputSp; view.minimumHeight = dp(view, BicycleDesign.touchSize)
             view.setPadding(dp(view, BicycleDesign.inputHorizontalPadding), dp(view, BicycleDesign.verticalPadding),

@@ -74,7 +74,7 @@ class SettingsDesignMigrationTest {
                 assertEquals(BicycleDesign.headerHeight * activity.resources.displayMetrics.density, title.height.toFloat(), 1f)
                 assertEquals(BicycleThemes.red.tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
                 assertTrue(title.isAccessibilityHeading)
-                assertTrue(views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.all { it.typeface == Typeface.DEFAULT || it.typeface == Typeface.DEFAULT_BOLD || it.tag == "rider_unit" || it.tag?.toString()?.startsWith("rider_zone_value_") == true })
+                assertTrue(views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.all { it.typeface == Typeface.DEFAULT || it.typeface == BicycleDesign.strongTypeface || it.tag == "rider_unit" || it.tag?.toString()?.startsWith("rider_zone_value_") == true })
                 if (action in listOf(SettingsAction.SENSORS, SettingsAction.MAP, SettingsAction.DASHBOARDS)) snapshot(child, action.name.lowercase())
                 val before = geometry(child)
                 assertTrue(themes.activate(light().id)); shadowOf(Looper.getMainLooper()).idle(); measure(child)
