@@ -220,4 +220,11 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="dashboard_editor_finish">EDITOR BEENDEN</string>
     <string name="dashboard_editor_map_slot">Kartenfeld %1$d bearbeiten</string>
     <string name="dashboard_editor_save_failed">Einstellungen konnten nicht gespeichert werden. Bitte erneut versuchen.</string>
+    <string name="ui_back">Zurück</string>
+    <string name="ui_settings">Einstellungen</string>
+    <string name="ui_advanced">Erweitert</string>
+    <string name="ui_reset_title">Standardbelegung</string>
+    <string name="ui_reset_confirm">Die Belegung der Dashboardfelder auf die Standardwerte zurücksetzen?</string>
+    <string name="ui_reset_action">Zurücksetzen</string>
+    <string name="ui_reset_done">Standardbelegung hergestellt</string>
 </resources>

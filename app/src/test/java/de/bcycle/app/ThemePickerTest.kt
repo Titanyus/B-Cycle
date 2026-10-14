@@ -87,8 +87,8 @@ class ThemePickerTest {
                 assertEquals(preset.tokens.foreground, start.currentTextColor)
                 assertEquals(preset.tokens.foreground, settings.currentTextColor)
                 assertEquals(toolbarGeometry, views(toolbar).map { listOf(it.width, it.height, it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom) })
-                assertEquals(preset.tokens.primary, (views(design.window!!.decorView).single { it.tag == "bicycle_dialog_header" }.background as GradientDrawable).color!!.defaultColor)
-                assertEquals(preset.tokens.primary, (views(menu.window!!.decorView).single { it.tag == "settings_brand" }.background as GradientDrawable).color!!.defaultColor)
+                assertEquals(preset.tokens.primary, (views(design.window!!.decorView).single { it.tag == "bicycle_navigation_header" }.background as GradientDrawable).color!!.defaultColor)
+                assertEquals(preset.tokens.primary, (views(menu.window!!.decorView).single { it.tag == "bicycle_navigation_header" }.background as GradientDrawable).color!!.defaultColor)
                 assertEquals(before, views(picker).map { listOf(it.left, it.top, it.width, it.height) })
                 assertEquals(1, views(picker).count { it.tag in themes.presets.map { theme -> theme.id } && it.isSelected })
                 for (candidate in themes.presets) {
@@ -109,7 +109,7 @@ class ThemePickerTest {
             val image = Bitmap.createBitmap(decor.width, decor.height, Bitmap.Config.ARGB_8888)
             decor.draw(Canvas(image))
             File("build/reports/settings/theme-picker.png").apply { parentFile!!.mkdirs(); outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) } }
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
+            testBack(dialog)
             shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, menu.window!!.decorView.visibility)
             assertEquals(draft, views(design.window!!.decorView).filterIsInstance<DashboardPresetPicker>().single().selection.toList())

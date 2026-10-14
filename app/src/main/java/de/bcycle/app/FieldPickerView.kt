@@ -48,7 +48,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             shown = position; rows.removeAllViews(); list.scrollTo(0, 0)
             for (section in groups.getValue(sources[position])) {
                 rows.addView(TextView(context).apply {
-                    text = section.title; textSize = BicycleDesign.bodySp; BicycleDialogStyle.control(this, themes)
+                    text = section.title; isAccessibilityHeading=true; textSize = BicycleDesign.bodySp; BicycleDialogStyle.control(this, themes)
                     setPadding(0, dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.smallGap)); isAccessibilityHeading = true
                 })
                 for (field in section.fields) {

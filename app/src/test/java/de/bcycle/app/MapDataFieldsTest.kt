@@ -107,7 +107,7 @@ class MapDataFieldsTest {
             assertEquals("BATTERY", MapFieldSelection.read(preferences, 0)?.id)
             assertNull(preferences.getString("dashboard", null)); assertTrue(activity.dashboardEditing)
             fields(activity).single { it.tag == "map_value_1" }.performClick()
-            latest().getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
+            testBack(latest())
             assertNull(MapFieldSelection.read(preferences, 1))
             fields(activity).single { it.tag == "dashboard_editor_finish" }.performClick()
             assertFalse(activity.dashboardEditing)
@@ -140,8 +140,8 @@ class MapDataFieldsTest {
                 assertTrue(credit.top >= 0 && credit.width > 0)
                 assertTrue(fields.left >= credit.right)
                 val zoom = descendants(panel).single { it.tag == "map_zoom_controls" }
-                assertEquals(fields.bottom, zoom.bottom)
-                assertEquals((12 * panel.resources.displayMetrics.density).toInt(), panel.height - fields.bottom)
+                assertEquals(fields.top-BicycleDesign.dp(panel.context,BicycleDesign.smallGap),zoom.bottom)
+                assertEquals(0,panel.height-fields.bottom)
                 assertTrue(credit.right <= zoom.left || zoom.visibility != View.VISIBLE)
                 assertTrue(fields.top >= 0)
             }

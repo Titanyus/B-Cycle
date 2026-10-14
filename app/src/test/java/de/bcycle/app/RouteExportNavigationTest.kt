@@ -33,7 +33,7 @@ class RouteExportNavigationTest {
             val deadline = System.currentTimeMillis() + 5000
             while (state.busy && System.currentTimeMillis() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
             val close = manager.getButton(AlertDialog.BUTTON_POSITIVE)
-            assertNotNull(close.compoundDrawablesRelative[0])
+            assertFalse(close.isShown)
             assertEquals(R.drawable.ic_lucide_log_out, BicycleIcon.Close.resource)
             assertEquals(R.drawable.ic_lucide_x, BicycleIcon.Cancel.resource)
             val import = manager.getButton(AlertDialog.BUTTON_NEUTRAL)
@@ -88,10 +88,10 @@ class RouteExportNavigationTest {
             details.window!!.decorView.findViewWithTag<View>("detail_rename").performClick()
             val rename = ShadowAlertDialog.getLatestAlertDialog()
             assertEquals("Testrunde", (descendants(rename.window!!.decorView).single { it.tag == "route_rename" } as android.widget.EditText).text.toString())
-            rename.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(rename); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, details.window!!.decorView.visibility)
             details.window!!.decorView.findViewWithTag<View>("detail_delete").performClick()
-            ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
+            testBack(ShadowAlertDialog.getLatestAlertDialog())
             shadowOf(Looper.getMainLooper()).idle()
             assertEquals(1, state.entries.size)
             assertEquals(View.VISIBLE, details.window!!.decorView.visibility)
@@ -108,14 +108,14 @@ class RouteExportNavigationTest {
             click(latest(), "settings_DATA")
             val manager = latest()
             click(manager, "data_LOCAL")
-            latest().getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(latest()); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             click(manager, "data_LOCAL")
             val settings = latest()
             (descendants(settings.window!!.decorView).single { it.tag == "export_save" } as CheckBox).isChecked = false
-            settings.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            testBack(settings)
             val deadline = System.currentTimeMillis() + 5000
-            while (settings.isShowing && System.currentTimeMillis() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
+            while (RouteExportSettings(controller.get()).read().save && System.currentTimeMillis() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
             assertFalse(settings.isShowing)
             assertFalse(RouteExportSettings(RuntimeEnvironment.getApplication()).read().save)
             assertFalse(RouteExportSettings(RuntimeEnvironment.getApplication()).read().webdav)

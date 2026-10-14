@@ -29,84 +29,45 @@ class SettingsMenuTest {
         return ShadowAlertDialog.getLatestAlertDialog()
     }
     private fun views(dialog: AlertDialog) = descendants(dialog.window!!.decorView)
-    @Test fun sevenTilesKeepExistingThreeColumnsAndCollapsedAdvancedWithLicensesLast() {
+    @Test fun sevenRowsUseDoubleHeightAndAdvancedHasNormalRowsWithLicensesLast() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val dialog = open(controller.get())
-            val menu = views(dialog).filterIsInstance<SettingsMenuView>().single()
-            for ((width, height) in listOf(960 to 1700, 720 to 1500)) {
-                menu.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.AT_MOST))
-                menu.layout(0, 0, width, menu.measuredHeight)
-                for (i in 0..1) {
-                    val row = views(dialog).single { it.tag == "settings_row_$i" } as ViewGroup
-                    assertEquals(3, row.childCount)
-                    assertEquals(3, (0..2).count { row.getChildAt(it).isClickable })
-                    if (i == 0) assertEquals("settings_PROFILE", row.getChildAt(1).tag)
-                    for (column in 0..2) assertTrue(row.getChildAt(column).width >= width / 4)
-                }
-                val lastRow = views(dialog).single { it.tag == "settings_row_2" } as ViewGroup
-                assertEquals(3,lastRow.childCount);assertEquals("settings_DATA",lastRow.getChildAt(0).tag)
-                assertEquals(1,(0..2).count { lastRow.getChildAt(it).isClickable })
-                for (text in descendants(menu).filterIsInstance<TextView>()) {
-                    val layout = requireNotNull(text.layout)
-                    assertTrue("Clipped ${text.text}", layout.height <= text.height)
-                    for (line in 0 until layout.lineCount) assertTrue("Too wide ${text.text} at $width: ${layout.getLineWidth(line)} > ${text.width}", layout.getLineWidth(line) <= text.width + 1)
-                }
+            val menu = open(controller.get())
+            shadowOf(Looper.getMainLooper()).idle()
+            val body = views(menu).filterIsInstance<SettingsMenuView>().single()
+            for (width in listOf(960,720)) {
+                body.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
+                body.layout(0,0,width,body.measuredHeight)
+                val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
+                assertEquals(7,rows.size)
+                rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.touchSize*2)) }
             }
-            val brand = descendants(menu).single { it.tag == "settings_brand" } as android.widget.ImageView
-            assertEquals("B|Cycle", brand.contentDescription)
-            assertEquals(menu.width, brand.width)
-            assertEquals(android.widget.ImageView.ScaleType.FIT_CENTER, brand.scaleType)
-            assertEquals(BicycleThemes.red.tokens.primary, (brand.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
-            val sensorIcon = controller.get().getDrawable(R.drawable.ic_settings_sensors)!!
-            val iconPixels = Bitmap.createBitmap(192, 192, Bitmap.Config.ARGB_8888)
-            sensorIcon.setBounds(0, 0, 192, 192); sensorIcon.draw(Canvas(iconPixels))
-            assertEquals(android.graphics.Color.WHITE, iconPixels.getPixel(96, 96))
-            for (y in 0 until 192) {
-                assertEquals("Sensor arc clipped on left", 0, android.graphics.Color.alpha(iconPixels.getPixel(0, y)))
-                assertEquals("Sensor arc clipped on right", 0, android.graphics.Color.alpha(iconPixels.getPixel(191, y)))
-            }
-            val advanced = views(dialog).single { it.tag == "settings_advanced_content" } as ViewGroup
-            assertEquals(View.GONE, advanced.visibility); assertEquals(0, advanced.childCount)
-            val toggle = views(dialog).single { it.tag == "settings_ADVANCED" }
-            toggle.performClick(); assertEquals(View.VISIBLE, advanced.visibility); assertEquals(6, advanced.childCount)
-            assertEquals("Ausgeklappt", toggle.stateDescription)
-            toggle.performClick(); assertEquals(View.GONE, advanced.visibility)
-            assertEquals("settings_FONT_LICENSE", advanced.getChildAt(advanced.childCount - 2).tag)
-            assertEquals("settings_MAP_LICENSE", advanced.getChildAt(advanced.childCount - 1).tag)
-            assertEquals(1, views(dialog).single { it.tag == "settings_separator" }.layoutParams.height)
-            // Produce a native Android render for visual review of colour, symbols and spacing.
-            menu.measure(View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-            menu.layout(0, 0, 960, menu.measuredHeight)
-            val image = Bitmap.createBitmap(menu.width, menu.height, Bitmap.Config.ARGB_8888)
-            Canvas(image).apply { drawColor(controller.get().getColor(R.color.settings_red)); menu.draw(this) }
-            val output = File("build/reports/settings/menu.png").apply { parentFile!!.mkdirs() }
-            output.outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            views(menu).single { it.tag=="settings_ADVANCED" }.performClick()
+            val advanced=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
+            assertNotSame(menu,advanced);assertEquals(View.GONE,menu.window!!.decorView.visibility)
+            val rows=views(advanced).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
+            assertEquals(6,rows.size)
+            assertEquals("settings_FONT_LICENSE",rows[4].tag);assertEquals("settings_MAP_LICENSE",rows[5].tag)
+            rows.forEach { assertEquals(BicycleDesign.dp(controller.get(),BicycleDesign.touchSize),it.minimumHeight) }
+            testBack(advanced);assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun closeCancelAndBackRestoreSameParentWithExpandedAdvancedSection() {
-        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+    @Test fun backRestoresSameAdvancedAndMainScreens() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val root = open(controller.get())
-            views(root).single { it.tag == "settings_ADVANCED" }.performClick()
-            views(root).single { it.tag == "settings_FONT_LICENSE" }.performClick()
-            val license = ShadowAlertDialog.getLatestAlertDialog()
-            shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.GONE, root.window!!.decorView.visibility)
-            license.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
-            assertEquals(View.VISIBLE, views(root).single { it.tag == "settings_advanced_content" }.visibility)
-            views(root).single { it.tag == "settings_MAP" }.performClick()
-            val map = ShadowAlertDialog.getLatestAlertDialog()
-            map.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
-            views(root).single { it.tag == "settings_DIAGNOSTIC" }.performClick()
-            ShadowAlertDialog.getLatestAlertDialog().cancel(); shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
+            val root=open(controller.get())
+            views(root).single { it.tag=="settings_ADVANCED" }.performClick()
+            val advanced=ShadowAlertDialog.getLatestAlertDialog()
+            views(advanced).single { it.tag=="settings_FONT_LICENSE" }.performClick()
+            testBack(ShadowAlertDialog.getLatestAlertDialog())
+            assertEquals(View.VISIBLE,advanced.window!!.decorView.visibility)
+            testBack(advanced);assertEquals(View.VISIBLE,root.window!!.decorView.visibility)
+            views(root).single { it.tag=="settings_MAP" }.performClick()
+            testBack(ShadowAlertDialog.getLatestAlertDialog());assertEquals(View.VISIBLE,root.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
 
-    @Test fun graphicalPresetGridEditsPagesAsDraftAndSavePersistsTheNewLayout() {
+    @Test fun graphicalPresetGridPersistsEachSelectionAndBackKeepsIt() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity = controller.get(); val prefs = activity.getSharedPreferences("bike", 0)
@@ -114,8 +75,8 @@ class SettingsMenuTest {
             views(root).single { it.tag == "settings_DASHBOARDS" }.performClick()
             val cancelled = ShadowAlertDialog.getLatestAlertDialog()
             views(cancelled).single { it.tag == "preset_HERO" }.performClick()
-            cancelled.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
-            assertNull(prefs.getString("dashboardTemplate_0", null))
+            testBack(cancelled)
+            assertEquals("HERO",prefs.getString("dashboardTemplate_0",null))
             views(root).single { it.tag == "settings_DASHBOARDS" }.performClick()
             val dialog = ShadowAlertDialog.getLatestAlertDialog()
             for (i in 0..2) assertEquals(3, (views(dialog).single { it.tag == "preset_row_$i" } as ViewGroup).childCount)
@@ -123,7 +84,7 @@ class SettingsMenuTest {
             assertTrue(views(dialog).single { it.tag == "preset_HERO_SEVEN" }.isSelected)
             views(dialog).single { it.tag == "preset_page_1" }.performClick()
             views(dialog).single { it.tag == "preset_EIGHT" }.performClick()
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(dialog)
             assertEquals("HERO_SEVEN", prefs.getString("dashboardTemplate_0", null))
             assertEquals("EIGHT", prefs.getString("dashboardTemplate_1", null))
             assertEquals(DashboardTemplate.HERO_SEVEN, descendants(activity.findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single().template)
@@ -140,9 +101,10 @@ class SettingsMenuTest {
             prefs.edit().putString("dashboard", custom).commit()
             for (action in SettingsAction.entries.filter { it != SettingsAction.ADVANCED }) {
                 val menu = open(activity)
+                var parent=menu
                 if (action.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal)
-                    views(menu).single { it.tag == "settings_ADVANCED" }.performClick()
-                views(menu).single { it.tag == "settings_${action.name}" }.performClick()
+                    { views(menu).single { it.tag == "settings_ADVANCED" }.performClick();parent=ShadowAlertDialog.getLatestAlertDialog() }
+                views(parent).single { it.tag == "settings_${action.name}" }.performClick()
                 val child = ShadowAlertDialog.getLatestAlertDialog()
                 assertNotSame(menu, child); assertTrue(child.isShowing)
                 val colour = android.util.TypedValue()
@@ -151,10 +113,13 @@ class SettingsMenuTest {
                 if (action == SettingsAction.RESET) {
                     assertEquals(custom, prefs.getString("dashboard", null))
                     views(child).single { it.tag == "reset_execute" }.performClick()
-                    assertEquals(DashboardLayout.defaults.encode(), prefs.getString("dashboard", null))
+                    assertEquals(custom,prefs.getString("dashboard",null))
+                    val confirmation=ShadowAlertDialog.getLatestAlertDialog()
+                    confirmation.getButton(AlertDialog.BUTTON_POSITIVE).performClick();shadowOf(Looper.getMainLooper()).idle()
+                    assertEquals(DashboardLayout.defaults.encode(),prefs.getString("dashboard",null))
                 } else child.dismiss()
                 shadowOf(Looper.getMainLooper()).idle()
-                menu.dismiss(); shadowOf(Looper.getMainLooper()).idle()
+                parent.dismiss();menu.dismiss(); shadowOf(Looper.getMainLooper()).idle()
             }
         } finally { controller.pause().stop().destroy() }
     }

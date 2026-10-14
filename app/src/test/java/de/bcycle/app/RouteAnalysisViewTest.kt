@@ -162,7 +162,7 @@ class RouteAnalysisViewTest {
             descendants(map).single { it.contentDescription == activity.getString(R.string.analysis_fit_route) }.performClick()
             assertEquals(center, map.map.model.mapViewPosition.center)
             assertNotNull(screen.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen"))
-            screen.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(screen)
             assertTrue(destroyed.getBoolean(map))
         } finally { controller.pause().stop().destroy() }
     }
@@ -199,11 +199,11 @@ class RouteAnalysisViewTest {
             assertNotNull(details.window!!.decorView.findViewWithTag<View>("route_analysis_$second"))
             assertNull(details.window!!.decorView.findViewWithTag<View>("route_analysis_$first"))
             measure(details.window!!.decorView, 1080, 2000)
-            assertEquals(BicycleDesign.dp(activity, BicycleDesign.headerHeight), details.window!!.decorView.findViewWithTag<View>("route_analysis_header").height)
+            assertEquals(BicycleDesign.dp(activity, BicycleDesign.headerHeight), details.window!!.decorView.findViewWithTag<View>("bicycle_navigation_header").height)
             assertTrue(descendants(details.window!!.decorView).joinToString { "${it.javaClass.simpleName}:${it.tag}" }, details.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen") != null)
             assertEquals(descendants(details.window!!.decorView).filterIsInstance<ScrollView>().joinToString { "${it.tag} shown=${it.isShown} parent=${(it.parent as View).tag}" }, 1, descendants(details.window!!.decorView).count { it is ScrollView && it.isShown && it.tag != "bicycle_fullscreen_footer" })
             // Closing immediately also exercises cancellation while the shared worker is still decoding.
-            descendants(details.window!!.decorView).single { it.contentDescription == activity.getString(R.string.analysis_back) }.performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(details); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             assertEquals(selectedBefore, state.selectedRoute)
             assertEquals(2, filter.selectedItemPosition); assertSame(list, manager.window!!.decorView.findViewWithTag("route_list"))

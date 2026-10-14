@@ -41,7 +41,7 @@ class FullscreenDialogTest {
                 val scroll = ScrollView(activity).apply { isSmoothScrollingEnabled=false; addView(body) }
                 val dialog = BicycleDialogBuilder(activity, themes, DialogNavigation()).setTitle("Referenz")
                     .setView(scroll).setNegativeButton("Abbrechen") { _, _ -> cancelled = true }
-                    .setPositiveButton("Speichern") { _, _ -> saved = true }.show()
+                    .setPositiveButton("Exportieren") { _, _ -> saved = true }.show()
                 measure(dialog, width, height)
                 val root = views(dialog.window!!.decorView).single { it.tag == "bicycle_fullscreen" } as ViewGroup
                 val footer = views(root).single { it.tag == "bicycle_fullscreen_footer" }
@@ -58,8 +58,7 @@ class FullscreenDialogTest {
                 assertEquals(oldHeaderTop, root.getChildAt(0).top); assertEquals(oldFooterTop, footer.top)
                 val save = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 val cancel = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                assertTrue(save.height >= 48); assertTrue(cancel.height >= 48)
-                assertTrue(save.left >= cancel.left || save.top != cancel.top)
+                assertTrue(save.height >= 48); assertEquals(View.GONE,cancel.visibility)
                 save.performClick(); org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
                 assertTrue(saved); assertFalse(cancelled)
             }
@@ -79,14 +78,14 @@ class FullscreenDialogTest {
             val bars = WindowInsets.Builder().setInsets(WindowInsets.Type.systemBars(), Insets.of(0, 24, 0, 24))
                 .setInsets(WindowInsets.Type.displayCutout(), Insets.of(10, 0, 0, 0)).build()
             root.dispatchApplyWindowInsets(bars); measure(dialog, 800, 1200)
-            val footer = views(root).single { it.tag == "bicycle_fullscreen_footer" }
+            assertFalse(views(root).any { it.tag=="bicycle_fullscreen_footer" })
             assertEquals(24, root.paddingBottom); assertEquals(24, root.paddingTop); assertEquals(10, root.paddingLeft)
             assertEquals(android.graphics.Color.BLACK, (root.background as android.graphics.drawable.ColorDrawable).color)
-            assertEquals(1200 - 24, footer.bottom)
+            assertEquals(1200 - 24, scroll.bottom)
             val previous = scroll.height
             root.dispatchApplyWindowInsets(WindowInsets.Builder(bars).setInsets(WindowInsets.Type.ime(), Insets.of(0, 0, 0, 320)).build())
             measure(dialog, 800, 1200)
-            assertEquals(320, root.paddingBottom); assertEquals(880, footer.bottom); assertTrue(scroll.height < previous)
+            assertEquals(320, root.paddingBottom); assertEquals(880, scroll.bottom); assertTrue(scroll.height < previous)
             val input = body.getChildAt(29) as EditText
             input.requestFocus(); scroll.fullScroll(View.FOCUS_DOWN); measure(dialog, 800, 1200)
             assertTrue(scroll.scrollY > 0); assertEquals("Feld 29", input.text.toString())
@@ -103,14 +102,13 @@ class FullscreenDialogTest {
             val menu = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             measure(menu, 800, 1200)
             val menuRoot = views(menu.window!!.decorView).single { it.tag == "bicycle_fullscreen" } as ViewGroup
-            assertEquals("settings_brand", menuRoot.getChildAt(0).tag)
-            val menuFooter = views(menuRoot).single { it.tag == "bicycle_fullscreen_footer" }
-            assertEquals(1200, menuFooter.bottom)
+            assertEquals("bicycle_navigation_header", menuRoot.getChildAt(0).tag)
+            assertFalse(views(menuRoot).any { it.tag=="bicycle_fullscreen_footer" })
             views(menuRoot).single { it.tag == "settings_ROUTES" }.performClick()
             val route = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             measure(route, 800, 1200)
             val root = views(route.window!!.decorView).single { it.tag == "bicycle_fullscreen" } as ViewGroup
-            assertEquals("route_manager_header", root.getChildAt(0).tag)
+            assertEquals("bicycle_navigation_header", root.getChildAt(0).tag)
             assertEquals(1, views(root).filterIsInstance<android.widget.ListView>().size)
             val body = views(root).filterIsInstance<RouteManagerView>().single()
             // The native buttonPanel may itself scroll; the route body must not wrap its ListView.
@@ -120,9 +118,8 @@ class FullscreenDialogTest {
             assertEquals(1200, footer.bottom)
             assertTrue(body.height > BicycleDesign.managerMaxHeight)
             val imported = route.getButton(AlertDialog.BUTTON_NEUTRAL)
-            val close = route.getButton(AlertDialog.BUTTON_POSITIVE)
-            assertTrue(imported.left < close.left)
-            close.performClick(); org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertTrue(imported.isShown)
+            testBack(route)
             assertEquals(View.VISIBLE, menu.window!!.decorView.visibility)
             menu.dismiss()
         } finally { controller.pause().stop().destroy() }
@@ -149,7 +146,7 @@ class FullscreenDialogTest {
             measure(confirm, 360, 400)
             assertFalse(views(confirm.window!!.decorView).any { it.tag == "bicycle_fullscreen" })
             assertEquals(View.VISIBLE, parent.window!!.decorView.visibility) // Settings, not the dashboard, remain behind the compact overlay.
-            confirm.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
+            testBack(confirm)
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             assertTrue(parent.isShowing); parent.dismiss()
         } finally { controller.pause().stop().destroy() }

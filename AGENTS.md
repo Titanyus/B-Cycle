@@ -11,7 +11,13 @@
 9. Arbeite schrittweise und konzentriere dich auf die angeforderte Funktion.
 10. Schließe mit einer kurzen, verständlichen Zusammenfassung der Änderungen und Testergebnisse; benenne ungeprüfte Punkte.
 
-UI: Verwende für neue Dialoge die zentralen BicycleDesign-/BicycleComponents-/BicycleDialog-Komponenten, ThemeManager und BicycleIcons; keine eigenen Farb- oder Geometrievarianten. Einstellungsansichten verwenden den Vollbild-Host mit fixem Header/Footer; kurze Bestätigungen bleiben kompakt. Footer: Abbrechen = X (Cancel), Schließen = Tür mit Pfeil (Close). Funktionale Bosch-Modusfarben bleiben vom App-Theme getrennt.
+UI: Verwende für neue Dialoge die zentralen BicycleDesign-/BicycleComponents-/BicycleDialog-Komponenten, ThemeManager und BicycleIcons; keine eigenen Farb- oder Geometrievarianten. Einstellungsansichten verwenden den Vollbild-Host mit fixem Header/Footer; kurze Bestätigungen bleiben kompakt. Navigation: jeder Dialog hat im Header links den Zurück-Chevron; Titel sind unabhängig davon zur gesamten Fensterbreite zentriert. Speichern/Abbrechen/Schließen entfallen als Footer-Navigation; nur fachliche Aktionen bleiben dort. Gültige Einstellungsänderungen werden automatisch gespeichert; ungültige bzw. unvollständige Eingaben überschreiben keine gültigen Einstellungen. Destruktive Aktionen behalten eine Bestätigung. Abschnittsüberschriften verwenden den vorhandenen Systemfont in Fettschrift. Funktionale Bosch-Modusfarben bleiben vom App-Theme getrennt.
+
+## Einheitliche Navigation und Zustands-Icons
+
+Jeder Einstellungs-Menüpunkt öffnet einen eigenen Unterdialog. „Erweitert“ ist ein separater Screen, kein Accordion. Nur im Haupt-Einstellungsmenü sind die Zeilen doppelt so hoch; Untermenüs verwenden die normale Listenhöhe. Header-Chevron und Android-Zurück führen zum vorherigen Screen und erhalten dessen Scrollposition. Ein Footer ohne fachliche Aktionen wird vollständig entfernt, inklusive seines Platzbedarfs.
+
+Umschalt-Icons zeigen **den aktuellen Zustand**, nicht die nächste Aktion. Beispiele: helle Karte = sun, dunkle Karte = moon; Norden oben = compass, Fahrtrichtung oben = arrow-up-from-dot; Passwort verborgen = eye-closed, sichtbar = eye. Reine Befehls-Icons (Import, Löschen usw.) bleiben Aktionssymbole. Accessibility-Beschreibungen dürfen zusätzlich die nächste Aktion erklären.
 
 ## Ausrichtung und Dashboard-Bearbeitung
 

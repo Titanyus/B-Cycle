@@ -40,10 +40,9 @@ internal object BicycleFullscreen {
             window.setBackgroundDrawable(GradientDrawable().apply { setColor(android.graphics.Color.BLACK); cornerRadius = 0f })
         }
         header?.let {
-            val height = if (embeddedHeader != null) it.layoutParams.height else ViewGroup.LayoutParams.WRAP_CONTENT
             detach(it); it.tag = if (it.tag == null) "bicycle_fullscreen_header" else it.tag
             if (it === nativeHeader) it.setPadding(0, 0, 0, 0)
-            host.addView(it, LinearLayout.LayoutParams(-1, height))
+            host.addView(BicycleNavigation.header(it,screen,themes), LinearLayout.LayoutParams(-1, BicycleDesign.dp(context,BicycleDesign.headerHeight)))
             val colored = descendants(it).firstOrNull { child -> child.tag == "bicycle_dialog_header" } ?: it
             BicycleComponents.bindTheme(colored, themes) { tokens -> colored.background = GradientDrawable().apply { setColor(tokens.primary); cornerRadius = 0f } }
         }

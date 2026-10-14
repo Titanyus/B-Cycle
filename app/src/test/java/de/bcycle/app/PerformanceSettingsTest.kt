@@ -42,7 +42,6 @@ class PerformanceSettingsTest {
         assertFalse(checkboxes.getValue("record_NORMALIZED_POWER").isChecked)
         assertFalse(checkboxes.getValue("record_HEART_RATE").isChecked)
         val before = prefs.all.filterKeys { !it.startsWith("record") }
-        views(dialog.window!!.decorView).single { it.tag == "record_save" }.performClick()
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(setOf("RIDER_POWER", "CADENCE", "EFFICIENCY_FACTOR", "ESTIMATED_FTP"), runtime.config.fields)
         assertEquals(before, prefs.all.filterKeys { !it.startsWith("record") })
@@ -64,7 +63,7 @@ class PerformanceSettingsTest {
         assertFalse("GPS_SPEED" in config.fields); assertFalse("RIDER_POWER" in config.fields)
         assertEquals(setOf("CADENCE"), RecordingConfig.decode(setOf("CADENCE", "unknown-future-field"), null, null).fields)
     }
-    @Test fun accordionKeepsUnsavedDraftAndUsesActiveThemeWithoutOpeningAnotherDialog() {
+    @Test fun accordionKeepsPersistedSelectionAndUsesActiveThemeWithoutOpeningAnotherDialog() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity = controller.get(); val runtime = RideRuntime.get(activity)
@@ -82,9 +81,9 @@ class PerformanceSettingsTest {
             checkbox.isChecked = true
             toggle.performClick(); assertEquals(View.GONE, content.visibility)
             toggle.performClick(); assertEquals(View.VISIBLE, content.visibility); assertTrue(checkbox.isChecked)
-            assertEquals(before, runtime.config) // Collapsing is not saving.
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(before, runtime.config) // Closing without Save discards the draft.
+            assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)
+            testBack(dialog)
+            assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)
         } finally { controller.pause().stop().destroy() }
     }
 

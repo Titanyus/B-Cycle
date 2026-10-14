@@ -185,7 +185,7 @@ class BoschModeGlowTest {
         assertEquals(3L, runtime.currentAssistMode)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(61)); assertNull(runtime.currentAssistMode)
     }
-    @Test fun switchDefaultsOffSaveRestoresAndCancelKeepsPreviousChoiceWithThemeIndependentColor() {
+    @Test fun switchDefaultsOffChangesImmediatelyAndRestoresWithThemeIndependentColor() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             var activity = controller.get(); val runtime = RideRuntime.get(activity)
@@ -199,7 +199,7 @@ class BoschModeGlowTest {
             val screen = open()
             val toggle = views(screen.window!!.decorView).single { it.tag == "mode_glow_enabled" } as Switch
             assertFalse(toggle.isChecked); toggle.isChecked = true
-            screen.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(screen); shadowOf(Looper.getMainLooper()).idle()
             assertTrue(ModeGlowSettings.enabled(activity.getSharedPreferences("bike", 0)))
             ShadowAlertDialog.getLatestAlertDialog().dismiss(); shadowOf(Looper.getMainLooper()).idle()
             controller.recreate(); activity = controller.get()
@@ -209,8 +209,8 @@ class BoschModeGlowTest {
             runtime.themes.activate("preset:solar-flare"); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(runtime.themes.active.tokens.foreground, restored.currentTextColor)
             assertEquals(0xff80ff28.toInt(), BoschModeColors.color(1))
-            next.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(ModeGlowSettings.enabled(activity.getSharedPreferences("bike", 0)))
+            testBack(next); shadowOf(Looper.getMainLooper()).idle()
+            assertFalse(ModeGlowSettings.enabled(activity.getSharedPreferences("bike", 0)))
         } finally { controller.pause().stop().destroy() }
     }
 }

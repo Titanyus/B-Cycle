@@ -56,15 +56,15 @@ Die bisherigen Schlüssel bleiben erhalten:
 
 Der bestehende Auswahldialog speichert bestätigte Änderungen sofort mit
 SharedPreferences `apply()`. Sie erscheinen direkt und gehen bei Seitenwechseln nicht
-verloren. Abbrechen übernimmt keinen neuen Wert bzw. Graphentwurf. Beim expliziten
+verloren. Auch Änderungen an Graph-Overlays werden sofort übernommen; Zurück
+verwirft sie nicht. Beim expliziten
 Beenden wartet ein abschließendes `commit()` auf diese Schreibvorgänge. Meldet dieses
 Speichern einen Fehler, bleiben Editor und Markierungen aktiv und ein lokalisierter
 Fehlerhinweis erscheint. Es wird keine falsche Erfolgsmeldung angezeigt.
 
 Das bisherige separate Kartenfelder-Menü wurde durch den gemeinsamen Editor-Einstieg
-ersetzt. Gespeicherte Belegungen benötigen keine Migration. Unbestätigte Entwürfe in
-„Design & UI“ werden beim Wechsel zum Dashboard nicht automatisch übernommen; dafür
-bleibt dort der vorhandene Speichern-Button zuständig.
+ersetzt. Gespeicherte Belegungen benötigen keine Migration. Preset- und Glow-Auswahl in
+„Design & UI“ werden ebenfalls sofort gespeichert. Ein Speichern-Button entfällt.
 
 ## Dateien
 
@@ -84,7 +84,7 @@ bleibt dort der vorhandene Speichern-Button zuständig.
 `DashboardEditorTest` ersetzt die überholten Stillstandssperren-Tests. Er prüft native
 Long-Press-Gesten, Scroll-/Swipe-Abbruch, Aktivierung bei positiver Geschwindigkeit,
 normalen Tap, obere und Karten-Feldauswahl, alle Preset-Geometrien, PRIMARY und gestrichelte
-Innenrahmen, Position des Beenden-Buttons, Seitenwechsel, Graph-Persistenz, Abbrechen,
+Innenrahmen, Position des Beenden-Buttons, Seitenwechsel, Graph-Persistenz, Zurück,
 App-Unterbrechung, Verlassen des Dashboards, Kartensperre und Wiederherstellung,
 Live-Werte und Speicherfehler.
 

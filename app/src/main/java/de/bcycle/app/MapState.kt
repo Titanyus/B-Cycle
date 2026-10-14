@@ -125,7 +125,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             library.select(null); setSelectedFit(id); displayed
         } else { val displayed = library.select(id); setSelectedFit(null); displayed }
     }
-    fun renameRoute(id: String, name: String) = operate("Strecke umbenannt") {
+    fun renameRoute(id: String, name: String) = operate("") {
         if (fits.entries.any { it.id == id }) fits.rename(id, name) else library.rename(id, name)
         workerRoute
     }

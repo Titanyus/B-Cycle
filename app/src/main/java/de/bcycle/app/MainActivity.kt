@@ -25,6 +25,7 @@ class MainActivity : Activity() {
     private var routeImportButton: Button? = null
     private var routePopup: ListPopupWindow? = null
     private var routeSignature = ""
+    private val settingsWriter = java.util.concurrent.Executors.newSingleThreadExecutor { task -> Thread(task,"Bicycle-settings") }
     private var exportDraft: RouteExportConfig? = null
     private var exportPasswordDraft: String? = null
     private var pendingBackupExport: ByteArray? = null
@@ -218,6 +219,7 @@ class MainActivity : Activity() {
                 preferences.edit().putString(GraphOverlayConfig.key(dashboardPage),dashboardGraphs.encode()).apply()
             }
         }
+        graphs?.changed = { saveGraphs(); render() }
         fun select(field: DashboardField?) {
             // Ignore stale selections after the dashboard editor has been exited.
             if (!permitted()) { picker?.dismiss(); return }
@@ -236,15 +238,12 @@ class MainActivity : Activity() {
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
             runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, ::select)
         val builder = dialog().setTitle(if (mapField) "Kartenfeld · ${MapFieldSelection.positions[index]}" else "Feld ${index + 1} belegen")
-            .setView(content).setNegativeButton("Abbrechen", null)
-        if(graphs!=null) builder.setPositiveButton(getString(R.string.graph_apply)) { _,_ ->
-            if(permitted()) { saveGraphs(); render() }
-        }
+            .setView(content)
         picker=builder.show()
     }
-    private fun showMenu() {
+    private fun showMenu(advanced: Boolean = false) {
         setDashboardEditing(false)
-        val content = SettingsMenuView(settingsContext, runtime.themes) { action ->
+        val content = SettingsMenuView(settingsContext, runtime.themes, advanced) { action ->
             when (action) {
                 SettingsAction.SENSORS -> showSensorManager()
                 SettingsAction.DATA -> dataSettings()
@@ -252,22 +251,22 @@ class MainActivity : Activity() {
                 SettingsAction.MAP -> mapSettings()
                 SettingsAction.DASHBOARDS -> dashboardSettings()
                 SettingsAction.ROUTES -> routeSettings()
-                SettingsAction.ADVANCED -> Unit // Expanded within SettingsMenuView.
+                SettingsAction.ADVANCED -> showMenu(advanced = true)
                 SettingsAction.RECOVERY -> recoverySettings()
-                SettingsAction.GPS_HELP -> menu = dialog().setTitle("GPS-Messung").setMessage("Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").setPositiveButton("Schließen", null).show()
+                SettingsAction.GPS_HELP -> menu = dialog().setTitle("GPS-Messung").setMessage("Während einer gestarteten Aufzeichnung laufen GPS und Sensoren auch bei ausgeschaltetem Display weiter. Außerhalb einer Aufzeichnung misst GPS bei sichtbarer App.\n\nSTART setzt die Fahrtzähler zurück. Nur angehakte Speicherfelder werden in FIT aufgezeichnet. Die FIT-Hauptquellen für Geschwindigkeit und Distanz werden getrennt gewählt und bleiben während der Fahrt fest.\n\nUngenaue Positionen und Sprünge werden verworfen. Höhe wird geglättet, Steigung benötigt etwa 30–40 m Strecke. Höhe und Höhenmeter sind Näherungen. MSL bezeichnet Meereshöhe, Ellipsoid die andere GPS-Höhenreferenz.").show()
                 SettingsAction.DIAGNOSTIC -> diagnosticSettings()
                 SettingsAction.RESET -> resetDashboardSettings()
-                SettingsAction.FONT_LICENSE -> menu = dialog().setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).setPositiveButton("Schließen", null).show()
+                SettingsAction.FONT_LICENSE -> menu = dialog().setTitle("Bebas Neue · Dharma Type").setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).show()
                 SettingsAction.MAP_LICENSE -> menu = dialog().setTitle("Bibliotheken · Lizenzen").setMessage(
                     "Mapsforge · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkHttp 4.12.0 · Apache-2.0\n\n" + assets.open("OkHttp-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nLucide 0.468.0 · ISC / Feather MIT\n\n" + assets.open("Lucide-LICENSE.txt").bufferedReader().use { it.readText() })
-                    .setPositiveButton("Schließen", null).show()
+                    .show()
             }
         }
-        menu = dialog().setNegativeButton("Schließen", null).create().apply {
+        menu = dialog().setTitle(if(advanced) R.string.ui_advanced else R.string.ui_settings).create().apply {
             setView(ScrollView(settingsContext).apply { addView(content) }, 0, 0, 0, 0)
             show()
         }
@@ -278,22 +277,25 @@ class MainActivity : Activity() {
         root.addView(button("Speichern erneut versuchen", BicycleIcon.ExportTrack) { menu?.dismiss(); runtime.retryPending() }.apply {
             tag = "recovery_execute"; isEnabled = !runtime.recording && !runtime.saving
         })
-        menu = dialog().setTitle("Ungespeicherte Fahrten").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
+        menu = dialog().setTitle("Ungespeicherte Fahrten").setView(ScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun diagnosticSettings() {
         val root = column()
         root.addView(button("Diagnose als Datei speichern", BicycleIcon.ExportTrack) { menu?.dismiss(); exportDiagnostic() }.apply { tag = "diagnostic_execute" })
-        menu = dialog().setTitle("Diagnose").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
+        menu = dialog().setTitle("Diagnose").setView(ScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun resetDashboardSettings() {
         val root = column()
         root.addView(button("Belegung zurücksetzen", BicycleIcon.Reset) {
-            dashboardLayout = DashboardLayout.defaults
-            preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
-            render(); menu?.dismiss()
-            Toast.makeText(this, "Standardbelegung hergestellt", Toast.LENGTH_SHORT).show()
+            dialog(fullscreen=false).setTitle(R.string.ui_reset_title).setMessage(R.string.ui_reset_confirm)
+                .setPositiveButton(R.string.ui_reset_action) { _, _ ->
+                    dashboardLayout = DashboardLayout.defaults
+                    preferences.edit().putString(dashboardKey, dashboardLayout.encode()).apply()
+                    render()
+                    Toast.makeText(this,R.string.ui_reset_done,Toast.LENGTH_SHORT).show()
+                }.show()
         }.apply { tag = "reset_execute" })
-        menu = dialog().setTitle("Standardbelegung").setView(ScrollView(settingsContext).apply { addView(root) }).setPositiveButton("Schließen", null).show()
+        menu = dialog().setTitle("Standardbelegung").setView(ScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun showSensorManager() {
         val root = column(); sensorRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -316,7 +318,7 @@ class MainActivity : Activity() {
         }.apply { tag = "sensor_recording_toggle"; stateDescription = "Eingeklappt" })
         root.addView(recordingContent)
         refreshSensorRows()
-        sensorManager = dialog().setTitle("Sensoren & Aufzeichnung").setView(ScrollView(this).apply { addView(root) }).setPositiveButton("Schließen", null).create().apply {
+        sensorManager = dialog().setTitle("Sensoren & Aufzeichnung").setView(ScrollView(this).apply { addView(root) }).create().apply {
             dialogs.onDismiss(this) { sensorRows = null }; show()
         }
     }
@@ -334,7 +336,7 @@ class MainActivity : Activity() {
             rows.addView(label(title, BicycleDesign.inputSp).apply { setPadding(0, dp(12), 0, dp(4)) })
             rows.addView(label(state, 13f).apply { this.tag = tag })
             if (choose != null && kind != null) rows.addView(button(choose, BicycleIcon.Bluetooth) { selectSensor(kind) })
-            rows.addView(button(if (enabled) "Trennen" else "Verbinden", if (enabled) BicycleIcon.Disconnect else BicycleIcon.Bluetooth) { toggle(); rows.removeAllViews(); refreshSensorRows() })
+            rows.addView(button(if (enabled) "Trennen" else "Verbinden", if (enabled) BicycleIcon.Connection else BicycleIcon.Disconnect) { toggle(); rows.removeAllViews(); refreshSensorRows() })
         }
         sensor("GPS", runtime.gpsStatus, "gps_state", runtime.gpsEnabled) { if (runtime.gpsEnabled) runtime.setGpsEnabled(false) else enableGps() }
         sensor("E-Bike · ${if (runtime.bikeAddress == null) "Kein Rad gespeichert" else runtime.bikeName}", runtime.bikeStatus, "bike_state", runtime.bikeEnabled && runtime.bikeAddress != null, "Fahrrad auswählen", "bike") {
@@ -359,7 +361,7 @@ class MainActivity : Activity() {
             })
         }
         picker = dialog().setTitle(if (kind == "bike") "Fahrrad auswählen" else "Pulsmesser auswählen")
-            .setView(ScrollView(this).apply { addView(root) }).setNegativeButton("Abbrechen", null).create().apply { dialogs.onDismiss(this) { stopScan() }; show() }
+            .setView(ScrollView(this).apply { addView(root) }).create().apply { dialogs.onDismiss(this) { stopScan() }; show() }
         if (kind == "bike") {
             scanningBike = true; runtime.scanFound = ::found; runtime.scanStatus = { scanLabel.text = it }; runtime.beginBikeScan()
         } else {
@@ -392,18 +394,16 @@ class MainActivity : Activity() {
         }
         val speed = source("FIT-Hauptquelle · Geschwindigkeit", current.speedSource, "SPEED")
         val distance = source("FIT-Hauptquelle · Strecke", current.distanceSource, "BIKE_DISTANCE")
+        fun saveFields() { runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
+        observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
         for ((source, fields) in RecordField.options.groupBy { it.source }) {
             root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
             root.addView(label(source, BicycleDesign.inputSp).apply { setPadding(0, dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.smallGap)); isAccessibilityHeading = true })
             for (field in fields) root.addView(CheckBox(settingsContext).apply {
                 text = field.titleResource?.let(::getString) ?: field.title; tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
-                setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id) }
+                setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id);saveFields() }
             })
         }
-        root.addView(button("Speichern", BicycleIcon.Save) {
-            runtime.saveConfig(RecordingConfig(selected.toSet(), if (speed.selectedItemPosition == 0) "SPEED" else "GPS_SPEED", if (distance.selectedItemPosition == 0) "BIKE_DISTANCE" else "GPS_DISTANCE"))
-            Toast.makeText(this, "Auswahl für die nächste Fahrt gespeichert", Toast.LENGTH_SHORT).show()
-        }.apply { tag = "record_save" })
         // The accordion is built after the dialog opens; apply the same central styles to its children.
         BicycleDialogStyle.content(root, runtime.themes)
         return root
@@ -462,7 +462,9 @@ class MainActivity : Activity() {
                     val flags = data.flags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                     if (flags and Intent.FLAG_GRANT_WRITE_URI_PERMISSION == 0) error("Keine Schreibberechtigung")
                     contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                    exportDraft = (exportDraft ?: RouteExportSettings(this).read()).copy(tree = uri.toString())
+                    val settings=RouteExportSettings(this)
+                    settings.write(settings.read().copy(tree=uri.toString()),null)
+                    exportDraft = settings.read()
                 } catch (_: Exception) { Toast.makeText(this, "Ordnerzugriff konnte nicht gespeichert werden", Toast.LENGTH_LONG).show() }
             }
             if (dialogs.empty) { showMenu(); dataSettings(); routeExportSettings(RouteExportPart.LOCAL) }
@@ -491,7 +493,7 @@ class MainActivity : Activity() {
     }
     override fun onDestroy() {
         if(mapBackRegistered) onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
-        dialogs.closeAll(); mapPanel.destroy(); super.onDestroy()
+        dialogs.closeAll(); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
     }
 
     private fun setMapFullscreen(full: Boolean) {
@@ -514,6 +516,9 @@ class MainActivity : Activity() {
         val presets = DashboardPresetPicker(settingsContext, (0 until 4).map { page ->
             DashboardTemplate.decode(preferences.getString("dashboardTemplate_$page", DashboardTemplate.entries[page].name))
         }, dashboardPage, runtime.themes)
+        presets.changed = {
+            val edit=preferences.edit(); presets.selection.forEachIndexed { page,template -> edit.putString("dashboardTemplate_$page",template.name) };edit.apply();changeDashboard(0)
+        }
         root.addView(presets)
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(label("Fahrmodus-Glow", BicycleDesign.inputSp))
@@ -525,12 +530,8 @@ class MainActivity : Activity() {
         root.addView(glow)
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(button(getString(R.string.dashboard_editor_open), BicycleIcon.EditDashboard) { enterDashboardEditor() }.apply { tag = "dashboard_editor_open" })
-        menu = dialog().setTitle("Design & UI").setView(ScrollView(this).apply { tag = "design_ui_scroll"; addView(root) })
-            .setPositiveButton("Speichern") { _, _ ->
-                val edit = preferences.edit(); presets.selection.forEachIndexed { page, template -> edit.putString("dashboardTemplate_$page", template.name) }; edit.apply()
-                ModeGlowSettings.save(preferences, glow.isChecked)
-                changeDashboard(0)
-            }.setNegativeButton("Abbrechen", null).show()
+        glow.setOnCheckedChangeListener { _,checked -> ModeGlowSettings.save(preferences,checked); render() }
+        menu = dialog().setTitle("Design & UI").setView(ScrollView(this).apply { tag="design_ui_scroll";addView(root) }).show()
     }
     private fun mapSettings() {
         val root = column()
@@ -548,13 +549,13 @@ class MainActivity : Activity() {
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(button("GPS aktivieren / Berechtigung erlauben", BicycleIcon.Map) { enableGps() })
         root.addView(button("CyclOSM-Legende öffnen", BicycleIcon.Info) { openMapLink(MapSource.CYCLOSM.creditUrl) })
-        menu = dialog().setTitle("Kartenmanager").setView(ScrollView(this).apply { addView(root) })
-            .setPositiveButton("Speichern") { _, _ ->
-                preferences.edit().putString("mapSource", MapSource.entries[source.selectedItemPosition].name)
-                    .putBoolean("mapHeading", heading.isChecked).putBoolean("mapFollow", follow.isChecked)
-                    .putBoolean("mapTrackVisible", track.isChecked).putBoolean("mapGpxVisible", gpx.isChecked).apply()
-                mapPanel.refreshSettings()
-            }.setNegativeButton("Abbrechen", null).show()
+        observeSettings(root) {
+            preferences.edit().putString("mapSource", MapSource.entries[source.selectedItemPosition].name)
+                .putBoolean("mapHeading",heading.isChecked).putBoolean("mapFollow",follow.isChecked)
+                .putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked).apply()
+            mapPanel.refreshSettings()
+        }
+        menu=dialog().setTitle("Kartenmanager").setView(ScrollView(this).apply { addView(root) }).show()
     }
     private fun importRoute(recorded: Boolean = false) {
         try {
@@ -614,14 +615,9 @@ class MainActivity : Activity() {
         val route = analysis.route ?: return
         val map = RouteAnalysisMap(settingsContext, route, true)
         val screen = dialog().setTitle(analysis.entry.name).setView(map)
-            .setPositiveButton(getString(R.string.analysis_map_close), null).create()
+            .create()
         dialogs.onDismiss(screen, map::dispose)
         screen.show()
-        screen.getButton(AlertDialog.BUTTON_POSITIVE).let { button ->
-            val icon = BicycleIcons.drawable(this, BicycleIcon.Back, runtime.themes.active.tokens.foreground)
-            icon.setBounds(0, 0, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize))
-            button.setCompoundDrawablesRelative(icon, null, null, null)
-        }
     }
     private fun routeSettings() {
         setDashboardEditing(false)
@@ -634,7 +630,7 @@ class MainActivity : Activity() {
         }, themes = runtime.themes, details = ::routeAnalysis)
         routeManager = content
         refreshRouteRows()
-        menu = dialog().setView(content).setNeutralButton("Importieren", null).setPositiveButton("Schließen", null).create().apply {
+        menu = dialog().setView(content).setNeutralButton("Importieren", null).create().apply {
             setView(content, 0, 0, 0, 0)
             dialogs.onDismiss(this) { if (routeManager === content) { routePopup?.dismiss(); routePopup = null; routeManager = null; routeImportButton = null } }; show()
             routeImportButton = getButton(AlertDialog.BUTTON_NEUTRAL).apply {
@@ -651,7 +647,7 @@ class MainActivity : Activity() {
                 setColor(tokens.secondary); cornerRadius = 0f
             })
             decor.clipToOutline = true
-            listOf(AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_POSITIVE).forEach { which ->
+            listOf(AlertDialog.BUTTON_NEUTRAL).forEach { which ->
                 screen.getButton(which).apply {
                     setTextColor(tokens.foreground); typeface = android.graphics.Typeface.DEFAULT; textSize = BicycleDesign.bodySp
                     backgroundTintList = null; background = null
@@ -660,7 +656,6 @@ class MainActivity : Activity() {
             }
             screen.getButton(AlertDialog.BUTTON_NEUTRAL).compoundDrawablesRelative[0]?.setTint(tokens.foreground)
         }
-        BicycleDialogStyle.actionIcon(screen.getButton(AlertDialog.BUTTON_POSITIVE), runtime.themes, BicycleIcon.Close)
         state.refreshLibrary()
     }
     private fun routeImportChoice() {
@@ -716,8 +711,8 @@ class MainActivity : Activity() {
         } }
     }
     private fun dataDialog(title: Int, body: View, action: Int? = null): AlertDialog {
-        val builder = dialog().setTitle(title).setView(body).setNegativeButton(if(action == null) R.string.analysis_close else R.string.route_cancel, null)
-        action?.let { builder.setPositiveButton(it, null) }
+        val builder = dialog().setTitle(title).setView(body)
+        action?.takeIf { it!=R.string.route_action_save }?.let { builder.setPositiveButton(it, null) }
         val screen = builder.create()
         screen.setCustomTitle(BicycleComponents.header(settingsContext, runtime.themes).apply {
             tag = "bicycle_dialog_header"; setPadding(dp(BicycleDesign.smallGap),0,dp(BicycleDesign.verticalPadding),0)
@@ -767,7 +762,7 @@ class MainActivity : Activity() {
             } else {
                 dialog(fullscreen=false).setTitle(R.string.backup_confirm_title)
                     .setMessage(getString(R.string.backup_confirm_message,selected.joinToString(", ") { getString(it.title) }))
-                    .setNegativeButton(R.string.route_cancel,null).setPositiveButton(R.string.backup_restore_execute) { _,_->
+                    .setPositiveButton(R.string.backup_restore_execute) { _,_->
                         button.isEnabled=false
                         Thread({
                             val result=runCatching {
@@ -857,7 +852,10 @@ class MainActivity : Activity() {
         exportDraft = null; exportPasswordDraft = null
         val screen = dataDialog(if(part == RouteExportPart.LOCAL) R.string.data_local else R.string.data_cloud,
             ScrollView(settingsContext).apply { addView(content) }, R.string.route_action_save)
-        screen.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+        var saveRevision=0L
+        observeSettings(content) {
+            if(content.restoringPassword) return@observeSettings
+            val revision=++saveRevision
             try {
                 val draft = content.read(); val current = settings.read()
                 val config = if(part == RouteExportPart.LOCAL) current.copy(save = draft.save, tree = draft.tree)
@@ -867,18 +865,21 @@ class MainActivity : Activity() {
                     WebDavClient.directory(config)
                     require(password != null || settings.hasPassword()) { getString(R.string.route_export_need_password) }
                 }
-                screen.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
                 val appContext = applicationContext
-                Thread({
-                    val success = runCatching { settings.write(config, password); RouteUploads.settingsChanged(appContext) }.isSuccess
+                settingsWriter.execute {
+                    val success = runCatching {
+                        val latest=settings.read()
+                        val merged=if(part==RouteExportPart.LOCAL) latest.copy(save=draft.save,tree=draft.tree)
+                            else latest.copy(webdav=draft.webdav,server=draft.server,user=draft.user,folder=draft.folder,wifiOnly=draft.wifiOnly)
+                        settings.write(merged,password);RouteUploads.settingsChanged(appContext)
+                    }.isSuccess
                     runOnUiThread {
-                        if (!isDestroyed) {
-                            screen.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
-                            if (success) { routeSignature = ""; refreshRouteRows(); screen.dismiss() }
+                        if (!isDestroyed && revision==saveRevision) {
+                            if (success) { routeSignature = ""; refreshRouteRows(); content.result.text = "" }
                             else content.result.text = getString(R.string.route_export_save_failed)
                         }
                     }
-                }, "B-Cycle-Streckeneinstellungen").start()
+                }
             } catch (e: Exception) {
                 content.result.text = if (e is IllegalArgumentException) e.message else getString(R.string.route_export_save_failed)
             }
@@ -905,19 +906,28 @@ class MainActivity : Activity() {
         val input = EditText(settingsContext).apply { setText(entry.name); setSingleLine(); selectAll()
             filters = arrayOf(android.text.InputFilter.LengthFilter(120)); tag = "route_rename" }
         val rename = dialog().setTitle(getString(R.string.route_rename_title)).setView(input)
-            .setPositiveButton(getString(R.string.route_action_save), null).setNegativeButton(getString(R.string.route_cancel), null).create()
+            .create()
         rename.show()
-        rename.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val name = input.text.toString().trim()
-            if (name.isEmpty()) input.error = getString(R.string.route_name_required)
-            else { runtime.mapState.renameRoute(entry.id, name); rename.dismiss() }
+        val handler=android.os.Handler(android.os.Looper.getMainLooper())
+        var pending: String?=null
+        val save=object : Runnable {
+            override fun run() {
+                val name=pending ?: return
+                if(runtime.mapState.busy) { handler.postDelayed(this,50);return }
+                pending=null;runtime.mapState.renameRoute(entry.id,name)
+            }
+        }
+        input.onTextChanged {
+            val name=input.text.toString().trim()
+            if(name.isEmpty()) input.error=getString(R.string.route_name_required)
+            else { input.error=null;pending=name;handler.removeCallbacks(save);handler.postDelayed(save,200) }
         }
     }
     private fun deleteRoute(entry: ManagedRoute) {
         dialog(fullscreen = false).setTitle(getString(R.string.route_delete_title))
             .setMessage(getString(R.string.route_delete_message, entry.name))
             .setPositiveButton(getString(R.string.route_action_delete)) { _, _ -> runtime.mapState.deleteRoute(entry.id) }
-            .setNegativeButton(getString(R.string.route_cancel), null).show()
+            .show()
     }
     private fun detailEntry(detail: DetailSession): ManagedRoute? {
         val current = runtime.mapState.entries.firstOrNull { it.id == detail.id } ?: return null

@@ -29,74 +29,29 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 
-/** Native, scrollable menu content. Seven fixed actions in the existing three-column rows. */
-internal class SettingsMenuView(context: Context, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)), private val selected: (SettingsAction) -> Unit) : LinearLayout(context) {
-    private fun dp(value: Int) = BicycleDesign.dp(context, value)
-    private fun ripple(view: View) = BicycleComponents.bindTheme(view, themes) { tokens ->
-        view.background = RippleDrawable(ColorStateList.valueOf((tokens.foreground and 0x00ffffff) or (45 shl 24)), null, ColorDrawable(tokens.foreground))
-    }
+/** One row per destination; the main menu alone uses double-height rows. */
+internal class SettingsMenuView(context: Context, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
+    private val advanced: Boolean = false, private val selected: (SettingsAction) -> Unit) : LinearLayout(context) {
     init {
-        orientation = VERTICAL
-        BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
-        addView(ImageView(context).apply {
-            tag = "settings_brand"
-            contentDescription = "B|Cycle"
-            setImageResource(R.drawable.ic_settings_brand)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(BicycleDesign.headerHorizontalPadding), dp(BicycleDesign.headerHorizontalPadding), dp(BicycleDesign.headerHorizontalPadding), dp(BicycleDesign.headerHorizontalPadding))
-            BicycleComponents.background(this, themes, ThemeRole.PRIMARY, BicycleDesign.dialogRadius, header = true)
-            BicycleComponents.bindTheme(this, themes) { setColorFilter(it.foreground) }
-        }, LayoutParams(-1, dp(BicycleDesign.menuHeaderHeight)))
-        val body = LinearLayout(context).apply {
-            orientation = VERTICAL; setPadding(dp(BicycleDesign.rowGap), dp(BicycleDesign.rowGap), dp(BicycleDesign.rowGap), dp(BicycleDesign.verticalPadding))
+        orientation=VERTICAL
+        BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
+        val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal } else
+            listOf(SettingsAction.SENSORS,SettingsAction.PROFILE,SettingsAction.MAP,SettingsAction.DASHBOARDS,SettingsAction.ROUTES,SettingsAction.DATA,SettingsAction.ADVANCED)
+        actions.forEachIndexed { index,action ->
+            if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.dividerPixels))
+            addView(BicycleComponents.listRow(context,themes).apply {
+                tag="settings_${action.name}";contentDescription=action.label(context);isClickable=true;isFocusable=true
+                minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize*(if(advanced) 1 else 2))
+                setOnClickListener { selected(action) }
+                if(action.icon!=0) addView(ImageView(context).apply {
+                    setImageResource(action.icon);BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
+                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+                },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
+                addView(BicycleComponents.text(context,themes,action.label(context)).apply { gravity=Gravity.CENTER_VERTICAL },
+                    LayoutParams(0,-2,1f).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.verticalPadding) })
+                addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
+                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
+            },LayoutParams(-1,-2))
         }
-        addView(body, LayoutParams(-1, -2))
-        val advanced = LinearLayout(context).apply { orientation = VERTICAL; visibility = GONE; tag = "settings_advanced_content" }
-        var advancedTile: View? = null
-        var built = false
-        fun toggleAdvanced() {
-            val expand = advanced.visibility != VISIBLE
-            if (expand && !built) {
-                SettingsAction.entries.filter { it.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal }.forEach { action ->
-                    advanced.addView(entry(action.label(context)) { selected(action) }.apply { tag = "settings_${action.name}" })
-                }
-                built = true
-            }
-            advanced.visibility = if (expand) VISIBLE else GONE
-            advancedTile?.stateDescription = if (expand) "Ausgeklappt" else "Eingeklappt"
-        }
-        val actions = listOf(SettingsAction.SENSORS, SettingsAction.PROFILE, SettingsAction.MAP, SettingsAction.DASHBOARDS, SettingsAction.ROUTES, SettingsAction.ADVANCED, SettingsAction.DATA)
-        for (rowIndex in 0..2) {
-            val row = LinearLayout(context).apply { orientation = HORIZONTAL; isBaselineAligned = false; tag = "settings_row_$rowIndex" }
-            for (column in 0..2) {
-                val action = actions.getOrNull(rowIndex * 3 + column)
-                val tile = if (action == null) View(context) else tile(action) { if (action == SettingsAction.ADVANCED) toggleAdvanced() else selected(action) }
-                if (action == SettingsAction.ADVANCED) { advancedTile = tile; tile.stateDescription = "Eingeklappt" }
-                row.addView(tile, LayoutParams(0, dp(BicycleDesign.menuTileHeight), 1f))
-            }
-            body.addView(row, LayoutParams(-1, -2))
-        }
-        body.addView(BicycleComponents.sectionDivider(context, themes).apply { tag = "settings_separator" })
-        body.addView(advanced)
-
-    }
-    private fun tile(action: SettingsAction, onClick: () -> Unit) = LinearLayout(context).apply {
-        orientation = VERTICAL; gravity = Gravity.CENTER; setPadding(dp(BicycleDesign.menuTileHorizontalPadding), dp(BicycleDesign.rowGap), dp(BicycleDesign.menuTileHorizontalPadding), dp(BicycleDesign.rowGap))
-        ripple(this); isClickable = true; isFocusable = true
-        contentDescription = action.label(context); tag = "settings_${action.name}"
-        setOnClickListener { onClick() }
-        addView(ImageView(context).apply { setImageResource(action.icon); BicycleComponents.bindTheme(this, themes) { setColorFilter(it.foreground) }; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(dp(BicycleDesign.menuIconSize), dp(BicycleDesign.menuIconSize)))
-        addView(TextView(context).apply {
-            text = when (action) { SettingsAction.SENSORS -> "Sensoren &\nAufzeichnung"; SettingsAction.MAP -> "Karten-\nmanager"; SettingsAction.ROUTES -> "Strecken-\nmanager"; else -> action.label(context) }
-            gravity = Gravity.CENTER; BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground) }; maxLines = 2; includeFontPadding = false
-            typeface = Typeface.DEFAULT
-            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-            setAutoSizeTextTypeUniformWithConfiguration(10, 14, 1, TypedValue.COMPLEX_UNIT_SP)
-        }, LayoutParams(-1, dp(BicycleDesign.touchSize)).apply { topMargin = dp(BicycleDesign.verticalPadding) })
-    }
-    private fun entry(title: String, action: () -> Unit) = TextView(context).apply {
-        text = title; textSize = 15f; BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground) }; gravity = Gravity.CENTER_VERTICAL
-        minHeight = dp(BicycleDesign.touchSize); setPadding(dp(BicycleDesign.rowGap), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), dp(BicycleDesign.verticalPadding))
-        ripple(this); isClickable = true; isFocusable = true; setOnClickListener { action() }
     }
 }

@@ -17,11 +17,16 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-/** Independent draft; only the fixed Save action writes the application-owned store. */
+/** Valid edits persist automatically; incomplete input never overwrites the last valid profile. */
 internal class RiderProfileView(context: Context, private val themes: ThemeManager, initial: RiderProfile,
     private val navigation: DialogNavigation, private val today: () -> LocalDate = LocalDate::now) : ScrollView(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     private val locale get() = resources.configuration.locales[0]
+    var persist: ((RiderProfile) -> Boolean)? = null
+    private fun persistValid() {
+        val value=draft()
+        if(value.valid && persist?.invoke(value.profile)==false) saveFailed()
+    }
     private var birthDate = initial.birthDate
     private val root = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
@@ -31,7 +36,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     private val inputs = linkedMapOf<RiderField, EditText>()
     private val birth = Button(context).apply { tag = "rider_birth"; isAllCaps = false }
     private val clearBirth = BicycleComponents.icon(context, themes, BicycleIcon.Cancel, context.getString(R.string.rider_birth_clear)) {
-        birthDate = null; birth.error = null; updateBirth()
+        birthDate = null; birth.error = null; updateBirth(); persistValid()
     }.apply { tag = "rider_birth_clear" }
     private val age = text("").apply { tag = "rider_age" }
     private val hint = text("").apply { tag = "rider_zone_hint"; accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE }
@@ -42,7 +47,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     private fun section(title: Int) {
         if (root.childCount > 0) root.addView(BicycleComponents.sectionDivider(context, themes))
         root.addView(text(context.getString(title)).apply {
-            textSize = BicycleDesign.inputSp; isAccessibilityHeading = true
+            textSize = BicycleDesign.inputSp; isAccessibilityHeading = true; typeface = Typeface.DEFAULT_BOLD
             setPadding(0, dp(BicycleDesign.smallGap), 0, dp(BicycleDesign.verticalPadding))
         }, LinearLayout.LayoutParams(-1, -2))
     }
@@ -124,8 +129,17 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                 edit.error = null; saveError.visibility = GONE
                 if (field == RiderField.RESTING_HEART_RATE || field == RiderField.MAXIMUM_HEART_RATE) updateZones()
             }
-            override fun afterTextChanged(s: Editable?) = Unit
-        }) }
+            override fun afterTextChanged(s: Editable?) {
+                val value=s?.toString().orEmpty()
+                if(value.isNotBlank() && !value.endsWith(",") && !value.endsWith(".")) persistValid()
+            }
+        })
+            edit.setOnFocusChangeListener { _,focused -> if(!focused) persistValid() }
+        }
+        addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(view: View) = Unit
+            override fun onViewDetachedFromWindow(view: View) { persistValid() }
+        })
         updateZones()
     }
     private fun updateBirth() {
@@ -142,10 +156,12 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             minDate = RiderProfileValidation.minimumBirthDate(today()).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             updateDate(initial.year, initial.monthValue - 1, initial.dayOfMonth)
         }
-        BicycleDialogBuilder(context, themes, navigation, fullscreen = false).setTitle(R.string.rider_birth).setView(picker)
-            .setNegativeButton(R.string.route_cancel, null).setPositiveButton(R.string.route_action_save) { _, _ ->
-                birthDate = LocalDate.of(picker.year, picker.month + 1, picker.dayOfMonth); birth.error = null; updateBirth()
-            }.show()
+        var ready=false
+        picker.init(initial.year,initial.monthValue-1,initial.dayOfMonth) { _,year,month,day ->
+            if(ready) { birthDate=LocalDate.of(year,month+1,day);birth.error=null;updateBirth();persistValid() }
+        }
+        ready=true
+        BicycleDialogBuilder(context,themes,navigation,fullscreen=false).setTitle(R.string.rider_birth).setView(picker).show()
     }
     internal fun draft() = RiderProfileValidation.parse(birthDate, inputs.mapValues { it.value.text.toString() }, locale, today())
     private fun updateZones() {
@@ -201,19 +217,8 @@ internal object TrainingZoneColors {
 internal fun showRiderProfile(context: Context, themes: ThemeManager, navigation: DialogNavigation, store: RiderProfileStore): AlertDialog {
     val body = RiderProfileView(context, themes, store.read(), navigation)
     val screen = BicycleDialogBuilder(context, themes, navigation).setTitle(R.string.rider_profile).setView(body)
-        .setNegativeButton(R.string.route_cancel, null).setPositiveButton(R.string.route_action_save, null).create()
-    screen.setCustomTitle(BicycleComponents.header(context, themes).apply {
-        tag = "bicycle_dialog_header"; setPadding(BicycleDesign.dp(context, BicycleDesign.smallGap), 0, BicycleDesign.dp(context, BicycleDesign.verticalPadding), 0)
-        addView(BicycleComponents.icon(context, themes, BicycleIcon.Back, context.getString(R.string.rider_back)) { screen.dismiss() })
-        addView(BicycleComponents.heading(context, themes, context.getString(R.string.rider_profile)).apply {
-            tag = "bicycle_dialog_title"
-            setAutoSizeTextTypeUniformWithConfiguration(18, BicycleDesign.headingSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
-        },
-            LinearLayout.LayoutParams(0, BicycleDesign.dp(context, BicycleDesign.headerHeight), 1f))
-    })
+        .create()
+    body.persist = { profile -> runCatching { store.write(profile) }.getOrDefault(false) }
     screen.show()
-    screen.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-        body.validate()?.let { profile -> if (runCatching { store.write(profile) }.getOrDefault(false)) screen.dismiss() else body.saveFailed() }
-    }
     return screen
 }

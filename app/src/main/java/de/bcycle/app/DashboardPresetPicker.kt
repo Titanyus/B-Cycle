@@ -10,15 +10,16 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 
-/** Four saved pages; nine graphical presets with a draft until Save is pressed. */
+/** Four saved pages; selections notify the owning screen for immediate persistence. */
 internal class DashboardPresetPicker(context: Context, initial: List<DashboardTemplate>, initialPage: Int, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0))) : LinearLayout(context) {
+    var changed: () -> Unit = {}
     val selection = initial.toMutableList()
     private var page = initialPage
     private val choices = mutableMapOf<DashboardTemplate, View>()
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
         orientation = VERTICAL
-        addView(TextView(context).apply { text = "Dashboard-Seite wählen"; BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.inputSp })
+        addView(TextView(context).apply { text = "Dashboard-Seite wählen"; isAccessibilityHeading=true; BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.inputSp })
         val pages = RadioGroup(context).apply { orientation = HORIZONTAL }
         for (i in 0..3) pages.addView(RadioButton(context).apply {
             id = View.generateViewId(); text = "${i + 1}"; tag = "preset_page_$i"
@@ -33,7 +34,7 @@ internal class DashboardPresetPicker(context: Context, initial: List<DashboardTe
                 val tile = LinearLayout(context).apply {
                     orientation = VERTICAL; gravity = Gravity.CENTER; setPadding(dp(BicycleDesign.inputRadius), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.inputRadius), dp(BicycleDesign.verticalPadding))
                     tag = "preset_${template.name}"; isClickable = true; isFocusable = true; contentDescription = template.displayTitle(context)
-                    setOnClickListener { selection[page] = template; refresh() }
+                    setOnClickListener { selection[page] = template; refresh(); changed() }
                     addView(ImageView(context).apply { setImageDrawable(DashboardPreview(template)); BicycleComponents.bindTheme(this, themes) { setColorFilter(it.foreground) }; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(dp(BicycleDesign.presetPreviewWidth), dp(BicycleDesign.presetPreviewHeight)))
                     addView(TextView(context).apply { text = context.getString(R.string.dashboard_preset_values, template.slots.size); BicycleDialogStyle.control(this, themes); textSize = BicycleDesign.bodySp; gravity = Gravity.CENTER; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }, LayoutParams(-1, dp(BicycleDesign.iconSize)))
                 }

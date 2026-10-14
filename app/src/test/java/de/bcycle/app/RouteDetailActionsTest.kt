@@ -65,7 +65,7 @@ class RouteDetailActionsTest {
             footer.getChildAt(0).performClick(); shadowOf(Looper.getMainLooper()).idle()
             val map = ShadowAlertDialog.getLatestAlertDialog(); measure(map.window!!.decorView)
             assertTrue(views(map.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single().height > 600)
-            map.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(map); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, detail.window!!.decorView.visibility)
             fun matches(button: ImageButton, kind: BicycleIcon): Boolean {
                 fun pixels(drawable: android.graphics.drawable.Drawable): android.graphics.Bitmap {
@@ -84,14 +84,14 @@ class RouteDetailActionsTest {
             assertTrue(matches(saveButton, BicycleIcon.SaveConfirmed))
             assertTrue(matches(footer.getChildAt(2) as ImageButton, BicycleIcon.CloudNotUploaded))
             // Returning and reopening must show the durable save receipt, not reset it.
-            views(detail.window!!.decorView).single { it.contentDescription == activity.getString(R.string.analysis_back) }.performClick()
+            testBack(detail)
             shadowOf(Looper.getMainLooper()).idle()
             card.performClick(); shadowOf(Looper.getMainLooper()).idle()
             val reopened = ShadowAlertDialog.getLatestAlertDialog()
             waitFor { reopened.window!!.decorView.findViewWithTag<View>("detail_map").isEnabled }
             val restored = reopened.window!!.decorView.findViewWithTag<ImageButton>("detail_save")
             assertTrue(matches(restored, BicycleIcon.SaveConfirmed))
-            views(reopened.window!!.decorView).single { it.contentDescription == activity.getString(R.string.analysis_back) }.performClick()
+            testBack(reopened)
             shadowOf(Looper.getMainLooper()).idle()
             card.performClick(); shadowOf(Looper.getMainLooper()).idle()
             activeDetail = ShadowAlertDialog.getLatestAlertDialog()
@@ -100,10 +100,11 @@ class RouteDetailActionsTest {
             activeFooter.getChildAt(1).performClick(); shadowOf(Looper.getMainLooper()).idle()
             val rename = ShadowAlertDialog.getLatestAlertDialog(); val input = rename.window!!.decorView.findViewWithTag<EditText>("route_rename")
             assertEquals("First", input.text.toString()); input.setText("Renamed")
-            rename.getButton(AlertDialog.BUTTON_POSITIVE).performClick(); waitFor { !state.busy && state.entries.first { it.id == id }.name == "Renamed" }
+            shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(250)); waitFor { !state.busy && state.entries.first { it.id == id }.name == "Renamed" }
+            testBack(rename)
             assertEquals("Renamed", activeDetail.window!!.decorView.findViewWithTag<TextView>("analysis_title").text.toString())
             activeFooter.getChildAt(4).performClick(); shadowOf(Looper.getMainLooper()).idle()
-            val cancel = ShadowAlertDialog.getLatestAlertDialog(); cancel.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            val cancel = ShadowAlertDialog.getLatestAlertDialog(); testBack(cancel); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, activeDetail.window!!.decorView.visibility); assertTrue(state.entries.any { it.id == id })
             activeFooter.getChildAt(4).performClick(); shadowOf(Looper.getMainLooper()).idle()
             val delete = ShadowAlertDialog.getLatestAlertDialog(); delete.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
@@ -150,7 +151,7 @@ class RouteDetailActionsTest {
             assertEquals(1, transfers); refresh()
             assertEquals(activity.getString(R.string.route_cloud_confirmed), cloud.contentDescription)
             assertEquals(activity.getString(R.string.route_action_save), first.window!!.decorView.findViewWithTag<View>("detail_save").contentDescription)
-            views(first.window!!.decorView).single { it.contentDescription == activity.getString(R.string.analysis_back) }.performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(first); shadowOf(Looper.getMainLooper()).idle()
             val reopened = open(); refresh()
             assertEquals(activity.getString(R.string.route_cloud_confirmed), reopened.window!!.decorView.findViewWithTag<View>("detail_cloud").contentDescription)
             assertEquals(activity.getString(R.string.route_action_save), reopened.window!!.decorView.findViewWithTag<View>("detail_save").contentDescription)

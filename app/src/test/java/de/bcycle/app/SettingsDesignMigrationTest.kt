@@ -64,24 +64,25 @@ class SettingsDesignMigrationTest {
             val root = open(activity)
             for (action in SettingsAction.entries.filter { it != SettingsAction.ADVANCED && it != SettingsAction.ROUTES }) {
                 themes.activate(BicycleThemes.red.id)
-                if (action.ordinal >= SettingsAction.RECOVERY.ordinal && views(root).single { it.tag == "settings_advanced_content" }.visibility != View.VISIBLE)
-                    views(root).single { it.tag == "settings_ADVANCED" }.performClick()
-                views(root).single { it.tag == "settings_${action.name}" }.performClick()
+                var parent=root
+                if(action.ordinal>=SettingsAction.RECOVERY.ordinal) { views(root).single { it.tag=="settings_ADVANCED" }.performClick();parent=ShadowAlertDialog.getLatestAlertDialog() }
+                views(parent).single { it.tag == "settings_${action.name}" }.performClick()
                 val child = ShadowAlertDialog.getLatestAlertDialog()
                 shadowOf(Looper.getMainLooper()).idle(); measure(child)
-                val header = views(child).single { it.tag == "bicycle_dialog_header" }
+                val header = views(child).single { it.tag == "bicycle_navigation_header" }
                 val title = views(child).filterIsInstance<TextView>().single { it.tag == "bicycle_dialog_title" }
                 assertEquals(BicycleDesign.headerHeight * activity.resources.displayMetrics.density, title.height.toFloat(), 1f)
                 assertEquals(BicycleThemes.red.tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
                 assertTrue(title.isAccessibilityHeading)
-                assertTrue(views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.all { it.typeface == Typeface.DEFAULT || it.tag == "rider_unit" || it.tag?.toString()?.startsWith("rider_zone_value_") == true })
+                assertTrue(views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.all { it.typeface == Typeface.DEFAULT || it.typeface == Typeface.DEFAULT_BOLD || it.tag == "rider_unit" || it.tag?.toString()?.startsWith("rider_zone_value_") == true })
                 if (action in listOf(SettingsAction.SENSORS, SettingsAction.MAP, SettingsAction.DASHBOARDS)) snapshot(child, action.name.lowercase())
                 val before = geometry(child)
                 assertTrue(themes.activate(light().id)); shadowOf(Looper.getMainLooper()).idle(); measure(child)
                 assertEquals("Theme changed geometry in $action", before, geometry(child))
                 assertEquals(light().tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
                 assertTrue(views(child).filterIsInstance<TextView>().all { it.currentTextColor == light().tokens.foreground || (it.tag == "rider_unit" && it.currentTextColor == BicycleDesign.dashboardUnitColor) || !it.isEnabled })
-                child.getButton(AlertDialog.BUTTON_NEGATIVE).takeIf { it.visibility == View.VISIBLE }?.performClick() ?: child.dismiss()
+                testBack(child)
+                if(parent!==root) testBack(parent)
                 shadowOf(Looper.getMainLooper()).idle()
                 assertEquals(View.VISIBLE, root.window!!.decorView.visibility)
             }
@@ -106,7 +107,7 @@ class SettingsDesignMigrationTest {
             measure(screen, 720, 950)
             val scroll = views(screen).filterIsInstance<ScrollView>().single { views(it).any { child -> child is RouteExportView } }
             assertTrue(scroll.height > 0); assertTrue(scroll.getChildAt(0).height > scroll.height)
-            assertTrue(screen.getButton(AlertDialog.BUTTON_POSITIVE).height > 0)
+            assertFalse(views(screen).any { it.tag=="bicycle_fullscreen_footer" })
             scroll.fullScroll(View.FOCUS_DOWN); shadowOf(Looper.getMainLooper()).idle(); assertTrue(scroll.scrollY > 0)
             server.requestFocus(); measure(screen, 720, 950)
             assertTrue(themes.saveCustom(light()).valid)
@@ -114,9 +115,11 @@ class SettingsDesignMigrationTest {
             themes.activate(light().id); shadowOf(Looper.getMainLooper()).idle(); measure(screen, 720, 950)
             assertEquals(before, geometry(screen)); assertEquals("https://example.test", server.text.toString()); assertTrue(server.hasFocus())
             assertEquals(light().tokens.foreground, server.currentTextColor)
-            screen.getButton(AlertDialog.BUTTON_NEGATIVE).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            testBack(screen)
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
-            assertEquals("", RouteExportSettings(activity).read().server)
+            val end=System.nanoTime()+5_000_000_000L
+            while(RouteExportSettings(activity).read().server!="https://example.test" && System.nanoTime()<end) { Thread.sleep(10);shadowOf(Looper.getMainLooper()).idle() }
+            assertEquals("https://example.test",RouteExportSettings(activity).read().server)
             themes.activate(BicycleThemes.red.id)
             views(manager).single { it.tag == "data_CLOUD" }.performClick()
             val fresh = ShadowAlertDialog.getLatestAlertDialog(); shadowOf(Looper.getMainLooper()).idle(); measure(fresh); snapshot(fresh, "webdav")

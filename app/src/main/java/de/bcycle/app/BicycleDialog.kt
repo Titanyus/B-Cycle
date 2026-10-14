@@ -37,8 +37,16 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
     override fun setTitle(titleId: Int): AlertDialog.Builder = setTitle(context.getText(titleId))
     override fun create(): AlertDialog = super.create().also { screen ->
         navigation.track(screen, overlay = !fullscreen) {
+            BicycleNavigation.hideNavigationFooter(screen)
             BicycleDialogStyle.apply(screen, themes)
             if (fullscreen) BicycleFullscreen.apply(screen, themes)
+            else {
+                val top=screen.window?.decorView?.findViewById<ViewGroup>(context.resources.getIdentifier("topPanel","id","android"))
+                if(top!=null && top.childCount>0) {
+                    val original=top.getChildAt(0); top.removeAllViews()
+                    top.addView(BicycleNavigation.header(original,screen,themes),ViewGroup.LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.headerHeight)))
+                }
+            }
         }
     }
 }
@@ -121,10 +129,14 @@ internal object BicycleDialogStyle {
             }
         }
         if (view is ViewGroup) for (i in 0 until view.childCount) content(view.getChildAt(i), themes)
+        if (view is DatePicker) BicycleNavigation.dateHeader(view,themes)
     }
     fun control(view: TextView, themes: ThemeManager) {
-        if (styled.put(view, true) != null) return
-        view.typeface = Typeface.DEFAULT
+        if (styled.put(view, true) != null) {
+            if(view.isAccessibilityHeading) view.typeface=Typeface.DEFAULT_BOLD
+            return
+        }
+        view.typeface = if(view.isAccessibilityHeading) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
         if (view !is EditText) view.textSize = if (view.isAccessibilityHeading) BicycleDesign.inputSp else BicycleDesign.bodySp
         if (view is EditText) {
             view.textSize = BicycleDesign.inputSp; view.minimumHeight = dp(view, BicycleDesign.touchSize)

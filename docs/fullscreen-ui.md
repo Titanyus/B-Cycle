@@ -24,11 +24,14 @@ Design & UI mit Themes/Dashboards, Feldauswahl im [Dashboard-Editor](dashboard-e
 Streckenmanager, Streckeneinstellungen/WebDAV, Umbenennen, Wiederherstellung,
 Diagnose, Standardbelegung, GPS-Informationen und Lizenzansichten.
 
-Gemeinsame Geometrie: bestehender Header oben, flexibler Content dazwischen,
-bestehender nativer Buttonbereich unten. BicycleFullscreen passt ausschließlich
-Geometrie/Container an. AlertController-Buttons und Adapter bleiben dieselben
-Objekte, samt Labels, Reihenfolge, Click-Handlern, Enabled-Zuständen und Validierung.
-DialogNavigation behält Elternfenster, Drafts und Scrollpositionen unverändert.
+Gemeinsame Geometrie: ein 64-dp-Header mit Zurück-Chevron und einem zur gesamten
+Fensterbreite zentrierten Titel, flexibler Content und nur bei fachlichen Aktionen ein
+fixer Footer. `BicycleNavigation` vereinheitlicht Vollbild- und kompakte Dialogheader.
+Speichern/Abbrechen/Schließen entfallen als Footer-Navigation. Ein leerer Footer wird
+vollständig entfernt und reserviert keinen Platz. Gültige Einstellungsänderungen
+werden unmittelbar über die bestehenden Speicherkomponenten übernommen.
+DialogNavigation behält Elternfenster und Scrollpositionen unverändert.
+Details: [UI-Navigation und Gestaltung](ui-navigation.md).
 
 SettingsFullscreenTheme ist die Fensterkonfiguration desselben Builders, keine
 zweite Dialogarchitektur. Fensterbreite/-höhe MATCH_PARENT, kein Dim-Rand, keine
@@ -37,12 +40,12 @@ Texte/Icons, ACCENT und Eingaberadien behalten ihre bisherigen Zuordnungen.
 
 ## Sonderansichten und Scrolling
 
-Hauptmenü-Logo und Streckenmanager-Header werden aus dem Inhalt in den festen
-Headerplatz verschoben. Kein neuer Titel/Logo/Button. Die bisherige Größenbegrenzung
-des Streckenmanagers entfällt nur im Vollbildfenster; seine Liste füllt den Restplatz.
-Streckenmanager und Feldauswahl behalten eigene ListView-/ScrollView-Bereiche.
-Bestehende ScrollViews werden wiederverwendet; nur nicht scrollbare Inhalte wie
-Umbenennen erhalten einen Scrollcontainer. Leerer Restplatz bleibt leer.
+Hauptmenü und Erweitert verwenden getrennte Screens. Die sieben Hauptmenü-Zeilen
+haben Icons und doppelte normale Touchhöhe; Untermenüs behalten die normale Höhe.
+Der Streckenmanager-Header wird im gemeinsamen Headerplatz wiederverwendet.
+Seine Liste füllt den Restplatz. Streckenmanager und Feldauswahl behalten eigene
+ListView-/ScrollView-Bereiche. Bestehende ScrollViews werden wiederverwendet; nur
+nicht scrollbare Inhalte wie Umbenennen erhalten einen Scrollcontainer.
 
 Kleine Löschbestätigungen verwenden ausdrücklich den kompakten Modus desselben
 Builders und schweben über der weiterhin sichtbaren Vollbild-Elternansicht,
@@ -60,24 +63,20 @@ der flexible Content; Footer liegt oberhalb der Tastatur und verdeckt ihn nicht.
 Native adjustResize/Inset-APIs bleiben für Android 13+ kompatibel. Keine neuen Bibliotheken.
 Header/Footer liegen außerhalb des Content-Scrolls; native Buttonbar behält ihr
 vorhandenes Verhalten einschließlich Stapelung bei sehr schmalen Displays.
-Touchflächen mindestens 48 dp. Keine neuen oder entfernten Footer-Aktionen.
+Touchflächen mindestens 48 dp. Importieren im Manager und die fünf Aktionen in der
+Detailansicht bleiben im Footer; Navigation erfolgt ausschließlich über den Header.
 
 ## Prüfungen und Grenzen
 
-Neue Layouttests auf API 33 und 35: kleine und große Hochformat-Flächen, kurze/lange Inhalte,
-fixe Header/Footer, scrollbarer Rest, native Speicher-/Abbruchaktionen, ursprüngliche
-Buttonanordnung, Systemleisten/Cutout, simulierte IME-Insets, Eltern-Draft und Zurück,
-kompakte Bestätigung sowie Hauptmenü/Streckenmanager mit eigenen Headern/Listen.
-Bestehende Theme-, WebDAV-Fokus-, Import-, Auswahl- und Navigationsprüfungen bleiben aktiv.
-Der Theme-Geometrievergleich berücksichtigt sichtbare UI; versteckte native Spacer
-besitzen nach Layoutpässen bedeutungslose alte Rechtecke und werden nicht verglichen.
+Layouttests auf API 33, 35 und 36 prüfen mehrere Hochformat-Größen, kurze/lange
+Inhalte, fixe Header, funktionale Footer und deren vollständigen Wegfall bei leeren
+Dialogen. Systemleisten/Cutout, simulierte IME-Insets, Elternansicht und Zurück,
+kompakte Bestätigungen sowie Hauptmenü/Streckenmanager mit eigenen Listen werden
+weiterhin geprüft. Theme-, WebDAV-Fokus-, Import-, Auswahl- und Navigationsprüfungen
+wurden auf automatische Speicherung umgestellt.
 
-Sensoren, FIT, Performanceberechnung, WebDAV, Speicherung, Dashboard und Kartenlogik
-werden in dieser Migration nicht geändert. Die Insets-/IME-Prüfungen sind Simulationen;
-Gesten-/Drei-Tasten-Navigation und echte Tastatur auf dem Poco bleiben ein Praxistest.
+Sensoren, FIT-Rohdaten und Performanceberechnung bleiben unverändert. Die
+Insets-/IME-Prüfungen sind Simulationen; Gesten-/Drei-Tasten-Navigation und echte
+Tastatur auf dem Telefon bleiben ein Praxistest.
 
-Abschlussprüfung: `:app:testDebugUnitTest :app:assembleRelease` erfolgreich in
-1 Minute 26 Sekunden. 235 Tests, 0 Fehler, 0 Fehlschläge, 0 übersprungen.
-Release-Lint-Vital erfolgreich. Die bekannte MainActivity-onBackPressed-Warnung
-bleibt bestehen; kein neuer vollständiger Lint-Lauf. Keine veröffentlichte APK
-oder GitHub-Änderung im Rahmen dieser Umstellung; Freigabe bleibt ausstehend.
+Der Buildnachweis der aktuellen Migration steht in [UI-Navigation](ui-navigation.md).

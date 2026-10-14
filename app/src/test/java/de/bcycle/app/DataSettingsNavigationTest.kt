@@ -53,13 +53,13 @@ class DataSettingsNavigationTest {
             assertEquals(listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD") } })
             click(data,"data_LOCAL");val local=latest();measure(local)
             assertNotNull(local.window!!.decorView.findViewWithTag<View>("export_folder_choose"));assertNull(local.window!!.decorView.findViewWithTag<View>("export_server"))
-            local.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
+            testBack(local);shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
             click(data,"data_CLOUD");val cloud=latest();measure(cloud)
             assertNotNull(cloud.window!!.decorView.findViewWithTag<View>("export_server"));assertNull(cloud.window!!.decorView.findViewWithTag<View>("export_folder_choose"))
             assertEquals("https://cloud.example.test",cloud.window!!.decorView.findViewWithTag<EditText>("export_server").text.toString())
             assertNotNull(cloud.window!!.decorView.findViewWithTag<View>("export_password_visibility"));assertNotNull(cloud.window!!.decorView.findViewWithTag<View>("export_test"))
-            cloud.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();shadowOf(Looper.getMainLooper()).idle();assertEquals(before,settings.read())
-            data.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,root.window!!.decorView.visibility)
+            testBack(cloud);shadowOf(Looper.getMainLooper()).idle();assertEquals(before,settings.read())
+            testBack(data);shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,root.window!!.decorView.visibility)
             click(root,"settings_ROUTES");val manager=latest();measure(manager)
             assertNull(manager.window!!.decorView.findViewWithTag<View>("route_settings"))
         } finally { controller.pause().stop().destroy() }
@@ -74,7 +74,7 @@ class DataSettingsNavigationTest {
             assertEquals(6,views(choice.window!!.decorView).filterIsInstance<CheckBox>().size)
             click(choice,"backup_none");assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled)
             click(choice,"backup_all");assertTrue(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled)
-            val original=prefs.all.toMap();choice.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();assertEquals(original,prefs.all)
+            val original=prefs.all.toMap();testBack(choice);assertEquals(original,prefs.all)
             click(data,"data_BACKUP");val export=latest();export.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
             val create=shadowOf(activity).nextStartedActivityForResult
             assertEquals(Intent.ACTION_CREATE_DOCUMENT,create.intent.action);assertEquals(12,create.requestCode)
@@ -95,7 +95,7 @@ class DataSettingsNavigationTest {
             val restore=latest();click(restore,"backup_none");assertFalse(restore.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled)
             (restore.window!!.decorView.findViewWithTag<View>("backup_designUi") as CheckBox).isChecked=true
             restore.getButton(AlertDialog.BUTTON_POSITIVE).performClick();val confirm=latest()
-            assertTrue(prefs.getBoolean(ModeGlowSettings.key,false));confirm.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(prefs.getBoolean(ModeGlowSettings.key,false));testBack(confirm);shadowOf(Looper.getMainLooper()).idle()
             assertTrue(prefs.getBoolean(ModeGlowSettings.key,false))
             restore.getButton(AlertDialog.BUTTON_POSITIVE).performClick();latest().getButton(AlertDialog.BUTTON_POSITIVE).performClick()
             waitFor { !prefs.getBoolean(ModeGlowSettings.key,true) && !restore.isShowing }
@@ -132,7 +132,8 @@ class DataSettingsNavigationTest {
             for((w,h) in listOf(280 to 640,360 to 640,480 to 800)) {
                 measure(data,w,h);val root=data.window!!.decorView.findViewWithTag<ViewGroup>("bicycle_fullscreen")
                 assertEquals(BicycleDesign.headerHeight,root.getChildAt(0).height)
-                assertEquals(h,root.findViewWithTag<View>("bicycle_fullscreen_footer").bottom)
+                assertNull(root.findViewWithTag<View>("bicycle_fullscreen_footer"))
+                assertEquals(h,root.getChildAt(root.childCount-1).bottom)
                 val geometry=views(root).map { listOf(it.left,it.top,it.width,it.height) }
                 for(theme in BicycleThemes.presets) {
                     themes.activate(theme.id);measure(data,w,h);assertEquals(geometry,views(root).map { listOf(it.left,it.top,it.width,it.height) })

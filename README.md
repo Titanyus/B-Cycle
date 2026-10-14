@@ -21,6 +21,16 @@ Für diese Versions-/APK-Erstellung: **6 FIT-/Garmin-Prüfungen und Release-Buil
 in **45 Sekunden**. Signaturgleichheit mit APK 0.7.10, ZIP-Ausrichtung, Version und SDK-Werte separat geprüft.
 [Buildnachweis 0.7.11](docs/milestone-0711.md).
 
+## Entwicklungsstand nach APK 0.7.11
+
+- [Einheitliche Navigation](docs/ui-navigation.md): Zurück-Chevron in jedem Header,
+  Titel zur Fensterbreite zentriert, gültige Einstellungen automatisch gespeichert.
+- Fette Abschnittsüberschriften appweit; leere Footer entfallen vollständig.
+- Haupt-Einstellungen als hohe Icon-Zeilen, Erweitert als separater Screen.
+- Umschalt-Icons zeigen den aktuellen Zustand, einschließlich sun/moon und compass/arrow-up-from-dot.
+- Kartenwerte direkt über der unteren Bedienleiste, Zoom darüber; Datumskopf deutlicher.
+- **357 Tests und Release-Build bestanden** (2 min 21 s). Dieser Stand ist noch nicht in einer neuen APK veröffentlicht.
+
 ## Neu in APK 0.7.11
 
 - [Weiche Kartenbewegung](docs/map-motion.md): 450-ms-Übergänge mit gemeinsamer Position

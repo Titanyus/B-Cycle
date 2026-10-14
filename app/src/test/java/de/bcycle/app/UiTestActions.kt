@@ -26,3 +26,9 @@ internal fun swipeTestDashboard(root: View) {
         tile.dispatchTouchEvent(event); event.recycle()
     }
 }
+
+internal fun testBack(dialog: android.app.AlertDialog) {
+    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+    testDescendants(dialog.window!!.decorView).single { it.tag=="dialog_back" }.performClick()
+    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+}

@@ -7,7 +7,7 @@ import android.widget.*
 
 internal enum class RouteExportPart { LOCAL, CLOUD, ALL }
 
-/** Draft settings: nothing is applied until Save, including a newly selected folder. */
+/** Existing export controls; the owning screen persists valid changes automatically. */
 internal class RouteExportView(context: Context, config: RouteExportConfig, passwordStored: Boolean,
     chooseFolder: () -> Unit, test: () -> Unit,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
@@ -21,6 +21,7 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
     }
     private val server = input(context.getString(R.string.route_export_server), config.server, "export_server")
     private val user = input(context.getString(R.string.route_export_user), config.user, "export_user")
+    var restoringPassword = false; private set
     val password = input(if (passwordStored) context.getString(R.string.route_export_password_saved) else context.getString(R.string.route_export_password), "", "export_password").apply {
         inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         importantForAutofill = IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
@@ -43,13 +44,14 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
         fun updateEye() {
             eye.contentDescription = if (passwordVisible) context.getString(R.string.route_export_password_hide) else context.getString(R.string.route_export_password_show)
             eye.setImageDrawable(BicycleIcons.drawable(context, BicycleIcon.ShowOnMap,
-                themes.active.tokens.foreground, negative = passwordVisible))
+                themes.active.tokens.foreground, negative = !passwordVisible))
         }
         eye = BicycleComponents.icon(context, themes, BicycleIcon.ShowOnMap, context.getString(R.string.route_export_password_show)) {
             if (!passwordVisible && password.text.isEmpty() && passwordStored) {
                 val saved = storedPassword()
                 if (saved.isEmpty()) return@icon
-                password.setText(saved)
+                restoringPassword=true
+                try { password.setText(saved) } finally { restoringPassword=false }
             }
             val start = password.selectionStart; val end = password.selectionEnd
             passwordVisible = !passwordVisible
@@ -57,6 +59,7 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
             if (start >= 0 && end >= 0) password.setSelection(start.coerceAtMost(password.length()), end.coerceAtMost(password.length()))
             updateEye()
         }.apply { tag = "export_password_visibility" }
+        updateEye()
         passwordRow.addView(eye, LayoutParams(BicycleDesign.dp(context, BicycleDesign.touchSize),
             BicycleDesign.dp(context, BicycleDesign.touchSize)).apply { topMargin = BicycleDesign.dp(context, BicycleDesign.verticalPadding) })
         if(part != RouteExportPart.LOCAL) {
