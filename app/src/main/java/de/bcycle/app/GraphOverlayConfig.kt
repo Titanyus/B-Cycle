@@ -18,3 +18,10 @@ internal data class GraphOverlayConfig(val slots: List<List<AnalysisChart>> = Li
         }
     }
 }
+
+/** Global display preference; graph sources and sensor values remain unchanged. */
+internal enum class GraphDisplayMode { WITH_DATA, GRAPH_ONLY }
+internal object GraphDisplaySettings {
+    const val key="dashboardGraphDisplay"
+    fun read(prefs: SharedPreferences)=GraphDisplayMode.entries.find { it.name==prefs.getString(key,null) } ?: GraphDisplayMode.WITH_DATA
+}

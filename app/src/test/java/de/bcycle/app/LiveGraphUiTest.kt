@@ -154,7 +154,7 @@ class LiveGraphUiTest {
             GraphPoint(1000,1000,100.0,listOf(30.0,null,null,null,null)))
         val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
         fun draw(points: List<GraphPoint>): Bitmap {
-            d.update(GraphFrame(1,100.0,mapOf(AnalysisChart.SPEED to GraphSeries(points,GraphRange(0.0,40.0)))),listOf(AnalysisChart.SPEED),intArrayOf(0,0,0,0))
+            d.update(GraphFrame(1,100.0,mapOf(AnalysisChart.SPEED to GraphSeries(points,GraphRange(0.0,40.0)))),listOf(AnalysisChart.SPEED),intArrayOf(0,0,0,0),GraphDisplayMode.GRAPH_ONLY)
             return Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888).also { d.draw(Canvas(it)) }
         }
         val b=draw(p)
@@ -179,6 +179,69 @@ class LiveGraphUiTest {
         assertTrue(middle>0);assertEquals(middle,opacity(374,100))
         assertTrue(opacity(26,30)<middle);assertTrue(opacity(26,170)<middle)
         assertEquals(0,opacity(26,10));assertEquals(0,opacity(374,190))
+    }
+
+    @Test fun graphOnlyKeepsGeometryCaptionAndSelectionWhileHidingOnlyOverlayNumbers() {
+        val frame=history()
+        for(template in DashboardTemplate.entries) {
+            val slot=if(2 in template.slots) 2 else template.slots.first()
+            val config=GraphOverlayConfig().replace(slot,listOf(AnalysisChart.SPEED))
+            val view=DashboardView(context) {};view.setTemplate(template)
+            view.show(DashboardLayout.defaults.replace(slot,DashboardField("SPEED")),LiveData(speedHundredths=3000))
+            view.showGraphs(config,frame);measure(view,1080,1500)
+            val before=all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) }
+            val tile=all(view).single { it.tag=="dashboard_tile_$slot" }
+            val value=all(tile).filterIsInstance<TextView>().single { it.text.toString()=="30,0" }
+            view.showGraphs(config,frame,GraphDisplayMode.GRAPH_ONLY);measure(view,1080,1500)
+            assertEquals(before,all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) })
+            assertEquals(if(template.supportsGraph(slot)) View.INVISIBLE else View.VISIBLE,(value.parent as View).visibility)
+            assertTrue(all(tile).filterIsInstance<TextView>().any { it.text.toString().contains("TEMPO") && it.visibility==View.VISIBLE })
+            view.showGraphs(GraphOverlayConfig(),frame,GraphDisplayMode.GRAPH_ONLY)
+            assertEquals(View.VISIBLE,(value.parent as View).visibility)
+        }
+    }
+    @Test fun displayModesChangeFillAndLineBrightnessAndDoubleBothHalosWithoutChangingAxis() {
+        val points=listOf(GraphPoint(0,0,0.0,listOf(30.0,null,null,null,null)),GraphPoint(1000,1000,100.0,listOf(30.0,null,null,null,null)))
+        val frame=GraphFrame(1,100.0,mapOf(AnalysisChart.SPEED to GraphSeries(points,GraphRange(0.0,40.0))))
+        val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
+        fun draw(mode:GraphDisplayMode):Bitmap {
+            d.update(frame,listOf(AnalysisChart.SPEED),intArrayOf(0,0,0,0),mode)
+            return Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888).also { d.draw(Canvas(it)) }
+        }
+        val only=draw(GraphDisplayMode.GRAPH_ONLY);val overlaid=draw(GraphDisplayMode.WITH_DATA)
+        assertTrue(Color.alpha(only.getPixel(200,60))>Color.alpha(overlaid.getPixel(200,60)))
+        assertTrue(Color.alpha(only.getPixel(200,90))>Color.alpha(overlaid.getPixel(200,90)))
+        assertTrue(Color.alpha(only.getPixel(200,51))>0) // Outside the former 9.6-dp halo.
+        assertEquals(0,Color.alpha(only.getPixel(200,49)))
+        assertEquals(160f,d.plotBounds().height(),.01f)
+        assertEquals(19.2f,LiveGraphStyle.OUTER_GLOW_WIDTH_DP,.01f);assertEquals(11.2f,LiveGraphStyle.INNER_GLOW_WIDTH_DP,.01f)
+    }
+    @Test fun designSelectorPersistsImmediatelyAndBackupRestoresModeWithLegacyCompatibility() {
+        val controller=org.robolectric.Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get();val prefs=activity.getSharedPreferences("bike",0)
+            assertEquals(GraphDisplayMode.WITH_DATA,GraphDisplaySettings.read(prefs))
+            all(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
+            val menu=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            all(menu.window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
+            val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
+            val selector=all(screen.window!!.decorView).filterIsInstance<android.widget.Spinner>().single { it.tag=="graph_display_mode" }
+            selector.setSelection(1);shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphDisplaySettings.read(prefs));testBack(screen)
+            all(menu.window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
+            val reopened=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(1,all(reopened.window!!.decorView).filterIsInstance<android.widget.Spinner>().single { it.tag=="graph_display_mode" }.selectedItemPosition)
+            val backup=SettingsBackup(prefs,activity.getSharedPreferences("route-export",0),ThemeManager(prefs))
+            val bytes=backup.export(setOf(BackupSection.DESIGN))
+            prefs.edit().putString(GraphDisplaySettings.key,GraphDisplayMode.WITH_DATA.name).commit()
+            val doc=backup.decode(bytes);backup.apply(backup.plan(doc,doc.sections.keys))
+            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphDisplaySettings.read(prefs))
+            val json=JSONObject(String(bytes));val design=json.getJSONObject("sections").getJSONObject("designUi")
+            design.remove("graphDisplay");val old=backup.decode(json.toString().toByteArray());backup.apply(backup.plan(old,old.sections.keys))
+            assertEquals(GraphDisplayMode.GRAPH_ONLY,GraphDisplaySettings.read(prefs))
+            design.put("graphDisplay","invalid")
+            try { backup.decode(json.toString().toByteArray());fail("invalid display mode accepted") } catch(_:SettingsBackupFailure) {}
+        } finally { controller.pause().stop().destroy() }
     }
 
 }

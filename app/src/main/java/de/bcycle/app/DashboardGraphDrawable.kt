@@ -15,9 +15,10 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     private var selected=emptyList<AnalysisChart>()
     private var frame: GraphFrame?=null
     private var padding=intArrayOf(0,0,0,0)
-    fun update(next: GraphFrame?, graphs: List<AnalysisChart>, insets: IntArray) {
-        if(frame===next && selected==graphs && padding.contentEquals(insets)) return
-        frame=next; selected=graphs; padding=insets; rebuild(); invalidateSelf()
+    private var mode=GraphDisplayMode.WITH_DATA
+    fun update(next: GraphFrame?, graphs: List<AnalysisChart>, insets: IntArray, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA) {
+        if(frame===next && selected==graphs && padding.contentEquals(insets) && mode==display) return
+        frame=next; selected=graphs; padding=insets; mode=display; rebuild(); invalidateSelf()
     }
     override fun onBoundsChange(bounds: Rect) { rebuild() }
     internal fun plotBounds() = RectF(plot)
@@ -50,8 +51,9 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             }
             finish()
             val color=chart.color(Color.BLACK) and 0x00ffffff
+            val fillAlpha=LiveGraphStyle.fillAlpha(mode)
             val gradient=LinearGradient(0f,fillTop.coerceAtMost(plot.bottom-1f),0f,plot.bottom,
-                intArrayOf(color or (LiveGraphStyle.FILL_ALPHA shl 24),color or ((LiveGraphStyle.FILL_ALPHA/3) shl 24),color),
+                intArrayOf(color or (fillAlpha shl 24),color or ((fillAlpha/3) shl 24),color),
                 floatArrayOf(0f,.55f,1f),Shader.TileMode.CLAMP)
             Shape(line,fill,chart,series.range,gradient)
         } }
@@ -74,11 +76,11 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             paint.shader=null; paint.style=Paint.Style.STROKE
             paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND
             // Cached paths and a pair of soft strokes: no blur filter or offscreen bitmap.
-            paint.alpha=24; paint.strokeWidth=(LiveGraphStyle.LINE_WIDTH_DP+7f)*density
+            paint.alpha=24; paint.strokeWidth=LiveGraphStyle.OUTER_GLOW_WIDTH_DP*density
             canvas.drawPath(s.line,paint)
-            paint.alpha=60; paint.strokeWidth=(LiveGraphStyle.LINE_WIDTH_DP+3f)*density
+            paint.alpha=60; paint.strokeWidth=LiveGraphStyle.INNER_GLOW_WIDTH_DP*density
             canvas.drawPath(s.line,paint)
-            paint.alpha=LiveGraphStyle.LINE_ALPHA; paint.strokeWidth=LiveGraphStyle.LINE_WIDTH_DP*density
+            paint.alpha=LiveGraphStyle.lineAlpha(mode); paint.strokeWidth=LiveGraphStyle.LINE_WIDTH_DP*density
             paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND
             canvas.drawPath(s.line,paint)
             canvas.restoreToCount(graphSave)

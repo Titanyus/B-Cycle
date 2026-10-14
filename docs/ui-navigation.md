@@ -1,6 +1,6 @@
 # Einheitliche UI-Navigation und automatische Speicherung
 
-Entwicklungsstand nach APK 0.7.11; Änderungen noch nicht in einer neuen Test-APK.
+Die Änderungen sind ab Test-APK 0.7.12 enthalten.
 
 ## Verbindliche Konventionen
 
@@ -82,5 +82,5 @@ Performance und Kartenbewegung bleiben aktiv; keine Tests wurden deaktiviert.
 Vorhandene Test-Deprecation-Hinweise zu Android-Zurück sowie ein nichtfunktionaler
 Android-Analytics-Verzeichnishinweis bleiben bestehen. Ein Praxistest mit realer
 Tastatur und Systemnavigation auf dem Telefon steht noch aus. Der Quellstand ist
-auf GitHub gesichert; eine neue signierte Test-APK wurde für diesen Auftrag nicht
-veröffentlicht.
+auf GitHub gesichert. Er ist anschließend zusammen mit der Graph-Anpassung in
+[Test-APK 0.7.12](milestone-0712.md) enthalten.

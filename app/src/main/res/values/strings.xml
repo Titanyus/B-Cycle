@@ -227,4 +227,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_reset_confirm">Die Belegung der Dashboardfelder auf die Standardwerte zurücksetzen?</string>
     <string name="ui_reset_action">Zurücksetzen</string>
     <string name="ui_reset_done">Standardbelegung hergestellt</string>
+    <string name="graph_display_title">Graph-Darstellung</string>
+    <string name="graph_display_with_data">Graph mit Daten</string>
+    <string name="graph_display_only">Nur Graph</string>
 </resources>

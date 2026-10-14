@@ -240,3 +240,33 @@ Skala bereits beim ersten Messwert. Keine Änderung an Kurvenzeichnung oder Sens
 Zwei gezielte Skalierungstests prüfen die neuen Anfangswerte und Schritte, Sicherheitsabstand,
 große Sprünge, unabhängige Skalen und ausbleibende Verkleinerung. Beide bestanden;
 Release-Kotlin-Kompilierung erfolgreich. Zusammen 2 Sekunden. Keine neue APK.
+
+## Darstellung ab 0.7.12
+
+Design & UI enthält eine globale Auswahl „Graph-Darstellung“ mit „Graph mit Daten“
+(Standard) und „Nur Graph“. Die Auswahl wird sofort unter `dashboardGraphDisplay`
+gespeichert und bei der Design-&-UI-Sicherung mitgeführt. Ältere Sicherungen ohne
+diesen Wert lassen die aktuelle Auswahl bestehen. Unbekannte gespeicherte Modi
+fallen auf den Standard zurück; ungültige Sicherungswerte werden abgelehnt.
+
+„Nur Graph“ blendet bei Kacheln mit aktiven Graphen die Messwert-/Einheitenzeile
+inklusive Chevron aus. Feldbezeichnung, Farbpunkte und Skalen bleiben sichtbar.
+Die Zeile ist unsichtbar statt entfernt: Raster, Schriftgrößen, Kachelhöhe und
+Kartenplatz verändern sich nicht. Ohne aktive Graphen bleiben normale Werte
+sichtbar. Die zugeordneten Felder und aktuellen Sensorwerte bleiben erhalten.
+
+Der Farbverlauf wurde über seine Deckkraft um Faktor 1,8 verstärkt: oberer
+Alpha-Wert 65 → 117 von 255, weiterhin nach unten auf transparent auslaufend.
+Beim Modus „Graph mit Daten“ wird die Hauptlinie auf 70 % und der Farbverlauf
+auf 85 % der neuen vollen Deckkraft reduziert. Skalen, Farbpunkte und Grenzlinien
+bleiben unverändert. Der innere Leuchtsaum verwendet jetzt **11,2 dp**, der äußere
+**19,2 dp** Gesamtstrichbreite; beide sind doppelt so breit wie zuvor. Die
+Hauptlinie bleibt **2,6 dp**. Leuchtsaum-Deckkräfte bleiben 60/255 und 24/255.
+Es gibt weiterhin keinen Blur-Filter oder zusätzliche Bildpuffer.
+
+Die Tests vergleichen tatsächliche gerenderte Pixel zwischen beiden Modi,
+Leuchtsaumgrenzen, Clipping und Datenlücken; sie prüfen außerdem alle Preset-
+Geometrien, sichtbare Beschriftungen, Wiederherstellung normaler Werte und
+sofortige persistente Auswahl inklusive kompatibler Settings-Sicherung.
+Sensorverarbeitung, Graphdaten, Zehn-Sekunden-Takt, FIT und Performanceberechnung
+werden durch die Darstellung nicht verändert.

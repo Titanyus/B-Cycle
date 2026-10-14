@@ -6,30 +6,31 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.11 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.11/downloads/B-Cycle-0.7.11-test.apk)**
+**[APK 0.7.12 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.12/downloads/B-Cycle-0.7.12-test.apk)**
 
-- Größe: **1.083.121 Byte**, rund **1,08 MB**.
-- Signierte, optimierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.11/49.
-- Dashboard-Editor, weiche GPS-Kartenbewegung, verbindliches Hochformat und die aktuellen Graph-/Feldauswahl-Anpassungen.
-- Bei einem privaten Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads) erhalten.
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.11-test.apk.sha256):
-  `c7144088edb07fe15ba599a4dcfd5bd580e209422b731dccbc94d57a56e59022`.
+- Größe: **1,087,274 Byte**, rund **1.09 MB**.
+- Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.12/50.
+- Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.12-test.apk.sha256):
+  `6b89a133dbda0d62b5935188fed24ccbac4f7e1fd64f8a2e87e58c175ec09cd3`.
 
-Der Funktionsstand hat **354 Tests und den Release-Build** bestanden.
-Für diese Versions-/APK-Erstellung: **6 FIT-/Garmin-Prüfungen und Release-Build bestanden**
-in **45 Sekunden**. Signaturgleichheit mit APK 0.7.10, ZIP-Ausrichtung, Version und SDK-Werte separat geprüft.
-[Buildnachweis 0.7.11](docs/milestone-0711.md).
+**42 gezielte Tests und Release-Build bestanden**; Signaturgleichheit, ZIP-Ausrichtung
+und Paket-/SDK-Metadaten separat geprüft. [Buildnachweis](docs/milestone-0712.md).
+Die vorausgehende globale UI-Migration hat die vollständige Suite mit **357 Tests** bestanden.
 
-## Entwicklungsstand nach APK 0.7.11
+## Neu in APK 0.7.12
 
+- **Design & UI → Graph-Darstellung:** „Graph mit Daten“ oder „Nur Graph“, sofort gespeichert.
+- Graph-Farbverlauf um 80 % verstärkt; bei überlagerten Daten Hauptlinie 30 % und Farbverlauf 15 % dunkler.
+- Doppelte Leuchtsaum-Breiten: 11,2/19,2 dp, Hauptlinie unverändert 2,6 dp.
 - [Einheitliche Navigation](docs/ui-navigation.md): Zurück-Chevron in jedem Header,
   Titel zur Fensterbreite zentriert, gültige Einstellungen automatisch gespeichert.
 - Fette Abschnittsüberschriften appweit; leere Footer entfallen vollständig.
 - Haupt-Einstellungen als hohe Icon-Zeilen, Erweitert als separater Screen.
 - Umschalt-Icons zeigen den aktuellen Zustand, einschließlich sun/moon und compass/arrow-up-from-dot.
 - Kartenwerte direkt über der unteren Bedienleiste, Zoom darüber; Datumskopf deutlicher.
-- **357 Tests und Release-Build bestanden** (2 min 21 s). Dieser Stand ist noch nicht in einer neuen APK veröffentlicht.
+- [Details zur Graph-Darstellung](docs/live-graph-overlays.md).
 
 ## Neu in APK 0.7.11
 

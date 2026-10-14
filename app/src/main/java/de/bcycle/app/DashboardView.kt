@@ -39,8 +39,9 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var graphConfig = GraphOverlayConfig()
     private var graphFrame: GraphFrame? = null
     var graphWidthChanged: ((Int) -> Unit)? = null
-    internal fun showGraphs(config: GraphOverlayConfig, frame: GraphFrame?) {
-        graphConfig=config; graphFrame=frame; tiles.forEach { it.updateGraph() }
+    private var graphDisplay=GraphDisplayMode.WITH_DATA
+    internal fun showGraphs(config: GraphOverlayConfig, frame: GraphFrame?, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA) {
+        graphConfig=config; graphFrame=frame; graphDisplay=display; tiles.forEach { it.updateGraph() }
     }
     private var layout = DashboardLayout.defaults
     private var data = LiveData()
@@ -186,7 +187,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 graphShown=selected.isNotEmpty()
                 container.background=if(graphShown) android.graphics.drawable.LayerDrawable(arrayOf(plainBackground!!,overlay)) else plainBackground
             }
-            if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom))
+            if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom),graphDisplay)
+            row.visibility=if(graphShown && graphDisplay==GraphDisplayMode.GRAPH_ONLY) INVISIBLE else VISIBLE
             showCaption(layout.fields[index])
         }
         private val threeColumns = template.rows.any { it.size == 3 && index in it }
@@ -247,10 +249,10 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
         init {
             markEditable()
-            updateGraph()
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
                 captionWeight))
             container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, .65f))
+            updateGraph()
         }
 
         private fun showCaption(field: DashboardField) {
