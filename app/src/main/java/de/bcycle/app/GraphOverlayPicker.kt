@@ -19,16 +19,17 @@ internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initia
             content.visibility=if(content.visibility==VISIBLE) GONE else VISIBLE
             toggle.stateDescription=context.getString(if(content.visibility==VISIBLE) R.string.zone_expanded else R.string.zone_collapsed)
         }.apply { tag="graph_overlay_toggle";isAccessibilityHeading=true;stateDescription=context.getString(R.string.zone_collapsed) }
-        BicycleDialogStyle.control(toggle,themes)
+        BicycleDialogStyle.accordion(toggle,themes)
         BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Expand);addView(toggle);addView(content)
         none.setText(R.string.graph_none); BicycleDialogStyle.control(none,themes)
         none.setOnClickListener { choice.clear(); refresh(); changed() }; content.addView(none)
+        BicycleComponents.controlSpacing(none)
         AnalysisChart.entries.forEach { chart ->
             val label=when(chart) { AnalysisChart.SPEED -> R.string.graph_speed; AnalysisChart.HEART -> R.string.graph_heart; else -> chart.label }
             val box=CheckBox(context).apply { tag="graph_${chart.name}"
                 val title=context.getString(label)
                 text=android.text.SpannableString("\uFFFC  $title").apply {
-                    setSpan(RecordingDotSpan(resources.displayMetrics.density,chart.color(android.graphics.Color.BLACK),7f),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    setSpan(RecordingDotSpan(resources.displayMetrics.density,chart.color(android.graphics.Color.BLACK),BicycleDesign.graphChoiceDotDiameter),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
                 contentDescription=title; BicycleDialogStyle.control(this,themes)
                 minHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)

@@ -21,7 +21,9 @@ ihn heraus. Keine zusätzlichen Headerkopien oder verschachtelten ScrollViews.
 Die sichtbare Zeichenfläche wird auf den Scroll-Viewport begrenzt; erhöhte
 Überschriften können die feste Titelleiste nicht übermalen. Angedockte Header
 liegen mit zentral definierten 16 dp Z über nativen Buttons einschließlich
-ihres gedrückten Zustands, ohne zusätzlichen Schatten. Native Touchgesten,
+ihres gedrückten Zustands. Ein gemeinsam gecachter 6-dp-Verlaufsschatten
+(maximal 55/255 Schwarz) wird ausschließlich unterhalb der Header gezeichnet;
+keine Änderung der Geometrie und kein großer nativer Z-Schatten. Native Touchgesten,
 Fokus, Accessibility-Überschriften, Profilwechsel und Scrollpositionen bleiben
 erhalten. Positionssuche nur beim Layout; beim Scrollen nur Positionsänderungen
 für die wenigen registrierten Kategorieheader.
@@ -59,3 +61,7 @@ anderem Abschnittsreihenfolge, ein einzelner Scrollhost, Zahlenzeilen auf
 320/360-dp-Displays, Themewechsel, Profilvalidierung, Navigation sowie FIT-Auswahl
 und Accordion-Zustand nach Profilwechsel. Release-Kotlin-Kompilierung erfolgreich.
 Keine vollständige Testsuite und keine neue APK für diese Umstellung.
+
+Accordion-Beschriftungen sind ausdrücklich keine Sticky-Abschnittstitel:
+BicycleDialogStyle.accordion verwendet wie Dropdowns 16 sp, normale Systemschrift
+und linksbündigen Text. Bedienung, Expand-Icon und Zustand bleiben erhalten.

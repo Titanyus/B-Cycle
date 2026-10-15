@@ -14,7 +14,7 @@ import kotlin.math.abs
 internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, private val interactive: Boolean) : FrameLayout(context) {
     private val prefs = context.getSharedPreferences("bike", 0)
     private val night = prefs.getBoolean("mapNight", false)
-    private val source = runCatching { MapSource.valueOf(prefs.getString("mapSource", MapSource.CYCLOSM.name)!!) }.getOrDefault(MapSource.CYCLOSM)
+    private val source = MapProviderSettings.source(context,prefs.getString("mapSource",null))
     internal lateinit var map: MapView
         private set
     private lateinit var layer: MapNightLayer
@@ -26,12 +26,12 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             model.displayModel.setFixedTileSize(256)
             model.displayModel.backgroundColor = if (night) MapNightPalette.background else Color.rgb(225, 225, 225)
             setBuiltInZoomControls(false); mapScaleBar?.isVisible = false
-            setZoomLevelMin(2); setZoomLevelMax(19); setZoomLevel(2)
+            setZoomLevelMin(2); setZoomLevelMax(source.maximumZoom.toByte()); setZoomLevel(2)
             touchGestureHandler.setRotationEnabled(false); layerManager.pause()
             // Preview never consumes scroll gestures. The dedicated fullscreen view supports native pan/zoom.
             if (!interactive) setOnTouchListener { _, _ -> true }
         }
-        layer = MapNightLayer(ViewportTileCache(), map.model.mapViewPosition, source.tiles()).apply { this.night = this@RouteAnalysisMap.night }
+        layer = MapNightLayer(ViewportTileCache(), map.model.mapViewPosition, source.tiles(MapProviderSettings.read(context))).apply { this.night = this@RouteAnalysisMap.night }
         map.layerManager.layers.add(layer)
         map.layerManager.layers.add(RouteTrackLayer(resources.displayMetrics.density).apply { update(route, emptyList(), GpsValues(), true, false, night) })
         addView(map, LayoutParams(-1, -1))
@@ -65,7 +65,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
         val minLon = points.minOf(::lon); val maxLon = points.maxOf(::lon)
         val centerLon = (((minLon + maxLon) / 2 + 540) % 360) - 180
         map.setCenter(LatLong((minLat + maxLat) / 2, centerLon))
-        var zoom = 19
+        var zoom = source.maximumZoom
         while (zoom > 2) {
             val size = MercatorProjection.getMapSize(zoom.toByte(), 256)
             val dx = (maxLon - minLon) / 360 * size

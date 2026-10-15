@@ -39,7 +39,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             dataContent.visibility=if(dataContent.visibility==VISIBLE) GONE else VISIBLE
             dataToggle.stateDescription=context.getString(if(dataContent.visibility==VISIBLE) R.string.zone_expanded else R.string.zone_collapsed)
         }.apply { tag="field_data_toggle";isAccessibilityHeading=true;stateDescription=context.getString(R.string.zone_collapsed) }
-        BicycleDialogStyle.control(dataToggle,themes)
+        BicycleDialogStyle.accordion(dataToggle,themes)
         BicycleDialogStyle.actionIcon(dataToggle,themes,BicycleIcon.Expand)
         panels.addView(dataToggle);panels.addView(dataContent)
         dataContent.addView(RadioButton(context).apply {

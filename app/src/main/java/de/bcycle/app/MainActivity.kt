@@ -392,7 +392,7 @@ class MainActivity : Activity() {
                 tag="fit_source_$source";isAccessibilityHeading=true
                 stateDescription=getString(if(source in expandedFitSources) R.string.zone_expanded else R.string.zone_collapsed)
             }
-            BicycleDialogStyle.control(toggle,runtime.themes)
+            BicycleDialogStyle.accordion(toggle,runtime.themes)
             BicycleDialogStyle.actionIcon(toggle,runtime.themes,BicycleIcon.Expand)
             root.addView(toggle);root.addView(content)
             for (field in fields) content.addView(CheckBox(settingsContext).apply {
@@ -537,6 +537,19 @@ class MainActivity : Activity() {
             adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.label(this@MainActivity) })
             setSelection(MapSource.decode(preferences.getString("mapSource", null)).ordinal); root.addView(this)
         }
+        val keyRow=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL;tag="map_provider_key_row" }
+        keyRow.addView(label(getString(R.string.map_thunderforest_key)))
+        val providerKey=BicycleComponents.input(settingsContext,runtime.themes).apply {
+            tag="map_thunderforest_key";setSingleLine();contentDescription=getString(R.string.map_thunderforest_key)
+            inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            importantForAutofill=View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS;isSaveEnabled=false
+            setText(MapProviderSettings.read(this@MainActivity))
+        }
+        BicycleForm.outlinedInput(providerKey,runtime.themes)
+        keyRow.addView(providerKey);root.addView(keyRow)
+        val providerStatus=BicycleFeedback.status(settingsContext,runtime.themes).apply { tag="map_provider_status" }
+        root.addView(providerStatus)
+        keyRow.visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         val heading = toggle(getString(R.string.ui_map_heading), "mapHeading", true)
@@ -545,10 +558,19 @@ class MainActivity : Activity() {
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(button(getString(R.string.ui_map_gps_enable), BicycleIcon.Map) { enableGps() })
-        root.addView(button(getString(R.string.ui_map_legend), BicycleIcon.Info) { openMapLink(MapSource.CYCLOSM.creditUrl) })
+        root.addView(button(getString(R.string.ui_map_legend), BicycleIcon.Info) { openMapLink(MapProviderSettings.source(this,preferences.getString("mapSource",null)).creditUrl) })
         observeSettings(root) {
-            preferences.edit().putString("mapSource", MapSource.entries[source.selectedItemPosition].name)
-                .putBoolean("mapHeading",heading.isChecked).putBoolean("mapFollow",follow.isChecked)
+            val chosen=MapSource.entries[source.selectedItemPosition]
+            keyRow.visibility=if(chosen==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
+            val entered=providerKey.text.toString().trim()
+            val validKey=entered.isEmpty() || MapProviderSettings.valid(entered)
+            providerKey.error=if(!validKey && chosen==MapSource.OPENCYCLEMAP) getString(R.string.map_thunderforest_invalid) else null
+            if(validKey) MapProviderSettings.write(this,entered)
+            val available=chosen!=MapSource.OPENCYCLEMAP || MapProviderSettings.read(this).isNotEmpty()
+            BicycleFeedback.update(providerStatus,if(!available) getString(R.string.map_thunderforest_required) else "",hideWhenEmpty=true)
+            val edit=preferences.edit()
+            if(available) edit.putString("mapSource",chosen.name)
+            edit.putBoolean("mapHeading",heading.isChecked).putBoolean("mapFollow",follow.isChecked)
                 .putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked).apply()
             mapPanel.refreshSettings()
         }

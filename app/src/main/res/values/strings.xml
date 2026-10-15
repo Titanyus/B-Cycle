@@ -541,4 +541,9 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_type_unavailable">%1$s · noch nicht verfügbar</string>
     <string name="bikes_trainer">Indoor-Trainer</string>
     <string name="ui_theme">Theme</string>
+    <string name="ui_map_source_topo">OpenTopoMap · Topografische Karte</string>
+    <string name="ui_map_source_cycle">OpenCycleMap · Fahrradkarte</string>
+    <string name="map_thunderforest_key">Thunderforest-API-Schlüssel</string>
+    <string name="map_thunderforest_required">Für OpenCycleMap einen Thunderforest-API-Schlüssel eingeben. Die bisherige Karte bleibt aktiv.</string>
+    <string name="map_thunderforest_invalid">Der API-Schlüssel muss aus 32 hexadezimalen Zeichen bestehen.</string>
 </resources>

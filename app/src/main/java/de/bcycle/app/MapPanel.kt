@@ -27,14 +27,25 @@ import org.mapsforge.map.view.InputListener
 import java.io.File
 import kotlin.math.abs
 
-enum class MapSource(val title: String, val host: String, val path: String, val attribution: String, val creditUrl: String) {
+enum class MapSource(val title: String, val host: String, val path: String, val attribution: String, val creditUrl: String, val maximumZoom: Int = 19) {
     CYCLOSM("CyclOSM · Fahrradkarte", "a.tile-cyclosm.openstreetmap.fr", "/cyclosm/", "CyclOSM · © OpenStreetMap", "https://www.cyclosm.org/legend.html"),
-    OSM("OpenStreetMap · Standardkarte", "tile.openstreetmap.org", "/", "© OpenStreetMap", "https://www.openstreetmap.org/copyright");
-    fun label(context: Context) = context.getString(if (this == CYCLOSM) R.string.ui_map_source_cyclosm else R.string.ui_map_source_osm)
-    fun tiles() = object : OnlineTileSource(arrayOf(host), 443) {
+    OSM("OpenStreetMap · Standardkarte", "tile.openstreetmap.org", "/", "© OpenStreetMap", "https://www.openstreetmap.org/copyright"),
+    OPENTOPOMAP("OpenTopoMap", "a.tile.opentopomap.org", "/", "© OpenStreetMap · SRTM · OpenTopoMap (CC-BY-SA)", "https://opentopomap.org/about",17),
+    OPENCYCLEMAP("OpenCycleMap", "tile.thunderforest.com", "/cycle/", "© Thunderforest · © OpenStreetMap", "https://www.thunderforest.com/terms/");
+    fun label(context: Context) = context.getString(when(this) {
+        CYCLOSM -> R.string.ui_map_source_cyclosm; OSM -> R.string.ui_map_source_osm
+        OPENTOPOMAP -> R.string.ui_map_source_topo; OPENCYCLEMAP -> R.string.ui_map_source_cycle
+    })
+    fun tiles(apiKey: String = "") = object : OnlineTileSource(arrayOf(host), 443) {
+        override fun getTileUrl(tile: org.mapsforge.core.model.Tile): java.net.URL {
+            val base=super.getTileUrl(tile)
+            if(this@MapSource!=OPENCYCLEMAP) return base
+            require(MapProviderSettings.valid(apiKey)) { "Thunderforest API key required" }
+            return java.net.URL(base.toString()+"?apikey="+java.net.URLEncoder.encode(apiKey,"UTF-8"))
+        }
         override fun getDefaultTimeToLive() = 7L * 24 * 60 * 60 * 1_000
     }.setProtocol("https").setBaseUrl(path)
-        .setName(name).setParallelRequestsLimit(2).setZoomLevelMax(19).apply {
+        .setName(name).setParallelRequestsLimit(2).setZoomLevelMax(maximumZoom.toByte()).apply {
             setUserAgent("B-Cycle/${AppVersion.name} (https://github.com/Titanyus/B-Cycle)")
         }
     companion object { fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: CYCLOSM }
@@ -79,7 +90,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var night = preferences.getBoolean("mapNight", false)
     private var running = false
     private var moving = false
-    private var source = MapSource.decode(preferences.getString("mapSource", null))
+    private var source = MapProviderSettings.source(context,preferences.getString("mapSource", null))
+    private var providerKey=MapProviderSettings.read(context)
     private var downloads: MapNightLayer
     private var follow = preferences.getBoolean("mapFollow", true)
     private var heading = preferences.getBoolean("mapHeading", true)
@@ -135,8 +147,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             model.displayModel.setFixedTileSize(256)
             setBuiltInZoomControls(false); mapScaleBar?.isVisible = false
             touchGestureHandler.setRotationEnabled(false)
-            setZoomLevelMin(2); setZoomLevelMax(19)
-            setZoomLevel(preferences.getInt("mapZoom", 16).coerceIn(2, 19).toByte())
+            setZoomLevelMin(2); setZoomLevelMax(source.maximumZoom.toByte())
+            setZoomLevel(preferences.getInt("mapZoom", 16).coerceIn(2, source.maximumZoom).toByte())
             val lat = preferences.getFloat("mapLatitude", 51f).toDouble().coerceIn(-85.0, 85.0)
             val lon = preferences.getFloat("mapLongitude", 10f).toDouble().coerceIn(-180.0, 180.0)
             setCenter(LatLong(lat, lon))
@@ -229,7 +241,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         // A bounded normal cache, never a region prefetch/offline download.
         val memory = ViewportTileCache()
         val disk = FileSystemTileCache(512, File(context.cacheDir, "tiles-${source.name}").apply { mkdirs() }, AndroidGraphicFactory.INSTANCE, true)
-        return MapNightLayer(TwoLevelTileCache(memory, disk), mapView.model.mapViewPosition, source.tiles()).apply { night = this@MapPanel.night }
+        return MapNightLayer(TwoLevelTileCache(memory, disk), mapView.model.mapViewPosition, source.tiles(providerKey)).apply { night = this@MapPanel.night }
     }
     private fun applyNight() {
         downloads.night = night
@@ -246,10 +258,14 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun destroy() { pause(); mapView.destroyAll() }
     fun refreshSettings() {
-        val next = MapSource.decode(preferences.getString("mapSource", null))
-        if (next != source) {
+        val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
+        val nextKey=MapProviderSettings.read(context)
+        if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey)) {
             mapView.layerManager.layers.remove(downloads); downloads.onDestroy(); downloads.tileCache.destroy()
-            source = next; downloads = createDownloadLayer(source); mapView.layerManager.layers.add(0, downloads)
+            source = next; providerKey=nextKey
+            mapView.setZoomLevelMax(source.maximumZoom.toByte())
+            if(mapView.model.mapViewPosition.zoomLevel>source.maximumZoom) mapView.model.mapViewPosition.setZoomLevel(source.maximumZoom.toByte(),false)
+            downloads = createDownloadLayer(source); mapView.layerManager.layers.add(0, downloads)
             if (running) downloads.onResume()
             credit.text = source.attribution
         }
@@ -382,7 +398,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val minLat = lats.min(); val maxLat = lats.max(); val minLon = lons.min(); val maxLon = lons.max()
         mapView.setCenter(LatLong((minLat + maxLat) / 2, (minLon + maxLon) / 2))
         mapView.rotate(Rotation.NULL_ROTATION)
-        var level = 19
+        var level = source.maximumZoom
         while (level > 2) {
             val size = MercatorProjection.getMapSize(level.toByte(), 256)
             val dx = abs(MercatorProjection.longitudeToPixelX(maxLon, size) - MercatorProjection.longitudeToPixelX(minLon, size))
@@ -393,7 +409,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         mapView.model.mapViewPosition.setZoomLevel(level.toByte(), false); revealControls(); refreshRoutes()
     }
     private fun zoom(delta: Int) {
-        mapView.model.mapViewPosition.setZoomLevel((mapView.model.mapViewPosition.zoomLevel + delta).coerceIn(2, 19).toByte(), false)
+        mapView.model.mapViewPosition.setZoomLevel((mapView.model.mapViewPosition.zoomLevel + delta).coerceIn(2, source.maximumZoom).toByte(), false)
         saveCamera()
     }
     private fun saveCamera() {

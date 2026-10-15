@@ -214,6 +214,14 @@ internal object BicycleDialogStyle {
             button.compoundDrawablesRelative.filterNotNull().forEach { it.setTint(tokens.foreground) }
         }
     }
+    /** Accordion labels match dropdowns: 16 sp, normal system font, text at start. */
+    fun accordion(view: Button, themes: ThemeManager) {
+        view.isAccessibilityHeading=false
+        control(view,themes)
+        view.typeface=Typeface.DEFAULT
+        view.textSize=BicycleDesign.inputSp
+        view.gravity=Gravity.START or Gravity.CENTER_VERTICAL
+    }
     fun spinner(view: Spinner, themes: ThemeManager, renderLabel: ((String, Int) -> CharSequence)? = null) {
         BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) return

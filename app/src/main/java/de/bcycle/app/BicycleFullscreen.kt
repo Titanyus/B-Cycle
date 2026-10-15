@@ -33,7 +33,7 @@ internal object BicycleFullscreen {
         val header = embeddedHeader ?: nativeHeader
         val footer = nativeFooter ?: content?.let { descendants(it).firstOrNull { child -> child.tag == "bicycle_action_footer" || child.tag == "route_analysis_footer" } }
         fun detach(view: View) { (view.parent as? ViewGroup)?.removeView(view) }
-        val host = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "bicycle_fullscreen" }
+        val host = BicycleFullscreenHost(context).apply { orientation = LinearLayout.VERTICAL; tag = "bicycle_fullscreen" }
         BicycleComponents.bindTheme(host, themes) { _ ->
             // Match the existing dashboard's black system-bar/cutout backdrop.
             host.setBackgroundColor(android.graphics.Color.BLACK)
