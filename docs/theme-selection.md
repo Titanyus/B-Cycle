@@ -19,16 +19,16 @@ Der bisherige Hauptmenüeintrag und Einstellungsdialog heißen „Design & UI“
 | Theme | Primary | Secondary | Tertiary | Foreground | Niedrigster Textkontrast |
 | --- | --- | --- | --- | --- | --- |
 | BICYCLE RED | #BF281B | #89190E | #680E07 | #FFFFFF | 5,94:1 |
-| EMBERS | #535353 | #000000 | #BF281B | #FFFFFF | 5,94:1 |
-| FIRE | #535353 | #000000 | #FFB400 | #FFFFFF | 1,78:1 (ausdrücklich akzeptiert) |
+| EMBERS | #BF281B | #000000 | #292929 | #FFFFFF | 5,94:1 |
+| FIRE | #FFB400 | #000000 | #292929 | #FFFFFF | 1,78:1 (ausdrücklich akzeptiert) |
 | ELECTRIC BLUE | #1168B8 | #10508C | #09294D | #FFFFFF | 5,68:1 |
 | ACID LIME | #587812 | #39510E | #203007 | #FFFFFF | 5,11:1 |
 | ULTRAVIOLET | #8242C3 | #57238E | #2D114D | #FFFFFF | 5,97:1 |
 | PETROL ATTACK | #117782 | #11525C | #092C33 | #FFFFFF | 5,27:1 |
 
-FIRE ersetzt SOLAR FLARE unter derselben gespeicherten ID `preset:solar-flare`. ACCENT = #FFB400. Der Nutzer hat am 15.10.2026 die exakte optionale Palette einschließlich weißer Beschriftung auf gelben Eingabeflächen ausdrücklich bestätigt. Die Ausnahme liegt als Daten-Metadatum `approvedLowContrastSurfaces = { TERTIARY }` am Preset, ohne namensabhängige UI-/Headerlogik. Kontrastprüfungen für PRIMARY/SECONDARY, ACCENT, Deckkraft, Flächenunterschiede und Custom-Themes bleiben erhalten; selbst erstellte Themes übernehmen diese Ausnahme nicht.
+FIRE ersetzt SOLAR FLARE unter derselben gespeicherten ID `preset:solar-flare`. ACCENT = #FFB400. Der Nutzer hat am 15.10.2026 die exakte optionale Palette einschließlich weißer Beschriftung auf Gelb ausdrücklich bestätigt. Die Ausnahme liegt als Daten-Metadatum `approvedLowContrastSurfaces = { PRIMARY }` am Preset, ohne namensabhängige UI-/Headerlogik. Kontrastprüfungen für SECONDARY/TERTIARY, ACCENT, Deckkraft, Flächenunterschiede und Custom-Themes bleiben erhalten; selbst erstellte Themes übernehmen diese Ausnahme nicht.
 
-EMBERS ersetzt BLACK OPS unter derselben gespeicherten ID `preset:black-ops`. Eingabeflächen und ACCENT verwenden #BF281B; Header und schwarzer Dialoghintergrund bleiben erhalten.
+EMBERS ersetzt BLACK OPS unter derselben gespeicherten ID `preset:black-ops`. PRIMARY und ACCENT verwenden #BF281B; SECONDARY ist #000000 und TERTIARY #292929. FIRE verwendet dieselbe Flächenstruktur mit #FFB400 als PRIMARY und ACCENT. Die bestätigte Kontrastausnahme liegt daher bei Fire nun auf dem gelben Header.
 
 ## Speicherung und laufender Farbwechsel
 

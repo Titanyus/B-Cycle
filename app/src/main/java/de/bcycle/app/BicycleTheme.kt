@@ -33,10 +33,10 @@ object BicycleThemes {
     /** Immutable templates; stored custom themes cannot overwrite these stable IDs. */
     val presets: List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
         red,
-        preset("black-ops", "EMBERS", 0xff535353, 0xff000000, 0xffbf281b, accent = 0xffbf281b),
-        // Exact palette and white-on-yellow tertiary explicitly accepted by the user.
-        preset("solar-flare", "FIRE", 0xff535353, 0xff000000, 0xffffb400, accent = 0xffffb400,
-            approvedLowContrastSurfaces = setOf(ThemeRole.TERTIARY)),
+        preset("black-ops", "EMBERS", 0xffbf281b, 0xff000000, 0xff292929, accent = 0xffbf281b),
+        // Exact palette and white-on-yellow header explicitly accepted by the user.
+        preset("solar-flare", "FIRE", 0xffffb400, 0xff000000, 0xff292929, accent = 0xffffb400,
+            approvedLowContrastSurfaces = setOf(ThemeRole.PRIMARY)),
         preset("electric-blue", "ELECTRIC BLUE", 0xff1168b8, 0xff10508c, 0xff09294d),
         preset("acid-lime", "ACID LIME", 0xff587812, 0xff39510e, 0xff203007),
         preset("ultraviolet", "ULTRAVIOLET", 0xff8242c3, 0xff57238e, 0xff2d114d),

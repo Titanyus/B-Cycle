@@ -6,18 +6,25 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.17 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.17/downloads/B-Cycle-0.7.17-test.apk)**
+**[APK 0.7.18 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.18/downloads/B-Cycle-0.7.18-test.apk)**
 
 - Größe: **1,173,458 Byte**, rund **1,17 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.17/55.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.18/56.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.17-test.apk.sha256):
-  `42c50368ee2f8e6e095129ce03397bec5491e838062e2853913d16571185013c`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.18-test.apk.sha256):
+  `c350f61a040a817cc5b29e536579a0286c2d9ea626e11a283e6283557f34df24`.
 
-Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich; Signatur,
-ZIP-Ausrichtung und Versionsdaten geprüft. Die Änderungen wurden zuvor gezielt
-getestet. [Buildnachweis](docs/milestone-0717.md).
+14 gezielte Theme-Tests und Release-Build mit R8, Resource-Shrinking und
+Lint-Vital erfolgreich. Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
+[Buildnachweis](docs/milestone-0718.md).
+
+## Neu in APK 0.7.18
+
+- **EMBERS:** roter Header und Akzent #BF281B, schwarzer Dialoghintergrund
+  #000000, dunkelgraue Eingabeflächen #292929, weiße Texte/Icons #FFFFFF.
+- **FIRE:** dieselbe Struktur mit gelbem Header und Akzent #FFB400.
+- Bestehende Theme-Auswahlen und sämtliche Funktionen bleiben erhalten.
 
 ## Neu in APK 0.7.17
 

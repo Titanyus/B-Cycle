@@ -35,24 +35,24 @@ class BicycleThemeTest {
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0x00ffaa55))).valid)
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0xffd1261b.toInt()))).valid)
     }
-    @Test fun fireKeepsExactApprovedColorsAndOnlyItsTertiaryContrastException() {
+    @Test fun fireKeepsExactApprovedColorsAndOnlyItsHeaderContrastException() {
         val fire = BicycleThemes.presets.single { it.id == "preset:solar-flare" }
         assertEquals("FIRE", fire.name)
-        assertEquals(ThemeTokens(0xff535353.toInt(), 0xff000000.toInt(), 0xffffb400.toInt(), 0xffffffff.toInt(), 0xffffb400.toInt()), fire.tokens)
-        assertEquals(setOf(ThemeRole.TERTIARY), fire.approvedLowContrastSurfaces)
+        assertEquals(ThemeTokens(0xffffb400.toInt(), 0xff000000.toInt(), 0xff292929.toInt(), 0xffffffff.toInt(), 0xffffb400.toInt()), fire.tokens)
+        assertEquals(setOf(ThemeRole.PRIMARY), fire.approvedLowContrastSurfaces)
         assertTrue(ThemeValidator.validate(fire).valid)
         assertFalse(ThemeValidator.validate(fire.copy(approvedLowContrastSurfaces = emptySet())).valid)
-        assertFalse(ThemeValidator.validate(fire.copy(tokens = fire.tokens.copy(primary = 0xffffffff.toInt()))).valid)
-        assertFalse(ThemeValidator.validate(fire.copy(tokens = fire.tokens.copy(tertiary = 0x00ffb400))).valid)
+        assertFalse(ThemeValidator.validate(fire.copy(tokens = fire.tokens.copy(secondary = 0xffffffff.toInt()))).valid)
+        assertFalse(ThemeValidator.validate(fire.copy(tokens = fire.tokens.copy(tertiary = 0x00292929))).valid)
         assertFalse(ThemeValidator.validate(CustomTheme("custom:fire", "Mine", fire.tokens)).valid)
     }
-    @Test fun embersPreservesOldIdAndUsesRedFieldsAndAccentOnlyOnReadableSurfaces() {
+    @Test fun embersPreservesOldIdAndUsesRedHeaderAndAccentOnlyOnReadableSurfaces() {
         val theme = BicycleThemes.presets.single { it.id == "preset:black-ops" }
         val t = theme.tokens
         assertEquals(0xff000000.toInt(), t.secondary)
         assertEquals("EMBERS", theme.name)
-        assertEquals(0xffbf281b.toInt(), t.tertiary)
-        assertEquals(0xff535353.toInt(), t.primary)
+        assertEquals(0xff292929.toInt(), t.tertiary)
+        assertEquals(0xffbf281b.toInt(), t.primary)
         assertEquals(0xffbf281b.toInt(), t.accent)
         assertTrue(ThemeValidator.validate(theme).valid)
         assertEquals(t.accent, t.iconColor(ThemeRole.ACCENT, ThemeRole.SECONDARY))
