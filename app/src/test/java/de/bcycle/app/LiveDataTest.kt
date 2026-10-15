@@ -4,6 +4,18 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LiveDataTest {
+    @Test fun receptionCountsDistinctMeasurementsIncludingZeroButNotModeNameMetadata() {
+        var data=LiveData(assistNames=listOf("OFF","ECO"))
+        assertEquals(0,data.measurementCount)
+        data=data.merge(LiveData.sample(LiveMetric.SPEED,0))
+            .merge(LiveData.sample(LiveMetric.RIDER_POWER,0))
+        assertEquals(2,data.measurementCount)
+        repeat(20) { data=data.merge(LiveData.sample(LiveMetric.SPEED,it.toLong())) }
+        assertEquals(2,data.measurementCount)
+        data=data.merge(LiveData(otherValues=mapOf(LiveMetric.CADENCE to 0L,LiveMetric.BATTERY to 80L),rangesKm=listOf(0L,25L)))
+        assertEquals(5,data.measurementCount)
+        assertEquals(0,LiveData().measurementCount)
+    }
     @Test fun partialUpdatesPreserveAllFieldsAndExplicitZero() {
         val data = LiveData(2500, 180, mapOf(LiveMetric.CADENCE to 170L), listOf("OFF", "ECO"), listOf(87L))
         val updated = data.merge(LiveData(riderPowerWatts = 0, otherValues = mapOf(LiveMetric.BATTERY to 80L)))

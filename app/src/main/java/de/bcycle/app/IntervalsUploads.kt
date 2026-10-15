@@ -31,6 +31,7 @@ internal object IntervalsUploads {
         val hash=WebDavClient.hash(file)
         synchronized(lock) {
             val all=entries(c);val old=all.optJSONObject(file.nameWithoutExtension)
+            RideServiceLinks.links(c,file.nameWithoutExtension) // Migrate an existing confirmed receipt before replacing it.
             if(old?.optString("athlete")==config.athlete && old.optString("hash")==hash && old.optLong("modified")==file.lastModified() &&
                 old.optString("state") in setOf("pending","uploading","saved")) return@synchronized
             all.put(file.nameWithoutExtension,JSONObject().put("athlete",config.athlete).put("hash",hash).put("length",file.length())
@@ -60,7 +61,8 @@ internal object IntervalsUploads {
     }
     private fun update(c:Context,id:String,expected:JSONObject,state:String,remote:String="",error:String="")=synchronized(lock) {
         val all=entries(c);val item=all.optJSONObject(id) ?: return@synchronized
-        if(item.optString("hash")!=expected.optString("hash") || item.optString("athlete")!=expected.optString("athlete")) return@synchronized
+        if(item.optString("hash")!=expected.optString("hash") || item.optString("athlete")!=expected.optString("athlete") ||
+            item.optLong("modified")!=expected.optLong("modified") || item.optLong("length")!=expected.optLong("length")) return@synchronized
         item.put("state",state).put("remoteId",remote).put("error",error);save(c,all)
     }
     fun run(c:Context,cancelled:()->Boolean,upload:(IntervalsConfig,File,String,()->Boolean)->String={ config,file,name,stopped ->
@@ -85,6 +87,7 @@ internal object IntervalsUploads {
                 val stopped={ cancelled() || IntervalsSettings(c).read().let { !it.enabled || it.athlete!=config.athlete } }
                 val remote=upload(config,file,item.getString("name"),stopped)
                 if(stopped()) throw IOException()
+                RideServiceLinks.confirm(c,RideServiceLink(id,RideService.INTERVALS,config.athlete,remote,item.getString("hash")))
                 check(remote.isNotBlank() && file.isFile && WebDavClient.hash(file)==item.getString("hash") && file.lastModified()==item.getLong("modified"))
                 update(c,id,item,"saved",remote)
             } catch(e:Exception) {
@@ -111,21 +114,28 @@ class IntervalsUploadService:JobService() {
 internal object RouteCloudUploads {
     fun revision(c:Context)="${RouteUploads.revision(c)}:${IntervalsUploads.revision(c)}"
     fun state(c:Context,id:String,stamp:RouteFileStamp?):RouteUploadStatus {
-        val states=buildList {
-            if(RouteExportSettings(c).read().webdav) add(RouteUploads.state(c,id,stamp))
-            if(IntervalsSettings(c).read().enabled) add(IntervalsUploads.state(c,id,stamp))
-        }
+        val targets=listOf<()->RouteUploadStatus?>(
+            { if(RouteExportSettings(c).read().webdav) RouteUploads.state(c,id,stamp) else null },
+            { if(IntervalsSettings(c).read().enabled) IntervalsUploads.state(c,id,stamp) else null }
+        )
+        val states=targets.mapNotNull { runCatching(it).getOrElse { RouteUploadStatus(UploadState.FAILED) } }
         return RouteUploadStatus(if(states.isNotEmpty() && states.all { it.state==UploadState.UPLOADED }) UploadState.UPLOADED else UploadState.NOT_UPLOADED)
     }
     private fun both(c:Context,dav:()->Unit,intervals:()->Unit) {
-        val results=mutableListOf<Result<Unit>>()
-        if(RouteExportSettings(c).read().webdav) results+=runCatching(dav)
-        if(IntervalsSettings(c).read().enabled) results+=runCatching(intervals)
+        dispatch(listOf(
+            { if(RouteExportSettings(c).read().webdav) dav() },
+            { if(IntervalsSettings(c).read().enabled) intervals() }
+        ))
+    }
+    /** Include configuration reads in isolation: a broken provider must not skip later targets. */
+    internal fun dispatch(targets:List<()->Unit>) {
+        val results=targets.map { runCatching(it) }
         results.firstOrNull { it.isFailure }?.getOrThrow()
     }
     fun enqueue(c:Context,file:File,name:String)=both(c,{RouteUploads.enqueue(c,file,name)},{IntervalsUploads.enqueue(c,file,name)})
     fun retry(c:Context,id:String) {
-        check(RouteExportSettings(c).read().webdav || IntervalsSettings(c).read().enabled) { c.getString(R.string.intervals_no_target) }
-        both(c,{RouteUploads.retry(c,id)},{IntervalsUploads.retry(c,id)})
+        var enabled=0
+        both(c,{enabled++;RouteUploads.retry(c,id)},{enabled++;IntervalsUploads.retry(c,id)})
+        check(enabled>0) { c.getString(R.string.intervals_no_target) }
     }
 }

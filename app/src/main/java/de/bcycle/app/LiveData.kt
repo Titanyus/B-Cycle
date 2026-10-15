@@ -45,6 +45,8 @@ data class LiveData(
     val assistNames: List<String>? = null,
     val rangesKm: List<Long>? = null,
 ) {
+    /** Distinct decoded measurements seen on this connection, not notification count or metadata. */
+    val measurementCount get() = LiveMetric.entries.count { value(it) != null } + if (rangesKm?.isNotEmpty() == true) 1 else 0
     val hasValues get() = speedHundredths != null || riderPowerWatts != null || otherValues.isNotEmpty() ||
         assistNames != null || rangesKm != null
 

@@ -260,6 +260,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         bikeReconnect.connected(); heartReconnect.connected(); updateActivity()
     }
     internal fun disconnected(sensor: BikeSensor) = sensor in disconnectedSensors
+    internal fun receivedValueCount(sensor: BikeSensor): Int? = if (disconnected(sensor)) null else when (sensor) {
+        BikeSensor.EBIKE -> connection.receivedValueCount.takeIf { connection.isLive }
+        BikeSensor.HEART -> heart.receivedValueCount.takeIf { heart.live }
+        else -> null
+    }
     internal fun disconnectSensor(sensor: BikeSensor) {
         disconnectedSensors += sensor
         when (sensor) {

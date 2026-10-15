@@ -16,6 +16,8 @@ class HeartRateConnection(private val context: Context, private val status: (Str
     private var epoch = 0
     var active = false; private set
     var live = false; private set
+    private val receivedFields = mutableSetOf<String>()
+    val receivedValueCount get() = receivedFields.size
     private val timeout = Runnable { fail("Pulsmesser · Zeitlimit erreicht") }
     fun connect(device: BluetoothDevice) {
         stop(); active = true; val session = ++epoch
@@ -50,11 +52,18 @@ class HeartRateConnection(private val context: Context, private val status: (Str
                 }
                 override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray) {
                     val copy = value.copyOf()
-                    dispatch(gatt) { if (characteristic.uuid == MEASUREMENT && live) HeartRateMeasurement.decode(copy)?.let { measurement(it); status(if (it.bpm != null) "Pulsmesser · Live" else "Pulsmesser · Kein Hautkontakt") } }
+                    dispatch(gatt) { if (characteristic.uuid == MEASUREMENT && live) HeartRateMeasurement.decode(copy)?.let {
+                        if (it.bpm != null) receivedFields += "pulse"
+                        if (it.energyKj != null) receivedFields += "energy"
+                        if (it.rrSeconds.isNotEmpty()) receivedFields += "rr"
+                        measurement(it); status(if (it.bpm != null) "Pulsmesser · Live" else "Pulsmesser · Kein Hautkontakt")
+                    } }
                 }
                 override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, result: Int) {
                     val copy = value.copyOf()
-                    dispatch(gatt) { if (result == BluetoothGatt.GATT_SUCCESS && characteristic.uuid == BATTERY && copy.size == 1) (copy[0].toInt() and 255).takeIf { it <= 100 }?.let(battery) }
+                    dispatch(gatt) { if (result == BluetoothGatt.GATT_SUCCESS && characteristic.uuid == BATTERY && copy.size == 1) (copy[0].toInt() and 255).takeIf { it <= 100 }?.let {
+                        receivedFields += "battery"; battery(it)
+                    } }
                 }
             }, BluetoothDevice.TRANSPORT_LE)
             if (client == null) fail("Pulsmesser · GATT nicht verfügbar")
@@ -63,6 +72,7 @@ class HeartRateConnection(private val context: Context, private val status: (Str
     }
     fun stop() {
         epoch++; active = false; live = false; handler.removeCallbacks(timeout)
+        receivedFields.clear()
         val old = client; client = null
         try { old?.disconnect(); old?.close() } catch (_: SecurityException) {}
     }

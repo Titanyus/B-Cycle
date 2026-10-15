@@ -219,7 +219,9 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 val value=if(!sensor.supported) context.getString(R.string.bikes_not_available) else if(runtime.disconnected(sensor)) context.getString(R.string.bikes_disconnected) else when(sensor) {
                     BikeSensor.GPS->runtime.gpsStatus;BikeSensor.EBIKE->runtime.bikeStatus;BikeSensor.HEART->runtime.heartStatus;else->""
                 }
-                BicycleFeedback.update(view,value)
+                val count=runtime.receivedValueCount(sensor)
+                BicycleFeedback.update(view,if(count!=null && count>0) context.getString(R.string.sensor_received_values,value,
+                    resources.getQuantityString(R.plurals.sensor_value_count,count,count)) else value)
                 deviceNames[sensor]?.let { BicycleFeedback.update(it,when(sensor) { BikeSensor.EBIKE->p.bikeName;BikeSensor.HEART->p.heartName;else->null } ?: context.getString(R.string.bikes_not_assigned)) }
                 val battery=when(sensor) { BikeSensor.EBIKE->runtime.currentBikeBattery?.toInt();BikeSensor.HEART->runtime.pulseValues.battery.takeIf { runtime.heart.live };else->null }
                 batteries[sensor]?.let { BicycleFeedback.update(it,context.getString(R.string.bikes_battery, battery?.let { value -> context.getString(R.string.bikes_battery_value,value) } ?: context.getString(R.string.bikes_battery_missing))) }

@@ -48,11 +48,26 @@ class HeartRateConnectionTest {
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(listOf(145), pulses)
         assertEquals("Pulsmesser · Live", messages.last())
+        assertEquals(1,connection.receivedValueCount)
+        // Same measurement type is not a new field. Malformed frames never add fields.
+        callback.onCharacteristicChanged(gatt,measurement,byteArrayOf(0,146.toByte()))
+        callback.onCharacteristicChanged(gatt,measurement,byteArrayOf(24,146.toByte()))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(1,connection.receivedValueCount)
+        val battery=BluetoothGattCharacteristic(UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb"),BluetoothGattCharacteristic.PROPERTY_READ,0)
+        callback.onCharacteristicRead(gatt,battery,byteArrayOf(101),BluetoothGatt.GATT_SUCCESS)
+        shadowOf(Looper.getMainLooper()).idle();assertEquals(1,connection.receivedValueCount)
+        callback.onCharacteristicRead(gatt,battery,byteArrayOf(80),BluetoothGatt.GATT_SUCCESS)
+        shadowOf(Looper.getMainLooper()).idle();assertEquals(2,connection.receivedValueCount)
+        callback.onCharacteristicChanged(gatt,measurement,byteArrayOf(24,147.toByte(),2,0,0,4)) // Energy and RR interval.
+        shadowOf(Looper.getMainLooper()).idle();assertEquals(4,connection.receivedValueCount)
         connection.stop()
         assertFalse(connection.active); assertTrue(shadow.isClosed)
+        assertEquals(0,connection.receivedValueCount)
         callback.onCharacteristicChanged(gatt, measurement, byteArrayOf(0, 160.toByte()))
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals(listOf(145), pulses)
+        assertEquals(listOf(145,146,147), pulses)
+        assertEquals(0,connection.receivedValueCount)
     }
     /** Simulates the remote acknowledgement for Android 13's descriptor-write API. */
     @Implements(BluetoothGatt::class)

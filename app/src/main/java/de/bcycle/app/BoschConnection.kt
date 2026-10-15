@@ -50,6 +50,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
     private var characteristic: BluetoothGattCharacteristic? = null
     private var negotiatedMtu = 23
     private var liveData = LiveData()
+    val receivedValueCount get() = liveData.measurementCount
     private var liveMeasurementsReceived = false
     private var receiverRegistered = false
     private var lastDiagnosticStatus: String? = null

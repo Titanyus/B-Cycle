@@ -69,6 +69,7 @@ class IntervalsTest {
         assertFalse(IntervalsUploads.run(context,{false}) { _,file,_,_->assertEquals(original,file);count++;"a1" })
         assertEquals(1,count)
         assertEquals(UploadState.UPLOADED,IntervalsUploads.state(context,id).state)
+        assertEquals(listOf("a1"),RideServiceLinks.links(context,id).map { it.activityId })
         assertEquals(UploadState.NOT_UPLOADED,RouteUploads.state(context,id).state)
         assertEquals(UploadState.UPLOADED,RouteCloudUploads.state(context,id,null).state)
         RouteCloudUploads.enqueue(context,original,"ride.fit")
@@ -80,8 +81,23 @@ class IntervalsTest {
         IntervalsUploads.retry(context,id)
         assertFalse(IntervalsUploads.run(context,{false}) { _,file,_,_->assertEquals(corrected,file);"a2" })
         assertEquals(UploadState.UPLOADED,IntervalsUploads.state(context,id,stamp).state)
+        assertEquals(listOf("a1","a2"),RideServiceLinks.links(context,id).map { it.activityId })
         RouteExportSettings(context).write(RouteExportConfig(webdav=true,server="https://cloud.example.org",user="rider"))
         assertEquals(UploadState.NOT_UPLOADED,RouteCloudUploads.state(context,id,stamp).state)
+    }
+    @Test fun invalidWebDavDoesNotPreventIntervalsQueueingAndEveryTargetRunsDespiteFailures() {
+        configure()
+        RouteExportSettings(context).write(RouteExportConfig(webdav=true,server="",user="rider"))
+        val original=FitLibrary.retainRecording(context.filesDir,fit())
+        assertThrows(Exception::class.java) { RouteCloudUploads.enqueue(context,original,"ride.fit") }
+        assertEquals(UploadState.WAITING,IntervalsUploads.state(context,original.nameWithoutExtension).state)
+        val visited=mutableListOf<Int>()
+        assertThrows(IllegalStateException::class.java) { RouteCloudUploads.dispatch(listOf(
+            { visited+=1;throw IllegalStateException() },
+            { visited+=2;throw IllegalArgumentException() },
+            { visited+=3 }
+        )) }
+        assertEquals(listOf(1,2,3),visited)
     }
     @Test fun cancellationAndFailureNeverProduceSuccessAndStateSurvivesReopen() {
         val settings=configure();val file=FitLibrary.retainRecording(context.filesDir,fit());val id=file.nameWithoutExtension
@@ -89,11 +105,28 @@ class IntervalsTest {
         var stopped=false
         assertTrue(IntervalsUploads.run(context,{stopped}) { _,_,_,_->stopped=true;"a1" })
         assertEquals(UploadState.WAITING,IntervalsUploads.state(context,id).state)
+        assertTrue(RideServiceLinks.links(context,id).isEmpty())
         assertFalse(IntervalsUploads.run(context,{false}) { _,_,_,_->throw IntervalsFailure(false,R.string.intervals_auth_failed) })
         assertEquals(UploadState.FAILED,IntervalsUploads.state(context,id).state)
         assertTrue(IntervalsSettings(context).read().enabled)
         settings.write(settings.read().copy(athlete="i456"))
         assertEquals(UploadState.NOT_UPLOADED,IntervalsUploads.state(context,id).state)
+    }
+    @Test fun completedOldGenerationCannotMarkANewerQueuedFileSuccessful() {
+        configure()
+        val file=FitLibrary.retainRecording(context.filesDir,fit());val id=file.nameWithoutExtension
+        IntervalsUploads.enqueue(context,file,"ride.fit")
+        assertTrue(IntervalsUploads.run(context,{false}) { _,_,_,_->
+            assertTrue(file.setLastModified(file.lastModified()+2000))
+            IntervalsUploads.enqueue(context,file,"ride.fit")
+            "old-generation"
+        })
+        assertEquals(UploadState.WAITING,IntervalsUploads.state(context,id).state)
+        // The server confirmed an activity, but that is not a receipt for the newer file generation.
+        assertEquals("old-generation",RideServiceLinks.links(context,id).single().activityId)
+        assertFalse(IntervalsUploads.run(context,{false}) { _,_,_,_->"new-generation" })
+        assertEquals(UploadState.UPLOADED,IntervalsUploads.state(context,id).state)
+        assertEquals(2,RideServiceLinks.links(context,id).size)
     }
     @Test fun stoppingRecordingQueuesIntervalsWithoutEnablingWebDavOrLocalExport() {
         configure()
