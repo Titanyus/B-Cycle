@@ -16,6 +16,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val themes = runtime.themes
     private var shownSlot = -1
     private var binding = false
+    private var fitExpanded = false
     private var cardSignature = ""
     private val cards = mutableListOf<LinearLayout>()
     private val cardNames = mutableListOf<TextView>()
@@ -180,8 +181,21 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 if(sensor!=BikeSensor.GPS) addView(BicycleComponents.icon(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.bikes_remove)) { runtime.removeSensor(sensor);refresh() }.apply { tag="bike_remove_${sensor.name}";removes[sensor]=this },LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap);topMargin=dp(BicycleDesign.controlGap) })
             },LayoutParams(-1,-2))
         }
-        section(R.string.ui_recording_title)
-        addView(recordingControls(),LayoutParams(-1,-2))
+        addView(BicycleComponents.sectionDivider(context,themes))
+        val fitContent = recordingControls().apply { visibility = if (fitExpanded) VISIBLE else GONE }
+        lateinit var fitToggle: Button
+        fitToggle = BicycleComponents.action(context,themes,context.getString(R.string.ui_recording_title)) {
+            fitExpanded = !fitExpanded
+            fitContent.visibility = if (fitExpanded) VISIBLE else GONE
+            fitToggle.stateDescription = context.getString(if (fitExpanded) R.string.zone_expanded else R.string.zone_collapsed)
+        }.apply {
+            tag = "bike_fit_toggle"; isAccessibilityHeading = true
+            stateDescription = context.getString(if (fitExpanded) R.string.zone_expanded else R.string.zone_collapsed)
+        }
+        BicycleDialogStyle.control(fitToggle,themes)
+        BicycleDialogStyle.actionIcon(fitToggle,themes,BicycleIcon.Expand)
+        addView(fitToggle,LayoutParams(-1,-2))
+        addView(fitContent,LayoutParams(-1,-2))
         refresh()
     }
     fun beginSearch() { searchResults.removeAllViews();searchStatus.visibility=VISIBLE }

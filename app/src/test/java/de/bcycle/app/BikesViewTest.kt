@@ -25,7 +25,7 @@ class BikesViewTest {
         shadowOf(Looper.getMainLooper()).idle()
         view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));view.layout(0,0,width,height)
     }
-    @Test fun fourCardsInlineNameDropdownAndDirectFitControlsPersistOnTheSameScrollingPage() {
+    @Test fun fourCardsInlineNameDropdownAndFitAccordionPersistOnTheSameScrollingPage() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val app=controller.get();val runtime=RideRuntime.get(app)
@@ -41,6 +41,12 @@ class BikesViewTest {
             assertTrue(body.findViewWithTag<View>("bike_type_EBIKE").isEnabled)
             assertFalse(body.findViewWithTag<View>("bike_sensor_POWER").isEnabled)
             assertNotNull(body.findViewWithTag<View>("bike_sensor_search"))
+            val fitToggle = body.findViewWithTag<View>("bike_fit_toggle")
+            val fitContent = body.findViewWithTag<View>("bike_fit_settings")
+            assertEquals(View.GONE, fitContent.visibility)
+            fitToggle.performClick();assertEquals(View.VISIBLE, fitContent.visibility)
+            fitToggle.performClick();assertEquals(View.GONE, fitContent.visibility)
+            fitToggle.performClick();assertEquals(View.VISIBLE, fitContent.visibility)
             assertNotNull(body.findViewWithTag<View>("record_GPS_SPEED"))
             assertNull(body.findViewWithTag<View>("sensor_recording_toggle"))
             body.findViewWithTag<View>("bike_profile_name").performClick()

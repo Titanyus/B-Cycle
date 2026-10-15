@@ -153,4 +153,54 @@ class BicycleComponentsTest {
         } finally { controller.pause().stop().destroy() }
     }
 
+    @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    fun selectionCentersAndEnabledSwitchesUseAccentWhileOutlinesAndLabelsRemainForeground() {
+        val controller=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("accent-controls",0))
+            val root=LinearLayout(activity).apply { orientation=LinearLayout.VERTICAL }
+            val box=android.widget.CheckBox(activity)
+            val radio=android.widget.RadioButton(activity)
+            val radioWidth=radio.buttonDrawable!!.intrinsicWidth
+            val toggle=android.widget.Switch(activity)
+            val originalThumb=toggle.thumbDrawable
+            var changes=0;box.setOnCheckedChangeListener { _,_->changes++ }
+            for(view in listOf(box,radio,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
+            activity.setContentView(root)
+            assertEquals(radioWidth,radio.buttonDrawable!!.intrinsicWidth)
+            fun pixel(button: android.widget.CompoundButton,x:Int=24):Int {
+                val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
+                button.buttonDrawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
+                val color=bitmap.getPixel(x,24);bitmap.recycle();return color
+            }
+            box.performClick();radio.performClick();toggle.performClick()
+            assertEquals(1,changes)
+            val light=CustomTheme("custom:accent-light","Light",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),0xff000000.toInt(),0xff002266.toInt()))
+            assertTrue(themes.saveCustom(light).valid)
+            for(theme in BicycleThemes.presets + light) {
+                assertTrue(themes.activate(theme.id))
+                val colors=theme.tokens
+                assertEquals(colors.accent,pixel(box));assertEquals(colors.accent,pixel(radio))
+                assertEquals(colors.foreground,pixel(box,6))
+                assertEquals(colors.foreground,box.currentTextColor);assertEquals(colors.foreground,toggle.currentTextColor)
+                assertEquals(colors.accent,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
+                val track=toggle.trackTintList!!.getColorForState(toggle.drawableState,0)
+                assertEquals(colors.accent and 0x00ffffff,track and 0x00ffffff)
+                assertEquals(102,android.graphics.Color.alpha(track))
+                assertEquals(1,changes);assertTrue(box.isChecked);assertTrue(radio.isChecked)
+                box.isEnabled=false
+                assertEquals(127,android.graphics.Color.alpha(pixel(box)))
+                box.isEnabled=true
+                assertEquals(colors.accent,pixel(box))
+                toggle.isChecked=false
+                assertEquals(colors.foreground,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
+                toggle.isChecked=true
+                assertEquals(radioWidth,radio.buttonDrawable!!.intrinsicWidth)
+                assertSame(originalThumb,toggle.thumbDrawable)
+            }
+            box.performClick();assertEquals(2,changes)
+            assertEquals(0,android.graphics.Color.alpha(pixel(box)))
+        } finally { controller.pause().stop().destroy() }
+    }
+
 }

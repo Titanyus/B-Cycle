@@ -89,3 +89,7 @@ Debug- und Release-Kotlin-Kompilierung erfolgreich.
 
 Die BLE-Prüfungen verwenden Android-Testdoubles; physische Mehrgeräteverbindungen
 sind noch am Telefon zu testen. Keine neue APK erzeugt oder veröffentlicht.
+
+## FIT-Accordion und aktive Controls
+
+Die FIT-Aufzeichnung steht wieder als standardmäßig geschlossenes Accordion unter den Sensoren. Es bleibt auf derselben scrollenden Seite und behält seinen Offen-Zustand bei Bikewechsel innerhalb dieser Ansicht. Werte und Sofortspeicherung pro Bike bleiben erhalten. Auswahlkreise und Schalter verwenden bei Aktivierung zentral ACCENT; Kreis-Kontur und Beschriftung bleiben FOREGROUND, deaktivierte Controls gedimmt.

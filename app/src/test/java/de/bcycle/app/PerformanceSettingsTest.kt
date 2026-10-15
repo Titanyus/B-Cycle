@@ -70,6 +70,8 @@ class PerformanceSettingsTest {
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible = true }.invoke(activity)
             val dialog = ShadowAlertDialog.getLatestAlertDialog()
             val content = views(dialog.window!!.decorView).single { it.tag == "bike_fit_settings" } as ViewGroup
+            assertEquals(View.GONE, content.visibility)
+            dialog.window!!.decorView.findViewWithTag<View>("bike_fit_toggle").performClick()
             assertEquals(View.VISIBLE, content.visibility)
             val checkbox = views(content).filterIsInstance<CheckBox>().single { it.tag == "record_NORMALIZED_POWER" }
             assertEquals(runtime.themes.active.tokens.foreground, checkbox.currentTextColor)
