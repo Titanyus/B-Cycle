@@ -16,7 +16,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val themes = runtime.themes
     private var shownSlot = -1
     private var binding = false
-    private var fitExpanded = false
     private var cardSignature = ""
     private val cards = mutableListOf<LinearLayout>()
     private val cardNames = mutableListOf<TextView>()
@@ -35,12 +34,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private fun dp(n: Int) = BicycleDesign.dp(context,n)
     init { orientation = VERTICAL; clipToPadding = false; tag = "bikes_manager"; setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),0); rebuild() }
     private fun text(id: Int, heading: Boolean = false) = BicycleComponents.text(context,themes,context.getString(id),heading)
-    private fun section(id: Int) = BicycleSectionHeader(context,themes,context.getString(id)).also { header ->
-        addView(header,LayoutParams(-1,-2).apply {
-            marginStart = -paddingLeft; marginEnd = -paddingRight
-            topMargin = dp(BicycleDesign.sectionHeaderGap); bottomMargin = dp(BicycleDesign.sectionHeaderGap)
-        })
-    }
+    private fun section(id: Int) = BicycleForm.section(this,themes,id)
     private fun watcher(change: (String)->Unit) = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?,start: Int,count: Int,after: Int) = Unit
         override fun onTextChanged(s: CharSequence?,start: Int,before: Int,count: Int) { change(s.toString()) }
@@ -127,35 +121,17 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             tag="bike_wheel_mm";setSingleLine();inputType=android.text.InputType.TYPE_CLASS_NUMBER
             setText(profile.wheelMm.toString());contentDescription=context.getString(R.string.bikes_wheel)
         }
-        BicycleDialogStyle.control(wheel,themes)
-        wheel.apply {
-            typeface=resources.getFont(R.font.bebas_neue)
-            textSize=BicycleDesign.analysisMetricSp
-            gravity=Gravity.END or Gravity.CENTER_VERTICAL
-            includeFontPadding=false
-            setPadding(dp(BicycleDesign.inputHorizontalPadding),dp(BicycleDesign.smallGap),
-                dp(BicycleDesign.inputHorizontalPadding),dp(BicycleDesign.smallGap))
-            BicycleComponents.bindTheme(this,themes) { tokens ->
-                backgroundTintList=null
-                background=GradientDrawable().apply {
-                    setColor(android.graphics.Color.TRANSPARENT)
-                    setStroke(BicycleDesign.dividerPixels,tokens.tertiary)
-                }
-            }
+        val wheelRow=BicycleForm.numberRow(wheel,themes,R.string.bikes_wheel,R.string.bikes_wheel_mm,"bike_wheel_unit").apply {
+            tag="bike_wheel_row"; getChildAt(0).tag="bike_wheel_label"
         }
-        addView(LinearLayout(context).apply {
-            tag="bike_wheel_row";gravity=Gravity.CENTER_VERTICAL
-            addView(text(R.string.bikes_wheel).apply { tag="bike_wheel_label" },LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
-            addView(wheel,LayoutParams(dp(BicycleDesign.riderZoneRangeWidth),-2))
-            addView(text(R.string.bikes_wheel_mm).apply { tag="bike_wheel_unit";setTextColor(BicycleDesign.dashboardUnitColor);gravity=Gravity.CENTER },LayoutParams(dp(BicycleDesign.touchSize),-2))
-        },LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
+        addView(wheelRow,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
         wheel.addTextChangedListener(watcher { value ->
             if(runtime.bikes.activeSlot!=slot) return@watcher
             val mm=value.toIntOrNull()
             wheel.error=if(mm==null || mm !in 500..4000) context.getString(R.string.bikes_wheel_error) else null
             if(wheel.error==null) runtime.bikes.save(runtime.bikes.current().copy(wheelMm=mm!!))
         })
-        val sensorsHeader = section(R.string.bikes_sensors)
+        section(R.string.bikes_sensors)
         autoConnect=Switch(context).apply {
             tag="bike_auto_connect";setText(R.string.bikes_autoconnect);isChecked=profile.autoConnect
             setOnCheckedChangeListener { _,enabled -> if(!binding && runtime.bikes.activeSlot==slot) runtime.setAutoConnect(enabled) }
@@ -203,22 +179,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 if(sensor!=BikeSensor.GPS) addView(BicycleComponents.icon(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.bikes_remove)) { runtime.removeSensor(sensor);refresh() }.apply { tag="bike_remove_${sensor.name}";removes[sensor]=this },LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap);topMargin=dp(BicycleDesign.controlGap) })
             },LayoutParams(-1,-2))
         }
-        addView(BicycleComponents.sectionDivider(context,themes))
-        val fitContent = recordingControls().apply { visibility = if (fitExpanded) VISIBLE else GONE }
-        lateinit var fitToggle: Button
-        fitToggle = BicycleComponents.action(context,themes,context.getString(R.string.ui_recording_title)) {
-            fitExpanded = !fitExpanded
-            fitContent.visibility = if (fitExpanded) VISIBLE else GONE
-            fitToggle.stateDescription = context.getString(if (fitExpanded) R.string.zone_expanded else R.string.zone_collapsed)
-        }.apply {
-            tag = "bike_fit_toggle"; isAccessibilityHeading = true
-            stateDescription = context.getString(if (fitExpanded) R.string.zone_expanded else R.string.zone_collapsed)
-        }
-        BicycleDialogStyle.control(fitToggle,themes)
-        BicycleDialogStyle.actionIcon(fitToggle,themes,BicycleIcon.Expand)
-        sensorsHeader.sectionEnd = fitToggle
-        addView(fitToggle,LayoutParams(-1,-2))
-        addView(fitContent,LayoutParams(-1,-2))
+        section(R.string.ui_recording_title)
+        addView(recordingControls(),LayoutParams(-1,-2))
         refresh()
     }
     fun beginSearch() { searchResults.removeAllViews();searchStatus.visibility=VISIBLE }

@@ -1,4 +1,4 @@
-# Sticky-Kategorien: erster Versuch auf Bikes
+# Sticky-Kategorien in den Einstellungen
 
 `BicycleSectionHeader` ist die gemeinsame Kategoriekomponente: bestehende
 23-sp-/900-Black-Schrift, zur vollen Fensterbreite zentriert, deckender
@@ -8,9 +8,12 @@ Zentrale Maße: mindestens 56 dp Texthöhe, vertikal 12 dp Innenabstand, außen
 12-dp-Streifen in SECONDARY auch im angedockten Zustand sichtbar. Keine neue Farbe, Schrift oder Nutzereinstellung.
 
 `BicycleStickyScrollView` aktiviert das Andocken gezielt für solche Komponenten.
-Im ersten Schritt verwendet nur Bikes den Scrollhost, mit Radtyp und Sensoren.
-Andere Dialogüberschriften bleiben unverändert. Die FIT-Aufzeichnung bleibt ein
-separates Accordion und beendet den Sensorenabschnitt, ohne selbst anzudocken.
+Aktiviert auf Fahrer (vier Kategorien), Bikes (Radtyp, Sensoren, FIT-Aufzeichnung),
+Daten & Speicher (Globale Daten, Streckendaten) und Design & UI (Theme,
+Dashboard-Layout, Fahrmodus-Anzeige). Karten bleiben unverändert. Die
+FIT-Aufzeichnung ist ein normaler Abschnitt; nur ihre zusätzlichen Datenquellen
+stehen jeweils in einem Accordion. Hauptquellen für Tempo/Distanz bleiben direkt
+sichtbar. Vorhandene Feldauswahl-Accordions bleiben erhalten.
 
 Der ursprüngliche Header wird im nativen Inhaltsbaum verschoben und liegt beim
 Scrollen oben unter der festen Dialogtitelleiste. Der nächste Abschnitt schiebt
@@ -45,3 +48,14 @@ Abschnittsende, Rückwärtsscrollen, Drag direkt auf dem Header, vollständige
 Titelleiste beim Zeichnen, Schrift, Themewechsel, 1-Pixel-Linien, volle Breite,
 Auswahlrahmen und bestehende Bike-/FIT-/Themebedienung. Keine neue Bibliothek,
 keine Änderung an Sensoren, Aufzeichnung oder FIT-Inhalten.
+
+## Prüfung der erweiterten Anwendung
+
+25 gezielte Tests aus SettingsSectionsTest, BicycleStickySectionsTest,
+BikesViewTest, PerformanceSettingsTest, RiderProfileViewTest,
+SettingsDesignMigrationTest, RouteExportNavigationTest,
+DataSettingsNavigationTest und ThemePickerTest bestanden. Geprüft werden unter
+anderem Abschnittsreihenfolge, ein einzelner Scrollhost, Zahlenzeilen auf
+320/360-dp-Displays, Themewechsel, Profilvalidierung, Navigation sowie FIT-Auswahl
+und Accordion-Zustand nach Profilwechsel. Release-Kotlin-Kompilierung erfolgreich.
+Keine vollständige Testsuite und keine neue APK für diese Umstellung.

@@ -13,11 +13,7 @@ internal class DataSettingsView(context: Context, themes: ThemeManager, selected
     init {
         orientation=VERTICAL;tag="data_settings";BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         fun section(title:Int, actions:List<DataAction>) {
-            if(childCount>0) addView(BicycleComponents.sectionDivider(context,themes))
-            addView(BicycleComponents.text(context,themes,context.getString(title)).apply {
-                textSize=BicycleDesign.titleSp;isAccessibilityHeading=true;typeface=BicycleDesign.strongTypeface
-                setPadding(BicycleDesign.dp(context,BicycleDesign.horizontalPadding),BicycleDesign.dp(context,BicycleDesign.verticalPadding),0,0)
-            })
+            BicycleForm.section(this,themes,title)
             actions.forEach { action -> addView(BicycleComponents.listRow(context,themes).apply {
                 tag="data_${action.name}";contentDescription=context.getString(action.title);isClickable=true;isFocusable=true
                 setOnClickListener { selected(action) }

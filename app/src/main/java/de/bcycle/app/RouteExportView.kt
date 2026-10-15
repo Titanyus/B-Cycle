@@ -70,6 +70,7 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
         BicycleDialogStyle.actionIcon(folderButton, themes, BicycleIcon.Folder)
         BicycleDialogStyle.actionIcon(testButton, themes, BicycleIcon.Connection)
         BicycleDialogStyle.content(this, themes)
+        listOf(server,user,password,folder).forEach { BicycleForm.outlinedInput(it,themes) }
     }
     fun read() = RouteExportConfig(save.isChecked, tree, dav.isChecked, server.text.toString().trim().trimEnd('/'),
         user.text.toString().trim(), folder.text.toString().trim().trim('/'), wifi.isChecked)

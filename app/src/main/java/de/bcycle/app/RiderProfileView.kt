@@ -19,7 +19,7 @@ import java.util.Locale
 
 /** Valid edits persist automatically; incomplete input never overwrites the last valid profile. */
 internal class RiderProfileView(context: Context, private val themes: ThemeManager, initial: RiderProfile,
-    private val navigation: DialogNavigation, private val today: () -> LocalDate = LocalDate::now) : ScrollView(context) {
+    private val navigation: DialogNavigation, private val today: () -> LocalDate = LocalDate::now) : BicycleStickyScrollView(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     private val locale get() = resources.configuration.locales[0]
     var persist: ((RiderProfile) -> Boolean)? = null
@@ -48,12 +48,9 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     private val saveError = text("").apply { tag = "rider_save_error"; visibility = GONE; accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE }
     private fun text(value: String) = BicycleComponents.text(context, themes, value).apply { typeface = Typeface.DEFAULT }
     private fun section(title: Int) {
-        if (root.childCount > 0) root.addView(BicycleComponents.sectionDivider(context, themes))
-        root.addView(text(context.getString(title)).apply {
-            textSize = BicycleDesign.titleSp; isAccessibilityHeading = true; typeface = BicycleDesign.strongTypeface
-            setPadding(0, dp(BicycleDesign.smallGap), 0, dp(BicycleDesign.verticalPadding))
-        }, LinearLayout.LayoutParams(-1, -2))
+        BicycleForm.section(root,themes,title)
     }
+
     private fun label(title: Int, target: View) {
         root.addView(text(context.getString(title)).apply { labelFor = target.id }, LinearLayout.LayoutParams(-1, -2))
     }
@@ -63,18 +60,11 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             inputType = InputType.TYPE_CLASS_NUMBER or if (decimal) InputType.TYPE_NUMBER_FLAG_DECIMAL else 0
             maxLines = 1; setText(value)
         }
-        BicycleDialogStyle.control(edit, themes)
-        inputs[field] = edit; label(title, edit)
-        root.addView(LinearLayout(context).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            addView(edit, LinearLayout.LayoutParams(0, -2, 1f))
-            addView(TextView(context).apply {
-                text = context.getString(unit); tag = "rider_unit"; textSize = BicycleDesign.formatSp
-                typeface = Typeface.DEFAULT; setTextColor(BicycleDesign.dashboardUnitColor)
-                gravity = Gravity.CENTER; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-            }, LinearLayout.LayoutParams(dp(BicycleDesign.touchSize), -1))
-        }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.verticalPadding) })
+        inputs[field] = edit
+        root.addView(BicycleForm.numberRow(edit,themes,title,unit,"rider_unit"),
+            LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap); bottomMargin=dp(BicycleDesign.verticalPadding) })
     }
+
     init {
         tag = "rider_profile"; BicycleComponents.scrollStyle(this)
         BicycleComponents.bindTheme(this, themes) {

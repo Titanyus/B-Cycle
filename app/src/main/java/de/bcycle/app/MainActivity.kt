@@ -74,6 +74,7 @@ class MainActivity : Activity() {
     private var routeDetail: DetailSession? = null
     private var sensorManager: AlertDialog? = null
     private var bikesManager: BikesView? = null
+    private val expandedFitSources = mutableSetOf<String>()
     private var scan: BikeSensorScanner? = null
     private var pendingSensor: String? = null
     private var pendingStart = false
@@ -377,14 +378,29 @@ class MainActivity : Activity() {
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
         root.addView(label(getString(R.string.bikes_fit_additional), BicycleDesign.titleSp).apply { isAccessibilityHeading=true })
         for ((source, fields) in RecordField.options.groupBy { it.source }) {
-            root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-            root.addView(label(DashboardTextResources.source(this, source), BicycleDesign.inputSp).apply { setPadding(0, dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.smallGap)); isAccessibilityHeading = true })
-            for (field in fields) root.addView(CheckBox(settingsContext).apply {
+            val content=LinearLayout(settingsContext).apply {
+                orientation=LinearLayout.VERTICAL;tag="fit_source_content_$source"
+                visibility=if(source in expandedFitSources) View.VISIBLE else View.GONE
+            }
+            lateinit var toggle: Button
+            toggle=BicycleComponents.action(settingsContext,runtime.themes,DashboardTextResources.source(this,source)) {
+                val open=content.visibility!=View.VISIBLE
+                content.visibility=if(open) View.VISIBLE else View.GONE
+                if(open) expandedFitSources.add(source) else expandedFitSources.remove(source)
+                toggle.stateDescription=getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
+            }.apply {
+                tag="fit_source_$source";isAccessibilityHeading=true
+                stateDescription=getString(if(source in expandedFitSources) R.string.zone_expanded else R.string.zone_collapsed)
+            }
+            BicycleDialogStyle.control(toggle,runtime.themes)
+            BicycleDialogStyle.actionIcon(toggle,runtime.themes,BicycleIcon.Expand)
+            root.addView(toggle);root.addView(content)
+            for (field in fields) content.addView(CheckBox(settingsContext).apply {
                 text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
                 setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id);saveFields() }
             })
         }
-        // The accordion is built after the dialog opens; apply the same central styles to its children.
+        // Style all source accordions and their existing field controls.
         BicycleDialogStyle.content(root, runtime.themes)
         return root
     }
@@ -492,7 +508,9 @@ class MainActivity : Activity() {
     }
     private fun dashboardSettings() {
         val root = column()
+        BicycleForm.section(root,runtime.themes,R.string.ui_theme)
         root.addView(ThemePickerView(settingsContext, runtime.themes))
+        BicycleForm.section(root,runtime.themes,R.string.ui_dashboard_page_choose)
         val presets = DashboardPresetPicker(settingsContext, (0 until 4).map { page ->
             DashboardTemplate.decode(preferences.getString("dashboardTemplate_$page", DashboardTemplate.entries[page].name))
         }, dashboardPage, runtime.themes)
@@ -500,8 +518,7 @@ class MainActivity : Activity() {
             val edit=preferences.edit(); presets.selection.forEachIndexed { page,template -> edit.putString("dashboardTemplate_$page",template.name) };edit.apply();changeDashboard(0)
         }
         root.addView(presets)
-        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-        root.addView(label(getString(R.string.ui_mode_glow), BicycleDesign.inputSp))
+        BicycleForm.section(root,runtime.themes,R.string.ui_mode_glow)
         root.addView(label(getString(R.string.ui_mode_glow_description)))
         val glow = Switch(settingsContext).apply {
             text = getString(R.string.ui_mode_glow); tag = "mode_glow_enabled"
@@ -511,7 +528,7 @@ class MainActivity : Activity() {
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(button(getString(R.string.dashboard_editor_open), BicycleIcon.EditDashboard) { enterDashboardEditor() }.apply { tag = "dashboard_editor_open" })
         glow.setOnCheckedChangeListener { _,checked -> ModeGlowSettings.save(preferences,checked); render() }
-        menu = dialog().setTitle(getString(R.string.ui_design_title)).setView(ScrollView(this).apply { tag="design_ui_scroll";addView(root) }).show()
+        menu = dialog().setTitle(getString(R.string.ui_design_title)).setView(BicycleStickyScrollView(settingsContext).apply { tag="design_ui_scroll";addView(root) }).show()
     }
     private fun mapSettings() {
         val root = column()
@@ -702,7 +719,7 @@ class MainActivity : Activity() {
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
             DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)
         } }
-        val screen=dataDialog(R.string.data_title,ScrollView(settingsContext).apply { addView(content) })
+        val screen=dataDialog(R.string.data_title,BicycleStickyScrollView(settingsContext).apply { addView(content) })
         dataSettingsScreen=screen;menu=screen
         dialogs.onDismiss(screen) { if(dataSettingsScreen===screen) dataSettingsScreen=null }
     }

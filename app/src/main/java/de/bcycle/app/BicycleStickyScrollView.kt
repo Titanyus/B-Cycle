@@ -9,7 +9,7 @@ import android.widget.ScrollView
  * Header positions are cached on layout, never searched during scrolling. No duplicate heading,
  * overlay container, nested scrolling or content reparenting is needed.
  */
-internal class BicycleStickyScrollView(context: Context) : ScrollView(context) {
+internal open class BicycleStickyScrollView(context: Context) : ScrollView(context) {
     private data class Section(val header: BicycleSectionHeader, val top: Int, val end: Int)
     private var sections = emptyList<Section>()
     init { BicycleComponents.scrollStyle(this) }

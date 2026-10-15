@@ -91,7 +91,7 @@ class BicycleStickySectionsTest {
             val scroll=testDescendants(decor).filterIsInstance<BicycleStickyScrollView>().single()
             val body=decor.findViewWithTag<View>("bikes_manager")
             val headings=testDescendants(body).filterIsInstance<BicycleSectionHeader>()
-            assertEquals(listOf(activity.getString(R.string.bikes_type),activity.getString(R.string.bikes_sensors)),headings.map { it.contentDescription })
+            assertEquals(listOf(activity.getString(R.string.bikes_type),activity.getString(R.string.bikes_sensors),activity.getString(R.string.ui_recording_title)),headings.map { it.contentDescription })
             assertTrue(headings.all { it.width==scroll.width && it.left==0 })
             for(sensor in listOf("GPS","EBIKE","POWER","HEART")) {
                 val toggle=decor.findViewWithTag<android.widget.Switch>("bike_sensor_$sensor")
@@ -128,7 +128,7 @@ class BicycleStickySectionsTest {
             screenshot.recycle()
             // The actual native button can be raised/pressed. It must remain behind the
             // opaque pinned heading, including the new top separation band.
-            val sensorHeader=headings.last()
+            val sensorHeader=headings[1]
             val search=decor.findViewWithTag<View>("bike_sensor_search")
             search.elevation=BicycleDesign.dp(activity,2).toFloat()
             search.translationZ=BicycleDesign.dp(activity,6).toFloat()

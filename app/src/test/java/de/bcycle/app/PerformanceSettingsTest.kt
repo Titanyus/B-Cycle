@@ -70,9 +70,12 @@ class PerformanceSettingsTest {
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible = true }.invoke(activity)
             val dialog = ShadowAlertDialog.getLatestAlertDialog()
             val content = views(dialog.window!!.decorView).single { it.tag == "bike_fit_settings" } as ViewGroup
-            assertEquals(View.GONE, content.visibility)
-            dialog.window!!.decorView.findViewWithTag<View>("bike_fit_toggle").performClick()
             assertEquals(View.VISIBLE, content.visibility)
+            val source=RecordField.options.single { it.id=="NORMALIZED_POWER" }.source
+            val sourceContent=content.findViewWithTag<View>("fit_source_content_$source")
+            assertEquals(View.GONE,sourceContent.visibility)
+            content.findViewWithTag<View>("fit_source_$source").performClick()
+            assertEquals(View.VISIBLE,sourceContent.visibility)
             val checkbox = views(content).filterIsInstance<CheckBox>().single { it.tag == "record_NORMALIZED_POWER" }
             assertEquals(runtime.themes.active.tokens.foreground, checkbox.currentTextColor)
             checkbox.isChecked = true
@@ -80,6 +83,7 @@ class PerformanceSettingsTest {
             dialog.window!!.decorView.findViewWithTag<View>("bike_profile_0").performClick()
             shadowOf(Looper.getMainLooper()).idle()
             assertSame(dialog, ShadowAlertDialog.getLatestAlertDialog())
+            assertEquals(View.VISIBLE,dialog.window!!.decorView.findViewWithTag<View>("fit_source_content_$source").visibility)
             assertTrue(dialog.window!!.decorView.findViewWithTag<CheckBox>("record_NORMALIZED_POWER").isChecked)
             assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)
             testBack(dialog)

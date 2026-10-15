@@ -309,7 +309,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_record_bluetooth_required">Bluetooth-Zugriff ist für die Aufzeichnung erforderlich</string>
     <string name="ui_folder_permission_error">Ordnerzugriff konnte nicht gespeichert werden</string>
     <string name="ui_design_title">Design &amp; UI</string>
-    <string name="ui_mode_glow">Fahrmodus-Glow</string>
+    <string name="ui_mode_glow">Fahrmodus-Anzeige</string>
     <string name="ui_mode_glow_description">Zeigt den aktiven Bosch-Fahrmodus durch einen farbigen Lichtschein am Rand der Datenfelder.</string>
     <string name="ui_map_source">Kartenquelle</string>
     <string name="ui_map_heading">Fahrtrichtung oben (sonst Norden)</string>
@@ -356,7 +356,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_route_manager_title">Strecken</string>
     <string name="ui_routes_empty">Keine Strecken in dieser Auswahl</string>
     <string name="ui_file_format_description">%1$s-Datei</string>
-    <string name="ui_dashboard_page_choose">Dashboard-Seite wählen</string>
+    <string name="ui_dashboard_page_choose">Dashboard-Layout</string>
     <string name="ui_selected">Ausgewählt</string>
     <string name="ui_not_selected">Nicht ausgewählt</string>
     <string name="ui_dashboard_page_edit">Dashboard %1$d bearbeiten</string>
@@ -540,4 +540,5 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_selected">Ausgewählt</string>
     <string name="bikes_type_unavailable">%1$s · noch nicht verfügbar</string>
     <string name="bikes_trainer">Indoor-Trainer</string>
+    <string name="ui_theme">Theme</string>
 </resources>
