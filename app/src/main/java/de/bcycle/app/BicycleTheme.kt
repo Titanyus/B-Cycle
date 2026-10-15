@@ -31,7 +31,7 @@ object BicycleThemes {
     /** Immutable templates; stored custom themes cannot overwrite these stable IDs. */
     val presets: List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
         red,
-        preset("black-ops", "BLACK OPS", 0xff535353, 0xff000000, 0xff292929, accent = 0xffd1261b),
+        preset("black-ops", "EMBERS", 0xff535353, 0xff000000, 0xffbf281b, accent = 0xffbf281b),
         // Approved contrast correction: original #C92817 gave only 3.37:1 with #17120D.
         preset("solar-flare", "SOLAR FLARE", 0xffffcb19, 0xfff47713, 0xffe83d24, 0xff17120d),
         preset("electric-blue", "ELECTRIC BLUE", 0xff1168b8, 0xff10508c, 0xff09294d),

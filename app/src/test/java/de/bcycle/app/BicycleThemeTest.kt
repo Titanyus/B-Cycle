@@ -35,13 +35,14 @@ class BicycleThemeTest {
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0x00ffaa55))).valid)
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0xffd1261b.toInt()))).valid)
     }
-    @Test fun blackOpsUsesBlackBodyGrayFieldsAndAccentOnlyOnReadableSurfaces() {
+    @Test fun embersPreservesOldIdAndUsesRedFieldsAndAccentOnlyOnReadableSurfaces() {
         val theme = BicycleThemes.presets.single { it.id == "preset:black-ops" }
         val t = theme.tokens
         assertEquals(0xff000000.toInt(), t.secondary)
-        assertEquals(0xff292929.toInt(), t.tertiary)
+        assertEquals("EMBERS", theme.name)
+        assertEquals(0xffbf281b.toInt(), t.tertiary)
         assertEquals(0xff535353.toInt(), t.primary)
-        assertEquals(0xffd1261b.toInt(), t.accent)
+        assertEquals(0xffbf281b.toInt(), t.accent)
         assertTrue(ThemeValidator.validate(theme).valid)
         assertEquals(t.accent, t.iconColor(ThemeRole.ACCENT, ThemeRole.SECONDARY))
         assertEquals(t.foreground, t.iconColor(ThemeRole.ACCENT, ThemeRole.TERTIARY))
