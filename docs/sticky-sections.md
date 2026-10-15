@@ -21,8 +21,8 @@ ihn heraus. Keine zusätzlichen Headerkopien oder verschachtelten ScrollViews.
 Die sichtbare Zeichenfläche wird auf den Scroll-Viewport begrenzt; erhöhte
 Überschriften können die feste Titelleiste nicht übermalen. Angedockte Header
 liegen mit zentral definierten 16 dp Z über nativen Buttons einschließlich
-ihres gedrückten Zustands. Ein gemeinsam gecachter 6-dp-Verlaufsschatten
-(maximal 55/255 Schwarz) wird ausschließlich unterhalb der Header gezeichnet;
+ihres gedrückten Zustands. Ein gemeinsam gecachter 12-dp-Verlaufsschatten
+(maximal 102/255 Schwarz, 40 % Deckkraft) wird ausschließlich unterhalb der Header gezeichnet;
 keine Änderung der Geometrie und kein großer nativer Z-Schatten. Native Touchgesten,
 Fokus, Accessibility-Überschriften, Profilwechsel und Scrollpositionen bleiben
 erhalten. Positionssuche nur beim Layout; beim Scrollen nur Positionsänderungen

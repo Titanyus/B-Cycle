@@ -21,6 +21,7 @@ class BicycleHeaderShadowTest {
         assertEquals(Color.WHITE,bitmap.getPixel(15,9))
         assertTrue(Color.red(bitmap.getPixel(15,10))<Color.red(bitmap.getPixel(15,13)))
         assertTrue(Color.red(bitmap.getPixel(15,13))<255)
-        assertEquals(Color.WHITE,bitmap.getPixel(15,16));bitmap.recycle()
+        assertTrue(Color.red(bitmap.getPixel(15,20))<255)
+        assertEquals(Color.WHITE,bitmap.getPixel(15,22));bitmap.recycle()
     }
 }
