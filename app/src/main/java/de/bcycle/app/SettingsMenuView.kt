@@ -18,7 +18,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     DASHBOARDS("", BicycleIcon.Dashboard.resource, titleResource = R.string.ui_settings_dashboards),
     ROUTES("", BicycleIcon.Route.resource, titleResource = R.string.ui_settings_routes),
     ADVANCED("", BicycleIcon.Advanced.resource, titleResource = R.string.ui_settings_advanced),
-    PROFILE("", BicycleIcon.RiderProfile.resource, R.string.rider_profile),
+    PROFILE("", BicycleIcon.RiderProfile.resource, R.string.ui_settings_profile),
     DATA("", BicycleIcon.DataStorage.resource, R.string.data_title),
     RECOVERY("", titleResource = R.string.ui_settings_recovery),
     GPS_HELP("", titleResource = R.string.ui_settings_gps_help),
@@ -36,7 +36,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal } else
-            listOf(SettingsAction.SENSORS,SettingsAction.PROFILE,SettingsAction.MAP,SettingsAction.DASHBOARDS,SettingsAction.ROUTES,SettingsAction.DATA,SettingsAction.ADVANCED)
+            listOf(SettingsAction.PROFILE,SettingsAction.SENSORS,SettingsAction.ROUTES,SettingsAction.MAP,SettingsAction.DASHBOARDS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.dividerPixels))
             addView(BicycleComponents.listRow(context,themes).apply {

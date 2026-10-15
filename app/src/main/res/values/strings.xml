@@ -384,6 +384,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_settings_gps_help">GPS-Messung erklärt</string>
     <string name="ui_settings_recovery">Ungespeicherte Fahrten speichern</string>
     <string name="ui_settings_advanced">Erweitert</string>
+    <string name="ui_settings_profile">Fahrer</string>
     <string name="ui_settings_routes">Strecken</string>
     <string name="ui_settings_dashboards">Design &amp; UI</string>
     <string name="ui_settings_map">Karten</string>

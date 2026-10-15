@@ -39,7 +39,8 @@ class SettingsMenuTest {
                 body.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
                 body.layout(0,0,width,body.measuredHeight)
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(7,rows.size)
+                assertEquals(listOf("settings_PROFILE", "settings_SENSORS", "settings_ROUTES", "settings_MAP", "settings_DASHBOARDS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Fahrer", "Bikes", "Strecken", "Karten", "Design & UI", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
                 rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()
