@@ -44,7 +44,16 @@ class RouteDistributionViewTest {
                     assertTrue(chart.plotBounds().width() > chart.width * .75f)
                     assertTrue(chart.contentDescription.toString().contains(context.getString(R.string.analysis_watts)) || chart.contentDescription.toString().contains(context.getString(R.string.analysis_bpm)))
                     val bitmap = Bitmap.createBitmap(chart.width, chart.height, Bitmap.Config.ARGB_8888)
-                    chart.draw(Canvas(bitmap)); bitmap.recycle()
+                    chart.draw(Canvas(bitmap))
+                    val plot = chart.plotBounds()
+                    for (band in chart.distribution.bands) {
+                        val value = (band.lower + band.upper) / 2
+                        val x = (plot.left + ((value - chart.distribution.minimum) / (chart.distribution.maximum - chart.distribution.minimum)) * plot.width()).toInt()
+                        // Above the curve/fill/glow: both heights retain the exact opaque zone color.
+                        assertEquals(band.color, bitmap.getPixel(x, plot.top.toInt() + 5))
+                        assertEquals(band.color, bitmap.getPixel(x, plot.top.toInt() + 15))
+                    }
+                    bitmap.recycle()
                 }
                 if (theme.id == "preset:black-ops" && width == 960) {
                     val gap = BicycleDesign.dp(context, BicycleDesign.smallGap)

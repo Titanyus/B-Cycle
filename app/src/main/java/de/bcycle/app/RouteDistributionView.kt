@@ -25,7 +25,6 @@ internal class RouteDistributionView(context: Context, themes: ThemeManager, val
     }.filter { it > distribution.minimum && it < distribution.maximum } + distribution.maximum).distinct()
     private val labels = marks.map { context.getString(R.string.analysis_integer_format, it) }
     private val zoneLabels = distribution.bands.map { context.getString(R.string.analysis_distribution_zone_number, it.zone) }
-    private val zoneShaders = mutableListOf<Shader>()
     init {
         tag = "analysis_distribution_${distribution.chart.name}"
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
@@ -42,12 +41,8 @@ internal class RouteDistributionView(context: Context, themes: ThemeManager, val
     private fun x(value: Double) = plot.left + ((value - distribution.minimum) / (distribution.maximum - distribution.minimum)).toFloat() * plot.width()
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         plot.set((BicycleDesign.analysisSideLabelWidth + BicycleDesign.verticalPadding) * density, 30 * density, w - 12 * density, h - 30 * density)
-        line.reset(); area.reset(); zoneShaders.clear()
+        line.reset(); area.reset()
         if (plot.width() <= 0 || plot.height() <= 0 || smooth.isEmpty()) return
-        distribution.bands.forEach { band ->
-            val rgb = band.color and 0x00ffffff
-            zoneShaders += LinearGradient(0f, plot.top, 0f, plot.bottom, intArrayOf(rgb or (100 shl 24), rgb or (25 shl 24)), null, Shader.TileMode.CLAMP)
-        }
         val peak = (smooth.maxOrNull() ?: 0.0).coerceAtLeast(1.0)
         val points = smooth.mapIndexed { i, value -> PointF(plot.left + plot.width() * (i + .5f) / smooth.size, plot.bottom - (value / peak).toFloat() * plot.height() * .82f) }
         line.moveTo(plot.left, points.first().y)
@@ -66,9 +61,9 @@ internal class RouteDistributionView(context: Context, themes: ThemeManager, val
     override fun onDraw(canvas: Canvas) {
         if (plot.width() <= 0 || plot.height() <= 0) return
         val saved = canvas.save(); canvas.clipRect(plot)
-        paint.style = Paint.Style.FILL; paint.alpha = 255
-        distribution.bands.forEachIndexed { i, band ->
-            paint.shader = zoneShaders[i]
+        paint.style = Paint.Style.FILL; paint.shader = null
+        distribution.bands.forEach { band ->
+            paint.color = band.color; paint.alpha = 255
             canvas.drawRect(x(band.lower), plot.top, x(band.upper), plot.bottom, paint)
         }
         paint.shader = null; paint.color = foreground; paint.alpha = 30; paint.strokeWidth = density * .5f

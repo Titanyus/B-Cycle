@@ -12,7 +12,7 @@ Histogramme sind unabhängig von der Fahrtdauer begrenzt (Watt-/BPM-Buckets); im
 
 ## Darstellung
 
-Bekannte sieben Coggan- und fünf Karvonen-Zonen aus dem aktuellen Fahrerprofil, mit den vorhandenen semantischen Zonenfarben als dezente Hintergrundflächen. Am oberen Rand ausschließlich die Zahlen 1 … 7 beziehungsweise 1 … 5. Keine zusätzlichen Prozentangaben oder AVG-Marker. Seitliche Bezeichnung und X-Achsentexte verwenden die vorhandene Details-Typografie und Theme-Farben.
+Bekannte sieben Coggan- und fünf Karvonen-Zonen aus dem aktuellen Fahrerprofil, mit den vorhandenen semantischen Zonenfarben als vollständig deckende, einfarbige Hintergrundflächen. Keine Transparenz und kein Farbverlauf in den Zonenflächen; der transparente Verlauf bleibt ausschließlich in der weißen Kurvenfüllung. Am oberen Rand ausschließlich die Zahlen 1 … 7 beziehungsweise 1 … 5. Keine zusätzlichen Prozentangaben oder AVG-Marker. Seitliche Bezeichnung und X-Achsentexte verwenden die vorhandene Details-Typografie und Theme-Farben.
 
 Die X-Achse deckt alle beobachteten Werte einschließlich des letzten Samples ab. Zusätzlich sind sämtliche Profilzonen sichtbar: Leistung ab 0 W mindestens bis 175 % FTP (Platz für offene Zone 7), Puls mindestens vom unteren Profilbereich bis zum Profil-Maximalpuls, bei Bedarf nach unten/oben erweitert. Achsengrenzen auf 5 Einheiten gerundet. Puls außerhalb der Profilzonen bleibt sichtbar, erhält aber keine falsche Zonenfarbe.
 
