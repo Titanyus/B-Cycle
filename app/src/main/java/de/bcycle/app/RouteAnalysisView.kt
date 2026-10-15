@@ -13,7 +13,8 @@ import java.time.format.DateTimeFormatter
 internal object AnalysisGroups {
     val groups = listOf(
         R.string.analysis_overview to listOf(listOf(AnalysisMetric.DISTANCE), listOf(AnalysisMetric.MOVING, AnalysisMetric.ELAPSED),
-            listOf(AnalysisMetric.AVG_SPEED, AnalysisMetric.MAX_SPEED), listOf(AnalysisMetric.ASCENT, AnalysisMetric.DESCENT)),
+            listOf(AnalysisMetric.AVG_SPEED, AnalysisMetric.MAX_SPEED)),
+        R.string.analysis_elevation to listOf(listOf(AnalysisMetric.ASCENT), listOf(AnalysisMetric.DESCENT)),
         R.string.analysis_ebike to listOf(listOf(AnalysisMetric.AVG_MOTOR), listOf(AnalysisMetric.RIDER_BIKE_RATIO), listOf(AnalysisMetric.BATTERY_USAGE)),
         R.string.analysis_cadence_heart_group to listOf(listOf(AnalysisMetric.AVG_CADENCE, AnalysisMetric.MAX_CADENCE), listOf(AnalysisMetric.AVG_HEART, AnalysisMetric.MAX_HEART)),
         R.string.analysis_power_group to listOf(listOf(AnalysisMetric.AVG_POWER), listOf(AnalysisMetric.MAX_POWER), listOf(AnalysisMetric.NP)),
@@ -68,6 +69,23 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                     addView(row,LinearLayout.LayoutParams(0,-2,1f))
                 }, LinearLayout.LayoutParams(-1, -2))
             }
+        }
+        if (analysis.bestEfforts.isNotEmpty()) {
+            if (groupsShown > 0) body.addView(BicycleComponents.sectionDivider(context, themes).apply {
+                (layoutParams as LinearLayout.LayoutParams).apply {
+                    topMargin = dp(BicycleDesign.analysisDividerGap); bottomMargin = dp(BicycleDesign.analysisDividerGap)
+                }
+            })
+            val weight = RiderProfileStore(context.getSharedPreferences("bike", Context.MODE_PRIVATE)).read().weightKg
+            val row = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL; isBaselineAligned = false; tag = "analysis_best_efforts"
+                addView(AnalysisSideLabel(context, themes, R.string.analysis_best_efforts), LinearLayout.LayoutParams(dp(BicycleDesign.analysisSideLabelWidth), -1))
+            }
+            analysis.bestEfforts.take(4).forEachIndexed { index, effort ->
+                if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f }, LinearLayout.LayoutParams(BicycleDesign.dividerPixels, -1))
+                row.addView(BestEffortTile(context, themes, effort, weight), LinearLayout.LayoutParams(0, -1, 1f))
+            }
+            body.addView(row, LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisTileMinHeight)))
         }
         analysis.route?.let { route ->
             val frame = FrameLayout(context)
@@ -145,6 +163,42 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
         if (metric == AnalysisMetric.FTP) contentDescription = "$contentDescription ${context.getString(R.string.analysis_ftp_explanation)}"
     }
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
+}
+
+internal class BestEffortTile(context: Context, themes: ThemeManager, effort: BestEffort, weightKg: Double?) : LinearLayout(context) {
+    init {
+        orientation = VERTICAL; gravity = Gravity.CENTER; tag = "analysis_effort_${effort.durationMs}"
+        val inset = BicycleDesign.dp(context, BicycleDesign.smallGap)
+        setPadding(inset, inset, inset, inset)
+        val seconds = effort.durationMs / 1000
+        val period = when {
+            seconds >= 3600 -> context.getString(R.string.analysis_effort_hours, seconds / 3600)
+            seconds >= 60 -> context.getString(R.string.analysis_effort_minutes, seconds / 60)
+            else -> context.getString(R.string.analysis_effort_seconds, seconds)
+        }
+        addView(BicycleComponents.text(context, themes, period).apply {
+            gravity = Gravity.CENTER; textSize = BicycleDesign.analysisLabelSp; maxLines = 1
+        }, LayoutParams(-1, -2))
+        fun numeric(text: String, size: Float) = TextView(context).apply {
+            this.text = text; typeface = resources.getFont(R.font.bebas_neue); textSize = size
+            gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
+            setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp, size.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+        }
+        val watts = numeric(context.getString(R.string.analysis_integer_format, effort.watts), BicycleDesign.analysisMetricSp)
+        BicycleComponents.bindTheme(watts, themes) { watts.setTextColor(it.foreground) }
+        val unit = numeric(context.getString(R.string.analysis_watts), BicycleDesign.analysisUnitSp).apply { setTextColor(BicycleDesign.dashboardUnitColor) }
+        addView(AnalysisValueRow(context, watts, unit), LayoutParams(-1, BicycleDesign.dp(context, 40)))
+        val relative = effort.wattsPerKg(weightKg)?.let { context.getString(R.string.analysis_ratio_format, it) }
+            ?: context.getString(R.string.analysis_missing)
+        addView(BicycleComponents.text(context, themes, context.getString(R.string.analysis_effort_relative, relative)).apply {
+            gravity = Gravity.CENTER; textSize = BicycleDesign.analysisUnitSp; maxLines = 1
+            setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp, BicycleDesign.analysisUnitSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+            BicycleComponents.bindTheme(this, themes) { setTextColor(BicycleDesign.dashboardUnitColor) }
+        }, LayoutParams(-1, -2))
+        contentDescription = context.getString(R.string.analysis_effort_description, period, watts.text, relative)
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
+        for (i in 0 until childCount) getChildAt(i).importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+    }
 }
 
 /** Measure once within available width, then center the combined number+unit and both vertical centers. */

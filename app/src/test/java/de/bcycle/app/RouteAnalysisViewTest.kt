@@ -44,9 +44,9 @@ class RouteAnalysisViewTest {
                 for (width in listOf(960, 1440)) {
                     measure(content, width, 1800)
                     val rows = descendants(content).filterIsInstance<LinearLayout>().filter { it.tag?.toString()?.startsWith("analysis_group_") == true }
-                    assertEquals(listOf(R.string.analysis_overview,R.string.analysis_ebike,R.string.analysis_cadence_heart_group,
+                    assertEquals(listOf(R.string.analysis_overview,R.string.analysis_elevation,R.string.analysis_ebike,R.string.analysis_cadence_heart_group,
                         R.string.analysis_power_group,R.string.analysis_energy_group,R.string.analysis_performance_group).map { "analysis_group_$it" },rows.map { it.tag })
-                    assertEquals(listOf(4, 3, 2, 3, 2, 3), rows.map { row -> (0 until row.childCount).count { row.getChildAt(it) is AnalysisMetricTile } })
+                    assertEquals(listOf(3, 2, 3, 2, 3, 2, 3), rows.map { row -> (0 until row.childCount).count { row.getChildAt(it) is AnalysisMetricTile } })
                     rows.forEach { row ->
                         assertTrue((0 until row.childCount).count { row.getChildAt(it) is AnalysisMetricTile } <= 4)
                         val children = (0 until row.childCount).map(row::getChildAt).filterIsInstance<AnalysisMetricTile>()
@@ -83,7 +83,7 @@ class RouteAnalysisViewTest {
         assertEquals(AnalysisGroups.groups.map { context.getString(it.first) },labels.map { it.title })
         labels.forEach { assertTrue(it.isAccessibilityHeading);assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisSideLabelWidth),it.width);assertTrue(it.height>=BicycleDesign.dp(context,BicycleDesign.analysisTileMinHeight)) }
         val dividers=descendants(content).filter { it.tag=="analysis_section_divider" }
-        assertEquals(5,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.dividerPixels && it.alpha==BicycleDesign.dividerAlpha })
+        assertEquals(6,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.dividerPixels && it.alpha==BicycleDesign.dividerAlpha })
         dividers.forEach {
             val margins=it.layoutParams as LinearLayout.LayoutParams
             assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisDividerGap),margins.topMargin)

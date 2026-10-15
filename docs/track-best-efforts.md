@@ -1,0 +1,10 @@
+# Streckendetails: Höhe und Best Efforts
+
+- „Höhe“ steht zwischen „Allgemeine Daten“ und „E-Bike“, mit getrennten Kacheln für Aufstieg und Abstieg. Vorhandene Höhenberechnungen und FIT-Summaries bleiben erhalten; fehlende Werte werden nicht erfunden.
+- Best Efforts stehen unmittelbar vor der Karte. Zeitfenster: 5 s, 1 min, 5 min, 8 min, 20 min, 1 h, 2 h. Nur vollständig auswertbare Fenster, absteigend nach Dauer und höchstens vier Kacheln. Ohne Leistungsdaten entfällt der Abschnitt.
+- Jede Kachel zeigt Zeitfenster, groß die höchste zeitgewichtete mittlere Fahrerleistung in W, darunter kleiner W/kg. Keine Motorleistung, kein FTP-Faktor. W/kg bezieht sich auf das **aktuelle** gültige Körpergewicht im Fahrerprofil, nicht auf ein unbekanntes historisches Gewicht. Ohne Gewicht erscheint „— W/kg“; die absolute Leistung bleibt verfügbar.
+- Die Detailauswertung aktiviert zusätzliche `PowerDurationWindow`-Instanzen in der bestehenden `PerformanceEngine`. Es gelten dieselben Leistungsintervalle, Nullwert-/Bosch-Telemetrie-Regeln und Unterbrechungsgrenzen wie bei Estimated FTP. Echte Nullwerte zählen mit; ungültige/veraltete Daten und Timer-Pausen unterbrechen die Kontinuität. Getrennte Abschnitte werden nicht zusammengesetzt. Bereits gefundene vollständige Bestwerte bleiben nach einer Lücke erhalten.
+- Berechnung beim einmaligen Streaming-Decodieren der Originaldatei im vorhandenen Hintergrundworker, vor der Diagrammverdichtung. Speicher ist durch Fensterlängen begrenzt. Der Live-/FIT-Pfad aktiviert unverändert nur sein bestehendes 20-Minuten-Fenster; keine zusätzlichen FIT-Felder und keine Änderungen an Rohdaten oder Aufzeichnung.
+- Darstellung verwendet bestehende Seitenbeschriftung, feine Trenner, Bebas-Zahlen, Systemschrift und zentrale Einheitenfarbe. Alle neuen sichtbaren Texte und Accessibility-Beschreibungen sind Android-Stringressourcen.
+
+Validierung: 47 gezielte Tests für Leistungsfenster/FTP, FIT-Wiedereinlesen, Details-Datenmodell und native Layouts bestanden; Release-Kotlin-Kompilierung erfolgreich. Kein neuer APK-Release in diesem Schritt.

@@ -60,7 +60,7 @@ class RouteAnalysisUpdateTest {
     }
     @Test fun groupOrderAndPerformanceTripletAndPowerPlaceholdersAreCentralAndResourceBacked() {
         val context = RuntimeEnvironment.getApplication(); val themes = ThemeManager(context.getSharedPreferences("bike", 0))
-        assertEquals(listOf(R.string.analysis_overview, R.string.analysis_ebike, R.string.analysis_cadence_heart_group,
+        assertEquals(listOf(R.string.analysis_overview, R.string.analysis_elevation, R.string.analysis_ebike, R.string.analysis_cadence_heart_group,
             R.string.analysis_power_group, R.string.analysis_energy_group, R.string.analysis_performance_group), AnalysisGroups.groups.map { it.first })
         assertEquals(listOf(AnalysisMetric.FTP, AnalysisMetric.EF, AnalysisMetric.RATIO), AnalysisGroups.groups.last().second.flatten())
         val entry = ManagedRoute("id", "Ride", true, "FIT", RouteDetails(1_791_626_400_000), false)

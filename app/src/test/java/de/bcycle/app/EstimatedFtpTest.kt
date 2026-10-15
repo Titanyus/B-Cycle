@@ -78,6 +78,8 @@ class EstimatedFtpTest {
             val f = file(selected); val bytes = f.readBytes()
             val a = RouteAnalysisRead.read(f, entry)
             assertEquals(190.0, a.metrics.getValue(AnalysisMetric.FTP), .00001)
+            assertEquals(listOf(1200000L, 480000L, 300000L, 60000L), a.bestEfforts.map { it.durationMs })
+            assertTrue(a.bestEfforts.all { kotlin.math.abs(it.watts - 200.0) < .00001 })
             assertArrayEquals(bytes, f.readBytes())
         }
     }

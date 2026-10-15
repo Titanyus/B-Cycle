@@ -12,6 +12,12 @@
     <string name="export_failed">Diagnose konnte nicht gespeichert werden. Bitte erneut versuchen.</string>
     <string name="export_unavailable">Auf diesem Gerät ist keine Dateiauswahl verfügbar.</string>
 
+    <string name="analysis_best_efforts">Best Efforts</string>
+    <string name="analysis_effort_hours">%1$d h</string>
+    <string name="analysis_effort_minutes">%1$d min</string>
+    <string name="analysis_effort_seconds">%1$d s</string>
+    <string name="analysis_effort_relative">%1$s W/kg</string>
+    <string name="analysis_effort_description">Beste Fahrerleistung über %1$s: %2$s Watt, %3$s Watt pro Kilogramm, bezogen auf das aktuelle Fahrerprofil.</string>
     <string name="analysis_overview">Allgemeine Daten</string>
     <string name="analysis_power_group">Leistung</string>
     <string name="analysis_cadence_heart_group">Kadenz &amp; Puls</string>

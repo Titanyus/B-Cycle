@@ -40,13 +40,16 @@ data class PerformanceValues(
 )
 
 /** Only bounded state: actual events -> time integral -> complete 1 s bins -> complete 30 s windows. */
-class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
+class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), powerDurationsMs: List<Long> = emptyList()) {
     companion object {
         const val MODEL_VERSION = 3
         const val MAX_HOLD_MS = 5_000L
         const val MIN_COVERAGE = .95
     }
-    private val bestTwentyMinutes = PowerDurationWindow(20 * 60 * 1000L)
+    private val powerWindows = (powerDurationsMs + 20 * 60 * 1000L).distinct().associateWith { PowerDurationWindow(it) }
+    internal fun bestPowerAverages(): Map<Long, Double> = powerWindows.mapNotNull { (duration, window) ->
+        window.bestAverageW?.let { duration to it }
+    }.toMap()
     private var cursor = 0L
     private var paused = false
     private val readings = mutableMapOf<PerformanceChannel, PerformanceEvent>()
@@ -74,8 +77,8 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
             return // An independent comparison source must never invalidate or overwrite Bosch.
         }
         when (event.channel) {
-            PerformanceChannel.PAUSE -> { paused = true; bestTwentyMinutes.breakContinuity(); readings.clear(); clearWindow(); segmentSeconds = 0; gapMs = 0; binPowerMs = 0; binWorkJ = 0.0 }
-            PerformanceChannel.RESUME -> { paused = false; bestTwentyMinutes.breakContinuity(); readings.clear(); clearWindow(); segmentSeconds = 0; gapMs = 0; binEnd = cursor + 1_000; binPowerMs = 0; binWorkJ = 0.0 }
+            PerformanceChannel.PAUSE -> { paused = true; powerWindows.values.forEach { it.breakContinuity() }; readings.clear(); clearWindow(); segmentSeconds = 0; gapMs = 0; binPowerMs = 0; binWorkJ = 0.0 }
+            PerformanceChannel.RESUME -> { paused = false; powerWindows.values.forEach { it.breakContinuity() }; readings.clear(); clearWindow(); segmentSeconds = 0; gapMs = 0; binEnd = cursor + 1_000; binPowerMs = 0; binWorkJ = 0.0 }
             else -> {
                 val finite = event.value?.isFinite() == true
                 val valid = finite && event.connected && event.receivedAtMs <= event.atMs &&
@@ -125,7 +128,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
             val heart = reading(PerformanceChannel.HEART_RATE)
             // Long empty stretches take constant time rather than iterating over hours of missing bins.
             if (power == null) {
-                bestTwentyMinutes.breakContinuity()
+                powerWindows.values.forEach { it.breakContinuity() }
                 var end = untilMs
                 speed?.let { end = minOf(end, deadline(it)) }; heart?.let { end = minOf(end, deadline(it)) }
                 val dt = end - cursor
@@ -144,7 +147,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
             speed?.let { end = minOf(end, deadline(it)) }; heart?.let { end = minOf(end, deadline(it)) }
             val dt = end - cursor
             check(dt > 0)
-            bestTwentyMinutes.add(cursor, end, power.value!!)
+            powerWindows.values.forEach { it.add(cursor, end, power.value!!) }
             val joules = power.value!! * dt / 1000
             activeMs += dt; powerMs += dt; workJ += joules
             if (power.value == 0.0 && cursor >= observedDeadline(power)) continuedZeroMs += dt
@@ -186,7 +189,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine()) {
         val estimate = energy.estimate(EnergyInput(work, heartAvailableIntegral.takeIf { heartAvailableMs > 0 }?.div(heartAvailableMs),
                 activeMs, quality.powerCoverage, if (activeMs > 0) heartAvailableMs.toDouble() / activeMs else 0.0))
         return PerformanceValues(np, work, estimate?.kcal, ratio?.takeIf { it.isFinite() },
-            ef?.takeIf { it.isFinite() }, workJ / 1000, quality, estimate?.modelId ?: EnergyEngine.MODEL_ID, bestTwentyMinutes.bestAverageW?.times(.95))
+            ef?.takeIf { it.isFinite() }, workJ / 1000, quality, estimate?.modelId ?: EnergyEngine.MODEL_ID, powerWindows.getValue(20 * 60 * 1000L).bestAverageW?.times(.95))
     }
 }
 
