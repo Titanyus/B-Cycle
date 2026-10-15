@@ -25,15 +25,24 @@ class BicycleThemeTest {
     }
     @Test fun accentsDefaultToForegroundAndRequireOpaqueContrastingColors() {
         BicycleThemes.presets.forEach {
-            if (it.id !in setOf("preset:black-ops", "preset:solar-flare")) assertEquals(it.tokens.foreground, it.tokens.accent)
+            if (it.id !in setOf("preset:black-ops", "preset:solar-flare", "preset:electric-blue", "preset:acid-lime")) assertEquals(it.tokens.foreground, it.tokens.accent)
             assertTrue(ThemeValidator.validate(it).valid)
         }
         val base = ThemeTokens(0xff535353.toInt(), 0xff292929.toInt(), 0xff000000.toInt(), 0xffffffff.toInt())
+        assertEquals(base.foreground, base.accent)
         val theme = CustomTheme("custom:accent", "Accent", base.copy(accent = 0xffffaa55.toInt()))
         assertTrue(ThemeValidator.validate(theme).problems.toString(), ThemeValidator.validate(theme).valid)
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = base.secondary))).valid)
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0x00ffaa55))).valid)
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0xffd1261b.toInt()))).valid)
+    }
+    @Test fun blueAndLimeUseTheirOriginalPrimaryAsAccentWithNeutralSurfaces() {
+        for ((id, primary) in mapOf("preset:electric-blue" to 0xff1168b8.toInt(), "preset:acid-lime" to 0xff587812.toInt())) {
+            val theme = BicycleThemes.presets.single { it.id == id }
+            assertEquals(ThemeTokens(primary, 0xff000000.toInt(), 0xff292929.toInt(), 0xffffffff.toInt(), primary), theme.tokens)
+            assertTrue(theme.approvedLowContrastSurfaces.isEmpty())
+            assertTrue(ThemeValidator.validate(theme).valid)
+        }
     }
     @Test fun fireKeepsExactApprovedColorsAndOnlyItsHeaderContrastException() {
         val fire = BicycleThemes.presets.single { it.id == "preset:solar-flare" }
