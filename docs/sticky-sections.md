@@ -4,7 +4,8 @@
 23-sp-/900-Black-Schrift, zur vollen Fensterbreite zentriert, deckender
 TERTIARY-Hintergrund und oben/unten je eine physische 1-Pixel-Linie in FOREGROUND.
 Zentrale Maße: mindestens 56 dp Texthöhe, vertikal 12 dp Innenabstand, außen
-12 dp Abstand vor/nach dem Kasten. Keine neue Farbe, Schrift oder Nutzereinstellung.
+12 dp Abstand vor/nach dem Kasten. Zusätzlich bleibt oberhalb der Linien ein
+12-dp-Streifen in SECONDARY auch im angedockten Zustand sichtbar. Keine neue Farbe, Schrift oder Nutzereinstellung.
 
 `BicycleStickyScrollView` aktiviert das Andocken gezielt für solche Komponenten.
 Im ersten Schritt verwendet nur Bikes den Scrollhost, mit Radtyp und Sensoren.
@@ -15,10 +16,16 @@ Der ursprüngliche Header wird im nativen Inhaltsbaum verschoben und liegt beim
 Scrollen oben unter der festen Dialogtitelleiste. Der nächste Abschnitt schiebt
 ihn heraus. Keine zusätzlichen Headerkopien oder verschachtelten ScrollViews.
 Die sichtbare Zeichenfläche wird auf den Scroll-Viewport begrenzt; erhöhte
-Überschriften können die feste Titelleiste nicht übermalen. Native Touchgesten,
+Überschriften können die feste Titelleiste nicht übermalen. Angedockte Header
+liegen mit zentral definierten 16 dp Z über nativen Buttons einschließlich
+ihres gedrückten Zustands, ohne zusätzlichen Schatten. Native Touchgesten,
 Fokus, Accessibility-Überschriften, Profilwechsel und Scrollpositionen bleiben
 erhalten. Positionssuche nur beim Layout; beim Scrollen nur Positionsänderungen
 für die wenigen registrierten Kategorieheader.
+
+Die Sensor-Schalter GPS, E-Bike, Powermeter und Pulsmesser übernehmen selbst
+die Abschnittstypografie (23 sp / 900 Black), statt zusätzliche Überschriften
+zu duplizieren. Schaltergrafik, Status und Funktionen bleiben erhalten.
 
 ## Auswahlrahmen
 

@@ -64,10 +64,12 @@ class BicycleStickySectionsTest {
             assertEquals(themes.active.tokens.tertiary,(first.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             for(header in listOf(first,second)) {
                 assertTrue(header.isAccessibilityHeading)
-                val label=header.getChildAt(1) as android.widget.TextView
+                assertEquals(BicycleDesign.dp(context,BicycleDesign.sectionHeaderTopSpace),header.getChildAt(0).height)
+                assertEquals(themes.active.tokens.secondary,(header.getChildAt(0).background as ColorDrawable).color)
+                val label=header.getChildAt(2) as android.widget.TextView
                 assertEquals(android.view.Gravity.CENTER,label.gravity)
                 assertEquals(BicycleDesign.strongTypeface,label.typeface)
-                for(index in listOf(0,2)) {
+                for(index in listOf(1,3)) {
                     assertEquals(1,header.getChildAt(index).height)
                     assertEquals(themes.active.tokens.foreground,(header.getChildAt(index).background as ColorDrawable).color)
                 }
@@ -91,6 +93,12 @@ class BicycleStickySectionsTest {
             val headings=testDescendants(body).filterIsInstance<BicycleSectionHeader>()
             assertEquals(listOf(activity.getString(R.string.bikes_type),activity.getString(R.string.bikes_sensors)),headings.map { it.contentDescription })
             assertTrue(headings.all { it.width==scroll.width && it.left==0 })
+            for(sensor in listOf("GPS","EBIKE","POWER","HEART")) {
+                val toggle=decor.findViewWithTag<android.widget.Switch>("bike_sensor_$sensor")
+                assertTrue(toggle.isAccessibilityHeading)
+                assertEquals(BicycleDesign.strongTypeface,toggle.typeface)
+                assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.titleSp,activity.resources.displayMetrics),toggle.textSize,.01f)
+            }
             fun border(view: View):Int {
                 val bitmap=Bitmap.createBitmap(300,300,Bitmap.Config.ARGB_8888)
                 view.background.setBounds(0,0,300,300);view.background.draw(Canvas(bitmap))
@@ -118,6 +126,27 @@ class BicycleStickySectionsTest {
             assertEquals(runtime.themes.active.tokens.primary,screenshot.getPixel(decor.width-20,nav.height/2))
             java.io.File("/tmp/bcycle-bikes-sticky.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG,100,it) }
             screenshot.recycle()
+            // The actual native button can be raised/pressed. It must remain behind the
+            // opaque pinned heading, including the new top separation band.
+            val sensorHeader=headings.last()
+            val search=decor.findViewWithTag<View>("bike_sensor_search")
+            search.elevation=BicycleDesign.dp(activity,2).toFloat()
+            search.translationZ=BicycleDesign.dp(activity,6).toFloat()
+            search.isPressed=true
+            scroll.scrollTo(0,search.top-40)
+            assertTrue(sensorHeader.translationY>0)
+            assertTrue(sensorHeader.z>search.z)
+            val pinned=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888)
+            decor.draw(Canvas(pinned))
+            val pinnedOrigin=IntArray(2);sensorHeader.getLocationOnScreen(pinnedOrigin)
+            val decorOrigin=IntArray(2);decor.getLocationOnScreen(decorOrigin)
+            val x=decor.width/2
+            val y=pinnedOrigin[1]-decorOrigin[1]
+            val gap=BicycleDesign.dp(activity,BicycleDesign.sectionHeaderTopSpace)
+            assertEquals(runtime.themes.active.tokens.secondary,pinned.getPixel(x,y+gap/2))
+            assertEquals(runtime.themes.active.tokens.tertiary,pinned.getPixel(x,y+gap+5))
+            java.io.File("/tmp/bcycle-bikes-sticky-sensors.png").outputStream().use { pinned.compress(Bitmap.CompressFormat.PNG,100,it) }
+            pinned.recycle()
         } finally { controller.pause().stop().destroy() }
     }
 }

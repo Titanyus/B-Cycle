@@ -6,18 +6,25 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.19 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.19/downloads/B-Cycle-0.7.19-test.apk)**
+**[APK 0.7.20 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.20/downloads/B-Cycle-0.7.20-test.apk)**
 
 - Größe: **1,177,554 Byte**, rund **1,18 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.19/57.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.20/58.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.19-test.apk.sha256):
-  `fb292cbe135b0287ac16bcf5d09bf0bd3be04a95b305a81caab4ae99d5034a31`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.20-test.apk.sha256):
+  `d460c204a4b8b5bf2373db91eef9382ca47953875f61917245b8c090bf5867c5`.
 
-14 gezielte UI-Tests und Release-Build mit R8, Resource-Shrinking und Lint-Vital
+3 gezielte UI-Tests und Release-Build mit R8, Resource-Shrinking und Lint-Vital
 erfolgreich. Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis](docs/milestone-0719.md).
+[Buildnachweis](docs/milestone-0720.md).
+
+## Neu in APK 0.7.20
+
+- Sticky-Kategorieheader mit dauerhaftem 12-dp-Abstand nach oben.
+- Suchbutton und andere erhöhte Buttons scrollen unter dem Header hindurch.
+- GPS, E-Bike, Powermeter und Pulsmesser: Schalterbeschriftung in 23 sp / 900 Black.
+- [Aktuelle Sensoren-Vorschau](docs/previews/bikes-sticky-sensors.png).
 
 ## Neu in APK 0.7.19
 

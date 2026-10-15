@@ -70,6 +70,8 @@ object BicycleDesign {
     const val sectionHeaderMinHeight = 56
     const val sectionHeaderPadding = 12
     const val sectionHeaderGap = 12
+    const val sectionHeaderTopSpace = 12
+    const val sectionHeaderRaisedZ = 16
     const val settingsRowHeight = 72
     const val settingsIconSize = 32
     const val touchSize = 48

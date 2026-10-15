@@ -156,6 +156,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             addView(BicycleComponents.sectionDivider(context,themes))
             val toggle=Switch(context).apply {
                 tag="bike_sensor_${sensor.name}";setText(sensor.label);isEnabled=sensor.supported
+                isAccessibilityHeading=true
                 isChecked=when(sensor) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;else->false }
                 setOnCheckedChangeListener { _,enabled ->
                     if(binding || runtime.bikes.activeSlot!=slot) return@setOnCheckedChangeListener

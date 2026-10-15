@@ -14,6 +14,12 @@ internal class BicycleSectionHeader(context: Context, themes: ThemeManager, titl
         orientation = VERTICAL; isAccessibilityHeading = true; contentDescription = title
         tag = "section_header_$title"
         BicycleComponents.background(this, themes, ThemeRole.TERTIARY)
+        // Keep the separation opaque even when this same header is pinned above controls.
+        outlineProvider = null
+        addView(View(context).apply {
+            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+            BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.secondary) }
+        }, LayoutParams(-1, BicycleDesign.dp(context, BicycleDesign.sectionHeaderTopSpace)))
         fun rule() = View(context).apply {
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.foreground) }

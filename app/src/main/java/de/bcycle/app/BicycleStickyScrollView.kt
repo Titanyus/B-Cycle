@@ -50,7 +50,9 @@ internal class BicycleStickyScrollView(context: Context) : ScrollView(context) {
         sections.forEach { (header, top, end) ->
             val active = scrollY >= top && scrollY < end
             header.translationY = if (active) minOf(scrollY - top, end - top - header.height).coerceAtLeast(0).toFloat() else 0f
-            header.translationZ = if (active) 1f else 0f
+            // Native buttons have their own elevation, including a pressed-state animation.
+            // Keep the opaque category above them without adding a shadow.
+            header.translationZ = if (active) BicycleDesign.dp(context, BicycleDesign.sectionHeaderRaisedZ).toFloat() else 0f
         }
     }
 }
