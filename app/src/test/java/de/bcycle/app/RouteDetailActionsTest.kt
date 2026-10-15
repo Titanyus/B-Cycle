@@ -56,10 +56,12 @@ class RouteDetailActionsTest {
             val footer = detail.window!!.decorView.findViewWithTag<ViewGroup>("bicycle_fullscreen_footer")
             var activeFooter = footer
             assertEquals(5, footer.childCount)
-            assertEquals(listOf("detail_map", "detail_rename", "detail_cloud", "detail_save", "detail_delete"), (0 until footer.childCount).map { footer.getChildAt(it).tag })
+            assertEquals(listOf("detail_map", "detail_elevation", "detail_cloud", "detail_save", "detail_delete"), (0 until footer.childCount).map { footer.getChildAt(it).tag })
             assertTrue((0 until footer.childCount).all { footer.getChildAt(it) is BicycleFooterAction })
-            assertEquals(listOf("Anzeigen", "Umbenennen", "Cloudupload", "Speichern", "Löschen"),
+            assertEquals(listOf("Anzeigen", "Höhe korrigieren", "Cloudupload", "Speichern", "Löschen"),
                 (0 until footer.childCount).map { (footer.getChildAt(it) as android.widget.LinearLayout).getChildAt(1) as TextView }.map { it.text.toString() })
+            assertFalse(detail.window!!.decorView.findViewWithTag<View>("detail_elevation").isEnabled)
+            assertTrue(detail.window!!.decorView.findViewWithTag<View>("analysis_rename").isClickable)
             assertFalse(detail.window!!.decorView.findViewWithTag<View>("detail_cloud").isEnabled)
             assertNull(detail.window!!.decorView.findViewWithTag<View>("analysis_actions"))
             assertFalse(views(detail.window!!.decorView).filterIsInstance<TextView>().any { it.isShown && it.text.toString() == activity.getString(R.string.analysis_close) })
@@ -98,7 +100,7 @@ class RouteDetailActionsTest {
             activeDetail = ShadowAlertDialog.getLatestAlertDialog()
             waitFor { activeDetail.window!!.decorView.findViewWithTag<View>("detail_map").isEnabled }
             activeFooter = activeDetail.window!!.decorView.findViewWithTag<ViewGroup>("bicycle_fullscreen_footer")
-            activeFooter.getChildAt(1).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            activeDetail.window!!.decorView.findViewWithTag<View>("analysis_title").performClick(); shadowOf(Looper.getMainLooper()).idle()
             val rename = ShadowAlertDialog.getLatestAlertDialog(); val input = rename.window!!.decorView.findViewWithTag<EditText>("route_rename")
             assertEquals("First", input.text.toString()); input.setText("Renamed")
             shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(250)); waitFor { !state.busy && state.entries.first { it.id == id }.name == "Renamed" }

@@ -78,6 +78,9 @@ class DashboardEditorTest {
                     assertEquals(View.VISIBLE, view.visibility); assertTrue(view.foreground is DashboardEditOutline)
                     assertFalse(view.isLongClickable)
                 }
+                val zoom = all(panel).filter { it.contentDescription in listOf(activity.getString(R.string.ui_map_zoom_in),activity.getString(R.string.ui_map_zoom_out)) }
+                assertEquals(2,zoom.size)
+                zoom.forEach { assertFalse(it.isEnabled);assertEquals(.45f,it.alpha,0f) }
                 val finish = tagged(activity, "dashboard_editor_finish")
                 assertEquals(View.VISIBLE, finish.visibility)
                 assertEquals(panel.width / 2f, (finish.left + finish.right) / 2f, 1f)
@@ -86,6 +89,7 @@ class DashboardEditorTest {
                 activity.setDashboardEditing(false)
                 fields.forEach { assertNull(it.foreground) }
                 assertEquals(View.GONE, finish.visibility)
+                zoom.forEach { assertTrue(it.isEnabled);assertEquals(1f,it.alpha,0f) }
             }
             activity.setDashboardEditing(true)
             runtime.themes.activate("preset:electric-blue"); shadowOf(Looper.getMainLooper()).idle()

@@ -74,7 +74,6 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             var result:Result<Unit> = Result.failure(IllegalStateException())
             finishOperation("") {
                 result=runCatching {
-                    check(FitElevationCorrection.enabled(context))
                     val entry=fits.entries.single { it.id==id }
                     require(entry.origin==TrackOrigin.RECORDED && entry.hasRoute)
                     val target=FitLibrary.correctedFile(context.filesDir,id)

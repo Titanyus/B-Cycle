@@ -88,7 +88,9 @@ Kompilierung erfolgreich. Kein vollständiger Suite-/APK-Build.
 Unter Karten aktiviert „Höhenkorrektur nach Aufnahme“ die Nachbearbeitung beim
 Beenden der Aufnahme. Standardmäßig aus; die Option gehört zur Einstellungssicherung.
 Unterstützt werden eigene FIT-Fahrten mit GPS-Positionen. In deren Streckendetails
-steht bei aktivierter Option „Höhe korrigieren“ auch für ältere Fahrten bereit.
+steht „Höhe korrigieren“ an zweiter Position im Aktionsfooter auch für ältere Fahrten
+bereit, unabhängig vom Automatikschalter. Während Aufnahme, Speichern und
+Verarbeitung ist die Aktion gesperrt.
 Schließen der Detailansicht bricht die laufende manuelle Korrektur ab.
 
 Die Korrektur läuft im bestehenden Hintergrund-Worker vor lokalem Speichern und

@@ -31,7 +31,6 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private var closed = false
     var correctElevation: (() -> Unit)? = null
     fun correctionStatus(busy:Boolean,error:String="") {
-        findViewWithTag<View>("analysis_correct_elevation")?.isEnabled=!busy
         findViewWithTag<TextView>("analysis_correction_status")?.let { BicycleFeedback.update(it,if(busy) context.getString(R.string.elevation_correcting) else error,hideWhenEmpty=true) }
     }
     init { tag = "route_analysis_$id"; BicycleComponents.scrollStyle(this); addView(body); loading() }
@@ -54,7 +53,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.smallGap) })
         var groupsShown=0
         AnalysisGroups.groups.forEach { (heading, alternatives) ->
-            val canCorrect=FitElevationCorrection.enabled(context) && analysis.entry.format=="FIT" && analysis.entry.origin==TrackOrigin.RECORDED && analysis.entry.hasRoute
+            val canCorrect=analysis.entry.format=="FIT" && analysis.entry.origin==TrackOrigin.RECORDED && analysis.entry.hasRoute
             val available = if(heading==R.string.analysis_elevation && canCorrect) alternatives
                 else if (heading == R.string.analysis_power_group && alternatives.flatten().any { it in analysis.metrics }) alternatives
                 else alternatives.map { group -> group.filter { it in analysis.metrics } }.filter { it.isNotEmpty() }
@@ -79,7 +78,6 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                         else -> null
                     }
                     if(heading==R.string.analysis_elevation && canCorrect) {
-                        addView(BicycleComponents.action(context,themes,context.getString(R.string.elevation_correct_action)) { correctElevation?.invoke() }.apply { tag="analysis_correct_elevation" })
                         addView(BicycleFeedback.status(context,themes).apply { tag="analysis_correction_status";visibility=GONE })
                     }
                     if(heading==R.string.analysis_elevation && analysis.entry.elevationCorrected) {
@@ -263,12 +261,13 @@ internal class AnalysisValueRow(context: Context, private val value: TextView, p
     }
 }
 
-internal fun analysisHeader(context: Context, themes: ThemeManager, entry: ManagedRoute, back: () -> Unit): LinearLayout =
+internal fun analysisHeader(context: Context, themes: ThemeManager, entry: ManagedRoute, rename: (() -> Unit)? = null, back: () -> Unit): LinearLayout =
     BicycleComponents.header(context, themes).apply {
         tag = "route_analysis_header"; setPadding(BicycleDesign.dp(context, BicycleDesign.smallGap), 0, BicycleDesign.dp(context, BicycleDesign.verticalPadding), 0)
         addView(BicycleComponents.icon(context, themes, BicycleIcon.Back, context.getString(R.string.analysis_back), back))
         addView(BicycleComponents.heading(context, themes, entry.name).apply {
             ellipsize = TextUtils.TruncateAt.END; contentDescription = entry.name; tag = "analysis_title"
+            if(rename!=null) { isFocusable=true;setOnClickListener { rename() } }
             setAutoSizeTextTypeUniformWithConfiguration(18, BicycleDesign.headingSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
         }, LinearLayout.LayoutParams(0, -1, 1f))
     }

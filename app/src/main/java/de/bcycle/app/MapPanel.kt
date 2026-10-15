@@ -76,7 +76,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         dataFields.setEditing(value, runtime.themes.active.tokens.primary)
         editorFinish.visibility = if (value) VISIBLE else GONE
         for (i in 0 until controls.childCount) controls.getChildAt(i).isEnabled = !value
-        for (i in 0 until zoomControls.childCount) zoomControls.getChildAt(i).isEnabled = !value
+        for (i in 0 until zoomControls.childCount) zoomControls.getChildAt(i).apply {
+            isEnabled = !value
+            alpha = if (value) .45f else 1f
+        }
         nightButton.isEnabled = !value
         refreshRouteButton()
         if (value) handler.removeCallbacks(hideControls) else scheduleHide()

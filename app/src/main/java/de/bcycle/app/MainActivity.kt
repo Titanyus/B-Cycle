@@ -598,17 +598,17 @@ class MainActivity : Activity() {
         }
         val screen = dialog().setView(root).create()
         val detail = DetailSession(entry.id, screen, content, footer)
-        val labels = listOf(R.string.route_action_map, R.string.route_action_rename, R.string.route_action_cloud, R.string.route_action_save, R.string.route_action_delete)
-        val captions = listOf(R.string.footer_show, R.string.route_action_rename, R.string.footer_cloud_upload, R.string.route_action_save, R.string.route_action_delete)
-        val icons = listOf(BicycleIcon.ShowOnMap, BicycleIcon.RenameTrack, BicycleIcon.CloudNotUploaded, BicycleIcon.Save, BicycleIcon.DeleteTrack)
-        val tags = listOf("detail_map", "detail_rename", "detail_cloud", "detail_save", "detail_delete")
+        val labels = listOf(R.string.route_action_map, R.string.elevation_correct_action, R.string.route_action_cloud, R.string.route_action_save, R.string.route_action_delete)
+        val captions = listOf(R.string.footer_show, R.string.elevation_correct_action, R.string.footer_cloud_upload, R.string.route_action_save, R.string.route_action_delete)
+        val icons = listOf(BicycleIcon.ShowOnMap, BicycleIcon.CorrectElevation, BicycleIcon.CloudNotUploaded, BicycleIcon.Save, BicycleIcon.DeleteTrack)
+        val tags = listOf("detail_map", "detail_elevation", "detail_cloud", "detail_save", "detail_delete")
         labels.indices.forEach { index ->
             footer.addView(BicycleFooterAction(settingsContext, runtime.themes, icons[index], getString(captions[index]), getString(labels[index])) {
                 executeDetailAction(detail, index)
             }.apply { tag = tags[index] }, LinearLayout.LayoutParams(0, dp(BicycleDesign.footerHeight), 1f))
         }
         routeDetail = detail
-        screen.setCustomTitle(analysisHeader(settingsContext, runtime.themes, entry, { screen.dismiss() }))
+        screen.setCustomTitle(analysisHeader(settingsContext, runtime.themes, entry, rename = { if(!runtime.mapState.busy) detailEntry(detail)?.let(::renameRoute) }, back = { screen.dismiss() }))
         dialogs.onDismiss(screen) {
             content.dispose()
             if (routeDetail === detail) { routePopup?.dismiss(); routePopup = null; routeDetail = null }
@@ -630,7 +630,7 @@ class MainActivity : Activity() {
             })
         }
         content.correctElevation = {
-            if(!runtime.recording && !runtime.saving && !runtime.mapState.busy) {
+            if(!runtime.recording && !runtime.saving && !runtime.mapState.busy && entry.format=="FIT" && entry.origin==TrackOrigin.RECORDED && entry.hasRoute) {
                 content.correctionStatus(true)
                 content.cancellation(runtime.mapState.correctElevation(entry.id) { result ->
                     if(routeDetail===detail && screen.isShowing) result.fold({ load() },{ content.correctionStatus(false,getString(R.string.elevation_failed)) })
@@ -963,12 +963,12 @@ class MainActivity : Activity() {
             }
             detail.analysis = detail.analysis?.let { it.copy(entry = it.entry.copy(name = entry.name, fileStamp = entry.fileStamp)) }
         }
-        val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${RouteUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${runtime.themes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
+        val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${runtime.recording}:${runtime.saving}:${RouteUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${runtime.themes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
         if (signature == detail.signature) return
         detail.signature = signature
         val cloud = if (entry != null && RouteUploads.state(this, entry.id, entry.fileStamp).state == UploadState.UPLOADED) BicycleIcon.CloudConfirmed else BicycleIcon.CloudNotUploaded
         val local = if (entry != null && RouteLocalSaves.completed(this, entry.id, entry.fileStamp)) BicycleIcon.SaveConfirmed else BicycleIcon.Save
-        val kinds = listOf(BicycleIcon.ShowOnMap, BicycleIcon.RenameTrack, cloud, local, BicycleIcon.DeleteTrack)
+        val kinds = listOf(BicycleIcon.ShowOnMap, BicycleIcon.CorrectElevation, cloud, local, BicycleIcon.DeleteTrack)
         kinds.indices.forEach { index ->
             val button = detail.footer.getChildAt(index) as BicycleFooterAction
             button.setIcon(kinds[index], runtime.themes.active.tokens.foreground)
@@ -976,6 +976,7 @@ class MainActivity : Activity() {
             if (index == 3) button.contentDescription = getString(if (local == BicycleIcon.SaveConfirmed) R.string.route_save_confirmed else R.string.route_action_save)
             button.isEnabled = !runtime.mapState.busy && entry != null && when (index) {
                 0 -> detail.analysis?.route != null
+                1 -> !runtime.recording && !runtime.saving && entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED && entry.hasRoute
                 2 -> entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED && entry.locallySaved
                 else -> true
             }
@@ -986,7 +987,7 @@ class MainActivity : Activity() {
         val entry = detailEntry(detail) ?: return
         when (index) {
             0 -> detail.analysis?.let(::routeAnalysisMap)
-            1 -> renameRoute(entry)
+            1 -> detail.content.correctElevation?.invoke()
             2 -> if (entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED) runtime.mapState.uploadRoute(entry.id)
             3 -> runtime.mapState.exportRoute(entry.id)
             4 -> deleteRoute(entry)

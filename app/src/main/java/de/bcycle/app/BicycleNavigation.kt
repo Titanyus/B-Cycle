@@ -31,6 +31,10 @@ internal object BicycleNavigation {
         }
         frame.addView(BicycleComponents.icon(context,themes,BicycleIcon.Back,context.getString(R.string.ui_back)) { screen.dismiss() }.apply { tag="dialog_back" },
             FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.START or Gravity.CENTER_VERTICAL))
+        if(title?.tag=="analysis_title" && title.isClickable) {
+            frame.addView(BicycleComponents.icon(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.route_action_rename)) { title.performClick() }.apply { tag="analysis_rename" },
+                FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL))
+        }
         return frame
     }
     fun hideNavigationFooter(screen: AlertDialog) {

@@ -121,18 +121,40 @@ class FitElevationCorrectionTest {
         })
         assertTrue(uploaded);assertEquals(UploadState.UPLOADED,RouteUploads.state(context,id,after).state)
     }
-    @Test fun manualCorrectionIsOfferedOnlyForOwnFitsWhenPreferenceIsEnabled() {
+    @Test fun manualCorrectionUsesInlineStatusWithoutDuplicateContentButton() {
         val themes=ThemeManager(context.getSharedPreferences("bike",0))
         val entry=ManagedRoute("test","Test",true,"FIT",RouteDetails(),true)
-        fun view(e:ManagedRoute)=RouteAnalysisView(context,themes,"test") { }.apply { show(RouteAnalysis(e,mapOf(AnalysisMetric.ASCENT to 4.0),null,true,1.0,emptyList())) }
-        assertNull(view(entry).findViewWithTag<View>("analysis_correct_elevation"))
-        context.getSharedPreferences("bike",0).edit().putBoolean(FitElevationCorrection.preference,true).commit()
-        var calls=0
-        val enabled=view(entry).apply { correctElevation={calls++} }
-        enabled.findViewWithTag<View>("analysis_correct_elevation").performClick();assertEquals(1,calls)
-        enabled.correctionStatus(true);assertFalse(enabled.findViewWithTag<View>("analysis_correct_elevation").isEnabled)
-        assertNull(view(entry.copy(recorded=false,origin=TrackOrigin.IMPORTED)).findViewWithTag<View>("analysis_correct_elevation"))
-        assertNull(view(entry.copy(format="GPX")).findViewWithTag<View>("analysis_correct_elevation"))
+        val view=RouteAnalysisView(context,themes,"test") { }.apply {
+            show(RouteAnalysis(entry,mapOf(AnalysisMetric.ASCENT to 4.0),null,true,1.0,emptyList()))
+        }
+        assertNull(view.findViewWithTag<View>("analysis_correct_elevation"))
+        view.correctionStatus(true)
+        val status=view.findViewWithTag<android.widget.TextView>("analysis_correction_status")
+        assertEquals(context.getString(R.string.elevation_correcting),status.text.toString())
+        assertEquals(View.VISIBLE,status.visibility)
+        view.correctionStatus(false)
+        assertEquals(View.GONE,status.visibility)
+    }
+    @Test fun correctionFooterIsEnabledForOwnGpsFitEvenWithAutomaticCorrectionOff() {
+        val file=fixture()
+        val stored=file.inputStream().use { FitLibrary(context.filesDir).add(it,"Own ride.fit",true) }!!
+        assertFalse(FitElevationCorrection.enabled(context))
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get();val state=RideRuntime.get(activity).mapState
+            val deadline=System.nanoTime()+10_000_000_000L
+            while(state.busy && System.nanoTime()<deadline) {
+                Thread.sleep(10);shadowOf(Looper.getMainLooper()).idle()
+            }
+            assertFalse(state.busy)
+            val entry=state.entries.single { it.id==stored.id }
+            MainActivity::class.java.getDeclaredMethod("routeAnalysis",ManagedRoute::class.java)
+                .apply { isAccessible=true }.invoke(activity,entry)
+            shadowOf(Looper.getMainLooper()).idle()
+            val dialog=ShadowAlertDialog.getLatestAlertDialog()
+            assertTrue(dialog.window!!.decorView.findViewWithTag<View>("detail_elevation").isEnabled)
+            assertNull(dialog.window!!.decorView.findViewWithTag<View>("detail_rename"))
+        } finally { controller.pause().stop().destroy() }
     }
     @Test fun preferenceIsOffByDefaultAndMapSwitchPersistsImmediately() {
         assertFalse(FitElevationCorrection.enabled(context))

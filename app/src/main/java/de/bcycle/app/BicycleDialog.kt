@@ -41,6 +41,7 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
             BicycleDialogStyle.apply(screen, themes)
             if (fullscreen) BicycleFullscreen.apply(screen, themes)
             else {
+                BicycleDialogStyle.messageSpacing(screen)
                 val top=screen.window?.decorView?.findViewById<ViewGroup>(context.resources.getIdentifier("topPanel","id","android"))
                 if(top!=null && top.childCount>0) {
                     val original=top.getChildAt(0); top.removeAllViews()
@@ -111,6 +112,13 @@ internal object BicycleDialogStyle {
                     "Löschen" -> actionIcon(button, themes, BicycleIcon.DeleteTrack)
                 }
             }
+        }
+    }
+    /** Compact confirmations keep native message layout, with the shared minimum header gap. */
+    fun messageSpacing(screen: AlertDialog) {
+        screen.findViewById<TextView>(android.R.id.message)?.let { message ->
+            message.setPadding(message.paddingLeft, maxOf(message.paddingTop, dp(message, BicycleDesign.controlGap)),
+                message.paddingRight, message.paddingBottom)
         }
     }
     private fun descendants(view: View): Sequence<View> = sequence {
