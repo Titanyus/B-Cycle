@@ -14,7 +14,8 @@ sealed interface BicycleTheme {
 }
 
 data class PresetTheme(override val id: String, override val name: String,
-                       override val tokens: ThemeTokens) : BicycleTheme {
+                       override val tokens: ThemeTokens,
+                       val approvedLowContrastSurfaces: Set<ThemeRole> = emptySet()) : BicycleTheme {
     override val isCustom = false
 }
 
@@ -25,15 +26,17 @@ data class CustomTheme(override val id: String, override val name: String,
 
 object BicycleThemes {
     private fun preset(id: String, name: String, primary: Long, secondary: Long, tertiary: Long,
-                       foreground: Long = 0xffffffff, accent: Long = foreground) = PresetTheme("preset:$id", name,
-        ThemeTokens(primary.toInt(), secondary.toInt(), tertiary.toInt(), foreground.toInt(), accent.toInt()))
+                       foreground: Long = 0xffffffff, accent: Long = foreground,
+                       approvedLowContrastSurfaces: Set<ThemeRole> = emptySet()) = PresetTheme("preset:$id", name,
+        ThemeTokens(primary.toInt(), secondary.toInt(), tertiary.toInt(), foreground.toInt(), accent.toInt()), approvedLowContrastSurfaces)
     val red = preset("bicycle-red", "BICYCLE RED", 0xffbf281b, 0xff89190e, 0xff680e07)
     /** Immutable templates; stored custom themes cannot overwrite these stable IDs. */
     val presets: List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
         red,
         preset("black-ops", "EMBERS", 0xff535353, 0xff000000, 0xffbf281b, accent = 0xffbf281b),
-        // Approved contrast correction: original #C92817 gave only 3.37:1 with #17120D.
-        preset("solar-flare", "SOLAR FLARE", 0xffffcb19, 0xfff47713, 0xffe83d24, 0xff17120d),
+        // Exact palette and white-on-yellow tertiary explicitly accepted by the user.
+        preset("solar-flare", "FIRE", 0xff535353, 0xff000000, 0xffffb400, accent = 0xffffb400,
+            approvedLowContrastSurfaces = setOf(ThemeRole.TERTIARY)),
         preset("electric-blue", "ELECTRIC BLUE", 0xff1168b8, 0xff10508c, 0xff09294d),
         preset("acid-lime", "ACID LIME", 0xff587812, 0xff39510e, 0xff203007),
         preset("ultraviolet", "ULTRAVIOLET", 0xff8242c3, 0xff57238e, 0xff2d114d),
@@ -63,7 +66,9 @@ object ThemeValidator {
         val steps = listOf(light[1] - light[0], light[2] - light[1])
         if (steps.any { kotlin.math.abs(it) < minimumSurfaceStep })
             problems += "Benachbarte Flächen müssen erkennbar heller oder dunkler abgestuft sein"
-        if (surfaces.any { contrast(t.foreground, it) < minimumTextContrast })
+        val approved = (theme as? PresetTheme)?.approvedLowContrastSurfaces.orEmpty()
+        val surfaceRoles = listOf(ThemeRole.PRIMARY, ThemeRole.SECONDARY, ThemeRole.TERTIARY)
+        if (surfaces.withIndex().any { (index, color) -> surfaceRoles[index] !in approved && contrast(t.foreground, color) < minimumTextContrast })
             problems += "Text und Icons benötigen mindestens 4,5:1 Kontrast zu jeder Fläche"
         // Semantic highlights currently live on SECONDARY. Other surfaces use
         // the shared per-surface foreground fallback when accent is unreadable.

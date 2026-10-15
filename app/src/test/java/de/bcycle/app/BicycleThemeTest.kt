@@ -25,7 +25,7 @@ class BicycleThemeTest {
     }
     @Test fun accentsDefaultToForegroundAndRequireOpaqueContrastingColors() {
         BicycleThemes.presets.forEach {
-            if (it.id != "preset:black-ops") assertEquals(it.tokens.foreground, it.tokens.accent)
+            if (it.id !in setOf("preset:black-ops", "preset:solar-flare")) assertEquals(it.tokens.foreground, it.tokens.accent)
             assertTrue(ThemeValidator.validate(it).valid)
         }
         val base = ThemeTokens(0xff535353.toInt(), 0xff292929.toInt(), 0xff000000.toInt(), 0xffffffff.toInt())
@@ -34,6 +34,17 @@ class BicycleThemeTest {
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = base.secondary))).valid)
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0x00ffaa55))).valid)
         assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0xffd1261b.toInt()))).valid)
+    }
+    @Test fun fireKeepsExactApprovedColorsAndOnlyItsTertiaryContrastException() {
+        val fire = BicycleThemes.presets.single { it.id == "preset:solar-flare" }
+        assertEquals("FIRE", fire.name)
+        assertEquals(ThemeTokens(0xff535353.toInt(), 0xff000000.toInt(), 0xffffb400.toInt(), 0xffffffff.toInt(), 0xffffb400.toInt()), fire.tokens)
+        assertEquals(setOf(ThemeRole.TERTIARY), fire.approvedLowContrastSurfaces)
+        assertTrue(ThemeValidator.validate(fire).valid)
+        assertFalse(ThemeValidator.validate(fire.copy(approvedLowContrastSurfaces = emptySet())).valid)
+        assertFalse(ThemeValidator.validate(fire.copy(tokens = fire.tokens.copy(primary = 0xffffffff.toInt()))).valid)
+        assertFalse(ThemeValidator.validate(fire.copy(tokens = fire.tokens.copy(tertiary = 0x00ffb400))).valid)
+        assertFalse(ThemeValidator.validate(CustomTheme("custom:fire", "Mine", fire.tokens)).valid)
     }
     @Test fun embersPreservesOldIdAndUsesRedFieldsAndAccentOnlyOnReadableSurfaces() {
         val theme = BicycleThemes.presets.single { it.id == "preset:black-ops" }
