@@ -110,6 +110,11 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         if (analysis.series.isNotEmpty()) {
             analysis.series.forEach { body.addView(RouteChartView(context, themes, analysis, it), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
         }
+        analysis.distributions.forEach { distribution ->
+            body.addView(RouteDistributionView(context, themes, distribution), LinearLayout.LayoutParams(-1, -2).apply {
+                topMargin = dp(BicycleDesign.smallGap)
+            })
+        }
         if (body.childCount == 0) body.addView(text(R.string.analysis_no_data))
     }
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
