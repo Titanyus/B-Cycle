@@ -93,3 +93,15 @@ sind noch am Telefon zu testen. Keine neue APK erzeugt oder veröffentlicht.
 ## FIT-Accordion und aktive Controls
 
 Die FIT-Aufzeichnung steht wieder als standardmäßig geschlossenes Accordion unter den Sensoren. Es bleibt auf derselben scrollenden Seite und behält seinen Offen-Zustand bei Bikewechsel innerhalb dieser Ansicht. Werte und Sofortspeicherung pro Bike bleiben erhalten. Auswahlkreise und Schalter verwenden bei Aktivierung zentral ACCENT; Kreis-Kontur und Beschriftung bleiben FOREGROUND, deaktivierte Controls gedimmt.
+
+## Radumfang: einzeilige Eingabe
+
+Im Bike-Dialog stehen Beschriftung, Eingabewert und mm in einer Zeile.
+Der Wert verwendet Bebas Neue und den gemeinsamen Wert `analysisMetricSp`
+(28 sp), wie die Zonenwerte im Fahrerprofil. Transparenter Eingabehintergrund,
+rechte Ausrichtung und 1 physischer Pixel TERTIARY als Rahmen. Eingabevalidierung
+(500–4000 mm) und automatische Speicherung bleiben erhalten. Zunächst nur hier
+angewandt, keine globale Umstellung anderer Eingaben.
+
+[Native Vorschau](previews/bikes-wheel-row.png). Gezielt geprüft über
+BikesViewTest und die Release-Kotlin-Kompilierung; keine neue APK gebaut.

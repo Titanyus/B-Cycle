@@ -123,14 +123,30 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 }
             }
         }
-        addView(text(R.string.bikes_wheel),LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
         val wheel=BicycleComponents.input(context,themes).apply {
             tag="bike_wheel_mm";setSingleLine();inputType=android.text.InputType.TYPE_CLASS_NUMBER
             setText(profile.wheelMm.toString());contentDescription=context.getString(R.string.bikes_wheel)
         }
+        BicycleDialogStyle.control(wheel,themes)
+        wheel.apply {
+            typeface=resources.getFont(R.font.bebas_neue)
+            textSize=BicycleDesign.analysisMetricSp
+            gravity=Gravity.END or Gravity.CENTER_VERTICAL
+            includeFontPadding=false
+            setPadding(dp(BicycleDesign.inputHorizontalPadding),dp(BicycleDesign.smallGap),
+                dp(BicycleDesign.inputHorizontalPadding),dp(BicycleDesign.smallGap))
+            BicycleComponents.bindTheme(this,themes) { tokens ->
+                backgroundTintList=null
+                background=GradientDrawable().apply {
+                    setColor(android.graphics.Color.TRANSPARENT)
+                    setStroke(BicycleDesign.dividerPixels,tokens.tertiary)
+                }
+            }
+        }
         addView(LinearLayout(context).apply {
-            gravity=Gravity.CENTER_VERTICAL
-            addView(wheel,LayoutParams(0,-2,1f))
+            tag="bike_wheel_row";gravity=Gravity.CENTER_VERTICAL
+            addView(text(R.string.bikes_wheel).apply { tag="bike_wheel_label" },LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
+            addView(wheel,LayoutParams(dp(BicycleDesign.riderZoneRangeWidth),-2))
             addView(text(R.string.bikes_wheel_mm).apply { tag="bike_wheel_unit";setTextColor(BicycleDesign.dashboardUnitColor);gravity=Gravity.CENTER },LayoutParams(dp(BicycleDesign.touchSize),-2))
         },LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
         wheel.addTextChangedListener(watcher { value ->
