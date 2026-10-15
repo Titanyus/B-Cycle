@@ -558,7 +558,6 @@ class MainActivity : Activity() {
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-        root.addView(button(getString(R.string.ui_map_gps_enable), BicycleIcon.Map) { enableGps() })
         root.addView(button(getString(R.string.ui_map_legend), BicycleIcon.Info) { openMapLink(MapProviderSettings.source(this,preferences.getString("mapSource",null)).creditUrl) })
         observeSettings(root) {
             val chosen=MapSource.entries[source.selectedItemPosition]
