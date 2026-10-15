@@ -14,7 +14,6 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
         typeface = BicycleDesign.strongTypeface
         textAlign = Paint.Align.CENTER
     }
-    private val line = Path()
     private val area = Path()
     private var foreground = 0; private var curve = 0
     private val density = resources.displayMetrics.density
@@ -40,7 +39,7 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         scale=RouteChartScale.calculate(series.chart,series.points.mapNotNull { it.value })
         val top = 12 * density; val bottom = h - 24 * density
-        line.reset(); area.reset()
+        area.reset()
         fun y(value: Double) = bottom - ((value - minimum) / (maximum - minimum)).toFloat() * (bottom - top)
         val segments = RouteChartCurve.prepare(series, analysis.distanceAxis, analysis.axisEnd, plotRight - plotLeft)
         for (points in segments) {
@@ -54,7 +53,6 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
                 else segment.cubicTo(screenX(a.x + dx), y(a.value + tangents[i - 1] * dx),
                     screenX(b.x - dx), y(b.value - tangents[i] * dx), screenX(b.x), y(b.value))
             }
-            line.addPath(segment)
             segment.lineTo(screenX(points.last().x), bottom)
             segment.lineTo(screenX(first.x), bottom); segment.close(); area.addPath(segment)
         }
@@ -67,9 +65,6 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
         for (i in 0..4) { val x = screenX(analysis.axisEnd * i / 4); canvas.drawLine(x, top, x, bottom, paint) }
         for (mark in scale.marks) { val y = bottom - (bottom - top) * ((mark-minimum)/(maximum-minimum)).toFloat(); canvas.drawLine(plotLeft, y, plotRight, y, paint) }
         paint.style = Paint.Style.FILL; paint.color = curve; paint.alpha = BicycleDesign.analysisChartFillAlpha; canvas.drawPath(area, paint)
-        paint.style = Paint.Style.STROKE; paint.color = curve; paint.alpha = 255; paint.strokeWidth = 1.5f * density
-        paint.strokeJoin = Paint.Join.ROUND; paint.strokeCap = Paint.Cap.ROUND
-        canvas.drawPath(line, paint)
         paint.style = Paint.Style.FILL; paint.color = foreground; paint.alpha = 180; paint.textSize = 9 * scaled
         paint.textAlign = Paint.Align.RIGHT
         for ((i,mark) in scale.marks.withIndex()) canvas.drawText(yLabels[i], plotLeft - 4 * density, bottom - (bottom - top) * ((mark-minimum)/(maximum-minimum)).toFloat() + paint.textSize / 3, paint)
