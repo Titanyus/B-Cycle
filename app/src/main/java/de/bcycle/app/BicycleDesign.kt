@@ -60,6 +60,7 @@ object BicycleDesign {
     const val analysisZoneRowHeight = 24
     const val analysisZoneBarHeight = 10
     const val analysisZoneTrackAlpha = .18f
+    const val analysisChartFillAlpha = 150
     const val analysisChartHeight = 120
     const val analysisSideLabelWidth = 24
     const val analysisSideLabelSp = 12f

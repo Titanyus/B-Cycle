@@ -40,19 +40,24 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         scale=RouteChartScale.calculate(series.chart,series.points.mapNotNull { it.value })
         val top = 12 * density; val bottom = h - 24 * density
-        line.reset(); area.reset(); var connected = false; var lastX = 0f; var firstX = 0f
-        fun closeArea() { if (connected) { area.lineTo(lastX, bottom); area.lineTo(firstX, bottom); area.close() } }
-        for (point in series.points) {
-            val distance = if (analysis.distanceAxis) point.distance?.div(1000) else point.seconds
-            if (point.value == null || !point.value.isFinite() || distance == null || !distance.isFinite()) { closeArea(); connected = false }
-            if (point.value != null && point.value.isFinite() && distance != null && distance.isFinite() && distance in 0.0..analysis.axisEnd) {
-                val x = screenX(distance); val y = bottom - ((point.value - minimum) / (maximum - minimum)).toFloat() * (bottom - top)
-                if (!connected) { line.moveTo(x, y); area.moveTo(x, bottom); area.lineTo(x, y); firstX = x }
-                else { line.lineTo(x, y); area.lineTo(x, y) }
-                connected = true; lastX = x
+        line.reset(); area.reset()
+        fun y(value: Double) = bottom - ((value - minimum) / (maximum - minimum)).toFloat() * (bottom - top)
+        val segments = RouteChartCurve.prepare(series, analysis.distanceAxis, analysis.axisEnd, plotRight - plotLeft)
+        for (points in segments) {
+            val segment = Path()
+            val first = points.first()
+            segment.moveTo(screenX(first.x), y(first.value))
+            val tangents = RouteChartCurve.tangents(points)
+            for (i in 1 until points.size) {
+                val a = points[i - 1]; val b = points[i]; val dx = (b.x - a.x) / 3
+                if (dx <= 0) segment.lineTo(screenX(b.x), y(b.value))
+                else segment.cubicTo(screenX(a.x + dx), y(a.value + tangents[i - 1] * dx),
+                    screenX(b.x - dx), y(b.value - tangents[i] * dx), screenX(b.x), y(b.value))
             }
+            line.addPath(segment)
+            segment.lineTo(screenX(points.last().x), bottom)
+            segment.lineTo(screenX(first.x), bottom); segment.close(); area.addPath(segment)
         }
-        closeArea()
         for (i in xLabels.indices) xLabels[i] = context.getString(R.string.analysis_axis_format, analysis.axisEnd * i / 4 / if (analysis.distanceAxis) 1 else 60)
         yLabels=scale.marks.map { context.getString(if(it%1.0==0.0) R.string.analysis_integer_format else R.string.analysis_axis_format,it) }
     }
@@ -61,8 +66,9 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
         paint.style = Paint.Style.STROKE; paint.strokeWidth = density * .5f; paint.color = foreground; paint.alpha = 35
         for (i in 0..4) { val x = screenX(analysis.axisEnd * i / 4); canvas.drawLine(x, top, x, bottom, paint) }
         for (mark in scale.marks) { val y = bottom - (bottom - top) * ((mark-minimum)/(maximum-minimum)).toFloat(); canvas.drawLine(plotLeft, y, plotRight, y, paint) }
-        paint.style = Paint.Style.FILL; paint.color = curve; paint.alpha = 32; canvas.drawPath(area, paint)
+        paint.style = Paint.Style.FILL; paint.color = curve; paint.alpha = BicycleDesign.analysisChartFillAlpha; canvas.drawPath(area, paint)
         paint.style = Paint.Style.STROKE; paint.color = curve; paint.alpha = 255; paint.strokeWidth = 1.5f * density
+        paint.strokeJoin = Paint.Join.ROUND; paint.strokeCap = Paint.Cap.ROUND
         canvas.drawPath(line, paint)
         paint.style = Paint.Style.FILL; paint.color = foreground; paint.alpha = 180; paint.textSize = 9 * scaled
         paint.textAlign = Paint.Align.RIGHT
