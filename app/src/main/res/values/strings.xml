@@ -68,7 +68,7 @@
     <string name="analysis_failed">Fahrtdaten konnten nicht gelesen werden. Die Originaldatei bleibt unverändert.</string>
     <string name="analysis_retry">Erneut versuchen</string>
     <string name="analysis_close">Schließen</string>
-    <string name="analysis_back">Zurück zum Streckenmanager</string>
+    <string name="analysis_back">Zurück zu den Strecken</string>
     <string name="analysis_open">Details zu %1$s öffnen</string>
     <string name="analysis_switch">%1$s: %2$s %3$s. Antippen für %4$s.</string>
     <string name="analysis_metric_description">%1$s: %2$s %3$s</string>
@@ -274,7 +274,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="field_no_data">Keine Daten anzeigen</string>
     <string name="dashboard_no_data">Daten ausgeblendet. Antippen, um das Feld zu bearbeiten.</string>
     <!-- Central legacy UI labels and accessibility descriptions. -->
-    <string name="ui_routes_open">Streckenmanager öffnen</string>
+    <string name="ui_routes_open">Strecken öffnen</string>
     <string name="ui_menu_open">Menü öffnen</string>
     <string name="ui_record_start">START</string>
     <string name="ui_record_stop">STOPP · SPEICHERN</string>
@@ -318,7 +318,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_map_gpx">Importierte GPX-Strecke anzeigen</string>
     <string name="ui_map_gps_enable">GPS aktivieren / Berechtigung erlauben</string>
     <string name="ui_map_legend">CyclOSM-Legende öffnen</string>
-    <string name="ui_map_manager_title">Kartenmanager</string>
+    <string name="ui_map_manager_title">Karten</string>
     <string name="ui_file_picker_missing">Keine Dateiauswahl verfügbar</string>
     <string name="ui_import_planned">Geplante Strecke (GPX / FIT)</string>
     <string name="ui_import_recorded">Aufgezeichnete Fahrt (FIT)</string>
@@ -353,7 +353,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_route_unknown_origin">Herkunft unbekannt</string>
     <string name="ui_route_preview">Streckenvorschau</string>
     <string name="ui_route_no_gps">Keine GPS-Strecke gespeichert</string>
-    <string name="ui_route_manager_title">Streckenmanager</string>
+    <string name="ui_route_manager_title">Strecken</string>
     <string name="ui_routes_empty">Keine Strecken in dieser Auswahl</string>
     <string name="ui_file_format_description">%1$s-Datei</string>
     <string name="ui_dashboard_page_choose">Dashboard-Seite wählen</string>
@@ -384,9 +384,9 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_settings_gps_help">GPS-Messung erklärt</string>
     <string name="ui_settings_recovery">Ungespeicherte Fahrten speichern</string>
     <string name="ui_settings_advanced">Erweitert</string>
-    <string name="ui_settings_routes">Streckenmanager</string>
+    <string name="ui_settings_routes">Strecken</string>
     <string name="ui_settings_dashboards">Design &amp; UI</string>
-    <string name="ui_settings_map">Kartenmanager</string>
+    <string name="ui_settings_map">Karten</string>
     <string name="ui_settings_sensors">Sensoren &amp; Aufzeichnung</string>
     <string name="ui_preset_hero">4 Werte · groß oben / 3 unten</string>
     <string name="ui_preset_five">5 Werte · 2 oben / 3 unten</string>

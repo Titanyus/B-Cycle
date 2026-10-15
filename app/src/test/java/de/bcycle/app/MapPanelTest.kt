@@ -113,7 +113,7 @@ class MapPanelTest {
             assertEquals(3, toolbar.childCount)
             val route = toolbar.getChildAt(1) as android.widget.ImageButton
             val settings = toolbar.getChildAt(2)
-            assertEquals("Streckenmanager öffnen", route.contentDescription)
+            assertEquals("Strecken öffnen", route.contentDescription)
             assertEquals(route.width, settings.width)
             val runtime = RideRuntime.get(activity); runtime.themes.activate("preset:electric-blue")
             val theme = runtime.themes.active.tokens
