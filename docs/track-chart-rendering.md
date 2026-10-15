@@ -3,7 +3,7 @@
 Die fünf vorhandenen Diagramme behalten Reihenfolge, semantische Farben, gemeinsame
 Strecken-/Zeitachse, Höhen, Beschriftungen und die Skalierung aus Originalwerten.
 Ihre Flächenfüllung verwendet jetzt die jeweilige vorhandene Diagrammfarbe mit
-150/255 Deckkraft statt 32/255. Weiße Verteilungskurven und Zonenflächen bleiben
+255/255 Deckkraft (100 %). Weiße Verteilungskurven und Zonenflächen bleiben
 von dieser Änderung unberührt.
 
 `RouteChartCurve` bereitet ausschließlich die bereits begrenzten Anzeigeserien auf:
