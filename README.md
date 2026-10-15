@@ -6,30 +6,38 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.15 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.15/downloads/B-Cycle-0.7.15-test.apk)**
+**[APK 0.7.16 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.16/downloads/B-Cycle-0.7.16-test.apk)**
 
-- Größe: **1,128,402 Byte**, rund **1,13 MB**.
+- Größe: **1,169,362 Byte**, rund **1,17 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.15/53.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.16/54.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.15-test.apk.sha256):
-  `4db4384e8bf9812f5579b8539dcd11892df5356aec47ee084fb2032dfd54b755`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.16-test.apk.sha256):
+  `cf3097cd0f149facfdac4652bf1f38258f71032933ed287c0cc99cd25e7c0c72`.
 
-**386 Tests vollständig bestanden**, Release-Build einschließlich R8/Resource-Shrinking
-und Lint-Vital erfolgreich. Signaturvergleich, ZIP-Ausrichtung und APK-Metadaten
-geprüft. [Buildnachweis](docs/milestone-0715.md).
+Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich; Signatur,
+ZIP-Ausrichtung und Versionsdaten geprüft. Die Detail-Erweiterungen wurden zuvor
+mit gezielten Tests geprüft. [Buildnachweis](docs/milestone-0716.md).
 
-## Neu im Hauptbranch: Bikes (noch nicht in APK 0.7.15)
+## Neu in APK 0.7.16
 
-Vier lokale Fahrradprofile auf einer gemeinsamen Seite: antippbarer Name,
-Kategorie-Dropdown, Radumfang, Sensorverwaltung und FIT-Hauptquellen. Zunächst nur
-E-Bike aktiv; Bike/Indoor und finale Kachelbilder folgen. Bestehende Zuordnungen
-und FIT-Auswahl werden in Bike 1 übernommen.
+- **Bikes:** vier lokale Fahrradprofile mit antippbarem Namen, Kategorie-Dropdown,
+  Radumfang, zentraler Sensorsuche und FIT-Hauptquellen auf einer Seite. Zunächst
+  nur E-Bike aktiv; Bike/Indoor vorbereitet. Bestehende Zuordnungen in Bike 1 übernommen.
+- **Aufnahmegrenzen:** App-Fahrtzeit und Fahrtstatistiken starten erst mit START
+  und bleiben nach STOPP stehen; Live-Sensoranzeige bleibt möglich.
+- **Streckendetails:** eigene Kategorie Höhe mit separatem Aufstieg und Abstieg.
+- **Best Efforts:** bis zu vier längste auswertbare Leistungsfenster aus
+  5 s, 1 min, 5 min, 8 min, 20 min, 1 h, 2 h; große Wattwerte und kleinere W/kg.
+- **Zonenbalken:** Streckenanteile in sieben Leistungs- und fünf Pulszonen,
+  bekannte Profilfarben, blasse volle Hintergrundspur und kräftige Anteilsfüllung.
+- **Verteilungskurven:** darunter zwei quadratische, zeitgewichtete Diagramme für
+  Leistung und Puls, weiße geglättete Kurven mit Dashboard-Glow und Verlaufsfüllung.
 
-[Profilvorschau](docs/previews/bikes-top.png) ·
+[Bikes-Vorschau](docs/previews/bikes-top.png) ·
 [Sensorbereich](docs/previews/bikes-sensors.png) ·
 [FIT-Bereich](docs/previews/bikes-fit.png) ·
-[Dokumentation](docs/bicycle-profiles.md)
+[Neue Diagramme mit Testdaten](docs/previews/track-distributions.png)
 
 ## Neu in APK 0.7.15
 
