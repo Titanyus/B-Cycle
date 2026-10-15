@@ -546,4 +546,11 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_thunderforest_key">Thunderforest-API-Schlüssel</string>
     <string name="map_thunderforest_required">Für OpenCycleMap einen Thunderforest-API-Schlüssel eingeben. Die bisherige Karte bleibt aktiv.</string>
     <string name="map_thunderforest_invalid">Der API-Schlüssel muss aus 32 hexadezimalen Zeichen bestehen.</string>
+    <string name="elevation_enable">Höhenkorrektur nach Aufnahme</string>
+    <string name="elevation_correct_action">Höhe korrigieren</string>
+    <string name="elevation_correcting">Höhen werden mit Mapterhorn korrigiert …</string>
+    <string name="elevation_failed">Höhenkorrektur nicht möglich. GPS-Positionen, Internetverbindung und Höhendaten prüfen; die bisherige Datei bleibt erhalten.</string>
+    <string name="elevation_auto_failed">Höhenkorrektur nicht durchgeführt · in den Streckendetails erneut versuchen</string>
+    <string name="elevation_credit">Höhendaten: Mapterhorn · Quellen und Lizenzen</string>
+    <string name="settings_build_info">Version %1$s\nBuild: %2$s</string>
 </resources>

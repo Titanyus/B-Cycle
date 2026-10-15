@@ -556,6 +556,7 @@ class MainActivity : Activity() {
         val follow = toggle(getString(R.string.ui_map_follow), "mapFollow", true)
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
+        val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(button(getString(R.string.ui_map_gps_enable), BicycleIcon.Map) { enableGps() })
         root.addView(button(getString(R.string.ui_map_legend), BicycleIcon.Info) { openMapLink(MapProviderSettings.source(this,preferences.getString("mapSource",null)).creditUrl) })
@@ -571,7 +572,8 @@ class MainActivity : Activity() {
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
             edit.putBoolean("mapHeading",heading.isChecked).putBoolean("mapFollow",follow.isChecked)
-                .putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked).apply()
+                .putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked)
+                .putBoolean(FitElevationCorrection.preference,elevation.isChecked).apply()
             mapPanel.refreshSettings()
         }
         menu=dialog().setTitle(getString(R.string.ui_map_manager_title)).setView(ScrollView(this).apply { addView(root) }).show()
@@ -627,6 +629,14 @@ class MainActivity : Activity() {
                     }
                 }) { content.failed { load() } }
             })
+        }
+        content.correctElevation = {
+            if(!runtime.recording && !runtime.saving && !runtime.mapState.busy) {
+                content.correctionStatus(true)
+                content.cancellation(runtime.mapState.correctElevation(entry.id) { result ->
+                    if(routeDetail===detail && screen.isShowing) result.fold({ load() },{ content.correctionStatus(false,getString(R.string.elevation_failed)) })
+                })
+            }
         }
         load()
     }

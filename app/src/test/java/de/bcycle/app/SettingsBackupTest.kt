@@ -35,6 +35,17 @@ class SettingsBackupTest {
     private fun failAs(reason:BackupProblem,action:()->Unit) {
         try { action();fail("Expected $reason") } catch(e:SettingsBackupFailure) { assertEquals(reason,e.problem) }
     }
+    @Test fun heightCorrectionPreferenceRoundTripsAndLegacyMapsDoNotResetIt() {
+        bike.edit().putBoolean(FitElevationCorrection.preference,true).commit()
+        val b=backup();val bytes=b.export(setOf(BackupSection.MAPS))
+        bike.edit().putBoolean(FitElevationCorrection.preference,false).commit()
+        b.apply(b.plan(b.decode(bytes),setOf(BackupSection.MAPS)))
+        assertTrue(FitElevationCorrection.enabled(context))
+        val legacy=json(bytes)
+        legacy.getJSONObject("sections").getJSONObject(BackupSection.MAPS.id).remove("elevationCorrection")
+        b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.MAPS)))
+        assertTrue(FitElevationCorrection.enabled(context))
+    }
     @Test fun exportsEachOrAllSectionsWithPublicMetadataAndNoFilesDevicesPermissionsSecretsOrPaths() {
         seed();val b=backup()
         for(section in BackupSection.entries) {

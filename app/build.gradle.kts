@@ -1,3 +1,5 @@
+import java.time.Instant
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -35,6 +37,10 @@ android {
         targetSdk = 36
         versionCode = 59
         versionName = "0.7.21"
+        // Captured at build configuration, never from the app launch clock.
+        val buildEpoch = providers.environmentVariable("SOURCE_DATE_EPOCH").orNull?.toLong()
+            ?: Instant.now().epochSecond
+        buildConfigField("long", "BUILD_TIMESTAMP", "${buildEpoch}L")
     }
     buildFeatures { buildConfig = true }
     buildTypes {

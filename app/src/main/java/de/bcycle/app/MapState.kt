@@ -25,8 +25,9 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private var selectedFit: String? = null
     private var workerRoute: GpxRoute? = null
     private var retainedFiles: Map<String, RouteFileStamp> = emptyMap()
+    private var correctedIds=emptySet<String>()
     val entries: List<ManagedRoute> get() = (routes.map { ManagedRoute(it.id, it.name, false, "GPX", it.details, true, it.origin, it.id in retainedFiles, retainedFiles[it.id]) } +
-        activities.map { ManagedRoute(it.id, it.name, it.recorded, "FIT", it.details, it.hasRoute, it.origin, it.id in retainedFiles, retainedFiles[it.id]) })
+        activities.map { ManagedRoute(it.id, it.name, it.recorded, "FIT", it.details, it.hasRoute, it.origin, it.id in retainedFiles, retainedFiles[it.id],it.id in correctedIds) })
         .sortedByDescending { it.details.dateMs }
     init {
         worker.execute { finishOperation("") {
@@ -53,7 +54,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
                 val fit = fits.entries.singleOrNull { it.id == id }
                 val gpx = library.entries.singleOrNull { it.id == id }
                 require(fit != null || gpx != null)
-                val entry = if (fit != null) ManagedRoute(fit.id, fit.name, fit.recorded, "FIT", fit.details, fit.hasRoute, fit.origin)
+                val entry = if (fit != null) ManagedRoute(fit.id, fit.name, fit.recorded, "FIT", fit.details, fit.hasRoute, fit.origin,elevationCorrected=fits.corrected(id))
                     else gpx!!.let { ManagedRoute(it.id, it.name, false, "GPX", it.details, true, it.origin) }
                 val original = if (fit != null) fits.file(id) else library.file(id)
                 val stamp = RouteFileStamp(original.length(), original.lastModified(), WebDavClient.hash(original))
@@ -62,6 +63,36 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
                 analysis
             }
             if (!cancelled.get()) handler.post { if (!cancelled.get()) complete(result) }
+        }
+        return { cancelled.set(true) }
+    }
+    internal fun correctElevation(id:String,complete:(Result<Unit>)->Unit):()->Unit {
+        if(busy) { complete(Result.failure(IllegalStateException()));return {} }
+        val cancelled=java.util.concurrent.atomic.AtomicBoolean(false)
+        busy=true;changed()
+        worker.execute {
+            var result:Result<Unit> = Result.failure(IllegalStateException())
+            finishOperation("") {
+                result=runCatching {
+                    check(FitElevationCorrection.enabled(context))
+                    val entry=fits.entries.single { it.id==id }
+                    require(entry.origin==TrackOrigin.RECORDED && entry.hasRoute)
+                    val target=FitLibrary.correctedFile(context.filesDir,id)
+                    val backup=if(target.isFile) java.io.File.createTempFile("height-previous-",".fit",context.cacheDir).also { target.copyTo(it,true) } else null
+                    try {
+                        FitElevationCorrection.correct(context,fits.originalFile(id),target,cancelled::get)
+                        fits.refreshDetails(id)
+                    } catch(e:Exception) {
+                        if(backup!=null) java.nio.file.Files.move(backup.toPath(),target.toPath(),java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                        else target.delete()
+                        throw java.io.IOException(context.getString(R.string.elevation_failed),e)
+                    } finally { backup?.delete() }
+
+                }
+                result.getOrThrow()
+                if(selectedFit==id) FitRead.read(fits.file(id)).route else workerRoute
+            }
+            if(!cancelled.get()) handler.post { if(!cancelled.get()) complete(result) }
         }
         return { cancelled.set(true) }
     }
@@ -78,7 +109,9 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         val files = (gpxEntries.map { it.id to library.file(it.id) } + fitEntries.map { it.id to fits.file(it.id) })
             .mapNotNull { (id, file) -> if (file.isFile && file.canRead()) id to RouteFileStamp(file.length(), file.lastModified()) else null }.toMap()
         val displayed = workerRoute
+        val corrected=fitEntries.filter { fits.corrected(it.id) }.map { it.id }.toSet()
         handler.post {
+            correctedIds=corrected
             retainedFiles = files; route = displayed; routes = gpxEntries; activities = fitEntries; selectedRoute = selected; routeRevision++
             busy = false; message = text; changed()
         }
@@ -159,4 +192,4 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
 data class ManagedRoute(val id: String, val name: String, val recorded: Boolean, val format: String,
                         val details: RouteDetails, val hasRoute: Boolean,
                         val origin: TrackOrigin = if (recorded) TrackOrigin.RECORDED else TrackOrigin.IMPORTED,
-                        val locallySaved: Boolean = false, val fileStamp: RouteFileStamp? = null)
+                        val locallySaved: Boolean = false, val fileStamp: RouteFileStamp? = null, val elevationCorrected:Boolean = false)

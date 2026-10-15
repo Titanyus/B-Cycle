@@ -29,6 +29,11 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private var preview: RouteAnalysisMap? = null
     private var cancelled: (() -> Unit)? = null
     private var closed = false
+    var correctElevation: (() -> Unit)? = null
+    fun correctionStatus(busy:Boolean,error:String="") {
+        findViewWithTag<View>("analysis_correct_elevation")?.isEnabled=!busy
+        findViewWithTag<TextView>("analysis_correction_status")?.let { BicycleFeedback.update(it,if(busy) context.getString(R.string.elevation_correcting) else error,hideWhenEmpty=true) }
+    }
     init { tag = "route_analysis_$id"; BicycleComponents.scrollStyle(this); addView(body); loading() }
     fun cancellation(cancel: () -> Unit) { cancelled = cancel }
     fun dispose() { closed = true; cancelled?.invoke(); preview?.dispose() }
@@ -49,7 +54,9 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.smallGap) })
         var groupsShown=0
         AnalysisGroups.groups.forEach { (heading, alternatives) ->
-            val available = if (heading == R.string.analysis_power_group && alternatives.flatten().any { it in analysis.metrics }) alternatives
+            val canCorrect=FitElevationCorrection.enabled(context) && analysis.entry.format=="FIT" && analysis.entry.origin==TrackOrigin.RECORDED && analysis.entry.hasRoute
+            val available = if(heading==R.string.analysis_elevation && canCorrect) alternatives
+                else if (heading == R.string.analysis_power_group && alternatives.flatten().any { it in analysis.metrics }) alternatives
                 else alternatives.map { group -> group.filter { it in analysis.metrics } }.filter { it.isNotEmpty() }
             if (available.isNotEmpty()) {
                 if(groupsShown++>0) body.addView(BicycleComponents.sectionDivider(context,themes).apply {
@@ -70,6 +77,16 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                         R.string.analysis_power_group -> analysis.zones.power
                         R.string.analysis_cadence_heart_group -> analysis.zones.heart
                         else -> null
+                    }
+                    if(heading==R.string.analysis_elevation && canCorrect) {
+                        addView(BicycleComponents.action(context,themes,context.getString(R.string.elevation_correct_action)) { correctElevation?.invoke() }.apply { tag="analysis_correct_elevation" })
+                        addView(BicycleFeedback.status(context,themes).apply { tag="analysis_correction_status";visibility=GONE })
+                    }
+                    if(heading==R.string.analysis_elevation && analysis.entry.elevationCorrected) {
+                        addView(text(R.string.elevation_credit).apply {
+                            textSize=BicycleDesign.mapStatusSp
+                            setOnClickListener { runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse("https://mapterhorn.com/attribution")).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } }
+                        })
                     }
                     if (distribution != null) addView(RouteZoneBars(context, themes, distribution,
                         if (heading == R.string.analysis_power_group) ZoneGlowColors.powerColors else TrainingZoneColors.values,

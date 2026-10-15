@@ -35,6 +35,11 @@ class SettingsMenuTest {
             val menu = open(controller.get())
             shadowOf(Looper.getMainLooper()).idle()
             val body = views(menu).filterIsInstance<SettingsMenuView>().single()
+            val buildInfo = descendants(body).filterIsInstance<TextView>().single { it.tag == "settings_build_info" }
+            assertEquals(controller.get().getString(R.string.settings_build_info, AppVersion.name, AppVersion.buildDate()), buildInfo.text.toString())
+            assertEquals(android.view.Gravity.CENTER, buildInfo.gravity)
+            assertTrue(AppVersion.buildTimestamp > 0)
+
             for (width in listOf(960,720)) {
                 body.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
                 body.layout(0,0,width,body.measuredHeight)
@@ -46,6 +51,7 @@ class SettingsMenuTest {
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()
             val advanced=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
             assertNotSame(menu,advanced);assertEquals(View.GONE,menu.window!!.decorView.visibility)
+            assertFalse(views(advanced).any { it.tag == "settings_build_info" })
             val rows=views(advanced).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
             assertEquals(6,rows.size)
             assertEquals("settings_FONT_LICENSE",rows[4].tag);assertEquals("settings_MAP_LICENSE",rows[5].tag)

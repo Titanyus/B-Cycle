@@ -57,7 +57,7 @@ internal object RouteUploads {
     fun retry(context: Context, id: String) {
         val config = RouteExportSettings(context).read()
         check(config.webdav) { "WebDAV bitte in den Streckeneinstellungen aktivieren" }
-        val file = File(context.filesDir, "fit-library/$id.fit")
+        val file = FitLibrary.activeFile(context.filesDir,id)
         require(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}")) && file.isFile)
         // MapState verifies RECORDED metadata before exposing this action; restored rides
         // may retain an imported-prefixed immutable original after metadata recovery.
@@ -128,7 +128,7 @@ internal object RouteUploads {
         for (id in ids) {
             if (cancelled()) return true
             val item = synchronized(lock) { entries(context).getJSONObject(id) }
-            val file = File(context.filesDir, "fit-library/$id.fit")
+            val file = FitLibrary.activeFile(context.filesDir,id)
             try {
                 check(eligible(context, id)) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
                 check(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}")) && file.isFile) { "Lokale FIT-Datei fehlt" }

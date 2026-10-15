@@ -53,5 +53,13 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
                     importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
             },LayoutParams(-1,-2))
         }
+        if (!advanced) addView(BicycleComponents.text(context, themes,
+            context.getString(R.string.settings_build_info, AppVersion.name, AppVersion.buildDate())).apply {
+            tag = "settings_build_info"
+            gravity = Gravity.CENTER
+            textSize = BicycleDesign.analysisLabelSp
+            setPadding(0, BicycleDesign.dp(context, BicycleDesign.verticalPadding), 0,
+                BicycleDesign.dp(context, BicycleDesign.verticalPadding))
+        }, LayoutParams(-1, -2))
     }
 }

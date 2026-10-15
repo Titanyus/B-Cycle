@@ -25,9 +25,12 @@ internal class FitLibrary(root: File) {
     var entries: List<StoredFit> = emptyList(); private set
     private val excluded = mutableSetOf<String>()
     private val seenDownloads = mutableSetOf<String>()
-    internal fun file(id: String): File {
-        require(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}")))
-        return File(directory, "$id.fit")
+    internal fun file(id: String): File = activeFile(directory.parentFile!!,id)
+    internal fun originalFile(id:String):File { validateId(id);return File(directory,"$id.fit") }
+    internal fun corrected(id:String)=correctedFile(directory.parentFile!!,id).isFile
+    internal fun refreshDetails(id:String) {
+        val read=FitRead.read(file(id))
+        save(entries.map { if(it.id==id) it.copy(details=read.details.copy(dateMs=it.details.dateMs),hasRoute=read.route!=null) else it })
     }
     fun load() {
         if (index.baseFile.exists() || File(index.baseFile.path + ".bak").exists()) {
@@ -39,6 +42,7 @@ internal class FitLibrary(root: File) {
                 val origin = if (item.has("origin")) runCatching { TrackOrigin.valueOf(item.getString("origin")) }.getOrDefault(TrackOrigin.UNKNOWN)
                     else if (item.opt("recorded") is Boolean) { if (item.getBoolean("recorded")) TrackOrigin.RECORDED else TrackOrigin.IMPORTED }
                     else TrackOrigin.UNKNOWN
+                if(correctedFile(directory.parentFile!!,item.getString("id")).lastModified()>=index.baseFile.lastModified()) missingAscent+=item.getString("id")
                 StoredFit(item.getString("id"), item.getString("name"), origin == TrackOrigin.RECORDED,
                     RouteDetails.from(item.getJSONObject("details")), item.getBoolean("hasRoute"), origin).also { file(it.id) }
             }
@@ -58,7 +62,7 @@ internal class FitLibrary(root: File) {
             if (next.any { it.id == id }) continue
             if (id.substringAfter('-') in excluded) continue
             file(id)
-            val read = FitRead.read(original)
+            val read = FitRead.read(file(id))
             val recorded = id.startsWith("recorded-")
             val title = if (recorded) "Fahrt · " + DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(read.details.dateMs)) else "FIT-Strecke"
             next = next + StoredFit(id, title, recorded, read.details, read.route != null)
@@ -127,7 +131,7 @@ internal class FitLibrary(root: File) {
         require(entries.any { it.id == id })
         // Persist the exclusion before deleting, so a Downloads scan cannot resurrect it.
         excluded += id.substringAfter('-')
-        save(entries.filter { it.id != id }); AtomicFile(file(id)).delete()
+        save(entries.filter { it.id != id }); AtomicFile(originalFile(id)).delete();AtomicFile(correctedFile(directory.parentFile!!,id)).delete()
     }
     private fun save(next: List<StoredFit>) {
         val array = JSONArray()
@@ -140,6 +144,13 @@ internal class FitLibrary(root: File) {
         entries = next
     }
     companion object {
+        private fun validateId(id:String) { require(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}"))) }
+        internal fun correctedFile(root:File,id:String):File { validateId(id);return File(root,"fit-library/corrected/$id.fit") }
+        internal fun activeFile(root:File,id:String):File {
+            val corrected=correctedFile(root,id)
+            if(corrected.isFile) return corrected
+            return File(root,"fit-library/$id.fit")
+        }
         private fun hash(file: File): String {
             val digest = MessageDigest.getInstance("SHA-256")
             file.inputStream().use { input -> val buffer = ByteArray(16 * 1024); while (true) {

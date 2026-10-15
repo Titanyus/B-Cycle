@@ -74,16 +74,25 @@ class RecordingStore(private val context: Context, private val changed: (String,
             FitWriter.encode(source, encoded)
             val original = FitLibrary.retainRecording(context.filesDir, encoded)
             retained = true
+            var correctionFailed=false
+            if(FitElevationCorrection.enabled(context)) {
+                report(context.getString(R.string.elevation_correcting),true)
+                correctionFailed=runCatching {
+                    FitElevationCorrection.correct(context,original,FitLibrary.correctedFile(context.filesDir,original.nameWithoutExtension))
+                }.isFailure
+            }
+            val exportFile=FitLibrary.activeFile(context.filesDir,original.nameWithoutExtension)
             val config = RouteExportSettings(context).read()
-            val upload = runCatching { RouteUploads.enqueue(context, original, "B-Cycle-" + encoded.name) }
-            val local = runCatching { if (config.save) RouteLocalSaves.perform(context, original.nameWithoutExtension, original, config.tree.ifEmpty { "Downloads/B-Cycle" }) {
-                LocalRouteExport.write(context, encoded, "B-Cycle-" + encoded.name, config.tree)
+            val upload = runCatching { RouteUploads.enqueue(context, exportFile, "B-Cycle-" + encoded.name) }
+            val local = runCatching { if (config.save) RouteLocalSaves.perform(context, original.nameWithoutExtension, exportFile, config.tree.ifEmpty { "Downloads/B-Cycle" }) {
+                LocalRouteExport.write(context, exportFile, "B-Cycle-" + encoded.name, config.tree)
             } }
             upload.getOrThrow(); local.getOrThrow()
             source.delete(); encoded.delete()
             return "Gespeichert: FIT in Streckensammlung" +
                 (if (RouteExportSettings(context).read().save) " · auch im Zielordner" else "") +
-                (if (RouteExportSettings(context).read().webdav) " · Nextcloud-Upload vorgemerkt" else "") + if (failed) " · enthält Daten bis zum Speicherfehler" else ""
+                (if (RouteExportSettings(context).read().webdav) " · Nextcloud-Upload vorgemerkt" else "") + (if (failed) " · enthält Daten bis zum Speicherfehler" else "") +
+                (if(correctionFailed) " · "+context.getString(R.string.elevation_auto_failed) else "")
         } catch (_: Exception) {
             return if (retained) "FIT lokal gespeichert · Ordnerexport oder Upload-Vormerkung fehlgeschlagen. Im Menü erneut versuchen."
             else "FIT nicht gespeichert · Daten bleiben erhalten. Im Menü erneut speichern."
