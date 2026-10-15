@@ -19,6 +19,18 @@ kompakte Dashboards und frei belegbare Datenfelder.
 und Lint-Vital erfolgreich. Signaturvergleich, ZIP-Ausrichtung und APK-Metadaten
 geprüft. [Buildnachweis](docs/milestone-0715.md).
 
+## Neu im Hauptbranch: Bikes (noch nicht in APK 0.7.15)
+
+Vier lokale Fahrradprofile auf einer gemeinsamen Seite: antippbarer Name,
+Kategorie-Dropdown, Radumfang, Sensorverwaltung und FIT-Hauptquellen. Zunächst nur
+E-Bike aktiv; Bike/Indoor und finale Kachelbilder folgen. Bestehende Zuordnungen
+und FIT-Auswahl werden in Bike 1 übernommen.
+
+[Profilvorschau](docs/previews/bikes-top.png) ·
+[Sensorbereich](docs/previews/bikes-sensors.png) ·
+[FIT-Bereich](docs/previews/bikes-fit.png) ·
+[Dokumentation](docs/bicycle-profiles.md)
+
 ## Neu in APK 0.7.15
 
 - Gemeinsame Scrollregeln und beschriftete Aktionsfooter für Streckenmanager und Details.

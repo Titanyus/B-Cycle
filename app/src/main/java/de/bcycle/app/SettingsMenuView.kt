@@ -13,7 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 internal enum class SettingsAction(val title: String, val icon: Int = 0, val titleResource: Int = 0) {
-    SENSORS("", BicycleIcon.Sensors.resource, titleResource = R.string.ui_settings_sensors),
+    SENSORS("", BicycleIcon.Bikes.resource, titleResource = R.string.bikes_title),
     MAP("", BicycleIcon.MapManager.resource, titleResource = R.string.ui_settings_map),
     DASHBOARDS("", BicycleIcon.Dashboard.resource, titleResource = R.string.ui_settings_dashboards),
     ROUTES("", BicycleIcon.Route.resource, titleResource = R.string.ui_settings_routes),

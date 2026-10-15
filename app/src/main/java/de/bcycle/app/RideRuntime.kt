@@ -13,6 +13,9 @@ import android.os.SystemClock
 /** Activity and recording service share existing sensors; no second Bosch client is created. */
 class RideRuntime private constructor(val context: Context) : BoschConnection.Listener {
     val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
+    internal val bikes = BikeProfileStore(context, preferences)
+    private var connectionsRequested = bikes.current().autoConnect
+    private val disconnectedSensors = mutableSetOf<BikeSensor>()
     val themes = ThemeManager(preferences)
     val riderProfiles = RiderProfileStore(preferences)
     val diagnostics = DiagnosticLog()
@@ -175,7 +178,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         bikeReconnect.foreground = active; heartReconnect.foreground = active
         handler.removeCallbacks(tick)
         if (active) {
-            if (gpsEnabled) gpsSensor.start()
+            if (gpsEnabled && connectionsRequested && BikeSensor.GPS !in disconnectedSensors) gpsSensor.start()
             reconnectSensors(); scheduleTick()
         } else {
             connection.onForegroundChanged(false); heart.stop(); gpsSensor.stop(); ride.bike.pause(); heartAt = null
@@ -190,7 +193,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val adapter = context.getSystemService(BluetoothManager::class.java).adapter ?: return
         if (!adapter.isEnabled) return
         val now = SystemClock.elapsedRealtime()
-        bikeReconnect.enabled = bikeEnabled; heartReconnect.enabled = heartEnabled
+        bikeReconnect.enabled = bikeEnabled && connectionsRequested && BikeSensor.EBIKE !in disconnectedSensors
+        heartReconnect.enabled = heartEnabled && connectionsRequested && BikeSensor.HEART !in disconnectedSensors
         bikeAddress?.takeIf { android.bluetooth.BluetoothAdapter.checkBluetoothAddress(it) }?.let {
             if (bikeReconnect.due(now, connection.isActive)) { bikeReconnect.attempted(now); connection.connect(adapter.getRemoteDevice(it)) }
         }
@@ -201,31 +205,86 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     fun selectBike(device: BluetoothDevice, name: String) {
         if (bikeAddress != device.address) { ride.bike.reset(); cadenceAverage.reset() }
         preferences.edit().putString("address", device.address).putString("name", name).putBoolean("bikeEnabled", true).apply()
+        bikes.persistActive(); connectionsRequested = true; disconnectedSensors.remove(BikeSensor.EBIKE)
         bikeReconnect.selecting = false; connection.stop(); bikeReconnect.start(); reconnectSensors(); notifyChanged()
     }
     fun setBikeEnabled(enabled: Boolean) {
         preferences.edit().putBoolean("bikeEnabled", enabled).apply()
-        if (!enabled) connection.stop() else bikeReconnect.start()
+        bikes.persistActive()
+        if (!enabled) connection.stop() else { connectionsRequested = true; disconnectedSensors.remove(BikeSensor.EBIKE); bikeReconnect.start() }
         reconnectSensors(); notifyChanged()
     }
     fun selectHeart(device: BluetoothDevice, name: String) {
         preferences.edit().putString("heartAddress", device.address).putString("heartName", name).putBoolean("heartEnabled", true).apply()
+        bikes.persistActive(); connectionsRequested = true; disconnectedSensors.remove(BikeSensor.HEART)
         heart.stop(); pulse = PulseValues(); heartAt = null; heartReconnect.start(); reconnectSensors(); notifyChanged()
     }
     fun setHeartEnabled(enabled: Boolean) {
         preferences.edit().putBoolean("heartEnabled", enabled).apply()
+        bikes.persistActive()
+        if (enabled) { connectionsRequested = true; disconnectedSensors.remove(BikeSensor.HEART) }
         if (!enabled) { heart.stop(); heartAt = null; pulse = pulse.copy(bpm = null); heartStatus = "Pulsmesser · Getrennt" } else heartReconnect.start()
         reconnectSensors(); notifyChanged()
     }
     fun setGpsEnabled(enabled: Boolean) {
-        gpsEnabled = enabled; preferences.edit().putBoolean("gpsEnabled", enabled).apply()
+        gpsEnabled = enabled; preferences.edit().putBoolean("gpsEnabled", enabled).apply(); bikes.persistActive()
+        if (enabled) { connectionsRequested = true; disconnectedSensors.remove(BikeSensor.GPS) }
         if (!enabled) { gpsSensor.stop(); gpsStatus = "GPS · Aus"; if ((if (recording) activeConfig else config).speedSource == "GPS_SPEED") capturePerformance(PerformanceChannel.SPEED, null, "GPS_SPEED") } else if (active) gpsSensor.start()
+        notifyChanged()
+    }
+    internal fun switchBike(slot: Int): Boolean {
+        if (slot == bikes.activeSlot) return true
+        if (recording || saving) return false
+        connectionsRequested = false
+        connection.stop(); heart.stop(); gpsSensor.stop()
+        bikes.select(slot)
+        connectionsRequested = bikes.current().autoConnect; disconnectedSensors.clear()
+        gpsEnabled = bikes.current().gpsEnabled
+        bikeData = LiveData(); pulse = PulseValues(); heartAt = null; times.clear()
+        latestPerformance.clear(); pendingPerformance.clear(); mainBikeSpeedSeen = false; lastPacketAt = null
+        ride.gps.reset(); ride.gps.setCollecting(false); ride.bike.reset(); cadenceAverage.reset()
+        heartSum = 0; heartCount = 0; completedElapsedMs = null
+        bikeStatus = context.getString(R.string.bikes_disconnected)
+        heartStatus = context.getString(R.string.bikes_disconnected)
+        gpsStatus = context.getString(R.string.bikes_gps_disconnect)
+        bikeReconnect.connected(); heartReconnect.connected()
+        updateActivity()
+        return true
+    }
+    internal fun setAutoConnect(enabled: Boolean) {
+        bikes.save(bikes.current().copy(autoConnect = enabled))
+        if (enabled) connectAssignedSensors() else notifyChanged()
+    }
+    internal fun connectAssignedSensors() {
+        connectionsRequested = true; disconnectedSensors.clear()
+        bikeReconnect.connected(); heartReconnect.connected(); updateActivity()
+    }
+    internal fun disconnected(sensor: BikeSensor) = sensor in disconnectedSensors
+    internal fun disconnectSensor(sensor: BikeSensor) {
+        disconnectedSensors += sensor
+        when (sensor) {
+            BikeSensor.EBIKE -> connection.stop()
+            BikeSensor.HEART -> { heart.stop(); heartAt = null; pulse = pulse.copy(bpm = null); capturePerformance(PerformanceChannel.HEART_RATE, null, "HEART_RATE") }
+            BikeSensor.GPS -> { gpsSensor.stop(); gpsStatus = context.getString(R.string.bikes_gps_disconnect); capturePerformance(PerformanceChannel.SPEED, null, "GPS_SPEED") }
+            BikeSensor.POWER, BikeSensor.TRAINER -> Unit
+        }
+        notifyChanged()
+    }
+    internal fun removeSensor(sensor: BikeSensor) {
+        disconnectSensor(sensor)
+        val p = bikes.current()
+        when (sensor) {
+            BikeSensor.EBIKE -> bikes.save(p.copy(bikeAddress = null, bikeName = null))
+            BikeSensor.HEART -> bikes.save(p.copy(heartAddress = null, heartName = null))
+            else -> Unit
+        }
         notifyChanged()
     }
     fun beginBikeScan() { bikeReconnect.selecting = true; connection.discover() }
     fun endBikeScan() { bikeReconnect.selecting = false; connection.stop(); bikeReconnect.connected(); reconnectSensors() }
     fun saveConfig(config: RecordingConfig) {
         preferences.edit().putStringSet("recordFields", config.fields).putString("recordSpeed", config.speedSource).putString("recordDistance", config.distanceSource).apply()
+        bikes.persistActive()
     }
     fun beginRecording() {
         if (recording || saving) return
@@ -252,7 +311,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
                     sensorTimeMs = event.sensorTimeMs?.minus(startElapsed))
         }
         store.begin(startUtc, activeConfig); recording = true; ride.gps.setCollecting(true)
-        if (activeConfig.needsGps && hasGps()) setGpsEnabled(true)
+        connectionsRequested = true
         recordingStatus = "Aufzeichnung läuft"; appendSample(); updateActivity()
     }
     fun stopRecording() {

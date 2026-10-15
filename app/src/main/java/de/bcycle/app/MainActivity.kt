@@ -73,9 +73,8 @@ class MainActivity : Activity() {
     private data class DetailSession(val id: String, val screen: AlertDialog, val content: RouteAnalysisView, val footer: LinearLayout, var analysis: RouteAnalysis? = null, var signature: String = "")
     private var routeDetail: DetailSession? = null
     private var sensorManager: AlertDialog? = null
-    private var sensorRows: LinearLayout? = null
-    private var scan: HeartRateScan? = null
-    private var scanningBike = false
+    private var bikesManager: BikesView? = null
+    private var scan: BikeSensorScanner? = null
     private var pendingSensor: String? = null
     private var pendingStart = false
     private var pendingReport: String? = null
@@ -319,80 +318,37 @@ class MainActivity : Activity() {
         menu = dialog().setTitle(getString(R.string.ui_reset_defaults_title)).setView(ScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun showSensorManager() {
-        val root = column(); sensorRows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        root.addView(sensorRows)
-        root.addView(button(getString(R.string.ui_sensor_add), BicycleIcon.AddSensor) {
-            menu = dialog().setTitle(getString(R.string.ui_sensor_add)).setItems(arrayOf(getString(R.string.ui_sensor_bike), getString(R.string.ui_sensor_heart))) { _, index -> selectSensor(if (index == 0) "bike" else "heart") }.show()
-        })
-        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-        val recordingContent = LinearLayout(settingsContext).apply {
-            orientation = LinearLayout.VERTICAL; visibility = View.GONE; tag = "sensor_recording_content"
+        val content = BikesView(settingsContext, runtime, ::searchSensors, ::stopScan, ::enableGps, ::recordingControls)
+        bikesManager = content
+        sensorManager = dialog().setTitle(R.string.bikes_title).setView(ScrollView(settingsContext).apply { addView(content) }).create().apply {
+            dialogs.onDismiss(this) { stopScan();if(bikesManager===content) bikesManager=null };show()
         }
-        var recordingBuilt = false
-        root.addView(button(getString(R.string.ui_recording_title), BicycleIcon.Expand) {
-            val expand = recordingContent.visibility != View.VISIBLE
-            if (expand && !recordingBuilt) {
-                recordingContent.addView(recordingControls()); recordingBuilt = true
+    }
+    private fun refreshSensorRows() { bikesManager?.refresh() }
+    private fun searchSensors() {
+        if(runtime.recording || runtime.saving) return
+        if(!runtime.hasBluetooth()) { requestSensorPermission("all");return }
+        stopScan();runtime.connectAssignedSensors()
+        val manager=bikesManager ?: return
+        val slot=runtime.bikes.activeSlot
+        val profile=runtime.bikes.current()
+        manager.beginSearch()
+        scan=BikeSensorScanner(this,setOfNotNull(profile.bikeAddress,profile.heartAddress),{ device,name,category ->
+            if(runtime.bikes.activeSlot!=slot || bikesManager!==manager || category !in profile.type.sensors || !category.supported) return@BikeSensorScanner
+            manager.addCandidate(name,device.address,category) {
+                if(runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving) {
+                    stopScan()
+                    when(category) {
+                        BikeSensor.EBIKE->runtime.selectBike(device,name)
+                        BikeSensor.HEART->runtime.selectHeart(device,name)
+                        else->Unit
+                    }
+                    manager.clearSearch();manager.refresh()
+                }
             }
-            recordingContent.visibility = if (expand) View.VISIBLE else View.GONE
-            root.findViewWithTag<View>("sensor_recording_toggle").stateDescription = getString(if (expand) R.string.zone_expanded else R.string.zone_collapsed)
-        }.apply { tag = "sensor_recording_toggle"; stateDescription = getString(R.string.zone_collapsed) })
-        root.addView(recordingContent)
-        refreshSensorRows()
-        sensorManager = dialog().setTitle(getString(R.string.ui_sensors_title)).setView(ScrollView(this).apply { addView(root) }).create().apply {
-            dialogs.onDismiss(this) { sensorRows = null }; show()
-        }
+        },{ status -> if(runtime.bikes.activeSlot==slot && bikesManager===manager) manager.scanStatus(status) }).also { it.start() }
     }
-    private fun refreshSensorRows() {
-        val rows = sensorRows ?: return
-        // Keep focused controls stable when only live status text changes.
-        if (rows.childCount > 0) {
-            rows.findViewWithTag<TextView>("bike_state")?.text = runtime.bikeStatus
-            rows.findViewWithTag<TextView>("heart_state")?.text = runtime.heartStatus
-            rows.findViewWithTag<TextView>("gps_state")?.text = runtime.gpsStatus
-            return
-        }
-        fun sensor(title: String, state: String, tag: String, enabled: Boolean, choose: String? = null, kind: String? = null, toggle: () -> Unit) {
-            if (rows.childCount > 0) rows.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-            rows.addView(label(title, BicycleDesign.inputSp).apply { setPadding(0, dp(12), 0, dp(4)) })
-            rows.addView(label(state, BicycleDesign.sensorStatusSp).apply { this.tag = tag })
-            if (choose != null && kind != null) rows.addView(button(choose, BicycleIcon.Bluetooth) { selectSensor(kind) })
-            rows.addView(button(if (enabled) getString(R.string.ui_disconnect) else getString(R.string.ui_connect), if (enabled) BicycleIcon.Connection else BicycleIcon.Disconnect) { toggle(); rows.removeAllViews(); refreshSensorRows() })
-        }
-        sensor("GPS", runtime.gpsStatus, "gps_state", runtime.gpsEnabled) { if (runtime.gpsEnabled) runtime.setGpsEnabled(false) else enableGps() }
-        sensor(getString(R.string.ui_sensor_named, getString(R.string.ui_source_bike), if (runtime.bikeAddress == null) getString(R.string.ui_no_bike_saved) else runtime.bikeName), runtime.bikeStatus, "bike_state", runtime.bikeEnabled && runtime.bikeAddress != null, getString(R.string.ui_bike_choose), "bike") {
-            if (runtime.bikeAddress == null) selectSensor("bike") else if (!runtime.hasBluetooth()) requestSensorPermission("bikeConnect") else runtime.setBikeEnabled(!runtime.bikeEnabled)
-        }
-        sensor(getString(R.string.ui_sensor_named, getString(R.string.ui_source_heart), if (runtime.heartAddress == null) getString(R.string.ui_no_sensor_saved) else runtime.heartName), runtime.heartStatus, "heart_state", runtime.heartEnabled && runtime.heartAddress != null, getString(R.string.ui_sensor_choose), "heart") {
-            if (runtime.heartAddress == null) selectSensor("heart") else if (!runtime.hasBluetooth()) requestSensorPermission("heartConnect") else runtime.setHeartEnabled(!runtime.heartEnabled)
-        }
-    }
-    private fun selectSensor(kind: String) {
-        if (!runtime.hasBluetooth()) { requestSensorPermission(kind); return }
-        picker?.dismiss(); stopScan()
-        val root = column(); val scanLabel = label(getString(R.string.ui_scan_searching)); root.addView(scanLabel)
-        val devices = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }; root.addView(devices)
-        val seen = mutableSetOf<String>()
-        fun found(device: BluetoothDevice, name: String) {
-            val address = try { device.address } catch (_: SecurityException) { return }
-            if (!seen.add(address)) return
-            devices.addView(button(getString(R.string.ui_device_name_address, name, address), BicycleIcon.Bluetooth) {
-                if (kind == "bike") { scanningBike = false; runtime.selectBike(device, name) } else runtime.selectHeart(device, name)
-                picker?.dismiss(); stopScan(); render()
-            })
-        }
-        picker = dialog().setTitle(if (kind == "bike") getString(R.string.ui_bike_choose) else getString(R.string.ui_heart_choose))
-            .setView(ScrollView(this).apply { addView(root) }).create().apply { dialogs.onDismiss(this) { stopScan() }; show() }
-        if (kind == "bike") {
-            scanningBike = true; runtime.scanFound = ::found; runtime.scanStatus = { scanLabel.text = it }; runtime.beginBikeScan()
-        } else {
-            scan = HeartRateScan(this, ::found) { scanLabel.text = it }.also { it.start() }
-        }
-    }
-    private fun stopScan() {
-        scan?.stop(); scan = null; runtime.scanFound = null; runtime.scanStatus = null
-        if (scanningBike) { scanningBike = false; runtime.endBikeScan() }
-    }
+    private fun stopScan() { scan?.stop();scan=null }
     private fun requestSensorPermission(kind: String) {
         pendingSensor = kind
         requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT), 1)
@@ -405,7 +361,9 @@ class MainActivity : Activity() {
         }
     }
     private fun recordingControls(): LinearLayout {
-        val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { setPadding(0, 0, 0, 0) }
+        val slot = runtime.bikes.activeSlot
+        val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
+        root.addView(label(getString(R.string.bikes_fit_explanation)))
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             root.addView(label(title, 16f).apply { setPadding(0, dp(12), 0, 0) })
             return Spinner(settingsContext).apply {
@@ -413,10 +371,11 @@ class MainActivity : Activity() {
                 setSelection(if (chosen == bikeId) 0 else 1); root.addView(this)
             }
         }
-        val speed = source(getString(R.string.ui_fit_speed_source), current.speedSource, "SPEED")
-        val distance = source(getString(R.string.ui_fit_distance_source), current.distanceSource, "BIKE_DISTANCE")
-        fun saveFields() { runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
+        val speed = source(getString(R.string.bikes_fit_primary_speed), current.speedSource, "SPEED")
+        val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
+        fun saveFields() { if(runtime.bikes.activeSlot!=slot || root.parent==null) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
+        root.addView(label(getString(R.string.bikes_fit_additional), BicycleDesign.titleSp).apply { isAccessibilityHeading=true })
         for ((source, fields) in RecordField.options.groupBy { it.source }) {
             root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
             root.addView(label(DashboardTextResources.source(this, source), BicycleDesign.inputSp).apply { setPadding(0, dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.smallGap)); isAccessibilityHeading = true })
@@ -435,7 +394,7 @@ class MainActivity : Activity() {
         val permissions = mutableListOf<String>()
         if (!runtime.hasBluetooth()) permissions += listOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
         if (!preferences.getBoolean("recordPermissionsAsked", false)) {
-            if (runtime.config.needsGps && !runtime.hasGps()) permissions += listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            if (runtime.gpsEnabled && runtime.config.needsGps && !runtime.hasGps()) permissions += listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) permissions += Manifest.permission.POST_NOTIFICATIONS
         }
         if (permissions.isNotEmpty()) {
@@ -450,14 +409,14 @@ class MainActivity : Activity() {
         when (requestCode) {
             1 -> {
                 val kind = pendingSensor; pendingSensor = null
-                if (runtime.hasBluetooth()) when (kind) { "bikeConnect" -> runtime.setBikeEnabled(true); "heartConnect" -> runtime.setHeartEnabled(true); "bike", "heart" -> selectSensor(kind) }
+                if (runtime.hasBluetooth()) when (kind) { "bikeConnect" -> runtime.setBikeEnabled(true); "heartConnect" -> runtime.setHeartEnabled(true); "bike", "heart", "all" -> searchSensors() }
                 else BicycleFeedback.show(this, getString(R.string.ui_bluetooth_missing), long = false)
             }
             3 -> if (runtime.hasGps()) enableGps() else BicycleFeedback.show(this, getString(R.string.ui_gps_permission), long = false)
             5 -> if (pendingStart) {
                 pendingStart = false
                 if (runtime.hasBluetooth()) {
-                    if (runtime.config.needsGps && !runtime.hasGps()) BicycleFeedback.show(this, getString(R.string.ui_record_without_gps), long = true)
+                    if (runtime.gpsEnabled && runtime.config.needsGps && !runtime.hasGps()) BicycleFeedback.show(this, getString(R.string.ui_record_without_gps), long = true)
                     startRide()
                 } else BicycleFeedback.show(this, getString(R.string.ui_record_bluetooth_required), long = true)
             }

@@ -22,9 +22,7 @@ class PerformanceSettingsTest {
         (0 until v.childCount).flatMap { views(v.getChildAt(it)) } else emptyList()
     private fun open(activity: MainActivity): AlertDialog {
         MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible = true }.invoke(activity)
-        return ShadowAlertDialog.getLatestAlertDialog().also { dialog ->
-            views(dialog.window!!.decorView).single { it.tag == "sensor_recording_toggle" }.performClick()
-        }
+        return ShadowAlertDialog.getLatestAlertDialog()
     }
     @Test fun existingSelectionSurvivesAndNewIndependentCheckboxesPersistInTheSamePreferences() {
         val app = RuntimeEnvironment.getApplication()
@@ -41,10 +39,10 @@ class PerformanceSettingsTest {
         checkboxes.getValue("record_ESTIMATED_FTP").isChecked = true
         assertFalse(checkboxes.getValue("record_NORMALIZED_POWER").isChecked)
         assertFalse(checkboxes.getValue("record_HEART_RATE").isChecked)
-        val before = prefs.all.filterKeys { !it.startsWith("record") }
+        val before = prefs.all.filterKeys { !it.startsWith("record") && it != BikeProfileStore.KEY }
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(setOf("RIDER_POWER", "CADENCE", "EFFICIENCY_FACTOR", "ESTIMATED_FTP"), runtime.config.fields)
-        assertEquals(before, prefs.all.filterKeys { !it.startsWith("record") })
+        assertEquals(before, prefs.all.filterKeys { !it.startsWith("record") && it != BikeProfileStore.KEY })
         controller.pause().stop().destroy()
         val recreated = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -63,7 +61,7 @@ class PerformanceSettingsTest {
         assertFalse("GPS_SPEED" in config.fields); assertFalse("RIDER_POWER" in config.fields)
         assertEquals(setOf("CADENCE"), RecordingConfig.decode(setOf("CADENCE", "unknown-future-field"), null, null).fields)
     }
-    @Test fun accordionKeepsPersistedSelectionAndUsesActiveThemeWithoutOpeningAnotherDialog() {
+    @Test fun inlineFitSettingsKeepSelectionAcrossBikeSwitchesAndUseActiveThemeWithoutAnotherDialog() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity = controller.get(); val runtime = RideRuntime.get(activity)
@@ -71,16 +69,16 @@ class PerformanceSettingsTest {
             assertTrue(runtime.themes.activate("preset:solar-flare"))
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible = true }.invoke(activity)
             val dialog = ShadowAlertDialog.getLatestAlertDialog()
-            val content = views(dialog.window!!.decorView).single { it.tag == "sensor_recording_content" } as ViewGroup
-            val toggle = views(dialog.window!!.decorView).single { it.tag == "sensor_recording_toggle" }
-            assertEquals(View.GONE, content.visibility); assertEquals(0, content.childCount)
-            toggle.performClick()
-            assertSame(dialog, ShadowAlertDialog.getLatestAlertDialog())
+            val content = views(dialog.window!!.decorView).single { it.tag == "bike_fit_settings" } as ViewGroup
+            assertEquals(View.VISIBLE, content.visibility)
             val checkbox = views(content).filterIsInstance<CheckBox>().single { it.tag == "record_NORMALIZED_POWER" }
             assertEquals(runtime.themes.active.tokens.foreground, checkbox.currentTextColor)
             checkbox.isChecked = true
-            toggle.performClick(); assertEquals(View.GONE, content.visibility)
-            toggle.performClick(); assertEquals(View.VISIBLE, content.visibility); assertTrue(checkbox.isChecked)
+            dialog.window!!.decorView.findViewWithTag<View>("bike_profile_1").performClick()
+            dialog.window!!.decorView.findViewWithTag<View>("bike_profile_0").performClick()
+            shadowOf(Looper.getMainLooper()).idle()
+            assertSame(dialog, ShadowAlertDialog.getLatestAlertDialog())
+            assertTrue(dialog.window!!.decorView.findViewWithTag<CheckBox>("record_NORMALIZED_POWER").isChecked)
             assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)
             testBack(dialog)
             assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)

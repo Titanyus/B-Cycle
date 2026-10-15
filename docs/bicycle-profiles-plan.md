@@ -15,3 +15,6 @@ Während einer laufenden Aufnahme kein Profilwechsel.
 
 Die Behebung der Aufnahmegrenzen erfolgt vorher. Diese Datei hält den anschließend
 umzusetzenden Profilauftrag fest und stellt keine bereits vorhandene Funktion dar.
+
+Der erste native E-Bike-Aufbau ist jetzt in [Bikes](bicycle-profiles.md) umgesetzt.
+Die übrigen Radtypen und zusätzliche BLE-Leistungs-/Trainerquellen bleiben vorbereitet.

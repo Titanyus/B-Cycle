@@ -1,0 +1,89 @@
+package de.bcycle.app
+
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.os.Looper
+import android.view.View
+import android.view.ViewGroup
+import android.widget.*
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowAlertDialog
+import java.io.File
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[33],qualifiers="xxhdpi")
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class BikesViewTest {
+    private fun measure(view: View,width: Int=1080,height: Int=2100) {
+        shadowOf(Looper.getMainLooper()).idle()
+        view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));view.layout(0,0,width,height)
+    }
+    @Test fun fourCardsInlineNameDropdownAndDirectFitControlsPersistOnTheSameScrollingPage() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val app=controller.get();val runtime=RideRuntime.get(app)
+            testDescendants(app.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
+            val menu=ShadowAlertDialog.getLatestAlertDialog()
+            menu.window!!.decorView.findViewWithTag<View>("settings_SENSORS").performClick()
+            val screen=ShadowAlertDialog.getLatestAlertDialog();val decor=screen.window!!.decorView;measure(decor)
+            assertEquals("Bikes",decor.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
+            val body=decor.findViewWithTag<View>("bikes_manager")
+            assertEquals(4,testDescendants(body).count { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true })
+            assertFalse(body.findViewWithTag<View>("bike_type_BIKE").isEnabled)
+            assertFalse(body.findViewWithTag<View>("bike_type_INDOOR").isEnabled)
+            assertTrue(body.findViewWithTag<View>("bike_type_EBIKE").isEnabled)
+            assertFalse(body.findViewWithTag<View>("bike_sensor_POWER").isEnabled)
+            assertNotNull(body.findViewWithTag<View>("bike_sensor_search"))
+            assertNotNull(body.findViewWithTag<View>("record_GPS_SPEED"))
+            assertNull(body.findViewWithTag<View>("sensor_recording_toggle"))
+            body.findViewWithTag<View>("bike_profile_name").performClick()
+            body.findViewWithTag<EditText>("bike_profile_name_edit").setText("Tourenrad")
+            assertEquals("Tourenrad",runtime.bikes.current().name)
+            val wheel=body.findViewWithTag<EditText>("bike_wheel_mm")
+            wheel.setText("2350");assertEquals(2350,runtime.bikes.current().wheelMm)
+            wheel.setText("0");assertNotNull(wheel.error);assertEquals(2350,runtime.bikes.current().wheelMm)
+            wheel.setText("2350")
+            body.findViewWithTag<Spinner>("bike_category").setSelection(BikeCategory.TREKKING.ordinal)
+            shadowOf(Looper.getMainLooper()).idle();assertEquals(BikeCategory.TREKKING,runtime.bikes.current().category)
+            val fields=runtime.config.fields
+            body.findViewWithTag<CheckBox>("record_GPS_SPEED").performClick()
+            assertNotEquals(fields,runtime.config.fields)
+            val firstFields=runtime.config.fields
+            body.findViewWithTag<View>("bike_profile_1").performClick();measure(decor)
+            assertEquals(1,runtime.bikes.activeSlot);assertEquals("Bike 2",decor.findViewWithTag<TextView>("bike_profile_name").text.toString())
+            assertEquals(2200,decor.findViewWithTag<EditText>("bike_wheel_mm").text.toString().toInt())
+            decor.findViewWithTag<View>("bike_profile_0").performClick();measure(decor)
+            assertEquals(firstFields,runtime.config.fields)
+            assertEquals("Tourenrad",decor.findViewWithTag<TextView>("bike_profile_name").text.toString())
+            val scrolling=testDescendants(decor).filterIsInstance<ScrollView>().single { testDescendants(it).contains(body) }
+            assertTrue(scrolling.getChildAt(0).height>scrolling.height)
+            assertFalse(testDescendants(decor).any { it.tag=="bicycle_fullscreen_footer" })
+            // Capture the real Android view, including fixed header, not an illustrative mockup.
+            fun snapshot(name: String) {
+                val bitmap=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888);decor.draw(Canvas(bitmap))
+                File("build/reports/bikes/$name.png").apply { parentFile?.mkdirs();outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) } }
+                bitmap.recycle()
+            }
+            snapshot("bikes-top")
+            fun showSectionBefore(tag: String) {
+                scrolling.scrollTo(0,0);measure(decor)
+                val target=decor.findViewWithTag<View>(tag)
+                val parent=target.parent as ViewGroup
+                val heading=parent.getChildAt(parent.indexOfChild(target)-1)
+                val rect=android.graphics.Rect(0,0,heading.width,heading.height)
+                scrolling.offsetDescendantRectToMyCoords(heading,rect)
+                scrolling.scrollTo(0,rect.top);measure(decor)
+            }
+            showSectionBefore("bike_auto_connect");snapshot("bikes-sensors")
+            showSectionBefore("bike_fit_settings");snapshot("bikes-fit")
+            for(width in listOf(720,1080)) { measure(decor,width,1500);assertEquals(BicycleDesign.dp(app,BicycleDesign.headerHeight),decor.findViewWithTag<View>("bicycle_navigation_header").height) }
+        } finally { controller.pause().stop().destroy() }
+    }
+}

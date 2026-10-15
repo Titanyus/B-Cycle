@@ -61,6 +61,8 @@ object BicycleDesign {
     const val analysisSideLabelWidth = 24
     const val analysisSideLabelSp = 12f
     const val analysisMapHeight = 180
+    const val bikeTileHeight = 112
+    const val bikePreviewHeight = 56
     const val settingsRowHeight = 72
     const val settingsIconSize = 32
     const val touchSize = 48

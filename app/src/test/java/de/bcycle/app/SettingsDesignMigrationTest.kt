@@ -80,7 +80,7 @@ class SettingsDesignMigrationTest {
                 assertTrue(themes.activate(light().id)); shadowOf(Looper.getMainLooper()).idle(); measure(child)
                 assertEquals("Theme changed geometry in $action", before, geometry(child))
                 assertEquals(light().tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
-                assertTrue(views(child).filterIsInstance<TextView>().all { it.currentTextColor == light().tokens.foreground || (it.tag == "rider_unit" && it.currentTextColor == BicycleDesign.dashboardUnitColor) || !it.isEnabled })
+                assertTrue(views(child).filterIsInstance<TextView>().all { it.currentTextColor == light().tokens.foreground || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == BicycleDesign.dashboardUnitColor) || !it.isEnabled })
                 testBack(child)
                 if(parent!==root) testBack(parent)
                 shadowOf(Looper.getMainLooper()).idle()

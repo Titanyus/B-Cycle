@@ -384,7 +384,7 @@ class BoschConnection(context: Context, private val listener: Listener, private 
     }
     fun close() { stop(); retiredClients.closeAll(); handler.removeCallbacksAndMessages(null) }
 
-    private companion object {
+    internal companion object {
         val CCCD: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         val MCSP_SERVICE: UUID = UUID.fromString("00000010-eaa2-11e9-81b4-2a2ae2dbcce4")
         val MCSP_RX: UUID = UUID.fromString("00000011-eaa2-11e9-81b4-2a2ae2dbcce4")
