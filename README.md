@@ -6,18 +6,33 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.16 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.16/downloads/B-Cycle-0.7.16-test.apk)**
+**[APK 0.7.17 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.17/downloads/B-Cycle-0.7.17-test.apk)**
 
-- Größe: **1,169,362 Byte**, rund **1,17 MB**.
+- Größe: **1,173,458 Byte**, rund **1,17 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.16/54.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.17/55.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.16-test.apk.sha256):
-  `cf3097cd0f149facfdac4652bf1f38258f71032933ed287c0cc99cd25e7c0c72`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.17-test.apk.sha256):
+  `42c50368ee2f8e6e095129ce03397bec5491e838062e2853913d16571185013c`.
 
 Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich; Signatur,
-ZIP-Ausrichtung und Versionsdaten geprüft. Die Detail-Erweiterungen wurden zuvor
-mit gezielten Tests geprüft. [Buildnachweis](docs/milestone-0716.md).
+ZIP-Ausrichtung und Versionsdaten geprüft. Die Änderungen wurden zuvor gezielt
+getestet. [Buildnachweis](docs/milestone-0717.md).
+
+## Neu in APK 0.7.17
+
+- Verlaufsdiagramme: dezente, bildschirmabhängige Glättung, weiche Übergänge ohne
+  Überschwingen und kräftigere Flächenfüllung in den fünf bestehenden Diagrammfarben.
+  Echte Nullwerte und Datenlücken bleiben erhalten.
+- Verteilungskurven: Zonenflächen vollständig deckend, ohne Farbverlauf.
+  Nur die weiße Kurvenfüllung behält ihren transparenten Verlauf.
+- Haupt-Einstellungen: Fahrer, Bikes, Strecken, Karten, Design & UI,
+  Daten & Speicher, Erweitert. Menüeinträge und Seitentitel heißen Karten/Strecken.
+- EMBERS ersetzt BLACK OPS: rote Eingabeflächen und Akzent #BF281B.
+- FIRE ersetzt SOLAR FLARE: grauer Header, schwarzer Dialoghintergrund,
+  gelbe Eingabeflächen und Akzent #FFB400, weiße Texte/Icons.
+  Die bestätigte Kontrastausnahme gilt ausschließlich für die gelbe Preset-Fläche;
+  bestehende Theme-Auswahlen bleiben durch stabile IDs erhalten.
 
 ## Neu in APK 0.7.16
 
