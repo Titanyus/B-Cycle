@@ -43,6 +43,20 @@ class SettingsMenuTest {
             for (width in listOf(960,720)) {
                 body.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
                 body.layout(0,0,width,body.measuredHeight)
+                val brand = descendants(body).single { it.tag == "settings_brand_art" }
+                assertEquals(width, brand.width)
+                assertEquals(width * 1167f / 945f, brand.height.toFloat(), 2f)
+                assertTrue(buildInfo.top > brand.height * .8f)
+                assertEquals(android.graphics.Color.WHITE, buildInfo.currentTextColor)
+                if (width == 960) {
+                    val image = Bitmap.createBitmap(body.width, body.height, Bitmap.Config.ARGB_8888)
+                    body.draw(Canvas(image))
+                    File("build/reports/settings/settings-brand.png").apply {
+                        parentFile!!.mkdirs()
+                        outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                    }
+                    image.recycle()
+                }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
                 assertEquals(listOf("settings_PROFILE", "settings_SENSORS", "settings_ROUTES", "settings_MAP", "settings_DASHBOARDS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
                 assertEquals(listOf("Fahrer", "Bikes", "Strecken", "Karten", "Design & UI", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
@@ -51,7 +65,7 @@ class SettingsMenuTest {
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()
             val advanced=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
             assertNotSame(menu,advanced);assertEquals(View.GONE,menu.window!!.decorView.visibility)
-            assertFalse(views(advanced).any { it.tag == "settings_build_info" })
+            assertFalse(views(advanced).any { it.tag == "settings_build_info" || it.tag == "settings_brand_art" })
             val rows=views(advanced).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
             assertEquals(6,rows.size)
             assertEquals("settings_FONT_LICENSE",rows[4].tag);assertEquals("settings_MAP_LICENSE",rows[5].tag)

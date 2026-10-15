@@ -6,19 +6,32 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.21 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.21/downloads/B-Cycle-0.7.21-test.apk)**
+**[APK 0.7.22 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.22/downloads/B-Cycle-0.7.22-test.apk)**
 
-- Größe: **1,177,554 Byte**, rund **1,18 MB**.
+- Größe: **2,062,346 Byte**, rund **2,06 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.21/59.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.22/60.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.21-test.apk.sha256):
-  `a592541a3ca8873492f3d8d2b0c32e272536d7405ae98e404b625abb177c8713`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.22-test.apk.sha256):
+  `ae6aa62feb2d98cda92afb4872a638fd97a6b3f11c467171b621f5da22b68add`.
 
-25 gezielte UI-Tests und 3 Kurventests vor dem APK-Build bestanden.
+47 gezielte Tests zur Höhenkorrektur und Integration sowie 4 Einstellungs-Tests bestanden.
 Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich.
 Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis](docs/milestone-0721.md).
+[Buildnachweis](docs/milestone-0722.md).
+
+## Neu in APK 0.7.22
+
+- Originales BICYCLE-Motiv unter den Haupt-Einstellungen, mit Version und genauer Build-Zeit.
+- Höhenmeterzählung zählt bestätigte Rampen vollständig; keine abgeschnittenen Restmeter an jeder Kuppe.
+- Optionale Mapterhorn-Höhenkorrektur nach Aufnahme unter Karten; Original-FIT bleibt erhalten.
+- Manuelle Korrektur eigener FIT-Fahrten in den Streckendetails, konsistente Höhen-/Aufstiegs-/Abstiegswerte.
+- Einheitliche Accordion-Typografie, größere Graph-Auswahlpunkte und dezente Header-Schatten.
+- OpenTopoMap sowie OpenCycleMap mit eigenem Thunderforest-Schlüssel.
+
+[Einstellungen mit Motiv und Build-Anzeige](docs/previews/settings-brand.png) ·
+[Höhenkorrektur und Prüfgrenzen](docs/elevation-gain.md) ·
+[Kartenquellen](docs/map-providers.md)
 
 ## Neu in APK 0.7.21
 

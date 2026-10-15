@@ -8,6 +8,7 @@ import android.graphics.drawable.RippleDrawable
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -53,13 +54,23 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
                     importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
             },LayoutParams(-1,-2))
         }
-        if (!advanced) addView(BicycleComponents.text(context, themes,
-            context.getString(R.string.settings_build_info, AppVersion.name, AppVersion.buildDate())).apply {
-            tag = "settings_build_info"
-            gravity = Gravity.CENTER
-            textSize = BicycleDesign.analysisLabelSp
-            setPadding(0, BicycleDesign.dp(context, BicycleDesign.verticalPadding), 0,
-                BicycleDesign.dp(context, BicycleDesign.verticalPadding))
+        if (!advanced) addView(FrameLayout(context).apply {
+            tag = "settings_brand_art"
+            addView(ImageView(context).apply {
+                setImageResource(R.drawable.settings_brand)
+                adjustViewBounds = true
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+            }, FrameLayout.LayoutParams(-1, -2))
+            addView(TextView(context).apply {
+                text = context.getString(R.string.settings_build_info, AppVersion.name, AppVersion.buildDate())
+                tag = "settings_build_info"
+                gravity = Gravity.CENTER
+                textSize = BicycleDesign.analysisLabelSp
+                setTextColor(android.graphics.Color.WHITE)
+            }, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL).apply {
+                bottomMargin = BicycleDesign.dp(context, BicycleDesign.verticalPadding)
+            })
         }, LayoutParams(-1, -2))
     }
 }

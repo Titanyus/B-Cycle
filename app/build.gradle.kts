@@ -35,8 +35,8 @@ android {
         applicationId = "de.bcycle.app"
         minSdk = 33
         targetSdk = 36
-        versionCode = 59
-        versionName = "0.7.21"
+        versionCode = 60
+        versionName = "0.7.22"
         // Captured at build configuration, never from the app launch clock.
         val buildEpoch = providers.environmentVariable("SOURCE_DATE_EPOCH").orNull?.toLong()
             ?: Instant.now().epochSecond
