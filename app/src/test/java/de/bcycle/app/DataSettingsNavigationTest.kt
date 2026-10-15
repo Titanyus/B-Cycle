@@ -50,7 +50,7 @@ class DataSettingsNavigationTest {
             val before=settings.read();val (root,data)=open(activity);measure(data)
             val text=views(data.window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(text.indexOf(activity.getString(R.string.data_global))<text.indexOf(activity.getString(R.string.data_routes)))
-            assertEquals(listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD") } })
+            assertEquals(listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_INTERVALS"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_INTERVALS") } })
             click(data,"data_LOCAL");val local=latest();measure(local)
             assertNotNull(local.window!!.decorView.findViewWithTag<View>("export_folder_choose"));assertNull(local.window!!.decorView.findViewWithTag<View>("export_server"))
             testBack(local);shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
@@ -62,6 +62,19 @@ class DataSettingsNavigationTest {
             testBack(data);shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,root.window!!.decorView.visibility)
             click(root,"settings_ROUTES");val manager=latest();measure(manager)
             assertNull(manager.window!!.decorView.findViewWithTag<View>("route_settings"))
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun intervalsHasItsOwnSettingsPageAndBackReturnsToData() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get();val (_,data)=open(activity)
+            click(data,"data_INTERVALS");val intervals=latest();measure(intervals)
+            assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_athlete"))
+            assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_key"))
+            assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_test"))
+            assertFalse(IntervalsSettings(activity).read().enabled)
+            testBack(intervals);shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun backupSelectionAndSafCancelWriteNoSettingsAndConfirmationIsRequiredForRestore() {

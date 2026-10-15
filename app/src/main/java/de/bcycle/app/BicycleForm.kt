@@ -20,7 +20,7 @@ internal object BicycleForm {
             })
         }
     }
-    fun outlinedInput(edit: EditText, themes: ThemeManager, numeric: Boolean=false) {
+    fun outlinedInput(edit: TextView, themes: ThemeManager, numeric: Boolean=false) {
         BicycleDialogStyle.control(edit,themes)
         if(numeric) edit.apply {
             typeface=resources.getFont(R.font.bebas_neue)

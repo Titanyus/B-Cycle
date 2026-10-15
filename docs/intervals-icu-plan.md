@@ -1,49 +1,53 @@
-# intervals.icu – geplante Anbindung
+# intervals.icu – FIT-Upload und spätere Trainingsprogramme
 
-Stand: 15.10.2026. Nutzerziel: zunächst Trainings-/Fahrtdaten als FIT hochladen,
-später strukturierte Trainingsprogramme austauschen. Noch nicht implementiert.
+Stand: 15.10.2026. Erster Ausbau implementiert; produktiver Kontotest steht aus.
 
-## Erster Ausbau: FIT-Upload
+## Bedienung
 
-- Native Views und vorhandene Einstellungen unter Daten & Speicher verwenden.
-- Zugangsdaten ausschließlich in der App eingeben; keine Schlüssel im Quellcode,
-  in Diagnosen oder in normalen Einstellungssicherungen veröffentlichen.
-- Authentifizierungsverfahren anhand offizieller API-Dokumentation festlegen;
-  Athleten-ID/API-Key ist ein möglicher Einstieg, kein bereits bestätigter Auftrag
-  für eine bestimmte Anmeldelösung.
-- Automatischen Upload nach Aufnahmeende und manuelles Senden in den bestehenden
-  Streckenaktionen vorsehen. Konkrete Bedienung noch abstimmen.
-- Nur eigene aufgezeichnete FIT-Fahrten; aktive, gegebenenfalls höhenkorrigierte
-  Dateiversion verwenden. Original erhalten.
-- Eigene Konfiguration, Warteschlangen- und Erfolgsstatus pro Dienst und Dateiversion.
-  Nextcloud bleibt unabhängig aktivierbar; Erfolg bei einem Dienst bedeutet nicht
-  Erfolg beim anderen. Bestehende Nextcloud-Funktionen erhalten.
-- Bestehende Hintergrundjobs, HTTP-Anbindung, Wiederholungs- und Dateifingerprint-
-  Konzepte wiederverwenden. Keine unnötigen Abhängigkeiten hinzufügen.
+Daten & Speicher → Streckendaten enthält getrennte Einträge Cloud & WebDAV (Server-Icon)
+und intervals.icu (Trainingskurve). Bei intervals.icu Athleten-ID und persönlichen
+API-Schlüssel eingeben und Verbindung prüfen. Schlüssel ausschließlich in der
+App eingeben, niemals in Chat, Diagnosen oder Repository. Einstellungen werden
+wie bestehende Dialoge automatisch gespeichert, solange sie gültig sind.
 
-## Später: strukturierte Trainingsprogramme
+Der eigene Upload-Schalter aktiviert das Vormerken nach Aufnahmeende. WLAN-
+Beschränkung ist standardmäßig aktiv. WebDAV, lokale Speicherung und intervals.icu
+bleiben unabhängig. Der vorhandene Cloudupload im Detailfooter sendet an die
+aktivierten Dienste; nicht importierte GPX-/FIT-Strecken, sondern nur eigene
+aufgezeichnete FIT-Fahrten. Verwendet wird die aktive, gegebenenfalls
+höhenkorrigierte Datei; das Original bleibt erhalten.
 
-Der Nutzer meint ausdrücklich Trainingsprogramme austauschen. Ziel sind geplante,
-strukturierte Einheiten mit Abschnitten, Dauer und Zielintensität. Keine automatische
-Übernahme von FTP-/Profilwerten allein aus dieser Anbindung ableiten.
+## Architektur und Status
 
-Abruf und Übertragung von Trainingsprogrammen als getrennte Fähigkeiten neben
-Aktivitätsuploads strukturieren. Genaue API-Unterstützung für Einzeltrainings,
-mehrwöchige Pläne und Dateiformate sowie notwendige Berechtigungen vor Umsetzung
-prüfen. Noch keine Trainingssteuerung, neue Ausführungsoberfläche oder vollständige
-Synchronisierung implementieren.
+IntervalsClient verwendet HTTPS und HTTP Basic mit Benutzer API_KEY sowie dem
+API-Schlüssel als Passwort. Athletenprüfung über GET /api/v1/athlete/{id}; FIT
+über POST /api/v1/athlete/{id}/activities als multipart/form-data (file).
+Keine Weiterleitungen mit Zugangsdaten, keine Rohantworten in Fehleranzeigen.
+Nur eine erfolgreiche Antwort mit bestätigter Aktivitäts-ID erzeugt Erfolg;
+Abbruch, Fehler oder mehrdeutige Antwort nicht. Reale Anbieterantworten müssen
+noch mit einem eingerichteten Konto geprüft werden.
 
-## Weiterer Ausbau: Trainingsprogramme direkt in BICYCLE
+IntervalsUploads nutzt einen separaten persistenten Android-Job und eigene
+Warteschlange/Erfolgsbelege. Hash, Dateistand und Athletenkonto gehören zum Beleg.
+Änderungen entwerten alte Erfolgsstatus. Wiederholtes Vormerken derselben Datei
+verursacht keinen zusätzlichen Auftrag. Netzwerk-/Serverfehler werden mit
+Backoff wiederholt, Authentifizierungsfehler erst nach Änderung der Einstellungen
+bzw. erneutem manuellen Anstoß. Der Cloud-Haken gilt nur, wenn alle aktuell
+aktivierten Dienste den aktuellen Dateistand erfolgreich übertragen haben.
 
-Zusätzlich zum Austausch mit intervals.icu möchte der Nutzer später Trainingsprogramme
-in die App integrieren. Als eigene spätere Phase vorsehen; genaue Darstellung,
-Bedienung und Durchführung noch gemeinsam festlegen. Jetzt weder einen Workout-Player
-noch automatische Trainer-/Widerstandssteuerung implementieren.
+API-Schlüssel und WebDAV-Passwort nutzen denselben AES-GCM-Helfer mit getrennten
+Android-Keystore-Schlüsseln. Bestehende WebDAV-Verschlüsselung/Format bleiben
+kompatibel. intervals.icu-Zugangsdaten und Konfiguration sind derzeit nicht Teil
+der manuellen Einstellungssicherung; Android-Backups schließen App-Daten weiter
+wie bisher aus. Erfolgsbelege enthalten keine Zugangsdaten. Keine zusätzlichen
+Bibliotheken erforderlich. Der direkte Anbieter-/Dokumentationszugriff ist hier
+per Netzwerkregel blockiert; Tests nutzen lokale HTTP-Testserver, keinen echten
+Upload. Quellenlink zentral unter Erweitert → Quellen & Dienste.
 
-## Offene Verifikation
+## Später
 
-Der direkte Zugriff auf https://intervals.icu/api/v1/docs ist in dieser
-Entwicklungsumgebung durch die Netzwerk-Domainrichtlinie blockiert (403 beim
-Proxy-Verbindungsaufbau). Endpunkte, Anmeldung und Austauschformate deshalb noch
-nicht anhand aktueller Anbieterdokumentation verifiziert. Kein produktiver Upload
-oder Datenabruf durchgeführt.
+Strukturierte Trainingsprogramme mit Abschnitten, Dauer und Zielintensität mit
+intervals.icu austauschen; danach Programme auch direkt in BICYCLE integrieren.
+Genauen API-Umfang für Einzeltrainings/mehrwöchige Pläne sowie Darstellung,
+Bedienung und Durchführung gemeinsam festlegen. Noch kein Workout-Player,
+keine Trainingssteuerung und keine automatische Übernahme von FTP-/Profilwerten.

@@ -170,10 +170,10 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         }
         workerRoute
     }
-    fun uploadRoute(id: String) = operate("Nextcloud-Upload vorgemerkt") {
+    fun uploadRoute(id: String) = operate(context.getString(R.string.cloud_uploads_queued)) {
         val entry = fits.entries.singleOrNull { it.id == id }
         require(entry?.origin == TrackOrigin.RECORDED) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
-        RouteUploads.retry(context, id); workerRoute
+        RouteCloudUploads.retry(context, id); workerRoute
     }
     fun saveRouteLocally(id: String) = operate("") {
         val file = if (fits.entries.any { it.id == id }) fits.file(id) else library.file(id)
@@ -184,6 +184,8 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         val active = (selectedFit ?: library.selected) == id
         if (fits.entries.any { it.id == id }) { fits.delete(id); if (selectedFit == id) setSelectedFit(null) } else library.delete(id)
         RouteLocalSaves.forget(context, id)
+        IntervalsUploads.forget(context,id)
+        RideWeather.forget(context,id)
         if (active) null else workerRoute
     }
 }

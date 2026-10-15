@@ -29,15 +29,17 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private var preview: RouteAnalysisMap? = null
     private var cancelled: (() -> Unit)? = null
     private var closed = false
+    private var weatherTask:java.util.concurrent.Future<*>?=null
+    private var weatherRevision=0L
     var correctElevation: (() -> Unit)? = null
     fun correctionStatus(busy:Boolean,error:String="") {
         findViewWithTag<TextView>("analysis_correction_status")?.let { BicycleFeedback.update(it,if(busy) context.getString(R.string.elevation_correcting) else error,hideWhenEmpty=true) }
     }
     init { tag = "route_analysis_$id"; BicycleComponents.scrollStyle(this); addView(body); loading() }
     fun cancellation(cancel: () -> Unit) { cancelled = cancel }
-    fun dispose() { closed = true; cancelled?.invoke(); preview?.dispose() }
+    fun dispose() { closed = true; weatherTask?.cancel(true); cancelled?.invoke(); preview?.dispose() }
     private fun text(resource: Int, heading: Boolean = false) = BicycleComponents.text(context, themes, context.getString(resource), heading)
-    private fun reset() { preview?.dispose(); preview = null; body.removeAllViews() }
+    private fun reset() { weatherTask?.cancel(true); weatherRevision++;preview?.dispose(); preview = null; body.removeAllViews() }
     fun loading() { reset(); body.addView(BicycleFeedback.status(context, themes, context.getString(R.string.analysis_loading))) }
     fun failed(retry: () -> Unit) {
         if (closed) return
@@ -51,6 +53,16 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             DateTimeFormatter.ofPattern(context.getString(R.string.analysis_date_format)).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(analysis.entry.details.dateMs))).apply {
             gravity = Gravity.CENTER; typeface = Typeface.DEFAULT; tag = "analysis_date"; textSize = BicycleDesign.bodySp
         }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.smallGap) })
+        analysis.weatherTarget?.let { target ->
+            val holder=FrameLayout(context).apply { visibility=GONE }
+            body.addView(holder,LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.smallGap) })
+            val revision=weatherRevision
+            weatherTask=RideWeather.load(context.applicationContext,id,target) { data ->
+                if(!closed && revision==weatherRevision && data!=null) {
+                    holder.removeAllViews();holder.addView(RideWeatherRow(context,themes,data));holder.visibility=VISIBLE
+                }
+            }
+        }
         var groupsShown=0
         AnalysisGroups.groups.forEach { (heading, alternatives) ->
             val canCorrect=analysis.entry.format=="FIT" && analysis.entry.origin==TrackOrigin.RECORDED && analysis.entry.hasRoute

@@ -67,8 +67,8 @@ class SettingsMenuTest {
             assertNotSame(menu,advanced);assertEquals(View.GONE,menu.window!!.decorView.visibility)
             assertFalse(views(advanced).any { it.tag == "settings_build_info" || it.tag == "settings_brand_art" })
             val rows=views(advanced).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-            assertEquals(6,rows.size)
-            assertEquals("settings_FONT_LICENSE",rows[4].tag);assertEquals("settings_MAP_LICENSE",rows[5].tag)
+            assertEquals(7,rows.size)
+            assertEquals("settings_FONT_LICENSE",rows[5].tag);assertEquals("settings_MAP_LICENSE",rows[6].tag)
             rows.forEach { assertEquals(BicycleDesign.dp(controller.get(),BicycleDesign.touchSize),it.minimumHeight) }
             testBack(advanced);assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }

@@ -6,19 +6,31 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.22 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.22/downloads/B-Cycle-0.7.22-test.apk)**
+**[APK 0.7.23 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.23/downloads/B-Cycle-0.7.23-test.apk)**
 
-- Größe: **2,062,346 Byte**, rund **2,06 MB**.
+- Größe: **1,546,643 Byte**, rund **1,55 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.22/60.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.23/61.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.22-test.apk.sha256):
-  `ae6aa62feb2d98cda92afb4872a638fd97a6b3f11c467171b621f5da22b68add`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.23-test.apk.sha256):
+  `a01b442962f076738c269755bb7c7da93e3a8e7d0220b2ab4f440bcba0080544`.
 
-47 gezielte Tests zur Höhenkorrektur und Integration sowie 4 Einstellungs-Tests bestanden.
+50 gezielte Tests in mehreren Läufen zu Uploads, Wetter, Einstellungen und Streckendetails bestanden.
 Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich.
 Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis](docs/milestone-0722.md).
+[Buildnachweis](docs/milestone-0723.md).
+
+## Neu in APK 0.7.23
+
+- **intervals.icu-FIT-Upload** unter Daten & Speicher → Streckendaten, unabhängig von WebDAV.
+- **Wetter zur Tourmitte** in den Streckendetails; erfolgreich geladene Daten bleiben dauerhaft offline verfügbar.
+- Quellen und Dienste zentral unter Erweitert. Echte Anbieterabrufe/-uploads konnten in der Entwicklungsumgebung wegen der Netzwerksperre noch nicht geprüft werden.
+- Streckennamen über Titel/Stift ändern; Höhe korrigieren ersetzt Umbenennen im Footer.
+- Gemeinsamer Header-Schatten: 12 dp, maximal 40 % Deckkraft; Bestätigungsdialoge mit 8 dp Mindestabstand zum Beschreibungstext.
+- Plus/Minus im Dashboard-Editor gedimmt; redundante GPS-Aktivierung in Karten und Kategorie-Beschriftung in Bikes entfernt.
+- Neues App-Icon, WebP-Einstellungsbild und Geburtsdatum im Stil der übrigen Datenfelder.
+
+[intervals.icu einrichten](docs/intervals-icu-plan.md) · [Wetterdaten und Speicherung](docs/ride-weather.md)
 
 ## Neu in APK 0.7.22
 
@@ -493,6 +505,8 @@ vor Installation signieren.
 - [Karten und Offline-Dateien](docs/maps.md)
 - [FIT-Aufzeichnung](docs/fit.md)
 - [Streckenverwaltung und WebDAV](docs/routes.md)
+- [intervals.icu: Upload im aktuellen Quellstand](docs/intervals-icu-plan.md)
+- [Dauerhafte Wetterdaten in Streckendetails im aktuellen Quellstand](docs/ride-weather.md)
 - [Bebas Neue: SIL Open Font License](docs/fonts.md)
 
 Lizenztexte der verwendeten Bibliotheken und Icons sind in der App unter

@@ -64,7 +64,7 @@ internal object BestEfforts {
     }.take(4)
 }
 internal data class RouteAnalysis(val entry: ManagedRoute, val metrics: Map<AnalysisMetric, Double>, val route: GpxRoute?,
-    val distanceAxis: Boolean, val axisEnd: Double, val series: List<AnalysisSeries>, val bestEfforts: List<BestEffort> = emptyList(), val zones: RouteZoneDistributions = RouteZoneDistributions(), val distributions: List<RouteValueDistribution> = emptyList())
+    val distanceAxis: Boolean, val axisEnd: Double, val series: List<AnalysisSeries>, val bestEfforts: List<BestEffort> = emptyList(), val zones: RouteZoneDistributions = RouteZoneDistributions(), val distributions: List<RouteValueDistribution> = emptyList(), val weatherTarget:WeatherTarget?=null)
 
 /** Bounded streaming reduction, retaining endpoint/extrema and an explicit break for missing intervals. */
 internal class AnalysisSeriesBuffer {
@@ -145,6 +145,7 @@ internal object RouteAnalysisRead {
     }?.doubleValue?.takeIf { it.isFinite() && it >= 0 }
 
     private class Builder(val entry: ManagedRoute, profile: RiderProfile) {
+        val weather=WeatherTargetBuffer()
         val zones = RouteZoneAccumulator(profile)
         val buffers = AnalysisChart.entries.associateWith { AnalysisSeriesBuffer() }
         val sessions = mutableListOf<Map<AnalysisMetric, Double>>()
@@ -171,6 +172,7 @@ internal object RouteAnalysisRead {
             count++; require(count <= 600_000)
             val stamp = time?.takeIf { firstTime == null || it >= (lastTime ?: it) }
             if (stamp != null) { if (firstTime == null) firstTime = stamp; lastTime = stamp }
+            weather.add(stamp,point)
             val seconds = stamp?.let { (it - firstTime!!) / 1000.0 }
             val dataGap = stamp != null && previousRecordTime != null && stamp - previousRecordTime!! > 10_000
             val timeGap = stamp != null && previousRecordTime != null && stamp - previousRecordTime!! > 5_000
@@ -279,7 +281,7 @@ internal object RouteAnalysisRead {
                 if (data.any { it.value != null && (if (distanceAxis) it.distance else it.seconds) != null }) AnalysisSeries(chart, data) else null
             }
             val dated = firstTime?.let { entry.copy(details = entry.details.copy(dateMs = it)) } ?: entry
-            return RouteAnalysis(dated, metrics, route, distanceAxis, end.coerceAtLeast(1e-6), series, BestEfforts.select(performance.bestPowerAverages()), if (invalidDistance) RouteZoneDistributions() else zones.result(), zones.timeDistributions())
+            return RouteAnalysis(dated, metrics, route, distanceAxis, end.coerceAtLeast(1e-6), series, BestEfforts.select(performance.bestPowerAverages()), if (invalidDistance) RouteZoneDistributions() else zones.result(), zones.timeDistributions(),weather.middle(dated.details.dateMs,metrics[AnalysisMetric.ELAPSED]?.times(1000)?.toLong()))
         }
     }
 }

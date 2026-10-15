@@ -7,7 +7,8 @@ import android.widget.*
 
 internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
     BACKUP(R.string.data_backup, BicycleIcon.ExportTrack), RESTORE(R.string.data_restore, BicycleIcon.RestoreSettings),
-    LOCAL(R.string.data_local, BicycleIcon.Save), CLOUD(R.string.data_cloud, BicycleIcon.CloudNotUploaded)
+    LOCAL(R.string.data_local, BicycleIcon.Save), CLOUD(R.string.data_cloud, BicycleIcon.WebDav),
+    INTERVALS(R.string.intervals_title,BicycleIcon.Intervals)
 }
 internal class DataSettingsView(context: Context, themes: ThemeManager, selected: (DataAction)->Unit) : LinearLayout(context) {
     init {
@@ -32,7 +33,7 @@ internal class DataSettingsView(context: Context, themes: ThemeManager, selected
             },LayoutParams(-1,-2)) }
         }
         section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RESTORE))
-        section(R.string.data_routes,listOf(DataAction.LOCAL,DataAction.CLOUD))
+        section(R.string.data_routes,listOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS))
     }
 }
 internal class BackupSelectionView(context:Context, themes:ThemeManager, available:Set<BackupSection>) : LinearLayout(context) {

@@ -25,6 +25,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     GPS_HELP("", titleResource = R.string.ui_settings_gps_help),
     DIAGNOSTIC("", titleResource = R.string.ui_settings_diagnostic),
     RESET("", titleResource = R.string.ui_settings_reset),
+    SOURCES("", BicycleIcon.Info.resource, R.string.sources_title),
     FONT_LICENSE("", titleResource = R.string.ui_settings_font_license),
     MAP_LICENSE("", titleResource = R.string.ui_settings_map_license);
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)

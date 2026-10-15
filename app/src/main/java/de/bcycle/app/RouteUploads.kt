@@ -63,7 +63,7 @@ internal object RouteUploads {
         // may retain an imported-prefixed immutable original after metadata recovery.
         queue(context, file, "B-Cycle-$id.fit", config)
     }
-    private fun eligible(context: Context, id: String): Boolean {
+    internal fun eligible(context: Context, id: String): Boolean {
         val index = File(context.filesDir, "fit-library/index.json")
         if (!index.isFile) return id.startsWith("recorded-")
         val known = runCatching { JSONObject(index.readText()).getJSONArray("entries") }.getOrNull() ?: return false

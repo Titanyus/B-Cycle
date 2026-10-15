@@ -73,10 +73,14 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
         addView(root, LayoutParams(-1, -2))
         section(R.string.rider_personal)
         birth.id = generateViewId(); birth.contentDescription = context.getString(R.string.rider_birth)
-        BicycleDialogStyle.control(birth, themes); label(R.string.rider_birth, birth)
+        BicycleForm.outlinedInput(birth,themes,numeric=true)
+        birth.stateListAnimator=null;birth.elevation=0f
+        birth.minWidth=0;birth.minimumWidth=0
         root.addView(LinearLayout(context).apply {
             gravity = Gravity.CENTER_VERTICAL
-            addView(birth, LinearLayout.LayoutParams(0, dp(BicycleDesign.touchSize), 1f).apply { topMargin = dp(BicycleDesign.verticalPadding) })
+            addView(text(context.getString(R.string.rider_birth)).apply { labelFor=birth.id },
+                LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
+            addView(birth, LinearLayout.LayoutParams(dp(BicycleDesign.formDateWidth), dp(BicycleDesign.touchSize)))
             addView(clearBirth)
         }, LinearLayout.LayoutParams(-1, -2))
         root.addView(age, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.verticalPadding) })

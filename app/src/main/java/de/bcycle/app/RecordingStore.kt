@@ -83,7 +83,7 @@ class RecordingStore(private val context: Context, private val changed: (String,
             }
             val exportFile=FitLibrary.activeFile(context.filesDir,original.nameWithoutExtension)
             val config = RouteExportSettings(context).read()
-            val upload = runCatching { RouteUploads.enqueue(context, exportFile, "B-Cycle-" + encoded.name) }
+            val upload = runCatching { RouteCloudUploads.enqueue(context, exportFile, "B-Cycle-" + encoded.name) }
             val local = runCatching { if (config.save) RouteLocalSaves.perform(context, original.nameWithoutExtension, exportFile, config.tree.ifEmpty { "Downloads/B-Cycle" }) {
                 LocalRouteExport.write(context, exportFile, "B-Cycle-" + encoded.name, config.tree)
             } }
@@ -92,6 +92,7 @@ class RecordingStore(private val context: Context, private val changed: (String,
             return "Gespeichert: FIT in Streckensammlung" +
                 (if (RouteExportSettings(context).read().save) " · auch im Zielordner" else "") +
                 (if (RouteExportSettings(context).read().webdav) " · Nextcloud-Upload vorgemerkt" else "") + (if (failed) " · enthält Daten bis zum Speicherfehler" else "") +
+                (if(IntervalsSettings(context).read().enabled) " · "+context.getString(R.string.intervals_queued) else "") +
                 (if(correctionFailed) " · "+context.getString(R.string.elevation_auto_failed) else "")
         } catch (_: Exception) {
             return if (retained) "FIT lokal gespeichert · Ordnerexport oder Upload-Vormerkung fehlgeschlagen. Im Menü erneut versuchen."

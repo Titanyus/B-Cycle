@@ -1,0 +1,4 @@
+<!-- Lucide / wind; ISC + Feather MIT, see assets/Lucide-LICENSE.txt -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M3 8h12.5a2.5 2.5 0 1 0-2.45-3M2 12h17a3 3 0 1 1-2.94 3.6M4 16h5.5a2.5 2.5 0 1 1-2.45 3" android:fillColor="@android:color/transparent" android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>

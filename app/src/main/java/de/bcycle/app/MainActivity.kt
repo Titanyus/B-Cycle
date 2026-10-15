@@ -277,6 +277,7 @@ class MainActivity : Activity() {
                 SettingsAction.GPS_HELP -> menu = dialog().setTitle(getString(R.string.ui_gps_help_title)).setMessage(R.string.ui_gps_help_body).show()
                 SettingsAction.DIAGNOSTIC -> diagnosticSettings()
                 SettingsAction.RESET -> resetDashboardSettings()
+                SettingsAction.SOURCES -> sourcesSettings()
                 SettingsAction.FONT_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_font_license_title)).setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).show()
                 SettingsAction.MAP_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_library_license_title)).setMessage(
                     "Mapsforge · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
@@ -749,6 +750,7 @@ class MainActivity : Activity() {
             } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this, R.string.backup_picker_error, long = true) }
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
             DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)
+            DataAction.INTERVALS -> intervalsSettings()
         } }
         val screen=dataDialog(R.string.data_title,BicycleStickyScrollView(settingsContext).apply { addView(content) })
         dataSettingsScreen=screen;menu=screen
@@ -830,6 +832,54 @@ class MainActivity : Activity() {
                 },{ BicycleFeedback.show(this, backupError(it), long = true) })
             }
         },"B-Cycle-settings-document").start()
+    }
+    private fun sourcesSettings() {
+        val body=BicycleComponents.dialogBody(settingsContext,runtime.themes)
+        for((title,description) in listOf(R.string.sources_maps to R.string.sources_maps_text,
+            R.string.sources_elevation to R.string.sources_elevation_text,R.string.sources_weather to R.string.sources_weather_text,
+            R.string.sources_uploads to R.string.sources_uploads_text)) {
+            body.addView(BicycleComponents.text(settingsContext,runtime.themes,getString(title),true))
+            body.addView(BicycleComponents.text(settingsContext,runtime.themes,getString(description)).apply {
+                android.text.util.Linkify.addLinks(this,android.text.util.Linkify.WEB_URLS)
+                movementMethod=android.text.method.LinkMovementMethod.getInstance()
+                BicycleComponents.bindTheme(this,runtime.themes) { setLinkTextColor(it.foreground) }
+            },LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap);bottomMargin=dp(BicycleDesign.controlGap) })
+        }
+        dataDialog(R.string.sources_title,ScrollView(settingsContext).apply { addView(body) })
+    }
+    private fun intervalsSettings() {
+        val settings=IntervalsSettings(this)
+        val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
+        lateinit var content:IntervalsView
+        content=IntervalsView(settingsContext,runtime.themes,settings.read(),settings.hasKey()) {
+            val config=content.config();val typedKey=content.newKey()
+            content.testing(true)
+            worker.execute {
+                val result=runCatching { IntervalsClient(config,typedKey ?: settings.apiKey()).test() }
+                runOnUiThread {
+                    content.testing(false)
+                    BicycleFeedback.update(content.result,getString(if(result.isSuccess) R.string.route_export_test_ok
+                        else (result.exceptionOrNull() as? IntervalsFailure)?.problem ?: R.string.intervals_connection_failed))
+                }
+            }
+        }
+        val screen=dataDialog(R.string.intervals_title,ScrollView(settingsContext).apply { addView(content) })
+        val revision=java.util.concurrent.atomic.AtomicLong()
+        observeSettings(content) {
+            val config=content.config();val key=content.newKey();val token=revision.incrementAndGet()
+            worker.execute {
+                if(token==revision.get()) {
+                    val result=runCatching { settings.write(config,key);IntervalsUploads.settingsChanged(applicationContext) }
+                    runOnUiThread {
+                        if(token==revision.get()) {
+                            val error=if(result.isFailure) getString(R.string.intervals_check_settings) else null
+                            content.athlete.error=error
+                        }
+                    }
+                }
+            }
+        }
+        dialogs.onDismiss(screen) { worker.shutdown() }
     }
     private fun routeExportSettings(part: RouteExportPart) {
         val settings = RouteExportSettings(this)
@@ -914,7 +964,7 @@ class MainActivity : Activity() {
         val manager = routeManager ?: return
         routeImportButton?.isEnabled = !state.busy
         val displayed = state.selectedRoute.takeIf { state.route != null && preferences.getBoolean("mapGpxVisible", true) }
-        val signature = "${state.routeRevision}:${state.busy}:${RouteUploads.revision(this)}:$displayed"
+        val signature = "${state.routeRevision}:${state.busy}:${RouteCloudUploads.revision(this)}:$displayed"
         if (routeSignature == signature) return
         routeSignature = signature
         manager.submit(state.entries, displayed, state.busy)
@@ -963,10 +1013,10 @@ class MainActivity : Activity() {
             }
             detail.analysis = detail.analysis?.let { it.copy(entry = it.entry.copy(name = entry.name, fileStamp = entry.fileStamp)) }
         }
-        val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${runtime.recording}:${runtime.saving}:${RouteUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${runtime.themes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
+        val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${runtime.recording}:${runtime.saving}:${RouteCloudUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${runtime.themes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
         if (signature == detail.signature) return
         detail.signature = signature
-        val cloud = if (entry != null && RouteUploads.state(this, entry.id, entry.fileStamp).state == UploadState.UPLOADED) BicycleIcon.CloudConfirmed else BicycleIcon.CloudNotUploaded
+        val cloud = if (entry != null && RouteCloudUploads.state(this, entry.id, entry.fileStamp).state == UploadState.UPLOADED) BicycleIcon.CloudConfirmed else BicycleIcon.CloudNotUploaded
         val local = if (entry != null && RouteLocalSaves.completed(this, entry.id, entry.fileStamp)) BicycleIcon.SaveConfirmed else BicycleIcon.Save
         val kinds = listOf(BicycleIcon.ShowOnMap, BicycleIcon.CorrectElevation, cloud, local, BicycleIcon.DeleteTrack)
         kinds.indices.forEach { index ->
