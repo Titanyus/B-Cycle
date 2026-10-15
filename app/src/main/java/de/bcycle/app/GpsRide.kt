@@ -39,7 +39,7 @@ class GpsRide(private var collecting: Boolean = true) {
     private var observedElapsed = 0L
     private var maximum = 0.0
     private var height: Double? = null
-    private var heightReference: Double? = null
+    private val elevation = RouteElevation()
     private var heightTime: Long? = null
     private var heightDatum = false
     private val heights = ArrayDeque<Double>()
@@ -59,7 +59,7 @@ class GpsRide(private var collecting: Boolean = true) {
     fun reset() {
         pause(); seenTime = -1L; hasFix = false; distance = 0.0
         movingTime = 0; stoppedTime = 0; elapsed = 0; observedElapsed = 0; maximum = 0.0; liveDistance = 0.0
-        height = null; ascent = null; descent = null; accepted = 0; rejected = 0
+        height = null; ascent = null; descent = null; elevation.reset(); accepted = 0; rejected = 0
     }
 
     fun setCollecting(enabled: Boolean) {
@@ -168,7 +168,7 @@ class GpsRide(private var collecting: Boolean = true) {
     }
 
     private fun clearHeightContinuity() {
-        heights.clear(); heightReference = null; heightTime = null; slope.clear(); gradient = null
+        heights.clear(); elevation.breakSegment(); heightTime = null; slope.clear(); gradient = null
     }
 
     private fun updateHeight(fix: GpsFix, moving: Boolean) {
@@ -190,18 +190,14 @@ class GpsRide(private var collecting: Boolean = true) {
         heightTime = fix.timeMs
         val filtered = height!!
         if (collecting && ascent == null) { ascent = 0.0; descent = 0.0 }
-        if (!moving) {
-            heightReference = filtered; slope.clear(); gradient = null; return
+        // Preserve the same quality gates and height smoothing. Only gain accumulation changes:
+        // count complete confirmed slopes, rather than losing a remainder at every reversal.
+        elevation.add(filtered, start = !collecting || !moving)
+        if (collecting && moving) {
+            ascent = elevation.ascent ?: ascent
+            descent = elevation.descent ?: descent
         }
-        val reference = heightReference
-        if (reference == null) heightReference = filtered
-        else if (abs(filtered - reference) >= max(3.0, accuracy * 0.5)) {
-            if (collecting) {
-                if (filtered > reference) ascent = ascent!! + filtered - reference
-                else descent = descent!! + reference - filtered
-            }
-            heightReference = filtered
-        }
+        if (!moving) { slope.clear(); gradient = null; return }
         if (slope.lastOrNull()?.first != liveDistance) slope.addLast(liveDistance to filtered)
         while (slope.size > 2 && slope.elementAt(1).first <= liveDistance - 40) slope.removeFirst()
         while (slope.size > 100) slope.removeFirst()

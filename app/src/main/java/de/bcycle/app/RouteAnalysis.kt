@@ -149,7 +149,7 @@ internal object RouteAnalysisRead {
         val buffers = AnalysisChart.entries.associateWith { AnalysisSeriesBuffer() }
         val sessions = mutableListOf<Map<AnalysisMetric, Double>>()
         val laps = mutableListOf<Map<AnalysisMetric, Double>>()
-        val cadence = PedalingAverage(); val moving = MovingTime(); val elevation = RouteElevation(); val descent = RouteElevation()
+        val cadence = PedalingAverage(); val moving = MovingTime(); val elevation = RouteElevation()
         val performance = PerformanceEngine(powerDurationsMs = BestEfforts.durationsMs)
         val rideMeans = RideAnalysisMeans()
         var count = 0; var firstTime: Long? = null; var lastTime: Long? = null
@@ -192,7 +192,7 @@ internal object RouteAnalysisRead {
             zones.add(stamp, distance, p, h, point?.segmentStart == true)
             c?.let(cadence::add); moving.add(stamp, s)
             rideMeans.add(stamp, p, valid(motor, 0.0..65535.0), valid(battery, 0.0..100.0))
-            elevation.add(a, point?.segmentStart == true); descent.add(a?.let { 9500 - it }, point?.segmentStart == true)
+            elevation.add(a, point?.segmentStart == true)
             listOf(AnalysisMetric.MAX_SPEED to s?.times(3.6), AnalysisMetric.MAX_POWER to p,
                 AnalysisMetric.MAX_CADENCE to c, AnalysisMetric.MAX_HEART to h).forEach { (key, value) ->
                 if (value != null) maxima[key] = maxOf(maxima[key] ?: value, value)
@@ -258,7 +258,7 @@ internal object RouteAnalysisRead {
             fallback(AnalysisMetric.ELAPSED, firstTime?.let { lastTime?.minus(it)?.div(1000.0) })
             fallback(AnalysisMetric.MOVING, route?.movingMs?.div(1000.0) ?: moving.value?.div(1000.0))
             fallback(AnalysisMetric.ASCENT, route?.ascentM ?: elevation.ascent)
-            fallback(AnalysisMetric.DESCENT, descent.ascent)
+            fallback(AnalysisMetric.DESCENT, elevation.descent)
             cadence.value?.let { metrics[AnalysisMetric.AVG_CADENCE] = it }
             maxima.forEach { (key, value) -> fallback(key, value) }
             val duration = metrics[AnalysisMetric.MOVING]

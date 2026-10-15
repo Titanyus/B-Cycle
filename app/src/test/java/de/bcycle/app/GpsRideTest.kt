@@ -96,6 +96,29 @@ class GpsRideTest {
         assertEquals(-10.0, values.gradientPercent!!, 0.1)
     }
 
+    @Test fun repeatedMovingHillsPreserveSummitsInsteadOfDiscardingEveryRemainder() {
+        val ride=GpsRide()
+        var second=0
+        fun height(value: Double) { feed(ride,fix(second,second*5.0,5.0,value));second++ }
+        repeat(10) { height(100.0) }
+        repeat(6) {
+            for(i in 1..26) height(100.0+i*.4)
+            repeat(40) { height(110.4) }
+            for(i in 25 downTo 0) height(100.0+i*.4)
+            repeat(40) { height(100.0) }
+        }
+        val values=ride.snapshot(10_000L+(second-1)*1000)
+        assertTrue("Six 10.4 m hills should retain their height: ${values.ascentM}",values.ascentM!! in 62.0..62.5)
+        assertTrue(values.descentM!! in 62.0..62.5)
+    }
+    @Test fun movingOnFlatGroundWithSmallHeightNoiseDoesNotInventClimbs() {
+        val ride=GpsRide()
+        repeat(600) { i -> feed(ride,fix(i,i*5.0,5.0,100.0+listOf(-1.0,1.4,0.2,-.4)[i%4])) }
+        val values=ride.snapshot(609_000)
+        assertEquals(0.0,values.ascentM!!,1e-8)
+        assertEquals(0.0,values.descentM!!,1e-8)
+    }
+
     @Test fun inaccurateStaleDuplicateAndTeleportFixesCannotInventDistance() {
         val ride = GpsRide()
         assertTrue(feed(ride, fix(0)))
