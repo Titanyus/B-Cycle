@@ -5,6 +5,32 @@ import org.junit.Test
 import kotlin.math.cos
 
 class GpsRideTest {
+    @Test fun liveFixesOutsideRecordingDoNotAccumulateTripAndStopFreezesAllTotals() {
+        val ride = GpsRide(collecting = false)
+        repeat(20) { feed(ride, fix(it, it * 5.0, 5.0, 100.0 + it)) }
+        val idle = ride.snapshot(30_000)
+        assertNotNull(idle.speedKmh); assertNotNull(idle.latitude); assertNotNull(idle.altitudeM)
+        assertNull(idle.distanceM); assertNull(idle.elapsedMs); assertNull(idle.movingMs)
+        assertNull(idle.ascentM); assertNull(idle.maximumKmh)
+
+        ride.reset(); ride.setCollecting(true)
+        repeat(20) { feed(ride, fix(30 + it, it * 5.0, 5.0, 120.0 + it)) }
+        val stopped = ride.snapshot(59_000)
+        assertTrue(stopped.distanceM!! > 0); assertTrue(stopped.movingMs!! > 0)
+        assertTrue(stopped.ascentM!! > 0)
+        ride.setCollecting(false)
+        repeat(100) { feed(ride, fix(50 + it, 100.0 + it * 8, 8.0, 140.0 + it)) }
+        val after = ride.snapshot(159_000)
+        assertEquals(stopped.distanceM, after.distanceM)
+        assertEquals(stopped.elapsedMs, after.elapsedMs)
+        assertEquals(stopped.movingMs, after.movingMs); assertEquals(stopped.stoppedMs, after.stoppedMs)
+        assertEquals(stopped.movingAverageKmh, after.movingAverageKmh)
+        assertEquals(stopped.overallAverageKmh, after.overallAverageKmh)
+        assertEquals(stopped.maximumKmh, after.maximumKmh)
+        assertEquals(stopped.ascentM, after.ascentM); assertEquals(stopped.descentM, after.descentM)
+        assertTrue(after.speedKmh!! > stopped.speedKmh!!)
+        assertTrue(after.altitudeM!! > stopped.altitudeM!!)
+    }
     private fun fix(second: Int, metres: Double = 0.0, speed: Double? = 0.0, altitude: Double? = 100.0,
                     accuracy: Double = 5.0, vertical: Double? = 3.0, seaLevel: Boolean = false) =
         GpsFix(10_000L + second * 1000, 50.0, 8.0 + metres / (111_195.08 * cos(Math.toRadians(50.0))),

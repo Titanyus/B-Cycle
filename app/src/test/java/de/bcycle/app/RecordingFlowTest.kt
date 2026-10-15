@@ -117,6 +117,29 @@ class RecordingFlowTest {
         runtime.beginRecording(); assertEquals(0L, runtime.elapsedMs); assertEquals(0L, runtime.gpsValues.elapsedMs)
         runtime.stopRecording(); runtime.setVisible(false); await { !runtime.saving }
     }
+    @Test fun previewGpsBeforeFirstStartDoesNotRunRecordingClockOrWriteAnyRide() {
+        val app = RuntimeEnvironment.getApplication(); val downloads = provider()
+        val runtime = RideRuntime.get(app)
+        runtime.saveConfig(RecordingConfig(setOf("GPS_ELAPSED_TIME", "GPS_DISTANCE")))
+        runtime.setVisible(true)
+        repeat(6) { i ->
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+            val now = SystemClock.elapsedRealtime()
+            assertTrue(runtime.ride.gps.accept(GpsFix(now, 50.0 + i * .00005, 8.0, 3.0, 5.0, .2), now))
+            assertEquals(0L, runtime.gpsValues.elapsedMs)
+        }
+        assertTrue(runtime.gpsValues.speedKmh!! > 0)
+        assertNull(runtime.gpsValues.distanceM); assertNull(runtime.gpsValues.movingMs)
+        assertFalse(runtime.recording); assertTrue(downloads.published.isEmpty())
+        assertTrue(File(app.filesDir, "pending-rides").listFiles().orEmpty().isEmpty())
+        runtime.beginRecording()
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2250))
+        assertEquals(2250L, runtime.gpsValues.elapsedMs)
+        runtime.stopRecording(); runtime.setVisible(false)
+        await { !runtime.saving }
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5))
+        assertEquals(2250L, runtime.gpsValues.elapsedMs)
+    }
     @Test fun slowUiWorkDoesNotAccumulateDriftBetweenRecordingSeconds() {
         val app = RuntimeEnvironment.getApplication(); provider()
         val runtime = RideRuntime.get(app); runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER")))

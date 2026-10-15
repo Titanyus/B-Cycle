@@ -22,7 +22,7 @@ data class GpsValues(
 )
 
 /** Conservative foreground trip estimates. Coordinates are held only as a distance anchor. */
-class GpsRide {
+class GpsRide(private var collecting: Boolean = true) {
     private var seenTime = -1L
     private var last: GpsFix? = null
     val lastObservationTimeMs get() = last?.timeMs
@@ -31,6 +31,8 @@ class GpsRide {
     private var hasFix = false
     private var speed: Double? = null
     private var distance = 0.0
+    // Spatial continuity for live gradient/speed is independent of recorded trip totals.
+    private var liveDistance = 0.0
     private var movingTime = 0L
     private var stoppedTime = 0L
     private var elapsed = 0L
@@ -56,11 +58,18 @@ class GpsRide {
 
     fun reset() {
         pause(); seenTime = -1L; hasFix = false; distance = 0.0
-        movingTime = 0; stoppedTime = 0; elapsed = 0; observedElapsed = 0; maximum = 0.0
+        movingTime = 0; stoppedTime = 0; elapsed = 0; observedElapsed = 0; maximum = 0.0; liveDistance = 0.0
         height = null; ascent = null; descent = null; accepted = 0; rejected = 0
     }
 
+    fun setCollecting(enabled: Boolean) {
+        if (collecting == enabled) return
+        collecting = enabled
+        clock = null
+    }
+
     private fun advance(now: Long) {
+        if (!collecting) return
         clock?.let { if (now > it) elapsed += now - it }
         if (clock != null) clock = max(now, clock!!)
     }
@@ -97,10 +106,13 @@ class GpsRide {
             rejected++; breakFix(); return false
         }
         advance(fix.timeMs)
-        if (clock == null) clock = fix.timeMs
+        if (collecting && clock == null) clock = fix.timeMs
         // Match the distance observation to its own timestamp, even after UI ticks or delivery delays.
-        observedElapsed = elapsed - ((clock ?: fix.timeMs) - fix.timeMs).coerceAtLeast(0)
-        hasFix = true; accepted++
+        if (collecting) {
+            observedElapsed = elapsed - ((clock ?: fix.timeMs) - fix.timeMs).coerceAtLeast(0)
+            hasFix = true
+        }
+        accepted++
         val continuous = dt != null && dt in 0.001..10.0
         if (!continuous) { anchor = fix; speed = null; bearing = null; clearHeightContinuity() }
 
@@ -121,13 +133,14 @@ class GpsRide {
             if (old == null || !continuous) measured else old + (measured - old) *
                 (1 - exp(-(if (direct == null && derived != null) anchorSeconds else dt!!) / 1.5))
         }
-        if (continuous) maximum = max(maximum, speed!! * 3.6)
+        if (collecting && continuous) maximum = max(maximum, speed!! * 3.6)
         if (continuous) {
             val interval = fix.timeMs - previous!!.timeMs
-            if (moving) movingTime += interval else stoppedTime += interval
+            if (collecting) { if (moving) movingTime += interval else stoppedTime += interval }
             if (moving && origin != null && (direct != null || derived != null) &&
                 displacement >= max(2.5, (origin.accuracyM + fix.accuracyM) * 0.35)) {
-                distance += displacement
+                if (collecting) distance += displacement
+                liveDistance += displacement
                 anchor = fix
             } else if (!moving && (direct != null || fallbackStopped)) anchor = fix
         }
@@ -176,23 +189,25 @@ class GpsRide {
         if (dt > 0) height = height!! + (median - height!!) * (1 - exp(-dt / 6.0))
         heightTime = fix.timeMs
         val filtered = height!!
-        if (ascent == null) { ascent = 0.0; descent = 0.0 }
+        if (collecting && ascent == null) { ascent = 0.0; descent = 0.0 }
         if (!moving) {
             heightReference = filtered; slope.clear(); gradient = null; return
         }
         val reference = heightReference
         if (reference == null) heightReference = filtered
         else if (abs(filtered - reference) >= max(3.0, accuracy * 0.5)) {
-            if (filtered > reference) ascent = ascent!! + filtered - reference
-            else descent = descent!! + reference - filtered
+            if (collecting) {
+                if (filtered > reference) ascent = ascent!! + filtered - reference
+                else descent = descent!! + reference - filtered
+            }
             heightReference = filtered
         }
-        if (slope.lastOrNull()?.first != distance) slope.addLast(distance to filtered)
-        while (slope.size > 2 && slope.elementAt(1).first <= distance - 40) slope.removeFirst()
+        if (slope.lastOrNull()?.first != liveDistance) slope.addLast(liveDistance to filtered)
+        while (slope.size > 2 && slope.elementAt(1).first <= liveDistance - 40) slope.removeFirst()
         while (slope.size > 100) slope.removeFirst()
         val start = slope.firstOrNull()
-        gradient = if (start != null && distance - start.first >= 30) {
-            ((filtered - start.second) / (distance - start.first) * 100).takeIf { it.isFinite() && abs(it) <= 50 }
+        gradient = if (start != null && liveDistance - start.first >= 30) {
+            ((filtered - start.second) / (liveDistance - start.first) * 100).takeIf { it.isFinite() && abs(it) <= 50 }
         } else null
     }
 
