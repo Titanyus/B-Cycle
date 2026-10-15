@@ -1,6 +1,7 @@
 # intervals.icu – FIT-Upload und spätere Trainingsprogramme
 
-Stand: 15.10.2026. Erster Ausbau implementiert; produktiver Kontotest steht aus.
+Stand: 15.10.2026. Erster Ausbau implementiert. Der Nutzer hat den erfolgreichen
+intervals.icu-Upload mit APK 0.7.23 auf dem Gerät bestätigt.
 
 ## Bedienung
 
@@ -24,8 +25,8 @@ API-Schlüssel als Passwort. Athletenprüfung über GET /api/v1/athlete/{id}; FI
 über POST /api/v1/athlete/{id}/activities als multipart/form-data (file).
 Keine Weiterleitungen mit Zugangsdaten, keine Rohantworten in Fehleranzeigen.
 Nur eine erfolgreiche Antwort mit bestätigter Aktivitäts-ID erzeugt Erfolg;
-Abbruch, Fehler oder mehrdeutige Antwort nicht. Reale Anbieterantworten müssen
-noch mit einem eingerichteten Konto geprüft werden.
+Abbruch, Fehler oder mehrdeutige Antwort nicht. Der erfolgreiche reale Upload wurde anschließend vom Nutzer mit seinem Konto
+bestätigt.
 
 IntervalsUploads nutzt einen separaten persistenten Android-Job und eigene
 Warteschlange/Erfolgsbelege. Hash, Dateistand und Athletenkonto gehören zum Beleg.

@@ -77,6 +77,27 @@ class DataSettingsNavigationTest {
             assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun folderPickerReturnsToSameFormAndUpdatesItsSelectedFolder() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get();val (_,data)=open(activity)
+            click(data,"data_LOCAL");val local=latest();measure(local)
+            click(local,"export_folder_choose")
+            assertEquals(10,shadowOf(activity).nextStartedActivityForResult.requestCode)
+            controller.pause().stop();controller.start().resume()
+            val uri=Uri.parse("content://bcycle.test.folder/tree/new-folder")
+            result(activity,10,android.app.Activity.RESULT_OK,Intent().setData(uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION))
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(local.isShowing)
+            assertSame(local,latest())
+            assertEquals(uri.toString(),RouteExportSettings(activity).read().tree)
+            val content=views(local.window!!.decorView).filterIsInstance<RouteExportView>().single()
+            assertEquals(uri.toString(),content.tree)
+            assertTrue(content.folderButton.text.toString().contains("new-folder"))
+            testBack(local);shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun backupSelectionAndSafCancelWriteNoSettingsAndConfirmationIsRequiredForRestore() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         val provider=Robolectric.buildContentProvider(SettingsProvider::class.java).create("settings-test").get()

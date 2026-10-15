@@ -30,6 +30,7 @@ class MainActivity : Activity() {
     private var exportPasswordDraft: String? = null
     private var pendingBackupExport: ByteArray? = null
     private var dataSettingsScreen: AlertDialog? = null
+    private var localExportView: RouteExportView? = null
     private var pendingMapRoute: String? = null
     private var dashboardPage = 0
     private var mapFullscreen = false
@@ -462,8 +463,10 @@ class MainActivity : Activity() {
                     val settings=RouteExportSettings(this)
                     settings.write(settings.read().copy(tree=uri.toString()),null)
                     exportDraft = settings.read()
+                    localExportView?.let { it.tree=uri.toString();it.refreshFolder() }
                 } catch (_: Exception) { BicycleFeedback.show(this, getString(R.string.ui_folder_permission_error), long = true) }
             }
+            if(localExportView!=null) { exportDraft=null;exportPasswordDraft=null }
             if (dialogs.empty) { showMenu(); dataSettings(); routeExportSettings(RouteExportPart.LOCAL) }
             return
         }
@@ -485,7 +488,8 @@ class MainActivity : Activity() {
     }
     override fun onStart() { super.onStart(); mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
     override fun onStop() {
-        dialogs.closeAll(); stopScan()
+        // App switches preserve the dialog stack, scroll positions and in-progress input.
+        stopScan()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {
@@ -919,6 +923,10 @@ class MainActivity : Activity() {
         exportDraft = null; exportPasswordDraft = null
         val screen = dataDialog(if(part == RouteExportPart.LOCAL) R.string.data_local else R.string.data_cloud,
             ScrollView(settingsContext).apply { addView(content) }, R.string.route_action_save)
+        if(part==RouteExportPart.LOCAL) {
+            localExportView=content
+            dialogs.onDismiss(screen) { if(localExportView===content) localExportView=null }
+        }
         var saveRevision=0L
         observeSettings(content) {
             if(content.restoringPassword) return@observeSettings

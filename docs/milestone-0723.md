@@ -57,3 +57,7 @@ APK: `downloads/B-Cycle-0.7.23-test.apk`, 1546643 Byte.
 SHA-256: `a01b442962f076738c269755bb7c7da93e3a8e7d0220b2ab4f440bcba0080544`.
 Zertifikat SHA-256: `1f9f9ea0db9df10a47a4da05f93d5dd265062b474421e98d0819cbf4ac7e555a`.
 Mit bisherigem Testschlüssel als Update installierbar.
+
+Nachtrag vom 15.10.2026: Der Nutzer bestätigt den erfolgreichen intervals.icu-Upload
+mit dieser APK auf dem Gerät. Die Netzwerkbeschränkung der Entwicklungsumgebung
+bleibt davon unberührt; echte Wetterabrufe sind damit noch nicht bestätigt.

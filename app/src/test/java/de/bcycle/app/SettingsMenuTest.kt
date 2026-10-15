@@ -73,6 +73,73 @@ class SettingsMenuTest {
             testBack(advanced);assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun appSwitchKeepsNestedSettingsDraftScrollAndBackStackUntilActivityIsDestroyed() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        var child:AlertDialog?=null
+        var parent:AlertDialog?=null
+        try {
+            val activity=controller.get()
+            val menu=open(activity);parent=menu
+            views(menu).single { it.tag=="settings_PROFILE" }.performClick()
+            val screen=ShadowAlertDialog.getLatestAlertDialog();child=screen
+            shadowOf(Looper.getMainLooper()).idle()
+            val decor=screen.window!!.decorView
+            decor.measure(View.MeasureSpec.makeMeasureSpec(960,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1200,View.MeasureSpec.EXACTLY))
+            decor.layout(0,0,960,1200)
+            val profile=views(screen).filterIsInstance<RiderProfileView>().single()
+            val input=decor.findViewWithTag<android.widget.EditText>("rider_height")
+            input.setText("-") // An unfinished edit must remain visible without entering the stored profile.
+            profile.scrollTo(0,200)
+            val scroll=profile.scrollY
+            assertTrue(scroll>0)
+            repeat(2) {
+                controller.pause().stop()
+                shadowOf(Looper.getMainLooper()).idle()
+                controller.start().resume()
+                shadowOf(Looper.getMainLooper()).idle()
+                assertTrue(screen.isShowing)
+                assertEquals(View.VISIBLE,screen.window!!.decorView.visibility)
+                assertSame(input,screen.window!!.decorView.findViewWithTag<View>("rider_height"))
+                assertEquals("-",input.text.toString())
+                assertEquals(scroll,profile.scrollY)
+            }
+            testBack(screen)
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
+        } finally {
+            controller.pause().stop().destroy()
+            shadowOf(Looper.getMainLooper()).idle()
+            child?.let { assertFalse(it.isShowing) }
+            parent?.let { assertFalse(it.isShowing) }
+        }
+    }
+    @Test fun switchingToPasswordManagerKeepsApiKeyDraftAndNestedNavigation() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val menu=open(controller.get())
+            views(menu).single { it.tag=="settings_DATA" }.performClick()
+            shadowOf(Looper.getMainLooper()).idle()
+            val data=ShadowAlertDialog.getLatestAlertDialog()
+            views(data).single { it.tag=="data_INTERVALS" }.performClick()
+            shadowOf(Looper.getMainLooper()).idle()
+            val intervals=ShadowAlertDialog.getLatestAlertDialog()
+            val key=intervals.window!!.decorView.findViewWithTag<android.widget.EditText>("intervals_key")
+            key.setText("synthetic-key-draft")
+            val inputType=key.inputType
+            controller.pause().stop()
+            shadowOf(Looper.getMainLooper()).idle()
+            controller.start().resume()
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(intervals.isShowing)
+            assertSame(key,intervals.window!!.decorView.findViewWithTag<View>("intervals_key"))
+            assertEquals("synthetic-key-draft",key.text.toString())
+            assertEquals(inputType,key.inputType)
+            testBack(intervals);shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
+            testBack(data);shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun backRestoresSameAdvancedAndMainScreens() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {

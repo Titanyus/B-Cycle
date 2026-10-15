@@ -24,7 +24,7 @@ Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
 
 - **intervals.icu-FIT-Upload** unter Daten & Speicher → Streckendaten, unabhängig von WebDAV.
 - **Wetter zur Tourmitte** in den Streckendetails; erfolgreich geladene Daten bleiben dauerhaft offline verfügbar.
-- Quellen und Dienste zentral unter Erweitert. Echte Anbieterabrufe/-uploads konnten in der Entwicklungsumgebung wegen der Netzwerksperre noch nicht geprüft werden.
+- Quellen und Dienste zentral unter Erweitert. intervals.icu-Upload vom Nutzer auf dem Gerät bestätigt; echte Wetterabrufe in der Entwicklungsumgebung weiterhin nicht geprüft.
 - Streckennamen über Titel/Stift ändern; Höhe korrigieren ersetzt Umbenennen im Footer.
 - Gemeinsamer Header-Schatten: 12 dp, maximal 40 % Deckkraft; Bestätigungsdialoge mit 8 dp Mindestabstand zum Beschreibungstext.
 - Plus/Minus im Dashboard-Editor gedimmt; redundante GPS-Aktivierung in Karten und Kategorie-Beschriftung in Bikes entfernt.
