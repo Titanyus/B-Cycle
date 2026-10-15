@@ -102,7 +102,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 },LayoutParams(0,-2,1f).apply { if(i>0) marginStart=dp(BicycleDesign.controlGap) })
             }
         },LayoutParams(-1,-2))
-        addView(text(R.string.bikes_category),LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
         val category = Spinner(context).apply {
             tag="bike_category";contentDescription=context.getString(R.string.bikes_category)
             adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,BikeCategory.entries.map { context.getString(it.label) })
