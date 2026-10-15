@@ -1,7 +1,10 @@
 # Fahrt-IDs und getrennte Uploadziele
 
-Stand: 15.10.2026. WebDAV und intervals.icu sind funktionsfähig; Strava und
-Dreeve sind beauftragt, aber noch nicht angebunden.
+Stand: 15.10.2026. WebDAV, intervals.icu sowie neue getrennte Dreeve- und
+Strava-Uploadpfade sind implementiert. intervals.icu wurde vom Nutzer real
+bestätigt; die neuen beiden Dienste sind lokal mit HTTP-Testservern geprüft,
+noch nicht mit einem echten Konto/Server. Noch nicht in der veröffentlichten
+APK 0.7.23 enthalten.
 
 ## Identität und Erfolgsbelege
 
@@ -35,21 +38,90 @@ markieren. Löschen einer lokalen Fahrt entfernt die lokale ID-Zuordnung, ohne
 entfernte Aktivitäten zu löschen. Dienstzuordnungen sind derzeit ebenso wie
 Uploadbelege nicht Teil der manuellen Einstellungssicherung.
 
-## Nächster Ausbau
+## Einrichtung und asynchrone Uploads
 
-- Dreeve: Anmeldung, Datei-/Aktivitätsupload und bestätigte externe ID anhand
-  der offiziellen OpenAPI prüfen:
-  https://docs.dreeve.app/api/openapi.yaml
-  Der Abruf ist in der aktuellen Entwicklungsumgebung durch die Netzwerkregel
-  gesperrt. Kein Dreeve-Client auf Grundlage vermuteter Endpunkte implementiert.
-- Strava: Noch keine OAuth-App für BICYCLE registriert. Anmelde-/Tokenfluss und
-  Einsatz als persönliche oder gemeinsam bereitgestellte App müssen geklärt
-  werden; kein gemeinsames Client-Secret in die APK einbauen. Ein angenommener
-  Uploadauftrag allein darf noch keinen erfolgreichen Aktivitätsupload bedeuten.
-- Beide erhalten eigene Einstellungen und Icons unter Daten & Speicher →
-  Streckendaten, eigene Jobs sowie die gemeinsame ID-Zuordnung. Erst anhand
-  bestätigter API-Antworten Erfolgsbelege erzeugen.
-- Namensabgleich, Wartungsdaten und Trainingsprogramme bleiben spätere Schritte.
+Daten & Speicher → Streckendaten bietet eigene Seiten mit einfarbigen
+Dienst-Icons, Upload-Schalter, WLAN-Option (Standard: an) und Zugangsdatenfeldern.
+Gültige Einstellungen werden automatisch gespeichert. Aktivierte Dienste werden
+bei Aufnahmeende unabhängig vorgemerkt; der Cloud-Button in den Details stößt
+alle aktivierten Ziele an. Schlüssel, Client-Secret und Tokens sind über
+StoredSecret/AES-GCM getrennt verschlüsselt, niemals Bestandteil von APK,
+Diagnosen oder manueller Einstellungssicherung.
+
+### Dreeve
+
+1. In der eigenen Dreeve-Instanz unter Settings → Security → API access einen
+   Schlüssel erzeugen, als DREEVE_API_KEY in der Serverkonfiguration setzen und
+   die Container wie von Dreeve beschrieben neu erstellen. IMPORT_MODE muss
+   `files` sein.
+2. Die HTTPS-Startadresse der Instanz und den `drv_…`-Schlüssel ausschließlich in
+   BICYCLE eingeben. Unterverzeichnisse werden erhalten; keine API-Endpunkte an
+   die Adresse anhängen. Keine URL-Zugangsdaten, Query- oder Fragmentparameter.
+3. Verbindung prüfen, anschließend Upload aktivieren.
+
+Geprüfter API-Vertrag: https://docs.dreeve.app/api/openapi.yaml
+GET /api/v1/status bestätigt App und canUpload. POST /api/v1/activity/upload
+überträgt Multipart `file`; HTTP 202 / queued ist nur die Annahme. Jede Operation
+hat einen dauerhaft gespeicherten eindeutigen FIT-Dateinamen. GET
+/api/v1/file-imports?filters[filename]=… prüft genau diesen Namen und die Quelle
+fitFile vor dem Senden sowie bei späteren Wiederholungen. Das kann eine verlorene
+202-Antwort wiederfinden. Erst `success` mit eindeutiger activityId erzeugt den
+Erfolgsbeleg und die ID-Zuordnung.
+
+`skipped` enthält laut API keine Aktivitäts-ID. Dann gibt es einen festen Hinweis
+in der Dienstkonfiguration und keine erratene Zuordnung. Bereits über WebDAV
+von Dreeve eingelesene Dateien können diesen Fall auslösen; für dieselbe Fahrt
+nicht parallel zwei Dreeve-Importwege betreiben. WebDAV bleibt unabhängig und
+wird nicht eigenmächtig deaktiviert. Ohne Idempotency-Key des Dienstes ist eine
+exakt einmalige Übertragung nach einem Verbindungsabbruch nicht garantierbar.
+
+### Strava – persönliche API-App
+
+1. Eigene App unter https://www.strava.com/settings/api registrieren.
+   Authorization Callback Domain: `localhost`.
+2. Eigene Client-ID und Client-Secret nur in BICYCLE eingeben, dann
+   „Mit Strava verbinden“. Kein gemeinsamer geheimer App-Schlüssel in der APK.
+3. Anmeldung im Browser beziehungsweise Strava-App bestätigen. Danach den
+   Upload-Schalter in BICYCLE aktivieren.
+
+Offizieller mobiler OAuth-Endpunkt /oauth/mobile/authorize, Berechtigung nur
+activity:write. Redirect `bcycle://localhost/strava` mit genau geprüftem,
+einmaligem State (10 Minuten gültig), Scope und Pfad. State bleibt bei einer
+Prozessneuerstellung erhalten. Codeaustausch über POST /oauth/token; der Code
+wird nicht gespeichert. Access- und jeweils neueste Refresh-Tokens werden
+verschlüsselt gespeichert. Abgelaufene Tokens werden im Hintergrund erneuert;
+veraltete Refresh-Antworten dürfen neuere Tokens nicht überschreiben. Änderung
+der Client-Konfiguration entfernt die zugehörige lokale Anmeldung.
+
+POST /api/v3/uploads überträgt FIT mit data_type=fit und stabiler external_id
+(interne Fahrt-ID plus Dateihash). Die zurückgegebene Upload-ID wird vor späteren
+Schritten dauerhaft gespeichert. GET /api/v3/uploads/{id} setzt die Verarbeitung
+nach Job-/App-Neustart fort. Nur bestätigte activity_id bedeutet Erfolg; keine
+IDs aus englischen Fehlertexten oder HTML extrahieren. 64-Bit-IDs bleiben exakt.
+Offizielle Verträge:
+https://developers.strava.com/docs/authentication/ und
+https://developers.strava.com/docs/uploads/.
+
+### Gemeinsamer Ablauf
+
+Eigene Android-Jobs 8303 (Dreeve) und 8304 (Strava), getrennte Sperren und
+Warteschlangen. Netzwerk-/Rate-Limit-/Serverfehler und laufende Verarbeitung
+nutzen Android-Backoff (anfangs 60 Sekunden). Kein sekündliches UI-Polling oder
+zusätzlicher permanenter Service. Authentifizierungs-/Importfehler erzeugen
+keinen Erfolg; letzter Fehler ist auf der jeweiligen Einstellungsseite sichtbar.
+Dateiversionen haben getrennte Operationen. Eine ältere angenommene Version
+kann noch zu Ende geprüft werden, markiert aber nicht die aktuelle FIT als
+erfolgreich. Abbruch nach Annahme erhält die Upload-ID für die nächste Prüfung.
+
+Namensabgleich, Wartungsdaten und Trainingsprogramme bleiben spätere Schritte.
+Eine gemeinsam angebotene Strava-App mit zentralem Client-Secret benötigt eine
+andere Anmeldestruktur (z. B. Tokenaustausch über ein Backend); die persönliche
+API-Konfiguration ist kein solches Backend. Der reale OAuth-Roundtrip und echte
+Uploads sind mit dem Nutzerkonto auf dem Gerät noch zu prüfen.
+
+Dienstmarken: Strava aus Simple Icons (CC0); Dreeve aus
+https://docs.dreeve.app/assets/images/logo.svg, einfarbig mit transparentem
+Hintergrund adaptiert. Marken gehören ihren jeweiligen Inhabern.
 
 ## BLE-Anzeige
 
@@ -69,7 +141,9 @@ und Performanceberechnungen bleiben unverändert.
 
 ## Prüfung
 
-26 gezielte Tests erfolgreich: LiveDataTest, HeartRateConnectionTest (Android
-33/35/36), BikesViewTest, IntervalsTest, RideServiceLinksTest und RouteExportTest.
-Release-Build inklusive R8 und lintVital erfolgreich. Kein echter Strava- oder
-Dreeve-Upload getestet; BLE-Anzahl zusätzlich auf realen Geräten prüfen.
+40 gezielte Tests erfolgreich: ActivityServiceTest (9),
+DataSettingsNavigationTest (7), IntervalsTest (8), SettingsMenuTest (6),
+RideServiceLinksTest (3) und RouteExportTest (7). Release-Build inklusive R8
+und lintVital erfolgreich. Keine übersprungenen Tests. Kein
+realer Strava-/Dreeve-Upload mit Nutzerdaten; diese Verifikation steht auf dem
+Gerät aus. BLE-Anzahl zusätzlich auf realen Geräten prüfen.

@@ -185,6 +185,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         if (fits.entries.any { it.id == id }) { fits.delete(id); if (selectedFit == id) setSelectedFit(null) } else library.delete(id)
         RouteLocalSaves.forget(context, id)
         IntervalsUploads.forget(context,id)
+        ActivityServiceUploads.all.forEach { it.forget(context,id) }
         RideServiceLinks.forget(context,id)
         RideWeather.forget(context,id)
         if (active) null else workerRoute

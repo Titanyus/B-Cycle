@@ -575,7 +575,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="sources_weather">Wetter</string>
     <string name="sources_weather_text">Wetterdaten: Open-Meteo · CC BY 4.0\nhttps://open-meteo.com/\nhttps://creativecommons.org/licenses/by/4.0/\nModellwerte für Ort und Zeitpunkt der Tourmitte.</string>
     <string name="sources_uploads">Upload-Dienste</string>
-    <string name="sources_uploads_text">intervals.icu · Trainingsanalyse\nhttps://intervals.icu/\n\nWebDAV / Nextcloud · eigener Server\nhttps://nextcloud.com/</string>
+    <string name="sources_uploads_text">Dreeve · Fahrtenanalyse\nhttps://docs.dreeve.app/api/\n\nStrava · Aktivitäten\nhttps://www.strava.com/\n\nintervals.icu · Trainingsanalyse\nhttps://intervals.icu/\n\nWebDAV / Nextcloud · eigener Server\nhttps://nextcloud.com/</string>
     <string name="weather_clear">Klar</string>
     <string name="weather_fair">Heiter</string>
     <string name="weather_partly_cloudy">Leicht bewölkt</string>
@@ -598,4 +598,21 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
         <item quantity="one">%d Messwert</item>
         <item quantity="other">%d Messwerte</item>
     </plurals>
+    <string name="dreeve_title">Dreeve</string>
+    <string name="strava_title">Strava</string>
+    <string name="service_enabled">Fahrten automatisch hochladen</string>
+    <string name="dreeve_address">Dreeve-Adresse (https://…)</string>
+    <string name="strava_client_id">Client-ID</string>
+    <string name="strava_client_secret">Client-Secret</string>
+    <string name="strava_connect">Mit Strava verbinden</string>
+    <string name="strava_setup">Persönliche API-App unter https://www.strava.com/settings/api registrieren. Callback-Domain: localhost. Client-ID und Secret hier eingeben; danach mit Strava verbinden. Upload erst nach der Anmeldung aktivieren.</string>
+    <string name="strava_not_connected">Strava · Nicht verbunden</string>
+    <string name="strava_account">Strava · Athlet %1$s</string>
+    <string name="service_auth_failed">Zugangsdaten oder Freigabe prüfen</string>
+    <string name="service_upload_failed">Upload oder Verarbeitung fehlgeschlagen</string>
+    <string name="service_response_failed">Antwort des Dienstes konnte nicht bestätigt werden</string>
+    <string name="service_duplicate">Fahrt bereits vorhanden · Dienst liefert keine eindeutige Aktivitäts-ID</string>
+    <string name="dreeve_import_disabled">Dreeve akzeptiert keine Dateien · IMPORT_MODE muss files sein</string>
+    <string name="service_check_settings">Zugangsdaten vervollständigen; Upload erst nach Einrichtung aktivieren</string>
+    <string name="service_connected">Verbindung hergestellt</string>
 </resources>

@@ -1,0 +1,196 @@
+package de.bcycle.app
+
+import android.net.Uri
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.json.JSONArray
+import org.json.JSONObject
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
+import java.io.File
+import javax.crypto.KeyGenerator
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[33])
+class ActivityServiceTest {
+    private val c get()=RuntimeEnvironment.getApplication()
+    private val key=KeyGenerator.getInstance("AES").apply { init(256) }.generateKey()
+    private fun settings(service:ActivityService)=ActivityServiceSettings(c,service) { key }
+    private fun fit():File {
+        val journal=File(c.cacheDir,"provider.ride")
+        RideJournal(journal,1791626400000L,RecordingConfig(setOf("HEART_RATE"))).use {
+            it.append(RideSample(1791626400000L,0,values=mapOf("HEART_RATE" to 120.0)))
+            it.append(RideSample(1791626401000L,1000,values=mapOf("HEART_RATE" to 130.0)))
+        }
+        return File(c.cacheDir,"provider.fit").also { FitWriter.encode(journal,it) }
+    }
+    private fun tokens(expiry:Long=System.currentTimeMillis()/1000+3600)=JSONObject().put("access_token","access-private")
+        .put("refresh_token","refresh-private").put("expires_at",expiry).put("athlete",JSONObject().put("id",1234567890123L))
+    private fun configureStrava(expiry:Long=System.currentTimeMillis()/1000+3600)=settings(ActivityService.STRAVA).apply {
+        write(ActivityServiceConfig(clientId="123"),"secret-private");tokens("123","secret-private",tokens(expiry),true)
+        write(read().copy(enabled=true,wifiOnly=false))
+    }
+    private fun configureDreeve()=settings(ActivityService.DREEVE).apply {
+        write(ActivityServiceConfig(enabled=true,wifiOnly=false,address="https://dreeve.example.org/sub/"),"drv_"+"a".repeat(64))
+    }
+    @Test fun serviceSettingsAreEncryptedIndependentAndRejectUnsafeAddresses() {
+        val d=configureDreeve();val s=configureStrava()
+        assertTrue(d.read().enabled);assertTrue(s.connected())
+        assertEquals("https://dreeve.example.org/sub/",d.read().identity(ActivityService.DREEVE))
+        for(service in ActivityService.entries) {
+            val stored=c.getSharedPreferences("activity-service-${service.name.lowercase()}",0).all.toString()
+            assertFalse(stored.contains("secret-private"));assertFalse(stored.contains("access-private"));assertFalse(stored.contains("drv_"))
+        }
+        assertThrows(IllegalArgumentException::class.java) { d.write(d.read().copy(address="http://example.org")) }
+        assertThrows(IllegalArgumentException::class.java) { d.write(d.read().copy(address="https://user:password@example.org")) }
+        assertThrows(IllegalArgumentException::class.java) { d.write(d.read().copy(address="https://example.org/?token=oops")) }
+        assertThrows(IllegalArgumentException::class.java) { d.write(d.read(),"invalid") }
+        s.write(s.read().copy(enabled=false,clientId="456"))
+        assertFalse(s.connected());assertTrue(d.read().enabled)
+        assertThrows(IllegalArgumentException::class.java) { s.write(s.read().copy(enabled=true)) }
+    }
+    @Test fun oauthCallbackRequiresOneTimeStateScopeAndExactRedirect() {
+        val s=settings(ActivityService.STRAVA);s.write(ActivityServiceConfig(clientId="123"),"secret-private")
+        val auth=s.authorizationUrl()
+        assertEquals("activity:write",auth.getQueryParameter("scope"))
+        assertEquals(ActivityServiceSettings.REDIRECT,auth.getQueryParameter("redirect_uri"))
+        val callback=Uri.parse(ActivityServiceSettings.REDIRECT).buildUpon().appendQueryParameter("state",auth.getQueryParameter("state"))
+            .appendQueryParameter("scope","activity:write").appendQueryParameter("code","once").build()
+        assertEquals("once",settings(ActivityService.STRAVA).consumeCallback(callback).code) // Survives process/settings instance recreation.
+        assertThrows(IllegalArgumentException::class.java) { s.consumeCallback(callback) }
+        val fresh=s.authorizationUrl()
+        val denied=callback.buildUpon().clearQuery().appendQueryParameter("state",fresh.getQueryParameter("state"))
+            .appendQueryParameter("error","access_denied").build()
+        assertThrows(IllegalArgumentException::class.java) { s.consumeCallback(denied) }
+        s.authorizationUrl()
+        assertThrows(IllegalArgumentException::class.java) { s.consumeCallback(Uri.parse("bcycle://other/strava?state=x")) }
+        assertFalse(s.connected())
+        val generation=s.authorizationGeneration()
+        s.authorizationUrl()
+        assertThrows(IllegalStateException::class.java) { s.tokens("123","secret-private",tokens(),true,expectedGeneration=generation) }
+    }
+    private fun importList(filename:String,status:String,id:String?=null)=JSONObject().put("fileImports",JSONArray().put(JSONObject()
+        .put("filename",filename).put("source","fitFile").put("status",status).put("activityId",id ?: JSONObject.NULL)))
+    @Test fun dreeve202OnlyQueuesAndConfirmedImportProvidesActivityIdWithoutReupload() {
+        val server=MockWebServer();server.start()
+        try {
+            val key="drv_"+"a".repeat(64)
+            val client=DreeveClient(ActivityServiceConfig(),key,base=server.url("/sub/"))
+            server.enqueue(MockResponse().setBody("{\"app\":\"dreeve\",\"canUpload\":true}"));client.test()
+            assertEquals("/sub/api/v1/status",server.takeRequest().path)
+            server.enqueue(MockResponse().setBody("{\"fileImports\":[]}"))
+            server.enqueue(MockResponse().setResponseCode(202).setBody("{\"status\":\"queued\"}"))
+            val first=client.step(fit(),"unique.fit","");assertNull(first.activityId);assertEquals("accepted",first.jobId)
+            val search=server.takeRequest();assertEquals("unique.fit",search.requestUrl!!.queryParameter("filters[filename]"))
+            assertEquals("Bearer $key",search.getHeader("Authorization"))
+            val upload=server.takeRequest();assertEquals("/sub/api/v1/activity/upload",upload.path);assertEquals("POST",upload.method)
+            assertTrue(upload.body.readUtf8().contains("filename=\"unique.fit\""))
+            server.enqueue(MockResponse().setBody(importList("unique.fit","queued").toString()))
+            assertNull(client.step(fit(),"unique.fit",first.jobId).activityId);server.takeRequest()
+            server.enqueue(MockResponse().setBody(importList("unique.fit","success","activity-42").toString()))
+            assertEquals("activity-42",client.step(fit(),"unique.fit",first.jobId).activityId)
+            assertEquals("GET",server.takeRequest().method)
+        } finally { server.shutdown() }
+    }
+    @Test fun dreeveLostAcceptanceIsRecoveredAndSkippedImportNeverInventsAnId() {
+        val server=MockWebServer();server.start()
+        try {
+            val client=DreeveClient(ActivityServiceConfig(),"key",base=server.url("/"))
+            server.enqueue(MockResponse().setBody(importList("unique.fit","success","activity-42").toString()))
+            assertEquals("activity-42",client.step(fit(),"unique.fit","").activityId)
+            assertEquals("GET",server.takeRequest().method)
+            server.enqueue(MockResponse().setBody(importList("unique.fit","skipped").toString()))
+            assertEquals(R.string.service_duplicate,assertThrows(ActivityServiceFailure::class.java) { client.step(fit(),"unique.fit","") }.problem)
+            server.enqueue(MockResponse().setBody("{\"app\":\"dreeve\",\"canUpload\":false}"))
+            assertEquals(R.string.dreeve_import_disabled,assertThrows(ActivityServiceFailure::class.java) { client.test() }.problem)
+            server.enqueue(MockResponse().setResponseCode(401).setBody("private server data"))
+            val error=assertThrows(ActivityServiceFailure::class.java) { client.test() }
+            assertFalse(error.retryable);assertFalse(error.toString().contains("private server data"))
+        } finally { server.shutdown() }
+    }
+    @Test fun stravaPersistsUploadIdPollsItAndKeeps64BitActivityIdsExact() {
+        val settings=configureStrava();val server=MockWebServer();server.start()
+        try {
+            val client=StravaClient(settings,base=server.url("/"))
+            server.enqueue(MockResponse().setResponseCode(201).setBody("{\"id_str\":\"9223372036854775806\",\"activity_id\":null,\"error\":null}"))
+            val first=client.step(fit(),"ride.fit","stable-identity","")
+            assertNull(first.activityId)
+            val post=server.takeRequest();assertEquals("/api/v3/uploads",post.path);assertEquals("Bearer access-private",post.getHeader("Authorization"))
+            val body=post.body.readUtf8();assertTrue(body.contains("stable-identity"));assertTrue(body.contains("name=\"data_type\""))
+            server.enqueue(MockResponse().setBody("{\"id_str\":\"9223372036854775806\",\"activity_id\":9223372036854775805,\"error\":null}"))
+            assertEquals("9223372036854775805",client.step(fit(),"ride.fit","stable-identity",first.jobId).activityId)
+            val poll=server.takeRequest();assertEquals("GET",poll.method);assertEquals("/api/v3/uploads/9223372036854775806",poll.path)
+            server.enqueue(MockResponse().setBody("{\"id\":42,\"error\":\"duplicate with private HTML\"}"))
+            val error=assertThrows(ActivityServiceFailure::class.java) { client.step(fit(),"ride.fit","stable-identity","42") }
+            assertFalse(error.toString().contains("private HTML"))
+        } finally { server.shutdown() }
+    }
+    @Test fun stravaRefreshRotatesEncryptedTokensBeforeUploadAndRejectsStaleRefreshResponse() {
+        val settings=configureStrava(System.currentTimeMillis()/1000+10);val server=MockWebServer();server.start()
+        try {
+            server.enqueue(MockResponse().setBody(tokens().put("access_token","new-access").put("refresh_token","new-refresh").toString()))
+            server.enqueue(MockResponse().setResponseCode(201).setBody("{\"id\":42,\"error\":null}"))
+            StravaClient(settings,base=server.url("/")).step(fit(),"ride.fit","stable","")
+            val refresh=server.takeRequest();assertEquals("/oauth/token",refresh.path)
+            assertTrue(refresh.body.readUtf8().contains("grant_type=refresh_token"))
+            assertEquals("Bearer new-access",server.takeRequest().getHeader("Authorization"))
+            assertEquals("new-refresh",settings.credentials().getString("refresh"))
+            assertThrows(IllegalStateException::class.java) { settings.tokens("123","secret-private",tokens(),false,"refresh-private") }
+        } finally { server.shutdown() }
+    }
+    @Test fun stravaExchangesAuthorizationCodeWithoutPersistingItAndCancellationMakesNoRequest() {
+        val settings=settings(ActivityService.STRAVA)
+        settings.write(ActivityServiceConfig(clientId="123"),"secret-private")
+        val server=MockWebServer();server.start()
+        try {
+            server.enqueue(MockResponse().setBody(tokens().toString()))
+            StravaClient(settings,base=server.url("/")).authorize(StravaAuthorization("one-time-private-code","123",settings.authorizationGeneration()))
+            val request=server.takeRequest();assertEquals("/oauth/token",request.path)
+            val form=request.body.readUtf8()
+            assertTrue(form.contains("grant_type=authorization_code"));assertTrue(form.contains("code=one-time-private-code"))
+            assertTrue(settings.connected())
+            assertFalse(settings.credentials().toString().contains("one-time-private-code"))
+            assertThrows(java.io.IOException::class.java) {
+                StravaClient(settings,{true},server.url("/")).step(fit(),"ride.fit","id","")
+            }
+            assertEquals(1,server.requestCount)
+        } finally { server.shutdown() }
+    }
+    @Test fun independentJobsRetainProcessingIdsAcrossRunsAndNeverConfirmCancelledAttempts() {
+        configureDreeve();configureStrava()
+        val original=FitLibrary.retainRecording(c.filesDir,fit());val id=original.nameWithoutExtension
+        RouteCloudUploads.enqueue(c,original,"ride.fit")
+        assertTrue(ActivityServiceUploads.dreeve.run(c,{false}) { _,_,_,_,job,_->assertEquals("",job);UploadProgress("accepted") })
+        assertEquals(UploadState.UPLOADING,ActivityServiceUploads.dreeve.state(c,id,null).state)
+        assertTrue(RideServiceLinks.links(c,id).isEmpty())
+        assertTrue(ActivityServiceUploads.strava.run(c,{false}) { _,_,_,_,_,_->throw ActivityServiceFailure(true,R.string.service_upload_failed) })
+        assertFalse(ActivityServiceUploads.dreeve.run(c,{false}) { _,_,_,_,job,_->assertEquals("accepted",job);UploadProgress(job,"activity-1") })
+        assertEquals(UploadState.UPLOADED,ActivityServiceUploads.dreeve.state(c,id,null).state)
+        assertEquals(UploadState.WAITING,ActivityServiceUploads.strava.state(c,id,null).state)
+        var cancelled=false
+        assertTrue(ActivityServiceUploads.strava.run(c,{cancelled}) { _,_,_,_,_,_->cancelled=true;UploadProgress("99","12345") })
+        assertEquals(1,RideServiceLinks.links(c,id).size)
+        assertFalse(ActivityServiceUploads.strava.run(c,{false}) { _,_,_,_,job,_->assertEquals("99",job);UploadProgress(job,"12345") })
+        assertEquals(2,RideServiceLinks.links(c,id).size)
+        assertEquals(UploadState.UPLOADED,RouteCloudUploads.state(c,id,null).state)
+    }
+    @Test fun newVersionAndAccountAreIndependentAndImportFilesCannotBeQueued() {
+        val settings=configureDreeve();val original=FitLibrary.retainRecording(c.filesDir,fit());val id=original.nameWithoutExtension
+        ActivityServiceUploads.dreeve.enqueue(c,original)
+        assertTrue(ActivityServiceUploads.dreeve.run(c,{false}) { _,_,_,_,_,_->UploadProgress("accepted") })
+        val corrected=FitLibrary.correctedFile(c.filesDir,id).apply { parentFile!!.mkdirs();writeBytes(original.readBytes()+byteArrayOf(0)) }
+        ActivityServiceUploads.dreeve.enqueue(c,corrected)
+        val stamp=RouteFileStamp(corrected.length(),corrected.lastModified(),WebDavClient.hash(corrected))
+        assertTrue(ActivityServiceUploads.dreeve.run(c,{false}) { _,_,_,_,job,_->if(job.isNotEmpty()) UploadProgress(job,"old-version") else UploadProgress("new-job") })
+        assertEquals(UploadState.UPLOADING,ActivityServiceUploads.dreeve.state(c,id,stamp).state)
+        assertEquals("old-version",RideServiceLinks.links(c,id).single().activityId)
+        settings.write(settings.read().copy(address="https://other.example.org/"))
+        assertEquals(UploadState.NOT_UPLOADED,ActivityServiceUploads.dreeve.state(c,id,stamp).state)
+        val imported=fit().inputStream().use { FitLibrary(c.filesDir).add(it,"import.fit",false) }!!
+        assertThrows(IllegalArgumentException::class.java) { ActivityServiceUploads.dreeve.enqueue(c,FitLibrary.activeFile(c.filesDir,imported.id)) }
+    }
+}

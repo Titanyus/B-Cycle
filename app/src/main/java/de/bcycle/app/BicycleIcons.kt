@@ -11,7 +11,7 @@ import android.graphics.drawable.Drawable
 internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = ThemeRole.FOREGROUND) {
     EditDashboard(R.drawable.ic_lucide_pencil),
     Weather(R.drawable.ic_lucide_cloud_sun), Cloud(R.drawable.ic_lucide_cloud), Rain(R.drawable.ic_lucide_cloud_rain), Humidity(R.drawable.ic_lucide_droplet), Wind(R.drawable.ic_lucide_wind),
-    WebDav(R.drawable.ic_lucide_server), Intervals(R.drawable.ic_lucide_activity),
+    Dreeve(R.drawable.ic_dreeve), Strava(R.drawable.ic_strava), WebDav(R.drawable.ic_lucide_server), Intervals(R.drawable.ic_lucide_activity),
     DataStorage(R.drawable.ic_lucide_database), RestoreSettings(R.drawable.ic_lucide_upload), Forward(R.drawable.ic_lucide_chevron_right),
     Bikes(R.drawable.ic_lucide_bike), Sensors(R.drawable.ic_lucide_radio), MapManager(R.drawable.ic_lucide_map_pinned),
     Dashboard(R.drawable.ic_lucide_layout_dashboard), Route(R.drawable.ic_lucide_route),

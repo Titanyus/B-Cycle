@@ -171,7 +171,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             scheduleTick()
         }
     }
-    init { IntervalsUploads.schedule(context); RouteUploads.schedule(context); diagnostics.reset("App=${AppVersion.name} Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
+    init { ActivityServiceUploads.all.forEach { runCatching { it.schedule(context) } }; IntervalsUploads.schedule(context); RouteUploads.schedule(context); diagnostics.reset("App=${AppVersion.name} Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
     fun notifyChanged() { observers.toList().forEach { it() } }
     fun setVisible(value: Boolean) { visible = value; updateActivity() }
     private fun updateActivity() {

@@ -87,7 +87,10 @@ internal object IntervalsUploads {
                 val stopped={ cancelled() || IntervalsSettings(c).read().let { !it.enabled || it.athlete!=config.athlete } }
                 val remote=upload(config,file,item.getString("name"),stopped)
                 if(stopped()) throw IOException()
-                RideServiceLinks.confirm(c,RideServiceLink(id,RideService.INTERVALS,config.athlete,remote,item.getString("hash")))
+                synchronized(lock) {
+                    if(entries(c).has(id) && file.isFile && RouteUploads.eligible(c,id))
+                        RideServiceLinks.confirm(c,RideServiceLink(id,RideService.INTERVALS,config.athlete,remote,item.getString("hash")))
+                }
                 check(remote.isNotBlank() && file.isFile && WebDavClient.hash(file)==item.getString("hash") && file.lastModified()==item.getLong("modified"))
                 update(c,id,item,"saved",remote)
             } catch(e:Exception) {
@@ -112,30 +115,31 @@ class IntervalsUploadService:JobService() {
 
 /** Existing cloud action fans out to enabled services; each retains its own durable receipt. */
 internal object RouteCloudUploads {
-    fun revision(c:Context)="${RouteUploads.revision(c)}:${IntervalsUploads.revision(c)}"
+    fun revision(c:Context)="${RouteUploads.revision(c)}:${IntervalsUploads.revision(c)}:"+ActivityServiceUploads.all.joinToString(":") { it.revision(c).toString() }
     fun state(c:Context,id:String,stamp:RouteFileStamp?):RouteUploadStatus {
         val targets=listOf<()->RouteUploadStatus?>(
             { if(RouteExportSettings(c).read().webdav) RouteUploads.state(c,id,stamp) else null },
             { if(IntervalsSettings(c).read().enabled) IntervalsUploads.state(c,id,stamp) else null }
         )
-        val states=targets.mapNotNull { runCatching(it).getOrElse { RouteUploadStatus(UploadState.FAILED) } }
+        val extra=ActivityServiceUploads.all.map { provider -> { if(ActivityServiceSettings(c,provider.service).read().enabled) provider.state(c,id,stamp) else null } }
+        val states=(targets+extra).mapNotNull { runCatching(it).getOrElse { RouteUploadStatus(UploadState.FAILED) } }
         return RouteUploadStatus(if(states.isNotEmpty() && states.all { it.state==UploadState.UPLOADED }) UploadState.UPLOADED else UploadState.NOT_UPLOADED)
     }
-    private fun both(c:Context,dav:()->Unit,intervals:()->Unit) {
+    private fun fanOut(c:Context,dav:()->Unit,intervals:()->Unit,additional:(ActivityServiceUploads)->Unit) {
         dispatch(listOf(
             { if(RouteExportSettings(c).read().webdav) dav() },
             { if(IntervalsSettings(c).read().enabled) intervals() }
-        ))
+        )+ActivityServiceUploads.all.map { provider -> { if(ActivityServiceSettings(c,provider.service).read().enabled) additional(provider) } })
     }
     /** Include configuration reads in isolation: a broken provider must not skip later targets. */
     internal fun dispatch(targets:List<()->Unit>) {
         val results=targets.map { runCatching(it) }
         results.firstOrNull { it.isFailure }?.getOrThrow()
     }
-    fun enqueue(c:Context,file:File,name:String)=both(c,{RouteUploads.enqueue(c,file,name)},{IntervalsUploads.enqueue(c,file,name)})
+    fun enqueue(c:Context,file:File,name:String)=fanOut(c,{RouteUploads.enqueue(c,file,name)},{IntervalsUploads.enqueue(c,file,name)},{it.enqueue(c,file)})
     fun retry(c:Context,id:String) {
         var enabled=0
-        both(c,{enabled++;RouteUploads.retry(c,id)},{enabled++;IntervalsUploads.retry(c,id)})
+        fanOut(c,{enabled++;RouteUploads.retry(c,id)},{enabled++;IntervalsUploads.retry(c,id)},{enabled++;it.retry(c,id)})
         check(enabled>0) { c.getString(R.string.intervals_no_target) }
     }
 }

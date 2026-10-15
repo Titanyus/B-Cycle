@@ -31,6 +31,7 @@ class MainActivity : Activity() {
     private var pendingBackupExport: ByteArray? = null
     private var dataSettingsScreen: AlertDialog? = null
     private var localExportView: RouteExportView? = null
+    private var activityServiceView:ActivityServiceView?=null
     private var pendingMapRoute: String? = null
     private var dashboardPage = 0
     private var mapFullscreen = false
@@ -184,6 +185,10 @@ class MainActivity : Activity() {
             false
         }
         render()
+        activityServiceCallback(intent)
+    }
+    override fun onNewIntent(intent:Intent) {
+        super.onNewIntent(intent);setIntent(intent);activityServiceCallback(intent)
     }
     private fun render() {
         if (!::dashboard.isInitialized) return
@@ -755,6 +760,8 @@ class MainActivity : Activity() {
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
             DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)
             DataAction.INTERVALS -> intervalsSettings()
+            DataAction.DREEVE -> activityServiceSettings(ActivityService.DREEVE)
+            DataAction.STRAVA -> activityServiceSettings(ActivityService.STRAVA)
         } }
         val screen=dataDialog(R.string.data_title,BicycleStickyScrollView(settingsContext).apply { addView(content) })
         dataSettingsScreen=screen;menu=screen
@@ -850,6 +857,68 @@ class MainActivity : Activity() {
             },LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap);bottomMargin=dp(BicycleDesign.controlGap) })
         }
         dataDialog(R.string.sources_title,ScrollView(settingsContext).apply { addView(body) })
+    }
+    private fun activityServiceCallback(intent:Intent) {
+        val uri=intent.data ?: return
+        if(uri.scheme!="bcycle" || uri.host!="localhost" || uri.path!="/strava") return
+        intent.data=null
+        val settings=ActivityServiceSettings(this,ActivityService.STRAVA)
+        val code=runCatching { settings.consumeCallback(uri) }
+        if(code.isFailure) { BicycleFeedback.show(this,getString(R.string.service_auth_failed));return }
+        settingsWriter.execute {
+            val result=runCatching { StravaClient(settings).authorize(code.getOrThrow());ActivityServiceUploads.strava.settingsChanged(applicationContext) }
+            runOnUiThread {
+                if(isDestroyed) return@runOnUiThread
+                val text=getString(if(result.isSuccess) R.string.service_connected else R.string.service_auth_failed)
+                activityServiceView?.takeIf { it.service==ActivityService.STRAVA }?.let {
+                    it.showAccount(settings.read().account);BicycleFeedback.update(it.result,text)
+                } ?: BicycleFeedback.show(this,text)
+            }
+        }
+    }
+    private fun activityServiceSettings(service:ActivityService) {
+        val settings=ActivityServiceSettings(this,service)
+        val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
+        lateinit var content:ActivityServiceView
+        content=ActivityServiceView(settingsContext,runtime.themes,service,settings.read(),settings.hasSecret()) {
+            val config=content.config();val secret=content.newSecret();content.busy(true)
+            worker.execute {
+                var authorization:android.net.Uri?=null
+                val result=runCatching {
+                    settings.write(config,secret)
+                    if(service==ActivityService.DREEVE) DreeveClient(settings.read(),settings.credentials().getString("secret")).test()
+                    else authorization=settings.authorizationUrl()
+                }
+                runOnUiThread {
+                    if(isDestroyed) return@runOnUiThread
+                    content.busy(false)
+                    if(result.isSuccess && authorization!=null) {
+                        runCatching { startActivity(Intent(Intent.ACTION_VIEW,authorization)) }.onFailure {
+                            BicycleFeedback.update(content.result,getString(R.string.service_auth_failed))
+                        }
+                    } else BicycleFeedback.update(content.result,getString(if(result.isSuccess) R.string.route_export_test_ok
+                        else (result.exceptionOrNull() as? ActivityServiceFailure)?.problem ?: R.string.service_check_settings))
+                }
+            }
+        }
+        ActivityServiceUploads.forService(service).problem(this)?.let { BicycleFeedback.update(content.result,getString(it)) }
+        activityServiceView=content
+        val screen=dataDialog(service.title,ScrollView(settingsContext).apply { addView(content) })
+        val revision=java.util.concurrent.atomic.AtomicLong()
+        observeSettings(content) {
+            val config=content.config();val secret=content.newSecret();val token=revision.incrementAndGet()
+            worker.execute {
+                if(token==revision.get()) {
+                    val result=runCatching { settings.write(config,secret);ActivityServiceUploads.forService(service).settingsChanged(applicationContext) }
+                    runOnUiThread { if(token==revision.get() && !isDestroyed) {
+                        val input=if(service==ActivityService.DREEVE) content.address else content.clientId
+                        input.error=if(result.isFailure) getString(R.string.service_check_settings) else null
+                        content.showAccount(settings.read().account)
+                    } }
+                }
+            }
+        }
+        dialogs.onDismiss(screen) { if(activityServiceView===content) activityServiceView=null;worker.shutdown() }
     }
     private fun intervalsSettings() {
         val settings=IntervalsSettings(this)

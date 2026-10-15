@@ -93,6 +93,7 @@ class RecordingStore(private val context: Context, private val changed: (String,
                 (if (RouteExportSettings(context).read().save) " · auch im Zielordner" else "") +
                 (if (RouteExportSettings(context).read().webdav) " · Nextcloud-Upload vorgemerkt" else "") + (if (failed) " · enthält Daten bis zum Speicherfehler" else "") +
                 (if(IntervalsSettings(context).read().enabled) " · "+context.getString(R.string.intervals_queued) else "") +
+                ActivityService.entries.filter { ActivityServiceSettings(context,it).read().enabled }.joinToString("") { " · "+context.getString(it.title) } +
                 (if(correctionFailed) " · "+context.getString(R.string.elevation_auto_failed) else "")
         } catch (_: Exception) {
             return if (retained) "FIT lokal gespeichert · Ordnerexport oder Upload-Vormerkung fehlgeschlagen. Im Menü erneut versuchen."

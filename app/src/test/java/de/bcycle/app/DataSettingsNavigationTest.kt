@@ -50,7 +50,7 @@ class DataSettingsNavigationTest {
             val before=settings.read();val (root,data)=open(activity);measure(data)
             val text=views(data.window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(text.indexOf(activity.getString(R.string.data_global))<text.indexOf(activity.getString(R.string.data_routes)))
-            assertEquals(listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_INTERVALS"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_INTERVALS") } })
+            assertEquals(listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA") } })
             click(data,"data_LOCAL");val local=latest();measure(local)
             assertNotNull(local.window!!.decorView.findViewWithTag<View>("export_folder_choose"));assertNull(local.window!!.decorView.findViewWithTag<View>("export_server"))
             testBack(local);shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
@@ -74,6 +74,33 @@ class DataSettingsNavigationTest {
             assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_test"))
             assertFalse(IntervalsSettings(activity).read().enabled)
             testBack(intervals);shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun dreeveAndStravaUseSeparateNativeFormsAndPreserveDraftsOnAppSwitch() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get();val (_,data)=open(activity)
+            click(data,"data_DREEVE");val dreeve=latest();measure(dreeve)
+            assertEquals("Dreeve",dreeve.window!!.decorView.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
+            val address=dreeve.window!!.decorView.findViewWithTag<EditText>("service_address")
+            address.setText("https://my.dreeve.example.org")
+            waitFor { ActivityServiceSettings(activity,ActivityService.DREEVE).read().address==address.text.toString() }
+            assertNotNull(dreeve.window!!.decorView.findViewWithTag<View>("service_secret"))
+            controller.pause().stop();controller.start().resume()
+            assertTrue(dreeve.isShowing);assertEquals("https://my.dreeve.example.org",address.text.toString())
+            testBack(dreeve);shadowOf(Looper.getMainLooper()).idle()
+            click(data,"data_STRAVA");val strava=latest();measure(strava)
+            assertEquals("Strava",strava.window!!.decorView.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
+            val clientId=strava.window!!.decorView.findViewWithTag<EditText>("service_client_id")
+            clientId.setText("123456")
+            waitFor { ActivityServiceSettings(activity,ActivityService.STRAVA).read().clientId=="123456" }
+            controller.pause().stop();controller.start().resume()
+            assertTrue(strava.isShowing);assertEquals("123456",clientId.text.toString())
+            controller.newIntent(Intent(Intent.ACTION_VIEW,Uri.parse("bcycle://localhost/strava?state=invalid&code=untrusted&scope=activity:write")))
+            assertFalse(ActivityServiceSettings(activity,ActivityService.STRAVA).connected())
+            assertTrue(strava.isShowing)
+            testBack(strava);shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
