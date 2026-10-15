@@ -33,6 +33,13 @@ mehrwöchige Pläne und Dateiformate sowie notwendige Berechtigungen vor Umsetzu
 prüfen. Noch keine Trainingssteuerung, neue Ausführungsoberfläche oder vollständige
 Synchronisierung implementieren.
 
+## Weiterer Ausbau: Trainingsprogramme direkt in BICYCLE
+
+Zusätzlich zum Austausch mit intervals.icu möchte der Nutzer später Trainingsprogramme
+in die App integrieren. Als eigene spätere Phase vorsehen; genaue Darstellung,
+Bedienung und Durchführung noch gemeinsam festlegen. Jetzt weder einen Workout-Player
+noch automatische Trainer-/Widerstandssteuerung implementieren.
+
 ## Offene Verifikation
 
 Der direkte Zugriff auf https://intervals.icu/api/v1/docs ist in dieser
