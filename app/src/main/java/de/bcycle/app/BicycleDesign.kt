@@ -57,6 +57,9 @@ object BicycleDesign {
     const val sensorStatusSp = 13f
     const val mapStatusSp = 11f
     const val mapAttributionSp = 11f
+    const val analysisZoneRowHeight = 24
+    const val analysisZoneBarHeight = 10
+    const val analysisZoneTrackAlpha = .18f
     const val analysisChartHeight = 120
     const val analysisSideLabelWidth = 24
     const val analysisSideLabelSp = 12f

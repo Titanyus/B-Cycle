@@ -64,7 +64,7 @@ internal object BestEfforts {
     }.take(4)
 }
 internal data class RouteAnalysis(val entry: ManagedRoute, val metrics: Map<AnalysisMetric, Double>, val route: GpxRoute?,
-    val distanceAxis: Boolean, val axisEnd: Double, val series: List<AnalysisSeries>, val bestEfforts: List<BestEffort> = emptyList())
+    val distanceAxis: Boolean, val axisEnd: Double, val series: List<AnalysisSeries>, val bestEfforts: List<BestEffort> = emptyList(), val zones: RouteZoneDistributions = RouteZoneDistributions())
 
 /** Bounded streaming reduction, retaining endpoint/extrema and an explicit break for missing intervals. */
 internal class AnalysisSeriesBuffer {
@@ -101,8 +101,8 @@ internal class AnalysisSeriesBuffer {
 /** Read-only detail loader. A file is decoded once, off the UI thread, for all sections together. */
 internal object RouteAnalysisRead {
     private val appId = UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
-    fun read(file: File, entry: ManagedRoute, cancelled: () -> Boolean = { false }): RouteAnalysis {
-        val builder = Builder(entry)
+    fun read(file: File, entry: ManagedRoute, profile: RiderProfile = RiderProfile(), cancelled: () -> Boolean = { false }): RouteAnalysis {
+        val builder = Builder(entry, profile)
         if (entry.format == "GPX") {
             val route = file.inputStream().buffered().use { GpxImport.read(it) { point, time, height, speed ->
                 check(!cancelled())
@@ -144,7 +144,8 @@ internal object RouteAnalysisRead {
         it.isDefined && it.appUUID == appId && it.name == name && it.units == units && it.numValues == 1
     }?.doubleValue?.takeIf { it.isFinite() && it >= 0 }
 
-    private class Builder(val entry: ManagedRoute) {
+    private class Builder(val entry: ManagedRoute, profile: RiderProfile) {
+        val zones = RouteZoneAccumulator(profile)
         val buffers = AnalysisChart.entries.associateWith { AnalysisSeriesBuffer() }
         val sessions = mutableListOf<Map<AnalysisMetric, Double>>()
         val laps = mutableListOf<Map<AnalysisMetric, Double>>()
@@ -161,8 +162,10 @@ internal object RouteAnalysisRead {
             val start = firstTime ?: return
             val time = fitStamp?.let { (it * 1000 + 631065600000L).toLong() - start } ?: return
             if (time < 0 || lastTime?.let { time < it - start } == true) return
-            if (kind == 0.0 || kind == 1.0 || kind == 4.0) performance.accept(PerformanceEvent(
-                if (kind == 0.0) PerformanceChannel.RESUME else PerformanceChannel.PAUSE, time))
+            if (kind == 0.0 || kind == 1.0 || kind == 4.0) {
+                zones.timer(paused = kind != 0.0)
+                performance.accept(PerformanceEvent(if (kind == 0.0) PerformanceChannel.RESUME else PerformanceChannel.PAUSE, time))
+            }
         }
         fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null) {
             count++; require(count <= 600_000)
@@ -186,6 +189,7 @@ internal object RouteAnalysisRead {
             fun valid(value: Double?, range: ClosedFloatingPointRange<Double>) = value?.takeIf { it.isFinite() && it in range }
             val s = valid(speed, 0.0..35.0); val p = valid(power, 0.0..65535.0)
             val c = valid(rpm, 0.0..254.0); val h = valid(heart, 1.0..254.0); val a = valid(altitude, -500.0..10000.0)
+            zones.add(stamp, distance, p, h, point?.segmentStart == true)
             c?.let(cadence::add); moving.add(stamp, s)
             rideMeans.add(stamp, p, valid(motor, 0.0..65535.0), valid(battery, 0.0..100.0))
             elevation.add(a, point?.segmentStart == true); descent.add(a?.let { 9500 - it }, point?.segmentStart == true)
@@ -275,7 +279,7 @@ internal object RouteAnalysisRead {
                 if (data.any { it.value != null && (if (distanceAxis) it.distance else it.seconds) != null }) AnalysisSeries(chart, data) else null
             }
             val dated = firstTime?.let { entry.copy(details = entry.details.copy(dateMs = it)) } ?: entry
-            return RouteAnalysis(dated, metrics, route, distanceAxis, end.coerceAtLeast(1e-6), series, BestEfforts.select(performance.bestPowerAverages()))
+            return RouteAnalysis(dated, metrics, route, distanceAxis, end.coerceAtLeast(1e-6), series, BestEfforts.select(performance.bestPowerAverages()), if (invalidDistance) RouteZoneDistributions() else zones.result())
         }
     }
 }

@@ -63,10 +63,22 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                     if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f; tag = "analysis_vertical_divider" }, LinearLayout.LayoutParams(BicycleDesign.dividerPixels, -1))
                     row.addView(AnalysisMetricTile(context, themes, metrics, analysis.metrics), LinearLayout.LayoutParams(0, -1, 1f))
                 }
+                val section = LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(row, LinearLayout.LayoutParams(-1, -2))
+                    val distribution = when (heading) {
+                        R.string.analysis_power_group -> analysis.zones.power
+                        R.string.analysis_cadence_heart_group -> analysis.zones.heart
+                        else -> null
+                    }
+                    if (distribution != null) addView(RouteZoneBars(context, themes, distribution,
+                        if (heading == R.string.analysis_power_group) ZoneGlowColors.powerColors else TrainingZoneColors.values,
+                        heading), LinearLayout.LayoutParams(-1, -2))
+                }
                 body.addView(LinearLayout(context).apply {
                     orientation=LinearLayout.HORIZONTAL;isBaselineAligned=false
                     addView(AnalysisSideLabel(context,themes,heading),LinearLayout.LayoutParams(dp(BicycleDesign.analysisSideLabelWidth),-1))
-                    addView(row,LinearLayout.LayoutParams(0,-2,1f))
+                    addView(section,LinearLayout.LayoutParams(0,-2,1f))
                 }, LinearLayout.LayoutParams(-1, -2))
             }
         }

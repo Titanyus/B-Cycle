@@ -12,6 +12,9 @@
     <string name="export_failed">Diagnose konnte nicht gespeichert werden. Bitte erneut versuchen.</string>
     <string name="export_unavailable">Auf diesem Gerät ist keine Dateiauswahl verfügbar.</string>
 
+    <string name="analysis_zone_label">Z%1$d</string>
+    <string name="analysis_zone_percent">%1$.1f %%</string>
+    <string name="analysis_zone_description">%1$s, Zone %2$d: %3$s der Strecke mit gültiger Zonenzuordnung. Grundlage: aktuelles Fahrerprofil.</string>
     <string name="analysis_best_efforts">Best Efforts</string>
     <string name="analysis_effort_hours">%1$d h</string>
     <string name="analysis_effort_minutes">%1$d min</string>

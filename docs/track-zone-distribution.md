@@ -1,0 +1,11 @@
+# Streckendetails: Streckenanteile nach Trainingszone
+
+Unter den vorhandenen Kennzahlen stehen in Leistung sieben Zonenbalken (Coggan) und in Kadenz & Puls fünf Zonenbalken (Karvonen). Grenzen und Farben stammen unverändert aus den vorhandenen Profil-/Trainingszonenmodellen. Grundlage ist das aktuelle Fahrerprofil beim Öffnen der Details, kein unbekanntes historisches Profil.
+
+Jede Zeile zeigt Z1 … Z7 beziehungsweise Z5, einen horizontalen Balken und den Prozentanteil mit einer Nachkommastelle. Die volle Breite entspricht immer 100 %. Die Hintergrundspur verwendet die jeweilige Zonenfarbe mit 18 % Deckkraft, die anteilige Vordergrundfüllung dieselbe Farbe deckend. Texte bleiben FOREGROUND. Darstellung und Abstände verwenden zentrale Analyse-Tokens; keine zusätzlichen Einstellungen.
+
+Die Anteile sind **distanzgewichtet**, nicht zeitgewichtet. Der vorherige gültige Messwert beschreibt das folgende Streckenintervall; maximal fünf Sekunden zwischen angrenzenden Aufzeichnungen entsprechend der bestehenden Frischegrenze. Stillstand ohne Distanzzuwachs zählt nicht. Echte 0 W gehören zu Leistungszone 1. Fehlende/ungültige Werte werden nicht zu Null oder Zone 1 umgedeutet. Herzfrequenzen außerhalb der im Profil definierten Karvonen-Bereiche werden keiner Zone zugeordnet.
+
+Leistung und Puls werden unabhängig auf ihre jeweils klassifizierbare Strecke normiert. Die Prozentwerte beziehen sich also ausdrücklich nicht auf Streckenabschnitte ohne gültige Zonenzuordnung. Datenlücken, fehlende Zeit-/Distanzwerte, neue Tracksegmente und Timer-Pausen werden nicht überbrückt. Bei rückläufigem Distanzzähler blendet der Detail-Lader die Auswertung konservativ aus. Fehlendes FTP beziehungsweise fehlende Pulszonen oder keine klassifizierbare Strecke führen zum Ausblenden der betreffenden Balkengruppe.
+
+Berechnung im bestehenden Hintergrundworker während desselben Streaming-Decodierens, vor der Diagrammverdichtung. Konstanter Speicherbedarf: zwölf Distanzsummen plus der vorherige Datensatz. Keine Änderungen an FIT-Export, Rohdaten, Sensorverarbeitung, Performance Engine oder Aufzeichnung.
