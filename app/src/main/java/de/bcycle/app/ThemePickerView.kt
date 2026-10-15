@@ -80,7 +80,7 @@ internal class ThemePickerView(context: Context, private val themes: ThemeManage
             stateDescription = if (preset == null) "Noch nicht verfügbar" else if (isSelected) "Ausgewählt" else "Nicht ausgewählt"
             background = GradientDrawable().apply {
                 setColor(tokens.secondary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
-                val color = if (isSelected) tokens.foreground else (tokens.foreground and 0x00ffffff) or (85 shl 24)
+                val color = if (isSelected) BicycleComponents.selectionBorder(tokens,true) else (tokens.foreground and 0x00ffffff) or (85 shl 24)
                 if (preset == null) setStroke(BicycleDesign.dividerPixels, color, dp(BicycleDesign.smallGap).toFloat(), dp(BicycleDesign.smallGap).toFloat())
                 else setStroke(if (isSelected) dp(BicycleDesign.themeSelectedBorder) else BicycleDesign.dividerPixels, color)
             }

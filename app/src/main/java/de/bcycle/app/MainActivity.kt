@@ -320,7 +320,7 @@ class MainActivity : Activity() {
     private fun showSensorManager() {
         val content = BikesView(settingsContext, runtime, ::searchSensors, ::stopScan, ::enableGps, ::recordingControls)
         bikesManager = content
-        sensorManager = dialog().setTitle(R.string.bikes_title).setView(ScrollView(settingsContext).apply { addView(content) }).create().apply {
+        sensorManager = dialog().setTitle(R.string.bikes_title).setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).create().apply {
             dialogs.onDismiss(this) { stopScan();if(bikesManager===content) bikesManager=null };show()
         }
     }

@@ -51,7 +51,7 @@ internal class DashboardPresetPicker(context: Context, initial: List<DashboardTe
         tile.background = GradientDrawable().apply {
             cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             setColor(if (tile.isSelected) tokens.tertiary else tokens.secondary)
-            setStroke(BicycleDesign.dividerPixels, tokens.foreground)
+            setStroke(BicycleDesign.dividerPixels, BicycleComponents.selectionBorder(tokens,tile.isSelected))
         }
     }
     private fun refresh() {

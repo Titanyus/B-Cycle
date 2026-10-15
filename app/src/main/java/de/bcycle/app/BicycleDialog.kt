@@ -84,8 +84,9 @@ internal object BicycleDialogStyle {
         stroke?.let { setStroke(BicycleDesign.dividerPixels, it) }
     }
     private fun inputBackground(view: View, tokens: ThemeTokens) = StateListDrawable().apply {
+        addState(intArrayOf(android.R.attr.state_focused, android.R.attr.state_selected), shape(view, tokens.tertiary, BicycleComponents.selectionBorder(tokens,true)))
         addState(intArrayOf(android.R.attr.state_focused), shape(view, tokens.tertiary, tokens.foreground))
-        addState(intArrayOf(android.R.attr.state_selected), shape(view, tokens.tertiary, tokens.foreground))
+        addState(intArrayOf(android.R.attr.state_selected), shape(view, tokens.tertiary, BicycleComponents.selectionBorder(tokens,true)))
         addState(intArrayOf(), shape(view, tokens.tertiary))
     }
     fun apply(screen: AlertDialog, themes: ThemeManager) {

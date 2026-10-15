@@ -6,18 +6,34 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.18 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.18/downloads/B-Cycle-0.7.18-test.apk)**
+**[APK 0.7.19 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.19/downloads/B-Cycle-0.7.19-test.apk)**
 
-- Größe: **1,173,458 Byte**, rund **1,17 MB**.
+- Größe: **1,177,554 Byte**, rund **1,18 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.18/56.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.19/57.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.18-test.apk.sha256):
-  `c350f61a040a817cc5b29e536579a0286c2d9ea626e11a283e6283557f34df24`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.19-test.apk.sha256):
+  `fb292cbe135b0287ac16bcf5d09bf0bd3be04a95b305a81caab4ae99d5034a31`.
 
-14 gezielte Theme-Tests und Release-Build mit R8, Resource-Shrinking und
-Lint-Vital erfolgreich. Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis](docs/milestone-0718.md).
+14 gezielte UI-Tests und Release-Build mit R8, Resource-Shrinking und Lint-Vital
+erfolgreich. Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
+[Buildnachweis](docs/milestone-0719.md).
+
+## Neu in APK 0.7.19
+
+- **Sticky-Kategorien als Versuch auf Bikes:** Radtyp und Sensoren, bestehende
+  Schrift zentriert, TERTIARY-Hintergrund, oben/unten 1 px FOREGROUND und großzügige
+  Abstände. Die nächste Kategorie schiebt den angedockten Header heraus.
+- **Auswahlrahmen in ACCENT** für Bike-, Dashboard- und Theme-Kacheln.
+- Aktive Kreisfüllungen und Schalter in ACCENT; Beschriftung/Kreiskontur FOREGROUND.
+- FIT-Aufzeichnung wieder als zunächst geschlossenes Accordion unter den Bike-Sensoren.
+- Electric Blue und Acid Lime im Stil von Embers/Fire: schwarzer Dialoghintergrund,
+  graue Eingabefelder, bisherige Primärfarbe auch als ACCENT.
+- Flächenfüllung der fünf Strecken-Verlaufsdiagramme auf 100 % Deckkraft.
+
+[Bikes-Vorschau](docs/previews/bikes-sections.png) ·
+[Angedockter Kategorieheader](docs/previews/bikes-sticky.png) ·
+[Technik und Umfang](docs/sticky-sections.md)
 
 ## Neu in APK 0.7.18
 

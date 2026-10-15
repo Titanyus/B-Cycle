@@ -33,9 +33,14 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private lateinit var searchResults: LinearLayout
     private lateinit var searchStatus: TextView
     private fun dp(n: Int) = BicycleDesign.dp(context,n)
-    init { orientation = VERTICAL; tag = "bikes_manager"; setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),0); rebuild() }
+    init { orientation = VERTICAL; clipToPadding = false; tag = "bikes_manager"; setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),0); rebuild() }
     private fun text(id: Int, heading: Boolean = false) = BicycleComponents.text(context,themes,context.getString(id),heading)
-    private fun section(id: Int) { addView(BicycleComponents.sectionDivider(context,themes));addView(text(id,true)) }
+    private fun section(id: Int) = BicycleSectionHeader(context,themes,context.getString(id)).also { header ->
+        addView(header,LayoutParams(-1,-2).apply {
+            marginStart = -paddingLeft; marginEnd = -paddingRight
+            topMargin = dp(BicycleDesign.sectionHeaderGap); bottomMargin = dp(BicycleDesign.sectionHeaderGap)
+        })
+    }
     private fun watcher(change: (String)->Unit) = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?,start: Int,count: Int,after: Int) = Unit
         override fun onTextChanged(s: CharSequence?,start: Int,before: Int,count: Int) { change(s.toString()) }
@@ -92,7 +97,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         nameEdit.setOnEditorActionListener { _,action,_ -> if(action==EditorInfo.IME_ACTION_DONE) { finishNaming();true } else false }
         nameEdit.setOnFocusChangeListener { _,focused -> if(!focused && nameEdit.visibility==VISIBLE) finishNaming() }
         addView(nameHeading,LayoutParams(-1,-2));addView(nameEdit,LayoutParams(-1,-2))
-        addView(text(R.string.bikes_type,true))
+        section(R.string.bikes_type)
         addView(LinearLayout(context).apply {
             orientation=HORIZONTAL;isBaselineAligned=false
             BikeType.entries.forEachIndexed { i,type ->
@@ -134,7 +139,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             wheel.error=if(mm==null || mm !in 500..4000) context.getString(R.string.bikes_wheel_error) else null
             if(wheel.error==null) runtime.bikes.save(runtime.bikes.current().copy(wheelMm=mm!!))
         })
-        section(R.string.bikes_sensors)
+        val sensorsHeader = section(R.string.bikes_sensors)
         autoConnect=Switch(context).apply {
             tag="bike_auto_connect";setText(R.string.bikes_autoconnect);isChecked=profile.autoConnect
             setOnCheckedChangeListener { _,enabled -> if(!binding && runtime.bikes.activeSlot==slot) runtime.setAutoConnect(enabled) }
@@ -194,6 +199,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         }
         BicycleDialogStyle.control(fitToggle,themes)
         BicycleDialogStyle.actionIcon(fitToggle,themes,BicycleIcon.Expand)
+        sensorsHeader.sectionEnd = fitToggle
         addView(fitToggle,LayoutParams(-1,-2))
         addView(fitContent,LayoutParams(-1,-2))
         refresh()
@@ -218,7 +224,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             val selected=index==runtime.bikes.activeSlot
             cards[index].isSelected=selected;cards[index].contentDescription=p.name
             cards[index].stateDescription=if(selected) context.getString(R.string.bikes_selected) else context.getString(R.string.ui_not_selected)
-            cards[index].background=GradientDrawable().apply { setColor(if(selected) tokens.tertiary else tokens.secondary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat();setStroke(dp(if(selected) 2 else 1),tokens.foreground) }
+            cards[index].background=GradientDrawable().apply { setColor(if(selected) tokens.tertiary else tokens.secondary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat();setStroke(dp(if(selected) 2 else 1),BicycleComponents.selectionBorder(tokens,selected)) }
             cardNames[index].text=p.name
             cardImages[index].setImageDrawable(BikePreview(p.category).apply { setTint(tokens.foreground) })
         }
