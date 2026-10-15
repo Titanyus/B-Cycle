@@ -6,18 +6,28 @@ kompakte Dashboards und frei belegbare Datenfelder.
 
 ## APK herunterladen
 
-**[APK 0.7.20 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.20/downloads/B-Cycle-0.7.20-test.apk)**
+**[APK 0.7.21 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.21/downloads/B-Cycle-0.7.21-test.apk)**
 
 - Größe: **1,177,554 Byte**, rund **1,18 MB**.
 - Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.20/58.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.21/59.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.20-test.apk.sha256):
-  `d460c204a4b8b5bf2373db91eef9382ca47953875f61917245b8c090bf5867c5`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.21-test.apk.sha256):
+  `a592541a3ca8873492f3d8d2b0c32e272536d7405ae98e404b625abb177c8713`.
 
-3 gezielte UI-Tests und Release-Build mit R8, Resource-Shrinking und Lint-Vital
-erfolgreich. Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis](docs/milestone-0720.md).
+25 gezielte UI-Tests und 3 Kurventests vor dem APK-Build bestanden.
+Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich.
+Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
+[Buildnachweis](docs/milestone-0721.md).
+
+## Neu in APK 0.7.21
+
+- Sticky-Kategorien auf Fahrer, Bikes, Daten & Speicher und Design & UI.
+- Design & UI: Theme, Dashboard-Layout, Fahrmodus-Anzeige.
+- Kompakte einzeilige Zahlenfelder in 28-sp-Bebas-Neue mit dezentem Rahmen;
+  WebDAV-Felder mit gleichem Rahmen und Systemschrift.
+- FIT-Aufzeichnung als fester Abschnitt, zusätzliche Datenquellen einzeln aufklappbar.
+- Streckendetails: geglättete, deckende Diagrammflächen ohne zusätzliche Konturlinie.
 
 ## Neu in APK 0.7.20
 
