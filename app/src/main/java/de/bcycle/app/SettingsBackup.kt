@@ -53,6 +53,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
         selected.forEach { section -> sections.put(section.id, when(section) {
             BackupSection.DESIGN -> JSONObject().put("activeThemeId", themes.active.id).put("customThemes", jsonArray(themes.customThemes.map(::themeJson)))
                 .put("modeGlow", ModeGlowSettings.enabled(bike))
+                .put("dashboardFullscreen",DashboardFullscreen.enabled(bike))
 
             BackupSection.DASHBOARD -> JSONObject().put("pages", JSONArray().apply { repeat(4) { i ->
                 put(JSONObject().put("index", i).put("fields", jsonArray(DashboardLayout.decode(bike.getString(if(i==0) "dashboard" else "dashboard_$i", null)).fields.map { it.id }))
@@ -125,6 +126,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     check((BicycleThemes.presets + custom).any { it.id==active })
                     if(row.has("activeThemeId")) b[ThemeManager.activeKey]=active
                     if(row.has("modeGlow")) b[ModeGlowSettings.key]=boolean(row,"modeGlow")
+                    if(row.has("dashboardFullscreen")) b[DashboardFullscreen.key]=boolean(row,"dashboardFullscreen")
                     if(row.has("graphDisplay")) {
                         val mode=row.opt("graphDisplay") as? String ?: fail()
                         check(GraphDisplayMode.entries.any { it.name==mode })

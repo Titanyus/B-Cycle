@@ -678,4 +678,5 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="phone_time">Uhrzeit</string>
     <string name="battery_percent_compact">%1$d%%</string>
     <string name="battery_missing">—</string>
+    <string name="dashboard_fullscreen">Dashboard im Vollbild</string>
 </resources>

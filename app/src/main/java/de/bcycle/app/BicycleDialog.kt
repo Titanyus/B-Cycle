@@ -37,6 +37,7 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
     override fun setTitle(titleId: Int): AlertDialog.Builder = setTitle(context.getText(titleId))
     override fun create(): AlertDialog = super.create().also { screen ->
         navigation.track(screen, overlay = !fullscreen) {
+            screen.window?.let { DashboardFullscreen.apply(it,false) }
             BicycleNavigation.hideNavigationFooter(screen)
             BicycleDialogStyle.apply(screen, themes)
             if (fullscreen) BicycleFullscreen.apply(screen, themes)

@@ -35,6 +35,17 @@ class SettingsBackupTest {
     private fun failAs(reason:BackupProblem,action:()->Unit) {
         try { action();fail("Expected $reason") } catch(e:SettingsBackupFailure) { assertEquals(reason,e.problem) }
     }
+    @Test fun dashboardFullscreenRoundTripsAndLegacyDesignKeepsExistingChoice() {
+        bike.edit().putBoolean(DashboardFullscreen.key,false).commit()
+        val b=backup();val saved=b.export(setOf(BackupSection.DESIGN))
+        bike.edit().putBoolean(DashboardFullscreen.key,true).commit()
+        b.apply(b.plan(b.decode(saved),setOf(BackupSection.DESIGN)))
+        assertFalse(DashboardFullscreen.enabled(bike))
+        val legacy=json(saved)
+        legacy.getJSONObject("sections").getJSONObject("designUi").remove("dashboardFullscreen")
+        b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.DESIGN)))
+        assertFalse(DashboardFullscreen.enabled(bike))
+    }
     @Test fun compositeBatteryFieldsAndFullDataTemplateRoundTripThroughDashboardBackup() {
         val field=BatteryFields.field(listOf(BatterySource.EBIKE,BatterySource.HEART,BatterySource.PHONE))
         bike.edit().putString("dashboard",DashboardLayout.defaults.replace(2,field).encode())

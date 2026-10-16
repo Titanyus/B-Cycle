@@ -589,7 +589,7 @@ class MainActivity : Activity() {
             runOnUiThread { BicycleFeedback.show(applicationContext, if (ok) R.string.export_saved else R.string.export_failed, long = true) }
         }, "B-Cycle-diagnostic-export").start()
     }
-    override fun onStart() { super.onStart(); MessageNotifications.observers.add(messageObserver);notificationSettings?.refreshAccess();
+    override fun onStart() { super.onStart(); updateDashboardFullscreen(); MessageNotifications.observers.add(messageObserver);notificationSettings?.refreshAccess();
         val notifications=MessageNotificationSettings(this)
         if(notifications.enabled && notifications.granted) runCatching {
             android.service.notification.NotificationListenerService.requestRebind(android.content.ComponentName(this,MessageNotificationService::class.java))
@@ -624,6 +624,13 @@ class MainActivity : Activity() {
         (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
         setMapFullscreen(false); render()
     }
+    private fun updateDashboardFullscreen() {
+        if(::runtime.isInitialized) DashboardFullscreen.apply(window,DashboardFullscreen.enabled(preferences) && dialogs.empty)
+    }
+    override fun onWindowFocusChanged(hasFocus:Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if(hasFocus) updateDashboardFullscreen()
+    }
     private fun dashboardSettings() {
         val root = column()
         BicycleForm.section(root,runtime.themes,R.string.ui_theme)
@@ -636,6 +643,15 @@ class MainActivity : Activity() {
             val edit=preferences.edit(); presets.selection.forEachIndexed { page,template -> edit.putString("dashboardTemplate_$page",template.name) };edit.apply();changeDashboard(0)
         }
         root.addView(presets)
+        root.addView(Switch(settingsContext).apply {
+            tag="dashboard_fullscreen";setText(R.string.dashboard_fullscreen)
+            isChecked=DashboardFullscreen.enabled(preferences)
+            BicycleDialogStyle.control(this,runtime.themes)
+            setOnCheckedChangeListener { _,checked ->
+                preferences.edit().putBoolean(DashboardFullscreen.key,checked).apply()
+                updateDashboardFullscreen()
+            }
+        })
         BicycleForm.section(root,runtime.themes,R.string.ui_mode_glow)
         root.addView(label(getString(R.string.ui_mode_glow_description)))
         val glow = Switch(settingsContext).apply {
