@@ -48,7 +48,7 @@ selbst zeigt die berechnete Prozentzahl. Fehlende Profilparameter liefern „—
 
 ZoneAmbientGlow verwendet wie BoschModeGlow radial auslaufendes Ambient-Licht.
 Es liegt als separate Hintergrundebene unter Graph und Text. Etwa 40 % Höhe,
-maximal 100/255 Alpha, an den Seiten und nach oben transparent. Keine Balken,
+wie der Rand-Glow 140/255 Alpha mit drei additiven Lichtbeiträgen, an den Seiten und nach oben transparent. Keine Balken,
 Rahmen, Layoutänderungen, farbigen Texte oder Icons. Aus ist Standard und lässt
 den bisherigen Kachelhintergrund unverändert. Bosch-Glow und Akkuwarnung bleiben
 unabhängig und funktionieren auch ohne Zonen-Glow.

@@ -52,56 +52,36 @@ class BatteryFieldsTest {
         send(90,0);assertNull(battery.level)
         battery.stop();send(90);assertNull(battery.level)
     }
-    @Test fun pickerKeepsPhoneSelectableAndDisablesPercentFieldsOnlyWhileCombinationIsActive() {
-        val initial=listOf(BatterySource.EBIKE,BatterySource.HEART,BatterySource.TRAINER,BatterySource.POWER)
-        var chosen:DashboardField?=BatteryFields.field(initial)
-        var closed=false
-        val picker=FieldPickerView(app,LiveData(),GpsValues(),null,PulseValues(),chosen,false,
+    @Test fun batteryPickerOffersOnlyAvailableDevicesAndPhoneCanAlwaysBeToggled() {
+        val snapshot=BatterySnapshot(mapOf(BatterySource.EBIKE to 72,BatterySource.HEART to 60,BatterySource.TRAINER to 80,BatterySource.PHONE to 50))
+        var chosen:DashboardField?=null;var closed=false
+        val picker=FieldPickerView(app,LiveData(batteries=snapshot),GpsValues(),null,PulseValues(),DashboardField("PHONE_BATTERY"),false,
             batteryChoose={ chosen=it },choose={ closed=true })
-        val spinner=picker.findViewWithTag<Spinner>("field_source")
-        assertEquals("Akku",spinner.selectedItem)
+        assertEquals("Akku",picker.findViewWithTag<Spinner>("field_source").selectedItem)
+        assertNull(picker.findViewWithTag<View>("battery_select_TRAINER"))
+        assertNull(picker.findViewWithTag<View>(BatteryFields.COMBINED))
         val phone=picker.findViewWithTag<CheckBox>("battery_select_PHONE")
-        assertFalse(phone.isEnabled)
-        picker.findViewWithTag<CheckBox>("battery_select_POWER").performClick()
-        assertTrue(phone.isEnabled);phone.performClick()
-        assertEquals(4,chosen!!.batterySources!!.size);assertTrue(BatterySource.PHONE in chosen!!.batterySources!!)
+        assertTrue(phone.isEnabled);assertTrue(phone.isChecked)
+        phone.performClick();assertNull(chosen);assertTrue(phone.isEnabled)
+        phone.performClick();assertEquals(listOf(BatterySource.PHONE),chosen!!.batterySources)
+        picker.findViewWithTag<CheckBox>("battery_select_EBIKE").performClick()
+        assertEquals(setOf(BatterySource.PHONE,BatterySource.EBIKE),chosen!!.batterySources!!.toSet())
         assertFalse(closed)
-        for(source in listOf(BatterySource.EBIKE,BatterySource.HEART,BatterySource.TRAINER)) picker.findViewWithTag<CheckBox>("battery_select_${source.name}").performClick()
-        assertEquals(listOf(BatterySource.PHONE),chosen!!.batterySources)
-        assertTrue(phone.isEnabled)
-        assertFalse(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
-        phone.performClick()
-        assertNull(chosen)
-        assertTrue(phone.isEnabled)
-        assertTrue(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
-        phone.performClick()
-        assertEquals(listOf(BatterySource.PHONE),chosen!!.batterySources)
-        picker.findViewWithTag<android.widget.Switch>(BatteryFields.COMBINED).performClick()
-        assertNull(chosen)
-        spinner.setSelection((0 until spinner.adapter.count).first { spinner.adapter.getItem(it)=="Smartphone" })
-        shadowOf(Looper.getMainLooper()).idle()
-        assertTrue(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
-        assertFalse(closed)
+        val indoor=FieldPickerView(app,LiveData(indoor=true,batteries=snapshot),GpsValues(),null,PulseValues(),BatteryFields.field(listOf(BatterySource.PHONE)),false,choose={})
+        assertNull(indoor.findViewWithTag<View>("battery_select_EBIKE"));assertNotNull(indoor.findViewWithTag<View>("battery_select_TRAINER"))
+        val missing=FieldPickerView(app,LiveData(batteries=BatterySnapshot(mapOf(BatterySource.PHONE to 40))),GpsValues(),null,PulseValues(),BatteryFields.field(listOf(BatterySource.EBIKE)),false,choose={})
+        assertNull(missing.findViewWithTag<View>("battery_select_EBIKE"));assertNull(missing.findViewWithTag<View>("battery_select_HEART"))
+        assertNotNull(missing.findViewWithTag<View>("battery_select_PHONE"))
     }
-    @Test fun percentChoicesStayDisabledAcrossCategoriesUntilCombinationIsSwitchedOff() {
-        val field=BatteryFields.field(listOf(BatterySource.PHONE))
-        val picker=FieldPickerView(app,LiveData(),GpsValues(),null,PulseValues(),field,false,batteryChoose={},choose={})
+    @Test fun individualPercentOptionsAreAbsentInEveryCategoryButLegacyIdsStillLoad() {
+        val picker=FieldPickerView(app,LiveData(batteries=BatterySnapshot(mapOf(BatterySource.PHONE to 50))),GpsValues(),null,PulseValues(),DashboardField("PHONE_BATTERY"),false,choose={})
         val spinner=picker.findViewWithTag<Spinner>("field_source")
-        fun source(name:String) {
-            spinner.setSelection((0 until spinner.adapter.count).first { spinner.adapter.getItem(it)==name })
-            shadowOf(Looper.getMainLooper()).idle()
+        for(position in 0 until spinner.adapter.count) {
+            spinner.setSelection(position);shadowOf(Looper.getMainLooper()).idle()
+            for(id in listOf("BATTERY","HEART_BATTERY","TRAINER_BATTERY","PHONE_BATTERY")) {
+                assertNull(picker.findViewWithTag<View>(id));assertNotNull(DashboardField.fromId(id))
+            }
         }
-        for((category,id) in listOf("Akku" to "PHONE_BATTERY","Smartphone" to "PHONE_BATTERY","Pulsmesser" to "HEART_BATTERY","E-Bike" to "BATTERY")) {
-            source(category)
-            assertFalse(picker.findViewWithTag<android.widget.RadioButton>(id).isEnabled)
-        }
-        source("Akku")
-        picker.findViewWithTag<android.widget.Switch>(BatteryFields.COMBINED).performClick()
-        assertTrue(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
-        source("Smartphone")
-        assertTrue(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
-        val reopened=FieldPickerView(app,LiveData(),GpsValues(),null,PulseValues(),field,false,dataVisible=false,choose={})
-        assertTrue(reopened.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
     }
     @Test fun threeColumnDashboardAndMapRenderFourCompactRowsIncludingMissingValuesAndStatusMarks() {
         val snapshot=BatterySnapshot(mapOf(BatterySource.EBIKE to 72,BatterySource.HEART to 19,BatterySource.PHONE to 9))

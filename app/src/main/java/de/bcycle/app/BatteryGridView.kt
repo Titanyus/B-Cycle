@@ -17,7 +17,7 @@ internal class BatteryGridRenderer(private val context:Context, private val fore
         val columns=if(sources.size==1) 1 else 2
         val rows=(sources.size+columns-1)/columns
         val cellWidth=bounds.width()/columns
-        val scale=minOf(cellWidth/(48*density),bounds.height()/(rows*24*density),1.9f)
+        val scale=minOf(cellWidth/(48*density),bounds.height()/(rows*24*density),1.9f)*.9f
         if(scale<=0) return
         val u=density*scale
         val rowHeight=24*u

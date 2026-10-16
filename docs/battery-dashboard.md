@@ -3,8 +3,8 @@
 ## Datenfeldauswahl
 
 Unter Daten gibt es zusätzlich **Akku** und **Smartphone**, mit zentralem Batterie-
-bzw. Smartphone-Icon. Vorhandene Einzelwerte bleiben in ihren bisherigen Kategorien
-auffindbar; die Akku-Kategorie sammelt Füllstände zusätzlich als gezielte Aliase.
+bzw. Smartphone-Icon. Akku-Füllstände werden direkt unter Akku ausgewählt; einzelne
+Prozentfelder werden im Dashboard-Picker vorerst nicht mehr angeboten.
 
 - E-Bike-Füllstand aus dem bestehenden aktuellen Bosch-Wert.
 - Pulsmesser-Akku nur bei aktiviertem, live verbundenem externen Pulsmesser.
@@ -15,18 +15,28 @@ auffindbar; die Akku-Kategorie sammelt Füllstände zusätzlich als gezielte Ali
 - Ein separater Powermeter ist weiterhin nicht angebunden. Sein stabiler Quellenschlüssel
   ist für spätere Unterstützung vorbereitet, wird aktuell nicht neu angeboten.
 
-Smartphone bietet **Uhrzeit (HH:mm, lokale Gerätezeit)** und **Akkustand**. Die Uhrzeit
+Smartphone bietet **Uhrzeit (HH:mm, lokale Gerätezeit)**. Der Smartphone-Akku steht
+in der direkten Akku-Mehrfachauswahl. Die Uhrzeit
 ist eine Live-Anzeige, kein Fahrtzähler, und läuft unabhängig von START/STOPP.
 
-**Kombinierte Akkuanzeige:** ein bis vier Quellen pro Datenfeld auswählen. Ein Schalter
-aktiviert/deaktiviert die Kombination. Auswahländerungen werden sofort übernommen,
-der Dialog bleibt offen. Der letzte gewählte Akku bleibt bedienbar; Abwahl aller Quellen
-schaltet die Kombination aus und zeigt keine Daten. Der Schalter kann sie erneut aktivieren
-(leere Auswahl beginnt mit Smartphone). Einzelne Prozentfelder sind nur bei aktiver
-Kombination deaktiviert/gedimmt, auch in anderen Kategorien. Nach Ausschalten wieder
-wählbar. Alle bereits unterstützten Akkus sind unabhängig vom Profil zur Auswahl sichtbar;
-fehlende Quellen bleiben ohne erfundene Werte. Maximal vier Quellen, nur weitere noch
-nicht ausgewählte Quellen bei Erreichen des Limits sperren.
+**Akkuanzeige:** direkt ein bis vier Akkus auswählen. Kein zusätzlicher Schalter
+für eine Kombianzeige und keine separaten Prozent-Radiofelder. Auswahländerungen
+werden sofort übernommen, der Dialog bleibt offen. Auch der letzte Akku bleibt
+abwählbar; ohne Auswahl keine Daten. Alte Prozent-Feld-IDs bleiben für bestehende
+Dashboards und Backups lesbar, werden aber nicht mehr zur Auswahl angeboten.
+
+Angeboten werden nur aktuell verfügbare Akkustände: E-Bike oder Indoor-Trainer passend
+zum aktiven Bikeprofil, verbundener Pulsmesser mit Akkudaten und Smartphone.
+Keine Traineroption im E-Bike-Profil. Gespeicherte Quellen anderer/nicht verbundener
+Geräte werden nicht als neue Auswahl angeboten; beim Bearbeiten zählt nur die
+verfügbare Auswahl. Bereits konfigurierte Anzeigefelder behalten fehlende Quellen
+als Strich, bis der Nutzer die Auswahl ändert.
+
+Bosch meldet den Akkustand nur bei Änderung. Ein gültiger zuletzt empfangener Wert
+bleibt während der laufenden LIVE-Verbindung sichtbar, ohne 60-Sekunden-Verfall.
+Trennung, Bikewechsel und neuer Verbindungsaufbau verwerfen den Verbindungspuffer;
+ohne neue Batteriemeldung wird kein alter Stand übernommen. Echte 0 % bleibt gültig.
+Die übrigen Sensor-Frischeregeln und FIT-Aufzeichnung bleiben unverändert.
 
 Persistenz über stabile Feld-IDs `BATTERIES:EBIKE,HEART,PHONE` usw.; keine zusätzlichen
 per-Layout-Prefs. Neue Auswahlen in fester Quellenreihenfolge E-Bike, Puls, Trainer,
@@ -40,8 +50,9 @@ Einträge als **Icon · vertikaler Balken · Prozent**, ohne zusätzliche Übers
 zwei Spalten, ab drei zwei Reihen. Gemeinsamer Canvas-Renderer, feste Sensoridentität
 über SensorIcons/BicycleIcons, bestehende schmale Zahlenschrift. Bis vier Einträge
 passen auch in schmale Dreierkacheln. Der Balken füllt sich von unten nach oben.
-Durch die schmaleren Balken größere Darstellung, je nach Platz bis rund 27 % gegenüber
-der ersten Version; die verfügbare Breite/Höhe begrenzt die Skalierung. Quellen ohne gültigen, aktuell verfügbaren Wert
+Durch die schmaleren Balken größere Darstellung; die verfügbare Breite/Höhe begrenzt
+die Skalierung. Nach der Vergrößerung für 0.7.29 wird die kombinierte Darstellung
+nochmals um 10 % reduziert, einheitlich für Dashboard und Karte. Quellen ohne gültigen, aktuell verfügbaren Wert
 bleiben mit **„—“** im Raster; echte 0 % bleiben sichtbar. Kein Zusammenschieben der
 Slots, kein Ersetzen fehlender Werte durch 0 oder historische Daten.
 

@@ -120,6 +120,7 @@ object BicycleDesign {
     const val presetTileGap = 2
     const val modeGlowWidth = 24
     const val modeGlowAlpha = 140
+    const val ambientGlowPasses = 3
     const val themeColumns = 4
     const val themeTileMinimumWidth = 68
     const val themeTileHeight = 136

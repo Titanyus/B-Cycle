@@ -28,6 +28,8 @@ internal object BoschModeColors {
     }
 }
 
+internal enum class ModeGlowPlacement(val label:Int) { SIDES(R.string.mode_glow_sides), TOP(R.string.mode_glow_top) }
+
 /** Cached shaders, additive light, 1.5 s mode fades and a visible-only low-battery breath. */
 internal class BoschModeGlow(private val edgeWidth: Float,
                             private val clock: () -> Long = { android.os.SystemClock.uptimeMillis() }) : Drawable() {
@@ -46,7 +48,13 @@ internal class BoschModeGlow(private val edgeWidth: Float,
     private val matrix = Matrix()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val frame = Runnable { invalidateSelf() }
-    private val width get() = (edgeWidth * 1.5f).coerceAtMost(bounds.width() / 2f)
+    internal var placement=ModeGlowPlacement.SIDES; private set
+    fun place(value:ModeGlowPlacement) {
+        if(placement==value) return
+        placement=value;rebuild();invalidateSelf()
+    }
+    private val maximumDepth get()=if(placement==ModeGlowPlacement.TOP) bounds.height()/2f else bounds.width()/2f
+    private val width get() = (edgeWidth * 1.5f).coerceAtMost(maximumDepth)
     private fun progress() = if (started < 0) 1f else ((clock() - started) / 1500f).coerceIn(0f, 1f)
     private fun currentColor(): Int {
         val t = progress()
@@ -81,7 +89,7 @@ internal class BoschModeGlow(private val edgeWidth: Float,
         fun edge(x: Float): Shader = RadialGradient(0f, 0f, 1f, colors, floatArrayOf(0f, .4f, 1f), Shader.TileMode.CLAMP).apply {
             setLocalMatrix(Matrix().apply { setScale(width, bounds.height() / 2f); postTranslate(x, bounds.exactCenterY()) })
         }
-        return edge(bounds.left.toFloat()) to edge(bounds.right.toFloat())
+        return if(placement==ModeGlowPlacement.TOP) edge(bounds.exactCenterX()) to null else edge(bounds.left.toFloat()) to edge(bounds.right.toFloat())
     }
     private fun rebuild() {
         edges(fromColor).let { fromLeft = it.first; fromRight = it.second }
@@ -95,7 +103,7 @@ internal class BoschModeGlow(private val edgeWidth: Float,
         // Cosine easing has zero velocity at both ends: 2 s in, 2 s out.
         val breath = if (warningColor == null) 0f else
             ((1.0 - kotlin.math.cos(((clock() - breathingStarted).coerceAtLeast(0) % 4000) * kotlin.math.PI / 2000)) / 2).toFloat()
-        val animatedWidth = (width * (1 + .5f * breath)).coerceAtMost(bounds.width() / 2f)
+        val animatedWidth = (width * (1 + .5f * breath)).coerceAtMost(maximumDepth)
         val save = canvas.save(); canvas.clipRect(bounds)
         paint.color = Color.WHITE; paint.blendMode = android.graphics.BlendMode.PLUS
         fun layer(left: Shader?, right: Shader?, fraction: Float) {
@@ -105,13 +113,19 @@ internal class BoschModeGlow(private val edgeWidth: Float,
                 matrix.reset(); matrix.setScale(animatedWidth, bounds.height() / 2f)
                 matrix.postTranslate(x, bounds.exactCenterY()); shader?.setLocalMatrix(matrix)
             }
-            position(left, bounds.left.toFloat()); position(right, bounds.right.toFloat())
-            // Three light contributions = three times the former intensity, capped by the display.
-            repeat(3) {
+            if(placement==ModeGlowPlacement.TOP) {
+                matrix.reset();matrix.setScale(bounds.width()/2f,animatedWidth)
+                matrix.postTranslate(bounds.exactCenterX(),bounds.top.toFloat());left.setLocalMatrix(matrix)
+            } else { position(left, bounds.left.toFloat()); position(right, bounds.right.toFloat()) }
+            repeat(BicycleDesign.ambientGlowPasses) {
                 paint.shader = left
-                canvas.drawRect(bounds.left.toFloat(), bounds.top.toFloat(), bounds.left + animatedWidth, bounds.bottom.toFloat(), paint)
-                paint.shader = right
-                canvas.drawRect(bounds.right - animatedWidth, bounds.top.toFloat(), bounds.right.toFloat(), bounds.bottom.toFloat(), paint)
+                if(placement==ModeGlowPlacement.TOP) {
+                    canvas.drawRect(bounds.left.toFloat(),bounds.top.toFloat(),bounds.right.toFloat(),bounds.top+animatedWidth,paint)
+                } else {
+                    canvas.drawRect(bounds.left.toFloat(), bounds.top.toFloat(), bounds.left + animatedWidth, bounds.bottom.toFloat(), paint)
+                    paint.shader = right
+                    canvas.drawRect(bounds.right - animatedWidth, bounds.top.toFloat(), bounds.right.toFloat(), bounds.bottom.toFloat(), paint)
+                }
             }
         }
         layer(fromLeft, fromRight, (1 - t) * (1 - breath))
@@ -136,6 +150,9 @@ internal class BoschModeGlow(private val edgeWidth: Float,
 
 internal object ModeGlowSettings {
     const val key = "modeGlowEnabled"
+    const val placementKey="modeGlowPlacement"
+    fun placement(preferences:android.content.SharedPreferences)=
+        runCatching { ModeGlowPlacement.valueOf(preferences.getString(placementKey,ModeGlowPlacement.SIDES.name)!!) }.getOrDefault(ModeGlowPlacement.SIDES)
     fun enabled(preferences: android.content.SharedPreferences) = preferences.getBoolean(key, false)
     fun save(preferences: android.content.SharedPreferences, enabled: Boolean) { preferences.edit().putBoolean(key, enabled).apply() }
 }

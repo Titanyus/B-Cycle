@@ -254,6 +254,7 @@ class MainActivity : Activity() {
         dashboard.showDataVisibility(dashboardDataVisibility)
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
+        dashboard.modeGlow.place(ModeGlowSettings.placement(preferences))
         dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
         if (::mapPanel.isInitialized && currentTemplate().hasMap) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
@@ -659,6 +660,19 @@ class MainActivity : Activity() {
             isChecked = ModeGlowSettings.enabled(preferences)
         }
         root.addView(glow)
+        root.addView(RadioGroup(settingsContext).apply {
+            tag="mode_glow_placement"
+            ModeGlowPlacement.entries.forEach { placement ->
+                addView(RadioButton(settingsContext).apply {
+                    id=View.generateViewId();tag="mode_glow_${placement.name}";setText(placement.label)
+                    isChecked=ModeGlowSettings.placement(preferences)==placement
+                    BicycleDialogStyle.control(this,runtime.themes)
+                    setOnCheckedChangeListener { _,checked -> if(checked) {
+                        preferences.edit().putString(ModeGlowSettings.placementKey,placement.name).apply();render()
+                    } }
+                })
+            }
+        })
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(button(getString(R.string.dashboard_editor_open), BicycleIcon.EditDashboard) { enterDashboardEditor() }.apply { tag = "dashboard_editor_open" })
         glow.setOnCheckedChangeListener { _,checked -> ModeGlowSettings.save(preferences,checked); render() }

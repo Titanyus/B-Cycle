@@ -151,7 +151,9 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     val currentBikeLight: Boolean? get() = bikeData.value(LiveMetric.BIKE_LIGHT)
         ?.takeIf { it in 0..1 && fresh(LiveMetric.BIKE_LIGHT, SystemClock.elapsedRealtime()) }?.let { it == 1L }
     val currentBikeBattery: Long? get() = bikeData.value(LiveMetric.BATTERY)
-        ?.takeIf { it in 0..100 && fresh(LiveMetric.BATTERY, SystemClock.elapsedRealtime()) }
+        // Bosch sends battery changes, not a periodic heartbeat. Its connection buffer is
+        // cleared on disconnect; retain a valid reading for this live session only.
+        ?.takeIf { it in 0..100 && connection.isLive && !isIndoor }
     val currentAssistMode: Long? get() = bikeData.value(LiveMetric.ASSIST_MODE)
         .takeIf { fresh(LiveMetric.ASSIST_MODE, SystemClock.elapsedRealtime()) }
     internal fun trainingInputs(now: Long = SystemClock.elapsedRealtime()): TrainingInputs = TrainingInputs(

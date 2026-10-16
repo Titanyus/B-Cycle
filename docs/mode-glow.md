@@ -92,3 +92,17 @@ Für die Rücknahme wurden nur die beiden vorhandenen nativen Pixeltests für sy
 Verläufe/Clipping und Akku-Breathing/Breitenverhalten ausgeführt. Beide bestanden;
 Kompilierung und gezielter Testlauf zusammen 7 Sekunden. Die Korrektur ist inzwischen
 in der [Test-APK 0.7.10](milestone-0710.md) enthalten.
+
+## Position Oben oder Seitlich
+
+Design & UI → Fahrmodus-Anzeige bietet die Auswahl Seitlich (bisheriger Standard)
+oder Oben. Oben zeichnet denselben sanften Lichtverlauf horizontal entlang der
+oberen Dashboardkante, ohne seitliche Lichtquellen. Tiefe, Helligkeit, Farbwechsel
+und Warn-Breathing bleiben erhalten; Positionswechsel startet keine Animation neu.
+Akkuwarnungen folgen der Position auch bei ausgeschaltetem Fahrmodus-Glow.
+`modeGlowPlacement` speichert SIDES/TOP; alte Einstellungen verwenden SIDES.
+Design-Backups übernehmen die Wahl; alte Backups ohne Feld erhalten die aktuelle Wahl.
+Ungültige Importwerte werden abgelehnt.
+
+Rand- und Zonen-Glow nutzen dieselben zentralen Helligkeitsparameter: 140/255
+und drei additive Lichtbeiträge (BicycleDesign.ambientGlowPasses).

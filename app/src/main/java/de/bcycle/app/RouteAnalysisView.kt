@@ -107,7 +107,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                 orientation = LinearLayout.HORIZONTAL; isBaselineAligned = false; tag = "analysis_best_efforts"
                 addView(AnalysisSideLabel(context, themes, R.string.analysis_best_efforts), LinearLayout.LayoutParams(dp(BicycleDesign.analysisSideLabelWidth), -1))
             }
-            analysis.bestEfforts.take(4).forEachIndexed { index, effort ->
+            analysis.bestEfforts.take(4).sortedBy { it.durationMs }.forEachIndexed { index, effort ->
                 if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f }, LinearLayout.LayoutParams(BicycleDesign.linePixels(context), -1))
                 row.addView(BestEffortTile(context, themes, effort, weight), LinearLayout.LayoutParams(0, -1, 1f))
             }

@@ -25,10 +25,20 @@ internal class FitLibrary(root: File) {
     var entries: List<StoredFit> = emptyList(); private set
     private val excluded = mutableSetOf<String>()
     private val seenDownloads = mutableSetOf<String>()
+    private val correctedHashes=mutableMapOf<String,Triple<Long,Long,String>>()
+    private fun correctedHash(id:String):String? {
+        val corrected=correctedFile(directory.parentFile!!,id)
+        if(!corrected.isFile) { correctedHashes.remove(id);return null }
+        val length=corrected.length();val modified=corrected.lastModified()
+        val cached=correctedHashes[id]
+        if(cached!=null && cached.first==length && cached.second==modified) return cached.third
+        return hash(corrected).also { correctedHashes[id]=Triple(length,modified,it) }
+    }
     internal fun file(id: String): File = activeFile(directory.parentFile!!,id)
     internal fun originalFile(id:String):File { validateId(id);return File(directory,"$id.fit") }
     internal fun corrected(id:String)=correctedFile(directory.parentFile!!,id).isFile
     internal fun refreshDetails(id:String) {
+        correctedHashes.remove(id)
         val read=FitRead.read(file(id))
         save(entries.map { if(it.id==id) it.copy(details=read.details.copy(dateMs=it.details.dateMs),hasRoute=read.route!=null) else it })
     }
@@ -75,7 +85,10 @@ internal class FitLibrary(root: File) {
             temporary.outputStream().use { output -> copyBounded(input, output) }
             val hash = hash(temporary)
             if (automatic && hash in excluded) return null
+            // A Downloads copy may contain our corrected version, whose bytes differ
+            // from the immutable original. Match the active version by exact hash too.
             val existing = entries.firstOrNull { it.id.endsWith(hash) }
+                ?: entries.firstOrNull { correctedHash(it.id)==hash }
             if (existing != null) {
                 if (!file(existing.id).isFile) {
                     val original = AtomicFile(file(existing.id)); val output = original.startWrite()

@@ -60,6 +60,44 @@ class BoschModeGlowTest {
         glow.update(null); now += 1500; assertNull(glow.leftShader)
         bitmap.eraseColor(Color.MAGENTA); glow.draw(Canvas(bitmap)); assertEquals(Color.BLACK, bitmap.getPixel(11, 80))
     }
+    @Test fun topPlacementMovesTheLightWithoutResettingModeOrBatteryBreathing() {
+        var now=0L
+        val glow=BoschModeGlow(24f) { now };glow.setBounds(0,0,200,300)
+        glow.update(Color.BLUE);now=1500
+        val b=Bitmap.createBitmap(200,300,Bitmap.Config.ARGB_8888)
+        glow.place(ModeGlowPlacement.TOP);glow.draw(Canvas(b))
+        assertTrue(Color.blue(b.getPixel(100,2))>0)
+        assertEquals(Color.BLACK,b.getPixel(2,150))
+        assertEquals(Color.BLACK,b.getPixel(100,80))
+        assertTrue(Color.blue(b.getPixel(100,2))>Color.blue(b.getPixel(2,2)))
+        val shader=glow.leftShader;glow.place(ModeGlowPlacement.TOP);assertSame(shader,glow.leftShader)
+        glow.update(null,10);now=3500;glow.draw(Canvas(b))
+        assertTrue(Color.red(b.getPixel(100,2))>0);assertTrue(Color.red(b.getPixel(100,2))>Color.blue(b.getPixel(100,2)))
+        assertEquals(Color.BLACK,b.getPixel(2,150))
+        glow.place(ModeGlowPlacement.SIDES);glow.draw(Canvas(b))
+        assertTrue(Color.red(b.getPixel(2,150))>0);assertEquals(Color.BLACK,b.getPixel(100,2))
+    }
+    @Test fun placementChoiceIsSavedImmediatelyAndRestoredInDesignSettings() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=controller.get();val prefs=a.getSharedPreferences("bike",0)
+            assertEquals(ModeGlowPlacement.SIDES,ModeGlowSettings.placement(prefs))
+            fun open():android.app.AlertDialog {
+                views(a.window.decorView).single { it.contentDescription==a.getString(R.string.ui_menu_open) }.performClick()
+                val menu=ShadowAlertDialog.getLatestAlertDialog()
+                views(menu.window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
+                return ShadowAlertDialog.getLatestAlertDialog()
+            }
+            var screen=open()
+            screen.window!!.decorView.findViewWithTag<android.widget.RadioButton>("mode_glow_TOP").performClick()
+            assertEquals(ModeGlowPlacement.TOP,ModeGlowSettings.placement(prefs))
+            val dashboard=views(a.window.decorView).filterIsInstance<DashboardView>().single()
+            assertEquals(ModeGlowPlacement.TOP,dashboard.modeGlow.placement)
+            screen.dismiss();ShadowAlertDialog.getLatestAlertDialog().dismiss()
+            screen=open()
+            assertTrue(screen.window!!.decorView.findViewWithTag<android.widget.RadioButton>("mode_glow_TOP").isChecked)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun transitionsFadeFor1500msIncludingOffAndInterruptedChangesWithoutShaderChurn() {
         var now = 0L
         val glow = BoschModeGlow(24f) { now }; glow.setBounds(0, 0, 200, 300)
@@ -125,7 +163,7 @@ class BoschModeGlowTest {
         glow.update(null, 11); assertEquals(0xffffb000.toInt(), glow.warningColor)
         glow.update(null, 0); assertEquals(0xffff3030.toInt(), glow.warningColor)
     }
-    @Test fun batteryWarningInputRequiresAFreshLiveBikeSample() {
+    @Test fun batteryWarningRetainsLastBatteryForLiveSessionButClearsOnDisconnect() {
         val runtime = RideRuntime.get(RuntimeEnvironment.getApplication())
         val phase = runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible = true }
         val live = requireNotNull(phase.type.enumConstants).single { it.toString() == "LIVE" }
@@ -137,7 +175,11 @@ class BoschModeGlowTest {
         assertEquals(20L, runtime.currentBikeBattery)
         phase.set(runtime.connection, stopped); assertNull(runtime.currentBikeBattery)
         phase.set(runtime.connection, live)
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(61)); assertNull(runtime.currentBikeBattery)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(61)); assertEquals(20L,runtime.currentBikeBattery)
+        runtime.connection.stop();assertNull(runtime.currentBikeBattery)
+        phase.set(runtime.connection,live);assertNull(runtime.currentBikeBattery)
+        runtime.onData(LiveData(otherValues=mapOf(LiveMetric.BATTERY to 0L)),true);assertEquals(0L,runtime.currentBikeBattery)
+        runtime.onData(LiveData(otherValues=mapOf(LiveMetric.BATTERY to 101L)),true);assertNull(runtime.currentBikeBattery)
     }
     @Test fun everyDashboardKeepsGeometryTouchAndTextWhileGlowTracksActualSizeAndMode() {
         val app = RuntimeEnvironment.getApplication()

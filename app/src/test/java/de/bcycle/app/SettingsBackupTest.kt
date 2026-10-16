@@ -35,6 +35,19 @@ class SettingsBackupTest {
     private fun failAs(reason:BackupProblem,action:()->Unit) {
         try { action();fail("Expected $reason") } catch(e:SettingsBackupFailure) { assertEquals(reason,e.problem) }
     }
+    @Test fun glowPlacementRoundTripsAndLegacyDesignKeepsCurrentPlacement() {
+        bike.edit().putString(ModeGlowSettings.placementKey,"TOP").commit()
+        val b=backup();val bytes=b.export(setOf(BackupSection.DESIGN))
+        bike.edit().putString(ModeGlowSettings.placementKey,"SIDES").commit()
+        b.apply(b.plan(b.decode(bytes),setOf(BackupSection.DESIGN)))
+        assertEquals(ModeGlowPlacement.TOP,ModeGlowSettings.placement(bike))
+        val legacy=json(bytes)
+        legacy.getJSONObject("sections").getJSONObject("designUi").remove("modeGlowPlacement")
+        b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.DESIGN)))
+        assertEquals(ModeGlowPlacement.TOP,ModeGlowSettings.placement(bike))
+        legacy.getJSONObject("sections").getJSONObject("designUi").put("modeGlowPlacement","UNKNOWN")
+        failAs(BackupProblem.INVALID) { b.decode(legacy.toString().toByteArray()) }
+    }
     @Test fun dashboardFullscreenRoundTripsAndLegacyDesignKeepsExistingChoice() {
         bike.edit().putBoolean(DashboardFullscreen.key,false).commit()
         val b=backup();val saved=b.export(setOf(BackupSection.DESIGN))

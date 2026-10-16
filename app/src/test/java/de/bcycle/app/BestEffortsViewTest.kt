@@ -35,6 +35,7 @@ class BestEffortsViewTest {
             measure(screen, width)
             val tiles = all(screen).filterIsInstance<BestEffortTile>()
             assertEquals(4, tiles.size)
+            assertEquals(listOf(480000L,1200000L,3600000L,7200000L).map { "analysis_effort_$it" },tiles.map { it.tag })
             assertTrue(tiles.maxOf { it.width } - tiles.minOf { it.width } <= 1)
             for (tile in tiles) {
                 assertTrue(all(tile).filterIsInstance<TextView>().any { it.text == context.getString(R.string.analysis_effort_relative, context.getString(R.string.analysis_ratio_format, 2.5)) })

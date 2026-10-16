@@ -64,6 +64,30 @@ class FitLibraryTest {
             assertNotNull(original.inputStream().use { restarted.add(it, "Bewusst wieder importiert", false) })
         } finally { root.deleteRecursively() }
     }
+    @Test fun correctedDownloadsCopyIsTheSameRideAndNeverCreatesASecondEntry() {
+        val root=Files.createTempDirectory("fit-corrected-dedup").toFile()
+        try {
+            val original=fit(root);val raw=original.readBytes()
+            val retained=FitLibrary.retainRecording(root,original)
+            val library=FitLibrary(root);library.load()
+            val entry=library.entries.single();library.rename(entry.id,"Meine Fahrt")
+            val corrected=FitLibrary.correctedFile(root,entry.id).apply { parentFile!!.mkdirs() }
+            // A different valid FIT represents the corrected export; matching is exact bytes,
+            // never merely date/name/distance, so separate real rides remain separate.
+            fit(root,false).copyTo(corrected)
+            val imported=corrected.inputStream().use { library.add(it,"B-Cycle-export.fit",true,automatic=true) }!!
+            assertEquals(entry.id,imported.id);assertEquals("Meine Fahrt",imported.name)
+            assertEquals(1,library.entries.size);assertArrayEquals(raw,retained.readBytes())
+            val reopened=FitLibrary(root);reopened.load()
+            corrected.inputStream().use { reopened.add(it,"Again.fit",false) }
+            assertEquals(1,reopened.entries.size)
+            // Re-correction invalidates the cached content identity.
+            corrected.writeBytes(raw);library.refreshDetails(entry.id)
+            val different=fit(root,false)
+            different.inputStream().use { library.add(it,"Other ride.fit",false) }
+            assertEquals(2,library.entries.size)
+        } finally { root.deleteRecursively() }
+    }
     @Test fun invalidFitCannotReplaceExistingEntriesAndSensorOnlyActivitiesHaveNoMapAction() {
         val root = Files.createTempDirectory("fit-library").toFile()
         try {

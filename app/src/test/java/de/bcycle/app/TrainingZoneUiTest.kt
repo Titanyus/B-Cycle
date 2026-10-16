@@ -108,6 +108,16 @@ class TrainingZoneUiTest {
         try { backup.decode(json.toString().toByteArray());fail("Invalid sources must be rejected") } catch(e:SettingsBackupFailure) { assertEquals(BackupProblem.INVALID,e.problem) }
         configs.forEachIndexed { i,c -> assertEquals(c,ZoneGlowConfig.read(prefs,i)) }
     }
+    @Test fun zoneAndModeGlowUseTheSameLightIntensityAndFalloff() {
+        var now=0L
+        val zone=ZoneAmbientGlow { now };zone.setBounds(0,0,200,100);zone.update(Color.BLUE)
+        val mode=BoschModeGlow(40f/1.5f) { now };mode.setBounds(0,0,200,200);mode.update(Color.BLUE)
+        now=1500
+        val a=Bitmap.createBitmap(200,100,Bitmap.Config.ARGB_8888).apply { eraseColor(Color.BLACK) }
+        val b=Bitmap.createBitmap(200,200,Bitmap.Config.ARGB_8888)
+        zone.draw(Canvas(a));mode.draw(Canvas(b))
+        for(distance in listOf(4,16,24,32)) assertEquals(Color.blue(b.getPixel(distance,100)).toDouble(),Color.blue(a.getPixel(100,100-distance)).toDouble(),12.0)
+    }
     @Test fun ambientGlowFadesWithoutJumpIsTransparentAboveFortyPercentAndAtSides() {
         var now=0L;val glow=ZoneAmbientGlow { now };glow.setBounds(0,0,200,100)
         glow.update(Color.BLUE);assertEquals(Color.TRANSPARENT,glow.currentColor())
@@ -115,7 +125,7 @@ class TrainingZoneUiTest {
         fun image(): Bitmap=Bitmap.createBitmap(200,100,Bitmap.Config.ARGB_8888).also { glow.draw(Canvas(it)) }
         val b=image()
         assertEquals(0,Color.alpha(b.getPixel(100,20)));assertEquals(0,Color.alpha(b.getPixel(100,59)))
-        assertTrue(Color.alpha(b.getPixel(100,95)) in 1..100)
+        assertTrue(Color.alpha(b.getPixel(100,95)) > 100)
         assertEquals(0,Color.alpha(b.getPixel(0,99)));assertEquals(0,Color.alpha(b.getPixel(199,99)))
         glow.update(Color.RED);assertEquals(Color.BLUE,glow.currentColor())
         now=2250;val between=glow.currentColor();assertTrue(Color.red(between)>0);assertTrue(Color.blue(between)>0)
