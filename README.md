@@ -47,24 +47,26 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 ## APK herunterladen
 
-**[APK 0.7.26 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.26/downloads/B-Cycle-0.7.26-test.apk)**
+**[APK 0.7.27 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.27/downloads/B-Cycle-0.7.27-test.apk)**
 
-- Größe: **1,616,387 Byte**, rund **1.62 MB**.
+- Größe: **1,641,019 Byte**, rund **1.64 MB**.
 - Signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.26/64.
-- Build: **16.10.2026 12:39:06 CEST**.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.27/65.
+- Build: **16.10.2026 13:09:45 CEST**.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.26-test.apk.sha256):
-  `13248de9b0c944a3ca79f276c29ab577ff4a7d7a7ed9401cc7dc085996fbc933`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.27-test.apk.sha256):
+  `44d3337c56dc48c954a6bc0b8e8c71571ae3ca6772d9b65176fd6a4cb278364d`.
 
-17 gezielte Tests für den Archivimport und die bestehenden Bibliotheken/Listen bestanden.
+Vollständige Testsuite: 529 Tests bestanden.
 Release-Build mit R8, Resource-Shrinking und Lint Vital erfolgreich.
 Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis und reale Prüfgrenzen](docs/milestone-0726.md).
+[Buildnachweis und reale Prüfgrenzen](docs/milestone-0727.md).
 
-## Im Hauptbranch vorbereitet
+## Neu in APK 0.7.27
 
-- Indoor-Messwertkorrektur je Bike: getrennte Faktoren für Leistung und Geschwindigkeit/Distanz, wirksam für Live-Anzeige und neue FIT-Aufzeichnungen. Noch nicht in APK 0.7.26. [Details](docs/indoor-ftms.md#messwertkorrektur-je-indoor-profil).
+- **Benachrichtigungen:** Neue Einstellungen nach Design & UI, Android-Freigabe und separate App-Auswahl mit Messenger-Filter.
+- Abgerundetes Nachrichtenfenster mit farbigem App-Icon, Absender, SECONDARY-Hintergrund und 3-dp-ACCENT-Rahmen. Drei Positionen mit Layout-Vorschauen, einstellbare 5–180 Sekunden und scrollbarer Text. Keine dauerhafte Speicherung von Nachrichten.
+- **Indoor-Messwertkorrektur:** Zwei Faktoren je Bike für Leistung und Geschwindigkeit/Distanz, wirksam auf Live-Anzeige, Berechnungen und neue FIT-Aufzeichnungen. Bestehende Fahrten unverändert.
 
 ## Neu in APK 0.7.26
 
@@ -124,12 +126,12 @@ Kotlin und native Android-Views, eine Activity mit getrennten Sensor- und Datenk
 Android 13+ (`minSdk 33`), `compileSdk` und `targetSdk 36`.
 Mapsforge, Garmin FIT SDK und OkHttp übernehmen Karten, FIT-Dateien und Netzwerkzugriffe.
 
-Für APK 0.7.25 wurden die vollständige Suite mit 511 Tests und anschließend
-29 gezielte Tests für die letzte FIT-Quellenabsicherung erfolgreich geprüft.
+Für APK 0.7.27 wurden alle 529 Tests erfolgreich geprüft.
 Release-Build, Signatur und ZIP-Ausrichtung sind geprüft.
-[Buildnachweis und Grenzen](docs/milestone-0725.md).
-Tests ersetzen keinen Hardwaretest. Die neue BICYCLE-FTMS-Anbindung muss am
-Matrix auf Empfang, Wiederverbindung und längere Aufnahmen geprüft werden.
+[Buildnachweis und Grenzen](docs/milestone-0727.md).
+Tests ersetzen keinen Hardwaretest. Der Matrix-Empfang wurde vom Nutzer bestätigt; Korrekturfaktoren, Wiederverbindung
+und längere Aufnahmen bleiben am Gerät zu prüfen. Echte Messenger-Zustellung und
+Android-Freigabe ebenfalls mit APK 0.7.27 prüfen.
 Neue Dreeve-/Strava-Uploads und der Strava-Anmeldevorgang müssen ebenfalls noch
 mit echten Nutzerkonten geprüft werden.
 

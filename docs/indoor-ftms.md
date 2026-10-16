@@ -138,4 +138,4 @@ und FtmsMeasurementsTest bestanden. Einschließlich pro-Profil-Persistenz/Migrat
 Faktorschritten/Nullen/fehlenden Werten, UI-Auswahl, korrigierter Live-Anzeige und
 Performance, Distanz, FIT-Roundtrip, Aufnahmesperre und unveränderten alten FIT-Bytes.
 Release-Build einschließlich R8, Resource-Shrinking und Lint Vital erfolgreich.
-Diese Korrektur ist im Hauptbranch vorbereitet, noch nicht in der veröffentlichten APK 0.7.26 enthalten.
+Diese Korrektur ist seit APK 0.7.27 enthalten.
