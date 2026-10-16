@@ -53,6 +53,20 @@ class MessageNotificationUiTest {
         val intent=shadowOf(app).nextStartedActivity
         assertTrue(intent.action in setOf(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS,android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
     }
+    @Test fun notificationSectionsPinToViewportAndPushOffAtNextSection() {
+        val app=RuntimeEnvironment.getApplication()
+        val content=MessageNotificationSettingsView(android.view.ContextThemeWrapper(app,R.style.SettingsDialogTheme),ThemeManager(app.getSharedPreferences("bike",0)))
+        val scroll=BicycleStickyScrollView(content.context).apply { addView(content) }
+        scroll.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY))
+        scroll.layout(0,0,1080,600)
+        val headers=views(content).filterIsInstance<BicycleSectionHeader>()
+        assertEquals(3,headers.size)
+        scroll.scrollTo(0,headers.first().top+20)
+        assertTrue(headers.first().translationY>0f)
+        assertEquals(scroll.scrollY.toFloat(),headers.first().top+headers.first().translationY,1f)
+        scroll.scrollTo(0,headers[1].top)
+        assertEquals(0f,headers.first().translationY,0f)
+    }
     @Test fun realDashboardCardHonorsAllThreeAnchorsAndForegroundAndDialogBoundaries() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -88,6 +102,7 @@ class MessageNotificationUiTest {
             val menu=ShadowAlertDialog.getLatestAlertDialog()
             views(menu.window!!.decorView).single { it.tag=="settings_NOTIFICATIONS" }.performClick()
             val settingsDialog=ShadowAlertDialog.getLatestAlertDialog()
+            assertEquals(1,views(settingsDialog.window!!.decorView).filterIsInstance<BicycleStickyScrollView>().size)
             settings.durationSeconds=37
             controller.pause().stop().start().resume().visible()
             assertTrue(settingsDialog.isShowing)

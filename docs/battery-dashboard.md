@@ -18,13 +18,15 @@ auffindbar; die Akku-Kategorie sammelt Füllstände zusätzlich als gezielte Ali
 Smartphone bietet **Uhrzeit (HH:mm, lokale Gerätezeit)** und **Akkustand**. Die Uhrzeit
 ist eine Live-Anzeige, kein Fahrtzähler, und läuft unabhängig von START/STOPP.
 
-**Kombinierte Akkuanzeige:** ein bis vier Quellen pro Datenfeld auswählen. Auswahländerungen
-werden sofort übernommen, der Dialog bleibt für weitere Checkboxen offen. Der letzte
-gewählte Akku lässt sich nicht einzeln abwählen; stattdessen „Keine Daten anzeigen“
-oder ein anderes Hauptfeld wählen. Vier Auswahlplätze sind eine feste Obergrenze,
-keine zusätzlichen Konfigurationsregler. Vorhandene Auswahlen anderer Bike-Typen
-bleiben im Picker zum Entfernen erreichbar, auch wenn diese Quellen aktuell keine
-Daten liefern. Neue Auswahlen richten sich nach dem aktuellen Profiltyp.
+**Kombinierte Akkuanzeige:** ein bis vier Quellen pro Datenfeld auswählen. Ein Schalter
+aktiviert/deaktiviert die Kombination. Auswahländerungen werden sofort übernommen,
+der Dialog bleibt offen. Der letzte gewählte Akku bleibt bedienbar; Abwahl aller Quellen
+schaltet die Kombination aus und zeigt keine Daten. Der Schalter kann sie erneut aktivieren
+(leere Auswahl beginnt mit Smartphone). Einzelne Prozentfelder sind nur bei aktiver
+Kombination deaktiviert/gedimmt, auch in anderen Kategorien. Nach Ausschalten wieder
+wählbar. Alle bereits unterstützten Akkus sind unabhängig vom Profil zur Auswahl sichtbar;
+fehlende Quellen bleiben ohne erfundene Werte. Maximal vier Quellen, nur weitere noch
+nicht ausgewählte Quellen bei Erreichen des Limits sperren.
 
 Persistenz über stabile Feld-IDs `BATTERIES:EBIKE,HEART,PHONE` usw.; keine zusätzlichen
 per-Layout-Prefs. Neue Auswahlen in fester Quellenreihenfolge E-Bike, Puls, Trainer,
@@ -34,10 +36,12 @@ und bestehendes Dashboard-Backup verwenden denselben Codec und behalten die Ausw
 
 ## Darstellung
 
-Einträge als **Icon · Balken · Prozent**, ohne zusätzliche Überschrift. Ab zwei Einträgen
+Einträge als **Icon · vertikaler Balken · Prozent**, ohne zusätzliche Überschrift. Ab zwei Einträgen
 zwei Spalten, ab drei zwei Reihen. Gemeinsamer Canvas-Renderer, feste Sensoridentität
 über SensorIcons/BicycleIcons, bestehende schmale Zahlenschrift. Bis vier Einträge
-passen auch in schmale Dreierkacheln. Quellen ohne gültigen, aktuell verfügbaren Wert
+passen auch in schmale Dreierkacheln. Der Balken füllt sich von unten nach oben.
+Durch die schmaleren Balken größere Darstellung, je nach Platz bis rund 27 % gegenüber
+der ersten Version; die verfügbare Breite/Höhe begrenzt die Skalierung. Quellen ohne gültigen, aktuell verfügbaren Wert
 bleiben mit **„—“** im Raster; echte 0 % bleiben sichtbar. Kein Zusammenschieben der
 Slots, kein Ersetzen fehlender Werte durch 0 oder historische Daten.
 

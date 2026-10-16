@@ -192,7 +192,7 @@ data class DashboardField(val id: String) {
         val baseOptions = LiveMetric.entries.map { DashboardField(it.name) } +
             listOf("PHONE_TIME","BATTERIES","PHONE_BATTERY","TRAINER_BATTERY","BIKE_DISTANCE", "CURRENT_RANGE", "RANGES", "HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY").map { DashboardField(it) } +
             GpsMetric.entries.map { DashboardField(it.name) } + WeatherMetric.entries.map { DashboardField(it.name) } + TrainingMetric.entries.map { DashboardField(it.name) }
-        fun options(data: LiveData) = baseOptions.filter { it.id!="TRAINER_BATTERY" || data.indoor } + List(data.rangesKm?.size ?: 0) { DashboardField("RANGE_$it") }
+        fun options(data: LiveData) = baseOptions + List(data.rangesKm?.size ?: 0) { DashboardField("RANGE_$it") }
         fun groups(data: LiveData, selected: DashboardField? = null, includeTraining: Boolean = false): List<FieldGroup> {
             fun fields(vararg ids: String) = ids.map { DashboardField(it) }
             val ranges = options(data).filter { it.id.startsWith("RANGE_") }.toMutableList().apply {
@@ -214,7 +214,7 @@ data class DashboardField(val id: String) {
                 val allowed=group.fields.filter { it.id in IndoorFields.allowed }
                 if(allowed.isEmpty()) null else group.copy(source=if(group.source=="Pulsmesser") group.source else "Indoor-Bike",fields=allowed)
             }.groupBy { it.source to it.title }.values.map { same -> same.first().copy(fields=same.flatMap { it.fields }.distinct()) } } +
-                listOf(FieldGroup("Akku","Akku",fields("BATTERIES",if(data.indoor) "TRAINER_BATTERY" else "BATTERY","HEART_BATTERY","PHONE_BATTERY")),
+                listOf(FieldGroup("Akku","Akku",fields("BATTERIES","BATTERY","HEART_BATTERY","TRAINER_BATTERY","PHONE_BATTERY")),
                     FieldGroup("Smartphone","Smartphone",fields("PHONE_TIME","PHONE_BATTERY"))) + if(includeTraining) listOf(FieldGroup("Leistung", "Leistung", TrainingMetric.entries.map { DashboardField(it.name) })) else emptyList()
         }
         fun fromId(id: String): DashboardField? = id.takeIf { BatteryFields.sources(it)!=null }?.let(::DashboardField) ?: baseOptions.find { it.id == id } ?: id.takeIf {

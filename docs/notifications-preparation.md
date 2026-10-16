@@ -80,3 +80,9 @@ Appwechsel. Bestehende Menüreihenfolge-Tests um den neuen Eintrag erweitert.
 
 Echter Android-Benachrichtigungszugriff und Zustellung aus WhatsApp/Element auf dem
 Nutzergerät müssen mit der Test-APK geprüft werden; Frameworktests ersetzen das nicht.
+
+## Einheitliche Abschnittsnavigation
+
+Position, Anzeigedauer und Apps verwenden BicycleForm.section im zentralen
+BicycleStickyScrollView. Überschriften docken beim Scrollen oben an, werden vom
+folgenden Abschnitt abgelöst und übernehmen die gemeinsamen Abstände/Theme-Regeln.

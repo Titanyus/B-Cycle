@@ -18,7 +18,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     visualization: ZoneGlowPicker? = null,
     training: TrainingSnapshot = TrainingSnapshot(),
     dataVisible: Boolean = true,
-    batteryChoose: ((DashboardField)->Unit)? = null,
+    batteryChoose: ((DashboardField?)->Unit)? = null,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     private lateinit var fieldList: ScrollView
@@ -72,10 +72,12 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         if(visualization!=null) panels.addView(visualization)
         var shown = -1
         var batterySelection=selected?.batterySources ?: listOf(BatterySource.PHONE)
-        var combined=selected?.batterySources!=null
+        var combined=dataVisible && selected?.batterySources!=null
+        val percentChoices=mutableListOf<RadioButton>()
+        fun updatePercentChoices() { percentChoices.forEach { it.isEnabled=!combined;it.alpha=if(combined) .4f else 1f } }
         fun populate(position: Int) {
             if (shown == position) return
-            shown = position; rows.removeAllViews(); list.scrollTo(0, 0)
+            shown = position; rows.removeAllViews(); percentChoices.clear(); list.scrollTo(0, 0)
             for (section in groups.getValue(sources[position])) {
                 rows.addView(TextView(context).apply {
                     text = if(section.source=="Leistung") context.getString(R.string.training_category) else DashboardTextResources.section(context,section.title); isAccessibilityHeading=true; textSize = BicycleDesign.bodySp; BicycleDialogStyle.control(this, themes)
@@ -84,49 +86,70 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                 for (field in section.fields) {
                     val value = field.value(data, gps, bikeDistanceM, pulse, training)
                     val title = if (field.id == "RIDER_POWER") context.getString(R.string.ui_rider_power_own) else field.title(context,data, gps)
-                    val radio=RadioButton(context).apply {
-                        tag = field.id; text = if (value.unit.isNotEmpty()) context.getString(R.string.ui_field_with_unit, title, value.unit) else title
-                        BicycleDialogStyle.control(this, themes); minHeight = dp(BicycleDesign.touchSize)
-                        isChecked = pickerDataVisible && (if(combined) field.id==BatteryFields.COMBINED else selected==field)
-                        contentDescription = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), text) else text
-                        setOnClickListener {
-                            if(field.id==BatteryFields.COMBINED) {
-                                combined=true;pickerDataVisible=true;emptyChoice.isChecked=false
-                                for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.isChecked=false
-                                isChecked=true
-                                (batteryChoose ?: choose).invoke(BatteryFields.field(batterySelection))
-                            } else choose(field)
-                        }
-                    }
-                    rows.addView(radio)
                     if(field.id==BatteryFields.COMBINED) {
+                        var updating=false
+                        val checks=mutableMapOf<BatterySource,android.widget.CheckBox>()
+                        val toggle=android.widget.Switch(context).apply {
+                            tag=field.id;text=title;isChecked=combined
+                            BicycleDialogStyle.control(this,themes)
+                        }
+                        fun updateChecks() {
+                            updating=true
+                            toggle.isChecked=combined
+                            checks.forEach { (source,check) ->
+                                check.isChecked=source in batterySelection
+                                check.isEnabled=source in batterySelection || batterySelection.size<4
+                            }
+                            updating=false
+                            updatePercentChoices()
+                        }
+                        fun saveCombination() {
+                            pickerDataVisible=combined;emptyChoice.isChecked=!combined
+                            for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.isChecked=false
+                            updateChecks()
+                            (batteryChoose ?: choose).invoke(if(combined) BatteryFields.field(batterySelection) else null)
+                        }
+                        toggle.setOnCheckedChangeListener { _,checked ->
+                            if(!updating) {
+                                combined=checked
+                                if(checked && batterySelection.isEmpty()) batterySelection=listOf(BatterySource.PHONE)
+                                saveCombination()
+                            }
+                        }
+                        rows.addView(toggle)
                         rows.addView(BicycleComponents.text(context,themes,context.getString(R.string.battery_selection)))
                         rows.addView(BicycleComponents.text(context,themes,context.getString(R.string.battery_selection_help)))
-                        val checks=mutableMapOf<BatterySource,android.widget.CheckBox>()
-                        fun updateChecks() { checks.forEach { (source,check) ->
-                            check.isEnabled=if(source in batterySelection) batterySelection.size>1 else batterySelection.size<4
-                        } }
-                        (BatteryFields.choices(data.indoor)+batterySelection).distinct().forEach { source ->
+                        (BatteryFields.choices()+batterySelection).distinct().forEach { source ->
                             val check=android.widget.CheckBox(context).apply {
                                 tag="battery_select_${source.name}";text=context.getString(source.label);isChecked=source in batterySelection
                                 BicycleDialogStyle.control(this,themes);BicycleDialogStyle.actionIcon(this,themes,BatteryFields.icon(source))
                                 setOnCheckedChangeListener { _,checked ->
-                                    val next=if(checked) (batterySelection+source).distinct() else batterySelection-source
-                                    if(next.size !in 1..4) { isChecked=!checked;return@setOnCheckedChangeListener }
-                                    batterySelection=next
-                                    combined=true;pickerDataVisible=true;emptyChoice.isChecked=false
-                                    for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.isChecked=false
-                                    radio.isChecked=true;updateChecks()
-                                    (batteryChoose ?: choose).invoke(BatteryFields.field(batterySelection))
+                                    if(!updating) {
+                                        batterySelection=if(checked) (batterySelection+source).distinct() else batterySelection-source
+                                        combined=batterySelection.isNotEmpty()
+                                        saveCombination()
+                                    }
                                 }
                             }
                             checks[source]=check;rows.addView(check)
                         }
                         updateChecks()
+                    } else {
+                        val radio=RadioButton(context).apply {
+                            tag=field.id
+                            text=if(value.unit.isNotEmpty()) context.getString(R.string.ui_field_with_unit,title,value.unit) else title
+                            BicycleDialogStyle.control(this,themes);minHeight=dp(BicycleDesign.touchSize)
+                            isChecked=pickerDataVisible && !combined && selected==field
+                            contentDescription=if(field.showSource) context.getString(R.string.ui_source_field_description,DashboardTextResources.source(context,field.source(data)),text) else text
+                            setOnClickListener { choose(field) }
+                        }
+                        // Keep all percent entries aligned with the other native selection circles.
+                        rows.addView(radio,LayoutParams(-1,-2))
+                        if(BatteryFields.single(field.id)!=null) percentChoices.add(radio)
                     }
                 }
             }
-
+            updatePercentChoices()
         }
         selector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = populate(position)

@@ -52,9 +52,9 @@ class BatteryFieldsTest {
         send(90,0);assertNull(battery.level)
         battery.stop();send(90);assertNull(battery.level)
     }
-    @Test fun pickerSavesMultipleSourcesWithoutClosingAndEnforcesFourAndAtLeastOne() {
+    @Test fun pickerKeepsPhoneSelectableAndDisablesPercentFieldsOnlyWhileCombinationIsActive() {
         val initial=listOf(BatterySource.EBIKE,BatterySource.HEART,BatterySource.TRAINER,BatterySource.POWER)
-        var chosen=BatteryFields.field(initial)
+        var chosen:DashboardField?=BatteryFields.field(initial)
         var closed=false
         val picker=FieldPickerView(app,LiveData(),GpsValues(),null,PulseValues(),chosen,false,
             batteryChoose={ chosen=it },choose={ closed=true })
@@ -64,11 +64,44 @@ class BatteryFieldsTest {
         assertFalse(phone.isEnabled)
         picker.findViewWithTag<CheckBox>("battery_select_POWER").performClick()
         assertTrue(phone.isEnabled);phone.performClick()
-        assertEquals(4,chosen.batterySources!!.size);assertTrue(BatterySource.PHONE in chosen.batterySources!!)
+        assertEquals(4,chosen!!.batterySources!!.size);assertTrue(BatterySource.PHONE in chosen!!.batterySources!!)
         assertFalse(closed)
         for(source in listOf(BatterySource.EBIKE,BatterySource.HEART,BatterySource.TRAINER)) picker.findViewWithTag<CheckBox>("battery_select_${source.name}").performClick()
-        assertEquals(listOf(BatterySource.PHONE),chosen.batterySources)
-        assertFalse(phone.isEnabled)
+        assertEquals(listOf(BatterySource.PHONE),chosen!!.batterySources)
+        assertTrue(phone.isEnabled)
+        assertFalse(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
+        phone.performClick()
+        assertNull(chosen)
+        assertTrue(phone.isEnabled)
+        assertTrue(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
+        phone.performClick()
+        assertEquals(listOf(BatterySource.PHONE),chosen!!.batterySources)
+        picker.findViewWithTag<android.widget.Switch>(BatteryFields.COMBINED).performClick()
+        assertNull(chosen)
+        spinner.setSelection((0 until spinner.adapter.count).first { spinner.adapter.getItem(it)=="Smartphone" })
+        shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
+        assertFalse(closed)
+    }
+    @Test fun percentChoicesStayDisabledAcrossCategoriesUntilCombinationIsSwitchedOff() {
+        val field=BatteryFields.field(listOf(BatterySource.PHONE))
+        val picker=FieldPickerView(app,LiveData(),GpsValues(),null,PulseValues(),field,false,batteryChoose={},choose={})
+        val spinner=picker.findViewWithTag<Spinner>("field_source")
+        fun source(name:String) {
+            spinner.setSelection((0 until spinner.adapter.count).first { spinner.adapter.getItem(it)==name })
+            shadowOf(Looper.getMainLooper()).idle()
+        }
+        for((category,id) in listOf("Akku" to "PHONE_BATTERY","Smartphone" to "PHONE_BATTERY","Pulsmesser" to "HEART_BATTERY","E-Bike" to "BATTERY")) {
+            source(category)
+            assertFalse(picker.findViewWithTag<android.widget.RadioButton>(id).isEnabled)
+        }
+        source("Akku")
+        picker.findViewWithTag<android.widget.Switch>(BatteryFields.COMBINED).performClick()
+        assertTrue(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
+        source("Smartphone")
+        assertTrue(picker.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
+        val reopened=FieldPickerView(app,LiveData(),GpsValues(),null,PulseValues(),field,false,dataVisible=false,choose={})
+        assertTrue(reopened.findViewWithTag<android.widget.RadioButton>("PHONE_BATTERY").isEnabled)
     }
     @Test fun threeColumnDashboardAndMapRenderFourCompactRowsIncludingMissingValuesAndStatusMarks() {
         val snapshot=BatterySnapshot(mapOf(BatterySource.EBIKE to 72,BatterySource.HEART to 19,BatterySource.PHONE to 9))

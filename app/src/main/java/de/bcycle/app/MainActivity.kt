@@ -318,7 +318,7 @@ class MainActivity : Activity() {
         val content=MessageNotificationSettingsView(settingsContext,runtime.themes)
         notificationSettings=content
         val screen=dialog().setTitle(getString(R.string.notifications_title))
-            .setView(ScrollView(settingsContext).apply { addView(content) }).show()
+            .setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).show()
         dialogs.onDismiss(screen) { if(notificationSettings===content) notificationSettings=null }
     }
     private fun showMenu(advanced: Boolean = false) {
