@@ -32,7 +32,7 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 ## Key Features
 
-- **Individuelle Dashboards** – Vier Seiten, neun Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.
+- **Individuelle Dashboards** – Vier Seiten, zehn Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.
 - **Live-Daten vom Rad** – Bosch-E-Bike, BLE-/FTMS-Indoor-Trainer, GPS und BLE-Pulsmesser; Fahrerleistung und Motorleistung bleiben getrennt.
 - **Karten unterwegs** – Online- und Offline-Karten, Tages-/Nachtansicht, GPX-Strecken und Höhenanzeige an der aktuellen Position.
 - **FIT-Aufzeichnung** – Gewünschte Messwerte und Hauptquellen selbst auswählen; Aufzeichnung auch bei ausgeschaltetem Bildschirm.
@@ -47,20 +47,27 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 ## APK herunterladen
 
-**[APK 0.7.27 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.27/downloads/B-Cycle-0.7.27-test.apk)**
+**[APK 0.7.28 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.28/downloads/B-Cycle-0.7.28-test.apk)**
 
-- Größe: **1,641,019 Byte**, rund **1.64 MB**.
+- Größe: **1,653,419 Byte**, rund **1.65 MB**.
 - Signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.27/65.
-- Build: **16.10.2026 13:09:45 CEST**.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.28/66.
+- Build: **16.10.2026 13:40:31 CEST**.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.27-test.apk.sha256):
-  `44d3337c56dc48c954a6bc0b8e8c71571ae3ca6772d9b65176fd6a4cb278364d`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.28-test.apk.sha256):
+  `88a4fc631afa372f37cf179dccad592580733bd34bad5d0c2eb7bfd5bdeb42a5`.
 
-Vollständige Testsuite: 529 Tests bestanden.
+Vollständige Testsuite: 537 Tests bestanden.
 Release-Build mit R8, Resource-Shrinking und Lint Vital erfolgreich.
 Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis und reale Prüfgrenzen](docs/milestone-0727.md).
+[Buildnachweis und reale Prüfgrenzen](docs/milestone-0728.md).
+
+## Neu in APK 0.7.28
+
+- **Akku-Kombifelder:** Bis vier Akkustände als kompaktes 2×2-Raster mit Sensoricon, Balken und Prozent, Warnfarben unter 20/10 %. Je Datenfeld auswählen, auch über der Karte und in Backups erhalten.
+- **Smartphone:** Neue Datenkategorie mit Uhrzeit und Smartphone-Akku. [Native Vorschauen und Details](docs/battery-dashboard.md).
+- **Dashboard 10:** Drei große Einzelreihen und unten eine Zweierreihe, ohne Karte; eigene Layout-Vorschau und vollständige Editor-Bedienung.
+- **Wetterauswahl:** Sonnenauf-/untergang und Tageslicht auch bei Indoor auswählbar; ohne GPS keine Daten und kein zusätzlicher GPS-Start.
 
 ## Neu in APK 0.7.27
 
@@ -126,9 +133,9 @@ Kotlin und native Android-Views, eine Activity mit getrennten Sensor- und Datenk
 Android 13+ (`minSdk 33`), `compileSdk` und `targetSdk 36`.
 Mapsforge, Garmin FIT SDK und OkHttp übernehmen Karten, FIT-Dateien und Netzwerkzugriffe.
 
-Für APK 0.7.27 wurden alle 529 Tests erfolgreich geprüft.
+Für APK 0.7.28 wurden alle 537 Tests erfolgreich geprüft.
 Release-Build, Signatur und ZIP-Ausrichtung sind geprüft.
-[Buildnachweis und Grenzen](docs/milestone-0727.md).
+[Buildnachweis und Grenzen](docs/milestone-0728.md).
 Tests ersetzen keinen Hardwaretest. Der Matrix-Empfang wurde vom Nutzer bestätigt; Korrekturfaktoren, Wiederverbindung
 und längere Aufnahmen bleiben am Gerät zu prüfen. Echte Messenger-Zustellung und
 Android-Freigabe ebenfalls mit APK 0.7.27 prüfen.
