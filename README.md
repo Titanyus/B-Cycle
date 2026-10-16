@@ -148,6 +148,7 @@ und muss vor der Installation signiert werden.
 - [Karten und Offline-Dateien](docs/maps.md)
 - [FIT-Aufzeichnung](docs/fit.md)
 - [Streckenverwaltung und WebDAV](docs/routes.md)
+- [ZIP-Archivimport im Hauptbranch](docs/route-archive-import.md) – FIT/GPX inklusive GZIP, lokale Duplikaterkennung; noch nicht in der veröffentlichten APK 0.7.25 enthalten.
 - [intervals.icu einrichten](docs/intervals-icu-plan.md)
 - [Wetterdaten und dauerhafte Speicherung](docs/ride-weather.md)
 - [Bebas Neue: SIL Open Font License](docs/fonts.md)

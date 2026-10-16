@@ -54,7 +54,7 @@ internal class GpxLibrary(private val root: File) {
         }
         return selected?.takeIf { file(it).isFile }?.let { file(it).inputStream().use(GpxImport::read) }
     }
-    fun add(input: InputStream, name: String): GpxRoute {
+    fun add(input: InputStream, name: String, select: Boolean = true, preserveDate: Boolean = false): GpxRoute {
         val id = UUID.randomUUID().toString()
         val stored = AtomicFile(file(id))
         try {
@@ -68,10 +68,13 @@ internal class GpxLibrary(private val root: File) {
                 }
                 stored.finishWrite(stream)
             } catch (e: Exception) { stored.failWrite(stream); throw e }
-            val route = stored.openRead().use(GpxImport::read)
+            var date: Long? = null
+            val route = stored.openRead().use { stream ->
+                GpxImport.read(stream, if (preserveDate) { _, time, _, _ -> if (date == null && time != null) date = time } else null)
+            }
             val title = name.substringAfterLast('/').substringAfterLast('\\').removeSuffix(".gpx").removeSuffix(".GPX").trim().take(120).ifBlank { "GPX-Strecke" }
             save(entries + StoredGpx(id, title, route.originalPoints, route.segments,
-                RouteDetails(System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points), route.ascentM, route.movingMs)), id)
+                RouteDetails(date ?: System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points), route.ascentM, route.movingMs)), if (select) id else selected)
             return route
         } catch (e: Exception) { stored.delete(); throw e }
     }

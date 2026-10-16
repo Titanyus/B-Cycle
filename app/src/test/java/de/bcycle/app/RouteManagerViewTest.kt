@@ -25,6 +25,22 @@ class RouteManagerViewTest {
     private fun descendants(view: View): List<View> = listOf(view) + if (view is android.view.ViewGroup)
         (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
 
+    @Test fun archiveProgressAndSummaryRemainVisibleWithoutChangingFilterOrRows() {
+        val context = android.view.ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.SettingsDialogTheme)
+        val view = RouteManagerView(context, {})
+        view.submit(emptyList(), null, true)
+        val progress = context.getString(R.string.archive_import_progress, 12)
+        view.showImportStatus(progress)
+        assertTrue(descendants(view).filterIsInstance<TextView>().any { it.text.toString() == progress && it.visibility == View.VISIBLE })
+        val summary = context.getString(R.string.archive_import_result, 10, 2, 0, 1)
+        view.showImportStatus(summary)
+        view.submit(emptyList(), null, false)
+        assertTrue(descendants(view).filterIsInstance<TextView>().any { it.text.toString() == summary && it.visibility == View.VISIBLE })
+        assertEquals(0, view.findViewWithTag<ListView>("route_list").adapter.count)
+        view.showImportStatus("")
+        assertTrue(descendants(view).filterIsInstance<TextView>().any { it.text.toString() == context.getString(R.string.ui_routes_empty) })
+    }
+
     @Test fun commonListFiltersBothOriginsAndKeepsFilterFixedWhileRowsScrollAndRefresh() {
         val context = android.view.ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.SettingsDialogTheme)
         val clicked = mutableListOf<ManagedRoute>()

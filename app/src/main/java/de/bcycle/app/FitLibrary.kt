@@ -69,7 +69,7 @@ internal class FitLibrary(root: File) {
         }
         if (next != entries) save(next)
     }
-    fun add(input: InputStream, name: String, recorded: Boolean, automatic: Boolean = false): StoredFit? {
+    fun add(input: InputStream, name: String, recorded: Boolean, automatic: Boolean = false, preserveDate: Boolean = false): StoredFit? {
         val temporary = File(directory, "${UUID.randomUUID()}.tmp")
         try {
             temporary.outputStream().use { output -> copyBounded(input, output) }
@@ -94,7 +94,7 @@ internal class FitLibrary(root: File) {
             try { temporary.inputStream().use { it.copyTo(stream) }; target.finishWrite(stream) }
             catch (e: Exception) { target.failWrite(stream); throw e }
             val title = name.trim().removeSuffix(".fit").removeSuffix(".FIT").take(120).ifBlank { "FIT-Strecke" }
-            val details = if (recorded) read.details else read.details.copy(dateMs = System.currentTimeMillis())
+            val details = if (recorded || preserveDate) read.details else read.details.copy(dateMs = System.currentTimeMillis())
             val entry = StoredFit(id, title, recorded, details, read.route != null)
             save(entries + entry)
             return entry

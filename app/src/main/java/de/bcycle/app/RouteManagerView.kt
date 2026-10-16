@@ -30,6 +30,7 @@ internal class RouteManagerView(context: Context,
     private var filtered: List<ManagedRoute> = emptyList()
     private var selected: String? = null
     private var busy = false
+    private var importStatus = ""
     private val filter = Spinner(context).apply { tag = "route_filter"; contentDescription = context.getString(R.string.ui_routes_filter) }
     private val status = BicycleFeedback.status(context, themes).apply {
         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
@@ -95,11 +96,21 @@ internal class RouteManagerView(context: Context,
     fun submit(entries: List<ManagedRoute>, active: String?, working: Boolean) {
         all = entries; selected = active; busy = working; updateRows()
     }
+    fun showImportStatus(text: String) {
+        if (importStatus == text) return
+        importStatus = text
+        updateStatus()
+    }
+    private fun updateStatus() {
+        BicycleFeedback.update(status, importStatus.ifEmpty {
+            if (!busy && filtered.isEmpty()) context.getString(R.string.ui_routes_empty) else ""
+        }, hideWhenEmpty = true)
+    }
     private fun updateRows() {
         filtered = all.filter { when (filter.selectedItemPosition) {
             1 -> it.origin == TrackOrigin.RECORDED; 2 -> it.origin == TrackOrigin.IMPORTED; else -> true
         } }
-        BicycleFeedback.update(status, if (!busy && filtered.isEmpty()) context.getString(R.string.ui_routes_empty) else "", hideWhenEmpty = true)
+        updateStatus()
         rows.notifyDataSetChanged()
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

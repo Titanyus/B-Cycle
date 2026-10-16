@@ -17,6 +17,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     var routeRevision = 0L; private set
     var busy = true; private set
     var message = ""; private set
+    var archiveStatus = ""; private set
     private val handler = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "B-Cycle-routes") }
     private val library = GpxLibrary(context.filesDir)
@@ -112,11 +113,14 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         handler.post {
             correctedIds=corrected
             retainedFiles = files; route = displayed; routes = gpxEntries; activities = fitEntries; selectedRoute = selected; routeRevision++
-            busy = false; message = text; changed()
+            busy = false; message = text
+            if (archiveStatus.isNotEmpty() && text.isNotEmpty()) archiveStatus = text
+            changed()
         }
     }
     private fun operate(success: String, action: () -> GpxRoute?) {
         if (busy) return
+        archiveStatus = ""
         busy = true; changed()
         worker.execute { finishOperation(success, action) }
     }
@@ -149,6 +153,32 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
                 val displayed = library.add(input, name); setSelectedFit(null); displayed
             }
         } ?: error("Datei kann nicht geöffnet werden")
+    }
+    fun importArchive(uri: Uri) {
+        if (busy) return
+        busy = true; archiveStatus = context.getString(R.string.archive_import_progress, 0); changed()
+        worker.execute {
+            var result: ArchiveImportResult? = null
+            var lastProgress = 0L
+            finishOperation("") {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    result = RouteArchiveImport(context.filesDir, context.cacheDir, fits, library).read(stream) { count ->
+                        val now = android.os.SystemClock.elapsedRealtime()
+                        if (now - lastProgress >= 500) {
+                            lastProgress = now
+                            handler.post { archiveStatus = context.getString(R.string.archive_import_progress, count); changed() }
+                        }
+                    }
+                } ?: throw java.io.IOException(context.getString(R.string.archive_import_open_failed))
+                workerRoute
+            }
+            result?.let { summary -> handler.post {
+                message = context.getString(R.string.archive_import_result, summary.imported, summary.duplicates, summary.failed, summary.unsupported) +
+                    if (summary.interrupted) context.getString(R.string.archive_import_interrupted) else ""
+                archiveStatus = message
+                changed()
+            } }
+        }
     }
     private fun setSelectedFit(id: String?) { selectedFit = id; preferences.edit().apply { if (id == null) remove("displayFitId") else putString("displayFitId", id) }.apply() }
     fun selectRoute(id: String?) = operate(if (id == null) "Strecke ausgeblendet" else "Strecke angezeigt") {

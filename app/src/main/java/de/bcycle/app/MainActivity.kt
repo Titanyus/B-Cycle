@@ -515,6 +515,11 @@ class MainActivity : Activity() {
             if (dialogs.empty) { showMenu(); dataSettings(); routeExportSettings(RouteExportPart.LOCAL) }
             return
         }
+        if (requestCode == 15) {
+            if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.importArchive(it) }
+            if (dialogs.empty) { showMenu(); routeSettings() }
+            return
+        }
         if (requestCode == 8 || requestCode == 9) {
             if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.import(it, recorded = requestCode == 9) }
             if (dialogs.empty) { showMenu(); routeSettings() }
@@ -627,13 +632,13 @@ class MainActivity : Activity() {
         }
         menu=dialog().setTitle(getString(R.string.ui_map_manager_title)).setView(ScrollView(this).apply { addView(root) }).show()
     }
-    private fun importRoute(recorded: Boolean = false) {
+    private fun importRoute(recorded: Boolean = false, archive: Boolean = false) {
         try {
             startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
-                .setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, if (recorded)
+                .setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, if (archive) arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream") else if (recorded)
                     arrayOf("application/vnd.ant.fit", "application/octet-stream") else
                     arrayOf("application/gpx+xml", "application/xml", "text/xml", "application/vnd.ant.fit", "application/octet-stream")),
-                if (recorded) 9 else 8)
+                if (archive) 15 else if (recorded) 9 else 8)
         } catch (_: android.content.ActivityNotFoundException) {
             BicycleFeedback.show(this, getString(R.string.ui_file_picker_missing), long = true)
         }
@@ -727,9 +732,9 @@ class MainActivity : Activity() {
     }
     private fun routeImportChoice() {
         val anchor = routeImportButton ?: return
-        routeDropdown(anchor, listOf(getString(R.string.ui_import_planned), getString(R.string.ui_import_recorded)),
-            listOf(BicycleIcon.TrackImported, BicycleIcon.TrackRecorded), listOf("route_import_planned", "route_import_recorded")) {
-            importRoute(it == 1)
+        routeDropdown(anchor, listOf(getString(R.string.ui_import_planned), getString(R.string.ui_import_recorded), getString(R.string.archive_import_title)),
+            listOf(BicycleIcon.TrackImported, BicycleIcon.TrackRecorded, BicycleIcon.Import), listOf("route_import_planned", "route_import_recorded", "route_import_archive")) {
+            importRoute(recorded = it == 1, archive = it == 2)
         }
     }
     /** The same anchored native dropdown serves imports and each route's actions. */
@@ -1079,6 +1084,7 @@ class MainActivity : Activity() {
             pendingMapRoute = null
         }
         val manager = routeManager ?: return
+        manager.showImportStatus(state.archiveStatus)
         routeImportButton?.isEnabled = !state.busy
         val displayed = state.selectedRoute.takeIf { state.route != null && preferences.getBoolean("mapGpxVisible", true) }
         val signature = "${state.routeRevision}:${state.busy}:${RouteCloudUploads.revision(this)}:$displayed"
