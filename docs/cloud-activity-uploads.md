@@ -123,6 +123,24 @@ Dienstmarken: Strava aus Simple Icons (CC0); Dreeve aus
 https://docs.dreeve.app/assets/images/logo.svg, einfarbig mit transparentem
 Hintergrund adaptiert. Marken gehören ihren jeweiligen Inhabern.
 
+## Vorgemerkt: zentrale Strava-Anmeldung
+
+Am 16.10.2026 als zukünftige Erweiterung festgehalten, jetzt nicht implementieren:
+
+- BICYCLE einmalig als zentrale Anwendung bei Strava registrieren. Nutzer
+  benötigen anschließend keine eigene API-App und keinen Entwicklerzugang.
+- Bedienung: „Mit Strava verbinden“ → bei Strava anmelden → Zugriff erlauben.
+  Client-ID-/Secret-Eingaben sollen für diesen Ablauf entfallen.
+- Einen kleinen Backend-Dienst für den sicheren Codeaustausch und die
+  Token-Erneuerung vorsehen; das gemeinsame Client-Secret bleibt ausschließlich
+  serverseitig. Tokenverwaltung und Zugriffsschutz vor Umsetzung konkret planen.
+- FIT-Uploads können weiterhin direkt vom Smartphone erfolgen; unabhängige
+  Uploadjobs und die bestehenden Fahrt-/Dienst-ID-Zuordnungen erhalten.
+- Vor Freigabe für weitere Nutzer die dann geltenden Strava-Anforderungen,
+  Athletenkapazitäten und gegebenenfalls erforderliche App-Prüfung klären.
+- Die bestehende persönliche API-Anbindung bleibt bis zur Umsetzung erhalten.
+  Dreeve und intervals.icu bleiben unabhängig.
+
 ## BLE-Anzeige
 
 In Bikes folgt die Anzahl unterschiedlicher empfangener Messwertarten in
