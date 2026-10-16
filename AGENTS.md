@@ -158,3 +158,12 @@ Falsche gespeicherte Zuordnungen und Feldwechsel zentral über ZoneGlowCompatibi
 absichern; übrige freie und datenlose Zuordnungen erhalten. Leistungsanzeige zeitgewichtet
 5 Sekunden, Puls 3 Sekunden; Farb-Übergang ±3 Prozentpunkte und 1,5 Sekunden erhalten.
 Keine Änderungen an Rohwerten/FIT/Performance.
+
+Solange der feste Testschlüssel noch nicht als Actions-Secret eingerichtet ist, kann
+die von Actions gebaute Debug-APK heruntergeladen und mit dem vorhandenen geschützten
+Testschlüssel nachsigniert werden. Das ist kein lokaler APK-Build. Signatur, SHA-256,
+Version und ZIP-Ausrichtung prüfen; bestehenden Nutzern keinen fremd signierten
+Update-Build empfehlen. Reine Veröffentlichung fertiger APKs/Prüfsummen/Buildnachweise
+mit [skip ci] kennzeichnen, damit kein unnötiger weiterer Build entsteht. Änderungen
+an App/Build-Konfiguration niemals so überspringen. Bevorzugt Actions-Artefakte, für
+kompatibel nachsignierte Downloads bei fehlendem Release-Upload Repo-Downloads verwenden.

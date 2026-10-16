@@ -61,11 +61,13 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Signierte Test-APK 0.7.30 direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.30/downloads/B-Cycle-0.7.30-test.apk)**
+**[Aktuelle signierte Test-APK: Build 5 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-5-apk/downloads/B-Cycle-0.7.30-test-build-5.apk)**
 
-Auf ausdrücklichen Wunsch lokal mit dem bisherigen Testschlüssel gebaut, als Update
-installierbar. [Buildnachweis und SHA-256](docs/milestone-0730.md).
-Künftige APKs werden standardmäßig durch den oben verlinkten Actions-Workflow gebaut.
+Aus GitHub Actions, anschließend mit dem bisherigen Testschlüssel signiert und als
+Update installierbar. App-Version weiterhin 0.7.30, neuer **Test-Build 5** mit oberem
+Glow im Statusleistenbereich, längerer Leistungsglättung und passender Zonen-Auswahl.
+[Buildnachweis und SHA-256](docs/test-build-5.md). Das Repository-Secret für die
+Signierung direkt in Actions ist weiterhin vorzubereiten.
 
 ## Neu in APK 0.7.30
 

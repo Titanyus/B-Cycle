@@ -62,3 +62,12 @@ Protokolle in den Chat übernehmen. Erst nach einer notwendigen Änderung erneut
 
 Falls Actions deaktiviert ist: Repository → Settings → Actions → General → Actions
 zulassen. Workflow-Datei und Hauptbranch nicht umbenennen, ohne Trigger/Links anzupassen.
+
+## Nachsignierter Test-Build
+
+Solange das feste Schlüssel-Secret fehlt, kann Codex die erfolgreiche Actions-APK
+herunterladen und mit dem bisherigen geschützten Testschlüssel nachsignieren. Es wird
+dabei keine APK lokal gebaut. Prüfsumme und Signatur des Ergebnisses erneut prüfen.
+[Build 5](test-build-5.md) ist auf diesem Weg entstanden. Reine APK-/Nachweis-Publikationen
+verwenden [skip ci], damit daraus kein unnötiger weiterer Build entsteht; App- und
+Workflow-Änderungen starten weiterhin automatisch einen Build.
