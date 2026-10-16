@@ -47,20 +47,27 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 ## APK herunterladen
 
-**[APK 0.7.28 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.28/downloads/B-Cycle-0.7.28-test.apk)**
+**[APK 0.7.29 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.29/downloads/B-Cycle-0.7.29-test.apk)**
 
-- Größe: **1,653,419 Byte**, rund **1.65 MB**.
+- Größe: **1,657,515 Byte**, rund **1.66 MB**.
 - Signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.28/66.
-- Build: **16.10.2026 13:40:31 CEST**.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.29/67.
+- Build: **16.10.2026 15:02:09 CEST**.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.28-test.apk.sha256):
-  `88a4fc631afa372f37cf179dccad592580733bd34bad5d0c2eb7bfd5bdeb42a5`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.29-test.apk.sha256):
+  `7ee54ce640e90ddc71ab02160c1fcf337a1c32ccea7e02efc29021861405b797`.
 
-Vollständige Testsuite: 537 Tests bestanden.
+31 gezielte Tests nach Ergänzung des Vollbildmodus bestanden; zuvor 29 Tests der Akku-/Headeranpassungen.
 Release-Build mit R8, Resource-Shrinking und Lint Vital erfolgreich.
 Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis und reale Prüfgrenzen](docs/milestone-0728.md).
+[Buildnachweis und reale Prüfgrenzen](docs/milestone-0729.md).
+
+## Neu in APK 0.7.29
+
+- **Dashboard-Vollbild:** Android-Statusleiste auf dem Dashboard standardmäßig ausgeblendet; abschaltbar unter Design & UI. Dialoge und Android-Navigation bleiben wie bisher.
+- **Akkuanzeige:** Vertikale Balken und größere Darstellung je nach Platz.
+- **Akkuauswahl:** Smartphone-Auswahl korrigiert, alle unterstützten Quellen angeboten. Kombianzeige über Schalter; einzelne Prozentfelder sind bei aktiver Kombination ausgegraut.
+- **Benachrichtigungen:** Abschnittsüberschriften jetzt als zentrale Sticky Header. Reale Nachrichtenanzeige vom Nutzer bestätigt.
 
 ## Neu in APK 0.7.28
 
@@ -133,12 +140,11 @@ Kotlin und native Android-Views, eine Activity mit getrennten Sensor- und Datenk
 Android 13+ (`minSdk 33`), `compileSdk` und `targetSdk 36`.
 Mapsforge, Garmin FIT SDK und OkHttp übernehmen Karten, FIT-Dateien und Netzwerkzugriffe.
 
-Für APK 0.7.28 wurden alle 537 Tests erfolgreich geprüft.
+Für APK 0.7.29 wurden zunächst 29, nach der Vollbild-Ergänzung 31 gezielte Tests erfolgreich geprüft; letzter vollständiger Lauf: 537 Tests für 0.7.28.
 Release-Build, Signatur und ZIP-Ausrichtung sind geprüft.
-[Buildnachweis und Grenzen](docs/milestone-0728.md).
+[Buildnachweis und Grenzen](docs/milestone-0729.md).
 Tests ersetzen keinen Hardwaretest. Der Matrix-Empfang wurde vom Nutzer bestätigt; Korrekturfaktoren, Wiederverbindung
-und längere Aufnahmen bleiben am Gerät zu prüfen. Echte Messenger-Zustellung und
-Android-Freigabe ebenfalls mit APK 0.7.27 prüfen.
+und längere Aufnahmen bleiben am Gerät zu prüfen. Die reale Benachrichtigungsfunktion wurde vom Nutzer bestätigt.
 Neue Dreeve-/Strava-Uploads und der Strava-Anmeldevorgang müssen ebenfalls noch
 mit echten Nutzerkonten geprüft werden.
 
