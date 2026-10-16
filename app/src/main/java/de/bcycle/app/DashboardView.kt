@@ -89,7 +89,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        modeGlow.setBounds(0, 0, w, h)
+        if(background===modeGlow) modeGlow.setBounds(0, 0, w, h)
     }
 
     private fun buildTiles(wide: Boolean) {

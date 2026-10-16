@@ -148,3 +148,13 @@ Artifact enthält APK und SHA-256, 30 Tage Aufbewahrung. Optionales Repository-S
 ANDROID_DEBUG_KEYSTORE_BASE64 stellt den bestehenden Testschlüssel bereit (Standard-
 Android-Debug-Passwörter); ohne Secret temporärer Schlüssel, keine Update-Kompatibilität
 versprechen. Schlüssel niemals ins Repository oder Chat schreiben. Details: docs/github-actions.md.
+
+Oberer Fahrmodus-Glow gehört an den gesamten Activity-Fensterhintergrund, einschließlich
+ausgeblendeter Statusleisten-/Cutout-Fläche. Dashboard-Inhalte behalten sichere Insets.
+Einen Drawable zwischen Dashboard (Seitlich) und Fensterhost (Oben) umhängen, keine
+zweite Animation; Bounds nur vom aktuellen Besitzer ändern. Zonen-Quellenauswahl bei
+Pulsfeldern nur Puls aktuell/Ø, bei Leistungsfeldern nur Leistung aktuell/Ø, jeweils Aus.
+Falsche gespeicherte Zuordnungen und Feldwechsel zentral über ZoneGlowCompatibility
+absichern; übrige freie und datenlose Zuordnungen erhalten. Leistungsanzeige zeitgewichtet
+5 Sekunden, Puls 3 Sekunden; Farb-Übergang ±3 Prozentpunkte und 1,5 Sekunden erhalten.
+Keine Änderungen an Rohwerten/FIT/Performance.

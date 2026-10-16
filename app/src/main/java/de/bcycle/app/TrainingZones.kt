@@ -38,8 +38,21 @@ internal enum class ZoneGlowSource(val label: Int) {
     OFF(R.string.zone_glow_off), POWER_CURRENT(R.string.zone_glow_power_current), POWER_AVERAGE(R.string.zone_glow_power_average),
     HEART_CURRENT(R.string.zone_glow_heart_current), HEART_AVERAGE(R.string.zone_glow_heart_average)
 }
+/** Restrict physiological sources to the matching displayed measurement family. */
+internal object ZoneGlowCompatibility {
+    fun allowed(field:DashboardField?):List<ZoneGlowSource> = when(field?.id) {
+        "HEART_RATE","HEART_AVERAGE","HEART_MAXIMUM","TRAINING_HEART_ZONE","TRAINING_HRR_PERCENT" ->
+            listOf(ZoneGlowSource.OFF,ZoneGlowSource.HEART_CURRENT,ZoneGlowSource.HEART_AVERAGE)
+        "RIDER_POWER","MOTOR_POWER","AVERAGE_POWER","MAXIMUM_POWER","TRAINING_POWER_ZONE","TRAINING_FTP_PERCENT" ->
+            listOf(ZoneGlowSource.OFF,ZoneGlowSource.POWER_CURRENT,ZoneGlowSource.POWER_AVERAGE)
+        else -> ZoneGlowSource.entries
+    }
+}
 internal data class ZoneGlowConfig(val sources: List<ZoneGlowSource> = List(DashboardLayout.FIELD_COUNT) { ZoneGlowSource.OFF }) {
     fun replace(slot: Int, source: ZoneGlowSource) = copy(sources = sources.mapIndexed { i, old -> if (i == slot) source else old })
+    fun compatible(layout:DashboardLayout,visibility:DashboardDataVisibility)=copy(sources=sources.mapIndexed { i,source ->
+        source.takeIf { it in ZoneGlowCompatibility.allowed(layout.fields[i].takeIf { visibility.visible[i] }) } ?: ZoneGlowSource.OFF
+    })
     fun encode() = sources.joinToString("|") { it.name }
     companion object {
         fun key(page: Int) = "dashboardZoneGlow_$page"
@@ -82,8 +95,8 @@ internal data class TrainingSnapshot(val profile: RiderProfile = RiderProfile(),
     }
 }
 
-/** Time-weighted, three-second display window. Missing intervals are never bridged. */
-internal class TrainingDisplayWindow {
+/** Time-weighted display window. Missing intervals are never bridged. */
+internal class TrainingDisplayWindow(private val windowMs:Long=3000) {
     private data class Sample(val at: Long, val value: Double)
     private val samples = java.util.ArrayDeque<Sample>()
     private var lastAt: Long? = null
@@ -95,7 +108,7 @@ internal class TrainingDisplayWindow {
             if (lastAt != null && at - lastAt!! > 5000) samples.clear()
             samples.addLast(Sample(at, value)); lastAt = at
         }
-        val start = now - 3000
+        val start = now - windowMs
         while (samples.size > 1 && samples.elementAt(1).at <= start) samples.removeFirst()
         // Defensive cap for implausibly fast sources; ordinary BLE stays far below it.
         while (samples.size > 512) samples.removeFirst()
@@ -111,7 +124,7 @@ internal class TrainingDisplayWindow {
     }
 }
 internal class TrainingPresentation {
-    private val power = TrainingDisplayWindow(); private val heart = TrainingDisplayWindow()
+    private val power = TrainingDisplayWindow(5000); private val heart = TrainingDisplayWindow()
     fun update(input: TrainingInputs, profile: RiderProfile, now: Long): TrainingSnapshot {
         val p = input.power?.takeIf { it in 0.0..65535.0 }
         val h = input.heart?.takeIf { it in 1.0..250.0 }

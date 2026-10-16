@@ -23,7 +23,11 @@ in Android-String-Ressourcen. Bestehende Kategorien/Felder bleiben erhalten.
 
 „Graph“ ist ein zunächst eingeklapptes Accordion. Direkt dahinter folgt
 „Visualisierung“ mit einer unabhängigen Einfachauswahl: Aus, aktuelle Leistung,
-Ø Leistung, aktueller Puls oder Ø Puls. Nur die großen graphfähigen Kacheln
+Ø Leistung, aktueller Puls oder Ø Puls. Bei Pulsfeldern nur Aus/Puls aktuell/Puls Ø,
+bei Leistungsfeldern nur Aus/Leistung aktuell/Leistung Ø. Die anderen bisherigen
+Zuordnungen und datenlosen Visualisierungen bleiben erhalten. Unpassende gespeicherte
+Zuordnungen werden bei Anzeige und Feldwechsel auf Aus gesetzt, pro Seite gespeichert.
+Nur die großen graphfähigen Kacheln
 bieten Graphen; der Zonen-Glow ist für alle Dashboard-Kacheln verfügbar.
 Kartenfelder erhalten keine Trainings-/Glow-Auswahl.
 
@@ -31,7 +35,8 @@ Kartenfelder erhalten keine Trainings-/Glow-Auswahl.
 
 TrainingInputs liest bestehende Empfangszeiten, Rider Power, Puls und vorhandene
 Fahrt-Durchschnitte aus RideRuntime. Keine neuen Sensorabonnements oder
-Aufzeichnung. Zwei begrenzte UI-Puffer bilden zeitgewichtete 3-Sekunden-Mittel;
+Aufzeichnung. Zwei begrenzte UI-Puffer bilden zeitgewichtete Mittel: Leistung über fünf Sekunden,
+Puls weiterhin über drei Sekunden;
 gleiche Empfangszeit wird nicht erneut gewichtet. Echte Nullleistung bleibt
 erhalten. Fehlende/ungültige Daten, getrennte Sensoren, Rücksprünge der
 Empfangszeit und mehr als fünf Sekunden ohne aktuelle Daten leeren den Puffer.
@@ -78,3 +83,12 @@ echte Editor-Persistenz/erneutes Öffnen und alle vier Backup-Seiten einschließ
 älterer und ungültiger Einträge. Die komplette Testsuite (374 Tests, keine Fehler oder übersprungenen Fälle) und
 der optimierte Release-Build inklusive R8 und Lint-Vital sind bestanden. Die visuelle Wirkung während einer realen Fahrt
 bleibt auf dem Gerät zu prüfen.
+
+## Stabilität und Zuordnung
+
+Aktuelle Puls- und Leistungsquellen verwenden voneinander unabhängige, zeitgewichtete
+Anzeigepuffer. Änderungen der Fahrt-Durchschnitte oder zusätzliche Render-Aufrufe
+ändern bei konstanten Live-Werten nicht die aktuelle Zone/Farbe. ±3 Prozentpunkte
+um die fachlichen Zonengrenzen und der 1,5-Sekunden-Farbübergang bleiben erhalten.
+Die stärkere Leistungsglättung betrifft ausschließlich Trainingsanzeige/-Glow, nicht
+Live-Wattwert, FIT-Rohdaten oder Performance Engine.

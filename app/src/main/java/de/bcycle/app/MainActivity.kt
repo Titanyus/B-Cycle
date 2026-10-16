@@ -17,6 +17,7 @@ import java.io.IOException
 /** Native Views remain the UI; the runtime also survives while the recording service is active. */
 class MainActivity : Activity() {
     private lateinit var runtime: RideRuntime
+    private lateinit var dashboardHost: FrameLayout
     private lateinit var dashboard: DashboardView
     private lateinit var startButton: Button
     private lateinit var noMapEditorFinish: Button
@@ -118,12 +119,16 @@ class MainActivity : Activity() {
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
         dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage)
         mapFullscreen = savedInstanceState?.getBoolean("mapFullscreen", false) ?: false
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
+        @Suppress("DEPRECATION") // Explicit edge-to-edge remains necessary on Android 13–14.
+        window.setDecorFitsSystemWindows(false)
+        window.attributes=window.attributes.apply { layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS }
+        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.TRANSPARENT) }
         root.setOnApplyWindowInsetsListener { view, insets ->
             val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
         }
-        val host=FrameLayout(this).apply { addView(root,FrameLayout.LayoutParams(-1,-1)) }
+        val host=FrameLayout(this).apply { tag="dashboard_host";setBackgroundColor(Color.BLACK);addView(root,FrameLayout.LayoutParams(-1,-1)) }
+        dashboardHost=host
         setContentView(host)
         dashboard = DashboardView(this) { chooseField(it) }
         dashboard.bindEditorTheme(runtime.themes)
@@ -248,13 +253,28 @@ class MainActivity : Activity() {
                 message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
                 BicycleFeedback.show(this, message, long = true)
         }
+        val compatibleGlow=dashboardZoneGlow.compatible(dashboardLayout,dashboardDataVisibility)
+        if(compatibleGlow!=dashboardZoneGlow) {
+            dashboardZoneGlow=compatibleGlow
+            preferences.edit().putString(ZoneGlowConfig.key(dashboardPage),dashboardZoneGlow.encode()).apply()
+        }
         val trainingNow=android.os.SystemClock.elapsedRealtime()
         trainingSnapshot=trainingPresentation.update(runtime.trainingInputs(trainingNow),runtime.riderProfiles.read(),trainingNow)
         dashboard.showTraining(dashboardZoneGlow,trainingSnapshot)
         dashboard.showDataVisibility(dashboardDataVisibility)
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
-        dashboard.modeGlow.place(ModeGlowSettings.placement(preferences))
+        val placement=ModeGlowSettings.placement(preferences)
+        dashboard.modeGlow.place(placement)
+        // The top light belongs to the whole window, including the cutout/status inset.
+        // Content retains its existing safe padding; the one Drawable changes owners only.
+        if(placement==ModeGlowPlacement.TOP) {
+            if(dashboardHost.background!==dashboard.modeGlow) {
+                dashboard.background=null;dashboardHost.background=dashboard.modeGlow
+            }
+        } else if(dashboard.background!==dashboard.modeGlow) {
+            dashboardHost.setBackgroundColor(Color.BLACK);dashboard.background=dashboard.modeGlow
+        }
         dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
         if (::mapPanel.isInitialized && currentTemplate().hasMap) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
@@ -273,7 +293,7 @@ class MainActivity : Activity() {
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         val graphs=if(!mapField && dashboard.template.supportsGraph(index))
             GraphOverlayPicker(settingsContext,runtime.themes,dashboardGraphs.slots[index]) else null
-        val visualization=if(!mapField) ZoneGlowPicker(settingsContext,runtime.themes,dashboardZoneGlow.sources[index]) else null
+        val visualization=if(!mapField) ZoneGlowPicker(settingsContext,runtime.themes,dashboardZoneGlow.sources[index],selected.takeIf { dashboardDataVisibility.visible[index] }) else null
         visualization?.changed = {
             if(permitted()) {
                 dashboardZoneGlow=dashboardZoneGlow.replace(index,visualization.selected)
@@ -299,6 +319,7 @@ class MainActivity : Activity() {
             } else {
                 if(field!=null) dashboardLayout = dashboardLayout.replace(index, field)
                 dashboardDataVisibility=dashboardDataVisibility.replace(index,field!=null)
+                visualization?.restrictTo(field)
                 // Write the old display-mode key as compatibility metadata; visibility is authoritative.
                 dashboardGraphs=dashboardGraphs.withDisplay(index,if(field==null) GraphDisplayMode.GRAPH_ONLY else GraphDisplayMode.WITH_DATA)
                 preferences.edit().putString(dashboardKey,dashboardLayout.encode())

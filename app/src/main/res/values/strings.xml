@@ -263,7 +263,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="training_power_description">Zone %1$d · %2$s Watt</string>
     <string name="zone_visualization">Visualisierung</string>
     <string name="zone_glow_off">Aus</string>
-    <string name="zone_glow_power_current">Leistungszone · aktuell (3 Sekunden)</string>
+    <string name="zone_glow_power_current">Leistungszone · aktuell (5 Sekunden)</string>
     <string name="zone_glow_power_average">Leistungszone · Ø Fahrt</string>
     <string name="zone_glow_heart_current">Herzfrequenzzone · aktuell (3 Sekunden)</string>
     <string name="zone_glow_heart_average">Herzfrequenzzone · Ø Fahrt</string>

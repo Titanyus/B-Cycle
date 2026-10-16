@@ -106,3 +106,14 @@ Ungültige Importwerte werden abgelehnt.
 
 Rand- und Zonen-Glow nutzen dieselben zentralen Helligkeitsparameter: 140/255
 und drei additive Lichtbeiträge (BicycleDesign.ambientGlowPasses).
+
+## Oberer Fensterrand und Statusleistenbereich
+
+Bei Oben wird derselbe Glow-Drawable an den gesamten Activity-Fensterhintergrund
+gebunden. Er beginnt bei y=0 einschließlich der nutzbaren Fläche um die Kameraaussparung
+und der ausgeblendeten Android-Statusleiste. Die eigentlichen Datenfelder behalten
+die System-/Cutout-Sicherheitsabstände. Seitlich verwendet weiterhin ausschließlich
+den Dashboard-Hintergrund. Besitzerwechsel statt zweiter Glow-Instanz; keine doppelte
+Animation oder Touch-Overlay. Nur der Besitzer legt die Drawable-Grenzen fest.
+Android 13–14 erhalten dafür explizit Edge-to-edge/Cutout-Layout; die Systemnavigation
+und sichtbaren Dialog-Statusleisten bleiben erhalten.

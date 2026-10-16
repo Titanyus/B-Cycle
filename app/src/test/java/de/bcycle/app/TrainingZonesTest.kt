@@ -45,6 +45,45 @@ class TrainingZonesTest {
         assertEquals(20.0,window.update(20.0,9000,9000)!!,0.0)
         assertNull(window.update(10.0,8900,9100))
     }
+    @Test fun sourceCompatibilityLimitsPulseAndPowerWithoutChangingGraphOnlyChoices() {
+        for(id in listOf("HEART_RATE","HEART_AVERAGE","HEART_MAXIMUM","TRAINING_HEART_ZONE","TRAINING_HRR_PERCENT"))
+            assertEquals(listOf(ZoneGlowSource.OFF,ZoneGlowSource.HEART_CURRENT,ZoneGlowSource.HEART_AVERAGE),ZoneGlowCompatibility.allowed(DashboardField(id)))
+        for(id in listOf("RIDER_POWER","AVERAGE_POWER","MAXIMUM_POWER","MOTOR_POWER","TRAINING_POWER_ZONE","TRAINING_FTP_PERCENT"))
+            assertEquals(listOf(ZoneGlowSource.OFF,ZoneGlowSource.POWER_CURRENT,ZoneGlowSource.POWER_AVERAGE),ZoneGlowCompatibility.allowed(DashboardField(id)))
+        val config=ZoneGlowConfig().replace(0,ZoneGlowSource.POWER_CURRENT)
+        val layout=DashboardLayout.defaults.replace(0,DashboardField("HEART_RATE"))
+        assertEquals(ZoneGlowSource.OFF,config.compatible(layout,DashboardDataVisibility()).sources[0])
+        assertEquals(config,config.compatible(layout,DashboardDataVisibility().replace(0,false)))
+    }
+    @Test fun currentPowerUsesFiveSecondsWhileHeartRetainsThreeAndTripMeansStayIndependent() {
+        val presentation=TrainingPresentation()
+        val profile=RiderProfile(restingHeartRate=50,maximumHeartRate=150,ftpW=200)
+        var snapshot=TrainingSnapshot()
+        for(second in 0..5) {
+            val at=second*1000L
+            snapshot=presentation.update(TrainingInputs(if(second<4) 100.0 else 300.0,at,177.0,
+                if(second<4) 110.0 else 130.0,at,115.0),profile,at)
+        }
+        assertEquals(140.0,snapshot.power!!,.00001)
+        assertEquals(350.0/3,snapshot.heart!!,.00001)
+        assertEquals(177.0,snapshot.averagePower!!,.00001);assertEquals(115.0,snapshot.averageHeart!!,.00001)
+        assertNull(presentation.update(TrainingInputs(),profile,6000).glow(ZoneGlowSource.POWER_CURRENT))
+    }
+    @Test fun steadyPulseAndPowerKeepTheirOwnZoneColorsDespiteUnrelatedInputsAndExtraRenders() {
+        val presentation=TrainingPresentation()
+        val profile=RiderProfile(restingHeartRate=50,maximumHeartRate=170,ftpW=200)
+        val heartColor=TrainingSnapshot(profile,heart=130.0).glow(ZoneGlowSource.HEART_CURRENT)
+        val powerColor=TrainingSnapshot(profile,power=130.0).glow(ZoneGlowSource.POWER_CURRENT)
+        for(second in 0..120) {
+            val at=second*1000L
+            val input=TrainingInputs(130.0,at,if(second%2==0) 30.0 else 300.0,130.0,at,if(second%2==0) 100.0 else 150.0)
+            for(offset in listOf(0L,100L,500L)) {
+                val snapshot=presentation.update(input,profile,at+offset)
+                assertEquals(heartColor,snapshot.glow(ZoneGlowSource.HEART_CURRENT))
+                assertEquals(powerColor,snapshot.glow(ZoneGlowSource.POWER_CURRENT))
+            }
+        }
+    }
     @Test fun missingProfileAndUnavailableInputsDoNotInventZonesAndTripMeansAreReused() {
         val profile=RiderProfile(restingHeartRate=50,maximumHeartRate=150,ftpW=200)
         val presentation=TrainingPresentation()

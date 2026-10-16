@@ -46,6 +46,33 @@ class TrainingZoneUiTest {
             assertEquals(ZoneGlowSource.OFF,ZoneGlowConfig.read(prefs,0).sources[0])
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun sourceOptionsFollowMainMeasurementAndChangingFamilyClearsPersistedMismatch() {
+        val app=context;val prefs=app.getSharedPreferences("bike",0)
+        prefs.edit().putString("dashboard",DashboardLayout.defaults.replace(0,DashboardField("HEART_RATE")).encode())
+            .putString(ZoneGlowConfig.key(0),ZoneGlowConfig().replace(0,ZoneGlowSource.POWER_CURRENT).encode()).commit()
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get();val root=activity.findViewById<View>(android.R.id.content)
+            val tile=root.findViewWithTag<View>("dashboard_tile_0")
+            assertEquals(ZoneGlowSource.OFF,ZoneGlowConfig.read(prefs,0).sources[0])
+            tile.performLongClick();tile.performClick();shadowOf(Looper.getMainLooper()).idle()
+            val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            val glow=testDescendants(screen.window!!.decorView).filterIsInstance<ZoneGlowPicker>().single()
+            assertNull(glow.findViewWithTag<View>("zone_glow_POWER_CURRENT"))
+            glow.findViewWithTag<View>("zone_glow_HEART_CURRENT").performClick()
+            assertEquals(ZoneGlowSource.HEART_CURRENT,ZoneGlowConfig.read(prefs,0).sources[0])
+            val source=screen.window!!.decorView.findViewWithTag<Spinner>("field_source")
+            source.setSelection((0 until source.count).first { source.getItemAtPosition(it)=="E-Bike" })
+            shadowOf(Looper.getMainLooper()).idle()
+            screen.window!!.decorView.findViewWithTag<View>("RIDER_POWER").performClick()
+            assertEquals(ZoneGlowSource.OFF,ZoneGlowConfig.read(prefs,0).sources[0])
+            tile.performClick();shadowOf(Looper.getMainLooper()).idle()
+            val reopened=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            val power=testDescendants(reopened.window!!.decorView).filterIsInstance<ZoneGlowPicker>().single()
+            assertNull(power.findViewWithTag<View>("zone_glow_HEART_CURRENT"))
+            assertNotNull(power.findViewWithTag<View>("zone_glow_POWER_CURRENT"))
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun profilePowerZonesUpdateWithFtpAndHideForInvalidInputs() {
         val controller=Robolectric.buildActivity(Activity::class.java).setup()
         try {
