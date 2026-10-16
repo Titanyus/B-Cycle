@@ -1,14 +1,16 @@
-# Bikes – erste Profilverwaltung
+# Bikes – dynamische Profilverwaltung
 
 Die bisherige Sensorenseite heißt **Bikes** und verwendet das vorhandene Bike-Icon.
-Die vier Profilkacheln bleiben im normalen Scrollinhalt. Darunter stehen der
+Bis zu sechs Profilkacheln stehen in einer horizontal scrollbaren Auswahl; drei
+gleich breite Kacheln passen nebeneinander. „Neues Rad“ mit Plus steht am Ende,
+bis sechs Räder angelegt sind. Darunter stehen der
 antippbare Name (direkte Eingabe, gültige Änderungen sofort speichern), Radtyp,
 Fahrradkategorie als Dropdown, Radumfang, Sensorverwaltung und FIT-Auswahl.
 Ein gemeinsamer Fullscreen-Header, keine zusätzliche Footer-Navigation.
 
 ## Profile und Migration
 
-- Vier feste lokale Slots; Namen, Kategorie, Radumfang, Start-Verbindungsoption,
+- Ein bis sechs lokale Profile; Namen, Kategorie, Radumfang, Start-Verbindungsoption,
   Sensorzuordnungen, Kategorie-Schalter und FIT-Konfiguration pro Profil.
 - Bike 1 übernimmt die bisherigen Bosch-/Pulsmesser-Zuordnungen, GPS-Einstellung
   und FIT-Feldauswahl/-Hauptquellen. Die anderen Slots übernehmen keine Zuordnung.
@@ -23,17 +25,43 @@ Ein gemeinsamer Fullscreen-Header, keine zusätzliche Footer-Navigation.
   FIT-Auswahl. Lokale Sensorzuordnungen werden weiterhin nicht exportiert; kein
   unkontrolliertes Serialisieren der vollständigen Profil-Preferences in Backups.
 
-`BikeProfileStore` hält die vier Profile versioniert und spiegelt nur das aktive
+`BikeProfileStore` hält die Profile mit stabiler Kennung versioniert und spiegelt nur das aktive
 Profil in die bisherigen Runtime-/Backup-Schlüssel. Bestehende Restore-Aufrufe auf
 aktive FIT-Schlüssel bleiben dadurch wirksam. Unveränderte Profil-JSON-Daten werden
 nicht bei jedem Sensortick erneut dekodiert; Kachelbilder werden nur bei Änderungen
 neu aufgebaut. Keine zweite Sensorverarbeitung oder parallele Aufzeichnung.
 
+## Hinzufügen, Löschen und Reihenfolge
+
+- Frische Installation: ein Rad mit migrierten aktiven Einstellungen. Vorhandene
+  vier V1-Profile bleiben vollständig erhalten, inklusive Namen und Fotos.
+- Die bisherige `slot`-Kennung wird zur stabilen, monoton vergebenen ID; die
+  JSON-Reihenfolge ist unabhängig davon. Alte JSON-Zeilen ohne `slot` erhalten
+  ihren früheren Index. IDs werden beim Löschen nicht wiederverwendet.
+- Langes Drücken startet Android-Drag-and-drop. Ablegen verschiebt das Rad an die
+  Zielposition; am sichtbaren Rand scrollt die Reihe während des Ziehens weiter.
+  TalkBack bietet zusätzlich „Rad nach links/rechts verschieben“ an.
+- Auswahl bleibt beim Verschieben erhalten. Sensor-/FIT-Konfiguration und Fotos
+  hängen an der Profil-ID, nicht an der sichtbaren Position.
+- Gemeinsamer fachlicher Footer mit „Rad löschen“ und Bestätigung für das aktuell
+  ausgewählte Rad. Bei nur einem Rad vollständig GONE, kein Platzbedarf.
+  Veraltete Bestätigungen dürfen kein inzwischen anderes Rad löschen.
+- Löschen wählt ein benachbartes Rad, beendet alte Verbindungen und entfernt nur
+  das Profil und sein privates Foto. Bereits aufgezeichnete Fahrten bleiben erhalten.
+- Während Aufnahme/Speichern sind Hinzufügen, Löschen, Verschieben und Profilwechsel
+  gesperrt. Die Obergrenze und das letzte verbleibende Rad sind zusätzlich im Store
+  geschützt. Das bestehende manuelle Backup bleibt unverändert (keine Profilfotos
+  oder Sensorzuordnungen exportieren).
+
 ## Typen und Bilder
 
 Bike, E-Bike und Indoor-Bike sind im Modell vorhanden, **nur E-Bike ist aktiv**.
 Für Bike/Indoor sind passende Sensorrollen vorbereitet, einschließlich einer
-inaktiven Trainerrolle. Zusätzliche Powermeter-/FTMS-Anbindung folgt separat.
+inaktiven Trainerrolle. Indoor verwendet ausschließlich Trainer und optionalen
+Pulsmesser, keine GPS-, Bosch- oder separate Powermeter-Rolle. Tempo, Distanz,
+Kadenz und Fahrerleistung kommen vom Trainer, soweit tatsächlich verfügbar.
+Die Aktivierung und BLE-/FTMS-Anbindung folgen separat gemäß
+[Matrix-ICR50-Briefing](ble-trainer-matrix-icr50.md); jetzt keine Trainerbefehle senden.
 
 Mountainbike, Rennrad, Trekkingbike, Gravelbike und Citybike sind als Kategorien
 wählbar. `BikePreview` zeichnet leichte kategorienspezifische Platzhalter;
@@ -85,7 +113,8 @@ Vollständige Suite: **403 Tests bestanden**, keine Fehler oder übersprungenen
 Tests. Nach abschließenden UI-Anpassungen zusätzlich 18 gezielte Prüfungen für
 Migration/Profilpersistenz, Runtime-/Aufnahmesperre, BLE-Suche auf API 33/35/36,
 Native-UI, Themewechsel und FIT-Auswahl; danach erneut vier UI-/Themeprüfungen.
-Debug- und Release-Kotlin-Kompilierung erfolgreich.
+Debug- und Release-Kotlin-Kompilierung erfolgreich. Nach der abschließenden Transparenzänderung
+die beiden Streckenmanager-Tests und Release-Kotlin-Kompilierung erneut erfolgreich.
 
 Die BLE-Prüfungen verwenden Android-Testdoubles; physische Mehrgeräteverbindungen
 sind noch am Telefon zu testen. Keine neue APK erzeugt oder veröffentlicht.
@@ -105,3 +134,17 @@ im Fahrerprofil verwendet. WebDAV-Felder erhalten den Rahmen mit Systemschrift.
 
 [Native Vorschau](previews/bikes-wheel-row.png). Gezielt geprüft über
 BikesViewTest und die Release-Kotlin-Kompilierung; keine neue APK gebaut.
+
+## Verifikation der dynamischen Profile
+
+37 gezielte Tests über Profilstore, Migration alter vier Profile, Sechs-Räder-Limit,
+Nicht-Wiederverwendung gelöschter Kennungen, Auswahl/FIT, native Drei-Kachel-Breite
+auf zwei Hochformatbreiten, horizontales Scrollen, Drag-and-drop-Ereignisse,
+Accessibility-Verschieben, Löschbestätigung, letzte verbleibende Kachel und
+Aufnahmesperren. Fotos bleiben bei Umsortierung zugeordnet und werden nur mit dem
+gelöschten Profil entfernt; Fahrtdateien bleiben erhalten. Zusätzlich Wetter,
+kompakte Detailtrenner, Header-Abstände und bisherige Streckeninteraktionen geprüft.
+Release-Kotlin-Kompilierung erfolgreich. Nach der abschließenden Transparenzänderung
+die beiden Streckenmanager-Tests und Release-Kotlin-Kompilierung erneut erfolgreich. Keine neue APK in diesem Änderungsschritt.
+Die reale Android-Drag-Geste samt Randscrollverhalten sollte am Gerät optisch geprüft
+werden; automatisiert sind Ereignisverarbeitung und gespeicherte Reihenfolge geprüft.

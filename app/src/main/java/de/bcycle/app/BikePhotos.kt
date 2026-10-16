@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
 /** Private, bounded photo copies: no dependency on an expiring document URI. */
 internal object BikePhotos {
     val worker=Executors.newSingleThreadExecutor { Thread(it,"Bicycle-bike-photo") }
-    fun file(c:Context,slot:Int):File { require(slot in 0 until BikeProfileStore.COUNT);return File(c.filesDir,"bike-photos/bike-$slot.webp") }
+    fun file(c:Context,slot:Int):File { require(slot >= 0);return File(c.filesDir,"bike-photos/bike-$slot.webp") }
     fun import(c:Context,slot:Int,uri:Uri) {
         val input=File.createTempFile("bike-photo-", ".input",c.cacheDir)
         try {

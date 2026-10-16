@@ -79,3 +79,19 @@ bestehende Dashboard-/Quellen-/Einstellungsnavigation. Release-Build mit R8,
 Resource-Shrinking und lintVital erfolgreich. Die tatsächliche optische Wirkung
 auf dem Poco F7 Ultra sowie die Android-Anzeigedichte bleiben auf dem Gerät zu
 prüfen; die Tests simulieren mehrere Dichten einschließlich 2,75.
+
+## Footer-Wrapper und Strecken
+
+BicycleFullscreen normalisiert bei einem fachlichen Footer die tatsächliche erste
+Seitenansicht (ScrollView/Streckenmanager), nicht zusätzlich deren äußere
+LinearLayout-Hülle. So bleibt der Abstand zu Bike-Kacheln, Streckenfilter und
+Fahrtdatum identisch pageContentGap (16 dp); Wrapper-Padding wird nicht addiert.
+Wettergruppen verwenden mittige Punkte nur zwischen Himmel/Temperatur, Feuchte
+und Wind. Innerhalb von Himmel und Temperatur steht kein Punkt.
+
+Streckendetails verwenden für die Trenner ihrer Kennzahlenbereiche zentral
+analysisDividerGap = 2 dp oben und unten. Alle anderen Abschnittstrenner bleiben
+bei 12 dp. Wettergruppen werden als Gesamtzeile bzw. pro umgebrochener Zeile zentriert.
+
+Die native ListView der Strecken übernimmt dividerAlpha = 55 % für ihre
+FOREGROUND-Trenner, identisch zur Deckkraft der Abschnittstrenner in Details.

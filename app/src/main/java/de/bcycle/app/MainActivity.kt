@@ -104,7 +104,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         runtime = RideRuntime.get(this)
-        pendingBikePhotoSlot=savedInstanceState?.getInt("pendingBikePhotoSlot",-1)?.takeIf { it in 0 until BikeProfileStore.COUNT }
+        pendingBikePhotoSlot=savedInstanceState?.getInt("pendingBikePhotoSlot",-1)?.takeIf { it >= 0 && runtime.bikes.all().any { bike -> bike.slot == it } }
         pendingReport = savedInstanceState?.getString("pendingReport")
         pendingBackupExport = savedInstanceState?.getByteArray("settingsBackupPendingExport")
         dashboardPage = preferences.getInt("dashboardPage", 0).coerceIn(0, 3)
@@ -332,9 +332,20 @@ class MainActivity : Activity() {
             pendingBikePhotoSlot=slot
             runCatching { startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*"),14) }
                 .onFailure { pendingBikePhotoSlot=null;BicycleFeedback.show(this,getString(R.string.bike_photo_failed)) }
+        }, { slot, name, remove ->
+            dialog(fullscreen=false).setTitle(R.string.bikes_delete)
+                .setMessage(getString(R.string.bikes_delete_confirm,name))
+                .setPositiveButton(R.string.bikes_delete) { _, _ ->
+                    if(runtime.bikes.activeSlot==slot) remove()
+                }.show()
         })
         bikesManager = content
-        sensorManager = dialog().setTitle(R.string.bikes_title).setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).create().apply {
+        val root=LinearLayout(settingsContext).apply {
+            orientation=LinearLayout.VERTICAL
+            addView(BicycleStickyScrollView(settingsContext).apply { addView(content) },LinearLayout.LayoutParams(-1,0,1f))
+            addView(content.footer,LinearLayout.LayoutParams(-1,-2))
+        }
+        sensorManager = dialog().setTitle(R.string.bikes_title).setView(root).create().apply {
             dialogs.onDismiss(this) { stopScan();if(bikesManager===content) bikesManager=null };show()
         }
     }
@@ -471,7 +482,12 @@ class MainActivity : Activity() {
             val slot=pendingBikePhotoSlot;pendingBikePhotoSlot=null
             if(resultCode==RESULT_OK && slot!=null) data?.data?.let { uri ->
                 BikePhotos.worker.execute {
-                    val result=runCatching { BikePhotos.import(applicationContext,slot,uri) }
+                    val result=runCatching {
+                        if(runtime.bikes.all().any { it.slot==slot }) {
+                            BikePhotos.import(applicationContext,slot,uri)
+                            if(runtime.bikes.all().none { it.slot==slot }) BikePhotos.delete(applicationContext,slot)
+                        }
+                    }
                     runOnUiThread { if(!isDestroyed) {
                         if(result.isSuccess && runtime.bikes.activeSlot==slot) bikesManager?.refreshPhoto()
                         if(result.isFailure) BicycleFeedback.show(this,getString(R.string.bike_photo_failed))

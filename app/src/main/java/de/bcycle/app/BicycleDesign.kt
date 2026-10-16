@@ -65,6 +65,7 @@ object BicycleDesign {
     const val analysisChartHeight = 120
     const val analysisSideLabelWidth = 24
     const val analysisSideLabelSp = 12f
+    const val bikeVisibleTiles = 3
     const val bikeTileHeight = 154
     const val bikePhotoHeight = 200
     const val bikePhotoEmptyHeight = 64
@@ -106,6 +107,7 @@ object BicycleDesign {
     fun linePixels(context: Context, widthDp: Float = dividerDp) = Math.round(context.resources.displayMetrics.density * widthDp).coerceAtLeast(1)
     const val dividerAlpha = .55f
     const val sectionDividerGap = 12
+    const val analysisDividerGap = 2
     const val inputHorizontalPadding = 12
     const val menuIconSize = 64
     const val menuTileHeight = 148
@@ -281,12 +283,12 @@ object BicycleComponents {
         layoutParams = ViewGroup.LayoutParams(-1, BicycleDesign.linePixels(context))
         bindTheme(this, manager) { setBackgroundColor(it.foreground) }
     }
-    fun sectionDivider(context: Context, manager: ThemeManager) = divider(context, manager).apply {
+    fun sectionDivider(context: Context, manager: ThemeManager, gap: Int = BicycleDesign.sectionDividerGap) = divider(context, manager).apply {
         tag="bicycle_section_divider"
         alpha = BicycleDesign.dividerAlpha
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         layoutParams = LinearLayout.LayoutParams(-1, BicycleDesign.linePixels(context)).apply {
-            topMargin = dp(context, BicycleDesign.sectionDividerGap); bottomMargin = dp(context, BicycleDesign.sectionDividerGap)
+            topMargin = dp(context, gap); bottomMargin = dp(context, gap)
         }
     }
 }

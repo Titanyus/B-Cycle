@@ -620,4 +620,11 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bike_photo_choose">Fahrradbild auswählen</string>
     <string name="bike_photo_remove">Fahrradbild löschen</string>
     <string name="bike_photo_failed">Bild konnte nicht übernommen werden</string>
+    <string name="bikes_new">Neues Rad</string>
+    <string name="bikes_delete">Rad löschen</string>
+    <string name="bikes_delete_confirm">„%1$s“ und seine Einstellungen löschen? Aufgezeichnete Fahrten bleiben erhalten.</string>
+    <string name="bikes_move_hint">Zum Verschieben lange drücken und ziehen.</string>
+    <string name="bikes_move_left">Rad nach links verschieben</string>
+    <string name="bikes_move_right">Rad nach rechts verschieben</string>
+    <string name="weather_group_separator">·</string>
 </resources>

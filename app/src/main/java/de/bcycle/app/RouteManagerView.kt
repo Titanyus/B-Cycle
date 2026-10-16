@@ -86,7 +86,7 @@ internal class RouteManagerView(context: Context,
             setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
             BicycleComponents.scrollStyle(this)
             BicycleComponents.bindTheme(this, themes) {
-                divider = ColorDrawable(it.foreground); dividerHeight = BicycleDesign.linePixels(context)
+                divider = ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }; dividerHeight = BicycleDesign.linePixels(context)
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)
                 selector = GradientDrawable().apply { setColor(it.secondary); setStroke(BicycleDesign.linePixels(context), it.foreground) }
             }

@@ -1,0 +1,4 @@
+<resources>
+    <item name="bike_move_left" type="id" />
+    <item name="bike_move_right" type="id" />
+</resources>

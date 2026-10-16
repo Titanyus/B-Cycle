@@ -71,11 +71,16 @@ class RideWeatherTest {
         (0 until row.childCount).forEach {
             val part=row.getChildAt(it) as android.widget.LinearLayout
             assertTrue(part.width>0);assertTrue(part.right<=row.width)
-            assertTrue(part.getChildAt(0) is android.widget.ImageView)
-            val label=part.getChildAt(1) as TextView
-            assertEquals(BicycleDesign.dp(c,BicycleDesign.smallGap),label.left-part.getChildAt(0).right)
+            val iconIndex=if(it==0) 0 else 1
+            assertTrue(part.getChildAt(iconIndex) is android.widget.ImageView)
+            val label=part.getChildAt(iconIndex+1) as TextView
+            if(it>0) assertEquals("·",(part.getChildAt(0) as TextView).text.toString())
+            else assertFalse(label.text.contains("·"))
+            assertEquals(BicycleDesign.dp(c,BicycleDesign.smallGap),label.left-part.getChildAt(iconIndex).right)
             assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.rowTitleSp,c.resources.displayMetrics),label.textSize,0f)
         }
+        val groups=(0 until row.childCount).map(row::getChildAt).groupBy { (it.top+it.bottom)/2 }
+        groups.values.forEach { parts -> assertEquals(row.width/2f,(parts.minOf { it.left }+parts.maxOf { it.right })/2f,1f) }
         assertTrue(row.contentDescription.toString().contains("50"));assertTrue(row.contentDescription.toString().contains("NW"))
         assertEquals("analysis_weather",row.tag)
     }

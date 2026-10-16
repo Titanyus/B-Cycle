@@ -56,7 +56,11 @@ internal object BicycleFullscreen {
                 BicycleComponents.scrollStyle(this)
                 addView(original, ViewGroup.LayoutParams(-1, -2))
             }
-            BicycleContentSpacing.page(body)
+            // Fixed-footer wrappers are not a second page inset. Normalize the real
+            // first page (Bikes, route list or details) instead of padding its wrapper.
+            val first=(original as? LinearLayout)?.let { if(it.childCount>0) it.getChildAt(0) else null }
+            val spacingTarget=first?.takeIf { it is ScrollView || it is RouteManagerView } ?: body
+            BicycleContentSpacing.page(spacingTarget)
             body.tag = body.tag ?: "bicycle_fullscreen_content"
             BicycleComponents.bindTheme(body, themes) { body.setBackgroundColor(it.secondary) }
             host.addView(body, LinearLayout.LayoutParams(-1, 0, 1f))

@@ -98,7 +98,7 @@ class RouteAnalysisViewTest {
         assertEquals(6,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.linePixels(context) && it.alpha==BicycleDesign.dividerAlpha })
         dividers.forEach {
             val margins=it.layoutParams as LinearLayout.LayoutParams
-            assertEquals(BicycleDesign.dp(context,BicycleDesign.sectionDividerGap),margins.topMargin)
+            assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisDividerGap),margins.topMargin)
             assertEquals(margins.topMargin,margins.bottomMargin)
         }
         val date=content.findViewWithTag<TextView>("analysis_date")

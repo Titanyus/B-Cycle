@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Gravity
@@ -12,16 +11,22 @@ import android.widget.*
 
 /** One profile page: tiles, editable heading, configuration, sensors, then FIT. No nested scrolling. */
 internal class BikesView(context: Context, private val runtime: RideRuntime,
-    private val search: () -> Unit, private val stopSearch: () -> Unit, private val enableGps: () -> Unit, private val recordingControls: () -> View, private val choosePhoto:(Int)->Unit = {}) : LinearLayout(context) {
+    private val search: () -> Unit, private val stopSearch: () -> Unit, private val enableGps: () -> Unit, private val recordingControls: () -> View, private val choosePhoto:(Int)->Unit = {},
+    private val confirmDelete:(Int,String,()->Unit)->Unit = { _,_,_ -> }) : LinearLayout(context) {
     private val themes = runtime.themes
     private var shownSlot = -1
     private var binding = false
-    private var cardSignature = ""
-    private val cards = mutableListOf<LinearLayout>()
-    private val cardNames = mutableListOf<TextView>()
-    private val cardTypes = mutableListOf<TextView>()
     private var photo:BikePhotoView?=null
-    private val cardImages = mutableListOf<ImageView>()
+    private lateinit var strip:BikeProfileStrip
+    private val deleteAction=BicycleFooterAction(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.bikes_delete)) {
+        val p=runtime.bikes.current()
+        if(!runtime.recording && !runtime.saving && runtime.bikes.all().size>1) confirmDelete(p.slot,p.name) {
+            stopSearch();runtime.deleteCurrentBike(p.slot);refresh()
+        }
+    }.apply { tag="bike_delete" }
+    val footer=bicycleFooter(context,themes).apply {
+        addView(deleteAction,LayoutParams(0,-2,1f))
+    }
     private val statuses = mutableMapOf<BikeSensor, TextView>()
     private val batteries = mutableMapOf<BikeSensor, TextView>()
     private val switches = mutableMapOf<BikeSensor, Switch>()
@@ -44,30 +49,19 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     }
     private fun rebuild() {
         shownSlot = runtime.bikes.activeSlot
-        removeAllViews(); cardSignature="";cards.clear();cardNames.clear();cardTypes.clear();cardImages.clear();statuses.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
+        removeAllViews();statuses.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
         val profile = runtime.bikes.current(); val slot = profile.slot
-        val tiles = LinearLayout(context).apply { orientation = HORIZONTAL;isBaselineAligned=false }
-        repeat(BikeProfileStore.COUNT) { index ->
-            val card = LinearLayout(context).apply {
-                orientation = VERTICAL;gravity=Gravity.CENTER;tag="bike_profile_$index";isClickable=true;isFocusable=true
-                setPadding(dp(BicycleDesign.smallGap),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.smallGap),dp(BicycleDesign.verticalPadding))
-                setOnClickListener {
-                    stopSearch()
-                    if (!runtime.switchBike(index)) BicycleFeedback.show(context,R.string.bikes_profile_locked,false)
-                    refresh()
-                }
-            }
-            val image = ImageView(context).apply { importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO }
-            val caption = BicycleComponents.text(context,themes,"").apply { gravity=Gravity.CENTER;setLines(2);ellipsize=android.text.TextUtils.TruncateAt.END;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO }
-            val type=BicycleComponents.text(context,themes,"").apply { gravity=Gravity.CENTER;maxLines=1;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO }
-            card.addView(type,LayoutParams(-1,-2));cardTypes+=type
-            card.addView(image,LayoutParams(-1,dp(BicycleDesign.bikePreviewHeight)))
-            card.addView(caption,LayoutParams(-1,-2))
-            cards+=card;cardNames+=caption;cardImages+=image
-            BicycleComponents.bindTheme(card,themes) { paintCards() }
-            tiles.addView(card,LayoutParams(0,dp(BicycleDesign.bikeTileHeight),1f).apply { if(index>0) marginStart=dp(BicycleDesign.controlGap) })
-        }
-        addView(tiles,LayoutParams(-1,-2))
+        strip=BikeProfileStrip(context,themes,{ id ->
+            stopSearch()
+            if(!runtime.switchBike(id)) BicycleFeedback.show(context,R.string.bikes_profile_locked,false)
+            refresh()
+        }, {
+            stopSearch()
+            if(runtime.addBike()) { refresh();strip.revealActive() }
+        }, { id, position -> runtime.moveBike(id,position).also { refresh() } })
+        addView(strip,LayoutParams(-1,-2))
+        strip.show(runtime.bikes.all(),slot,runtime.recording || runtime.saving)
+        strip.revealActive()
         nameHeading = BicycleComponents.text(context,themes,profile.name,true).apply {
             tag="bike_profile_name";gravity=Gravity.CENTER;minimumHeight=dp(BicycleDesign.touchSize);isClickable=true;isFocusable=true
             contentDescription=context.getString(R.string.bikes_name_edit)
@@ -195,24 +189,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         },LayoutParams(-1,-2))
     }
     fun clearSearch() { searchResults.removeAllViews();searchStatus.visibility=GONE }
-    private fun paintCards() {
-        if(cards.isEmpty()) return
-        val tokens=themes.active.tokens
-        val profiles=runtime.bikes.all()
-        val signature="${cards.size}:${runtime.bikes.activeSlot}:${tokens.hashCode()}:"+profiles.joinToString { "${it.name}:${it.category}:${it.type}" }
-        if(signature==cardSignature) return
-        cardSignature=signature
-        profiles.forEachIndexed { index,p ->
-            if(index>=cards.size) return@forEachIndexed
-            val selected=index==runtime.bikes.activeSlot
-            cards[index].isSelected=selected;cards[index].contentDescription=p.name
-            cards[index].stateDescription=if(selected) context.getString(R.string.bikes_selected) else context.getString(R.string.ui_not_selected)
-            cards[index].background=GradientDrawable().apply { setColor(if(selected) tokens.tertiary else tokens.secondary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat();setStroke(if(selected) dp(2) else BicycleDesign.linePixels(context),BicycleComponents.selectionBorder(tokens,selected)) }
-            cardTypes[index].text=context.getString(p.type.label)
-            cardNames[index].text=p.name
-            cardImages[index].setImageDrawable(BikePreview(p.category).apply { setTint(tokens.foreground) })
-        }
-    }
+    private fun paintCards() { strip.show(runtime.bikes.all(),runtime.bikes.activeSlot,runtime.recording || runtime.saving) }
     fun refreshPhoto() { photo?.refresh() }
     fun refresh() {
         if(shownSlot!=runtime.bikes.activeSlot) { rebuild();return }
@@ -220,7 +197,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         try {
             val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect
             searchButton.isEnabled=!runtime.recording && !runtime.saving
-            cards.forEach { it.isEnabled=!runtime.recording && !runtime.saving }
+            footer.visibility=if(runtime.bikes.all().size>1) VISIBLE else GONE
+            deleteAction.isEnabled=!runtime.recording && !runtime.saving
             switches.forEach { (s,v) -> v.isChecked=when(s) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;else->false } }
             statuses.forEach { (sensor,view) ->
                 val value=if(!sensor.supported) context.getString(R.string.bikes_not_available) else if(runtime.disconnected(sensor)) context.getString(R.string.bikes_disconnected) else when(sensor) {

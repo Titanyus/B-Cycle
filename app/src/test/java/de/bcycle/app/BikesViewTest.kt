@@ -29,6 +29,7 @@ class BikesViewTest {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val app=controller.get();val runtime=RideRuntime.get(app)
+            runtime.bikes.add()
             testDescendants(app.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
             ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("settings_SENSORS").performClick()
             val decor=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView;measure(decor)
@@ -51,10 +52,11 @@ class BikesViewTest {
             assertEquals(0,runtime.bikes.activeSlot)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun fourCardsInlineNameDropdownAndFitAccordionPersistOnTheSameScrollingPage() {
+    @Test fun dynamicCardsInlineNameDropdownAndFitAccordionPersistOnTheSameScrollingPage() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val app=controller.get();val runtime=RideRuntime.get(app)
+            runtime.bikes.add()
             testDescendants(app.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
             val menu=ShadowAlertDialog.getLatestAlertDialog()
             menu.window!!.decorView.findViewWithTag<View>("settings_SENSORS").performClick()
@@ -66,7 +68,7 @@ class BikesViewTest {
                 assertEquals("E-Bike",(card.getChildAt(0) as TextView).text.toString())
                 assertEquals(2,(card.getChildAt(2) as TextView).minLines)
             }
-            assertEquals(4,testDescendants(body).count { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true })
+            assertEquals(2,testDescendants(body).count { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true })
             assertFalse(body.findViewWithTag<View>("bike_type_BIKE").isEnabled)
             assertFalse(body.findViewWithTag<View>("bike_type_INDOOR").isEnabled)
             assertTrue(body.findViewWithTag<View>("bike_type_EBIKE").isEnabled)
@@ -108,7 +110,7 @@ class BikesViewTest {
             assertEquals("Tourenrad",decor.findViewWithTag<TextView>("bike_profile_name").text.toString())
             val scrolling=testDescendants(decor).filterIsInstance<ScrollView>().single { testDescendants(it).contains(body) }
             assertTrue(scrolling.getChildAt(0).height>scrolling.height)
-            assertFalse(testDescendants(decor).any { it.tag=="bicycle_fullscreen_footer" })
+            assertEquals(View.VISIBLE,decor.findViewWithTag<View>("bicycle_fullscreen_footer").visibility)
             // Capture the real Android view, including fixed header, not an illustrative mockup.
             fun snapshot(name: String) {
                 val bitmap=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888);decor.draw(Canvas(bitmap))

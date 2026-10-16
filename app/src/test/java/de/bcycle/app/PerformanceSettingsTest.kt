@@ -65,6 +65,7 @@ class PerformanceSettingsTest {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity = controller.get(); val runtime = RideRuntime.get(activity)
+            runtime.bikes.add()
             val before = runtime.config
             assertTrue(runtime.themes.activate("preset:solar-flare"))
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible = true }.invoke(activity)

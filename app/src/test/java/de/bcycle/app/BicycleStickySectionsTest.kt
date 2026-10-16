@@ -79,6 +79,7 @@ class BicycleStickySectionsTest {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get();val runtime=RideRuntime.get(activity)
+            runtime.bikes.add()
             runtime.themes.activate("preset:black-ops")
             testDescendants(activity.findViewById(android.R.id.content)).single { it.contentDescription==activity.getString(R.string.ui_menu_open) }.performClick()
             var dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
@@ -119,7 +120,8 @@ class BicycleStickySectionsTest {
             val location=IntArray(2);headings.first().getLocationOnScreen(location)
             val origin=IntArray(2);scroll.getLocationOnScreen(origin)
             assertEquals("pinned heading location",origin[1],location[1])
-            assertEquals(nav.bottom,scroll.top)
+            val navLocation=IntArray(2);nav.getLocationOnScreen(navLocation)
+            assertEquals(navLocation[1]+nav.height,origin[1])
             val screenshot=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888)
             decor.draw(Canvas(screenshot))
             assertEquals(runtime.themes.active.tokens.primary,screenshot.getPixel(decor.width-20,nav.height/2))

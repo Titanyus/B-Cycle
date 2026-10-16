@@ -39,7 +39,7 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 - **Fahrten im Detail** – Karte, fünf Verlaufsdiagramme, Bewegungszeit, Höhenmeter und Performance-Kennzahlen wie Normalized Power und Estimated FTP bei geeigneten Daten.
 - **Trainingszonen** – Persönliche Leistungs- und Pulszonen, Zonenanteile, Verteilungskurven und bis zu vier Best Efforts mit Watt und W/kg.
 - **Live-Graphen und Ambient-Glow** – Daten, Hintergrundgraphen und Zonen-Visualisierung unabhängig je Kachel kombinieren; Fahrmodus und Akkuwarnung am Bildschirmrand erkennen.
-- **Vier Fahrradprofile** – Eigene Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen und FIT-Einstellungen. Aktuell ist E-Bike nutzbar; Bike und Indoor-Bike sind vorbereitet.
+- **Fahrradprofile** – Im aktuellen Quellstand bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen und FIT-Einstellungen. Aktuell ist E-Bike nutzbar; Bike und Indoor-Bike sind vorbereitet.
 - **Dein Design** – Sieben Farbthemen mit einheitlicher Bedienung, sofort gespeicherten Einstellungen und Hochformat-Layouts.
 - **Export und Upload** – Lokal speichern oder eigene Fahrten an WebDAV, intervals.icu, Dreeve und Strava senden. Dienste arbeiten unabhängig; Dreeve benötigt eine eigene Instanz, Strava derzeit eine persönliche API-App.
 - **Wetter und Höhe** – Wetter zur Tourmitte dauerhaft speichern und bei Bedarf GPS-Höhen nachträglich mit Mapterhorn korrigieren; Original-FIT bleibt erhalten.
@@ -62,6 +62,19 @@ Bike-Rahmen-/Versionsanpassung vier Bike-/Sticky-Tests erneut erfolgreich.
 Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich.
 Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
 [Buildnachweis](docs/milestone-0724.md).
+
+## Aktueller Quellstand nach APK 0.7.24
+
+- Bis zu sechs Bikes, drei Kacheln nebeneinander mit horizontalem Scrollen.
+  „Neues Rad“, bestätigtes Löschen und Verschieben per langem Drücken/Ziehen.
+- Vorhandene Profile bleiben erhalten; Fotos und Sensorzuordnungen bleiben an
+  stabilen Profilkennungen. Indoor ist für Trainer plus Pulsmesser vorbereitet,
+  bleibt bis zur FTMS-Anbindung deaktiviert.
+- Header-Abstände in Streckenliste und Details wie bei Bikes; Wettergruppen
+  zentriert und durch mittige Punkte getrennt, Himmel und Temperatur ohne inneren Punkt.
+  Kennzahlenbereiche in Streckendetails wieder mit kompakten 2-dp-Abständen zu den Trennern;
+  Streckenlisten-Trenner ebenfalls mit 55 % Deckkraft.
+- Noch nicht in der oben verlinkten APK 0.7.24 enthalten.
 
 ## Neu in APK 0.7.24
 

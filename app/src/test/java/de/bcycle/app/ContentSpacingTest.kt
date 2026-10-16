@@ -77,4 +77,41 @@ class ContentSpacingTest {
         assertEquals(SensorIcons.forSensor(BikeSensor.HEART),SensorIcons.forSource("Pulsmesser"))
         assertEquals(SensorIcons.forSensor(BikeSensor.POWER),SensorIcons.forSource("Leistung"))
     }
+    @Test fun bikesRoutesAndRideDateHaveTheSameGapBelowTheirFullscreenHeader() {
+        val controller=org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val activity=controller.get();val runtime=RideRuntime.get(activity)
+            for(kind in 0..2) {
+                var analysis:RouteAnalysisView?=null
+                val page:View=when(kind) {
+                    0 -> BicycleStickyScrollView(activity).apply {
+                        addView(BikesView(activity,runtime,{},{},{},{ View(activity) }))
+                    }
+                    1 -> RouteManagerView(activity,{},runtime.themes)
+                    else -> RouteAnalysisView(activity,runtime.themes,"spacing") {}.also {
+                        analysis=it
+                        it.show(RouteAnalysis(ManagedRoute("spacing","Test",true,"FIT",RouteDetails(1_791_626_400_000),false),emptyMap(),null,true,1.0,emptyList()))
+                    }
+                }
+                val root=LinearLayout(activity).apply {
+                    orientation=LinearLayout.VERTICAL
+                    addView(page,LinearLayout.LayoutParams(-1,0,1f))
+                    addView(bicycleFooter(activity,runtime.themes),LinearLayout.LayoutParams(-1,64))
+                }
+                val dialog=android.app.AlertDialog.Builder(activity,R.style.SettingsFullscreenTheme).setTitle("Test").setView(root).show()
+                try {
+                    BicycleDialogStyle.apply(dialog,runtime.themes);BicycleFullscreen.apply(dialog,runtime.themes)
+                    val decor=dialog.window!!.decorView
+                    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                    decor.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1600,View.MeasureSpec.EXACTLY))
+                    decor.layout(0,0,720,1600)
+                    val target=decor.findViewWithTag<View>(when(kind) { 0->"bike_profile_strip";1->"route_filter";else->"analysis_date" })
+                    val header=decor.findViewWithTag<View>("bicycle_navigation_header")
+                    val a=IntArray(2);val b=IntArray(2);target.getLocationOnScreen(a);header.getLocationOnScreen(b)
+                    assertEquals("page $kind header/content gap",BicycleDesign.dp(activity,BicycleDesign.pageContentGap),a[1]-b[1]-header.height)
+                } finally { analysis?.dispose();dialog.dismiss() }
+            }
+        } finally { controller.pause().stop().destroy() }
+    }
+
 }

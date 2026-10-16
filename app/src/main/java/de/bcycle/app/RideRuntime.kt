@@ -251,6 +251,25 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         updateActivity()
         return true
     }
+    internal fun addBike(): Boolean {
+        if (recording || saving) return false
+        val profile = bikes.add() ?: return false
+        return switchBike(profile.slot)
+    }
+    internal fun deleteCurrentBike(expectedSlot: Int): Boolean {
+        if (recording || saving || bikes.activeSlot != expectedSlot) return false
+        val rows = bikes.all(); if (rows.size <= 1) return false
+        val index = rows.indexOfFirst { it.slot == expectedSlot }
+        val next = rows[if (index == rows.lastIndex) index - 1 else index + 1]
+        if (!switchBike(next.slot) || !bikes.remove(expectedSlot)) return false
+        BikePhotos.worker.execute { BikePhotos.delete(context, expectedSlot) }
+        notifyChanged()
+        return true
+    }
+    internal fun moveBike(slot: Int, position: Int): Boolean {
+        if (recording || saving) return false
+        return bikes.move(slot, position).also { if (it) notifyChanged() }
+    }
     internal fun setAutoConnect(enabled: Boolean) {
         bikes.save(bikes.current().copy(autoConnect = enabled))
         if (enabled) connectAssignedSensors() else notifyChanged()

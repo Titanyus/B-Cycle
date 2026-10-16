@@ -70,7 +70,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                 else if (heading == R.string.analysis_power_group && alternatives.flatten().any { it in analysis.metrics }) alternatives
                 else alternatives.map { group -> group.filter { it in analysis.metrics } }.filter { it.isNotEmpty() }
             if (available.isNotEmpty()) {
-                if(groupsShown++>0) body.addView(BicycleComponents.sectionDivider(context,themes).apply {
+                if(groupsShown++>0) body.addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.analysisDividerGap).apply {
                     tag="analysis_section_divider"
                 })
                 val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; tag = "analysis_group_$heading"; isBaselineAligned = false }
@@ -101,7 +101,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             }
         }
         if (analysis.bestEfforts.isNotEmpty()) {
-            if (groupsShown > 0) body.addView(BicycleComponents.sectionDivider(context, themes))
+            if (groupsShown > 0) body.addView(BicycleComponents.sectionDivider(context, themes,BicycleDesign.analysisDividerGap))
             val weight = RiderProfileStore(context.getSharedPreferences("bike", Context.MODE_PRIVATE)).read().weightKg
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL; isBaselineAligned = false; tag = "analysis_best_efforts"
