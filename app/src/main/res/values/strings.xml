@@ -648,4 +648,22 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="indoor_correction_speed">Geschwindigkeit &amp; Distanz</string>
     <string name="indoor_correction_factor">Faktor %1$.1f×</string>
     <string name="indoor_correction_description">Multipliziert die Trainerwerte für Anzeige, Berechnungen und neue Aufzeichnungen. 1,0× lässt die Werte unverändert. Während Aufnahme und Speicherung gesperrt.</string>
+    <string name="notifications_title">Benachrichtigungen</string>
+    <string name="notifications_enable">Benachrichtigungen anzeigen</string>
+    <string name="notifications_access">Android-Zugriff verwalten</string>
+    <string name="notifications_access_granted">Android-Zugriff erteilt</string>
+    <string name="notifications_access_required">Android-Benachrichtigungszugriff fehlt</string>
+    <string name="notifications_access_missing">Android-Einstellungen für Benachrichtigungszugriff nicht verfügbar</string>
+    <string name="notifications_privacy">Zeigt neue Nachrichten ausgewählter Apps auf dem Dashboard. Inhalte bleiben nur vorübergehend im Arbeitsspeicher und werden weder gespeichert noch in FIT übernommen. Die Apps bestimmen, welchen Text Android bereitstellt.</string>
+    <string name="notifications_duration">Anzeigedauer</string>
+    <string name="notifications_seconds">%1$d Sekunden</string>
+    <string name="notifications_apps">Apps auswählen</string>
+    <string name="notifications_messenger_filter">Nur gängige Messenger anzeigen</string>
+    <string name="notifications_no_apps">Keine passenden Apps gefunden. Deaktiviere gegebenenfalls den Messenger-Filter.</string>
+    <string name="notifications_dismiss">Nachricht schließen</string>
+    <string name="notifications_position">Position</string>
+    <string name="notifications_position_bottom">Unten</string>
+    <string name="notifications_position_center">Mitte</string>
+    <string name="notifications_position_top">Oben</string>
+    <string name="notifications_sender_accessibility">%1$s · %2$s</string>
 </resources>

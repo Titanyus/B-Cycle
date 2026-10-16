@@ -29,7 +29,7 @@ class SettingsMenuTest {
         return ShadowAlertDialog.getLatestAlertDialog()
     }
     private fun views(dialog: AlertDialog) = descendants(dialog.window!!.decorView)
-    @Test fun sevenRowsUseCompactHeightAndAdvancedHasNormalRowsWithLicensesLast() {
+    @Test fun mainRowsUseCompactHeightAndAdvancedHasNormalRowsWithLicensesLast() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val menu = open(controller.get())
@@ -58,8 +58,8 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_PROFILE", "settings_SENSORS", "settings_ROUTES", "settings_MAP", "settings_DASHBOARDS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Fahrer", "Bikes", "Strecken", "Karten", "Design & UI", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(listOf("settings_PROFILE", "settings_SENSORS", "settings_ROUTES", "settings_MAP", "settings_DASHBOARDS", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Fahrer", "Bikes", "Strecken", "Karten", "Design & UI", "Benachrichtigungen", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
                 rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()

@@ -13,6 +13,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/backup_rules"
@@ -20,6 +26,10 @@
         android:label="B-Cycle"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <service android:name=".MessageNotificationService" android:label="@string/notifications_title"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" android:exported="true">
+            <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
+        </service>
         <service android:name=".DreeveUploadService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true" />
         <service android:name=".StravaUploadService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true" />
         <service android:name=".IntervalsUploadService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true" />

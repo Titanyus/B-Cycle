@@ -19,6 +19,11 @@ class MainActivity : Activity() {
     private lateinit var runtime: RideRuntime
     private lateinit var dashboard: DashboardView
     private lateinit var startButton: Button
+    private lateinit var messages: MessageNotificationPanel
+    private var notificationSettings: MessageNotificationSettingsView?=null
+    private val messageObserver: (IncomingMessage?)->Unit = { message ->
+        if(message==null || (dialogs.empty && !dashboardEditing)) messages.receive(message)
+    }
     private lateinit var mapPanel: MapPanel
     private lateinit var dashboardArea: LinearLayout
     private var routeManager: RouteManagerView? = null
@@ -116,7 +121,8 @@ class MainActivity : Activity() {
             val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
         }
-        setContentView(root)
+        val host=FrameLayout(this).apply { addView(root,FrameLayout.LayoutParams(-1,-1)) }
+        setContentView(host)
         dashboard = DashboardView(this) { chooseField(it) }
         dashboard.bindEditorTheme(runtime.themes)
         dashboard.activateEditor = { setDashboardEditing(true) }
@@ -186,6 +192,30 @@ class MainActivity : Activity() {
             if (event.actionMasked == android.view.MotionEvent.ACTION_UP || event.actionMasked == android.view.MotionEvent.ACTION_CANCEL) mapPanel.revealControls()
             false
         }
+        messages=MessageNotificationPanel(this,runtime.themes) {
+            val mapLocation=IntArray(2);val hostLocation=IntArray(2)
+            mapPanel.getLocationInWindow(mapLocation);host.getLocationInWindow(hostLocation)
+            val available=(host.height-root.paddingTop-root.paddingBottom).coerceAtLeast(0)
+            if(MessageNotificationSettings(this).position==MessagePosition.BOTTOM)
+                (host.height-root.paddingBottom-(mapLocation[1]-hostLocation[1])).coerceIn(0,available)
+            else minOf(dp(320),available)
+        }
+        mapPanel.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ -> if(messages.visibility==View.VISIBLE) messages.requestLayout() }
+        host.addView(messages,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.BOTTOM).apply {
+            marginStart=dp(BicycleDesign.controlGap);marginEnd=dp(BicycleDesign.controlGap)
+        })
+        fun placeMessage() {
+            val params=messages.layoutParams as FrameLayout.LayoutParams
+            params.gravity=when(MessageNotificationSettings(this).position) {
+                MessagePosition.BOTTOM -> android.view.Gravity.BOTTOM
+                MessagePosition.CENTER -> android.view.Gravity.CENTER
+                MessagePosition.TOP -> android.view.Gravity.TOP
+            }
+            params.topMargin=root.paddingTop;params.bottomMargin=root.paddingBottom
+            messages.layoutParams=params
+        }
+        messages.positionChanged=::placeMessage
+        host.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ -> if(messages.visibility==View.VISIBLE) placeMessage() }
         render()
         activityServiceCallback(intent)
     }
@@ -270,11 +300,20 @@ class MainActivity : Activity() {
             .setView(content)
         picker=builder.show()
     }
+    private fun showNotificationSettings() {
+        val content=MessageNotificationSettingsView(settingsContext,runtime.themes)
+        notificationSettings=content
+        val screen=dialog().setTitle(getString(R.string.notifications_title))
+            .setView(ScrollView(settingsContext).apply { addView(content) }).show()
+        dialogs.onDismiss(screen) { if(notificationSettings===content) notificationSettings=null }
+    }
     private fun showMenu(advanced: Boolean = false) {
         setDashboardEditing(false)
+        messages.clear()
         val content = SettingsMenuView(settingsContext, runtime.themes, advanced) { action ->
             when (action) {
                 SettingsAction.SENSORS -> showSensorManager()
+                SettingsAction.NOTIFICATIONS -> showNotificationSettings()
                 SettingsAction.DATA -> dataSettings()
                 SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, runtime.themes, dialogs, runtime.riderProfiles) }
                 SettingsAction.MAP -> mapSettings()
@@ -536,10 +575,15 @@ class MainActivity : Activity() {
             runOnUiThread { BicycleFeedback.show(applicationContext, if (ok) R.string.export_saved else R.string.export_failed, long = true) }
         }, "B-Cycle-diagnostic-export").start()
     }
-    override fun onStart() { super.onStart(); mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
+    override fun onStart() { super.onStart(); MessageNotifications.observers.add(messageObserver);notificationSettings?.refreshAccess();
+        val notifications=MessageNotificationSettings(this)
+        if(notifications.enabled && notifications.granted) runCatching {
+            android.service.notification.NotificationListenerService.requestRebind(android.content.ComponentName(this,MessageNotificationService::class.java))
+        }; mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.
         stopScan()
+        MessageNotifications.observers.remove(messageObserver);messages.clear()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {

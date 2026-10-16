@@ -33,7 +33,7 @@ class UiConventionsTest {
             val activity=controller.get();views(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
             val menu=latest();val decor=menu.window!!.decorView;layout(decor)
             val entries=views(decor).filter { it.tag?.toString()?.startsWith("settings_")==true && it.isClickable }
-            assertEquals(7,entries.size)
+            assertEquals(8,entries.size)
             entries.forEach {
                 assertEquals(BicycleDesign.dp(activity,BicycleDesign.settingsRowHeight),it.minimumHeight)
                 val text=views(it).filterIsInstance<TextView>().single()
