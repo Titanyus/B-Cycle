@@ -134,3 +134,17 @@ Dashboard 10 FULL_DATA: 1/1/1/2, fünf Felder, keine Karte; ONE/ONE/ONE/TWO als 
 Dashboard-Vollbild: Android-Statusleiste standardmäßig per WindowInsetsController ausblenden, über Design & UI abschaltbar und im Design-Backup erhalten. Android-Navigation und Cutout-Sicherheitsabstände beibehalten. Dialogfenster zeigen Statusleiste; Rückkehr/Appwechsel berücksichtigt gespeicherte Wahl, transientes Einblenden per Randgeste. Nicht mit Karten-Vollbild verwechseln.
 
 Fahrmodus-Anzeige: Seitlich/Oben pro App in modeGlowPlacement, Standard Seitlich. Oben nur entlang der oberen Dashboardkante. Akkuwarnung folgt ebenfalls der Position; Übergänge/Breathing nicht neu starten. Zonenvisualisierung verwendet dieselbe zentrale Lichtintensität (modeGlowAlpha/ambientGlowPasses) wie der Rand-Glow, eigene Zonenfarben und Geometrie erhalten.
+
+## Zentrale APK-Builds über GitHub Actions
+
+APK-Builds standardmäßig über `.github/workflows/android-debug.yml`, nicht lokal in
+der Codex-Cloud. Push auf main startet automatisch einen Debug-Build; workflow_dispatch
+erlaubt manuelle Builds. Keine zusätzliche manuelle Auslösung, wenn ein Push bereits
+einen passenden Lauf gestartet hat. Nach Änderungen relevante Tests auswählen, keine
+unnötigen lokalen APK-Builds oder vollständigen Testsuiten. GitHub-Lauf bis Abschluss
+prüfen; bei Fehlern nur betroffene Schritte und relevante Fehlermeldungen auswerten.
+Nur nach notwendiger Korrektur erneut bauen. Erfolgreichen Lauf und APK-Artefakt verlinken.
+Artifact enthält APK und SHA-256, 30 Tage Aufbewahrung. Optionales Repository-Secret
+ANDROID_DEBUG_KEYSTORE_BASE64 stellt den bestehenden Testschlüssel bereit (Standard-
+Android-Debug-Passwörter); ohne Secret temporärer Schlüssel, keine Update-Kompatibilität
+versprechen. Schlüssel niemals ins Repository oder Chat schreiben. Details: docs/github-actions.md.

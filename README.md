@@ -47,20 +47,25 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 ## APK herunterladen
 
-**[APK 0.7.29 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.29/downloads/B-Cycle-0.7.29-test.apk)**
+[![Android Debug APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-- Größe: **1,657,515 Byte**, rund **1.66 MB**.
-- Signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.29/67.
-- Build: **16.10.2026 15:02:09 CEST**.
-- Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.29-test.apk.sha256):
-  `7ee54ce640e90ddc71ab02160c1fcf337a1c32ccea7e02efc29021861405b797`.
+**[Aktuelle APK-Builds in GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)**
 
-31 gezielte Tests nach Ergänzung des Vollbildmodus bestanden; zuvor 29 Tests der Akku-/Headeranpassungen.
-Release-Build mit R8, Resource-Shrinking und Lint Vital erfolgreich.
-Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis und reale Prüfgrenzen](docs/milestone-0729.md).
+Bei jedem Push auf `main` entsteht automatisch eine Debug-APK. Im erfolgreichen Lauf
+unter **Artifacts → B-Cycle-debug-…** das ZIP herunterladen und die APK entpacken.
+GitHub-Anmeldung für den Artefakt-Download erforderlich; Artefakte bleiben 30 Tage erhalten.
+Manuell: **Actions → Android Debug APK → Run workflow**.
+
+Android 13+ (minSdk 33), Compile-/Target-SDK 36. Die Build-Zusammenfassung nennt
+Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist für
+Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
+Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
+
+## Neu in APK 0.7.30
+
+- **Graphen und Glow:** Kleinere Skalenbeschriftung, hellere Zonenvisualisierung. Rand-Glow oben oder seitlich unter Design & UI wählbar, einschließlich Akkuwarnung.
+- **Akku:** Anzeige 10 % kleiner. Direkte Auswahl bis vier verfügbarer Akkus passend zu den verbundenen Geräten; ohne Kombischalter und separate Prozentfelder. Bosch-Akkustand bleibt während der Verbindung auch bei Sendepausen erhalten.
+- **Strecken:** Best Efforts mit kürzeren Zeitfenstern links. Höhenkorrigierte Download-Kopien erzeugen beim erneuten Import keinen zweiten Eintrag mehr; bestehende Duplikate werden nicht automatisch gelöscht.
 
 ## Neu in APK 0.7.29
 
@@ -140,9 +145,9 @@ Kotlin und native Android-Views, eine Activity mit getrennten Sensor- und Datenk
 Android 13+ (`minSdk 33`), `compileSdk` und `targetSdk 36`.
 Mapsforge, Garmin FIT SDK und OkHttp übernehmen Karten, FIT-Dateien und Netzwerkzugriffe.
 
-Für APK 0.7.29 wurden zunächst 29, nach der Vollbild-Ergänzung 31 gezielte Tests erfolgreich geprüft; letzter vollständiger Lauf: 537 Tests für 0.7.28.
-Release-Build, Signatur und ZIP-Ausrichtung sind geprüft.
-[Buildnachweis und Grenzen](docs/milestone-0729.md).
+Für APK 0.7.30 wurden 60 gezielte Tests erfolgreich geprüft; letzter vollständiger Lauf: 537 Tests für 0.7.28.
+APK-Builds laufen zentral über GitHub Actions; lokale Builds sind nur bei konkretem Bedarf vorgesehen.
+[Build-Anleitung und Signierung](docs/github-actions.md).
 Tests ersetzen keinen Hardwaretest. Der Matrix-Empfang wurde vom Nutzer bestätigt; Korrekturfaktoren, Wiederverbindung
 und längere Aufnahmen bleiben am Gerät zu prüfen. Die reale Benachrichtigungsfunktion wurde vom Nutzer bestätigt.
 Neue Dreeve-/Strava-Uploads und der Strava-Anmeldevorgang müssen ebenfalls noch

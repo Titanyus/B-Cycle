@@ -48,4 +48,5 @@ der passende Fehlerpfad ist durch einen reproduzierbaren Test abgesichert.
 60 gezielte Tests bestanden, keine Fehler oder übersprungenen Tests, Kotlin kompiliert:
 BatteryFieldsTest, BoschModeGlowTest, TrainingZoneUiTest, LiveGraphUiTest,
 SettingsBackupTest, FitLibraryTest, BestEffortsTest und BestEffortsViewTest.
-Keine vollständige Testsuite und kein neuer APK-Build für diese Anpassungen ausgeführt.
+Keine erneute vollständige Testsuite. APK-Bereitstellung erfolgt künftig über
+[GitHub Actions](github-actions.md).
