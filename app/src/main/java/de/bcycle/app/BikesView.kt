@@ -98,6 +98,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             orientation=HORIZONTAL;isBaselineAligned=false
             BikeType.entries.forEachIndexed { i,type ->
                 addView(BicycleComponents.action(context,themes,context.getString(type.label)) {}.apply {
+                    BicycleDialogStyle.actionIcon(this,themes,BikeTypeIcons.forType(type))
                     tag="bike_type_${type.name}";isEnabled=type.available;alpha=if(type.available) 1f else .4f;isSelected=profile.type==type
                     contentDescription=if(type.available) context.getString(type.label) else context.getString(R.string.bikes_type_unavailable,context.getString(type.label))
                     if(isSelected) stateDescription=context.getString(R.string.bikes_selected)

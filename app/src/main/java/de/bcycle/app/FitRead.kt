@@ -19,8 +19,16 @@ internal object FitRead {
         var sessionAscent = 0.0; var hasAscent = false
         val moving = MovingTime(); var sessionMoving = 0.0; var hasMoving = false
         val elevation = RouteElevation()
+        val bikeTypes = mutableSetOf<BikeType>()
         val listener = MesgListener { message ->
             fun value(name: String) = message.getFieldDoubleValue(name)?.takeIf { it.isFinite() }
+            if(message.num == 12 || message.num == 18) {
+                if(value("sport") == 2.0) when(value("sub_sport")?.toInt()) {
+                    0 -> bikeTypes.add(BikeType.BIKE)
+                    6 -> bikeTypes.add(BikeType.INDOOR)
+                    28 -> bikeTypes.add(BikeType.EBIKE)
+                }
+            }
             when (message.num) {
                 0 -> value("time_created")?.let { date = (it * 1000 + 631065600000L).toLong() }
                 20 -> {
@@ -51,7 +59,7 @@ internal object FitRead {
         val usable = points.zipWithNext().any { !it.second.segmentStart }
         val details = RouteDetails(date ?: first ?: file.lastModified(), distance ?: points.takeIf { usable }?.let(::routeDistance),
             duration?.times(1000)?.toLong() ?: first?.let { start -> last?.minus(start)?.takeIf { it >= 0 } }, routePreview(points), if (hasAscent) sessionAscent else elevation.ascent,
-            if (hasMoving) (sessionMoving * 1000).toLong() else moving.value)
+            if (hasMoving) (sessionMoving * 1000).toLong() else moving.value, bikeTypes.singleOrNull())
         return ReadFit(details, if (usable) GpxRoute(points, positions, points.count { it.segmentStart }, details.distanceM, details.durationMs, details.ascentM, details.movingMs) else null)
     }
 }

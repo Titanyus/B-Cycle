@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import org.json.JSONArray
 import org.json.JSONObject
 
-internal enum class BikeType(val label: Int, val available: Boolean) {
+enum class BikeType(val label: Int, val available: Boolean) {
     BIKE(R.string.bikes_type_bike, false), EBIKE(R.string.bikes_type_ebike, true), INDOOR(R.string.bikes_type_indoor, true)
 }
 internal enum class BikeCategory(val label: Int) {

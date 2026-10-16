@@ -167,3 +167,5 @@ Update-Build empfehlen. Reine Veröffentlichung fertiger APKs/Prüfsummen/Buildn
 mit [skip ci] kennzeichnen, damit kein unnötiger weiterer Build entsteht. Änderungen
 an App/Build-Konfiguration niemals so überspringen. Bevorzugt Actions-Artefakte, für
 kompatibel nachsignierte Downloads bei fehlendem Release-Upload Repo-Downloads verwenden.
+
+Radtyp-Identität: BikeTypeIcons zentral verwenden: Bike = Fahrrad, E-Bike = Fahrrad mit Blitz, Indoor = stationärer Trainer. SensorIcons verwendet dieselben Varianten in Sensoren, Quellenwahl und Akkuanzeigen. Streckenherkunft zeigt den in FIT gespeicherten Radtyp, niemals das aktuell gewählte Profil; unbekannte alte Fahrten behalten das Fahrrad. Generische Bikes-Menüs und Fahrradkategorie-Vorschauen bleiben unabhängig. Die Dashboard-Kategorie Akku gehört nicht zur FIT-Feldauswahl; einzelne Akkuwerte bleiben bei ihren Sensorquellen.

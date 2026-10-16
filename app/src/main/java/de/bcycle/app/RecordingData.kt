@@ -30,7 +30,7 @@ data class RecordField(val id: String, val title: String, val source: String, va
         )
         val defaults get() = options.filter { it.scope == FitFieldScope.RECORD }.map { it.id }.toSet()
         val options: List<RecordField> = listOf(RecordField("GPS_POSITION", "GPS-Route / Position", "GPS", "Fahrt", "semicircles")) +
-            DashboardField.groups(LiveData()).flatMap { group -> group.fields.filter { it.id != "RANGES" && it.source != "Wetter" }.map { field ->
+            DashboardField.groups(LiveData()).filter { it.source != "Akku" }.flatMap { group -> group.fields.filter { it.id != "RANGES" && it.source != "Wetter" }.map { field ->
                 val unit = when (field.id) {
                     "SPEED", "AVERAGE_SPEED", "GPS_SPEED", "GPS_MOVING_AVERAGE", "GPS_OVERALL_AVERAGE", "GPS_MAXIMUM_SPEED" -> "m/s"
                     "ODOMETER", "BIKE_DISTANCE", "GPS_DISTANCE" -> "m"

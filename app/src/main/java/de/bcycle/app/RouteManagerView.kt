@@ -196,7 +196,7 @@ internal class RouteManagerView(context: Context,
             preview.foreground = tokens.foreground
             val route = entry ?: return
             origin.setImageDrawable(BicycleIcons.drawable(context, when (route.origin) {
-                TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BicycleIcon.TrackRecorded; TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
+                TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
             }, tokens.foreground))
             val eyeKind = if (selected == route.id) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
             eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, selected != route.id))

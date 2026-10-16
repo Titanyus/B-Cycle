@@ -41,7 +41,7 @@ class IndoorFitTest {
         assertEquals(180.5,ftp,.00001)
         assertTrue(messages.recordMesgs.any { it.power?.toInt()==0 && it.cadence?.toInt()==0 })
         assertTrue(messages.recordMesgs.all { it.positionLat==null && it.positionLong==null && it.motorPower==null })
-        val read=FitRead.read(fit);assertNull(read.route)
+        val read=FitRead.read(fit);assertNull(read.route);assertEquals(BikeType.INDOOR,read.details.bikeType)
         val details=RouteAnalysisRead.read(fit,ManagedRoute("trainer","Indoor",false,"FIT",read.details,false))
         assertNotNull(details.metrics[AnalysisMetric.NP]);assertEquals(180.5,details.metrics[AnalysisMetric.FTP]!!,.00001)
         assertNull(details.route)

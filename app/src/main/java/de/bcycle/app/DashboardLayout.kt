@@ -65,7 +65,7 @@ data class DashboardField(val id: String) {
     }
     val requiresGps get() = gpsMetric != null || weatherMetric != null
     val captionIcon get() = BatteryFields.single(id)?.let { when(it) {
-        BatterySource.EBIKE,BatterySource.TRAINER->"E-Bike";BatterySource.HEART->"Pulsmesser";BatterySource.PHONE->"Smartphone";BatterySource.POWER->"Powermeter"
+        BatterySource.EBIKE->"E-Bike";BatterySource.TRAINER->"Indoor-Bike";BatterySource.HEART->"Pulsmesser";BatterySource.PHONE->"Smartphone";BatterySource.POWER->"Powermeter"
     } } ?: when (id) {
         "BIKE_LIGHT" -> "Light"
         "WEATHER_SUNRISE" -> "Sunrise"

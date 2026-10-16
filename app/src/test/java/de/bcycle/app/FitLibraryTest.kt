@@ -11,6 +11,11 @@ import java.nio.file.Files
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class FitLibraryTest {
+    @Test fun oldAndFutureBikeMetadataRemainReadable() {
+        assertNull(RouteDetails.from(org.json.JSONObject()).bikeType)
+        assertNull(RouteDetails.from(org.json.JSONObject().put("bikeType","FUTURE_TYPE")).bikeType)
+        for(type in BikeType.entries) assertEquals(type,RouteDetails.from(RouteDetails(bikeType=type).json()).bikeType)
+    }
     private val start = 1_791_626_400_000L
     private fun fit(root: File, gps: Boolean = true): File {
         val journal = File(root, "sample.ride")
@@ -29,6 +34,8 @@ class FitLibraryTest {
             val library = FitLibrary(root); library.load()
             val entry = library.entries.single()
             assertTrue(entry.recorded); assertTrue(entry.hasRoute)
+            assertEquals(BikeType.EBIKE, entry.details.bikeType)
+            assertEquals(BikeType.EBIKE, RouteDetails.from(entry.details.json()).bikeType)
             assertEquals(start, entry.details.dateMs)
             assertEquals(70.0, entry.details.distanceM!!, .001)
             assertEquals(10000L, entry.details.durationMs)
@@ -43,6 +50,7 @@ class FitLibraryTest {
             library.rename(entry.id, "Meine Runde")
             val restarted = FitLibrary(root); restarted.load()
             assertEquals("Meine Runde", restarted.entries.single().name)
+            assertEquals(BikeType.EBIKE, restarted.entries.single().details.bikeType)
             assertEquals(entry.details.movingMs, restarted.entries.single().details.movingMs)
             assertArrayEquals(bytes, restarted.file(entry.id).readBytes())
             assertEquals(0, File(root, "fit-library").listFiles()!!.count { it.extension == "gpx" })

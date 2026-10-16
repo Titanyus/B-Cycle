@@ -48,7 +48,7 @@ internal class FitLibrary(root: File) {
             val array = json.getJSONArray("entries")
             val missingAscent = mutableSetOf<String>()
             entries = List(array.length()) { i -> val item = array.getJSONObject(i)
-                if (!item.getJSONObject("details").has("moving")) missingAscent += item.getString("id")
+                if (!item.getJSONObject("details").has("moving") || !item.getJSONObject("details").has("bikeType")) missingAscent += item.getString("id")
                 val origin = if (item.has("origin")) runCatching { TrackOrigin.valueOf(item.getString("origin")) }.getOrDefault(TrackOrigin.UNKNOWN)
                     else if (item.opt("recorded") is Boolean) { if (item.getBoolean("recorded")) TrackOrigin.RECORDED else TrackOrigin.IMPORTED }
                     else TrackOrigin.UNKNOWN
