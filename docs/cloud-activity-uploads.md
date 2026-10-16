@@ -3,8 +3,7 @@
 Stand: 15.10.2026. WebDAV, intervals.icu sowie neue getrennte Dreeve- und
 Strava-Uploadpfade sind implementiert. intervals.icu wurde vom Nutzer real
 bestätigt; die neuen beiden Dienste sind lokal mit HTTP-Testservern geprüft,
-noch nicht mit einem echten Konto/Server. Noch nicht in der veröffentlichten
-APK 0.7.23 enthalten.
+noch nicht mit einem echten Konto/Server. Ab APK 0.7.24 enthalten.
 
 ## Identität und Erfolgsbelege
 
