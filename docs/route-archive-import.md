@@ -20,4 +20,4 @@ Für später: gezielter Massenexport zu einem ausgewählten Dienst (z. B. nur da
 
 RouteArchiveImportTest: gemischte FIT/GPX/GZIP-Archive, Originalbytes und Datum, neue und bestehende Duplikate, beschädigte Einträge, Pfadsicherheit, Größen-/Anzahlgrenzen, wiederholter Import, persistente Bibliotheken und unveränderte Auswahl. RouteManagerViewTest: Fortschritt/Abschluss inline neben vorhandenen Listeninteraktionen. Bestehende FitLibraryTest/GpxLibraryTest weiter ausführen. Echtes Strava-Gesamtarchiv noch nicht erprobt.
 
-Validierung am 16.10.2026: 17 gezielte Tests aus den vier genannten Testklassen, keine Fehler/übersprungenen Tests; `:app:assembleRelease` einschließlich R8 und Lint Vital erfolgreich. Keine neue Test-APK veröffentlicht; die veröffentlichte 0.7.25 bleibt unverändert.
+Validierung am 16.10.2026: 17 gezielte Tests aus den vier genannten Testklassen, keine Fehler/übersprungenen Tests; `:app:assembleRelease` einschließlich R8 und Lint Vital erfolgreich. Anschließend als Test-APK 0.7.26 veröffentlicht; siehe [Buildnachweis](milestone-0726.md).

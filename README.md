@@ -47,21 +47,26 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 ## APK herunterladen
 
-**[APK 0.7.25 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.25/downloads/B-Cycle-0.7.25-test.apk)**
+**[APK 0.7.26 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.26/downloads/B-Cycle-0.7.26-test.apk)**
 
-- Größe: **1,612,291 Byte**, rund **1,61 MB**.
+- Größe: **1,616,387 Byte**, rund **1.62 MB**.
 - Signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.25/63.
-- Build: **16.10.2026 09:31:52 CEST**.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.26/64.
+- Build: **16.10.2026 12:39:06 CEST**.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.25-test.apk.sha256):
-  `67f547d22a0a629c8d41259427ce7074a014c47f20f2e5fbeaf0e781e5704868`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.26-test.apk.sha256):
+  `13248de9b0c944a3ca79f276c29ab577ff4a7d7a7ed9401cc7dc085996fbc933`.
 
-Vollständige Testsuite: 511 Tests bestanden. Nach der abschließenden Absicherung
-für das erneute Einlesen von Indoor-FIT-Dateien weitere 29 gezielte Tests bestanden.
-Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich.
+17 gezielte Tests für den Archivimport und die bestehenden Bibliotheken/Listen bestanden.
+Release-Build mit R8, Resource-Shrinking und Lint Vital erfolgreich.
 Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis und reale Prüfgrenzen](docs/milestone-0725.md).
+[Buildnachweis und reale Prüfgrenzen](docs/milestone-0726.md).
+
+## Neu in APK 0.7.26
+
+- **ZIP-Archivimport:** FIT/GPX einschließlich `.fit.gz` und `.gpx.gz` in einem Durchgang übernehmen, auch aus Unterordnern.
+- Originaldateien und Fahrtdatum erhalten, identische Dateien überspringen; Fortschritt und Abschlussbilanz im Streckenmanager.
+- **Rein lokal:** Kein automatischer Cloud-Upload. TCX und CSV-Metadaten werden nicht importiert.
 
 ## Neu in APK 0.7.25
 
@@ -148,7 +153,7 @@ und muss vor der Installation signiert werden.
 - [Karten und Offline-Dateien](docs/maps.md)
 - [FIT-Aufzeichnung](docs/fit.md)
 - [Streckenverwaltung und WebDAV](docs/routes.md)
-- [ZIP-Archivimport im Hauptbranch](docs/route-archive-import.md) – FIT/GPX inklusive GZIP, lokale Duplikaterkennung; noch nicht in der veröffentlichten APK 0.7.25 enthalten.
+- [ZIP-Archivimport](docs/route-archive-import.md) – FIT/GPX inklusive GZIP, lokale Duplikaterkennung, seit APK 0.7.26.
 - [intervals.icu einrichten](docs/intervals-icu-plan.md)
 - [Wetterdaten und dauerhafte Speicherung](docs/ride-weather.md)
 - [Bebas Neue: SIL Open Font License](docs/fonts.md)
