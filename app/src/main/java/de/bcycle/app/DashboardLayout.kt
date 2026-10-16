@@ -55,6 +55,7 @@ data class DashboardField(val id: String) {
     private val gpsMetric get() = GpsMetric.entries.find { it.name == id }
     private val rangeIndex get() = id.removePrefix("RANGE_").toIntOrNull()
     val source get() = if (trainingMetric != null) "Leistung" else if (weatherMetric != null) "Wetter" else if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
+    fun source(data:LiveData)=if(data.indoor && (source=="E-Bike" || id in IndoorFields.rideIds)) "Indoor-Bike" else source
     /** Only speed and distance captions need a source to distinguish related ride values. */
     val showSource get() = when (id) {
         "SPEED", "GPS_SPEED", "BIKE_DISTANCE", "GPS_DISTANCE", "ODOMETER",
@@ -68,6 +69,7 @@ data class DashboardField(val id: String) {
         "WEATHER_SUNSET", "WEATHER_UNTIL_SUNSET", "WEATHER_DAYLIGHT" -> "Sunset"
         else -> if (showSource) source else null
     }
+    fun captionIcon(data:LiveData)=if(showSource) source(data) else captionIcon
     val numeric get() = metric != LiveMetric.ASSIST_MODE && metric != LiveMetric.BIKE_LIGHT && id != "RANGES"
 
     fun title(data: LiveData, gps: GpsValues = GpsValues()): String = if (id == "AVERAGE_CADENCE") "Ø Kadenz · ohne Tretpausen" else metric?.title ?: weatherMetric?.title ?: gpsMetric?.let {
@@ -188,7 +190,10 @@ data class DashboardField(val id: String) {
                 FieldGroup("E-Bike", "Durchschnitt & Spitzenwerte", fields("AVERAGE_SPEED", "AVERAGE_POWER", "MAXIMUM_POWER", "AVERAGE_CADENCE", "MAXIMUM_CADENCE", "RIDER_ENERGY_SHARE")),
                 FieldGroup("Pulsmesser", "Puls & Sensor", fields("HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY")),
                 FieldGroup("Wetter", "Sonne & Tageslicht", WeatherMetric.entries.map { DashboardField(it.name) }),
-            ) + if(includeTraining) listOf(FieldGroup("Leistung", "Leistung", TrainingMetric.entries.map { DashboardField(it.name) })) else emptyList()
+            ).let { groups -> if(!data.indoor) groups else groups.mapNotNull { group ->
+                val allowed=group.fields.filter { it.id in IndoorFields.allowed }
+                if(allowed.isEmpty()) null else group.copy(source=if(group.source=="Pulsmesser") group.source else "Indoor-Bike",fields=allowed)
+            }.groupBy { it.source to it.title }.values.map { same -> same.first().copy(fields=same.flatMap { it.fields }.distinct()) } } + if(includeTraining) listOf(FieldGroup("Leistung", "Leistung", TrainingMetric.entries.map { DashboardField(it.name) })) else emptyList()
         }
         fun fromId(id: String): DashboardField? = baseOptions.find { it.id == id } ?: id.takeIf {
             it.startsWith("RANGE_") && it.removePrefix("RANGE_").toIntOrNull() in 0..15

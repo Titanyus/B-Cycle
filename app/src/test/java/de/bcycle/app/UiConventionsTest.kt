@@ -91,10 +91,19 @@ class UiConventionsTest {
             val field=FieldPickerView(activity,LiveData(),GpsValues(),null,PulseValues(),DashboardField("SPEED"),false,themes) {}
             val data=DataSettingsView(activity,themes) {}
             for(view in listOf(field,data,GraphOverlayPicker(activity,themes,emptyList()))) {
-                val sections=views(view).filterIsInstance<TextView>().filter { it.isAccessibilityHeading }
-                assertTrue(sections.isNotEmpty());sections.forEach {
-                    assertEquals(900,it.typeface.weight)
-                    assertEquals(BicycleDesign.titleSp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,it.textSize,.1f)
+                val sections=views(view).filterIsInstance<BicycleSectionHeader>()
+                val accordions=views(view).filterIsInstance<Button>().filter { it.tag in setOf("field_data_toggle","graph_overlay_toggle") }
+                assertTrue(sections.isNotEmpty() || accordions.isNotEmpty())
+                sections.forEach { section ->
+                    assertTrue(section.isAccessibilityHeading)
+                    val label=views(section).filterIsInstance<TextView>().single()
+                    assertEquals(900,label.typeface.weight)
+                    assertEquals(BicycleDesign.titleSp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,label.textSize,.1f)
+                }
+                accordions.forEach { button ->
+                    assertEquals(android.graphics.Typeface.DEFAULT,button.typeface)
+                    assertEquals(BicycleDesign.inputSp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,button.textSize,.1f)
+                    assertEquals(android.view.Gravity.START,button.gravity and android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)
                 }
             }
             val height=views(body).filterIsInstance<EditText>().single { it.tag=="rider_height" }

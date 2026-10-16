@@ -74,7 +74,7 @@ class SettingsDesignMigrationTest {
                 assertEquals(BicycleDesign.headerHeight * activity.resources.displayMetrics.density, title.height.toFloat(), 1f)
                 assertEquals(BicycleThemes.red.tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
                 assertTrue(title.isAccessibilityHeading)
-                assertTrue(views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.all { it.typeface == Typeface.DEFAULT || it.typeface == BicycleDesign.strongTypeface || ((it.tag=="bike_wheel_mm" || it.tag?.toString()?.startsWith("rider_")==true) && it is EditText && it.typeface==activity.resources.getFont(R.font.bebas_neue)) || it.tag == "rider_unit" || (it.tag?.toString()?.startsWith("rider_zone_value_") == true || it.tag?.toString()?.startsWith("rider_power_zone_value_") == true) })
+                assertTrue(views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.all { it.typeface == Typeface.DEFAULT || it.typeface == BicycleDesign.strongTypeface || ((it.tag=="bike_wheel_mm" || it.tag?.toString()?.startsWith("rider_")==true) && (it is EditText || it.tag=="rider_birth") && it.typeface==activity.resources.getFont(R.font.bebas_neue)) || it.tag == "rider_unit" || (it.tag?.toString()?.startsWith("rider_zone_value_") == true || it.tag?.toString()?.startsWith("rider_power_zone_value_") == true) })
                 if (action in listOf(SettingsAction.SENSORS, SettingsAction.MAP, SettingsAction.DASHBOARDS)) snapshot(child, action.name.lowercase())
                 val before = geometry(child)
                 assertTrue(themes.activate(light().id)); shadowOf(Looper.getMainLooper()).idle(); measure(child)
@@ -101,8 +101,13 @@ class SettingsDesignMigrationTest {
             val screen = ShadowAlertDialog.getLatestAlertDialog()
             val server = views(screen).single { it.tag == "export_server" } as EditText
             val folderButton = views(screen).single { it.tag == "export_test" }
-            assertEquals((server.layoutParams as ViewGroup.MarginLayoutParams).topMargin,
-                (folderButton.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
+            assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlGap),(server.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
+            // The connection button follows a section divider: its existing gap must not be doubled.
+            assertEquals(0,(folderButton.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
+            val parent=folderButton.parent as ViewGroup
+            val divider=parent.getChildAt(parent.indexOfChild(folderButton)-1)
+            assertEquals("bicycle_section_divider",divider.tag)
+            assertEquals(BicycleDesign.dp(activity,BicycleDesign.sectionDividerGap),(divider.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin)
             server.setText("https://example.test"); server.requestFocus()
             measure(screen, 720, 950)
             val scroll = views(screen).filterIsInstance<ScrollView>().single { views(it).any { child -> child is RouteExportView } }

@@ -70,7 +70,7 @@ class BikesViewTest {
             }
             assertEquals(2,testDescendants(body).count { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true })
             assertFalse(body.findViewWithTag<View>("bike_type_BIKE").isEnabled)
-            assertFalse(body.findViewWithTag<View>("bike_type_INDOOR").isEnabled)
+            assertTrue(body.findViewWithTag<View>("bike_type_INDOOR").isEnabled)
             assertTrue(body.findViewWithTag<View>("bike_type_EBIKE").isEnabled)
             assertFalse(body.findViewWithTag<View>("bike_sensor_POWER").isEnabled)
             assertNotNull(body.findViewWithTag<View>("bike_sensor_search"))

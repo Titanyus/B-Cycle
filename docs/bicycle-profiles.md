@@ -55,12 +55,12 @@ neu aufgebaut. Keine zweite Sensorverarbeitung oder parallele Aufzeichnung.
 
 ## Typen und Bilder
 
-Bike, E-Bike und Indoor-Bike sind im Modell vorhanden, **nur E-Bike ist aktiv**.
-Für Bike/Indoor sind passende Sensorrollen vorbereitet, einschließlich einer
-inaktiven Trainerrolle. Indoor verwendet ausschließlich Trainer und optionalen
+Bike, E-Bike und Indoor-Bike sind im Modell vorhanden; **E-Bike und Indoor-Bike sind aktiv**. Normales Bike bleibt deaktiviert.
+Die Trainerrolle für Indoor ist aktiv; zusätzliche Powermeter-Rollen bleiben
+vorbereitet. Indoor verwendet ausschließlich Trainer und optionalen
 Pulsmesser, keine GPS-, Bosch- oder separate Powermeter-Rolle. Tempo, Distanz,
 Kadenz und Fahrerleistung kommen vom Trainer, soweit tatsächlich verfügbar.
-Die Aktivierung und BLE-/FTMS-Anbindung folgen separat gemäß
+Die BLE-/FTMS-Anbindung ist ab 0.7.25 umgesetzt gemäß
 [Matrix-ICR50-Briefing](ble-trainer-matrix-icr50.md); jetzt keine Trainerbefehle senden.
 
 Mountainbike, Rennrad, Trekkingbike, Gravelbike und Citybike sind als Kategorien
@@ -148,3 +148,5 @@ Release-Kotlin-Kompilierung erfolgreich. Nach der abschließenden Transparenzän
 die beiden Streckenmanager-Tests und Release-Kotlin-Kompilierung erneut erfolgreich. Keine neue APK in diesem Änderungsschritt.
 Die reale Android-Drag-Geste samt Randscrollverhalten sollte am Gerät optisch geprüft
 werden; automatisiert sind Ereignisverarbeitung und gespeicherte Reihenfolge geprüft.
+
+Aktive Indoor-Integration, FIT und reale Prüfgrenzen: [Indoor/FTMS](indoor-ftms.md).

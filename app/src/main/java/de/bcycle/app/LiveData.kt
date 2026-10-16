@@ -44,6 +44,7 @@ data class LiveData(
     val otherValues: Map<LiveMetric, Long> = emptyMap(),
     val assistNames: List<String>? = null,
     val rangesKm: List<Long>? = null,
+    val indoor:Boolean=false,
 ) {
     /** Distinct decoded measurements seen on this connection, not notification count or metadata. */
     val measurementCount get() = LiveMetric.entries.count { value(it) != null } + if (rangesKm?.isNotEmpty() == true) 1 else 0

@@ -75,7 +75,9 @@ class RecordingStore(private val context: Context, private val changed: (String,
             val original = FitLibrary.retainRecording(context.filesDir, encoded)
             retained = true
             var correctionFailed=false
-            if(FitElevationCorrection.enabled(context)) {
+            var indoor=false
+            RideJournal.read(source) { _,config,_,_ -> indoor=config.indoor }
+            if(FitElevationCorrection.enabled(context) && !indoor) {
                 report(context.getString(R.string.elevation_correcting),true)
                 correctionFailed=runCatching {
                     FitElevationCorrection.correct(context,original,FitLibrary.correctedFile(context.filesDir,original.nameWithoutExtension))

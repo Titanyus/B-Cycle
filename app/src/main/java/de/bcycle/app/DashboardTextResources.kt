@@ -91,6 +91,7 @@ internal object DashboardTextResources {
     private val sources = mapOf(
         "GPS" to R.string.ui_source_gps,
         "E-Bike" to R.string.ui_source_bike,
+        "Indoor-Bike" to R.string.bikes_type_indoor,
         "Pulsmesser" to R.string.ui_source_heart,
         "Wetter" to R.string.ui_source_weather,
         "Leistung" to R.string.ui_source_power,

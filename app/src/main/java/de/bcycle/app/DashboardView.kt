@@ -284,13 +284,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private fun showCaption(field: DashboardField) {
             val short = field.dashboardTitle(context,data).uppercase(Locale.GERMANY)
             val graphs = selectedGraphs()
-            val captionKey = "${field.captionIcon ?: ""}:$short:${graphs.joinToString { it.name }}"
+            val icon=field.captionIcon(data)
+            val captionKey = "${icon ?: ""}:$short:${graphs.joinToString { it.name }}"
             if (title.tag == captionKey) return
             title.tag = captionKey
-            if (graphs.isEmpty() && field.captionIcon == null) { title.text=short; return }
-            val prefix=if(field.captionIcon!=null) "\uFFFC $short" else short
+            if (graphs.isEmpty() && icon == null) { title.text=short; return }
+            val prefix=if(icon!=null) "\uFFFC $short" else short
             val text=android.text.SpannableString(prefix+graphs.joinToString("") { "  \uFFFC" })
-            if(field.captionIcon!=null) text.setSpan(SourceIconSpan(field.captionIcon!!,context),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            if(icon!=null) text.setSpan(SourceIconSpan(icon!!,context),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             graphs.forEachIndexed { i,chart ->
                 val at=prefix.length+i*3+2
                 text.setSpan(RecordingDotSpan(resources.displayMetrics.density,chart.color(Color.BLACK),7f),at,at+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -300,7 +301,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
         fun show(field: DashboardField, data: LiveData) {
             val next = field.value(data, gps, bikeDistanceM, pulse, training)
-            val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source), field.title(context,data, gps)) else field.title(context,data, gps)
+            val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), field.title(context,data, gps)) else field.title(context,data, gps)
             showCaption(field)
             row.direction = trends.indicator(field, data, gps, pulse, android.os.SystemClock.elapsedRealtime())
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }

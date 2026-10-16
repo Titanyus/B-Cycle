@@ -15,6 +15,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val confirmDelete:(Int,String,()->Unit)->Unit = { _,_,_ -> }) : LinearLayout(context) {
     private val themes = runtime.themes
     private var shownSlot = -1
+    private var shownType:BikeType?=null
+    private val typeButtons=mutableListOf<Button>()
     private var binding = false
     private var photo:BikePhotoView?=null
     private lateinit var strip:BikeProfileStrip
@@ -48,7 +50,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         override fun afterTextChanged(s: Editable?) = Unit
     }
     private fun rebuild() {
-        shownSlot = runtime.bikes.activeSlot
+        shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;typeButtons.clear()
         removeAllViews();statuses.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
         val profile = runtime.bikes.current(); val slot = profile.slot
         strip=BikeProfileStrip(context,themes,{ id ->
@@ -98,10 +100,23 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                     tag="bike_type_${type.name}";isEnabled=type.available;alpha=if(type.available) 1f else .4f;isSelected=profile.type==type
                     contentDescription=if(type.available) context.getString(type.label) else context.getString(R.string.bikes_type_unavailable,context.getString(type.label))
                     if(isSelected) stateDescription=context.getString(R.string.bikes_selected)
+                    BicycleComponents.bindTheme(this,themes) { tokens ->
+                        foreground=android.graphics.drawable.GradientDrawable().apply {
+                            setColor(android.graphics.Color.TRANSPARENT);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
+                            if(isSelected) setStroke(dp(BicycleDesign.themeSelectedBorder),BicycleComponents.selectionBorder(tokens,true))
+                        }
+                    }
+                    typeButtons+=this
+                    setOnClickListener {
+                        stopSearch()
+                        if(!runtime.changeBikeType(type)) BicycleFeedback.show(context,R.string.bikes_profile_locked,false)
+                        refresh()
+                    }
                 },LayoutParams(0,-2,1f).apply { if(i>0) marginStart=dp(BicycleDesign.controlGap) })
             }
         },LayoutParams(-1,-2))
         val category = Spinner(context).apply {
+            visibility=if(profile.type==BikeType.INDOOR) GONE else VISIBLE
             tag="bike_category";contentDescription=context.getString(R.string.bikes_category)
             adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,BikeCategory.entries.map { context.getString(it.label) })
             setSelection(profile.category.ordinal)
@@ -147,14 +162,15 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             val toggle=Switch(context).apply {
                 tag="bike_sensor_${sensor.name}";setText(sensor.label);isEnabled=sensor.supported
                 isAccessibilityHeading=true
-                isChecked=when(sensor) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;else->false }
+                isChecked=when(sensor) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;BikeSensor.TRAINER->runtime.trainerEnabled;else->false }
                 setOnCheckedChangeListener { _,enabled ->
                     if(binding || runtime.bikes.activeSlot!=slot) return@setOnCheckedChangeListener
                     when(sensor) {
                         BikeSensor.GPS -> if(enabled) enableGps() else runtime.setGpsEnabled(false)
                         BikeSensor.EBIKE -> runtime.setBikeEnabled(enabled)
                         BikeSensor.HEART -> runtime.setHeartEnabled(enabled)
-                        BikeSensor.POWER, BikeSensor.TRAINER -> Unit
+                        BikeSensor.TRAINER -> runtime.setTrainerEnabled(enabled)
+                        BikeSensor.POWER -> Unit
                     }
                     refresh()
                 }
@@ -192,30 +208,31 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private fun paintCards() { strip.show(runtime.bikes.all(),runtime.bikes.activeSlot,runtime.recording || runtime.saving) }
     fun refreshPhoto() { photo?.refresh() }
     fun refresh() {
-        if(shownSlot!=runtime.bikes.activeSlot) { rebuild();return }
+        if(shownSlot!=runtime.bikes.activeSlot || shownType!=runtime.bikes.current().type) { rebuild();return }
         binding=true
         try {
             val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect
             searchButton.isEnabled=!runtime.recording && !runtime.saving
+            typeButtons.forEachIndexed { index,button -> button.isEnabled=BikeType.entries[index].available && !runtime.recording && !runtime.saving;button.alpha=if(button.isEnabled) 1f else .4f }
             footer.visibility=if(runtime.bikes.all().size>1) VISIBLE else GONE
             deleteAction.isEnabled=!runtime.recording && !runtime.saving
-            switches.forEach { (s,v) -> v.isChecked=when(s) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;else->false } }
+            switches.forEach { (s,v) -> v.isChecked=when(s) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;BikeSensor.TRAINER->runtime.trainerEnabled;else->false } }
             statuses.forEach { (sensor,view) ->
                 val value=if(!sensor.supported) context.getString(R.string.bikes_not_available) else if(runtime.disconnected(sensor)) context.getString(R.string.bikes_disconnected) else when(sensor) {
-                    BikeSensor.GPS->runtime.gpsStatus;BikeSensor.EBIKE->runtime.bikeStatus;BikeSensor.HEART->runtime.heartStatus;else->""
+                    BikeSensor.GPS->runtime.gpsStatus;BikeSensor.EBIKE->runtime.bikeStatus;BikeSensor.HEART->runtime.heartStatus;BikeSensor.TRAINER->runtime.trainer.status;else->""
                 }
                 val count=runtime.receivedValueCount(sensor)
                 BicycleFeedback.update(view,if(count!=null && count>0) context.getString(R.string.sensor_received_values,value,
                     resources.getQuantityString(R.plurals.sensor_value_count,count,count)) else value)
-                deviceNames[sensor]?.let { BicycleFeedback.update(it,when(sensor) { BikeSensor.EBIKE->p.bikeName;BikeSensor.HEART->p.heartName;else->null } ?: context.getString(R.string.bikes_not_assigned)) }
-                val battery=when(sensor) { BikeSensor.EBIKE->runtime.currentBikeBattery?.toInt();BikeSensor.HEART->runtime.pulseValues.battery.takeIf { runtime.heart.live };else->null }
+                deviceNames[sensor]?.let { BicycleFeedback.update(it,when(sensor) { BikeSensor.EBIKE->p.bikeName;BikeSensor.HEART->p.heartName;BikeSensor.TRAINER->p.trainerName;else->null } ?: context.getString(R.string.bikes_not_assigned)) }
+                val battery=when(sensor) { BikeSensor.EBIKE->runtime.currentBikeBattery?.toInt();BikeSensor.HEART->runtime.pulseValues.battery.takeIf { runtime.heart.live };BikeSensor.TRAINER->runtime.trainer.battery;else->null }
                 batteries[sensor]?.let { BicycleFeedback.update(it,context.getString(R.string.bikes_battery, battery?.let { value -> context.getString(R.string.bikes_battery_value,value) } ?: context.getString(R.string.bikes_battery_missing))) }
                 disconnects[sensor]?.apply {
-                    isEnabled=when(sensor) { BikeSensor.GPS->runtime.gpsSensor.active;BikeSensor.EBIKE->runtime.connection.isActive;BikeSensor.HEART->runtime.heart.active;else->false }
+                    isEnabled=when(sensor) { BikeSensor.GPS->runtime.gpsSensor.active;BikeSensor.EBIKE->runtime.connection.isActive;BikeSensor.HEART->runtime.heart.active;BikeSensor.TRAINER->runtime.trainer.active;else->false }
                     alpha=if(isEnabled) 1f else .4f
                 }
                 removes[sensor]?.apply {
-                    isEnabled=when(sensor) { BikeSensor.EBIKE->p.bikeAddress!=null;BikeSensor.HEART->p.heartAddress!=null;else->false }
+                    isEnabled=when(sensor) { BikeSensor.EBIKE->p.bikeAddress!=null;BikeSensor.HEART->p.heartAddress!=null;BikeSensor.TRAINER->p.trainerAddress!=null;else->false }
                     alpha=if(isEnabled) 1f else .4f
                 }
             }

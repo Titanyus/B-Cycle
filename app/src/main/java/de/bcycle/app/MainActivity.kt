@@ -218,7 +218,7 @@ class MainActivity : Activity() {
             displayedMapMessage = mapMessage
             if (mapMessage.isNotEmpty()) BicycleFeedback.show(this, mapMessage, long = true)
         }
-        if (runtime.visible && (runtime.connection.isActive || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (runtime.visible && (runtime.connection.isActive || runtime.trainer.active || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     /** Source selector stays outside the scrollable list for dashboard and map fields. */
@@ -262,7 +262,7 @@ class MainActivity : Activity() {
                     .putString(GraphDisplaySettings.key(dashboardPage),dashboardGraphs.encodeModes()).apply()
             }
             saveGraphs(); render(); picker?.dismiss()
-            if (field?.requiresGps == true) enableGps()
+            if (field?.requiresGps == true && !runtime.isIndoor) enableGps()
         }
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
             runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, visualization, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index], ::select)
@@ -358,7 +358,7 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot
         val profile=runtime.bikes.current()
         manager.beginSearch()
-        scan=BikeSensorScanner(this,setOfNotNull(profile.bikeAddress,profile.heartAddress),{ device,name,category ->
+        scan=BikeSensorScanner(this,setOfNotNull(if(profile.type==BikeType.INDOOR) profile.trainerAddress else profile.bikeAddress,profile.heartAddress),{ device,name,category ->
             if(runtime.bikes.activeSlot!=slot || bikesManager!==manager || category !in profile.type.sensors || !category.supported) return@BikeSensorScanner
             manager.addCandidate(name,device.address,category) {
                 if(runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving) {
@@ -366,12 +366,13 @@ class MainActivity : Activity() {
                     when(category) {
                         BikeSensor.EBIKE->runtime.selectBike(device,name)
                         BikeSensor.HEART->runtime.selectHeart(device,name)
+                        BikeSensor.TRAINER->runtime.selectTrainer(device,name)
                         else->Unit
                     }
                     manager.clearSearch();manager.refresh()
                 }
             }
-        },{ status -> if(runtime.bikes.activeSlot==slot && bikesManager===manager) manager.scanStatus(status) }).also { it.start() }
+        },{ status -> if(runtime.bikes.activeSlot==slot && bikesManager===manager) manager.scanStatus(status) },profile.type.sensors.toSet()).also { it.start() }
     }
     private fun stopScan() { scan?.stop();scan=null }
     private fun requestSensorPermission(kind: String) {
@@ -393,7 +394,7 @@ class MainActivity : Activity() {
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             root.addView(label(title, 16f).apply { setPadding(0, dp(BicycleDesign.sectionContentGap), 0, 0) })
             return Spinner(settingsContext).apply {
-                adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, listOf(getString(R.string.ui_source_bike), getString(R.string.ui_source_gps)))
+                adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, if(current.indoor) listOf(getString(R.string.bikes_type_indoor)) else listOf(getString(R.string.ui_source_bike), getString(R.string.ui_source_gps)))
                 setSelection(if (chosen == bikeId) 0 else 1); root.addView(this)
             }
         }
@@ -403,7 +404,9 @@ class MainActivity : Activity() {
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
         root.addView(BicycleComponents.sectionDivider(settingsContext,runtime.themes))
         root.addView(label(getString(R.string.bikes_fit_additional), BicycleDesign.titleSp).apply { isAccessibilityHeading=true;setPadding(0,0,0,dp(BicycleDesign.controlGap)) })
-        for ((source, fields) in RecordField.options.groupBy { it.source }) {
+        for ((source, fields) in RecordField.options.filter { !current.indoor || it.id in IndoorFields.allowed }.groupBy {
+            if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
+        }) {
             val content=LinearLayout(settingsContext).apply {
                 orientation=LinearLayout.VERTICAL;tag="fit_source_content_$source"
                 visibility=if(source in expandedFitSources) View.VISIBLE else View.GONE

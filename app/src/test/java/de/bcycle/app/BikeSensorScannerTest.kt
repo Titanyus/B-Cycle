@@ -56,4 +56,17 @@ class BikeSensorScannerTest {
         assertEquals(listOf(BikeSensor.EBIKE),found);assertTrue(shadow.isClosed)
         scanner.stop()
     }
+    @Test fun indoorDiscoveryOnlyListsTrainerAndHeartAndStopsAtTheScanDeadline() {
+        val adapter=adapter();val app=RuntimeEnvironment.getApplication();val found=mutableListOf<BikeSensor>()
+        val scanner=BikeSensorScanner(app,emptySet(),{ _,_,kind->found+=kind },{},setOf(BikeSensor.TRAINER,BikeSensor.HEART))
+        scanner.start();val callback=shadowOf(adapter.bluetoothLeScanner).scanCallbacks.single()
+        for((index,service) in listOf(0x1826,0x180d,0x1818).withIndex()) {
+            val record=ReflectionHelpers.callStaticMethod<ScanRecord>(ScanRecord::class.java,"parseFromBytes",ReflectionHelpers.ClassParameter.from(ByteArray::class.java,byteArrayOf(3,3,service.toByte(),(service ushr 8).toByte(),0)))
+            callback.onScanResult(1,ScanResult(adapter.getRemoteDevice("00:11:22:33:44:7$index"),record,-50,100))
+        }
+        shadowOf(Looper.getMainLooper()).idle();assertEquals(listOf(BikeSensor.TRAINER,BikeSensor.HEART),found)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11))
+        assertTrue(shadowOf(adapter.bluetoothLeScanner).scanCallbacks.isEmpty())
+    }
+
 }

@@ -1,8 +1,8 @@
 # Integrationsgrundlage: Matrix ICR50 über BLE
 
-Stand: 12.10.2026. Für eine spätere Hometrainer-Integration in B|Cycle vorgemerkt.
+Stand: 12.10.2026. Referenzgrundlage der Hometrainer-Integration in B|Cycle.
 Dieses vom Nutzer bereitgestellte Implementierungsbriefing beschreibt den erfolgreich
-erprobten Referenzweg. Die Integration in B|Cycle ist noch nicht umgesetzt.
+erprobten Referenzweg. Die Integration in B|Cycle ist ab 0.7.25 umgesetzt; der reale B|Cycle-Gerätetest steht aus.
 
 ## Referenztest
 
@@ -83,3 +83,5 @@ bestehende UI-Komponenten und Designgrundlagen verwenden.
 
 Zunächst ausschließlich Datenempfang. **Keine Widerstands-, Leistungs-, Start-/Stop-
 oder Kalibrierbefehle senden.** Langzeitstabilität und Wiederverbindung sind noch zu testen.
+
+Umsetzung und Prüfgrenzen: [Indoor über FTMS](indoor-ftms.md).

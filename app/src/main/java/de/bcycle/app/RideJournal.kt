@@ -10,8 +10,8 @@ class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingCon
     private val output = DataOutputStream(BufferedOutputStream(stream))
     private var count = 0
     init {
-        output.writeInt(0x42435935); output.writeLong(startUtcMs)
-        output.writeUTF(config.speedSource); output.writeUTF(config.distanceSource)
+        output.writeInt(0x42435936); output.writeLong(startUtcMs)
+        output.writeUTF(config.speedSource); output.writeUTF(config.distanceSource);output.writeBoolean(config.indoor)
         output.writeBoolean("GPS_POSITION" in config.fields)
         output.writeInt(fields.size); fields.forEach { output.writeUTF(it) }
         output.writeInt(PerformanceEngine.MODEL_VERSION)
@@ -40,24 +40,25 @@ class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingCon
         fun read(file: File, consume: (Long, RecordingConfig, List<String>, Sequence<RideSample>) -> Unit) {
             DataInputStream(BufferedInputStream(FileInputStream(file))).use { input ->
                 val version = input.readInt()
-                require(version in listOf(0x42435934, 0x42435935)) { "Unknown ride journal" }
+                require(version in listOf(0x42435934, 0x42435935, 0x42435936)) { "Unknown ride journal" }
                 val start = input.readLong(); val speed = input.readUTF(); val distance = input.readUTF()
+                val indoor=if(version>=0x42435936) input.readBoolean() else false
                 val positions = input.readBoolean(); val size = input.readInt()
                 require(size in 0..100)
                 val fields = List(size) { input.readUTF() }
-                val selected = if (version == 0x42435935) {
+                val selected = if (version >= 0x42435935) {
                     require(input.readInt() in 1..PerformanceEngine.MODEL_VERSION) { "Unknown performance model" }
                     val selectedCount = input.readInt(); require(selectedCount in 0..100)
                     List(selectedCount) { input.readUTF() }.toSet()
                 } else fields.toSet() + if (positions) setOf("GPS_POSITION") else emptySet()
-                val config = RecordingConfig(selected, speed, distance)
+                val config = RecordingConfig(selected, speed, distance,indoor)
                 val records = sequence {
                     while (true) {
                         val record = try {
                             val utc = input.readLong(); val elapsed = input.readLong()
                             val lat = input.readDouble(); val lon = input.readDouble()
                             val values = buildMap { fields.forEach { id -> val v = input.readDouble(); if (v.isFinite()) put(id, v) } }
-                            val events = if (version == 0x42435935) {
+                            val events = if (version >= 0x42435935) {
                                 val eventCount = input.readInt(); require(eventCount in 0..256)
                                 List(eventCount) {
                                     val kind = input.readUnsignedByte(); require(kind in PerformanceChannel.entries.indices)

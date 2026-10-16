@@ -26,6 +26,7 @@ class BikeProfileRuntimeTest {
         r.bikes.save(r.bikes.current().copy(name="MTB",bikeAddress="00:11:22:33:44:55"))
         r.saveConfig(RecordingConfig(setOf("GPS_SPEED","GPS_DISTANCE"),"GPS_SPEED","GPS_DISTANCE"))
         r.onData(LiveData(riderPowerWatts=200),true)
+        assertNotNull(r.bikes.add()) // New installations now start with one profile.
         assertTrue(r.switchBike(1));assertNull(r.bikeAddress);assertNull(r.bikeData.riderPowerWatts)
         assertEquals(0L,r.gpsValues.elapsedMs)
         r.saveConfig(RecordingConfig(setOf("RIDER_POWER")))

@@ -11,7 +11,7 @@ import java.util.UUID
 /** One bounded scan, with serial service discovery for devices that omit service UUIDs in advertising. */
 @SuppressLint("MissingPermission")
 internal class BikeSensorScanner(private val context: Context, private val excluded: Set<String>,
-    private val found: (BluetoothDevice, String, BikeSensor) -> Unit, private val status: (String) -> Unit) {
+    private val found: (BluetoothDevice, String, BikeSensor) -> Unit, private val status: (String) -> Unit, private val allowed:Set<BikeSensor> = setOf(BikeSensor.EBIKE,BikeSensor.HEART,BikeSensor.TRAINER)) {
     private val adapter = context.getSystemService(BluetoothManager::class.java).adapter
     private val handler = Handler(Looper.getMainLooper())
     private var callback: ScanCallback? = null
@@ -22,8 +22,9 @@ internal class BikeSensorScanner(private val context: Context, private val exclu
     private val finish = Runnable { stop(); status(context.getString(R.string.bikes_search_done)) }
     private val probeTimeout = Runnable { endProbe(); nextProbe() }
     private fun kind(services: List<UUID>) = when {
-        BoschConnection.MCSP_SERVICE in services -> BikeSensor.EBIKE
-        HeartRateConnection.SERVICE in services -> BikeSensor.HEART
+        BikeSensor.TRAINER in allowed && TrainerConnection.SERVICE in services -> BikeSensor.TRAINER
+        BikeSensor.EBIKE in allowed && BoschConnection.MCSP_SERVICE in services -> BikeSensor.EBIKE
+        BikeSensor.HEART in allowed && HeartRateConnection.SERVICE in services -> BikeSensor.HEART
         else -> null
     }
     fun start() {

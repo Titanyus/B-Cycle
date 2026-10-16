@@ -6,14 +6,14 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 internal enum class BikeType(val label: Int, val available: Boolean) {
-    BIKE(R.string.bikes_type_bike, false), EBIKE(R.string.bikes_type_ebike, true), INDOOR(R.string.bikes_type_indoor, false)
+    BIKE(R.string.bikes_type_bike, false), EBIKE(R.string.bikes_type_ebike, true), INDOOR(R.string.bikes_type_indoor, true)
 }
 internal enum class BikeCategory(val label: Int) {
     MOUNTAIN(R.string.bikes_category_mountain), ROAD(R.string.bikes_category_road),
     TREKKING(R.string.bikes_category_trekking), GRAVEL(R.string.bikes_category_gravel), CITY(R.string.bikes_category_city)
 }
 internal enum class BikeSensor(val label: Int, val supported: Boolean = true) {
-    GPS(R.string.ui_source_gps), EBIKE(R.string.ui_source_bike), POWER(R.string.bikes_power_meter, false), TRAINER(R.string.bikes_trainer, false), HEART(R.string.ui_source_heart)
+    GPS(R.string.ui_source_gps), EBIKE(R.string.ui_source_bike), POWER(R.string.bikes_power_meter, false), TRAINER(R.string.bikes_trainer), HEART(R.string.ui_source_heart)
 }
 internal val BikeType.sensors get() = when (this) {
     BikeType.EBIKE -> listOf(BikeSensor.GPS, BikeSensor.EBIKE, BikeSensor.POWER, BikeSensor.HEART)
@@ -24,7 +24,8 @@ internal data class BikeProfile(val slot: Int, val name: String, val type: BikeT
     val category: BikeCategory = BikeCategory.MOUNTAIN, val wheelMm: Int = 2200, val autoConnect: Boolean = true,
     val gpsEnabled: Boolean = true, val bikeEnabled: Boolean = true, val heartEnabled: Boolean = true,
     val bikeAddress: String? = null, val bikeName: String? = null,
-    val heartAddress: String? = null, val heartName: String? = null, val recording: RecordingConfig = RecordingConfig())
+    val heartAddress: String? = null, val heartName: String? = null,
+    val trainerAddress:String?=null,val trainerName:String?=null,val trainerEnabled:Boolean=true, val recording: RecordingConfig = RecordingConfig())
 
 /** Up to six profiles with stable identities; array order is presentation only. */
 internal class BikeProfileStore(private val context: Context, private val prefs: SharedPreferences) {
@@ -70,6 +71,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
                     autoConnect = o.getBoolean("autoConnect"), gpsEnabled = o.getBoolean("gpsEnabled"),
                     bikeEnabled = o.getBoolean("bikeEnabled"), heartEnabled = o.getBoolean("heartEnabled"),
                     bikeAddress = o.optString("bikeAddress").takeIf(String::isNotEmpty), bikeName = o.optString("bikeName").takeIf(String::isNotEmpty),
+                    trainerAddress=o.optString("trainerAddress").takeIf(String::isNotEmpty), trainerName=o.optString("trainerName").takeIf(String::isNotEmpty),trainerEnabled=o.optBoolean("trainerEnabled",true),
                     heartAddress = o.optString("heartAddress").takeIf(String::isNotEmpty), heartName = o.optString("heartName").takeIf(String::isNotEmpty),
                     recording = RecordingConfig.decode(o.getJSONArray("fields").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }, o.getString("speed"), o.getString("distance")))
             }.getOrDefault(fallback)
@@ -120,5 +122,6 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         .put("slot", p.slot).put("name", p.name).put("type", p.type.name).put("category", p.category.name).put("wheelMm", p.wheelMm).put("autoConnect", p.autoConnect)
         .put("gpsEnabled", p.gpsEnabled).put("bikeEnabled", p.bikeEnabled).put("heartEnabled", p.heartEnabled)
         .put("bikeAddress", p.bikeAddress.orEmpty()).put("bikeName", p.bikeName.orEmpty()).put("heartAddress", p.heartAddress.orEmpty()).put("heartName", p.heartName.orEmpty())
+        .put("trainerAddress",p.trainerAddress.orEmpty()).put("trainerName",p.trainerName.orEmpty()).put("trainerEnabled",p.trainerEnabled)
         .put("fields", JSONArray(p.recording.fields.sorted())).put("speed", p.recording.speedSource).put("distance", p.recording.distanceSource)) } }.toString()
 }

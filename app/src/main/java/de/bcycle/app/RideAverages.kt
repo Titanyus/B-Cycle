@@ -107,12 +107,13 @@ internal class MovingTime {
     private var previousSpeed: Double? = null
     private var observed = false
     private var total = 0L
+    var observedMs=0L;private set
     val value: Long? get() = total.takeIf { observed }
     fun add(time: Long?, speed: Double?) {
         val valid = speed?.takeIf { it.isFinite() && it in 0.0..35.0 }
         val dt = time?.let { now -> previousTime?.let { now - it } }
         if (dt != null && dt in 1..10_000 && valid != null && previousSpeed != null) {
-            observed = true
+            observed = true;observedMs+=dt
             if (valid >= .7) total += dt
         }
         previousTime = time; previousSpeed = valid

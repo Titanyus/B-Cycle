@@ -4,9 +4,9 @@ data class PulseValues(val bpm: Int? = null, val average: Double? = null, val ma
 
 data class RecordingConfig(
     val fields: Set<String> = RecordField.defaults,
-    val speedSource: String = "SPEED", val distanceSource: String = "BIKE_DISTANCE",
+    val speedSource: String = "SPEED", val distanceSource: String = "BIKE_DISTANCE", val indoor:Boolean=false,
 ) {
-    val needsGps get() = fields.any { it.startsWith("GPS_") } || speedSource == "GPS_SPEED"
+    val needsGps get() = !indoor && (fields.any { it.startsWith("GPS_") } || speedSource == "GPS_SPEED")
     companion object {
         fun decode(fields: Set<String>?, speed: String?, distance: String?) = RecordingConfig(
             fields?.filter { id -> RecordField.options.any { it.id == id } }?.toSet() ?: RecordField.defaults,

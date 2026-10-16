@@ -627,4 +627,15 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_move_left">Rad nach links verschieben</string>
     <string name="bikes_move_right">Rad nach rechts verschieben</string>
     <string name="weather_group_separator">·</string>
+    <string name="trainer_disconnected">Indoor-Trainer · Nicht verbunden</string>
+    <string name="trainer_connecting">Indoor-Trainer · Verbinden</string>
+    <string name="trainer_waiting">Indoor-Trainer · Verbunden, warte auf Daten</string>
+    <string name="trainer_live">Indoor-Trainer · Live</string>
+    <string name="trainer_stale">Indoor-Trainer · Daten veraltet</string>
+    <string name="trainer_timeout">Indoor-Trainer · Zeitlimit erreicht</string>
+    <string name="trainer_permission">Indoor-Trainer · Bluetooth-Zugriff fehlt</string>
+    <string name="trainer_unavailable">Indoor-Trainer · Bluetooth nicht verfügbar</string>
+    <string name="trainer_discovery_failed">Indoor-Trainer · Dienstsuche nicht möglich</string>
+    <string name="trainer_not_ftms">Kein FTMS-Trainer mit Indoor-Bike-Daten</string>
+    <string name="trainer_subscribe_failed">Indoor-Trainer · Datenfreigabe fehlgeschlagen</string>
 </resources>

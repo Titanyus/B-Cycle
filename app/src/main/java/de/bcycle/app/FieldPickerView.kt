@@ -83,7 +83,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                         tag = field.id; text = if (value.unit.isNotEmpty()) context.getString(R.string.ui_field_with_unit, title, value.unit) else title
                         BicycleDialogStyle.control(this, themes); minHeight = dp(BicycleDesign.touchSize)
                         isChecked = dataVisible && selected == field
-                        contentDescription = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source), text) else text
+                        contentDescription = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), text) else text
                         setOnClickListener { choose(field) }
                     })
                 }
@@ -94,7 +94,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = populate(position)
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
-        val initial = sources.indexOf(selected?.source).coerceAtLeast(0)
+        val initial = sources.indexOf(selected?.source(data)).coerceAtLeast(0)
         selector.setSelection(initial); populate(initial)
     }
 }

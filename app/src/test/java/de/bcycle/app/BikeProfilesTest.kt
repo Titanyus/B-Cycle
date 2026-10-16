@@ -52,12 +52,12 @@ class BikeProfilesTest {
         val app=RuntimeEnvironment.getApplication();val prefs=app.getSharedPreferences("profiles-invalid",0)
         prefs.edit().putString(BikeProfileStore.KEY,"bad JSON").apply()
         val store=BikeProfileStore(app,prefs);assertEquals(1,store.all().size)
-        assertEquals(1,BikeType.entries.count { it.available })
+        assertEquals(2,BikeType.entries.count { it.available })
         assertTrue(BikeType.EBIKE.available)
         assertTrue(BikeSensor.GPS !in BikeType.INDOOR.sensors)
         assertFalse(BikeSensor.POWER.supported)
         assertThrows(IllegalArgumentException::class.java) { store.save(store.current().copy(name="")) }
-        assertThrows(IllegalArgumentException::class.java) { store.save(store.current().copy(type=BikeType.INDOOR)) }
+        assertThrows(IllegalArgumentException::class.java) { store.save(store.current().copy(type=BikeType.BIKE)) }
         assertThrows(IllegalArgumentException::class.java) { store.save(store.current().copy(wheelMm=0)) }
     }
     @Test fun oldFourSlotJsonMigratesWithoutLosingOrderActiveBindingsOrPhotos() {
@@ -94,7 +94,7 @@ class BikeProfilesTest {
         val app=RuntimeEnvironment.getApplication();val store=BikeProfileStore(app,app.getSharedPreferences("last-bike",0))
         assertFalse(store.remove(0));assertEquals(1,store.all().size)
         assertEquals(listOf(BikeSensor.TRAINER,BikeSensor.HEART),BikeType.INDOOR.sensors)
-        assertFalse(BikeType.INDOOR.available)
+        assertTrue(BikeType.INDOOR.available)
     }
 
 }

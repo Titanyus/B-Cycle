@@ -69,7 +69,7 @@ object FitWriter {
                 event(startStamp, 0)
                 var last: RideSample? = null
                 val sums = mutableMapOf<String, Double>(); val counts = mutableMapOf<String, Int>(); val maxima = mutableMapOf<String, Double>()
-                val performance = PerformanceEngine()
+                val performance = PerformanceEngine(primaryPowerSource=if(config.indoor) PowerSource.FTMS else PowerSource.BOSCH_RIDER)
                 val moving = MovingTime()
                 var count = 0
                 for (sample in records) {
@@ -113,8 +113,8 @@ object FitWriter {
                         u8(cadId, average("CADENCE")), u8(cadId + 1, maxima["CADENCE"]),
                         u16(powerId, average("RIDER_POWER")), u16(powerId + 1, maxima["RIDER_POWER"]),
                         u16(ascentId, end.values["GPS_ASCENT"]), u16(ascentId + 1, end.values["GPS_DESCENT"]))
-                    if (session) fields += listOf(u32(com.garmin.fit.SessionMesg.TotalMovingTimeFieldNum, moving.value?.div(1000.0), 1000.0), en(5, 2), en(6, 28), u16(25, 0.0), u16(26, 1.0))
-                    else fields += listOf(en(24, 7), en(25, 2), en(39, 28))
+                    if (session) fields += listOf(u32(com.garmin.fit.SessionMesg.TotalMovingTimeFieldNum, moving.value?.div(1000.0), 1000.0), en(5, 2), en(6, if(config.indoor) 6 else 28), u16(25, 0.0), u16(26, 1.0))
+                    else fields += listOf(en(24, 7), en(25, 2), en(39, if(config.indoor) 6 else 28))
                     fun optional(id: String, value: Double?, maximum: Double, field: (Double) -> Field) {
                         if (id in config.fields && value != null && value.isFinite() && value in 0.0..maximum) fields += field(value)
                     }
