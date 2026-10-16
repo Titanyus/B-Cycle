@@ -17,6 +17,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private var shownSlot = -1
     private var shownType:BikeType?=null
     private val typeButtons=mutableListOf<Button>()
+    private val correctionControls=mutableListOf<Pair<SeekBar,TextView>>()
     private var binding = false
     private var photo:BikePhotoView?=null
     private lateinit var strip:BikeProfileStrip
@@ -50,7 +51,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         override fun afterTextChanged(s: Editable?) = Unit
     }
     private fun rebuild() {
-        shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;typeButtons.clear()
+        shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;typeButtons.clear();correctionControls.clear()
         removeAllViews();statuses.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
         val profile = runtime.bikes.current(); val slot = profile.slot
         strip=BikeProfileStrip(context,themes,{ id ->
@@ -193,9 +194,51 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 if(sensor!=BikeSensor.GPS) addView(BicycleComponents.icon(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.bikes_remove)) { runtime.removeSensor(sensor);refresh() }.apply { tag="bike_remove_${sensor.name}";removes[sensor]=this },LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap);topMargin=dp(BicycleDesign.controlGap) })
             },LayoutParams(-1,-2))
         }
+        if (profile.type == BikeType.INDOOR) {
+            section(R.string.indoor_correction_title)
+            addView(text(R.string.indoor_correction_description),LayoutParams(-1,-2))
+            correctionSlider(slot, R.string.indoor_correction_power, "power", profile.indoorCorrection.powerTenths)
+            correctionSlider(slot, R.string.indoor_correction_speed, "speed", profile.indoorCorrection.speedTenths)
+        }
         section(R.string.ui_recording_title)
         addView(recordingControls(),LayoutParams(-1,-2))
         refresh()
+    }
+    private fun correctionSlider(slot: Int, title: Int, key: String, step: Int) {
+        val value = BicycleComponents.text(context,themes,"").apply {
+            tag="indoor_correction_${key}_value"; typeface=resources.getFont(R.font.bebas_neue)
+            textSize=BicycleDesign.analysisMetricSp; gravity=Gravity.END or Gravity.CENTER_VERTICAL
+            importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+        val slider = SeekBar(context).apply {
+            id=View.generateViewId(); tag="indoor_correction_$key"
+            min=0; max=30; progress=step; keyProgressIncrement=1
+            minimumHeight=dp(BicycleDesign.touchSize); contentDescription=context.getString(title)
+        }
+        addView(LinearLayout(context).apply {
+            gravity=Gravity.CENTER_VERTICAL
+            addView(text(title).apply { labelFor=slider.id },LayoutParams(0,-2,1f))
+            addView(value,LayoutParams(-2,-2).apply { marginStart=dp(BicycleDesign.controlGap) })
+        },LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
+        addView(slider,LayoutParams(-1,-2))
+        BicycleComponents.controlSpacing(slider)
+        BicycleComponents.bindTheme(slider,themes) { tokens ->
+            val accent=android.content.res.ColorStateList.valueOf(tokens.accent)
+            slider.thumbTintList=accent; slider.progressTintList=accent
+            slider.progressBackgroundTintList=android.content.res.ColorStateList.valueOf((tokens.foreground and 0x00ffffff) or 0x55000000)
+        }
+        slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                if (!fromUser || binding || runtime.bikes.activeSlot!=slot) return
+                val old=runtime.bikes.current().indoorCorrection
+                val next=if(key=="power") old.copy(powerTenths=progress) else old.copy(speedTenths=progress)
+                runtime.setIndoorCorrection(next)
+                refresh()
+            }
+        })
+        correctionControls += slider to value
     }
     fun beginSearch() { searchResults.removeAllViews();searchStatus.visibility=VISIBLE }
     fun scanStatus(message: String) { BicycleFeedback.update(searchStatus,message,hideWhenEmpty=true) }
@@ -213,6 +256,14 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         try {
             val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect
             searchButton.isEnabled=!runtime.recording && !runtime.saving
+            correctionControls.forEachIndexed { index,(slider,value) ->
+                slider.isEnabled=!runtime.recording && !runtime.saving
+                slider.alpha=if(slider.isEnabled) 1f else .4f
+                val step=if(index==0) p.indoorCorrection.powerTenths else p.indoorCorrection.speedTenths
+                slider.progress=step
+                val factor=context.getString(R.string.indoor_correction_factor,step/10.0)
+                value.text=factor; slider.stateDescription=factor
+            }
             typeButtons.forEachIndexed { index,button -> button.isEnabled=BikeType.entries[index].available && !runtime.recording && !runtime.saving;button.alpha=if(button.isEnabled) 1f else .4f }
             footer.visibility=if(runtime.bikes.all().size>1) VISIBLE else GONE
             deleteAction.isEnabled=!runtime.recording && !runtime.saving

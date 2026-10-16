@@ -92,6 +92,50 @@ Eine 20-Minuten-FIT mit einer echten Nullleistungsphase wird mit Garmins Decoder
 und ActivityFileValidationPlugin geprüft und wieder in die Detailanalyse eingelesen;
 NP, Arbeit und Estimated FTP werden geprüft. Alte V5-Journale bleiben lesbar.
 
-Die physische BLE-Verbindung mit dem Matrix, Messwertgenauigkeit, längere Ausfälle
-und Langzeitstabilität müssen mit der Test-APK am Gerät geprüft werden. Grundlage:
+Die physische BLE-Verbindung mit dem Matrix wurde am 16.10.2026 vom Nutzer als
+funktionierend bestätigt. Messwertgenauigkeit, längere Ausfälle und Langzeitstabilität
+bleiben gesondert zu prüfen. Grundlage:
 [erfolgreicher ANT+ Explorer-/Matrix-Referenztest](ble-trainer-matrix-icr50.md).
+
+## Messwertkorrektur je Indoor-Profil
+
+Im Bikes-Screen zwischen Sensoren und FIT-Aufzeichnung erscheint nur bei Indoor-Bikes
+„Messwertkorrektur“. Zwei native Slider: **Leistung** und **Geschwindigkeit & Distanz**,
+jeweils Faktor 0,0–3,0 in 0,1er-Schritten, Standard 1,0. Gültige Änderungen werden
+sofort im ausgewählten Bike gespeichert. Ältere Profile ohne diese Angaben starten
+mit 1,0; ungültige gespeicherte Faktoren fallen einzeln auf 1,0 zurück.
+
+`IndoorCorrection` normalisiert die ursprünglichen FTMS-Werte in RideRuntime vor den
+Fahrtverbrauchern. Leistung auf ganze Watt, Geschwindigkeit auf die vorhandenen
+Hundertstel km/h und Distanzzähler auf ganze Meter runden. Danach verwenden Dashboard,
+Graphen, Training/Zonen, Fahrtmittelwerte, Performance-Ereignisse und Journal/FIT dieselben
+korrigierten Werte. Kein zweites Skalieren beim Export, Wiederherstellen oder Detail-Einlesen.
+Der originale FTMS-Empfangspuffer bleibt für Frische/Zeitstempel unverändert. Fehlende
+Werte bleiben fehlend, echte Nullen bleiben Null; Kadenz, Puls, Akkustand und Gerätezeit
+werden nicht korrigiert. Geschwindigkeit und Distanz teilen den Faktor; die bestehende
+START-Verankerung des Distanzzählers bleibt erhalten.
+
+Während Aufnahme oder Speicherung sind Slider und Runtime-Setter gesperrt. Somit
+gilt innerhalb einer Fahrt genau ein Faktorenpaar. Außerhalb der Aufnahme wirken
+Änderungen sofort auf frische Livewerte, ohne deren Empfangszeit künstlich zu erneuern.
+Fertige Fahrtzähler bleiben eingefroren; neue Fahrten beginnen mit den aktuellen Faktoren.
+Vorhandene FIT-Dateien werden nicht geändert. Faktoren sind Teil des lokalen Bikeprofils;
+das bisherige manuelle Backup-Schema bleibt unverändert.
+
+Leistung und Geschwindigkeit sind nicht durch einen universellen Faktor miteinander
+verknüpft. Vorgemerkt, noch keine zusätzliche Kalibrier-UI: Leistungsfaktor aus gleichzeitig
+ermittelter Referenzleistung / Trainerleistung, nur bei gültigen Werten und positivem
+Nenner. Mehrere stabile Belastungsstufen vergleichen; ein fester Faktor kann nicht jede
+Nichtlinearität eines Trainers korrigieren. Keine Widerstandssteuerung daraus ableiten.
+
+Am 16.10.2026 bestätigt der Nutzer die funktionierende Indoor-Anbindung am echten
+Trainer. Die Genauigkeit der Matrix-Messwerte ist nach seinem Vergleich gering; dafür
+ist die optionale Korrektur vorgesehen. Langzeit-/Ausfallprüfungen bleiben separat.
+
+Automatisierte Absicherung der Korrektur: 22 gezielte Tests aus IndoorCorrectionTest,
+IndoorRuntimeTest, IndoorUiTest, IndoorFitTest, BikeProfilesTest, BikeProfileRuntimeTest
+und FtmsMeasurementsTest bestanden. Einschließlich pro-Profil-Persistenz/Migration,
+Faktorschritten/Nullen/fehlenden Werten, UI-Auswahl, korrigierter Live-Anzeige und
+Performance, Distanz, FIT-Roundtrip, Aufnahmesperre und unveränderten alten FIT-Bytes.
+Release-Build einschließlich R8, Resource-Shrinking und Lint Vital erfolgreich.
+Diese Korrektur ist im Hauptbranch vorbereitet, noch nicht in der veröffentlichten APK 0.7.26 enthalten.

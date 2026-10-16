@@ -25,7 +25,7 @@ internal data class BikeProfile(val slot: Int, val name: String, val type: BikeT
     val gpsEnabled: Boolean = true, val bikeEnabled: Boolean = true, val heartEnabled: Boolean = true,
     val bikeAddress: String? = null, val bikeName: String? = null,
     val heartAddress: String? = null, val heartName: String? = null,
-    val trainerAddress:String?=null,val trainerName:String?=null,val trainerEnabled:Boolean=true, val recording: RecordingConfig = RecordingConfig())
+    val trainerAddress:String?=null,val trainerName:String?=null,val trainerEnabled:Boolean=true, val recording: RecordingConfig = RecordingConfig(), val indoorCorrection: IndoorCorrection = IndoorCorrection())
 
 /** Up to six profiles with stable identities; array order is presentation only. */
 internal class BikeProfileStore(private val context: Context, private val prefs: SharedPreferences) {
@@ -73,6 +73,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
                     bikeAddress = o.optString("bikeAddress").takeIf(String::isNotEmpty), bikeName = o.optString("bikeName").takeIf(String::isNotEmpty),
                     trainerAddress=o.optString("trainerAddress").takeIf(String::isNotEmpty), trainerName=o.optString("trainerName").takeIf(String::isNotEmpty),trainerEnabled=o.optBoolean("trainerEnabled",true),
                     heartAddress = o.optString("heartAddress").takeIf(String::isNotEmpty), heartName = o.optString("heartName").takeIf(String::isNotEmpty),
+                    indoorCorrection = IndoorCorrection(IndoorCorrection.storedStep(o.optInt("indoorPowerTenths",10)), IndoorCorrection.storedStep(o.optInt("indoorSpeedTenths",10))),
                     recording = RecordingConfig.decode(o.getJSONArray("fields").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }, o.getString("speed"), o.getString("distance")))
             }.getOrDefault(fallback)
             stored
@@ -123,5 +124,6 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         .put("gpsEnabled", p.gpsEnabled).put("bikeEnabled", p.bikeEnabled).put("heartEnabled", p.heartEnabled)
         .put("bikeAddress", p.bikeAddress.orEmpty()).put("bikeName", p.bikeName.orEmpty()).put("heartAddress", p.heartAddress.orEmpty()).put("heartName", p.heartName.orEmpty())
         .put("trainerAddress",p.trainerAddress.orEmpty()).put("trainerName",p.trainerName.orEmpty()).put("trainerEnabled",p.trainerEnabled)
+        .put("indoorPowerTenths",p.indoorCorrection.powerTenths).put("indoorSpeedTenths",p.indoorCorrection.speedTenths)
         .put("fields", JSONArray(p.recording.fields.sorted())).put("speed", p.recording.speedSource).put("distance", p.recording.distanceSource)) } }.toString()
 }

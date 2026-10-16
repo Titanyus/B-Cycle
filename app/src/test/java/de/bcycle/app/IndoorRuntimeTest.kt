@@ -70,6 +70,44 @@ class IndoorRuntimeTest {
             assertTrue(fit.recordMesgs.all { it.positionLat==null && it.positionLong==null })
         } finally { if(r.recording) r.stopRecording();r.setVisible(false) }
     }
+    @Test fun correctionFeedsDashboardPerformanceAndFitOnceWhileRawReadingsRemainIntact() {
+        val (r,_,link)=setup()
+        try {
+            send(link,120)
+            assertTrue(r.setIndoorCorrection(IndoorCorrection(15,20)))
+            assertEquals(20.0,r.currentSpeedKmh!!,.001)
+            assertEquals(300,r.dashboardBikeData.riderPowerWatts)
+            assertEquals(200.0,r.trainer.readings.value(TrainerField.POWER,android.os.SystemClock.elapsedRealtime())!!,.001)
+            assertEquals(300.0,r.powerMeasurement!!.watts!!,.001)
+            r.saveConfig(RecordingConfig(setOf("SPEED","BIKE_DISTANCE","RIDER_POWER","CADENCE","GPS_ELAPSED_TIME","MECHANICAL_WORK")))
+            r.beginRecording()
+            assertFalse(r.setIndoorCorrection(IndoorCorrection(0,0)))
+            repeat(6) { i ->
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));send(link,125+i*10)
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));send(link,130+i*10)
+            }
+            assertEquals(120L,r.ride.bike.distanceM)
+            assertEquals(1.8,r.performanceValues.knownMechanicalWorkKj,.001)
+            assertEquals(300L,r.dashboardBikeData.value(LiveMetric.AVERAGE_POWER))
+            r.stopRecording()
+            assertFalse(r.setIndoorCorrection(IndoorCorrection())) // Saving is also protected.
+            val end=System.nanoTime()+10_000_000_000L
+            while(r.saving && System.nanoTime()<end) { shadowOf(Looper.getMainLooper()).idle();Thread.sleep(10) }
+            assertFalse(r.saving)
+            val file=java.io.File(r.context.filesDir,"fit-library").listFiles { f -> f.extension=="fit" }!!.single()
+            val original=file.readBytes()
+            val fit=file.inputStream().use { com.garmin.fit.FitDecoder().decode(it) }
+            assertTrue(fit.recordMesgs.any { it.power?.toInt()==300 && kotlin.math.abs((it.speed ?: 0f)-20f/3.6f)<.01 })
+            assertEquals(120.0,fit.sessionMesgs.single().totalDistance.toDouble(),.01)
+            assertTrue(r.setIndoorCorrection(IndoorCorrection(0,0)))
+            assertArrayEquals(original,file.readBytes()) // Existing rides are never rewritten/re-scaled.
+            send(link,300)
+            assertEquals(0.0,r.currentSpeedKmh!!,.001);assertEquals(0,r.dashboardBikeData.riderPowerWatts)
+            assertEquals(120L,r.ride.bike.distanceM) // Finished trip stays frozen.
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
+            assertNull(r.currentSpeedKmh);assertNull(r.dashboardBikeData.riderPowerWatts)
+        } finally { if(r.recording) r.stopRecording();r.setVisible(false) }
+    }
     @Test fun disconnectReconnectTypeSwitchAndPersistedTrainerAreIndependentOfBoschPairing() {
         val (r,device,link)=setup()
         try {

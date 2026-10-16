@@ -62,6 +62,10 @@ Release-Build mit R8, Resource-Shrinking und Lint Vital erfolgreich.
 Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
 [Buildnachweis und reale Prüfgrenzen](docs/milestone-0726.md).
 
+## Im Hauptbranch vorbereitet
+
+- Indoor-Messwertkorrektur je Bike: getrennte Faktoren für Leistung und Geschwindigkeit/Distanz, wirksam für Live-Anzeige und neue FIT-Aufzeichnungen. Noch nicht in APK 0.7.26. [Details](docs/indoor-ftms.md#messwertkorrektur-je-indoor-profil).
+
 ## Neu in APK 0.7.26
 
 - **ZIP-Archivimport:** FIT/GPX einschließlich `.fit.gz` und `.gpx.gz` in einem Durchgang übernehmen, auch aus Unterordnern.

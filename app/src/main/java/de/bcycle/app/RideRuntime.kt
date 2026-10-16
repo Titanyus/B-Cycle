@@ -346,9 +346,26 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         else { connectionsRequested=true;disconnectedSensors.remove(BikeSensor.TRAINER);trainerReconnect.start() }
         reconnectSensors();notifyChanged()
     }
+    internal fun setIndoorCorrection(correction: IndoorCorrection): Boolean {
+        if (!isIndoor || recording || saving) return false
+        bikes.save(bikes.current().copy(indoorCorrection = correction))
+        val now = SystemClock.elapsedRealtime()
+        refreshTrainerData(now)
+        // Re-seed the existing performance input with corrected values and their original receipt times.
+        listOf(TrainerField.POWER, TrainerField.SPEED).forEach { field ->
+            val raw = trainer.readings.value(field,now).takeIf { trainer.live }
+            val value = correction.apply(field,raw)
+            val channel = if (field == TrainerField.POWER) PerformanceChannel.POWER else PerformanceChannel.SPEED
+            capturePerformance(channel, if (field == TrainerField.SPEED) value?.div(3.6) else value,
+                if (field == TrainerField.POWER) PowerSource.FTMS.name else "SPEED", trainer.readings.at(field) ?: now)
+        }
+        notifyChanged()
+        return true
+    }
     private fun refreshTrainerData(now:Long) {
         if(!isIndoor) return
-        fun v(f:TrainerField)=trainer.readings.value(f,now)
+        val correction = bikes.current().indoorCorrection
+        fun v(f:TrainerField)=correction.apply(f,trainer.readings.value(f,now))
         bikeData=LiveData(v(TrainerField.SPEED)?.times(100)?.let { kotlin.math.round(it).toInt() },v(TrainerField.POWER)?.toInt(),
             listOfNotNull(v(TrainerField.CADENCE)?.let { LiveMetric.CADENCE to kotlin.math.round(it*2).toLong() },
                 v(TrainerField.DISTANCE)?.let { LiveMetric.ODOMETER to it.toLong() }).toMap(),indoor=true)
@@ -368,7 +385,9 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if(!isIndoor) return
         val metrics=mapOf(TrainerField.SPEED to LiveMetric.SPEED,TrainerField.POWER to LiveMetric.RIDER_POWER,
             TrainerField.CADENCE to LiveMetric.CADENCE,TrainerField.DISTANCE to LiveMetric.ODOMETER)
-        frame.values.forEach { (field,value) ->
+        val correction = bikes.current().indoorCorrection
+        frame.values.forEach { (field,raw) ->
+            val value = correction.apply(field,raw)
             metrics[field]?.let { if(value==null) times.remove(it) else times[it]=now }
             when(field) {
                 TrainerField.SPEED -> capturePerformance(PerformanceChannel.SPEED,value?.div(3.6),"SPEED",now)
