@@ -33,6 +33,18 @@ class RouteAnalysisViewTest {
         } }, null, true, 32.1, AnalysisChart.entries.map { chart ->
             AnalysisSeries(chart, listOf(AnalysisPoint(0.0, 0.0, 5.0), AnalysisPoint(16000.0, 20.0, null), AnalysisPoint(32100.0, 40.0, 20.0)))
         })
+    @Test fun embeddedMapIsSquareAtDifferentPortraitWidths() {
+        val c=RuntimeEnvironment.getApplication();val themes=ThemeManager(c.getSharedPreferences("bike",0))
+        val content=RouteAnalysisView(c,themes,"id") {}
+        try {
+            content.show(sample().copy(route=GpxRoute(listOf(MapPoint(50.0,8.0,true),MapPoint(50.01,8.01)),2,1)))
+            for(width in listOf(960,1080)) {
+                measure(content,width,1800)
+                val frame=content.findViewWithTag<View>("analysis_map_frame")
+                assertTrue(frame.width>0);assertEquals(frame.width,frame.height)
+            }
+        } finally { content.dispose() }
+    }
     @Test fun allThemesHaveStableCompactGridAndFixedChartOrderAndAlignedAxesOnNarrowScreens() {
         val controller = Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
@@ -83,14 +95,14 @@ class RouteAnalysisViewTest {
         assertEquals(AnalysisGroups.groups.map { context.getString(it.first) },labels.map { it.title })
         labels.forEach { assertTrue(it.isAccessibilityHeading);assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisSideLabelWidth),it.width);assertTrue(it.height>=BicycleDesign.dp(context,BicycleDesign.analysisTileMinHeight)) }
         val dividers=descendants(content).filter { it.tag=="analysis_section_divider" }
-        assertEquals(6,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.dividerPixels && it.alpha==BicycleDesign.dividerAlpha })
+        assertEquals(6,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.linePixels(context) && it.alpha==BicycleDesign.dividerAlpha })
         dividers.forEach {
             val margins=it.layoutParams as LinearLayout.LayoutParams
-            assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisDividerGap),margins.topMargin)
+            assertEquals(BicycleDesign.dp(context,BicycleDesign.sectionDividerGap),margins.topMargin)
             assertEquals(margins.topMargin,margins.bottomMargin)
         }
         val date=content.findViewWithTag<TextView>("analysis_date")
-        assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.bodySp,context.resources.displayMetrics),date.textSize,0f)
+        assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.rowTitleSp,context.resources.displayMetrics),date.textSize,0f)
         val texts=descendants(content).filterIsInstance<TextView>().map { it.text.toString() }
         for(resource in listOf(R.string.analysis_overview,R.string.analysis_map_heading,R.string.analysis_charts)) assertFalse(texts.contains(context.getString(resource)))
         assertEquals("Leistung",context.getString(AnalysisChart.POWER.detailLabel))

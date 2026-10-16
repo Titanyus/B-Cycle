@@ -81,8 +81,8 @@ internal class ThemePickerView(context: Context, private val themes: ThemeManage
             background = GradientDrawable().apply {
                 setColor(tokens.secondary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
                 val color = if (isSelected) BicycleComponents.selectionBorder(tokens,true) else (tokens.foreground and 0x00ffffff) or (85 shl 24)
-                if (preset == null) setStroke(BicycleDesign.dividerPixels, color, dp(BicycleDesign.smallGap).toFloat(), dp(BicycleDesign.smallGap).toFloat())
-                else setStroke(if (isSelected) dp(BicycleDesign.themeSelectedBorder) else BicycleDesign.dividerPixels, color)
+                if (preset == null) setStroke(BicycleDesign.linePixels(context), color, dp(BicycleDesign.smallGap).toFloat(), dp(BicycleDesign.smallGap).toFloat())
+                else setStroke(if (isSelected) dp(BicycleDesign.themeSelectedBorder) else BicycleDesign.linePixels(context), color)
             }
         }
     }

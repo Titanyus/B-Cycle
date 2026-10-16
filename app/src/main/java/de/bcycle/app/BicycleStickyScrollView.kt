@@ -12,7 +12,6 @@ import android.widget.ScrollView
 internal open class BicycleStickyScrollView(context: Context) : ScrollView(context) {
     private data class Section(val header: BicycleSectionHeader, val top: Int, val end: Int)
     private var sections = emptyList<Section>()
-    private val shadow=BicycleHeaderShadow(context)
     init { BicycleComponents.scrollStyle(this) }
     override fun dispatchDraw(canvas: android.graphics.Canvas) {
         val saved = canvas.save()
@@ -20,10 +19,6 @@ internal open class BicycleStickyScrollView(context: Context) : ScrollView(conte
         // including its scroll offset, so raised headings cannot cover the fixed window header.
         canvas.clipRect(scrollX, scrollY, scrollX + width, scrollY + height)
         super.dispatchDraw(canvas)
-        sections.forEach { section ->
-            val bottom=section.top+section.header.translationY+section.header.height
-            if(bottom>=scrollY && bottom<scrollY+height) shadow.draw(canvas,scrollX.toFloat(),bottom, (scrollX+width).toFloat())
-        }
         canvas.restoreToCount(saved)
     }
     private fun topInContent(view: View): Int {
@@ -31,6 +26,10 @@ internal open class BicycleStickyScrollView(context: Context) : ScrollView(conte
         var parent = view.parent
         while (parent is View && parent !== this) { top += parent.top; parent = parent.parent }
         return top
+    }
+    override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
+        if(childCount>0) BicycleContentSpacing.sections(getChildAt(0))
+        super.onMeasure(widthMeasureSpec,heightMeasureSpec)
     }
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)

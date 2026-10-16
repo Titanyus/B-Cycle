@@ -25,6 +25,32 @@ class BikesViewTest {
         shadowOf(Looper.getMainLooper()).idle()
         view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));view.layout(0,0,width,height)
     }
+    @Test fun pickerStoresPhotoForItsOriginalBikeAndRemovalRestoresTheChooseControl() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val app=controller.get();val runtime=RideRuntime.get(app)
+            testDescendants(app.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
+            ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("settings_SENSORS").performClick()
+            val decor=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView;measure(decor)
+            decor.findViewWithTag<View>("bike_photo_choose").performClick()
+            val request=shadowOf(app).nextStartedActivityForResult
+            assertEquals(14,request.requestCode);assertEquals("image/*",request.intent.type)
+            val input=File(app.cacheDir,"bike-selected.png")
+            Bitmap.createBitmap(40,20,Bitmap.Config.ARGB_8888).apply { input.outputStream().use { compress(Bitmap.CompressFormat.PNG,100,it) };recycle() }
+            MainActivity::class.java.getDeclaredMethod("onActivityResult",Int::class.javaPrimitiveType,Int::class.javaPrimitiveType,android.content.Intent::class.java)
+                .apply { isAccessible=true }.invoke(app,14,android.app.Activity.RESULT_OK,android.content.Intent().setData(android.net.Uri.fromFile(input)))
+            fun waitFor(condition:()->Boolean) {
+                val end=System.nanoTime()+10_000_000_000L
+                while(!condition() && System.nanoTime()<end) { Thread.sleep(10);shadowOf(Looper.getMainLooper()).idle() }
+                shadowOf(Looper.getMainLooper()).idle();assertTrue(condition())
+            }
+            waitFor { BikePhotos.file(app,0).isFile && decor.findViewWithTag<View>("bike_photo_remove").visibility==View.VISIBLE }
+            assertFalse(BikePhotos.file(app,1).exists())
+            decor.findViewWithTag<View>("bike_photo_remove").performClick()
+            waitFor { !BikePhotos.file(app,0).exists() && decor.findViewWithTag<View>("bike_photo_choose").visibility==View.VISIBLE }
+            assertEquals(0,runtime.bikes.activeSlot)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun fourCardsInlineNameDropdownAndFitAccordionPersistOnTheSameScrollingPage() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -35,6 +61,11 @@ class BikesViewTest {
             val screen=ShadowAlertDialog.getLatestAlertDialog();val decor=screen.window!!.decorView;measure(decor)
             assertEquals("Bikes",decor.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
             val body=decor.findViewWithTag<View>("bikes_manager")
+            val cardLayouts=testDescendants(body).filter { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true }.map { it as LinearLayout }
+            cardLayouts.forEach { card ->
+                assertEquals("E-Bike",(card.getChildAt(0) as TextView).text.toString())
+                assertEquals(2,(card.getChildAt(2) as TextView).minLines)
+            }
             assertEquals(4,testDescendants(body).count { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true })
             assertFalse(body.findViewWithTag<View>("bike_type_BIKE").isEnabled)
             assertFalse(body.findViewWithTag<View>("bike_type_INDOOR").isEnabled)

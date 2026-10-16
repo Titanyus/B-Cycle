@@ -99,7 +99,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         if (template != DashboardTemplate.DATA) {
             orientation = VERTICAL
             template.rows.forEachIndexed { index, slots ->
-                if (index > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, 1))
+                if (index > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, BicycleDesign.linePixels(context)))
                 addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(index, wide)))
             }
             show(layout, data, gps, bikeDistanceM, pulse)
@@ -108,10 +108,10 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         orientation = if (wide) HORIZONTAL else VERTICAL
         if (wide) {
             addView(indexed[2].container, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-            addView(line(), LayoutParams(1, LayoutParams.MATCH_PARENT))
+            addView(line(), LayoutParams(BicycleDesign.linePixels(context), LayoutParams.MATCH_PARENT))
             val right = LinearLayout(context).apply { orientation = VERTICAL }
             for ((rowIndex, indexes) in listOf(listOf(0, 1), listOf(3, 4), listOf(5, 6)).withIndex()) {
-                if (rowIndex > 0) right.addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, 1))
+                if (rowIndex > 0) right.addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, BicycleDesign.linePixels(context)))
                 right.addView(pair(indexes, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
             }
             addView(right, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
@@ -120,10 +120,10 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
         val groups = template.rows
         for ((rowIndex, indexes) in groups.withIndex()) {
-            if (rowIndex > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, 1))
+            if (rowIndex > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, BicycleDesign.linePixels(context)))
             val row = LinearLayout(context).apply { orientation = HORIZONTAL; isBaselineAligned = false }
             for ((column, index) in indexes.withIndex()) {
-                if (column > 0) row.addView(line(), LayoutParams(1, LayoutParams.MATCH_PARENT))
+                if (column > 0) row.addView(line(), LayoutParams(BicycleDesign.linePixels(context), LayoutParams.MATCH_PARENT))
                 val tile = indexed[index]
                 row.addView(tile.container, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
             }
@@ -135,7 +135,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private fun pair(indexes: List<Int>, indexed: List<Tile>) = LinearLayout(context).apply {
         orientation = HORIZONTAL; isBaselineAligned = false
         indexes.forEachIndexed { column, index ->
-            if (column > 0) addView(line(), LayoutParams(1, LayoutParams.MATCH_PARENT))
+            if (column > 0) addView(line(), LayoutParams(BicycleDesign.linePixels(context), LayoutParams.MATCH_PARENT))
             addView(indexed[index].container, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
         }
     }

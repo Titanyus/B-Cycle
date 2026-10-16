@@ -56,6 +56,7 @@ internal object BicycleFullscreen {
                 BicycleComponents.scrollStyle(this)
                 addView(original, ViewGroup.LayoutParams(-1, -2))
             }
+            BicycleContentSpacing.page(body)
             body.tag = body.tag ?: "bicycle_fullscreen_content"
             BicycleComponents.bindTheme(body, themes) { body.setBackgroundColor(it.secondary) }
             host.addView(body, LinearLayout.LayoutParams(-1, 0, 1f))

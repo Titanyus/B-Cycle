@@ -82,13 +82,13 @@ internal class RouteManagerView(context: Context,
         }
         addView(status, LayoutParams(-1, -2))
         addView(ListView(context).apply {
-            tag = "route_list"; adapter = rows; dividerHeight = BicycleDesign.dividerPixels
+            tag = "route_list"; adapter = rows; dividerHeight = BicycleDesign.linePixels(context)
             setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
             BicycleComponents.scrollStyle(this)
             BicycleComponents.bindTheme(this, themes) {
-                divider = ColorDrawable(it.foreground); dividerHeight = BicycleDesign.dividerPixels
+                divider = ColorDrawable(it.foreground); dividerHeight = BicycleDesign.linePixels(context)
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)
-                selector = GradientDrawable().apply { setColor(it.secondary); setStroke(BicycleDesign.dividerPixels, it.foreground) }
+                selector = GradientDrawable().apply { setColor(it.secondary); setStroke(BicycleDesign.linePixels(context), it.foreground) }
             }
         }, LayoutParams(-1, 0, 1f))
     }
@@ -154,7 +154,7 @@ internal class RouteManagerView(context: Context,
                 if (index > 0) addView(View(context).apply {
                     tag = "route_metric_divider"; alpha = BicycleDesign.dividerAlpha
                     BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.foreground) }
-                }, LayoutParams(BicycleDesign.dividerPixels, -1))
+                }, LayoutParams(BicycleDesign.linePixels(context), -1))
                 addView(reading, LayoutParams(0, -2, 1f))
             }
         }

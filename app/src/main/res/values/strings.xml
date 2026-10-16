@@ -299,7 +299,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_sensor_choose">Sensor auswählen</string>
     <string name="ui_heart_choose">Pulsmesser auswählen</string>
     <string name="ui_scan_searching">Suche …</string>
-    <string name="ui_fit_speed_source">FIT-Hauptquelle · Geschwindigkeit</string>
+    <string name="ui_fit_speed_source">Geschwindigkeit</string>
     <string name="ui_fit_distance_source">FIT-Hauptquelle · Strecke</string>
     <string name="ui_record_permission_error">Aufzeichnung konnte nicht starten. Sensorberechtigungen prüfen.</string>
     <string name="ui_record_visible_error">Aufzeichnung bitte bei sichtbarer App starten.</string>
@@ -526,8 +526,8 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_battery_missing">–</string>
     <string name="bikes_profile_locked">Profilwechsel erst nach Abschluss der Aufnahme möglich</string>
     <string name="bikes_profile_selected">%1$s ausgewählt</string>
-    <string name="bikes_fit_primary_speed">FIT-Hauptquelle · Geschwindigkeit</string>
-    <string name="bikes_fit_primary_distance">FIT-Hauptquelle · Distanz</string>
+    <string name="bikes_fit_primary_speed">Geschwindigkeit</string>
+    <string name="bikes_fit_primary_distance">Distanz</string>
     <string name="bikes_fit_explanation">Die Hauptquelle liefert den Standardwert der FIT-Datei. Weitere Quellen kannst du zusätzlich aufzeichnen.</string>
     <string name="bikes_fit_additional">Aufzuzeichnende Werte</string>
     <string name="bikes_searching">Suche nach unterstützten Sensoren …</string>
@@ -615,4 +615,9 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="dreeve_import_disabled">Dreeve akzeptiert keine Dateien · IMPORT_MODE muss files sein</string>
     <string name="service_check_settings">Zugangsdaten vervollständigen; Upload erst nach Einrichtung aktivieren</string>
     <string name="service_connected">Verbindung hergestellt</string>
+    <string name="bikes_fit_heading">FIT-Hauptquelle</string>
+    <string name="bike_photo">Fahrradbild</string>
+    <string name="bike_photo_choose">Fahrradbild auswählen</string>
+    <string name="bike_photo_remove">Fahrradbild löschen</string>
+    <string name="bike_photo_failed">Bild konnte nicht übernommen werden</string>
 </resources>

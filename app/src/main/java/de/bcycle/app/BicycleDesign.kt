@@ -50,7 +50,6 @@ object BicycleDesign {
     const val managerMaxHeight = 680
     const val managerDefaultHeight = 580
     const val analysisTileMinHeight = 120
-    const val analysisDividerGap = 2
     const val analysisMetricIconSize = 32
     const val analysisMetricSp = 28f
     const val analysisUnitSp = 13f
@@ -66,13 +65,15 @@ object BicycleDesign {
     const val analysisChartHeight = 120
     const val analysisSideLabelWidth = 24
     const val analysisSideLabelSp = 12f
-    const val analysisMapHeight = 180
-    const val bikeTileHeight = 112
+    const val bikeTileHeight = 154
+    const val bikePhotoHeight = 200
+    const val bikePhotoEmptyHeight = 64
     const val bikePreviewHeight = 56
     const val sectionHeaderMinHeight = 56
     const val sectionHeaderPadding = 12
-    const val sectionHeaderGap = 12
-    const val sectionHeaderTopSpace = 12
+    const val sectionRuleDp = .75f
+    const val pageContentGap = 16
+    const val sectionContentGap = 16
     const val sectionHeaderRaisedZ = 16
     const val headerShadowHeight = 12
     const val headerShadowAlpha = 102
@@ -101,8 +102,10 @@ object BicycleDesign {
     const val scrollbarSize = 2
     const val footerHeight = 64
     const val footerLabelSp = 11f
-    const val dividerPixels = 1
+    const val dividerDp = .75f
+    fun linePixels(context: Context, widthDp: Float = dividerDp) = Math.round(context.resources.displayMetrics.density * widthDp).coerceAtLeast(1)
     const val dividerAlpha = .55f
+    const val sectionDividerGap = 12
     const val inputHorizontalPadding = 12
     const val menuIconSize = 64
     const val menuTileHeight = 148
@@ -156,10 +159,13 @@ object BicycleComponents {
     internal fun controlSpacing(view: View) {
         fun apply() {
             val margins=view.layoutParams as? ViewGroup.MarginLayoutParams ?: return
-            val gap=dp(view.context,BicycleDesign.controlGap)
-            var changed=false
-            if(margins.topMargin<gap) { margins.topMargin=gap;changed=true }
             val parent=view.parent as? LinearLayout
+            val index=parent?.indexOfChild(view) ?: -1
+            val preceding=if(parent!=null && index>0) (index-1 downTo 0).map(parent::getChildAt).firstOrNull { it.visibility!=View.GONE } else null
+            val separated=parent?.orientation==LinearLayout.VERTICAL && preceding?.tag=="bicycle_section_divider"
+            val gap=if(separated) 0 else dp(view.context,BicycleDesign.controlGap)
+            var changed=false
+            if((separated && margins.topMargin!=0) || margins.topMargin<gap) { margins.topMargin=gap;changed=true }
             if(parent?.orientation==LinearLayout.HORIZONTAL) {
                 val index=parent.indexOfChild(view)
                 val previous=(index-1 downTo 0).firstOrNull { parent.getChildAt(it).visibility!=View.GONE }?.let(parent::getChildAt)
@@ -272,14 +278,15 @@ object BicycleComponents {
         setOnClickListener { click() }
     }
     fun divider(context: Context, manager: ThemeManager) = View(context).apply {
-        layoutParams = ViewGroup.LayoutParams(-1, BicycleDesign.dividerPixels)
+        layoutParams = ViewGroup.LayoutParams(-1, BicycleDesign.linePixels(context))
         bindTheme(this, manager) { setBackgroundColor(it.foreground) }
     }
     fun sectionDivider(context: Context, manager: ThemeManager) = divider(context, manager).apply {
+        tag="bicycle_section_divider"
         alpha = BicycleDesign.dividerAlpha
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        layoutParams = LinearLayout.LayoutParams(-1, BicycleDesign.dividerPixels).apply {
-            topMargin = dp(context, BicycleDesign.rowGap); bottomMargin = dp(context, BicycleDesign.verticalPadding)
+        layoutParams = LinearLayout.LayoutParams(-1, BicycleDesign.linePixels(context)).apply {
+            topMargin = dp(context, BicycleDesign.sectionDividerGap); bottomMargin = dp(context, BicycleDesign.sectionDividerGap)
         }
     }
 }

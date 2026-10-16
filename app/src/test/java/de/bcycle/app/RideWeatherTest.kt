@@ -68,7 +68,14 @@ class RideWeatherTest {
         row.measure(View.MeasureSpec.makeMeasureSpec(320,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
         row.layout(0,0,320,row.measuredHeight)
         assertEquals(3,row.childCount)
-        (0 until row.childCount).forEach { assertTrue(row.getChildAt(it).width>0);assertEquals(1,(row.getChildAt(it) as TextView).maxLines) }
+        (0 until row.childCount).forEach {
+            val part=row.getChildAt(it) as android.widget.LinearLayout
+            assertTrue(part.width>0);assertTrue(part.right<=row.width)
+            assertTrue(part.getChildAt(0) is android.widget.ImageView)
+            val label=part.getChildAt(1) as TextView
+            assertEquals(BicycleDesign.dp(c,BicycleDesign.smallGap),label.left-part.getChildAt(0).right)
+            assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.rowTitleSp,c.resources.displayMetrics),label.textSize,0f)
+        }
         assertTrue(row.contentDescription.toString().contains("50"));assertTrue(row.contentDescription.toString().contains("NW"))
         assertEquals("analysis_weather",row.tag)
     }

@@ -82,7 +82,7 @@ internal object BicycleDialogStyle {
     }
     private fun shape(view: View, color: Int, stroke: Int? = null) = GradientDrawable().apply {
         setColor(color); cornerRadius = dp(view, BicycleDesign.inputRadius).toFloat()
-        stroke?.let { setStroke(BicycleDesign.dividerPixels, it) }
+        stroke?.let { setStroke(BicycleDesign.linePixels(view.context), it) }
     }
     private fun inputBackground(view: View, tokens: ThemeTokens) = StateListDrawable().apply {
         addState(intArrayOf(android.R.attr.state_focused, android.R.attr.state_selected), shape(view, tokens.tertiary, BicycleComponents.selectionBorder(tokens,true)))
@@ -128,7 +128,7 @@ internal object BicycleDialogStyle {
     fun actionIcon(view: TextView, themes: ThemeManager, icon: BicycleIcon) {
         view.compoundDrawablePadding = dp(view, BicycleDesign.verticalPadding)
         BicycleComponents.bindTheme(view, themes) { tokens ->
-            view.setCompoundDrawablesRelative(BicycleIcons.drawable(view.context, icon, tokens.foreground).apply {
+            view.setCompoundDrawablesRelative(BicycleTextIcon(view,BicycleIcons.drawable(view.context, icon, tokens.foreground)).apply {
                 setBounds(0, 0, dp(view, BicycleDesign.iconSize), dp(view, BicycleDesign.iconSize))
             }, null, null, null)
         }
@@ -143,7 +143,7 @@ internal object BicycleDialogStyle {
                 view.setBackgroundColor(tokens.secondary)
                 view.selector = shape(view, tokens.secondary, tokens.foreground)
                 view.divider = ColorDrawable(alpha(tokens.foreground, BicycleDesign.dividerAlpha))
-                view.dividerHeight = BicycleDesign.dividerPixels
+                view.dividerHeight = BicycleDesign.linePixels(view.context)
                 view.verticalScrollbarThumbDrawable = ColorDrawable(tokens.foreground)
             }
             BicycleComponents.scrollStyle(view)

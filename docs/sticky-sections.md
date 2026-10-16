@@ -2,10 +2,12 @@
 
 `BicycleSectionHeader` ist die gemeinsame Kategoriekomponente: bestehende
 23-sp-/900-Black-Schrift, zur vollen Fensterbreite zentriert, deckender
-TERTIARY-Hintergrund und oben/unten je eine physische 1-Pixel-Linie in FOREGROUND.
-Zentrale Maße: mindestens 56 dp Texthöhe, vertikal 12 dp Innenabstand, außen
-12 dp Abstand vor/nach dem Kasten. Zusätzlich bleibt oberhalb der Linien ein
-12-dp-Streifen in SECONDARY auch im angedockten Zustand sichtbar. Keine neue Farbe, Schrift oder Nutzereinstellung.
+SECONDARY-Hintergrund und oben/unten je 0,75 dp FOREGROUND. Die Umrechnung
+rundet anhand der tatsächlichen Android-Anzeigedichte auf volle Pixel
+(mindestens einen Pixel). Bei Dichte 2,5–3 entspricht der Testwert 2 Pixeln.
+Mindestens 56 dp Texthöhe und vertikal 12 dp Innenpadding bleiben erhalten.
+Keine Außenabstände, kein oberer Leerstreifen, kein Sticky-Schatten. Abstände
+gehören zum Inhalt: davor und danach 16 dp, siehe [zentrale Abstände](ui-content-spacing.md).
 
 `BicycleStickyScrollView` aktiviert das Andocken gezielt für solche Komponenten.
 Aktiviert auf Fahrer (vier Kategorien), Bikes (Radtyp, Sensoren, FIT-Aufzeichnung),
@@ -21,9 +23,8 @@ ihn heraus. Keine zusätzlichen Headerkopien oder verschachtelten ScrollViews.
 Die sichtbare Zeichenfläche wird auf den Scroll-Viewport begrenzt; erhöhte
 Überschriften können die feste Titelleiste nicht übermalen. Angedockte Header
 liegen mit zentral definierten 16 dp Z über nativen Buttons einschließlich
-ihres gedrückten Zustands. Ein gemeinsam gecachter 12-dp-Verlaufsschatten
-(maximal 102/255 Schwarz, 40 % Deckkraft) wird ausschließlich unterhalb der Header gezeichnet;
-keine Änderung der Geometrie und kein großer nativer Z-Schatten. Native Touchgesten,
+ihres gedrückten Zustands. Es wird kein Sticky-Schatten gezeichnet; der
+Schatten des festen Hauptheaders bleibt eigenständig. Native Touchgesten,
 Fokus, Accessibility-Überschriften, Profilwechsel und Scrollpositionen bleiben
 erhalten. Positionssuche nur beim Layout; beim Scrollen nur Positionsänderungen
 für die wenigen registrierten Kategorieheader.
@@ -47,20 +48,16 @@ Native Android-Ansichten, EMBERS mit synthetischem Bike-Profil:
 
 Gezielte native Tests prüfen zwei Hochformatbreiten, Andocken, Verdrängen,
 Abschnittsende, Rückwärtsscrollen, Drag direkt auf dem Header, vollständige
-Titelleiste beim Zeichnen, Schrift, Themewechsel, 1-Pixel-Linien, volle Breite,
+Titelleiste beim Zeichnen, Schrift, Themewechsel, dichteabhängige Linien, volle Breite,
 Auswahlrahmen und bestehende Bike-/FIT-/Themebedienung. Keine neue Bibliothek,
 keine Änderung an Sensoren, Aufzeichnung oder FIT-Inhalten.
 
 ## Prüfung der erweiterten Anwendung
 
-25 gezielte Tests aus SettingsSectionsTest, BicycleStickySectionsTest,
-BikesViewTest, PerformanceSettingsTest, RiderProfileViewTest,
-SettingsDesignMigrationTest, RouteExportNavigationTest,
-DataSettingsNavigationTest und ThemePickerTest bestanden. Geprüft werden unter
-anderem Abschnittsreihenfolge, ein einzelner Scrollhost, Zahlenzeilen auf
-320/360-dp-Displays, Themewechsel, Profilvalidierung, Navigation sowie FIT-Auswahl
-und Accordion-Zustand nach Profilwechsel. Release-Kotlin-Kompilierung erfolgreich.
-Keine vollständige Testsuite und keine neue APK für diese Umstellung.
+Aktuelle gezielte Prüfung umfasst Inhaltsabstände, Nachbar-Header, Sensor-Icons,
+Fotopicker/-speicherung/-löschung, quadratische Detailkarte und bestehende
+Navigation/Dashboard-/FIT-Bedienung. Testergebnis im Abschlussbericht und in
+[den zentralen Konventionen](ui-content-spacing.md).
 
 Accordion-Beschriftungen sind ausdrücklich keine Sticky-Abschnittstitel:
 BicycleDialogStyle.accordion verwendet wie Dropdowns 16 sp, normale Systemschrift

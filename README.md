@@ -22,6 +22,12 @@ Signatur, ZIP-Ausrichtung und Versionsdaten geprüft.
 
 ## Neuer Quellstand auf main (noch nicht in APK 0.7.23)
 
+- Zentrale Seiten-/Kategorieabstände, schattenfreie Sticky Header und dünne
+  0,75-dp-Linien; Icon-Text-Buttons und Sensor-Icons vereinheitlicht.
+- Eigenes Fahrradbild pro Bike, zweizeilige Profilnamen, quadratische Karte und
+  größere Datums-/Wetterangaben in Streckendetails.
+- [UI-Konventionen und Bildspeicherung](docs/ui-content-spacing.md).
+
 - Dreeve- und Strava-FIT-Uploads unter Daten & Speicher → Streckendaten, mit
   getrennten Jobs, bestätigten Dienst-IDs und dauerhaftem Verarbeitungsstatus.
 - Strava benötigt eine persönliche registrierte API-App, Dreeve eine eigene

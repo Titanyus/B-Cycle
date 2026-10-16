@@ -43,7 +43,7 @@ class RouteManagerViewTest {
         assertEquals(20, list.adapter.count)
         val firstCard = list.adapter.getView(1, null, list)
         assertNull(firstCard.background)
-        assertEquals(1, list.dividerHeight)
+        assertEquals(BicycleDesign.linePixels(context), list.dividerHeight)
         assertEquals(android.graphics.Color.WHITE, (list.divider as android.graphics.drawable.ColorDrawable).color)
         val title = firstCard.findViewWithTag<TextView>("route_name_route-1")
         val date = firstCard.findViewWithTag<TextView>("route_date_route-1")
@@ -144,7 +144,7 @@ class RouteManagerViewTest {
             assertEquals(4, readings.size)
             val separators = descendants(manager.findViewWithTag<View>("route_metrics_recorded")).filter { it.tag == "route_metric_divider" }
             assertEquals(3, separators.size)
-            separators.forEach { assertEquals(BicycleDesign.dividerPixels, it.width); assertTrue(it.height > 0) }
+            separators.forEach { assertEquals(BicycleDesign.linePixels(activity), it.width); assertTrue(it.height > 0) }
             readings.forEach { reading ->
                 val label = (reading.parent as android.widget.LinearLayout).getChildAt(1) as TextView
                 assertEquals(android.view.Gravity.CENTER, label.gravity)

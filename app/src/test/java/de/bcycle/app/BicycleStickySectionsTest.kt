@@ -61,16 +61,15 @@ class BicycleStickySectionsTest {
             }
             assertTrue("Drag starting over the pinned header must scroll",scroll.scrollY>before)
             themes.activate("preset:black-ops")
-            assertEquals(themes.active.tokens.tertiary,(first.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            assertEquals(themes.active.tokens.secondary,(first.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             for(header in listOf(first,second)) {
                 assertTrue(header.isAccessibilityHeading)
-                assertEquals(BicycleDesign.dp(context,BicycleDesign.sectionHeaderTopSpace),header.getChildAt(0).height)
-                assertEquals(themes.active.tokens.secondary,(header.getChildAt(0).background as ColorDrawable).color)
-                val label=header.getChildAt(2) as android.widget.TextView
+                assertEquals(3,header.childCount)
+                val label=header.getChildAt(1) as android.widget.TextView
                 assertEquals(android.view.Gravity.CENTER,label.gravity)
                 assertEquals(BicycleDesign.strongTypeface,label.typeface)
-                for(index in listOf(1,3)) {
-                    assertEquals(1,header.getChildAt(index).height)
+                for(index in listOf(0,2)) {
+                    assertEquals(BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp),header.getChildAt(index).height)
                     assertEquals(themes.active.tokens.foreground,(header.getChildAt(index).background as ColorDrawable).color)
                 }
             }
@@ -142,9 +141,9 @@ class BicycleStickySectionsTest {
             val decorOrigin=IntArray(2);decor.getLocationOnScreen(decorOrigin)
             val x=decor.width/2
             val y=pinnedOrigin[1]-decorOrigin[1]
-            val gap=BicycleDesign.dp(activity,BicycleDesign.sectionHeaderTopSpace)
-            assertEquals(runtime.themes.active.tokens.secondary,pinned.getPixel(x,y+gap/2))
-            assertEquals(runtime.themes.active.tokens.tertiary,pinned.getPixel(x,y+gap+5))
+            val line=BicycleDesign.linePixels(activity,BicycleDesign.sectionRuleDp)
+            assertEquals(runtime.themes.active.tokens.foreground,pinned.getPixel(x,y+sensorHeader.height-line/2-1))
+            assertEquals(runtime.themes.active.tokens.secondary,pinned.getPixel(x,y+line+5))
             java.io.File("/tmp/bcycle-bikes-sticky-sensors.png").outputStream().use { pinned.compress(Bitmap.CompressFormat.PNG,100,it) }
             pinned.recycle()
         } finally { controller.pause().stop().destroy() }

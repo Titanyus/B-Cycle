@@ -51,7 +51,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         reset()
         if (analysis.entry.details.dateMs > 0) body.addView(BicycleComponents.text(context, themes,
             DateTimeFormatter.ofPattern(context.getString(R.string.analysis_date_format)).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(analysis.entry.details.dateMs))).apply {
-            gravity = Gravity.CENTER; typeface = Typeface.DEFAULT; tag = "analysis_date"; textSize = BicycleDesign.bodySp
+            gravity = Gravity.CENTER; typeface = Typeface.DEFAULT; tag = "analysis_date"; textSize = BicycleDesign.rowTitleSp
         }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.smallGap) })
         analysis.weatherTarget?.let { target ->
             val holder=FrameLayout(context).apply { visibility=GONE }
@@ -72,13 +72,10 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             if (available.isNotEmpty()) {
                 if(groupsShown++>0) body.addView(BicycleComponents.sectionDivider(context,themes).apply {
                     tag="analysis_section_divider"
-                    (layoutParams as LinearLayout.LayoutParams).apply {
-                        topMargin=dp(BicycleDesign.analysisDividerGap);bottomMargin=dp(BicycleDesign.analysisDividerGap)
-                    }
                 })
                 val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; tag = "analysis_group_$heading"; isBaselineAligned = false }
                 available.forEachIndexed { index, metrics ->
-                    if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f; tag = "analysis_vertical_divider" }, LinearLayout.LayoutParams(BicycleDesign.dividerPixels, -1))
+                    if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f; tag = "analysis_vertical_divider" }, LinearLayout.LayoutParams(BicycleDesign.linePixels(context), -1))
                     row.addView(AnalysisMetricTile(context, themes, metrics, analysis.metrics), LinearLayout.LayoutParams(0, -1, 1f))
                 }
                 val section = LinearLayout(context).apply {
@@ -92,12 +89,6 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                     if(heading==R.string.analysis_elevation && canCorrect) {
                         addView(BicycleFeedback.status(context,themes).apply { tag="analysis_correction_status";visibility=GONE })
                     }
-                    if(heading==R.string.analysis_elevation && analysis.entry.elevationCorrected) {
-                        addView(text(R.string.elevation_credit).apply {
-                            textSize=BicycleDesign.mapStatusSp
-                            setOnClickListener { runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse("https://mapterhorn.com/attribution")).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } }
-                        })
-                    }
                     if (distribution != null) addView(RouteZoneBars(context, themes, distribution,
                         if (heading == R.string.analysis_power_group) ZoneGlowColors.powerColors else TrainingZoneColors.values,
                         heading), LinearLayout.LayoutParams(-1, -2))
@@ -110,29 +101,30 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             }
         }
         if (analysis.bestEfforts.isNotEmpty()) {
-            if (groupsShown > 0) body.addView(BicycleComponents.sectionDivider(context, themes).apply {
-                (layoutParams as LinearLayout.LayoutParams).apply {
-                    topMargin = dp(BicycleDesign.analysisDividerGap); bottomMargin = dp(BicycleDesign.analysisDividerGap)
-                }
-            })
+            if (groupsShown > 0) body.addView(BicycleComponents.sectionDivider(context, themes))
             val weight = RiderProfileStore(context.getSharedPreferences("bike", Context.MODE_PRIVATE)).read().weightKg
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL; isBaselineAligned = false; tag = "analysis_best_efforts"
                 addView(AnalysisSideLabel(context, themes, R.string.analysis_best_efforts), LinearLayout.LayoutParams(dp(BicycleDesign.analysisSideLabelWidth), -1))
             }
             analysis.bestEfforts.take(4).forEachIndexed { index, effort ->
-                if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f }, LinearLayout.LayoutParams(BicycleDesign.dividerPixels, -1))
+                if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f }, LinearLayout.LayoutParams(BicycleDesign.linePixels(context), -1))
                 row.addView(BestEffortTile(context, themes, effort, weight), LinearLayout.LayoutParams(0, -1, 1f))
             }
             body.addView(row, LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisTileMinHeight)))
         }
         analysis.route?.let { route ->
-            val frame = FrameLayout(context)
+            val frame = object:FrameLayout(context) {
+                override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
+                    val width=MeasureSpec.getSize(widthMeasureSpec)
+                    super.onMeasure(widthMeasureSpec,MeasureSpec.makeMeasureSpec(width,MeasureSpec.EXACTLY))
+                }
+            }.apply { tag="analysis_map_frame" }
             preview = RouteAnalysisMap(context, route, false)
             frame.addView(preview, FrameLayout.LayoutParams(-1, -1))
             frame.addView(BicycleComponents.icon(context, themes, BicycleIcon.Maximize, context.getString(R.string.analysis_map_fullscreen)) { fullMap(analysis) },
                 FrameLayout.LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize), Gravity.TOP or Gravity.END))
-            body.addView(frame, LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisMapHeight)).apply { topMargin = dp(BicycleDesign.rowGap) })
+            body.addView(frame, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(BicycleDesign.rowGap) })
         }
         if (analysis.series.isNotEmpty()) {
             analysis.series.forEach { body.addView(RouteChartView(context, themes, analysis, it), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }

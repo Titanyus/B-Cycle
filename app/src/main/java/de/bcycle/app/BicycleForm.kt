@@ -15,8 +15,8 @@ internal object BicycleForm {
         return BicycleSectionHeader(context,themes,context.getString(title)).also {
             parent.addView(it,LinearLayout.LayoutParams(-1,-2).apply {
                 marginStart=-parent.paddingLeft; marginEnd=-parent.paddingRight
-                topMargin=BicycleDesign.dp(context,BicycleDesign.sectionHeaderGap)
-                bottomMargin=BicycleDesign.dp(context,BicycleDesign.sectionHeaderGap)
+                topMargin=0
+                bottomMargin=0
             })
         }
     }
@@ -33,7 +33,7 @@ internal object BicycleForm {
         BicycleComponents.bindTheme(edit,themes) { tokens ->
             edit.backgroundTintList=null
             edit.background=GradientDrawable().apply {
-                setColor(Color.TRANSPARENT); setStroke(BicycleDesign.dividerPixels,tokens.tertiary)
+                setColor(Color.TRANSPARENT); setStroke(BicycleDesign.linePixels(edit.context),tokens.tertiary)
             }
         }
     }

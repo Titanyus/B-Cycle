@@ -1,0 +1,81 @@
+# Seiten, Kategorieabstände und Sensoridentität
+
+Stand: 16.10.2026. Native Kotlin-Views, ausschließlich Hochformat.
+
+## Zentrale Abstände
+
+BicycleDesign.pageContentGap und sectionContentGap: jeweils 16 dp.
+BicycleDesign.controlGap: unverändert 8 dp zwischen Bedienelementen.
+BicycleContentSpacing.page wird im Fullscreen-Host auf den eigentlichen
+Seiteninhalt angewendet. Vorhandene äußere Wrapper-Innenabstände werden entfernt;
+Control-Margins werden in den Gesamtanfangsabstand einbezogen. Die begrenzte
+innere Liste der Dashboard-Feldauswahl ist kein eigener Seitenanfang.
+
+BicycleContentSpacing.sections gewährleistet 16 dp vor und nach Kategorieinhalten.
+Das gilt für Text, Eingaben, Dropdowns, Buttons/Schalter, Accordion-Controls,
+Listen und Kachelgruppen. Vorhandene Touchflächen und Innenabstände innerhalb
+der Elemente bleiben erhalten. Wiederholte Anwendung addiert keine Abstände.
+Der Sticky-Scrollcontainer aktualisiert diese Regeln vor dem Messen auch bei
+verändertem Inhalt. Scrollposition und native Scrollmechanik bleiben erhalten.
+
+## Sticky Header
+
+SECONDARY wie der Seitenhintergrund; Linien oben/unten in FOREGROUND mit 0,75 dp.
+Kein Schatten, keine Außenmargins und kein oberer Leerstreifen. Die Header
+berühren sich beim gegenseitigen Wegschieben. 56 dp Mindesthöhe, 12 dp
+Innenpadding und zentrierte 23-sp-/900-Black-Schrift bleiben erhalten. Die
+Z-Reihenfolge bleibt über erhöhten nativen Buttons, ohne nativen Schatten.
+Horizontale/vertikale UI-Trenner, Dashboard-Raster und feine Feldrahmen verwenden
+ebenfalls 0,75 dp über BicycleDesign.linePixels. Deckkraft bleibt 55 % für
+Abschnittstrenner bzw. 100 % zwischen Strecken. Horizontale Abschnittstrenner
+verwenden sectionDividerGap mit 12 dp oben und unten. Diagrammkurven bleiben
+unverändert. Die zentrale Umrechnung unterstützt Bruchteile und rundet auf
+ganze Pixel, mindestens einen Pixel für positive Linienbreiten.
+Der Schatten des Hauptheaders bleibt 12 dp / maximal 40 %.
+
+## Icon-Text-Buttons
+
+BicycleDialogStyle.actionIcon verwendet BicycleTextIcon. Das Icon steht direkt
+vor dem Text mit 8 dp Abstand; die Gruppe ist bei zentrierten Buttons gemeinsam
+zentriert. Native Button-Texte und deren Accessibility bleiben unverändert,
+keine künstlichen Icon-Zeichen im Text. Links ausgerichtete Accordion-Buttons
+behalten ihre Ausrichtung. Icon-only-Controls und vertikale Footer sind eigene
+Komponenten. Pixeltests prüfen die Nähe zum Text in LTR und RTL.
+
+SensorIcons ordnet sensorbezogene Symbole zentral zu. GPS: satellite-dish,
+E-Bike: bike, Pulsmesser: heart, Powermeter: zap. SourceIconSpan verwendet dieselbe
+Zuordnung, einschließlich Dashboard-Quellenauswahl und Datenbeschriftungen;
+keine separat gezeichnete Fahrradvariante mehr.
+
+## Bikes und Streckendetails
+
+Fahrradbilder: Android-Dokumentauswahl, Kopie je Profilslot unter bike-photos.
+Import höchstens 25 MiB; ImageDecoder berücksichtigt die Bildorientierung und
+verkleinert auf höchstens 1200 px längste Seite. Atomare WebP-Speicherung mit
+85 % Qualität. Fehlgeschlagene Übernahme ersetzt kein bestehendes Foto.
+Vorschau und Import im Hintergrund; kein dauerhafter Zugriff auf die Quelldatei.
+Bildfeld ist ohne Foto kompakt und wächst mit Foto auf 200 dp. Abgerundete Ecken
+und Löschsymbol. Fotos sind derzeit nicht Bestandteil der manuellen Sicherung.
+
+Profilkacheln: Radtyp oberhalb des Symbols; Name darunter mit zwei reservierten
+Zeilen. FIT-Hauptquelle ist eine eigene Überschrift über der Erklärung;
+Auswahlüberschriften lauten Geschwindigkeit und Distanz. Eine horizontale
+Abschnittslinie trennt Aufzuzeichnende Werte ab.
+
+Streckendetails: Datum und Wetter verwenden die normale Systemschrift mit
+rowTitleSp (16 sp). Wettergruppen umfassen jeweils das unmittelbar vorangestellte
+Icon und die Angabe; bei Platzmangel Umbruch ganzer Gruppen. Die eingebettete
+Karte misst Breite = Höhe. Mapterhorn bleibt zentral unter Quellen & Dienste,
+mit unveränderter technischer Höhenkorrektur/FIT-Provenienz.
+
+Linien-Testwert für das Poco F7 Ultra: 0,75 dp (bei Dichte 2,5–3 gerundet 2 physische Pixel). Die tatsächliche Android-Anzeigeskalierung entscheidet, nicht die Pixelhöhe allein. Abschnittstrenner übernehmen den Außenabstand; unmittelbar folgende Controls addieren keinen zusätzlichen Top-Margin.
+
+## Verifikation
+
+61 gezielte Tests ohne Fehler oder übersprungene Fälle: Inhaltsabstände,
+dichteabhängige Linien, Icon-Text-Gruppen in LTR/RTL, Sticky-Verhalten, Bike-Fotos
+inklusive Fehlerfall/Picker/Löschen, Wettergruppen, quadratische Karte und
+bestehende Dashboard-/Quellen-/Einstellungsnavigation. Release-Build mit R8,
+Resource-Shrinking und lintVital erfolgreich. Die tatsächliche optische Wirkung
+auf dem Poco F7 Ultra sowie die Android-Anzeigedichte bleiben auf dem Gerät zu
+prüfen; die Tests simulieren mehrere Dichten einschließlich 2,75.

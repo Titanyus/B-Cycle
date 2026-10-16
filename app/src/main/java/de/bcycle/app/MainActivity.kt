@@ -31,6 +31,7 @@ class MainActivity : Activity() {
     private var pendingBackupExport: ByteArray? = null
     private var dataSettingsScreen: AlertDialog? = null
     private var localExportView: RouteExportView? = null
+    private var pendingBikePhotoSlot:Int?=null
     private var activityServiceView:ActivityServiceView?=null
     private var pendingMapRoute: String? = null
     private var dashboardPage = 0
@@ -103,6 +104,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         runtime = RideRuntime.get(this)
+        pendingBikePhotoSlot=savedInstanceState?.getInt("pendingBikePhotoSlot",-1)?.takeIf { it in 0 until BikeProfileStore.COUNT }
         pendingReport = savedInstanceState?.getString("pendingReport")
         pendingBackupExport = savedInstanceState?.getByteArray("settingsBackupPendingExport")
         dashboardPage = preferences.getInt("dashboardPage", 0).coerceIn(0, 3)
@@ -149,7 +151,7 @@ class MainActivity : Activity() {
                 setTextColor(tokens.foreground)
                 backgroundTintList = null
                 background = android.graphics.drawable.GradientDrawable().apply {
-                    setColor(tokens.color(role)); setStroke(1, tokens.tertiary)
+                    setColor(tokens.color(role)); setStroke(BicycleDesign.linePixels(this@MainActivity), tokens.tertiary)
                 }
             }
         }
@@ -167,7 +169,7 @@ class MainActivity : Activity() {
                 imageTintList = android.content.res.ColorStateList.valueOf(tokens.foreground)
                 backgroundTintList = null
                 background = android.graphics.drawable.GradientDrawable().apply {
-                    setColor(tokens.secondary); setStroke(1, tokens.tertiary)
+                    setColor(tokens.secondary); setStroke(BicycleDesign.linePixels(this@MainActivity), tokens.tertiary)
                 }
             }
         }, LinearLayout.LayoutParams(0, dp(58), 1f))
@@ -326,7 +328,11 @@ class MainActivity : Activity() {
         menu = dialog().setTitle(getString(R.string.ui_reset_defaults_title)).setView(ScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun showSensorManager() {
-        val content = BikesView(settingsContext, runtime, ::searchSensors, ::stopScan, ::enableGps, ::recordingControls)
+        val content = BikesView(settingsContext, runtime, ::searchSensors, ::stopScan, ::enableGps, ::recordingControls, { slot ->
+            pendingBikePhotoSlot=slot
+            runCatching { startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*"),14) }
+                .onFailure { pendingBikePhotoSlot=null;BicycleFeedback.show(this,getString(R.string.bike_photo_failed)) }
+        })
         bikesManager = content
         sensorManager = dialog().setTitle(R.string.bikes_title).setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).create().apply {
             dialogs.onDismiss(this) { stopScan();if(bikesManager===content) bikesManager=null };show()
@@ -371,9 +377,10 @@ class MainActivity : Activity() {
     private fun recordingControls(): LinearLayout {
         val slot = runtime.bikes.activeSlot
         val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
-        root.addView(label(getString(R.string.bikes_fit_explanation)))
+        root.addView(label(getString(R.string.bikes_fit_heading),BicycleDesign.titleSp).apply { isAccessibilityHeading=true;tag="fit_primary_heading" })
+        root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         fun source(title: String, chosen: String, bikeId: String): Spinner {
-            root.addView(label(title, 16f).apply { setPadding(0, dp(12), 0, 0) })
+            root.addView(label(title, 16f).apply { setPadding(0, dp(BicycleDesign.sectionContentGap), 0, 0) })
             return Spinner(settingsContext).apply {
                 adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, listOf(getString(R.string.ui_source_bike), getString(R.string.ui_source_gps)))
                 setSelection(if (chosen == bikeId) 0 else 1); root.addView(this)
@@ -383,7 +390,8 @@ class MainActivity : Activity() {
         val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
         fun saveFields() { if(runtime.bikes.activeSlot!=slot || root.parent==null) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
-        root.addView(label(getString(R.string.bikes_fit_additional), BicycleDesign.titleSp).apply { isAccessibilityHeading=true })
+        root.addView(BicycleComponents.sectionDivider(settingsContext,runtime.themes))
+        root.addView(label(getString(R.string.bikes_fit_additional), BicycleDesign.titleSp).apply { isAccessibilityHeading=true;setPadding(0,0,0,dp(BicycleDesign.controlGap)) })
         for ((source, fields) in RecordField.options.groupBy { it.source }) {
             val content=LinearLayout(settingsContext).apply {
                 orientation=LinearLayout.VERTICAL;tag="fit_source_content_$source"
@@ -454,10 +462,23 @@ class MainActivity : Activity() {
             .putExtra(Intent.EXTRA_TITLE, "B-Cycle-${AppVersion.name}-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; BicycleFeedback.show(this, R.string.export_unavailable, long = true) }
     }
-    override fun onSaveInstanceState(outState: Bundle) { outState.putByteArray("settingsBackupPendingExport", pendingBackupExport); outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState) }
+    override fun onSaveInstanceState(outState: Bundle) { outState.putByteArray("settingsBackupPendingExport", pendingBackupExport); outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState)
+        pendingBikePhotoSlot?.let { outState.putInt("pendingBikePhotoSlot",it) } }
     @Deprecated("Native document picker callback")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode==14) {
+            val slot=pendingBikePhotoSlot;pendingBikePhotoSlot=null
+            if(resultCode==RESULT_OK && slot!=null) data?.data?.let { uri ->
+                BikePhotos.worker.execute {
+                    val result=runCatching { BikePhotos.import(applicationContext,slot,uri) }
+                    runOnUiThread { if(!isDestroyed) {
+                        if(result.isSuccess && runtime.bikes.activeSlot==slot) bikesManager?.refreshPhoto()
+                        if(result.isFailure) BicycleFeedback.show(this,getString(R.string.bike_photo_failed))
+                    } }
+                }
+            };return
+        }
         if(requestCode == 12 || requestCode == 13) { backupResult(requestCode,resultCode,data);return }
         if (requestCode == 10) {
             if (resultCode == RESULT_OK) data?.data?.let { uri ->
@@ -732,7 +753,7 @@ class MainActivity : Activity() {
                 setColor(tokens.tertiary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             })
             list.selector = android.graphics.drawable.GradientDrawable().apply {
-                setColor(tokens.tertiary); setStroke(BicycleDesign.dividerPixels, tokens.foreground)
+                setColor(tokens.tertiary); setStroke(BicycleDesign.linePixels(this@MainActivity), tokens.foreground)
                 cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             }
         } }

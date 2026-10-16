@@ -13,18 +13,14 @@ internal class BicycleSectionHeader(context: Context, themes: ThemeManager, titl
     init {
         orientation = VERTICAL; isAccessibilityHeading = true; contentDescription = title
         tag = "section_header_$title"
-        BicycleComponents.background(this, themes, ThemeRole.TERTIARY)
+        BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
         // Keep the separation opaque even when this same header is pinned above controls.
         outlineProvider = null
-        addView(View(context).apply {
-            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-            BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.secondary) }
-        }, LayoutParams(-1, BicycleDesign.dp(context, BicycleDesign.sectionHeaderTopSpace)))
         fun rule() = View(context).apply {
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.foreground) }
         }
-        addView(rule(), LayoutParams(-1, BicycleDesign.dividerPixels))
+        addView(rule(), LayoutParams(-1, BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
         addView(BicycleComponents.text(context, themes, title, true).apply {
             gravity = Gravity.CENTER
             minimumHeight = BicycleDesign.dp(context, BicycleDesign.sectionHeaderMinHeight)
@@ -33,7 +29,7 @@ internal class BicycleSectionHeader(context: Context, themes: ThemeManager, titl
             setPadding(horizontal, vertical, horizontal, vertical)
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
         }, LayoutParams(-1, -2))
-        addView(rule(), LayoutParams(-1, BicycleDesign.dividerPixels))
+        addView(rule(), LayoutParams(-1, BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
     }
     // An opaque pinned header must not allow taps through to covered controls. ScrollView still
     // intercepts drag gestures normally; this heading adds no click action or alternate navigation.
