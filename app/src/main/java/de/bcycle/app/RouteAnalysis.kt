@@ -116,6 +116,7 @@ internal object RouteAnalysisRead {
         val listener = MesgListener { message ->
             check(!cancelled())
             when (message.num) {
+                12 -> builder.sport(number(message,"sub_sport"))
                 20 -> {
                     fun v(name: String) = number(message, name)
                     fun dev(name: String, units: String) = developer(message, name, units)
@@ -151,7 +152,14 @@ internal object RouteAnalysisRead {
         val sessions = mutableListOf<Map<AnalysisMetric, Double>>()
         val laps = mutableListOf<Map<AnalysisMetric, Double>>()
         val cadence = PedalingAverage(); val moving = MovingTime(); val elevation = RouteElevation()
-        val performance = PerformanceEngine(powerDurationsMs = BestEfforts.durationsMs)
+        var performance = PerformanceEngine(powerDurationsMs = BestEfforts.durationsMs)
+        private var powerSource=PowerSource.BOSCH_RIDER
+        fun sport(subSport:Double?) {
+            if(count==0 && subSport==6.0) {
+                powerSource=PowerSource.FTMS
+                performance=PerformanceEngine(powerDurationsMs=BestEfforts.durationsMs,primaryPowerSource=powerSource)
+            }
+        }
         val rideMeans = RideAnalysisMeans()
         var count = 0; var firstTime: Long? = null; var lastTime: Long? = null
         var previousRecordTime: Long? = null
@@ -210,13 +218,13 @@ internal object RouteAnalysisRead {
                 val at = (seconds * 1000).toLong()
                 // Only our verified bike SPEED developer field proves bike telemetry;
                 // GPS/native FIT speed alone cannot extend a Bosch zero state.
-                valid(bikeSpeed, 0.0..35.0)?.let {
+                valid(bikeSpeed, 0.0..35.0)?.takeIf { powerSource==PowerSource.BOSCH_RIDER }?.let {
                     performance.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY, at, it, source = "SPEED"))
                 }
                 // An absent FIT sample is not an explicit invalidation of a known zero.
                 // The central engine still expires it when bike telemetry becomes stale.
-                if (p != null || performance.latestPower?.watts != 0.0)
-                    performance.accept(PerformanceEvent(PerformanceChannel.POWER, at, p, source = PowerSource.BOSCH_RIDER.name))
+                if (p != null || powerSource==PowerSource.FTMS || performance.latestPower?.watts != 0.0)
+                    performance.accept(PerformanceEvent(PerformanceChannel.POWER, at, p, source = powerSource.name))
                 performance.accept(PerformanceEvent(PerformanceChannel.SPEED, at, s, source = "FIT"))
                 performance.accept(PerformanceEvent(PerformanceChannel.HEART_RATE, at, h, source = "FIT"))
             }

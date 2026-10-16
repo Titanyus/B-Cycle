@@ -73,6 +73,9 @@ FTMS nicht angewendet: fehlende Leistung bleibt nach der Frischegrenze fehlend.
 RideJournal V6 speichert das Indoor-Merkmal im Header. V4 und V5 bleiben lesbar,
 einschließlich vorhandener ungespeicherter Fahrten. Das Merkmal wird auch bei einer
 späteren Wiederherstellung verwendet, unabhängig vom dann aktiven Bike-Profil.
+Eine standardisierte Sport-Nachricht vor den Records erlaubt auch beim späteren
+Detail-Einlesen die Indoor-Zuordnung ohne erneutes Dekodieren. So wird die
+Bosch-Nullfortschreibung auch dort nicht auf FTMS-Datenlücken angewendet.
 Garmin-FIT verwendet die vorhandenen Standardfelder für speed, distance, cadence,
 power und heart_rate; Sport Cycling, Sub-Sport Indoor Cycling in Session und Lap.
 Keine künstlichen Koordinaten oder Motorleistung. Bestehende optionale

@@ -55,4 +55,20 @@ class IndoorFitTest {
         }
         RideJournal.read(file) { _,config,_,records -> assertFalse(config.indoor);assertEquals(1,records.count()) }
     }
+    @Test fun detailsDoNotContinueAnIndoorZeroThroughMissingPowerWhenSpeedKeepsArriving() {
+        val start=Instant.parse("2026-10-16T11:00:00Z").toEpochMilli()
+        val journal=folder.newFile("indoor-gap.ride")
+        val config=IndoorFields.config(RecordingConfig(setOf("SPEED","BIKE_DISTANCE","RIDER_POWER")))
+        RideJournal(journal,start,config).use { writer -> for(second in 0..120) {
+            val values=mutableMapOf("SPEED" to 10.0,"BIKE_DISTANCE" to second*10.0)
+            if(second<=40) values["RIDER_POWER"]=if(second==40) 0.0 else 200.0
+            writer.append(RideSample(start+second*1000L,second*1000L,values=values))
+        } }
+        val fit=folder.newFile("indoor-gap.fit");FitWriter.encode(journal,fit)
+        val read=FitRead.read(fit)
+        val details=RouteAnalysisRead.read(fit,ManagedRoute("gap","Indoor",false,"FIT",read.details,false))
+        assertFalse(AnalysisMetric.NP in details.metrics)
+        assertFalse(AnalysisMetric.WORK in details.metrics)
+    }
+
 }
