@@ -49,12 +49,13 @@ data class FieldGroup(val source: String, val title: String, val fields: List<Da
 
 /** Stable IDs keep field choices independent of enum order and of current reception. */
 data class DashboardField(val id: String) {
+    internal val batterySources = BatteryFields.sources(id)
     internal val trainingMetric get() = TrainingMetric.entries.find { it.name == id }
     private val metric get() = LiveMetric.entries.find { it.name == id }
     private val weatherMetric get() = WeatherMetric.entries.find { it.name == id }
     private val gpsMetric get() = GpsMetric.entries.find { it.name == id }
     private val rangeIndex get() = id.removePrefix("RANGE_").toIntOrNull()
-    val source get() = if (trainingMetric != null) "Leistung" else if (weatherMetric != null) "Wetter" else if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
+    val source get() = if(id=="PHONE_TIME" || id=="PHONE_BATTERY") "Smartphone" else if (batterySources != null || BatteryFields.single(id)!=null) "Akku" else if (trainingMetric != null) "Leistung" else if (weatherMetric != null) "Wetter" else if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
     fun source(data:LiveData)=if(data.indoor && (source=="E-Bike" || id in IndoorFields.rideIds)) "Indoor-Bike" else source
     /** Only speed and distance captions need a source to distinguish related ride values. */
     val showSource get() = when (id) {
@@ -63,7 +64,9 @@ data class DashboardField(val id: String) {
         else -> false
     }
     val requiresGps get() = gpsMetric != null || weatherMetric != null
-    val captionIcon get() = when (id) {
+    val captionIcon get() = BatteryFields.single(id)?.let { when(it) {
+        BatterySource.EBIKE,BatterySource.TRAINER->"E-Bike";BatterySource.HEART->"Pulsmesser";BatterySource.PHONE->"Smartphone";BatterySource.POWER->"Powermeter"
+    } } ?: when (id) {
         "BIKE_LIGHT" -> "Light"
         "WEATHER_SUNRISE" -> "Sunrise"
         "WEATHER_SUNSET", "WEATHER_UNTIL_SUNSET", "WEATHER_DAYLIGHT" -> "Sunset"
@@ -75,6 +78,10 @@ data class DashboardField(val id: String) {
     fun title(data: LiveData, gps: GpsValues = GpsValues()): String = if (id == "AVERAGE_CADENCE") "Ø Kadenz · ohne Tretpausen" else metric?.title ?: weatherMetric?.title ?: gpsMetric?.let {
         if (it == GpsMetric.GPS_ALTITUDE && gps.altitudeM != null) "Höhe (${if (gps.seaLevel) "MSL" else "Ellipsoid"})" else it.title
     } ?: when (id) {
+        "BATTERIES" -> "Kombinierte Akkuanzeige"
+        "PHONE_TIME" -> "Uhrzeit"
+        "PHONE_BATTERY" -> "Smartphone-Akku"
+        "TRAINER_BATTERY" -> "Indoor-Trainer-Akku"
         "BIKE_DISTANCE" -> "Gefahrene Distanz"
         "HEART_RATE" -> "Herzfrequenz"
         "HEART_AVERAGE" -> "Ø Herzfrequenz"
@@ -123,6 +130,10 @@ data class DashboardField(val id: String) {
 
     fun title(context: android.content.Context, data: LiveData, gps: GpsValues = GpsValues()): String =
         trainingMetric?.let { context.getString(it.label) } ?: when {
+            batterySources!=null -> context.getString(R.string.battery_combined)
+            id=="PHONE_TIME" -> context.getString(R.string.phone_time)
+            id=="PHONE_BATTERY" -> context.getString(R.string.battery_phone)
+            id=="TRAINER_BATTERY" -> context.getString(R.string.battery_trainer)
             id == "GPS_ALTITUDE" && gps.altitudeM != null -> context.getString(R.string.ui_altitude_reference, if (gps.seaLevel) "MSL" else "Ellipsoid")
             rangeIndex != null -> context.getString(R.string.ui_range_named, rangeNames(data)?.getOrNull(rangeIndex!!) ?: context.getString(R.string.ui_assist_level, rangeIndex!! + 1))
             else -> DashboardTextResources.title(context, id) ?: title(data, gps)
@@ -132,6 +143,14 @@ data class DashboardField(val id: String) {
     internal fun value(data: LiveData, gps: GpsValues, bikeDistanceM: Long?, pulse: PulseValues, training: TrainingSnapshot): DashboardValue =
         trainingMetric?.value(training) ?: value(data, gps, bikeDistanceM, pulse)
     fun value(data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()): DashboardValue {
+        if(id=="PHONE_TIME") return DashboardValue(java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm",Locale.getDefault())),"",true)
+        batterySources?.let { sources ->
+            return DashboardValue(sources.joinToString(" / ") { data.batteries.level(it)?.let { "$it%" } ?: "—" },"",sources.any { data.batteries.level(it)!=null })
+        }
+        if(id=="PHONE_BATTERY" || id=="TRAINER_BATTERY") {
+            val level=data.batteries.level(BatteryFields.single(id)!!)
+            return DashboardValue(level?.toString() ?: "—","%",level!=null)
+        }
         trainingMetric?.let { return it.value(TrainingSnapshot()) }
         if (id.startsWith("HEART_")) {
             val raw = when (id) { "HEART_RATE" -> pulse.bpm?.toDouble(); "HEART_AVERAGE" -> pulse.average; "HEART_MAXIMUM" -> pulse.maximum?.toDouble(); else -> pulse.battery?.toDouble() }
@@ -171,9 +190,9 @@ data class DashboardField(val id: String) {
 
     companion object {
         val baseOptions = LiveMetric.entries.map { DashboardField(it.name) } +
-            listOf("BIKE_DISTANCE", "CURRENT_RANGE", "RANGES", "HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY").map { DashboardField(it) } +
+            listOf("PHONE_TIME","BATTERIES","PHONE_BATTERY","TRAINER_BATTERY","BIKE_DISTANCE", "CURRENT_RANGE", "RANGES", "HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY").map { DashboardField(it) } +
             GpsMetric.entries.map { DashboardField(it.name) } + WeatherMetric.entries.map { DashboardField(it.name) } + TrainingMetric.entries.map { DashboardField(it.name) }
-        fun options(data: LiveData) = baseOptions + List(data.rangesKm?.size ?: 0) { DashboardField("RANGE_$it") }
+        fun options(data: LiveData) = baseOptions.filter { it.id!="TRAINER_BATTERY" || data.indoor } + List(data.rangesKm?.size ?: 0) { DashboardField("RANGE_$it") }
         fun groups(data: LiveData, selected: DashboardField? = null, includeTraining: Boolean = false): List<FieldGroup> {
             fun fields(vararg ids: String) = ids.map { DashboardField(it) }
             val ranges = options(data).filter { it.id.startsWith("RANGE_") }.toMutableList().apply {
@@ -191,11 +210,14 @@ data class DashboardField(val id: String) {
                 FieldGroup("Pulsmesser", "Puls & Sensor", fields("HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY")),
                 FieldGroup("Wetter", "Sonne & Tageslicht", WeatherMetric.entries.map { DashboardField(it.name) }),
             ).let { groups -> if(!data.indoor) groups else groups.mapNotNull { group ->
+                if(group.source=="Wetter") return@mapNotNull group
                 val allowed=group.fields.filter { it.id in IndoorFields.allowed }
                 if(allowed.isEmpty()) null else group.copy(source=if(group.source=="Pulsmesser") group.source else "Indoor-Bike",fields=allowed)
-            }.groupBy { it.source to it.title }.values.map { same -> same.first().copy(fields=same.flatMap { it.fields }.distinct()) } } + if(includeTraining) listOf(FieldGroup("Leistung", "Leistung", TrainingMetric.entries.map { DashboardField(it.name) })) else emptyList()
+            }.groupBy { it.source to it.title }.values.map { same -> same.first().copy(fields=same.flatMap { it.fields }.distinct()) } } +
+                listOf(FieldGroup("Akku","Akku",fields("BATTERIES",if(data.indoor) "TRAINER_BATTERY" else "BATTERY","HEART_BATTERY","PHONE_BATTERY")),
+                    FieldGroup("Smartphone","Smartphone",fields("PHONE_TIME","PHONE_BATTERY"))) + if(includeTraining) listOf(FieldGroup("Leistung", "Leistung", TrainingMetric.entries.map { DashboardField(it.name) })) else emptyList()
         }
-        fun fromId(id: String): DashboardField? = baseOptions.find { it.id == id } ?: id.takeIf {
+        fun fromId(id: String): DashboardField? = id.takeIf { BatteryFields.sources(it)!=null }?.let(::DashboardField) ?: baseOptions.find { it.id == id } ?: id.takeIf {
             it.startsWith("RANGE_") && it.removePrefix("RANGE_").toIntOrNull() in 0..15
         }?.let { DashboardField(it) }
     }

@@ -666,4 +666,16 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="notifications_position_center">Mitte</string>
     <string name="notifications_position_top">Oben</string>
     <string name="notifications_sender_accessibility">%1$s · %2$s</string>
+    <string name="battery_phone">Smartphone-Akku</string>
+    <string name="battery_trainer">Indoor-Trainer-Akku</string>
+    <string name="battery_combined">Kombinierte Akkuanzeige</string>
+    <string name="battery_selection">Akkus auswählen · maximal 4</string>
+    <string name="battery_selection_help">Die Auswahl gilt nur für dieses Datenfeld. Nicht verfügbare Akkus bleiben als Strich sichtbar.</string>
+    <string name="battery_percent">%1$d %%</string>
+    <string name="battery_reading">%1$s: %2$s</string>
+    <string name="dashboard_preset_ten">Dashboard 10 · 1 / 1 / 1 / 2 · ohne Karte</string>
+    <string name="phone_category">Smartphone</string>
+    <string name="phone_time">Uhrzeit</string>
+    <string name="battery_percent_compact">%1$d%%</string>
+    <string name="battery_missing">—</string>
 </resources>

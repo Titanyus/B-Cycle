@@ -35,6 +35,16 @@ class SettingsBackupTest {
     private fun failAs(reason:BackupProblem,action:()->Unit) {
         try { action();fail("Expected $reason") } catch(e:SettingsBackupFailure) { assertEquals(reason,e.problem) }
     }
+    @Test fun compositeBatteryFieldsAndFullDataTemplateRoundTripThroughDashboardBackup() {
+        val field=BatteryFields.field(listOf(BatterySource.EBIKE,BatterySource.HEART,BatterySource.PHONE))
+        bike.edit().putString("dashboard",DashboardLayout.defaults.replace(2,field).encode())
+            .putString("dashboardTemplate_0","FULL_DATA").putString("mapDataField_0",field.id).commit()
+        val b=backup();val saved=b.export(setOf(BackupSection.DASHBOARD))
+        bike.edit().remove("dashboard").remove("dashboardTemplate_0").remove("mapDataField_0").commit()
+        b.apply(b.plan(b.decode(saved),setOf(BackupSection.DASHBOARD)))
+        assertEquals(field,DashboardLayout.decode(bike.getString("dashboard",null)).fields[2])
+        assertEquals(field,MapFieldSelection.read(bike,0));assertEquals("FULL_DATA",bike.getString("dashboardTemplate_0",null))
+    }
     @Test fun heightCorrectionPreferenceRoundTripsAndLegacyMapsDoNotResetIt() {
         bike.edit().putBoolean(FitElevationCorrection.preference,true).commit()
         val b=backup();val bytes=b.export(setOf(BackupSection.MAPS))

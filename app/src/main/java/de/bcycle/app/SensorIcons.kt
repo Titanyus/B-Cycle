@@ -10,6 +10,8 @@ internal object SensorIcons {
         BikeSensor.TRAINER->BicycleIcon.Bikes
     }
     fun forSource(source:String)=when(source) {
+        "Akku"->BicycleIcon.Battery
+        "Smartphone"->BicycleIcon.Phone
         "GPS"->BicycleIcon.GpsSensor
         "Pulsmesser"->BicycleIcon.Heart
         "Leistung", "Powermeter"->BicycleIcon.PowerMeter

@@ -5,6 +5,10 @@ import android.content.Context
 /** Stable domain/source IDs remain untranslated; only their UI labels come from Android resources. */
 internal object DashboardTextResources {
     private val titles = mapOf(
+        "BATTERIES" to R.string.battery_combined,
+        "PHONE_TIME" to R.string.phone_time,
+        "PHONE_BATTERY" to R.string.battery_phone,
+        "TRAINER_BATTERY" to R.string.battery_trainer,
         "SPEED" to R.string.ui_field_speed,
         "RIDER_POWER" to R.string.ui_field_rider_power,
         "CADENCE" to R.string.ui_field_cadence,
@@ -89,6 +93,8 @@ internal object DashboardTextResources {
         "EFFICIENCY_FACTOR" to R.string.ui_record_field_efficiency_factor
     )
     private val sources = mapOf(
+        "Akku" to R.string.ui_section_battery,
+        "Smartphone" to R.string.phone_category,
         "GPS" to R.string.ui_source_gps,
         "E-Bike" to R.string.ui_source_bike,
         "Indoor-Bike" to R.string.bikes_type_indoor,
@@ -98,6 +104,7 @@ internal object DashboardTextResources {
         "Performance & Energie" to R.string.ui_section_performance_energy
     )
     private val sections = mapOf(
+        "Smartphone" to R.string.phone_category,
         "Fahrt" to R.string.ui_section_ride,
         "Höhe" to R.string.ui_section_elevation,
         "Leistung & Tritt" to R.string.ui_section_power_cadence,

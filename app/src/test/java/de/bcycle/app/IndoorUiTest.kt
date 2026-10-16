@@ -41,7 +41,7 @@ class IndoorUiTest {
             assertEquals(10,speedSlider.progress)
             assertTrue(decor.findViewWithTag<TextView>("indoor_correction_power_value").text.toString().contains("1"))
             val groups=DashboardField.groups(runtime.dashboardBikeData,includeTraining=true)
-            assertEquals(setOf("Indoor-Bike","Pulsmesser","Leistung"),groups.map { it.source }.toSet())
+            assertEquals(setOf("Indoor-Bike","Pulsmesser","Wetter","Akku","Smartphone","Leistung"),groups.map { it.source }.toSet())
             assertEquals(groups.size,groups.map { it.source to it.title }.distinct().size)
             assertFalse(groups.flatMap { it.fields }.any { it.id=="MOTOR_POWER" || it.id=="GPS_POSITION" || it.id=="GPS_SPEED" })
             val selected=runtime.bikes.current();assertEquals(BikeType.INDOOR,BikeProfileStore(activity,runtime.preferences).current().type)

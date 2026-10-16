@@ -324,6 +324,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight)
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val dataLayout=dataFields.layoutParams
+        val neededHeight=dp(dataFields.preferredHeightDp)
+        if(dataLayout.height!=neededHeight) { dataLayout.height=neededHeight;dataFields.layoutParams=dataLayout }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         // Reserve a narrow left strip for the rotated attribution, including wrapped text on short maps.
         val creditInset = credit.measuredWidth + dp(4)

@@ -64,7 +64,7 @@ class DashboardEditorTest {
             val activity = controller.get(); val runtime = RideRuntime.get(activity)
             val dashboard = all(root(activity)).filterIsInstance<DashboardView>().single()
             val panel = all(root(activity)).filterIsInstance<MapPanel>().single()
-            for (template in DashboardTemplate.entries) {
+            for (template in DashboardTemplate.entries.filter { it.hasMap }) {
                 dashboard.setTemplate(template); measure(root(activity))
                 val fields = all(dashboard).filter { it.tag?.toString()?.startsWith("dashboard_tile_") == true }
                 val geometry = fields.map { listOf(it.left, it.top, it.width, it.height) }
@@ -166,7 +166,7 @@ class DashboardEditorTest {
         try {
             val activity=controller.get(); val dashboard=all(root(activity)).filterIsInstance<DashboardView>().single()
             activity.setDashboardEditing(true)
-            for(template in DashboardTemplate.entries) for((width,height) in listOf(1080 to 2130,840 to 1680,720 to 1280)) {
+            for(template in DashboardTemplate.entries.filter { it.hasMap }) for((width,height) in listOf(1080 to 2130,840 to 1680,720 to 1280)) {
                 dashboard.setTemplate(template); measure(root(activity),width,height)
                 val finish=tagged(activity,"dashboard_editor_finish")
                 val fields=tagged(activity,"map_data_fields")

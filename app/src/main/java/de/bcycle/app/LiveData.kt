@@ -45,6 +45,7 @@ data class LiveData(
     val assistNames: List<String>? = null,
     val rangesKm: List<Long>? = null,
     val indoor:Boolean=false,
+    val batteries: BatterySnapshot = BatterySnapshot(),
 ) {
     /** Distinct decoded measurements seen on this connection, not notification count or metadata. */
     val measurementCount get() = LiveMetric.entries.count { value(it) != null } + if (rangesKm?.isNotEmpty() == true) 1 else 0

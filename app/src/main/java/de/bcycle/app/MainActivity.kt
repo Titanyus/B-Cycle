@@ -19,6 +19,7 @@ class MainActivity : Activity() {
     private lateinit var runtime: RideRuntime
     private lateinit var dashboard: DashboardView
     private lateinit var startButton: Button
+    private lateinit var noMapEditorFinish: Button
     private lateinit var messages: MessageNotificationPanel
     private var notificationSettings: MessageNotificationSettingsView?=null
     private val messageObserver: (IncomingMessage?)->Unit = { message ->
@@ -64,6 +65,7 @@ class MainActivity : Activity() {
     internal fun setDashboardEditing(value: Boolean) {
         dashboardEditing = value
         dashboard.setEditing(value); mapPanel.setEditing(value)
+        if(::noMapEditorFinish.isInitialized) noMapEditorFinish.visibility=if(value && !currentTemplate().hasMap) View.VISIBLE else View.GONE
         if (value && mapFullscreen) setMapFullscreen(false)
     }
     private fun finishDashboardEditor() {
@@ -131,7 +133,7 @@ class MainActivity : Activity() {
         dashboard.changePage = ::changeDashboard
         dashboard.setTemplate(currentTemplate())
         mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink)
-        mapPanel.cameraVisible = { dialogs.empty }
+        mapPanel.cameraVisible = { dialogs.empty && currentTemplate().hasMap }
         mapPanel.finishEditor = ::finishDashboardEditor
         mapPanel.selectMapField = { chooseField(it, mapField = true) }
         dashboardArea = object : LinearLayout(this) {
@@ -146,6 +148,7 @@ class MainActivity : Activity() {
         dashboardArea.addView(dashboard, LinearLayout.LayoutParams(-1, 0, currentTemplate().dataFraction))
         dashboardArea.addView(mapPanel, LinearLayout.LayoutParams(-1, 0, 1f - currentTemplate().dataFraction))
         dashboard.visibility = if (mapFullscreen) View.GONE else View.VISIBLE
+        if(!currentTemplate().hasMap) { mapFullscreen=false;dashboard.visibility=View.VISIBLE;mapPanel.visibility=View.GONE }
         mapPanel.showFullscreen(mapFullscreen)
         root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
         val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar" }
@@ -183,8 +186,8 @@ class MainActivity : Activity() {
         root.addView(toolbar)
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->
-            controlsVisible = visible
-            toolbar.visibility = if (visible) View.VISIBLE else View.GONE
+            controlsVisible = visible || !currentTemplate().hasMap
+            toolbar.visibility = if (controlsVisible) View.VISIBLE else View.GONE
             dashboardArea.requestLayout()
         }
         for (i in 0 until toolbar.childCount) toolbar.getChildAt(i).setOnTouchListener { _, event ->
@@ -192,11 +195,16 @@ class MainActivity : Activity() {
             if (event.actionMasked == android.view.MotionEvent.ACTION_UP || event.actionMasked == android.view.MotionEvent.ACTION_CANCEL) mapPanel.revealControls()
             false
         }
+        noMapEditorFinish=BicycleComponents.action(this,runtime.themes,getString(R.string.dashboard_editor_finish),false) { finishDashboardEditor() }.apply {
+            tag="dashboard_editor_finish_no_map";visibility=View.GONE
+            setPadding(dp(BicycleDesign.horizontalPadding),paddingTop,dp(BicycleDesign.horizontalPadding),paddingBottom)
+        }
+        host.addView(noMapEditorFinish,FrameLayout.LayoutParams(-2,-2,android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL).apply { bottomMargin=dp(66) })
         messages=MessageNotificationPanel(this,runtime.themes) {
             val mapLocation=IntArray(2);val hostLocation=IntArray(2)
             mapPanel.getLocationInWindow(mapLocation);host.getLocationInWindow(hostLocation)
             val available=(host.height-root.paddingTop-root.paddingBottom).coerceAtLeast(0)
-            if(MessageNotificationSettings(this).position==MessagePosition.BOTTOM)
+            if(MessageNotificationSettings(this).position==MessagePosition.BOTTOM && currentTemplate().hasMap)
                 (host.height-root.paddingBottom-(mapLocation[1]-hostLocation[1])).coerceIn(0,available)
             else minOf(dp(320),available)
         }
@@ -215,7 +223,12 @@ class MainActivity : Activity() {
             messages.layoutParams=params
         }
         messages.positionChanged=::placeMessage
-        host.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ -> if(messages.visibility==View.VISIBLE) placeMessage() }
+        host.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ ->
+            val finishParams=noMapEditorFinish.layoutParams as FrameLayout.LayoutParams
+            val bottom=root.paddingBottom+dp(66)
+            if(finishParams.bottomMargin!=bottom) { finishParams.bottomMargin=bottom;noMapEditorFinish.layoutParams=finishParams }
+            if(messages.visibility==View.VISIBLE) placeMessage()
+        }
         render()
         activityServiceCallback(intent)
     }
@@ -242,7 +255,7 @@ class MainActivity : Activity() {
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
         dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
-        if (::mapPanel.isInitialized) mapPanel.refresh()
+        if (::mapPanel.isInitialized && currentTemplate().hasMap) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
         if (mapMessage != displayedMapMessage) {
             displayedMapMessage = mapMessage
@@ -274,7 +287,7 @@ class MainActivity : Activity() {
             }
         }
         graphs?.changed = { saveGraphs(); render() }
-        fun select(field: DashboardField?) {
+        fun select(field: DashboardField?, keepOpen: Boolean = false) {
             // Ignore stale selections after the dashboard editor has been exited.
             if (!permitted()) { picker?.dismiss(); return }
             if (mapField) {
@@ -291,11 +304,12 @@ class MainActivity : Activity() {
                     .putString(DashboardDataVisibility.key(dashboardPage),dashboardDataVisibility.encode())
                     .putString(GraphDisplaySettings.key(dashboardPage),dashboardGraphs.encodeModes()).apply()
             }
-            saveGraphs(); render(); picker?.dismiss()
+            saveGraphs(); render(); if(!keepOpen) picker?.dismiss()
             if (field?.requiresGps == true && !runtime.isIndoor) enableGps()
         }
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
-            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, visualization, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index], ::select)
+            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, visualization, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index],
+            batteryChoose={ select(it,keepOpen=true) },choose={ select(it) })
         val builder = dialog().setTitle(if (mapField) getString(R.string.ui_map_field_title, MapFieldSelection.positionLabel(this, index)) else getString(R.string.ui_dashboard_field_title, index + 1))
             .setView(content)
         picker=builder.show()
@@ -579,7 +593,7 @@ class MainActivity : Activity() {
         val notifications=MessageNotificationSettings(this)
         if(notifications.enabled && notifications.granted) runCatching {
             android.service.notification.NotificationListenerService.requestRebind(android.content.ComponentName(this,MessageNotificationService::class.java))
-        }; mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
+        }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.
         stopScan()
@@ -592,8 +606,13 @@ class MainActivity : Activity() {
     }
 
     private fun setMapFullscreen(full: Boolean) {
-        mapFullscreen = full; updateMapBack(); dashboard.visibility = if (full) View.GONE else View.VISIBLE
-        mapPanel.showFullscreen(full); dashboardArea.requestLayout()
+        mapFullscreen = full && currentTemplate().hasMap; updateMapBack(); dashboard.visibility = if (mapFullscreen) View.GONE else View.VISIBLE
+        val wasVisible=mapPanel.visibility==View.VISIBLE
+        mapPanel.visibility=if(currentTemplate().hasMap) View.VISIBLE else View.GONE
+        if(runtime.visible && wasVisible!=currentTemplate().hasMap) { if(currentTemplate().hasMap) mapPanel.resume() else mapPanel.pause() }
+        if(!currentTemplate().hasMap) mapPanel.revealControls()
+        noMapEditorFinish.visibility=if(dashboardEditing && !currentTemplate().hasMap) View.VISIBLE else View.GONE
+        mapPanel.showFullscreen(mapFullscreen); dashboardArea.requestLayout()
     }
     private fun changeDashboard(delta: Int) {
         dashboardPage = (dashboardPage + delta + 4) % 4

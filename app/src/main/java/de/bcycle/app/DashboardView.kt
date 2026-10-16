@@ -166,6 +166,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         var captionsChanged = false
         for (index in template.slots) {
             val title = tiles[index].title
+            if(title.visibility==GONE) continue
             val needed = title.layout?.height ?: continue
             if (needed > title.measuredHeight) {
                 title.layoutParams = (title.layoutParams as LayoutParams).apply { this.height = needed; weight = 0f }
@@ -272,12 +273,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
 
         private val row = ValueRow(value, unit, style)
+        private val batteryGrid=BatteryGridView(context).apply { visibility=GONE;tag="dashboard_batteries_$index" }
 
         init {
             markEditable()
             container.addView(title, LayoutParams(LayoutParams.MATCH_PARENT, 0,
                 captionWeight))
             container.addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, style.valueWeight))
+            container.addView(batteryGrid,LayoutParams(-1,0,1f))
             updateGraph();updateGlow()
         }
 
@@ -300,6 +303,16 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
 
         fun show(field: DashboardField, data: LiveData) {
+            val batteries=field.batterySources
+            if(batteries!=null) {
+                row.visibility=GONE;title.visibility=GONE
+                batteryGrid.visibility=if(dataVisibility.visible[index]) VISIBLE else INVISIBLE
+                batteryGrid.show(batteries,data.batteries)
+                container.contentDescription=if(dataVisibility.visible[index]) BatteryFields.description(context,batteries,data.batteries) else context.getString(R.string.dashboard_no_data)
+                return
+            }
+            batteryGrid.visibility=GONE
+            row.visibility=if(dataVisibility.visible[index]) VISIBLE else INVISIBLE;title.visibility=row.visibility
             val next = field.value(data, gps, bikeDistanceM, pulse, training)
             val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), field.title(context,data, gps)) else field.title(context,data, gps)
             showCaption(field)

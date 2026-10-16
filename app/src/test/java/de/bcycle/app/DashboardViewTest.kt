@@ -131,7 +131,7 @@ class DashboardViewTest {
             val small = dataTiles.minBy { it.height }
             val big = dataTiles.maxBy { it.height }
             val smallValue = (small.getChildAt(1) as ViewGroup).getChildAt(0) as TextView
-            for (template in DashboardTemplate.entries) {
+            for (template in DashboardTemplate.entries.filter { it.hasMap }) {
                 val (view, tiles) = rendered(template)
                 for (tile in tiles) {
                     val isBig = template.largeTop && tile === tiles.first() ||
@@ -219,7 +219,7 @@ class DashboardViewTest {
         }
     }
 
-    @Test fun ninePreviewTilesKeepExistingOrderAndNewChoicesRemainIndependentPerPage() {
+    @Test fun previewTilesKeepExistingOrderAndNewChoicesRemainIndependentPerPage() {
         val context = RuntimeEnvironment.getApplication()
         val initial = DashboardTemplate.entries.take(4)
         val picker = DashboardPresetPicker(context, initial, 0)
@@ -390,7 +390,7 @@ class DashboardViewTest {
         tiles[2].performClick()
         val picker = ShadowAlertDialog.getLatestAlertDialog()
         val all = descendants(picker.window!!.decorView)
-        assertEquals(5, (all.single { it.tag == "field_source" } as android.widget.Spinner).adapter.count)
+        assertEquals(7, (all.single { it.tag == "field_source" } as android.widget.Spinner).adapter.count)
         assertEquals(0, all.count { it.tag == "GPS_DISTANCE" }) // GPS is not the currently selected source.
         selectTestSource(picker, "GPS")
         val expanded = descendants(picker.window!!.decorView)

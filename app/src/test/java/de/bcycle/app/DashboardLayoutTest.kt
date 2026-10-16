@@ -6,10 +6,12 @@ import org.junit.Test
 class DashboardLayoutTest {
     @Test fun pickerGroupsBothSourcesWithoutDuplicatesAndEveryGpsFieldPersistsInEverySlot() {
         val groups = DashboardField.groups(LiveData(rangesKm = listOf(100, 80)), includeTraining=true)
-        assertEquals(listOf("GPS", "E-Bike", "Pulsmesser", "Wetter", "Leistung"), groups.map { it.source }.distinct())
+        assertEquals(listOf("GPS", "E-Bike", "Pulsmesser", "Wetter", "Akku", "Smartphone", "Leistung"), groups.map { it.source }.distinct())
         val fields = groups.flatMap { it.fields }
         assertEquals(DashboardField.options(LiveData(rangesKm = listOf(100, 80))).toSet(), fields.toSet())
-        assertEquals(fields.size, fields.distinct().size)
+        // Battery fields are intentionally discoverable in their original and new aggregate categories.
+        val categorized=groups.flatMap { group -> group.fields.map { group.source to it.id } }
+        assertEquals(categorized.size,categorized.distinct().size)
         assertEquals("GPS", fields.single { it.id == "GPS_SPEED" }.source)
         assertEquals("E-Bike", fields.single { it.id == "SPEED" }.source)
         assertTrue(fields.any { it.id == "GPS_DISTANCE" })

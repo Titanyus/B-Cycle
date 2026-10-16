@@ -50,7 +50,8 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     private val recordingDot = RecordingDotSpan(resources.displayMetrics.density)
     private val trends = AverageTrends()
     private var fields = List<DashboardField?>(3) { null }
-    private val values = List(3) { index -> TextView(context).apply {
+    val preferredHeightDp get()=if(fields.any { (it?.batterySources?.size ?: 0)>2 }) 76 else 62
+    private val values = List(3) { index -> BatteryMapTextView(context).apply {
         tag = "map_value_$index"
         setOnClickListener { if (editing) selectField?.invoke(index) }
         isClickable = false; isFocusable = false
@@ -71,12 +72,31 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     }
     fun show(data: LiveData, gps: GpsValues, bikeDistanceM: Long?, pulse: PulseValues, recording: Boolean = false, bikeLight: Boolean? = null) {
         fields.forEachIndexed { index, field ->
+            val batterySources=field?.batterySources
+            val view=values[index]
+            val hasDot=index==1 && recording
+            val hasLight=index==1 && bikeLight==true
+            view.batteries(batterySources.orEmpty(),data.batteries,hasDot || hasLight)
+            if(batterySources!=null) {
+                if(view.autoSizeTextType!=TextView.AUTO_SIZE_TEXT_TYPE_NONE) {
+                    view.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);view.textSize=22f
+                }
+                view.gravity=Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                val marks=if(hasDot && hasLight) "\uFFFC  \uFFFC" else if(hasDot || hasLight) "\uFFFC" else ""
+                if(view.text.toString()!=marks || (index==1 && (wasRecording!=recording || wasLightOn!=(bikeLight==true)))) view.text=android.text.SpannableString(marks).apply {
+                    if(hasDot) setSpan(recordingDot,0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    if(hasLight) setSpan(lightIcon,length-1,length,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                occupied[index]=true
+                view.contentDescription=listOfNotNull(context.getString(R.string.ui_recording_running).takeIf { hasDot },
+                    BatteryFields.description(context,batterySources,data.batteries),context.getString(R.string.ui_bike_light_on).takeIf { hasLight }).joinToString(" · ")
+                return@forEachIndexed
+            }
+            if(view.autoSizeTextType==TextView.AUTO_SIZE_TEXT_TYPE_NONE) view.setAutoSizeTextTypeUniformWithConfiguration(16,42,1,TypedValue.COMPLEX_UNIT_SP)
+            view.gravity=Gravity.CENTER
             val value = field?.value(data, gps, bikeDistanceM, pulse)
             val next = value?.takeIf { it.available }?.text.orEmpty()
-            val view = values[index]
             val direction = field?.let { trends.indicator(it, data, gps, pulse, android.os.SystemClock.elapsedRealtime()) } ?: 0
-            val hasDot = index == 1 && recording
-            val hasLight = index == 1 && bikeLight == true
             val hasValue = next.isNotEmpty()
             val prefix = if (hasDot) "\uFFFC" + if (hasValue || hasLight) " " else "" else ""
             val trendPrefix = if (hasValue && direction != 0) "\uFFFC " else ""

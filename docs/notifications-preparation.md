@@ -33,6 +33,7 @@ wird nicht unterdrückt und die Quellbenachrichtigung nicht gelöscht.
 
 - Unten: am nutzbaren Bildschirmende; inhaltshoch, maximal bis zur Oberkante der Karte.
   Dashboard-Datenfelder werden nicht verdeckt; die untere Bedienleiste kann überdeckt sein.
+  Auf Dashboard 10 ohne Karte gilt stattdessen die maximale Höhe von 320 dp.
 - Mitte: zur nutzbaren Bildschirmfläche zentriert; inhaltshoch, maximal **320 dp**.
 - Oben: unterhalb der Android-Status-/Aussparungsfläche angedockt; maximal **320 dp**.
 - 320 dp sind eine ungefähre 5-cm-Darstellungsgröße, kein Versprechen physisch vermessener

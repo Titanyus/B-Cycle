@@ -30,6 +30,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private val bikeReconnect = AutoReconnect()
     private val heartReconnect = AutoReconnect()
     private val trainerReconnect=AutoReconnect()
+    private val phoneBattery=PhoneBattery(context,::notifyChanged)
     private val indoorRide=IndoorRide()
     internal val isIndoor get()=bikes.current().type==BikeType.INDOOR
     private val primaryPowerSource get()=if(isIndoor) PowerSource.FTMS else PowerSource.BOSCH_RIDER
@@ -56,7 +57,12 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private var pulse = PulseValues()
     private val cadenceAverage = PedalingAverage()
     /** Derived display values never replace the sensor values used by the recording journal. */
-    val dashboardBikeData get() = bikeData.copy(indoor=isIndoor,otherValues = bikeData.otherValues - LiveMetric.AVERAGE_CADENCE - LiveMetric.BIKE_LIGHT +
+    internal val batterySnapshot get() = BatterySnapshot(mapOf(
+        BatterySource.EBIKE to currentBikeBattery?.toInt().takeUnless { isIndoor },
+        BatterySource.HEART to pulse.battery.takeIf { heartEnabled && heart.live },
+        BatterySource.TRAINER to trainer.battery.takeIf { isIndoor && trainer.live },
+        BatterySource.PHONE to phoneBattery.level))
+    val dashboardBikeData get() = bikeData.copy(indoor=isIndoor,batteries=batterySnapshot,otherValues = bikeData.otherValues - LiveMetric.AVERAGE_CADENCE - LiveMetric.BIKE_LIGHT +
         (if(isIndoor) indoorRide.summaries()+listOfNotNull(indoorRide.times(elapsedMs,ride.bike.distanceM).movingAverageKmh?.let { LiveMetric.AVERAGE_SPEED to kotlin.math.round(it*100).toLong() }).toMap() else emptyMap()) +
         (currentBikeLight?.let { mapOf(LiveMetric.BIKE_LIGHT to if (it) 1L else 0L) } ?: emptyMap()) +
         (cadenceAverage.value?.let { mapOf(LiveMetric.AVERAGE_CADENCE to kotlin.math.round(it * 2).toLong()) } ?: emptyMap()))
@@ -191,9 +197,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         bikeReconnect.foreground = active; heartReconnect.foreground = active;trainerReconnect.foreground=active
         handler.removeCallbacks(tick)
         if (active) {
+            phoneBattery.start()
             if (!isIndoor && gpsEnabled && connectionsRequested && BikeSensor.GPS !in disconnectedSensors) gpsSensor.start()
             reconnectSensors(); scheduleTick()
         } else {
+            phoneBattery.stop()
             connection.onForegroundChanged(false); trainer.stop();heart.stop(); gpsSensor.stop(); ride.bike.pause(); heartAt = null
         }
         notifyChanged()

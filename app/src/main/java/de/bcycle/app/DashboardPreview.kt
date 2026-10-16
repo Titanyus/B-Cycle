@@ -28,6 +28,7 @@ internal class DashboardPreview(private val template: DashboardTemplate) : Drawa
             }
             y += height
         }
+        if(!template.hasMap) { canvas.restore();return }
         paint.style = Paint.Style.FILL; paint.color = Color.argb(55, 255, 255, 255)
         canvas.drawRect(5f, y, 95f, 135f, paint)
         paint.style = Paint.Style.STROKE; paint.color = Color.WHITE; paint.strokeWidth = 2f
