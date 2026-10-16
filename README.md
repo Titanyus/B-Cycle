@@ -33,48 +33,55 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 ## Key Features
 
 - **Individuelle Dashboards** – Vier Seiten, neun Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.
-- **Live-Daten vom Rad** – Bosch-E-Bike, GPS und BLE-Pulsmesser; Fahrerleistung und Motorleistung bleiben getrennt.
+- **Live-Daten vom Rad** – Bosch-E-Bike, BLE-/FTMS-Indoor-Trainer, GPS und BLE-Pulsmesser; Fahrerleistung und Motorleistung bleiben getrennt.
 - **Karten unterwegs** – Online- und Offline-Karten, Tages-/Nachtansicht, GPX-Strecken und Höhenanzeige an der aktuellen Position.
 - **FIT-Aufzeichnung** – Gewünschte Messwerte und Hauptquellen selbst auswählen; Aufzeichnung auch bei ausgeschaltetem Bildschirm.
 - **Fahrten im Detail** – Karte, fünf Verlaufsdiagramme, Bewegungszeit, Höhenmeter und Performance-Kennzahlen wie Normalized Power und Estimated FTP bei geeigneten Daten.
 - **Trainingszonen** – Persönliche Leistungs- und Pulszonen, Zonenanteile, Verteilungskurven und bis zu vier Best Efforts mit Watt und W/kg.
 - **Live-Graphen und Ambient-Glow** – Daten, Hintergrundgraphen und Zonen-Visualisierung unabhängig je Kachel kombinieren; Fahrmodus und Akkuwarnung am Bildschirmrand erkennen.
-- **Fahrradprofile** – Im aktuellen Quellstand bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen und FIT-Einstellungen. Aktuell ist E-Bike nutzbar; Bike und Indoor-Bike sind vorbereitet.
+- **Fahrradprofile** – Bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen und FIT-Einstellungen. E-Bike und Indoor-Bike sind nutzbar; normales Bike ist vorbereitet.
 - **Dein Design** – Sieben Farbthemen mit einheitlicher Bedienung, sofort gespeicherten Einstellungen und Hochformat-Layouts.
 - **Export und Upload** – Lokal speichern oder eigene Fahrten an WebDAV, intervals.icu, Dreeve und Strava senden. Dienste arbeiten unabhängig; Dreeve benötigt eine eigene Instanz, Strava derzeit eine persönliche API-App.
 - **Wetter und Höhe** – Wetter zur Tourmitte dauerhaft speichern und bei Bedarf GPS-Höhen nachträglich mit Mapterhorn korrigieren; Original-FIT bleibt erhalten.
-- **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 1,58 MB APK. Keine automatische Telemetrie.
+- **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 1,61 MB APK. Keine automatische Telemetrie.
 
 ## APK herunterladen
 
-**[APK 0.7.24 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.24/downloads/B-Cycle-0.7.24-test.apk)**
+**[APK 0.7.25 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.7.25/downloads/B-Cycle-0.7.25-test.apk)**
 
-- Größe: **1,583,619 Byte**, rund **1,58 MB**.
-- Optimierte, signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
-- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.24/62.
-- Build: **16.10.2026 08:02:20 CEST**.
+- Größe: **1,612,291 Byte**, rund **1,61 MB**.
+- Signierte Release-APK; mit dem bisherigen Testschlüssel als Update installierbar.
+- Android 13+ (minSdk 33), Compile-/Target-SDK 36; Version 0.7.25/63.
+- Build: **16.10.2026 09:31:52 CEST**.
 - Bei privatem Repository vorher auf GitHub anmelden; ältere APKs bleiben unter [downloads](downloads).
-- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.24-test.apk.sha256):
-  `6c1780f1dfd3afe66ac89eb18bc0dee7007cb3b6f34eda0d950d597bbf379a40`.
+- [SHA-256-Prüfsumme](downloads/B-Cycle-0.7.25-test.apk.sha256):
+  `67f547d22a0a629c8d41259427ce7074a014c47f20f2e5fbeaf0e781e5704868`.
 
-61 gezielte UI-/Navigations-/Persistenztests bestanden. Nach der letzten
-Bike-Rahmen-/Versionsanpassung vier Bike-/Sticky-Tests erneut erfolgreich.
+Vollständige Testsuite: 511 Tests bestanden. Nach der abschließenden Absicherung
+für das erneute Einlesen von Indoor-FIT-Dateien weitere 29 gezielte Tests bestanden.
 Release-Build mit R8, Resource-Shrinking und Lint-Vital erfolgreich.
 Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
-[Buildnachweis](docs/milestone-0724.md).
+[Buildnachweis und reale Prüfgrenzen](docs/milestone-0725.md).
 
-## Aktueller Quellstand nach APK 0.7.24
+## Neu in APK 0.7.25
+
+- **Indoor-Bike über BLE/FTMS:** Tempo, Fahrerleistung, Kadenz und Distanz des
+  Trainers in Dashboard und FIT; optionaler Pulsmesser, GPS bleibt aus.
+- Ausschließlich Datenempfang, keine Trainersteuerung. Getrennte Gerätezuordnung,
+  automatische Wiederverbindung, Frischeprüfung und Hintergrundaufnahme.
+- FIT als Indoor Cycling, bestehende Performancewerte und unveränderte
+  Aufnahmegrenzen. [Einrichtung und Prüfgrenzen](docs/indoor-ftms.md).
 
 - Bis zu sechs Bikes, drei Kacheln nebeneinander mit horizontalem Scrollen.
   „Neues Rad“, bestätigtes Löschen und Verschieben per langem Drücken/Ziehen.
 - Vorhandene Profile bleiben erhalten; Fotos und Sensorzuordnungen bleiben an
-  stabilen Profilkennungen. Indoor ist für Trainer plus Pulsmesser vorbereitet,
-  bleibt bis zur FTMS-Anbindung deaktiviert.
+  stabilen Profilkennungen. Indoor bietet ausschließlich Trainer und optionalen Pulsmesser.
 - Header-Abstände in Streckenliste und Details wie bei Bikes; Wettergruppen
   zentriert und durch mittige Punkte getrennt, Himmel und Temperatur ohne inneren Punkt.
   Kennzahlenbereiche in Streckendetails wieder mit kompakten 2-dp-Abständen zu den Trennern;
   Streckenlisten-Trenner ebenfalls mit 55 % Deckkraft.
-- Noch nicht in der oben verlinkten APK 0.7.24 enthalten.
+- Indoor-Vorschau: [native App-Ansicht](docs/previews/bikes-indoor.png).
+- [Alle Änderungen und Buildnachweis](docs/milestone-0725.md).
 
 ## Neu in APK 0.7.24
 
@@ -95,8 +102,8 @@ Signatur, 16-KiB-ZIP-Ausrichtung und Versionsdaten geprüft.
 
 ## Erste Schritte
 
-1. APK installieren und unter **Einstellungen → Bikes** dein E-Bike einrichten. Das Bosch-Rad vorher mit Flow entsperren; Flow darf weiterlaufen.
-2. GPS und gewünschte Sensoren aktivieren und über **Sensor suchen / verbinden** zuordnen. Standort- und Bluetooth-Berechtigungen bei Bedarf erlauben.
+1. APK installieren und unter **Einstellungen → Bikes** dein E-Bike oder Indoor-Bike einrichten. Das Bosch-Rad vorher mit Flow entsperren; beim Trainer andere verbundene Trainings-Apps trennen.
+2. Gewünschte Sensoren und bei Outdoor-Betrieb GPS aktivieren und über **Sensor suchen / verbinden** zuordnen. Standort- und Bluetooth-Berechtigungen bei Bedarf erlauben.
 3. Unter **Design & UI** Theme und Dashboard-Layout wählen. Ein Datenfeld lange drücken, um den Editor zu öffnen; Daten, Graph und Visualisierung getrennt einstellen.
 4. In **Bikes → FIT-Aufzeichnung** die Hauptquellen für Geschwindigkeit und Distanz sowie zusätzliche Speicherfelder auswählen. Die Anzeige ist von der FIT-Auswahl unabhängig.
 5. Mit **START** die Aufnahme beginnen, mit **STOPP** beenden. Fahrtzähler starten erst mit der Aufnahme und bleiben danach stehen.
@@ -108,12 +115,14 @@ Kotlin und native Android-Views, eine Activity mit getrennten Sensor- und Datenk
 Android 13+ (`minSdk 33`), `compileSdk` und `targetSdk 36`.
 Mapsforge, Garmin FIT SDK und OkHttp übernehmen Karten, FIT-Dateien und Netzwerkzugriffe.
 
-Für APK 0.7.24 wurden 61 gezielte UI-, Navigations- und Persistenztests erfolgreich
-geprüft; nach der letzten Anpassung vier Bike-/Sticky-Tests erneut.
+Für APK 0.7.25 wurden die vollständige Suite mit 511 Tests und anschließend
+29 gezielte Tests für die letzte FIT-Quellenabsicherung erfolgreich geprüft.
 Release-Build, Signatur und ZIP-Ausrichtung sind geprüft.
-[Buildnachweis und Grenzen](docs/milestone-0724.md).
-Tests ersetzen keinen Hardwaretest. Neue Dreeve-/Strava-Uploads und der
-Strava-Anmeldevorgang müssen noch mit echten Nutzerkonten auf dem Gerät geprüft werden.
+[Buildnachweis und Grenzen](docs/milestone-0725.md).
+Tests ersetzen keinen Hardwaretest. Die neue BICYCLE-FTMS-Anbindung muss am
+Matrix auf Empfang, Wiederverbindung und längere Aufnahmen geprüft werden.
+Neue Dreeve-/Strava-Uploads und der Strava-Anmeldevorgang müssen ebenfalls noch
+mit echten Nutzerkonten geprüft werden.
 
 Build mit JDK 21, Android-SDK Plattform 36 und Build-Tools 35.0.0;
 `ANDROID_HOME` auf das SDK setzen:
@@ -128,10 +137,11 @@ und muss vor der Installation signiert werden.
 ## Dokumentation und Lizenzen
 
 - [Dreeve und Strava: Einrichtung und Grenzen](docs/cloud-activity-uploads.md)
+- [Indoor-Trainer über FTMS](docs/indoor-ftms.md)
 - [Fahrradprofile](docs/bicycle-profiles.md)
 - [Dashboard-Layouts](docs/dashboard-presets.md)
 - [Bosch-MCSP: Protokoll, Feldmapping und Quellen](docs/bosch-mcsp.md)
-- [Matrix ICR50: vorgemerkte BLE-/FTMS-Integration](docs/ble-trainer-matrix-icr50.md)
+- [Matrix ICR50: getestetes BLE-/FTMS-Protokoll](docs/ble-trainer-matrix-icr50.md)
 - [Compile-/Target-SDK-Modernisierung](docs/sdk-modernization.md)
 - [GPS: Filterung und Grenzen](docs/gps.md)
 - [Sonnenwerte: Berechnung und Grenzen](docs/solar-weather.md)
