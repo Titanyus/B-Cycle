@@ -4,8 +4,11 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
+import android.content.pm.ActivityInfo
+import android.content.pm.ResolveInfo
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -26,9 +29,9 @@ import org.robolectric.shadows.ShadowAlertDialog
 @Config(sdk=[33],qualifiers="xxhdpi")
 class MessageNotificationUiTest {
     private fun views(v:View):List<View> = listOf(v)+if(v is ViewGroup) (0 until v.childCount).flatMap { views(v.getChildAt(it)) } else emptyList()
-    private fun install(context:Context,name:String,label:String) {
+    private fun install(context:Context,name:String,label:String,appFlags:Int=0) {
         shadowOf(context.packageManager).installPackage(PackageInfo().apply {
-            packageName=name;applicationInfo=ApplicationInfo().apply { packageName=name;nonLocalizedLabel=label }
+            packageName=name;applicationInfo=ApplicationInfo().apply { packageName=name;nonLocalizedLabel=label;flags=appFlags }
         })
     }
     @Test fun settingsPersistAppsDurationAndThreePositionsAndLaunchAndroidGrantScreen() {
@@ -52,6 +55,37 @@ class MessageNotificationUiTest {
         view.findViewWithTag<Switch>("notifications_enabled").isChecked=true
         val intent=shadowOf(app).nextStartedActivity
         assertTrue(intent.action in setOf(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS,android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+    }
+    @Test fun fullAppListHidesSystemServicesButKeepsPreinstalledAppsAndMessengerSelections() {
+        val app=RuntimeEnvironment.getApplication();val pm=app.packageManager
+        for((name,label) in listOf("android.system.service" to "Systemdienst","system.updated.service" to "Aktualisierter Systemdienst","system.regular.app" to "Vorinstallierte App","com.google.android.apps.messaging" to "Messages","custom.app" to "Meine App")) {
+            install(app,name,label,when(name) {
+                "custom.app"->0
+                "system.updated.service"->ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
+                else->ApplicationInfo.FLAG_SYSTEM
+            })
+        }
+        val launcher=Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage("system.regular.app")
+        shadowOf(pm).addResolveInfoForIntent(launcher,ResolveInfo().apply {
+            activityInfo=ActivityInfo().apply { packageName="system.regular.app";name="MainActivity";applicationInfo=pm.getApplicationInfo(packageName,0) }
+        })
+        MessageNotifications.observedPackages.add("android.system.service")
+        val settings=MessageNotificationSettings(app).apply {
+            messengerOnly=false;packages=setOf("android.system.service","custom.app")
+        }
+        val view=MessageNotificationSettingsView(android.view.ContextThemeWrapper(app,R.style.SettingsDialogTheme),ThemeManager(app.getSharedPreferences("bike",0)))
+        assertNull(view.findViewWithTag<View>("notification_app_android.system.service"))
+        assertNull(view.findViewWithTag<View>("notification_app_system.updated.service"))
+        assertNotNull(view.findViewWithTag<View>("notification_app_system.regular.app"))
+        assertNotNull(view.findViewWithTag<View>("notification_app_com.google.android.apps.messaging"))
+        assertTrue(view.findViewWithTag<CheckBox>("notification_app_custom.app").isChecked)
+        view.findViewWithTag<Switch>("notification_messenger_filter").isChecked=true
+        assertNull(view.findViewWithTag<View>("notification_app_custom.app"))
+        assertNotNull(view.findViewWithTag<View>("notification_app_com.google.android.apps.messaging"))
+        view.findViewWithTag<Switch>("notification_messenger_filter").isChecked=false
+        assertTrue(view.findViewWithTag<CheckBox>("notification_app_custom.app").isChecked)
+        assertEquals(setOf("android.system.service","custom.app"),settings.packages)
+        MessageNotifications.observedPackages.remove("android.system.service")
     }
     @Test fun notificationSectionsPinToViewportAndPushOffAtNextSection() {
         val app=RuntimeEnvironment.getApplication()

@@ -11,7 +11,7 @@ sofortiger Speicherung, gemeinsamen Sticky-Kategorien und ohne leeren Footer.
 - Zugriff in Android ausdrücklich freigeben. Nach Rückkehr tatsächliche Berechtigung prüfen.
   Erteilte Berechtigung bedeutet keine pauschale Auswahl aller Apps.
 - Einzelne Apps auswählen. Die Liste umfasst für BICYCLE sichtbare installierte Apps,
-  beobachtete Benachrichtigungsquellen und bereits ausgewählte Paketkennungen.
+  beobachtete Benachrichtigungsquellen und bereits ausgewählte Paketkennungen, soweit die App noch installiert und regulär nutzbar ist. Android-Systemdienste ohne Launcher-Einstieg werden auch in der vollständigen Liste ausgeblendet; vorinstallierte Apps mit Launcher sowie bekannte Messenger bleiben sichtbar. Bestehende Auswahlen werden durch die Filterung nicht gelöscht.
   Android liefert keine vollständige Liste aller künftig sendenden Apps. Die Manifest-
   Sichtbarkeit beschränkt sich auf Apps mit Launcher-Einstieg; kein QUERY_ALL_PACKAGES.
 - „Nur gängige Messenger anzeigen“ filtert über Paketkennungen (WhatsApp, Signal,

@@ -1,7 +1,7 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.content.pm.PackageManager
+import android.content.pm.ApplicationInfo
 import android.view.Gravity
 import android.view.View
 import android.widget.*
@@ -104,10 +104,18 @@ internal class MessageNotificationSettingsView(context: Context, private val the
     @Suppress("DEPRECATION")
     private fun refreshApps() {
         val pm=context.packageManager
-        val names=(pm.getInstalledApplications(0).map { it.packageName }+
+        val installed=pm.getInstalledApplications(0).associateBy { it.packageName }
+        val names=(installed.keys+
             MessageNotifications.observedPackages+settings.packages).distinct().filter { it!=context.packageName }
-        val candidates=names.filter { !settings.messengerOnly || MessageNotificationSettings.isMessenger(it) }
-            .map { name -> name to runCatching { pm.getApplicationLabel(pm.getApplicationInfo(name,0)).toString() }.getOrDefault(name) }
+        val candidates=names.mapNotNull { name ->
+            val info=installed[name] ?: runCatching { pm.getApplicationInfo(name,0) }.getOrNull() ?: return@mapNotNull null
+            val messenger=MessageNotificationSettings.isMessenger(name)
+            val system=info.flags and (ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)!=0
+            // Preinstalled user-facing apps and messengers stay available; hidden system services do not.
+            if(system && !messenger && pm.getLaunchIntentForPackage(name)==null) return@mapNotNull null
+            if(settings.messengerOnly && !messenger) return@mapNotNull null
+            name to runCatching { pm.getApplicationLabel(info).toString() }.getOrDefault(name)
+        }
             .sortedBy { it.second.lowercase(java.util.Locale.getDefault()) }
         apps.removeAllViews()
         if(candidates.isEmpty()) apps.addView(BicycleComponents.text(context,themes,context.getString(R.string.notifications_no_apps)),LayoutParams(-1,-2))
