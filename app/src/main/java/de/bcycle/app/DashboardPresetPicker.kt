@@ -33,35 +33,27 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
             super.onMeasure(w,h)
         }
     }.apply { tag="dashboard_page_strip";isHorizontalScrollBarEnabled=false;addView(row,FrameLayout.LayoutParams(-2,-2)) }
-    private val layoutChoice=Spinner(context).apply { tag="dashboard_layout_choice" }
-    private var binding=false
+    private val layoutChoice=BicycleComponents.action(context,themes,"") { showLayoutGrid() }.apply { tag="dashboard_layout_choice" }
+    var layoutPopup:PopupWindow?=null;private set
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
     private fun template(id:Int)=DashboardTemplate.decode(prefs.getString("dashboardTemplate_$id",DashboardTemplate.entries[id].name))
     init {
         orientation=VERTICAL
         pages.select(initialPage)
         addView(scroller,LayoutParams(-1,-2))
-        val names=DashboardTemplate.entries.map { it.displayTitle(context) }
-        layoutChoice.adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,names)
-        BicycleDialogStyle.spinner(layoutChoice,themes) { name,color ->
-            val template=DashboardTemplate.entries[names.indexOf(name).coerceAtLeast(0)]
-            val preview=DashboardPreview(template).apply { setBounds(0,0,dp(28),dp(40));setTint(color) }
-            SpannableString("\uFFFC  $name").apply { setSpan(ImageSpan(preview,ImageSpan.ALIGN_CENTER),0,1,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
+        layoutChoice.gravity=Gravity.START or Gravity.CENTER_VERTICAL
+        layoutChoice.setSingleLine();layoutChoice.ellipsize=android.text.TextUtils.TruncateAt.END
+        layoutChoice.compoundDrawablePadding=dp(BicycleDesign.controlGap)
+        BicycleDialogStyle.control(layoutChoice,themes)
+        BicycleComponents.bindTheme(layoutChoice,themes) { tokens ->
+            updateLayoutLabel(tokens.foreground)
+            val arrow=BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground).apply { setBounds(0,0,dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)) }
+            layoutChoice.setCompoundDrawablesRelative(null,null,arrow,null)
         }
         addView(layoutChoice,LayoutParams(-1,dp(56)))
-        layoutChoice.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent:AdapterView<*>?)=Unit
-            override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) {
-                if(binding) return
-                val page=pages.selected();val selected=DashboardTemplate.entries[position]
-                if(template(page)==selected) return
-                prefs.edit().putString("dashboardTemplate_$page",selected.name).apply();refresh();changed()
-            }
-        }
         refresh()
     }
     fun refresh() {
-        binding=true
         val x=scroller.scrollX
         row.removeAllViews()
         fun card(page:DashboardPage?) {
@@ -97,7 +89,40 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
             row.addView(tile,LayoutParams(0,dp(BicycleDesign.bikeTileHeight)))
         }
         pages.all().forEach(::card);if(pages.all().size<DashboardPages.MAX) card(null)
-        layoutChoice.setSelection(template(pages.selected()).ordinal)
-        scroller.post { scroller.scrollTo(x,0) };binding=false
+        updateLayoutLabel(themes.active.tokens.foreground)
+        scroller.post { scroller.scrollTo(x,0) }
     }
+    private fun updateLayoutLabel(color:Int) {
+        val selected=template(pages.selected())
+        val preview=DashboardPreview(selected).apply { setBounds(0,0,dp(28),dp(40));setTint(color) }
+        layoutChoice.contentDescription=selected.displayTitle(context)
+        layoutChoice.text=SpannableString("\uFFFC  ${selected.displayTitle(context)}").apply {
+            setSpan(ImageSpan(preview,ImageSpan.ALIGN_CENTER),0,1,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+    }
+    private fun showLayoutGrid() {
+        layoutPopup?.dismiss()
+        val frame=android.graphics.Rect().also(layoutChoice::getWindowVisibleDisplayFrame)
+        val availableWidth=frame.width().takeIf { it>0 } ?: resources.displayMetrics.widthPixels
+        val popupWidth=minOf(layoutChoice.width.takeIf { it>0 } ?: availableWidth,availableWidth)
+        val availableHeight=frame.height().takeIf { it>0 } ?: resources.displayMetrics.heightPixels
+        val desired=dp((BicycleDesign.presetTileHeight+2*BicycleDesign.presetTileGap)*((DashboardTemplate.entries.size+2)/3))
+        val popup=PopupWindow().apply {
+            width=popupWidth;height=minOf(desired,(availableHeight*.6f).toInt()).coerceAtLeast(dp(BicycleDesign.touchSize))
+            isFocusable=true;isOutsideTouchable=true;inputMethodMode=PopupWindow.INPUT_METHOD_NOT_NEEDED
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(themes.active.tokens.secondary))
+        }
+        val grid=DashboardLayoutGrid(context,themes,template(pages.selected())) { chosen ->
+            prefs.edit().putString("dashboardTemplate_${pages.selected()}",chosen.name).apply()
+            popup.dismiss();refresh();changed()
+        }
+        popup.contentView=ScrollView(context).apply {
+            BicycleComponents.scrollStyle(this);BicycleComponents.background(this,themes,ThemeRole.SECONDARY);addView(grid)
+        }
+        layoutPopup=popup
+        popup.setOnDismissListener { if(layoutPopup===popup) layoutPopup=null }
+        popup.showAsDropDown(layoutChoice,0,0,Gravity.START)
+    }
+    override fun onDetachedFromWindow() { layoutPopup?.dismiss();super.onDetachedFromWindow() }
+
 }

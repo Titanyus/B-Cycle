@@ -351,6 +351,7 @@ class MainActivity : Activity() {
             saveGraphs(); render()
             if (field?.requiresGps == true && !runtime.isIndoor) enableGps()
         }
+        val trainingPage=dashboardPage
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
             runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, null, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index],
             batteryChoose={ select(it) },trendEnabled=if(mapField) true else dashboardTrendIndicators.enabled[index],
@@ -359,7 +360,7 @@ class MainActivity : Activity() {
                     dashboardTrendIndicators=dashboardTrendIndicators.replace(index,enabled)
                     preferences.edit().putString(DashboardTrendIndicators.key(dashboardPage),dashboardTrendIndicators.encode()).apply();render()
                 }
-            },choose={ select(it) })
+            },trainingHelp=trainingHelpControls { trainingPage },choose={ select(it) })
         val builder = dialog().setTitle(if (mapField) getString(R.string.ui_map_field_title, MapFieldSelection.positionLabel(this, index)) else getString(R.string.ui_dashboard_field_title, index + 1))
             .setView(content)
         picker=builder.show()
@@ -758,14 +759,16 @@ class MainActivity : Activity() {
         }
         menu = dialog().setTitle(getString(R.string.ui_design_title)).setView(body).show()
     }
-    private fun appendTrainingHelp(root:LinearLayout,page:()->Int):TrainingHelpView {
-        BicycleForm.section(root,runtime.themes,R.string.training_help_title)
-        return TrainingHelpView(settingsContext,runtime.themes,DashboardTrainingHelp.read(preferences,page())) { config ->
+    private fun trainingHelpControls(page:()->Int)=
+        TrainingHelpView(settingsContext,runtime.themes,DashboardTrainingHelp.read(preferences,page())) { config ->
             val id=page()
             preferences.edit().putString(DashboardTrainingHelp.key(id),config.encode()).apply()
             if(id==dashboardPage) dashboardTrainingHelp=config
             render()
-        }.also { root.addView(it) }
+        }
+    private fun appendTrainingHelp(root:LinearLayout,page:()->Int):TrainingHelpView {
+        BicycleForm.section(root,runtime.themes,R.string.training_help_title)
+        return trainingHelpControls(page).also { root.addView(it) }
     }
     private fun showTrainingHelp() {
         val page=dashboardPage

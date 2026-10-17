@@ -32,3 +32,12 @@ internal fun testBack(dialog: android.app.AlertDialog) {
     testDescendants(dialog.window!!.decorView).single { it.tag=="dialog_back" }.performClick()
     org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
 }
+
+internal fun selectTestDashboardLayout(picker:DashboardPresetPicker,template:DashboardTemplate) {
+    picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
+    val popup=requireNotNull(picker.layoutPopup)
+    popup.contentView.findViewWithTag<View>("preset_${template.name}").performClick()
+    shadowOf(Looper.getMainLooper()).idle()
+}
+internal fun selectTestDashboardLayout(dialog:AlertDialog,template:DashboardTemplate) =
+    selectTestDashboardLayout(testDescendants(dialog.window!!.decorView).filterIsInstance<DashboardPresetPicker>().single(),template)

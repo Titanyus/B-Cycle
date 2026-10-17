@@ -222,19 +222,18 @@ class DashboardViewTest {
     @Test fun previewTilesKeepExistingOrderAndNewChoicesRemainIndependentPerPage() {
         val context = RuntimeEnvironment.getApplication()
         val initial = DashboardTemplate.entries.take(4)
-        val picker = DashboardPresetPicker(context, 0)
-        measure(picker, 960, 1400)
-        val spinner=picker.findViewWithTag<android.widget.Spinner>("dashboard_layout_choice")
-        assertEquals(10,spinner.count)
-        spinner.setSelection(DashboardTemplate.HERO_SEVEN.ordinal)
-        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
-        assertEquals(DashboardTemplate.HERO_SEVEN,picker.selection[0])
-        descendants(picker).single { it.tag=="preset_page_1" }.performClick()
-        spinner.setSelection(DashboardTemplate.HERO_FIVE.ordinal)
-        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
-        assertEquals(DashboardTemplate.HERO_FIVE,picker.selection[1])
-        assertEquals(DashboardTemplate.HERO_SEVEN,picker.selection[0])
-        assertEquals(DashboardTemplate.entries.take(4),initial)
+        val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val picker=DashboardPresetPicker(host.get(),0)
+            host.get().setContentView(picker);measure(picker,960,1400)
+            selectTestDashboardLayout(picker,DashboardTemplate.HERO_SEVEN)
+            assertEquals(DashboardTemplate.HERO_SEVEN,picker.selection[0])
+            descendants(picker).single { it.tag=="preset_page_1" }.performClick()
+            selectTestDashboardLayout(picker,DashboardTemplate.HERO_FIVE)
+            assertEquals(DashboardTemplate.HERO_FIVE,picker.selection[1])
+            assertEquals(DashboardTemplate.HERO_SEVEN,picker.selection[0])
+            assertEquals(DashboardTemplate.entries.take(4),initial)
+        } finally { host.pause().stop().destroy() }
     }
 
     @Test fun threeColumnTilesHaveEqualWidthsFixedNumbersAndFitRequiredDistancesOnNarrowPhones() {

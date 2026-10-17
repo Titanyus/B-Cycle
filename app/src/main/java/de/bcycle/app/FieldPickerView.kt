@@ -21,6 +21,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     batteryChoose: ((DashboardField?)->Unit)? = null,
     trendEnabled:Boolean = true,
     trendChanged:((Boolean)->Unit)? = null,
+    trainingHelp:TrainingHelpView? = null,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     private lateinit var fieldList: ScrollView
@@ -34,7 +35,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         orientation = VERTICAL; setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
         BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
         val panels=LinearLayout(context).apply { orientation=VERTICAL }
-        val scroll=ScrollView(context).apply { tag="field_picker_scroll";BicycleComponents.scrollStyle(this);addView(panels) }
+        val scroll=BicycleStickyScrollView(context).apply { tag="field_picker_scroll";addView(panels) }
         addView(scroll,LayoutParams(-1,-1))
         val dataContent=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="field_data_content" }
         lateinit var dataToggle: android.widget.Button
@@ -81,6 +82,10 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         dataContent.addView(list, LayoutParams(-1, dp(BicycleDesign.fieldListInitialHeight)))
         if(graphPicker!=null) panels.addView(graphPicker)
         if(visualization!=null) panels.addView(visualization.apply { visibility=GONE })
+        if(trainingHelp!=null) {
+            BicycleForm.section(panels,themes,R.string.training_help_title)
+            panels.addView(trainingHelp,LayoutParams(-1,-2))
+        }
         var shown = -1
         val availableBatteries=BatteryFields.choices(data)
         var batterySelection=if(dataVisible) (selected?.batterySources

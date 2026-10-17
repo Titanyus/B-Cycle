@@ -15,6 +15,7 @@ import android.os.Looper
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
 class DashboardPagesTest {
+    private fun allViews(v:View):List<View> = listOf(v)+if(v is android.view.ViewGroup) (0 until v.childCount).flatMap { allViews(v.getChildAt(it)) } else emptyList()
     private val c get()=RuntimeEnvironment.getApplication()
     private val prefs get()=c.getSharedPreferences("bike",0)
     @Test fun existingFourPagesMigrateAndNewPagesAreLimitedToSix() {
@@ -39,16 +40,20 @@ class DashboardPagesTest {
         assertFalse(pages.delete(pages.selected()))
     }
     @Test fun pickerShowsNamedCardsAndTenPreviewLayoutsWithIndependentSelection() {
-        val picker=DashboardPresetPicker(c,0)
-        val spinner=picker.findViewWithTag<Spinner>("dashboard_layout_choice")
-        assertEquals(10,spinner.count)
-        picker.findViewWithTag<View>("preset_page_1").performClick()
-        spinner.setSelection(DashboardTemplate.HERO_SEVEN.ordinal);shadowOf(Looper.getMainLooper()).idle()
-        assertEquals("HERO_SEVEN",prefs.getString("dashboardTemplate_1",null))
-        assertNull(prefs.getString("dashboardTemplate_0",null))
-        repeat(2) { picker.findViewWithTag<View>("dashboard_page_add").performClick() }
-        assertNull(picker.findViewWithTag<View>("dashboard_page_add"))
-        assertNotNull(spinner.adapter.getDropDownView(0,null,picker))
+        val host=org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val picker=DashboardPresetPicker(host.get(),0);host.get().setContentView(picker)
+            picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
+            val grid=picker.layoutPopup!!.contentView.findViewWithTag<DashboardLayoutGrid>("dashboard_layout_grid")
+            assertEquals(10,allViews(grid).count { it.tag?.toString()?.startsWith("preset_")==true && it.isClickable })
+            picker.layoutPopup!!.dismiss()
+            picker.findViewWithTag<View>("preset_page_1").performClick()
+            selectTestDashboardLayout(picker,DashboardTemplate.HERO_SEVEN)
+            assertEquals("HERO_SEVEN",prefs.getString("dashboardTemplate_1",null))
+            assertNull(prefs.getString("dashboardTemplate_0",null))
+            repeat(2) { picker.findViewWithTag<View>("dashboard_page_add").performClick() }
+            assertNull(picker.findViewWithTag<View>("dashboard_page_add"))
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun sixNamedDashboardsRoundTripThroughSettingsBackup() {
         val pages=DashboardPages(c,prefs);pages.add();pages.add();pages.rename(5,"Trainer")

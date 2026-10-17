@@ -68,6 +68,18 @@ class TrainingZoneUiTest {
             activity.window.decorView.findViewWithTag<View>("dashboard_tile_0").performClick()
             val fields=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
             assertTrue(testDescendants(fields).none { it is ZoneGlowPicker })
+            val controls=fields.findViewWithTag<View>("training_help_controls")
+            assertEquals(View.VISIBLE,controls.visibility)
+            assertTrue(controls.parent!==fields.findViewWithTag<View>("field_data_content"))
+            val graph=testDescendants(fields).filterIsInstance<GraphOverlayPicker>().firstOrNull()
+            assertTrue(graph==null || testDescendants(fields).indexOf(controls)>testDescendants(fields).indexOf(graph))
+            fields.findViewWithTag<Switch>("training_help_zone_two").performClick()
+            assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
+            fields.findViewWithTag<RadioButton>("dashboard_field_empty").performClick()
+            assertEquals(View.VISIBLE,controls.visibility)
+            fields.findViewWithTag<Switch>("training_help_average").performClick()
+            assertTrue(DashboardTrainingHelp.read(prefs,0).average)
+            assertTrue(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().isShowing)
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun profilePowerZonesUpdateWithFtpAndHideForInvalidInputs() {
