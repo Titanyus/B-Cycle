@@ -61,16 +61,17 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 23 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-23-apk/downloads/B-Cycle-0.7.31-test-build-23.apk)**
+**[Aktuelle signierte Test-APK: Build 24 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-24-apk/downloads/B-Cycle-0.7.31-test-build-24.apk)**
 
 Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. **Version 0.7.31, Test-Build 23 vom 17.10.2026**.
-Neu: gemeinsame Profilseite mit Bike, FIT-Aufzeichnung, Karten, Design und
-Trainingshilfe; eigene Design-/Dashboard-/Kartenwerte je Fahrrad. Profilübernahme
-bewahrt Name, Foto und Sensorzuordnungen des Ziels. Animierte Drag-and-drop-Vorschau
-für Bike- und Dashboard-Kacheln. **Vollständige Testsuite: 595 Tests erfolgreich.**
-[Änderungen, Buildnachweis und SHA-256](docs/test-build-23.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39029363043).
+installierbar. **Version 0.7.31, Test-Build 24 vom 17.10.2026**.
+Neu: Hierarchie-Prototyp auf der Profilseite mit gerahmten Haupt-Accordions,
+verbundenem eingerücktem Inhalt und Sticky-Unterüberschriften zwischen mittigen
+Linien. Zusätzliche Sticky Header für Radtyp, Sensoren, FIT-Hauptquelle und
+Aufzuzeichnende Werte, jeweils auf das eigene Accordion begrenzt.
+**26 gezielte Tests erfolgreich.**
+[Änderungen, Vorschauen und SHA-256](docs/test-build-24.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39032822895).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.31
