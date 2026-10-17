@@ -41,6 +41,7 @@ class MainActivity : Activity() {
     private var pendingBikePhotoSlot:Int?=null
     private var activityServiceView:ActivityServiceView?=null
     private var pendingMapRoute: String? = null
+    private var bikePicker:BikeQuickPicker?=null
     private var recordButtonSignature=""
     private var dashboardPage = 0
     private val dashboardPages get() = DashboardPages(this,preferences)
@@ -181,16 +182,13 @@ class MainActivity : Activity() {
             setAutoSizeTextTypeUniformWithConfiguration(12,20,1,android.util.TypedValue.COMPLEX_UNIT_SP)
             setOnLongClickListener {
                 if(runtime.recording || runtime.saving) true else {
-                    android.widget.PopupMenu(this@MainActivity,this).apply {
-                        runtime.bikes.all().forEach { bike ->
-                            menu.add(0,bike.slot,menu.size(),bike.name).apply {
-                                icon=BicycleIcons.drawable(this@MainActivity,BikeTypeIcons.forType(bike.type),runtime.themes.active.tokens.foreground)
-                                isCheckable=true;isChecked=bike.slot==runtime.bikes.activeSlot
-                            }
-                        }
-                        setForceShowIcon(true)
-                        setOnMenuItemClickListener { item -> runtime.switchBike(item.itemId);render();true }
-                    }.show();true
+                    bikePicker?.dismiss()
+                    val popup=BikeQuickPicker(this,runtime.themes,runtime.bikes.all(),runtime.bikes.activeSlot) { slot ->
+                        if(!runtime.recording && !runtime.saving) { runtime.switchBike(slot);render() }
+                    }
+                    bikePicker=popup
+                    popup.setOnDismissListener { if(bikePicker===popup) bikePicker=null }
+                    popup.show(this);true
                 }
             }
         }
@@ -648,13 +646,13 @@ class MainActivity : Activity() {
         }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.
-        stopScan()
+        stopScan();bikePicker?.dismiss()
         MessageNotifications.observers.remove(messageObserver);messages.clear()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {
         if(mapBackRegistered) onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
-        dialogs.closeAll(); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
+        bikePicker?.dismiss();dialogs.closeAll(); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
     }
 
     private fun setMapFullscreen(full: Boolean) {

@@ -1,6 +1,7 @@
 package de.bcycle.app
 
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Spinner
 import org.junit.Assert.*
 import org.junit.Test
@@ -69,10 +70,13 @@ class DashboardPagesTest {
             assertTrue(runtime.addBike());val active=runtime.bikes.activeSlot
             val button=activity.window.decorView.findViewWithTag<android.widget.Button>("record_bike_button")
             assertTrue(button.performLongClick())
-            val popup=org.robolectric.shadows.ShadowPopupMenu.getLatestPopupMenu()
-            assertEquals(runtime.bikes.all().size,popup.menu.size())
+            val field=MainActivity::class.java.getDeclaredField("bikePicker").apply { isAccessible=true }
+            val popup=field.get(activity) as android.widget.PopupWindow
+            val strip=popup.contentView.findViewWithTag<BikeProfileStrip>("bike_quick_strip")
+            assertEquals(runtime.bikes.all().size,(strip.getChildAt(0) as ViewGroup).childCount)
             val first=runtime.bikes.all().first()
-            popup.menu.performIdentifierAction(first.slot,0)
+            popup.contentView.findViewWithTag<View>("bike_profile_${first.slot}").performClick()
+            assertFalse(popup.isShowing);assertNull(field.get(activity))
             assertNotEquals(active,runtime.bikes.activeSlot);assertEquals(first.slot,runtime.bikes.activeSlot)
             assertFalse(runtime.recording);assertTrue(button.text.contains(first.name))
             assertTrue(button.text is android.text.Spanned)

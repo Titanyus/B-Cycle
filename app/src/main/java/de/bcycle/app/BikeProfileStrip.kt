@@ -15,7 +15,7 @@ import android.widget.TextView
 /** Three equal-width cards in a native horizontal scroller; IDs never depend on order. */
 internal class BikeProfileStrip(context: Context, private val themes: ThemeManager,
     private val select: (Int) -> Unit, private val add: () -> Unit,
-    private val move: (Int, Int) -> Boolean) : HorizontalScrollView(context) {
+    private val move: (Int, Int) -> Boolean, private val compact:Boolean=false) : HorizontalScrollView(context) {
     private data class Drag(val owner: BikeProfileStrip, val slot: Int)
     private val row = LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL;isBaselineAligned=false }
     private var profiles = emptyList<BikeProfile>()
@@ -32,13 +32,14 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
             postDelayed(this,16)
         }
     }
-    private fun dp(n:Int)=BicycleDesign.dp(context,n)
+    private val scale get()=if(compact) BicycleDesign.bikeQuickScale else 1f
+    private fun dp(n:Int)=(BicycleDesign.dp(context,n)*scale).toInt().coerceAtLeast(1)
     init {
-        tag="bike_profile_strip";isHorizontalScrollBarEnabled=false;isFillViewport=false
+        tag=if(compact) "bike_quick_strip" else "bike_profile_strip";isHorizontalScrollBarEnabled=false;isFillViewport=false
         addView(row,LayoutParams(-2,-2))
         row.setOnDragListener { _, event ->
             val payload=event.localState as? Drag
-            if(payload?.owner!==this || locked) return@setOnDragListener false
+            if(compact || payload?.owner!==this || locked) return@setOnDragListener false
             when(event.action) {
                 DragEvent.ACTION_DRAG_STARTED -> { drag=payload;true }
                 DragEvent.ACTION_DRAG_LOCATION -> {
@@ -74,7 +75,7 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
         if(shape!=rows.map { it.slot }) {
             shape=rows.map { it.slot };painted="";row.removeAllViews()
             rows.forEach { p -> row.addView(card(p),LinearLayout.LayoutParams(0,dp(BicycleDesign.bikeTileHeight))) }
-            if(rows.size<BikeProfileStore.MAX_COUNT) row.addView(card(null),LinearLayout.LayoutParams(0,dp(BicycleDesign.bikeTileHeight)))
+            if(!compact && rows.size<BikeProfileStore.MAX_COUNT) row.addView(card(null),LinearLayout.LayoutParams(0,dp(BicycleDesign.bikeTileHeight)))
             requestLayout()
         }
         paint()
@@ -85,14 +86,14 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
         setPadding(dp(BicycleDesign.smallGap),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.smallGap),dp(BicycleDesign.verticalPadding))
         isClickable=true;isFocusable=true
         if(profile!=null) {
-            addView(BicycleComponents.text(context,themes,"").apply { gravity=Gravity.CENTER;maxLines=1;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,-2))
+            addView(BicycleComponents.text(context,themes,"").apply { gravity=Gravity.CENTER;textSize=BicycleDesign.bodySp*scale;maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,-2))
             addView(ImageView(context).apply { importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,dp(BicycleDesign.bikePreviewHeight)))
-            addView(BicycleComponents.text(context,themes,"").apply { gravity=Gravity.CENTER;setLines(2);ellipsize=android.text.TextUtils.TruncateAt.END;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,-2))
+            addView(BicycleComponents.text(context,themes,"").apply { gravity=Gravity.CENTER;textSize=BicycleDesign.bodySp*scale;setLines(2);ellipsize=android.text.TextUtils.TruncateAt.END;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,-2))
             setOnClickListener { if(!locked) select(profile.slot) }
-            setOnLongClickListener {
+            if(!compact) setOnLongClickListener {
                 if(locked || profiles.size<2) false else startDragAndDrop(ClipData.newPlainText("", ""),View.DragShadowBuilder(this),Drag(this@BikeProfileStrip,profile.slot),0)
             }
-            accessibilityDelegate=object : View.AccessibilityDelegate() {
+            if(!compact) accessibilityDelegate=object : View.AccessibilityDelegate() {
                 override fun onInitializeAccessibilityNodeInfo(host:View, info:AccessibilityNodeInfo) {
                     super.onInitializeAccessibilityNodeInfo(host,info)
                     val index=profiles.indexOfFirst { it.slot==profile.slot }
@@ -110,7 +111,7 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
             }
         } else {
             addView(ImageView(context).apply { importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)))
-            addView(BicycleComponents.text(context,themes,context.getString(R.string.bikes_new)).apply { gravity=Gravity.CENTER;setLines(2);importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,-2))
+            addView(BicycleComponents.text(context,themes,context.getString(R.string.bikes_new)).apply { gravity=Gravity.CENTER;textSize=BicycleDesign.bodySp*scale;setLines(2);importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,-2))
             setOnClickListener { if(!locked) add() }
         }
     }
@@ -123,8 +124,8 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
             val card=row.getChildAt(index) as LinearLayout
             val p=profiles.getOrNull(index);val selected=p?.slot==active
             card.isEnabled=!locked;card.alpha=if(locked) .4f else 1f;card.isSelected=selected
-            card.contentDescription=if(p==null) context.getString(R.string.bikes_new) else p.name
-            card.tooltipText=if(p!=null) context.getString(R.string.bikes_move_hint) else null
+            card.contentDescription=if(p==null) context.getString(R.string.bikes_new) else if(compact) context.getString(R.string.ui_source_field_description,context.getString(p.type.label),p.name) else p.name
+            card.tooltipText=if(compact) p?.name else if(p!=null) context.getString(R.string.bikes_move_hint) else null
             card.stateDescription=context.getString(if(selected) R.string.bikes_selected else R.string.ui_not_selected)
             card.background=GradientDrawable().apply {
                 setColor(if(selected) tokens.tertiary else tokens.secondary)
@@ -143,7 +144,8 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
     override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
         val available=MeasureSpec.getSize(widthMeasureSpec)-paddingLeft-paddingRight
         val gap=dp(BicycleDesign.controlGap)
-        val cardWidth=((available-gap*(BicycleDesign.bikeVisibleTiles-1))/BicycleDesign.bikeVisibleTiles).coerceAtLeast(1)
+        val visibleTiles=if(compact) BicycleDesign.bikeQuickVisibleTiles else BicycleDesign.bikeVisibleTiles
+        val cardWidth=((available-gap*(visibleTiles-1))/visibleTiles).coerceAtLeast(1)
         for(index in 0 until row.childCount) {
             val card=row.getChildAt(index)
             val params=card.layoutParams as LinearLayout.LayoutParams

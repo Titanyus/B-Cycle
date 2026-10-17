@@ -66,6 +66,8 @@ object BicycleDesign {
     const val analysisSideLabelWidth = 24
     const val analysisSideLabelSp = 12f
     const val bikeVisibleTiles = 3
+    const val bikeQuickVisibleTiles = 6
+    const val bikeQuickScale = .5f
     const val bikeTileHeight = 154
     const val bikePhotoHeight = 200
     const val bikePhotoEmptyHeight = 64
