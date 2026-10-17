@@ -15,7 +15,7 @@ internal class TrainingHelpView(context:Context,themes:ThemeManager,initial:Dash
     private val average=Switch(context).apply { tag="training_help_average";setText(R.string.training_help_average) }
     init {
         orientation=VERTICAL;tag="training_help_controls"
-        addView(BicycleComponents.text(context,themes,context.getString(R.string.training_help_explanation)))
+        addView(BicycleComponents.description(context,themes,context.getString(R.string.training_help_explanation)))
         addView(all);addView(zoneTwo)
         addView(BicycleComponents.sectionDivider(context,themes))
         addView(BicycleComponents.text(context,themes,context.getString(R.string.training_help_for)))

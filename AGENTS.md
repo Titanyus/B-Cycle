@@ -189,3 +189,5 @@ Feldauswahl bleibt nach jeder Änderung offen: normale Datenfelder, Keine Daten,
 Trainingshilfe in der Feldauswahl immer anbieten, unabhängig von Hauptwert, Daten-Sichtbarkeit, Graph oder Karten-/Dashboardfeld. Gemeinsame TrainingHelpView samt Erklärung unter einem Sticky Header außerhalb/unterhalb der Daten-/Graph-Accordions; dieselbe dashboardweite Konfiguration wie Design & UI. Keine Rückkehr zur alten freien Glow-Quellenauswahl pro Kachel.
 
 Dashboard-Layout-Dropdown öffnet DashboardLayoutGrid mit allen zehn Vorschauen im ursprünglichen dreispaltigen Kartenraster (BicycleDesign-Presetmaße); keine kompakte Textliste. Aktuelle Auswahl ACCENT, Popup bei Bedarf vertikal scrollbar und nach Auswahl geschlossen. Benannte Dashboard-Kacheln, Seitenzuordnung und deren Einstellungen bleiben erhalten.
+
+Erklärende Formulartexte verwenden BicycleComponents.description mit zentral mindestens 8 dp (controlGap) Abstand zum vorherigen Element, insbesondere nach Buttons. Der Abstand bleibt auch bei nachträglich gesetzten LayoutParams erhalten; größere Abschnittsabstände bleiben bestehen. Beschriftungen, Messwerte und Statuszeilen behalten ihre eigenen Rollen.

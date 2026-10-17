@@ -131,7 +131,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                         }
                         refreshBatteryChecks=::updateChecks
                         rows.addView(BicycleComponents.text(context,themes,context.getString(R.string.battery_selection)))
-                        rows.addView(BicycleComponents.text(context,themes,context.getString(R.string.battery_selection_help)))
+                        rows.addView(BicycleComponents.description(context,themes,context.getString(R.string.battery_selection_help)))
                         availableBatteries.forEach { source ->
                             val check=android.widget.CheckBox(context).apply {
                                 tag="battery_select_${source.name}";text=context.getString(source.label);isChecked=source in batterySelection

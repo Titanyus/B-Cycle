@@ -253,6 +253,11 @@ object BicycleComponents {
         if (title) { typeface=BicycleDesign.strongTypeface;isAccessibilityHeading=true }
         bindTheme(this, manager) { setTextColor(it.foreground) }
     }
+    /** Explanatory form copy keeps the shared gap; labels and metric text keep their own geometry. */
+    fun description(context: Context, manager: ThemeManager, value: String) = text(context,manager,value).apply {
+        layoutParams=LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(context,BicycleDesign.controlGap) }
+        controlSpacing(this)
+    }
     fun input(context: Context, manager: ThemeManager) = EditText(context).apply {
         textSize = BicycleDesign.inputSp; minimumHeight = dp(context, BicycleDesign.touchSize)
         setPadding(dp(context, 12), dp(context, BicycleDesign.verticalPadding), dp(context, 12), dp(context, BicycleDesign.verticalPadding))

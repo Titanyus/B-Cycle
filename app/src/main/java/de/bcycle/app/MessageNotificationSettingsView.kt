@@ -25,7 +25,7 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         },LayoutParams(-1,-2))
         addView(access,LayoutParams(-1,-2))
         addView(BicycleComponents.action(context,themes,context.getString(R.string.notifications_access)) { requestAccess() },LayoutParams(-1,-2))
-        addView(BicycleComponents.text(context,themes,context.getString(R.string.notifications_privacy)),LayoutParams(-1,-2))
+        addView(BicycleComponents.description(context,themes,context.getString(R.string.notifications_privacy)),LayoutParams(-1,-2))
         BicycleForm.section(this,themes,R.string.notifications_position)
         val tiles=mutableMapOf<MessagePosition,View>()
         fun paint(tile:View,tokens:ThemeTokens) {
