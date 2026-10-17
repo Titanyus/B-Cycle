@@ -112,7 +112,8 @@ object BicycleDesign {
     const val headerHorizontalPadding = 24
     const val headerVerticalPadding = 12
     const val dialogRadius = 18
-    const val controlBorder = 2
+    const val controlBorder = 1
+    const val controlBorderAlpha = .5f
     const val inputRadius = 6
     const val scrollbarSize = 2
     const val footerHeight = 64
@@ -159,6 +160,8 @@ fun ThemeTokens.color(role: ThemeRole) = when (role) {
 fun ThemeTokens.iconColor(role: ThemeRole, backgroundRole: ThemeRole = ThemeRole.SECONDARY): Int =
     if (role == ThemeRole.ACCENT && ThemeValidator.contrast(accent, color(backgroundRole)) < ThemeValidator.minimumIconContrast)
         foreground else color(role)
+
+internal val ThemeTokens.secondaryTextColor: Int get() = (foreground and 0x00ffffff) or (166 shl 24)
 
 /** Shared native components. Geometry is independent of the active palette. */
 object BicycleComponents {
@@ -278,16 +281,18 @@ object BicycleComponents {
     fun input(context: Context, manager: ThemeManager) = EditText(context).apply {
         textSize = BicycleDesign.inputSp; minimumHeight = dp(context, BicycleDesign.touchSize)
         setPadding(dp(context, 12), dp(context, BicycleDesign.verticalPadding), dp(context, 12), dp(context, BicycleDesign.verticalPadding))
-        surface(this, manager, ThemeRole.TERTIARY, BicycleDesign.inputRadius)
         bindTheme(this, manager) {
+            background=controlBackground(context,it,it.tertiary)
             setTextColor(it.foreground); setHintTextColor(it.foreground); backgroundTintList = null
             textCursorDrawable?.mutate()?.setTint(it.foreground)
             textSelectHandle?.mutate()?.setTint(it.foreground); textSelectHandleLeft?.mutate()?.setTint(it.foreground); textSelectHandleRight?.mutate()?.setTint(it.foreground)
         }
     }
-    internal fun controlBackground(context:Context,tokens:ThemeTokens)=GradientDrawable().apply {
-        setColor(tokens.secondary);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
-        setStroke(dp(context,BicycleDesign.controlBorder),tokens.foreground)
+    internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=GradientDrawable().apply {
+        setColor(fill);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
+        setStroke(dp(context,BicycleDesign.controlBorder),android.graphics.Color.argb(
+            (android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt(),
+            android.graphics.Color.red(tokens.foreground),android.graphics.Color.green(tokens.foreground),android.graphics.Color.blue(tokens.foreground)))
     }
     internal fun outlinedControl(view:View,manager:ThemeManager) {
         bindTheme(view,manager) { view.background=controlBackground(view.context,it);view.backgroundTintList=null }
@@ -310,6 +315,9 @@ object BicycleComponents {
         setPadding(inset, inset, inset, inset); background = null
         bindTheme(this, manager) { setColorFilter(it.iconColor(colorRole)) }
         setOnClickListener { click() }
+    }
+    internal fun secondaryText(view:TextView,manager:ThemeManager) {
+        bindTheme(view,manager) { view.setTextColor(it.secondaryTextColor) }
     }
     fun divider(context: Context, manager: ThemeManager) = View(context).apply {
         layoutParams = ViewGroup.LayoutParams(-1, BicycleDesign.linePixels(context))

@@ -7,7 +7,7 @@ Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherige
 - Antippbarer Name als eigener Sticky Header ohne Klappfunktion, Bild/Platzhalter stets 16:9, Radtyp-Dropdown Bike/E-Bike/Indoor, Kategorie/Radumfang, Sensoren sowie Indoor-Korrektur. Keine Sticky Header Bike oder Radtyp; Sensorschalter in normaler Schaltertypografie.
 - FIT-Aufzeichnung enthält Geschwindigkeit/Distanz jeweils mit normalem Titel und Dropdown in einer Zeile. Strecken-Aufzeichnung enthält die zusätzlichen Quell-Accordions. Design enthält kompaktes Theme-Dropdown, benannte Dashboards/Layout-Auswahl und Vollbild. Die drei Dashboard-Aktionen stehen dort zusammen. Bosch-Fahrmodus folgt als eigener Abschnitt, mit Schalter und beschrifteter Oben/Seitlich-Auswahl.
 - Fester Profilfooter **Umbenennen**, **Profil übernehmen**, **Profil löschen**. Löschen bleibt bestätigt und ist beim letzten Profil ausgeblendet.
-- Theme-, Dashboard-Layout- und Fahrmodus-Zwischenheader sowie Fahrmodus-Erklärung entfallen. Nach der Kartenauswahl kein zusätzlicher horizontaler Trenner. FIT-Untergruppen behalten ihre Funktion; Buttons und Dropdowns verwenden SECONDARY, 2-dp-FOREGROUND-Rahmen und 6-dp-Rundung. Sensordetails sind über einen eigenen Chevron neben dem Schalter ausklappbar; beide Aktionen funktionieren unabhängig.
+- Theme-, Dashboard-Layout- und Fahrmodus-Zwischenheader sowie Fahrmodus-Erklärung entfallen. Nach der Kartenauswahl kein zusätzlicher horizontaler Trenner. FIT-Untergruppen behalten ihre Funktion; Buttons und Dropdowns verwenden SECONDARY, 1-dp-FOREGROUND-Rahmen mit 50 % Deckkraft und 6-dp-Rundung. Sensordetails sind über einen eigenen Chevron neben dem Schalter ausklappbar; beide Aktionen funktionieren unabhängig.
 - Profil übernehmen bietet ausschließlich andere Profile an und kopiert Konfiguration einschließlich FIT, Theme/Dashboards/Trainingshilfe und Karten. **Zielname, Ziel-ID, Bild und gekoppelte Sensorgeräte bleiben erhalten.** Die Quelle wird nicht verändert.
 
 ![Native Profilübersicht mit Testdaten](previews/profiles.png)
@@ -202,6 +202,18 @@ Der Indoor-Feldfilter ist eine Laufzeitsicht. Indoor-Speichern ersetzt nur die d
 
 FIT-Aufzeichnung und Strecken-Aufzeichnung stehen nun wie Sensoren, Karten und Design & UI direkt auf der Hauptebene. Beide Header nutzen die volle Seitenbreite und besitzen eine eigene auf-/zuklappbare Inhaltsgruppe. Der 32-dp-Abstand nach der Sensorliste bleibt erhalten. Hauptquellen und Feldgruppen teilen weiterhin dieselbe vorhandene Konfiguration und sofortige Speicherung; keine neue Aufzeichnungslogik.
 
-## Vorgemerkt: Vollbild zuerst in Design & UI
+## Vollbild zuerst in Design & UI
 
-Nutzerwunsch vom 17.10.2026: **Dashboard im Vollbild** künftig als ersten Inhaltspunkt in **Design & UI** platzieren, vor Theme- und Dashboard-Auswahl. Zunächst nur vorgemerkt; die aktuelle Umsetzung der Sticky-Accordions verändert diese Reihenfolge noch nicht.
+Umgesetzt am 17.10.2026 nach Build 30: **Dashboard im Vollbild** steht als erster Inhaltspunkt in **Design & UI**, vor Theme- und Dashboard-Auswahl. Gilt auch im eingebetteten Profilabschnitt.
+
+## Weitere Darstellungsänderungen nach Build 30
+
+- Mülltonne über dem Fahrradbild mit transparentem Hintergrund, ohne zusätzliche Formularfläche oder Kontur; Touchfläche und Löschen bleiben erhalten.
+- Vergrößern-Symbol über der Karte in den Streckendetails fest schwarz, auch nach Themewechsel.
+- Zusätzliches Theme **Embers Inv.**: PRIMARY `#BF281B`, SECONDARY `#1D1D1D`, TERTIARY `#000000`, FOREGROUND `#FFFFFF`, ACCENT `#BF281B`. SECONDARY/TERTIARY von Embers getauscht, das bisherige Grau `#292929` um ca. 30 % abgedunkelt. Ursprüngliches Embers bleibt erhalten. Die bestehende Profil-/Theme-Sicherung verwendet die neue stabile ID `preset:embers-inv`. Der vorhandene Lesbarkeitsfallback für Accent-Icons bleibt bestehen; nur für dieses zusätzliche Preset ist der geringe Accent-Kontrast auf SECONDARY zugelassen.
+
+## Helle und dunkle Einstellungen
+
+Rechts im Einstellungsheader schaltet ein Sonne-/Mond-Button die Darstellung um. Das Symbol zeigt den aktuellen Zustand. Standard ist dunkel. Hell verwendet SECONDARY `#FFFFFF`, TERTIARY `#CCCCCC`, FOREGROUND `#202020`; PRIMARY und ACCENT des gewählten Themes bleiben erhalten. Die Darstellung wird je Fahrradprofil gespeichert und mit Design-Einstellungen gesichert bzw. übernommen. Im Header der Streckendetails bleibt rechts das Umbenennen-Icon; umgeschaltet wird über einen Einstellungsheader.
+
+Technisch liefert `ThemeManager.settings` eine separate Palette für Dialoge. Die eigentliche Themeauswahl bleibt unverändert: Dashboard, Glow, Benachrichtigungsfenster während der Fahrt und Kartenhelligkeit werden durch diesen Button nicht umgestellt. Die hellen Farbwerte werden nicht als eigenes Custom-Theme gespeichert. Einheiten und Zusatztexte leiten ihre 65-%-Schriftfarbe aus FOREGROUND ab.

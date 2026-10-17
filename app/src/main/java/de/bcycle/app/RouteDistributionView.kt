@@ -7,7 +7,7 @@ import android.view.View
 /** Square native distribution plot. Histogram reduction is already complete on the loader worker;
  * display paths and shaders are cached by size. draw() performs no data analysis or smoothing.
  */
-internal class RouteDistributionView(context: Context, themes: ThemeManager, val distribution: RouteValueDistribution) : View(context) {
+internal class RouteDistributionView(context: Context, private val themes: ThemeManager, val distribution: RouteValueDistribution) : View(context) {
     private val density = resources.displayMetrics.density
     private val scaled = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP, 1f, resources.displayMetrics)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -85,7 +85,7 @@ internal class RouteDistributionView(context: Context, themes: ThemeManager, val
             canvas.drawText(zoneLabels[i], (x(band.lower) + x(band.upper)) / 2, plot.top - 8 * density, paint)
         }
         paint.textSize = BicycleDesign.analysisLabelSp * scaled
-        paint.color = BicycleDesign.dashboardUnitColor
+        paint.color = themes.active.tokens.secondaryTextColor
         marks.forEachIndexed { i, value ->
             paint.textAlign = when (i) { 0 -> Paint.Align.LEFT; marks.lastIndex -> Paint.Align.RIGHT; else -> Paint.Align.CENTER }
             canvas.drawText(labels[i], x(value), plot.bottom + 16 * density, paint)

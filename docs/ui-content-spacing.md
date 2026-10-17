@@ -25,7 +25,7 @@ Kein Schatten, keine Außenmargins und kein oberer Leerstreifen. Die Header
 berühren sich beim gegenseitigen Wegschieben. 56 dp Mindesthöhe, 12 dp
 Innenpadding und zentrierte 23-sp-/900-Black-Schrift bleiben erhalten. Die
 Z-Reihenfolge bleibt über erhöhten nativen Buttons, ohne nativen Schatten.
-Horizontale/vertikale UI-Trenner, Dashboard-Raster und feine Feldrahmen verwenden
+Horizontale/vertikale UI-Trenner und Dashboard-Raster verwenden
 ebenfalls 0,75 dp über BicycleDesign.linePixels. Deckkraft bleibt 55 % für
 Abschnittstrenner bzw. 100 % zwischen Strecken. Horizontale Abschnittstrenner
 verwenden sectionDividerGap mit 12 dp oben und unten. Diagrammkurven bleiben
@@ -98,8 +98,6 @@ FOREGROUND-Trenner, identisch zur Deckkraft der Abschnittstrenner in Details.
 
 Auf der Profilseite sind die gleichrangigen Sticky-Abschnitte auf-/zuklappbar. Sie bleiben im geöffneten Zustand sticky; der Chevron und ein gleich breiter unsichtbarer Platz links erhalten die exakte Titelzentrierung. Der Fahrradname ist ein eigener Sticky Header ausschließlich zum Umbenennen. FIT-Aufzeichnung und Strecken-Aufzeichnung stehen in voller Seitenbreite auf der Hauptebene, nicht in einer eingerückten gemeinsamen Gruppe. Einklappen verändert keine gespeicherten Werte.
 
-Formularbuttons und Dropdowns verwenden zentral SECONDARY mit 2 dp FOREGROUND-Kontur und 6 dp Radius; keine eigene graue Fläche. Popup-Flächen übernehmen dieselben Rollen. Bestehende Ripple-/Disabled-Zustände und fachliche Auswahlmarkierungen bleiben erhalten. Eingabefelder behalten ihre eigene dezente Rahmenkonvention.
+Formularbuttons und Dropdowns verwenden zentral SECONDARY mit **1 dp FOREGROUND-Kontur bei 50 % Deckkraft** und **6 dp Radius**. Popup-Flächen übernehmen dieselben Rollen. Eingabefelder (auch Radumfang und Fahrerprofil) erhalten dieselbe Kontur und Rundung; ihre bisherige transparente bzw. TERTIARY-Fläche und Typografie bleiben erhalten. Bestehende Ripple-/Disabled-Zustände und fachliche Auswahlmarkierungen bleiben bestehen.
 
-## Vorgemerkt: Button- und Dropdown-Rahmen auf 1 dp
-
-Nutzerwunsch vom 17.10.2026: Die zuletzt auf 2 dp umgestellten Rahmen der Buttons und Dropdowns künftig auf **1 dp** reduzieren. Rahmenfarbe wie die Sensor-Abschnittstrenner: **FOREGROUND mit 55 % Deckkraft** (dividerAlpha), statt volldeckendem Weiß; nur die Kontur erhält diese Deckkraft. SECONDARY-Fläche und 6-dp-Rundung bleiben erhalten; andere Linien und fachliche Auswahlrahmen sind davon nicht betroffen. Ausdrücklich zunächst nur vorgemerkt, in Build 30 noch 2 dp.
+Die zunächst vorgemerkte Änderung wurde am 17.10.2026 nach Build 30 umgesetzt. Die letzte Nutzervorgabe setzt die Rahmen-Deckkraft ausdrücklich auf 50 %, unabhängig von den weiterhin 55 % deckenden Sensor-Trennlinien. Nur die Kontur verwendet diese Deckkraft, nicht Text, Icons oder das gesamte Bedienelement. Andere Linien und fachliche Auswahlrahmen sind nicht betroffen.

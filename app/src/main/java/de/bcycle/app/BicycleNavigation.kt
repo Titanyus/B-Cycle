@@ -35,6 +35,17 @@ internal object BicycleNavigation {
             frame.addView(BicycleComponents.icon(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.route_action_rename)) { title.performClick() }.apply { tag="analysis_rename" },
                 FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL))
         }
+        if(themes.isSettingsPalette && title?.tag!="analysis_title") {
+            val toggle=BicycleComponents.icon(context,themes,BicycleIcon.Moon,context.getString(R.string.settings_dark_mode)) {
+                themes.setSettingsLight(!themes.settingsLight)
+            }.apply { tag="settings_light_toggle" }
+            BicycleComponents.bindTheme(toggle,themes) { tokens ->
+                val light=themes.settingsLight
+                toggle.setImageDrawable(BicycleIcons.drawable(context,if(light) BicycleIcon.Sun else BicycleIcon.Moon,tokens.foreground))
+                toggle.contentDescription=context.getString(if(light) R.string.settings_light_mode else R.string.settings_dark_mode)
+            }
+            frame.addView(toggle,FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL))
+        }
         return frame
     }
     fun hideNavigationFooter(screen: AlertDialog) {

@@ -81,7 +81,7 @@ class StickyAccordionSettingsTest {
             assertEquals("Mein Indoor-Rad",r.bikes.current().name);assertEquals(View.VISIBLE,name.visibility);assertNull(name.expanded)
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun outlinedButtonsAndDropdownsFollowThemeWithoutChangingPlainInputs() {
+    @Test fun outlinedControlsAndInputsFollowThemeWithHalfOpacityBorders() {
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("new-control-style",0))
@@ -91,17 +91,29 @@ class StickyAccordionSettingsTest {
             val spinner=Spinner(a).apply { adapter=ArrayAdapter(a,android.R.layout.simple_spinner_dropdown_item,listOf("Eins","Zwei")) }
             BicycleDialogStyle.spinner(spinner,themes)
             val input=BicycleComponents.input(a,themes);BicycleDialogStyle.control(input,themes)
-            root.addView(button);root.addView(spinner);root.addView(input);a.setContentView(root)
+            val number=EditText(a);BicycleForm.outlinedInput(number,themes,numeric=true)
+            root.addView(button);root.addView(spinner);root.addView(input);root.addView(number);a.setContentView(root)
             for(theme in listOf("preset:black-ops","preset:solar-flare")) {
                 themes.activate(theme)
-                for(v in listOf(button,spinner)) {
+                for(v in listOf(button,spinner,input,number)) {
                     val bitmap=Bitmap.createBitmap(600,160,Bitmap.Config.ARGB_8888)
+                    val fill=when(v) { input->themes.active.tokens.tertiary;number->android.graphics.Color.TRANSPARENT;else->themes.active.tokens.secondary }
+                    // Render onto the same surface; GradientDrawable clips its fill under the stroke.
+                    bitmap.eraseColor(fill)
                     v.background.setBounds(0,0,600,160);v.background.draw(Canvas(bitmap))
                     val border=BicycleDesign.dp(a,BicycleDesign.controlBorder)
-                    assertEquals(themes.active.tokens.foreground,bitmap.getPixel(1,80))
-                    assertEquals(themes.active.tokens.foreground,bitmap.getPixel(border-1,80))
-                    assertEquals(themes.active.tokens.secondary,bitmap.getPixel(border+2,80))
-                    assertEquals(themes.active.tokens.secondary,bitmap.getPixel(300,80))
+                    assertEquals(BicycleDesign.dp(a,1),border)
+                    val expected=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+                    Canvas(expected).apply { drawColor(fill);drawColor(android.graphics.Color.argb(127,255,255,255)) }
+                    // Native stroke/fill composition may round individual color channels by one.
+                    for(x in listOf(1,border-1)) for(shift in listOf(0,8,16,24)) {
+                        assertEquals(((expected.getPixel(0,0) ushr shift) and 255).toDouble(),
+                            ((bitmap.getPixel(x,80) ushr shift) and 255).toDouble(),1.0)
+                    }
+                    expected.recycle()
+                    assertEquals(fill,bitmap.getPixel(border+2,80))
+                    assertEquals(fill,bitmap.getPixel(300,80))
+                    assertEquals(fill,bitmap.getPixel(0,0))
                     bitmap.recycle()
                 }
                 assertEquals(themes.active.tokens.secondary,(spinner.popupBackground as GradientDrawable).color!!.defaultColor)

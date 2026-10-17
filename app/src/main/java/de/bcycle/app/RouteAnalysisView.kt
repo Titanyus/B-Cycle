@@ -122,7 +122,9 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             }.apply { tag="analysis_map_frame" }
             preview = RouteAnalysisMap(context, route, false)
             frame.addView(preview, FrameLayout.LayoutParams(-1, -1))
-            frame.addView(BicycleComponents.icon(context, themes, BicycleIcon.Maximize, context.getString(R.string.analysis_map_fullscreen)) { fullMap(analysis) },
+            frame.addView(BicycleComponents.icon(context, themes, BicycleIcon.Maximize, context.getString(R.string.analysis_map_fullscreen)) { fullMap(analysis) }.apply {
+                BicycleComponents.bindTheme(this,themes) { setColorFilter(android.graphics.Color.BLACK) }
+            },
                 FrameLayout.LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize), Gravity.TOP or Gravity.END))
             body.addView(frame, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(BicycleDesign.rowGap) })
         }
@@ -148,7 +150,7 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
     }
     private val unit = TextView(context).apply {
         typeface = resources.getFont(R.font.bebas_neue); gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
-        textSize = BicycleDesign.analysisUnitSp; setTextColor(BicycleDesign.dashboardUnitColor)
+        textSize = BicycleDesign.analysisUnitSp; BicycleComponents.secondaryText(this,themes)
         setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp, BicycleDesign.analysisUnitSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
         tag = "analysis_unit"
     }
@@ -222,14 +224,14 @@ internal class BestEffortTile(context: Context, themes: ThemeManager, effort: Be
         }
         val watts = numeric(context.getString(R.string.analysis_integer_format, effort.watts), BicycleDesign.analysisMetricSp)
         BicycleComponents.bindTheme(watts, themes) { watts.setTextColor(it.foreground) }
-        val unit = numeric(context.getString(R.string.analysis_watts), BicycleDesign.analysisUnitSp).apply { setTextColor(BicycleDesign.dashboardUnitColor) }
+        val unit = numeric(context.getString(R.string.analysis_watts), BicycleDesign.analysisUnitSp).apply { BicycleComponents.secondaryText(this,themes) }
         addView(AnalysisValueRow(context, watts, unit), LayoutParams(-1, BicycleDesign.dp(context, 40)))
         val relative = effort.wattsPerKg(weightKg)?.let { context.getString(R.string.analysis_ratio_format, it) }
             ?: context.getString(R.string.analysis_missing)
         addView(BicycleComponents.text(context, themes, context.getString(R.string.analysis_effort_relative, relative)).apply {
             gravity = Gravity.CENTER; textSize = BicycleDesign.analysisUnitSp; maxLines = 1
             setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp, BicycleDesign.analysisUnitSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
-            BicycleComponents.bindTheme(this, themes) { setTextColor(BicycleDesign.dashboardUnitColor) }
+            BicycleComponents.secondaryText(this,themes)
         }, LayoutParams(-1, -2))
         contentDescription = context.getString(R.string.analysis_effort_description, period, watts.text, relative)
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES

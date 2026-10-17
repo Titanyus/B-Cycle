@@ -32,12 +32,12 @@ class ThemePickerTest {
         view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.AT_MOST))
         view.layout(0, 0, view.measuredWidth, view.measuredHeight)
     }
-    @Test fun allSevenPresetsValidateAndSurviveRestartWithoutChangingDashboardPreferences() {
+    @Test fun allEightPresetsValidateAndSurviveRestartWithoutChangingDashboardPreferences() {
         val app = RuntimeEnvironment.getApplication()
         val prefs = app.getSharedPreferences("theme-picker", 0)
         val manager = ThemeManager(prefs)
-        assertEquals(7, manager.presets.size)
-        assertEquals(7, manager.presets.map { it.id }.distinct().size)
+        assertEquals(8, manager.presets.size)
+        assertEquals(8, manager.presets.map { it.id }.distinct().size)
         prefs.edit().putString("dashboardTemplate_0", "FOUR").putString("address", "test-bike").apply()
         for (preset in manager.presets) {
             assertTrue("${preset.name}: ${ThemeValidator.validate(preset).problems}", ThemeValidator.validate(preset).valid)
@@ -64,7 +64,7 @@ class ThemePickerTest {
             for((index,preset) in themes.presets.withIndex()) {
                 choice.performClick()
                 val popup=picker.popup!!;val list=popup.listView!!;val adapter=list.adapter
-                assertEquals(8,adapter.count);assertFalse(adapter.isEnabled(7))
+                assertEquals(9,adapter.count);assertFalse(adapter.isEnabled(8))
                 val row=adapter.getView(index,null,list) as LinearLayout
                 measure(row,1080,200)
                 val sample=row.getChildAt(1)

@@ -10,8 +10,9 @@ import java.util.UUID
 fun interface ThemeSubscription : AutoCloseable { override fun close() }
 
 /** Application-owned, page-independent palette store. No Activity or View is retained here. */
-class ThemeManager(private val preferences: SharedPreferences) {
+class ThemeManager(private val preferences: SharedPreferences, private val settingsSource: ThemeManager? = null) {
     companion object {
+        const val settingsLightKey = "uiTheme.settingsLight"
         const val activeKey = "uiTheme.activeId"
         const val customsKey = "uiTheme.customThemes"
         const val maximumCustomThemes = 32
@@ -22,14 +23,31 @@ class ThemeManager(private val preferences: SharedPreferences) {
     private var current: BicycleTheme = find(savedActiveId()) ?: BicycleThemes.red
     private val observers = linkedSetOf<Subscription>()
     val presets get() = BicycleThemes.presets
-    val customThemes: List<CustomTheme> get() = synchronized(lock) { customs.toList() }
-    val active: BicycleTheme get() = synchronized(lock) { current }
+    val customThemes: List<CustomTheme> get() = settingsSource?.customThemes ?: synchronized(lock) { customs.toList() }
+    val isSettingsPalette get() = settingsSource != null
+    val settings: ThemeManager by lazy { if(isSettingsPalette) this else ThemeManager(preferences,this) }
+    val settingsLight get() = preferences.getBoolean(settingsLightKey,false)
+    fun setSettingsLight(light:Boolean) { preferences.edit().putBoolean(settingsLightKey,light).apply() }
+    fun forDisplay(theme:BicycleTheme):BicycleTheme {
+        if(!isSettingsPalette || !settingsLight) return theme
+        val tokens=theme.tokens.copy(secondary=0xffffffff.toInt(),tertiary=0xffcccccc.toInt(),foreground=0xff202020.toInt())
+        return when(theme) { is PresetTheme->theme.copy(tokens=tokens);is CustomTheme->theme.copy(tokens=tokens) }
+    }
+    val active: BicycleTheme get() = forDisplay(settingsSource?.active ?: synchronized(lock) { current })
+    private val settingsListener=SharedPreferences.OnSharedPreferenceChangeListener { _,key ->
+        if(key==settingsLightKey) publish()
+    }
     init {
         check(presets.all { ThemeValidator.validate(it).valid } && presets.map { it.id }.distinct().size == presets.size)
         if (savedActiveId() != current.id) preferences.edit().putString(activeKey, current.id).apply()
+        if(isSettingsPalette) {
+            preferences.registerOnSharedPreferenceChangeListener(settingsListener)
+            settingsSource!!.observe { publish() }
+        }
     }
     /** Apply externally restored validated configuration without retaining stale theme objects. */
     fun reloadFromPreferences() {
+        settingsSource?.let { it.reloadFromPreferences();return }
         synchronized(lock) { customs = loadCustoms(); current = find(savedActiveId()) ?: BicycleThemes.red }
         publish()
     }
@@ -37,6 +55,7 @@ class ThemeManager(private val preferences: SharedPreferences) {
     private fun find(id: String?): BicycleTheme? = presets.find { it.id == id } ?: customs.find { it.id == id }
     /** Invalid or removed IDs restore the standard palette and persist that fallback. */
     fun activate(id: String): Boolean {
+        settingsSource?.let { return it.activate(id) }
         val valid: Boolean
         val changed: Boolean
         synchronized(lock) {
@@ -51,6 +70,7 @@ class ThemeManager(private val preferences: SharedPreferences) {
     }
     /** Technical create/edit API only; invalid drafts never enter storage or the active UI. */
     fun saveCustom(theme: CustomTheme): ThemeValidation {
+        settingsSource?.let { return it.saveCustom(theme) }
         val validation = ThemeValidator.validate(theme)
         if (!validation.valid) return validation
         var changed = false
@@ -66,12 +86,14 @@ class ThemeManager(private val preferences: SharedPreferences) {
         return validation
     }
     fun copyTheme(sourceId: String, name: String): CustomTheme? {
+        settingsSource?.let { return it.copyTheme(sourceId,name) }
         val source = synchronized(lock) { find(sourceId) } ?: return null
         val copy = CustomTheme("custom:${UUID.randomUUID()}", name, source.tokens)
         return copy.takeIf { saveCustom(it).valid }
     }
     /** Presets cannot be deleted; deleting the active custom palette restores BICYCLE Red. */
     fun deleteCustom(id: String): Boolean {
+        settingsSource?.let { return it.deleteCustom(id) }
         var changed = false
         synchronized(lock) {
             if (customs.none { it.id == id }) return false

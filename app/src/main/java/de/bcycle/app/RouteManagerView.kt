@@ -136,7 +136,7 @@ internal class RouteManagerView(context: Context,
             val unit = TextView(context).apply {
                 text = unitId?.let(context::getString).orEmpty(); typeface = resources.getFont(R.font.bebas_neue)
                 textSize = BicycleDesign.formatSp; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
-                setTextColor(BicycleDesign.dashboardUnitColor)
+                BicycleComponents.secondaryText(this,themes)
                 setAutoSizeTextTypeUniformWithConfiguration(8, BicycleDesign.formatSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
             }
             val label = BicycleComponents.text(context, themes, labelId?.let(context::getString).orEmpty()).apply {

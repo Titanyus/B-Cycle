@@ -85,12 +85,8 @@ internal object BicycleDialogStyle {
         setColor(color); cornerRadius = dp(view, BicycleDesign.inputRadius).toFloat()
         stroke?.let { setStroke(BicycleDesign.linePixels(view.context), it) }
     }
-    private fun inputBackground(view: View, tokens: ThemeTokens) = StateListDrawable().apply {
-        addState(intArrayOf(android.R.attr.state_focused, android.R.attr.state_selected), shape(view, tokens.tertiary, BicycleComponents.selectionBorder(tokens,true)))
-        addState(intArrayOf(android.R.attr.state_focused), shape(view, tokens.tertiary, tokens.foreground))
-        addState(intArrayOf(android.R.attr.state_selected), shape(view, tokens.tertiary, BicycleComponents.selectionBorder(tokens,true)))
-        addState(intArrayOf(), shape(view, tokens.tertiary))
-    }
+    private fun inputBackground(view: View, tokens: ThemeTokens) =
+        BicycleComponents.controlBackground(view.context,tokens,tokens.tertiary)
     fun apply(screen: AlertDialog, themes: ThemeManager) {
         val decor = screen.window?.decorView ?: return
         // Phase 2 already styles this dialog, including its native footer; leave it unchanged.

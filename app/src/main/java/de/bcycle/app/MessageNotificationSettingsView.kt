@@ -26,7 +26,6 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         addView(access,LayoutParams(-1,-2))
         addView(BicycleComponents.action(context,themes,context.getString(R.string.notifications_access)) { requestAccess() },LayoutParams(-1,-2))
         addView(BicycleComponents.description(context,themes,context.getString(R.string.notifications_privacy)),LayoutParams(-1,-2))
-        BicycleForm.section(this,themes,R.string.notifications_position)
         val tiles=mutableMapOf<MessagePosition,View>()
         fun paint(tile:View,tokens:ThemeTokens) {
             tile.background=android.graphics.drawable.GradientDrawable().apply {
@@ -65,11 +64,15 @@ internal class MessageNotificationSettingsView(context: Context, private val the
             })
         }
         addView(positions,LayoutParams(-1,-2))
-        BicycleForm.section(this,themes,R.string.notifications_duration)
+        val duration=GridLayout(context).apply { columnCount=2;tag="notification_duration_row" }
         val value=BicycleComponents.text(context,themes,"").apply { tag="notification_duration_value" }
         fun label(seconds: Int)=context.getString(R.string.notifications_seconds,seconds)
-        value.text=label(settings.durationSeconds);addView(value,LayoutParams(-1,-2))
-        addView(SeekBar(context).apply {
+        value.text=label(settings.durationSeconds);value.gravity=Gravity.CENTER
+        duration.addView(value,GridLayout.LayoutParams(GridLayout.spec(0),GridLayout.spec(1,1f)).apply {
+            width=0;setGravity(Gravity.FILL_HORIZONTAL)
+        })
+        val slider=SeekBar(context).apply {
+            id=View.generateViewId()
             tag="notification_duration";min=5;max=180;progress=settings.durationSeconds;keyProgressIncrement=1
             minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
             contentDescription=context.getString(R.string.notifications_duration);stateDescription=value.text
@@ -84,7 +87,16 @@ internal class MessageNotificationSettingsView(context: Context, private val the
                     if(fromUser) { settings.durationSeconds=progress;value.text=label(progress);bar.stateDescription=value.text }
                 }
             })
-        },LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        }
+        duration.addView(BicycleComponents.text(context,themes,context.getString(R.string.notifications_duration)).apply {
+            tag="notification_duration_label";labelFor=slider.id;gravity=Gravity.CENTER_VERTICAL
+        },GridLayout.LayoutParams(GridLayout.spec(1,GridLayout.CENTER),GridLayout.spec(0)).apply {
+            marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap)
+        })
+        duration.addView(slider,GridLayout.LayoutParams(GridLayout.spec(1),GridLayout.spec(1,1f)).apply {
+            width=0;height=BicycleDesign.dp(context,BicycleDesign.touchSize);setGravity(Gravity.FILL_HORIZONTAL)
+        })
+        addView(duration,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         BicycleForm.section(this,themes,R.string.notifications_apps)
         addView(Switch(context).apply {
             tag="notification_messenger_filter";setText(R.string.notifications_messenger_filter);isChecked=settings.messengerOnly

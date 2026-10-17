@@ -64,7 +64,7 @@ class SettingsSectionsTest {
             runtime.themes.activate("preset:solar-flare")
             val bitmap=Bitmap.createBitmap(116,48,Bitmap.Config.ARGB_8888)
             height.background.setBounds(0,0,116,48);height.background.draw(Canvas(bitmap))
-            assertEquals(runtime.themes.active.tokens.tertiary,bitmap.getPixel(58,0));bitmap.recycle()
+            assertEquals(android.graphics.Color.argb(127,255,255,255),bitmap.getPixel(58,0));bitmap.recycle()
         } finally { controller.pause().stop().destroy() }
     }
 }

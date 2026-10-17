@@ -111,7 +111,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                 }
                 val unit = TextView(context).apply {
                     text = context.getString(R.string.analysis_bpm); tag = "rider_unit"; typeface = resources.getFont(R.font.bebas_neue)
-                    textSize = BicycleDesign.settingsUnitSp; setTextColor(BicycleDesign.dashboardUnitColor)
+                    textSize = BicycleDesign.settingsUnitSp; BicycleComponents.secondaryText(this,themes)
                     gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
                 }
                 ranges += value
@@ -135,7 +135,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                     setAutoSizeTextTypeUniformWithConfiguration(12,BicycleDesign.settingsMetricSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
                 }
                 val unit=TextView(context).apply { text=context.getString(R.string.analysis_watts);tag="rider_unit";typeface=resources.getFont(R.font.bebas_neue)
-                    textSize=BicycleDesign.settingsUnitSp;setTextColor(BicycleDesign.dashboardUnitColor);gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1 }
+                    textSize=BicycleDesign.settingsUnitSp;BicycleComponents.secondaryText(this,themes);gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1 }
                 powerRanges+=value
                 addView(AnalysisValueRow(context,value,unit),LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth),dp(BicycleDesign.touchSize)))
             },LinearLayout.LayoutParams(-1,-2))

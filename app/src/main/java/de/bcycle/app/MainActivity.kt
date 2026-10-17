@@ -99,20 +99,21 @@ class MainActivity : Activity() {
     private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows() }
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
+    private val settingsThemes get() = runtime.themes.settings
     private val dialogs = DialogNavigation()
-    private fun dialog(fullscreen: Boolean = true) = BicycleDialogBuilder(this, runtime.themes, dialogs, fullscreen)
+    private fun dialog(fullscreen: Boolean = true) = BicycleDialogBuilder(this, settingsThemes, dialogs, fullscreen)
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
-    private fun label(text: String, size: Float = BicycleDesign.bodySp) = BicycleComponents.text(settingsContext, runtime.themes, text).apply {
+    private fun label(text: String, size: Float = BicycleDesign.bodySp) = BicycleComponents.text(settingsContext, settingsThemes, text).apply {
         isAccessibilityHeading = size >= BicycleDesign.inputSp
-        BicycleDialogStyle.control(this, runtime.themes)
+        BicycleDialogStyle.control(this, settingsThemes)
     }
     private fun column() = LinearLayout(settingsContext).apply {
         orientation = LinearLayout.VERTICAL
         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding))
     }
-    private fun button(text: String, icon: BicycleIcon? = null, action: () -> Unit) = BicycleComponents.action(settingsContext, runtime.themes, text, action).apply {
-        BicycleDialogStyle.control(this, runtime.themes)
-        icon?.let { BicycleDialogStyle.actionIcon(this, runtime.themes, it) }
+    private fun button(text: String, icon: BicycleIcon? = null, action: () -> Unit) = BicycleComponents.action(settingsContext, settingsThemes, text, action).apply {
+        BicycleDialogStyle.control(this, settingsThemes)
+        icon?.let { BicycleDialogStyle.actionIcon(this, settingsThemes, it) }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -330,7 +331,7 @@ class MainActivity : Activity() {
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         val graphs=if(!mapField && dashboard.template.supportsGraph(index))
-            GraphOverlayPicker(settingsContext,runtime.themes,dashboardGraphs.slots[index]) else null
+            GraphOverlayPicker(settingsContext,settingsThemes,dashboardGraphs.slots[index]) else null
         fun saveGraphs() {
             if(graphs!=null) {
                 dashboardGraphs=dashboardGraphs.replace(index,graphs.selected)
@@ -361,7 +362,7 @@ class MainActivity : Activity() {
         }
         val trainingPage=dashboardPage
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
-            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, null, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index],
+            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, settingsThemes, graphs, null, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index],
             batteryChoose={ select(it) },trendEnabled=if(mapField) true else dashboardTrendIndicators.enabled[index],
             trendChanged=if(mapField) null else { enabled ->
                 if(permitted()) {
@@ -374,7 +375,7 @@ class MainActivity : Activity() {
         picker=builder.show()
     }
     private fun showNotificationSettings() {
-        val content=MessageNotificationSettingsView(settingsContext,runtime.themes)
+        val content=MessageNotificationSettingsView(settingsContext,settingsThemes)
         notificationSettings=content
         val screen=dialog().setTitle(getString(R.string.notifications_title))
             .setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).show()
@@ -383,12 +384,12 @@ class MainActivity : Activity() {
     private fun showMenu(advanced: Boolean = false) {
         setDashboardEditing(false)
         messages.clear()
-        val content = SettingsMenuView(settingsContext, runtime.themes, advanced) { action ->
+        val content = SettingsMenuView(settingsContext, settingsThemes, advanced) { action ->
             when (action) {
                 SettingsAction.PROFILES, SettingsAction.SENSORS -> showSensorManager()
                 SettingsAction.NOTIFICATIONS -> showNotificationSettings()
                 SettingsAction.DATA -> dataSettings()
-                SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, runtime.themes, dialogs, runtime.riderProfiles) }
+                SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, settingsThemes, dialogs, runtime.riderProfiles) }
                 SettingsAction.MAP -> mapSettings()
                 SettingsAction.DASHBOARDS -> dashboardSettings()
                 SettingsAction.ROUTES -> routeSettings()
@@ -506,7 +507,7 @@ class MainActivity : Activity() {
     private fun recordingControls(): LinearLayout {
         val slot = runtime.bikes.activeSlot
         val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
-        BicycleForm.section(root,runtime.themes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
+        BicycleForm.section(root,settingsThemes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
         root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }
@@ -517,7 +518,7 @@ class MainActivity : Activity() {
                 setSelection(if (chosen == bikeId) 0 else 1)
                 id=View.generateViewId();caption.labelFor=id
             }
-            BicycleDialogStyle.spinner(choice,runtime.themes,BicycleDesign.profileDropdownSp)
+            BicycleDialogStyle.spinner(choice,settingsThemes,BicycleDesign.profileDropdownSp)
             row.addView(choice,LinearLayout.LayoutParams(0,-2,1f));root.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
             return choice
         }
@@ -525,7 +526,7 @@ class MainActivity : Activity() {
         val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
         fun saveFields() { if(runtime.bikes.activeSlot!=slot || !speed.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
-        BicycleForm.section(root,runtime.themes,R.string.ui_track_recording)
+        BicycleForm.section(root,settingsThemes,R.string.ui_track_recording)
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
@@ -534,7 +535,7 @@ class MainActivity : Activity() {
                 visibility=if(source in expandedFitSources) View.VISIBLE else View.GONE
             }
             lateinit var toggle: Button
-            toggle=BicycleComponents.action(settingsContext,runtime.themes,DashboardTextResources.source(this,source)) {
+            toggle=BicycleComponents.action(settingsContext,settingsThemes,DashboardTextResources.source(this,source)) {
                 val open=content.visibility!=View.VISIBLE
                 content.visibility=if(open) View.VISIBLE else View.GONE
                 if(open) expandedFitSources.add(source) else expandedFitSources.remove(source)
@@ -543,8 +544,8 @@ class MainActivity : Activity() {
                 tag="fit_source_$source";isAccessibilityHeading=true
                 stateDescription=getString(if(source in expandedFitSources) R.string.zone_expanded else R.string.zone_collapsed)
             }
-            BicycleDialogStyle.accordion(toggle,runtime.themes)
-            BicycleDialogStyle.actionIcon(toggle,runtime.themes,BicycleIcon.Expand)
+            BicycleDialogStyle.accordion(toggle,settingsThemes)
+            BicycleDialogStyle.actionIcon(toggle,settingsThemes,BicycleIcon.Expand)
             root.addView(toggle);root.addView(content)
             for (field in fields) content.addView(CheckBox(settingsContext).apply {
                 text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
@@ -552,7 +553,7 @@ class MainActivity : Activity() {
             })
         }
         // Style all source accordions and their existing field controls.
-        BicycleDialogStyle.content(root, runtime.themes)
+        BicycleDialogStyle.content(root, settingsThemes)
         return root
     }
 
@@ -709,11 +710,20 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot
         val revision=runtime.profileRevision
         val root = column()
-        if(!embedded) BicycleForm.section(root,runtime.themes,R.string.ui_theme)
-        root.addView(ThemePickerView(settingsContext, runtime.themes))
-        if(!embedded) BicycleForm.section(root,runtime.themes,R.string.ui_dashboard_page_choose)
-        val presets = DashboardPresetPicker(settingsContext,dashboardPages.selected(),runtime.themes)
-        val footer=bicycleFooter(settingsContext,runtime.themes)
+        root.addView(Switch(settingsContext).apply {
+            tag="dashboard_fullscreen";setText(R.string.dashboard_fullscreen)
+            isChecked=DashboardFullscreen.enabled(preferences)
+            BicycleDialogStyle.control(this,settingsThemes)
+            setOnCheckedChangeListener { _,checked ->
+                preferences.edit().putBoolean(DashboardFullscreen.key,checked).apply()
+                updateDashboardFullscreen()
+            }
+        })
+        if(!embedded) BicycleForm.section(root,settingsThemes,R.string.ui_theme)
+        root.addView(ThemePickerView(settingsContext, settingsThemes))
+        if(!embedded) BicycleForm.section(root,settingsThemes,R.string.ui_dashboard_page_choose)
+        val presets = DashboardPresetPicker(settingsContext,dashboardPages.selected(),settingsThemes)
+        val footer=bicycleFooter(settingsContext,settingsThemes)
         var trainingControls:TrainingHelpView?=null
         lateinit var removeDashboard:BicycleFooterAction
         fun refreshPages() {
@@ -722,9 +732,9 @@ class MainActivity : Activity() {
             bikesManager?.findViewWithTag<TrainingHelpView>("profile_training_help")?.show(DashboardTrainingHelp.read(preferences,dashboardPages.selected()))
             removeDashboard.visibility=if(dashboardPages.all().size>1) View.VISIBLE else View.GONE
         }
-        footer.addView(BicycleFooterAction(settingsContext,runtime.themes,BicycleIcon.RenameTrack,getString(R.string.route_action_rename)) {
+        footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.RenameTrack,getString(R.string.route_action_rename)) {
             val page=dashboardPages.all().first { it.id==dashboardPages.selected() }
-            val input=BicycleComponents.input(settingsContext,runtime.themes).apply {
+            val input=BicycleComponents.input(settingsContext,settingsThemes).apply {
                 tag="dashboard_name_edit";setSingleLine();setText(page.name);selectAll()
                 filters=arrayOf(android.text.InputFilter.LengthFilter(60));contentDescription=getString(R.string.dashboard_name)
             }
@@ -738,7 +748,7 @@ class MainActivity : Activity() {
             })
             dialog(fullscreen=false).setTitle(R.string.route_action_rename).setView(input).show()
         }.apply { tag="dashboard_rename" },LinearLayout.LayoutParams(0,-2,1f))
-        removeDashboard=BicycleFooterAction(settingsContext,runtime.themes,BicycleIcon.DeleteTrack,getString(R.string.dashboard_delete)) {
+        removeDashboard=BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.DeleteTrack,getString(R.string.dashboard_delete)) {
             val page=dashboardPages.all().first { it.id==dashboardPages.selected() }
             dialog(fullscreen=false).setTitle(R.string.dashboard_delete).setMessage(getString(R.string.dashboard_delete_confirm,page.name))
                 .setPositiveButton(R.string.route_action_delete) { _,_->dashboardPages.delete(page.id);refreshPages() }
@@ -747,27 +757,18 @@ class MainActivity : Activity() {
         footer.addView(removeDashboard,LinearLayout.LayoutParams(0,-2,1f))
         presets.changed=::refreshPages
         root.addView(presets)
-        root.addView(Switch(settingsContext).apply {
-            tag="dashboard_fullscreen";setText(R.string.dashboard_fullscreen)
-            isChecked=DashboardFullscreen.enabled(preferences)
-            BicycleDialogStyle.control(this,runtime.themes)
-            setOnCheckedChangeListener { _,checked ->
-                preferences.edit().putBoolean(DashboardFullscreen.key,checked).apply()
-                updateDashboardFullscreen()
-            }
-        })
         if(!embedded) trainingControls=appendTrainingHelp(root) { dashboardPages.selected() }
-        footer.addView(BicycleFooterAction(settingsContext,runtime.themes,BicycleIcon.EditDashboard,getString(R.string.dashboard_editor_open)) { enterDashboardEditor() }.apply {
+        footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.EditDashboard,getString(R.string.dashboard_editor_open)) { enterDashboardEditor() }.apply {
             tag="dashboard_editor_open";(getChildAt(1) as TextView).maxLines=2
         },LinearLayout.LayoutParams(0,-2,1f))
         if(!embedded) {
-            BicycleForm.section(root,runtime.themes,R.string.ui_bosch_mode)
+            BicycleForm.section(root,settingsThemes,R.string.ui_bosch_mode)
             root.addView(modeGlowControls())
         }
         if(embedded) {
             // Dashboard actions remain inline; profile actions use the fixed footer.
             footer.tag="dashboard_inline_actions"
-            root.setPadding(0,0,0,0);root.addView(footer);BicycleDialogStyle.content(root,runtime.themes);return root
+            root.setPadding(0,0,0,0);root.addView(footer);BicycleDialogStyle.content(root,settingsThemes);return root
         }
         val body=LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
@@ -793,25 +794,25 @@ class MainActivity : Activity() {
             tag="mode_glow_placement";id=View.generateViewId();title.labelFor=id
             adapter=ArrayAdapter(settingsContext,android.R.layout.simple_spinner_dropdown_item,ModeGlowPlacement.entries.map { getString(it.label) })
             setSelection(ModeGlowSettings.placement(preferences).ordinal)
-            BicycleDialogStyle.spinner(this,runtime.themes,BicycleDesign.profileDropdownSp)
+            BicycleDialogStyle.spinner(this,settingsThemes,BicycleDesign.profileDropdownSp)
             observeSettings(this) {
                 if(slot!=runtime.bikes.activeSlot || revision!=runtime.profileRevision || !root.isAttachedToWindow) return@observeSettings
                 preferences.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[selectedItemPosition].name).apply();render()
             }
         }
         row.addView(placement,LinearLayout.LayoutParams(0,-2,1f));root.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
-        BicycleDialogStyle.content(root,runtime.themes)
+        BicycleDialogStyle.content(root,settingsThemes)
         return root
     }
     private fun trainingHelpControls(page:()->Int)=
-        TrainingHelpView(settingsContext,runtime.themes,DashboardTrainingHelp.read(preferences,page())) { config ->
+        TrainingHelpView(settingsContext,settingsThemes,DashboardTrainingHelp.read(preferences,page())) { config ->
             val id=page()
             preferences.edit().putString(DashboardTrainingHelp.key(id),config.encode()).apply()
             if(id==dashboardPage) dashboardTrainingHelp=config
             render()
         }
     private fun appendTrainingHelp(root:LinearLayout,page:()->Int):TrainingHelpView {
-        BicycleForm.section(root,runtime.themes,R.string.training_help_title)
+        BicycleForm.section(root,settingsThemes,R.string.training_help_title)
         return trainingHelpControls(page).also { root.addView(it) }
     }
     private fun mapSettings() {
@@ -825,18 +826,18 @@ class MainActivity : Activity() {
             adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.label(this@MainActivity) })
             setSelection(MapSource.decode(preferences.getString("mapSource", null)).ordinal); root.addView(this)
         }
-        BicycleDialogStyle.spinner(source,runtime.themes,BicycleDesign.profileDropdownSp)
+        BicycleDialogStyle.spinner(source,settingsThemes,BicycleDesign.profileDropdownSp)
         val keyRow=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL;tag="map_provider_key_row" }
         keyRow.addView(label(getString(R.string.map_thunderforest_key)))
-        val providerKey=BicycleComponents.input(settingsContext,runtime.themes).apply {
+        val providerKey=BicycleComponents.input(settingsContext,settingsThemes).apply {
             tag="map_thunderforest_key";setSingleLine();contentDescription=getString(R.string.map_thunderforest_key)
             inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
             importantForAutofill=View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS;isSaveEnabled=false
             setText(MapProviderSettings.read(this@MainActivity))
         }
-        BicycleForm.outlinedInput(providerKey,runtime.themes)
+        BicycleForm.outlinedInput(providerKey,settingsThemes)
         keyRow.addView(providerKey);root.addView(keyRow)
-        val providerStatus=BicycleFeedback.status(settingsContext,runtime.themes).apply { tag="map_provider_status" }
+        val providerStatus=BicycleFeedback.status(settingsContext,settingsThemes).apply { tag="map_provider_status" }
         root.addView(providerStatus)
         keyRow.visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
@@ -845,7 +846,7 @@ class MainActivity : Activity() {
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
-        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
+        root.addView(BicycleComponents.sectionDivider(settingsContext, settingsThemes))
         root.addView(button(getString(R.string.ui_map_legend), BicycleIcon.Info) { openMapLink(MapProviderSettings.source(this,preferences.getString("mapSource",null)).creditUrl) })
         observeSettings(root) {
             if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
@@ -865,7 +866,7 @@ class MainActivity : Activity() {
             mapPanel.refreshSettings()
         }
         root.setPadding(0,0,0,0)
-        BicycleDialogStyle.content(root,runtime.themes)
+        BicycleDialogStyle.content(root,settingsThemes)
         return root
     }
     private fun importRoute(recorded: Boolean = false, archive: Boolean = false) {
@@ -880,8 +881,8 @@ class MainActivity : Activity() {
         }
     }
     private fun routeAnalysis(entry: ManagedRoute) {
-        val content = RouteAnalysisView(settingsContext, runtime.themes, entry.id, ::routeAnalysisMap)
-        val footer = bicycleFooter(settingsContext, runtime.themes)
+        val content = RouteAnalysisView(settingsContext, settingsThemes, entry.id, ::routeAnalysisMap)
+        val footer = bicycleFooter(settingsContext, settingsThemes)
         val root = LinearLayout(settingsContext).apply {
             orientation = LinearLayout.VERTICAL
             addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -894,12 +895,12 @@ class MainActivity : Activity() {
         val icons = listOf(BicycleIcon.ShowOnMap, BicycleIcon.CorrectElevation, BicycleIcon.CloudNotUploaded, BicycleIcon.Save, BicycleIcon.DeleteTrack)
         val tags = listOf("detail_map", "detail_elevation", "detail_cloud", "detail_save", "detail_delete")
         labels.indices.forEach { index ->
-            footer.addView(BicycleFooterAction(settingsContext, runtime.themes, icons[index], getString(captions[index]), getString(labels[index])) {
+            footer.addView(BicycleFooterAction(settingsContext, settingsThemes, icons[index], getString(captions[index]), getString(labels[index])) {
                 executeDetailAction(detail, index)
             }.apply { tag = tags[index] }, LinearLayout.LayoutParams(0, dp(BicycleDesign.footerHeight), 1f))
         }
         routeDetail = detail
-        screen.setCustomTitle(analysisHeader(settingsContext, runtime.themes, entry, rename = { if(!runtime.mapState.busy) detailEntry(detail)?.let(::renameRoute) }, back = { screen.dismiss() }))
+        screen.setCustomTitle(analysisHeader(settingsContext, settingsThemes, entry, rename = { if(!runtime.mapState.busy) detailEntry(detail)?.let(::renameRoute) }, back = { screen.dismiss() }))
         dialogs.onDismiss(screen) {
             content.dispose()
             if (routeDetail === detail) { routePopup?.dismiss(); routePopup = null; routeDetail = null }
@@ -946,11 +947,11 @@ class MainActivity : Activity() {
             val displayed = state.selectedRoute == entry.id && state.route != null && preferences.getBoolean("mapGpxVisible", true)
             state.setRouteVisible(!displayed)
             if (!displayed && state.selectedRoute != entry.id) state.selectRoute(entry.id)
-        }, themes = runtime.themes, details = ::routeAnalysis)
+        }, themes = settingsThemes, details = ::routeAnalysis)
         routeManager = content
         refreshRouteRows()
-        val footer = bicycleFooter(settingsContext, runtime.themes)
-        val import = BicycleFooterAction(settingsContext, runtime.themes, BicycleIcon.Import, getString(R.string.footer_import_route)) {
+        val footer = bicycleFooter(settingsContext, settingsThemes)
+        val import = BicycleFooterAction(settingsContext, settingsThemes, BicycleIcon.Import, getString(R.string.footer_import_route)) {
             if (!state.busy) routeImportChoice()
         }.apply { tag = "route_import"; isEnabled = !state.busy }
         footer.addView(import, LinearLayout.LayoutParams(dp(BicycleDesign.footerHeight * 2), dp(BicycleDesign.footerHeight)))
@@ -981,12 +982,12 @@ class MainActivity : Activity() {
             anchorView = anchor; isModal = true
             width = minOf(dp(BicycleDesign.popupWidth), resources.displayMetrics.widthPixels - dp(BicycleDesign.horizontalPadding * 2))
             setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
-                setColor(runtime.themes.active.tokens.secondary); setStroke(dp(BicycleDesign.controlBorder),runtime.themes.active.tokens.foreground); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
+                setColor(settingsThemes.active.tokens.secondary); setStroke(dp(BicycleDesign.controlBorder),settingsThemes.active.tokens.foreground); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             })
             setAdapter(object : ArrayAdapter<String>(settingsContext, android.R.layout.simple_list_item_1, choices) {
                 override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View =
                     ((convertView as? TextView) ?: TextView(settingsContext).apply {
-                        BicycleComponents.bindTheme(this, runtime.themes) { tokens ->
+                        BicycleComponents.bindTheme(this, settingsThemes) { tokens ->
                             setTextColor(tokens.foreground)
                             compoundDrawablesRelative.filterNotNull().forEach { it.setTint(tokens.foreground) }
                         }
@@ -995,7 +996,7 @@ class MainActivity : Activity() {
                         gravity = android.view.Gravity.CENTER_VERTICAL; minHeight = dp(BicycleDesign.popupRowHeight)
                         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding))
                         tag = tags.getOrNull(position)
-                        setCompoundDrawablesRelative(icons.getOrNull(position)?.let { kind -> BicycleIcons.drawable(settingsContext, kind, runtime.themes.active.tokens.foreground)
+                        setCompoundDrawablesRelative(icons.getOrNull(position)?.let { kind -> BicycleIcons.drawable(settingsContext, kind, settingsThemes.active.tokens.foreground)
                             .apply { setBounds(0, 0, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)) } }, null, null, null)
                         compoundDrawablePadding = dp(BicycleDesign.verticalPadding)
                     }
@@ -1008,7 +1009,7 @@ class MainActivity : Activity() {
         }
         routePopup = popup
         popup.show()
-        popup.listView?.let { list -> BicycleComponents.bindTheme(list, runtime.themes) { tokens ->
+        popup.listView?.let { list -> BicycleComponents.bindTheme(list, settingsThemes) { tokens ->
             popup.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
                 setColor(tokens.secondary); setStroke(dp(BicycleDesign.controlBorder),tokens.foreground); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             })
@@ -1022,17 +1023,17 @@ class MainActivity : Activity() {
         val builder = dialog().setTitle(title).setView(body)
         action?.takeIf { it!=R.string.route_action_save }?.let { builder.setPositiveButton(it, null) }
         val screen = builder.create()
-        screen.setCustomTitle(BicycleComponents.header(settingsContext, runtime.themes).apply {
+        screen.setCustomTitle(BicycleComponents.header(settingsContext, settingsThemes).apply {
             tag = "bicycle_dialog_header"; setPadding(dp(BicycleDesign.smallGap),0,dp(BicycleDesign.verticalPadding),0)
-            addView(BicycleComponents.icon(settingsContext,runtime.themes,BicycleIcon.Back,getString(R.string.data_back)) { screen.dismiss() })
-            addView(BicycleComponents.heading(settingsContext,runtime.themes,getString(title)).apply {
+            addView(BicycleComponents.icon(settingsContext,settingsThemes,BicycleIcon.Back,getString(R.string.data_back)) { screen.dismiss() })
+            addView(BicycleComponents.heading(settingsContext,settingsThemes,getString(title)).apply {
                 tag="bicycle_dialog_title";setAutoSizeTextTypeUniformWithConfiguration(18,BicycleDesign.headingSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
             },LinearLayout.LayoutParams(0,dp(BicycleDesign.headerHeight),1f))
         })
         screen.show(); return screen
     }
     private fun dataSettings() {
-        val content = DataSettingsView(settingsContext,runtime.themes) { action -> when(action) {
+        val content = DataSettingsView(settingsContext,settingsThemes) { action -> when(action) {
             DataAction.BACKUP -> backupSettings()
             DataAction.RESTORE -> try {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")
@@ -1055,12 +1056,12 @@ class MainActivity : Activity() {
         else->R.string.backup_io_error
     }
     private fun backupSettings(document: SettingsBackupDocument? = null) {
-        val backup=SettingsBackup(this,runtime.themes)
-        val choices=BackupSelectionView(settingsContext,runtime.themes,document?.sections?.keys ?: BackupSection.entries.toSet())
+        val backup=SettingsBackup(this,settingsThemes)
+        val choices=BackupSelectionView(settingsContext,settingsThemes,document?.sections?.keys ?: BackupSection.entries.toSet())
         val screen=dataDialog(if(document==null) R.string.data_backup else R.string.data_restore,
             ScrollView(settingsContext).apply { addView(choices) },if(document==null) R.string.backup_execute else R.string.backup_restore_execute)
         val button=screen.getButton(AlertDialog.BUTTON_POSITIVE)
-        BicycleDialogStyle.actionIcon(button,runtime.themes,if(document==null) BicycleIcon.ExportTrack else BicycleIcon.RestoreSettings)
+        BicycleDialogStyle.actionIcon(button,settingsThemes,if(document==null) BicycleIcon.ExportTrack else BicycleIcon.RestoreSettings)
         choices.changed={ button.isEnabled=choices.selected().isNotEmpty() }
         button.setOnClickListener {
             val selected=choices.selected()
@@ -1078,7 +1079,7 @@ class MainActivity : Activity() {
                         Thread({
                             val result=runCatching {
                                 val plan=backup.plan(document,selected);backup.apply(plan)
-                                if(BackupSection.DESIGN in selected) runtime.themes.reloadFromPreferences()
+                                if(BackupSection.DESIGN in selected) settingsThemes.reloadFromPreferences()
                                 if(BackupSection.CLOUD in selected) RouteUploads.settingsChanged(applicationContext)
                                 plan
                             }
@@ -1112,7 +1113,7 @@ class MainActivity : Activity() {
         val origin=dataSettingsScreen
         Thread({
             val result=runCatching {
-                val backup=SettingsBackup(applicationContext,runtime.themes)
+                val backup=SettingsBackup(applicationContext,settingsThemes)
                 if(requestCode==12) {
                     val payload=bytes ?: throw SettingsBackupFailure(BackupProblem.IO)
                     val output=contentResolver.openOutputStream(uri,"wt") ?: throw IOException()
@@ -1127,15 +1128,15 @@ class MainActivity : Activity() {
         },"B-Cycle-settings-document").start()
     }
     private fun sourcesSettings() {
-        val body=BicycleComponents.dialogBody(settingsContext,runtime.themes)
+        val body=BicycleComponents.dialogBody(settingsContext,settingsThemes)
         for((title,description) in listOf(R.string.sources_maps to R.string.sources_maps_text,
             R.string.sources_elevation to R.string.sources_elevation_text,R.string.sources_weather to R.string.sources_weather_text,
             R.string.sources_uploads to R.string.sources_uploads_text)) {
-            body.addView(BicycleComponents.text(settingsContext,runtime.themes,getString(title),true))
-            body.addView(BicycleComponents.text(settingsContext,runtime.themes,getString(description)).apply {
+            body.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(title),true))
+            body.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(description)).apply {
                 android.text.util.Linkify.addLinks(this,android.text.util.Linkify.WEB_URLS)
                 movementMethod=android.text.method.LinkMovementMethod.getInstance()
-                BicycleComponents.bindTheme(this,runtime.themes) { setLinkTextColor(it.foreground) }
+                BicycleComponents.bindTheme(this,settingsThemes) { setLinkTextColor(it.foreground) }
             },LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap);bottomMargin=dp(BicycleDesign.controlGap) })
         }
         dataDialog(R.string.sources_title,ScrollView(settingsContext).apply { addView(body) })
@@ -1162,7 +1163,7 @@ class MainActivity : Activity() {
         val settings=ActivityServiceSettings(this,service)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
         lateinit var content:ActivityServiceView
-        content=ActivityServiceView(settingsContext,runtime.themes,service,settings.read(),settings.hasSecret()) {
+        content=ActivityServiceView(settingsContext,settingsThemes,service,settings.read(),settings.hasSecret()) {
             val config=content.config();val secret=content.newSecret();content.busy(true)
             worker.execute {
                 var authorization:android.net.Uri?=null
@@ -1206,7 +1207,7 @@ class MainActivity : Activity() {
         val settings=IntervalsSettings(this)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
         lateinit var content:IntervalsView
-        content=IntervalsView(settingsContext,runtime.themes,settings.read(),settings.hasKey()) {
+        content=IntervalsView(settingsContext,settingsThemes,settings.read(),settings.hasKey()) {
             val config=content.config();val typedKey=content.newKey()
             content.testing(true)
             worker.execute {
@@ -1263,13 +1264,13 @@ class MainActivity : Activity() {
                 }
                 runOnUiThread { content.testing(false); BicycleFeedback.update(content.result, message) }
             }, "B-Cycle-WebDAV-Test").start()
-        }, runtime.themes, storedPassword = {
+        }, settingsThemes, storedPassword = {
             runCatching { settings.password() }.getOrElse {
                 BicycleFeedback.update(content.result, getString(R.string.route_export_password_failed))
                 ""
             }
         }, part = part)
-        BicycleDialogStyle.content(content, runtime.themes)
+        BicycleDialogStyle.content(content, settingsThemes)
         exportPasswordDraft?.let { content.password.setText(it) }
         exportDraft = null; exportPasswordDraft = null
         val screen = dataDialog(if(part == RouteExportPart.LOCAL) R.string.data_local else R.string.data_cloud,
@@ -1373,7 +1374,7 @@ class MainActivity : Activity() {
             }
             detail.analysis = detail.analysis?.let { it.copy(entry = it.entry.copy(name = entry.name, fileStamp = entry.fileStamp)) }
         }
-        val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${runtime.recording}:${runtime.saving}:${RouteCloudUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${runtime.themes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
+        val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${runtime.recording}:${runtime.saving}:${RouteCloudUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${settingsThemes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
         if (signature == detail.signature) return
         detail.signature = signature
         val cloud = if (entry != null && RouteCloudUploads.state(this, entry.id, entry.fileStamp).state == UploadState.UPLOADED) BicycleIcon.CloudConfirmed else BicycleIcon.CloudNotUploaded
@@ -1381,7 +1382,7 @@ class MainActivity : Activity() {
         val kinds = listOf(BicycleIcon.ShowOnMap, BicycleIcon.CorrectElevation, cloud, local, BicycleIcon.DeleteTrack)
         kinds.indices.forEach { index ->
             val button = detail.footer.getChildAt(index) as BicycleFooterAction
-            button.setIcon(kinds[index], runtime.themes.active.tokens.foreground)
+            button.setIcon(kinds[index], settingsThemes.active.tokens.foreground)
             if (index == 2) button.contentDescription = getString(if (cloud == BicycleIcon.CloudConfirmed) R.string.route_cloud_confirmed else R.string.route_action_cloud)
             if (index == 3) button.contentDescription = getString(if (local == BicycleIcon.SaveConfirmed) R.string.route_save_confirmed else R.string.route_action_save)
             button.isEnabled = !runtime.mapState.busy && entry != null && when (index) {

@@ -15,7 +15,8 @@ sealed interface BicycleTheme {
 
 data class PresetTheme(override val id: String, override val name: String,
                        override val tokens: ThemeTokens,
-                       val approvedLowContrastSurfaces: Set<ThemeRole> = emptySet()) : BicycleTheme {
+                       val approvedLowContrastSurfaces: Set<ThemeRole> = emptySet(),
+                       val approvedLowContrastAccent: Boolean = false) : BicycleTheme {
     override val isCustom = false
 }
 
@@ -27,13 +28,18 @@ data class CustomTheme(override val id: String, override val name: String,
 object BicycleThemes {
     private fun preset(id: String, name: String, primary: Long, secondary: Long, tertiary: Long,
                        foreground: Long = 0xffffffff, accent: Long = foreground,
-                       approvedLowContrastSurfaces: Set<ThemeRole> = emptySet()) = PresetTheme("preset:$id", name,
-        ThemeTokens(primary.toInt(), secondary.toInt(), tertiary.toInt(), foreground.toInt(), accent.toInt()), approvedLowContrastSurfaces)
+                       approvedLowContrastSurfaces: Set<ThemeRole> = emptySet(),
+                       approvedLowContrastAccent: Boolean = false) = PresetTheme("preset:$id", name,
+        ThemeTokens(primary.toInt(), secondary.toInt(), tertiary.toInt(), foreground.toInt(), accent.toInt()), approvedLowContrastSurfaces, approvedLowContrastAccent)
     val red = preset("bicycle-red", "BICYCLE RED", 0xffbf281b, 0xff89190e, 0xff680e07)
     /** Immutable templates; stored custom themes cannot overwrite these stable IDs. */
     val presets: List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
         red,
         preset("black-ops", "EMBERS", 0xffbf281b, 0xff000000, 0xff292929, accent = 0xffbf281b),
+        // Inverted Embers surfaces; old #292929 reduced by 30 % per RGB channel.
+        // Accent readability uses the existing per-surface foreground fallback.
+        preset("embers-inv", "Embers Inv.", 0xffbf281b, 0xff1d1d1d, 0xff000000, accent = 0xffbf281b,
+            approvedLowContrastAccent = true),
         // Exact palette and white-on-yellow header explicitly accepted by the user.
         preset("solar-flare", "FIRE", 0xffffb400, 0xff000000, 0xff292929, accent = 0xffffb400,
             approvedLowContrastSurfaces = setOf(ThemeRole.PRIMARY)),
@@ -72,7 +78,7 @@ object ThemeValidator {
             problems += "Text und Icons benötigen mindestens 4,5:1 Kontrast zu jeder Fläche"
         // Semantic highlights currently live on SECONDARY. Other surfaces use
         // the shared per-surface foreground fallback when accent is unreadable.
-        if (contrast(t.accent, t.secondary) < minimumIconContrast)
+        if ((theme as? PresetTheme)?.approvedLowContrastAccent != true && contrast(t.accent, t.secondary) < minimumIconContrast)
             problems += "Accent-Icons benötigen mindestens 3:1 Kontrast zur Dialogfläche"
         return ThemeValidation(problems.toList())
     }

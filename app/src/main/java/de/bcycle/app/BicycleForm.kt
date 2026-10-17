@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -32,9 +31,7 @@ internal object BicycleForm {
         }
         BicycleComponents.bindTheme(edit,themes) { tokens ->
             edit.backgroundTintList=null
-            edit.background=GradientDrawable().apply {
-                setColor(Color.TRANSPARENT); setStroke(BicycleDesign.linePixels(edit.context),tokens.tertiary)
-            }
+            edit.background=BicycleComponents.controlBackground(edit.context,tokens,Color.TRANSPARENT)
         }
     }
     fun numberRow(edit: EditText, themes: ThemeManager, title: Int, unit: Int, unitTag: String): LinearLayout {
@@ -48,7 +45,7 @@ internal object BicycleForm {
             addView(edit,LinearLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.formNumberWidth),-2))
             addView(TextView(context).apply {
                 text=context.getString(unit); tag=unitTag; textSize=BicycleDesign.bodySp
-                setTextColor(BicycleDesign.dashboardUnitColor); gravity=Gravity.CENTER
+                BicycleComponents.secondaryText(this,themes); gravity=Gravity.CENTER
                 importantForAccessibility=TextView.IMPORTANT_FOR_ACCESSIBILITY_NO
             },LinearLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),-2))
         }

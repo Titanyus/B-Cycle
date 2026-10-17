@@ -25,7 +25,7 @@ class BicycleThemeTest {
     }
     @Test fun accentsDefaultToForegroundAndRequireOpaqueContrastingColors() {
         BicycleThemes.presets.forEach {
-            if (it.id !in setOf("preset:black-ops", "preset:solar-flare", "preset:electric-blue", "preset:acid-lime")) assertEquals(it.tokens.foreground, it.tokens.accent)
+            if (it.id !in setOf("preset:black-ops", "preset:embers-inv", "preset:solar-flare", "preset:electric-blue", "preset:acid-lime")) assertEquals(it.tokens.foreground, it.tokens.accent)
             assertTrue(ThemeValidator.validate(it).valid)
         }
         val base = ThemeTokens(0xff535353.toInt(), 0xff292929.toInt(), 0xff000000.toInt(), 0xffffffff.toInt())
@@ -68,6 +68,17 @@ class BicycleThemeTest {
         assertEquals(t.foreground, t.iconColor(ThemeRole.ACCENT, ThemeRole.TERTIARY))
         assertEquals(t.foreground, t.iconColor(ThemeRole.ACCENT, ThemeRole.PRIMARY))
         assertEquals(t.foreground, t.iconColor(ThemeRole.FOREGROUND))
+    }
+
+    @Test fun invertedEmbersKeepsExactPaletteAndUsesExistingReadableIconFallback() {
+        val base=BicycleThemes.presets.single { it.id=="preset:black-ops" }
+        val inverted=BicycleThemes.presets.single { it.id=="preset:embers-inv" }
+        assertEquals("Embers Inv.",inverted.name)
+        assertEquals(base.tokens.copy(secondary=0xff1d1d1d.toInt(),tertiary=0xff000000.toInt()),inverted.tokens)
+        assertTrue(ThemeValidator.validate(inverted).valid)
+        assertFalse(ThemeValidator.validate(inverted.copy(approvedLowContrastAccent=false)).valid)
+        assertFalse(ThemeValidator.validate(CustomTheme("custom:inv","Inv",inverted.tokens)).valid)
+        assertEquals(inverted.tokens.foreground,inverted.tokens.iconColor(ThemeRole.ACCENT,ThemeRole.SECONDARY))
     }
 
 }

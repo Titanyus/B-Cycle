@@ -27,7 +27,7 @@ internal class ThemePickerView(context:Context,private val themes:ThemeManager):
             chosen.contentDescription=themes.active.name
         }
     }
-    private fun palette(theme:BicycleTheme)=theme.tokens.let { intArrayOf(it.primary,it.secondary,it.tertiary,it.foreground,it.accent) }
+    private fun palette(theme:BicycleTheme)=themes.forDisplay(theme).tokens.let { intArrayOf(it.primary,it.secondary,it.tertiary,it.foreground,it.accent) }
     private fun row(theme:BicycleTheme?,header:Boolean=false):LinearLayout = LinearLayout(context).apply {
         orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
         minimumHeight=dp(BicycleDesign.themeDropdownHeight)

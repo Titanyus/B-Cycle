@@ -87,19 +87,25 @@ class MessageNotificationUiTest {
         assertEquals(setOf("android.system.service","custom.app"),settings.packages)
         MessageNotifications.observedPackages.remove("android.system.service")
     }
-    @Test fun notificationSectionsPinToViewportAndPushOffAtNextSection() {
+    @Test fun durationTitleAlignsWithSliderAndOnlyAppsKeepsStickyHeader() {
         val app=RuntimeEnvironment.getApplication()
         val content=MessageNotificationSettingsView(android.view.ContextThemeWrapper(app,R.style.SettingsDialogTheme),ThemeManager(app.getSharedPreferences("bike",0)))
         val scroll=BicycleStickyScrollView(content.context).apply { addView(content) }
-        scroll.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY))
-        scroll.layout(0,0,1080,600)
-        val headers=views(content).filterIsInstance<BicycleSectionHeader>()
-        assertEquals(3,headers.size)
-        scroll.scrollTo(0,headers.first().top+20)
-        assertTrue(headers.first().translationY>0f)
-        assertEquals(scroll.scrollY.toFloat(),headers.first().top+headers.first().translationY,1f)
-        scroll.scrollTo(0,headers[1].top)
-        assertEquals(0f,headers.first().translationY,0f)
+        for(width in listOf(320,400)) {
+            scroll.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY))
+            scroll.layout(0,0,width,600)
+            val headers=views(content).filterIsInstance<BicycleSectionHeader>()
+            assertEquals(1,headers.size)
+            assertEquals(app.getString(R.string.notifications_apps),headers.single().contentDescription)
+            val slider=content.findViewWithTag<SeekBar>("notification_duration")
+            val title=content.findViewWithTag<android.widget.TextView>("notification_duration_label")
+            val value=content.findViewWithTag<android.widget.TextView>("notification_duration_value")
+            assertSame(title.parent,slider.parent);assertSame(value.parent,slider.parent)
+            assertTrue(title.right<slider.left)
+            assertEquals(slider.top+slider.height/2f,title.top+title.height/2f,1f)
+            assertTrue(value.bottom<=slider.top);assertTrue(slider.width>0)
+            assertEquals(slider.id,title.labelFor)
+        }
     }
     @Test fun realDashboardCardHonorsAllThreeAnchorsAndForegroundAndDialogBoundaries() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
