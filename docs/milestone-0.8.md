@@ -20,14 +20,18 @@ Version 0.8, versionCode 70. Veröffentlichung am 18.10.2026.
 - APK nach Download mit etabliertem Testschlüssel nachsigniert; Zertifikat und 16-KiB-Zip-Ausrichtung geprüft. Als Update zu bisherigen Test-APKs installierbar.
 - Release-Manifest geprüft: Version 0.8 / Code 70, nicht debuggable.
 - Noch kein physischer Gerätetest dieser optimierten APK; BLE, FIT und Netzwerkdienste müssen am Gerät bestätigt werden.
-- R8-Mapping für spätere Fehleranalyse als komprimierter Release-Anhang gesichert.
+- R8-Mapping für spätere Fehleranalyse als komprimierte Datei im Repository gesichert.
 
 ## Download
 
-[Optimierte APK herunterladen](https://github.com/Titanyus/B-Cycle/releases/download/v0.8/B-Cycle-0.8.apk)
+[Optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8/downloads/B-Cycle-0.8.apk)
 
 Größe: **1.719.291 Bytes**, gegenüber 8.255.407 Bytes in Build 33 rund **79 % kleiner**.
 
 SHA-256: `99c138e047ce66e8293ad28b587686bfaae2fb13349928f43ee264e449918855`
 
 Signaturzertifikat SHA-256: `1f9f9ea0db9df10a47a4da05f93d5dd265062b474421e98d0819cbf4ac7e555a`.
+
+[Prüfsumme](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8/downloads/B-Cycle-0.8.apk.sha256) · [R8-Mapping](https://github.com/Titanyus/B-Cycle/blob/main/downloads/B-Cycle-0.8-mapping.txt.gz).
+
+Release-Anhang-Upload wurde von GitHub mit HTTP 401 abgewiesen; der APK-Download verweist deshalb auf die unveränderte, signierte Datei am Meilenstein-Tag im Repository.

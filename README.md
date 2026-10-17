@@ -61,7 +61,7 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8 – optimierte APK herunterladen](https://github.com/Titanyus/B-Cycle/releases/download/v0.8/B-Cycle-0.8.apk)**
+**[Version 0.8 – optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8/downloads/B-Cycle-0.8.apk)**
 
 **Meilenstein 0.8 vom 18.10.2026.** Optimierter Release mit R8 und Ressourcenverkleinerung,
 mit bisherigem Testschlüssel signiert und als Update installierbar.
