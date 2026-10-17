@@ -18,4 +18,4 @@ Der Zustand `uiTheme.settingsLight` wird je Bikeprofil gespeichert, bei Profilü
 
 Zusätzlich enthalten: Embers Inv. (#BF281B / #1D1D1D / #000000 / #FFFFFF / #BF281B), transparente Fahrradfoto-Mülltonne, schwarzes Karten-Vergrößern-Symbol, Vollbildoption am Anfang von Design & UI und kompakte Dauer-/Positionsdarstellung in den Benachrichtigungseinstellungen.
 
-Prüfung: 57 gezielte Tests für Theme-/Headerumschaltung, unveränderte Dashboard-Palette, Profil- und Backup-Roundtrip, Themeauswahl, Sticky-Abschnitte, Konturen sowie Benachrichtigungs-Layout erfolgreich. Die korrigierte Header-Testfixture wurde gesondert erneut geprüft. Kein zusätzlicher Gerätetest.
+Prüfung: 57 gezielte Tests für Theme-/Headerumschaltung, unveränderte Dashboard-Palette, Profil- und Backup-Roundtrip, Themeauswahl, Sticky-Abschnitte, Konturen sowie Benachrichtigungs-Layout erfolgreich. Kein zusätzlicher Gerätetest.

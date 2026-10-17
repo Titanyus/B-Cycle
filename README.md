@@ -61,15 +61,15 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 30 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-30-apk/downloads/B-Cycle-0.7.31-test-build-30.apk)**
+**[Aktuelle signierte Test-APK: Build 31 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-31-apk/downloads/B-Cycle-0.7.31-test-build-31.apk)**
 
 Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. **Version 0.7.31, Test-Build 30 vom 17.10.2026**.
-Neu: Android-Systemdienste werden aus der Benachrichtigungs-App-Auswahl ausgeblendet.
-Vorinstallierte reguläre Apps und bekannte Messenger bleiben auswählbar.
-**8 gezielte Tests erfolgreich.**
-[Änderungen, vorgemerkte nächste Schritte und SHA-256](docs/test-build-30.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39054523208).
+installierbar. **Version 0.7.31, Test-Build 31 vom 17.10.2026**.
+Neu: Hell/Dunkel für Einstellungen über Sonne/Mond im Header, unabhängig vom Dashboard.
+Embers Inv., 1-dp-Formularrahmen mit 50 % FOREGROUND und die vorgemerkten UI-Anpassungen.
+**57 gezielte Tests erfolgreich.**
+[Änderungen und SHA-256](docs/test-build-31.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39056204878).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.31
