@@ -72,7 +72,6 @@ object BicycleDesign {
     const val bikePhotoHeight = 200
     const val bikePhotoEmptyHeight = 64
     const val bikePreviewHeight = 56
-    const val dashboardPagePreviewHeight = 90
     const val sectionHeaderMinHeight = 56
     const val sectionHeaderPadding = 12
     const val sectionRuleDp = .75f
@@ -119,9 +118,6 @@ object BicycleDesign {
     const val smallGap = 4
     const val presetPreviewWidth = 60
     const val presetPreviewHeight = 84
-    const val dashboardLayoutPreviewWidth = 96
-    const val dashboardLayoutPreviewHeight = 134
-    const val dashboardLayoutTileHeight = 182
     const val presetTileHeight = 132
     const val presetTileGap = 2
     const val modeGlowWidth = 24

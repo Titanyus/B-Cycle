@@ -65,7 +65,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
                     BicycleComponents.bindTheme(this,themes) { tokens ->
                         setImageDrawable(page?.let { DashboardPreview(template(it.id)) } ?: BicycleIcons.drawable(context,BicycleIcon.AddSensor,tokens.foreground));setColorFilter(tokens.foreground)
                     }
-                },LayoutParams(-1,dp(BicycleDesign.dashboardPagePreviewHeight)))
+                },LayoutParams(dp(BicycleDesign.presetPreviewWidth),dp(BicycleDesign.presetPreviewHeight)))
                 addView(BicycleComponents.text(context,themes,page?.name ?: context.getString(R.string.dashboard_new)).apply {
                     gravity=Gravity.CENTER;setLines(2);ellipsize=android.text.TextUtils.TruncateAt.END;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                 },LayoutParams(-1,-2))
@@ -104,7 +104,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         val availableWidth=frame.width().takeIf { it>0 } ?: resources.displayMetrics.widthPixels
         val popupWidth=minOf(layoutChoice.width.takeIf { it>0 } ?: availableWidth,availableWidth)
         val availableHeight=frame.height().takeIf { it>0 } ?: resources.displayMetrics.heightPixels
-        val desired=dp((BicycleDesign.dashboardLayoutTileHeight+2*BicycleDesign.presetTileGap)*((DashboardTemplate.entries.size+2)/3))
+        val desired=dp((BicycleDesign.presetTileHeight+2*BicycleDesign.presetTileGap)*((DashboardTemplate.entries.size+2)/3))
         val popup=PopupWindow().apply {
             width=popupWidth;height=minOf(desired,(availableHeight*.6f).toInt()).coerceAtLeast(dp(BicycleDesign.touchSize))
             isFocusable=true;isOutsideTouchable=true;inputMethodMode=PopupWindow.INPUT_METHOD_NOT_NEEDED
