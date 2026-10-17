@@ -509,7 +509,7 @@ class MainActivity : Activity() {
         BicycleForm.section(root,runtime.themes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
         root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         fun source(title: String, chosen: String, bikeId: String): Spinner {
-            val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL }
+            val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }
             val caption=label(title,BicycleDesign.bodySp)
             row.addView(caption,LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
             val choice=Spinner(settingsContext).apply {
@@ -518,12 +518,12 @@ class MainActivity : Activity() {
                 id=View.generateViewId();caption.labelFor=id
             }
             BicycleDialogStyle.spinner(choice,runtime.themes,BicycleDesign.profileDropdownSp)
-            row.addView(choice,LinearLayout.LayoutParams(0,-2,1f));root.addView(row)
+            row.addView(choice,LinearLayout.LayoutParams(0,-2,1f));root.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
             return choice
         }
         val speed = source(getString(R.string.bikes_fit_primary_speed), current.speedSource, "SPEED")
         val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
-        fun saveFields() { if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
+        fun saveFields() { if(runtime.bikes.activeSlot!=slot || !speed.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
         BicycleForm.section(root,runtime.themes,R.string.ui_track_recording)
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
@@ -786,7 +786,7 @@ class MainActivity : Activity() {
             }
         }
         root.addView(glow)
-        val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL }
+        val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }
         val title=label(getString(R.string.ui_glow_visible),BicycleDesign.bodySp)
         row.addView(title,LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
         val placement=Spinner(settingsContext).apply {
@@ -799,7 +799,7 @@ class MainActivity : Activity() {
                 preferences.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[selectedItemPosition].name).apply();render()
             }
         }
-        row.addView(placement,LinearLayout.LayoutParams(0,-2,1f));root.addView(row)
+        row.addView(placement,LinearLayout.LayoutParams(0,-2,1f));root.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
         BicycleDialogStyle.content(root,runtime.themes)
         return root
     }
@@ -981,7 +981,7 @@ class MainActivity : Activity() {
             anchorView = anchor; isModal = true
             width = minOf(dp(BicycleDesign.popupWidth), resources.displayMetrics.widthPixels - dp(BicycleDesign.horizontalPadding * 2))
             setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
-                setColor(runtime.themes.active.tokens.tertiary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
+                setColor(runtime.themes.active.tokens.secondary); setStroke(dp(BicycleDesign.controlBorder),runtime.themes.active.tokens.foreground); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             })
             setAdapter(object : ArrayAdapter<String>(settingsContext, android.R.layout.simple_list_item_1, choices) {
                 override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View =
@@ -1010,10 +1010,10 @@ class MainActivity : Activity() {
         popup.show()
         popup.listView?.let { list -> BicycleComponents.bindTheme(list, runtime.themes) { tokens ->
             popup.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
-                setColor(tokens.tertiary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
+                setColor(tokens.secondary); setStroke(dp(BicycleDesign.controlBorder),tokens.foreground); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             })
             list.selector = android.graphics.drawable.GradientDrawable().apply {
-                setColor(tokens.tertiary); setStroke(BicycleDesign.linePixels(this@MainActivity), tokens.foreground)
+                setColor(tokens.secondary); setStroke(dp(BicycleDesign.controlBorder), tokens.foreground)
                 cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
             }
         } }

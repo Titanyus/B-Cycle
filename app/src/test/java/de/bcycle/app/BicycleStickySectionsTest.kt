@@ -61,7 +61,7 @@ class BicycleStickySectionsTest {
             }
             assertTrue("Drag starting over the pinned header must scroll",scroll.scrollY>before)
             themes.activate("preset:black-ops")
-            assertEquals(themes.active.tokens.secondary,(first.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            assertEquals(themes.active.tokens.tertiary,(first.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             for(header in listOf(first,second)) {
                 assertTrue(header.isAccessibilityHeading)
                 assertEquals(3,header.childCount)
@@ -91,7 +91,7 @@ class BicycleStickySectionsTest {
             val scroll=testDescendants(decor).filterIsInstance<BicycleStickyScrollView>().single()
             val body=decor.findViewWithTag<View>("bikes_manager")
             val headings=testDescendants(body).filterIsInstance<BicycleSectionHeader>()
-            assertFalse(headings.any { it.contentDescription==runtime.bikes.current().name })
+            assertTrue(headings.any { it.contentDescription==runtime.bikes.current().name })
             assertEquals(0,testDescendants(body).filterIsInstance<ProfileAccordion>().size)
             for(sensor in listOf("GPS","EBIKE","POWER","HEART")) {
                 val toggle=decor.findViewWithTag<android.widget.Switch>("bike_sensor_$sensor")
@@ -117,7 +117,7 @@ class BicycleStickySectionsTest {
             // Bike headings are now ordinary headings inside an accordion, not sticky.
             scroll.scrollTo(0,60)
             val title=decor.findViewWithTag<View>("bike_profile_name")
-            assertFalse(title.parent is BicycleSectionHeader)
+            assertTrue(title.parent is BicycleSectionHeader)
             assertEquals(0f,title.translationY,0f)
             val screenshot=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888)
             decor.draw(Canvas(screenshot))

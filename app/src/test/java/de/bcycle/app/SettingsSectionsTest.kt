@@ -35,7 +35,7 @@ class SettingsSectionsTest {
             }
             fun headings(root:View)=testDescendants(root).filterIsInstance<BicycleSectionHeader>().map { it.contentDescription.toString() }
             val design=open("dashboardSettings")
-            assertEquals(listOf("Theme","Dashboard-Layout","Trainingshilfe","Fahrmodus-Anzeige"),headings(design))
+            assertEquals(listOf("Theme","Dashboard-Layout","Trainingshilfe","Bosch-Fahrmodus"),headings(design))
             assertEquals(1,testDescendants(design).filterIsInstance<android.widget.ScrollView>().size)
             testBack(ShadowAlertDialog.getLatestAlertDialog())
             val data=open("dataSettings")
@@ -55,7 +55,7 @@ class SettingsSectionsTest {
                     assertTrue(row.getChildAt(0).width>0)
                     assertEquals(BicycleDesign.formNumberWidth,edit.width)
                     assertEquals(activity.resources.getFont(R.font.bebas_neue),edit.typeface)
-                    assertEquals(BicycleDesign.analysisMetricSp,edit.textSize,0f)
+                    assertEquals(BicycleDesign.settingsMetricSp,edit.textSize,0f)
                     assertEquals(android.graphics.Color.TRANSPARENT,(edit.background as GradientDrawable).color!!.defaultColor)
                 }
             }

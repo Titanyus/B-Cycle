@@ -58,7 +58,7 @@ internal class ThemePickerView(context:Context,private val themes:ThemeManager):
             alpha=if(theme==null) .4f else 1f
             background=GradientDrawable().apply {
                 setColor(tokens.secondary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
-                setStroke(if(!header && isSelected) dp(BicycleDesign.themeSelectedBorder) else BicycleDesign.linePixels(context),
+                setStroke(if(!header && isSelected) dp(BicycleDesign.themeSelectedBorder) else dp(BicycleDesign.controlBorder),
                     if(!header && isSelected) tokens.accent else tokens.foreground)
             }
         }
@@ -79,7 +79,7 @@ internal class ThemePickerView(context:Context,private val themes:ThemeManager):
             setOnItemClickListener { _,_,position,_ ->
                 entries[position]?.let { themes.activate(it.id) };dismiss()
             }
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(themes.active.tokens.secondary))
+            setBackgroundDrawable(BicycleComponents.controlBackground(context,themes.active.tokens))
             show()
         }
     }

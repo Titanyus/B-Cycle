@@ -51,9 +51,7 @@ internal class RouteManagerView(context: Context,
             addView(BicycleComponents.heading(context, themes, context.getString(R.string.ui_route_manager_title)), FrameLayout.LayoutParams(-1, -1))
         }, LayoutParams(-1, -1))
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
-        fun filterBackground(tokens: ThemeTokens) = GradientDrawable().apply {
-            setColor(tokens.tertiary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
-        }
+        fun filterBackground(tokens: ThemeTokens) = BicycleComponents.controlBackground(context,tokens)
         BicycleComponents.bindTheme(filter, themes) { tokens ->
             filter.background = LayerDrawable(arrayOf(filterBackground(tokens), BicycleIcons.drawable(context, BicycleIcon.Expand, tokens.foreground))).apply {
                 setLayerSize(1, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize))
@@ -65,7 +63,7 @@ internal class RouteManagerView(context: Context,
             private fun row(position: Int, recycled: View?, dropdown: Boolean): View =
                 ((recycled as? TextView) ?: BicycleComponents.text(context, themes, "").apply {
                     gravity = Gravity.CENTER_VERTICAL; minHeight = dp(BicycleDesign.touchSize)
-                    BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.tertiary else Color.TRANSPARENT) }
+                    BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.secondary else Color.TRANSPARENT) }
                 }).apply {
                     text = getItem(position); textSize = BicycleDesign.inputSp
                     setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(if (dropdown) BicycleDesign.horizontalPadding else BicycleDesign.touchSize), dp(BicycleDesign.verticalPadding))

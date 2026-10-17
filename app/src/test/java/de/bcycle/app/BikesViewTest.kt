@@ -130,9 +130,12 @@ class BikesViewTest {
             fun showSectionBefore(tag: String) {
                 scrolling.scrollTo(0,0);measure(decor)
                 val target=decor.findViewWithTag<View>(tag)
-                val parent=target.parent as ViewGroup
-                val heading=if(parent.parent is ProfileAccordion) (parent.parent as ProfileAccordion).header
-                    else parent.getChildAt(parent.indexOfChild(target)-1)
+                var node=target
+                var parent=node.parent as ViewGroup
+                while(parent.indexOfChild(node)==0 && parent.parent is ViewGroup && parent!==scrolling) {
+                    node=parent;parent=node.parent as ViewGroup
+                }
+                val heading=parent.getChildAt(parent.indexOfChild(node)-1)
                 val rect=android.graphics.Rect(0,0,heading.width,heading.height)
                 scrolling.offsetDescendantRectToMyCoords(heading,rect)
                 scrolling.scrollTo(0,rect.top);measure(decor)

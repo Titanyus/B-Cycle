@@ -72,7 +72,7 @@ class PerformanceSettingsTest {
             assertTrue(runtime.themes.activate("preset:solar-flare"))
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible = true }.invoke(activity)
             val dialog = ShadowAlertDialog.getLatestAlertDialog()
-            val content = views(dialog.window!!.decorView).single { it.tag == "bike_fit_settings" } as ViewGroup
+            val content = views(dialog.window!!.decorView).single { it.tag == "bike_track_settings" } as ViewGroup
             shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, content.visibility)
             val source=RecordField.options.single { it.id=="NORMALIZED_POWER" }.source

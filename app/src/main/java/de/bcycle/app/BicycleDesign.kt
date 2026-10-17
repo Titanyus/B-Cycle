@@ -112,6 +112,7 @@ object BicycleDesign {
     const val headerHorizontalPadding = 24
     const val headerVerticalPadding = 12
     const val dialogRadius = 18
+    const val controlBorder = 2
     const val inputRadius = 6
     const val scrollbarSize = 2
     const val footerHeight = 64
@@ -284,12 +285,19 @@ object BicycleComponents {
             textSelectHandle?.mutate()?.setTint(it.foreground); textSelectHandleLeft?.mutate()?.setTint(it.foreground); textSelectHandleRight?.mutate()?.setTint(it.foreground)
         }
     }
+    internal fun controlBackground(context:Context,tokens:ThemeTokens)=GradientDrawable().apply {
+        setColor(tokens.secondary);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
+        setStroke(dp(context,BicycleDesign.controlBorder),tokens.foreground)
+    }
+    internal fun outlinedControl(view:View,manager:ThemeManager) {
+        bindTheme(view,manager) { view.background=controlBackground(view.context,it);view.backgroundTintList=null }
+    }
     fun action(context: Context, manager: ThemeManager, label: String, click: () -> Unit) =
         action(context, manager, label, true, click)
     internal fun action(context: Context, manager: ThemeManager, label: String, formSpacing: Boolean, click: () -> Unit) = Button(context).apply {
         text = label; textSize = BicycleDesign.bodySp; isAllCaps = false
         minimumWidth = dp(context, BicycleDesign.touchSize); minimumHeight = dp(context, BicycleDesign.touchSize)
-        surface(this, manager, ThemeRole.TERTIARY, BicycleDesign.inputRadius)
+        outlinedControl(this,manager)
         bindTheme(this, manager) { setTextColor(it.foreground); backgroundTintList = null }
         setOnClickListener { click() }
         if (formSpacing) controlSpacing(this)

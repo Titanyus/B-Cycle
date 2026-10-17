@@ -225,7 +225,7 @@ internal object BicycleDialogStyle {
                 dp(view, BicycleDesign.horizontalPadding), dp(view, BicycleDesign.verticalPadding))
             BicycleComponents.bindTheme(view, themes) {
                 view.setTextColor(colors(it.foreground)); view.backgroundTintList = null
-                view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), inputBackground(view, it), null)
+                view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), BicycleComponents.controlBackground(view.context,it), null)
                 view.compoundDrawablesRelative.filterNotNull().forEach { drawable -> drawable.setTint(it.foreground) }
             }
         } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(it.foreground) }
@@ -256,13 +256,13 @@ internal object BicycleDialogStyle {
         view.minimumHeight = dp(view, BicycleDesign.touchSize)
         BicycleComponents.bindTheme(view, themes) { tokens ->
             view.backgroundTintList = null
-            view.background = LayerDrawable(arrayOf(inputBackground(view, tokens),
+            view.background = LayerDrawable(arrayOf(BicycleComponents.controlBackground(view.context,tokens),
                 BicycleIcons.drawable(view.context, BicycleIcon.Expand, tokens.foreground))).apply {
                 setLayerSize(1, dp(view, BicycleDesign.iconSize), dp(view, BicycleDesign.iconSize))
                 setLayerGravity(1, Gravity.END or Gravity.CENTER_VERTICAL)
                 setLayerInsetEnd(1, dp(view, BicycleDesign.horizontalPadding))
             }
-            view.setPopupBackgroundDrawable(shape(view, tokens.tertiary))
+            view.setPopupBackgroundDrawable(BicycleComponents.controlBackground(view.context,tokens))
         }
         val selected = view.selectedItemPosition
         val original = view.adapter ?: return
@@ -277,7 +277,7 @@ internal object BicycleDialogStyle {
                     typeface = Typeface.DEFAULT; gravity = Gravity.CENTER_VERTICAL
                     minHeight = dp(view, BicycleDesign.touchSize); textSize = textSizeSp
                     BicycleComponents.bindTheme(this, themes) {
-                        setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.tertiary else Color.TRANSPARENT)
+                        setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.secondary else Color.TRANSPARENT)
                         if (renderLabel != null && tag is String) text=renderLabel(tag as String,it.foreground)
                     }
                 }).apply {

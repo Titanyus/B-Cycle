@@ -15,6 +15,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val confirmDelete:(Int,String,()->Unit)->Unit = { _,_,_ -> },
     private val additionalSections:(()->List<Pair<Int,View>>)?=null, private val editDashboard:()->Unit={}) : LinearLayout(context) {
     private val themes = runtime.themes
+    private val collapsedSections=mutableSetOf<String>()
     private val expandedSensors=mutableSetOf<BikeSensor>()
     private var copyPopup:ListPopupWindow?=null
     private val copyAction:BicycleFooterAction=BicycleFooterAction(context,themes,BicycleIcon.Import,context.getString(R.string.profiles_copy)) {
@@ -97,9 +98,9 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         addView(strip,LayoutParams(-1,-2))
         strip.show(runtime.bikes.all(),slot,runtime.recording || runtime.saving)
         strip.revealActive()
-        val nameHeader = if(additionalSections==null) BicycleSectionHeader(context,themes,profile.name) else null
-        nameHeading = (nameHeader?.titleView ?: BicycleComponents.text(context,themes,profile.name,true)).apply {
-            tag="bike_profile_name";gravity=Gravity.CENTER;minimumHeight=dp(BicycleDesign.touchSize);isClickable=true;isFocusable=true
+        val nameHeader = BicycleSectionHeader(context,themes,profile.name).apply { tag="bike_name_header" }
+        nameHeading = (nameHeader.titleView).apply {
+            tag="bike_profile_name";gravity=Gravity.CENTER;minimumHeight=dp(BicycleDesign.sectionHeaderMinHeight);isClickable=true;isFocusable=true
             contentDescription=context.getString(R.string.bikes_name_edit)
         }
         val nameEdit = BicycleComponents.input(context,themes).apply {
@@ -109,23 +110,23 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         }
         fun finishNaming() {
             if(nameEdit.text.toString().trim().isEmpty()) return
-            nameEdit.visibility=GONE;nameHeading.visibility=VISIBLE;nameEdit.clearFocus()
+            nameEdit.visibility=GONE;nameHeading.visibility=VISIBLE;nameHeader.visibility=VISIBLE;nameEdit.clearFocus()
             context.getSystemService(InputMethodManager::class.java).hideSoftInputFromWindow(nameEdit.windowToken,0)
         }
         nameHeading.setOnClickListener {
-            nameHeading.visibility=GONE;nameEdit.visibility=VISIBLE;nameEdit.requestFocus();nameEdit.selectAll()
+            nameHeader.visibility=GONE;nameHeading.visibility=GONE;nameEdit.visibility=VISIBLE;nameEdit.requestFocus();nameEdit.selectAll()
             context.getSystemService(InputMethodManager::class.java).showSoftInput(nameEdit,InputMethodManager.SHOW_IMPLICIT)
         }
-        nameHeader?.apply { isClickable=true;isFocusable=true;setOnClickListener { nameHeading.performClick() } }
+        nameHeader.apply { isClickable=true;isFocusable=true;setOnClickListener { nameHeading.performClick() } }
         nameEdit.addTextChangedListener(watcher { value ->
             if(runtime.bikes.activeSlot!=slot) return@watcher
             val name=value.trim()
             nameEdit.error=if(name.isEmpty() || name.any(Char::isISOControl)) context.getString(R.string.bikes_name_empty) else null
-            if(nameEdit.error==null) { runtime.bikes.save(runtime.bikes.current().copy(name=name));nameHeading.text=name;nameHeader?.contentDescription=name;paintCards() }
+            if(nameEdit.error==null) { runtime.bikes.save(runtime.bikes.current().copy(name=name));nameHeading.text=name;nameHeader.contentDescription=name;paintCards() }
         })
         nameEdit.setOnEditorActionListener { _,action,_ -> if(action==EditorInfo.IME_ACTION_DONE) { finishNaming();true } else false }
         nameEdit.setOnFocusChangeListener { _,focused -> if(!focused && nameEdit.visibility==VISIBLE) finishNaming() }
-        addView(nameHeader ?: nameHeading,LayoutParams(-1,-2).apply { if(nameHeader!=null) { marginStart=-paddingLeft;marginEnd=-paddingRight } });addView(nameEdit,LayoutParams(-1,-2))
+        addView(nameHeader,LayoutParams(-1,-2).apply { marginStart=-paddingLeft;marginEnd=-paddingRight });addView(nameEdit,LayoutParams(-1,-2))
         photo=BikePhotoView(context,themes,slot,profile.type) { choosePhoto(slot) }.also { addView(it,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.sectionContentGap) }) }
         if(additionalSections==null) section(R.string.bikes_type)
         typeChoice=Spinner(context).apply {
@@ -266,12 +267,45 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             correctionSlider(slot, R.string.indoor_correction_power, "power", profile.indoorCorrection.powerTenths)
             correctionSlider(slot, R.string.indoor_correction_speed, "speed", profile.indoorCorrection.speedTenths)
         }
-        addView(recordingControls(),LayoutParams(-1,-2))
+        val recording=recordingControls()
+        if(recording is LinearLayout && additionalSections!=null) {
+            while(recording.childCount>0) {
+                val child=recording.getChildAt(0);recording.removeViewAt(0)
+                addView(child,child.layoutParams)
+            }
+        } else addView(recording,LayoutParams(-1,-2))
         additionalSections?.invoke()?.forEach { (title,body) ->
             section(title)
             addView(body,LayoutParams(-1,-2))
         }
+        if(additionalSections!=null) groupSections(nameHeader)
         refresh()
+    }
+    private fun groupSections(nameHeader:BicycleSectionHeader) {
+        val nodes=(0 until childCount).map(::getChildAt)
+        removeAllViews()
+        var body:LinearLayout?=null
+        nodes.forEach { node ->
+            if(node is BicycleSectionHeader) {
+                body=null
+                addView(node,LayoutParams(-1,-2).apply { marginStart=-paddingLeft;marginEnd=-paddingRight })
+                if(node!==nameHeader) {
+                    val key=node.contentDescription.toString()
+                    body=LinearLayout(context).apply {
+                        orientation=VERTICAL
+                        tag=when(key) {
+                            context.getString(R.string.ui_recording_title)->"bike_fit_settings"
+                            context.getString(R.string.ui_track_recording)->"bike_track_settings"
+                            else->"profile_section_content_$key"
+                        }
+                    }
+                    addView(body,LayoutParams(-1,-2))
+                    node.accordion(body!!,key !in collapsedSections) { open ->
+                        if(open) collapsedSections.remove(key) else collapsedSections.add(key)
+                    }
+                }
+            } else if(body!=null) body!!.addView(node,node.layoutParams) else addView(node,node.layoutParams)
+        }
     }
     private fun correctionSlider(slot: Int, title: Int, key: String, step: Int) {
         val value = BicycleComponents.text(context,themes,"").apply {

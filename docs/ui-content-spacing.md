@@ -20,7 +20,7 @@ verändertem Inhalt. Scrollposition und native Scrollmechanik bleiben erhalten.
 
 ## Sticky Header
 
-SECONDARY wie der Seitenhintergrund; Linien oben/unten in FOREGROUND mit 0,75 dp.
+TERTIARY als Headerhintergrund; Linien oben/unten in FOREGROUND mit 0,75 dp.
 Kein Schatten, keine Außenmargins und kein oberer Leerstreifen. Die Header
 berühren sich beim gegenseitigen Wegschieben. 56 dp Mindesthöhe, 12 dp
 Innenpadding und zentrierte 23-sp-/900-Black-Schrift bleiben erhalten. Die
@@ -93,3 +93,9 @@ bei 12 dp. Wettergruppen werden als Gesamtzeile bzw. pro umgebrochener Zeile zen
 
 Die native ListView der Strecken übernimmt dividerAlpha = 55 % für ihre
 FOREGROUND-Trenner, identisch zur Deckkraft der Abschnittstrenner in Details.
+
+## Aufklappbare Profilabschnitte und Formularkontrollen
+
+Auf der Profilseite sind die gleichrangigen Sticky-Abschnitte auf-/zuklappbar. Sie bleiben im geöffneten Zustand sticky; der Chevron und ein gleich breiter unsichtbarer Platz links erhalten die exakte Titelzentrierung. Der Fahrradname ist ein eigener Sticky Header ausschließlich zum Umbenennen. FIT-Aufzeichnung und Strecken-Aufzeichnung stehen in voller Seitenbreite auf der Hauptebene, nicht in einer eingerückten gemeinsamen Gruppe. Einklappen verändert keine gespeicherten Werte.
+
+Formularbuttons und Dropdowns verwenden zentral SECONDARY mit 2 dp FOREGROUND-Kontur und 6 dp Radius; keine eigene graue Fläche. Popup-Flächen übernehmen dieselben Rollen. Bestehende Ripple-/Disabled-Zustände und fachliche Auswahlmarkierungen bleiben erhalten. Eingabefelder behalten ihre eigene dezente Rahmenkonvention.

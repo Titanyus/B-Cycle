@@ -51,7 +51,7 @@ internal class BikePhotoView(context:Context,private val themes:ThemeManager,pri
         isClickable=true;isFocusable=true;contentDescription=context.getString(R.string.bike_photo_choose)
         setOnClickListener { choose() }
         BicycleComponents.bindTheme(this,themes) { tokens ->
-            setBackgroundColor(tokens.tertiary)
+            background=BicycleComponents.controlBackground(context,tokens)
             setImageDrawable(BicycleIcons.drawable(context,BikeTypeIcons.forType(type),BicycleDesign.dashboardUnitColor).apply {
                 val size=BicycleDesign.dp(context,BicycleDesign.bikePhotoPlaceholderIconSize);setBounds(0,0,size,size)
             })
@@ -65,7 +65,7 @@ internal class BikePhotoView(context:Context,private val themes:ThemeManager,pri
         tag="bike_photo";clipToOutline=true
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY,BicycleDesign.inputRadius)
         addView(image,LayoutParams(-1,-1));addView(select,LayoutParams(-1,-1))
-        BicycleComponents.background(remove,themes,ThemeRole.TERTIARY,BicycleDesign.inputRadius)
+        BicycleComponents.outlinedControl(remove,themes)
         addView(remove,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),android.view.Gravity.TOP or android.view.Gravity.END))
         image.setOnClickListener { choose() }
     }

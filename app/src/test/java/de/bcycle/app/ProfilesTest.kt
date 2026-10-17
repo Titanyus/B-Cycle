@@ -224,7 +224,7 @@ class ProfilesTest {
             val inline=root.findViewWithTag<View>("dashboard_inline_actions")
             assertTrue(inline.isShown)
             val name=root.findViewWithTag<TextView>("bike_profile_name")
-            assertFalse(name.parent is BicycleSectionHeader)
+            assertTrue(name.parent is BicycleSectionHeader)
             root.findViewWithTag<View>("bike_rename").performClick()
             root.findViewWithTag<EditText>("bike_profile_name_edit").setText("Mein Profil")
             assertEquals("Mein Profil",r.bikes.current().name)

@@ -3,11 +3,11 @@
 Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherigen Bereiche Bikes, Karten und Design & UI auf einer Seite. Fahrer und Upload-Dienste bleiben global.
 
 - Oben ein bis sechs Fahrradkacheln, drei sichtbar, horizontales Scrollen und gemeinsame Drag-and-drop-Vorschau.
-- Eine lange Seite ohne Haupt-Accordions. Große Sticky Header: **Sensoren**, **FIT-Aufzeichnung**, **Strecken-Aufzeichnung**, **Karten**, **Design & UI**, **Bosch-Fahrmodus**, **Trainingshilfe**. SECONDARY-Hintergrund, FOREGROUND-Linien oben/unten, Schrift FOREGROUND.
-- Antippbarer Name als normale Überschrift, Bild/Platzhalter stets 16:9, Radtyp-Dropdown Bike/E-Bike/Indoor, Kategorie/Radumfang, Sensoren sowie Indoor-Korrektur. Keine Sticky Header Bike oder Radtyp; Sensorschalter in normaler Schaltertypografie.
+- Eine lange Seite mit einzeln auf-/zuklappbaren Sticky-Abschnitten (zunächst alle offen): **Sensoren**, **FIT-Aufzeichnung**, **Strecken-Aufzeichnung**, **Karten**, **Design & UI**, **Bosch-Fahrmodus**, **Trainingshilfe**. TERTIARY-Hintergrund, FOREGROUND-Linien oben/unten, Schrift FOREGROUND.
+- Antippbarer Name als eigener Sticky Header ohne Klappfunktion, Bild/Platzhalter stets 16:9, Radtyp-Dropdown Bike/E-Bike/Indoor, Kategorie/Radumfang, Sensoren sowie Indoor-Korrektur. Keine Sticky Header Bike oder Radtyp; Sensorschalter in normaler Schaltertypografie.
 - FIT-Aufzeichnung enthält Geschwindigkeit/Distanz jeweils mit normalem Titel und Dropdown in einer Zeile. Strecken-Aufzeichnung enthält die zusätzlichen Quell-Accordions. Design enthält kompaktes Theme-Dropdown, benannte Dashboards/Layout-Auswahl und Vollbild. Die drei Dashboard-Aktionen stehen dort zusammen. Bosch-Fahrmodus folgt als eigener Abschnitt, mit Schalter und beschrifteter Oben/Seitlich-Auswahl.
 - Fester Profilfooter **Umbenennen**, **Profil übernehmen**, **Profil löschen**. Löschen bleibt bestätigt und ist beim letzten Profil ausgeblendet.
-- Theme-, Dashboard-Layout- und Fahrmodus-Zwischenheader sowie Fahrmodus-Erklärung entfallen. Nach der Kartenauswahl kein zusätzlicher horizontaler Trenner. FIT-Untergruppen bleiben normale graue Accordions. Sensordetails sind über einen eigenen Chevron neben dem Schalter ausklappbar; beide Aktionen funktionieren unabhängig.
+- Theme-, Dashboard-Layout- und Fahrmodus-Zwischenheader sowie Fahrmodus-Erklärung entfallen. Nach der Kartenauswahl kein zusätzlicher horizontaler Trenner. FIT-Untergruppen behalten ihre Funktion; Buttons und Dropdowns verwenden SECONDARY, 2-dp-FOREGROUND-Rahmen und 6-dp-Rundung. Sensordetails sind über einen eigenen Chevron neben dem Schalter ausklappbar; beide Aktionen funktionieren unabhängig.
 - Profil übernehmen bietet ausschließlich andere Profile an und kopiert Konfiguration einschließlich FIT, Theme/Dashboards/Trainingshilfe und Karten. **Zielname, Ziel-ID, Bild und gekoppelte Sensorgeräte bleiben erhalten.** Die Quelle wird nicht verändert.
 
 ![Native Profilübersicht mit Testdaten](previews/profiles.png)
@@ -198,8 +198,10 @@ Aktive Indoor-Integration, FIT und reale Prüfgrenzen: [Indoor/FTMS](indoor-ftms
 
 Der Indoor-Feldfilter ist eine Laufzeitsicht. Indoor-Speichern ersetzt nur die dort verfügbaren Felder; ausgeblendete GPS-/E-Bike-Felder und die zuvor gewählten Outdoor-Hauptquellen bleiben gespeichert und erscheinen nach Rückkehr wieder. Bewusste Änderungen sichtbarer gemeinsamer Werte werden weiterhin gespeichert. GPS-Positionsaufzeichnung ist bei Bike/E-Bike an den GPS-Sensorschalter gekoppelt, ohne zweite FIT-Checkbox. Die alte GPS_POSITION-ID bleibt zur Dateiformat-/Backup-Kompatibilität erhalten; Outdoor-Journals reservieren Positionsspalten und schreiben nur bei aktiviertem GPS tatsächliche Koordinaten, auch wenn GPS erst während der Fahrt aktiviert wird. Indoor bleibt ohne Positionen.
 
-## Vorgemerkt: Aufzeichnungsabschnitte auf die Hauptebene
+## Aufzeichnungsabschnitte auf der Hauptebene
 
-Nutzerwunsch vom 17.10.2026, nach Test-Build 28: **FIT-Aufzeichnung** und **Strecken-Aufzeichnung** sollen gleichrangige Sticky-Oberpunkte wie Sensoren, Karten und Design & UI sein. Aktuell liegen beide Header noch im gemeinsamen FIT-Inhaltslayout und wirken dadurch schmaler bzw. den Sensoren untergeordnet.
+FIT-Aufzeichnung und Strecken-Aufzeichnung stehen nun wie Sensoren, Karten und Design & UI direkt auf der Hauptebene. Beide Header nutzen die volle Seitenbreite und besitzen eine eigene auf-/zuklappbare Inhaltsgruppe. Der 32-dp-Abstand nach der Sensorliste bleibt erhalten. Hauptquellen und Feldgruppen teilen weiterhin dieselbe vorhandene Konfiguration und sofortige Speicherung; keine neue Aufzeichnungslogik.
 
-Beim nächsten UI-Schritt beide Header auf der Hauptebene mit voller Seitenbreite ausführen; dieselbe Typografie, Linien und Sticky-Bedienung wie bei den anderen Oberpunkten. Inhalte und sofortige Speicherung beibehalten. Den 32-dp-Abstand nach der gesamten Sensorliste erhalten. Auf ausdrücklichen Wunsch zunächst nur vorgemerkt; in Build 28 noch nicht umgesetzt.
+## Vorgemerkt: Vollbild zuerst in Design & UI
+
+Nutzerwunsch vom 17.10.2026: **Dashboard im Vollbild** künftig als ersten Inhaltspunkt in **Design & UI** platzieren, vor Theme- und Dashboard-Auswahl. Zunächst nur vorgemerkt; die aktuelle Umsetzung der Sticky-Accordions verändert diese Reihenfolge noch nicht.

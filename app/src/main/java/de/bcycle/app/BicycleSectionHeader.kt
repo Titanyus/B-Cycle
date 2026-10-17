@@ -7,20 +7,21 @@ import android.view.View
 import android.widget.LinearLayout
 
 /** Shared category heading. Natural and pinned states use exactly the same native view. */
-internal class BicycleSectionHeader(context: Context, themes: ThemeManager, title: String, private val inlineRules:Boolean=false) : LinearLayout(context) {
+internal class BicycleSectionHeader(context: Context, private val manager: ThemeManager, title: String, private val inlineRules:Boolean=false) : LinearLayout(context) {
     /** Optional section boundary, e.g. an independent accordion after the last category. */
     var sectionEnd: View? = null
-    val titleView = BicycleComponents.text(context, themes, title, true)
+    var expanded:Boolean?=null;private set
+    val titleView = BicycleComponents.text(context, manager, title, true)
     init {
-        BicycleComponents.bindTheme(titleView,themes) { titleView.setTextColor(it.foreground) }
+        BicycleComponents.bindTheme(titleView,manager) { titleView.setTextColor(it.foreground) }
         orientation = if(inlineRules) HORIZONTAL else VERTICAL; gravity=Gravity.CENTER_VERTICAL; isAccessibilityHeading = true; contentDescription = title
         tag = "section_header_$title"
-        BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
+        BicycleComponents.background(this, manager, ThemeRole.TERTIARY)
         // Keep the separation opaque even when this same header is pinned above controls.
         outlineProvider = null
         fun rule() = View(context).apply {
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-            BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.foreground) }
+            BicycleComponents.bindTheme(this, manager) { setBackgroundColor(it.foreground) }
         }
         fun addRule() {
             val thickness=BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)
@@ -37,12 +38,52 @@ internal class BicycleSectionHeader(context: Context, themes: ThemeManager, titl
         }, LayoutParams(if(inlineRules) -2 else -1, -2))
         addRule()
     }
+    /** Opt-in collapsing; the title remains centered by reserving equal icon space on each side. */
+    fun accordion(content:View,open:Boolean=true,changed:(Boolean)->Unit={}) {
+        isClickable=true;isFocusable=true
+        val themesUpdate:(ThemeTokens)->Unit={ tokens ->
+            val size=BicycleDesign.dp(context,BicycleDesign.iconSize)
+            val left=android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT).apply { setBounds(0,0,size,size) }
+            val right=BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground).apply { setBounds(0,0,size,size) }
+            val icon=android.graphics.drawable.RotateDrawable().apply {
+                drawable=right;fromDegrees=if(expanded==true) 180f else 0f;toDegrees=fromDegrees;level=10000
+                setBounds(0,0,size,size)
+            }
+            titleView.setCompoundDrawablesRelative(left,null,icon,null)
+            titleView.compoundDrawablePadding=BicycleDesign.dp(context,BicycleDesign.controlGap)
+        }
+        fun show(value:Boolean) {
+            if(!value && content.hasFocus()) {
+                content.findFocus()?.clearFocus()
+                context.getSystemService(android.view.inputmethod.InputMethodManager::class.java).hideSoftInputFromWindow(content.windowToken,0)
+            }
+            expanded=value;content.visibility=if(value) VISIBLE else GONE
+            stateDescription=context.getString(if(value) R.string.zone_expanded else R.string.zone_collapsed)
+            themesUpdate(manager.active.tokens)
+        }
+        show(open)
+        setOnClickListener {
+            val pinned=translationY>0f
+            show(content.visibility!=VISIBLE);changed(expanded==true)
+            if(pinned) post {
+                var y=top;var parent=this.parent
+                while(parent is View && parent !is android.widget.ScrollView) { y+=parent.top;parent=parent.parent }
+                (parent as? android.widget.ScrollView)?.scrollTo(0,y)
+            }
+        }
+        BicycleComponents.bindTheme(this,manager,themesUpdate)
+        accessibilityDelegate=object:View.AccessibilityDelegate() {
+            override fun onInitializeAccessibilityNodeInfo(host:View,info:android.view.accessibility.AccessibilityNodeInfo) {
+                super.onInitializeAccessibilityNodeInfo(host,info);info.className="android.widget.Button"
+            }
+        }
+    }
     override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
         if(inlineRules) titleView.maxWidth=((MeasureSpec.getSize(widthMeasureSpec)-paddingLeft-paddingRight)*BicycleDesign.profileSectionTitleFraction).toInt().coerceAtLeast(1)
         super.onMeasure(widthMeasureSpec,heightMeasureSpec)
     }
     // An opaque pinned header must not allow taps through to covered controls. ScrollView still
-    // intercepts drag gestures normally; this heading adds no click action or alternate navigation.
+    // intercepts drag gestures normally; opt-in accordions and rename headers handle clicks.
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
         return true
