@@ -61,15 +61,15 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 15 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-15-apk/downloads/B-Cycle-0.7.30-test-build-15.apk)**
+**[Aktuelle signierte Test-APK: Build 17 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-17-apk/downloads/B-Cycle-0.7.30-test-build-17.apk)**
 
 Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. App-Version weiterhin 0.7.30, **Test-Build 15 vom 17.10.2026**.
-Enthält die dauerhaft erreichbare Trainingshilfe in der Feldauswahl, einheitlichen
-Editor-Zugriff, größere Layout-Vorschauen und korrigierte Abstände bei Erklärungstexten.
+installierbar. App-Version weiterhin 0.7.30, **Test-Build 17 vom 17.10.2026**.
+Enthält die korrigierte gemeinsame Zonenpalette, einheitliche Dashboard-Vorschaubilder
+in den bewährten 60 × 84 dp und vertikal zentrierten Text neben dem Dropdown-Icon.
 Vollständige automatisierte Testsuite: **571 Tests erfolgreich**.
-[Buildnachweis und SHA-256](docs/test-build-15.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39007486467).
+[Buildnachweis und SHA-256](docs/test-build-17.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39008078032).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.30
