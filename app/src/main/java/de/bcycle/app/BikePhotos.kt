@@ -37,9 +37,26 @@ internal object BikePhotos {
     }
     fun delete(c:Context,slot:Int) { AtomicFile(file(c,slot)).delete() }
 }
-internal class BikePhotoView(context:Context,private val themes:ThemeManager,private val slot:Int,choose:()->Unit):android.widget.FrameLayout(context) {
+internal class BikePhotoView(context:Context,private val themes:ThemeManager,private val slot:Int,type:BikeType,choose:()->Unit):android.widget.FrameLayout(context) {
     private val image=android.widget.ImageView(context).apply { visibility=GONE;scaleType=android.widget.ImageView.ScaleType.CENTER_CROP;contentDescription=context.getString(R.string.bike_photo) }
-    private val select=BicycleComponents.action(context,themes,context.getString(R.string.bike_photo_choose),choose).apply { tag="bike_photo_choose" }
+    private val select=object:android.widget.ImageView(context) {
+        override fun onSizeChanged(w:Int,h:Int,oldw:Int,oldh:Int) {
+            super.onSizeChanged(w,h,oldw,oldh)
+            val size=BicycleDesign.dp(context,BicycleDesign.bikePhotoPlaceholderIconSize)
+            val x=((w-size)/2).coerceAtLeast(0);val y=((h-size)/2).coerceAtLeast(0)
+            setPadding(x,y,x,y)
+        }
+    }.apply {
+        tag="bike_photo_choose";scaleType=android.widget.ImageView.ScaleType.FIT_CENTER
+        isClickable=true;isFocusable=true;contentDescription=context.getString(R.string.bike_photo_choose)
+        setOnClickListener { choose() }
+        BicycleComponents.bindTheme(this,themes) { tokens ->
+            setBackgroundColor(tokens.tertiary)
+            setImageDrawable(BicycleIcons.drawable(context,BikeTypeIcons.forType(type),BicycleDesign.dashboardUnitColor).apply {
+                val size=BicycleDesign.dp(context,BicycleDesign.bikePhotoPlaceholderIconSize);setBounds(0,0,size,size)
+            })
+        }
+    }
     private val remove=BicycleComponents.icon(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.bike_photo_remove)) {
         BikePhotos.worker.execute { BikePhotos.delete(context.applicationContext,slot);post { refresh() } }
     }.apply { tag="bike_photo_remove";visibility=GONE }
@@ -47,11 +64,15 @@ internal class BikePhotoView(context:Context,private val themes:ThemeManager,pri
     init {
         tag="bike_photo";clipToOutline=true
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY,BicycleDesign.inputRadius)
-        addView(image,LayoutParams(-1,-1));addView(select,LayoutParams(-2,-2,android.view.Gravity.CENTER))
+        addView(image,LayoutParams(-1,-1));addView(select,LayoutParams(-1,-1))
         BicycleComponents.background(remove,themes,ThemeRole.TERTIARY,BicycleDesign.inputRadius)
         addView(remove,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),android.view.Gravity.TOP or android.view.Gravity.END))
-        BicycleDialogStyle.actionIcon(select,themes,BicycleIcon.Import)
         image.setOnClickListener { choose() }
+    }
+    override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
+        val width=android.view.View.MeasureSpec.getSize(widthMeasureSpec)
+        val height=(width/BicycleDesign.bikePhotoAspectRatio).toInt()
+        super.onMeasure(widthMeasureSpec,android.view.View.MeasureSpec.makeMeasureSpec(height,android.view.View.MeasureSpec.EXACTLY))
     }
     override fun onAttachedToWindow() { super.onAttachedToWindow();refresh() }
     override fun onDetachedFromWindow() { generation++;super.onDetachedFromWindow() }
@@ -61,7 +82,6 @@ internal class BikePhotoView(context:Context,private val themes:ThemeManager,pri
             val bitmap=runCatching { val file=BikePhotos.file(context,slot);if(file.isFile) android.graphics.BitmapFactory.decodeFile(file.path) else null }.getOrNull()
             post {
                 if(token!=generation || !isAttachedToWindow) { bitmap?.recycle();return@post }
-                layoutParams?.let { it.height=BicycleDesign.dp(context,if(bitmap==null) BicycleDesign.bikePhotoEmptyHeight else BicycleDesign.bikePhotoHeight);layoutParams=it }
                 image.setImageBitmap(bitmap);image.visibility=if(bitmap!=null) VISIBLE else GONE
                 select.visibility=if(bitmap==null) VISIBLE else GONE;remove.visibility=if(bitmap!=null) VISIBLE else GONE
             }

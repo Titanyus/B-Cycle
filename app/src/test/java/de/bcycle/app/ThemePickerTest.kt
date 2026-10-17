@@ -64,7 +64,6 @@ class ThemePickerTest {
             views(menu.window!!.decorView).single { it.tag == "settings_PROFILES" }.performClick()
             val design = ShadowAlertDialog.getLatestAlertDialog()
             assertEquals("Profile", views(design.window!!.decorView).filterIsInstance<TextView>().single { it.tag == "bicycle_dialog_title" }.text.toString())
-            design.window!!.decorView.findViewWithTag<View>("profile_accordion_profiles_design").performClick()
             val draft = views(design.window!!.decorView).filterIsInstance<DashboardPresetPicker>().single().selection.toList()
             val scroll = views(design.window!!.decorView).filterIsInstance<BicycleStickyScrollView>().single()
             measure(design.window!!.decorView, 1080, 950)

@@ -141,7 +141,7 @@ class ProfilesTest {
             assertEquals(name,r.bikes.current().name);assertEquals(2400,r.bikes.current().wheelMm)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun unifiedScreenHasFiveAccordionsSingleScrollerAndFooterRenameOpensBike() {
+    @Test fun longProfileHasSingleScrollerFixedActionsAndEditableName() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=controller.get();val r=RideRuntime.get(a)
@@ -149,24 +149,20 @@ class ProfilesTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle()
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
             assertEquals(1,testDescendants(root).filterIsInstance<ScrollView>().size)
-            assertEquals(5,testDescendants(root).count { it.tag?.toString()?.startsWith("profile_accordion_")==true })
+            assertEquals(0,testDescendants(root).filterIsInstance<ProfileAccordion>().size)
             val fixed=root.findViewWithTag<View>("bicycle_fullscreen_footer")
             assertNotNull(fixed.findViewWithTag<View>("profile_copy"))
             assertNull(fixed.findViewWithTag<View>("dashboard_delete"))
             val inline=root.findViewWithTag<View>("dashboard_inline_actions")
-            assertFalse(inline.isShown)
+            assertTrue(inline.isShown)
             val name=root.findViewWithTag<TextView>("bike_profile_name")
             assertFalse(name.parent is BicycleSectionHeader)
-            val bike=root.findViewWithTag<View>("profile_accordion_profiles_bike")
-            bike.performClick()
             root.findViewWithTag<View>("bike_rename").performClick()
-            assertEquals(a.getString(R.string.zone_expanded),bike.stateDescription)
             root.findViewWithTag<EditText>("bike_profile_name_edit").setText("Mein Profil")
             assertEquals("Mein Profil",r.bikes.current().name)
             assertEquals(View.GONE,root.findViewWithTag<View>("bike_delete").visibility)
             assertFalse(root.findViewWithTag<View>("profile_copy").isEnabled)
-            assertNotNull(root.findViewWithTag<View>("dashboard_editor_open"))
-            bike.performClick()
+            assertNotNull(fixed.findViewWithTag<View>("dashboard_editor_open"))
             root.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY))
             root.layout(0,0,360,800)
             val image=android.graphics.Bitmap.createBitmap(360,800,android.graphics.Bitmap.Config.ARGB_8888)

@@ -26,12 +26,12 @@ class IndoorUiTest {
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(activity)
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
             assertNull(root.findViewWithTag<View>("record_GPS_POSITION"))
-            root.findViewWithTag<View>("bike_type_INDOOR").performClick()
+            selectTestBikeType(root,BikeType.INDOOR)
             shadowOf(android.os.Looper.getMainLooper()).idle()
             assertFalse(runtime.gpsEnabled);assertFalse("GPS_POSITION" in runtime.config.fields)
             root.findViewWithTag<CheckBox>("record_HEART_RATE").isChecked=false
             shadowOf(android.os.Looper.getMainLooper()).idle()
-            root.findViewWithTag<View>("bike_type_EBIKE").performClick()
+            selectTestBikeType(root,BikeType.EBIKE)
             shadowOf(android.os.Looper.getMainLooper()).idle()
             assertTrue(runtime.gpsEnabled)
             assertEquals("GPS_SPEED",runtime.config.speedSource);assertEquals("GPS_DISTANCE",runtime.config.distanceSource)
@@ -48,7 +48,7 @@ class IndoorUiTest {
             val activity=controller.get();val runtime=RideRuntime.get(activity)
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(activity)
             val screen=ShadowAlertDialog.getLatestAlertDialog();val decor=screen.window!!.decorView
-            decor.findViewWithTag<View>("bike_type_INDOOR").performClick()
+            selectTestBikeType(decor,BikeType.INDOOR)
             shadowOf(android.os.Looper.getMainLooper()).idle()
             assertEquals(BikeType.INDOOR,runtime.bikes.current().type)
             assertFalse(runtime.gpsEnabled);assertFalse(runtime.gpsSensor.active);assertFalse(runtime.config.needsGps)
@@ -76,7 +76,7 @@ class IndoorUiTest {
             val bitmap=android.graphics.Bitmap.createBitmap(1080,2100,android.graphics.Bitmap.Config.ARGB_8888)
             decor.draw(android.graphics.Canvas(bitmap))
             java.io.File("build/reports/bikes/indoor.png").apply { parentFile!!.mkdirs();outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) } };bitmap.recycle()
-            decor.findViewWithTag<View>("bike_type_EBIKE").performClick()
+            selectTestBikeType(decor,BikeType.EBIKE)
             assertEquals(BikeType.EBIKE,runtime.bikes.current().type);assertEquals(selected.slot,runtime.bikes.activeSlot)
             assertNotNull(decor.findViewWithTag<View>("bike_sensor_GPS"));assertNull(decor.findViewWithTag<View>("bike_sensor_TRAINER"))
             assertNull(decor.findViewWithTag<View>("indoor_correction_power"))

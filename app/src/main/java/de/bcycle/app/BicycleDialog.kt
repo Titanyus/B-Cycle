@@ -228,7 +228,7 @@ internal object BicycleDialogStyle {
                 view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), inputBackground(view, it), null)
                 view.compoundDrawablesRelative.filterNotNull().forEach { drawable -> drawable.setTint(it.foreground) }
             }
-        } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(it.foreground) }
+        } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(if(view.parent is BicycleSectionHeader) it.accent else it.foreground) }
     }
     private fun footer(button: Button, themes: ThemeManager) {
         button.typeface = Typeface.DEFAULT; button.textSize = BicycleDesign.bodySp
@@ -270,6 +270,8 @@ internal object BicycleDialogStyle {
             override fun getCount() = original.count
             override fun getItem(position: Int) = original.getItem(position)
             override fun getItemId(position: Int) = original.getItemId(position)
+            override fun areAllItemsEnabled() = (original as? ListAdapter)?.areAllItemsEnabled() ?: true
+            override fun isEnabled(position:Int) = (original as? ListAdapter)?.isEnabled(position) ?: true
             private fun row(position: Int, recycled: View?, dropdown: Boolean): View =
                 ((recycled as? TextView) ?: BicycleComponents.text(view.context, themes, "").apply {
                     typeface = Typeface.DEFAULT; gravity = Gravity.CENTER_VERTICAL
@@ -279,6 +281,7 @@ internal object BicycleDialogStyle {
                         if (renderLabel != null && tag is String) text=renderLabel(tag as String,it.foreground)
                     }
                 }).apply {
+                    isEnabled=isEnabled(position);alpha=if(isEnabled) 1f else .4f
                     val label=getItem(position).toString()
                     if (renderLabel != null) tag=label
                     text = renderLabel?.invoke(label,themes.active.tokens.foreground) ?: label

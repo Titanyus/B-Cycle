@@ -3,19 +3,20 @@
 Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherigen Bereiche Bikes, Karten und Design & UI auf einer Seite. Fahrer und Upload-Dienste bleiben global.
 
 - Oben ein bis sechs Fahrradkacheln, drei sichtbar, horizontales Scrollen und gemeinsame Drag-and-drop-Vorschau.
-- Accordions **Bike**, **FIT-Aufzeichnung**, **Karten**, **Design**, **Trainingshilfe**. Geöffnete Bereiche bleiben innerhalb derselben Ansicht bei Profilwechsel erhalten. Bike ist zunächst geöffnet.
-- Bike enthält antippbaren Namen als normale Überschrift, Bild, Radtyp/Kategorie/Radumfang, Sensoren sowie Indoor-Korrektur. Der Name ist kein Sticky Header mehr.
+- Eine lange Seite ohne Haupt-Accordions. Große Sticky Header: **Sensoren**, **FIT-Aufzeichnung**, **Karten**, **Design & UI**, **Trainingshilfe**. SECONDARY-Hintergrund, FOREGROUND-Linien oben/unten, Schrift ACCENT.
+- Antippbarer Name als normale Überschrift, Bild/Platzhalter stets 16:9, Radtyp-Dropdown Bike/E-Bike/Indoor, Kategorie/Radumfang, Sensoren sowie Indoor-Korrektur. Keine Sticky Header Bike oder Radtyp; Sensorschalter in normaler Schaltertypografie.
 - FIT enthält unverändert Hauptquellen und die zusätzlichen Quell-Accordions. Design enthält Themes, benannte Dashboards/Layout-Auswahl, Vollbild und Fahrmodus-Anzeige; Dashboard-Umbenennen/-Löschen bleibt im Design-Bereich erreichbar.
-- Unter den Accordions **Dashboard bearbeiten**; fester Profilfooter **Umbenennen**, **Profil übernehmen**, **Profil löschen**. Umbenennen öffnet bei Bedarf das Bike-Accordion. Löschen bleibt bestätigt und ist beim letzten Profil ausgeblendet.
+- Fester Profilfooter **Umbenennen**, **Profil übernehmen**, **Dashboard bearbeiten**, **Profil löschen**. Löschen bleibt bestätigt und ist beim letzten Profil ausgeblendet.
+- Theme-, Dashboard-Layout- und Fahrmodus-Zwischenheader sowie Fahrmodus-Erklärung entfallen. Nach der Kartenauswahl kein zusätzlicher horizontaler Trenner. FIT-Untergruppen bleiben normale graue Accordions. Sensor-Detailaccordions sind zunächst nur ein Vorschlag.
 - Profil übernehmen bietet ausschließlich andere Profile an und kopiert Konfiguration einschließlich FIT, Theme/Dashboards/Trainingshilfe und Karten. **Zielname, Ziel-ID, Bild und gekoppelte Sensorgeräte bleiben erhalten.** Die Quelle wird nicht verändert.
 
 ![Native Profilübersicht mit Testdaten](previews/profiles.png)
 
-## Hierarchie-Prototyp auf der Profilseite – Accordiontest
+## Archivierter Hierarchie-Prototyp – Accordiontest
 
 Benannte Designreferenz mit vollständigen Konventionen und fest verlinkten Vorschauen: [Accordiontest](accordiontest.md).
 
-Die fünf Hauptbereiche verwenden `ProfileAccordion`: Kategorie-Icon links, 23 sp/Roboto 900 Black, Chevron rechts, TERTIARY-Kopf mit 10-dp-Rundung und geschwungener, 3 dp breiter linker FOREGROUND-Kante. Kopf und Inhalt haben keinen umlaufenden Rahmen. Eine dünne vertikale FOREGROUND-Linie begleitet den geöffneten SECONDARY-Inhalt, links um 4 dp eingerückt, und schließt ohne Lücke an die linke Kurve des nächsten Hauptbereichs an. Lange Überschriften behalten ihre Schriftgröße und dürfen umbrechen.
+Im archivierten Stand Build 25 verwenden die fünf Hauptbereiche `ProfileAccordion`: Kategorie-Icon links, 23 sp/Roboto 900 Black, Chevron rechts, TERTIARY-Kopf mit 10-dp-Rundung und geschwungener, 3 dp breiter linker FOREGROUND-Kante. Kopf und Inhalt haben keinen umlaufenden Rahmen. Eine dünne vertikale FOREGROUND-Linie begleitet den geöffneten SECONDARY-Inhalt, links um 4 dp eingerückt, und schließt ohne Lücke an die linke Kurve des nächsten Hauptbereichs an. Lange Überschriften behalten ihre Schriftgröße und dürfen umbrechen.
 
 Unterüberschriften stehen zentriert zwischen horizontalen Linien auf Texthöhe. **Radtyp**, **Sensoren**, **FIT-Hauptquelle** und **Aufzuzeichnende Werte** sind nun ebenfalls Sticky Header. Die bisherigen Design-Unterüberschriften verwenden dieselbe Optik. Jeder Header ist durch `sectionEnd` auf das Ende seines eigenen Accordions begrenzt, auch wenn der folgende Hauptbereich geschlossen bleibt. Innerhalb der FIT-Unteraccordions bleibt die dezente Standarddarstellung erhalten. Andere Screens werden nicht umgestellt.
 

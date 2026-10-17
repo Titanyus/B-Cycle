@@ -92,12 +92,12 @@ class BicycleStickySectionsTest {
             val body=decor.findViewWithTag<View>("bikes_manager")
             val headings=testDescendants(body).filterIsInstance<BicycleSectionHeader>()
             assertFalse(headings.any { it.contentDescription==runtime.bikes.current().name })
-            assertEquals(5,testDescendants(body).count { it.tag?.toString()?.startsWith("profile_accordion_")==true })
+            assertEquals(0,testDescendants(body).filterIsInstance<ProfileAccordion>().size)
             for(sensor in listOf("GPS","EBIKE","POWER","HEART")) {
                 val toggle=decor.findViewWithTag<android.widget.Switch>("bike_sensor_$sensor")
-                assertTrue(toggle.isAccessibilityHeading)
-                assertEquals(BicycleDesign.strongTypeface,toggle.typeface)
-                assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.titleSp,activity.resources.displayMetrics),toggle.textSize,.01f)
+                assertFalse(toggle.isAccessibilityHeading)
+                assertEquals(android.graphics.Typeface.DEFAULT,toggle.typeface)
+                assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.bodySp,activity.resources.displayMetrics),toggle.textSize,.01f)
             }
             fun border(view: View):Int {
                 val bitmap=Bitmap.createBitmap(300,300,Bitmap.Config.ARGB_8888)

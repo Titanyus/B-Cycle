@@ -24,7 +24,6 @@ class PerformanceSettingsTest {
         MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible = true }.invoke(activity)
         return ShadowAlertDialog.getLatestAlertDialog().also {
             shadowOf(Looper.getMainLooper()).idle()
-            it.window!!.decorView.findViewWithTag<View>("profile_accordion_ui_recording_title").performClick()
         }
     }
     @Test fun existingSelectionSurvivesAndNewIndependentCheckboxesPersistInTheSamePreferences() {
@@ -74,9 +73,7 @@ class PerformanceSettingsTest {
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible = true }.invoke(activity)
             val dialog = ShadowAlertDialog.getLatestAlertDialog()
             val content = views(dialog.window!!.decorView).single { it.tag == "bike_fit_settings" } as ViewGroup
-            assertEquals(View.GONE, content.visibility)
             shadowOf(Looper.getMainLooper()).idle()
-            dialog.window!!.decorView.findViewWithTag<View>("profile_accordion_ui_recording_title").performClick()
             assertEquals(View.VISIBLE, content.visibility)
             val source=RecordField.options.single { it.id=="NORMALIZED_POWER" }.source
             val sourceContent=content.findViewWithTag<View>("fit_source_content_$source")

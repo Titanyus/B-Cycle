@@ -33,6 +33,10 @@ class BikesViewTest {
             testDescendants(app.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
             ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("settings_PROFILES").performClick()
             val decor=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView;measure(decor)
+            val photo=decor.findViewWithTag<View>("bike_photo")
+            val placeholderHeight=photo.height
+            assertEquals(photo.width*9f/16,photo.height.toFloat(),1f)
+            assertFalse(decor.findViewWithTag<View>("bike_photo_choose") is Button)
             decor.findViewWithTag<View>("bike_photo_choose").performClick()
             val request=shadowOf(app).nextStartedActivityForResult
             assertEquals(14,request.requestCode);assertEquals("image/*",request.intent.type)
@@ -47,6 +51,8 @@ class BikesViewTest {
             }
             waitFor { BikePhotos.file(app,0).isFile && decor.findViewWithTag<View>("bike_photo_remove").visibility==View.VISIBLE }
             assertFalse(BikePhotos.file(app,1).exists())
+            measure(decor)
+            assertEquals(placeholderHeight,photo.height)
             decor.findViewWithTag<View>("bike_photo_remove").performClick()
             waitFor { !BikePhotos.file(app,0).exists() && decor.findViewWithTag<View>("bike_photo_choose").visibility==View.VISIBLE }
             assertEquals(0,runtime.bikes.activeSlot)
@@ -69,15 +75,16 @@ class BikesViewTest {
                 assertEquals(2,(card.getChildAt(2) as TextView).minLines)
             }
             assertEquals(2,testDescendants(body).count { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true })
-            assertFalse(body.findViewWithTag<View>("bike_type_BIKE").isEnabled)
-            assertTrue(body.findViewWithTag<View>("bike_type_INDOOR").isEnabled)
-            assertTrue(body.findViewWithTag<View>("bike_type_EBIKE").isEnabled)
+            val types=body.findViewWithTag<Spinner>("bike_type_choice")
+            val typeAdapter=types.adapter as android.widget.ListAdapter
+            assertEquals(3,typeAdapter.count)
+            assertFalse(typeAdapter.isEnabled(BikeType.BIKE.ordinal))
+            assertTrue(typeAdapter.isEnabled(BikeType.EBIKE.ordinal))
+            assertTrue(typeAdapter.isEnabled(BikeType.INDOOR.ordinal))
             assertFalse(body.findViewWithTag<View>("bike_sensor_POWER").isEnabled)
             assertNotNull(body.findViewWithTag<View>("bike_sensor_search"))
             val fitContent = body.findViewWithTag<View>("bike_fit_settings")
             assertNull(body.findViewWithTag<View>("bike_fit_toggle"))
-            assertEquals(View.GONE,fitContent.visibility)
-            body.findViewWithTag<View>("profile_accordion_ui_recording_title").performClick()
             assertEquals(View.VISIBLE,fitContent.visibility)
             val gpsFields=body.findViewWithTag<View>("fit_source_content_GPS")
             assertEquals(View.GONE,gpsFields.visibility)

@@ -451,7 +451,7 @@ class MainActivity : Activity() {
                 }.show()
         }, additionalSections={ listOf(
             R.string.ui_settings_map to mapControls(),
-            R.string.profiles_design to dashboardControls(embedded=true),
+            R.string.ui_design_title to dashboardControls(embedded=true),
             R.string.training_help_title to trainingHelpControls { dashboardPages.selected() }.apply { tag="profile_training_help" }
         ) }, editDashboard=::enterDashboardEditor)
         bikesManager = content
@@ -504,7 +504,7 @@ class MainActivity : Activity() {
     private fun recordingControls(): LinearLayout {
         val slot = runtime.bikes.activeSlot
         val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
-        root.addView(BicycleSectionHeader(settingsContext,runtime.themes,getString(R.string.bikes_fit_heading),inlineRules=true).apply { titleView.tag="fit_primary_heading" })
+        root.addView(BicycleSectionHeader(settingsContext,runtime.themes,getString(R.string.bikes_fit_heading)).apply { titleView.tag="fit_primary_heading" })
         root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             root.addView(label(title, 16f).apply { setPadding(0, dp(BicycleDesign.sectionContentGap), 0, 0) })
@@ -517,7 +517,7 @@ class MainActivity : Activity() {
         val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
         fun saveFields() { if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
-        root.addView(BicycleSectionHeader(settingsContext,runtime.themes,getString(R.string.bikes_fit_additional),inlineRules=true))
+        root.addView(BicycleSectionHeader(settingsContext,runtime.themes,getString(R.string.bikes_fit_additional)))
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
@@ -701,9 +701,9 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot
         val revision=runtime.profileRevision
         val root = column()
-        BicycleForm.section(root,runtime.themes,R.string.ui_theme,inlineRules=embedded)
+        if(!embedded) BicycleForm.section(root,runtime.themes,R.string.ui_theme)
         root.addView(ThemePickerView(settingsContext, runtime.themes))
-        BicycleForm.section(root,runtime.themes,R.string.ui_dashboard_page_choose,inlineRules=embedded)
+        if(!embedded) BicycleForm.section(root,runtime.themes,R.string.ui_dashboard_page_choose)
         val presets = DashboardPresetPicker(settingsContext,dashboardPages.selected(),runtime.themes)
         val footer=bicycleFooter(settingsContext,runtime.themes)
         var trainingControls:TrainingHelpView?=null
@@ -749,8 +749,10 @@ class MainActivity : Activity() {
             }
         })
         if(!embedded) trainingControls=appendTrainingHelp(root) { dashboardPages.selected() }
-        BicycleForm.section(root,runtime.themes,R.string.ui_mode_glow,inlineRules=embedded)
-        root.addView(label(getString(R.string.ui_mode_glow_description)))
+        if(!embedded) {
+            BicycleForm.section(root,runtime.themes,R.string.ui_mode_glow)
+            root.addView(label(getString(R.string.ui_mode_glow_description)))
+        }
         val glow = Switch(settingsContext).apply {
             text = getString(R.string.ui_mode_glow); tag = "mode_glow_enabled"
             isChecked = ModeGlowSettings.enabled(preferences)
@@ -770,7 +772,7 @@ class MainActivity : Activity() {
         if(!embedded) root.addView(button(getString(R.string.dashboard_editor_open), BicycleIcon.EditDashboard) { enterDashboardEditor() }.apply { tag = "dashboard_editor_open" })
         glow.setOnCheckedChangeListener { _,checked -> ModeGlowSettings.save(preferences,checked); render() }
         if(embedded) {
-            // These actions belong to the dashboard accordion, not the fixed profile footer.
+            // Dashboard actions remain inline; profile actions use the fixed footer.
             footer.tag="dashboard_inline_actions"
             root.setPadding(0,0,0,0);root.addView(footer);BicycleDialogStyle.content(root,runtime.themes);return root
         }
@@ -817,7 +819,6 @@ class MainActivity : Activity() {
         root.addView(providerStatus)
         keyRow.visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
-        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         val heading = toggle(getString(R.string.ui_map_heading), "mapHeading", true)
         val follow = toggle(getString(R.string.ui_map_follow), "mapFollow", true)
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)

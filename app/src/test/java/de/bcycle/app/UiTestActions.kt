@@ -41,8 +41,16 @@ internal fun selectTestDashboardLayout(picker:DashboardPresetPicker,template:Das
 }
 internal fun selectTestDashboardLayout(dialog:AlertDialog,template:DashboardTemplate) {
     val root=dialog.window!!.decorView
-    root.findViewWithTag<View>("profile_accordion_profiles_design")?.let { toggle ->
-        if(toggle.stateDescription==root.context.getString(R.string.zone_collapsed)) toggle.performClick()
-    }
     selectTestDashboardLayout(testDescendants(root).filterIsInstance<DashboardPresetPicker>().single(),template)
+}
+
+internal fun selectTestBikeType(root:View,type:BikeType) {
+    fun layout() {
+        root.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2100,View.MeasureSpec.EXACTLY))
+        root.layout(0,0,1080,2100)
+        shadowOf(Looper.getMainLooper()).idle()
+    }
+    layout()
+    root.findViewWithTag<Spinner>("bike_type_choice").setSelection(type.ordinal)
+    layout()
 }

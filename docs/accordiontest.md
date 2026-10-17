@@ -1,5 +1,7 @@
 # Accordiontest
 
+**Archivierte Designvariante:** Die aktuelle Profilseite verwendet eine lange Seite ohne Haupt-Accordions. Diese Referenz bleibt für eine spätere Rückkehr erhalten.
+
 Referenzstand vom **17.10.2026**, Test-Build **25**, Version **0.7.31**.
 Designversuch für die **Profilseite**, keine automatische Umstellung anderer Screens oder verschachtelter FIT-Accordions.
 

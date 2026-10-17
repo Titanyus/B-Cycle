@@ -69,8 +69,8 @@ object BicycleDesign {
     const val bikeQuickVisibleTiles = 6
     const val bikeQuickScale = .5f
     const val bikeTileHeight = 154
-    const val bikePhotoHeight = 200
-    const val bikePhotoEmptyHeight = 64
+    const val bikePhotoAspectRatio = 16f / 9f
+    const val bikePhotoPlaceholderIconSize = 72
     const val bikePreviewHeight = 56
     const val sectionHeaderMinHeight = 56
     const val sectionHeaderPadding = 12

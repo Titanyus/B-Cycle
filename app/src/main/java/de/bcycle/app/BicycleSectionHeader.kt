@@ -12,6 +12,7 @@ internal class BicycleSectionHeader(context: Context, themes: ThemeManager, titl
     var sectionEnd: View? = null
     val titleView = BicycleComponents.text(context, themes, title, true)
     init {
+        BicycleComponents.bindTheme(titleView,themes) { titleView.setTextColor(it.accent) }
         orientation = if(inlineRules) HORIZONTAL else VERTICAL; gravity=Gravity.CENTER_VERTICAL; isAccessibilityHeading = true; contentDescription = title
         tag = "section_header_$title"
         BicycleComponents.background(this, themes, ThemeRole.SECONDARY)

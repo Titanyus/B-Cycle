@@ -56,7 +56,7 @@ class ProfileAccordionTest {
             }
             themes.activate("preset:black-ops")
             val foreground=themes.active.tokens.foreground
-            assertEquals(foreground,title.titleView.currentTextColor)
+            assertEquals(themes.active.tokens.accent,title.titleView.currentTextColor)
             val bitmap=Bitmap.createBitmap(group.header.width,group.header.height,Bitmap.Config.ARGB_8888)
             group.header.draw(Canvas(bitmap))
             assertEquals(foreground,bitmap.getPixel(1,bitmap.height/2))
@@ -98,53 +98,43 @@ class ProfileAccordionTest {
             assertTrue(category.translationY>0)
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun realProfileHasRequestedStickyCategoriesAndPreviewKeepsSingleFooter() {
+    @Test fun longProfileUsesFullWidthAccentSectionsAndKeepsDataVisible() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val r=RideRuntime.get(a);r.themes.activate("preset:black-ops")
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(a)
             shadowOf(Looper.getMainLooper()).idle()
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            measure(root,1080,2400)
             val categories=testDescendants(root).filterIsInstance<BicycleSectionHeader>()
-            for(id in listOf(R.string.bikes_type,R.string.bikes_sensors,R.string.bikes_fit_heading,R.string.bikes_fit_additional)) {
-                val category=categories.single { it.contentDescription==a.getString(id) }
-                assertEquals(LinearLayout.HORIZONTAL,category.orientation)
-                assertNotNull(category.sectionEnd)
+            for(id in listOf(R.string.bikes_sensors,R.string.ui_recording_title,R.string.ui_settings_map,R.string.ui_design_title,R.string.training_help_title)) {
+                val header=categories.single { it.contentDescription==a.getString(id) }
+                assertEquals(LinearLayout.VERTICAL,header.orientation)
+                assertEquals(r.themes.active.tokens.accent,header.titleView.currentTextColor)
+                assertNull(header.sectionEnd)
             }
-            assertEquals(5,testDescendants(root).filterIsInstance<ProfileAccordion>().size)
-            root.findViewWithTag<View>("profile_accordion_profiles_bike").performClick()
-            root.findViewWithTag<View>("profile_accordion_profiles_design").performClick()
-            shadowOf(Looper.getMainLooper()).idle();measure(root,1080,2400)
+            for(id in listOf(R.string.profiles_bike,R.string.bikes_type,R.string.ui_theme,R.string.ui_dashboard_page_choose,R.string.ui_mode_glow))
+                assertFalse(categories.any { it.contentDescription==a.getString(id) })
+            assertTrue(testDescendants(root).filterIsInstance<ProfileAccordion>().isEmpty())
+            assertEquals(View.VISIBLE,root.findViewWithTag<View>("bike_fit_settings").visibility)
             assertEquals("Indoor",a.getString(R.string.bikes_type_indoor))
-            assertFalse(testDescendants(root).filterIsInstance<android.widget.TextView>().any { it.text==a.getString(R.string.ui_map_source) })
-            val owner=root.findViewWithTag<BikesView>("bikes_manager")
-            val design=root.findViewWithTag<ProfileAccordion>("profile_group_profiles_design")
-            val next=root.findViewWithTag<ProfileAccordion>("profile_group_training_help_title")
-            assertTrue(next.top>design.bottom)
-            val bridge=Bitmap.createBitmap(owner.width,4,Bitmap.Config.ARGB_8888)
-            val bridgeCanvas=Canvas(bridge)
-            bridgeCanvas.drawColor(r.themes.active.tokens.secondary)
-            bridgeCanvas.translate(0f,-((design.bottom+next.top)/2f-2f))
-            owner.draw(bridgeCanvas)
-            val axis=(design.left+design.connectionX).toInt()
-            assertEquals(r.themes.active.tokens.foreground,bridge.getPixel(axis,2))
-            assertEquals(r.themes.active.tokens.secondary,bridge.getPixel(axis+12,2))
-            bridge.recycle()
+            val texts=testDescendants(root).filterIsInstance<android.widget.TextView>()
+            assertFalse(texts.any { it.text==a.getString(R.string.ui_map_source) })
+            assertFalse(texts.any { it.text==a.getString(R.string.ui_mode_glow_description) })
+            val fixed=root.findViewWithTag<View>("bicycle_fullscreen_footer")
+            assertNotNull(fixed.findViewWithTag<View>("dashboard_editor_open"))
             val scroll=testDescendants(root).filterIsInstance<BicycleStickyScrollView>().single()
-            scroll.scrollTo(0,top(root.findViewWithTag("profile_accordion_ui_recording_title"),scroll))
-            assertNotNull(root.findViewWithTag<View>("bicycle_fullscreen_footer").findViewWithTag<View>("profile_copy"))
-            val bitmap=Bitmap.createBitmap(root.width,root.height,Bitmap.Config.ARGB_8888)
-            root.draw(Canvas(bitmap))
-            java.io.File("/tmp/bcycle-profile-panels.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
-            bitmap.recycle()
-            root.findViewWithTag<View>("profile_accordion_profiles_design").performClick()
-            root.findViewWithTag<View>("profile_accordion_ui_recording_title").performClick()
-            shadowOf(Looper.getMainLooper()).idle();measure(root,1080,2400)
-            scroll.scrollTo(0,top(root.findViewWithTag("profile_accordion_ui_recording_title"),scroll))
-            val fit=Bitmap.createBitmap(root.width,root.height,Bitmap.Config.ARGB_8888)
-            root.draw(Canvas(fit))
-            java.io.File("/tmp/bcycle-profile-fit-panel.png").outputStream().use { fit.compress(Bitmap.CompressFormat.PNG,100,it) }
-            fit.recycle()
+            for((id,file) in listOf(R.string.ui_design_title to "design",R.string.ui_recording_title to "fit")) {
+                val heading=categories.single { it.contentDescription==a.getString(id) }
+                scroll.scrollTo(0,0);measure(root,1080,2400)
+                scroll.scrollTo(0,top(heading,scroll))
+                val bitmap=Bitmap.createBitmap(root.width,root.height,Bitmap.Config.ARGB_8888)
+                root.draw(Canvas(bitmap))
+                java.io.File("/tmp/bcycle-profile-long-$file.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+                bitmap.recycle()
+            }
+            r.themes.activate(BicycleThemes.red.id)
+            assertTrue(categories.all { it.titleView.currentTextColor==r.themes.active.tokens.accent })
         } finally { host.pause().stop().destroy() }
     }
 }

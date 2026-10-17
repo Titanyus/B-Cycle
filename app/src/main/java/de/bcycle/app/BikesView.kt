@@ -15,10 +15,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val confirmDelete:(Int,String,()->Unit)->Unit = { _,_,_ -> },
     private val additionalSections:(()->List<Pair<Int,View>>)?=null, private val editDashboard:()->Unit={}) : LinearLayout(context) {
     private val themes = runtime.themes
-    private val profileConnector=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        strokeWidth=BicycleDesign.linePixels(context).toFloat()
-    }
-    private val expanded=mutableSetOf(R.string.profiles_bike)
     private var copyPopup:ListPopupWindow?=null
     private val copyAction:BicycleFooterAction=BicycleFooterAction(context,themes,BicycleIcon.Import,context.getString(R.string.profiles_copy)) {
         if(!runtime.recording && !runtime.saving) {
@@ -40,7 +36,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     }.apply { tag="profile_copy" }
     private var shownSlot = -1
     private var shownType:BikeType?=null
-    private val typeButtons=mutableListOf<Button>()
+    private lateinit var typeChoice:Spinner
     private val correctionControls=mutableListOf<Pair<SeekBar,TextView>>()
     private var binding = false
     private var photo:BikePhotoView?=null
@@ -53,11 +49,15 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     }.apply { tag="bike_delete" }
     val footer:LinearLayout=bicycleFooter(context,themes).apply {
         addView(BicycleFooterAction(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.route_action_rename)) {
-            if(additionalSections!=null && R.string.profiles_bike !in expanded)
-                this@BikesView.findViewWithTag<View>("profile_accordion_profiles_bike").performClick()
             nameHeading.performClick()
         }.apply { tag="bike_rename" },LayoutParams(0,-2,1f))
-        if(additionalSections!=null) addView(copyAction,LayoutParams(0,-2,1f))
+        if(additionalSections!=null) {
+            addView(copyAction,LayoutParams(0,-2,1f))
+            addView(BicycleFooterAction(context,themes,BicycleIcon.EditDashboard,context.getString(R.string.dashboard_editor_open),click=editDashboard).apply {
+                tag="dashboard_editor_open"
+                (getChildAt(1) as TextView).maxLines=2
+            },LayoutParams(0,-2,1f))
+        }
         addView(deleteAction,LayoutParams(0,-2,1f))
     }
     private val statuses = mutableMapOf<BikeSensor, TextView>()
@@ -73,41 +73,12 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private lateinit var searchStatus: TextView
     private fun dp(n: Int) = BicycleDesign.dp(context,n)
     init {
-        if(additionalSections!=null) BicycleComponents.bindTheme(this,themes) { profileConnector.color=it.foreground;invalidate() }
-        orientation = VERTICAL; clipToPadding = false; tag = "bikes_manager"; setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),0); rebuild() }
-    override fun dispatchDraw(canvas:android.graphics.Canvas) {
-        super.dispatchDraw(canvas)
-        if(additionalSections==null) return
-        var previous:ProfileAccordion?=null
-        for(index in 0 until childCount) {
-            val group=getChildAt(index) as? ProfileAccordion ?: continue
-            previous?.let { if(it.isOpen) drawConnector(canvas,it,group.top+group.connectionY(bottom=false)) }
-            previous=group
-        }
-        previous?.let { if(it.isOpen) drawConnector(canvas,it,it.bottom.toFloat()) }
-    }
-    private fun drawConnector(canvas:android.graphics.Canvas,group:ProfileAccordion,end:Float) {
-        val x=group.left+group.connectionX
-        canvas.drawLine(x,group.top+group.connectionY(bottom=true),x,end,profileConnector)
+        orientation = VERTICAL; clipToPadding = false; tag = "bikes_manager"
+        setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),0)
+        rebuild()
     }
     private fun text(id: Int, heading: Boolean = false) = BicycleComponents.text(context,themes,context.getString(id),heading)
-    private fun section(id: Int) {
-        if(additionalSections==null) BicycleForm.section(this,themes,id)
-        else addView(BicycleSectionHeader(context,themes,context.getString(id),inlineRules=true),LayoutParams(-1,-2))
-    }
-    private fun accordion(title:Int,body:View) {
-        val key=resources.getResourceEntryName(title)
-        val icon=when(title) {
-            R.string.profiles_bike -> BicycleIcon.Bikes
-            R.string.ui_recording_title -> BicycleIcon.RecordingSettings
-            R.string.ui_settings_map -> BicycleIcon.Map
-            R.string.profiles_design -> BicycleIcon.Dashboard
-            else -> BicycleIcon.Speed
-        }
-        addView(ProfileAccordion(context,themes,context.getString(title),key,icon,body,title in expanded) { open ->
-            if(open) expanded.add(title) else expanded.remove(title)
-        },LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
-    }
+    private fun section(id: Int) { BicycleForm.section(this,themes,id) }
     override fun onDetachedFromWindow() { copyPopup?.dismiss();super.onDetachedFromWindow() }
     private fun watcher(change: (String)->Unit) = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?,start: Int,count: Int,after: Int) = Unit
@@ -115,7 +86,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         override fun afterTextChanged(s: Editable?) = Unit
     }
     private fun rebuild() {
-        shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;typeButtons.clear();correctionControls.clear()
+        shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;correctionControls.clear()
         removeAllViews();statuses.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
         val profile = runtime.bikes.current(); val slot = profile.slot
         strip=BikeProfileStrip(context,themes,{ id ->
@@ -158,31 +129,39 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         nameEdit.setOnEditorActionListener { _,action,_ -> if(action==EditorInfo.IME_ACTION_DONE) { finishNaming();true } else false }
         nameEdit.setOnFocusChangeListener { _,focused -> if(!focused && nameEdit.visibility==VISIBLE) finishNaming() }
         addView(nameHeader ?: nameHeading,LayoutParams(-1,-2).apply { if(nameHeader!=null) { marginStart=-paddingLeft;marginEnd=-paddingRight } });addView(nameEdit,LayoutParams(-1,-2))
-        photo=BikePhotoView(context,themes,slot) { choosePhoto(slot) }.also { addView(it,LayoutParams(-1,dp(BicycleDesign.bikePhotoEmptyHeight)).apply { topMargin=dp(BicycleDesign.sectionContentGap) }) }
-        section(R.string.bikes_type)
-        addView(LinearLayout(context).apply {
-            orientation=HORIZONTAL;isBaselineAligned=false
-            BikeType.entries.forEachIndexed { i,type ->
-                addView(BicycleComponents.action(context,themes,context.getString(type.label)) {}.apply {
-                    BicycleDialogStyle.actionIcon(this,themes,BikeTypeIcons.forType(type))
-                    tag="bike_type_${type.name}";isEnabled=type.available;alpha=if(type.available) 1f else .4f;isSelected=profile.type==type
-                    contentDescription=if(type.available) context.getString(type.label) else context.getString(R.string.bikes_type_unavailable,context.getString(type.label))
-                    if(isSelected) stateDescription=context.getString(R.string.bikes_selected)
-                    BicycleComponents.bindTheme(this,themes) { tokens ->
-                        foreground=android.graphics.drawable.GradientDrawable().apply {
-                            setColor(android.graphics.Color.TRANSPARENT);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
-                            if(isSelected) setStroke(dp(BicycleDesign.themeSelectedBorder),BicycleComponents.selectionBorder(tokens,true))
-                        }
-                    }
-                    typeButtons+=this
-                    setOnClickListener {
-                        stopSearch()
-                        if(!runtime.changeBikeType(type)) BicycleFeedback.show(context,R.string.bikes_profile_locked,false)
-                        refresh()
-                    }
-                },LayoutParams(0,-2,1f).apply { if(i>0) marginStart=dp(BicycleDesign.controlGap) })
+        photo=BikePhotoView(context,themes,slot,profile.type) { choosePhoto(slot) }.also { addView(it,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.sectionContentGap) }) }
+        if(additionalSections==null) section(R.string.bikes_type)
+        typeChoice=Spinner(context).apply {
+            tag="bike_type_choice";contentDescription=context.getString(R.string.bikes_type)
+            adapter=object:ArrayAdapter<String>(context,android.R.layout.simple_spinner_dropdown_item,BikeType.entries.map { context.getString(it.label) }) {
+                override fun areAllItemsEnabled()=false
+                override fun isEnabled(position:Int)=BikeType.entries[position].available
             }
-        },LayoutParams(-1,-2))
+            setSelection(profile.type.ordinal)
+        }
+        BicycleDialogStyle.spinner(typeChoice,themes) { label,color ->
+            val type=BikeType.entries.first { context.getString(it.label)==label }
+            android.text.SpannableString("\uFFFC $label").apply {
+                val icon=BicycleIcons.drawable(context,BikeTypeIcons.forType(type),color).apply { setBounds(0,0,dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)) }
+                setSpan(android.text.style.ImageSpan(icon,android.text.style.ImageSpan.ALIGN_CENTER),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+        addView(typeChoice,LayoutParams(-1,dp(BicycleDesign.touchSize)))
+        val choice=typeChoice
+        choice.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent:AdapterView<*>?)=Unit
+            override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) {
+                if(!choice.isAttachedToWindow || runtime.bikes.activeSlot!=slot || binding) return
+                val type=BikeType.entries[position]
+                if(type==runtime.bikes.current().type) return
+                if(type.available) {
+                    stopSearch()
+                    if(!runtime.changeBikeType(type)) BicycleFeedback.show(context,R.string.bikes_profile_locked,false)
+                }
+                if(runtime.bikes.current().type!=type) choice.setSelection(runtime.bikes.current().type.ordinal)
+                refresh()
+            }
+        }
         val category = Spinner(context).apply {
             visibility=if(profile.type==BikeType.INDOOR) GONE else VISIBLE
             tag="bike_category";contentDescription=context.getString(R.string.bikes_category)
@@ -229,7 +208,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             addView(BicycleComponents.sectionDivider(context,themes))
             val toggle=Switch(context).apply {
                 tag="bike_sensor_${sensor.name}";setText(sensor.label);isEnabled=sensor.supported
-                isAccessibilityHeading=true
                 isChecked=when(sensor) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;BikeSensor.TRAINER->runtime.trainerEnabled;else->false }
                 setOnCheckedChangeListener { _,enabled ->
                     if(binding || runtime.bikes.activeSlot!=slot) return@setOnCheckedChangeListener
@@ -267,21 +245,11 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             correctionSlider(slot, R.string.indoor_correction_power, "power", profile.indoorCorrection.powerTenths)
             correctionSlider(slot, R.string.indoor_correction_speed, "speed", profile.indoorCorrection.speedTenths)
         }
-        val fitStart=childCount
         section(R.string.ui_recording_title)
-        val fit=recordingControls()
-        addView(fit,LayoutParams(-1,-2))
-        if(additionalSections!=null) {
-            val bikeViews=(1 until fitStart).map { getChildAt(it) }
-            removeAllViews();addView(strip,LayoutParams(-1,-2))
-            val bike=LinearLayout(context).apply { orientation=VERTICAL;tag="profile_bike_content" }
-            bikeViews.forEach { bike.addView(it) }
-            accordion(R.string.profiles_bike,bike)
-            accordion(R.string.ui_recording_title,fit)
-            additionalSections.invoke().forEach { (title,body) -> accordion(title,body) }
-            addView(BicycleComponents.action(context,themes,context.getString(R.string.dashboard_editor_open),editDashboard).apply {
-                tag="dashboard_editor_open";BicycleDialogStyle.actionIcon(this,themes,BicycleIcon.EditDashboard)
-            },LayoutParams(-1,-2))
+        addView(recordingControls(),LayoutParams(-1,-2))
+        additionalSections?.invoke()?.forEach { (title,body) ->
+            section(title)
+            addView(body,LayoutParams(-1,-2))
         }
         refresh()
     }
@@ -345,7 +313,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 val factor=context.getString(R.string.indoor_correction_factor,step/10.0)
                 value.text=factor; slider.stateDescription=factor
             }
-            typeButtons.forEachIndexed { index,button -> button.isEnabled=BikeType.entries[index].available && !runtime.recording && !runtime.saving;button.alpha=if(button.isEnabled) 1f else .4f }
+            typeChoice.isEnabled=!runtime.recording && !runtime.saving
+            typeChoice.alpha=if(typeChoice.isEnabled) 1f else .4f
             footer.visibility=VISIBLE
             deleteAction.visibility=if(runtime.bikes.all().size>1) VISIBLE else GONE
             deleteAction.isEnabled=!runtime.recording && !runtime.saving

@@ -88,7 +88,6 @@ class BoschModeGlowTest {
                 views(menu.window!!.decorView).single { it.tag=="settings_PROFILES" }.performClick()
                 return ShadowAlertDialog.getLatestAlertDialog().also {
                     org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
-                    it.window!!.decorView.findViewWithTag<View>("profile_accordion_profiles_design").performClick()
                     org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
                 }
             }
