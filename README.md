@@ -61,15 +61,16 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 32 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-32-apk/downloads/B-Cycle-0.7.31-test-build-32.apk)**
+**[Aktuelle signierte Test-APK: Build 33 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-33-apk/downloads/B-Cycle-0.7.31-test-build-33.apk)**
 
 Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. **Version 0.7.31, Test-Build 32 vom 17.10.2026**.
-Neu: 14 feste Themes mit Drei-Farben-Vorschau und kleineren Titeln; Hell/Dunkel global,
-Umschalter nur im Hauptmenü. Clouddienste und Sicherung direkt als Inline-Accordions.
-**52 gezielte Tests erfolgreich.**
-[Änderungen und SHA-256](docs/test-build-32.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39070731223).
+installierbar. **Version 0.7.31, Test-Build 33 vom 17.10.2026**.
+Neu: Weiße Seitenheader-Texte und hellere TERTIARY-Flächen in hellen Einstellungen.
+Dunkle Puls-/Leistungsverteilungskurven auf Weiß; die fünf Verlaufsgraphen behalten
+beim Umschalten ihre Farben aus der Basispalette.
+**12 gezielte Tests erfolgreich.**
+[Änderungen und SHA-256](docs/test-build-33.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39072233526).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.31
