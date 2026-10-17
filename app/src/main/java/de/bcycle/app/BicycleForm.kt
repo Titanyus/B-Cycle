@@ -9,10 +9,10 @@ import android.widget.TextView
 
 /** Shared settings sections and outlined inputs; persistence remains with each owning screen. */
 internal object BicycleForm {
-    fun section(parent: LinearLayout, themes: ThemeManager, title: Int): BicycleSectionHeader {
+    fun section(parent: LinearLayout, themes: ThemeManager, title: Int, inlineRules:Boolean=false): BicycleSectionHeader {
         val context=parent.context
         parent.clipToPadding=false
-        return BicycleSectionHeader(context,themes,context.getString(title)).also {
+        return BicycleSectionHeader(context,themes,context.getString(title),inlineRules).also {
             parent.addView(it,LinearLayout.LayoutParams(-1,-2).apply {
                 marginStart=-parent.paddingLeft; marginEnd=-parent.paddingRight
                 topMargin=0

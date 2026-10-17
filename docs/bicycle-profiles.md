@@ -11,6 +11,14 @@ Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherige
 
 ![Native Profilübersicht mit Testdaten](previews/profiles.png)
 
+## Hierarchie-Prototyp auf der Profilseite
+
+Die fünf Hauptbereiche verwenden `ProfileAccordion`: Kategorie-Icon links, 23 sp/Roboto 900 Black, Chevron rechts, abgerundeter TERTIARY-Kopf mit FOREGROUND-Kontur und betonter linker Kante. Der geöffnete Inhalt bleibt in einem verbundenen SECONDARY-Rahmen, links um 4 dp eingerückt. Lange Überschriften behalten ihre Schriftgröße und dürfen umbrechen.
+
+Unterüberschriften stehen zentriert zwischen horizontalen Linien auf Texthöhe. **Radtyp**, **Sensoren**, **FIT-Hauptquelle** und **Aufzuzeichnende Werte** sind nun ebenfalls Sticky Header. Die bisherigen Design-Unterüberschriften verwenden dieselbe Optik. Jeder Header ist durch `sectionEnd` auf das Ende seines eigenen Accordions begrenzt, auch wenn der folgende Hauptbereich geschlossen bleibt. Innerhalb der FIT-Unteraccordions bleibt die dezente Standarddarstellung erhalten. Andere Screens werden nicht umgestellt.
+
+[Design-Vorschau mit Testdaten](previews/profile-accordions.png) · [FIT-Vorschau mit Testdaten](previews/profile-fit-accordion.png)
+
 ## UI-Speicherung und Migration
 
 `BikeUiConfigurationStore` speichert pro stabiler Bike-ID einen typisierten UI-/Karten-Snapshot unter `bikeUiProfilesV1`. Die aktiven bestehenden Preferences bleiben die gemeinsame Schnittstelle für alle bisherigen Komponenten. Vor einem Profilwechsel wird der aktuelle Stand gesichert; beim Wechsel werden die verwalteten Schlüssel vollständig ersetzt. Nicht vorhandene Schlüssel bleiben auch nach einem Rückwechsel abwesend und übernehmen keine Werte des zuvor gewählten Profils. Der aktive Stand liegt weiterhin sofort in den bestehenden Preferences und übersteht einen Prozessneustart.

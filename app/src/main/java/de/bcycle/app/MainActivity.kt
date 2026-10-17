@@ -504,7 +504,7 @@ class MainActivity : Activity() {
     private fun recordingControls(): LinearLayout {
         val slot = runtime.bikes.activeSlot
         val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
-        root.addView(label(getString(R.string.bikes_fit_heading),BicycleDesign.titleSp).apply { isAccessibilityHeading=true;tag="fit_primary_heading" })
+        root.addView(BicycleSectionHeader(settingsContext,runtime.themes,getString(R.string.bikes_fit_heading),inlineRules=true).apply { titleView.tag="fit_primary_heading" })
         root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             root.addView(label(title, 16f).apply { setPadding(0, dp(BicycleDesign.sectionContentGap), 0, 0) })
@@ -517,8 +517,7 @@ class MainActivity : Activity() {
         val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
         fun saveFields() { if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
-        root.addView(BicycleComponents.sectionDivider(settingsContext,runtime.themes))
-        root.addView(label(getString(R.string.bikes_fit_additional), BicycleDesign.titleSp).apply { isAccessibilityHeading=true;setPadding(0,0,0,dp(BicycleDesign.controlGap)) })
+        root.addView(BicycleSectionHeader(settingsContext,runtime.themes,getString(R.string.bikes_fit_additional),inlineRules=true))
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
@@ -702,9 +701,9 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot
         val revision=runtime.profileRevision
         val root = column()
-        BicycleForm.section(root,runtime.themes,R.string.ui_theme)
+        BicycleForm.section(root,runtime.themes,R.string.ui_theme,inlineRules=embedded)
         root.addView(ThemePickerView(settingsContext, runtime.themes))
-        BicycleForm.section(root,runtime.themes,R.string.ui_dashboard_page_choose)
+        BicycleForm.section(root,runtime.themes,R.string.ui_dashboard_page_choose,inlineRules=embedded)
         val presets = DashboardPresetPicker(settingsContext,dashboardPages.selected(),runtime.themes)
         val footer=bicycleFooter(settingsContext,runtime.themes)
         var trainingControls:TrainingHelpView?=null
@@ -750,7 +749,7 @@ class MainActivity : Activity() {
             }
         })
         if(!embedded) trainingControls=appendTrainingHelp(root) { dashboardPages.selected() }
-        BicycleForm.section(root,runtime.themes,R.string.ui_mode_glow)
+        BicycleForm.section(root,runtime.themes,R.string.ui_mode_glow,inlineRules=embedded)
         root.addView(label(getString(R.string.ui_mode_glow_description)))
         val glow = Switch(settingsContext).apply {
             text = getString(R.string.ui_mode_glow); tag = "mode_glow_enabled"

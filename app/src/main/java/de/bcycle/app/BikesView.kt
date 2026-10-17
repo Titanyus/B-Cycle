@@ -73,25 +73,20 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private fun text(id: Int, heading: Boolean = false) = BicycleComponents.text(context,themes,context.getString(id),heading)
     private fun section(id: Int) {
         if(additionalSections==null) BicycleForm.section(this,themes,id)
-        else addView(text(id,true),LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.sectionContentGap);bottomMargin=dp(BicycleDesign.controlGap) })
+        else addView(BicycleSectionHeader(context,themes,context.getString(id),inlineRules=true),LayoutParams(-1,-2))
     }
     private fun accordion(title:Int,body:View) {
         val key=resources.getResourceEntryName(title)
-        val toggle=BicycleComponents.action(context,themes,context.getString(title)) {}.apply {
-            tag="profile_accordion_$key"
+        val icon=when(title) {
+            R.string.profiles_bike -> BicycleIcon.Bikes
+            R.string.ui_recording_title -> BicycleIcon.RecordingSettings
+            R.string.ui_settings_map -> BicycleIcon.Map
+            R.string.profiles_design -> BicycleIcon.Dashboard
+            else -> BicycleIcon.Speed
         }
-        fun applyState() {
-            val open=title in expanded
-            body.visibility=if(open) VISIBLE else GONE
-            toggle.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Expand)
-        }
-        BicycleDialogStyle.accordion(toggle,themes)
-        toggle.setOnClickListener { if(!expanded.add(title)) expanded.remove(title);applyState() }
-        addView(toggle,LayoutParams(-1,-2));addView(body,LayoutParams(-1,-2).apply {
-            topMargin=dp(BicycleDesign.controlGap);bottomMargin=dp(BicycleDesign.controlGap)
-        })
-        applyState()
+        addView(ProfileAccordion(context,themes,context.getString(title),key,icon,body,title in expanded) { open ->
+            if(open) expanded.add(title) else expanded.remove(title)
+        },LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
     }
     override fun onDetachedFromWindow() { copyPopup?.dismiss();super.onDetachedFromWindow() }
     private fun watcher(change: (String)->Unit) = object : TextWatcher {
