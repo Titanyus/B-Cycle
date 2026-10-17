@@ -11,7 +11,9 @@ Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherige
 
 ![Native Profilübersicht mit Testdaten](previews/profiles.png)
 
-## Hierarchie-Prototyp auf der Profilseite
+## Hierarchie-Prototyp auf der Profilseite – Accordiontest
+
+Benannte Designreferenz mit vollständigen Konventionen und fest verlinkten Vorschauen: [Accordiontest](accordiontest.md).
 
 Die fünf Hauptbereiche verwenden `ProfileAccordion`: Kategorie-Icon links, 23 sp/Roboto 900 Black, Chevron rechts, TERTIARY-Kopf mit 10-dp-Rundung und geschwungener, 3 dp breiter linker FOREGROUND-Kante. Kopf und Inhalt haben keinen umlaufenden Rahmen. Eine dünne vertikale FOREGROUND-Linie begleitet den geöffneten SECONDARY-Inhalt, links um 4 dp eingerückt, und schließt ohne Lücke an die linke Kurve des nächsten Hauptbereichs an. Lange Überschriften behalten ihre Schriftgröße und dürfen umbrechen.
 

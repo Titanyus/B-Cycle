@@ -187,6 +187,7 @@ und muss vor der Installation signiert werden.
 - [Dreeve und Strava: Einrichtung und Grenzen](docs/cloud-activity-uploads.md)
 - [Indoor-Trainer über FTMS](docs/indoor-ftms.md)
 - [Fahrradprofile](docs/bicycle-profiles.md)
+- [Accordiontest – Designkonventionen der Profilseite](docs/accordiontest.md)
 - [Dashboard-Layouts](docs/dashboard-presets.md)
 - [Bosch-MCSP: Protokoll, Feldmapping und Quellen](docs/bosch-mcsp.md)
 - [Matrix ICR50: getestetes BLE-/FTMS-Protokoll](docs/ble-trainer-matrix-icr50.md)
