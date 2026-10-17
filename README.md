@@ -61,16 +61,16 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 26 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-26-apk/downloads/B-Cycle-0.7.31-test-build-26.apk)**
+**[Aktuelle signierte Test-APK: Build 27 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-27-apk/downloads/B-Cycle-0.7.31-test-build-27.apk)**
 
 Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. **Version 0.7.31, Test-Build 26 vom 17.10.2026**.
-Neu: Profilseite als lange Seite mit großen Sticky Headern und ACCENT-Schrift,
-Radtyp als Dropdown und durchgehend gleich großem 16:9-Bildplatzhalter.
-Dashboard bearbeiten im Profilfooter. Die Designvariante Accordiontest bleibt archiviert.
-**38 gezielte Tests erfolgreich.**
-[Änderungen, Vorschauen und SHA-256](docs/test-build-26.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39047144461).
+installierbar. **Version 0.7.31, Test-Build 27 vom 17.10.2026**.
+Neu: Kompaktes Theme-Dropdown mit fünf Farbfeldern, ausklappbare Sensordetails,
+kleinere schmale Einstellungswerte, getrennte Aufzeichnungsabschnitte und Bosch-Fahrmodus.
+Sticky-Titel wieder FOREGROUND; Dashboard bearbeiten direkt bei den Dashboard-Aktionen.
+**44 gezielte Tests erfolgreich.**
+[Änderungen, Vorschauen und SHA-256](docs/test-build-27.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39049978925).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.31
