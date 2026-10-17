@@ -61,16 +61,16 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 22 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-22-apk/downloads/B-Cycle-0.7.30-test-build-22.apk)**
+**[Aktuelle signierte Test-APK: Build 23 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-23-apk/downloads/B-Cycle-0.7.31-test-build-23.apk)**
 
 Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. App-Version weiterhin 0.7.30, **Test-Build 22 vom 17.10.2026**.
-Neu: optionaler Oval-Folgemodus über den zusätzlichen Button oben rechts auf der
-Karte, kontinuierlichere Positionsbewegung und Pfeil für die Smartphone-Ausrichtung.
-Außerdem umrandete Schalter, GPS-Aufzeichnung über den GPS-Sensorschalter und
-Erhalt der FIT-Auswahl beim Wechsel zum Indoor-Bike. **Gezielte Tests erfolgreich.**
-[Änderungen, Buildnachweis und SHA-256](docs/test-build-22.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39024933834).
+installierbar. **Version 0.7.31, Test-Build 23 vom 17.10.2026**.
+Neu: gemeinsame Profilseite mit Bike, FIT-Aufzeichnung, Karten, Design und
+Trainingshilfe; eigene Design-/Dashboard-/Kartenwerte je Fahrrad. Profilübernahme
+bewahrt Name, Foto und Sensorzuordnungen des Ziels. Animierte Drag-and-drop-Vorschau
+für Bike- und Dashboard-Kacheln. **Vollständige Testsuite: 595 Tests erfolgreich.**
+[Änderungen, Buildnachweis und SHA-256](docs/test-build-23.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39029363043).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.31
