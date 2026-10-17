@@ -21,3 +21,9 @@ Weiße Hauptlinie, beide Leuchtsäume und transparente Verlaufsfüllung verwende
 Vorschau aus echten nativen Views mit reproduzierbaren **synthetischen Testdaten**, BLACK OPS: [Diagramme](previews/track-distributions.png).
 
 Validierung: 37 gezielte Tests bestanden (Zeitgewichtung, Lücken/Nullwerte/Pausen, Skalierung und Zonenfarben, FIT-Wiedereinlesen, bestehende Details/Best Efforts/Zonenbalken, quadratische Hochformat-Layouts in allen Presets). Release-Kotlin-Kompilierung erfolgreich.
+
+## Lesbarkeit in hellen Einstellungen
+
+Im Hellmodus folgen Kurve, Leuchtsaum und transparenter Füllverlauf der dunklen, leicht getönten FOREGROUND-Textfarbe. So bleiben Puls- und Leistungsverteilung auch auf dem weißen Bereich unterhalb Z1 sichtbar. Im Dunkelmodus bleibt die bisherige weiße Kurve. Die deckenden Zonenfarben bleiben unverändert. Ein Themewechsel aktualisiert den gecachten Füllshader direkt, auch bei unveränderter Viewgröße. Histogramme und Fahrtdaten werden nicht neu verarbeitet oder verändert.
+
+Die fünf Verlaufsdiagramme darüber behalten dagegen in beiden Modi dieselben semantischen Farben aus der unprojizierten Basispalette. Die frühere Wahl sehr dunkler Varianten anhand des weißen Seitenhintergrunds entfällt dort. Flächenfüllung weiterhin 100 %.

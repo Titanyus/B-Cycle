@@ -61,12 +61,12 @@ object BicycleThemes {
 }
 
 /** Small, deterministic RGB tint; display-only, never written into the source palette. */
-internal fun ThemeTokens.lightSettings():ThemeTokens {
+internal fun ThemeTokens.lightSettings(tertiaryBase:Int=0xffd0d0d0.toInt()):ThemeTokens {
     fun tint(base:Int,amount:Float):Int {
         fun channel(shift:Int)=(((base ushr shift) and 255)*(1f-amount)+((primary ushr shift) and 255)*amount).roundToInt()
         return (255 shl 24) or (channel(16) shl 16) or (channel(8) shl 8) or channel(0)
     }
-    return copy(secondary=0xffffffff.toInt(),tertiary=tint(0xffd0d0d0.toInt(),.08f),foreground=tint(0xff101010.toInt(),.05f))
+    return copy(secondary=0xffffffff.toInt(),tertiary=tint(tertiaryBase,.08f),foreground=tint(0xff101010.toInt(),.05f))
 }
 
 data class ThemeValidation(val problems: List<String>) {

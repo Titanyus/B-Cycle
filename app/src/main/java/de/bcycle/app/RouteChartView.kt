@@ -33,7 +33,7 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
         contentDescription = context.getString(R.string.analysis_chart_description, title, axisUnit, unit)
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         BicycleComponents.bindTheme(this, themes) { tokens ->
-            foreground = tokens.foreground; curve = series.chart.color(tokens.secondary); invalidate()
+            foreground = tokens.foreground; curve = series.chart.color(themes.baseTokens.secondary); invalidate()
         }
     }
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {

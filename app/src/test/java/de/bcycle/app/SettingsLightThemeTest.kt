@@ -23,7 +23,7 @@ class SettingsLightThemeTest {
         for(theme in base.presets) {
             assertTrue(settings.activate(theme.id))
             assertEquals(theme,base.active)
-            assertEquals(theme.tokens.lightSettings(),settings.active.tokens)
+            assertEquals(theme.tokens.lightSettings(if(theme.id.endsWith("-color")) 0xffe3e3e3.toInt() else 0xffd0d0d0.toInt()),settings.active.tokens)
             assertEquals(settings.active,updates.last())
         }
         val store=BikeUiConfigurationStore(prefs);store.ensure(listOf(0,1));store.save(0)
@@ -52,6 +52,7 @@ class SettingsLightThemeTest {
             assertEquals(a.getString(R.string.settings_dark_mode),toggle.contentDescription)
             toggle.performClick();shadowOf(Looper.getMainLooper()).idle()
             assertEquals(a.getString(R.string.settings_light_mode),toggle.contentDescription)
+            assertEquals(android.graphics.Color.WHITE,root.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").currentTextColor)
             val body=root.findViewWithTag<View>("bicycle_fullscreen_content")
             val bg=body.background as android.graphics.drawable.ColorDrawable
             assertEquals(0xffffffff.toInt(),bg.color)
@@ -59,6 +60,7 @@ class SettingsLightThemeTest {
             root.findViewWithTag<View>("settings_PROFILES").performClick()
             val profiles=ShadowAlertDialog.getLatestAlertDialog()
             assertNull(profiles.window!!.decorView.findViewWithTag<View>("settings_light_toggle"))
+            assertEquals(android.graphics.Color.WHITE,profiles.window!!.decorView.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").currentTextColor)
             assertTrue(runtime.themes.settingsLight)
             profiles.dismiss();shadowOf(Looper.getMainLooper()).idle()
             toggle.performClick();shadowOf(Looper.getMainLooper()).idle()

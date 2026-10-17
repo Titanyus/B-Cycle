@@ -22,6 +22,9 @@ internal object BicycleNavigation {
         if(title!=null) {
             (title.parent as? ViewGroup)?.removeView(title)
             title.gravity=Gravity.CENTER
+            BicycleComponents.bindTheme(title,themes) {
+                title.setTextColor(BicycleComponents.textColor(title,themes,it))
+            }
             val inset=BicycleDesign.dp(context,BicycleDesign.touchSize+BicycleDesign.smallGap)
             title.setPadding(inset,0,inset,0)
             frame.addView(title,FrameLayout.LayoutParams(-1,-1))

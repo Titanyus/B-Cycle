@@ -17,6 +17,7 @@ internal class RouteDistributionView(context: Context, private val themes: Theme
     private val plot = RectF()
     private var fill: Shader? = null
     private var foreground = 0
+    private var curveColor = Color.WHITE
     private val smooth = distribution.smoothed()
     private val title = context.getString(distribution.chart.detailLabel)
     private val unit = context.getString(distribution.chart.unit)
@@ -31,7 +32,11 @@ internal class RouteDistributionView(context: Context, private val themes: Theme
         contentDescription = context.getString(R.string.analysis_distribution_description, title,
             context.getString(R.string.analysis_integer_format, distribution.minimum),
             context.getString(R.string.analysis_integer_format, distribution.maximum), unit)
-        BicycleComponents.bindTheme(this, themes) { foreground = it.foreground; invalidate() }
+        BicycleComponents.bindTheme(this, themes) {
+            foreground = it.foreground
+            curveColor = if(themes.isSettingsPalette && themes.settingsLight) it.foreground else Color.WHITE
+            updateFill(); invalidate()
+        }
     }
     internal fun plotBounds() = RectF(plot)
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -54,9 +59,14 @@ internal class RouteDistributionView(context: Context, private val themes: Theme
         }
         line.quadTo(previous.x, previous.y, plot.right, points.last().y)
         area.set(line); area.lineTo(plot.right, plot.bottom); area.lineTo(plot.left, plot.bottom); area.close()
+        updateFill()
+    }
+    private fun updateFill() {
+        if(plot.height()<=0f) return
         val top = plot.bottom - plot.height() * .82f
         val alpha = LiveGraphStyle.fillAlpha(GraphDisplayMode.GRAPH_ONLY)
-        fill = LinearGradient(0f, top, 0f, plot.bottom, intArrayOf(Color.argb(alpha,255,255,255), Color.argb(alpha/3,255,255,255), Color.TRANSPARENT), floatArrayOf(0f,.55f,1f), Shader.TileMode.CLAMP)
+        val rgb=curveColor and 0x00ffffff
+        fill = LinearGradient(0f,top,0f,plot.bottom,intArrayOf(rgb or (alpha shl 24),rgb or ((alpha/3) shl 24),rgb),floatArrayOf(0f,.55f,1f),Shader.TileMode.CLAMP)
     }
     override fun onDraw(canvas: Canvas) {
         if (plot.width() <= 0 || plot.height() <= 0) return
@@ -68,7 +78,7 @@ internal class RouteDistributionView(context: Context, private val themes: Theme
         }
         paint.shader = null; paint.color = foreground; paint.alpha = 30; paint.strokeWidth = density * .5f
         marks.forEach { value -> canvas.drawLine(x(value), plot.top, x(value), plot.bottom, paint) }
-        paint.color = Color.WHITE; paint.alpha = 255; paint.shader = fill
+        paint.color = curveColor; paint.alpha = 255; paint.shader = fill
         canvas.drawPath(area, paint)
         paint.shader = null; paint.style = Paint.Style.STROKE; paint.strokeCap = Paint.Cap.ROUND; paint.strokeJoin = Paint.Join.ROUND
         for ((width, alpha) in listOf(LiveGraphStyle.OUTER_GLOW_WIDTH_DP to 24, LiveGraphStyle.INNER_GLOW_WIDTH_DP to 60, LiveGraphStyle.LINE_WIDTH_DP to LiveGraphStyle.LINE_ALPHA)) {

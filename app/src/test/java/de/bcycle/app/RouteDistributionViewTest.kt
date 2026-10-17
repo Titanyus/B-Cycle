@@ -20,6 +20,61 @@ class RouteDistributionViewTest {
     private fun measure(v: View, width: Int) {
         v.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(1800, View.MeasureSpec.EXACTLY)); v.layout(0, 0, width, 1800)
     }
+    @Test fun lightCurvesAndFillsStayVisibleBelowZoneOneAndUpdateWithoutResizing() {
+        val host=org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup().visible()
+        try {
+            val context=host.get();val base=ThemeManager(context.getSharedPreferences("distribution-light",0))
+            val themes=base.settings;themes.setSettingsLight(true)
+            for(kind in listOf(AnalysisChart.POWER,AnalysisChart.HEART)) {
+                val distribution=RouteValueDistribution(kind,0.0,200.0,List(64) { 100.0 },6400.0,
+                    listOf(DistributionBand(1,50.0,200.0,android.graphics.Color.GREEN)),200.0)
+                val chart=RouteDistributionView(context,themes,distribution);context.setContentView(chart,ViewGroup.LayoutParams(720,720))
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                chart.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY));chart.layout(0,0,720,720)
+                val bounds=chart.plotBounds();val x=(bounds.left+bounds.width()*.15f).toInt()
+                val lineY=(bounds.top+bounds.height()*.18f).toInt()
+                fun render(background:Int)=Bitmap.createBitmap(720,720,Bitmap.Config.ARGB_8888).also {
+                    Canvas(it).apply { drawColor(background);chart.draw(this) }
+                }
+                val light=render(android.graphics.Color.WHITE)
+                assertTrue((lineY-3..lineY+3).any { ThemeValidator.luminance(light.getPixel(x,it))<.1 })
+                val fillY=(bounds.top+bounds.height()*.6f).toInt()
+                assertTrue(ThemeValidator.luminance(light.getPixel(x,fillY))<.95)
+                assertEquals(android.graphics.Color.GREEN,light.getPixel((bounds.right-10).toInt(),bounds.top.toInt()+5));light.recycle()
+                themes.setSettingsLight(false);org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                val dark=render(android.graphics.Color.BLACK)
+                assertTrue((lineY-3..lineY+3).any { ThemeValidator.luminance(dark.getPixel(x,it))>.6 });dark.recycle()
+                themes.setSettingsLight(true);org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                val again=render(android.graphics.Color.WHITE)
+                assertTrue(ThemeValidator.luminance(again.getPixel(x,fillY))<.95);again.recycle()
+            }
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun fiveHistoryChartsKeepExactlyTheirDarkModeColorsInLightMode() {
+        val host=org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup().visible()
+        try {
+            val context=host.get();val base=ThemeManager(context.getSharedPreferences("history-colors",0))
+            base.activate("preset:hellfire-dark");val themes=base.settings
+            for(kind in AnalysisChart.entries) {
+                val series=AnalysisSeries(kind,listOf(AnalysisPoint(0.0,0.0,80.0),AnalysisPoint(distance=10000.0,seconds=10.0,value=160.0)))
+                val analysis=RouteAnalysis(ManagedRoute("colors","Test",true,"FIT",RouteDetails(),false),emptyMap(),null,true,10.0,listOf(series))
+                themes.setSettingsLight(false)
+                val chart=RouteChartView(context,themes,analysis,series)
+                context.setContentView(chart,ViewGroup.LayoutParams(720,360))
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                chart.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY));chart.layout(0,0,720,360)
+                fun color():Int {
+                    val bitmap=Bitmap.createBitmap(720,360,Bitmap.Config.ARGB_8888)
+                    chart.draw(Canvas(bitmap));val pixel=bitmap.getPixel(((chart.plotLeft+chart.plotRight)/2).toInt(),200)
+                    bitmap.recycle();return pixel
+                }
+                val expected=kind.color(base.active.tokens.secondary)
+                assertEquals(expected,color())
+                themes.setSettingsLight(true);org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                assertEquals(expected,color())
+            }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun squareDistributionsFollowExistingChartsAcrossThemesAndPortraitWidths() {
         val context = RuntimeEnvironment.getApplication()
         val themes = ThemeManager(context.getSharedPreferences("distribution-view", 0))

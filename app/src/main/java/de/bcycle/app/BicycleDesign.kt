@@ -229,9 +229,14 @@ object BicycleComponents {
         view.background = background
         bindTheme(view, manager) { background.setColor(it.color(role)) }
     }
+    internal fun textColor(view:TextView,manager:ThemeManager,tokens:ThemeTokens):Int {
+        val pageHeader=when(view.tag) { "bicycle_page_heading","bicycle_dialog_title","analysis_title"->true;else->false }
+        return if(pageHeader && manager.isSettingsPalette && manager.settingsLight) android.graphics.Color.WHITE else tokens.foreground
+    }
     internal fun heading(context: Context, manager: ThemeManager, value: String) = text(context, manager, value).apply {
         typeface = context.resources.getFont(R.font.bebas_neue); textSize = BicycleDesign.headingSp
-        gravity = Gravity.CENTER; isAccessibilityHeading = true; maxLines = 1
+        gravity = Gravity.CENTER; isAccessibilityHeading = true; maxLines = 1;tag="bicycle_page_heading"
+        bindTheme(this,manager) { setTextColor(textColor(this,manager,it)) }
     }
     internal fun icon(context: Context, manager: ThemeManager, icon: BicycleIcon, description: String,
                       click: () -> Unit) = icon(context, manager,
@@ -271,7 +276,7 @@ object BicycleComponents {
     fun text(context: Context, manager: ThemeManager, value: String, title: Boolean = false) = TextView(context).apply {
         text = value; textSize = if (title) BicycleDesign.titleSp else BicycleDesign.bodySp
         if (title) { typeface=BicycleDesign.strongTypeface;isAccessibilityHeading=true }
-        bindTheme(this, manager) { setTextColor(it.foreground) }
+        bindTheme(this, manager) { setTextColor(textColor(this,manager,it)) }
     }
     /** Explanatory form copy keeps the shared gap; labels and metric text keep their own geometry. */
     fun description(context: Context, manager: ThemeManager, value: String) = text(context,manager,value).apply {

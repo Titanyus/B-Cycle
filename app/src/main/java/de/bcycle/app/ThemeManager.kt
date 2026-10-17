@@ -30,9 +30,10 @@ class ThemeManager(private val preferences: SharedPreferences, private val setti
     fun setSettingsLight(light:Boolean) { preferences.edit().putBoolean(settingsLightKey,light).apply() }
     fun forDisplay(theme:BicycleTheme):BicycleTheme {
         if(!isSettingsPalette || !settingsLight) return theme
-        val tokens=theme.tokens.lightSettings()
+        val tokens=theme.tokens.lightSettings(if(theme.id.endsWith("-color")) 0xffe3e3e3.toInt() else 0xffd0d0d0.toInt())
         return when(theme) { is PresetTheme->theme.copy(tokens=tokens);is CustomTheme->theme.copy(tokens=tokens) }
     }
+    internal val baseTokens get() = (settingsSource?.active ?: synchronized(lock) { current }).tokens
     val active: BicycleTheme get() = forDisplay(settingsSource?.active ?: synchronized(lock) { current })
     private val settingsListener=SharedPreferences.OnSharedPreferenceChangeListener { _,key ->
         if(key==settingsLightKey) publish()
