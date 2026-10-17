@@ -7,6 +7,9 @@ data class RecordingConfig(
     val speedSource: String = "SPEED", val distanceSource: String = "BIKE_DISTANCE", val indoor:Boolean=false,
 ) {
     val needsGps get() = !indoor && (fields.any { it.startsWith("GPS_") } || speedSource == "GPS_SPEED")
+    /** Runtime policy; the legacy field ID stays readable in journals and backups. */
+    fun withGpsPosition(enabled:Boolean)=copy(fields=(fields-"GPS_POSITION")+
+        if(enabled && !indoor) setOf("GPS_POSITION") else emptySet())
     companion object {
         fun decode(fields: Set<String>?, speed: String?, distance: String?) = RecordingConfig(
             fields?.filter { id -> RecordField.options.any { it.id == id } }?.toSet() ?: RecordField.defaults,

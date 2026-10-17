@@ -16,6 +16,32 @@ import org.robolectric.shadows.ShadowAlertDialog
 @Config(sdk=[33],qualifiers="xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class IndoorUiTest {
+    @Test fun changingTypesAndEditingIndoorFitPreservesHiddenOutdoorSelectionAndPrimarySources() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get();val runtime=RideRuntime.get(activity)
+            runtime.setGpsEnabled(true)
+            val gpsFields=RecordField.options.map { it.id }.filter { it.startsWith("GPS_") && it!="GPS_POSITION" }.toSet()
+            runtime.saveConfig(RecordingConfig(gpsFields+setOf("MOTOR_POWER","HEART_RATE"),"GPS_SPEED","GPS_DISTANCE"))
+            MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(activity)
+            val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            assertNull(root.findViewWithTag<View>("record_GPS_POSITION"))
+            root.findViewWithTag<View>("bike_type_INDOOR").performClick()
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertFalse(runtime.gpsEnabled);assertFalse("GPS_POSITION" in runtime.config.fields)
+            root.findViewWithTag<CheckBox>("record_HEART_RATE").isChecked=false
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            root.findViewWithTag<View>("bike_type_EBIKE").performClick()
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertTrue(runtime.gpsEnabled)
+            assertEquals("GPS_SPEED",runtime.config.speedSource);assertEquals("GPS_DISTANCE",runtime.config.distanceSource)
+            assertTrue(runtime.config.fields.containsAll(gpsFields+setOf("GPS_POSITION","MOTOR_POWER")))
+            assertFalse("HEART_RATE" in runtime.config.fields) // Deliberate edit of a visible, shared field.
+            assertNull(root.findViewWithTag<View>("record_GPS_POSITION"))
+            runtime.setGpsEnabled(false);assertFalse("GPS_POSITION" in runtime.config.fields)
+            runtime.setGpsEnabled(true);assertTrue("GPS_POSITION" in runtime.config.fields)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun indoorSelectionPersistsAndOnlyOffersTrainerHeartAndRelevantFitAndDashboardFields() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {

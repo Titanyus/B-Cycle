@@ -161,7 +161,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if(isIndoor) indoorRide.averagePower.takeIf { trainer.live } else bikeData.value(LiveMetric.AVERAGE_POWER)?.toDouble()?.takeIf { fresh(LiveMetric.AVERAGE_POWER, now) },
         pulseValues.bpm?.toDouble()?.takeIf { heartAvailable && heartAt?.let { now - it in 0..5000 } == true }, heartAt,
         pulse.average.takeIf { heartAvailable && heartAt?.let { now - it in 0..5000 } == true })
-    val config get() = RecordingConfig.decode(preferences.getStringSet("recordFields", null), preferences.getString("recordSpeed", null), preferences.getString("recordDistance", null)).let { if(isIndoor) IndoorFields.config(it) else it }
+    private val storedConfig get()=RecordingConfig.decode(preferences.getStringSet("recordFields", null), preferences.getString("recordSpeed", null), preferences.getString("recordDistance", null))
+    val config get() = storedConfig.let { if(isIndoor) IndoorFields.config(it) else it }.withGpsPosition(gpsEnabled)
     private fun scheduleTick() {
         handler.removeCallbacks(tick)
         if (!active) return
@@ -418,13 +419,17 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     fun beginBikeScan() { bikeReconnect.selecting = true; connection.discover() }
     fun endBikeScan() { bikeReconnect.selecting = false; connection.stop(); bikeReconnect.connected(); reconnectSensors() }
     fun saveConfig(config: RecordingConfig) {
-        val config=if(isIndoor) IndoorFields.config(config) else config
+        // Indoor is a view of the stored selection, not a destructive replacement of outdoor settings.
+        val config=if(isIndoor) storedConfig.let { stored -> stored.copy(
+            fields=(stored.fields-IndoorFields.allowed)+(config.fields intersect IndoorFields.allowed)) } else config
         preferences.edit().putStringSet("recordFields", config.fields).putString("recordSpeed", config.speedSource).putString("recordDistance", config.distanceSource).apply()
         bikes.persistActive()
     }
     fun beginRecording() {
         if (recording || saving) return
-        activeConfig = config
+        // Reserve the coordinate columns outdoors even if GPS is enabled later during this ride.
+        // Actual coordinate values below remain strictly controlled by the GPS sensor switch.
+        activeConfig = config.withGpsPosition(!isIndoor)
         mapState.track.clear(); mapTrackEnabled = "GPS_POSITION" in activeConfig.fields
         ride.gps.reset(); ride.bike.reset(bikeData.value(LiveMetric.ODOMETER).takeIf { if(isIndoor) trainer.live else connection.isLive })
         cadenceAverage.reset();indoorRide.reset()
@@ -481,7 +486,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             bikeData.otherValues.filterKeys { fresh(it, now) }+(if(isIndoor) dashboardBikeData.otherValues.filterKeys { it.group==2 } else emptyMap()), bikeData.assistNames, bikeData.rangesKm.takeIf { connection.isLive },
         )
         val values = recordingValues(fresh, gps, ride.bike.distanceM, pulseValues)
-        return RideSample(startUtc + now - startElapsed, now - startElapsed, gps.latitude, gps.longitude, values, pendingPerformance.toList())
+        return RideSample(startUtc + now - startElapsed, now - startElapsed, gps.latitude.takeIf { gpsEnabled && !isIndoor }, gps.longitude.takeIf { gpsEnabled && !isIndoor }, values, pendingPerformance.toList())
     }
     private fun fresh(metric: LiveMetric, now: Long): Boolean {
         val limit = if (metric.group == 2) 120_000 else if (metric.group == 1 || metric == LiveMetric.ASSIST_MODE) 60_000 else 5_000

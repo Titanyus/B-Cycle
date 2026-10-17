@@ -150,3 +150,7 @@ Die reale Android-Drag-Geste samt Randscrollverhalten sollte am Gerät optisch g
 werden; automatisiert sind Ereignisverarbeitung und gespeicherte Reihenfolge geprüft.
 
 Aktive Indoor-Integration, FIT und reale Prüfgrenzen: [Indoor/FTMS](indoor-ftms.md).
+
+## Schutz beim Wechsel des Radtyps
+
+Der Indoor-Feldfilter ist eine Laufzeitsicht. Indoor-Speichern ersetzt nur die dort verfügbaren Felder; ausgeblendete GPS-/E-Bike-Felder und die zuvor gewählten Outdoor-Hauptquellen bleiben gespeichert und erscheinen nach Rückkehr wieder. Bewusste Änderungen sichtbarer gemeinsamer Werte werden weiterhin gespeichert. GPS-Positionsaufzeichnung ist bei Bike/E-Bike an den GPS-Sensorschalter gekoppelt, ohne zweite FIT-Checkbox. Die alte GPS_POSITION-ID bleibt zur Dateiformat-/Backup-Kompatibilität erhalten; Outdoor-Journals reservieren Positionsspalten und schreiben nur bei aktiviertem GPS tatsächliche Koordinaten, auch wenn GPS erst während der Fahrt aktiviert wird. Indoor bleibt ohne Positionen.

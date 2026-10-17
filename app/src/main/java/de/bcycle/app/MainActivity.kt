@@ -507,7 +507,7 @@ class MainActivity : Activity() {
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
         root.addView(BicycleComponents.sectionDivider(settingsContext,runtime.themes))
         root.addView(label(getString(R.string.bikes_fit_additional), BicycleDesign.titleSp).apply { isAccessibilityHeading=true;setPadding(0,0,0,dp(BicycleDesign.controlGap)) })
-        for ((source, fields) in RecordField.options.filter { !current.indoor || it.id in IndoorFields.allowed }.groupBy {
+        for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
             val content=LinearLayout(settingsContext).apply {

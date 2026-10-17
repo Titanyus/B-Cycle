@@ -51,7 +51,7 @@ class RecordingFlowTest {
             Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.POST_NOTIFICATIONS)
         val provider = provider()
         val runtime = RideRuntime.get(app)
-        runtime.saveConfig(RecordingConfig(setOf("GPS_POSITION", "GPS_SPEED", "GPS_DISTANCE"), "GPS_SPEED", "GPS_DISTANCE"))
+        runtime.saveConfig(RecordingConfig(setOf("GPS_SPEED", "GPS_DISTANCE"), "GPS_SPEED", "GPS_DISTANCE"))
         val manager = app.getSystemService(LocationManager::class.java)
         shadowOf(manager).setProviderEnabled(LocationManager.GPS_PROVIDER, true)
         runtime.setVisible(true)
@@ -164,21 +164,33 @@ class RecordingFlowTest {
             await { !runtime.saving }
         }
     }
-    @Test fun unselectedGpsPositionDoesNotCreateMapHistoryEvenWithGpsFixes() {
+    @Test fun gpsSwitchControlsPositionsAndCanEnableThemDuringRecordingWithoutASecondFitSetting() {
         val app = RuntimeEnvironment.getApplication()
         shadowOf(app).grantPermissions(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN,
             Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-        provider()
+        val downloads=provider()
         val runtime = RideRuntime.get(app)
-        runtime.saveConfig(RecordingConfig(setOf("HEART_RATE")))
+        runtime.saveConfig(RecordingConfig(setOf("HEART_RATE"))) // Legacy GPS checkbox was off.
+        runtime.setGpsEnabled(false)
+        assertFalse("GPS_POSITION" in runtime.config.fields)
         runtime.setVisible(true); runtime.beginRecording()
         val now = SystemClock.elapsedRealtime()
         runtime.ride.gps.accept(GpsFix(now, 50.0, 8.0, 3.0, 5.0, .2), now)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
-        assertFalse(runtime.mapTrackEnabled)
         assertTrue(runtime.mapState.track.points.isEmpty())
+        runtime.setGpsEnabled(true)
+        assertTrue("GPS_POSITION" in runtime.config.fields)
+        repeat(2) { i ->
+            val stamp=SystemClock.elapsedRealtime()
+            runtime.ride.gps.accept(GpsFix(stamp,50.0001+i*.0001,8.0,3.0,5.0,.2),stamp)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+        }
+        assertTrue(runtime.mapState.track.points.size>=2)
         runtime.stopRecording(); runtime.setVisible(false)
         await { !runtime.saving }
+        val records=downloads.published.single().inputStream().use { FitDecoder().decode(it).recordMesgs }
+        assertNull(records.first().positionLat)
+        assertTrue(records.any { it.positionLat!=null && it.positionLong!=null })
     }
     @Test fun failedDownloadLeavesPrivateJournalAndRetryPublishesOneValidFit() {
         val app = RuntimeEnvironment.getApplication()
