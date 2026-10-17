@@ -222,20 +222,19 @@ class DashboardViewTest {
     @Test fun previewTilesKeepExistingOrderAndNewChoicesRemainIndependentPerPage() {
         val context = RuntimeEnvironment.getApplication()
         val initial = DashboardTemplate.entries.take(4)
-        val picker = DashboardPresetPicker(context, initial, 0)
+        val picker = DashboardPresetPicker(context, 0)
         measure(picker, 960, 1400)
-        val tiles = descendants(picker).filter { it.tag?.toString()?.startsWith("preset_") == true && it.isClickable && !it.tag.toString().startsWith("preset_page_") }
-        assertEquals(DashboardTemplate.entries.map { "preset_${it.name}" }, tiles.map { it.tag })
-        tiles.forEach { assertNotNull(descendants(it).filterIsInstance<android.widget.ImageView>().single().drawable) }
-        tiles.single { it.tag == "preset_HERO_SEVEN" }.performClick()
-        assertEquals(DashboardTemplate.HERO_SEVEN, picker.selection[0])
-        descendants(picker).single { it.tag == "preset_page_1" }.performClick()
-        tiles.single { it.tag == "preset_HERO_FIVE" }.performClick()
-        assertEquals(listOf(DashboardTemplate.HERO_SEVEN, DashboardTemplate.HERO_FIVE) + initial.drop(2), picker.selection)
-        assertEquals(DashboardTemplate.entries.take(4), initial)
-        descendants(picker).single { it.tag == "preset_page_2" }.performClick()
-        tiles.single { it.tag == "preset_EIGHT" }.performClick()
-        assertEquals(DashboardTemplate.EIGHT, picker.selection[2])
+        val spinner=picker.findViewWithTag<android.widget.Spinner>("dashboard_layout_choice")
+        assertEquals(10,spinner.count)
+        spinner.setSelection(DashboardTemplate.HERO_SEVEN.ordinal)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(DashboardTemplate.HERO_SEVEN,picker.selection[0])
+        descendants(picker).single { it.tag=="preset_page_1" }.performClick()
+        spinner.setSelection(DashboardTemplate.HERO_FIVE.ordinal)
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(DashboardTemplate.HERO_FIVE,picker.selection[1])
+        assertEquals(DashboardTemplate.HERO_SEVEN,picker.selection[0])
+        assertEquals(DashboardTemplate.entries.take(4),initial)
     }
 
     @Test fun threeColumnTilesHaveEqualWidthsFixedNumbersAndFitRequiredDistancesOnNarrowPhones() {
@@ -365,17 +364,17 @@ class DashboardViewTest {
             descendants(dashboard).filter { it.isClickable }[7].performClick()
             val picker = ShadowAlertDialog.getLatestAlertDialog()
             selectTestSource(picker, "E-Bike")
-            descendants(picker.window!!.decorView).single { it.tag == "BATTERY" }.performClick()
+            descendants(picker.window!!.decorView).single { it.tag == "CADENCE" }.performClick()
             val saved = DashboardLayout.decode(prefs.getString("dashboard", null))
             assertEquals(oldFields, saved.fields.take(7).joinToString("|") { it.id })
-            assertEquals("BATTERY", saved.fields[7].id)
+            assertEquals("CADENCE", saved.fields[7].id)
         } finally { controller.pause().stop().destroy() }
         val restarted = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val dashboard = descendants(restarted.get().findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
             measure(dashboard, 1080, 900)
             assertEquals(DashboardTemplate.EIGHT, dashboard.template)
-            assertTrue(descendants(dashboard).filter { it.isClickable }[7].contentDescription.toString().startsWith("Akku"))
+            assertTrue(descendants(dashboard).filter { it.isClickable }[7].contentDescription.toString().startsWith("Kadenz"))
         } finally { restarted.pause().stop().destroy() }
     }
 

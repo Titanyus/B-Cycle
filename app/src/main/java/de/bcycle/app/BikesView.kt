@@ -28,6 +28,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         }
     }.apply { tag="bike_delete" }
     val footer=bicycleFooter(context,themes).apply {
+        addView(BicycleFooterAction(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.route_action_rename)) { nameHeading.performClick() }.apply { tag="bike_rename" },LayoutParams(0,-2,1f))
         addView(deleteAction,LayoutParams(0,-2,1f))
     }
     private val statuses = mutableMapOf<BikeSensor, TextView>()
@@ -65,7 +66,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         addView(strip,LayoutParams(-1,-2))
         strip.show(runtime.bikes.all(),slot,runtime.recording || runtime.saving)
         strip.revealActive()
-        nameHeading = BicycleComponents.text(context,themes,profile.name,true).apply {
+        val nameHeader = BicycleSectionHeader(context,themes,profile.name)
+        nameHeading = nameHeader.titleView.apply {
             tag="bike_profile_name";gravity=Gravity.CENTER;minimumHeight=dp(BicycleDesign.touchSize);isClickable=true;isFocusable=true
             contentDescription=context.getString(R.string.bikes_name_edit)
         }
@@ -83,15 +85,16 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             nameHeading.visibility=GONE;nameEdit.visibility=VISIBLE;nameEdit.requestFocus();nameEdit.selectAll()
             context.getSystemService(InputMethodManager::class.java).showSoftInput(nameEdit,InputMethodManager.SHOW_IMPLICIT)
         }
+        nameHeader.apply { isClickable=true;isFocusable=true;setOnClickListener { nameHeading.performClick() } }
         nameEdit.addTextChangedListener(watcher { value ->
             if(runtime.bikes.activeSlot!=slot) return@watcher
             val name=value.trim()
             nameEdit.error=if(name.isEmpty() || name.any(Char::isISOControl)) context.getString(R.string.bikes_name_empty) else null
-            if(nameEdit.error==null) { runtime.bikes.save(runtime.bikes.current().copy(name=name));nameHeading.text=name;paintCards() }
+            if(nameEdit.error==null) { runtime.bikes.save(runtime.bikes.current().copy(name=name));nameHeading.text=name;nameHeader.contentDescription=name;paintCards() }
         })
         nameEdit.setOnEditorActionListener { _,action,_ -> if(action==EditorInfo.IME_ACTION_DONE) { finishNaming();true } else false }
         nameEdit.setOnFocusChangeListener { _,focused -> if(!focused && nameEdit.visibility==VISIBLE) finishNaming() }
-        addView(nameHeading,LayoutParams(-1,-2));addView(nameEdit,LayoutParams(-1,-2))
+        addView(nameHeader,LayoutParams(-1,-2).apply { marginStart=-paddingLeft;marginEnd=-paddingRight });addView(nameEdit,LayoutParams(-1,-2))
         photo=BikePhotoView(context,themes,slot) { choosePhoto(slot) }.also { addView(it,LayoutParams(-1,dp(BicycleDesign.bikePhotoEmptyHeight)).apply { topMargin=dp(BicycleDesign.sectionContentGap) }) }
         section(R.string.bikes_type)
         addView(LinearLayout(context).apply {
@@ -266,7 +269,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 value.text=factor; slider.stateDescription=factor
             }
             typeButtons.forEachIndexed { index,button -> button.isEnabled=BikeType.entries[index].available && !runtime.recording && !runtime.saving;button.alpha=if(button.isEnabled) 1f else .4f }
-            footer.visibility=if(runtime.bikes.all().size>1) VISIBLE else GONE
+            footer.visibility=VISIBLE
+            deleteAction.visibility=if(runtime.bikes.all().size>1) VISIBLE else GONE
             deleteAction.isEnabled=!runtime.recording && !runtime.saving
             switches.forEach { (s,v) -> v.isChecked=when(s) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;BikeSensor.TRAINER->runtime.trainerEnabled;else->false } }
             statuses.forEach { (sensor,view) ->

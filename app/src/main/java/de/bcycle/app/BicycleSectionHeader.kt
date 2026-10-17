@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 internal class BicycleSectionHeader(context: Context, themes: ThemeManager, title: String) : LinearLayout(context) {
     /** Optional section boundary, e.g. an independent accordion after the last category. */
     var sectionEnd: View? = null
+    val titleView = BicycleComponents.text(context, themes, title, true)
     init {
         orientation = VERTICAL; isAccessibilityHeading = true; contentDescription = title
         tag = "section_header_$title"
@@ -21,7 +22,7 @@ internal class BicycleSectionHeader(context: Context, themes: ThemeManager, titl
             BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.foreground) }
         }
         addView(rule(), LayoutParams(-1, BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
-        addView(BicycleComponents.text(context, themes, title, true).apply {
+        addView(titleView.apply {
             gravity = Gravity.CENTER
             minimumHeight = BicycleDesign.dp(context, BicycleDesign.sectionHeaderMinHeight)
             val horizontal = BicycleDesign.dp(context, BicycleDesign.horizontalPadding)

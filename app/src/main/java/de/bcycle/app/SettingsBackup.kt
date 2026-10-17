@@ -47,6 +47,12 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
     private fun profileJson(p: RiderProfile) = JSONObject().put("birthDate", p.birthDate?.toString() ?: JSONObject.NULL)
         .put("heightCm", p.heightCm ?: JSONObject.NULL).put("weightKg", p.weightKg ?: JSONObject.NULL)
         .put("restingHeartRate", p.restingHeartRate ?: JSONObject.NULL).put("maximumHeartRate", p.maximumHeartRate ?: JSONObject.NULL).put("ftpW", p.ftpW ?: JSONObject.NULL)
+    private fun dashboardIds():List<Int> = runCatching {
+        val saved=JSONArray(bike.getString(DashboardPages.KEY,null))
+        (0 until saved.length()).map { saved.getJSONObject(it).getInt("id") }.also { ids ->
+            require(ids.isNotEmpty() && ids.size<=DashboardPages.MAX && ids.distinct().size==ids.size && ids.all { it in 0 until DashboardPages.MAX })
+        }
+    }.getOrDefault((0..3).toList())
     fun export(selected: Set<BackupSection>): ByteArray {
         if (selected.isEmpty()) fail(BackupProblem.SELECTION)
         val sections = JSONObject()
@@ -56,14 +62,14 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("modeGlowPlacement",ModeGlowSettings.placement(bike).name)
                 .put("dashboardFullscreen",DashboardFullscreen.enabled(bike))
 
-            BackupSection.DASHBOARD -> JSONObject().put("pages", JSONArray().apply { repeat(4) { i ->
+            BackupSection.DASHBOARD -> JSONObject().put("pages", JSONArray().apply { dashboardIds().forEach { i ->
                 put(JSONObject().put("index", i).put("fields", jsonArray(DashboardLayout.decode(bike.getString(if(i==0) "dashboard" else "dashboard_$i", null)).fields.map { it.id }))
                     .put("graphs", JSONArray().apply { GraphOverlayConfig.read(bike,i).slots.forEach { put(jsonArray(it.map { chart -> chart.name })) } })
                     .put("graphDisplayModes",jsonArray(GraphOverlayConfig.read(bike,i).displayModes.map { it.name }))
                     .put("zoneGlowSources",jsonArray(ZoneGlowConfig.read(bike,i).sources.map { it.name }))
                     .put("dataVisible",JSONArray(DashboardDataVisibility.read(bike,i).visible))
                     .put("layout", DashboardTemplate.decode(bike.getString("dashboardTemplate_$i", DashboardTemplate.entries[i].name)).name))
-            } }).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
+            } }).put("catalog",bike.getString(DashboardPages.KEY,null) ?: JSONObject.NULL).put("activePage",bike.getInt("dashboardPage",0)).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null)).let {
                 JSONObject().put("fields", jsonArray(it.fields.sorted())).put("speedSource",it.speedSource).put("distanceSource",it.distanceSource).put("localSaveEnabled",route.getBoolean("save",true)) }
             BackupSection.MAPS -> JSONObject().put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
@@ -141,8 +147,8 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 }
                 BackupSection.DASHBOARD -> {
                     if(row.has("pages")) {
-                        val a=array(row,"pages",4);val indices=mutableSetOf<Int>()
-                        repeat(a.length()) { i -> val page=a.opt(i) as? JSONObject ?: fail();val index=integer(page,"index");check(index in 0..3 && indices.add(index))
+                        val a=array(row,"pages",DashboardPages.MAX);val indices=mutableSetOf<Int>()
+                        repeat(a.length()) { i -> val page=a.opt(i) as? JSONObject ?: fail();val index=integer(page,"index");check(index in 0 until DashboardPages.MAX && indices.add(index))
                             if(page.has("fields")) {
                                 val fields=strings(array(page,"fields",DashboardLayout.FIELD_COUNT))
                                 check(fields.size in 7..DashboardLayout.FIELD_COUNT && fields.all { DashboardField.fromId(it)!=null })
@@ -179,6 +185,26 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                             }
                             if(page.has("layout")) { val layout=field(page,"layout",30);check(DashboardTemplate.entries.any { it.name==layout });b["dashboardTemplate_$index"]=layout }
                         }
+                    }
+                    if(row.has("catalog")) {
+                        if(row.isNull("catalog")) b[DashboardPages.KEY]=null else {
+                            val encoded=field(row,"catalog",2048)
+                            val catalog=runCatching { JSONArray(encoded) }.getOrElse { fail() }
+                            check(catalog.length() in 1..DashboardPages.MAX)
+                            val ids=mutableSetOf<Int>()
+                            repeat(catalog.length()) { i ->
+                                val page=catalog.optJSONObject(i) ?: fail()
+                                val id=integer(page,"id");val name=field(page,"name",60)
+                                check(id in 0 until DashboardPages.MAX && ids.add(id) && name.trim().isNotEmpty())
+                            }
+                            val pages=array(row,"pages",DashboardPages.MAX)
+                            check(ids==(0 until pages.length()).map { integer(pages.getJSONObject(it),"index") }.toSet())
+                            b[DashboardPages.KEY]=encoded
+                        }
+                    } else if(row.has("pages")) b[DashboardPages.KEY]=null
+                    if(row.has("activePage")) {
+                        val active=integer(row,"activePage");check(active in 0 until DashboardPages.MAX)
+                        b["dashboardPage"]=active
                     }
                     if(row.has("mapFields")) { val a=array(row,"mapFields",3);check(a.length()==3);repeat(3) { i ->
                         b[MapFieldSelection.key(i)] = if(a.isNull(i)) null else (a.opt(i) as? String)?.also { check(DashboardField.fromId(it)!=null) } ?: fail()

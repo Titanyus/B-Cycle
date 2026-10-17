@@ -31,7 +31,9 @@ class DynamicBikesTest {
             val screen=ShadowAlertDialog.getLatestAlertDialog();val decor=screen.window!!.decorView
             measure(decor)
             assertEquals(1,runtime.bikes.all().size)
-            assertEquals(View.GONE,decor.findViewWithTag<View>("bicycle_fullscreen_footer").visibility)
+            assertEquals(View.VISIBLE,decor.findViewWithTag<View>("bicycle_fullscreen_footer").visibility)
+            assertEquals(View.GONE,decor.findViewWithTag<View>("bike_delete").visibility)
+            assertNotNull(decor.findViewWithTag<View>("bike_rename"))
             repeat(5) { decor.findViewWithTag<View>("bike_profile_add").performClick();measure(decor) }
             assertEquals(6,runtime.bikes.all().size);assertNull(decor.findViewWithTag<View>("bike_profile_add"))
             assertEquals(View.VISIBLE,decor.findViewWithTag<View>("bicycle_fullscreen_footer").visibility)
@@ -60,7 +62,32 @@ class DynamicBikesTest {
                 measure(decor)
             }
             assertEquals(1,runtime.bikes.all().size)
-            assertEquals(View.GONE,decor.findViewWithTag<View>("bicycle_fullscreen_footer").visibility)
+            assertEquals(View.VISIBLE,decor.findViewWithTag<View>("bicycle_fullscreen_footer").visibility)
+            assertEquals(View.GONE,decor.findViewWithTag<View>("bike_delete").visibility)
+            assertNotNull(decor.findViewWithTag<View>("bike_rename"))
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun gapsSurviveSwitchingBikeAndNameHeaderAlsoRenamesFromFooter() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity=controller.get();val runtime=RideRuntime.get(activity)
+            runtime.addBike();runtime.addBike()
+            MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(activity)
+            val decor=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            for(slot in runtime.bikes.all().map { it.slot }+runtime.bikes.all().first().slot) {
+                decor.findViewWithTag<View>("bike_profile_$slot").performClick();measure(decor)
+                val strip=decor.findViewWithTag<BikeProfileStrip>("bike_profile_strip")
+                val row=strip.getChildAt(0) as android.view.ViewGroup
+                for(index in 1 until row.childCount) assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlGap),row.getChildAt(index).left-row.getChildAt(index-1).right)
+                measure(decor)
+                for(index in 1 until row.childCount) assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlGap),row.getChildAt(index).left-row.getChildAt(index-1).right)
+            }
+            val title=decor.findViewWithTag<android.widget.TextView>("bike_profile_name")
+            assertTrue(title.parent is BicycleSectionHeader)
+            decor.findViewWithTag<View>("bike_rename").performClick()
+            val edit=decor.findViewWithTag<android.widget.EditText>("bike_profile_name_edit")
+            assertEquals(View.VISIBLE,edit.visibility);edit.setText("Neuer Name")
+            assertEquals("Neuer Name",runtime.bikes.current().name)
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun dragDropAndAccessibilityReorderWithoutSelectingAnotherProfile() {

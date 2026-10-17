@@ -89,13 +89,14 @@ class BoschModeGlowTest {
                 return ShadowAlertDialog.getLatestAlertDialog()
             }
             var screen=open()
-            screen.window!!.decorView.findViewWithTag<android.widget.RadioButton>("mode_glow_TOP").performClick()
+            screen.window!!.decorView.findViewWithTag<android.widget.Spinner>("mode_glow_placement").setSelection(ModeGlowPlacement.TOP.ordinal)
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             assertEquals(ModeGlowPlacement.TOP,ModeGlowSettings.placement(prefs))
             val dashboard=views(a.window.decorView).filterIsInstance<DashboardView>().single()
             assertEquals(ModeGlowPlacement.TOP,dashboard.modeGlow.placement)
             screen.dismiss();ShadowAlertDialog.getLatestAlertDialog().dismiss()
             screen=open()
-            assertTrue(screen.window!!.decorView.findViewWithTag<android.widget.RadioButton>("mode_glow_TOP").isChecked)
+            assertEquals(ModeGlowPlacement.TOP.ordinal,screen.window!!.decorView.findViewWithTag<android.widget.Spinner>("mode_glow_placement").selectedItemPosition)
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun transitionsFadeFor1500msIncludingOffAndInterruptedChangesWithoutShaderChurn() {

@@ -146,7 +146,12 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
         val cardWidth=((available-gap*(BicycleDesign.bikeVisibleTiles-1))/BicycleDesign.bikeVisibleTiles).coerceAtLeast(1)
         for(index in 0 until row.childCount) {
             val card=row.getChildAt(index)
-            (card.layoutParams as LinearLayout.LayoutParams).apply { width=cardWidth;marginStart=if(index==0) 0 else gap }
+            val params=card.layoutParams as LinearLayout.LayoutParams
+            val start=if(index==0) 0 else gap
+            if(params.width!=cardWidth || params.marginStart!=start || params.leftMargin!=start) {
+                params.width=cardWidth;params.marginStart=start;params.marginEnd=0;params.leftMargin=start;params.rightMargin=0
+                card.layoutParams=params
+            }
         }
         super.onMeasure(widthMeasureSpec,heightMeasureSpec)
     }

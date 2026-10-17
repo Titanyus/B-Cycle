@@ -681,4 +681,11 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="dashboard_fullscreen">Dashboard im Vollbild</string>
     <string name="mode_glow_sides">Seitlich</string>
     <string name="mode_glow_top">Oben</string>
+    <string name="dashboard_default_name">Dashboard %1$d</string>
+    <string name="dashboard_new">Neues Dashboard</string>
+    <string name="dashboard_delete">Dashboard löschen</string>
+    <string name="dashboard_delete_confirm">Dashboard „%1$s“ mit seinen Datenfeldern, Graphen und Visualisierungen löschen?</string>
+    <string name="dashboard_name">Dashboardname</string>
+    <string name="dashboard_name_invalid">Bitte einen Namen mit 1 bis 60 Zeichen eingeben.</string>
+    <string name="record_bike_description">%1$s · %2$s. Lange drücken, um das Fahrrad auszuwählen.</string>
 </resources>

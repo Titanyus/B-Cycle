@@ -41,7 +41,9 @@ class MainActivity : Activity() {
     private var pendingBikePhotoSlot:Int?=null
     private var activityServiceView:ActivityServiceView?=null
     private var pendingMapRoute: String? = null
+    private var recordButtonSignature=""
     private var dashboardPage = 0
+    private val dashboardPages get() = DashboardPages(this,preferences)
     private var mapFullscreen = false
     private var controlsVisible = true
     private var displayedMapMessage = ""
@@ -115,7 +117,7 @@ class MainActivity : Activity() {
         pendingBikePhotoSlot=savedInstanceState?.getInt("pendingBikePhotoSlot",-1)?.takeIf { it >= 0 && runtime.bikes.all().any { bike -> bike.slot == it } }
         pendingReport = savedInstanceState?.getString("pendingReport")
         pendingBackupExport = savedInstanceState?.getByteArray("settingsBackupPendingExport")
-        dashboardPage = preferences.getInt("dashboardPage", 0).coerceIn(0, 3)
+        dashboardPage = dashboardPages.selected()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
         dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage)
         mapFullscreen = savedInstanceState?.getBoolean("mapFullscreen", false) ?: false
@@ -171,6 +173,24 @@ class MainActivity : Activity() {
         }
         startButton = toolbarButton(getString(R.string.ui_record_start)) {
             if (runtime.recording) startService(Intent(this, RecordingService::class.java).setAction(RecordingService.STOP)) else startRide()
+        }
+        startButton.apply {
+            tag="record_bike_button";setSingleLine();ellipsize=android.text.TextUtils.TruncateAt.END
+            setAutoSizeTextTypeUniformWithConfiguration(12,20,1,android.util.TypedValue.COMPLEX_UNIT_SP)
+            setOnLongClickListener {
+                if(runtime.recording || runtime.saving) true else {
+                    android.widget.PopupMenu(this@MainActivity,this).apply {
+                        runtime.bikes.all().forEach { bike ->
+                            menu.add(0,bike.slot,menu.size(),bike.name).apply {
+                                icon=BicycleIcons.drawable(this@MainActivity,BikeTypeIcons.forType(bike.type),runtime.themes.active.tokens.foreground)
+                                isCheckable=true;isChecked=bike.slot==runtime.bikes.activeSlot
+                            }
+                        }
+                        setForceShowIcon(true)
+                        setOnMenuItemClickListener { item -> runtime.switchBike(item.itemId);render();true }
+                    }.show();true
+                }
+            }
         }
         toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), 3f))
         toolbar.addView(android.widget.ImageButton(this).apply {
@@ -243,7 +263,21 @@ class MainActivity : Activity() {
     private fun render() {
         if (!::dashboard.isInitialized) return
         val gps = runtime.gpsValues
-        startButton.text = if (runtime.recording) getString(R.string.ui_record_stop) else if (runtime.saving) getString(R.string.ui_record_saving) else getString(R.string.ui_record_start)
+        val bike=runtime.bikes.current()
+        val status=getString(if(runtime.recording) R.string.ui_record_stop else if(runtime.saving) R.string.ui_record_saving else R.string.ui_record_start)
+        val buttonLabel=if(runtime.saving) status else bike.name
+        val buttonSignature="${bike.slot}:${bike.type}:$buttonLabel:${runtime.recording}:${runtime.themes.active.tokens.foreground}"
+        if(buttonSignature!=recordButtonSignature) {
+        recordButtonSignature=buttonSignature
+        startButton.text=android.text.SpannableString("\uFFFC  \uFFFC $buttonLabel").apply {
+            listOf(if(runtime.recording) BicycleIcon.StopRecording else BicycleIcon.RecordReady,BikeTypeIcons.forType(bike.type)).forEachIndexed { i,icon ->
+                val drawable=BicycleIcons.drawable(this@MainActivity,icon,runtime.themes.active.tokens.foreground).apply { setBounds(0,0,dp(20),dp(20)) }
+                val offset=if(i==0) 0 else 3
+                setSpan(android.text.style.ImageSpan(drawable,android.text.style.ImageSpan.ALIGN_CENTER),offset,offset+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+        }
+        startButton.contentDescription=getString(R.string.record_bike_description,status,bike.name)
         startButton.isEnabled = !runtime.saving || runtime.recording
         val message = runtime.recordingStatus
         if (message != displayedRecordingStatus) {
@@ -637,7 +671,9 @@ class MainActivity : Activity() {
         mapPanel.showFullscreen(mapFullscreen); dashboardArea.requestLayout()
     }
     private fun changeDashboard(delta: Int) {
-        dashboardPage = (dashboardPage + delta + 4) % 4
+        val pages=dashboardPages.all()
+        val position=pages.indexOfFirst { it.id==dashboardPages.selected() }.coerceAtLeast(0)
+        dashboardPage = pages[Math.floorMod(position+delta,pages.size)].id
         preferences.edit().putInt("dashboardPage", dashboardPage).apply()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
         dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage)
@@ -658,12 +694,37 @@ class MainActivity : Activity() {
         BicycleForm.section(root,runtime.themes,R.string.ui_theme)
         root.addView(ThemePickerView(settingsContext, runtime.themes))
         BicycleForm.section(root,runtime.themes,R.string.ui_dashboard_page_choose)
-        val presets = DashboardPresetPicker(settingsContext, (0 until 4).map { page ->
-            DashboardTemplate.decode(preferences.getString("dashboardTemplate_$page", DashboardTemplate.entries[page].name))
-        }, dashboardPage, runtime.themes)
-        presets.changed = {
-            val edit=preferences.edit(); presets.selection.forEachIndexed { page,template -> edit.putString("dashboardTemplate_$page",template.name) };edit.apply();changeDashboard(0)
+        val presets = DashboardPresetPicker(settingsContext,dashboardPage,runtime.themes)
+        val footer=bicycleFooter(settingsContext,runtime.themes)
+        lateinit var removeDashboard:BicycleFooterAction
+        fun refreshPages() {
+            presets.refresh();changeDashboard(0)
+            removeDashboard.visibility=if(dashboardPages.all().size>1) View.VISIBLE else View.GONE
         }
+        footer.addView(BicycleFooterAction(settingsContext,runtime.themes,BicycleIcon.RenameTrack,getString(R.string.route_action_rename)) {
+            val page=dashboardPages.all().first { it.id==dashboardPages.selected() }
+            val input=BicycleComponents.input(settingsContext,runtime.themes).apply {
+                tag="dashboard_name_edit";setSingleLine();setText(page.name);selectAll()
+                filters=arrayOf(android.text.InputFilter.LengthFilter(60));contentDescription=getString(R.string.dashboard_name)
+            }
+            input.addTextChangedListener(object:android.text.TextWatcher {
+                override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int)=Unit
+                override fun afterTextChanged(s:android.text.Editable?)=Unit
+                override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int) {
+                    input.error=if(dashboardPages.rename(page.id,s.toString())) null else getString(R.string.dashboard_name_invalid)
+                    presets.refresh()
+                }
+            })
+            dialog(fullscreen=false).setTitle(R.string.route_action_rename).setView(input).show()
+        }.apply { tag="dashboard_rename" },LinearLayout.LayoutParams(0,-2,1f))
+        removeDashboard=BicycleFooterAction(settingsContext,runtime.themes,BicycleIcon.DeleteTrack,getString(R.string.dashboard_delete)) {
+            val page=dashboardPages.all().first { it.id==dashboardPages.selected() }
+            dialog(fullscreen=false).setTitle(R.string.dashboard_delete).setMessage(getString(R.string.dashboard_delete_confirm,page.name))
+                .setPositiveButton(R.string.route_action_delete) { _,_->dashboardPages.delete(page.id);refreshPages() }
+                .setNegativeButton(R.string.route_cancel,null).show()
+        }.apply { tag="dashboard_delete";visibility=if(dashboardPages.all().size>1) View.VISIBLE else View.GONE }
+        footer.addView(removeDashboard,LinearLayout.LayoutParams(0,-2,1f))
+        presets.changed=::refreshPages
         root.addView(presets)
         root.addView(Switch(settingsContext).apply {
             tag="dashboard_fullscreen";setText(R.string.dashboard_fullscreen)
@@ -681,23 +742,24 @@ class MainActivity : Activity() {
             isChecked = ModeGlowSettings.enabled(preferences)
         }
         root.addView(glow)
-        root.addView(RadioGroup(settingsContext).apply {
+        root.addView(Spinner(settingsContext).apply {
             tag="mode_glow_placement"
-            ModeGlowPlacement.entries.forEach { placement ->
-                addView(RadioButton(settingsContext).apply {
-                    id=View.generateViewId();tag="mode_glow_${placement.name}";setText(placement.label)
-                    isChecked=ModeGlowSettings.placement(preferences)==placement
-                    BicycleDialogStyle.control(this,runtime.themes)
-                    setOnCheckedChangeListener { _,checked -> if(checked) {
-                        preferences.edit().putString(ModeGlowSettings.placementKey,placement.name).apply();render()
-                    } }
-                })
+            adapter=ArrayAdapter(settingsContext,android.R.layout.simple_spinner_dropdown_item,ModeGlowPlacement.entries.map { getString(it.label) })
+            setSelection(ModeGlowSettings.placement(preferences).ordinal)
+            BicycleDialogStyle.spinner(this,runtime.themes)
+            observeSettings(this) {
+                preferences.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[selectedItemPosition].name).apply();render()
             }
         })
         root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
         root.addView(button(getString(R.string.dashboard_editor_open), BicycleIcon.EditDashboard) { enterDashboardEditor() }.apply { tag = "dashboard_editor_open" })
         glow.setOnCheckedChangeListener { _,checked -> ModeGlowSettings.save(preferences,checked); render() }
-        menu = dialog().setTitle(getString(R.string.ui_design_title)).setView(BicycleStickyScrollView(settingsContext).apply { tag="design_ui_scroll";addView(root) }).show()
+        val body=LinearLayout(settingsContext).apply {
+            orientation=LinearLayout.VERTICAL
+            addView(BicycleStickyScrollView(settingsContext).apply { tag="design_ui_scroll";addView(root) },LinearLayout.LayoutParams(-1,0,1f))
+            addView(footer,LinearLayout.LayoutParams(-1,-2))
+        }
+        menu = dialog().setTitle(getString(R.string.ui_design_title)).setView(body).show()
     }
     private fun mapSettings() {
         val root = column()
@@ -965,6 +1027,7 @@ class MainActivity : Activity() {
                                     button.isEnabled=choices.selected().isNotEmpty()
                                     result.fold({ plan ->
                                         if(BackupSection.DASHBOARD in selected) {
+                                            dashboardPage=dashboardPages.selected()
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
                                             dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage)
                                             dashboard.setTemplate(currentTemplate());dashboardArea.requestLayout()
