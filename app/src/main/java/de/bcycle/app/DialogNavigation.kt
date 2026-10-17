@@ -24,7 +24,10 @@ internal class DialogNavigation {
             if (top) stack.lastOrNull()?.takeIf { it.window?.decorView?.isAttachedToWindow == true }?.show()
         }
     }
-    fun onDismiss(dialog: AlertDialog, action: () -> Unit) { cleanup[dialog] = action }
+    fun onDismiss(dialog: AlertDialog, action: () -> Unit) {
+        val previous=cleanup[dialog]
+        cleanup[dialog] = { try { previous?.invoke() } finally { action() } }
+    }
     fun closeAll() {
         val dialogs = tracked.toList().asReversed()
         tracked.clear(); stack.clear()

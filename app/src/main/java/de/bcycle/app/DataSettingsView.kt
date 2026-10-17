@@ -11,30 +11,59 @@ internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
     INTERVALS(R.string.intervals_title,BicycleIcon.Intervals),
     DREEVE(R.string.dreeve_title,BicycleIcon.Dreeve), STRAVA(R.string.strava_title,BicycleIcon.Strava)
 }
-internal class DataSettingsView(context: Context, themes: ThemeManager, selected: (DataAction)->Unit) : LinearLayout(context) {
+/** Inline service forms reuse their existing controls; expanding never enables an upload. */
+internal class DataSettingsView(context: Context, private val themes: ThemeManager, selected: (DataAction)->Unit) : LinearLayout(context) {
+    private val headers=mutableMapOf<DataAction,LinearLayout>()
+    private val bodies=mutableMapOf<DataAction,LinearLayout>()
+    private fun dp(value:Int)=BicycleDesign.dp(context,value)
     init {
-        orientation=VERTICAL;tag="data_settings";BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
+        orientation=VERTICAL;tag="data_settings";setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),0);BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         fun section(title:Int, actions:List<DataAction>) {
             BicycleForm.section(this,themes,title)
-            actions.forEach { action -> addView(BicycleComponents.listRow(context,themes).apply {
-                tag="data_${action.name}";contentDescription=context.getString(action.title);isClickable=true;isFocusable=true
-                setOnClickListener { selected(action) }
-                addView(ImageView(context).apply {
-                    BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,action.icon,it.foreground)) }
-                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-                },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
-                addView(BicycleComponents.text(context,themes,context.getString(action.title)).apply {
-                    textSize=BicycleDesign.inputSp;gravity=Gravity.CENTER_VERTICAL
-                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-                },LayoutParams(0,-2,1f).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.verticalPadding) })
-                addView(ImageView(context).apply {
-                    BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
-                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-                },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
-            },LayoutParams(-1,-2)) }
+            actions.forEach { action ->
+                val inline=action !in listOf(DataAction.LOCAL,DataAction.RESTORE)
+                val body=LinearLayout(context).apply { orientation=VERTICAL;tag="data_details_${action.name}";visibility=GONE }
+                val label=BicycleComponents.text(context,themes,context.getString(action.title)).apply {
+                    gravity=Gravity.CENTER_VERTICAL
+                    BicycleDialogStyle.actionIcon(this,themes,action.icon)
+                }
+                val header=LinearLayout(context).apply {
+                    tag="data_${action.name}";setTag(R.id.inline_control_row,true);gravity=Gravity.CENTER_VERTICAL
+                    contentDescription=context.getString(action.title);isClickable=true;isFocusable=true
+                }
+                val expand=BicycleComponents.icon(context,themes,if(inline) BicycleIcon.Expand else BicycleIcon.Forward,context.getString(action.title)) { header.performClick() }.apply {
+                    tag="data_expand_${action.name}"
+                }
+                fun showState() {
+                    val open=body.visibility==VISIBLE
+                    expand.rotation=if(open && inline) 180f else 0f
+                    expand.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
+                    header.stateDescription=expand.stateDescription
+                }
+                header.setOnClickListener {
+                    if(inline) { body.visibility=if(body.visibility==VISIBLE) GONE else VISIBLE;showState() }
+                    else selected(action)
+                }
+                header.addView(label,LayoutParams(0,-1,1f))
+                header.addView(expand,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap) })
+                // Same geometry as the sensor switch/chevron row.
+                addView(header,LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
+                if(inline) { headers[action]=header;bodies[action]=body;addView(body,LayoutParams(-1,-2));showState() }
+            }
         }
         section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RESTORE))
         section(R.string.data_routes,listOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
+    }
+    fun install(action:DataAction,content:View,enabled:Switch?=null) {
+        val header=headers.getValue(action)
+        if(enabled!=null) {
+            (enabled.parent as? android.view.ViewGroup)?.removeView(enabled)
+            header.removeViewAt(0)
+            enabled.text=context.getString(action.title);enabled.gravity=Gravity.START or Gravity.CENTER_VERTICAL
+            BicycleDialogStyle.actionIcon(enabled,themes,action.icon)
+            header.addView(enabled,0,LayoutParams(0,-1,1f))
+        }
+        bodies.getValue(action).addView(content,LayoutParams(-1,-2))
     }
 }
 internal class BackupSelectionView(context:Context, themes:ThemeManager, available:Set<BackupSection>) : LinearLayout(context) {

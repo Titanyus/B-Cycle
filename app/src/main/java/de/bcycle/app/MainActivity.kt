@@ -981,9 +981,7 @@ class MainActivity : Activity() {
         val popup = ListPopupWindow(settingsContext).apply {
             anchorView = anchor; isModal = true
             width = minOf(dp(BicycleDesign.popupWidth), resources.displayMetrics.widthPixels - dp(BicycleDesign.horizontalPadding * 2))
-            setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
-                setColor(settingsThemes.active.tokens.secondary); setStroke(dp(BicycleDesign.controlBorder),settingsThemes.active.tokens.foreground); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
-            })
+            setBackgroundDrawable(BicycleComponents.controlBackground(settingsContext,settingsThemes.active.tokens))
             setAdapter(object : ArrayAdapter<String>(settingsContext, android.R.layout.simple_list_item_1, choices) {
                 override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View =
                     ((convertView as? TextView) ?: TextView(settingsContext).apply {
@@ -1010,13 +1008,8 @@ class MainActivity : Activity() {
         routePopup = popup
         popup.show()
         popup.listView?.let { list -> BicycleComponents.bindTheme(list, settingsThemes) { tokens ->
-            popup.setBackgroundDrawable(android.graphics.drawable.GradientDrawable().apply {
-                setColor(tokens.secondary); setStroke(dp(BicycleDesign.controlBorder),tokens.foreground); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
-            })
-            list.selector = android.graphics.drawable.GradientDrawable().apply {
-                setColor(tokens.secondary); setStroke(dp(BicycleDesign.controlBorder), tokens.foreground)
-                cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
-            }
+            popup.setBackgroundDrawable(BicycleComponents.controlBackground(settingsContext,tokens))
+            list.selector = BicycleComponents.controlBackground(settingsContext,tokens)
         } }
     }
     private fun dataDialog(title: Int, body: View, action: Int? = null): AlertDialog {
@@ -1047,6 +1040,15 @@ class MainActivity : Activity() {
         } }
         val screen=dataDialog(R.string.data_title,BicycleStickyScrollView(settingsContext).apply { addView(content) })
         dataSettingsScreen=screen;menu=screen
+        content.install(DataAction.BACKUP,backupExportControls())
+        val cloud=routeExportSettings(RouteExportPart.CLOUD,screen)
+        content.install(DataAction.CLOUD,cloud,cloud.findViewWithTag("export_webdav"))
+        val intervals=intervalsSettings(screen)
+        content.install(DataAction.INTERVALS,intervals,intervals.findViewWithTag("intervals_enabled"))
+        for(service in listOf(ActivityService.DREEVE,ActivityService.STRAVA)) {
+            val form=activityServiceSettings(service,screen)
+            content.install(if(service==ActivityService.DREEVE) DataAction.DREEVE else DataAction.STRAVA,form,form.findViewWithTag("service_enabled"))
+        }
         dialogs.onDismiss(screen) { if(dataSettingsScreen===screen) dataSettingsScreen=null }
     }
     private fun backupError(error: Throwable): Int = when((error as? SettingsBackupFailure)?.problem) {
@@ -1054,6 +1056,21 @@ class MainActivity : Activity() {
         BackupProblem.TOO_LARGE->R.string.backup_size_error;BackupProblem.SELECTION->R.string.backup_selection_error
         BackupProblem.INVALID->R.string.backup_invalid_error;BackupProblem.ROLLBACK->R.string.backup_rollback_error
         else->R.string.backup_io_error
+    }
+    private fun requestBackupExport(selected:Set<BackupSection>) {
+        try {
+            pendingBackupExport=SettingsBackup(this,settingsThemes).export(selected)
+            startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")
+                .putExtra(Intent.EXTRA_TITLE,getString(R.string.backup_filename,java.time.LocalDate.now().toString())),12)
+        } catch(e:Exception) { pendingBackupExport=null;BicycleFeedback.show(this, if(e is android.content.ActivityNotFoundException) R.string.backup_picker_error else backupError(e), long = true) }
+    }
+    private fun backupExportControls():View {
+        val choices=BackupSelectionView(settingsContext,settingsThemes,BackupSection.entries.toSet())
+        val action=button(getString(R.string.backup_execute),BicycleIcon.ExportTrack) { requestBackupExport(choices.selected()) }.apply { tag="backup_execute" }
+        choices.changed={ action.isEnabled=choices.selected().isNotEmpty() }
+        return LinearLayout(settingsContext).apply {
+            orientation=LinearLayout.VERTICAL;addView(choices);addView(action,LinearLayout.LayoutParams(-1,-2))
+        }
     }
     private fun backupSettings(document: SettingsBackupDocument? = null) {
         val backup=SettingsBackup(this,settingsThemes)
@@ -1066,11 +1083,7 @@ class MainActivity : Activity() {
         button.setOnClickListener {
             val selected=choices.selected()
             if(document==null) {
-                try {
-                    pendingBackupExport=backup.export(selected)
-                    startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")
-                        .putExtra(Intent.EXTRA_TITLE,getString(R.string.backup_filename,java.time.LocalDate.now().toString())),12)
-                } catch(e:Exception) { pendingBackupExport=null;BicycleFeedback.show(this, if(e is android.content.ActivityNotFoundException) R.string.backup_picker_error else backupError(e), long = true) }
+                requestBackupExport(selected)
             } else {
                 dialog(fullscreen=false).setTitle(R.string.backup_confirm_title)
                     .setMessage(getString(R.string.backup_confirm_message,selected.joinToString(", ") { getString(it.title) }))
@@ -1159,7 +1172,7 @@ class MainActivity : Activity() {
             }
         }
     }
-    private fun activityServiceSettings(service:ActivityService) {
+    private fun activityServiceSettings(service:ActivityService,owner:AlertDialog?=null):View {
         val settings=ActivityServiceSettings(this,service)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
         lateinit var content:ActivityServiceView
@@ -1186,7 +1199,7 @@ class MainActivity : Activity() {
         }
         ActivityServiceUploads.forService(service).problem(this)?.let { BicycleFeedback.update(content.result,getString(it)) }
         activityServiceView=content
-        val screen=dataDialog(service.title,ScrollView(settingsContext).apply { addView(content) })
+        val screen=owner ?: dataDialog(service.title,ScrollView(settingsContext).apply { addView(content) })
         val revision=java.util.concurrent.atomic.AtomicLong()
         observeSettings(content) {
             val config=content.config();val secret=content.newSecret();val token=revision.incrementAndGet()
@@ -1202,8 +1215,9 @@ class MainActivity : Activity() {
             }
         }
         dialogs.onDismiss(screen) { if(activityServiceView===content) activityServiceView=null;worker.shutdown() }
+        return content
     }
-    private fun intervalsSettings() {
+    private fun intervalsSettings(owner:AlertDialog?=null):View {
         val settings=IntervalsSettings(this)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
         lateinit var content:IntervalsView
@@ -1219,7 +1233,7 @@ class MainActivity : Activity() {
                 }
             }
         }
-        val screen=dataDialog(R.string.intervals_title,ScrollView(settingsContext).apply { addView(content) })
+        val screen=owner ?: dataDialog(R.string.intervals_title,ScrollView(settingsContext).apply { addView(content) })
         val revision=java.util.concurrent.atomic.AtomicLong()
         observeSettings(content) {
             val config=content.config();val key=content.newKey();val token=revision.incrementAndGet()
@@ -1236,8 +1250,9 @@ class MainActivity : Activity() {
             }
         }
         dialogs.onDismiss(screen) { worker.shutdown() }
+        return content
     }
-    private fun routeExportSettings(part: RouteExportPart) {
+    private fun routeExportSettings(part: RouteExportPart,owner:AlertDialog?=null):View {
         val settings = RouteExportSettings(this)
         lateinit var content: RouteExportView
         content = RouteExportView(settingsContext, exportDraft ?: settings.read(), settings.hasPassword(), {
@@ -1273,7 +1288,7 @@ class MainActivity : Activity() {
         BicycleDialogStyle.content(content, settingsThemes)
         exportPasswordDraft?.let { content.password.setText(it) }
         exportDraft = null; exportPasswordDraft = null
-        val screen = dataDialog(if(part == RouteExportPart.LOCAL) R.string.data_local else R.string.data_cloud,
+        val screen = owner ?: dataDialog(if(part == RouteExportPart.LOCAL) R.string.data_local else R.string.data_cloud,
             ScrollView(settingsContext).apply { addView(content) }, R.string.route_action_save)
         if(part==RouteExportPart.LOCAL) {
             localExportView=content
@@ -1311,6 +1326,7 @@ class MainActivity : Activity() {
                 BicycleFeedback.update(content.result, if (e is IllegalArgumentException) e.message else getString(R.string.route_export_save_failed))
             }
         }
+        return content
     }
     private fun refreshRouteRows() {
         refreshDetails()

@@ -2,12 +2,10 @@
 
 ## Navigation und Umzug
 
-Die siebte Hauptkategorie „Daten & Speicher“ (`database`) liegt in der dritten Zeile des vorhandenen Drei-Spalten-Rasters. Die bisherigen sechs Plätze, Icon-/Touch-Größen und Beschriftungsflächen bleiben erhalten. Zwei leere, nicht bedienbare Rasterflächen halten die Spaltenausrichtung.
+„Daten & Speicher“ ist über das zentrale Einstellungsmenü erreichbar. Der Fullscreen-Screen enthält zwei Abschnitte und sieben Einträge:
 
-Der neue Fullscreen-Screen enthält genau zwei Abschnitte und vier Einträge:
-
-1. **GLOBALE DATEN**: Einstellungen sichern (`download`), Einstellungen wiederherstellen (`upload`).
-2. **STRECKENDATEN**: Lokale Speicherung (`save`), Cloud & WebDAV (`cloud-upload`).
+1. **GLOBALE DATEN**: Einstellungen sichern als Inline-Accordion und Einstellungen wiederherstellen mit direkter Dateiauswahl.
+2. **STRECKENDATEN**: Lokale Speicherung im bisherigen Unterdialog sowie WebDAV, intervals.icu, Dreeve und Strava als Inline-Schalter-/Accordion-Zeilen.
 
 Native Kotlin-Views verwenden die vorhandenen Komponenten, Theme-Farbrollen, Headerhöhe, festen Footer, Systemleisten und Navigation. Texte/Fehler/Bestätigungen/Accessibility stehen in `strings.xml`; Icons sind lokale Lucide-Vektoren in FOREGROUND. Neue Assets: `database`, `upload`, `chevron-right`; der Generator unterstützt hierfür zusätzlich SVG-Ellipsen.
 
@@ -75,3 +73,13 @@ Neue Tests decken alle/einzelne Sicherungsbereiche, Metadaten, echte konfigurier
 Abschlussprüfung am 12.10.2026: vollständige Suite mit **294 Tests**, 0 Fehler, 0 Fehlschläge, 0 übersprungen. Release-Build und Release-Lint-Vital erfolgreich in **1m 51s**. Bekannte Produktionswarnung `onBackPressed()` bleibt. Keine Tests deaktiviert; kein zusätzlicher vollständiger Lint-Lauf. Praktische Prüfung der Geräte-Dateiprovider, Ordnerrechte und echten Nextcloud-Verbindung steht aus. Der Quellstand liegt nach APK 0.7.6; es wurde noch keine neue signierte Test-APK veröffentlicht.
 
 Der Stand ist inzwischen in [APK 0.7.7](milestone-077.md) enthalten.
+
+## Inline-Accordions für Dienste und Sicherung (17.10.2026)
+
+WebDAV, intervals.icu, Dreeve und Strava sind direkt auf Daten & Speicher als Schalter-/Chevron-Zeilen eingebettet. Höhe, normale Beschriftung und Icon entsprechen den Sensorzeilen. Der native Aktivierungsschalter und der Chevron funktionieren unabhängig: Aufklappen ändert keine Aktivierung und löst weder Upload noch Verbindungstest aus. Alle Details sind anfangs eingeklappt. Die bisherigen Formulare und Auto-Save-Listener bleiben erhalten; echte Switch-Instanzen werden aus den Formularen in die Kopfzeile versetzt. Konten bleiben global, Dienste arbeiten unabhängig.
+
+Einstellungen sichern öffnet ebenfalls einen Inline-Bereich mit bisheriger Bereichsauswahl und Aktion zum Schreiben über die Android-Dateiauswahl. Einstellungen wiederherstellen bekommt denselben Zeilenstil, öffnet aber weiterhin sofort die Dateiauswahl, gefolgt von Bereichsauswahl und Bestätigung. Lokale Streckenspeicherung behält ihren bestehenden Unterdialog.
+
+Alle Dienst-Worker gehören zur gemeinsamen Datenseite und werden beim Schließen aufgeräumt. DialogNavigation führt mehrere registrierte Cleanup-Callbacks aus. Seite und offene Accordions bleiben beim Wechsel zu einer anderen App erhalten.
+
+Hell/Dunkel ist global; der Umschalter steht ausschließlich auf der Haupt-Einstellungsseite. Die Theme-Auswahl bleibt profilbezogen. Design-Backups enthalten den globalen Helligkeitswert; alte Themes werden beim Import auf die neuen [14 festen Paletten](theme-palettes.md) abgebildet.

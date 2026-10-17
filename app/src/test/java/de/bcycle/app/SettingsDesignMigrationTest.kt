@@ -80,7 +80,7 @@ class SettingsDesignMigrationTest {
                 assertTrue(themes.activate(light().id)); shadowOf(Looper.getMainLooper()).idle(); measure(child)
                 assertEquals("Theme changed geometry in $action", before, geometry(child))
                 assertEquals(light().tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
-                val wrongColors=views(child).filterIsInstance<TextView>().filterNot { it.currentTextColor == light().tokens.foreground || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == BicycleDesign.dashboardUnitColor) || !it.isEnabled }
+                val wrongColors=views(child).filterIsInstance<TextView>().filterNot { it.currentTextColor == light().tokens.foreground || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == light().tokens.secondaryTextColor) || !it.isEnabled }
                 assertTrue("Unrecolored $action: "+wrongColors.joinToString { "${it.tag}: ${it.text} ${Integer.toHexString(it.currentTextColor)}" },wrongColors.isEmpty())
                 testBack(child)
                 if(parent!==root) testBack(parent)
@@ -121,7 +121,7 @@ class SettingsDesignMigrationTest {
             themes.activate(light().id); shadowOf(Looper.getMainLooper()).idle(); measure(screen, 720, 950)
             assertEquals(before, geometry(screen)); assertEquals("https://example.test", server.text.toString()); assertTrue(server.hasFocus())
             assertEquals(light().tokens.foreground, server.currentTextColor)
-            testBack(screen)
+            views(manager).single { it.tag=="data_CLOUD" }.performClick()
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             val end=System.nanoTime()+5_000_000_000L
             while(RouteExportSettings(activity).read().server!="https://example.test" && System.nanoTime()<end) { Thread.sleep(10);shadowOf(Looper.getMainLooper()).idle() }
@@ -149,7 +149,7 @@ class SettingsDesignMigrationTest {
             assertEquals(light().tokens.foreground, choice.currentTextColor)
             val opened = selector.adapter.getDropDownView(0, null, content) as TextView
             assertEquals(light().tokens.foreground, opened.currentTextColor)
-            assertEquals(light().tokens.tertiary, (opened.background as android.graphics.drawable.ColorDrawable).color)
+            assertEquals(light().tokens.secondary, (opened.background as android.graphics.drawable.ColorDrawable).color)
             choice.performClick(); assertEquals(DashboardField("GPS_SPEED"), selected.single())
             themes.activate(BicycleThemes.red.id); measure(screen, 720, 1200); snapshot(screen, "field-picker-small")
             screen.dismiss()

@@ -133,8 +133,8 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                         b[ThemeManager.customsKey]=JSONObject().put("version",2).put("themes",jsonArray(custom.map { themeJson(it).put("kind","custom") })).toString()
                     }
                     val active=if(row.has("activeThemeId")) field(row,"activeThemeId",80) else themes.active.id
-                    check((BicycleThemes.presets + custom).any { it.id==active })
-                    if(row.has("activeThemeId")) b[ThemeManager.activeKey]=active
+                    check(BicycleThemes.findPreset(active)!=null || custom.any { it.id==active })
+                    if(row.has("activeThemeId")) b[ThemeManager.activeKey]=BicycleThemes.findPreset(active)?.id ?: active
                     if(row.has("settingsLight")) b[ThemeManager.settingsLightKey]=boolean(row,"settingsLight")
                     if(row.has("modeGlow")) b[ModeGlowSettings.key]=boolean(row,"modeGlow")
                     if(row.has("modeGlowPlacement")) {

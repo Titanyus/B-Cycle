@@ -54,17 +54,17 @@ class DataSettingsNavigationTest {
             click(data,"data_LOCAL");val local=latest();measure(local)
             assertNotNull(local.window!!.decorView.findViewWithTag<View>("export_folder_choose"));assertNull(local.window!!.decorView.findViewWithTag<View>("export_server"))
             testBack(local);shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
-            click(data,"data_CLOUD");val cloud=latest();measure(cloud)
+            click(data,"data_CLOUD");val cloud=data;measure(cloud)
             assertNotNull(cloud.window!!.decorView.findViewWithTag<View>("export_server"));assertNull(cloud.window!!.decorView.findViewWithTag<View>("export_folder_choose"))
             assertEquals("https://cloud.example.test",cloud.window!!.decorView.findViewWithTag<EditText>("export_server").text.toString())
             assertNotNull(cloud.window!!.decorView.findViewWithTag<View>("export_password_visibility"));assertNotNull(cloud.window!!.decorView.findViewWithTag<View>("export_test"))
-            testBack(cloud);shadowOf(Looper.getMainLooper()).idle();assertEquals(before,settings.read())
+            click(data,"data_CLOUD");shadowOf(Looper.getMainLooper()).idle();assertEquals(before,settings.read())
             testBack(data);shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,root.window!!.decorView.visibility)
             click(root,"settings_ROUTES");val manager=latest();measure(manager)
             assertNull(manager.window!!.decorView.findViewWithTag<View>("route_settings"))
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun intervalsHasItsOwnSettingsPageAndBackReturnsToData() {
+    @Test fun intervalsExpandsInlineWithoutEnablingUploadsOrOpeningAnotherDialog() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get();val (_,data)=open(activity)
@@ -73,7 +73,9 @@ class DataSettingsNavigationTest {
             assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_key"))
             assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_test"))
             assertFalse(IntervalsSettings(activity).read().enabled)
-            testBack(intervals);shadowOf(Looper.getMainLooper()).idle()
+            assertSame(data,intervals)
+            click(data,"data_INTERVALS");shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(View.GONE,data.window!!.decorView.findViewWithTag<View>("data_details_INTERVALS").visibility)
             assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
@@ -82,16 +84,16 @@ class DataSettingsNavigationTest {
         try {
             val activity=controller.get();val (_,data)=open(activity)
             click(data,"data_DREEVE");val dreeve=latest();measure(dreeve)
-            assertEquals("Dreeve",dreeve.window!!.decorView.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
+            assertSame(data,dreeve)
             val address=dreeve.window!!.decorView.findViewWithTag<EditText>("service_address")
             address.setText("https://my.dreeve.example.org")
             waitFor { ActivityServiceSettings(activity,ActivityService.DREEVE).read().address==address.text.toString() }
             assertNotNull(dreeve.window!!.decorView.findViewWithTag<View>("service_secret"))
             controller.pause().stop();controller.start().resume()
             assertTrue(dreeve.isShowing);assertEquals("https://my.dreeve.example.org",address.text.toString())
-            testBack(dreeve);shadowOf(Looper.getMainLooper()).idle()
+            click(data,"data_DREEVE");shadowOf(Looper.getMainLooper()).idle()
             click(data,"data_STRAVA");val strava=latest();measure(strava)
-            assertEquals("Strava",strava.window!!.decorView.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
+            assertSame(data,strava)
             val clientId=strava.window!!.decorView.findViewWithTag<EditText>("service_client_id")
             clientId.setText("123456")
             waitFor { ActivityServiceSettings(activity,ActivityService.STRAVA).read().clientId=="123456" }
@@ -100,9 +102,33 @@ class DataSettingsNavigationTest {
             controller.newIntent(Intent(Intent.ACTION_VIEW,Uri.parse("bcycle://localhost/strava?state=invalid&code=untrusted&scope=activity:write")))
             assertFalse(ActivityServiceSettings(activity,ActivityService.STRAVA).connected())
             assertTrue(strava.isShowing)
-            testBack(strava);shadowOf(Looper.getMainLooper()).idle()
+            click(data,"data_STRAVA");shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun serviceSwitchAndAccordionWorkIndependentlyAndKeepTheOriginalPersistence() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get()
+            a.getSharedPreferences("intervals-settings",0).edit().putBoolean("enabled",true).putString("athlete","42").commit()
+            val (_,data)=open(a);measure(data)
+            val root=data.window!!.decorView
+            val header=root.findViewWithTag<ViewGroup>("data_INTERVALS")
+            val toggle=root.findViewWithTag<Switch>("intervals_enabled")
+            val body=root.findViewWithTag<View>("data_details_INTERVALS")
+            assertSame(header,toggle.parent);assertTrue(toggle.isChecked);assertEquals(View.GONE,body.visibility)
+            assertEquals(header.height,toggle.height)
+            assertEquals(0,(toggle.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
+            root.findViewWithTag<View>("data_expand_INTERVALS").performClick()
+            assertEquals(View.VISIBLE,body.visibility);assertTrue(toggle.isChecked)
+            toggle.isChecked=false
+            waitFor { !IntervalsSettings(a).read().enabled }
+            assertEquals(View.VISIBLE,body.visibility)
+            root.findViewWithTag<View>("data_expand_INTERVALS").performClick()
+            assertEquals(View.GONE,body.visibility);assertFalse(toggle.isChecked)
+            assertSame(data,latest());assertFalse(ActivityServiceSettings(a,ActivityService.DREEVE).read().enabled)
+            assertFalse(ActivityServiceSettings(a,ActivityService.STRAVA).read().enabled)
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun folderPickerReturnsToSameFormAndUpdatesItsSelectedFolder() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
@@ -133,17 +159,16 @@ class DataSettingsNavigationTest {
             val activity=controller.get();val (_,data)=open(activity);val prefs=activity.getSharedPreferences("bike",0)
             click(data,"data_BACKUP");val choice=latest();measure(choice)
             assertEquals(6,views(choice.window!!.decorView).filterIsInstance<CheckBox>().size)
-            click(choice,"backup_none");assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled)
-            click(choice,"backup_all");assertTrue(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled)
-            val original=prefs.all.toMap();testBack(choice);assertEquals(original,prefs.all)
-            click(data,"data_BACKUP");val export=latest();export.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            click(choice,"backup_none");assertFalse(choice.window!!.decorView.findViewWithTag<Button>("backup_execute").isEnabled)
+            click(choice,"backup_all");assertTrue(choice.window!!.decorView.findViewWithTag<Button>("backup_execute").isEnabled)
+            val original=prefs.all.toMap();click(data,"data_BACKUP");assertEquals(original,prefs.all)
+            click(data,"data_BACKUP");val export=latest();export.window!!.decorView.findViewWithTag<Button>("backup_execute").performClick()
             val create=shadowOf(activity).nextStartedActivityForResult
             assertEquals(Intent.ACTION_CREATE_DOCUMENT,create.intent.action);assertEquals(12,create.requestCode)
             assertTrue(create.intent.getStringExtra(Intent.EXTRA_TITLE)!!.startsWith("BICYCLE_Settings_"))
             result(activity,12,android.app.Activity.RESULT_CANCELED,null);assertEquals(original,prefs.all)
-            export.dismiss();shadowOf(Looper.getMainLooper()).idle()
-            click(data,"data_BACKUP");latest().getButton(AlertDialog.BUTTON_POSITIVE).performClick();shadowOf(activity).nextStartedActivityForResult
-            latest().dismiss();shadowOf(Looper.getMainLooper()).idle()
+            click(data,"backup_execute");shadowOf(activity).nextStartedActivityForResult
+            shadowOf(Looper.getMainLooper()).idle()
             val uri=Uri.parse("content://settings-test/document")
             result(activity,12,android.app.Activity.RESULT_OK,Intent().setData(uri))
             waitFor { provider.file.isFile && provider.file.length()>0 }
@@ -172,7 +197,7 @@ class DataSettingsNavigationTest {
             val activity=old.get();val (_,data)=open(activity)
             click(data,"data_BACKUP");val choice=latest();click(choice,"backup_none")
             (choice.window!!.decorView.findViewWithTag<View>("backup_dashboard") as CheckBox).isChecked=true
-            choice.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            choice.window!!.decorView.findViewWithTag<Button>("backup_execute").performClick()
             assertEquals(Intent.ACTION_CREATE_DOCUMENT,shadowOf(activity).nextStartedActivityForResult.intent.action)
             old.saveInstanceState(state)
         } finally { old.pause().stop().destroy() }
@@ -202,6 +227,17 @@ class DataSettingsNavigationTest {
                 }
             }
         } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun sharedInlineOwnerRunsEveryCleanupOnce() {
+        val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val a=host.get();val navigation=DialogNavigation();val calls=mutableListOf<Int>()
+            val screen=BicycleDialogBuilder(a,ThemeManager(a.getSharedPreferences("cleanup",0)),navigation).setTitle("Dienste").create()
+            navigation.onDismiss(screen) { calls+=1 };navigation.onDismiss(screen) { calls+=2 }
+            screen.show();screen.dismiss();shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(listOf(1,2),calls)
+            screen.dismiss();shadowOf(Looper.getMainLooper()).idle();assertEquals(listOf(1,2),calls)
+        } finally { host.pause().stop().destroy() }
     }
     class SettingsProvider:android.content.ContentProvider() {
         val file get()=File(context!!.cacheDir,"settings-provider.json")

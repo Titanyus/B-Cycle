@@ -36,6 +36,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
 /** One row per destination; the main menu uses section typography and taller rows. */
 internal class SettingsMenuView(context: Context, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
     private val advanced: Boolean = false, private val selected: (SettingsAction) -> Unit) : LinearLayout(context) {
+    val isMainPage get() = !advanced
     init {
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)

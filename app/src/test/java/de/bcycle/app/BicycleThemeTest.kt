@@ -23,62 +23,36 @@ class BicycleThemeTest {
         assertFalse(ThemeValidator.validate(red.copy(name = "Name\n")).valid)
         assertFalse(ThemeValidator.validate(red.copy(id = "preset:")).valid)
     }
-    @Test fun accentsDefaultToForegroundAndRequireOpaqueContrastingColors() {
-        BicycleThemes.presets.forEach {
-            if (it.id !in setOf("preset:black-ops", "preset:embers-inv", "preset:solar-flare", "preset:electric-blue", "preset:acid-lime")) assertEquals(it.tokens.foreground, it.tokens.accent)
-            assertTrue(ThemeValidator.validate(it).valid)
+    @Test fun fixedPalettesMatchAllFourteenRequestedSetsAndSharePrimaryByFamily() {
+        val rows=listOf(
+            listOf("hellfire","BF281B","812218","550E08","0F0A09","211918"),
+            listOf("solar-flare","F16A09","B64E01","863701","100B08","221A15"),
+            listOf("sunstruck","E9AF00","B78901","8F6A00","100E07","242014"),
+            listOf("acid-pop","7ACD04","5EA000","477B01","0A0F07","192215"),
+            listOf("deep-dive","06B5A1","018979","006559","07100F","142221"),
+            listOf("blue-riot","145CD7","003998","00215E","080B10","151B23"),
+            listOf("purple-haze","9224E0","6601A1","400068","0B0910","1A1624"))
+        fun color(s:String)=(0xff000000L or s.toLong(16)).toInt()
+        assertEquals(14,BicycleThemes.presets.size)
+        rows.forEach { row ->
+            for(dark in listOf(false,true)) {
+                val t=BicycleThemes.presets.single { it.id=="preset:${row[0]}-${if(dark) "dark" else "color"}" }
+                assertEquals(ThemeTokens(color(row[1]),color(row[if(dark) 4 else 2]),color(row[if(dark) 5 else 3]),color("FFFFFF"),color(if(dark) row[1] else "FFFFFF")),t.tokens)
+                assertTrue(ThemeValidator.validate(t).problems.toString(),ThemeValidator.validate(t).valid)
+                val light=t.tokens.lightSettings()
+                assertEquals(t.tokens.primary,light.primary);assertEquals(t.tokens.accent,light.accent)
+                assertEquals(color("FFFFFF"),light.secondary)
+                assertTrue(ThemeValidator.contrast(light.foreground,light.secondary)>15.0)
+            }
         }
-        val base = ThemeTokens(0xff535353.toInt(), 0xff292929.toInt(), 0xff000000.toInt(), 0xffffffff.toInt())
-        assertEquals(base.foreground, base.accent)
-        val theme = CustomTheme("custom:accent", "Accent", base.copy(accent = 0xffffaa55.toInt()))
-        assertTrue(ThemeValidator.validate(theme).problems.toString(), ThemeValidator.validate(theme).valid)
-        assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = base.secondary))).valid)
-        assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0x00ffaa55))).valid)
-        assertFalse(ThemeValidator.validate(theme.copy(tokens = base.copy(accent = 0xffd1261b.toInt()))).valid)
     }
-    @Test fun blueAndLimeUseTheirOriginalPrimaryAsAccentWithNeutralSurfaces() {
-        for ((id, primary) in mapOf("preset:electric-blue" to 0xff1168b8.toInt(), "preset:acid-lime" to 0xff587812.toInt())) {
-            val theme = BicycleThemes.presets.single { it.id == id }
-            assertEquals(ThemeTokens(primary, 0xff000000.toInt(), 0xff292929.toInt(), 0xffffffff.toInt(), primary), theme.tokens)
-            assertTrue(theme.approvedLowContrastSurfaces.isEmpty())
-            assertTrue(ThemeValidator.validate(theme).valid)
-        }
+    @Test fun legacyIdsResolveToNewPresetsAndLightTintHasFixedSubtleStrength() {
+        val t=BicycleThemes.findPreset("preset:black-ops")!!
+        assertEquals("preset:hellfire-dark",t.id)
+        assertEquals("preset:hellfire-color",BicycleThemes.findPreset("preset:bicycle-red")!!.id)
+        assertEquals("preset:sunstruck-dark",BicycleThemes.findPreset("preset:solar-flare")!!.id)
+        assertEquals(0xff191111.toInt(),t.tokens.lightSettings().foreground)
+        assertEquals(0xffcfc3c2.toInt(),t.tokens.lightSettings().tertiary)
+        assertNull(BicycleThemes.findPreset("preset:unknown"))
     }
-    @Test fun fireKeepsExactApprovedColorsAndOnlyItsHeaderContrastException() {
-        val fire = BicycleThemes.presets.single { it.id == "preset:solar-flare" }
-        assertEquals("FIRE", fire.name)
-        assertEquals(ThemeTokens(0xffffb400.toInt(), 0xff000000.toInt(), 0xff292929.toInt(), 0xffffffff.toInt(), 0xffffb400.toInt()), fire.tokens)
-        assertEquals(setOf(ThemeRole.PRIMARY), fire.approvedLowContrastSurfaces)
-        assertTrue(ThemeValidator.validate(fire).valid)
-        assertFalse(ThemeValidator.validate(fire.copy(approvedLowContrastSurfaces = emptySet())).valid)
-        assertFalse(ThemeValidator.validate(fire.copy(tokens = fire.tokens.copy(secondary = 0xffffffff.toInt()))).valid)
-        assertFalse(ThemeValidator.validate(fire.copy(tokens = fire.tokens.copy(tertiary = 0x00292929))).valid)
-        assertFalse(ThemeValidator.validate(CustomTheme("custom:fire", "Mine", fire.tokens)).valid)
-    }
-    @Test fun embersPreservesOldIdAndUsesRedHeaderAndAccentOnlyOnReadableSurfaces() {
-        val theme = BicycleThemes.presets.single { it.id == "preset:black-ops" }
-        val t = theme.tokens
-        assertEquals(0xff000000.toInt(), t.secondary)
-        assertEquals("EMBERS", theme.name)
-        assertEquals(0xff292929.toInt(), t.tertiary)
-        assertEquals(0xffbf281b.toInt(), t.primary)
-        assertEquals(0xffbf281b.toInt(), t.accent)
-        assertTrue(ThemeValidator.validate(theme).valid)
-        assertEquals(t.accent, t.iconColor(ThemeRole.ACCENT, ThemeRole.SECONDARY))
-        assertEquals(t.foreground, t.iconColor(ThemeRole.ACCENT, ThemeRole.TERTIARY))
-        assertEquals(t.foreground, t.iconColor(ThemeRole.ACCENT, ThemeRole.PRIMARY))
-        assertEquals(t.foreground, t.iconColor(ThemeRole.FOREGROUND))
-    }
-
-    @Test fun invertedEmbersKeepsExactPaletteAndUsesExistingReadableIconFallback() {
-        val base=BicycleThemes.presets.single { it.id=="preset:black-ops" }
-        val inverted=BicycleThemes.presets.single { it.id=="preset:embers-inv" }
-        assertEquals("Embers Inv.",inverted.name)
-        assertEquals(base.tokens.copy(secondary=0xff1d1d1d.toInt(),tertiary=0xff000000.toInt()),inverted.tokens)
-        assertTrue(ThemeValidator.validate(inverted).valid)
-        assertFalse(ThemeValidator.validate(inverted.copy(approvedLowContrastAccent=false)).valid)
-        assertFalse(ThemeValidator.validate(CustomTheme("custom:inv","Inv",inverted.tokens)).valid)
-        assertEquals(inverted.tokens.foreground,inverted.tokens.iconColor(ThemeRole.ACCENT,ThemeRole.SECONDARY))
-    }
-
 }

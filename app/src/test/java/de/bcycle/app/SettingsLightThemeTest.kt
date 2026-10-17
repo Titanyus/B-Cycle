@@ -23,13 +23,14 @@ class SettingsLightThemeTest {
         for(theme in base.presets) {
             assertTrue(settings.activate(theme.id))
             assertEquals(theme,base.active)
-            assertEquals(theme.tokens.copy(secondary=0xffffffff.toInt(),tertiary=0xffcccccc.toInt(),foreground=0xff202020.toInt()),settings.active.tokens)
+            assertEquals(theme.tokens.lightSettings(),settings.active.tokens)
             assertEquals(settings.active,updates.last())
         }
         val store=BikeUiConfigurationStore(prefs);store.ensure(listOf(0,1));store.save(0)
         settings.setSettingsLight(false);store.save(1);store.apply(0);base.reloadFromPreferences()
-        assertTrue(settings.settingsLight)
-        assertEquals(0xff202020.toInt(),settings.active.tokens.foreground)
+        assertFalse(settings.settingsLight) // Profile switching must not restore a per-profile light flag.
+        settings.setSettingsLight(true)
+        assertEquals(base.active.tokens.lightSettings().foreground,settings.active.tokens.foreground)
         val backup=SettingsBackup(prefs,c.getSharedPreferences("light-export",0),base)
         val bytes=backup.export(setOf(BackupSection.DESIGN))
         settings.setSettingsLight(false)
@@ -55,6 +56,11 @@ class SettingsLightThemeTest {
             val bg=body.background as android.graphics.drawable.ColorDrawable
             assertEquals(0xffffffff.toInt(),bg.color)
             assertEquals(original,runtime.themes.active)
+            root.findViewWithTag<View>("settings_PROFILES").performClick()
+            val profiles=ShadowAlertDialog.getLatestAlertDialog()
+            assertNull(profiles.window!!.decorView.findViewWithTag<View>("settings_light_toggle"))
+            assertTrue(runtime.themes.settingsLight)
+            profiles.dismiss();shadowOf(Looper.getMainLooper()).idle()
             toggle.performClick();shadowOf(Looper.getMainLooper()).idle()
             assertEquals(original.tokens,runtime.themes.settings.active.tokens)
         } finally { host.pause().stop().destroy() }

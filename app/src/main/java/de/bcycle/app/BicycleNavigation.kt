@@ -35,7 +35,7 @@ internal object BicycleNavigation {
             frame.addView(BicycleComponents.icon(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.route_action_rename)) { title.performClick() }.apply { tag="analysis_rename" },
                 FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL))
         }
-        if(themes.isSettingsPalette && title?.tag!="analysis_title") {
+        if(themes.isSettingsPalette && all(screen.window!!.decorView).any { it is SettingsMenuView && it.isMainPage }) {
             val toggle=BicycleComponents.icon(context,themes,BicycleIcon.Moon,context.getString(R.string.settings_dark_mode)) {
                 themes.setSettingsLight(!themes.settingsLight)
             }.apply { tag="settings_light_toggle" }

@@ -30,7 +30,7 @@ class ThemeManager(private val preferences: SharedPreferences, private val setti
     fun setSettingsLight(light:Boolean) { preferences.edit().putBoolean(settingsLightKey,light).apply() }
     fun forDisplay(theme:BicycleTheme):BicycleTheme {
         if(!isSettingsPalette || !settingsLight) return theme
-        val tokens=theme.tokens.copy(secondary=0xffffffff.toInt(),tertiary=0xffcccccc.toInt(),foreground=0xff202020.toInt())
+        val tokens=theme.tokens.lightSettings()
         return when(theme) { is PresetTheme->theme.copy(tokens=tokens);is CustomTheme->theme.copy(tokens=tokens) }
     }
     val active: BicycleTheme get() = forDisplay(settingsSource?.active ?: synchronized(lock) { current })
@@ -48,11 +48,13 @@ class ThemeManager(private val preferences: SharedPreferences, private val setti
     /** Apply externally restored validated configuration without retaining stale theme objects. */
     fun reloadFromPreferences() {
         settingsSource?.let { it.reloadFromPreferences();return }
-        synchronized(lock) { customs = loadCustoms(); current = find(savedActiveId()) ?: BicycleThemes.red }
+        synchronized(lock) { customs = loadCustoms(); current = find(savedActiveId()) ?: BicycleThemes.red
+            if(savedActiveId()!=current.id) preferences.edit().putString(activeKey,current.id).apply()
+        }
         publish()
     }
     private fun savedActiveId(): String? = runCatching { preferences.getString(activeKey, null) }.getOrNull()
-    private fun find(id: String?): BicycleTheme? = presets.find { it.id == id } ?: customs.find { it.id == id }
+    private fun find(id: String?): BicycleTheme? = BicycleThemes.findPreset(id) ?: customs.find { it.id == id }
     /** Invalid or removed IDs restore the standard palette and persist that fallback. */
     fun activate(id: String): Boolean {
         settingsSource?.let { return it.activate(id) }

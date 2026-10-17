@@ -1,21 +1,19 @@
 # Helle und dunkle Einstellungen
 
-Über den Sonne-/Mond-Button rechts im Einstellungsheader wird zwischen hell und dunkel gewechselt. Das Icon zeigt den aktuellen Zustand. Bei Streckendetails bleibt rechts der Umbenennen-Button; die dortige Darstellung folgt der in den Einstellungen gewählten Helligkeit.
+Sonne/Mond steht ausschließlich rechts im Header der Haupt-Einstellungsseite. Das Icon zeigt den aktuellen Zustand. Unterseiten haben keinen weiteren Umschalter, folgen aber sofort der globalen Auswahl. Die Themeauswahl bleibt je Fahrradprofil gespeichert.
 
 | Farbrolle | Helle Darstellung |
 | --- | --- |
 | PRIMARY | Unverändert aus dem gewählten Theme |
 | SECONDARY | #FFFFFF |
-| TERTIARY | #CCCCCC |
-| FOREGROUND | #202020 |
+| TERTIARY | #D0D0D0 mit 8 % PRIMARY gemischt |
+| FOREGROUND | #101010 mit 5 % PRIMARY gemischt |
 | ACCENT | Unverändert aus dem gewählten Theme |
 
-Standard ist dunkel. Der Schalter verändert ausschließlich die Darstellung von Einstellungs- und Konfigurationsdialogen. Dashboard, Rand-Glow, Nachrichtenfenster während der Fahrt und Kartenhelligkeit behalten ihre bestehende Palette. Theme-Auswahl und eigenes Theme werden nicht überschrieben.
+Die RGB-Kanäle werden einzeln gemischt und auf ganze Farbwerte gerundet. Beispiel HELLFIRE: Schrift #191111, graue Fläche #CFC3C2. Diese Parameter sind interne Standards ohne zusätzliche Regler.
 
-`ThemeManager.settings` stellt eine abgeleitete Palette bereit und folgt der Basis-Themeauswahl. Änderungen werden auf angehängten Views sofort dargestellt. Einheiten und Zusatztexte verwenden 65 % des aktuellen FOREGROUND. Formularrahmen verwenden 1 dp, 50 % FOREGROUND, 6 dp Rundung; Text und Icons werden nicht mit abgedunkelt.
+Standard ist dunkel; alle [14 vorgegebenen Themes](theme-palettes.md) sind Basispaletten für diese Darstellung. Theme-Vorschauen zeigen nur PRIMARY, SECONDARY und TERTIARY. Themetitel sind 21 sp Bebas Neue, wie die schmalen Eingabewerte. Keine Reserviert-Karte oder eigene Farbwahl.
 
-Der Zustand `uiTheme.settingsLight` wird je Bikeprofil gespeichert, bei Profilübernahme kopiert und im Design-Backup mitgesichert. Alte Sicherungen ohne diesen Wert behalten die aktuelle Auswahl, Profile ohne gespeicherten Wert starten dunkel.
+`ThemeManager.settings` stellt ausschließlich für Dialoge eine abgeleitete Palette bereit. Dashboard, Rand-Glow, Nachrichtenfenster während der Fahrt und Kartenhelligkeit behalten ihre eigene bestehende Darstellung. Die Themeauswahl wird nicht überschrieben. Einheiten/Zusatztexte verwenden 65 % des aktuellen FOREGROUND. Formularrahmen verwenden zentral 1 dp, 50 % FOREGROUND und 6 dp Rundung.
 
-Zusätzlich enthalten: Embers Inv. (#BF281B / #1D1D1D / #000000 / #FFFFFF / #BF281B), transparente Fahrradfoto-Mülltonne, schwarzes Karten-Vergrößern-Symbol, Vollbildoption am Anfang von Design & UI und kompakte Dauer-/Positionsdarstellung in den Benachrichtigungseinstellungen.
-
-Prüfung: 57 gezielte Tests für Theme-/Headerumschaltung, unveränderte Dashboard-Palette, Profil- und Backup-Roundtrip, Themeauswahl, Sticky-Abschnitte, Konturen sowie Benachrichtigungs-Layout erfolgreich. Kein zusätzlicher Gerätetest.
+`uiTheme.settingsLight` ist global, wird bei Profilwechsel und Profilübernahme weder gesichert noch ersetzt. Alte Werte in Profil-Snapshots werden ignoriert. Design-Backups sichern den globalen Wert; alte Sicherungen ohne diesen Schlüssel behalten die aktuelle Auswahl. Technische ältere Theme-IDs werden auf die neuen Presets abgebildet.

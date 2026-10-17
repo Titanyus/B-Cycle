@@ -141,7 +141,7 @@ object BicycleDesign {
     const val themeTileHeight = 136
     const val themeNameHeight = 44
     const val themeNameSp = 14f
-    const val settingsThemeNameSp = analysisMetricSp
+    const val settingsThemeNameSp = settingsMetricSp
     const val themeSelectedBorder = 2
     fun dp(context: Context, value: Int) = (value * context.resources.displayMetrics.density).toInt()
 
@@ -179,7 +179,7 @@ object BicycleComponents {
         fun apply() {
             val margins=view.layoutParams as? ViewGroup.MarginLayoutParams ?: return
             val parent=view.parent as? LinearLayout
-            if(parent?.tag==BicycleDesign.inlineControlRowTag) {
+            if(parent?.tag==BicycleDesign.inlineControlRowTag || parent?.getTag(R.id.inline_control_row)==true) {
                 if(margins.topMargin!=0 || margins.bottomMargin!=0) {
                     margins.topMargin=0;margins.bottomMargin=0;view.requestLayout()
                 }

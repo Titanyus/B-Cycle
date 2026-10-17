@@ -1,6 +1,7 @@
 package de.bcycle.app
 
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 /** Only these five roles may vary with a palette. All colors are opaque ARGB. */
 data class ThemeTokens(val primary: Int, val secondary: Int, val tertiary: Int, val foreground: Int,
@@ -16,7 +17,8 @@ sealed interface BicycleTheme {
 data class PresetTheme(override val id: String, override val name: String,
                        override val tokens: ThemeTokens,
                        val approvedLowContrastSurfaces: Set<ThemeRole> = emptySet(),
-                       val approvedLowContrastAccent: Boolean = false) : BicycleTheme {
+                       val approvedLowContrastAccent: Boolean = false,
+                       val approvedSubtleSurfaces: Boolean = false) : BicycleTheme {
     override val isCustom = false
 }
 
@@ -26,28 +28,45 @@ data class CustomTheme(override val id: String, override val name: String,
 }
 
 object BicycleThemes {
-    private fun preset(id: String, name: String, primary: Long, secondary: Long, tertiary: Long,
-                       foreground: Long = 0xffffffff, accent: Long = foreground,
-                       approvedLowContrastSurfaces: Set<ThemeRole> = emptySet(),
-                       approvedLowContrastAccent: Boolean = false) = PresetTheme("preset:$id", name,
-        ThemeTokens(primary.toInt(), secondary.toInt(), tertiary.toInt(), foreground.toInt(), accent.toInt()), approvedLowContrastSurfaces, approvedLowContrastAccent)
-    val red = preset("bicycle-red", "BICYCLE RED", 0xffbf281b, 0xff89190e, 0xff680e07)
-    /** Immutable templates; stored custom themes cannot overwrite these stable IDs. */
-    val presets: List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
-        red,
-        preset("black-ops", "EMBERS", 0xffbf281b, 0xff000000, 0xff292929, accent = 0xffbf281b),
-        // Inverted Embers surfaces; old #292929 reduced by 30 % per RGB channel.
-        // Accent readability uses the existing per-surface foreground fallback.
-        preset("embers-inv", "Embers Inv.", 0xffbf281b, 0xff1d1d1d, 0xff000000, accent = 0xffbf281b,
-            approvedLowContrastAccent = true),
-        // Exact palette and white-on-yellow header explicitly accepted by the user.
-        preset("solar-flare", "FIRE", 0xffffb400, 0xff000000, 0xff292929, accent = 0xffffb400,
-            approvedLowContrastSurfaces = setOf(ThemeRole.PRIMARY)),
-        preset("electric-blue", "ELECTRIC BLUE", 0xff1168b8, 0xff000000, 0xff292929, accent = 0xff1168b8),
-        preset("acid-lime", "ACID LIME", 0xff587812, 0xff000000, 0xff292929, accent = 0xff587812),
-        preset("ultraviolet", "ULTRAVIOLET", 0xff8242c3, 0xff57238e, 0xff2d114d),
-        preset("petrol-attack", "PETROL ATTACK", 0xff117782, 0xff11525c, 0xff092c33)
-    ))
+    private fun color(hex:String)=(0xff000000L or hex.toLong(16)).toInt()
+    private fun family(id:String,name:String,primary:String,secondary:String,tertiary:String,darkSecondary:String,darkTertiary:String):List<PresetTheme> {
+        fun theme(dark:Boolean):PresetTheme {
+            val t=ThemeTokens(color(primary),color(if(dark) darkSecondary else secondary),color(if(dark) darkTertiary else tertiary),0xffffffff.toInt(),color(if(dark) primary else "FFFFFF"))
+            val roles=listOf(ThemeRole.PRIMARY,ThemeRole.SECONDARY,ThemeRole.TERTIARY)
+            // These exact fixed palettes were chosen by the user; custom-theme checks remain strict.
+            val approved=roles.filter { ThemeValidator.contrast(t.foreground,t.color(it))<ThemeValidator.minimumTextContrast }.toSet()
+            return PresetTheme("preset:$id-${if(dark) "dark" else "color"}",name+if(dark) " DARK" else "",t,
+                approved,ThemeValidator.contrast(t.accent,t.secondary)<ThemeValidator.minimumIconContrast,true)
+        }
+        return listOf(theme(false),theme(true))
+    }
+    val presets:List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
+        family("hellfire","HELLFIRE","BF281B","812218","550E08","0F0A09","211918"),
+        family("solar-flare","SOLAR FLARE","F16A09","B64E01","863701","100B08","221A15"),
+        family("sunstruck","SUNSTRUCK","E9AF00","B78901","8F6A00","100E07","242014"),
+        family("acid-pop","ACID POP","7ACD04","5EA000","477B01","0A0F07","192215"),
+        family("deep-dive","DEEP DIVE","06B5A1","018979","006559","07100F","142221"),
+        family("blue-riot","BLUE RIOT","145CD7","003998","00215E","080B10","151B23"),
+        family("purple-haze","PURPLE HAZE","9224E0","6601A1","400068","0B0910","1A1624")
+    ).flatten())
+    val red get()=presets.first()
+    private val legacyIds=mapOf(
+        "bicycle-red" to "hellfire-color", "black-ops" to "hellfire-dark", "embers-inv" to "hellfire-dark",
+        "solar-flare" to "sunstruck-dark", "electric-blue" to "blue-riot-dark", "acid-lime" to "acid-pop-dark",
+        "ultraviolet" to "purple-haze-color", "petrol-attack" to "deep-dive-color")
+    fun findPreset(id:String?):PresetTheme? {
+        val mapped=legacyIds[id?.removePrefix("preset:")]?.let { "preset:$it" } ?: id
+        return presets.find { it.id==mapped }
+    }
+}
+
+/** Small, deterministic RGB tint; display-only, never written into the source palette. */
+internal fun ThemeTokens.lightSettings():ThemeTokens {
+    fun tint(base:Int,amount:Float):Int {
+        fun channel(shift:Int)=(((base ushr shift) and 255)*(1f-amount)+((primary ushr shift) and 255)*amount).roundToInt()
+        return (255 shl 24) or (channel(16) shl 16) or (channel(8) shl 8) or channel(0)
+    }
+    return copy(secondary=0xffffffff.toInt(),tertiary=tint(0xffd0d0d0.toInt(),.08f),foreground=tint(0xff101010.toInt(),.05f))
 }
 
 data class ThemeValidation(val problems: List<String>) {
@@ -70,7 +89,7 @@ object ThemeValidator {
         if ((surfaces + listOf(t.foreground, t.accent)).any { it ushr 24 != 255 }) problems += "Fünf deckende ARGB-Farben erforderlich"
         val light = surfaces.map(::luminance)
         val steps = listOf(light[1] - light[0], light[2] - light[1])
-        if (steps.any { kotlin.math.abs(it) < minimumSurfaceStep })
+        if (steps.any { kotlin.math.abs(it) < 0.000001 || ((theme as? PresetTheme)?.approvedSubtleSurfaces != true && kotlin.math.abs(it) < minimumSurfaceStep) })
             problems += "Benachbarte Flächen müssen erkennbar heller oder dunkler abgestuft sein"
         val approved = (theme as? PresetTheme)?.approvedLowContrastSurfaces.orEmpty()
         val surfaceRoles = listOf(ThemeRole.PRIMARY, ThemeRole.SECONDARY, ThemeRole.TERTIARY)

@@ -40,7 +40,7 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 - **Trainingszonen** – Persönliche Leistungs- und Pulszonen, Zonenanteile, Verteilungskurven und bis zu vier Best Efforts mit Watt und W/kg.
 - **Live-Graphen und Ambient-Glow** – Daten und Hintergrundgraphen je Kachel kombinieren, Trainingshilfe je Dashboard wählen; Fahrmodus und Akkuwarnung am Bildschirmrand erkennen.
 - **Fahrradprofile** – Bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen, FIT-Einstellungen sowie eigenen Themes, Dashboards und Kartenoptionen. E-Bike und Indoor sind nutzbar; normales Bike ist vorbereitet.
-- **Dein Design** – Acht Farbthemen mit einheitlicher Bedienung, sofort gespeicherten Einstellungen und Hochformat-Layouts.
+- **Dein Design** – 14 vorgegebene Farbthemen mit einheitlicher Bedienung, sofort gespeicherten Einstellungen und Hochformat-Layouts.
 - **Export und Upload** – Lokal speichern oder eigene Fahrten an WebDAV, intervals.icu, Dreeve und Strava senden. Dienste arbeiten unabhängig; Dreeve benötigt eine eigene Instanz, Strava derzeit eine persönliche API-App.
 - **Wetter und Höhe** – Wetter zur Tourmitte dauerhaft speichern und bei Bedarf GPS-Höhen nachträglich mit Mapterhorn korrigieren; Original-FIT bleibt erhalten.
 - **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 8 MB APK. Keine automatische Telemetrie.

@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 /** Per-bike display and map configuration, projected into existing active preferences. */
 internal data class BikeUiConfiguration(val version:Int=1,val design:Map<String,Any?>,val maps:Map<String,Any?>,val selectedGpxRouteId:String?=null)
 internal object BikeUiConfigurationScope {
-    private val designKeys=setOf(ThemeManager.activeKey,ThemeManager.settingsLightKey,ThemeManager.customsKey,ModeGlowSettings.key,
+    private val designKeys=setOf(ThemeManager.activeKey,ThemeManager.customsKey,ModeGlowSettings.key,
         ModeGlowSettings.placementKey,DashboardFullscreen.key,DashboardPages.KEY,"dashboardPage",GraphDisplaySettings.key,
         MapFieldSelection.key(0),MapFieldSelection.key(1),MapFieldSelection.key(2))
     private val mapKeys=setOf("mapSource","mapNight","mapFollow","mapHeading",MapOvalAnchor.preference,"mapTrackVisible","mapGpxVisible",
