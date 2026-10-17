@@ -318,7 +318,10 @@ object BicycleComponents {
         layoutParams = ViewGroup.LayoutParams(dp(context, BicycleDesign.touchSize), dp(context, BicycleDesign.touchSize))
         val inset = dp(context, (BicycleDesign.touchSize - BicycleDesign.iconSize) / 2)
         setPadding(inset, inset, inset, inset); background = null
-        bindTheme(this, manager) { setColorFilter(it.iconColor(colorRole)) }
+        bindTheme(this, manager) {
+            val header=(parent as? View)?.tag=="bicycle_navigation_header"
+            setColorFilter(if(header && manager.isSettingsPalette && manager.settingsLight) android.graphics.Color.WHITE else it.iconColor(colorRole))
+        }
         setOnClickListener { click() }
     }
     internal fun secondaryText(view:TextView,manager:ThemeManager) {

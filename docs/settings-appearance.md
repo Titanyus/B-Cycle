@@ -21,3 +21,15 @@ Standard ist dunkel; alle [14 vorgegebenen Themes](theme-palettes.md) sind Basis
 Seitenheader auf PRIMARY verwenden im Hellmodus weiße Schrift, während normale Inhalte die dunkle, getönte Textfarbe behalten. Sticky-Kategorien auf TERTIARY behalten die normale Textfarbe. Diese Rolle gilt auch beim Öffnen von Unterseiten im bereits aktiven Hellmodus und bei späteren Themewechseln.
 
 Die fünf Verlaufsgraphen in den Streckendetails verwenden in Hell und Dunkel dieselben Diagrammfarben aus der jeweiligen Basispalette. Ihre Flächenfüllung bleibt bei 100 %. Puls- und Leistungsverteilung unten verwenden im Hellmodus hingegen die dunkle Textfarbe für Kurve und transparenten Füllverlauf; auf dunkler Darstellung bleibt die Kurve weiß. Zonenhintergründe und Messdaten werden nicht geändert.
+
+## Umgesetzt in 0.8: Weiße Header-Symbole
+
+Nutzerwunsch vom 17.10.2026 nach Build 33, in Version 0.8 umgesetzt: Im hellen Theme sämtliche Symbole in den PRIMARY-Seitenheadern ebenfalls weiß wie die Header-Schrift darstellen. Dazu zählen Zurück-Chevron, Umbenennen und weitere Header-Aktionen. Symbole im Seiteninhalt behalten ihre bisherigen Rollen. In Version 0.8 umgesetzt.
+
+## Umgesetzt in 0.8: Sticky-Accordions im Fahrerprofil
+
+Nutzerwunsch vom 17.10.2026 nach Build 33: Alle Sticky-Abschnittsheader im Fahrerprofil wie auf der Profilseite auf-/zuklappbar machen. Die gemeinsame Accordion-Komponente und deren bestehende Bedienung wiederverwenden. Eingaben, Zonenberechnung und sofortige Speicherung bleiben erhalten. In Version 0.8 umgesetzt.
+
+## Umgesetzt in 0.8: Abgeschnittener Geburtsdatumsrahmen
+
+Gemeldeter Darstellungsfehler vom 17.10.2026 nach Build 33: Der Rahmen des Geburtsdatumsfelds im Fahrerprofil ist unten abgeschnitten. Ursache im Layout bzw. Clipping prüfen und die untere Kontur vollständig darstellen. Eingabestil und Datumsfunktion erhalten. In Version 0.8 korrigiert.

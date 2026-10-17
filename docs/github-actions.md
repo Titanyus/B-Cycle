@@ -2,9 +2,9 @@
 
 ## Automatisch und manuell
 
-Workflow: [Android Debug APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
+Workflow: [Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Jeder Push auf `main` erzeugt einen Build, ohne Pfadfilter. Manuell unter Actions →
-Android Debug APK → Run workflow → main. Ein neuer Push ersetzt einen noch laufenden
+Android Optimized APK → Run workflow → main. Ein neuer Push ersetzt einen noch laufenden
 Build desselben Branches; andere Branches werden nicht automatisch gebaut.
 
 Ubuntu 24.04, Temurin JDK 21, Gradle-Wrapper 8.11.1 mit SHA-256-Prüfung, Android-SDK 36,
@@ -12,15 +12,15 @@ Build-Tools 35.0.0, vorhandenes AGP 8.9.2/Kotlin 2.1.20. Gepinnte Action-Commit-
 Gradle-Cache, 30-Minuten-Timeout, GITHUB_TOKEN nur contents:read. Keine Release-Secrets,
 kein Store-Upload, keine Änderungen an Sensor- oder Appfunktionen.
 
-Der Build führt ausschließlich `./gradlew --no-daemon :app:assembleDebug --console=plain`
+Der Build führt ausschließlich `./gradlew --no-daemon :app:assembleRelease --console=plain`
 aus. Relevante Tests je Änderung separat auswählen. Keine pauschale vollständige
 Testsuite bei jedem APK-Build; keine parallelen lokalen APK-Builds in der Codex-Cloud.
 
 ## APK herunterladen
 
-Erfolgreichen Lauf öffnen → Artifacts → B-Cycle-debug-LAUFNUMMER. ZIP herunterladen,
+Erfolgreichen Lauf öffnen → Artifacts → B-Cycle-release-LAUFNUMMER. ZIP herunterladen,
 entpacken und die APK installieren. Das Artefakt enthält eine benannte APK mit Version
-und Laufnummer plus SHA-256-Prüfsumme. Der Build-Summary enthält den direkten Artefakt-Link.
+und Laufnummer plus SHA-256-Prüfsumme und R8 mapping.txt. Der Build-Summary enthält den direkten Artefakt-Link.
 Artefakte bleiben 30 Tage verfügbar; GitHub verlangt dafür eine Anmeldung.
 Ein manueller Build kann nach Ablauf der Aufbewahrung eine neue APK erzeugen.
 Build-Timestamp entspricht dem tatsächlichen Start der Build-Vorbereitung.
@@ -71,3 +71,7 @@ dabei keine APK lokal gebaut. Prüfsumme und Signatur des Ergebnisses erneut pr�
 [Build 5](test-build-5.md) ist auf diesem Weg entstanden. Reine APK-/Nachweis-Publikationen
 verwenden [skip ci], damit daraus kein unnötiger weiterer Build entsteht; App- und
 Workflow-Änderungen starten weiterhin automatisch einen Build.
+
+## Optimierte APK ab 0.8
+
+Der Release-Build aktiviert R8-Codeoptimierung/Minifizierung und Ressourcenverkleinerung. Die APK ist nicht debuggable. Zur Update-Kompatibilität wird die bisherige Signatur beibehalten (Release verwendet dieselbe Signing-Konfiguration; bei fehlendem CI-Secret wird das Actions-Artefakt vor Veröffentlichung mit dem bisherigen Schlüssel nachsigniert). Mapping für spätere Fehleranalyse zusammen mit dem Meilenstein aufbewahren. Meilenstein 0.8 wird als Git-Tag und GitHub-Release mit dauerhaftem APK-Download gesichert.

@@ -32,6 +32,33 @@ class RiderProfileViewTest {
         decor.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY))
         decor.layout(0,0,width,height)
     }
+    @Test fun sectionsCollapseIndependentlyAndBirthBorderFitsTheEntireRow() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("rider-accordion",0))
+            val store=RiderProfileStore(a.getSharedPreferences("rider-accordion",0))
+            val screen=showRiderProfile(a,themes,DialogNavigation(),store)
+            for(width in listOf(320,360)) {
+                measure(screen,width)
+                val root=screen.window!!.decorView
+                val birth=root.findViewWithTag<Button>("rider_birth")
+                val row=birth.parent as ViewGroup
+                assertEquals(0,(birth.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
+                assertTrue(birth.bottom<=row.height);assertTrue(birth.top>=0)
+                val bitmap=android.graphics.Bitmap.createBitmap(row.width,row.height,android.graphics.Bitmap.Config.ARGB_8888)
+                row.draw(android.graphics.Canvas(bitmap))
+                assertTrue(android.graphics.Color.alpha(bitmap.getPixel(birth.left+birth.width/2,birth.bottom-1))>0);bitmap.recycle()
+            }
+            val root=screen.window!!.decorView
+            val headers=views(root).filterIsInstance<BicycleSectionHeader>()
+            assertEquals(4,headers.size);assertTrue(headers.all { it.expanded==true })
+            edit(screen,"height").setText("182")
+            headers[0].performClick();assertEquals(false,headers[0].expanded)
+            assertEquals(true,headers[1].expanded)
+            headers[0].performClick();assertEquals("182",edit(screen,"height").text.toString())
+            assertEquals(182,store.read().heightCm)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun profileChangesPersistImmediatelyAndHeaderAndAndroidBackReturnToMenu() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {

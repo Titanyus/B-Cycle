@@ -83,7 +83,8 @@ class DynamicBikesTest {
                 for(index in 1 until row.childCount) assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlGap),row.getChildAt(index).left-row.getChildAt(index-1).right)
             }
             val title=decor.findViewWithTag<android.widget.TextView>("bike_profile_name")
-            assertFalse(title.parent is BicycleSectionHeader)
+            assertTrue(title.parent is BicycleSectionHeader)
+            assertNull((title.parent as BicycleSectionHeader).expanded)
             decor.findViewWithTag<View>("bike_rename").performClick()
             val edit=decor.findViewWithTag<android.widget.EditText>("bike_profile_name_edit")
             assertEquals(View.VISIBLE,edit.visibility);edit.setText("Neuer Name")

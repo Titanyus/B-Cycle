@@ -107,7 +107,7 @@ class BicycleStickySectionsTest {
             assertEquals(runtime.themes.active.tokens.accent,border(decor.findViewWithTag("bike_profile_0")))
             assertEquals(runtime.themes.active.tokens.foreground,border(decor.findViewWithTag("bike_profile_1")))
             val palettes=ThemePickerView(activity,runtime.themes);measure(palettes,1080,1000)
-            assertEquals(runtime.themes.active.tokens.foreground,border(palettes.findViewWithTag("theme_choice")))
+            assertEquals(127,android.graphics.Color.alpha(border(palettes.findViewWithTag("theme_choice"))))
             val dashboards=DashboardPresetPicker(activity,0,runtime.themes)
             assertEquals(runtime.themes.active.tokens.accent,border(dashboards.findViewWithTag("preset_page_0")))
             val top=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888)

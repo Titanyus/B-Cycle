@@ -27,3 +27,7 @@ Validierung: 37 gezielte Tests bestanden (Zeitgewichtung, Lücken/Nullwerte/Paus
 Im Hellmodus folgen Kurve, Leuchtsaum und transparenter Füllverlauf der dunklen, leicht getönten FOREGROUND-Textfarbe. So bleiben Puls- und Leistungsverteilung auch auf dem weißen Bereich unterhalb Z1 sichtbar. Im Dunkelmodus bleibt die bisherige weiße Kurve. Die deckenden Zonenfarben bleiben unverändert. Ein Themewechsel aktualisiert den gecachten Füllshader direkt, auch bei unveränderter Viewgröße. Histogramme und Fahrtdaten werden nicht neu verarbeitet oder verändert.
 
 Die fünf Verlaufsdiagramme darüber behalten dagegen in beiden Modi dieselben semantischen Farben aus der unprojizierten Basispalette. Die frühere Wahl sehr dunkler Varianten anhand des weißen Seitenhintergrunds entfällt dort. Flächenfüllung weiterhin 100 %.
+
+## Umgesetzt in 0.8: Kein Glow im hellen Design
+
+Nutzerwunsch vom 17.10.2026 nach Build 33, in Version 0.8 umgesetzt: Bei Leistungs- und Pulsverteilung auf der Streckendetailseite im Hellmodus die zusätzlichen Leuchtsaum-Striche entfernen. Hauptkurve in dunkler Textfarbe, transparenter Füllverlauf und Zonenbänder bleiben bestehen. Dunkelmodus und die fünf Verlaufsdiagramme bleiben unverändert. In Version 0.8 umgesetzt.

@@ -635,7 +635,10 @@ class MainActivity : Activity() {
                 } catch (_: Exception) { BicycleFeedback.show(this, getString(R.string.ui_folder_permission_error), long = true) }
             }
             if(localExportView!=null) { exportDraft=null;exportPasswordDraft=null }
-            if (dialogs.empty) { showMenu(); dataSettings(); routeExportSettings(RouteExportPart.LOCAL) }
+            if (dialogs.empty) {
+                showMenu();dataSettings()
+                dataSettingsScreen?.window?.decorView?.findViewWithTag<View>("data_LOCAL")?.performClick()
+            }
             return
         }
         if (requestCode == 15) {
@@ -1041,6 +1044,8 @@ class MainActivity : Activity() {
         val screen=dataDialog(R.string.data_title,BicycleStickyScrollView(settingsContext).apply { addView(content) })
         dataSettingsScreen=screen;menu=screen
         content.install(DataAction.BACKUP,backupExportControls())
+        val local=routeExportSettings(RouteExportPart.LOCAL,screen)
+        content.install(DataAction.LOCAL,local,local.findViewWithTag("export_save"))
         val cloud=routeExportSettings(RouteExportPart.CLOUD,screen)
         content.install(DataAction.CLOUD,cloud,cloud.findViewWithTag("export_webdav"))
         val intervals=intervalsSettings(screen)

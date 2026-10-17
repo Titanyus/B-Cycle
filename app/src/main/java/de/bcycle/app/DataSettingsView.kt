@@ -21,7 +21,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         fun section(title:Int, actions:List<DataAction>) {
             BicycleForm.section(this,themes,title)
             actions.forEach { action ->
-                val inline=action !in listOf(DataAction.LOCAL,DataAction.RESTORE)
+                val inline=action!=DataAction.RESTORE
                 val body=LinearLayout(context).apply { orientation=VERTICAL;tag="data_details_${action.name}";visibility=GONE }
                 val label=BicycleComponents.text(context,themes,context.getString(action.title)).apply {
                     gravity=Gravity.CENTER_VERTICAL

@@ -83,3 +83,7 @@ Einstellungen sichern öffnet ebenfalls einen Inline-Bereich mit bisheriger Bere
 Alle Dienst-Worker gehören zur gemeinsamen Datenseite und werden beim Schließen aufgeräumt. DialogNavigation führt mehrere registrierte Cleanup-Callbacks aus. Seite und offene Accordions bleiben beim Wechsel zu einer anderen App erhalten.
 
 Hell/Dunkel ist global; der Umschalter steht ausschließlich auf der Haupt-Einstellungsseite. Die Theme-Auswahl bleibt profilbezogen. Design-Backups enthalten den globalen Helligkeitswert; alte Themes werden beim Import auf die neuen [14 festen Paletten](theme-palettes.md) abgebildet.
+
+## Umgesetzt in 0.8: Lokale Speicherung ebenfalls inline
+
+Nutzerwunsch vom 17.10.2026 nach Build 33: „Lokale Speicherung“ ebenfalls als Schalter-/Accordion-Zeile direkt in Daten & Speicher anzeigen, analog zu den Clouddiensten. Der separate Unterdialog soll entfallen. Vorhandene Speicheraktivierung, Ordnerauswahl, Status und sofortige Speicherung erhalten; Aufklappen und Aktivieren bleiben unabhängig. In Version 0.8 umgesetzt.

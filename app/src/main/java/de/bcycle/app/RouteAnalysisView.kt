@@ -193,10 +193,10 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
         }, number)
         val unitText = context.getString(metric.unit)
         value.text = formatted; unit.text = unitText; unit.visibility = if (unitText.isEmpty()) GONE else VISIBLE
-        label.text = context.getString(metric.label)
+        label.text = context.getString(if(metric==AnalysisMetric.NP) R.string.analysis_np_short else metric.label)
         val tokens = themes.active.tokens
         icon.setImageDrawable(BicycleIcons.drawable(context, metric.icon, tokens.foreground))
-        contentDescription = if (alternatives.size > 1) context.getString(R.string.analysis_switch, label.text, formatted, unitText, context.getString(alternatives[(index + 1) % alternatives.size].label))
+        contentDescription = if (alternatives.size > 1) context.getString(R.string.analysis_switch, label.text, formatted, unitText, context.getString(alternatives[(index + 1) % alternatives.size].let { if(it==AnalysisMetric.NP) R.string.analysis_np_short else it.label }))
             else context.getString(R.string.analysis_metric_description, label.text, formatted, unitText)
         if (metric == AnalysisMetric.FTP) contentDescription = "$contentDescription ${context.getString(R.string.analysis_ftp_explanation)}"
     }

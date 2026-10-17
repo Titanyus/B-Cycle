@@ -1,4 +1,4 @@
-name: Android Debug APK
+name: Android Optimized APK
 
 on:
   push:
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build Debug APK
+    name: Build Optimized APK
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -56,23 +56,26 @@ jobs:
             echo 'SIGNING_DESCRIPTION=Temporary debug key (not update-compatible)' >> "$GITHUB_ENV"
           fi
 
-      - name: Build debug APK
-        run: ./gradlew --no-daemon :app:assembleDebug --console=plain
+      - name: Build optimized release APK
+        run: ./gradlew --no-daemon :app:assembleRelease --console=plain
 
       - name: Prepare APK and checksum
         id: apk
         run: |
           python3 - <<'PY'
           import hashlib, json, os, pathlib, shutil
-          source = pathlib.Path('app/build/outputs/apk/debug')
+          source = pathlib.Path('app/build/outputs/apk/release')
           metadata = json.loads((source / 'output-metadata.json').read_text())
           element, = metadata['elements']
           version = element['versionName']
-          name = f"B-Cycle-{version}-debug-{os.environ['GITHUB_RUN_NUMBER']}.apk"
+          name = f"B-Cycle-{version}-release-{os.environ['GITHUB_RUN_NUMBER']}.apk"
           target = pathlib.Path('apk-artifact')
           target.mkdir()
           apk = target / name
           shutil.copyfile(source / element['outputFile'], apk)
+          mapping = pathlib.Path('app/build/outputs/mapping/release/mapping.txt')
+          if mapping.is_file():
+              shutil.copyfile(mapping, target / 'mapping.txt')
           checksum = hashlib.sha256(apk.read_bytes()).hexdigest()
           (target / (name + '.sha256')).write_text(f'{checksum}  {name}\n')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
@@ -86,7 +89,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: B-Cycle-debug-${{ github.run_number }}
+          name: B-Cycle-release-${{ github.run_number }}
           path: apk-artifact/*
           if-no-files-found: error
           retention-days: 30
@@ -100,7 +103,7 @@ jobs:
           ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
         run: |
           {
-            echo '## BICYCLE Debug APK'
+            echo '## BICYCLE Optimized APK'
             echo
             echo "[$APK_NAME herunterladen]($ARTIFACT_URL)"
             echo

@@ -35,8 +35,8 @@ android {
         applicationId = "de.bcycle.app"
         minSdk = 33
         targetSdk = 36
-        versionCode = 69
-        versionName = "0.7.31"
+        versionCode = 70
+        versionName = "0.8"
         // Captured at build configuration, never from the app launch clock.
         val buildEpoch = providers.environmentVariable("SOURCE_DATE_EPOCH").orNull?.toLong()
             ?: Instant.now().epochSecond
@@ -45,6 +45,8 @@ android {
     buildFeatures { buildConfig = true }
     buildTypes {
         release {
+            // Keep updates compatible with the existing test installation; CI may supply its stable key.
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))

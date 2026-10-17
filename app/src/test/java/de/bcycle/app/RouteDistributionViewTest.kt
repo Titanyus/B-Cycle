@@ -38,6 +38,8 @@ class RouteDistributionViewTest {
                 }
                 val light=render(android.graphics.Color.WHITE)
                 assertTrue((lineY-3..lineY+3).any { ThemeValidator.luminance(light.getPixel(x,it))<.1 })
+                val outsideGlow=lineY-BicycleDesign.dp(context,8)
+                assertEquals(android.graphics.Color.WHITE,light.getPixel(x,outsideGlow))
                 val fillY=(bounds.top+bounds.height()*.6f).toInt()
                 assertTrue(ThemeValidator.luminance(light.getPixel(x,fillY))<.95)
                 assertEquals(android.graphics.Color.GREEN,light.getPixel((bounds.right-10).toInt(),bounds.top.toInt()+5));light.recycle()

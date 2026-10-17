@@ -109,15 +109,16 @@ class RouteExportNavigationTest {
             click(latest(), "settings_DATA")
             val manager = latest()
             click(manager, "data_LOCAL")
-            testBack(latest()); shadowOf(Looper.getMainLooper()).idle()
+            click(manager,"data_LOCAL"); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             click(manager, "data_LOCAL")
             val settings = latest()
             (descendants(settings.window!!.decorView).single { it.tag == "export_save" } as Switch).isChecked = false
-            testBack(settings)
+            assertSame(manager,settings)
+            click(manager,"data_LOCAL")
             val deadline = System.currentTimeMillis() + 5000
             while (RouteExportSettings(controller.get()).read().save && System.currentTimeMillis() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
-            assertFalse(settings.isShowing)
+            assertTrue(settings.isShowing)
             assertFalse(RouteExportSettings(RuntimeEnvironment.getApplication()).read().save)
             assertFalse(RouteExportSettings(RuntimeEnvironment.getApplication()).read().webdav)
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)

@@ -77,6 +77,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
         birth.stateListAnimator=null;birth.elevation=0f
         birth.minWidth=0;birth.minimumWidth=0
         root.addView(LinearLayout(context).apply {
+            tag=BicycleDesign.inlineControlRowTag
             gravity = Gravity.CENTER_VERTICAL
             addView(text(context.getString(R.string.rider_birth)).apply { labelFor=birth.id },
                 LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
@@ -158,7 +159,22 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             override fun onViewAttachedToWindow(view: View) = Unit
             override fun onViewDetachedFromWindow(view: View) { persistValid() }
         })
+        groupSections()
         updateZones()
+    }
+    private fun groupSections() {
+        val nodes=(0 until root.childCount).map(root::getChildAt).filter { it!==saveError }
+        root.removeAllViews()
+        var body:LinearLayout?=null
+        nodes.forEach { node ->
+            if(node is BicycleSectionHeader) {
+                root.addView(node,node.layoutParams)
+                body=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;tag="rider_section_${node.contentDescription}" }
+                root.addView(body,LinearLayout.LayoutParams(-1,-2))
+                node.accordion(body!!)
+            } else body?.addView(node,node.layoutParams)
+        }
+        root.addView(saveError)
     }
     private fun updateBirth() {
         birth.text = birthDate?.let { formatBirthDate(it, locale) } ?: context.getString(R.string.rider_birth_choose)

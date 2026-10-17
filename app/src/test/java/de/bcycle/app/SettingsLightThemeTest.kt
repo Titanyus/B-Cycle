@@ -9,11 +9,13 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
+import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowAlertDialog
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class SettingsLightThemeTest {
     @Test fun projectionPreservesDashboardColorsAndSurvivesProfileAndBackupRoundTrip() {
         val c=RuntimeEnvironment.getApplication();val prefs=c.getSharedPreferences("light-projection",0)
@@ -53,6 +55,15 @@ class SettingsLightThemeTest {
             toggle.performClick();shadowOf(Looper.getMainLooper()).idle()
             assertEquals(a.getString(R.string.settings_light_mode),toggle.contentDescription)
             assertEquals(android.graphics.Color.WHITE,root.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").currentTextColor)
+            for(tag in listOf("dialog_back","settings_light_toggle")) {
+                val icon=root.findViewWithTag<android.widget.ImageButton>(tag).drawable
+                val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
+                icon.setBounds(0,0,48,48);icon.draw(android.graphics.Canvas(bitmap))
+                val pixels=IntArray(48*48);bitmap.getPixels(pixels,0,48,0,0,48,48)
+                assertTrue(pixels.any { android.graphics.Color.alpha(it)>200 })
+                assertTrue(pixels.filter { android.graphics.Color.alpha(it)>200 }.all { it and 0xffffff==0xffffff })
+                bitmap.recycle()
+            }
             val body=root.findViewWithTag<View>("bicycle_fullscreen_content")
             val bg=body.background as android.graphics.drawable.ColorDrawable
             assertEquals(0xffffffff.toInt(),bg.color)

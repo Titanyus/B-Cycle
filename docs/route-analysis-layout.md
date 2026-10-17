@@ -34,3 +34,7 @@ Prüfung: RouteChartScaleTest, RouteAnalysisViewTest und RouteAnalysisUpdateTest
 Sie prüfen Grenzen, Anzahl/Abstände der Zwischenmarken, konstante und fehlende
 Daten, seitliche Gruppen/Trenner, größere Datumszeile, Hochformat-Geometrie,
 Themenwechsel, Einheiten, gemeinsame Achse und bisherige Interaktionen.
+
+## Umgesetzt in 0.8: Kürzere Leistungsbeschriftung
+
+Nutzerwunsch vom 17.10.2026 nach Build 33: In den Streckendetails „Normalisierte Leistung“ durch „Norm. Leistung“ ersetzen, damit die Beschriftung nicht zweizeilig wird. In Version 0.8 umgesetzt; Berechnung und übrige Verwendungen bleiben erhalten.
