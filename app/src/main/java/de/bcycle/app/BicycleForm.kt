@@ -24,7 +24,7 @@ internal object BicycleForm {
         BicycleDialogStyle.control(edit,themes)
         if(numeric) edit.apply {
             typeface=resources.getFont(R.font.bebas_neue)
-            textSize=BicycleDesign.analysisMetricSp
+            textSize=BicycleDesign.settingsMetricSp
             gravity=Gravity.END or Gravity.CENTER_VERTICAL
             includeFontPadding=false
             setPadding(BicycleDesign.dp(context,BicycleDesign.inputHorizontalPadding),BicycleDesign.dp(context,BicycleDesign.smallGap),

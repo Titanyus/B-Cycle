@@ -100,7 +100,7 @@ class BikesViewTest {
             assertEquals(decor.findViewWithTag<View>("bike_wheel_unit").parent,wheel.parent)
             assertEquals(app.resources.getFont(R.font.bebas_neue),wheel.typeface)
             assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
-                BicycleDesign.analysisMetricSp,app.resources.displayMetrics),wheel.textSize,.01f)
+                BicycleDesign.settingsMetricSp,app.resources.displayMetrics),wheel.textSize,.01f)
             assertEquals(android.graphics.Color.TRANSPARENT,(wheel.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             wheel.setText("2350");assertEquals(2350,runtime.bikes.current().wheelMm)
             wheel.setText("0");assertNotNull(wheel.error);assertEquals(2350,runtime.bikes.current().wheelMm)

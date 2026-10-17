@@ -1,89 +1,104 @@
 package de.bcycle.app
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.view.ViewGroup
+import android.widget.*
 
-/** One palette-independent grid; only the three preview strips use each candidate's colors. */
-internal class ThemePickerView(context: Context, private val themes: ThemeManager) : LinearLayout(context) {
-    private fun dp(value: Int) = BicycleDesign.dp(context, value)
-    private var columns = 0
-    private val fontScale = resources.configuration.fontScale.coerceAtLeast(1f)
-    private val minimumWidth = dp(BicycleDesign.themeTileMinimumWidth)
-    private val cards = themes.presets.map(::card) + card(null)
+/** Compact palette selector: the same name and five real theme colors in header and popup. */
+internal class ThemePickerView(context:Context,private val themes:ThemeManager):LinearLayout(context) {
+    private fun dp(n:Int)=BicycleDesign.dp(context,n)
+    internal var popup:ListPopupWindow?=null;private set
+    private val chosen=row(themes.active,header=true)
     init {
-        orientation = VERTICAL
-        setPadding(0, dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding))
-        BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
+        orientation=VERTICAL;tag="theme_picker"
+        layoutParams=LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.controlGap) }
+        addView(chosen,LayoutParams(-1,-2))
+        chosen.tag="theme_choice";chosen.isClickable=true;chosen.isFocusable=true
+        chosen.setOnClickListener { open() }
+        BicycleComponents.bindTheme(this,themes) {
+            (chosen.getChildAt(0) as TextView).text=themes.active.name.uppercase(java.util.Locale.ROOT)
+            (chosen.getChildAt(1) as ThemeSwatches).colors=palette(themes.active)
+            chosen.contentDescription=themes.active.name
+        }
     }
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight
-        val scaledMinimum = (minimumWidth * fontScale).toInt()
-        val next = (width / (scaledMinimum + dp(BicycleDesign.smallGap))).coerceIn(1, BicycleDesign.themeColumns)
-        if (next != columns) {
-            columns = next
-            removeAllViews()
-            cards.forEach { (it.parent as? android.view.ViewGroup)?.removeView(it) }
-            cards.chunked(columns).forEach { group ->
-                val row = LinearLayout(context).apply { orientation = HORIZONTAL; isBaselineAligned = false }
-                group.forEach { row.addView(it, LayoutParams(0, -1, 1f).apply {
-                    setMargins(dp(BicycleDesign.presetTileGap), dp(BicycleDesign.smallGap), dp(BicycleDesign.presetTileGap), dp(BicycleDesign.smallGap))
-                }) }
-                repeat(columns - group.size) { row.addView(View(context), LayoutParams(0, -1, 1f)) }
-                addView(row, LayoutParams(-1, (dp(BicycleDesign.themeTileHeight) * fontScale).toInt()))
+    private fun palette(theme:BicycleTheme)=theme.tokens.let { intArrayOf(it.primary,it.secondary,it.tertiary,it.foreground,it.accent) }
+    private fun row(theme:BicycleTheme?,header:Boolean=false):LinearLayout = LinearLayout(context).apply {
+        orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
+        minimumHeight=dp(BicycleDesign.themeDropdownHeight)
+        setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.smallGap),dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.smallGap))
+        tag=theme?.id ?: "theme_reserved";isEnabled=theme!=null
+        contentDescription=theme?.name ?: context.getString(R.string.ui_reserved)
+        addView(TextView(context).apply {
+            BicycleDialogStyle.control(this,themes)
+            text=theme?.name?.uppercase(java.util.Locale.ROOT) ?: context.getString(R.string.ui_reserved).uppercase(java.util.Locale.ROOT)
+            typeface=resources.getFont(R.font.bebas_neue);textSize=BicycleDesign.settingsThemeNameSp
+            maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
+            importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+            BicycleComponents.bindTheme(this,themes) { setTextColor(it.foreground) }
+        },LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
+        addView(ThemeSwatches(context).apply {
+            colors=theme?.let(::palette) ?: intArrayOf(0xff333333.toInt(),0xff555555.toInt(),0xff777777.toInt(),0xffaaaaaa.toInt(),0xffdddddd.toInt())
+        },LayoutParams(0,dp(BicycleDesign.iconSize),1.2f))
+        addView(ImageView(context).apply {
+            importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+            BicycleComponents.bindTheme(this,themes) {
+                setImageDrawable(BicycleIcons.drawable(context,if(header) BicycleIcon.Expand else BicycleIcon.Check,it.foreground))
+                visibility=if(header || theme?.id==themes.active.id) VISIBLE else INVISIBLE
             }
-            addView(BicycleComponents.sectionDivider(context, themes))
-        }
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-    }
-    private fun card(preset: PresetTheme?): LinearLayout = LinearLayout(context).apply {
-        orientation = VERTICAL; gravity = Gravity.CENTER
-        setPadding(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.verticalPadding))
-        tag = preset?.id ?: "theme_reserved"
-        minimumHeight = dp(BicycleDesign.touchSize)
-        contentDescription = preset?.name ?: "Reserviert"
-        isEnabled = preset != null; isClickable = preset != null; isFocusable = preset != null
-        if (preset != null) setOnClickListener { themes.activate(preset.id) }
-        val title = TextView(context).apply {
-            text = preset?.name?.uppercase(java.util.Locale.ROOT) ?: "RESERVIERT"
-            gravity = Gravity.CENTER
-            typeface = resources.getFont(R.font.bebas_neue)
-            textSize = BicycleDesign.themeNameSp
-            maxLines = 2
-            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-            BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground) }
-        }
-        addView(title, LayoutParams(-1, (dp(BicycleDesign.themeNameHeight) * fontScale).toInt()))
-        val sample = LinearLayout(context).apply {
-            orientation = VERTICAL; clipToOutline = true
-            background = GradientDrawable().apply { setColor(themes.active.tokens.secondary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat() }
-            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-        }
-        if (preset != null) {
-            listOf(preset.tokens.primary, preset.tokens.secondary, preset.tokens.tertiary).forEachIndexed { index, color ->
-                sample.addView(View(context).apply { tag = "${preset.id}:strip:$index"; setBackgroundColor(color) }, LayoutParams(-1, 0, 1f))
-            }
-        } else {
-            sample.addView(ImageView(context).apply {
-                setPadding(dp(BicycleDesign.rowGap), dp(BicycleDesign.rowGap), dp(BicycleDesign.rowGap), dp(BicycleDesign.rowGap))
-                scaleType = ImageView.ScaleType.CENTER
-                BicycleComponents.bindTheme(this, themes) { setImageDrawable(BicycleIcons.drawable(context, BicycleIcon.AddSensor, it.foreground)) }
-            }, LayoutParams(-1, -1))
-        }
-        addView(sample, LayoutParams(-1, 0, 1f))
-        BicycleComponents.bindTheme(this, themes) { tokens ->
-            isSelected = preset != null && themes.active.id == preset.id
-            stateDescription = if (preset == null) "Noch nicht verfügbar" else if (isSelected) "Ausgewählt" else "Nicht ausgewählt"
-            background = GradientDrawable().apply {
-                setColor(tokens.secondary); cornerRadius = dp(BicycleDesign.inputRadius).toFloat()
-                val color = if (isSelected) BicycleComponents.selectionBorder(tokens,true) else (tokens.foreground and 0x00ffffff) or (85 shl 24)
-                if (preset == null) setStroke(BicycleDesign.linePixels(context), color, dp(BicycleDesign.smallGap).toFloat(), dp(BicycleDesign.smallGap).toFloat())
-                else setStroke(if (isSelected) dp(BicycleDesign.themeSelectedBorder) else BicycleDesign.linePixels(context), color)
+        },LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)).apply { marginStart=dp(BicycleDesign.controlGap) })
+        BicycleComponents.bindTheme(this,themes) { tokens ->
+            isSelected=header || (theme!=null && theme.id==themes.active.id)
+            stateDescription=context.getString(if(isSelected) R.string.bikes_selected else R.string.theme_not_selected)
+            alpha=if(theme==null) .4f else 1f
+            background=GradientDrawable().apply {
+                setColor(tokens.secondary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
+                setStroke(if(!header && isSelected) dp(BicycleDesign.themeSelectedBorder) else BicycleDesign.linePixels(context),
+                    if(!header && isSelected) tokens.accent else tokens.foreground)
             }
         }
     }
+    private fun open() {
+        popup?.dismiss()
+        val entries=themes.presets+listOf(null)
+        popup=ListPopupWindow(context).apply {
+            anchorView=chosen;isModal=true;width=chosen.width
+            setAdapter(object:BaseAdapter() {
+                override fun getCount()=entries.size
+                override fun getItem(position:Int)=entries[position]
+                override fun getItemId(position:Int)=position.toLong()
+                override fun areAllItemsEnabled()=false
+                override fun isEnabled(position:Int)=entries[position]!=null
+                override fun getView(position:Int,convertView:View?,parent:ViewGroup)=row(entries[position])
+            })
+            setOnItemClickListener { _,_,position,_ ->
+                entries[position]?.let { themes.activate(it.id) };dismiss()
+            }
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(themes.active.tokens.secondary))
+            show()
+        }
+    }
+    override fun onDetachedFromWindow() { popup?.dismiss();popup=null;super.onDetachedFromWindow() }
+}
+
+/** Cached parallelograms: no gradients, each segment uses its exact palette color. */
+private class ThemeSwatches(context:Context):View(context) {
+    var colors=IntArray(5);set(value) { field=value;invalidate() }
+    private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
+    private val paths=Array(5) { Path() }
+    init { importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO }
+    override fun onSizeChanged(w:Int,h:Int,oldw:Int,oldh:Int) {
+        val top=h*.12f;val bottom=h*.88f;val slant=h*.5f
+        val step=(w-slant)/5f;val gap=BicycleDesign.dp(context,2).toFloat()
+        paths.forEachIndexed { i,path ->
+            val x=i*step;path.reset();path.moveTo(x+slant,top);path.lineTo(x+step+slant-gap,top)
+            path.lineTo(x+step-gap,bottom);path.lineTo(x,bottom);path.close()
+        }
+    }
+    override fun onDraw(canvas:Canvas) { paths.forEachIndexed { i,path -> paint.color=colors[i];canvas.drawPath(path,paint) } }
 }

@@ -56,7 +56,7 @@ class ProfileAccordionTest {
             }
             themes.activate("preset:black-ops")
             val foreground=themes.active.tokens.foreground
-            assertEquals(themes.active.tokens.accent,title.titleView.currentTextColor)
+            assertEquals(themes.active.tokens.foreground,title.titleView.currentTextColor)
             val bitmap=Bitmap.createBitmap(group.header.width,group.header.height,Bitmap.Config.ARGB_8888)
             group.header.draw(Canvas(bitmap))
             assertEquals(foreground,bitmap.getPixel(1,bitmap.height/2))
@@ -110,7 +110,7 @@ class ProfileAccordionTest {
             for(id in listOf(R.string.bikes_sensors,R.string.ui_recording_title,R.string.ui_settings_map,R.string.ui_design_title,R.string.training_help_title)) {
                 val header=categories.single { it.contentDescription==a.getString(id) }
                 assertEquals(LinearLayout.VERTICAL,header.orientation)
-                assertEquals(r.themes.active.tokens.accent,header.titleView.currentTextColor)
+                assertEquals(r.themes.active.tokens.foreground,header.titleView.currentTextColor)
                 assertNull(header.sectionEnd)
             }
             for(id in listOf(R.string.profiles_bike,R.string.bikes_type,R.string.ui_theme,R.string.ui_dashboard_page_choose,R.string.ui_mode_glow))
@@ -122,7 +122,8 @@ class ProfileAccordionTest {
             assertFalse(texts.any { it.text==a.getString(R.string.ui_map_source) })
             assertFalse(texts.any { it.text==a.getString(R.string.ui_mode_glow_description) })
             val fixed=root.findViewWithTag<View>("bicycle_fullscreen_footer")
-            assertNotNull(fixed.findViewWithTag<View>("dashboard_editor_open"))
+            assertNull(fixed.findViewWithTag<View>("dashboard_editor_open"))
+            assertNotNull(root.findViewWithTag<View>("dashboard_inline_actions").findViewWithTag<View>("dashboard_editor_open"))
             val scroll=testDescendants(root).filterIsInstance<BicycleStickyScrollView>().single()
             for((id,file) in listOf(R.string.ui_design_title to "design",R.string.ui_recording_title to "fit")) {
                 val heading=categories.single { it.contentDescription==a.getString(id) }
@@ -134,7 +135,7 @@ class ProfileAccordionTest {
                 bitmap.recycle()
             }
             r.themes.activate(BicycleThemes.red.id)
-            assertTrue(categories.all { it.titleView.currentTextColor==r.themes.active.tokens.accent })
+            assertTrue(categories.all { it.titleView.currentTextColor==r.themes.active.tokens.foreground })
         } finally { host.pause().stop().destroy() }
     }
 }

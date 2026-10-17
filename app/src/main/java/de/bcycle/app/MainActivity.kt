@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.view.Gravity
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.*
@@ -452,6 +453,7 @@ class MainActivity : Activity() {
         }, additionalSections={ listOf(
             R.string.ui_settings_map to mapControls(),
             R.string.ui_design_title to dashboardControls(embedded=true),
+            R.string.ui_bosch_mode to modeGlowControls(),
             R.string.training_help_title to trainingHelpControls { dashboardPages.selected() }.apply { tag="profile_training_help" }
         ) }, editDashboard=::enterDashboardEditor)
         bikesManager = content
@@ -504,20 +506,25 @@ class MainActivity : Activity() {
     private fun recordingControls(): LinearLayout {
         val slot = runtime.bikes.activeSlot
         val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
-        root.addView(BicycleSectionHeader(settingsContext,runtime.themes,getString(R.string.bikes_fit_heading)).apply { titleView.tag="fit_primary_heading" })
+        BicycleForm.section(root,runtime.themes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
         root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         fun source(title: String, chosen: String, bikeId: String): Spinner {
-            root.addView(label(title, 16f).apply { setPadding(0, dp(BicycleDesign.sectionContentGap), 0, 0) })
-            return Spinner(settingsContext).apply {
+            val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL }
+            val caption=label(title,BicycleDesign.bodySp)
+            row.addView(caption,LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
+            val choice=Spinner(settingsContext).apply {
                 adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, if(current.indoor) listOf(getString(R.string.bikes_type_indoor)) else listOf(getString(R.string.ui_source_bike), getString(R.string.ui_source_gps)))
-                setSelection(if (chosen == bikeId) 0 else 1); root.addView(this)
+                setSelection(if (chosen == bikeId) 0 else 1)
+                id=View.generateViewId();caption.labelFor=id
             }
+            row.addView(choice,LinearLayout.LayoutParams(0,-2,1f));root.addView(row)
+            return choice
         }
         val speed = source(getString(R.string.bikes_fit_primary_speed), current.speedSource, "SPEED")
         val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
         fun saveFields() { if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
-        root.addView(BicycleSectionHeader(settingsContext,runtime.themes,getString(R.string.bikes_fit_additional)))
+        BicycleForm.section(root,runtime.themes,R.string.ui_track_recording)
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
@@ -749,28 +756,13 @@ class MainActivity : Activity() {
             }
         })
         if(!embedded) trainingControls=appendTrainingHelp(root) { dashboardPages.selected() }
+        footer.addView(BicycleFooterAction(settingsContext,runtime.themes,BicycleIcon.EditDashboard,getString(R.string.dashboard_editor_open)) { enterDashboardEditor() }.apply {
+            tag="dashboard_editor_open";(getChildAt(1) as TextView).maxLines=2
+        },LinearLayout.LayoutParams(0,-2,1f))
         if(!embedded) {
-            BicycleForm.section(root,runtime.themes,R.string.ui_mode_glow)
-            root.addView(label(getString(R.string.ui_mode_glow_description)))
+            BicycleForm.section(root,runtime.themes,R.string.ui_bosch_mode)
+            root.addView(modeGlowControls())
         }
-        val glow = Switch(settingsContext).apply {
-            text = getString(R.string.ui_mode_glow); tag = "mode_glow_enabled"
-            isChecked = ModeGlowSettings.enabled(preferences)
-        }
-        root.addView(glow)
-        root.addView(Spinner(settingsContext).apply {
-            tag="mode_glow_placement"
-            adapter=ArrayAdapter(settingsContext,android.R.layout.simple_spinner_dropdown_item,ModeGlowPlacement.entries.map { getString(it.label) })
-            setSelection(ModeGlowSettings.placement(preferences).ordinal)
-            BicycleDialogStyle.spinner(this,runtime.themes)
-            observeSettings(this) {
-                if(slot!=runtime.bikes.activeSlot || revision!=runtime.profileRevision || !root.isAttachedToWindow) return@observeSettings
-                preferences.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[selectedItemPosition].name).apply();render()
-            }
-        })
-        root.addView(BicycleComponents.sectionDivider(settingsContext, runtime.themes))
-        if(!embedded) root.addView(button(getString(R.string.dashboard_editor_open), BicycleIcon.EditDashboard) { enterDashboardEditor() }.apply { tag = "dashboard_editor_open" })
-        glow.setOnCheckedChangeListener { _,checked -> ModeGlowSettings.save(preferences,checked); render() }
         if(embedded) {
             // Dashboard actions remain inline; profile actions use the fixed footer.
             footer.tag="dashboard_inline_actions"
@@ -782,6 +774,33 @@ class MainActivity : Activity() {
             addView(footer,LinearLayout.LayoutParams(-1,-2))
         }
         return body
+    }
+    private fun modeGlowControls():View {
+        val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision
+        val root=column().apply { setPadding(0,0,0,0) }
+        val glow=Switch(settingsContext).apply {
+            setText(R.string.ui_mode_glow);tag="mode_glow_enabled";isChecked=ModeGlowSettings.enabled(preferences)
+            setOnCheckedChangeListener { _,checked ->
+                if(slot==runtime.bikes.activeSlot && revision==runtime.profileRevision) { ModeGlowSettings.save(preferences,checked);render() }
+            }
+        }
+        root.addView(glow)
+        val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL }
+        val title=label(getString(R.string.ui_glow_visible),BicycleDesign.bodySp)
+        row.addView(title,LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
+        val placement=Spinner(settingsContext).apply {
+            tag="mode_glow_placement";id=View.generateViewId();title.labelFor=id
+            adapter=ArrayAdapter(settingsContext,android.R.layout.simple_spinner_dropdown_item,ModeGlowPlacement.entries.map { getString(it.label) })
+            setSelection(ModeGlowSettings.placement(preferences).ordinal)
+            BicycleDialogStyle.spinner(this,runtime.themes)
+            observeSettings(this) {
+                if(slot!=runtime.bikes.activeSlot || revision!=runtime.profileRevision || !root.isAttachedToWindow) return@observeSettings
+                preferences.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[selectedItemPosition].name).apply();render()
+            }
+        }
+        row.addView(placement,LinearLayout.LayoutParams(0,-2,1f));root.addView(row)
+        BicycleDialogStyle.content(root,runtime.themes)
+        return root
     }
     private fun trainingHelpControls(page:()->Int)=
         TrainingHelpView(settingsContext,runtime.themes,DashboardTrainingHelp.read(preferences,page())) { config ->

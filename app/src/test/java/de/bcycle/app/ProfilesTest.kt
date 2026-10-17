@@ -141,6 +141,37 @@ class ProfilesTest {
             assertEquals(name,r.bikes.current().name);assertEquals(2400,r.bikes.current().wheelMm)
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun sensorDetailsExpandIndependentlyOfSwitchAndRecordingSourcesShareRows() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get();val r=RideRuntime.get(a)
+            MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(a)
+            Shadows.shadowOf(Looper.getMainLooper()).idle()
+            val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            val toggle=root.findViewWithTag<Switch>("bike_sensor_EBIKE")
+            val details=root.findViewWithTag<View>("bike_sensor_details_EBIKE")
+            val expand=root.findViewWithTag<View>("bike_sensor_expand_EBIKE")
+            val enabled=toggle.isChecked
+            assertEquals(View.GONE,details.visibility)
+            expand.performClick();assertEquals(View.VISIBLE,details.visibility);assertEquals(enabled,toggle.isChecked)
+            assertTrue(testDescendants(details).any { it.tag=="bike_disconnect_EBIKE" })
+            expand.performClick();assertEquals(View.GONE,details.visibility);assertEquals(enabled,toggle.isChecked)
+            val headings=testDescendants(root).filterIsInstance<BicycleSectionHeader>()
+            for(id in listOf(R.string.ui_recording_title,R.string.ui_track_recording,R.string.ui_bosch_mode))
+                assertEquals(1,headings.count { it.contentDescription==a.getString(id) })
+            assertFalse(headings.any { it.contentDescription==a.getString(R.string.bikes_fit_heading) })
+            val fit=root.findViewWithTag<View>("bike_fit_settings")
+            val choices=testDescendants(fit).filterIsInstance<Spinner>()
+            assertEquals(2,choices.size)
+            choices.forEach { spinner ->
+                val row=spinner.parent as LinearLayout
+                assertEquals(LinearLayout.HORIZONTAL,row.orientation)
+                assertEquals(android.graphics.Typeface.DEFAULT,(row.getChildAt(0) as TextView).typeface)
+            }
+            val placement=root.findViewWithTag<Spinner>("mode_glow_placement")
+            assertEquals(a.getString(R.string.ui_glow_visible),((placement.parent as LinearLayout).getChildAt(0) as TextView).text.toString())
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun longProfileHasSingleScrollerFixedActionsAndEditableName() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -162,7 +193,8 @@ class ProfilesTest {
             assertEquals("Mein Profil",r.bikes.current().name)
             assertEquals(View.GONE,root.findViewWithTag<View>("bike_delete").visibility)
             assertFalse(root.findViewWithTag<View>("profile_copy").isEnabled)
-            assertNotNull(fixed.findViewWithTag<View>("dashboard_editor_open"))
+            assertNull(fixed.findViewWithTag<View>("dashboard_editor_open"))
+            assertNotNull(inline.findViewWithTag<View>("dashboard_editor_open"))
             root.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY))
             root.layout(0,0,360,800)
             val image=android.graphics.Bitmap.createBitmap(360,800,android.graphics.Bitmap.Config.ARGB_8888)

@@ -3,11 +3,11 @@
 Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherigen Bereiche Bikes, Karten und Design & UI auf einer Seite. Fahrer und Upload-Dienste bleiben global.
 
 - Oben ein bis sechs Fahrradkacheln, drei sichtbar, horizontales Scrollen und gemeinsame Drag-and-drop-Vorschau.
-- Eine lange Seite ohne Haupt-Accordions. Große Sticky Header: **Sensoren**, **FIT-Aufzeichnung**, **Karten**, **Design & UI**, **Trainingshilfe**. SECONDARY-Hintergrund, FOREGROUND-Linien oben/unten, Schrift ACCENT.
+- Eine lange Seite ohne Haupt-Accordions. Große Sticky Header: **Sensoren**, **FIT-Aufzeichnung**, **Strecken-Aufzeichnung**, **Karten**, **Design & UI**, **Bosch-Fahrmodus**, **Trainingshilfe**. SECONDARY-Hintergrund, FOREGROUND-Linien oben/unten, Schrift FOREGROUND.
 - Antippbarer Name als normale Überschrift, Bild/Platzhalter stets 16:9, Radtyp-Dropdown Bike/E-Bike/Indoor, Kategorie/Radumfang, Sensoren sowie Indoor-Korrektur. Keine Sticky Header Bike oder Radtyp; Sensorschalter in normaler Schaltertypografie.
-- FIT enthält unverändert Hauptquellen und die zusätzlichen Quell-Accordions. Design enthält Themes, benannte Dashboards/Layout-Auswahl, Vollbild und Fahrmodus-Anzeige; Dashboard-Umbenennen/-Löschen bleibt im Design-Bereich erreichbar.
-- Fester Profilfooter **Umbenennen**, **Profil übernehmen**, **Dashboard bearbeiten**, **Profil löschen**. Löschen bleibt bestätigt und ist beim letzten Profil ausgeblendet.
-- Theme-, Dashboard-Layout- und Fahrmodus-Zwischenheader sowie Fahrmodus-Erklärung entfallen. Nach der Kartenauswahl kein zusätzlicher horizontaler Trenner. FIT-Untergruppen bleiben normale graue Accordions. Sensor-Detailaccordions sind zunächst nur ein Vorschlag.
+- FIT-Aufzeichnung enthält Geschwindigkeit/Distanz jeweils mit normalem Titel und Dropdown in einer Zeile. Strecken-Aufzeichnung enthält die zusätzlichen Quell-Accordions. Design enthält kompaktes Theme-Dropdown, benannte Dashboards/Layout-Auswahl und Vollbild. Die drei Dashboard-Aktionen stehen dort zusammen. Bosch-Fahrmodus folgt als eigener Abschnitt, mit Schalter und beschrifteter Oben/Seitlich-Auswahl.
+- Fester Profilfooter **Umbenennen**, **Profil übernehmen**, **Profil löschen**. Löschen bleibt bestätigt und ist beim letzten Profil ausgeblendet.
+- Theme-, Dashboard-Layout- und Fahrmodus-Zwischenheader sowie Fahrmodus-Erklärung entfallen. Nach der Kartenauswahl kein zusätzlicher horizontaler Trenner. FIT-Untergruppen bleiben normale graue Accordions. Sensordetails sind über einen eigenen Chevron neben dem Schalter ausklappbar; beide Aktionen funktionieren unabhängig.
 - Profil übernehmen bietet ausschließlich andere Profile an und kopiert Konfiguration einschließlich FIT, Theme/Dashboards/Trainingshilfe und Karten. **Zielname, Ziel-ID, Bild und gekoppelte Sensorgeräte bleiben erhalten.** Die Quelle wird nicht verändert.
 
 ![Native Profilübersicht mit Testdaten](previews/profiles.png)

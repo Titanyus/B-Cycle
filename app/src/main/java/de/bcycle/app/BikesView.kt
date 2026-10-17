@@ -15,6 +15,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val confirmDelete:(Int,String,()->Unit)->Unit = { _,_,_ -> },
     private val additionalSections:(()->List<Pair<Int,View>>)?=null, private val editDashboard:()->Unit={}) : LinearLayout(context) {
     private val themes = runtime.themes
+    private val expandedSensors=mutableSetOf<BikeSensor>()
     private var copyPopup:ListPopupWindow?=null
     private val copyAction:BicycleFooterAction=BicycleFooterAction(context,themes,BicycleIcon.Import,context.getString(R.string.profiles_copy)) {
         if(!runtime.recording && !runtime.saving) {
@@ -53,10 +54,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         }.apply { tag="bike_rename" },LayoutParams(0,-2,1f))
         if(additionalSections!=null) {
             addView(copyAction,LayoutParams(0,-2,1f))
-            addView(BicycleFooterAction(context,themes,BicycleIcon.EditDashboard,context.getString(R.string.dashboard_editor_open),click=editDashboard).apply {
-                tag="dashboard_editor_open"
-                (getChildAt(1) as TextView).maxLines=2
-            },LayoutParams(0,-2,1f))
         }
         addView(deleteAction,LayoutParams(0,-2,1f))
     }
@@ -221,17 +218,38 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                     refresh()
                 }
             }
-            BicycleDialogStyle.control(toggle,themes);BicycleDialogStyle.actionIcon(toggle,themes,SensorIcons.forSensor(sensor));switches[sensor]=toggle;addView(toggle,LayoutParams(-1,-2))
+            BicycleDialogStyle.control(toggle,themes);BicycleDialogStyle.actionIcon(toggle,themes,SensorIcons.forSensor(sensor));switches[sensor]=toggle
+            val details=LinearLayout(context).apply {
+                orientation=VERTICAL;tag="bike_sensor_details_${sensor.name}"
+                visibility=if(sensor in expandedSensors) VISIBLE else GONE
+            }
+            val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.sensor_details,context.getString(sensor.label))) {
+                val open=details.visibility!=VISIBLE
+                details.visibility=if(open) VISIBLE else GONE
+                if(open) expandedSensors.add(sensor) else expandedSensors.remove(sensor)
+                val button=findViewWithTag<View>("bike_sensor_expand_${sensor.name}")
+                button.rotation=if(open) 180f else 0f
+                button.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
+            }.apply {
+                tag="bike_sensor_expand_${sensor.name}";rotation=if(sensor in expandedSensors) 180f else 0f
+                stateDescription=context.getString(if(sensor in expandedSensors) R.string.zone_expanded else R.string.zone_collapsed)
+            }
+            addView(LinearLayout(context).apply {
+                gravity=Gravity.CENTER_VERTICAL
+                addView(toggle,LayoutParams(0,-2,1f))
+                addView(expand,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap) })
+            },LayoutParams(-1,-2))
+            addView(details,LayoutParams(-1,-2))
             if(sensor!=BikeSensor.GPS) {
-                val device=BicycleComponents.text(context,themes,"");deviceNames[sensor]=device;addView(device,LayoutParams(-1,-2))
-                val battery=BicycleComponents.text(context,themes,"");batteries[sensor]=battery;addView(battery,LayoutParams(-1,-2))
+                val device=BicycleComponents.text(context,themes,"");deviceNames[sensor]=device;details.addView(device,LayoutParams(-1,-2))
+                val battery=BicycleComponents.text(context,themes,"");batteries[sensor]=battery;details.addView(battery,LayoutParams(-1,-2))
             }
             val state=BicycleFeedback.status(context,themes).apply {
                 tag=when(sensor) { BikeSensor.GPS->"gps_state";BikeSensor.EBIKE->"bike_state";BikeSensor.HEART->"heart_state";else->"power_state" }
                 textSize=BicycleDesign.sensorStatusSp
             }
-            statuses[sensor]=state;addView(state,LayoutParams(-1,-2))
-            if(sensor.supported) addView(LinearLayout(context).apply {
+            statuses[sensor]=state;details.addView(state,LayoutParams(-1,-2))
+            if(sensor.supported) details.addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL
                 val disconnect=BicycleComponents.action(context,themes,context.getString(R.string.bikes_disconnect)) { runtime.disconnectSensor(sensor) }.apply { tag="bike_disconnect_${sensor.name}" }
                 BicycleDialogStyle.actionIcon(disconnect,themes,BicycleIcon.Disconnect)
@@ -245,7 +263,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             correctionSlider(slot, R.string.indoor_correction_power, "power", profile.indoorCorrection.powerTenths)
             correctionSlider(slot, R.string.indoor_correction_speed, "speed", profile.indoorCorrection.speedTenths)
         }
-        section(R.string.ui_recording_title)
         addView(recordingControls(),LayoutParams(-1,-2))
         additionalSections?.invoke()?.forEach { (title,body) ->
             section(title)
@@ -256,7 +273,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private fun correctionSlider(slot: Int, title: Int, key: String, step: Int) {
         val value = BicycleComponents.text(context,themes,"").apply {
             tag="indoor_correction_${key}_value"; typeface=resources.getFont(R.font.bebas_neue)
-            textSize=BicycleDesign.analysisMetricSp; gravity=Gravity.END or Gravity.CENTER_VERTICAL
+            textSize=BicycleDesign.settingsMetricSp; gravity=Gravity.END or Gravity.CENTER_VERTICAL
             importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
         }
         val slider = SeekBar(context).apply {

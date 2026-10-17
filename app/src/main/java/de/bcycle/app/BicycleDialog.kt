@@ -228,7 +228,7 @@ internal object BicycleDialogStyle {
                 view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), inputBackground(view, it), null)
                 view.compoundDrawablesRelative.filterNotNull().forEach { drawable -> drawable.setTint(it.foreground) }
             }
-        } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(if(view.parent is BicycleSectionHeader) it.accent else it.foreground) }
+        } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(it.foreground) }
     }
     private fun footer(button: Button, themes: ThemeManager) {
         button.typeface = Typeface.DEFAULT; button.textSize = BicycleDesign.bodySp

@@ -706,4 +706,10 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="profiles_design">Design</string>
     <string name="profiles_copy">Profil übernehmen</string>
     <string name="profiles_delete">Profil löschen</string>
+    <string name="sensor_details">Details zu %1$s</string>
+    <string name="ui_track_recording">Strecken-Aufzeichnung</string>
+    <string name="ui_bosch_mode">Bosch-Fahrmodus</string>
+    <string name="ui_glow_visible">Sichtbar im Dashboard</string>
+    <string name="ui_reserved">Reserviert</string>
+    <string name="theme_not_selected">Nicht ausgewählt</string>
 </resources>

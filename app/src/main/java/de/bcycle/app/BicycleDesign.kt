@@ -51,6 +51,10 @@ object BicycleDesign {
     const val managerDefaultHeight = 580
     const val analysisTileMinHeight = 120
     const val analysisMetricIconSize = 32
+    const val settingsNarrowScale = .75f
+    const val settingsMetricSp = 28f * settingsNarrowScale
+    const val settingsUnitSp = formatSp * settingsNarrowScale
+    const val themeDropdownHeight = 48
     const val analysisMetricSp = 28f
     const val analysisUnitSp = 13f
     const val analysisUnitMinSp = 8
@@ -132,6 +136,7 @@ object BicycleDesign {
     const val themeTileHeight = 136
     const val themeNameHeight = 44
     const val themeNameSp = 14f
+    const val settingsThemeNameSp = themeNameSp * settingsNarrowScale
     const val themeSelectedBorder = 2
     fun dp(context: Context, value: Int) = (value * context.resources.displayMetrics.density).toInt()
 

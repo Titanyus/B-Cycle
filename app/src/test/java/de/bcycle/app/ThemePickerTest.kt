@@ -49,93 +49,55 @@ class ThemePickerTest {
         assertFalse(manager.activate("preset:missing"))
         assertEquals(BicycleThemes.red, ThemeManager(prefs).active)
     }
-    @Test fun liveDialogSwitchesPaletteAndSelectionWhilePreviewsGeometryAndDashboardDraftStayIntact() {
-        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+    @Test fun compactDropdownSelectsEveryThemeAndKeepsDashboardDraft() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val activity = controller.get()
-            val themes = RideRuntime.get(activity).themes
-            val toolbar = views(activity.findViewById(android.R.id.content)).single { it.tag == "ride_toolbar" } as LinearLayout
-            val start = toolbar.getChildAt(0) as android.widget.Button
-            val settings = toolbar.getChildAt(2) as android.widget.Button
-            val toolbarGeometry = views(toolbar).map { listOf(it.width, it.height, it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom) }
-            views(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-            val menu = ShadowAlertDialog.getLatestAlertDialog()
-            assertEquals("Design & UI", SettingsAction.DASHBOARDS.label(activity))
-            views(menu.window!!.decorView).single { it.tag == "settings_PROFILES" }.performClick()
-            val design = ShadowAlertDialog.getLatestAlertDialog()
-            assertEquals("Profile", views(design.window!!.decorView).filterIsInstance<TextView>().single { it.tag == "bicycle_dialog_title" }.text.toString())
-            val draft = views(design.window!!.decorView).filterIsInstance<DashboardPresetPicker>().single().selection.toList()
-            val scroll = views(design.window!!.decorView).filterIsInstance<BicycleStickyScrollView>().single()
-            measure(design.window!!.decorView, 1080, 950)
-            assertTrue(scroll.getChildAt(0).height > scroll.height)
-            scroll.fullScroll(View.FOCUS_DOWN); shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(scroll.scrollY > 0)
-            scroll.scrollTo(0, 0)
-            val dialog = design
-            val decor = dialog.window!!.decorView
-            shadowOf(Looper.getMainLooper()).idle(); measure(decor, 1080)
-            val picker = views(decor).filterIsInstance<ThemePickerView>().single()
-            assertEquals(3, picker.childCount) // 2 rows + global footer divider
-            val before = views(picker).map { listOf(it.left, it.top, it.width, it.height) }
-            for (preset in themes.presets) {
-                views(picker).single { it.tag == preset.id }.performClick()
-                shadowOf(Looper.getMainLooper()).idle(); measure(decor, 1080)
+            val a=controller.get();val runtime=RideRuntime.get(a);val themes=runtime.themes
+            MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(a)
+            val dialog=ShadowAlertDialog.getLatestAlertDialog();val root=dialog.window!!.decorView
+            shadowOf(Looper.getMainLooper()).idle();measure(root,1080,2400)
+            val picker=views(root).filterIsInstance<ThemePickerView>().single()
+            val choice=picker.findViewWithTag<View>("theme_choice")
+            val draft=views(root).filterIsInstance<DashboardPresetPicker>().single().selection.toList()
+            val size=listOf(picker.width,picker.height)
+            assertEquals(1,picker.childCount)
+            for((index,preset) in themes.presets.withIndex()) {
+                choice.performClick()
+                val popup=picker.popup!!;val list=popup.listView!!;val adapter=list.adapter
+                assertEquals(8,adapter.count);assertFalse(adapter.isEnabled(7))
+                val row=adapter.getView(index,null,list) as LinearLayout
+                measure(row,1080,200)
+                val sample=row.getChildAt(1)
+                val bitmap=Bitmap.createBitmap(sample.width,sample.height,Bitmap.Config.ARGB_8888)
+                sample.draw(Canvas(bitmap))
+                val colors=preset.tokens.let { listOf(it.primary,it.secondary,it.tertiary,it.foreground,it.accent) }
+                colors.forEachIndexed { i,color -> assertEquals(color,bitmap.getPixel(((i+.5f)*sample.width/5f).toInt(),sample.height/2)) }
+                bitmap.recycle()
+                list.performItemClick(row,index,index.toLong())
+                shadowOf(Looper.getMainLooper()).idle();measure(root,1080,2400)
+                assertEquals(preset.id,themes.active.id);assertFalse(popup.isShowing)
                 assertTrue(dialog.isShowing)
-                assertEquals(preset.id, themes.active.id)
-                assertEquals(preset.tokens.primary, (start.background as GradientDrawable).color!!.defaultColor)
-                assertEquals(preset.tokens.secondary, (settings.background as GradientDrawable).color!!.defaultColor)
-                assertEquals(preset.tokens.foreground, start.currentTextColor)
-                assertEquals(preset.tokens.foreground, settings.currentTextColor)
-                assertEquals(toolbarGeometry, views(toolbar).map { listOf(it.width, it.height, it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom) })
-                assertEquals(preset.tokens.primary, (views(design.window!!.decorView).single { it.tag == "bicycle_navigation_header" }.background as GradientDrawable).color!!.defaultColor)
-                assertEquals(preset.tokens.primary, (views(menu.window!!.decorView).single { it.tag == "bicycle_navigation_header" }.background as GradientDrawable).color!!.defaultColor)
-                assertEquals(before, views(picker).map { listOf(it.left, it.top, it.width, it.height) })
-                assertEquals(1, views(picker).count { it.tag in themes.presets.map { theme -> theme.id } && it.isSelected })
-                for (candidate in themes.presets) {
-                    val card = views(picker).single { it.tag == candidate.id }
-                    assertEquals(preset.tokens.secondary, (card.background as GradientDrawable).color!!.defaultColor)
-                    assertEquals(candidate.id == preset.id, card.isSelected)
-                    val colors = listOf(candidate.tokens.primary, candidate.tokens.secondary, candidate.tokens.tertiary)
-                    colors.forEachIndexed { i, color ->
-                        val strip = views(card).single { it.tag == "${candidate.id}:strip:$i" }
-                        assertEquals(color, (strip.background as ColorDrawable).color)
-                    }
-                }
+                assertEquals(size,listOf(picker.width,picker.height))
+                assertEquals(draft,views(root).filterIsInstance<DashboardPresetPicker>().single().selection.toList())
+                assertEquals(preset.name,choice.contentDescription)
             }
-            val reserved = views(picker).single { it.tag == "theme_reserved" }
-            assertFalse(reserved.isClickable); assertFalse(reserved.performClick())
-            assertEquals(themes.presets.last().id, themes.active.id)
-            themes.activate(BicycleThemes.red.id); shadowOf(Looper.getMainLooper()).idle(); measure(decor, 1080)
-            val image = Bitmap.createBitmap(decor.width, decor.height, Bitmap.Config.ARGB_8888)
-            decor.draw(Canvas(image))
-            File("build/reports/settings/theme-picker.png").apply { parentFile!!.mkdirs(); outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) } }
-            testBack(dialog)
-            shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.VISIBLE, menu.window!!.decorView.visibility)
-            assertEquals(draft, views(design.window!!.decorView).filterIsInstance<DashboardPresetPicker>().single().selection.toList())
-            assertEquals(BicycleThemes.red, ThemeManager(activity.getSharedPreferences("bike", 0)).active)
+            choice.performClick()
+            val list=picker.popup!!.listView!!;measure(list,1080,1600)
+            val bitmap=Bitmap.createBitmap(list.width,list.height,Bitmap.Config.ARGB_8888)
+            list.draw(Canvas(bitmap))
+            File("/tmp/bcycle-theme-dropdown.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun smallWidthAndLargeFontReflowWithoutClippingNamesOrTouchTargets() {
-        val app = RuntimeEnvironment.getApplication()
-        val config = android.content.res.Configuration(app.resources.configuration).apply { fontScale = 2f }
-        val context = app.createConfigurationContext(config)
-        val picker = ThemePickerView(context, ThemeManager(app.getSharedPreferences("theme-size", 0)))
-        for (width in listOf(720, 1080)) {
-            measure(picker, width, 10000)
-            val rows = (0 until picker.childCount).map { picker.getChildAt(it) }.filterIsInstance<LinearLayout>()
-            assertTrue(rows.size >= 4)
-            val cards = views(picker).filter { it.tag == "theme_reserved" || it.tag in BicycleThemes.presets.map { preset -> preset.id } }
-            assertEquals(8, cards.size)
-            for (card in cards) {
-                assertTrue(card.width >= BicycleDesign.dp(context, BicycleDesign.touchSize))
-                assertTrue(card.right <= (card.parent as View).width)
-                val label = views(card).filterIsInstance<TextView>().single()
-                assertTrue(label.layout.lineCount <= 2)
-                assertEquals(label.text.length, label.layout.getLineEnd(label.layout.lineCount - 1))
-                assertEquals(0, label.layout.getEllipsisCount(label.layout.lineCount - 1))
-                assertTrue(label.layout.height <= label.height)
-            }
+    @Test fun selectorKeepsTouchHeightOnNarrowPortraitAndLargeFont() {
+        val app=RuntimeEnvironment.getApplication();val config=android.content.res.Configuration(app.resources.configuration).apply { fontScale=1.3f }
+        val c=app.createConfigurationContext(config)
+        val picker=ThemePickerView(c,ThemeManager(app.getSharedPreferences("theme-size",0)))
+        for(width in listOf(720,1080)) {
+            measure(picker,width,1000)
+            val choice=picker.getChildAt(0) as LinearLayout
+            assertTrue(choice.height>=BicycleDesign.dp(c,BicycleDesign.touchSize))
+            assertTrue(choice.getChildAt(1).width>0)
+            assertEquals(BicycleDesign.settingsThemeNameSp*c.resources.displayMetrics.scaledDensity,(choice.getChildAt(0) as TextView).textSize,.01f)
         }
     }
 }

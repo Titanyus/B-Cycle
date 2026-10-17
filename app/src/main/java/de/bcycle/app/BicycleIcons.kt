@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable
 
 /** Semantic names keep UI independent of Lucide's asset names. Lucide 0.468.0, local vectors. */
 internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = ThemeRole.FOREGROUND) {
+    Check(R.drawable.ic_lucide_check),
     RecordReady(R.drawable.ic_record_ready), StopRecording(R.drawable.ic_record_stop),
     EditDashboard(R.drawable.ic_lucide_pencil), RecordingSettings(R.drawable.ic_lucide_activity),
     GpsSensor(R.drawable.ic_lucide_satellite_dish), PowerMeter(R.drawable.ic_lucide_zap), SunriseSensor(R.drawable.ic_lucide_sunrise), SunsetSensor(R.drawable.ic_lucide_sunset),
