@@ -30,7 +30,10 @@ class ThemeManager(private val preferences: SharedPreferences, private val setti
     fun setSettingsLight(light:Boolean) { preferences.edit().putBoolean(settingsLightKey,light).apply() }
     fun forDisplay(theme:BicycleTheme):BicycleTheme {
         if(!isSettingsPalette || !settingsLight) return theme
-        val tokens=theme.tokens.lightSettings(if(theme.id.endsWith("-color")) 0xffe3e3e3.toInt() else 0xffd0d0d0.toInt())
+        val colored=theme.id.endsWith("-color")
+        val projected=theme.tokens.lightSettings(if(colored) 0xfff2f2f2.toInt() else 0xffd0d0d0.toInt())
+        // White accents from colored palettes disappear on the light settings surface.
+        val tokens=if(colored) projected.copy(accent=theme.tokens.primary) else projected
         return when(theme) { is PresetTheme->theme.copy(tokens=tokens);is CustomTheme->theme.copy(tokens=tokens) }
     }
     internal val baseTokens get() = (settingsSource?.active ?: synchronized(lock) { current }).tokens

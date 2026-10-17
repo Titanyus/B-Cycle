@@ -25,7 +25,15 @@ class SettingsLightThemeTest {
         for(theme in base.presets) {
             assertTrue(settings.activate(theme.id))
             assertEquals(theme,base.active)
-            assertEquals(theme.tokens.lightSettings(if(theme.id.endsWith("-color")) 0xffe3e3e3.toInt() else 0xffd0d0d0.toInt()),settings.active.tokens)
+            val colored=theme.id.endsWith("-color")
+            val expected=theme.tokens.lightSettings(if(colored) 0xfff2f2f2.toInt() else 0xffd0d0d0.toInt())
+            assertEquals(if(colored) expected.copy(accent=theme.tokens.primary) else expected,settings.active.tokens)
+            assertEquals(theme.tokens.primary,BicycleComponents.selectionBorder(settings.active.tokens,true))
+            if(colored) {
+                assertNotEquals(settings.active.tokens.secondary,settings.active.tokens.accent)
+                val previous=theme.tokens.lightSettings(0xffe3e3e3.toInt())
+                assertTrue(ThemeValidator.luminance(settings.active.tokens.tertiary)>ThemeValidator.luminance(previous.tertiary))
+            }
             assertEquals(settings.active,updates.last())
         }
         val store=BikeUiConfigurationStore(prefs);store.ensure(listOf(0,1));store.save(0)

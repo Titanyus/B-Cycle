@@ -6,11 +6,11 @@ Sonne/Mond steht ausschließlich rechts im Header der Haupt-Einstellungsseite. D
 | --- | --- |
 | PRIMARY | Unverändert aus dem gewählten Theme |
 | SECONDARY | #FFFFFF |
-| TERTIARY | Basis #E3E3E3 bei farbigen Themes, #D0D0D0 bei DARK-Themes; jeweils mit 8 % PRIMARY gemischt |
+| TERTIARY | Basis #F2F2F2 bei farbigen Themes, #D0D0D0 bei DARK-Themes; jeweils mit 8 % PRIMARY gemischt |
 | FOREGROUND | #101010 mit 5 % PRIMARY gemischt |
-| ACCENT | Unverändert aus dem gewählten Theme |
+| ACCENT | PRIMARY bei farbigen Themes; bei DARK-Themes unverändert |
 
-Die RGB-Kanäle werden einzeln gemischt und auf ganze Farbwerte gerundet. Beispiel HELLFIRE: Schrift #191111, graue Fläche #E0D4D3; HELLFIRE DARK verwendet im Hellmodus für die graue Fläche weiterhin #CFC3C2. Diese Parameter sind interne Standards ohne zusätzliche Regler.
+Die RGB-Kanäle werden einzeln gemischt und auf ganze Farbwerte gerundet. Beispiel HELLFIRE: Schrift #191111, graue Fläche #EEE2E1; HELLFIRE DARK verwendet im Hellmodus für die graue Fläche weiterhin #CFC3C2. Diese Parameter sind interne Standards ohne zusätzliche Regler.
 
 Standard ist dunkel; alle [14 vorgegebenen Themes](theme-palettes.md) sind Basispaletten für diese Darstellung. Theme-Vorschauen zeigen nur PRIMARY, SECONDARY und TERTIARY. Themetitel sind 21 sp Bebas Neue, wie die schmalen Eingabewerte. Keine Reserviert-Karte oder eigene Farbwahl.
 
@@ -33,3 +33,5 @@ Nutzerwunsch vom 17.10.2026 nach Build 33: Alle Sticky-Abschnittsheader im Fahre
 ## Umgesetzt in 0.8: Abgeschnittener Geburtsdatumsrahmen
 
 Gemeldeter Darstellungsfehler vom 17.10.2026 nach Build 33: Der Rahmen des Geburtsdatumsfelds im Fahrerprofil ist unten abgeschnitten. Ursache im Layout bzw. Clipping prüfen und die untere Kontur vollständig darstellen. Eingabestil und Datumsfunktion erhalten. In Version 0.8 korrigiert.
+
+Anpassung vom 18.10.2026: Nur in heller Darstellung der sieben farbigen (-color) Presets wird der weiße ACCENT durch PRIMARY ersetzt, damit ausgewählte Kacheln und andere Akzentmarkierungen sichtbar bleiben. TERTIARY verwendet dort die hellere Basis #F2F2F2 mit bisherigem 8-%-Farbstich. DARK-Projektionen, Basispaletten und Dashboard bleiben unverändert.
