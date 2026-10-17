@@ -77,6 +77,7 @@ object BicycleDesign {
     const val sectionRuleDp = .75f
     const val pageContentGap = 16
     const val sectionContentGap = 16
+    const val profileAccordionRadius = 10
     const val profileAccordionHeaderHeight = 64
     const val profileAccordionLeadingWidth = 3
     const val profileAccordionBodyInset = 4

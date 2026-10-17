@@ -13,7 +13,7 @@ Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherige
 
 ## Hierarchie-Prototyp auf der Profilseite
 
-Die fünf Hauptbereiche verwenden `ProfileAccordion`: Kategorie-Icon links, 23 sp/Roboto 900 Black, Chevron rechts, abgerundeter TERTIARY-Kopf mit FOREGROUND-Kontur und betonter linker Kante. Der geöffnete Inhalt bleibt in einem verbundenen SECONDARY-Rahmen, links um 4 dp eingerückt. Lange Überschriften behalten ihre Schriftgröße und dürfen umbrechen.
+Die fünf Hauptbereiche verwenden `ProfileAccordion`: Kategorie-Icon links, 23 sp/Roboto 900 Black, Chevron rechts, TERTIARY-Kopf mit 10-dp-Rundung und geschwungener, 3 dp breiter linker FOREGROUND-Kante. Kopf und Inhalt haben keinen umlaufenden Rahmen. Eine dünne vertikale FOREGROUND-Linie begleitet den geöffneten SECONDARY-Inhalt, links um 4 dp eingerückt, und schließt ohne Lücke an die linke Kurve des nächsten Hauptbereichs an. Lange Überschriften behalten ihre Schriftgröße und dürfen umbrechen.
 
 Unterüberschriften stehen zentriert zwischen horizontalen Linien auf Texthöhe. **Radtyp**, **Sensoren**, **FIT-Hauptquelle** und **Aufzuzeichnende Werte** sind nun ebenfalls Sticky Header. Die bisherigen Design-Unterüberschriften verwenden dieselbe Optik. Jeder Header ist durch `sectionEnd` auf das Ende seines eigenen Accordions begrenzt, auch wenn der folgende Hauptbereich geschlossen bleibt. Innerhalb der FIT-Unteraccordions bleibt die dezente Standarddarstellung erhalten. Andere Screens werden nicht umgestellt.
 

@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +18,6 @@ internal class ProfileAccordion(context:Context,themes:ThemeManager,title:String
     val header=LinearLayout(context)
     var isOpen=initiallyOpen;private set
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
-    private fun borderColor(color:Int)=(color and 0x00ffffff) or ((android.graphics.Color.alpha(color)*BicycleDesign.dividerAlpha).toInt() shl 24)
     init {
         orientation=VERTICAL;tag="profile_group_$key"
         header.apply {
@@ -49,8 +47,8 @@ internal class ProfileAccordion(context:Context,themes:ThemeManager,title:String
             })
             clipToOutline=true
             BicycleComponents.bindTheme(this,themes) { tokens ->
-                background=ProfileAccordionHeader(tokens.tertiary,tokens.foreground,borderColor(tokens.foreground),
-                    dp(BicycleDesign.inputRadius).toFloat(),BicycleDesign.linePixels(context).toFloat(),dp(BicycleDesign.profileAccordionLeadingWidth).toFloat())
+                background=ProfileAccordionHeader(tokens.tertiary,tokens.foreground,
+                    dp(BicycleDesign.profileAccordionRadius).toFloat(),dp(BicycleDesign.profileAccordionLeadingWidth).toFloat())
                 chevron.setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground))
             }
             setOnClickListener { show(!isOpen);changed(isOpen) }
@@ -58,21 +56,16 @@ internal class ProfileAccordion(context:Context,themes:ThemeManager,title:String
         frame.apply {
             tag="profile_content_$key"
             // Draw the body behind the overlapping rounded header, never over it.
-            translationZ=-1f;clipToPadding=false;clipToOutline=true
-            foregroundGravity=Gravity.START or Gravity.FILL_VERTICAL
-            setPadding(dp(BicycleDesign.sectionHeaderPadding),dp(BicycleDesign.inputRadius+BicycleDesign.controlGap),dp(BicycleDesign.sectionHeaderPadding),dp(BicycleDesign.sectionHeaderPadding))
+            translationZ=-1f;clipToPadding=false
+            setPadding(dp(BicycleDesign.sectionHeaderPadding),dp(BicycleDesign.profileAccordionRadius+BicycleDesign.controlGap),dp(BicycleDesign.sectionHeaderPadding),dp(BicycleDesign.sectionHeaderPadding))
             addView(body,FrameLayout.LayoutParams(-1,-2))
             (body as? ViewGroup)?.apply { clipChildren=false;clipToPadding=false }
             BicycleComponents.bindTheme(this,themes) { tokens ->
-                foreground=GradientDrawable().apply { setColor(tokens.foreground);setSize(BicycleDesign.linePixels(context),1) }
-                background=GradientDrawable().apply {
-                    setColor(tokens.secondary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
-                    setStroke(BicycleDesign.linePixels(context),borderColor(tokens.foreground))
-                }
+                setBackgroundColor(tokens.secondary)
             }
         }
         addView(header,LayoutParams(-1,-2))
-        addView(frame,LayoutParams(-1,-2).apply { marginStart=dp(BicycleDesign.profileAccordionBodyInset);topMargin=-dp(BicycleDesign.inputRadius) })
+        addView(frame,LayoutParams(-1,-2).apply { marginStart=dp(BicycleDesign.profileAccordionBodyInset);topMargin=-dp(BicycleDesign.profileAccordionRadius) })
         addView(end,LayoutParams(-1,0))
         fun scope(view:View) {
             if(view is BicycleSectionHeader) view.sectionEnd=end
@@ -80,6 +73,15 @@ internal class ProfileAccordion(context:Context,themes:ThemeManager,title:String
         }
         scope(body)
         show(initiallyOpen)
+    }
+    /** The parent draws one continuous axis over the body, gap and adjoining header curves. */
+    val connectionX get()=dp(BicycleDesign.profileAccordionBodyInset)+BicycleDesign.linePixels(context)/2f
+    fun connectionY(bottom:Boolean):Float {
+        val leading=dp(BicycleDesign.profileAccordionLeadingWidth)/2f
+        val radius=dp(BicycleDesign.profileAccordionRadius).toFloat()
+        val t=1f-kotlin.math.sqrt(((connectionX-leading)/(radius-leading)).coerceIn(0f,1f))
+        val y=leading+(radius-leading)*t*t
+        return header.top+if(bottom) header.height-y else y
     }
     private fun show(open:Boolean) {
         isOpen=open;frame.visibility=if(open) VISIBLE else GONE
@@ -90,15 +92,15 @@ internal class ProfileAccordion(context:Context,themes:ThemeManager,title:String
     }
 }
 
-/** Rounded leading accent is part of the outline rather than a square child strip. */
-private class ProfileAccordionHeader(private val fill:Int,private val foreground:Int,private val border:Int,
-    private val radius:Float,private val rule:Float,private val leading:Float):android.graphics.drawable.Drawable() {
+/** Rounded fill and a curved leading accent; deliberately no surrounding outline. */
+private class ProfileAccordionHeader(private val fill:Int,private val foreground:Int,
+    private val radius:Float,private val leading:Float):android.graphics.drawable.Drawable() {
     private val paint=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
     private val rect=android.graphics.RectF()
     private val accent=android.graphics.Path()
     private var opacity=255
     override fun onBoundsChange(bounds:android.graphics.Rect) {
-        rect.set(bounds);rect.inset(rule/2,rule/2)
+        rect.set(bounds)
         val x=bounds.left+leading/2;val top=bounds.top+leading/2;val bottom=bounds.bottom-leading/2
         accent.reset();accent.moveTo(bounds.left+radius,top)
         accent.quadTo(x,top,x,bounds.top+radius)
@@ -109,8 +111,7 @@ private class ProfileAccordionHeader(private val fill:Int,private val foreground
         fun color(value:Int) { paint.color=value;paint.alpha=android.graphics.Color.alpha(value)*opacity/255 }
         paint.style=android.graphics.Paint.Style.FILL;color(fill)
         canvas.drawRoundRect(rect,radius,radius,paint)
-        paint.style=android.graphics.Paint.Style.STROKE;paint.strokeWidth=rule;color(border)
-        canvas.drawRoundRect(rect,radius,radius,paint)
+        paint.style=android.graphics.Paint.Style.STROKE
         paint.strokeWidth=leading;paint.strokeCap=android.graphics.Paint.Cap.ROUND;color(foreground)
         canvas.drawPath(accent,paint)
     }

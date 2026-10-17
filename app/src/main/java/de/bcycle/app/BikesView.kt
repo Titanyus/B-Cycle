@@ -15,6 +15,9 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val confirmDelete:(Int,String,()->Unit)->Unit = { _,_,_ -> },
     private val additionalSections:(()->List<Pair<Int,View>>)?=null, private val editDashboard:()->Unit={}) : LinearLayout(context) {
     private val themes = runtime.themes
+    private val profileConnector=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        strokeWidth=BicycleDesign.linePixels(context).toFloat()
+    }
     private val expanded=mutableSetOf(R.string.profiles_bike)
     private var copyPopup:ListPopupWindow?=null
     private val copyAction:BicycleFooterAction=BicycleFooterAction(context,themes,BicycleIcon.Import,context.getString(R.string.profiles_copy)) {
@@ -69,7 +72,24 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private lateinit var searchResults: LinearLayout
     private lateinit var searchStatus: TextView
     private fun dp(n: Int) = BicycleDesign.dp(context,n)
-    init { orientation = VERTICAL; clipToPadding = false; tag = "bikes_manager"; setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),0); rebuild() }
+    init {
+        if(additionalSections!=null) BicycleComponents.bindTheme(this,themes) { profileConnector.color=it.foreground;invalidate() }
+        orientation = VERTICAL; clipToPadding = false; tag = "bikes_manager"; setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),0); rebuild() }
+    override fun dispatchDraw(canvas:android.graphics.Canvas) {
+        super.dispatchDraw(canvas)
+        if(additionalSections==null) return
+        var previous:ProfileAccordion?=null
+        for(index in 0 until childCount) {
+            val group=getChildAt(index) as? ProfileAccordion ?: continue
+            previous?.let { if(it.isOpen) drawConnector(canvas,it,group.top+group.connectionY(bottom=false)) }
+            previous=group
+        }
+        previous?.let { if(it.isOpen) drawConnector(canvas,it,it.bottom.toFloat()) }
+    }
+    private fun drawConnector(canvas:android.graphics.Canvas,group:ProfileAccordion,end:Float) {
+        val x=group.left+group.connectionX
+        canvas.drawLine(x,group.top+group.connectionY(bottom=true),x,end,profileConnector)
+    }
     private fun text(id: Int, heading: Boolean = false) = BicycleComponents.text(context,themes,context.getString(id),heading)
     private fun section(id: Int) {
         if(additionalSections==null) BicycleForm.section(this,themes,id)

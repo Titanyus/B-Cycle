@@ -498,7 +498,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_default_name">Bike %1$d</string>
     <string name="bikes_type_bike">Bike</string>
     <string name="bikes_type_ebike">E-Bike</string>
-    <string name="bikes_type_indoor">Indoor-Bike</string>
+    <string name="bikes_type_indoor">Indoor</string>
     <string name="bikes_category_mountain">Mountainbike</string>
     <string name="bikes_category_road">Rennrad</string>
     <string name="bikes_category_trekking">Trekkingbike</string>
@@ -636,7 +636,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="trainer_permission">Indoor-Trainer · Bluetooth-Zugriff fehlt</string>
     <string name="trainer_unavailable">Indoor-Trainer · Bluetooth nicht verfügbar</string>
     <string name="trainer_discovery_failed">Indoor-Trainer · Dienstsuche nicht möglich</string>
-    <string name="trainer_not_ftms">Kein FTMS-Trainer mit Indoor-Bike-Daten</string>
+    <string name="trainer_not_ftms">Kein FTMS-Trainer mit Indoor-Daten</string>
     <string name="trainer_subscribe_failed">Indoor-Trainer · Datenfreigabe fehlgeschlagen</string>
     <string name="archive_import_title">ZIP-Archiv importieren</string>
     <string name="archive_import_progress">Archiv wird importiert · %1$d Dateien verarbeitet</string>

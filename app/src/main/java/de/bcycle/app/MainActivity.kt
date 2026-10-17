@@ -798,8 +798,8 @@ class MainActivity : Activity() {
     private fun mapControls():LinearLayout {
         val slot=runtime.bikes.activeSlot
         val root = column()
-        root.addView(label(getString(R.string.ui_map_source), BicycleDesign.inputSp))
         val source = Spinner(settingsContext).apply {
+            contentDescription=getString(R.string.ui_map_source)
             adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.label(this@MainActivity) })
             setSelection(MapSource.decode(preferences.getString("mapSource", null)).ordinal); root.addView(this)
         }
