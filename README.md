@@ -39,7 +39,7 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 - **Fahrten im Detail** – Karte, fünf Verlaufsdiagramme, Bewegungszeit, Höhenmeter und Performance-Kennzahlen wie Normalized Power und Estimated FTP bei geeigneten Daten.
 - **Trainingszonen** – Persönliche Leistungs- und Pulszonen, Zonenanteile, Verteilungskurven und bis zu vier Best Efforts mit Watt und W/kg.
 - **Live-Graphen und Ambient-Glow** – Daten und Hintergrundgraphen je Kachel kombinieren, Trainingshilfe je Dashboard wählen; Fahrmodus und Akkuwarnung am Bildschirmrand erkennen.
-- **Fahrradprofile** – Bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen, FIT-Einstellungen sowie eigenen Themes, Dashboards und Kartenoptionen. E-Bike und Indoor-Bike sind nutzbar; normales Bike ist vorbereitet.
+- **Fahrradprofile** – Bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen, FIT-Einstellungen sowie eigenen Themes, Dashboards und Kartenoptionen. E-Bike und Indoor sind nutzbar; normales Bike ist vorbereitet.
 - **Dein Design** – Sieben Farbthemen mit einheitlicher Bedienung, sofort gespeicherten Einstellungen und Hochformat-Layouts.
 - **Export und Upload** – Lokal speichern oder eigene Fahrten an WebDAV, intervals.icu, Dreeve und Strava senden. Dienste arbeiten unabhängig; Dreeve benötigt eine eigene Instanz, Strava derzeit eine persönliche API-App.
 - **Wetter und Höhe** – Wetter zur Tourmitte dauerhaft speichern und bei Bedarf GPS-Höhen nachträglich mit Mapterhorn korrigieren; Original-FIT bleibt erhalten.
@@ -61,17 +61,16 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 24 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-24-apk/downloads/B-Cycle-0.7.31-test-build-24.apk)**
+**[Aktuelle signierte Test-APK: Build 25 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-25-apk/downloads/B-Cycle-0.7.31-test-build-25.apk)**
 
 Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. **Version 0.7.31, Test-Build 24 vom 17.10.2026**.
-Neu: Hierarchie-Prototyp auf der Profilseite mit gerahmten Haupt-Accordions,
-verbundenem eingerücktem Inhalt und Sticky-Unterüberschriften zwischen mittigen
-Linien. Zusätzliche Sticky Header für Radtyp, Sensoren, FIT-Hauptquelle und
-Aufzuzeichnende Werte, jeweils auf das eigene Accordion begrenzt.
-**26 gezielte Tests erfolgreich.**
-[Änderungen, Vorschauen und SHA-256](docs/test-build-24.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39032822895).
+installierbar. **Version 0.7.31, Test-Build 25 vom 17.10.2026**.
+Neu: Profil-Accordions mit größeren Rundungen, ohne umlaufenden Rahmen.
+Geschwungene linke Kanten und durchgehende Inhaltslinien bis zum nächsten Header.
+„Indoor-Bike“ heißt jetzt „Indoor“; die Überschrift „Kartenquelle“ entfällt.
+**19 gezielte Tests erfolgreich.**
+[Änderungen, Vorschauen und SHA-256](docs/test-build-25.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39044145548).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.31
