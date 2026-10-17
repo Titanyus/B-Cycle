@@ -120,7 +120,7 @@ class DashboardEditorTest {
             tile(activity,0).performClick(); val next = ShadowAlertDialog.getLatestAlertDialog()
             selectTestSource(next,"E-Bike"); all(next.window!!.decorView).single { it.tag == "CADENCE" }.performClick()
             assertEquals("CADENCE",DashboardLayout.decode(prefs.getString("dashboard_1",null)).fields[0].id)
-            tile(activity,0).performClick(); testBack(ShadowAlertDialog.getLatestAlertDialog())
+            assertTrue(next.isShowing);testBack(next)
             assertTrue(activity.dashboardEditing)
             shadowOf(Looper.getMainLooper()).idle()
             change.invoke(activity,-1); assertTrue(activity.dashboardEditing)
@@ -217,7 +217,8 @@ class DashboardEditorTest {
                 val picker = ShadowAlertDialog.getLatestAlertDialog(); assertTrue(picker.isShowing)
                 selectTestSource(picker, "E-Bike")
                 testDescendants(picker.window!!.decorView).single { it.tag == "CADENCE" }.performClick()
-                assertFalse(picker.isShowing); assertTrue(activity.dashboardEditing)
+                assertTrue(picker.isShowing); assertTrue(activity.dashboardEditing)
+                testBack(picker);assertFalse(picker.isShowing)
             }
             assertEquals("CADENCE", DashboardLayout.decode(runtime.preferences.getString("dashboard", null)).fields[0].id)
             assertEquals("CADENCE", MapFieldSelection.read(runtime.preferences, 0)?.id)

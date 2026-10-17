@@ -10,7 +10,7 @@ import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
 
-/** Three independent accordions; source stays above the bounded field list inside Data. */
+/** Source stays above the bounded field list; selection updates in place without closing. */
 internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     bikeDistanceM: Long?, pulse: PulseValues, selected: DashboardField?, allowEmpty: Boolean,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
@@ -45,11 +45,12 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         BicycleDialogStyle.accordion(dataToggle,themes)
         BicycleDialogStyle.actionIcon(dataToggle,themes,BicycleIcon.Expand)
         panels.addView(dataToggle);panels.addView(dataContent)
+        var currentSelection=selected
         var pickerDataVisible=dataVisible
         val emptyChoice=RadioButton(context).apply {
             setText(R.string.field_no_data);tag=if(allowEmpty) "map_field_empty" else "dashboard_field_empty"
             isChecked=!dataVisible || selected==null
-            BicycleDialogStyle.control(this,themes);setOnClickListener { choose(null) }
+            BicycleDialogStyle.control(this,themes)
         }
         dataContent.addView(emptyChoice,LayoutParams(-1,dp(BicycleDesign.touchSize)))
         val groups = DashboardField.groups(data, selected, includeTraining = !allowEmpty).groupBy { it.source }
@@ -73,7 +74,6 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             setOnCheckedChangeListener { _,checked -> trendChanged?.invoke(checked) }
         }
         dataContent.addView(trendToggle,LayoutParams(-1,-2))
-        emptyChoice.setOnClickListener { trendToggle.visibility=GONE;choose(null) }
         val rows = LinearLayout(context).apply { orientation = VERTICAL }
         val list = ScrollView(context).apply { tag = "field_list"; addView(rows) }
         BicycleDialogStyle.content(list, themes)
@@ -86,9 +86,20 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         var batterySelection=if(dataVisible) (selected?.batterySources
             ?: BatteryFields.single(selected?.id.orEmpty())?.let(::listOf).orEmpty()).filter { it in availableBatteries } else emptyList()
         var combined=dataVisible && selected?.batterySources!=null
+        var refreshBatteryChecks:()->Unit={}
+        fun reflectSelection(field:DashboardField?) {
+            currentSelection=field;pickerDataVisible=field!=null
+            combined=field?.batterySources!=null
+            batterySelection=field?.batterySources.orEmpty().filter { it in availableBatteries }
+            emptyChoice.isChecked=field==null
+            trendToggle.visibility=if(!allowEmpty && field!=null && AverageTrends.supports(field) && trendChanged!=null) VISIBLE else GONE
+            for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.let { it.isChecked=field!=null && !combined && it.tag==field.id }
+            refreshBatteryChecks()
+        }
+        emptyChoice.setOnClickListener { reflectSelection(null);choose(null) }
         fun populate(position: Int) {
             if (shown == position) return
-            shown = position; rows.removeAllViews(); list.scrollTo(0, 0)
+            shown = position;refreshBatteryChecks={}; rows.removeAllViews(); list.scrollTo(0, 0)
             for (section in groups.getValue(sources[position])) {
                 rows.addView(TextView(context).apply {
                     text = if(section.source=="Leistung") context.getString(R.string.training_category) else DashboardTextResources.section(context,section.title); isAccessibilityHeading=true; textSize = BicycleDesign.bodySp; BicycleDialogStyle.control(this, themes)
@@ -109,12 +120,11 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                             updating=false
                         }
                         fun saveCombination() {
-                            trendToggle.visibility=GONE
-                            pickerDataVisible=combined;emptyChoice.isChecked=!combined
-                            for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.isChecked=false
-                            updateChecks()
-                            (batteryChoose ?: choose).invoke(if(combined) BatteryFields.field(batterySelection) else null)
+                            val field=if(combined) BatteryFields.field(batterySelection) else null
+                            reflectSelection(field)
+                            (batteryChoose ?: choose).invoke(field)
                         }
+                        refreshBatteryChecks=::updateChecks
                         rows.addView(BicycleComponents.text(context,themes,context.getString(R.string.battery_selection)))
                         rows.addView(BicycleComponents.text(context,themes,context.getString(R.string.battery_selection_help)))
                         availableBatteries.forEach { source ->
@@ -137,9 +147,9 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                             tag=field.id
                             text=if(value.unit.isNotEmpty()) context.getString(R.string.ui_field_with_unit,title,value.unit) else title
                             BicycleDialogStyle.control(this,themes);minHeight=dp(BicycleDesign.touchSize)
-                            isChecked=pickerDataVisible && !combined && selected==field
+                            isChecked=pickerDataVisible && !combined && currentSelection==field
                             contentDescription=if(field.showSource) context.getString(R.string.ui_source_field_description,DashboardTextResources.source(context,field.source(data)),text) else text
-                            setOnClickListener { choose(field) }
+                            setOnClickListener { reflectSelection(field);choose(field) }
                         }
                         rows.addView(radio,LayoutParams(-1,-2))
                     }

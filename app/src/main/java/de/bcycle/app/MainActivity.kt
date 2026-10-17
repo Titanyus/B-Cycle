@@ -331,9 +331,9 @@ class MainActivity : Activity() {
             }
         }
         graphs?.changed = { saveGraphs(); render() }
-        fun select(field: DashboardField?, keepOpen: Boolean = false) {
+        fun select(field: DashboardField?) {
             // Ignore stale selections after the dashboard editor has been exited.
-            if (!permitted()) { picker?.dismiss(); return }
+            if (!permitted()) return
             if (mapField) {
                 preferences.edit().apply {
                     if (field == null) remove(MapFieldSelection.key(index)) else putString(MapFieldSelection.key(index), field.id)
@@ -348,12 +348,12 @@ class MainActivity : Activity() {
                     .putString(DashboardDataVisibility.key(dashboardPage),dashboardDataVisibility.encode())
                     .putString(GraphDisplaySettings.key(dashboardPage),dashboardGraphs.encodeModes()).apply()
             }
-            saveGraphs(); render(); if(!keepOpen) picker?.dismiss()
+            saveGraphs(); render()
             if (field?.requiresGps == true && !runtime.isIndoor) enableGps()
         }
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
             runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, null, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index],
-            batteryChoose={ select(it,keepOpen=true) },trendEnabled=if(mapField) true else dashboardTrendIndicators.enabled[index],
+            batteryChoose={ select(it) },trendEnabled=if(mapField) true else dashboardTrendIndicators.enabled[index],
             trendChanged=if(mapField) null else { enabled ->
                 if(permitted()) {
                     dashboardTrendIndicators=dashboardTrendIndicators.replace(index,enabled)
