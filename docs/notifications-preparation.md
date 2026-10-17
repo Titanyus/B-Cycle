@@ -86,3 +86,14 @@ Nutzergerät müssen mit der Test-APK geprüft werden; Frameworktests ersetzen d
 Position, Anzeigedauer und Apps verwenden BicycleForm.section im zentralen
 BicycleStickyScrollView. Überschriften docken beim Scrollen oben an, werden vom
 folgenden Abschnitt abgelöst und übernehmen die gemeinsamen Abstände/Theme-Regeln.
+
+## Vorgemerkt: Kompaktere Position und Anzeigedauer
+
+Nutzerwunsch vom 17.10.2026, zunächst ausdrücklich nur vormerken:
+
+- Die Header **Position** und **Anzeigedauer** entfernen. Positionsauswahl und Zeitfunktion bleiben erhalten.
+- **Anzeigedauer** links als Beschriftung, rechts daneben den Slider in derselben Zeile.
+- Beschriftung vertikal genau auf die Sliderlinie zentrieren, unabhängig vom darüberstehenden Zahlenwert.
+- Den gewählten Sekundenwert oberhalb des Sliders anzeigen.
+
+Diese Zusatzänderung ist im aktuellen Sticky-Accordion-Build 29 noch nicht umgesetzt.

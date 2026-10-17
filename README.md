@@ -61,16 +61,16 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 28 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-28-apk/downloads/B-Cycle-0.7.31-test-build-28.apk)**
+**[Aktuelle signierte Test-APK: Build 29 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-29-apk/downloads/B-Cycle-0.7.31-test-build-29.apk)**
 
 Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. **Version 0.7.31, Test-Build 28 vom 17.10.2026**.
-Neu: Zentrierte Sensorzeilen, größere Abschnittsabstände (32 dp), einheitliche
-Profil-Dropdown-Schriften und größere Theme-Namen (28 sp).
-FIT-/Strecken-Header in voller Seitenbreite sind als nächster Schritt vorgemerkt.
-**34 gezielte Tests erfolgreich.**
-[Änderungen, Vorschauen und SHA-256](docs/test-build-28.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39051529940).
+installierbar. **Version 0.7.31, Test-Build 29 vom 17.10.2026**.
+Neu: Aufklappbare Sticky-Abschnitte auf der Profilseite, TERTIARY-Header,
+sticky Fahrradname zum Umbenennen und neue 2-dp-Rahmen für Buttons/Dropdowns.
+FIT-/Strecken-Aufzeichnung als gleichrangige Oberpunkte in voller Seitenbreite.
+**40 gezielte Tests erfolgreich.**
+[Änderungen, Vorschauen, vorgemerkte nächste Schritte und SHA-256](docs/test-build-29.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39054021295).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.31
