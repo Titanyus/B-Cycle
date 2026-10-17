@@ -68,6 +68,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     .put("graphDisplayModes",jsonArray(GraphOverlayConfig.read(bike,i).displayModes.map { it.name }))
                     .put("zoneGlowSources",jsonArray(ZoneGlowConfig.read(bike,i).sources.map { it.name }))
                     .put("dataVisible",JSONArray(DashboardDataVisibility.read(bike,i).visible))
+                    .put("trendIndicators",JSONArray(DashboardTrendIndicators.read(bike,i).enabled))
                     .put("layout", DashboardTemplate.decode(bike.getString("dashboardTemplate_$i", DashboardTemplate.entries[i].name)).name))
             } }).put("catalog",bike.getString(DashboardPages.KEY,null) ?: JSONObject.NULL).put("activePage",bike.getInt("dashboardPage",0)).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null)).let {
@@ -167,6 +168,12 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                                 }
                                 b[GraphOverlayConfig.key(index)]=GraphOverlayConfig(slots).encode()
                             }
+                            if(page.has("trendIndicators")) {
+                                val values=array(page,"trendIndicators",DashboardLayout.FIELD_COUNT)
+                                check(values.length()==DashboardLayout.FIELD_COUNT)
+                                val flags=(0 until values.length()).map { slot -> values.opt(slot) as? Boolean ?: fail() }
+                                b[DashboardTrendIndicators.key(index)]=DashboardTrendIndicators(flags).encode()
+                            } else b[DashboardTrendIndicators.key(index)]=null // Old backups keep the former always-visible behavior.
                             if(page.has("dataVisible")) {
                                 val values=array(page,"dataVisible",DashboardLayout.FIELD_COUNT)
                                 check(values.length()==DashboardLayout.FIELD_COUNT)

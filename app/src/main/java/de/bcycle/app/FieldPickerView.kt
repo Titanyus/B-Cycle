@@ -19,6 +19,8 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     training: TrainingSnapshot = TrainingSnapshot(),
     dataVisible: Boolean = true,
     batteryChoose: ((DashboardField?)->Unit)? = null,
+    trendEnabled:Boolean = true,
+    trendChanged:((Boolean)->Unit)? = null,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     private lateinit var fieldList: ScrollView
@@ -63,6 +65,15 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             }
         }
         dataContent.addView(selector, LayoutParams(-1, dp(BicycleDesign.touchSize)))
+        val trendToggle=android.widget.Switch(context).apply {
+            tag="field_trend_indicator";setText(R.string.field_trend_indicator)
+            isChecked=trendEnabled
+            visibility=if(!allowEmpty && dataVisible && AverageTrends.supports(selected) && trendChanged!=null) VISIBLE else GONE
+            BicycleDialogStyle.control(this,themes)
+            setOnCheckedChangeListener { _,checked -> trendChanged?.invoke(checked) }
+        }
+        dataContent.addView(trendToggle,LayoutParams(-1,-2))
+        emptyChoice.setOnClickListener { trendToggle.visibility=GONE;choose(null) }
         val rows = LinearLayout(context).apply { orientation = VERTICAL }
         val list = ScrollView(context).apply { tag = "field_list"; addView(rows) }
         BicycleDialogStyle.content(list, themes)
@@ -98,6 +109,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                             updating=false
                         }
                         fun saveCombination() {
+                            trendToggle.visibility=GONE
                             pickerDataVisible=combined;emptyChoice.isChecked=!combined
                             for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.isChecked=false
                             updateChecks()

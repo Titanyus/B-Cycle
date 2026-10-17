@@ -14,6 +14,11 @@ internal class PedalingAverage {
 
 /** One observation per second and at most 12 points per average, independent of UI redraw frequency. */
 internal class AverageTrends {
+    companion object {
+        private val supportedIds=setOf("SPEED","GPS_SPEED","RIDER_POWER","CADENCE","HEART_RATE",
+            "AVERAGE_SPEED","GPS_MOVING_AVERAGE","GPS_OVERALL_AVERAGE","AVERAGE_POWER","AVERAGE_CADENCE","HEART_AVERAGE")
+        fun supports(field:DashboardField?)=field?.id in supportedIds
+    }
     private val histories = mutableMapOf<String, ArrayDeque<Pair<Long, Double>>>()
     private val recentPower = ArrayDeque<Pair<Long, Double>>()
     /** Direct values reuse their corresponding average's existing trend and history. */

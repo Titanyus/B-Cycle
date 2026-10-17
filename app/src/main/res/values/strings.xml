@@ -688,4 +688,5 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="dashboard_name">Dashboardname</string>
     <string name="dashboard_name_invalid">Bitte einen Namen mit 1 bis 60 Zeichen eingeben.</string>
     <string name="record_bike_description">%1$s · %2$s. Lange drücken, um das Fahrrad auszuwählen.</string>
+    <string name="field_trend_indicator">Trendindikator</string>
 </resources>

@@ -20,6 +20,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         modeGlow.update(if (enabled) BoschModeColors.color(mode, names) else null, batteryPercent)
     }
     private val trends = AverageTrends()
+    private var trendIndicators=DashboardTrendIndicators()
+    internal fun showTrendIndicators(config:DashboardTrendIndicators) { trendIndicators=config }
     private val numbers = resources.getFont(R.font.bebas_neue)
     private val captions = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
     private val tiles = mutableListOf<Tile>()
@@ -316,7 +318,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val next = field.value(data, gps, bikeDistanceM, pulse, training)
             val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), field.title(context,data, gps)) else field.title(context,data, gps)
             showCaption(field)
-            row.direction = trends.indicator(field, data, gps, pulse, android.os.SystemClock.elapsedRealtime())
+            val direction = trends.indicator(field, data, gps, pulse, android.os.SystemClock.elapsedRealtime())
+            row.direction = if(trendIndicators.enabled[index]) direction else 0
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }
                 ?.let { String.format(Locale.GERMANY, "%.1f", it) } else null
             setText(value, compactDistance ?: next.text)
