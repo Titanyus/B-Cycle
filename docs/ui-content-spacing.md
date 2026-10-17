@@ -99,3 +99,7 @@ FOREGROUND-Trenner, identisch zur Deckkraft der Abschnittstrenner in Details.
 Auf der Profilseite sind die gleichrangigen Sticky-Abschnitte auf-/zuklappbar. Sie bleiben im geöffneten Zustand sticky; der Chevron und ein gleich breiter unsichtbarer Platz links erhalten die exakte Titelzentrierung. Der Fahrradname ist ein eigener Sticky Header ausschließlich zum Umbenennen. FIT-Aufzeichnung und Strecken-Aufzeichnung stehen in voller Seitenbreite auf der Hauptebene, nicht in einer eingerückten gemeinsamen Gruppe. Einklappen verändert keine gespeicherten Werte.
 
 Formularbuttons und Dropdowns verwenden zentral SECONDARY mit 2 dp FOREGROUND-Kontur und 6 dp Radius; keine eigene graue Fläche. Popup-Flächen übernehmen dieselben Rollen. Bestehende Ripple-/Disabled-Zustände und fachliche Auswahlmarkierungen bleiben erhalten. Eingabefelder behalten ihre eigene dezente Rahmenkonvention.
+
+## Vorgemerkt: Button- und Dropdown-Rahmen auf 1 dp
+
+Nutzerwunsch vom 17.10.2026: Die zuletzt auf 2 dp umgestellten Rahmen der Buttons und Dropdowns künftig auf **1 dp** reduzieren. Rahmenfarbe wie die Sensor-Abschnittstrenner: **FOREGROUND mit 55 % Deckkraft** (dividerAlpha), statt volldeckendem Weiß; nur die Kontur erhält diese Deckkraft. SECONDARY-Fläche und 6-dp-Rundung bleiben erhalten; andere Linien und fachliche Auswahlrahmen sind davon nicht betroffen. Ausdrücklich zunächst nur vorgemerkt, in Build 30 noch 2 dp.
