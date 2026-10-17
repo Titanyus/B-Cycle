@@ -8,8 +8,7 @@ BicycleDesign.pageContentGap und sectionContentGap: jeweils 16 dp.
 BicycleDesign.controlGap: unverändert 8 dp zwischen Bedienelementen.
 BicycleContentSpacing.page wird im Fullscreen-Host auf den eigentlichen
 Seiteninhalt angewendet. Vorhandene äußere Wrapper-Innenabstände werden entfernt;
-Control-Margins werden in den Gesamtanfangsabstand einbezogen. Die begrenzte
-innere Liste der Dashboard-Feldauswahl ist kein eigener Seitenanfang.
+Control-Margins werden in den Gesamtanfangsabstand einbezogen. Die Datenliste der Dashboard-Feldauswahl wächst vollständig innerhalb des gemeinsamen äußeren Scrollbereichs und ist kein eigener Seitenanfang.
 
 BicycleContentSpacing.sections gewährleistet 16 dp vor und nach Kategorieinhalten.
 Das gilt für Text, Eingaben, Dropdowns, Buttons/Schalter, Accordion-Controls,

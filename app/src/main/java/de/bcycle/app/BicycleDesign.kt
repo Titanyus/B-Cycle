@@ -91,10 +91,6 @@ object BicycleDesign {
     const val scrollFillViewport = false
     const val scrollClipToPadding = false
     // Data source stays above this bounded inner list; other accordions scroll in the outer body.
-    const val fieldListViewportFraction = .55f
-    const val fieldListMinHeight = 144
-    const val fieldListMaxHeight = 360
-    const val fieldListInitialHeight = 320
     const val horizontalPadding = 16
     const val verticalPadding = 8
     const val controlGap = 8
@@ -130,9 +126,7 @@ object BicycleDesign {
     const val themeNameSp = 14f
     const val themeSelectedBorder = 2
     fun dp(context: Context, value: Int) = (value * context.resources.displayMetrics.density).toInt()
-    fun fieldListHeight(context: Context, availablePixels: Int) =
-        (availablePixels * fieldListViewportFraction).toInt().coerceIn(
-            dp(context, fieldListMinHeight), dp(context, fieldListMaxHeight))
+
 }
 
 enum class ThemeRole { PRIMARY, SECONDARY, TERTIARY, FOREGROUND, ACCENT }

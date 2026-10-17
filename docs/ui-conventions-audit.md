@@ -73,9 +73,7 @@ Native Gesten, Adapter und Scrollpositionen werden nicht neu initialisiert.
 Vorhandene Listen werden weiterhin nicht zusätzlich in eine ScrollView gesetzt.
 Header/Footer bleiben fest; Insets und Tastaturanpassung bleiben beim Fullscreen-Host.
 
-Die bisherige Höhenregel der inneren Feldauswahl wurde unverändert als benannte
-Designrolle übernommen: 55 % der verfügbaren Höhe, mindestens 144 und höchstens
-360 dp, initial 320 dp. Quellenwahl bleibt außerhalb der inneren Liste.
+Die Dashboard-Feldauswahl verwendet einen einzigen äußeren Scrollbereich. Die Datenliste wächst mit WRAP_CONTENT vollständig; Graph und Trainingshilfe folgen darunter. Keine feste Listenhöhe oder verschachtelte ScrollView, damit die Trainingshilfe keine Werte abschneidet.
 
 Aktionsfooter verwenden `bicycleFooter` und `BicycleFooterAction`: 64 dp Höhe,
 24-dp-Icon und 11-sp-Systemfont darunter, zentriert und bei knapper Breite leicht

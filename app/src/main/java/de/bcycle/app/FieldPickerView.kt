@@ -6,11 +6,10 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.RadioButton
-import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
 
-/** Source stays above the bounded field list; selection updates in place without closing. */
+/** One scroll host keeps every data choice and the following training help reachable. */
 internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     bikeDistanceM: Long?, pulse: PulseValues, selected: DashboardField?, allowEmpty: Boolean,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
@@ -24,13 +23,6 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     trainingHelp:TrainingHelpView? = null,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
-    private lateinit var fieldList: ScrollView
-    override fun onMeasure(widthMeasureSpec: Int,heightMeasureSpec: Int) {
-        val available=MeasureSpec.getSize(heightMeasureSpec)
-        val limit=BicycleDesign.fieldListHeight(context,available)
-        if(fieldList.layoutParams.height!=limit) fieldList.layoutParams.height=limit
-        super.onMeasure(widthMeasureSpec,heightMeasureSpec)
-    }
     init {
         orientation = VERTICAL; setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
         BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
@@ -75,11 +67,8 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             setOnCheckedChangeListener { _,checked -> trendChanged?.invoke(checked) }
         }
         dataContent.addView(trendToggle,LayoutParams(-1,-2))
-        val rows = LinearLayout(context).apply { orientation = VERTICAL }
-        val list = ScrollView(context).apply { tag = "field_list"; addView(rows) }
-        BicycleDialogStyle.content(list, themes)
-        fieldList=list
-        dataContent.addView(list, LayoutParams(-1, dp(BicycleDesign.fieldListInitialHeight)))
+        val rows = LinearLayout(context).apply { orientation = VERTICAL;tag="field_list" }
+        dataContent.addView(rows, LayoutParams(-1,-2))
         if(graphPicker!=null) panels.addView(graphPicker)
         if(visualization!=null) panels.addView(visualization.apply { visibility=GONE })
         if(trainingHelp!=null) {
@@ -104,7 +93,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         emptyChoice.setOnClickListener { reflectSelection(null);choose(null) }
         fun populate(position: Int) {
             if (shown == position) return
-            shown = position;refreshBatteryChecks={}; rows.removeAllViews(); list.scrollTo(0, 0)
+            shown = position;refreshBatteryChecks={}; rows.removeAllViews()
             for (section in groups.getValue(sources[position])) {
                 rows.addView(TextView(context).apply {
                     text = if(section.source=="Leistung") context.getString(R.string.training_category) else DashboardTextResources.section(context,section.title); isAccessibilityHeading=true; textSize = BicycleDesign.bodySp; BicycleDialogStyle.control(this, themes)

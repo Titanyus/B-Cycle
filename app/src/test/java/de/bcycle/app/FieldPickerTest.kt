@@ -17,10 +17,11 @@ import org.robolectric.RobolectricTestRunner
 @Config(sdk = [33], qualifiers = "xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class FieldPickerTest {
-    @Test fun sourceDropdownStaysFixedWhileOnlyTheValuesScrollAndSwitchingSourcesReplacesList() {
+    @Test fun oneScrollHostShowsEveryValueBeforeTrainingHelpAndSwitchingSourcesReplacesList() {
         val selected = mutableListOf<DashboardField?>()
         val view = FieldPickerView(RuntimeEnvironment.getApplication(), LiveData(), GpsValues(), null,
-            PulseValues(), DashboardField("RIDER_POWER"), true) { selected += it }
+            PulseValues(), DashboardField("RIDER_POWER"), true,
+            trainingHelp=TrainingHelpView(RuntimeEnvironment.getApplication(),ThemeManager(RuntimeEnvironment.getApplication().getSharedPreferences("theme",0)),DashboardTrainingHelp()) {}) { selected += it }
         view.findViewWithTag<View>("field_data_toggle").performClick()
         fun measure() {
             view.measure(View.MeasureSpec.makeMeasureSpec(720, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(900, View.MeasureSpec.AT_MOST))
@@ -28,18 +29,22 @@ class FieldPickerTest {
         }
         measure(); shadowOf(Looper.getMainLooper()).idle(); measure()
         val dropdown = testDescendants(view).single { it.tag == "field_source" } as Spinner
-        val list = testDescendants(view).single { it.tag == "field_list" } as ScrollView
+        val list = testDescendants(view).single { it.tag == "field_list" } as android.widget.LinearLayout
+        val scroll=view.findViewWithTag<ScrollView>("field_picker_scroll")
+        assertEquals(1,testDescendants(view).filterIsInstance<ScrollView>().size)
         assertEquals("E-Bike", dropdown.selectedItem)
-        assertEquals((900 * .55f).toInt(), list.height)
-        assertEquals(BicycleDesign.dp(view.context, 144), BicycleDesign.fieldListHeight(view.context, 300))
-        assertEquals(BicycleDesign.dp(view.context, 360), BicycleDesign.fieldListHeight(view.context, 3000))
-        assertEquals(BicycleDesign.scrollClipToPadding, list.clipToPadding)
         assertTrue(list.height > 0)
-        assertTrue(list.getChildAt(0).height > list.height)
-        assertFalse(testDescendants(list).contains(dropdown))
-        val top = dropdown.top
-        list.fullScroll(View.FOCUS_DOWN); shadowOf(Looper.getMainLooper()).idle()
-        assertTrue(list.scrollY > 0); assertEquals(top, dropdown.top)
+        val last=list.getChildAt(list.childCount-1)
+        assertTrue(last.bottom<=list.height)
+        val training=view.findViewWithTag<View>("training_help_controls")
+        val lastBounds=android.graphics.Rect(0,0,last.width,last.height)
+        val trainingBounds=android.graphics.Rect(0,0,training.width,training.height)
+        scroll.offsetDescendantRectToMyCoords(last,lastBounds)
+        scroll.offsetDescendantRectToMyCoords(training,trainingBounds)
+        assertTrue(lastBounds.bottom<=trainingBounds.top)
+        scroll.isSmoothScrollingEnabled=false
+        scroll.fullScroll(View.FOCUS_DOWN);shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(scroll.scrollY>0)
         dropdown.setSelection(0); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertTrue(testDescendants(list).any { it.tag == "GPS_SPEED" })
         assertFalse(testDescendants(list).any { it.tag == "RIDER_POWER" })
