@@ -30,6 +30,9 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
             super.onMeasure(w,h)
         }
     }.apply { tag="dashboard_page_strip";isHorizontalScrollBarEnabled=false;addView(row,FrameLayout.LayoutParams(-2,-2)) }
+    private val reorder=TileReorder(scroller,row,themes,{ pages.all().map { it.id } }) { id,index ->
+        pages.move(id,index).also { if(it) { refresh();changed() } }
+    }
     private val layoutChoice=BicycleComponents.action(context,themes,"") { showLayoutGrid() }.apply { tag="dashboard_layout_choice" }
     var layoutPopup:PopupWindow?=null;private set
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
@@ -75,6 +78,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
                         setStroke(if(active) dp(2) else BicycleDesign.linePixels(context),BicycleComponents.selectionBorder(tokens,active))
                     }
                 }
+                if(page!=null) reorder.bind(this,page.id)
                 setOnClickListener {
                     if(page==null) pages.add() else pages.select(page.id)
                     refresh();changed()

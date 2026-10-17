@@ -39,5 +39,10 @@ internal fun selectTestDashboardLayout(picker:DashboardPresetPicker,template:Das
     popup.contentView.findViewWithTag<View>("preset_${template.name}").performClick()
     shadowOf(Looper.getMainLooper()).idle()
 }
-internal fun selectTestDashboardLayout(dialog:AlertDialog,template:DashboardTemplate) =
-    selectTestDashboardLayout(testDescendants(dialog.window!!.decorView).filterIsInstance<DashboardPresetPicker>().single(),template)
+internal fun selectTestDashboardLayout(dialog:AlertDialog,template:DashboardTemplate) {
+    val root=dialog.window!!.decorView
+    root.findViewWithTag<View>("profile_accordion_profiles_design")?.let { toggle ->
+        if(toggle.stateDescription==root.context.getString(R.string.zone_collapsed)) toggle.performClick()
+    }
+    selectTestDashboardLayout(testDescendants(root).filterIsInstance<DashboardPresetPicker>().single(),template)
+}

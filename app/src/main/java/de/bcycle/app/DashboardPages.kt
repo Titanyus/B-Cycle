@@ -45,6 +45,13 @@ internal class DashboardPages(private val context: Context, private val prefs: S
         if(value.isEmpty() || value.length>60 || value.any(Char::isISOControl) || rows.none { it.id==id }) return false
         write(rows.map { if(it.id==id) it.copy(name=value) else it });return true
     }
+    fun move(id:Int,position:Int):Boolean {
+        val rows=all().toMutableList()
+        val from=rows.indexOfFirst { it.id==id }
+        if(from<0 || position !in rows.indices) return false
+        if(from!=position) { rows.add(position,rows.removeAt(from));write(rows) }
+        return true
+    }
     fun delete(id:Int):Boolean {
         val rows=all();if(rows.size<=1 || rows.none { it.id==id }) return false
         val remaining=rows.filter { it.id!=id };val edit=prefs.edit()

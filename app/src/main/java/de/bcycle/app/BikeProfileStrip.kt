@@ -1,12 +1,9 @@
 package de.bcycle.app
 
-import android.content.ClipData
 import android.content.Context
 import android.graphics.drawable.GradientDrawable
-import android.view.DragEvent
 import android.view.Gravity
 import android.view.View
-import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -16,59 +13,20 @@ import android.widget.TextView
 internal class BikeProfileStrip(context: Context, private val themes: ThemeManager,
     private val select: (Int) -> Unit, private val add: () -> Unit,
     private val move: (Int, Int) -> Boolean, private val compact:Boolean=false) : HorizontalScrollView(context) {
-    private data class Drag(val owner: BikeProfileStrip, val slot: Int)
     private val row = LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL;isBaselineAligned=false }
     private var profiles = emptyList<BikeProfile>()
     private var painted = ""
     private var active = -1
     private var locked = false
     private var shape = emptyList<Int>()
-    private var drag: Drag? = null
-    private var edgeDirection = 0
-    private val edgeScroll = object : Runnable {
-        override fun run() {
-            if (drag==null || edgeDirection==0 || locked) return
-            scrollBy(dp(4)*edgeDirection,0)
-            postDelayed(this,16)
-        }
-    }
+    private val reorder = if(compact) null else TileReorder(this,row,themes,
+        { profiles.map { it.slot } }, { locked }, move)
     private val scale get()=if(compact) BicycleDesign.bikeQuickScale else 1f
     private fun dp(n:Int)=(BicycleDesign.dp(context,n)*scale).toInt().coerceAtLeast(1)
     init {
         tag=if(compact) "bike_quick_strip" else "bike_profile_strip";isHorizontalScrollBarEnabled=false;isFillViewport=false
         addView(row,LayoutParams(-2,-2))
-        row.setOnDragListener { _, event ->
-            val payload=event.localState as? Drag
-            if(compact || payload?.owner!==this || locked) return@setOnDragListener false
-            when(event.action) {
-                DragEvent.ACTION_DRAG_STARTED -> { drag=payload;true }
-                DragEvent.ACTION_DRAG_LOCATION -> {
-                    val x=event.x-scrollX
-                    val direction=when { x<dp(32)->-1; x>width-dp(32)->1; else->0 }
-                    if(direction!=edgeDirection) {
-                        edgeDirection=direction;removeCallbacks(edgeScroll)
-                        if(direction!=0) post(edgeScroll)
-                    }
-                    true
-                }
-                DragEvent.ACTION_DRAG_EXITED -> { edgeDirection=0;removeCallbacks(edgeScroll);true }
-                DragEvent.ACTION_DROP -> {
-                    edgeDirection=0;removeCallbacks(edgeScroll)
-                    val target=profiles.indices.minByOrNull { index ->
-                        val card=row.getChildAt(index)
-                        kotlin.math.abs(event.x-(card.left+card.right)/2f)
-                    }
-                    target!=null && move(payload.slot,target)
-                }
-                DragEvent.ACTION_DRAG_ENDED -> { drag=null;edgeDirection=0;removeCallbacks(edgeScroll);true }
-                else -> true
-            }
-        }
         BicycleComponents.bindTheme(this,themes) { paint() }
-    }
-    override fun onDetachedFromWindow() {
-        removeCallbacks(edgeScroll);edgeDirection=0;drag=null
-        super.onDetachedFromWindow()
     }
     fun show(rows:List<BikeProfile>, selected:Int, busy:Boolean) {
         profiles=rows;active=selected;locked=busy
@@ -90,25 +48,7 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
             addView(ImageView(context).apply { importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,dp(BicycleDesign.bikePreviewHeight)))
             addView(BicycleComponents.text(context,themes,"").apply { gravity=Gravity.CENTER;textSize=BicycleDesign.bodySp*scale;setLines(2);ellipsize=android.text.TextUtils.TruncateAt.END;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,-2))
             setOnClickListener { if(!locked) select(profile.slot) }
-            if(!compact) setOnLongClickListener {
-                if(locked || profiles.size<2) false else startDragAndDrop(ClipData.newPlainText("", ""),View.DragShadowBuilder(this),Drag(this@BikeProfileStrip,profile.slot),0)
-            }
-            if(!compact) accessibilityDelegate=object : View.AccessibilityDelegate() {
-                override fun onInitializeAccessibilityNodeInfo(host:View, info:AccessibilityNodeInfo) {
-                    super.onInitializeAccessibilityNodeInfo(host,info)
-                    val index=profiles.indexOfFirst { it.slot==profile.slot }
-                    if(!locked && index>0) info.addAction(AccessibilityNodeInfo.AccessibilityAction(R.id.bike_move_left,context.getString(R.string.bikes_move_left)))
-                    if(!locked && index in 0 until profiles.lastIndex) info.addAction(AccessibilityNodeInfo.AccessibilityAction(R.id.bike_move_right,context.getString(R.string.bikes_move_right)))
-                }
-                override fun performAccessibilityAction(host:View, action:Int, args:android.os.Bundle?):Boolean {
-                    val index=profiles.indexOfFirst { it.slot==profile.slot }
-                    return when(action) {
-                        R.id.bike_move_left -> !locked && move(profile.slot,index-1)
-                        R.id.bike_move_right -> !locked && move(profile.slot,index+1)
-                        else -> super.performAccessibilityAction(host,action,args)
-                    }
-                }
-            }
+            reorder?.bind(this,profile.slot)
         } else {
             addView(ImageView(context).apply { importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)))
             addView(BicycleComponents.text(context,themes,context.getString(R.string.bikes_new)).apply { gravity=Gravity.CENTER;textSize=BicycleDesign.bodySp*scale;setLines(2);importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LinearLayout.LayoutParams(-1,-2))

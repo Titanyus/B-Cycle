@@ -14,6 +14,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 internal enum class SettingsAction(val title: String, val icon: Int = 0, val titleResource: Int = 0) {
+    PROFILES("", BicycleIcon.Bikes.resource, titleResource=R.string.profiles_title),
     SENSORS("", BicycleIcon.Bikes.resource, titleResource = R.string.bikes_title),
     MAP("", BicycleIcon.MapManager.resource, titleResource = R.string.ui_settings_map),
     DASHBOARDS("", BicycleIcon.Dashboard.resource, titleResource = R.string.ui_settings_dashboards),
@@ -39,7 +40,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal } else
-            listOf(SettingsAction.PROFILE,SettingsAction.SENSORS,SettingsAction.ROUTES,SettingsAction.MAP,SettingsAction.DASHBOARDS,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
+            listOf(SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.ROUTES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.linePixels(context)))
             addView(BicycleComponents.listRow(context,themes).apply {

@@ -33,7 +33,7 @@ class UiConventionsTest {
             val activity=controller.get();views(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
             val menu=latest();val decor=menu.window!!.decorView;layout(decor)
             val entries=views(decor).filter { it.tag?.toString()?.startsWith("settings_")==true && it.isClickable }
-            assertEquals(8,entries.size)
+            assertEquals(6,entries.size)
             entries.forEach {
                 assertEquals(BicycleDesign.dp(activity,BicycleDesign.settingsRowHeight),it.minimumHeight)
                 val text=views(it).filterIsInstance<TextView>().single()
@@ -58,7 +58,7 @@ class UiConventionsTest {
         try {
             val activity=controller.get()
             views(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
-            val menu=latest();click(menu.window!!.decorView,"settings_MAP")
+            val menu=latest();click(menu.window!!.decorView,"settings_PROFILES")
             val screen=latest()
             val keys=listOf("mapHeading","mapFollow","mapTrackVisible","mapGpxVisible")
             val prefs=RideRuntime.get(activity).preferences
@@ -71,7 +71,7 @@ class UiConventionsTest {
             (views(screen.window!!.decorView).single { it.tag=="mapFollow" } as Switch).performClick()
             assertTrue(prefs.getBoolean("mapFollow",false))
             keys.filter { it!="mapFollow" }.forEach { assertFalse(prefs.getBoolean(it,true)) }
-            testBack(screen);click(menu.window!!.decorView,"settings_MAP")
+            testBack(screen);click(menu.window!!.decorView,"settings_PROFILES")
             val reopened=latest()
             keys.forEach { key ->
                 assertEquals(prefs.getBoolean(key,true),(views(reopened.window!!.decorView).single { it.tag==key } as Switch).isChecked)

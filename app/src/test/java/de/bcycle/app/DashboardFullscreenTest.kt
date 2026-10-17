@@ -77,7 +77,7 @@ class DashboardFullscreenTest {
             assertTrue(DashboardFullscreen.enabled(prefs))
             views(activity.window.decorView).single { it.contentDescription==activity.getString(R.string.ui_menu_open) }.performClick()
             val menu=ShadowAlertDialog.getLatestAlertDialog()
-            views(menu.window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
+            views(menu.window!!.decorView).single { it.tag=="settings_PROFILES" }.performClick()
             val screen=ShadowAlertDialog.getLatestAlertDialog()
             val toggle=screen.window!!.decorView.findViewWithTag<Switch>("dashboard_fullscreen")
             assertTrue(toggle.isChecked);toggle.performClick()

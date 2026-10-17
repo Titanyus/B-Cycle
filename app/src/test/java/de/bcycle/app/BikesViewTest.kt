@@ -31,7 +31,7 @@ class BikesViewTest {
             val app=controller.get();val runtime=RideRuntime.get(app)
             runtime.bikes.add()
             testDescendants(app.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
-            ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("settings_SENSORS").performClick()
+            ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("settings_PROFILES").performClick()
             val decor=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView;measure(decor)
             decor.findViewWithTag<View>("bike_photo_choose").performClick()
             val request=shadowOf(app).nextStartedActivityForResult
@@ -59,9 +59,9 @@ class BikesViewTest {
             runtime.bikes.add()
             testDescendants(app.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
             val menu=ShadowAlertDialog.getLatestAlertDialog()
-            menu.window!!.decorView.findViewWithTag<View>("settings_SENSORS").performClick()
+            menu.window!!.decorView.findViewWithTag<View>("settings_PROFILES").performClick()
             val screen=ShadowAlertDialog.getLatestAlertDialog();val decor=screen.window!!.decorView;measure(decor)
-            assertEquals("Bikes",decor.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
+            assertEquals("Profile",decor.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
             val body=decor.findViewWithTag<View>("bikes_manager")
             val cardLayouts=testDescendants(body).filter { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true }.map { it as LinearLayout }
             cardLayouts.forEach { card ->
@@ -76,6 +76,8 @@ class BikesViewTest {
             assertNotNull(body.findViewWithTag<View>("bike_sensor_search"))
             val fitContent = body.findViewWithTag<View>("bike_fit_settings")
             assertNull(body.findViewWithTag<View>("bike_fit_toggle"))
+            assertEquals(View.GONE,fitContent.visibility)
+            body.findViewWithTag<View>("profile_accordion_ui_recording_title").performClick()
             assertEquals(View.VISIBLE,fitContent.visibility)
             val gpsFields=body.findViewWithTag<View>("fit_source_content_GPS")
             assertEquals(View.GONE,gpsFields.visibility)

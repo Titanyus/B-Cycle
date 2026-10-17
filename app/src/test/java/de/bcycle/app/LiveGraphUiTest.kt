@@ -251,7 +251,7 @@ class LiveGraphUiTest {
             page.put("graphDisplayModes",JSONArray(List(DashboardLayout.FIELD_COUNT) { "invalid" }))
             try { backup.decode(json.toString().toByteArray());fail("invalid tile mode accepted") } catch(_:SettingsBackupFailure) {}
             all(activity.findViewById(android.R.id.content)).single { it.contentDescription=="Menü öffnen" }.performClick()
-            all(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
+            all(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag=="settings_PROFILES" }.performClick()
             assertFalse(all(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).any { it.tag=="graph_display_mode" })
         } finally { controller.pause().stop().destroy() }
     }

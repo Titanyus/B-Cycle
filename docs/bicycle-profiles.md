@@ -1,3 +1,30 @@
+# Fahrradbezogene Profile
+
+Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherigen Bereiche Bikes, Karten und Design & UI auf einer Seite. Fahrer und Upload-Dienste bleiben global.
+
+- Oben ein bis sechs Fahrradkacheln, drei sichtbar, horizontales Scrollen und gemeinsame Drag-and-drop-Vorschau.
+- Accordions **Bike**, **FIT-Aufzeichnung**, **Karten**, **Design**, **Trainingshilfe**. Geöffnete Bereiche bleiben innerhalb derselben Ansicht bei Profilwechsel erhalten. Bike ist zunächst geöffnet.
+- Bike enthält antippbaren Namen als normale Überschrift, Bild, Radtyp/Kategorie/Radumfang, Sensoren sowie Indoor-Korrektur. Der Name ist kein Sticky Header mehr.
+- FIT enthält unverändert Hauptquellen und die zusätzlichen Quell-Accordions. Design enthält Themes, benannte Dashboards/Layout-Auswahl, Vollbild und Fahrmodus-Anzeige; Dashboard-Umbenennen/-Löschen bleibt im Design-Bereich erreichbar.
+- Unter den Accordions **Dashboard bearbeiten**; fester Profilfooter **Umbenennen**, **Profil übernehmen**, **Profil löschen**. Umbenennen öffnet bei Bedarf das Bike-Accordion. Löschen bleibt bestätigt und ist beim letzten Profil ausgeblendet.
+- Profil übernehmen bietet ausschließlich andere Profile an und kopiert Konfiguration einschließlich FIT, Theme/Dashboards/Trainingshilfe und Karten. **Zielname, Ziel-ID, Bild und gekoppelte Sensorgeräte bleiben erhalten.** Die Quelle wird nicht verändert.
+
+![Native Profilübersicht mit Testdaten](previews/profiles.png)
+
+## UI-Speicherung und Migration
+
+`BikeUiConfigurationStore` speichert pro stabiler Bike-ID einen typisierten UI-/Karten-Snapshot unter `bikeUiProfilesV1`. Die aktiven bestehenden Preferences bleiben die gemeinsame Schnittstelle für alle bisherigen Komponenten. Vor einem Profilwechsel wird der aktuelle Stand gesichert; beim Wechsel werden die verwalteten Schlüssel vollständig ersetzt. Nicht vorhandene Schlüssel bleiben auch nach einem Rückwechsel abwesend und übernehmen keine Werte des zuvor gewählten Profils. Der aktive Stand liegt weiterhin sofort in den bestehenden Preferences und übersteht einen Prozessneustart.
+
+Bei der ersten Migration erhalten alle vorhandenen Fahrräder dieselben bisherigen gemeinsamen Einstellungen. Neue Fahrräder beginnen mit einer Kopie der aktuellen UI-/Karteneinstellungen und ihrer bisherigen neuen Bike-Standardkonfiguration. Beim Löschen wird nur der entsprechende Snapshot entfernt. ThemeManager, Dashboard und Karte laden nach einem Wechsel neu; BLE-Verbindungen und Live-Daten werden über den vorhandenen Runtime-Wechsel getrennt/zurückgesetzt.
+
+Auch gewählte Karte, Nachtansicht, Ausrichtung, Ovalmodus, Zoom/Kameraposition, Höhenkorrektur und die ausgewählte FIT-/GPX-Kartenstrecke sind profilbezogen. Dateizugriffe bleiben auf dem bestehenden Kartenworker. Fehlende/gelöschte Streckendateien erzeugen keine erfundenen Routen.
+
+**Global bleiben** Fahrerprofil, Benachrichtigungen, Streckenarchiv, Upload-Konfiguration/-Zugangsdaten und Kartenanbieter-Schlüssel. Die vorhandene selektive Einstellungssicherung betrifft weiterhin das aktive Profil; Gerätezuordnungen werden dadurch nicht exportiert. Konten und Gerätezuordnungen gehören nicht in die UI-Snapshots.
+
+Profilwechsel, Übernahme, Hinzufügen, Löschen und Umsortieren bleiben während Aufnahme/Speichern gesperrt. Nach einem Rebuild dürfen ausstehende Spinner-Callbacks keine alte Konfiguration zurückschreiben.
+
+## Frühere Sensor-/Bike-Architektur und technische Details
+
 # Bikes – dynamische Profilverwaltung
 
 Die bisherige Sensorenseite heißt **Bikes** und verwendet das vorhandene Bike-Icon.
@@ -40,7 +67,12 @@ neu aufgebaut. Keine zweite Sensorverarbeitung oder parallele Aufzeichnung.
   ihren früheren Index. IDs werden beim Löschen nicht wiederverwendet.
 - Langes Drücken startet Android-Drag-and-drop. Ablegen verschiebt das Rad an die
   Zielposition; am sichtbaren Rand scrollt die Reihe während des Ziehens weiter.
-  TalkBack bietet zusätzlich „Rad nach links/rechts verschieben“ an.
+  Der gemeinsame `TileReorder` (auch Dashboard-Seiten in Design & UI) zeigt eine
+  halbtransparente Vorschaukachel mit ACCENT-Kontur am Ziel und lässt Nachbarn in
+  180 ms zur Seite rücken. Beim Ablegen federt die Kachel durch eine kurze
+  Größenanimation ein. Hover verändert keine gespeicherten Daten; Abbruch setzt
+  die Vorschau zurück. Plus-Kacheln und die kompakte Schnellauswahl bleiben ausgenommen.
+  TalkBack bietet zusätzlich „Nach links/rechts verschieben“ an.
 - Auswahl bleibt beim Verschieben erhalten. Sensor-/FIT-Konfiguration und Fotos
   hängen an der Profil-ID, nicht an der sichtbaren Position.
 - Gemeinsamer fachlicher Footer mit „Rad löschen“ und Bestätigung für das aktuell

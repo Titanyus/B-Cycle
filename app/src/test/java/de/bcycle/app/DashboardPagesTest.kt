@@ -29,6 +29,52 @@ class DashboardPagesTest {
         assertEquals("existing-fields",prefs.getString("dashboard_2",null))
         assertEquals("POWER",prefs.getString("dashboardGraphs_2",null))
     }
+    @Test fun reorderingKeepsSelectedIdAndPerPageSettingsAndPersistsOrder() {
+        val pages=DashboardPages(c,prefs);pages.select(2)
+        prefs.edit().putString("dashboard_2","retained-fields").apply()
+        assertTrue(pages.move(3,0))
+        assertEquals(listOf(3,0,1,2),DashboardPages(c,prefs).all().map { it.id })
+        assertEquals(2,pages.selected());assertEquals("retained-fields",prefs.getString("dashboard_2",null))
+        assertFalse(pages.move(9,0));assertFalse(pages.move(3,6))
+    }
+    @Test fun dashboardDragPreviewsInsertionAndCancelDoesNotSave() {
+        val host=org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val picker=DashboardPresetPicker(host.get(),0);host.get().setContentView(picker)
+            picker.measure(View.MeasureSpec.makeMeasureSpec(900,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY))
+            picker.layout(0,0,900,600)
+            shadowOf(Looper.getMainLooper()).idle()
+            val row=(picker.findViewWithTag<ViewGroup>("dashboard_page_strip")).getChildAt(0) as ViewGroup
+            val reorder=DashboardPresetPicker::class.java.getDeclaredField("reorder").apply { isAccessible=true }.get(picker) as TileReorder
+            val payload=TileReorder.Payload(reorder,0)
+            fun send(action:Int,x:Float):Boolean {
+                val method=android.view.DragEvent::class.java.declaredMethods.single { it.name=="obtain" && it.parameterCount==11 }.apply { isAccessible=true }
+                val event=method.invoke(null,action,x,20f,0f,0f,payload,null,null,null,null,false) as android.view.DragEvent
+                return row.dispatchDragEvent(event)
+            }
+            val x=(row.getChildAt(1).left+row.getChildAt(1).right)/2f
+            assertTrue(row.getChildAt(0).isLongClickable)
+            send(android.view.DragEvent.ACTION_DRAG_STARTED,10f)
+            send(android.view.DragEvent.ACTION_DRAG_LOCATION,x)
+            shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
+            assertTrue(row.getChildAt(0).translationX>0)
+            assertTrue(row.getChildAt(1).translationX<0)
+            assertNotNull(row.getChildAt(0).foreground)
+            assertEquals(listOf(0,1,2,3),picker.pages.all().map { it.id })
+            send(android.view.DragEvent.ACTION_DRAG_ENDED,x)
+            assertEquals(0f,row.getChildAt(0).translationX,0f)
+            assertNull(row.getChildAt(0).foreground)
+            assertEquals(listOf(0,1,2,3),picker.pages.all().map { it.id })
+            send(android.view.DragEvent.ACTION_DRAG_STARTED,10f)
+            send(android.view.DragEvent.ACTION_DROP,x)
+            send(android.view.DragEvent.ACTION_DRAG_ENDED,x)
+            assertEquals(listOf(1,0,2,3),picker.pages.all().map { it.id })
+            assertEquals(0,picker.pages.selected())
+            assertFalse(picker.findViewWithTag<View>("dashboard_page_add").isLongClickable)
+            assertTrue(picker.findViewWithTag<View>("preset_page_0").performAccessibilityAction(R.id.bike_move_left,null))
+            assertEquals(listOf(0,1,2,3),picker.pages.all().map { it.id })
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun deletingNeverRenumbersAndReusingSlotStartsFresh() {
         val pages=DashboardPages(c,prefs)
         prefs.edit().putString("dashboard_1","removed").putString("dashboardGraphs_1","old").putString("dashboard_2","retained").apply()
@@ -87,7 +133,7 @@ class DashboardPagesTest {
             assertTrue(button.text is android.text.Spanned)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun futureBikePayloadIncludesThemeDashboardAndMapSettingsButNoAccountsOrRecording() {
+    @Test fun bikeUiScopeIncludesThemeDashboardAndMapSettingsButNoAccountsOrRecording() {
         prefs.edit().putString(ThemeManager.activeKey,"embers").putString("dashboard_5","fields")
             .putString("mapSource","OPENTOPOMAP").putBoolean("mapNight",true).putString("mapDataField_0","HEART_RATE")
             .putString("recordSpeed","SPEED").putString("oauthSecret","secret").apply()

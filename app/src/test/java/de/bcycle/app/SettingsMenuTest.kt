@@ -58,8 +58,8 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_PROFILE", "settings_SENSORS", "settings_ROUTES", "settings_MAP", "settings_DASHBOARDS", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Fahrer", "Bikes", "Strecken", "Karten", "Design & UI", "Benachrichtigungen", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(listOf("settings_PROFILE", "settings_PROFILES", "settings_ROUTES", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Fahrer", "Profile", "Strecken", "Benachrichtigungen", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
                 rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()
@@ -150,7 +150,7 @@ class SettingsMenuTest {
             testBack(ShadowAlertDialog.getLatestAlertDialog())
             assertEquals(View.VISIBLE,advanced.window!!.decorView.visibility)
             testBack(advanced);assertEquals(View.VISIBLE,root.window!!.decorView.visibility)
-            views(root).single { it.tag=="settings_MAP" }.performClick()
+            views(root).single { it.tag=="settings_PROFILES" }.performClick()
             testBack(ShadowAlertDialog.getLatestAlertDialog());assertEquals(View.VISIBLE,root.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
@@ -160,13 +160,13 @@ class SettingsMenuTest {
         try {
             val activity = controller.get(); val prefs = activity.getSharedPreferences("bike", 0)
             val root = open(activity)
-            views(root).single { it.tag == "settings_DASHBOARDS" }.performClick()
+            views(root).single { it.tag == "settings_PROFILES" }.performClick()
             val cancelled = ShadowAlertDialog.getLatestAlertDialog()
             selectTestDashboardLayout(cancelled,DashboardTemplate.HERO)
             shadowOf(android.os.Looper.getMainLooper()).idle()
             testBack(cancelled)
             assertEquals("HERO",prefs.getString("dashboardTemplate_0",null))
-            views(root).single { it.tag == "settings_DASHBOARDS" }.performClick()
+            views(root).single { it.tag == "settings_PROFILES" }.performClick()
             val dialog = ShadowAlertDialog.getLatestAlertDialog()
             assertNotNull(views(dialog).single { it.tag=="dashboard_layout_choice" })
             selectTestDashboardLayout(dialog,DashboardTemplate.HERO_SEVEN)
@@ -190,7 +190,7 @@ class SettingsMenuTest {
             val prefs = activity.getSharedPreferences("bike", 0)
             val custom = DashboardLayout.defaults.replace(0, DashboardField("HEART_RATE")).encode()
             prefs.edit().putString("dashboard", custom).commit()
-            for (action in SettingsAction.entries.filter { it != SettingsAction.ADVANCED }) {
+            for (action in SettingsAction.entries.filter { it !in listOf(SettingsAction.ADVANCED,SettingsAction.SENSORS,SettingsAction.MAP,SettingsAction.DASHBOARDS) }) {
                 val menu = open(activity)
                 var parent=menu
                 if (action.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal)

@@ -698,4 +698,12 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="training_help_explanation">Wirkt auf alle passenden Datenfelder dieses Dashboards. Puls und Fahrerleistung verwenden die Zonen aus dem Fahrerprofil. Zone 2: Grün im Zielbereich, Rot außerhalb; nach unten mit großzügigem Übergang.</string>
     <string name="ui_map_oval_active">Vorausschau-Oval aktiv · ausschalten</string>
     <string name="ui_map_oval_inactive">Vorausschau-Oval aus · einschalten</string>
+    <string name="tiles_move_hint">Zum Umsortieren gedrückt halten und ziehen</string>
+    <string name="tiles_move_left">Nach links verschieben</string>
+    <string name="tiles_move_right">Nach rechts verschieben</string>
+    <string name="profiles_title">Profile</string>
+    <string name="profiles_bike">Bike</string>
+    <string name="profiles_design">Design</string>
+    <string name="profiles_copy">Profil übernehmen</string>
+    <string name="profiles_delete">Profil löschen</string>
 </resources>

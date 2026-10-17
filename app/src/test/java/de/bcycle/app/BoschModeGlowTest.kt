@@ -85,8 +85,12 @@ class BoschModeGlowTest {
             fun open():android.app.AlertDialog {
                 views(a.window.decorView).single { it.contentDescription==a.getString(R.string.ui_menu_open) }.performClick()
                 val menu=ShadowAlertDialog.getLatestAlertDialog()
-                views(menu.window!!.decorView).single { it.tag=="settings_DASHBOARDS" }.performClick()
-                return ShadowAlertDialog.getLatestAlertDialog()
+                views(menu.window!!.decorView).single { it.tag=="settings_PROFILES" }.performClick()
+                return ShadowAlertDialog.getLatestAlertDialog().also {
+                    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                    it.window!!.decorView.findViewWithTag<View>("profile_accordion_profiles_design").performClick()
+                    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                }
             }
             var screen=open()
             screen.window!!.decorView.findViewWithTag<android.widget.Spinner>("mode_glow_placement").setSelection(ModeGlowPlacement.TOP.ordinal)
@@ -236,7 +240,7 @@ class BoschModeGlowTest {
             fun open(): AlertDialog {
                 views(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
                 val menu = ShadowAlertDialog.getLatestAlertDialog()
-                views(menu.window!!.decorView).single { it.tag == "settings_DASHBOARDS" }.performClick()
+                views(menu.window!!.decorView).single { it.tag == "settings_PROFILES" }.performClick()
                 return ShadowAlertDialog.getLatestAlertDialog()
             }
             val screen = open()

@@ -31,6 +31,7 @@ internal data class BikeProfile(val slot: Int, val name: String, val type: BikeT
 internal class BikeProfileStore(private val context: Context, private val prefs: SharedPreferences) {
     companion object { const val MAX_COUNT = 6; private const val NEXT = "nextBikeSlot"; const val KEY = "bikeProfilesV1"; const val ACTIVE = "activeBikeSlot" }
     val activeSlot get() = parseStored().let { rows -> prefs.getInt(ACTIVE, 0).takeIf { id -> rows.any { it.slot == id } } ?: rows.first().slot }
+    internal val ui=BikeUiConfigurationStore(prefs)
     private fun default(slot: Int) = BikeProfile(slot, context.getString(R.string.bikes_default_name, slot + 1))
     init {
         if (!prefs.contains(KEY)) {
@@ -39,6 +40,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
             writeLegacy(prefs.edit().putString(KEY, encode(rows)).putInt(ACTIVE, 0), rows[0]).apply()
         }
     }
+    init { ui.ensure(parseStored().map { it.slot }) }
     private fun legacy(p: BikeProfile) = p.copy(gpsEnabled = prefs.getBoolean("gpsEnabled", p.gpsEnabled),
         bikeEnabled = prefs.getBoolean("bikeEnabled", true), heartEnabled = prefs.getBoolean("heartEnabled", true),
         bikeAddress = prefs.getString("address", null), bikeName = prefs.getString("name", null),
@@ -89,6 +91,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
     fun select(slot: Int) {
         val rows = all()
         val selected = rows.first { it.slot == slot }; require(selected.type.available)
+        if(slot!=activeSlot) { ui.ensure(rows.map { it.slot });ui.save(activeSlot);ui.apply(slot) }
         writeLegacy(prefs.edit().putString(KEY, encode(rows)).putInt(ACTIVE, slot), selected).apply()
     }
     fun add(): BikeProfile? {
@@ -97,6 +100,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         if (id == Int.MAX_VALUE) return null
         val profile = default(id)
         prefs.edit().putString(KEY, encode(rows + profile)).putInt(NEXT, id + 1).apply()
+        ui.ensure((rows+profile).map { it.slot })
         return profile
     }
     /** Switch runtime to a surviving profile before removing the previous active one. */
@@ -105,6 +109,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         if (rows.size <= 1 || slot == activeSlot || rows.none { it.slot == slot }) return false
         prefs.edit().putString(KEY, encode(rows.filterNot { it.slot == slot }))
             .putInt(NEXT, maxOf(prefs.getInt(NEXT, 0), rows.maxOf { it.slot } + 1)).apply()
+        ui.remove(slot)
         return true
     }
     fun move(slot: Int, position: Int): Boolean {

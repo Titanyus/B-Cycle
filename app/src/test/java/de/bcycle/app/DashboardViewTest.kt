@@ -285,7 +285,7 @@ class DashboardViewTest {
         val menu = ShadowAlertDialog.getLatestAlertDialog()
         val items = descendants(menu.window!!.decorView)
         assertFalse(items.filterIsInstance<TextView>().any { it.text.toString() == "Fahrrad auswählen" })
-        items.single { it.tag == "settings_SENSORS" }.performClick()
+        items.single { it.tag == "settings_PROFILES" }.performClick()
         val manager = descendants(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
         assertTrue(manager.contains("Sensor suchen / verbinden"))
         assertTrue(manager.contains("E-Bike"))

@@ -83,7 +83,7 @@ class DynamicBikesTest {
                 for(index in 1 until row.childCount) assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlGap),row.getChildAt(index).left-row.getChildAt(index-1).right)
             }
             val title=decor.findViewWithTag<android.widget.TextView>("bike_profile_name")
-            assertTrue(title.parent is BicycleSectionHeader)
+            assertFalse(title.parent is BicycleSectionHeader)
             decor.findViewWithTag<View>("bike_rename").performClick()
             val edit=decor.findViewWithTag<android.widget.EditText>("bike_profile_name_edit")
             assertEquals(View.VISIBLE,edit.visibility);edit.setText("Neuer Name")
@@ -107,8 +107,8 @@ class DynamicBikesTest {
         assertTrue(first.isLongClickable)
         assertTrue(first.performAccessibilityAction(R.id.bike_move_right,null))
         assertEquals(listOf(1,0,2,3,4),store.all().map { it.slot });assertEquals(0,store.activeSlot)
-        val payloadClass=Class.forName("de.bcycle.app.BikeProfileStrip\$Drag")
-        val payload=payloadClass.declaredConstructors.single().apply { isAccessible=true }.newInstance(strip,4)
+        val payloadClass=Class.forName("de.bcycle.app.TileReorder\$Payload")
+        val payload=payloadClass.declaredConstructors.single().apply { isAccessible=true }.newInstance(BikeProfileStrip::class.java.getDeclaredField("reorder").apply { isAccessible=true }.get(strip),4)
         fun event(action:Int,x:Float):DragEvent {
             val method=DragEvent::class.java.declaredMethods.single { it.name=="obtain" && it.parameterCount==11 }.apply { isAccessible=true }
             return method.invoke(null,action,x,20f,0f,0f,payload,null,null,null,null,false) as DragEvent

@@ -33,6 +33,10 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     init {
         worker.execute { finishOperation("") {
             workerRoute = library.load(); fits.load(); fits.discoverDownloads(context)
+            if(preferences.contains("displayGpxId")) {
+                val id=preferences.getString("displayGpxId","")?.takeIf { wanted -> library.entries.any { it.id==wanted } }
+                workerRoute=library.select(id)
+            } else preferences.edit().putString("displayGpxId",library.selected ?: "").apply()
             selectedFit = preferences.getString("displayFitId", null)?.takeIf { id -> fits.entries.any { it.id == id && it.hasRoute } }
             if (selectedFit != null) workerRoute = FitRead.read(fits.file(selectedFit!!)).route
             defaultRouteIfUnselected()
@@ -180,12 +184,24 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             } }
         }
     }
-    private fun setSelectedFit(id: String?) { selectedFit = id; preferences.edit().apply { if (id == null) remove("displayFitId") else putString("displayFitId", id) }.apply() }
+    private fun setSelectedFit(id: String?) { selectedFit = id; preferences.edit().apply { if (id == null) remove("displayFitId") else putString("displayFitId", id);putString("displayGpxId",if(id==null) library.selected ?: "" else "") }.apply() }
+    /** Queued on the existing library worker, so switching during a library operation is safe. */
+    internal fun restoreProfileRoute() {
+        val fit=preferences.getString("displayFitId",null)
+        val gpx=preferences.getString("displayGpxId",null)
+        busy=true
+        worker.execute { finishOperation("") {
+            selectedFit=fit?.takeIf { id -> fits.entries.any { it.id==id && it.hasRoute } }
+            val selected=gpx?.takeIf { id -> library.entries.any { it.id==id } }
+            val displayed=library.select(if(selectedFit==null) selected else null)
+            selectedFit?.let { runCatching { FitRead.read(fits.file(it)).route }.getOrNull() } ?: displayed
+        } }
+    }
     fun selectRoute(id: String?) = operate(if (id == null) "Strecke ausgeblendet" else "Strecke angezeigt") {
         if (id != null && fits.entries.any { it.id == id }) {
             val displayed = FitRead.read(fits.file(id)).route ?: error("Diese FIT-Datei enthält keine darstellbaren GPS-Punkte")
-            library.select(null); setSelectedFit(id); displayed
-        } else { val displayed = library.select(id); setSelectedFit(null); displayed }
+            library.select(null); preferences.edit().putString("displayGpxId","").apply();setSelectedFit(id); displayed
+        } else { val displayed = library.select(id);preferences.edit().putString("displayGpxId",id ?: "").apply(); setSelectedFit(null); displayed }
     }
     fun renameRoute(id: String, name: String) = operate("") {
         if (fits.entries.any { it.id == id }) fits.rename(id, name) else library.rename(id, name)

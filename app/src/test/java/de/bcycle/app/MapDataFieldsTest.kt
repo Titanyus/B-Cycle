@@ -96,7 +96,7 @@ class MapDataFieldsTest {
         fun fields(activity: MainActivity) = descendants(activity.findViewById(android.R.id.content))
         fun enter(activity: MainActivity) {
             fields(activity).single { it.contentDescription == "Menü öffnen" }.performClick()
-            click(latest(), "settings_DASHBOARDS"); click(latest(), "dashboard_editor_open")
+            click(latest(), "settings_PROFILES"); click(latest(), "dashboard_editor_open")
             assertFalse(latest().isShowing); assertTrue(activity.dashboardEditing)
         }
         try {

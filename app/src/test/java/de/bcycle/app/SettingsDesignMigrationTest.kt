@@ -62,7 +62,7 @@ class SettingsDesignMigrationTest {
             val activity = controller.get(); val themes = RideRuntime.get(activity).themes
             assertTrue(themes.saveCustom(light()).valid)
             val root = open(activity)
-            for (action in SettingsAction.entries.filter { it != SettingsAction.ADVANCED && it != SettingsAction.ROUTES }) {
+            for (action in SettingsAction.entries.filter { it !in listOf(SettingsAction.ADVANCED,SettingsAction.ROUTES,SettingsAction.SENSORS,SettingsAction.MAP,SettingsAction.DASHBOARDS) }) {
                 themes.activate(BicycleThemes.red.id)
                 var parent=root
                 if(action.ordinal>=SettingsAction.RECOVERY.ordinal) { views(root).single { it.tag=="settings_ADVANCED" }.performClick();parent=ShadowAlertDialog.getLatestAlertDialog() }
@@ -80,7 +80,8 @@ class SettingsDesignMigrationTest {
                 assertTrue(themes.activate(light().id)); shadowOf(Looper.getMainLooper()).idle(); measure(child)
                 assertEquals("Theme changed geometry in $action", before, geometry(child))
                 assertEquals(light().tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
-                assertTrue(views(child).filterIsInstance<TextView>().all { it.currentTextColor == light().tokens.foreground || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == BicycleDesign.dashboardUnitColor) || !it.isEnabled })
+                val wrongColors=views(child).filterIsInstance<TextView>().filterNot { it.currentTextColor == light().tokens.foreground || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == BicycleDesign.dashboardUnitColor) || !it.isEnabled }
+                assertTrue("Unrecolored $action: "+wrongColors.joinToString { "${it.tag}: ${it.text} ${Integer.toHexString(it.currentTextColor)}" },wrongColors.isEmpty())
                 testBack(child)
                 if(parent!==root) testBack(parent)
                 shadowOf(Looper.getMainLooper()).idle()

@@ -261,6 +261,21 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if (!enabled) { gpsSensor.stop(); gpsStatus = "GPS · Aus"; if ((if (recording) activeConfig else config).speedSource == "GPS_SPEED") capturePerformance(PerformanceChannel.SPEED, null, "GPS_SPEED") } else if (active) gpsSensor.start()
         notifyChanged()
     }
+    internal var profileRevision=0;private set
+    internal fun copyProfile(sourceSlot:Int):Boolean {
+        if(recording || saving) return false
+        val target=bikes.current()
+        val source=bikes.all().firstOrNull { it.slot==sourceSlot && it.slot!=target.slot } ?: return false
+        bikes.ui.ensure(bikes.all().map { it.slot });bikes.ui.save(target.slot)
+        activateBike {
+            bikes.save(source.copy(slot=target.slot,name=target.name,
+                bikeAddress=target.bikeAddress,bikeName=target.bikeName,
+                heartAddress=target.heartAddress,heartName=target.heartName,
+                trainerAddress=target.trainerAddress,trainerName=target.trainerName))
+            bikes.ui.copy(sourceSlot,target.slot)
+        }
+        return true
+    }
     internal fun switchBike(slot: Int): Boolean {
         if (slot == bikes.activeSlot) return true
         if (recording || saving) return false
@@ -277,6 +292,9 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         connectionsRequested = false
         connection.stop();trainer.stop(); heart.stop(); gpsSensor.stop()
         change()
+        profileRevision++
+        themes.reloadFromPreferences()
+        mapState.restoreProfileRoute()
         connectionsRequested = bikes.current().autoConnect; disconnectedSensors.clear()
         gpsEnabled = bikes.current().gpsEnabled && !isIndoor
         bikeData = LiveData(indoor=isIndoor); pulse = PulseValues(); heartAt = null; times.clear()

@@ -1,4 +1,6 @@
-# Nächster Architektur-Schritt: Fahrradprofile
+# Ursprünglicher Architekturplan: Fahrradprofile
+
+**Status:** Fahrradprofile und die gemeinsame Profilseite sind umgesetzt. Maßgeblich ist [Fahrradbezogene Profile](bicycle-profiles.md); die folgenden ursprünglichen Überlegungen sind historisch.
 
 Vorgesehen sind vier frei benennbare Fahrradprofile mit Typ E-Bike, normales Rad
 oder Indoor-Bike. Das bestehende E-Bike wird bei der Migration zum ersten Profil.

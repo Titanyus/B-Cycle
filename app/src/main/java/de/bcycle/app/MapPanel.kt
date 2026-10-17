@@ -285,6 +285,13 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         running = false; phoneHeading.stop(); stopMotion(); handler.removeCallbacksAndMessages(null); downloads.onPause(); mapView.layerManager.pause(); saveCamera()
     }
     fun destroy() { pause(); mapView.destroyAll() }
+    internal fun refreshProfileSettings() {
+        refreshSettings()
+        mapView.setZoomLevel(preferences.getInt("mapZoom",16).coerceIn(2,source.maximumZoom).toByte())
+        val lat=preferences.getFloat("mapLatitude",51f).toDouble().coerceIn(-85.0,85.0)
+        val lon=preferences.getFloat("mapLongitude",10f).toDouble().coerceIn(-180.0,180.0)
+        mapView.setCenter(LatLong(lat,lon))
+    }
     fun refreshSettings() {
         val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
         val nextKey=MapProviderSettings.read(context)

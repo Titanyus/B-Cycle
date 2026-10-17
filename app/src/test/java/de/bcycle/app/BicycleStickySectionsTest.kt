@@ -83,7 +83,7 @@ class BicycleStickySectionsTest {
             runtime.themes.activate("preset:black-ops")
             testDescendants(activity.findViewById(android.R.id.content)).single { it.contentDescription==activity.getString(R.string.ui_menu_open) }.performClick()
             var dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            dialog.window!!.decorView.findViewWithTag<View>("settings_SENSORS").performClick()
+            dialog.window!!.decorView.findViewWithTag<View>("settings_PROFILES").performClick()
             dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             val decor=dialog.window!!.decorView;measure(decor,1080,2100)
@@ -91,8 +91,8 @@ class BicycleStickySectionsTest {
             val scroll=testDescendants(decor).filterIsInstance<BicycleStickyScrollView>().single()
             val body=decor.findViewWithTag<View>("bikes_manager")
             val headings=testDescendants(body).filterIsInstance<BicycleSectionHeader>()
-            assertEquals(listOf(runtime.bikes.current().name,activity.getString(R.string.bikes_type),activity.getString(R.string.bikes_sensors),activity.getString(R.string.ui_recording_title)),headings.map { it.contentDescription })
-            assertTrue(headings.all { it.width==scroll.width && it.left==0 })
+            assertFalse(headings.any { it.contentDescription==runtime.bikes.current().name })
+            assertEquals(5,testDescendants(body).count { it.tag?.toString()?.startsWith("profile_accordion_")==true })
             for(sensor in listOf("GPS","EBIKE","POWER","HEART")) {
                 val toggle=decor.findViewWithTag<android.widget.Switch>("bike_sensor_$sensor")
                 assertTrue(toggle.isAccessibilityHeading)
@@ -114,40 +114,15 @@ class BicycleStickySectionsTest {
             decor.draw(Canvas(top))
             java.io.File("/tmp/bcycle-bikes-sections.png").outputStream().use { top.compress(Bitmap.CompressFormat.PNG,100,it) }
             top.recycle()
-            // A genuine native screenshot of the prototype, with a pinned header and live theme.
-            scroll.scrollTo(0,headings.first().top+60)
-            val nav=decor.findViewWithTag<View>("bicycle_navigation_header")
-            val location=IntArray(2);headings.first().getLocationOnScreen(location)
-            val origin=IntArray(2);scroll.getLocationOnScreen(origin)
-            assertEquals("pinned heading location",origin[1],location[1])
-            val navLocation=IntArray(2);nav.getLocationOnScreen(navLocation)
-            assertEquals(navLocation[1]+nav.height,origin[1])
+            // Bike headings are now ordinary headings inside an accordion, not sticky.
+            scroll.scrollTo(0,60)
+            val title=decor.findViewWithTag<View>("bike_profile_name")
+            assertFalse(title.parent is BicycleSectionHeader)
+            assertEquals(0f,title.translationY,0f)
             val screenshot=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888)
             decor.draw(Canvas(screenshot))
-            assertEquals(runtime.themes.active.tokens.primary,screenshot.getPixel(decor.width-20,nav.height/2))
-            java.io.File("/tmp/bcycle-bikes-sticky.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG,100,it) }
+            java.io.File("/tmp/bcycle-profiles.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG,100,it) }
             screenshot.recycle()
-            // The actual native button can be raised/pressed. It must remain behind the
-            // opaque pinned heading, including the new top separation band.
-            val sensorHeader=headings.single { it.contentDescription==activity.getString(R.string.bikes_sensors) }
-            val search=decor.findViewWithTag<View>("bike_sensor_search")
-            search.elevation=BicycleDesign.dp(activity,2).toFloat()
-            search.translationZ=BicycleDesign.dp(activity,6).toFloat()
-            search.isPressed=true
-            scroll.scrollTo(0,search.top-40)
-            assertTrue(sensorHeader.translationY>0)
-            assertTrue(sensorHeader.z>search.z)
-            val pinned=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888)
-            decor.draw(Canvas(pinned))
-            val pinnedOrigin=IntArray(2);sensorHeader.getLocationOnScreen(pinnedOrigin)
-            val decorOrigin=IntArray(2);decor.getLocationOnScreen(decorOrigin)
-            val x=decor.width/2
-            val y=pinnedOrigin[1]-decorOrigin[1]
-            val line=BicycleDesign.linePixels(activity,BicycleDesign.sectionRuleDp)
-            assertEquals(runtime.themes.active.tokens.foreground,pinned.getPixel(x,y+sensorHeader.height-line/2-1))
-            assertEquals(runtime.themes.active.tokens.secondary,pinned.getPixel(x,y+line+5))
-            java.io.File("/tmp/bcycle-bikes-sticky-sensors.png").outputStream().use { pinned.compress(Bitmap.CompressFormat.PNG,100,it) }
-            pinned.recycle()
         } finally { controller.pause().stop().destroy() }
     }
 }

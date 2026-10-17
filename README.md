@@ -32,18 +32,18 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 ## Key Features
 
-- **Individuelle Dashboards** – Vier Seiten, zehn Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.
+- **Individuelle Dashboards** – Bis zu sechs benannte Seiten, zehn Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.
 - **Live-Daten vom Rad** – Bosch-E-Bike, BLE-/FTMS-Indoor-Trainer, GPS und BLE-Pulsmesser; Fahrerleistung und Motorleistung bleiben getrennt.
 - **Karten unterwegs** – Online- und Offline-Karten, Tages-/Nachtansicht, GPX-Strecken und Höhenanzeige an der aktuellen Position.
 - **FIT-Aufzeichnung** – Gewünschte Messwerte und Hauptquellen selbst auswählen; Aufzeichnung auch bei ausgeschaltetem Bildschirm.
 - **Fahrten im Detail** – Karte, fünf Verlaufsdiagramme, Bewegungszeit, Höhenmeter und Performance-Kennzahlen wie Normalized Power und Estimated FTP bei geeigneten Daten.
 - **Trainingszonen** – Persönliche Leistungs- und Pulszonen, Zonenanteile, Verteilungskurven und bis zu vier Best Efforts mit Watt und W/kg.
-- **Live-Graphen und Ambient-Glow** – Daten, Hintergrundgraphen und Zonen-Visualisierung unabhängig je Kachel kombinieren; Fahrmodus und Akkuwarnung am Bildschirmrand erkennen.
-- **Fahrradprofile** – Bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen und FIT-Einstellungen. E-Bike und Indoor-Bike sind nutzbar; normales Bike ist vorbereitet.
+- **Live-Graphen und Ambient-Glow** – Daten und Hintergrundgraphen je Kachel kombinieren, Trainingshilfe je Dashboard wählen; Fahrmodus und Akkuwarnung am Bildschirmrand erkennen.
+- **Fahrradprofile** – Bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen, FIT-Einstellungen sowie eigenen Themes, Dashboards und Kartenoptionen. E-Bike und Indoor-Bike sind nutzbar; normales Bike ist vorbereitet.
 - **Dein Design** – Sieben Farbthemen mit einheitlicher Bedienung, sofort gespeicherten Einstellungen und Hochformat-Layouts.
 - **Export und Upload** – Lokal speichern oder eigene Fahrten an WebDAV, intervals.icu, Dreeve und Strava senden. Dienste arbeiten unabhängig; Dreeve benötigt eine eigene Instanz, Strava derzeit eine persönliche API-App.
 - **Wetter und Höhe** – Wetter zur Tourmitte dauerhaft speichern und bei Bedarf GPS-Höhen nachträglich mit Mapterhorn korrigieren; Original-FIT bleibt erhalten.
-- **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 1,61 MB APK. Keine automatische Telemetrie.
+- **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 8 MB APK. Keine automatische Telemetrie.
 
 ## APK herunterladen
 
@@ -72,6 +72,13 @@ Erhalt der FIT-Auswahl beim Wechsel zum Indoor-Bike. **Gezielte Tests erfolgreic
 [Änderungen, Buildnachweis und SHA-256](docs/test-build-22.md) ·
 [GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39024933834).
 Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
+
+## Neu in APK 0.7.31
+
+- **Profile:** Bikes, Karten und Design & UI zusammengefasst; fünf Accordions und direkter Dashboard-Editor.
+- **Eigene Einstellungen je Rad:** Theme, Dashboards, Trainingshilfe und Karten wechseln mit dem ausgewählten Profil. Bestehende Profile starten mit den bisherigen gemeinsamen Werten.
+- **Profil übernehmen:** Konfiguration aus einem anderen Profil kopieren; Name, Bild und gekoppelte Geräte des Zielprofils bleiben erhalten. Upload-Dienste bleiben global.
+- **Umsortieren:** Bikes und Dashboard-Seiten mit animierter Einfügevorschau und Accent-Rahmen ziehen; Reihenfolge erst beim Loslassen speichern.
 
 ## Neu in APK 0.7.30
 
