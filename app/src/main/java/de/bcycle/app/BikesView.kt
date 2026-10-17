@@ -136,7 +136,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
             setSelection(profile.type.ordinal)
         }
-        BicycleDialogStyle.spinner(typeChoice,themes) { label,color ->
+        BicycleDialogStyle.spinner(typeChoice,themes,BicycleDesign.profileDropdownSp) { label,color ->
             val type=BikeType.entries.first { context.getString(it.label)==label }
             android.text.SpannableString("\uFFFC $label").apply {
                 val icon=BicycleIcons.drawable(context,BikeTypeIcons.forType(type),color).apply { setBounds(0,0,dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)) }
@@ -165,7 +165,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,BikeCategory.entries.map { context.getString(it.label) })
             setSelection(profile.category.ordinal)
         }
-        BicycleDialogStyle.spinner(category,themes);addView(category,LayoutParams(-1,dp(BicycleDesign.touchSize)))
+        BicycleDialogStyle.spinner(category,themes,BicycleDesign.profileDropdownSp);addView(category,LayoutParams(-1,dp(BicycleDesign.touchSize)))
         category.onItemSelectedListener=object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
             override fun onItemSelected(parent: AdapterView<*>?,v: View?,position: Int,id: Long) {
@@ -201,10 +201,13 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         addView(searchStatus,LayoutParams(-1,-2))
         searchResults=LinearLayout(context).apply { orientation=VERTICAL;tag="bike_scan_results" }
         addView(searchResults,LayoutParams(-1,-2))
+        val sensorList=LinearLayout(context).apply { orientation=VERTICAL;tag="bike_sensor_list" }
+        addView(sensorList,LayoutParams(-1,-2))
         profile.type.sensors.forEach { sensor ->
-            addView(BicycleComponents.sectionDivider(context,themes))
+            sensorList.addView(BicycleComponents.sectionDivider(context,themes))
             val toggle=Switch(context).apply {
                 tag="bike_sensor_${sensor.name}";setText(sensor.label);isEnabled=sensor.supported
+                gravity=Gravity.START or Gravity.CENTER_VERTICAL
                 isChecked=when(sensor) { BikeSensor.GPS->runtime.gpsEnabled;BikeSensor.EBIKE->runtime.bikeEnabled;BikeSensor.HEART->runtime.heartEnabled;BikeSensor.TRAINER->runtime.trainerEnabled;else->false }
                 setOnCheckedChangeListener { _,enabled ->
                     if(binding || runtime.bikes.activeSlot!=slot) return@setOnCheckedChangeListener
@@ -234,12 +237,12 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 tag="bike_sensor_expand_${sensor.name}";rotation=if(sensor in expandedSensors) 180f else 0f
                 stateDescription=context.getString(if(sensor in expandedSensors) R.string.zone_expanded else R.string.zone_collapsed)
             }
-            addView(LinearLayout(context).apply {
-                gravity=Gravity.CENTER_VERTICAL
-                addView(toggle,LayoutParams(0,-2,1f))
+            sensorList.addView(LinearLayout(context).apply {
+                tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
+                addView(toggle,LayoutParams(0,-1,1f))
                 addView(expand,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap) })
-            },LayoutParams(-1,-2))
-            addView(details,LayoutParams(-1,-2))
+            },LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
+            sensorList.addView(details,LayoutParams(-1,-2))
             if(sensor!=BikeSensor.GPS) {
                 val device=BicycleComponents.text(context,themes,"");deviceNames[sensor]=device;details.addView(device,LayoutParams(-1,-2))
                 val battery=BicycleComponents.text(context,themes,"");batteries[sensor]=battery;details.addView(battery,LayoutParams(-1,-2))

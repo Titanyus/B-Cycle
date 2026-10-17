@@ -2,6 +2,7 @@ package de.bcycle.app
 
 import android.os.Looper
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -168,6 +169,42 @@ class ProfilesTest {
                 assertEquals(LinearLayout.HORIZONTAL,row.orientation)
                 assertEquals(android.graphics.Typeface.DEFAULT,(row.getChildAt(0) as TextView).typeface)
             }
+            fun layout() {
+                root.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2400,View.MeasureSpec.EXACTLY))
+                root.layout(0,0,1080,2400)
+                Shadows.shadowOf(Looper.getMainLooper()).idle()
+            }
+            fun top(v:View):Int { var y=v.top;var parent=v.parent;while(parent is View) { y+=parent.top;parent=parent.parent };return y }
+            fun verifySensorGeometry() {
+                layout()
+                val list=root.findViewWithTag<ViewGroup>("bike_sensor_list")
+                val rows=testDescendants(list).filterIsInstance<LinearLayout>().filter { it.tag==BicycleDesign.inlineControlRowTag }
+                val sensorHeading=testDescendants(root).filterIsInstance<BicycleSectionHeader>().single { it.contentDescription==a.getString(R.string.bikes_sensors) }
+                for(row in rows) {
+                    assertEquals(sensorHeading.height,row.height)
+                    for(i in 0 until row.childCount) {
+                        val child=row.getChildAt(i)
+                        assertEquals(row.height/2f,child.top+child.height/2f,1f)
+                        assertEquals(0,(child.layoutParams as LinearLayout.LayoutParams).topMargin)
+                    }
+                }
+                val next=testDescendants(root).filterIsInstance<BicycleSectionHeader>().filter { top(it)>=top(list)+list.height }.minBy { top(it) }
+                assertEquals(BicycleDesign.dp(a,BicycleDesign.sectionEndGap),top(next)-top(list)-list.height)
+                for((left,right) in rows.zipWithNext()) assertTrue(top(right)-top(left)-left.height<BicycleDesign.dp(a,BicycleDesign.sectionEndGap))
+            }
+            verifySensorGeometry()
+            root.findViewWithTag<View>("bike_sensor_expand_HEART").performClick();verifySensorGeometry()
+            root.findViewWithTag<View>("bike_sensor_expand_HEART").performClick();verifySensorGeometry()
+            testDescendants(root).filterIsInstance<Spinner>().forEach { spinner ->
+                val label=spinner.adapter.getView(spinner.selectedItemPosition,null,spinner) as TextView
+                assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.bodySp,a.resources.displayMetrics),label.textSize,.01f)
+            }
+            val scroll=testDescendants(root).filterIsInstance<BicycleStickyScrollView>().single()
+            val sensorHeading=testDescendants(root).filterIsInstance<BicycleSectionHeader>().single { it.contentDescription==a.getString(R.string.bikes_sensors) }
+            scroll.scrollTo(0,top(sensorHeading)-top(scroll))
+            val bitmap=android.graphics.Bitmap.createBitmap(root.width,root.height,android.graphics.Bitmap.Config.ARGB_8888)
+            root.draw(android.graphics.Canvas(bitmap))
+            java.io.File("/tmp/bcycle-profile-sensor-alignment.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
             val placement=root.findViewWithTag<Spinner>("mode_glow_placement")
             assertEquals(a.getString(R.string.ui_glow_visible),((placement.parent as LinearLayout).getChildAt(0) as TextView).text.toString())
         } finally { host.pause().stop().destroy() }

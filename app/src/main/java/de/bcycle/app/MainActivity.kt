@@ -517,6 +517,7 @@ class MainActivity : Activity() {
                 setSelection(if (chosen == bikeId) 0 else 1)
                 id=View.generateViewId();caption.labelFor=id
             }
+            BicycleDialogStyle.spinner(choice,runtime.themes,BicycleDesign.profileDropdownSp)
             row.addView(choice,LinearLayout.LayoutParams(0,-2,1f));root.addView(row)
             return choice
         }
@@ -792,7 +793,7 @@ class MainActivity : Activity() {
             tag="mode_glow_placement";id=View.generateViewId();title.labelFor=id
             adapter=ArrayAdapter(settingsContext,android.R.layout.simple_spinner_dropdown_item,ModeGlowPlacement.entries.map { getString(it.label) })
             setSelection(ModeGlowSettings.placement(preferences).ordinal)
-            BicycleDialogStyle.spinner(this,runtime.themes)
+            BicycleDialogStyle.spinner(this,runtime.themes,BicycleDesign.profileDropdownSp)
             observeSettings(this) {
                 if(slot!=runtime.bikes.activeSlot || revision!=runtime.profileRevision || !root.isAttachedToWindow) return@observeSettings
                 preferences.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[selectedItemPosition].name).apply();render()
@@ -824,6 +825,7 @@ class MainActivity : Activity() {
             adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.label(this@MainActivity) })
             setSelection(MapSource.decode(preferences.getString("mapSource", null)).ordinal); root.addView(this)
         }
+        BicycleDialogStyle.spinner(source,runtime.themes,BicycleDesign.profileDropdownSp)
         val keyRow=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL;tag="map_provider_key_row" }
         keyRow.addView(label(getString(R.string.map_thunderforest_key)))
         val providerKey=BicycleComponents.input(settingsContext,runtime.themes).apply {

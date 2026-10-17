@@ -32,11 +32,24 @@ class ContentSpacingTest {
         for(i in 0 until body.childCount) {
             val child=body.getChildAt(i);val lp=child.layoutParams as LinearLayout.LayoutParams
             if(child is BicycleSectionHeader) { assertEquals(0,lp.topMargin);assertEquals(0,lp.bottomMargin) }
-            else { assertEquals(16,lp.topMargin);if(i<body.childCount-1) assertEquals(16,lp.bottomMargin) }
+            else { assertEquals(16,lp.topMargin);if(i<body.childCount-1) assertEquals(32,lp.bottomMargin) }
         }
         val ordinary=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL;setPadding(0,3,0,0);addView(TextView(c));addView(ListView(c)) }
         BicycleContentSpacing.page(ordinary)
         assertEquals(16,ordinary.paddingTop);assertEquals(0,ordinary.getChildAt(1).paddingTop)
+    }
+    @Test fun nestedSectionStartsAfterTheEntireSensorListWithLargerGap() {
+        val body=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL }
+        val sensors=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL;addView(Switch(c));addView(Switch(c)) }
+        body.addView(sensors)
+        val fit=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL }
+        BicycleForm.section(fit,themes,R.string.ui_recording_title)
+        fit.addView(Spinner(c))
+        body.addView(fit)
+        repeat(3) { BicycleContentSpacing.sections(body) }
+        assertEquals(32,(sensors.layoutParams as LinearLayout.LayoutParams).bottomMargin)
+        assertEquals(16,(fit.getChildAt(1).layoutParams as LinearLayout.LayoutParams).topMargin)
+        assertEquals(0,(fit.getChildAt(0).layoutParams as LinearLayout.LayoutParams).topMargin)
     }
     @Test fun centeredButtonsDrawIconsImmediatelyBeforeTheirTextInBothDirections() {
         for(direction in listOf(View.LAYOUT_DIRECTION_LTR,View.LAYOUT_DIRECTION_RTL)) {

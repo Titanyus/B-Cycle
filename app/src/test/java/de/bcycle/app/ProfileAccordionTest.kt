@@ -125,7 +125,7 @@ class ProfileAccordionTest {
             assertNull(fixed.findViewWithTag<View>("dashboard_editor_open"))
             assertNotNull(root.findViewWithTag<View>("dashboard_inline_actions").findViewWithTag<View>("dashboard_editor_open"))
             val scroll=testDescendants(root).filterIsInstance<BicycleStickyScrollView>().single()
-            for((id,file) in listOf(R.string.ui_design_title to "design",R.string.ui_recording_title to "fit")) {
+            for((id,file) in listOf(R.string.ui_design_title to "design",R.string.ui_recording_title to "fit",R.string.bikes_sensors to "sensors")) {
                 val heading=categories.single { it.contentDescription==a.getString(id) }
                 scroll.scrollTo(0,0);measure(root,1080,2400)
                 scroll.scrollTo(0,top(heading,scroll))

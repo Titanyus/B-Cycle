@@ -41,10 +41,10 @@ internal class ThemePickerView(context:Context,private val themes:ThemeManager):
             maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
             importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this,themes) { setTextColor(it.foreground) }
-        },LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
+        },LayoutParams(0,-2,1.2f).apply { marginEnd=dp(BicycleDesign.controlGap) })
         addView(ThemeSwatches(context).apply {
             colors=theme?.let(::palette) ?: intArrayOf(0xff333333.toInt(),0xff555555.toInt(),0xff777777.toInt(),0xffaaaaaa.toInt(),0xffdddddd.toInt())
-        },LayoutParams(0,dp(BicycleDesign.iconSize),1.2f))
+        },LayoutParams(0,dp(BicycleDesign.iconSize),1f))
         addView(ImageView(context).apply {
             importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this,themes) {

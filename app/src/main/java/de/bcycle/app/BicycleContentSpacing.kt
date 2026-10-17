@@ -35,14 +35,29 @@ internal object BicycleContentSpacing {
                 if(lp!=null && (lp.topMargin!=0 || lp.bottomMargin!=0)) { lp.topMargin=0;lp.bottomMargin=0;child.layoutParams=lp }
                 fun gap(v:View?,before:Boolean) {
                     val margins=v?.layoutParams as? ViewGroup.MarginLayoutParams ?: return
-                    val size=BicycleDesign.dp(v.context,BicycleDesign.sectionContentGap)
+                    val size=BicycleDesign.dp(v.context,if(before) BicycleDesign.sectionEndGap else BicycleDesign.sectionContentGap)
                     if(before && margins.bottomMargin!=size) { margins.bottomMargin=size;v.layoutParams=margins }
                     if(!before && margins.topMargin!=size) { margins.topMargin=size;v.layoutParams=margins }
                 }
-                gap(visible.getOrNull(index-1)?.takeUnless { it is BicycleSectionHeader },true)
+                gap(previousContent(child,view)?.takeUnless { it is BicycleSectionHeader },true)
                 gap(visible.getOrNull(index+1)?.takeUnless { it is BicycleSectionHeader },false)
             } }
         }
+    }
+    /** A section can start inside a wrapper, e.g. FIT after the complete sensor list. */
+    private fun previousContent(header:View,root:View):View? {
+        var current=header
+        while(current!==root) {
+            val parent=current.parent as? LinearLayout ?: return null
+            if(parent.orientation!=LinearLayout.VERTICAL) return null
+            val index=parent.indexOfChild(current)
+            for(i in index-1 downTo 0) {
+                val candidate=parent.getChildAt(i)
+                if(candidate.visibility!=View.GONE) return candidate
+            }
+            current=parent
+        }
+        return null
     }
     private fun descendants(v:View):Sequence<View> = sequence {
         yield(v);if(v is ViewGroup) for(i in 0 until v.childCount) yieldAll(descendants(v.getChildAt(i)))

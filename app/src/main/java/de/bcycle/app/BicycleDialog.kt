@@ -250,7 +250,7 @@ internal object BicycleDialogStyle {
         view.textSize=BicycleDesign.inputSp
         view.gravity=Gravity.START or Gravity.CENTER_VERTICAL
     }
-    fun spinner(view: Spinner, themes: ThemeManager, renderLabel: ((String, Int) -> CharSequence)? = null) {
+    fun spinner(view: Spinner, themes: ThemeManager, textSizeSp:Float=BicycleDesign.inputSp, renderLabel: ((String, Int) -> CharSequence)? = null) {
         BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) return
         view.minimumHeight = dp(view, BicycleDesign.touchSize)
@@ -275,7 +275,7 @@ internal object BicycleDialogStyle {
             private fun row(position: Int, recycled: View?, dropdown: Boolean): View =
                 ((recycled as? TextView) ?: BicycleComponents.text(view.context, themes, "").apply {
                     typeface = Typeface.DEFAULT; gravity = Gravity.CENTER_VERTICAL
-                    minHeight = dp(view, BicycleDesign.touchSize); textSize = BicycleDesign.inputSp
+                    minHeight = dp(view, BicycleDesign.touchSize); textSize = textSizeSp
                     BicycleComponents.bindTheme(this, themes) {
                         setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.tertiary else Color.TRANSPARENT)
                         if (renderLabel != null && tag is String) text=renderLabel(tag as String,it.foreground)

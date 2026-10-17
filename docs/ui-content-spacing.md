@@ -1,16 +1,17 @@
 # Seiten, Kategorieabstände und Sensoridentität
 
-Stand: 16.10.2026. Native Kotlin-Views, ausschließlich Hochformat.
+Stand: 17.10.2026. Native Kotlin-Views, ausschließlich Hochformat.
 
 ## Zentrale Abstände
 
 BicycleDesign.pageContentGap und sectionContentGap: jeweils 16 dp.
+BicycleDesign.sectionEndGap: 32 dp vom Inhalt zum nächsten Sticky Header.
 BicycleDesign.controlGap: unverändert 8 dp zwischen Bedienelementen.
 BicycleContentSpacing.page wird im Fullscreen-Host auf den eigentlichen
 Seiteninhalt angewendet. Vorhandene äußere Wrapper-Innenabstände werden entfernt;
 Control-Margins werden in den Gesamtanfangsabstand einbezogen. Die Datenliste der Dashboard-Feldauswahl wächst vollständig innerhalb des gemeinsamen äußeren Scrollbereichs und ist kein eigener Seitenanfang.
 
-BicycleContentSpacing.sections gewährleistet 16 dp vor und nach Kategorieinhalten.
+BicycleContentSpacing.sections gewährleistet 16 dp nach einem Header und 32 dp vom Inhalt zum nächsten Header. Auch wenn dieser am Anfang eines verschachtelten Layouts steht, wird der Abstand am Ende der vorherigen Inhaltsgruppe gesetzt. Die Sensorliste bildet dafür eine gemeinsame Gruppe; interne Sensorabstände bleiben kleiner.
 Das gilt für Text, Eingaben, Dropdowns, Buttons/Schalter, Accordion-Controls,
 Listen und Kachelgruppen. Vorhandene Touchflächen und Innenabstände innerhalb
 der Elemente bleiben erhalten. Wiederholte Anwendung addiert keine Abstände.
@@ -53,13 +54,11 @@ Import höchstens 25 MiB; ImageDecoder berücksichtigt die Bildorientierung und
 verkleinert auf höchstens 1200 px längste Seite. Atomare WebP-Speicherung mit
 85 % Qualität. Fehlgeschlagene Übernahme ersetzt kein bestehendes Foto.
 Vorschau und Import im Hintergrund; kein dauerhafter Zugriff auf die Quelldatei.
-Bildfeld ist ohne Foto kompakt und wächst mit Foto auf 200 dp. Abgerundete Ecken
+Bildfeld und anklickbarer Platzhalter behalten immer dasselbe Format 16:9; Fotos werden mittig passend beschnitten. Abgerundete Ecken
 und Löschsymbol. Fotos sind derzeit nicht Bestandteil der manuellen Sicherung.
 
 Profilkacheln: Radtyp oberhalb des Symbols; Name darunter mit zwei reservierten
-Zeilen. FIT-Hauptquelle ist eine eigene Überschrift über der Erklärung;
-Auswahlüberschriften lauten Geschwindigkeit und Distanz. Eine horizontale
-Abschnittslinie trennt Aufzuzeichnende Werte ab.
+Zeilen. FIT-Aufzeichnung enthält Geschwindigkeit/Distanz als normale Titel mit Dropdown in einer Zeile; Strecken-Aufzeichnung enthält die Feldgruppen. Native Dropdown-Schriften auf der Profilseite: 14 sp, Theme-Namen dagegen 28 sp / Bebas Neue wie schmale Streckendetailwerte. Sensorzeilen sind so hoch wie ein einzeiliger Sticky Header; Schalter, Text und Chevron werden ohne zusätzliche vertikale Formular-Margins zentriert.
 
 Streckendetails: Datum und Wetter verwenden die normale Systemschrift mit
 rowTitleSp (16 sp). Wettergruppen umfassen jeweils das unmittelbar vorangestellte

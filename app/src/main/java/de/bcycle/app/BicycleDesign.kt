@@ -81,6 +81,9 @@ object BicycleDesign {
     const val sectionRuleDp = .75f
     const val pageContentGap = 16
     const val sectionContentGap = 16
+    const val sectionEndGap = 32
+    const val inlineControlRowTag = "bicycle_inline_control_row"
+    const val profileDropdownSp = bodySp
     const val profileAccordionRadius = 10
     const val profileAccordionHeaderHeight = 64
     const val profileAccordionLeadingWidth = 3
@@ -136,7 +139,7 @@ object BicycleDesign {
     const val themeTileHeight = 136
     const val themeNameHeight = 44
     const val themeNameSp = 14f
-    const val settingsThemeNameSp = themeNameSp * settingsNarrowScale
+    const val settingsThemeNameSp = analysisMetricSp
     const val themeSelectedBorder = 2
     fun dp(context: Context, value: Int) = (value * context.resources.displayMetrics.density).toInt()
 
@@ -172,6 +175,12 @@ object BicycleComponents {
         fun apply() {
             val margins=view.layoutParams as? ViewGroup.MarginLayoutParams ?: return
             val parent=view.parent as? LinearLayout
+            if(parent?.tag==BicycleDesign.inlineControlRowTag) {
+                if(margins.topMargin!=0 || margins.bottomMargin!=0) {
+                    margins.topMargin=0;margins.bottomMargin=0;view.requestLayout()
+                }
+                return
+            }
             val index=parent?.indexOfChild(view) ?: -1
             val preceding=if(parent!=null && index>0) (index-1 downTo 0).map(parent::getChildAt).firstOrNull { it.visibility!=View.GONE } else null
             val separated=parent?.orientation==LinearLayout.VERTICAL && preceding?.tag=="bicycle_section_divider"
