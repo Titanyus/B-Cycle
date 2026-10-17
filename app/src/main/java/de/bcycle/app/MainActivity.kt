@@ -54,7 +54,7 @@ class MainActivity : Activity() {
     private var dashboardDataVisibility = DashboardDataVisibility()
     private var dashboardTrendIndicators=DashboardTrendIndicators()
     private var dashboardGraphs = GraphOverlayConfig()
-    private var dashboardZoneGlow = ZoneGlowConfig()
+    private var dashboardTrainingHelp=DashboardTrainingHelp()
     private val trainingPresentation = TrainingPresentation()
     private var trainingSnapshot = TrainingSnapshot()
     private val mapBack = android.window.OnBackInvokedCallback { setMapFullscreen(false) }
@@ -120,7 +120,7 @@ class MainActivity : Activity() {
         pendingBackupExport = savedInstanceState?.getByteArray("settingsBackupPendingExport")
         dashboardPage = dashboardPages.selected()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
-        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
+        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
         mapFullscreen = savedInstanceState?.getBoolean("mapFullscreen", false) ?: false
         @Suppress("DEPRECATION") // Explicit edge-to-edge remains necessary on Android 13–14.
         window.setDecorFitsSystemWindows(false)
@@ -136,6 +136,7 @@ class MainActivity : Activity() {
         dashboard = DashboardView(this) { chooseField(it) }
         dashboard.bindEditorTheme(runtime.themes)
         dashboard.activateEditor = { setDashboardEditing(true) }
+        dashboard.trainingHelp = { showTrainingHelp() }
         dashboard.graphWidthChanged={ runtime.liveGraphs.width=it }
         updateMapBack()
         dashboard.changePage = ::changeDashboard
@@ -288,14 +289,9 @@ class MainActivity : Activity() {
                 message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
                 BicycleFeedback.show(this, message, long = true)
         }
-        val compatibleGlow=dashboardZoneGlow.compatible(dashboardLayout,dashboardDataVisibility)
-        if(compatibleGlow!=dashboardZoneGlow) {
-            dashboardZoneGlow=compatibleGlow
-            preferences.edit().putString(ZoneGlowConfig.key(dashboardPage),dashboardZoneGlow.encode()).apply()
-        }
         val trainingNow=android.os.SystemClock.elapsedRealtime()
         trainingSnapshot=trainingPresentation.update(runtime.trainingInputs(trainingNow),runtime.riderProfiles.read(),trainingNow)
-        dashboard.showTraining(dashboardZoneGlow,trainingSnapshot)
+        dashboard.showTraining(dashboardTrainingHelp.sources(dashboardLayout,dashboardDataVisibility),trainingSnapshot,dashboardTrainingHelp.mode==TrainingHelpMode.ZONE_TWO)
         dashboard.showDataVisibility(dashboardDataVisibility)
         dashboard.showTrendIndicators(dashboardTrendIndicators)
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
@@ -329,13 +325,6 @@ class MainActivity : Activity() {
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         val graphs=if(!mapField && dashboard.template.supportsGraph(index))
             GraphOverlayPicker(settingsContext,runtime.themes,dashboardGraphs.slots[index]) else null
-        val visualization=if(!mapField) ZoneGlowPicker(settingsContext,runtime.themes,dashboardZoneGlow.sources[index],selected.takeIf { dashboardDataVisibility.visible[index] }) else null
-        visualization?.changed = {
-            if(permitted()) {
-                dashboardZoneGlow=dashboardZoneGlow.replace(index,visualization.selected)
-                preferences.edit().putString(ZoneGlowConfig.key(dashboardPage),dashboardZoneGlow.encode()).apply();render()
-            }
-        }
         fun saveGraphs() {
             if(graphs!=null) {
                 dashboardGraphs=dashboardGraphs.replace(index,graphs.selected)
@@ -355,7 +344,6 @@ class MainActivity : Activity() {
             } else {
                 if(field!=null) dashboardLayout = dashboardLayout.replace(index, field)
                 dashboardDataVisibility=dashboardDataVisibility.replace(index,field!=null)
-                visualization?.restrictTo(field)
                 // Write the old display-mode key as compatibility metadata; visibility is authoritative.
                 dashboardGraphs=dashboardGraphs.withDisplay(index,if(field==null) GraphDisplayMode.GRAPH_ONLY else GraphDisplayMode.WITH_DATA)
                 preferences.edit().putString(dashboardKey,dashboardLayout.encode())
@@ -366,7 +354,7 @@ class MainActivity : Activity() {
             if (field?.requiresGps == true && !runtime.isIndoor) enableGps()
         }
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
-            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, visualization, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index],
+            runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, runtime.themes, graphs, null, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index],
             batteryChoose={ select(it,keepOpen=true) },trendEnabled=if(mapField) true else dashboardTrendIndicators.enabled[index],
             trendChanged=if(mapField) null else { enabled ->
                 if(permitted()) {
@@ -684,7 +672,7 @@ class MainActivity : Activity() {
         dashboardPage = pages[Math.floorMod(position+delta,pages.size)].id
         preferences.edit().putInt("dashboardPage", dashboardPage).apply()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
-        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
+        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
         val template = currentTemplate(); dashboard.setTemplate(template)
         dashboardArea.requestLayout()
         (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
@@ -704,9 +692,11 @@ class MainActivity : Activity() {
         BicycleForm.section(root,runtime.themes,R.string.ui_dashboard_page_choose)
         val presets = DashboardPresetPicker(settingsContext,dashboardPage,runtime.themes)
         val footer=bicycleFooter(settingsContext,runtime.themes)
+        var trainingControls:TrainingHelpView?=null
         lateinit var removeDashboard:BicycleFooterAction
         fun refreshPages() {
             presets.refresh();changeDashboard(0)
+            trainingControls?.show(DashboardTrainingHelp.read(preferences,dashboardPages.selected()))
             removeDashboard.visibility=if(dashboardPages.all().size>1) View.VISIBLE else View.GONE
         }
         footer.addView(BicycleFooterAction(settingsContext,runtime.themes,BicycleIcon.RenameTrack,getString(R.string.route_action_rename)) {
@@ -743,6 +733,7 @@ class MainActivity : Activity() {
                 updateDashboardFullscreen()
             }
         })
+        trainingControls=appendTrainingHelp(root) { dashboardPages.selected() }
         BicycleForm.section(root,runtime.themes,R.string.ui_mode_glow)
         root.addView(label(getString(R.string.ui_mode_glow_description)))
         val glow = Switch(settingsContext).apply {
@@ -768,6 +759,20 @@ class MainActivity : Activity() {
             addView(footer,LinearLayout.LayoutParams(-1,-2))
         }
         menu = dialog().setTitle(getString(R.string.ui_design_title)).setView(body).show()
+    }
+    private fun appendTrainingHelp(root:LinearLayout,page:()->Int):TrainingHelpView {
+        BicycleForm.section(root,runtime.themes,R.string.training_help_title)
+        return TrainingHelpView(settingsContext,runtime.themes,DashboardTrainingHelp.read(preferences,page())) { config ->
+            val id=page()
+            preferences.edit().putString(DashboardTrainingHelp.key(id),config.encode()).apply()
+            if(id==dashboardPage) dashboardTrainingHelp=config
+            render()
+        }.also { root.addView(it) }
+    }
+    private fun showTrainingHelp() {
+        val page=dashboardPage
+        val root=column();appendTrainingHelp(root) { page }
+        dialog().setTitle(R.string.training_help_title).setView(BicycleStickyScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun mapSettings() {
         val root = column()
@@ -1037,7 +1042,7 @@ class MainActivity : Activity() {
                                         if(BackupSection.DASHBOARD in selected) {
                                             dashboardPage=dashboardPages.selected()
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
-                                            dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardZoneGlow=ZoneGlowConfig.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
+                                            dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
                                             dashboard.setTemplate(currentTemplate());dashboardArea.requestLayout()
                                             (mapPanel.layoutParams as LinearLayout.LayoutParams).weight=1f-currentTemplate().dataFraction
                                         }

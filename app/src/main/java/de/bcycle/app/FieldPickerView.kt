@@ -80,7 +80,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         fieldList=list
         dataContent.addView(list, LayoutParams(-1, dp(BicycleDesign.fieldListInitialHeight)))
         if(graphPicker!=null) panels.addView(graphPicker)
-        if(visualization!=null) panels.addView(visualization)
+        if(visualization!=null) panels.addView(visualization.apply { visibility=GONE })
         var shown = -1
         val availableBatteries=BatteryFields.choices(data)
         var batterySelection=if(dataVisible) (selected?.batterySources

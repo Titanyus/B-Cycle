@@ -14,7 +14,7 @@ internal class DashboardPages(private val context: Context, private val prefs: S
         const val MAX=6
         fun fieldKey(id:Int)=if(id==0) "dashboard" else "dashboard_$id"
         fun keys(id:Int)=listOf(fieldKey(id),"dashboardTemplate_$id",GraphOverlayConfig.key(id),
-            GraphDisplaySettings.key(id),ZoneGlowConfig.key(id),DashboardDataVisibility.key(id),DashboardTrendIndicators.key(id))
+            GraphDisplaySettings.key(id),ZoneGlowConfig.key(id),DashboardDataVisibility.key(id),DashboardTrendIndicators.key(id),DashboardTrainingHelp.key(id))
     }
     fun all():List<DashboardPage> {
         val saved=runCatching { JSONArray(prefs.getString(KEY,null)) }.getOrNull()

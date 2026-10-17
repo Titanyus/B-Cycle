@@ -118,15 +118,15 @@ class DashboardEditorTest {
             val change = MainActivity::class.java.getDeclaredMethod("changeDashboard",Int::class.javaPrimitiveType).apply { isAccessible=true }
             change.invoke(activity,1); assertTrue(activity.dashboardEditing)
             tile(activity,0).performClick(); val next = ShadowAlertDialog.getLatestAlertDialog()
-            selectTestSource(next,"E-Bike"); all(next.window!!.decorView).single { it.tag == "BATTERY" }.performClick()
-            assertEquals("BATTERY",DashboardLayout.decode(prefs.getString("dashboard_1",null)).fields[0].id)
+            selectTestSource(next,"E-Bike"); all(next.window!!.decorView).single { it.tag == "CADENCE" }.performClick()
+            assertEquals("CADENCE",DashboardLayout.decode(prefs.getString("dashboard_1",null)).fields[0].id)
             tile(activity,0).performClick(); testBack(ShadowAlertDialog.getLatestAlertDialog())
             assertTrue(activity.dashboardEditing)
             shadowOf(Looper.getMainLooper()).idle()
             change.invoke(activity,-1); assertTrue(activity.dashboardEditing)
             tagged(activity,"dashboard_editor_finish").performClick(); assertFalse(activity.dashboardEditing)
             assertEquals(listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),GraphOverlayConfig.read(prefs,0).slots[2])
-            assertEquals("BATTERY",DashboardLayout.decode(prefs.getString("dashboard_1",null)).fields[0].id)
+            assertEquals("CADENCE",DashboardLayout.decode(prefs.getString("dashboard_1",null)).fields[0].id)
             tile(activity,2).performClick(); assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing)
         } finally { controller.pause().stop().destroy() }
     }
@@ -135,7 +135,7 @@ class DashboardEditorTest {
         try {
             val activity = controller.get()
             assertFalse(tagged(activity,"map_value_0").performLongClick()); assertFalse(activity.dashboardEditing)
-            tile(activity,0).performLongClick()
+            tile(activity,2).performLongClick()
             controller.pause().stop(); controller.start().resume(); assertTrue(activity.dashboardEditing)
             tagged(activity,"dashboard_routes").performClick(); assertFalse(activity.dashboardEditing)
             assertEquals(View.GONE,tagged(activity,"dashboard_editor_finish").visibility)
@@ -152,7 +152,7 @@ class DashboardEditorTest {
                 send(panel.mapView,MotionEvent.ACTION_MOVE,now,now+80,250f,100f)
                 send(panel.mapView,MotionEvent.ACTION_UP,now,now+150,250f,100f)
             }
-            panel.setFollow(true); tile(activity,0).performLongClick(); pan()
+            panel.setFollow(true); tile(activity,2).performLongClick(); pan()
             assertTrue(runtime.preferences.getBoolean("mapFollow",true))
             runtime.onData(LiveData(2530,183,mapOf(LiveMetric.CADENCE to 170L)),true)
             assertTrue(all(tile(activity,2)).filterIsInstance<TextView>().any { it.text.toString().contains("25,3") })
@@ -194,7 +194,7 @@ class DashboardEditorTest {
                     return object : android.content.SharedPreferences.Editor by editor { override fun commit()=false }
                 }
             }
-            tile(controller.get(),0).performLongClick(); property.set(runtime,failing)
+            tile(controller.get(),2).performLongClick(); property.set(runtime,failing)
             tagged(controller.get(),"dashboard_editor_finish").performClick()
             assertTrue(controller.get().dashboardEditing)
             assertEquals(View.VISIBLE,tagged(controller.get(),"dashboard_editor_finish").visibility)
@@ -211,16 +211,16 @@ class DashboardEditorTest {
             assertTrue(runtime.ride.gps.accept(GpsFix(now, 48.0, 11.0, 3.0, speedMps = 4.0), now))
             assertTrue(runtime.isMoving)
             tile.performClick(); assertNull(ShadowAlertDialog.getLatestAlertDialog()); assertFalse(activity.dashboardEditing)
-            tile.performLongClick(); assertTrue(activity.dashboardEditing); assertNull(ShadowAlertDialog.getLatestAlertDialog())
+            tile(activity,2).performLongClick(); assertTrue(activity.dashboardEditing); assertNull(ShadowAlertDialog.getLatestAlertDialog())
             for (tag in listOf("dashboard_tile_0", "map_value_0")) {
                 testDescendants(activity.findViewById(android.R.id.content)).single { it.tag == tag }.performClick()
                 val picker = ShadowAlertDialog.getLatestAlertDialog(); assertTrue(picker.isShowing)
                 selectTestSource(picker, "E-Bike")
-                testDescendants(picker.window!!.decorView).single { it.tag == "BATTERY" }.performClick()
+                testDescendants(picker.window!!.decorView).single { it.tag == "CADENCE" }.performClick()
                 assertFalse(picker.isShowing); assertTrue(activity.dashboardEditing)
             }
-            assertEquals("BATTERY", DashboardLayout.decode(runtime.preferences.getString("dashboard", null)).fields[0].id)
-            assertEquals("BATTERY", MapFieldSelection.read(runtime.preferences, 0)?.id)
+            assertEquals("CADENCE", DashboardLayout.decode(runtime.preferences.getString("dashboard", null)).fields[0].id)
+            assertEquals("CADENCE", MapFieldSelection.read(runtime.preferences, 0)?.id)
         } finally { controller.pause().stop().destroy() }
     }
 }

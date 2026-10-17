@@ -1,0 +1,13 @@
+# Dashboardweite Trainingshilfe
+
+Die Visualisierung wird pro Dashboard konfiguriert, nicht mehr pro Kachel. TrainingHelpView wird identisch in Design & UI und im schnellen Trainingshilfe-Screen eingesetzt. Beide besitzen den gemeinsamen Sticky Header und erklären den Geltungsbereich „dieses Dashboard“. Native Long-Press auf aktuelle/Ø Puls- oder Fahrerleistungsfelder öffnet die Schnellauswahl außerhalb des Dashboard-Editors; andere Kacheln und der Zugang über Design & UI behalten den Editor. Im Editor hat die Trainingshilfe keinen Long-Press-Vorrang.
+
+Alle Trainingszonen und Zone-2-Training sind zwei gegenseitig ausschließende Schalter; beide aus bedeutet deaktiviert. Darunter wählt man unabhängig aktuelle Werte und Durchschnittswerte. Die Quelle ergibt sich aus dem Messwert: Puls verwendet Puls, Fahrerleistung verwendet Rider Power. Trainingszone/FTP-Auslastung/HF-Reserve zählen als aktuelle Felder. Keine Motor-, Maximal-, Kadenz- oder unsichtbaren Datenfelder einfärben. Neue Konfiguration: standardmäßig Aus, aktuelle Werte vorgewählt. Alte feldbezogene Quellen bleiben gespeichert und migrieren, solange keine neue Auswahl gespeichert ist, zu Alle Trainingszonen und den entsprechenden aktuellen/Ø Gruppen.
+
+Alle Trainingszonen nutzt unverändert die vorhandenen fünf Puls-/sieben Coggan-Farben samt ±3-Prozentpunkte-Übergang. Zone 2 nutzt einheitlich das bestehende Grün/Rot der Pulszonen. Der Zielbereich basiert auf 55–75 % FTP bzw. 60–70 % HF-Reserve. Die mathematische Zonenzuordnung bleibt unverändert.
+
+Die visuelle Untergrenze wird großzügig behandelt: Bis 10 Prozentpunkte unter der eigentlichen Z2-Untergrenze bleibt die Farbe grün. Weitere 10 Prozentpunkte nach unten bilden einen glatten Übergang nach Rot. An der Obergrenze reicht der Übergang nur von −0,5 bis +0,5 Prozentpunkten. Die Farbmischung ist monoton und stetig (smoothstep), ohne zusätzliche Einstellungen. Damit ist beispielsweise bei FTP 200 W die Leistung von 90 W noch grün, 70–90 W bildet den unteren Übergang; oberhalb 151 W ist Rot erreicht. Das ist eine Trainingsorientierung, keine Änderung der Leistungszone des Messwerts.
+
+Bestehende zeitgewichtete Anzeigepuffer, Aktualitätskontrollen, Fahrtmittelwerte und ZoneAmbientGlow mit 1,5 Sekunden Überblendung werden wiederverwendet. Keine Änderung an Sensoren, FIT, Performance Engine oder Aufnahme. Ohne gültiges Profil oder frische Messwerte bleibt der Glow aus.
+
+DashboardTrainingHelp speichert einen Modus und zwei boolesche Gruppen unter einer seitenbezogenen ID. SettingsBackup enthält und validiert dieses Objekt zusätzlich zu den lesbar erhaltenen Legacy-Quellen. DashboardPages.keys erfasst es für Slot-Bereinigung und den vorbereiteten fahrradbezogenen Design-Umfang.

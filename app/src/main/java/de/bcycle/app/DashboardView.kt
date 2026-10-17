@@ -38,10 +38,12 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         editing = value
         tiles.forEach { it.markEditable() }
     }
+    var trainingHelp:((Int)->Unit)?=null
+    private var zoneTwoHelp=false
     private var training = TrainingSnapshot()
     private var zoneConfig = ZoneGlowConfig()
-    internal fun showTraining(config: ZoneGlowConfig, snapshot: TrainingSnapshot) {
-        zoneConfig=config;training=snapshot;tiles.forEach { it.updateGlow() }
+    internal fun showTraining(config: ZoneGlowConfig, snapshot: TrainingSnapshot,zoneTwo:Boolean=false) {
+        zoneTwoHelp=zoneTwo;zoneConfig=config;training=snapshot;tiles.forEach { it.updateGlow() }
     }
     private var dataVisibility = DashboardDataVisibility()
     internal fun showDataVisibility(config: DashboardDataVisibility) {
@@ -195,7 +197,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 if(plainBackground==null) plainBackground=container.background
                 zoneShown=true;updateBackground()
             }
-            zoneGlow.update(training.glow(zoneConfig.sources[index]))
+            zoneGlow.update(training.glow(zoneConfig.sources[index],zoneTwoHelp))
         }
         private fun updateBackground() {
             val layers=mutableListOf(plainBackground!!)
@@ -252,7 +254,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
             tag = "dashboard_tile_$index"
             setOnClickListener { if (editing) selectField(index) }
-            setOnLongClickListener { activateEditor?.invoke(); true }
+            setOnLongClickListener {
+                if(!editing && trainingHelp!=null && DashboardTrainingHelp.supports(layout.fields[index])) trainingHelp?.invoke(index)
+                else activateEditor?.invoke()
+                true
+            }
             setOnTouchListener { _, event -> swipe.onTouchEvent(event) }
         }
         fun markEditable() {

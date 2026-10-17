@@ -24,53 +24,50 @@ import org.robolectric.RobolectricTestRunner
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class TrainingZoneUiTest {
     private val context get()=RuntimeEnvironment.getApplication()
-    @Test fun editorPersistsGlowPerTileAndRestoresSelectionOnReopen() {
+    @Test fun longPressOpensDashboardTrainingHelpWithExclusiveModesAndNoEditor() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val activity=controller.get();val root=activity.findViewById<View>(android.R.id.content)
-            val dashboard=testDescendants(root).filterIsInstance<DashboardView>().single()
-            val tile=dashboard.findViewWithTag<View>("dashboard_tile_0")
-            tile.performLongClick();tile.performClick();shadowOf(Looper.getMainLooper()).idle()
-            val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            val picker=testDescendants(dialog.window!!.decorView).filterIsInstance<ZoneGlowPicker>().single()
-            picker.findViewWithTag<View>("zone_glow_POWER_AVERAGE").performClick()
+            val activity=controller.get();val tile=activity.window.decorView.findViewWithTag<View>("dashboard_tile_0")
+            tile.performLongClick();shadowOf(Looper.getMainLooper()).idle()
+            assertFalse(activity.dashboardEditing)
+            val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            val root=screen.window!!.decorView
+            assertTrue(testDescendants(root).any { it is BicycleStickyScrollView })
+            assertTrue(testDescendants(root).filterIsInstance<BicycleSectionHeader>().any { it.contentDescription==activity.getString(R.string.training_help_title) })
+            root.findViewWithTag<Switch>("training_help_all").performClick()
+            root.findViewWithTag<Switch>("training_help_zone_two").performClick()
+            assertFalse(root.findViewWithTag<Switch>("training_help_all").isChecked)
             val prefs=RideRuntime.get(activity).preferences
-            assertEquals(ZoneGlowSource.POWER_AVERAGE,ZoneGlowConfig.read(prefs,0).sources[0])
-            assertTrue(ZoneGlowConfig.read(prefs,1).sources.all { it==ZoneGlowSource.OFF })
-            testBack(dialog);tile.performClick();shadowOf(Looper.getMainLooper()).idle()
-            val reopened=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            val restored=testDescendants(reopened.window!!.decorView).filterIsInstance<ZoneGlowPicker>().single()
-            assertEquals(ZoneGlowSource.POWER_AVERAGE,restored.selected)
-            assertEquals(DashboardLayout.defaults.encode(),prefs.getString("dashboard",DashboardLayout.defaults.encode()))
-            restored.findViewWithTag<View>("zone_glow_OFF").performClick()
-            assertEquals(ZoneGlowSource.OFF,ZoneGlowConfig.read(prefs,0).sources[0])
+            assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
+            root.findViewWithTag<Switch>("training_help_average").performClick()
+            testBack(screen);tile.performLongClick()
+            val reopened=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            assertTrue(reopened.findViewWithTag<Switch>("training_help_zone_two").isChecked)
+            assertTrue(reopened.findViewWithTag<Switch>("training_help_average").isChecked)
+            assertEquals(TrainingHelpMode.OFF,DashboardTrainingHelp.read(prefs,1).mode)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun sourceOptionsFollowMainMeasurementAndChangingFamilyClearsPersistedMismatch() {
-        val app=context;val prefs=app.getSharedPreferences("bike",0)
-        prefs.edit().putString("dashboard",DashboardLayout.defaults.replace(0,DashboardField("HEART_RATE")).encode())
-            .putString(ZoneGlowConfig.key(0),ZoneGlowConfig().replace(0,ZoneGlowSource.POWER_CURRENT).encode()).commit()
+    @Test fun designUiUsesTheSameControlsAndReloadsThemForTheSelectedDashboard() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val activity=controller.get();val root=activity.findViewById<View>(android.R.id.content)
-            val tile=root.findViewWithTag<View>("dashboard_tile_0")
-            assertEquals(ZoneGlowSource.OFF,ZoneGlowConfig.read(prefs,0).sources[0])
-            tile.performLongClick();tile.performClick();shadowOf(Looper.getMainLooper()).idle()
-            val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            val glow=testDescendants(screen.window!!.decorView).filterIsInstance<ZoneGlowPicker>().single()
-            assertNull(glow.findViewWithTag<View>("zone_glow_POWER_CURRENT"))
-            glow.findViewWithTag<View>("zone_glow_HEART_CURRENT").performClick()
-            assertEquals(ZoneGlowSource.HEART_CURRENT,ZoneGlowConfig.read(prefs,0).sources[0])
-            val source=screen.window!!.decorView.findViewWithTag<Spinner>("field_source")
-            source.setSelection((0 until source.count).first { source.getItemAtPosition(it)=="E-Bike" })
-            shadowOf(Looper.getMainLooper()).idle()
-            screen.window!!.decorView.findViewWithTag<View>("RIDER_POWER").performClick()
-            assertEquals(ZoneGlowSource.OFF,ZoneGlowConfig.read(prefs,0).sources[0])
-            tile.performClick();shadowOf(Looper.getMainLooper()).idle()
-            val reopened=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            val power=testDescendants(reopened.window!!.decorView).filterIsInstance<ZoneGlowPicker>().single()
-            assertNull(power.findViewWithTag<View>("zone_glow_HEART_CURRENT"))
-            assertNotNull(power.findViewWithTag<View>("zone_glow_POWER_CURRENT"))
+            val activity=controller.get();val prefs=RideRuntime.get(activity).preferences
+            MainActivity::class.java.getDeclaredMethod("dashboardSettings").apply { isAccessible=true }.invoke(activity)
+            val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();val root=screen.window!!.decorView
+            root.findViewWithTag<Switch>("training_help_all").performClick()
+            assertEquals(TrainingHelpMode.ALL_ZONES,DashboardTrainingHelp.read(prefs,0).mode)
+            root.findViewWithTag<View>("preset_page_1").performClick()
+            assertFalse(root.findViewWithTag<Switch>("training_help_all").isChecked)
+            root.findViewWithTag<Switch>("training_help_zone_two").performClick()
+            root.findViewWithTag<Switch>("training_help_current").performClick()
+            root.findViewWithTag<Switch>("training_help_average").performClick()
+            assertEquals(DashboardTrainingHelp(TrainingHelpMode.ZONE_TWO,false,true),DashboardTrainingHelp.read(prefs,1))
+            root.findViewWithTag<View>("preset_page_0").performClick()
+            assertTrue(root.findViewWithTag<Switch>("training_help_all").isChecked)
+            testBack(screen)
+            MainActivity::class.java.getDeclaredMethod("enterDashboardEditor").apply { isAccessible=true }.invoke(activity)
+            activity.window.decorView.findViewWithTag<View>("dashboard_tile_0").performClick()
+            val fields=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            assertTrue(testDescendants(fields).none { it is ZoneGlowPicker })
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun profilePowerZonesUpdateWithFtpAndHideForInvalidInputs() {
@@ -89,7 +86,7 @@ class TrainingZoneUiTest {
             ftp.setText("bad");assertEquals(View.GONE,rows.visibility)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun visualizationSitsBelowGraphRetainsOneSourceAndSurvivesCategoryChanges() {
+    @Test fun legacyVisualizationStaysHiddenAndDataSelectionStillWorks() {
         val themes=ThemeManager(context.getSharedPreferences("picker-zones",0))
         val graph=GraphOverlayPicker(context,themes,listOf(AnalysisChart.SPEED))
         val glow=ZoneGlowPicker(context,themes,ZoneGlowSource.OFF)
@@ -99,17 +96,10 @@ class TrainingZoneUiTest {
         val source=picker.findViewWithTag<Spinner>("field_source")
         fun views()=testDescendants(picker)
         assertEquals(View.GONE,graph.findViewWithTag<View>("graph_overlay_content").visibility)
-        assertEquals(View.GONE,glow.findViewWithTag<View>("zone_glow_content").visibility)
-        glow.findViewWithTag<View>("zone_glow_toggle").performClick()
-        glow.findViewWithTag<View>("zone_glow_POWER_CURRENT").performClick()
-        glow.findViewWithTag<View>("zone_glow_HEART_AVERAGE").performClick()
-        assertEquals(1,testDescendants(glow).filterIsInstance<RadioButton>().count { it.isChecked })
-        assertEquals(ZoneGlowSource.HEART_AVERAGE,glow.selected)
-        assertEquals(listOf(AnalysisChart.SPEED),graph.selected);assertNull(chosen)
+        assertEquals(View.GONE,glow.visibility)
         for(i in 0 until source.count) {
             source.setSelection(i);shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(views().indexOf(graph)<views().indexOf(glow))
-            assertEquals(ZoneGlowSource.HEART_AVERAGE,glow.selected)
+            assertEquals(View.GONE,glow.visibility)
         }
         assertEquals("Leistung",source.selectedItem)
         val row=picker.findViewWithTag<RadioButton>(TrainingMetric.TRAINING_POWER_ZONE.name)

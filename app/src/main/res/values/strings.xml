@@ -689,4 +689,11 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="dashboard_name_invalid">Bitte einen Namen mit 1 bis 60 Zeichen eingeben.</string>
     <string name="record_bike_description">%1$s · %2$s. Lange drücken, um das Fahrrad auszuwählen.</string>
     <string name="field_trend_indicator">Trendindikator</string>
+    <string name="training_help_title">Trainingshilfe</string>
+    <string name="training_help_all">Alle Trainingszonen</string>
+    <string name="training_help_zone_two">Zone-2-Training</string>
+    <string name="training_help_current">Aktuelle Werte</string>
+    <string name="training_help_average">Durchschnittswerte</string>
+    <string name="training_help_for">Trainingshilfe für</string>
+    <string name="training_help_explanation">Wirkt auf alle passenden Datenfelder dieses Dashboards. Puls und Fahrerleistung verwenden die Zonen aus dem Fahrerprofil. Zone 2: Grün im Zielbereich, Rot außerhalb; nach unten mit großzügigem Übergang.</string>
 </resources>

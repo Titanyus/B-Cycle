@@ -69,6 +69,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     .put("zoneGlowSources",jsonArray(ZoneGlowConfig.read(bike,i).sources.map { it.name }))
                     .put("dataVisible",JSONArray(DashboardDataVisibility.read(bike,i).visible))
                     .put("trendIndicators",JSONArray(DashboardTrendIndicators.read(bike,i).enabled))
+                    .put("trainingHelp",JSONObject(DashboardTrainingHelp.read(bike,i).encode()))
                     .put("layout", DashboardTemplate.decode(bike.getString("dashboardTemplate_$i", DashboardTemplate.entries[i].name)).name))
             } }).put("catalog",bike.getString(DashboardPages.KEY,null) ?: JSONObject.NULL).put("activePage",bike.getInt("dashboardPage",0)).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null)).let {
@@ -168,6 +169,10 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                                 }
                                 b[GraphOverlayConfig.key(index)]=GraphOverlayConfig(slots).encode()
                             }
+                            if(page.has("trainingHelp")) {
+                                val helper=DashboardTrainingHelp.decode(obj(page,"trainingHelp").toString()) ?: fail()
+                                b[DashboardTrainingHelp.key(index)]=helper.encode()
+                            } else b[DashboardTrainingHelp.key(index)]=null
                             if(page.has("trendIndicators")) {
                                 val values=array(page,"trendIndicators",DashboardLayout.FIELD_COUNT)
                                 check(values.length()==DashboardLayout.FIELD_COUNT)

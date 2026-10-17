@@ -86,12 +86,21 @@ internal data class TrainingSnapshot(val profile: RiderProfile = RiderProfile(),
     val heartPercent get() = heartPercentFor(heart)
     val heartZone get() = heartZoneFor(heart)
     private fun heartColor(value: Double?) = heartPercentFor(value)?.takeIf { heartZoneFor(value)!=null }?.let { ZoneGlowColors.heart(it) }
-    fun glow(source: ZoneGlowSource): Int? = when (source) {
+    fun glow(source: ZoneGlowSource, zoneTwo:Boolean=false): Int? {
+        if(zoneTwo) return when(source) {
+            ZoneGlowSource.OFF -> null
+            ZoneGlowSource.POWER_CURRENT -> powerPercent?.let { ZoneTwoHelpColors.color(it,55.0,75.0) }
+            ZoneGlowSource.POWER_AVERAGE -> powerPercentFor(averagePower)?.let { ZoneTwoHelpColors.color(it,55.0,75.0) }
+            ZoneGlowSource.HEART_CURRENT -> heartPercent?.let { ZoneTwoHelpColors.color(it,60.0,70.0) }
+            ZoneGlowSource.HEART_AVERAGE -> heartPercentFor(averageHeart)?.let { ZoneTwoHelpColors.color(it,60.0,70.0) }
+        }
+        return when (source) {
         ZoneGlowSource.OFF -> null
         ZoneGlowSource.POWER_CURRENT -> powerPercent?.let { ZoneGlowColors.power(it) }
         ZoneGlowSource.POWER_AVERAGE -> powerPercentFor(averagePower)?.let { ZoneGlowColors.power(it) }
         ZoneGlowSource.HEART_CURRENT -> heartColor(heart)
         ZoneGlowSource.HEART_AVERAGE -> heartColor(averageHeart)
+        }
     }
 }
 

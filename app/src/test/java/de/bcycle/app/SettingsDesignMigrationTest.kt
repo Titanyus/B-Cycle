@@ -153,7 +153,7 @@ class SettingsDesignMigrationTest {
             themes.activate(BicycleThemes.red.id); measure(screen, 720, 1200); snapshot(screen, "field-picker-small")
             screen.dismiss()
             val dashboard = views(activity.findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
-            views(dashboard).first { it.isClickable }.performLongClick()
+            views(dashboard).single { it.tag=="dashboard_tile_2" }.performLongClick()
             views(dashboard).first { it.isClickable }.performClick()
             val normal = ShadowAlertDialog.getLatestAlertDialog()
             shadowOf(Looper.getMainLooper()).idle(); measure(normal)
