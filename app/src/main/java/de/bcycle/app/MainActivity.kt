@@ -137,7 +137,6 @@ class MainActivity : Activity() {
         dashboard = DashboardView(this) { chooseField(it) }
         dashboard.bindEditorTheme(runtime.themes)
         dashboard.activateEditor = { setDashboardEditing(true) }
-        dashboard.trainingHelp = { showTrainingHelp() }
         dashboard.graphWidthChanged={ runtime.liveGraphs.width=it }
         updateMapBack()
         dashboard.changePage = ::changeDashboard
@@ -769,11 +768,6 @@ class MainActivity : Activity() {
     private fun appendTrainingHelp(root:LinearLayout,page:()->Int):TrainingHelpView {
         BicycleForm.section(root,runtime.themes,R.string.training_help_title)
         return trainingHelpControls(page).also { root.addView(it) }
-    }
-    private fun showTrainingHelp() {
-        val page=dashboardPage
-        val root=column();appendTrainingHelp(root) { page }
-        dialog().setTitle(R.string.training_help_title).setView(BicycleStickyScrollView(settingsContext).apply { addView(root) }).show()
     }
     private fun mapSettings() {
         val root = column()

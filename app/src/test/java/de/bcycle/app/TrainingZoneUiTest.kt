@@ -24,27 +24,34 @@ import org.robolectric.RobolectricTestRunner
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class TrainingZoneUiTest {
     private val context get()=RuntimeEnvironment.getApplication()
-    @Test fun longPressOpensDashboardTrainingHelpWithExclusiveModesAndNoEditor() {
+    @Test fun longPressUsesEditorForPowerAndPulseAndTrainingHelpIsInEveryFieldPicker() {
+        context.getSharedPreferences("bike",0).edit().putString("dashboardTemplate_0","EIGHT").apply()
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val activity=controller.get();val tile=activity.window.decorView.findViewWithTag<View>("dashboard_tile_0")
-            tile.performLongClick();shadowOf(Looper.getMainLooper()).idle()
-            assertFalse(activity.dashboardEditing)
-            val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            val root=screen.window!!.decorView
-            assertTrue(testDescendants(root).any { it is BicycleStickyScrollView })
-            assertTrue(testDescendants(root).filterIsInstance<BicycleSectionHeader>().any { it.contentDescription==activity.getString(R.string.training_help_title) })
-            root.findViewWithTag<Switch>("training_help_all").performClick()
-            root.findViewWithTag<Switch>("training_help_zone_two").performClick()
-            assertFalse(root.findViewWithTag<Switch>("training_help_all").isChecked)
-            val prefs=RideRuntime.get(activity).preferences
-            assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
-            root.findViewWithTag<Switch>("training_help_average").performClick()
-            testBack(screen);tile.performLongClick()
-            val reopened=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
-            assertTrue(reopened.findViewWithTag<Switch>("training_help_zone_two").isChecked)
-            assertTrue(reopened.findViewWithTag<Switch>("training_help_average").isChecked)
-            assertEquals(TrainingHelpMode.OFF,DashboardTrainingHelp.read(prefs,1).mode)
+            val activity=controller.get();val root=activity.window.decorView
+            for(slot in listOf(0,7)) {
+                val tile=root.findViewWithTag<View>("dashboard_tile_$slot")
+                tile.performLongClick();assertTrue(activity.dashboardEditing)
+                assertFalse(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()?.isShowing ?: false)
+                tile.performClick();shadowOf(Looper.getMainLooper()).idle()
+                val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+                val fields=screen.window!!.decorView
+                assertTrue(testDescendants(fields).filterIsInstance<BicycleSectionHeader>().any { it.contentDescription==activity.getString(R.string.training_help_title) })
+                if(slot==0) {
+                    fields.findViewWithTag<Switch>("training_help_all").performClick()
+                    fields.findViewWithTag<Switch>("training_help_zone_two").performClick()
+                    assertFalse(fields.findViewWithTag<Switch>("training_help_all").isChecked)
+                    fields.findViewWithTag<Switch>("training_help_average").performClick()
+                }
+                assertTrue(fields.findViewWithTag<Switch>("training_help_zone_two").isChecked)
+                assertTrue(fields.findViewWithTag<Switch>("training_help_average").isChecked)
+                val prefs=RideRuntime.get(activity).preferences
+                assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
+                assertEquals(TrainingHelpMode.OFF,DashboardTrainingHelp.read(prefs,1).mode)
+                testBack(screen)
+                root.findViewWithTag<View>("dashboard_editor_finish").performClick()
+                assertFalse(activity.dashboardEditing)
+            }
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun designUiUsesTheSameControlsAndReloadsThemForTheSelectedDashboard() {

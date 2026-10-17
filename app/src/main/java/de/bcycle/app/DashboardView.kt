@@ -38,7 +38,6 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         editing = value
         tiles.forEach { it.markEditable() }
     }
-    var trainingHelp:((Int)->Unit)?=null
     private var zoneTwoHelp=false
     private var training = TrainingSnapshot()
     private var zoneConfig = ZoneGlowConfig()
@@ -254,11 +253,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
             tag = "dashboard_tile_$index"
             setOnClickListener { if (editing) selectField(index) }
-            setOnLongClickListener {
-                if(!editing && trainingHelp!=null && DashboardTrainingHelp.supports(layout.fields[index])) trainingHelp?.invoke(index)
-                else activateEditor?.invoke()
-                true
-            }
+            setOnLongClickListener { activateEditor?.invoke();true }
             setOnTouchListener { _, event -> swipe.onTouchEvent(event) }
         }
         fun markEditable() {
