@@ -83,6 +83,9 @@ object BicycleDesign {
     const val graphChoiceDotDiameter = 10.5f
     const val settingsRowHeight = 72
     const val settingsIconSize = 32
+    const val switchWidth = 48
+    const val switchHeight = 24
+    const val switchThumbDiameter = 18
     const val touchSize = 48
     const val compactActionWidth = 36
     const val iconSize = 24

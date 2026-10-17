@@ -195,6 +195,5 @@ oder GPX-Konvertierung der FIT-Dateien.
 
 ## Weiche Kartenbewegung (Entwicklungsstand nach APK 0.7.10)
 
-Die Kamera und das Positionssymbol wechseln bei Bewegung und GPS-Verfolgung mit
-einem kurzen gemeinsamen Übergang zum nächsten empfangenen GPS-Punkt. Details,
+Das Positionssymbol verwendet einen kleinen Puffer echter GPS-Fixes für kontinuierliche Bewegung, auch in manueller Kartenansicht. Die Kamera folgt nur im aktiven Folgemodus. Ein kleiner Pfeil zeigt unabhängig davon die Smartphone-Ausrichtung, auch im Stand. Details,
 Lebenszyklusregeln und Prüfungen: [Weiche GPS-Kartenbewegung](map-motion.md).

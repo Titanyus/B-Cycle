@@ -98,6 +98,30 @@ class RouteTrackLayerTest {
         assertEquals(6, (0 until 512).count { Color.alpha(bitmap.getPixel(250, it)) > 0 })
         model.mapViewPosition.destroy()
     }
+    @Test fun positionDotHasSmallPhoneDirectionArrowIndependentOfGpsCourseAndHidesUnknownHeading() {
+        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
+        val model=Model();model.displayModel.setFixedTileSize(256)
+        val origin=MercatorProjection.getMapSize(10,256)/2.0-256
+        val layer=RouteTrackLayer(1f);layer.setDisplayModel(model.displayModel)
+        val gps=GpsValues(latitude=0.0,longitude=0.0,bearingDegrees=90.0)
+        val bitmap=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
+        fun draw(direction:Double?) {
+            bitmap.eraseColor(Color.TRANSPARENT)
+            layer.update(null,emptyList(),gps,false,false,phoneHeading=direction)
+            layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),10,
+                AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)),Point(origin,origin),Rotation.NULL_ROTATION)
+        }
+        val blue=Color.rgb(0,100,245)
+        draw(0.0)
+        assertEquals(blue,bitmap.getPixel(256,256));assertEquals(blue,bitmap.getPixel(256,238))
+        assertEquals(0,Color.alpha(bitmap.getPixel(274,256)))
+        draw(90.0)
+        assertEquals(blue,bitmap.getPixel(274,256));assertEquals(0,Color.alpha(bitmap.getPixel(256,238)))
+        draw(null);assertEquals(0,Color.alpha(bitmap.getPixel(274,256)))
+        assertEquals(blue,bitmap.getPixel(256,256))
+        draw(Double.NaN);assertEquals(0,Color.alpha(bitmap.getPixel(256,238)))
+        bitmap.recycle();model.mapViewPosition.destroy()
+    }
     @Test fun attachedHeightLabelIncludesValidZeroAndHidesUnavailableHeight() {
         AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
         val model = Model(); model.displayModel.setFixedTileSize(256)

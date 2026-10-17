@@ -75,7 +75,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null)).let {
                 JSONObject().put("fields", jsonArray(it.fields.sorted())).put("speedSource",it.speedSource).put("distanceSource",it.distanceSource).put("localSaveEnabled",route.getBoolean("save",true)) }
             BackupSection.MAPS -> JSONObject().put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
-                .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true))
+                .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true)).put("oval",bike.getBoolean(MapOvalAnchor.preference,false))
                 .put("showTrack",bike.getBoolean("mapTrackVisible",true)).put("showGpx",bike.getBoolean("mapGpxVisible",true))
                 .put("elevationCorrection",bike.getBoolean(FitElevationCorrection.preference,false))
             BackupSection.PROFILE -> profileJson(RiderProfileStore(bike,today).read())
@@ -230,7 +230,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 }
                 BackupSection.MAPS -> {
                     if(row.has("source")) b["mapSource"]=field(row,"source",30).also { v -> check(MapSource.entries.any { it.name==v }) }
-                    mapOf("night" to "mapNight","follow" to "mapFollow","heading" to "mapHeading","showTrack" to "mapTrackVisible","showGpx" to "mapGpxVisible","elevationCorrection" to FitElevationCorrection.preference).forEach { (public,key) -> if(row.has(public)) b[key]=boolean(row,public) }
+                    mapOf("night" to "mapNight","follow" to "mapFollow","heading" to "mapHeading","oval" to MapOvalAnchor.preference,"showTrack" to "mapTrackVisible","showGpx" to "mapGpxVisible","elevationCorrection" to FitElevationCorrection.preference).forEach { (public,key) -> if(row.has(public)) b[key]=boolean(row,public) }
                 }
                 BackupSection.PROFILE -> {
                     val old=RiderProfileStore(bike,today).read()

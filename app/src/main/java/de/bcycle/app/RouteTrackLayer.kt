@@ -15,7 +15,7 @@ import kotlin.math.roundToInt
 /** Routes share the map framebuffer, including its live pinch scale and zoom pivot. */
 internal class RouteTrackLayer(private val density: Float) : Layer() {
     private data class State(val route: GpxRoute?, val track: List<MapPoint>, val gps: GpsValues,
-        val showRoute: Boolean, val showTrack: Boolean, val heightLabel: String? = null, val night: Boolean = false)
+        val showRoute: Boolean, val showTrack: Boolean, val heightLabel: String? = null, val night: Boolean = false, val phoneHeading:Double?=null)
     @Volatile private var state = State(null, emptyList(), GpsValues(), false, false)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeJoin = Paint.Join.ROUND; strokeCap = Paint.Cap.ROUND }
     private val path = Path()
@@ -24,10 +24,10 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
         textSize = dp(14); typeface = BicycleDesign.strongTypeface
     }
     private fun dp(n: Int) = n * density
-    fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean, night: Boolean = false) {
+    fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean, night: Boolean = false, phoneHeading:Double?=null) {
         // Publish an immutable snapshot; drawing occurs on Mapsforge's layer thread.
         state = State(route, track, gps, showRoute, showTrack,
-            gps.altitudeM?.takeIf { it.isFinite() }?.let { "${it.roundToInt()} m" }, night); requestRedraw()
+            gps.altitudeM?.takeIf { it.isFinite() }?.let { "${it.roundToInt()} m" }, night,phoneHeading?.takeIf { it.isFinite() }?.let(PhoneHeadingFilter::normalize)); requestRedraw()
     }
     override fun draw(boundingBox: BoundingBox, zoomLevel: Byte, canvas: Canvas, topLeftPoint: Point, rotation: Rotation) {
         val snapshot = state
@@ -69,16 +69,16 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
         val latitude = gps.latitude; val longitude = gps.longitude
         if (latitude != null && longitude != null && abs(latitude) <= 85.05112878) {
             target.save(); target.translate(x(longitude), y(latitude)); paint.style = Paint.Style.FILL
-            if (gps.bearingDegrees == null) {
-                paint.color = android.graphics.Color.WHITE; target.drawCircle(0f, 0f, dp(11), paint)
-                paint.color = android.graphics.Color.rgb(0, 100, 245); target.drawCircle(0f, 0f, dp(8), paint)
-            } else {
-                target.rotate(gps.bearingDegrees.toFloat())
-                arrow.reset(); arrow.moveTo(0f, -dp(16)); arrow.lineTo(dp(11), dp(12))
-                arrow.lineTo(0f, dp(6)); arrow.lineTo(-dp(11), dp(12)); arrow.close()
-                paint.color = android.graphics.Color.WHITE; paint.style = Paint.Style.STROKE; paint.strokeWidth = dp(5); target.drawPath(arrow, paint)
-                paint.color = android.graphics.Color.rgb(0, 100, 245); paint.style = Paint.Style.FILL; target.drawPath(arrow, paint)
+            snapshot.phoneHeading?.let { direction ->
+                val saved=target.save();target.rotate(direction.toFloat())
+                arrow.reset();arrow.moveTo(0f,-dp(21));arrow.lineTo(dp(5),-dp(10));arrow.lineTo(-dp(5),-dp(10));arrow.close()
+                paint.color=android.graphics.Color.WHITE;paint.style=Paint.Style.STROKE;paint.strokeWidth=dp(3);target.drawPath(arrow,paint)
+                paint.color=android.graphics.Color.rgb(0,100,245);paint.style=Paint.Style.FILL;target.drawPath(arrow,paint)
+                target.restoreToCount(saved)
             }
+            paint.style=Paint.Style.FILL
+            paint.color=android.graphics.Color.WHITE;target.drawCircle(0f,0f,dp(11),paint)
+            paint.color=android.graphics.Color.rgb(0,100,245);target.drawCircle(0f,0f,dp(8),paint)
             target.restore()
             snapshot.heightLabel?.let { text ->
                 target.save(); target.translate(x(longitude), y(latitude))

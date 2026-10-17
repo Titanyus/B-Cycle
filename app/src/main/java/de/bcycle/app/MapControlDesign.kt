@@ -11,6 +11,7 @@ internal object MapControlDesign {
     const val buttonHeight = 48
     const val detailWidth = 48
     const val compactMinHeight = 24
+    const val compactMinWidth = 24
     const val iconSize = 24
     const val trackIconSize = 28
     const val iconHorizontalPadding = 10
@@ -35,12 +36,12 @@ internal object MapControlDesign {
         cornerRadius = BicycleDesign.dp(context, radius).toFloat()
         setStroke(BicycleDesign.dp(context, strokeWidth), dashboardBorder)
     }
-    fun icon(button: Button, kind: BicycleIcon) {
+    fun icon(button: Button, kind: BicycleIcon, negative:Boolean=false) {
         val size = BicycleDesign.dp(button.context, iconSize)
         val padding = BicycleDesign.dp(button.context, iconHorizontalPadding)
         button.gravity = Gravity.CENTER
         button.setPadding(padding, 0, padding, 0)
-        button.setCompoundDrawables(BicycleIcons.drawable(button.context, kind, foreground).apply {
+        button.setCompoundDrawables(BicycleIcons.drawable(button.context, kind, foreground,negative).apply {
             setBounds(0, 0, size, size)
         }, null, null, null)
     }

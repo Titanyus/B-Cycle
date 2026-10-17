@@ -79,6 +79,9 @@ class MapPanelTest {
                 assertEquals(BicycleDesign.dp(panel.context,6),panel.width-row.right)
                 assertTrue(night.right<=row.left)
             }
+            measure(panel,BicycleDesign.dp(panel.context,280),BicycleDesign.dp(panel.context,140))
+            assertTrue(night.right<=row.left)
+            assertTrue(row.right<=panel.width)
             measure(root,1080,2100)
             val dashboard = descendants(root).filterIsInstance<DashboardView>().single()
             val geometry = listOf(dashboard.width, dashboard.height, dashboard.top)
@@ -163,7 +166,7 @@ class MapPanelTest {
             assertEquals(View.VISIBLE, descendants(root).filterIsInstance<DashboardView>().single().visibility)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun movingCameraInterpolatesButManualPanPauseAndStandstillCancelFrames() {
+    @Test fun cameraAndMarkerInterpolateIndependentlyWhilePauseAndStandstillCancelFrames() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val root = controller.get().findViewById<ViewGroup>(android.R.id.content); measure(root,1080,2100)
@@ -179,15 +182,20 @@ class MapPanelTest {
             fix(10.00005,5.0)
             val raw = runtime.gpsValues
             assertEquals(10.0,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
-            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(225))
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(800))
             val midway = panel.mapView.model.mapViewPosition.center.longitude
             assertTrue(midway > 10.0 && midway < raw.longitude!!)
             assertEquals(raw.longitude,runtime.gpsValues.longitude)
             panel.setFollow(false)
-            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000))
+            assertEquals(midway,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
+            fix(10.0001,5.0)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(800))
+            val displayed=MapPanel::class.java.getDeclaredField("displayedGps").apply { isAccessible=true }.get(panel) as GpsValues
+            assertTrue(displayed.longitude!!>raw.longitude!! && displayed.longitude!!<runtime.gpsValues.longitude!!)
             assertEquals(midway,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
             panel.setFollow(true); panel.pause(); panel.resume()
-            assertEquals(raw.longitude!!,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
+            assertEquals(runtime.gpsValues.longitude!!,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
             fix(10.0001,5.0); panel.pause()
             val paused = panel.mapView.model.mapViewPosition.center
@@ -204,6 +212,72 @@ class MapPanelTest {
             fix(10.00015,0.0)
             assertFalse(runtime.isMoving)
             assertEquals(runtime.gpsValues.longitude!!,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun ovalButtonKeepsNorthUpMovesGpsAnchorAndManualPanStillPreservesCamera() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val root=controller.get().findViewById<ViewGroup>(android.R.id.content);measure(root,1080,2100)
+            val panel=descendants(root).filterIsInstance<MapPanel>().single()
+            val runtime=RideRuntime.get(controller.get())
+            val button=panel.findViewWithTag<View>("map_oval_follow")
+            assertFalse(button.isActivated)
+            fun fix(index:Int,course:Double) {
+                val now=SystemClock.elapsedRealtime()
+                assertTrue(runtime.ride.gps.accept(GpsFix(now,51.0-index*.000045,10.0,3.0,5.0,.2,
+                    bearingDegrees=course,bearingAccuracyDegrees=3.0),now))
+                panel.refresh()
+            }
+            fix(0,180.0)
+            button.performClick()
+            assertTrue(button.isActivated);assertTrue(runtime.preferences.getBoolean(MapOvalAnchor.preference,false))
+            assertTrue(runtime.preferences.getBoolean("mapHeading",true))
+            for(i in 1..8) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));fix(i,180.0) }
+            assertEquals(0f,panel.mapView.mapRotation.degrees,.001f)
+            assertEquals(.5f,panel.mapView.mapViewCenterX,.01f);assertEquals(1f/3,panel.mapView.mapViewCenterY,.01f)
+            val pose=MapPanel::class.java.getDeclaredField("displayedGps").apply { isAccessible=true }.get(panel) as GpsValues
+            val pixel=panel.mapView.mapViewProjection.toPixels(org.mapsforge.core.model.LatLong(pose.latitude!!,pose.longitude!!),true)
+            assertEquals(panel.width*panel.mapView.mapViewCenterX,pixel.x.toFloat(),1f)
+            assertEquals(panel.height*panel.mapView.mapViewCenterY,pixel.y.toFloat(),1f)
+            panel.setFollow(false)
+            val centre=panel.mapView.model.mapViewPosition.center
+            val x=panel.mapView.mapViewCenterX;val y=panel.mapView.mapViewCenterY
+            for(i in 9..10) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));fix(i,90.0) }
+            assertEquals(centre,panel.mapView.model.mapViewPosition.center)
+            assertEquals(x,panel.mapView.mapViewCenterX,0f);assertEquals(y,panel.mapView.mapViewCenterY,0f)
+            panel.setFollow(true);button.performClick()
+            assertFalse(button.isActivated);assertFalse(runtime.preferences.getBoolean(MapOvalAnchor.preference,true))
+            assertEquals(.5f,panel.mapView.mapViewCenterX,0f);assertEquals(.68f,panel.mapView.mapViewCenterY,.001f)
+            assertTrue(runtime.preferences.getBoolean("mapHeading",true))
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun phoneCompassOnlyRunsForVisibleMapAndDoesNotControlGpsCameraHeading() {
+        val app=org.robolectric.RuntimeEnvironment.getApplication()
+        val manager=app.getSystemService(android.hardware.SensorManager::class.java)
+        val sensor=org.robolectric.shadows.ShadowSensor.newInstance(android.hardware.Sensor.TYPE_ROTATION_VECTOR)
+        shadowOf(manager).addSensor(sensor)
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val root=controller.get().findViewById<ViewGroup>(android.R.id.content);measure(root,1080,2100)
+            val panel=descendants(root).filterIsInstance<MapPanel>().single()
+            val runtime=RideRuntime.get(controller.get())
+            assertTrue(shadowOf(manager).listeners.isEmpty())
+            val now=SystemClock.elapsedRealtime()
+            runtime.ride.gps.accept(GpsFix(now,51.0,10.0,3.0,5.0,.2,bearingDegrees=90.0,bearingAccuracyDegrees=3.0),now)
+            panel.refresh()
+            assertEquals(1,shadowOf(manager).listeners.size)
+            val before=panel.mapView.mapRotation.degrees
+            val event=org.robolectric.shadows.ShadowSensorManager.createSensorEvent(4,android.hardware.Sensor.TYPE_ROTATION_VECTOR)
+            event.sensor=sensor;event.accuracy=android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_HIGH
+            event.timestamp=SystemClock.elapsedRealtimeNanos();event.values[3]=1f
+            shadowOf(manager).sendSensorEventToListeners(event)
+            assertEquals(before,panel.mapView.mapRotation.degrees,.001f)
+            assertEquals(90.0,runtime.gpsValues.bearingDegrees!!,.001)
+            panel.cameraVisible={false};panel.refresh()
+            assertTrue(shadowOf(manager).listeners.isEmpty())
+            panel.cameraVisible={true};panel.refresh()
+            assertEquals(1,shadowOf(manager).listeners.size)
+            panel.pause();assertTrue(shadowOf(manager).listeners.isEmpty())
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun headingUpCameraKeepsGpsInLowerThirdAndNorthSettingResetsRotation() {
@@ -223,6 +297,11 @@ class MapPanelTest {
             descendants(panel).single { it.contentDescription == "Fahrtrichtung oben · wechseln zu Norden" }.performClick()
             assertEquals(0f, panel.mapView.mapRotation.degrees, .001f)
             assertEquals(2f / 3f, panel.mapView.mapViewCenterY, .001f)
+            panel.setFollow(false)
+            val manualCenter=panel.mapView.model.mapViewPosition.center
+            descendants(panel).single { it.contentDescription==controller.get().getString(R.string.ui_map_north_to_heading) }.performClick()
+            assertEquals(-90f,panel.mapView.mapRotation.degrees,.001f)
+            assertEquals(manualCenter,panel.mapView.model.mapViewPosition.center)
         } finally { controller.pause().stop().destroy() }
     }
     @Test @Config(qualifiers = "xxhdpi") fun mapControlsUseRequestedCornersToggleRouteAndHideTogether() {
@@ -236,7 +315,7 @@ class MapPanelTest {
             val panel = descendants(root).filterIsInstance<MapPanel>().single()
             assertFalse(descendants(panel).any { it.contentDescription == "Nächstes Dashboard" || it.contentDescription == "Vorheriges Dashboard" })
             val center = descendants(panel).single { it.contentDescription == "GPS-Zentrierung aktivieren" }
-            assertEquals(3, (center.parent as ViewGroup).childCount)
+            assertEquals(4, (center.parent as ViewGroup).childCount)
             val zoom = descendants(panel).single { it.tag == "map_zoom_controls" } as ViewGroup
             assertEquals(2, zoom.childCount)
             assertTrue(zoom.getChildAt(0).top < zoom.getChildAt(1).top)

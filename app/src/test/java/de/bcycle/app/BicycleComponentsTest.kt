@@ -129,8 +129,9 @@ class BicycleComponentsTest {
             val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("circle-ui",0))
             val root=LinearLayout(activity)
             val first=android.widget.CheckBox(activity);val second=android.widget.CheckBox(activity)
-            val toggle=android.widget.Switch(activity);val thumb=toggle.thumbDrawable
+            val toggle=android.widget.Switch(activity)
             for(view in listOf(first,second,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
+            val thumb=toggle.thumbDrawable
             activity.setContentView(root)
             fun draw(box: android.widget.CheckBox): android.graphics.Bitmap {
                 val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
@@ -163,9 +164,9 @@ class BicycleComponentsTest {
             val radio=android.widget.RadioButton(activity)
             val radioWidth=radio.buttonDrawable!!.intrinsicWidth
             val toggle=android.widget.Switch(activity)
-            val originalThumb=toggle.thumbDrawable
             var changes=0;box.setOnCheckedChangeListener { _,_->changes++ }
             for(view in listOf(box,radio,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
+            val originalThumb=toggle.thumbDrawable
             activity.setContentView(root)
             assertEquals(radioWidth,radio.buttonDrawable!!.intrinsicWidth)
             fun pixel(button: android.widget.CompoundButton,x:Int=24):Int {
@@ -184,9 +185,21 @@ class BicycleComponentsTest {
                 assertEquals(colors.foreground,pixel(box,6))
                 assertEquals(colors.foreground,box.currentTextColor);assertEquals(colors.foreground,toggle.currentTextColor)
                 assertEquals(colors.accent,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
-                val track=toggle.trackTintList!!.getColorForState(toggle.drawableState,0)
-                assertEquals(colors.accent and 0x00ffffff,track and 0x00ffffff)
-                assertEquals(102,android.graphics.Color.alpha(track))
+                assertNull(toggle.trackTintList)
+                fun thumbPixel():Int {
+                    val bitmap=android.graphics.Bitmap.createBitmap(24,24,android.graphics.Bitmap.Config.ARGB_8888)
+                    toggle.thumbDrawable.setBounds(0,0,24,24);toggle.thumbDrawable.draw(android.graphics.Canvas(bitmap))
+                    return bitmap.getPixel(12,12).also { bitmap.recycle() }
+                }
+                assertEquals(colors.accent,thumbPixel())
+                fun trackPixel(x:Int,y:Int):Int {
+                    val track=toggle.trackDrawable
+                    val bitmap=android.graphics.Bitmap.createBitmap(48,24,android.graphics.Bitmap.Config.ARGB_8888)
+                    track.setBounds(0,0,48,24);track.draw(android.graphics.Canvas(bitmap))
+                    return bitmap.getPixel(x,y).also { bitmap.recycle() }
+                }
+                assertEquals(0,android.graphics.Color.alpha(trackPixel(24,12)))
+                assertEquals(colors.foreground,trackPixel(24,0))
                 assertEquals(1,changes);assertTrue(box.isChecked);assertTrue(radio.isChecked)
                 box.isEnabled=false
                 assertEquals(127,android.graphics.Color.alpha(pixel(box)))
@@ -194,7 +207,11 @@ class BicycleComponentsTest {
                 assertEquals(colors.accent,pixel(box))
                 toggle.isChecked=false
                 assertEquals(colors.foreground,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
-                toggle.isChecked=true
+                assertEquals(colors.foreground,thumbPixel())
+                assertEquals(colors.foreground,trackPixel(24,0))
+                toggle.isEnabled=false
+                assertEquals(127,android.graphics.Color.alpha(trackPixel(24,0)))
+                toggle.isEnabled=true;toggle.isChecked=true
                 assertEquals(radioWidth,radio.buttonDrawable!!.intrinsicWidth)
                 assertSame(originalThumb,toggle.thumbDrawable)
             }

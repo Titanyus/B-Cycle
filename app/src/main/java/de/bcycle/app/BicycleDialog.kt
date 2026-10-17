@@ -185,6 +185,18 @@ internal object BicycleDialogStyle {
             (view.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = dp(view, BicycleDesign.controlGap)
         } else if (view is CompoundButton) {
             view.minimumHeight = dp(view, BicycleDesign.touchSize)
+            if(view is Switch) {
+                view.showText=false;view.splitTrack=false
+                view.switchMinWidth=dp(view,BicycleDesign.switchWidth)
+                view.switchPadding=dp(view,BicycleDesign.controlGap)
+                view.thumbDrawable=LayerDrawable(arrayOf(
+                    GradientDrawable().apply { setColor(Color.TRANSPARENT);setSize(dp(view,BicycleDesign.switchHeight),dp(view,BicycleDesign.switchHeight)) },
+                    GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(Color.WHITE) }
+                )).apply {
+                    setLayerSize(1,dp(view,BicycleDesign.switchThumbDiameter),dp(view,BicycleDesign.switchThumbDiameter))
+                    setLayerGravity(1,Gravity.CENTER)
+                }
+            }
             val circular = view is CheckBox || view is RadioButton
             // Keep the native radio-button allocation, with the shared 24-dp circle centered inside.
             val circleInset = if (view is RadioButton) ((view.buttonDrawable?.intrinsicWidth ?: dp(view, 24)) - dp(view, 24)).coerceAtLeast(0) / 2 else 0
@@ -196,7 +208,14 @@ internal object BicycleDialogStyle {
                 } else view.buttonTintList = checkedColors(it.accent, it.foreground)
                 if (view is Switch) {
                     view.thumbTintList = checkedColors(it.accent, it.foreground)
-                    view.trackTintList = checkedColors(alpha(it.accent, .4f), alpha(it.foreground, .15f))
+                    view.trackTintList = null
+                    view.trackDrawable=GradientDrawable().apply {
+                        setColor(Color.TRANSPARENT)
+                        cornerRadius=dp(view,BicycleDesign.switchHeight)/2f
+                        setSize(dp(view,BicycleDesign.switchWidth),dp(view,BicycleDesign.switchHeight))
+                        setStroke(BicycleDesign.linePixels(view.context),colors(it.foreground))
+                        state=view.drawableState
+                    }
                 }
                 view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), null, ColorDrawable(Color.WHITE))
             }

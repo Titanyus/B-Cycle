@@ -41,7 +41,7 @@ class PerformanceSettingsTest {
         assertFalse(checkboxes.getValue("record_HEART_RATE").isChecked)
         val before = prefs.all.filterKeys { !it.startsWith("record") && it != BikeProfileStore.KEY }
         shadowOf(Looper.getMainLooper()).idle()
-        assertEquals(setOf("RIDER_POWER", "CADENCE", "EFFICIENCY_FACTOR", "ESTIMATED_FTP"), runtime.config.fields)
+        assertEquals(setOf("RIDER_POWER", "CADENCE", "EFFICIENCY_FACTOR", "ESTIMATED_FTP", "GPS_POSITION"), runtime.config.fields)
         assertEquals(before, prefs.all.filterKeys { !it.startsWith("record") && it != BikeProfileStore.KEY })
         controller.pause().stop().destroy()
         val recreated = Robolectric.buildActivity(MainActivity::class.java).setup()

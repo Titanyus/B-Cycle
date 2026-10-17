@@ -696,4 +696,6 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="training_help_average">Durchschnittswerte</string>
     <string name="training_help_for">Trainingshilfe für</string>
     <string name="training_help_explanation">Wirkt auf alle passenden Datenfelder dieses Dashboards. Puls und Fahrerleistung verwenden die Zonen aus dem Fahrerprofil. Zone 2: Grün im Zielbereich, Rot außerhalb; nach unten mit großzügigem Übergang.</string>
+    <string name="ui_map_oval_active">Vorausschau-Oval aktiv · ausschalten</string>
+    <string name="ui_map_oval_inactive">Vorausschau-Oval aus · einschalten</string>
 </resources>

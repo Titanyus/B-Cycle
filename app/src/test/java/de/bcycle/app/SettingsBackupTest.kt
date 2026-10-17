@@ -69,6 +69,17 @@ class SettingsBackupTest {
         assertEquals(field,DashboardLayout.decode(bike.getString("dashboard",null)).fields[2])
         assertEquals(field,MapFieldSelection.read(bike,0));assertEquals("FULL_DATA",bike.getString("dashboardTemplate_0",null))
     }
+    @Test fun ovalMapModeRoundTripsAndOldMapsBackupsKeepExistingChoice() {
+        bike.edit().putBoolean(MapOvalAnchor.preference,true).commit()
+        val b=backup();val bytes=b.export(setOf(BackupSection.MAPS))
+        bike.edit().putBoolean(MapOvalAnchor.preference,false).commit()
+        b.apply(b.plan(b.decode(bytes),setOf(BackupSection.MAPS)))
+        assertTrue(bike.getBoolean(MapOvalAnchor.preference,false))
+        assertTrue(BikeUiConfigurationScope.mapKey(MapOvalAnchor.preference))
+        val legacy=JSONObject(String(bytes));legacy.getJSONObject("sections").getJSONObject(BackupSection.MAPS.id).remove("oval")
+        b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.MAPS)))
+        assertTrue(bike.getBoolean(MapOvalAnchor.preference,false))
+    }
     @Test fun heightCorrectionPreferenceRoundTripsAndLegacyMapsDoNotResetIt() {
         bike.edit().putBoolean(FitElevationCorrection.preference,true).commit()
         val b=backup();val bytes=b.export(setOf(BackupSection.MAPS))

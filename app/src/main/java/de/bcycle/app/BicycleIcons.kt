@@ -25,7 +25,7 @@ internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = Th
     TrackUnknown(R.drawable.ic_lucide_circle_help), FileGPX(R.drawable.ic_lucide_file), FileFIT(R.drawable.ic_lucide_file),
     MoreOptions(R.drawable.ic_lucide_ellipsis), SettingsOptions(R.drawable.ic_lucide_ellipsis_vertical),
     ShowOnMap(R.drawable.ic_lucide_eye), ActiveOnMap(R.drawable.ic_lucide_eye, ThemeRole.ACCENT), HideOnMap(R.drawable.ic_lucide_eye_closed),
-    Locate(R.drawable.ic_lucide_locate_fixed), Compass(R.drawable.ic_lucide_compass), HeadingUp(R.drawable.ic_lucide_arrow_up_from_dot), Maximize(R.drawable.ic_lucide_maximize), Minimize(R.drawable.ic_lucide_minimize), Sun(R.drawable.ic_lucide_sun), Moon(R.drawable.ic_lucide_moon), CloudUploaded(R.drawable.ic_lucide_cloud_upload, ThemeRole.ACCENT),
+    Locate(R.drawable.ic_lucide_locate_fixed), Compass(R.drawable.ic_lucide_compass), OvalFollow(R.drawable.ic_map_oval_follow), HeadingUp(R.drawable.ic_lucide_arrow_up_from_dot), Maximize(R.drawable.ic_lucide_maximize), Minimize(R.drawable.ic_lucide_minimize), Sun(R.drawable.ic_lucide_sun), Moon(R.drawable.ic_lucide_moon), CloudUploaded(R.drawable.ic_lucide_cloud_upload, ThemeRole.ACCENT),
     CloudConfirmed(R.drawable.ic_lucide_cloud_check), SaveConfirmed(R.drawable.ic_lucide_save_check),
     CloudNotUploaded(R.drawable.ic_lucide_cloud_upload), CloudFailed(R.drawable.ic_lucide_cloud_alert), LocalSaved(R.drawable.ic_lucide_hard_drive_download, ThemeRole.ACCENT),
     LocalNotSaved(R.drawable.ic_lucide_hard_drive_download), DeleteTrack(R.drawable.ic_lucide_trash_2),
