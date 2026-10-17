@@ -49,6 +49,30 @@ class BikeQuickPickerTest {
             content.findViewWithTag<View>("bike_profile_5").performClick();assertEquals(5,chosen)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun bottomAnchorOpensPickerAboveButtonInsideVisibleScreen() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val c=host.get()
+            val root=android.widget.FrameLayout(c)
+            val anchor=View(c)
+            root.addView(anchor,android.widget.FrameLayout.LayoutParams(-1,58,android.view.Gravity.BOTTOM))
+            c.setContentView(root)
+            root.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(640,View.MeasureSpec.EXACTLY))
+            root.layout(0,0,360,640)
+            val popup=BikeQuickPicker(anchor,ThemeManager(c.getSharedPreferences("theme",0)),listOf(BikeProfile(0,"Bike")),0) {}
+            popup.show(anchor)
+            try {
+                assertTrue(popup.isShowing)
+                val params=popup.contentView.rootView.layoutParams as android.view.WindowManager.LayoutParams
+                val location=IntArray(2);anchor.getLocationOnScreen(location)
+                val frame=android.graphics.Rect().also(anchor::getWindowVisibleDisplayFrame)
+                assertTrue(params.y>=frame.top)
+                assertTrue(params.y+popup.height<=location[1])
+                assertTrue(params.x>=frame.left)
+                assertTrue(params.x+popup.width<=frame.right)
+            } finally { popup.dismiss() }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun shortListOnlyOffersExistingBikesAndManagerKeepsItsNormalScaleAndAddTile() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

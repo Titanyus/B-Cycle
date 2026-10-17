@@ -195,3 +195,5 @@ Erklärende Formulartexte verwenden BicycleComponents.description mit zentral mi
 Dashboard-Vorschauen in den benannten Seitenkacheln und im Layout-Raster verwenden einheitlich presetPreviewWidth/presetPreviewHeight (60 × 84 dp), die bewährten Maße vor Einführung dynamischer Dashboards. Keine getrennten Größen pro Dashboard-Auswahl. Layout-Raster verwendet wieder 132-dp-Kacheln.
 
 Zonenpalette: Puls Z1–5 = #8696A5, #66BB6A, #FFCA28, #FF8A26, #EF5350. Leistung Z1–7 = #8696A5, #42A5F5, #66BB6A, #FFCA28, #FF8A26, #EF5350, #AB47BC. Bestehende zentrale Paletten für Profil, Balken, Verteilungen und Trainingshilfe verwenden. Bike-Kacheln bleiben bei ihren eigenen 56-dp-Vorschaubildern. Layout-Dropdown verwendet native Compound-Drawables und CENTER_VERTICAL für mittige Icon-/Text-Ausrichtung.
+
+BikeQuickPicker am unteren Aufnahmebutton explizit oberhalb in sichtbaren Bildschirmkoordinaten öffnen; vorab messen und auf sichtbaren Bereich begrenzen. Nicht auf automatische Umkehrung von showAsDropDown bei WRAP_CONTENT verlassen.

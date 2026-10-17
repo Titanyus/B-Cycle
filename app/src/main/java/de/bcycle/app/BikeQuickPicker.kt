@@ -29,7 +29,16 @@ internal class BikeQuickPicker(anchor:View,themes:ThemeManager,profiles:List<Bik
         }
     }
     fun show(anchor:View) {
+        anchor.getWindowVisibleDisplayFrame(frame)
+        val screenHeight=frame.height().takeIf { it>0 } ?: anchor.resources.displayMetrics.heightPixels
+        contentView.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(screenHeight,View.MeasureSpec.AT_MOST))
+        height=contentView.measuredHeight.coerceIn(1,screenHeight)
         val location=IntArray(2);anchor.getLocationOnScreen(location)
-        showAsDropDown(anchor,frame.left+gap-location[0],0,Gravity.START)
+        val top=(location[1]-height-gap).coerceIn(frame.top,(frame.bottom-height).coerceAtLeast(frame.top))
+        // Explicit screen coordinates avoid the platform's below-anchor placement at the bottom toolbar.
+        setIsLaidOutInScreen(true)
+        setIsClippedToScreen(true)
+        showAtLocation(anchor,Gravity.TOP or Gravity.LEFT,frame.left+gap,top)
     }
 }
