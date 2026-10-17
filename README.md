@@ -61,13 +61,16 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 5 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-5-apk/downloads/B-Cycle-0.7.30-test-build-5.apk)**
+**[Aktuelle signierte Test-APK: Build 9 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-9-apk/downloads/B-Cycle-0.7.30-test-build-9.apk)**
 
-Aus GitHub Actions, anschließend mit dem bisherigen Testschlüssel signiert und als
-Update installierbar. App-Version weiterhin 0.7.30, neuer **Test-Build 5** mit oberem
-Glow im Statusleistenbereich, längerer Leistungsglättung und passender Zonen-Auswahl.
-[Buildnachweis und SHA-256](docs/test-build-5.md). Das Repository-Secret für die
-Signierung direkt in Actions ist weiterhin vorzubereiten.
+Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
+installierbar. App-Version weiterhin 0.7.30, **Test-Build 9 vom 17.10.2026**.
+Enthält die neue dashboardweite Trainingshilfe mit Zone-2-Modus, den
+Trendindikator-Schalter pro Datenfeld, benannte Dashboards und die Bike-Auswahl
+am Aufnahmebutton.
+[Buildnachweis und SHA-256](docs/test-build-9.md) ·
+[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39005155255).
+Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
 
 ## Neu in APK 0.7.30
 
