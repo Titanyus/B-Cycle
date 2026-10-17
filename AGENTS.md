@@ -138,7 +138,7 @@ Fahrmodus-Anzeige: Seitlich/Oben pro App in modeGlowPlacement, Standard Seitlich
 ## Zentrale APK-Builds über GitHub Actions
 
 APK-Builds standardmäßig über `.github/workflows/android-debug.yml`, nicht lokal in
-der Codex-Cloud. Push auf main startet automatisch einen Debug-Build; workflow_dispatch
+der Codex-Cloud. Push auf main startet automatisch einen optimierten Release-Build; workflow_dispatch
 erlaubt manuelle Builds. Keine zusätzliche manuelle Auslösung, wenn ein Push bereits
 einen passenden Lauf gestartet hat. Nach Änderungen relevante Tests auswählen, keine
 unnötigen lokalen APK-Builds oder vollständigen Testsuiten. GitHub-Lauf bis Abschluss

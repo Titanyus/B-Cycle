@@ -43,35 +43,40 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 - **Dein Design** – 14 vorgegebene Farbthemen mit einheitlicher Bedienung, sofort gespeicherten Einstellungen und Hochformat-Layouts.
 - **Export und Upload** – Lokal speichern oder eigene Fahrten an WebDAV, intervals.icu, Dreeve und Strava senden. Dienste arbeiten unabhängig; Dreeve benötigt eine eigene Instanz, Strava derzeit eine persönliche API-App.
 - **Wetter und Höhe** – Wetter zur Tourmitte dauerhaft speichern und bei Bedarf GPS-Höhen nachträglich mit Mapterhorn korrigieren; Original-FIT bleibt erhalten.
-- **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 8 MB APK. Keine automatische Telemetrie.
+- **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 1,7 MB optimierte APK. Keine automatische Telemetrie.
 
 ## APK herunterladen
 
-[![Android Debug APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
+[![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
 **[Aktuelle APK-Builds in GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)**
 
-Bei jedem Push auf `main` entsteht automatisch eine Debug-APK. Im erfolgreichen Lauf
-unter **Artifacts → B-Cycle-debug-…** das ZIP herunterladen und die APK entpacken.
+Bei jedem Push auf `main` entsteht automatisch eine optimierte Release-APK. Im erfolgreichen Lauf
+unter **Artifacts → B-Cycle-release-…** das ZIP herunterladen und die APK entpacken.
 GitHub-Anmeldung für den Artefakt-Download erforderlich; Artefakte bleiben 30 Tage erhalten.
-Manuell: **Actions → Android Debug APK → Run workflow**.
+Manuell: **Actions → Android Optimized APK → Run workflow**.
 
 Android 13+ (minSdk 33), Compile-/Target-SDK 36. Die Build-Zusammenfassung nennt
 Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist für
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle signierte Test-APK: Build 33 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/test-build-33-apk/downloads/B-Cycle-0.7.31-test-build-33.apk)**
+**[Version 0.8 – optimierte APK herunterladen](https://github.com/Titanyus/B-Cycle/releases/download/v0.8/B-Cycle-0.8.apk)**
 
-Aus GitHub Actions, mit dem bisherigen Testschlüssel signiert und als Update
-installierbar. **Version 0.7.31, Test-Build 33 vom 17.10.2026**.
-Neu: Weiße Seitenheader-Texte und hellere TERTIARY-Flächen in hellen Einstellungen.
-Dunkle Puls-/Leistungsverteilungskurven auf Weiß; die fünf Verlaufsgraphen behalten
-beim Umschalten ihre Farben aus der Basispalette.
-**12 gezielte Tests erfolgreich.**
-[Änderungen und SHA-256](docs/test-build-33.md) ·
-[GitHub-Actions-Lauf](https://github.com/Titanyus/B-Cycle/actions/runs/39072233526).
-Die Signierung direkt in Actions kann weiterhin über das Repository-Secret eingerichtet werden.
+**Meilenstein 0.8 vom 18.10.2026.** Optimierter Release mit R8 und Ressourcenverkleinerung,
+mit bisherigem Testschlüssel signiert und als Update installierbar.
+**1,7 MB statt 8,3 MB; vollständige Testsuite: 608 Tests bestanden.**
+[Meilenstein, Änderungen und SHA-256](docs/milestone-0.8.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39073752384).
+Ein physischer Gerätetest der optimierten APK steht noch aus.
+
+## Neu in APK 0.8
+
+- Helle Einstellungen: weiße Header-Icons; Puls-/Leistungsverteilung ohne Glow.
+- Fahrerprofil: aufklappbare Sticky-Abschnitte und vollständiger Geburtsdatumsrahmen.
+- Lokale Speicherung inline unter Daten & Speicher; Streckendetails mit „Norm. Leistung“.
+- Optimierte APK und dauerhaftes Meilenstein-Release einschließlich R8-Mapping.
 
 ## Neu in APK 0.7.31
 
@@ -164,7 +169,7 @@ Kotlin und native Android-Views, eine Activity mit getrennten Sensor- und Datenk
 Android 13+ (`minSdk 33`), `compileSdk` und `targetSdk 36`.
 Mapsforge, Garmin FIT SDK und OkHttp übernehmen Karten, FIT-Dateien und Netzwerkzugriffe.
 
-Für APK 0.7.30 wurden 60 gezielte Tests erfolgreich geprüft; letzter vollständiger Lauf: 537 Tests für 0.7.28.
+Für Meilenstein 0.8 wurden alle 608 Tests der vollständigen JVM-/Robolectric-Suite erfolgreich ausgeführt.
 APK-Builds laufen zentral über GitHub Actions; lokale Builds sind nur bei konkretem Bedarf vorgesehen.
 [Build-Anleitung und Signierung](docs/github-actions.md).
 Tests ersetzen keinen Hardwaretest. Der Matrix-Empfang wurde vom Nutzer bestätigt; Korrekturfaktoren, Wiederverbindung
