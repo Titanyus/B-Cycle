@@ -72,6 +72,7 @@ object BicycleDesign {
     const val bikePhotoHeight = 200
     const val bikePhotoEmptyHeight = 64
     const val bikePreviewHeight = 56
+    const val dashboardPagePreviewHeight = 90
     const val sectionHeaderMinHeight = 56
     const val sectionHeaderPadding = 12
     const val sectionRuleDp = .75f

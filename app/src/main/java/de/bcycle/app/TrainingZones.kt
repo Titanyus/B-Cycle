@@ -144,7 +144,7 @@ internal class TrainingPresentation {
 }
 
 internal object ZoneGlowColors {
-    val powerColors = listOf(0xffa3a3a3.toInt(), 0xff42a5f5.toInt(), 0xff66bb6a.toInt(), 0xffffca28.toInt(), 0xffff8a26.toInt(), 0xffef5350.toInt(), 0xffab47bc.toInt())
+    val powerColors = listOf(0xff8696a5.toInt(), 0xff42a5f5.toInt(), 0xff66bb6a.toInt(), 0xffffca28.toInt(), 0xffff8a26.toInt(), 0xffef5350.toInt(), 0xffab47bc.toInt())
     fun mix(a: Int, b: Int, fraction: Float): Int {
         val t = fraction.coerceIn(0f, 1f)
         fun channel(shift: Int) = (((a ushr shift and 255) * (1 - t)) + ((b ushr shift and 255) * t)).toInt()

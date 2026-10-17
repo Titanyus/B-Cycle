@@ -240,7 +240,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
 
 /** Semantic intensity markers, independent of themes and never applied to text or icons. */
 internal object TrainingZoneColors {
-    val values = listOf(0xff8696a5.toInt(), 0xff35c977.toInt(), 0xffeacb38.toInt(), 0xffee902e.toInt(), 0xffe05252.toInt())
+    val values = listOf(0xff8696a5.toInt(), 0xff66bb6a.toInt(), 0xffffca28.toInt(), 0xffff8a26.toInt(), 0xffef5350.toInt())
 }
 
 internal fun showRiderProfile(context: Context, themes: ThemeManager, navigation: DialogNavigation, store: RiderProfileStore): AlertDialog {

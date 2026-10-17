@@ -193,3 +193,5 @@ Dashboard-Layout-Dropdown öffnet DashboardLayoutGrid mit allen zehn Vorschauen 
 Erklärende Formulartexte verwenden BicycleComponents.description mit zentral mindestens 8 dp (controlGap) Abstand zum vorherigen Element, insbesondere nach Buttons. Der Abstand bleibt auch bei nachträglich gesetzten LayoutParams erhalten; größere Abschnittsabstände bleiben bestehen. Beschriftungen, Messwerte und Statuszeilen behalten ihre eigenen Rollen.
 
 DashboardLayoutGrid verwendet eigene Vorschaumaße (96 × 134 dp, gegenüber 60 × 84 dp um 60 % vergrößert), proportional auf verfügbare Kachelbreite begrenzt, und 182-dp-Kacheln. Beschriftungen sowie die Vorschauen anderer Auswahldialoge bleiben unabhängig.
+
+Zonenpalette: Puls Z1–5 = #8696A5, #66BB6A, #FFCA28, #FF8A26, #EF5350. Leistung Z1–7 = #8696A5, #42A5F5, #66BB6A, #FFCA28, #FF8A26, #EF5350, #AB47BC. Bestehende zentrale Paletten für Profil, Balken, Verteilungen und Trainingshilfe verwenden. Dashboard-Seitenkacheln verwenden eigene 90-dp-Vorschaubilder (60 % größer als zuvor), Bike-Kacheln bleiben bei 56 dp. Layout-Dropdown verwendet native Compound-Drawables und CENTER_VERTICAL für mittige Icon-/Text-Ausrichtung.

@@ -2,9 +2,6 @@ package de.bcycle.app
 
 import android.content.Context
 import android.graphics.drawable.GradientDrawable
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ImageSpan
 import android.view.Gravity
 import android.view.View
 import android.widget.*
@@ -42,13 +39,12 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         pages.select(initialPage)
         addView(scroller,LayoutParams(-1,-2))
         layoutChoice.gravity=Gravity.START or Gravity.CENTER_VERTICAL
+        layoutChoice.includeFontPadding=false
         layoutChoice.setSingleLine();layoutChoice.ellipsize=android.text.TextUtils.TruncateAt.END
         layoutChoice.compoundDrawablePadding=dp(BicycleDesign.controlGap)
         BicycleDialogStyle.control(layoutChoice,themes)
         BicycleComponents.bindTheme(layoutChoice,themes) { tokens ->
             updateLayoutLabel(tokens.foreground)
-            val arrow=BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground).apply { setBounds(0,0,dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)) }
-            layoutChoice.setCompoundDrawablesRelative(null,null,arrow,null)
         }
         addView(layoutChoice,LayoutParams(-1,dp(56)))
         refresh()
@@ -69,7 +65,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
                     BicycleComponents.bindTheme(this,themes) { tokens ->
                         setImageDrawable(page?.let { DashboardPreview(template(it.id)) } ?: BicycleIcons.drawable(context,BicycleIcon.AddSensor,tokens.foreground));setColorFilter(tokens.foreground)
                     }
-                },LayoutParams(-1,dp(BicycleDesign.bikePreviewHeight)))
+                },LayoutParams(-1,dp(BicycleDesign.dashboardPagePreviewHeight)))
                 addView(BicycleComponents.text(context,themes,page?.name ?: context.getString(R.string.dashboard_new)).apply {
                     gravity=Gravity.CENTER;setLines(2);ellipsize=android.text.TextUtils.TruncateAt.END;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                 },LayoutParams(-1,-2))
@@ -96,9 +92,11 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         val selected=template(pages.selected())
         val preview=DashboardPreview(selected).apply { setBounds(0,0,dp(28),dp(40));setTint(color) }
         layoutChoice.contentDescription=selected.displayTitle(context)
-        layoutChoice.text=SpannableString("\uFFFC  ${selected.displayTitle(context)}").apply {
-            setSpan(ImageSpan(preview,ImageSpan.ALIGN_CENTER),0,1,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        layoutChoice.text=selected.displayTitle(context)
+        val arrow=BicycleIcons.drawable(context,BicycleIcon.Expand,color).apply {
+            setBounds(0,0,dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize))
         }
+        layoutChoice.setCompoundDrawablesRelative(preview,null,arrow,null)
     }
     private fun showLayoutGrid() {
         layoutPopup?.dismiss()
