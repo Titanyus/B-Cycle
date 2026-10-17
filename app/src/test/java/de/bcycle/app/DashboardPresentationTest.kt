@@ -45,7 +45,7 @@ class DashboardPresentationTest {
         assertEquals(listOf(AnalysisChart.SPEED),graph.selected);assertEquals(ZoneGlowSource.POWER_CURRENT,glow.selected)
         assertFalse(testDescendants(list).any { it===graph || it===glow })
     }
-    @Test fun actualEditorKeepsAllThreeChoicesIndependentAndRemembersHiddenMetric() {
+    @Test fun actualEditorKeepsDataGraphAndDashboardTrainingHelpIndependentAndRemembersHiddenMetric() {
         val prefs=context.getSharedPreferences("bike",0)
         prefs.edit().putString(GraphDisplaySettings.key,GraphDisplayMode.GRAPH_ONLY.name).commit()
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
@@ -58,18 +58,18 @@ class DashboardPresentationTest {
             val screen=choose();val root=screen.window!!.decorView
             root.findViewWithTag<View>("graph_SPEED").performClick()
             assertTrue(DashboardDataVisibility.read(prefs,0).visible[2]) // old global flag cannot hide data when adding a graph
-            root.findViewWithTag<View>("zone_glow_POWER_CURRENT").performClick()
+            root.findViewWithTag<Switch>("training_help_all").isChecked=true
             root.findViewWithTag<View>("dashboard_field_empty").performClick()
             assertFalse(DashboardDataVisibility.read(prefs,0).visible[2])
             assertEquals("SPEED",DashboardLayout.decode(prefs.getString("dashboard",null)).fields[2].id)
             assertEquals(listOf(AnalysisChart.SPEED),GraphOverlayConfig.read(prefs,0).slots[2])
-            assertEquals(ZoneGlowSource.POWER_CURRENT,ZoneGlowConfig.read(prefs,0).sources[2])
+            assertEquals(TrainingHelpMode.ALL_ZONES,DashboardTrainingHelp.read(prefs,0).mode)
             val reopened=choose()
             assertTrue(reopened.window!!.decorView.findViewWithTag<RadioButton>("dashboard_field_empty").isChecked)
             val graph=testDescendants(reopened.window!!.decorView).filterIsInstance<GraphOverlayPicker>().single()
             testDescendants(graph).filterIsInstance<CheckBox>().first().performClick()
             assertFalse(DashboardDataVisibility.read(prefs,0).visible[2]);assertTrue(GraphOverlayConfig.read(prefs,0).slots[2].isEmpty())
-            assertEquals(ZoneGlowSource.POWER_CURRENT,ZoneGlowConfig.read(prefs,0).sources[2])
+            assertEquals(TrainingHelpMode.ALL_ZONES,DashboardTrainingHelp.read(prefs,0).mode)
             testBack(reopened)
             val dashboard=testDescendants(activity.findViewById(android.R.id.content)).filterIsInstance<DashboardView>().single()
             val tile=dashboard.findViewWithTag<View>("dashboard_tile_2")
@@ -77,7 +77,7 @@ class DashboardPresentationTest {
             assertEquals(View.INVISIBLE,(value.parent as View).visibility)
             val again=choose();again.window!!.decorView.findViewWithTag<View>("SPEED").performClick()
             assertTrue(DashboardDataVisibility.read(prefs,0).visible[2]);assertTrue(GraphOverlayConfig.read(prefs,0).slots[2].isEmpty())
-            assertEquals(ZoneGlowSource.POWER_CURRENT,ZoneGlowConfig.read(prefs,0).sources[2])
+            assertEquals(TrainingHelpMode.ALL_ZONES,DashboardTrainingHelp.read(prefs,0).mode)
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun legacyGraphOnlyMigratesOnlyWhereGraphsWereVisibleAndExplicitChoicesSurvivePresets() {

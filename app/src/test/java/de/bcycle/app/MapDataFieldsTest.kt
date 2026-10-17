@@ -102,9 +102,9 @@ class MapDataFieldsTest {
         try {
             val activity = controller.get(); enter(activity)
             fields(activity).single { it.tag == "map_value_0" }.performClick()
-            selectTestSource(latest(), "E-Bike"); click(latest(), "BATTERY")
+            selectTestSource(latest(), "GPS"); click(latest(), "GPS_SPEED")
             shadowOf(Looper.getMainLooper()).idle()
-            assertEquals("BATTERY", MapFieldSelection.read(preferences, 0)?.id)
+            assertEquals("GPS_SPEED", MapFieldSelection.read(preferences, 0)?.id)
             assertNull(preferences.getString("dashboard", null)); assertTrue(activity.dashboardEditing)
             fields(activity).single { it.tag == "map_value_1" }.performClick()
             testBack(latest())
@@ -115,7 +115,7 @@ class MapDataFieldsTest {
         val restarted = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             assertFalse(restarted.get().dashboardEditing)
-            assertEquals("BATTERY", MapFieldSelection.read(preferences, 0)?.id)
+            assertEquals("GPS_SPEED", MapFieldSelection.read(preferences, 0)?.id)
             enter(restarted.get()); fields(restarted.get()).single { it.tag == "map_value_0" }.performClick()
             click(latest(), "map_field_empty")
             assertNull(MapFieldSelection.read(preferences, 0))

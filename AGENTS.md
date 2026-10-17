@@ -191,3 +191,5 @@ Trainingshilfe in der Feldauswahl immer anbieten, unabhängig von Hauptwert, Dat
 Dashboard-Layout-Dropdown öffnet DashboardLayoutGrid mit allen zehn Vorschauen im ursprünglichen dreispaltigen Kartenraster (BicycleDesign-Presetmaße); keine kompakte Textliste. Aktuelle Auswahl ACCENT, Popup bei Bedarf vertikal scrollbar und nach Auswahl geschlossen. Benannte Dashboard-Kacheln, Seitenzuordnung und deren Einstellungen bleiben erhalten.
 
 Erklärende Formulartexte verwenden BicycleComponents.description mit zentral mindestens 8 dp (controlGap) Abstand zum vorherigen Element, insbesondere nach Buttons. Der Abstand bleibt auch bei nachträglich gesetzten LayoutParams erhalten; größere Abschnittsabstände bleiben bestehen. Beschriftungen, Messwerte und Statuszeilen behalten ihre eigenen Rollen.
+
+DashboardLayoutGrid verwendet eigene Vorschaumaße (96 × 134 dp, gegenüber 60 × 84 dp um 60 % vergrößert), proportional auf verfügbare Kachelbreite begrenzt, und 182-dp-Kacheln. Beschriftungen sowie die Vorschauen anderer Auswahldialoge bleiben unabhängig.

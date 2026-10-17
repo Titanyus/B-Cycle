@@ -35,7 +35,7 @@ class SettingsSectionsTest {
             }
             fun headings(root:View)=testDescendants(root).filterIsInstance<BicycleSectionHeader>().map { it.contentDescription.toString() }
             val design=open("dashboardSettings")
-            assertEquals(listOf("Theme","Dashboard-Layout","Fahrmodus-Anzeige"),headings(design))
+            assertEquals(listOf("Theme","Dashboard-Layout","Trainingshilfe","Fahrmodus-Anzeige"),headings(design))
             assertEquals(1,testDescendants(design).filterIsInstance<android.widget.ScrollView>().size)
             testBack(ShadowAlertDialog.getLatestAlertDialog())
             val data=open("dataSettings")

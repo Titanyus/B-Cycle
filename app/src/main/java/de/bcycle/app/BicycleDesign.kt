@@ -118,6 +118,9 @@ object BicycleDesign {
     const val smallGap = 4
     const val presetPreviewWidth = 60
     const val presetPreviewHeight = 84
+    const val dashboardLayoutPreviewWidth = 96
+    const val dashboardLayoutPreviewHeight = 134
+    const val dashboardLayoutTileHeight = 182
     const val presetTileHeight = 132
     const val presetTileGap = 2
     const val modeGlowWidth = 24

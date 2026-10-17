@@ -149,3 +149,7 @@ transparente Einheiten, Footer und Scrollbereiche ab. Die zwei anfangs gemeldete
 Befunde wurden behoben: Formularspacing greift nicht auf den frei positionierten
 Karten-Editorbutton über; der Theme-Test prüft den Ressourcen-Menütitel statt
 des alten internen Literal-Felds.
+
+## Vorgemerkt: Sichtbarkeit der Schalterspur
+
+Nutzerwunsch vom 17.10.2026: Die Schalterspur ist zu dunkel und soll als nächste UI-Änderung besser sichtbar werden. Aktuell in BicycleDialogStyle.control: ausgeschaltet FOREGROUND mit 15 % Deckkraft, eingeschaltet ACCENT mit 40 %; Daumen jeweils deckend. Neue Deckkraft noch festlegen; für den aktuellen APK-Build unverändert lassen.

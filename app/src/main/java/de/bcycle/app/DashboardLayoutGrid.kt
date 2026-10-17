@@ -7,7 +7,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 
-/** The original three-column preview geometry, shared inside the layout dropdown. */
+/** Three-column layout previews, enlarged independently of other settings thumbnails. */
 internal class DashboardLayoutGrid(context:Context,themes:ThemeManager,selected:DashboardTemplate,
     choose:(DashboardTemplate)->Unit):LinearLayout(context) {
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
@@ -22,10 +22,15 @@ internal class DashboardLayoutGrid(context:Context,themes:ThemeManager,selected:
                         tag="preset_${template.name}";contentDescription=template.displayTitle(context);isSelected=template==selected
                         stateDescription=context.getString(if(isSelected) R.string.ui_selected else R.string.ui_not_selected)
                         setPadding(dp(BicycleDesign.inputRadius),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.inputRadius),dp(BicycleDesign.verticalPadding))
-                        addView(ImageView(context).apply {
+                        addView(object:ImageView(context) {
+                            override fun onMeasure(widthSpec:Int,heightSpec:Int) {
+                                val width=minOf(dp(BicycleDesign.dashboardLayoutPreviewWidth),MeasureSpec.getSize(widthSpec))
+                                setMeasuredDimension(width,width*BicycleDesign.dashboardLayoutPreviewHeight/BicycleDesign.dashboardLayoutPreviewWidth)
+                            }
+                        }.apply {
                             setImageDrawable(DashboardPreview(template));importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                             BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
-                        },LayoutParams(dp(BicycleDesign.presetPreviewWidth),dp(BicycleDesign.presetPreviewHeight)))
+                        },LayoutParams(-1,dp(BicycleDesign.dashboardLayoutPreviewHeight)))
                         addView(BicycleComponents.text(context,themes,context.getString(R.string.dashboard_preset_values,template.slots.size)).apply {
                             gravity=Gravity.CENTER;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                         },LayoutParams(-1,dp(BicycleDesign.iconSize)))
@@ -37,9 +42,9 @@ internal class DashboardLayoutGrid(context:Context,themes:ThemeManager,selected:
                         }
                         setOnClickListener { choose(template) }
                     }
-                    addView(tile,LayoutParams(0,dp(BicycleDesign.presetTileHeight),1f).apply { setMargins(dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap)) })
+                    addView(tile,LayoutParams(0,dp(BicycleDesign.dashboardLayoutTileHeight),1f).apply { setMargins(dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap)) })
                 }
-                repeat(3-templates.size) { addView(View(context),LayoutParams(0,dp(BicycleDesign.presetTileHeight),1f).apply { setMargins(dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap)) }) }
+                repeat(3-templates.size) { addView(View(context),LayoutParams(0,dp(BicycleDesign.dashboardLayoutTileHeight),1f).apply { setMargins(dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap),dp(BicycleDesign.presetTileGap)) }) }
             },LayoutParams(-1,-2))
         }
     }
