@@ -35,14 +35,16 @@ internal object FitRead {
                     count++; require(count <= 600_000) { "FIT enthält zu viele Messpunkte" }
                     val stamp = value("timestamp")?.let { (it * 1000 + 631065600000L).toLong() }
                     if (stamp != null) { first = minOf(first ?: stamp, stamp); last = maxOf(last ?: stamp, stamp) }
-                    moving.add(stamp, value("enhanced_speed") ?: value("speed"))
+                    moving.add(stamp, value("enhanced_speed") ?: value("speed")
+                        ?: FitDeveloperValues.number(message,"SPEED","m/s") ?: FitDeveloperValues.number(message,"GPS_SPEED","m/s"))
                     val lat = value("position_lat")?.times(180.0 / 2147483648.0)
                     val lon = value("position_long")?.times(180.0 / 2147483648.0)
                     val valid = lat != null && lon != null && lat in -85.05112878..85.05112878 && lon in -180.0..180.0
                     elevation.add(if (valid) value("enhanced_altitude") ?: value("altitude") else null)
                     if (valid) positions++
                     track.append(RideSample(stamp ?: 0, stamp ?: count * 1000L, if (valid) lat else null, if (valid) lon else null))
-                    value("distance")?.takeIf { it >= 0 }?.let { distance = maxOf(distance ?: 0.0, it) }
+                    (value("distance") ?: FitDeveloperValues.number(message,"GPS_DISTANCE","m")
+                        ?: FitDeveloperValues.number(message,"BIKE_DISTANCE","m"))?.takeIf { it >= 0 }?.let { distance = maxOf(distance ?: 0.0, it) }
                 }
                 18 -> {
                     value("total_moving_time")?.takeIf { it >= 0 }?.let { sessionMoving += it; hasMoving = true }
@@ -62,4 +64,12 @@ internal object FitRead {
             if (hasMoving) (sessionMoving * 1000).toLong() else moving.value, bikeTypes.singleOrNull())
         return ReadFit(details, if (usable) GpxRoute(points, positions, points.count { it.segmentStart }, details.distanceM, details.durationMs, details.ascentM, details.movingMs) else null)
     }
+}
+
+/** Only our declared application, units and scalar fields can supply missing standard values. */
+internal object FitDeveloperValues {
+    private val appId=java.util.UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
+    fun number(message:com.garmin.fit.Mesg,name:String,units:String):Double? = message.developerFields.firstOrNull {
+        it.isDefined && it.appUUID==appId && it.name==name && it.units==units && it.numValues==1
+    }?.doubleValue?.takeIf { it.isFinite() && it>=0 }
 }

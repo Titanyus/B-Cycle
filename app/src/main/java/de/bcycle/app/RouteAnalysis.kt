@@ -4,7 +4,6 @@ import com.garmin.fit.Decode
 import com.garmin.fit.Mesg
 import com.garmin.fit.MesgListener
 import java.io.File
-import java.util.UUID
 
 internal enum class AnalysisMetric(val label: Int, val unit: Int, val icon: BicycleIcon) {
     FTP(R.string.analysis_ftp, R.string.analysis_watts, BicycleIcon.Power),
@@ -100,7 +99,6 @@ internal class AnalysisSeriesBuffer {
 
 /** Read-only detail loader. A file is decoded once, off the UI thread, for all sections together. */
 internal object RouteAnalysisRead {
-    private val appId = UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
     fun read(file: File, entry: ManagedRoute, profile: RiderProfile = RiderProfile(), cancelled: () -> Boolean = { false }): RouteAnalysis {
         val builder = Builder(entry, profile)
         if (entry.format == "GPX") {
@@ -141,9 +139,7 @@ internal object RouteAnalysisRead {
         return builder.finish(route)
     }
     private fun number(message: Mesg, name: String): Double? = message.getFieldDoubleValue(name)?.takeIf { it.isFinite() }
-    private fun developer(message: Mesg, name: String, units: String): Double? = message.developerFields.firstOrNull {
-        it.isDefined && it.appUUID == appId && it.name == name && it.units == units && it.numValues == 1
-    }?.doubleValue?.takeIf { it.isFinite() && it >= 0 }
+    private fun developer(message: Mesg, name: String, units: String): Double? = FitDeveloperValues.number(message,name,units)
 
     private class Builder(val entry: ManagedRoute, profile: RiderProfile) {
         val weather=WeatherTargetBuffer()

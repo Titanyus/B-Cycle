@@ -26,3 +26,9 @@ Verifikation: 43 gezielte Tests bestanden, inklusive realem Runtime-/Service-/FI
 Abschlussweg auf API 33/35/36, GPS-Preview vor dem ersten START, Stillhalten aller
 GPS-Tripwerte nach STOPP, Kadenz-/Puls-/Radstrecken-Grenzen und Karten-Livebetrieb.
 Keine neue APK gebaut; der Fix ist eine Quellcodeänderung nach Version 0.7.15.
+
+## FIT-Listenmetadaten
+
+FitRead nutzt für fehlende Standard-Distanz/Geschwindigkeit dieselben eigenen Developer-Field-Fallbacks wie RouteAnalysisRead. Die gemeinsame Prüfung FitDeveloperValues akzeptiert nur definierte skalare Felder unserer App-UUID mit passender Einheit und endlichen nichtnegativen Werten. Der Bibliotheksindex erhält detailsVersion=1; ältere Indexeinträge werden im vorhandenen Worker einmalig neu gelesen, einschließlich GPS-Vorschau und hasRoute. Dateiname, Benutzertitel, ursprüngliches Listendatum, interne ID und FIT-Original bleiben erhalten.
+
+Ohne aufgezeichnete GPS-Koordinaten kann keine echte Kartenstrecke rekonstruiert werden. Vorhandene Distanz- oder Geschwindigkeitssensoren sind kein Ersatz für Positionsdaten.

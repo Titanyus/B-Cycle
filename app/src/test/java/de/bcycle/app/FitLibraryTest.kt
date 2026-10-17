@@ -56,6 +56,41 @@ class FitLibraryTest {
             assertEquals(0, File(root, "fit-library").listFiles()!!.count { it.extension == "gpx" })
         } finally { root.deleteRecursively() }
     }
+    @Test fun developerOnlyDistanceAndSpeedPopulateListAndOldMetadataIsRebuiltFromOriginal() {
+        val root=Files.createTempDirectory("fit-secondary-metadata").toFile()
+        try {
+            val journal=File(root,"secondary.ride")
+            val config=RecordingConfig(setOf("GPS_POSITION","GPS_SPEED","GPS_DISTANCE"))
+            RideJournal(journal,start,config).use { out ->
+                for(i in 0..10) out.append(RideSample(start+i*1000,i*1000L,50.0+i*.0001,8.0,
+                    mapOf("GPS_SPEED" to 7.0,"GPS_DISTANCE" to i*7.0)))
+            }
+            val original=File(root,"secondary.fit").also { FitWriter.encode(journal,it) }
+            val bytes=original.readBytes()
+            val library=FitLibrary(root);library.load()
+            val entry=original.inputStream().use { library.add(it,"Meine Fahrt",true) }!!
+            assertEquals(70.0,entry.details.distanceM!!,.001)
+            assertEquals(10000L,entry.details.movingMs)
+            assertEquals(25.2,entry.details.movingAverageKmh!!,.001)
+            assertTrue(entry.hasRoute);assertTrue(entry.details.preview.size>1)
+            val managed=ManagedRoute(entry.id,entry.name,true,"FIT",entry.details,entry.hasRoute,locallySaved=true)
+            val analysis=RouteAnalysisRead.read(original,managed)
+            assertEquals(entry.details.distanceM!!/1000,analysis.metrics[AnalysisMetric.DISTANCE]!!,.001)
+            val index=File(root,"fit-library/index.json")
+            val json=org.json.JSONObject(index.readText()).apply { remove("detailsVersion") }
+            json.getJSONArray("entries").getJSONObject(0).apply {
+                put("hasRoute",false);put("details",RouteDetails(dateMs=start).json())
+            }
+            index.writeText(json.toString())
+            val reopened=FitLibrary(root);reopened.load()
+            val repaired=reopened.entries.single()
+            assertEquals("Meine Fahrt",repaired.name);assertEquals(start,repaired.details.dateMs)
+            assertEquals(entry.details.distanceM,repaired.details.distanceM)
+            assertEquals(entry.details.movingMs,repaired.details.movingMs)
+            assertTrue(repaired.hasRoute);assertTrue(repaired.details.preview.size>1)
+            assertArrayEquals(bytes,reopened.file(repaired.id).readBytes())
+        } finally { root.deleteRecursively() }
+    }
     @Test fun importsDeduplicateExactBytesAndDeleteNeverTouchesTheExternalOriginalOrResurrectsIt() {
         val root = Files.createTempDirectory("fit-library").toFile()
         try {
