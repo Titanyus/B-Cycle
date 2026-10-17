@@ -197,3 +197,9 @@ Aktive Indoor-Integration, FIT und reale Prüfgrenzen: [Indoor/FTMS](indoor-ftms
 ## Schutz beim Wechsel des Radtyps
 
 Der Indoor-Feldfilter ist eine Laufzeitsicht. Indoor-Speichern ersetzt nur die dort verfügbaren Felder; ausgeblendete GPS-/E-Bike-Felder und die zuvor gewählten Outdoor-Hauptquellen bleiben gespeichert und erscheinen nach Rückkehr wieder. Bewusste Änderungen sichtbarer gemeinsamer Werte werden weiterhin gespeichert. GPS-Positionsaufzeichnung ist bei Bike/E-Bike an den GPS-Sensorschalter gekoppelt, ohne zweite FIT-Checkbox. Die alte GPS_POSITION-ID bleibt zur Dateiformat-/Backup-Kompatibilität erhalten; Outdoor-Journals reservieren Positionsspalten und schreiben nur bei aktiviertem GPS tatsächliche Koordinaten, auch wenn GPS erst während der Fahrt aktiviert wird. Indoor bleibt ohne Positionen.
+
+## Vorgemerkt: Aufzeichnungsabschnitte auf die Hauptebene
+
+Nutzerwunsch vom 17.10.2026, nach Test-Build 28: **FIT-Aufzeichnung** und **Strecken-Aufzeichnung** sollen gleichrangige Sticky-Oberpunkte wie Sensoren, Karten und Design & UI sein. Aktuell liegen beide Header noch im gemeinsamen FIT-Inhaltslayout und wirken dadurch schmaler bzw. den Sensoren untergeordnet.
+
+Beim nächsten UI-Schritt beide Header auf der Hauptebene mit voller Seitenbreite ausführen; dieselbe Typografie, Linien und Sticky-Bedienung wie bei den anderen Oberpunkten. Inhalte und sofortige Speicherung beibehalten. Den 32-dp-Abstand nach der gesamten Sensorliste erhalten. Auf ausdrücklichen Wunsch zunächst nur vorgemerkt; in Build 28 noch nicht umgesetzt.
