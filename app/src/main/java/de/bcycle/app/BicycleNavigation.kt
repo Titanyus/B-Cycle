@@ -65,7 +65,7 @@ internal object BicycleNavigation {
             val id=picker.resources.getIdentifier(name,"id","android")
             picker.findViewById<TextView>(id)?.let { label ->
                 label.textSize=size; label.typeface=if(name.endsWith("year")) Typeface.DEFAULT else BicycleDesign.strongTypeface
-                BicycleComponents.bindTheme(label,themes) { label.setTextColor(it.foreground) }
+                BicycleComponents.bindTheme(label,themes) { label.setTextColor(android.graphics.Color.WHITE) }
                 (label.parent as? View)?.let { parent -> BicycleComponents.bindTheme(parent,themes) { parent.setBackgroundColor(it.primary) } }
             }
         }

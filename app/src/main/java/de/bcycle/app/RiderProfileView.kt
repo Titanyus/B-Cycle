@@ -185,7 +185,9 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     }
     private fun chooseBirthDate() {
         val initial = (birthDate ?: today()).coerceIn(RiderProfileValidation.minimumBirthDate(today()), today())
-        val picker = DatePicker(context).apply {
+        val pickerContext=if(themes.isSettingsPalette && themes.settingsLight)
+            android.view.ContextThemeWrapper(context,R.style.SettingsLightDatePickerTheme) else context
+        val picker = DatePicker(pickerContext).apply {
             tag = "rider_birth_picker"; maxDate = today().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             minDate = RiderProfileValidation.minimumBirthDate(today()).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             updateDate(initial.year, initial.monthValue - 1, initial.dayOfMonth)

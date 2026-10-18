@@ -135,7 +135,7 @@ class BicycleComponentsTest {
             activity.setContentView(root)
             fun draw(box: android.widget.CheckBox): android.graphics.Bitmap {
                 val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
-                box.buttonDrawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
+                (box.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
                 return bitmap
             }
             assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,24)))
@@ -168,10 +168,10 @@ class BicycleComponentsTest {
             for(view in listOf(box,radio,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
             val originalThumb=toggle.thumbDrawable
             activity.setContentView(root)
-            assertEquals(radioWidth,radio.buttonDrawable!!.intrinsicWidth)
+            assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.controlGap),radio.buttonDrawable!!.intrinsicWidth)
             fun pixel(button: android.widget.CompoundButton,x:Int=24):Int {
                 val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
-                button.buttonDrawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
+                (button.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
                 val color=bitmap.getPixel(x,24);bitmap.recycle();return color
             }
             box.performClick();radio.performClick();toggle.performClick()
@@ -212,7 +212,7 @@ class BicycleComponentsTest {
                 toggle.isEnabled=false
                 assertEquals(127,android.graphics.Color.alpha(trackPixel(24,0)))
                 toggle.isEnabled=true;toggle.isChecked=true
-                assertEquals(radioWidth,radio.buttonDrawable!!.intrinsicWidth)
+                assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.controlGap),radio.buttonDrawable!!.intrinsicWidth)
                 assertSame(originalThumb,toggle.thumbDrawable)
             }
             box.performClick();assertEquals(2,changes)

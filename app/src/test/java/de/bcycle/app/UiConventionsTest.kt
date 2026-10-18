@@ -102,7 +102,7 @@ class UiConventionsTest {
                 }
                 accordions.forEach { button ->
                     assertEquals(android.graphics.Typeface.DEFAULT,button.typeface)
-                    assertEquals(BicycleDesign.inputSp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,button.textSize,.1f)
+                    assertEquals(BicycleDesign.choiceSp*activity.resources.displayMetrics.density*activity.resources.configuration.fontScale,button.textSize,.1f)
                     assertEquals(android.view.Gravity.START,button.gravity and android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)
                 }
             }

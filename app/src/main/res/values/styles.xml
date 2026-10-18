@@ -28,4 +28,10 @@
         <item name="android:windowMinWidthMajor">100%</item>
         <item name="android:windowMinWidthMinor">100%</item>
     </style>
+    <style name="SettingsLightDatePickerTheme" parent="android:style/Theme.Material.Light">
+        <item name="android:colorAccent">#202020</item>
+        <item name="android:colorBackground">#FFFFFF</item>
+        <item name="android:textColorPrimary">#202020</item>
+        <item name="android:textColorSecondary">#656565</item>
+    </style>
 </resources>

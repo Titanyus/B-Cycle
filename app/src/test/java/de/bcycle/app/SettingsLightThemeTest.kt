@@ -17,6 +17,28 @@ import org.robolectric.shadows.ShadowAlertDialog
 @Config(sdk=[33])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class SettingsLightThemeTest {
+    @Test fun lightBirthCalendarUsesReadableNativeTextAndWhitePrimaryHeader() {
+        val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val a=host.get();val prefs=a.getSharedPreferences("light-calendar",0)
+            val themes=ThemeManager(prefs);themes.setSettingsLight(true)
+            val screen=showRiderProfile(a,themes.settings,DialogNavigation(),RiderProfileStore(prefs))
+            screen.window!!.decorView.findViewWithTag<android.widget.Button>("rider_birth").performClick()
+            val date=ShadowAlertDialog.getLatestAlertDialog()
+            val picker=date.window!!.decorView.findViewWithTag<android.widget.DatePicker>("rider_birth_picker")
+            val value=android.util.TypedValue()
+            assertTrue(picker.context.theme.resolveAttribute(android.R.attr.textColorPrimary,value,true))
+            val text=if(value.type in android.util.TypedValue.TYPE_FIRST_COLOR_INT..android.util.TypedValue.TYPE_LAST_COLOR_INT) value.data else picker.context.getColorStateList(value.resourceId).defaultColor
+            assertTrue(ThemeValidator.contrast(text,android.graphics.Color.WHITE)>4.5)
+            for(name in listOf("date_picker_header_year","date_picker_header_date")) {
+                val label=picker.findViewById<android.widget.TextView>(picker.resources.getIdentifier(name,"id","android"))
+                assertEquals(0x00ffffff,label.currentTextColor and 0x00ffffff)
+            }
+            picker.updateDate(1990,6,13)
+            assertEquals(java.time.LocalDate.of(1990,7,13),RiderProfileStore(prefs).read().birthDate)
+            date.dismiss();screen.dismiss()
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun projectionPreservesDashboardColorsAndSurvivesProfileAndBackupRoundTrip() {
         val c=RuntimeEnvironment.getApplication();val prefs=c.getSharedPreferences("light-projection",0)
         val base=ThemeManager(prefs);val settings=base.settings

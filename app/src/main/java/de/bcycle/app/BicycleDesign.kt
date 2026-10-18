@@ -29,6 +29,7 @@ object BicycleDesign {
     const val titleSp = 23f
     const val bodySp = 14f
     const val inputSp = 16f
+    const val choiceSp = bodySp
     const val headerHeight = 64
     const val headingSp = 32f
     const val rowTitleSp = 16f
@@ -83,7 +84,7 @@ object BicycleDesign {
     const val sectionContentGap = 16
     const val sectionEndGap = 32
     const val inlineControlRowTag = "bicycle_inline_control_row"
-    const val profileDropdownSp = bodySp
+    const val profileDropdownSp = choiceSp
     const val profileAccordionRadius = 10
     const val profileAccordionHeaderHeight = 64
     const val profileAccordionLeadingWidth = 3

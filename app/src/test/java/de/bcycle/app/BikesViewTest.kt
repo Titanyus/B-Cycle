@@ -78,6 +78,14 @@ class BikesViewTest {
             val types=body.findViewWithTag<Spinner>("bike_type_choice")
             val typeAdapter=types.adapter as android.widget.ListAdapter
             assertEquals(3,typeAdapter.count)
+            val typeRow=types.adapter.getView(1,null,types) as TextView
+            assertEquals(android.view.Gravity.CENTER_VERTICAL,typeRow.gravity and android.view.Gravity.VERTICAL_GRAVITY_MASK)
+            assertNotNull(typeRow.compoundDrawablesRelative[0])
+            assertEquals("E-Bike",typeRow.text.toString())
+            val sourceToggle=body.findViewWithTag<android.widget.Button>("fit_source_GPS")
+            assertEquals(BicycleDesign.choiceSp*app.resources.displayMetrics.scaledDensity,sourceToggle.textSize,.1f)
+            assertNotNull(sourceToggle.compoundDrawablesRelative[0])
+            assertNotNull(sourceToggle.compoundDrawablesRelative[2])
             assertFalse(typeAdapter.isEnabled(BikeType.BIKE.ordinal))
             assertTrue(typeAdapter.isEnabled(BikeType.EBIKE.ordinal))
             assertTrue(typeAdapter.isEnabled(BikeType.INDOOR.ordinal))

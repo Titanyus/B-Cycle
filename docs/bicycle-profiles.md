@@ -5,7 +5,7 @@ Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherige
 - Oben ein bis sechs Fahrradkacheln, drei sichtbar, horizontales Scrollen und gemeinsame Drag-and-drop-Vorschau.
 - Eine lange Seite mit einzeln auf-/zuklappbaren Sticky-Abschnitten (zunächst alle offen): **Sensoren**, **FIT-Aufzeichnung**, **Strecken-Aufzeichnung**, **Karten**, **Design & UI**, **Bosch-Fahrmodus**, **Trainingshilfe**. TERTIARY-Hintergrund, FOREGROUND-Linien oben/unten, Schrift FOREGROUND.
 - Antippbarer Name als eigener Sticky Header ohne Klappfunktion, Bild/Platzhalter stets 16:9, Radtyp-Dropdown Bike/E-Bike/Indoor, Kategorie/Radumfang, Sensoren sowie Indoor-Korrektur. Keine Sticky Header Bike oder Radtyp; Sensorschalter in normaler Schaltertypografie.
-- FIT-Aufzeichnung enthält Geschwindigkeit/Distanz jeweils mit normalem Titel und Dropdown in einer Zeile. Strecken-Aufzeichnung enthält die zusätzlichen Quell-Accordions. Design enthält kompaktes Theme-Dropdown, benannte Dashboards/Layout-Auswahl und Vollbild. Die drei Dashboard-Aktionen stehen dort zusammen. Bosch-Fahrmodus folgt als eigener Abschnitt, mit Schalter und beschrifteter Oben/Seitlich-Auswahl.
+- FIT-Aufzeichnung enthält Geschwindigkeit/Distanz jeweils mit normalem Titel und Dropdown in einer Zeile. Strecken-Aufzeichnung enthält die zusätzlichen Quell-Accordions. Design enthält kompaktes Theme-Dropdown, benannte Dashboards/Layout-Auswahl und Vollbild. Die drei Dashboard-Aktionen stehen dort zusammen. Bosch-Fahrmodus folgt als letzter Punkt in Design & UI, mit Abschnittstrenner und sensorartiger Schalter-/Accordion-Zeile ohne eigenen Sticky Header. „Sichtbar im Dashboard“ mit Oben/Seitlich-Auswahl erscheint erst nach Aufklappen.
 - Fester Profilfooter **Umbenennen**, **Profil übernehmen**, **Profil löschen**. Löschen bleibt bestätigt und ist beim letzten Profil ausgeblendet.
 - Theme-, Dashboard-Layout- und Fahrmodus-Zwischenheader sowie Fahrmodus-Erklärung entfallen. Nach der Kartenauswahl kein zusätzlicher horizontaler Trenner. FIT-Untergruppen behalten ihre Funktion; Buttons und Dropdowns verwenden SECONDARY, 1-dp-FOREGROUND-Rahmen mit 50 % Deckkraft und 6-dp-Rundung. Sensordetails sind über einen eigenen Chevron neben dem Schalter ausklappbar; beide Aktionen funktionieren unabhängig.
 - Profil übernehmen bietet ausschließlich andere Profile an und kopiert Konfiguration einschließlich FIT, Theme/Dashboards/Trainingshilfe und Karten. **Zielname, Ziel-ID, Bild und gekoppelte Sensorgeräte bleiben erhalten.** Die Quelle wird nicht verändert.
@@ -215,3 +215,10 @@ Umgesetzt am 17.10.2026 nach Build 30: **Dashboard im Vollbild** steht als erste
 ## Helle und dunkle Einstellungen
 
 Die Themeauswahl ist profilbezogen und verwendet die [14 festen Paletten](theme-palettes.md). Hell/Dunkel der Einstellungsansichten ist dagegen global: Sonne/Mond erscheint ausschließlich auf der Einstellungs-Hauptseite. Profilwechsel und Profilübernahme verändern diese Auswahl nicht. Alte profilbezogene Hell/Dunkel-Werte werden ignoriert. Details: [Einstellungsdarstellung](settings-appearance.md).
+
+## UI-Feintuning vom 18.10.2026
+
+- Radtyp-Auswahl: Icon und Text vertikal mittig über native Compound-Drawables, 8 dp Abstand.
+- Auswahlfelder/Quell-Accordions: zentrale 14 sp wie Textbuttons; Quellen mit gemeinsamen SensorIcons, Chevron rechts. Runde Auswahlfelder haben 8 dp zusätzlichen Abstand zum Text.
+- Bosch-Fahrmodus ist der letzte Inhalt in Design & UI, nach einem horizontalen Abschnittstrenner. Keine eigene Überschrift und kein Sticky Header. Schalter und Chevron sind unabhängig; nur die Zeile „Sichtbar im Dashboard“ mit ihrer bestehenden Oben/Seitlich-Auswahl wird aufgeklappt. Bestehende Speicherung und Profilwechsel-Sperren bleiben erhalten.
+- Profil-/Dashboardaktionen nennen das Ziel ausdrücklich. Die Aktionen für Dashboards stehen weiterhin inline; ein scrollabhängiger Footerwechsel ist lediglich vorgeschlagen.

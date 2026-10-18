@@ -50,7 +50,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         }
     }.apply { tag="bike_delete" }
     val footer:LinearLayout=bicycleFooter(context,themes).apply {
-        addView(BicycleFooterAction(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.route_action_rename)) {
+        addView(BicycleFooterAction(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.profiles_rename)) {
             nameHeading.performClick()
         }.apply { tag="bike_rename" },LayoutParams(0,-2,1f))
         if(additionalSections!=null) {
@@ -137,13 +137,9 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
             setSelection(profile.type.ordinal)
         }
-        BicycleDialogStyle.spinner(typeChoice,themes,BicycleDesign.profileDropdownSp) { label,color ->
-            val type=BikeType.entries.first { context.getString(it.label)==label }
-            android.text.SpannableString("\uFFFC $label").apply {
-                val icon=BicycleIcons.drawable(context,BikeTypeIcons.forType(type),color).apply { setBounds(0,0,dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)) }
-                setSpan(android.text.style.ImageSpan(icon,android.text.style.ImageSpan.ALIGN_CENTER),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            }
-        }
+        BicycleDialogStyle.spinner(typeChoice,themes,BicycleDesign.profileDropdownSp,iconForLabel={ label ->
+            BikeTypeIcons.forType(BikeType.entries.first { context.getString(it.label)==label })
+        })
         addView(typeChoice,LayoutParams(-1,dp(BicycleDesign.touchSize)))
         val choice=typeChoice
         choice.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {

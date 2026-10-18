@@ -715,4 +715,6 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="settings_light_mode">Helle Einstellungen</string>
     <string name="settings_dark_mode">Dunkle Einstellungen</string>
     <string name="analysis_np_short">Norm. Leistung</string>
+    <string name="profiles_rename">Profil umbenennen</string>
+    <string name="dashboard_rename">Dashboard umbenennen</string>
 </resources>

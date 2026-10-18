@@ -35,3 +35,5 @@ Nutzerwunsch vom 17.10.2026 nach Build 33: Alle Sticky-Abschnittsheader im Fahre
 Gemeldeter Darstellungsfehler vom 17.10.2026 nach Build 33: Der Rahmen des Geburtsdatumsfelds im Fahrerprofil ist unten abgeschnitten. Ursache im Layout bzw. Clipping prüfen und die untere Kontur vollständig darstellen. Eingabestil und Datumsfunktion erhalten. In Version 0.8 korrigiert.
 
 Anpassung vom 18.10.2026: Nur in heller Darstellung der sieben farbigen (-color) Presets wird der weiße ACCENT durch PRIMARY ersetzt, damit ausgewählte Kacheln und andere Akzentmarkierungen sichtbar bleiben. TERTIARY verwendet dort die hellere Basis #F2F2F2 mit bisherigem 8-%-Farbstich. DARK-Projektionen, Basispaletten und Dashboard bleiben unverändert.
+
+Datumsdialog im Hellmodus: nativer heller Kalender mit dunklen Tages-/Jahreslisten und weiß beschriftetem PRIMARY-Datumsheader. Allgemeines Formularstyling läuft nicht durch die internen DatePicker-Views. Jahr-/Datumsgröße, Grenzen und sofortige Speicherung bleiben erhalten.

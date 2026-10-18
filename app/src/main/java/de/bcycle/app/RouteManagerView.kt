@@ -65,7 +65,7 @@ internal class RouteManagerView(context: Context,
                     gravity = Gravity.CENTER_VERTICAL; minHeight = dp(BicycleDesign.touchSize)
                     BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.secondary else Color.TRANSPARENT) }
                 }).apply {
-                    text = getItem(position); textSize = BicycleDesign.inputSp
+                    text = getItem(position); textSize = BicycleDesign.choiceSp
                     setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(if (dropdown) BicycleDesign.horizontalPadding else BicycleDesign.touchSize), dp(BicycleDesign.verticalPadding))
                 }
             override fun getView(position: Int, convertView: View?, parent: ViewGroup) = row(position, convertView, false)

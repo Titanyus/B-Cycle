@@ -91,7 +91,7 @@ class FieldPickerTest {
         assertEquals(android.graphics.Typeface.DEFAULT,toggle.typeface)
         assertEquals(android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL,toggle.gravity)
         assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
-            BicycleDesign.inputSp,context.resources.displayMetrics),toggle.textSize,.01f)
+            BicycleDesign.choiceSp,context.resources.displayMetrics),toggle.textSize,.01f)
         toggle.performClick()
         picker.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1800,View.MeasureSpec.AT_MOST))
         picker.layout(0,0,picker.measuredWidth,picker.measuredHeight)

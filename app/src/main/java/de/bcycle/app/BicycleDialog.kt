@@ -74,7 +74,8 @@ internal object BicycleDialogStyle {
             })).apply {
                 setLayerSize(1, dp(view, 10), dp(view, 10)); setLayerGravity(1, Gravity.CENTER)
             }
-            return if (inset > 0) android.graphics.drawable.InsetDrawable(drawable, inset) else drawable
+            val nativeCircle=if(inset>0) android.graphics.drawable.InsetDrawable(drawable,inset) else drawable
+            return android.graphics.drawable.InsetDrawable(nativeCircle,0,0,dp(view,BicycleDesign.controlGap),0)
         }
         addState(intArrayOf(-android.R.attr.state_enabled, android.R.attr.state_checked), circle(true, false))
         addState(intArrayOf(-android.R.attr.state_enabled), circle(false, false))
@@ -122,15 +123,18 @@ internal object BicycleDialogStyle {
         yield(view)
         if (view is ViewGroup) for (i in 0 until view.childCount) yieldAll(descendants(view.getChildAt(i)))
     }
-    fun actionIcon(view: TextView, themes: ThemeManager, icon: BicycleIcon) {
+    fun actionIcon(view: TextView, themes: ThemeManager, icon: BicycleIcon, endIcon: BicycleIcon? = null) {
         view.compoundDrawablePadding = dp(view, BicycleDesign.verticalPadding)
         BicycleComponents.bindTheme(view, themes) { tokens ->
             view.setCompoundDrawablesRelative(BicycleTextIcon(view,BicycleIcons.drawable(view.context, icon, tokens.foreground)).apply {
                 setBounds(0, 0, dp(view, BicycleDesign.iconSize), dp(view, BicycleDesign.iconSize))
-            }, null, null, null)
+            }, null, endIcon?.let { BicycleIcons.drawable(view.context,it,tokens.foreground).apply {
+                setBounds(0,0,dp(view,BicycleDesign.iconSize),dp(view,BicycleDesign.iconSize))
+            } }, null)
         }
     }
     fun content(view: View, themes: ThemeManager) {
+        if (view is DatePicker) { BicycleNavigation.dateHeader(view,themes); return }
         if (view is BicycleFooterAction || view.tag == "bicycle_action_footer") return
         // This reference screen owns every detail, including its compact action geometry.
         if (view is SettingsMenuView || view is BikesView || view is RiderProfileView || view is RouteManagerView || view is ThemePickerView || view is RouteAnalysisView || view is RouteAnalysisMap || view.tag == "route_analysis_header" || view.tag == "bicycle_dialog_header") return
@@ -238,15 +242,15 @@ internal object BicycleDialogStyle {
             button.compoundDrawablesRelative.filterNotNull().forEach { it.setTint(tokens.foreground) }
         }
     }
-    /** Accordion labels match dropdowns: 16 sp, normal system font, text at start. */
+    /** Accordion labels match dropdowns and text buttons via choiceSp; text at start. */
     fun accordion(view: Button, themes: ThemeManager) {
         view.isAccessibilityHeading=false
         control(view,themes)
         view.typeface=Typeface.DEFAULT
-        view.textSize=BicycleDesign.inputSp
+        view.textSize=BicycleDesign.choiceSp
         view.gravity=Gravity.START or Gravity.CENTER_VERTICAL
     }
-    fun spinner(view: Spinner, themes: ThemeManager, textSizeSp:Float=BicycleDesign.inputSp, renderLabel: ((String, Int) -> CharSequence)? = null) {
+    fun spinner(view: Spinner, themes: ThemeManager, textSizeSp:Float=BicycleDesign.choiceSp, iconForLabel: ((String) -> BicycleIcon)? = null, renderLabel: ((String, Int) -> CharSequence)? = null) {
         BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) return
         view.minimumHeight = dp(view, BicycleDesign.touchSize)
@@ -275,12 +279,18 @@ internal object BicycleDialogStyle {
                     BicycleComponents.bindTheme(this, themes) {
                         setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.secondary else Color.TRANSPARENT)
                         if (renderLabel != null && tag is String) text=renderLabel(tag as String,it.foreground)
+                        compoundDrawablesRelative.filterNotNull().forEach { icon -> icon.setTint(it.foreground) }
                     }
                 }).apply {
                     isEnabled=isEnabled(position);alpha=if(isEnabled) 1f else .4f
                     val label=getItem(position).toString()
                     if (renderLabel != null) tag=label
                     text = renderLabel?.invoke(label,themes.active.tokens.foreground) ?: label
+                    compoundDrawablePadding=dp(view,BicycleDesign.controlGap)
+                    val icon=iconForLabel?.invoke(label)?.let { BicycleIcons.drawable(view.context,it,themes.active.tokens.foreground).apply {
+                        setBounds(0,0,dp(view,BicycleDesign.iconSize),dp(view,BicycleDesign.iconSize))
+                    } }
+                    setCompoundDrawablesRelative(icon,null,null,null)
                     if (renderLabel != null) contentDescription=text.toString().removePrefix("\uFFFC ")
                     setPadding(dp(view, BicycleDesign.horizontalPadding), dp(view, BicycleDesign.verticalPadding),
                         dp(view, if (dropdown) BicycleDesign.horizontalPadding else BicycleDesign.touchSize), dp(view, BicycleDesign.verticalPadding))

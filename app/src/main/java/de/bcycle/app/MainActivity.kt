@@ -454,7 +454,6 @@ class MainActivity : Activity() {
         }, additionalSections={ listOf(
             R.string.ui_settings_map to mapControls(),
             R.string.ui_design_title to dashboardControls(embedded=true),
-            R.string.ui_bosch_mode to modeGlowControls(),
             R.string.training_help_title to trainingHelpControls { dashboardPages.selected() }.apply { tag="profile_training_help" }
         ) }, editDashboard=::enterDashboardEditor)
         bikesManager = content
@@ -518,7 +517,9 @@ class MainActivity : Activity() {
                 setSelection(if (chosen == bikeId) 0 else 1)
                 id=View.generateViewId();caption.labelFor=id
             }
-            BicycleDialogStyle.spinner(choice,settingsThemes,BicycleDesign.profileDropdownSp)
+            BicycleDialogStyle.spinner(choice,settingsThemes,BicycleDesign.profileDropdownSp,iconForLabel={ label ->
+                if(current.indoor) BicycleIcon.IndoorBike else if(label==getString(R.string.ui_source_gps)) BicycleIcon.GpsSensor else BicycleIcon.EBike
+            })
             row.addView(choice,LinearLayout.LayoutParams(0,-2,1f));root.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
             return choice
         }
@@ -545,7 +546,7 @@ class MainActivity : Activity() {
                 stateDescription=getString(if(source in expandedFitSources) R.string.zone_expanded else R.string.zone_collapsed)
             }
             BicycleDialogStyle.accordion(toggle,settingsThemes)
-            BicycleDialogStyle.actionIcon(toggle,settingsThemes,BicycleIcon.Expand)
+            BicycleDialogStyle.actionIcon(toggle,settingsThemes,SensorIcons.forSource(source),BicycleIcon.Expand)
             root.addView(toggle);root.addView(content)
             for (field in fields) content.addView(CheckBox(settingsContext).apply {
                 text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
@@ -735,7 +736,7 @@ class MainActivity : Activity() {
             bikesManager?.findViewWithTag<TrainingHelpView>("profile_training_help")?.show(DashboardTrainingHelp.read(preferences,dashboardPages.selected()))
             removeDashboard.visibility=if(dashboardPages.all().size>1) View.VISIBLE else View.GONE
         }
-        footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.RenameTrack,getString(R.string.route_action_rename)) {
+        footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.RenameTrack,getString(R.string.dashboard_rename)) {
             val page=dashboardPages.all().first { it.id==dashboardPages.selected() }
             val input=BicycleComponents.input(settingsContext,settingsThemes).apply {
                 tag="dashboard_name_edit";setSingleLine();setText(page.name);selectAll()
@@ -764,15 +765,16 @@ class MainActivity : Activity() {
         footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.EditDashboard,getString(R.string.dashboard_editor_open)) { enterDashboardEditor() }.apply {
             tag="dashboard_editor_open";(getChildAt(1) as TextView).maxLines=2
         },LinearLayout.LayoutParams(0,-2,1f))
-        if(!embedded) {
-            BicycleForm.section(root,settingsThemes,R.string.ui_bosch_mode)
-            root.addView(modeGlowControls())
-        }
         if(embedded) {
             // Dashboard actions remain inline; profile actions use the fixed footer.
             footer.tag="dashboard_inline_actions"
-            root.setPadding(0,0,0,0);root.addView(footer);BicycleDialogStyle.content(root,settingsThemes);return root
+            root.setPadding(0,0,0,0);root.addView(footer)
+            root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
+            root.addView(modeGlowControls())
+            BicycleDialogStyle.content(root,settingsThemes);return root
         }
+        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
+        root.addView(modeGlowControls())
         val body=LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
             addView(BicycleStickyScrollView(settingsContext).apply { tag="design_ui_scroll";addView(root) },LinearLayout.LayoutParams(-1,0,1f))
@@ -784,12 +786,29 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision
         val root=column().apply { setPadding(0,0,0,0) }
         val glow=Switch(settingsContext).apply {
-            setText(R.string.ui_mode_glow);tag="mode_glow_enabled";isChecked=ModeGlowSettings.enabled(preferences)
+            setText(R.string.ui_bosch_mode);tag="mode_glow_enabled";isChecked=ModeGlowSettings.enabled(preferences)
             setOnCheckedChangeListener { _,checked ->
                 if(slot==runtime.bikes.activeSlot && revision==runtime.profileRevision) { ModeGlowSettings.save(preferences,checked);render() }
             }
         }
-        root.addView(glow)
+        BicycleDialogStyle.control(glow,settingsThemes)
+        BicycleDialogStyle.actionIcon(glow,settingsThemes,BicycleIcon.EBike)
+        glow.gravity=Gravity.START or Gravity.CENTER_VERTICAL
+        val details=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL;tag="mode_glow_details";visibility=View.GONE }
+        val expand=BicycleComponents.icon(settingsContext,settingsThemes,BicycleIcon.Expand,getString(R.string.ui_bosch_mode)) {
+            val open=details.visibility!=View.VISIBLE
+            details.visibility=if(open) View.VISIBLE else View.GONE
+            root.findViewWithTag<View>("mode_glow_expand").apply {
+                rotation=if(open) 180f else 0f
+                stateDescription=getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
+            }
+        }.apply { tag="mode_glow_expand";stateDescription=getString(R.string.zone_collapsed) }
+        root.addView(LinearLayout(settingsContext).apply {
+            tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
+            addView(glow,LinearLayout.LayoutParams(0,-1,1f))
+            addView(expand,LinearLayout.LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap) })
+        },LinearLayout.LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(settingsContext,BicycleDesign.sectionRuleDp)))
+        root.addView(details,LinearLayout.LayoutParams(-1,-2))
         val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }
         val title=label(getString(R.string.ui_glow_visible),BicycleDesign.bodySp)
         row.addView(title,LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
@@ -803,7 +822,7 @@ class MainActivity : Activity() {
                 preferences.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[selectedItemPosition].name).apply();render()
             }
         }
-        row.addView(placement,LinearLayout.LayoutParams(0,-2,1f));root.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
+        row.addView(placement,LinearLayout.LayoutParams(0,-2,1f));details.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
         BicycleDialogStyle.content(root,settingsThemes)
         return root
     }
