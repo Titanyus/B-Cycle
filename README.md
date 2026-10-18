@@ -61,15 +61,22 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.2 – optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.2/downloads/B-Cycle-0.8.2.apk)**
+**[Version 0.8.3 – optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.3/downloads/B-Cycle-0.8.3.apk)**
 
-**Build 36 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Die gezielten Tests sind bestanden.
-[Änderungen und SHA-256](docs/build-36.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.2) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39104523408).
+**Build 37 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Vier gezielte Eingabe-/Navigationstests bestanden.
+[Änderungen und SHA-256](docs/build-37.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.3) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39110405049).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.3
+
+- Android-Tastatur für nachträglich eingefügte Cloudformulare freigegeben: WebDAV, intervals.icu, Dreeve und Strava.
+- Gemeinsame Dialogkorrektur für dynamische Texteingaben, kompakte Dialoge und Rückkehr von Unterseiten.
+- Zentrale Inhaltsüberschriften im Stil der Hilfe (14 sp, Roboto 900 Black), auch unter Erweitert → Quellen.
+- Obere Footer-Trennlinie mit 1 dp in FOREGROUND, einschließlich Profil-/Dashboardfooter.
 
 ## Neu in APK 0.8.2
 
