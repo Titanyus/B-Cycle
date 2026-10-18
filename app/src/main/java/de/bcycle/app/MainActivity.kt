@@ -86,7 +86,7 @@ class MainActivity : Activity() {
     }
     private var picker: AlertDialog? = null
     private var menu: AlertDialog? = null
-    private data class DetailSession(val id: String, val screen: AlertDialog, val content: RouteAnalysisView, val footer: LinearLayout, var analysis: RouteAnalysis? = null, var signature: String = "")
+    private data class DetailSession(val id: String, val screen: AlertDialog, val content: RouteAnalysisView, val footer: LinearLayout, var analysis: RouteAnalysis? = null, var signature: String = "", var transfers:RouteTransferMenu?=null)
     private var routeDetail: DetailSession? = null
     private var sensorManager: AlertDialog? = null
     private var bikesManager: BikesView? = null
@@ -913,10 +913,10 @@ class MainActivity : Activity() {
         }
         val screen = dialog().setView(root).create()
         val detail = DetailSession(entry.id, screen, content, footer)
-        val labels = listOf(R.string.route_action_map, R.string.elevation_correct_action, R.string.route_action_cloud, R.string.route_action_save, R.string.route_action_delete)
-        val captions = listOf(R.string.footer_show, R.string.elevation_correct_action, R.string.footer_cloud_upload, R.string.route_action_save, R.string.route_action_delete)
-        val icons = listOf(BicycleIcon.ShowOnMap, BicycleIcon.CorrectElevation, BicycleIcon.CloudNotUploaded, BicycleIcon.Save, BicycleIcon.DeleteTrack)
-        val tags = listOf("detail_map", "detail_elevation", "detail_cloud", "detail_save", "detail_delete")
+        val labels = listOf(R.string.route_action_map, R.string.route_action_rename, R.string.elevation_correct_action, R.string.route_transfer_upload, R.string.route_action_delete)
+        val captions = listOf(R.string.footer_show, R.string.route_action_rename, R.string.elevation_correct_action, R.string.route_transfer_upload, R.string.route_action_delete)
+        val icons = listOf(BicycleIcon.ShowOnMap, BicycleIcon.RenameTrack, BicycleIcon.CorrectElevation, BicycleIcon.Cloud, BicycleIcon.DeleteTrack)
+        val tags = listOf("detail_map", "detail_rename", "detail_elevation", "detail_upload", "detail_delete")
         labels.indices.forEach { index ->
             footer.addView(BicycleFooterAction(settingsContext, settingsThemes, icons[index], getString(captions[index]), getString(labels[index])) {
                 executeDetailAction(detail, index)
@@ -925,7 +925,7 @@ class MainActivity : Activity() {
         routeDetail = detail
         screen.setCustomTitle(analysisHeader(settingsContext, settingsThemes, entry, rename = { if(!runtime.mapState.busy) detailEntry(detail)?.let(::renameRoute) }, back = { screen.dismiss() }))
         dialogs.onDismiss(screen) {
-            content.dispose()
+            content.dispose();detail.transfers?.dismiss()
             if (routeDetail === detail) { routePopup?.dismiss(); routePopup = null; routeDetail = null }
         }
         screen.show()
@@ -1048,7 +1048,7 @@ class MainActivity : Activity() {
         })
         screen.show(); return screen
     }
-    private fun dataSettings() {
+    private fun dataSettings(focusRoutes:Boolean=false) {
         val content = DataSettingsView(settingsContext,settingsThemes) { action -> when(action) {
             DataAction.BACKUP -> backupSettings()
             DataAction.RESTORE -> try {
@@ -1074,6 +1074,14 @@ class MainActivity : Activity() {
             val form=activityServiceSettings(service,screen)
             content.install(if(service==ActivityService.DREEVE) DataAction.DREEVE else DataAction.STRAVA,form,form.findViewWithTag("service_enabled"))
         }
+        if(focusRoutes) content.addOnLayoutChangeListener(object:View.OnLayoutChangeListener {
+            override fun onLayoutChange(v:View,l:Int,t:Int,r:Int,b:Int,ol:Int,ot:Int,or:Int,ob:Int) {
+                val scroll=content.parent as? ScrollView ?: return
+                val heading=content.findViewWithTag<View>("data_routes_heading") ?: return
+                content.removeOnLayoutChangeListener(this)
+                scroll.post { scroll.scrollTo(0,heading.top) }
+            }
+        })
         dialogs.onDismiss(screen) { if(dataSettingsScreen===screen) dataSettingsScreen=null }
     }
     private fun backupError(error: Throwable): Int = when((error as? SettingsBackupFailure)?.problem) {
@@ -1415,21 +1423,17 @@ class MainActivity : Activity() {
             }
             detail.analysis = detail.analysis?.let { it.copy(entry = it.entry.copy(name = entry.name, fileStamp = entry.fileStamp)) }
         }
+        detail.transfers?.let { if(it.popup.isShowing) it.refresh() }
         val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${runtime.recording}:${runtime.saving}:${RouteCloudUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${settingsThemes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
         if (signature == detail.signature) return
         detail.signature = signature
-        val cloud = if (entry != null && RouteCloudUploads.state(this, entry.id, entry.fileStamp).state == UploadState.UPLOADED) BicycleIcon.CloudConfirmed else BicycleIcon.CloudNotUploaded
-        val local = if (entry != null && RouteLocalSaves.completed(this, entry.id, entry.fileStamp)) BicycleIcon.SaveConfirmed else BicycleIcon.Save
-        val kinds = listOf(BicycleIcon.ShowOnMap, BicycleIcon.CorrectElevation, cloud, local, BicycleIcon.DeleteTrack)
+        val kinds = listOf(BicycleIcon.ShowOnMap,BicycleIcon.RenameTrack,BicycleIcon.CorrectElevation,BicycleIcon.Cloud,BicycleIcon.DeleteTrack)
         kinds.indices.forEach { index ->
             val button = detail.footer.getChildAt(index) as BicycleFooterAction
             button.setIcon(kinds[index], settingsThemes.active.tokens.foreground)
-            if (index == 2) button.contentDescription = getString(if (cloud == BicycleIcon.CloudConfirmed) R.string.route_cloud_confirmed else R.string.route_action_cloud)
-            if (index == 3) button.contentDescription = getString(if (local == BicycleIcon.SaveConfirmed) R.string.route_save_confirmed else R.string.route_action_save)
             button.isEnabled = !runtime.mapState.busy && entry != null && when (index) {
                 0 -> detail.analysis?.route != null
-                1 -> !runtime.recording && !runtime.saving && entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED && entry.hasRoute
-                2 -> entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED && entry.locallySaved
+                2 -> !runtime.recording && !runtime.saving && entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED && entry.hasRoute
                 else -> true
             }
         }
@@ -1439,9 +1443,16 @@ class MainActivity : Activity() {
         val entry = detailEntry(detail) ?: return
         when (index) {
             0 -> detail.analysis?.let(::routeAnalysisMap)
-            1 -> detail.content.correctElevation?.invoke()
-            2 -> if (entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED) runtime.mapState.uploadRoute(entry.id)
-            3 -> runtime.mapState.exportRoute(entry.id)
+            1 -> renameRoute(entry)
+            2 -> detail.content.correctElevation?.invoke()
+            3 -> {
+                detail.transfers?.dismiss()
+                detail.transfers=RouteTransferMenu(settingsContext,settingsThemes,detail.footer.getChildAt(3),
+                    { detailEntry(detail) },{ runtime.mapState.busy },{ target ->
+                        if(target==RouteTransferTarget.LOCAL) runtime.mapState.exportRoute(detail.id)
+                        else runtime.mapState.uploadRoute(detail.id,target)
+                    },{ dataSettings(focusRoutes=true) }).also { it.show() }
+            }
             4 -> deleteRoute(entry)
         }
     }

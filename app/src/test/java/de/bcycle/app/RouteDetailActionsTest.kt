@@ -56,9 +56,9 @@ class RouteDetailActionsTest {
             val footer = detail.window!!.decorView.findViewWithTag<ViewGroup>("bicycle_fullscreen_footer")
             var activeFooter = footer
             assertEquals(5, footer.childCount)
-            assertEquals(listOf("detail_map", "detail_elevation", "detail_cloud", "detail_save", "detail_delete"), (0 until footer.childCount).map { footer.getChildAt(it).tag })
+            assertEquals(listOf("detail_map", "detail_rename", "detail_elevation", "detail_upload", "detail_delete"), (0 until footer.childCount).map { footer.getChildAt(it).tag })
             assertTrue((0 until footer.childCount).all { footer.getChildAt(it) is BicycleFooterAction })
-            assertEquals(listOf("Anzeigen", "Höhe korrigieren", "Cloudupload", "Speichern", "Löschen"),
+            assertEquals(listOf("Anzeigen", "Umbenennen", "Höhe korrigieren", "Upload", "Löschen"),
                 (0 until footer.childCount).map { (footer.getChildAt(it) as android.widget.LinearLayout).getChildAt(1) as TextView }.map { it.text.toString() })
             assertFalse(detail.window!!.decorView.findViewWithTag<View>("detail_elevation").isEnabled)
             assertNull(detail.window!!.decorView.findViewWithTag<View>("analysis_rename"))
@@ -68,7 +68,7 @@ class RouteDetailActionsTest {
             assertNotNull(help.window!!.decorView.findViewWithTag<View>("help_body_${R.string.help_route_title_body}"))
             testBack(help);shadowOf(Looper.getMainLooper()).idle()
             assertTrue(detail.isShowing)
-            assertFalse(detail.window!!.decorView.findViewWithTag<View>("detail_cloud").isEnabled)
+            assertTrue(detail.window!!.decorView.findViewWithTag<View>("detail_upload").isEnabled)
             assertNull(detail.window!!.decorView.findViewWithTag<View>("analysis_actions"))
             assertFalse(views(detail.window!!.decorView).filterIsInstance<TextView>().any { it.isShown && it.text.toString() == activity.getString(R.string.analysis_close) })
             footer.getChildAt(0).performClick(); shadowOf(Looper.getMainLooper()).idle()
@@ -85,21 +85,24 @@ class RouteDetailActionsTest {
                 val expected = pixels(BicycleIcons.drawable(activity, kind, RideRuntime.get(activity).themes.active.tokens.foreground))
                 val same = actual.sameAs(expected); actual.recycle(); expected.recycle(); return same
             }
-            val saveButton = footer.getChildAt(3) as BicycleFooterAction
-            assertTrue(matches(saveButton, BicycleIcon.Save))
-            saveButton.performClick(); saveButton.performClick()
-            waitFor { !state.busy && RouteLocalSaves.completed(activity, id, state.entries.single { it.id == id }.fileStamp) }
-            assertEquals(1, provider.writes)
-            assertTrue(matches(saveButton, BicycleIcon.SaveConfirmed))
-            assertTrue(matches(footer.getChildAt(2) as BicycleFooterAction, BicycleIcon.CloudNotUploaded))
-            // Returning and reopening must show the durable save receipt, not reset it.
-            testBack(detail)
-            shadowOf(Looper.getMainLooper()).idle()
-            card.performClick(); shadowOf(Looper.getMainLooper()).idle()
-            val reopened = ShadowAlertDialog.getLatestAlertDialog()
+            val uploadButton = footer.getChildAt(3) as BicycleFooterAction
+            assertTrue(matches(uploadButton,BicycleIcon.Cloud))
+            uploadButton.performClick()
+            val transferMenu=org.robolectric.shadows.ShadowListPopupWindow.getLatestListPopupWindow()
+            val targetList=transferMenu.listView!!
+            targetList.performItemClick(targetList.adapter.getView(0,null,targetList),0,0)
+            waitFor { !state.busy && RouteLocalSaves.completed(activity,id,state.entries.single { it.id==id }.fileStamp) }
+            assertEquals(1,provider.writes)
+            assertTrue((targetList.adapter.getItem(0) as RouteTransferRow).completed)
+            transferMenu.dismiss()
+            testBack(detail);shadowOf(Looper.getMainLooper()).idle()
+            card.performClick();shadowOf(Looper.getMainLooper()).idle()
+            val reopened=ShadowAlertDialog.getLatestAlertDialog()
             waitFor { reopened.window!!.decorView.findViewWithTag<View>("detail_map").isEnabled }
-            val restored = reopened.window!!.decorView.findViewWithTag<BicycleFooterAction>("detail_save")
-            assertTrue(matches(restored, BicycleIcon.SaveConfirmed))
+            reopened.window!!.decorView.findViewWithTag<View>("detail_upload").performClick()
+            val restored=org.robolectric.shadows.ShadowListPopupWindow.getLatestListPopupWindow()
+            assertTrue((restored.listView!!.adapter.getItem(0) as RouteTransferRow).completed)
+            restored.dismiss()
             testBack(reopened)
             shadowOf(Looper.getMainLooper()).idle()
             card.performClick(); shadowOf(Looper.getMainLooper()).idle()
@@ -150,20 +153,26 @@ class RouteDetailActionsTest {
             }
             fun refresh() { MainActivity::class.java.getDeclaredMethod("refreshRouteRows").apply { isAccessible = true }.invoke(activity) }
             val first = open()
-            val cloud = first.window!!.decorView.findViewWithTag<BicycleFooterAction>("detail_cloud")
-            assertEquals(activity.getString(R.string.route_action_cloud), cloud.contentDescription)
-            cloud.performClick(); cloud.performClick(); waitFor { !state.busy }
-            assertNotEquals(UploadState.UPLOADED, RouteUploads.state(activity, entry.id).state)
-            assertEquals(activity.getString(R.string.route_action_cloud), cloud.contentDescription)
-            var transfers = 0
-            RouteUploads.run(activity, { false }) { _, file, _, _ -> assertEquals(original, file); transfers++ }
-            assertEquals(1, transfers); refresh()
-            assertEquals(activity.getString(R.string.route_cloud_confirmed), cloud.contentDescription)
-            assertEquals(activity.getString(R.string.route_action_save), first.window!!.decorView.findViewWithTag<View>("detail_save").contentDescription)
-            testBack(first); shadowOf(Looper.getMainLooper()).idle()
-            val reopened = open(); refresh()
-            assertEquals(activity.getString(R.string.route_cloud_confirmed), reopened.window!!.decorView.findViewWithTag<View>("detail_cloud").contentDescription)
-            assertEquals(activity.getString(R.string.route_action_save), reopened.window!!.decorView.findViewWithTag<View>("detail_save").contentDescription)
+            val upload=first.window!!.decorView.findViewWithTag<View>("detail_upload")
+            upload.performClick()
+            var popup=org.robolectric.shadows.ShadowListPopupWindow.getLatestListPopupWindow()
+            var list=popup.listView!!
+            list.performItemClick(list.adapter.getView(1,null,list),1,1)
+            list.performItemClick(list.adapter.getView(1,null,list),1,1)
+            waitFor { !state.busy }
+            assertFalse((list.adapter.getItem(1) as RouteTransferRow).completed)
+            var transfers=0
+            RouteUploads.run(activity,{false}) { _,file,_,_->assertEquals(original,file);transfers++ }
+            assertEquals(1,transfers);refresh();shadowOf(Looper.getMainLooper()).idle()
+            assertTrue((list.adapter.getItem(1) as RouteTransferRow).completed)
+            assertFalse((list.adapter.getItem(0) as RouteTransferRow).completed)
+            popup.dismiss();testBack(first);shadowOf(Looper.getMainLooper()).idle()
+            val reopened=open();refresh()
+            reopened.window!!.decorView.findViewWithTag<View>("detail_upload").performClick()
+            popup=org.robolectric.shadows.ShadowListPopupWindow.getLatestListPopupWindow();list=popup.listView!!
+            assertTrue((list.adapter.getItem(1) as RouteTransferRow).completed)
+            assertFalse((list.adapter.getItem(0) as RouteTransferRow).completed)
+            popup.dismiss()
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun closingChildAndParentBeforeTheirCallbacksDoesNotResurrectTheDeletedDetails() {

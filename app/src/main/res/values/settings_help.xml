@@ -97,7 +97,7 @@
     <string name="help_route_import_heading">Strecken importieren</string>
     <string name="help_route_import_body">Strecke importieren bietet geplante Strecken, aufgezeichnete Fahrten und ZIP-Archive. Unterstützte Fahrdateien eines Archivs werden intern übernommen; byteidentische Duplikate werden übersprungen. Prüfe die Importbilanz. Nicht jede anders exportierte Datei derselben Fahrt ist byteidentisch.</string>
     <string name="help_route_actions_heading">Fahrten auswählen und exportieren</string>
-    <string name="help_route_actions_body">Ein Tipp öffnet Details. Anzeigen legt die Strecke auf die Dashboard-Karte. Speichern exportiert die Fahrt, Cloudupload verwendet die aktivierten Dienste. Löschen entfernt die Fahrt aus der Sammlung erst nach Bestätigung.</string>
+    <string name="help_route_actions_body">Ein Tipp öffnet Details. Anzeigen legt die Strecke auf die Dashboard-Karte. Umbenennen ändert den Fahrtitel. Upload öffnet alle Ziele mit Einzelstatus und manueller lokaler Speicherung; Konfigurieren führt zu Streckendaten in Daten &amp; Speicher. Löschen entfernt die Fahrt aus der Sammlung erst nach Bestätigung.</string>
     <string name="help_route_title_heading">Fahrt umbenennen</string>
     <string name="help_route_title_body">Tippe auf den Titel oben, um den Namen zu ändern. Gültige Änderungen werden sofort gespeichert. Das Info-Symbol öffnet diese Hilfe und ist kein Umbenennen-Button.</string>
     <string name="help_route_weather_heading">Datum, Wetter und Karte</string>

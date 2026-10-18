@@ -23,7 +23,7 @@ Quellwahl, fehlende Werte und eine abgebrochene letzte Journalzeile.
 
 Enthalten sind `file_id`, `device_info`, Timer-Start/Stop-Events, Sekunden-Records,
 eine Lap, Session und Activity sowie die Beschreibungen ausgewählter Developer-
-Felder. Sport ist Cycling / E-Bike Fitness. B-Cycle wird als entwickelndes Gerät
+Felder. Sport ist Cycling; Outdoor verwendet E-Bike Fitness, Indoor verwendet Indoor Cycling. B|CYCLE wird als entwickelndes Gerät
 identifiziert, nicht als Garmin-Gerät. Zeitstempel sind UTC mit FIT-Epoche;
 Fahrtdauer basiert auf monotoner Android-Zeit. Keine automatische Timer-Pause:
 Die FIT-Timerzeit umfasst START bis STOPP, einschließlich Standzeiten.
@@ -100,3 +100,5 @@ Der Menüpunkt heißt im aktuellen Code **FIT-Aufzeichnung**. Die gespeicherten
 Fahrten werden ausschließlich im gemeinsamen [Streckenmanager](routes.md) verwaltet.
 Garmins Lizenztext ist unter Erweitert → Bibliotheken & Lizenzen und in
 `app/src/main/assets/Garmin-FIT-LICENSE.txt` enthalten.
+
+Gerätemetadaten: `device_info.product_name` lautet ab 18.10.2026 `B|CYCLE`. Die Pipe ist ein gültiges ASCII-Zeichen im FIT-String. Herstellerkennung 255 (Development), Produkt-ID 0 und bisherige Softwareversionsangabe bleiben erhalten. Bestehende FIT-Dateien werden nicht rückwirkend geändert.

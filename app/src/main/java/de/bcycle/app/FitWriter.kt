@@ -54,7 +54,7 @@ object FitWriter {
                 val startStamp = timestamp(start).toDouble()
                 message(0, 0, listOf(en(0, 4), u16(1, 255.0), u16(2, 0.0), number(3, 0x8c, 4, 1), u32(4, startStamp)))
                 // Device metadata identifies the generating application, not a fabricated Garmin device.
-                message(0, 23, listOf(u32(253, startStamp), u8(0, 0.0), u16(2, 255.0), u16(4, 0.0), u16(5, AppVersion.fitSoftwareVersion, 100.0), string(27, "B-Cycle")))
+                message(0, 23, listOf(u32(253, startStamp), u8(0, 0.0), u16(2, 255.0), u16(4, 0.0), u16(5, AppVersion.fitSoftwareVersion, 100.0), string(27, "B|CYCLE")))
                 // Put standard sport metadata before records so readers need no second pass.
                 if(config.indoor) message(0,12,listOf(en(0,2),en(1,6)))
                 if (developerIds.isNotEmpty() || config.fields.any { id -> RecordField.summaries.any { it.id == id } }) {

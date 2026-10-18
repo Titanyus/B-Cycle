@@ -1,0 +1,15 @@
+<resources>
+    <string name="route_transfer_upload">Upload</string>
+    <string name="route_transfer_configure">Konfigurieren</string>
+    <string name="route_transfer_local">Lokal speichern</string>
+    <string name="route_transfer_off">aus</string>
+    <string name="route_transfer_ready">Bereit · zum Hochladen antippen</string>
+    <string name="route_transfer_local_ready">Export nach Downloads/B-Cycle</string>
+    <string name="route_transfer_waiting">Vorgemerkt · wartet auf Netzwerk/WLAN</string>
+    <string name="route_transfer_uploading">Übertragung / Verarbeitung läuft …</string>
+    <string name="route_transfer_done">Erfolgreich</string>
+    <string name="route_transfer_failed">Fehlgeschlagen · erneut versuchen</string>
+    <string name="route_transfer_config_error">Konfiguration prüfen</string>
+    <string name="route_transfer_missing">Lokale Quelldatei fehlt</string>
+    <string name="route_transfer_ineligible">Nur eigene FIT-Fahrten</string>
+</resources>

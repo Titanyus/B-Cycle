@@ -6,6 +6,6 @@ Seit 18.10.2026 öffnet das Lucide-Info-Symbol rechts im Seitenheader eine lokal
 
 Abschnitte verwenden BicycleSectionHeader.accordion und BicycleStickyScrollView. Sie sind anfangs geschlossen und unabhängig aufklappbar. Normale Text-/Abstands-/Theme-Konventionen bleiben erhalten. Hilfeseiten selbst haben keinen weiteren Hilfe-Button. Zurück verwendet DialogNavigation und stellt die unveränderte Elternansicht wieder her. Auf der Hauptseite bleibt der globale Hell/Dunkel-Schalter links neben Info; der Titel bleibt zur gesamten Fensterbreite zentriert.
 
-Streckendetails: Das Stiftsymbol im Header entfällt. Antippen des Titels benennt die Fahrt weiterhin um; Info öffnet die Auswertungshilfe. Bestätigungsdialoge erhalten keinen zusätzlichen Hilfezugang.
+Streckendetails: Das Stiftsymbol im Header entfällt. Antippen des Titels benennt die Fahrt weiterhin um; zusätzlich gibt es Umbenennen im Footer. Info öffnet die Auswertungshilfe. Bestätigungsdialoge erhalten keinen zusätzlichen Hilfezugang.
 
 Direkt unter Strecken-Aufzeichnung erklärt ein kurzer Text die zusätzlichen FIT-Felder, ihre Unabhängigkeit vom Dashboard und den GPS-Schalter für Positionsdaten.

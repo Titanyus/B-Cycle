@@ -19,7 +19,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
     init {
         orientation=VERTICAL;tag="data_settings";setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),0);BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         fun section(title:Int, actions:List<DataAction>) {
-            BicycleForm.section(this,themes,title)
+            BicycleForm.section(this,themes,title).apply { if(title==R.string.data_routes) tag="data_routes_heading" }
             actions.forEach { action ->
                 val inline=action!=DataAction.RESTORE
                 val body=LinearLayout(context).apply { orientation=VERTICAL;tag="data_details_${action.name}";visibility=GONE }

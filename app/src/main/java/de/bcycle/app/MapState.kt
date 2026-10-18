@@ -216,10 +216,13 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         }
         workerRoute
     }
-    fun uploadRoute(id: String) = operate(context.getString(R.string.cloud_uploads_queued)) {
+    internal fun uploadRoute(id: String,target:RouteTransferTarget?=null) = operate(context.getString(R.string.cloud_uploads_queued)) {
         val entry = fits.entries.singleOrNull { it.id == id }
         require(entry?.origin == TrackOrigin.RECORDED) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
-        RouteCloudUploads.retry(context, id); workerRoute
+        if(target==null) RouteCloudUploads.retry(context,id) else {
+            require(target!=RouteTransferTarget.LOCAL && target.enabled(context))
+            target.retry(context,id)
+        }; workerRoute
     }
     fun saveRouteLocally(id: String) = operate("") {
         val file = if (fits.entries.any { it.id == id }) fits.file(id) else library.file(id)
