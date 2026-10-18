@@ -30,10 +30,12 @@ class RecordingStore(private val context: Context, private val changed: (String,
     }
     fun begin(start: Long, config: RecordingConfig) {
         failed = false
+        val profileAppearance=RideProfileColor.snapshot(context)
         submit {
             try {
                 val name = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(start)) + "_" + UUID.randomUUID().toString().take(8)
                 journal = RideJournal(File(directory, "$name.ride"), start, config)
+                runCatching { File(directory,"$name.profile.json").writeText(profileAppearance) }
             } catch (_: Exception) { failed = true; report("Aufzeichnung konnte nicht angelegt werden · bitte STOPP", false) }
         }
     }
@@ -74,6 +76,8 @@ class RecordingStore(private val context: Context, private val changed: (String,
             FitWriter.encode(source, encoded)
             val original = FitLibrary.retainRecording(context.filesDir, encoded)
             retained = true
+            val appearance=File(directory,source.nameWithoutExtension+".profile.json")
+            if(appearance.isFile) runCatching { RideProfileColor.confirm(context,original.nameWithoutExtension,appearance.readText()) }
             var correctionFailed=false
             var indoor=false
             RideJournal.read(source) { _,config,_,_ -> indoor=config.indoor }
@@ -90,7 +94,7 @@ class RecordingStore(private val context: Context, private val changed: (String,
                 LocalRouteExport.write(context, exportFile, "B-Cycle-" + encoded.name, config.tree)
             } }
             upload.getOrThrow(); local.getOrThrow()
-            source.delete(); encoded.delete()
+            source.delete(); encoded.delete();appearance.delete()
             return "Gespeichert: FIT in Streckensammlung" +
                 (if (RouteExportSettings(context).read().save) " · auch im Zielordner" else "") +
                 (if (RouteExportSettings(context).read().webdav) " · Nextcloud-Upload vorgemerkt" else "") + (if (failed) " · enthält Daten bis zum Speicherfehler" else "") +

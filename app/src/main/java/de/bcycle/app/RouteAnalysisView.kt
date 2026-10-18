@@ -49,17 +49,25 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     fun show(analysis: RouteAnalysis) {
         if (closed) return
         reset()
+        RideProfileColor.name(context,id)?.let { bikeName ->
+            body.addView(BicycleComponents.text(context,themes,bikeName).apply {
+                tag="analysis_bike_name";gravity=Gravity.CENTER;typeface=BicycleDesign.strongTypeface
+                textSize=BicycleDesign.rowTitleSp
+            },LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.smallGap) })
+        }
         if (analysis.entry.details.dateMs > 0) body.addView(BicycleComponents.text(context, themes,
             DateTimeFormatter.ofPattern(context.getString(R.string.analysis_date_format)).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(analysis.entry.details.dateMs))).apply {
             gravity = Gravity.CENTER; typeface = Typeface.DEFAULT; tag = "analysis_date"; textSize = BicycleDesign.rowTitleSp
         }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.smallGap) })
         analysis.weatherTarget?.let { target ->
-            val holder=FrameLayout(context).apply { visibility=GONE }
+            val holder=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;visibility=GONE }
             body.addView(holder,LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.smallGap) })
             val revision=weatherRevision
             weatherTask=RideWeather.load(context.applicationContext,id,target) { data ->
                 if(!closed && revision==weatherRevision && data!=null) {
-                    holder.removeAllViews();holder.addView(RideWeatherRow(context,themes,data));holder.visibility=VISIBLE
+                    holder.removeAllViews()
+                    holder.addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.analysisDividerGap).apply { tag="analysis_weather_divider" })
+                    holder.addView(RideWeatherRow(context,themes,data));holder.visibility=VISIBLE
                 }
             }
         }

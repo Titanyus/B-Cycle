@@ -89,6 +89,7 @@ class RouteAnalysisViewTest {
     }
     @Test fun sectionLabelsAreVerticalWithThinSeparatorsAndDateIsLargerWithoutExtraHeadings() {
         val context=RuntimeEnvironment.getApplication();val themes=ThemeManager(context.getSharedPreferences("analysis-side",0))
+        RideProfileColor.confirm(context,"side",RideProfileColor.snapshot(context))
         val content=RouteAnalysisView(context,themes,"side") {}
         content.show(sample());measure(content,360,800)
         val labels=descendants(content).filterIsInstance<AnalysisSideLabel>()
@@ -102,6 +103,11 @@ class RouteAnalysisViewTest {
             assertEquals(margins.topMargin,margins.bottomMargin)
         }
         val date=content.findViewWithTag<TextView>("analysis_date")
+        val bikeName=content.findViewWithTag<TextView>("analysis_bike_name")
+        assertEquals(BicycleDesign.strongTypeface,bikeName.typeface)
+        assertEquals(date.textSize,bikeName.textSize,0f)
+        assertTrue(date.top>=bikeName.bottom)
+
         assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.rowTitleSp,context.resources.displayMetrics),date.textSize,0f)
         val texts=descendants(content).filterIsInstance<TextView>().map { it.text.toString() }
         for(resource in listOf(R.string.analysis_overview,R.string.analysis_map_heading,R.string.analysis_charts)) assertFalse(texts.contains(context.getString(resource)))

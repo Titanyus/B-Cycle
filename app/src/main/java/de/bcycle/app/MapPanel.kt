@@ -315,7 +315,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun refresh() {
         if (!running) return
-        gps = runtime.gpsValues
+        gps = runtime.mapGpsValues
         phoneHeading.updateLocation(gps);phoneHeading.setEnabled(headingVisible());refreshPhoneHeading()
         if ((motion.active || ovalAnchor.active) && !runtime.isMoving) { stopMotion(); updateCamera(); refreshRoutes() }
         updateMotionControls()

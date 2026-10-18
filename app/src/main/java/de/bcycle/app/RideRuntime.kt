@@ -140,6 +140,13 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val gps = ride.gps.snapshot(SystemClock.elapsedRealtime())
         return gps.copy(elapsedMs = elapsedMs, solar = solarWeather.snapshot(gps.latitude, gps.longitude, java.time.Instant.now(), java.time.ZoneId.systemDefault()))
     }
+    /** Approximate coordinates stay display-only, never enter the recording/statistic values. */
+    internal val mapGpsValues:GpsValues get() {
+        val values=gpsValues
+        if(isIndoor || !gpsEnabled) return values
+        val fix=gpsSensor.mapFix(SystemClock.elapsedRealtime()) ?: return values.copy(accuracyM=null)
+        return values.copy(latitude=fix.latitude,longitude=fix.longitude,accuracyM=fix.accuracyM)
+    }
     /** Prefer fresh wheel speed; GPS already filters stationary jitter. Unknown is not zero. */
     val currentSpeedKmh: Double? get() {
         val now = SystemClock.elapsedRealtime()

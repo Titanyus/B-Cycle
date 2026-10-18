@@ -112,6 +112,23 @@ class RouteTrackLayerTest {
         assertEquals(255,Color.green(bitmap.getPixel(250,256)))
         model.mapViewPosition.destroy()
     }
+    @Test fun accuracyCircleUsesMetresAndHidesAtGoodFixWithHysteresis() {
+        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
+        val model=Model();model.displayModel.setFixedTileSize(256)
+        val layer=RouteTrackLayer(1f);layer.setDisplayModel(model.displayModel)
+        val origin=MercatorProjection.getMapSize(18,256)/2.0-256
+        val bitmap=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
+        fun draw(accuracy:Double?):Int {
+            bitmap.eraseColor(Color.TRANSPARENT)
+            layer.update(null,emptyList(),GpsValues(latitude=0.0,longitude=0.0,accuracyM=accuracy),false,false)
+            layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),18,
+                AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)),Point(origin,origin),Rotation.NULL_ROTATION)
+            return Color.alpha(bitmap.getPixel(286,256))
+        }
+        assertTrue(draw(30.0)>0);assertEquals(0,draw(10.0));assertEquals(0,draw(12.0))
+        assertTrue(draw(30.0)>0);assertEquals(0,draw(null));assertEquals(0,draw(Double.NaN))
+        model.mapViewPosition.destroy()
+    }
     @Test fun positionDotHasSmallPhoneDirectionArrowIndependentOfGpsCourseAndHidesUnknownHeading() {
         AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
         val model=Model();model.displayModel.setFixedTileSize(256)

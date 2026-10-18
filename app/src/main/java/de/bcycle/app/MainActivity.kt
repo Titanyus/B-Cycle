@@ -778,12 +778,16 @@ class MainActivity : Activity() {
             // BikesView moves these existing actions into its context-sensitive fixed footer.
             footer.tag="dashboard_inline_actions"
             root.setPadding(0,0,0,0);root.addView(footer)
-            root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
-            root.addView(modeGlowControls())
+            if(runtime.bikes.current().type==BikeType.EBIKE) {
+                root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
+                root.addView(modeGlowControls())
+            }
             BicycleDialogStyle.content(root,settingsThemes);return root
         }
-        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
-        root.addView(modeGlowControls())
+        if(runtime.bikes.current().type==BikeType.EBIKE) {
+            root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
+            root.addView(modeGlowControls())
+        }
         val body=LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
             addView(BicycleStickyScrollView(settingsContext).apply { tag="design_ui_scroll";addView(root) },LinearLayout.LayoutParams(-1,0,1f))

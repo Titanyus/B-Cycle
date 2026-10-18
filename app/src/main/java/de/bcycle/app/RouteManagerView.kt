@@ -120,6 +120,7 @@ internal class RouteManagerView(context: Context,
     private inner class Card : LinearLayout(context) {
         private var entry: ManagedRoute? = null
         private val preview = RoutePreviewView(context)
+        private val profileColor=View(context).apply { visibility=GONE;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO }
         private val origin = ImageView(context)
         private val format = BicycleComponents.text(context, themes, "").apply { textSize = BicycleDesign.formatSp }
         private val title = BicycleComponents.text(context, themes, "").apply {
@@ -175,6 +176,7 @@ internal class RouteManagerView(context: Context,
                 orientation = VERTICAL
                 addView(LinearLayout(context).apply {
                     gravity = Gravity.CENTER_VERTICAL
+                    addView(profileColor,LayoutParams(dp(5),dp(24)).apply { marginEnd=dp(BicycleDesign.controlGap) })
                     addView(origin, LayoutParams(dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)))
                     addView(format, LayoutParams(-2, -2).apply { marginStart = dp(BicycleDesign.verticalPadding) })
                 }, LayoutParams(-1, dp(BicycleDesign.touchSize)))
@@ -205,6 +207,10 @@ internal class RouteManagerView(context: Context,
             contentDescription = context.getString(R.string.analysis_open, route.name)
             title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name
             origin.contentDescription = when (route.origin) { TrackOrigin.IMPORTED -> context.getString(R.string.ui_route_imported); TrackOrigin.RECORDED -> context.getString(R.string.ui_route_recorded); TrackOrigin.UNKNOWN -> context.getString(R.string.ui_route_unknown_origin) }
+            profileColor.tag="route_profile_color_${route.id}"
+            val color=RideProfileColor.color(context,route.id)
+            profileColor.visibility=if(color==null) GONE else VISIBLE
+            color?.let(profileColor::setBackgroundColor)
             format.text = route.format; format.contentDescription = context.getString(R.string.ui_file_format_description, route.format)
             val recordedAt = route.details.dateMs.takeIf { it > 0 }?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()) }
             date.bind(recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_date_format))), route.id, "date")

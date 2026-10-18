@@ -19,6 +19,7 @@ data class GpsValues(
     val latitude: Double? = null, val longitude: Double? = null,
     val bearingDegrees: Double? = null,
     val solar: SolarValues = SolarValues(),
+    val accuracyM:Double?=null,
 )
 
 /** Conservative foreground trip estimates. Coordinates are held only as a distance anchor. */

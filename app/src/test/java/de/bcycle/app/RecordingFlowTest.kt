@@ -208,6 +208,7 @@ class RecordingFlowTest {
         assertTrue(provider.published.isEmpty())
         val privateFits = File(app.filesDir, "fit-library").listFiles { file -> file.extension == "fit" }!!
         assertEquals(1, privateFits.size) // Finalized activity survives even an unavailable Downloads provider.
+        assertNotNull(RideProfileColor.color(app,privateFits.single().nameWithoutExtension))
         val preserved = privateFits.single().readBytes()
         assertTrue(provider.files.isEmpty()) // Incomplete public entry was deleted.
         provider.failWriting = false

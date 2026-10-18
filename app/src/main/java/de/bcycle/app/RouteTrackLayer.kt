@@ -22,6 +22,7 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
     private val path = Path()
     private val lineBounds=android.graphics.RectF()
     private val arrow = Path()
+    private var showAccuracy=false
     private val heightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = dp(14); typeface = BicycleDesign.strongTypeface
     }
@@ -77,6 +78,16 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
         val gps = snapshot.gps
         val latitude = gps.latitude; val longitude = gps.longitude
         if (latitude != null && longitude != null && abs(latitude) <= 85.05112878) {
+            val accuracy=gps.accuracyM?.takeIf { it.isFinite() && it>0 }
+            showAccuracy=accuracy!=null && if(showAccuracy) accuracy>10 else accuracy>15
+            if(showAccuracy) {
+                val metresPerPixel=40075016.686*kotlin.math.cos(Math.toRadians(latitude))/mapSize
+                val radius=(accuracy!!/metresPerPixel).toFloat()
+                paint.style=Paint.Style.FILL;paint.color=android.graphics.Color.argb(30,0,100,245)
+                target.drawCircle(x(longitude),y(latitude),radius,paint)
+                paint.style=Paint.Style.STROKE;paint.strokeWidth=dp(1);paint.color=android.graphics.Color.argb(100,0,100,245)
+                target.drawCircle(x(longitude),y(latitude),radius,paint)
+            }
             target.save(); target.translate(x(longitude), y(latitude)); paint.style = Paint.Style.FILL
             snapshot.phoneHeading?.let { direction ->
                 val saved=target.save();target.rotate(direction.toFloat())
@@ -103,6 +114,6 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
                 target.drawText(text, left + inset, -(metrics.ascent + metrics.descent) / 2, heightPaint)
                 target.restore()
             }
-        }
+        } else showAccuracy=false
     }
 }

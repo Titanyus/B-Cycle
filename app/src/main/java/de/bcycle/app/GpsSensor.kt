@@ -13,6 +13,11 @@ import android.os.SystemClock
 /** Native GNSS only, one update/second, no network SDK or satellite display. */
 class GpsSensor(private val context: Context, private val ride: GpsRide, private val changed: (String) -> Unit) {
     private val manager = context.getSystemService(LocationManager::class.java)
+    private var mapObservation:GpsFix?=null
+    internal fun mapFix(now:Long):GpsFix?=mapObservation?.takeIf {
+        active && now-it.timeMs in 0..5000 && it.latitude.isFinite() && it.latitude in -85.05112878..85.05112878 &&
+            it.longitude.isFinite() && it.longitude in -180.0..180.0 && it.accuracyM.isFinite() && it.accuracyM in 0.0..1000.0
+    }
     var active = false; private set
     private val listener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
@@ -29,11 +34,14 @@ class GpsSensor(private val context: Context, private val ride: GpsRide, private
                 if (location.hasBearing()) location.bearing.toDouble() else null,
                 if (location.hasBearingAccuracy()) location.bearingAccuracyDegrees.toDouble() else null)
             val accepted = ride.accept(fix, SystemClock.elapsedRealtime())
+            // Preserve all existing plausibility filters for precise fixes; only a coarse
+            // accuracy estimate may bypass recording rejection for the display-only circle.
+            if((accepted || fix.accuracyM>20) && mapObservation?.timeMs?.let { fix.timeMs>it }!=false) mapObservation=fix
             changed(if (accepted) "GPS · Live" else "GPS · Warte auf brauchbare Messung")
         }
         override fun onProviderEnabled(provider: String) { if (active) changed("GPS · Suche Position") }
         override fun onProviderDisabled(provider: String) {
-            if (active) { ride.pause(); changed("GPS · Standort am Handy einschalten") }
+            if (active) { mapObservation=null;ride.pause(); changed("GPS · Standort am Handy einschalten") }
         }
     }
 
@@ -54,7 +62,7 @@ class GpsSensor(private val context: Context, private val ride: GpsRide, private
     }
 
     fun stop() {
-        active = false
+        active = false;mapObservation=null
         manager.removeUpdates(listener)
         ride.pause()
     }

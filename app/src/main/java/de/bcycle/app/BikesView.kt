@@ -76,7 +76,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private fun dp(n: Int) = BicycleDesign.dp(context,n)
     init {
         orientation = VERTICAL; clipToPadding = false; tag = "bikes_manager"
-        setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),0)
+        setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.sectionContentGap))
         rebuild()
     }
     private fun text(id: Int, heading: Boolean = false) = BicycleComponents.text(context,themes,context.getString(id),heading)
@@ -286,7 +286,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 addView(child,child.layoutParams)
             }
         } else addView(recording,LayoutParams(-1,-2))
-        additionalSections?.invoke()?.forEach { (title,body) ->
+        additionalSections?.invoke()?.filter { (title,_) -> title!=R.string.ui_settings_map || BikeSensor.GPS in profile.type.sensors }?.forEach { (title,body) ->
             val heading=section(title)
             if(title==R.string.ui_design_title) {
                 designHeader=heading
