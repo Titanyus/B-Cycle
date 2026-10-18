@@ -55,6 +55,14 @@ class IndoorUiTest {
             assertNotNull(decor.findViewWithTag<View>("bike_sensor_TRAINER"));assertNotNull(decor.findViewWithTag<View>("bike_sensor_HEART"))
             for(sensor in listOf("GPS","EBIKE","POWER")) assertNull(decor.findViewWithTag<View>("bike_sensor_$sensor"))
             assertEquals(View.GONE,decor.findViewWithTag<View>("bike_category").visibility)
+            val indoorType=decor.findViewWithTag<Spinner>("bike_indoor_type_choice")
+            assertEquals(View.VISIBLE,indoorType.visibility)
+            assertEquals("Hometrainer",indoorType.selectedItem.toString())
+            val indoorAdapter=indoorType.adapter as ListAdapter
+            assertEquals(2,indoorAdapter.count)
+            assertTrue(indoorAdapter.isEnabled(0));assertFalse(indoorAdapter.isEnabled(1))
+            val disabledRow=indoorType.adapter.getDropDownView(1,null,indoorType)
+            assertFalse(disabledRow.isEnabled);assertEquals(.4f,disabledRow.alpha,.01f)
             assertNotNull(decor.findViewWithTag<View>("fit_source_Indoor-Bike"))
             assertNull(decor.findViewWithTag<View>("record_GPS_POSITION"));assertNull(decor.findViewWithTag<View>("record_MOTOR_POWER"))
             assertNotNull(decor.findViewWithTag<View>("record_RIDER_POWER"));assertNotNull(decor.findViewWithTag<View>("record_CADENCE"))
@@ -80,6 +88,7 @@ class IndoorUiTest {
             assertEquals(BikeType.EBIKE,runtime.bikes.current().type);assertEquals(selected.slot,runtime.bikes.activeSlot)
             assertNotNull(decor.findViewWithTag<View>("bike_sensor_GPS"));assertNull(decor.findViewWithTag<View>("bike_sensor_TRAINER"))
             assertNull(decor.findViewWithTag<View>("indoor_correction_power"))
+            assertEquals(View.GONE,decor.findViewWithTag<View>("bike_indoor_type_choice").visibility)
             assertFalse(runtime.setIndoorCorrection(IndoorCorrection(12,12)))
             assertEquals("Indoor-Bike",DashboardField("GPS_MOVING_AVERAGE").captionIcon(LiveData(indoor=true)))
         } finally { controller.pause().stop().destroy() }

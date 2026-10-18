@@ -8,6 +8,9 @@ import org.json.JSONObject
 enum class BikeType(val label: Int, val available: Boolean) {
     BIKE(R.string.bikes_type_bike, false), EBIKE(R.string.bikes_type_ebike, true), INDOOR(R.string.bikes_type_indoor, true)
 }
+internal enum class IndoorBikeType(val label:Int,val available:Boolean) {
+    EXERCISE_BIKE(R.string.bikes_indoor_exercise,true), ROLLER_TRAINER(R.string.bikes_indoor_roller,false)
+}
 internal enum class BikeCategory(val label: Int) {
     MOUNTAIN(R.string.bikes_category_mountain), ROAD(R.string.bikes_category_road),
     TREKKING(R.string.bikes_category_trekking), GRAVEL(R.string.bikes_category_gravel), CITY(R.string.bikes_category_city)

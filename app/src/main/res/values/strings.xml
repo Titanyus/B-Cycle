@@ -719,4 +719,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="analysis_np_short">Norm. Leistung</string>
     <string name="profiles_rename">Profil umbenennen</string>
     <string name="dashboard_rename">Dashboard umbenennen</string>
+    <string name="bikes_indoor_type">Indoor-Trainertyp</string>
+    <string name="bikes_indoor_exercise">Hometrainer</string>
+    <string name="bikes_indoor_roller">Rollentrainer</string>
 </resources>

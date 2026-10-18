@@ -39,6 +39,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private var shownSlot = -1
     private var shownType:BikeType?=null
     private lateinit var typeChoice:Spinner
+    private lateinit var indoorTypeChoice:Spinner
     private val correctionControls=mutableListOf<Pair<SeekBar,TextView>>()
     private var binding = false
     private var photo:BikePhotoView?=null
@@ -156,6 +157,17 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 refresh()
             }
         }
+        indoorTypeChoice=Spinner(context).apply {
+            tag="bike_indoor_type_choice";contentDescription=context.getString(R.string.bikes_indoor_type)
+            visibility=if(profile.type==BikeType.INDOOR) VISIBLE else GONE
+            adapter=object:ArrayAdapter<String>(context,android.R.layout.simple_spinner_dropdown_item,IndoorBikeType.entries.map { context.getString(it.label) }) {
+                override fun areAllItemsEnabled()=false
+                override fun isEnabled(position:Int)=IndoorBikeType.entries[position].available
+            }
+            setSelection(IndoorBikeType.EXERCISE_BIKE.ordinal)
+        }
+        BicycleDialogStyle.spinner(indoorTypeChoice,themes,BicycleDesign.profileDropdownSp)
+        addView(indoorTypeChoice,LayoutParams(-1,dp(BicycleDesign.touchSize)))
         val category = Spinner(context).apply {
             visibility=if(profile.type==BikeType.INDOOR) GONE else VISIBLE
             tag="bike_category";contentDescription=context.getString(R.string.bikes_category)
@@ -365,6 +377,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
             typeChoice.isEnabled=!runtime.recording && !runtime.saving
             typeChoice.alpha=if(typeChoice.isEnabled) 1f else .4f
+            indoorTypeChoice.isEnabled=typeChoice.isEnabled
+            indoorTypeChoice.alpha=typeChoice.alpha
             footer.visibility=VISIBLE
             deleteAction.visibility=if(runtime.bikes.all().size>1) VISIBLE else GONE
             deleteAction.isEnabled=!runtime.recording && !runtime.saving
