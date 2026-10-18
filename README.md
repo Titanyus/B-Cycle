@@ -61,15 +61,24 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.4 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.4/downloads/B-Cycle-0.8.4.apk)**
+**[Version 0.8.5 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.5/downloads/B-Cycle-0.8.5.apk)**
 
-**Build 39 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+**Build 40 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
 Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-39.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.4) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39142010398).
+[Änderungen und SHA-256](docs/build-40.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.5) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39165261572).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.5
+
+- Aufklappbare Sticky-Abschnitte, überarbeitete Benachrichtigungseinstellungen und bereinigtes Erweitert-Menü.
+- Umfangreiche Streckenfilter mit sechs Gruppen, Datums-Schnellwahl und Sortierung nach Datum, Distanz, Bewegungszeit oder Durchschnittsgeschwindigkeit.
+- Herkunfts-/Radtyp-Icon und FIT/GPX im Detailkopf, Auge ohne GPS vollständig ausgeblendet.
+- Dropdown-Fenster TERTIARY, größere Abstände an allgemeinen Abschnittstrennern.
+- Gemeinsame Screenshot-Flächen für die sieben Themes ohne DARK; DARK und helle Einstellungen bleiben erhalten.
+- Dauerhaft gespeicherter [Theme-Testeditor](docs/previews/theme-surfaces-proposal.html) zum Offline-Vergleich im Browser.
 
 ## Neu in APK 0.8.4
 
@@ -227,6 +236,8 @@ Die Release-Datei liegt unter `app/build/outputs/apk/release/app-release-unsigne
 und muss vor der Installation signiert werden.
 
 ## Dokumentation und Lizenzen
+
+[Theme-Testeditor als HTML](docs/previews/theme-surfaces-proposal.html) · [Farben und Vergleichsvarianten](docs/theme-surfaces-proposal.md). Die HTML-Datei herunterladen und im Browser öffnen; sie funktioniert offline und verändert keine App-Einstellungen. Der gespeicherte Stand kann später erweitert werden.
 
 - [Dreeve und Strava: Einrichtung und Grenzen](docs/cloud-activity-uploads.md)
 - [Indoor-Trainer über FTMS](docs/indoor-ftms.md)
