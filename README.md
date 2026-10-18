@@ -61,16 +61,24 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.1 – neue optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.1/downloads/B-Cycle-0.8.1.apk)**
+**[Version 0.8.2 – optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.2/downloads/B-Cycle-0.8.2.apk)**
 
-**Build 35 vom 18.10.2026**, rund **1,8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung.
-Die zugehörigen gezielten Tests einschließlich Garmin-FIT-Validierung sind bestanden.
-[Änderungen und SHA-256](docs/build-35.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.1) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39102855713).
+**Build 36 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Die gezielten Tests sind bestanden.
+[Änderungen und SHA-256](docs/build-36.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.2) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39104523408).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.2
+
+- Pulsmodelle Karvonen, Maximalpuls und Schwellenpuls (Friel Rad) mit passenden aktiven Eingabefeldern und gemeinsamer Zonenauswertung.
+- Inaktive Pulsparameter bleiben gespeichert; Methode und Schwellenpuls werden gesichert.
+- Hilfe nach Hauptabschnitten der Einstellungsseiten gruppiert; ausführliche Erklärung der Pulsmodelle.
+- Profilfooter wechselt beim Scrollen zu Dashboardaktionen.
+- Trainingshilfe mit aufklappbarer Auswahl für aktuelle und Durchschnittswerte.
+- Altersanzeige unter dem Geburtsdatum ausgerichtet.
 
 ## Neu in APK 0.8.1
 
