@@ -457,10 +457,18 @@ class MainActivity : Activity() {
             R.string.training_help_title to trainingHelpControls { dashboardPages.selected() }.apply { tag="profile_training_help" }
         ) }, editDashboard=::enterDashboardEditor)
         bikesManager = content
+        val scroll=BicycleStickyScrollView(settingsContext).apply { addView(content) }
+        val footer=ProfileContextFooter(settingsContext,settingsThemes,content.footer)
+        fun updateFooter() { footer.update(scroll,content.designHeader) }
+        content.footerChanged={ footer.bindDashboard(content.dashboardActions);scroll.post { updateFooter() } }
+        footer.bindDashboard(content.dashboardActions)
+        scroll.setOnScrollChangeListener { _:View, _:Int, _:Int, _:Int, _:Int -> updateFooter() }
+        content.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->updateFooter() }
+        scroll.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->updateFooter() }
         val root=LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
-            addView(BicycleStickyScrollView(settingsContext).apply { addView(content) },LinearLayout.LayoutParams(-1,0,1f))
-            addView(content.footer,LinearLayout.LayoutParams(-1,-2))
+            addView(scroll,LinearLayout.LayoutParams(-1,0,1f))
+            addView(footer,LinearLayout.LayoutParams(-1,dp(BicycleDesign.footerHeight)))
         }
         sensorManager = dialog().setTitle(R.string.profiles_title).setView(root).create().apply {
             dialogs.onDismiss(this) { stopScan();if(bikesManager===content) bikesManager=null };show()
@@ -759,15 +767,15 @@ class MainActivity : Activity() {
                 .setPositiveButton(R.string.route_action_delete) { _,_->dashboardPages.delete(page.id);refreshPages() }
                 .setNegativeButton(R.string.route_cancel,null).show()
         }.apply { tag="dashboard_delete";visibility=if(dashboardPages.all().size>1) View.VISIBLE else View.GONE }
-        footer.addView(removeDashboard,LinearLayout.LayoutParams(0,-2,1f))
         presets.changed=::refreshPages
         root.addView(presets)
         if(!embedded) trainingControls=appendTrainingHelp(root) { dashboardPages.selected() }
         footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.EditDashboard,getString(R.string.dashboard_editor_open)) { enterDashboardEditor() }.apply {
             tag="dashboard_editor_open";(getChildAt(1) as TextView).maxLines=2
         },LinearLayout.LayoutParams(0,-2,1f))
+        footer.addView(removeDashboard,LinearLayout.LayoutParams(0,-2,1f))
         if(embedded) {
-            // Dashboard actions remain inline; profile actions use the fixed footer.
+            // BikesView moves these existing actions into its context-sensitive fixed footer.
             footer.tag="dashboard_inline_actions"
             root.setPadding(0,0,0,0);root.addView(footer)
             root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))

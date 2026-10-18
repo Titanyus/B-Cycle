@@ -118,6 +118,8 @@ object BicycleDesign {
     const val inputRadius = 6
     const val scrollbarSize = 2
     const val footerHeight = 64
+    const val modeFooterTransitionMs = 180L
+    const val modeFooterHysteresis = 24
     const val footerLabelSp = 11f
     const val dividerDp = .75f
     fun linePixels(context: Context, widthDp: Float = dividerDp) = Math.round(context.resources.displayMetrics.density * widthDp).coerceAtLeast(1)

@@ -17,6 +17,9 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val themes = runtime.themes.settings
     private val collapsedSections=mutableSetOf<String>()
     private val expandedSensors=mutableSetOf<BikeSensor>()
+    var dashboardActions:LinearLayout?=null;private set
+    var designHeader:BicycleSectionHeader?=null;private set
+    var footerChanged:()->Unit={}
     private var copyPopup:ListPopupWindow?=null
     private val copyAction:BicycleFooterAction=BicycleFooterAction(context,themes,BicycleIcon.Import,context.getString(R.string.profiles_copy)) {
         if(!runtime.recording && !runtime.saving) {
@@ -77,7 +80,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         rebuild()
     }
     private fun text(id: Int, heading: Boolean = false) = BicycleComponents.text(context,themes,context.getString(id),heading)
-    private fun section(id: Int) { BicycleForm.section(this,themes,id) }
+    private fun section(id:Int)=BicycleForm.section(this,themes,id)
     override fun onDetachedFromWindow() { copyPopup?.dismiss();super.onDetachedFromWindow() }
     private fun watcher(change: (String)->Unit) = object : TextWatcher {
         override fun beforeTextChanged(s: CharSequence?,start: Int,count: Int,after: Int) = Unit
@@ -86,6 +89,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     }
     private fun rebuild() {
         shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;correctionControls.clear()
+        dashboardActions=null;designHeader=null
         removeAllViews();statuses.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
         val profile = runtime.bikes.current(); val slot = profile.slot
         strip=BikeProfileStrip(context,themes,{ id ->
@@ -283,11 +287,18 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
         } else addView(recording,LayoutParams(-1,-2))
         additionalSections?.invoke()?.forEach { (title,body) ->
-            section(title)
+            val heading=section(title)
+            if(title==R.string.ui_design_title) {
+                designHeader=heading
+                dashboardActions=body.findViewWithTag<LinearLayout>("dashboard_inline_actions")?.also {
+                    (it.parent as? android.view.ViewGroup)?.removeView(it)
+                    it.tag="dashboard_footer_actions"
+                }
+            }
             addView(body,LayoutParams(-1,-2))
         }
         if(additionalSections!=null) groupSections(nameHeader)
-        refresh()
+        refresh();footerChanged()
     }
     private fun groupSections(nameHeader:BicycleSectionHeader) {
         val nodes=(0 until childCount).map(::getChildAt)
@@ -379,7 +390,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             typeChoice.alpha=if(typeChoice.isEnabled) 1f else .4f
             indoorTypeChoice.isEnabled=typeChoice.isEnabled
             indoorTypeChoice.alpha=typeChoice.alpha
-            footer.visibility=VISIBLE
             deleteAction.visibility=if(runtime.bikes.all().size>1) VISIBLE else GONE
             deleteAction.isEnabled=!runtime.recording && !runtime.saving
             copyAction.isEnabled=!runtime.recording && !runtime.saving && runtime.bikes.all().size>1

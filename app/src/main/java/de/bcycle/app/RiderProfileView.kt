@@ -84,6 +84,8 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             addView(birth, LinearLayout.LayoutParams(dp(BicycleDesign.formDateWidth), dp(BicycleDesign.touchSize)))
             addView(clearBirth)
         }, LinearLayout.LayoutParams(-1, -2))
+        age.gravity=Gravity.END
+        age.setPadding(0,0,dp(BicycleDesign.touchSize)+birth.paddingEnd,0)
         root.addView(age, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.verticalPadding) })
         birth.setOnClickListener { chooseBirthDate() }; updateBirth()
         input(RiderField.HEIGHT, R.string.rider_height, R.string.rider_cm, initial.heightCm?.toString().orEmpty())

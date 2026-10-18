@@ -722,4 +722,5 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_indoor_type">Indoor-Trainertyp</string>
     <string name="bikes_indoor_exercise">Hometrainer</string>
     <string name="bikes_indoor_roller">Rollentrainer</string>
+    <string name="training_help_details">Aktuelle und durchschnittliche Werte auswählen</string>
 </resources>

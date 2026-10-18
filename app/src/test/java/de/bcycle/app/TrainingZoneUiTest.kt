@@ -35,6 +35,10 @@ class TrainingZoneUiTest {
         val zone=view.findViewWithTag<RadioButton>("training_help_zone_two")
         val buttons=listOf(off,all,zone)
         assertTrue(off.isChecked);assertTrue(changes.isEmpty())
+        val details=view.findViewWithTag<View>("training_help_details")
+        assertEquals(View.GONE,details.visibility)
+        view.findViewWithTag<View>("training_help_expand").performClick()
+        assertEquals(View.VISIBLE,details.visibility);assertTrue(off.isChecked);assertTrue(changes.isEmpty())
         for((button,mode) in listOf(all to TrainingHelpMode.ALL_ZONES,zone to TrainingHelpMode.ZONE_TWO,off to TrainingHelpMode.OFF)) {
             button.performClick()
             assertEquals(1,buttons.count { it.isChecked })
