@@ -59,7 +59,7 @@ class DashboardPresentationTest {
             val screen=choose();val root=screen.window!!.decorView
             root.findViewWithTag<View>("graph_SPEED").performClick()
             assertTrue(DashboardDataVisibility.read(prefs,0).visible[2]) // old global flag cannot hide data when adding a graph
-            root.findViewWithTag<Switch>("training_help_all").isChecked=true
+            root.findViewWithTag<RadioButton>("training_help_all").isChecked=true
             root.findViewWithTag<View>("dashboard_field_empty").performClick()
             assertFalse(DashboardDataVisibility.read(prefs,0).visible[2])
             assertEquals("SPEED",DashboardLayout.decode(prefs.getString("dashboard",null)).fields[2].id)

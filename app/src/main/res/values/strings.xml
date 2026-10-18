@@ -691,6 +691,8 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="field_trend_indicator">Trendindikator</string>
     <string name="training_help_title">Trainingshilfe</string>
     <string name="training_help_all">Alle Trainingszonen</string>
+    <string name="training_help_all_short">Alle Zonen</string>
+    <string name="training_help_zone_two_short">Zone 2</string>
     <string name="training_help_zone_two">Zone-2-Training</string>
     <string name="training_help_current">Aktuelle Werte</string>
     <string name="training_help_average">Durchschnittswerte</string>

@@ -3,34 +3,46 @@ package de.bcycle.app
 import android.content.Context
 import android.widget.LinearLayout
 import android.widget.Switch
+import android.widget.RadioGroup
 
 /** Shared controls for the quick screen and Design & UI; one authoritative mode. */
 internal class TrainingHelpView(context:Context,themes:ThemeManager,initial:DashboardTrainingHelp,
     private val changed:(DashboardTrainingHelp)->Unit):LinearLayout(context) {
     private var config=initial
     private var binding=false
-    private val all=Switch(context).apply { tag="training_help_all";setText(R.string.training_help_all) }
-    private val zoneTwo=Switch(context).apply { tag="training_help_zone_two";setText(R.string.training_help_zone_two) }
+    private val modes=RadioGroup(context).apply { orientation=HORIZONTAL;tag="training_help_modes" }
+    private val modeButtons=TrainingHelpMode.entries.associateWith { mode ->
+        BicycleSegmentButton(context,themes).apply {
+            id=generateViewId()
+            tag=when(mode) { TrainingHelpMode.OFF->"training_help_off";TrainingHelpMode.ALL_ZONES->"training_help_all";TrainingHelpMode.ZONE_TWO->"training_help_zone_two" }
+            setText(when(mode) { TrainingHelpMode.OFF->R.string.zone_glow_off;TrainingHelpMode.ALL_ZONES->R.string.training_help_all_short;TrainingHelpMode.ZONE_TWO->R.string.training_help_zone_two_short })
+        }
+    }
     private val current=Switch(context).apply { tag="training_help_current";setText(R.string.training_help_current) }
     private val average=Switch(context).apply { tag="training_help_average";setText(R.string.training_help_average) }
     init {
         orientation=VERTICAL;tag="training_help_controls"
         addView(BicycleComponents.description(context,themes,context.getString(R.string.training_help_explanation)))
-        addView(all);addView(zoneTwo)
+        BicycleComponents.outlinedControl(modes,themes)
+        val border=BicycleDesign.dp(context,BicycleDesign.controlBorder).coerceAtLeast(1)
+        modes.setPadding(border,border,border,border)
+        modeButtons.values.forEach { modes.addView(it,RadioGroup.LayoutParams(0,-2,1f)) }
+        addView(modes,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(BicycleComponents.sectionDivider(context,themes))
         addView(BicycleComponents.text(context,themes,context.getString(R.string.training_help_for)))
         addView(current);addView(average)
-        listOf(all,zoneTwo,current,average).forEach { BicycleDialogStyle.control(it,themes) }
+        listOf(current,average).forEach { BicycleDialogStyle.control(it,themes) }
         fun update(value:DashboardTrainingHelp) { show(value);changed(value) }
-        all.setOnCheckedChangeListener { _,on -> if(!binding) update(config.copy(mode=if(on) TrainingHelpMode.ALL_ZONES else TrainingHelpMode.OFF)) }
-        zoneTwo.setOnCheckedChangeListener { _,on -> if(!binding) update(config.copy(mode=if(on) TrainingHelpMode.ZONE_TWO else TrainingHelpMode.OFF)) }
+        modes.setOnCheckedChangeListener { _,id -> if(!binding) {
+            modeButtons.entries.firstOrNull { it.value.id==id }?.let { update(config.copy(mode=it.key)) }
+        } }
         current.setOnCheckedChangeListener { _,on -> if(!binding) update(config.copy(current=on)) }
         average.setOnCheckedChangeListener { _,on -> if(!binding) update(config.copy(average=on)) }
         show(initial)
     }
     fun show(value:DashboardTrainingHelp) {
         binding=true;config=value
-        all.isChecked=value.mode==TrainingHelpMode.ALL_ZONES;zoneTwo.isChecked=value.mode==TrainingHelpMode.ZONE_TWO
+        modes.check(modeButtons.getValue(value.mode).id)
         current.isChecked=value.current;average.isChecked=value.average;binding=false
     }
 }

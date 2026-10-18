@@ -24,6 +24,29 @@ import org.robolectric.RobolectricTestRunner
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class TrainingZoneUiTest {
     private val context get()=RuntimeEnvironment.getApplication()
+    @Test fun segmentedModesAlwaysHaveOneSelectionAndOffKeepsValuePreferences() {
+        val prefs=context.getSharedPreferences("segmented-help",0)
+        val themes=ThemeManager(prefs)
+        val changes=mutableListOf<DashboardTrainingHelp>()
+        val view=TrainingHelpView(context,themes.settings,DashboardTrainingHelp(current=false,average=true)) { changes+=it }
+        BicycleDialogStyle.content(view,themes.settings)
+        val off=view.findViewWithTag<RadioButton>("training_help_off")
+        val all=view.findViewWithTag<RadioButton>("training_help_all")
+        val zone=view.findViewWithTag<RadioButton>("training_help_zone_two")
+        val buttons=listOf(off,all,zone)
+        assertTrue(off.isChecked);assertTrue(changes.isEmpty())
+        for((button,mode) in listOf(all to TrainingHelpMode.ALL_ZONES,zone to TrainingHelpMode.ZONE_TWO,off to TrainingHelpMode.OFF)) {
+            button.performClick()
+            assertEquals(1,buttons.count { it.isChecked })
+            assertEquals(DashboardTrainingHelp(mode,false,true),changes.last())
+            val count=changes.size;button.performClick();assertEquals(count,changes.size)
+            buttons.forEach { assertNull(it.buttonDrawable) }
+        }
+        view.show(DashboardTrainingHelp(TrainingHelpMode.ZONE_TWO,true,false))
+        assertTrue(zone.isChecked);assertEquals(3,changes.size)
+        assertTrue(view.findViewWithTag<Switch>("training_help_current").isChecked)
+        assertFalse(view.findViewWithTag<Switch>("training_help_average").isChecked)
+    }
     @Test fun longPressUsesEditorForPowerAndPulseAndTrainingHelpIsInEveryFieldPicker() {
         context.getSharedPreferences("bike",0).edit().putString("dashboardTemplate_0","EIGHT").apply()
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
@@ -38,12 +61,12 @@ class TrainingZoneUiTest {
                 val fields=screen.window!!.decorView
                 assertTrue(testDescendants(fields).filterIsInstance<BicycleSectionHeader>().any { it.contentDescription==activity.getString(R.string.training_help_title) })
                 if(slot==0) {
-                    fields.findViewWithTag<Switch>("training_help_all").performClick()
-                    fields.findViewWithTag<Switch>("training_help_zone_two").performClick()
-                    assertFalse(fields.findViewWithTag<Switch>("training_help_all").isChecked)
+                    fields.findViewWithTag<RadioButton>("training_help_all").performClick()
+                    fields.findViewWithTag<RadioButton>("training_help_zone_two").performClick()
+                    assertFalse(fields.findViewWithTag<RadioButton>("training_help_all").isChecked)
                     fields.findViewWithTag<Switch>("training_help_average").performClick()
                 }
-                assertTrue(fields.findViewWithTag<Switch>("training_help_zone_two").isChecked)
+                assertTrue(fields.findViewWithTag<RadioButton>("training_help_zone_two").isChecked)
                 assertTrue(fields.findViewWithTag<Switch>("training_help_average").isChecked)
                 val prefs=RideRuntime.get(activity).preferences
                 assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
@@ -60,16 +83,16 @@ class TrainingZoneUiTest {
             val activity=controller.get();val prefs=RideRuntime.get(activity).preferences
             MainActivity::class.java.getDeclaredMethod("dashboardSettings").apply { isAccessible=true }.invoke(activity)
             val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();val root=screen.window!!.decorView
-            root.findViewWithTag<Switch>("training_help_all").performClick()
+            root.findViewWithTag<RadioButton>("training_help_all").performClick()
             assertEquals(TrainingHelpMode.ALL_ZONES,DashboardTrainingHelp.read(prefs,0).mode)
             root.findViewWithTag<View>("preset_page_1").performClick()
-            assertFalse(root.findViewWithTag<Switch>("training_help_all").isChecked)
-            root.findViewWithTag<Switch>("training_help_zone_two").performClick()
+            assertFalse(root.findViewWithTag<RadioButton>("training_help_all").isChecked)
+            root.findViewWithTag<RadioButton>("training_help_zone_two").performClick()
             root.findViewWithTag<Switch>("training_help_current").performClick()
             root.findViewWithTag<Switch>("training_help_average").performClick()
             assertEquals(DashboardTrainingHelp(TrainingHelpMode.ZONE_TWO,false,true),DashboardTrainingHelp.read(prefs,1))
             root.findViewWithTag<View>("preset_page_0").performClick()
-            assertTrue(root.findViewWithTag<Switch>("training_help_all").isChecked)
+            assertTrue(root.findViewWithTag<RadioButton>("training_help_all").isChecked)
             testBack(screen)
             MainActivity::class.java.getDeclaredMethod("enterDashboardEditor").apply { isAccessible=true }.invoke(activity)
             activity.window.decorView.findViewWithTag<View>("dashboard_tile_0").performClick()
@@ -80,7 +103,7 @@ class TrainingZoneUiTest {
             assertTrue(controls.parent!==fields.findViewWithTag<View>("field_data_content"))
             val graph=testDescendants(fields).filterIsInstance<GraphOverlayPicker>().firstOrNull()
             assertTrue(graph==null || testDescendants(fields).indexOf(controls)>testDescendants(fields).indexOf(graph))
-            fields.findViewWithTag<Switch>("training_help_zone_two").performClick()
+            fields.findViewWithTag<RadioButton>("training_help_zone_two").performClick()
             assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
             fields.findViewWithTag<RadioButton>("dashboard_field_empty").performClick()
             assertEquals(View.VISIBLE,controls.visibility)
