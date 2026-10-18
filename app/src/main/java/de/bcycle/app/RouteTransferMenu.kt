@@ -129,7 +129,7 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
         refresh()
         preferences.forEach { it.registerOnSharedPreferenceChangeListener(listener) }
         themeSubscription=themes.observe {
-            popup.setBackgroundDrawable(BicycleComponents.controlBackground(context,it.tokens));adapter.notifyDataSetChanged()
+            popup.setBackgroundDrawable(BicycleComponents.dropdownBackground(context,it.tokens));adapter.notifyDataSetChanged()
         }
         popup.show()
     }

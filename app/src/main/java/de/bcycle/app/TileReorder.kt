@@ -59,7 +59,9 @@ internal class TileReorder(
                     val changed=index>=0 && move(payload.id,index)
                     if(changed) row.post {
                         val card=row.getChildAt(ids().indexOf(payload.id))
-                        card?.apply { scaleX=.94f;scaleY=.94f;animate().scaleX(1f).scaleY(1f).setDuration(180).start() }
+                        card?.apply { scaleX=.94f;scaleY=.94f;animate().scaleX(1f).scaleY(1f)
+                            .setInterpolator(android.view.animation.OvershootInterpolator(BicycleDesign.tileDropOvershoot))
+                            .setDuration(BicycleDesign.tileDropSettleMs).start() }
                     }
                     changed
                 }
@@ -105,7 +107,8 @@ internal class TileReorder(
                 else -> i
             }
             card.animate().translationX((list[destination].left-card.left).toFloat())
-                .alpha(if(i==from) .45f else 1f).setDuration(180).start()
+                .alpha(if(i==from) .45f else 1f)
+                .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator()).setDuration(180).start()
             card.foreground=if(i==from) GradientDrawable().apply {
                 setColor(Color.TRANSPARENT)
                 cornerRadius=BicycleDesign.dp(row.context,BicycleDesign.inputRadius).toFloat()

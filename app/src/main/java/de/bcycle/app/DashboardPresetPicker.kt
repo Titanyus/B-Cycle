@@ -112,14 +112,18 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         val popup=PopupWindow().apply {
             width=popupWidth;height=minOf(desired,(availableHeight*.6f).toInt()).coerceAtLeast(dp(BicycleDesign.touchSize))
             isFocusable=true;isOutsideTouchable=true;inputMethodMode=PopupWindow.INPUT_METHOD_NOT_NEEDED
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(themes.active.tokens.secondary))
+            setBackgroundDrawable(BicycleComponents.dropdownBackground(context,themes.active.tokens))
         }
         val grid=DashboardLayoutGrid(context,themes,template(pages.selected())) { chosen ->
             prefs.edit().putString("dashboardTemplate_${pages.selected()}",chosen.name).apply()
             popup.dismiss();refresh();changed()
         }
         popup.contentView=ScrollView(context).apply {
-            BicycleComponents.scrollStyle(this);BicycleComponents.background(this,themes,ThemeRole.SECONDARY);addView(grid)
+            BicycleComponents.scrollStyle(this)
+            background=android.graphics.drawable.GradientDrawable().apply {
+                setColor(themes.active.tokens.secondary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
+            }
+            clipToOutline=true;addView(grid)
         }
         layoutPopup=popup
         popup.setOnDismissListener { if(layoutPopup===popup) layoutPopup=null }

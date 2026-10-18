@@ -57,7 +57,7 @@ internal class RouteManagerView(context: Context,
                 setLayerSize(1, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize))
                 setLayerGravity(1, Gravity.END or Gravity.CENTER_VERTICAL); setLayerInsetEnd(1, dp(BicycleDesign.horizontalPadding))
             }
-            filter.setPopupBackgroundDrawable(filterBackground(tokens))
+            filter.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(context,tokens))
         }
         filter.adapter = object : ArrayAdapter<String>(context, android.R.layout.simple_spinner_dropdown_item, listOf(context.getString(R.string.ui_routes_filter_all), context.getString(R.string.ui_routes_filter_recorded), context.getString(R.string.ui_routes_filter_imported))) {
             private fun row(position: Int, recycled: View?, dropdown: Boolean): View =

@@ -7,6 +7,7 @@ import android.widget.*
 
 internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
     BACKUP(R.string.data_backup, BicycleIcon.ExportTrack), RESTORE(R.string.data_restore, BicycleIcon.RestoreSettings),
+    IMPORT(R.string.data_route_import, BicycleIcon.Import),
     LOCAL(R.string.data_local, BicycleIcon.Save), CLOUD(R.string.data_cloud, BicycleIcon.WebDav),
     INTERVALS(R.string.intervals_title,BicycleIcon.Intervals),
     DREEVE(R.string.dreeve_title,BicycleIcon.Dreeve), STRAVA(R.string.strava_title,BicycleIcon.Strava)
@@ -52,7 +53,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
             }
         }
         section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RESTORE))
-        section(R.string.data_routes,listOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
+        section(R.string.data_routes,listOf(DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
     }
     fun install(action:DataAction,content:View,enabled:Switch?=null) {
         val header=headers.getValue(action)

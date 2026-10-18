@@ -76,7 +76,7 @@ internal class ThemePickerView(context:Context,private val themes:ThemeManager):
             setOnItemClickListener { _,_,position,_ ->
                 themes.activate(entries[position].id);dismiss()
             }
-            setBackgroundDrawable(BicycleComponents.controlBackground(context,themes.active.tokens))
+            setBackgroundDrawable(BicycleComponents.dropdownBackground(context,themes.active.tokens))
             show()
         }
     }

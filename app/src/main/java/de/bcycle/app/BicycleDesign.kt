@@ -119,6 +119,8 @@ object BicycleDesign {
     const val controlBorderAlpha = .5f
     const val inputRadius = 6
     const val scrollbarSize = 2
+    const val tileDropSettleMs = 260L
+    const val tileDropOvershoot = 1.4f
     const val footerRuleDp = 1f
     const val footerHeight = 64
     const val modeFooterTransitionMs = 180L
@@ -310,6 +312,11 @@ object BicycleComponents {
         setStroke(dp(context,BicycleDesign.controlBorder),android.graphics.Color.argb(
             (android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt(),
             android.graphics.Color.red(tokens.foreground),android.graphics.Color.green(tokens.foreground),android.graphics.Color.blue(tokens.foreground)))
+    }
+    /** Shared popup shell: reserve its outline so list contents cannot paint over the border. */
+    internal fun dropdownBackground(context:Context,tokens:ThemeTokens)=controlBackground(context,tokens).apply {
+        val inset=BicycleDesign.dp(context,BicycleDesign.controlBorder)
+        setPadding(inset,inset,inset,inset)
     }
     internal fun outlinedControl(view:View,manager:ThemeManager) {
         bindTheme(view,manager) { view.background=controlBackground(view.context,it);view.backgroundTintList=null }

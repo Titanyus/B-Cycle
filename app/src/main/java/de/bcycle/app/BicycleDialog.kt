@@ -274,7 +274,7 @@ internal object BicycleDialogStyle {
                 setLayerGravity(1, Gravity.END or Gravity.CENTER_VERTICAL)
                 setLayerInsetEnd(1, dp(view, BicycleDesign.horizontalPadding))
             }
-            view.setPopupBackgroundDrawable(BicycleComponents.controlBackground(view.context,tokens))
+            view.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(view.context,tokens))
         }
         val selected = view.selectedItemPosition
         val original = view.adapter ?: return
@@ -289,7 +289,7 @@ internal object BicycleDialogStyle {
                     typeface = Typeface.DEFAULT; gravity = Gravity.CENTER_VERTICAL
                     minHeight = dp(view, BicycleDesign.touchSize); textSize = textSizeSp
                     BicycleComponents.bindTheme(this, themes) {
-                        setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.secondary else Color.TRANSPARENT)
+                        setTextColor(it.foreground); setBackgroundColor(Color.TRANSPARENT)
                         if (renderLabel != null && tag is String) text=renderLabel(tag as String,it.foreground)
                         compoundDrawablesRelative.filterNotNull().forEach { icon -> icon.setTint(it.foreground) }
                     }

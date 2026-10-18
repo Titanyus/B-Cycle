@@ -1,8 +1,6 @@
 package de.bcycle.app
 
 import android.graphics.Rect
-import android.graphics.drawable.ColorDrawable
-import android.graphics.Color
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -18,11 +16,16 @@ internal class BikeQuickPicker(anchor:View,themes:ThemeManager,profiles:List<Bik
         val available=frame.width().takeIf { it>0 } ?: anchor.rootView.width.takeIf { it>0 } ?: anchor.resources.displayMetrics.widthPixels
         width=(available-2*gap).coerceAtLeast(1);height=ViewGroup.LayoutParams.WRAP_CONTENT
         isFocusable=true;isOutsideTouchable=true;inputMethodMode=INPUT_METHOD_NOT_NEEDED
-        setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        setBackgroundDrawable(BicycleComponents.dropdownBackground(anchor.context,themes.active.tokens))
         contentView=LinearLayout(anchor.context).apply {
             orientation=LinearLayout.VERTICAL;tag="bike_quick_picker"
             setPadding(gap,gap,gap,gap)
-            BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
+            BicycleComponents.bindTheme(this,themes) { tokens ->
+                background=android.graphics.drawable.GradientDrawable().apply {
+                    setColor(tokens.secondary);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
+                }
+            }
+            clipToOutline=true
             addView(BikeProfileStrip(context,themes,{ slot -> choose(slot);dismiss() },{}, { _,_->false },compact=true).apply {
                 show(profiles,selected,false)
             },LinearLayout.LayoutParams(-1,-2))

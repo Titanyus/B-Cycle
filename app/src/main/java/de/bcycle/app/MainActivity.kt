@@ -1012,7 +1012,7 @@ class MainActivity : Activity() {
         val popup = ListPopupWindow(settingsContext).apply {
             anchorView = anchor; isModal = true
             width = minOf(dp(BicycleDesign.popupWidth), resources.displayMetrics.widthPixels - dp(BicycleDesign.horizontalPadding * 2))
-            setBackgroundDrawable(BicycleComponents.controlBackground(settingsContext,settingsThemes.active.tokens))
+            setBackgroundDrawable(BicycleComponents.dropdownBackground(settingsContext,settingsThemes.active.tokens))
             setAdapter(object : ArrayAdapter<String>(settingsContext, android.R.layout.simple_list_item_1, choices) {
                 override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View =
                     ((convertView as? TextView) ?: TextView(settingsContext).apply {
@@ -1039,7 +1039,7 @@ class MainActivity : Activity() {
         routePopup = popup
         popup.show()
         popup.listView?.let { list -> BicycleComponents.bindTheme(list, settingsThemes) { tokens ->
-            popup.setBackgroundDrawable(BicycleComponents.controlBackground(settingsContext,tokens))
+            popup.setBackgroundDrawable(BicycleComponents.dropdownBackground(settingsContext,tokens))
             list.selector = BicycleComponents.controlBackground(settingsContext,tokens)
         } }
     }
@@ -1063,6 +1063,7 @@ class MainActivity : Activity() {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")
                     .putExtra(Intent.EXTRA_MIME_TYPES,arrayOf("application/json","text/json","text/plain")),13)
             } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this, R.string.backup_picker_error, long = true) }
+            DataAction.IMPORT -> Unit // Inline accordion; actions reuse importRoute below.
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
             DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)
             DataAction.INTERVALS -> intervalsSettings()
@@ -1072,6 +1073,19 @@ class MainActivity : Activity() {
         val screen=dataDialog(R.string.data_title,BicycleStickyScrollView(settingsContext).apply { addView(content) })
         dataSettingsScreen=screen;menu=screen
         content.install(DataAction.BACKUP,backupExportControls())
+        content.install(DataAction.IMPORT,LinearLayout(settingsContext).apply {
+            orientation=LinearLayout.VERTICAL
+            val titles=listOf(R.string.ui_import_planned,R.string.ui_import_recorded,R.string.archive_import_title)
+            val icons=listOf(BicycleIcon.TrackImported,BicycleIcon.TrackRecorded,BicycleIcon.Import)
+            titles.forEachIndexed { index,title ->
+                addView(BicycleComponents.action(settingsContext,settingsThemes,getString(title)) {
+                    importRoute(recorded=index==1,archive=index==2)
+                }.apply {
+                    tag="data_import_$index"
+                    BicycleDialogStyle.actionIcon(this,settingsThemes,icons[index])
+                },LinearLayout.LayoutParams(-1,-2))
+            }
+        })
         val local=routeExportSettings(RouteExportPart.LOCAL,screen)
         content.install(DataAction.LOCAL,local,local.findViewWithTag("export_save"))
         val cloud=routeExportSettings(RouteExportPart.CLOUD,screen)

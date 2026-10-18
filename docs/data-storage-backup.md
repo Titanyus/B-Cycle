@@ -87,3 +87,7 @@ Hell/Dunkel ist global; der Umschalter steht ausschließlich auf der Haupt-Einst
 ## Umgesetzt in 0.8: Lokale Speicherung ebenfalls inline
 
 Nutzerwunsch vom 17.10.2026 nach Build 33: „Lokale Speicherung“ ebenfalls als Schalter-/Accordion-Zeile direkt in Daten & Speicher anzeigen, analog zu den Clouddiensten. Der separate Unterdialog soll entfallen. Vorhandene Speicheraktivierung, Ordnerauswahl, Status und sofortige Speicherung erhalten; Aufklappen und Aktivieren bleiben unabhängig. In Version 0.8 umgesetzt.
+
+## Streckenimport (18.10.2026)
+
+Eigenes Accordion „Streckenimport“ am Anfang von Streckendaten, ohne Ein/Aus-Schalter. Enthält die drei vorhandenen Importaktionen aus dem Streckenmanager: geplante Strecke, aufgezeichnete Fahrt und Archiv. Dieselben importRoute-Callbacks und Android-Dateiauswahl-/Ergebnis-Pfade (8/9/15) verwenden. Daten-&-Speicher-Seite bleibt erhalten; der bisherige Importzugang im Streckenmanager bleibt bestehen. Keine neue Import-/Uploadlogik. Die Hilfe unter Streckendaten enthält die vorhandene Importbeschreibung.

@@ -50,7 +50,7 @@ class DataSettingsNavigationTest {
             val before=settings.read();val (root,data)=open(activity);measure(data)
             val text=views(data.window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(text.indexOf(activity.getString(R.string.data_global))<text.indexOf(activity.getString(R.string.data_routes)))
-            assertEquals(listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA") } })
+            assertEquals(listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA") } })
             click(data,"data_LOCAL");val local=latest();measure(local)
             assertSame(data,local)
             val localBody=local.window!!.decorView.findViewWithTag<View>("data_details_LOCAL")
@@ -66,6 +66,26 @@ class DataSettingsNavigationTest {
             click(root,"settings_ROUTES");val manager=latest();measure(manager)
             assertNull(manager.window!!.decorView.findViewWithTag<View>("route_settings"))
         } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun routeImportAccordionUsesExistingDocumentPickersWithoutLeavingDataPage() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get();val (_,screen)=open(a)
+            click(screen,"data_expand_IMPORT");measure(screen)
+            assertEquals(View.VISIBLE,screen.window!!.decorView.findViewWithTag<View>("data_details_IMPORT").visibility)
+            for((index,code) in listOf(8,9,15).withIndex()) {
+                click(screen,"data_import_$index")
+                val request=shadowOf(a).nextStartedActivityForResult
+                assertEquals(code,request.requestCode)
+                assertEquals(Intent.ACTION_OPEN_DOCUMENT,request.intent.action)
+                val mime=request.intent.getStringArrayExtra(Intent.EXTRA_MIME_TYPES)!!.toList()
+                assertTrue(if(index==2) "application/zip" in mime else "application/vnd.ant.fit" in mime)
+                if(index==0) assertTrue("application/gpx+xml" in mime)
+                assertSame(screen,latest());assertTrue(screen.isShowing)
+            }
+            click(screen,"data_expand_IMPORT")
+            assertEquals(View.GONE,screen.window!!.decorView.findViewWithTag<View>("data_details_IMPORT").visibility)
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun intervalsExpandsInlineWithoutEnablingUploadsOrOpeningAnotherDialog() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()

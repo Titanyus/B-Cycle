@@ -23,6 +23,13 @@ class BicycleComponentsTest {
             BicycleDialogStyle.control(button,themes)
             val spinner=android.widget.Spinner(activity).apply { adapter=android.widget.ArrayAdapter(activity,android.R.layout.simple_spinner_dropdown_item,listOf("A","B")) }
             BicycleDialogStyle.spinner(spinner,themes)
+            val popupBackground=spinner.popupBackground as GradientDrawable
+            assertEquals(themes.active.tokens.secondary,popupBackground.color!!.defaultColor)
+            assertEquals(BicycleDesign.dp(activity,BicycleDesign.inputRadius).toFloat(),popupBackground.cornerRadius,0f)
+            val popupPadding=android.graphics.Rect();assertTrue(popupBackground.getPadding(popupPadding))
+            assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlBorder),popupPadding.left)
+            assertEquals(popupPadding.left,popupPadding.top)
+
             val toggle=android.widget.Switch(activity);BicycleDialogStyle.control(toggle,themes)
             val gap=BicycleDesign.dp(activity,BicycleDesign.controlGap)
             val height=BicycleDesign.dp(activity,BicycleDesign.touchSize)

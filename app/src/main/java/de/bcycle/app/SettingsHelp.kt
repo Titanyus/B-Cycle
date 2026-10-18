@@ -79,7 +79,7 @@ internal object SettingsHelp {
                 group(R.string.training_help_title,R.string.help_help_mode_heading,R.string.help_help_values_heading,R.string.help_zone_two_heading,R.string.help_heart_method_heading,R.string.help_karvonen_heading,R.string.help_maximum_heading,R.string.help_threshold_heading))
             SettingsHelpPage.DATA->listOf(
                 group(R.string.data_global,R.string.help_backup_heading),
-                group(R.string.data_routes,R.string.help_local_heading,R.string.help_webdav_heading,R.string.help_intervals_heading,R.string.help_dreeve_heading,R.string.help_strava_heading,R.string.help_uploads_heading))
+                group(R.string.data_routes,R.string.help_route_import_heading,R.string.help_local_heading,R.string.help_webdav_heading,R.string.help_intervals_heading,R.string.help_dreeve_heading,R.string.help_strava_heading,R.string.help_uploads_heading))
             SettingsHelpPage.DESIGN->listOf(
                 group(R.string.ui_design_title,R.string.help_design_heading,R.string.help_dashboards_heading,R.string.help_editor_heading,R.string.help_bosch_mode_heading),
                 group(R.string.training_help_title,R.string.help_help_mode_heading,R.string.help_help_values_heading,R.string.help_zone_two_heading,R.string.help_heart_method_heading))
