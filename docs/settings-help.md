@@ -15,3 +15,5 @@ Direkt unter Strecken-Aufzeichnung erklärt ein kurzer Text die zusätzlichen FI
 Die Sticky-Accordions bilden die Hauptabschnitte der eigentlichen Seite ab. Einzelne Funktionen stehen darin als normale kleinere fette Unterüberschriften mit Beschreibung (8 dp Abstand, 16 dp zwischen Funktionen), nicht als zusätzliche Sticky Header.
 
 Fahrer: Persönliche Daten, Trainingsparameter, Herzfrequenzzonen und Leistungszonen. Die drei Pulsmodelle werden ausführlich innerhalb Trainingsparameter erklärt. Profile: aktueller Fahrradname, Sensoren, gegebenenfalls Indoor-Korrektur, FIT-Aufzeichnung, Strecken-Aufzeichnung, Karten, Design & UI, Trainingshilfe. Dynamischer Fahrradname und tatsächlich sichtbare Hauptabschnitte werden aus der geöffneten Profilseite übernommen. Weitere Seiten gruppieren analog nach ihren Hauptbereichen. Alle Texte bleiben übersetzbare Ressourcen; kein weiterer Info-Button innerhalb der Hilfe.
+
+Die normalen Unterüberschriften verwenden die systemweit wiederverwendbare Rolle BicycleComponents.contentHeading: 14 sp, Roboto 900 Black, linksbündig, FOREGROUND und Accessibility-Heading. Große Sticky Header und Seitentitel sind getrennte Rollen.

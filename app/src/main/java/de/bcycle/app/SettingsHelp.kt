@@ -106,9 +106,7 @@ internal object SettingsHelp {
             }
             val body=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;tag="help_group_${group.heading}" }
             group.sections.forEachIndexed { index,section ->
-                body.addView(BicycleComponents.text(context,themes,context.getString(section.heading),true).apply {
-                    textSize=BicycleDesign.bodySp;typeface=BicycleDesign.strongTypeface
-                },LinearLayout.LayoutParams(-1,-2).apply { if(index>0) topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
+                body.addView(BicycleComponents.contentHeading(context,themes,context.getString(section.heading)),LinearLayout.LayoutParams(-1,-2).apply { if(index>0) topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
                 body.addView(BicycleComponents.description(context,themes,context.getString(section.body)).apply { tag="help_body_${section.body}" },
                     LinearLayout.LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
             }

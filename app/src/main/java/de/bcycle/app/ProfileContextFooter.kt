@@ -14,7 +14,7 @@ internal class ProfileContextFooter(context:Context,themes:ThemeManager,private 
     init {
         tag="bicycle_action_footer"
         minimumHeight=BicycleDesign.dp(context,BicycleDesign.footerHeight)
-        BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
+        styleBicycleFooter(this,themes)
         addView(profileActions,LayoutParams(-1,-1))
     }
     fun bindDashboard(actions:View?) {

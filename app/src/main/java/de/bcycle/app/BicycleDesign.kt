@@ -28,6 +28,8 @@ object BicycleDesign {
     const val dashboardLargeCompactRatio = .75f / .85f
     const val titleSp = 23f
     const val bodySp = 14f
+    // Normal content headings, as introduced in grouped settings help.
+    const val contentHeadingSp = 14f
     const val inputSp = 16f
     const val choiceSp = bodySp
     const val headerHeight = 64
@@ -117,6 +119,7 @@ object BicycleDesign {
     const val controlBorderAlpha = .5f
     const val inputRadius = 6
     const val scrollbarSize = 2
+    const val footerRuleDp = 1f
     const val footerHeight = 64
     const val modeFooterTransitionMs = 180L
     const val modeFooterHysteresis = 24
@@ -280,6 +283,12 @@ object BicycleComponents {
         text = value; textSize = if (title) BicycleDesign.titleSp else BicycleDesign.bodySp
         if (title) { typeface=BicycleDesign.strongTypeface;isAccessibilityHeading=true }
         bindTheme(this, manager) { setTextColor(textColor(this,manager,it)) }
+    }
+    /** Content hierarchy below page/section headers; does not resize sticky headers or menu titles. */
+    fun contentHeading(context:Context,manager:ThemeManager,value:String)=text(context,manager,value,true).apply {
+        tag="bicycle_content_heading"
+        textSize=BicycleDesign.contentHeadingSp
+        gravity=Gravity.START
     }
     /** Explanatory form copy keeps the shared gap; labels and metric text keep their own geometry. */
     fun description(context: Context, manager: ThemeManager, value: String) = text(context,manager,value).apply {
