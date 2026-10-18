@@ -38,7 +38,12 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
     override fun setTitle(titleId: Int): AlertDialog.Builder = setTitle(context.getText(titleId))
     override fun create(): AlertDialog = super.create().also { screen ->
         navigation.track(screen, overlay = !fullscreen) {
-            screen.window?.let { DashboardFullscreen.apply(it,false) }
+            screen.window?.let {
+                DashboardFullscreen.apply(it,false)
+                // AlertController blocks the IME when no editor exists at show(). Inline service
+                // forms are installed afterwards; allow native keyboard focus in every app dialog.
+                it.clearFlags(android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            }
             BicycleNavigation.hideNavigationFooter(screen)
             BicycleDialogStyle.apply(screen, themes)
             val help=if(fullscreen && helpEnabled) SettingsHelp.resolve(screen)?.let { page ->

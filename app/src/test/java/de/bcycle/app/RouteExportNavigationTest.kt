@@ -99,7 +99,12 @@ class RouteExportNavigationTest {
             assertTrue(details.isShowing)
             details.window!!.decorView.findViewWithTag<View>("detail_rename").performClick()
             val rename = ShadowAlertDialog.getLatestAlertDialog()
-            assertEquals("Testrunde", (descendants(rename.window!!.decorView).single { it.tag == "route_rename" } as android.widget.EditText).text.toString())
+            shadowOf(Looper.getMainLooper()).idle()
+            val nameInput=descendants(rename.window!!.decorView).single { it.tag=="route_rename" } as android.widget.EditText
+            assertEquals("Testrunde",nameInput.text.toString())
+            assertEquals(0,rename.window!!.attributes.flags and android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            assertTrue(nameInput.requestFocus());assertTrue(nameInput.showSoftInputOnFocus)
+            assertNotNull(nameInput.onCreateInputConnection(android.view.inputmethod.EditorInfo()))
             testBack(rename); shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.VISIBLE, details.window!!.decorView.visibility)
             details.window!!.decorView.findViewWithTag<View>("detail_delete").performClick()
