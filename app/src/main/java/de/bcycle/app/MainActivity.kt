@@ -1186,7 +1186,7 @@ class MainActivity : Activity() {
         for((title,description) in listOf(R.string.sources_maps to R.string.sources_maps_text,
             R.string.sources_elevation to R.string.sources_elevation_text,R.string.sources_weather to R.string.sources_weather_text,
             R.string.sources_uploads to R.string.sources_uploads_text)) {
-            body.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(title),true))
+            body.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(title)))
             body.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(description)).apply {
                 android.text.util.Linkify.addLinks(this,android.text.util.Linkify.WEB_URLS)
                 movementMethod=android.text.method.LinkMovementMethod.getInstance()

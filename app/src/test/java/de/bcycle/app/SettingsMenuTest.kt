@@ -66,7 +66,7 @@ class SettingsMenuTest {
             val advanced=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
             assertNotSame(menu,advanced);assertEquals(View.GONE,menu.window!!.decorView.visibility)
             assertFalse(views(advanced).any { it.tag == "settings_build_info" || it.tag == "settings_brand_art" })
-            val rows=views(advanced).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
+            val rows=descendants(views(advanced).filterIsInstance<SettingsMenuView>().single()).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
             assertEquals(7,rows.size)
             assertEquals("settings_FONT_LICENSE",rows[5].tag);assertEquals("settings_MAP_LICENSE",rows[6].tag)
             rows.forEach { assertEquals(BicycleDesign.dp(controller.get(),BicycleDesign.touchSize),it.minimumHeight) }
@@ -202,6 +202,15 @@ class SettingsMenuTest {
                 val colour = android.util.TypedValue()
                 assertTrue(child.context.theme.resolveAttribute(android.R.attr.colorBackground, colour, true))
                 assertEquals(activity.getColor(R.color.settings_red), colour.data)
+                if(action==SettingsAction.SOURCES) {
+                    val headings=views(child).filterIsInstance<TextView>().filter { it.tag=="bicycle_content_heading" }
+                    assertEquals(4,headings.size)
+                    headings.forEach {
+                        assertTrue(it.isAccessibilityHeading)
+                        assertEquals(BicycleDesign.contentHeadingSp*activity.resources.displayMetrics.scaledDensity,it.textSize,.1f)
+                        assertEquals(BicycleDesign.strongTypeface,it.typeface)
+                    }
+                }
                 if (action == SettingsAction.RESET) {
                     assertEquals(custom, prefs.getString("dashboard", null))
                     views(child).single { it.tag == "reset_execute" }.performClick()
