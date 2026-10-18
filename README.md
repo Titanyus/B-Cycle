@@ -61,15 +61,23 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Aktuelle APK – 0.8.3, Build 38 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.3-build38/downloads/B-Cycle-0.8.3-build38.apk)**
+**[Version 0.8.4 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.4/downloads/B-Cycle-0.8.4.apk)**
 
-**Build 38 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+**Build 39 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
 Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-38.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.3-build38) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39120259782).
+[Änderungen und SHA-256](docs/build-39.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.4) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39142010398).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.4
+
+- Profilseite mit Abstand zum Footer; Karten bei Indoor ausgeblendet, Bosch-Fahrmodus nur bei Bosch-E-Bikes. Gespeicherte Einstellungen bleiben erhalten.
+- Profilbezogene Farben, Breiten und Deckkraft für beide Streckenlinien mit offline Kartenvorschau.
+- Neue Fahrten speichern ihre Profilzuordnung: PRIMARY-Farbrechteck in der Streckenliste und zentrierter Fahrradname in 900 Black über dem Datum in den Details.
+- Horizontaler Trenner zwischen Datum und verfügbaren Wetterdaten.
+- Dezenter GPS-Genauigkeitskreis mit Hysterese; ungenaue Positionen ausschließlich für die Kartenanzeige, Aufnahmefilter bleiben erhalten.
 
 ## Neu in Build 38
 
