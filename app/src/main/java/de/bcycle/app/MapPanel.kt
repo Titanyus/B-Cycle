@@ -352,7 +352,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             layerTrack = runtime.mapState.track.points.toList()
         }
         routes.update(runtime.mapState.route, layerTrack, displayedGps,
-            preferences.getBoolean("mapGpxVisible", true), preferences.getBoolean("mapTrackVisible", true), night, displayedPhoneHeading)
+            preferences.getBoolean("mapGpxVisible", true), preferences.getBoolean("mapTrackVisible", true), night, displayedPhoneHeading,
+            MapRouteStyles.read(preferences,MapLineKind.RECORDED,night),MapRouteStyles.read(preferences,MapLineKind.SAVED,night))
     }
     private fun refreshDataFields() {
         dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight)

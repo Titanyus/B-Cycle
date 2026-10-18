@@ -96,6 +96,20 @@ class RouteTrackLayerTest {
         val night = bitmap.getPixel(250, 256)
         assertEquals(128, Color.alpha(night)); assertTrue(Color.blue(night) > Color.blue(color))
         assertEquals(6, (0 until 512).count { Color.alpha(bitmap.getPixel(250, it)) > 0 })
+        val custom=MapLineStyle(Color.MAGENTA,8f,25)
+        layer.update(GpxRoute(listOf(point(100.0,256.0),point(400.0,256.0)),2,1),emptyList(),GpsValues(),true,false,savedStyle=custom)
+        bitmap.eraseColor(Color.TRANSPARENT)
+        layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),10,
+            AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)),Point(origin,origin),Rotation.NULL_ROTATION)
+        assertEquals(64,Color.alpha(bitmap.getPixel(250,256)))
+        assertEquals(8,(0 until 512).count { Color.alpha(bitmap.getPixel(250,it))>0 })
+        layer.update(null,listOf(point(100.0,256.0),point(400.0,256.0)),GpsValues(),false,true,
+            recordedStyle=MapLineStyle(Color.GREEN,8f,50))
+        bitmap.eraseColor(Color.TRANSPARENT)
+        layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),10,
+            AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)),Point(origin,origin),Rotation.NULL_ROTATION)
+        assertEquals(128,Color.alpha(bitmap.getPixel(250,256))) // Outline and colored stroke share one opacity.
+        assertEquals(255,Color.green(bitmap.getPixel(250,256)))
         model.mapViewPosition.destroy()
     }
     @Test fun positionDotHasSmallPhoneDirectionArrowIndependentOfGpsCourseAndHidesUnknownHeading() {

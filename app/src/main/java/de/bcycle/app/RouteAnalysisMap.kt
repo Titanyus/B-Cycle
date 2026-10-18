@@ -33,7 +33,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
         }
         layer = MapNightLayer(ViewportTileCache(), map.model.mapViewPosition, source.tiles(MapProviderSettings.read(context))).apply { this.night = this@RouteAnalysisMap.night }
         map.layerManager.layers.add(layer)
-        map.layerManager.layers.add(RouteTrackLayer(resources.displayMetrics.density).apply { update(route, emptyList(), GpsValues(), true, false, night) })
+        map.layerManager.layers.add(RouteTrackLayer(resources.displayMetrics.density).apply { update(route, emptyList(), GpsValues(), true, false, night,savedStyle=MapRouteStyles.read(prefs,MapLineKind.SAVED,night)) })
         addView(map, LayoutParams(-1, -1))
         if (interactive) {
             val buttons = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }

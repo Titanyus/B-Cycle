@@ -79,6 +79,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true)).put("oval",bike.getBoolean(MapOvalAnchor.preference,false))
                 .put("showTrack",bike.getBoolean("mapTrackVisible",true)).put("showGpx",bike.getBoolean("mapGpxVisible",true))
                 .put("elevationCorrection",bike.getBoolean(FitElevationCorrection.preference,false))
+                .put("routeStyles",runCatching { MapRouteStyles.validate(JSONObject(bike.getString(MapRouteStyles.key,"{}")!!)) }.getOrDefault(JSONObject()))
             BackupSection.PROFILE -> profileJson(RiderProfileStore(bike,today).read())
             BackupSection.CLOUD -> JSONObject().put("server",route.getString("server","")).put("user",route.getString("user","")).put("folder",route.getString("folder","B-Cycle"))
                 .put("enabled",route.getBoolean("webdav",false)).put("wifiOnly",route.getBoolean("wifi",true))
@@ -231,6 +232,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     if(row.has("localSaveEnabled")) r["save"]=boolean(row,"localSaveEnabled")
                 }
                 BackupSection.MAPS -> {
+                    if(row.has("routeStyles")) b[MapRouteStyles.key]=MapRouteStyles.validate(row.getJSONObject("routeStyles")).toString()
                     if(row.has("source")) b["mapSource"]=field(row,"source",30).also { v -> check(MapSource.entries.any { it.name==v }) }
                     mapOf("night" to "mapNight","follow" to "mapFollow","heading" to "mapHeading","oval" to MapOvalAnchor.preference,"showTrack" to "mapTrackVisible","showGpx" to "mapGpxVisible","elevationCorrection" to FitElevationCorrection.preference).forEach { (public,key) -> if(row.has(public)) b[key]=boolean(row,public) }
                 }

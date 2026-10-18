@@ -15,19 +15,22 @@ import kotlin.math.roundToInt
 /** Routes share the map framebuffer, including its live pinch scale and zoom pivot. */
 internal class RouteTrackLayer(private val density: Float) : Layer() {
     private data class State(val route: GpxRoute?, val track: List<MapPoint>, val gps: GpsValues,
-        val showRoute: Boolean, val showTrack: Boolean, val heightLabel: String? = null, val night: Boolean = false, val phoneHeading:Double?=null)
+        val showRoute: Boolean, val showTrack: Boolean, val heightLabel: String? = null, val night: Boolean = false, val phoneHeading:Double?=null,
+        val recordedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.RECORDED),val savedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.SAVED))
     @Volatile private var state = State(null, emptyList(), GpsValues(), false, false)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeJoin = Paint.Join.ROUND; strokeCap = Paint.Cap.ROUND }
     private val path = Path()
+    private val lineBounds=android.graphics.RectF()
     private val arrow = Path()
     private val heightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = dp(14); typeface = BicycleDesign.strongTypeface
     }
     private fun dp(n: Int) = n * density
-    fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean, night: Boolean = false, phoneHeading:Double?=null) {
+    fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean, night: Boolean = false, phoneHeading:Double?=null,
+        recordedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.RECORDED),savedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.SAVED,night)) {
         // Publish an immutable snapshot; drawing occurs on Mapsforge's layer thread.
         state = State(route, track, gps, showRoute, showTrack,
-            gps.altitudeM?.takeIf { it.isFinite() }?.let { "${it.roundToInt()} m" }, night,phoneHeading?.takeIf { it.isFinite() }?.let(PhoneHeadingFilter::normalize)); requestRedraw()
+            gps.altitudeM?.takeIf { it.isFinite() }?.let { "${it.roundToInt()} m" }, night,phoneHeading?.takeIf { it.isFinite() }?.let(PhoneHeadingFilter::normalize),recordedStyle,savedStyle); requestRedraw()
     }
     override fun draw(boundingBox: BoundingBox, zoomLevel: Byte, canvas: Canvas, topLeftPoint: Point, rotation: Rotation) {
         val snapshot = state
@@ -40,7 +43,8 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
             return offset.toFloat()
         }
         fun y(lat: Double) = (MercatorProjection.latitudeToPixelY(lat, mapSize) - topLeftPoint.y).toFloat()
-        fun line(points: List<MapPoint>, color: Int, planned: Boolean) {
+        fun line(points: List<MapPoint>, style: MapLineStyle, planned: Boolean) {
+            if(style.opacity==0) return
             path.reset(); var lastX = 0f
             points.forEachIndexed { index, point ->
                 val px = x(point.longitude); val py = y(point.latitude)
@@ -48,14 +52,19 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
                 lastX = px
             }
             paint.style = Paint.Style.STROKE
+            val group=if(!planned && style.opacity<100) {
+                path.computeBounds(lineBounds,true);lineBounds.inset(-(style.widthDp+2)*density,-(style.widthDp+2)*density)
+                target.saveLayerAlpha(lineBounds,android.graphics.Color.alpha(style.argb))
+            } else -1
             if (!planned) {
-                paint.color = android.graphics.Color.WHITE; paint.strokeWidth = dp(5); target.drawPath(path, paint)
+                paint.color = android.graphics.Color.WHITE; paint.strokeWidth = (style.widthDp+2)*density; target.drawPath(path, paint)
             }
-            paint.color = color; paint.strokeWidth = dp(if (planned) 6 else 3); target.drawPath(path, paint)
+            paint.color = if(group>=0) style.color else style.argb; paint.strokeWidth = style.widthDp*density; target.drawPath(path, paint)
+            if(group>=0) target.restoreToCount(group)
         }
         val route = snapshot.route
         if (snapshot.showRoute && route != null && route.points.isNotEmpty()) {
-            line(route.points, if (snapshot.night) android.graphics.Color.argb(128, 90, 150, 255) else android.graphics.Color.argb(128, 18, 59, 117), true)
+            line(route.points, snapshot.savedStyle, true)
             paint.style = Paint.Style.FILL
             fun endpoint(point: MapPoint, color: Int) {
                 paint.color = android.graphics.Color.WHITE; target.drawCircle(x(point.longitude), y(point.latitude), dp(7), paint)
@@ -64,7 +73,7 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
             endpoint(route.points.first(), android.graphics.Color.rgb(0, 150, 70))
             endpoint(route.points.last(), android.graphics.Color.rgb(220, 40, 30))
         }
-        if (snapshot.showTrack) line(snapshot.track, android.graphics.Color.rgb(220, 45, 30), false)
+        if (snapshot.showTrack) line(snapshot.track, snapshot.recordedStyle, false)
         val gps = snapshot.gps
         val latitude = gps.latitude; val longitude = gps.longitude
         if (latitude != null && longitude != null && abs(latitude) <= 85.05112878) {

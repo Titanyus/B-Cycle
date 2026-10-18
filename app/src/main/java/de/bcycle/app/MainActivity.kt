@@ -877,6 +877,9 @@ class MainActivity : Activity() {
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
+        root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs) {
+            if(runtime.bikes.activeSlot==slot) mapPanel.refreshSettings()
+        },LinearLayout.LayoutParams(-1,-2))
         root.addView(BicycleComponents.sectionDivider(settingsContext, settingsThemes))
         root.addView(button(getString(R.string.ui_map_legend), BicycleIcon.Info) { openMapLink(MapProviderSettings.source(this,preferences.getString("mapSource",null)).creditUrl) })
         observeSettings(root) {

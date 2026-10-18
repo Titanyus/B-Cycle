@@ -25,3 +25,13 @@ Kartenbuttons und untere Bedienleiste verschwinden nach fünf Sekunden nur bei
 frischer, positiver Rad- oder GPS-Geschwindigkeit. Bei Stillstand oder fehlender
 aktueller Geschwindigkeit sind sie sichtbar; Anhalten blendet sie automatisch ein.
 Touch und Wiederaufnahme der App machen die Bedienelemente weiterhin sichtbar.
+
+## Profilbezogene Liniengestaltung (18.10.2026)
+
+Unter Profile → Karten stehen zwei eigenständige Accordions: Aufgezeichnete Strecke und Gespeicherte Strecke. Jedes enthält eine statische Kartenvorschau, „Farbe & Deckkraft“ und den Breitenregler 0,5–8 dp in Schritten von 0,5 dp. Die Breite bezeichnet den farbigen Strich; die vorhandene weiße Kontur des Live-Tracks bleibt jeweils 2 dp breiter. Kontur und Farblinie erhalten gemeinsam die gewählte Deckkraft, damit sich die Alpha-Werte nicht ungewollt addieren. Start-/Endpunkte und Positionsmarker behalten ihre eigene Darstellung.
+
+Antippen der Vorschau oder des Farbbuttons öffnet einen gemeinsamen Dialog im App-Stil: dieselbe Vorschau, Farbton/Sättigung/Helligkeit, Deckkraft und optional direkter Hex-Farbwert. 0 % Deckkraft ist transparent, 100 % deckend. Änderungen werden sofort gespeichert und auf der Karte aktualisiert. Ungültige Hex-Eingaben ersetzen keinen gültigen Farbwert. Keine neuen Farbauswahl-Abhängigkeiten.
+
+MapRouteStyles speichert beide Stile in mapRouteStylesV1 innerhalb der aktiven Preferences. Der Schlüssel gehört zum Kartenteil von BikeUiConfigurationScope: getrennte Fahrradprofile, Profilübernahme und Sicherungen erhalten ihn. Alte Profile/Sicherungen ohne Schlüssel behalten die bisherigen Vorgaben: aktueller Track Rot, 3 dp farbiger Strich plus weiße Kontur, 100 %; gespeicherte Strecke Dunkelblau beziehungsweise helleres Blau in dunkler Karte, 6 dp, 50 %. Sobald eine Farbe explizit gewählt wurde, bleibt sie bei Tag/Nacht identisch. Keine FIT-/GPS-/Aufzeichnungsänderung.
+
+Die gespeicherte Linie verwendet denselben Stil auch in der Streckendetailkarte. MapLinePreview zeichnet das identische Linienprinzip über einem lokal gebündelten OpenStreetMap-Ausschnitt; keine Livekarte und keine Netzwerkzugriffe während der Vorschau. Helle/dunkle Rasterbilder werden gemeinsam wiederverwendet; die dunkle Variante nutzt MapNightPalette. Quellenhinweis bleibt sichtbar. Rasterquelle: https://tile.openstreetmap.org/14/8663/5678.png (Krumbach, abgerufen 18.10.2026), © OpenStreetMap-Mitwirkende, Kartendaten ODbL: https://www.openstreetmap.org/copyright. WebP-Umwandlung ohne Karteninhaltsänderung.
