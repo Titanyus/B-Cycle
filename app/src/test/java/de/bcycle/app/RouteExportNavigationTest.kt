@@ -86,7 +86,7 @@ class RouteExportNavigationTest {
             assertNull(card.findViewWithTag<View>("route_more_$id"))
             card.performClick(); shadowOf(Looper.getMainLooper()).idle()
             val details = ShadowAlertDialog.getLatestAlertDialog()
-            details.window!!.decorView.findViewWithTag<View>("analysis_rename").performClick()
+            details.window!!.decorView.findViewWithTag<View>("analysis_title").performClick()
             val rename = ShadowAlertDialog.getLatestAlertDialog()
             assertEquals("Testrunde", (descendants(rename.window!!.decorView).single { it.tag == "route_rename" } as android.widget.EditText).text.toString())
             testBack(rename); shadowOf(Looper.getMainLooper()).idle()

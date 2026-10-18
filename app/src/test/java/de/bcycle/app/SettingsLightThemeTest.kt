@@ -85,7 +85,7 @@ class SettingsLightThemeTest {
             toggle.performClick();shadowOf(Looper.getMainLooper()).idle()
             assertEquals(a.getString(R.string.settings_light_mode),toggle.contentDescription)
             assertEquals(android.graphics.Color.WHITE,root.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").currentTextColor)
-            for(tag in listOf("dialog_back","settings_light_toggle")) {
+            for(tag in listOf("dialog_back","settings_light_toggle","settings_help")) {
                 val icon=root.findViewWithTag<android.widget.ImageButton>(tag).drawable
                 val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
                 icon.setBounds(0,0,48,48);icon.draw(android.graphics.Canvas(bitmap))

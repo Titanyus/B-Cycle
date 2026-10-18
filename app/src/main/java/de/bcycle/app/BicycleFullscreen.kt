@@ -17,7 +17,7 @@ internal object BicycleFullscreen {
         if (view is ViewGroup) for (i in 0 until view.childCount) yieldAll(descendants(view.getChildAt(i)))
     }
     @Suppress("DEPRECATION") // Native edge-to-edge/IME compatibility for API 33+; no new dependency.
-    fun apply(screen: AlertDialog, themes: ThemeManager) {
+    fun apply(screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null) {
         val window = screen.window ?: return
         if (descendants(window.decorView).any { it.tag == "bicycle_fullscreen" }) return
         val context = screen.context
@@ -42,7 +42,7 @@ internal object BicycleFullscreen {
         header?.let {
             detach(it); it.tag = if (it.tag == null) "bicycle_fullscreen_header" else it.tag
             if (it === nativeHeader) it.setPadding(0, 0, 0, 0)
-            host.addView(BicycleNavigation.header(it,screen,themes), LinearLayout.LayoutParams(-1, BicycleDesign.dp(context,BicycleDesign.headerHeight)))
+            host.addView(BicycleNavigation.header(it,screen,themes,help), LinearLayout.LayoutParams(-1, BicycleDesign.dp(context,BicycleDesign.headerHeight)))
             val colored = descendants(it).firstOrNull { child -> child.tag == "bicycle_dialog_header" } ?: it
             BicycleComponents.bindTheme(colored, themes) { tokens -> colored.background = GradientDrawable().apply { setColor(tokens.primary); cornerRadius = 0f } }
         }

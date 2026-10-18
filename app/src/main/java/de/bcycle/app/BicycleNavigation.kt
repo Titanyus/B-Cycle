@@ -10,7 +10,7 @@ import android.widget.*
 /** Shared back affordance; titles are centred in the whole window, independent of the icon. */
 internal object BicycleNavigation {
     private fun all(v: View): List<View> = listOf(v) + if(v is ViewGroup) (0 until v.childCount).flatMap { all(v.getChildAt(it)) } else emptyList()
-    fun header(original: View, screen: AlertDialog, themes: ThemeManager): View {
+    fun header(original: View, screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null): View {
         val context=original.context
         val title=all(original).filterIsInstance<TextView>().firstOrNull { it.tag=="analysis_title" || it.tag=="bicycle_dialog_title" }
             ?: all(original).filterIsInstance<TextView>().firstOrNull()
@@ -25,7 +25,8 @@ internal object BicycleNavigation {
             BicycleComponents.bindTheme(title,themes) {
                 title.setTextColor(BicycleComponents.textColor(title,themes,it))
             }
-            val inset=BicycleDesign.dp(context,BicycleDesign.touchSize+BicycleDesign.smallGap)
+            val main=all(screen.window!!.decorView).any { it is SettingsMenuView && it.isMainPage }
+            val inset=BicycleDesign.dp(context,BicycleDesign.touchSize*(if(main && help!=null) 2 else 1)+BicycleDesign.smallGap)
             title.setPadding(inset,0,inset,0)
             frame.addView(title,FrameLayout.LayoutParams(-1,-1))
         } else {
@@ -34,10 +35,6 @@ internal object BicycleNavigation {
         }
         frame.addView(BicycleComponents.icon(context,themes,BicycleIcon.Back,context.getString(R.string.ui_back)) { screen.dismiss() }.apply { tag="dialog_back" },
             FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.START or Gravity.CENTER_VERTICAL))
-        if(title?.tag=="analysis_title" && title.isClickable) {
-            frame.addView(BicycleComponents.icon(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.route_action_rename)) { title.performClick() }.apply { tag="analysis_rename" },
-                FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL))
-        }
         if(themes.isSettingsPalette && all(screen.window!!.decorView).any { it is SettingsMenuView && it.isMainPage }) {
             val toggle=BicycleComponents.icon(context,themes,BicycleIcon.Moon,context.getString(R.string.settings_dark_mode)) {
                 themes.setSettingsLight(!themes.settingsLight)
@@ -47,7 +44,13 @@ internal object BicycleNavigation {
                 toggle.setImageDrawable(BicycleIcons.drawable(context,if(light) BicycleIcon.Sun else BicycleIcon.Moon,tokens.foreground))
                 toggle.contentDescription=context.getString(if(light) R.string.settings_light_mode else R.string.settings_dark_mode)
             }
-            frame.addView(toggle,FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL))
+            frame.addView(toggle,FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL).apply {
+                marginEnd=if(help!=null) BicycleDesign.dp(context,BicycleDesign.touchSize) else 0
+            })
+        }
+        help?.let { open ->
+            frame.addView(BicycleComponents.icon(context,themes,BicycleIcon.Info,context.getString(R.string.settings_help_open)) { open() }.apply { tag="settings_help" },
+                FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL))
         }
         return frame
     }

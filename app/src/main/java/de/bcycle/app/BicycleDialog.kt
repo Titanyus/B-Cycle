@@ -17,7 +17,8 @@ import android.widget.*
 
 /** Existing AlertDialog lifecycle, buttons, adapters and scroll containers are retained. */
 internal class BicycleDialogBuilder(context: Context, private val themes: ThemeManager,
-    private val navigation: DialogNavigation, private val fullscreen: Boolean = true) : AlertDialog.Builder(context,
+    private val navigation: DialogNavigation, private val fullscreen: Boolean = true,
+    private val helpEnabled:Boolean = true) : AlertDialog.Builder(context,
         if (fullscreen) R.style.SettingsFullscreenTheme else R.style.SettingsDialogTheme) {
     override fun setTitle(title: CharSequence?): AlertDialog.Builder {
         super.setTitle(title)
@@ -40,7 +41,10 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
             screen.window?.let { DashboardFullscreen.apply(it,false) }
             BicycleNavigation.hideNavigationFooter(screen)
             BicycleDialogStyle.apply(screen, themes)
-            if (fullscreen) BicycleFullscreen.apply(screen, themes)
+            val help=if(fullscreen && helpEnabled) SettingsHelp.resolve(screen)?.let { page ->
+                { SettingsHelp.show(context,themes,navigation,page) }
+            } else null
+            if (fullscreen) BicycleFullscreen.apply(screen, themes,help)
             else {
                 BicycleDialogStyle.messageSpacing(screen)
                 val top=screen.window?.decorView?.findViewById<ViewGroup>(context.resources.getIdentifier("topPanel","id","android"))

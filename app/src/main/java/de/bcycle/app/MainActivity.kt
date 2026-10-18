@@ -528,6 +528,7 @@ class MainActivity : Activity() {
         fun saveFields() { if(runtime.bikes.activeSlot!=slot || !speed.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
         BicycleForm.section(root,settingsThemes,R.string.ui_track_recording)
+        root.addView(BicycleComponents.description(settingsContext,settingsThemes,getString(R.string.track_recording_description)).apply { tag="track_recording_description" })
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
