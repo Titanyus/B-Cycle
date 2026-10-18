@@ -70,29 +70,29 @@ internal data class TrainingInputs(val power: Double? = null, val powerAt: Long?
 internal data class TrainingSnapshot(val profile: RiderProfile = RiderProfile(), val power: Double? = null,
     val heart: Double? = null, val averagePower: Double? = null, val averageHeart: Double? = null) {
     private val heartModel=profile.heartZones()
-    private val heartBoundaries=heartModel?.let { model -> listOf(60,70,80,90).map { model.restingHeartRate + model.reserve * it / 100.0 } }.orEmpty()
+    private val reserveModel=Karvonen.calculate(profile.restingHeartRate,profile.maximumHeartRate)
     val powerZone get() = Coggan.zone(power, profile.ftpW)
     private fun powerPercentFor(value: Double?) = value?.takeIf { Coggan.zone(it,profile.ftpW)!=null }?.let { it * 100 / profile.ftpW!! }
     val powerPercent get() = powerPercentFor(power)
     private fun heartPercentFor(value: Double?): Double? = value?.takeIf { it.isFinite() && it in 1.0..250.0 }?.let { bpm ->
-        heartModel?.let { (bpm - it.restingHeartRate) * 100 / it.reserve }
+        reserveModel?.let { (bpm - it.restingHeartRate) * 100 / it.reserve }
     }
     private fun heartZoneFor(value: Double?): Int? {
         val model=heartModel ?: return null
         val bpm=value?.takeIf { it.isFinite() && it in 1.0..250.0 } ?: return null
-        if(bpm < model.restingHeartRate + model.reserve * .5 || bpm > model.maximumHeartRate) return null
-        return heartBoundaries.count { bpm >= it } + 1
+        return model.zoneFor(bpm)?.index
     }
     val heartPercent get() = heartPercentFor(heart)
     val heartZone get() = heartZoneFor(heart)
-    private fun heartColor(value: Double?) = heartPercentFor(value)?.takeIf { heartZoneFor(value)!=null }?.let { ZoneGlowColors.heart(it) }
+    private fun modelPercentFor(value:Double?)=value?.takeIf { it.isFinite() && it in 1.0..250.0 }?.let { heartModel?.percent(it) }
+    private fun heartColor(value: Double?) = modelPercentFor(value)?.takeIf { heartZoneFor(value)!=null }?.let { ZoneGlowColors.heart(it,heartModel!!.boundariesPercent) }
     fun glow(source: ZoneGlowSource, zoneTwo:Boolean=false): Int? {
         if(zoneTwo) return when(source) {
             ZoneGlowSource.OFF -> null
             ZoneGlowSource.POWER_CURRENT -> powerPercent?.let { ZoneTwoHelpColors.color(it,55.0,75.0) }
             ZoneGlowSource.POWER_AVERAGE -> powerPercentFor(averagePower)?.let { ZoneTwoHelpColors.color(it,55.0,75.0) }
-            ZoneGlowSource.HEART_CURRENT -> heartPercent?.let { ZoneTwoHelpColors.color(it,60.0,70.0) }
-            ZoneGlowSource.HEART_AVERAGE -> heartPercentFor(averageHeart)?.let { ZoneTwoHelpColors.color(it,60.0,70.0) }
+            ZoneGlowSource.HEART_CURRENT -> modelPercentFor(heart)?.let { ZoneTwoHelpColors.color(it,heartModel!!.zones[1].fromPercent.toDouble(),heartModel.zones[1].toPercent.toDouble()) }
+            ZoneGlowSource.HEART_AVERAGE -> modelPercentFor(averageHeart)?.let { ZoneTwoHelpColors.color(it,heartModel!!.zones[1].fromPercent.toDouble(),heartModel.zones[1].toPercent.toDouble()) }
         }
         return when (source) {
         ZoneGlowSource.OFF -> null
@@ -152,11 +152,12 @@ internal object ZoneGlowColors {
     }
     private fun color(percent: Double, boundaries: List<Int>, colors: List<Int>): Int {
         boundaries.forEachIndexed { i, boundary ->
-            if (percent < boundary - 3) return colors[i]
-            if (percent <= boundary + 3) return mix(colors[i], colors[i + 1], ((percent - boundary + 3) / 6).toFloat())
+            val width=minOf(3.0,boundaries.getOrNull(i-1)?.let { (boundary-it)/2.0 } ?: 3.0,boundaries.getOrNull(i+1)?.let { (it-boundary)/2.0 } ?: 3.0)
+            if (percent < boundary - width) return colors[i]
+            if (percent <= boundary + width) return mix(colors[i], colors[i + 1], ((percent - boundary + width) / (2*width)).toFloat())
         }
         return colors.last()
     }
     fun power(percent: Double) = color(percent, Coggan.boundaries, powerColors)
-    fun heart(percent: Double) = color(percent, listOf(60, 70, 80, 90), TrainingZoneColors.values.toList())
+    fun heart(percent: Double,boundaries:List<Int> = listOf(60,70,80,90)) = color(percent,boundaries,TrainingZoneColors.values.toList())
 }

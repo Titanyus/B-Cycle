@@ -92,3 +92,7 @@ Anzeigepuffer. Änderungen der Fahrt-Durchschnitte oder zusätzliche Render-Aufr
 um die fachlichen Zonengrenzen und der 1,5-Sekunden-Farbübergang bleiben erhalten.
 Die stärkere Leistungsglättung betrifft ausschließlich Trainingsanzeige/-Glow, nicht
 Live-Wattwert, FIT-Rohdaten oder Performance Engine.
+
+## Pulsmodelle ab 0.8.2
+
+Pulszonen und Zone-2-Grenzen folgen der global im Fahrerprofil gewählten Methode (Karvonen, Maximalpuls oder Friel-Rad). HF-Reserve (%) bleibt unverändert. Siehe [Pulsmodelle](heart-rate-methods.md).

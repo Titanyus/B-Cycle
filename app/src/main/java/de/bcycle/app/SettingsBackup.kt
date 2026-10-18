@@ -46,7 +46,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
     }
     private fun profileJson(p: RiderProfile) = JSONObject().put("birthDate", p.birthDate?.toString() ?: JSONObject.NULL)
         .put("heightCm", p.heightCm ?: JSONObject.NULL).put("weightKg", p.weightKg ?: JSONObject.NULL)
-        .put("restingHeartRate", p.restingHeartRate ?: JSONObject.NULL).put("maximumHeartRate", p.maximumHeartRate ?: JSONObject.NULL).put("ftpW", p.ftpW ?: JSONObject.NULL)
+        .put("restingHeartRate", p.restingHeartRate ?: JSONObject.NULL).put("maximumHeartRate", p.maximumHeartRate ?: JSONObject.NULL).put("ftpW", p.ftpW ?: JSONObject.NULL).put("heartRateMethod",p.heartRateMethod.name).put("thresholdHeartRate",p.thresholdHeartRate ?: JSONObject.NULL)
     private fun dashboardIds():List<Int> = runCatching {
         val saved=JSONArray(bike.getString(DashboardPages.KEY,null))
         (0 until saved.length()).map { saved.getJSONObject(it).getInt("id") }.also { ids ->
@@ -239,9 +239,11 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     fun number(k:String,previous:Int?):Int? = if(!row.has(k)) previous else if(row.isNull(k)) null else integer(row,k)
                     val profile=old.copy(birthDate=if(!row.has("birthDate")) old.birthDate else if(row.isNull("birthDate")) null else LocalDate.parse(field(row,"birthDate",20)),
                         heightCm=number("heightCm",old.heightCm),weightKg=if(!row.has("weightKg")) old.weightKg else if(row.isNull("weightKg")) null else (row.opt("weightKg") as? Number)?.toDouble() ?: fail(),
-                        restingHeartRate=number("restingHeartRate",old.restingHeartRate),maximumHeartRate=number("maximumHeartRate",old.maximumHeartRate),ftpW=number("ftpW",old.ftpW))
+                        restingHeartRate=number("restingHeartRate",old.restingHeartRate),maximumHeartRate=number("maximumHeartRate",old.maximumHeartRate),ftpW=number("ftpW",old.ftpW),
+                        heartRateMethod=if(row.has("heartRateMethod")) HeartRateMethod.valueOf(field(row,"heartRateMethod",30)) else old.heartRateMethod,
+                        thresholdHeartRate=number("thresholdHeartRate",old.thresholdHeartRate))
                     check(RiderProfileValidation.validate(profile,today()).isEmpty())
-                    if(listOf("birthDate","heightCm","weightKg","restingHeartRate","maximumHeartRate","ftpW").any(row::has))
+                    if(listOf("birthDate","heightCm","weightKg","restingHeartRate","maximumHeartRate","ftpW","heartRateMethod","thresholdHeartRate").any(row::has))
                         b[RiderProfileStore.key]=profileJson(profile).put("version",1).toString()
                 }
                 BackupSection.CLOUD -> {

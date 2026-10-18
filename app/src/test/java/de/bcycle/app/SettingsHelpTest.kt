@@ -24,13 +24,13 @@ class SettingsHelpTest {
                 assertTrue(a.getString(page.title).isNotBlank());assertTrue(page.sections.isNotEmpty())
                 val view=SettingsHelp.body(a,themes,page)
                 val headers=testDescendants(view).filterIsInstance<BicycleSectionHeader>()
-                assertEquals(page.sections.size,headers.size)
+                assertEquals(SettingsHelp.groups(page).size,headers.size)
                 for(section in page.sections) {
                     assertTrue(a.getString(section.heading).isNotBlank());assertTrue(a.getString(section.body).isNotBlank())
-                    assertEquals(View.GONE,view.findViewWithTag<View>("help_body_${section.body}").visibility)
+                    assertFalse(view.findViewWithTag<View>("help_body_${section.body}").isShown)
                 }
                 headers.first().performClick()
-                assertEquals(View.VISIBLE,view.findViewWithTag<View>("help_body_${page.sections.first().body}").visibility)
+                assertEquals(View.VISIBLE,view.findViewWithTag<View>("help_group_${SettingsHelp.groups(page).first().heading}").visibility)
                 assertTrue(headers.drop(1).all { it.expanded==false })
             }
         } finally { host.pause().stop().destroy() }
@@ -62,6 +62,9 @@ class SettingsHelpTest {
             root.findViewWithTag<View>("settings_help").performClick()
             val profileHelp=ShadowAlertDialog.getLatestAlertDialog()
             assertNotNull(profileHelp.window!!.decorView.findViewWithTag<View>("help_body_${R.string.help_record_fields_body}"))
+            val actual=testDescendants(root).filterIsInstance<BicycleSectionHeader>().map { it.contentDescription.toString() }
+            val helpHeaders=testDescendants(profileHelp.window!!.decorView).filterIsInstance<BicycleSectionHeader>().map { it.contentDescription.toString() }
+            assertEquals(actual,helpHeaders)
             testBack(profileHelp);shadowOf(Looper.getMainLooper()).idle()
             assertTrue(profile.isShowing);assertEquals(expanded,header.expanded)
             assertSame(scroll,testDescendants(root).filterIsInstance<ScrollView>().single())

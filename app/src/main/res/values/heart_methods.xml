@@ -1,0 +1,27 @@
+<resources>
+    <string name="heart_method_title">Methode</string>
+    <string name="heart_method_karvonen">Karvonen</string>
+    <string name="heart_method_maximum">Maximalpuls</string>
+    <string name="heart_method_threshold">Schwellenpuls · Friel (Rad)</string>
+    <string name="heart_method_karvonen_explanation">Berechnet fünf Zonen aus Ruhepuls und Herzfrequenzreserve (Maximalpuls minus Ruhepuls): 50–60, 60–70, 70–80, 80–90 und 90–100 Prozent der Reserve.</string>
+    <string name="heart_method_maximum_explanation">Berechnet fünf Zonen direkt aus dem Maximalpuls: 50–60, 60–70, 70–80, 80–90 und 90–100 Prozent. Ein verlässlich bestimmter Maximalpuls ist genauer als eine Altersschätzung.</string>
+    <string name="heart_method_threshold_explanation">Radspezifisches Friel-Modell anhand deines Schwellenpulses: unter 81, 81 bis unter 90, 90 bis unter 94, 94 bis unter 100 und ab 100 Prozent. Die Unterzonen 5a–5c sind zur Übersicht als Z5 zusammengefasst. Verwende einen sinnvoll getesteten Schwellenpuls; die App schätzt ihn nicht automatisch.</string>
+    <string name="rider_threshold">Schwellenpuls</string>
+    <string name="rider_hint_threshold">Schwellenpuls eingeben.</string>
+    <string name="rider_error_threshold">Schwellenpuls zwischen 60 und 250 bpm eingeben.</string>
+    <string name="rider_zone_below">unter %1$d</string>
+    <string name="rider_zone_above">ab %1$d</string>
+    <string name="heart_zone_accessibility">%1$s, Zone %2$d: %3$s bpm</string>
+    <string name="heart_threshold_zone_four">Schwelle</string>
+    <string name="heart_threshold_zone_five">Über Schwelle</string>
+    <string name="help_heart_method_heading">Pulszonen: Methode auswählen</string>
+    <string name="help_heart_method_body">Die Methode wird global im Fahrerprofil unter Trainingsparameter ausgewählt. Sie bestimmt die Pulszonen in der Vorschau, im Dashboard, in der Trainingshilfe und bei zonenbezogenen Streckenauswertungen. Leistungszonen bleiben FTP-basiert. Nur die zur Methode nötigen Pulsfelder sind aktiv; andere Werte bleiben gespeichert. Eine fehlende Eingabe erzeugt keine geschätzten Zonen. Zone 2 ist zwischen Methoden nicht direkt vergleichbar.</string>
+    <string name="help_karvonen_heading">Karvonen: Herzfrequenzreserve</string>
+    <string name="help_karvonen_body">Benötigt Ruhepuls und Maximalpuls. Herzfrequenzreserve = Maximalpuls minus Ruhepuls. Die Zielherzfrequenz ist Ruhepuls plus gewünschter Anteil der Reserve. Die fünf Zonen liegen bei 50–60, 60–70, 70–80, 80–90 und 90–100 Prozent der Reserve. Beispiel: Bei Ruhepuls 50 und Maximalpuls 190 beginnt Z2 bei 134 bpm; Z3 beginnt bei 148 bpm. Karvonen berücksichtigt den Ruhepuls und ist für allgemeines Ausdauertraining eine sinnvolle Voreinstellung. Trage einen typischen Ruhewert und einen verlässlich bestimmten Maximalwert ein.</string>
+    <string name="help_maximum_heading">Maximalpuls: Prozent der HFmax</string>
+    <string name="help_maximum_body">Benötigt nur den Maximalpuls. Die Grenzen liegen direkt bei 50, 60, 70, 80, 90 und 100 Prozent dieses Wertes. Beispiel: Bei Maximalpuls 190 beginnt Z2 bei 114 bpm; Z3 beginnt bei 133 bpm. Das ist deutlich niedriger als im Karvonen-Beispiel mit demselben Maximalpuls. Die Methode ist einfach, berücksichtigt aber keine individuellen Ruhepulswerte oder Schwellen. Eine Altersformel liefert nur eine grobe Schätzung und kann für eine einzelne Person deutlich abweichen.</string>
+    <string name="help_threshold_heading">Schwellenpuls: Friel für Radfahren</string>
+    <string name="help_threshold_body">Benötigt einen eigens bestimmten Schwellenpuls in bpm, nicht den Maximalpuls. Er beschreibt näherungsweise die Herzfrequenz an der Laktatschwelle. Verwende einen passenden Rad-Leistungstest oder eine Leistungsdiagnostik; die App leitet den Wert weder aus dem Alter noch automatisch aus Fahrten ab. Die fünf Hauptbereiche sind unter 81, 81 bis unter 90, 90 bis unter 94, 94 bis unter 100 und ab 100 Prozent des Schwellenpulses. Friels höchste Unterzonen 5a–5c werden hier zu Z5 zusammengefasst. Bei Schwellenpuls 170 ergibt das Z1 unter 138, Z2 138–152, Z3 153–159, Z4 160–169 und Z5 ab 170 bpm. Dieses Radmodell ist nicht als Laufmodell gedacht.</string>
+    <string name="help_zone_model_details_heading">Zonengrenzen und Trainingshilfe</string>
+    <string name="help_zone_model_details_body">Die App ordnet ganzzahlige bpm-Bereiche ohne Überschneidung zu; eine Grenze gehört jeweils zur höheren Zone. Fehlende oder ungültige Angaben zeigen keine scheinbar gültige Vorschau. Die Trainingshilfe verwendet dieselbe Methode und weich überblendete Farben, ohne die exakte Zuordnung zu verändern. Bei Zone 2 bleibt der Übergang nach unten bewusst großzügig. Der separate Messwert HF-Reserve in Prozent bleibt immer auf Ruhe- und Maximalpuls bezogen; bei fehlenden gültigen Werten steht er nicht zur Verfügung. Puls reagiert verzögert auf Belastung und wird unter anderem durch Temperatur und Ermüdung beeinflusst.</string>
+</resources>

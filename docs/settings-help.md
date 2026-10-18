@@ -9,3 +9,9 @@ Abschnitte verwenden BicycleSectionHeader.accordion und BicycleStickyScrollView.
 Streckendetails: Das Stiftsymbol im Header entfällt. Antippen des Titels benennt die Fahrt weiterhin um; zusätzlich gibt es Umbenennen im Footer. Info öffnet die Auswertungshilfe. Bestätigungsdialoge erhalten keinen zusätzlichen Hilfezugang.
 
 Direkt unter Strecken-Aufzeichnung erklärt ein kurzer Text die zusätzlichen FIT-Felder, ihre Unabhängigkeit vom Dashboard und den GPS-Schalter für Positionsdaten.
+
+## Gruppierung ab 0.8.2
+
+Die Sticky-Accordions bilden die Hauptabschnitte der eigentlichen Seite ab. Einzelne Funktionen stehen darin als normale kleinere fette Unterüberschriften mit Beschreibung (8 dp Abstand, 16 dp zwischen Funktionen), nicht als zusätzliche Sticky Header.
+
+Fahrer: Persönliche Daten, Trainingsparameter, Herzfrequenzzonen und Leistungszonen. Die drei Pulsmodelle werden ausführlich innerhalb Trainingsparameter erklärt. Profile: aktueller Fahrradname, Sensoren, gegebenenfalls Indoor-Korrektur, FIT-Aufzeichnung, Strecken-Aufzeichnung, Karten, Design & UI, Trainingshilfe. Dynamischer Fahrradname und tatsächlich sichtbare Hauptabschnitte werden aus der geöffneten Profilseite übernommen. Weitere Seiten gruppieren analog nach ihren Hauptbereichen. Alle Texte bleiben übersetzbare Ressourcen; kein weiterer Info-Button innerhalb der Hilfe.

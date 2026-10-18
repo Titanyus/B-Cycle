@@ -25,8 +25,15 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     var persist: ((RiderProfile) -> Boolean)? = null
     private fun persistValid() {
         val value=draft()
-        if(value.valid && persist?.invoke(value.profile)==false) saveFailed()
+        if(value.valid) {
+            val saved=persist?.invoke(value.profile)
+            if(saved==false) saveFailed() else if(saved==true) retained=value.profile
+        }
     }
+    private var retained=initial
+    private var heartMethod=initial.heartRateMethod
+    private val methodExplanation=BicycleComponents.description(context,themes,context.getString(heartMethod.explanation)).apply { tag="rider_method_explanation" }
+    private val zoneMethod=text(context.getString(heartMethod.label)).apply { tag="rider_zone_method" }
     private var birthDate = initial.birthDate
     private val root = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
@@ -44,6 +51,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     private val powerHint = text("").apply { tag="rider_power_zone_hint" }
     private val powerRows = LinearLayout(context).apply { orientation=LinearLayout.VERTICAL; tag="rider_power_zones" }
     private val ranges = mutableListOf<TextView>()
+    private val zoneNames=mutableListOf<TextView>()
     private val zoneRows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "rider_zones" }
     private val saveError = text("").apply { tag = "rider_save_error"; visibility = GONE; accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE }
     private fun text(value: String) = BicycleComponents.text(context, themes, value).apply { typeface = Typeface.DEFAULT }
@@ -92,11 +100,32 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
         val decimal = DecimalFormat("0.################", DecimalFormatSymbols.getInstance(locale)).apply { isGroupingUsed = false }
         input(RiderField.WEIGHT, R.string.rider_weight, R.string.rider_kg, initial.weightKg?.let(decimal::format).orEmpty(), true)
         section(R.string.rider_training)
+        val methodChoice=Spinner(context).apply {
+            tag="rider_heart_method";id=generateViewId();contentDescription=context.getString(R.string.heart_method_title)
+            adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,HeartRateMethod.entries.map { context.getString(it.label) })
+            setSelection(heartMethod.ordinal)
+        }
+        BicycleDialogStyle.spinner(methodChoice,themes)
+        root.addView(LinearLayout(context).apply {
+            tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
+            addView(text(context.getString(R.string.heart_method_title)).apply { labelFor=methodChoice.id },LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
+            addView(methodChoice,LinearLayout.LayoutParams(0,-2,2f))
+        },LinearLayout.LayoutParams(-1,-2))
+        root.addView(methodExplanation)
+        methodChoice.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent:AdapterView<*>?)=Unit
+            override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) {
+                val method=HeartRateMethod.entries[position]
+                if(method==heartMethod) return
+                heartMethod=method;updateMethod();updateZones();persistValid()
+            }
+        }
         input(RiderField.RESTING_HEART_RATE, R.string.rider_resting, R.string.analysis_bpm, initial.restingHeartRate?.toString().orEmpty())
         input(RiderField.MAXIMUM_HEART_RATE, R.string.rider_maximum, R.string.analysis_bpm, initial.maximumHeartRate?.toString().orEmpty())
+        input(RiderField.THRESHOLD_HEART_RATE,R.string.rider_threshold,R.string.analysis_bpm,initial.thresholdHeartRate?.toString().orEmpty())
         input(RiderField.FTP, R.string.rider_ftp, R.string.analysis_watts, initial.ftpW?.toString().orEmpty())
         section(R.string.rider_zones)
-        root.addView(text(context.getString(R.string.rider_karvonen)), LinearLayout.LayoutParams(-1, -2))
+        root.addView(zoneMethod, LinearLayout.LayoutParams(-1, -2))
         root.addView(hint, LinearLayout.LayoutParams(-1, -2))
         val names = listOf(R.string.rider_z1, R.string.rider_z2, R.string.rider_z3, R.string.rider_z4, R.string.rider_z5)
         names.forEachIndexed { i, name ->
@@ -105,6 +134,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                 addView(View(context).apply { setBackgroundColor(TrainingZoneColors.values[i]); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO },
                     LinearLayout.LayoutParams(dp(BicycleDesign.smallGap), dp(BicycleDesign.iconSize)).apply { marginEnd = dp(BicycleDesign.verticalPadding) })
                 addView(text(context.getString(R.string.rider_zone_name, i + 1, context.getString(name))).apply {
+                    zoneNames+=this
                     maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
                 }, LinearLayout.LayoutParams(0, -2, 1f))
                 val value = BicycleComponents.text(context, themes, "").apply {
@@ -148,7 +178,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 edit.error = null; saveError.visibility = GONE
-                if (field == RiderField.RESTING_HEART_RATE || field == RiderField.MAXIMUM_HEART_RATE || field == RiderField.FTP) updateZones()
+                if (field == RiderField.RESTING_HEART_RATE || field == RiderField.MAXIMUM_HEART_RATE || field == RiderField.THRESHOLD_HEART_RATE || field == RiderField.FTP) updateZones()
             }
             override fun afterTextChanged(s: Editable?) {
                 val value=s?.toString().orEmpty()
@@ -162,7 +192,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             override fun onViewDetachedFromWindow(view: View) { persistValid() }
         })
         groupSections()
-        updateZones()
+        updateMethod();updateZones()
     }
     private fun groupSections() {
         val nodes=(0 until root.childCount).map(root::getChildAt).filter { it!==saveError }
@@ -201,7 +231,29 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
         ready=true
         BicycleDialogBuilder(context,themes,navigation,fullscreen=false).setTitle(R.string.rider_birth).setView(picker).show()
     }
-    internal fun draft() = RiderProfileValidation.parse(birthDate, inputs.mapValues { it.value.text.toString() }, locale, today())
+    private fun updateMethod() {
+        methodExplanation.text=context.getString(heartMethod.explanation)
+        zoneMethod.text=context.getString(heartMethod.label)
+        val names=listOf(R.string.rider_z1,R.string.rider_z2,R.string.rider_z3,
+            if(heartMethod==HeartRateMethod.THRESHOLD) R.string.heart_threshold_zone_four else R.string.rider_z4,
+            if(heartMethod==HeartRateMethod.THRESHOLD) R.string.heart_threshold_zone_five else R.string.rider_z5)
+        zoneNames.forEachIndexed { i,label->label.text=context.getString(R.string.rider_zone_name,i+1,context.getString(names[i])) }
+        listOf(RiderField.RESTING_HEART_RATE,RiderField.MAXIMUM_HEART_RATE,RiderField.THRESHOLD_HEART_RATE).forEach { field ->
+            val edit=inputs.getValue(field);val enabled=field in heartMethod.requiredFields
+            edit.isEnabled=enabled
+            val row=edit.parent as LinearLayout
+            for(i in 0 until row.childCount) if(row.getChildAt(i)!==edit) row.getChildAt(i).alpha=if(enabled) 1f else .5f
+            if(!enabled) { edit.clearFocus();edit.error=null }
+        }
+    }
+    internal fun draft():RiderValidation {
+        val fields=inputs.mapValues { it.value.text.toString() }.toMutableMap()
+        mapOf(RiderField.RESTING_HEART_RATE to retained.restingHeartRate,RiderField.MAXIMUM_HEART_RATE to retained.maximumHeartRate,
+            RiderField.THRESHOLD_HEART_RATE to retained.thresholdHeartRate).forEach { (field,value) ->
+            if(field !in heartMethod.requiredFields) fields[field]=value?.toString().orEmpty()
+        }
+        return RiderProfileValidation.parse(birthDate,fields,locale,today(),heartMethod)
+    }
     private fun updateZones() {
         val draft = draft()
         val zones=if(RiderField.FTP in draft.errors) null else draft.profile.powerZones()
@@ -215,12 +267,14 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             }
             (powerRanges[i].parent.parent as View).contentDescription=context.getString(R.string.training_power_description,zone.index,powerRanges[i].text)
         }
-        val hearts = setOf(RiderField.RESTING_HEART_RATE, RiderField.MAXIMUM_HEART_RATE)
+        val hearts = heartMethod.requiredFields
         val result = if (draft.errors.keys.any { it in hearts }) null else draft.profile.heartZones()
         hint.visibility = if (result == null) VISIBLE else GONE; zoneRows.visibility = if (result == null) GONE else VISIBLE
         if (result != null) inputs.filterKeys { it in hearts }.values.forEach { it.error = null }
         if (result == null) {
             hint.text = context.getString(when {
+                heartMethod==HeartRateMethod.THRESHOLD && draft.errors.keys.none { it in hearts } -> R.string.rider_hint_threshold
+                heartMethod==HeartRateMethod.MAXIMUM && draft.errors.keys.none { it in hearts } -> R.string.rider_hint_maximum
                 draft.errors[RiderField.MAXIMUM_HEART_RATE] == RiderInputError.HEART_ORDER -> R.string.rider_hint_order
                 draft.errors.keys.any { it in hearts } -> R.string.rider_hint_invalid
                 draft.profile.restingHeartRate == null && draft.profile.maximumHeartRate == null -> R.string.rider_hint_both
@@ -228,9 +282,13 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                 else -> R.string.rider_hint_maximum
             })
         } else result.zones.forEachIndexed { i, zone ->
-            ranges[i].text = if (zone.isEmpty) context.getString(R.string.analysis_missing) else context.getString(R.string.rider_zone_range, zone.lowerBpm, zone.upperBpm)
-            (ranges[i].parent.parent as View).contentDescription = context.getString(R.string.rider_zone_description, zone.index,
-                zone.fromPercent, zone.toPercent, ranges[i].text, context.getString(R.string.analysis_bpm))
+            ranges[i].text = when {
+                zone.isEmpty->context.getString(R.string.analysis_missing)
+                result.openLastZone && i==4->context.getString(R.string.rider_zone_above,zone.lowerBpm)
+                result.openLastZone && i==0->context.getString(R.string.rider_zone_below,zone.upperExclusiveBpm)
+                else->context.getString(R.string.rider_zone_range,zone.lowerBpm,zone.upperBpm)
+            }
+            (ranges[i].parent.parent as View).contentDescription=context.getString(R.string.heart_zone_accessibility,context.getString(heartMethod.label),zone.index,ranges[i].text)
         }
     }
     internal fun validate(): RiderProfile? {
@@ -245,6 +303,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                 RiderInputError.RANGE -> when (field) {
                     RiderField.HEIGHT -> R.string.rider_error_height; RiderField.WEIGHT -> R.string.rider_error_weight
                     RiderField.RESTING_HEART_RATE -> R.string.rider_error_resting; RiderField.MAXIMUM_HEART_RATE -> R.string.rider_error_maximum
+                    RiderField.THRESHOLD_HEART_RATE -> R.string.rider_error_threshold
                     else -> R.string.rider_error_ftp
                 }
             })

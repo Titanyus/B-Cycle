@@ -48,10 +48,10 @@ internal class RouteTimeHistogram(private val maximumValue: Int) {
         } else {
             require(chart == AnalysisChart.HEART)
             val model = profile.heartZones() ?: return null
-            low = floor(minOf(observedMin!!, model.zones.first().lowerBpm.toDouble()) / 5) * 5
-            high = ceil(maxOf(observed, model.maximumHeartRate.toDouble()) / 5) * 5
-            bands = model.zones.filterNot { it.isEmpty }.map { zone -> DistributionBand(zone.index, zone.lowerBpm.toDouble(),
-                if (zone.index == 5) model.maximumHeartRate.toDouble() else zone.upperExclusiveBpm.toDouble(), TrainingZoneColors.values[zone.index - 1]) }
+            low = floor((if(model.openLastZone) minOf(observedMin!!,model.zones[1].lowerBpm-10.0) else minOf(observedMin!!,model.zones.first().lowerBpm.toDouble()))/5)*5
+            high = ceil(maxOf(observed, if(model.openLastZone) model.zones.last().lowerBpm+10.0 else model.maximumHeartRate.toDouble()) / 5) * 5
+            bands = model.zones.filterNot { it.isEmpty }.map { zone -> DistributionBand(zone.index, if(model.openLastZone && zone.index==1) low else zone.lowerBpm.toDouble(),
+                if (zone.index == 5) { if(model.openLastZone) high else model.maximumHeartRate.toDouble() } else zone.upperExclusiveBpm.toDouble(), TrainingZoneColors.values[zone.index - 1]) }
         }
         val bins = DoubleArray(minOf(128, (high - low).toInt().coerceAtLeast(1)))
         milliseconds.forEachIndexed { value, ms -> if (ms > 0) {

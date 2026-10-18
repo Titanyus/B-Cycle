@@ -172,7 +172,7 @@ class RiderProfileViewTest {
         try {
             val activity=controller.get();val prefs=activity.getSharedPreferences("bike",0);val store=RiderProfileStore(prefs)
             val screen=showRiderProfile(activity,ThemeManager(prefs),DialogNavigation(),store);measure(screen)
-            val resources=listOf(R.string.rider_profile,R.string.rider_personal,R.string.rider_training,R.string.rider_zones,R.string.rider_karvonen,
+            val resources=listOf(R.string.rider_profile,R.string.rider_personal,R.string.rider_training,R.string.rider_zones,R.string.heart_method_karvonen,
                 R.string.rider_birth,R.string.rider_height,R.string.rider_weight,R.string.rider_resting,R.string.rider_maximum,R.string.rider_ftp,R.string.rider_hint_both)
             val visible=views(screen.window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             resources.forEach { assertTrue(activity.getString(it),activity.getString(it) in visible) }

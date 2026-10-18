@@ -15,3 +15,7 @@ DashboardTrainingHelp speichert einen Modus und zwei boolesche Gruppen unter ein
 In der Feldauswahl steht die Trainingshilfe außerhalb und unterhalb von Daten und Graph. Der Schnellzugriff bleibt sichtbar und wird weder bei „Keine Daten“ noch bei nicht unterstützten Messwerten oder Kartenfeldern ausgeblendet. Dieser Schnellzugriff konfiguriert weiterhin das aktuelle Dashboard, nicht die ausgewählte Kachel. Nur die frühere feldbezogene Visualisierungsfunktion bleibt verborgen.
 
 Umstellung am 18.10.2026: identische Segmente in Design & UI und im Feldauswahl-Schnellzugriff. Der Modus bleibt OFF/ALL_ZONES/ZONE_TWO; keine Persistenzmigration. Aktuelle Werte und Durchschnittswerte behalten ihre vorhandenen Schalter und bleiben auch beim Abschalten des Modus gespeichert.
+
+## Pulsmodelle ab 0.8.2
+
+Pulszonen und Zone-2-Grenzen folgen der global im Fahrerprofil gewählten Methode (Karvonen, Maximalpuls oder Friel-Rad). HF-Reserve (%) bleibt unverändert. Siehe [Pulsmodelle](heart-rate-methods.md).

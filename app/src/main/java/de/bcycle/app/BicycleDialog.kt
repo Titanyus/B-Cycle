@@ -42,7 +42,7 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
             BicycleNavigation.hideNavigationFooter(screen)
             BicycleDialogStyle.apply(screen, themes)
             val help=if(fullscreen && helpEnabled) SettingsHelp.resolve(screen)?.let { page ->
-                { SettingsHelp.show(context,themes,navigation,page) }
+                { SettingsHelp.show(context,themes,navigation,page,screen.window!!.decorView) }
             } else null
             if (fullscreen) BicycleFullscreen.apply(screen, themes,help)
             else {
@@ -138,6 +138,7 @@ internal object BicycleDialogStyle {
         }
     }
     fun content(view: View, themes: ThemeManager) {
+        if(view.tag=="settings_help_page") return // Help owns sticky groups and smaller subheadings.
         if (view is DatePicker) { BicycleNavigation.dateHeader(view,themes); return }
         if (view is BicycleFooterAction || view.tag == "bicycle_action_footer") return
         // This reference screen owns every detail, including its compact action geometry.

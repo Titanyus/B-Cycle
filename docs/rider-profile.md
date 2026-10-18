@@ -1,3 +1,7 @@
+# Aktueller Stand
+
+Seit 0.8.2 stehen drei Pulsmodelle zur Wahl. Die folgenden V1-Angaben dokumentieren den ursprünglichen Karvonen-Stand; maßgeblich für Methode, Schwellenpuls, aktivierte Felder und Sicherungen ist [Pulsmodelle](heart-rate-methods.md).
+
 # Fahrerprofil und persönliche Karvonen-Zonen V1
 
 ## Integration und Architektur
