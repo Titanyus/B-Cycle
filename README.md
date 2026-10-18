@@ -61,15 +61,21 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.3 – optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.3/downloads/B-Cycle-0.8.3.apk)**
+**[Aktuelle APK – 0.8.3, Build 38 herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.3-build38/downloads/B-Cycle-0.8.3-build38.apk)**
 
-**Build 37 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Vier gezielte Eingabe-/Navigationstests bestanden.
-[Änderungen und SHA-256](docs/build-37.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.3) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39110405049).
+**Build 38 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Gezielte Tests bestanden.
+[Änderungen und SHA-256](docs/build-38.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.3-build38) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39120259782).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in Build 38
+
+- Daten & Speicher: eigenes Accordion Streckenimport mit den drei bestehenden Importaktionen.
+- Einheitliche Dropdown-Fenster: SECONDARY, 1 dp FOREGROUND-Rahmen mit 50 % Deckkraft und 6 dp Rundung; Rahmen vor Übermalen durch Listeninhalt geschützt.
+- Leicht federndes Einrasten nach dem Umsortieren von Bike- und Dashboardkacheln, ohne neue Bibliothek.
 
 ## Neu in APK 0.8.3
 
