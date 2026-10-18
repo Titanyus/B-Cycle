@@ -25,19 +25,19 @@ class BicycleThemeTest {
     }
     @Test fun fixedPalettesMatchAllFourteenRequestedSetsAndSharePrimaryByFamily() {
         val rows=listOf(
-            listOf("hellfire","BF281B","812218","550E08","0F0A09","211918"),
-            listOf("solar-flare","F16A09","B64E01","863701","100B08","221A15"),
-            listOf("sunstruck","E9AF00","B78901","8F6A00","100E07","242014"),
-            listOf("acid-pop","7ACD04","5EA000","477B01","0A0F07","192215"),
-            listOf("deep-dive","06B5A1","018979","006559","07100F","142221"),
-            listOf("blue-riot","145CD7","003998","00215E","080B10","151B23"),
-            listOf("purple-haze","9224E0","6601A1","400068","0B0910","1A1624"))
+            listOf("hellfire","BF281B","161522","282735","0F0A09","211918"),
+            listOf("solar-flare","F16A09","161522","282735","100B08","221A15"),
+            listOf("sunstruck","E9AF00","161522","282735","100E07","242014"),
+            listOf("acid-pop","7ACD04","161522","282735","0A0F07","192215"),
+            listOf("deep-dive","06B5A1","161522","282735","07100F","142221"),
+            listOf("blue-riot","145CD7","161522","282735","080B10","151B23"),
+            listOf("purple-haze","9224E0","161522","282735","0B0910","1A1624"))
         fun color(s:String)=(0xff000000L or s.toLong(16)).toInt()
         assertEquals(14,BicycleThemes.presets.size)
         rows.forEach { row ->
             for(dark in listOf(false,true)) {
                 val t=BicycleThemes.presets.single { it.id=="preset:${row[0]}-${if(dark) "dark" else "color"}" }
-                assertEquals(ThemeTokens(color(row[1]),color(row[if(dark) 4 else 2]),color(row[if(dark) 5 else 3]),color("FFFFFF"),color(if(dark) row[1] else "FFFFFF")),t.tokens)
+                assertEquals(ThemeTokens(color(row[1]),color(row[if(dark) 4 else 2]),color(row[if(dark) 5 else 3]),color("FFFFFF"),color(row[1])),t.tokens)
                 assertTrue(ThemeValidator.validate(t).problems.toString(),ThemeValidator.validate(t).valid)
                 val light=t.tokens.lightSettings()
                 assertEquals(t.tokens.primary,light.primary);assertEquals(t.tokens.accent,light.accent)

@@ -103,7 +103,9 @@ class MessageNotificationUiTest {
             assertSame(title.parent,slider.parent);assertSame(value.parent,slider.parent)
             assertTrue(title.right<slider.left)
             assertEquals(slider.top+slider.height/2f,title.top+title.height/2f,1f)
-            assertTrue(value.bottom<=slider.top);assertTrue(slider.width>0)
+            assertTrue(value.bottom<=slider.top+slider.height/2-BicycleDesign.dp(app,4));assertTrue(slider.width>0)
+            assertTrue(slider.top+slider.height/2-value.bottom<=BicycleDesign.dp(app,20))
+            assertNotNull(headers.single().expanded)
             assertEquals(slider.id,title.labelFor)
         }
     }

@@ -121,6 +121,7 @@ object BicycleDesign {
     const val scrollbarSize = 2
     const val tileDropSettleMs = 260L
     const val tileDropOvershoot = 1.4f
+    const val sectionDividerGap = 16
     const val footerRuleDp = 1f
     const val footerHeight = 64
     const val modeFooterTransitionMs = 180L
@@ -129,7 +130,6 @@ object BicycleDesign {
     const val dividerDp = .75f
     fun linePixels(context: Context, widthDp: Float = dividerDp) = Math.round(context.resources.displayMetrics.density * widthDp).coerceAtLeast(1)
     const val dividerAlpha = .55f
-    const val sectionDividerGap = 12
     const val analysisDividerGap = 2
     const val inputHorizontalPadding = 12
     const val menuIconSize = 64
@@ -314,7 +314,7 @@ object BicycleComponents {
             android.graphics.Color.red(tokens.foreground),android.graphics.Color.green(tokens.foreground),android.graphics.Color.blue(tokens.foreground)))
     }
     /** Shared popup shell: reserve its outline so list contents cannot paint over the border. */
-    internal fun dropdownBackground(context:Context,tokens:ThemeTokens)=controlBackground(context,tokens).apply {
+    internal fun dropdownBackground(context:Context,tokens:ThemeTokens)=controlBackground(context,tokens,tokens.tertiary).apply {
         val inset=BicycleDesign.dp(context,BicycleDesign.controlBorder)
         setPadding(inset,inset,inset,inset)
     }

@@ -1,16 +1,16 @@
 # Vorgegebene Themes
 
-Alle bisherigen Themes werden durch 14 feste Basispaletten ersetzt. Die Oberfläche bietet ausschließlich diese Vorgaben an. Je Familie gibt es eine farbige und eine DARK-Variante; PRIMARY ist gleich. FOREGROUND ist immer #FFFFFF. ACCENT ist bei farbigen Flächen #FFFFFF, bei DARK gleich PRIMARY.
+Alle bisherigen Themes werden durch 14 feste Basispaletten ersetzt. Die Oberfläche bietet ausschließlich diese Vorgaben an. Je Familie gibt es eine Variante ohne DARK mit gemeinsamen, am Screenshot orientierten Flächen und eine DARK-Variante. PRIMARY ist gleich. FOREGROUND ist immer #FFFFFF, ACCENT immer gleich PRIMARY.
 
-| Familie | PRIMARY | SECONDARY farbig | TERTIARY farbig | SECONDARY DARK | TERTIARY DARK |
+| Familie | PRIMARY | SECONDARY ohne DARK | TERTIARY ohne DARK | SECONDARY DARK | TERTIARY DARK |
 | --- | --- | --- | --- | --- | --- |
-| HELLFIRE | #BF281B | #812218 | #550E08 | #0F0A09 | #211918 |
-| SOLAR FLARE | #F16A09 | #B64E01 | #863701 | #100B08 | #221A15 |
-| SUNSTRUCK | #E9AF00 | #B78901 | #8F6A00 | #100E07 | #242014 |
-| ACID POP | #7ACD04 | #5EA000 | #477B01 | #0A0F07 | #192215 |
-| DEEP DIVE | #06B5A1 | #018979 | #006559 | #07100F | #142221 |
-| BLUE RIOT | #145CD7 | #003998 | #00215E | #080B10 | #151B23 |
-| PURPLE HAZE | #9224E0 | #6601A1 | #400068 | #0B0910 | #1A1624 |
+| HELLFIRE | #BF281B | #161522 | #282735 | #0F0A09 | #211918 |
+| SOLAR FLARE | #F16A09 | #161522 | #282735 | #100B08 | #221A15 |
+| SUNSTRUCK | #E9AF00 | #161522 | #282735 | #100E07 | #242014 |
+| ACID POP | #7ACD04 | #161522 | #282735 | #0A0F07 | #192215 |
+| DEEP DIVE | #06B5A1 | #161522 | #282735 | #07100F | #142221 |
+| BLUE RIOT | #145CD7 | #161522 | #282735 | #080B10 | #151B23 |
+| PURPLE HAZE | #9224E0 | #161522 | #282735 | #0B0910 | #1A1624 |
 
 IDs: `preset:<familie>-color` bzw. `preset:<familie>-dark`, Familie kleingeschrieben mit Bindestrichen. Die exakten vom Nutzer gewählten Paletten bleiben auch bei geringem Kontrast oder subtilen Flächenabständen erhalten. Vorhandene per-Fläche-Fallbacks für lesbare Icons bleiben bestehen. Benutzerdefinierte Altdaten werden weiterhin streng geprüft; es gibt keinen UI-Einstieg zur Erstellung eigener Farben.
 

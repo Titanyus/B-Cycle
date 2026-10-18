@@ -76,7 +76,7 @@ class ContentSpacingTest {
             assertEquals(Math.round(dpi/160f*.5f).coerceAtLeast(1),BicycleDesign.linePixels(context,.5f))
             val divider=BicycleComponents.sectionDivider(context,themes)
             val margins=divider.layoutParams as LinearLayout.LayoutParams
-            assertEquals(BicycleDesign.dp(context,12),margins.topMargin);assertEquals(margins.topMargin,margins.bottomMargin)
+            assertEquals(BicycleDesign.dp(context,BicycleDesign.sectionDividerGap),margins.topMargin);assertEquals(margins.topMargin,margins.bottomMargin)
             val parent=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL }
             parent.addView(divider)
             val button=BicycleComponents.action(context,themes,"Action") {}
@@ -118,7 +118,7 @@ class ContentSpacingTest {
                     org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
                     decor.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1600,View.MeasureSpec.EXACTLY))
                     decor.layout(0,0,720,1600)
-                    val target=decor.findViewWithTag<View>(when(kind) { 0->"bike_profile_strip";1->"route_filter";else->"analysis_date" })
+                    val target=decor.findViewWithTag<View>(when(kind) { 0->"bike_profile_strip";1->"route_status";else->"analysis_identity" })
                     val header=decor.findViewWithTag<View>("bicycle_navigation_header")
                     val a=IntArray(2);val b=IntArray(2);target.getLocationOnScreen(a);header.getLocationOnScreen(b)
                     assertEquals("page $kind header/content gap",BicycleDesign.dp(activity,BicycleDesign.pageContentGap),a[1]-b[1]-header.height)

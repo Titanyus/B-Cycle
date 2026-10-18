@@ -121,7 +121,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         popup.contentView=ScrollView(context).apply {
             BicycleComponents.scrollStyle(this)
             background=android.graphics.drawable.GradientDrawable().apply {
-                setColor(themes.active.tokens.secondary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
+                setColor(themes.active.tokens.tertiary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
             }
             clipToOutline=true;addView(grid)
         }

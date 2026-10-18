@@ -31,8 +31,23 @@ internal class RouteManagerView(context: Context,
     private var selected: String? = null
     private var busy = false
     private var importStatus = ""
-    private val filter = Spinner(context).apply { tag = "route_filter"; contentDescription = context.getString(R.string.ui_routes_filter) }
+    internal val query=RouteQuery()
+    var queryChanged:()->Unit={}
+    fun refreshQuery() { updateRows();queryChanged() }
+    private var queryPopup:RouteQueryPopup?=null
+    fun showFilters(anchor:View,navigation:DialogNavigation) {
+        queryPopup?.dismiss()
+        queryPopup=RouteQueryPopup(context,themes,navigation,query) { refreshQuery() }.also {
+            it.filters { showFilters(anchor,navigation) };it.show(anchor)
+        }
+    }
+    fun showSort(anchor:View,navigation:DialogNavigation) {
+        queryPopup?.dismiss()
+        queryPopup=RouteQueryPopup(context,themes,navigation,query) { refreshQuery() }.also { it.sorting();it.show(anchor) }
+    }
+    override fun onDetachedFromWindow() { queryPopup?.dismiss();super.onDetachedFromWindow() }
     private val status = BicycleFeedback.status(context, themes).apply {
+        tag="route_status"
         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
     }
     private val rows = object : BaseAdapter() {
@@ -51,34 +66,6 @@ internal class RouteManagerView(context: Context,
             addView(BicycleComponents.heading(context, themes, context.getString(R.string.ui_route_manager_title)), FrameLayout.LayoutParams(-1, -1))
         }, LayoutParams(-1, -1))
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
-        fun filterBackground(tokens: ThemeTokens) = BicycleComponents.controlBackground(context,tokens)
-        BicycleComponents.bindTheme(filter, themes) { tokens ->
-            filter.background = LayerDrawable(arrayOf(filterBackground(tokens), BicycleIcons.drawable(context, BicycleIcon.Expand, tokens.foreground))).apply {
-                setLayerSize(1, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize))
-                setLayerGravity(1, Gravity.END or Gravity.CENTER_VERTICAL); setLayerInsetEnd(1, dp(BicycleDesign.horizontalPadding))
-            }
-            filter.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(context,tokens))
-        }
-        filter.adapter = object : ArrayAdapter<String>(context, android.R.layout.simple_spinner_dropdown_item, listOf(context.getString(R.string.ui_routes_filter_all), context.getString(R.string.ui_routes_filter_recorded), context.getString(R.string.ui_routes_filter_imported))) {
-            private fun row(position: Int, recycled: View?, dropdown: Boolean): View =
-                ((recycled as? TextView) ?: BicycleComponents.text(context, themes, "").apply {
-                    gravity = Gravity.CENTER_VERTICAL; minHeight = dp(BicycleDesign.touchSize)
-                    BicycleComponents.bindTheme(this, themes) { setTextColor(it.foreground); setBackgroundColor(if (dropdown) it.secondary else Color.TRANSPARENT) }
-                }).apply {
-                    text = getItem(position); textSize = BicycleDesign.choiceSp
-                    setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(if (dropdown) BicycleDesign.horizontalPadding else BicycleDesign.touchSize), dp(BicycleDesign.verticalPadding))
-                }
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup) = row(position, convertView, false)
-            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup) = row(position, convertView, true)
-        }
-        addView(filter, LayoutParams(-1, dp(BicycleDesign.touchSize)).apply {
-            setMargins(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), dp(BicycleDesign.verticalPadding), 0)
-        })
-        BicycleComponents.controlSpacing(filter)
-        filter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { updateRows() }
-        }
         addView(status, LayoutParams(-1, -2))
         addView(ListView(context).apply {
             tag = "route_list"; adapter = rows; dividerHeight = BicycleDesign.linePixels(context)
@@ -105,9 +92,7 @@ internal class RouteManagerView(context: Context,
         }, hideWhenEmpty = true)
     }
     private fun updateRows() {
-        filtered = all.filter { when (filter.selectedItemPosition) {
-            1 -> it.origin == TrackOrigin.RECORDED; 2 -> it.origin == TrackOrigin.IMPORTED; else -> true
-        } }
+        filtered = query.apply(all,{ RideProfileColor.slot(context,it) })
         updateStatus()
         rows.notifyDataSetChanged()
     }
@@ -225,6 +210,7 @@ internal class RouteManagerView(context: Context,
             average.bind(route.details.movingAverageKmh?.let { String.format(Locale.GERMANY, "%.1f", it) }, route.id, "average")
             metrics.tag = "route_metrics_${route.id}"
             preview.points = route.details.preview; preview.contentDescription = if (route.hasRoute) context.getString(R.string.ui_route_preview) else context.getString(R.string.ui_route_no_gps)
+            eye.visibility=if(route.hasRoute) VISIBLE else GONE
             eye.tag = "route_eye_${route.id}"; eye.isEnabled = !busy && route.hasRoute && route.locallySaved
             eye.contentDescription = context.getString(if (selected == route.id) R.string.route_list_hide_named else R.string.route_list_show_named, route.name)
             paintState(themes.active.tokens)

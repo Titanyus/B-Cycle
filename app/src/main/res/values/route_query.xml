@@ -1,0 +1,30 @@
+<resources>
+    <string name="route_filter_button">Filter</string>
+    <string name="route_filter_count">Filter · %1$d</string>
+    <string name="route_sort_button">Sortieren</string>
+    <string name="route_filter_kind">Streckenart</string>
+    <string name="route_filter_bike">Fahrrad</string>
+    <string name="route_filter_unknown_bike">Ohne Zuordnung</string>
+    <string name="route_filter_date">Datum</string>
+    <string name="route_filter_distance">Distanz (km)</string>
+    <string name="route_filter_moving">Bewegungszeit</string>
+    <string name="route_time_from">Von (h:mm)</string>
+    <string name="route_time_to">Bis (h:mm)</string>
+    <string name="route_filter_speed">Ø Geschwindigkeit (km/h)</string>
+    <string name="route_filter_from">Von</string>
+    <string name="route_filter_to">Bis</string>
+    <string name="route_filter_all">Alle</string>
+    <string name="route_filter_range">Ohne Begrenzung</string>
+    <string name="route_filter_reset">Filter zurücksetzen</string>
+    <string name="route_filter_invalid">Gültigen Bereich eingeben.</string>
+    <string name="route_week_this">Diese Woche</string>
+    <string name="route_week_last">Letzte Woche</string>
+    <string name="route_month_this">Dieser Monat</string>
+    <string name="route_month_last">Letzter Monat</string>
+    <string name="route_sort_field">Sortieren nach</string>
+    <string name="route_sort_direction">Reihenfolge</string>
+    <string name="route_sort_up">Aufsteigend</string>
+    <string name="route_sort_down">Absteigend</string>
+    <string name="notification_position_heading">Benachrichtigungsposition</string>
+    <string name="route_file_identity">%1$s · %2$s</string>
+</resources>

@@ -14,7 +14,7 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         orientation=VERTICAL
         val gap=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
         setPadding(gap,0,gap,gap)
-        addView(Switch(context).apply {
+        val enabled=Switch(context).apply {
             tag="notifications_enabled";setText(R.string.notifications_enable);isChecked=settings.enabled
             BicycleDialogStyle.control(this,themes)
             setOnCheckedChangeListener { _,enabled ->
@@ -22,10 +22,27 @@ internal class MessageNotificationSettingsView(context: Context, private val the
                 if(enabled && !settings.granted) requestAccess()
                 refreshAccess()
             }
-        },LayoutParams(-1,-2))
-        addView(access,LayoutParams(-1,-2))
-        addView(BicycleComponents.action(context,themes,context.getString(R.string.notifications_access)) { requestAccess() },LayoutParams(-1,-2))
-        addView(BicycleComponents.description(context,themes,context.getString(R.string.notifications_privacy)),LayoutParams(-1,-2))
+        }
+        val details=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="notification_access_details" }
+        details.addView(access,LayoutParams(-1,-2))
+        details.addView(BicycleComponents.action(context,themes,context.getString(R.string.notifications_access)) { requestAccess() },LayoutParams(-1,-2))
+        details.addView(BicycleComponents.description(context,themes,context.getString(R.string.notifications_privacy)),LayoutParams(-1,-2))
+        addView(LinearLayout(context).apply {
+            tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
+            enabled.gravity=Gravity.START or Gravity.CENTER_VERTICAL
+            addView(enabled,LayoutParams(0,-1,1f))
+            val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.notifications_enable)) {}.apply {
+                tag="notification_access_expand";stateDescription=context.getString(R.string.zone_collapsed)
+                setOnClickListener {
+                    val open=details.visibility==GONE;details.visibility=if(open) VISIBLE else GONE
+                    rotation=if(open) 180f else 0f
+                    stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
+                }
+            }
+            addView(expand,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
+        },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
+        addView(details,LayoutParams(-1,-2))
+        addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.notification_position_heading)),LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
         val tiles=mutableMapOf<MessagePosition,View>()
         fun paint(tile:View,tokens:ThemeTokens) {
             tile.background=android.graphics.drawable.GradientDrawable().apply {
@@ -69,7 +86,7 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         fun label(seconds: Int)=context.getString(R.string.notifications_seconds,seconds)
         value.text=label(settings.durationSeconds);value.gravity=Gravity.CENTER
         duration.addView(value,GridLayout.LayoutParams(GridLayout.spec(0),GridLayout.spec(1,1f)).apply {
-            width=0;setGravity(Gravity.FILL_HORIZONTAL)
+            width=0;setGravity(Gravity.FILL_HORIZONTAL);bottomMargin=-BicycleDesign.dp(context,BicycleDesign.controlGap)
         })
         val slider=SeekBar(context).apply {
             id=View.generateViewId()

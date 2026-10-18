@@ -47,7 +47,7 @@ class RouteManagerViewTest {
         val view = RouteManagerView(context, { clicked += it }, details = { clicked += it }).apply { layoutDirection = resources.configuration.layoutDirection }
         val preview = listOf(MapPoint(50.0, 8.0, true), MapPoint(50.01, 8.01), MapPoint(50.02, 8.0))
         val entries = (0..19).map { i -> ManagedRoute("route-$i", "Testrunde $i", i % 2 == 0,
-            if (i % 2 == 0) "FIT" else "GPX", RouteDetails(1_791_626_400_000, 52300.0, 9000000, preview, movingMs = 8280000), i != 0, locallySaved = true) }
+            if (i % 2 == 0) "FIT" else "GPX", RouteDetails(1_791_626_400_000, 52300.0, 9000000, preview, movingMs = 8280000,bikeType=BikeType.EBIKE), i != 0, locallySaved = true) }
         fun measure(width: Int = 1080, height: Int = 1700) {
             view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.AT_MOST))
             view.layout(0, 0, width, view.measuredHeight)
@@ -55,7 +55,7 @@ class RouteManagerViewTest {
         view.submit(entries, "route-1", false)
         shadowOf(Looper.getMainLooper()).idle(); measure()
         val list = view.findViewWithTag<ListView>("route_list")
-        val filter = view.findViewWithTag<Spinner>("route_filter")
+        assertNull(view.findViewWithTag<View>("route_filter"))
         assertEquals(20, list.adapter.count)
         val firstCard = list.adapter.getView(1, null, list)
         assertNull(firstCard.background)
@@ -83,21 +83,20 @@ class RouteManagerViewTest {
         assertNull(firstCard.findViewWithTag<View>("route_local_route-1"))
         assertNull(firstCard.findViewWithTag<View>("route_storage_route-1"))
         assertTrue(list.height > 0)
-        assertFalse(view.findViewWithTag<View>("route_eye_route-0").isEnabled)
+        assertEquals(View.GONE,view.findViewWithTag<View>("route_eye_route-0").visibility)
         firstCard.performClick(); assertEquals(entries[1], clicked.last())
         val count = clicked.size
         eye.performClick(); assertEquals(count + 1, clicked.size); assertEquals(entries[1], clicked.last())
         assertNull(view.findViewWithTag<View>("route_settings"))
-        val top = filter.top
-        list.setSelection(14); measure(); assertEquals(top, filter.top)
-        filter.setSelection(1); shadowOf(Looper.getMainLooper()).idle(); measure()
+        list.setSelection(14); measure()
+        view.query.kinds=setOf(RouteKind.EBIKE);view.refreshQuery(); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertEquals(10, list.adapter.count); assertTrue((list.adapter.getItem(0) as ManagedRoute).recorded)
-        view.submit(entries, null, true); assertEquals(1, filter.selectedItemPosition)
+        view.submit(entries, null, true); assertEquals(setOf(RouteKind.EBIKE),view.query.kinds)
         assertFalse(descendants(view).filterIsInstance<TextView>().any { it.text.toString().contains("Dateien werden verarbeitet") })
         assertFalse(list.adapter.getView(0, null, list).findViewWithTag<View>("route_eye_route-0").isEnabled)
-        filter.setSelection(2); shadowOf(Looper.getMainLooper()).idle(); measure()
+        view.query.kinds=setOf(RouteKind.IMPORTED);view.refreshQuery(); shadowOf(Looper.getMainLooper()).idle(); measure()
         assertEquals(10, list.adapter.count); assertFalse((list.adapter.getItem(0) as ManagedRoute).recorded)
-        view.submit(entries, null, false); filter.setSelection(0); shadowOf(Looper.getMainLooper()).idle(); measure()
+        view.submit(entries, null, false); view.query.clearFilters();view.refreshQuery(); shadowOf(Looper.getMainLooper()).idle(); measure()
         val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         view.draw(Canvas(bitmap))
         File("build/reports/settings/route-manager.png").apply { parentFile!!.mkdirs(); outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) } }
@@ -114,7 +113,7 @@ class RouteManagerViewTest {
             activity.setContentView(manager)
             val preview = listOf(MapPoint(50.0, 8.0, true), MapPoint(50.01, 8.01), MapPoint(50.02, 8.0))
             val entries = listOf(
-                ManagedRoute("recorded", "Meine sehr lange selbst aufgezeichnete Rennradtour im Herbst", true, "FIT", RouteDetails(1791626400000, 60700.0, 9000000, preview, 432.0, movingMs = 8400000), true, TrackOrigin.RECORDED, true),
+                ManagedRoute("recorded", "Meine sehr lange selbst aufgezeichnete Rennradtour im Herbst", true, "FIT", RouteDetails(1791626400000, 60700.0, 9000000, preview, 432.0, movingMs = 8400000,bikeType=BikeType.EBIKE), true, TrackOrigin.RECORDED, true),
                 ManagedRoute("imported", "Importierte Strecke", false, "GPX", RouteDetails(1791626400000, 53700.0, 7500000, preview, movingMs = 6780000), true, TrackOrigin.IMPORTED, true),
                 ManagedRoute("unknown", "Fehlende Originaldatei", false, "FIT", RouteDetails(distanceM = 1000.0, durationMs = 600000), false, TrackOrigin.UNKNOWN, false))
             manager.submit(entries, "recorded", false)
@@ -174,12 +173,12 @@ class RouteManagerViewTest {
             assertEquals(before, geometry())
             assertEquals(light.tokens.foreground, manager.findViewWithTag<TextView>("route_name_recorded").currentTextColor)
             snapshot("route-manager-light")
-            val filter = manager.findViewWithTag<Spinner>("route_filter")
-            filter.setSelection(1); shadowOf(Looper.getMainLooper()).idle(); layout(1080, 1750)
+            assertNull(manager.findViewWithTag<View>("route_filter"))
+            manager.query.kinds=setOf(RouteKind.EBIKE);manager.refreshQuery(); shadowOf(Looper.getMainLooper()).idle(); layout(1080, 1750)
             assertEquals(1, manager.findViewWithTag<ListView>("route_list").count)
-            filter.setSelection(2); shadowOf(Looper.getMainLooper()).idle(); layout(1080, 1750)
+            manager.query.kinds=setOf(RouteKind.IMPORTED);manager.refreshQuery(); shadowOf(Looper.getMainLooper()).idle(); layout(1080, 1750)
             assertEquals(1, manager.findViewWithTag<ListView>("route_list").count)
-            filter.setSelection(0); shadowOf(Looper.getMainLooper()).idle(); layout(1080, 1750)
+            manager.query.clearFilters();manager.refreshQuery(); shadowOf(Looper.getMainLooper()).idle(); layout(1080, 1750)
             themes.activate(BicycleThemes.red.id)
             manager.submit(entries, null, false); layout(840, 1500); snapshot("route-manager-narrow")
             descendants(manager.findViewWithTag<View>("route_metrics_recorded")).filterIsInstance<TextView>().filter { it.tag != null }.forEach {

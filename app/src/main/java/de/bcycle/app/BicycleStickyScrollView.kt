@@ -28,7 +28,7 @@ internal open class BicycleStickyScrollView(context: Context) : ScrollView(conte
         return top
     }
     override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
-        if(childCount>0) BicycleContentSpacing.sections(getChildAt(0))
+        if(childCount>0) { BicycleForm.accordions(getChildAt(0));BicycleContentSpacing.sections(getChildAt(0)) }
         super.onMeasure(widthMeasureSpec,heightMeasureSpec)
     }
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {

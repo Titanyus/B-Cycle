@@ -22,7 +22,7 @@ internal class BikeQuickPicker(anchor:View,themes:ThemeManager,profiles:List<Bik
             setPadding(gap,gap,gap,gap)
             BicycleComponents.bindTheme(this,themes) { tokens ->
                 background=android.graphics.drawable.GradientDrawable().apply {
-                    setColor(tokens.secondary);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
+                    setColor(tokens.tertiary);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
                 }
             }
             clipToOutline=true

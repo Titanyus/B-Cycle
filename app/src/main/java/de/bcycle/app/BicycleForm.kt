@@ -19,6 +19,25 @@ internal object BicycleForm {
             })
         }
     }
+    /** Upgrade unbound sticky sections once; preserve existing accordion state and rename headers. */
+    fun accordions(root:android.view.View) {
+        if(root !is android.view.ViewGroup) return
+        if(root is LinearLayout && root.orientation==LinearLayout.VERTICAL) {
+            var i=0
+            while(i<root.childCount) {
+                val header=root.getChildAt(i) as? BicycleSectionHeader
+                if(header!=null && header.expanded==null && header.tag!="bike_name_header") {
+                    val body=LinearLayout(root.context).apply { orientation=LinearLayout.VERTICAL;tag="sticky_accordion_content" }
+                    while(i+1<root.childCount && root.getChildAt(i+1) !is BicycleSectionHeader) {
+                        val child=root.getChildAt(i+1);root.removeViewAt(i+1);body.addView(child,child.layoutParams)
+                    }
+                    root.addView(body,i+1,LinearLayout.LayoutParams(-1,-2));header.accordion(body)
+                }
+                i++
+            }
+        }
+        (0 until root.childCount).map(root::getChildAt).forEach(::accordions)
+    }
     fun outlinedInput(edit: TextView, themes: ThemeManager, numeric: Boolean=false) {
         BicycleDialogStyle.control(edit,themes)
         if(numeric) edit.apply {

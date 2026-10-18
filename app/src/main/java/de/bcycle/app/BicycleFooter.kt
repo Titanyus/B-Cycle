@@ -11,6 +11,8 @@ internal class BicycleFooterAction(context: Context, themes: ThemeManager, icon:
     label: String, description: String = label, click: () -> Unit) : LinearLayout(context) {
     internal val image = ImageView(context)
     private var currentIcon = icon
+    private lateinit var labelView:TextView
+    fun setLabel(text:String) { labelView.text=text;contentDescription=text }
     init {
         orientation = VERTICAL; gravity = Gravity.CENTER
         minimumHeight = BicycleDesign.dp(context, BicycleDesign.footerHeight)
@@ -25,6 +27,7 @@ internal class BicycleFooterAction(context: Context, themes: ThemeManager, icon:
             setAutoSizeTextTypeUniformWithConfiguration(8, BicycleDesign.footerLabelSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
         }
+        labelView=caption
         addView(caption, LayoutParams(-1, -2).apply { topMargin = BicycleDesign.dp(context, BicycleDesign.smallGap) })
         BicycleComponents.bindTheme(this, themes) { tokens ->
             image.setImageDrawable(BicycleIcons.drawable(context, currentIcon, tokens.foreground))

@@ -40,7 +40,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
     init {
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
-        val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal } else
+        val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP) } else
             listOf(SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.ROUTES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.linePixels(context)))

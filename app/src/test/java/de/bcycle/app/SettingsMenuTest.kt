@@ -67,8 +67,8 @@ class SettingsMenuTest {
             assertNotSame(menu,advanced);assertEquals(View.GONE,menu.window!!.decorView.visibility)
             assertFalse(views(advanced).any { it.tag == "settings_build_info" || it.tag == "settings_brand_art" })
             val rows=descendants(views(advanced).filterIsInstance<SettingsMenuView>().single()).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-            assertEquals(7,rows.size)
-            assertEquals("settings_FONT_LICENSE",rows[5].tag);assertEquals("settings_MAP_LICENSE",rows[6].tag)
+            assertEquals(5,rows.size)
+            assertEquals("settings_FONT_LICENSE",rows[3].tag);assertEquals("settings_MAP_LICENSE",rows[4].tag)
             rows.forEach { assertEquals(BicycleDesign.dp(controller.get(),BicycleDesign.touchSize),it.minimumHeight) }
             testBack(advanced);assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
@@ -191,7 +191,7 @@ class SettingsMenuTest {
             val prefs = activity.getSharedPreferences("bike", 0)
             val custom = DashboardLayout.defaults.replace(0, DashboardField("HEART_RATE")).encode()
             prefs.edit().putString("dashboard", custom).commit()
-            for (action in SettingsAction.entries.filter { it !in listOf(SettingsAction.ADVANCED,SettingsAction.SENSORS,SettingsAction.MAP,SettingsAction.DASHBOARDS) }) {
+            for (action in SettingsAction.entries.filter { it !in listOf(SettingsAction.ADVANCED,SettingsAction.SENSORS,SettingsAction.MAP,SettingsAction.DASHBOARDS,SettingsAction.RECOVERY,SettingsAction.GPS_HELP) }) {
                 val menu = open(activity)
                 var parent=menu
                 if (action.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal)

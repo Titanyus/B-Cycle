@@ -31,7 +31,7 @@ object BicycleThemes {
     private fun color(hex:String)=(0xff000000L or hex.toLong(16)).toInt()
     private fun family(id:String,name:String,primary:String,secondary:String,tertiary:String,darkSecondary:String,darkTertiary:String):List<PresetTheme> {
         fun theme(dark:Boolean):PresetTheme {
-            val t=ThemeTokens(color(primary),color(if(dark) darkSecondary else secondary),color(if(dark) darkTertiary else tertiary),0xffffffff.toInt(),color(if(dark) primary else "FFFFFF"))
+            val t=ThemeTokens(color(primary),color(if(dark) darkSecondary else secondary),color(if(dark) darkTertiary else tertiary),0xffffffff.toInt(),color(primary))
             val roles=listOf(ThemeRole.PRIMARY,ThemeRole.SECONDARY,ThemeRole.TERTIARY)
             // These exact fixed palettes were chosen by the user; custom-theme checks remain strict.
             val approved=roles.filter { ThemeValidator.contrast(t.foreground,t.color(it))<ThemeValidator.minimumTextContrast }.toSet()
@@ -41,13 +41,13 @@ object BicycleThemes {
         return listOf(theme(false),theme(true))
     }
     val presets:List<PresetTheme> = java.util.Collections.unmodifiableList(listOf(
-        family("hellfire","HELLFIRE","BF281B","812218","550E08","0F0A09","211918"),
-        family("solar-flare","SOLAR FLARE","F16A09","B64E01","863701","100B08","221A15"),
-        family("sunstruck","SUNSTRUCK","E9AF00","B78901","8F6A00","100E07","242014"),
-        family("acid-pop","ACID POP","7ACD04","5EA000","477B01","0A0F07","192215"),
-        family("deep-dive","DEEP DIVE","06B5A1","018979","006559","07100F","142221"),
-        family("blue-riot","BLUE RIOT","145CD7","003998","00215E","080B10","151B23"),
-        family("purple-haze","PURPLE HAZE","9224E0","6601A1","400068","0B0910","1A1624")
+        family("hellfire","HELLFIRE","BF281B","161522","282735","0F0A09","211918"),
+        family("solar-flare","SOLAR FLARE","F16A09","161522","282735","100B08","221A15"),
+        family("sunstruck","SUNSTRUCK","E9AF00","161522","282735","100E07","242014"),
+        family("acid-pop","ACID POP","7ACD04","161522","282735","0A0F07","192215"),
+        family("deep-dive","DEEP DIVE","06B5A1","161522","282735","07100F","142221"),
+        family("blue-riot","BLUE RIOT","145CD7","161522","282735","080B10","151B23"),
+        family("purple-haze","PURPLE HAZE","9224E0","161522","282735","0B0910","1A1624")
     ).flatten())
     val red get()=presets.first()
     private val legacyIds=mapOf(

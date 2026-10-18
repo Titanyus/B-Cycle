@@ -992,7 +992,15 @@ class MainActivity : Activity() {
         val import = BicycleFooterAction(settingsContext, settingsThemes, BicycleIcon.Import, getString(R.string.footer_import_route)) {
             if (!state.busy) routeImportChoice()
         }.apply { tag = "route_import"; isEnabled = !state.busy }
-        footer.addView(import, LinearLayout.LayoutParams(dp(BicycleDesign.footerHeight * 2), dp(BicycleDesign.footerHeight)))
+        footer.addView(import,LinearLayout.LayoutParams(0,dp(BicycleDesign.footerHeight),1f))
+        val filterAction=BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.Filter,getString(R.string.route_filter_button)) {
+            content.showFilters(footer.findViewWithTag("route_filters"),dialogs)
+        }.apply { tag="route_filters" }
+        footer.addView(filterAction,LinearLayout.LayoutParams(0,dp(BicycleDesign.footerHeight),1f))
+        footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.Sort,getString(R.string.route_sort_button)) {
+            content.showSort(footer.findViewWithTag("route_sort"),dialogs)
+        }.apply { tag="route_sort" },LinearLayout.LayoutParams(0,dp(BicycleDesign.footerHeight),1f))
+        content.queryChanged={ filterAction.setLabel(if(content.query.activeCount>0) getString(R.string.route_filter_count,content.query.activeCount) else getString(R.string.route_filter_button)) }
         val root = LinearLayout(settingsContext).apply {
             orientation = LinearLayout.VERTICAL
             addView(content, LinearLayout.LayoutParams(-1, 0, 1f))

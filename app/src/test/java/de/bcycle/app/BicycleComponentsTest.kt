@@ -24,7 +24,7 @@ class BicycleComponentsTest {
             val spinner=android.widget.Spinner(activity).apply { adapter=android.widget.ArrayAdapter(activity,android.R.layout.simple_spinner_dropdown_item,listOf("A","B")) }
             BicycleDialogStyle.spinner(spinner,themes)
             val popupBackground=spinner.popupBackground as GradientDrawable
-            assertEquals(themes.active.tokens.secondary,popupBackground.color!!.defaultColor)
+            assertEquals(themes.active.tokens.tertiary,popupBackground.color!!.defaultColor)
             assertEquals(BicycleDesign.dp(activity,BicycleDesign.inputRadius).toFloat(),popupBackground.cornerRadius,0f)
             val popupPadding=android.graphics.Rect();assertTrue(popupBackground.getPadding(popupPadding))
             assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlBorder),popupPadding.left)
@@ -125,7 +125,7 @@ class BicycleComponentsTest {
             assertEquals(tokens.accent, BicycleIcons.color(tokens, BicycleIcon.CloudUploaded))
             assertEquals(tokens.foreground, BicycleIcons.color(tokens, BicycleIcon.ShowOnMap))
             manager.activate(BicycleThemes.red.id)
-            assertEquals(BicycleThemes.red.tokens.foreground and 0xffffff, pixel(highlight) and 0xffffff)
+            assertEquals(BicycleThemes.red.tokens.accent and 0xffffff, pixel(highlight) and 0xffffff)
         } finally { controller.pause().stop().destroy() }
     }
 
@@ -150,7 +150,7 @@ class BicycleComponentsTest {
             val width=first.buttonDrawable!!.intrinsicWidth
             first.performClick();second.performClick()
             assertTrue(first.isChecked);assertTrue(second.isChecked)
-            assertEquals(themes.active.tokens.foreground,draw(first).getPixel(24,24))
+            assertEquals(themes.active.tokens.accent,draw(first).getPixel(24,24))
             first.performClick();assertFalse(first.isChecked);assertTrue(second.isChecked)
             assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,24)))
             val light=CustomTheme("custom:circle-light","Light",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),0xff000000.toInt()))

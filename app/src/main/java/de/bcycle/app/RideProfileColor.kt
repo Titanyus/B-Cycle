@@ -15,6 +15,9 @@ internal object RideProfileColor {
         val row=JSONObject(json);row.getInt("slot");row.getInt("primary")
         check(context.getSharedPreferences(STORE,0).edit().putString(id,row.toString()).commit())
     }
+    fun slot(context:Context,id:String):Int?=runCatching {
+        context.getSharedPreferences(STORE,0).getString(id,null)?.let(::JSONObject)?.getInt("slot")
+    }.getOrNull()
     fun name(context:Context,id:String):String?=runCatching {
         val row=context.getSharedPreferences(STORE,0).getString(id,null)?.let(::JSONObject) ?: return null
         val prefs=context.getSharedPreferences("bike",0)
