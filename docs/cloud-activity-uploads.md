@@ -164,3 +164,11 @@ RideServiceLinksTest (3) und RouteExportTest (7). Release-Build inklusive R8
 und lintVital erfolgreich. Keine übersprungenen Tests. Kein
 realer Strava-/Dreeve-Upload mit Nutzerdaten; diese Verifikation steht auf dem
 Gerät aus. BLE-Anzahl zusätzlich auf realen Geräten prüfen.
+
+## Vorgemerkt: Dreeve-Bestätigung und Statusanzeige verbessern (18.10.2026)
+
+Nutzer bestätigt erfolgreichen echten API-Upload. B|CYCLE bleibt jedoch sehr lange oder dauerhaft bei „Übertragung / Verarbeitung“ beziehungsweise Wartestatus stehen. Noch keine Funktionsänderung vornehmen, keine APK hierfür bauen.
+
+Aktueller Codepfad: POST /api/v1/activity/upload erwartet HTTP 202 mit status=queued. Das gilt nur als Annahme. Eine spätere Abfrage von GET /api/v1/file-imports mit filters[filename] und pagination[size]=100 sucht exakt den dauerhaft gespeicherten eindeutigen Dateinamen und source=fitFile. Erst status=success mit activityId bestätigt Erfolg und schreibt die externe Zuordnung. Bei fortgesetzter Verarbeitung wird jobFinished(..., true) genutzt: Android-JobScheduler-Backoff beginnt bei 60 Sekunden, exponentiell, tatsächliche Ausführung kann später erfolgen. Kein zeitnaher separater Bestätigungsabruf nach dem POST. Bei bereits angenommener Operation ohne gefundenen Import bleibt processing bestehen, ohne erneuten POST.
+
+Für die spätere Korrektur prüfen: Annahme und laufenden Import im UI klar unterscheiden; nach Annahme begrenzte zeitnahe Bestätigungsabfragen statt exponentiellem Fehler-Backoff für reguläre Verarbeitung; Fehler-Backoff separat erhalten. Reale Dreeve-Antworten auf Dateiname, Quellen-/Statuswerte, Aktivitäts-ID und Pagination abgleichen, bevor ein dauerhafter Zuordnungsfehler angenommen wird. Unaufgelöste angenommene Importe sichtbar diagnostizieren, nicht endlos scheinbar übertragen und nicht blind erneut hochladen. Vorhandene externe IDs, Duplikatschutz und Unabhängigkeit aller Dienste erhalten. Ursache am konkreten Server noch nicht nachgewiesen; Quellcode erklärt jedoch bereits die verspätete Bestätigungsabfrage.
