@@ -61,15 +61,25 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8 – optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8/downloads/B-Cycle-0.8.apk)**
+**[Version 0.8.1 – neue optimierte APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.1/downloads/B-Cycle-0.8.1.apk)**
 
-**Meilenstein 0.8 vom 18.10.2026.** Optimierter Release mit R8 und Ressourcenverkleinerung,
-mit bisherigem Testschlüssel signiert und als Update installierbar.
-**1,7 MB statt 8,3 MB; vollständige Testsuite: 608 Tests bestanden.**
-[Meilenstein, Änderungen und SHA-256](docs/milestone-0.8.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39073752384).
-Ein physischer Gerätetest der optimierten APK steht noch aus.
+**Build 35 vom 18.10.2026**, rund **1,8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung.
+Die zugehörigen gezielten Tests einschließlich Garmin-FIT-Validierung sind bestanden.
+[Änderungen und SHA-256](docs/build-35.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.1) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39102855713).
+Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
+Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.1
+
+- Übersetzbare lokale Hilfeseiten über Info im Header; Umbenennen über den Streckentitel bleibt erhalten.
+- Upload-Menü mit eigenem Status/Haken je Dienst und direktem Konfigurieren; neuer Streckendetail-Footer.
+- Segmentierte Trainingshilfe: Aus, Alle Zonen, Zone 2.
+- Indoor-Auswahl Hometrainer/Rollentrainer (Rollentrainer noch deaktiviert).
+- Helle Auswahlrahmen/Flächen, lesbarer Datumsdialog, einheitliche Auswahltexte und Sensoricons.
+- Bosch-Fahrmodus als Schalter-/Accordion-Zeile in Design & UI; FIT-Gerätename B|CYCLE.
 
 ## Neu in APK 0.8
 
