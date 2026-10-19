@@ -9,6 +9,7 @@ import android.widget.ListView
 /** Spacing belongs to content, never to a pinned heading. Reapplying is idempotent. */
 internal object BicycleContentSpacing {
     fun page(view:View) {
+        if(view is RouteManagerView) { view.applyPageSpacing();return }
         val scrolling=view
         val body=when(scrolling) { is ScrollView->scrolling.getChildAt(0) ?: view;is ListView->scrolling;else->view }
         // Remove outer wrapper insets on the path to the actual scrolling content.

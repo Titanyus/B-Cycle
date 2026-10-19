@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.cos
 
-/** Fixed header/filter, one native recycled list, no per-row decoding or disk/network I/O. */
+/** Fixed header, one native recycled list, no per-row decoding or disk/network I/O. */
 internal class RouteManagerView(context: Context,
     private val toggle: (ManagedRoute) -> Unit,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
@@ -50,7 +50,11 @@ internal class RouteManagerView(context: Context,
         tag="route_status"
         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
     }
-    private val rows = object : BaseAdapter() {
+    private var routeSections=RouteListSections(emptyList(),RouteSort.DATE,context.getString(R.string.ui_field_missing_value))
+    private val rows = object : BaseAdapter(), SectionIndexer {
+        override fun getSections():Array<String> = routeSections.labels
+        override fun getPositionForSection(sectionIndex:Int)=routeSections.position(sectionIndex)
+        override fun getSectionForPosition(position:Int)=routeSections.section(position)
         override fun getCount() = filtered.size
         override fun getItem(position: Int) = filtered[position]
         override fun getItemId(position: Int) = position.toLong()
@@ -71,12 +75,22 @@ internal class RouteManagerView(context: Context,
             tag = "route_list"; adapter = rows; dividerHeight = BicycleDesign.linePixels(context)
             setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
             BicycleComponents.scrollStyle(this)
+            isFastScrollEnabled=true
+            isFastScrollAlwaysVisible=false
             BicycleComponents.bindTheme(this, themes) {
                 divider = ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }; dividerHeight = BicycleDesign.linePixels(context)
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)
                 selector = GradientDrawable().apply { setColor(it.secondary); setStroke(BicycleDesign.linePixels(context), it.foreground) }
             }
         }, LayoutParams(-1, 0, 1f))
+    }
+    internal fun applyPageSpacing() {
+        // The initial gap scrolls away with the first row, rather than masking the list below the header.
+        setPadding(paddingLeft,0,paddingRight,paddingBottom)
+        findViewWithTag<ListView>("route_list").apply {
+            setPadding(paddingLeft,dp(BicycleDesign.pageContentGap),paddingRight,paddingBottom)
+            clipToPadding=false
+        }
     }
     fun submit(entries: List<ManagedRoute>, active: String?, working: Boolean) {
         all = entries; selected = active; busy = working; updateRows()
@@ -94,6 +108,7 @@ internal class RouteManagerView(context: Context,
     private fun updateRows() {
         filtered = query.apply(all,{ RideProfileColor.slot(context,it) })
         updateStatus()
+        routeSections=RouteListSections(filtered,query.sort,context.getString(R.string.ui_field_missing_value))
         rows.notifyDataSetChanged()
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
