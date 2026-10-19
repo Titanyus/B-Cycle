@@ -12,64 +12,62 @@ internal class PedalingAverage {
     fun reset() { count = 0; value = null }
 }
 
-/** One observation per second and at most 12 points per average, independent of UI redraw frequency. */
+/** Display-only, time-weighted current values compared with the existing ride averages. */
 internal class AverageTrends {
     companion object {
-        private val supportedIds=setOf("SPEED","GPS_SPEED","RIDER_POWER","CADENCE","HEART_RATE",
-            "AVERAGE_SPEED","GPS_MOVING_AVERAGE","GPS_OVERALL_AVERAGE","AVERAGE_POWER","AVERAGE_CADENCE","HEART_AVERAGE")
-        fun supports(field:DashboardField?)=field?.id in supportedIds
-    }
-    private val histories = mutableMapOf<String, ArrayDeque<Pair<Long, Double>>>()
-    private val recentPower = ArrayDeque<Pair<Long, Double>>()
-    /** Direct values reuse their corresponding average's existing trend and history. */
-    fun indicator(field: DashboardField, data: LiveData, gps: GpsValues, pulse: PulseValues, now: Long): Int {
-        val averageId = when (field.id) {
-            "SPEED" -> "AVERAGE_SPEED"
-            "GPS_SPEED" -> "GPS_MOVING_AVERAGE"
-            "RIDER_POWER" -> "AVERAGE_POWER"
-            "CADENCE" -> "AVERAGE_CADENCE"
-            "HEART_RATE" -> "HEART_AVERAGE"
-            else -> null
-        }
-        if (averageId != null) return indicator(DashboardField(averageId), data, gps, pulse, now)
-        if (field.id == "AVERAGE_POWER") {
-            val power = data.riderPowerWatts?.toDouble()
-            val average = field.averageNumber(data, gps, pulse)
-            if (power == null || average == null) { recentPower.clear(); return 0 }
-            observe(recentPower, power, now)
-            val duration = now - recentPower.first().first
-            if (duration < 8_000) return 0
-            var energy = 0.0
-            var previous = recentPower.first()
-            for (point in recentPower.drop(1)) {
-                energy += previous.second * (point.first - previous.first)
-                previous = point
+        private val aliases=mapOf("SPEED" to "AVERAGE_SPEED","GPS_SPEED" to "GPS_MOVING_AVERAGE",
+            "RIDER_POWER" to "AVERAGE_POWER","CADENCE" to "AVERAGE_CADENCE","HEART_RATE" to "HEART_AVERAGE")
+        private val averages=setOf("AVERAGE_SPEED","GPS_MOVING_AVERAGE","GPS_OVERALL_AVERAGE","AVERAGE_POWER","AVERAGE_CADENCE","HEART_AVERAGE")
+        fun supports(field:DashboardField?)=field?.id in aliases || field?.id in averages
+        internal fun level(id:String,deviation:Double,previous:Int=0):Int {
+            if(!deviation.isFinite()) return 0
+            val key=aliases[id] ?: id
+            val limits=when(key) {
+                "AVERAGE_POWER"->doubleArrayOf(2.0,20.0,40.0,1.0)
+                "HEART_AVERAGE"->doubleArrayOf(1.0,3.0,7.0,.25)
+                in averages->doubleArrayOf(1.0,5.0,15.0,.5)
+                else->return 0
             }
-            energy += previous.second * (now - previous.first)
-            return compare(energy / duration, average)
+            val magnitude=kotlin.math.abs(deviation)
+            val sign=if(deviation>=0) 1 else -1
+            val raw=when { magnitude<=limits[0]+1e-9->0;magnitude<=limits[1]+1e-9->1;magnitude<=limits[2]+1e-9->2;else->3 }
+            if(previous==0 || previous*sign<0) return raw*sign
+            var n=kotlin.math.abs(previous)
+            while(n<raw && magnitude>limits[n]+limits[3]+1e-9) n++
+            while(n>raw && magnitude<limits[n-1]-limits[3]-1e-9) n--
+            return n*sign
         }
-        return direction(field.id, field.averageNumber(data, gps, pulse), now)
     }
-    private fun observe(points: ArrayDeque<Pair<Long, Double>>, number: Double, now: Long) {
-        if (points.lastOrNull()?.let { now < it.first || now - it.first > 15_000 } == true) points.clear()
-        if (points.lastOrNull()?.let { now - it.first >= 1000 } != false) points.addLast(now to number)
-        while (points.size > 12 || points.size > 1 && now - points.elementAt(1).first >= 10_000) points.removeFirst()
+    private class Channel {
+        var window=TrainingDisplayWindow()
+        var start:Long?=null;var last:Long?=null;var level=0
     }
-    private fun compare(current: Double?, reference: Double?): Int {
-        if (current == null || reference == null || !current.isFinite() || !reference.isFinite()) return 0
-        val delta = current - reference
-        return when { delta > .000001 -> 1; delta < -.000001 -> -1; else -> 0 }
-    }
-    fun direction(id: String, number: Double?, now: Long): Int {
-        if (number == null || !number.isFinite()) { histories.remove(id); return 0 }
-        val points = histories.getOrPut(id) { ArrayDeque() }
-        observe(points, number, now)
-        val first = points.first()
-        if (now - first.first < 8_000) return 0
-        val delta = number - first.second
-        // Cumulative averages change progressively less as the ride gets longer.
-        // Ignore floating-point noise, rather than requiring a visible decimal step.
-        return when { delta > .000001 -> 1; delta < -.000001 -> -1; else -> 0 }
+    private val channels=mutableMapOf<String,Channel>()
+    fun clear() { channels.clear() }
+    fun indicator(field:DashboardField,data:LiveData,gps:GpsValues,pulse:PulseValues,now:Long):Int {
+        val key=aliases[field.id] ?: field.id
+        if(key !in averages) return 0
+        val current=when(key) {
+            "AVERAGE_POWER"->data.riderPowerWatts?.toDouble()
+            "AVERAGE_CADENCE"->data.value(LiveMetric.CADENCE)?.div(LiveMetric.CADENCE.divisor)
+            "AVERAGE_SPEED"->data.speedHundredths?.div(100.0)
+            "HEART_AVERAGE"->pulse.bpm?.toDouble()?.takeIf { it>0 }
+            else->gps.speedKmh
+        }
+        val reference=DashboardField(key).averageNumber(data,gps,pulse)
+        if(current==null || !current.isFinite() || current<0 || reference==null || !reference.isFinite() || reference<=0) {
+            channels.remove(key);return 0
+        }
+        val channel=channels.getOrPut(key) { Channel() }
+        if(channel.last?.let { now<it || now-it>5000 }==true) {
+            channel.window=TrainingDisplayWindow();channel.start=null;channel.level=0
+        }
+        channel.last=now
+        if(channel.start==null) channel.start=now
+        val mean=channel.window.update(current,now,now) ?: return 0
+        if(now-channel.start!!<3000) return 0
+        channel.level=level(key,(mean-reference)*100/reference,channel.level)
+        return channel.level
     }
 }
 
@@ -83,16 +81,11 @@ internal fun DashboardField.averageNumber(data: LiveData, gps: GpsValues, pulse:
     else -> null
 }
 
-/** Scales with the adjacent number, without affecting the number's centre or field geometry. */
-internal class AverageChevronSpan(private val direction: Int) : android.text.style.ReplacementSpan() {
-    private val line = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        style = android.graphics.Paint.Style.STROKE; strokeCap = android.graphics.Paint.Cap.ROUND; strokeJoin = android.graphics.Paint.Join.ROUND
-    }
-    override fun getSize(paint: android.graphics.Paint, text: CharSequence, start: Int, end: Int,
-                         fm: android.graphics.Paint.FontMetricsInt?) = (paint.textSize * .45f).toInt()
-    override fun draw(canvas: android.graphics.Canvas, text: CharSequence, start: Int, end: Int,
-                      x: Float, top: Int, y: Int, bottom: Int, paint: android.graphics.Paint) {
-        drawChevron(canvas, line, x, (top + bottom) / 2f, paint.textSize * .28f, direction, paint.color)
+/** One stable span; only its cached chevrons redraw while the alpha values animate. */
+internal class AverageChevronSpan(private val chevrons:TrendChevrons) : android.text.style.ReplacementSpan() {
+    override fun getSize(paint:android.graphics.Paint,text:CharSequence,start:Int,end:Int,fm:android.graphics.Paint.FontMetricsInt?)=(paint.textSize*.45f).toInt()
+    override fun draw(canvas:android.graphics.Canvas,text:CharSequence,start:Int,end:Int,x:Float,top:Int,y:Int,bottom:Int,paint:android.graphics.Paint) {
+        chevrons.draw(canvas,x,(top+bottom)/2f,paint.textSize*.28f,paint.color)
     }
 }
 

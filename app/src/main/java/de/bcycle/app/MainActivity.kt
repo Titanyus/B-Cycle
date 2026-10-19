@@ -267,6 +267,7 @@ class MainActivity : Activity() {
         if (!::dashboard.isInitialized) return
         if(::mapPanel.isInitialized && shownProfileRevision!=runtime.profileRevision) {
             shownProfileRevision=runtime.profileRevision
+            dashboard.resetTrends()
             mapPanel.refreshProfileSettings()
             changeDashboard(0)
             updateDashboardFullscreen()
@@ -282,7 +283,7 @@ class MainActivity : Activity() {
         recordingIndicator?.stop();recordingIndicator=null
         startButton.text=android.text.SpannableString("\uFFFC  \uFFFC $buttonLabel").apply {
             listOf(if(runtime.recording) BicycleIcon.StopRecording else BicycleIcon.RecordReady,BikeTypeIcons.forType(bike.type)).forEachIndexed { i,icon ->
-                val drawable=if(i==0 && runtime.recording && bike.type==BikeType.INDOOR)
+                val drawable=if(i==0 && runtime.recording)
                     RecordingButtonIndicator(this@MainActivity,runtime.themes.active.tokens.foreground) { startButton.invalidate() }.also { recordingIndicator=it }
                     else BicycleIcons.drawable(this@MainActivity,icon,runtime.themes.active.tokens.foreground)
                 drawable.setBounds(0,0,dp(20),dp(20))
@@ -308,7 +309,7 @@ class MainActivity : Activity() {
         dashboard.showDataVisibility(dashboardDataVisibility)
         dashboard.showTrendIndicators(dashboardTrendIndicators)
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
-        dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues)
+        dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues,runtime.trendBikeData)
         val placement=ModeGlowSettings.placement(preferences)
         dashboard.modeGlow.place(placement)
         // The top light belongs to the whole window, including the cutout/status inset.

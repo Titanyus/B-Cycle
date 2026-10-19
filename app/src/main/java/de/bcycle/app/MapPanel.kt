@@ -286,6 +286,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun destroy() { pause(); mapView.destroyAll() }
     internal fun refreshProfileSettings() {
+        dataFields.resetTrends()
         refreshSettings()
         mapView.setZoomLevel(preferences.getInt("mapZoom",16).coerceIn(2,source.maximumZoom).toByte())
         val lat=preferences.getFloat("mapLatitude",51f).toDouble().coerceIn(-85.0,85.0)
@@ -356,7 +357,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             MapRouteStyles.read(preferences,MapLineKind.RECORDED,night),MapRouteStyles.read(preferences,MapLineKind.SAVED,night))
     }
     private fun refreshDataFields() {
-        dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight)
+        dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight,runtime.trendBikeData)
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val dataLayout=dataFields.layoutParams

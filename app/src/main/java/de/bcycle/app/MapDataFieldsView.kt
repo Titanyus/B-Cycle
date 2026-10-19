@@ -62,15 +62,22 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
         val inset = (4 * resources.displayMetrics.density).toInt()
         setPadding(inset, 0, inset, 0)
     } }
+    private val chevrons=values.map { TrendChevrons(it) }
+    private var previousElapsed:Long?=null
+    internal fun resetTrends() { trends.clear();chevrons.forEach { it.clear() };directions.fill(0);previousElapsed=null }
     init {
         tag = "map_data_fields"; orientation = HORIZONTAL; isBaselineAligned = false
         values.forEach { addView(it, LayoutParams(0, -1, 1f)) }
         visibility = GONE
     }
     fun reload(preferences: SharedPreferences) {
-        fields = List(3) { MapFieldSelection.read(preferences, it) }
+        val next=List(3) { MapFieldSelection.read(preferences, it) }
+        if(next!=fields) { trends.clear();chevrons.forEach { it.clear() };directions.fill(0) }
+        fields = next
     }
-    fun show(data: LiveData, gps: GpsValues, bikeDistanceM: Long?, pulse: PulseValues, recording: Boolean = false, bikeLight: Boolean? = null) {
+    fun show(data: LiveData, gps: GpsValues, bikeDistanceM: Long?, pulse: PulseValues, recording: Boolean = false, bikeLight: Boolean? = null,trendData:LiveData=data) {
+        if(gps.elapsedMs!=null && previousElapsed?.let { gps.elapsedMs<it }==true) { trends.clear();chevrons.forEach { it.clear() } }
+        previousElapsed=gps.elapsedMs
         fields.forEachIndexed { index, field ->
             val batterySources=field?.batterySources
             val view=values[index]
@@ -96,15 +103,16 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
             view.gravity=Gravity.CENTER
             val value = field?.value(data, gps, bikeDistanceM, pulse)
             val next = value?.takeIf { it.available }?.text.orEmpty()
-            val direction = field?.let { trends.indicator(it, data, gps, pulse, android.os.SystemClock.elapsedRealtime()) } ?: 0
+            val direction = field?.let { trends.indicator(it, trendData, gps, pulse, android.os.SystemClock.elapsedRealtime()) } ?: 0
+            chevrons[index].update(direction)
             val hasValue = next.isNotEmpty()
             val prefix = if (hasDot) "\uFFFC" + if (hasValue || hasLight) " " else "" else ""
-            val trendPrefix = if (hasValue && direction != 0) "\uFFFC " else ""
+            val trendPrefix = if (hasValue && chevrons[index].visible) "\uFFFC " else ""
             val suffix = if (hasLight) (if (hasValue) " " else "") + "\uFFFC" else ""
             val displayed: CharSequence = if (hasDot || hasLight || trendPrefix.isNotEmpty()) android.text.SpannableString(prefix + trendPrefix + next + suffix).apply {
                 if (hasLight) setSpan(lightIcon, length - 1, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 if (hasDot) setSpan(recordingDot, 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                if (trendPrefix.isNotEmpty()) setSpan(AverageChevronSpan(direction), prefix.length, prefix.length + 1,
+                if (trendPrefix.isNotEmpty()) setSpan(AverageChevronSpan(chevrons[index]), prefix.length, prefix.length + 1,
                     android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             } else next
             if (view.text.toString() != displayed.toString() || directions[index] != direction || (index == 1 && (wasRecording != recording || wasLightOn != (bikeLight == true)))) {

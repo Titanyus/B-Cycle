@@ -67,6 +67,23 @@ class IndoorDashboardUiTest {
             host.start().resume();assertTrue(next.running)
         } finally { field.setBoolean(runtime,false);host.pause().stop().destroy() }
     }
+    @Test fun outdoorRecordingUsesTheSameAnimatedStopCue() {
+        val app=RuntimeEnvironment.getApplication();val prefs=app.getSharedPreferences("bike",0)
+        val bikes=BikeProfileStore(app,prefs);bikes.save(bikes.current().copy(type=BikeType.EBIKE,autoConnect=false))
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        val runtime=RideRuntime.get(host.get())
+        val field=RideRuntime::class.java.getDeclaredField("recording").apply { isAccessible=true }
+        try {
+            val a=host.get()
+            val render=MainActivity::class.java.getDeclaredMethod("render").apply { isAccessible=true }
+            field.setBoolean(runtime,true);render.invoke(a)
+            val button=a.window.decorView.findViewWithTag<Button>("record_bike_button")
+            val cue=(button.text as Spanned).getSpans(0,button.text.length,ImageSpan::class.java).first().drawable as RecordingButtonIndicator
+            assertTrue(cue.running)
+            button.performClick();assertEquals(RecordingService.STOP,shadowOf(a).nextStartedService.action)
+            field.setBoolean(runtime,false);render.invoke(a);assertFalse(cue.running)
+        } finally { field.setBoolean(runtime,false);host.pause().stop().destroy() }
+    }
     @Test fun recordingCueHasTwoSecondStatesWithSoftTransitions() {
         assertEquals(0f,RecordingButtonIndicator.dotAt(0),0f)
         assertEquals(0f,RecordingButtonIndicator.dotAt(1_500),0f)

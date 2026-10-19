@@ -65,7 +65,7 @@ class MapDataFieldsTest {
         view.show(LiveData(otherValues = mapOf(LiveMetric.BATTERY to 0L)), GpsValues(), null, PulseValues())
         assertEquals("0", text[2].text.toString()) // Valid zero is not an empty field.
     }
-    @Test fun liveMapValueReusesHiddenAverageTrendInsteadOfInstantaneousComparison() {
+    @Test fun liveMapValueShowsStrengthOfSmoothedCurrentValueRelativeToItsAverage() {
         val context=RuntimeEnvironment.getApplication();val prefs=context.getSharedPreferences("map_trend_test",0)
         prefs.edit().clear().putString(MapFieldSelection.key(0),"HEART_RATE").commit()
         val view=MapDataFieldsView(context);view.reload(prefs)
@@ -73,15 +73,20 @@ class MapDataFieldsTest {
         for(second in 0..10) {
             if(second>0) org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1))
             view.show(LiveData(),GpsValues(),null,PulseValues(bpm=100,average=130.0+second))
-            if(second<8) assertEquals("100",text.text.toString()) else {
+            if(second<3) assertEquals("100",text.text.toString()) else {
                 val span=text.text as android.text.Spanned
                 assertEquals(1,span.getSpans(0,span.length,AverageChevronSpan::class.java).size)
             }
         }
-        // Equality of direct and average values does not hide a rising average's trend.
+        // Once the smoothing window has caught up, equality is the quiet zone.
         view.show(LiveData(),GpsValues(),null,PulseValues(bpm=140,average=140.0))
-        val span=text.text as android.text.Spanned
-        assertEquals(1,span.getSpans(0,span.length,AverageChevronSpan::class.java).size)
+        repeat(4) {
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1))
+            view.show(LiveData(),GpsValues(),null,PulseValues(bpm=140,average=140.0))
+        }
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(600))
+        view.show(LiveData(),GpsValues(),null,PulseValues(bpm=140,average=140.0))
+        assertEquals("140",text.text.toString())
         view.show(LiveData(),GpsValues(),null,PulseValues(bpm=145))
         assertEquals("145",text.text.toString())
     }

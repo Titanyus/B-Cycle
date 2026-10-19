@@ -6,7 +6,7 @@ import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.view.animation.LinearInterpolator
 
-/** Same stop action, with a display-only recording cue for Indoor's map-free dashboard. */
+/** Same stop action, with a display-only recording cue shared by every bike profile. */
 internal class RecordingButtonIndicator(context:Context,private val foreground:Int,private val redraw:()->Unit):Drawable() {
     companion object {
         const val CYCLE_MS=4_000L

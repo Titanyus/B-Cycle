@@ -20,6 +20,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         modeGlow.update(if (enabled) BoschModeColors.color(mode, names) else null, batteryPercent)
     }
     private val trends = AverageTrends()
+    internal fun resetTrends() { trends.clear();tiles.forEach { it.resetTrend() } }
     private var trendIndicators=DashboardTrendIndicators()
     internal fun showTrendIndicators(config:DashboardTrendIndicators) { trendIndicators=config }
     private val numbers = resources.getFont(R.font.bebas_neue)
@@ -60,6 +61,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var gps = GpsValues()
     private var bikeDistanceM: Long? = null
     private var pulse = PulseValues()
+    private var trendData=LiveData()
     private var landscape = false
     private var viewportWide: Boolean? = null
     private var viewportWidth = 0
@@ -105,7 +107,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 if (index > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, BicycleDesign.linePixels(context)))
                 addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(index, wide)))
             }
-            show(layout, data, gps, bikeDistanceM, pulse)
+            show(layout, data, gps, bikeDistanceM, pulse,trendData)
             return
         }
         orientation = if (wide) HORIZONTAL else VERTICAL
@@ -118,7 +120,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 right.addView(pair(indexes, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
             }
             addView(right, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-            show(layout, data, gps, bikeDistanceM, pulse)
+            show(layout, data, gps, bikeDistanceM, pulse,trendData)
             return
         }
         val groups = template.rows
@@ -132,7 +134,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
             addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(rowIndex)))
         }
-        show(layout, data, gps, bikeDistanceM, pulse)
+        show(layout, data, gps, bikeDistanceM, pulse,trendData)
     }
 
     private fun pair(indexes: List<Int>, indexed: List<Tile>) = LinearLayout(context).apply {
@@ -180,8 +182,10 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     }
 
-    fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()) {
+    fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues(),trendData:LiveData=data) {
+        if(gps.elapsedMs!=null && this.gps.elapsedMs?.let { gps.elapsedMs<it }==true) resetTrends()
         this.layout = layout; this.data = data; this.gps = gps; this.bikeDistanceM = bikeDistanceM
+        this.trendData=trendData
         this.pulse = pulse
         tiles.forEachIndexed { index, tile -> tile.show(layout.fields[index], data) }
     }
@@ -189,6 +193,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private fun line() = View(context).apply { setBackgroundColor(Color.rgb(44, 44, 44)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 
     private inner class Tile(private val index: Int) {
+        fun resetTrend() { row.direction=0;row.chevrons.clear() }
         internal val zoneGlow=ZoneAmbientGlow()
         private var zoneShown=false
         fun updateGlow() {
@@ -319,12 +324,12 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val next = field.value(data, gps, bikeDistanceM, pulse, training)
             val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), field.title(context,data, gps)) else field.title(context,data, gps)
             showCaption(field)
-            val direction = trends.indicator(field, data, gps, pulse, android.os.SystemClock.elapsedRealtime())
+            val direction = trends.indicator(field, trendData, gps, pulse, android.os.SystemClock.elapsedRealtime())
             row.direction = if(trendIndicators.enabled[index]) direction else 0
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }
                 ?.let { String.format(Locale.GERMANY, "%.1f", it) } else null
             setText(value, compactDistance ?: next.text)
-            setText(unit, if (threeColumns && next.unit == "h:mm:ss") context.getString(R.string.analysis_hours) else next.unit)
+            setText(unit, if (next.unit == "h:mm:ss") context.getString(R.string.analysis_hours) else next.unit)
             unit.visibility = if (next.unit.isEmpty()) GONE else VISIBLE
             val font = if (field.numeric) numbers else captions
             if (value.typeface !== font) value.typeface = font
@@ -338,24 +343,20 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     /** Keep the number centred in its tile, with the unit following its actual text edge. */
     private inner class ValueRow(private val value: TextView, private val unit: TextView, private val style: DashboardTileStyle) : ViewGroup(context) {
         private val threeColumns = style == DashboardTileStyle.THREE
+        val chevrons=TrendChevrons(this) { if(threeColumns) requestLayout() }
         var direction = 0
             set(next) { if (field != next) {
-                val spacingChanged = (field == 0) != (next == 0)
-                field = next; if (threeColumns && spacingChanged) requestLayout(); invalidate()
+                field = next;chevrons.update(next);if (threeColumns) requestLayout(); invalidate()
             } }
-        private val chevronPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            style = android.graphics.Paint.Style.STROKE; strokeCap = android.graphics.Paint.Cap.ROUND
-        }
         private val chevronSpace get() = kotlin.math.ceil(minOf(dp(14).toFloat(), value.textSize * .28f) + dp(style.valueUnitGap)).toInt()
         init { addView(value); addView(unit) }
         override fun dispatchDraw(canvas: android.graphics.Canvas) {
             super.dispatchDraw(canvas)
-            if (direction != 0) {
-                val size = minOf(dp(14).toFloat(), value.textSize * .28f)
+            if (chevrons.visible) {
+                val size = minOf(dp(14).toFloat(), value.textSize * .28f,height/2.4f)
                 val textWidth = value.layout?.getLineWidth(0) ?: 0f
                 val x = if (threeColumns) value.left - dp(style.valueUnitGap) - size else width / 2f - textWidth / 2f - dp(style.valueUnitGap) - size
-                drawChevron(canvas, chevronPaint, x.coerceAtLeast(0f),
-                    height / 2f, size, direction, value.currentTextColor)
+                chevrons.draw(canvas,x.coerceAtLeast(0f),height/2f,size,value.currentTextColor)
             }
         }
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -363,7 +364,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val height = MeasureSpec.getSize(heightMeasureSpec)
             if (threeColumns) {
                 if (unit.visibility != GONE) unit.measure(MeasureSpec.makeMeasureSpec(width / style.unitWidthDivisor, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
-                val reserve = (if (direction == 0) 0 else chevronSpace) + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
+                val reserve = (if (chevrons.visible) chevronSpace else 0) + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
                 value.measure(MeasureSpec.makeMeasureSpec((width - reserve).coerceAtLeast(1), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
                 setMeasuredDimension(width, height)
                 return
@@ -378,7 +379,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
         override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
             if (threeColumns) {
-                val reserve = if (direction == 0) 0 else chevronSpace
+                val reserve = if (chevrons.visible) chevronSpace else 0
                 val unitWidth = if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
                 val start = (width - reserve - value.measuredWidth - unitWidth) / 2
                 value.layout(start + reserve, 0, start + reserve + value.measuredWidth, value.measuredHeight)

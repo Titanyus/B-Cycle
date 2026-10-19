@@ -67,6 +67,13 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         (currentBikeLight?.let { mapOf(LiveMetric.BIKE_LIGHT to if (it) 1L else 0L) } ?: emptyMap()) +
         (cadenceAverage.value?.let { mapOf(LiveMetric.AVERAGE_CADENCE to kotlin.math.round(it * 2).toLong()) } ?: emptyMap()))
     private var heartSum = 0L; private var heartCount = 0
+    /** Only the trend presentation uses this freshness mask; displayed/stored measurements stay intact. */
+    internal val trendBikeData:LiveData get() {
+        val now=SystemClock.elapsedRealtime();val data=dashboardBikeData
+        return data.copy(speedHundredths=data.speedHundredths.takeIf { fresh(LiveMetric.SPEED,now) },
+            riderPowerWatts=data.riderPowerWatts.takeIf { fresh(LiveMetric.RIDER_POWER,now) },
+            otherValues=if(fresh(LiveMetric.CADENCE,now)) data.otherValues else data.otherValues-LiveMetric.CADENCE)
+    }
     private var startElapsed = 0L
     private var startUtc = 0L
     private var completedElapsedMs: Long? = null

@@ -56,9 +56,9 @@ class DashboardTrendIndicatorsTest {
             val row=all(tile).single { it.javaClass.simpleName=="ValueRow" }
             return row.javaClass.getDeclaredField("direction").apply { isAccessible=true }.getInt(row)
         }
-        assertEquals(0,direction(0));assertEquals(1,direction(1))
+        assertEquals(0,direction(0));assertEquals(3,direction(1))
         flags=flags.replace(0,true);show(11)
-        assertEquals(1,direction(0));assertEquals(1,direction(1))
+        assertEquals(3,direction(0));assertEquals(3,direction(1))
     }
     @Test fun flagsDefaultToEnabledAndPersistPerPageIncludingBackupAndFutureBikeScope() {
         assertTrue(DashboardTrendIndicators.read(prefs,0).enabled.all { it })
