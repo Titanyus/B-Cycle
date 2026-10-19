@@ -61,15 +61,22 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.6 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.6/downloads/B-Cycle-0.8.6.apk)**
+**[Version 0.8.7 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.7/downloads/B-Cycle-0.8.7.apk)**
 
-**Build 41 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+**Build 42 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
 Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-41.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.6) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39204932821).
+[Änderungen und SHA-256](docs/build-42.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.7) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39206642727).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.7
+
+- Indoor nur mit kartenlosen Vorlagen und dauerhaft sichtbarer unterer Leiste. Gespeicherte Outdoor-Layouts bleiben erhalten.
+- Während Indoor-Aufnahme weicher Wechsel zwischen Stoppsymbol und rotem Aufnahmepunkt im linken Button.
+- Schalter-Accordions mit äußerem Switch rechts; Name/Icon und Chevron öffnen ausschließlich Details.
+- Fahrttitel in der Liste am Datum ausgerichtet, FIT/GPX einzeilig. Bekannte Profilfarbe auch im Detailkopf vor Icon und Dateiformat.
 
 ## Neu in APK 0.8.6
 
