@@ -15,3 +15,11 @@ Importiert/Bike/E-Bike/Indoor mehrfach auswählbar; Fahrradfilter nach gespeiche
 Detailkopf: links Herkunfts-/Radtyp-Icon und Dateiformat; rechts zentrierte Textzeilen Fahrradname/Datum. Der Zweizeilenplatz bleibt auch bei älteren Fahrten ohne bekannte Zuordnung erhalten. Keine künstlichen Radzuordnungen. Wettertrenner verwendet 16-dp-Abstände, kompakte Kennzahlengruppen bleiben erhalten.
 
 Gezielte Tests decken Bereichskombinationen, Mehrfachauswahl, unbekannte Werte, inklusive Datumsgrenzen, Sortierfelder/-richtung, Reset, Popup-Eingaben/Entwürfe, h:mm, Wochenwahl, Accordion-Zustand/Erhalt der Eingaben, Benachrichtigungen, Auswahlmenü und Listen-/Detail-Navigation ab. Kein realer Gerätetest.
+
+## Kompakte Filterbedienung ab 0.8.6 (19.10.2026)
+
+Filter und Sortierung verwenden normale Accordion-Buttons wie die Dashboard-Feldauswahl, keine großen Sticky-Header. Fensterhöhe nach Inhalt bis maximal 75 % der verfügbaren Höhe, Sortierung maximal 320 dp; bei Ausklappen oberhalb des Footers neu positionieren. Kein Zurückbutton im Popup, außerhalb tippen oder Android-Zurück schließt es. TERTIARY und gemeinsamer Rahmen bleiben erhalten.
+
+Streckenart: unabhängig schaltbare Segmente im Stil der Trainingshilfe, keine erzwungene Einfachauswahl. Keine Auswahl bedeutet alle. Fahrräder: mehrfache Auswahl über Profilkacheln in drei Spalten, zusätzliche Auswahl Ohne Zuordnung erhalten.
+
+Distanz, Bewegungszeit und Geschwindigkeit kombinieren native schmale Zahleneingaben mit einem gemeinsamen Zwei-Griff-Slider. Schritte 0,1 km / eine Minute / 0,1 km/h; Skala aus den vollständigen vorhandenen Fahrten, nach oben auf 10 km / eine Stunde / 5 km/h gerundet. Ohne Fahrtdaten 100 km / 8 h / 50 km/h. Größere gültige Texteingaben erweitern die Skala; ungültige Entwürfe verändern keine gültige Query. Slider und Felder synchron, keine kreuzenden Griffe. Tastatur und getrennte Accessibility-Aktionen für beide Griffe. Keine neue Datenaufzeichnung oder Statistik.

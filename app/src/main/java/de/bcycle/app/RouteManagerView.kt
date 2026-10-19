@@ -37,13 +37,13 @@ internal class RouteManagerView(context: Context,
     private var queryPopup:RouteQueryPopup?=null
     fun showFilters(anchor:View,navigation:DialogNavigation) {
         queryPopup?.dismiss()
-        queryPopup=RouteQueryPopup(context,themes,navigation,query) { refreshQuery() }.also {
+        queryPopup=RouteQueryPopup(context,themes,navigation,query,all) { refreshQuery() }.also {
             it.filters { showFilters(anchor,navigation) };it.show(anchor)
         }
     }
     fun showSort(anchor:View,navigation:DialogNavigation) {
         queryPopup?.dismiss()
-        queryPopup=RouteQueryPopup(context,themes,navigation,query) { refreshQuery() }.also { it.sorting();it.show(anchor) }
+        queryPopup=RouteQueryPopup(context,themes,navigation,query,all) { refreshQuery() }.also { it.sorting();it.show(anchor) }
     }
     override fun onDetachedFromWindow() { queryPopup?.dismiss();super.onDetachedFromWindow() }
     private val status = BicycleFeedback.status(context, themes).apply {

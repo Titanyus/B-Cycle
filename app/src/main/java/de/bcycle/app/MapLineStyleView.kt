@@ -13,6 +13,7 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
     private val navigation:DialogNavigation,private val changed:()->Unit):LinearLayout(context) {
     init {
         orientation=VERTICAL;tag="map_line_styles"
+        addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.map_line_heading)))
         MapLineKind.entries.forEach { kind ->
             val body=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="map_line_body_${kind.id}" }
             lateinit var toggle:Button
@@ -27,11 +28,42 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
             fun current()=MapRouteStyles.read(prefs,kind)
             val preview=MapLinePreview(context,prefs,kind).apply { tag="map_line_preview_${kind.id}" }
             body.addView(preview,LayoutParams(-1,BicycleDesign.dp(context,150)))
-            val color=BicycleComponents.action(context,themes,context.getString(R.string.map_line_color)) {
-                showColor(kind) { preview.invalidate();changed() }
-            }.apply { tag="map_line_color_${kind.id}" }
-            body.addView(color,LayoutParams(-1,-2))
-            preview.isFocusable=true;preview.setOnClickListener { color.performClick() }
+            val colorRow=LinearLayout(context).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }
+            var updating=false
+            val hex=BicycleComponents.input(context,themes).apply {
+                tag="map_line_hex_${kind.id}";hint=context.getString(R.string.map_line_hex)
+                contentDescription=context.getString(R.string.map_line_hex);setSingleLine()
+                filters=arrayOf(InputFilter.LengthFilter(7));BicycleForm.outlinedInput(this,themes)
+            }
+            val swatch=ImageButton(context).apply {
+                tag="map_line_swatch_${kind.id}";contentDescription=context.getString(R.string.map_line_choose_color)
+            }
+            fun colorDisplay() {
+                updating=true;hex.setText(String.format(java.util.Locale.ROOT,"#%06X",current().color and 0xffffff));hex.error=null;updating=false
+                swatch.background=BicycleComponents.controlBackground(context,themes.active.tokens,current().color)
+            }
+            BicycleComponents.bindTheme(swatch,themes) { colorDisplay() }
+            fun chooseColor() { showColor(kind) { colorDisplay();preview.invalidate();changed() } }
+            swatch.setOnClickListener { chooseColor() }
+            colorRow.addView(swatch,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
+            colorRow.addView(hex,LayoutParams(0,-2,1f).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+            body.addView(colorRow,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+            hex.onTextChanged {
+                if(!updating) {
+                    val text=hex.text.toString().removePrefix("#")
+                    if(text.matches(Regex("[0-9a-fA-F]{6}"))) {
+                        hex.error=null
+                        MapRouteStyles.write(prefs,kind,current().copy(color=text.toLong(16).toInt() or Color.BLACK))
+                        swatch.background=BicycleComponents.controlBackground(context,themes.active.tokens,current().color)
+                        preview.invalidate();changed()
+                    } else hex.error=context.getString(R.string.map_line_hex_error)
+                }
+            }
+            preview.isFocusable=true;preview.setOnClickListener { chooseColor() }
+            addSlider(body,R.string.map_line_opacity,100,current().opacity,"map_line_opacity_${kind.id}",
+                { context.getString(R.string.map_line_percent,it) }) { value ->
+                MapRouteStyles.write(prefs,kind,current().copy(opacity=value));preview.invalidate();changed()
+            }
             addSlider(body,R.string.map_line_width,15,(current().widthDp*2-1).toInt(),"map_line_width_${kind.id}",
                 { context.getString(R.string.map_line_width_value,(it+1)/2f) }) { value ->
                 MapRouteStyles.write(prefs,kind,current().copy(widthDp=(value+1)/2f));preview.invalidate();changed()
@@ -62,44 +94,13 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
         }
     }
     private fun showColor(kind:MapLineKind,update:()->Unit) {
-        val root=BicycleComponents.dialogBody(context,themes)
-        val preview=MapLinePreview(context,prefs,kind)
-        root.addView(preview,LayoutParams(-1,BicycleDesign.dp(context,150)))
-        val hsv=FloatArray(3);Color.colorToHSV(MapRouteStyles.read(prefs,kind).color,hsv)
-        val hex=BicycleComponents.input(context,themes).apply {
-            tag="map_line_hex";hint=context.getString(R.string.map_line_hex);setSingleLine()
-            filters=arrayOf(InputFilter.LengthFilter(7));setText(String.format(java.util.Locale.ROOT,"#%06X",MapRouteStyles.read(prefs,kind).color and 0xffffff))
+        lateinit var dialog:android.app.AlertDialog
+        val palette=FixedColorPalette(context,themes,MapRouteStyles.read(prefs,kind).color) { color ->
+            MapRouteStyles.write(prefs,kind,MapRouteStyles.read(prefs,kind).copy(color=color))
+            update();dialog.dismiss()
         }
-        val sliders=mutableListOf<SeekBar>();var updating=false
-        fun refreshHex() { updating=true;hex.setText(String.format(java.util.Locale.ROOT,"#%06X",MapRouteStyles.read(prefs,kind).color and 0xffffff));updating=false }
-        fun saveColor() {
-            MapRouteStyles.write(prefs,kind,MapRouteStyles.read(prefs,kind).copy(color=Color.HSVToColor(hsv)))
-            refreshHex();preview.invalidate();update()
-        }
-        listOf(R.string.map_line_hue,R.string.map_line_saturation,R.string.map_line_brightness).forEachIndexed { i,title ->
-            sliders+=addSlider(root,title,if(i==0) 360 else 100,if(i==0) hsv[i].toInt() else (hsv[i]*100).toInt(),"map_line_hsv_$i",{ it.toString() }) { p ->
-                hsv[i]=if(i==0) p.toFloat() else p/100f;saveColor()
-            }
-        }
-        addSlider(root,R.string.map_line_opacity,100,MapRouteStyles.read(prefs,kind).opacity,"map_line_opacity",
-            { context.getString(R.string.map_line_percent,it) }) { p ->
-            MapRouteStyles.write(prefs,kind,MapRouteStyles.read(prefs,kind).copy(opacity=p));preview.invalidate();update()
-        }
-        root.addView(hex,LayoutParams(-1,-2))
-        hex.onTextChanged {
-            if(!updating) {
-                val text=hex.text.toString().removePrefix("#")
-                if(text.matches(Regex("[0-9a-fA-F]{6}"))) {
-                    hex.error=null
-                    val color=text.toLong(16).toInt() or Color.BLACK
-                    Color.colorToHSV(color,hsv)
-                    sliders.forEachIndexed { i,bar -> bar.progress=if(i==0) hsv[i].toInt() else (hsv[i]*100).toInt() }
-                    MapRouteStyles.write(prefs,kind,MapRouteStyles.read(prefs,kind).copy(color=color));preview.invalidate();update()
-                } else hex.error=context.getString(R.string.map_line_hex_error)
-            }
-        }
-        BicycleDialogBuilder(context,themes,navigation).setTitle(R.string.map_line_color)
-            .setView(BicycleStickyScrollView(context).apply { addView(root) }).show()
+        dialog=BicycleDialogBuilder(context,themes,navigation,fullscreen=false,helpEnabled=false)
+            .setTitle(R.string.map_line_choose_color).setView(palette).show()
     }
 }
 

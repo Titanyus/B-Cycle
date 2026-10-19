@@ -1,4 +1,7 @@
 <resources>
+    <string name="map_line_heading">Trackdarstellung</string>
+    <string name="map_line_choose_color">Farbe wählen</string>
+    <string name="map_palette_color">Farbe %1$d</string>
     <string name="map_line_recorded">Aufgezeichnete Strecke</string>
     <string name="map_line_saved">Gespeicherte Strecke</string>
     <string name="map_line_color">Farbe &amp; Deckkraft</string>
@@ -14,5 +17,5 @@
     <string name="map_line_preview">Kartenvorschau für %1$s</string>
     <string name="map_line_credit">© OpenStreetMap-Mitwirkende</string>
     <string name="help_map_lines_heading">Streckenlinien</string>
-    <string name="help_map_lines_body">Aufgezeichnete und eingeblendete gespeicherte Strecken lassen sich getrennt gestalten. Öffne das jeweilige Accordion. Die Kartenvorschau zeigt die Linie mit ihrer Farbe, Breite und Deckkraft. Der Breitenregler reicht von 0,5 bis 8 dp in Schritten von 0,5 dp. Farbe und Deckkraft öffnet einen gemeinsamen Dialog mit Farbton, Sättigung, Helligkeit und Deckkraft. Änderungen werden sofort im aktuellen Fahrradprofil gespeichert und erscheinen auf der Karte. Die Vorschau verwendet einen festen OpenStreetMap-Ausschnitt ohne Netzverbindung und folgt der hellen oder dunklen Kartenansicht.</string>
+    <string name="help_map_lines_body">Aufgezeichnete und eingeblendete gespeicherte Strecken lassen sich getrennt gestalten. Öffne das jeweilige Accordion. Die Kartenvorschau zeigt die Linie mit ihrer Farbe, Breite und Deckkraft. Der Breitenregler reicht von 0,5 bis 8 dp in Schritten von 0,5 dp. Unter der Vorschau stehen ein Farbfeld mit Hexwert und die Regler für Deckkraft und Breite. Tippe auf das Farbfeld, um aus einer festen Palette über das gesamte Farbspektrum zu wählen. Einen eigenen Hexwert kannst du direkt im Feld daneben eingeben. Änderungen werden sofort im aktuellen Fahrradprofil gespeichert und erscheinen auf der Karte. Die Vorschau verwendet einen festen OpenStreetMap-Ausschnitt ohne Netzverbindung und folgt der hellen oder dunklen Kartenansicht.</string>
 </resources>

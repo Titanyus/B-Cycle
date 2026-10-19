@@ -96,7 +96,7 @@ internal object BicycleDialogStyle {
         stroke?.let { setStroke(BicycleDesign.linePixels(view.context), it) }
     }
     private fun inputBackground(view: View, tokens: ThemeTokens) =
-        BicycleComponents.controlBackground(view.context,tokens,tokens.tertiary)
+        BicycleComponents.controlBackground(view.context,tokens,Color.TRANSPARENT)
     fun apply(screen: AlertDialog, themes: ThemeManager) {
         val decor = screen.window?.decorView ?: return
         // Phase 2 already styles this dialog, including its native footer; leave it unchanged.
@@ -183,7 +183,8 @@ internal object BicycleDialogStyle {
         view.typeface = if(view.isAccessibilityHeading) BicycleDesign.strongTypeface else Typeface.DEFAULT
         if (view !is EditText) view.textSize = if (view.isAccessibilityHeading) BicycleDesign.titleSp else BicycleDesign.bodySp
         if (view is EditText) {
-            view.textSize = BicycleDesign.inputSp; view.minimumHeight = dp(view, BicycleDesign.touchSize)
+            view.typeface=view.resources.getFont(R.font.bebas_neue)
+            view.textSize = BicycleDesign.settingsMetricSp; view.minimumHeight = dp(view, BicycleDesign.touchSize)
             view.setPadding(dp(view, BicycleDesign.inputHorizontalPadding), dp(view, BicycleDesign.verticalPadding),
                 dp(view, BicycleDesign.inputHorizontalPadding), dp(view, BicycleDesign.verticalPadding))
             BicycleComponents.bindTheme(view, themes) { tokens ->
@@ -210,6 +211,10 @@ internal object BicycleDialogStyle {
                 }
             }
             val circular = view is CheckBox || view is RadioButton
+            if(circular) {
+                view.setPadding(dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding),
+                    dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding))
+            }
             // Keep the native radio-button allocation, with the shared 24-dp circle centered inside.
             val circleInset = if (view is RadioButton) ((view.buttonDrawable?.intrinsicWidth ?: dp(view, 24)) - dp(view, 24)).coerceAtLeast(0) / 2 else 0
             BicycleComponents.bindTheme(view, themes) {
@@ -217,6 +222,7 @@ internal object BicycleDialogStyle {
                 if (circular) {
                     view.buttonTintList = null
                     view.buttonDrawable = selectionCircle(view, it, circleInset)
+                    view.minHeight=dp(view,BicycleDesign.touchSize)
                 } else view.buttonTintList = checkedColors(it.accent, it.foreground)
                 if (view is Switch) {
                     view.thumbTintList = checkedColors(it.accent, it.foreground)

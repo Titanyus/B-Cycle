@@ -196,9 +196,11 @@ object BicycleComponents {
             val index=parent?.indexOfChild(view) ?: -1
             val preceding=if(parent!=null && index>0) (index-1 downTo 0).map(parent::getChildAt).firstOrNull { it.visibility!=View.GONE } else null
             val separated=parent?.orientation==LinearLayout.VERTICAL && preceding?.tag=="bicycle_section_divider"
-            val gap=if(separated) 0 else dp(view.context,BicycleDesign.controlGap)
+            val choice=view is android.widget.CheckBox || view is android.widget.RadioButton
+            val choiceList=choice && (preceding is android.widget.CheckBox || preceding is android.widget.RadioButton)
+            val gap=if(separated || choiceList) 0 else dp(view.context,BicycleDesign.controlGap)
             var changed=false
-            if((separated && margins.topMargin!=0) || margins.topMargin<gap) { margins.topMargin=gap;changed=true }
+            if(((separated || choiceList) && margins.topMargin!=0) || margins.topMargin<gap) { margins.topMargin=gap;changed=true }
             if(parent?.orientation==LinearLayout.HORIZONTAL) {
                 val index=parent.indexOfChild(view)
                 val previous=(index-1 downTo 0).firstOrNull { parent.getChildAt(it).visibility!=View.GONE }?.let(parent::getChildAt)
@@ -298,10 +300,11 @@ object BicycleComponents {
         controlSpacing(this)
     }
     fun input(context: Context, manager: ThemeManager) = EditText(context).apply {
-        textSize = BicycleDesign.inputSp; minimumHeight = dp(context, BicycleDesign.touchSize)
+        typeface=resources.getFont(R.font.bebas_neue)
+        textSize = BicycleDesign.settingsMetricSp; minimumHeight = dp(context, BicycleDesign.touchSize)
         setPadding(dp(context, 12), dp(context, BicycleDesign.verticalPadding), dp(context, 12), dp(context, BicycleDesign.verticalPadding))
         bindTheme(this, manager) {
-            background=controlBackground(context,it,it.tertiary)
+            background=controlBackground(context,it,android.graphics.Color.TRANSPARENT)
             setTextColor(it.foreground); setHintTextColor(it.foreground); backgroundTintList = null
             textCursorDrawable?.mutate()?.setTint(it.foreground)
             textSelectHandle?.mutate()?.setTint(it.foreground); textSelectHandleLeft?.mutate()?.setTint(it.foreground); textSelectHandleRight?.mutate()?.setTint(it.foreground)

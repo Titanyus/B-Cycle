@@ -10,7 +10,8 @@ import android.view.Gravity
 import android.widget.RadioButton
 
 /** Native mutually exclusive radio semantics, presented as a segment without a selection circle. */
-internal class BicycleSegmentButton(context: Context, private val themes: ThemeManager) : RadioButton(context) {
+internal class BicycleSegmentButton(context: Context, private val themes: ThemeManager,private val multiple:Boolean=false) : RadioButton(context) {
+    private var ready=false
     init {
         buttonDrawable=null;buttonTintList=null
         gravity=Gravity.CENTER;typeface=Typeface.DEFAULT;textSize=BicycleDesign.choiceSp
@@ -18,8 +19,11 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
         setPadding(BicycleDesign.dp(context,BicycleDesign.controlGap),0,BicycleDesign.dp(context,BicycleDesign.controlGap),0)
         maxLines=2
         BicycleComponents.bindTheme(this,themes,::paint)
-        setOnCheckedChangeListener { _,_->paint(themes.active.tokens) }
+        ready=true
     }
+    override fun toggle() { if(multiple) isChecked=!isChecked else super.toggle() }
+    override fun getAccessibilityClassName():CharSequence=if(multiple) android.widget.CheckBox::class.java.name else super.getAccessibilityClassName()
+    override fun drawableStateChanged() { super.drawableStateChanged();if(ready) paint(themes.active.tokens) }
     private fun paint(tokens:ThemeTokens) {
         val fill=if(isChecked) tokens.accent else tokens.secondary
         val foreground=if(!isChecked || ThemeValidator.contrast(tokens.foreground,fill)>=ThemeValidator.minimumTextContrast) tokens.foreground

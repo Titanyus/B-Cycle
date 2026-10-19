@@ -21,6 +21,27 @@ class RouteQueryUiTest {
     private fun layout(v:View,w:Int=360,h:Int=800) {
         v.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));v.layout(0,0,w,h)
     }
+    @Test fun sixBikesUseThreeColumnsAndRangeHandlesCannotCross() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val prefs=a.getSharedPreferences("bike",0);val themes=ThemeManager(prefs)
+            val profiles=BikeProfileStore(a,prefs);repeat(5) { assertNotNull(profiles.add()) }
+            val grid=BikeFilterGrid(a,themes,profiles.all(),emptySet()) { _,_-> }
+            a.setContentView(grid);layout(grid,320,400)
+            assertEquals(6,grid.childCount)
+            assertEquals(grid.getChildAt(0).top,grid.getChildAt(2).top)
+            assertTrue(grid.getChildAt(3).top>grid.getChildAt(0).top)
+            assertTrue(grid.getChildAt(2).right<=320)
+            var pair=0.0 to 0.0
+            val slider=BicycleRangeSlider(a,themes,"Range",{ it.toString() }) { from,to -> pair=from to to }
+            slider.show(10.0,.1,2.0,8.0)
+            val args=android.os.Bundle().apply { putFloat(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE,9f) }
+            slider.accessibilityNodeProvider!!.performAction(0,android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS.id,args)
+            assertEquals(8.0 to 8.0,pair)
+            slider.accessibilityNodeProvider!!.performAction(1,android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD,null)
+            assertEquals(8.0 to 8.0,pair)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun popupGroupsApplyImmediatelyKeepInvalidDraftOutAndRetainStateAcrossReopen() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
@@ -30,16 +51,31 @@ class RouteQueryUiTest {
             val popup=RouteQueryPopup(a,themes,nav,query) { updates++ }
             popup.filters {};popup.show(anchor);shadowOf(Looper.getMainLooper()).idle();layout(popup.contentView,320,popup.height)
             assertTrue(popup.isFocusable);assertTrue(popup.height<a.resources.displayMetrics.heightPixels)
-            val headers=nodes(popup.contentView).filterIsInstance<BicycleSectionHeader>();assertEquals(6,headers.size)
-            assertTrue(headers.all { it.expanded==false })
+            val headers=nodes(popup.contentView).filterIsInstance<Button>().filter { it.tag?.toString()?.startsWith("route_query_group_")==true };assertEquals(6,headers.size)
+            assertTrue(headers.all { it.stateDescription==a.getString(R.string.zone_collapsed) })
+            assertTrue(popup.height<500)
+            assertEquals(1,(popup.contentView as LinearLayout).childCount)
             headers.first().performClick()
-            nodes(popup.contentView).filterIsInstance<CheckBox>().first().performClick()
+            popup.contentView.findViewWithTag<View>("route_kind_IMPORTED").performClick()
             assertEquals(setOf(RouteKind.IMPORTED),query.kinds)
+            popup.contentView.findViewWithTag<View>("route_kind_EBIKE").performClick()
+            assertEquals(setOf(RouteKind.IMPORTED,RouteKind.EBIKE),query.kinds)
+            popup.contentView.findViewWithTag<View>("route_kind_IMPORTED").performClick()
+            assertEquals(setOf(RouteKind.EBIKE),query.kinds)
+            headers[1].performClick()
+            popup.contentView.findViewWithTag<View>("route_bike_0").performClick()
+            assertEquals(setOf(0),query.bikes)
+            popup.contentView.findViewWithTag<View>("route_bike_0").performClick();assertTrue(query.bikes.isEmpty())
             val from=popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_0")
             val to=popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_1")
             headers[3].performClick();from.setText("10");to.setText("5")
             assertEquals(RouteRange(10.0,null),query.distance);assertNotNull(to.error)
             to.setText("20");assertEquals(RouteRange(10.0,20.0),query.distance);assertNull(to.error)
+            val slider=popup.contentView.findViewWithTag<BicycleRangeSlider>("route_range_slider_${R.string.route_filter_distance}")
+            assertEquals(10.0,slider.lower,0.0001);assertEquals(20.0,slider.upper,0.0001)
+            val args=android.os.Bundle().apply { putFloat(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE,15f) }
+            assertTrue(slider.accessibilityNodeProvider!!.performAction(0,android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS.id,args))
+            assertEquals(RouteRange(15.0,20.0),query.distance);assertEquals("15",from.text.toString())
             assertTrue(from.requestFocus());assertNotNull(from.onCreateInputConnection(EditorInfo()))
             popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_moving}_0").setText("1:30")
             popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_moving}_1").setText("2:45")
@@ -49,7 +85,7 @@ class RouteQueryUiTest {
             assertTrue(updates>=4);popup.dismiss()
             val sort=RouteQueryPopup(a,themes,nav,query) {};sort.sorting();sort.show(anchor)
             nodes(sort.contentView).filterIsInstance<RadioButton>().single { it.text==a.getString(R.string.route_filter_distance) }.isChecked=true
-            assertEquals(RouteSort.DISTANCE,query.sort);assertEquals(RouteRange(10.0,20.0),query.distance);sort.dismiss()
+            assertEquals(RouteSort.DISTANCE,query.sort);assertEquals(RouteRange(15.0,20.0),query.distance);sort.dismiss()
         } finally { host.pause().stop().destroy() }
     }
     @Test fun stickyHeadingsBecomeAccordionsOnceAndRenameHeadingKeepsItsClick() {

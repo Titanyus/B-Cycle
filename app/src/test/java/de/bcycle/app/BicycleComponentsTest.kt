@@ -14,6 +14,27 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class BicycleComponentsTest {
+    @Test fun adjacentChoiceRowsUseDropdownHeightWithoutExtraGapsAndInputsUseNarrowOutlinedStyle() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("compact-choice",0))
+            val root=LinearLayout(a).apply { orientation=LinearLayout.VERTICAL }
+            val choices=(0..2).map { android.widget.CheckBox(a).apply { text="Choice $it";BicycleDialogStyle.control(this,themes) } }
+            choices.forEach { root.addView(it,LinearLayout.LayoutParams(-1,-2)) }
+            val input=BicycleComponents.input(a,themes);root.addView(input)
+            a.setContentView(root)
+            root.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY));root.layout(0,0,360,600)
+            choices.zipWithNext().forEach { (before,after) -> assertEquals(before.bottom,after.top) }
+            val spinner=android.widget.Spinner(a).apply { adapter=android.widget.ArrayAdapter(a,android.R.layout.simple_spinner_dropdown_item,listOf("Choice")) }
+            BicycleDialogStyle.spinner(spinner,themes)
+            val dropdown=spinner.adapter.getDropDownView(0,null,root)
+            dropdown.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.AT_MOST))
+            choices.forEach { assertEquals(dropdown.measuredHeight,it.height);assertTrue(it.height>=BicycleDesign.dp(a,BicycleDesign.touchSize)) }
+            assertEquals(a.resources.getFont(R.font.bebas_neue),input.typeface)
+            assertEquals(BicycleDesign.settingsMetricSp*a.resources.displayMetrics.scaledDensity,input.textSize,0.01f)
+            assertEquals(android.graphics.Color.TRANSPARENT,(input.background as GradientDrawable).color!!.defaultColor)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun formSpacingSurvivesLateLayoutParametersAndReattachmentWithoutDoublingHorizontalGaps() {
         val controller=Robolectric.buildActivity(Activity::class.java).setup()
         try {
@@ -86,7 +107,7 @@ class BicycleComponentsTest {
             assertEquals(radius, (input.background as GradientDrawable).cornerRadius, 0f)
             assertEquals(light.tokens.foreground, text.currentTextColor)
             assertEquals(light.tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
-            assertEquals(light.tokens.tertiary, (input.background as GradientDrawable).color!!.defaultColor)
+            assertEquals(android.graphics.Color.TRANSPARENT, (input.background as GradientDrawable).color!!.defaultColor)
             assertEquals(BicycleDesign.linePixels(activity), divider.height)
             assertEquals(BicycleDesign.gridColumns, grid.columnCount); assertEquals(BicycleDesign.gridRows, grid.rowCount)
             assertEquals(BicycleDesign.scrollFillViewport, scroll.isFillViewport)

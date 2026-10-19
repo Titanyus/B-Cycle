@@ -50,7 +50,7 @@ class MapRouteStyleTest {
         assertTrue(runCatching { MapRouteStyles.write(prefs,MapLineKind.SAVED,custom.copy(opacity=101)) }.isFailure)
         assertEquals(custom,MapRouteStyles.read(prefs,MapLineKind.RECORDED))
     }
-    @Test fun accordionWidthAndCombinedColorDialogImmediatelyPersistWithoutAffectingOtherLine() {
+    @Test fun inlineStyleAndFixedPaletteImmediatelyPersistWithoutAffectingOtherLine() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val prefs=a.getSharedPreferences("line-style-ui",0);val themes=ThemeManager(prefs)
@@ -63,16 +63,31 @@ class MapRouteStyleTest {
             assertEquals(15,bar.max);assertEquals(5,bar.progress)
             bar.onKeyDown(KeyEvent.KEYCODE_DPAD_RIGHT,KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_RIGHT))
             assertEquals(3.5f,MapRouteStyles.read(prefs,MapLineKind.RECORDED).widthDp,0f)
-            view.findViewWithTag<View>("map_line_preview_recorded").performClick()
-            val dialog=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
-            val root=dialog.window!!.decorView
-            root.findViewWithTag<EditText>("map_line_hex").setText("#00FF00")
+            view.findViewWithTag<EditText>("map_line_hex_recorded").setText("#00FF00")
             assertEquals(Color.GREEN,MapRouteStyles.read(prefs,MapLineKind.RECORDED).color)
-            val opacity=root.findViewWithTag<SeekBar>("map_line_opacity")
+            val opacity=view.findViewWithTag<SeekBar>("map_line_opacity_recorded")
             opacity.onKeyDown(KeyEvent.KEYCODE_DPAD_LEFT,KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_LEFT))
             assertEquals(99,MapRouteStyles.read(prefs,MapLineKind.RECORDED).opacity)
+            view.findViewWithTag<View>("map_line_swatch_recorded").performClick()
+            val dialog=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
+            val root=dialog.window!!.decorView
+            fun nodes(v:View):List<View> = listOf(v)+if(v is android.view.ViewGroup) (0 until v.childCount).flatMap { nodes(v.getChildAt(it)) } else emptyList()
+            val palette=root.findViewWithTag<View>("map_color_palette")
+            assertFalse(nodes(palette).any { it is EditText || it is SeekBar })
+            assertEquals(70,nodes(palette).filterIsInstance<android.widget.ImageButton>().size)
+            val color=FixedColorPalette.spectrum.first().first()
+            palette.findViewWithTag<View>("map_palette_${String.format(java.util.Locale.ROOT,"%06X",color and 0xffffff)}").performClick()
+            assertFalse(dialog.isShowing)
+            assertEquals(color,MapRouteStyles.read(prefs,MapLineKind.RECORDED).color)
             assertEquals(50,MapRouteStyles.read(prefs,MapLineKind.SAVED).opacity)
-            assertTrue(changes>=3);dialog.dismiss()
+            view.findViewWithTag<EditText>("map_line_hex_recorded").setText("#GGGGGG")
+            assertEquals(color,MapRouteStyles.read(prefs,MapLineKind.RECORDED).color)
+            view.findViewWithTag<View>("map_line_toggle_saved").performClick()
+            val savedOpacity=view.findViewWithTag<SeekBar>("map_line_opacity_saved")
+            savedOpacity.onKeyDown(KeyEvent.KEYCODE_DPAD_RIGHT,KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_RIGHT))
+            assertEquals(51,MapRouteStyles.read(prefs,MapLineKind.SAVED).opacity)
+            assertEquals(99,MapRouteStyles.read(prefs,MapLineKind.RECORDED).opacity)
+            assertTrue(changes>=5)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun screenshotPreviewShowsOpacityAndUsesActualNightPalette() {
