@@ -23,3 +23,13 @@ Filter und Sortierung verwenden normale Accordion-Buttons wie die Dashboard-Feld
 Streckenart: unabhängig schaltbare Segmente im Stil der Trainingshilfe, keine erzwungene Einfachauswahl. Keine Auswahl bedeutet alle. Fahrräder: mehrfache Auswahl über Profilkacheln in drei Spalten, zusätzliche Auswahl Ohne Zuordnung erhalten.
 
 Distanz, Bewegungszeit und Geschwindigkeit kombinieren native schmale Zahleneingaben mit einem gemeinsamen Zwei-Griff-Slider. Schritte 0,1 km / eine Minute / 0,1 km/h; Skala aus den vollständigen vorhandenen Fahrten, nach oben auf 10 km / eine Stunde / 5 km/h gerundet. Ohne Fahrtdaten 100 km / 8 h / 50 km/h. Größere gültige Texteingaben erweitern die Skala; ungültige Entwürfe verändern keine gültige Query. Slider und Felder synchron, keine kreuzenden Griffe. Tastatur und getrennte Accessibility-Aktionen für beide Griffe. Keine neue Datenaufzeichnung oder Statistik.
+
+## Korrigierte Dropdown-Hierarchie nach 0.8.8 (19.10.2026)
+
+Diese Regel ersetzt die vorherigen Flächen-/Accordion-Versuche für Filter/Sortierung: Das Hauptfenster über dem Footer und seine Auswahlbuttons verwenden SECONDARY. Jede Gruppe öffnet ein eigenes natives, am Auswahlbutton verankertes Dropdown mit TERTIARY-Fläche und dem gemeinsamen Rahmen/Rundungswert. Normale Buttons und Eingaben darin verwenden SECONDARY; semantische Auswahlzustände bleiben erhalten. Native Dropdownpositionierung unterhalb oder oberhalb des Auslösers statt über dessen Titel.
+
+Gruppen behalten ihre Eingaben/Listener und Entwürfe bis zum Schließen des Hauptfensters. Außerhalb tippen bzw. Zurück schließt zunächst das aktive Unterfenster. Beim Schließen des Hauptfensters wird das Unterfenster ebenfalls entfernt. Keine neue Bestätigungsaktion.
+
+Keine feste 320-dp-Grenze für Sortierung. Hauptmenühöhe aus Inhalt (maximal 75 % der verfügbaren Fläche), Unterfenster aus Inhalt und nativ verfügbarem Platz. Zentrale Controlabstände vor dem Messen an den endgültigen LayoutParams anwenden; spätes Styling darf keinen künstlichen Scrollbedarf erzeugen. 8-dp-Innenabstand der Gruppen bleibt erhalten.
+
+Der Segmentzeile für Importiert/Bike/E-Bike/Indoor liegt kein eigener gefüllter/umrahmter Kasten mehr zugrunde; nur die eigentlichen Segmente zeichnen ihre Flächen. Dadurch kein heller Saum hinter den vier Feldern.

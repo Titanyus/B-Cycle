@@ -10,44 +10,41 @@ import java.time.DayOfWeek
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
 
-/** One bounded, scrollable native popup. Each independent filter group starts collapsed. */
+/** Compact query menu with native dropdowns, retaining drafts until the menu is dismissed. */
 internal class RouteQueryPopup(private val context:Context,private val themes:ThemeManager,
     private val navigation:DialogNavigation,private val query:RouteQuery,private val routes:List<ManagedRoute> = emptyList(),private val changed:()->Unit):PopupWindow() {
     private val content=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL }
-    private var compact=false
-    private var anchorView:View?=null
+    internal var groupPopup:PopupWindow?=null;private set
     private val body=BicycleComponents.dialogBody(context,themes)
     private fun dp(v:Int)=BicycleDesign.dp(context,v)
     private fun group(title:Int,summary:()->String,build:(LinearLayout,()->Unit)->Unit) {
         val section=LinearLayout(context).apply {
-            orientation=LinearLayout.VERTICAL;visibility=View.GONE
+            orientation=LinearLayout.VERTICAL
             val gap=dp(BicycleDesign.controlGap)
             setPadding(gap,gap,gap,gap)
-            BicycleComponents.bindTheme(this,themes) { background=BicycleComponents.controlBackground(context,it,it.secondary) }
+            BicycleComponents.bindTheme(this,themes) { setBackgroundColor(it.tertiary) }
         }
         lateinit var header:Button
         header=BicycleComponents.action(context,themes,"") {
-            val open=section.visibility!=View.VISIBLE
-            section.visibility=if(open) View.VISIBLE else View.GONE
-            header.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            resize()
+            openGroup(header,section)
         }.apply { tag="route_query_group_$title";stateDescription=context.getString(R.string.zone_collapsed) }
         BicycleDialogStyle.accordion(header,themes)
         BicycleDialogStyle.actionIcon(header,themes,BicycleIcon.Expand)
-        darkControl(header)
+        secondaryControl(header)
         fun label() { header.text=context.getString(title)+" · "+summary() }
         build(section) { label();changed() };label()
         fun controls(view:View) {
-            if(view is EditText || view is Button && view !is CompoundButton) darkControl(view)
+            if(view is Button || view is EditText) BicycleComponents.controlSpacing(view)
+            if(view is EditText || view is Button && view !is CompoundButton) secondaryControl(view)
             if(view is android.view.ViewGroup) for(i in 0 until view.childCount) controls(view.getChildAt(i))
         }
         controls(section)
         body.addView(header,LinearLayout.LayoutParams(-1,-2))
-        body.addView(section,LinearLayout.LayoutParams(-1,-2))
+        BicycleComponents.controlSpacing(header)
     }
-    private fun darkControl(view:View) {
+    private fun secondaryControl(view:View) {
         BicycleComponents.bindTheme(view,themes) {
-            view.background=BicycleComponents.controlBackground(context,it,it.tertiary)
+            view.background=BicycleComponents.controlBackground(context,it,it.secondary)
             view.backgroundTintList=null
         }
     }
@@ -63,7 +60,6 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     fun filters(reset:()->Unit) {
         group(R.string.route_filter_kind,{ count(query.kinds.size) }) { section,update ->
             val segments=LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL;tag=BicycleDesign.inlineControlRowTag }
-            BicycleComponents.outlinedControl(segments,themes)
             RouteKind.entries.forEach { kind ->
                 segments.addView(BicycleSegmentButton(context,themes,multiple=true).apply {
                     tag="route_kind_${kind.name}";setText(kind.label);isChecked=kind in query.kinds
@@ -186,7 +182,6 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         }
     }
     fun sorting() {
-        compact=true
         group(R.string.route_sort_field,{ context.getString(query.sort.label) }) { section,update ->
             val radios=RadioGroup(context)
             RouteSort.entries.forEach { sort -> radios.addView(RadioButton(context).apply {
@@ -207,31 +202,57 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     }
     private fun shell(title:Int) {
         isFocusable=true;isOutsideTouchable=true;inputMethodMode=INPUT_METHOD_NEEDED
-        setBackgroundDrawable(BicycleComponents.dropdownBackground(context,themes.active.tokens))
+        setBackgroundDrawable(BicycleComponents.controlBackground(context,themes.active.tokens))
+        // Resolve spacing before measuring; attachment must not make the menu taller afterwards.
+        for(i in 0 until body.childCount) if(body.getChildAt(i) is Button) BicycleComponents.controlSpacing(body.getChildAt(i))
         content.contentDescription=context.getString(title)
         content.addView(ScrollView(context).apply { BicycleComponents.scrollStyle(this);isFillViewport=false;addView(body) },LinearLayout.LayoutParams(-1,-2))
-        BicycleComponents.bindTheme(body,themes) { body.setBackgroundColor(it.tertiary) }
+        BicycleComponents.bindTheme(body,themes) { body.setBackgroundColor(it.secondary) }
         contentView=content
+        setOnDismissListener { groupPopup?.dismiss() }
         softInputMode=android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
     }
     private fun dimensions(anchor:View):Triple<android.graphics.Rect,Int,Int> {
         val frame=android.graphics.Rect().also(anchor::getWindowVisibleDisplayFrame)
         if(frame.isEmpty) frame.set(0,0,context.resources.displayMetrics.widthPixels,context.resources.displayMetrics.heightPixels)
         val w=(frame.width()-2*dp(16)).coerceAtLeast(1)
-        val limit=minOf((frame.height()*.75f).toInt(),if(compact) dp(320) else frame.height()).coerceAtLeast(dp(48))
+        val limit=(frame.height()*.75f).toInt().coerceAtLeast(dp(48))
         content.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(limit,View.MeasureSpec.AT_MOST))
         return Triple(frame,w,content.measuredHeight.coerceIn(dp(48),limit))
     }
-    private fun resize() {
-        val anchor=anchorView ?: return
-        if(!isShowing) return
-        val (frame,w,h)=dimensions(anchor)
-        val position=IntArray(2);anchor.getLocationOnScreen(position)
-        val top=(position[1]-h).coerceIn(frame.top,(frame.bottom-h).coerceAtLeast(frame.top))
-        update(frame.left+dp(16),top,w,h)
+    private fun openGroup(header:Button,section:LinearLayout) {
+        groupPopup?.dismiss()
+        val dropdown=PopupWindow().apply {
+            isFocusable=true;isOutsideTouchable=true;inputMethodMode=INPUT_METHOD_NEEDED
+            softInputMode=android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            setBackgroundDrawable(BicycleComponents.dropdownBackground(context,themes.active.tokens))
+        }
+        val scroll=ScrollView(context).apply {
+            BicycleComponents.scrollStyle(this);isFillViewport=false
+            BicycleComponents.bindTheme(this,themes) {
+                background=android.graphics.drawable.GradientDrawable().apply {
+                    setColor(it.tertiary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
+                }
+            }
+            clipToOutline=true;addView(section)
+        }
+        dropdown.contentView=scroll
+        dropdown.width=header.width.coerceAtLeast(dp(BicycleDesign.touchSize))
+        val available=dropdown.getMaxAvailableHeight(header).coerceAtLeast(dp(BicycleDesign.touchSize))
+        scroll.measure(View.MeasureSpec.makeMeasureSpec(dropdown.width,View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(available,View.MeasureSpec.AT_MOST))
+        dropdown.height=scroll.measuredHeight.coerceIn(dp(BicycleDesign.touchSize),available)
+        header.stateDescription=context.getString(R.string.zone_expanded)
+        dropdown.setOnDismissListener {
+            scroll.removeView(section)
+            header.stateDescription=context.getString(R.string.zone_collapsed)
+            if(groupPopup===dropdown) groupPopup=null
+        }
+        groupPopup=dropdown
+        // Native positioning keeps the triggering title outside the dropdown, flipping above if needed.
+        dropdown.showAsDropDown(header,0,0,Gravity.START)
     }
     fun show(anchor:View) {
-        anchorView=anchor
         val (frame,w,h)=dimensions(anchor);width=w;height=h
         val position=IntArray(2);anchor.getLocationOnScreen(position)
         val top=(position[1]-height).coerceIn(frame.top,(frame.bottom-height).coerceAtLeast(frame.top))

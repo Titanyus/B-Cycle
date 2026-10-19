@@ -55,50 +55,68 @@ class RouteQueryUiTest {
             assertTrue(headers.all { it.stateDescription==a.getString(R.string.zone_collapsed) })
             assertTrue(popup.height<500)
             assertEquals(1,(popup.contentView as LinearLayout).childCount)
-            headers.first().performClick()
-            popup.contentView.findViewWithTag<View>("route_kind_IMPORTED").performClick()
+            fun group(index:Int):View {
+                headers[index].performClick();shadowOf(Looper.getMainLooper()).idle()
+                return popup.groupPopup!!.contentView
+            }
+            var choices=group(0)
+            assertNull((choices as ScrollView).getChildAt(0).findViewWithTag<View>(BicycleDesign.inlineControlRowTag).background)
+            choices.findViewWithTag<View>("route_kind_IMPORTED").performClick()
             assertEquals(setOf(RouteKind.IMPORTED),query.kinds)
-            popup.contentView.findViewWithTag<View>("route_kind_EBIKE").performClick()
+            choices.findViewWithTag<View>("route_kind_EBIKE").performClick()
             assertEquals(setOf(RouteKind.IMPORTED,RouteKind.EBIKE),query.kinds)
-            popup.contentView.findViewWithTag<View>("route_kind_IMPORTED").performClick()
+            choices.findViewWithTag<View>("route_kind_IMPORTED").performClick()
             assertEquals(setOf(RouteKind.EBIKE),query.kinds)
-            headers[1].performClick()
-            popup.contentView.findViewWithTag<View>("route_bike_0").performClick()
+            choices=group(1)
+            choices.findViewWithTag<View>("route_bike_0").performClick()
             assertEquals(setOf(0),query.bikes)
-            popup.contentView.findViewWithTag<View>("route_bike_0").performClick();assertTrue(query.bikes.isEmpty())
-            val from=popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_0")
-            val to=popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_1")
-            headers[3].performClick()
+            choices.findViewWithTag<View>("route_bike_0").performClick();assertTrue(query.bikes.isEmpty())
+            choices=group(3)
+            val from=choices.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_0")
+            val to=choices.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_1")
             val rangeContent=from.parent.parent as View
             assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),rangeContent.paddingTop)
             assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),rangeContent.paddingBottom)
             fun fill(view:View)=(view.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor
-            assertEquals(themes.active.tokens.tertiary,fill(headers[3]))
-            assertEquals(themes.active.tokens.secondary,fill(rangeContent))
-            assertEquals(themes.active.tokens.tertiary,fill(from))
+            assertEquals(themes.active.tokens.secondary,fill(headers[3]))
+            assertEquals(themes.active.tokens.tertiary,(rangeContent.background as android.graphics.drawable.ColorDrawable).color)
+            assertEquals(themes.active.tokens.secondary,fill(from))
             from.setText("10");to.setText("5")
             assertEquals(RouteRange(10.0,null),query.distance);assertNotNull(to.error)
             to.setText("20");assertEquals(RouteRange(10.0,20.0),query.distance);assertNull(to.error)
-            val slider=popup.contentView.findViewWithTag<BicycleRangeSlider>("route_range_slider_${R.string.route_filter_distance}")
+            val slider=choices.findViewWithTag<BicycleRangeSlider>("route_range_slider_${R.string.route_filter_distance}")
             assertEquals(10.0,slider.lower,0.0001);assertEquals(20.0,slider.upper,0.0001)
             val args=android.os.Bundle().apply { putFloat(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE,15f) }
             assertTrue(slider.accessibilityNodeProvider!!.performAction(0,android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS.id,args))
             assertEquals(RouteRange(15.0,20.0),query.distance);assertEquals("15",from.text.toString())
             assertTrue(from.requestFocus());assertNotNull(from.onCreateInputConnection(EditorInfo()))
-            popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_moving}_0").setText("1:30")
-            popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_moving}_1").setText("2:45")
+            choices=group(4)
+            choices.findViewWithTag<EditText>("route_range_${R.string.route_filter_moving}_0").setText("1:30")
+            choices.findViewWithTag<EditText>("route_range_${R.string.route_filter_moving}_1").setText("2:45")
             assertEquals(RouteRange(1.5,2.75),query.moving)
-            nodes(popup.contentView).filterIsInstance<Button>().single { it.text==a.getString(R.string.route_week_this) }.performClick()
+            choices=group(2)
+            nodes(choices).filterIsInstance<Button>().single { it.text==a.getString(R.string.route_week_this) }.performClick()
             assertEquals(java.time.DayOfWeek.MONDAY,query.fromDate!!.dayOfWeek);assertEquals(query.fromDate!!.plusDays(6),query.toDate)
             assertTrue(updates>=4);popup.dismiss()
             val sort=RouteQueryPopup(a,themes,nav,query) {};sort.sorting();sort.show(anchor)
+            shadowOf(Looper.getMainLooper()).idle()
+            layout(sort.contentView,sort.width,sort.height)
+            val menuScroll=(sort.contentView as LinearLayout).getChildAt(0) as ScrollView
+            assertTrue("Menu content ${menuScroll.getChildAt(0).height}, viewport ${menuScroll.height}",menuScroll.getChildAt(0).height<=menuScroll.height)
             val sortHeader=sort.contentView.findViewWithTag<View>("route_query_group_${R.string.route_sort_field}")
             sortHeader.performClick()
-            val sortChoice=nodes(sort.contentView).filterIsInstance<RadioButton>().single { it.text==a.getString(R.string.route_filter_distance) }
+            val sortChoice=nodes(sort.groupPopup!!.contentView).filterIsInstance<RadioButton>().single { it.text==a.getString(R.string.route_filter_distance) }
             val sortContent=sortChoice.parent.parent as View
             assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),sortContent.paddingBottom)
             sortChoice.isChecked=true
-            assertEquals(RouteSort.DISTANCE,query.sort);assertEquals(RouteRange(15.0,20.0),query.distance);sort.dismiss()
+            assertEquals(RouteSort.DISTANCE,query.sort);assertEquals(RouteRange(15.0,20.0),query.distance)
+            sort.groupPopup!!.dismiss()
+            sort.contentView.findViewWithTag<View>("route_query_group_${R.string.route_sort_direction}").performClick()
+            val directionPopup=sort.groupPopup!!
+            layout(directionPopup.contentView,directionPopup.width,directionPopup.height)
+            val directionScroll=directionPopup.contentView as ScrollView
+            assertTrue("Direction content ${directionScroll.getChildAt(0).height}, viewport ${directionScroll.height}",directionScroll.getChildAt(0).height<=directionScroll.height)
+            sort.dismiss();assertNull(sort.groupPopup)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun stickyHeadingsBecomeAccordionsOnceAndRenameHeadingKeepsItsClick() {
