@@ -61,15 +61,23 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.5 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.5/downloads/B-Cycle-0.8.5.apk)**
+**[Version 0.8.6 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.6/downloads/B-Cycle-0.8.6.apk)**
 
-**Build 40 vom 18.10.2026**, rund **1.8 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+**Build 41 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
 Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-40.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.5) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39165261572).
+[Änderungen und SHA-256](docs/build-41.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.6) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39204932821).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.6
+
+- Kompaktere Auswahlzeilen und einheitliche schmale, transparent umrandete Texteingaben.
+- Filter/Sortierung mit kompakten Accordions ohne Zurückbutton, Streckenart-Segmenten und Fahrradkacheln in drei Spalten.
+- Zwei-Griff-Slider für Distanz, Bewegungszeit und Geschwindigkeit, synchron mit den Von-/Bis-Feldern.
+- Trackdarstellung mit direkten Farb-, Deckkraft- und Breitenoptionen unter der Kartenvorschau.
+- Native feste Farbpalette über das Spektrum einschließlich Grautönen, ohne zusätzliche Bibliothek.
 
 ## Neu in APK 0.8.5
 
