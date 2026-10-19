@@ -48,6 +48,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     var heartStatus = "Pulsmesser · Nicht verbunden"; private set
     var gpsStatus = "GPS · Aus"; private set
     var lastPacketAt: Long? = null; private set
+    internal val drinkReminder=DrinkReminder()
     var recording = false; private set
     var saving = false; private set
     var recordingStatus = "Bereit · START beginnt die Aufzeichnung"; private set
@@ -484,11 +485,13 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
                     sensorTimeMs = event.sensorTimeMs?.minus(startElapsed))
         }
         store.begin(startUtc, activeConfig); recording = true; ride.gps.setCollecting(!isIndoor)
+        drinkReminder.reset();drinkReminder.update(true,0,DrinkReminderSettings.read(preferences),false)
         connectionsRequested = true
         recordingStatus = "Aufzeichnung läuft"; appendSample(); updateActivity()
     }
     fun stopRecording() {
         if (!recording) return
+        drinkReminder.reset()
         completedElapsedMs = appendSample(); recording = false; saving = true; recordingStatus = "FIT wird gespeichert …"
         ride.gps.setCollecting(false); ride.bike.pause()
         liveGraphs.stop(); store.finish(); updateActivity()

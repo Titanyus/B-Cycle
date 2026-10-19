@@ -1,0 +1,9 @@
+<resources>
+    <string name="drink_reminder_title">Trink-Erinnerung</string>
+    <string name="drink_reminder_interval">Intervall</string>
+    <string name="drink_reminder_minutes">%1$d min</string>
+    <string name="drink_reminder_message">Trinken nicht vergessen!</string>
+    <string name="drink_reminder_dismiss">Trinken nicht vergessen! Zum Schließen antippen.</string>
+    <string name="help_drink_reminder_heading">Trink-Erinnerung</string>
+    <string name="help_drink_reminder_body">Aktiviere die Erinnerung für dieses Fahrradprofil. Im aufgeklappten Bereich wählst du 10 bis 60 Minuten in Schritten von 5 Minuten. Standard sind 30 Minuten. Der Zeitraum zählt nur während der Aufnahme, auch im Stand. Das Fenster erscheint mittig über der Karte, bei einem Dashboard ohne Karte mittig im Anzeigebereich. Es verschwindet nach 15 Sekunden oder durch Antippen. Das Schließen bestätigt keine getrunkene Menge und setzt das Intervall nicht zurück. Bei Aufnahmeende endet die Erinnerung; mit einer neuen Aufnahme beginnt das Intervall neu.</string>
+</resources>

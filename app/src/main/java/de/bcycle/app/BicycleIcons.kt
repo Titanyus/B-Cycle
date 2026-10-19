@@ -17,7 +17,7 @@ internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = Th
     Dreeve(R.drawable.ic_dreeve), Strava(R.drawable.ic_strava), WebDav(R.drawable.ic_lucide_server), Intervals(R.drawable.ic_lucide_activity),
     DataStorage(R.drawable.ic_lucide_database), RestoreSettings(R.drawable.ic_lucide_upload), Forward(R.drawable.ic_lucide_chevron_right),
     Battery(R.drawable.ic_lucide_battery), Phone(R.drawable.ic_lucide_smartphone),
-    Notifications(R.drawable.ic_lucide_bell),
+    Notifications(R.drawable.ic_lucide_bell), DrinkReminder(R.drawable.ic_drink_bottle),
     EBike(R.drawable.ic_bike_electric), IndoorBike(R.drawable.ic_bike_indoor),
     Bikes(R.drawable.ic_lucide_bike), Sensors(R.drawable.ic_lucide_radio), MapManager(R.drawable.ic_lucide_map_pinned),
     Dashboard(R.drawable.ic_lucide_layout_dashboard), Route(R.drawable.ic_lucide_route),

@@ -21,6 +21,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     trendEnabled:Boolean = true,
     trendChanged:((Boolean)->Unit)? = null,
     trainingHelp:TrainingHelpView? = null,
+    drinkReminder:DrinkReminderSettingsView? = null,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
@@ -74,6 +75,10 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         if(trainingHelp!=null) {
             BicycleForm.section(panels,themes,R.string.training_help_title)
             panels.addView(trainingHelp,LayoutParams(-1,-2))
+        }
+        if(drinkReminder!=null) {
+            BicycleForm.section(panels,themes,R.string.drink_reminder_title)
+            panels.addView(drinkReminder,LayoutParams(-1,-2))
         }
         var shown = -1
         val availableBatteries=BatteryFields.choices(data)

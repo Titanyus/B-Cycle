@@ -59,6 +59,8 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
         selected.forEach { section -> sections.put(section.id, when(section) {
             BackupSection.DESIGN -> JSONObject().put("activeThemeId", themes.active.id).put("customThemes", jsonArray(themes.customThemes.map(::themeJson)))
                 .put("settingsLight",themes.settingsLight)
+                .put("drinkReminder",DrinkReminderSettings.read(bike).enabled)
+                .put("drinkReminderMinutes",DrinkReminderSettings.read(bike).minutes)
                 .put("modeGlow", ModeGlowSettings.enabled(bike))
                 .put("modeGlowPlacement",ModeGlowSettings.placement(bike).name)
                 .put("dashboardFullscreen",DashboardFullscreen.enabled(bike))
@@ -137,6 +139,11 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     check(BicycleThemes.findPreset(active)!=null || custom.any { it.id==active })
                     if(row.has("activeThemeId")) b[ThemeManager.activeKey]=BicycleThemes.findPreset(active)?.id ?: active
                     if(row.has("settingsLight")) b[ThemeManager.settingsLightKey]=boolean(row,"settingsLight")
+                    if(row.has("drinkReminder")) b[DrinkReminderSettings.enabledKey]=boolean(row,"drinkReminder")
+                    if(row.has("drinkReminderMinutes")) {
+                        val minutes=integer(row,"drinkReminderMinutes");check(DrinkReminderSettings.valid(minutes))
+                        b[DrinkReminderSettings.intervalKey]=minutes
+                    }
                     if(row.has("modeGlow")) b[ModeGlowSettings.key]=boolean(row,"modeGlow")
                     if(row.has("modeGlowPlacement")) {
                         val placement=row.opt("modeGlowPlacement") as? String ?: fail()

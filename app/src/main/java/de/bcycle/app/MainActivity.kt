@@ -22,6 +22,7 @@ class MainActivity : Activity() {
     private lateinit var dashboard: DashboardView
     private lateinit var startButton: Button
     private lateinit var noMapEditorFinish: Button
+    private lateinit var drinkReminderPanel:DrinkReminderPanel
     private lateinit var messages: MessageNotificationPanel
     private var notificationSettings: MessageNotificationSettingsView?=null
     private val messageObserver: (IncomingMessage?)->Unit = { message ->
@@ -227,6 +228,13 @@ class MainActivity : Activity() {
             setPadding(dp(BicycleDesign.horizontalPadding),paddingTop,dp(BicycleDesign.horizontalPadding),paddingBottom)
         }
         host.addView(noMapEditorFinish,FrameLayout.LayoutParams(-2,-2,android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL).apply { bottomMargin=dp(66) })
+        drinkReminderPanel=DrinkReminderPanel(this,runtime.themes)
+        host.addView(drinkReminderPanel,FrameLayout.LayoutParams(-1,-2,Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
+            marginStart=dp(BicycleDesign.horizontalPadding);marginEnd=dp(BicycleDesign.horizontalPadding)
+        })
+        drinkReminderPanel.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
+        mapPanel.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
+        dashboardArea.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
         messages=MessageNotificationPanel(this,runtime.themes) {
             val mapLocation=IntArray(2);val hostLocation=IntArray(2)
             mapPanel.getLocationInWindow(mapLocation);host.getLocationInWindow(hostLocation)
@@ -322,6 +330,12 @@ class MainActivity : Activity() {
             dashboardHost.setBackgroundColor(Color.BLACK);dashboard.background=dashboard.modeGlow
         }
         dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
+        val drinkSettings=DrinkReminderSettings.read(preferences)
+        val drinkVisible=runtime.visible && dialogs.empty && !dashboardEditing
+        if(!drinkVisible || !runtime.recording || !drinkSettings.enabled) drinkReminderPanel.clear()
+        if(runtime.drinkReminder.update(runtime.recording,runtime.elapsedMs,drinkSettings,drinkVisible)) {
+            drinkReminderPanel.showReminder();placeDrinkReminder()
+        }
         if (::mapPanel.isInitialized && currentTemplate().hasMap) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
         if (mapMessage != displayedMapMessage) {
@@ -330,6 +344,16 @@ class MainActivity : Activity() {
         }
         if (runtime.visible && (runtime.connection.isActive || runtime.trainer.active || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+    private fun placeDrinkReminder() {
+        if(!::drinkReminderPanel.isInitialized || drinkReminderPanel.visibility!=View.VISIBLE) return
+        val anchor=if(currentTemplate().hasMap && mapPanel.visibility==View.VISIBLE) mapPanel else dashboardArea
+        val at=IntArray(2);val hostAt=IntArray(2)
+        anchor.getLocationInWindow(at);dashboardHost.getLocationInWindow(hostAt)
+        val top=(at[1]-hostAt[1]+(anchor.height-drinkReminderPanel.height)/2)
+            .coerceIn(0,(dashboardHost.height-drinkReminderPanel.height).coerceAtLeast(0))
+        val params=drinkReminderPanel.layoutParams as FrameLayout.LayoutParams
+        if(params.topMargin!=top) { params.topMargin=top;drinkReminderPanel.layoutParams=params }
     }
     /** Source selector stays outside the scrollable list for dashboard and map fields. */
     private fun chooseField(index: Int, mapField: Boolean = false) {
@@ -376,7 +400,7 @@ class MainActivity : Activity() {
                     dashboardTrendIndicators=dashboardTrendIndicators.replace(index,enabled)
                     preferences.edit().putString(DashboardTrendIndicators.key(dashboardPage),dashboardTrendIndicators.encode()).apply();render()
                 }
-            },trainingHelp=trainingHelpControls { trainingPage },choose={ select(it) })
+            },trainingHelp=trainingHelpControls { trainingPage },drinkReminder=drinkReminderControls(),choose={ select(it) })
         val builder = dialog().setTitle(if (mapField) getString(R.string.ui_map_field_title, MapFieldSelection.positionLabel(this, index)) else getString(R.string.ui_dashboard_field_title, index + 1))
             .setView(content)
         picker=builder.show()
@@ -687,7 +711,7 @@ class MainActivity : Activity() {
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.
         stopScan();bikePicker?.dismiss();recordingIndicator?.stop()
-        MessageNotifications.observers.remove(messageObserver);messages.clear()
+        MessageNotifications.observers.remove(messageObserver);messages.clear();drinkReminderPanel.clear()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {
@@ -789,18 +813,27 @@ class MainActivity : Activity() {
                 root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
                 root.addView(modeGlowControls())
             }
+            root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
+            root.addView(drinkReminderControls())
             BicycleDialogStyle.content(root,settingsThemes);return root
         }
         if(runtime.bikes.current().type==BikeType.EBIKE) {
             root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
             root.addView(modeGlowControls())
         }
+        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
+        root.addView(drinkReminderControls())
         val body=LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
             addView(BicycleStickyScrollView(settingsContext).apply { tag="design_ui_scroll";addView(root) },LinearLayout.LayoutParams(-1,0,1f))
             addView(footer,LinearLayout.LayoutParams(-1,-2))
         }
         return body
+    }
+    private fun drinkReminderControls():DrinkReminderSettingsView {
+        val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision
+        return DrinkReminderSettingsView(settingsContext,settingsThemes,preferences,
+            canEdit={ slot==runtime.bikes.activeSlot && revision==runtime.profileRevision },changed={ render() })
     }
     private fun modeGlowControls():View {
         val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision

@@ -20,6 +20,6 @@ Filter-/Sortier-Accordions im Streckenmanager erhalten einheitlich controlGap (8
 
 Filter-/Sortierfenster und geschlossene Gruppenbuttons verwenden TERTIARY. Ausgeklappte Gruppen haben eine zusammenhängende abgerundete SECONDARY-Fläche mit zentraler Kontur und 8-dp-Innenabstand. Normale Buttons und Texteingaben im Inhalt verwenden TERTIARY; Auswahl-/Akzentzustände bleiben erhalten. Diese Flächenrollen sind auf Filter/Sortierung begrenzt.
 
-## Vorgemerkt, nicht umgesetzt
+## Trink-Erinnerung
 
-Trinkerinnerung: einstellbares Zeitintervall während der Aufnahme. Optional eine ausdrückliche Aktion „Getrunken“ zum Zurücksetzen des Timers; bloßes Schließen einer Erinnerung gilt nicht als Trinkbestätigung. Details vor Umsetzung abstimmen.
+Die profilbezogene Intervallerinnerung ist inzwischen umgesetzt; aktuelle Regeln in [drink-reminder.md](drink-reminder.md). Eine ausdrückliche Aktion „Getrunken“ zum Zurücksetzen des Timers bleibt eine mögliche spätere Erweiterung. Bloßes Schließen einer Erinnerung gilt nicht als Trinkbestätigung.
