@@ -61,15 +61,21 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.10 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.10/downloads/B-Cycle-0.8.10.apk)**
+**[Version 0.8.11 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.11/downloads/B-Cycle-0.8.11.apk)**
 
-**Build 47 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 13 gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-47.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.10) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39215972182).
+**Build 48 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 24 gezielte Tests bestanden.
+[Änderungen und SHA-256](docs/build-48.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.11) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39251589788).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.11
+
+- Oberer Abstand der Streckenliste scrollt mit; Fahrten verschwinden direkt unter dem Header.
+- Ziehbare native Schnellnavigation rechts mit Monat/Jahr oder passenden Wertebereichen der gewählten Sortierung.
+- Sprungziele folgen der gefilterten Liste und der auf-/absteigenden Sortierung.
 
 ## Neu in APK 0.8.10
 
