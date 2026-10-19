@@ -61,15 +61,21 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.12 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.12/downloads/B-Cycle-0.8.12.apk)**
+**[Version 0.8.13 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.13/downloads/B-Cycle-0.8.13.apk)**
 
-**Build 49 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 37 gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-49.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.12) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39267668973).
+**Build 50 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 41 gezielte Tests bestanden.
+[Änderungen und SHA-256](docs/build-50.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.13) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39310337422).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
-Ein physischer Gerätetest der neuen APK steht noch aus.
+Ein echter Dreeve-Kontoabruf und physischer Gerätetest der neuen APK stehen noch aus.
+
+## Neu in APK 0.8.13
+
+- Dreeve-Testimport: im Streckenmanager unter Import eine eigene Fahrtenliste öffnen und eine oder mehrere Fahrten übernehmen.
+- Vorhandene Verbindung nutzen; weitere Seiten nachladen, bekannte Zuordnungen gegen doppelte Importe prüfen und einzelne Fehler getrennt behandeln.
+- GPX samt mitgelieferter Leistung, Puls und Kadenz übernehmen; kein automatischer Cloud-Upload. Kein Original-FIT-Download, ohne GPX derzeit kein Import.
 
 ## Neu in APK 0.8.12
 
