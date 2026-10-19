@@ -61,15 +61,22 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.8 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.8/downloads/B-Cycle-0.8.8.apk)**
+**[Version 0.8.9 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.9/downloads/B-Cycle-0.8.9.apk)**
 
-**Build 45 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 31 gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-45.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.8) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39209866256).
+**Build 46 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Sechs gezielte Tests bestanden.
+[Änderungen und SHA-256](docs/build-46.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.9) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39213448527).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.9
+
+- Filter und Sortierung mit SECONDARY-Hauptfenster und Auswahlbuttons; native Unter-Dropdowns in TERTIARY, darin Buttons/Eingaben in SECONDARY.
+- Inhaltsgerechte Fensterhöhe und vorab berücksichtigte Abstände, ohne feste 320-dp-Grenze für Sortierung.
+- Zusätzlichen Hintergrundrahmen hinter der Fahrradtyp-Segmentauswahl entfernt.
+- Neue Streckendetail-Optik lediglich [vorgemerkt](docs/pending-ui-changes.md), noch nicht umgesetzt.
 
 ## Neu in APK 0.8.8
 
