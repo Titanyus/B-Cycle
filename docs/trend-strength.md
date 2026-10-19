@@ -18,6 +18,8 @@ Dashboard-Zeiteinheiten werden in allen Kachelbreiten als „h“ angezeigt; das
 
 Filter-/Sortier-Accordions im Streckenmanager erhalten einheitlich controlGap (8 dp) Innenabstand über und unter ihrem ausgeklappten Inhalt. Damit bleiben Bereichseingaben vom öffnenden Button und alle Filter-/Sortierinhalte vom folgenden Button getrennt.
 
+Filter-/Sortierfenster und geschlossene Gruppenbuttons verwenden TERTIARY. Ausgeklappte Gruppen haben eine zusammenhängende abgerundete SECONDARY-Fläche mit zentraler Kontur und 8-dp-Innenabstand. Normale Buttons und Texteingaben im Inhalt verwenden TERTIARY; Auswahl-/Akzentzustände bleiben erhalten. Diese Flächenrollen sind auf Filter/Sortierung begrenzt.
+
 ## Vorgemerkt, nicht umgesetzt
 
 Trinkerinnerung: einstellbares Zeitintervall während der Aufnahme. Optional eine ausdrückliche Aktion „Getrunken“ zum Zurücksetzen des Timers; bloßes Schließen einer Erinnerung gilt nicht als Trinkbestätigung. Details vor Umsetzung abstimmen.

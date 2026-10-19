@@ -72,6 +72,10 @@ class RouteQueryUiTest {
             val rangeContent=from.parent.parent as View
             assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),rangeContent.paddingTop)
             assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),rangeContent.paddingBottom)
+            fun fill(view:View)=(view.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor
+            assertEquals(themes.active.tokens.tertiary,fill(headers[3]))
+            assertEquals(themes.active.tokens.secondary,fill(rangeContent))
+            assertEquals(themes.active.tokens.tertiary,fill(from))
             from.setText("10");to.setText("5")
             assertEquals(RouteRange(10.0,null),query.distance);assertNotNull(to.error)
             to.setText("20");assertEquals(RouteRange(10.0,20.0),query.distance);assertNull(to.error)

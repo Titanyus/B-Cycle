@@ -22,7 +22,8 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         val section=LinearLayout(context).apply {
             orientation=LinearLayout.VERTICAL;visibility=View.GONE
             val gap=dp(BicycleDesign.controlGap)
-            setPadding(0,gap,0,gap)
+            setPadding(gap,gap,gap,gap)
+            BicycleComponents.bindTheme(this,themes) { background=BicycleComponents.controlBackground(context,it,it.secondary) }
         }
         lateinit var header:Button
         header=BicycleComponents.action(context,themes,"") {
@@ -33,10 +34,22 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         }.apply { tag="route_query_group_$title";stateDescription=context.getString(R.string.zone_collapsed) }
         BicycleDialogStyle.accordion(header,themes)
         BicycleDialogStyle.actionIcon(header,themes,BicycleIcon.Expand)
+        darkControl(header)
         fun label() { header.text=context.getString(title)+" · "+summary() }
         build(section) { label();changed() };label()
+        fun controls(view:View) {
+            if(view is EditText || view is Button && view !is CompoundButton) darkControl(view)
+            if(view is android.view.ViewGroup) for(i in 0 until view.childCount) controls(view.getChildAt(i))
+        }
+        controls(section)
         body.addView(header,LinearLayout.LayoutParams(-1,-2))
         body.addView(section,LinearLayout.LayoutParams(-1,-2))
+    }
+    private fun darkControl(view:View) {
+        BicycleComponents.bindTheme(view,themes) {
+            view.background=BicycleComponents.controlBackground(context,it,it.tertiary)
+            view.backgroundTintList=null
+        }
     }
     private fun checks(parent:LinearLayout,values:List<Pair<String,Boolean>>,action:(Int,Boolean)->Unit) {
         values.forEachIndexed { index,(label,selected) ->
