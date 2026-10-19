@@ -339,6 +339,14 @@ object BicycleComponents {
         val inset=BicycleDesign.dp(context,BicycleDesign.controlBorder)
         setPadding(inset,inset,inset,inset)
     }
+    /** Shared frame for adjacent selection segments, whether single or multiple selection. */
+    internal fun segmentedControlRow(row:LinearLayout,manager:ThemeManager) {
+        row.orientation=LinearLayout.HORIZONTAL
+        row.setTag(R.id.inline_control_row,true)
+        outlinedControl(row,manager)
+        val border=dp(row.context,BicycleDesign.controlBorder).coerceAtLeast(1)
+        row.setPadding(border,border,border,border)
+    }
     internal fun outlinedControl(view:View,manager:ThemeManager) {
         bindTheme(view,manager) { view.background=controlBackground(view.context,it);view.backgroundTintList=null }
     }

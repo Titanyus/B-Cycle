@@ -25,9 +25,7 @@ internal class TrainingHelpView(context:Context,themes:ThemeManager,initial:Dash
     init {
         orientation=VERTICAL;tag="training_help_controls"
         addView(BicycleComponents.description(context,themes,context.getString(R.string.training_help_explanation)))
-        BicycleComponents.outlinedControl(modes,themes)
-        val border=BicycleDesign.dp(context,BicycleDesign.controlBorder).coerceAtLeast(1)
-        modes.setPadding(border,border,border,border)
+        BicycleComponents.segmentedControlRow(modes,themes)
         modeButtons.values.forEach { modes.addView(it,RadioGroup.LayoutParams(0,-2,1f)) }
         val details=LinearLayout(context).apply {
             orientation=VERTICAL;tag="training_help_details";visibility=GONE

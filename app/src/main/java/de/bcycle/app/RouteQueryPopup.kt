@@ -16,6 +16,19 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     private val content=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL }
     internal var groupPopup:PopupWindow?=null;private set
     private val body=BicycleComponents.dialogBody(context,themes)
+    private val availabilityUpdates=mutableListOf<(RouteFilterAvailability)->Unit>()
+    private val profileSlots by lazy { routes.associate { it.id to RideProfileColor.slot(context,it.id) } }
+    private fun refreshAvailability() {
+        if(availabilityUpdates.isEmpty()) return
+        val available=query.availability(routes,{ profileSlots[it] })
+        availabilityUpdates.forEach { it(available) }
+    }
+    private fun option(view:View,selected:()->Boolean,available:(RouteFilterAvailability)->Boolean) {
+        availabilityUpdates.add { values ->
+            view.isEnabled=selected() || available(values)
+            view.alpha=if(view.isEnabled) 1f else .5f
+        }
+    }
     private fun dp(v:Int)=BicycleDesign.dp(context,v)
     private fun group(title:Int,summary:()->String,build:(LinearLayout,()->Unit)->Unit) {
         val section=LinearLayout(context).apply {
@@ -32,7 +45,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         BicycleDialogStyle.actionIcon(header,themes,BicycleIcon.Expand)
         secondaryControl(header)
         fun label() { header.text=context.getString(title)+" · "+summary() }
-        build(section) { label();changed() };label()
+        build(section) { label();refreshAvailability();changed() };label()
         fun controls(view:View) {
             if(view is Button || view is EditText) BicycleComponents.controlSpacing(view)
             if(view is EditText || view is Button && view !is CompoundButton) secondaryControl(view)
@@ -48,21 +61,14 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
             view.backgroundTintList=null
         }
     }
-    private fun checks(parent:LinearLayout,values:List<Pair<String,Boolean>>,action:(Int,Boolean)->Unit) {
-        values.forEachIndexed { index,(label,selected) ->
-            parent.addView(CheckBox(context).apply {
-                text=label;isChecked=selected;BicycleDialogStyle.control(this,themes)
-                setOnCheckedChangeListener { _,enabled -> action(index,enabled) }
-            },LinearLayout.LayoutParams(-1,-2))
-        }
-    }
     private fun count(size:Int)=if(size==0) context.getString(R.string.route_filter_all) else size.toString()
     fun filters(reset:()->Unit) {
         group(R.string.route_filter_kind,{ count(query.kinds.size) }) { section,update ->
-            val segments=LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL;tag=BicycleDesign.inlineControlRowTag }
+            val segments=LinearLayout(context).apply { BicycleComponents.segmentedControlRow(this,themes) }
             RouteKind.entries.forEach { kind ->
                 segments.addView(BicycleSegmentButton(context,themes,multiple=true).apply {
                     tag="route_kind_${kind.name}";setText(kind.label);isChecked=kind in query.kinds
+                    option(this,{ kind in query.kinds },{ kind in it.kinds })
                     setOnCheckedChangeListener { _,on ->
                         query.kinds=if(on) query.kinds+kind else query.kinds-kind;update()
                     }
@@ -70,15 +76,38 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
             }
             section.addView(segments,LinearLayout.LayoutParams(-1,-2))
         }
+        group(R.string.route_filter_bike_type,{ count(query.bikeTypes.size) }) { section,update ->
+            val segments=LinearLayout(context).apply { BicycleComponents.segmentedControlRow(this,themes) }
+            BikeType.entries.forEach { type ->
+                segments.addView(BicycleSegmentButton(context,themes,multiple=true).apply {
+                    tag="route_bike_type_${type.name}"
+                    setText(when(type) { BikeType.BIKE->R.string.bikes_type_bike;BikeType.EBIKE->R.string.bikes_type_ebike;BikeType.INDOOR->R.string.bikes_type_indoor })
+                    isChecked=type in query.bikeTypes
+                    option(this,{ type in query.bikeTypes },{ type in it.bikeTypes })
+                    setOnCheckedChangeListener { _,on ->
+                        query.bikeTypes=if(on) query.bikeTypes+type else query.bikeTypes-type;update()
+                    }
+                },LinearLayout.LayoutParams(0,-2,1f))
+            }
+            section.addView(segments,LinearLayout.LayoutParams(-1,-2))
+        }
         group(R.string.route_filter_bike,{ count(query.bikes.size) }) { section,update ->
             val profiles=BikeProfileStore(context,context.getSharedPreferences("bike",0)).all()
-            section.addView(BikeFilterGrid(context,themes,profiles,query.bikes) { slot,on ->
+            val grid=BikeFilterGrid(context,themes,profiles,query.bikes) { slot,on ->
                 query.bikes=if(on) query.bikes+slot else query.bikes-slot;update()
-            },LinearLayout.LayoutParams(-1,-2))
-            checks(section,listOf(context.getString(R.string.route_filter_unknown_bike) to (-1 in query.bikes))) { _,on ->
-                query.bikes=if(on) query.bikes+(-1) else query.bikes-(-1);update()
             }
+            availabilityUpdates.add { grid.showAvailable(it.bikes) }
+            section.addView(grid,LinearLayout.LayoutParams(-1,-2))
+            section.addView(CheckBox(context).apply {
+                tag="route_bike_unknown";setText(R.string.route_filter_unknown_bike);isChecked=-1 in query.bikes
+                BicycleDialogStyle.control(this,themes)
+                option(this,{ -1 in query.bikes },{ -1 in it.bikes })
+                setOnCheckedChangeListener { _,on ->
+                    query.bikes=if(on) query.bikes+(-1) else query.bikes-(-1);update()
+                }
+            },LinearLayout.LayoutParams(-1,-2))
         }
+
         group(R.string.route_filter_date,{ listOfNotNull(query.fromDate?.toString(),query.toDate?.toString()).joinToString(" – ").ifEmpty { context.getString(R.string.route_filter_range) } }) { section,update ->
             val dates=LinearLayout(context)
             lateinit var from:Button;lateinit var to:Button
@@ -119,6 +148,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         range(R.string.route_filter_moving,{ query.moving },{ query.moving=it })
         range(R.string.route_filter_speed,{ query.speed },{ query.speed=it })
         body.addView(BicycleComponents.action(context,themes,context.getString(R.string.route_filter_reset)) { query.clearFilters();changed();dismiss();reset() },LinearLayout.LayoutParams(-1,-2))
+        refreshAvailability()
         shell(R.string.route_filter_button)
     }
     private fun range(title:Int,get:()->RouteRange,set:(RouteRange)->Unit) {
@@ -222,6 +252,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     }
     private fun openGroup(header:Button,section:LinearLayout) {
         groupPopup?.dismiss()
+        refreshAvailability()
         val dropdown=PopupWindow().apply {
             isFocusable=true;isOutsideTouchable=true;inputMethodMode=INPUT_METHOD_NEEDED
             softInputMode=android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE

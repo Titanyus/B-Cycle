@@ -48,10 +48,15 @@ class RouteQueryUiTest {
             val a=host.get();val prefs=a.getSharedPreferences("bike",0);val themes=ThemeManager(prefs);val nav=DialogNavigation()
             val anchor=Button(a);a.setContentView(anchor);layout(anchor)
             val query=RouteQuery();var updates=0
-            val popup=RouteQueryPopup(a,themes,nav,query) { updates++ }
+            val routes=listOf(
+                ManagedRoute("imported","Imported",false,"FIT",RouteDetails(1L,10000.0,bikeType=BikeType.BIKE),false,TrackOrigin.IMPORTED),
+                ManagedRoute("ebike","Ebike",true,"FIT",RouteDetails(1L,30000.0,bikeType=BikeType.EBIKE),false,TrackOrigin.RECORDED),
+                ManagedRoute("indoor","Indoor",true,"FIT",RouteDetails(1L,50000.0,bikeType=BikeType.INDOOR),false,TrackOrigin.RECORDED))
+            routes.forEach { RideProfileColor.confirm(a,it.id,RideProfileColor.snapshot(a)) }
+            val popup=RouteQueryPopup(a,themes,nav,query,routes) { updates++ }
             popup.filters {};popup.show(anchor);shadowOf(Looper.getMainLooper()).idle();layout(popup.contentView,320,popup.height)
             assertTrue(popup.isFocusable);assertTrue(popup.height<a.resources.displayMetrics.heightPixels)
-            val headers=nodes(popup.contentView).filterIsInstance<Button>().filter { it.tag?.toString()?.startsWith("route_query_group_")==true };assertEquals(6,headers.size)
+            val headers=nodes(popup.contentView).filterIsInstance<Button>().filter { it.tag?.toString()?.startsWith("route_query_group_")==true };assertEquals(7,headers.size)
             assertTrue(headers.all { it.stateDescription==a.getString(R.string.zone_collapsed) })
             assertTrue(popup.height<500)
             assertEquals(1,(popup.contentView as LinearLayout).childCount)
@@ -60,25 +65,36 @@ class RouteQueryUiTest {
                 return popup.groupPopup!!.contentView
             }
             var choices=group(0)
-            assertNull((choices as ScrollView).getChildAt(0).findViewWithTag<View>(BicycleDesign.inlineControlRowTag).background)
+            val frame=choices.findViewWithTag<View>("route_kind_IMPORTED").parent as LinearLayout
+            assertNotNull(frame.background)
+            assertEquals(BicycleDesign.dp(a,BicycleDesign.controlBorder).coerceAtLeast(1),frame.paddingLeft)
+            assertEquals(2,frame.childCount)
             choices.findViewWithTag<View>("route_kind_IMPORTED").performClick()
             assertEquals(setOf(RouteKind.IMPORTED),query.kinds)
-            choices.findViewWithTag<View>("route_kind_EBIKE").performClick()
-            assertEquals(setOf(RouteKind.IMPORTED,RouteKind.EBIKE),query.kinds)
+            choices.findViewWithTag<View>("route_kind_RECORDED").performClick()
+            assertEquals(setOf(RouteKind.IMPORTED,RouteKind.RECORDED),query.kinds)
             choices.findViewWithTag<View>("route_kind_IMPORTED").performClick()
-            assertEquals(setOf(RouteKind.EBIKE),query.kinds)
+            assertEquals(setOf(RouteKind.RECORDED),query.kinds)
             choices=group(1)
+            val types=choices.findViewWithTag<View>("route_bike_type_BIKE").parent as LinearLayout
+            assertEquals(3,types.childCount);assertEquals(frame.paddingLeft,types.paddingLeft)
+            assertNotNull(types.background)
+            choices.findViewWithTag<View>("route_bike_type_EBIKE").performClick()
+            choices.findViewWithTag<View>("route_bike_type_INDOOR").performClick()
+            assertEquals(setOf(BikeType.EBIKE,BikeType.INDOOR),query.bikeTypes)
+            assertEquals(setOf(RouteKind.RECORDED),query.kinds)
+            choices=group(2)
             choices.findViewWithTag<View>("route_bike_0").performClick()
             assertEquals(setOf(0),query.bikes)
             choices.findViewWithTag<View>("route_bike_0").performClick();assertTrue(query.bikes.isEmpty())
-            choices=group(3)
+            choices=group(4)
             val from=choices.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_0")
             val to=choices.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_1")
             val rangeContent=from.parent.parent as View
             assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),rangeContent.paddingTop)
             assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),rangeContent.paddingBottom)
             fun fill(view:View)=(view.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor
-            assertEquals(themes.active.tokens.secondary,fill(headers[3]))
+            assertEquals(themes.active.tokens.secondary,fill(headers[4]))
             assertEquals(themes.active.tokens.tertiary,(rangeContent.background as android.graphics.drawable.ColorDrawable).color)
             assertEquals(themes.active.tokens.secondary,fill(from))
             from.setText("10");to.setText("5")
@@ -90,11 +106,11 @@ class RouteQueryUiTest {
             assertTrue(slider.accessibilityNodeProvider!!.performAction(0,android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS.id,args))
             assertEquals(RouteRange(15.0,20.0),query.distance);assertEquals("15",from.text.toString())
             assertTrue(from.requestFocus());assertNotNull(from.onCreateInputConnection(EditorInfo()))
-            choices=group(4)
+            choices=group(5)
             choices.findViewWithTag<EditText>("route_range_${R.string.route_filter_moving}_0").setText("1:30")
             choices.findViewWithTag<EditText>("route_range_${R.string.route_filter_moving}_1").setText("2:45")
             assertEquals(RouteRange(1.5,2.75),query.moving)
-            choices=group(2)
+            choices=group(3)
             nodes(choices).filterIsInstance<Button>().single { it.text==a.getString(R.string.route_week_this) }.performClick()
             assertEquals(java.time.DayOfWeek.MONDAY,query.fromDate!!.dayOfWeek);assertEquals(query.fromDate!!.plusDays(6),query.toDate)
             assertTrue(updates>=4);popup.dismiss()
@@ -117,6 +133,48 @@ class RouteQueryUiTest {
             val directionScroll=directionPopup.contentView as ScrollView
             assertTrue("Direction content ${directionScroll.getChildAt(0).height}, viewport ${directionScroll.height}",directionScroll.getChildAt(0).height<=directionScroll.height)
             sort.dismiss();assertNull(sort.groupPopup)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun onlyFirstThreeFiltersDisableImpossibleChoicesAndSelectedOptionsStayRemovable() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val prefs=a.getSharedPreferences("bike",0);val themes=ThemeManager(prefs)
+            val profiles=BikeProfileStore(a,prefs);profiles.add()
+            val routes=listOf(
+                ManagedRoute("imported","Imported",false,"FIT",RouteDetails(1L,10000.0,bikeType=BikeType.BIKE),false,TrackOrigin.IMPORTED),
+                ManagedRoute("indoor","Indoor",true,"FIT",RouteDetails(1L,10000.0,bikeType=BikeType.INDOOR),false,TrackOrigin.RECORDED))
+            RideProfileColor.confirm(a,"imported",org.json.JSONObject().put("slot",0).put("primary",0).toString())
+            RideProfileColor.confirm(a,"indoor",org.json.JSONObject().put("slot",1).put("primary",0).toString())
+            val query=RouteQuery().apply { kinds=setOf(RouteKind.IMPORTED) }
+            val anchor=Button(a);a.setContentView(anchor);layout(anchor)
+            val popup=RouteQueryPopup(a,themes,DialogNavigation(),query,routes) {}
+            popup.filters {};popup.show(anchor);shadowOf(Looper.getMainLooper()).idle();layout(popup.contentView,320,popup.height)
+            fun open(title:Int):View {
+                popup.contentView.findViewWithTag<View>("route_query_group_$title").performClick()
+                return popup.groupPopup!!.contentView
+            }
+            var body=open(R.string.route_filter_bike_type)
+            assertFalse(body.findViewWithTag<View>("route_bike_type_INDOOR").isEnabled)
+            assertEquals(.5f,body.findViewWithTag<View>("route_bike_type_INDOOR").alpha,0f)
+            body.findViewWithTag<View>("route_bike_type_BIKE").performClick()
+            body=open(R.string.route_filter_bike)
+            assertTrue(body.findViewWithTag<View>("route_bike_0").isEnabled)
+            assertFalse(body.findViewWithTag<View>("route_bike_1").isEnabled)
+            assertFalse(body.findViewWithTag<View>("route_bike_unknown").isEnabled)
+            body=open(R.string.route_filter_kind)
+            assertFalse(body.findViewWithTag<View>("route_kind_RECORDED").isEnabled)
+            assertTrue(body.findViewWithTag<View>("route_kind_IMPORTED").isEnabled)
+            query.distance=RouteRange(1000.0,null)
+            body=open(R.string.route_filter_bike_type)
+            val selected=body.findViewWithTag<RadioButton>("route_bike_type_BIKE")
+            assertTrue(selected.isChecked && selected.isEnabled)
+            selected.performClick();assertTrue(query.bikeTypes.isEmpty())
+            body=open(R.string.route_filter_date)
+            assertTrue(nodes(body).filterIsInstance<Button>().all { it.isEnabled })
+            body=open(R.string.route_filter_distance)
+            assertTrue(nodes(body).filterIsInstance<EditText>().all { it.isEnabled })
+            assertTrue(nodes(body).filterIsInstance<BicycleRangeSlider>().all { it.isEnabled })
+            popup.dismiss()
         } finally { host.pause().stop().destroy() }
     }
     @Test fun stickyHeadingsBecomeAccordionsOnceAndRenameHeadingKeepsItsClick() {

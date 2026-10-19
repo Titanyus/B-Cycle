@@ -13,6 +13,13 @@ import android.widget.TextView
 internal class BikeFilterGrid(context:Context,themes:ThemeManager,profiles:List<BikeProfile>,initial:Set<Int>,
     changed:(Int,Boolean)->Unit):GridLayout(context) {
     private val selected=initial.toMutableSet()
+    fun showAvailable(slots:Set<Int>) {
+        for(i in 0 until childCount) getChildAt(i).apply {
+            val slot=tag.toString().removePrefix("route_bike_").toInt()
+            isEnabled=slot in selected || slot in slots
+            alpha=if(isEnabled) 1f else .5f
+        }
+    }
     init {
         columnCount=3;tag="route_bike_tiles"
         profiles.forEachIndexed { index,p ->
@@ -42,6 +49,7 @@ internal class BikeFilterGrid(context:Context,themes:ThemeManager,profiles:List<
                 }
                 BicycleComponents.bindTheme(this,themes,::paint)
                 setOnClickListener {
+                    if(!isEnabled) return@setOnClickListener
                     val on=p.slot !in selected;if(on) selected.add(p.slot) else selected.remove(p.slot)
                     paint(themes.active.tokens);changed(p.slot,on)
                 }

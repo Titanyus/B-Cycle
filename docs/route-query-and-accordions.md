@@ -33,3 +33,15 @@ Gruppen behalten ihre Eingaben/Listener und Entwürfe bis zum Schließen des Hau
 Keine feste 320-dp-Grenze für Sortierung. Hauptmenühöhe aus Inhalt (maximal 75 % der verfügbaren Fläche), Unterfenster aus Inhalt und nativ verfügbarem Platz. Zentrale Controlabstände vor dem Messen an den endgültigen LayoutParams anwenden; spätes Styling darf keinen künstlichen Scrollbedarf erzeugen. 8-dp-Innenabstand der Gruppen bleibt erhalten.
 
 Der Segmentzeile für Importiert/Bike/E-Bike/Indoor liegt kein eigener gefüllter/umrahmter Kasten mehr zugrunde; nur die eigentlichen Segmente zeichnen ihre Flächen. Dadurch kein heller Saum hinter den vier Feldern.
+
+## Getrennte Herkunfts-/Radtypfilter und gemeinsamer Segmentrahmen
+
+Herkunft/Streckenart bietet nur „Importiert“ und „Gefahren“, der separate Filter Radtyp „Bike“, „E-Bike“ und „Indoor“. Beide Gruppen erlauben Mehrfachauswahl (ODER innerhalb, UND zwischen Gruppen). Leere Gruppen begrenzen nichts. Herkunft richtet sich ausschließlich nach TrackOrigin, unabhängig vom Radtyp: selbst aufgezeichnete Altfahrten ohne Radtyp gehören zu Gefahren. Importierte Fahrten können nach Radtyp gefiltert werden, sofern dieser bekannt ist; unbekannte Typen fallen bei einem aktiven Typfilter heraus. Reset und Filterzähler berücksichtigen die neue Gruppe. Dynamische Verfügbarkeit siehe folgenden Abschnitt.
+
+Die vorige rahmenlose Segmentdarstellung wird durch den zentralen Helfer BicycleComponents.segmentedControlRow ersetzt: derselbe dezente 1-dp-Rahmen in FOREGROUND 50 %, gemeinsame Rundung und SECONDARY-Fläche wie bei der Zonenauswahl der Trainingshilfe. Innenpadding exakt Rahmenbreite, damit der Rahmen sichtbar bleibt und keine zusätzliche Fläche hinter den Segmenten hervorsteht. Trainingshilfe und beide Filtergruppen verwenden denselben Helfer; Auswahlzustände behalten ihre ACCENT-Füllung und native Semantik.
+
+## Dynamische Verfügbarkeit der ersten drei Filter
+
+RouteQuery.availability bestimmt aus dem vollständigen Fahrtenbestand, welche Herkunftsarten, Radtypen und Profilzuordnungen unter den übrigen Filtern vorkommen. Die jeweils eigene Gruppe wird dabei ignoriert, damit Mehrfachauswahl erweitert werden kann. Datum, Distanz, Bewegungszeit und Geschwindigkeit wirken bei dieser Prüfung mit. Das Prädikat wird mit der normalen Ergebnisliste geteilt; für Verfügbarkeit wird nicht sortiert und die Query nicht verändert. Profilzuordnungen pro geöffnetem Filterfenster zwischenspeichern.
+
+Nur die Optionen der ersten drei Gruppen werden bei fehlenden Treffern deaktiviert und gedimmt. Ausgewählte Optionen bleiben immer bedienbar, auch bei null Treffern. Auswahl niemals automatisch entfernen. Datums-/Bereichsgruppen, Slider und Gruppenöffner bleiben jederzeit aktiv. „Ohne Zuordnung“ wird wie ein weiteres Profil geprüft. Nach gültigen Eingabeänderungen und vor dem Öffnen eines Unterfensters aktualisieren.
