@@ -61,15 +61,23 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.7 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.7/downloads/B-Cycle-0.8.7.apk)**
+**[Version 0.8.8 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.8/downloads/B-Cycle-0.8.8.apk)**
 
-**Build 42 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. Gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-42.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.7) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39206642727).
+**Build 45 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 31 gezielte Tests bestanden.
+[Änderungen und SHA-256](docs/build-45.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.8) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39209866256).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
 Ein physischer Gerätetest der neuen APK steht noch aus.
+
+## Neu in APK 0.8.8
+
+- Bis zu drei weich überblendete Trend-Chevrons; geglätteter aktueller Wert gegen den Fahrtdurchschnitt, mit Ruhebereich und Hysterese.
+- Stop-/Aufnahmepunkt-Wechsel während jeder Aufnahme für alle Radprofile.
+- Zeiteinheit auf dem Dashboard „h“, Zeitformat unverändert.
+- Filter und Sortierung mit 8-dp-Abständen und abgerundeten SECONDARY-Inhaltsflächen auf TERTIARY; darin dunkle Buttons und Eingabefelder.
+- Trinkerinnerung vorgemerkt, noch nicht umgesetzt.
 
 ## Neu in APK 0.8.7
 
