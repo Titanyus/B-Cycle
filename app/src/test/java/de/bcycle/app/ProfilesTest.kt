@@ -153,6 +153,11 @@ class ProfilesTest {
             val details=root.findViewWithTag<View>("bike_sensor_details_EBIKE")
             val expand=root.findViewWithTag<View>("bike_sensor_expand_EBIKE")
             val enabled=toggle.isChecked
+            val row=toggle.parent as ViewGroup
+            assertSame(toggle,row.getChildAt(row.childCount-1))
+            val label=root.findViewWithTag<View>("bike_sensor_EBIKE_label")
+            label.performClick();assertEquals(View.VISIBLE,details.visibility);assertEquals(enabled,toggle.isChecked)
+            label.performClick();assertEquals(View.GONE,details.visibility);assertEquals(enabled,toggle.isChecked)
             assertEquals(View.GONE,details.visibility)
             expand.performClick();assertEquals(View.VISIBLE,details.visibility);assertEquals(enabled,toggle.isChecked)
             assertTrue(testDescendants(details).any { it.tag=="bike_disconnect_EBIKE" })
@@ -164,7 +169,8 @@ class ProfilesTest {
             assertFalse(headings.any { it.contentDescription==a.getString(R.string.ui_bosch_mode) })
             val glow=root.findViewWithTag<Switch>("mode_glow_enabled")
             val glowDetails=root.findViewWithTag<View>("mode_glow_details")
-            assertEquals(a.getString(R.string.ui_bosch_mode),glow.text.toString())
+            assertEquals(a.getString(R.string.ui_bosch_mode),root.findViewWithTag<TextView>("mode_glow_enabled_label").text.toString())
+            assertSame(glow,(glow.parent as ViewGroup).getChildAt((glow.parent as ViewGroup).childCount-1))
             assertEquals(View.GONE,glowDetails.visibility)
             val glowEnabled=glow.isChecked
             root.findViewWithTag<View>("mode_glow_expand").performClick()

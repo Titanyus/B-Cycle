@@ -44,6 +44,7 @@ class MainActivity : Activity() {
     private var pendingMapRoute: String? = null
     private var bikePicker:BikeQuickPicker?=null
     private var recordButtonSignature=""
+    private var recordingIndicator:RecordingButtonIndicator?=null
     private var dashboardPage = 0
     private val dashboardPages get() = DashboardPages(this,preferences)
     private var mapFullscreen = false
@@ -51,7 +52,7 @@ class MainActivity : Activity() {
     private var displayedMapMessage = ""
     private val dashboardKey get() = if (dashboardPage == 0) "dashboard" else "dashboard_$dashboardPage"
     private val templateKey get() = "dashboardTemplate_$dashboardPage"
-    private fun currentTemplate() = DashboardTemplate.decode(preferences.getString(templateKey, DashboardTemplate.entries[dashboardPage].name))
+    private fun currentTemplate() = DashboardTemplate.decode(preferences.getString(templateKey, DashboardTemplate.entries[dashboardPage].name)).forBike(runtime.bikes.current().type)
     private var dashboardLayout = DashboardLayout.defaults
     private var dashboardDataVisibility = DashboardDataVisibility()
     private var dashboardTrendIndicators=DashboardTrendIndicators()
@@ -212,7 +213,7 @@ class MainActivity : Activity() {
         root.addView(toolbar)
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->
-            controlsVisible = visible || !currentTemplate().hasMap
+            controlsVisible = visible || runtime.bikes.current().type==BikeType.INDOOR || !currentTemplate().hasMap
             toolbar.visibility = if (controlsVisible) View.VISIBLE else View.GONE
             dashboardArea.requestLayout()
         }
@@ -278,14 +279,19 @@ class MainActivity : Activity() {
         val buttonSignature="${bike.slot}:${bike.type}:$buttonLabel:${runtime.recording}:${runtime.themes.active.tokens.foreground}"
         if(buttonSignature!=recordButtonSignature) {
         recordButtonSignature=buttonSignature
+        recordingIndicator?.stop();recordingIndicator=null
         startButton.text=android.text.SpannableString("\uFFFC  \uFFFC $buttonLabel").apply {
             listOf(if(runtime.recording) BicycleIcon.StopRecording else BicycleIcon.RecordReady,BikeTypeIcons.forType(bike.type)).forEachIndexed { i,icon ->
-                val drawable=BicycleIcons.drawable(this@MainActivity,icon,runtime.themes.active.tokens.foreground).apply { setBounds(0,0,dp(20),dp(20)) }
+                val drawable=if(i==0 && runtime.recording && bike.type==BikeType.INDOOR)
+                    RecordingButtonIndicator(this@MainActivity,runtime.themes.active.tokens.foreground) { startButton.invalidate() }.also { recordingIndicator=it }
+                    else BicycleIcons.drawable(this@MainActivity,icon,runtime.themes.active.tokens.foreground)
+                drawable.setBounds(0,0,dp(20),dp(20))
                 val offset=if(i==0) 0 else 3
                 setSpan(android.text.style.ImageSpan(drawable,android.text.style.ImageSpan.ALIGN_CENTER),offset,offset+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
         }
         }
+        recordingIndicator?.setAnimating(runtime.visible && dialogs.empty)
         startButton.contentDescription=getString(R.string.record_bike_description,status,bike.name)
         startButton.isEnabled = !runtime.saving || runtime.recording
         val message = runtime.recordingStatus
@@ -679,13 +685,13 @@ class MainActivity : Activity() {
         }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.
-        stopScan();bikePicker?.dismiss()
+        stopScan();bikePicker?.dismiss();recordingIndicator?.stop()
         MessageNotifications.observers.remove(messageObserver);messages.clear()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {
         if(mapBackRegistered) onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
-        bikePicker?.dismiss();dialogs.closeAll(); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
+        recordingIndicator?.stop();bikePicker?.dismiss();dialogs.closeAll(); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
     }
 
     private fun setMapFullscreen(full: Boolean) {
@@ -805,7 +811,6 @@ class MainActivity : Activity() {
             }
         }
         BicycleDialogStyle.control(glow,settingsThemes)
-        BicycleDialogStyle.actionIcon(glow,settingsThemes,BicycleIcon.EBike)
         glow.gravity=Gravity.START or Gravity.CENTER_VERTICAL
         val details=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL;tag="mode_glow_details";visibility=View.GONE }
         val expand=BicycleComponents.icon(settingsContext,settingsThemes,BicycleIcon.Expand,getString(R.string.ui_bosch_mode)) {
@@ -818,8 +823,7 @@ class MainActivity : Activity() {
         }.apply { tag="mode_glow_expand";stateDescription=getString(R.string.zone_collapsed) }
         root.addView(LinearLayout(settingsContext).apply {
             tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
-            addView(glow,LinearLayout.LayoutParams(0,-1,1f))
-            addView(expand,LinearLayout.LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap) })
+            BicycleComponents.switchAccordion(this,glow,expand,settingsThemes,icon=BicycleIcon.EBike)
         },LinearLayout.LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(settingsContext,BicycleDesign.sectionRuleDp)))
         root.addView(details,LinearLayout.LayoutParams(-1,-2))
         val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }

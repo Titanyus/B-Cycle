@@ -174,6 +174,24 @@ internal val ThemeTokens.secondaryTextColor: Int get() = (foreground and 0x00fff
 /** Shared native components. Geometry is independent of the active palette. */
 object BicycleComponents {
     private fun dp(context: Context, value: Int) = BicycleDesign.dp(context, value)
+    /** Label and chevron expand details; the isolated outer switch alone changes activation. */
+    internal fun switchAccordion(row:LinearLayout,toggle:android.widget.Switch,expand:View,manager:ThemeManager,
+        existingLabel:TextView?=null,icon:BicycleIcon?=null) {
+        val title=existingLabel?.text ?: toggle.text
+        val label=existingLabel ?: text(row.context,manager,title.toString())
+        label.tag="${toggle.tag}_label";label.gravity=Gravity.START or Gravity.CENTER_VERTICAL
+        label.isClickable=true;label.isFocusable=true
+        label.setOnClickListener { expand.performClick() }
+        if(icon!=null) BicycleDialogStyle.actionIcon(label,manager,icon)
+        toggle.contentDescription=title;toggle.text=""
+        toggle.setCompoundDrawablesRelative(null,null,null,null)
+        toggle.setPadding(0,0,0,0);toggle.switchPadding=0
+        row.removeAllViews()
+        row.setTag(R.id.inline_control_row,true);row.gravity=Gravity.CENTER_VERTICAL
+        row.addView(label,LinearLayout.LayoutParams(0,-1,1f))
+        row.addView(expand,LinearLayout.LayoutParams(dp(row.context,BicycleDesign.touchSize),dp(row.context,BicycleDesign.touchSize)))
+        row.addView(toggle,LinearLayout.LayoutParams(dp(row.context,BicycleDesign.switchWidth),-1).apply { marginStart=dp(row.context,BicycleDesign.controlGap) })
+    }
     /** Geometry only: keep children, adapters, gestures and the current scroll position intact. */
     internal fun scrollStyle(view: ViewGroup) {
         if (view !is ScrollView && view !is android.widget.AbsListView) return

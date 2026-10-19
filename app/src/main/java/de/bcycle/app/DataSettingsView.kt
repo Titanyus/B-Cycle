@@ -59,10 +59,9 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         val header=headers.getValue(action)
         if(enabled!=null) {
             (enabled.parent as? android.view.ViewGroup)?.removeView(enabled)
-            header.removeViewAt(0)
-            enabled.text=context.getString(action.title);enabled.gravity=Gravity.START or Gravity.CENTER_VERTICAL
-            BicycleDialogStyle.actionIcon(enabled,themes,action.icon)
-            header.addView(enabled,0,LayoutParams(0,-1,1f))
+            val label=header.getChildAt(0) as TextView
+            val expand=header.getChildAt(1)
+            BicycleComponents.switchAccordion(header,enabled,expand,themes,label)
         }
         bodies.getValue(action).addView(content,LayoutParams(-1,-2))
     }

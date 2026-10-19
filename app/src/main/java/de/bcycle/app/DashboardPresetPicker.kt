@@ -10,6 +10,8 @@ import android.widget.*
 internal class DashboardPresetPicker(context:Context, initialPage:Int,
     private val themes:ThemeManager=ThemeManager(context.getSharedPreferences("bike",0))) : LinearLayout(context) {
     private val prefs=context.getSharedPreferences("bike",0)
+    private val bikeType=BikeProfileStore(context,prefs).current().type
+    private val availableTemplates=DashboardTemplate.entries.filter { bikeType!=BikeType.INDOOR || !it.hasMap }
     val pages=DashboardPages(context,prefs)
     var changed:()->Unit={}
     val selection get()=pages.all().map { template(it.id) }
@@ -36,7 +38,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
     private val layoutChoice=BicycleComponents.action(context,themes,"") { showLayoutGrid() }.apply { tag="dashboard_layout_choice" }
     var layoutPopup:PopupWindow?=null;private set
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
-    private fun template(id:Int)=DashboardTemplate.decode(prefs.getString("dashboardTemplate_$id",DashboardTemplate.entries[id].name))
+    private fun template(id:Int)=DashboardTemplate.decode(prefs.getString("dashboardTemplate_$id",DashboardTemplate.entries[id].name)).forBike(bikeType)
     init {
         orientation=VERTICAL
         pages.select(initialPage)
@@ -108,13 +110,13 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         val availableWidth=frame.width().takeIf { it>0 } ?: resources.displayMetrics.widthPixels
         val popupWidth=minOf(layoutChoice.width.takeIf { it>0 } ?: availableWidth,availableWidth)
         val availableHeight=frame.height().takeIf { it>0 } ?: resources.displayMetrics.heightPixels
-        val desired=dp((BicycleDesign.presetTileHeight+2*BicycleDesign.presetTileGap)*((DashboardTemplate.entries.size+2)/3))
+        val desired=dp((BicycleDesign.presetTileHeight+2*BicycleDesign.presetTileGap)*((availableTemplates.size+2)/3))
         val popup=PopupWindow().apply {
             width=popupWidth;height=minOf(desired,(availableHeight*.6f).toInt()).coerceAtLeast(dp(BicycleDesign.touchSize))
             isFocusable=true;isOutsideTouchable=true;inputMethodMode=PopupWindow.INPUT_METHOD_NOT_NEEDED
             setBackgroundDrawable(BicycleComponents.dropdownBackground(context,themes.active.tokens))
         }
-        val grid=DashboardLayoutGrid(context,themes,template(pages.selected())) { chosen ->
+        val grid=DashboardLayoutGrid(context,themes,template(pages.selected()),availableTemplates) { chosen ->
             prefs.edit().putString("dashboardTemplate_${pages.selected()}",chosen.name).apply()
             popup.dismiss();refresh();changed()
         }

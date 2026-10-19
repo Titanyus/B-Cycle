@@ -30,7 +30,6 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         addView(LinearLayout(context).apply {
             tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
             enabled.gravity=Gravity.START or Gravity.CENTER_VERTICAL
-            addView(enabled,LayoutParams(0,-1,1f))
             val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.notifications_enable)) {}.apply {
                 tag="notification_access_expand";stateDescription=context.getString(R.string.zone_collapsed)
                 setOnClickListener {
@@ -39,7 +38,7 @@ internal class MessageNotificationSettingsView(context: Context, private val the
                     stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
                 }
             }
-            addView(expand,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
+            BicycleComponents.switchAccordion(this,enabled,expand,themes)
         },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
         addView(details,LayoutParams(-1,-2))
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.notification_position_heading)),LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })

@@ -9,11 +9,12 @@ import android.widget.LinearLayout
 
 /** Three-column layout previews using the shared dashboard preview geometry. */
 internal class DashboardLayoutGrid(context:Context,themes:ThemeManager,selected:DashboardTemplate,
+    templates:List<DashboardTemplate> = DashboardTemplate.entries,
     choose:(DashboardTemplate)->Unit):LinearLayout(context) {
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
     init {
         orientation=VERTICAL;tag="dashboard_layout_grid"
-        DashboardTemplate.entries.chunked(3).forEachIndexed { index,templates ->
+        templates.chunked(3).forEachIndexed { index,templates ->
             addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL;tag="preset_row_$index"
                 templates.forEach { template ->

@@ -217,7 +217,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         val sensorList=LinearLayout(context).apply { orientation=VERTICAL;tag="bike_sensor_list" }
         addView(sensorList,LayoutParams(-1,-2))
         profile.type.sensors.forEach { sensor ->
-            sensorList.addView(BicycleComponents.sectionDivider(context,themes))
+            sensorList.addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.controlGap))
             val toggle=Switch(context).apply {
                 tag="bike_sensor_${sensor.name}";setText(sensor.label);isEnabled=sensor.supported
                 gravity=Gravity.START or Gravity.CENTER_VERTICAL
@@ -234,7 +234,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                     refresh()
                 }
             }
-            BicycleDialogStyle.control(toggle,themes);BicycleDialogStyle.actionIcon(toggle,themes,SensorIcons.forSensor(sensor));switches[sensor]=toggle
+            BicycleDialogStyle.control(toggle,themes);switches[sensor]=toggle
             val details=LinearLayout(context).apply {
                 orientation=VERTICAL;tag="bike_sensor_details_${sensor.name}"
                 visibility=if(sensor in expandedSensors) VISIBLE else GONE
@@ -252,8 +252,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
             sensorList.addView(LinearLayout(context).apply {
                 tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
-                addView(toggle,LayoutParams(0,-1,1f))
-                addView(expand,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap) })
+                BicycleComponents.switchAccordion(this,toggle,expand,themes,icon=SensorIcons.forSensor(sensor))
             },LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
             sensorList.addView(details,LayoutParams(-1,-2))
             if(sensor!=BikeSensor.GPS) {

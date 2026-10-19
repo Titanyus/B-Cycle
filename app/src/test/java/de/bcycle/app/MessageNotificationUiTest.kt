@@ -28,6 +28,23 @@ import org.robolectric.shadows.ShadowAlertDialog
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33],qualifiers="xxhdpi")
 class MessageNotificationUiTest {
+    @Test fun accessLabelExpandsWithoutEnablingAndSwitchIsOutermost() {
+        val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val a=host.get();val view=MessageNotificationSettingsView(a,ThemeManager(a.getSharedPreferences("bike",0)))
+            a.setContentView(view)
+            val toggle=view.findViewWithTag<Switch>("notifications_enabled")
+            val row=toggle.parent as ViewGroup
+            assertSame(toggle,row.getChildAt(row.childCount-1))
+            val before=toggle.isChecked
+            view.findViewWithTag<View>("notifications_enabled_label").performClick()
+            assertEquals(View.VISIBLE,view.findViewWithTag<View>("notification_access_details").visibility)
+            assertEquals(before,toggle.isChecked)
+            view.findViewWithTag<View>("notification_access_expand").performClick()
+            assertEquals(View.GONE,view.findViewWithTag<View>("notification_access_details").visibility)
+            assertEquals(before,toggle.isChecked)
+        } finally { host.pause().stop().destroy() }
+    }
     private fun views(v:View):List<View> = listOf(v)+if(v is ViewGroup) (0 until v.childCount).flatMap { views(v.getChildAt(it)) } else emptyList()
     private fun install(context:Context,name:String,label:String,appFlags:Int=0) {
         shadowOf(context.packageManager).installPackage(PackageInfo().apply {

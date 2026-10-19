@@ -52,6 +52,8 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         val identity=FrameLayout(context).apply { tag="analysis_identity" }
         val lines=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER }
         val bikeName=RideProfileColor.name(context,id)
+        val profileColor=RideProfileColor.color(context,id)
+        val identityInset=if(profileColor==null) 56 else 72
         lines.addView(BicycleComponents.text(context,themes,bikeName.orEmpty()).apply {
             tag="analysis_bike_name";gravity=Gravity.CENTER;typeface=BicycleDesign.strongTypeface
             textSize=BicycleDesign.rowTitleSp;maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
@@ -62,12 +64,15 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         lines.addView(BicycleComponents.text(context,themes,date).apply {
             gravity=Gravity.CENTER;typeface=Typeface.DEFAULT;tag="analysis_date";textSize=BicycleDesign.rowTitleSp;maxLines=1
         },LinearLayout.LayoutParams(-1,dp(26)))
-        identity.addView(lines,FrameLayout.LayoutParams(-1,dp(52)).apply { marginStart=dp(56);marginEnd=dp(56) })
+        identity.addView(lines,FrameLayout.LayoutParams(-1,dp(52)).apply { marginStart=dp(identityInset);marginEnd=dp(identityInset) })
         val icon=when(analysis.entry.origin) {
             TrackOrigin.IMPORTED->BicycleIcon.TrackImported
             TrackOrigin.RECORDED->BikeTypeIcons.forType(analysis.entry.details.bikeType)
             TrackOrigin.UNKNOWN->BicycleIcon.TrackUnknown
         }
+        if(profileColor!=null) identity.addView(View(context).apply {
+            tag="analysis_profile_color";setBackgroundColor(profileColor);importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        },FrameLayout.LayoutParams(dp(5),dp(52),Gravity.START or Gravity.CENTER_VERTICAL))
         identity.addView(LinearLayout(context).apply {
             orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER;tag="analysis_origin_format"
             addView(ImageView(context).apply {
@@ -76,7 +81,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             },LinearLayout.LayoutParams(dp(36),dp(36)))
             addView(BicycleComponents.text(context,themes,analysis.entry.format).apply { textSize=BicycleDesign.formatSp;gravity=Gravity.CENTER },LinearLayout.LayoutParams(-1,-2))
             contentDescription=context.getString(R.string.route_file_identity,context.getString(analysis.entry.details.bikeType?.label ?: R.string.ui_route_unknown_origin),analysis.entry.format)
-        },FrameLayout.LayoutParams(dp(52),dp(52),Gravity.START or Gravity.CENTER_VERTICAL))
+        },FrameLayout.LayoutParams(dp(52),dp(52),Gravity.START or Gravity.CENTER_VERTICAL).apply { if(profileColor!=null) marginStart=dp(5+BicycleDesign.controlGap) })
         body.addView(identity,LinearLayout.LayoutParams(-1,dp(52)))
         analysis.weatherTarget?.let { target ->
             val holder=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;visibility=GONE }

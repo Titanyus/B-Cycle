@@ -107,7 +107,7 @@ internal class RouteManagerView(context: Context,
         private val preview = RoutePreviewView(context)
         private val profileColor=View(context).apply { visibility=GONE;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO }
         private val origin = ImageView(context)
-        private val format = BicycleComponents.text(context, themes, "").apply { textSize = BicycleDesign.formatSp }
+        private val format = BicycleComponents.text(context, themes, "").apply { textSize = BicycleDesign.formatSp;setSingleLine() }
         private val title = BicycleComponents.text(context, themes, "").apply {
             textSize = BicycleDesign.rowTitleSp; maxLines = 1; ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.CENTER_VERTICAL
         }
@@ -154,28 +154,36 @@ internal class RouteManagerView(context: Context,
             }
         }
         init {
-            orientation = HORIZONTAL; gravity = Gravity.TOP
+            orientation = VERTICAL; gravity = Gravity.TOP
             setOnClickListener { entry?.takeIf { !busy }?.let(details) }
             setPadding(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.rowGap))
             addView(LinearLayout(context).apply {
-                orientation = VERTICAL
+                orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
+                // The identity prefix owns its natural width, independently of the tiny map preview.
                 addView(LinearLayout(context).apply {
-                    gravity = Gravity.CENTER_VERTICAL
+                    gravity=Gravity.CENTER_VERTICAL
                     addView(profileColor,LayoutParams(dp(5),dp(24)).apply { marginEnd=dp(BicycleDesign.controlGap) })
-                    addView(origin, LayoutParams(dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)))
-                    addView(format, LayoutParams(-2, -2).apply { marginStart = dp(BicycleDesign.verticalPadding) })
-                }, LayoutParams(-1, dp(BicycleDesign.touchSize)))
-                addView(preview, LayoutParams(-1, dp(BicycleDesign.previewHeight)))
-            }, LayoutParams(dp(BicycleDesign.previewWidth), -2).apply { marginEnd = dp(BicycleDesign.rowGap) })
+                    addView(origin,LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)))
+                    addView(format,LayoutParams(-2,-2).apply { marginStart=dp(BicycleDesign.verticalPadding) })
+                },LayoutParams(-2,dp(BicycleDesign.touchSize)).apply { marginEnd=dp(BicycleDesign.smallGap) })
+                addView(title,LayoutParams(0,dp(BicycleDesign.touchSize),1f))
+                addView(eye,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)))
+            },LayoutParams(-1,-2))
             addView(LinearLayout(context).apply {
-                orientation = VERTICAL
-                addView(LinearLayout(context).apply {
-                    addView(title, LayoutParams(0, dp(BicycleDesign.touchSize), 1f))
-                    addView(eye, LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize)))
-                }, LayoutParams(-1, -2))
-                addView(metrics, LayoutParams(-1, -2).apply { topMargin = -dp(BicycleDesign.metadataSpacingTrim) + dp(BicycleDesign.routeMetricTopOffset) })
-            }, LayoutParams(0, -2, 1f))
+                orientation=HORIZONTAL
+                addView(preview,LayoutParams(dp(BicycleDesign.previewWidth),dp(BicycleDesign.previewHeight)).apply { marginEnd=dp(BicycleDesign.rowGap) })
+                addView(metrics,LayoutParams(0,-2,1f).apply { topMargin=-dp(BicycleDesign.metadataSpacingTrim)+dp(BicycleDesign.routeMetricTopOffset) })
+            },LayoutParams(-1,-2))
             BicycleComponents.bindTheme(this, themes) { paintState(it) }
+        }
+        override fun onLayout(changed:Boolean,l:Int,t:Int,r:Int,b:Int) {
+            super.onLayout(changed,l,t,r,b)
+            if(layoutDirection!=View.LAYOUT_DIRECTION_LTR || date.number.text.isEmpty()) return
+            val text=android.graphics.Rect();offsetDescendantRectToMyCoords(date.number,text)
+            val heading=android.graphics.Rect();offsetDescendantRectToMyCoords(title,heading)
+            val left=text.left+date.number.compoundPaddingLeft+(date.number.layout?.getLineLeft(0) ?: 0f)
+            val inset=(left-heading.left).toInt().coerceIn(0,(title.width-dp(BicycleDesign.iconSize)).coerceAtLeast(0))
+            if(title.paddingLeft!=inset) title.setPadding(inset,title.paddingTop,title.paddingRight,title.paddingBottom)
         }
         private fun paintState(tokens: ThemeTokens) {
             preview.foreground = tokens.foreground
@@ -196,7 +204,7 @@ internal class RouteManagerView(context: Context,
             val color=RideProfileColor.color(context,route.id)
             profileColor.visibility=if(color==null) GONE else VISIBLE
             color?.let(profileColor::setBackgroundColor)
-            format.text = route.format; format.contentDescription = context.getString(R.string.ui_file_format_description, route.format)
+            format.text = route.format;format.tag="route_format_${route.id}"; format.contentDescription = context.getString(R.string.ui_file_format_description, route.format)
             val recordedAt = route.details.dateMs.takeIf { it > 0 }?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()) }
             date.bind(recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_date_format))), route.id, "date")
             date.label.text = recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_clock_format))).orEmpty()

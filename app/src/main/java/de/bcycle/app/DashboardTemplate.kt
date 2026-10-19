@@ -13,6 +13,8 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
     EIGHT("", (0 until DashboardLayout.FIELD_COUNT).toList(), .42f, R.string.dashboard_preset_nine),
     FULL_DATA("",listOf(0,1,2,3,4),1f,R.string.dashboard_preset_ten);
     val hasMap get()=dataFraction<1f
+    /** Display-only fallback: trying Indoor must never erase a saved outdoor layout. */
+    fun forBike(type:BikeType)=if(type==BikeType.INDOOR && hasMap) FULL_DATA else this
     fun displayTitle(context: android.content.Context) = if (titleResource != 0) context.getString(titleResource) else title
     val largeTop: Boolean get() = this == HERO || this == HERO_SEVEN || this == HERO_FIVE
     val rows: List<List<Int>> get() = when (this) {
