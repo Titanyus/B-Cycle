@@ -24,6 +24,7 @@ internal enum class SettingsHelpPage(val title:Int,val sections:List<SettingsHel
     LOCAL(R.string.data_local,listOf(SettingsHelpSection(R.string.help_local_heading,R.string.help_local_body))),
     WEBDAV(R.string.data_cloud,listOf(SettingsHelpSection(R.string.help_webdav_heading,R.string.help_webdav_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     INTERVALS(R.string.intervals_title,listOf(SettingsHelpSection(R.string.help_intervals_heading,R.string.help_intervals_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
+    DREEVE_IMPORT(R.string.dreeve_import_title,listOf(SettingsHelpSection(R.string.help_dreeve_import_heading,R.string.help_dreeve_import_body))),
     DREEVE(R.string.dreeve_title,listOf(SettingsHelpSection(R.string.help_dreeve_heading,R.string.help_dreeve_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     STRAVA(R.string.strava_title,listOf(SettingsHelpSection(R.string.help_strava_heading,R.string.help_strava_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     NOTIFICATIONS(R.string.notifications_title,listOf(SettingsHelpSection(R.string.help_notify_access_heading,R.string.help_notify_access_body),SettingsHelpSection(R.string.help_notify_apps_heading,R.string.help_notify_apps_body),SettingsHelpSection(R.string.help_notify_position_heading,R.string.help_notify_position_body))),
@@ -50,6 +51,7 @@ internal object SettingsHelp {
             nodes.any { it is RouteAnalysisView } -> return SettingsHelpPage.ROUTE_DETAILS
             nodes.any { it is RouteAnalysisMap } -> return SettingsHelpPage.ROUTE_MAP
             nodes.any { it is RouteManagerView } -> return SettingsHelpPage.ROUTES
+            nodes.any { it is DreeveImportView } -> return SettingsHelpPage.DREEVE_IMPORT
             nodes.any { it is BikesView } -> return SettingsHelpPage.PROFILES
             nodes.any { it is RiderProfileView } -> return SettingsHelpPage.RIDER
             nodes.any { it is FieldPickerView } -> return SettingsHelpPage.FIELDS

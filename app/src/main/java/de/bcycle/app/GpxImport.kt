@@ -8,12 +8,17 @@ import java.io.InputStream
 data class GpxRoute(val points: List<MapPoint>, val originalPoints: Int, val segments: Int,
                     val distanceM: Double? = null, val durationMs: Long? = null, val ascentM: Double? = null, val movingMs: Long? = null)
 
+internal data class GpxMeasurement(val point:MapPoint,val time:Long?,val height:Double?,val speed:Double?,
+    val power:Double?,val cadence:Double?,val heart:Double?,val temperature:Double?)
+
 /** Streaming parser: bounded input, points, nesting and segments; no external entities. */
 object GpxImport {
     const val MAX_BYTES = 20L * 1024 * 1024
     const val MAX_POINTS = 200_000
     fun read(input: InputStream): GpxRoute = read(input, null)
-    internal fun read(input: InputStream, observed: ((MapPoint, Long?, Double?, Double?) -> Unit)?): GpxRoute {
+    internal fun read(input: InputStream, observed: ((MapPoint, Long?, Double?, Double?) -> Unit)?): GpxRoute = parse(input,observed,null)
+    internal fun samples(input:InputStream,observed:(GpxMeasurement)->Unit):GpxRoute = parse(input,null,observed)
+    private fun parse(input:InputStream,observed:((MapPoint,Long?,Double?,Double?)->Unit)?,samples:((GpxMeasurement)->Unit)?):GpxRoute {
         val limited = object : FilterInputStream(input) {
             var bytes = 0L
             fun count(n: Int) { if (n > 0) { bytes += n; require(bytes <= MAX_BYTES) { "GPX ist größer als 20 MB" } } }
@@ -30,6 +35,11 @@ object GpxImport {
         val moving = MovingTime(); var pointTime: Long? = null; var previousPointTime: Long? = null
         var previousPoint: MapPoint? = null
         val elevation = RouteElevation(); var pointHeight: Double? = null; var heightStart = false
+        var extensionDepth=-1;var garminDepth=-1
+        var power:Double?=null;var cadence:Double?=null;var heart:Double?=null;var temperature:Double?=null
+        val gpxNamespaces=setOf("","http://www.topografix.com/GPX/1/1","http://www.topografix.com/GPX/1/0")
+        val garminFields=setOf("hr","cad","atemp")
+        val garminNamespaces=setOf("http://www.garmin.com/xmlschemas/TrackPointExtension/v1","http://www.garmin.com/xmlschemas/TrackPointExtension/v2")
         var event = parser.eventType
         while (event != XmlPullParser.END_DOCUMENT) {
             require(parser.depth <= 32) { "GPX zu stark verschachtelt" }
@@ -52,7 +62,21 @@ object GpxImport {
                     total++; require(total <= MAX_POINTS) { "GPX enthält mehr als 200.000 Punkte" }
                     if (start) { segments++; require(segments <= 1_000) { "GPX enthält zu viele Abschnitte" } }
                     points.add(MapPoint(lat, lon, start)); heightStart = start; pointHeight = null; pointTime = null; start = false
-                    pointDepth = parser.depth
+                    pointDepth = parser.depth;extensionDepth=-1;garminDepth=-1
+                    power=null;cadence=null;heart=null;temperature=null
+                } else if(name=="extensions" && pointDepth>0 && parser.depth==pointDepth+1) {
+                    extensionDepth=parser.depth
+                } else if(name=="TrackPointExtension" && extensionDepth>0 && parser.depth==extensionDepth+1 && parser.namespace in garminNamespaces) {
+                    garminDepth=parser.depth
+                } else if(name=="power" && extensionDepth>0 && parser.depth==extensionDepth+1 && parser.namespace in gpxNamespaces) {
+                    power=parser.nextText().toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..65534.0 }
+                } else if(garminDepth>0 && parser.depth==garminDepth+1 && parser.namespace in garminNamespaces && name in garminFields) {
+                    val value=parser.nextText().toDoubleOrNull()?.takeIf { it.isFinite() }
+                    when(name) {
+                        "hr"->heart=value?.takeIf { it in 1.0..254.0 }
+                        "cad"->cadence=value?.takeIf { it in 0.0..254.0 }
+                        "atemp"->temperature=value?.takeIf { it in -100.0..100.0 }
+                    }
                 } else if (name == "ele" && pointDepth > 0 && parser.depth == pointDepth + 1) {
                     pointHeight = parser.nextText().toDoubleOrNull()
                 } else if (name == "time" && pointDepth > 0 && parser.depth == pointDepth + 1) {
@@ -61,6 +85,8 @@ object GpxImport {
                     if (time != null) { firstTime = minOf(firstTime ?: time, time); lastTime = maxOf(lastTime ?: time, time) }
                 }
             } else if (event == XmlPullParser.END_TAG) {
+                if(parser.depth==extensionDepth) extensionDepth=-1
+                if(parser.depth==garminDepth) garminDepth=-1
                 when (parser.name) {
                     "trkpt", "rtept" -> if (parser.depth == pointDepth) {
                         elevation.add(pointHeight, heightStart)
@@ -72,6 +98,7 @@ object GpxImport {
                         if (heightStart) moving.add(null, null)
                         moving.add(pointTime, speed ?: if (heightStart && pointTime != null) 0.0 else null)
                         observed?.invoke(current, pointTime, pointHeight, speed)
+                        samples?.invoke(GpxMeasurement(current,pointTime,pointHeight,speed,power,cadence,heart,temperature))
                         previousPointTime = pointTime; previousPoint = current; pointDepth = -1
                     }
                     "trk" -> if (parser.depth == trackDepth) trackDepth = -1

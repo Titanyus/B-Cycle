@@ -102,9 +102,9 @@ internal object RouteAnalysisRead {
     fun read(file: File, entry: ManagedRoute, profile: RiderProfile = RiderProfile(), cancelled: () -> Boolean = { false }): RouteAnalysis {
         val builder = Builder(entry, profile)
         if (entry.format == "GPX") {
-            val route = file.inputStream().buffered().use { GpxImport.read(it) { point, time, height, speed ->
+            val route = file.inputStream().buffered().use { GpxImport.samples(it) { sample ->
                 check(!cancelled())
-                builder.record(time, null, point, speed, null, null, null, height, null, null)
+                builder.record(sample.time,null,sample.point,sample.speed,sample.power,sample.cadence,sample.heart,sample.height,null,null)
             } }
             return builder.finish(route)
         }

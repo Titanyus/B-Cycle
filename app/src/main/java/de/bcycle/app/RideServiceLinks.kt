@@ -16,6 +16,7 @@ internal data class RideServiceLink(
 )
 
 /** Immutable-original FIT IDs remain the local identity across renames and corrected versions.
+ * Imported GPX rides use stable UUIDs scoped to the source account and remote activity.
  * Keep every confirmed remote ID: uploading a new version must not erase the old association.
  * No credentials, tokens, or user-visible ride names belong in this store.
  */
@@ -32,8 +33,14 @@ internal object RideServiceLinks {
         decode(entries(c), rideId)
     }
 
+    fun forAccount(c:Context,service:RideService,account:String):List<RideServiceLink> = synchronized(lock) {
+        val all=entries(c)
+        all.keys().asSequence().flatMap { decode(all,it).asSequence() }
+            .filter { it.service==service && it.accountId==account }.toList()
+    }
+
     fun confirm(c: Context, link: RideServiceLink) = synchronized(lock) {
-        require(link.rideId.matches(Regex("(recorded|imported)-[a-f0-9]{64}")))
+        require(link.rideId.matches(Regex("(recorded|imported)-[a-f0-9]{64}|[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}")))
         require(link.fileHash.matches(Regex("[a-f0-9]{64}")))
         require(listOf(link.accountId, link.activityId).all { it.isNotBlank() && it.length <= 512 && it.none(Char::isISOControl) })
         val all = entries(c)

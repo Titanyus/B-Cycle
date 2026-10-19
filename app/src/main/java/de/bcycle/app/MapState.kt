@@ -158,6 +158,26 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             }
         } ?: error("Datei kann nicht geöffnet werden")
     }
+    internal fun existingDreeve(target:String,items:List<DreeveActivity>):Set<String> {
+        val local=entries.filter { it.locallySaved }.map { it.id }.toSet()
+        val confirmed=RideServiceLinks.forAccount(context,RideService.DREEVE,target)
+            .filter { it.rideId in local }.map { it.activityId }.toSet()
+        return items.filter { it.id in confirmed || DreeveImport.localId(target,it.id) in local }.map { it.id }.toSet()
+    }
+    internal fun importDreeve(target:String,items:List<DreeveActivity>,client:DreeveClient,cancelled:()->Boolean,
+        progress:(DreeveItemResult)->Unit,complete:(Result<DreeveImportResult>)->Unit) {
+        if(busy) { complete(Result.failure(IllegalStateException()));return }
+        busy=true;changed()
+        worker.execute {
+            var result:Result<DreeveImportResult> = Result.failure(IllegalStateException())
+            finishOperation("") {
+                result=runCatching { DreeveImport(context,library,{ library.entries.map { it.id }.toSet()+fits.entries.map { it.id } },client::downloadGpx)
+                    .read(target,items,cancelled) { item -> handler.post { progress(item) } } }
+                workerRoute
+            }
+            handler.post { complete(result) }
+        }
+    }
     fun importArchive(uri: Uri) {
         if (busy) return
         busy = true; archiveStatus = context.getString(R.string.archive_import_progress, 0); changed()

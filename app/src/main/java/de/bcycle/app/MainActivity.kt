@@ -1053,10 +1053,47 @@ class MainActivity : Activity() {
     }
     private fun routeImportChoice() {
         val anchor = routeImportButton ?: return
-        routeDropdown(anchor, listOf(getString(R.string.ui_import_planned), getString(R.string.ui_import_recorded), getString(R.string.archive_import_title)),
-            listOf(BicycleIcon.TrackImported, BicycleIcon.TrackRecorded, BicycleIcon.Import), listOf("route_import_planned", "route_import_recorded", "route_import_archive")) {
-            importRoute(recorded = it == 1, archive = it == 2)
+        routeDropdown(anchor, listOf(getString(R.string.ui_import_planned), getString(R.string.ui_import_recorded), getString(R.string.archive_import_title),getString(R.string.dreeve_import_title)),
+            listOf(BicycleIcon.TrackImported, BicycleIcon.TrackRecorded, BicycleIcon.Import,BicycleIcon.Dreeve), listOf("route_import_planned", "route_import_recorded", "route_import_archive","route_import_dreeve")) {
+            if(it==3) showDreeveImport() else importRoute(recorded = it == 1, archive = it == 2)
         }
+    }
+    private fun showDreeveImport() {
+        val closed=java.util.concurrent.atomic.AtomicBoolean(false)
+        val worker=java.util.concurrent.Executors.newSingleThreadExecutor { task -> Thread(task,"B-Cycle-dreeve-import") }
+        var source:String?=null
+        lateinit var content:DreeveImportView
+        fun client():Pair<String,DreeveClient> {
+            val settings=ActivityServiceSettings(this,ActivityService.DREEVE)
+            val config=settings.read();val key=settings.credentials().optString("secret")
+            if(config.address.isBlank() || key.isBlank()) throw ActivityServiceFailure(false,R.string.dreeve_import_config_missing)
+            return config.identity(ActivityService.DREEVE) to DreeveClient(config,key,closed::get)
+        }
+        content=DreeveImportView(settingsContext,settingsThemes,loadPage={ page ->
+            val expected=source
+            worker.execute {
+                val result=runCatching {
+                    val (target,api)=client()
+                    if(page>1 && target!=expected) throw ActivityServiceFailure(false,R.string.dreeve_import_changed)
+                    api.activities(page) to target
+                }
+                runOnUiThread { if(!closed.get()) result.fold({ (data,target) ->
+                    if(page==1) source=target
+                    content.loaded(data,runtime.mapState.existingDreeve(target,data.activities))
+                },{ content.failed((it as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_load_failed) }) }
+            }
+        },importSelection={ activities ->
+            runCatching { client() }.fold({ (target,api) ->
+                if(target!=source) content.failed(R.string.dreeve_import_changed)
+                else runtime.mapState.importDreeve(target,activities,api,closed::get,
+                    progress={ if(!closed.get()) content.progress(it) },complete={ if(!closed.get()) content.complete(it) })
+            },{ content.failed((it as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_load_failed) })
+        },configure={ activityServiceSettings(ActivityService.DREEVE) })
+        dialog().setTitle(R.string.dreeve_import_title).setView(content).create().apply {
+            dialogs.onDismiss(this) { closed.set(true);worker.shutdownNow() }
+            show()
+        }
+        content.refresh()
     }
     /** The same anchored native dropdown serves imports and each route's actions. */
     private fun routeDropdown(anchor: View, choices: List<String>, icons: List<BicycleIcon> = emptyList(),

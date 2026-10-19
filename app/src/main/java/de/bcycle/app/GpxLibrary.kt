@@ -54,8 +54,10 @@ internal class GpxLibrary(private val root: File) {
         }
         return selected?.takeIf { file(it).isFile }?.let { file(it).inputStream().use(GpxImport::read) }
     }
-    fun add(input: InputStream, name: String, select: Boolean = true, preserveDate: Boolean = false): GpxRoute {
-        val id = UUID.randomUUID().toString()
+    fun add(input: InputStream, name: String, select: Boolean = true, preserveDate: Boolean = false,
+        stableId:String?=null,bikeType:BikeType?=null,measurements:((GpxMeasurement)->Unit)?=null): GpxRoute {
+        val id = stableId ?: UUID.randomUUID().toString()
+        require(entries.none { it.id==id })
         val stored = AtomicFile(file(id))
         try {
             val stream = stored.startWrite()
@@ -70,11 +72,14 @@ internal class GpxLibrary(private val root: File) {
             } catch (e: Exception) { stored.failWrite(stream); throw e }
             var date: Long? = null
             val route = stored.openRead().use { stream ->
-                GpxImport.read(stream, if (preserveDate) { _, time, _, _ -> if (date == null && time != null) date = time } else null)
+                if(measurements!=null) GpxImport.samples(stream) { sample ->
+                    if(preserveDate && date==null && sample.time!=null) date=sample.time
+                    measurements(sample)
+                } else GpxImport.read(stream, if (preserveDate) { _, time, _, _ -> if (date == null && time != null) date = time } else null)
             }
             val title = name.substringAfterLast('/').substringAfterLast('\\').removeSuffix(".gpx").removeSuffix(".GPX").trim().take(120).ifBlank { "GPX-Strecke" }
             save(entries + StoredGpx(id, title, route.originalPoints, route.segments,
-                RouteDetails(date ?: System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points), route.ascentM, route.movingMs)), if (select) id else selected)
+                RouteDetails(date ?: System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points), route.ascentM, route.movingMs,bikeType)), if (select) id else selected)
             return route
         } catch (e: Exception) { stored.delete(); throw e }
     }

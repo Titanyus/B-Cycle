@@ -22,6 +22,24 @@ internal class ActivityHttp(private val cancelled:()->Boolean={false},private va
             try { JSONObject(String(bytes,Charsets.UTF_8)) } catch(_:org.json.JSONException) { throw ActivityServiceFailure(false,R.string.service_response_failed) }
         }
     }
+    fun download(request:Request,file:File,maximum:Long) {
+        if(cancelled()) throw IOException()
+        http.newCall(request).execute().use { response ->
+            if(response.code!=200) throw ActivityServiceFailure(response.code==408 || response.code==429 || response.code>=500,
+                if(response.code==401 || response.code==403) R.string.service_auth_failed else R.string.dreeve_import_download_failed)
+            val body=response.body ?: throw IOException()
+            if(body.contentLength()>maximum) throw IOException()
+            body.byteStream().use { input -> file.outputStream().use { output ->
+                val buffer=ByteArray(16384);var size=0L
+                while(true) {
+                    if(cancelled()) throw IOException()
+                    val n=input.read(buffer);if(n<0) break
+                    size+=n;if(size>maximum) throw IOException()
+                    output.write(buffer,0,n)
+                }
+            } }
+        }
+    }
     fun file(file:File)=object:RequestBody() {
         override fun contentType()="application/octet-stream".toMediaType()
         override fun contentLength()=file.length()
@@ -44,6 +62,18 @@ internal class DreeveClient(config:ActivityServiceConfig,private val key:String,
         val status=http.json(request("status").build())
         if(status.optString("app")!="dreeve") throw ActivityServiceFailure(false,R.string.service_response_failed)
         if(status.opt("canUpload")!=true) throw ActivityServiceFailure(false,R.string.dreeve_import_disabled)
+    }
+    fun activities(page:Int=1):DreeveActivityPage {
+        require(page in 1..10000)
+        val url=request("activities").build().url.newBuilder()
+            .addQueryParameter("pagination[page]",page.toString()).addQueryParameter("pagination[size]","50")
+            .addQueryParameter("filters[sportType]","Ride,VirtualRide,EBikeRide,MountainBikeRide,GravelRide,EMountainBikeRide").build()
+        return DreeveActivityPage.decode(http.json(request("activities").url(url).build()),page)
+    }
+    fun downloadGpx(activityId:String,file:File) {
+        require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
+        val url=request("activities").build().url.newBuilder().addPathSegment(activityId).addPathSegment("gpx").build()
+        http.download(request("activities").url(url).header("Accept","application/gpx+xml").build(),file,GpxImport.MAX_BYTES)
     }
     fun step(file:File,filename:String,jobId:String):UploadProgress {
         // Recover a lost 202 response by looking up this durable, unique attempt filename first.
