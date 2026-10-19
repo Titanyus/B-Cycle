@@ -16,6 +16,8 @@ Der weiche Stop-/Aufnahmepunkt-Wechsel gilt ab dieser Version während jeder Auf
 
 Dashboard-Zeiteinheiten werden in allen Kachelbreiten als „h“ angezeigt; das Format der Zeitwerte bleibt h:mm:ss.
 
+Filter-/Sortier-Accordions im Streckenmanager erhalten einheitlich controlGap (8 dp) Innenabstand über und unter ihrem ausgeklappten Inhalt. Damit bleiben Bereichseingaben vom öffnenden Button und alle Filter-/Sortierinhalte vom folgenden Button getrennt.
+
 ## Vorgemerkt, nicht umgesetzt
 
 Trinkerinnerung: einstellbares Zeitintervall während der Aufnahme. Optional eine ausdrückliche Aktion „Getrunken“ zum Zurücksetzen des Timers; bloßes Schließen einer Erinnerung gilt nicht als Trinkbestätigung. Details vor Umsetzung abstimmen.

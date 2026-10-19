@@ -68,7 +68,11 @@ class RouteQueryUiTest {
             popup.contentView.findViewWithTag<View>("route_bike_0").performClick();assertTrue(query.bikes.isEmpty())
             val from=popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_0")
             val to=popup.contentView.findViewWithTag<EditText>("route_range_${R.string.route_filter_distance}_1")
-            headers[3].performClick();from.setText("10");to.setText("5")
+            headers[3].performClick()
+            val rangeContent=from.parent.parent as View
+            assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),rangeContent.paddingTop)
+            assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),rangeContent.paddingBottom)
+            from.setText("10");to.setText("5")
             assertEquals(RouteRange(10.0,null),query.distance);assertNotNull(to.error)
             to.setText("20");assertEquals(RouteRange(10.0,20.0),query.distance);assertNull(to.error)
             val slider=popup.contentView.findViewWithTag<BicycleRangeSlider>("route_range_slider_${R.string.route_filter_distance}")
@@ -84,7 +88,12 @@ class RouteQueryUiTest {
             assertEquals(java.time.DayOfWeek.MONDAY,query.fromDate!!.dayOfWeek);assertEquals(query.fromDate!!.plusDays(6),query.toDate)
             assertTrue(updates>=4);popup.dismiss()
             val sort=RouteQueryPopup(a,themes,nav,query) {};sort.sorting();sort.show(anchor)
-            nodes(sort.contentView).filterIsInstance<RadioButton>().single { it.text==a.getString(R.string.route_filter_distance) }.isChecked=true
+            val sortHeader=sort.contentView.findViewWithTag<View>("route_query_group_${R.string.route_sort_field}")
+            sortHeader.performClick()
+            val sortChoice=nodes(sort.contentView).filterIsInstance<RadioButton>().single { it.text==a.getString(R.string.route_filter_distance) }
+            val sortContent=sortChoice.parent.parent as View
+            assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),sortContent.paddingBottom)
+            sortChoice.isChecked=true
             assertEquals(RouteSort.DISTANCE,query.sort);assertEquals(RouteRange(15.0,20.0),query.distance);sort.dismiss()
         } finally { host.pause().stop().destroy() }
     }

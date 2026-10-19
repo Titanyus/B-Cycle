@@ -19,7 +19,11 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     private val body=BicycleComponents.dialogBody(context,themes)
     private fun dp(v:Int)=BicycleDesign.dp(context,v)
     private fun group(title:Int,summary:()->String,build:(LinearLayout,()->Unit)->Unit) {
-        val section=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;visibility=View.GONE }
+        val section=LinearLayout(context).apply {
+            orientation=LinearLayout.VERTICAL;visibility=View.GONE
+            val gap=dp(BicycleDesign.controlGap)
+            setPadding(0,gap,0,gap)
+        }
         lateinit var header:Button
         header=BicycleComponents.action(context,themes,"") {
             val open=section.visibility!=View.VISIBLE
@@ -55,13 +59,13 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
                     }
                 },LinearLayout.LayoutParams(0,-2,1f))
             }
-            section.addView(segments,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(8) })
+            section.addView(segments,LinearLayout.LayoutParams(-1,-2))
         }
         group(R.string.route_filter_bike,{ count(query.bikes.size) }) { section,update ->
             val profiles=BikeProfileStore(context,context.getSharedPreferences("bike",0)).all()
             section.addView(BikeFilterGrid(context,themes,profiles,query.bikes) { slot,on ->
                 query.bikes=if(on) query.bikes+slot else query.bikes-slot;update()
-            },LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(8) })
+            },LinearLayout.LayoutParams(-1,-2))
             checks(section,listOf(context.getString(R.string.route_filter_unknown_bike) to (-1 in query.bikes))) { _,on ->
                 query.bikes=if(on) query.bikes+(-1) else query.bikes-(-1);update()
             }
