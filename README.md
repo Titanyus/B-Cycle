@@ -61,15 +61,22 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.13 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.13/downloads/B-Cycle-0.8.13.apk)**
+**[Version 0.8.14 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.14/downloads/B-Cycle-0.8.14.apk)**
 
-**Build 50 vom 19.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 41 gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-50.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.13) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39310337422).
+**Build 51 vom 20.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
+Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 136 gezielte Tests bestanden.
+[Änderungen und SHA-256](docs/build-51.md) ·
+[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.14) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39382081391).
 Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
-Ein echter Dreeve-Kontoabruf und physischer Gerätetest der neuen APK stehen noch aus.
+Echte Cloudkonten und physisches Gerät sind noch zu prüfen.
+
+## Neu in APK 0.8.14
+
+- Dreeve: alle Fahrten automatisch laden, gemeinsame Filter/Sortierung, Fahrradzuordnung speichern und Fahrten ohne GPX als Zusammenfassung übernehmen.
+- Verknüpfungsstatus und Namensabgleich mit Dreeve, intervals.icu und Strava. Dreeves Automationsnamen nach bestätigtem Upload übernehmen; manuelle Namen haben Vorrang.
+- Vollständige private Auswertungsdaten neuer Aufnahmen bei weiterhin reduziertem FIT-Export gemäß Nutzerauswahl.
+- Mehrfachlöschen im Streckenmanager; feste Detailtitel mit Laufschrift, zusätzlicher Abstand und entfernte vertikale Trennstriche.
 
 ## Neu in APK 0.8.13
 

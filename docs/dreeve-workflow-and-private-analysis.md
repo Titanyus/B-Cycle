@@ -1,6 +1,6 @@
 # Dreeve, Fahrtnamen und vollständige private Auswertung
 
-Stand: 20.10.2026, nach 0.8.13 lokal umgesetzt. Keine neue APK und keine Veröffentlichung dieses Entwicklungsschritts.
+Stand: 20.10.2026, ab APK 0.8.14. [Build 51 und Download](build-51.md).
 
 ## Dreeve-Seite und gemeinsame Auswahl
 
@@ -42,4 +42,4 @@ Detailtitel: feste bisherige headingSp/Bebas-Neue-Typografie ohne AutoSize. Bei 
 
 136 unterschiedliche gezielte Tests über abgeschlossene Läufe bestanden, keine Fehler/übersprungenen Fälle: HTTP-Verträge, automatische Pagination über 50 Einträge hinaus und Fortsetzung, feste Footer-Navigation, gleiche Filterlogik, Fahrradzuordnung und Formulardrafts, Quelle/Instanz-Abgrenzung, Norm. Leistung aus GPX, private vollständige Werte bei reduziertem FIT, Dateiintegrität und Exportpfade, Journalkompatibilität, Aufnahmeabschluss, Namenspriorität/Koaleszierung/Teilfehler, importierte Verknüpfung bei ausgeschaltetem Upload, Mehrfachlöschen und unveränderte ungewählte Karte, Titeltypografie und Animatorabbau, Details und bisherige Archiv-/Cloudregressionen.
 
-MockWebServer/Robolectric und vorhandene native FIT-Decoder. Kein vollständiger Testlauf, keine neue APK, keine echten Cloudkonten oder physisches Gerät getestet. Reale Dreeve-Automationslaufzeit und Namensänderungen bei den drei Diensten noch am Gerät prüfen.
+MockWebServer/Robolectric und vorhandene native FIT-Decoder. Kein vollständiger Testlauf; optimierte APK 0.8.14 über GitHub Actions erstellt. Keine echten Cloudkonten oder physisches Gerät getestet. Reale Dreeve-Automationslaufzeit und Namensänderungen bei den drei Diensten noch am Gerät prüfen.
