@@ -14,6 +14,24 @@ import kotlin.math.sin
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
 class HrvControllerTest {
+    @Test fun delayedWorkerUsesStartRequestTimeAndIgnoresOlderQueuedNotification() {
+        var now=0L;val controller=HrvController(RuntimeEnvironment.getApplication()) { now }
+        val worker=HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(controller) as ThreadPoolExecutor
+        fun drain() { worker.submit {}.get(10,TimeUnit.SECONDS) }
+        val release=java.util.concurrent.CountDownLatch(1)
+        try {
+            drain();controller.packet(0,byteArrayOf(0x16,75,0,4));drain()
+            worker.submit { release.await(5,TimeUnit.SECONDS) }
+            now=1000;assertTrue(controller.start("Gurt"))
+            now=1200
+            controller.packet(900,byteArrayOf(0x16,75,0,4)) // Before Start, delivered late.
+            controller.packet(1100,byteArrayOf(0x16,75,0,4)) // After Start, before worker resumes.
+            release.countDown();drain()
+            assertTrue(controller.busy);assertEquals(Phase.REST,controller.state.phase)
+            controller.disconnected();drain()
+            assertEquals(1,controller.state.result!!.getInt("packetCount"))
+        } finally { release.countDown();controller.close() }
+    }
     @Test fun completeMeasurementUsesPacketTimesStoresResultAndDisconnectAbortsNextSession() {
         var now=0L
         val controller=HrvController(RuntimeEnvironment.getApplication()) { now }

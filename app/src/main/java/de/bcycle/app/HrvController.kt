@@ -62,6 +62,8 @@ internal class HrvController(context:Context,private val clock:()->Long={ System
             if(current==null) {
                 if(!busy) publish(state.copy(bpm=bpm,ready=decoded?.contact!=Contact.LOST && clock()-lastRrAt<=5000))
             } else {
+                // A notification received before Start can reach the main callback later.
+                if(receivedAt<current.startMs) return@submit
                 abortRequest?.let { current.abort(it);abortRequest=null }
                 val before=current.packets.size
                 current.accept(receivedAt,copy)
@@ -83,10 +85,11 @@ internal class HrvController(context:Context,private val clock:()->Long={ System
     }
     fun start(sensor:String):Boolean {
         if(busy || pending!=null || !state.ready || clock()-lastRrAt>5000) return false
+        val startedAt=clock()
         busy=true
         submit {
             check(clock()-lastRrAt<=5000)
-            val next=MeasurementSession(clock())
+            val next=MeasurementSession(startedAt)
             id=UUID.randomUUID().toString();points.clear();abortRequest=null
             checkNotNull(store).begin(id,System.currentTimeMillis(),sensor,next)
             session=next;update(next)

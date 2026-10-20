@@ -61,3 +61,7 @@ Persönliche Baselines, Readiness-/Trainingsbewertungen und Wellness-Synchronisa
 sind spätere Aufgaben. Echte Gurt-/Geräteprüfung bleibt nach den automatisierten
 Integrationsprüfungen erforderlich. Lizenz: hrv-core/THIRD_PARTY_NOTICES.md und
 NeuroKit2-MIT-Lizenz in den App-Assets und der Bibliotheks-Lizenzanzeige.
+
+Der Sitzungsbeginn verwendet den Zeitstempel des Start-Klicks, nicht den späteren
+Workerstart. Vor Start empfangene, verzögert zugestellte Pakete gehören nicht zur
+neuen Sitzung. Dieser Callback-/Worker-Randfall ist separat geprüft.

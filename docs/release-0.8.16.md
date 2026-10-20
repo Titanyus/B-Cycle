@@ -33,7 +33,7 @@ weiterhin kein direktes Update möglich.
 - Titellaufschrift zeigt auch das ursprünglich unsichtbare Titelende, beschleunigt
   und bremst weich, wartet am Ende und blendet vor dem Neustart aus.
 
-105 gezielte Hosttests und 12 HRV-Kerntests bestanden. Die Kernprüfungen enthalten
+106 gezielte Hosttests und 12 HRV-Kerntests bestanden. Die Kernprüfungen enthalten
 62 gepinnte NeuroKit2-Referenzfälle. Die Hosttests prüfen unter anderem
 Messablauf, BLE auf Android 13/15/16, Speicherung, Sicherung, Import und Darstellung.
 Echte Gurt-/Telefonprüfung und persönlicher WebDAV-Server bleiben praktisch zu prüfen.
