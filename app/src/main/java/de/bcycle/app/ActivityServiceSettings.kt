@@ -26,6 +26,10 @@ internal class ActivityServiceSettings(c:Context,val service:ActivityService,key
         prefs.getString("address","")!!,prefs.getString("clientId","")!!,prefs.getString("account","")!!) }
     fun credentials()=synchronized(lock) { secret.read().takeIf { it.isNotEmpty() }?.let(::JSONObject) ?: JSONObject() }
     fun hasSecret()=prefs.contains("password")
+    fun dreeveImportConfigured()=service==ActivityService.DREEVE && runCatching {
+        dreeveUrl(read().address)
+        credentials().optString("secret").isNotBlank()
+    }.getOrDefault(false)
     fun connected()=service==ActivityService.STRAVA && read().account.isNotBlank() && credentials().optString("refresh").isNotBlank()
     fun write(config:ActivityServiceConfig,newSecret:String?=null)=synchronized(lock) {
         val old=read();val data=credentials()

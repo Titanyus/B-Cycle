@@ -3,6 +3,7 @@ package de.bcycle.app
 import android.app.AlertDialog
 import android.content.Context
 import android.content.res.ColorStateList
+import android.database.DataSetObserver
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
@@ -158,7 +159,8 @@ internal object BicycleDialogStyle {
                 view.verticalScrollbarThumbDrawable = ColorDrawable(tokens.foreground)
             }
             BicycleComponents.scrollStyle(view)
-            val source = view.adapter
+            // ListView owns header/footer wrapping; wrapping that wrapper would add them twice.
+            val source = (view.adapter as? HeaderViewListAdapter)?.wrappedAdapter ?: view.adapter
             if (source != null && source !is StyledListAdapter) view.adapter = StyledListAdapter(source, themes)
             return
         }
@@ -319,6 +321,8 @@ internal object BicycleDialogStyle {
         if (selected >= 0) view.setSelection(selected)
     }
     private class StyledListAdapter(private val original: ListAdapter, private val themes: ThemeManager) : BaseAdapter() {
+        override fun registerDataSetObserver(observer:DataSetObserver)=original.registerDataSetObserver(observer)
+        override fun unregisterDataSetObserver(observer:DataSetObserver)=original.unregisterDataSetObserver(observer)
         override fun getCount() = original.count
         override fun getItem(position: Int) = original.getItem(position)
         override fun getItemId(position: Int) = original.getItemId(position)

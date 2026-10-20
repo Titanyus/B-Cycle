@@ -20,6 +20,7 @@ internal object MapFieldSelection {
 /** Three global value-only overlays. Non-interactive views let map gestures pass through. */
 internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     private val directions = IntArray(3)
+    private var trendIndicators=TrendIndicatorConfig()
     private val occupied = BooleanArray(3)
     var editing = false; private set
     var selectField: ((Int) -> Unit)? = null
@@ -71,6 +72,7 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
         visibility = GONE
     }
     fun reload(preferences: SharedPreferences) {
+        trendIndicators=TrendIndicatorSettings.read(preferences)
         val next=List(3) { MapFieldSelection.read(preferences, it) }
         if(next!=fields) { trends.clear();chevrons.forEach { it.clear() };directions.fill(0) }
         fields = next
@@ -103,7 +105,8 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
             view.gravity=Gravity.CENTER
             val value = field?.value(data, gps, bikeDistanceM, pulse)
             val next = value?.takeIf { it.available }?.text.orEmpty()
-            val direction = field?.let { trends.indicator(it, trendData, gps, pulse, android.os.SystemClock.elapsedRealtime()) } ?: 0
+            val calculated = field?.let { trends.indicator(it, trendData, gps, pulse, android.os.SystemClock.elapsedRealtime()) } ?: 0
+            val direction = if(field!=null && trendIndicators.shows(field)) calculated else 0
             chevrons[index].update(direction)
             val hasValue = next.isNotEmpty()
             val prefix = if (hasDot) "\uFFFC" + if (hasValue || hasLight) " " else "" else ""

@@ -6,8 +6,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
@@ -86,7 +84,7 @@ internal class RouteManagerView(context: Context,
             BicycleComponents.bindTheme(this, themes) {
                 divider = ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }; dividerHeight = BicycleDesign.linePixels(context)
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)
-                selector = GradientDrawable().apply { setColor(it.secondary); setStroke(BicycleDesign.linePixels(context), it.foreground) }
+                selector = ColorDrawable(it.tertiary)
             }
         }, LayoutParams(-1, 0, 1f))
     }
@@ -210,16 +208,16 @@ internal class RouteManagerView(context: Context,
         private fun paintState(tokens: ThemeTokens) {
             preview.foreground = tokens.foreground
             val route = entry ?: return
+            background=if(route.id in checked) ColorDrawable(tokens.tertiary) else null
             origin.setImageDrawable(BicycleIcons.drawable(context, if(route.id in checked) BicycleIcon.Check else when (route.origin) {
                 TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
-            }, tokens.foreground))
+            }, if(route.id in checked) tokens.accent else tokens.foreground))
             val eyeKind = if (selected == route.id) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
             eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, selected != route.id))
             eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, selected != route.id))
         }
         fun bind(route: ManagedRoute) {
             isActivated=route.id in checked
-            background=if(isActivated) BicycleComponents.controlBackground(context,themes.active.tokens) else null
             entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
             contentDescription = context.getString(R.string.analysis_open, route.name)+(if(route.id in checked) " · "+context.getString(R.string.route_selected) else "")
             title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name

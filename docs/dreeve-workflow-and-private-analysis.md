@@ -34,7 +34,7 @@ FitLibrary-Metadaten, Karte und Details können die private vollständige Quelle
 
 ## Streckenmanager und Details
 
-Langer Druck startet Mehrfachauswahl. Aktuelle Markierung sichtbar mit Haken, Auswahlzahl und Rahmen; weitere Tipps wählen, statt Details zu öffnen. Kartenauge im Auswahlmodus ausblenden. Rechts fester Löschen-Button, nur bei Auswahl aktiv. Gemeinsame Bestätigung, IDs auf bestehendem Bibliotheksworker löschen; keine Remote-Löschung. Ungewählte Kartenroute erhalten, ausgewählte aktive Route ausblenden. Profilzuordnung, Namensaufträge und private Analysequelle passend bereinigen. Header-/Android-Zurück beendet zuerst die Auswahl.
+Langer Druck startet Mehrfachauswahl. Aktuelle Markierung sichtbar mit ACCENT-Haken, Auswahlzahl und rahmenlosem TERTIARY-Hintergrund; weitere Tipps wählen, statt Details zu öffnen. Kartenauge im Auswahlmodus ausblenden. Rechts fester Löschen-Button, nur bei Auswahl aktiv. Gemeinsame Bestätigung, IDs auf bestehendem Bibliotheksworker löschen; keine Remote-Löschung. Ungewählte Kartenroute erhalten, ausgewählte aktive Route ausblenden. Profilzuordnung, Namensaufträge und private Analysequelle passend bereinigen. Header-/Android-Zurück beendet zuerst die Auswahl.
 
 Detailtitel: feste bisherige headingSp/Bebas-Neue-Typografie ohne AutoSize. Bei Überlänge ca. 30 dp/s, 1,5 s Anfangspause, 0,8 s Endpause, 0,7 s Ausblenden, dann Wiederholung. Kurze Titel zentriert. Systemweite reduzierte Bewegung respektieren, Animator bei Verbergen/Abhängen beenden. Nach Rad/Datum/Wetter 10 dp Abstand. Vertikale Kennzahlentrenner einschließlich Best Efforts entfernt; horizontale Abschnittstrenner bleiben erhalten. Die weiteren vorgemerkten Iconänderungen bleiben offen.
 
@@ -43,3 +43,23 @@ Detailtitel: feste bisherige headingSp/Bebas-Neue-Typografie ohne AutoSize. Bei 
 136 unterschiedliche gezielte Tests über abgeschlossene Läufe bestanden, keine Fehler/übersprungenen Fälle: HTTP-Verträge, automatische Pagination über 50 Einträge hinaus und Fortsetzung, feste Footer-Navigation, gleiche Filterlogik, Fahrradzuordnung und Formulardrafts, Quelle/Instanz-Abgrenzung, Norm. Leistung aus GPX, private vollständige Werte bei reduziertem FIT, Dateiintegrität und Exportpfade, Journalkompatibilität, Aufnahmeabschluss, Namenspriorität/Koaleszierung/Teilfehler, importierte Verknüpfung bei ausgeschaltetem Upload, Mehrfachlöschen und unveränderte ungewählte Karte, Titeltypografie und Animatorabbau, Details und bisherige Archiv-/Cloudregressionen.
 
 MockWebServer/Robolectric und vorhandene native FIT-Decoder. Kein vollständiger Testlauf; optimierte APK 0.8.14 über GitHub Actions erstellt. Keine echten Cloudkonten oder physisches Gerät getestet. Reale Dreeve-Automationslaufzeit und Namensänderungen bei den drei Diensten noch am Gerät prüfen.
+
+
+## Korrekturen nach Build 51 (ohne neue APK)
+
+- Die gemeinsame Dialogformatierung leitete Änderungsbenachrichtigungen des
+  ursprünglichen Listenadapters nicht weiter. Dadurch konnte die native Dreeve-Liste
+  trotz „398 von 398“ beim ersten Seitenbestand bleiben. Der Stylingadapter reicht
+  An-/Abmeldungen von Datenbeobachtern jetzt an den ursprünglichen Adapter weiter.
+  Native Header/Footer werden nicht nochmals in den Stylingadapter eingepackt;
+  wiederholtes Styling fügt den Fortsetzungsfooter nicht doppelt hinzu.
+- Strecken-Mehrfachauswahl verwendet TERTIARY ohne Rahmen und den Haken in ACCENT.
+- Dreeve-Import bleibt im Importmenü deaktiviert, solange Adresse oder lesbarer
+  Schlüssel fehlen. Automatischer Upload ist keine Voraussetzung. Konfiguration
+  weiterhin unter Daten & Speicher, ohne zusätzlichen Button auf der Importseite.
+- Regression mit acht API-Seiten und 398 Fahrten prüft Änderungsbenachrichtigungen,
+  Scrollen zur letzten Fahrt, deren Auswahl und die Auswahl aller 398 Fahrten im
+  tatsächlichen Dialog-Styling. Keine APK für diese Korrekturen erstellt.
+  Abschlussprüfung: 42 gezielte Tests in ActivityServiceTest, DreeveImportNavigationTest,
+  DreeveImportUiTest, DreeveWorkflowTest, FullscreenDialogTest und RouteManagerViewTest
+  bestanden; keine Fehler oder übersprungenen Tests. Kein echtes Dreeve-Konto geprüft.

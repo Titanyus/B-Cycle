@@ -37,6 +37,21 @@ class ActivityServiceTest {
     private fun configureDreeve()=settings(ActivityService.DREEVE).apply {
         write(ActivityServiceConfig(enabled=true,wifiOnly=false,address="https://dreeve.example.org/sub/"),"drv_"+"a".repeat(64))
     }
+    @Test fun manualDreeveImportRequiresUsableConfigurationButNotAutomaticUploads() {
+        val d=settings(ActivityService.DREEVE)
+        assertFalse(d.dreeveImportConfigured())
+        d.write(ActivityServiceConfig(address="https://dreeve.example.org/"))
+        assertFalse(d.dreeveImportConfigured())
+        d.write(d.read(),"drv_"+"a".repeat(64))
+        assertTrue(d.dreeveImportConfigured())
+        assertFalse(d.read().enabled)
+        val prefs=c.getSharedPreferences("activity-service-dreeve",0)
+        prefs.edit().putBoolean("needsPassword",true).commit()
+        assertFalse(d.dreeveImportConfigured())
+        prefs.edit().remove("needsPassword").putString("password","unreadable").commit()
+        assertFalse(d.dreeveImportConfigured())
+        assertFalse(settings(ActivityService.STRAVA).dreeveImportConfigured())
+    }
     @Test fun serviceSettingsAreEncryptedIndependentAndRejectUnsafeAddresses() {
         val d=configureDreeve();val s=configureStrava()
         assertTrue(d.read().enabled);assertTrue(s.connected())

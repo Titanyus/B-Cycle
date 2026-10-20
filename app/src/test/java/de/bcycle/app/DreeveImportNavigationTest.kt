@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33],qualifiers="mdpi")
 class DreeveImportNavigationTest {
-    @Test fun managerImportOffersDreeveAndOpensItsOwnScreenWithConfiguration() {
+    @Test fun managerKeepsUnconfiguredDreeveVisibleButDisabledAndImportScreenHasNoConfigurationAction() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val state=RideRuntime.get(a).mapState
@@ -31,12 +31,17 @@ class DreeveImportNavigationTest {
             val popup=MainActivity::class.java.getDeclaredField("routePopup").apply { isAccessible=true }.get(a) as ListPopupWindow
             val list=popup.listView!!
             assertEquals(4,list.adapter.count)
-            assertEquals("route_import_dreeve",list.adapter.getView(3,null,list).tag)
+            val dreeve=list.adapter.getView(3,null,list)
+            assertEquals("route_import_dreeve",dreeve.tag)
+            assertFalse(list.adapter.isEnabled(3));assertFalse(dreeve.isEnabled);assertEquals(.5f,dreeve.alpha,0f)
+            assertTrue((0..2).all { list.adapter.isEnabled(it) })
             list.performItemClick(list.adapter.getView(3,null,list),3,3)
+            assertSame(manager,ShadowAlertDialog.getLatestAlertDialog())
+            MainActivity::class.java.getDeclaredMethod("showDreeveImport").apply { isAccessible=true }.invoke(a)
             val import=ShadowAlertDialog.getLatestAlertDialog()
             assertNotSame(manager,import)
             assertNotNull(import.window!!.decorView.findViewWithTag<View>("dreeve_import_screen"))
-            assertNotNull(import.window!!.decorView.findViewWithTag<View>("dreeve_import_configure"))
+            assertNull(import.window!!.decorView.findViewWithTag<View>("dreeve_import_configure"))
             val decor=import.window!!.decorView
             decor.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY));decor.layout(0,0,360,800)
             shadowOf(Looper.getMainLooper()).idle()

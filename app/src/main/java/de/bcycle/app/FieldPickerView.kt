@@ -18,8 +18,8 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     training: TrainingSnapshot = TrainingSnapshot(),
     dataVisible: Boolean = true,
     batteryChoose: ((DashboardField?)->Unit)? = null,
-    trendEnabled:Boolean = true,
-    trendChanged:((Boolean)->Unit)? = null,
+    trendConfig:TrendIndicatorConfig = TrendIndicatorConfig(),
+    trendChanged:((TrendIndicatorConfig)->Unit)? = null,
     trainingHelp:TrainingHelpView? = null,
     drinkReminder:DrinkReminderSettingsView? = null,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
@@ -60,14 +60,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             }
         }
         dataContent.addView(selector, LayoutParams(-1, dp(BicycleDesign.touchSize)))
-        val trendToggle=android.widget.Switch(context).apply {
-            tag="field_trend_indicator";setText(R.string.field_trend_indicator)
-            isChecked=trendEnabled
-            visibility=if(!allowEmpty && dataVisible && AverageTrends.supports(selected) && trendChanged!=null) VISIBLE else GONE
-            BicycleDialogStyle.control(this,themes)
-            setOnCheckedChangeListener { _,checked -> trendChanged?.invoke(checked) }
-        }
-        dataContent.addView(trendToggle,LayoutParams(-1,-2))
+        if(trendChanged!=null) panels.addView(TrendIndicatorSettingsView(context,themes,trendConfig,trendChanged),LayoutParams(-1,-2))
         val rows = LinearLayout(context).apply { orientation = VERTICAL;tag="field_list" }
         dataContent.addView(rows, LayoutParams(-1,-2))
         if(graphPicker!=null) panels.addView(graphPicker)
@@ -91,7 +84,6 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             combined=field?.batterySources!=null
             batterySelection=field?.batterySources.orEmpty().filter { it in availableBatteries }
             emptyChoice.isChecked=field==null
-            trendToggle.visibility=if(!allowEmpty && field!=null && AverageTrends.supports(field) && trendChanged!=null) VISIBLE else GONE
             for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.let { it.isChecked=field!=null && !combined && it.tag==field.id }
             refreshBatteryChecks()
         }

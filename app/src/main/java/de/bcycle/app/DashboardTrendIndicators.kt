@@ -1,6 +1,6 @@
 package de.bcycle.app
 
-/** Presentation only: the existing trend history/calculation continues even while hidden. */
+/** Legacy per-tile format, retained for migration and older dashboard backups. */
 internal data class DashboardTrendIndicators(val enabled:List<Boolean> = List(DashboardLayout.FIELD_COUNT) { true }) {
     fun replace(slot:Int,show:Boolean)=copy(enabled=enabled.mapIndexed { i,old -> if(i==slot) show else old })
     fun encode()=enabled.joinToString("|") { if(it) "1" else "0" }

@@ -21,8 +21,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     }
     private val trends = AverageTrends()
     internal fun resetTrends() { trends.clear();tiles.forEach { it.resetTrend() } }
-    private var trendIndicators=DashboardTrendIndicators()
-    internal fun showTrendIndicators(config:DashboardTrendIndicators) { trendIndicators=config }
+    private var trendIndicators=TrendIndicatorConfig()
+    internal fun showTrendIndicators(config:TrendIndicatorConfig) { trendIndicators=config }
     private val numbers = resources.getFont(R.font.bebas_neue)
     private val captions = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
     private val tiles = mutableListOf<Tile>()
@@ -325,7 +325,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), field.title(context,data, gps)) else field.title(context,data, gps)
             showCaption(field)
             val direction = trends.indicator(field, trendData, gps, pulse, android.os.SystemClock.elapsedRealtime())
-            row.direction = if(trendIndicators.enabled[index]) direction else 0
+            row.direction = if(trendIndicators.shows(field)) direction else 0
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }
                 ?.let { String.format(Locale.GERMANY, "%.1f", it) } else null
             setText(value, compactDistance ?: next.text)
@@ -348,12 +348,12 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             set(next) { if (field != next) {
                 field = next;chevrons.update(next);if (threeColumns) requestLayout(); invalidate()
             } }
-        private val chevronSpace get() = kotlin.math.ceil(minOf(dp(14).toFloat(), value.textSize * .28f) + dp(style.valueUnitGap)).toInt()
+        private val chevronSpace get() = kotlin.math.ceil(minOf(dp(14).toFloat(), value.textSize * .28f) * TrendChevrons.SCALE + dp(style.valueUnitGap)).toInt()
         init { addView(value); addView(unit) }
         override fun dispatchDraw(canvas: android.graphics.Canvas) {
             super.dispatchDraw(canvas)
             if (chevrons.visible) {
-                val size = minOf(dp(14).toFloat(), value.textSize * .28f,height/2.4f)
+                val size = minOf(dp(14).toFloat(), value.textSize * .28f,height/2.4f) * TrendChevrons.SCALE
                 val textWidth = value.layout?.getLineWidth(0) ?: 0f
                 val x = if (threeColumns) value.left - dp(style.valueUnitGap) - size else width / 2f - textWidth / 2f - dp(style.valueUnitGap) - size
                 chevrons.draw(canvas,x.coerceAtLeast(0f),height/2f,size,value.currentTextColor)

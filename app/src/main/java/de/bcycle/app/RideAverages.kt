@@ -18,6 +18,8 @@ internal class AverageTrends {
         private val aliases=mapOf("SPEED" to "AVERAGE_SPEED","GPS_SPEED" to "GPS_MOVING_AVERAGE",
             "RIDER_POWER" to "AVERAGE_POWER","CADENCE" to "AVERAGE_CADENCE","HEART_RATE" to "HEART_AVERAGE")
         private val averages=setOf("AVERAGE_SPEED","GPS_MOVING_AVERAGE","GPS_OVERALL_AVERAGE","AVERAGE_POWER","AVERAGE_CADENCE","HEART_AVERAGE")
+        val currentFields get()=aliases.keys.toList()
+        val averageFields get()=averages.toList()
         fun supports(field:DashboardField?)=field?.id in aliases || field?.id in averages
         internal fun level(id:String,deviation:Double,previous:Int=0):Int {
             if(!deviation.isFinite()) return 0
@@ -83,20 +85,21 @@ internal fun DashboardField.averageNumber(data: LiveData, gps: GpsValues, pulse:
 
 /** One stable span; only its cached chevrons redraw while the alpha values animate. */
 internal class AverageChevronSpan(private val chevrons:TrendChevrons) : android.text.style.ReplacementSpan() {
-    override fun getSize(paint:android.graphics.Paint,text:CharSequence,start:Int,end:Int,fm:android.graphics.Paint.FontMetricsInt?)=(paint.textSize*.45f).toInt()
+    override fun getSize(paint:android.graphics.Paint,text:CharSequence,start:Int,end:Int,fm:android.graphics.Paint.FontMetricsInt?)=(paint.textSize*(.28f*TrendChevrons.SCALE+.17f)).toInt()
     override fun draw(canvas:android.graphics.Canvas,text:CharSequence,start:Int,end:Int,x:Float,top:Int,y:Int,bottom:Int,paint:android.graphics.Paint) {
-        chevrons.draw(canvas,x,(top+bottom)/2f,paint.textSize*.28f,paint.color)
+        chevrons.draw(canvas,x,(top+bottom)/2f,paint.textSize*.28f*TrendChevrons.SCALE,paint.color)
     }
 }
 
-internal fun drawChevron(canvas: android.graphics.Canvas, paint: android.graphics.Paint,
+internal fun drawChevron(canvas: android.graphics.Canvas, paint: android.graphics.Paint, path:android.graphics.Path,
                          x: Float, centerY: Float, size: Float, direction: Int, color: Int) {
     if (direction == 0) return
     paint.color = color; paint.strokeWidth = (size / 6).coerceAtLeast(1f)
     val tip = centerY - direction * size / 4
     val ends = centerY + direction * size / 4
-    canvas.drawLine(x, ends, x + size / 2, tip, paint)
-    canvas.drawLine(x + size / 2, tip, x + size, ends, paint)
+    // One stroke avoids compositing two translucent round caps at the tip.
+    path.rewind();path.moveTo(x,ends);path.lineTo(x+size/2,tip);path.lineTo(x+size,ends)
+    canvas.drawPath(path,paint)
 }
 
 /** Same 0.7 m/s movement threshold and 10 s continuity limit as the live GPS estimator. */

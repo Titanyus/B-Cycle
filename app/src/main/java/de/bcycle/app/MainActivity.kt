@@ -56,7 +56,7 @@ class MainActivity : Activity() {
     private fun currentTemplate() = DashboardTemplate.decode(preferences.getString(templateKey, DashboardTemplate.entries[dashboardPage].name)).forBike(runtime.bikes.current().type)
     private var dashboardLayout = DashboardLayout.defaults
     private var dashboardDataVisibility = DashboardDataVisibility()
-    private var dashboardTrendIndicators=DashboardTrendIndicators()
+    private var dashboardTrendIndicators=TrendIndicatorConfig()
     private var dashboardGraphs = GraphOverlayConfig()
     private var dashboardTrainingHelp=DashboardTrainingHelp()
     private val trainingPresentation = TrainingPresentation()
@@ -125,7 +125,7 @@ class MainActivity : Activity() {
         pendingBackupExport = savedInstanceState?.getByteArray("settingsBackupPendingExport")
         dashboardPage = dashboardPages.selected()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
-        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
+        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=TrendIndicatorSettings.read(preferences)
         mapFullscreen = savedInstanceState?.getBoolean("mapFullscreen", false) ?: false
         @Suppress("DEPRECATION") // Explicit edge-to-edge remains necessary on Android 13–14.
         window.setDecorFitsSystemWindows(false)
@@ -394,11 +394,11 @@ class MainActivity : Activity() {
         val trainingPage=dashboardPage
         val content = FieldPickerView(settingsContext, runtime.dashboardBikeData, runtime.gpsValues,
             runtime.ride.bike.distanceM, runtime.pulseValues, selected, mapField, settingsThemes, graphs, null, trainingSnapshot, if(mapField) selected!=null else dashboardDataVisibility.visible[index],
-            batteryChoose={ select(it) },trendEnabled=if(mapField) true else dashboardTrendIndicators.enabled[index],
-            trendChanged=if(mapField) null else { enabled ->
+            batteryChoose={ select(it) },trendConfig=dashboardTrendIndicators,
+            trendChanged={ config ->
                 if(permitted()) {
-                    dashboardTrendIndicators=dashboardTrendIndicators.replace(index,enabled)
-                    preferences.edit().putString(DashboardTrendIndicators.key(dashboardPage),dashboardTrendIndicators.encode()).apply();render()
+                    dashboardTrendIndicators=config
+                    TrendIndicatorSettings.save(preferences,config);mapPanel.refreshSettings();render()
                 }
             },trainingHelp=trainingHelpControls { trainingPage },drinkReminder=drinkReminderControls(),choose={ select(it) })
         val builder = dialog().setTitle(if (mapField) getString(R.string.ui_map_field_title, MapFieldSelection.positionLabel(this, index)) else getString(R.string.ui_dashboard_field_title, index + 1))
@@ -734,7 +734,7 @@ class MainActivity : Activity() {
         dashboardPage = pages[Math.floorMod(position+delta,pages.size)].id
         preferences.edit().putInt("dashboardPage", dashboardPage).apply()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
-        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
+        dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=TrendIndicatorSettings.read(preferences)
         val template = currentTemplate(); dashboard.setTemplate(template)
         dashboardArea.requestLayout()
         (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
@@ -1074,7 +1074,8 @@ class MainActivity : Activity() {
     private fun routeImportChoice() {
         val anchor = routeImportButton ?: return
         routeDropdown(anchor, listOf(getString(R.string.ui_import_planned), getString(R.string.ui_import_recorded), getString(R.string.archive_import_title),getString(R.string.dreeve_import_title)),
-            listOf(BicycleIcon.TrackImported, BicycleIcon.TrackRecorded, BicycleIcon.Import,BicycleIcon.Dreeve), listOf("route_import_planned", "route_import_recorded", "route_import_archive","route_import_dreeve")) {
+            listOf(BicycleIcon.TrackImported, BicycleIcon.TrackRecorded, BicycleIcon.Import,BicycleIcon.Dreeve), listOf("route_import_planned", "route_import_recorded", "route_import_archive","route_import_dreeve"),
+            enabled={ it!=3 || ActivityServiceSettings(this,ActivityService.DREEVE).dreeveImportConfigured() }) {
             if(it==3) showDreeveImport() else importRoute(recorded = it == 1, archive = it == 2)
         }
     }
@@ -1135,7 +1136,7 @@ class MainActivity : Activity() {
                 if(target!=source) content.failed(R.string.dreeve_import_changed)
                 else chooseBikes(activities,target,api)
             },{ content.failed((it as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_download_failed) })
-        },configure={ activityServiceSettings(ActivityService.DREEVE) })
+        })
         content.navigation=dialogs
         dialog().setTitle(R.string.dreeve_import_title).setView(content).create().apply {
             dialogs.onDismiss(this) { closed.set(true);worker.shutdownNow() }
@@ -1145,13 +1146,15 @@ class MainActivity : Activity() {
     }
     /** The same anchored native dropdown serves imports and each route's actions. */
     private fun routeDropdown(anchor: View, choices: List<String>, icons: List<BicycleIcon> = emptyList(),
-                              tags: List<String> = emptyList(), selected: (Int) -> Unit) {
+                              tags: List<String> = emptyList(), enabled:(Int)->Boolean={true}, selected: (Int) -> Unit) {
         routePopup?.dismiss()
         val popup = ListPopupWindow(settingsContext).apply {
             anchorView = anchor; isModal = true
             width = minOf(dp(BicycleDesign.popupWidth), resources.displayMetrics.widthPixels - dp(BicycleDesign.horizontalPadding * 2))
             setBackgroundDrawable(BicycleComponents.dropdownBackground(settingsContext,settingsThemes.active.tokens))
             setAdapter(object : ArrayAdapter<String>(settingsContext, android.R.layout.simple_list_item_1, choices) {
+                override fun areAllItemsEnabled()=choices.indices.all(enabled)
+                override fun isEnabled(position:Int)=enabled(position)
                 override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View =
                     ((convertView as? TextView) ?: TextView(settingsContext).apply {
                         BicycleComponents.bindTheme(this, settingsThemes) { tokens ->
@@ -1163,6 +1166,7 @@ class MainActivity : Activity() {
                         gravity = android.view.Gravity.CENTER_VERTICAL; minHeight = dp(BicycleDesign.popupRowHeight)
                         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding))
                         tag = tags.getOrNull(position)
+                        isEnabled=enabled(position);alpha=if(isEnabled) 1f else .5f
                         setCompoundDrawablesRelative(icons.getOrNull(position)?.let { kind -> BicycleIcons.drawable(settingsContext, kind, settingsThemes.active.tokens.foreground)
                             .apply { setBounds(0, 0, dp(BicycleDesign.iconSize), dp(BicycleDesign.iconSize)) } }, null, null, null)
                         compoundDrawablePadding = dp(BicycleDesign.verticalPadding)
@@ -1170,7 +1174,7 @@ class MainActivity : Activity() {
             })
             setOnItemClickListener { _, _, position, _ ->
                 dismiss()
-                if (!runtime.mapState.busy) selected(position)
+                if (!runtime.mapState.busy && enabled(position)) selected(position)
             }
             setOnDismissListener { if (routePopup === this) routePopup = null }
         }
@@ -1296,7 +1300,7 @@ class MainActivity : Activity() {
                                         if(BackupSection.DASHBOARD in selected) {
                                             dashboardPage=dashboardPages.selected()
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
-                                            dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=DashboardTrendIndicators.read(preferences,dashboardPage)
+                                            dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=TrendIndicatorSettings.read(preferences)
                                             dashboard.setTemplate(currentTemplate());dashboardArea.requestLayout()
                                             (mapPanel.layoutParams as LinearLayout.LayoutParams).weight=1f-currentTemplate().dataFraction
                                         }

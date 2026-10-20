@@ -74,7 +74,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     .put("trendIndicators",JSONArray(DashboardTrendIndicators.read(bike,i).enabled))
                     .put("trainingHelp",JSONObject(DashboardTrainingHelp.read(bike,i).encode()))
                     .put("layout", DashboardTemplate.decode(bike.getString("dashboardTemplate_$i", DashboardTemplate.entries[i].name)).name))
-            } }).put("catalog",bike.getString(DashboardPages.KEY,null) ?: JSONObject.NULL).put("activePage",bike.getInt("dashboardPage",0)).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
+            } }).put("trendEnabled",TrendIndicatorSettings.read(bike).enabled).put("trendDisabledFields",jsonArray(TrendIndicatorSettings.read(bike).disabled.sorted())).put("catalog",bike.getString(DashboardPages.KEY,null) ?: JSONObject.NULL).put("activePage",bike.getInt("dashboardPage",0)).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null)).let {
                 JSONObject().put("fields", jsonArray(it.fields.sorted())).put("speedSource",it.speedSource).put("distanceSource",it.distanceSource).put("localSaveEnabled",route.getBoolean("save",true)) }
             BackupSection.MAPS -> JSONObject().put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
@@ -158,6 +158,13 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     }
                 }
                 BackupSection.DASHBOARD -> {
+                    b[TrendIndicatorSettings.enabledKey]=if(row.has("trendEnabled")) boolean(row,"trendEnabled") else null
+                    b[TrendIndicatorSettings.disabledKey]=if(row.has("trendDisabledFields")) {
+                        val disabled=strings(array(row,"trendDisabledFields",TrendIndicatorSettings.fields.size))
+                        check(disabled.distinct().size==disabled.size && disabled.all { it in TrendIndicatorSettings.fields })
+                        disabled.toSet()
+                    } else null
+
                     if(row.has("pages")) {
                         val a=array(row,"pages",DashboardPages.MAX);val indices=mutableSetOf<Int>()
                         repeat(a.length()) { i -> val page=a.opt(i) as? JSONObject ?: fail();val index=integer(page,"index");check(index in 0 until DashboardPages.MAX && indices.add(index))

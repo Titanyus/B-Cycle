@@ -10,7 +10,7 @@ import java.util.Locale
 
 /** Deliberately small test screen; loading and library mutation remain outside the view. */
 internal class DreeveImportView(context:Context,private val themes:ThemeManager,
-    private val loadPage:(Int)->Unit,private val importSelection:(List<DreeveActivity>)->Unit,configure:()->Unit):LinearLayout(context) {
+    private val loadPage:(Int)->Unit,private val importSelection:(List<DreeveActivity>)->Unit):LinearLayout(context) {
     var navigation:DialogNavigation?=null
     var profileFor:(DreeveActivity)->Int?={null}
     var gearNames:Map<String,String> = emptyMap()
@@ -19,7 +19,6 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
     private lateinit var filterButton:View
     private lateinit var sortButton:View
     private lateinit var selectAllButton:View
-    private lateinit var configureButton:View
     private var visible=emptyList<DreeveActivity>()
     private val activities=mutableListOf<DreeveActivity>()
     private val selected=mutableSetOf<String>()
@@ -92,7 +91,6 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
             }.apply { tag="dreeve_select_filtered";selectAllButton=this },LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
             addView(reload,LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
             addView(importAction,LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
-            addView(BicycleFooterAction(context,themes,BicycleIcon.SettingsOptions,context.getString(R.string.dreeve_import_configure),click=configure).apply { tag="dreeve_import_configure";configureButton=this },LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
         },LayoutParams(-1,-2))
         controls()
     }
@@ -116,7 +114,6 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
         if(::filterButton.isInitialized) filterButton.isEnabled=!loading && !importing
         if(::sortButton.isInitialized) sortButton.isEnabled=!loading && !importing
         if(::selectAllButton.isInitialized) selectAllButton.isEnabled=!loading && !importing
-        if(::configureButton.isInitialized) configureButton.isEnabled=!importing
         reload.isEnabled=!loading && !importing
         more.isEnabled=!loading && !importing
         importAction.isEnabled=selected.isNotEmpty() && !loading && !importing

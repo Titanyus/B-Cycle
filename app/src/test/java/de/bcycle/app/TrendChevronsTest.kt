@@ -21,7 +21,7 @@ import java.time.Duration
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class TrendChevronsTest {
     private fun image(chevrons:TrendChevrons)=Bitmap.createBitmap(100,100,Bitmap.Config.ARGB_8888).also {
-        chevrons.draw(Canvas(it),40f,50f,20f,Color.WHITE)
+        chevrons.draw(Canvas(it),40f,50f,20f*TrendChevrons.SCALE,Color.WHITE)
     }
     private fun maxAlpha(bitmap:Bitmap)=(0 until 100).maxOf { y -> (0 until 100).maxOf { x -> Color.alpha(bitmap.getPixel(x,y)) } }
     @Test fun oneTwoAndThreeChevronsRenderAsSeparateStackedGlyphsInBothDirections() {
@@ -30,9 +30,16 @@ class TrendChevronsTest {
             val chevrons=TrendChevrons(View(host.get()))
             for(sign in listOf(-1,1)) for(n in 1..3) {
                 chevrons.update(sign*n);val bitmap=image(chevrons)
-                val occupied=(0 until 100).map { y -> (0 until 100).any { x -> Color.alpha(bitmap.getPixel(x,y))>50 } }
-                val bands=occupied.indices.count { occupied[it] && (it==0 || !occupied[it-1]) }
-                assertEquals(n,bands);bitmap.recycle()
+                val occupied=(0 until 100).flatMap { y -> (0 until 100).filter { x -> Color.alpha(bitmap.getPixel(x,y))>0 } }
+                assertTrue(occupied.max()-occupied.min()+1 in 15..19) // Former 20 px width, now 15 px plus stroke.
+                val tips=listOf(50f,50f-7.8f,50f+7.8f).map { it-sign*3.75f }
+                val expected=listOf(255,216,178)
+                for(i in 0 until n) {
+                    val tip=tips[i].toInt()
+                    val alpha=(tip-1..tip+1).maxOf { y -> (47..48).maxOf { x -> Color.alpha(bitmap.getPixel(x,y)) } }
+                    assertTrue("sign=$sign level=$n glyph=$i alpha=$alpha",kotlin.math.abs(alpha-expected[i])<=3)
+                }
+                bitmap.recycle()
             }
             chevrons.clear();assertEquals(0,maxAlpha(image(chevrons)))
         } finally { host.pause().stop().destroy() }

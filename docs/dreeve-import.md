@@ -2,7 +2,7 @@
 
 Stand: 20.10.2026. GPX-Prototyp ab 0.8.13; Erweiterung um Zusammenfassungen ab 0.8.14.
 
-Streckenmanager → Strecke importieren → Aus Dreeve importieren öffnet eine eigene einfache Seite. Namen, Startdatum, Distanz, Sportart und GPX-/Zusammenfassungsverfügbarkeit anzeigen; eine oder mehrere Fahrten anhaken und importieren. Alle Seiten werden automatisch in 50er-Anfragen geladen. „Mehr laden“ setzt nach einem Abruffehler fort; vorhandene Auswahl bleibt erhalten. „Neu laden“ erneuert die Liste; „Konfigurieren“ öffnet die vorhandene Dreeve-Einstellung.
+Streckenmanager → Strecke importieren → Aus Dreeve importieren öffnet eine eigene einfache Seite. Namen, Startdatum, Distanz, Sportart und GPX-/Zusammenfassungsverfügbarkeit anzeigen; eine oder mehrere Fahrten anhaken und importieren. Alle Seiten werden automatisch in 50er-Anfragen geladen. „Mehr laden“ setzt nach einem Abruffehler fort; vorhandene Auswahl bleibt erhalten. „Neu laden“ erneuert die Liste. Der Importmenüpunkt bleibt sichtbar, aber deaktiviert, bis eine gültige Dreeve-Adresse und ein lesbarer API-Schlüssel hinterlegt sind. Der automatische Upload muss dafür nicht aktiviert sein. Die Konfiguration erfolgt unter Daten & Speicher; auf der Importseite gibt es keinen Konfigurieren-Button.
 
 ## Schnittstelle und Daten
 

@@ -22,6 +22,35 @@ import java.io.File
 @Config(sdk = [33], qualifiers = "xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RouteManagerViewTest {
+    @Test fun longPressSelectionUsesBorderlessTertiaryAndAccentCheckAndClearsOnReuse() {
+        val host=org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
+            val manager=RouteManagerView(c,{},themes)
+            c.setContentView(manager)
+            manager.submit(listOf(
+                ManagedRoute("a","A",false,"GPX",RouteDetails(),false),
+                ManagedRoute("b","B",false,"GPX",RouteDetails(),false)),null,false)
+            val list=manager.findViewWithTag<ListView>("route_list")
+            var card=list.adapter.getView(0,null,list)
+            card.performLongClick();card=list.adapter.getView(0,card,list)
+            assertTrue(card.isActivated)
+            assertEquals(themes.active.tokens.tertiary,(card.background as android.graphics.drawable.ColorDrawable).color)
+            val check=descendants(card).filterIsInstance<android.widget.ImageView>().first().drawable
+            val bitmap=Bitmap.createBitmap(48,48,Bitmap.Config.ARGB_8888)
+            check.setBounds(0,0,48,48);check.draw(Canvas(bitmap))
+            val pixels=IntArray(48*48);bitmap.getPixels(pixels,0,48,0,0,48,48)
+            // Ignore antialiased edges, whose premultiplied RGB values can round by one.
+            val opaque=pixels.filter { android.graphics.Color.alpha(it)==255 }
+            assertTrue(opaque.isNotEmpty())
+            assertEquals(setOf(themes.active.tokens.accent),opaque.toSet())
+            card=list.adapter.getView(1,card,list)
+            assertFalse(card.isActivated);assertNull(card.background)
+            manager.clearSelection()
+            card=list.adapter.getView(0,card,list)
+            assertNull(card.background)
+        } finally { host.pause().stop().destroy() }
+    }
     private fun descendants(view: View): List<View> = listOf(view) + if (view is android.view.ViewGroup)
         (0 until view.childCount).flatMap { descendants(view.getChildAt(it)) } else emptyList()
 

@@ -77,7 +77,7 @@ class DreeveWorkflowTest {
         } finally { server.shutdown() }
     }
     @Test fun importScreenUsesSharedRouteQueryForFilteringAndSortingAndKeepsSelection() {
-        val view=DreeveImportView(c,themes,{},{},{})
+        val view=DreeveImportView(c,themes,{},{})
         val rows=(1..3).map { DreeveActivityPage.decode(page(it,3),it).activities.single() }
         view.loaded(DreeveActivityPage(rows,1,1,3),emptySet())
         val list=view.findViewWithTag<ListView>("dreeve_import_list")
