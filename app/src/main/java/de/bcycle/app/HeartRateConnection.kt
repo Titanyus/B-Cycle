@@ -10,7 +10,8 @@ import java.util.UUID
 /** Standard Heart Rate Service, independent GATT client alongside Bosch/Flow. */
 @SuppressLint("MissingPermission") // Runtime checks both Bluetooth permissions before use.
 class HeartRateConnection(private val context: Context, private val status: (String) -> Unit,
-                          private val measurement: (HeartRateMeasurement) -> Unit, private val battery: (Int) -> Unit) {
+                          private val measurement: (HeartRateMeasurement) -> Unit, private val battery: (Int) -> Unit,
+                          private val rawMeasurement:(Long,ByteArray)->Unit={_,_->},private val stopped:()->Unit={}) {
     private val handler = Handler(Looper.getMainLooper())
     private var client: BluetoothGatt? = null
     private var epoch = 0
@@ -51,8 +52,10 @@ class HeartRateConnection(private val context: Context, private val status: (Str
                     gatt.getService(BATTERY_SERVICE)?.getCharacteristic(BATTERY)?.let { gatt.readCharacteristic(it) }
                 }
                 override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray) {
+                    val receivedAt=android.os.SystemClock.elapsedRealtime()
                     val copy = value.copyOf()
-                    dispatch(gatt) { if (characteristic.uuid == MEASUREMENT && live) HeartRateMeasurement.decode(copy)?.let {
+                    dispatch(gatt) { if(characteristic.uuid==MEASUREMENT && live) rawMeasurement(receivedAt,copy)
+                        if (characteristic.uuid == MEASUREMENT && live) HeartRateMeasurement.decode(copy)?.let {
                         if (it.bpm != null) receivedFields += "pulse"
                         if (it.energyKj != null) receivedFields += "energy"
                         if (it.rrSeconds.isNotEmpty()) receivedFields += "rr"
@@ -74,6 +77,7 @@ class HeartRateConnection(private val context: Context, private val status: (Str
         epoch++; active = false; live = false; handler.removeCallbacks(timeout)
         receivedFields.clear()
         val old = client; client = null
+        stopped()
         try { old?.disconnect(); old?.close() } catch (_: SecurityException) {}
     }
     private fun fail(message: String) { stop(); status(message) }

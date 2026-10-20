@@ -39,4 +39,6 @@
     <string name="route_name_pending">Verknüpft · Namensabgleich ausstehend</string>
     <string name="route_name_failed">Verknüpft · Namensabgleich fehlgeschlagen</string>
     <string name="dreeve_duration_format">%1$d:%2$02d h</string>
+    <string name="dreeve_import_origin">Herkunft der Fahrten</string>
+    <string name="dreeve_import_origin_hint">Gilt für alle ausgewählten Fahrten, auch für Zusammenfassungen ohne GPX. Bereits vorhandene Fahrten bleiben unverändert. Der Import startet keinen Cloud-Upload.</string>
 </resources>

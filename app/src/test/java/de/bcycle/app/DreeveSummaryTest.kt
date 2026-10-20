@@ -67,6 +67,32 @@ class DreeveSummaryTest {
         assertTrue(view.findViewWithTag<TextView>("analysis_summary_notice").text.contains("Zusammenfassung"));view.dispose()
         restored.delete(item.id);assertFalse(file.exists());restored.load();assertTrue(restored.entries.isEmpty())
     }
+    @Test fun recordedChoicePersistsForGpxAndSummariesAndDoesNotReclassifyDuplicates() {
+        val root=File(c.cacheDir,"origin-${java.util.UUID.randomUUID()}").apply { mkdirs() }
+        val gpx=GpxLibrary(root).apply { load() };val summaries=DreeveSummaryLibrary(root).apply { load() }
+        val summary=DreeveActivityPage.decode(page(row()),1).activities.single()
+        val outdoor=summary.copy(id="outdoor",sportType="Ride",hasGpx=true)
+        val xml="""<gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1"><trk><trkseg>
+            <trkpt lat="50" lon="8"><time>2026-10-20T10:00:00Z</time></trkpt>
+            <trkpt lat="50.001" lon="8.001"><time>2026-10-20T10:00:10Z</time></trkpt>
+            </trkseg></trk></gpx>"""
+        var downloads=0
+        val runner=DreeveImport(c,gpx,{ gpx.entries.map { it.id }.toSet()+summaries.entries.map { it.id } },summaries) { _,file -> downloads++;file.writeText(xml) }
+        assertEquals(2,runner.read(target,listOf(summary,outdoor),origin=TrackOrigin.RECORDED).count(DreeveImportState.IMPORTED))
+        val loadedGpx=GpxLibrary(root).apply { load() };val loadedSummaries=DreeveSummaryLibrary(root).apply { load() }
+        assertEquals(TrackOrigin.RECORDED,loadedGpx.entries.single().origin)
+        assertEquals(TrackOrigin.RECORDED,loadedSummaries.entries.single().origin)
+        assertEquals(TrackOrigin.RECORDED,loadedSummaries.entries.single().managed().origin)
+        assertEquals(2,runner.read(target,listOf(summary,outdoor),origin=TrackOrigin.IMPORTED).count(DreeveImportState.DUPLICATE))
+        assertEquals(TrackOrigin.RECORDED,gpx.entries.single().origin)
+        assertEquals(TrackOrigin.RECORDED,summaries.entries.single().origin)
+        assertEquals(1,downloads)
+        assertFalse(RouteUploads.eligible(c,gpx.entries.single().id))
+        assertFalse(RouteUploads.eligible(c,summaries.entries.single().id))
+        val legacy=summaries.file(summaries.entries.single().id)
+        val json=JSONObject(legacy.readText()).apply { remove("origin") };legacy.writeText(json.toString())
+        assertEquals(TrackOrigin.IMPORTED,DreeveSummaryLibrary.read(legacy).origin)
+    }
     @Test fun managerImportsListsAnalysesRenamesAndDeletesAnIndoorSummaryWithoutGpxCall() {
         val server=MockWebServer();server.start();val state=MapState(c,{})
         try {

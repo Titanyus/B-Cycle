@@ -20,6 +20,8 @@ class MainActivity : Activity() {
     private lateinit var runtime: RideRuntime
     private lateinit var dashboardHost: FrameLayout
     private lateinit var dashboard: DashboardView
+    private var hrvObservation:AutoCloseable?=null
+    private var hrvWasBusy=false
     private lateinit var startButton: Button
     private lateinit var noMapEditorFinish: Button
     private lateinit var drinkReminderPanel:DrinkReminderPanel
@@ -39,6 +41,7 @@ class MainActivity : Activity() {
     private var exportPasswordDraft: String? = null
     private var pendingBackupExport: ByteArray? = null
     private var dataSettingsScreen: AlertDialog? = null
+    private var rideBackupControls:RideBackupControls?=null
     private var localExportView: RouteExportView? = null
     private var pendingBikePhotoSlot:Int?=null
     private var activityServiceView:ActivityServiceView?=null
@@ -195,7 +198,19 @@ class MainActivity : Activity() {
                 }
             }
         }
-        toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), 3f))
+        toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarMainWeight))
+        toolbar.addView(android.widget.ImageButton(this).apply {
+            tag="dashboard_hrv";contentDescription=getString(R.string.hrv_title)
+            scaleType=android.widget.ImageView.ScaleType.FIT_CENTER
+            setPadding(dp(17),dp(17),dp(17),dp(17));setOnClickListener { showHrv() }
+            BicycleComponents.bindTheme(this,runtime.themes) { tokens ->
+                setImageDrawable(BicycleIcons.drawable(this@MainActivity,BicycleIcon.Heart,tokens.foreground))
+                backgroundTintList=null
+                background=android.graphics.drawable.GradientDrawable().apply {
+                    setColor(tokens.secondary);setStroke(BicycleDesign.linePixels(this@MainActivity),tokens.tertiary)
+                }
+            }
+        },LinearLayout.LayoutParams(0,dp(58),BicycleDesign.dashboardToolbarActionWeight))
         toolbar.addView(android.widget.ImageButton(this).apply {
             contentDescription = getString(R.string.ui_routes_open); tag = "dashboard_routes"
             setImageResource(BicycleIcon.Route.resource)
@@ -209,8 +224,8 @@ class MainActivity : Activity() {
                     setColor(tokens.secondary); setStroke(BicycleDesign.linePixels(this@MainActivity), tokens.tertiary)
                 }
             }
-        }, LinearLayout.LayoutParams(0, dp(58), 1f))
-        toolbar.addView(toolbarButton("☰", ThemeRole.SECONDARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(58), 1f))
+        }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
+        toolbar.addView(toolbarButton("☰", ThemeRole.SECONDARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
         root.addView(toolbar)
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->
@@ -272,6 +287,7 @@ class MainActivity : Activity() {
     }
     private var shownProfileRevision=0
     private fun render() {
+        rideBackupControls?.refresh()
         if (!::dashboard.isInitialized) return
         if(::mapPanel.isInitialized && shownProfileRevision!=runtime.profileRevision) {
             shownProfileRevision=runtime.profileRevision
@@ -302,7 +318,7 @@ class MainActivity : Activity() {
         }
         recordingIndicator?.setAnimating(runtime.visible && dialogs.empty)
         startButton.contentDescription=getString(R.string.record_bike_description,status,bike.name)
-        startButton.isEnabled = !runtime.saving || runtime.recording
+        startButton.isEnabled = (!runtime.saving || runtime.recording) && !runtime.hrv.busy
         val message = runtime.recordingStatus
         if (message != displayedRecordingStatus) {
             displayedRecordingStatus = message
@@ -436,7 +452,8 @@ class MainActivity : Activity() {
                     "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkHttp 4.12.0 · Apache-2.0\n\n" + assets.open("OkHttp-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() } +
-                    "\n\nLucide 0.468.0 · ISC / Feather MIT\n\n" + assets.open("Lucide-LICENSE.txt").bufferedReader().use { it.readText() })
+                    "\n\nLucide 0.468.0 · ISC / Feather MIT\n\n" + assets.open("Lucide-LICENSE.txt").bufferedReader().use { it.readText() } +
+                    "\n\nHRV · NeuroKit2 · MIT\n\n" + assets.open("NeuroKit2-LICENSE.txt").bufferedReader().use { it.readText() })
                     .show()
             }
         }
@@ -598,8 +615,37 @@ class MainActivity : Activity() {
         return root
     }
 
+    private fun showHrv() {
+        if(runtime.recording || runtime.saving) { BicycleFeedback.show(this,R.string.hrv_ride_busy);return }
+        val body=HrvMeasurementView(this,runtime.themes,runtime.hrv,
+            sensor={ runtime.heartName },canStart={ !runtime.recording && !runtime.saving },history=::showHrvHistory)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs).setTitle(R.string.hrv_title)
+            .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(body) }).create()
+        dialogs.onDismiss(screen) { runtime.hrv.abort("VIEW_CLOSED") }
+        screen.show()
+    }
+    private fun showHrvHistory() {
+        runtime.hrv.history { rows ->
+            if(isDestroyed) return@history
+            if(rows.isEmpty()) { BicycleFeedback.show(this,R.string.hrv_history_empty);return@history }
+            val labels=rows.map { row ->
+                val date=java.time.Instant.ofEpochMilli(row.getLong("utcMs")).atZone(java.time.ZoneId.systemDefault())
+                    .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+                val metric=if(row.optBoolean("acceptable")) row.optJSONObject("corrected")?.let {
+                    getString(R.string.hrv_history_rmssd,it.optDouble("rmssdMs")) } else null
+                getString(R.string.hrv_history_item,date,metric ?: getString(R.string.hrv_invalid_short))
+            }
+            BicycleDialogBuilder(this,runtime.themes,dialogs).setTitle(R.string.hrv_history)
+                .setItems(labels.toTypedArray()) { _,position ->
+                    BicycleDialogBuilder(this,runtime.themes,dialogs).setTitle(R.string.hrv_result)
+                        .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(hrvResult(this@MainActivity,runtime.themes,rows[position]).apply {
+                            val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
+                        }) }).show()
+                }.show()
+        }
+    }
     private fun startRide() {
-        if (runtime.recording || runtime.saving) return
+        if (runtime.recording || runtime.saving || runtime.hrv.busy) return
         val permissions = mutableListOf<String>()
         if (!runtime.hasBluetooth()) permissions += listOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
         if (!preferences.getBoolean("recordPermissionsAsked", false)) {
@@ -663,6 +709,16 @@ class MainActivity : Activity() {
             };return
         }
         if(requestCode == 12 || requestCode == 13) { backupResult(requestCode,resultCode,data);return }
+        if(requestCode in 16..18) {
+            if(resultCode==RESULT_OK) data?.data?.let { tree ->
+                runCatching { contentResolver.takePersistableUriPermission(tree,data.flags and
+                    (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)) }
+                chooseRideBackupDirectory(DocumentBackupDirectory(this,tree),when(requestCode) {
+                    16->RideBackupAction.EXPORT;17->RideBackupAction.IMPORT;else->RideBackupAction.SETTINGS
+                })
+            }
+            return
+        }
         if (requestCode == 10) {
             if (resultCode == RESULT_OK) data?.data?.let { uri ->
                 try {
@@ -703,13 +759,15 @@ class MainActivity : Activity() {
             runOnUiThread { BicycleFeedback.show(applicationContext, if (ok) R.string.export_saved else R.string.export_failed, long = true) }
         }, "B-Cycle-diagnostic-export").start()
     }
-    override fun onStart() { super.onStart(); updateDashboardFullscreen(); MessageNotifications.observers.add(messageObserver);notificationSettings?.refreshAccess();
+    override fun onStart() { super.onStart();
+        hrvObservation=runtime.hrv.observe { if(hrvWasBusy!=runtime.hrv.busy) { hrvWasBusy=runtime.hrv.busy;render() } }; updateDashboardFullscreen(); MessageNotifications.observers.add(messageObserver);notificationSettings?.refreshAccess();
         val notifications=MessageNotificationSettings(this)
         if(notifications.enabled && notifications.granted) runCatching {
             android.service.notification.NotificationListenerService.requestRebind(android.content.ComponentName(this,MessageNotificationService::class.java))
         }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.
+        hrvObservation?.close();hrvObservation=null
         stopScan();bikePicker?.dismiss();recordingIndicator?.stop()
         MessageNotifications.observers.remove(messageObserver);messages.clear();drinkReminderPanel.clear()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
@@ -1090,14 +1148,13 @@ class MainActivity : Activity() {
             if(config.address.isBlank() || key.isBlank()) throw ActivityServiceFailure(false,R.string.dreeve_import_config_missing)
             return config.identity(ActivityService.DREEVE) to DreeveClient(config,key,closed::get)
         }
-        fun startImport(activities:List<DreeveActivity>,target:String,api:DreeveClient,mappings:Map<String,Int>) {
+        fun startImport(activities:List<DreeveActivity>,target:String,api:DreeveClient,mappings:Map<String,Int>,origin:TrackOrigin) {
             runtime.mapState.importDreeve(target,activities,api,closed::get,
-                progress={ if(!closed.get()) content.progress(it) },complete={ if(!closed.get()) content.complete(it) },mappings=mappings)
+                progress={ if(!closed.get()) content.progress(it) },complete={ if(!closed.get()) content.complete(it) },mappings=mappings,origin=origin)
         }
         fun chooseBikes(activities:List<DreeveActivity>,target:String,api:DreeveClient) {
             val gear=activities.mapNotNull { it.summary.gearId }.distinct()
             val remembered=DreeveBikeMappings.read(this,target).toMutableMap()
-            if(gear.isEmpty()) { startImport(activities,target,api,remembered);return }
             val profiles=BikeProfileStore(this,preferences).all()
             val body=DreeveBikeAssignmentView(settingsContext,settingsThemes,gear,content.gearNames,profiles,remembered)
             var started=false
@@ -1105,7 +1162,7 @@ class MainActivity : Activity() {
                 .setPositiveButton(R.string.dreeve_import_start) { _,_ ->
                     remembered.putAll(body.assignments())
                     DreeveBikeMappings.save(this,target,remembered);content.profileFor={ it.summary.gearId?.let(remembered::get)?.takeIf { slot -> slot>=0 } };started=true
-                    startImport(activities,target,api,remembered)
+                    startImport(activities,target,api,remembered,body.origin())
                 }.create()
             dialogs.onDismiss(screen) { if(!started && !closed.get()) content.cancelImport() }
             screen.show()
@@ -1206,6 +1263,7 @@ class MainActivity : Activity() {
                     .putExtra(Intent.EXTRA_MIME_TYPES,arrayOf("application/json","text/json","text/plain")),13)
             } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this, R.string.backup_picker_error, long = true) }
             DataAction.IMPORT -> Unit // Inline accordion; actions reuse importRoute below.
+            DataAction.RIDE_BACKUP -> Unit
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
             DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)
             DataAction.INTERVALS -> intervalsSettings()
@@ -1215,6 +1273,12 @@ class MainActivity : Activity() {
         val screen=dataDialog(R.string.data_title,BicycleStickyScrollView(settingsContext).apply { addView(content) })
         dataSettingsScreen=screen;menu=screen
         content.install(DataAction.BACKUP,backupExportControls())
+        val rideBackup=RideBackupControls(settingsContext,settingsThemes,
+            cloudAvailable={ RouteExportSettings(this).backupConfigured() },
+            canEdit={ !runtime.recording && !runtime.saving && !runtime.mapState.busy && !runtime.hrv.busy },
+            action=::requestRideBackup)
+        rideBackupControls=rideBackup
+        content.install(DataAction.RIDE_BACKUP,rideBackup,rideBackup.findViewWithTag("ride_backup_enabled"))
         content.install(DataAction.IMPORT,LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
             val titles=listOf(R.string.ui_import_planned,R.string.ui_import_recorded,R.string.archive_import_title)
@@ -1246,7 +1310,65 @@ class MainActivity : Activity() {
                 scroll.post { scroll.scrollTo(0,heading.top) }
             }
         })
-        dialogs.onDismiss(screen) { if(dataSettingsScreen===screen) dataSettingsScreen=null }
+        dialogs.onDismiss(screen) {
+            if(dataSettingsScreen===screen) dataSettingsScreen=null
+            if(rideBackupControls===rideBackup) rideBackupControls=null
+        }
+    }
+    private fun requestRideBackup(destination:RideBackupDestination,action:RideBackupAction) {
+        if(runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy) { BicycleFeedback.show(this,R.string.ride_backup_busy);return }
+        if(destination==RideBackupDestination.LOCAL) {
+            try {
+                startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
+                        if(action==RideBackupAction.EXPORT) Intent.FLAG_GRANT_WRITE_URI_PERMISSION else 0),
+                    when(action) { RideBackupAction.EXPORT->16;RideBackupAction.IMPORT->17;RideBackupAction.SETTINGS->18 })
+            } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this,R.string.backup_picker_error,true) }
+        } else {
+            val settings=RouteExportSettings(this)
+            if(!settings.backupConfigured()) { BicycleFeedback.show(this,R.string.ride_backup_cloud_missing);return }
+            chooseRideBackupDirectory(DavBackupDirectory(WebDavClient(settings.read(),settings.password())),action)
+        }
+    }
+    private fun chooseRideBackupDirectory(root:BackupDirectory,action:RideBackupAction) {
+        if(action==RideBackupAction.EXPORT) { runRideBackup(root,false);return }
+        rideBackupControls?.status(getString(R.string.ride_backup_loading))
+        Thread({
+            val result=runCatching {
+                if(root.isSnapshot()) null else
+                    root.entries().filter { it.directory && it.name.startsWith("Bicycle-Backup-") }.map { it.name }.sortedDescending().also { require(it.isNotEmpty()) }
+            }
+            runOnUiThread { if(!isDestroyed) result.fold({ folders ->
+                fun chosen(directory:BackupDirectory) {
+                    if(action==RideBackupAction.SETTINGS) runtime.mapState.backupSettings(directory) { settings ->
+                        settings.fold({ backupSettings(it) },{ BicycleFeedback.show(this,R.string.ride_backup_invalid,true) })
+                    } else dialog(fullscreen=false).setTitle(R.string.ride_backup_title).setMessage(R.string.ride_backup_confirm)
+                        .setPositiveButton(R.string.ride_backup_import) { _,_->runRideBackup(directory,true) }.show()
+                }
+                if(folders==null) chosen(root)
+                else dialog().setTitle(R.string.ride_backup_choose).setItems(folders.toTypedArray()) { _,position ->
+                    chosen(root.child(folders[position],false))
+                }.show()
+            },{ BicycleFeedback.show(this,R.string.ride_backup_invalid,true) }) }
+        },"Bicycle-backup-folders").start()
+    }
+    private fun runRideBackup(directory:BackupDirectory,restore:Boolean) {
+        if(runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy) { BicycleFeedback.show(this,R.string.ride_backup_busy);return }
+        rideBackupControls?.working(true)
+        val started=runtime.mapState.transferBackup(directory,restore,
+            progress={ rideBackupControls?.status(getString(R.string.ride_backup_progress,it)) },
+            complete={ result ->
+                rideBackupControls?.working(false)
+                val text=result.fold({ report ->
+                    val rides=if(restore) getString(R.string.ride_backup_import_result,report.completed,report.duplicates,report.failed)
+                    else getString(R.string.ride_backup_result,report.completed,report.failed,report.folder)
+                    rides+"\n"+if(restore) getString(R.string.hrv_restore_result,report.hrvCompleted,report.hrvDuplicates,report.hrvFailed)
+                    else getString(R.string.hrv_backup_result,report.hrvCompleted,report.hrvFailed)
+                },{ getString(R.string.ride_backup_failed) })
+                if(restore && result.isSuccess) runtime.mapState.restoreProfileRoute()
+                rideBackupControls?.status(text);BicycleFeedback.show(this,text,long=true);render()
+            })
+        if(!started) { rideBackupControls?.working(false);BicycleFeedback.show(this,R.string.ride_backup_busy) }
     }
     private fun backupError(error: Throwable): Int = when((error as? SettingsBackupFailure)?.problem) {
         BackupProblem.FORMAT->R.string.backup_format_error;BackupProblem.VERSION->R.string.backup_version_error
@@ -1285,6 +1407,7 @@ class MainActivity : Activity() {
                 dialog(fullscreen=false).setTitle(R.string.backup_confirm_title)
                     .setMessage(getString(R.string.backup_confirm_message,selected.joinToString(", ") { getString(it.title) }))
                     .setPositiveButton(R.string.backup_restore_execute) { _,_->
+                        if(runtime.recording || runtime.saving) { BicycleFeedback.show(this,R.string.ride_backup_busy);return@setPositiveButton }
                         button.isEnabled=false
                         Thread({
                             val result=runCatching {
@@ -1297,6 +1420,7 @@ class MainActivity : Activity() {
                                 if(!isDestroyed) {
                                     button.isEnabled=choices.selected().isNotEmpty()
                                     result.fold({ plan ->
+                                        if(plan.bike.containsKey(BikeProfileStore.KEY)) runtime.restoredBikeSettings()
                                         if(BackupSection.DASHBOARD in selected) {
                                             dashboardPage=dashboardPages.selected()
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))

@@ -113,11 +113,11 @@ class MapPanelTest {
             val root = activity.findViewById<ViewGroup>(android.R.id.content)
             measure(root, 1080, 2100)
             val toolbar = descendants(root).single { it.tag == "ride_toolbar" } as ViewGroup
-            assertEquals(3, toolbar.childCount)
-            val route = toolbar.getChildAt(1) as android.widget.ImageButton
-            val settings = toolbar.getChildAt(2)
+            assertEquals(4, toolbar.childCount)
+            val route = toolbar.getChildAt(2) as android.widget.ImageButton
+            val settings = toolbar.getChildAt(3)
             assertEquals("Strecken öffnen", route.contentDescription)
-            assertEquals(route.width, settings.width)
+            assertEquals(route.width.toDouble(), settings.width.toDouble(),1.0)
             val runtime = RideRuntime.get(activity); runtime.themes.activate("preset:electric-blue")
             val theme = runtime.themes.active.tokens
             assertEquals(theme.foreground, route.imageTintList!!.defaultColor)

@@ -22,6 +22,29 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "B-Cycle-routes") }
     private val library = GpxLibrary(context.filesDir)
     private val fits = FitLibrary(context.filesDir)
+    internal fun transferBackup(directory:BackupDirectory,restore:Boolean,progress:(Int)->Unit,complete:(Result<RideBackupResult>)->Unit):Boolean {
+        if(busy) return false
+        busy=true;changed()
+        worker.execute {
+            var result:Result<RideBackupResult> = Result.failure(IllegalStateException())
+            finishOperation("") {
+                result=runCatching {
+                    val backup=RideDirectoryBackup(context,fits,library,dreeveSummaries)
+                    val report:(Int)->Unit={ count -> handler.post { progress(count) } }
+                    if(restore) backup.restore(directory,report) else backup.export(directory,report)
+                }
+                workerRoute
+            }
+            handler.post { complete(result) }
+        }
+        return true
+    }
+    internal fun backupSettings(directory:BackupDirectory,complete:(Result<SettingsBackupDocument>)->Unit) {
+        worker.execute {
+            val result=runCatching { RideDirectoryBackup(context,fits,library,dreeveSummaries).settings(directory) }
+            handler.post { complete(result) }
+        }
+    }
     private val dreeveSummaries=DreeveSummaryLibrary(context.filesDir)
     private var summaries:List<StoredDreeveSummary> = emptyList()
     private val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
@@ -181,14 +204,14 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         return items.filter { it.id in confirmed || DreeveImport.localId(target,it.id) in local }.map { it.id }.toSet()
     }
     internal fun importDreeve(target:String,items:List<DreeveActivity>,client:DreeveClient,cancelled:()->Boolean,
-        progress:(DreeveItemResult)->Unit,complete:(Result<DreeveImportResult>)->Unit,mappings:Map<String,Int> = emptyMap()) {
+        progress:(DreeveItemResult)->Unit,complete:(Result<DreeveImportResult>)->Unit,mappings:Map<String,Int> = emptyMap(),origin:TrackOrigin=TrackOrigin.IMPORTED) {
         if(busy) { complete(Result.failure(IllegalStateException()));return }
         busy=true;changed()
         worker.execute {
             var result:Result<DreeveImportResult> = Result.failure(IllegalStateException())
             finishOperation("") {
                 result=runCatching { DreeveImport(context,library,{ library.entries.map { it.id }.toSet()+fits.entries.map { it.id }+dreeveSummaries.entries.map { it.id } },dreeveSummaries,client::downloadGpx)
-                    .read(target,items,cancelled) { item ->
+                    .read(target,items,cancelled,origin=origin) { item ->
                         if(item.state==DreeveImportState.IMPORTED) {
                             val activity=items.find { it.id==item.id }
                             val local=DreeveImport.localId(target,item.id)

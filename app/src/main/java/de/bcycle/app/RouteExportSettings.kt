@@ -15,6 +15,9 @@ internal class RouteExportSettings(context: Context, private val secretKey: (() 
     fun hasPassword() = prefs.contains("password") && !prefs.getBoolean("needsPassword", false)
     private val secret = StoredSecret(prefs,"bcycle-webdav",secretKey)
     fun password(): String = secret.read()
+    fun backupConfigured()=runCatching {
+        WebDavClient.directory(read());password().isNotEmpty()
+    }.getOrDefault(false)
     fun write(config: RouteExportConfig, newPassword: String? = null) {
         val edit = prefs.edit().putBoolean("save", config.save).putString("tree", config.tree)
             .putBoolean("webdav", config.webdav).putString("server", config.server).putString("user", config.user)

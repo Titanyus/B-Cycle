@@ -11,7 +11,23 @@ import java.util.concurrent.Executors
 /** Private, bounded photo copies: no dependency on an expiring document URI. */
 internal object BikePhotos {
     val worker=Executors.newSingleThreadExecutor { Thread(it,"Bicycle-bike-photo") }
-    fun file(c:Context,slot:Int):File { require(slot >= 0);return File(c.filesDir,"bike-photos/bike-$slot.webp") }
+    fun migrateIdentities(c:Context) {
+        val root=File(c.filesDir,"bike-photos")
+        root.listFiles().orEmpty().forEach { source ->
+            val slot=Regex("bike-([0-9]+)\\.webp").matchEntire(source.name)?.groupValues?.get(1)?.toIntOrNull() ?: return@forEach
+            val id=BikeIdentities.id(c.getSharedPreferences("bike",0),slot)
+            val target=File(root,"by-id-$id.webp")
+            java.nio.file.Files.move(source.toPath(),target.toPath(),
+                java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+    fun file(c:Context,slot:Int):File {
+        require(slot>=0)
+        val local=File(c.filesDir,"bike-photos/bike-$slot.webp")
+        val id=BikeIdentities.id(c.getSharedPreferences("bike",0),slot)
+        val portable=File(c.filesDir,"bike-photos/by-id-$id.webp")
+        return if(!local.isFile && portable.isFile) portable else local
+    }
     fun import(c:Context,slot:Int,uri:Uri) {
         val input=File.createTempFile("bike-photo-", ".input",c.cacheDir)
         try {

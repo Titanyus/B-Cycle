@@ -24,6 +24,7 @@ internal enum class SettingsHelpPage(val title:Int,val sections:List<SettingsHel
     LOCAL(R.string.data_local,listOf(SettingsHelpSection(R.string.help_local_heading,R.string.help_local_body))),
     WEBDAV(R.string.data_cloud,listOf(SettingsHelpSection(R.string.help_webdav_heading,R.string.help_webdav_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     INTERVALS(R.string.intervals_title,listOf(SettingsHelpSection(R.string.help_intervals_heading,R.string.help_intervals_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
+    HRV(R.string.hrv_title,listOf(SettingsHelpSection(R.string.hrv_help_heading,R.string.hrv_help_body))),
     DREEVE_IMPORT(R.string.dreeve_import_title,listOf(SettingsHelpSection(R.string.help_dreeve_import_heading,R.string.help_dreeve_import_body))),
     DREEVE(R.string.dreeve_title,listOf(SettingsHelpSection(R.string.help_dreeve_heading,R.string.help_dreeve_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     STRAVA(R.string.strava_title,listOf(SettingsHelpSection(R.string.help_strava_heading,R.string.help_strava_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),

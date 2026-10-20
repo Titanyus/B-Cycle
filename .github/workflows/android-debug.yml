@@ -41,7 +41,7 @@ jobs:
       - name: Set up Gradle and cache
         uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
 
-      - name: Prepare build timestamp and optional stable test key
+      - name: Prepare build timestamp and permanent signing key
         env:
           TEST_KEYSTORE: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
         run: |
@@ -50,10 +50,10 @@ jobs:
           if [ -n "$TEST_KEYSTORE" ]; then
             printf '%s' "$TEST_KEYSTORE" | base64 --decode > "$ANDROID_USER_HOME/debug.keystore"
             chmod 600 "$ANDROID_USER_HOME/debug.keystore"
-            echo 'SIGNING_DESCRIPTION=Existing test key (update-compatible)' >> "$GITHUB_ENV"
+            echo 'SIGNING_DESCRIPTION=Permanent release key (same as build 53)' >> "$GITHUB_ENV"
           else
-            echo '::warning::ANDROID_DEBUG_KEYSTORE_BASE64 is not configured. This APK uses a new debug key; installing it over an existing build may require uninstalling that build.'
-            echo 'SIGNING_DESCRIPTION=Temporary debug key (not update-compatible)' >> "$GITHUB_ENV"
+            echo '::error::ANDROID_DEBUG_KEYSTORE_BASE64 is required. Refusing to create an APK with a temporary key.'
+            exit 1
           fi
 
       - name: Build optimized release APK
@@ -63,7 +63,7 @@ jobs:
         id: apk
         run: |
           python3 - <<'PY'
-          import hashlib, json, os, pathlib, shutil
+          import hashlib, json, os, pathlib, shutil, subprocess
           source = pathlib.Path('app/build/outputs/apk/release')
           metadata = json.loads((source / 'output-metadata.json').read_text())
           element, = metadata['elements']
@@ -76,14 +76,16 @@ jobs:
           mapping = pathlib.Path('app/build/outputs/mapping/release/mapping.txt')
           if mapping.is_file():
               shutil.copyfile(mapping, target / 'mapping.txt')
+          certs = subprocess.check_output([os.environ['ANDROID_HOME'] + '/build-tools/35.0.0/apksigner', 'verify', '--print-certs', str(apk)], text=True)
+          print(certs)
+          expected = '94d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b'
+          if f'Signer #1 certificate SHA-256 digest: {expected}' not in certs:
+              raise RuntimeError('Unexpected signing certificate; APK will not be published')
           checksum = hashlib.sha256(apk.read_bytes()).hexdigest()
           (target / (name + '.sha256')).write_text(f'{checksum}  {name}\n')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
               out.write(f'path={apk}\nname={name}\nversion={version}\nsha256={checksum}\n')
           PY
-          for apk in apk-artifact/*.apk; do
-            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs "$apk"
-          done
 
       - name: Upload APK artifact
         id: upload

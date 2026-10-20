@@ -50,12 +50,15 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
         }
     }
     private val target = directory(config)
+    private var backupDirectoryReady=false
     private val auth = "Basic " + Base64.getEncoder().encodeToString((config.user + ":" + password).toByteArray(Charsets.UTF_8))
     private fun request(uri: URI, method: String, file: File? = null, headers: Map<String, String> = emptyMap(),
                         consume: ((okhttp3.Response) -> Unit)? = null): Int {
         if (cancelled()) throw DavFailure(true, "Upload unterbrochen")
         val body = file?.let { source -> object : RequestBody() {
-            override fun contentType() = "application/vnd.ant.fit".toMediaType()
+            override fun contentType() = when(source.extension.lowercase()) {
+                "json"->"application/json";"gpx"->"application/gpx+xml";"webp"->"image/webp";else->"application/vnd.ant.fit"
+            }.toMediaType()
             override fun contentLength() = source.length()
             override fun writeTo(sink: BufferedSink) { source.inputStream().use { input ->
                 val buffer = ByteArray(16384)
@@ -118,6 +121,7 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
         if (!collection) throw DavFailure(false, "Ziel ist kein erreichbares WebDAV-Verzeichnis")
     }
     private fun ensureDirectories() {
+        if(backupDirectoryReady) return
         val root = directory(config.copy(folder = ""))
         var path = root.path.trimEnd('/')
         config.folder.trim('/').split('/').filter { it.isNotEmpty() }.forEach { segment ->
@@ -128,7 +132,7 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
     }
     fun upload(file: File, name: String) {
         require(password.isNotEmpty()) { "App-Passwort fehlt" }
-        require(name.matches(Regex("[A-Za-z0-9_.-]+\\.fit")))
+        require(name.matches(Regex("[A-Za-z0-9_.-]+\\.(fit|json|gpx|webp)")))
         ensureDirectories()
         val uri = URI("https", null, target.host, target.port, target.path + name, null, null)
         val code = request(uri, "PUT", file, mapOf("If-None-Match" to "*"))
@@ -150,5 +154,69 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
     }
     private fun checkResponse(code: Int, allowed: Set<Int>, text: String) {
         if (code !in allowed) throw DavFailure(false, "$text (HTTP $code)")
+    }
+    fun backupChild(name:String,create:Boolean):WebDavClient {
+        backupName(name)
+        val child=WebDavClient(config.copy(folder=config.folder.trimEnd('/')+"/"+name),password,client,cancelled)
+        if(create) {
+            ensureDirectories()
+            checkResponse(request(directory(config.copy(folder=config.folder.trimEnd('/')+"/"+name)),"MKCOL"),
+                setOf(201),"Sicherungsverzeichnis konnte nicht neu angelegt werden")
+            child.backupDirectoryReady=true
+        }
+        return child
+    }
+    fun backupIndexPresent():Boolean {
+        val uri=URI("https",null,target.host,target.port,target.path+RideDirectoryBackup.INDEX,null,null)
+        val code=request(uri,"HEAD")
+        if(code==404) return false
+        checkResponse(code,setOf(200),"Sicherungsverzeichnis nicht erreichbar")
+        return true
+    }
+    fun openBackupFile(name:String):java.io.InputStream {
+        backupName(name)
+        if(cancelled()) throw DavFailure(true,"Übertragung unterbrochen")
+        val uri=URI("https",null,target.host,target.port,target.path+name,null,null)
+        val response=client.newCall(Request.Builder().url(uri.toURL()).get().header("Authorization",auth).build()).execute()
+        try {
+            checkResponse(response.code,setOf(200),"Sicherungsdatei nicht lesbar")
+            val stream=response.body?.byteStream() ?: error("Antwort fehlt")
+            return object:java.io.FilterInputStream(stream) {
+                override fun close() { try { super.close() } finally { response.close() } }
+            }
+        } catch(e:Exception) { response.close();throw e }
+    }
+    fun listBackupDirectory():List<BackupDirectoryEntry> {
+        val result=mutableListOf<BackupDirectoryEntry>()
+        val code=request(target,"PROPFIND",headers=mapOf("Depth" to "1"),consume={ response ->
+            val bytes=response.body?.byteStream()?.use { it.readNBytes(1024*1024+1) } ?: error("Antwort fehlt")
+            require(bytes.size<=1024*1024)
+            val xml=String(bytes,Charsets.UTF_8)
+            require(!xml.contains("<!DOCTYPE",true) && !xml.contains("<!ENTITY",true))
+            val factory=javax.xml.parsers.DocumentBuilderFactory.newInstance().apply { isNamespaceAware=true;isExpandEntityReferences=false }
+            val builder=factory.newDocumentBuilder()
+            builder.setEntityResolver { _,_->throw java.io.IOException("Externe Entität") }
+            val doc=builder.parse(org.xml.sax.InputSource(java.io.StringReader(xml)))
+            val rows=doc.getElementsByTagNameNS("DAV:","response");require(rows.length<=20000)
+            for(i in 0 until rows.length) {
+                val row=rows.item(i) as org.w3c.dom.Element
+                val href=row.getElementsByTagNameNS("DAV:","href").item(0)?.textContent ?: continue
+                val uri=target.resolve(href).normalize()
+                require(uri.scheme==target.scheme && uri.host==target.host && uri.port==target.port &&
+                    uri.rawUserInfo==null && uri.rawQuery==null && uri.rawFragment==null && uri.path.startsWith(target.path))
+                val name=uri.path.removePrefix(target.path).trimEnd('/')
+                if(name.isEmpty()) continue
+                if(runCatching { backupName(name) }.isFailure) continue // Ignore unrelated filenames; only immediate safe children are usable.
+                val stats=row.getElementsByTagNameNS("DAV:","propstat")
+                for(j in 0 until stats.length) {
+                    val stat=stats.item(j) as org.w3c.dom.Element
+                    if(!Regex("HTTP/[^ ]+ 200(?: .*|$)").matches(stat.getElementsByTagNameNS("DAV:","status").item(0)?.textContent.orEmpty().trim())) continue
+                    result+=BackupDirectoryEntry(name,stat.getElementsByTagNameNS("DAV:","collection").length>0);break
+                }
+            }
+        })
+        checkResponse(code,setOf(207),"Sicherungsverzeichnis nicht lesbar")
+        require(result.map { it.name }.distinct().size==result.size)
+        return result
     }
 }

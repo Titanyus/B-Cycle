@@ -1,0 +1,50 @@
+<resources>
+    <string name="hrv_title">HRV-Messung</string>
+    <string name="hrv_start">Messung starten</string>
+    <string name="hrv_repeat">Erneut messen</string>
+    <string name="hrv_abort">Abbruch</string>
+    <string name="hrv_rest">Ruhephase</string>
+    <string name="hrv_measuring">Messung</string>
+    <string name="hrv_running_hint">Bitte ruhig sitzen und normal atmen.</string>
+    <string name="hrv_ready">Ruhig sitzen und normal atmen. Auf 30 Sekunden Ruhephase folgen 180 Sekunden Messung.</string>
+    <string name="hrv_sensor_needed">Bitte den Pulsmesser im aktiven Profil verbinden. Für HRV muss der Sensor RR-Intervalle liefern; Puls allein reicht nicht.</string>
+    <string name="hrv_ride_busy">Bitte zuerst die Fahrtaufnahme oder das Speichern beenden.</string>
+    <string name="hrv_saving">Messung wird gespeichert …</string>
+    <string name="hrv_saved">Messung mit Rohdaten und Qualitätsangaben gespeichert.</string>
+    <string name="hrv_save_failed">Speichern fehlgeschlagen. Bitte freien Speicher prüfen und erneut speichern.</string>
+    <string name="hrv_retry_save">Speichern erneut versuchen</string>
+    <string name="hrv_history">Gespeicherte Messungen</string>
+    <string name="hrv_history_empty">Noch keine gespeicherten Messungen.</string>
+    <string name="hrv_result">Messergebnis</string>
+    <string name="hrv_metrics">RMSSD: %1$.2f ms
+LnRMSSD: %2$.2f
+SDNN: %3$.2f ms
+pNN50: %4$.2f %%
+Ruhepuls: %5$.1f bpm</string>
+    <string name="hrv_coverage_warning">Hinweis: RR-Abdeckung %1$.1f %%. Die aufsummierten RR-Intervalle sind kürzer als die Messzeit. Fehlende Intervalle werden nicht ergänzt. Die angezeigten HRV-Werte können dadurch verzerrt sein.</string>
+    <string name="hrv_quality_failed">Messung für die HRV-Anzeige nicht geeignet: %1$s. Rohdaten und Qualitätsangaben bleiben gespeichert.</string>
+    <string name="hrv_contact_lost">Hautkontakt oder Sensorverbindung unterbrochen</string>
+    <string name="hrv_gap">RR-Empfang länger als fünf Sekunden unterbrochen</string>
+    <string name="hrv_background">App verlassen oder Messansicht geschlossen</string>
+    <string name="hrv_user_abort">Messung abgebrochen</string>
+    <string name="hrv_too_short">zu wenige nutzbare RR-Daten</string>
+    <string name="hrv_artifacts">zu viele oder nicht korrigierbare Artefakte</string>
+    <string name="hrv_invalid_data">ungültige RR-Daten oder unvollständige Messung</string>
+    <string name="hrv_capture_failed">Empfang oder Speicherung unterbrochen</string>
+    <string name="hrv_rr_label">RR (ms)</string>
+    <string name="hrv_time_axis">Messzeit (s)</string>
+    <string name="hrv_bpm">bpm</string>
+    <string name="hrv_circle_accessibility">%1$s · Puls %2$s bpm · verbleibend %3$s</string>
+    <string name="hrv_record_info">Messzeit: %1$.0f s · RR-Dauer: %2$.1f s · Abdeckung: %3$.1f %%</string>
+    <string name="hrv_history_item">%1$s · %2$s</string>
+    <string name="hrv_invalid_short">nicht auswertbar</string>
+    <string name="hrv_history_rmssd">RMSSD %1$.1f ms</string>
+    <string name="hrv_backup_result">HRV: %1$d gesichert · %2$d fehlgeschlagen</string>
+    <string name="hrv_restore_result">HRV: %1$d importiert · %2$d vorhanden · %3$d fehlgeschlagen</string>
+    <string name="hrv_help_heading">Ruhemessung und Qualität</string>
+    <string name="hrv_help_body">Mit einem verbundenen RR-fähigen Pulsmesser ruhig sitzen und normal atmen. Auf 30 Sekunden Ruhephase folgen 180 Sekunden Messung. Der Kreis zeigt den Fortschritt, der Graph die tatsächlich empfangenen RR-Intervalle in Millisekunden.
+
+RMSSD, LnRMSSD, SDNN, pNN50 und Ruhepuls werden aus der bereinigten Folge berechnet. Geringe RR-Abdeckung allein sperrt die Anzeige nicht: Ein orangefarbener Hinweis zeigt die Abdeckung und mögliche Verzerrung. Es werden keine fehlenden Intervalle erfunden. Mindestens 60 Sekunden nutzbare RR-Daten und die übrigen Qualitätsprüfungen bleiben erforderlich. Kontaktverlust, mehr als fünf Sekunden ohne RR, ungültige Daten und zu viele Artefakte können die Anzeige sperren.
+
+Ergebnisse, Rohdaten und Qualitätsangaben werden privat und unabhängig vom Fahrrad gespeichert. Gespeicherte Messungen lassen sich erneut öffnen und werden über Daten &amp; Speicher → Fahrten sichern lokal oder per WebDAV mitgesichert. Die reine Einstellungssicherung enthält keine HRV-Messdateien. Kein automatischer Cloud-Upload.</string>
+</resources>

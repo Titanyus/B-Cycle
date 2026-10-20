@@ -31,19 +31,21 @@ internal data class BikeProfile(val slot: Int, val name: String, val type: BikeT
     val trainerAddress:String?=null,val trainerName:String?=null,val trainerEnabled:Boolean=true, val recording: RecordingConfig = RecordingConfig(), val indoorCorrection: IndoorCorrection = IndoorCorrection())
 
 /** Up to six profiles with stable identities; array order is presentation only. */
-internal class BikeProfileStore(private val context: Context, private val prefs: SharedPreferences) {
+internal class BikeProfileStore(private val context: Context, private val prefs: SharedPreferences,private val initialize:Boolean=true) {
     companion object { const val MAX_COUNT = 6; private const val NEXT = "nextBikeSlot"; const val KEY = "bikeProfilesV1"; const val ACTIVE = "activeBikeSlot" }
     val activeSlot get() = parseStored().let { rows -> prefs.getInt(ACTIVE, 0).takeIf { id -> rows.any { it.slot == id } } ?: rows.first().slot }
     internal val ui=BikeUiConfigurationStore(prefs)
     private fun default(slot: Int) = BikeProfile(slot, context.getString(R.string.bikes_default_name, slot + 1))
     init {
-        if (!prefs.contains(KEY)) {
+        if (initialize && !prefs.contains(KEY)) {
             val rows = mutableListOf(default(0))
             rows[0] = legacy(rows[0])
             writeLegacy(prefs.edit().putString(KEY, encode(rows)).putInt(ACTIVE, 0), rows[0]).apply()
         }
     }
-    init { ui.ensure(parseStored().map { it.slot }) }
+    init { if(initialize) ui.ensure(parseStored().map { it.slot }) }
+    init { if(initialize) parseStored().forEach { BikeIdentities.id(prefs,it.slot) } }
+    internal fun backupJson()=encode(all())
     private fun legacy(p: BikeProfile) = p.copy(gpsEnabled = prefs.getBoolean("gpsEnabled", p.gpsEnabled),
         bikeEnabled = prefs.getBoolean("bikeEnabled", true), heartEnabled = prefs.getBoolean("heartEnabled", true),
         bikeAddress = prefs.getString("address", null), bikeName = prefs.getString("name", null),
@@ -103,6 +105,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         if (id == Int.MAX_VALUE) return null
         val profile = default(id)
         prefs.edit().putString(KEY, encode(rows + profile)).putInt(NEXT, id + 1).apply()
+        BikeIdentities.newProfile(prefs,id)
         ui.ensure((rows+profile).map { it.slot })
         return profile
     }

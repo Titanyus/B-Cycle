@@ -11,6 +11,7 @@ val robolectricSdk35 by configurations.creating
 val robolectricSdk36 by configurations.creating
 
 dependencies {
+    implementation(project(":hrv-core"))
     implementation("org.mapsforge:mapsforge-map-android:0.25.0")
     // Official streaming FIT decoder, reused for activity metadata and map previews.
     implementation("com.garmin:fit:21.218.0")
@@ -35,8 +36,8 @@ android {
         applicationId = "de.bcycle.app"
         minSdk = 33
         targetSdk = 36
-        versionCode = 85
-        versionName = "0.8.15"
+        versionCode = 86
+        versionName = "0.8.16"
         // Captured at build configuration, never from the app launch clock.
         val buildEpoch = providers.environmentVariable("SOURCE_DATE_EPOCH").orNull?.toLong()
             ?: Instant.now().epochSecond

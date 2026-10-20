@@ -20,12 +20,12 @@ enum class BackupSection(val id: String, val title: Int) {
 enum class BackupProblem { FORMAT, VERSION, INVALID, TOO_LARGE, SELECTION, IO, ROLLBACK }
 class SettingsBackupFailure(val problem: BackupProblem) : Exception(problem.name)
 internal data class SettingsBackupDocument(val sections: Map<BackupSection, JSONObject>)
-internal data class SettingsRestorePlan(val bike: Map<String, Any?>, val route: Map<String, Any?>, val cloudNeedsPassword: Boolean)
+internal data class SettingsRestorePlan(val bike: Map<String, Any?>, val route: Map<String, Any?>, val cloudNeedsPassword: Boolean, val additional:Map<String,Map<String,Any?>> = emptyMap())
 
 /** Explicit public schema; never serialize preferences.all, files, pairing or credentials. */
 internal class SettingsBackup(private val bike: SharedPreferences, private val route: SharedPreferences,
-    private val themes: ThemeManager, private val today: () -> LocalDate = LocalDate::now) {
-    constructor(context: Context, themes: ThemeManager) : this(context.getSharedPreferences("bike", 0), context.getSharedPreferences("route-export", 0), themes)
+    private val themes: ThemeManager, private val today: () -> LocalDate = LocalDate::now, private val context:Context?=null) {
+    constructor(context: Context, themes: ThemeManager) : this(context.getSharedPreferences("bike", 0), context.getSharedPreferences("route-export", 0), themes,context=context)
     companion object { const val MAX_BYTES = 262144; const val FORMAT = "bicycle-settings"; const val VERSION = 1 }
     private fun fail(reason: BackupProblem = BackupProblem.INVALID): Nothing = throw SettingsBackupFailure(reason)
     private fun check(ok: Boolean) { if (!ok) fail() }
@@ -86,6 +86,13 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
             BackupSection.CLOUD -> JSONObject().put("server",route.getString("server","")).put("user",route.getString("user","")).put("folder",route.getString("folder","B-Cycle"))
                 .put("enabled",route.getBoolean("webdav",false)).put("wifiOnly",route.getBoolean("wifi",true))
         }) }
+        context?.let { c ->
+            val extra=SettingsBackupSupplement(c)
+            selected.forEach { section ->
+                val value=extra.export(section)
+                if(value.length()>0) sections.getJSONObject(section.id).put("additional",value)
+            }
+        }
         val bytes = JSONObject().put("format",FORMAT).put("schemaVersion",VERSION).put("createdAt",Instant.now().toString())
             .put("appVersion",AppVersion.name).put("sections",sections).toString(2).toByteArray(Charsets.UTF_8)
         if(bytes.size>MAX_BYTES) fail(BackupProblem.TOO_LARGE)
@@ -280,17 +287,35 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 }
             }
         } } catch(e:SettingsBackupFailure) { throw e } catch(_:Exception) { fail() }
-        return SettingsRestorePlan(b.toMap(),r.toMap(),needsPassword)
+        val extra=mutableMapOf<String,Map<String,Any?>>()
+        var additionalNeedsSecret=false
+        try {
+            selected.forEach { section ->
+                val additional=doc.sections.getValue(section).optJSONObject("additional")
+                if(additional!=null && context!=null) SettingsBackupSupplement(context).plan(section,additional).forEach { (file,values) ->
+                    if(file=="bike") b.putAll(values) else extra[file]=values
+                    if(file!="message-notifications" && values["enabled"]==false && additional.getJSONObject(file).opt("enabled")==true) additionalNeedsSecret=true
+                }
+            }
+        } catch(_:Exception) { fail() }
+        return SettingsRestorePlan(b.toMap(),r.toMap(),needsPassword || additionalNeedsSecret,extra.toMap())
     }
     /** Prepare/validate all sections first. Each preferences file commits atomically; failures roll back changed keys only. */
     fun apply(plan: SettingsRestorePlan) {
-        val oldBike=plan.bike.keys.associateWith { bike.all[it] };val oldRoute=plan.route.keys.associateWith { route.all[it] }
+        if(context!=null && (plan.bike.containsKey(BikeProfileStore.KEY)||plan.bike.containsKey(BikeIdentities.KEY))) {
+            RideProfileColor.ensureIdentities(context)
+            BikePhotos.migrateIdentities(context)
+        }
+        val changes=linkedMapOf(bike to plan.bike,route to plan.route)
+        plan.additional.forEach { (file,values) -> changes[context!!.getSharedPreferences(file,0)]=values }
+        val before=changes.mapValues { (prefs,values) -> values.keys.associateWith { prefs.all[it] } }
         fun write(p:SharedPreferences, values:Map<String,Any?>):Boolean {
             val e=p.edit();values.forEach { (k,v) -> when(v) { null->e.remove(k);is Boolean->e.putBoolean(k,v);is String->e.putString(k,v);is Int->e.putInt(k,v);is Float->e.putFloat(k,v);is Long->e.putLong(k,v);is Set<*>->e.putStringSet(k,v.filterIsInstance<String>().toSet());else->fail() } };return e.commit()
         }
-        try { if(!write(bike,plan.bike)||!write(route,plan.route)) fail(BackupProblem.IO) }
-        catch(_:Exception) { val restoredB=runCatching { write(bike,oldBike) }.getOrDefault(false);val restoredR=runCatching { write(route,oldRoute) }.getOrDefault(false)
-            fail(if(restoredB && restoredR) BackupProblem.IO else BackupProblem.ROLLBACK)
+        try { changes.forEach { (prefs,values) -> if(!write(prefs,values)) fail(BackupProblem.IO) } }
+        catch(_:Exception) {
+            val restored=before.map { (prefs,values) -> runCatching { write(prefs,values) }.getOrDefault(false) }.all { it }
+            fail(if(restored) BackupProblem.IO else BackupProblem.ROLLBACK)
         }
     }
 }

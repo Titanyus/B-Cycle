@@ -100,6 +100,13 @@ class DreeveWorkflowTest {
     @Test fun bikeAssignmentFormRestoresMappingsAndKeepsUnknownGearUnassigned() {
         val profiles=BikeProfileStore(c,c.getSharedPreferences("bike",0)).all()
         val view=DreeveBikeAssignmentView(c,themes,listOf("known","unknown"),mapOf("known" to "Matrix"),profiles,mapOf("known" to profiles.first().slot))
+        assertEquals(TrackOrigin.IMPORTED,view.origin())
+        view.findViewWithTag<android.widget.RadioButton>("dreeve_origin_RECORDED").performClick()
+        assertEquals(TrackOrigin.RECORDED,view.origin())
+        assertFalse(view.findViewWithTag<android.widget.RadioButton>("dreeve_origin_IMPORTED").isChecked)
+        val withoutGear=DreeveBikeAssignmentView(c,themes,emptyList(),emptyMap(),profiles,emptyMap())
+        withoutGear.findViewWithTag<android.widget.RadioButton>("dreeve_origin_RECORDED").performClick()
+        assertEquals(TrackOrigin.RECORDED,withoutGear.origin());assertTrue(withoutGear.assignments().isEmpty())
         assertEquals(profiles.first().slot,view.assignments()["known"]);assertEquals(-1,view.assignments()["unknown"])
         view.findViewWithTag<android.widget.Spinner>("dreeve_gear_unknown").setSelection(1)
         assertEquals(profiles.first().slot,view.assignments()["unknown"])

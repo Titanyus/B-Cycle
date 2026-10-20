@@ -1,0 +1,19 @@
+<resources>
+    <string name="ride_backup_title">Fahrten sichern</string>
+    <string name="ride_backup_local">Lokal</string>
+    <string name="ride_backup_webdav">WebDAV</string>
+    <string name="ride_backup_description">Alle Fahrten, gespeicherten HRV-Messungen und Einstellungen in einem neuen Sicherungsordner speichern. FIT-Dateien enthalten alle verfügbaren Messwerte, auch abgewählte Aufnahmefelder. HRV-Messungen enthalten Ergebnisse, Rohdaten und Qualitätsangaben. JSON-Begleitdaten erhalten Fahrradzuordnung, Namen und Herkunft. GPX-Originale und Dreeve-Zusammenfassungen bleiben erhalten. Passwörter, API-Schlüssel und Android-Berechtigungen müssen nach einer Neuinstallation erneut eingerichtet werden.</string>
+    <string name="ride_backup_export">Sicherung starten</string>
+    <string name="ride_backup_restore_settings">Einstellungen aus Sicherungsordner wiederherstellen</string>
+    <string name="ride_backup_import">Fahrten aus Sicherungsordner importieren</string>
+    <string name="ride_backup_choose">Sicherungsordner wählen</string>
+    <string name="ride_backup_busy">Bitte Aufnahme, Speichern oder laufende Verarbeitung zuerst beenden.</string>
+    <string name="ride_backup_progress">%1$d Fahrten verarbeitet …</string>
+    <string name="ride_backup_result">%1$d Fahrten gesichert · %2$d fehlgeschlagen. Ordner: %3$s</string>
+    <string name="ride_backup_import_result">%1$d importiert · %2$d bereits vorhanden · %3$d fehlgeschlagen</string>
+    <string name="ride_backup_failed">Sicherung nicht abgeschlossen. Zugriff, Verbindung und freien Speicher prüfen. Originaldaten wurden nicht gelöscht.</string>
+    <string name="ride_backup_invalid">Der Ordner enthält keine lesbare BICYCLE-Sicherung oder eine Datei ist beschädigt.</string>
+    <string name="ride_backup_confirm">Fahrten aus diesem Sicherungsordner importieren? Vorhandene Fahrten werden nicht überschrieben. Für vollständige Fahrradzuordnungen zuerst die Einstellungen desselben Sicherungsordners wiederherstellen.</string>
+    <string name="ride_backup_cloud_missing">Bitte zuerst WebDAV unter Daten &amp; Speicher konfigurieren.</string>
+    <string name="ride_backup_loading">Sicherungsordner werden geladen …</string>
+</resources>

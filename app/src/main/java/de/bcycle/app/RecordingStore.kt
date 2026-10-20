@@ -30,12 +30,12 @@ class RecordingStore(private val context: Context, private val changed: (String,
     }
     fun begin(start: Long, config: RecordingConfig) {
         failed = false
-        val profileAppearance=RideProfileColor.snapshot(context)
+        val profileAppearance=runCatching { RideProfileColor.snapshot(context) }.getOrNull()
         submit {
             try {
                 val name = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(start)) + "_" + UUID.randomUUID().toString().take(8)
                 journal = RideJournal(File(directory, "$name.ride"), start, config)
-                runCatching { File(directory,"$name.profile.json").writeText(profileAppearance) }
+                if(profileAppearance!=null) runCatching { File(directory,"$name.profile.json").writeText(profileAppearance) }
             } catch (_: Exception) { failed = true; report("Aufzeichnung konnte nicht angelegt werden · bitte STOPP", false) }
         }
     }

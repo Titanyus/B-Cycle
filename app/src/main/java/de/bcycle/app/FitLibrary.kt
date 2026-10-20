@@ -155,6 +155,33 @@ internal class FitLibrary(root: File) {
         require(title.isNotEmpty()) { "Bitte einen Namen eingeben" }
         save(entries.map { if (it.id == id) it.copy(name = title) else it })
     }
+    internal fun restoreBackup(id:String,name:String,origin:TrackOrigin,details:RouteDetails,original:File,full:File,corrected:File?):Boolean {
+        validateId(id)
+        require(hash(original)==id.substringAfter('-')) { "Original-ID stimmt nicht mit FIT überein" }
+        val read=FitRead.read(full);FitRead.read(original);corrected?.let(FitRead::read)
+        if(entries.any { it.id==id }) {
+            require(hash(originalFile(id))==hash(original) && hash(analysisFile(id))==hash(full)) { "Vorhandene Fahrt hat andere Daten" }
+            if(corrected!=null && this.corrected(id)) require(hash(file(id))==hash(corrected)) { "Andere Höhenkorrektur vorhanden" }
+            return false
+        }
+        val targets=mutableListOf<File>()
+        fun install(source:File,target:File) {
+            require(!target.exists());target.parentFile!!.mkdirs();targets+=target
+            val atomic=AtomicFile(target);val out=atomic.startWrite()
+            try { source.inputStream().use { it.copyTo(out) };atomic.finishWrite(out) }
+            catch(e:Exception) { atomic.failWrite(out);throw e }
+        }
+        try {
+            install(original,originalFile(id))
+            if(hash(full)!=hash(original)) install(full,RideAnalysisFiles.file(directory.parentFile!!,id))
+            corrected?.let { install(it,correctedFile(directory.parentFile!!,id)) }
+            excluded.remove(id.substringAfter('-'))
+            save(entries+StoredFit(id,name,origin==TrackOrigin.RECORDED,
+                read.details.copy(dateMs=details.dateMs,bikeType=details.bikeType,
+                    ascentM=corrected?.let { FitRead.read(it).details.ascentM } ?: read.details.ascentM),read.route!=null,origin))
+            return true
+        } catch(e:Exception) { targets.forEach { AtomicFile(it).delete() };throw e }
+    }
     fun delete(id: String) {
         require(entries.any { it.id == id })
         // Persist the exclusion before deleting, so a Downloads scan cannot resurrect it.

@@ -33,3 +33,28 @@ Filter/Sortierung gemeinsam mit dem Manager, automatische Seitennachladung, Fahr
 ## Prüfung
 
 Aktuelle Erweiterung: 40 gezielte Tests bestanden (API-/Uploadablauf, begrenzte Bestätigungsabfragen und Abbruch, geöffnetes Uploadmenü mit Änderung vom Hintergrundthread, GPX-Import, Zusammenfassungsimport ohne GPX-Request, JSON-Speicherung/Neuladen, Analyse ohne erfundene Verläufe, Managerintegration mit Umbenennen/Löschen, Mehrfachauswahl, vorhandene GPX-/Analyse-/Exportnavigation). MockWebServer und Robolectric. Kein echter Nutzerkonto-Abruf und kein Gerätetest; keine neue APK gebaut. Der vorangegangene GPX-Prototyp hatte 41 eigene gezielte Tests bestanden; kein vollständiger Testlauf für diese Erweiterung.
+
+## Herkunft beim Import auswählen
+
+Im Bestätigungsdialog zur Fahrradzuordnung steht die gemeinsame Herkunftsauswahl
+**Importiert / Gefahren**. Standard ist Importiert; die Wahl gilt für alle ausgewählten
+neuen Fahrten, auch für GPX-lose Zusammenfassungen und Aktivitäten ohne Gear-ID.
+Die Auswahl ist auf diesen Import beschränkt und verändert vorhandene Duplikate nicht.
+Herkunft bleibt bei Neustart, Umbenennen und vollständiger Sicherung/Wiederherstellung
+erhalten. Ältere Zusammenfassungen ohne Herkunftsfeld bleiben Importiert.
+Der Import startet auch bei Gefahren keinen Cloud-Upload; GPX/JSON werden dadurch
+nicht zu uploadfähigen FIT-Aufnahmen. IN-/OUT-Hinweise berücksichtigen diese Auswahl.
+
+## NP und Performancewerte
+
+Importiertes GPX mit Zeitstempeln und tatsächlichen Leistungsmesswerten verwendet
+beim Öffnen der Details dieselbe PerformanceEngine wie die FIT-Auswertung. Berechnet
+werden bei ausreichender Datengrundlage NP, mechanische Arbeit/Energie, geschätzte
+Kalorien, Best Efforts und eine FTP-Schätzung aus einem vollständigen 20-Minuten-
+Leistungsfenster. EF benötigt zusätzlich passende Pulswerte, Geschwindigkeit/Leistung
+passende Geschwindigkeitswerte (bei GPX aus GPS und Zeit). Fehlende Daten, unzureichende
+Abdeckung oder zu kurze Verläufe bleiben fehlend. Die Berechnung beim Detailabruf
+verändert das GPX-Original nicht und erfordert keine vorberechneten GPX-Summaryfelder.
+Reine Dreeve-Zusammenfassungen liefern keine Grundlage für NP, FTP, EF oder Best Efforts.
+Ein gezielter Import-/Neulade-/Analysetest prüft einen wechselnden 20-Minuten-Verlauf,
+damit NP ausdrücklich nicht mit der Durchschnittsleistung verwechselt wird.

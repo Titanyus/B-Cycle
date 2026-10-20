@@ -1,0 +1,16 @@
+<resources>
+    <string name="transfer_in">→ IN: %1$s</string>
+    <string name="transfer_out">← OUT: %1$s</string>
+    <string name="transfer_import_in">FIT- und GPX-Dateien; ZIP-Archive mit FIT/GPX, auch als .fit.gz oder .gpx.gz. Vorhandene Messwerte werden übernommen. Kein TCX-Import.</string>
+    <string name="transfer_import_out">Der Import speichert die Dateien lokal und startet keinen Cloud-Upload.</string>
+    <string name="transfer_local_in">Über Streckenimport: FIT/GPX einzeln oder aus ZIP. Über Fahrten sichern: vollständige BICYCLE-Sicherungsordner wiederherstellen.</string>
+    <string name="transfer_local_out">Eigene Aufnahmen als FIT gemäß FIT-Feldauswahl. Einzelexport in den Streckendetails: FIT, GPX oder Zusammenfassungs-JSON je nach Fahrt. Vollständige Sicherungen separat unter Fahrten sichern.</string>
+    <string name="transfer_webdav_in">BICYCLE-Sicherungsordner über Fahrten sichern wiederherstellen. Kein allgemeiner Import einzelner Fahrten vom WebDAV-Server.</string>
+    <string name="transfer_webdav_out">Eigene FIT-Aufnahmen gemäß FIT-Feldauswahl in das konfigurierte HTTPS-Verzeichnis. Vollständige Sicherungen mit Einstellungen und Fahrradzuordnung separat unter Fahrten sichern.</string>
+    <string name="transfer_intervals_in">Uploadbestätigung mit Aktivitätszuordnung. Kein Import von Fahrten, Messwertverläufen oder Trainingsplänen.</string>
+    <string name="transfer_dreeve_in">Fahrtenauswahl im Streckenmanager, wahlweise als Importiert oder Gefahren: GPX mit GPS und vorhandenen Watt-, Puls- und Kadenzwerten. Aus ausreichenden Messwertverläufen werden NP und Performancewerte berechnet. Ohne GPX nur Zusammenfassungen wie Ø-/Maximalwerte, keine Messwertverläufe. Bestätigte Fahrradzuordnung und Fahrtnamen werden übernommen. Kein Original-FIT-Download.</string>
+    <string name="transfer_strava_in">Uploadbestätigung mit Aktivitätszuordnung. Kein direkter Fahrtenimport. Ein heruntergeladenes Strava-Archiv mit FIT/GPX lässt sich lokal über Streckenimport einlesen.</string>
+    <string name="transfer_service_out">Eigene FIT-Aufnahmen gemäß FIT-Feldauswahl, automatisch nach der Aufnahme oder manuell per Upload. Lokale Umbenennungen verknüpfter Fahrten werden an den Dienst übertragen. Kein Upload importierter Fahrten.</string>
+    <string name="transfer_backup_in">BICYCLE-Sicherungsordner lokal oder per WebDAV. Zuerst Einstellungen und Profile, danach Fahrten und gespeicherte HRV-Messungen wiederherstellen. Fahrradzuordnung über eindeutige Profil-ID; vorhandene Fahrten werden nicht überschrieben.</string>
+    <string name="transfer_backup_out">Alle Fahrten mit allen noch vorhandenen Messwerten als FIT plus JSON-Metadaten; GPX-Originale und reine Zusammenfassungen bleiben erhalten. Dazu Einstellungen, Fahrradbilder und gespeicherte HRV-Messungen mit Rohdaten und Qualitätsangaben. Keine Passwörter, API-Schlüssel oder Android-Berechtigungen.</string>
+</resources>

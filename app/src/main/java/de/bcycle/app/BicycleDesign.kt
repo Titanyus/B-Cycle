@@ -15,6 +15,13 @@ import android.widget.TextView
 
 /** Global geometry and typography, deliberately independent of every palette. DP unless noted. */
 object BicycleDesign {
+    const val dashboardToolbarMainWeight=2.3f
+    const val dashboardToolbarActionWeight=.9f
+    const val hrvCircleHeight=260
+    const val hrvGraphHeight=220
+    const val hrvRingWidth=9f
+    const val hrvPulseSp=72f
+    const val hrvTimeSp=24f
     // Android's sans-serif family uses Roboto on stock Android; request Black without bundling a font.
     val strongTypeface: android.graphics.Typeface by lazy {
         android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.NORMAL),900,false)

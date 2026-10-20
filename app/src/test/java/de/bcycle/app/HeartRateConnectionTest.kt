@@ -25,7 +25,9 @@ class HeartRateConnectionTest {
         val device = app.getSystemService(BluetoothManager::class.java).adapter.getRemoteDevice("00:11:22:33:44:55")
         val pulses = mutableListOf<Int?>()
         val messages = mutableListOf<String>()
-        val connection = HeartRateConnection(app, { messages += it }, { pulses += it.bpm }, {})
+        val packets=mutableListOf<Pair<Long,ByteArray>>()
+        val connection = HeartRateConnection(app, { messages += it }, { pulses += it.bpm }, {},
+            rawMeasurement={ at,bytes -> packets+=at to bytes })
         connection.connect(device)
         val gatt = shadowOf(device).bluetoothGatts.single()
         val shadow = Shadow.extract<GattShadow>(gatt)
@@ -44,8 +46,14 @@ class HeartRateConnectionTest {
         callback.onDescriptorWrite(gatt, cccd, BluetoothGatt.GATT_SUCCESS)
         shadowOf(Looper.getMainLooper()).idle()
         assertTrue(connection.live)
-        callback.onCharacteristicChanged(gatt, measurement, byteArrayOf(0, 145.toByte()))
+        val receivedAt=android.os.SystemClock.elapsedRealtime()
+        val payload=byteArrayOf(0,145.toByte())
+        callback.onCharacteristicChanged(gatt, measurement, payload)
+        payload[1]=99 // GATT may reuse its buffer after the callback.
+        org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(120))
         shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(receivedAt,packets.single().first)
+        assertArrayEquals(byteArrayOf(0,145.toByte()),packets.single().second)
         assertEquals(listOf(145), pulses)
         assertEquals("Pulsmesser · Live", messages.last())
         assertEquals(1,connection.receivedValueCount)
@@ -61,12 +69,14 @@ class HeartRateConnectionTest {
         shadowOf(Looper.getMainLooper()).idle();assertEquals(2,connection.receivedValueCount)
         callback.onCharacteristicChanged(gatt,measurement,byteArrayOf(24,147.toByte(),2,0,0,4)) // Energy and RR interval.
         shadowOf(Looper.getMainLooper()).idle();assertEquals(4,connection.receivedValueCount)
+        val packetCount=packets.size
         connection.stop()
         assertFalse(connection.active); assertTrue(shadow.isClosed)
         assertEquals(0,connection.receivedValueCount)
         callback.onCharacteristicChanged(gatt, measurement, byteArrayOf(0, 160.toByte()))
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(listOf(145,146,147), pulses)
+        assertEquals(packetCount,packets.size)
         assertEquals(0,connection.receivedValueCount)
     }
     /** Simulates the remote acknowledgement for Android 13's descriptor-write API. */

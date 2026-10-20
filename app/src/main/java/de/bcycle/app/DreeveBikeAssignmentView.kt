@@ -7,9 +7,25 @@ import android.widget.*
 internal class DreeveBikeAssignmentView(context:Context,themes:ThemeManager,gear:List<String>,names:Map<String,String>,
     private val profiles:List<BikeProfile>,remembered:Map<String,Int>):LinearLayout(context) {
     private val choices=linkedMapOf<String,Spinner>()
+    private var selectedOrigin=TrackOrigin.IMPORTED
+    fun origin()=selectedOrigin
     init {
         orientation=VERTICAL
         val padding=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(padding,padding,padding,padding)
+        addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.dreeve_import_origin)))
+        addView(RadioGroup(context).apply {
+            orientation=HORIZONTAL;tag="dreeve_import_origin"
+            BicycleComponents.segmentedControlRow(this,themes)
+            listOf(TrackOrigin.IMPORTED to R.string.ui_routes_filter_imported,
+                TrackOrigin.RECORDED to R.string.ui_routes_filter_recorded).forEach { (origin,label) ->
+                addView(BicycleSegmentButton(context,themes).apply {
+                    id=generateViewId();tag="dreeve_origin_${origin.name}";setText(label)
+                    isChecked=origin==selectedOrigin
+                    setOnCheckedChangeListener { _,checked -> if(checked) selectedOrigin=origin }
+                },RadioGroup.LayoutParams(0,-2,1f))
+            }
+        },LayoutParams(-1,-2))
+        addView(BicycleComponents.description(context,themes,context.getString(R.string.dreeve_import_origin_hint)))
         gear.distinct().forEach { id ->
             addView(BicycleComponents.contentHeading(context,themes,names[id] ?: id))
             val picker=Spinner(context).apply {

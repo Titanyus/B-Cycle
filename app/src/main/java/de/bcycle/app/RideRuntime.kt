@@ -122,12 +122,13 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if (!busy && (text.startsWith("Gespeichert:") || text.startsWith("FIT nicht") || text.startsWith("FIT lokal gespeichert") || text.contains("Fahrten gespeichert"))) mapState.refreshLibrary()
         notifyChanged()
     }
+    internal val hrv=HrvController(context)
     val heart: HeartRateConnection = HeartRateConnection(context, { heartStatus = it; if (heartIsLive()) heartReconnect.connected(); if (!heartActive()) { pulse = pulse.copy(bpm = null); heartAt = null; capturePerformance(PerformanceChannel.HEART_RATE, null, "HEART_RATE") }; notifyChanged() }, {
         heartAt = SystemClock.elapsedRealtime()
         capturePerformance(PerformanceChannel.HEART_RATE, it.bpm?.toDouble(), "HEART_RATE")
         if (recording) it.bpm?.let { bpm -> heartSum += bpm; heartCount++; pulse = pulse.copy(average = heartSum.toDouble() / heartCount, maximum = maxOf(pulse.maximum ?: bpm, bpm)) }
         pulse = pulse.copy(bpm = it.bpm); notifyChanged()
-    }, { pulse = pulse.copy(battery = it); notifyChanged() })
+    }, { pulse = pulse.copy(battery = it); notifyChanged() },rawMeasurement=hrv::packet,stopped=hrv::disconnected)
     private fun heartActive() = heart.active
     private fun heartIsLive() = heart.live
     val bikeAddress get() = preferences.getString("address", null)
@@ -210,7 +211,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     init { RideNames.schedule(context);ActivityServiceUploads.all.forEach { runCatching { it.schedule(context) } }; IntervalsUploads.schedule(context); RouteUploads.schedule(context); diagnostics.reset("App=${AppVersion.name} Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
     fun notifyChanged() { observers.toList().forEach { it() } }
-    fun setVisible(value: Boolean) { visible = value; updateActivity() }
+    fun setVisible(value: Boolean) { visible = value;if(!value) hrv.abort("APP_BACKGROUND"); updateActivity() }
     private fun updateActivity() {
         bikeReconnect.foreground = active; heartReconnect.foreground = active;trainerReconnect.foreground=active
         handler.removeCallbacks(tick)
@@ -293,7 +294,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     internal fun switchBike(slot: Int): Boolean {
         if (slot == bikes.activeSlot) return true
-        if (recording || saving) return false
+        if (recording || saving || hrv.busy) return false
         activateBike { bikes.select(slot) }
         return true
     }
@@ -321,6 +322,10 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         gpsStatus = context.getString(R.string.bikes_gps_disconnect)
         bikeReconnect.connected();trainerReconnect.connected(); heartReconnect.connected()
         updateActivity()
+    }
+    internal fun restoredBikeSettings() {
+        check(!recording && !saving)
+        activateBike {}
     }
     internal fun addBike(): Boolean {
         if (recording || saving) return false
@@ -459,7 +464,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         bikes.persistActive()
     }
     fun beginRecording() {
-        if (recording || saving) return
+        if (recording || saving || hrv.busy) return
         // Reserve the coordinate columns outdoors even if GPS is enabled later during this ride.
         // Actual coordinate values below remain strictly controlled by the GPS sensor switch.
         activeConfig = config.withGpsPosition(!isIndoor)

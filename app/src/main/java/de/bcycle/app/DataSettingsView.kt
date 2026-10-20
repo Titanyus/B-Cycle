@@ -8,6 +8,7 @@ import android.widget.*
 internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
     BACKUP(R.string.data_backup, BicycleIcon.ExportTrack), RESTORE(R.string.data_restore, BicycleIcon.RestoreSettings),
     IMPORT(R.string.data_route_import, BicycleIcon.Import),
+    RIDE_BACKUP(R.string.ride_backup_title,BicycleIcon.ExportTrack),
     LOCAL(R.string.data_local, BicycleIcon.Save), CLOUD(R.string.data_cloud, BicycleIcon.WebDav),
     INTERVALS(R.string.intervals_title,BicycleIcon.Intervals),
     DREEVE(R.string.dreeve_title,BicycleIcon.Dreeve), STRAVA(R.string.strava_title,BicycleIcon.Strava)
@@ -24,6 +25,26 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
             actions.forEach { action ->
                 val inline=action!=DataAction.RESTORE
                 val body=LinearLayout(context).apply { orientation=VERTICAL;tag="data_details_${action.name}";visibility=GONE }
+                val transfer=when(action) {
+                    DataAction.IMPORT -> R.string.transfer_import_in to R.string.transfer_import_out
+                    DataAction.LOCAL -> R.string.transfer_local_in to R.string.transfer_local_out
+                    DataAction.CLOUD -> R.string.transfer_webdav_in to R.string.transfer_webdav_out
+                    DataAction.INTERVALS -> R.string.transfer_intervals_in to R.string.transfer_service_out
+                    DataAction.DREEVE -> R.string.transfer_dreeve_in to R.string.transfer_service_out
+                    DataAction.STRAVA -> R.string.transfer_strava_in to R.string.transfer_service_out
+                    DataAction.RIDE_BACKUP -> R.string.transfer_backup_in to R.string.transfer_backup_out
+                    else -> null
+                }
+                transfer?.let { (incoming,outgoing) ->
+                    body.addView(LinearLayout(context).apply {
+                        orientation=VERTICAL;tag="data_transfer_${action.name}"
+                        setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.controlGap))
+                        addView(BicycleComponents.description(context,themes,
+                            context.getString(R.string.transfer_in,context.getString(incoming))))
+                        addView(BicycleComponents.description(context,themes,
+                            context.getString(R.string.transfer_out,context.getString(outgoing))))
+                    },LayoutParams(-1,-2))
+                }
                 val label=BicycleComponents.text(context,themes,context.getString(action.title)).apply {
                     gravity=Gravity.CENTER_VERTICAL
                     BicycleDialogStyle.actionIcon(this,themes,action.icon)
@@ -53,7 +74,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
             }
         }
         section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RESTORE))
-        section(R.string.data_routes,listOf(DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
+        section(R.string.data_routes,listOf(DataAction.RIDE_BACKUP,DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
     }
     fun install(action:DataAction,content:View,enabled:Switch?=null) {
         val header=headers.getValue(action)

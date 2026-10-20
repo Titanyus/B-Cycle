@@ -54,7 +54,8 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
     companion object {
         fun localId(account:String,activity:String)=UUID.nameUUIDFromBytes("bcycle:dreeve:$account\u0000$activity".toByteArray(Charsets.UTF_8)).toString()
     }
-    fun read(account:String,activities:List<DreeveActivity>,cancelled:()->Boolean={false},progress:(DreeveItemResult)->Unit={}):DreeveImportResult {
+    fun read(account:String,activities:List<DreeveActivity>,cancelled:()->Boolean={false},origin:TrackOrigin=TrackOrigin.IMPORTED,progress:(DreeveItemResult)->Unit={}):DreeveImportResult {
+        require(origin==TrackOrigin.IMPORTED || origin==TrackOrigin.RECORDED)
         val result=mutableListOf<DreeveItemResult>()
         val links=RideServiceLinks.forAccount(context,RideService.DREEVE,account).associateBy { it.activityId }.toMutableMap()
         for(activity in activities.distinctBy { it.id }) {
@@ -73,7 +74,7 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
                         DreeveItemResult(activity.id,DreeveImportState.DUPLICATE)
                     }
                     !activity.hasGpx && summaries!=null->{
-                        val file=summaries.add(local,activity)
+                        val file=summaries.add(local,activity,origin)
                         try {
                             val link=RideServiceLink(local,RideService.DREEVE,account,activity.id,WebDavClient.hash(file))
                             RideServiceLinks.confirm(context,link);links[activity.id]=link
@@ -87,7 +88,7 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
                             download(activity.id,temporary)
                             if(cancelled()) return DreeveImportResult(result,true)
                             val fields=mutableSetOf<DreeveDataField>()
-                            temporary.inputStream().use { input -> library.add(input,activity.name,select=false,preserveDate=true,stableId=local,bikeType=activity.bikeType) { sample ->
+                            temporary.inputStream().use { input -> library.add(input,activity.name,select=false,preserveDate=true,stableId=local,bikeType=activity.bikeType,origin=origin) { sample ->
                                 fields.add(DreeveDataField.POSITION)
                                 if(sample.time!=null) fields.add(DreeveDataField.TIME)
                                 if(sample.height?.isFinite()==true) fields.add(DreeveDataField.HEIGHT)

@@ -28,7 +28,8 @@ internal data class DreeveSummary(val metrics:Map<AnalysisMetric,Double> = empty
     fun json()=JSONObject().put("metrics",JSONObject().also { values -> metrics.forEach { (key,value)->values.put(key.name,value) } })
         .put("gearId",gearId ?: JSONObject.NULL).put("deviceName",device ?: JSONObject.NULL)
 }
-internal data class StoredDreeveSummary(val id:String,val activity:DreeveActivity,val dateMs:Long=localDate(activity.startLocal)) {
+internal data class StoredDreeveSummary(val id:String,val activity:DreeveActivity,val dateMs:Long=localDate(activity.startLocal),
+    val origin:TrackOrigin=TrackOrigin.IMPORTED) {
     val details get():RouteDetails {
         fun duration(metric:AnalysisMetric)=activity.summary.metrics[metric]?.times(1000)?.toLong()
         return RouteDetails(dateMs,activity.distanceM,duration(AnalysisMetric.ELAPSED),ascentM=activity.summary.metrics[AnalysisMetric.ASCENT],
@@ -37,7 +38,7 @@ internal data class StoredDreeveSummary(val id:String,val activity:DreeveActivit
     companion object {
         private fun localDate(value:String)=runCatching { LocalDateTime.parse(value).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() }.getOrDefault(0L)
     }
-    fun managed(stamp:RouteFileStamp?=null)=ManagedRoute(id,activity.name,false,"JSON",details,false,TrackOrigin.IMPORTED,stamp!=null,stamp)
+    fun managed(stamp:RouteFileStamp?=null)=ManagedRoute(id,activity.name,false,"JSON",details,false,origin,stamp!=null,stamp)
 }
 
 /** All operations use MapState's library worker. One atomic JSON snapshot per activity. */
@@ -53,10 +54,18 @@ internal class DreeveSummaryLibrary(root:File) {
             candidate.name.removeSuffix(".bak").takeIf { it.matches(Regex("[a-f0-9-]{36}\\.json")) }?.removeSuffix(".json")
         }.distinct().mapNotNull { id -> runCatching { read(file(id)) }.getOrNull() }
     }
-    fun add(id:String,activity:DreeveActivity):File {
+    fun add(id:String,activity:DreeveActivity,origin:TrackOrigin=TrackOrigin.IMPORTED):File {
         require(!activity.hasGpx && entries.none { it.id==id })
-        val item=StoredDreeveSummary(id,activity);write(item);entries=entries+item
+        val item=StoredDreeveSummary(id,activity,origin=origin);write(item);entries=entries+item
         return file(id)
+    }
+    internal fun restoreBackup(item:StoredDreeveSummary):Boolean {
+        file(item.id)
+        entries.singleOrNull { it.id==item.id }?.let { existing ->
+            require(existing.dateMs==item.dateMs && existing.activity.copy(name=item.activity.name)==item.activity) { "Vorhandene Zusammenfassung hat andere Daten" }
+            return false
+        }
+        write(item);entries=entries+item;return true
     }
     fun rename(id:String,name:String) {
         val title=name.trim().take(120);require(title.isNotEmpty())
@@ -68,7 +77,7 @@ internal class DreeveSummaryLibrary(root:File) {
         val a=item.activity
         val json=JSONObject().put("schema",1).put("id",item.id).put("activityId",a.id).put("name",a.name)
             .put("startDateLocal",a.startLocal).put("dateMs",item.dateMs).put("distanceInMeter",a.distanceM ?: JSONObject.NULL).put("sportType",a.sportType)
-            .put("summary",a.summary.json())
+            .put("summary",a.summary.json()).put("origin",item.origin.name)
         val atomic=AtomicFile(file(item.id));val stream=atomic.startWrite()
         try { stream.write(json.toString().toByteArray(Charsets.UTF_8));atomic.finishWrite(stream) }
         catch(e:Exception) { atomic.failWrite(stream);throw e }
@@ -89,7 +98,7 @@ internal class DreeveSummaryLibrary(root:File) {
                 ?.takeIf { it.isFinite() && it>=0 }?.let { metric to it } }.toMap(),values.validId("gearId"),values.opt("deviceName") as? String)
             return StoredDreeveSummary(json.getString("id"),DreeveActivity(json.getString("activityId"),json.getString("name"),
                 json.getString("startDateLocal"),(json.opt("distanceInMeter") as? Number)?.toDouble()?.takeIf { it.isFinite() && it>=0 },
-                json.getString("sportType"),false,summary),json.getLong("dateMs"))
+                json.getString("sportType"),false,summary),json.getLong("dateMs"),if(json.has("origin")) TrackOrigin.valueOf(json.getString("origin")) else TrackOrigin.IMPORTED)
         }
     }
 }

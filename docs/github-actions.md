@@ -27,17 +27,18 @@ Build-Timestamp entspricht dem tatsächlichen Start der Build-Vorbereitung.
 
 ## Einmaliger fester Testschlüssel
 
-Ohne Secret erzeugt Android einen temporären Debugschlüssel. Die APK ist gültig signiert,
-aber weder mit den bisherigen Test-APKs noch zuverlässig mit anderen Actions-Läufen
-als Update kompatibel. Bestehende Appdaten nicht durch ungeplante Deinstallation verlieren;
-vor einem solchen Wechsel die vorhandene Einstellungssicherung und Fahrten exportieren.
+Ab 0.8.16 ist `ANDROID_DEBUG_KEYSTORE_BASE64` erforderlich. Ohne Secret bricht
+Actions ab, statt einen neuen temporären Schlüssel zu verwenden. Vor Veröffentlichung
+muss das APK-Zertifikat außerdem mit dem dauerhaften Fingerabdruck von Build 53
+übereinstimmen. Früher verwendete temporäre Schlüssel bleiben historisch inkompatibel.
+Bestehende Appdaten vor einem Wechsel anders signierter Installationen sichern.
 
 Für nahtlose Updates **den bisherigen Testschlüssel** verwenden:
 
 1. GitHub → Repository → Settings → Secrets and variables → Actions → New repository secret.
 2. Name: `ANDROID_DEBUG_KEYSTORE_BASE64`.
 3. Wert: Base64-Kodierung des bisherigen Android-Debug-Keystores. Der aktuelle Cloud-
-   Keystore liegt unter `/workspace/.android-user/debug.keystore`. Diesen Schlüssel
+   Keystore lag in der früheren Umgebung unter `/workspace/.android-user/debug.keystore` und ist hier nicht vorhanden. Den bisherigen Schlüssel
    nicht neu erzeugen, veröffentlichen oder im Chat posten. Alias `androiddebugkey`,
    Standard-Debug-Passwörter `android` werden von Androids Debug-Konfiguration verwendet.
 4. Danach einmal Run workflow auslösen; spätere Pushes bauen automatisch mit diesem Schlüssel.
@@ -46,8 +47,30 @@ Alternativ kann ein dafür berechtigter GitHub-CLI-Zugang in der bestehenden Clo
 folgendes ausführen, ohne den Schlüssel im Terminal auszugeben:
 
 ```sh
-base64 -w0 /workspace/.android-user/debug.keystore | gh secret set ANDROID_DEBUG_KEYSTORE_BASE64 --repo Titanyus/B-Cycle
+/workspace/.signing/upload-to-github.sh
 ```
+
+Stand 20.10.2026: Der Benutzer hat einen neuen dauerhaften Schlüssel autorisiert,
+weil der bisherige nicht wiederherstellbar ist. Er liegt geschützt außerhalb des Repos
+unter `/workspace/.signing/bicycle-release.keystore`; die ebenfalls geschützte
+Base64-Datei und das obige Uploadskript liegen daneben. Alias und Passwörter entsprechen
+der bestehenden CI-Konfiguration. Der neue Schlüssel ist weder mit früheren
+Installationen noch mit dem temporären Schlüssel von Build 52 kompatibel.
+
+Öffentlicher Zertifikat-Fingerabdruck (SHA-256):
+`94D34C46EDE28D12E6D37EFD8A7D953A75B621596EC2E5B68F61899B8EA7499B`.
+
+**Am 20.10.2026 auf GitHub verifiziert:** Der manuell gestartete
+[Build 53](https://github.com/Titanyus/B-Cycle/actions/runs/39423155545) ist erfolgreich.
+Die heruntergeladene APK hat exakt den oben genannten Zertifikat-Fingerabdruck;
+das Actions-Secret funktioniert. Die integrierte Secrets-API bleibt mit HTTP 403 gesperrt,
+der tatsächliche Workflow kann das eingerichtete Secret verwenden.
+
+Den Keystore zusätzlich außerhalb dieser Cloud-Umgebung sicher aufbewahren;
+Actions-Secrets lassen sich später nicht wieder herunterladen. Eine private lokale
+Sicherung liegt unter `/workspace/.signing/bicycle-signing-backup.zip`.
+Private Schlüssel/Base64 niemals committen, in öffentliche Build-Artefakte aufnehmen
+oder im Chat ausgeben.
 
 Der aktuelle integrierte GitHub-Zugang verweigert die Secrets-API mit HTTP 403.
 Der Workflow selbst benötigt zum Lesen eines eingerichteten Secrets keine erweiterten
@@ -74,4 +97,13 @@ Workflow-Änderungen starten weiterhin automatisch einen Build.
 
 ## Optimierte APK ab 0.8
 
-Der Release-Build aktiviert R8-Codeoptimierung/Minifizierung und Ressourcenverkleinerung. Die APK ist nicht debuggable. Zur Update-Kompatibilität wird die bisherige Signatur beibehalten (Release verwendet dieselbe Signing-Konfiguration; bei fehlendem CI-Secret wird das Actions-Artefakt vor Veröffentlichung mit dem bisherigen Schlüssel nachsigniert). Mapping für spätere Fehleranalyse zusammen mit dem Meilenstein aufbewahren. Meilenstein 0.8 wird als Git-Tag und GitHub-Release mit dauerhaftem APK-Download gesichert.
+Der Release-Build aktiviert R8-Codeoptimierung/Minifizierung und Ressourcenverkleinerung. Die APK ist nicht debuggable. Release verwendet dieselbe Signing-Konfiguration wie Debug. Update-Kompatibilität erfordert denselben dauerhaft hinterlegten Schlüssel; ohne verfügbaren bisherigen Schlüssel kann Nachsignieren diese Kompatibilität nicht herstellen. Mapping für spätere Fehleranalyse zusammen mit dem Meilenstein aufbewahren. Meilenstein 0.8 wird als Git-Tag und GitHub-Release mit dauerhaftem APK-Download gesichert.
+
+## Verschlüsseltes Offline-Backup
+
+Am 20.10.2026 auf dem separaten Branch
+[`signing-key-backup-2026-10-20`](https://github.com/Titanyus/B-Cycle/tree/signing-key-backup-2026-10-20/signing-backup)
+gesichert: age-passwortverschlüsseltes ZIP, SHA-256 und Entschlüsselungsanleitung.
+Das separat mitgeteilte Passwort ist nicht auf GitHub gespeichert. Download über
+die GitHub-API und vollständige Entschlüsselung wurden gegen die lokale Original-ZIP
+geprüft. Hauptbranch und APK-Builds wurden dafür nicht geändert.

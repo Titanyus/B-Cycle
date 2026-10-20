@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "B-Cycle"
-include(":app")
+include(":app", ":hrv-core")

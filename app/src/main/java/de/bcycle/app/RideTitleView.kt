@@ -20,19 +20,32 @@ internal class RideTitleView(context:Context):TextView(context) {
         if(distance<=0 || !isAttachedToWindow || windowVisibility!=VISIBLE || !ValueAnimator.areAnimatorsEnabled()) { invalidate();return }
         val travel=distance/(30*resources.displayMetrics.density)*1000
         val total=1500f+travel+800f+700f
+        val easing=android.view.animation.AccelerateDecelerateInterpolator()
         motion=ValueAnimator.ofFloat(0f,total).apply {
             duration=total.toLong();repeatCount=ValueAnimator.INFINITE;interpolator=android.view.animation.LinearInterpolator()
             addUpdateListener {
                 val elapsed=it.animatedValue as Float
-                offset=distance*((elapsed-1500)/travel).coerceIn(0f,1f)
+                offset=distance*easing.getInterpolation(((elapsed-1500)/travel).coerceIn(0f,1f))
                 alpha=1-((elapsed-1500-travel-800)/700).coerceIn(0f,1f)
                 invalidate()
             };start()
         }
     }
     override fun onDraw(canvas:Canvas) {
-        val checkpoint=canvas.save();canvas.clipRect(paddingLeft,0,width-paddingRight,height);canvas.translate(-offset,0f)
-        super.onDraw(canvas);canvas.restoreToCount(checkpoint)
+        val textLayout=layout
+        val available=width-compoundPaddingLeft-compoundPaddingRight
+        if(textLayout==null || ellipsize!=null || paint.measureText(text.toString())<=available) {
+            super.onDraw(canvas);return
+        }
+        // TextView.onDraw clips to its viewport again after translation, hiding the
+        // unseen suffix. Draw its complete shaped layout inside one stationary clip.
+        val checkpoint=canvas.save()
+        canvas.clipRect(compoundPaddingLeft,0,width-compoundPaddingRight,height)
+        val top=extendedPaddingTop+(height-extendedPaddingTop-extendedPaddingBottom-textLayout.height)/2f
+        canvas.translate(compoundPaddingLeft-offset,top)
+        paint.color=currentTextColor;paint.drawableState=drawableState
+        textLayout.draw(canvas)
+        canvas.restoreToCount(checkpoint)
     }
     override fun onTextChanged(text:CharSequence?,start:Int,lengthBefore:Int,lengthAfter:Int) { super.onTextChanged(text,start,lengthBefore,lengthAfter);if(isAttachedToWindow) post { restart() } }
     override fun onSizeChanged(w:Int,h:Int,oldw:Int,oldh:Int) { super.onSizeChanged(w,h,oldw,oldh);restart() }

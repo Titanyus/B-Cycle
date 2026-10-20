@@ -55,6 +55,7 @@ internal class BikeUiConfigurationStore(private val prefs:SharedPreferences) {
         prefs.edit().putString(KEY,rows.toString()).apply()
     }
     fun save(slot:Int) { val rows=bank();rows.put(slot.toString(),encode(live()));prefs.edit().putString(KEY,rows.toString()).apply() }
+    internal fun backupBank(slot:Int)=bank().apply { put(slot.toString(),encode(live())) }.toString()
     fun apply(slot:Int) {
         val row=bank().optJSONObject(slot.toString()) ?: return
         val values=decode(row);val edit=prefs.edit()

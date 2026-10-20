@@ -55,7 +55,7 @@ internal class GpxLibrary(private val root: File) {
         return selected?.takeIf { file(it).isFile }?.let { file(it).inputStream().use(GpxImport::read) }
     }
     fun add(input: InputStream, name: String, select: Boolean = true, preserveDate: Boolean = false,
-        stableId:String?=null,bikeType:BikeType?=null,measurements:((GpxMeasurement)->Unit)?=null): GpxRoute {
+        stableId:String?=null,bikeType:BikeType?=null,origin:TrackOrigin=TrackOrigin.IMPORTED,measurements:((GpxMeasurement)->Unit)?=null): GpxRoute {
         val id = stableId ?: UUID.randomUUID().toString()
         require(entries.none { it.id==id })
         val stored = AtomicFile(file(id))
@@ -79,7 +79,7 @@ internal class GpxLibrary(private val root: File) {
             }
             val title = name.substringAfterLast('/').substringAfterLast('\\').removeSuffix(".gpx").removeSuffix(".GPX").trim().take(120).ifBlank { "GPX-Strecke" }
             save(entries + StoredGpx(id, title, route.originalPoints, route.segments,
-                RouteDetails(date ?: System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points), route.ascentM, route.movingMs,bikeType)), if (select) id else selected)
+                RouteDetails(date ?: System.currentTimeMillis(), route.distanceM, route.durationMs, routePreview(route.points), route.ascentM, route.movingMs,bikeType),origin), if (select) id else selected)
             return route
         } catch (e: Exception) { stored.delete(); throw e }
     }
@@ -88,6 +88,17 @@ internal class GpxLibrary(private val root: File) {
         val route = id?.let { file(it).inputStream().use(GpxImport::read) }
         save(entries, id)
         return route
+    }
+    internal fun restoreBackup(id:String,name:String,origin:TrackOrigin,details:RouteDetails,source:File):Boolean {
+        file(id)
+        source.inputStream().use(GpxImport::read)
+        if(entries.any { it.id==id }) {
+            require(WebDavClient.hash(file(id))==WebDavClient.hash(source)) { "Vorhandene Fahrt hat andere Daten" }
+            return false
+        }
+        source.inputStream().use { add(it,name,select=false,preserveDate=true,stableId=id,bikeType=details.bikeType) }
+        save(entries.map { if(it.id==id) it.copy(details=it.details.copy(dateMs=details.dateMs),origin=origin) else it },selected)
+        return true
     }
     fun delete(id: String) {
         require(entries.any { it.id == id })

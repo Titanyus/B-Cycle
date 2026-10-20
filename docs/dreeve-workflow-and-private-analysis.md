@@ -63,3 +63,15 @@ MockWebServer/Robolectric und vorhandene native FIT-Decoder. Kein vollständiger
   Abschlussprüfung: 42 gezielte Tests in ActivityServiceTest, DreeveImportNavigationTest,
   DreeveImportUiTest, DreeveWorkflowTest, FullscreenDialogTest und RouteManagerViewTest
   bestanden; keine Fehler oder übersprungenen Tests. Kein echtes Dreeve-Konto geprüft.
+
+## Vollständige Titellaufschrift
+
+Lange Titel in den Streckendetails zeichnen das vollständige Textlayout in einen
+festen Ausschnitt. Kein erneutes Clippen durch TextView nach der Verschiebung; auch
+die ursprünglich unsichtbaren letzten Zeichen werden sichtbar. Schriftgröße und
+Header bleiben unverändert. Die Laufschrift wartet zu Beginn 1,5 Sekunden, bewegt
+sich mit sanfter Beschleunigung und Verzögerung (Cosinus-Kurve, mittlere 30 dp/s),
+bleibt am vollständigen Ende 0,8 Sekunden stehen, blendet über 0,7 Sekunden aus und
+beginnt erneut. Kurze Titel bleiben zentriert; bei deaktivierten Systemanimationen
+gilt die bestehende statische Ellipsenanzeige. Ein nativer Render-Regressionstest
+prüft ausdrücklich ein farbiges Titelende außerhalb des anfänglichen Ausschnitts.
