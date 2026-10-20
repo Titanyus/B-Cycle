@@ -37,3 +37,7 @@ weiterhin kein direktes Update möglich.
 62 gepinnte NeuroKit2-Referenzfälle. Die Hosttests prüfen unter anderem
 Messablauf, BLE auf Android 13/15/16, Speicherung, Sicherung, Import und Darstellung.
 Echte Gurt-/Telefonprüfung und persönlicher WebDAV-Server bleiben praktisch zu prüfen.
+
+**[Geprüfte APK direkt herunterladen – Build 55](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk)**
+
+[Buildnachweis, Größe, SHA-256 und Signatur](build-55.md).

@@ -107,3 +107,9 @@ gesichert: age-passwortverschlüsseltes ZIP, SHA-256 und Entschlüsselungsanleit
 Das separat mitgeteilte Passwort ist nicht auf GitHub gespeichert. Download über
 die GitHub-API und vollständige Entschlüsselung wurden gegen die lokale Original-ZIP
 geprüft. Hauptbranch und APK-Builds wurden dafür nicht geändert.
+
+## 0.8.16 / Build 55
+
+[Build 55](build-55.md) ist mit dem dauerhaften Schlüssel von Build 53 signiert und
+als direkte optimierte Release-APK unter downloads/ veröffentlicht. Die seit 0.8.16
+verpflichtende Schlüssel- und Zertifikatsprüfung ist in diesem Lauf bestanden.

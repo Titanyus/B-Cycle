@@ -49,39 +49,40 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Aktuelle APK-Builds in GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)**
+**[Version 0.8.16 · Build 55 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk)**
 
-Bei jedem Push auf `main` entsteht automatisch eine optimierte Release-APK. Im erfolgreichen Lauf
-unter **Artifacts → B-Cycle-release-…** das ZIP herunterladen und die APK entpacken.
-GitHub-Anmeldung für den Artefakt-Download erforderlich; Artefakte bleiben 30 Tage erhalten.
-Manuell: **Actions → Android Optimized APK → Run workflow**.
+**Build 55 vom 20.10.2026 · 2,03 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug-Flag.
+Download, APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
+**Als Update über Build 53 installierbar.** Ältere, anders signierte Installationen
+(einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
+aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-Android 13+ (minSdk 33), Compile-/Target-SDK 36. Die Build-Zusammenfassung nennt
-Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist für
-Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
-Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
+[Änderungen in 0.8.16](docs/release-0.8.16.md) ·
+[Buildnachweis und SHA-256](docs/build-55.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39474797792) ·
+[Build-Anleitung und Signierung](docs/github-actions.md).
+106 gezielte Hosttests und 12 HRV-Kerntests bestanden, darunter 62 Referenzfälle.
+Echte Gurt-/Telefonprüfung und persönlicher WebDAV-Server bleiben praktisch zu prüfen.
 
-**[Version 0.8.15 · Build 53 – APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.15-release-53.apk)**
+Frühere APKs: [0.8.15 · Build 53](downloads/B-Cycle-0.8.15-release-53.apk) ·
+[0.8.14 · bisheriger Testschlüssel](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.14/downloads/B-Cycle-0.8.14.apk).
+Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
+Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
 
-**Build 53 vom 20.10.2026**, **1,93 MB**, direkter APK-Download ohne ZIP.
-Optimierter Release ohne Debug-Flag, mit R8 und Ressourcenverkleinerung.
-Erfolgreich gebaut und mit dem neuen dauerhaften
-Signierschlüssel signiert. Download und APK-Signatur wurden geprüft. Dieser Schlüssel
-ist für künftige Builds als GitHub-Actions-Secret hinterlegt.
-**Kein kompatibles Update für ältere, anders signierte Installationen – auch nicht
-für Build 52.** Bestehende Appdaten vor einem Installationswechsel sichern.
-[Änderungen in 0.8.15](docs/release-0.8.15.md) ·
-[Buildnachweis, SHA-256 und Signatur](docs/build-53.md).
+## Neu in APK 0.8.16
 
-**[Version 0.8.14 – bisherige updatekompatible APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.14/downloads/B-Cycle-0.8.14.apk)**
+- **HRV-Ruhemessung:** Herz-Button neben Start, Zeitkreis mit Puls und Countdown, Abbruch und RR-Livegraph im aktiven Theme. 30 Sekunden Ruhe, 180 Sekunden Messung über den vorhandenen Pulsmesser.
+- **Messungen dauerhaft speichern:** RMSSD, LnRMSSD, SDNN, pNN50 und Ruhepuls mit Rohdaten und Qualität wieder öffnen. Geringe RR-Abdeckung allein sperrt die Anzeige nicht; ein orangefarbener Hinweis nennt mögliche Verzerrung. Artefaktprüfungen bleiben aktiv.
+- **Vollständige Sicherung lokal oder per WebDAV:** Fahrten, Einstellungen, Fahrradbilder und HRV mit geprüften Metadaten und stabiler Fahrradzuordnung wiederherstellen.
+- **Import/Export transparent:** → IN / ← OUT erklären die unterstützten Wege. Dreeve-Fahrten bei der Fahrradzuordnung als Importiert oder Gefahren übernehmen, auch ohne GPX.
+- **Vollständige Titellaufschrift:** Lange Streckentitel werden bis zum Ende sichtbar, laufen weich an und aus, warten kurz und blenden vor dem Neustart aus.
 
-**Build 51 vom 20.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
-Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 136 gezielte Tests bestanden.
-[Änderungen und SHA-256](docs/build-51.md) ·
-[GitHub-Release](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.14) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39382081391).
-Der [Meilenstein 0.8](docs/milestone-0.8.md) mit vollständigem 608-Test-Lauf bleibt erhalten.
-Echte Cloudkonten und physisches Gerät sind noch zu prüfen.
+## Neu in APK 0.8.15
+
+- Trendindikator global per Schalter-Accordion und je Datenfeld auswählen; Chevrons kleiner, enger und mit abgestufter Deckkraft.
+- Dreeve-Liste aktualisiert sich nach jeder geladenen Seite vollständig; Import ohne konfigurierte Anbindung deaktiviert.
+- Strecken-Mehrfachauswahl mit TERTIARY-Hintergrund ohne Rahmen und ACCENT-Haken.
 
 ## Neu in APK 0.8.14
 
