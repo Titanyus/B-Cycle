@@ -12,12 +12,12 @@ import java.time.temporal.TemporalAdjusters
 
 /** Compact query menu with native dropdowns, retaining drafts until the menu is dismissed. */
 internal class RouteQueryPopup(private val context:Context,private val themes:ThemeManager,
-    private val navigation:DialogNavigation,private val query:RouteQuery,private val routes:List<ManagedRoute> = emptyList(),private val changed:()->Unit):PopupWindow() {
+    private val navigation:DialogNavigation,private val query:RouteQuery,private val routes:List<ManagedRoute> = emptyList(),private val profile:(String)->Int?={ RideProfileColor.slot(context,it) },private val changed:()->Unit):PopupWindow() {
     private val content=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL }
     internal var groupPopup:PopupWindow?=null;private set
     private val body=BicycleComponents.dialogBody(context,themes)
     private val availabilityUpdates=mutableListOf<(RouteFilterAvailability)->Unit>()
-    private val profileSlots by lazy { routes.associate { it.id to RideProfileColor.slot(context,it.id) } }
+    private val profileSlots by lazy { routes.associate { it.id to profile(it.id) } }
     private fun refreshAvailability() {
         if(availabilityUpdates.isEmpty()) return
         val available=query.availability(routes,{ profileSlots[it] })

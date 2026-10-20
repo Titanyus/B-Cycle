@@ -12,7 +12,7 @@ internal object DownloadFiles {
         val safeName = name.replace(Regex("[\\\\/:*?\"<>|\\p{Cntrl}]"), "_").take(180)
         val values = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, safeName)
-            put(MediaStore.Downloads.MIME_TYPE, if (source.extension.equals("fit", true)) "application/vnd.ant.fit" else "application/gpx+xml")
+            put(MediaStore.Downloads.MIME_TYPE, when(source.extension.lowercase()) { "fit"->"application/vnd.ant.fit";"json"->"application/json";else->"application/gpx+xml" })
             put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/B-Cycle")
             put(MediaStore.Downloads.IS_PENDING, 1)
         }

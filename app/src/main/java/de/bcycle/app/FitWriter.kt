@@ -27,7 +27,7 @@ object FitWriter {
         v?.takeIf { it.isFinite() && it in -180.0..180.0 }?.let { (it / 180 * 2147483648.0).roundToLong() } ?: 0x7fffffff)
     private fun string(id: Int, text: String) = Field(id, 7, text.toByteArray(Charsets.UTF_8) + byteArrayOf(0))
 
-    fun encode(journal: File, destination: File) {
+    fun encode(journal: File, destination: File, fullData:Boolean=false) {
         RandomAccessFile(destination, "rw").use { output ->
             output.setLength(0); output.write(ByteArray(14))
             val definitions = mutableMapOf<Int, String>()
@@ -50,7 +50,9 @@ object FitWriter {
                     output.write(ByteArray(8) { (bits ushr (it * 8)).toByte() })
                 }
             }
-            RideJournal.read(journal) { start, config, developerIds, records ->
+            RideJournal.read(journal) { start, selectedConfig, allDeveloperIds, records ->
+                val config=if(fullData) selectedConfig.copy(fields=RecordField.options.map { it.id }.toSet()) else selectedConfig
+                val developerIds=allDeveloperIds.filter { it in config.fields || it=="GPS_ALTITUDE_MSL" && "GPS_ALTITUDE" in config.fields }
                 val startStamp = timestamp(start).toDouble()
                 message(0, 0, listOf(en(0, 4), u16(1, 255.0), u16(2, 0.0), number(3, 0x8c, 4, 1), u32(4, startStamp)))
                 // Device metadata identifies the generating application, not a fabricated Garmin device.
@@ -85,7 +87,7 @@ object FitWriter {
                     val cadence = selected("CADENCE")
                     val height = selected("GPS_ALTITUDE").takeIf { v["GPS_ALTITUDE_MSL"] == 1.0 }
                     val grade = selected("GPS_GRADIENT")?.times(100)?.takeIf { it in -32768.0..32766.0 }?.roundToLong() ?: 32767
-                    message(4, 20, listOf(u32(253, timestamp(sample.utcMs).toDouble()), coord(0, sample.latitude), coord(1, sample.longitude),
+                    message(4, 20, listOf(u32(253, timestamp(sample.utcMs).toDouble()), coord(0, sample.latitude.takeIf { "GPS_POSITION" in config.fields }), coord(1, sample.longitude.takeIf { "GPS_POSITION" in config.fields }),
                         u16(2, height, 5.0, 500.0), u8(3, selected("HEART_RATE")), u8(4, cadence?.let { floor(it) }),
                         u32(5, distance, 100.0), u16(6, speed, 1000.0), u16(7, selected("RIDER_POWER")), number(9, 0x83, 2, grade),
                         u8(53, cadence?.let { it - floor(it) }, 128.0), u32(73, speed, 1000.0), u32(78, height, 5.0, 500.0),

@@ -30,14 +30,14 @@ class DreeveImportUiTest {
             row(0).performClick();row(1).performClick()
             view.findViewWithTag<View>("dreeve_import_more").performClick();assertEquals(listOf(1,2),pages)
             view.loaded(DreeveActivityPage(listOf(activity("b")),2,2,4),emptySet())
-            assertTrue(row(0).isChecked);row(3).performClick()
+            assertTrue(row(0).isChecked);row(1).performClick()
             view.findViewWithTag<View>("dreeve_import_selected").performClick()
             assertEquals(listOf("a","no-gpx","b"),chosen.map { it.id });assertFalse(row(0).isEnabled)
             view.progress(DreeveItemResult("a",DreeveImportState.IMPORTED,setOf(DreeveDataField.HEART)))
             view.complete(Result.success(DreeveImportResult(listOf(DreeveItemResult("a",DreeveImportState.IMPORTED,setOf(DreeveDataField.HEART)),
                 DreeveItemResult("b",DreeveImportState.FAILED,problem=R.string.dreeve_import_download_failed)))))
             assertFalse(row(0).isEnabled);assertTrue(row(0).text.contains("Puls"))
-            assertTrue(row(3).isEnabled && row(3).isChecked)
+            assertTrue(row(1).isEnabled && row(1).isChecked)
             assertTrue(view.findViewWithTag<TextView>("dreeve_import_status").text.contains("1 importiert"))
             assertEquals(View.GONE,view.findViewWithTag<View>("dreeve_import_more").visibility)
         } finally { host.pause().stop().destroy() }

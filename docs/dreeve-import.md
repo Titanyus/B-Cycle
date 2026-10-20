@@ -2,7 +2,7 @@
 
 Stand: 20.10.2026. GPX-Prototyp ab 0.8.13; Erweiterung um Zusammenfassungen lokal umgesetzt, noch keine neue APK.
 
-Streckenmanager → Strecke importieren → Aus Dreeve importieren öffnet eine eigene einfache Seite. Namen, Startdatum, Distanz, Sportart und GPX-/Zusammenfassungsverfügbarkeit anzeigen; eine oder mehrere Fahrten anhaken und importieren. „Mehr laden“ lädt weitere Seiten à 50 Einträge, vorhandene Auswahl bleibt erhalten. „Neu laden“ erneuert die Liste; „Konfigurieren“ öffnet die vorhandene Dreeve-Einstellung.
+Streckenmanager → Strecke importieren → Aus Dreeve importieren öffnet eine eigene einfache Seite. Namen, Startdatum, Distanz, Sportart und GPX-/Zusammenfassungsverfügbarkeit anzeigen; eine oder mehrere Fahrten anhaken und importieren. Alle Seiten werden automatisch in 50er-Anfragen geladen. „Mehr laden“ setzt nach einem Abruffehler fort; vorhandene Auswahl bleibt erhalten. „Neu laden“ erneuert die Liste; „Konfigurieren“ öffnet die vorhandene Dreeve-Einstellung.
 
 ## Schnittstelle und Daten
 
@@ -25,6 +25,10 @@ DreeveSummaryLibrary speichert pro Aktivität eine atomare JSON-Datei mit den er
 Alle Bibliotheksänderungen auf MapStates bestehendem einzelnen Worker. Stabile lokale UUID für GPX und Zusammenfassung aus Dreeve-Instanzidentität und Aktivitäts-ID; Zuordnung über RideServiceLinks inklusive Dateihash bestätigen. Bereits zu Dreeve hochgeladene, lokal vorhandene FIT-Fahrten anhand ihrer bestätigten externen ID ebenfalls überspringen. Keine Erkennung beliebiger früherer Dateiimporte ohne externe ID anhand unsicherer Namens-/Distanzvergleiche.
 
 Jede Fahrt separat übernehmen; ein Fehler blockiert andere Auswahlen nicht. Fehlerhafte Zeilen bleiben für erneuten Versuch auswählbar. Fehlgeschlagene Bestätigung neuer Einträge zurückrollen; temporäre Downloads immer entfernen. Schließen beendet weitere Abrufe/Importe, bereits erfolgreich übernommene Fahrten bleiben erhalten. Bestehende Karten-/Streckenauswahl bleibt erhalten. Kein automatischer Cloud-Upload von Importen.
+
+## Erweiterung: vollständige Seite und Zuordnung
+
+Filter/Sortierung gemeinsam mit dem Manager, automatische Seitennachladung, Fahrradzuordnung und Namensabgleich sind umgesetzt. Architektur und aktuelle Verifikation: [Dreeve-Workflow und private Auswertung](dreeve-workflow-and-private-analysis.md).
 
 ## Prüfung
 

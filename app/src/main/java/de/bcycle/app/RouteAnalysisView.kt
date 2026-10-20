@@ -96,6 +96,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                 }
             }
         }
+        body.addView(android.widget.Space(context).apply { tag="analysis_identity_gap" },LinearLayout.LayoutParams(-1,dp(10)))
         var groupsShown=0
         AnalysisGroups.groups.forEach { (heading, alternatives) ->
             val canCorrect=analysis.entry.format=="FIT" && analysis.entry.origin==TrackOrigin.RECORDED && analysis.entry.hasRoute
@@ -108,7 +109,6 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                 })
                 val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; tag = "analysis_group_$heading"; isBaselineAligned = false }
                 available.forEachIndexed { index, metrics ->
-                    if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f; tag = "analysis_vertical_divider" }, LinearLayout.LayoutParams(BicycleDesign.linePixels(context), -1))
                     row.addView(AnalysisMetricTile(context, themes, metrics, analysis.metrics), LinearLayout.LayoutParams(0, -1, 1f))
                 }
                 val section = LinearLayout(context).apply {
@@ -141,7 +141,6 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                 addView(AnalysisSideLabel(context, themes, R.string.analysis_best_efforts), LinearLayout.LayoutParams(dp(BicycleDesign.analysisSideLabelWidth), -1))
             }
             analysis.bestEfforts.take(4).sortedBy { it.durationMs }.forEachIndexed { index, effort ->
-                if (index > 0) row.addView(BicycleComponents.divider(context, themes).apply { alpha = .2f }, LinearLayout.LayoutParams(BicycleDesign.linePixels(context), -1))
                 row.addView(BestEffortTile(context, themes, effort, weight), LinearLayout.LayoutParams(0, -1, 1f))
             }
             body.addView(row, LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisTileMinHeight)))
@@ -304,9 +303,10 @@ internal fun analysisHeader(context: Context, themes: ThemeManager, entry: Manag
     BicycleComponents.header(context, themes).apply {
         tag = "route_analysis_header"; setPadding(BicycleDesign.dp(context, BicycleDesign.smallGap), 0, BicycleDesign.dp(context, BicycleDesign.verticalPadding), 0)
         addView(BicycleComponents.icon(context, themes, BicycleIcon.Back, context.getString(R.string.analysis_back), back))
-        addView(BicycleComponents.heading(context, themes, entry.name).apply {
-            ellipsize = TextUtils.TruncateAt.END; contentDescription = entry.name; tag = "analysis_title"
+        addView(RideTitleView(context).apply {
+            text=entry.name;tag="analysis_title"
+            BicycleComponents.bindTheme(this,themes) { setTextColor(BicycleComponents.textColor(this,themes,it)) }
+            contentDescription = entry.name; tag = "analysis_title"
             if(rename!=null) { isFocusable=true;setOnClickListener { rename() } }
-            setAutoSizeTextTypeUniformWithConfiguration(18, BicycleDesign.headingSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
         }, LinearLayout.LayoutParams(0, -1, 1f))
     }

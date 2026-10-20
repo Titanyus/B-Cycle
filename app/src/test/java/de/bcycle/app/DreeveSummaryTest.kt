@@ -76,10 +76,10 @@ class DreeveSummaryTest {
             val activity=api.activities().activities.single()
             assertEquals("/api/v1/activities",server.takeRequest().requestUrl!!.encodedPath)
             var imported:Result<DreeveImportResult>?=null
-            state.importDreeve(target,listOf(activity),api,{false},{},{ imported=it })
+            state.importDreeve(target,listOf(activity),api,{false},{},{ imported=it },mappings=mapOf("gear-matrix" to BikeProfileStore(c,c.getSharedPreferences("bike",0)).current().slot))
             await { imported!=null && !state.busy };assertEquals(1,imported!!.getOrThrow().count(DreeveImportState.IMPORTED))
             val entry=state.entries.single()
-            assertEquals("JSON",entry.format);assertTrue(entry.locallySaved);assertFalse(entry.hasRoute);assertEquals(TrackOrigin.IMPORTED,entry.origin)
+            assertEquals(BikeProfileStore(c,c.getSharedPreferences("bike",0)).current().slot,RideProfileColor.slot(c,entry.id));assertEquals("JSON",entry.format);assertTrue(entry.locallySaved);assertFalse(entry.hasRoute);assertEquals(TrackOrigin.IMPORTED,entry.origin)
             assertEquals(12000.0,entry.details.distanceM!!,0.0);assertEquals(2400000L,entry.details.durationMs);assertEquals(2300000L,entry.details.movingMs)
             assertNull(state.route);assertNull(state.selectedRoute);assertEquals(setOf(activity.id),state.existingDreeve(target,listOf(activity)))
             var analysis:Result<RouteAnalysis>?=null

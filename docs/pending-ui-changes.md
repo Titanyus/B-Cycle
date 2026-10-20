@@ -4,7 +4,7 @@
 
 Nur vorgemerkt, noch nicht umgesetzt und nicht Bestandteil der gerade gebauten APK 0.8.9. Vom Nutzer für einen späteren optischen Test gewünscht:
 
-- Vertikale Trennstriche in den Streckendetails ausblenden.
+- Vertikale Trennstriche: inzwischen am 20.10.2026 umgesetzt, einschließlich Best-Efforts-Trenner; noch keine neue APK.
 - Icons bei allen Fahrdaten ausblenden, außer im Bereich „Allgemeine Daten“.
 - Einen horizontalen Trennstrich zwischen dem Kopf mit Fahrradname/Datum und dem Bereich „Allgemeine Daten“ ergänzen.
 

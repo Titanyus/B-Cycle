@@ -32,3 +32,7 @@ Keine neue APK gebaut; der Fix ist eine Quellcodeänderung nach Version 0.7.15.
 FitRead nutzt für fehlende Standard-Distanz/Geschwindigkeit dieselben eigenen Developer-Field-Fallbacks wie RouteAnalysisRead. Die gemeinsame Prüfung FitDeveloperValues akzeptiert nur definierte skalare Felder unserer App-UUID mit passender Einheit und endlichen nichtnegativen Werten. Der Bibliotheksindex erhält detailsVersion=1; ältere Indexeinträge werden im vorhandenen Worker einmalig neu gelesen, einschließlich GPS-Vorschau und hasRoute. Dateiname, Benutzertitel, ursprüngliches Listendatum, interne ID und FIT-Original bleiben erhalten.
 
 Ohne aufgezeichnete GPS-Koordinaten kann keine echte Kartenstrecke rekonstruiert werden. Vorhandene Distanz- oder Geschwindigkeitssensoren sind kein Ersatz für Positionsdaten.
+
+## Private Vollauswertung und begrenzter FIT-Export (20.10.2026)
+
+Das BCY7-Journal bewahrt verfügbare Rohwerte während der Aufnahme unabhängig von der FIT-Feldauswahl. Die Auswahl wird gesondert erhalten und im normalen FitWriter vollständig angewandt, einschließlich Entwicklerfeldern und GPS. Private vollständige Auswertungsquelle und reduzierter Export sind getrennt. Die bestehenden START/STOPP-, Sensor- und GPS-Grenzen bleiben erhalten. Details: [Private Auswertung](dreeve-workflow-and-private-analysis.md). Ältere bereits verworfene Daten bleiben verloren.

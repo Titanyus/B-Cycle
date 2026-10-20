@@ -3,6 +3,7 @@ package de.bcycle.app
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSink
 import org.json.JSONArray
 import org.json.JSONObject
@@ -52,6 +53,12 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         val activity=when(parsed) { is JSONArray -> if(parsed.length()==1) parsed.optJSONObject(0) else null;is JSONObject->parsed;else->null }
         val id=activity?.optString("id")?.takeIf { it.isNotBlank() && it!="null" }
         return id ?: throw IntervalsFailure(false,R.string.intervals_response_failed)
+    }
+    fun rename(activityId:String,name:String) {
+        require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
+        val url=base.newBuilder().addPathSegment("activity").addPathSegment(activityId).build()
+        val body=JSONObject().put("name",name).toString().toRequestBody("application/json".toMediaType())
+        execute(request("").url(url).put(body).build())
     }
     companion object {
         private val client=OkHttpClient.Builder().followRedirects(false).followSslRedirects(false)

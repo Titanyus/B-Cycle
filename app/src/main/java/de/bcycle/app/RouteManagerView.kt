@@ -33,6 +33,12 @@ internal class RouteManagerView(context: Context,
     private var importStatus = ""
     internal val query=RouteQuery()
     var queryChanged:()->Unit={}
+    var selectionChanged:()->Unit={}
+    private val checked=linkedSetOf<String>()
+    val checkedIds get()=checked.toSet()
+    val selecting get()=checked.isNotEmpty()
+    fun clearSelection() { checked.clear();updateStatus();rows.notifyDataSetChanged();selectionChanged() }
+    private fun toggleSelection(id:String) { if(!checked.add(id)) checked.remove(id);updateStatus();rows.notifyDataSetChanged();selectionChanged() }
     fun refreshQuery() { updateRows();queryChanged() }
     private var queryPopup:RouteQueryPopup?=null
     fun showFilters(anchor:View,navigation:DialogNavigation) {
@@ -93,7 +99,7 @@ internal class RouteManagerView(context: Context,
         }
     }
     fun submit(entries: List<ManagedRoute>, active: String?, working: Boolean) {
-        all = entries; selected = active; busy = working; updateRows()
+        all = entries; selected = active; busy = working;checked.retainAll(entries.map { it.id }.toSet());updateRows();selectionChanged()
     }
     fun showImportStatus(text: String) {
         if (importStatus == text) return
@@ -101,7 +107,7 @@ internal class RouteManagerView(context: Context,
         updateStatus()
     }
     private fun updateStatus() {
-        BicycleFeedback.update(status, importStatus.ifEmpty {
+        BicycleFeedback.update(status, if(selecting) context.getString(R.string.route_selection_count,checked.size) else importStatus.ifEmpty {
             if (!busy && filtered.isEmpty()) context.getString(R.string.ui_routes_empty) else ""
         }, hideWhenEmpty = true)
     }
@@ -170,7 +176,8 @@ internal class RouteManagerView(context: Context,
         }
         init {
             orientation = VERTICAL; gravity = Gravity.TOP
-            setOnClickListener { entry?.takeIf { !busy }?.let(details) }
+            setOnClickListener { entry?.takeIf { !busy }?.let { if(selecting) toggleSelection(it.id) else details(it) } }
+            setOnLongClickListener { entry?.takeIf { !busy }?.let { toggleSelection(it.id) };true }
             setPadding(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.rowGap))
             addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
@@ -203,7 +210,7 @@ internal class RouteManagerView(context: Context,
         private fun paintState(tokens: ThemeTokens) {
             preview.foreground = tokens.foreground
             val route = entry ?: return
-            origin.setImageDrawable(BicycleIcons.drawable(context, when (route.origin) {
+            origin.setImageDrawable(BicycleIcons.drawable(context, if(route.id in checked) BicycleIcon.Check else when (route.origin) {
                 TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
             }, tokens.foreground))
             val eyeKind = if (selected == route.id) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
@@ -211,8 +218,10 @@ internal class RouteManagerView(context: Context,
             eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, selected != route.id))
         }
         fun bind(route: ManagedRoute) {
+            isActivated=route.id in checked
+            background=if(isActivated) BicycleComponents.controlBackground(context,themes.active.tokens) else null
             entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
-            contentDescription = context.getString(R.string.analysis_open, route.name)
+            contentDescription = context.getString(R.string.analysis_open, route.name)+(if(route.id in checked) " · "+context.getString(R.string.route_selected) else "")
             title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name
             origin.contentDescription = when (route.origin) { TrackOrigin.IMPORTED -> context.getString(R.string.ui_route_imported); TrackOrigin.RECORDED -> context.getString(R.string.ui_route_recorded); TrackOrigin.UNKNOWN -> context.getString(R.string.ui_route_unknown_origin) }
             profileColor.tag="route_profile_color_${route.id}"
@@ -233,7 +242,7 @@ internal class RouteManagerView(context: Context,
             average.bind(route.details.movingAverageKmh?.let { String.format(Locale.GERMANY, "%.1f", it) }, route.id, "average")
             metrics.tag = "route_metrics_${route.id}"
             preview.points = route.details.preview; preview.contentDescription = if (route.hasRoute) context.getString(R.string.ui_route_preview) else context.getString(R.string.ui_route_no_gps)
-            eye.visibility=if(route.hasRoute) VISIBLE else GONE
+            eye.visibility=if(route.hasRoute && !selecting) VISIBLE else GONE
             eye.tag = "route_eye_${route.id}"; eye.isEnabled = !busy && route.hasRoute && route.locallySaved
             eye.contentDescription = context.getString(if (selected == route.id) R.string.route_list_hide_named else R.string.route_list_show_named, route.name)
             paintState(themes.active.tokens)

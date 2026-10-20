@@ -69,7 +69,7 @@ class RouteAnalysisUpdateTest {
         val power = all(screen).filterIsInstance<AnalysisMetricTile>().filter { it.alternatives.first() in listOf(AnalysisMetric.AVG_POWER, AnalysisMetric.MAX_POWER, AnalysisMetric.NP) }
         assertEquals(3, power.size)
         assertTrue(power.filter { it.alternatives.first() != AnalysisMetric.MAX_POWER }.all { all(it).filterIsInstance<TextView>().any { v -> v.text.toString() == context.getString(R.string.analysis_missing) } })
-        assertEquals(2, all(screen).count { it.tag == "analysis_vertical_divider" })
+        assertEquals(0, all(screen).count { it.tag == "analysis_vertical_divider" })
         val date = screen.findViewWithTag<TextView>("analysis_date"); assertEquals(android.view.Gravity.CENTER, date.gravity)
     }
 }

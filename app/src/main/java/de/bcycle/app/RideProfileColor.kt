@@ -11,6 +11,16 @@ internal object RideProfileColor {
         val bikes=BikeProfileStore(context,prefs)
         return JSONObject().put("slot",bikes.activeSlot).put("primary",ThemeManager(prefs).baseTokens.primary).put("name",bikes.current().name).toString()
     }
+    fun assign(context:Context,id:String,slot:Int) {
+        val prefs=context.getSharedPreferences("bike",0);val bikes=BikeProfileStore(context,prefs)
+        val profile=bikes.all().singleOrNull { it.slot==slot } ?: return
+        val stored=JSONObject(prefs.getString(BikeUiConfigurationStore.KEY,"{}")!!).optJSONObject(slot.toString())
+            ?.optJSONObject(ThemeManager.activeKey)?.optString("value")
+        val primary=if(bikes.activeSlot==slot) ThemeManager(prefs).baseTokens.primary else
+            BicycleThemes.findPreset(stored)?.tokens?.primary ?: ThemeManager(prefs).baseTokens.primary
+        confirm(context,id,JSONObject().put("slot",slot).put("name",profile.name).put("primary",primary).toString())
+    }
+    fun forget(context:Context,id:String) { check(context.getSharedPreferences(STORE,0).edit().remove(id).commit()) }
     fun confirm(context:Context,id:String,json:String) {
         val row=JSONObject(json);row.getInt("slot");row.getInt("primary")
         check(context.getSharedPreferences(STORE,0).edit().putString(id,row.toString()).commit())

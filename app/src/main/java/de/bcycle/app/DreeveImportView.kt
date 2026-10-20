@@ -11,6 +11,16 @@ import java.util.Locale
 /** Deliberately small test screen; loading and library mutation remain outside the view. */
 internal class DreeveImportView(context:Context,private val themes:ThemeManager,
     private val loadPage:(Int)->Unit,private val importSelection:(List<DreeveActivity>)->Unit,configure:()->Unit):LinearLayout(context) {
+    var navigation:DialogNavigation?=null
+    var profileFor:(DreeveActivity)->Int?={null}
+    var gearNames:Map<String,String> = emptyMap()
+    private val query=RouteQuery()
+    private var queryPopup:RouteQueryPopup?=null
+    private lateinit var filterButton:View
+    private lateinit var sortButton:View
+    private lateinit var selectAllButton:View
+    private lateinit var configureButton:View
+    private var visible=emptyList<DreeveActivity>()
     private val activities=mutableListOf<DreeveActivity>()
     private val selected=mutableSetOf<String>()
     private val existing=mutableSetOf<String>()
@@ -25,11 +35,11 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
         if(items.isNotEmpty() && !loading && !importing) { importing=true;controls();adapter.notifyDataSetChanged();importSelection(items) }
     }.apply { tag="dreeve_import_selected" }
     private val adapter=object:BaseAdapter() {
-        override fun getCount()=activities.size
-        override fun getItem(position:Int)=activities[position]
+        override fun getCount()=visible.size
+        override fun getItem(position:Int)=visible[position]
         override fun getItemId(position:Int)=position.toLong()
         override fun getView(position:Int,recycled:View?,parent:ViewGroup):View {
-            val item=activities[position]
+            val item=visible[position]
             val row=(recycled as? CheckBox) ?: CheckBox(context).apply {
                 textSize=BicycleDesign.bodySp;minHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
                 val gap=BicycleDesign.dp(context,BicycleDesign.controlGap);setPadding(gap,gap,gap,gap)
@@ -50,7 +60,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
             val date=runCatching { LocalDateTime.parse(item.startLocal).format(DateTimeFormatter.ofLocalizedDateTime(java.time.format.FormatStyle.SHORT)) }
                 .getOrDefault(item.startLocal.ifBlank { "—" })
             val distance=item.distanceM?.let { String.format(Locale.getDefault(),"%.1f km",it/1000) }.orEmpty()
-            row.text=listOf(item.name,listOf(date,distance,item.sportType).filter { it.isNotBlank() }.joinToString(" · "),state).joinToString("\n")
+            row.text=listOf(item.name,listOf(date,distance,item.summary.metrics[AnalysisMetric.ELAPSED]?.let { seconds -> context.getString(R.string.dreeve_duration_format,seconds.toInt()/3600,seconds.toInt()/60%60) }.orEmpty(),item.summary.gearId?.let { gearNames[it] ?: it }.orEmpty(),item.sportType).filter { it.isNotBlank() }.joinToString(" · "),state).joinToString("\n")
             row.isChecked=item.id in selected
             row.isEnabled=item.id !in existing && !loading && !importing
             row.alpha=if(row.isEnabled) 1f else .5f
@@ -61,39 +71,71 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
     init {
         orientation=VERTICAL;tag="dreeve_import_screen"
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
-        val gap=BicycleDesign.dp(context,BicycleDesign.controlGap)
+        val gap=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
         addView(BicycleComponents.description(context,themes,context.getString(R.string.dreeve_import_description)),LayoutParams(-1,-2).apply { setMargins(gap,gap,gap,gap) })
         addView(status,LayoutParams(-1,-2).apply { setMargins(gap,0,gap,gap) })
         addView(ListView(context).apply {
+            val edge=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
+            setPadding(edge,0,edge,BicycleDesign.dp(context,BicycleDesign.pageContentGap));clipToPadding=false
             tag="dreeve_import_list";BicycleComponents.scrollStyle(this)
             addFooterView(more,null,false);adapter=this@DreeveImportView.adapter
         },LayoutParams(-1,0,1f))
         addView(bicycleFooter(context,themes).apply {
+            addView(BicycleFooterAction(context,themes,BicycleIcon.Filter,context.getString(R.string.route_filter_button)) { queryAction(true) }.apply { tag="dreeve_filters";filterButton=this },LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
+            addView(BicycleFooterAction(context,themes,BicycleIcon.Sort,context.getString(R.string.route_sort_button)) { queryAction(false) }.apply { tag="dreeve_sort";sortButton=this },LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
+            addView(BicycleFooterAction(context,themes,BicycleIcon.Check,context.getString(R.string.dreeve_select_filtered)) {
+                if(!loading && !importing) {
+                    val ids=visible.filter { it.id !in existing }.map { it.id }.toSet()
+                    if(selected.containsAll(ids)) selected.removeAll(ids) else selected.addAll(ids)
+                    controls();adapter.notifyDataSetChanged()
+                }
+            }.apply { tag="dreeve_select_filtered";selectAllButton=this },LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
             addView(reload,LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
             addView(importAction,LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
-            addView(BicycleFooterAction(context,themes,BicycleIcon.SettingsOptions,context.getString(R.string.dreeve_import_configure),click=configure).apply { tag="dreeve_import_configure" },LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
+            addView(BicycleFooterAction(context,themes,BicycleIcon.SettingsOptions,context.getString(R.string.dreeve_import_configure),click=configure).apply { tag="dreeve_import_configure";configureButton=this },LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.footerHeight),1f))
         },LayoutParams(-1,-2))
         controls()
     }
+    private fun refreshQuery() {
+        val indexed=activities.associateBy { it.id }
+        visible=query.apply(activities.map { StoredDreeveSummary(it.id,it).managed() },{ id -> indexed[id]?.let(profileFor) }).mapNotNull { indexed[it.id] }
+        adapter.notifyDataSetChanged()
+    }
+    private fun queryAction(filters:Boolean) {
+        val navigation=navigation ?: return
+        val anchor=if(filters) filterButton else sortButton
+        val routes=activities.map { StoredDreeveSummary(it.id,it).managed() }
+        queryPopup?.dismiss()
+        queryPopup=RouteQueryPopup(context,themes,navigation,query,routes,{ id -> activities.find { it.id==id }?.let(profileFor) }) { refreshQuery() }.also {
+            if(filters) it.filters { queryAction(true) } else it.sorting()
+            it.show(anchor)
+        }
+    }
+    override fun onDetachedFromWindow() { queryPopup?.dismiss();super.onDetachedFromWindow() }
     private fun controls() {
+        if(::filterButton.isInitialized) filterButton.isEnabled=!loading && !importing
+        if(::sortButton.isInitialized) sortButton.isEnabled=!loading && !importing
+        if(::selectAllButton.isInitialized) selectAllButton.isEnabled=!loading && !importing
+        if(::configureButton.isInitialized) configureButton.isEnabled=!importing
         reload.isEnabled=!loading && !importing
         more.isEnabled=!loading && !importing
         importAction.isEnabled=selected.isNotEmpty() && !loading && !importing
         importAction.setLabel(context.getString(R.string.dreeve_import_selection,selected.size))
     }
+    fun cancelImport() { importing=false;controls();adapter.notifyDataSetChanged() }
     fun refresh() { if(!loading && !importing) requestPage(1) }
     private fun requestPage(page:Int) {
         loading=true;controls();adapter.notifyDataSetChanged()
         BicycleFeedback.update(status,context.getString(R.string.dreeve_import_loading))
         loadPage(page)
     }
-    fun loaded(page:DreeveActivityPage,known:Set<String>) {
+    fun loaded(page:DreeveActivityPage,known:Set<String>,continuing:Boolean=false) {
         if(page.page==1) { activities.clear();selected.clear();existing.clear();results.clear() }
         val ids=activities.map { it.id }.toSet()
         activities.addAll(page.activities.filter { it.id !in ids });existing.addAll(known);selected.removeAll(existing)
         nextPage=if(page.page<page.totalPages) page.page+1 else null
         more.visibility=if(nextPage!=null) VISIBLE else GONE
-        loading=false;controls();adapter.notifyDataSetChanged()
+        loading=continuing;controls();refreshQuery()
         BicycleFeedback.update(status,context.getString(R.string.dreeve_import_loaded,activities.size,page.total))
     }
     fun failed(problem:Int) {
@@ -103,7 +145,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
     fun progress(item:DreeveItemResult) {
         results[item.id]=item
         if(item.state in setOf(DreeveImportState.IMPORTED,DreeveImportState.DUPLICATE)) { existing.add(item.id);selected.remove(item.id) }
-        controls();adapter.notifyDataSetChanged()
+        controls();refreshQuery()
     }
     fun complete(result:Result<DreeveImportResult>) {
         result.fold({ summary ->

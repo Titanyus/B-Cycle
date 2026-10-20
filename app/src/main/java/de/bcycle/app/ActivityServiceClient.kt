@@ -3,6 +3,7 @@ package de.bcycle.app
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSink
 import org.json.JSONObject
 import java.io.File
@@ -69,6 +70,24 @@ internal class DreeveClient(config:ActivityServiceConfig,private val key:String,
             .addQueryParameter("pagination[page]",page.toString()).addQueryParameter("pagination[size]","50")
             .addQueryParameter("filters[sportType]","Ride,VirtualRide,EBikeRide,MountainBikeRide,GravelRide,EMountainBikeRide").build()
         return DreeveActivityPage.decode(http.json(request("activities").url(url).build()),page)
+    }
+    fun allActivities(startPage:Int=1,received:(DreeveActivityPage)->Unit) {
+        var page=startPage
+        do { val data=activities(page);received(data);page=data.page+1 } while(page<=data.totalPages)
+    }
+    fun gears():Map<String,String> {
+        val array=http.json(request("gear").build()).getJSONArray("gear")
+        return (0 until array.length()).mapNotNull { i -> val row=array.getJSONObject(i)
+            row.validId("id")?.let { it to row.getString("name").take(120) } }.toMap()
+    }
+    fun activityName(activityId:String):String {
+        val url=request("activities").build().url.newBuilder().addPathSegment(activityId).build()
+        return http.json(request("activities").url(url).build()).getString("name").trim().take(120).also { require(it.isNotBlank()) }
+    }
+    fun rename(activityId:String,name:String) {
+        val url=request("activities").build().url.newBuilder().addPathSegment(activityId).build()
+        val body=JSONObject().put("name",name).toString().toRequestBody("application/json".toMediaType())
+        http.json(request("activities").url(url).patch(body).build())
     }
     fun downloadGpx(activityId:String,file:File) {
         require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
@@ -139,6 +158,10 @@ internal class StravaClient(private val settings:ActivityServiceSettings,private
         val activity=result.validId("activity_id")
         if(activity!=null && !activity.matches(Regex("[0-9]{1,20}"))) throw ActivityServiceFailure(false,R.string.service_response_failed)
         return UploadProgress(id,activity)
+    }
+    fun rename(activityId:String,name:String) {
+        require(activityId.matches(Regex("[0-9]{1,20}")))
+        http.json(request("activities/$activityId").put(FormBody.Builder().add("name",name).build()).build())
     }
     companion object { private val tokenLock=Any() }
 }

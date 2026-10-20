@@ -73,7 +73,7 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
                 if(it.optString("target")==config.identity(service) && it.optString("state")=="failed" && it.optString("problem")=="auth")
                     it.put("state",if(it.optString("job").isEmpty()) "pending" else "processing")
             };save(c,all)
-        };schedule(c)
+        };schedule(c);RideNames.settingsChanged(c)
     }
     private fun update(c:Context,operation:String,change:(JSONObject)->Unit)=synchronized(lock) {
         val all=entries(c);val item=all.optJSONObject(operation) ?: return@synchronized
@@ -117,6 +117,7 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
                             if(entries(c).has(operation)) {
                                 RideServiceLinks.confirm(c,RideServiceLink(id,service.link,target,result.activityId,item.getString("hash")))
                                 update(c,operation) { it.put("state","saved").put("remoteId",result.activityId).remove("problem") }
+                                RideNames.confirmed(c,RideServiceLink(id,service.link,target,result.activityId,item.getString("hash")))
                             }
                         }
                         break
@@ -159,6 +160,7 @@ abstract class ActivityUploadService:JobService() {
     override fun onStartJob(params:JobParameters):Boolean {
         val token=AtomicBoolean(false);stopped=token
         Thread({ val retry=try { ActivityServiceUploads.forService(provider).run(applicationContext,token::get,confirmationWait=ActivityServiceUploads::waitForConfirmation) } catch(_:Exception) { true }
+            if(!token.get() && provider==ActivityService.DREEVE) runCatching { RideNames.run(applicationContext,token::get) }
             if(!token.get()) jobFinished(params,retry)
         },"B-Cycle-${provider.name}").start();return true
     }

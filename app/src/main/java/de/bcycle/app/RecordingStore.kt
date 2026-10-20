@@ -76,6 +76,7 @@ class RecordingStore(private val context: Context, private val changed: (String,
             FitWriter.encode(source, encoded)
             val original = FitLibrary.retainRecording(context.filesDir, encoded)
             retained = true
+            RideAnalysisFiles.retain(context.filesDir,original.nameWithoutExtension,source)
             val appearance=File(directory,source.nameWithoutExtension+".profile.json")
             if(appearance.isFile) runCatching { RideProfileColor.confirm(context,original.nameWithoutExtension,appearance.readText()) }
             var correctionFailed=false

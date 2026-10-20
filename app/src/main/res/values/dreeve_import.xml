@@ -24,7 +24,19 @@
     <string name="dreeve_field_cadence">Kadenz</string>
     <string name="dreeve_field_temperature">Temperatur</string>
     <string name="help_dreeve_import_heading">Fahrten aus Dreeve</string>
-    <string name="help_dreeve_import_body">Lade die Fahrtenliste mit der gespeicherten Dreeve-Adresse und deinem API-Schlüssel. Der Upload-Schalter bleibt davon unabhängig. Mehr laden ruft die nächste Seite ab. Hake eine oder mehrere Fahrten an und tippe auf Importieren. Fahrten ohne GPX können als Zusammenfassung übernommen werden: etwa Dauer, Distanz, Durchschnitt und Maximum von Leistung oder Puls, soweit vorhanden. Es gibt dann keine Karte, Diagramme, Best Efforts oder Zonenanteile. Die Zusammenfassung wird als JSON gespeichert; sie ist keine Original-FIT-Datei. Bekannte Dreeve-Zuordnungen verhindern doppelte Importe. Der Testimport speichert den GPX-Export samt Sensorerweiterungen; Leistungs-, Puls- und Kadenzverläufe werden in den Details angezeigt, soweit mitgeliefert. Temperatur bleibt in der Originaldatei erhalten. Die API bietet keinen Original-FIT-Download. Nach einem Fehler können die übrigen ausgewählten Fahrten weiter importiert werden. Es erfolgt kein automatischer Upload zu anderen Diensten.</string>
+    <string name="help_dreeve_import_body">Die Fahrtenliste wird automatisch vollständig geladen. Nach einem Abruffehler setzt Mehr laden an der erreichten Seite fort; Neu laden beginnt von vorn. Filter und Sortierung funktionieren wie im Streckenmanager. Alle gefilterten markiert die aktuell gefilterten, noch nicht importierten Fahrten. Vor dem Import kannst du Dreeve-Fahrräder deinen angelegten Profilen zuordnen. Diese Zuordnung bleibt für weitere Importe gespeichert; ohne Zuordnung wird kein Fahrrad geraten. Fahrten mit GPX erhalten verfügbare Sensorverläufe und die daraus berechenbaren Auswertungen. Ohne GPX werden nur verfügbare Kennzahlen als Zusammenfassung übernommen, ohne Karte, Best Efforts oder Zonenanteile. Bekannte externe IDs verhindern doppelte Importe. Der Dreeve-Haken bedeutet verknüpft und löst keinen erneuten Upload aus. Importierte Fahrten werden nicht automatisch zu anderen Diensten hochgeladen.</string>
     <string name="dreeve_import_summary_imported">Zusammenfassung importiert</string>
     <string name="dreeve_summary_notice">Dreeve-Zusammenfassung: verfügbare Kennzahlen ohne GPS-Spur und Messwertverläufe. Keine Original-FIT-Datei.</string>
+    <string name="dreeve_bikes_title">Fahrräder zuordnen</string>
+    <string name="dreeve_import_start">Importieren</string>
+    <string name="dreeve_linked">Mit Dreeve verknüpft</string>
+    <string name="route_selected">Ausgewählt</string>
+    <string name="route_selection_count">%1$d Fahrten ausgewählt</string>
+    <string name="route_delete_count">Löschen (%1$d)</string>
+    <string name="route_delete_many_title">Ausgewählte Fahrten entfernen?</string>
+    <string name="route_delete_many_message">%1$d Fahrten aus der lokalen Sammlung entfernen? Vorhandene Downloads und Fahrten bei Clouddiensten bleiben erhalten.</string>
+    <string name="dreeve_select_filtered">Alle gefilterten</string>
+    <string name="route_name_pending">Verknüpft · Namensabgleich ausstehend</string>
+    <string name="route_name_failed">Verknüpft · Namensabgleich fehlgeschlagen</string>
+    <string name="dreeve_duration_format">%1$d:%2$02d h</string>
 </resources>

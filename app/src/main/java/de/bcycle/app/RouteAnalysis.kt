@@ -153,8 +153,8 @@ internal object RouteAnalysisRead {
         val sessions = mutableListOf<Map<AnalysisMetric, Double>>()
         val laps = mutableListOf<Map<AnalysisMetric, Double>>()
         val cadence = PedalingAverage(); val moving = MovingTime(); val elevation = RouteElevation()
-        var performance = PerformanceEngine(powerDurationsMs = BestEfforts.durationsMs)
-        private var powerSource=PowerSource.BOSCH_RIDER
+        private var powerSource=if(entry.format=="GPX") PowerSource.CYCLING_POWER_BLE else PowerSource.BOSCH_RIDER
+        var performance = PerformanceEngine(powerDurationsMs = BestEfforts.durationsMs,primaryPowerSource=powerSource)
         fun sport(subSport:Double?) {
             if(count==0 && subSport==6.0) {
                 powerSource=PowerSource.FTMS
@@ -224,7 +224,7 @@ internal object RouteAnalysisRead {
                 }
                 // An absent FIT sample is not an explicit invalidation of a known zero.
                 // The central engine still expires it when bike telemetry becomes stale.
-                if (p != null || powerSource==PowerSource.FTMS || performance.latestPower?.watts != 0.0)
+                if (powerSource!=PowerSource.BOSCH_RIDER || p != null || performance.latestPower?.watts != 0.0)
                     performance.accept(PerformanceEvent(PerformanceChannel.POWER, at, p, source = powerSource.name))
                 performance.accept(PerformanceEvent(PerformanceChannel.SPEED, at, s, source = "FIT"))
                 performance.accept(PerformanceEvent(PerformanceChannel.HEART_RATE, at, h, source = "FIT"))

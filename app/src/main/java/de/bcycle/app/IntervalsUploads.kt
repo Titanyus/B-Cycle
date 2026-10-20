@@ -57,7 +57,7 @@ internal object IntervalsUploads {
         c.getSystemService(JobScheduler::class.java).cancel(JOB)
         synchronized(lock) { val all=entries(c);val athlete=IntervalsSettings(c).read().athlete
             all.keys().forEach { val item=all.getJSONObject(it);if(item.optString("athlete")==athlete && item.optString("state")=="failed") item.put("state","pending") };save(c,all)
-        };schedule(c)
+        };schedule(c);RideNames.settingsChanged(c)
     }
     private fun update(c:Context,id:String,expected:JSONObject,state:String,remote:String="",error:String="")=synchronized(lock) {
         val all=entries(c);val item=all.optJSONObject(id) ?: return@synchronized
@@ -93,6 +93,7 @@ internal object IntervalsUploads {
                 }
                 check(remote.isNotBlank() && file.isFile && WebDavClient.hash(file)==item.getString("hash") && file.lastModified()==item.getLong("modified"))
                 update(c,id,item,"saved",remote)
+                RideNames.confirmed(c,RideServiceLink(id,RideService.INTERVALS,config.athlete,remote,item.getString("hash")))
             } catch(e:Exception) {
                 val temporary=cancelled() || (e is IntervalsFailure && e.retryable) || (e is IOException && e !is IntervalsFailure && e !is javax.net.ssl.SSLHandshakeException)
                 retry=retry || temporary
@@ -115,7 +116,7 @@ class IntervalsUploadService:JobService() {
 
 /** Existing cloud action fans out to enabled services; each retains its own durable receipt. */
 internal object RouteCloudUploads {
-    fun revision(c:Context)="${RouteUploads.revision(c)}:${IntervalsUploads.revision(c)}:"+ActivityServiceUploads.all.joinToString(":") { it.revision(c).toString() }
+    fun revision(c:Context)="${RideNames.revision(c)}:${RouteUploads.revision(c)}:${IntervalsUploads.revision(c)}:"+ActivityServiceUploads.all.joinToString(":") { it.revision(c).toString() }
     fun state(c:Context,id:String,stamp:RouteFileStamp?):RouteUploadStatus {
         val targets=listOf<()->RouteUploadStatus?>(
             { if(RouteExportSettings(c).read().webdav) RouteUploads.state(c,id,stamp) else null },

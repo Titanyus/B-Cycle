@@ -176,3 +176,7 @@ Korrigiert: Im bestehenden Dreeve-Job nach Annahme zusätzliche Statusprüfungen
 Netzwerk-/Serverfehler verlassen das kurze Bestätigungsfenster und behalten den bestehenden Android-Backoff. Bei länger dauernder Verarbeitung nach dem begrenzten Fenster bleibt der Auftrag ebenfalls dauerhaft offen und wird von Android später weiter geprüft. Bei Deaktivierung, Zielwechsel oder Android-Abbruch zeitnah beenden; gespeicherte Operation erhalten. Strava, WebDAV und intervals.icu bleiben unabhängig.
 
 Gezielte Tests: Annahme → queued → success im selben Worker, Begrenzung ohne erfundenen Erfolg, Netzwerkfehler ohne enge Wiederholung, Abbruch mit späterer Bestätigung ohne erneuten POST, unmittelbare Aktualisierung eines geöffneten Menüs vom Hintergrundthread. Noch kein realer Server-/Gerätenachweis dieser Korrektur und keine neue APK.
+
+## Namensabgleich und importierte Verknüpfungen (20.10.2026)
+
+Jetzt implementiert: drei Sekunden nach bestätigtem Dreeve-Import einmalig den Automationsnamen lesen; lokale Fahrt und verknüpfte Dienste aktualisieren. Manuell gesetzte Namen haben Vorrang. Eigene dauerhafte, nach Dienst/Konto getrennte Namensaufträge, keine erneuten FIT-Uploads. Importierte Dreeve-Fahrten zeigen ihre bestätigte Verknüpfung unabhängig vom Upload-Schalter. [Architektur, HTTP-Endpunkte und Verifikationsgrenzen](dreeve-workflow-and-private-analysis.md). Noch keine APK dieses Entwicklungsschritts.

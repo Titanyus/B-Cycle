@@ -4,15 +4,15 @@ import java.io.*
 
 /** Disk-backed, bounded sensor-event batches in the existing samples; memory does not grow with ride duration. Worker thread only. */
 class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingConfig) : Closeable {
-    private val fields = RecordField.options.filter { it.id in config.fields && it.id != "GPS_POSITION" && it.scope == FitFieldScope.RECORD }.map { it.id } +
-        if ("GPS_ALTITUDE" in config.fields) listOf("GPS_ALTITUDE_MSL") else emptyList()
+    private val fields = RecordField.options.filter { it.id != "GPS_POSITION" && it.scope == FitFieldScope.RECORD }.map { it.id } +
+        listOf("GPS_ALTITUDE_MSL")
     private val stream = FileOutputStream(file)
     private val output = DataOutputStream(BufferedOutputStream(stream))
     private var count = 0
     init {
-        output.writeInt(0x42435936); output.writeLong(startUtcMs)
+        output.writeInt(0x42435937); output.writeLong(startUtcMs)
         output.writeUTF(config.speedSource); output.writeUTF(config.distanceSource);output.writeBoolean(config.indoor)
-        output.writeBoolean("GPS_POSITION" in config.fields)
+        output.writeBoolean(!config.indoor)
         output.writeInt(fields.size); fields.forEach { output.writeUTF(it) }
         output.writeInt(PerformanceEngine.MODEL_VERSION)
         output.writeInt(config.fields.size); config.fields.sorted().forEach { output.writeUTF(it) }
@@ -20,8 +20,8 @@ class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingCon
     }
     fun append(sample: RideSample) {
         output.writeLong(sample.utcMs); output.writeLong(sample.elapsedMs)
-        output.writeDouble(if ("GPS_POSITION" in config.fields) sample.latitude ?: Double.NaN else Double.NaN)
-        output.writeDouble(if ("GPS_POSITION" in config.fields) sample.longitude ?: Double.NaN else Double.NaN)
+        output.writeDouble(if (!config.indoor) sample.latitude ?: Double.NaN else Double.NaN)
+        output.writeDouble(if (!config.indoor) sample.longitude ?: Double.NaN else Double.NaN)
         fields.forEach { output.writeDouble(sample.values[it] ?: Double.NaN) }
         require(sample.performanceEvents.size <= 256)
         output.writeInt(sample.performanceEvents.size)
@@ -40,7 +40,7 @@ class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingCon
         fun read(file: File, consume: (Long, RecordingConfig, List<String>, Sequence<RideSample>) -> Unit) {
             DataInputStream(BufferedInputStream(FileInputStream(file))).use { input ->
                 val version = input.readInt()
-                require(version in listOf(0x42435934, 0x42435935, 0x42435936)) { "Unknown ride journal" }
+                require(version in listOf(0x42435934, 0x42435935, 0x42435936, 0x42435937)) { "Unknown ride journal" }
                 val start = input.readLong(); val speed = input.readUTF(); val distance = input.readUTF()
                 val indoor=if(version>=0x42435936) input.readBoolean() else false
                 val positions = input.readBoolean(); val size = input.readInt()

@@ -18,7 +18,7 @@ class PerformanceJournalTest {
             RideSample(4000, 3000, performanceEvents = listOf(PerformanceEvent(PerformanceChannel.POWER, 2500, connected = false, source = PowerSource.BOSCH_RIDER.name))))
         RideJournal(file, 1000, config).use { journal -> samples.forEach(journal::append) }
         RideJournal.read(file) { start, restored, raw, records ->
-            assertEquals(1000L, start); assertEquals(config, restored); assertTrue(raw.isEmpty())
+            assertEquals(1000L, start); assertEquals(config, restored); assertTrue("RIDER_POWER" in raw); assertTrue("MOTOR_POWER" in raw)
             val decoded = records.toList(); assertEquals(samples, decoded)
             val live = PerformanceEngine(); val replayed = PerformanceEngine()
             for (sample in samples) { sample.performanceEvents.forEach(live::accept); live.advance(sample.elapsedMs) }

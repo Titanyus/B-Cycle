@@ -1038,6 +1038,14 @@ class MainActivity : Activity() {
         footer.addView(BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.Sort,getString(R.string.route_sort_button)) {
             content.showSort(footer.findViewWithTag("route_sort"),dialogs)
         }.apply { tag="route_sort" },LinearLayout.LayoutParams(0,dp(BicycleDesign.footerHeight),1f))
+        val delete=BicycleFooterAction(settingsContext,settingsThemes,BicycleIcon.DeleteTrack,getString(R.string.route_action_delete)) {
+            val ids=content.checkedIds
+            if(ids.isNotEmpty() && !state.busy) dialog(fullscreen=false).setTitle(R.string.route_delete_many_title)
+                .setMessage(getString(R.string.route_delete_many_message,ids.size))
+                .setPositiveButton(R.string.route_action_delete) { _,_-> state.deleteRoutes(ids);content.clearSelection() }.show()
+        }.apply { tag="route_delete_selected";isEnabled=false }
+        footer.addView(delete,LinearLayout.LayoutParams(0,dp(BicycleDesign.footerHeight),1f))
+        content.selectionChanged={ delete.isEnabled=content.selecting && !state.busy;delete.setLabel(if(content.selecting) getString(R.string.route_delete_count,content.checkedIds.size) else getString(R.string.route_action_delete)) }
         content.queryChanged={ filterAction.setLabel(if(content.query.activeCount>0) getString(R.string.route_filter_count,content.query.activeCount) else getString(R.string.route_filter_button)) }
         val root = LinearLayout(settingsContext).apply {
             orientation = LinearLayout.VERTICAL
@@ -1049,6 +1057,18 @@ class MainActivity : Activity() {
             setView(root, 0, 0, 0, 0)
             dialogs.onDismiss(this) { if (routeManager === content) { routePopup?.dismiss(); routePopup = null; routeManager = null; routeImportButton = null } }; show()
         }
+        menu?.window?.decorView?.findViewWithTag<View>("dialog_back")?.setOnClickListener {
+            if(content.selecting) content.clearSelection() else menu?.dismiss()
+        }
+        menu?.setOnKeyListener { _,key,event ->
+            if(key==android.view.KeyEvent.KEYCODE_BACK && content.selecting) {
+                if(event.action==android.view.KeyEvent.ACTION_UP) content.clearSelection();true
+            } else false
+        }
+        val managerScreen=menu!!
+        val back=android.window.OnBackInvokedCallback { if(content.selecting) content.clearSelection() else managerScreen.dismiss() }
+        managerScreen.window!!.onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,back)
+        dialogs.onDismiss(managerScreen) { managerScreen.window?.onBackInvokedDispatcher?.unregisterOnBackInvokedCallback(back) }
         state.refreshLibrary()
     }
     private fun routeImportChoice() {
@@ -1069,26 +1089,54 @@ class MainActivity : Activity() {
             if(config.address.isBlank() || key.isBlank()) throw ActivityServiceFailure(false,R.string.dreeve_import_config_missing)
             return config.identity(ActivityService.DREEVE) to DreeveClient(config,key,closed::get)
         }
+        fun startImport(activities:List<DreeveActivity>,target:String,api:DreeveClient,mappings:Map<String,Int>) {
+            runtime.mapState.importDreeve(target,activities,api,closed::get,
+                progress={ if(!closed.get()) content.progress(it) },complete={ if(!closed.get()) content.complete(it) },mappings=mappings)
+        }
+        fun chooseBikes(activities:List<DreeveActivity>,target:String,api:DreeveClient) {
+            val gear=activities.mapNotNull { it.summary.gearId }.distinct()
+            val remembered=DreeveBikeMappings.read(this,target).toMutableMap()
+            if(gear.isEmpty()) { startImport(activities,target,api,remembered);return }
+            val profiles=BikeProfileStore(this,preferences).all()
+            val body=DreeveBikeAssignmentView(settingsContext,settingsThemes,gear,content.gearNames,profiles,remembered)
+            var started=false
+            val screen=dialog().setTitle(R.string.dreeve_bikes_title).setView(ScrollView(settingsContext).apply { addView(body) })
+                .setPositiveButton(R.string.dreeve_import_start) { _,_ ->
+                    remembered.putAll(body.assignments())
+                    DreeveBikeMappings.save(this,target,remembered);content.profileFor={ it.summary.gearId?.let(remembered::get)?.takeIf { slot -> slot>=0 } };started=true
+                    startImport(activities,target,api,remembered)
+                }.create()
+            dialogs.onDismiss(screen) { if(!started && !closed.get()) content.cancelImport() }
+            screen.show()
+        }
         content=DreeveImportView(settingsContext,settingsThemes,loadPage={ page ->
             val expected=source
             worker.execute {
-                val result=runCatching {
+                try {
                     val (target,api)=client()
                     if(page>1 && target!=expected) throw ActivityServiceFailure(false,R.string.dreeve_import_changed)
-                    api.activities(page) to target
+                    val gear=if(page==1) runCatching { api.gears() }.getOrDefault(emptyMap()) else emptyMap()
+                    api.allActivities(page) { data ->
+                        if(closed.get()) throw java.io.IOException()
+                        runOnUiThread { if(!closed.get()) {
+                            source=target
+                            if(page==1 && data.page==1) content.gearNames=gear
+                            val bikeMappings=DreeveBikeMappings.read(this,target)
+                            content.profileFor={ activity -> activity.summary.gearId?.let { bikeMappings[it] }?.takeIf { it>=0 } }
+                            content.loaded(data,runtime.mapState.existingDreeve(target,data.activities),continuing=data.page<data.totalPages)
+                        } }
+                    }
+                } catch(e:Exception) {
+                    runOnUiThread { if(!closed.get()) content.failed((e as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_load_failed) }
                 }
-                runOnUiThread { if(!closed.get()) result.fold({ (data,target) ->
-                    if(page==1) source=target
-                    content.loaded(data,runtime.mapState.existingDreeve(target,data.activities))
-                },{ content.failed((it as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_load_failed) }) }
             }
         },importSelection={ activities ->
             runCatching { client() }.fold({ (target,api) ->
                 if(target!=source) content.failed(R.string.dreeve_import_changed)
-                else runtime.mapState.importDreeve(target,activities,api,closed::get,
-                    progress={ if(!closed.get()) content.progress(it) },complete={ if(!closed.get()) content.complete(it) })
-            },{ content.failed((it as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_load_failed) })
+                else chooseBikes(activities,target,api)
+            },{ content.failed((it as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_download_failed) })
         },configure={ activityServiceSettings(ActivityService.DREEVE) })
+        content.navigation=dialogs
         dialog().setTitle(R.string.dreeve_import_title).setView(content).create().apply {
             dialogs.onDismiss(this) { closed.set(true);worker.shutdownNow() }
             show()

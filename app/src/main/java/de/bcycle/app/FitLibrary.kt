@@ -25,6 +25,7 @@ internal class FitLibrary(root: File) {
     var entries: List<StoredFit> = emptyList(); private set
     private val excluded = mutableSetOf<String>()
     private val seenDownloads = mutableSetOf<String>()
+    private val analysisStamps=mutableMapOf<String,Pair<Long,Long>>()
     private val correctedHashes=mutableMapOf<String,Triple<Long,Long,String>>()
     private fun correctedHash(id:String):String? {
         val corrected=correctedFile(directory.parentFile!!,id)
@@ -35,11 +36,17 @@ internal class FitLibrary(root: File) {
         return hash(corrected).also { correctedHashes[id]=Triple(length,modified,it) }
     }
     internal fun file(id: String): File = activeFile(directory.parentFile!!,id)
+    internal fun analysisFile(id:String)=RideAnalysisFiles.file(directory.parentFile!!,id).takeIf { it.isFile } ?: file(id)
+    private fun readDetails(id:String):ReadFit {
+        val source=analysisFile(id);val result=FitRead.read(source)
+        analysisStamps[id]=source.length() to source.lastModified()
+        return if(source!=file(id) && corrected(id)) result.copy(details=result.details.copy(ascentM=FitRead.read(file(id)).details.ascentM)) else result
+    }
     internal fun originalFile(id:String):File { validateId(id);return File(directory,"$id.fit") }
     internal fun corrected(id:String)=correctedFile(directory.parentFile!!,id).isFile
     internal fun refreshDetails(id:String) {
         correctedHashes.remove(id)
-        val read=FitRead.read(file(id))
+        val read=readDetails(id)
         save(entries.map { if(it.id==id) it.copy(details=read.details.copy(dateMs=it.details.dateMs),hasRoute=read.route!=null) else it })
     }
     fun load() {
@@ -58,7 +65,7 @@ internal class FitLibrary(root: File) {
                     RouteDetails.from(item.getJSONObject("details")), item.getBoolean("hasRoute"), origin).also { file(it.id) }
             }
             val upgraded = entries.map { entry -> if (entry.id !in missingAscent || !file(entry.id).isFile) entry else
-                runCatching { val read=FitRead.read(file(entry.id));entry.copy(details = read.details.copy(dateMs = entry.details.dateMs),hasRoute=read.route!=null) }.getOrDefault(entry)
+                runCatching { val read=readDetails(entry.id);entry.copy(details = read.details.copy(dateMs = entry.details.dateMs),hasRoute=read.route!=null) }.getOrDefault(entry)
             }
             json.optJSONArray("excluded")?.let { a -> repeat(a.length()) { excluded += a.getString(it) } }
             json.optJSONArray("seenDownloads")?.let { a -> repeat(a.length()) { seenDownloads += a.getString(it) } }
@@ -70,10 +77,17 @@ internal class FitLibrary(root: File) {
         var next = entries
         for (original in directory.listFiles { f -> f.extension == "fit" }.orEmpty()) {
             val id = original.nameWithoutExtension
-            if (next.any { it.id == id }) continue
+            if (next.any { it.id == id }) {
+                val source=analysisFile(id)
+                if(source!=file(id) && analysisStamps[id]!=(source.length() to source.lastModified())) {
+                    val read=readDetails(id)
+                    next=next.map { if(it.id==id) it.copy(details=read.details,hasRoute=read.route!=null) else it }
+                }
+                continue
+            }
             if (id.substringAfter('-') in excluded) continue
             file(id)
-            val read = FitRead.read(file(id))
+            val read = readDetails(id)
             val recorded = id.startsWith("recorded-")
             val title = if (recorded) "Fahrt · " + DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(read.details.dateMs)) else "FIT-Strecke"
             next = next + StoredFit(id, title, recorded, read.details, read.route != null)
@@ -97,7 +111,7 @@ internal class FitLibrary(root: File) {
                     catch (e: Exception) { original.failWrite(output); throw e }
                 }
                 if (recorded && !existing.recorded) {
-                    val upgraded = existing.copy(recorded = true, origin = TrackOrigin.RECORDED, details = FitRead.read(file(existing.id)).details)
+                    val upgraded = existing.copy(recorded = true, origin = TrackOrigin.RECORDED, details = readDetails(existing.id).details)
                     save(entries.map { if (it.id == existing.id) upgraded else it }); return upgraded
                 }
                 return existing

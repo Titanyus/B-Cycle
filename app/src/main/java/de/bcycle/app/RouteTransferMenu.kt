@@ -44,6 +44,7 @@ internal object RouteTransferRows {
     fun read(context:Context,entry:ManagedRoute,busy:Boolean)=RouteTransferTarget.entries.map { target ->
         runCatching {
             when {
+                target==RouteTransferTarget.DREEVE && entry.origin==TrackOrigin.IMPORTED && RideServiceLinks.links(context,entry.id).any { it.service==RideService.DREEVE && it.accountId==ActivityServiceSettings(context,ActivityService.DREEVE).read().identity(ActivityService.DREEVE) }->RouteTransferRow(target,R.string.dreeve_linked,false,true)
                 !target.enabled(context)->RouteTransferRow(target,R.string.route_transfer_off,false)
                 !entry.locallySaved->RouteTransferRow(target,R.string.route_transfer_missing,false)
                 target!=RouteTransferTarget.LOCAL && (entry.format!="FIT" || entry.origin!=TrackOrigin.RECORDED)->RouteTransferRow(target,R.string.route_transfer_ineligible,false)
@@ -59,6 +60,13 @@ internal object RouteTransferRows {
                 }
             }
         }.getOrElse { RouteTransferRow(target,R.string.route_transfer_config_error,false) }
+    }.map { row ->
+        val service=when(row.target) { RouteTransferTarget.DREEVE->RideService.DREEVE;RouteTransferTarget.STRAVA->RideService.STRAVA;RouteTransferTarget.INTERVALS->RideService.INTERVALS;else->null }
+        if(!row.completed || service==null) row else when(RideNames.pending(context,entry.id,service)) {
+            "pending"->row.copy(text=R.string.route_name_pending)
+            "failed"->row.copy(text=R.string.route_name_failed)
+            else->row
+        }
     }
 }
 
@@ -68,7 +76,7 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
     private val choose:(RouteTransferTarget)->Unit,configure:()->Unit) {
     private val handler=Handler(Looper.getMainLooper())
     private val preferences=listOf("route-export","intervals-settings","activity-service-dreeve","activity-service-strava",
-        "route-uploads","intervals-uploads","activity-uploads-dreeve","activity-uploads-strava","route-local-saves")
+        "route-uploads","intervals-uploads","activity-uploads-dreeve","activity-uploads-strava","route-local-saves","ride-service-links","ride-names")
         .map { context.getSharedPreferences(it,0) }
     private var rows=emptyList<RouteTransferRow>()
     private var attempt:RouteTransferTarget?=null

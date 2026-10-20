@@ -37,6 +37,16 @@ class DreeveImportNavigationTest {
             assertNotSame(manager,import)
             assertNotNull(import.window!!.decorView.findViewWithTag<View>("dreeve_import_screen"))
             assertNotNull(import.window!!.decorView.findViewWithTag<View>("dreeve_import_configure"))
+            val decor=import.window!!.decorView
+            decor.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY));decor.layout(0,0,360,800)
+            shadowOf(Looper.getMainLooper()).idle()
+            val content=decor.findViewWithTag<View>("dreeve_import_screen")
+            decor.findViewWithTag<View>("dreeve_filters").performClick()
+            val queryPopup=DreeveImportView::class.java.getDeclaredField("queryPopup").apply { isAccessible=true }.get(content) as RouteQueryPopup
+            assertTrue(queryPopup.isShowing);queryPopup.dismiss()
+            decor.findViewWithTag<View>("dreeve_sort").performClick()
+            val sorting=DreeveImportView::class.java.getDeclaredField("queryPopup").apply { isAccessible=true }.get(content) as RouteQueryPopup
+            assertTrue(sorting.isShowing);sorting.dismiss()
             import.dismiss();manager.dismiss()
         } finally { host.pause().stop().destroy() }
     }
