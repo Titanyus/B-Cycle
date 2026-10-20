@@ -1,0 +1,15 @@
+BICYCLE Signierschluessel-Backup vom 20.10.2026
+
+Dieses Archiv ist mit age passwortverschluesselt. Das Passwort wurde separat im Chat mitgeteilt und ist NICHT auf GitHub hinterlegt.
+
+1. age installieren: https://github.com/FiloSottile/age#installation
+2. Verschluesseltes Archiv herunterladen.
+3. Im Downloadordner ausfuehren:
+   age --decrypt --output bicycle-signing-backup.zip BICYCLE-signing-backup-2026-10-20.zip.age
+4. Auf Nachfrage das separat erhaltene Passwort eingeben.
+5. ZIP entpacken und Keystore sowie Passwort sicher offline aufbewahren.
+
+Der Keystore gehoert zum Zertifikat SHA-256:
+94D34C46EDE28D12E6D37EFD8A7D953A75B621596EC2E5B68F61899B8EA7499B
+GitHub Actions Build 53 wurde erfolgreich mit diesem Zertifikat geprueft.
+Dieser neue Schluessel kann keine alten anders signierten Installationen aktualisieren.
