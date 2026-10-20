@@ -21,7 +21,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
         .apply { tag="dreeve_import_more";visibility=GONE }
     private val reload=BicycleFooterAction(context,themes,BicycleIcon.Reset,context.getString(R.string.dreeve_import_reload)) { refresh() }.apply { tag="dreeve_import_reload" }
     private val importAction=BicycleFooterAction(context,themes,BicycleIcon.Import,"") {
-        val items=activities.filter { it.id in selected && it.hasGpx && it.id !in existing }
+        val items=activities.filter { it.id in selected && it.id !in existing }
         if(items.isNotEmpty() && !loading && !importing) { importing=true;controls();adapter.notifyDataSetChanged();importSelection(items) }
     }.apply { tag="dreeve_import_selected" }
     private val adapter=object:BaseAdapter() {
@@ -39,6 +39,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
             row.tag="dreeve_activity_${item.id}"
             val result=results[item.id]
             val state=when {
+                result?.state==DreeveImportState.IMPORTED && result.summaryOnly->context.getString(R.string.dreeve_import_summary_imported)
                 result?.state==DreeveImportState.IMPORTED->context.getString(R.string.dreeve_import_imported)+
                     result.fields.takeIf { it.isNotEmpty() }?.joinToString(", "," · ") { context.getString(it.label) }.orEmpty()
                 item.id in existing->context.getString(R.string.dreeve_import_exists)
@@ -51,7 +52,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
             val distance=item.distanceM?.let { String.format(Locale.getDefault(),"%.1f km",it/1000) }.orEmpty()
             row.text=listOf(item.name,listOf(date,distance,item.sportType).filter { it.isNotBlank() }.joinToString(" · "),state).joinToString("\n")
             row.isChecked=item.id in selected
-            row.isEnabled=item.hasGpx && item.id !in existing && !loading && !importing
+            row.isEnabled=item.id !in existing && !loading && !importing
             row.alpha=if(row.isEnabled) 1f else .5f
             row.setOnCheckedChangeListener { _,on -> if(on) selected.add(item.id) else selected.remove(item.id);controls() }
             return row

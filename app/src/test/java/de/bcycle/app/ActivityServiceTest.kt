@@ -193,4 +193,52 @@ class ActivityServiceTest {
         val imported=fit().inputStream().use { FitLibrary(c.filesDir).add(it,"import.fit",false) }!!
         assertThrows(IllegalArgumentException::class.java) { ActivityServiceUploads.dreeve.enqueue(c,FitLibrary.activeFile(c.filesDir,imported.id)) }
     }
+    @Test fun dreeveConfirmsPromptlyInSameWorkerWithoutPostingAcceptedFileAgain() {
+        configureDreeve()
+        val file=FitLibrary.retainRecording(c.filesDir,fit());val id=file.nameWithoutExtension
+        ActivityServiceUploads.dreeve.enqueue(c,file)
+        val waits=mutableListOf<Long>();val jobs=mutableListOf<String>()
+        val pending=ActivityServiceUploads.dreeve.run(c,{false},confirmationWait={ delay,stopped ->
+            assertFalse(stopped());assertEquals(UploadState.UPLOADING,ActivityServiceUploads.dreeve.state(c,id,null).state)
+            assertTrue(RideServiceLinks.links(c,id).isEmpty());waits.add(delay);true
+        }) { _,_,_,_,job,_->
+            jobs.add(job)
+            if(jobs.size==3) UploadProgress("accepted","activity-confirmed") else UploadProgress("accepted")
+        }
+        assertFalse(pending);assertEquals(listOf("","accepted","accepted"),jobs)
+        assertEquals(listOf(2000L,3000L),waits)
+        assertEquals(UploadState.UPLOADED,ActivityServiceUploads.dreeve.state(c,id,null).state)
+        assertEquals("activity-confirmed",RideServiceLinks.links(c,id).single().activityId)
+    }
+    @Test fun dreeveConfirmationIsBoundedAndNetworkFailuresKeepTheirBackoff() {
+        configureDreeve()
+        val file=FitLibrary.retainRecording(c.filesDir,fit());val id=file.nameWithoutExtension
+        ActivityServiceUploads.dreeve.enqueue(c,file)
+        var calls=0;val waits=mutableListOf<Long>()
+        assertTrue(ActivityServiceUploads.dreeve.run(c,{false},confirmationWait={ delay,_-> waits.add(delay);true }) { _,_,_,_,_,_->
+            calls++;UploadProgress("accepted")
+        })
+        assertEquals(6,calls);assertEquals(30000L,waits.sum());assertTrue(RideServiceLinks.links(c,id).isEmpty())
+        calls=0;waits.clear()
+        assertTrue(ActivityServiceUploads.dreeve.run(c,{false},confirmationWait={ delay,_-> waits.add(delay);true }) { _,_,_,_,job,_->
+            assertEquals("accepted",job);calls++;throw java.io.IOException("offline")
+        })
+        assertEquals(1,calls);assertTrue(waits.isEmpty())
+        assertEquals(UploadState.UPLOADING,ActivityServiceUploads.dreeve.state(c,id,null).state)
+    }
+    @Test fun cancellationDuringConfirmationRetainsJobAndStopsFurtherChecks() {
+        configureDreeve()
+        val file=FitLibrary.retainRecording(c.filesDir,fit());val id=file.nameWithoutExtension
+        ActivityServiceUploads.dreeve.enqueue(c,file)
+        var cancelled=false;var calls=0
+        assertTrue(ActivityServiceUploads.dreeve.run(c,{cancelled},confirmationWait={ _,_->cancelled=true;false }) { _,_,_,_,_,_->
+            calls++;UploadProgress("accepted")
+        })
+        assertEquals(1,calls);assertTrue(RideServiceLinks.links(c,id).isEmpty())
+        assertFalse(ActivityServiceUploads.dreeve.run(c,{false}) { _,_,_,_,job,_->
+            assertEquals("accepted",job);UploadProgress(job,"activity-after-cancel")
+        })
+        assertEquals(UploadState.UPLOADED,ActivityServiceUploads.dreeve.state(c,id,null).state)
+    }
+
 }

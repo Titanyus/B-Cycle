@@ -83,6 +83,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             contentDescription=context.getString(R.string.route_file_identity,context.getString(analysis.entry.details.bikeType?.label ?: R.string.ui_route_unknown_origin),analysis.entry.format)
         },FrameLayout.LayoutParams(dp(52),dp(52),Gravity.START or Gravity.CENTER_VERTICAL).apply { if(profileColor!=null) marginStart=dp(5+BicycleDesign.controlGap) })
         body.addView(identity,LinearLayout.LayoutParams(-1,dp(52)))
+        if(analysis.entry.format=="JSON") body.addView(BicycleComponents.description(context,themes,context.getString(R.string.dreeve_summary_notice)).apply { tag="analysis_summary_notice" })
         analysis.weatherTarget?.let { target ->
             val holder=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;visibility=GONE }
             body.addView(holder,LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.smallGap) })

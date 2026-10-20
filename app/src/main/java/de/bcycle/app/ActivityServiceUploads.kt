@@ -79,7 +79,7 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
         val all=entries(c);val item=all.optJSONObject(operation) ?: return@synchronized
         change(item);save(c,all)
     }
-    fun run(c:Context,cancelled:()->Boolean,step:((ActivityServiceConfig,File,String,String,String,()->Boolean)->UploadProgress)?=null):Boolean=synchronized(runLock) {
+    fun run(c:Context,cancelled:()->Boolean,confirmationWait:((Long,()->Boolean)->Boolean)?=null,step:((ActivityServiceConfig,File,String,String,String,()->Boolean)->UploadProgress)?=null):Boolean=synchronized(runLock) {
         val settings=ActivityServiceSettings(c,service);val config=settings.read()
         if(!config.enabled || cancelled()) return@synchronized false
         if(config.wifiOnly) {
@@ -87,6 +87,8 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
             if(network.getNetworkCapabilities(network.activeNetwork)?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)!=true) return@synchronized true
         }
         val target=config.identity(service)
+        // One bounded confirmation window per worker, not per archived ride.
+        val confirmationDelays=java.util.ArrayDeque(listOf(2000L,3000L,5000L,10000L,10000L))
         val snapshot=synchronized(lock) { entries(c) }
         for(operation in pending(snapshot,target)) {
             if(cancelled()) return@synchronized true
@@ -97,20 +99,31 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
                 check(RouteUploads.eligible(c,id) && file.isFile)
                 // Processing IDs can still be resolved after a correction replaces the active FIT.
                 if(item.getString("job").isEmpty()) check(WebDavClient.hash(file)==item.getString("hash") && file.lastModified()==item.getLong("modified"))
-                val result=if(step!=null) step(config,file,item.getString("filename"),"$id-${item.getString("hash")}",item.getString("job"),stopped)
-                    else when(service) {
-                        ActivityService.DREEVE->DreeveClient(config,settings.credentials().getString("secret"),stopped).step(file,item.getString("filename"),item.getString("job"))
-                        ActivityService.STRAVA->StravaClient(settings,stopped).step(file,item.getString("filename"),"$id-${item.getString("hash")}",item.getString("job"))
+                var job=item.getString("job")
+                while(true) {
+                    if(stopped()) return@synchronized true
+                    if(synchronized(lock) { !entries(c).has(operation) }) break
+                    val result=if(step!=null) step(config,file,item.getString("filename"),"$id-${item.getString("hash")}",job,stopped)
+                        else when(service) {
+                            ActivityService.DREEVE->DreeveClient(config,settings.credentials().getString("secret"),stopped).step(file,item.getString("filename"),job)
+                            ActivityService.STRAVA->StravaClient(settings,stopped).step(file,item.getString("filename"),"$id-${item.getString("hash")}",job)
+                        }
+                    // Persist acceptance before another request or Android cancellation; never re-POST it.
+                    require(result.jobId.isNotBlank());job=result.jobId
+                    update(c,operation) { it.put("job",job).put("state","processing").remove("problem") }
+                    if(stopped()) return@synchronized true
+                    if(result.activityId!=null && file.isFile && RouteUploads.eligible(c,id)) {
+                        synchronized(lock) {
+                            if(entries(c).has(operation)) {
+                                RideServiceLinks.confirm(c,RideServiceLink(id,service.link,target,result.activityId,item.getString("hash")))
+                                update(c,operation) { it.put("state","saved").put("remoteId",result.activityId).remove("problem") }
+                            }
+                        }
+                        break
                     }
-                // Preserve the remote operation even if Android stopped this job during the HTTP call.
-                require(result.jobId.isNotBlank())
-                update(c,operation) { it.put("job",result.jobId).put("state","processing") }
-                if(stopped()) return@synchronized true
-                if(result.activityId!=null && file.isFile && RouteUploads.eligible(c,id)) synchronized(lock) {
-                    if(entries(c).has(operation)) {
-                        RideServiceLinks.confirm(c,RideServiceLink(id,service.link,target,result.activityId,item.getString("hash")))
-                        update(c,operation) { it.put("state","saved").put("remoteId",result.activityId).remove("problem") }
-                    }
+                    // Normal Dreeve processing is not a failed network transfer. Check it promptly.
+                    if(service!=ActivityService.DREEVE || confirmationWait==null || confirmationDelays.isEmpty()) break
+                    if(!confirmationWait(confirmationDelays.removeFirst(),stopped) || stopped()) return@synchronized true
                 }
             } catch(e:Exception) {
                 val transient=stopped() || (e is ActivityServiceFailure && e.retryable) || (e is IOException && e !is ActivityServiceFailure && e !is javax.net.ssl.SSLHandshakeException)
@@ -123,6 +136,17 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
         synchronized(lock) { pending(entries(c),target).isNotEmpty() }
     }
     companion object {
+        internal fun waitForConfirmation(delayMs:Long,stopped:()->Boolean):Boolean {
+            val end=android.os.SystemClock.elapsedRealtime()+delayMs
+            while(!stopped()) {
+                val remaining=end-android.os.SystemClock.elapsedRealtime()
+                if(remaining<=0) return true
+                try { Thread.sleep(minOf(remaining,250L)) } catch(_:InterruptedException) {
+                    Thread.currentThread().interrupt();return false
+                }
+            }
+            return false
+        }
         val dreeve=ActivityServiceUploads(ActivityService.DREEVE)
         val strava=ActivityServiceUploads(ActivityService.STRAVA)
         fun forService(service:ActivityService)=if(service==ActivityService.DREEVE) dreeve else strava
@@ -134,7 +158,7 @@ abstract class ActivityUploadService:JobService() {
     private var stopped=AtomicBoolean(false)
     override fun onStartJob(params:JobParameters):Boolean {
         val token=AtomicBoolean(false);stopped=token
-        Thread({ val retry=try { ActivityServiceUploads.forService(provider).run(applicationContext,token::get) } catch(_:Exception) { true }
+        Thread({ val retry=try { ActivityServiceUploads.forService(provider).run(applicationContext,token::get,confirmationWait=ActivityServiceUploads::waitForConfirmation) } catch(_:Exception) { true }
             if(!token.get()) jobFinished(params,retry)
         },"B-Cycle-${provider.name}").start();return true
     }

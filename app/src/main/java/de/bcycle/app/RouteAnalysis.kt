@@ -100,6 +100,11 @@ internal class AnalysisSeriesBuffer {
 /** Read-only detail loader. A file is decoded once, off the UI thread, for all sections together. */
 internal object RouteAnalysisRead {
     fun read(file: File, entry: ManagedRoute, profile: RiderProfile = RiderProfile(), cancelled: () -> Boolean = { false }): RouteAnalysis {
+        if(entry.format=="JSON") {
+            check(!cancelled())
+            val summary=DreeveSummaryLibrary.read(file)
+            return RouteAnalysis(entry,summary.activity.summary.metrics,null,false,0.0,emptyList())
+        }
         val builder = Builder(entry, profile)
         if (entry.format == "GPX") {
             val route = file.inputStream().buffered().use { GpxImport.samples(it) { sample ->

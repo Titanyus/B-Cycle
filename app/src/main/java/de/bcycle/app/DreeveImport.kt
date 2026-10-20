@@ -6,7 +6,7 @@ import java.io.File
 import java.util.UUID
 
 internal data class DreeveActivity(val id:String,val name:String,val startLocal:String,val distanceM:Double?,
-    val sportType:String,val hasGpx:Boolean) {
+    val sportType:String,val hasGpx:Boolean,val summary:DreeveSummary=DreeveSummary()) {
     val bikeType get()=when(sportType) {
         "VirtualRide"->BikeType.INDOOR
         "EBikeRide","EMountainBikeRide"->BikeType.EBIKE
@@ -30,7 +30,7 @@ internal data class DreeveActivityPage(val activities:List<DreeveActivity>,val p
                     val hasGpx=row.get("hasGpx");require(hasGpx is Boolean)
                     val name=row.optString("name").trim().take(120).ifBlank { id }
                     DreeveActivity(id,name,row.optString("startDateLocal").take(64),
-                        row.optDouble("distanceInMeter").takeIf { it.isFinite() && it>=0 },row.optString("sportType").take(64),hasGpx)
+                        row.optDouble("distanceInMeter").takeIf { it.isFinite() && it>=0 },row.optString("sportType").take(64),hasGpx,DreeveSummary.fromApi(row))
                 }
                 require(activities.map { it.id }.distinct().size==activities.size)
                 return DreeveActivityPage(activities,page,pages,total)
@@ -43,14 +43,14 @@ internal enum class DreeveDataField(val label:Int) {
     POWER(R.string.dreeve_field_power),HEART(R.string.dreeve_field_heart),CADENCE(R.string.dreeve_field_cadence),TEMPERATURE(R.string.dreeve_field_temperature)
 }
 internal enum class DreeveImportState { IMPORTED,DUPLICATE,UNAVAILABLE,FAILED }
-internal data class DreeveItemResult(val id:String,val state:DreeveImportState,val fields:Set<DreeveDataField> = emptySet(),val problem:Int?=null)
+internal data class DreeveItemResult(val id:String,val state:DreeveImportState,val fields:Set<DreeveDataField> = emptySet(),val problem:Int?=null,val summaryOnly:Boolean=false)
 internal data class DreeveImportResult(val items:List<DreeveItemResult>,val interrupted:Boolean=false) {
     fun count(state:DreeveImportState)=items.count { it.state==state }
 }
 
 /** Runs on MapState's one library worker. No new library instance or automatic upload queue. */
 internal class DreeveImport(private val context:Context,private val library:GpxLibrary,
-    private val existingIds:()->Set<String>,private val download:(String,File)->Unit) {
+    private val existingIds:()->Set<String>,private val summaries:DreeveSummaryLibrary?=null,private val download:(String,File)->Unit) {
     companion object {
         fun localId(account:String,activity:String)=UUID.nameUUIDFromBytes("bcycle:dreeve:$account\u0000$activity".toByteArray(Charsets.UTF_8)).toString()
     }
@@ -67,6 +67,18 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
                         val hash=WebDavClient.hash(library.file(local))
                         RideServiceLinks.confirm(context,RideServiceLink(local,RideService.DREEVE,account,activity.id,hash))
                         DreeveItemResult(activity.id,DreeveImportState.DUPLICATE)
+                    }
+                    summaries?.entries?.any { it.id==local }==true->{
+                        RideServiceLinks.confirm(context,RideServiceLink(local,RideService.DREEVE,account,activity.id,WebDavClient.hash(summaries.file(local))))
+                        DreeveItemResult(activity.id,DreeveImportState.DUPLICATE)
+                    }
+                    !activity.hasGpx && summaries!=null->{
+                        val file=summaries.add(local,activity)
+                        try {
+                            val link=RideServiceLink(local,RideService.DREEVE,account,activity.id,WebDavClient.hash(file))
+                            RideServiceLinks.confirm(context,link);links[activity.id]=link
+                        } catch(e:Exception) { summaries.delete(local);throw e }
+                        DreeveItemResult(activity.id,DreeveImportState.IMPORTED,summaryOnly=true)
                     }
                     !activity.hasGpx->DreeveItemResult(activity.id,DreeveImportState.UNAVAILABLE)
                     else->{

@@ -63,4 +63,29 @@ class RouteTransferMenuTest {
             assertEquals(1,configured);assertFalse(menu.popup.isShowing)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun dreeveBackgroundConfirmationUpdatesTheAlreadyOpenMenuWithoutActivityRestart() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val button=Button(a);a.setContentView(button)
+            a.window.decorView.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY));a.window.decorView.layout(0,0,360,800)
+            a.getSharedPreferences("activity-service-dreeve",0).edit().putBoolean("enabled",true).putString("address","https://dreeve.example/").commit()
+            val stamp=RouteFileStamp(12,34,"hash")
+            val entry=ManagedRoute("recorded-test","Test",true,"FIT",RouteDetails(),false,TrackOrigin.RECORDED,true,stamp)
+            val menu=RouteTransferMenu(a,ThemeManager(a.getSharedPreferences("bike",0)).settings,button,{entry},{false},{},{})
+            val receipt=JSONObject().put("ride",entry.id).put("target","https://dreeve.example/").put("sequence",1)
+                .put("length",12).put("modified",34).put("hash","hash").put("state","processing")
+            val prefs=a.getSharedPreferences("activity-uploads-dreeve",0)
+            prefs.edit().putString("entries",JSONObject().put("operation",receipt).toString()).commit()
+            menu.show();val list=menu.popup.listView!!
+            assertEquals(R.string.dreeve_upload_processing,(list.adapter.getItem(3) as RouteTransferRow).text)
+            Thread { prefs.edit().putString("entries",JSONObject().put("operation",receipt.put("state","saved")).toString()).commit() }.apply { start();join() }
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(menu.popup.isShowing)
+            assertTrue((list.adapter.getItem(3) as RouteTransferRow).completed)
+            val row=list.adapter.getView(3,null,list)
+            assertEquals(a.getString(R.string.route_transfer_done),row.findViewWithTag<android.widget.TextView>("route_transfer_status_DREEVE").text)
+            menu.dismiss()
+        } finally { host.pause().stop().destroy() }
+    }
+
 }

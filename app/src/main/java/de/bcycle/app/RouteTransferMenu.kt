@@ -52,7 +52,7 @@ internal object RouteTransferRows {
                     RouteTransferRow(target,when(state) {
                         UploadState.NOT_UPLOADED->if(target==RouteTransferTarget.LOCAL) R.string.route_transfer_local_ready else R.string.route_transfer_ready
                         UploadState.WAITING->R.string.route_transfer_waiting
-                        UploadState.UPLOADING->R.string.route_transfer_uploading
+                        UploadState.UPLOADING->if(target==RouteTransferTarget.DREEVE) R.string.dreeve_upload_processing else R.string.route_transfer_uploading
                         UploadState.UPLOADED->R.string.route_transfer_done
                         UploadState.FAILED->R.string.route_transfer_failed
                     },!busy && (state in setOf(UploadState.NOT_UPLOADED,UploadState.FAILED) || target==RouteTransferTarget.LOCAL),state==UploadState.UPLOADED)

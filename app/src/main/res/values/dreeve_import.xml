@@ -1,6 +1,6 @@
 <resources>
     <string name="dreeve_import_title">Aus Dreeve importieren</string>
-    <string name="dreeve_import_description">Testimport über den GPX-Export: Position, Zeit, Höhe und mitgelieferte Sensorwerte. Kein Original-FIT und keine vollständigen E-Bike-Daten. Ohne GPX ist die Fahrt derzeit nicht abrufbar.</string>
+    <string name="dreeve_import_description">Fahrten mit GPX samt verfügbaren Sensorwerten übernehmen. Ohne GPX werden die verfügbaren Kennzahlen als Zusammenfassung importiert, ohne Karte oder Messwertverläufe. Kein Original-FIT-Download.</string>
     <string name="dreeve_import_reload">Neu laden</string>
     <string name="dreeve_import_more">Mehr laden</string>
     <string name="dreeve_import_selection">Importieren (%1$d)</string>
@@ -13,7 +13,7 @@
     <string name="dreeve_import_changed">Dreeve-Ziel geändert. Bitte die Fahrtenliste neu laden.</string>
     <string name="dreeve_import_imported">Importiert</string>
     <string name="dreeve_import_exists">Bereits vorhanden</string>
-    <string name="dreeve_import_no_gpx">Keine GPX-Daten – derzeit nicht importierbar</string>
+    <string name="dreeve_import_no_gpx">Zusammenfassung · ohne Messwertverläufe</string>
     <string name="dreeve_import_gpx">GPX abrufbar</string>
     <string name="dreeve_import_result">%1$d importiert · %2$d bereits vorhanden · %3$d fehlgeschlagen</string>
     <string name="dreeve_field_position">GPS</string>
@@ -24,5 +24,7 @@
     <string name="dreeve_field_cadence">Kadenz</string>
     <string name="dreeve_field_temperature">Temperatur</string>
     <string name="help_dreeve_import_heading">Fahrten aus Dreeve</string>
-    <string name="help_dreeve_import_body">Lade die Fahrtenliste mit der gespeicherten Dreeve-Adresse und deinem API-Schlüssel. Der Upload-Schalter bleibt davon unabhängig. Mehr laden ruft die nächste Seite ab. Hake eine oder mehrere Fahrten an und tippe auf Importieren. Ohne GPX können Fahrten derzeit nicht übernommen werden. Bekannte Dreeve-Zuordnungen verhindern doppelte Importe. Der Testimport speichert den GPX-Export samt Sensorerweiterungen; Leistungs-, Puls- und Kadenzverläufe werden in den Details angezeigt, soweit mitgeliefert. Temperatur bleibt in der Originaldatei erhalten. Die API bietet keinen Original-FIT-Download. Nach einem Fehler können die übrigen ausgewählten Fahrten weiter importiert werden. Es erfolgt kein automatischer Upload zu anderen Diensten.</string>
+    <string name="help_dreeve_import_body">Lade die Fahrtenliste mit der gespeicherten Dreeve-Adresse und deinem API-Schlüssel. Der Upload-Schalter bleibt davon unabhängig. Mehr laden ruft die nächste Seite ab. Hake eine oder mehrere Fahrten an und tippe auf Importieren. Fahrten ohne GPX können als Zusammenfassung übernommen werden: etwa Dauer, Distanz, Durchschnitt und Maximum von Leistung oder Puls, soweit vorhanden. Es gibt dann keine Karte, Diagramme, Best Efforts oder Zonenanteile. Die Zusammenfassung wird als JSON gespeichert; sie ist keine Original-FIT-Datei. Bekannte Dreeve-Zuordnungen verhindern doppelte Importe. Der Testimport speichert den GPX-Export samt Sensorerweiterungen; Leistungs-, Puls- und Kadenzverläufe werden in den Details angezeigt, soweit mitgeliefert. Temperatur bleibt in der Originaldatei erhalten. Die API bietet keinen Original-FIT-Download. Nach einem Fehler können die übrigen ausgewählten Fahrten weiter importiert werden. Es erfolgt kein automatischer Upload zu anderen Diensten.</string>
+    <string name="dreeve_import_summary_imported">Zusammenfassung importiert</string>
+    <string name="dreeve_summary_notice">Dreeve-Zusammenfassung: verfügbare Kennzahlen ohne GPS-Spur und Messwertverläufe. Keine Original-FIT-Datei.</string>
 </resources>

@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config
 @Config(sdk=[33],qualifiers="mdpi")
 class DreeveImportUiTest {
     private fun activity(id:String,gpx:Boolean=true)=DreeveActivity(id,"Fahrt $id","2026-10-19T08:00:00",12000.0,"Ride",gpx)
-    @Test fun selectionAcrossPagesSkipsUnsupportedAndExistingRowsAndShowsPerRideResults() {
+    @Test fun selectionAcrossPagesIncludesSummariesSkipsExistingRowsAndShowsPerRideResults() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
@@ -26,13 +26,13 @@ class DreeveImportUiTest {
             view.loaded(DreeveActivityPage(listOf(activity("a"),activity("no-gpx",false),activity("old")),1,2,4),setOf("old"))
             val list=view.findViewWithTag<ListView>("dreeve_import_list")
             fun row(index:Int)=list.adapter.getView(index,null,list) as CheckBox
-            assertTrue(row(0).isEnabled);assertFalse(row(1).isEnabled);assertFalse(row(2).isEnabled)
-            row(0).performClick()
+            assertTrue(row(0).isEnabled);assertTrue(row(1).isEnabled);assertFalse(row(2).isEnabled)
+            row(0).performClick();row(1).performClick()
             view.findViewWithTag<View>("dreeve_import_more").performClick();assertEquals(listOf(1,2),pages)
             view.loaded(DreeveActivityPage(listOf(activity("b")),2,2,4),emptySet())
             assertTrue(row(0).isChecked);row(3).performClick()
             view.findViewWithTag<View>("dreeve_import_selected").performClick()
-            assertEquals(listOf("a","b"),chosen.map { it.id });assertFalse(row(0).isEnabled)
+            assertEquals(listOf("a","no-gpx","b"),chosen.map { it.id });assertFalse(row(0).isEnabled)
             view.progress(DreeveItemResult("a",DreeveImportState.IMPORTED,setOf(DreeveDataField.HEART)))
             view.complete(Result.success(DreeveImportResult(listOf(DreeveItemResult("a",DreeveImportState.IMPORTED,setOf(DreeveDataField.HEART)),
                 DreeveItemResult("b",DreeveImportState.FAILED,problem=R.string.dreeve_import_download_failed)))))
