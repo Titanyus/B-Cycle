@@ -61,7 +61,13 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.14 – aktuelle APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.14/downloads/B-Cycle-0.8.14.apk)**
+**[Version 0.8.15 – Actions-Artefakt herunterladen](https://github.com/Titanyus/B-Cycle/actions/runs/39415297946/artifacts/12261431534)**
+
+Build 52 erfolgreich; 73 gezielte Tests bestanden. **Temporärer Signierschlüssel:
+kein kompatibles Update für die bisherige Installation.** Der bisherige Testschlüssel
+muss zuerst übernommen werden. [Änderungen und Build-/Signierungsstatus](docs/release-0.8.15.md).
+
+**[Version 0.8.14 – bisherige updatekompatible APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.14/downloads/B-Cycle-0.8.14.apk)**
 
 **Build 51 vom 20.10.2026**, rund **1.9 MB**, mit bisherigem Testschlüssel signiert und als Update installierbar.
 Optimierter GitHub-Actions-Release mit R8 und Ressourcenverkleinerung. 136 gezielte Tests bestanden.
