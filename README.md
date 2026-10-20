@@ -61,9 +61,11 @@ Version, Commit, Signierung, Download und SHA-256. Ein fester Testschlüssel ist
 Update-Kompatibilität nötig; [einmalige Einrichtung und Build-Anleitung](docs/github-actions.md).
 Ältere signierte Test-APKs bleiben unter [downloads](downloads) erhalten.
 
-**[Version 0.8.15 · Build 53 – APK herunterladen](https://github.com/Titanyus/B-Cycle/actions/runs/39423155545/artifacts/12264852640)**
+**[Version 0.8.15 · Build 53 – APK herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.15-release-53.apk)**
 
-**Build 53 vom 20.10.2026**, erfolgreich gebaut und mit dem neuen dauerhaften
+**Build 53 vom 20.10.2026**, **1,93 MB**, direkter APK-Download ohne ZIP.
+Optimierter Release ohne Debug-Flag, mit R8 und Ressourcenverkleinerung.
+Erfolgreich gebaut und mit dem neuen dauerhaften
 Signierschlüssel signiert. Download und APK-Signatur wurden geprüft. Dieser Schlüssel
 ist für künftige Builds als GitHub-Actions-Secret hinterlegt.
 **Kein kompatibles Update für ältere, anders signierte Installationen – auch nicht
