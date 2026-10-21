@@ -42,19 +42,22 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         val start=if(window==GraphWindow.FULL) 0 else (f.elapsedMs-window.milliseconds).coerceAtLeast(0)
         val end=if(window==GraphWindow.FULL) f.elapsedMs else maxOf(window.milliseconds,f.elapsedMs)
         shapes=selected.mapNotNull { chart -> seriesByChart[chart]?.let { series ->
-            val line=Path(); val fill=Path(); val segment=Path(); var active=false; var startX=0f; var lastX=0f; var fillTop=plot.bottom
-            fun finish() { if(active) { segment.lineTo(lastX,plot.bottom); segment.lineTo(startX,plot.bottom); segment.close(); fill.addPath(segment); segment.reset(); active=false } }
+            val line=Path();val fill=Path();val pending=ArrayList<PointF>();var fillTop=plot.bottom
+            fun finish() {
+                if(pending.isEmpty()) return
+                val segment=Path();MonotoneGraphPath.append(segment,pending);line.addPath(segment)
+                segment.lineTo(pending.last().x,plot.bottom);segment.lineTo(pending.first().x,plot.bottom)
+                segment.close();fill.addPath(segment);pending.clear()
+            }
             for(point in series.points) {
                 if(point.breaks and (1 shl chart.ordinal)!=0) finish()
                 val v=point.values[chart.ordinal]
-                if(v==null || window==GraphWindow.FULL && !f.timeAxis && point.distanceM==null) { finish(); continue }
+                if(v==null || !v.isFinite() || window==GraphWindow.FULL && !f.timeAxis && point.distanceM==null) { finish();continue }
                 val fraction=if(window!=GraphWindow.FULL || f.timeAxis) (point.elapsedMs-start).toDouble()/(end-start).coerceAtLeast(1)
                     else if(f.distanceM>0) point.distanceM!!/f.distanceM else 0.0
                 val x=left+fraction.toFloat()*(right-left)
                 val y=plot.bottom-((v-series.range.low)/(series.range.high-series.range.low)).toFloat()*plot.height()
-                fillTop=minOf(fillTop,y)
-                if(!active) { line.moveTo(x,y); segment.moveTo(x,y); startX=x; active=true } else { line.lineTo(x,y); segment.lineTo(x,y) }
-                lastX=x
+                fillTop=minOf(fillTop,y);pending+=PointF(x,y)
             }
             finish()
             val color=chart.color(Color.BLACK) and 0x00ffffff
