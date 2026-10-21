@@ -8,6 +8,16 @@ Diese Datei ersetzt den fehlenden Chatverlauf als Arbeitsübergabe. Sie enthält
 
 ## Aktueller Auftrag
 
+Tagesbefinden und flexible Fragenauswahl umgesetzt: Button nach gespeicherter HRV-Messung und im historischen Ergebnis, eigener deutscher Screen in B-Cycle-UI, neun diskrete Stufen bei Qualitätsfragen (unberührte Mitte bedeutet fehlend), RPE 0–10. Globale Auswahl im HRV-Einstellungs-Accordion, drei benennbare numerische Angaben, dynamische Gruppen ohne leere Platzhalter. TSS ausdrücklich weggelassen. Vortagsfahrten in gespeicherter Messungszeitzone über alle Profile summiert, nur gefahrene Tracks; km und Fahrtzeit nebeneinander und manuell änderbar. Fahrerprofil um optional Mann/Frau ergänzt; Zyklusfrage nur bei Frau aktivierbar. Profil-/Konfigurationssicherung und Antwortdateien in vollständiger Sicherung/Analyseexport erhalten, result.json bleibt bytegleich. Details docs/hrv-questionnaire.md.
+
+Dashboard-Graphen verwenden formtreue kubische Hermite-Kurven ohne neue Extrema zwischen Punkten. Kein Daten-/Aufzeichnungs-/Skalenwechsel; Lücken, gleiche Distanz, Linie und Füllung sowie Voll/30/60/120 s berücksichtigt. Keine neue Einstellung.
+
+15 unterschiedliche gezielte Tests erfolgreich: sechs Tagesbefinden-Tests, bestehende HRV-Speicherung/alt-neu-Backup, vollständige Verzeichnissicherung mit Antworten, Fahrerprofil-Rundlauf, HRV-Einstellungsbackup, drei Kurvenprüfungen (Formtreue, gleiche Distanz/Lücken, alle Zeitfenster) sowie bestehende Halo/Lücken- und Zeichenbereichsprüfungen. Nur betroffene UI-Prüfungen nach letzten Abstandsänderungen erneut ausgeführt. Formular einschließlich echtem Dialog und Dashboard-Kurve nativ gerendert und visuell geprüft. Kein vollständiger Gesamtlauf oder neuer Geräte-/BLE-Test. Keine APK beauftragt, Version bleibt 0.8.22/92; Veröffentlichung mit [skip ci]. Letzte installierbare APK bleibt Build 61 und enthält diese Folgeänderungen noch nicht.
+
+Anschließend gewünschte Optimierungsanalyse als reine Codeprüfung in docs/optimization-review-2026-10-21.md: HRV-Historie leichter laden; Fahrten-/Profilmetadaten revisionsgebunden bündeln; Dienststatus indizieren; Tagesregel vor HRV-Trends klären; kleine stabile Tests auch in CI. Keine dieser Optimierungen umgesetzt, kein Geräteprofiling/Gesamttestlauf.
+
+## Vorheriger HRV-Abschluss
+
 Nach Build 61 HRV-Optik und kurze Graphlücken korrigiert, keine neue APK beauftragt: Glow-Start 45 % statt 30 %, Ende weiter 10 % nach 1,5 s; bpm vertikal zur sichtbaren Zahl zentriert; Start/Erneut messen 900 Black mit transparentem ACCENT-Pillenrahmen 1 dp und Innenabstand. Abbruch/Speicherwiederholung weiterhin schlicht. Grafische Lückenerkennung zieht beobachtetes RR vom Punktabstand ab, bevor zusätzliche fehlende Zeit bewertet wird. Längere Lücken bleiben sichtbar. Keine Änderung an Rohdaten, HRV-Berechnung, Artefaktkorrektur, Datenformat oder Messqualität.
 
 Vier gezielte Tests erfolgreich (Glow; native HRV-Ansicht mit Ink-Zentrierung, Start-/Abbruch-Styling, Rahmen und Themewechsel; Controller mit kurzer Empfangsverzögerung und längerem Ausfall; Graph mit verbundenen Punkten und expliziter Lücke). Nach letztem Button-Innenabstand nur den einen nativen UI-Test erneut ausgeführt, erfolgreich. Ansichten visuell geprüft; kein echter Gurt-/Gerätetest. Keine APK, Version bleibt 0.8.22/92; Veröffentlichung mit [skip ci].
