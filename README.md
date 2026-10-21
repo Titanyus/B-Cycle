@@ -50,26 +50,33 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.18 · Build 57 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk)**
+**[Version 0.8.19 · Build 58 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk)**
 
-**Build 57 vom 21.10.2026 · 2,10 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 58 vom 21.10.2026 · 2,10 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53, 55 und 56 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55, 56 und 57 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.18](docs/release-0.8.18.md) ·
-[Buildnachweis und SHA-256](docs/build-57.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39560711776) ·
+[Änderungen in 0.8.19](docs/release-0.8.19.md) ·
+[Buildnachweis und SHA-256](docs/build-58.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39589515288) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
-67 gezielte Tests der aktuellen Graph-/Trend-/Fahrtnamen-/Profil-/Backup-Änderungen bestanden;
-weitere gezielte Prüfungen der vorherigen Folgeänderungen im Buildnachweis dokumentiert.
+62 gezielte Testausführungen für Schritt 3 erfolgreich, einschließlich Aufzeichnung auf Android 13/15/16,
+Hintergrund-Service, Speicherfehler/Retry, UI-Rückmeldungen und Speichersperren.
+Weitere Prüfungen der enthaltenen Schritte 1/2 im Buildnachweis dokumentiert.
 Kein vollständiger Gesamttestlauf. Bekannte ältere UI-Testfehler und offene Geräteprüfungen dort aufgeführt.
 
-Frühere APKs: [0.8.17 · Build 56](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.17-release-56.apk) · [0.8.16 · Build 55](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk) · [0.8.15 · Build 53](downloads/B-Cycle-0.8.15-release-53.apk).
+Frühere APKs: [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk) · [0.8.17 · Build 56](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.17-release-56.apk) · [0.8.16 · Build 55](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.19
+
+- **Fahrtabschluss abgesichert:** Speicherergebnisse, Laufzeit und Rückmeldungen intern auf typisierte Ereignisse umgestellt. Teilerfolge bleiben von vollständigem Abschluss und Upload-Vormerkungen von Remote-Erfolg getrennt.
+- **Kompatibilität:** Bedienung, Meldungen, Aufzeichnungsfelder, FIT-/Journaldateien und Profile erhalten. Zusätzliche Referenz-, Wiederherstellungs- und UI-Tests.
+- [Änderungen und Umfang](docs/release-0.8.19.md) · [Technische Beschreibung](docs/recording-results.md).
 
 ## Neu in APK 0.8.18
 
