@@ -89,7 +89,7 @@ data class DashboardField(val id: String) {
         "HEART_BATTERY" -> "Sensorakku"
         "CURRENT_RANGE" -> "Reichweite aktuell"
         "RANGES" -> "Reichweiten je Modus"
-        else -> "Reichweite · ${rangeNames(data)?.getOrNull(rangeIndex ?: -1) ?: "Stufe ${(rangeIndex ?: 0) + 1}"}"
+        else -> "Reichweite · ${RideMeasurements.alignedRangeNames(data)?.getOrNull(rangeIndex ?: -1) ?: "Stufe ${(rangeIndex ?: 0) + 1}"}"
     }
 
     /** Short visual captions; picker and accessibility retain the full description. */
@@ -135,7 +135,7 @@ data class DashboardField(val id: String) {
             id=="PHONE_BATTERY" -> context.getString(R.string.battery_phone)
             id=="TRAINER_BATTERY" -> context.getString(R.string.battery_trainer)
             id == "GPS_ALTITUDE" && gps.altitudeM != null -> context.getString(R.string.ui_altitude_reference, if (gps.seaLevel) "MSL" else "Ellipsoid")
-            rangeIndex != null -> context.getString(R.string.ui_range_named, rangeNames(data)?.getOrNull(rangeIndex!!) ?: context.getString(R.string.ui_assist_level, rangeIndex!! + 1))
+            rangeIndex != null -> context.getString(R.string.ui_range_named, RideMeasurements.alignedRangeNames(data)?.getOrNull(rangeIndex!!) ?: context.getString(R.string.ui_assist_level, rangeIndex!! + 1))
             else -> DashboardTextResources.title(context, id) ?: title(data, gps)
         }
     fun dashboardTitle(context: android.content.Context, data: LiveData): String =
@@ -166,26 +166,11 @@ data class DashboardField(val id: String) {
             return DashboardValue(if (it.unit.isEmpty()) formatted else formatted.removeSuffix(" ${it.unit}"), it.unit, raw != null)
         }
         val ranges = data.rangesKm
-        val range = if (id == "CURRENT_RANGE") {
-            val mode = data.value(LiveMetric.ASSIST_MODE)?.toInt()
-            val names = data.assistNames
-            // Do not infer a mode-to-range mapping without aligned bike-supplied names.
-            val offset = if (names != null && ranges != null && names.size == ranges.size + 1 && names.first().equals("OFF", true)) 1 else 0
-            if (mode != null && ranges != null && rangeNames(data) != null) ranges.getOrNull(mode - offset) else null
-        } else rangeIndex?.let { ranges?.getOrNull(it) }
+        val range = if (id == "CURRENT_RANGE") RideMeasurements.currentRangeKm(data)
+            else rangeIndex?.let { ranges?.getOrNull(it) }
         return if (id == "RANGES") {
             DashboardValue(ranges?.takeIf { it.isNotEmpty() }?.joinToString(" / ") ?: "—", "km je Modus", !ranges.isNullOrEmpty())
         } else DashboardValue(range?.toString() ?: "—", "km", range != null)
-    }
-
-    private fun rangeNames(data: LiveData): List<String>? {
-        val names = data.assistNames ?: return null
-        val ranges = data.rangesKm ?: return null
-        return when {
-            names.size == ranges.size -> names
-            names.size == ranges.size + 1 && names.first().equals("OFF", true) -> names.drop(1)
-            else -> null
-        }
     }
 
     companion object {

@@ -12,7 +12,7 @@ Erste interne Entkopplung des Fahrtabschlusses: `RecordingStore` liefert aus `ex
 
 `RecordingStatusText` erzeugt die bisherigen Meldungen über Stringressourcen und entscheidet anhand des Ereignistyps über die bisherige lange Rückmeldung. `MainActivity` unterdrückt weiterhin identische aufeinanderfolgende Meldungen; Fortschritt und Hinweise auf fehlende Journale/offene Fahrten bleiben ohne Toast. Keine fachliche Entscheidung hängt von einem Textpräfix ab.
 
-Unverändert: Verarbeitungsschritte/Reihenfolge, Worker, Aufnahmetakte, Speichergrenzen, Journal-/FIT-Schema, Profile, Namensvorlagen, Uploadwarteschlangen und Benutzeroberfläche. Aufzeichnungsfeldkatalog und Messwert-/Dashboard-Entkopplung sind noch nicht umgesetzt.
+Unverändert: Verarbeitungsschritte/Reihenfolge, Worker, Aufnahmetakte, Speichergrenzen, Journal-/FIT-Schema, Profile, Namensvorlagen, Uploadwarteschlangen und Benutzeroberfläche. Die anschließende Feldkatalog-/Messwert-Entkopplung ist in [Aufzeichnungsfelder und Messwerte](recording-fields.md) beschrieben.
 
 ## Referenztests
 

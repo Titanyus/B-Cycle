@@ -1,7 +1,5 @@
 package de.bcycle.app
 
-import java.util.Locale
-
 /** Only fields with published, verified MCSP meanings and units are displayed. */
 enum class LiveMetric(val address: Int, val title: String, val unit: String, val divisor: Double = 1.0,
                       val group: Int = 0, val maxRaw: Long = 0xffffffffL) {
@@ -24,13 +22,6 @@ enum class LiveMetric(val address: Int, val title: String, val unit: String, val
     MAXIMUM_CADENCE(0x2249, "Max. Kadenz", "U/min", 2.0, group = 2),
     AVERAGE_SPEED(0x2246, "Ø Geschwindigkeit", "km/h", 100.0, group = 2),
     RIDER_ENERGY_SHARE(0x2254, "Fahreranteil an Antriebsenergie", "%", group = 2, maxRaw = 100);
-
-    fun format(raw: Long): String {
-        if (this == BIKE_LIGHT) return when (raw) { 0L -> "Aus"; 1L -> "An"; else -> "—" }
-        val value = if (this == BATTERY_TEMPERATURE) (raw ushr 1) xor -(raw and 1) else raw
-        return if (divisor == 1.0) "$value $unit".trim() else
-            String.format(Locale.GERMANY, "%.1f %s", value / divisor, unit)
-    }
 
     companion object {
         fun forAddress(address: Int) = if (address == 0x1808) SPEED else entries.find { it.address == address }
@@ -64,23 +55,6 @@ data class LiveData(
         LiveMetric.SPEED -> speedHundredths?.toLong()
         LiveMetric.RIDER_POWER -> riderPowerWatts?.toLong()
         else -> otherValues[metric]
-    }
-
-    fun display(metric: LiveMetric): String {
-        val raw = value(metric) ?: return "—"
-        if (metric == LiveMetric.ASSIST_MODE) return assistNames?.getOrNull(raw.toInt()) ?: "Stufe $raw"
-        return metric.format(raw)
-    }
-
-    fun displayRanges(): String {
-        val ranges = rangesKm ?: return "—"
-        if (ranges.isEmpty()) return "—"
-        val names = assistNames
-        val offset = if (names?.size == ranges.size + 1 && names.first().equals("OFF", true)) 1 else 0
-        return ranges.mapIndexed { index, km ->
-            val name = if (names?.size == ranges.size + offset) names[index + offset] else "Stufe ${index + 1}"
-            "$name: $km km"
-        }.joinToString(" · ")
     }
 
     companion object {

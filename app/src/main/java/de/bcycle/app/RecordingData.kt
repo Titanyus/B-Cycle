@@ -40,6 +40,5 @@ fun recordingValues(bike: LiveData, gps: GpsValues, distanceM: Long?, pulse: Pul
     add("HEART_RATE", pulse.bpm?.toDouble()); add("HEART_AVERAGE", pulse.average); add("HEART_MAXIMUM", pulse.maximum?.toDouble()); add("HEART_BATTERY", pulse.battery?.toDouble())
     // Preserve the actual altitude reference instead of silently treating ellipsoid height as MSL.
     if (gps.altitudeM != null) put("GPS_ALTITUDE_MSL", if (gps.seaLevel) 1.0 else 0.0)
-    val range = DashboardField("CURRENT_RANGE").value(bike)
-    if (range.available) add("CURRENT_RANGE", range.text.toDoubleOrNull())
+    add("CURRENT_RANGE", RideMeasurements.currentRangeKm(bike)?.toDouble())
 }
