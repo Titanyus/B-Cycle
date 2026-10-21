@@ -169,6 +169,7 @@ class RideDirectoryBackupTest {
         store.begin(id,1000,"Gurt",session)
         session.accept(1000,byteArrayOf(0x16,75,0,4));store.append(id,session.packets.last())
         session.abort("USER_ABORT");store.save(id,session,de.bcycle.hrv.Evaluate.session(session),1000)
+        store.saveQuestionnaire(id,HrvQuestionnaire.forMeasurement(store.read(id)).copy(alcohol=0,ratings=mapOf("sleep" to 4)))
         val destination=parent(source.c);val exported=source.backup.export(destination)
         assertEquals(1,exported.hrvCompleted);assertEquals(0,exported.hrvFailed)
         val folder=destination.child(exported.folder,false)

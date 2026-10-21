@@ -80,6 +80,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         addView(BicycleComponents.action(context,themes,context.getString(R.string.hrv_export)) { selected(DataAction.HRV_EXPORT) }.apply {
             tag="data_HRV_EXPORT";contentDescription=context.getString(R.string.hrv_export)
         },LayoutParams(-1,-2))
+        addView(BicycleComponents.description(context,themes,context.getString(R.string.hrvq_export_hint)))
     }
     fun install(action:DataAction,content:View,enabled:Switch?=null) {
         val header=headers.getValue(action)

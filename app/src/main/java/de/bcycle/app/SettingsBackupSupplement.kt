@@ -16,7 +16,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
             "activity-service-dreeve" to setOf("enabled","wifi","address"),
             "activity-service-strava" to setOf("enabled","wifi","clientId")),
         BackupSection.PROFILE to mapOf("bike" to setOf(BikeProfileStore.KEY,BikeProfileStore.ACTIVE,"nextBikeSlot",BikeIdentities.KEY,BikeIdentities.RETAINED_TYPES,BikeUiConfigurationStore.KEY),
-            HrvSettings.STORE to setOf("restSeconds","measureSeconds"),"dreeve-bike-mappings" to setOf("entries")))
+            HrvSettings.STORE to setOf("restSeconds","measureSeconds"),HrvQuestionSettings.STORE to setOf(HrvQuestionSettings.KEY),"dreeve-bike-mappings" to setOf("entries")))
     fun export(section:BackupSection):JSONObject {
         val profiles=if(section==BackupSection.PROFILE) BikeProfileStore(context,prefs("bike"),initialize=false) else null
         return JSONObject().apply {
@@ -60,6 +60,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                     }
                     "position" -> (value as String).also { require(MessagePosition.entries.any { p -> p.name==it }) }
                     "durationSeconds" -> integer(row,key).also { require(it in 5..180) }
+                    HrvQuestionSettings.KEY -> (value as String).also { HrvQuestionConfig.decode(JSONObject(it)) }
                     "restSeconds" -> integer(row,key).also { require(it in 15..60 && it%15==0) }
                     "measureSeconds" -> integer(row,key).also { require(it in 60..300 && it%15==0) }
                     BikeProfileStore.ACTIVE,"nextBikeSlot" -> integer(row,key).also { require(it in 0 until Int.MAX_VALUE) }

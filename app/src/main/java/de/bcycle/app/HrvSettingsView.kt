@@ -49,5 +49,8 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,canEdit:()->B
             addView(slider,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.touchSize)).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         }
         duration(true);duration(false)
+        val heading=BicycleForm.section(this,themes,R.string.hrvq_title)
+        val questions=HrvQuestionSettingsView(context,themes)
+        addView(questions,LayoutParams(-1,-2));heading.accordion(questions,false)
     }
 }

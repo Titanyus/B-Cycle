@@ -1,7 +1,7 @@
 <resources>
     <string name="hrv_export_help">→ IN: Gespeicherte Messungen können über vollständige BICYCLE-Sicherungsordner wiederhergestellt werden; kein Import fremder HRV-Analyseformate.
 
-← OUT: Manuelles ZIP in Downloads/B-Cycle mit einer vollständigen JSON je gespeicherter Messung, auch abgelehnte Messungen. Rohpakete, RR-/NN-Folgen, Sensor, Messprotokoll, Zeit-/Frequenzwerte, Qualitätsgründe, Korrekturschritte und Versionen bleiben erhalten. Für den Export laufende Messungen zuerst beenden. Kein automatischer Upload.</string>
+← OUT: Manuelles ZIP in Downloads/B-Cycle mit einer vollständigen JSON je gespeicherter Messung, auch abgelehnte Messungen. Rohpakete, RR-/NN-Folgen, Sensor, Messprotokoll, Zeit-/Frequenzwerte, Qualitätsgründe, Korrekturschritte und Versionen bleiben erhalten. Ausgefülltes Tagesbefinden wird separat in derselben Analyse-JSON mitgegeben. Für den Export laufende Messungen zuerst beenden. Kein automatischer Upload.</string>
     <string name="hrv_nn_info">Ø NN-Intervall: %1$.2f ms · bereinigte Intervalle: %2$d</string>
     <string name="hrv_idle">Bereit</string>
     <string name="hrv_time_metrics">Zeitbereich</string>

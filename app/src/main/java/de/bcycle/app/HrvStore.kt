@@ -82,6 +82,18 @@ internal class HrvStore(private val root:File) {
             require(row.getString("format")=="bicycle-hrv" && row.getInt("schema")==1 && row.getString("id")==id)
         }
     }
+    fun questionnaire(id:String):HrvQuestionnaire? {
+        val file=File(directory(id),"questionnaire.json")
+        return if(!file.exists()) null else AtomicFile(file).openRead().use {
+            HrvQuestionnaire.decode(BackupJson.objectValue(it.readNBytes(65537),65536))
+        }
+    }
+    fun saveQuestionnaire(id:String,value:HrvQuestionnaire) {
+        val row=read(id)
+        require(value.day==HrvQuestionnaire.forMeasurement(row).day)
+        val bytes=value.json().toString().toByteArray();require(bytes.size<=65536)
+        atomic(File(directory(id),"questionnaire.json"),bytes)
+    }
     fun recover() {
         root.listFiles().orEmpty().filter { it.isDirectory && validId(it.name) && !File(it,"result.json").exists() }.forEach { dir ->
             val draft=JSONObject(AtomicFile(File(dir,"draft.json")).openRead().bufferedReader().use { it.readText() })
@@ -101,7 +113,8 @@ internal class HrvStore(private val root:File) {
         val bytes=File(dir,"capture.jsonl").takeIf { it.isFile }?.readBytes() ?: byteArrayOf()
         require(bytes.size<=MAX_BYTES)
         return JSONObject().put("format","bicycle-hrv-backup").put("schema",1).put("result",result)
-            .put("capture",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP)).toString().toByteArray().also { require(it.size<=MAX_BYTES) }
+            .put("capture",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP))
+            .apply { questionnaire(id)?.let { put("questionnaire",it.json()) } }.toString().toByteArray().also { require(it.size<=MAX_BYTES) }
     }
     fun analysisJson(id:String):ByteArray {
         val result=read(id)
@@ -116,7 +129,8 @@ internal class HrvStore(private val root:File) {
             packets.put(packet)
         }
         return JSONObject().put("format","bicycle-hrv-analysis").put("schema",1)
-            .put("rrTicksPerSecond",1024).put("result",result).put("packets",packets).toString(2).toByteArray()
+            .put("rrTicksPerSecond",1024).put("result",result).put("packets",packets)
+            .apply { questionnaire(id)?.let { put("questionnaire",it.json()) } }.toString(2).toByteArray()
     }
     fun restore(bytes:ByteArray):Boolean {
         val backup=BackupJson.objectValue(bytes,MAX_BYTES)
@@ -124,6 +138,9 @@ internal class HrvStore(private val root:File) {
         val row=backup.getJSONObject("result");val id=row.getString("id")
         require(validId(id) && row.getString("format")=="bicycle-hrv" && row.getInt("schema")==1)
         require(row.getLong("utcMs")>=0 && Phase.valueOf(row.getString("phase")) in setOf(Phase.COMPLETE,Phase.ABORTED))
+        require(!backup.has("questionnaire") || backup.get("questionnaire") is JSONObject)
+        val questionnaire=backup.optJSONObject("questionnaire")?.let(HrvQuestionnaire::decode)
+        require(questionnaire==null || questionnaire.day==HrvQuestionnaire.forMeasurement(row).day)
         val capture=android.util.Base64.decode(backup.getString("capture"),android.util.Base64.DEFAULT)
         require(capture.size<=MAX_BYTES)
         val lines=capture.toString(Charsets.UTF_8)
@@ -137,7 +154,11 @@ internal class HrvStore(private val root:File) {
         val dir=directory(id)
         if(File(dir,"result.json").isFile) { require(backup(id).contentEquals(bytes)) { "Abweichende HRV-Messung bereits vorhanden" };return false }
         require(!dir.exists());check(dir.mkdir())
-        try { atomic(File(dir,"capture.jsonl"),capture);atomic(File(dir,"result.json"),row.toString().toByteArray()) }
+        try {
+            atomic(File(dir,"capture.jsonl"),capture)
+            questionnaire?.let { atomic(File(dir,"questionnaire.json"),it.json().toString().toByteArray()) }
+            atomic(File(dir,"result.json"),row.toString().toByteArray())
+        }
         catch(e:Exception) { dir.deleteRecursively();throw e }
         return true
     }

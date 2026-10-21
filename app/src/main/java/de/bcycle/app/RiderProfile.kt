@@ -7,10 +7,12 @@ import java.time.LocalDate
 import java.time.Period
 import java.util.Locale
 
+enum class RiderSex { MALE, FEMALE }
+
 /** Canonical personal inputs. Derived age/zones are never persisted or copied from ride estimates. */
 data class RiderProfile(val birthDate: LocalDate? = null, val heightCm: Int? = null, val weightKg: Double? = null,
                         val restingHeartRate: Int? = null, val maximumHeartRate: Int? = null, val ftpW: Int? = null,
-                        val heartRateMethod:HeartRateMethod=HeartRateMethod.KARVONEN,val thresholdHeartRate:Int?=null) {
+                        val heartRateMethod:HeartRateMethod=HeartRateMethod.KARVONEN,val thresholdHeartRate:Int?=null,val sex:RiderSex?=null) {
     fun ageYears(today: LocalDate = LocalDate.now()): Int? = birthDate?.takeIf { it <= today }?.let { Period.between(it, today).years }
     fun powerZones(): List<PowerZone>? = Coggan.zones(ftpW)
     fun heartZones():HeartRateZoneModel? = HeartRateZones.calculate(this)
@@ -76,7 +78,7 @@ class RiderProfileStore(private val preferences: SharedPreferences, private val 
         }
         val birth = (json.opt("birthDate") as? String)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
         val raw = RiderProfile(birth, integer("heightCm"), (json.opt("weightKg") as? Number)?.toDouble(), integer("restingHeartRate"), integer("maximumHeartRate"), integer("ftpW"),
-            runCatching { HeartRateMethod.valueOf(json.optString("heartRateMethod")) }.getOrDefault(HeartRateMethod.KARVONEN),integer("thresholdHeartRate"))
+            runCatching { HeartRateMethod.valueOf(json.optString("heartRateMethod")) }.getOrDefault(HeartRateMethod.KARVONEN),integer("thresholdHeartRate"),RiderSex.entries.find { it.name==json.optString("sex") })
         val errors = RiderProfileValidation.validate(raw, today())
         raw.copy(birthDate = raw.birthDate.takeUnless { RiderField.BIRTH_DATE in errors }, heightCm = raw.heightCm.takeUnless { RiderField.HEIGHT in errors },
             weightKg = raw.weightKg.takeUnless { RiderField.WEIGHT in errors }, restingHeartRate = raw.restingHeartRate.takeUnless { RiderField.RESTING_HEART_RATE in errors },
@@ -87,7 +89,7 @@ class RiderProfileStore(private val preferences: SharedPreferences, private val 
         val json = JSONObject().put("version", 1).put("birthDate", profile.birthDate?.toString())
             .put("heightCm", profile.heightCm).put("weightKg", profile.weightKg).put("restingHeartRate", profile.restingHeartRate)
             .put("maximumHeartRate", profile.maximumHeartRate).put("ftpW", profile.ftpW)
-            .put("heartRateMethod",profile.heartRateMethod.name).put("thresholdHeartRate",profile.thresholdHeartRate)
+            .put("heartRateMethod",profile.heartRateMethod.name).put("thresholdHeartRate",profile.thresholdHeartRate).put("sex",profile.sex?.name)
         return preferences.edit().putString(key, json.toString()).commit()
     }
 }

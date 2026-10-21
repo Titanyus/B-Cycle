@@ -9,7 +9,8 @@ import org.json.JSONObject
 
 /** Native foreground measurement; colors follow the active dashboard palette. */
 internal class HrvMeasurementView(context:Context,private val themes:ThemeManager,private val controller:HrvController,
-    private val sensor:()->String,private val canStart:()->Boolean,private val history:()->Unit):LinearLayout(context) {
+    private val sensor:()->String,private val canStart:()->Boolean,private val history:()->Unit,
+    private val questionnaire:(JSONObject)->Unit={}):LinearLayout(context) {
     private val circle=HrvCircleView(context,themes).apply { tag="hrv_circle" }
     private val status=BicycleFeedback.status(context,themes).apply { tag="hrv_status" }
     private val result=LinearLayout(context).apply { orientation=VERTICAL;tag="hrv_result" }
@@ -24,6 +25,9 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         setPadding(inset,paddingTop,inset,paddingBottom)
     }
     private val historyButton=BicycleComponents.action(context,themes,context.getString(R.string.hrv_history),history).apply { tag="hrv_history" }
+    private val questionnaireButton=BicycleComponents.action(context,themes,context.getString(R.string.hrvq_title)) {
+        controller.state.result?.let(questionnaire)
+    }.apply { tag="hrv_questionnaire_button";visibility=GONE }
     private var startAction=true
     private var subscription:AutoCloseable?=null
     private var shown:JSONObject?=null
@@ -38,7 +42,7 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvCircleHeight)))
         addView(status,LayoutParams(-1,-2))
         addView(graph,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvGraphHeight)))
-        addView(result,LayoutParams(-1,-2));addView(historyButton,LayoutParams(-1,-2))
+        addView(result,LayoutParams(-1,-2));addView(historyButton,LayoutParams(-1,-2));addView(questionnaireButton,LayoutParams(-1,-2))
         BicycleComponents.bindTheme(action,themes) { styleAction() }
         show(controller.state)
     }
@@ -61,6 +65,7 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         historyButton.isEnabled=!running && !state.saving
         historyButton.visibility=if(running) GONE else VISIBLE
         status.visibility=if(state.saveError) VISIBLE else GONE
+        questionnaireButton.visibility=if(state.result!=null && !running && !state.saving) VISIBLE else GONE
         graph.visibility=if(state.result==null) VISIBLE else GONE
         BicycleFeedback.update(status,context.getString(when {
             state.saveError->R.string.hrv_save_failed;state.saving->R.string.hrv_saving

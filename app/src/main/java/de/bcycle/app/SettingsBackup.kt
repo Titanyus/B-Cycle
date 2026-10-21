@@ -45,7 +45,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
             "foreground" to t.tokens.foreground, "accent" to t.tokens.accent).forEach { (k,v) -> put(k, "#%06X".format(java.util.Locale.ROOT, v and 0xffffff)) }
     }
     private fun profileJson(p: RiderProfile) = JSONObject().put("birthDate", p.birthDate?.toString() ?: JSONObject.NULL)
-        .put("heightCm", p.heightCm ?: JSONObject.NULL).put("weightKg", p.weightKg ?: JSONObject.NULL)
+        .put("sex",p.sex?.name ?: JSONObject.NULL).put("heightCm", p.heightCm ?: JSONObject.NULL).put("weightKg", p.weightKg ?: JSONObject.NULL)
         .put("restingHeartRate", p.restingHeartRate ?: JSONObject.NULL).put("maximumHeartRate", p.maximumHeartRate ?: JSONObject.NULL).put("ftpW", p.ftpW ?: JSONObject.NULL).put("heartRateMethod",p.heartRateMethod.name).put("thresholdHeartRate",p.thresholdHeartRate ?: JSONObject.NULL)
     private fun dashboardIds():List<Int> = runCatching {
         val saved=JSONArray(bike.getString(DashboardPages.KEY,null))
@@ -270,9 +270,10 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                         heightCm=number("heightCm",old.heightCm),weightKg=if(!row.has("weightKg")) old.weightKg else if(row.isNull("weightKg")) null else (row.opt("weightKg") as? Number)?.toDouble() ?: fail(),
                         restingHeartRate=number("restingHeartRate",old.restingHeartRate),maximumHeartRate=number("maximumHeartRate",old.maximumHeartRate),ftpW=number("ftpW",old.ftpW),
                         heartRateMethod=if(row.has("heartRateMethod")) HeartRateMethod.valueOf(field(row,"heartRateMethod",30)) else old.heartRateMethod,
-                        thresholdHeartRate=number("thresholdHeartRate",old.thresholdHeartRate))
+                        thresholdHeartRate=number("thresholdHeartRate",old.thresholdHeartRate),
+                        sex=if(!row.has("sex")) old.sex else if(row.isNull("sex")) null else RiderSex.valueOf(field(row,"sex",20)))
                     check(RiderProfileValidation.validate(profile,today()).isEmpty())
-                    if(listOf("birthDate","heightCm","weightKg","restingHeartRate","maximumHeartRate","ftpW","heartRateMethod","thresholdHeartRate").any(row::has))
+                    if(listOf("birthDate","heightCm","weightKg","restingHeartRate","maximumHeartRate","ftpW","heartRateMethod","thresholdHeartRate","sex").any(row::has))
                         b[RiderProfileStore.key]=profileJson(profile).put("version",1).toString()
                 }
                 BackupSection.CLOUD -> {

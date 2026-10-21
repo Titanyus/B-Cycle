@@ -629,7 +629,7 @@ class MainActivity : Activity() {
     private fun showHrv() {
         if(runtime.recording || runtime.saving) { BicycleFeedback.show(this,R.string.hrv_ride_busy);return }
         val body=HrvMeasurementView(this,runtime.themes,runtime.hrv,
-            sensor={ runtime.heartName },canStart={ !runtime.recording && !runtime.saving },history=::showHrvHistory)
+            sensor={ runtime.heartName },canStart={ !runtime.recording && !runtime.saving },history=::showHrvHistory,questionnaire=::showHrvQuestionnaire)
         val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_title)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(body) }).create()
         dialogs.onDismiss(screen) { runtime.hrv.abort("VIEW_CLOSED") }
@@ -651,8 +651,28 @@ class MainActivity : Activity() {
                     BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_result)
                         .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(hrvResult(this@MainActivity,runtime.themes,rows[position]).apply {
                             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
+                            addView(BicycleComponents.action(this@MainActivity,runtime.themes,getString(R.string.hrvq_title)) { showHrvQuestionnaire(rows[position]) }.apply { tag="hrv_questionnaire_button" })
                         }) }).show()
                 }.show()
+        }
+    }
+    private fun showHrvQuestionnaire(row:org.json.JSONObject) {
+        val root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL
+            val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad) }
+        val loading=BicycleComponents.description(this,runtime.themes,getString(R.string.hrvq_loading));root.addView(loading)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrvq_title)
+            .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
+        val id=row.getString("id")
+        runtime.hrv.questionnaire(id) { result ->
+            if(isDestroyed || !screen.isShowing) return@questionnaire
+            if(result.isFailure) { loading.setText(R.string.hrvq_load_failed);return@questionnaire }
+            val initial=result.getOrNull() ?: HrvQuestionnaire.forMeasurement(row)
+            val training=if(runtime.mapState.busy) null else HrvTrainingSummary.previousDay(
+                java.time.LocalDate.parse(initial.day),java.time.ZoneId.of(row.getString("zone")),runtime.mapState.entries)
+            root.removeAllViews();root.setPadding(0,0,0,0)
+            root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training) { value,done ->
+                runtime.hrv.saveQuestionnaire(id,value) { saved -> done(saved.isSuccess) }
+            },LinearLayout.LayoutParams(-1,-2))
         }
     }
     private fun startRide() {

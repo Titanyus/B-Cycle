@@ -152,6 +152,14 @@ internal class HrvController(private val context:Context,private val clock:()->L
         publish(state.copy(saving=false,saveError=true))
     }
     fun history(done:(List<JSONObject>)->Unit) { submit { val rows=checkNotNull(store).list();main.post { done(rows) } } }
+    private fun <T> questionnaireTask(done:(Result<T>)->Unit,block:()->T) {
+        try { worker.execute { val result=runCatching(block);main.post { done(result) } } }
+        catch(e:java.util.concurrent.RejectedExecutionException) { main.post { done(Result.failure(e)) } }
+    }
+    fun questionnaire(id:String,done:(Result<HrvQuestionnaire?>)->Unit) =
+        questionnaireTask(done) { checkNotNull(store).questionnaire(id) }
+    fun saveQuestionnaire(id:String,value:HrvQuestionnaire,done:(Result<Unit>)->Unit) =
+        questionnaireTask(done) { checkNotNull(store).saveQuestionnaire(id,value) }
     @Volatile private var exporting=false
     fun export(done:(Int,Boolean)->Unit) {
         if(busy || exporting) { main.post { done(0,false) };return }

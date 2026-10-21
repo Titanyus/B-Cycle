@@ -30,6 +30,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             if(saved==false) saveFailed() else if(saved==true) retained=value.profile
         }
     }
+    private var sex=initial.sex
     private var retained=initial
     private var heartMethod=initial.heartRateMethod
     private val methodExplanation=BicycleComponents.description(context,themes,context.getString(heartMethod.explanation)).apply { tag="rider_method_explanation" }
@@ -96,6 +97,17 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
         age.setPadding(0,0,dp(BicycleDesign.touchSize)+birth.paddingEnd,0)
         root.addView(age, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(BicycleDesign.verticalPadding) })
         birth.setOnClickListener { chooseBirthDate() }; updateBirth()
+        root.addView(text(context.getString(R.string.rider_sex)))
+        val sexRow=RadioGroup(context).apply { orientation=LinearLayout.HORIZONTAL;tag="rider_sex" }
+        BicycleComponents.segmentedControlRow(sexRow,themes)
+        RiderSex.entries.forEach { option ->
+            sexRow.addView(BicycleSegmentButton(context,themes).apply {
+                id=View.generateViewId();tag="rider_sex_${option.name}";setText(if(option==RiderSex.MALE) R.string.rider_male else R.string.rider_female)
+                isChecked=sex==option
+                setOnClickListener { sex=option;persistValid() }
+            },RadioGroup.LayoutParams(0,-2,1f))
+        }
+        root.addView(sexRow,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap);bottomMargin=dp(BicycleDesign.controlGap) })
         input(RiderField.HEIGHT, R.string.rider_height, R.string.rider_cm, initial.heightCm?.toString().orEmpty())
         val decimal = DecimalFormat("0.################", DecimalFormatSymbols.getInstance(locale)).apply { isGroupingUsed = false }
         input(RiderField.WEIGHT, R.string.rider_weight, R.string.rider_kg, initial.weightKg?.let(decimal::format).orEmpty(), true)
@@ -252,7 +264,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             RiderField.THRESHOLD_HEART_RATE to retained.thresholdHeartRate).forEach { (field,value) ->
             if(field !in heartMethod.requiredFields) fields[field]=value?.toString().orEmpty()
         }
-        return RiderProfileValidation.parse(birthDate,fields,locale,today(),heartMethod)
+        return RiderProfileValidation.parse(birthDate,fields,locale,today(),heartMethod).let { it.copy(profile=it.profile.copy(sex=sex)) }
     }
     private fun updateZones() {
         val draft = draft()

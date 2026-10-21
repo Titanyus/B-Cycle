@@ -33,3 +33,5 @@ Entwicklungsregel in AGENTS.md; die Beschreibung wird nicht aus API-Fähigkeiten
 abgeleitet, die BICYCLE noch nicht umgesetzt hat.
 
 HRV-Pulsdaten ist ein eigener Sticky-Abschnitt mit direktem Exportbutton. Seine IN-/OUT-Grenzen stehen in der zugehörigen Daten-Hilfe (`hrv_export_help`): vollständige Wiederherstellung über BICYCLE-Sicherung; gezielter manueller Analyseexport als ZIP mit einer JSON je Messung inklusive Rohdaten und Ablehnungen. Keine Cloud-Synchronisierung und kein Import fremder HRV-Analyseformate.
+
+Nach Build 61: Vollständige HRV-Sicherung und HRV-Analyse-ZIP enthalten optional das ausgefüllte Tagesbefinden getrennt vom unveränderten Ergebnis. Wiederherstellung legt die optionale Antwortdatei wieder an; alte Sicherungen ohne Antworten bleiben kompatibel. Reine Einstellungssicherung enthält globale Fragenauswahl/eigene Feldnamen und optionale Geschlechtsangabe, keine Antworten. Kein automatischer Upload. Sichtbare Texte in hrv.xml/transfer_capabilities.xml und Daten-Exportbeschreibung angepasst.

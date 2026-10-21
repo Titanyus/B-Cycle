@@ -113,3 +113,7 @@ Daten & Speicher → HRV-Pulsdaten: Sticky-Abschnitt mit Exportbutton. Manueller
 Die grafische Lückenerkennung betrachtet zusätzliche Zeit über das beobachtete RR-Intervall hinaus: Punktabstand minus aktuelles RR größer als max(1500 ms, 1,5 × RR). Bisher wurde fälschlich der gesamte Abstand gegen diese Schwelle geprüft, wodurch kurze Empfangsverzögerungen sichtbare Linienunterbrechungen auslösen konnten. Längere nicht durch RR erklärte Lücken bleiben als Pfadunterbrechung sichtbar. Keine zusätzlichen RR, unveränderte Empfangszeitanker, Messqualitätsregeln, Korrekturen und Speicherung; nur das Gap-Flag des Live-Graphen ändert sich. Vier gezielte Prüfungen für Glow, native Beschriftung/Pillenrahmen/Themewechsel, Controller-Empfangszeiten und echte Graphunterbrechungen erfolgreich. Kein neuer Gurt-/Gerätetest und keine APK für diese Folgeänderung.
 
 Weitere gewünschte Auswertung und recherchierter Vergleich: [HRV-Score und Verlauf – Entwurf](hrv-score-plan.md). Noch kein Score oder Langzeitdiagramm implementiert.
+
+## Tagesbefinden nach gespeicherter Messung
+
+Optionaler Button unten sowie im historischen Ergebnis öffnet den konfigurierbaren Fragebogen. Antworten beeinflussen keine HRV-Messung/Bewertung. Separate atomare Datei, Einstellungssicherung für Fragenauswahl/Geschlecht, vollständige Sicherung und Analyseexport für Antworten. [Details und Prüfungen](hrv-questionnaire.md).
