@@ -11,6 +11,7 @@ internal class BicycleSectionHeader(context: Context, private val manager: Theme
     /** Optional section boundary, e.g. an independent accordion after the last category. */
     var sectionEnd: View? = null
     var expanded:Boolean?=null;private set
+    var revealOnOpen=false
     val titleView = BicycleComponents.text(context, manager, title, true)
     init {
         BicycleComponents.bindTheme(titleView,manager) { titleView.setTextColor(it.foreground) }
@@ -65,7 +66,8 @@ internal class BicycleSectionHeader(context: Context, private val manager: Theme
         setOnClickListener {
             val pinned=translationY>0f
             show(content.visibility!=VISIBLE);changed(expanded==true)
-            if(pinned) post {
+            if(revealOnOpen && expanded==true) BicycleContentSpacing.revealAfterLayout(this)
+            else if(pinned) post {
                 var y=top;var parent=this.parent
                 while(parent is View && parent !is android.widget.ScrollView) { y+=parent.top;parent=parent.parent }
                 (parent as? android.widget.ScrollView)?.scrollTo(0,y)

@@ -67,6 +67,17 @@ class HrvViewTest {
                 val values=IntArray(bitmap.width*bitmap.height);bitmap.getPixels(values,0,bitmap.width,0,0,bitmap.width,bitmap.height)
                 return values.count { it==color }>50
             }
+            val graph=view.findViewWithTag<View>("hrv_graph")
+            assertEquals(286,graph.height)
+            val graphBitmap=android.graphics.Bitmap.createBitmap(graph.width,graph.height,android.graphics.Bitmap.Config.ARGB_8888)
+            graph.draw(android.graphics.Canvas(graphBitmap))
+            // Axis glyph interiors retain 50% alpha even on a transparent canvas.
+            var halfOpaqueLabels=0
+            for(y in 0 until graph.height) for(x in 0 until 40) {
+                val pixel=graphBitmap.getPixel(x,y)
+                if(Color.alpha(pixel)==128 && Color.red(pixel)==255 && Color.green(pixel)==255 && Color.blue(pixel)==255) halfOpaqueLabels++
+            }
+            assertTrue(halfOpaqueLabels>10);graphBitmap.recycle()
             val first=render();assertTrue(hasColor(first,themes.active.tokens.accent));first.recycle()
             val next=themes.presets.first { it.tokens.accent!=themes.active.tokens.accent }
             assertTrue(themes.activate(next.id))

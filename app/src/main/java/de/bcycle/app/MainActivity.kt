@@ -565,7 +565,15 @@ class MainActivity : Activity() {
         val slot = runtime.bikes.activeSlot
         val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
         BicycleForm.section(root,settingsThemes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
-        root.addView(RideNamingView(settingsContext,settingsThemes) { runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving })
+        var previewRevision=Long.MIN_VALUE
+        var previewDetails:RouteDetails?=null
+        root.addView(RideNamingView(settingsContext,settingsThemes,latestRide={
+            if(previewRevision!=runtime.mapState.routeRevision) {
+                previewRevision=runtime.mapState.routeRevision
+                previewDetails=runtime.mapState.entries.firstOrNull { it.origin==TrackOrigin.RECORDED }?.details
+            }
+            previewDetails
+        }) { runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving })
         root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }
@@ -946,8 +954,8 @@ class MainActivity : Activity() {
             render()
         }
     private fun appendTrainingHelp(root:LinearLayout,page:()->Int):TrainingHelpView {
-        BicycleForm.section(root,settingsThemes,R.string.training_help_title)
-        return trainingHelpControls(page).also { root.addView(it) }
+        val heading=BicycleForm.section(root,settingsThemes,R.string.training_help_title).apply { revealOnOpen=true }
+        return trainingHelpControls(page).also { it.revealAnchor=heading;root.addView(it) }
     }
     private fun mapSettings() {
         menu=dialog().setTitle(R.string.ui_map_manager_title).setView(ScrollView(settingsContext).apply { addView(mapControls()) }).show()
@@ -977,6 +985,7 @@ class MainActivity : Activity() {
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
         val heading = toggle(getString(R.string.ui_map_heading), "mapHeading", true)
         val follow = toggle(getString(R.string.ui_map_follow), "mapFollow", true)
+        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_track_divider" })
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }

@@ -164,3 +164,11 @@ Zwischen Eingabefeldern/Auswahlgruppen und Nachbarcontrols mindestens 8 dp. Inne
 Normale erste Inhalte beginnen 16 dp unter dem Haupt-Header, führende Sticky-Header bei 0 dp. Verschachtelte Seiten-/Scrollwrapper liefern keine zusätzlichen oberen Insets. Der gemeinsame Vollbildhost normalisiert diese führende Kette beim Messen, auch für nachträglich eingefügte Formulare. Horizontales Padding, innere Controlgeometrie, Footer und Scrollzustand erhalten. Bestehende Abstände innerhalb/zwischen Sticky-Abschnitten bleiben bestehen.
 
 Gezielt geprüft: 11 erfolgreiche UI-Tests (4 neue SelectionSpacing, 6 bestehende ContentSpacing und ein bestehender RideNaming-Profil-/Mehrfachauswahltest). Native Pixelprüfung für den Icon-Text-Abstand und Gruppenrahmen, sieben tatsächliche Einstellungsseiten, nachträglich eingefügte Formulare/Sticky-Header sowie bisherige Profil-/Strecken-/Detailabstände. Kein Gesamttestlauf, keine APK.
+
+## Ergänzungen nach Build 60
+
+Fahrtbenennung: Vorschau als abgeschwächter, nicht editierbarer Suffix im Namensfeld; ausschließlich der Grundname liegt im Editable und in den Einstellungen. Letzte gefahrene Fahrt liefert Beispielwerte, fehlende Werte bleiben xx-Platzhalter. Lange Vorschau darf umbrechen.
+
+Trainingshilfe: Aufklappen der Abschnittsüberschrift oder ihres Detail-Chevrons setzt die Überschrift nach der nächsten Layoutberechnung an den oberen Rand des nativen ScrollView, soweit der Scrollbereich reicht. Andere Abschnitte behalten ihr bisheriges Verhalten; keine Änderung an Modus/Auswahl durch Scrollen.
+
+Karteneinstellungen: zentraler sectionDivider unmittelbar vor Trackaufzeichnung, mit den bestehenden gemeinsamen Abständen.

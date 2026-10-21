@@ -1,0 +1,8 @@
+<resources>
+    <string name="ride_preview_date">xx.xx.xxxx</string>
+    <string name="ride_preview_time">xx:xxh</string>
+    <string name="ride_preview_distance">xx,xkm</string>
+    <string name="ride_preview_moving">x:xx:xxh</string>
+    <string name="ride_preview_speed">xx,xkm/h</string>
+    <string name="ride_preview_accessibility">Namensvorschau: %1$s</string>
+</resources>

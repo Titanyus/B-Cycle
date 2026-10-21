@@ -12,6 +12,7 @@ internal class TrainingHelpView(context:Context,themes:ThemeManager,initial:Dash
     private val changed:(DashboardTrainingHelp)->Unit):LinearLayout(context) {
     private var config=initial
     private var binding=false
+    var revealAnchor:View?=null
     private val modes=RadioGroup(context).apply { orientation=HORIZONTAL;tag="training_help_modes" }
     private val modeButtons=TrainingHelpMode.entries.associateWith { mode ->
         BicycleSegmentButton(context,themes).apply {
@@ -36,6 +37,7 @@ internal class TrainingHelpView(context:Context,themes:ThemeManager,initial:Dash
         val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.training_help_details)) {
             val open=details.visibility!=VISIBLE
             details.visibility=if(open) VISIBLE else GONE
+            if(open) BicycleContentSpacing.revealAfterLayout(revealAnchor ?: this@TrainingHelpView)
             findViewWithTag<View>("training_help_expand").apply {
                 rotation=if(open) 180f else 0f
                 stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)

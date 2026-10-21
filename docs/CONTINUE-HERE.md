@@ -8,7 +8,9 @@ Diese Datei ersetzt den fehlenden Chatverlauf als Arbeitsübergabe. Sie enthält
 
 ## Aktueller Auftrag
 
-Eine neue signierte, verkleinerte Release-APK nach Abschluss der folgenden Änderungen erstellen; direkt als APK auf der GitHub-Startseite verlinken, kein ZIP als APK-Download. GitHub Actions baut; lokale Umgebung für gezielte Tests/Compile nutzen. Dauerhaften bestehenden Signierschlüssel wiederverwenden. Schlüssel ausschließlich aus sicherem Speicher/Actions-Secrets beziehen, niemals in diese Datei oder öffentliches Git schreiben.
+Nach Build 60: Namensvorschau im Eingabefeld anhand der letzten gefahrenen Fahrt, Querstrich vor Trackaufzeichnung in Karten, automatisches Scrollen beim Aufklappen der Trainingshilfe sowie HRV-Optik (Achsbeschriftungen 50 %, Diagramm +30 %, Kreislinie +35 %, Endpunkt +40 %). Nur gezielte Tests, derzeit keine neue APK beauftragt. Vorschau ausschließlich gezeichnet, kein Bestandteil des gespeicherten Grundnamens oder der tatsächlichen Fahrtbenennung. Messung, Berechnungen und Datenformate unverändert.
+
+Umgesetzt und geprüft: fünf gezielte Robolectric-Tests erfolgreich (VisualFollowupTest: Vorschau/Editable/Speicherung einschließlich leerem Grundnamen und 60-Zeichen-Grenze, Trainingshilfe-Scrollen ohne Auswahländerung, Kartentrenner; vorhandener profilbezogener RideNaming-/Backup-Test; native HRV-Render-/Theme-Prüfung mit 286-dp-Graph und tatsächlicher 50-%-Textalpha). Native Vorschau und HRV-Ansicht visuell geprüft. Kein Geräte-/BLE-Test für diese optischen Änderungen; keine neue APK. Build 60 enthält diese Ergänzungen noch nicht.
 
 ## Entscheidungen und Änderungen im aktuellen Arbeitsstand
 

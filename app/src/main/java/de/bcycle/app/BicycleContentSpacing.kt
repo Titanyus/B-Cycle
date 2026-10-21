@@ -8,6 +8,19 @@ import android.widget.ListView
 
 /** Spacing belongs to content, never to a pinned heading. Reapplying is idempotent. */
 internal object BicycleContentSpacing {
+    /** Wait for newly opened content to be measured before the native ScrollView clamps its range. */
+    fun revealAfterLayout(anchor:View) {
+        val observer=anchor.viewTreeObserver
+        observer.addOnGlobalLayoutListener(object:android.view.ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if(observer.isAlive) observer.removeOnGlobalLayoutListener(this)
+                if(!anchor.isShown) return
+                var y=anchor.top;var parent=anchor.parent
+                while(parent is View && parent !is ScrollView) { y+=parent.top;parent=parent.parent }
+                (parent as? ScrollView)?.smoothScrollTo(0,y)
+            }
+        })
+    }
     fun page(view:View) {
         if(view is RouteManagerView) { view.applyPageSpacing();return }
         val scrolling=view

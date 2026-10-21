@@ -262,19 +262,20 @@ internal class HrvGraphView(context:Context,themes:ThemeManager):View(context) {
         val elapsed=elapsedMs+if(running) (android.os.SystemClock.elapsedRealtime()-updatedAtMs).coerceAtLeast(0) else 0
         val window=HrvGraphWindow.at(elapsed,measureMs)
         fun position(at:Long)=left+(right-left)*((at-window.startMs).toDouble()/BicycleDesign.hrvGraphWindowMs).toFloat()
-        paint.style=Paint.Style.FILL;paint.color=BicycleDesign.dashboardUnitColor;paint.typeface=units
+        paint.style=Paint.Style.FILL;paint.color=BicycleDesign.hrvAxisColor;paint.typeface=units
         paint.textSize=12*resources.displayMetrics.scaledDensity;paint.textAlign=Paint.Align.LEFT
         canvas.drawText(context.getString(R.string.hrv_rr_label),0f,16*density,paint)
         for(index in 0..4) {
             val y=top+(bottom-top)*index/4
             paint.color=tokens.tertiary;paint.strokeWidth=density;canvas.drawLine(left,y,right,y,paint)
-            paint.color=BicycleDesign.dashboardUnitColor;paint.textAlign=Paint.Align.RIGHT
+            paint.color=BicycleDesign.hrvAxisColor;paint.textAlign=Paint.Align.RIGHT
             canvas.drawText("%.0f".format(java.util.Locale.ROOT,high-(high-low)*index/4),left-5*density,y+4*density,paint)
         }
-        paint.textAlign=Paint.Align.CENTER;paint.color=BicycleDesign.dashboardUnitColor
+        paint.textAlign=Paint.Align.CENTER;paint.color=BicycleDesign.hrvAxisColor
         for(at in window.ticks) {
             val x=position(at)
-            canvas.drawLine(x,bottom,x,bottom+4*density,paint)
+            paint.color=BicycleDesign.dashboardUnitColor;canvas.drawLine(x,bottom,x,bottom+4*density,paint)
+            paint.color=BicycleDesign.hrvAxisColor
             val label=(at/1000).toString();val half=paint.measureText(label)/2
             canvas.drawText(label,x.coerceIn(left+half,right-half),bottom+18*density,paint)
         }

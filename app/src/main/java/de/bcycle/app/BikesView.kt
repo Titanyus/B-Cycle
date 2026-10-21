@@ -287,6 +287,10 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         } else addView(recording,LayoutParams(-1,-2))
         additionalSections?.invoke()?.filter { (title,_) -> title!=R.string.ui_settings_map || BikeSensor.GPS in profile.type.sensors }?.forEach { (title,body) ->
             val heading=section(title)
+            if(title==R.string.training_help_title) {
+                heading.revealOnOpen=true
+                (body as? TrainingHelpView)?.revealAnchor=heading
+            }
             if(title==R.string.ui_design_title) {
                 designHeader=heading
                 dashboardActions=body.findViewWithTag<LinearLayout>("dashboard_inline_actions")?.also {

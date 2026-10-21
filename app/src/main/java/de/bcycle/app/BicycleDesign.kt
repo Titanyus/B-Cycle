@@ -18,11 +18,13 @@ object BicycleDesign {
     const val dashboardToolbarMainWeight=2.3f
     const val dashboardToolbarActionWeight=.9f
     const val hrvCircleHeight=320
-    const val hrvGraphHeight=220
-    const val hrvRingWidth=9f
+    const val hrvGraphHeight=286
+    const val hrvRingWidth=9f*1.35f
     const val hrvPulseSp=72f
     const val hrvTimeSp=18f
-    const val hrvRingEndScale=1.3f
+    // Endpoint grows 40% from its previous size, independently of the thicker ring.
+    const val hrvRingEndScale=1.3f*1.4f/1.35f
+    val hrvAxisColor=0x80ffffff.toInt()
     const val hrvGlowFadeMs=1500L
     const val hrvGraphWindowMs=60000L
     const val hrvActionOffset=54
@@ -337,7 +339,8 @@ object BicycleComponents {
         layoutParams=LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(context,BicycleDesign.controlGap) }
         controlSpacing(this)
     }
-    fun input(context: Context, manager: ThemeManager) = EditText(context).apply {
+    fun input(context: Context, manager: ThemeManager) = input(EditText(context),manager)
+    internal fun <T:EditText> input(view:T,manager:ThemeManager):T = view.apply {
         typeface=resources.getFont(R.font.bebas_neue)
         textSize = BicycleDesign.settingsMetricSp; minimumHeight = dp(context, BicycleDesign.touchSize)
         setPadding(dp(context, 12), dp(context, BicycleDesign.verticalPadding), dp(context, 12), dp(context, BicycleDesign.verticalPadding))

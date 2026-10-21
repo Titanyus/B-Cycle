@@ -14,8 +14,8 @@ Messung starten, standardmäßig 30 Sekunden ruhig sitzen und 180 Sekunden messe
 zeigt den Fortschritt, mittig stehen Puls und verbleibende Zeit. Abbruch liegt darunter;
 der untere Graph zeigt echte RR-Intervalle in Millisekunden über der Messzeit.
 Der größere Kreis nutzt während der Ruhephase FOREGROUND mit ACCENT-Endpunkt,
-während der Messung ACCENT mit FOREGROUND-Endpunkt. Der Endpunkt hat den 1,3-fachen
-Durchmesser der Linienbreite. Ein weicher radialer ACCENT-Glow pulsiert zwischen
+während der Messung ACCENT mit FOREGROUND-Endpunkt. Die Kreislinie ist 12,15 dp breit (vorher 9 dp, +35 %), der Endpunkt hat 16,38 dp
+Durchmesser (vorher 11,7 dp, +40 % unabhängig von der dickeren Linie). Ein weicher radialer ACCENT-Glow pulsiert zwischen
 30 % und 10 % Deckung; Abfallzeit 1,5 s, Neustart beim nächsten Schlag. Zwischen
 BLE-Paketen wird nur die Animation nach dem zuletzt empfangenen RR-Takt fortgesetzt,
 keine Messfolge ergänzt. Bei ausbleibendem RR stoppt die Pulsanimation nach 5 s.
@@ -24,6 +24,7 @@ hinter dem Pulswert. Start/Erneut messen/Abbruch liegen als rahmenloser ACCENT-T
 unter der Zeit innerhalb des Kreises, mit normaler bedienbarer Touchfläche. Keine
 zusätzliche kleine Inhaltsüberschrift. Alle Themefarben folgen Themewechseln.
 
+Das Diagramm ist 286 dp hoch (vorher 220 dp, +30 %); die Achsbeschriftungen haben 50 % Deckung. Kurve, Raster und Zeitfenster bleiben unverändert.
 Der ACCENT-Graph zeigt zuerst 0–60 s. Danach gleitet das 60-s-Fenster kontinuierlich
 bis zum Ende der eingestellten Messdauer (beim Standard zuletzt 120–180 s); die X-Achse zeigt absolute Messsekunden mit Strichen alle 10 s.
 Gezeichnet wird nur der sichtbare Ausschnitt, Rohdaten und Sicherung enthalten
