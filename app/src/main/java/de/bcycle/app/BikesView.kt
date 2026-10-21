@@ -376,6 +376,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         binding=true
         try {
             val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect
+            findViewWithTag<RideNamingView>("ride_naming")?.refreshLock()
             searchButton.isEnabled=!runtime.recording && !runtime.saving
             searchButton.alpha=if(searchButton.isEnabled) 1f else .4f
             val searchLabel=when {

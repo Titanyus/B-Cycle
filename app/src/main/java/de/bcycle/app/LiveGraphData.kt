@@ -18,7 +18,8 @@ internal data class GraphPoint(val utcMs: Long, val elapsedMs: Long, val distanc
     val values: List<Double?>, val breaks: Int = 0)
 internal data class GraphRange(val low: Double, val high: Double)
 internal data class GraphSeries(val points: List<GraphPoint>, val range: GraphRange)
-internal data class GraphFrame(val version: Long, val distanceM: Double, val series: Map<AnalysisChart, GraphSeries>)
+internal data class GraphFrame(val version: Long, val distanceM: Double, val series: Map<AnalysisChart, GraphSeries>, val elapsedMs:Long=0,
+    val windows:Map<GraphWindow,Map<AnalysisChart,GraphSeries>> = emptyMap(),val timeAxis:Boolean=false)
 
 /** Expands only, using original values before display reduction or smoothing. */
 internal class GraphScaleManager {
@@ -45,6 +46,7 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
     init { require(capacity >= 64) }
     val scales = GraphScaleManager()
     private val points = ArrayList<GraphPoint>()
+    private val recent=java.util.ArrayDeque<GraphPoint>()
     val size get() = points.size
     var distanceM = 0.0; private set
     private var pendingBreaks = 0
@@ -53,12 +55,15 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
         val distance = input.distanceM?.takeIf { it.isFinite() && it >= distanceM }
         val timeGap = lastElapsed?.let { input.elapsedMs-it > PerformanceEngine.MAX_HOLD_MS || input.elapsedMs < it } ?: false
         lastElapsed = input.elapsedMs
-        if(distance == null) { pendingBreaks = 31; return }
         val values = input.values.mapIndexed { i,v -> v?.takeIf { plausible(AnalysisChart.entries[i],it) } }
+        val timed=input.copy(values=values,breaks=input.breaks or if(timeGap) 31 else 0)
+        recent.addLast(timed)
+        while(recent.size>LiveGraphStyle.MAX_POINTS || recent.size>2 && recent.elementAt(1).elapsedMs<input.elapsedMs-120000) recent.removeFirst()
+        values.forEachIndexed { i,v -> if(v!=null) scales.include(AnalysisChart.entries[i],v) }
+        if(distance==null && (input.distanceM!=null || distanceM>0)) { pendingBreaks=31;return }
         val point = input.copy(distanceM=distance, values=values,
             breaks=input.breaks or pendingBreaks or if(timeGap) 31 else 0)
-        pendingBreaks=0; distanceM=distance
-        values.forEachIndexed { i,v -> if(v != null) scales.include(AnalysisChart.entries[i],v) }
+        pendingBreaks=0; if(distance!=null) distanceM=distance
         points += point
         if(points.size > capacity) compact()
     }
@@ -84,39 +89,51 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
         }
         points.clear(); points.addAll(reduced)
     }
-    fun frame(version: Long, width: Int): GraphFrame {
+    fun frame(version: Long, width: Int, cachedFull:GraphFrame?=null): GraphFrame {
         val pixelWidth=width.coerceIn(64,4096)
-        val series=AnalysisChart.entries.mapNotNull { chart -> scales.range(chart)?.let { range ->
+        val series=cachedFull?.series ?: AnalysisChart.entries.mapNotNull { chart -> scales.range(chart)?.let { range ->
             chart to GraphSeries(prepare(chart,pixelWidth),range)
         } }.toMap()
-        return GraphFrame(version,distanceM,series)
+        val elapsed=recent.peekLast()?.elapsedMs ?: 0
+        val windows=GraphWindow.entries.filter { it!=GraphWindow.FULL }.associateWith { window ->
+            val start=(elapsed-window.milliseconds).coerceAtLeast(0)
+            val history=recent.toList()
+            val first=(history.indexOfFirst { it.elapsedMs>=start }.let { if(it<0) history.size else it }-1).coerceAtLeast(0)
+            val selected=history.drop(first)
+            AnalysisChart.entries.mapNotNull { chart -> scales.range(chart)?.let { chart to GraphSeries(selected,it) } }.toMap()
+        }
+        return GraphFrame(version,distanceM,series,elapsed,windows,points.none { it.distanceM!=null })
     }
     private fun prepare(chart: AnalysisChart, width: Int): List<GraphPoint> {
         val i=chart.ordinal; val mask=1 shl i
+        val time=points.none { it.distanceM!=null }
+        fun position(p:GraphPoint)=if(time) p.elapsedMs.toDouble() else p.distanceM!!
+        val extent=if(time) (points.lastOrNull()?.elapsedMs ?: 0).toDouble() else distanceM
         val result=ArrayList<GraphPoint>(); val segment=ArrayList<GraphPoint>()
         fun flush() {
             if(segment.isEmpty()) return
             // At an identical distance retain the last actual sample, never create distance.
-            val unique=segment.groupBy { it.distanceM }.values.map { same -> same.last().copy(breaks=same.fold(0) { mask,p -> mask or p.breaks }) }
+            val unique=segment.groupBy { position(it) }.values.map { same -> same.last().copy(breaks=same.fold(0) { mask,p -> mask or p.breaks }) }
             val reduced=ArrayList<GraphPoint>()
-            unique.groupBy { if(distanceM>0) floor(it.distanceM!!/distanceM*width).toInt() else 0 }.values.forEach { bucket ->
+            unique.groupBy { if(extent>0) floor(position(it)/extent*width).toInt() else 0 }.values.forEach { bucket ->
                 val selected=sortedSetOf(0,bucket.lastIndex, bucket.indices.minBy { bucket[it].values[i]!! }, bucket.indices.maxBy { bucket[it].values[i]!! })
                 bucket.indexOfFirst { it.values[i]==0.0 }.takeIf { it>=0 }?.let { selected += it }
                 bucket.indexOfLast { it.values[i]==0.0 }.takeIf { it>=0 }?.let { selected += it }
                 selected.forEach { reduced += bucket[it] }
             }
             // Gentle distance/pixel-adaptive median blend; convex, zero-preserving, gap-local.
-            val radius=if(distanceM>0) distanceM/width*2 else 0.0
+            val radius=if(extent>0) extent/width*2 else 0.0
             reduced.forEachIndexed { j,p ->
                 val original=p.values[i]!!
                 val neighbors=listOfNotNull(reduced.getOrNull(j-1),p,reduced.getOrNull(j+1))
-                val smooth=if(original==0.0 || neighbors.any { it.values[i]==0.0 } || neighbors.any { abs(it.distanceM!!-p.distanceM!!)>radius }) original
+                val smooth=if(original==0.0 || neighbors.any { it.values[i]==0.0 } || neighbors.any { abs(position(it)-position(p))>radius }) original
                     else original*.75 + neighbors.map { it.values[i]!! }.sorted()[neighbors.size/2]*.25
                 result += p.copy(values=p.values.mapIndexed { k,v -> if(k==i) smooth else v })
             }
             segment.clear()
         }
         for(p in points) {
+            if(!time && p.distanceM==null) { flush();continue }
             if(p.breaks and mask != 0) flush()
             if(p.values[i]==null) { flush(); result += p } else {
                 // Carry the discontinuity into the first retained point of the next segment.

@@ -29,6 +29,30 @@ class LiveGraphUiTest {
     private fun all(v: View): List<View> = listOf(v)+if(v is ViewGroup) (0 until v.childCount).flatMap { all(v.getChildAt(it)) } else emptyList()
     private fun measure(v: View,w: Int,h: Int) { v.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));v.layout(0,0,w,h) }
     private fun history(): GraphFrame { val h=GraphHistoryBuffer();repeat(31) { i -> h.append(GraphPoint(i*1000L,i*1000L,i*20.0,listOf(25.0+i/2,80.0,200.0,130.0,500.0))) };return h.frame(1,320) }
+    @Test fun rollingWindowsRenderTimedPowerAtTheCorrectPositionEvenWhileStationary() {
+        val h=GraphHistoryBuffer()
+        repeat(91) { i -> h.append(GraphPoint(i*1000L,i*1000L,0.0,listOf(null,null,if(i==75) 300.0 else 100.0,null,null))) }
+        val frame=h.frame(1,400)
+        for((window,fraction) in listOf(GraphWindow.SECONDS_30 to .5f,GraphWindow.SECONDS_60 to .75f,GraphWindow.SECONDS_120 to .625f)) {
+            val drawable=DashboardGraphDrawable(1f);drawable.setBounds(0,0,400,200)
+            drawable.update(frame,listOf(AnalysisChart.POWER),intArrayOf(0,0,0,0),GraphDisplayMode.GRAPH_ONLY,window)
+            assertEquals(1,drawable.axisCount)
+            val image=android.graphics.Bitmap.createBitmap(400,200,android.graphics.Bitmap.Config.ARGB_8888)
+            try {
+                drawable.draw(android.graphics.Canvas(image))
+                val color=AnalysisChart.POWER.color(android.graphics.Color.BLACK)
+                var top=200;val xs=mutableListOf<Int>()
+                for(y in 20 until 180) for(x in 40 until 390) {
+                    val pixel=image.getPixel(x,y)
+                    if(android.graphics.Color.alpha(pixel)>40 && (pixel and 0xffffff)==(color and 0xffffff)) {
+                        if(y<top) { top=y;xs.clear() };if(y==top) xs+=x
+                    }
+                }
+                assertTrue(xs.isNotEmpty())
+                assertEquals(26+374*fraction,xs.average().toFloat(),12f)
+            } finally { image.recycle() }
+        }
+    }
     @Test fun orderedChoicesPreventThirdRemainDeselectableAndReloadPerPageAndSlot() {
         val prefs=context.getSharedPreferences("graphs",0);val themes=ThemeManager(prefs)
         val chooser=GraphOverlayPicker(context,themes,emptyList());val boxes=all(chooser).filterIsInstance<CheckBox>()

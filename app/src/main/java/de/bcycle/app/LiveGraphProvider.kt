@@ -16,6 +16,9 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
     @Volatile var frame: GraphFrame? = null; private set
     private val generationLock=Any()
     @Volatile private var generation=0L
+    @Volatile var rolling=false
+    private val interval get()=if(rolling) 1000L else LiveGraphStyle.INTERVAL_MS
+    private var lastFullWall=-LiveGraphStyle.INTERVAL_MS
     @Volatile var width=640
     private var history=GraphHistoryBuffer()
     private var lastPublishElapsed=-LiveGraphStyle.INTERVAL_MS
@@ -29,7 +32,7 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
         finishing?.let(handler::removeCallbacks); finishing=null
         synchronized(generationLock) { generation++; frame=null }; worker.queue.clear(); overflow=false
         val ride=generation
-        worker.execute { if(ride==generation) { history=GraphHistoryBuffer(); lastPublishElapsed=-LiveGraphStyle.INTERVAL_MS; lastPublishWall=-LiveGraphStyle.INTERVAL_MS } }
+        worker.execute { if(ride==generation) { history=GraphHistoryBuffer(); lastPublishElapsed=-LiveGraphStyle.INTERVAL_MS; lastPublishWall=-LiveGraphStyle.INTERVAL_MS;lastFullWall=-LiveGraphStyle.INTERVAL_MS } }
     }
     fun append(point: GraphPoint) {
         if(!active) return
@@ -37,14 +40,17 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
         try { worker.execute {
             if(ride==generation) {
                 history.append(input)
-                if(point.elapsedMs-lastPublishElapsed >= LiveGraphStyle.INTERVAL_MS && SystemClock.uptimeMillis()-lastPublishWall >= LiveGraphStyle.INTERVAL_MS) {
+                if(point.elapsedMs-lastPublishElapsed >= interval && SystemClock.uptimeMillis()-lastPublishWall >= interval) {
                     lastPublishElapsed=point.elapsedMs; publish(ride)
                 }
             }
         }; overflow=false } catch(_:RejectedExecutionException) { overflow=true }
     }
-    private fun publish(ride: Long) {
-        val next=history.frame(++sequence,width)
+    private fun publish(ride: Long,forceFull:Boolean=false) {
+        val now=SystemClock.uptimeMillis()
+        val refreshFull=forceFull || now-lastFullWall>=LiveGraphStyle.INTERVAL_MS
+        val next=history.frame(++sequence,width,if(refreshFull) null else frame)
+        if(refreshFull) lastFullWall=now
         synchronized(generationLock) {
             if(ride!=generation) return
             lastPublishWall=SystemClock.uptimeMillis(); frame=next
@@ -58,8 +64,8 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
         // One final display flush, respecting the same ten-second publication limit.
         try { worker.execute {
             if(ride==generation) {
-                val delay=(LiveGraphStyle.INTERVAL_MS-(SystemClock.uptimeMillis()-lastPublishWall)).coerceAtLeast(0)
-                val finish=Runnable { try { worker.execute { if(ride==generation) publish(ride) } } catch(_:RejectedExecutionException) {} }
+                val delay=(interval-(SystemClock.uptimeMillis()-lastPublishWall)).coerceAtLeast(0)
+                val finish=Runnable { try { worker.execute { if(ride==generation) publish(ride,forceFull=true) } } catch(_:RejectedExecutionException) {} }
                 handler.post { if(ride==generation) { finishing=finish; handler.postDelayed(finish,delay) } }
             }
         } } catch(_:RejectedExecutionException) {}

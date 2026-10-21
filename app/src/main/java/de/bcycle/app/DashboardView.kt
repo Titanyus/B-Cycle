@@ -221,7 +221,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 graphShown=selected.isNotEmpty()
                 updateBackground()
             }
-            if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom),graphDisplay)
+            if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom),graphDisplay,graphConfig.windows[index])
             row.visibility=if(dataVisibility.visible[index]) VISIBLE else INVISIBLE
             title.visibility=row.visibility
             showCaption(layout.fields[index])

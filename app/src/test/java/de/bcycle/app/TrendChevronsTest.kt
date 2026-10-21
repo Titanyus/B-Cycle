@@ -32,7 +32,7 @@ class TrendChevronsTest {
                 chevrons.update(sign*n);val bitmap=image(chevrons)
                 val occupied=(0 until 100).flatMap { y -> (0 until 100).filter { x -> Color.alpha(bitmap.getPixel(x,y))>0 } }
                 assertTrue(occupied.max()-occupied.min()+1 in 15..19) // Former 20 px width, now 15 px plus stroke.
-                val tips=listOf(50f,50f-7.8f,50f+7.8f).map { it-sign*3.75f }
+                val tips=(0..2).map { 50f-sign*it*7.8f-sign*3.75f }
                 val expected=listOf(255,216,178)
                 for(i in 0 until n) {
                     val tip=tips[i].toInt()

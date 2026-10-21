@@ -16,9 +16,10 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     private var frame: GraphFrame?=null
     private var padding=intArrayOf(0,0,0,0)
     private var mode=GraphDisplayMode.WITH_DATA
-    fun update(next: GraphFrame?, graphs: List<AnalysisChart>, insets: IntArray, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA) {
-        if(frame===next && selected==graphs && padding.contentEquals(insets) && mode==display) return
-        frame=next; selected=graphs; padding=insets; mode=display; rebuild(); invalidateSelf()
+    private var window=GraphWindow.FULL
+    fun update(next: GraphFrame?, graphs: List<AnalysisChart>, insets: IntArray, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA,window:GraphWindow=GraphWindow.FULL) {
+        if(frame===next && selected==graphs && padding.contentEquals(insets) && mode==display && this.window==window) return
+        frame=next; selected=graphs; padding=insets; mode=display; this.window=window;rebuild(); invalidateSelf()
     }
     override fun onBoundsChange(bounds: Rect) { rebuild() }
     internal fun plotBounds() = RectF(plot)
@@ -37,14 +38,19 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         boundaryShader=LinearGradient(0f,plot.top,0f,plot.bottom,
             intArrayOf(boundaryColor,boundaryColor or (140 shl 24),boundaryColor),
             floatArrayOf(0f,.5f,1f),Shader.TileMode.CLAMP)
-        shapes=selected.mapNotNull { chart -> f.series[chart]?.let { series ->
+        val seriesByChart=if(window==GraphWindow.FULL) f.series else f.windows[window].orEmpty()
+        val start=if(window==GraphWindow.FULL) 0 else (f.elapsedMs-window.milliseconds).coerceAtLeast(0)
+        val end=if(window==GraphWindow.FULL) f.elapsedMs else maxOf(window.milliseconds,f.elapsedMs)
+        shapes=selected.mapNotNull { chart -> seriesByChart[chart]?.let { series ->
             val line=Path(); val fill=Path(); val segment=Path(); var active=false; var startX=0f; var lastX=0f; var fillTop=plot.bottom
             fun finish() { if(active) { segment.lineTo(lastX,plot.bottom); segment.lineTo(startX,plot.bottom); segment.close(); fill.addPath(segment); segment.reset(); active=false } }
             for(point in series.points) {
                 if(point.breaks and (1 shl chart.ordinal)!=0) finish()
                 val v=point.values[chart.ordinal]
-                if(v==null || point.distanceM==null) { finish(); continue }
-                val x=if(f.distanceM>0) left+(point.distanceM/f.distanceM).toFloat()*(right-left) else left
+                if(v==null || window==GraphWindow.FULL && !f.timeAxis && point.distanceM==null) { finish(); continue }
+                val fraction=if(window!=GraphWindow.FULL || f.timeAxis) (point.elapsedMs-start).toDouble()/(end-start).coerceAtLeast(1)
+                    else if(f.distanceM>0) point.distanceM!!/f.distanceM else 0.0
+                val x=left+fraction.toFloat()*(right-left)
                 val y=plot.bottom-((v-series.range.low)/(series.range.high-series.range.low)).toFloat()*plot.height()
                 fillTop=minOf(fillTop,y)
                 if(!active) { line.moveTo(x,y); segment.moveTo(x,y); startX=x; active=true } else { line.lineTo(x,y); segment.lineTo(x,y) }

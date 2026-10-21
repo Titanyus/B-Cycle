@@ -293,3 +293,9 @@ Settings-Sicherungen speichern die Modi bei den Dashboardseiten unter
 `graphDisplayModes`, nicht mehr als globale Designoption. Ältere Sicherungen ohne
 Slotmodi erhalten die aktuelle Kachelbelegung; ungültige Modi werden abgelehnt.
 Die alte globale Designangabe bleibt beim Einlesen alter Sicherungen unterstützt.
+
+## Zeitfenster und verfügbare Quellen nach Build 56
+
+Oben im Graph-Accordion vier zentrale Auswahlsegmente: Voll / 30s / 60s / 120s. Pro Dashboardseite und Feld gespeichert (`dashboardGraphWindows_<page>`), Standard Voll; Profilsicherung und Dashboard-Sicherung berücksichtigen die Auswahl. Alte Sicherungen starten für neue Fenster mit Voll. Die fünf Graphoptionen bleiben sichtbar, sind ohne passende konfigurierte und aktivierte Sensorquelle gedimmt/deaktiviert. Temporärer Empfangsausfall löscht keine Auswahl. Höhe benötigt Outdoor-GPS; Leistung/Kadenz einen konfigurierten E-Bike-/FTMS-Sensor; Puls einen Pulsmesser oder den möglichen FTMS-Pulskanal. Tempo folgt der eingestellten primären Tempoquelle. Keine Abhängigkeit von gerade empfangenen Livewerten.
+
+Voll behält die bisherige Gesamtansicht über die Distanz; ohne jegliche Distanzdaten ist eine vollständige Zeitachse möglich. Rollierende Fenster zeigen tatsächliche Aufnahmezeit, unabhängig von Bewegung/Distanz: erst links füllen, danach den gewählten Zeitraum nachführen. Ein separater begrenzter Rohpuffer hält die letzten 120 Sekunden plus Randpunkt; lange Fahrten verlieren dadurch im sichtbaren Fenster keine jüngsten Samples durch die Gesamtverlaufsreduktion. Echte Nullwerte und Empfangslücken bleiben erhalten. Die Gesamtansicht wird weiter höchstens alle zehn Sekunden neu vorbereitet; bei sichtbarer rollierender Auswahl entstehen zusätzliche Zeitfensterframes höchstens einmal pro Sekunde auf demselben Worker. Keine zusätzlichen Sensorsubskriptionen oder Änderungen an Journal/FIT/Performance.

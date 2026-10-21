@@ -1,0 +1,9 @@
+<resources>
+    <string name="ride_name_title">Fahrten benennen</string>
+    <string name="ride_name_text">Eigener Text</string>
+    <string name="ride_name_date">Datum</string>
+    <string name="ride_name_time">Zeit</string>
+    <string name="ride_name_distance">Distanz</string>
+    <string name="ride_name_moving">Bewegungszeit</string>
+    <string name="ride_name_speed">Ø Tempo</string>
+</resources>

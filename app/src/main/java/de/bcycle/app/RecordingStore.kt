@@ -3,6 +3,7 @@ package de.bcycle.app
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import org.json.JSONObject
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
@@ -30,10 +31,14 @@ class RecordingStore(private val context: Context, private val changed: (String,
     }
     fun begin(start: Long, config: RecordingConfig) {
         failed = false
+        val naming=RideNamingSettings(context).read()
+        val namingZone=ZoneId.systemDefault()
+        val namingLocale=java.util.Locale.getDefault().toLanguageTag()
         val profileAppearance=runCatching { RideProfileColor.snapshot(context) }.getOrNull()
         submit {
             try {
                 val name = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(start)) + "_" + UUID.randomUUID().toString().take(8)
+                File(directory,"$name.naming.json").writeText(JSONObject().put("template",naming.json()).put("zone",namingZone.id).put("locale",namingLocale).toString())
                 journal = RideJournal(File(directory, "$name.ride"), start, config)
                 if(profileAppearance!=null) runCatching { File(directory,"$name.profile.json").writeText(profileAppearance) }
             } catch (_: Exception) { failed = true; report("Aufzeichnung konnte nicht angelegt werden · bitte STOPP", false) }
@@ -88,6 +93,13 @@ class RecordingStore(private val context: Context, private val changed: (String,
                     FitElevationCorrection.correct(context,original,FitLibrary.correctedFile(context.filesDir,original.nameWithoutExtension))
                 }.isFailure
             }
+            val namingFile=File(directory,source.nameWithoutExtension+".naming.json")
+            if(namingFile.isFile && RideNames.name(context,original.nameWithoutExtension)==null) {
+                val snapshot=JSONObject(namingFile.readText())
+                val template=RideNaming.decode(snapshot.getJSONObject("template"))
+                val details=FitRead.read(RideAnalysisFiles.file(context.filesDir,original.nameWithoutExtension)).details
+                RideNames.manual(context,original.nameWithoutExtension,template.format(details,ZoneId.of(snapshot.getString("zone")),java.util.Locale.forLanguageTag(snapshot.getString("locale"))))
+            }
             val exportFile=FitLibrary.activeFile(context.filesDir,original.nameWithoutExtension)
             val config = RouteExportSettings(context).read()
             val upload = runCatching { RouteCloudUploads.enqueue(context, exportFile, "B-Cycle-" + encoded.name) }
@@ -95,7 +107,7 @@ class RecordingStore(private val context: Context, private val changed: (String,
                 LocalRouteExport.write(context, exportFile, "B-Cycle-" + encoded.name, config.tree)
             } }
             upload.getOrThrow(); local.getOrThrow()
-            source.delete(); encoded.delete();appearance.delete()
+            source.delete(); encoded.delete();appearance.delete();namingFile.delete()
             return "Gespeichert: FIT in Streckensammlung" +
                 (if (RouteExportSettings(context).read().save) " · auch im Zielordner" else "") +
                 (if (RouteExportSettings(context).read().webdav) " · Nextcloud-Upload vorgemerkt" else "") + (if (failed) " · enthält Daten bis zum Speicherfehler" else "") +

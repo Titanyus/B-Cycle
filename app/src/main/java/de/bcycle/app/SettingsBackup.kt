@@ -68,6 +68,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
             BackupSection.DASHBOARD -> JSONObject().put("pages", JSONArray().apply { dashboardIds().forEach { i ->
                 put(JSONObject().put("index", i).put("fields", jsonArray(DashboardLayout.decode(bike.getString(if(i==0) "dashboard" else "dashboard_$i", null)).fields.map { it.id }))
                     .put("graphs", JSONArray().apply { GraphOverlayConfig.read(bike,i).slots.forEach { put(jsonArray(it.map { chart -> chart.name })) } })
+                    .put("graphWindows",jsonArray(GraphOverlayConfig.read(bike,i).windows.map { it.name }))
                     .put("graphDisplayModes",jsonArray(GraphOverlayConfig.read(bike,i).displayModes.map { it.name }))
                     .put("zoneGlowSources",jsonArray(ZoneGlowConfig.read(bike,i).sources.map { it.name }))
                     .put("dataVisible",JSONArray(DashboardDataVisibility.read(bike,i).visible))
@@ -193,6 +194,11 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                                 }
                                 b[GraphOverlayConfig.key(index)]=GraphOverlayConfig(slots).encode()
                             }
+                            if(page.has("graphWindows")) {
+                                val windows=strings(array(page,"graphWindows",DashboardLayout.FIELD_COUNT))
+                                check(windows.size==DashboardLayout.FIELD_COUNT && windows.all { value -> GraphWindow.entries.any { it.name==value } })
+                                b[GraphOverlayConfig.windowKey(index)]=windows.joinToString("|")
+                            } else b[GraphOverlayConfig.windowKey(index)]=null
                             if(page.has("trainingHelp")) {
                                 val helper=DashboardTrainingHelp.decode(obj(page,"trainingHelp").toString()) ?: fail()
                                 b[DashboardTrainingHelp.key(index)]=helper.encode()
@@ -307,7 +313,10 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
             BikePhotos.migrateIdentities(context)
         }
         val changes=linkedMapOf(bike to plan.bike,route to plan.route)
-        plan.additional.forEach { (file,values) -> changes[context!!.getSharedPreferences(file,0)]=values }
+        plan.additional.forEach { (file,values) ->
+            val target=context!!.getSharedPreferences(file,0)
+            changes[target]=changes[target].orEmpty()+values
+        }
         val before=changes.mapValues { (prefs,values) -> values.keys.associateWith { prefs.all[it] } }
         fun write(p:SharedPreferences, values:Map<String,Any?>):Boolean {
             val e=p.edit();values.forEach { (k,v) -> when(v) { null->e.remove(k);is Boolean->e.putBoolean(k,v);is String->e.putString(k,v);is Int->e.putInt(k,v);is Float->e.putFloat(k,v);is Long->e.putLong(k,v);is Set<*>->e.putStringSet(k,v.filterIsInstance<String>().toSet());else->fail() } };return e.commit()

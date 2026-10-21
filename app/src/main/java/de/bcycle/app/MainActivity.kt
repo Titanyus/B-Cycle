@@ -332,6 +332,7 @@ class MainActivity : Activity() {
         dashboard.showTraining(dashboardTrainingHelp.sources(dashboardLayout,dashboardDataVisibility),trainingSnapshot,dashboardTrainingHelp.mode==TrainingHelpMode.ZONE_TWO)
         dashboard.showDataVisibility(dashboardDataVisibility)
         dashboard.showTrendIndicators(dashboardTrendIndicators)
+        runtime.liveGraphs.rolling=dashboardGraphs.windows.indices.any { dashboard.template.supportsGraph(it) && dashboardGraphs.slots[it].isNotEmpty() && dashboardGraphs.windows[it]!=GraphWindow.FULL }
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues,runtime.trendBikeData)
         val placement=ModeGlowSettings.placement(preferences)
@@ -378,11 +379,12 @@ class MainActivity : Activity() {
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         val graphs=if(!mapField && dashboard.template.supportsGraph(index))
-            GraphOverlayPicker(settingsContext,settingsThemes,dashboardGraphs.slots[index]) else null
+            GraphOverlayPicker(settingsContext,settingsThemes,dashboardGraphs.slots[index],dashboardGraphs.windows[index],GraphAvailability.forProfile(runtime.bikes.current())) else null
         fun saveGraphs() {
             if(graphs!=null) {
-                dashboardGraphs=dashboardGraphs.replace(index,graphs.selected)
+                dashboardGraphs=dashboardGraphs.replace(index,graphs.selected).withWindow(index,graphs.window)
                 preferences.edit().putString(GraphOverlayConfig.key(dashboardPage),dashboardGraphs.encode())
+                    .putString(GraphOverlayConfig.windowKey(dashboardPage),dashboardGraphs.encodeWindows())
                     .putString(DashboardDataVisibility.key(dashboardPage),dashboardDataVisibility.encode()).apply()
             }
         }
@@ -565,6 +567,7 @@ class MainActivity : Activity() {
         val slot = runtime.bikes.activeSlot
         val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
         BicycleForm.section(root,settingsThemes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
+        root.addView(RideNamingView(settingsContext,settingsThemes) { runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving })
         root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         fun source(title: String, chosen: String, bikeId: String): Spinner {
             val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }

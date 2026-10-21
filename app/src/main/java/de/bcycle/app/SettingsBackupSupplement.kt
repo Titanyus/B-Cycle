@@ -10,6 +10,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
     private val profileKeys=setOf("slot","name","type","category","wheelMm","autoConnect","gpsEnabled","bikeEnabled","heartEnabled",
         "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","indoorPowerTenths","indoorSpeedTenths","fields","speed","distance")
     private val files=mapOf(
+        BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY)),
         BackupSection.DESIGN to mapOf("ride-backup" to setOf("enabled","target"),"message-notifications" to setOf("enabled","messengerOnly","packages","position","durationSeconds")),
         BackupSection.CLOUD to mapOf("intervals-settings" to setOf("enabled","athlete","wifi"),
             "activity-service-dreeve" to setOf("enabled","wifi","address"),
@@ -43,6 +44,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
             row.keys().forEach { key ->
                 val value=row.get(key)
                 values[key]=when(key) {
+                    RideNamingSettings.KEY -> (value as String).also { RideNaming.decode(JSONObject(it)) }
                     "enabled","messengerOnly","wifi" -> (value as? Boolean) ?: error("boolean")
                     "packages" -> (value as JSONArray).let { a ->
                         require(a.length()<=500)
@@ -81,6 +83,12 @@ internal class SettingsBackupSupplement(private val context:Context) {
                             saved.keys().forEach { k ->
                                 require(BikeUiConfigurationScope.designKey(k)||BikeUiConfigurationScope.mapKey(k))
                                 val item=saved.getJSONObject(k);require(item.getString("type") in setOf("string","boolean","int","long","float","set"))
+                                if(k==RideNamingSettings.KEY) { require(item.getString("type")=="string");RideNaming.decode(JSONObject(item.getString("value"))) }
+                                if((0 until DashboardPages.MAX).any { GraphOverlayConfig.windowKey(it)==k }) {
+                                    require(item.getString("type")=="string")
+                                    val windows=item.getString("value").split('|')
+                                    require(windows.size==DashboardLayout.FIELD_COUNT && windows.all { name -> GraphWindow.entries.any { it.name==name } })
+                                }
                                 require(item.toString().length<=65536)
                             }
                         }

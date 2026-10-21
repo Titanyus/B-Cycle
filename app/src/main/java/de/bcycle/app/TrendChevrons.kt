@@ -58,7 +58,7 @@ internal class TrendChevrons(private val host:View,private val settled:()->Unit 
         for(i in weights.indices) {
             val alpha=weights[i];if(alpha<=.001f) continue
             val index=i%3
-            val offset=when(index) { 1->-size*STACK_STEP;2->size*STACK_STEP;else->0f }
+            val offset=index*size*STACK_STEP*if(i<3) -1 else 1
             val faded=Color.argb((Color.alpha(color)*alpha*OPACITY[index]).toInt(),Color.red(color),Color.green(color),Color.blue(color))
             drawChevron(canvas,paint,path,x,y+offset,size,if(i<3) 1 else -1,faded)
         }
