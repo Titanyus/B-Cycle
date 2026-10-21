@@ -32,4 +32,4 @@ Vollständige Lokal-/WebDAV-Sicherung nimmt den optionalen `questionnaire`-Teil 
 
 ## Gezielte Prüfung
 
-Zehn relevante Tests für Formular/Neutralantwort, Vorbelegung und manuelle Eingaben, dynamische Auswahl, eigene Felder, Geschlechtsfreigabe und Fahrerprofil-/Konfigurationssicherung, echten Ergebnisbutton/Worker-Speicherung, unveränderte Messungsbytes, alten/neuen HRV-Backup-Rundlauf und vollständige Verzeichnissicherung. Neue UI nativ gerendert. Kein vollständiger Gesamttestlauf, keine neue APK und kein neuer Geräte-/BLE-Test für diese Änderungen.
+Zehn relevante Tests für Formular/Neutralantwort, Vorbelegung und manuelle Eingaben, dynamische Auswahl, eigene Felder, Geschlechtsfreigabe und Fahrerprofil-/Konfigurationssicherung, echten Ergebnisbutton/Worker-Speicherung, unveränderte Messungsbytes, alten/neuen HRV-Backup-Rundlauf und vollständige Verzeichnissicherung. Neue UI nativ gerendert. Kein vollständiger Gesamttestlauf, veröffentlicht in APK 0.8.23 / Build 62, kein neuer Geräte-/BLE-Test für diese Änderungen.

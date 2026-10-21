@@ -50,26 +50,36 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.22 · Build 61 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk)**
+**[Version 0.8.23 · Build 62 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk)**
 
-**Build 61 vom 21.10.2026 · 2,11 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 62 vom 21.10.2026 · 2,15 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53, 55, 56, 57, 58, 59 und 60 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55, 56, 57, 58, 59, 60 und 61 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.22](docs/release-0.8.22.md) ·
-[Buildnachweis und SHA-256](docs/build-61.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39615540854) ·
+[Änderungen in 0.8.23](docs/release-0.8.23.md) ·
+[Buildnachweis und SHA-256](docs/build-62.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39652351462) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
-Fünf gezielte UI-Tests erfolgreich: Namensvorschau, Profil-/Backup-Kompatibilität, Trainingshilfe-Scrollen,
-Kartentrenner und native HRV-Render-/Theme-Prüfung. Messung, Berechnungen und Datenformate erhalten.
+15 gezielte Tests für Tagesbefinden, Profil-/Konfigurationssicherung, Backup und weiche Dashboard-Kurven erfolgreich.
+HRV-Messwerte und Aufzeichnungen erhalten; Antworten getrennt gespeichert und mitgesichert.
 Kein vollständiger Gesamttestlauf; frühere Prüfungen und bekannte ältere UI-Testfehler in den Buildnachweisen.
 
-Frühere APKs: [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
+Frühere APKs: [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.23
+
+- **Tagesbefinden:** optionaler Fragebogen nach HRV-Messung, neun Sliderstufen und separat gespeicherte Antworten.
+- **Flexible Auswahl:** Fragen im HRV-Einstellungs-Accordion aktivieren; drei eigene Zahlenfelder. Kein TSS.
+- **Training:** Vortagsfahrten summiert, Kilometer und Fahrtzeit nebeneinander und manuell bearbeitbar.
+- **Fahrerprofil:** Mann/Frau; Zyklusfrage nur bei Frau freigeschaltet. Auswahl und Antworten in den passenden Sicherungswegen enthalten.
+- **HRV:** hellerer Puls-Glow, bpm mittig, Startbutton mit Pillenrahmen und korrigierte Erkennung kurzer Graphlücken.
+- **Dashboard:** organische Kurven ohne Überschwingen; alle Zeitfenster und echte Datenlücken erhalten.
+- 15 gezielte Tests erfolgreich. [Details](docs/release-0.8.23.md).
 
 ## Neu in APK 0.8.22
 
