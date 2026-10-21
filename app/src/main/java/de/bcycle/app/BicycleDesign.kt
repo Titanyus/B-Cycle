@@ -153,6 +153,7 @@ object BicycleDesign {
     const val menuHeaderHeight = 124
     const val menuTileHorizontalPadding = 3
     const val smallGap = 4
+    const val segmentIconTextGap = 2
     const val presetPreviewWidth = 60
     const val presetPreviewHeight = 84
     const val presetTileHeight = 132
@@ -346,6 +347,7 @@ object BicycleComponents {
             textCursorDrawable?.mutate()?.setTint(it.foreground)
             textSelectHandle?.mutate()?.setTint(it.foreground); textSelectHandleLeft?.mutate()?.setTint(it.foreground); textSelectHandleRight?.mutate()?.setTint(it.foreground)
         }
+        controlSpacing(this)
     }
     internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=GradientDrawable().apply {
         setColor(fill);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
@@ -359,9 +361,12 @@ object BicycleComponents {
         setPadding(inset,inset,inset,inset)
     }
     /** Shared frame for adjacent selection segments, whether single or multiple selection. */
+    private val segmentedRows = java.util.WeakHashMap<LinearLayout, Boolean>()
     internal fun segmentedControlRow(row:LinearLayout,manager:ThemeManager) {
         row.orientation=LinearLayout.HORIZONTAL
         row.setTag(R.id.inline_control_row,true)
+        controlSpacing(row)
+        if (segmentedRows.put(row,true)!=null) return
         outlinedControl(row,manager)
         val border=dp(row.context,BicycleDesign.controlBorder).coerceAtLeast(1)
         row.setPadding(border,border,border,border)

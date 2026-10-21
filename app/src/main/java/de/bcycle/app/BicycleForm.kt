@@ -59,6 +59,7 @@ internal object BicycleForm {
         outlinedInput(edit,themes,numeric=true)
         return LinearLayout(context).apply {
             gravity=Gravity.CENTER_VERTICAL
+            setTag(R.id.inline_control_row,true)
             addView(BicycleComponents.text(context,themes,context.getString(title)).apply { labelFor=edit.id },
                 LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
             addView(edit,LinearLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.formNumberWidth),-2))

@@ -22,8 +22,13 @@ internal class BicycleHeaderShadow(context: Context) {
 
 internal class BicycleFullscreenHost(context: Context) : LinearLayout(context) {
     var showHeaderShadow=true
+    var contentSpacingTarget:android.view.View?=null
     private val shadow=BicycleHeaderShadow(context)
     private var header: android.view.View?=null
+    override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
+        contentSpacingTarget?.let(BicycleContentSpacing::page)
+        super.onMeasure(widthMeasureSpec,heightMeasureSpec)
+    }
     override fun onLayout(changed: Boolean,l: Int,t: Int,r: Int,b: Int) {
         super.onLayout(changed,l,t,r,b)
         header=findViewWithTag("bicycle_navigation_header")

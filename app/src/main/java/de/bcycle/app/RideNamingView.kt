@@ -38,17 +38,13 @@ internal class RideNamingView(context:Context,themes:ThemeManager,private val ca
             }
             override fun afterTextChanged(s:Editable?)=Unit
         })
-        val choices=LinearLayout(context).apply { orientation=HORIZONTAL;tag="ride_naming_parts" }
+        val choices=LinearLayout(context).apply { orientation=HORIZONTAL;tag="ride_naming_parts";BicycleComponents.segmentedControlRow(this,themes) }
         RideNamePart.entries.forEach { part ->
             val button=BicycleSegmentButton(context,themes,multiple=true).apply {
                 tag="ride_name_${part.name}";setText(part.label);textSize=BicycleDesign.analysisLabelSp
                 isChecked=part in current.parts;isEnabled=canEdit()
                 contentDescription=context.getString(part.label)
-                compoundDrawablePadding=BicycleDesign.dp(context,BicycleDesign.smallGap)
-                BicycleComponents.bindTheme(this,themes) { tokens ->
-                    setCompoundDrawablesWithIntrinsicBounds(null,BicycleIcons.drawable(context,part.icon,currentTextColor),null,null)
-                }
-                setOnCheckedChangeListener { _,_->compoundDrawables.filterNotNull().forEach { it.setTint(currentTextColor) } }
+                stackedIcon(part.icon)
                 setOnClickListener { if(canEdit()) {
                     current=current.copy(parts=if(isChecked) current.parts+part else current.parts-part);settings.write(current)
                 } }

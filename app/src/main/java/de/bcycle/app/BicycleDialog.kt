@@ -178,7 +178,7 @@ internal object BicycleDialogStyle {
         if(view is BicycleTextAction) return // Central transparent accent text action owns its styling.
         if(view.tag=="bicycle_content_heading") return // Central content-heading typography owns this role.
         if(view is BicycleSegmentButton) return // Own radio appearance; generic controls add selection circles.
-        if(view is Button) BicycleComponents.controlSpacing(view)
+        if(view is Button || view is EditText) BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) {
             if(view.isAccessibilityHeading) { view.typeface=BicycleDesign.strongTypeface;view.textSize=BicycleDesign.titleSp }
             return
@@ -198,7 +198,7 @@ internal object BicycleDialogStyle {
                 view.textSelectHandleLeft?.mutate()?.setTint(tokens.foreground)
                 view.textSelectHandleRight?.mutate()?.setTint(tokens.foreground)
             }
-            (view.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = dp(view, BicycleDesign.controlGap)
+            BicycleComponents.controlSpacing(view)
         } else if (view is CompoundButton) {
             view.minimumHeight = dp(view, BicycleDesign.touchSize)
             if(view is Switch) {

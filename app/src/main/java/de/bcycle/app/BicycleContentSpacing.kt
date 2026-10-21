@@ -19,13 +19,31 @@ internal object BicycleContentSpacing {
             if(parent===view) break
             parent=parent.parent
         }
-        val first=(body as? ViewGroup)?.let { (0 until it.childCount).map(it::getChildAt).firstOrNull { child->child.visibility!=View.GONE } }
-        if(first is android.widget.Button || first is android.widget.Spinner) BicycleComponents.controlSpacing(first)
-        val margin=first?.layoutParams as? ViewGroup.MarginLayoutParams
-        val maximum=BicycleDesign.dp(body.context,BicycleDesign.pageContentGap)
-        if(margin!=null && margin.topMargin>maximum) { margin.topMargin=maximum;first.layoutParams=margin }
-        val top=if(first is BicycleSectionHeader) 0 else (maximum-(margin?.topMargin ?: 0)).coerceAtLeast(0)
-        body.setPadding(body.paddingLeft,top,body.paddingRight,body.paddingBottom)
+        // Only the page supplies the leading gap, even behind nested wrappers or
+        // when forms are inserted after the dialog was shown.
+        val path=mutableListOf<View>(body)
+        fun first(view:View)=(view as? ViewGroup)?.let { group ->
+            (0 until group.childCount).map(group::getChildAt).firstOrNull { it.visibility!=View.GONE }
+        }
+        fun wrapper(view:View)=view !is BicycleSectionHeader && view !is ProfileAccordion &&
+            (view is ScrollView || view is LinearLayout && view.orientation==LinearLayout.VERTICAL ||
+                view.javaClass==android.widget.FrameLayout::class.java && (view as ViewGroup).childCount==1)
+        var current=body
+        while(wrapper(current)) {
+            val next=first(current) ?: break
+            path+=next
+            if(!wrapper(next)) break
+            current=next
+        }
+        val leading=path.last()
+        path.forEach { view ->
+            val margin=view.layoutParams as? ViewGroup.MarginLayoutParams
+            if(margin!=null && margin.topMargin!=0) { margin.topMargin=0;view.layoutParams=margin }
+            if(view!==body && (wrapper(view) || view is ListView) && view.paddingTop!=0)
+                view.setPadding(view.paddingLeft,0,view.paddingRight,view.paddingBottom)
+        }
+        val top=if(leading is BicycleSectionHeader) 0 else BicycleDesign.dp(body.context,BicycleDesign.pageContentGap)
+        if(body.paddingTop!=top) body.setPadding(body.paddingLeft,top,body.paddingRight,body.paddingBottom)
         sections(body)
     }
     fun sections(view:View) {

@@ -23,7 +23,7 @@ internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initia
         }.apply { tag="graph_overlay_toggle";isAccessibilityHeading=true;stateDescription=context.getString(R.string.zone_collapsed) }
         BicycleDialogStyle.accordion(toggle,themes)
         BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Expand);addView(toggle);addView(content)
-        val segments=android.widget.RadioGroup(context).apply { orientation=HORIZONTAL;tag="graph_windows" }
+        val segments=android.widget.RadioGroup(context).apply { orientation=HORIZONTAL;tag="graph_windows";BicycleComponents.segmentedControlRow(this,themes) }
         val buttons=GraphWindow.entries.map { value -> BicycleSegmentButton(context,themes).apply {
             id=View.generateViewId();tag="graph_window_${value.name}";setText(value.label);isChecked=value==window
             setOnClickListener { window=value;changed() }

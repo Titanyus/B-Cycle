@@ -151,3 +151,16 @@ des alten internen Literal-Felds.
 ## Schalterdarstellung
 
 Die frühere dunkle Spur wird durch eine transparente Pille mit FOREGROUND-Kontur ersetzt. Der runde Knopf ist ausgeschaltet FOREGROUND und eingeschaltet ACCENT; deaktiviert beide mit 50 % Deckkraft. Zentrale Maße: 48 × 24 dp, Knopfdurchmesser 18 dp, Linienmaß linePixels. Native Switch-Bedienung und 48-dp-Touchfläche bleiben erhalten.
+
+
+## Segmentierte Auswahl und Seitenanfang – 21.10.2026
+
+Alle segmentierten Einfach-/Mehrfachauswahlen verwenden den gemeinsamen umlaufenden Formularrahmen über BicycleComponents.segmentedControlRow: FOREGROUND mit bestehender 50-%-Kontur, 1 dp und 6 dp Rundung. BicycleSegmentButton stellt ihn bei horizontalen Segmentgruppen zusätzlich beim Anhängen sicher. Beispiele: Trainingshilfe, Fahrtnamensbausteine, Graph-Zeitfenster, Dreeve-Zuordnung und Streckenfilter. Auswahlzustände, native Radio-/Checkbox-Semantik und vorhandene Listener bleiben erhalten.
+
+Für Auswahlsegmente mit Icon oberhalb des kleinen Labels BicycleSegmentButton.stackedIcon nutzen. Icon und Text als gemeinsamer zentrierter Block, 2 dp Abstand über BicycleDesign.segmentIconTextGap; keine an den oberen Rand gezogenen Icons mit weit darunter zentriertem Text. Touchflächen bleiben erhalten.
+
+Zwischen Eingabefeldern/Auswahlgruppen und Nachbarcontrols mindestens 8 dp. Innerhalb einer segmentierten Gruppe bleiben die Segmente ohne zusätzliche Formular-Außenabstände unter der gemeinsamen Kontur. Eingabefactory und generische EditText-Gestaltung registrieren controlSpacing, damit nachträglich ersetzte LayoutParams den Abstand nicht verlieren. Inline-Zahlenzeilen behalten ihre gemeinsame Zeilengeometrie.
+
+Normale erste Inhalte beginnen 16 dp unter dem Haupt-Header, führende Sticky-Header bei 0 dp. Verschachtelte Seiten-/Scrollwrapper liefern keine zusätzlichen oberen Insets. Der gemeinsame Vollbildhost normalisiert diese führende Kette beim Messen, auch für nachträglich eingefügte Formulare. Horizontales Padding, innere Controlgeometrie, Footer und Scrollzustand erhalten. Bestehende Abstände innerhalb/zwischen Sticky-Abschnitten bleiben bestehen.
+
+Gezielt geprüft: 11 erfolgreiche UI-Tests (4 neue SelectionSpacing, 6 bestehende ContentSpacing und ein bestehender RideNaming-Profil-/Mehrfachauswahltest). Native Pixelprüfung für den Icon-Text-Abstand und Gruppenrahmen, sieben tatsächliche Einstellungsseiten, nachträglich eingefügte Formulare/Sticky-Header sowie bisherige Profil-/Strecken-/Detailabstände. Kein Gesamttestlauf, keine APK.

@@ -19,7 +19,25 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
         setPadding(BicycleDesign.dp(context,BicycleDesign.controlGap),0,BicycleDesign.dp(context,BicycleDesign.controlGap),0)
         maxLines=2
         BicycleComponents.bindTheme(this,themes,::paint)
+        BicycleComponents.controlSpacing(this)
         ready=true
+    }
+    /** Keep icon and label together even when the segment is taller than its contents. */
+    fun stackedIcon(icon:BicycleIcon) {
+        includeFontPadding=false
+        compoundDrawablePadding=BicycleDesign.dp(context,BicycleDesign.segmentIconTextGap)
+        textSize=BicycleDesign.analysisLabelSp
+        BicycleComponents.bindTheme(this,themes) {
+            val drawable=BicycleTextIcon(this,BicycleIcons.drawable(context,icon,currentTextColor),above=true).apply {
+                val size=BicycleDesign.dp(context,BicycleDesign.iconSize);setBounds(0,0,size,size)
+            }
+            setCompoundDrawables(null,drawable,null,null)
+        }
+    }
+    override fun onAttachedToWindow() {
+        (parent as? android.widget.LinearLayout)?.takeIf { it.orientation==android.widget.LinearLayout.HORIZONTAL }
+            ?.let { BicycleComponents.segmentedControlRow(it,themes) }
+        super.onAttachedToWindow()
     }
     override fun toggle() { if(multiple) isChecked=!isChecked else super.toggle() }
     override fun getAccessibilityClassName():CharSequence=if(multiple) android.widget.CheckBox::class.java.name else super.getAccessibilityClassName()
@@ -29,6 +47,7 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
         val foreground=if(!isChecked || ThemeValidator.contrast(tokens.foreground,fill)>=ThemeValidator.minimumTextContrast) tokens.foreground
             else if(ThemeValidator.contrast(Color.BLACK,fill)>=ThemeValidator.contrast(Color.WHITE,fill)) Color.BLACK else Color.WHITE
         setTextColor(foreground)
+        compoundDrawables.filterNotNull().forEach { it.setTint(foreground) }
         background=RippleDrawable(ColorStateList.valueOf((foreground and 0x00ffffff) or 0x26000000),GradientDrawable().apply {
             setColor(fill);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
         },null)
