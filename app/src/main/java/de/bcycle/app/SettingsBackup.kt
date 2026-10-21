@@ -253,7 +253,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     } }
                 }
                 BackupSection.RECORDING -> {
-                    if(row.has("fields")) { val fields=strings(array(row,"fields",RecordField.options.size));check(fields.distinct().size==fields.size && fields.all { id -> RecordField.options.any { it.id==id } });b["recordFields"]=fields.toSet() }
+                    if(row.has("fields")) { val fields=strings(array(row,"fields",RecordingFields.options.size));check(fields.distinct().size==fields.size && fields.all { id -> RecordingFields.options.any { it.id==id } });b["recordFields"]=fields.toSet() }
                     if(row.has("speedSource")) b["recordSpeed"]=field(row,"speedSource",30).also { check(it in listOf("SPEED","GPS_SPEED")) }
                     if(row.has("distanceSource")) b["recordDistance"]=field(row,"distanceSource",30).also { check(it in listOf("BIKE_DISTANCE","GPS_DISTANCE")) }
                     if(row.has("localSaveEnabled")) r["save"]=boolean(row,"localSaveEnabled")

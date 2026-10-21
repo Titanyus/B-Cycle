@@ -30,6 +30,6 @@ internal class IndoorRide {
 internal object IndoorFields {
     val rideIds=setOf("GPS_ELAPSED_TIME","GPS_MOVING_TIME","GPS_STOPPED_TIME","GPS_MOVING_AVERAGE","GPS_OVERALL_AVERAGE","GPS_MAXIMUM_SPEED")
     val trainerIds=setOf("SPEED","RIDER_POWER","CADENCE","BIKE_DISTANCE","AVERAGE_SPEED","AVERAGE_POWER","MAXIMUM_POWER","AVERAGE_CADENCE","MAXIMUM_CADENCE")+rideIds
-    val allowed get()=trainerIds+setOf("HEART_RATE","HEART_AVERAGE","HEART_MAXIMUM","HEART_BATTERY")+RecordField.summaries.map { it.id }
+    val allowed get()=trainerIds+setOf("HEART_RATE","HEART_AVERAGE","HEART_MAXIMUM","HEART_BATTERY")+RecordingFields.summaries.map { it.id }
     fun config(config:RecordingConfig)=config.copy(fields=config.fields.filter { it in allowed }.toSet(),speedSource="SPEED",distanceSource="BIKE_DISTANCE",indoor=true)
 }

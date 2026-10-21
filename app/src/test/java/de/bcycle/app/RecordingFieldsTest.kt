@@ -24,6 +24,39 @@ class RecordingFieldsTest {
             .filter { it[5]=="RECORD" }.map { it[0] }.toSet()
         assertEquals(defaults,RecordField.defaults)
         assertEquals(defaults,RecordingConfig.decode(null,null,null).fields)
+        assertEquals(defaults,RecordingFields.defaultIds)
+        assertEquals(RecordField.options.map { Triple(it.id,it.unit,it.scope) },RecordingFields.options.map { Triple(it.id,it.unit,it.scope) })
+    }
+    @Test fun writingTheLegacyJournalAgainPreservesEveryByte() {
+        val context=RuntimeEnvironment.getApplication()
+        val original=reference("legacy-recording.ride").use { it.readBytes() }
+        val source=File(context.cacheDir,"source.ride").apply { writeBytes(original) }
+        val target=File(context.cacheDir,"rewritten.ride")
+        RideJournal.read(source) { start,config,_,records ->
+            RideJournal(target,start,config).use { writer -> records.forEach(writer::append) }
+        }
+        assertArrayEquals(original,target.readBytes())
+    }
+    @Test fun fullFitFromLegacyJournalPreservesRecordsSummariesAndDeveloperDefinitions() {
+        val context=RuntimeEnvironment.getApplication()
+        val source=File(context.cacheDir,"legacy.ride")
+        reference("legacy-recording.ride").use { input -> source.outputStream().use { input.copyTo(it) } }
+        val target=File(context.cacheDir,"new.fit")
+        FitWriter.encode(source,target,fullData=true)
+        val before=reference("legacy-recording-full.fit").use { com.garmin.fit.FitDecoder().decode(it) }
+        val after=target.inputStream().use { com.garmin.fit.FitDecoder().decode(it) }
+        fun fields(message:com.garmin.fit.Mesg)=message.fields.map { field ->
+            field.num to (0 until field.numValues).map { field.getRawValue(it)?.toString() }
+        }
+        assertEquals(before.fieldDescriptionMesgs.map(::fields),after.fieldDescriptionMesgs.map(::fields))
+        assertEquals(before.recordMesgs.map(::fields),after.recordMesgs.map(::fields))
+        assertEquals(before.sessionMesgs.map(::fields),after.sessionMesgs.map(::fields))
+        assertEquals(before.lapMesgs.map(::fields),after.lapMesgs.map(::fields))
+        fun developer(message:com.garmin.fit.Mesg)=message.developerFields.map { field ->
+            Triple(field.name,field.units,(0 until field.numValues).map { field.getValue(it)?.toString() })
+        }
+        assertEquals(before.recordMesgs.map(::developer),after.recordMesgs.map(::developer))
+        assertEquals(before.sessionMesgs.map(::developer),after.sessionMesgs.map(::developer))
     }
     @Test fun preRefactorJournalStillDecodesWithUnknownAndZeroMeasurementsDistinct() {
         val file=File(RuntimeEnvironment.getApplication().cacheDir,"legacy-recording.ride")

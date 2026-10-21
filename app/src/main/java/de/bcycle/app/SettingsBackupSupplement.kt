@@ -150,8 +150,8 @@ internal class SettingsBackupSupplement(private val context:Context) {
             listOf("indoorPowerTenths","indoorSpeedTenths").forEach { if(p.has(it)) require(integer(p,it) in 0..30) }
             listOf("bikeAddress","heartAddress","trainerAddress").forEach { if(p.has(it)) require(p.getString(it).isEmpty() || p.getString(it).matches(Regex("([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"))) }
             listOf("bikeName","heartName","trainerName").forEach { if(p.has(it)) require(p.getString(it).let { s -> s.length<=248 && s.none(Char::isISOControl) }) }
-            val fields=p.getJSONArray("fields");require(fields.length()<=RecordField.options.size)
-            repeat(fields.length()) { index -> require(RecordField.options.any { it.id==fields.getString(index) }) }
+            val fields=p.getJSONArray("fields");require(fields.length()<=RecordingFields.options.size)
+            repeat(fields.length()) { index -> require(RecordingFields.options.any { it.id==fields.getString(index) }) }
             require(p.getString("speed") in setOf("SPEED","GPS_SPEED"));require(p.getString("distance") in setOf("BIKE_DISTANCE","GPS_DISTANCE"))
         }
     }

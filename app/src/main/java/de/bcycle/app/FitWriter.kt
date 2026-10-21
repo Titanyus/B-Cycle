@@ -51,7 +51,7 @@ object FitWriter {
                 }
             }
             RideJournal.read(journal) { start, selectedConfig, allDeveloperIds, records ->
-                val config=if(fullData) selectedConfig.copy(fields=RecordField.options.map { it.id }.toSet()) else selectedConfig
+                val config=if(fullData) selectedConfig.copy(fields=RecordingFields.options.map { it.id }.toSet()) else selectedConfig
                 val developerIds=allDeveloperIds.filter { it in config.fields || it=="GPS_ALTITUDE_MSL" && "GPS_ALTITUDE" in config.fields }
                 val startStamp = timestamp(start).toDouble()
                 message(0, 0, listOf(en(0, 4), u16(1, 255.0), u16(2, 0.0), number(3, 0x8c, 4, 1), u32(4, startStamp)))
@@ -59,12 +59,12 @@ object FitWriter {
                 message(0, 23, listOf(u32(253, startStamp), u8(0, 0.0), u16(2, 255.0), u16(4, 0.0), u16(5, AppVersion.fitSoftwareVersion, 100.0), string(27, "B|CYCLE")))
                 // Put standard sport metadata before records so readers need no second pass.
                 if(config.indoor) message(0,12,listOf(en(0,2),en(1,6)))
-                if (developerIds.isNotEmpty() || config.fields.any { id -> RecordField.summaries.any { it.id == id } }) {
+                if (developerIds.isNotEmpty() || config.fields.any { id -> RecordingFields.summaries.any { it.id == id } }) {
                     val uuid = UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
                     val appId = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN).putLong(uuid.mostSignificantBits).putLong(uuid.leastSignificantBits).array()
                     message(2, 207, listOf(Field(1, 13, appId), u8(3, 0.0), u32(4, AppVersion.code.toDouble())))
                     developerIds.forEachIndexed { index, id ->
-                        val field = RecordField.options.find { it.id == id }
+                        val field = RecordingFields.options.find { it.id == id }
                         message(3, 206, listOf(u8(0, 0.0), u8(1, index.toDouble()), u8(2, 0x89.toDouble()),
                             string(3, id), u8(6, 1.0), number(7, 1, 1, 0), string(8, field?.unit ?: "bool"), u16(14, 20.0)))
                     }
@@ -138,7 +138,7 @@ object FitWriter {
                 selectedSummary("SPEED_POWER_RATIO", calculated.speedToPowerRatio, "km/h/W")
                 selectedSummary("EFFICIENCY_FACTOR", calculated.efficiencyFactor, "W/bpm")
                 selectedSummary("ESTIMATED_FTP", calculated.estimatedFtpW, "W")
-                val exported = RecordField.summaries.any { field -> field.id in config.fields && when (field.id) {
+                val exported = RecordingFields.summaries.any { field -> field.id in config.fields && when (field.id) {
                     "NORMALIZED_POWER" -> calculated.normalizedPowerW != null
                     "MECHANICAL_WORK" -> calculated.mechanicalWorkKj != null
                     "CALORIES" -> calculated.caloriesKcal != null
