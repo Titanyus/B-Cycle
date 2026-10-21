@@ -50,27 +50,33 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.19 · Build 58 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk)**
+**[Version 0.8.20 · Build 59 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk)**
 
-**Build 58 vom 21.10.2026 · 2,10 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 59 vom 21.10.2026 · 2,11 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53, 55, 56 und 57 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55, 56, 57 und 58 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.19](docs/release-0.8.19.md) ·
-[Buildnachweis und SHA-256](docs/build-58.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39589515288) ·
+[Änderungen in 0.8.20](docs/release-0.8.20.md) ·
+[Buildnachweis und SHA-256](docs/build-59.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39598197014) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
-62 gezielte Testausführungen für Schritt 3 erfolgreich, einschließlich Aufzeichnung auf Android 13/15/16,
-Hintergrund-Service, Speicherfehler/Retry, UI-Rückmeldungen und Speichersperren.
-Weitere Prüfungen der enthaltenen Schritte 1/2 im Buildnachweis dokumentiert.
-Kein vollständiger Gesamttestlauf. Bekannte ältere UI-Testfehler und offene Geräteprüfungen dort aufgeführt.
+105 gezielte Testausführungen erfolgreich: Katalog-/Journal-/FIT-Referenzen, numerische Messwertverarbeitung,
+Dashboard/Indoor, Backups/Profile und Aufzeichnung auf Android 13/15/16.
+Kein vollständiger Gesamttestlauf. Bekannte ältere UI-Testfehler und offene Geräteprüfungen im Buildnachweis aufgeführt.
 
-Frühere APKs: [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk) · [0.8.17 · Build 56](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.17-release-56.apk) · [0.8.16 · Build 55](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk).
+Frühere APKs: [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk) · [0.8.17 · Build 56](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.17-release-56.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.20
+
+- **Architekturplan abgeschlossen:** Eigenständiger Aufzeichnungsfeldkatalog und numerische Messwertverarbeitung unabhängig vom Dashboard. Anzeigeformatierung getrennt.
+- **Kompatibilität:** Bestehende Felder, Standardauswahl, Texte, Bedienung, Aufzeichnungen, FIT-Dateien und Profile erhalten. Keine neuen Abhängigkeiten.
+- **Referenzprüfungen:** Altjournal bytegleich, FIT-Messwerte und Felddefinitionen gleich; 105 gezielte Testausführungen erfolgreich.
+- [Änderungen und Umfang](docs/release-0.8.20.md) · [Technische Beschreibung](docs/recording-fields.md).
 
 ## Neu in APK 0.8.19
 
