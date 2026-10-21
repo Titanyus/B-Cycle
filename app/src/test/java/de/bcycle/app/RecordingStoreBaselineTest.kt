@@ -19,7 +19,7 @@ class RecordingStoreBaselineTest {
     private val pending get()=File(context.filesDir,"pending-rides").apply { mkdirs() }
     private val start=1791626400000L
     private val messages=mutableListOf<Pair<String,Boolean>>()
-    private fun store()=RecordingStore(context) { text,busy -> messages+=text to busy }
+    private fun store()=RecordingStore(context) { update -> messages+=RecordingStatusText.text(context,update) to update.busy }
     private fun worker(store:RecordingStore)=RecordingStore::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(store) as ExecutorService
     private fun drain(store:RecordingStore) {
         worker(store).submit {}.get(10,TimeUnit.SECONDS)

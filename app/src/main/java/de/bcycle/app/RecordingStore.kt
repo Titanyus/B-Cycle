@@ -16,7 +16,7 @@ import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicInteger
 
 /** All journal/FIT/download I/O is serialized outside the main thread. */
-class RecordingStore(private val context: Context, private val changed: (String, Boolean) -> Unit) {
+internal class RecordingStore(private val context: Context, private val changed: (RecordingUpdate) -> Unit) {
     private val directory = File(context.filesDir, "pending-rides").apply { mkdirs() }
     private val handler = Handler(Looper.getMainLooper())
     private val worker = ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, ArrayBlockingQueue(32)) { task -> Thread(task, "B-Cycle-FIT") }
@@ -24,8 +24,7 @@ class RecordingStore(private val context: Context, private val changed: (String,
     private val queuedSamples = AtomicInteger()
     @Volatile var failed = false; private set
     private fun report(update: RecordingUpdate) {
-        val text = RecordingStatusText.text(context, update)
-        handler.post { changed(text, update.busy) }
+        handler.post { changed(update) }
     }
     private fun submit(action: () -> Unit): Boolean {
         return try { worker.execute(action); true } catch (_: RejectedExecutionException) {

@@ -43,7 +43,7 @@ class RideNamingTest {
         val c=RuntimeEnvironment.getApplication();val prefs=c.getSharedPreferences("bike",0)
         BikeProfileStore(c,prefs);val settings=RideNamingSettings(c);settings.write(RideNaming("Startvorlage",emptySet()))
         RouteExportSettings(c).write(RouteExportConfig(save=false,webdav=true,server="",user="rider"))
-        val results=mutableListOf<String>();val store=RecordingStore(c) { text,busy -> if(!busy) results+=text }
+        val results=mutableListOf<String>();val store=RecordingStore(c) { update -> if(!update.busy) results+=RecordingStatusText.text(c,update) }
         val worker=RecordingStore::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(store) as java.util.concurrent.ExecutorService
         fun settle() {
             val latch=java.util.concurrent.CountDownLatch(1);worker.execute { latch.countDown() };assertTrue(latch.await(10,java.util.concurrent.TimeUnit.SECONDS))

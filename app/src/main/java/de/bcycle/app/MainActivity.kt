@@ -322,9 +322,7 @@ class MainActivity : Activity() {
         val message = runtime.recordingStatus
         if (message != displayedRecordingStatus) {
             displayedRecordingStatus = message
-            if (message.startsWith("Gespeichert:") || message.startsWith("FIT nicht gespeichert") || message.startsWith("FIT lokal gespeichert") ||
-                message.contains("Fehler") || message.contains("überlastet") ||
-                message.startsWith("Aufzeichnung konnte") || message.contains("Fahrten gespeichert"))
+            if (runtime.recordingUpdate?.let(RecordingStatusText::showFeedback) == true)
                 BicycleFeedback.show(this, message, long = true)
         }
         val trainingNow=android.os.SystemClock.elapsedRealtime()

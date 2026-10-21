@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="recording_ready">Bereit · START beginnt die Aufzeichnung</string>
+    <string name="recording_running">Aufzeichnung läuft</string>
     <string name="recording_saving_fit">FIT wird gespeichert …</string>
     <string name="recording_storage_overloaded">Speicher überlastet · bitte STOPP drücken</string>
     <string name="recording_start_failed">Aufzeichnung konnte nicht angelegt werden · bitte STOPP</string>

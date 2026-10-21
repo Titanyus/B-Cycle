@@ -4,6 +4,12 @@ import android.content.Context
 
 /** Legacy wording is rendered here; storage decisions never inspect these strings. */
 internal object RecordingStatusText {
+    fun showFeedback(update: RecordingUpdate): Boolean = when (update) {
+        is RecordingUpdate.Progress -> false
+        is RecordingUpdate.Notice -> update in setOf(RecordingUpdate.Notice.OVERLOADED, RecordingUpdate.Notice.START_FAILED, RecordingUpdate.Notice.WRITE_FAILED)
+        is RecordingUpdate.Finished -> true
+        is RecordingUpdate.Recovered -> update.results.isNotEmpty()
+    }
     fun text(context: Context, update: RecordingUpdate): String = when (update) {
         RecordingUpdate.Progress.SAVING_FIT -> context.getString(R.string.recording_saving_fit)
         RecordingUpdate.Progress.CORRECTING_ELEVATION -> context.getString(R.string.elevation_correcting)

@@ -80,6 +80,7 @@ class RecordingFlowTest {
         await { !runtime.saving }
         assertTrue(shadowOf(service).isForegroundStopped)
         assertTrue(runtime.recordingStatus.startsWith("Gespeichert:"))
+        assertTrue((runtime.recordingUpdate as RecordingUpdate.Finished).result is RideCompletion.Completed)
         assertEquals(1, provider.published.size)
         assertEquals("Download/B-Cycle", provider.lastValues!!.getAsString(MediaStore.Downloads.RELATIVE_PATH))
         assertTrue(provider.lastValues!!.getAsString(MediaStore.Downloads.DISPLAY_NAME).endsWith(".fit"))
@@ -196,7 +197,7 @@ class RecordingFlowTest {
         val app = RuntimeEnvironment.getApplication()
         val provider = provider().apply { failWriting = true }
         var status = ""
-        val store = RecordingStore(app) { message, _ -> status = message }
+        val store = RecordingStore(app) { update -> status = RecordingStatusText.text(app,update) }
         val start = 1_791_626_400_000L
         store.begin(start, RecordingConfig(setOf("HEART_RATE")))
         store.append(RideSample(start, 0, values = mapOf("HEART_RATE" to 130.0)))

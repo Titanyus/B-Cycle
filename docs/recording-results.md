@@ -8,7 +8,9 @@ Erste interne Entkopplung des Fahrtabschlusses: `RecordingStore` liefert aus `ex
 
 `Recovered` zählt nur `Completed` als vollständig abgeschlossen. Ein lokal erhaltener Teilerfolg wird weiterhin nicht im Zähler „Fahrten gespeichert“ mitgezählt. Beide Exportziele werden wie bisher unabhängig versucht, bevor Fehler ausgewertet werden; fehlgeschlagener Ordnerexport verhindert keine Upload-Vormerkung.
 
-`RecordingStatusText` erzeugt die bisherigen Meldungen über Stringressourcen. Der äußere Callback `(String, Boolean)` bleibt in diesem Schritt unverändert. Insbesondere `RideRuntime` und `MainActivity` enthalten noch ihre bisherige Textauswertung; deren Umstellung ist ein separater, noch nicht umgesetzter Schritt.
+`RecordingStore` meldet `RecordingUpdate` über den Main-Thread-Callback an `RideRuntime`. Die Laufzeit übernimmt den Busy-Zustand und aktualisiert die Bibliothek anhand von Finished/Recovered; Meldungstexte werden nicht ausgewertet. `recordingStatus` bleibt als abgeleiteter Anzeigetext für Einstellungen und Foreground-Benachrichtigung erhalten. Bei einer neuen Aufnahme wird das vorherige Speicherereignis zurückgesetzt.
+
+`RecordingStatusText` erzeugt die bisherigen Meldungen über Stringressourcen und entscheidet anhand des Ereignistyps über die bisherige lange Rückmeldung. `MainActivity` unterdrückt weiterhin identische aufeinanderfolgende Meldungen; Fortschritt und Hinweise auf fehlende Journale/offene Fahrten bleiben ohne Toast. Keine fachliche Entscheidung hängt von einem Textpräfix ab.
 
 Unverändert: Verarbeitungsschritte/Reihenfolge, Worker, Aufnahmetakte, Speichergrenzen, Journal-/FIT-Schema, Profile, Namensvorlagen, Uploadwarteschlangen und Benutzeroberfläche. Aufzeichnungsfeldkatalog und Messwert-/Dashboard-Entkopplung sind noch nicht umgesetzt.
 
@@ -17,3 +19,5 @@ Unverändert: Verarbeitungsschritte/Reihenfolge, Worker, Aufnahmetakte, Speicher
 `RecordingFieldsTest` prüft den geordneten Feldkatalog einschließlich Einheiten, Scope, Beschriftungen, Gruppen und Standardauswahl sowie die Reichweitenzuordnung. `recording-fields.txt` und `legacy-recording.ride` wurden vor der Produktionsänderung aus `3e7db0e` erzeugt; das Journal enthält ausschließlich synthetische Messwerte. Vorhandene Altdefinitionen werden bewusst erhalten.
 
 `RecordingStoreBaselineTest` prüft exakte Meldungen und Busy-Flags, vollständiges Speichern, Teilerfolg/Retry mit unveränderten Originalbytes, gemischte Wiederherstellung, ungültiges Journal und Schreibfehler mit Erhalt vollständiger Samples. `RecordingResultTest` prüft zusätzlich tatsächliche typisierte Exportergebnisse und Fehlerphasen, lokale Identität, Upload-Vormerkung statt Remote-Erfolg und die unveränderte Darstellung.
+
+Schritt 3 ergänzt `RecordingUpdateUiTest`: reale Activity mit gesperrtem START-/Profilwechsel während Speichern, lange Fehlermeldung, keine mehrfachen Toasts bei weiteren Render-Aufrufen, stille Hinweise sowie vollständige/teilweise/fehlgeschlagene Abschlüsse und Sammelwiederherstellung. Runtime-Tests prüfen gezielte Bibliotheksaktualisierung. Vorhandener Service-/Hintergrundtest prüft zusätzlich das typisierte endgültige Ergebnis.

@@ -51,7 +51,9 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     internal val drinkReminder=DrinkReminder()
     var recording = false; private set
     var saving = false; private set
-    var recordingStatus = "Bereit · START beginnt die Aufzeichnung"; private set
+    internal var recordingUpdate: RecordingUpdate? = null; private set
+    val recordingStatus get() = recordingUpdate?.let { RecordingStatusText.text(context, it) }
+        ?: context.getString(if (recording) R.string.recording_running else R.string.recording_ready)
     var visible = false; private set
     var gpsEnabled = preferences.getBoolean("gpsEnabled", false) && !isIndoor; private set
     private var heartAt: Long? = null
@@ -117,9 +119,10 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     val mapState = MapState(context) { notifyChanged() }
     var mapTrackEnabled = true; private set
-    private val store = RecordingStore(context) { text, busy ->
-        saving = busy; recordingStatus = text
-        if (!busy && (text.startsWith("Gespeichert:") || text.startsWith("FIT nicht") || text.startsWith("FIT lokal gespeichert") || text.contains("Fahrten gespeichert"))) mapState.refreshLibrary()
+    private val store = RecordingStore(context, ::recordingChanged)
+    internal fun recordingChanged(update: RecordingUpdate) {
+        recordingUpdate = update; saving = update.busy
+        if (update is RecordingUpdate.Finished || update is RecordingUpdate.Recovered && update.results.isNotEmpty()) mapState.refreshLibrary()
         notifyChanged()
     }
     internal val hrv=HrvController(context)
@@ -498,15 +501,16 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
                 pendingPerformance += event.copy(atMs = 0, receivedAtMs = event.receivedAtMs - startElapsed,
                     sensorTimeMs = event.sensorTimeMs?.minus(startElapsed))
         }
+        recordingUpdate = null
         store.begin(startUtc, activeConfig); recording = true; ride.gps.setCollecting(!isIndoor)
         drinkReminder.reset();drinkReminder.update(true,0,DrinkReminderSettings.read(preferences),false)
         connectionsRequested = true
-        recordingStatus = "Aufzeichnung läuft"; appendSample(); updateActivity()
+        appendSample(); updateActivity()
     }
     fun stopRecording() {
         if (!recording) return
         drinkReminder.reset()
-        completedElapsedMs = appendSample(); recording = false; saving = true; recordingStatus = "FIT wird gespeichert …"
+        completedElapsedMs = appendSample(); recording = false; saving = true; recordingUpdate = RecordingUpdate.Progress.SAVING_FIT
         ride.gps.setCollecting(false); ride.bike.pause()
         liveGraphs.stop(); store.finish(); updateActivity()
     }

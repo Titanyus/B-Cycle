@@ -1,6 +1,6 @@
 package de.bcycle.app
 
-/** In-memory results only. Journal/FIT schemas and public UI callbacks remain unchanged. */
+/** In-memory results only. Journal/FIT schemas remain unchanged. */
 internal enum class RecordingFinishStage { ENCODE_FIT, RETAIN_LOCAL, PREPARE_LOCAL, QUEUE_UPLOADS, EXPORT_LOCAL, FINALIZE }
 internal enum class RecordingDestination { LOCAL_FOLDER, WEBDAV, INTERVALS, DREEVE, STRAVA }
 internal enum class RecordingWarning { INCOMPLETE_RECORDING, ELEVATION_CORRECTION_FAILED }

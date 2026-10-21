@@ -86,7 +86,7 @@ class RouteExportTest {
     @Test fun bothOutputsDisabledStillFinalizesAndRetainsOriginalActivityWithoutDownloadsOrNetwork() {
         RouteExportSettings(context).write(RouteExportConfig(save = false, webdav = false))
         var status = ""
-        val store = RecordingStore(context) { message, _ -> status = message }
+        val store = RecordingStore(context) { update -> status = RecordingStatusText.text(context, update) }
         val start = 1791626400000L
         store.begin(start, RecordingConfig(setOf("HEART_RATE")))
         store.append(RideSample(start, 0, values = mapOf("HEART_RATE" to 123.0)))
@@ -104,7 +104,7 @@ class RouteExportTest {
         RouteExportSettings(context).write(config)
         fun stop(): String {
             var status = ""
-            val store = RecordingStore(context) { message, _ -> status = message }
+            val store = RecordingStore(context) { update -> status = RecordingStatusText.text(context, update) }
             val start = 1791626400000L
             store.begin(start, RecordingConfig(setOf("HEART_RATE")))
             store.append(RideSample(start, 0, values = mapOf("HEART_RATE" to 123.0)))

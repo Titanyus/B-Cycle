@@ -16,7 +16,7 @@ class RecordingResultTest {
     private val context get()=RuntimeEnvironment.getApplication()
     private fun text(update:RecordingUpdate)=RecordingStatusText.text(context,update)
     private fun export(source:File):RideCompletion {
-        val store=RecordingStore(context) { _,_-> }
+        val store=RecordingStore(context) { _ -> }
         val worker=RecordingStore::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(store) as ExecutorService
         val method=RecordingStore::class.java.getDeclaredMethod("export",File::class.java).apply { isAccessible=true }
         try { return worker.submit<RideCompletion> { method.invoke(store,source) as RideCompletion }.get(10,TimeUnit.SECONDS) }

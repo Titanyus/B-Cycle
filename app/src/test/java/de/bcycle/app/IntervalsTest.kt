@@ -132,7 +132,7 @@ class IntervalsTest {
         configure()
         RouteExportSettings(context).write(RouteExportConfig(save=false,webdav=false))
         var message=""
-        val store=RecordingStore(context) { text,_->message=text }
+        val store=RecordingStore(context) { update -> message=RecordingStatusText.text(context,update) }
         store.begin(1791626400000L,RecordingConfig(setOf("HEART_RATE")))
         store.append(RideSample(1791626400000L,0,values=mapOf("HEART_RATE" to 120.0)))
         store.finish()
