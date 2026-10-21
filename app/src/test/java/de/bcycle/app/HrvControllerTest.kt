@@ -32,6 +32,25 @@ class HrvControllerTest {
             assertEquals(1,controller.state.result!!.getInt("packetCount"))
         } finally { release.countDown();controller.close() }
     }
+    @Test fun notificationJitterDoesNotSplitGraphButLongMissingTimeDoes() {
+        var now=0L;val controller=HrvController(RuntimeEnvironment.getApplication()) { now }
+        val worker=HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(controller) as ThreadPoolExecutor
+        fun packet(at:Long) {
+            now=at;controller.packet(at,byteArrayOf(0x16,75,0x33,0x03)) // 819 ticks, about 800 ms.
+            worker.submit {}.get(10,TimeUnit.SECONDS)
+        }
+        try {
+            worker.submit {}.get(10,TimeUnit.SECONDS);packet(0);assertTrue(controller.start("Gurt"))
+            worker.submit {}.get(10,TimeUnit.SECONDS)
+            for(second in 1..32) packet(second*1000L)
+            packet(34000) // 2 s arrival interval: RR plus a short delivery delay.
+            assertFalse(controller.state.points.last().gap)
+            packet(38000) // 4 s interval: substantial time unaccounted for by the RR.
+            assertTrue(controller.state.points.last().gap)
+            assertTrue(controller.state.points.all { it.rrMs==819*1000.0/1024 })
+            assertEquals(Phase.MEASURE,controller.state.phase)
+        } finally { controller.close() }
+    }
     @Test fun completeMeasurementUsesPacketTimesStoresResultAndDisconnectAbortsNextSession() {
         var now=0L
         val controller=HrvController(RuntimeEnvironment.getApplication()) { now }

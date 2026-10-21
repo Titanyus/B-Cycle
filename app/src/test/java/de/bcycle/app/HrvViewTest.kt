@@ -78,7 +78,23 @@ class HrvViewTest {
                 if(Color.alpha(pixel)==128 && Color.red(pixel)==255 && Color.green(pixel)==255 && Color.blue(pixel)==255) halfOpaqueLabels++
             }
             assertTrue(halfOpaqueLabels>10);graphBitmap.recycle()
-            val first=render();assertTrue(hasColor(first,themes.active.tokens.accent));first.recycle()
+            val first=render();assertTrue(hasColor(first,themes.active.tokens.accent))
+            val textPaint=android.graphics.Paint().apply { typeface=c.resources.getFont(R.font.bebas_neue);textSize=72f }
+            val pulseWidth=textPaint.measureText("73")
+            textPaint.typeface=android.graphics.Typeface.create("sans-serif-condensed",android.graphics.Typeface.NORMAL)
+            textPaint.textSize=DashboardTileStyle.ONE.unitMaxSp.toFloat()
+            val unitWidth=textPaint.measureText("bpm")
+            val textLeft=180-(pulseWidth+4+unitWidth)/2
+            fun inkCenter(left:Int,right:Int):Double {
+                val rows=(100..185).filter { y -> (left..right).any { x ->
+                    val pixel=first.getPixel(x,y)
+                    Color.red(pixel)>120 && Color.green(pixel)>120 && Color.blue(pixel)>120
+                } }
+                assertTrue(rows.isNotEmpty());return (rows.first()+rows.last())/2.0
+            }
+            assertEquals(inkCenter(textLeft.toInt(),(textLeft+pulseWidth-1).toInt()),
+                inkCenter((textLeft+pulseWidth+4).toInt(),(textLeft+pulseWidth+4+unitWidth).toInt()),2.0)
+            first.recycle()
             val next=themes.presets.first { it.tokens.accent!=themes.active.tokens.accent }
             assertTrue(themes.activate(next.id))
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
@@ -96,6 +112,24 @@ class HrvViewTest {
             assertTrue(action.top>circle.height/2)
             assertTrue(action.bottom<circle.bottom)
             assertFalse(all(view).filterIsInstance<TextView>().any { it.text==c.getString(R.string.hrv_title) })
+            HrvController::class.java.getDeclaredField("busy").apply { isAccessible=true }.setBoolean(controller,false)
+            HrvController::class.java.getDeclaredField("state").apply { isAccessible=true }.set(controller,HrvState(bpm=73,ready=true))
+            val idle=HrvMeasurementView(c,themes,controller,{"Testgurt"},{true},{})
+            c.setContentView(idle)
+            idle.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(760,View.MeasureSpec.EXACTLY));idle.layout(0,0,360,760)
+            val start=idle.findViewWithTag<TextView>("hrv_action")
+            assertEquals(900,start.typeface.weight)
+            BicycleDialogStyle.content(idle,themes)
+            assertTrue(start.background is android.graphics.drawable.GradientDrawable)
+            fun border()=android.graphics.Bitmap.createBitmap(start.width,start.height,android.graphics.Bitmap.Config.ARGB_8888).also { start.draw(android.graphics.Canvas(it)) }
+            val outline=border()
+            assertEquals(themes.active.tokens.accent,outline.getPixel(start.width/2,0))
+            assertEquals(0,Color.alpha(outline.getPixel(0,0)));outline.recycle()
+            assertTrue(themes.activate(themes.presets.first { it.tokens.accent!=themes.active.tokens.accent }.id))
+            val changed=border();assertEquals(themes.active.tokens.accent,changed.getPixel(start.width/2,0));changed.recycle()
+            val idleImage=android.graphics.Bitmap.createBitmap(360,760,android.graphics.Bitmap.Config.ARGB_8888)
+            idleImage.eraseColor(themes.active.tokens.secondary);idle.draw(android.graphics.Canvas(idleImage))
+            java.io.File("build/reports/hrv-idle-preview.png").outputStream().use { idleImage.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };idleImage.recycle()
         } finally { controller.close();host.pause().stop().destroy() }
     }
     @Test fun lowCoverageWarnsInOrangeButStillShowsMetricsAndRejectedArtefactsHideMetrics() {

@@ -93,7 +93,9 @@ internal class HrvController(private val context:Context,private val clock:()->L
                         var at=(receivedAt-current.measureStartMs).toDouble()-values.sum()*1000.0/1024
                         values.forEach { ticks ->
                             val rr=ticks*1000.0/1024;at+=rr
-                            val gap=points.lastOrNull()?.let { at-it.atMs>maxOf(1500.0,rr*1.5) } ?: true
+                            // Only excess time beyond the observed RR can indicate a delivery gap.
+                            // Counting RR itself incorrectly split ordinary notification jitter.
+                            val gap=points.lastOrNull()?.let { at-it.atMs-rr>maxOf(1500.0,rr*1.5) } ?: true
                             points+=HrvPoint(at.toLong().coerceAtLeast(0),rr,gap)
                         }
                     }

@@ -16,12 +16,14 @@ der untere Graph zeigt echte RR-Intervalle in Millisekunden über der Messzeit.
 Der größere Kreis nutzt während der Ruhephase FOREGROUND mit ACCENT-Endpunkt,
 während der Messung ACCENT mit FOREGROUND-Endpunkt. Die Kreislinie ist 12,15 dp breit (vorher 9 dp, +35 %), der Endpunkt hat 16,38 dp
 Durchmesser (vorher 11,7 dp, +40 % unabhängig von der dickeren Linie). Ein weicher radialer ACCENT-Glow pulsiert zwischen
-30 % und 10 % Deckung; Abfallzeit 1,5 s, Neustart beim nächsten Schlag. Zwischen
+45 % und 10 % Deckung; Starthelligkeit gegenüber 30 % um 50 % erhöht, Abfallzeit 1,5 s, Neustart beim nächsten Schlag. Zwischen
 BLE-Paketen wird nur die Animation nach dem zuletzt empfangenen RR-Takt fortgesetzt,
 keine Messfolge ergänzt. Bei ausbleibendem RR stoppt die Pulsanimation nach 5 s.
 Zeit 18 statt 24 sp; bpm steht in der Dashboard-Einheitenschrift und deren 65-%-Farbe
-hinter dem Pulswert. Start/Erneut messen/Abbruch liegen als rahmenloser ACCENT-Textbutton
-unter der Zeit innerhalb des Kreises, mit normaler bedienbarer Touchfläche. Keine
+hinter dem Pulswert, vertikal zur sichtbaren Zahl zentriert. Start/Erneut messen erhalten
+900 Black und einen transparenten ACCENT-Pillenrahmen (1 dp, horizontaler Innenabstand).
+Abbruch und Speichern erneut versuchen bleiben rahmenlose ACCENT-Textbuttons unter der
+Zeit innerhalb des Kreises, mit normaler bedienbarer Touchfläche. Keine
 zusätzliche kleine Inhaltsüberschrift. Alle Themefarben folgen Themewechseln.
 
 Das Diagramm ist 286 dp hoch (vorher 220 dp, +30 %); die Achsbeschriftungen haben 50 % Deckung. Kurve, Raster und Zeitfenster bleiben unverändert.
@@ -105,3 +107,9 @@ LF (0,04–0,15 Hz) und HF (0,15–0,4 Hz) in ms² sowie LF/HF werden für neue 
 Das 60-s-Protokoll erlaubt 5 s Randverlust durch Ausschluss des ersten unsicheren Ankerpakets und Zustellgrenzen (mindestens 55 s nutzbare RR); längere Protokolle brauchen mindestens 60 s. Dies ist eine dokumentierte Produktregel, keine wissenschaftliche Norm.
 
 Daten & Speicher → HRV-Pulsdaten: Sticky-Abschnitt mit Exportbutton. Manueller ZIP-Download enthält eine JSON je gespeicherter Messung, auch abgebrochene/abgelehnte. Enthalten: vollständiges gespeichertes Ergebnis, Sensor, Uhrzeit/Zeitzone, Protokoll, Rohpakete als Base64 plus dekodierte Werte/monotone Empfangszeit, RR-Ticks (1024/s), bereinigte NN, Korrekturindizes/-durchläufe/-Restklassen, Qualitätsgründe und Versionsangaben. Ziel Downloads/B-Cycle, kein automatischer Upload. Eine laufende Messung erst beenden. Reine Einstellungssicherung enthält die Protokollzeiten, keine Messdaten.
+
+## Kurze Unterbrechungen der Live-Kurve
+
+Die grafische Lückenerkennung betrachtet zusätzliche Zeit über das beobachtete RR-Intervall hinaus: Punktabstand minus aktuelles RR größer als max(1500 ms, 1,5 × RR). Bisher wurde fälschlich der gesamte Abstand gegen diese Schwelle geprüft, wodurch kurze Empfangsverzögerungen sichtbare Linienunterbrechungen auslösen konnten. Längere nicht durch RR erklärte Lücken bleiben als Pfadunterbrechung sichtbar. Keine zusätzlichen RR, unveränderte Empfangszeitanker, Messqualitätsregeln, Korrekturen und Speicherung; nur das Gap-Flag des Live-Graphen ändert sich. Vier gezielte Prüfungen für Glow, native Beschriftung/Pillenrahmen/Themewechsel, Controller-Empfangszeiten und echte Graphunterbrechungen erfolgreich. Kein neuer Gurt-/Gerätetest und keine APK für diese Folgeänderung.
+
+Weitere gewünschte Auswertung und recherchierter Vergleich: [HRV-Score und Verlauf – Entwurf](hrv-score-plan.md). Noch kein Score oder Langzeitdiagramm implementiert.

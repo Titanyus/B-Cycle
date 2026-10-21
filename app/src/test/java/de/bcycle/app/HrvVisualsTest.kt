@@ -39,11 +39,11 @@ class HrvVisualsTest {
         assertEquals(18f,BicycleDesign.hrvTimeSp,0f)
     }
     @Test fun glowPeaksOnBeatFadesForOneAndAHalfSecondsAndResetsAtNextBeat() {
-        assertEquals(.3f,HrvPulseAnimation.opacity(1000,1000,2000.0,true),.0001f)
-        assertEquals(.2f,HrvPulseAnimation.opacity(1750,1000,2000.0,true),.0001f)
+        assertEquals(.45f,HrvPulseAnimation.opacity(1000,1000,2000.0,true),.0001f)
+        assertEquals(.275f,HrvPulseAnimation.opacity(1750,1000,2000.0,true),.0001f)
         assertEquals(.1f,HrvPulseAnimation.opacity(2500,1000,2000.0,true),.0001f)
-        assertEquals(.3f,HrvPulseAnimation.opacity(3000,1000,2000.0,true),.0001f)
-        assertEquals(.3f,HrvPulseAnimation.opacity(2800,2800,2000.0,true),.0001f)
+        assertEquals(.45f,HrvPulseAnimation.opacity(3000,1000,2000.0,true),.0001f)
+        assertEquals(.45f,HrvPulseAnimation.opacity(2800,2800,2000.0,true),.0001f)
         assertEquals(.1f,HrvPulseAnimation.opacity(9000,1000,2000.0,true),.0001f)
         assertEquals(.1f,HrvPulseAnimation.opacity(1000,1000,2000.0,false),.0001f)
     }
@@ -59,6 +59,18 @@ class HrvVisualsTest {
         ring.show(rest.copy(bpm=74))
         val updated=render(ring)
         assertEquals(themes.active.tokens.accent,updated.getPixel(168,12));updated.recycle()
+    }
+    @Test fun graphConnectsOrdinaryPointsButKeepsExplicitDropoutsVisible() {
+        val themes=ThemeManager(c.getSharedPreferences("hrv-gap-theme",0));val graph=HrvGraphView(c,themes)
+        val points=listOf(HrvPoint(10000,800.0),HrvPoint(20000,800.0),HrvPoint(30000,800.0,true),HrvPoint(40000,800.0))
+        graph.show(points,60000,false)
+        val image=render(graph,width=360,height=286)
+        // Flat RR curve lies at y=136. Connected intervals at 15/35 s, genuine gap at 25 s.
+        fun hasLine(second:Int):Boolean {
+            val x=(48+300*second/60)
+            return (134..138).any { image.getPixel(x,it)==themes.active.tokens.accent }
+        }
+        assertTrue(hasLine(15));assertFalse(hasLine(25));assertTrue(hasLine(35));image.recycle()
     }
     @Test fun graphBeginsAtZeroThenSlidesContinuouslyWithAbsoluteTenSecondTicks() {
         assertEquals(HrvGraphWindow(0,60000),HrvGraphWindow.at(0))

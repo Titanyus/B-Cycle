@@ -18,8 +18,13 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         when { controller.state.saveError && controller.canRetrySave -> controller.retrySave()
             controller.busy -> controller.abort()
             canStart() -> controller.start(sensor()) }
-    }.apply { tag="hrv_action" }
+    }.apply {
+        tag="hrv_action"
+        val inset=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
+        setPadding(inset,paddingTop,inset,paddingBottom)
+    }
     private val historyButton=BicycleComponents.action(context,themes,context.getString(R.string.hrv_history),history).apply { tag="hrv_history" }
+    private var startAction=true
     private var subscription:AutoCloseable?=null
     private var shown:JSONObject?=null
     init {
@@ -34,7 +39,15 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         addView(status,LayoutParams(-1,-2))
         addView(graph,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvGraphHeight)))
         addView(result,LayoutParams(-1,-2));addView(historyButton,LayoutParams(-1,-2))
+        BicycleComponents.bindTheme(action,themes) { styleAction() }
         show(controller.state)
+    }
+    private fun styleAction() {
+        action.typeface=if(startAction) BicycleDesign.strongTypeface else Typeface.DEFAULT
+        action.background=if(startAction) android.graphics.drawable.GradientDrawable().apply {
+            setColor(Color.TRANSPARENT);cornerRadius=BicycleDesign.dp(context,BicycleDesign.touchSize).toFloat()
+            setStroke(BicycleDesign.linePixels(context,1f),action.currentTextColor)
+        } else null
     }
     private fun show(state:HrvState) {
         val running=controller.busy && !state.saveError
@@ -43,6 +56,8 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         action.setText(when { state.saveError && controller.canRetrySave->R.string.hrv_retry_save;running->R.string.hrv_abort
             state.result!=null->R.string.hrv_repeat;else->R.string.hrv_start })
         action.isEnabled=!state.saving && (state.saveError && controller.canRetrySave || running || state.ready && canStart())
+        startAction=!running && !(state.saveError && controller.canRetrySave)
+        styleAction()
         historyButton.isEnabled=!running && !state.saving
         historyButton.visibility=if(running) GONE else VISIBLE
         status.visibility=if(state.saveError) VISIBLE else GONE
@@ -136,7 +151,7 @@ internal object HrvPulseAnimation {
         if(!running || beatAtMs==null || intervalMs==null || intervalMs<=0) return .1f
         val age=(nowMs-beatAtMs).coerceAtLeast(0).toDouble()
         val sinceBeat=if(age<=5000) age%intervalMs else age
-        return (.3-.2*(sinceBeat/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)).toFloat()
+        return (.45-.35*(sinceBeat/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)).toFloat()
     }
 }
 
@@ -147,6 +162,7 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
     private val numbers=resources.getFont(R.font.bebas_neue)
     private val units=Typeface.create("sans-serif-condensed",Typeface.NORMAL)
     private val pulseBounds=Rect()
+    private val unitBounds=Rect()
     private val timeBounds=Rect()
     private val phaseBounds=Rect()
     private var state=HrvState()
@@ -205,7 +221,9 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
         canvas.drawText(pulse,left,y+10*density,paint)
         paint.typeface=units;paint.textSize=DashboardTileStyle.ONE.unitMaxSp*scaled
         paint.color=BicycleDesign.dashboardUnitColor
-        canvas.drawText(unit,left+pulseWidth+gap,y+10*density,paint)
+        paint.getTextBounds(unit,0,unit.length,unitBounds)
+        val unitBaseline=(pulseTop+pulseBottom-unitBounds.top-unitBounds.bottom)/2
+        canvas.drawText(unit,left+pulseWidth+gap,unitBaseline,paint)
         paint.typeface=Typeface.DEFAULT;paint.color=tokens.foreground;paint.textAlign=Paint.Align.CENTER
         paint.textSize=BicycleDesign.hrvTimeSp*scaled
         val clock=time();paint.getTextBounds(clock,0,clock.length,timeBounds)

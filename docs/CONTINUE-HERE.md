@@ -2,11 +2,19 @@
 
 Stand: 21.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
-Aktueller Abschluss: Alle fünf Schritte des vereinbarten Architekturplans umgesetzt und separat geprüft. Letzte APK **0.8.22 / Build 61 / versionCode 92**, [direkter Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk), [Buildnachweis](build-61.md), einschließlich nachfolgender Optikkorrekturen. Keine offenen Implementierungsschritte aus diesem Plan. Frühere Aufträge und Zwischenstände unten sind Verlauf, nicht der aktuelle offene Auftrag.
+Aktueller Abschluss: Alle fünf Schritte des vereinbarten Architekturplans umgesetzt und separat geprüft. Letzte APK **0.8.22 / Build 61 / versionCode 92**, [direkter Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk), [Buildnachweis](build-61.md), einschließlich der bis Build 61 veröffentlichten Optikkorrekturen. Neue Folgeänderungen unten sind noch nicht in einer APK. Keine offenen Implementierungsschritte aus diesem Plan. Frühere Aufträge und Zwischenstände unten sind Verlauf, nicht der aktuelle offene Auftrag.
 
 Diese Datei ersetzt den fehlenden Chatverlauf als Arbeitsübergabe. Sie enthält keine persönlichen Fahrten, RR-Daten, Zugangsdaten oder Signierschlüssel. Zuerst `AGENTS.md` lesen, dann Git-Status und diese Datei prüfen. Uncommittete Änderungen können aus der bisherigen Umgebung stammen: erhalten und vor Weiterarbeit prüfen. Git überträgt nur committete und gepushte Dateien; ein anderer Chat kann lokale Änderungen der alten Umgebung nicht automatisch sehen.
 
 ## Aktueller Auftrag
+
+Nach Build 61 HRV-Optik und kurze Graphlücken korrigiert, keine neue APK beauftragt: Glow-Start 45 % statt 30 %, Ende weiter 10 % nach 1,5 s; bpm vertikal zur sichtbaren Zahl zentriert; Start/Erneut messen 900 Black mit transparentem ACCENT-Pillenrahmen 1 dp und Innenabstand. Abbruch/Speicherwiederholung weiterhin schlicht. Grafische Lückenerkennung zieht beobachtetes RR vom Punktabstand ab, bevor zusätzliche fehlende Zeit bewertet wird. Längere Lücken bleiben sichtbar. Keine Änderung an Rohdaten, HRV-Berechnung, Artefaktkorrektur, Datenformat oder Messqualität.
+
+Vier gezielte Tests erfolgreich (Glow; native HRV-Ansicht mit Ink-Zentrierung, Start-/Abbruch-Styling, Rahmen und Themewechsel; Controller mit kurzer Empfangsverzögerung und längerem Ausfall; Graph mit verbundenen Punkten und expliziter Lücke). Nach letztem Button-Innenabstand nur den einen nativen UI-Test erneut ausgeführt, erfolgreich. Ansichten visuell geprüft; kein echter Gurt-/Gerätetest. Keine APK, Version bleibt 0.8.22/92; Veröffentlichung mit [skip ci].
+
+Währenddessen fragt Nutzer nach einem leicht verständlichen HRV-/Erholungswert und wünscht alle Detailwerte als Langzeitgraphen. HRV4Training/Kubios gefallen; Elite HRV bewertet trotz ähnlicher Messwerte teils anders. Recherche und Vorschlag in docs/hrv-score-plan.md festgehalten. Kein neuer Score, keine Baseline-Logik oder Verlaufs-UI implementiert; konkrete Formel/Grenzen noch nicht vereinbart. Die Beratungsfrage ersetzt nicht den abgeschlossenen UI-Auftrag.
+
+## Vorheriger Abschluss bis Build 61
 
 Nach Build 60: Namensvorschau im Eingabefeld anhand der letzten gefahrenen Fahrt, Querstrich vor Trackaufzeichnung in Karten, automatisches Scrollen beim Aufklappen der Trainingshilfe sowie HRV-Optik (Achsbeschriftungen 50 %, Diagramm +30 %, Kreislinie +35 %, Endpunkt +40 %). Nur gezielte Tests. Anschließend neue APK beauftragt: Version 0.8.22 / Build 61 / versionCode 92 über GitHub Actions erfolgreich gebaut und direkt veröffentlicht. Vorschau ausschließlich gezeichnet, kein Bestandteil des gespeicherten Grundnamens oder der tatsächlichen Fahrtbenennung. Messung, Berechnungen und Datenformate unverändert.
 
