@@ -49,3 +49,9 @@ Dashboard-Fahrradauswahl zusätzlich als 3-Spalten-/2-Reihen-Raster bei sechs Pr
 Pulsmesser-Folgekorrektur: Beim bewussten Profilwechsel bestehende bestätigte Live-Verbindung weiterverwenden; Ziel ohne Pulsmesser übernimmt Adresse/Name dauerhaft. Ziel mit eigenem anderem Sensor oder deaktiviertem Puls gewinnt. Fahrtmittelwerte zurücksetzen, keine zweite GATT-Verbindung. Nutzerbeobachtung: erneutes Android-Koppeln machte H10 wieder auffindbar; hardwareseitige Ursache nicht abschließend belegt. Nur gezielte Profilwechseltests, weiterhin keine APK.
 
 Abschluss der Folgeänderungen: 9 gezielte Tests bestanden (1 Dreeve-Zeile, 3 BikeQuickPicker, 1 Dashboard-Einstieg, 2 Pulsmesser-Wiederverwendung und 2 bestehende Profil-Runtime-Tests). Keine APK erstellt; Quelländerungen mit `[skip ci]` sichern, damit kein automatischer APK-Build ausgelöst wird. Build 56 bleibt der letzte veröffentlichte APK-Stand. H10-Verhalten am realen Gerät noch prüfen.
+
+## Rückmeldung am BLE-Suchbutton
+
+Nutzer klärte die scheinbar wirkungslose Suche selbst auf: Eine Aufnahme lief, deshalb war die Sensorsuche absichtlich deaktiviert. Nur Darstellung verbessern: während Aufnahme bzw. Speichern klarer Sperrtext auf dem Button, Alpha 40 %, passende Accessibility-Zustandsbeschreibung; anschließend normale Beschriftung/volle Deckung. Keine Änderungen am BLE-Suchalgorithmus, keine APK. Weitergehende Suchprobleme nur prüfen, falls sie ohne Aufnahmesperre erneut auftreten. Gerät ist Matrix ICR50 / JFICycle, im Projekt über FTMS unterstützt; aktives Profil muss Indoor sein.
+
+Gezielter UI-Test für Aufnahme-/Speichersperre und anschließende normale Darstellung erfolgreich. Quelländerung mit `[skip ci]`, kein APK-Build.

@@ -377,6 +377,14 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         try {
             val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect
             searchButton.isEnabled=!runtime.recording && !runtime.saving
+            searchButton.alpha=if(searchButton.isEnabled) 1f else .4f
+            val searchLabel=when {
+                runtime.recording->R.string.bikes_search_recording_locked
+                runtime.saving->R.string.bikes_search_saving_locked
+                else->R.string.bikes_search
+            }
+            searchButton.setText(searchLabel)
+            searchButton.stateDescription=if(searchButton.isEnabled) null else context.getString(searchLabel)
             correctionControls.forEachIndexed { index,(slider,value) ->
                 slider.isEnabled=!runtime.recording && !runtime.saving
                 slider.alpha=if(slider.isEnabled) 1f else .4f

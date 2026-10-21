@@ -25,6 +25,25 @@ class BikesViewTest {
         shadowOf(Looper.getMainLooper()).idle()
         view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));view.layout(0,0,width,height)
     }
+    @Test fun searchButtonClearlyExplainsRecordingAndSavingLocksAndRestoresNormalAppearance() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        val r=RideRuntime.get(host.get())
+        fun flag(name:String,value:Boolean) { RideRuntime::class.java.getDeclaredField(name).apply { isAccessible=true }.setBoolean(r,value) }
+        try {
+            val view=BikesView(host.get(),r,{}, {}, {}, { LinearLayout(host.get()) })
+            val button=view.findViewWithTag<Button>("bike_sensor_search")
+            assertTrue(button.isEnabled);assertEquals(1f,button.alpha,0f)
+            flag("recording",true);view.refresh()
+            assertFalse(button.isEnabled);assertEquals(.4f,button.alpha,0f)
+            assertEquals(host.get().getString(R.string.bikes_search_recording_locked),button.text)
+            assertEquals(button.text.toString(),button.stateDescription)
+            flag("recording",false);flag("saving",true);view.refresh()
+            assertFalse(button.isEnabled);assertEquals(host.get().getString(R.string.bikes_search_saving_locked),button.text)
+            flag("saving",false);view.refresh()
+            assertTrue(button.isEnabled);assertEquals(1f,button.alpha,0f)
+            assertEquals(host.get().getString(R.string.bikes_search),button.text);assertNull(button.stateDescription)
+        } finally { flag("recording",false);flag("saving",false);host.pause().stop().destroy() }
+    }
     @Test fun pickerStoresPhotoForItsOriginalBikeAndRemovalRestoresTheChooseControl() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {

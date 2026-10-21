@@ -530,6 +530,8 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_fit_primary_distance">Distanz</string>
     <string name="bikes_fit_explanation">Die Hauptquelle liefert den Standardwert der FIT-Datei. Weitere Quellen kannst du zusätzlich aufzeichnen.</string>
     <string name="bikes_fit_additional">Aufzuzeichnende Werte</string>
+    <string name="bikes_search_recording_locked">Sensorsuche während Aufnahme gesperrt</string>
+    <string name="bikes_search_saving_locked">Sensorsuche während Speichern gesperrt</string>
     <string name="bikes_searching">Suche nach unterstützten Sensoren …</string>
     <string name="bikes_search_done">Suche beendet</string>
     <string name="bikes_scan_error">Sensorsuche fehlgeschlagen (%1$d)</string>
