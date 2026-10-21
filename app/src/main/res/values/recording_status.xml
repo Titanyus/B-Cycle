@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="recording_saving_fit">FIT wird gespeichert …</string>
+    <string name="recording_storage_overloaded">Speicher überlastet · bitte STOPP drücken</string>
+    <string name="recording_start_failed">Aufzeichnung konnte nicht angelegt werden · bitte STOPP</string>
+    <string name="recording_write_failed">Fehler beim Schreiben · Zwischendatei bleibt erhalten</string>
+    <string name="recording_no_journal">Keine Aufzeichnungsdatei vorhanden</string>
+    <string name="recording_no_pending">Keine ungespeicherten Fahrten</string>
+    <string name="recording_recovered">%1$s von %2$s Fahrten gespeichert · übrige Daten bleiben erhalten</string>
+    <string name="recording_not_saved">FIT nicht gespeichert · Daten bleiben erhalten. Im Menü erneut speichern.</string>
+    <string name="recording_locally_retained">FIT lokal gespeichert · Ordnerexport oder Upload-Vormerkung fehlgeschlagen. Im Menü erneut versuchen.</string>
+    <string name="recording_saved">Gespeichert: FIT in Streckensammlung</string>
+    <string name="recording_saved_folder">" · auch im Zielordner"</string>
+    <string name="recording_queued_webdav">" · Nextcloud-Upload vorgemerkt"</string>
+    <string name="recording_incomplete">" · enthält Daten bis zum Speicherfehler"</string>
+</resources>
