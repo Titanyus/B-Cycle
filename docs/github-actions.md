@@ -9,8 +9,7 @@ Build desselben Branches; andere Branches werden nicht automatisch gebaut.
 
 Ubuntu 24.04, Temurin JDK 21, Gradle-Wrapper 8.11.1 mit SHA-256-Prüfung, Android-SDK 36,
 Build-Tools 35.0.0, vorhandenes AGP 8.9.2/Kotlin 2.1.20. Gepinnte Action-Commit-SHAs,
-Gradle-Cache, 30-Minuten-Timeout, GITHUB_TOKEN nur contents:read. Keine Release-Secrets,
-kein Store-Upload, keine Änderungen an Sensor- oder Appfunktionen.
+Gradle-Cache, 30-Minuten-Timeout, GITHUB_TOKEN nur contents:read. Der dauerhafte Signierschlüssel kommt aus dem verpflichtenden Actions-Secret; kein Store-Upload.
 
 Der Build führt ausschließlich `./gradlew --no-daemon :app:assembleRelease --console=plain`
 aus. Relevante Tests je Änderung separat auswählen. Keine pauschale vollständige
@@ -18,14 +17,16 @@ Testsuite bei jedem APK-Build; keine parallelen lokalen APK-Builds in der Codex-
 
 ## APK herunterladen
 
-Erfolgreichen Lauf öffnen → Artifacts → B-Cycle-release-LAUFNUMMER. ZIP herunterladen,
+Die geprüfte aktuelle APK steht auf der [Repository-Startseite](../README.md#apk-herunterladen) direkt zum Download, ohne ZIP. Die Veröffentlichung ergänzt nach erfolgreichem Build APK, Prüfsumme und Buildnachweis im Repository.
+
+Für den technischen Actions-Artefaktzugriff: Erfolgreichen Lauf öffnen → Artifacts → B-Cycle-release-LAUFNUMMER. ZIP herunterladen,
 entpacken und die APK installieren. Das Artefakt enthält eine benannte APK mit Version
 und Laufnummer plus SHA-256-Prüfsumme und R8 mapping.txt. Der Build-Summary enthält den direkten Artefakt-Link.
 Artefakte bleiben 30 Tage verfügbar; GitHub verlangt dafür eine Anmeldung.
 Ein manueller Build kann nach Ablauf der Aufbewahrung eine neue APK erzeugen.
 Build-Timestamp entspricht dem tatsächlichen Start der Build-Vorbereitung.
 
-## Einmaliger fester Testschlüssel
+## Dauerhafter Signierschlüssel
 
 Ab 0.8.16 ist `ANDROID_DEBUG_KEYSTORE_BASE64` erforderlich. Ohne Secret bricht
 Actions ab, statt einen neuen temporären Schlüssel zu verwenden. Vor Veröffentlichung

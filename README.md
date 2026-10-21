@@ -42,33 +42,44 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 - **Fahrradprofile** – Bis zu sechs Räder mit eigenen Namen, Fotos, Radkategorie, Radumfang, Sensorzuordnungen, FIT-Einstellungen sowie eigenen Themes, Dashboards und Kartenoptionen. E-Bike und Indoor sind nutzbar; normales Bike ist vorbereitet.
 - **Dein Design** – 14 vorgegebene Farbthemen mit einheitlicher Bedienung, sofort gespeicherten Einstellungen und Hochformat-Layouts.
 - **Export und Upload** – Lokal speichern oder eigene Fahrten an WebDAV, intervals.icu, Dreeve und Strava senden. Dienste arbeiten unabhängig; Dreeve benötigt eine eigene Instanz, Strava derzeit eine persönliche API-App.
+- **HRV-Ruhemessung** – RR-fähigen Pulsmesser verwenden, Protokollzeiten einstellen und Ergebnisse mit Zeit-/Frequenzwerten sowie Rohdaten dauerhaft speichern und gezielt exportieren.
 - **Wetter und Höhe** – Wetter zur Tourmitte dauerhaft speichern und bei Bedarf GPS-Höhen nachträglich mit Mapterhorn korrigieren; Original-FIT bleibt erhalten.
-- **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 1,7 MB optimierte APK. Keine automatische Telemetrie.
+- **Schlanke Android-App** – Native Kotlin-Views, Android 13+, rund 2,1 MB optimierte APK. Keine automatische Telemetrie.
 
 ## APK herunterladen
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.16 · Build 55 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk)**
+**[Version 0.8.17 · Build 56 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.17-release-56.apk)**
 
-**Build 55 vom 20.10.2026 · 2,03 MB · Android 13+.** Direkter APK-Download ohne ZIP.
-Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug-Flag.
-Download, APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Build 53 installierbar.** Ältere, anders signierte Installationen
+**Build 56 vom 21.10.2026 · 2,08 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
+APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
+**Als Update über Builds 53 und 55 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.16](docs/release-0.8.16.md) ·
-[Buildnachweis und SHA-256](docs/build-55.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39474797792) ·
+[Änderungen in 0.8.17](docs/release-0.8.17.md) ·
+[Buildnachweis und SHA-256](docs/build-56.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39549876412) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
-106 gezielte Hosttests und 12 HRV-Kerntests bestanden, darunter 62 Referenzfälle.
-Echte Gurt-/Telefonprüfung und persönlicher WebDAV-Server bleiben praktisch zu prüfen.
+144 unterschiedliche Android-Hosttests und 19 HRV-Kerntests bestanden, darunter 62 Referenzfälle.
+Drei ältere UI-Testfehler sind am unveränderten letzten Release reproduziert und im Buildnachweis dokumentiert.
+Echte Gurt-/Telefonprüfung und persönliche Dienstkonten bleiben praktisch zu prüfen.
 
-Frühere APKs: [0.8.15 · Build 53](downloads/B-Cycle-0.8.15-release-53.apk) ·
+Frühere APKs: [0.8.16 · Build 55](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk) · [0.8.15 · Build 53](downloads/B-Cycle-0.8.15-release-53.apk) ·
 [0.8.14 · bisheriger Testschlüssel](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.14/downloads/B-Cycle-0.8.14.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.17
+
+- **HRV erweitert:** robustere Korrekturdurchläufe, deutliche Qualitätsgründe, einstellbare Ruhe-/Messzeit, größerer animierter Kreis und gleitender RR-Graph. Ergebnis mit Zeitwerten, LF/HF und Sensor-/Protokollangaben.
+- **HRV-Pulsdaten exportieren:** ZIP mit einer vollständigen JSON je Messung, auch abgelehnte Messungen; Rohpakete, RR/NN und Korrekturschritte für gezielte Auswertung.
+- **Dreeve und ZIP:** übersichtliche gemeinsame Fahrtenauswahl mit Filtern, Mehrfachauswahl und kompaktem Fastscroller. ZIP-Auswahl sofort sichtbar, Verarbeitung im Hintergrund.
+- **GPX als gefahrene Aktivität:** bestätigter Dreeve-Link bleibt erhalten; manuell als FIT zu anderen Diensten übertragen. Aktueller Profil-Radtyp gilt, nach Profillöschung letzter bekannter Typ.
+- **Normierte Leistung:** stationäre Flow-GPX-Pausen aus aktiver Auswertung herausrechnen, Power-Qualitätsgrenzen erhalten. Vollständige Titellaufschrift mit festgehaltenem Animationsablauf.
+- **Chatwechsel:** [versionierte Übergabe](docs/CONTINUE-HERE.md) mit Entscheidungen, Stand, Prüfungen und offenen Praxistests.
 
 ## Neu in APK 0.8.16
 
