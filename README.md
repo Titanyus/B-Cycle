@@ -50,26 +50,34 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.21 · Build 60 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk)**
+**[Version 0.8.22 · Build 61 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk)**
 
-**Build 60 vom 21.10.2026 · 2,11 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 61 vom 21.10.2026 · 2,11 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53, 55, 56, 57, 58 und 59 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55, 56, 57, 58, 59 und 60 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.21](docs/release-0.8.21.md) ·
-[Buildnachweis und SHA-256](docs/build-60.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39603707593) ·
+[Änderungen in 0.8.22](docs/release-0.8.22.md) ·
+[Buildnachweis und SHA-256](docs/build-61.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39615540854) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
-11 gezielte UI-Tests erfolgreich, einschließlich Rahmen, Icon-Text-Abstand, Seitenabständen,
-dynamischen Formularen und bestehender Mehrfachauswahl/Profilspeicherung. Funktionalität erhalten.
+Fünf gezielte UI-Tests erfolgreich: Namensvorschau, Profil-/Backup-Kompatibilität, Trainingshilfe-Scrollen,
+Kartentrenner und native HRV-Render-/Theme-Prüfung. Messung, Berechnungen und Datenformate erhalten.
 Kein vollständiger Gesamttestlauf; frühere Prüfungen und bekannte ältere UI-Testfehler in den Buildnachweisen.
 
-Frühere APKs: [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
+Frühere APKs: [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.22
+
+- **HRV:** Achsbeschriftung mit 50 % Deckung, Diagramm 30 % höher, Kreislinie 35 % dicker und Endpunkt 40 % größer.
+- **Fahrtnamen:** Vorschau der Zusatzdaten direkt im Namensfeld mit Beispielen der letzten gefahrenen Fahrt; nur der Grundname ist editierbar.
+- **Trainingshilfe:** Geöffnete Abschnitte und Details scrollen ins Sichtfeld.
+- **Karten:** Querstrich vor Trackaufzeichnung.
+- Fünf gezielte UI-Tests erfolgreich. [Details](docs/release-0.8.22.md).
 
 ## Neu in APK 0.8.21
 
