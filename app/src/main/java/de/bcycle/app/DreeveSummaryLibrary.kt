@@ -29,11 +29,11 @@ internal data class DreeveSummary(val metrics:Map<AnalysisMetric,Double> = empty
         .put("gearId",gearId ?: JSONObject.NULL).put("deviceName",device ?: JSONObject.NULL)
 }
 internal data class StoredDreeveSummary(val id:String,val activity:DreeveActivity,val dateMs:Long=localDate(activity.startLocal),
-    val origin:TrackOrigin=TrackOrigin.IMPORTED) {
+    val origin:TrackOrigin=TrackOrigin.IMPORTED,val bikeType:BikeType?=activity.bikeType) {
     val details get():RouteDetails {
         fun duration(metric:AnalysisMetric)=activity.summary.metrics[metric]?.times(1000)?.toLong()
         return RouteDetails(dateMs,activity.distanceM,duration(AnalysisMetric.ELAPSED),ascentM=activity.summary.metrics[AnalysisMetric.ASCENT],
-            movingMs=duration(AnalysisMetric.MOVING),bikeType=activity.bikeType)
+            movingMs=duration(AnalysisMetric.MOVING),bikeType=bikeType)
     }
     companion object {
         private fun localDate(value:String)=runCatching { LocalDateTime.parse(value).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() }.getOrDefault(0L)
@@ -54,9 +54,9 @@ internal class DreeveSummaryLibrary(root:File) {
             candidate.name.removeSuffix(".bak").takeIf { it.matches(Regex("[a-f0-9-]{36}\\.json")) }?.removeSuffix(".json")
         }.distinct().mapNotNull { id -> runCatching { read(file(id)) }.getOrNull() }
     }
-    fun add(id:String,activity:DreeveActivity,origin:TrackOrigin=TrackOrigin.IMPORTED):File {
+    fun add(id:String,activity:DreeveActivity,origin:TrackOrigin=TrackOrigin.IMPORTED,bikeType:BikeType?=activity.bikeType):File {
         require(!activity.hasGpx && entries.none { it.id==id })
-        val item=StoredDreeveSummary(id,activity,origin=origin);write(item);entries=entries+item
+        val item=StoredDreeveSummary(id,activity,origin=origin,bikeType=bikeType);write(item);entries=entries+item
         return file(id)
     }
     internal fun restoreBackup(item:StoredDreeveSummary):Boolean {
@@ -73,11 +73,16 @@ internal class DreeveSummaryLibrary(root:File) {
         write(next);entries=entries.map { if(it.id==id) next else it }
     }
     fun delete(id:String) { AtomicFile(file(id)).delete();entries=entries.filterNot { it.id==id } }
+    fun updateBikeTypes(type:(String)->BikeType?) {
+        entries=entries.map { item -> type(item.id)?.let { value ->
+            if(value==item.bikeType) item else item.copy(bikeType=value).also(::write)
+        } ?: item }
+    }
     private fun write(item:StoredDreeveSummary) {
         val a=item.activity
         val json=JSONObject().put("schema",1).put("id",item.id).put("activityId",a.id).put("name",a.name)
             .put("startDateLocal",a.startLocal).put("dateMs",item.dateMs).put("distanceInMeter",a.distanceM ?: JSONObject.NULL).put("sportType",a.sportType)
-            .put("summary",a.summary.json()).put("origin",item.origin.name)
+            .put("summary",a.summary.json()).put("origin",item.origin.name).put("bikeType",item.bikeType?.name ?: JSONObject.NULL)
         val atomic=AtomicFile(file(item.id));val stream=atomic.startWrite()
         try { stream.write(json.toString().toByteArray(Charsets.UTF_8));atomic.finishWrite(stream) }
         catch(e:Exception) { atomic.failWrite(stream);throw e }
@@ -98,7 +103,9 @@ internal class DreeveSummaryLibrary(root:File) {
                 ?.takeIf { it.isFinite() && it>=0 }?.let { metric to it } }.toMap(),values.validId("gearId"),values.opt("deviceName") as? String)
             return StoredDreeveSummary(json.getString("id"),DreeveActivity(json.getString("activityId"),json.getString("name"),
                 json.getString("startDateLocal"),(json.opt("distanceInMeter") as? Number)?.toDouble()?.takeIf { it.isFinite() && it>=0 },
-                json.getString("sportType"),false,summary),json.getLong("dateMs"),if(json.has("origin")) TrackOrigin.valueOf(json.getString("origin")) else TrackOrigin.IMPORTED)
+                json.getString("sportType"),false,summary),json.getLong("dateMs"),if(json.has("origin")) TrackOrigin.valueOf(json.getString("origin")) else TrackOrigin.IMPORTED).let { item ->
+                    if(json.has("bikeType")) item.copy(bikeType=runCatching { BikeType.valueOf(json.getString("bikeType")) }.getOrNull()) else item
+                }
         }
     }
 }

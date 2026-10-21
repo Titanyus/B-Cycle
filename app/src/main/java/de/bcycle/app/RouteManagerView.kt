@@ -75,12 +75,10 @@ internal class RouteManagerView(context: Context,
         }, LayoutParams(-1, -1))
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
         addView(status, LayoutParams(-1, -2))
-        addView(ListView(context).apply {
+        addView(BicycleFastScrollList(context,themes).apply {
             tag = "route_list"; adapter = rows; dividerHeight = BicycleDesign.linePixels(context)
             setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
             BicycleComponents.scrollStyle(this)
-            isFastScrollEnabled=true
-            isFastScrollAlwaysVisible=false
             BicycleComponents.bindTheme(this, themes) {
                 divider = ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }; dividerHeight = BicycleDesign.linePixels(context)
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)

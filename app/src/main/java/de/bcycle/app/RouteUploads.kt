@@ -35,8 +35,7 @@ internal object RouteUploads {
         val item = statusCache.optJSONObject(id) ?: return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED)
         val currentTarget = runCatching { target(RouteExportSettings(context).read()) }.getOrNull()
         if (item.optString("target") != currentTarget) return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED, "Uploadziel geändert")
-        if (stamp != null && (item.optLong("length", -1) != stamp.length || item.optLong("modified", -1) != stamp.modified ||
-                (stamp.hash != null && item.optString("hash") != stamp.hash)))
+        if (!RouteTransferPayload.metadataMatches(context,id,item) || (stamp != null && !RouteTransferPayload.matches(item,stamp)))
             return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED, "Datei geändert · Upload erneut prüfen")
         when (item.optString("state")) {
             "saved" -> if (item.optString("hash").isNotEmpty()) RouteUploadStatus(UploadState.UPLOADED, "Nextcloud gesichert")
@@ -57,13 +56,15 @@ internal object RouteUploads {
     fun retry(context: Context, id: String) {
         val config = RouteExportSettings(context).read()
         check(config.webdav) { "WebDAV bitte in den Streckeneinstellungen aktivieren" }
-        val file = FitLibrary.activeFile(context.filesDir,id)
-        require(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}")) && file.isFile)
+        require(eligible(context,id))
+        val file = RouteTransferPayload.file(context,id)
+        require(file.isFile)
         // MapState verifies RECORDED metadata before exposing this action; restored rides
         // may retain an imported-prefixed immutable original after metadata recovery.
         queue(context, file, "B-Cycle-$id.fit", config)
     }
     internal fun eligible(context: Context, id: String): Boolean {
+        if(id.matches(Regex("[a-f0-9-]{36}"))) return RouteTransferPayload.eligibleGpx(context,id)
         val index = File(context.filesDir, "fit-library/index.json")
         if (!index.isFile) return id.startsWith("recorded-")
         val known = runCatching { JSONObject(index.readText()).getJSONArray("entries") }.getOrNull() ?: return false
@@ -78,13 +79,14 @@ internal object RouteUploads {
     private fun queue(context: Context, file: File, name: String, config: RouteExportConfig) {
         require(eligible(context, file.nameWithoutExtension)) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
         val hash = fingerprint(file) // Only recording/library workers call this method.
+        val metadata=RouteTransferPayload.annotate(context,file,JSONObject())
         synchronized(lock) {
             val all = entries(context); val id = file.nameWithoutExtension
             val destination = target(config); val existing = all.optJSONObject(id)
             if (existing?.optString("target") == destination && existing.optString("hash") == hash &&
                 existing.optLong("length") == file.length() && existing.optLong("modified") == file.lastModified() &&
                 existing.optString("state") in setOf("pending", "uploading", "saved")) return@synchronized
-            all.put(id, JSONObject().put("name", existing?.optString("name")?.takeIf { it.isNotEmpty() } ?: name)
+            all.put(id, metadata.put("name", existing?.optString("name")?.takeIf { it.isNotEmpty() } ?: name)
                 .put("target", destination).put("state", "pending").put("hash", hash)
                 .put("length", file.length()).put("modified", file.lastModified()))
             save(context, all)
@@ -128,10 +130,12 @@ internal object RouteUploads {
         for (id in ids) {
             if (cancelled()) return true
             val item = synchronized(lock) { entries(context).getJSONObject(id) }
-            val file = FitLibrary.activeFile(context.filesDir,id)
+            var file = if(id.matches(Regex("[a-f0-9-]{36}"))) File(context.filesDir,"gpx-library/$id.gpx") else FitLibrary.activeFile(context.filesDir,id)
             try {
                 check(eligible(context, id)) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
-                check(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}")) && file.isFile) { "Lokale FIT-Datei fehlt" }
+                check(RouteTransferPayload.metadataMatches(context,id,item))
+                file=RouteTransferPayload.file(context,id)
+                check(file.isFile) { "Lokale FIT-Datei fehlt" }
                 check(item.getString("target") == target(config)) { "Ziel geändert · Upload erneut anstoßen" }
                 val hash = fingerprint(file)
                 if (item.optString("hash").isNotEmpty()) check(item.getString("hash") == hash) { "Datei geändert" }

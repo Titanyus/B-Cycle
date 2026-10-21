@@ -6,7 +6,7 @@ import java.io.File
 import java.util.UUID
 
 internal data class DreeveActivity(val id:String,val name:String,val startLocal:String,val distanceM:Double?,
-    val sportType:String,val hasGpx:Boolean,val summary:DreeveSummary=DreeveSummary()) {
+    val sportType:String,val hasGpx:Boolean,val summary:DreeveSummary=DreeveSummary(),val fileFormat:String?=null) {
     val bikeType get()=when(sportType) {
         "VirtualRide"->BikeType.INDOOR
         "EBikeRide","EMountainBikeRide"->BikeType.EBIKE
@@ -54,7 +54,8 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
     companion object {
         fun localId(account:String,activity:String)=UUID.nameUUIDFromBytes("bcycle:dreeve:$account\u0000$activity".toByteArray(Charsets.UTF_8)).toString()
     }
-    fun read(account:String,activities:List<DreeveActivity>,cancelled:()->Boolean={false},origin:TrackOrigin=TrackOrigin.IMPORTED,progress:(DreeveItemResult)->Unit={}):DreeveImportResult {
+    fun read(account:String,activities:List<DreeveActivity>,cancelled:()->Boolean={false},origin:TrackOrigin=TrackOrigin.IMPORTED,
+        bikeTypeFor:(DreeveActivity)->BikeType?={ it.bikeType },progress:(DreeveItemResult)->Unit={}):DreeveImportResult {
         require(origin==TrackOrigin.IMPORTED || origin==TrackOrigin.RECORDED)
         val result=mutableListOf<DreeveItemResult>()
         val links=RideServiceLinks.forAccount(context,RideService.DREEVE,account).associateBy { it.activityId }.toMutableMap()
@@ -74,7 +75,7 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
                         DreeveItemResult(activity.id,DreeveImportState.DUPLICATE)
                     }
                     !activity.hasGpx && summaries!=null->{
-                        val file=summaries.add(local,activity,origin)
+                        val file=summaries.add(local,activity,origin,bikeTypeFor(activity))
                         try {
                             val link=RideServiceLink(local,RideService.DREEVE,account,activity.id,WebDavClient.hash(file))
                             RideServiceLinks.confirm(context,link);links[activity.id]=link
@@ -88,7 +89,7 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
                             download(activity.id,temporary)
                             if(cancelled()) return DreeveImportResult(result,true)
                             val fields=mutableSetOf<DreeveDataField>()
-                            temporary.inputStream().use { input -> library.add(input,activity.name,select=false,preserveDate=true,stableId=local,bikeType=activity.bikeType,origin=origin) { sample ->
+                            temporary.inputStream().use { input -> library.add(input,activity.name,select=false,preserveDate=true,stableId=local,bikeType=bikeTypeFor(activity),origin=origin) { sample ->
                                 fields.add(DreeveDataField.POSITION)
                                 if(sample.time!=null) fields.add(DreeveDataField.TIME)
                                 if(sample.height?.isFinite()==true) fields.add(DreeveDataField.HEIGHT)

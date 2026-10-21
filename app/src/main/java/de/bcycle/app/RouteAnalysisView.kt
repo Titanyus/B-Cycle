@@ -114,6 +114,22 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                 val section = LinearLayout(context).apply {
                     orientation = LinearLayout.VERTICAL
                     addView(row, LinearLayout.LayoutParams(-1, -2))
+                    if(heading==R.string.analysis_power_group && analysis.inferredPauseMs>0)
+                        addView(BicycleComponents.description(context,themes,context.getString(R.string.analysis_gpx_pauses,
+                            analysis.inferredPauseMs/60000,analysis.inferredPauseMs/1000%60)).apply { tag="analysis_gpx_pauses" })
+                    if(heading==R.string.analysis_power_group && AnalysisMetric.NP !in analysis.metrics)
+                        analysis.powerQuality?.let { quality ->
+                            val reason=when {
+                                quality.activeMs==0L->R.string.analysis_np_no_time
+                                quality.activeMs<30000->R.string.analysis_np_too_short
+                                quality.powerCoverage<PerformanceEngine.MIN_COVERAGE->R.string.analysis_np_power_coverage
+                                quality.npWindows==0L->R.string.analysis_np_no_window
+                                quality.npWindowCoverage<PerformanceEngine.MIN_COVERAGE->R.string.analysis_np_window_coverage
+                                else->R.string.analysis_np_missing
+                            }
+                            addView(BicycleComponents.description(context,themes,context.getString(R.string.analysis_np_reason,
+                                context.getString(reason),quality.powerCoverage*100,quality.npWindowCoverage*100)).apply { tag="analysis_np_reason" })
+                        }
                     val distribution = when (heading) {
                         R.string.analysis_power_group -> analysis.zones.power
                         R.string.analysis_cadence_heart_group -> analysis.zones.heart

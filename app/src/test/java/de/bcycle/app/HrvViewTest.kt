@@ -48,6 +48,10 @@ class HrvViewTest {
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         val c=host.get();val controller=HrvController(c)
         try {
+            val ready=java.util.concurrent.CountDownLatch(1)
+            val worker=HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(controller) as java.util.concurrent.ExecutorService
+            worker.execute { ready.countDown() };assertTrue(ready.await(5,java.util.concurrent.TimeUnit.SECONDS))
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             val themes=ThemeManager(c.getSharedPreferences("bike",0))
             val points=(1..60).map { HrvPoint(it*1000L,800+25*kotlin.math.sin(it/4.0)) }
             HrvController::class.java.getDeclaredField("state").apply { isAccessible=true }.set(controller,
@@ -63,15 +67,24 @@ class HrvViewTest {
                 val values=IntArray(bitmap.width*bitmap.height);bitmap.getPixels(values,0,bitmap.width,0,0,bitmap.width,bitmap.height)
                 return values.count { it==color }>50
             }
-            val first=render();assertTrue(hasColor(first,themes.active.tokens.primary));first.recycle()
-            val next=themes.presets.first { it.tokens.primary!=themes.active.tokens.primary }
+            val first=render();assertTrue(hasColor(first,themes.active.tokens.accent));first.recycle()
+            val next=themes.presets.first { it.tokens.accent!=themes.active.tokens.accent }
             assertTrue(themes.activate(next.id))
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             val second=render()
-            assertTrue(hasColor(second,themes.active.tokens.primary))
+            assertTrue(hasColor(second,themes.active.tokens.accent))
             val output=java.io.File("build/reports/hrv-measurement-preview.png").apply { parentFile?.mkdirs() }
             output.outputStream().use { second.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };second.recycle()
             assertTrue(view.findViewWithTag<View>("hrv_action").bottom<=760)
+            val action=view.findViewWithTag<TextView>("hrv_action")
+            BicycleDialogStyle.content(view,themes)
+            assertNull(action.background)
+            assertEquals(themes.active.tokens.accent,action.currentTextColor)
+            val circle=view.findViewWithTag<View>("hrv_circle")
+            assertSame(circle.parent,action.parent)
+            assertTrue(action.top>circle.height/2)
+            assertTrue(action.bottom<circle.bottom)
+            assertFalse(all(view).filterIsInstance<TextView>().any { it.text==c.getString(R.string.hrv_title) })
         } finally { controller.close();host.pause().stop().destroy() }
     }
     @Test fun lowCoverageWarnsInOrangeButStillShowsMetricsAndRejectedArtefactsHideMetrics() {
@@ -87,6 +100,17 @@ class HrvViewTest {
         row.put("acceptable",false).put("reasons",JSONArray().put("HIGH_CORRECTION"))
         val rejected=hrvResult(c,themes,row)
         assertNull(rejected.findViewWithTag<View>("hrv_metrics"))
-        assertTrue(all(rejected).filterIsInstance<TextView>().any { it.text.contains("Artefakte") })
+        assertTrue(all(rejected).filterIsInstance<TextView>().any { it.text.contains("früheren Qualitätsregel") })
+        row.put("acceptable",true).put("warnings",JSONArray().put("HIGH_CORRECTION")).put("affectedFraction",.08)
+        val estimated=hrvResult(c,themes,row)
+        assertNotNull(estimated.findViewWithTag<View>("hrv_metrics"))
+        val correction=estimated.findViewWithTag<TextView>("hrv_correction_warning")
+        assertTrue(correction.text.contains("Schätzung"));assertEquals(HrvVisuals.warningOrange,correction.currentTextColor)
+        for((reason,text) in listOf("RESIDUAL_ARTIFACTS" to "weiterhin auffällige", "CORRECTION_FAILED" to "technisch fehlgeschlagen")) {
+            row.put("acceptable",false).put("reasons",JSONArray().put(reason))
+            val failed=hrvResult(c,themes,row)
+            assertNull(failed.findViewWithTag<View>("hrv_metrics"))
+            assertTrue(all(failed).filterIsInstance<TextView>().any { it.text.contains(text) })
+        }
     }
 }

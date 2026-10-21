@@ -78,11 +78,13 @@ class DreeveSummaryTest {
             </trkseg></trk></gpx>"""
         var downloads=0
         val runner=DreeveImport(c,gpx,{ gpx.entries.map { it.id }.toSet()+summaries.entries.map { it.id } },summaries) { _,file -> downloads++;file.writeText(xml) }
-        assertEquals(2,runner.read(target,listOf(summary,outdoor),origin=TrackOrigin.RECORDED).count(DreeveImportState.IMPORTED))
+        assertEquals(2,runner.read(target,listOf(summary,outdoor),origin=TrackOrigin.RECORDED,bikeTypeFor={ BikeType.EBIKE }).count(DreeveImportState.IMPORTED))
         val loadedGpx=GpxLibrary(root).apply { load() };val loadedSummaries=DreeveSummaryLibrary(root).apply { load() }
         assertEquals(TrackOrigin.RECORDED,loadedGpx.entries.single().origin)
         assertEquals(TrackOrigin.RECORDED,loadedSummaries.entries.single().origin)
         assertEquals(TrackOrigin.RECORDED,loadedSummaries.entries.single().managed().origin)
+        assertEquals(BikeType.EBIKE,loadedGpx.entries.single().details.bikeType)
+        assertEquals(BikeType.EBIKE,loadedSummaries.entries.single().details.bikeType)
         assertEquals(2,runner.read(target,listOf(summary,outdoor),origin=TrackOrigin.IMPORTED).count(DreeveImportState.DUPLICATE))
         assertEquals(TrackOrigin.RECORDED,gpx.entries.single().origin)
         assertEquals(TrackOrigin.RECORDED,summaries.entries.single().origin)

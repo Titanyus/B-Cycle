@@ -41,7 +41,8 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                     val links=JSONArray(RideServiceLinks.links(context,id).map { link -> JSONObject().put("service",link.service.name)
                         .put("account",link.accountId).put("activity",link.activityId).put("hash",link.fileHash) })
                     val json=JSONObject().put("format","bicycle-ride").put("schema",1).put("id",id).put("kind",kind)
-                        .put("name",names[id] ?: name).put("origin",origin.name).put("details",details.json())
+                        .put("name",names[id] ?: name).put("origin",origin.name)
+                        .put("details",details.copy(bikeType=RideProfileColor.type(context,id) ?: details.bikeType).json())
                         .put("bike",RideProfileColor.backup(context,id) ?: JSONObject.NULL).put("links",links).put("files",payloads)
                     val metadata=jsonFile(temporary,"$id.ride.json",json);require(metadata.length()<=65536)
                     entries.put(send(directory,metadata.name,metadata))
@@ -52,13 +53,16 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                 progress(entries.length()+failed.length())
             }
             fits.entries.forEach { entry -> row(entry.id,entry.name,"FIT",entry.origin,entry.details) {
-                JSONObject().put("full",send(directory,"${entry.id}.fit",fits.analysisFile(entry.id)))
+                val source=fits.analysisFile(entry.id);val type=RideProfileColor.type(context,entry.id)
+                val full=if(type!=null && FitRead.read(source).details.bikeType!=type) File(temporary,"${entry.id}.typed.fit").also { FitBikeType.write(source,it,type) } else source
+                JSONObject().put("full",send(directory,"${entry.id}.fit",full))
                     .put("original",send(directory,"${entry.id}.original.fit",fits.originalFile(entry.id))).apply {
                         if(fits.corrected(entry.id)) put("corrected",send(directory,"${entry.id}.corrected.fit",fits.file(entry.id)))
                     }
             } }
             gpx.entries.forEach { entry -> row(entry.id,entry.name,"GPX",entry.origin,entry.details) {
-                val fit=File(temporary,"${entry.id}.fit");GpxFitBackup.write(gpx.file(entry.id),fit,entry)
+                val fit=File(temporary,"${entry.id}.fit");GpxFitBackup.write(gpx.file(entry.id),fit,
+                    entry.copy(details=entry.details.copy(bikeType=RideProfileColor.type(context,entry.id) ?: entry.details.bikeType)))
                 JSONObject().put("gpx",send(directory,"${entry.id}.gpx",gpx.file(entry.id))).put("full",send(directory,fit.name,fit))
             } }
             summaries.entries.forEach { entry -> row(entry.id,entry.activity.name,"SUMMARY",entry.origin,entry.details) {

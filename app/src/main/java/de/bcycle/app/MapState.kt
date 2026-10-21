@@ -56,11 +56,14 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         val names=RideNames.allNames(context)
         return (routes.map { ManagedRoute(it.id, it.name, false, "GPX", it.details, true, it.origin, it.id in retainedFiles, retainedFiles[it.id]) } +
         activities.map { ManagedRoute(it.id, it.name, it.recorded, "FIT", it.details, it.hasRoute, it.origin, it.id in retainedFiles, retainedFiles[it.id],it.id in correctedIds) } + summaries.map { it.managed(retainedFiles[it.id]) })
-        .map { it.copy(name=names[it.id] ?: it.name) }.sortedByDescending { it.details.dateMs }
+        .map { it.copy(name=names[it.id] ?: it.name,details=it.details.copy(bikeType=RideProfileColor.type(context,it.id) ?: it.details.bikeType)) }.sortedByDescending { it.details.dateMs }
     }
     init {
         worker.execute { finishOperation("") {
             workerRoute = library.load(); fits.load(); dreeveSummaries.load();fits.discoverDownloads(context)
+            RideProfileColor.ensureIdentities(context)
+            library.updateBikeTypes { RideProfileColor.type(context,it) }
+            dreeveSummaries.updateBikeTypes { RideProfileColor.type(context,it) }
             if(preferences.contains("displayGpxId")) {
                 val id=preferences.getString("displayGpxId","")?.takeIf { wanted -> library.entries.any { it.id==wanted } }
                 workerRoute=library.select(id)
@@ -92,7 +95,8 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
                     else if(summary!=null) summary.managed() else gpx!!.let { ManagedRoute(it.id, it.name, false, "GPX", it.details, true, it.origin) }
                 val original = if (fit != null) fits.file(id) else if(summary!=null) dreeveSummaries.file(id) else library.file(id)
                 val stamp = RouteFileStamp(original.length(), original.lastModified(), WebDavClient.hash(original))
-                val namedEntry=entry.copy(name=RideNames.name(context,id) ?: entry.name)
+                val namedEntry=entry.copy(name=RideNames.name(context,id) ?: entry.name,
+                    details=entry.details.copy(bikeType=RideProfileColor.type(context,id) ?: entry.details.bikeType))
                 val analysisFile=if(fit!=null) RideAnalysisFiles.file(context.filesDir,id).takeIf { it.isFile } ?: original else original
                 var analysis = RouteAnalysisRead.read(analysisFile, namedEntry.copy(locallySaved = original.isFile, fileStamp = stamp), profile = RiderProfileStore(preferences).read(), cancelled = cancelled::get)
                 if(analysisFile!=original && fits.corrected(id)) {
@@ -211,7 +215,11 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             var result:Result<DreeveImportResult> = Result.failure(IllegalStateException())
             finishOperation("") {
                 result=runCatching { DreeveImport(context,library,{ library.entries.map { it.id }.toSet()+fits.entries.map { it.id }+dreeveSummaries.entries.map { it.id } },dreeveSummaries,client::downloadGpx)
-                    .read(target,items,cancelled,origin=origin) { item ->
+                    .read(target,items,cancelled,origin=origin,bikeTypeFor={ activity ->
+                        activity.summary.gearId?.let { mappings[it] }?.let { slot ->
+                            BikeProfileStore(context,preferences).all().find { it.slot==slot }?.type
+                        } ?: activity.bikeType
+                    }) { item ->
                         if(item.state==DreeveImportState.IMPORTED) {
                             val activity=items.find { it.id==item.id }
                             val local=DreeveImport.localId(target,item.id)
@@ -251,6 +259,34 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             } }
         }
     }
+    internal fun prepareArchive(uri:Uri,cancelled:()->Boolean,complete:(Result<PreparedRideArchive>)->Unit) {
+        if(busy) { complete(Result.failure(IllegalStateException()));return }
+        busy=true;changed()
+        worker.execute {
+            var result:Result<PreparedRideArchive> = Result.failure(IllegalStateException())
+            finishOperation("") {
+                result=runCatching { context.contentResolver.openInputStream(uri)?.use { input ->
+                    RouteArchiveImport(context.filesDir,context.cacheDir,fits,library).prepare(input,cancelled)
+                } ?: error(context.getString(R.string.archive_import_open_failed)) }
+                workerRoute
+            }
+            handler.post { complete(result) }
+        }
+    }
+    internal fun importPreparedArchive(archive:PreparedRideArchive,ids:Set<String>,cancelled:()->Boolean,
+        progress:(DreeveItemResult)->Unit,complete:(Result<DreeveImportResult>)->Unit) {
+        if(busy) { complete(Result.failure(IllegalStateException()));return }
+        busy=true;changed()
+        worker.execute {
+            var result:Result<DreeveImportResult> = Result.failure(IllegalStateException())
+            finishOperation("") {
+                result=runCatching { archive.importSelection(fits,library,ids,cancelled) { item -> handler.post { progress(item) } } }
+                workerRoute
+            }
+            handler.post { complete(result) }
+        }
+    }
+    internal fun discardArchive(archive:PreparedRideArchive) { worker.execute { archive.close() } }
     private fun setSelectedFit(id: String?) { selectedFit = id; preferences.edit().apply { if (id == null) remove("displayFitId") else putString("displayFitId", id);putString("displayGpxId",if(id==null) library.selected ?: "" else "") }.apply() }
     /** Queued on the existing library worker, so switching during a library operation is safe. */
     internal fun restoreProfileRoute() {
@@ -278,7 +314,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     fun exportRoute(id: String) = operate("Nach Download/B-Cycle exportiert") {
         val fit = fits.entries.firstOrNull { it.id == id }
         val summary=dreeveSummaries.entries.singleOrNull { it.id==id }
-        val file = if (fit != null) fits.file(id) else if(summary!=null) dreeveSummaries.file(id) else library.file(id)
+        val file = if (fit != null) RouteTransferPayload.file(context,id) else if(summary!=null) dreeveSummaries.file(id) else library.file(id)
         val name = RideNames.name(context,id) ?: fit?.name ?: summary?.activity?.name ?: library.entries.single { it.id == id }.name
         RouteLocalSaves.perform(context, id, file, "Downloads/B-Cycle") {
             DownloadFiles.write(context, file, "$name.${file.extension}")
@@ -286,8 +322,8 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         workerRoute
     }
     internal fun uploadRoute(id: String,target:RouteTransferTarget?=null) = operate(context.getString(R.string.cloud_uploads_queued)) {
-        val entry = fits.entries.singleOrNull { it.id == id }
-        require(entry?.origin == TrackOrigin.RECORDED) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
+        val origin=fits.entries.singleOrNull { it.id==id }?.origin ?: library.entries.singleOrNull { it.id==id }?.origin
+        require(origin == TrackOrigin.RECORDED) { "Cloud-Upload nur für gefahrene Fahrten" }
         if(target==null) RouteCloudUploads.retry(context,id) else {
             require(target!=RouteTransferTarget.LOCAL && target.enabled(context))
             target.retry(context,id)
@@ -308,6 +344,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         RideAnalysisFiles.file(context.filesDir,id).delete()
         RideNames.forget(context,id)
         RideProfileColor.forget(context,id)
+        RouteTransferPayload.forget(context,id)
         RouteLocalSaves.forget(context, id)
         IntervalsUploads.forget(context,id)
         ActivityServiceUploads.all.forEach { it.forget(context,id) }

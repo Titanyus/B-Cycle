@@ -23,7 +23,7 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
     fun state(c:Context,id:String,stamp:RouteFileStamp?):RouteUploadStatus=synchronized(lock) {
         val config=ActivityServiceSettings(c,service).read();val target=config.identity(service);val all=entries(c)
         val item=all.keys().asSequence().map { all.getJSONObject(it) }.filter { it.optString("ride")==id && it.optString("target")==target &&
-            (stamp==null || (it.optLong("length")==stamp.length && it.optLong("modified")==stamp.modified && (stamp.hash==null || it.optString("hash")==stamp.hash))) }.maxByOrNull { it.optLong("sequence") }
+            RouteTransferPayload.metadataMatches(c,id,it) && (stamp==null || RouteTransferPayload.matches(it,stamp)) }.maxByOrNull { it.optLong("sequence") }
         RouteUploadStatus(when(item?.optString("state")) { "saved"->UploadState.UPLOADED;"pending"->UploadState.WAITING;"processing"->UploadState.UPLOADING;"failed"->UploadState.FAILED;else->UploadState.NOT_UPLOADED })
     }
     fun problem(c:Context):Int?=synchronized(lock) {
@@ -36,19 +36,20 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
         val config=ActivityServiceSettings(c,service).read();if(!config.enabled) return
         val id=file.nameWithoutExtension;require(RouteUploads.eligible(c,id) && file.isFile)
         val hash=WebDavClient.hash(file);val target=config.identity(service);require(target.isNotBlank())
+        val metadata=RouteTransferPayload.annotate(c,file,JSONObject())
         synchronized(lock) {
             val all=entries(c)
             if(all.keys().asSequence().map { all.getJSONObject(it) }.any { it.optString("ride")==id && it.optString("target")==target && it.optString("hash")==hash &&
                 it.optLong("length")==file.length() && it.optLong("modified")==file.lastModified() && it.optString("state")!="failed" }) return@synchronized
             val operation=UUID.randomUUID().toString()
             val sequence=all.keys().asSequence().map { all.getJSONObject(it).optLong("sequence") }.maxOrNull()?.plus(1) ?: 1L
-            all.put(operation,JSONObject().put("ride",id).put("target",target).put("hash",hash).put("length",file.length()).put("modified",file.lastModified())
+            all.put(operation,metadata.put("ride",id).put("target",target).put("hash",hash).put("length",file.length()).put("modified",file.lastModified())
                 .put("filename","B-Cycle-$id-${hash.take(16)}-$operation.fit").put("job","").put("sequence",sequence).put("state","pending"))
             save(c,all)
         }
         schedule(c)
     }
-    fun retry(c:Context,id:String)=enqueue(c,FitLibrary.activeFile(c.filesDir,id))
+    fun retry(c:Context,id:String)=enqueue(c,RouteTransferPayload.file(c,id))
     fun forget(c:Context,id:String)=synchronized(lock) {
         val all=entries(c);all.keys().asSequence().toList().filter { all.getJSONObject(it).optString("ride")==id }.forEach(all::remove);save(c,all)
     }
@@ -95,10 +96,10 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
             val item=snapshot.getJSONObject(operation);val id=item.getString("ride")
             val stopped={ cancelled() || settings.read().let { !it.enabled || it.identity(service)!=target } }
             try {
-                val file=FitLibrary.activeFile(c.filesDir,id)
+                val file=RouteTransferPayload.file(c,id)
                 check(RouteUploads.eligible(c,id) && file.isFile)
                 // Processing IDs can still be resolved after a correction replaces the active FIT.
-                if(item.getString("job").isEmpty()) check(WebDavClient.hash(file)==item.getString("hash") && file.lastModified()==item.getLong("modified"))
+                if(item.getString("job").isEmpty()) check(RouteTransferPayload.metadataMatches(c,id,item) && WebDavClient.hash(file)==item.getString("hash") && file.lastModified()==item.getLong("modified"))
                 var job=item.getString("job")
                 while(true) {
                     if(stopped()) return@synchronized true

@@ -103,4 +103,33 @@ class RouteArchiveImportTest {
         val result = RouteArchiveImport(root, cache, fits, gpx).read(zip("rename.fit" to bytes).inputStream())
         assertEquals(1, result.duplicates); assertEquals(entry, fits.entries.single())
     }
+    @Test fun preparationIsReadOnlyAndOnlySelectedRidesAreCommittedWithCleanupAndDuplicateDetection() = withLibrary { root,cache,fits,gpx ->
+        gpx.add(xml.byteInputStream(),"Schon vorhanden")
+        val selected=gpx.selected
+        val bytes=zip("../../old.gpx" to xml.toByteArray(),"nested/new.gpx.gz" to gzip(xml.replace("50.01","50.02").toByteArray()),
+            "ride.fit" to fit(root),"bad.fit" to byteArrayOf(1,2),"notes.txt" to byteArrayOf(1))
+        val preview=RouteArchiveImport(root,cache,fits,gpx).prepare(bytes.inputStream())
+        try {
+            assertEquals(3,preview.entries.size);assertEquals(1,preview.entries.count { it.known })
+            assertEquals(1,preview.report.failed);assertEquals(1,preview.report.unsupported)
+            assertTrue(fits.entries.isEmpty());assertEquals(1,gpx.entries.size);assertEquals(selected,gpx.selected)
+            val chosen=preview.entries.single { it.name=="new" }
+            assertTrue(chosen.file.canonicalPath.startsWith(cache.canonicalPath+"/"))
+            assertEquals("GPX",chosen.selection().fileFormat)
+            val result=preview.importSelection(fits,gpx,setOf(chosen.id),{false},{})
+            assertEquals(1,result.count(DreeveImportState.IMPORTED))
+            assertEquals(2,gpx.entries.size);assertTrue(fits.entries.isEmpty());assertEquals(selected,gpx.selected)
+            assertEquals(1,preview.importSelection(fits,gpx,setOf(chosen.id),{false},{}).count(DreeveImportState.DUPLICATE))
+        } finally { preview.close() }
+    }
+    @Test fun cancelledPreparationNeverImportsAndDiscardRemovesStagedFiles() = withLibrary { root,cache,fits,gpx ->
+        val preview=RouteArchiveImport(root,cache,fits,gpx).prepare(zip("ride.gpx" to xml.toByteArray()).inputStream(),{true})
+        try {
+            assertTrue(preview.report.interrupted);assertTrue(preview.entries.isEmpty())
+            assertTrue(fits.entries.isEmpty());assertTrue(gpx.entries.isEmpty())
+        } finally { preview.close() }
+        val completed=RouteArchiveImport(root,cache,fits,gpx).prepare(zip("ride.gpx" to xml.toByteArray()).inputStream())
+        assertEquals(1,completed.entries.size);completed.close()
+        assertTrue(fits.entries.isEmpty());assertTrue(gpx.entries.isEmpty())
+    }
 }

@@ -12,7 +12,7 @@ import java.util.UUID
 internal class HrvStore(private val root:File) {
     init { check(root.isDirectory || root.mkdirs()) }
     companion object {
-        const val POLICY="bcycle-hrv-v2-low-coverage-warning"
+        const val POLICY="bcycle-hrv-v4-frequency-boundary"
         const val MAX_BYTES=4*1024*1024
         fun validId(id:String)=runCatching { UUID.fromString(id).toString()==id }.getOrDefault(false)
     }
@@ -28,7 +28,7 @@ internal class HrvStore(private val root:File) {
             .put("measureMs",session.protocol.measureMs).toString().toByteArray())
     }
     fun append(id:String,packet:CapturedPacket) {
-        val row=JSONObject().put("elapsedMs",packet.elapsedMs).put("bytes",android.util.Base64.encodeToString(packet.bytes,android.util.Base64.NO_WRAP))
+        val row=JSONObject().put("elapsedMs",packet.elapsedMs).put("selected",packet.selected).put("bytes",android.util.Base64.encodeToString(packet.bytes,android.util.Base64.NO_WRAP))
         FileOutputStream(File(directory(id),"capture.jsonl"),true).use { it.write((row.toString()+"\n").toByteArray());it.fd.sync() }
     }
     private fun metrics(value:Metrics?):Any=value?.let {
@@ -42,14 +42,30 @@ internal class HrvStore(private val root:File) {
         val diagnostics=session.diagnostics(now)
         val correction=evaluation.correction
         val row=draft.put("format","bicycle-hrv").put("schema",1).put("phase",session.phase.name)
-            .put("problem",session.problem ?: JSONObject.NULL).put("policy",POLICY).put("algorithm",ArtifactCorrection.VERSION)
+            .put("problem",session.problem ?: JSONObject.NULL).put("policy",POLICY)
+            .put("algorithm",correction?.version ?: ArtifactCorrection.MEASUREMENT_VERSION)
             .put("acceptable",evaluation.acceptable).put("reasons",JSONArray(evaluation.reasons)).put("warnings",JSONArray(evaluation.warnings))
             .put("coverage",evaluation.coverage).put("affectedFraction",evaluation.affectedFraction)
             .put("measurementElapsedMs",diagnostics.measurementElapsedMs).put("rrDurationMs",diagnostics.rrDurationMs)
             .put("packetCount",session.packets.size).put("rrTicks",JSONArray(session.rrTicks))
+            .put("captureDiagnostics",JSONObject().put("rrCount",diagnostics.rrCount)
+                .put("selectedPacketCount",diagnostics.selectedPacketCount).put("sessionPacketCount",diagnostics.sessionPacketCount)
+                .put("maxRrPerSelectedPacket",diagnostics.maxRrPerSelectedPacket)
+                .put("firstSelectedAtMs",diagnostics.firstSelectedAtMs ?: JSONObject.NULL)
+                .put("lastSelectedAtMs",diagnostics.lastSelectedAtMs ?: JSONObject.NULL))
             .put("raw",metrics(evaluation.raw)).put("corrected",metrics(evaluation.corrected))
+            .put("frequency",evaluation.frequency?.let { f -> JSONObject()
+                .put("method",FrequencyMetrics.VERSION).put("sampleHz",FrequencyDomain.SAMPLE_HZ)
+                .put("lfLowerHz",.04).put("lfUpperHz",.15).put("hfLowerHz",.15).put("hfUpperHz",.4)
+                .put("lfMs2",f.lfMs2).put("hfMs2",f.hfMs2).put("lfHf",f.lfHf ?: JSONObject.NULL)
+                .put("durationSeconds",f.durationSeconds).put("segmentSamples",f.segmentSamples).put("segments",f.segments)
+            } ?: JSONObject.NULL)
             .put("nnMs",JSONArray(correction?.nnMs ?: emptyList<Double>()))
             .put("affectedRawIndices",JSONArray(correction?.affectedRawIndices ?: emptyList<Int>()))
+            .put("residualArtifacts",correction?.residual?.let { residual -> JSONObject()
+                .put("count",residual.count).put("ectopic",JSONArray(residual.ectopic))
+                .put("missed",JSONArray(residual.missed)).put("extra",JSONArray(residual.extra))
+                .put("longshort",JSONArray(residual.longshort)) } ?: JSONObject.NULL)
             .put("correctionPasses",JSONArray().apply { correction?.passes?.forEach { pass ->
                 put(JSONObject().put("beforePeaks",JSONArray(pass.beforePeaks)).put("afterPeaks",JSONArray(pass.afterPeaks))
                     .put("ectopic",JSONArray(pass.classes.ectopic)).put("missed",JSONArray(pass.classes.missed))
@@ -86,6 +102,21 @@ internal class HrvStore(private val root:File) {
         require(bytes.size<=MAX_BYTES)
         return JSONObject().put("format","bicycle-hrv-backup").put("schema",1).put("result",result)
             .put("capture",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP)).toString().toByteArray().also { require(it.size<=MAX_BYTES) }
+    }
+    fun analysisJson(id:String):ByteArray {
+        val result=read(id)
+        val capture=File(directory(id),"capture.jsonl").takeIf { it.isFile }?.readBytes() ?: byteArrayOf()
+        require(capture.size<=MAX_BYTES)
+        val packets=JSONArray()
+        capture.toString(Charsets.UTF_8).lineSequence().filter { it.isNotBlank() }.forEach { line ->
+            val packet=JSONObject(line)
+            val decoded=HeartRatePacket.decode(android.util.Base64.decode(packet.getString("bytes"),android.util.Base64.DEFAULT))
+            packet.put("decoded",decoded?.let { d -> JSONObject().put("bpm",d.bpm)
+                .put("contact",d.contact.name).put("rrTicks",JSONArray(d.rrTicks)) } ?: JSONObject.NULL)
+            packets.put(packet)
+        }
+        return JSONObject().put("format","bicycle-hrv-analysis").put("schema",1)
+            .put("rrTicksPerSecond",1024).put("result",result).put("packets",packets).toString(2).toByteArray()
     }
     fun restore(bytes:ByteArray):Boolean {
         val backup=BackupJson.objectValue(bytes,MAX_BYTES)

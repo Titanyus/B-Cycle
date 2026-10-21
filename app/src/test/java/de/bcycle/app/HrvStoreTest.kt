@@ -30,6 +30,21 @@ class HrvStoreTest {
             val row=store.save(id,session,Evaluate.session(session),210000)
             assertTrue(row.getBoolean("acceptable"));assertEquals("LOW_RR_COVERAGE",row.getJSONArray("warnings").getString(0))
             assertEquals(179,row.getJSONArray("rrTicks").length());assertTrue(row.getJSONArray("nnMs").length()>0)
+            assertEquals(ArtifactCorrection.MEASUREMENT_VERSION,row.getString("algorithm"))
+            assertEquals(0,row.getJSONObject("residualArtifacts").getInt("count"))
+            assertTrue(row.getJSONObject("frequency").getDouble("lfMs2")>=0)
+            val zip=File(c.cacheDir,"hrv-test-${UUID.randomUUID()}.zip")
+            try {
+                assertEquals(1,HrvDiagnosticExport.write(store,zip))
+                java.util.zip.ZipFile(zip).use { archive ->
+                    assertEquals(1,archive.size())
+                    val json=org.json.JSONObject(archive.getInputStream(archive.entries().nextElement()).bufferedReader().readText())
+                    assertEquals("bicycle-hrv-analysis",json.getString("format"))
+                    assertEquals(209,json.getJSONArray("packets").length())
+                    assertEquals(1,json.getJSONArray("packets").getJSONObject(0).getJSONObject("decoded").getJSONArray("rrTicks").length())
+                    assertEquals(row.toString(),json.getJSONObject("result").toString())
+                }
+            } finally { zip.delete() }
             assertEquals(209,File(source,"$id/capture.jsonl").readLines().size)
             assertEquals(row.toString(),HrvStore(source).read(id).toString())
             val snapshot=store.backup(id);val restored=HrvStore(target)

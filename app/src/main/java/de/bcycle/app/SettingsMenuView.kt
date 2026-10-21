@@ -23,6 +23,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     PROFILE("", BicycleIcon.RiderProfile.resource, R.string.ui_settings_profile),
     DATA("", BicycleIcon.DataStorage.resource, R.string.data_title),
     NOTIFICATIONS("", BicycleIcon.Notifications.resource, R.string.notifications_title),
+    HRV("", BicycleIcon.Heart.resource, R.string.hrv_settings_title),
     RECOVERY("", titleResource = R.string.ui_settings_recovery),
     GPS_HELP("", titleResource = R.string.ui_settings_gps_help),
     DIAGNOSTIC("", titleResource = R.string.ui_settings_diagnostic),
@@ -41,7 +42,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP) } else
-            listOf(SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.ROUTES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
+            listOf(SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.ROUTES,SettingsAction.HRV,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.linePixels(context)))
             addView(BicycleComponents.listRow(context,themes).apply {

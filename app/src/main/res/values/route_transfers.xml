@@ -11,6 +11,6 @@
     <string name="route_transfer_failed">Fehlgeschlagen · erneut versuchen</string>
     <string name="route_transfer_config_error">Konfiguration prüfen</string>
     <string name="route_transfer_missing">Lokale Quelldatei fehlt</string>
-    <string name="route_transfer_ineligible">Nur eigene FIT-Fahrten</string>
+    <string name="route_transfer_ineligible">Nur gefahrene FIT- oder zeitgestempelte GPX-Fahrten</string>
     <string name="dreeve_upload_processing">Von Dreeve angenommen · Bestätigung ausstehend</string>
 </resources>

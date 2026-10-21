@@ -77,6 +77,8 @@ class RideDirectoryBackupTest {
         assertEquals(200.0,target.summaries.entries.single().activity.summary.metrics[AnalysisMetric.AVG_POWER]!!,0.0)
         assertEquals(first.slot,RideProfileColor.slot(target.c,fitId))
         assertEquals(second.slot,RideProfileColor.slot(target.c,gpxId))
+        assertEquals(BikeType.INDOOR,RideProfileColor.type(target.c,gpxId))
+        assertEquals(BikeType.INDOOR,target.gpx.entries.single().details.bikeType)
         assertNotEquals(BikeIdentities.id(prefs,first.slot),BikeIdentities.id(prefs,second.slot))
         assertEquals("external-1",RideServiceLinks.links(target.c,gpxId).single().activityId)
         assertEquals(3,target.backup.restore(directory).duplicates)

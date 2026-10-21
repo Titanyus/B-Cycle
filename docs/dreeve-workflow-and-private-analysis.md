@@ -36,7 +36,7 @@ FitLibrary-Metadaten, Karte und Details können die private vollständige Quelle
 
 Langer Druck startet Mehrfachauswahl. Aktuelle Markierung sichtbar mit ACCENT-Haken, Auswahlzahl und rahmenlosem TERTIARY-Hintergrund; weitere Tipps wählen, statt Details zu öffnen. Kartenauge im Auswahlmodus ausblenden. Rechts fester Löschen-Button, nur bei Auswahl aktiv. Gemeinsame Bestätigung, IDs auf bestehendem Bibliotheksworker löschen; keine Remote-Löschung. Ungewählte Kartenroute erhalten, ausgewählte aktive Route ausblenden. Profilzuordnung, Namensaufträge und private Analysequelle passend bereinigen. Header-/Android-Zurück beendet zuerst die Auswahl.
 
-Detailtitel: feste bisherige headingSp/Bebas-Neue-Typografie ohne AutoSize. Bei Überlänge ca. 30 dp/s, 1,5 s Anfangspause, 0,8 s Endpause, 0,7 s Ausblenden, dann Wiederholung. Kurze Titel zentriert. Systemweite reduzierte Bewegung respektieren, Animator bei Verbergen/Abhängen beenden. Nach Rad/Datum/Wetter 10 dp Abstand. Vertikale Kennzahlentrenner einschließlich Best Efforts entfernt; horizontale Abschnittstrenner bleiben erhalten. Die weiteren vorgemerkten Iconänderungen bleiben offen.
+Detailtitel: feste headingSp/Bebas-Neue-Typografie ohne AutoSize. Vollständiges Textlayout hinter festem Clip mit gemeinsamer Timeline: 3 s einblenden, 4 s Halt, 4 s beschleunigen, 18 dp/s, 4 s abbremsen, 4 s Halt, 3 s ausblenden, 2 s leer. Kurze Titel zentriert, deaktivierte Systemanimationen respektieren. Konvention: [Text-Scroller](text-scrollers.md). Nach Rad/Datum/Wetter 10 dp Abstand; horizontale Abschnittstrenner bleiben erhalten.
 
 ## Verifikation
 
@@ -69,9 +69,6 @@ MockWebServer/Robolectric und vorhandene native FIT-Decoder. Kein vollständiger
 Lange Titel in den Streckendetails zeichnen das vollständige Textlayout in einen
 festen Ausschnitt. Kein erneutes Clippen durch TextView nach der Verschiebung; auch
 die ursprünglich unsichtbaren letzten Zeichen werden sichtbar. Schriftgröße und
-Header bleiben unverändert. Die Laufschrift wartet zu Beginn 1,5 Sekunden, bewegt
-sich mit sanfter Beschleunigung und Verzögerung (Cosinus-Kurve, mittlere 30 dp/s),
-bleibt am vollständigen Ende 0,8 Sekunden stehen, blendet über 0,7 Sekunden aus und
-beginnt erneut. Kurze Titel bleiben zentriert; bei deaktivierten Systemanimationen
+Header bleiben unverändert. Ablauf gemäß [gemeinsamer Text-Scroller-Konvention](text-scrollers.md): 3 s Einblenden → 4 s Halt → 4 s Beschleunigen → 18 dp/s → 4 s Abbremsen → 4 s Halt → 3 s Ausblenden → 2 s leer → Wiederholung. Kurze Titel bleiben zentriert; bei deaktivierten Systemanimationen
 gilt die bestehende statische Ellipsenanzeige. Ein nativer Render-Regressionstest
 prüft ausdrücklich ein farbiges Titelende außerhalb des anfänglichen Ausschnitts.

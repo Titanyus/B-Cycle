@@ -8,6 +8,14 @@ import java.util.UUID
 /** Portable identities are independent of profile slots and display names. */
 internal object BikeIdentities {
     const val KEY="bikeIdentitiesV1"
+    const val RETAINED_TYPES="deletedBikeTypesV1"
+    fun retainType(prefs:SharedPreferences,edit:SharedPreferences.Editor,slot:Int,type:BikeType) {
+        val all=JSONObject(prefs.getString(RETAINED_TYPES,"{}")!!)
+        all.put(id(prefs,slot),type.name);edit.putString(RETAINED_TYPES,all.toString())
+    }
+    fun retainedType(prefs:SharedPreferences,id:String):BikeType?=runCatching {
+        BikeType.valueOf(JSONObject(prefs.getString(RETAINED_TYPES,"{}")!!).getString(id))
+    }.getOrNull()
     private val lock=Any()
     private var cachedKeys:Pair<String,String>?=null
     private var cachedSlots:Map<String,Int> = emptyMap()

@@ -20,8 +20,8 @@ internal object IntervalsUploads {
     fun revision(c:Context)=prefs(c).getLong("revision",0)
     fun state(c:Context,id:String,stamp:RouteFileStamp?=null):RouteUploadStatus=synchronized(lock) {
         val item=entries(c).optJSONObject(id) ?: return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED)
-        if(item.optString("athlete")!=IntervalsSettings(c).read().athlete || (stamp!=null &&
-            (item.optLong("length")!=stamp.length || item.optLong("modified")!=stamp.modified || (stamp.hash!=null && item.optString("hash")!=stamp.hash))))
+        if(item.optString("athlete")!=IntervalsSettings(c).read().athlete || !RouteTransferPayload.metadataMatches(c,id,item) ||
+            (stamp!=null && !RouteTransferPayload.matches(item,stamp)))
             return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED)
         RouteUploadStatus(when(item.optString("state")) { "saved"->UploadState.UPLOADED;"failed"->UploadState.FAILED;"uploading"->UploadState.UPLOADING;else->UploadState.WAITING })
     }
@@ -29,19 +29,20 @@ internal object IntervalsUploads {
         val config=IntervalsSettings(c).read();if(!config.enabled) return
         require(RouteUploads.eligible(c,file.nameWithoutExtension))
         val hash=WebDavClient.hash(file)
+        val metadata=RouteTransferPayload.annotate(c,file,JSONObject())
         synchronized(lock) {
             val all=entries(c);val old=all.optJSONObject(file.nameWithoutExtension)
             RideServiceLinks.links(c,file.nameWithoutExtension) // Migrate an existing confirmed receipt before replacing it.
             if(old?.optString("athlete")==config.athlete && old.optString("hash")==hash && old.optLong("modified")==file.lastModified() &&
                 old.optString("state") in setOf("pending","uploading","saved")) return@synchronized
-            all.put(file.nameWithoutExtension,JSONObject().put("athlete",config.athlete).put("hash",hash).put("length",file.length())
+            all.put(file.nameWithoutExtension,metadata.put("athlete",config.athlete).put("hash",hash).put("length",file.length())
                 .put("modified",file.lastModified()).put("name",name).put("state","pending"));save(c,all)
         }
         schedule(c)
     }
     fun retry(c:Context,id:String) {
         check(IntervalsSettings(c).read().enabled) { c.getString(R.string.intervals_enable_first) }
-        enqueue(c,FitLibrary.activeFile(c.filesDir,id),"B-Cycle-$id.fit")
+        enqueue(c,RouteTransferPayload.file(c,id),"B-Cycle-$id.fit")
     }
     fun forget(c:Context,id:String)=synchronized(lock) { val all=entries(c);all.remove(id);save(c,all) }
     fun schedule(c:Context) {
@@ -81,7 +82,8 @@ internal object IntervalsUploads {
             try {
                 check(item.getString("athlete")==config.athlete)
                 check(RouteUploads.eligible(c,id))
-                val file=FitLibrary.activeFile(c.filesDir,id)
+                check(RouteTransferPayload.metadataMatches(c,id,item))
+                val file=RouteTransferPayload.file(c,id)
                 check(file.isFile && WebDavClient.hash(file)==item.getString("hash") && file.length()==item.getLong("length") && file.lastModified()==item.getLong("modified"))
                 update(c,id,item,"uploading")
                 val stopped={ cancelled() || IntervalsSettings(c).read().let { !it.enabled || it.athlete!=config.athlete } }

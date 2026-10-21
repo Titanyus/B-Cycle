@@ -7,7 +7,10 @@
     <string name="dreeve_import_configure">Konfigurieren</string>
     <string name="dreeve_import_config_missing">Bitte Dreeve unter Daten &amp; Speicher mit Adresse und API-Schlüssel konfigurieren. Der automatische Upload muss dafür nicht eingeschaltet sein.</string>
     <string name="dreeve_import_loading">Fahrten werden geladen …</string>
-    <string name="dreeve_import_loaded">%1$d von %2$d Fahrten geladen</string>
+    <string name="dreeve_import_loaded">%1$d Fahrten geladen</string>
+    <string name="dreeve_filter_import_status">Importstatus</string>
+    <string name="dreeve_filter_all">Alle Tracks</string>
+    <string name="dreeve_filter_not_imported">Noch nicht importiert</string>
     <string name="dreeve_import_load_failed">Fahrten konnten nicht geladen werden. Bitte Verbindung und Dreeve-Konfiguration prüfen.</string>
     <string name="dreeve_import_download_failed">Import fehlgeschlagen. Bitte Verbindung und GPX-Verfügbarkeit prüfen.</string>
     <string name="dreeve_import_changed">Dreeve-Ziel geändert. Bitte die Fahrtenliste neu laden.</string>
@@ -15,6 +18,12 @@
     <string name="dreeve_import_exists">Bereits vorhanden</string>
     <string name="dreeve_import_no_gpx">Zusammenfassung · ohne Messwertverläufe</string>
     <string name="dreeve_import_gpx">GPX abrufbar</string>
+    <string name="dreeve_gpx_unavailable">GPX nicht abrufbar</string>
+    <string name="dreeve_bike_unknown">Fahrrad unbekannt</string>
+    <string name="dreeve_type_unknown">Fahrttyp unbekannt</string>
+    <string name="dreeve_bike_type">%1$s (%2$s)</string>
+    <string name="dreeve_duration_seconds">%1$d:%2$02d:%3$02d</string>
+    <string name="dreeve_row_failed">Import fehlgeschlagen</string>
     <string name="dreeve_import_result">%1$d importiert · %2$d bereits vorhanden · %3$d fehlgeschlagen</string>
     <string name="dreeve_field_position">GPS</string>
     <string name="dreeve_field_time">Zeit</string>
@@ -24,7 +33,7 @@
     <string name="dreeve_field_cadence">Kadenz</string>
     <string name="dreeve_field_temperature">Temperatur</string>
     <string name="help_dreeve_import_heading">Fahrten aus Dreeve</string>
-    <string name="help_dreeve_import_body">Die Fahrtenliste wird automatisch vollständig geladen. Nach einem Abruffehler setzt Mehr laden an der erreichten Seite fort; Neu laden beginnt von vorn. Filter und Sortierung funktionieren wie im Streckenmanager. Alle gefilterten markiert die aktuell gefilterten, noch nicht importierten Fahrten. Vor dem Import kannst du Dreeve-Fahrräder deinen angelegten Profilen zuordnen. Diese Zuordnung bleibt für weitere Importe gespeichert; ohne Zuordnung wird kein Fahrrad geraten. Fahrten mit GPX erhalten verfügbare Sensorverläufe und die daraus berechenbaren Auswertungen. Ohne GPX werden nur verfügbare Kennzahlen als Zusammenfassung übernommen, ohne Karte, Best Efforts oder Zonenanteile. Bekannte externe IDs verhindern doppelte Importe. Der Dreeve-Haken bedeutet verknüpft und löst keinen erneuten Upload aus. Importierte Fahrten werden nicht automatisch zu anderen Diensten hochgeladen.</string>
+    <string name="help_dreeve_import_body">Fahrten mit GPX samt verfügbaren Sensorwerten übernehmen. Ohne GPX werden die verfügbaren Kennzahlen als Zusammenfassung importiert, ohne Karte oder Messwertverläufe. Kein Original-FIT-Download.\n\nDie Fahrtenliste wird automatisch vollständig geladen. Nach einem Abruffehler setzt Mehr laden an der erreichten Seite fort; Neu laden beginnt von vorn. Der oberste Filter Importstatus bietet Alle Tracks oder Noch nicht importiert. Filter und Sortierung funktionieren sonst wie im Streckenmanager. Alle gefilterten markiert die aktuell gefilterten, noch nicht importierten Fahrten. Vor dem Import kannst du Dreeve-Fahrräder deinen angelegten Profilen zuordnen. Diese Zuordnung bleibt für weitere Importe gespeichert; ohne Zuordnung wird kein Fahrrad geraten. Fahrten mit GPX erhalten verfügbare Sensorverläufe und die daraus berechenbaren Auswertungen. Ohne GPX werden nur verfügbare Kennzahlen als Zusammenfassung übernommen, ohne Karte, Best Efforts oder Zonenanteile. Bekannte externe IDs verhindern doppelte Importe. Der Dreeve-Haken bedeutet verknüpft und löst keinen erneuten Upload aus. Importierte Fahrten werden nicht automatisch zu anderen Diensten hochgeladen.</string>
     <string name="dreeve_import_summary_imported">Zusammenfassung importiert</string>
     <string name="dreeve_summary_notice">Dreeve-Zusammenfassung: verfügbare Kennzahlen ohne GPS-Spur und Messwertverläufe. Keine Original-FIT-Datei.</string>
     <string name="dreeve_bikes_title">Fahrräder zuordnen</string>

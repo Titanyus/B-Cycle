@@ -17,11 +17,20 @@ import android.widget.TextView
 object BicycleDesign {
     const val dashboardToolbarMainWeight=2.3f
     const val dashboardToolbarActionWeight=.9f
-    const val hrvCircleHeight=260
+    const val hrvCircleHeight=320
     const val hrvGraphHeight=220
     const val hrvRingWidth=9f
     const val hrvPulseSp=72f
-    const val hrvTimeSp=24f
+    const val hrvTimeSp=18f
+    const val hrvRingEndScale=1.3f
+    const val hrvGlowFadeMs=1500L
+    const val hrvGraphWindowMs=60000L
+    const val hrvActionOffset=54
+    const val fastScrollThumbHeight=40f
+    const val fastScrollTouchWidth=24f
+    const val fastScrollPreviewMaxWidth=180f
+    const val fastScrollPreviewHeight=40f
+    const val fastScrollPreviewPadding=12f
     // Android's sans-serif family uses Roboto on stock Android; request Black without bundling a font.
     val strongTypeface: android.graphics.Typeface by lazy {
         android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.NORMAL),900,false)
@@ -161,6 +170,9 @@ object BicycleDesign {
     fun dp(context: Context, value: Int) = (value * context.resources.displayMetrics.density).toInt()
 
 }
+
+/** Borderless text action with native button semantics and touch target. */
+internal class BicycleTextAction(context:Context):Button(context)
 
 enum class ThemeRole { PRIMARY, SECONDARY, TERTIARY, FOREGROUND, ACCENT }
 fun ThemeTokens.color(role: ThemeRole) = when (role) {
@@ -359,6 +371,16 @@ object BicycleComponents {
     }
     fun action(context: Context, manager: ThemeManager, label: String, click: () -> Unit) =
         action(context, manager, label, true, click)
+    internal fun textAction(context:Context,manager:ThemeManager,label:String,click:()->Unit)=BicycleTextAction(context).apply {
+        text=label;textSize=BicycleDesign.bodySp;isAllCaps=false;typeface=android.graphics.Typeface.DEFAULT
+        minimumWidth=dp(context,BicycleDesign.touchSize);minimumHeight=dp(context,BicycleDesign.touchSize)
+        bindTheme(this,manager) { tokens ->
+            background=null;backgroundTintList=null
+            setTextColor(android.content.res.ColorStateList(arrayOf(intArrayOf(android.R.attr.state_enabled),intArrayOf()),
+                intArrayOf(tokens.accent,android.graphics.Color.argb(128,android.graphics.Color.red(tokens.accent),android.graphics.Color.green(tokens.accent),android.graphics.Color.blue(tokens.accent)))))
+        }
+        setOnClickListener { click() }
+    }
     internal fun action(context: Context, manager: ThemeManager, label: String, formSpacing: Boolean, click: () -> Unit) = Button(context).apply {
         text = label; textSize = BicycleDesign.bodySp; isAllCaps = false
         minimumWidth = dp(context, BicycleDesign.touchSize); minimumHeight = dp(context, BicycleDesign.touchSize)

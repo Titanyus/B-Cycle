@@ -62,6 +62,20 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         }
     }
     private fun count(size:Int)=if(size==0) context.getString(R.string.route_filter_all) else size.toString()
+    fun importStatus(onlyNew:()->Boolean,select:(Boolean)->Unit) {
+        group(R.string.dreeve_filter_import_status,{ context.getString(if(onlyNew()) R.string.dreeve_filter_not_imported else R.string.dreeve_filter_all) }) { section,update ->
+            section.addView(RadioGroup(context).apply {
+                orientation=RadioGroup.HORIZONTAL;BicycleComponents.segmentedControlRow(this,themes)
+                listOf(false to R.string.dreeve_filter_all,true to R.string.dreeve_filter_not_imported).forEach { (value,label) ->
+                    addView(BicycleSegmentButton(context,themes).apply {
+                        id=View.generateViewId();tag=if(value) "dreeve_filter_new" else "dreeve_filter_all"
+                        setText(label);isChecked=onlyNew()==value
+                        setOnCheckedChangeListener { _,on -> if(on) { select(value);update() } }
+                    },RadioGroup.LayoutParams(0,-2,1f))
+                }
+            },LinearLayout.LayoutParams(-1,-2))
+        }
+    }
     fun filters(reset:()->Unit) {
         group(R.string.route_filter_kind,{ count(query.kinds.size) }) { section,update ->
             val segments=LinearLayout(context).apply { BicycleComponents.segmentedControlRow(this,themes) }

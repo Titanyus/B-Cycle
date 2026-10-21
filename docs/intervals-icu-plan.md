@@ -14,8 +14,7 @@ wie bestehende Dialoge automatisch gespeichert, solange sie gültig sind.
 Der eigene Upload-Schalter aktiviert das Vormerken nach Aufnahmeende. WLAN-
 Beschränkung ist standardmäßig aktiv. WebDAV, lokale Speicherung und intervals.icu
 bleiben unabhängig. Der vorhandene Cloudupload im Detailfooter sendet an die
-aktivierten Dienste; nicht importierte GPX-/FIT-Strecken, sondern nur eigene
-aufgezeichnete FIT-Fahrten. Verwendet wird die aktive, gegebenenfalls
+aktivierten Dienste. Eigene aufgezeichnete FIT-Fahrten sowie als Gefahren importierte GPX mit vollständigen Zeitstempeln können übertragen werden; letztere werden manuell als FIT-Aktivität mit vorhandenen Sensordaten abgeleitet. Geplante Tracks und Zusammenfassungen bleiben ausgeschlossen. Der aktuelle Profil-Radtyp gilt (nach Profillöschung letzter bekannter Typ). Verwendet wird die aktive, gegebenenfalls
 höhenkorrigierte Datei; das Original bleibt erhalten.
 
 ## Architektur und Status

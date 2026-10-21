@@ -26,9 +26,11 @@ data class PerformanceQuality(
     val activeMs: Long, val powerMs: Long, val pairedSpeedMs: Long, val pairedHeartMs: Long,
     val longestPowerGapMs: Long, val powerGapCount: Long, val npWindows: Long, val heartAvailableMs: Long,
     val continuedZeroMs: Long = 0,
+    val potentialNpWindows: Long = 0,
 ) {
     /** Coverage includes telemetry-supported explicit zero states; it is not sensor accuracy. */
     val powerCoverage get() = if (activeMs > 0) powerMs.toDouble() / activeMs else 0.0
+    val npWindowCoverage get() = if(potentialNpWindows>0) npWindows.toDouble()/potentialNpWindows else 0.0
 }
 
 data class PerformanceValues(
@@ -173,7 +175,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
     }
     private fun clearWindow() { window.clear(); windowSum = 0.0 }
     fun snapshot(): PerformanceValues {
-        val quality = PerformanceQuality(activeMs, powerMs, speedMs, heartMs, longestGap, gapCount, windowCount, heartAvailableMs, continuedZeroMs)
+        val quality = PerformanceQuality(activeMs, powerMs, speedMs, heartMs, longestGap, gapCount, windowCount, heartAvailableMs, continuedZeroMs,potentialWindows)
         // A local gap breaks its 30 s windows and FTP continuity, not an otherwise
         // well-covered ride. Coverage and complete-window coverage remain required.
         val enough = activeMs > 0 && quality.powerCoverage >= MIN_COVERAGE

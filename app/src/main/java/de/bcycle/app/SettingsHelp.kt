@@ -19,13 +19,14 @@ internal enum class SettingsHelpPage(val title:Int,val sections:List<SettingsHel
     ROUTES(R.string.ui_route_manager_title,listOf(SettingsHelpSection(R.string.help_routes_heading,R.string.help_routes_body),SettingsHelpSection(R.string.help_route_import_heading,R.string.help_route_import_body),SettingsHelpSection(R.string.help_route_actions_heading,R.string.help_route_actions_body))),
     ROUTE_DETAILS(R.string.help_details_title,listOf(SettingsHelpSection(R.string.help_route_title_heading,R.string.help_route_title_body),SettingsHelpSection(R.string.help_route_weather_heading,R.string.help_route_weather_body),SettingsHelpSection(R.string.help_route_metrics_heading,R.string.help_route_metrics_body),SettingsHelpSection(R.string.help_route_training_heading,R.string.help_route_training_body),SettingsHelpSection(R.string.help_route_charts_heading,R.string.help_route_charts_body),SettingsHelpSection(R.string.help_elevation_heading,R.string.help_elevation_body),SettingsHelpSection(R.string.help_route_actions_heading,R.string.help_route_actions_body))),
     ROUTE_MAP(R.string.help_map_title,listOf(SettingsHelpSection(R.string.help_map_controls_heading,R.string.help_map_controls_body),SettingsHelpSection(R.string.help_route_weather_heading,R.string.help_route_weather_body))),
-    DATA(R.string.data_title,listOf(SettingsHelpSection(R.string.help_local_heading,R.string.help_local_body),SettingsHelpSection(R.string.help_webdav_heading,R.string.help_webdav_body),SettingsHelpSection(R.string.help_intervals_heading,R.string.help_intervals_body),SettingsHelpSection(R.string.help_dreeve_heading,R.string.help_dreeve_body),SettingsHelpSection(R.string.help_strava_heading,R.string.help_strava_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body),SettingsHelpSection(R.string.help_backup_heading,R.string.help_backup_body))),
+    DATA(R.string.data_title,listOf(SettingsHelpSection(R.string.hrv_data_title,R.string.hrv_export_help),SettingsHelpSection(R.string.help_local_heading,R.string.help_local_body),SettingsHelpSection(R.string.help_webdav_heading,R.string.help_webdav_body),SettingsHelpSection(R.string.help_intervals_heading,R.string.help_intervals_body),SettingsHelpSection(R.string.help_dreeve_heading,R.string.help_dreeve_body),SettingsHelpSection(R.string.help_strava_heading,R.string.help_strava_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body),SettingsHelpSection(R.string.help_backup_heading,R.string.help_backup_body))),
     BACKUP(R.string.data_backup,listOf(SettingsHelpSection(R.string.help_backup_heading,R.string.help_backup_body))),
     LOCAL(R.string.data_local,listOf(SettingsHelpSection(R.string.help_local_heading,R.string.help_local_body))),
     WEBDAV(R.string.data_cloud,listOf(SettingsHelpSection(R.string.help_webdav_heading,R.string.help_webdav_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     INTERVALS(R.string.intervals_title,listOf(SettingsHelpSection(R.string.help_intervals_heading,R.string.help_intervals_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     HRV(R.string.hrv_title,listOf(SettingsHelpSection(R.string.hrv_help_heading,R.string.hrv_help_body))),
     DREEVE_IMPORT(R.string.dreeve_import_title,listOf(SettingsHelpSection(R.string.help_dreeve_import_heading,R.string.help_dreeve_import_body))),
+    ARCHIVE_IMPORT(R.string.archive_import_title,listOf(SettingsHelpSection(R.string.archive_import_title,R.string.archive_selection_help))),
     DREEVE(R.string.dreeve_title,listOf(SettingsHelpSection(R.string.help_dreeve_heading,R.string.help_dreeve_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     STRAVA(R.string.strava_title,listOf(SettingsHelpSection(R.string.help_strava_heading,R.string.help_strava_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     NOTIFICATIONS(R.string.notifications_title,listOf(SettingsHelpSection(R.string.help_notify_access_heading,R.string.help_notify_access_body),SettingsHelpSection(R.string.help_notify_apps_heading,R.string.help_notify_apps_body),SettingsHelpSection(R.string.help_notify_position_heading,R.string.help_notify_position_body))),
@@ -52,7 +53,8 @@ internal object SettingsHelp {
             nodes.any { it is RouteAnalysisView } -> return SettingsHelpPage.ROUTE_DETAILS
             nodes.any { it is RouteAnalysisMap } -> return SettingsHelpPage.ROUTE_MAP
             nodes.any { it is RouteManagerView } -> return SettingsHelpPage.ROUTES
-            nodes.any { it is DreeveImportView } -> return SettingsHelpPage.DREEVE_IMPORT
+            nodes.any { it is DreeveImportView } -> return if(nodes.filterIsInstance<DreeveImportView>().first().archiveMode) SettingsHelpPage.ARCHIVE_IMPORT else SettingsHelpPage.DREEVE_IMPORT
+            nodes.any { it is HrvSettingsView } -> return SettingsHelpPage.HRV
             nodes.any { it is BikesView } -> return SettingsHelpPage.PROFILES
             nodes.any { it is RiderProfileView } -> return SettingsHelpPage.RIDER
             nodes.any { it is FieldPickerView } -> return SettingsHelpPage.FIELDS
@@ -82,7 +84,8 @@ internal object SettingsHelp {
                 group(R.string.training_help_title,R.string.help_help_mode_heading,R.string.help_help_values_heading,R.string.help_zone_two_heading,R.string.help_heart_method_heading,R.string.help_karvonen_heading,R.string.help_maximum_heading,R.string.help_threshold_heading))
             SettingsHelpPage.DATA->listOf(
                 group(R.string.data_global,R.string.help_backup_heading),
-                group(R.string.data_routes,R.string.help_route_import_heading,R.string.help_local_heading,R.string.help_webdav_heading,R.string.help_intervals_heading,R.string.help_dreeve_heading,R.string.help_strava_heading,R.string.help_uploads_heading))
+                group(R.string.data_routes,R.string.help_route_import_heading,R.string.help_local_heading,R.string.help_webdav_heading,R.string.help_intervals_heading,R.string.help_dreeve_heading,R.string.help_strava_heading,R.string.help_uploads_heading),
+                group(R.string.hrv_data_title,R.string.hrv_data_title))
             SettingsHelpPage.DESIGN->listOf(
                 group(R.string.ui_design_title,R.string.help_design_heading,R.string.help_dashboards_heading,R.string.help_editor_heading,R.string.help_bosch_mode_heading,R.string.help_drink_reminder_heading),
                 group(R.string.training_help_title,R.string.help_help_mode_heading,R.string.help_help_values_heading,R.string.help_zone_two_heading,R.string.help_heart_method_heading))

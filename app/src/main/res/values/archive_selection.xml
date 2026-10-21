@@ -1,0 +1,10 @@
+<resources>
+    <string name="archive_preparing">ZIP wird verarbeitet …</string>
+    <string name="archive_file_available">%1$s vorhanden</string>
+    <string name="archive_import_entry_failed">Datei konnte nicht importiert werden</string>
+    <string name="archive_prepared_issues">Archiv vorbereitet: %1$d fehlerhafte und %2$d nicht unterstützte Dateien übersprungen.</string>
+    <string name="archive_prepared_incomplete">Das Archiv ist unvollständig oder eine Größenbegrenzung wurde erreicht. Du kannst die erfolgreich vorbereiteten Fahrten auswählen.</string>
+    <string name="archive_selection_help">Nach der ZIP-Auswahl öffnet sich sofort diese Ansicht. Während der Vorbereitung wird das Archiv im Hintergrund in einen temporären Bereich entpackt. Unterstützt werden FIT und GPX, auch als .fit.gz oder .gpx.gz im ZIP. Fehlerhafte und nicht unterstützte Dateien werden gemeldet. Erst nach Auswahl und Importieren werden Fahrten als importierte Strecken in die Bibliothek übernommen. Abbrechen übernimmt keine unbestätigten Fahrten und entfernt temporäre Dateien.
+
+Filter, Sortierung, Mehrfachauswahl und Fast-Scroller entsprechen dem Dreeve-Import. Importstatus bietet Alle Tracks oder Noch nicht importiert. Die vier Zeilen zeigen Titel, Datum · km · Dauer, Fahrrad/Fahrttyp und vorhandenes Dateiformat. Verfügbare Angaben stammen aus der jeweiligen Datei. Ohne passende Angaben wird kein Fahrrad geraten. Bekannte Dateiinhalte werden als bereits vorhanden markiert. Kein automatischer Cloud-Upload. Die vorhandenen Größen-, Pfad- und Dateiprüfungen gelten weiterhin.</string>
+</resources>

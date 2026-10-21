@@ -1,4 +1,30 @@
 <resources>
+    <string name="hrv_export_help">→ IN: Gespeicherte Messungen können über vollständige BICYCLE-Sicherungsordner wiederhergestellt werden; kein Import fremder HRV-Analyseformate.
+
+← OUT: Manuelles ZIP in Downloads/B-Cycle mit einer vollständigen JSON je gespeicherter Messung, auch abgelehnte Messungen. Rohpakete, RR-/NN-Folgen, Sensor, Messprotokoll, Zeit-/Frequenzwerte, Qualitätsgründe, Korrekturschritte und Versionen bleiben erhalten. Für den Export laufende Messungen zuerst beenden. Kein automatischer Upload.</string>
+    <string name="hrv_nn_info">Ø NN-Intervall: %1$.2f ms · bereinigte Intervalle: %2$d</string>
+    <string name="hrv_idle">Bereit</string>
+    <string name="hrv_time_metrics">Zeitbereich</string>
+    <string name="hrv_frequency_title">Frequenzbereich</string>
+    <string name="hrv_quality_title">Messqualität</string>
+    <string name="hrv_frequency_values">LF (0,04–0,15 Hz): %1$.2f ms²
+HF (0,15–0,40 Hz): %2$.2f ms²
+LF/HF: %3$s</string>
+    <string name="hrv_frequency_missing">Für diese Messung wurden keine Frequenzwerte berechnet.</string>
+    <string name="hrv_frequency_note">Spektrale Schätzung aus bereinigten NN-Intervallen. Für LF/HF möglichst fünf Minuten unter gleichen Bedingungen messen. Kurze Messungen, langsame Atmung und fehlende RR-Daten können die Werte stark beeinflussen. LF/HF ist kein direkter Wert für eine autonome Balance.</string>
+    <string name="hrv_protocol_info">Ruhephase: %1$d s · Messphase: %2$d s
+Empfangene Pakete: %3$d · ausgewertete RR-Intervalle: %4$d</string>
+    <string name="hrv_data_title">HRV-Pulsdaten</string>
+    <string name="hrv_export">HRV-Pulsdaten exportieren</string>
+    <string name="hrv_export_done">%1$d HRV-Messungen als ZIP in Downloads/B-Cycle gespeichert.</string>
+    <string name="hrv_export_failed">HRV-Export nicht möglich. Bitte eine laufende Messung beenden und prüfen, ob Messungen gespeichert sind und Speicher verfügbar ist.</string>
+    <string name="hrv_settings_title">HRV-Messungen</string>
+    <string name="hrv_rest_duration">Zeit für die Ruhephase</string>
+    <string name="hrv_measure_duration">Zeit für die Messphase</string>
+    <string name="hrv_duration_value">%1$d:%2$02d min</string>
+    <string name="hrv_duration_seconds">%1$d Sekunden</string>
+    <string name="hrv_sensor_used">Verwendeter Pulsmesser: %1$s</string>
+    <string name="hrv_sensor_none">nicht verbunden</string>
     <string name="hrv_title">HRV-Messung</string>
     <string name="hrv_start">Messung starten</string>
     <string name="hrv_repeat">Erneut messen</string>
@@ -6,7 +32,7 @@
     <string name="hrv_rest">Ruhephase</string>
     <string name="hrv_measuring">Messung</string>
     <string name="hrv_running_hint">Bitte ruhig sitzen und normal atmen.</string>
-    <string name="hrv_ready">Ruhig sitzen und normal atmen. Auf 30 Sekunden Ruhephase folgen 180 Sekunden Messung.</string>
+    <string name="hrv_ready">Ruhig sitzen und normal atmen. Auf %1$d Sekunden Ruhephase folgen %2$d Sekunden Messung.</string>
     <string name="hrv_sensor_needed">Bitte den Pulsmesser im aktiven Profil verbinden. Für HRV muss der Sensor RR-Intervalle liefern; Puls allein reicht nicht.</string>
     <string name="hrv_ride_busy">Bitte zuerst die Fahrtaufnahme oder das Speichern beenden.</string>
     <string name="hrv_saving">Messung wird gespeichert …</string>
@@ -29,6 +55,11 @@ Ruhepuls: %5$.1f bpm</string>
     <string name="hrv_user_abort">Messung abgebrochen</string>
     <string name="hrv_too_short">zu wenige nutzbare RR-Daten</string>
     <string name="hrv_artifacts">zu viele oder nicht korrigierbare Artefakte</string>
+    <string name="hrv_legacy_high_correction">nach der früheren Qualitätsregel wegen mehr als 5 %% veränderter Rohintervalle gesperrt</string>
+    <string name="hrv_residual_artifacts">nach der Korrektur weiterhin auffällige RR-Intervalle erkannt</string>
+    <string name="hrv_correction_failed">Artefaktkorrektur technisch fehlgeschlagen</string>
+    <string name="hrv_correction_warning">Hinweis: %1$.1f %% der Rohintervalle wurden durch die Korrektur verändert. Die HRV-Werte sind eine Schätzung und können verzerrt sein. Für Vergleiche möglichst erneut ruhig messen.</string>
+    <string name="hrv_correction_info">Veränderte Rohintervalle: %1$.1f %% · verbleibende Auffälligkeiten: %2$d</string>
     <string name="hrv_invalid_data">ungültige RR-Daten oder unvollständige Messung</string>
     <string name="hrv_capture_failed">Empfang oder Speicherung unterbrochen</string>
     <string name="hrv_rr_label">RR (ms)</string>
@@ -42,9 +73,9 @@ Ruhepuls: %5$.1f bpm</string>
     <string name="hrv_backup_result">HRV: %1$d gesichert · %2$d fehlgeschlagen</string>
     <string name="hrv_restore_result">HRV: %1$d importiert · %2$d vorhanden · %3$d fehlgeschlagen</string>
     <string name="hrv_help_heading">Ruhemessung und Qualität</string>
-    <string name="hrv_help_body">Mit einem verbundenen RR-fähigen Pulsmesser ruhig sitzen und normal atmen. Auf 30 Sekunden Ruhephase folgen 180 Sekunden Messung. Der Kreis zeigt den Fortschritt, der Graph die tatsächlich empfangenen RR-Intervalle in Millisekunden.
+    <string name="hrv_help_body">Mit einem verbundenen RR-fähigen Pulsmesser ruhig sitzen und normal atmen. Unter Einstellungen → HRV-Messungen sind Ruhephase (15–60 Sekunden) und Messphase (1–5 Minuten) in 15-Sekunden-Schritten einstellbar. Standard sind 30 Sekunden Ruhe und 180 Sekunden Messung. Der Kreis zeigt den Fortschritt, der Graph die tatsächlich empfangenen RR-Intervalle in Millisekunden.
 
-RMSSD, LnRMSSD, SDNN, pNN50 und Ruhepuls werden aus der bereinigten Folge berechnet. Geringe RR-Abdeckung allein sperrt die Anzeige nicht: Ein orangefarbener Hinweis zeigt die Abdeckung und mögliche Verzerrung. Es werden keine fehlenden Intervalle erfunden. Mindestens 60 Sekunden nutzbare RR-Daten und die übrigen Qualitätsprüfungen bleiben erforderlich. Kontaktverlust, mehr als fünf Sekunden ohne RR, ungültige Daten und zu viele Artefakte können die Anzeige sperren.
+RMSSD, LnRMSSD, SDNN, pNN50 und Ruhepuls werden aus der bereinigten Folge berechnet. Geringe RR-Abdeckung allein sperrt die Anzeige nicht: Ein orangefarbener Hinweis zeigt die Abdeckung und mögliche Verzerrung. Fehlende Empfangsdaten werden nicht ergänzt. Mehr als 5 %% veränderte Rohintervalle führen bei vollständig bereinigter Folge zu einem orangefarbenen Hinweis; die Werte sind dann eine möglicherweise verzerrte Schätzung. Dieser Anteil entspricht nicht dem Anteil fehlerhafter Herzschläge. Verschlechternde Korrekturdurchläufe werden verworfen. Ältere Ergebnisse werden nicht rückwirkend umbewertet. Bei einer einminütigen Messphase mindestens 55 Sekunden nutzbare RR-Daten (fünf Sekunden Randtoleranz), ansonsten mindestens 60 Sekunden und die übrigen Qualitätsprüfungen bleiben erforderlich. Kontaktverlust, mehr als fünf Sekunden ohne RR, ungültige Daten, technische Korrekturfehler und verbleibende Auffälligkeiten sperren die Anzeige.
 
-Ergebnisse, Rohdaten und Qualitätsangaben werden privat und unabhängig vom Fahrrad gespeichert. Gespeicherte Messungen lassen sich erneut öffnen und werden über Daten &amp; Speicher → Fahrten sichern lokal oder per WebDAV mitgesichert. Die reine Einstellungssicherung enthält keine HRV-Messdateien. Kein automatischer Cloud-Upload.</string>
+Ergebnisse, Rohdaten und Qualitätsangaben werden privat und unabhängig vom Fahrrad gespeichert. Gespeicherte Messungen lassen sich erneut öffnen und werden über Daten &amp; Speicher → Fahrten sichern lokal oder per WebDAV mitgesichert. Die reine Einstellungssicherung enthält keine HRV-Messdateien. Unter Daten &amp; Speicher → HRV-Pulsdaten lässt sich zusätzlich ein ZIP mit einer vollständigen JSON je Messung exportieren: auch abgelehnte Messungen, rohe BLE-Pakete, RR-/NN-Folgen, Messprotokoll, Pulsmesser, Qualitätsgründe und Korrekturschritte. LF und HF werden für neue gültige Messungen mit einer Welch-Spektralschätzung berechnet; für Vergleiche möglichst fünf Minuten messen. Alte Ergebnisse werden nicht neu berechnet. Kein automatischer Cloud-Upload.</string>
 </resources>

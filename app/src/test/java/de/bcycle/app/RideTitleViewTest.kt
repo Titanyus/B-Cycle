@@ -29,24 +29,40 @@ class RideTitleViewTest {
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             val animator=RideTitleView::class.java.getDeclaredField("motion").apply { isAccessible=true }.get(title) as android.animation.ValueAnimator
             val offset=RideTitleView::class.java.getDeclaredField("offset").apply { isAccessible=true }
-            val travel=animator.duration-3000L
-            fun position(fraction:Double):Float {
-                animator.currentPlayTime=1500L+(travel*fraction).toLong()
-                return offset.getFloat(title)
-            }
-            val early=position(.15)-position(.05)
-            val middle=position(.55)-position(.45)
-            val late=position(.95)-position(.85)
-            assertTrue(early>0 && middle>early*2)
-            assertTrue(late>0 && middle>late*2)
-            val end=position(1.0)
-            animator.currentPlayTime=1500L+travel+400L
-            assertEquals(end,offset.getFloat(title),.01f);assertEquals(1f,title.alpha,.01f)
-            animator.currentPlayTime=1500L+travel+800L+350L
-            assertEquals(end,offset.getFloat(title),.01f);assertEquals(.5f,title.alpha,.02f)
-            animator.currentPlayTime=animator.duration+200L
-            assertEquals(0f,offset.getFloat(title),.01f);assertEquals(1f,title.alpha,.01f)
+            animator.currentPlayTime=0
+            assertEquals(0f,title.alpha,.01f)
+            animator.currentPlayTime=1500
+            assertEquals(.5f,title.alpha,.02f);assertEquals(0f,offset.getFloat(title),.01f)
+            animator.currentPlayTime=6500
+            assertEquals(1f,title.alpha,.01f);assertEquals(0f,offset.getFloat(title),.01f)
+            animator.currentPlayTime=9000
+            assertTrue(offset.getFloat(title)>0)
+            animator.currentPlayTime=animator.duration-1500
+            assertEquals(0f,title.alpha,.01f)
+            animator.currentPlayTime=animator.duration+1500
+            assertEquals(0f,offset.getFloat(title),.01f);assertEquals(.5f,title.alpha,.02f)
         } finally { host.pause().stop().destroy() }
+    }
+    @Test fun sharedConventionHasFixedPhasesSmoothRampsAndEighteenDpPerSecondCruise() {
+        val motion=TextScrollerMotion(180f,1f)
+        assertEquals(30000.0,motion.durationMs,.001)
+        assertEquals(.5f,motion.frame(1500.0).alpha,.001f)
+        assertEquals(0f,motion.frame(6999.0).offset,.001f)
+        assertEquals(36f,motion.frame(11000.0).offset,.001f)
+        assertEquals(54f,motion.frame(12000.0).offset,.001f)
+        assertEquals(144f,motion.frame(17000.0).offset,.001f)
+        assertEquals(180f,motion.frame(21000.0).offset,.001f)
+        assertEquals(1f,motion.frame(24999.0).alpha,.001f)
+        assertEquals(.5f,motion.frame(26500.0).alpha,.001f)
+        assertEquals(0f,motion.frame(28500.0).alpha,.001f)
+        assertEquals(.5f,motion.frame(31500.0).alpha,.001f)
+        val small=TextScrollerMotion(12f,1f)
+        assertEquals(8000.0,small.travelMs,.001)
+        for(ms in 0..24000 step 100) assertTrue(small.frame(ms.toDouble()).offset in 0f..12f)
+        // At both joins, speed approaches the cruise speed with no jump.
+        assertEquals(.018f,motion.frame(11001.0).offset-motion.frame(11000.0).offset,.0001f)
+        assertTrue(motion.frame(7001.0).offset<.0001f)
+        assertTrue(180f-motion.frame(20999.0).offset<.0001f)
     }
     @Test fun finalTitleCharactersBecomeVisibleAfterScrollingPastInitialViewport() {
         val prefix="Eine sehr lange Fahrradtour quer durch die ganze Stadt und noch viel weiter "

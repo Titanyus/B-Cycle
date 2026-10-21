@@ -1,6 +1,6 @@
 package de.bcycle.hrv
 
-/** Protocol is injectable for future integration, deliberately fixed in the test-app UI. */
+/** Captured at session start; Android settings provide validated protocol durations. */
 data class Protocol(val restMs: Long = 30_000, val measureMs: Long = 180_000) {
     init { require(restMs >= 0 && measureMs >= 60_000) }
 }
@@ -92,7 +92,7 @@ data class CaptureDiagnostics(
 
 data class Evaluation(val raw: Metrics?, val corrected: Metrics?, val correction: ArtifactCorrection.Result?,
                       val reasons: List<String>, val coverage: Double, val affectedFraction: Double,
-                      val warnings: List<String> = emptyList()) {
+                      val warnings: List<String> = emptyList(), val frequency: FrequencyMetrics? = null) {
     val acceptable get() = reasons.isEmpty()
 }
 
@@ -103,23 +103,28 @@ object Evaluate {
         val durationMs = s.rrTicks.sumOf { it.toLong() } * 1000.0 / 1024
         val coverage = durationMs / s.protocol.measureMs
         if (coverage > 1.02) reasons += "RR_DURATION"
-        val warnings = if (coverage < 0.95) listOf("LOW_RR_COVERAGE") else emptyList()
-        if (durationMs < 60_000) reasons += "SHORT_SERIES"
+        val warnings = mutableListOf<String>()
+        if (coverage < 0.95) warnings += "LOW_RR_COVERAGE"
+        if (durationMs < minOf(60_000, s.protocol.measureMs - 5_000)) reasons += "SHORT_SERIES"
         if (s.rrTicks.size < 3 || s.rrTicks.any { it !in 1..65535 })
             return Evaluation(null, null, null, (reasons + "INVALID_RR").distinct(), coverage, 0.0, warnings)
         // Interrupted captures have no aggregate result: never join known gaps.
         if (s.phase != Phase.COMPLETE) return Evaluation(null, null, null, reasons, coverage, 0.0, warnings)
         val raw = Metrics.fromNnMs(s.rrTicks.map { it * 1000.0 / 1024 })
-        val result = try { ArtifactCorrection.correct(s.rrTicks) } catch (_: IllegalArgumentException) {
+        val result = try { ArtifactCorrection.correctMeasurement(s.rrTicks) } catch (_: IllegalArgumentException) {
             return Evaluation(raw, null, null, reasons + "CORRECTION_FAILED", coverage, 0.0, warnings)
         } catch (_: IllegalStateException) {
             return Evaluation(raw, null, null, reasons + "CORRECTION_FAILED", coverage, 0.0, warnings)
         }
         val affected = result.affectedRawIndices.size.toDouble() / s.rrTicks.size
-        if (affected > 0.05) reasons += "HIGH_CORRECTION"
+        // A changed peak affects both adjacent raw intervals; this is not a bad-beat rate.
+        // Display fully corrected series with an explicit uncertainty warning above 5%.
+        if (affected > 0.05) warnings += "HIGH_CORRECTION"
         if (result.residual.count > 0) reasons += "RESIDUAL_ARTIFACTS"
         val corrected = Metrics.fromNnMs(result.nnMs)
         if (corrected.lnRmssd == null) reasons += "ZERO_VARIABILITY"
-        return Evaluation(raw, corrected, result, reasons.distinct(), coverage, affected, warnings)
+        val frequency = if(reasons.isEmpty()) FrequencyDomain.calculate(result.nnMs) else null
+        if(frequency!=null && frequency.durationSeconds<300) warnings += "SHORT_FREQUENCY_WINDOW"
+        return Evaluation(raw, corrected, result, reasons.distinct(), coverage, affected, warnings, frequency)
     }
 }

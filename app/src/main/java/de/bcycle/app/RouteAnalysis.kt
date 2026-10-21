@@ -63,7 +63,8 @@ internal object BestEfforts {
     }.take(4)
 }
 internal data class RouteAnalysis(val entry: ManagedRoute, val metrics: Map<AnalysisMetric, Double>, val route: GpxRoute?,
-    val distanceAxis: Boolean, val axisEnd: Double, val series: List<AnalysisSeries>, val bestEfforts: List<BestEffort> = emptyList(), val zones: RouteZoneDistributions = RouteZoneDistributions(), val distributions: List<RouteValueDistribution> = emptyList(), val weatherTarget:WeatherTarget?=null)
+    val distanceAxis: Boolean, val axisEnd: Double, val series: List<AnalysisSeries>, val bestEfforts: List<BestEffort> = emptyList(), val zones: RouteZoneDistributions = RouteZoneDistributions(), val distributions: List<RouteValueDistribution> = emptyList(), val weatherTarget:WeatherTarget?=null,
+    val powerQuality:PerformanceQuality?=null,val inferredPauseMs:Long=0)
 
 /** Bounded streaming reduction, retaining endpoint/extrema and an explicit break for missing intervals. */
 internal class AnalysisSeriesBuffer {
@@ -107,8 +108,10 @@ internal object RouteAnalysisRead {
         }
         val builder = Builder(entry, profile)
         if (entry.format == "GPX") {
+            val pauses=GpxPauseInference()
             val route = file.inputStream().buffered().use { GpxImport.samples(it) { sample ->
                 check(!cancelled())
+                pauses.add(sample)?.let(builder::gpxPause)
                 builder.record(sample.time,null,sample.point,sample.speed,sample.power,sample.cadence,sample.heart,sample.height,null,null)
             } }
             return builder.finish(route)
@@ -168,6 +171,14 @@ internal object RouteAnalysisRead {
         var distanceMax = 0.0; var distanceCount = 0; var lastDistance: Double? = null; var invalidDistance = false
         var nativeDistanceMode: Boolean? = null
         val maxima = mutableMapOf<AnalysisMetric, Double>()
+        private var inferredPauseMs=0L
+        fun gpxPause(gap:GpxPauseInference.Gap) {
+            val start=firstTime ?: return
+            performance.accept(PerformanceEvent(PerformanceChannel.PAUSE,gap.fromMs-start))
+            performance.accept(PerformanceEvent(PerformanceChannel.RESUME,gap.toMs-start))
+            zones.timer(true);zones.timer(false)
+            inferredPauseMs+=gap.durationMs
+        }
         fun timer(fitStamp: Double?, kind: Double?) {
             val start = firstTime ?: return
             val time = fitStamp?.let { (it * 1000 + 631065600000L).toLong() - start } ?: return
@@ -290,7 +301,7 @@ internal object RouteAnalysisRead {
                 if (data.any { it.value != null && (if (distanceAxis) it.distance else it.seconds) != null }) AnalysisSeries(chart, data) else null
             }
             val dated = firstTime?.let { entry.copy(details = entry.details.copy(dateMs = it)) } ?: entry
-            return RouteAnalysis(dated, metrics, route, distanceAxis, end.coerceAtLeast(1e-6), series, BestEfforts.select(performance.bestPowerAverages()), if (invalidDistance) RouteZoneDistributions() else zones.result(), zones.timeDistributions(),weather.middle(dated.details.dateMs,metrics[AnalysisMetric.ELAPSED]?.times(1000)?.toLong()))
+            return RouteAnalysis(dated, metrics, route, distanceAxis, end.coerceAtLeast(1e-6), series, BestEfforts.select(performance.bestPowerAverages()), if (invalidDistance) RouteZoneDistributions() else zones.result(), zones.timeDistributions(),weather.middle(dated.details.dateMs,metrics[AnalysisMetric.ELAPSED]?.times(1000)?.toLong()),calculated.quality,inferredPauseMs)
         }
     }
 }

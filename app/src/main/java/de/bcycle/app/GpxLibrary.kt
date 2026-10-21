@@ -105,6 +105,10 @@ internal class GpxLibrary(private val root: File) {
         save(entries.filter { it.id != id }, selected?.takeUnless { it == id })
         AtomicFile(file(id)).delete()
     }
+    fun updateBikeTypes(type:(String)->BikeType?) {
+        val next=entries.map { entry -> type(entry.id)?.let { entry.copy(details=entry.details.copy(bikeType=it)) } ?: entry }
+        if(next!=entries) save(next,selected)
+    }
     fun rename(id: String, name: String) {
         require(entries.any { it.id == id })
         val title = name.trim().take(120); require(title.isNotEmpty()) { "Bitte einen Namen eingeben" }

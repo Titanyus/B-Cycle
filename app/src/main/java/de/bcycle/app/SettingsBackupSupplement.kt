@@ -14,7 +14,8 @@ internal class SettingsBackupSupplement(private val context:Context) {
         BackupSection.CLOUD to mapOf("intervals-settings" to setOf("enabled","athlete","wifi"),
             "activity-service-dreeve" to setOf("enabled","wifi","address"),
             "activity-service-strava" to setOf("enabled","wifi","clientId")),
-        BackupSection.PROFILE to mapOf("bike" to setOf(BikeProfileStore.KEY,BikeProfileStore.ACTIVE,"nextBikeSlot",BikeIdentities.KEY,BikeUiConfigurationStore.KEY),"dreeve-bike-mappings" to setOf("entries")))
+        BackupSection.PROFILE to mapOf("bike" to setOf(BikeProfileStore.KEY,BikeProfileStore.ACTIVE,"nextBikeSlot",BikeIdentities.KEY,BikeIdentities.RETAINED_TYPES,BikeUiConfigurationStore.KEY),
+            HrvSettings.STORE to setOf("restSeconds","measureSeconds"),"dreeve-bike-mappings" to setOf("entries")))
     fun export(section:BackupSection):JSONObject {
         val profiles=if(section==BackupSection.PROFILE) BikeProfileStore(context,prefs("bike"),initialize=false) else null
         return JSONObject().apply {
@@ -57,8 +58,14 @@ internal class SettingsBackupSupplement(private val context:Context) {
                     }
                     "position" -> (value as String).also { require(MessagePosition.entries.any { p -> p.name==it }) }
                     "durationSeconds" -> integer(row,key).also { require(it in 5..180) }
+                    "restSeconds" -> integer(row,key).also { require(it in 15..60 && it%15==0) }
+                    "measureSeconds" -> integer(row,key).also { require(it in 60..300 && it%15==0) }
                     BikeProfileStore.ACTIVE,"nextBikeSlot" -> integer(row,key).also { require(it in 0 until Int.MAX_VALUE) }
                     BikeProfileStore.KEY -> (value as String).also(::validateProfiles)
+                    BikeIdentities.RETAINED_TYPES -> (value as String).also { text ->
+                        val types=BackupJson.objectValue(text.toByteArray(Charsets.UTF_8),65536);require(types.length()<=10000)
+                        types.keys().forEach { id -> require(BikeIdentities.valid(id));BikeType.valueOf(types.getString(id)) }
+                    }
                     BikeIdentities.KEY -> (value as String).also { text ->
                         val ids=BackupJson.objectValue(text.toByteArray(Charsets.UTF_8),65536);require(ids.length()<=10000)
                         val all=ids.keys().asSequence().map { slot ->

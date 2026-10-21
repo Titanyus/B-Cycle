@@ -58,3 +58,17 @@ verändert das GPX-Original nicht und erfordert keine vorberechneten GPX-Summary
 Reine Dreeve-Zusammenfassungen liefern keine Grundlage für NP, FTP, EF oder Best Efforts.
 Ein gezielter Import-/Neulade-/Analysetest prüft einen wechselnden 20-Minuten-Verlauf,
 damit NP ausdrücklich nicht mit der Durchschnittsleistung verwechselt wird.
+
+Nach 0.8.16: Im Importbildschirm steht oben nur die Anzahl geladener Fahrten; die fachliche Beschreibung liegt im vorhandenen ⓘ-Hilfetext. Der oberste Filter Importstatus bietet Alle Tracks / Noch nicht importiert. Neu importierte oder als Duplikat erkannte Fahrten verschwinden sofort aus der zweiten Auswahl. Filter zurücksetzen stellt Alle Tracks wieder her.
+
+Jede Fahrt hat vier getrennte Zeilen: einzeiliger Titel mit Ellipse; Datum · km · Dauer; Fahrradname (Fahrttyp); GPX-Verfügbarkeit. Vorhandene Fahrten sind mit einem deaktivierten Haken markiert, Importfehler bleiben sichtbar. Die gesamte Zeile bedient die native Checkbox; vollständige Texte bleiben für Accessibility verfügbar.
+
+## Gefahrene GPX, Profil-Radtyp und Pausen
+
+Als Gefahren importierte GPX behalten den bestätigten Dreeve-Herkunftslink. Manuelle Übertragung zu intervals.icu, WebDAV oder anderen aktivierten Diensten erstellt eine FIT-Aktivität aus realen GPS-/Zeit-/Sensorpunkten; keine erfundenen Messwerte. Alle GPX-Punkte müssen gültige, nicht rückwärts laufende Zeitstempel haben. Geplante Tracks und reine Zusammenfassungen bleiben ausgeschlossen; Import allein startet keinen Upload.
+
+Maßgeblich ist der aktuelle Typ des bestätigten lokalen Fahrradprofils. Eine Dreeve-Ride kann lokal daher E-Bike sein. FIT-Übertragung und vollständige Sicherung erhalten diesen Typ; nach Profil-Löschung bleibt der letzte Typ über die stabile Profil-UUID erhalten. Wiederverwendete Slots ordnen alte Fahrten nicht einem neuen Rad zu. Original-GPX/FIT bleiben unverändert. Bereits bei Dreeve gespeicherte Ursprungsaktivitäten werden dadurch nicht automatisch nachträglich umklassifiziert.
+
+Bosch-Flow-GPX kann bei Fahrpausen große Zeitlücken enthalten. Eindeutig stationäre Lücken (vorher Leistung und Kadenz null, mehr als 5 s, höchstens 20 m Versatz und abgeleitete Geschwindigkeit unter 0,7 m/s) werden als Pausen aus aktiver Leistungszeit und NP-Fenstern herausgerechnet. Bewegte/ungeklärte Lücken nicht ausblenden. NP benötigt weiterhin mindestens ein gültiges 30-s-Fenster, mindestens 95 % Powerabdeckung und 95 % gültige NP-Fenster; Halten höchstens 5 s, echte Nullwerte bleiben erhalten. Details zeigen die Qualitätsursache fehlender NP und erkannte Pausen.
+
+ZIP-Dateien verwenden dieselbe Auswahlliste: sofort sichtbar mit mittigem Verarbeitungshinweis, Entpacken/Prüfen im Hintergrund; anschließend Filter, Sortierung, Fastscroller und gezielte Mehrfachauswahl. Noch keine Bibliotheksänderung beim Entpacken. Doppelte Fahrten markieren und überspringen, temporäre Dateien nach Schließen auf dem Bibliotheksworker bereinigen.

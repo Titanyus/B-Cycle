@@ -18,15 +18,14 @@ internal class RideTitleView(context:Context):TextView(context) {
         gravity=if(distance>0) Gravity.START or Gravity.CENTER_VERTICAL else Gravity.CENTER
         ellipsize=if(ValueAnimator.areAnimatorsEnabled()) null else TextUtils.TruncateAt.END
         if(distance<=0 || !isAttachedToWindow || windowVisibility!=VISIBLE || !ValueAnimator.areAnimatorsEnabled()) { invalidate();return }
-        val travel=distance/(30*resources.displayMetrics.density)*1000
-        val total=1500f+travel+800f+700f
-        val easing=android.view.animation.AccelerateDecelerateInterpolator()
-        motion=ValueAnimator.ofFloat(0f,total).apply {
-            duration=total.toLong();repeatCount=ValueAnimator.INFINITE;interpolator=android.view.animation.LinearInterpolator()
+        val timeline=TextScrollerMotion(distance,resources.displayMetrics.density)
+        alpha=0f
+        motion=ValueAnimator.ofFloat(0f,timeline.durationMs.toFloat()).apply {
+            duration=kotlin.math.ceil(timeline.durationMs).toLong();repeatCount=ValueAnimator.INFINITE;interpolator=android.view.animation.LinearInterpolator()
             addUpdateListener {
                 val elapsed=it.animatedValue as Float
-                offset=distance*easing.getInterpolation(((elapsed-1500)/travel).coerceIn(0f,1f))
-                alpha=1-((elapsed-1500-travel-800)/700).coerceIn(0f,1f)
+                val frame=timeline.frame(elapsed.toDouble())
+                offset=frame.offset;alpha=frame.alpha
                 invalidate()
             };start()
         }

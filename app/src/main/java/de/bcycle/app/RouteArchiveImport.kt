@@ -20,7 +20,27 @@ internal class RouteArchiveImport(private val root: File, private val cache: Fil
         val fileBytes: Long = FitRead.MAX_BYTES)
     private class LimitReached : IOException()
 
-    fun read(input: InputStream, progress: (Int) -> Unit = {}): ArchiveImportResult {
+    fun read(input: InputStream, progress: (Int) -> Unit = {}): ArchiveImportResult = scan(input,progress)
+
+    fun prepare(input:InputStream,cancelled:()->Boolean={false},progress:(Int)->Unit={}):PreparedRideArchive {
+        val directory=java.nio.file.Files.createTempDirectory(cache.toPath(),"ride-selection-").toFile()
+        val entries=mutableListOf<PreparedArchiveRide>()
+        try {
+            val report=scan(input,progress,cancelled) { source,name,format,digest,known ->
+                val id="$format-$digest"
+                if(entries.none { it.id==id }) {
+                    val target=File(directory,"$id.$format")
+                    val entry=PreparedArchiveRide.read(id,name,format.uppercase(Locale.ROOT),source,target,known)
+                    if(!known) source.copyTo(target)
+                    entries+=entry
+                }
+            }
+            return PreparedRideArchive(directory,entries.toList(),report)
+        } catch(e:Exception) { directory.deleteRecursively();throw e }
+    }
+
+    private fun scan(input:InputStream,progress:(Int)->Unit,cancelled:()->Boolean={false},
+        preview:((File,String,String,String,Boolean)->Unit)?=null):ArchiveImportResult {
         var result = ArchiveImportResult()
         val fitHashes = fits.entries.mapTo(hashSetOf()) { it.id.substringAfter('-') }
         val gpxHashes = gpx.entries.mapNotNullTo(hashSetOf()) { entry ->
@@ -45,7 +65,7 @@ internal class RouteArchiveImport(private val root: File, private val cache: Fil
         val bounded = object : FilterInputStream(zip) {
             override fun read(): Int = `in`.read().also { if (it >= 0) count(1) }
             override fun read(b: ByteArray, off: Int, len: Int): Int = `in`.read(b, off, len).also { if (it > 0) count(it) }
-            fun count(n: Int) { total += n; if (total > limits.totalBytes) throw LimitReached() }
+            fun count(n: Int) { total += n; if (total > limits.totalBytes || cancelled()) throw LimitReached() }
             override fun close() {} // Individual parsers must not close the shared ZIP stream.
         }
         try {
@@ -53,6 +73,7 @@ internal class RouteArchiveImport(private val root: File, private val cache: Fil
                 var entries = 0
                 val buffer = ByteArray(16 * 1024)
                 while (true) {
+                    if(cancelled()) throw LimitReached()
                     val entry = zip.nextEntry ?: break
                     if (++entries > limits.entries) throw LimitReached()
                     if (entry.isDirectory) { while (bounded.read(buffer) >= 0) {} ; continue }
@@ -74,7 +95,7 @@ internal class RouteArchiveImport(private val root: File, private val cache: Fil
                                 while (true) {
                                     val n = source.read(buffer); if (n < 0) break
                                     bytes += n; expanded += n
-                                    if (expanded > limits.totalBytes) throw LimitReached()
+                                    if (expanded > limits.totalBytes || cancelled()) throw LimitReached()
                                     if (bytes > maximum) throw IOException("Entry too large")
                                     output.write(buffer, 0, n)
                                 }
@@ -82,7 +103,12 @@ internal class RouteArchiveImport(private val root: File, private val cache: Fil
                         }
                         val digest = hash(temporary)
                         val hashes = if (extension == "fit") fitHashes else gpxHashes
-                        if (digest in hashes) result = result.copy(duplicates = result.duplicates + 1)
+                        if(preview!=null) {
+                            preview(temporary,plainName,extension,digest,digest in hashes)
+                            if(digest in hashes) result=result.copy(duplicates=result.duplicates+1)
+                            else { hashes+=digest;result=result.copy(imported=result.imported+1) }
+                        }
+                        else if (digest in hashes) result = result.copy(duplicates = result.duplicates + 1)
                         else {
                             temporary.inputStream().use { original ->
                                 if (extension == "fit") checkNotNull(fits.add(original, plainName, recorded = false, preserveDate = true))

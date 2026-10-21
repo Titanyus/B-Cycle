@@ -435,6 +435,8 @@ class MainActivity : Activity() {
             when (action) {
                 SettingsAction.PROFILES, SettingsAction.SENSORS -> showSensorManager()
                 SettingsAction.NOTIFICATIONS -> showNotificationSettings()
+                SettingsAction.HRV -> menu=dialog().setTitle(R.string.hrv_settings_title)
+                    .setView(ScrollView(settingsContext).apply { addView(HrvSettingsView(settingsContext,settingsThemes) { !runtime.hrv.busy }) }).show()
                 SettingsAction.DATA -> dataSettings()
                 SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, settingsThemes, dialogs, runtime.riderProfiles) }
                 SettingsAction.MAP -> mapSettings()
@@ -619,7 +621,7 @@ class MainActivity : Activity() {
         if(runtime.recording || runtime.saving) { BicycleFeedback.show(this,R.string.hrv_ride_busy);return }
         val body=HrvMeasurementView(this,runtime.themes,runtime.hrv,
             sensor={ runtime.heartName },canStart={ !runtime.recording && !runtime.saving },history=::showHrvHistory)
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs).setTitle(R.string.hrv_title)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_title)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(body) }).create()
         dialogs.onDismiss(screen) { runtime.hrv.abort("VIEW_CLOSED") }
         screen.show()
@@ -635,9 +637,9 @@ class MainActivity : Activity() {
                     getString(R.string.hrv_history_rmssd,it.optDouble("rmssdMs")) } else null
                 getString(R.string.hrv_history_item,date,metric ?: getString(R.string.hrv_invalid_short))
             }
-            BicycleDialogBuilder(this,runtime.themes,dialogs).setTitle(R.string.hrv_history)
+            BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_history)
                 .setItems(labels.toTypedArray()) { _,position ->
-                    BicycleDialogBuilder(this,runtime.themes,dialogs).setTitle(R.string.hrv_result)
+                    BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_result)
                         .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(hrvResult(this@MainActivity,runtime.themes,rows[position]).apply {
                             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
                         }) }).show()
@@ -739,8 +741,8 @@ class MainActivity : Activity() {
             return
         }
         if (requestCode == 15) {
-            if (resultCode == RESULT_OK) data?.data?.let { runtime.mapState.importArchive(it) }
             if (dialogs.empty) { showMenu(); routeSettings() }
+            if (resultCode == RESULT_OK) data?.data?.let { showArchiveImport(it) }
             return
         }
         if (requestCode == 8 || requestCode == 9) {
@@ -1137,6 +1139,34 @@ class MainActivity : Activity() {
             if(it==3) showDreeveImport() else importRoute(recorded = it == 1, archive = it == 2)
         }
     }
+    private fun showArchiveImport(uri:android.net.Uri) {
+        val closed=java.util.concurrent.atomic.AtomicBoolean(false)
+        var archive:PreparedRideArchive?=null
+        lateinit var screen:android.app.AlertDialog
+        lateinit var content:DreeveImportView
+        content=DreeveImportView(settingsContext,settingsThemes,loadPage={
+            screen.dismiss();importRoute(archive=true)
+        },importSelection={ selected ->
+            archive?.let { prepared -> runtime.mapState.importPreparedArchive(prepared,selected.map { it.id }.toSet(),closed::get,
+                progress={ if(!closed.get()) content.progress(it) },complete={ if(!closed.get()) content.complete(it) }) }
+        },archiveMode=true)
+        content.navigation=dialogs;content.preparingArchive()
+        screen=dialog().setTitle(R.string.archive_import_title).setView(content).create()
+        dialogs.onDismiss(screen) { closed.set(true);archive?.let(runtime.mapState::discardArchive) }
+        screen.show()
+        runtime.mapState.prepareArchive(uri,closed::get) { result ->
+            result.fold({ prepared ->
+                if(closed.get()) { runtime.mapState.discardArchive(prepared);return@fold }
+                archive=prepared
+                content.loaded(DreeveActivityPage(prepared.entries.map { it.selection() },1,1,prepared.entries.size),
+                    prepared.entries.filter { it.known }.map { it.id }.toSet())
+                val report=prepared.report
+                if(report.interrupted) BicycleFeedback.show(this,getString(R.string.archive_prepared_incomplete),long=true)
+                else if(report.failed>0 || report.unsupported>0) BicycleFeedback.show(this,
+                    getString(R.string.archive_prepared_issues,report.failed,report.unsupported),long=true)
+            },{ if(!closed.get()) content.failed(R.string.archive_import_open_failed) })
+        }
+    }
     private fun showDreeveImport() {
         val closed=java.util.concurrent.atomic.AtomicBoolean(false)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor { task -> Thread(task,"B-Cycle-dreeve-import") }
@@ -1257,6 +1287,9 @@ class MainActivity : Activity() {
     }
     private fun dataSettings(focusRoutes:Boolean=false) {
         val content = DataSettingsView(settingsContext,settingsThemes) { action -> when(action) {
+            DataAction.HRV_EXPORT -> runtime.hrv.export { count,ok ->
+                if(!isDestroyed) BicycleFeedback.show(this,if(ok) getString(R.string.hrv_export_done,count) else getString(R.string.hrv_export_failed),long=true)
+            }
             DataAction.BACKUP -> backupSettings()
             DataAction.RESTORE -> try {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")

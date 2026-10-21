@@ -31,3 +31,5 @@ zwischen normalem FIT-Export, Dienstupload und vollständiger Sicherung erhalten
 Nur tatsächlich vorhandene Funktionen beschreiben. Die Pflege ist eine feste
 Entwicklungsregel in AGENTS.md; die Beschreibung wird nicht aus API-Fähigkeiten
 abgeleitet, die BICYCLE noch nicht umgesetzt hat.
+
+HRV-Pulsdaten ist ein eigener Sticky-Abschnitt mit direktem Exportbutton. Seine IN-/OUT-Grenzen stehen in der zugehörigen Daten-Hilfe (`hrv_export_help`): vollständige Wiederherstellung über BICYCLE-Sicherung; gezielter manueller Analyseexport als ZIP mit einer JSON je Messung inklusive Rohdaten und Ablehnungen. Keine Cloud-Synchronisierung und kein Import fremder HRV-Analyseformate.

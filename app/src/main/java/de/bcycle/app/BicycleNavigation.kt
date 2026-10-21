@@ -10,14 +10,14 @@ import android.widget.*
 /** Shared back affordance; titles are centred in the whole window, independent of the icon. */
 internal object BicycleNavigation {
     private fun all(v: View): List<View> = listOf(v) + if(v is ViewGroup) (0 until v.childCount).flatMap { all(v.getChildAt(it)) } else emptyList()
-    fun header(original: View, screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null): View {
+    fun header(original: View, screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null, role:ThemeRole=ThemeRole.PRIMARY): View {
         val context=original.context
         val title=all(original).filterIsInstance<TextView>().firstOrNull { it.tag=="analysis_title" || it.tag=="bicycle_dialog_title" }
             ?: all(original).filterIsInstance<TextView>().firstOrNull()
         val frame=FrameLayout(context).apply {
             tag="bicycle_navigation_header"
             layoutParams=ViewGroup.LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.headerHeight))
-            BicycleComponents.background(this,themes,ThemeRole.PRIMARY)
+            BicycleComponents.background(this,themes,role)
         }
         if(title!=null) {
             (title.parent as? ViewGroup)?.removeView(title)

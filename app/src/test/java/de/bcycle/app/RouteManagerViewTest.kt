@@ -86,7 +86,7 @@ class RouteManagerViewTest {
         val list = view.findViewWithTag<ListView>("route_list")
         assertNull(view.findViewWithTag<View>("route_filter"))
         assertEquals(20, list.adapter.count)
-        assertTrue(list.isFastScrollEnabled)
+        assertTrue(list is BicycleFastScrollList)
         val index=list.adapter as android.widget.SectionIndexer
         assertEquals(1,index.sections.size)
         assertEquals(0,index.getPositionForSection(0))

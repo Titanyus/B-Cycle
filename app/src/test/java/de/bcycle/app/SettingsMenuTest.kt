@@ -58,8 +58,8 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_PROFILE", "settings_PROFILES", "settings_ROUTES", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Fahrer", "Profile", "Strecken", "Benachrichtigungen", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(listOf("settings_PROFILE", "settings_PROFILES", "settings_ROUTES", "settings_HRV", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Fahrer", "Profile", "Strecken", "HRV-Messungen", "Benachrichtigungen", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
                 rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()

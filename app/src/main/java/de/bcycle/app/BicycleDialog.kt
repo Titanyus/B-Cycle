@@ -19,7 +19,7 @@ import android.widget.*
 /** Existing AlertDialog lifecycle, buttons, adapters and scroll containers are retained. */
 internal class BicycleDialogBuilder(context: Context, private val themes: ThemeManager,
     private val navigation: DialogNavigation, private val fullscreen: Boolean = true,
-    private val helpEnabled:Boolean = true) : AlertDialog.Builder(context,
+    private val helpEnabled:Boolean = true, private val headerRole:ThemeRole = ThemeRole.PRIMARY) : AlertDialog.Builder(context,
         if (fullscreen) R.style.SettingsFullscreenTheme else R.style.SettingsDialogTheme) {
     override fun setTitle(title: CharSequence?): AlertDialog.Builder {
         super.setTitle(title)
@@ -50,7 +50,7 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
             val help=if(fullscreen && helpEnabled) SettingsHelp.resolve(screen)?.let { page ->
                 { SettingsHelp.show(context,themes,navigation,page,screen.window!!.decorView) }
             } else null
-            if (fullscreen) BicycleFullscreen.apply(screen, themes,help)
+            if (fullscreen) BicycleFullscreen.apply(screen, themes,help,headerRole)
             else {
                 BicycleDialogStyle.messageSpacing(screen)
                 val top=screen.window?.decorView?.findViewById<ViewGroup>(context.resources.getIdentifier("topPanel","id","android"))
@@ -175,6 +175,7 @@ internal object BicycleDialogStyle {
         if (view is DatePicker) BicycleNavigation.dateHeader(view,themes)
     }
     fun control(view: TextView, themes: ThemeManager) {
+        if(view is BicycleTextAction) return // Central transparent accent text action owns its styling.
         if(view.tag=="bicycle_content_heading") return // Central content-heading typography owns this role.
         if(view is BicycleSegmentButton) return // Own radio appearance; generic controls add selection circles.
         if(view is Button) BicycleComponents.controlSpacing(view)
@@ -320,7 +321,10 @@ internal object BicycleDialogStyle {
         }
         if (selected >= 0) view.setSelection(selected)
     }
-    private class StyledListAdapter(private val original: ListAdapter, private val themes: ThemeManager) : BaseAdapter() {
+    private class StyledListAdapter(private val original: ListAdapter, private val themes: ThemeManager) : BaseAdapter(),android.widget.SectionIndexer {
+        override fun getSections():Array<out Any> = (original as? android.widget.SectionIndexer)?.sections ?: emptyArray<String>()
+        override fun getPositionForSection(sectionIndex:Int)=(original as? android.widget.SectionIndexer)?.getPositionForSection(sectionIndex) ?: 0
+        override fun getSectionForPosition(position:Int)=(original as? android.widget.SectionIndexer)?.getSectionForPosition(position) ?: 0
         override fun registerDataSetObserver(observer:DataSetObserver)=original.registerDataSetObserver(observer)
         override fun unregisterDataSetObserver(observer:DataSetObserver)=original.unregisterDataSetObserver(observer)
         override fun getCount() = original.count

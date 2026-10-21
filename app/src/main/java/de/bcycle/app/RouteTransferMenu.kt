@@ -44,10 +44,11 @@ internal object RouteTransferRows {
     fun read(context:Context,entry:ManagedRoute,busy:Boolean)=RouteTransferTarget.entries.map { target ->
         runCatching {
             when {
-                target==RouteTransferTarget.DREEVE && entry.origin==TrackOrigin.IMPORTED && RideServiceLinks.links(context,entry.id).any { it.service==RideService.DREEVE && it.accountId==ActivityServiceSettings(context,ActivityService.DREEVE).read().identity(ActivityService.DREEVE) }->RouteTransferRow(target,R.string.dreeve_linked,false,true)
+                target==RouteTransferTarget.DREEVE && (entry.origin==TrackOrigin.IMPORTED || entry.format!="FIT") && RideServiceLinks.links(context,entry.id).any { it.service==RideService.DREEVE && it.accountId==ActivityServiceSettings(context,ActivityService.DREEVE).read().identity(ActivityService.DREEVE) }->RouteTransferRow(target,R.string.dreeve_linked,false,true)
                 !target.enabled(context)->RouteTransferRow(target,R.string.route_transfer_off,false)
                 !entry.locallySaved->RouteTransferRow(target,R.string.route_transfer_missing,false)
-                target!=RouteTransferTarget.LOCAL && (entry.format!="FIT" || entry.origin!=TrackOrigin.RECORDED)->RouteTransferRow(target,R.string.route_transfer_ineligible,false)
+                target!=RouteTransferTarget.LOCAL && (entry.format !in setOf("FIT","GPX") || entry.origin!=TrackOrigin.RECORDED ||
+                    entry.format=="GPX" && (entry.details.durationMs==null || entry.details.durationMs<=0))->RouteTransferRow(target,R.string.route_transfer_ineligible,false)
                 else->{
                     val state=target.status(context,entry).state
                     RouteTransferRow(target,when(state) {

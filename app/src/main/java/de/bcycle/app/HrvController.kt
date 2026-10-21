@@ -15,11 +15,15 @@ import java.util.concurrent.TimeUnit
 internal data class HrvPoint(val atMs:Long,val rrMs:Double,val gap:Boolean=false)
 internal data class HrvState(val phase:Phase?=null,val elapsedMs:Long=0,val remainingMs:Long=180000,
     val bpm:Int?=null,val ready:Boolean=false,val points:List<HrvPoint> = emptyList(),
-    val result:JSONObject?=null,val saving:Boolean=false,val saveError:Boolean=false)
+    val result:JSONObject?=null,val saving:Boolean=false,val saveError:Boolean=false,
+    val lastBeatAtMs:Long?=null,val beatIntervalMs:Double?=null,
+    val restMs:Long=30000,val measureMs:Long=180000)
 
 /** One bounded serial worker; BLE/Activity never perform HRV calculations or file IO. */
-internal class HrvController(context:Context,private val clock:()->Long={ SystemClock.elapsedRealtime() }) {
+internal class HrvController(private val context:Context,private val clock:()->Long={ SystemClock.elapsedRealtime() }) {
     private val main=Handler(Looper.getMainLooper())
+    private val settings=HrvSettings(context)
+    private var measurementProtocol=settings.read().protocol
     private val worker=ThreadPoolExecutor(1,1,30,TimeUnit.SECONDS,ArrayBlockingQueue(128)) { Thread(it,"Bicycle-HRV") }
     private val root=File(context.filesDir,"hrv-measurements")
     private var store:HrvStore?=null
@@ -27,6 +31,7 @@ internal class HrvController(context:Context,private val clock:()->Long={ System
     private var id=""
     private val points=ArrayList<HrvPoint>()
     @Volatile private var lastRrAt=-10000L
+    private var beatIntervalMs:Double?=null
     private var bpm:Int?=null
     @Volatile private var abortRequest:String?=null
     @Volatile private var pending:Pair<MeasurementSession,Evaluation>?=null
@@ -34,6 +39,9 @@ internal class HrvController(context:Context,private val clock:()->Long={ System
     val canRetrySave get()=pending!=null
     @Volatile var state=HrvState();private set
     @Volatile var busy=false;private set
+    private val settingsListener=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,_->
+        submit { if(!busy && state.phase==null) publish(state) }
+    }
     private val tick=object:Runnable { override fun run() {
         if(!busy) return
         submit { session?.let { current ->
@@ -42,12 +50,21 @@ internal class HrvController(context:Context,private val clock:()->Long={ System
         } }
         main.postDelayed(this,250)
     } }
-    init { submit { store=HrvStore(root).also { it.recover() } } }
+    init {
+        settings.preferences.registerOnSharedPreferenceChangeListener(settingsListener)
+        submit { store=HrvStore(root).also { it.recover() };publish(state) }
+    }
     private fun submit(block:()->Unit) {
         try { worker.execute { try { block() } catch(_:Exception) { failure() } } }
         catch(_:java.util.concurrent.RejectedExecutionException) { if(busy) abortRequest="BUFFER_OVERFLOW" }
     }
-    private fun publish(next:HrvState) { state=next;main.post { listeners.toList().forEach { it(next) } } }
+    private fun publish(next:HrvState) {
+        val protocol=if(next.phase==null) settings.read().protocol else measurementProtocol
+        val value=next.copy(lastBeatAtMs=lastRrAt.takeIf { it>=0 },beatIntervalMs=beatIntervalMs,
+            restMs=protocol.restMs,measureMs=protocol.measureMs,
+            remainingMs=if(next.phase==null) protocol.measureMs else next.remainingMs)
+        state=value;main.post { listeners.toList().forEach { it(value) } }
+    }
     fun observe(listener:(HrvState)->Unit):AutoCloseable {
         listeners+=listener;listener(state)
         return AutoCloseable { listeners-=listener }
@@ -57,7 +74,9 @@ internal class HrvController(context:Context,private val clock:()->Long={ System
         submit {
             val decoded=HeartRatePacket.decode(copy)
             bpm=decoded?.bpm
-            if(decoded?.contact!=Contact.LOST && decoded?.rrTicks?.any { it>0 }==true) lastRrAt=receivedAt
+            if(decoded?.contact!=Contact.LOST && decoded?.rrTicks?.any { it>0 }==true) {
+                lastRrAt=receivedAt;beatIntervalMs=decoded.rrTicks.last { it>0 }*1000.0/1024
+            }
             val current=session
             if(current==null) {
                 if(!busy) publish(state.copy(bpm=bpm,ready=decoded?.contact!=Contact.LOST && clock()-lastRrAt<=5000))
@@ -86,10 +105,12 @@ internal class HrvController(context:Context,private val clock:()->Long={ System
     fun start(sensor:String):Boolean {
         if(busy || pending!=null || !state.ready || clock()-lastRrAt>5000) return false
         val startedAt=clock()
+        val protocol=settings.read().protocol
         busy=true
         submit {
             check(clock()-lastRrAt<=5000)
-            val next=MeasurementSession(startedAt)
+            measurementProtocol=protocol
+            val next=MeasurementSession(startedAt,protocol)
             id=UUID.randomUUID().toString();points.clear();abortRequest=null
             checkNotNull(store).begin(id,System.currentTimeMillis(),sensor,next)
             session=next;update(next)
@@ -129,5 +150,20 @@ internal class HrvController(context:Context,private val clock:()->Long={ System
         publish(state.copy(saving=false,saveError=true))
     }
     fun history(done:(List<JSONObject>)->Unit) { submit { val rows=checkNotNull(store).list();main.post { done(rows) } } }
-    internal fun close() { main.removeCallbacks(tick);worker.shutdownNow();listeners.clear() }
+    @Volatile private var exporting=false
+    fun export(done:(Int,Boolean)->Unit) {
+        if(busy || exporting) { main.post { done(0,false) };return }
+        exporting=true
+        val task=Runnable {
+            val file=File(context.cacheDir,"Bicycle-HRV-${System.currentTimeMillis()}.zip")
+            try {
+                val count=HrvDiagnosticExport.write(checkNotNull(store),file)
+                DownloadFiles.write(context,file,file.name)
+                main.post { done(count,true) }
+            } catch(_:Exception) { main.post { done(0,false) } }
+            finally { file.delete();exporting=false }
+        }
+        try { worker.execute(task) } catch(_:java.util.concurrent.RejectedExecutionException) { exporting=false;main.post { done(0,false) } }
+    }
+    internal fun close() { settings.preferences.unregisterOnSharedPreferenceChangeListener(settingsListener);main.removeCallbacks(tick);worker.shutdownNow();listeners.clear() }
 }

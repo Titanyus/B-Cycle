@@ -1,0 +1,10 @@
+<resources>
+    <string name="analysis_gpx_pauses">Für die Leistungsanalyse aus GPX-Zeitlücken und Stillstand abgeleitete Pausen: %1$d:%2$02d min. Verstrichene Gesamtzeit und Messwerte bleiben erhalten.</string>
+    <string name="analysis_np_no_time">zu wenige nutzbare Zeitstempel</string>
+    <string name="analysis_np_too_short">weniger als 30 Sekunden aktive Messzeit</string>
+    <string name="analysis_np_power_coverage">Wattabdeckung unter 95 %%</string>
+    <string name="analysis_np_no_window">kein vollständiges 30-Sekunden-Fenster</string>
+    <string name="analysis_np_window_coverage">weniger als 95 %% gültige 30-Sekunden-Fenster</string>
+    <string name="analysis_np_missing">keine berechenbare normalisierte Leistung</string>
+    <string name="analysis_np_reason">NP fehlt: %1$s. Wattabdeckung: %2$.1f %% · gültige 30-s-Fenster: %3$.1f %%.</string>
+</resources>

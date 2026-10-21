@@ -21,6 +21,7 @@ internal class BicycleHeaderShadow(context: Context) {
 }
 
 internal class BicycleFullscreenHost(context: Context) : LinearLayout(context) {
+    var showHeaderShadow=true
     private val shadow=BicycleHeaderShadow(context)
     private var header: android.view.View?=null
     override fun onLayout(changed: Boolean,l: Int,t: Int,r: Int,b: Int) {
@@ -29,7 +30,7 @@ internal class BicycleFullscreenHost(context: Context) : LinearLayout(context) {
     }
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
-        header?.let {
+        header?.takeIf { showHeaderShadow }?.let {
             shadow.draw(canvas,it.left.toFloat(),it.bottom.toFloat(),it.right.toFloat())
         }
     }

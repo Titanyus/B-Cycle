@@ -113,8 +113,11 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
     fun remove(slot: Int): Boolean {
         val rows = all()
         if (rows.size <= 1 || slot == activeSlot || rows.none { it.slot == slot }) return false
-        prefs.edit().putString(KEY, encode(rows.filterNot { it.slot == slot }))
-            .putInt(NEXT, maxOf(prefs.getInt(NEXT, 0), rows.maxOf { it.slot } + 1)).apply()
+        val edit=prefs.edit().putString(KEY, encode(rows.filterNot { it.slot == slot }))
+            .putInt(NEXT, maxOf(prefs.getInt(NEXT, 0), rows.maxOf { it.slot } + 1))
+        // Same preference transaction as removal: rides keep the last live type.
+        BikeIdentities.retainType(prefs,edit,slot,rows.single { it.slot==slot }.type)
+        edit.apply()
         ui.remove(slot)
         return true
     }

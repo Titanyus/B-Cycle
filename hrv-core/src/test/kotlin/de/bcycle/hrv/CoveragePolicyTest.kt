@@ -15,7 +15,8 @@ class CoveragePolicyTest {
         assertEquals(Phase.COMPLETE,session.phase)
         assertTrue(value.coverage in .78.. .82)
         assertTrue(value.reasons.toString(),value.acceptable)
-        assertEquals(listOf("LOW_RR_COVERAGE"),value.warnings)
+        assertTrue("LOW_RR_COVERAGE" in value.warnings)
+        assertTrue("SHORT_FREQUENCY_WINDOW" in value.warnings)
         assertNotNull(value.corrected?.lnRmssd)
         assertEquals(179,session.rrTicks.size)
         assertTrue(session.rrTicks.sum()*1000.0/1024<session.protocol.measureMs)
@@ -26,7 +27,7 @@ class CoveragePolicyTest {
         assertFalse(value.acceptable);assertTrue("DISCONNECTED" in value.reasons)
         assertNull(value.corrected)
     }
-    @Test fun excessiveDurationStillRejectsAndArtefactThresholdRemainsActive() {
+    @Test fun excessiveDurationStillRejectsDespiteCoverageWarningPolicy() {
         val session=MeasurementSession(0)
         for(second in 1..209) session.accept(second*1000L,packet(1229+(12*sin(second/10.0)).toInt()))
         session.advance(210000)

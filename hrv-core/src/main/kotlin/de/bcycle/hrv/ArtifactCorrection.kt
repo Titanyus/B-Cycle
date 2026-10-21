@@ -10,17 +10,25 @@ import kotlin.math.min
  */
 object ArtifactCorrection {
     const val VERSION = "nk-ff419d9-int1024-v1"
+    const val MEASUREMENT_VERSION = "nk-ff419d9-int1024-best-pass-v2"
     const val REFERENCE_SHA = "ff419d983568ef492eb8d229af643c0ef0100b32"
     data class Classes(val ectopic: List<Int>, val missed: List<Int>, val extra: List<Int>, val longshort: List<Int>) {
         val count get() = ectopic.size + missed.size + extra.size + longshort.size
     }
     data class Pass(val classes: Classes, val beforePeaks: List<Long>, val afterPeaks: List<Long>)
     data class Result(val peaks: List<Long>, val passes: List<Pass>, val residual: Classes,
-                      val affectedRawIndices: List<Int>) {
+                      val affectedRawIndices: List<Int>, val version: String = VERSION) {
         val nnMs get() = peaks.zipWithNext { a, b -> (b - a) * 1000.0 / 1024 }
     }
 
-    fun correct(rrTicks: List<Int>): Result {
+    fun correct(rrTicks: List<Int>): Result = correct(rrTicks, false)
+
+    /** Keep the reference detector, but never commit a pass that fails to reduce residuals.
+     * No extra interpolation, threshold relaxation or unbounded retry on real measurements.
+     */
+    fun correctMeasurement(rrTicks: List<Int>): Result = correct(rrTicks, true)
+
+    private fun correct(rrTicks: List<Int>, keepBest: Boolean): Result {
         require(rrTicks.size in 3..4096 && rrTicks.all { it in 1..65535 })
         val original = mutableListOf(0L)
         rrTicks.forEach { original += original.last() + it }
@@ -30,12 +38,16 @@ object ArtifactCorrection {
         // Match NeuroKit's first pass and strictly decreasing accepted subsequent counts.
         var previousCount = Int.MAX_VALUE
         while (passes.isEmpty() || classes.count < previousCount) {
+            if (keepBest && classes.count == 0) break
             check(passes.size < 32) { "Correction iteration limit" }
             val next = apply(peaks, classes)
+            val nextClasses = classify(next)
+            if (keepBest && (nextClasses.count >= classes.count ||
+                    next.zipWithNext().any { (a, b) -> b <= a })) break
             passes += Pass(classes, peaks, next)
             previousCount = classes.count
             peaks = next
-            classes = classify(peaks)
+            classes = nextClasses
         }
         require(peaks.zipWithNext().all { (a, b) -> b > a }) { "Non-monotonic corrected peaks" }
         val kept = peaks.toHashSet()
@@ -43,7 +55,7 @@ object ArtifactCorrection {
             original[i] !in kept || original[i + 1] !in kept ||
                 peaks.any { it > original[i] && it < original[i + 1] }
         }
-        return Result(peaks, passes, classes, affected)
+        return Result(peaks, passes, classes, affected, if (keepBest) MEASUREMENT_VERSION else VERSION)
     }
 
     fun classify(peaks: List<Long>): Classes {

@@ -16,6 +16,28 @@ import org.robolectric.annotation.Config
 @Config(sdk=[33],qualifiers="mdpi")
 class DreeveImportUiTest {
     private fun activity(id:String,gpx:Boolean=true)=DreeveActivity(id,"Fahrt $id","2026-10-19T08:00:00",12000.0,"Ride",gpx)
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun fourSeparateLinesKeepLongTitleOnOneLineAndShowBikeTypeAndGpxAvailability() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            val view=DreeveImportView(a,themes,{},{})
+            view.gearNames=mapOf("bike" to "Reiserad")
+            view.loaded(DreeveActivityPage(listOf(activity("long").copy(name="Eine sehr lange Fahrtüberschrift ".repeat(12),
+                summary=DreeveSummary(mapOf(AnalysisMetric.ELAPSED to 3665.0),"bike")),activity("summary",false)),1,1,2),emptySet())
+            val list=view.findViewWithTag<ListView>("dreeve_import_list")
+            val row=list.adapter.getView(0,null,list) as DreeveActivityRow
+            row.measure(View.MeasureSpec.makeMeasureSpec(288,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));row.layout(0,0,288,row.measuredHeight)
+            assertEquals(4,row.labels.size);assertEquals(1,row.labels[0].lineCount)
+            assertTrue(row.labels[0].layout.getEllipsisCount(0)>0)
+            assertTrue(row.labels[1].text.contains("12"));assertTrue(row.labels[1].text.contains("1:01:05"))
+            assertEquals("Reiserad (${a.getString(R.string.bikes_type_bike)})",row.labels[2].text.toString())
+            assertEquals("GPX abrufbar",row.labels[3].text.toString())
+            val reused=list.adapter.getView(1,row,list) as DreeveActivityRow
+            assertEquals("GPX nicht abrufbar",reused.labels[3].text.toString())
+            assertFalse(reused.box.isChecked)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun all398ActivitiesAcrossEightApiPagesRemainScrollableAndSelectableInFullscreen() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         val server=okhttp3.mockwebserver.MockWebServer();server.start()
@@ -56,7 +78,7 @@ class DreeveImportUiTest {
             assertEquals(8,updates)
             assertEquals(399,list.adapter.count) // 398 rides plus exactly one continuation footer.
             assertEquals(398,(0 until list.adapter.count).count { list.adapter.getItem(it) is DreeveActivity })
-            assertEquals("398 von 398 Fahrten geladen",view.findViewWithTag<TextView>("dreeve_import_status").text.toString())
+            assertEquals("398 Fahrten geladen",view.findViewWithTag<TextView>("dreeve_import_status").text.toString())
             layout()
             repeat(400) { list.scrollListBy(400) }
             val last=list.findViewWithTag<CheckBox>("dreeve_activity_398")
@@ -80,7 +102,7 @@ class DreeveImportUiTest {
             view.refresh();assertEquals(listOf(1),pages)
             view.loaded(DreeveActivityPage(listOf(activity("a"),activity("no-gpx",false),activity("old")),1,2,4),setOf("old"))
             val list=view.findViewWithTag<ListView>("dreeve_import_list")
-            fun row(index:Int)=list.adapter.getView(index,null,list) as CheckBox
+            fun row(index:Int)=(list.adapter.getView(index,null,list) as DreeveActivityRow).box
             assertTrue(row(0).isEnabled);assertTrue(row(1).isEnabled);assertFalse(row(2).isEnabled)
             row(0).performClick();row(1).performClick()
             view.findViewWithTag<View>("dreeve_import_more").performClick();assertEquals(listOf(1,2),pages)
@@ -91,7 +113,7 @@ class DreeveImportUiTest {
             view.progress(DreeveItemResult("a",DreeveImportState.IMPORTED,setOf(DreeveDataField.HEART)))
             view.complete(Result.success(DreeveImportResult(listOf(DreeveItemResult("a",DreeveImportState.IMPORTED,setOf(DreeveDataField.HEART)),
                 DreeveItemResult("b",DreeveImportState.FAILED,problem=R.string.dreeve_import_download_failed)))))
-            assertFalse(row(0).isEnabled);assertTrue(row(0).text.contains("Puls"))
+            assertFalse(row(0).isEnabled);assertTrue(row(0).contentDescription.contains("Puls"))
             assertTrue(row(1).isEnabled && row(1).isChecked)
             assertTrue(view.findViewWithTag<TextView>("dreeve_import_status").text.contains("1 importiert"))
             assertEquals(View.GONE,view.findViewWithTag<View>("dreeve_import_more").visibility)
