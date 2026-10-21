@@ -1,0 +1,46 @@
+GPS_POSITION|GPS-Route / Position|GPS|Fahrt|semicircles|RECORD|
+GPS_SPEED|Geschwindigkeit|GPS|Fahrt|m/s|RECORD|
+GPS_DISTANCE|Gefahrene Distanz|GPS|Fahrt|m|RECORD|
+GPS_MOVING_AVERAGE|Ø Geschwindigkeit · Bewegung|GPS|Fahrt|m/s|RECORD|
+GPS_OVERALL_AVERAGE|Ø Geschwindigkeit · gesamt|GPS|Fahrt|m/s|RECORD|
+GPS_MAXIMUM_SPEED|Max. Geschwindigkeit|GPS|Fahrt|m/s|RECORD|
+GPS_ELAPSED_TIME|Fahrtdauer|GPS|Fahrt|s|RECORD|
+GPS_MOVING_TIME|Bewegungszeit|GPS|Fahrt|s|RECORD|
+GPS_STOPPED_TIME|Standzeit|GPS|Fahrt|s|RECORD|
+GPS_ALTITUDE|Höhe|GPS|Höhe|m|RECORD|
+GPS_ASCENT|Höhenzugewinn|GPS|Höhe|m|RECORD|
+GPS_DESCENT|Höhenverlust|GPS|Höhe|m|RECORD|
+GPS_GRADIENT|Steigung|GPS|Höhe|%|RECORD|
+SPEED|Geschwindigkeit|E-Bike|Fahrt|m/s|RECORD|
+BIKE_DISTANCE|Gefahrene Distanz|E-Bike|Fahrt|m|RECORD|
+ODOMETER|Gesamtkilometer|E-Bike|Fahrt|m|RECORD|
+ASSIST_MODE|Unterstützung|E-Bike|Fahrt|index|RECORD|
+RIDER_POWER|Fahrerleistung|E-Bike|Leistung & Tritt|W|RECORD|
+MOTOR_POWER|Motorleistung|E-Bike|Leistung & Tritt|W|RECORD|
+CADENCE|Kadenz|E-Bike|Leistung & Tritt|U/min|RECORD|
+RIDER_TORQUE|Fahrerdrehmoment|E-Bike|Leistung & Tritt|Nm|RECORD|
+MOTOR_TORQUE|Motordrehmoment|E-Bike|Leistung & Tritt|Nm|RECORD|
+BIKE_LIGHT|Fahrradlicht|E-Bike|Licht|bool|RECORD|
+BATTERY|Akku|E-Bike|Akku|%|RECORD|
+BATTERY_TEMPERATURE|Akkutemperatur|E-Bike|Akku|°C|RECORD|
+REMAINING_ENERGY|Verbleibende Energie|E-Bike|Akku|Wh|RECORD|
+DELIVERED_ENERGY|Akkuenergie gesamt abgegeben|E-Bike|Akku|Wh|RECORD|
+CURRENT_RANGE|Reichweite aktuell|E-Bike|Reichweite|km|RECORD|
+AVERAGE_SPEED|Ø Geschwindigkeit|E-Bike|Durchschnitt & Spitzenwerte|m/s|RECORD|
+AVERAGE_POWER|Ø Fahrerleistung|E-Bike|Durchschnitt & Spitzenwerte|W|RECORD|
+MAXIMUM_POWER|Max. Fahrerleistung|E-Bike|Durchschnitt & Spitzenwerte|W|RECORD|
+AVERAGE_CADENCE|Ø Kadenz · ohne Tretpausen|E-Bike|Durchschnitt & Spitzenwerte|U/min|RECORD|
+MAXIMUM_CADENCE|Max. Kadenz|E-Bike|Durchschnitt & Spitzenwerte|U/min|RECORD|
+RIDER_ENERGY_SHARE|Fahreranteil an Antriebsenergie|E-Bike|Durchschnitt & Spitzenwerte|%|RECORD|
+HEART_RATE|Herzfrequenz|Pulsmesser|Puls & Sensor|bpm|RECORD|
+HEART_AVERAGE|Ø Herzfrequenz|Pulsmesser|Puls & Sensor|bpm|RECORD|
+HEART_MAXIMUM|Max. Herzfrequenz|Pulsmesser|Puls & Sensor|bpm|RECORD|
+HEART_BATTERY|Sensorakku|Pulsmesser|Puls & Sensor|%|RECORD|
+PHONE_TIME|Uhrzeit|Smartphone|Smartphone||RECORD|
+PHONE_BATTERY|Smartphone-Akku|Smartphone|Smartphone|%|RECORD|
+NORMALIZED_POWER|Normalized Power (W)|Performance & Energie|Fahrtkennzahlen|W|SUMMARY|
+MECHANICAL_WORK|Mechanical Work (kJ)|Performance & Energie|Fahrtkennzahlen|kJ|SUMMARY|
+CALORIES|Calories (kcal, geschätzt)|Performance & Energie|Fahrtkennzahlen|kcal|SUMMARY|
+SPEED_POWER_RATIO|Speed-to-Power Ratio (km/h/W)|Performance & Energie|Fahrtkennzahlen|km/h/W|SUMMARY|
+EFFICIENCY_FACTOR|Efficiency Factor (W/bpm)|Performance & Energie|Fahrtkennzahlen|W/bpm|SUMMARY|
+ESTIMATED_FTP||Performance & Energie|Fahrtkennzahlen|W|SUMMARY|analysis_ftp_export

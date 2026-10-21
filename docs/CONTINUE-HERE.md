@@ -68,3 +68,10 @@ Abschluss: 67 gezielte Tests erfolgreich über die betroffenen Graph-/Trend-/Nam
 ## APK-Folgeauftrag 0.8.18 und App-To-dos
 
 Nutzer hat anschließend eine APK beauftragt. Version 0.8.18 / versionCode 88, GitHub Actions Build 57 aus Quellcommit `9e3a29cc5c0475e2bee8046ba5df2c75368f858d`. Erfolgreich gebaut und geprüft: 2.098.575 Bytes, dauerhafte Signatur wie Build 56, Version 0.8.18/88 ohne Debug-/Test-Flag, SHA-256 und zipalign korrekt. [Direkte APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk), [Buildnachweis](build-57.md). GitHub-Startseite aktualisiert. Wartungsanbindung Dreeve ↔ App und „Trainer einbauen“ in [App-To-dos](../TODO.md) festgehalten; nur vorgemerkt, nicht implementieren.
+
+
+## Architekturentkopplung – Schritte 1 und 2
+
+Beauftragt sind ausschließlich Referenztests und interne typisierte Speicherergebnisse. Callback `(String, Boolean)` zu RideRuntime/UI vorerst unverändert. Kein Feldkatalog-Umbau, keine Messdaten-/Sensorumstellung, keine APK.
+
+Schritt 1: Unveränderten Feldkatalog (IDs, Reihenfolge, Einheiten, Scope, Labels, Gruppen und Defaults) und synthetisches Journal aus `3e7db0e` als Testreferenzen festgehalten. Zusätzliche Prüfungen für Reichweitenzuordnung, Speichererfolg, Teilerfolg mit Originalerhalt/Retry, gemischte Wiederherstellung, ungültiges Journal und Schreibfehler. Neue Referenztests sowie bestehende RecordingFlow-/RouteExport-Tests erfolgreich, bevor Produktionscode geändert wird.
