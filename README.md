@@ -50,27 +50,34 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.17 · Build 56 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.17-release-56.apk)**
+**[Version 0.8.18 · Build 57 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk)**
 
-**Build 56 vom 21.10.2026 · 2,08 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 57 vom 21.10.2026 · 2,10 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53 und 55 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55 und 56 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.17](docs/release-0.8.17.md) ·
-[Buildnachweis und SHA-256](docs/build-56.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39549876412) ·
+[Änderungen in 0.8.18](docs/release-0.8.18.md) ·
+[Buildnachweis und SHA-256](docs/build-57.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39560711776) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
-144 unterschiedliche Android-Hosttests und 19 HRV-Kerntests bestanden, darunter 62 Referenzfälle.
-Drei ältere UI-Testfehler sind am unveränderten letzten Release reproduziert und im Buildnachweis dokumentiert.
-Echte Gurt-/Telefonprüfung und persönliche Dienstkonten bleiben praktisch zu prüfen.
+67 gezielte Tests der aktuellen Graph-/Trend-/Fahrtnamen-/Profil-/Backup-Änderungen bestanden;
+weitere gezielte Prüfungen der vorherigen Folgeänderungen im Buildnachweis dokumentiert.
+Kein vollständiger Gesamttestlauf. Bekannte ältere UI-Testfehler und offene Geräteprüfungen dort aufgeführt.
 
-Frühere APKs: [0.8.16 · Build 55](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk) · [0.8.15 · Build 53](downloads/B-Cycle-0.8.15-release-53.apk) ·
-[0.8.14 · bisheriger Testschlüssel](https://raw.githubusercontent.com/Titanyus/B-Cycle/v0.8.14/downloads/B-Cycle-0.8.14.apk).
+Frühere APKs: [0.8.17 · Build 56](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.17-release-56.apk) · [0.8.16 · Build 55](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.16-release-55.apk) · [0.8.15 · Build 53](downloads/B-Cycle-0.8.15-release-53.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.18
+
+- **Dashboardgraphen:** Voll / 30s / 60s / 120s je Feld, sensorabhängige Auswahl und rollierende Zeitfenster auch im Stand.
+- **Fahrtnamen je Profil:** Freier Text und Mehrfachauswahl für Datum, Startzeit, Distanz, Bewegungszeit und Durchschnittstempo.
+- **Trend-Chevrons:** Weitere Pfeile bei steigendem Trend oben, bei sinkendem unten.
+- **Bedienung:** Kompaktere Dreeve-Liste mit Startzeit, größere Fahrradkacheln im 3×2-Raster, Pulsmesser bei geeignetem Profilwechsel weiterverwenden und erkennbare Aufnahmesperre der Sensorsuche.
+- [Alle Änderungen](docs/release-0.8.18.md) · [App-To-dos](TODO.md).
 
 ## Neu in APK 0.8.17
 

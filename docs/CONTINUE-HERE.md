@@ -63,3 +63,8 @@ Umsetzung: zusätzliche Trendchevrons positiv oberhalb / negativ unterhalb des f
 Zwischenfrage zur Trink-Erinnerung beantwortet: bei vorheriger Aktivierung ab Aufnahmestart, bei Aktivierung/Intervalländerung während Aufnahme ab dann neues volles Intervall; Stillstand zählt, Fenster 15 s oder bis Antippen, höchstens eine verdeckt fällige Erinnerung nachholen. Keine Funktionsänderung daran.
 
 Abschluss: 67 gezielte Tests erfolgreich über die betroffenen Graph-/Trend-/Namens-/Profil-/Backup-Suiten. Enthalten: exaktes Namensformat, fehlende Kennzahlen, Startvorlage statt später geänderter Vorlage, manueller Name bei Retry, gleichzeitige Wiederherstellung alter FIT-Einstellungen und neuer Vorlage; Quellverfügbarkeit, zeitabhängige Kurvenpositionen auch im Stand, 1-Hz-Fenster, abschließender vollständiger Gesamtgraph bei STOPP, Backup/Profile und Chevron-Deckkraft/-Geometrie. Native Graphdarstellung geprüft. Keine APK erstellt. Letzte veröffentlichte APK bleibt Build 56; diese Quelländerungen mit `[skip ci]` sichern.
+
+
+## APK-Folgeauftrag 0.8.18 und App-To-dos
+
+Nutzer hat anschließend eine APK beauftragt. Version 0.8.18 / versionCode 88, GitHub Actions Build 57 aus Quellcommit `9e3a29cc5c0475e2bee8046ba5df2c75368f858d`. Erfolgreich gebaut und geprüft: 2.098.575 Bytes, dauerhafte Signatur wie Build 56, Version 0.8.18/88 ohne Debug-/Test-Flag, SHA-256 und zipalign korrekt. [Direkte APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk), [Buildnachweis](build-57.md). GitHub-Startseite aktualisiert. Wartungsanbindung Dreeve ↔ App und „Trainer einbauen“ in [App-To-dos](../TODO.md) festgehalten; nur vorgemerkt, nicht implementieren.
