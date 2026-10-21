@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33],qualifiers="mdpi")
 class BikeQuickPickerTest {
-    @Test fun sixManagerCardsFitWithoutScrollingAndScaleIconsTypeAndTwoLineNamesTogether() {
+    @Test fun sixManagerCardsUseThreeByTwoGridAtFullProfileScaleWithoutHorizontalScrolling() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val c=host.get();val themes=ThemeManager(c.getSharedPreferences("theme",0))
@@ -29,20 +29,25 @@ class BikeQuickPickerTest {
                 content.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(500,View.MeasureSpec.AT_MOST))
                 content.layout(0,0,width,content.measuredHeight)
                 val row=strip.getChildAt(0) as ViewGroup
-                assertEquals(6,row.childCount);assertTrue(row.width<=strip.width);assertEquals(0,strip.scrollX)
+                assertEquals(6,row.childCount);assertTrue(row is android.widget.GridLayout)
+                assertEquals(3,(row as android.widget.GridLayout).columnCount)
+                assertTrue(row.width<=strip.width);assertEquals(0,strip.scrollX)
+                assertEquals(row.getChildAt(0).top,row.getChildAt(2).top)
+                assertTrue(row.getChildAt(3).top>=row.getChildAt(0).bottom)
+                assertEquals(row.getChildAt(0).left,row.getChildAt(3).left)
                 assertNull(content.findViewWithTag<View>("bike_profile_add"))
                 for(i in 0 until row.childCount) {
                     val tile=row.getChildAt(i) as ViewGroup
                     assertFalse(tile.isLongClickable);assertEquals(i==2,tile.isSelected)
-                    assertTrue(tile.width>0);assertTrue(tile.height>=BicycleDesign.touchSize)
+                    assertTrue(tile.width>0);assertEquals(BicycleDesign.bikeTileHeight,tile.height)
                     val type=tile.getChildAt(0) as TextView
                     val image=tile.getChildAt(1) as ImageView
                     val name=tile.getChildAt(2) as TextView
                     assertEquals(c.getString(profiles[i].type.label),type.text.toString())
                     assertEquals(profiles[i].name,name.text.toString());assertEquals(2,name.maxLines)
-                    assertEquals(BicycleDesign.bodySp*BicycleDesign.bikeQuickScale,type.textSize,.01f)
+                    assertEquals(BicycleDesign.bodySp,type.textSize,.01f)
                     assertEquals(type.textSize,name.textSize,.01f)
-                    assertEquals((BicycleDesign.bikePreviewHeight*BicycleDesign.bikeQuickScale).toInt(),image.height)
+                    assertEquals(BicycleDesign.bikePreviewHeight,image.height)
                     assertTrue(tile.right<=strip.width)
                 }
             }

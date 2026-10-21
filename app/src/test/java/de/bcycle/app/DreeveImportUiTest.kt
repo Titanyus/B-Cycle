@@ -28,6 +28,11 @@ class DreeveImportUiTest {
             val list=view.findViewWithTag<ListView>("dreeve_import_list")
             val row=list.adapter.getView(0,null,list) as DreeveActivityRow
             row.measure(View.MeasureSpec.makeMeasureSpec(288,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));row.layout(0,0,288,row.measuredHeight)
+            BicycleDialogStyle.content(row,themes)
+            assertEquals(BicycleDesign.strongTypeface,row.labels[0].typeface)
+            assertTrue(row.labels.none { it.includeFontPadding })
+            assertEquals(BicycleDesign.dp(a,BicycleDesign.smallGap),row.paddingTop)
+            assertTrue(row.labels[1].text.contains("08:00"))
             assertEquals(4,row.labels.size);assertEquals(1,row.labels[0].lineCount)
             assertTrue(row.labels[0].layout.getEllipsisCount(0)>0)
             assertTrue(row.labels[1].text.contains("12"));assertTrue(row.labels[1].text.contains("1:01:05"))

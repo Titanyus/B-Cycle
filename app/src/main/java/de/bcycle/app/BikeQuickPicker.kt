@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 
-/** The manager's cards at half size: six fit within the safe visible window width. */
+/** Full-size manager cards in a three-column grid within the safe visible window. */
 internal class BikeQuickPicker(anchor:View,themes:ThemeManager,profiles:List<BikeProfile>,selected:Int,
     choose:(Int)->Unit):PopupWindow() {
     private val frame=Rect().also(anchor::getWindowVisibleDisplayFrame)

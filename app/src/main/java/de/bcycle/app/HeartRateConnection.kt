@@ -19,6 +19,7 @@ class HeartRateConnection(private val context: Context, private val status: (Str
     var live = false; private set
     private val receivedFields = mutableSetOf<String>()
     val receivedValueCount get() = receivedFields.size
+    internal val deviceAddress get()=client?.device?.address
     private val timeout = Runnable { fail("Pulsmesser · Zeitlimit erreicht") }
     fun connect(device: BluetoothDevice) {
         stop(); active = true; val session = ++epoch

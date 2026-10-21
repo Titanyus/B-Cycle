@@ -64,7 +64,9 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
                 result?.state==DreeveImportState.FAILED->context.getString(result.problem ?: R.string.dreeve_import_download_failed)
                 else->context.getString(R.string.dreeve_import_gpx)
             }
-            val date=runCatching { LocalDateTime.parse(item.startLocal).format(DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.SHORT)) }
+            val date=runCatching { LocalDateTime.parse(item.startLocal).let { start ->
+                start.format(DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.SHORT))+" "+start.format(DateTimeFormatter.ofPattern("HH:mm"))
+            } }
                 .getOrDefault(item.startLocal.substringBefore('T').ifBlank { "—" })
             val distance=item.distanceM?.let { String.format(Locale.getDefault(),"%.1f km",it/1000) } ?: "—"
             val duration=(item.summary.metrics[AnalysisMetric.ELAPSED] ?: item.summary.metrics[AnalysisMetric.MOVING])?.toLong()?.let {
@@ -202,10 +204,13 @@ internal class DreeveActivityRow(context:Context,themes:ThemeManager):LinearLayo
     val labels=List(4) { index -> BicycleComponents.description(context,themes,"").apply {
         maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
         tag=if(index==0) "dreeve_row_title" else "dreeve_row_line_$index"
+        includeFontPadding=false
+        BicycleDialogStyle.control(this,themes)
+        if(index==0) typeface=BicycleDesign.strongTypeface
     } }
     init {
         orientation=HORIZONTAL;gravity=android.view.Gravity.CENTER_VERTICAL
-        val gap=BicycleDesign.dp(context,BicycleDesign.controlGap);setPadding(0,gap,0,gap)
+        val gap=BicycleDesign.dp(context,BicycleDesign.smallGap);setPadding(0,gap,0,gap)
         importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
         addView(box,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
         addView(LinearLayout(context).apply {

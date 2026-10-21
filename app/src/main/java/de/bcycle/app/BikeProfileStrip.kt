@@ -4,22 +4,25 @@ import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.GridLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 
-/** Three equal-width cards in a native horizontal scroller; IDs never depend on order. */
+/** Shared full-size profile cards: manager strip or three-column dashboard grid. */
 internal class BikeProfileStrip(context: Context, private val themes: ThemeManager,
     private val select: (Int) -> Unit, private val add: () -> Unit,
     private val move: (Int, Int) -> Boolean, private val compact:Boolean=false) : HorizontalScrollView(context) {
-    private val row = LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL;isBaselineAligned=false }
+    private val row:ViewGroup = if(compact) GridLayout(context).apply { columnCount=BicycleDesign.bikeQuickVisibleTiles }
+        else LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL;isBaselineAligned=false }
     private var profiles = emptyList<BikeProfile>()
     private var painted = ""
     private var active = -1
     private var locked = false
     private var shape = emptyList<Int>()
-    private val reorder = if(compact) null else TileReorder(this,row,themes,
+    private val reorder = if(compact) null else TileReorder(this,row as LinearLayout,themes,
         { profiles.map { it.slot } }, { locked }, move)
     private val scale get()=if(compact) BicycleDesign.bikeQuickScale else 1f
     private fun dp(n:Int)=(BicycleDesign.dp(context,n)*scale).toInt().coerceAtLeast(1)
@@ -32,7 +35,9 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
         profiles=rows;active=selected;locked=busy
         if(shape!=rows.map { it.slot }) {
             shape=rows.map { it.slot };painted="";row.removeAllViews()
-            rows.forEach { p -> row.addView(card(p),LinearLayout.LayoutParams(0,dp(BicycleDesign.bikeTileHeight))) }
+            rows.forEach { p -> row.addView(card(p),if(compact) GridLayout.LayoutParams().apply {
+                width=0;height=dp(BicycleDesign.bikeTileHeight)
+            } else LinearLayout.LayoutParams(0,dp(BicycleDesign.bikeTileHeight))) }
             if(!compact && rows.size<BikeProfileStore.MAX_COUNT) row.addView(card(null),LinearLayout.LayoutParams(0,dp(BicycleDesign.bikeTileHeight)))
             requestLayout()
         }
@@ -88,10 +93,15 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
         val cardWidth=((available-gap*(visibleTiles-1))/visibleTiles).coerceAtLeast(1)
         for(index in 0 until row.childCount) {
             val card=row.getChildAt(index)
-            val params=card.layoutParams as LinearLayout.LayoutParams
-            val start=if(index==0) 0 else gap
-            if(params.width!=cardWidth || params.marginStart!=start || params.leftMargin!=start) {
-                params.width=cardWidth;params.marginStart=start;params.marginEnd=0;params.leftMargin=start;params.rightMargin=0
+            val params=card.layoutParams as ViewGroup.MarginLayoutParams
+            val start=if(if(compact) index%visibleTiles==0 else index==0) 0 else gap
+            val top=if(compact && index>=visibleTiles) gap else 0
+            if(params.width!=cardWidth || params.marginStart!=start || params.leftMargin!=start || params.topMargin!=top) {
+                params.width=cardWidth;params.marginStart=start;params.marginEnd=0;params.leftMargin=start;params.rightMargin=0;params.topMargin=top
+                if(params is GridLayout.LayoutParams) {
+                    params.rowSpec=GridLayout.spec(index/visibleTiles)
+                    params.columnSpec=GridLayout.spec(index%visibleTiles)
+                }
                 card.layoutParams=params
             }
         }

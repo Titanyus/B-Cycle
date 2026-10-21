@@ -295,7 +295,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     internal fun switchBike(slot: Int): Boolean {
         if (slot == bikes.activeSlot) return true
         if (recording || saving || hrv.busy) return false
-        activateBike { bikes.select(slot) }
+        activateBike(reuseHeart=true) { bikes.select(slot) }
         return true
     }
     internal fun changeBikeType(type:BikeType):Boolean {
@@ -304,21 +304,30 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         activateBike { bikes.save(bikes.current().copy(type=type)) }
         return true
     }
-    private fun activateBike(change:()->Unit) {
+    private fun activateBike(reuseHeart:Boolean=false,change:()->Unit) {
+        val sharedAddress=if(reuseHeart && heartEnabled && hasBluetooth() && heart.live && !disconnected(BikeSensor.HEART)) heart.deviceAddress else null
+        val sharedName=heartName;val sharedPulse=pulse;val sharedAt=heartAt;val sharedStatus=heartStatus
         connectionsRequested = false
-        connection.stop();trainer.stop(); heart.stop(); gpsSensor.stop()
+        connection.stop();trainer.stop();gpsSensor.stop()
+        if(sharedAddress==null) heart.stop()
         change()
+        val target=bikes.current()
+        val keepHeart=sharedAddress!=null && target.heartEnabled && (target.heartAddress==null || target.heartAddress==sharedAddress)
+        if(keepHeart && target.heartAddress==null) bikes.save(target.copy(heartAddress=sharedAddress,heartName=sharedName))
+        if(sharedAddress!=null && !keepHeart) heart.stop()
         profileRevision++
         themes.reloadFromPreferences()
         mapState.restoreProfileRoute()
         connectionsRequested = bikes.current().autoConnect; disconnectedSensors.clear()
         gpsEnabled = bikes.current().gpsEnabled && !isIndoor
-        bikeData = LiveData(indoor=isIndoor); pulse = PulseValues(); heartAt = null; times.clear()
+        bikeData = LiveData(indoor=isIndoor)
+        pulse = if(keepHeart) PulseValues(bpm=sharedPulse.bpm,battery=sharedPulse.battery) else PulseValues()
+        heartAt = if(keepHeart) sharedAt else null;times.clear()
         latestPerformance.clear(); pendingPerformance.clear(); mainBikeSpeedSeen = false; lastPacketAt = null
         ride.gps.reset(); ride.gps.setCollecting(false); ride.bike.reset(); cadenceAverage.reset();indoorRide.reset()
         heartSum = 0; heartCount = 0; completedElapsedMs = null
         bikeStatus = context.getString(R.string.bikes_disconnected)
-        heartStatus = context.getString(R.string.bikes_disconnected)
+        heartStatus = if(keepHeart) sharedStatus else context.getString(R.string.bikes_disconnected)
         gpsStatus = context.getString(R.string.bikes_gps_disconnect)
         bikeReconnect.connected();trainerReconnect.connected(); heartReconnect.connected()
         updateActivity()

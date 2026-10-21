@@ -39,3 +39,13 @@ Drei ältere UI-Tests schlagen im breiteren Lauf fehl und wurden am unverändert
 Offen für die Praxis: neue H10-/H2-Messungen auswerten, insbesondere zuvor abgelehnte Rohfolgen. Echte WebDAV-/intervals-/Dreeve-/Strava-Konten und physische Bedienung am Telefon sind durch Mock-/Hosttests nicht abgedeckt. Die fünf fehlgeschlagenen Messungen des Nutzers liegen nicht als RR-Rohdaten vor. Kein bestimmter Erfolg der neuen Korrektur zugesichert.
 
 Abgeschlossen: signierte Release-APK 0.8.17 / Build 56 / versionCode 87 über GitHub Actions erfolgreich gebaut und geprüft. Quellcommit `280bd90a6b4a60791ebe95c6298d77737767aec7`. [Direkte APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.17-release-56.apk), [Build-/Testnachweis](build-56.md), [Änderungen](release-0.8.17.md). Dauerhafte Signatur wie Builds 53/55, APK 2.082.919 Bytes, kein Debug-Flag. Keine offenen Implementierungspunkte aus diesem Auftrag; oben benannte Praxistests und bekannte ältere UI-Testfehler bleiben offen. Die letzte Ergänzung der Paket-/Capture-Diagnostik wurde nochmals gezielt erfolgreich geprüft.
+
+## Kleine Folgeänderung nach Build 56
+
+Dreeve-/gemeinsame ZIP-Auswahlliste kompakter: vertikales Blockpadding 4 statt 8 dp und kein zusätzliches Fontpadding der vier Textzeilen. Streckenname im zentralen 900-Black-Schnitt bei unveränderter Textgröße; Datum zusätzlich mit Startzeit HH:mm. Nur vorhandenen Zeilen-UI-Test gezielt prüfen. Nutzer ausdrücklich: minimale Tests, keine APK. Build 56 enthält diese Folgeänderung noch nicht.
+
+Dashboard-Fahrradauswahl zusätzlich als 3-Spalten-/2-Reihen-Raster bei sechs Profilen, gleiche volle Kachelhöhe, Bild- und Schriftgröße wie im Profilmanager. Bestehende Auswahl-/Aufnahmesperren erhalten; weiterhin keine APK.
+
+Pulsmesser-Folgekorrektur: Beim bewussten Profilwechsel bestehende bestätigte Live-Verbindung weiterverwenden; Ziel ohne Pulsmesser übernimmt Adresse/Name dauerhaft. Ziel mit eigenem anderem Sensor oder deaktiviertem Puls gewinnt. Fahrtmittelwerte zurücksetzen, keine zweite GATT-Verbindung. Nutzerbeobachtung: erneutes Android-Koppeln machte H10 wieder auffindbar; hardwareseitige Ursache nicht abschließend belegt. Nur gezielte Profilwechseltests, weiterhin keine APK.
+
+Abschluss der Folgeänderungen: 9 gezielte Tests bestanden (1 Dreeve-Zeile, 3 BikeQuickPicker, 1 Dashboard-Einstieg, 2 Pulsmesser-Wiederverwendung und 2 bestehende Profil-Runtime-Tests). Keine APK erstellt; Quelländerungen mit `[skip ci]` sichern, damit kein automatischer APK-Build ausgelöst wird. Build 56 bleibt der letzte veröffentlichte APK-Stand. H10-Verhalten am realen Gerät noch prüfen.
