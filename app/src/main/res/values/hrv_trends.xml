@@ -1,0 +1,34 @@
+<resources>
+    <string name="hrvt_title">HRV-Auswertung</string>
+    <string name="hrvt_hr">Puls</string>
+    <string name="hrvt_sdnn">SDNN</string>
+    <string name="hrvt_rmssd">RMSSD</string>
+    <string name="hrvt_pnn50">pNN50</string>
+    <string name="hrvt_lf">LF</string>
+    <string name="hrvt_hf">HF</string>
+    <string name="hrvt_bpm">bpm</string>
+    <string name="hrvt_ms">ms</string>
+    <string name="hrvt_percent">%</string>
+    <string name="hrvt_ms2">ms²</string>
+    <string name="hrvt_value">%1$s · %2$s %3$s</string>
+    <string name="hrvt_unavailable">—</string>
+    <string name="hrvt_empty">Noch keine auswertbaren Werte für diese Kennzahl.</string>
+    <string name="hrvt_loading">HRV-Verlauf wird geladen …</string>
+    <string name="hrvt_legend">Balken: Tageswert · Linie: 7-Tage-Mittel · Fläche: Normalbereich</string>
+    <string name="hrvt_gestures">Mit zwei Fingern zoomen · seitlich wischen · Tageswert antippen</string>
+    <string name="hrvt_selected">%1$s\n%2$s\n%3$s</string>
+    <string name="hrvt_native">Eigene Messung</string>
+    <string name="hrvt_imported">HRV4Training · importiert, Qualität nicht nachprüfbar</string>
+    <string name="hrvt_rejected">Abgelehnte Messung · nicht eingerechnet</string>
+    <string name="hrvt_context">Tagesangaben ohne Messung</string>
+    <string name="hrvt_average">7-Tage-Mittel: %1$s</string>
+    <string name="hrvt_normal">Normalbereich: %1$s – %2$s</string>
+    <string name="hrvt_collecting">Mittelwert ab 5 Werten in 7 Tagen; Normalbereich ab 14 Werten in den vorherigen 60 Tagen.</string>
+    <string name="hrvt_detail">Messung und Tagesbefinden</string>
+    <string name="hrvt_period">%1$s – %2$s</string>
+    <string name="hrvt_zoom_in">Zeitraum verkleinern</string>
+    <string name="hrvt_zoom_out">Zeitraum vergrößern</string>
+    <string name="hrvt_older">Ältere Tage</string>
+    <string name="hrvt_newer">Neuere Tage</string>
+    <string name="hrvt_help">Pro lokalem Kalendertag gilt ausschließlich die letzte Messung. Abgelehnte Messungen und Tage ohne Kennzahl bleiben Lücken. CSV-Kennzahlen können ohne nachträgliche Qualitätsprüfung angezeigt werden; die Herkunft steht beim Tageswert. LF/HF aus CSV werden wegen unbekannter Einheit nicht mit eigenen ms²-Werten gemischt.\n\nDie Linie ist ein arithmetischer Mittelwert der verfügbaren Tageswerte im aktuellen und den sechs vorherigen Kalendertagen, ab fünf Werten. Der Normalbereich ist unsere eigene beschreibende Berechnung: Mittelwert ± eine Stichproben-Standardabweichung der verfügbaren Werte aus den 60 vorherigen Kalendertagen, ab 14 Werten. Untergrenze mindestens null. Der aktuelle Tag geht nicht in seinen eigenen Normalbereich ein. Keine exakte Nachbildung des HRV4Training-Korridors und keine automatische Trainingsempfehlung.\n\nImportierte und eigene Messungen sowie eigene Messungen mit unterschiedlichen Ruhe-/Messzeiten verwenden getrennte Referenzbereiche. Bei unbekanntem altem Messprotokoll entsteht eine eigene Gruppe. Fehlende Tage werden nicht aufgefüllt; Linie und Fläche enden an Lücken oder Gruppenwechseln. Zoomen verändert nur den sichtbaren Zeitraum, nicht die Berechnung. Tagesbefinden bleibt unabhängig von den HRV-Kennzahlen und ist über die Einzelmessung erreichbar.</string>
+</resources>

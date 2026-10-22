@@ -2,6 +2,9 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+Aktueller Auftrag: eigene HRV-Auswertung mit Kennzahlwahl, Tagesbalken, 7-Tage-Mittel und dokumentiertem 60-Tage-Normalbereich; Zoom/Pan und Zugriff auf Messung/Tagesbefinden. Einstiege über HRV-Einstellungen und vorhandenes „Zur Auswertung“ nach erfolgreichem Fragebogenspeichern. Keine neue APK angefragt. Details hrv-trends.md; bisherige CSV-Hänger-Korrektur gehört zum Quellstand, noch nicht zu APK 0.8.25 / Build 64.
+
+
 Aktuelle Korrektur nach Build 64: Endlose CSV-Prüfanzeige als View-Lebenszyklusfehler reproduziert (Ergebnis vor Attachment verworfen / Callback bei Vollbild-Reparenting invalidiert). Vorschau erst nach Attachment starten, unterbrochene Prüfung bei Reattach neu starten; fertige Vorschau behalten. Keine Daten-/Parseränderung und kein automatischer Import. Noch keine neue APK für diese Korrektur angefragt. Details hrv4training-import.md.
 
 
@@ -180,3 +183,5 @@ Veröffentlichung dieser Ergänzungen: App-Änderungen lokal committet, kein Pus
 Prüfstand Beschriftungsabstand/Skalenregler: 11 gezielte Android-Tests erfolgreich (6 Tagesbefinden, 5 Formular-/Seitenauswahl-Abstände). Browser prüft tatsächliche 4 dp in allen drei gezeigten Feldbeispielen und unabhängige Verstellung von Label- und Skalenabstand, zusätzlich bestehende Atlas-Bedienung/320–412-Breiten. Kein Gesamtlauf oder APK.
 
 Prüfung dieser Korrektur: 7 gezielte bestehende/ergänzte Tagesbefinden-Tests erfolgreich, einschließlich optionaler Trainingphase, ein-/ausgeblendeter RPE-/Mengenfelder, exakt 32 dp ohne Doppelabstand, Platzhalter, manueller Eingabe und vorhandener Vorbefüllung/Backup. Browserprüfung des aktualisierten Atlas erfolgreich (Platzhalter, 8-dp-Hinweisabstand und bisherige Regler/320–412-Breiten). Native Ansicht visuell geprüft. Kein Gesamtlauf und keine neue APK.
+
+Prüfstand HRV-Auswertung: 27 unterschiedliche gezielte Tests erfolgreich; native Testdaten-Vorschau docs/previews/hrv-trends.png visuell geprüft. Alle sechs Kennzahlen, Statistik-/Tages-/Protokollregeln, Touch-Pinch/Pan/Tagesauswahl, beide echten Einstiege, Speichern vor Weiterleitung, Zurück zu Einstellungen, unveränderte Sicherung und CSV-Import geprüft. Typografie und UI-Atlas konsistent. Quellstand lokal gesichert, kein Push/APK für diesen Auftrag. APK 0.8.25 / Build 64 enthält weder diese Auswertung noch die danach korrigierte CSV-Prüfanzeige.

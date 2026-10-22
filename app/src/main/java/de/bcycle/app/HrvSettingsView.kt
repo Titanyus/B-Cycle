@@ -9,7 +9,7 @@ import android.widget.Switch
 import android.view.View
 import android.widget.FrameLayout
 
-internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasurement:()->Unit={},canEdit:()->Boolean={true}):LinearLayout(context) {
+internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasurement:()->Unit={},canEdit:()->Boolean={true},openAnalysis:()->Unit={}):LinearLayout(context) {
     init {
         orientation=VERTICAL;tag="hrv_settings"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
@@ -23,6 +23,11 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasureme
             styleHrvPill(open)
         }
         addView(FrameLayout(context).apply { addView(open,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER)) },LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        val analysis=BicycleComponents.textAction(context,themes,context.getString(R.string.hrvt_title),openAnalysis).apply {
+            tag="hrv_open_analysis";setPadding(pad,0,pad,0)
+            BicycleComponents.bindTheme(this,themes) { styleHrvPill(this) }
+        }
+        addView(FrameLayout(context).apply { addView(analysis,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER)) },LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         val hint=LinearLayout(context).apply {
             orientation=VERTICAL;tag="hrv_first_start_details";visibility=GONE
             addView(BicycleComponents.description(context,themes,context.getString(R.string.hrv_first_start_hint)))

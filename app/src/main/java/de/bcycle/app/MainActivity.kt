@@ -427,7 +427,7 @@ class MainActivity : Activity() {
                 SettingsAction.PROFILES, SettingsAction.SENSORS -> showSensorManager()
                 SettingsAction.NOTIFICATIONS -> showNotificationSettings()
                 SettingsAction.HRV -> menu=dialog().setTitle(R.string.hrv_settings_title)
-                    .setView(ScrollView(settingsContext).apply { addView(HrvSettingsView(settingsContext,settingsThemes,openMeasurement={ showHrv() },canEdit={ !runtime.hrv.busy })) }).show()
+                    .setView(ScrollView(settingsContext).apply { addView(HrvSettingsView(settingsContext,settingsThemes,openMeasurement={ showHrv() },canEdit={ !runtime.hrv.busy },openAnalysis=::showHrvTrends)) }).show()
                 SettingsAction.DATA -> dataSettings()
                 SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, settingsThemes, dialogs, runtime.riderProfiles) }
                 SettingsAction.MAP -> mapSettings()
@@ -627,6 +627,23 @@ class MainActivity : Activity() {
         dialogs.onDismiss(screen) { runtime.hrv.abort("VIEW_CLOSED") }
         screen.show()
     }
+    private fun showHrvTrends() {
+        val root=LinearLayout(this).apply {
+            orientation=LinearLayout.VERTICAL;tag="hrv_trends_host"
+            val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
+            addView(BicycleComponents.description(this@MainActivity,runtime.themes,getString(R.string.hrvt_loading)))
+        }
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrvt_title)
+            .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
+        runtime.hrv.trends { result ->
+            if(isDestroyed || !screen.isShowing) return@trends
+            root.removeAllViews()
+            result.fold({ series ->
+                root.setPadding(0,0,0,0)
+                root.addView(HrvTrendsView(this,runtime.themes,series,::showHrvHistoryResult),LinearLayout.LayoutParams(-1,-2))
+            },{ root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
+        }
+    }
     private fun showHrvHistory() {
         runtime.hrv.history { rows ->
             if(isDestroyed) return@history
@@ -676,7 +693,7 @@ class MainActivity : Activity() {
             val training=if(runtime.mapState.busy) null else HrvTrainingSummary.previousDay(
                 java.time.LocalDate.parse(initial.day),java.time.ZoneId.of(row.getString("zone")),runtime.mapState.entries)
             root.removeAllViews();root.setPadding(0,0,0,0)
-            root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) screen.dismiss() }) { value,done ->
+            root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) { screen.dismiss();showHrvTrends() } }) { value,done ->
                 runtime.hrv.saveQuestionnaire(id,value) { saved -> done(saved.isSuccess) }
             },LinearLayout.LayoutParams(-1,-2))
         }

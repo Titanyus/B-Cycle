@@ -25,6 +25,7 @@ internal enum class SettingsHelpPage(val title:Int,val sections:List<SettingsHel
     WEBDAV(R.string.data_cloud,listOf(SettingsHelpSection(R.string.help_webdav_heading,R.string.help_webdav_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     INTERVALS(R.string.intervals_title,listOf(SettingsHelpSection(R.string.help_intervals_heading,R.string.help_intervals_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     HRV(R.string.hrv_title,listOf(SettingsHelpSection(R.string.hrv_help_heading,R.string.hrv_help_body))),
+    HRV_TRENDS(R.string.hrvt_title,listOf(SettingsHelpSection(R.string.hrvt_title,R.string.hrvt_help))),
     DREEVE_IMPORT(R.string.dreeve_import_title,listOf(SettingsHelpSection(R.string.help_dreeve_import_heading,R.string.help_dreeve_import_body))),
     ARCHIVE_IMPORT(R.string.archive_import_title,listOf(SettingsHelpSection(R.string.archive_import_title,R.string.archive_selection_help))),
     DREEVE(R.string.dreeve_title,listOf(SettingsHelpSection(R.string.help_dreeve_heading,R.string.help_dreeve_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),

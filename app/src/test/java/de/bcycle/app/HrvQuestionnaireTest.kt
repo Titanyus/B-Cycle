@@ -198,6 +198,8 @@ class HrvQuestionnaireTest {
             image.eraseColor(runtime.themes.active.tokens.secondary);decor.draw(android.graphics.Canvas(image))
             java.io.File("build/reports/ui/hrv-questionnaire-dialog.png").apply { parentFile?.mkdirs() }.outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };image.recycle()
             form.findViewWithTag<View>("hrvq_analysis").performClick();drain();assertFalse(dialog.isShowing)
+            repeat(2) { drain() }
+            assertNotNull(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("hrv_trends"))
         } finally { host.pause().stop().destroy() }
     }
     @Test fun annotationRoundTripsThroughAnalysisAndBackupWhileOriginalMeasurementStaysByteIdentical() {
