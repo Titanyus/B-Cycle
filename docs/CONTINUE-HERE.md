@@ -2,6 +2,9 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+Aktueller Auftrag nach Build 66: HRV-Diagramm mit fester Y-Skala aus gesamten geladenen Daten (Puls fünf bpm Reserve, andere Werte fünf Prozent), keine vertikale Änderung durch Zoom/Pan. Balken ACCENT, unter Normalbereich weiß; Mittel weiß, Korridor weiß 30 % und gepunktete Grenzen. Diagramm +40 % Höhe (504 dp), linken Platz ausnutzen ohne Skalentext-Clipping. Keine neue APK angefragt. Details hrv-trends.md.
+
+
 ## Aktueller Abschluss: APK 0.8.27 / Build 66
 
 APK **0.8.27 / Build 66 / versionCode 97** aus `aea6b1ec24ba509ba1e85ffd954c84ec43917a2b` erfolgreich über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.27-release-66.apk), [Buildnachweis](build-66.md). 2.221.754 Bytes; SHA-256 `44843f32ca2fa8ead0379890629a59ddb2669ff25f90c891823ccc66a35f35a1`. Dauerhafte Signatur wie Build 65, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält elf Sliderstufen, gerundete HRV4-Antworten mit Ergänzung fehlender importierter Antworten beim Öffnen und Skalenmigration sowie weißen 40-%-Korridor mit gepunkteten 1-dp-Grenzen. 21 gezielte Tests erfolgreich, kein Gesamtlauf/Hardwaretest. Alles auf main und in APK enthalten; kein offener APK-Auftrag. Frühere Angaben unten zu fehlender APK oder nur lokalen Änderungen sind Verlauf.
@@ -200,3 +203,5 @@ Prüfung dieser Korrektur: 7 gezielte bestehende/ergänzte Tagesbefinden-Tests e
 Prüfstand HRV-Auswertung: 27 unterschiedliche gezielte Tests erfolgreich; native Testdaten-Vorschau docs/previews/hrv-trends.png visuell geprüft. Alle sechs Kennzahlen, Statistik-/Tages-/Protokollregeln, Touch-Pinch/Pan/Tagesauswahl, beide echten Einstiege, Speichern vor Weiterleitung, Zurück zu Einstellungen, unveränderte Sicherung und CSV-Import geprüft. Typografie und UI-Atlas konsistent. Quellstand lokal gesichert, kein Push/APK für diesen Auftrag. APK 0.8.25 / Build 64 enthält weder diese Auswertung noch die danach korrigierte CSV-Prüfanzeige.
 
 Prüfstand elf Stufen/HRV4-Antworten/Korridor: 21 gezielte Tests erfolgreich. Schema 1 → 2 einmalig mit legacyRatings, .5-Rundung, Quellenbereich/fehlende Daten, Schutz manueller Antworten, unveränderte Originaldateien und Backup-Rundlauf geprüft. Korridor nativ visuell geprüft. HTML-Atlas auf elf Stufen aktualisiert, nur lokal; keine APK und kein Push.
+
+Prüfstand feste Achsen/Farben/Größe: acht gezielte HRV-Auswertungstests erfolgreich; native Vorschau mit 504 dp Höhe und linkem Platzgewinn visuell geprüft. Neue Folgefrage: Linie und Korridor sollen bis heute reichen; derzeit kein absichtlich zentrierter Mittelwert (schon trailing 7 Tage), mögliche Ursache sind Quellen-/Protokollgruppen oder Mindestdaten. Noch keine nachträgliche Kurvenverlängerung implementiert, Diagnose läuft. Keine APK angefragt.

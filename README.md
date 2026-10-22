@@ -42,6 +42,8 @@ In APK 0.8.26: neuer Bildschirm **HRV-Auswertung** über die HRV-Einstellungen u
 
 In APK 0.8.27: Tagesbefinden mit elf Stufen 0–10, gerundete HRV4-Sliderantworten und sichere Ergänzung fehlender Antworten vorhandener Importe beim Öffnen. Alte Neunerskala wird mit erhaltenen Originalwerten übertragen. HRV-Korridor weiß mit 40 % Deckkraft und gepunkteten 1-dp-Grenzen.
 
+Aktueller Quellstand nach Build 66: HRV-Diagramm mit fester Y-Skala je Kennzahl, 40 % mehr Höhe und besser genutztem linken Rand. ACCENT-Balken, weiße Werte unter Normalbereich, weiße 7-Tage-Linie und Korridor mit 30 % Deckkraft. Noch nicht in APK 0.8.27 enthalten.
+
 ## Key Features
 
 - **Individuelle Dashboards** – Bis zu sechs benannte Seiten, zehn Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.

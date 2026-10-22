@@ -90,6 +90,19 @@ class HrvTrendsTest {
         assertTrue(view.contains(start));assertTrue(view.contains(start.plusDays(90)))
         assertEquals(points,HrvTrends.series(rows,HrvTrendMetric.RMSSD))
     }
+    @Test fun fixedAxisFitsWholeSeriesAndReferenceBandAndOnlyBelowRangeIsMarked() {
+        val point=HrvTrendPoint(row(0),start,"native",60.0,62.0,58.0,65.0)
+        assertEquals(HrvTrendAxis(53.0,70.0),HrvTrendAxis.from(listOf(point),HrvTrendMetric.HR))
+        val rmssd=HrvTrendAxis.from(listOf(point),HrvTrendMetric.RMSSD)
+        assertEquals(58*.95,rmssd.minimum,1e-9);assertEquals(65*1.05,rmssd.maximum,1e-9)
+        assertFalse(point.belowNormal);assertTrue(point.copy(value=57.0).belowNormal)
+        assertFalse(point.copy(value=58.0).belowNormal);assertFalse(point.copy(lower=null).belowNormal)
+        val whole=HrvTrendAxis.from(listOf(point,point.copy(value=100.0)),HrvTrendMetric.HR)
+        assertEquals(105.0,whole.maximum,0.0)
+        assertEquals(HrvTrendAxis(0.0,1.0),HrvTrendAxis.from(emptyList(),HrvTrendMetric.HR))
+        val constant=HrvTrendAxis.from(listOf(point.copy(value=0.0,average=null,lower=null,upper=null)),HrvTrendMetric.RMSSD)
+        assertEquals(0.0,constant.minimum,0.0);assertTrue(constant.maximum>constant.minimum)
+    }
     @Test fun metricSelectionZoomAndDetailsRenderNativelyAndSettingsOpenAnalysis() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
@@ -103,7 +116,8 @@ class HrvTrendsTest {
             val chart=view.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
             val label=view.findViewWithTag<android.widget.TextView>("hrv_trend_selected")
             assertTrue(label.text.contains("RMSSD"));view.findViewWithTag<View>("hrv_trend_HR").performClick();assertTrue(label.text.contains("Puls"))
-            val tapX=48f+(chart.width-48f-8f)*11.5f/14f
+            val axisWidth=BicycleDesign.hrvTrendAxisWidth.toFloat()
+            val tapX=axisWidth+(chart.width-axisWidth-8f)*11.5f/14f
             MotionEvent.obtain(2000,2000,MotionEvent.ACTION_DOWN,tapX,150f,0).also { chart.onTouchEvent(it);it.recycle() }
             MotionEvent.obtain(2000,2020,MotionEvent.ACTION_UP,tapX,150f,0).also { chart.onTouchEvent(it);it.recycle() }
             assertTrue(label.text.contains(start.plusDays(73).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"))))
@@ -147,7 +161,7 @@ class HrvTrendsTest {
             val points=HrvTrends.series((0..80).map { row(it) },HrvTrendMetric.RMSSD)
             val chart=HrvTrendChart(a,themes,{ chosen=it.row.id }) { f,l -> first=f;last=l }
             a.setContentView(chart);chart.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));chart.layout(0,0,360,400)
-            chart.show(points,true);val before=last.toEpochDay()-first.toEpochDay()
+            chart.show(points,true);val before=last.toEpochDay()-first.toEpochDay();val fixedAxis=chart.axis
             fun event(time:Long,action:Int,vararg xs:Float) {
                 val props=Array(xs.size) { i -> MotionEvent.PointerProperties().apply { id=i;toolType=MotionEvent.TOOL_TYPE_FINGER } }
                 val coords=Array(xs.size) { i -> MotionEvent.PointerCoords().apply { x=xs[i];y=150f;pressure=1f;size=1f } }
@@ -161,7 +175,7 @@ class HrvTrendsTest {
             assertTrue(last.toEpochDay()-first.toEpochDay()<before)
             val zoomedFirst=first
             event(1000,MotionEvent.ACTION_DOWN,100f);event(1020,MotionEvent.ACTION_MOVE,220f);event(1040,MotionEvent.ACTION_UP,220f)
-            assertTrue(first<zoomedFirst);assertEquals("day80",chosen)
+            assertTrue(first<zoomedFirst);assertEquals("day80",chosen);assertEquals(fixedAxis,chart.axis)
         } finally { host.pause().stop().destroy() }
     }
 }

@@ -39,3 +39,13 @@ Darstellung nach Build 65: Normalbereich als weiße Fläche mit 40 % Deckkraft. 
 Prüfstand dieser Ergänzung: 21 gezielte Tests erfolgreich (drei neue Rundungs-/Migration-/Ergänzungsprüfungen, neun CSV-Importtests, sieben Tagesbefinden-Tests, bestehende Slider-/Speicherfreigabeprüfung und native Auswertungsdarstellung). Korridor nativ visuell geprüft; Typografie und generierter Atlas konsistent. Kein Gesamtlauf und keine neue APK.
 
 Veröffentlichung der Elf-Stufen-/Antwortimport-/Korridor-Erweiterung: in APK **0.8.27 / Build 66** enthalten. [Buildnachweis](build-66.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+## Diagrammanpassung nach Build 66
+
+Y-Achse je Kennzahl einmal aus der gesamten geladenen Serie berechnen, einschließlich Tageswerten, Mittelwert und Korridor. Keine Neuberechnung aus dem sichtbaren Ausschnitt; Zoom und Blättern ändern nur X. Puls: fünf bpm Abstand unter/über den Extremen; andere Kennzahlen fünf Prozent Abstand, obere Mindestreserve 0,1, Untergrenze mindestens null. Leere Serie 0–1, konstante Werte mit nichtleerem Bereich. Neue geladene Daten können beim erneuten Öffnen einen neuen Bereich ergeben.
+
+Balken ACCENT; nur bei vorhandenem Korridor und Tageswert strikt unter der unteren Grenze weiß. Gleichheit, fehlender Normalbereich oder hohe Werte bleiben ACCENT; keine zusätzliche Trainingsbewertung. 7-Tage-Mittel weiß, Korridor weiß mit 30 % Deckkraft und bisherigen gepunkteten 1-dp-Grenzen. Auswahl ändert nicht die fachliche Balkenfarbe.
+
+Diagrammhöhe 504 statt 360 dp (+40 %), Y-Achsenplatz 40 statt 48 dp. Nur das Diagramm nutzt den linken Seiteninset mit; übrige Controls behalten ihre regulären Abstände. Clipping am Seitenpadding ausgeschaltet, damit linke Skalentexte erhalten bleiben. Noch nicht in APK 0.8.27 enthalten.
+
+Prüfstand feste Achsen/Farben/Größe: acht gezielte Auswertungstests erfolgreich, darunter Extrema einschließlich Korridor, konstante/leere Serien, feste Y-Skala bei echten Pinch-/Wischgesten, Farbentscheidung an/unter/ohne Untergrenze und bestehende Navigation/Streaming/Statistik. Native 504-dp-Ansicht mit linkem Platzgewinn visuell geprüft; keine abgeschnittenen Achsenbeschriftungen. Typografie-/Atlasprüfung erfolgreich, kein Gesamtlauf und keine APK.

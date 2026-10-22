@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter
 internal class HrvTrendsView(context:Context,private val themes:ThemeManager,series:Map<HrvTrendMetric,List<HrvTrendPoint>>,
     open:(String)->Unit):LinearLayout(context) {
     private val series=series
+    private val axes=HrvTrendMetric.entries.associateWith { HrvTrendAxis.from(series.getValue(it),it) }
     private val metricButtons=linkedMapOf<HrvTrendMetric,BicycleSegmentButton>()
     private var metric=HrvTrendMetric.RMSSD
     private var selected:HrvTrendPoint?=null
@@ -22,7 +23,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
     private val button=BicycleComponents.action(context,themes,context.getString(R.string.hrvt_detail)) { selected?.let { open(it.row.id) } }.apply { tag="hrv_trend_detail" }
     private val chart=HrvTrendChart(context,themes,::select) { first,last -> range.text=context.getString(R.string.hrvt_period,first.format(dateFormat),last.format(dateFormat)) }
     init {
-        orientation=VERTICAL;tag="hrv_trends"
+        orientation=VERTICAL;tag="hrv_trends";clipToPadding=false
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
         val choices=RadioGroup(context).apply { orientation=HORIZONTAL;tag="hrv_trend_metrics" }
         BicycleComponents.segmentedControlRow(choices,themes)
@@ -39,7 +40,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         }
         addView(choices,LayoutParams(-1,-2))
         addView(caption,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        addView(empty);addView(chart,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvTrendGraphHeight)))
+        addView(empty);addView(chart,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvTrendGraphHeight)).apply { marginStart=-pad })
         addView(range);addView(BicycleComponents.description(context,themes,context.getString(R.string.hrvt_legend)))
         addView(BicycleComponents.description(context,themes,context.getString(R.string.hrvt_gestures)))
         addView(BicycleComponents.sectionDivider(context,themes))
@@ -70,6 +71,6 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         empty.visibility=if(points.none { it.value!=null }) VISIBLE else GONE
         chart.visibility=if(points.none { it.value!=null }) GONE else VISIBLE
         button.isEnabled=points.isNotEmpty()
-        chart.show(points,reset)
+        chart.show(points,reset,axes.getValue(metric))
     }
 }

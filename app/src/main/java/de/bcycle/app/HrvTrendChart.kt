@@ -25,11 +25,12 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private val bandEdges=Path()
     private val viewport=HrvTrendViewport()
     private var points:List<HrvTrendPoint> = emptyList()
+    var axis=HrvTrendAxis(0.0,1.0);private set
     private var selectedId:String?=null
     private var downX=0f;private var downY=0f;private var moved=false
     private val slop=ViewConfiguration.get(context).scaledTouchSlop
     private val density=resources.displayMetrics.density
-    private val plotLeft get()=BicycleDesign.dp(context,48).toFloat()
+    private val plotLeft get()=BicycleDesign.dp(context,BicycleDesign.hrvTrendAxisWidth).toFloat()
     private val plotRight get()=(width-BicycleDesign.dp(context,8)).toFloat().coerceAtLeast(plotLeft+1)
     private fun x(day:LocalDate)=plotLeft+((day.toEpochDay()-(viewport.end-viewport.span))/viewport.span*(plotRight-plotLeft)).toFloat()
     private val scale=ScaleGestureDetector(context,object:ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -55,8 +56,8 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         contentDescription=context.getString(R.string.hrvt_gestures)
         BicycleComponents.bindTheme(this,themes) { tokens=it;invalidate() }
     }
-    fun show(rows:List<HrvTrendPoint>,reset:Boolean=false) {
-        points=rows
+    fun show(rows:List<HrvTrendPoint>,reset:Boolean=false,axis:HrvTrendAxis=HrvTrendAxis.from(rows,HrvTrendMetric.RMSSD)) {
+        points=rows;this.axis=axis
         if(reset) viewport.reset(rows.map { it.day })
         if(selectedId==null || rows.none { it.row.id==selectedId }) selectedId=rows.lastOrNull()?.row?.id
         rows.firstOrNull { it.row.id==selectedId }?.let { selected(it) }
@@ -82,16 +83,15 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         super.onDraw(canvas)
         val top=16*density;val bottom=(height-32*density).coerceAtLeast(top+1)
         val visible=points.filter { viewport.contains(it.day) }
-        val max=visible.maxOfOrNull { maxOf(it.value ?: 0.0,it.average ?: 0.0,it.upper ?: 0.0) }?.times(1.1)?.coerceAtLeast(1.0) ?: 1.0
-        fun y(value:Double)=bottom-(value/max*(bottom-top)).toFloat()
+        fun y(value:Double)=bottom-((value-axis.minimum)/(axis.maximum-axis.minimum)*(bottom-top)).toFloat()
         paint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity
         paint.color=alpha(tokens.foreground,.5f);paint.textAlign=Paint.Align.RIGHT
         for(i in 0..4) {
-            val value=max*i/4;val at=y(value)
+            val value=axis.minimum+(axis.maximum-axis.minimum)*i/4;val at=y(value)
             paint.color=alpha(tokens.foreground,.12f);paint.strokeWidth=density
             canvas.drawLine(plotLeft,at,plotRight,at,paint)
             paint.color=alpha(tokens.foreground,.5f)
-            canvas.drawText(String.format(java.util.Locale.getDefault(),if(max>=100) "%.0f" else "%.1f",value),plotLeft-8*density,at+4*density,paint)
+            canvas.drawText(String.format(java.util.Locale.getDefault(),if(axis.maximum-axis.minimum>=100) "%.0f" else "%.1f",value),plotLeft-8*density,at+4*density,paint)
         }
         paint.textAlign=Paint.Align.CENTER
         for(i in 0..4) {
@@ -116,7 +116,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         }
         val half=((plotRight-plotLeft)/viewport.span*.32).toFloat().coerceAtMost(12*density)
         visible.forEach { point -> point.value?.let { value ->
-            paint.color=alpha(tokens.foreground,if(point.row.id==selectedId) .9f else .45f)
+            paint.color=if(point.belowNormal) Color.WHITE else tokens.accent
             canvas.drawRect(x(point.day)-half,y(value),x(point.day)+half,bottom,paint)
         } }
         paint.color=Color.WHITE;paint.strokeWidth=density*BicycleDesign.hrvTrendBandLineDp
@@ -124,7 +124,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         paint.pathEffect=android.graphics.DashPathEffect(floatArrayOf(.1f*density,BicycleDesign.hrvTrendBandDotGapDp*density),0f)
         canvas.drawPath(bandEdges,paint)
         paint.pathEffect=null;paint.strokeCap=Paint.Cap.BUTT;paint.style=Paint.Style.FILL
-        paint.color=tokens.accent;paint.strokeWidth=2*density
+        paint.color=Color.WHITE;paint.strokeWidth=2*density
         for(index in points.indices) {
             val point=points[index];val mean=point.average ?: continue
             if(!viewport.contains(point.day)) continue

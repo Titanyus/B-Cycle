@@ -12,7 +12,23 @@ internal enum class HrvTrendMetric(val key:String,val label:Int,val unit:Int) {
     HF("hfMs2",R.string.hrvt_hf,R.string.hrvt_ms2)
 }
 internal data class HrvTrendPoint(val row:HrvHistorySummary,val day:LocalDate,val cohort:String,val value:Double?,
-    val average:Double?,val lower:Double?,val upper:Double?)
+    val average:Double?,val lower:Double?,val upper:Double?) {
+    val belowNormal get()=value!=null && lower!=null && value<lower
+}
+
+/** Fixed for the complete loaded series, including its mean and reference band. */
+internal data class HrvTrendAxis(val minimum:Double,val maximum:Double) {
+    companion object {
+        fun from(points:List<HrvTrendPoint>,metric:HrvTrendMetric):HrvTrendAxis {
+            val values=points.flatMap { listOfNotNull(it.value,it.average,it.lower,it.upper) }.filter { it.isFinite() && it>=0 }
+            val low=values.minOrNull() ?: return HrvTrendAxis(0.0,1.0)
+            val high=values.max()
+            val lowerPadding=if(metric==HrvTrendMetric.HR) 5.0 else low*.05
+            val upperPadding=if(metric==HrvTrendMetric.HR) 5.0 else (high*.05).coerceAtLeast(.1)
+            return HrvTrendAxis((low-lowerPadding).coerceAtLeast(0.0),high+upperPadding)
+        }
+    }
+}
 
 /** Read-only descriptive statistics, never a readiness score or a re-evaluation of a capture. */
 internal object HrvTrends {
