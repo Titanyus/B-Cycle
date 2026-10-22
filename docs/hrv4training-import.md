@@ -43,3 +43,5 @@ Prüfstand der Korrektur: ursprünglichen Fehler mit einem gezielten Test zunäc
 Veröffentlichung: Diese Ergänzung/Korrektur ist in APK **0.8.26 / Build 65** enthalten. [Buildnachweis](build-65.md). Frühere Aussagen zu fehlender neuer APK beschreiben den Stand vor dieser Veröffentlichung.
 
 Erweiterung nach Build 65: Qualitäts-Slider und RPE aus gültigen HRV4-Quellwerten 0–10 werden auf ganze Zahlen gerundet (.5 nach oben). Bestehende importierte Fragebögen erhalten beim Öffnen ausschließlich fehlende Ratings aus ihrem archivierten Original; bereits bearbeitete Antworten werden nicht überschrieben. Details und genaue Zuordnung in [Tagesbefinden](hrv-questionnaire.md). Diese Erweiterung ist noch nicht in APK 0.8.26 enthalten.
+
+Veröffentlichung der Elf-Stufen-/Antwortimport-/Korridor-Erweiterung: in APK **0.8.27 / Build 66** enthalten. [Buildnachweis](build-66.md). Frühere Angaben zu fehlender APK sind Verlauf.

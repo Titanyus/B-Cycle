@@ -2,6 +2,11 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller Abschluss: APK 0.8.27 / Build 66
+
+APK **0.8.27 / Build 66 / versionCode 97** aus `aea6b1ec24ba509ba1e85ffd954c84ec43917a2b` erfolgreich über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.27-release-66.apk), [Buildnachweis](build-66.md). 2.221.754 Bytes; SHA-256 `44843f32ca2fa8ead0379890629a59ddb2669ff25f90c891823ccc66a35f35a1`. Dauerhafte Signatur wie Build 65, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält elf Sliderstufen, gerundete HRV4-Antworten mit Ergänzung fehlender importierter Antworten beim Öffnen und Skalenmigration sowie weißen 40-%-Korridor mit gepunkteten 1-dp-Grenzen. 21 gezielte Tests erfolgreich, kein Gesamtlauf/Hardwaretest. Alles auf main und in APK enthalten; kein offener APK-Auftrag. Frühere Angaben unten zu fehlender APK oder nur lokalen Änderungen sind Verlauf.
+
+
 Aktueller Auftrag nach Build 65: Tagesbefinden auf elf Stufen 0–10, gerundete HRV4-Antworten einschließlich Ergänzung fehlender Antworten vorhandener Importe beim Öffnen. Alte Schema-1-Werte proportional übertragen und in legacyRatings erhalten; neue Antworten Schema 2, unveränderte Ergebnisdateien/Originalfelder. Korridor weiß 40 %, oben/unten weiß gepunktet 1 dp. Keine APK angefragt. Details hrv-questionnaire.md / hrv-trends.md.
 
 

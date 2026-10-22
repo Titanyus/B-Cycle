@@ -37,3 +37,5 @@ Veröffentlichung: Diese Ergänzung/Korrektur ist in APK **0.8.26 / Build 65** e
 Darstellung nach Build 65: Normalbereich als weiße Fläche mit 40 % Deckkraft. Obere und untere Grenze in Weiß als gepunktete Linie von 1 dp, nach den Balken gezeichnet, damit sie erkennbar bleiben. Lücken und Gruppenwechsel weiterhin nicht überbrücken; Mittelwert bleibt ACCENT. Berechnung unverändert, Geometrie über BicycleDesign. Noch nicht in APK 0.8.26.
 
 Prüfstand dieser Ergänzung: 21 gezielte Tests erfolgreich (drei neue Rundungs-/Migration-/Ergänzungsprüfungen, neun CSV-Importtests, sieben Tagesbefinden-Tests, bestehende Slider-/Speicherfreigabeprüfung und native Auswertungsdarstellung). Korridor nativ visuell geprüft; Typografie und generierter Atlas konsistent. Kein Gesamtlauf und keine neue APK.
+
+Veröffentlichung der Elf-Stufen-/Antwortimport-/Korridor-Erweiterung: in APK **0.8.27 / Build 66** enthalten. [Buildnachweis](build-66.md). Frühere Angaben zu fehlender APK sind Verlauf.

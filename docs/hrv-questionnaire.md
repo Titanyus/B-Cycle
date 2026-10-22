@@ -61,3 +61,5 @@ HRV4-Zuordnung: sleep_quality → sleep, trainingMotivation → motivation, phys
 Bei vorhandenen HRV4-Importen ergänzt questionnaireForEditing auf dem HRV-Worker beim Öffnen des Tagesbefindens ausschließlich fehlende Ratings aus archivierten originalColumns; bestehende Antworten, Notizen und Zeitstempel erhalten. Atomare Speicherung nur bei tatsächlicher Ergänzung. Neue CSV-Inhalte können vorhandene Antworten/Originale beim erneuten Import nicht überschreiben. Keine automatische Änderung der aktiven Fragen oder der HRV-Messwerte. Noch keine neue APK für diese Ergänzung.
 
 Prüfstand dieser Ergänzung: 21 gezielte Tests erfolgreich (drei neue Rundungs-/Migration-/Ergänzungsprüfungen, neun CSV-Importtests, sieben Tagesbefinden-Tests, bestehende Slider-/Speicherfreigabeprüfung und native Auswertungsdarstellung). Korridor nativ visuell geprüft; Typografie und generierter Atlas konsistent. Kein Gesamtlauf und keine neue APK.
+
+Veröffentlichung der Elf-Stufen-/Antwortimport-/Korridor-Erweiterung: in APK **0.8.27 / Build 66** enthalten. [Buildnachweis](build-66.md). Frühere Angaben zu fehlender APK sind Verlauf.
