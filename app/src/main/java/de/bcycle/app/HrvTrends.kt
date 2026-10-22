@@ -42,7 +42,10 @@ internal object HrvTrends {
             val usable=row.acceptable || row.importedDay!=null && row.hasMeasurement
             val value=if(usable) (row.metrics[metric.key] ?: row.rmssdMs.takeIf { metric==HrvTrendMetric.RMSSD })
                 ?.takeIf { it.isFinite() && it>=0 } else null
-            HrvTrendPoint(row,HrvDailySelection.day(row),if(row.importedDay!=null) "hrv4training" else "native:${row.restMs}:${row.measureMs}",value,null,null,null)
+            // One personal history per metric; source/protocol remain descriptive metadata.
+            // CSV frequency values without a known unit never enter these metric fields.
+            val cohort=metric.name
+            HrvTrendPoint(row,HrvDailySelection.day(row),cohort,value,null,null,null)
         }
         return points.mapIndexed { index,point ->
             if(point.value==null) return@mapIndexed point

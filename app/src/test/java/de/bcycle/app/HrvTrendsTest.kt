@@ -48,17 +48,38 @@ class HrvTrendsTest {
         val sparse=HrvTrends.series(listOf(0,1,2,3,20).map { row(it) },HrvTrendMetric.RMSSD)
         assertNull(sparse.last().average)
     }
-    @Test fun latestRejectedReplacesEarlierValidAndSourcesAndProtocolsNeverShareReferenceValues() {
+    @Test fun missingDayBeforeYesterdayDoesNotDelayCurrentMeanOrReferenceRange() {
+        val rows=(0..20).filter { it!=18 }.map { row(it,it.toDouble()) }
+        val today=HrvTrends.series(rows,HrvTrendMetric.RMSSD).last()
+        assertEquals(start.plusDays(20),today.day)
+        assertEquals((14.0+15+16+17+19+20)/6,today.average!!,1e-9)
+        assertNotNull(today.lower);assertNotNull(today.upper)
+        assertEquals(20.0,today.value!!,0.0)
+    }
+    @Test fun latestRejectedReplacesEarlierValidAndCompatibleTimeMetricsShareHistory() {
         val rows=(0..20).map { row(it) }
         val later=rows.last().copy(id="late",utcMs=rows.last().utcMs+1000,acceptable=false)
         val selected=HrvTrends.series(rows+later,HrvTrendMetric.RMSSD)
         assertEquals(21,selected.size);assertEquals("late",selected.last().row.id)
         assertNull(selected.last().value);assertNull(selected.last().average)
         val otherProtocol=HrvTrends.series(rows+row(21,500.0).copy(measureMs=60000),HrvTrendMetric.RMSSD)
-        assertNull(otherProtocol.last().average);assertNull(otherProtocol.last().lower)
+        assertEquals((6*40.0+500)/7,otherProtocol.last().average!!,1e-9);assertEquals(40.0,otherProtocol.last().lower!!,0.0)
         val imported=row(21,500.0).copy(importedDay=start.plusDays(21).toString(),importedTime="00:00",acceptable=false)
         val otherSource=HrvTrends.series(rows+imported,HrvTrendMetric.RMSSD)
-        assertEquals(500.0,otherSource.last().value!!,0.0);assertNull(otherSource.last().lower)
+        assertEquals(500.0,otherSource.last().value!!,0.0);assertEquals(40.0,otherSource.last().lower!!,0.0)
+        val frequencyRows=rows.map { it.copy(metrics=mapOf("lfMs2" to 40.0)) }
+        val frequency=HrvTrends.series(frequencyRows+row(21).copy(measureMs=60000,metrics=mapOf("lfMs2" to 500.0)),HrvTrendMetric.LF)
+        assertEquals((6*40.0+500)/7,frequency.last().average!!,1e-9);assertEquals(40.0,frequency.last().lower!!,0.0)
+    }
+    @Test fun switchingWinningAppWithOneMissingDayStillComputesTodaysMeanAndBand() {
+        val rows=(0..20).filter { it!=18 }.map { day ->
+            val native=row(day,40.0+day)
+            if(day<19) native.copy(importedDay=start.plusDays(day.toLong()).toString(),importedTime="07:00",acceptable=false) else native
+        }
+        val today=HrvTrends.series(rows,HrvTrendMetric.RMSSD).last()
+        assertEquals(start.plusDays(20),today.day)
+        assertNotNull(today.average);assertNotNull(today.lower);assertNotNull(today.upper)
+        assertEquals((54.0+55+56+57+59+60)/6,today.average!!,1e-9)
     }
     @Test fun streamingUsesCorrectedScalarsAndDoesNotInventImportedFrequencyUnits() {
         val root=File(context.cacheDir,"trend-stream-${UUID.randomUUID()}")
