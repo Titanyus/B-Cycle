@@ -63,6 +63,7 @@ aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 [Buildnachweis und SHA-256](docs/build-62.md) ·
 [Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39652351462) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
+Gezielte Regressionstests lassen sich separat unter Actions → **Targeted regression tests** → **Run workflow** starten, lokal mit `bash scripts/test-regressions.sh`. Dabei werden nur Testberichte erzeugt; kein APK-Build und kein Signierschlüsselzugriff. [Umfang und Nachweise](docs/priority-optimizations.md).
 15 gezielte Tests für Tagesbefinden, Profil-/Konfigurationssicherung, Backup und weiche Dashboard-Kurven erfolgreich.
 HRV-Messwerte und Aufzeichnungen erhalten; Antworten getrennt gespeichert und mitgesichert.
 Kein vollständiger Gesamttestlauf; frühere Prüfungen und bekannte ältere UI-Testfehler in den Buildnachweisen.
@@ -352,6 +353,7 @@ Mapsforge, Garmin FIT SDK und OkHttp übernehmen Karten, FIT-Dateien und Netzwer
 Für Meilenstein 0.8 wurden alle 608 Tests der vollständigen JVM-/Robolectric-Suite erfolgreich ausgeführt.
 APK-Builds laufen zentral über GitHub Actions; lokale Builds sind nur bei konkretem Bedarf vorgesehen.
 [Build-Anleitung und Signierung](docs/github-actions.md).
+Gezielte Regressionstests lassen sich separat unter Actions → **Targeted regression tests** → **Run workflow** starten, lokal mit `bash scripts/test-regressions.sh`. Dabei werden nur Testberichte erzeugt; kein APK-Build und kein Signierschlüsselzugriff. [Umfang und Nachweise](docs/priority-optimizations.md).
 Tests ersetzen keinen Hardwaretest. Der Matrix-Empfang wurde vom Nutzer bestätigt; Korrekturfaktoren, Wiederverbindung
 und längere Aufnahmen bleiben am Gerät zu prüfen. Die reale Benachrichtigungsfunktion wurde vom Nutzer bestätigt.
 Neue Dreeve-/Strava-Uploads und der Strava-Anmeldevorgang müssen ebenfalls noch

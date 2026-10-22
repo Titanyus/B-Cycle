@@ -1,6 +1,6 @@
 # Konkrete Optimierungsmöglichkeiten – Codeprüfung vom 21.10.2026
 
-Auf Wunsch nach Umsetzung von Tagesbefinden und weichen Dashboard-Kurven. Dies ist eine statische Codeprüfung, kein Geräteprofiling oder vollständiger Lasttest. Die unten vorgeschlagenen Optimierungen wurden nicht implementiert. Keine grundlegende Neuarchitektur, neue Datenbank oder externe Abhängigkeit erforderlich. Bestehende Datenformate, Sensorverhalten und Aufzeichnungen bewahren.
+Auf Wunsch nach Umsetzung von Tagesbefinden und weichen Dashboard-Kurven. Dies ist eine statische Codeprüfung, kein Geräteprofiling oder vollständiger Lasttest. Die vier technischen Prioritäten wurden anschließend umgesetzt; Stand und Nachweise in [priority-optimizations.md](priority-optimizations.md). Die ursprünglichen Befunde unten beschreiben den Zustand vor dieser Umsetzung. Keine grundlegende Neuarchitektur, neue Datenbank oder externe Abhängigkeit erforderlich. Bestehende Datenformate, Sensorverhalten und Aufzeichnungen bewahren.
 
 ## Priorität 1: HRV-Historie mit kleinen Zusammenfassungen laden
 
@@ -38,17 +38,9 @@ Quelle: `MapState.kt:55`, `RideProfileColor.kt:33`, `RideProfileColor.kt:46`, `R
 
 Quelle: `ActivityServiceUploads.kt:20`, `ActivityServiceUploads.kt:23`, `RouteTransferMenu.kt:27`, `RouteUploads.kt` (`statusCache`).
 
-## Priorität 2: Vor HRV-Trenddiagrammen eine klare Tagesregel festlegen
+## Entscheidung vom 22.10.2026: tägliche Readiness
 
-**Befund:** Ergebnisse und Tagesbefinden liegen aktuell pro Messung vor. Mehrere Messungen am selben Tag, unterschiedliche Messdauern, wiederholte Messungen nach einem schlechten Ergebnis und fehlende Antworten lassen sich daher nicht ohne fachliche Regel zu einem Tageswert zusammenziehen.
-
-**Nutzen:** Spätere Vergleiche von Schlaf/Alkohol/Training mit HRV werden nachvollziehbar und nicht durch selektiv ausgewählte hohe Messwerte oder neutral interpretierte Leerfelder verzerrt.
-
-**Kleinster Schritt:** Tagesaggregation als abgeleitete Sicht definieren (beispielsweise erste vergleichbare Morgenmessung; konkrete Auswahl noch mit Nutzer abstimmen), alle Einzelmessungen behalten. Messprotokoll, Qualität, geringe Abdeckung, korrigierte Werte und subjektive Antworten sichtbar mitführen. Keine historischen Resultate ändern und keinen versteckten Gesamtscore hinzufügen.
-
-**Regression:** Zeitzonen/Sommerzeit, mehrere Messungen, fehlende Antworten, unterschiedlich lange Protokolle, Fahrradwechsel, Fahrt ohne Leistung und manuelle Trainingsangaben. Mit synthetischen Wochenverläufen prüfen.
-
-Quelle: `HrvStore.kt`, `HrvQuestionnaire.kt`, Nutzerziel in `docs/hrv-score-plan.md` und `docs/hrv-questionnaire.md`.
+Der Nutzer möchte eine tägliche Messung für die Tagesbereitschaft. Die vorgeschlagene zusätzliche Tagesaggregation entfällt ausdrücklich. Keine neue Auswahl-/Mehrfachmessungslogik oder erweitertes HRV-Tool einführen. Bestehende Messungen, Wiederholungen und gespeicherte Werte bleiben erhalten; die inzwischen gut funktionierende Messung bleibt unverändert.
 
 ## Priorität 2: Kleine verlässliche Tests auch vor Release in CI verfügbar machen
 
@@ -73,4 +65,4 @@ Messung, Historie, Tagesbefinden und kommende Verlaufsansichten werden zu einem 
 - Streckenanalyse läuft bereits abseits der UI und bündelt Abschnitte aus einer Dekodierung; keine zweite pauschale FIT-Verarbeitung daneben einführen.
 - Bestehende atomare HRV-Dateien, vollständige Sicherungen, Profilidentitäten und dauerhafte Signatur beibehalten. Sie lösen reale Kompatibilitäts-/Datenverlustprobleme.
 
-Empfohlene Reihenfolge: zuerst HRV-Historie und Fahrtenmetadaten mit synthetischen Beständen messen, danach den konkreten Engpass klein beheben. Tagesregel vor Trendanalyse vereinbaren; Testworkflow separat vorbereiten. Keine der Empfehlungen erfordert neue externe Dienste.
+Empfohlene Reihenfolge: zuerst HRV-Historie und Fahrtenmetadaten mit synthetischen Beständen messen, danach den konkreten Engpass klein beheben. Tägliche Readiness ist das vereinbarte Ziel; keine zusätzliche Tagesaggregation. Testworkflow separat halten. Keine der Empfehlungen erfordert neue externe Dienste.
