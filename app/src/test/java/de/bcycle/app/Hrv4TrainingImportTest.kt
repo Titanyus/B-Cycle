@@ -117,6 +117,45 @@ class Hrv4TrainingImportTest {
             assertTrue(view.findViewWithTag<android.widget.TextView>("hrv4_import_status").text.contains("Importiert: 2"))
         } finally { host.pause().stop().destroy();controller.close();file.delete() }
     }
+    @Test fun fastPreviewSurvivesLateWindowAttachmentAndReparenting() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup();val controller=HrvController(host.get())
+        val file=File(context.cacheDir,"late-attach.csv").apply { writeText(sample) }
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            val view=HrvCsvImportView(a,themes,controller,Uri.fromFile(file))
+            // The file picker can return before the dialog window is attached.
+            repeat(2) { drain(controller) }
+            val parent=ScrollView(a).apply { addView(view) };a.setContentView(parent)
+            repeat(3) { drain(controller) }
+            assertNotNull("A fast result must not leave the loading message forever",view.findViewWithTag<View>("hrv4_import_start"))
+            parent.removeView(view)
+            val replacement=ScrollView(a).apply { addView(view) };a.setContentView(replacement)
+            repeat(2) { drain(controller) }
+            assertNotNull(view.findViewWithTag<View>("hrv4_import_start"))
+            assertTrue(HrvStore(File(a.filesDir,"hrv-measurements")).ids().isEmpty())
+        } finally { host.pause().stop().destroy();controller.close();file.delete() }
+    }
+    @Test fun inFlightPreviewRestartsAfterFullscreenContentIsReattached() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup();val controller=HrvController(host.get())
+        val file=File(context.cacheDir,"reparented.csv").apply { writeText(sample) }
+        val release=java.util.concurrent.CountDownLatch(1)
+        try {
+            drain(controller)
+            val worker=HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(controller) as ExecutorService
+            worker.submit { release.await(10,TimeUnit.SECONDS) }
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            val view=HrvCsvImportView(a,themes,controller,Uri.fromFile(file))
+            val parent=ScrollView(a).apply { addView(view) };a.setContentView(parent)
+            shadowOf(Looper.getMainLooper()).idle()
+            assertNull(view.findViewWithTag<View>("hrv4_import_start"))
+            parent.removeView(view)
+            a.setContentView(ScrollView(a).apply { addView(view) })
+            shadowOf(Looper.getMainLooper()).idle()
+            release.countDown();repeat(3) { drain(controller) }
+            assertNotNull(view.findViewWithTag<View>("hrv4_import_start"))
+            assertTrue(HrvStore(File(a.filesDir,"hrv-measurements")).ids().isEmpty())
+        } finally { release.countDown();host.pause().stop().destroy();controller.close();file.delete() }
+    }
     @Test fun storageFailureReportsAlreadyImportedEntriesAndLeavesTheRestUntouched() {
         val root=root()
         try {

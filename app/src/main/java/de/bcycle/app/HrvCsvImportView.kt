@@ -10,16 +10,21 @@ import org.json.JSONObject
 internal class HrvCsvImportView(context:Context,private val themes:ThemeManager,private val controller:HrvController,
     private val uri:Uri):LinearLayout(context) {
     private var generation=0
+    private var needsLoad=true
+    private var loading=false
+    private var dateOrder:HrvCsvDateOrder?=null
     init {
         orientation=VERTICAL;tag="hrv4_import_view"
         val inset=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(inset,0,inset,0)
-        load(null)
+        message(context.getString(R.string.hrv4_loading))
     }
     private fun message(text:String)=BicycleComponents.description(context,themes,text).also { addView(it) }
     private fun load(order:HrvCsvDateOrder?) {
+        dateOrder=order;needsLoad=false;loading=true
         val request=++generation;removeAllViews();message(context.getString(R.string.hrv4_loading))
         controller.previewHrv4Training(uri,order) { result ->
             if(request!=generation || !isAttachedToWindow) return@previewHrv4Training
+            loading=false
             removeAllViews()
             result.fold({ preview -> show(preview) },{ error ->
                 message(context.getString((error as? HrvCsvException)?.messageId ?: R.string.hrv4_failed))
@@ -69,7 +74,17 @@ internal class HrvCsvImportView(context:Context,private val themes:ThemeManager,
         }.apply { tag="hrv4_import_start";isEnabled=preview.entries.isNotEmpty() }
         addView(start);addView(status)
     }
-    override fun onDetachedFromWindow() { generation++;super.onDetachedFromWindow() }
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        // The fullscreen host reparents native dialog content. Start only after attachment
+        // settles, and retry read-only work invalidated by a temporary detach.
+        post { if(isAttachedToWindow && needsLoad) load(dateOrder) }
+    }
+    override fun onDetachedFromWindow() {
+        generation++
+        if(loading) { needsLoad=true;loading=false }
+        super.onDetachedFromWindow()
+    }
 }
 
 internal fun hrv4TrainingResult(context:Context,themes:ThemeManager,row:JSONObject)=LinearLayout(context).apply {

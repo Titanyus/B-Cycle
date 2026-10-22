@@ -33,3 +33,9 @@ Ergebnis zählt importierte, vorhandene, ungültige und bei Speicherfehler verbl
 ## Abgrenzung zur Score-Diskussion
 
 Keine aus einem persönlichen Export abgeleitete Alterskorrektur als allgemeine Formel eingebaut. HRV4Training-Originalscore wird nur bewahrt. lnRMSSD ist bereits Bestandteil der nativen BICYCLE-Metriken. Diskussion zu wissenschaftlich begründeten Kennwerten: [hrv-score-plan.md](hrv-score-plan.md).
+
+## Vorschau-Lebenszyklus nach Build 64
+
+Reproduzierbarer Fehler: Die Prüfung startete schon im View-Konstruktor. Ein Ergebnis vor Window-Attachment wurde verworfen; temporäres Detach beim Umhängen in den Vollbildhost invalidierte den Callback ebenfalls dauerhaft. Dadurch konnte die Ladeanzeige trotz abgeschlossener Prüfung stehen bleiben. Korrektur: schreibfreie Prüfung nach tatsächlichem Attachment starten; bei Unterbrechung durch Detach nach erneutem Attachment neu prüfen. Fertige Vorschau erhalten, veraltete Callbacks weiterhin ignorieren. Kein automatischer Import, keine Änderung des Parsers/Dateiformats oder der gespeicherten Daten. Zwei zusätzliche Regressionen für verspätetes Attachment und Umhängen während laufender Prüfung; vorhandener echter Dateiauswahlpfad bleibt geprüft. Diese Korrektur ist noch nicht in APK 0.8.25 / Build 64 enthalten.
+
+Prüfstand der Korrektur: ursprünglichen Fehler mit einem gezielten Test zunächst nachgewiesen; danach alle neun CSV-Importtests erfolgreich, einschließlich beider Lebenszyklusfälle und des echten Dateiauswahlpfads. Typografie-/Atlasprüfung erfolgreich. Kein Gesamtlauf und keine neue APK.

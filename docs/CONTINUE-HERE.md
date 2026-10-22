@@ -2,6 +2,9 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+Aktuelle Korrektur nach Build 64: Endlose CSV-Prüfanzeige als View-Lebenszyklusfehler reproduziert (Ergebnis vor Attachment verworfen / Callback bei Vollbild-Reparenting invalidiert). Vorschau erst nach Attachment starten, unterbrochene Prüfung bei Reattach neu starten; fertige Vorschau behalten. Keine Daten-/Parseränderung und kein automatischer Import. Noch keine neue APK für diese Korrektur angefragt. Details hrv4training-import.md.
+
+
 ## Aktueller Stand nach Build 64
 
 APK **0.8.25 / Build 64 / versionCode 95** aus `f9e8e5ab67f12e86eb755f048909c52fd2055026` über Actions erfolgreich gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.25-release-64.apk), [Buildnachweis](build-64.md). 2.201.366 Bytes; SHA-256 `3419ada2ea11cf1158cf57357ff674e7141e0b702404edbd11b63da36e8a0dbc`. Dauerhafte Signatur wie Build 63, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält CSV-Import, spätere Slider-Abstandskorrektur und zentrale HRV-Tagesregel. Alle betreffenden Commits jetzt auf main, kein offener APK-Auftrag. 16 gezielte HRV-Tests erfolgreich; kein Gesamtlauf/Hardwaretest.
