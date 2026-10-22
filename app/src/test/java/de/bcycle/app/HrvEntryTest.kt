@@ -85,7 +85,7 @@ class HrvEntryTest {
             assertEquals(2,form.findViewWithTag<LinearLayout>("hrvq_sleep_times").childCount)
             assertEquals(form.findViewWithTag<EditText>("hrvq_wake").top,form.findViewWithTag<EditText>("hrvq_bed").top)
             val sleep=form.findViewWithTag<BicycleRatingSlider>("hrvq_sleep")
-            assertEquals(4,sleep.origin);assertEquals(4,sleep.progress)
+            assertEquals(5,sleep.origin);assertEquals(5,sleep.progress)
             for(key in listOf("soreness","fatigue")) {
                 val slider=form.findViewWithTag<BicycleRatingSlider>("hrvq_$key")
                 assertEquals(0,slider.origin);assertEquals(0,slider.progress)

@@ -40,6 +40,8 @@ In APK 0.8.25: HRV4Training-CSV-Import unter „Daten & Speicher → HRV-Pulsdat
 
 In APK 0.8.26: neuer Bildschirm **HRV-Auswertung** über die HRV-Einstellungen und „Zur Auswertung“ nach dem Tagesbefinden. Tagesbalken, 7-Tage-Mittel, eigener dokumentierter Normalbereich und Zweifinger-Zoom. Dazu die Korrektur der hängenbleibenden CSV-Prüfanzeige. [Umfang und Berechnung](docs/hrv-trends.md).
 
+Aktueller Quellstand nach Build 65: Tagesbefinden mit elf Stufen 0–10, gerundete HRV4-Sliderantworten und sichere Ergänzung fehlender Antworten vorhandener Importe beim Öffnen. Alte Neunerskala wird mit erhaltenen Originalwerten übertragen. HRV-Korridor weiß mit 40 % Deckkraft und gepunkteten 1-dp-Grenzen. Noch nicht in APK 0.8.26 enthalten.
+
 ## Key Features
 
 - **Individuelle Dashboards** – Bis zu sechs benannte Seiten, zehn Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.

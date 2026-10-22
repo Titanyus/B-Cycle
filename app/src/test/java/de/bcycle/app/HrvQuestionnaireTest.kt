@@ -61,12 +61,12 @@ class HrvQuestionnaireTest {
             }
             assertEquals(0,(slider.layoutParams as LinearLayout.LayoutParams).topMargin)
             assertEquals(BicycleDesign.dp(a,4),(view.findViewWithTag<EditText>("hrvq_notes").layoutParams as LinearLayout.LayoutParams).topMargin)
-            assertEquals(8,slider.max);assertEquals(4,slider.progress);view.flush();assertTrue(saved.isEmpty())
+            assertEquals(10,slider.max);assertEquals(5,slider.progress);view.flush();assertTrue(saved.isEmpty())
             assertEquals(View.GONE,view.findViewWithTag<View>("hrvq_training_details").visibility)
             // A tap that chooses the existing center must count as an explicit neutral answer.
             slider.dispatchTouchEvent(android.view.MotionEvent.obtain(0,0,android.view.MotionEvent.ACTION_DOWN,slider.width/2f,slider.height/2f,0))
             slider.dispatchTouchEvent(android.view.MotionEvent.obtain(0,10,android.view.MotionEvent.ACTION_UP,slider.width/2f,slider.height/2f,0))
-            view.flush();assertEquals(4,saved.last().ratings["sleep"])
+            view.flush();assertEquals(5,saved.last().ratings["sleep"])
             view.findViewWithTag<View>("hrvq_training_2").performClick();view.flush();layout(scroll)
             assertEquals(42.5,saved.last().trainingKm!!,0.0);assertEquals(95.0,saved.last().trainingMinutes!!,0.0)
             assertEquals("rides",saved.last().trainingSource);assertEquals(10,view.findViewWithTag<SeekBar>("hrvq_rpe").max)
@@ -83,7 +83,7 @@ class HrvQuestionnaireTest {
             shadowOf(Looper.getMainLooper()).idle();layout(scroll)
             assertNull(view.findViewWithTag<View>("hrvq_sleep"));assertNotNull(view.findViewWithTag<View>("hrvq_duration"))
             assertEquals(1,view.findViewWithTag<LinearLayout>("hrvq_training_amounts").childCount)
-            view.findViewWithTag<EditText>("hrvq_duration").setText("100");view.flush();assertEquals(4,saved.last().ratings["sleep"])
+            view.findViewWithTag<EditText>("hrvq_duration").setText("100");view.flush();assertEquals(5,saved.last().ratings["sleep"])
         } finally { host.pause().stop().destroy() }
     }
     @Test fun manualTrainingCustomFieldsAndCycleFollowConfigurationWithoutInventingDefaults() {
@@ -222,7 +222,7 @@ class HrvQuestionnaireTest {
             try { val old=HrvStore(third);assertTrue(old.restore(legacy));assertNull(old.questionnaire(id));assertArrayEquals(legacy,old.backup(id)) }
             finally { third.deleteRecursively() }
             assertThrows(IllegalArgumentException::class.java) { store.saveQuestionnaire(id,annotations.copy(day="2026-10-20")) }
-            assertThrows(IllegalArgumentException::class.java) { annotations.copy(ratings=mapOf("sleep" to 9)).json() }
+            assertThrows(IllegalArgumentException::class.java) { annotations.copy(ratings=mapOf("sleep" to 11)).json() }
             assertArrayEquals(before,File(source,"$id/result.json").readBytes())
         } finally { source.deleteRecursively();target.deleteRecursively() }
     }

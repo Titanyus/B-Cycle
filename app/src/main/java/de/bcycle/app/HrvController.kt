@@ -168,7 +168,7 @@ internal class HrvController(private val context:Context,private val clock:()->L
             HrvTrendMetric.entries.associateWith { HrvTrends.series(rows,it) }
         }
     fun questionnaire(id:String,done:(Result<HrvQuestionnaire?>)->Unit) =
-        storageTask(done) { checkNotNull(store).questionnaire(id) }
+        storageTask(done) { checkNotNull(store).questionnaireForEditing(id) }
     fun saveQuestionnaire(id:String,value:HrvQuestionnaire,done:(Result<Unit>)->Unit) =
         storageTask(done) { checkNotNull(store).saveQuestionnaire(id,value) }
     fun previewHrv4Training(uri:android.net.Uri,order:HrvCsvDateOrder?,done:(Result<HrvCsvPreview>)->Unit) =

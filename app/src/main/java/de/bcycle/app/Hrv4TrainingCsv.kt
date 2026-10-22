@@ -9,6 +9,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
 import java.util.UUID
+import kotlin.math.roundToInt
 
 internal enum class HrvCsvDateOrder(val pattern:String,val title:Int) {
     YEAR_DAY_MONTH("uuuu-dd-MM",R.string.hrv4_date_ydm),
@@ -29,6 +30,15 @@ internal object Hrv4TrainingCsv {
     const val PROVIDER="hrv4training"
     const val MAX_BYTES=4*1024*1024
     private const val MAX_ROWS=10000
+    /** These fields have matching question direction; original precision remains in originalColumns. */
+    fun ratings(source:Map<String,String>):Map<String,Int> = linkedMapOf(
+        "sleep_quality" to "sleep","trainingMotivation" to "motivation","physical_condition" to "condition",
+        "mental_energy" to "energy","muscle_soreness" to "soreness","fatigue" to "fatigue",
+        "lifestyle" to "lifestyle","trainingRPE" to "rpe"
+    ).mapNotNull { (column,key) ->
+        source[column]?.trim()?.replace(',','.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..10.0 }
+            ?.let { key to it.roundToInt() }
+    }.toMap()
     fun preview(input:InputStream,zone:ZoneId,order:HrvCsvDateOrder?=null):HrvCsvPreview {
         val bytes=input.readNBytes(MAX_BYTES+1)
         if(bytes.size>MAX_BYTES) throw HrvCsvException(R.string.hrv4_too_large)
@@ -104,8 +114,7 @@ internal object Hrv4TrainingCsv {
         }
         val km=number("trainingDistance")?.div(1000)?.also { require(it in 0.0..1_000_000.0) }
         val minutes=number("trainingTime")?.div(60)?.also { require(it in 0.0..1_000_000.0) }
-        val rpe=number("trainingRPE")?.takeIf { it in 0.0..10.0 && it==it.toInt().toDouble() }?.toInt()
-        val questionnaire=HrvQuestionnaire(day.toString(),ratings=rpe?.let { mapOf("rpe" to it) }.orEmpty(),
+        val questionnaire=HrvQuestionnaire(day.toString(),ratings=ratings(source),
             training=choice("training",listOf("rest","easy","average","intense")),trainingKm=km,trainingMinutes=minutes,
             trainingSource=if(km!=null || minutes!=null) "manual" else null,
             traveled=when(text("traveling").lowercase()) { "traveling"->true;"not traveling"->false;else->null },

@@ -22,6 +22,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private var tokens=themes.active.tokens
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.bodyTypeface }
     private val path=Path()
+    private val bandEdges=Path()
     private val viewport=HrvTrendViewport()
     private var points:List<HrvTrendPoint> = emptyList()
     private var selectedId:String?=null
@@ -101,13 +102,16 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             canvas.drawText(label,at.coerceIn(half,width-half),bottom+24*density,paint)
         }
         canvas.save();canvas.clipRect(plotLeft,top,plotRight,bottom)
+        bandEdges.reset()
         for(index in 1 until points.size) {
             val a=points[index-1];val b=points[index]
             if(b.day.toEpochDay()-a.day.toEpochDay()!=1L || a.cohort!=b.cohort || a.value==null || b.value==null) continue
             if(a.lower!=null && a.upper!=null && b.lower!=null && b.upper!=null) {
                 path.reset();path.moveTo(x(a.day),y(a.lower));path.lineTo(x(a.day),y(a.upper))
                 path.lineTo(x(b.day),y(b.upper));path.lineTo(x(b.day),y(b.lower));path.close()
-                paint.color=alpha(tokens.accent,.18f);paint.style=Paint.Style.FILL;canvas.drawPath(path,paint)
+                paint.color=alpha(Color.WHITE,BicycleDesign.hrvTrendBandAlpha);paint.style=Paint.Style.FILL;canvas.drawPath(path,paint)
+                bandEdges.moveTo(x(a.day),y(a.lower));bandEdges.lineTo(x(b.day),y(b.lower))
+                bandEdges.moveTo(x(a.day),y(a.upper));bandEdges.lineTo(x(b.day),y(b.upper))
             }
         }
         val half=((plotRight-plotLeft)/viewport.span*.32).toFloat().coerceAtMost(12*density)
@@ -115,6 +119,11 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             paint.color=alpha(tokens.foreground,if(point.row.id==selectedId) .9f else .45f)
             canvas.drawRect(x(point.day)-half,y(value),x(point.day)+half,bottom,paint)
         } }
+        paint.color=Color.WHITE;paint.strokeWidth=density*BicycleDesign.hrvTrendBandLineDp
+        paint.style=Paint.Style.STROKE;paint.strokeCap=Paint.Cap.ROUND
+        paint.pathEffect=android.graphics.DashPathEffect(floatArrayOf(.1f*density,BicycleDesign.hrvTrendBandDotGapDp*density),0f)
+        canvas.drawPath(bandEdges,paint)
+        paint.pathEffect=null;paint.strokeCap=Paint.Cap.BUTT;paint.style=Paint.Style.FILL
         paint.color=tokens.accent;paint.strokeWidth=2*density
         for(index in points.indices) {
             val point=points[index];val mean=point.average ?: continue

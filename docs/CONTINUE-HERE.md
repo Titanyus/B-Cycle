@@ -2,6 +2,9 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+Aktueller Auftrag nach Build 65: Tagesbefinden auf elf Stufen 0–10, gerundete HRV4-Antworten einschließlich Ergänzung fehlender Antworten vorhandener Importe beim Öffnen. Alte Schema-1-Werte proportional übertragen und in legacyRatings erhalten; neue Antworten Schema 2, unveränderte Ergebnisdateien/Originalfelder. Korridor weiß 40 %, oben/unten weiß gepunktet 1 dp. Keine APK angefragt. Details hrv-questionnaire.md / hrv-trends.md.
+
+
 ## Aktueller Abschluss: APK 0.8.26 / Build 65
 
 APK **0.8.26 / Build 65 / versionCode 96** aus `2275327ce05806d5c44875d13efad4547af8dcd5` erfolgreich über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.26-release-65.apk), [Buildnachweis](build-65.md). 2.219.870 Bytes; SHA-256 `40e220d8c4e08d8f362fbac3113144d6da53cb22fb748fc904c737b756540047`. Dauerhafte Signatur wie Build 64, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält neue HRV-Auswertung mit beiden Einstiegen und CSV-Prüfanzeige-Korrektur. 27 gezielte Tests erfolgreich, kein Gesamtlauf oder Hardwaretest. Alles auf main und in APK enthalten; kein offener APK-Auftrag. Frühere Angaben unten zu „nur lokal“, „keine APK“ oder Build 64 sind Verlauf.
@@ -190,3 +193,5 @@ Prüfstand Beschriftungsabstand/Skalenregler: 11 gezielte Android-Tests erfolgre
 Prüfung dieser Korrektur: 7 gezielte bestehende/ergänzte Tagesbefinden-Tests erfolgreich, einschließlich optionaler Trainingphase, ein-/ausgeblendeter RPE-/Mengenfelder, exakt 32 dp ohne Doppelabstand, Platzhalter, manueller Eingabe und vorhandener Vorbefüllung/Backup. Browserprüfung des aktualisierten Atlas erfolgreich (Platzhalter, 8-dp-Hinweisabstand und bisherige Regler/320–412-Breiten). Native Ansicht visuell geprüft. Kein Gesamtlauf und keine neue APK.
 
 Prüfstand HRV-Auswertung: 27 unterschiedliche gezielte Tests erfolgreich; native Testdaten-Vorschau docs/previews/hrv-trends.png visuell geprüft. Alle sechs Kennzahlen, Statistik-/Tages-/Protokollregeln, Touch-Pinch/Pan/Tagesauswahl, beide echten Einstiege, Speichern vor Weiterleitung, Zurück zu Einstellungen, unveränderte Sicherung und CSV-Import geprüft. Typografie und UI-Atlas konsistent. Quellstand lokal gesichert, kein Push/APK für diesen Auftrag. APK 0.8.25 / Build 64 enthält weder diese Auswertung noch die danach korrigierte CSV-Prüfanzeige.
+
+Prüfstand elf Stufen/HRV4-Antworten/Korridor: 21 gezielte Tests erfolgreich. Schema 1 → 2 einmalig mit legacyRatings, .5-Rundung, Quellenbereich/fehlende Daten, Schutz manueller Antworten, unveränderte Originaldateien und Backup-Rundlauf geprüft. Korridor nativ visuell geprüft. HTML-Atlas auf elf Stufen aktualisiert, nur lokal; keine APK und kein Push.

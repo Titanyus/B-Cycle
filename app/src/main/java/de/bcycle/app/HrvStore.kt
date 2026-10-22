@@ -99,6 +99,19 @@ internal class HrvStore(private val root:File) {
             HrvQuestionnaire.decode(BackupJson.objectValue(it.readNBytes(65537),65536))
         }
     }
+    /** Upgrade imported missing answers from the archived original, never from a changed re-import. */
+    fun questionnaireForEditing(id:String):HrvQuestionnaire? {
+        val saved=questionnaire(id)
+        val row=read(id);val external=row.optJSONObject("external")
+        if(external?.optString("provider")!=Hrv4TrainingCsv.PROVIDER) return saved
+        val original=external.optJSONObject("originalColumns") ?: return saved
+        val source=original.keys().asSequence().associateWith { original.optString(it) }
+        val ratings=Hrv4TrainingCsv.ratings(source)
+        val base=saved ?: HrvQuestionnaire.forMeasurement(row)
+        val merged=base.copy(ratings=ratings+base.ratings)
+        if(merged!=base) saveQuestionnaire(id,merged)
+        return merged
+    }
     fun saveQuestionnaire(id:String,value:HrvQuestionnaire) {
         val row=read(id)
         require(value.day==HrvQuestionnaire.forMeasurement(row).day)

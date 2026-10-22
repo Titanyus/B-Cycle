@@ -70,7 +70,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         BicycleForm.section(this,themes,id)
         addView(LinearLayout(context).apply { orientation=VERTICAL;body(this) },LayoutParams(-1,-2))
     }
-    private fun rating(parent:LinearLayout,question:HrvQuestion,key:String,left:Int,middle:Int,right:Int,max:Int=8) {
+    private fun rating(parent:LinearLayout,question:HrvQuestion,key:String,left:Int,middle:Int,right:Int,max:Int=10) {
         if(!enabled(question)) return
         val block=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_block_$key";setTag(R.id.slider_question_group,true) }
         block.addView(BicycleComponents.fieldLabel(context,themes,context.getString(question.label)))
@@ -82,7 +82,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             tickMark=GradientDrawable().apply { shape=GradientDrawable.OVAL;setSize(dp(2),dp(2)) }
         }
         fun show() {
-            slider.stateDescription=if(key in value.ratings) if(key=="rpe") context.getString(R.string.hrvq_rpe_value,slider.progress) else context.getString(R.string.hrvq_rating_value,slider.progress+1,max+1) else context.getString(R.string.hrvq_unanswered)
+            slider.stateDescription=if(key in value.ratings) if(key=="rpe") context.getString(R.string.hrvq_rpe_value,slider.progress) else context.getString(R.string.hrvq_rating_value,slider.progress,max) else context.getString(R.string.hrvq_unanswered)
         }
         show()
         slider.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {

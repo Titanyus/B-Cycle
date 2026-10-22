@@ -52,7 +52,7 @@ class Hrv4TrainingImportTest {
         assertFalse(external.getJSONObject("metrics").has("pnn50Percent"))
         for(key in listOf("rrTicks","nnMs","coverage","frequency","corrected","measureMs")) assertFalse(preview.entries.first().result.has(key))
         assertFalse(preview.entries.first().result.getBoolean("acceptable"))
-        assertFalse(preview.entries.first().questionnaire.ratings.containsKey("energy"))
+        assertEquals(6,preview.entries.first().questionnaire.ratings["energy"])
     }
     @Test fun wholeFileDateOrderDisambiguatesEarlierDatesAndExplicitChoiceHandlesSmallExports() {
         val short="date,time,rMSSD\n2024-07-08,06:15,25\n"
