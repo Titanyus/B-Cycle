@@ -20,15 +20,30 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
     private fun entries(c:Context)=JSONObject(prefs(c).getString("entries","{}")!!)
     private fun save(c:Context,all:JSONObject) { check(prefs(c).edit().putString("entries",all.toString()).putLong("revision",System.nanoTime()).commit()) }
     fun revision(c:Context)=prefs(c).getLong("revision",0)
+    private data class StatusIndex(val rides:Map<Pair<String,String>,List<JSONObject>>,val latest:Map<String,JSONObject>)
+    private var statusPrefs:android.content.SharedPreferences?=null
+    private var statusSource:String?=null
+    private var statusIndex:StatusIndex?=null
+    /** Called under lock. Source content also detects restores that do not bump revision. */
+    private fun statusIndex(c:Context):StatusIndex {
+        val prefs=prefs(c);val source=prefs.getString("entries","{}")!!
+        if(statusPrefs!==prefs || statusSource!=source || statusIndex==null) {
+            val all=JSONObject(source)
+            val rows=all.keys().asSequence().map { all.getJSONObject(it) }.sortedByDescending { it.optLong("sequence") }.toList()
+            statusIndex=StatusIndex(rows.groupBy { it.optString("target") to it.optString("ride") },rows.groupBy { it.optString("target") }.mapValues { it.value.first() })
+            statusSource=source;statusPrefs=prefs
+        }
+        return checkNotNull(statusIndex)
+    }
     fun state(c:Context,id:String,stamp:RouteFileStamp?):RouteUploadStatus=synchronized(lock) {
-        val config=ActivityServiceSettings(c,service).read();val target=config.identity(service);val all=entries(c)
-        val item=all.keys().asSequence().map { all.getJSONObject(it) }.filter { it.optString("ride")==id && it.optString("target")==target &&
-            RouteTransferPayload.metadataMatches(c,id,it) && (stamp==null || RouteTransferPayload.matches(it,stamp)) }.maxByOrNull { it.optLong("sequence") }
+        val config=ActivityServiceSettings(c,service).read();val target=config.identity(service)
+        val item=statusIndex(c).rides[target to id].orEmpty().firstOrNull {
+            RouteTransferPayload.metadataMatches(c,id,it) && (stamp==null || RouteTransferPayload.matches(it,stamp)) }
         RouteUploadStatus(when(item?.optString("state")) { "saved"->UploadState.UPLOADED;"pending"->UploadState.WAITING;"processing"->UploadState.UPLOADING;"failed"->UploadState.FAILED;else->UploadState.NOT_UPLOADED })
     }
     fun problem(c:Context):Int?=synchronized(lock) {
-        val config=ActivityServiceSettings(c,service).read();val all=entries(c)
-        val latest=all.keys().asSequence().map { all.getJSONObject(it) }.filter { it.optString("target")==config.identity(service) }.maxByOrNull { it.optLong("sequence") }
+        val config=ActivityServiceSettings(c,service).read()
+        val latest=statusIndex(c).latest[config.identity(service)]
         if(latest?.optString("state")!="failed") return@synchronized null
         when(latest.optString("problem")) { "auth"->R.string.service_auth_failed;"duplicate"->R.string.service_duplicate;"response"->R.string.service_response_failed;else->R.string.service_upload_failed }
     }
