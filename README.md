@@ -32,9 +32,9 @@ Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in 
 
 [UI-Atlas als HTML herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/docs/previews/ui-catalog.html) · Datei lokal im Browser öffnen. Offline-Übersicht mit 20 Bauteilgruppen, Theme-/Breiten-/Schriftvergleich, Abstandshilfen und Quelleninspektor. [Anleitung und Prüfstand](docs/ui-catalog.md).
 
-League Gothic ersetzt im aktuellen Quellstand die bisherige Bebas Neue; Schriftrollen zentral, Großschreibung nur für Fenstertitel erzwungen. Die letzte veröffentlichte APK enthält diesen Wechsel noch nicht.
+League Gothic ersetzt im aktuellen Quellstand die bisherige Bebas Neue; Schriftrollen zentral, Großschreibung nur für Fenstertitel erzwungen. In APK 0.8.24 enthalten.
 
-Arbeitsstand nach Build 62: Dashboard mit Strecken links und Start/Stop mittig; HRV manuell über die Einstellungen oder optional beim ersten Tagesstart. Neue Abschluss-Signale und kompakteres Tagesbefinden. [Umfang und Prüfung](docs/hrv-entry.md). Noch keine neue APK für diese Änderungen.
+In APK 0.8.24: Dashboard mit Strecken links und Start/Stop mittig; HRV manuell über die Einstellungen oder optional beim ersten Tagesstart. Neue Abschluss-Signale und kompakteres Tagesbefinden. [Umfang und Prüfung](docs/hrv-entry.md). Schriftwechsel und finale Sliderabstände sind ebenfalls enthalten.
 
 ## Key Features
 
@@ -56,27 +56,35 @@ Arbeitsstand nach Build 62: Dashboard mit Strecken links und Start/Stop mittig; 
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.23 · Build 62 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk)**
+**[Version 0.8.24 · Build 63 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.24-release-63.apk)**
 
-**Build 62 vom 21.10.2026 · 2,15 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 63 vom 22.10.2026 · 2,18 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53, 55, 56, 57, 58, 59, 60 und 61 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55, 56, 57, 58, 59, 60, 61 und 62 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.23](docs/release-0.8.23.md) ·
-[Buildnachweis und SHA-256](docs/build-62.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39652351462) ·
+[Änderungen in 0.8.24](docs/release-0.8.24.md) ·
+[Buildnachweis und SHA-256](docs/build-63.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39734822597) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
 Gezielte Regressionstests lassen sich separat unter Actions → **Targeted regression tests** → **Run workflow** starten, lokal mit `bash scripts/test-regressions.sh`. Dabei werden nur Testberichte erzeugt; kein APK-Build und kein Signierschlüsselzugriff. [Umfang und Nachweise](docs/priority-optimizations.md).
-15 gezielte Tests für Tagesbefinden, Profil-/Konfigurationssicherung, Backup und weiche Dashboard-Kurven erfolgreich.
+11 gezielte Tests für die finalen Tagesbefinden-/Formularabstände erfolgreich; Schriftwechsel und vorherige Schritte separat gezielt geprüft.
 HRV-Messwerte und Aufzeichnungen erhalten; Antworten getrennt gespeichert und mitgesichert.
 Kein vollständiger Gesamttestlauf; frühere Prüfungen und bekannte ältere UI-Testfehler in den Buildnachweisen.
 
-Frühere APKs: [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
+Frühere APKs: [0.8.23 · Build 62](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk) · [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.24
+
+- **Schrift:** League Gothic mit Groß-/Kleinschreibung; nur Hauptheader erzwingen Großbuchstaben. Zentrale Schriftrollen ohne lokale Familienüberschreibungen.
+- **Tagesbefinden:** keine Auswahl-/Unbeantwortet-Zeile oder Zurücksetzen pro Slider; Skalenbegriffe mit 50 % Deckkraft. Abstände: Gruppen 32 dp, Label → Slider 0 dp, Slider → Skala −8 dp.
+- **Formulare:** Beschriftung → Eingabefeld 4 dp; feldbezogene Inline-Hinweise ebenfalls 4 dp.
+- **HRV-Einstieg:** optionaler Hinweis beim ersten Tagesstart, manueller Einstieg über Einstellungen und getrennte Endsignale.
+- **Technik:** gezielte Optimierungen bei HRV-Historie, Profil-/Fahrtenzugriff und Dienststatus. [Details](docs/release-0.8.24.md).
 
 ## Neu in APK 0.8.23
 
