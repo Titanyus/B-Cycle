@@ -5,17 +5,19 @@ import android.util.JsonToken
 
 /** Small history row; RR/NN arrays and correction logs never reach the list UI. */
 internal data class HrvHistorySummary(val id:String,val utcMs:Long,val acceptable:Boolean,val rmssdMs:Double?,
-    val importedDay:String?=null,val importedTime:String?=null) {
+    val importedDay:String?=null,val importedTime:String?=null,val zoneId:String?=null,val hasMeasurement:Boolean=true) {
     companion object {
         fun read(reader:JsonReader,expectedId:String):HrvHistorySummary {
             var id="";var format="";var schema=0;var utc=0L;var acceptable=false;var rmssd:Double?=null
             var provider="";var day:String?=null;var time:String?=null;var externalRmssd:Double?=null
+            var zone:String?=null;var externalHasMeasurement=false
             reader.beginObject()
             while(reader.hasNext()) when(reader.nextName()) {
                 "format"->format=reader.nextString()
                 "schema"->schema=reader.nextInt()
                 "id"->id=reader.nextString()
                 "utcMs"->utc=reader.nextLong()
+                "zone"->zone=reader.nextString()
                 "acceptable"->acceptable=reader.nextBoolean()
                 "corrected"->if(reader.peek()==JsonToken.NULL) reader.nextNull() else {
                     reader.beginObject()
@@ -32,9 +34,14 @@ internal data class HrvHistorySummary(val id:String,val utcMs:Long,val acceptabl
                         "localTime"->if(reader.peek()==JsonToken.NULL) reader.nextNull() else time=reader.nextString()
                         "metrics"->{
                             reader.beginObject()
-                            while(reader.hasNext()) if(reader.nextName()=="rmssdMs" && reader.peek()!=JsonToken.NULL)
-                                externalRmssd=reader.nextDouble().takeIf { it.isFinite() && it>=0 }
-                            else reader.skipValue()
+                            while(reader.hasNext()) {
+                                val key=reader.nextName()
+                                if(reader.peek()!=JsonToken.NULL && key in setOf("rmssdMs","sdnnMs","meanNnMs","restingHrBpm","pnn50Percent"))
+                                    externalHasMeasurement=true
+                                if(key=="rmssdMs" && reader.peek()!=JsonToken.NULL)
+                                    externalRmssd=reader.nextDouble().takeIf { it.isFinite() && it>=0 }
+                                else reader.skipValue()
+                            }
                             reader.endObject()
                         }
                         else->reader.skipValue()
@@ -45,8 +52,8 @@ internal data class HrvHistorySummary(val id:String,val utcMs:Long,val acceptabl
             }
             reader.endObject()
             require(format=="bicycle-hrv" && schema==1 && id==expectedId && reader.peek()==JsonToken.END_DOCUMENT)
-            return if(provider==Hrv4TrainingCsv.PROVIDER && day!=null) HrvHistorySummary(id,utc,false,externalRmssd,day,time)
-                else HrvHistorySummary(id,utc,acceptable,rmssd)
+            return if(provider==Hrv4TrainingCsv.PROVIDER && day!=null) HrvHistorySummary(id,utc,false,externalRmssd,day,time,zone,externalHasMeasurement)
+                else HrvHistorySummary(id,utc,acceptable,rmssd,zoneId=zone)
         }
     }
 }

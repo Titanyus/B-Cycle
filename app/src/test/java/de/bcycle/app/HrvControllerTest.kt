@@ -80,7 +80,15 @@ class HrvControllerTest {
             assertTrue(controller.start("Gurt"));drain();controller.disconnected();drain()
             assertFalse(controller.busy);assertEquals(Phase.ABORTED,controller.state.phase)
             assertEquals("DISCONNECTED",controller.state.result!!.getString("problem"))
+            val latestId=controller.state.result!!.getString("id")
+            var history:List<HrvHistorySummary>?=null
+            var selected:org.json.JSONObject?=null
+            controller.history { history=it }
+            controller.measurement(result.getString("id")) { selected=it.getOrThrow() }
+            drain()
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(listOf(latestId),history!!.map { it.id })
+            assertEquals(latestId,selected!!.getString("id"))
             assertEquals(1,org.robolectric.shadows.ShadowToneGenerator.getPlayedTones().size)
         } finally { controller.close() }
     }

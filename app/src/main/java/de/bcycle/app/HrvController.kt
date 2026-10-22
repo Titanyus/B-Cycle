@@ -155,13 +155,13 @@ internal class HrvController(private val context:Context,private val clock:()->L
         busy=false;main.removeCallbacks(tick)
         publish(state.copy(saving=false,saveError=true))
     }
-    fun history(done:(List<HrvHistorySummary>)->Unit) { submit { val rows=checkNotNull(store).list();main.post { done(rows) } } }
+    fun history(done:(List<HrvHistorySummary>)->Unit) { submit { val rows=checkNotNull(store).daily();main.post { done(rows) } } }
     private fun <T> storageTask(done:(Result<T>)->Unit,block:()->T) {
         try { worker.execute { val result=runCatching(block);main.post { done(result) } } }
         catch(e:java.util.concurrent.RejectedExecutionException) { main.post { done(Result.failure(e)) } }
     }
     fun measurement(id:String,done:(Result<JSONObject>)->Unit) =
-        storageTask(done) { checkNotNull(store).read(id) }
+        storageTask(done) { checkNotNull(store).readDaily(id) }
     fun questionnaire(id:String,done:(Result<HrvQuestionnaire?>)->Unit) =
         storageTask(done) { checkNotNull(store).questionnaire(id) }
     fun saveQuestionnaire(id:String,value:HrvQuestionnaire,done:(Result<Unit>)->Unit) =
@@ -172,7 +172,17 @@ internal class HrvController(private val context:Context,private val clock:()->L
             checkNotNull(context.contentResolver.openInputStream(uri)).use { Hrv4TrainingCsv.preview(it,java.time.ZoneId.systemDefault(),order) }
         }
     fun importHrv4Training(preview:HrvCsvPreview,done:(Result<HrvCsvImportReport>)->Unit) =
-        storageTask(done) { check(!busy);Hrv4TrainingCsv.import(preview,checkNotNull(store)) }
+        storageTask(done) {
+            check(!busy)
+            val journal=checkNotNull(store)
+            val report=Hrv4TrainingCsv.import(preview,journal)
+            // Do not keep an obsolete native result on the live screen after importing a later one.
+            state.result?.let { current ->
+                if(journal.readDaily(current.getString("id")).getString("id")!=current.getString("id"))
+                    publish(state.copy(result=null,phase=null,elapsedMs=0,points=emptyList()))
+            }
+            report
+        }
     @Volatile private var exporting=false
     fun export(done:(Int,Boolean)->Unit) {
         if(busy || exporting) { main.post { done(0,false) };return }

@@ -82,6 +82,12 @@ internal class HrvStore(private val root:File) {
                 android.util.JsonReader(input.reader(Charsets.UTF_8).buffered()).use { HrvHistorySummary.read(it,dir.name) }
             }
         }.getOrNull() }.sortedByDescending { it.utcMs }
+    fun daily():List<HrvHistorySummary> = HrvDailySelection.latest(list())
+    fun readDaily(id:String):JSONObject {
+        val rows=list();val selected=rows.firstOrNull { it.id==id } ?: error("Missing HRV measurement")
+        val day=HrvDailySelection.day(selected)
+        return read(HrvDailySelection.latest(rows).first { HrvDailySelection.day(it)==day }.id)
+    }
     fun read(id:String):JSONObject=AtomicFile(File(directory(id),"result.json")).openRead().use {
         BackupJson.objectValue(it.readNBytes(MAX_BYTES+1),MAX_BYTES).also { row ->
             require(row.getString("format")=="bicycle-hrv" && row.getInt("schema")==1 && row.getString("id")==id)
@@ -123,7 +129,7 @@ internal class HrvStore(private val root:File) {
             .put("capture",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP))
             .apply { questionnaire(id)?.let { put("questionnaire",it.json()) } }.toString().toByteArray().also { require(it.size<=MAX_BYTES) }
     }
-    fun analysisJson(id:String):ByteArray {
+    fun analysisJson(id:String,dailySelected:Boolean?=null):ByteArray {
         val result=read(id)
         val capture=File(directory(id),"capture.jsonl").takeIf { it.isFile }?.readBytes() ?: byteArrayOf()
         require(capture.size<=MAX_BYTES)
@@ -137,6 +143,7 @@ internal class HrvStore(private val root:File) {
         }
         return JSONObject().put("format","bicycle-hrv-analysis").put("schema",1)
             .put("rrTicksPerSecond",1024).put("result",result).put("packets",packets)
+            .apply { dailySelected?.let { put("dailySelected",it) } }
             .apply { questionnaire(id)?.let { put("questionnaire",it.json()) } }.toString(2).toByteArray()
     }
     fun importHrv4Training(entry:HrvCsvEntry):Boolean {
