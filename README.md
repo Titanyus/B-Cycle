@@ -36,6 +36,8 @@ League Gothic ersetzt im aktuellen Quellstand die bisherige Bebas Neue; Schriftr
 
 In APK 0.8.24: Dashboard mit Strecken links und Start/Stop mittig; HRV manuell über die Einstellungen oder optional beim ersten Tagesstart. Neue Abschluss-Signale und kompakteres Tagesbefinden. [Umfang und Prüfung](docs/hrv-entry.md). Schriftwechsel und finale Sliderabstände sind ebenfalls enthalten.
 
+Aktueller Quellstand nach Build 63: HRV4Training-CSV-Import unter „Daten & Speicher → HRV-Pulsdaten“, mit Vorschau, Datumsprüfung und Dublettenschutz. Originale Tagesangaben bleiben erhalten; RR-Rohdaten sind im CSV nicht enthalten. [Umfang und Grenzen](docs/hrv4training-import.md). Noch nicht in der veröffentlichten APK 0.8.24 enthalten.
+
 ## Key Features
 
 - **Individuelle Dashboards** – Bis zu sechs benannte Seiten, zehn Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.

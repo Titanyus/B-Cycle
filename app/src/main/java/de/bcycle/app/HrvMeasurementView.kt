@@ -95,7 +95,8 @@ internal fun styleHrvPill(button:TextView) {
         setStroke(BicycleDesign.linePixels(button.context,1f),button.currentTextColor)
     }
 }
-internal fun hrvResult(context:Context,themes:ThemeManager,row:JSONObject,includeSensor:Boolean=true):LinearLayout=LinearLayout(context).apply {
+internal fun hrvResult(context:Context,themes:ThemeManager,row:JSONObject,includeSensor:Boolean=true):LinearLayout=
+    if(row.optJSONObject("external")?.optString("provider")==Hrv4TrainingCsv.PROVIDER) hrv4TrainingResult(context,themes,row) else LinearLayout(context).apply {
     orientation=LinearLayout.VERTICAL
     fun heading(id:Int) { addView(BicycleComponents.text(context,themes,context.getString(id)).apply {
         textSize=BicycleDesign.titleSp;typeface=BicycleDesign.strongTypeface

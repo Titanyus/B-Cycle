@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.*
 
 internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
+    HRV_IMPORT(R.string.hrv4_import, BicycleIcon.Import),
     HRV_EXPORT(R.string.hrv_export, BicycleIcon.ExportTrack),
     BACKUP(R.string.data_backup, BicycleIcon.ExportTrack), RESTORE(R.string.data_restore, BicycleIcon.RestoreSettings),
     IMPORT(R.string.data_route_import, BicycleIcon.Import),
@@ -77,6 +78,10 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RESTORE))
         section(R.string.data_routes,listOf(DataAction.RIDE_BACKUP,DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
         BicycleForm.section(this,themes,R.string.hrv_data_title)
+        addView(BicycleComponents.action(context,themes,context.getString(R.string.hrv4_import)) { selected(DataAction.HRV_IMPORT) }.apply {
+            tag="data_HRV_IMPORT";contentDescription=context.getString(R.string.hrv4_import)
+        },LayoutParams(-1,-2))
+        addView(BicycleComponents.description(context,themes,context.getString(R.string.hrv4_import_hint)))
         addView(BicycleComponents.action(context,themes,context.getString(R.string.hrv_export)) { selected(DataAction.HRV_EXPORT) }.apply {
             tag="data_HRV_EXPORT";contentDescription=context.getString(R.string.hrv_export)
         },LayoutParams(-1,-2))

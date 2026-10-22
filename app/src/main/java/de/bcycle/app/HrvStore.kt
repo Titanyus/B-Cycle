@@ -100,6 +100,8 @@ internal class HrvStore(private val root:File) {
         atomic(File(directory(id),"questionnaire.json"),bytes)
     }
     fun recover() {
+        root.listFiles().orEmpty().filter { it.isDirectory && it.name.startsWith(".hrv4-import-") &&
+            validId(it.name.removePrefix(".hrv4-import-")) }.forEach { it.deleteRecursively() }
         root.listFiles().orEmpty().filter { it.isDirectory && validId(it.name) && !File(it,"result.json").exists() }.forEach { dir ->
             val draft=JSONObject(AtomicFile(File(dir,"draft.json")).openRead().bufferedReader().use { it.readText() })
             val session=MeasurementSession(0,Protocol(draft.getLong("restMs"),draft.getLong("measureMs")))
@@ -136,6 +138,23 @@ internal class HrvStore(private val root:File) {
         return JSONObject().put("format","bicycle-hrv-analysis").put("schema",1)
             .put("rrTicksPerSecond",1024).put("result",result).put("packets",packets)
             .apply { questionnaire(id)?.let { put("questionnaire",it.json()) } }.toString(2).toByteArray()
+    }
+    fun importHrv4Training(entry:HrvCsvEntry):Boolean {
+        val row=entry.result;val id=row.getString("id")
+        require(row.getJSONObject("external").getString("provider")==Hrv4TrainingCsv.PROVIDER)
+        // Stable source/day/time identity: re-imports never overwrite measurements or edited answers.
+        val target=directory(id)
+        if(File(target,"result.json").exists()) return false
+        require(!target.exists() && entry.questionnaire.day==HrvQuestionnaire.forMeasurement(row).day)
+        val bytes=row.toString().toByteArray();require(bytes.size<=MAX_BYTES)
+        val staging=File(root,".hrv4-import-${UUID.randomUUID()}");check(staging.mkdir())
+        try {
+            atomic(File(staging,"capture.jsonl"),byteArrayOf())
+            atomic(File(staging,"questionnaire.json"),entry.questionnaire.json().toString().toByteArray())
+            atomic(File(staging,"result.json"),bytes)
+            check(staging.renameTo(target))
+        } finally { staging.deleteRecursively() }
+        return true
     }
     fun restore(bytes:ByteArray):Boolean {
         val backup=BackupJson.objectValue(bytes,MAX_BYTES)

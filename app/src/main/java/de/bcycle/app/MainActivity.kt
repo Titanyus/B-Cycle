@@ -632,10 +632,16 @@ class MainActivity : Activity() {
             if(isDestroyed) return@history
             if(rows.isEmpty()) { BicycleFeedback.show(this,R.string.hrv_history_empty);return@history }
             val labels=rows.map { row ->
-                val date=java.time.Instant.ofEpochMilli(row.utcMs).atZone(java.time.ZoneId.systemDefault())
-                    .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
-                val metric=if(row.acceptable) row.rmssdMs?.let { getString(R.string.hrv_history_rmssd,it) } else null
-                getString(R.string.hrv_history_item,date,metric ?: getString(R.string.hrv_invalid_short))
+                if(row.importedDay!=null) {
+                    val date=java.time.LocalDate.parse(row.importedDay).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"))+
+                        (row.importedTime?.let { " $it" } ?: "")
+                    getString(R.string.hrv4_history,date,row.rmssdMs?.let { getString(R.string.hrv_history_rmssd,it) } ?: getString(R.string.hrv4_context_only))
+                } else {
+                    val date=java.time.Instant.ofEpochMilli(row.utcMs).atZone(java.time.ZoneId.systemDefault())
+                        .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+                    val metric=if(row.acceptable) row.rmssdMs?.let { getString(R.string.hrv_history_rmssd,it) } else null
+                    getString(R.string.hrv_history_item,date,metric ?: getString(R.string.hrv_invalid_short))
+                }
             }
             BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_history)
                 .setItems(labels.toTypedArray()) { _,position -> showHrvHistoryResult(rows[position].id) }.show()
@@ -722,6 +728,14 @@ class MainActivity : Activity() {
     @Deprecated("Native document picker callback")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode==19) {
+            if(resultCode==RESULT_OK) data?.data?.let { uri ->
+                dialog().setTitle(R.string.hrv4_import).setView(ScrollView(settingsContext).apply {
+                    addView(HrvCsvImportView(settingsContext,settingsThemes,runtime.hrv,uri))
+                }).show()
+            }
+            return
+        }
         if(requestCode==14) {
             val slot=pendingBikePhotoSlot;pendingBikePhotoSlot=null
             if(resultCode==RESULT_OK && slot!=null) data?.data?.let { uri ->
@@ -1323,6 +1337,10 @@ class MainActivity : Activity() {
     }
     private fun dataSettings(focusRoutes:Boolean=false) {
         val content = DataSettingsView(settingsContext,settingsThemes) { action -> when(action) {
+            DataAction.HRV_IMPORT -> try {
+                startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
+                    .putExtra(Intent.EXTRA_MIME_TYPES,arrayOf("text/csv","text/comma-separated-values","application/csv","text/plain","application/octet-stream","application/vnd.ms-excel")),19)
+            } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this,R.string.backup_picker_error,long=true) }
             DataAction.HRV_EXPORT -> runtime.hrv.export { count,ok ->
                 if(!isDestroyed) BicycleFeedback.show(this,if(ok) getString(R.string.hrv_export_done,count) else getString(R.string.hrv_export_failed),long=true)
             }

@@ -166,6 +166,13 @@ internal class HrvController(private val context:Context,private val clock:()->L
         storageTask(done) { checkNotNull(store).questionnaire(id) }
     fun saveQuestionnaire(id:String,value:HrvQuestionnaire,done:(Result<Unit>)->Unit) =
         storageTask(done) { checkNotNull(store).saveQuestionnaire(id,value) }
+    fun previewHrv4Training(uri:android.net.Uri,order:HrvCsvDateOrder?,done:(Result<HrvCsvPreview>)->Unit) =
+        storageTask(done) {
+            check(!busy)
+            checkNotNull(context.contentResolver.openInputStream(uri)).use { Hrv4TrainingCsv.preview(it,java.time.ZoneId.systemDefault(),order) }
+        }
+    fun importHrv4Training(preview:HrvCsvPreview,done:(Result<HrvCsvImportReport>)->Unit) =
+        storageTask(done) { check(!busy);Hrv4TrainingCsv.import(preview,checkNotNull(store)) }
     @Volatile private var exporting=false
     fun export(done:(Int,Boolean)->Unit) {
         if(busy || exporting) { main.post { done(0,false) };return }

@@ -9,7 +9,7 @@ python3 scripts/build-ui-catalog.py --check
 # Optional Gradle flags such as --offline are forwarded. No release or APK task.
 classes=(
   RecordingFieldsTest RecordingStoreBaselineTest RecordingResultTest
-  HrvStoreTest HrvHistorySummaryTest HrvQuestionnaireTest HrvSettingsTest HrvEntryTest HrvControllerTest TypographyRolesTest
+  HrvStoreTest HrvHistorySummaryTest Hrv4TrainingImportTest HrvQuestionnaireTest HrvSettingsTest HrvEntryTest HrvControllerTest TypographyRolesTest
   RideProfileTypeTest RideMetadataSnapshotTest ActivityStatusIndexTest ActivityServiceTest
   RideDirectoryBackupTest SettingsDesignMigrationTest SettingsSectionsTest
 )
