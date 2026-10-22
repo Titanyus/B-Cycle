@@ -109,3 +109,7 @@ Feldbezogene Inline-Rückmeldungen direkt unter Eingabefeldern: fieldFeedbackGap
 ## Beschriftung zum Eingabefeld (22.10.2026)
 
 Bild 2 des UI-Vergleichs ist der gemeinsame Standard: 4 dp zwischen Beschriftung und zugehörigem Control über fieldLabelGap. Gestapelte Beschriftungen mit BicycleComponents.fieldLabel erzeugen beziehungsweise über labelFor explizit zuordnen; normale Fließtexte/Überschriften nicht implizit als Feldlabel behandeln. controlSpacing greift auch nach finaler LayoutParams-Zuweisung und bei erneutem Stylen; horizontale Zahlenzeilen und normale 8-dp-Controlabstände bleiben erhalten. Tagesbefinden-Inputs/Dropdowns/Slider und das beschriftete Kartenprovider-Schlüsselfeld verwenden die Rolle. Der HTML-Atlas zeigt den gleichen Abstand in Eingabebeispielen, Tagesbefinden und Rückmeldungen. Der zusätzliche Entwurfsregler Slider → Skalenbeschriftung wirkt ausschließlich in der HTML-Vergleichsgruppe und unabhängig von Label → Control.
+
+## Finale Sliderwerte für 0.8.24
+
+32 dp zwischen Slider-Fragenblöcken; 0 dp zwischen Label und Slider-Touchfläche; −8 dp von Slider-Touchfläche zur Skalenzeile, bei weiterhin 50 % Deckkraft. Der negative Abstand gehört zur ganzen Skalenzeile, deren Textkinder keine negativen Margins erhalten. So bleibt die Schrift vollständig sichtbar. Texteingaben/Dropdowns behalten 4 dp zwischen Label und Control. HTML-Vergleichsregler starten bei denselben Werten; Skalenregler erlaubt −16 bis 24 dp.

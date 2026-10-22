@@ -2,6 +2,8 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+APK-Auftrag 0.8.24 (versionCode 94): Finale Sliderabstände 32 dp Gruppen / 0 dp Label → Slider / −8 dp Slider → Skala. Negative Margin am Skalencontainer, Text vollständig sichtbar, Touchhöhe unverändert. Text-/Dropdown-Labelabstand bleibt 4 dp. 11 relevante Hosttests erfolgreich; native Ansicht visuell geprüft. APK jetzt ausdrücklich beauftragt, über Actions bauen und direkt als APK veröffentlichen, dauerhafte Signatur prüfen. Bisherige lokale Schrift-/UI-Commits gehören dazu.
+
 Aktuelle Ergänzung: Beschriftungen über gestapelten Controls zentral 4 dp über fieldLabelGap und BicycleComponents.fieldLabel / explizites labelFor. Tagesbefinden und Kartenproviderfeld verwenden die Rolle; normale Controlabstände, horizontale Zahlenzeilen und Header unverändert. HTML-Eingabebeispiele/Tagesbefinden/Rückmeldungen jetzt einheitlich, unabhängiger zusätzlicher Entwurfsregler Slider → Skalenbeschriftung (0–24 dp). Nur Vorschau-HTML auf preview/ui-catalog veröffentlichen, App-Code lokal ohne neue APK.
 
 Vorherige Ergänzung (8 gezielte Tests und Browser-Abstandsmessungen erfolgreich): Tagesbefinden-Slider ohne sichtbare Auswahl-/Unbeantwortet-Zeile und ohne Zurücksetzen pro Slider. Skalenbeschriftungen unter Slidern global über sliderScaleLabel mit 50 % Deckkraft, auch im HTML-Atlas. Speicherung, fehlende unberührte Werte und Accessibility bleiben erhalten. Keine APK beauftragt.

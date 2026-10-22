@@ -102,7 +102,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
                 }
                 addView(scale,(scale.layoutParams as LayoutParams).apply { width=0;weight=1f })
             }
-        },LayoutParams(-1,-2))
+        },LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.sliderScaleLabelGap) })
         parent.addView(block,LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.sliderQuestionGap) })
     }
     private fun choices(parent:LinearLayout,key:String,title:String,labels:List<Int>,selected:Int?,changed:(Int)->Unit) {

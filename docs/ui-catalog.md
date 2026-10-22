@@ -29,3 +29,5 @@ Nachtrag Slider/Feldhinweise: 8 gezielte bestehende Android-Tests (HrvQuestionna
 Beschriftungen über Controls jetzt einheitlich 4 dp (fieldLabelGap) in den drei gezeigten Beispielen. Zusätzlicher Entwurfsregler „Slider → Skalenbeschriftung“ (0–24 dp, Ausgang 4 dp) arbeitet unabhängig von Gruppen- und Labelabstand, ohne App-Einstellungen zu verändern.
 
 Prüfstand Beschriftungsabstand/Skalenregler: 11 gezielte Android-Tests erfolgreich (6 Tagesbefinden, 5 Formular-/Seitenauswahl-Abstände). Browser prüft tatsächliche 4 dp in allen drei gezeigten Feldbeispielen und unabhängige Verstellung von Label- und Skalenabstand, zusätzlich bestehende Atlas-Bedienung/320–412-Breiten. Kein Gesamtlauf oder APK.
+
+Finale Startwerte für APK 0.8.24: Gruppen 32 dp, Label → Slider 0 dp, Slider → Skala −8 dp. Der Skalenregler unterstützt −16 bis 24 dp. Eingabefeld-Labelabstand bleibt 4 dp.

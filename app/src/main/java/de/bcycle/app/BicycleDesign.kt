@@ -143,8 +143,9 @@ object BicycleDesign {
     const val sliderScaleLabelAlpha = .5f
     const val fieldLabelGap = controlGap / 2
     const val fieldFeedbackGap = controlGap / 2
-    const val sliderScaleLabelGap = controlGap / 2
-    const val sliderQuestionGap = controlGap * 3
+    const val sliderScaleLabelGap = -8
+    const val sliderLabelGap = 0
+    const val sliderQuestionGap = 32
     const val controlBorderAlpha = .5f
     const val inputRadius = 6
     const val scrollbarSize = 2
@@ -251,7 +252,7 @@ object BicycleComponents {
             val choiceList=choice && (preceding is android.widget.CheckBox || preceding is android.widget.RadioButton)
             val labelled=parent?.orientation==LinearLayout.VERTICAL && preceding is TextView &&
                 (preceding.tag=="bicycle_field_label" || view.id!=View.NO_ID && preceding.labelFor==view.id)
-            val gap=when { labelled->dp(view.context,BicycleDesign.fieldLabelGap)
+            val gap=when { labelled->dp(view.context,if(view is android.widget.SeekBar) BicycleDesign.sliderLabelGap else BicycleDesign.fieldLabelGap)
                 separated || choiceList->0;else->dp(view.context,BicycleDesign.controlGap) }
             var changed=false
             if((labelled && margins.topMargin!=gap) || ((separated || choiceList) && margins.topMargin!=0) || margins.topMargin<gap) { margins.topMargin=gap;changed=true }
@@ -365,7 +366,7 @@ object BicycleComponents {
     /** Endpoint/neutral descriptions below sliders always use half opacity. */
     fun sliderScaleLabel(context:Context,manager:ThemeManager,value:String)=text(context,manager,value).apply {
         alpha=BicycleDesign.sliderScaleLabelAlpha
-        layoutParams=LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(context,BicycleDesign.sliderScaleLabelGap) }
+        layoutParams=LinearLayout.LayoutParams(-1,-2)
     }
     fun input(context: Context, manager: ThemeManager) = input(EditText(context),manager)
     internal fun <T:EditText> input(view:T,manager:ThemeManager):T = view.apply {

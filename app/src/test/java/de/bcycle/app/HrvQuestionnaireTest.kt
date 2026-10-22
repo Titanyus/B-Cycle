@@ -51,14 +51,15 @@ class HrvQuestionnaireTest {
             val scroll=android.widget.ScrollView(a).apply { addView(view) };a.setContentView(scroll);layout(scroll)
             val slider=view.findViewWithTag<SeekBar>("hrvq_sleep")
             val block=view.findViewWithTag<LinearLayout>("hrvq_block_sleep")
-            assertEquals(BicycleDesign.dp(a,24),(block.layoutParams as LinearLayout.LayoutParams).bottomMargin)
+            assertEquals(BicycleDesign.dp(a,32),(block.layoutParams as LinearLayout.LayoutParams).bottomMargin)
             assertEquals(3,block.childCount) // Question, slider, scale; no value/missing status or reset action.
             for(index in 0..2) {
                 val scale=view.findViewWithTag<View>("hrvq_scale_sleep_$index")
                 assertEquals(.5f,scale.alpha,0f)
-                assertEquals(BicycleDesign.dp(a,4),(scale.layoutParams as LinearLayout.LayoutParams).topMargin)
+                assertEquals(0,(scale.layoutParams as LinearLayout.LayoutParams).topMargin)
+                assertEquals(BicycleDesign.dp(a,-8),((scale.parent as View).layoutParams as LinearLayout.LayoutParams).topMargin)
             }
-            assertEquals(BicycleDesign.dp(a,4),(slider.layoutParams as LinearLayout.LayoutParams).topMargin)
+            assertEquals(0,(slider.layoutParams as LinearLayout.LayoutParams).topMargin)
             assertEquals(BicycleDesign.dp(a,4),(view.findViewWithTag<EditText>("hrvq_notes").layoutParams as LinearLayout.LayoutParams).topMargin)
             assertEquals(8,slider.max);assertEquals(4,slider.progress);view.flush();assertTrue(saved.isEmpty())
             assertEquals(View.GONE,view.findViewWithTag<View>("hrvq_training_details").visibility)
