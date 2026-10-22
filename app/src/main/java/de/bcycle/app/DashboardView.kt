@@ -23,8 +23,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     internal fun resetTrends() { trends.clear();tiles.forEach { it.resetTrend() } }
     private var trendIndicators=TrendIndicatorConfig()
     internal fun showTrendIndicators(config:TrendIndicatorConfig) { trendIndicators=config }
-    private val numbers = resources.getFont(R.font.bebas_neue)
-    private val captions = Typeface.create("sans-serif-condensed", Typeface.NORMAL)
+    private val numbers = BicycleDesign.narrowTypeface(context)
+    private val captions = BicycleDesign.compactTypeface
     private val tiles = mutableListOf<Tile>()
     var editing = false; private set
     private var editorColor = BicycleThemes.red.tokens.primary
@@ -293,7 +293,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         }
 
         private fun showCaption(field: DashboardField) {
-            val short = field.dashboardTitle(context,data).uppercase(Locale.GERMANY)
+            val short = field.dashboardTitle(context,data)
             val graphs = selectedGraphs()
             val icon=field.captionIcon(data)
             val captionKey = "${icon ?: ""}:$short:${graphs.joinToString { it.name }}"

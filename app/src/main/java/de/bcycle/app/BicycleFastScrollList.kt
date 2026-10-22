@@ -59,7 +59,7 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
         canvas.drawRoundRect(thumb,dp(2f),dp(2f),paint)
         if(!dragging) return
         paint.textSize=BicycleDesign.bodySp*resources.displayMetrics.scaledDensity
-        paint.typeface=android.graphics.Typeface.DEFAULT;paint.textAlign=Paint.Align.LEFT
+        paint.typeface=BicycleDesign.bodyTypeface;paint.textAlign=Paint.Align.LEFT
         val maximum=minOf(dp(BicycleDesign.fastScrollPreviewMaxWidth),width-dp(56f)).coerceAtLeast(1f)
         val padding=dp(BicycleDesign.fastScrollPreviewPadding)
         val text=TextUtils.ellipsize(label(),paint,(maximum-padding*2).coerceAtLeast(1f),TextUtils.TruncateAt.END).toString()

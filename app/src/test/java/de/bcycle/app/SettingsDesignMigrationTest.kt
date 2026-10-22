@@ -80,7 +80,7 @@ class SettingsDesignMigrationTest {
                 assertEquals(BicycleDesign.headerHeight * activity.resources.displayMetrics.density, title.height.toFloat(), 1f)
                 assertEquals(BicycleThemes.red.tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
                 assertTrue(title.isAccessibilityHeading)
-                val wrongFonts=views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.filterNot { it.typeface == Typeface.DEFAULT || it.typeface == BicycleDesign.strongTypeface || ((it is EditText || it.tag=="rider_birth") && it.typeface==activity.resources.getFont(R.font.bebas_neue)) || it.tag == "rider_unit" || (it.tag?.toString()?.startsWith("rider_zone_value_") == true || it.tag?.toString()?.startsWith("rider_power_zone_value_") == true) }
+                val wrongFonts=views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.filterNot { it.typeface == Typeface.DEFAULT || it.typeface == BicycleDesign.strongTypeface || ((it is EditText || it.tag=="rider_birth") && it.typeface==activity.resources.getFont(R.font.league_gothic)) || it.tag == "rider_unit" || (it.tag?.toString()?.startsWith("rider_zone_value_") == true || it.tag?.toString()?.startsWith("rider_power_zone_value_") == true) }
                 assertTrue("Unexpected font in $action: "+wrongFonts.joinToString { "${it.tag}: ${it.text} ${it.typeface}" },wrongFonts.isEmpty())
                 if (action in listOf(SettingsAction.SENSORS, SettingsAction.MAP, SettingsAction.DASHBOARDS)) snapshot(child, action.name.lowercase())
                 val before = geometry(child)

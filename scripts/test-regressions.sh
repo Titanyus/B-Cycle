@@ -2,11 +2,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+python3 scripts/check-ui-typography.py
+python3 scripts/build-ui-catalog.py --check
+
 # Deliberately bounded: compatibility, backups, HRV storage, metadata/status and settings UI.
 # Optional Gradle flags such as --offline are forwarded. No release or APK task.
 classes=(
   RecordingFieldsTest RecordingStoreBaselineTest RecordingResultTest
-  HrvStoreTest HrvHistorySummaryTest HrvQuestionnaireTest HrvSettingsTest HrvEntryTest HrvControllerTest
+  HrvStoreTest HrvHistorySummaryTest HrvQuestionnaireTest HrvSettingsTest HrvEntryTest HrvControllerTest TypographyRolesTest
   RideProfileTypeTest RideMetadataSnapshotTest ActivityStatusIndexTest ActivityServiceTest
   RideDirectoryBackupTest SettingsDesignMigrationTest SettingsSectionsTest
 )

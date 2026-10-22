@@ -55,7 +55,7 @@ class SettingsSectionsTest {
                     assertEquals(3,row.childCount)
                     assertTrue(row.getChildAt(0).width>0)
                     assertEquals(BicycleDesign.formNumberWidth,edit.width)
-                    assertEquals(activity.resources.getFont(R.font.bebas_neue),edit.typeface)
+                    assertEquals(activity.resources.getFont(R.font.league_gothic),edit.typeface)
                     assertEquals(BicycleDesign.settingsMetricSp,edit.textSize,0f)
                     assertEquals(android.graphics.Color.TRANSPARENT,(edit.background as GradientDrawable).color!!.defaultColor)
                 }

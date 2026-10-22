@@ -20,6 +20,7 @@ internal object BicycleNavigation {
             BicycleComponents.background(this,themes,role)
         }
         if(title!=null) {
+            BicycleComponents.headerTypography(title)
             (title.parent as? ViewGroup)?.removeView(title)
             title.gravity=Gravity.CENTER
             BicycleComponents.bindTheme(title,themes) {
@@ -67,7 +68,7 @@ internal object BicycleNavigation {
         for((name,size) in listOf("date_picker_header_year" to 18f,"date_picker_header_date" to 28f)) {
             val id=picker.resources.getIdentifier(name,"id","android")
             picker.findViewById<TextView>(id)?.let { label ->
-                label.textSize=size; label.typeface=if(name.endsWith("year")) Typeface.DEFAULT else BicycleDesign.strongTypeface
+                label.textSize=size; label.typeface=if(name.endsWith("year")) BicycleDesign.bodyTypeface else BicycleDesign.strongTypeface
                 BicycleComponents.bindTheme(label,themes) { label.setTextColor(android.graphics.Color.WHITE) }
                 (label.parent as? View)?.let { parent -> BicycleComponents.bindTheme(parent,themes) { parent.setBackgroundColor(it.primary) } }
             }

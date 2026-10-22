@@ -55,7 +55,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     private val zoneNames=mutableListOf<TextView>()
     private val zoneRows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "rider_zones" }
     private val saveError = text("").apply { tag = "rider_save_error"; visibility = GONE; accessibilityLiveRegion = ACCESSIBILITY_LIVE_REGION_POLITE }
-    private fun text(value: String) = BicycleComponents.text(context, themes, value).apply { typeface = Typeface.DEFAULT }
+    private fun text(value: String) = BicycleComponents.text(context, themes, value).apply { typeface = BicycleDesign.bodyTypeface }
     private fun section(title: Int) {
         BicycleForm.section(root,themes,title)
     }
@@ -150,12 +150,12 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                     maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
                 }, LinearLayout.LayoutParams(0, -2, 1f))
                 val value = BicycleComponents.text(context, themes, "").apply {
-                    tag = "rider_zone_value_${i + 1}"; typeface = resources.getFont(R.font.bebas_neue)
+                    tag = "rider_zone_value_${i + 1}"; typeface = BicycleDesign.narrowTypeface(context)
                     textSize = BicycleDesign.settingsMetricSp; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
                     setAutoSizeTextTypeUniformWithConfiguration(12, BicycleDesign.settingsMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
                 }
                 val unit = TextView(context).apply {
-                    text = context.getString(R.string.analysis_bpm); tag = "rider_unit"; typeface = resources.getFont(R.font.bebas_neue)
+                    text = context.getString(R.string.analysis_bpm); tag = "rider_unit"; typeface = BicycleDesign.narrowTypeface(context)
                     textSize = BicycleDesign.settingsUnitSp; BicycleComponents.secondaryText(this,themes)
                     gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
                 }
@@ -175,11 +175,11 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                     LinearLayout.LayoutParams(dp(BicycleDesign.smallGap),dp(BicycleDesign.iconSize)).apply { marginEnd=dp(BicycleDesign.verticalPadding) })
                 addView(text(context.getString(R.string.rider_zone_name,i+1,context.getString(name))).apply { maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END },LinearLayout.LayoutParams(0,-2,1f))
                 val value=BicycleComponents.text(context,themes,"").apply {
-                    tag="rider_power_zone_value_${i+1}";typeface=resources.getFont(R.font.bebas_neue);textSize=BicycleDesign.settingsMetricSp
+                    tag="rider_power_zone_value_${i+1}";typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.settingsMetricSp
                     gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1
                     setAutoSizeTextTypeUniformWithConfiguration(12,BicycleDesign.settingsMetricSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
                 }
-                val unit=TextView(context).apply { text=context.getString(R.string.analysis_watts);tag="rider_unit";typeface=resources.getFont(R.font.bebas_neue)
+                val unit=TextView(context).apply { text=context.getString(R.string.analysis_watts);tag="rider_unit";typeface=BicycleDesign.narrowTypeface(context)
                     textSize=BicycleDesign.settingsUnitSp;BicycleComponents.secondaryText(this,themes);gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1 }
                 powerRanges+=value
                 addView(AnalysisValueRow(context,value,unit),LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth),dp(BicycleDesign.touchSize)))

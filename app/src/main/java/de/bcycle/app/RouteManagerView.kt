@@ -132,12 +132,12 @@ internal class RouteManagerView(context: Context,
             context.getString(R.string.route_list_visibility)) { entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let(toggle) }
         private inner class Reading(labelId: Int? = null, unitId: Int? = null) : LinearLayout(context) {
             val number = BicycleComponents.text(context, themes, "").apply {
-                typeface = resources.getFont(R.font.bebas_neue); textSize = BicycleDesign.routeMetricSp
+                typeface = BicycleDesign.narrowTypeface(context); textSize = BicycleDesign.routeMetricSp
                 gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
                 setAutoSizeTextTypeUniformWithConfiguration(if (labelId == null) 10 else 12, BicycleDesign.routeMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
             }
             val unit = TextView(context).apply {
-                text = unitId?.let(context::getString).orEmpty(); typeface = resources.getFont(R.font.bebas_neue)
+                text = unitId?.let(context::getString).orEmpty(); typeface = BicycleDesign.narrowTypeface(context)
                 textSize = BicycleDesign.formatSp; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
                 BicycleComponents.secondaryText(this,themes)
                 setAutoSizeTextTypeUniformWithConfiguration(8, BicycleDesign.formatSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)

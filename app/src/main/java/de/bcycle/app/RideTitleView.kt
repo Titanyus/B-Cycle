@@ -11,10 +11,11 @@ import android.widget.TextView
 internal class RideTitleView(context:Context):TextView(context) {
     private var motion:ValueAnimator?=null
     private var offset=0f
-    init { textSize=BicycleDesign.headingSp;typeface=resources.getFont(R.font.bebas_neue);setSingleLine();setHorizontallyScrolling(true) }
+    init { setSingleLine();setHorizontallyScrolling(true);BicycleComponents.headerTypography(this) }
+    private fun titleWidth()=paint.measureText(transformationMethod?.getTransformation(text,this)?.toString() ?: text.toString())
     private fun restart() {
         motion?.cancel();motion=null;offset=0f;alpha=1f
-        val distance=(paint.measureText(text.toString())-(width-paddingLeft-paddingRight)).coerceAtLeast(0f)
+        val distance=(titleWidth()-(width-paddingLeft-paddingRight)).coerceAtLeast(0f)
         gravity=if(distance>0) Gravity.START or Gravity.CENTER_VERTICAL else Gravity.CENTER
         ellipsize=if(ValueAnimator.areAnimatorsEnabled()) null else TextUtils.TruncateAt.END
         if(distance<=0 || !isAttachedToWindow || windowVisibility!=VISIBLE || !ValueAnimator.areAnimatorsEnabled()) { invalidate();return }
@@ -33,7 +34,7 @@ internal class RideTitleView(context:Context):TextView(context) {
     override fun onDraw(canvas:Canvas) {
         val textLayout=layout
         val available=width-compoundPaddingLeft-compoundPaddingRight
-        if(textLayout==null || ellipsize!=null || paint.measureText(text.toString())<=available) {
+        if(textLayout==null || ellipsize!=null || titleWidth()<=available) {
             super.onDraw(canvas);return
         }
         // TextView.onDraw clips to its viewport again after translation, hiding the

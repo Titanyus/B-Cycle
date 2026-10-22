@@ -125,7 +125,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         label(parent,title)
         val edit=BicycleComponents.input(context,themes).apply {
             tag="hrvq_$key";contentDescription=title
-            typeface=android.graphics.Typeface.DEFAULT;textSize=BicycleDesign.bodySp
+
             inputType=when { numeric->android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL or android.text.InputType.TYPE_NUMBER_FLAG_SIGNED
                 time->android.text.InputType.TYPE_CLASS_DATETIME or android.text.InputType.TYPE_DATETIME_VARIATION_TIME
                 else->android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES }

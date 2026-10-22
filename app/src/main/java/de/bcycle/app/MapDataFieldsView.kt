@@ -57,7 +57,7 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
         setOnClickListener { if (editing) selectField?.invoke(index) }
         isClickable = false; isFocusable = false
         gravity = Gravity.CENTER
-        typeface = resources.getFont(R.font.bebas_neue)
+        typeface = BicycleDesign.narrowTypeface(context)
         setTextColor(Color.BLACK); includeFontPadding = false; maxLines = 1
         setAutoSizeTextTypeUniformWithConfiguration(16, 42, 1, TypedValue.COMPLEX_UNIT_SP)
         val inset = (4 * resources.displayMetrics.density).toInt()

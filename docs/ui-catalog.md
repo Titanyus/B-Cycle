@@ -1,0 +1,25 @@
+# UI-Atlas
+
+[HTML herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/docs/previews/ui-catalog.html), speichern und im Browser öffnen. Die einzelne Datei enthält Schriften, Icons, Styles, JavaScript und Lizenzen; sie lädt nichts extern nach und verändert keine App-Einstellungen.
+
+20 Bauteilgruppen zeigen Typografie, Eingaben, Buttons, Auswahlen, Schalter, Accordions, Slider, Header, Statusmeldungen, Profilkacheln, Importliste, Messwerte, Graph und HRV-Einstieg. Themeauswahl mit 14 tatsächlichen App-Paletten, helle Einstellungen, Breiten 320/360/412 und Schriftvergleich machen Varianten sichtbar. Ein Klick auf ein Element zeigt seine Browsermaße und die zugehörigen zentralen App-Werte mit Quelldatei und Zeile. Suche und Abstandsmarkierungen helfen beim Vergleichen.
+
+Blau bezeichnet App-Werte beziehungsweise Browsermessungen. Orange bezeichnet Vorschläge. Insbesondere die einstellbaren 24-dp-Gruppen- und 4-dp-Labelabstände im Tagesbefinden-Vergleich sind **nur ein HTML-Entwurf**. Bestehende native Abstände wurden in diesem Arbeitsschritt nicht verändert. Der aktuelle Schriftwechsel zu League Gothic und die zentralen Schriftrollen sind dagegen im Android-Quellstand umgesetzt, noch nicht in der letzten veröffentlichten APK.
+
+Der Atlas ist ein prüfbares Layoutmodell, keine pixelgenaue Android-Emulation. Browser-Systemschrift, native Dropdowns, Slider, Textmetrik und Touchflächen können abweichen. CSS-px entsprechen bei 100 % näherungsweise dp und sp bei Schriftfaktor 1. Fachliche Aktionen und Speicherung sind nicht angebunden.
+
+## Pflege
+
+Vorlage: `docs/previews/ui-catalog.template.html`. Generator liest zentrale Konstanten, Themefarben und Icons aus dem App-Code und bettet die lokalen Schriftdateien ein:
+
+```sh
+python3 scripts/build-ui-catalog.py
+python3 scripts/build-ui-catalog.py --check
+python3 scripts/check-ui-typography.py
+```
+
+Nach Änderungen an den erfassten Designquellen den Katalog neu erzeugen; neue Komponenten müssen bewusst in der Vorlage ergänzt werden. Der Generator übernimmt keine beliebigen neuen Screens automatisch. Beide Prüfungen laufen auch im begrenzten manuellen Regressionstestskript. Die Schriftprüfung verhindert direkte lokale Schriftfamilien außerhalb von BicycleDesign. [Schriftrollen und Herkunft](fonts.md).
+
+## Prüfstand 22.10.2026
+
+56 unterschiedliche gezielte Android-Hosttests erfolgreich, unter anderem Eingaben/Passwortmaskierung, Header-Lauftext, Tagesbefinden, HRV, Dashboard und Fahrtbenennung. Browserprüfung mit Chromium: 20 Gruppen, 14 Themes, eingebettete Schriften, Inspektor, variable Abstände, Auswahlen, Accordion, Suche und Breiten 320/360/412 ohne Seitenüberlauf; keine externen Requests. Mobilansicht visuell geprüft. Kein vollständiger Gesamttestlauf, Hardwaretest oder APK-Build.

@@ -15,6 +15,10 @@ import android.widget.TextView
 
 /** Global geometry and typography, deliberately independent of every palette. DP unless noted. */
 object BicycleDesign {
+    // Typeface families live here; screens choose a role, never load/create their own font.
+    fun narrowTypeface(context:Context):android.graphics.Typeface=context.resources.getFont(R.font.league_gothic)
+    val bodyTypeface:android.graphics.Typeface get()=android.graphics.Typeface.DEFAULT
+    val compactTypeface:android.graphics.Typeface by lazy { android.graphics.Typeface.create("sans-serif-condensed",android.graphics.Typeface.NORMAL) }
     const val dashboardToolbarMainWeight=2.3f
     const val dashboardToolbarActionWeight=.9f
     const val hrvCircleHeight=320
@@ -286,9 +290,13 @@ object BicycleComponents {
         return if(pageHeader && manager.isSettingsPalette && manager.settingsLight) android.graphics.Color.WHITE else tokens.foreground
     }
     internal fun heading(context: Context, manager: ThemeManager, value: String) = text(context, manager, value).apply {
-        typeface = context.resources.getFont(R.font.bebas_neue); textSize = BicycleDesign.headingSp
+        headerTypography(this)
         gravity = Gravity.CENTER; isAccessibilityHeading = true; maxLines = 1;tag="bicycle_page_heading"
         bindTheme(this,manager) { setTextColor(textColor(this,manager,it)) }
+    }
+    internal fun headerTypography(view:TextView) {
+        view.typeface=BicycleDesign.narrowTypeface(view.context);view.textSize=BicycleDesign.headingSp
+        view.isAllCaps=true
     }
     internal fun icon(context: Context, manager: ThemeManager, icon: BicycleIcon, description: String,
                       click: () -> Unit) = icon(context, manager,
@@ -326,6 +334,7 @@ object BicycleComponents {
         addView(dialogBody(context, manager))
     }
     fun text(context: Context, manager: ThemeManager, value: String, title: Boolean = false) = TextView(context).apply {
+        typeface=if(title) BicycleDesign.strongTypeface else BicycleDesign.bodyTypeface
         text = value; textSize = if (title) BicycleDesign.titleSp else BicycleDesign.bodySp
         if (title) { typeface=BicycleDesign.strongTypeface;isAccessibilityHeading=true }
         bindTheme(this, manager) { setTextColor(textColor(this,manager,it)) }
@@ -343,8 +352,11 @@ object BicycleComponents {
     }
     fun input(context: Context, manager: ThemeManager) = input(EditText(context),manager)
     internal fun <T:EditText> input(view:T,manager:ThemeManager):T = view.apply {
-        typeface=resources.getFont(R.font.bebas_neue)
-        textSize = BicycleDesign.settingsMetricSp; minimumHeight = dp(context, BicycleDesign.touchSize)
+        inputTypography(this);minimumHeight = dp(context, BicycleDesign.touchSize)
+        addOnAttachStateChangeListener(object:View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v:View) { inputTypography(view) }
+            override fun onViewDetachedFromWindow(v:View)=Unit
+        })
         setPadding(dp(context, 12), dp(context, BicycleDesign.verticalPadding), dp(context, 12), dp(context, BicycleDesign.verticalPadding))
         bindTheme(this, manager) {
             background=controlBackground(context,it,android.graphics.Color.TRANSPARENT)
@@ -353,6 +365,11 @@ object BicycleComponents {
             textSelectHandle?.mutate()?.setTint(it.foreground); textSelectHandleLeft?.mutate()?.setTint(it.foreground); textSelectHandleRight?.mutate()?.setTint(it.foreground)
         }
         controlSpacing(this)
+    }
+    internal fun inputTypography(view:EditText) {
+        view.typeface=BicycleDesign.narrowTypeface(view.context);view.textSize=BicycleDesign.settingsMetricSp
+        // Do not clear PasswordTransformationMethod when enforcing mixed-case display.
+        if(view.isAllCaps) view.isAllCaps=false
     }
     internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=GradientDrawable().apply {
         setColor(fill);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
@@ -382,7 +399,7 @@ object BicycleComponents {
     fun action(context: Context, manager: ThemeManager, label: String, click: () -> Unit) =
         action(context, manager, label, true, click)
     internal fun textAction(context:Context,manager:ThemeManager,label:String,click:()->Unit)=BicycleTextAction(context).apply {
-        text=label;textSize=BicycleDesign.bodySp;isAllCaps=false;typeface=android.graphics.Typeface.DEFAULT
+        text=label;textSize=BicycleDesign.bodySp;isAllCaps=false;typeface=BicycleDesign.bodyTypeface
         minimumWidth=dp(context,BicycleDesign.touchSize);minimumHeight=dp(context,BicycleDesign.touchSize)
         bindTheme(this,manager) { tokens ->
             background=null;backgroundTintList=null

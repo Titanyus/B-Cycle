@@ -72,7 +72,7 @@ class RideTitleViewTest {
         val title=RideTitleView(RuntimeEnvironment.getApplication()).apply { setTextColor(Color.RED);this.text=text }
         title.measure(View.MeasureSpec.makeMeasureSpec(240,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(80,View.MeasureSpec.EXACTLY))
         title.layout(0,0,240,80)
-        val distance=title.paint.measureText(text.toString())-title.width
+        val distance=title.paint.measureText(title.transformationMethod.getTransformation(text,title).toString())-title.width
         assertTrue(distance>title.width)
         fun greenPixels():Int {
             val image=Bitmap.createBitmap(title.width,title.height,Bitmap.Config.ARGB_8888)

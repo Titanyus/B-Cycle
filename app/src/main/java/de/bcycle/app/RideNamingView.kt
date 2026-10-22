@@ -28,7 +28,7 @@ internal class RideNamingView(context:Context,themes:ThemeManager,private val la
         BicycleDialogStyle.accordion(toggle,themes);BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Expand)
         addView(toggle);addView(content)
         val input=BicycleComponents.input(RideNamingInput(context),themes).apply {
-            BicycleDialogStyle.control(this,themes);typeface=android.graphics.Typeface.DEFAULT;textSize=BicycleDesign.bodySp
+            BicycleDialogStyle.control(this,themes);
             tag="ride_naming_text";hint=context.getString(R.string.ride_name_text);contentDescription=hint
             setSingleLine(false);setHorizontallyScrolling(false);gravity=android.view.Gravity.TOP or android.view.Gravity.START
             setRawInputType(android.text.InputType.TYPE_CLASS_TEXT);imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_DONE

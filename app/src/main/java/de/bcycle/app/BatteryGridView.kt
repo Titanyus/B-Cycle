@@ -11,7 +11,7 @@ internal class BatteryGridRenderer(private val context:Context, private val fore
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val icons=mutableMapOf<BatterySource,android.graphics.drawable.Drawable>()
     private val clip=Path()
-    private val font=context.resources.getFont(R.font.bebas_neue)
+    private val font=BicycleDesign.narrowTypeface(context)
     fun draw(canvas:Canvas,bounds:RectF,sources:List<BatterySource>,snapshot:BatterySnapshot) {
         if(bounds.width()<=0 || bounds.height()<=0 || sources.isEmpty()) return
         val columns=if(sources.size==1) 1 else 2

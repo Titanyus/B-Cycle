@@ -30,7 +30,7 @@ class BicycleComponentsTest {
             val dropdown=spinner.adapter.getDropDownView(0,null,root)
             dropdown.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.AT_MOST))
             choices.forEach { assertEquals(dropdown.measuredHeight,it.height);assertTrue(it.height>=BicycleDesign.dp(a,BicycleDesign.touchSize)) }
-            assertEquals(a.resources.getFont(R.font.bebas_neue),input.typeface)
+            assertEquals(a.resources.getFont(R.font.league_gothic),input.typeface)
             assertEquals(BicycleDesign.settingsMetricSp*a.resources.displayMetrics.scaledDensity,input.textSize,0.01f)
             assertEquals(android.graphics.Color.TRANSPARENT,(input.background as GradientDrawable).color!!.defaultColor)
         } finally { host.pause().stop().destroy() }

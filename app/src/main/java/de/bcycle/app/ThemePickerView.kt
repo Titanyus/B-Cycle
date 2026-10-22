@@ -21,7 +21,7 @@ internal class ThemePickerView(context:Context,private val themes:ThemeManager):
         chosen.tag="theme_choice";chosen.isClickable=true;chosen.isFocusable=true
         chosen.setOnClickListener { open() }
         BicycleComponents.bindTheme(this,themes) {
-            (chosen.getChildAt(0) as TextView).text=themes.active.name.uppercase(java.util.Locale.ROOT)
+            (chosen.getChildAt(0) as TextView).text=themes.active.name
             (chosen.getChildAt(1) as ThemeSwatches).colors=palette(themes.active)
             chosen.contentDescription=themes.active.name
         }
@@ -35,8 +35,8 @@ internal class ThemePickerView(context:Context,private val themes:ThemeManager):
         contentDescription=theme.name
         addView(TextView(context).apply {
             BicycleDialogStyle.control(this,themes)
-            text=theme.name.uppercase(java.util.Locale.ROOT)
-            typeface=resources.getFont(R.font.bebas_neue);textSize=BicycleDesign.settingsThemeNameSp
+            text=theme.name
+            typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.settingsThemeNameSp
             maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
             importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this,themes) { setTextColor(it.foreground) }

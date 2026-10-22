@@ -14,7 +14,7 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
     private var ready=false
     init {
         buttonDrawable=null;buttonTintList=null
-        gravity=Gravity.CENTER;typeface=Typeface.DEFAULT;textSize=BicycleDesign.choiceSp
+        gravity=Gravity.CENTER;typeface=BicycleDesign.bodyTypeface;textSize=BicycleDesign.choiceSp
         minWidth=0;minimumWidth=0;minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
         setPadding(BicycleDesign.dp(context,BicycleDesign.controlGap),0,BicycleDesign.dp(context,BicycleDesign.controlGap),0)
         maxLines=2

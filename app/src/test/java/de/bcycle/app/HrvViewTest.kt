@@ -85,7 +85,7 @@ class HrvViewTest {
             }
             assertTrue(halfOpaqueLabels>10);graphBitmap.recycle()
             val first=render();assertTrue(hasColor(first,themes.active.tokens.accent))
-            val textPaint=android.graphics.Paint().apply { typeface=c.resources.getFont(R.font.bebas_neue);textSize=72f }
+            val textPaint=android.graphics.Paint().apply { typeface=c.resources.getFont(R.font.league_gothic);textSize=72f }
             val pulseWidth=textPaint.measureText("73")
             textPaint.typeface=android.graphics.Typeface.create("sans-serif-condensed",android.graphics.Typeface.NORMAL)
             textPaint.textSize=DashboardTileStyle.ONE.unitMaxSp.toFloat()

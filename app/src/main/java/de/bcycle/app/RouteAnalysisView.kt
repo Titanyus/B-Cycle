@@ -62,7 +62,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             DateTimeFormatter.ofPattern(context.getString(R.string.analysis_date_format)).withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(it))
         }.orEmpty()
         lines.addView(BicycleComponents.text(context,themes,date).apply {
-            gravity=Gravity.CENTER;typeface=Typeface.DEFAULT;tag="analysis_date";textSize=BicycleDesign.rowTitleSp;maxLines=1
+            gravity=Gravity.CENTER;typeface=BicycleDesign.bodyTypeface;tag="analysis_date";textSize=BicycleDesign.rowTitleSp;maxLines=1
         },LinearLayout.LayoutParams(-1,dp(26)))
         identity.addView(lines,FrameLayout.LayoutParams(-1,dp(52)).apply { marginStart=dp(identityInset);marginEnd=dp(identityInset) })
         val icon=when(analysis.entry.origin) {
@@ -192,18 +192,18 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
 internal class AnalysisMetricTile(context: Context, private val themes: ThemeManager, val alternatives: List<AnalysisMetric>, private val values: Map<AnalysisMetric, Double>) : FrameLayout(context) {
     private var index = 0
     private val value = BicycleComponents.text(context, themes, "").apply {
-        typeface = resources.getFont(R.font.bebas_neue); textSize = BicycleDesign.analysisMetricSp; gravity = Gravity.CENTER
+        typeface = BicycleDesign.narrowTypeface(context); textSize = BicycleDesign.analysisMetricSp; gravity = Gravity.CENTER
         includeFontPadding = false; maxLines = 1
         setAutoSizeTextTypeUniformWithConfiguration(16, BicycleDesign.analysisMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
     }
     private val unit = TextView(context).apply {
-        typeface = resources.getFont(R.font.bebas_neue); gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
+        typeface = BicycleDesign.narrowTypeface(context); gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
         textSize = BicycleDesign.analysisUnitSp; BicycleComponents.secondaryText(this,themes)
         setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp, BicycleDesign.analysisUnitSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
         tag = "analysis_unit"
     }
     private val label = BicycleComponents.text(context, themes, "").apply {
-        typeface = Typeface.DEFAULT; textSize = BicycleDesign.analysisLabelSp; gravity = Gravity.CENTER; maxLines = 3
+        typeface = BicycleDesign.bodyTypeface; textSize = BicycleDesign.analysisLabelSp; gravity = Gravity.CENTER; maxLines = 3
     }
     private val icon = ImageView(context)
     private val switching = ImageView(context)
@@ -266,7 +266,7 @@ internal class BestEffortTile(context: Context, themes: ThemeManager, effort: Be
             gravity = Gravity.CENTER; textSize = BicycleDesign.analysisLabelSp; maxLines = 1
         }, LayoutParams(-1, -2))
         fun numeric(text: String, size: Float) = TextView(context).apply {
-            this.text = text; typeface = resources.getFont(R.font.bebas_neue); textSize = size
+            this.text = text; typeface = BicycleDesign.narrowTypeface(context); textSize = size
             gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
             setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp, size.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
         }

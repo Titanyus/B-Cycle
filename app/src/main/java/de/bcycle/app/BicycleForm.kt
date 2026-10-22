@@ -41,7 +41,7 @@ internal object BicycleForm {
     fun outlinedInput(edit: TextView, themes: ThemeManager, numeric: Boolean=false) {
         BicycleDialogStyle.control(edit,themes)
         if(numeric) edit.apply {
-            typeface=resources.getFont(R.font.bebas_neue)
+            typeface=BicycleDesign.narrowTypeface(context)
             textSize=BicycleDesign.settingsMetricSp
             gravity=Gravity.END or Gravity.CENTER_VERTICAL
             includeFontPadding=false

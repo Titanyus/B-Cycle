@@ -67,7 +67,7 @@ internal class RideWeatherRow(context:Context,themes:ThemeManager,data:RideWeath
                     BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,icon,it.foreground)) }
                 },LayoutParams(BicycleDesign.dp(context,18),BicycleDesign.dp(context,18)).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.smallGap) })
                 addView(BicycleComponents.text(context,themes,text).apply {
-                    textSize=BicycleDesign.rowTitleSp;typeface=android.graphics.Typeface.DEFAULT
+                    textSize=BicycleDesign.rowTitleSp;typeface=BicycleDesign.bodyTypeface
                 },LayoutParams(-2,-2))
             },LayoutParams(-2,-2).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         }

@@ -280,7 +280,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_record_stop">STOPP · SPEICHERN</string>
     <string name="ui_record_saving">SPEICHERN …</string>
     <string name="ui_gps_help_title">GPS-Messung</string>
-    <string name="ui_font_license_title">Bebas Neue · Dharma Type</string>
+    <string name="ui_font_license_title">League Gothic · The League of Moveable Type</string>
     <string name="ui_library_license_title">Bibliotheken · Lizenzen</string>
     <string name="ui_recovery_title">Ungespeicherte Fahrten</string>
     <string name="ui_recovery_retry">Speichern erneut versuchen</string>

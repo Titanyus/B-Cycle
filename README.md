@@ -30,6 +30,10 @@
 
 Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in der Dashboard-Vorschau nicht geladen.
 
+[UI-Atlas als HTML herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/docs/previews/ui-catalog.html) · Datei lokal im Browser öffnen. Offline-Übersicht mit 20 Bauteilgruppen, Theme-/Breiten-/Schriftvergleich, Abstandshilfen und Quelleninspektor. [Anleitung und Prüfstand](docs/ui-catalog.md).
+
+League Gothic ersetzt im aktuellen Quellstand die bisherige Bebas Neue; Schriftrollen zentral, Großschreibung nur für Fenstertitel erzwungen. Die letzte veröffentlichte APK enthält diesen Wechsel noch nicht.
+
 Arbeitsstand nach Build 62: Dashboard mit Strecken links und Start/Stop mittig; HRV manuell über die Einstellungen oder optional beim ersten Tagesstart. Neue Abschluss-Signale und kompakteres Tagesbefinden. [Umfang und Prüfung](docs/hrv-entry.md). Noch keine neue APK für diese Änderungen.
 
 ## Key Features
@@ -391,7 +395,7 @@ und muss vor der Installation signiert werden.
 - [ZIP-Archivimport](docs/route-archive-import.md) – FIT/GPX inklusive GZIP, lokale Duplikaterkennung, seit APK 0.7.26.
 - [intervals.icu einrichten](docs/intervals-icu-plan.md)
 - [Wetterdaten und dauerhafte Speicherung](docs/ride-weather.md)
-- [Bebas Neue: SIL Open Font License](docs/fonts.md)
+- [League Gothic: SIL Open Font License](docs/fonts.md)
 
 Lizenztexte der verwendeten Bibliotheken und Icons sind in der App unter
 **Erweitert → Bibliotheken & Lizenzen** bzw. **Schrift & Lizenz** zugänglich.
@@ -432,7 +436,7 @@ expliziter Auswahl exportiert; keine automatische Analyse oder Telemetrie.
 
 - Sticky-Kategorien auf Fahrer, Bikes, Daten & Speicher und Design & UI.
 - Design & UI: Theme, Dashboard-Layout, Fahrmodus-Anzeige.
-- Kompakte einzeilige Zahlenfelder in 28-sp-Bebas-Neue mit dezentem Rahmen;
+- Kompakte einzeilige Zahlenfelder in 21-sp-League-Gothic mit dezentem Rahmen;
   WebDAV-Felder mit gleichem Rahmen und Systemschrift.
 - FIT-Aufzeichnung als fester Abschnitt, zusätzliche Datenquellen einzeln aufklappbar.
 - Streckendetails: geglättete, deckende Diagrammflächen ohne zusätzliche Konturlinie.

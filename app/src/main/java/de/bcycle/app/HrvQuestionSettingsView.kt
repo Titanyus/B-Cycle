@@ -46,7 +46,7 @@ internal class HrvQuestionSettingsView(context:Context,themes:ThemeManager):Line
         (0..2).forEach { index ->
             addView(BicycleComponents.input(context,themes).apply {
                 tag="hrvq_custom_name_$index";hint=context.getString(R.string.hrvq_custom_name,index+1);contentDescription=hint
-                typeface=android.graphics.Typeface.DEFAULT;textSize=BicycleDesign.bodySp;setSingleLine()
+                setSingleLine()
                 filters=arrayOf(android.text.InputFilter.LengthFilter(40));setText(settings.read().customNames[index])
                 addTextChangedListener(object:TextWatcher {
                     override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int)=Unit

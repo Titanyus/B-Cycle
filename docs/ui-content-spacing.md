@@ -28,7 +28,7 @@ Z-Reihenfolge bleibt über erhöhten nativen Buttons, ohne nativen Schatten.
 Horizontale/vertikale UI-Trenner und Dashboard-Raster verwenden
 ebenfalls 0,75 dp über BicycleDesign.linePixels. Deckkraft bleibt 55 % für
 Abschnittstrenner bzw. 100 % zwischen Strecken. Horizontale Abschnittstrenner
-verwenden sectionDividerGap mit 12 dp oben und unten. Diagrammkurven bleiben
+verwenden sectionDividerGap mit 16 dp oben und unten. Diagrammkurven bleiben
 unverändert. Die zentrale Umrechnung unterstützt Bruchteile und rundet auf
 ganze Pixel, mindestens einen Pixel für positive Linienbreiten.
 Der Schatten des Hauptheaders bleibt 12 dp / maximal 40 %.
@@ -58,7 +58,7 @@ Bildfeld und anklickbarer Platzhalter behalten immer dasselbe Format 16:9; Fotos
 und Löschsymbol. Fotos sind derzeit nicht Bestandteil der manuellen Sicherung.
 
 Profilkacheln: Radtyp oberhalb des Symbols; Name darunter mit zwei reservierten
-Zeilen. FIT-Aufzeichnung enthält Geschwindigkeit/Distanz als normale Titel mit Dropdown in einer Zeile; Strecken-Aufzeichnung enthält die Feldgruppen. Native Dropdown-Schriften auf der Profilseite: 14 sp, Theme-Namen dagegen 28 sp / Bebas Neue wie schmale Streckendetailwerte. Sensorzeilen sind so hoch wie ein einzeiliger Sticky Header; Schalter, Text und Chevron werden ohne zusätzliche vertikale Formular-Margins zentriert.
+Zeilen. FIT-Aufzeichnung enthält Geschwindigkeit/Distanz als normale Titel mit Dropdown in einer Zeile; Strecken-Aufzeichnung enthält die Feldgruppen. Native Dropdown-Schriften auf der Profilseite: 14 sp, Theme-Namen dagegen 21 sp / League Gothic gemäß zentraler schmaler Schriftrolle. Sensorzeilen sind so hoch wie ein einzeiliger Sticky Header; Schalter, Text und Chevron werden ohne zusätzliche vertikale Formular-Margins zentriert.
 
 Streckendetails: Datum und Wetter verwenden die normale Systemschrift mit
 rowTitleSp (16 sp). Wettergruppen umfassen jeweils das unmittelbar vorangestellte
@@ -89,7 +89,7 @@ und Wind. Innerhalb von Himmel und Temperatur steht kein Punkt.
 
 Streckendetails verwenden für die Trenner ihrer Kennzahlenbereiche zentral
 analysisDividerGap = 2 dp oben und unten. Alle anderen Abschnittstrenner bleiben
-bei 12 dp. Wettergruppen werden als Gesamtzeile bzw. pro umgebrochener Zeile zentriert.
+bei 16 dp. Wettergruppen werden als Gesamtzeile bzw. pro umgebrochener Zeile zentriert.
 
 Die native ListView der Strecken übernimmt dividerAlpha = 55 % für ihre
 FOREGROUND-Trenner, identisch zur Deckkraft der Abschnittstrenner in Details.
@@ -101,3 +101,5 @@ Auf der Profilseite sind die gleichrangigen Sticky-Abschnitte auf-/zuklappbar. S
 Formularbuttons und Dropdowns verwenden zentral SECONDARY mit **1 dp FOREGROUND-Kontur bei 50 % Deckkraft** und **6 dp Radius**. Popup-Flächen übernehmen dieselben Rollen. Eingabefelder (auch Radumfang und Fahrerprofil) erhalten dieselbe Kontur und Rundung; ihre bisherige transparente bzw. TERTIARY-Fläche und Typografie bleiben erhalten. Bestehende Ripple-/Disabled-Zustände und fachliche Auswahlmarkierungen bleiben bestehen.
 
 Die zunächst vorgemerkte Änderung wurde am 17.10.2026 nach Build 30 umgesetzt. Die letzte Nutzervorgabe setzt die Rahmen-Deckkraft ausdrücklich auf 50 %, unabhängig von den weiterhin 55 % deckenden Sensor-Trennlinien. Nur die Kontur verwendet diese Deckkraft, nicht Text, Icons oder das gesamte Bedienelement. Andere Linien und fachliche Auswahlrahmen sind nicht betroffen.
+
+Aktuelle sichtbare Referenz: [UI-Atlas](previews/ui-catalog.html), generiert aus BicycleDesign. Schriftrollen: [fonts.md](fonts.md). 24-dp-Gruppen-/4-dp-Labelabstände im Atlas sind ausdrücklich nur ein HTML-Entwurf und ändern keine bestehenden App-Abstände.

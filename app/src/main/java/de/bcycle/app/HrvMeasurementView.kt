@@ -52,7 +52,7 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         show(controller.state)
     }
     private fun styleAction() {
-        action.typeface=if(startAction) BicycleDesign.strongTypeface else Typeface.DEFAULT
+        action.typeface=if(startAction) BicycleDesign.strongTypeface else BicycleDesign.bodyTypeface
         if(startAction) styleHrvPill(action) else action.background=null
     }
     private fun show(state:HrvState) {
@@ -178,8 +178,8 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
     private var tokens=themes.active.tokens
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val glow=Paint(Paint.ANTI_ALIAS_FLAG)
-    private val numbers=resources.getFont(R.font.bebas_neue)
-    private val units=Typeface.create("sans-serif-condensed",Typeface.NORMAL)
+    private val numbers=BicycleDesign.narrowTypeface(context)
+    private val units=BicycleDesign.compactTypeface
     private val pulseBounds=Rect()
     private val unitBounds=Rect()
     private val timeBounds=Rect()
@@ -243,7 +243,7 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
         paint.getTextBounds(unit,0,unit.length,unitBounds)
         val unitBaseline=(pulseTop+pulseBottom-unitBounds.top-unitBounds.bottom)/2
         canvas.drawText(unit,left+pulseWidth+gap,unitBaseline,paint)
-        paint.typeface=Typeface.DEFAULT;paint.color=tokens.foreground;paint.textAlign=Paint.Align.CENTER
+        paint.typeface=BicycleDesign.bodyTypeface;paint.color=tokens.foreground;paint.textAlign=Paint.Align.CENTER
         paint.textSize=BicycleDesign.hrvTimeSp*scaled
         val clock=time();paint.getTextBounds(clock,0,clock.length,timeBounds)
         canvas.drawText(clock,x,y+48*density,paint)
@@ -276,7 +276,7 @@ internal class HrvGraphView(context:Context,themes:ThemeManager):View(context) {
     private var tokens=themes.active.tokens
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val path=Path()
-    private val units=Typeface.create("sans-serif-condensed",Typeface.NORMAL)
+    private val units=BicycleDesign.compactTypeface
     private var points:List<HrvPoint> = emptyList()
     private var elapsedMs=0L
     private var updatedAtMs=0L

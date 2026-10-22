@@ -180,14 +180,14 @@ internal object BicycleDialogStyle {
         if(view is BicycleSegmentButton) return // Own radio appearance; generic controls add selection circles.
         if(view is Button || view is EditText) BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) {
+            if(view is EditText) { BicycleComponents.inputTypography(view);return }
             if(view.isAccessibilityHeading) { view.typeface=BicycleDesign.strongTypeface;view.textSize=BicycleDesign.titleSp }
             return
         }
-        view.typeface = if(view.isAccessibilityHeading) BicycleDesign.strongTypeface else Typeface.DEFAULT
+        view.typeface = if(view.isAccessibilityHeading) BicycleDesign.strongTypeface else BicycleDesign.bodyTypeface
         if (view !is EditText) view.textSize = if (view.isAccessibilityHeading) BicycleDesign.titleSp else BicycleDesign.bodySp
         if (view is EditText) {
-            view.typeface=view.resources.getFont(R.font.bebas_neue)
-            view.textSize = BicycleDesign.settingsMetricSp; view.minimumHeight = dp(view, BicycleDesign.touchSize)
+            BicycleComponents.inputTypography(view);view.minimumHeight = dp(view, BicycleDesign.touchSize)
             view.setPadding(dp(view, BicycleDesign.inputHorizontalPadding), dp(view, BicycleDesign.verticalPadding),
                 dp(view, BicycleDesign.inputHorizontalPadding), dp(view, BicycleDesign.verticalPadding))
             BicycleComponents.bindTheme(view, themes) { tokens ->
@@ -252,8 +252,8 @@ internal object BicycleDialogStyle {
         } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(BicycleComponents.textColor(view,themes,it)) }
     }
     private fun footer(button: Button, themes: ThemeManager) {
-        button.typeface = Typeface.DEFAULT; button.textSize = BicycleDesign.bodySp
-        button.isAllCaps = true
+        button.typeface = BicycleDesign.bodyTypeface; button.textSize = BicycleDesign.bodySp
+        button.isAllCaps = false
         button.minimumHeight = dp(button, BicycleDesign.touchSize)
         button.setPadding(dp(button, BicycleDesign.horizontalPadding), dp(button, BicycleDesign.verticalPadding),
             dp(button, BicycleDesign.horizontalPadding), dp(button, BicycleDesign.verticalPadding))
@@ -267,7 +267,7 @@ internal object BicycleDialogStyle {
     fun accordion(view: Button, themes: ThemeManager) {
         view.isAccessibilityHeading=false
         control(view,themes)
-        view.typeface=Typeface.DEFAULT
+        view.typeface=BicycleDesign.bodyTypeface
         view.textSize=BicycleDesign.choiceSp
         view.gravity=Gravity.START or Gravity.CENTER_VERTICAL
     }
@@ -295,7 +295,7 @@ internal object BicycleDialogStyle {
             override fun isEnabled(position:Int) = (original as? ListAdapter)?.isEnabled(position) ?: true
             private fun row(position: Int, recycled: View?, dropdown: Boolean): View =
                 ((recycled as? TextView) ?: BicycleComponents.text(view.context, themes, "").apply {
-                    typeface = Typeface.DEFAULT; gravity = Gravity.CENTER_VERTICAL
+                    typeface = BicycleDesign.bodyTypeface; gravity = Gravity.CENTER_VERTICAL
                     minHeight = dp(view, BicycleDesign.touchSize); textSize = textSizeSp
                     BicycleComponents.bindTheme(this, themes) {
                         setTextColor(it.foreground); setBackgroundColor(Color.TRANSPARENT)

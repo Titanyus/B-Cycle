@@ -439,7 +439,7 @@ class MainActivity : Activity() {
                 SettingsAction.DIAGNOSTIC -> diagnosticSettings()
                 SettingsAction.RESET -> resetDashboardSettings()
                 SettingsAction.SOURCES -> sourcesSettings()
-                SettingsAction.FONT_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_font_license_title)).setMessage(assets.open("Bebas-Neue-OFL.txt").bufferedReader().use { it.readText() }).show()
+                SettingsAction.FONT_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_font_license_title)).setMessage(assets.open("League-Gothic-OFL.txt").bufferedReader().use { it.readText() }).show()
                 SettingsAction.MAP_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_library_license_title)).setMessage(
                     "Mapsforge · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +

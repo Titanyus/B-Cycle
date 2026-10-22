@@ -42,12 +42,12 @@ class DashboardViewTest {
         assertNotSame(tiles[0].parent, tiles[2].parent)
         tiles.forEach { it.performClick() }; assertEquals((0..4).toList(), clicked)
         val texts = descendants(view).filterIsInstance<TextView>().map { it.text.toString() }
-        assertTrue(texts.contains("\uFFFC Ø TEMPO · FAHRT"))
-        assertTrue(texts.contains("\uFFFC TEMPO"))
-        assertTrue(texts.contains("KADENZ"))
-        assertFalse(texts.any { it == "\uFFFC KADENZ" })
+        assertTrue(texts.contains("\uFFFC Ø Tempo · Fahrt"))
+        assertTrue(texts.contains("\uFFFC Tempo"))
+        assertTrue(texts.contains("Kadenz"))
+        assertFalse(texts.any { it == "\uFFFC Kadenz" })
         view.show(DashboardLayout.defaults.replace(0, DashboardField("GPS_ALTITUDE")), LiveData())
-        assertEquals("HÖHE", descendants(view).filterIsInstance<TextView>().first().text.toString())
+        assertEquals("Höhe", descendants(view).filterIsInstance<TextView>().first().text.toString())
         view.show(DashboardLayout.defaults.replace(0, DashboardField("GPS_MOVING_AVERAGE")), LiveData())
         val caption = descendants(view).filterIsInstance<TextView>().first().text as android.text.Spanned
         assertEquals("GPS", caption.getSpans(0, 1, SourceIconSpan::class.java).single().source)
@@ -314,7 +314,7 @@ class DashboardViewTest {
         val configured = DashboardLayout.defaults.replace(2, DashboardField("RIDER_ENERGY_SHARE"))
         view.show(configured, data.copy(otherValues = data.otherValues + (LiveMetric.RIDER_ENERGY_SHARE to 37L)))
         measure(view, 1080, 1950)
-        val layout = descendants(view).filterIsInstance<TextView>().single { it.text.toString() == "FAHRERANTEIL" }.layout
+        val layout = descendants(view).filterIsInstance<TextView>().single { it.text.toString() == "Fahreranteil" }.layout
         assertNotNull(layout)
         assertTrue(layout.lineCount <= 2)
     }

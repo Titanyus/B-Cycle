@@ -331,7 +331,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     }
     private fun correctionSlider(slot: Int, title: Int, key: String, step: Int) {
         val value = BicycleComponents.text(context,themes,"").apply {
-            tag="indoor_correction_${key}_value"; typeface=resources.getFont(R.font.bebas_neue)
+            tag="indoor_correction_${key}_value"; typeface=BicycleDesign.narrowTypeface(context)
             textSize=BicycleDesign.settingsMetricSp; gravity=Gravity.END or Gravity.CENTER_VERTICAL
             importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
         }

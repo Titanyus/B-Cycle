@@ -71,7 +71,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     override fun draw(canvas: Canvas) {
         if(shapes.isEmpty()) return
         val save=canvas.save(); canvas.clipRect(plot)
-        paint.typeface=Typeface.DEFAULT; paint.textSize=12.96f*density
+        paint.typeface=BicycleDesign.bodyTypeface; paint.textSize=12.96f*density
         paint.style=Paint.Style.STROKE; paint.strokeWidth=density
         paint.color=Color.WHITE; paint.alpha=255; paint.shader=boundaryShader
         canvas.drawLine(curve.left,curve.top,curve.left,curve.bottom,paint)

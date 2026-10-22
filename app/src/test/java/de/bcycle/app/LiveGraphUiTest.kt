@@ -157,7 +157,7 @@ class LiveGraphUiTest {
             (it.text as android.text.Spanned).getSpans(0,it.text.length,RecordingDotSpan::class.java).isNotEmpty() }
         val text=caption.text as android.text.Spanned
         val dots=text.getSpans(0,text.length,RecordingDotSpan::class.java)
-        assertEquals(2,dots.size);assertTrue(text.toString().contains("TEMPO"))
+        assertEquals(2,dots.size);assertTrue(text.toString().contains("Tempo"))
         dots.forEachIndexed { i,dot ->
             val b=Bitmap.createBitmap(30,30,Bitmap.Config.ARGB_8888)
             dot.draw(Canvas(b),"x",0,1,0f,0,20,30,Paint().apply { textSize=18f })
@@ -219,7 +219,7 @@ class LiveGraphUiTest {
             view.showDataVisibility(DashboardDataVisibility().replace(slot,false));measure(view,1080,1500)
             assertEquals(before,all(view).filter { it.isClickable }.map { listOf(it.left,it.top,it.width,it.height) })
             assertEquals(View.INVISIBLE,(value.parent as View).visibility)
-            assertTrue(all(tile).filterIsInstance<TextView>().any { it.text.toString().contains("TEMPO") && it.visibility==View.INVISIBLE })
+            assertTrue(all(tile).filterIsInstance<TextView>().any { it.text.toString().contains("Tempo") && it.visibility==View.INVISIBLE })
             view.showGraphs(GraphOverlayConfig(),frame)
             assertEquals(View.INVISIBLE,(value.parent as View).visibility)
             view.showDataVisibility(DashboardDataVisibility())
