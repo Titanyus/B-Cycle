@@ -2,6 +2,13 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller Stand nach Build 64
+
+APK **0.8.25 / Build 64 / versionCode 95** aus `f9e8e5ab67f12e86eb755f048909c52fd2055026` über Actions erfolgreich gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.25-release-64.apk), [Buildnachweis](build-64.md). 2.201.366 Bytes; SHA-256 `3419ada2ea11cf1158cf57357ff674e7141e0b702404edbd11b63da36e8a0dbc`. Dauerhafte Signatur wie Build 63, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält CSV-Import, spätere Slider-Abstandskorrektur und zentrale HRV-Tagesregel. Alle betreffenden Commits jetzt auf main, kein offener APK-Auftrag. 16 gezielte HRV-Tests erfolgreich; kein Gesamtlauf/Hardwaretest.
+
+Tagesregel: nur letzte Messung pro gespeichertem lokalem Tag anzeigen/auswerten; ältere bleiben unverändert archiviert. Auswahl vor Qualitätsprüfung, kein Rückfall auf ältere erfolgreiche Messung. Export vollständig mit dailySelected. Details hrv-daily-selection.md. Score-Diskussion: persönliche Umrechnung aus Export passt, allgemeiner Alterseinfluss unbekannt. Nutzer möchte aktive HRV4Training-Installation nicht für Altersversuche verändern; kein neuer Score implementiert. Frühere Aussagen zu fehlender APK/Tagesregel oder nur lokalen Änderungen unten sind Verlauf.
+
+
 Aktueller Auftrag: HRV4Training-CSV-Import unter Daten & Speicher → HRV-Pulsdaten umgesetzt. Schreibfreie Vorschau mit Datumsformat/Zeitzone, bewusstes Importieren auf HRV-Worker, externe Kennzahlen und vollständige Originalfelder/Tagesdaten, stabile Dublettenidentität ohne Überschreiben, atomare neue Einträge, eigene Herkunft/Detailansicht und vorhandener Backup-/JSON-Export. Originaldatei privat außerhalb Repo, nur synthetische Fixtures committen. 18 unterschiedliche gezielte Prüfungen erfolgreich, einschließlich temporärer Originaldateiprüfung; tatsächlicher Dateiauswahlpfad und native Vorschau zusätzlich geprüft. Details docs/hrv4training-import.md. Keine neue APK angefragt, Änderungen lokal sichern.
 
 Währenddessen Score-Diskussion: HRV4Training-Recovery-Points zunächst gewünscht, dann vom Nutzer ausdrücklich als unwichtig bezeichnet. Aktuelle Frage ist wissenschaftlicher Log+Alter-Kennwert. lnRMSSD ist verbreitet und bereits in nativen Metriken enthalten; kein universeller Log+Alter-Readinessscore aus Quellen belegt. Empfohlen persönliche Baseline statt erfundener Altersformel. Keine exportkalibrierte Formel, Alterskorrektur, neue Baseline oder Scoreberechnung implementiert; Originalscore nur erhalten. Quellen und Abgrenzung docs/hrv-score-plan.md.
