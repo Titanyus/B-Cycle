@@ -140,6 +140,7 @@ object BicycleDesign {
     const val headerVerticalPadding = 12
     const val dialogRadius = 18
     const val controlBorder = 1
+    const val inputHintAlpha = .5f
     const val sliderScaleLabelAlpha = .5f
     const val fieldLabelGap = controlGap / 2
     const val fieldFeedbackGap = controlGap / 2
@@ -383,6 +384,13 @@ object BicycleComponents {
             textSelectHandle?.mutate()?.setTint(it.foreground); textSelectHandleLeft?.mutate()?.setTint(it.foreground); textSelectHandleRight?.mutate()?.setTint(it.foreground)
         }
         controlSpacing(this)
+    }
+    fun inputHint(view:EditText,manager:ThemeManager,value:String) {
+        view.hint=value;view.setTag(R.id.input_placeholder_hint,true)
+        bindTheme(view,manager) { tokens ->
+            view.setHintTextColor((tokens.foreground and 0xffffff) or
+                ((android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.inputHintAlpha).toInt() shl 24))
+        }
     }
     internal fun inputTypography(view:EditText) {
         view.typeface=BicycleDesign.narrowTypeface(view.context);view.textSize=BicycleDesign.settingsMetricSp

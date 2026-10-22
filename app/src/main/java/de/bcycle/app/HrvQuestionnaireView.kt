@@ -72,7 +72,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     }
     private fun rating(parent:LinearLayout,question:HrvQuestion,key:String,left:Int,middle:Int,right:Int,max:Int=8) {
         if(!enabled(question)) return
-        val block=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_block_$key" }
+        val block=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_block_$key";setTag(R.id.slider_question_group,true) }
         block.addView(BicycleComponents.fieldLabel(context,themes,context.getString(question.label)))
         val origin=if(key=="soreness" || key=="fatigue") 0 else max/2
         val slider=BicycleRatingSlider(context,themes,origin,max).apply {
@@ -119,14 +119,15 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     private fun boolean(parent:LinearLayout,q:HrvQuestion,key:String,current:Boolean?,changed:(Boolean)->Unit) {
         if(enabled(q)) choices(parent,key,context.getString(q.label),listOf(R.string.hrvq_no,R.string.hrvq_yes),current?.let { if(it) 1 else 0 }) { changed(it==1) }
     }
-    private fun input(parent:LinearLayout,key:String,title:String,current:String,numeric:Boolean=false,time:Boolean=false,maxLength:Int=500,changed:(String)->Boolean) {
-        parent.addView(BicycleComponents.fieldLabel(context,themes,title))
+    private fun input(parent:LinearLayout,key:String,title:String,current:String,numeric:Boolean=false,time:Boolean=false,maxLength:Int=500,placeholder:Boolean=false,changed:(String)->Boolean):EditText {
+        if(!placeholder) parent.addView(BicycleComponents.fieldLabel(context,themes,title))
         val edit=BicycleComponents.input(context,themes).apply {
             tag="hrvq_$key";contentDescription=title
 
             inputType=when { numeric->android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL or android.text.InputType.TYPE_NUMBER_FLAG_SIGNED
                 time->android.text.InputType.TYPE_CLASS_DATETIME or android.text.InputType.TYPE_DATETIME_VARIATION_TIME
                 else->android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES }
+            if(placeholder) BicycleComponents.inputHint(this,themes,title)
             if(time) hint=context.getString(R.string.hrvq_time_hint)
             filters=arrayOf(android.text.InputFilter.LengthFilter(maxLength));setText(current)
         }
@@ -138,6 +139,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             }
         })
         parent.addView(edit,LayoutParams(-1,-2))
+        return edit
     }
     private fun extra(parent:LinearLayout,key:String,title:String,numeric:Boolean=false,time:Boolean=false) {
         input(parent,key,title,value.extras[key].orEmpty(),numeric,time) { text ->
@@ -183,20 +185,19 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
                 training.rideIds.isEmpty()->R.string.hrvq_no_rides
                 else->R.string.hrvq_rides
             },if(value.trainingSource=="rides") value.rideIds.size else training?.rideIds?.size ?: 0)))
-            val row=LinearLayout(context).apply { orientation=HORIZONTAL;tag="hrvq_training_amounts" }
+            val row=LinearLayout(context).apply { orientation=HORIZONTAL;tag="hrvq_training_amounts";setTag(R.id.inline_control_row,true) }
             fun amount(distance:Boolean) {
-                val column=LinearLayout(context).apply { orientation=VERTICAL }
                 val old=if(distance) value.trainingKm else value.trainingMinutes
                 val text=old?.let { java.text.DecimalFormat("0.##").format(it) }.orEmpty()
-                input(column,if(distance) "distance" else "duration",context.getString(if(distance) R.string.hrvq_distance else R.string.hrvq_duration),text,numeric=true,maxLength=20) { raw ->
+                val edit=input(row,if(distance) "distance" else "duration",context.getString(if(distance) R.string.hrvq_distance else R.string.hrvq_duration),text,numeric=true,maxLength=20,placeholder=true) { raw ->
                     val number=if(raw.isBlank()) null else raw.trim().replace(',','.').toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..1_000_000.0 } ?: return@input false
                     change(if(distance) value.copy(trainingKm=number,trainingSource="manual") else value.copy(trainingMinutes=number,trainingSource="manual"));true
                 }
-                row.addView(column,LayoutParams(0,-2,1f).apply { if(row.childCount>0) marginStart=dp(BicycleDesign.controlGap) })
+                edit.layoutParams=LayoutParams(0,-2,1f).apply { if(row.childCount>1) marginStart=dp(BicycleDesign.controlGap) }
             }
             if(enabled(HrvQuestion.DISTANCE)) amount(true)
             if(enabled(HrvQuestion.DURATION)) amount(false)
-            parent.addView(row,LayoutParams(-1,-2))
+            parent.addView(row,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
         }
     }
     private fun prefill() {
@@ -232,6 +233,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
                 val show=!enabled(HrvQuestion.TRAINING) || value.training?.let { it>0 }==true
                 details.removeAllViews();details.visibility=if(show) VISIBLE else GONE
                 if(show) { prefill();trainingFields(details) }
+                BicycleForm.sliderQuestionSpacing(this@HrvQuestionnaireView)
             }
             if(enabled(HrvQuestion.TRAINING)) choices(body,"training",context.getString(R.string.hrvq_training,date.minusDays(1).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))),
                 listOf(R.string.hrvq_rest,R.string.hrvq_easy,R.string.hrvq_moderate,R.string.hrvq_intense),value.training) { selected ->
@@ -268,6 +270,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         }
         addView(status,LayoutParams(-1,-2));addView(retry,LayoutParams(-1,-2))
         addView(analysis,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
+        BicycleForm.sliderQuestionSpacing(this)
     }
     private fun dp(size:Int)=BicycleDesign.dp(context,size)
     override fun onAttachedToWindow() { super.onAttachedToWindow();settings.preferences.registerOnSharedPreferenceChangeListener(listener);riderPrefs.registerOnSharedPreferenceChangeListener(riderListener) }

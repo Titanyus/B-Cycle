@@ -2,4 +2,6 @@
     <item name="bike_move_left" type="id" />
     <item name="bike_move_right" type="id" />
     <item name="inline_control_row" type="id" />
+    <item name="slider_question_group" type="id" />
+    <item name="input_placeholder_hint" type="id" />
 </resources>

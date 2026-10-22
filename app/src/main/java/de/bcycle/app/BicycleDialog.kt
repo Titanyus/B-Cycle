@@ -191,7 +191,7 @@ internal object BicycleDialogStyle {
             view.setPadding(dp(view, BicycleDesign.inputHorizontalPadding), dp(view, BicycleDesign.verticalPadding),
                 dp(view, BicycleDesign.inputHorizontalPadding), dp(view, BicycleDesign.verticalPadding))
             BicycleComponents.bindTheme(view, themes) { tokens ->
-                view.setTextColor(colors(tokens.foreground)); view.setHintTextColor(alpha(tokens.foreground, .75f))
+                view.setTextColor(colors(tokens.foreground)); view.setHintTextColor(alpha(tokens.foreground,if(view.getTag(R.id.input_placeholder_hint)==true) BicycleDesign.inputHintAlpha else .75f))
                 view.backgroundTintList = null; view.background = inputBackground(view, tokens)
                 view.textCursorDrawable?.mutate()?.setTint(tokens.foreground)
                 view.textSelectHandle?.mutate()?.setTint(tokens.foreground)

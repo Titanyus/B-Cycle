@@ -38,6 +38,41 @@ internal object BicycleForm {
         }
         (0 until root.childCount).map(root::getChildAt).forEach(::accordions)
     }
+    /** Resolve slider boundaries across optional wrappers, without adding an existing trailing gap twice. */
+    fun sliderQuestionSpacing(root:android.view.ViewGroup) {
+        fun trailing(view:android.view.View):Int? {
+            if(view.visibility==android.view.View.GONE) return null
+            val own=(view.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
+            if(view is LinearLayout && view.getTag(R.id.inline_control_row)!=true) {
+                val last=(view.childCount-1 downTo 0).firstNotNullOfOrNull { trailing(view.getChildAt(it)) } ?: return null
+                return own+view.paddingBottom+last
+            }
+            return own
+        }
+        fun preceding(view:android.view.View):Int? {
+            var child=view
+            while(child!==root) {
+                val parent=child.parent as? LinearLayout ?: return null
+                for(index in parent.indexOfChild(child)-1 downTo 0) {
+                    val previous=parent.getChildAt(index)
+                    if(previous.visibility==android.view.View.GONE) continue
+                    if(previous is BicycleSectionHeader) return null
+                    trailing(previous)?.let { return it }
+                }
+                child=parent
+            }
+            return null
+        }
+        fun visit(view:android.view.View) {
+            if(view.getTag(R.id.slider_question_group)==true) {
+                val margins=view.layoutParams as? android.view.ViewGroup.MarginLayoutParams
+                val top=preceding(view)?.let { (BicycleDesign.dp(view.context,BicycleDesign.sliderQuestionGap)-it).coerceAtLeast(0) } ?: 0
+                if(margins!=null && margins.topMargin!=top) { margins.topMargin=top;view.requestLayout() }
+            }
+            if(view is android.view.ViewGroup) (0 until view.childCount).forEach { visit(view.getChildAt(it)) }
+        }
+        visit(root)
+    }
     fun outlinedInput(edit: TextView, themes: ThemeManager, numeric: Boolean=false) {
         BicycleDialogStyle.control(edit,themes)
         if(numeric) edit.apply {

@@ -43,3 +43,11 @@ Bei allen Tagesbefinden-Slidern entfallen die sichtbare Auswahl-/Unbeantwortet-A
 Slider-Skalenbegriffe: Abstand nach oben zentral sliderScaleLabelGap = controlGap / 2 (4 statt 8 dp). Keine nachträgliche normale Control-Margin auf diese Beschriftungsrolle anwenden; Touchhöhe des Sliders bleibt unverändert.
 
 Slider-Fragen bilden eine Gruppe: Frage, 48-dp-Slider, Skalenbegriffe mit 4 dp Abstand/50 % Deckkraft. Danach 24 dp Gruppenabstand (sliderQuestionGap). Diese konkrete Gruppierung ist jetzt in Tagesbefinden und Atlas umgesetzt; der allgemeine Formular-Abstandsentwurf bleibt separat.
+
+## Gemischte Trainingsgruppen nach Build 63
+
+Die 32-dp-Gruppenregel gilt auch vor RPE und Motivation, unabhängig davon, ob Trainingphase, Trainingsdetails, RPE oder Mengenfelder aktiviert/sichtbar sind. Zuvor war nur die untere Margin des Sliders gesetzt. Die gemeinsame BicycleForm.sliderQuestionSpacing-Regel berücksichtigt nun die vorherige sichtbare Gruppe über Wrapper hinweg und zieht vorhandene Nachlaufabstände ab. Dynamischer Neuaufbau wendet dieselbe Regel erneut an; zwei Slider bekommen keine doppelten 64 dp.
+
+Distanz und Dauer stehen weiter nebeneinander, jetzt ohne äußere Textzeilen. Leere Felder zeigen „Distanz · km“ beziehungsweise „Dauer · min“ als Platzhalter mit 50 % Deckkraft; zugängliche Beschriftung bleibt auch bei gefüllten Feldern erhalten. 8 dp trennen den Vortagshinweis von der Eingabezeile. Werte, Vorbefüllung, unbekannte Mengen, Validierung und Speicherung unverändert. Kein neuer APK-Auftrag für diese Korrektur.
+
+Prüfung dieser Korrektur: 7 gezielte bestehende/ergänzte Tagesbefinden-Tests erfolgreich, einschließlich optionaler Trainingphase, ein-/ausgeblendeter RPE-/Mengenfelder, exakt 32 dp ohne Doppelabstand, Platzhalter, manueller Eingabe und vorhandener Vorbefüllung/Backup. Browserprüfung des aktualisierten Atlas erfolgreich (Platzhalter, 8-dp-Hinweisabstand und bisherige Regler/320–412-Breiten). Native Ansicht visuell geprüft. Kein Gesamtlauf und keine neue APK.

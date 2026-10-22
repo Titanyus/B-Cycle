@@ -106,6 +106,44 @@ class HrvQuestionnaireTest {
             assertEquals(12.5,saved.last().trainingKm!!,0.0);assertEquals(50.0,saved.last().trainingMinutes!!,0.0)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun sliderGroupGapsFollowOptionalTrainingFieldsAndAmountsUseEditablePlaceholders() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val settings=HrvQuestionSettings(a);val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            val options=setOf(HrvQuestion.TRAINING,HrvQuestion.PHASE,HrvQuestion.RPE,HrvQuestion.DISTANCE,HrvQuestion.DURATION,HrvQuestion.MOTIVATION)
+            settings.write(HrvQuestionConfig(options))
+            val saved=mutableListOf<HrvQuestionnaire>()
+            val form=HrvQuestionnaireView(a,themes,HrvQuestionnaire("2026-10-22"),HrvTrainingSummary(emptyList(),null,null)) { value,done->saved+=value;done(true) }
+            val scroll=android.widget.ScrollView(a).apply { addView(form) };a.setContentView(scroll)
+            fun settle() { shadowOf(Looper.getMainLooper()).idle();layout(scroll) }
+            fun gap(previous:View,next:View):Int {
+                val p=IntArray(2);val n=IntArray(2);previous.getLocationOnScreen(p);next.getLocationOnScreen(n)
+                return n[1]-p[1]-previous.height
+            }
+            fun block(key:String)=form.findViewWithTag<View>("hrvq_block_$key")
+            settle()
+            assertEquals(32,gap(form.findViewWithTag("hrvq_phase"),block("motivation")))
+            form.findViewWithTag<View>("hrvq_training_1").performClick();settle()
+            assertEquals(32,gap(form.findViewWithTag("hrvq_phase"),block("rpe")))
+            val row=form.findViewWithTag<LinearLayout>("hrvq_training_amounts")
+            val container=row.parent as LinearLayout
+            assertEquals(8,gap(container.getChildAt(container.indexOfChild(row)-1),row))
+            assertEquals(32,gap(row,block("motivation")))
+            for((key,id) in listOf("distance" to R.string.hrvq_distance,"duration" to R.string.hrvq_duration)) {
+                val edit=form.findViewWithTag<EditText>("hrvq_$key")
+                assertEquals(row,edit.parent);assertEquals(a.getString(id),edit.hint);assertEquals(a.getString(id),edit.contentDescription)
+                assertTrue(edit.text.isEmpty());BicycleDialogStyle.control(edit,themes)
+                assertEquals(127,android.graphics.Color.alpha(edit.currentHintTextColor))
+            }
+            form.findViewWithTag<EditText>("hrvq_distance").setText("25,5");form.flush();assertEquals(25.5,saved.last().trainingKm!!,0.0)
+            form.findViewWithTag<View>("hrvq_training_0").performClick();settle()
+            assertEquals(32,gap(form.findViewWithTag("hrvq_phase"),block("motivation")))
+            settings.write(HrvQuestionConfig(setOf(HrvQuestion.TRAINING,HrvQuestion.RPE,HrvQuestion.MOTIVATION)));settle()
+            form.findViewWithTag<View>("hrvq_training_1").performClick();settle()
+            assertEquals(32,gap(form.findViewWithTag("hrvq_training"),block("rpe")))
+            assertEquals(32,gap(block("rpe"),block("motivation"))) // Existing trailing 32 dp must not become 64.
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun settingsAccordionAndRiderSexRoundTripInBackupAndPreserveOtherProfileInputs() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
