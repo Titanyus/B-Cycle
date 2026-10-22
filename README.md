@@ -42,7 +42,7 @@ In APK 0.8.26: neuer Bildschirm **HRV-Auswertung** über die HRV-Einstellungen u
 
 In APK 0.8.27: Tagesbefinden mit elf Stufen 0–10, gerundete HRV4-Sliderantworten und sichere Ergänzung fehlender Antworten vorhandener Importe beim Öffnen. Alte Neunerskala wird mit erhaltenen Originalwerten übertragen. HRV-Korridor weiß mit 40 % Deckkraft und gepunkteten 1-dp-Grenzen.
 
-Aktueller Quellstand nach Build 66: HRV-Diagramm mit fester Y-Skala je Kennzahl, 40 % mehr Höhe und besser genutztem linken Rand. ACCENT-Balken, weiße Werte unter Normalbereich, weiße 7-Tage-Linie und Korridor mit 30 % Deckkraft. Gemeinsame Referenzhistorie aus B-Cycle und HRV4Training, ohne künstlichen Neustart nach Quellenwechsel. Noch nicht in APK 0.8.27 enthalten.
+In APK 0.8.29: kombinierte Aufsteh-/Schlafenszeit, optionale Schlafdauer und global halbierter Auswahlpunkt-/Textabstand. HRV-Diagramm mit fester Y-Skala je Kennzahl, 40 % mehr Höhe und besser genutztem linken Rand. ACCENT-Balken, weiße Werte unter Normalbereich, weiße 7-Tage-Linie und Korridor mit 30 % Deckkraft. Gemeinsame Referenzhistorie aus B-Cycle und HRV4Training, ohne künstlichen Neustart nach Quellenwechsel.
 
 ## Key Features
 
@@ -64,27 +64,36 @@ Aktueller Quellstand nach Build 66: HRV-Diagramm mit fester Y-Skala je Kennzahl,
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.27 · Build 66 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.27-release-66.apk)**
+**[Version 0.8.29 · Build 68 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.29-release-68.apk)**
 
-**Build 66 vom 22.10.2026 · 2,22 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 68 vom 22.10.2026 · 2,22 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64 und 65 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65 und 66 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.27](docs/release-0.8.27.md) ·
-[Buildnachweis und SHA-256](docs/build-66.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39821944070) ·
+[Änderungen in 0.8.29](docs/release-0.8.29.md) ·
+[Buildnachweis und SHA-256](docs/build-68.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39828449690) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
 Gezielte Regressionstests lassen sich separat unter Actions → **Targeted regression tests** → **Run workflow** starten, lokal mit `bash scripts/test-regressions.sh`. Dabei werden nur Testberichte erzeugt; kein APK-Build und kein Signierschlüsselzugriff. [Umfang und Nachweise](docs/priority-optimizations.md).
-21 gezielte Tests für elf Sliderstufen, Skalenmigration, gerundete HRV4-Antworten, Ergänzung vorhandener Importe, Speicher/Backup und Korridordarstellung erfolgreich. Native Vorschau visuell geprüft.
+15 gezielte Tests für Schlafoptionen, Formular-/Import-/Backup-Kompatibilität und Auswahlcontrols erfolgreich; zuvor zehn Auswertungstests. Native Vorschau visuell geprüft.
 HRV-Messwerte und Aufzeichnungen erhalten; Antworten getrennt gespeichert und mitgesichert.
 Kein vollständiger Gesamttestlauf; frühere Prüfungen und bekannte ältere UI-Testfehler in den Buildnachweisen.
 
-Frühere APKs: [0.8.26 · Build 65](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.26-release-65.apk) · [0.8.25 · Build 64](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.25-release-64.apk) · [0.8.24 · Build 63](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.24-release-63.apk) · [0.8.23 · Build 62](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk) · [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
+Frühere APKs: [0.8.27 · Build 66](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.27-release-66.apk) · [0.8.26 · Build 65](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.26-release-65.apk) · [0.8.25 · Build 64](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.25-release-64.apk) · [0.8.24 · Build 63](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.24-release-63.apk) · [0.8.23 · Build 62](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk) · [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.29
+
+- **Diagramm:** 40 % höher, linker Rand besser genutzt, feste Y-Achsen über den gesamten geladenen Verlauf.
+- **Farben:** Balken ACCENT, unter Normalbereich weiß; 7-Tage-Mittel weiß und Korridor weiß mit 30 % Deckkraft.
+- **Gemeinsame Historie:** B-Cycle und HRV4Training als ein Bestand, ohne künstlichen Neustart nach Quellenwechsel. Letzte Messung je Tag bleibt maßgeblich.
+- **Schlaf:** Aufsteh-/Schlafenszeit gemeinsam auswählen oder optionale Schlafdauer in Stunden abfragen.
+- **Auswahlcontrols:** global halbierter Zusatzabstand zum Text (4 statt 8 dp).
+- [Details](docs/release-0.8.29.md).
 
 ## Neu in APK 0.8.27
 

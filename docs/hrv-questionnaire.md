@@ -71,3 +71,5 @@ Aufsteh- und Schlafenszeit haben in den HRV-Einstellungen einen gemeinsamen Ausw
 Dauer in extras.sleepHours als Stunden, in Fragebogen-/Analyseexport und vollständiger Sicherung enthalten. Frageauswahl im bisherigen Einstellungsbackup. HRV4 sleep_time wird in Stunden übernommen und beim Öffnen bestehender Importe nur ergänzt, wenn noch keine eigene Dauer hinterlegt ist. Originalfeld bleibt erhalten.
 
 Prüfstand Schlafoptionen/globale Auswahlabstände: 15 gezielte Tests erfolgreich (drei Schlafprüfungen, sieben bestehende Tagesbefinden-Tests, bestehende Slider-/Speicherfreigabe, globale Auswahlfarben/Geometrie sowie drei Skalen-/Import-/Backup-Prüfungen). Typografie und generierter Atlas konsistent.
+
+Schlafoptionen und globaler Auswahlabstand sind in APK **0.8.29 / Build 68** enthalten. [Buildnachweis](build-68.md).

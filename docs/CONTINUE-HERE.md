@@ -2,6 +2,11 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller Abschluss: APK 0.8.29 / Build 68
+
+APK **0.8.29 / Build 68 / versionCode 99** aus `8fa9e77799b35e54ea4391e0672f69793c602072` erfolgreich über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.29-release-68.apk), [Buildnachweis](build-68.md). 2.224.554 Bytes; SHA-256 `b4e92d17c61b302cd06e6eeff663b4785f26482059a3c692bf807cd01ad7f8c9`. Dauerhafte Signatur wie Build 66, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält kombinierte Schlafzeiten, neue Schlafdauer, engeren Auswahlpunkt-/Textabstand sowie größeres HRV-Diagramm, feste Y-Achsen, neuen Farbsatz und gemeinsamen Bestand. 15 neue gezielte Tests und zuvor zehn Auswertungstests erfolgreich, kein Gesamtlauf/Hardwaretest. Alles auf main und in APK enthalten, kein offener APK-Auftrag. Ursache des konkret fehlenden Messwerts bleibt ohne App-Journal ungeklärt; keine Daten wiederhergestellt oder extrapoliert. Frühere Angaben unten zu fehlender APK oder nur lokalen Änderungen sind Verlauf.
+
+
 Aktueller Auftrag nach Build 66: HRV-Diagramm mit fester Y-Skala aus gesamten geladenen Daten (Puls fünf bpm Reserve, andere Werte fünf Prozent), keine vertikale Änderung durch Zoom/Pan. Balken ACCENT, unter Normalbereich weiß; Mittel weiß, Korridor weiß 30 % und gepunktete Grenzen. Diagramm +40 % Höhe (504 dp), linken Platz ausnutzen ohne Skalentext-Clipping. Keine neue APK angefragt. Details hrv-trends.md.
 
 

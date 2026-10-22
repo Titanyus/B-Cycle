@@ -47,3 +47,5 @@ Erweiterung nach Build 65: Qualitäts-Slider und RPE aus gültigen HRV4-Quellwer
 Veröffentlichung der Elf-Stufen-/Antwortimport-/Korridor-Erweiterung: in APK **0.8.27 / Build 66** enthalten. [Buildnachweis](build-66.md). Frühere Angaben zu fehlender APK sind Verlauf.
 
 Schlafdauer-Erweiterung: sleep_time als endliche Stundenangabe von 0 bis 24 in extras.sleepHours übernehmen, ohne den Originalwert zu verändern. Bestehende importierte Tagesbefinden beim Öffnen nur um fehlende Dauer ergänzen; manuelle Angaben nicht überschreiben.
+
+Schlafoptionen und globaler Auswahlabstand sind in APK **0.8.29 / Build 68** enthalten. [Buildnachweis](build-68.md).

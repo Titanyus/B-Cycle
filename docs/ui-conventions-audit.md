@@ -174,3 +174,5 @@ Trainingshilfe: Aufklappen der Abschnittsüberschrift oder ihres Detail-Chevrons
 Karteneinstellungen: zentraler sectionDivider unmittelbar vor Trackaufzeichnung, mit den bestehenden gemeinsamen Abständen.
 
 Auswahlpunkt → Text: zentral choiceTextGap=4 dp statt bisher 8 dp Zusatzabstand für Checkboxen/RadioButtons. Circle-Geometrie, native Radio-Inset-Breite, 48-dp-Touchflächen, Farben, Listener und äußere Formularabstände erhalten. HTML-Atlas verwendet dasselbe Token; keine lokalen Extramargins für einzelne Listen.
+
+Schlafoptionen und globaler Auswahlabstand sind in APK **0.8.29 / Build 68** enthalten. [Buildnachweis](build-68.md).
