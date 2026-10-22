@@ -36,6 +36,16 @@ class CentralUiPresentationTest {
         val themes = ThemeManager(context.getSharedPreferences("feedback", 0))
         val status = BicycleFeedback.status(context, themes)
         assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, status.accessibilityLiveRegion)
+        val host=org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val row=android.widget.LinearLayout(host.get()).apply {
+                orientation=android.widget.LinearLayout.VERTICAL
+                addView(BicycleComponents.input(host.get(),themes))
+                addView(status,android.widget.LinearLayout.LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,8) })
+            }
+            host.get().setContentView(row)
+            assertEquals(BicycleDesign.dp(context,4),(status.layoutParams as android.widget.LinearLayout.LayoutParams).topMargin)
+        } finally { host.pause().stop().destroy() }
         var changes = 0
         status.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit

@@ -50,6 +50,14 @@ class HrvQuestionnaireTest {
             val view=HrvQuestionnaireView(a,themes,HrvQuestionnaire("2026-10-21"),HrvTrainingSummary(listOf("ride-a","ride-b"),42.5,95.0)) { value,done->saved+=value;done(true) }
             val scroll=android.widget.ScrollView(a).apply { addView(view) };a.setContentView(scroll);layout(scroll)
             val slider=view.findViewWithTag<SeekBar>("hrvq_sleep")
+            val block=view.findViewWithTag<LinearLayout>("hrvq_block_sleep")
+            assertEquals(BicycleDesign.dp(a,24),(block.layoutParams as LinearLayout.LayoutParams).bottomMargin)
+            assertEquals(3,block.childCount) // Question, slider, scale; no value/missing status or reset action.
+            for(index in 0..2) {
+                val scale=view.findViewWithTag<View>("hrvq_scale_sleep_$index")
+                assertEquals(.5f,scale.alpha,0f)
+                assertEquals(BicycleDesign.dp(a,4),(scale.layoutParams as LinearLayout.LayoutParams).topMargin)
+            }
             assertEquals(8,slider.max);assertEquals(4,slider.progress);view.flush();assertTrue(saved.isEmpty())
             assertEquals(View.GONE,view.findViewWithTag<View>("hrvq_training_details").visibility)
             // A tap that chooses the existing center must count as an explicit neutral answer.

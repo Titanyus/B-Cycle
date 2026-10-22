@@ -140,6 +140,10 @@ object BicycleDesign {
     const val headerVerticalPadding = 12
     const val dialogRadius = 18
     const val controlBorder = 1
+    const val sliderScaleLabelAlpha = .5f
+    const val fieldFeedbackGap = controlGap / 2
+    const val sliderScaleLabelGap = controlGap / 2
+    const val sliderQuestionGap = controlGap * 3
     const val controlBorderAlpha = .5f
     const val inputRadius = 6
     const val scrollbarSize = 2
@@ -349,6 +353,11 @@ object BicycleComponents {
     fun description(context: Context, manager: ThemeManager, value: String) = text(context,manager,value).apply {
         layoutParams=LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(context,BicycleDesign.controlGap) }
         controlSpacing(this)
+    }
+    /** Endpoint/neutral descriptions below sliders always use half opacity. */
+    fun sliderScaleLabel(context:Context,manager:ThemeManager,value:String)=text(context,manager,value).apply {
+        alpha=BicycleDesign.sliderScaleLabelAlpha
+        layoutParams=LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(context,BicycleDesign.sliderScaleLabelGap) }
     }
     fun input(context: Context, manager: ThemeManager) = input(EditText(context),manager)
     internal fun <T:EditText> input(view:T,manager:ThemeManager):T = view.apply {

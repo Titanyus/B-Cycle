@@ -35,3 +35,11 @@ Vollständige Lokal-/WebDAV-Sicherung nimmt den optionalen `questionnaire`-Teil 
 Zehn relevante Tests für Formular/Neutralantwort, Vorbelegung und manuelle Eingaben, dynamische Auswahl, eigene Felder, Geschlechtsfreigabe und Fahrerprofil-/Konfigurationssicherung, echten Ergebnisbutton/Worker-Speicherung, unveränderte Messungsbytes, alten/neuen HRV-Backup-Rundlauf und vollständige Verzeichnissicherung. Neue UI nativ gerendert. Kein vollständiger Gesamttestlauf, veröffentlicht in APK 0.8.23 / Build 62, kein neuer Geräte-/BLE-Test für diese Änderungen.
 
 Sportart wird weder im Formular noch in der Fragenauswahl angeboten. Frühere Einstellungen mit SPORT werden kompatibel gelesen, beim Lesen und Sichern aber aus der aktiven Auswahl entfernt. Historische Antworten mit Sportart bleiben unverändert lesbar und gesichert. Details zum neuen Einstieg: [hrv-entry.md](hrv-entry.md).
+
+## Vereinfachte Sliderdarstellung (22.10.2026)
+
+Bei allen Tagesbefinden-Slidern entfallen die sichtbare Auswahl-/Unbeantwortet-Anzeige und die jeweilige Zurücksetzen-Aktion. Fragen, Slider und Skalenbegriffe bleiben sichtbar. Die Skalenbegriffe verwenden die zentrale Rolle BicycleComponents.sliderScaleLabel mit 50 % Deckkraft (BicycleDesign.sliderScaleLabelAlpha), appweit als Regel für Beschriftungen unter Slidern. Unberührte Standards bleiben fehlende Antworten; Bedienung, Speicherung, alte Antworten und Accessibility-Zustandsbeschreibung bleiben erhalten. Auch der HTML-Atlas folgt dieser Darstellung.
+
+Slider-Skalenbegriffe: Abstand nach oben zentral sliderScaleLabelGap = controlGap / 2 (4 statt 8 dp). Keine nachträgliche normale Control-Margin auf diese Beschriftungsrolle anwenden; Touchhöhe des Sliders bleibt unverändert.
+
+Slider-Fragen bilden eine Gruppe: Frage, 48-dp-Slider, Skalenbegriffe mit 4 dp Abstand/50 % Deckkraft. Danach 24 dp Gruppenabstand (sliderQuestionGap). Diese konkrete Gruppierung ist jetzt in Tagesbefinden und Atlas umgesetzt; der allgemeine Formular-Abstandsentwurf bleibt separat.

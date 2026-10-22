@@ -32,10 +32,11 @@ def manifest():
         raise ValueError('Not a numeric design token')
 
     for number, line in enumerate(path.read_text().splitlines(), 1):
-        match = re.search(r'const val (\w+)\s*=\s*([^/]+)', line)
+        match = re.search(r'const val (\w+)\s*=\s*(.+)', line)
         if not match:
             continue
         name, expression = match.groups()
+        expression = expression.split('//', 1)[0]
         try:
             value = evaluate(ast.parse(re.sub(r'(?<=\d)[fFL]\b', '', expression.strip()), mode='eval').body)
         except (ValueError, KeyError, SyntaxError):
@@ -43,7 +44,7 @@ def manifest():
         values[name] = value
         tokens[name] = {'value': value, 'source': f'app/src/main/java/de/bcycle/app/BicycleDesign.kt:{number}'}
     required = ['controlGap', 'pageContentGap', 'sectionContentGap', 'sectionEndGap', 'horizontalPadding',
-                'sectionDividerGap', 'headerHeight', 'touchSize', 'bodySp', 'titleSp', 'headingSp',
+                'fieldFeedbackGap', 'sliderScaleLabelAlpha', 'sliderScaleLabelGap', 'sliderQuestionGap', 'sectionDividerGap', 'headerHeight', 'touchSize', 'bodySp', 'titleSp', 'headingSp',
                 'settingsMetricSp', 'controlBorder', 'controlBorderAlpha', 'inputRadius', 'switchWidth',
                 'switchHeight', 'switchThumbDiameter', 'footerHeight', 'iconSize', 'sectionHeaderMinHeight']
     assert all(name in tokens for name in required), 'Design token missing; update the catalog'
@@ -73,7 +74,7 @@ def manifest():
     return dict(tokens=tokens, themes=themes, icons=icons, fingerprint=fingerprint,
                 exceptions=[dict(area='Schriftfamilien', value='Zentrale Rollen in BicycleDesign', detail='League Gothic für schmale Eingaben, Titel und Messwerte. System-/kompakte Systemschrift und 900 Black bleiben benannte Beschriftungsrollen.'),
                             dict(area='Großschreibung', value='Nur Fenstertitel im Hauptheader erzwungen', detail='Eingaben und gespeicherte Namen werden nicht in Großbuchstaben umgewandelt.'),
-                            dict(area='Gruppenabstand / Nähe von Label und Control', value='Kein durchgängiger Token', detail='24 dp zwischen Gruppen und 4 dp innerhalb sind nur ein Vorschlag in dieser HTML-Datei.'),
+                            dict(area='Gruppenabstand / Nähe von Label und Control', value='Kein durchgängiger Token', detail='Slider-Fragen verwenden jetzt 24 dp Gruppenabstand und 4 dp zur Skala. Der allgemeine Formular-Abstandsentwurf bleibt separat.'),
                             dict(area='Abschnittstrenner', value=f'{values["sectionDividerGap"]} dp je Seite', detail='Dokumentation auf den bestehenden Codewert abgeglichen; kein App-Abstand geändert.')])
 
 

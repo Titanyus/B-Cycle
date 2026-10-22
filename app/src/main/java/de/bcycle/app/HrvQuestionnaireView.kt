@@ -74,7 +74,6 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         if(!enabled(question)) return
         val block=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_block_$key" }
         label(block,question.label)
-        val state=BicycleComponents.description(context,themes,"")
         val origin=if(key=="soreness" || key=="fatigue") 0 else max/2
         val slider=BicycleRatingSlider(context,themes,origin,max).apply {
             tag="hrvq_$key";progress=value.ratings[key] ?: origin
@@ -83,8 +82,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             tickMark=GradientDrawable().apply { shape=GradientDrawable.OVAL;setSize(dp(2),dp(2)) }
         }
         fun show() {
-            state.text=if(key in value.ratings) if(key=="rpe") context.getString(R.string.hrvq_rpe_value,slider.progress) else context.getString(R.string.hrvq_rating_value,slider.progress+1,max+1) else context.getString(R.string.hrvq_unanswered)
-            slider.stateDescription=state.text
+            slider.stateDescription=if(key in value.ratings) if(key=="rpe") context.getString(R.string.hrvq_rpe_value,slider.progress) else context.getString(R.string.hrvq_rating_value,slider.progress+1,max+1) else context.getString(R.string.hrvq_unanswered)
         }
         show()
         slider.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
@@ -98,14 +96,13 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         block.addView(LinearLayout(context).apply {
             orientation=HORIZONTAL
             listOf(left,middle,right).forEachIndexed { i,id ->
-                addView(BicycleComponents.description(context,themes,context.getString(id)).apply { gravity=when(i) { 0->Gravity.START;1->Gravity.CENTER;else->Gravity.END } },LayoutParams(0,-2,1f))
+                val scale=BicycleComponents.sliderScaleLabel(context,themes,context.getString(id)).apply {
+                    tag="hrvq_scale_${key}_$i";gravity=when(i) { 0->Gravity.START;1->Gravity.CENTER;else->Gravity.END }
+                }
+                addView(scale,(scale.layoutParams as LayoutParams).apply { width=0;weight=1f })
             }
         },LayoutParams(-1,-2))
-        if(key!="rpe") block.addView(state)
-        block.addView(BicycleComponents.textAction(context,themes,context.getString(R.string.hrvq_remove)) {
-            change(value.copy(ratings=value.ratings-key));slider.progress=origin;show()
-        })
-        parent.addView(block,LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.controlGap) })
+        parent.addView(block,LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.sliderQuestionGap) })
     }
     private fun choices(parent:LinearLayout,key:String,title:String,labels:List<Int>,selected:Int?,changed:(Int)->Unit) {
         label(parent,title)

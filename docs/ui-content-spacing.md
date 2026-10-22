@@ -103,3 +103,5 @@ Formularbuttons und Dropdowns verwenden zentral SECONDARY mit **1 dp FOREGROUND-
 Die zunächst vorgemerkte Änderung wurde am 17.10.2026 nach Build 30 umgesetzt. Die letzte Nutzervorgabe setzt die Rahmen-Deckkraft ausdrücklich auf 50 %, unabhängig von den weiterhin 55 % deckenden Sensor-Trennlinien. Nur die Kontur verwendet diese Deckkraft, nicht Text, Icons oder das gesamte Bedienelement. Andere Linien und fachliche Auswahlrahmen sind nicht betroffen.
 
 Aktuelle sichtbare Referenz: [UI-Atlas](previews/ui-catalog.html), generiert aus BicycleDesign. Schriftrollen: [fonts.md](fonts.md). 24-dp-Gruppen-/4-dp-Labelabstände im Atlas sind ausdrücklich nur ein HTML-Entwurf und ändern keine bestehenden App-Abstände.
+
+Feldbezogene Inline-Rückmeldungen direkt unter Eingabefeldern: fieldFeedbackGap=controlGap/2 (4 statt 8 dp), für Erfolg und Fehler gleichermaßen. BicycleFeedback.status setzt die Margin nach finaler Anfügung unter EditText; andere Statusrollen/Toasts/Validierungsregeln unverändert. HTML-Atlas zeigt dieselbe Regel.
