@@ -16,7 +16,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
             "activity-service-dreeve" to setOf("enabled","wifi","address"),
             "activity-service-strava" to setOf("enabled","wifi","clientId")),
         BackupSection.PROFILE to mapOf("bike" to setOf(BikeProfileStore.KEY,BikeProfileStore.ACTIVE,"nextBikeSlot",BikeIdentities.KEY,BikeIdentities.RETAINED_TYPES,BikeUiConfigurationStore.KEY),
-            HrvSettings.STORE to setOf("restSeconds","measureSeconds"),HrvQuestionSettings.STORE to setOf(HrvQuestionSettings.KEY),"dreeve-bike-mappings" to setOf("entries")))
+            HrvSettings.STORE to setOf("restSeconds","measureSeconds","showOnFirstStart","vibrateAtEnd","soundAtEnd"),HrvQuestionSettings.STORE to setOf(HrvQuestionSettings.KEY),"dreeve-bike-mappings" to setOf("entries")))
     fun export(section:BackupSection):JSONObject {
         val profiles=if(section==BackupSection.PROFILE) BikeProfileStore(context,prefs("bike"),initialize=false) else null
         return JSONObject().apply {
@@ -30,6 +30,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                             put(JSONObject().apply { profileKeys.forEach { if(row.has(it)) put(it,row.get(it)) } })
                         } }.toString())
                     } else if(key==BikeUiConfigurationStore.KEY) put(key,profiles!!.ui.backupBank(profiles.activeSlot))
+                    else if(file==HrvQuestionSettings.STORE && key==HrvQuestionSettings.KEY) put(key,HrvQuestionSettings(context).read().json().toString())
                     else put(key,if(value is Set<*>) JSONArray(value.toList()) else value)
                 } } })
             }
@@ -45,7 +46,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                 val value=row.get(key)
                 values[key]=when(key) {
                     RideNamingSettings.KEY -> (value as String).also { RideNaming.decode(JSONObject(it)) }
-                    "enabled","messengerOnly","wifi" -> (value as? Boolean) ?: error("boolean")
+                    "enabled","messengerOnly","wifi","showOnFirstStart","vibrateAtEnd","soundAtEnd" -> (value as? Boolean) ?: error("boolean")
                     "packages" -> (value as JSONArray).let { a ->
                         require(a.length()<=500)
                         (0 until a.length()).map { a.getString(it).also { p -> require(p.length in 1..255 && p.matches(Regex("[A-Za-z0-9_.]+"))) } }.toSet()
@@ -60,7 +61,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                     }
                     "position" -> (value as String).also { require(MessagePosition.entries.any { p -> p.name==it }) }
                     "durationSeconds" -> integer(row,key).also { require(it in 5..180) }
-                    HrvQuestionSettings.KEY -> (value as String).also { HrvQuestionConfig.decode(JSONObject(it)) }
+                    HrvQuestionSettings.KEY -> HrvQuestionConfig.decode(JSONObject(value as String)).json().toString()
                     "restSeconds" -> integer(row,key).also { require(it in 15..60 && it%15==0) }
                     "measureSeconds" -> integer(row,key).also { require(it in 60..300 && it%15==0) }
                     BikeProfileStore.ACTIVE,"nextBikeSlot" -> integer(row,key).also { require(it in 0 until Int.MAX_VALUE) }

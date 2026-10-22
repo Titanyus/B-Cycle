@@ -53,13 +53,13 @@
     <string name="hrvq_very">Sehr</string>
     <string name="hrvq_low">Wenig</string>
     <string name="hrvq_high">Viel</string>
-    <string name="hrvq_no_effort">Keine</string>
+    <string name="hrvq_no_effort">Gar nicht</string>
     <string name="hrvq_max_effort">Maximal</string>
     <string name="hrvq_yes">Ja</string>
     <string name="hrvq_no">Nein</string>
     <string name="hrvq_unanswered">Nicht beantwortet</string>
     <string name="hrvq_rating_value">Stufe %1$d von %2$d</string>
-    <string name="hrvq_optional">Alle Fragen sind optional. Die mittige Sliderstellung zählt erst nach Berührung als Antwort.</string>
+    <string name="hrvq_optional">Alle Fragen sind optional. Die Ausgangsstellung der Slider zählt erst nach Berührung als Antwort.</string>
     <string name="hrvq_remove">Angabe entfernen</string>
     <string name="hrvq_saving">Wird gespeichert …</string>
     <string name="hrvq_saved">Gespeichert</string>

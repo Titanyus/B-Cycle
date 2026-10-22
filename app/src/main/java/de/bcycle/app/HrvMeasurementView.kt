@@ -10,12 +10,14 @@ import org.json.JSONObject
 /** Native foreground measurement; colors follow the active dashboard palette. */
 internal class HrvMeasurementView(context:Context,private val themes:ThemeManager,private val controller:HrvController,
     private val sensor:()->String,private val canStart:()->Boolean,private val history:()->Unit,
-    private val questionnaire:(JSONObject)->Unit={}):LinearLayout(context) {
+    private val questionnaire:(JSONObject)->Unit={},autoStart:Boolean=false):LinearLayout(context) {
+    private var autoStartPending=autoStart
     private val circle=HrvCircleView(context,themes).apply { tag="hrv_circle" }
     private val status=BicycleFeedback.status(context,themes).apply { tag="hrv_status" }
     private val result=LinearLayout(context).apply { orientation=VERTICAL;tag="hrv_result" }
     private val graph=HrvGraphView(context,themes).apply { tag="hrv_graph" }
     private val action=BicycleComponents.textAction(context,themes,context.getString(R.string.hrv_start)) {
+        autoStartPending=false
         when { controller.state.saveError && controller.canRetrySave -> controller.retrySave()
             controller.busy -> controller.abort()
             canStart() -> controller.start(sensor()) }
@@ -24,8 +26,11 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         val inset=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
         setPadding(inset,paddingTop,inset,paddingBottom)
     }
-    private val historyButton=BicycleComponents.action(context,themes,context.getString(R.string.hrv_history),history).apply { tag="hrv_history" }
+    private val historyButton=BicycleComponents.action(context,themes,context.getString(R.string.hrv_history)) {
+        autoStartPending=false;history()
+    }.apply { tag="hrv_history" }
     private val questionnaireButton=BicycleComponents.action(context,themes,context.getString(R.string.hrvq_title)) {
+        autoStartPending=false
         controller.state.result?.let(questionnaire)
     }.apply { tag="hrv_questionnaire_button";visibility=GONE }
     private var startAction=true
@@ -48,12 +53,13 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
     }
     private fun styleAction() {
         action.typeface=if(startAction) BicycleDesign.strongTypeface else Typeface.DEFAULT
-        action.background=if(startAction) android.graphics.drawable.GradientDrawable().apply {
-            setColor(Color.TRANSPARENT);cornerRadius=BicycleDesign.dp(context,BicycleDesign.touchSize).toFloat()
-            setStroke(BicycleDesign.linePixels(context,1f),action.currentTextColor)
-        } else null
+        if(startAction) styleHrvPill(action) else action.background=null
     }
     private fun show(state:HrvState) {
+        if(controller.busy) autoStartPending=false
+        if(isAttachedToWindow && isShown && autoStartPending && state.ready && !state.saving && !state.saveError && canStart()) {
+            if(controller.start(sensor())) autoStartPending=false
+        }
         val running=controller.busy && !state.saveError
         keepScreenOn=running
         circle.show(state);graph.show(state.points,state.elapsedMs,state.phase==Phase.MEASURE && running,state.measureMs)
@@ -80,6 +86,14 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
     }
     override fun onAttachedToWindow() { super.onAttachedToWindow();subscription=controller.observe(::show) }
     override fun onDetachedFromWindow() { subscription?.close();subscription=null;keepScreenOn=false;super.onDetachedFromWindow() }
+}
+/** Same accent text, 900 Black and one-dp pill for HRV start/open actions. */
+internal fun styleHrvPill(button:TextView) {
+    button.typeface=BicycleDesign.strongTypeface
+    button.background=android.graphics.drawable.GradientDrawable().apply {
+        setColor(Color.TRANSPARENT);cornerRadius=BicycleDesign.dp(button.context,BicycleDesign.touchSize).toFloat()
+        setStroke(BicycleDesign.linePixels(button.context,1f),button.currentTextColor)
+    }
 }
 internal fun hrvResult(context:Context,themes:ThemeManager,row:JSONObject,includeSensor:Boolean=true):LinearLayout=LinearLayout(context).apply {
     orientation=LinearLayout.VERTICAL

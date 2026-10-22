@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 # Optional Gradle flags such as --offline are forwarded. No release or APK task.
 classes=(
   RecordingFieldsTest RecordingStoreBaselineTest RecordingResultTest
-  HrvStoreTest HrvHistorySummaryTest HrvQuestionnaireTest
+  HrvStoreTest HrvHistorySummaryTest HrvQuestionnaireTest HrvSettingsTest HrvEntryTest HrvControllerTest
   RideProfileTypeTest RideMetadataSnapshotTest ActivityStatusIndexTest ActivityServiceTest
   RideDirectoryBackupTest SettingsDesignMigrationTest SettingsSectionsTest
 )

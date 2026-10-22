@@ -122,6 +122,10 @@ internal class HrvController(private val context:Context,private val clock:()->L
     }
     private fun update(current:MeasurementSession) {
         if(current.phase==Phase.COMPLETE || current.phase==Phase.ABORTED) {
+            if(current.phase==Phase.COMPLETE) {
+                val config=settings.read()
+                main.post { HrvCompletionSignal.play(context,config) }
+            }
             pending=current to Evaluate.session(current);session=null
             savePending();return
         }

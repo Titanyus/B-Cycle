@@ -1,8 +1,8 @@
 # HRV-Ruhemessung ab 0.8.16
 
-Über den Herz-Button rechts neben Start auf dem Dashboard. Die drei rechten
-Dashboard-Buttons sind gegenüber den bisherigen rechten Buttons etwa 10 % schmaler;
-Start behält den verbleibenden Platz. Bestehende Strecken- und Menüaktionen bleiben.
+Der dauerhafte Herz-Button auf dem Dashboard entfällt. Unten stehen Strecken links, Start/Stop mittig und Menü rechts. Manueller Einstieg über Einstellungen → HRV-Messungen → **HRV-Messung**, als zentrierter ACCENT-Textbutton mit Herz, 900 Black und 1-dp-Pillenrahmen. Er öffnet die Messansicht ohne Messbeginn.
+
+Optional bietet **HRV beim ersten Start zeigen** einmal beim ersten Tagesstart eine große runde TERTIARY-Fläche mit ACCENT-Herz und „HRV starten“ über dem um 14 px weichgezeichneten Dashboard an. Außerhalb oder Zurück schließt sie; das Herz öffnet die Messansicht und startet das normale Ruhe-/Messprotokoll, sobald frische echte RR-Daten verfügbar sind. Standardmäßig aus; keine zusätzliche tägliche Messsperre. Details und Prüfungen: [hrv-entry.md](hrv-entry.md).
 
 ## Messen
 

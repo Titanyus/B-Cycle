@@ -53,6 +53,10 @@ class HrvControllerTest {
     }
     @Test fun completeMeasurementUsesPacketTimesStoresResultAndDisconnectAbortsNextSession() {
         var now=0L
+        val context=RuntimeEnvironment.getApplication()
+        HrvSettings(context).write(HrvMeasurementConfig(vibrateAtEnd=true,soundAtEnd=true))
+        val vibrator=context.getSystemService(android.os.VibratorManager::class.java).defaultVibrator
+        org.robolectric.Shadows.shadowOf(vibrator).setHasVibrator(true)
         val controller=HrvController(RuntimeEnvironment.getApplication()) { now }
         fun drain() {
             val worker=HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(controller) as ThreadPoolExecutor
@@ -68,11 +72,16 @@ class HrvControllerTest {
             for(second in 1..210) packet(second)
             assertFalse(controller.busy)
             val result=controller.state.result!!
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(1,org.robolectric.shadows.ShadowToneGenerator.getPlayedTones().size)
+            assertEquals(250L,org.robolectric.Shadows.shadowOf(vibrator).milliseconds)
             assertEquals(Phase.COMPLETE,controller.state.phase);assertTrue(result.getBoolean("acceptable"))
             assertTrue(result.getDouble("coverage")<.95);assertEquals(179,controller.state.points.size)
             assertTrue(controller.start("Gurt"));drain();controller.disconnected();drain()
             assertFalse(controller.busy);assertEquals(Phase.ABORTED,controller.state.phase)
             assertEquals("DISCONNECTED",controller.state.result!!.getString("problem"))
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(1,org.robolectric.shadows.ShadowToneGenerator.getPlayedTones().size)
         } finally { controller.close() }
     }
 }

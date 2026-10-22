@@ -20,22 +20,28 @@ import org.robolectric.shadows.ShadowAlertDialog
 @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 class HrvViewTest {
     private fun all(view:View):List<View> = listOf(view)+if(view is ViewGroup) (0 until view.childCount).flatMap { all(view.getChildAt(it)) } else emptyList()
-    @Test fun heartShortcutSitsNextToStartAndRightControlsAreTenPercentNarrowerWithUsableTouchTargets() {
+    @Test fun routesAreLeftStartIsCenteredAndHrvOpensFromSettingsWithUsableTouchTargets() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val root=a.findViewById<ViewGroup>(android.R.id.content)
             for(width in listOf(320,360,412)) {
                 root.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(850,View.MeasureSpec.EXACTLY));root.layout(0,0,width,850)
                 val toolbar=root.findViewWithTag<ViewGroup>("ride_toolbar")
-                assertEquals(4,toolbar.childCount);assertEquals("record_bike_button",toolbar.getChildAt(0).tag)
-                assertEquals("dashboard_hrv",toolbar.getChildAt(1).tag)
-                val oldWidth=toolbar.width/5.0
-                for(i in 1..3) {
-                    assertEquals(oldWidth*.9,toolbar.getChildAt(i).width.toDouble(),1.1)
-                    assertTrue(toolbar.getChildAt(i).width>=48)
-                }
+                assertEquals(3,toolbar.childCount);assertEquals("dashboard_routes",toolbar.getChildAt(0).tag)
+                assertEquals("record_bike_button",toolbar.getChildAt(1).tag)
+                assertEquals(toolbar.width/2f,toolbar.getChildAt(1).let { it.left+it.width/2f },1f)
+                assertEquals(toolbar.getChildAt(0).width.toDouble(),toolbar.getChildAt(2).width.toDouble(),1.0)
+                for(i in 0..2) assertTrue(toolbar.getChildAt(i).width>=48)
+                assertNull(root.findViewWithTag<View>("dashboard_hrv"))
             }
-            root.findViewWithTag<View>("dashboard_hrv").performClick()
+            all(root).single { it.contentDescription==a.getString(R.string.ui_menu_open) }.performClick()
+            ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("settings_HRV").performClick()
+            val settings=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            settings.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY));settings.layout(0,0,360,800)
+            val preview=android.graphics.Bitmap.createBitmap(360,800,android.graphics.Bitmap.Config.ARGB_8888);preview.eraseColor(RideRuntime.get(a).themes.settings.active.tokens.secondary);settings.draw(android.graphics.Canvas(preview))
+            java.io.File("build/reports/ui/hrv-entry-settings.png").apply { parentFile!!.mkdirs() }.outputStream().use { preview.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };preview.recycle()
+            settings.findViewWithTag<View>("hrv_open_measurement").performClick()
             val screen=ShadowAlertDialog.getLatestAlertDialog()
             assertNotNull(screen.window!!.decorView.findViewWithTag<View>("hrv_circle"))
             assertNotNull(screen.window!!.decorView.findViewWithTag<View>("hrv_graph"))

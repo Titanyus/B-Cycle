@@ -148,7 +148,7 @@ class HrvQuestionnaireTest {
             val image=android.graphics.Bitmap.createBitmap(360,760,android.graphics.Bitmap.Config.ARGB_8888)
             image.eraseColor(runtime.themes.active.tokens.secondary);decor.draw(android.graphics.Canvas(image))
             java.io.File("build/reports/ui/hrv-questionnaire-dialog.png").apply { parentFile?.mkdirs() }.outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };image.recycle()
-            dialog.dismiss()
+            form.findViewWithTag<View>("hrvq_analysis").performClick();drain();assertFalse(dialog.isShowing)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun annotationRoundTripsThroughAnalysisAndBackupWhileOriginalMeasurementStaysByteIdentical() {

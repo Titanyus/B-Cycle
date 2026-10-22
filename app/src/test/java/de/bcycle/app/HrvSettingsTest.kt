@@ -23,17 +23,25 @@ class HrvSettingsTest {
         }
         assertThrows(IllegalArgumentException::class.java) { settings.write(HrvMeasurementConfig(16,60)) }
         val theme=ThemeManager(c.getSharedPreferences("bike",0));val backup=SettingsBackup(c,theme)
-        val bytes=backup.export(setOf(BackupSection.PROFILE));settings.write(HrvMeasurementConfig())
+        settings.write(settings.read().copy(showOnFirstStart=true,vibrateAtEnd=true,soundAtEnd=true))
+        HrvDailyLaunch(c).claim()
+        val bytes=backup.export(setOf(BackupSection.PROFILE));assertFalse(bytes.toString(Charsets.UTF_8).contains("lastDay"));settings.write(HrvMeasurementConfig())
         val doc=backup.decode(bytes);backup.apply(backup.plan(doc,doc.sections.keys))
-        assertEquals(HrvMeasurementConfig(60,300),settings.read())
+        assertEquals(HrvMeasurementConfig(60,300,true,true,true),settings.read())
         val view=HrvSettingsView(c,theme)
         assertEquals(3,view.findViewWithTag<SeekBar>("hrv_rest_seconds").max)
         assertEquals(16,view.findViewWithTag<SeekBar>("hrv_measure_seconds").max)
+        for(tag in listOf("hrv_first_start","hrv_vibrate_end","hrv_sound_end")) assertTrue(view.findViewWithTag<android.widget.Switch>(tag).isChecked)
+        assertEquals(View.GONE,view.findViewWithTag<View>("hrv_first_start_details").visibility)
+        view.findViewWithTag<View>("hrv_first_start_expand").performClick()
+        assertEquals(View.VISIBLE,view.findViewWithTag<View>("hrv_first_start_details").visibility)
+        view.findViewWithTag<android.widget.Switch>("hrv_sound_end").performClick()
+        assertFalse(settings.read().soundAtEnd);assertTrue(settings.read().vibrateAtEnd)
     }
     @Test fun onlyHrvMeasurementHeaderUsesWindowColorAndActiveScreenHasNoOutsideInfo() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val a=host.get();a.findViewById<View>(android.R.id.content).findViewWithTag<View>("dashboard_hrv").performClick()
+            val a=host.get();MainActivity::class.java.getDeclaredMethod("showHrv").apply { isAccessible=true }.invoke(a)
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             val screen=ShadowAlertDialog.getLatestAlertDialog();val root=screen.window!!.decorView
             val header=root.findViewWithTag<View>("bicycle_navigation_header")

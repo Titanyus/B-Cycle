@@ -18,6 +18,8 @@ import java.io.IOException
 /** Native Views remain the UI; the runtime also survives while the recording service is active. */
 class MainActivity : Activity() {
     private lateinit var runtime: RideRuntime
+    private var dailyHrvPrompt:HrvDailyPrompt?=null
+    private lateinit var dashboardRoot:View
     private lateinit var dashboardHost: FrameLayout
     private lateinit var dashboard: DashboardView
     private var hrvObservation:AutoCloseable?=null
@@ -138,6 +140,7 @@ class MainActivity : Activity() {
             val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
         }
+        dashboardRoot=root
         val host=FrameLayout(this).apply { tag="dashboard_host";setBackgroundColor(Color.BLACK);addView(root,FrameLayout.LayoutParams(-1,-1)) }
         dashboardHost=host
         setContentView(host)
@@ -198,19 +201,6 @@ class MainActivity : Activity() {
                 }
             }
         }
-        toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarMainWeight))
-        toolbar.addView(android.widget.ImageButton(this).apply {
-            tag="dashboard_hrv";contentDescription=getString(R.string.hrv_title)
-            scaleType=android.widget.ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(17),dp(17),dp(17),dp(17));setOnClickListener { showHrv() }
-            BicycleComponents.bindTheme(this,runtime.themes) { tokens ->
-                setImageDrawable(BicycleIcons.drawable(this@MainActivity,BicycleIcon.Heart,tokens.foreground))
-                backgroundTintList=null
-                background=android.graphics.drawable.GradientDrawable().apply {
-                    setColor(tokens.secondary);setStroke(BicycleDesign.linePixels(this@MainActivity),tokens.tertiary)
-                }
-            }
-        },LinearLayout.LayoutParams(0,dp(58),BicycleDesign.dashboardToolbarActionWeight))
         toolbar.addView(android.widget.ImageButton(this).apply {
             contentDescription = getString(R.string.ui_routes_open); tag = "dashboard_routes"
             setImageResource(BicycleIcon.Route.resource)
@@ -225,6 +215,7 @@ class MainActivity : Activity() {
                 }
             }
         }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
+        toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarMainWeight))
         toolbar.addView(toolbarButton("☰", ThemeRole.SECONDARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
         root.addView(toolbar)
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
@@ -436,7 +427,7 @@ class MainActivity : Activity() {
                 SettingsAction.PROFILES, SettingsAction.SENSORS -> showSensorManager()
                 SettingsAction.NOTIFICATIONS -> showNotificationSettings()
                 SettingsAction.HRV -> menu=dialog().setTitle(R.string.hrv_settings_title)
-                    .setView(ScrollView(settingsContext).apply { addView(HrvSettingsView(settingsContext,settingsThemes) { !runtime.hrv.busy }) }).show()
+                    .setView(ScrollView(settingsContext).apply { addView(HrvSettingsView(settingsContext,settingsThemes,openMeasurement={ showHrv() },canEdit={ !runtime.hrv.busy })) }).show()
                 SettingsAction.DATA -> dataSettings()
                 SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, settingsThemes, dialogs, runtime.riderProfiles) }
                 SettingsAction.MAP -> mapSettings()
@@ -626,10 +617,11 @@ class MainActivity : Activity() {
         return root
     }
 
-    private fun showHrv() {
+    private fun showHrv()=showHrv(false)
+    private fun showHrv(autoStart:Boolean) {
         if(runtime.recording || runtime.saving) { BicycleFeedback.show(this,R.string.hrv_ride_busy);return }
         val body=HrvMeasurementView(this,runtime.themes,runtime.hrv,
-            sensor={ runtime.heartName },canStart={ !runtime.recording && !runtime.saving },history=::showHrvHistory,questionnaire=::showHrvQuestionnaire)
+            sensor={ runtime.heartName },canStart={ runtime.visible && !runtime.recording && !runtime.saving },history=::showHrvHistory,questionnaire=::showHrvQuestionnaire,autoStart=autoStart)
         val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_title)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(body) }).create()
         dialogs.onDismiss(screen) { runtime.hrv.abort("VIEW_CLOSED") }
@@ -678,7 +670,7 @@ class MainActivity : Activity() {
             val training=if(runtime.mapState.busy) null else HrvTrainingSummary.previousDay(
                 java.time.LocalDate.parse(initial.day),java.time.ZoneId.of(row.getString("zone")),runtime.mapState.entries)
             root.removeAllViews();root.setPadding(0,0,0,0)
-            root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training) { value,done ->
+            root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) screen.dismiss() }) { value,done ->
                 runtime.hrv.saveQuestionnaire(id,value) { saved -> done(saved.isSuccess) }
             },LinearLayout.LayoutParams(-1,-2))
         }
@@ -803,7 +795,12 @@ class MainActivity : Activity() {
         val notifications=MessageNotificationSettings(this)
         if(notifications.enabled && notifications.granted) runCatching {
             android.service.notification.NotificationListenerService.requestRebind(android.content.ComponentName(this,MessageNotificationService::class.java))
-        }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows() }
+        }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows()
+        if(HrvDailyLaunch(this).claim() && dialogs.empty && !runtime.recording && !runtime.saving && !runtime.hrv.busy) {
+            dailyHrvPrompt?.close()
+            dailyHrvPrompt=HrvDailyPrompt(this,dashboardHost,dashboardRoot,runtime.themes) { showHrv(autoStart=true) }
+        }
+    }
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.
         hrvObservation?.close();hrvObservation=null
@@ -812,6 +809,7 @@ class MainActivity : Activity() {
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {
+        dailyHrvPrompt?.close();dailyHrvPrompt=null
         if(mapBackRegistered) onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
         recordingIndicator?.stop();bikePicker?.dismiss();dialogs.closeAll(); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
     }

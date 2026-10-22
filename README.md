@@ -30,6 +30,8 @@
 
 Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in der Dashboard-Vorschau nicht geladen.
 
+Arbeitsstand nach Build 62: Dashboard mit Strecken links und Start/Stop mittig; HRV manuell über die Einstellungen oder optional beim ersten Tagesstart. Neue Abschluss-Signale und kompakteres Tagesbefinden. [Umfang und Prüfung](docs/hrv-entry.md). Noch keine neue APK für diese Änderungen.
+
 ## Key Features
 
 - **Individuelle Dashboards** – Bis zu sechs benannte Seiten, zehn Layout-Vorlagen und frei belegbare Datenfelder mit großen, gut ablesbaren Zahlen.

@@ -1,0 +1,42 @@
+# Dashboard-Einstieg, HRV-Einstellungen und Tagesbefinden
+
+Stand 22.10.2026, Arbeitsstand nach APK 0.8.23 / Build 62. Keine neue APK beauftragt.
+
+## Dashboard und tägliches Angebot
+
+Die untere Leiste enthält drei Aktionen: Strecken links außen, Start/Stop geometrisch in der Mitte, Menü rechts. Profilname, Long-Press-Fahrradwahl, Aufnahmebedienung und Ein-/Ausblenden der Leiste bleiben erhalten. Der dauerhafte Puls-/HRV-Button entfällt.
+
+Einstellungen → HRV-Messungen enthält **HRV beim ersten Start zeigen** als Schalter mit erklärendem Accordion. Standard aus. Bei aktivierter Option erscheint beim ersten Vordergrundstart eines lokalen Kalendertags eine große runde TERTIARY-Fläche mit ACCENT-Herz und „HRV starten“. Das Dashboard bleibt sichtbar und wird über Androids GPU-RenderEffect um 14 physische Pixel weichgezeichnet. Kein Bitmap-Screenshot oder neuer Animations-/Sensor-Loop. Tippen außerhalb und Android-Zurück schließen den Hinweis; Blur und Accessibility-Sperre des Hintergrunds werden entfernt.
+
+Ein Tap auf die Herzfläche öffnet die vorhandene HRV-Messansicht und startet ihr normales Ruhe-/Messprotokoll. Er benötigt weiterhin frische echte RR-Daten. Ohne diese bleibt die Ansicht zunächst wartend; sie startet beim Eintreffen, solange sie sichtbar im Vordergrund ist. App-Hintergrund oder überlagerte Ansichten lösen keinen Start aus; bewusster Wechsel zur Historie/Fragebogen verwirft den ausstehenden automatischen Start. Schließen der Messansicht behält das bisherige Abbruchverhalten.
+
+`HrvDailyLaunch` speichert den ersten Tagesstart lokal unter `hrv-launch-state/lastDay`, auch wenn die Option dann aus war. Das verhindert wiederholtes Einblenden bei App-Wechsel, Activity-Neuanlage oder späterem Einschalten am selben Tag. Der lokale Marker gehört nicht in die portable Einstellungssicherung. Bereits laufende Fahrtaufnahme/Speicherung/HRV und offene Dialoge werden nicht unterbrochen; für diesen ersten Start entfällt das Angebot. Es gibt keine neue tägliche Messsperre; manuelles Messen/Wiederholen bleibt möglich.
+
+## Manueller Einstieg und Abschluss-Signale
+
+Oben in den HRV-Einstellungen steht mittig **♡ HRV-Messung**, in ACCENT mit 900 Black und 1-dp-Pillenrahmen wie der Startbutton im Messkreis. Dieser Einstieg öffnet nur die Ansicht und startet nichts automatisch.
+
+Unter den beiden bestehenden Zeitslidern, durch einen horizontalen Trenner abgesetzt:
+
+- Vibrieren am Ende der Messung.
+- Akustisches Signal am Ende der Messung.
+
+Beide standardmäßig aus und unabhängig schaltbar. Ein vollständig beendetes Messprotokoll signalisiert einmal, auch wenn dessen Qualität nicht für eine gültige HRV-Schätzung reicht. Abbruch, Verbindungsabbruch, Historienöffnung und Speicher-Retry signalisieren nicht. Kurze Vibration und kurzer Systemton über den Benachrichtigungskanal respektieren Hardware und Systemeinstellungen; ToneGenerator wird zeitnah freigegeben. Nur die Android-Normalberechtigung VIBRATE ergänzt, keine neue Laufzeitabfrage.
+
+`HrvSettings` und die bestehende Profil-Einstellungssicherung enthalten alle drei neuen öffentlichen Schalter. Alte Sicherungen ohne sie bleiben gültig und ergeben false. Protokoll, HRV-Rohdaten, Berechnung, Qualitätsregeln, Ergebnisdatei und vollständige Messungsbackups unverändert.
+
+## Tagesbefinden
+
+Aufsteh- und Schlafenszeit stehen bei gemeinsamer Aktivierung in einer Zeile mit gleich hohen Beschriftungen. Bei nur einer aktivierten Frage volle Breite. Sportart entfällt aus Formular und Konfiguration; historische Sportangaben bleiben lesbar und gesichert. Der alte SPORT-Konfigurationswert wird beim Lesen/Restaurieren normalisiert und nicht als aktive Einstellung weiterexportiert.
+
+Bewertungsslider verwenden weiterhin native SeekBar-Gesten, Tastatur, Accessibility und diskrete Positionen. Bei mittigem Ursprung läuft die ACCENT-Hervorhebung von der Mitte zur Position nach links oder rechts. Muskelkater und Müdigkeit beginnen stattdessen bei 0 und markieren von links. Unberührte Standardstellungen bleiben fehlende Antworten; historische Werte nicht zurücksetzen. RPE behält 0–10 und „Gar nicht“ links, ohne zusätzlichen sichtbaren „RPE x / 10“-Text.
+
+Am Ende **Zur Auswertung** in ACCENT. Bis der spätere Auswertungsscreen existiert, führt er zur vorherigen Ansicht zurück. Erst erfolgreiche Speicherung bestätigt die Navigation; bei Fehler bleiben Antworten und Formular erhalten. Keine HRV-Werte aus Fragebogenantworten berechnen oder verändern.
+
+## Prüfung
+
+22 unterschiedliche gezielte Android-Hosttests: HrvEntryTest (3), HrvSettingsTest (2), HrvQuestionnaireTest (6), HrvControllerTest (3), HrvViewTest (3), SelectionSpacingTest (4) sowie die bestehende Theme-/Navigationsprüfung aus SettingsDesignMigrationTest (1). Nach konkreten Änderungen nur betroffene Fälle erneut geprüft. Kein vollständiger Gesamtlauf. Die begrenzte manuelle CI-Auswahl nimmt Einstieg, Einstellungen und Controller für künftige Läufe mit auf; für diesen UI-Auftrag kein zusätzlicher GitHub-Lauf oder APK-Build.
+
+Geprüft: opt-in/dauerhafter Tagesmarker, App-Wechsel, Außen-Tap, frische RR als Voraussetzung, automatischer Vordergrundstart, laufendes Ruheprotokoll/Abbruch, Abschluss-Signal einmal statt bei Abbruch, Profil-Einstellungssicherung, aktive SPORT-Bereinigung bei erhaltenem Altformat, seitliche Zeitfelder, neutrale/Null-Ursprünge, tatsächliche Slider-Zeichenfarben, Speichernfehler vor Navigation und Rückkehr zur vorherigen Ansicht. Auch bestehende unveränderte HRV-Ergebnis-/Fragebogen-Backup-Prüfungen bestanden. Native Darstellungen von Herzfläche, Einstellungen und Formular gerendert und visuell geprüft.
+
+Kein neuer Test mit physischem Pulsmesser, Lautsprecher oder Vibrationsmotor. Der 14-px-Blur nutzt den Android-GPU-RenderEffect; der Host-Screenshot aus Software-Canvas bildet diesen GPU-Effekt nicht ab. Sichtprüfung der tatsächlichen Unschärfe auf dem Gerät steht aus.

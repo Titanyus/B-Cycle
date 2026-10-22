@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
@@ -15,7 +14,7 @@ import java.time.format.DateTimeFormatter
 
 /** Flexible person-level form. Untouched centered sliders are missing answers, not neutral answers. */
 internal class HrvQuestionnaireView(context:Context,private val themes:ThemeManager,initial:HrvQuestionnaire,
-    private val training:HrvTrainingSummary?,private val save:(HrvQuestionnaire,(Boolean)->Unit)->Unit):LinearLayout(context) {
+    private val training:HrvTrainingSummary?,private val complete:()->Unit={},private val save:(HrvQuestionnaire,(Boolean)->Unit)->Unit):LinearLayout(context) {
     private val settings=HrvQuestionSettings(context)
     private var value=initial
     private var config=settings.read()
@@ -30,6 +29,13 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     private val status=BicycleFeedback.status(context,themes).apply { tag="hrvq_save_status";visibility=GONE }
     private val retry=BicycleComponents.action(context,themes,context.getString(R.string.hrvq_retry)) { flush() }.apply { visibility=GONE }
     private val persist=Runnable { flush() }
+    private val analysis=BicycleComponents.textAction(context,themes,context.getString(R.string.hrvq_analysis)) { finishForm() }.apply {
+        tag="hrvq_analysis"
+        BicycleComponents.bindTheme(this,themes) { tokens ->
+            background=BicycleComponents.controlBackground(context,tokens,tokens.accent)
+            setTextColor(if(ThemeValidator.contrast(android.graphics.Color.WHITE,tokens.accent)>=ThemeValidator.contrast(android.graphics.Color.BLACK,tokens.accent)) android.graphics.Color.WHITE else android.graphics.Color.BLACK)
+        }
+    }
     private val listener=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,_->
         handler.post { val next=settings.read();if(next!=config) { config=next;build() } }
     }
@@ -39,7 +45,11 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         status.visibility=VISIBLE;BicycleFeedback.update(status,context.getString(R.string.hrvq_saving));retry.visibility=GONE
         handler.removeCallbacks(persist);handler.postDelayed(persist,250)
     }
-    fun flush() {
+    private fun finishForm() {
+        pending=true;analysis.isEnabled=false
+        flush { ok -> analysis.isEnabled=true;if(ok) complete() }
+    }
+    fun flush(after:((Boolean)->Unit)?=null) {
         handler.removeCallbacks(persist)
         if(!pending) return
         pending=false;val savedRevision=revision
@@ -49,11 +59,12 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
                 BicycleFeedback.update(status,context.getString(if(ok) R.string.hrvq_saved else R.string.hrvq_save_failed))
                 retry.visibility=if(ok) GONE else VISIBLE
             }
+            after?.invoke(ok && savedRevision==revision)
         }
     }
     private fun label(parent:LinearLayout,text:String) { parent.addView(BicycleComponents.text(context,themes,text)) }
     private fun label(parent:LinearLayout,id:Int)=label(parent,context.getString(id))
-    private fun enabled(question:HrvQuestion)=question in config.enabled && (question!=HrvQuestion.CYCLE || cycleAvailable)
+    private fun enabled(question:HrvQuestion)=question!=HrvQuestion.SPORT && question in config.enabled && (question!=HrvQuestion.CYCLE || cycleAvailable)
     private fun group(id:Int,questions:List<HrvQuestion>,body:(LinearLayout)->Unit) {
         if(questions.none(::enabled)) return
         BicycleForm.section(this,themes,id)
@@ -64,16 +75,12 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         val block=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_block_$key" }
         label(block,question.label)
         val state=BicycleComponents.description(context,themes,"")
-        val slider=SeekBar(context).apply {
-            tag="hrvq_$key";this.max=max;progress=value.ratings[key] ?: max/2
+        val origin=if(key=="soreness" || key=="fatigue") 0 else max/2
+        val slider=BicycleRatingSlider(context,themes,origin,max).apply {
+            tag="hrvq_$key";progress=value.ratings[key] ?: origin
             contentDescription=context.getString(question.label)
             minimumHeight=dp(BicycleDesign.touchSize)
             tickMark=GradientDrawable().apply { shape=GradientDrawable.OVAL;setSize(dp(2),dp(2)) }
-            BicycleComponents.bindTheme(this,themes) {
-                thumbTintList=ColorStateList.valueOf(it.accent);progressTintList=thumbTintList
-                progressBackgroundTintList=ColorStateList.valueOf((it.foreground and 0xffffff) or 0x55000000)
-                tickMarkTintList=progressBackgroundTintList
-            }
         }
         fun show() {
             state.text=if(key in value.ratings) if(key=="rpe") context.getString(R.string.hrvq_rpe_value,slider.progress) else context.getString(R.string.hrvq_rating_value,slider.progress+1,max+1) else context.getString(R.string.hrvq_unanswered)
@@ -94,9 +101,9 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
                 addView(BicycleComponents.description(context,themes,context.getString(id)).apply { gravity=when(i) { 0->Gravity.START;1->Gravity.CENTER;else->Gravity.END } },LayoutParams(0,-2,1f))
             }
         },LayoutParams(-1,-2))
-        block.addView(state)
+        if(key!="rpe") block.addView(state)
         block.addView(BicycleComponents.textAction(context,themes,context.getString(R.string.hrvq_remove)) {
-            change(value.copy(ratings=value.ratings-key));slider.progress=max/2;show()
+            change(value.copy(ratings=value.ratings-key));slider.progress=origin;show()
         })
         parent.addView(block,LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.controlGap) })
     }
@@ -169,8 +176,6 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         }
     }
     private fun trainingFields(parent:LinearLayout) {
-        if(enabled(HrvQuestion.SPORT)) dropdown(parent,"sport",R.string.hrvq_sport,HrvQuestionnaire.sports,
-            listOf(R.string.hrvq_cycling,R.string.hrvq_running,R.string.hrvq_swimming,R.string.hrvq_strength,R.string.hrvq_other),value.sport) { change(value.copy(sport=it)) }
         rating(parent,HrvQuestion.RPE,"rpe",R.string.hrvq_no_effort,R.string.hrvq_middle,R.string.hrvq_max_effort,10)
         if(enabled(HrvQuestion.DISTANCE) || enabled(HrvQuestion.DURATION)) {
             parent.addView(BicycleComponents.description(context,themes,context.getString(when {
@@ -199,10 +204,10 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     private fun prefill() {
         if(training==null || training.rideIds.isEmpty() || value.trainingSource=="manual") return
         if(value.trainingSource=="rides" && value.rideIds!=training.rideIds) return
-        if(listOf(HrvQuestion.DISTANCE,HrvQuestion.DURATION,HrvQuestion.SPORT).none(::enabled)) return
+        if(listOf(HrvQuestion.DISTANCE,HrvQuestion.DURATION).none(::enabled)) return
         val next=value.copy(trainingKm=if(enabled(HrvQuestion.DISTANCE)) value.trainingKm ?: training.km else value.trainingKm,
             trainingMinutes=if(enabled(HrvQuestion.DURATION)) value.trainingMinutes ?: training.minutes else value.trainingMinutes,
-            trainingSource="rides",rideIds=training.rideIds,sport=if(enabled(HrvQuestion.SPORT)) value.sport ?: "cycling" else value.sport)
+            trainingSource="rides",rideIds=training.rideIds)
         if(next!=value) change(next)
     }
     private fun build() {
@@ -213,8 +218,15 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         if(config.enabled.none(::enabled) && config.customNames.all(String::isBlank)) label(this,R.string.hrvq_empty)
         group(R.string.hrvq_sleep_group,HrvQuestion.entries.filter { it.group==0 }) { body ->
             rating(body,HrvQuestion.SLEEP,"sleep",R.string.hrvq_bad,R.string.hrvq_normal,R.string.hrvq_good)
-            if(enabled(HrvQuestion.WAKE)) extra(body,"wake",context.getString(R.string.hrvq_wake),time=true)
-            if(enabled(HrvQuestion.BED)) extra(body,"bed",context.getString(R.string.hrvq_bed),time=true)
+            if(enabled(HrvQuestion.WAKE) || enabled(HrvQuestion.BED)) {
+                val row=LinearLayout(context).apply { orientation=HORIZONTAL;tag="hrvq_sleep_times" }
+                for((q,key) in listOf(HrvQuestion.WAKE to "wake",HrvQuestion.BED to "bed")) if(enabled(q)) {
+                    row.addView(LinearLayout(context).apply { orientation=VERTICAL;extra(this,key,context.getString(q.label),time=true)
+                        (getChildAt(0) as TextView).minLines=if(enabled(HrvQuestion.WAKE) && enabled(HrvQuestion.BED)) 2 else 1 },
+                        LayoutParams(0,-2,1f).apply { if(row.childCount>0) marginStart=dp(BicycleDesign.controlGap) })
+                }
+                body.addView(row,LayoutParams(-1,-2))
+            }
         }
         group(R.string.hrvq_training_group,HrvQuestion.entries.filter { it.group==1 }) { body ->
             val details=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_training_details" }
@@ -257,6 +269,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             } }
         }
         addView(status,LayoutParams(-1,-2));addView(retry,LayoutParams(-1,-2))
+        addView(analysis,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
     }
     private fun dp(size:Int)=BicycleDesign.dp(context,size)
     override fun onAttachedToWindow() { super.onAttachedToWindow();settings.preferences.registerOnSharedPreferenceChangeListener(listener);riderPrefs.registerOnSharedPreferenceChangeListener(riderListener) }
