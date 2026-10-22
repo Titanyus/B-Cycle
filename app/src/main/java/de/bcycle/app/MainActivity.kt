@@ -640,20 +640,28 @@ class MainActivity : Activity() {
             if(isDestroyed) return@history
             if(rows.isEmpty()) { BicycleFeedback.show(this,R.string.hrv_history_empty);return@history }
             val labels=rows.map { row ->
-                val date=java.time.Instant.ofEpochMilli(row.getLong("utcMs")).atZone(java.time.ZoneId.systemDefault())
+                val date=java.time.Instant.ofEpochMilli(row.utcMs).atZone(java.time.ZoneId.systemDefault())
                     .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
-                val metric=if(row.optBoolean("acceptable")) row.optJSONObject("corrected")?.let {
-                    getString(R.string.hrv_history_rmssd,it.optDouble("rmssdMs")) } else null
+                val metric=if(row.acceptable) row.rmssdMs?.let { getString(R.string.hrv_history_rmssd,it) } else null
                 getString(R.string.hrv_history_item,date,metric ?: getString(R.string.hrv_invalid_short))
             }
             BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_history)
-                .setItems(labels.toTypedArray()) { _,position ->
-                    BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_result)
-                        .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(hrvResult(this@MainActivity,runtime.themes,rows[position]).apply {
-                            val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
-                            addView(BicycleComponents.action(this@MainActivity,runtime.themes,getString(R.string.hrvq_title)) { showHrvQuestionnaire(rows[position]) }.apply { tag="hrv_questionnaire_button" })
-                        }) }).show()
-                }.show()
+                .setItems(labels.toTypedArray()) { _,position -> showHrvHistoryResult(rows[position].id) }.show()
+        }
+    }
+    private fun showHrvHistoryResult(id:String) {
+        val root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL
+            val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
+            addView(BicycleComponents.description(this@MainActivity,runtime.themes,getString(R.string.hrv_result_loading))) }
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_result)
+            .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
+        runtime.hrv.measurement(id) { result ->
+            if(isDestroyed || !screen.isShowing) return@measurement
+            root.removeAllViews()
+            result.fold({ row ->
+                root.addView(hrvResult(this,runtime.themes,row))
+                root.addView(BicycleComponents.action(this,runtime.themes,getString(R.string.hrvq_title)) { showHrvQuestionnaire(row) }.apply { tag="hrv_questionnaire_button" })
+            },{ root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
         }
     }
     private fun showHrvQuestionnaire(row:org.json.JSONObject) {

@@ -75,8 +75,13 @@ internal class HrvStore(private val root:File) {
         return row
     }
     fun ids()=root.listFiles().orEmpty().filter { it.isDirectory && validId(it.name) && File(it,"result.json").isFile }.map { it.name }
-    fun list():List<JSONObject> = root.listFiles().orEmpty().filter { it.isDirectory && validId(it.name) }
-        .mapNotNull { dir -> runCatching { read(dir.name) }.getOrNull() }.sortedByDescending { it.optLong("utcMs") }
+    fun list():List<HrvHistorySummary> = root.listFiles().orEmpty().filter { it.isDirectory && validId(it.name) }
+        .mapNotNull { dir -> runCatching {
+            AtomicFile(File(dir,"result.json")).openRead().use { input ->
+                require(input.channel.size()<=MAX_BYTES)
+                android.util.JsonReader(input.reader(Charsets.UTF_8).buffered()).use { HrvHistorySummary.read(it,dir.name) }
+            }
+        }.getOrNull() }.sortedByDescending { it.utcMs }
     fun read(id:String):JSONObject=AtomicFile(File(directory(id),"result.json")).openRead().use {
         BackupJson.objectValue(it.readNBytes(MAX_BYTES+1),MAX_BYTES).also { row ->
             require(row.getString("format")=="bicycle-hrv" && row.getInt("schema")==1 && row.getString("id")==id)

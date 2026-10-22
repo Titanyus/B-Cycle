@@ -1,0 +1,4 @@
+<resources>
+    <string name="hrv_result_loading">Messung wird geladen …</string>
+    <string name="hrv_result_load_failed">Messung konnte nicht geladen werden. Bitte erneut öffnen.</string>
+</resources>
