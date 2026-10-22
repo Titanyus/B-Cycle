@@ -2,6 +2,9 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+Aktueller Auftrag nach Build 68: sehr kleine Tageswerte oberhalb der HRV-Balken (8 sp, 3 dp Gap), gegen Überlappung/Clipping geschützt. Zahlenformat max. eine Nachkommastelle, Daten/Skalen unverändert. Ausdrücklich keine APK.
+
+
 ## Aktueller Abschluss: APK 0.8.29 / Build 68
 
 APK **0.8.29 / Build 68 / versionCode 99** aus `8fa9e77799b35e54ea4391e0672f69793c602072` erfolgreich über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.29-release-68.apk), [Buildnachweis](build-68.md). 2.224.554 Bytes; SHA-256 `b4e92d17c61b302cd06e6eeff663b4785f26482059a3c692bf807cd01ad7f8c9`. Dauerhafte Signatur wie Build 66, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält kombinierte Schlafzeiten, neue Schlafdauer, engeren Auswahlpunkt-/Textabstand sowie größeres HRV-Diagramm, feste Y-Achsen, neuen Farbsatz und gemeinsamen Bestand. 15 neue gezielte Tests und zuvor zehn Auswertungstests erfolgreich, kein Gesamtlauf/Hardwaretest. Alles auf main und in APK enthalten, kein offener APK-Auftrag. Ursache des konkret fehlenden Messwerts bleibt ohne App-Journal ungeklärt; keine Daten wiederhergestellt oder extrapoliert. Frühere Angaben unten zu fehlender APK oder nur lokalen Änderungen sind Verlauf.
@@ -218,3 +221,7 @@ Abschließende Klarstellung: Nutzer möchte einen gemeinsamen Bestand ohne Trenn
 Abschluss gemeinsamer Bestand: zehn gezielte Tests erfolgreich. Mittelwert/Korridor nutzen vorhandene persönliche Historie beider Apps und sind bei ausreichenden Daten auch nach Quellenwechsel bis zur neuesten Messung berechenbar. Lücke vorgestern allein erzeugt keinen Dreitagesversatz. Grund des konkret fehlenden Messwerts bleibt ohne aktuelles App-Journal unbekannt; keine Daten wiederhergestellt/gelöscht. Keine neue APK, alle Folgeänderungen nach Build 66 lokal.
 
 Während APK-Auftrag Build 67 (0.8.28 / Code 98) erfolgreich, aber noch nicht direkt veröffentlicht: Nutzer ergänzt Schlafzeiten als einen Einstellungs-Auswahlpunkt, neue optionale Schlafdauer (Dezimalstunden, 0–24), globale Halbierung Auswahlkreis/Text auf 4 dp. Änderungen werden in aktualisierte APK 0.8.29 / Code 99 aufgenommen; Zwischenbuild 67 nicht als neuester Download veröffentlichen. Details hrv-questionnaire.md und ui-conventions-audit.md.
+
+Folgekorrektur nach Nutzerhinweis: horizontaler rechter Rand blendete Balken/Linien teils erst bei Eintritt des Tagesmittelpunkts ein. Tatsächliche Balkenausdehnung und randüberschreitende Mittelwertsegmente jetzt geclippt zeichnen; kleine Beschriftungen bewegen sich mit statt am Rand festzukleben. Keine APK.
+
+Prüfstand Balkenwerte/Rand: drei gezielte Tests erfolgreich (native Ansicht/Tagesauswahl, echte Pinch-/Wischgesten, Pixelregression für Teilbalken vor Eintritt seines Mittelpunkts am rechten Rand). Native Beschriftung visuell geprüft. Typografie und generierter Atlas konsistent. Keine APK erstellt.

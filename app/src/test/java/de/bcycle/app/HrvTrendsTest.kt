@@ -199,4 +199,20 @@ class HrvTrendsTest {
             assertTrue(first<zoomedFirst);assertEquals("day80",chosen);assertEquals(fixedAxis,chart.axis)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun partiallyVisibleRightmostBarDrawsBeforeItsCenterEntersTheViewport() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            val chart=HrvTrendChart(a,themes,{},{_,_->}).apply { setBackgroundColor(themes.active.tokens.secondary) }
+            a.setContentView(chart)
+            chart.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));chart.layout(0,0,360,400)
+            chart.show((0..20).map { HrvTrendPoint(row(it),start.plusDays(it.toLong()),"shared",40.0,null,null,null) },true)
+            val viewport=HrvTrendChart::class.java.getDeclaredField("viewport").apply { isAccessible=true }.get(chart) as HrvTrendViewport
+            viewport.pan(-.6) // Last center sits 0.1 days beyond the right edge; part of its bar is visible.
+            val image=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888)
+            chart.draw(Canvas(image))
+            assertEquals(themes.active.tokens.accent,image.getPixel(350,300))
+            image.recycle()
+        } finally { host.pause().stop().destroy() }
+    }
 }

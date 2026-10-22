@@ -23,6 +23,9 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.bodyTypeface }
     private val path=Path()
     private val bandEdges=Path()
+    private val barNumber=java.text.NumberFormat.getNumberInstance().apply {
+        isGroupingUsed=false;maximumFractionDigits=1
+    }
     private val viewport=HrvTrendViewport()
     private var points:List<HrvTrendPoint> = emptyList()
     var axis=HrvTrendAxis(0.0,1.0);private set
@@ -82,7 +85,8 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     override fun onDraw(canvas:Canvas) {
         super.onDraw(canvas)
         val top=16*density;val bottom=(height-32*density).coerceAtLeast(top+1)
-        val visible=points.filter { viewport.contains(it.day) }
+        val half=((plotRight-plotLeft)/viewport.span*.32).toFloat().coerceAtMost(12*density)
+        val visible=points.filter { x(it.day)+half>=plotLeft && x(it.day)-half<=plotRight }
         fun y(value:Double)=bottom-((value-axis.minimum)/(axis.maximum-axis.minimum)*(bottom-top)).toFloat()
         paint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity
         paint.color=alpha(tokens.foreground,.5f);paint.textAlign=Paint.Align.RIGHT
@@ -114,7 +118,6 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
                 bandEdges.moveTo(x(a.day),y(a.upper));bandEdges.lineTo(x(b.day),y(b.upper))
             }
         }
-        val half=((plotRight-plotLeft)/viewport.span*.32).toFloat().coerceAtMost(12*density)
         visible.forEach { point -> point.value?.let { value ->
             paint.color=if(point.belowNormal) Color.WHITE else tokens.accent
             canvas.drawRect(x(point.day)-half,y(value),x(point.day)+half,bottom,paint)
@@ -127,12 +130,27 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         paint.color=Color.WHITE;paint.strokeWidth=2*density
         for(index in points.indices) {
             val point=points[index];val mean=point.average ?: continue
-            if(!viewport.contains(point.day)) continue
             val previous=points.getOrNull(index-1)
+            // Include the segment crossing either edge; Canvas clips it continuously.
+            if(x(point.day)<plotLeft || x(previous?.day ?: point.day)>plotRight) continue
             if(previous?.average!=null && previous.cohort==point.cohort && point.day.toEpochDay()-previous.day.toEpochDay()==1L)
                 canvas.drawLine(x(previous.day),y(previous.average),x(point.day),y(mean),paint)
             canvas.drawCircle(x(point.day),y(mean),2*density,paint)
         }
+        paint.textSize=BicycleDesign.hrvTrendBarValueSp*resources.displayMetrics.scaledDensity
+        paint.textAlign=Paint.Align.CENTER;paint.color=tokens.foreground
+        val gap=BicycleDesign.dp(context,BicycleDesign.hrvTrendBarValueGap).toFloat()
+        var previousRight=Float.NEGATIVE_INFINITY
+        visible.forEach { point -> point.value?.let { value ->
+            val label=barNumber.format(value);val halfWidth=paint.measureText(label)/2
+            if(halfWidth*2>plotRight-plotLeft) return@let
+            val center=x(point.day)
+            // Keep zoomed-out labels legible; zooming in reveals the intervening values.
+            if(center-halfWidth<previousRight+gap) return@let
+            val baseline=(y(value)-gap).coerceAtLeast(top-paint.fontMetrics.ascent)
+            canvas.drawText(label,center,baseline,paint)
+            previousRight=center+halfWidth
+        } }
         canvas.restore()
     }
     private fun alpha(color:Int,factor:Float)=Color.argb((Color.alpha(color)*factor).toInt(),Color.red(color),Color.green(color),Color.blue(color))

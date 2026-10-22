@@ -61,3 +61,11 @@ Abschließende Nutzerentscheidung: keine Trennung der beiden Messreihen, ein gem
 Prüfstand gemeinsamer Bestand: zehn gezielte Auswertungstests erfolgreich. Neue Fälle: fehlende vorgestrige Messung bei sechs von sieben verfügbaren Tagen; wechselnde täglich letzte App-Quelle mit aktueller Mittelwert-/Korridorberechnung; gemeinsame bekannte Frequenzkennzahlen über Protokollgrenzen. Tagesregel, Originaldateien, feste Achsen und Gesten weiterhin geprüft. Kein neuer Score, keine Extrapolation und kein APK-Build. Warum ein einzelner Messwert im aktuellen Nutzerbestand fehlt, ist ohne dessen Journal nicht festgestellt.
 
 Veröffentlichung feste Achsen/Diagrammgröße/Farben/gemeinsamer Bestand: in APK **0.8.29 / Build 68** enthalten. [Buildnachweis](build-68.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+## Kleine Balkenwerte nach Build 68
+
+Jeder verfügbare Tagesbalken erhält oberhalb seinen Zahlenwert in 8 sp, FOREGROUND und 3 dp Abstand; Darstellung wie bisher mit höchstens einer Nachkommastelle, ohne unnötige Nullstellen oder wiederholte Einheit. Messwert/Skala unverändert. Labels werden mit dem Balken verschoben und an der Diagrammgrenze abgeschnitten; bei engem Zoomausschnittabstand überlappende Beschriftungen auslassen, durch Hineinzoomen sichtbar. Kein Zahlenlabel für fehlende Messwerte. Keine APK für diese reine Darstellungsänderung.
+
+Randkorrektur: Balken anhand ihrer tatsächlichen Ausdehnung statt nur am Tagesmittelpunkt einbeziehen. Mittelwertsegmente, die den Rand schneiden, bis außerhalb zeichnen und durch Canvas clippen. Dadurch erscheinen Teilbalken/Segmente beim horizontalen Scrollen kontinuierlich. Wertebeschriftungen behalten ihre X-Position statt am Rand festzukleben. Keine Änderung von Daten oder Statistik.
+
+Prüfstand Balkenwerte/Rand: drei gezielte Tests erfolgreich (native Ansicht/Tagesauswahl, echte Pinch-/Wischgesten, Pixelregression für Teilbalken vor Eintritt seines Mittelpunkts am rechten Rand). Native Beschriftung visuell geprüft. Typografie und generierter Atlas konsistent. Keine APK erstellt.
