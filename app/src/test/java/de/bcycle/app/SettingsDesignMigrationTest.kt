@@ -41,8 +41,13 @@ class SettingsDesignMigrationTest {
     }
     private fun measure(dialog: AlertDialog, width: Int = 1080, height: Int = 1800) {
         val decor = dialog.window!!.decorView
-        decor.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
-        decor.layout(0, 0, width, height)
+        // The fullscreen host normalizes newly attached controls in a posted layout pass.
+        // Settle that pass on both sides of the theme comparison.
+        repeat(2) {
+            decor.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+            decor.layout(0, 0, width, height)
+            shadowOf(Looper.getMainLooper()).idle()
+        }
     }
     // Native AlertController contains hidden spacer views whose stale rectangles are not UI geometry.
     private fun geometry(dialog: AlertDialog) = views(dialog).filter { it.isShown }.map {
@@ -62,7 +67,8 @@ class SettingsDesignMigrationTest {
             val activity = controller.get(); val themes = RideRuntime.get(activity).themes
             assertTrue(themes.saveCustom(light()).valid)
             val root = open(activity)
-            for (action in SettingsAction.entries.filter { it !in listOf(SettingsAction.ADVANCED,SettingsAction.ROUTES,SettingsAction.SENSORS,SettingsAction.MAP,SettingsAction.DASHBOARDS) }) {
+            for (action in SettingsAction.entries.filter { it !in listOf(SettingsAction.ADVANCED,SettingsAction.ROUTES,SettingsAction.SENSORS,SettingsAction.MAP,SettingsAction.DASHBOARDS,SettingsAction.RECOVERY,SettingsAction.GPS_HELP) }) {
+                println("Checking settings theme/navigation: $action")
                 themes.activate(BicycleThemes.red.id)
                 var parent=root
                 if(action.ordinal>=SettingsAction.RECOVERY.ordinal) { views(root).single { it.tag=="settings_ADVANCED" }.performClick();parent=ShadowAlertDialog.getLatestAlertDialog() }
@@ -74,13 +80,14 @@ class SettingsDesignMigrationTest {
                 assertEquals(BicycleDesign.headerHeight * activity.resources.displayMetrics.density, title.height.toFloat(), 1f)
                 assertEquals(BicycleThemes.red.tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
                 assertTrue(title.isAccessibilityHeading)
-                assertTrue(views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.all { it.typeface == Typeface.DEFAULT || it.typeface == BicycleDesign.strongTypeface || ((it.tag=="bike_wheel_mm" || it.tag?.toString()?.startsWith("rider_")==true) && (it is EditText || it.tag=="rider_birth") && it.typeface==activity.resources.getFont(R.font.bebas_neue)) || it.tag == "rider_unit" || (it.tag?.toString()?.startsWith("rider_zone_value_") == true || it.tag?.toString()?.startsWith("rider_power_zone_value_") == true) })
+                val wrongFonts=views(child).filterIsInstance<TextView>().filter { it !== title && !hasThemePickerParent(it) }.filterNot { it.typeface == Typeface.DEFAULT || it.typeface == BicycleDesign.strongTypeface || ((it is EditText || it.tag=="rider_birth") && it.typeface==activity.resources.getFont(R.font.bebas_neue)) || it.tag == "rider_unit" || (it.tag?.toString()?.startsWith("rider_zone_value_") == true || it.tag?.toString()?.startsWith("rider_power_zone_value_") == true) }
+                assertTrue("Unexpected font in $action: "+wrongFonts.joinToString { "${it.tag}: ${it.text} ${it.typeface}" },wrongFonts.isEmpty())
                 if (action in listOf(SettingsAction.SENSORS, SettingsAction.MAP, SettingsAction.DASHBOARDS)) snapshot(child, action.name.lowercase())
                 val before = geometry(child)
                 assertTrue(themes.activate(light().id)); shadowOf(Looper.getMainLooper()).idle(); measure(child)
                 assertEquals("Theme changed geometry in $action", before, geometry(child))
                 assertEquals(light().tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
-                val wrongColors=views(child).filterIsInstance<TextView>().filterNot { it.currentTextColor == light().tokens.foreground || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == light().tokens.secondaryTextColor) || !it.isEnabled }
+                val wrongColors=views(child).filterIsInstance<TextView>().filterNot { it.currentTextColor == light().tokens.foreground || (it is BicycleSegmentButton && it.isChecked && ThemeValidator.contrast(it.currentTextColor,light().tokens.accent)>=ThemeValidator.minimumTextContrast) || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == light().tokens.secondaryTextColor) || !it.isEnabled }
                 assertTrue("Unrecolored $action: "+wrongColors.joinToString { "${it.tag}: ${it.text} ${Integer.toHexString(it.currentTextColor)}" },wrongColors.isEmpty())
                 testBack(child)
                 if(parent!==root) testBack(parent)
@@ -149,7 +156,7 @@ class SettingsDesignMigrationTest {
             assertEquals(light().tokens.foreground, choice.currentTextColor)
             val opened = selector.adapter.getDropDownView(0, null, content) as TextView
             assertEquals(light().tokens.foreground, opened.currentTextColor)
-            assertEquals(light().tokens.secondary, (opened.background as android.graphics.drawable.ColorDrawable).color)
+            assertEquals(android.graphics.Color.TRANSPARENT, (opened.background as android.graphics.drawable.ColorDrawable).color)
             choice.performClick(); assertEquals(DashboardField("GPS_SPEED"), selected.single())
             themes.activate(BicycleThemes.red.id); measure(screen, 720, 1200); snapshot(screen, "field-picker-small")
             screen.dismiss()

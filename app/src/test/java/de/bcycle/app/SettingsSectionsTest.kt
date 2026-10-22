@@ -26,7 +26,8 @@ class SettingsSectionsTest {
             val activity=controller.get();val runtime=RideRuntime.get(activity)
             runtime.themes.activate("preset:black-ops")
             fun open(method:String):View {
-                MainActivity::class.java.getDeclaredMethod(method).apply { isAccessible=true }.invoke(activity)
+                if(method=="dataSettings") MainActivity::class.java.getDeclaredMethod(method,Boolean::class.javaPrimitiveType).apply { isAccessible=true }.invoke(activity,false)
+                else MainActivity::class.java.getDeclaredMethod(method).apply { isAccessible=true }.invoke(activity)
                 shadowOf(Looper.getMainLooper()).idle()
                 return ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.apply {
                     measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(640,View.MeasureSpec.EXACTLY))
@@ -35,11 +36,11 @@ class SettingsSectionsTest {
             }
             fun headings(root:View)=testDescendants(root).filterIsInstance<BicycleSectionHeader>().map { it.contentDescription.toString() }
             val design=open("dashboardSettings")
-            assertEquals(listOf("Theme","Dashboard-Layout","Trainingshilfe","Bosch-Fahrmodus"),headings(design))
+            assertEquals(listOf("Theme","Dashboard-Layout","Trainingshilfe"),headings(design))
             assertEquals(1,testDescendants(design).filterIsInstance<android.widget.ScrollView>().size)
             testBack(ShadowAlertDialog.getLatestAlertDialog())
             val data=open("dataSettings")
-            assertEquals(listOf("GLOBALE DATEN","STRECKENDATEN"),headings(data))
+            assertEquals(listOf("GLOBALE DATEN","STRECKENDATEN","HRV-Pulsdaten"),headings(data))
             assertEquals(1,testDescendants(data).filterIsInstance<BicycleStickyScrollView>().size)
             testBack(ShadowAlertDialog.getLatestAlertDialog())
             val profile=showRiderProfile(activity,runtime.themes,DialogNavigation(),runtime.riderProfiles)
