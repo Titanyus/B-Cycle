@@ -31,3 +31,5 @@ Die bisherige CSV-Lebenszykluskorrektur nach Build 64 bleibt enthalten. Noch kei
 ## Prüfung
 
 27 unterschiedliche gezielte Tests erfolgreich: sieben neue Statistik-/Viewport-/Gesten-/UI-/Navigationsprüfungen, drei Tagesauswahltests, ein großer Streaming-Historientest, zwei HRV-Einstellungstests, zwei Hilfetests, der erweiterte echte Fragebogen-Speicher-/Navigationspfad, zwei Speichertests und neun CSV-Importtests. Native Vorschau visuell geprüft, einschließlich korrigierter Datumsbeschriftung am rechten Rand; [Testdaten-Vorschau](previews/hrv-trends.png). Geprüft sind auch echter Zweifinger-Zoom, horizontales Ziehen, Antippen eines älteren Tages und korrekte Messungs-ID, Zurück zu unveränderten HRV-Einstellungen, Kalenderfenster, Mindestdaten, fehlende Werte, Gruppenwechsel und unveränderte Archivdateien/Exporte. Typografie- und Atlasprüfung erfolgreich. Kein Gesamttestlauf, Hardwaretest oder neuer APK-Build.
+
+Veröffentlichung: Diese Ergänzung/Korrektur ist in APK **0.8.26 / Build 65** enthalten. [Buildnachweis](build-65.md). Frühere Aussagen zu fehlender neuer APK beschreiben den Stand vor dieser Veröffentlichung.

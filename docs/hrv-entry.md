@@ -42,3 +42,5 @@ Geprüft: opt-in/dauerhafter Tagesmarker, App-Wechsel, Außen-Tap, frische RR al
 Kein neuer Test mit physischem Pulsmesser, Lautsprecher oder Vibrationsmotor. Der 14-px-Blur nutzt den Android-GPU-RenderEffect; der Host-Screenshot aus Software-Canvas bildet diesen GPU-Effekt nicht ab. Sichtprüfung der tatsächlichen Unschärfe auf dem Gerät steht aus.
 
 Nachfolgende Erweiterung: „Zur Auswertung“ öffnet nach erfolgreichem Speichern des Tagesbefindens den neuen HRV-Verlauf, statt nur zurückzuspringen. Auch über HRV-Einstellungen → HRV-Auswertung erreichbar. Details [HRV-Auswertung](hrv-trends.md). Diese Ergänzung ist noch nicht in APK 0.8.25 enthalten.
+
+Veröffentlichung: Diese Ergänzung/Korrektur ist in APK **0.8.26 / Build 65** enthalten. [Buildnachweis](build-65.md). Frühere Aussagen zu fehlender neuer APK beschreiben den Stand vor dieser Veröffentlichung.

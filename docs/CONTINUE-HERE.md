@@ -2,6 +2,11 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller Abschluss: APK 0.8.26 / Build 65
+
+APK **0.8.26 / Build 65 / versionCode 96** aus `2275327ce05806d5c44875d13efad4547af8dcd5` erfolgreich über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.26-release-65.apk), [Buildnachweis](build-65.md). 2.219.870 Bytes; SHA-256 `40e220d8c4e08d8f362fbac3113144d6da53cb22fb748fc904c737b756540047`. Dauerhafte Signatur wie Build 64, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält neue HRV-Auswertung mit beiden Einstiegen und CSV-Prüfanzeige-Korrektur. 27 gezielte Tests erfolgreich, kein Gesamtlauf oder Hardwaretest. Alles auf main und in APK enthalten; kein offener APK-Auftrag. Frühere Angaben unten zu „nur lokal“, „keine APK“ oder Build 64 sind Verlauf.
+
+
 Aktueller Auftrag: eigene HRV-Auswertung mit Kennzahlwahl, Tagesbalken, 7-Tage-Mittel und dokumentiertem 60-Tage-Normalbereich; Zoom/Pan und Zugriff auf Messung/Tagesbefinden. Einstiege über HRV-Einstellungen und vorhandenes „Zur Auswertung“ nach erfolgreichem Fragebogenspeichern. Keine neue APK angefragt. Details hrv-trends.md; bisherige CSV-Hänger-Korrektur gehört zum Quellstand, noch nicht zu APK 0.8.25 / Build 64.
 
 
