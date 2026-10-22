@@ -52,12 +52,25 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private var workerRoute: GpxRoute? = null
     private var retainedFiles: Map<String, RouteFileStamp> = emptyMap()
     private var correctedIds=emptySet<String>()
+    private var entriesRevision=-1L
+    private var entriesProfiles:RideProfileCatalog?=null
+    private var entriesNames:RideNames.Snapshot?=null
+    private var cachedEntries:List<ManagedRoute> = emptyList()
+    private var entriesById:Map<String,ManagedRoute> = emptyMap()
     val entries: List<ManagedRoute> get() {
-        val names=RideNames.allNames(context)
-        return (routes.map { ManagedRoute(it.id, it.name, false, "GPX", it.details, true, it.origin, it.id in retainedFiles, retainedFiles[it.id]) } +
-        activities.map { ManagedRoute(it.id, it.name, it.recorded, "FIT", it.details, it.hasRoute, it.origin, it.id in retainedFiles, retainedFiles[it.id],it.id in correctedIds) } + summaries.map { it.managed(retainedFiles[it.id]) })
-        .map { it.copy(name=names[it.id] ?: it.name,details=it.details.copy(bikeType=RideProfileColor.type(context,it.id) ?: it.details.bikeType)) }.sortedByDescending { it.details.dateMs }
+        val profiles=RideProfileColor.catalog(context);val names=RideNames.snapshot(context)
+        if(entriesRevision!=routeRevision || entriesProfiles!==profiles || entriesNames!==names) {
+            cachedEntries=(routes.map { ManagedRoute(it.id,it.name,false,"GPX",it.details,true,it.origin,it.id in retainedFiles,retainedFiles[it.id]) } +
+                activities.map { ManagedRoute(it.id,it.name,it.recorded,"FIT",it.details,it.hasRoute,it.origin,it.id in retainedFiles,retainedFiles[it.id],it.id in correctedIds) } +
+                summaries.map { it.managed(retainedFiles[it.id]) })
+                .map { it.copy(name=names.values[it.id] ?: it.name,details=it.details.copy(bikeType=profiles.values[it.id]?.type ?: it.details.bikeType)) }
+                .sortedByDescending { it.details.dateMs }
+            entriesById=cachedEntries.associateBy { it.id }
+            entriesRevision=routeRevision;entriesProfiles=profiles;entriesNames=names
+        }
+        return cachedEntries
     }
+    fun entry(id:String):ManagedRoute? { entries;return entriesById[id] }
     init {
         worker.execute { finishOperation("") {
             workerRoute = library.load(); fits.load(); dreeveSummaries.load();fits.discoverDownloads(context)

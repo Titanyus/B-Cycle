@@ -20,49 +20,20 @@ internal object RideProfileColor {
             BicycleThemes.findPreset(stored)?.tokens?.primary ?: ThemeManager(prefs).baseTokens.primary
         confirm(context,id,JSONObject().put("slot",slot).put("bikeId",BikeIdentities.id(prefs,slot)).put("name",profile.name).put("primary",primary).put("type",profile.type.name).toString())
     }
-    fun forget(context:Context,id:String) { check(context.getSharedPreferences(STORE,0).edit().remove(id).commit()) }
+    fun forget(context:Context,id:String) { check(context.getSharedPreferences(STORE,0).edit().remove(id).commit());RideProfileCatalogCache.invalidate(context) }
     fun confirm(context:Context,id:String,json:String) {
         val row=JSONObject(json);row.getInt("slot");row.getInt("primary")
         if(row.has("bikeId")) require(BikeIdentities.valid(row.getString("bikeId")))
         if(row.has("type")) BikeType.valueOf(row.getString("type"))
         check(context.getSharedPreferences(STORE,0).edit().putString(id,row.toString()).commit())
+        RideProfileCatalogCache.invalidate(context)
     }
-    fun slot(context:Context,id:String):Int?=runCatching {
-        context.getSharedPreferences(STORE,0).getString(id,null)?.let(::JSONObject)?.let { resolvedSlot(context,it) }
-    }.getOrNull()
-    fun type(context:Context,id:String):BikeType?=runCatching {
-        val row=JSONObject(context.getSharedPreferences(STORE,0).getString(id,null) ?: return null)
-        val prefs=context.getSharedPreferences("bike",0)
-        val slot=resolvedSlot(context,row)
-        val profiles=org.json.JSONArray(prefs.getString(BikeProfileStore.KEY,"[]")!!)
-        val live=(0 until profiles.length()).map { profiles.getJSONObject(it) }.find { it.optInt("slot")==slot }
-            ?.optString("type")?.takeIf { it.isNotBlank() }
-        val retained=row.optString("bikeId").takeIf { it.isNotBlank() }?.let { BikeIdentities.retainedType(prefs,it)?.name }
-        BikeType.valueOf(live ?: retained ?: row.getString("type"))
-    }.getOrNull()
-    fun snapshotType(context:Context,id:String):BikeType?=runCatching {
-        BikeType.valueOf(JSONObject(context.getSharedPreferences(STORE,0).getString(id,null) ?: return null).getString("type"))
-    }.getOrNull()
-    fun name(context:Context,id:String):String?=runCatching {
-        val row=context.getSharedPreferences(STORE,0).getString(id,null)?.let(::JSONObject) ?: return null
-        val prefs=context.getSharedPreferences("bike",0)
-        val profiles=org.json.JSONArray(prefs.getString(BikeProfileStore.KEY,"[]")!!)
-        val slot=resolvedSlot(context,row)
-        (0 until profiles.length()).map { profiles.getJSONObject(it) }.firstOrNull { it.optInt("slot")==slot }
-            ?.optString("name")?.takeIf { it.isNotBlank() } ?: row.optString("name").takeIf { it.isNotBlank() }
-    }.getOrNull()
-    fun color(context:Context,id:String):Int?=runCatching {
-        val row=context.getSharedPreferences(STORE,0).getString(id,null)?.let(::JSONObject) ?: return null
-        val prefs=context.getSharedPreferences("bike",0)
-        val slot=resolvedSlot(context,row) ?: return row.getInt("primary")
-        val profiles=org.json.JSONArray(prefs.getString(BikeProfileStore.KEY,"[]")!!)
-        if((0 until profiles.length()).none { profiles.getJSONObject(it).optInt("slot")==slot }) return row.getInt("primary")
-        if(prefs.getInt(BikeProfileStore.ACTIVE,0)==slot)
-            return BicycleThemes.findPreset(prefs.getString(ThemeManager.activeKey,null))?.tokens?.primary ?: row.getInt("primary")
-        val stored=JSONObject(prefs.getString(BikeUiConfigurationStore.KEY,"{}")!!)
-            .optJSONObject(slot.toString())?.optJSONObject(ThemeManager.activeKey)?.optString("value")
-        BicycleThemes.findPreset(stored)?.tokens?.primary ?: row.getInt("primary")
-    }.getOrNull()
+    internal fun catalog(context:Context)=RideProfileCatalogCache.get(context)
+    fun slot(context:Context,id:String)=RideProfileCatalogCache.metadata(context,id)?.slot
+    fun type(context:Context,id:String)=RideProfileCatalogCache.metadata(context,id)?.type
+    fun snapshotType(context:Context,id:String)=RideProfileCatalogCache.metadata(context,id)?.originalType
+    fun name(context:Context,id:String)=RideProfileCatalogCache.metadata(context,id)?.name
+    fun color(context:Context,id:String)=RideProfileCatalogCache.metadata(context,id)?.color
     private fun resolvedSlot(context:Context,row:JSONObject):Int? =
         if(row.has("bikeId")) BikeIdentities.slot(context,row.getString("bikeId")) else row.getInt("slot")
     fun backup(context:Context,id:String):JSONObject? {
@@ -89,6 +60,6 @@ internal object RideProfileColor {
                     }
             }
         } }
-        if(changed) check(edit.commit())
+        if(changed) { check(edit.commit());RideProfileCatalogCache.invalidate(context) }
     }
 }

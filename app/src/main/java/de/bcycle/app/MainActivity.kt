@@ -1766,7 +1766,7 @@ class MainActivity : Activity() {
             .show()
     }
     private fun detailEntry(detail: DetailSession): ManagedRoute? {
-        val current = runtime.mapState.entries.firstOrNull { it.id == detail.id } ?: return null
+        val current = runtime.mapState.entry(detail.id) ?: return null
         val verified = detail.analysis?.entry?.fileStamp
         val stamp = if (verified != null && verified.length == current.fileStamp?.length && verified.modified == current.fileStamp.modified) verified else current.fileStamp
         return current.copy(fileStamp = stamp)

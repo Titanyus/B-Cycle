@@ -15,7 +15,19 @@ internal object RideNames {
     private fun prefs(c:Context)=c.getSharedPreferences("ride-names",0)
     private fun data(c:Context)=JSONObject(prefs(c).getString("data","{}")!!)
     private fun save(c:Context,value:JSONObject) { check(prefs(c).edit().putString("data",value.toString()).putLong("revision",System.nanoTime()).commit()) }
-    fun allNames(c:Context):Map<String,String> = synchronized(lock) { val rows=names(data(c));rows.keys().asSequence().mapNotNull { id -> rows.getJSONObject(id).optString("name").takeIf { it.isNotBlank() }?.let { id to it } }.toMap() }
+    internal class Snapshot(val values:Map<String,String>)
+    private var snapshotKey:String?=null
+    private var snapshot:Snapshot?=null
+    internal fun snapshot(c:Context):Snapshot=synchronized(lock) {
+        val key=prefs(c).getString("data","{}")!!
+        if(snapshotKey!=key || snapshot==null) {
+            val rows=names(JSONObject(key))
+            snapshot=Snapshot(rows.keys().asSequence().mapNotNull { id -> rows.getJSONObject(id).optString("name").takeIf { it.isNotBlank() }?.let { id to it } }.toMap())
+            snapshotKey=key
+        }
+        checkNotNull(snapshot)
+    }
+    fun allNames(c:Context):Map<String,String> = snapshot(c).values
     fun revision(c:Context)=prefs(c).getLong("revision",0)
     fun name(c:Context,id:String):String?=synchronized(lock) { data(c).optJSONObject("names")?.optJSONObject(id)?.optString("name")?.takeIf { it.isNotBlank() } }
     private fun names(all:JSONObject)=all.optJSONObject("names") ?: JSONObject().also { all.put("names",it) }
