@@ -660,8 +660,37 @@ class MainActivity : Activity() {
                     getString(R.string.hrv_history_item,date,metric ?: getString(R.string.hrv_invalid_short))
                 }
             }
-            BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_history)
-                .setItems(labels.toTypedArray()) { _,position -> showHrvHistoryResult(rows[position].id) }.show()
+            lateinit var overview:android.app.AlertDialog
+            val list=ListView(this).apply {
+                tag="hrv_history_list"
+                adapter=object:BaseAdapter() {
+                    override fun getCount()=rows.size
+                    override fun getItem(position:Int)=rows[position]
+                    override fun getItemId(position:Int)=position.toLong()
+                    override fun getView(position:Int,recycled:View?,parent:android.view.ViewGroup):View =
+                        LinearLayout(this@MainActivity).apply {
+                            gravity=android.view.Gravity.CENTER_VERTICAL
+                            addView(BicycleComponents.text(this@MainActivity,runtime.themes,labels[position]).apply {
+                                minimumHeight=dp(BicycleDesign.touchSize)
+                                setPadding(dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.verticalPadding),0,dp(BicycleDesign.verticalPadding))
+                                setOnClickListener { overview.dismiss();showHrvHistoryResult(rows[position].id) }
+                            },LinearLayout.LayoutParams(0,-2,1f))
+                            addView(BicycleComponents.icon(this@MainActivity,runtime.themes,BicycleIcon.DeleteTrack,
+                                getString(R.string.route_action_delete)+": "+labels[position]) {
+                                dialog(fullscreen=false).setTitle(R.string.hrv_delete_title).setMessage(R.string.hrv_delete_confirm)
+                                    .setPositiveButton(R.string.route_action_delete) { _,_ ->
+                                        runtime.hrv.deleteMeasurement(rows[position].id) { outcome ->
+                                            if(!isDestroyed) outcome.fold(onSuccess={ overview.dismiss();showHrvHistory() },
+                                                onFailure={ BicycleFeedback.show(this@MainActivity,R.string.hrv_delete_failed) })
+                                        }
+                                    }.setNegativeButton(android.R.string.cancel,null).show()
+                            }.apply { tag="hrv_delete_${rows[position].id}" })
+                        }
+                }
+                setOnItemClickListener { _,_,position,_ -> overview.dismiss();showHrvHistoryResult(rows[position].id) }
+            }
+            overview=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_history)
+                .setView(list).show()
         }
     }
     private fun showHrvHistoryResult(id:String) {

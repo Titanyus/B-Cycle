@@ -49,3 +49,6 @@ Veröffentlichung der Elf-Stufen-/Antwortimport-/Korridor-Erweiterung: in APK **
 Schlafdauer-Erweiterung: sleep_time als endliche Stundenangabe von 0 bis 24 in extras.sleepHours übernehmen, ohne den Originalwert zu verändern. Bestehende importierte Tagesbefinden beim Öffnen nur um fehlende Dauer ergänzen; manuelle Angaben nicht überschreiben.
 
 Schlafoptionen und globaler Auswahlabstand sind in APK **0.8.29 / Build 68** enthalten. [Buildnachweis](build-68.md).
+
+## Messungen löschen
+In der Messungsübersicht löscht der Papierkorb nach Bestätigung die einzelne Messung einschließlich RR-Daten und Tagesbefinden. Es wird keine Importsperre gespeichert; derselbe CSV-Import kann sie erneut ergänzen. Andere Messungen bleiben erhalten. Beim Löschen der letzten Messung eines Tages kann eine ältere archivierte Messung dieses Tages wieder sichtbar werden. Laufende Messungen und noch nicht abgeschlossene Speicherungen sperren die Löschung. Unterbrochene Dateibereinigung wird beim nächsten Start fortgesetzt.

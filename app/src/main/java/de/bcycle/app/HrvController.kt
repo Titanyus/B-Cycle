@@ -162,6 +162,13 @@ internal class HrvController(private val context:Context,private val clock:()->L
     }
     fun measurement(id:String,done:(Result<JSONObject>)->Unit) =
         storageTask(done) { checkNotNull(store).readDaily(id) }
+    fun deleteMeasurement(id:String,done:(Result<Unit>)->Unit) =
+        storageTask(done) {
+            check(!busy && pending==null)
+            checkNotNull(store).delete(id)
+            if(state.result?.optString("id")==id)
+                publish(state.copy(result=null,phase=null,elapsedMs=0,remainingMs=state.measureMs,points=emptyList()))
+        }
     fun trends(done:(Result<Map<HrvTrendMetric,List<HrvTrendPoint>>>)->Unit) =
         storageTask(done) {
             val rows=checkNotNull(store).daily()

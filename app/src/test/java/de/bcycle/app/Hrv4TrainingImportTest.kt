@@ -36,6 +36,58 @@ class Hrv4TrainingImportTest {
             .submit {}.get(10,TimeUnit.SECONDS)
         shadowOf(Looper.getMainLooper()).idle()
     }
+    @Test fun deletingMeasurementRemovesAnswersAndAllowsSameCsvToRestoreIt() {
+        val directory=root()
+        try {
+            val store=HrvStore(directory);val preview=parse()
+            val entry=preview.entries.first();val id=entry.result.getString("id")
+            assertTrue(store.importHrv4Training(entry))
+            assertNotNull(store.questionnaire(id))
+            assertFalse(store.importHrv4Training(entry))
+            store.delete(id)
+            assertFalse(File(directory,id).exists())
+            assertTrue(store.ids().isEmpty());assertTrue(store.daily().isEmpty())
+            store.recover()
+            assertTrue(store.importHrv4Training(entry))
+            assertEquals(id,store.daily().single().id)
+            assertNotNull(store.questionnaire(id))
+            assertEquals(entry.result.toString(),store.read(id).toString())
+            assertTrue(runCatching { store.delete("../escape") }.isFailure)
+            assertEquals(listOf(id),store.ids())
+            val interrupted=File(directory,".hrv-delete-${UUID.randomUUID()}").apply { mkdirs() }
+            File(interrupted,"capture.jsonl").writeText("discarded")
+            store.recover();assertFalse(interrupted.exists());assertEquals(listOf(id),store.ids())
+        } finally { directory.deleteRecursively() }
+    }
+    @Test fun historyDeletionRequiresConfirmationAndClearsTheDisplayedResult() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get();val controller=RideRuntime.get(a).hrv
+            drain(controller)
+            val store=HrvStore(File(a.filesDir,"hrv-measurements"))
+            val entry=parse().entries.first();val id=entry.result.getString("id")
+            assertTrue(store.importHrv4Training(entry))
+            HrvController::class.java.getDeclaredField("state").apply { isAccessible=true }
+                .set(controller,HrvState(phase=de.bcycle.hrv.Phase.COMPLETE,remainingMs=0,result=entry.result))
+            MainActivity::class.java.getDeclaredMethod("showHrvHistory").apply { isAccessible=true }.invoke(a)
+            drain(controller)
+            val overview=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            val list=overview.window!!.decorView.findViewWithTag<android.widget.ListView>("hrv_history_list")
+            fun delete() {
+                val row=list.adapter.getView(0,null,list)
+                row.findViewWithTag<View>("hrv_delete_$id").performClick()
+            }
+            delete()
+            org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().getButton(android.app.AlertDialog.BUTTON_NEGATIVE).performClick()
+            assertEquals(listOf(id),store.ids())
+            delete()
+            org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
+            repeat(2) { drain(controller) }
+            assertTrue(store.ids().isEmpty());assertNull(controller.state.result)
+            assertNull(controller.state.phase);assertEquals(controller.state.measureMs,controller.state.remainingMs)
+            assertTrue(store.importHrv4Training(entry))
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun spacedHeadersTrailingEmptyColumnsAndQuotedMultilineFieldsKeepOriginalsWithoutInventingMetrics() {
         val csv="\uFEFFdate, local, time, rMSSD,note,LF,HF,mental_energy,unknown_column\r\n"+
             "2024-07-08,2024-07-08,06:15,25,\"Komma, und \"\"Zitat\"\"\nzweite Zeile\",0.03,0.02,6.4,original,\r\n"+

@@ -32,7 +32,10 @@ object BicycleDesign {
     const val hrvTrendBandLineDp=1f
     const val hrvTrendBandDotGapDp=4f
     const val hrvRingWidth=9f*1.35f
-    const val hrvPulseSp=72f
+    const val hrvPulseSp=90f
+    const val hrvTextOffset=10
+    const val hrvActionHorizontalPadding=24
+    const val hrvActionVerticalInset=8
     const val hrvTimeSp=18f
     // Endpoint grows 40% from its previous size, independently of the thicker ring.
     const val hrvRingEndScale=1.3f*1.4f/1.35f

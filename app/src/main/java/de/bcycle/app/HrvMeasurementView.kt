@@ -21,11 +21,7 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         when { controller.state.saveError && controller.canRetrySave -> controller.retrySave()
             controller.busy -> controller.abort()
             canStart() -> controller.start(sensor()) }
-    }.apply {
-        tag="hrv_action"
-        val inset=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
-        setPadding(inset,paddingTop,inset,paddingBottom)
-    }
+    }.apply { tag="hrv_action" }
     private val historyButton=BicycleComponents.action(context,themes,context.getString(R.string.hrv_history)) {
         autoStartPending=false;history()
     }.apply { tag="hrv_history" }
@@ -53,7 +49,9 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
     }
     private fun styleAction() {
         action.typeface=if(startAction) BicycleDesign.strongTypeface else BicycleDesign.bodyTypeface
-        if(startAction) styleHrvPill(action) else action.background=null
+        if(startAction) styleHrvPill(action,slim=true) else action.background=null
+        val inset=BicycleDesign.dp(context,BicycleDesign.hrvActionHorizontalPadding)
+        action.setPadding(inset,0,inset,0)
     }
     private fun show(state:HrvState) {
         if(controller.busy) autoStartPending=false
@@ -88,12 +86,14 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
     override fun onDetachedFromWindow() { subscription?.close();subscription=null;keepScreenOn=false;super.onDetachedFromWindow() }
 }
 /** Same accent text, 900 Black and one-dp pill for HRV start/open actions. */
-internal fun styleHrvPill(button:TextView) {
+internal fun styleHrvPill(button:TextView,slim:Boolean=false) {
     button.typeface=BicycleDesign.strongTypeface
-    button.background=android.graphics.drawable.GradientDrawable().apply {
+    val outline=android.graphics.drawable.GradientDrawable().apply {
         setColor(Color.TRANSPARENT);cornerRadius=BicycleDesign.dp(button.context,BicycleDesign.touchSize).toFloat()
         setStroke(BicycleDesign.linePixels(button.context,1f),button.currentTextColor)
     }
+    val inset=BicycleDesign.dp(button.context,BicycleDesign.hrvActionVerticalInset)
+    button.background=if(slim) android.graphics.drawable.InsetDrawable(outline,0,inset,0,inset) else outline
 }
 internal fun hrvResult(context:Context,themes:ThemeManager,row:JSONObject,includeSensor:Boolean=true):LinearLayout=
     if(row.optJSONObject("external")?.optString("provider")==Hrv4TrainingCsv.PROVIDER) hrv4TrainingResult(context,themes,row) else LinearLayout(context).apply {
@@ -196,9 +196,13 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
         // change live values without restarting the progress animation.
         if(value.phase!=state.phase) phaseDeadlineMs=android.os.SystemClock.elapsedRealtime()+value.remainingMs
         state=value
-        contentDescription=context.getString(R.string.hrv_circle_accessibility,context.getString(if(value.phase==Phase.REST) R.string.hrv_rest else R.string.hrv_measuring),value.bpm?.toString() ?: "–",time())
+        contentDescription=context.getString(R.string.hrv_circle_accessibility,phaseLabel(),value.bpm?.toString() ?: "–",time())
         invalidate()
     }
+    private fun phaseLabel()=context.getString(when(state.phase) {
+        Phase.REST->R.string.hrv_rest;Phase.MEASURE->R.string.hrv_measuring
+        Phase.COMPLETE,Phase.ABORTED->R.string.hrv_result;else->R.string.hrv_idle
+    })
     private fun remaining():Long=if((state.phase==Phase.REST || state.phase==Phase.MEASURE) && !state.saving && !state.saveError)
         (phaseDeadlineMs-android.os.SystemClock.elapsedRealtime()).coerceAtLeast(0) else state.remainingMs
     private fun time():String { val seconds=(remaining()+999)/1000;return "%02d:%02d".format(java.util.Locale.ROOT,seconds/60,seconds%60) }
@@ -228,17 +232,19 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
         canvas.drawCircle(x+radius*kotlin.math.cos(angle).toFloat(),y+radius*kotlin.math.sin(angle).toFloat(),
             BicycleDesign.hrvRingWidth*density*BicycleDesign.hrvRingEndScale/2,paint)
         val pulse=state.bpm?.toString() ?: "–";val unit=context.getString(R.string.hrv_bpm)
+        paint.textAlign=Paint.Align.LEFT
         paint.typeface=numbers;paint.textSize=BicycleDesign.hrvPulseSp*scaled
         val pulseWidth=paint.measureText(pulse)
-        paint.typeface=units;paint.textSize=DashboardTileStyle.ONE.unitMaxSp*scaled
-        val unitWidth=paint.measureText(unit);val gap=4*density
-        val left=x-(pulseWidth+gap+unitWidth)/2
+        paint.getTextBounds(pulse,0,pulse.length,pulseBounds)
+        val gap=4*density
+        val left=x-(pulseBounds.left+pulseBounds.right)/2f
+        val textY=y-BicycleDesign.hrvTextOffset*density
         paint.textAlign=Paint.Align.LEFT;paint.color=tokens.foreground
         paint.typeface=numbers;paint.textSize=BicycleDesign.hrvPulseSp*scaled
         paint.getTextBounds(pulse,0,pulse.length,pulseBounds)
-        val pulseTop=y+10*density+pulseBounds.top
-        val pulseBottom=y+10*density+pulseBounds.bottom
-        canvas.drawText(pulse,left,y+10*density,paint)
+        val pulseTop=textY+10*density+pulseBounds.top
+        val pulseBottom=textY+10*density+pulseBounds.bottom
+        canvas.drawText(pulse,left,textY+10*density,paint)
         paint.typeface=units;paint.textSize=DashboardTileStyle.ONE.unitMaxSp*scaled
         paint.color=BicycleDesign.dashboardUnitColor
         paint.getTextBounds(unit,0,unit.length,unitBounds)
@@ -247,15 +253,15 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
         paint.typeface=BicycleDesign.bodyTypeface;paint.color=tokens.foreground;paint.textAlign=Paint.Align.CENTER
         paint.textSize=BicycleDesign.hrvTimeSp*scaled
         val clock=time();paint.getTextBounds(clock,0,clock.length,timeBounds)
-        canvas.drawText(clock,x,y+48*density,paint)
-        val gapAbove=y+48*density+timeBounds.top-pulseBottom
-        val phase=context.getString(when(state.phase) {
-            Phase.REST->R.string.hrv_rest;Phase.MEASURE->R.string.hrv_measuring
-            Phase.COMPLETE,Phase.ABORTED->R.string.hrv_result;else->R.string.hrv_idle
-        })
+        canvas.drawText(clock,x,textY+48*density,paint)
+        val gapAbove=textY+48*density+timeBounds.top-pulseBottom
+        val phase=phaseLabel()
         paint.textSize=BicycleDesign.bodySp*scaled
-        paint.getTextBounds(phase,0,phase.length,phaseBounds)
-        canvas.drawText(phase,x,pulseTop-gapAbove-phaseBounds.bottom,paint)
+        val lines=phase.lines()
+        lines.asReversed().forEachIndexed { index,line ->
+            paint.getTextBounds(line,0,line.length,phaseBounds)
+            canvas.drawText(line,x,pulseTop-gapAbove-phaseBounds.bottom-index*paint.fontSpacing,paint)
+        }
         if(running && !state.saving && !state.saveError && remaining()>0 && isAttachedToWindow && isShown)
             postInvalidateOnAnimation()
     }

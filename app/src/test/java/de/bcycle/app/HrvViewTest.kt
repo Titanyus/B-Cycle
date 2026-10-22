@@ -85,14 +85,18 @@ class HrvViewTest {
             }
             assertTrue(halfOpaqueLabels>10);graphBitmap.recycle()
             val first=render();assertTrue(hasColor(first,themes.active.tokens.accent))
-            val textPaint=android.graphics.Paint().apply { typeface=c.resources.getFont(R.font.league_gothic);textSize=72f }
+            java.io.File("build/reports/hrv-first.png").outputStream().use { first.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) }
+            val textPaint=android.graphics.Paint().apply { typeface=c.resources.getFont(R.font.league_gothic);textSize=BicycleDesign.hrvPulseSp }
             val pulseWidth=textPaint.measureText("73")
             textPaint.typeface=android.graphics.Typeface.create("sans-serif-condensed",android.graphics.Typeface.NORMAL)
             textPaint.textSize=DashboardTileStyle.ONE.unitMaxSp.toFloat()
             val unitWidth=textPaint.measureText("bpm")
-            val textLeft=180-(pulseWidth+4+unitWidth)/2
+            val bounds=android.graphics.Rect()
+            textPaint.typeface=c.resources.getFont(R.font.league_gothic);textPaint.textSize=BicycleDesign.hrvPulseSp
+            textPaint.getTextBounds("73",0,2,bounds)
+            val textLeft=180-(bounds.left+bounds.right)/2f
             fun inkCenter(left:Int,right:Int):Double {
-                val rows=(100..185).filter { y -> (left..right).any { x ->
+                val rows=((160+bounds.top)..(160+bounds.bottom)).filter { y -> (left..right).any { x ->
                     val pixel=first.getPixel(x,y)
                     Color.red(pixel)>120 && Color.green(pixel)>120 && Color.blue(pixel)>120
                 } }
@@ -100,6 +104,13 @@ class HrvViewTest {
             }
             assertEquals(inkCenter(textLeft.toInt(),(textLeft+pulseWidth-1).toInt()),
                 inkCenter((textLeft+pulseWidth+4).toInt(),(textLeft+pulseWidth+4+unitWidth).toInt()),2.0)
+            val columns=(textLeft.toInt()..(textLeft+pulseWidth).toInt()).filter { x ->
+                ((160+bounds.top)..(160+bounds.bottom)).any { y ->
+                    val pixel=first.getPixel(x,y)
+                    Color.red(pixel)>120 && Color.green(pixel)>120 && Color.blue(pixel)>120
+                }
+            }
+            assertEquals(180.0,(columns.first()+columns.last())/2.0,1.0)
             first.recycle()
             val next=themes.presets.first { it.tokens.accent!=themes.active.tokens.accent }
             assertTrue(themes.activate(next.id))
@@ -126,13 +137,13 @@ class HrvViewTest {
             val start=idle.findViewWithTag<TextView>("hrv_action")
             assertEquals(900,start.typeface.weight)
             BicycleDialogStyle.content(idle,themes)
-            assertTrue(start.background is android.graphics.drawable.GradientDrawable)
+            assertTrue(start.background is android.graphics.drawable.InsetDrawable)
             fun border()=android.graphics.Bitmap.createBitmap(start.width,start.height,android.graphics.Bitmap.Config.ARGB_8888).also { start.draw(android.graphics.Canvas(it)) }
             val outline=border()
-            assertEquals(themes.active.tokens.accent,outline.getPixel(start.width/2,0))
+            assertEquals(themes.active.tokens.accent,outline.getPixel(start.width/2,8))
             assertEquals(0,Color.alpha(outline.getPixel(0,0)));outline.recycle()
             assertTrue(themes.activate(themes.presets.first { it.tokens.accent!=themes.active.tokens.accent }.id))
-            val changed=border();assertEquals(themes.active.tokens.accent,changed.getPixel(start.width/2,0));changed.recycle()
+            val changed=border();assertEquals(themes.active.tokens.accent,changed.getPixel(start.width/2,8));changed.recycle()
             val idleImage=android.graphics.Bitmap.createBitmap(360,760,android.graphics.Bitmap.Config.ARGB_8888)
             idleImage.eraseColor(themes.active.tokens.secondary);idle.draw(android.graphics.Canvas(idleImage))
             java.io.File("build/reports/hrv-idle-preview.png").outputStream().use { idleImage.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };idleImage.recycle()

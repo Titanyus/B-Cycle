@@ -93,6 +93,13 @@ internal class HrvStore(private val root:File) {
             require(row.getString("format")=="bicycle-hrv" && row.getInt("schema")==1 && row.getString("id")==id)
         }
     }
+    /** Remove the entire measurement atomically from the visible/importable journal. */
+    fun delete(id:String) {
+        read(id) // Validate identity before touching any directory.
+        val removed=File(root,".hrv-delete-${UUID.randomUUID()}")
+        check(directory(id).renameTo(removed))
+        removed.deleteRecursively() // Recovery retries interrupted cleanup; no import tombstone.
+    }
     fun questionnaire(id:String):HrvQuestionnaire? {
         val file=File(directory(id),"questionnaire.json")
         return if(!file.exists()) null else AtomicFile(file).openRead().use {
@@ -121,8 +128,8 @@ internal class HrvStore(private val root:File) {
         atomic(File(directory(id),"questionnaire.json"),bytes)
     }
     fun recover() {
-        root.listFiles().orEmpty().filter { it.isDirectory && it.name.startsWith(".hrv4-import-") &&
-            validId(it.name.removePrefix(".hrv4-import-")) }.forEach { it.deleteRecursively() }
+        root.listFiles().orEmpty().filter { it.isDirectory && listOf(".hrv4-import-",".hrv-delete-").any { prefix ->
+            it.name.startsWith(prefix) && validId(it.name.removePrefix(prefix)) } }.forEach { it.deleteRecursively() }
         root.listFiles().orEmpty().filter { it.isDirectory && validId(it.name) && !File(it,"result.json").exists() }.forEach { dir ->
             val draft=JSONObject(AtomicFile(File(dir,"draft.json")).openRead().bufferedReader().use { it.readText() })
             val session=MeasurementSession(0,Protocol(draft.getLong("restMs"),draft.getLong("measureMs")))
