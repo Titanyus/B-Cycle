@@ -996,7 +996,7 @@ class MainActivity : Activity() {
         }
         BicycleDialogStyle.spinner(source,settingsThemes,BicycleDesign.profileDropdownSp)
         val keyRow=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL;tag="map_provider_key_row" }
-        keyRow.addView(label(getString(R.string.map_thunderforest_key)))
+        keyRow.addView(BicycleComponents.fieldLabel(settingsContext,settingsThemes,getString(R.string.map_thunderforest_key)))
         val providerKey=BicycleComponents.input(settingsContext,settingsThemes).apply {
             tag="map_thunderforest_key";setSingleLine();contentDescription=getString(R.string.map_thunderforest_key)
             inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD

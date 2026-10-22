@@ -105,3 +105,7 @@ Die zunächst vorgemerkte Änderung wurde am 17.10.2026 nach Build 30 umgesetzt.
 Aktuelle sichtbare Referenz: [UI-Atlas](previews/ui-catalog.html), generiert aus BicycleDesign. Schriftrollen: [fonts.md](fonts.md). 24-dp-Gruppen-/4-dp-Labelabstände im Atlas sind ausdrücklich nur ein HTML-Entwurf und ändern keine bestehenden App-Abstände.
 
 Feldbezogene Inline-Rückmeldungen direkt unter Eingabefeldern: fieldFeedbackGap=controlGap/2 (4 statt 8 dp), für Erfolg und Fehler gleichermaßen. BicycleFeedback.status setzt die Margin nach finaler Anfügung unter EditText; andere Statusrollen/Toasts/Validierungsregeln unverändert. HTML-Atlas zeigt dieselbe Regel.
+
+## Beschriftung zum Eingabefeld (22.10.2026)
+
+Bild 2 des UI-Vergleichs ist der gemeinsame Standard: 4 dp zwischen Beschriftung und zugehörigem Control über fieldLabelGap. Gestapelte Beschriftungen mit BicycleComponents.fieldLabel erzeugen beziehungsweise über labelFor explizit zuordnen; normale Fließtexte/Überschriften nicht implizit als Feldlabel behandeln. controlSpacing greift auch nach finaler LayoutParams-Zuweisung und bei erneutem Stylen; horizontale Zahlenzeilen und normale 8-dp-Controlabstände bleiben erhalten. Tagesbefinden-Inputs/Dropdowns/Slider und das beschriftete Kartenprovider-Schlüsselfeld verwenden die Rolle. Der HTML-Atlas zeigt den gleichen Abstand in Eingabebeispielen, Tagesbefinden und Rückmeldungen. Der zusätzliche Entwurfsregler Slider → Skalenbeschriftung wirkt ausschließlich in der HTML-Vergleichsgruppe und unabhängig von Label → Control.

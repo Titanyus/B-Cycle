@@ -44,7 +44,7 @@ def manifest():
         values[name] = value
         tokens[name] = {'value': value, 'source': f'app/src/main/java/de/bcycle/app/BicycleDesign.kt:{number}'}
     required = ['controlGap', 'pageContentGap', 'sectionContentGap', 'sectionEndGap', 'horizontalPadding',
-                'fieldFeedbackGap', 'sliderScaleLabelAlpha', 'sliderScaleLabelGap', 'sliderQuestionGap', 'sectionDividerGap', 'headerHeight', 'touchSize', 'bodySp', 'titleSp', 'headingSp',
+                'fieldLabelGap', 'fieldFeedbackGap', 'sliderScaleLabelAlpha', 'sliderScaleLabelGap', 'sliderQuestionGap', 'sectionDividerGap', 'headerHeight', 'touchSize', 'bodySp', 'titleSp', 'headingSp',
                 'settingsMetricSp', 'controlBorder', 'controlBorderAlpha', 'inputRadius', 'switchWidth',
                 'switchHeight', 'switchThumbDiameter', 'footerHeight', 'iconSize', 'sectionHeaderMinHeight']
     assert all(name in tokens for name in required), 'Design token missing; update the catalog'

@@ -141,6 +141,7 @@ object BicycleDesign {
     const val dialogRadius = 18
     const val controlBorder = 1
     const val sliderScaleLabelAlpha = .5f
+    const val fieldLabelGap = controlGap / 2
     const val fieldFeedbackGap = controlGap / 2
     const val sliderScaleLabelGap = controlGap / 2
     const val sliderQuestionGap = controlGap * 3
@@ -248,9 +249,12 @@ object BicycleComponents {
             val separated=parent?.orientation==LinearLayout.VERTICAL && preceding?.tag=="bicycle_section_divider"
             val choice=view is android.widget.CheckBox || view is android.widget.RadioButton
             val choiceList=choice && (preceding is android.widget.CheckBox || preceding is android.widget.RadioButton)
-            val gap=if(separated || choiceList) 0 else dp(view.context,BicycleDesign.controlGap)
+            val labelled=parent?.orientation==LinearLayout.VERTICAL && preceding is TextView &&
+                (preceding.tag=="bicycle_field_label" || view.id!=View.NO_ID && preceding.labelFor==view.id)
+            val gap=when { labelled->dp(view.context,BicycleDesign.fieldLabelGap)
+                separated || choiceList->0;else->dp(view.context,BicycleDesign.controlGap) }
             var changed=false
-            if(((separated || choiceList) && margins.topMargin!=0) || margins.topMargin<gap) { margins.topMargin=gap;changed=true }
+            if((labelled && margins.topMargin!=gap) || ((separated || choiceList) && margins.topMargin!=0) || margins.topMargin<gap) { margins.topMargin=gap;changed=true }
             if(parent?.orientation==LinearLayout.HORIZONTAL) {
                 val index=parent.indexOfChild(view)
                 val previous=(index-1 downTo 0).firstOrNull { parent.getChildAt(it).visibility!=View.GONE }?.let(parent::getChildAt)
@@ -348,6 +352,10 @@ object BicycleComponents {
         tag="bicycle_content_heading"
         textSize=BicycleDesign.contentHeadingSp
         gravity=Gravity.START
+    }
+    /** A stacked control label: its control owns the single shared label gap. */
+    fun fieldLabel(context:Context,manager:ThemeManager,value:String)=text(context,manager,value).apply {
+        tag="bicycle_field_label"
     }
     /** Explanatory form copy keeps the shared gap; labels and metric text keep their own geometry. */
     fun description(context: Context, manager: ThemeManager, value: String) = text(context,manager,value).apply {

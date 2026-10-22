@@ -73,7 +73,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     private fun rating(parent:LinearLayout,question:HrvQuestion,key:String,left:Int,middle:Int,right:Int,max:Int=8) {
         if(!enabled(question)) return
         val block=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_block_$key" }
-        label(block,question.label)
+        block.addView(BicycleComponents.fieldLabel(context,themes,context.getString(question.label)))
         val origin=if(key=="soreness" || key=="fatigue") 0 else max/2
         val slider=BicycleRatingSlider(context,themes,origin,max).apply {
             tag="hrvq_$key";progress=value.ratings[key] ?: origin
@@ -93,6 +93,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             }
         })
         block.addView(slider,LayoutParams(-1,dp(BicycleDesign.touchSize)))
+        BicycleComponents.controlSpacing(slider)
         block.addView(LinearLayout(context).apply {
             orientation=HORIZONTAL
             listOf(left,middle,right).forEachIndexed { i,id ->
@@ -119,7 +120,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         if(enabled(q)) choices(parent,key,context.getString(q.label),listOf(R.string.hrvq_no,R.string.hrvq_yes),current?.let { if(it) 1 else 0 }) { changed(it==1) }
     }
     private fun input(parent:LinearLayout,key:String,title:String,current:String,numeric:Boolean=false,time:Boolean=false,maxLength:Int=500,changed:(String)->Boolean) {
-        label(parent,title)
+        parent.addView(BicycleComponents.fieldLabel(context,themes,title))
         val edit=BicycleComponents.input(context,themes).apply {
             tag="hrvq_$key";contentDescription=title
 
@@ -151,7 +152,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         }
     }
     private fun dropdown(parent:LinearLayout,key:String,title:Int,values:List<String>,labels:List<Int>,current:String?,changed:(String?)->Unit) {
-        label(parent,title)
+        parent.addView(BicycleComponents.fieldLabel(context,themes,context.getString(title)))
         val spinner=Spinner(context).apply {
             tag="hrvq_$key";contentDescription=context.getString(title)
             adapter=ArrayAdapter(context,android.R.layout.simple_spinner_item,listOf(context.getString(R.string.hrvq_choose))+labels.map(context::getString)).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }

@@ -2,7 +2,9 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
-Aktuelle Ergänzung (8 gezielte Tests und Browser-Abstandsmessungen erfolgreich): Tagesbefinden-Slider ohne sichtbare Auswahl-/Unbeantwortet-Zeile und ohne Zurücksetzen pro Slider. Skalenbeschriftungen unter Slidern global über sliderScaleLabel mit 50 % Deckkraft, auch im HTML-Atlas. Speicherung, fehlende unberührte Werte und Accessibility bleiben erhalten. Keine APK beauftragt.
+Aktuelle Ergänzung: Beschriftungen über gestapelten Controls zentral 4 dp über fieldLabelGap und BicycleComponents.fieldLabel / explizites labelFor. Tagesbefinden und Kartenproviderfeld verwenden die Rolle; normale Controlabstände, horizontale Zahlenzeilen und Header unverändert. HTML-Eingabebeispiele/Tagesbefinden/Rückmeldungen jetzt einheitlich, unabhängiger zusätzlicher Entwurfsregler Slider → Skalenbeschriftung (0–24 dp). Nur Vorschau-HTML auf preview/ui-catalog veröffentlichen, App-Code lokal ohne neue APK.
+
+Vorherige Ergänzung (8 gezielte Tests und Browser-Abstandsmessungen erfolgreich): Tagesbefinden-Slider ohne sichtbare Auswahl-/Unbeantwortet-Zeile und ohne Zurücksetzen pro Slider. Skalenbeschriftungen unter Slidern global über sliderScaleLabel mit 50 % Deckkraft, auch im HTML-Atlas. Speicherung, fehlende unberührte Werte und Accessibility bleiben erhalten. Keine APK beauftragt.
 
 Aktueller Abschluss: League Gothic ersetzt Bebas Neue in der App. Alle Schriftfamilien stehen zentral in BicycleDesign; Screens verwenden nur benannte Rollen. Texteingaben einschließlich Tagesbefinden/Fahrtbenennung verwenden die gemeinsame schmale Schrift mit Groß-/Kleinschreibung, Passwortmasken bleiben erhalten. Nur Hauptheader erzwingen Großschreibung zur Anzeige; gespeicherte Namen bleiben unverändert. Titellauftext misst den transformierten Anzeigetext. Quellprüfung verhindert neue lokale Schriftfamilien; Lizenzdialog aktualisiert. 56 unterschiedliche gezielte Android-Hosttests bestanden, kein Gesamtlauf, Hardwaretest oder APK. Letzte veröffentlichte APK bleibt Build 62 und enthält diesen Wechsel noch nicht.
 
@@ -154,3 +156,5 @@ Slider-Fragen bilden eine Gruppe: Frage, 48-dp-Slider, Skalenbegriffe mit 4 dp A
 Feldbezogene Inline-Rückmeldungen direkt unter Eingabefeldern: fieldFeedbackGap=controlGap/2 (4 statt 8 dp), für Erfolg und Fehler gleichermaßen. BicycleFeedback.status setzt die Margin nach finaler Anfügung unter EditText; andere Statusrollen/Toasts/Validierungsregeln unverändert. HTML-Atlas zeigt dieselbe Regel.
 
 Veröffentlichung dieser Ergänzungen: App-Änderungen lokal committet, kein Push nach main ohne ausdrückliche Freigabe. Nur die alleinstehende HTML-Datei auf preview/ui-catalog aktualisieren. Vorschau-Download https://raw.githubusercontent.com/Titanyus/B-Cycle/preview/ui-catalog/docs/previews/ui-catalog.html . Keine APK.
+
+Prüfstand Beschriftungsabstand/Skalenregler: 11 gezielte Android-Tests erfolgreich (6 Tagesbefinden, 5 Formular-/Seitenauswahl-Abstände). Browser prüft tatsächliche 4 dp in allen drei gezeigten Feldbeispielen und unabhängige Verstellung von Label- und Skalenabstand, zusätzlich bestehende Atlas-Bedienung/320–412-Breiten. Kein Gesamtlauf oder APK.

@@ -69,6 +69,35 @@ class SelectionSpacingTest {
             java.io.File("build/reports/ui/ride-naming-spacing.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) }
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun stackedFieldLabelsShareFourDpAfterFinalLayoutAndRestylingWhileOtherControlsKeepTheirGaps() {
+        val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("label-spacing",0))
+            val root=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL }
+            val fields=listOf(0,8,24).map { initialGap ->
+                root.addView(BicycleComponents.fieldLabel(c,themes,"Beschriftung"))
+                BicycleComponents.input(c,themes).also { edit ->
+                    root.addView(edit,LinearLayout.LayoutParams(-1,-2).apply { topMargin=initialGap })
+                }
+            }
+            val associated=TextView(c).apply { text="Zugeordnet" }
+            root.addView(associated)
+            val explicit=BicycleComponents.input(c,themes).apply { id=View.generateViewId() }
+            associated.labelFor=explicit.id;root.addView(explicit)
+            val ordinary=BicycleComponents.input(c,themes);root.addView(ordinary)
+            c.setContentView(root);layout(root)
+            repeat(2) {
+                (fields+explicit).forEach { field ->
+                    BicycleDialogStyle.control(field,themes)
+                    assertEquals(4,(field.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
+                    val parent=field.parent as LinearLayout
+                    assertEquals(4,field.top-parent.getChildAt(parent.indexOfChild(field)-1).bottom)
+                }
+                assertEquals(8,(ordinary.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
+                layout(root)
+            }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun stackedIconsStayTwoDpAboveLabelAtDifferentSegmentHeights() {
         val c=org.robolectric.RuntimeEnvironment.getApplication();val themes=ThemeManager(c.getSharedPreferences("spacing",0))
         for(height in listOf(72,120)) {

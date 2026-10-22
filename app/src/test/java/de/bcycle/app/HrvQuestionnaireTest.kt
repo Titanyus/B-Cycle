@@ -58,6 +58,8 @@ class HrvQuestionnaireTest {
                 assertEquals(.5f,scale.alpha,0f)
                 assertEquals(BicycleDesign.dp(a,4),(scale.layoutParams as LinearLayout.LayoutParams).topMargin)
             }
+            assertEquals(BicycleDesign.dp(a,4),(slider.layoutParams as LinearLayout.LayoutParams).topMargin)
+            assertEquals(BicycleDesign.dp(a,4),(view.findViewWithTag<EditText>("hrvq_notes").layoutParams as LinearLayout.LayoutParams).topMargin)
             assertEquals(8,slider.max);assertEquals(4,slider.progress);view.flush();assertTrue(saved.isEmpty())
             assertEquals(View.GONE,view.findViewWithTag<View>("hrvq_training_details").visibility)
             // A tap that chooses the existing center must count as an explicit neutral answer.
