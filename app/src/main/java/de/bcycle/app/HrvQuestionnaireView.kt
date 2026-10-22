@@ -145,7 +145,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         input(parent,key,title,value.extras[key].orEmpty(),numeric,time) { text ->
             val normalized=when {
                 text.isBlank()->null
-                numeric->text.trim().replace(',','.').toDoubleOrNull()?.takeIf { it.isFinite() && it in -1_000_000.0..1_000_000.0 }?.toString() ?: return@input false
+                numeric->text.trim().replace(',','.').toDoubleOrNull()?.takeIf { it.isFinite() && it in (if(key=="sleepHours") 0.0..24.0 else -1_000_000.0..1_000_000.0) }?.toString() ?: return@input false
                 time->runCatching { java.time.LocalTime.parse(text.trim(),DateTimeFormatter.ofPattern("H:mm")).toString() }.getOrNull() ?: return@input false
                 else->text
             }
@@ -217,6 +217,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         if(config.enabled.none(::enabled) && config.customNames.all(String::isBlank)) label(this,R.string.hrvq_empty)
         group(R.string.hrvq_sleep_group,HrvQuestion.entries.filter { it.group==0 }) { body ->
             rating(body,HrvQuestion.SLEEP,"sleep",R.string.hrvq_bad,R.string.hrvq_normal,R.string.hrvq_good)
+            if(enabled(HrvQuestion.SLEEP_DURATION)) extra(body,"sleepHours",context.getString(R.string.hrvq_sleep_hours),numeric=true)
             if(enabled(HrvQuestion.WAKE) || enabled(HrvQuestion.BED)) {
                 val row=LinearLayout(context).apply { orientation=HORIZONTAL;tag="hrvq_sleep_times" }
                 for((q,key) in listOf(HrvQuestion.WAKE to "wake",HrvQuestion.BED to "bed")) if(enabled(q)) {

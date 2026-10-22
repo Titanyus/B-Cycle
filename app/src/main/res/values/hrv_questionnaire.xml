@@ -71,6 +71,9 @@
     <string name="hrvq_settings_hint">Nur aktivierte Fragen werden angezeigt. Das Ausblenden löscht keine Antworten. Eigene Angaben sind mit einem Namen aktiv; ein leerer Name deaktiviert sie.</string>
     <string name="hrvq_training_setting">Training am Vortag</string>
     <string name="hrvq_wake">Aufstehzeit</string>
+    <string name="hrvq_sleep_times">Aufsteh- und Schlafenszeit</string>
+    <string name="hrvq_sleep_duration">Schlafdauer</string>
+    <string name="hrvq_sleep_hours">Schlafdauer · Stunden</string>
     <string name="hrvq_bed">Schlafenszeit am Vorabend</string>
     <string name="hrvq_phase">Trainingsphase</string>
     <string name="hrvq_cycle">Menstruationszyklus</string>

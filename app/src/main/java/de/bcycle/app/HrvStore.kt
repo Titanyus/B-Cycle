@@ -108,7 +108,9 @@ internal class HrvStore(private val root:File) {
         val source=original.keys().asSequence().associateWith { original.optString(it) }
         val ratings=Hrv4TrainingCsv.ratings(source)
         val base=saved ?: HrvQuestionnaire.forMeasurement(row)
-        val merged=base.copy(ratings=ratings+base.ratings)
+        val sleepHours=source["sleep_time"]?.trim()?.replace(',','.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..24.0 }
+        val extras=if(sleepHours!=null && "sleepHours" !in base.extras) base.extras+("sleepHours" to sleepHours.toString()) else base.extras
+        val merged=base.copy(ratings=ratings+base.ratings,extras=extras)
         if(merged!=base) saveQuestionnaire(id,merged)
         return merged
     }

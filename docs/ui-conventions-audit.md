@@ -172,3 +172,5 @@ Fahrtbenennung: Vorschau als abgeschwächter, nicht editierbarer Suffix im Namen
 Trainingshilfe: Aufklappen der Abschnittsüberschrift oder ihres Detail-Chevrons setzt die Überschrift nach der nächsten Layoutberechnung an den oberen Rand des nativen ScrollView, soweit der Scrollbereich reicht. Andere Abschnitte behalten ihr bisheriges Verhalten; keine Änderung an Modus/Auswahl durch Scrollen.
 
 Karteneinstellungen: zentraler sectionDivider unmittelbar vor Trackaufzeichnung, mit den bestehenden gemeinsamen Abständen.
+
+Auswahlpunkt → Text: zentral choiceTextGap=4 dp statt bisher 8 dp Zusatzabstand für Checkboxen/RadioButtons. Circle-Geometrie, native Radio-Inset-Breite, 48-dp-Touchflächen, Farben, Listener und äußere Formularabstände erhalten. HTML-Atlas verwendet dasselbe Token; keine lokalen Extramargins für einzelne Listen.

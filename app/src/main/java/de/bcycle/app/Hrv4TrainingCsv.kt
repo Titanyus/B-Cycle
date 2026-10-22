@@ -98,6 +98,8 @@ internal object Hrv4TrainingCsv {
         fun text(key:String)=source[key].orEmpty().trim()
         fun choice(key:String,values:List<String>)=values.indexOf(text(key).lowercase()).takeIf { it>=0 }
         val extras=linkedMapOf<String,String>()
+        source["sleep_time"]?.trim()?.replace(',','.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..24.0 }
+            ?.let { extras["sleepHours"]=it.toString() }
         for((column,key) in listOf("sleep_awake" to "wake","sleep_tobed" to "bed")) {
             runCatching { LocalTime.parse(text(column)) }.getOrNull()?.takeIf { it.second==0 && it.nano==0 }?.let { extras[key]=it.toString() }
         }

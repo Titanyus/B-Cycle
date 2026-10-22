@@ -85,7 +85,7 @@ internal object BicycleDialogStyle {
                 setLayerSize(1, dp(view, 10), dp(view, 10)); setLayerGravity(1, Gravity.CENTER)
             }
             val nativeCircle=if(inset>0) android.graphics.drawable.InsetDrawable(drawable,inset) else drawable
-            return android.graphics.drawable.InsetDrawable(nativeCircle,0,0,dp(view,BicycleDesign.controlGap),0)
+            return android.graphics.drawable.InsetDrawable(nativeCircle,0,0,dp(view,BicycleDesign.choiceTextGap),0)
         }
         addState(intArrayOf(-android.R.attr.state_enabled, android.R.attr.state_checked), circle(true, false))
         addState(intArrayOf(-android.R.attr.state_enabled), circle(false, false))

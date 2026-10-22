@@ -196,7 +196,7 @@ class BicycleComponentsTest {
             for(view in listOf(box,radio,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
             val originalThumb=toggle.thumbDrawable
             activity.setContentView(root)
-            assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.controlGap),radio.buttonDrawable!!.intrinsicWidth)
+            assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.choiceTextGap),radio.buttonDrawable!!.intrinsicWidth)
             fun pixel(button: android.widget.CompoundButton,x:Int=24):Int {
                 val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
                 (button.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
@@ -240,7 +240,7 @@ class BicycleComponentsTest {
                 toggle.isEnabled=false
                 assertEquals(127,android.graphics.Color.alpha(trackPixel(24,0)))
                 toggle.isEnabled=true;toggle.isChecked=true
-                assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.controlGap),radio.buttonDrawable!!.intrinsicWidth)
+                assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.choiceTextGap),radio.buttonDrawable!!.intrinsicWidth)
                 assertSame(originalThumb,toggle.thumbDrawable)
             }
             box.performClick();assertEquals(2,changes)

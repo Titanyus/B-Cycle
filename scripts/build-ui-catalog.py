@@ -45,7 +45,7 @@ def manifest():
             continue
         values[name] = value
         tokens[name] = {'value': value, 'source': f'app/src/main/java/de/bcycle/app/BicycleDesign.kt:{number}'}
-    required = ['controlGap', 'pageContentGap', 'sectionContentGap', 'sectionEndGap', 'horizontalPadding',
+    required = ['controlGap', 'choiceTextGap', 'pageContentGap', 'sectionContentGap', 'sectionEndGap', 'horizontalPadding',
                 'inputHintAlpha', 'fieldLabelGap', 'fieldFeedbackGap', 'sliderScaleLabelAlpha', 'sliderScaleLabelGap', 'sliderLabelGap', 'sliderQuestionGap', 'sectionDividerGap', 'headerHeight', 'touchSize', 'bodySp', 'titleSp', 'headingSp',
                 'settingsMetricSp', 'controlBorder', 'controlBorderAlpha', 'inputRadius', 'switchWidth',
                 'switchHeight', 'switchThumbDiameter', 'footerHeight', 'iconSize', 'sectionHeaderMinHeight']

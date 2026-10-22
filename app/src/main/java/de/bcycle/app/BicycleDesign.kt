@@ -25,6 +25,7 @@ object BicycleDesign {
     const val hrvGraphHeight=286
     const val hrvTrendGraphHeight=504
     const val hrvTrendAxisWidth=40
+    const val choiceTextGap=4
     const val hrvTrendBandAlpha=.3f
     const val hrvTrendBandLineDp=1f
     const val hrvTrendBandDotGapDp=4f

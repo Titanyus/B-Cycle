@@ -63,3 +63,11 @@ Bei vorhandenen HRV4-Importen ergänzt questionnaireForEditing auf dem HRV-Worke
 Prüfstand dieser Ergänzung: 21 gezielte Tests erfolgreich (drei neue Rundungs-/Migration-/Ergänzungsprüfungen, neun CSV-Importtests, sieben Tagesbefinden-Tests, bestehende Slider-/Speicherfreigabeprüfung und native Auswertungsdarstellung). Korridor nativ visuell geprüft; Typografie und generierter Atlas konsistent. Kein Gesamtlauf und keine neue APK.
 
 Veröffentlichung der Elf-Stufen-/Antwortimport-/Korridor-Erweiterung: in APK **0.8.27 / Build 66** enthalten. [Buildnachweis](build-66.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+## Schlafoptionen nach Build 67
+
+Aufsteh- und Schlafenszeit haben in den HRV-Einstellungen einen gemeinsamen Auswahlpunkt. Persistiert bleiben WAKE/BED für vorhandene Sicherungen lesbar; sobald eine alte Einzelzeit aktiv war, wird die Kombination beim Lesen/Schreiben vereinheitlicht. Abwählen entfernt beide Fragen, vorhandene Zeitantworten bleiben erhalten. Neue unabhängige Option SLEEP_DURATION, standardmäßig aus: Schlafdauer als optionale Dezimalstunden (z. B. 7,5), Eingabebereich 0–24. Beide Wege können nach Bedarf aktiviert werden; keine automatische Ableitung von Schlafdauer aus Bett-/Aufstehzeit.
+
+Dauer in extras.sleepHours als Stunden, in Fragebogen-/Analyseexport und vollständiger Sicherung enthalten. Frageauswahl im bisherigen Einstellungsbackup. HRV4 sleep_time wird in Stunden übernommen und beim Öffnen bestehender Importe nur ergänzt, wenn noch keine eigene Dauer hinterlegt ist. Originalfeld bleibt erhalten.
+
+Prüfstand Schlafoptionen/globale Auswahlabstände: 15 gezielte Tests erfolgreich (drei Schlafprüfungen, sieben bestehende Tagesbefinden-Tests, bestehende Slider-/Speicherfreigabe, globale Auswahlfarben/Geometrie sowie drei Skalen-/Import-/Backup-Prüfungen). Typografie und generierter Atlas konsistent.

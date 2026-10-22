@@ -54,6 +54,7 @@ internal data class HrvQuestionnaire(
         require(extras.keys.all { it in extraKeys } && extras.values.all { it.length<=500 })
         extras.forEach { (key,value)-> when(key) {
             "wake","bed"->require(java.time.LocalTime.parse(value).second==0)
+            "sleepHours"->require(value.toDoubleOrNull()?.let { it.isFinite() && it in 0.0..24.0 }==true)
             "custom1","custom2","custom3"->require(value.toDoubleOrNull()?.let { it.isFinite() && it in -1_000_000.0..1_000_000.0 }==true)
             "phase"->require(value in phases)
             "cycle"->require(value in cycles)
@@ -63,7 +64,7 @@ internal data class HrvQuestionnaire(
         require(injury.length<=500 && notes.length<=1000 && updatedAtMs>=0)
     }
     companion object {
-        val extraKeys=setOf("wake","bed","phase","cycle","diet","location","supplements","custom1","custom2","custom3")
+        val extraKeys=setOf("wake","bed","sleepHours","phase","cycle","diet","location","supplements","custom1","custom2","custom3")
         val phases=listOf("base","build","competition","recovery","other")
         val cycles=listOf("menstruation","follicular","ovulation","luteal","unknown")
         val ratingKeys=setOf("sleep","motivation","condition","energy","soreness","fatigue","lifestyle","rpe")

@@ -27,16 +27,17 @@ internal class HrvQuestionSettingsView(context:Context,themes:ThemeManager):Line
         val groups=listOf(R.string.hrvq_sleep_group,R.string.hrvq_training_group,R.string.hrvq_overview_group,R.string.hrvq_lifestyle_group,R.string.hrvq_notes_group)
         groups.forEachIndexed { index,title ->
             addView(BicycleComponents.contentHeading(context,themes,context.getString(title)))
-            HrvQuestion.entries.filter { it.group==index && it!=HrvQuestion.SPORT }.forEach { question ->
+            HrvQuestion.entries.filter { it.group==index && it !in setOf(HrvQuestion.SPORT,HrvQuestion.BED) }.forEach { question ->
                 addView(CheckBox(context).apply {
-                    tag="hrvq_enabled_${question.name}";setText(question.label)
+                    tag="hrvq_enabled_${question.name}";setText(if(question==HrvQuestion.WAKE) R.string.hrvq_sleep_times else question.label)
                     val available=question!=HrvQuestion.CYCLE || settings.cycleAvailable()
                     isChecked=available && question in settings.read().enabled;isEnabled=available
                     if(!available) contentDescription=context.getString(R.string.hrvq_cycle_locked)
                     BicycleDialogStyle.control(this,themes)
                     setOnCheckedChangeListener { _,on ->
                         if(binding) return@setOnCheckedChangeListener
-                        val old=settings.read();settings.write(old.copy(enabled=if(on) old.enabled+question else old.enabled-question))
+                        val fields=if(question==HrvQuestion.WAKE) setOf(HrvQuestion.WAKE,HrvQuestion.BED) else setOf(question)
+                        val old=settings.read();settings.write(old.copy(enabled=if(on) old.enabled+fields else old.enabled-fields))
                     }
                 },LayoutParams(-1,-2))
             }
