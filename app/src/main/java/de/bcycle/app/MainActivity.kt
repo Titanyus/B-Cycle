@@ -557,7 +557,7 @@ class MainActivity : Activity() {
     }
     private fun recordingControls(): LinearLayout {
         val slot = runtime.bikes.activeSlot
-        val current = runtime.config; val selected = current.fields.toMutableSet(); val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
+        val current = runtime.config; val selected = current.fields.toMutableSet(); var metadata=current.metadata; val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
         BicycleForm.section(root,settingsThemes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
         var previewRevision=Long.MIN_VALUE
         var previewDetails:RouteDetails?=null
@@ -586,8 +586,12 @@ class MainActivity : Activity() {
         }
         val speed = source(getString(R.string.bikes_fit_primary_speed), current.speedSource, "SPEED")
         val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
-        fun saveFields() { if(runtime.bikes.activeSlot!=slot || !speed.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE")) }
+        fun saveFields() { if(runtime.bikes.activeSlot!=slot || !speed.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE",metadata=metadata)) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
+        root.addView(FitMetadataView(settingsContext,settingsThemes,runtime.bikes.current(),metadata,
+            currentProfile=runtime.bikes::current,expanded="FIT_METADATA" in expandedFitSources,onExpand={ if(it) expandedFitSources.add("FIT_METADATA") else expandedFitSources.remove("FIT_METADATA") }) {
+            metadata=it;saveFields()
+        })
         BicycleForm.section(root,settingsThemes,R.string.ui_track_recording)
         root.addView(BicycleComponents.description(settingsContext,settingsThemes,getString(R.string.track_recording_description)).apply { tag="track_recording_description" })
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {

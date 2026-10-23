@@ -19,3 +19,6 @@ Tests vergleichen den vollständigen Katalog einschließlich UI-Metadaten, schre
 `LiveDataPresentation` enthält ausschließlich die bisherigen Formatierungsfunktionen als Kotlin-Erweiterungen. LiveData/LiveMetric enthalten keine Formatierungslogik mehr; Aufrufnamen, Texte, Einheiten, Rundung und Fallbacks bleiben erhalten. `recordingValues()` bleibt der numerische Einstieg. Rohwertskalierungen, Quellenwahl, Frischegrenzen, Leistungsberechnung, Messereignisse und Sensorverbindungen bleiben unverändert.
 
 Ein zusätzlicher JVM-Test verwendet den Katalog und numerische Messwertverarbeitung ohne Android/Robolectric oder Dashboardinitialisierung und prüft Werte unter deutscher, US- und arabischer Zahlensprache. Bestehende UI-/Protokoll-/Aufzeichnungsprüfungen bleiben erhalten.
+
+## Optionale Metadaten (23.10.2026)
+`RecordingConfig.metadata` mit eigenem `FitMetadataField` definiert zusätzliche Garmin-Profil-/Geräteangaben. Keine neuen Messfeld-IDs oder Developer-Indizes, keine Dashboard-Abhängigkeit. Pro Profil wählbar; beim Start in bestehendem Profil-Snapshot festgehalten. [Felder, Grenzen und Kompatibilität](fit-metadata.md).

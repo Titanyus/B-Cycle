@@ -183,7 +183,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if(isIndoor) indoorRide.averagePower.takeIf { trainer.live } else bikeData.value(LiveMetric.AVERAGE_POWER)?.toDouble()?.takeIf { fresh(LiveMetric.AVERAGE_POWER, now) },
         pulseValues.bpm?.toDouble()?.takeIf { heartAvailable && heartAt?.let { now - it in 0..5000 } == true }, heartAt,
         pulse.average.takeIf { heartAvailable && heartAt?.let { now - it in 0..5000 } == true })
-    private val storedConfig get()=RecordingConfig.decode(preferences.getStringSet("recordFields", null), preferences.getString("recordSpeed", null), preferences.getString("recordDistance", null))
+    private val storedConfig get()=RecordingConfig.decode(preferences.getStringSet("recordFields", null), preferences.getString("recordSpeed", null), preferences.getString("recordDistance", null), preferences.getStringSet("recordMetadata",null))
     val config get() = storedConfig.let { if(isIndoor) IndoorFields.config(it) else it }.withGpsPosition(gpsEnabled)
     private fun scheduleTick() {
         handler.removeCallbacks(tick)
@@ -474,8 +474,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     fun saveConfig(config: RecordingConfig) {
         // Indoor is a view of the stored selection, not a destructive replacement of outdoor settings.
         val config=if(isIndoor) storedConfig.let { stored -> stored.copy(
-            fields=(stored.fields-IndoorFields.allowed)+(config.fields intersect IndoorFields.allowed)) } else config
-        preferences.edit().putStringSet("recordFields", config.fields).putString("recordSpeed", config.speedSource).putString("recordDistance", config.distanceSource).apply()
+            fields=(stored.fields-IndoorFields.allowed)+(config.fields intersect IndoorFields.allowed),metadata=config.metadata) } else config
+        preferences.edit().putStringSet("recordFields", config.fields).putString("recordSpeed", config.speedSource).putString("recordDistance", config.distanceSource).putStringSet("recordMetadata",config.metadata.map { it.name }.toSet()).apply()
         bikes.persistActive()
     }
     fun beginRecording() {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fit_metadata_title">Metadaten</string>
+    <string name="fit_metadata_bike_name">Fahrradname</string>
+    <string name="fit_metadata_sport">Sportart im Fahrradprofil</string>
+    <string name="fit_metadata_type">Fahrradtyp im Fahrradprofil</string>
+    <string name="fit_metadata_id">Profil-ID</string>
+    <string name="fit_metadata_index">Profilindex</string>
+    <string name="fit_metadata_recorder">Aufzeichnendes Gerät</string>
+    <string name="fit_metadata_cycling">Radfahren</string>
+    <string name="fit_metadata_value">%1$s (%2$s)</string>
+    <string name="fit_metadata_hint">Zusätzliche Angaben für neue FIT-Aufnahmen. Die grundlegende Sportart der Aktivität bleibt erhalten. Profilkennungen gelten innerhalb dieser App; andere Dienste können diese Angaben unterschiedlich auswerten.</string>
+</resources>

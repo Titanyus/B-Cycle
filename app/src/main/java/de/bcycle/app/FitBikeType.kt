@@ -16,6 +16,9 @@ internal object FitBikeType {
         try {
             require(source.inputStream().buffered().use { Decode().read(it,MesgListener { message ->
                 val typed=when(message.num) {
+                    6->BikeProfileMesg(message).apply {
+                        if(getField(BikeProfileMesg.SubSportFieldNum)!=null) setSubSport(subSport(type))
+                    }
                     12->SportMesg(message).apply { setSport(Sport.CYCLING);setSubSport(subSport(type)) }
                     18->SessionMesg(message).apply { setSport(Sport.CYCLING);setSubSport(subSport(type)) }
                     19->LapMesg(message).apply { setSport(Sport.CYCLING);setSubSport(subSport(type)) }

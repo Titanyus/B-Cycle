@@ -27,7 +27,7 @@ object FitWriter {
         v?.takeIf { it.isFinite() && it in -180.0..180.0 }?.let { (it / 180 * 2147483648.0).roundToLong() } ?: 0x7fffffff)
     private fun string(id: Int, text: String) = Field(id, 7, text.toByteArray(Charsets.UTF_8) + byteArrayOf(0))
 
-    fun encode(journal: File, destination: File, fullData:Boolean=false) {
+    fun encode(journal: File, destination: File, fullData:Boolean=false,metadata:FitMetadata?=null) {
         RandomAccessFile(destination, "rw").use { output ->
             output.setLength(0); output.write(ByteArray(14))
             val definitions = mutableMapOf<Int, String>()
@@ -56,9 +56,20 @@ object FitWriter {
                 val startStamp = timestamp(start).toDouble()
                 message(0, 0, listOf(en(0, 4), u16(1, 255.0), u16(2, 0.0), number(3, 0x8c, 4, 1), u32(4, startStamp)))
                 // Device metadata identifies the generating application, not a fabricated Garmin device.
-                message(0, 23, listOf(u32(253, startStamp), u8(0, 0.0), u16(2, 255.0), u16(4, 0.0), u16(5, AppVersion.fitSoftwareVersion, 100.0), string(27, "B|CYCLE")))
+                if(metadata==null || FitMetadataField.RECORDER in metadata.fields) message(0, 23, listOf(u32(253, startStamp), u8(0, 0.0), u16(2, 255.0), u16(4, 0.0), u16(5, AppVersion.fitSoftwareVersion, 100.0), string(27, "B|CYCLE")))
                 // Put standard sport metadata before records so readers need no second pass.
-                if(config.indoor) message(0,12,listOf(en(0,2),en(1,6)))
+                val subtype=if(config.indoor) 6 else when(metadata?.type) { BikeType.BIKE->0;BikeType.INDOOR->6;else->28 }
+                if(config.indoor || metadata!=null) message(0,12,listOf(en(0,2),en(1,subtype)))
+                metadata?.let { bike ->
+                    val fields=buildList {
+                        if(FitMetadataField.BIKE_NAME in bike.fields) add(string(0,bike.name))
+                        if(FitMetadataField.SPORT in bike.fields) add(en(1,2))
+                        if(FitMetadataField.SUB_SPORT in bike.fields) add(en(2,subtype))
+                        if(FitMetadataField.PROFILE_ID in bike.fields) bike.profileId?.let { add(u8(14,it.toDouble())) }
+                        if(FitMetadataField.PROFILE_INDEX in bike.fields) bike.profileIndex?.let { add(u16(254,it.toDouble())) }
+                    }
+                    if(fields.isNotEmpty()) message(0,6,fields)
+                }
                 if (developerIds.isNotEmpty() || config.fields.any { id -> RecordingFields.summaries.any { it.id == id } }) {
                     val uuid = UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
                     val appId = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN).putLong(uuid.mostSignificantBits).putLong(uuid.leastSignificantBits).array()
@@ -117,8 +128,8 @@ object FitWriter {
                         u8(cadId, average("CADENCE")), u8(cadId + 1, maxima["CADENCE"]),
                         u16(powerId, average("RIDER_POWER")), u16(powerId + 1, maxima["RIDER_POWER"]),
                         u16(ascentId, end.values["GPS_ASCENT"]), u16(ascentId + 1, end.values["GPS_DESCENT"]))
-                    if (session) fields += listOf(u32(com.garmin.fit.SessionMesg.TotalMovingTimeFieldNum, moving.value?.div(1000.0), 1000.0), en(5, 2), en(6, if(config.indoor) 6 else 28), u16(25, 0.0), u16(26, 1.0))
-                    else fields += listOf(en(24, 7), en(25, 2), en(39, if(config.indoor) 6 else 28))
+                    if (session) fields += listOf(u32(com.garmin.fit.SessionMesg.TotalMovingTimeFieldNum, moving.value?.div(1000.0), 1000.0), en(5, 2), en(6, subtype), u16(25, 0.0), u16(26, 1.0))
+                    else fields += listOf(en(24, 7), en(25, 2), en(39, subtype))
                     fun optional(id: String, value: Double?, maximum: Double, field: (Double) -> Field) {
                         if (id in config.fields && value != null && value.isFinite() && value in 0.0..maximum) fields += field(value)
                     }

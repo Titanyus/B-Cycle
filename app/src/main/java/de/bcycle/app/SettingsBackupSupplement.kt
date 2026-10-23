@@ -8,7 +8,7 @@ import org.json.JSONObject
 internal class SettingsBackupSupplement(private val context:Context) {
     private fun prefs(name:String)=context.getSharedPreferences(name,0)
     private val profileKeys=setOf("slot","name","type","category","wheelMm","autoConnect","gpsEnabled","bikeEnabled","heartEnabled",
-        "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","indoorPowerTenths","indoorSpeedTenths","fields","speed","distance")
+        "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
         BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY)),
         BackupSection.DESIGN to mapOf("ride-backup" to setOf("enabled","target"),"message-notifications" to setOf("enabled","messengerOnly","packages","position","durationSeconds")),
@@ -112,6 +112,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                 listOf("gpsEnabled","bikeEnabled","heartEnabled").forEach { values[it]=profile.getBoolean(it) }
                 val fields=profile.getJSONArray("fields")
                 values["recordFields"]=(0 until fields.length()).map(fields::getString).toSet()
+                values["recordMetadata"]=profile.optJSONArray("metadata")?.let { array -> (0 until array.length()).map { array.getString(it) }.toSet() } ?: FitMetadataField.defaults.map { it.name }.toSet()
                 values["recordSpeed"]=profile.getString("speed");values["recordDistance"]=profile.getString("distance")
             }
             if(file in setOf("intervals-settings","activity-service-dreeve","activity-service-strava")) {
@@ -152,6 +153,8 @@ internal class SettingsBackupSupplement(private val context:Context) {
             listOf("indoorPowerTenths","indoorSpeedTenths").forEach { if(p.has(it)) require(integer(p,it) in 0..30) }
             listOf("bikeAddress","heartAddress","trainerAddress").forEach { if(p.has(it)) require(p.getString(it).isEmpty() || p.getString(it).matches(Regex("([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"))) }
             listOf("bikeName","heartName","trainerName").forEach { if(p.has(it)) require(p.getString(it).let { s -> s.length<=248 && s.none(Char::isISOControl) }) }
+            if(p.has("metadata")) { val selected=p.getJSONArray("metadata");require(selected.length()<=FitMetadataField.entries.size)
+                val names=(0 until selected.length()).map { selected.getString(it) };require(names.distinct().size==names.size && names.all { name -> FitMetadataField.entries.any { it.name==name } }) }
             val fields=p.getJSONArray("fields");require(fields.length()<=RecordingFields.options.size)
             repeat(fields.length()) { index -> require(RecordingFields.options.any { it.id==fields.getString(index) }) }
             require(p.getString("speed") in setOf("SPEED","GPS_SPEED"));require(p.getString("distance") in setOf("BIKE_DISTANCE","GPS_DISTANCE"))

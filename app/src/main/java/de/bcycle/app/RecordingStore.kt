@@ -36,7 +36,7 @@ internal class RecordingStore(private val context: Context, private val changed:
         val naming=RideNamingSettings(context).read()
         val namingZone=ZoneId.systemDefault()
         val namingLocale=java.util.Locale.getDefault().toLanguageTag()
-        val profileAppearance=runCatching { RideProfileColor.snapshot(context) }.getOrNull()
+        val profileAppearance=runCatching { JSONObject(RideProfileColor.snapshot(context)).put("fitMetadata",org.json.JSONArray(config.metadata.map { it.name })).toString() }.getOrNull()
         submit {
             try {
                 val name = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(start)) + "_" + UUID.randomUUID().toString().take(8)
@@ -79,13 +79,14 @@ internal class RecordingStore(private val context: Context, private val changed:
         var stage = RecordingFinishStage.ENCODE_FIT
         val warnings = mutableSetOf<RecordingWarning>()
         try {
-            FitWriter.encode(source, encoded)
+            val appearance=File(directory,source.nameWithoutExtension+".profile.json")
+            val metadata=appearance.takeIf { it.isFile }?.let { runCatching { FitMetadata.fromSnapshot(it.readText()) }.getOrNull() }
+            FitWriter.encode(source, encoded,metadata=metadata)
             stage = RecordingFinishStage.RETAIN_LOCAL
             val original = FitLibrary.retainRecording(context.filesDir, encoded)
             retainedId = original.nameWithoutExtension
             stage = RecordingFinishStage.PREPARE_LOCAL
-            RideAnalysisFiles.retain(context.filesDir,original.nameWithoutExtension,source)
-            val appearance=File(directory,source.nameWithoutExtension+".profile.json")
+            RideAnalysisFiles.retain(context.filesDir,original.nameWithoutExtension,source,metadata)
             if(appearance.isFile) runCatching { RideProfileColor.confirm(context,original.nameWithoutExtension,appearance.readText()) }
             var correctionFailed=false
             var indoor=false

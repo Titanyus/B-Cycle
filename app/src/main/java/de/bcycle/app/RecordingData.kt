@@ -5,16 +5,18 @@ data class PulseValues(val bpm: Int? = null, val average: Double? = null, val ma
 data class RecordingConfig(
     val fields: Set<String> = RecordingFields.defaultIds,
     val speedSource: String = "SPEED", val distanceSource: String = "BIKE_DISTANCE", val indoor:Boolean=false,
+    val metadata:Set<FitMetadataField> = FitMetadataField.defaults,
 ) {
     val needsGps get() = !indoor && (fields.any { it.startsWith("GPS_") } || speedSource == "GPS_SPEED")
     /** Runtime policy; the legacy field ID stays readable in journals and backups. */
     fun withGpsPosition(enabled:Boolean)=copy(fields=(fields-"GPS_POSITION")+
         if(enabled && !indoor) setOf("GPS_POSITION") else emptySet())
     companion object {
-        fun decode(fields: Set<String>?, speed: String?, distance: String?) = RecordingConfig(
+        fun decode(fields: Set<String>?, speed: String?, distance: String?, metadata:Set<String>?=null) = RecordingConfig(
             fields?.filter { id -> id in RecordingFields.ids }?.toSet() ?: RecordingFields.defaultIds,
             speed?.takeIf { it in listOf("SPEED", "GPS_SPEED") } ?: "SPEED",
             distance?.takeIf { it in listOf("BIKE_DISTANCE", "GPS_DISTANCE") } ?: "BIKE_DISTANCE",
+            metadata=FitMetadataField.decode(metadata),
         )
     }
 }
