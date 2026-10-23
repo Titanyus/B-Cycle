@@ -8,8 +8,6 @@ internal object LiveGraphStyle {
     const val LINE_ALPHA = 225
     const val FILL_ALPHA = 117
     const val LINE_WIDTH_DP = 2.6f
-    const val INNER_GLOW_WIDTH_DP = 11.2f
-    const val OUTER_GLOW_WIDTH_DP = 19.2f
     fun lineAlpha(mode: GraphDisplayMode)=if(mode==GraphDisplayMode.WITH_DATA) (LINE_ALPHA*.7f).toInt() else LINE_ALPHA
     fun fillAlpha(mode: GraphDisplayMode)=if(mode==GraphDisplayMode.WITH_DATA) (FILL_ALPHA*.85f).toInt() else FILL_ALPHA
     const val HEIGHT_FRACTION = .8f

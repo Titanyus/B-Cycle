@@ -11,15 +11,15 @@ import android.window.OnBackInvokedDispatcher
 
 /** Blur only the dashboard subtree; this overlay stays sharp and never starts recording. */
 internal class HrvDailyPrompt(private val activity:Activity,private val host:FrameLayout,
-    private val dashboard:View,themes:ThemeManager,start:()->Unit):AutoCloseable {
+    private val dashboard:View,themes:ThemeManager,acknowledge:()->Unit,start:()->Unit):AutoCloseable {
     private val accessibility=dashboard.importantForAccessibility
     private var closed=false
     private val back=OnBackInvokedCallback { close() }
     private val overlay=FrameLayout(activity).apply {
         tag="hrv_daily_prompt";isClickable=true;isFocusable=true;elevation=BicycleDesign.dp(activity,BicycleDesign.sectionHeaderRaisedZ).toFloat()
         contentDescription=activity.getString(R.string.hrv_daily_dismiss)
-        setOnClickListener { close() }
-        addView(HrvDailyHeart(activity,themes) { close();start() },FrameLayout.LayoutParams(
+        setOnClickListener { acknowledge();close() }
+        addView(HrvDailyHeart(activity,themes) { acknowledge();close();start() },FrameLayout.LayoutParams(
             BicycleDesign.dp(activity,BicycleDesign.hrvPromptDiameter),BicycleDesign.dp(activity,BicycleDesign.hrvPromptDiameter),Gravity.CENTER))
     }
     init {

@@ -24,8 +24,8 @@ class HrvSettingsTest {
         assertThrows(IllegalArgumentException::class.java) { settings.write(HrvMeasurementConfig(16,60)) }
         val theme=ThemeManager(c.getSharedPreferences("bike",0));val backup=SettingsBackup(c,theme)
         settings.write(settings.read().copy(showOnFirstStart=true,vibrateAtEnd=true,soundAtEnd=true))
-        HrvDailyLaunch(c).claim()
-        val bytes=backup.export(setOf(BackupSection.PROFILE));assertFalse(bytes.toString(Charsets.UTF_8).contains("lastDay"));settings.write(HrvMeasurementConfig())
+        HrvDailyLaunch(c).acknowledge()
+        val bytes=backup.export(setOf(BackupSection.PROFILE));assertFalse(bytes.toString(Charsets.UTF_8).contains("handledDay"));settings.write(HrvMeasurementConfig())
         val doc=backup.decode(bytes);backup.apply(backup.plan(doc,doc.sections.keys))
         assertEquals(HrvMeasurementConfig(60,300,true,true,true),settings.read())
         val view=HrvSettingsView(c,theme)

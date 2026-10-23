@@ -31,3 +31,5 @@ Die fünf Verlaufsdiagramme darüber behalten dagegen in beiden Modi dieselben s
 ## Umgesetzt in 0.8: Kein Glow im hellen Design
 
 Nutzerwunsch vom 17.10.2026 nach Build 33, in Version 0.8 umgesetzt: Bei Leistungs- und Pulsverteilung auf der Streckendetailseite im Hellmodus die zusätzlichen Leuchtsaum-Striche entfernen. Hauptkurve in dunkler Textfarbe, transparenter Füllverlauf und Zonenbänder bleiben bestehen. Dunkelmodus und die fünf Verlaufsdiagramme bleiben unverändert. In Version 0.8 umgesetzt.
+
+23.10.2026: Linien-Glow jetzt auch im dunklen Design entfernt. Helle/dunkle Leistungs- und Pulszonen-Verteilungen zeichnen nur die Hauptlinie mit bisherigem Flächenverlauf, ohne die zwei breiten Halo-Striche. Farben, Glättung und Zonendaten unverändert.

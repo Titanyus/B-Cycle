@@ -173,7 +173,7 @@ class LiveGraphUiTest {
         assertFalse(all(view).filterIsInstance<TextView>().any { it.text is android.text.Spanned &&
             (it.text as android.text.Spanned).getSpans(0,it.text.length,RecordingDotSpan::class.java).isNotEmpty() })
     }
-    @Test fun luminousCurveHasSoftHaloAndFillFadesDownWithoutConnectingMissingSections() {
+    @Test fun curveHasNoHaloAndFillFadesDownWithoutConnectingMissingSections() {
         val p=listOf(GraphPoint(0,0,0.0,listOf(30.0,null,null,null,null)),
             GraphPoint(1000,1000,100.0,listOf(30.0,null,null,null,null)))
         val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
@@ -183,7 +183,7 @@ class LiveGraphUiTest {
         }
         val b=draw(p)
         assertTrue(Color.alpha(b.getPixel(200,60))>=200)
-        assertTrue(Color.alpha(b.getPixel(200,56))>0) // Soft glow above the line, outside its core.
+        assertEquals(0,Color.alpha(b.getPixel(200,56))) // No glow outside the line.
         assertTrue(Color.alpha(b.getPixel(200,80))>Color.alpha(b.getPixel(200,170)))
         assertEquals(0,Color.alpha(b.getPixel(200,190)))
         val gap=draw(listOf(p.first(),p.first().copy(distanceM=30.0),p.first().copy(distanceM=50.0,values=List(5) { null }),
@@ -226,7 +226,7 @@ class LiveGraphUiTest {
             assertEquals(View.VISIBLE,(value.parent as View).visibility)
         }
     }
-    @Test fun displayModesChangeFillAndLineBrightnessAndDoubleBothHalosWithoutChangingAxis() {
+    @Test fun displayModesChangeFillAndLineBrightnessWithoutHaloOrAxisChanges() {
         val points=listOf(GraphPoint(0,0,0.0,listOf(30.0,null,null,null,null)),GraphPoint(1000,1000,100.0,listOf(30.0,null,null,null,null)))
         val frame=GraphFrame(1,100.0,mapOf(AnalysisChart.SPEED to GraphSeries(points,GraphRange(0.0,40.0))))
         val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
@@ -237,10 +237,9 @@ class LiveGraphUiTest {
         val only=draw(GraphDisplayMode.GRAPH_ONLY);val overlaid=draw(GraphDisplayMode.WITH_DATA)
         assertTrue(Color.alpha(only.getPixel(200,60))>Color.alpha(overlaid.getPixel(200,60)))
         assertTrue(Color.alpha(only.getPixel(200,90))>Color.alpha(overlaid.getPixel(200,90)))
-        assertTrue(Color.alpha(only.getPixel(200,51))>0) // Outside the former 9.6-dp halo.
+        assertEquals(0,Color.alpha(only.getPixel(200,51)))
         assertEquals(0,Color.alpha(only.getPixel(200,49)))
         assertEquals(160f,d.plotBounds().height(),.01f)
-        assertEquals(19.2f,LiveGraphStyle.OUTER_GLOW_WIDTH_DP,.01f);assertEquals(11.2f,LiveGraphStyle.INNER_GLOW_WIDTH_DP,.01f)
     }
     @Test fun dataChoicePersistsIndependentlyAndBackupRestoresVisibilityWithLegacyCompatibility() {
         val controller=org.robolectric.Robolectric.buildActivity(MainActivity::class.java).setup()

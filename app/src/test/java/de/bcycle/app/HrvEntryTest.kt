@@ -36,15 +36,18 @@ class HrvEntryTest {
         (HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(controller) as ExecutorService).submit {}.get(10,TimeUnit.SECONDS)
         shadowOf(Looper.getMainLooper()).idle()
     }
-    @Test fun dailyOfferIsOptInDurableAndEnablingLaterDoesNotRepeatFirstLaunch() {
+    @Test fun dailyOfferRepeatsUntilAcknowledgedAndReturnsOnNextDay() {
         val c=RuntimeEnvironment.getApplication();val settings=HrvSettings(c);val day=LocalDate.of(2026,10,25)
-        assertFalse(HrvDailyLaunch(c).claim(day))
+        assertFalse(HrvDailyLaunch(c).shouldShow(day))
+        // Old versions marked viewing as handled; that marker must not suppress the new offer.
+        c.getSharedPreferences("hrv-launch-state",0).edit().putString("lastDay",day.toString()).commit()
         settings.write(settings.read().copy(showOnFirstStart=true))
-        assertFalse(HrvDailyLaunch(c).claim(day))
-        assertTrue(HrvDailyLaunch(c).claim(day.plusDays(1)))
-        assertFalse(HrvDailyLaunch(c).claim(day.plusDays(1)))
+        repeat(2) { assertTrue(HrvDailyLaunch(c).shouldShow(day)) }
+        HrvDailyLaunch(c).acknowledge(day)
+        assertFalse(HrvDailyLaunch(c).shouldShow(day))
+        assertTrue(HrvDailyLaunch(c).shouldShow(day.plusDays(1)))
         settings.write(settings.read().copy(showOnFirstStart=false))
-        assertFalse(HrvDailyLaunch(c).claim(day.plusDays(2)))
+        assertFalse(HrvDailyLaunch(c).shouldShow(day.plusDays(1)))
     }
     @Test fun outsideDismissRestoresDashboardAndHeartStartsOnlyWhenFreshRrArrives() {
         val c=RuntimeEnvironment.getApplication();HrvSettings(c).write(HrvMeasurementConfig(showOnFirstStart=true))
@@ -59,7 +62,7 @@ class HrvEntryTest {
             host.pause().stop().start().resume();assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))
             host.pause().stop().destroy()
             // A later calendar day (simulate persisted launch marker, without changing device clocks).
-            c.getSharedPreferences("hrv-launch-state",0).edit().putString("lastDay",LocalDate.now().minusDays(1).toString()).commit()
+            c.getSharedPreferences("hrv-launch-state",0).edit().putString("handledDay",LocalDate.now().minusDays(1).toString()).commit()
             host=Robolectric.buildActivity(MainActivity::class.java).setup();a=host.get();root=a.findViewById(android.R.id.content)
             val runtime=RideRuntime.get(a);drain(runtime.hrv)
             root.findViewWithTag<View>("hrv_daily_start").performClick()
@@ -72,6 +75,31 @@ class HrvEntryTest {
             runtime.hrv.packet(SystemClock.elapsedRealtime(),byteArrayOf(0x16,75,0,4));drain(runtime.hrv);drain(runtime.hrv)
             assertTrue(runtime.hrv.busy);assertEquals(Phase.REST,runtime.hrv.state.phase);assertFalse(runtime.recording)
             screen.dismiss();drain(runtime.hrv);drain(runtime.hrv);assertEquals(Phase.ABORTED,runtime.hrv.state.phase)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun returningFromSettingsShowsDashboardUntilTheOfferIsTapped() {
+        val c=RuntimeEnvironment.getApplication()
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get();val runtime=RideRuntime.get(a)
+            // Enter settings before enabling the daily offer, as with a preserved dialog stack.
+            testDescendants(a.findViewById(android.R.id.content)).single { it.contentDescription==a.getString(R.string.ui_menu_open) }.performClick()
+            val menu=ShadowAlertDialog.getLatestAlertDialog();assertTrue(menu.isShowing)
+            host.pause().stop()
+            HrvSettings(c).write(HrvMeasurementConfig(showOnFirstStart=true))
+            host.start().resume()
+            val root=a.findViewById<View>(android.R.id.content);layout(root)
+            assertFalse(menu.isShowing)
+            assertNotNull(root.findViewWithTag<View>("hrv_daily_prompt"))
+            assertTrue(HrvDailyLaunch(c).shouldShow())
+            // Lifecycle cleanup is not a manual dismissal. Repeat on another foreground start.
+            host.pause().stop().start().resume()
+            assertNotNull(root.findViewWithTag<View>("hrv_daily_prompt"))
+            root.findViewWithTag<View>("hrv_daily_prompt").performClick()
+            assertFalse(HrvDailyLaunch(c).shouldShow())
+            host.pause().stop().start().resume()
+            assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))
+            assertFalse(runtime.recording)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun ratingsUseNeutralOriginSleepTimesShareRowAndContinueWaitsForSuccessfulSave() {

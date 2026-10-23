@@ -2,6 +2,9 @@
 
 Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+Arbeitsstand 23.10.2026 nach Build 69 (noch keine neue APK beauftragt): Linien-Glow bei Dashboard-Graphen und Leistungs-/Pulszonen-Verteilungen entfernt, eigentliche Linien/Flächen erhalten. HRV-Tagesangebot wechselt beim Vordergrundstart zum Dashboard (auch aus erhaltenen Einstellungen) und bleibt bis zum Tap auf Herz/Hintergrund wiederkehrend. Neuer lokaler handledDay-Marker statt lastDay; Lifecycle/Zurück verbrauchen nichts. Laufende Aufnahme/Speicherung/HRV und Speicherfehler unterbrechen wir nicht. Details docs/hrv-entry.md. Elf gezielte Tests für Tagesangebot/Lifecycle/RR-Autostart, Sicherung/Signale, glowfreie Dashboard-Kurven und helle/dunkle Leistungs-/Pulszonen erfolgreich. Typografie-/Atlasprüfung und diff --check erfolgreich; kein Hardwaretest und keine neue APK.
+
+
 ## Aktueller Abschluss: APK 0.8.30 / Build 69
 
 APK **0.8.30 / Build 69 / versionCode 100** aus `def820992a58bf09485dadcad38d31cbe695c8d7` über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.30-release-69.apk), [Buildnachweis](build-69.md). 2.228.390 Bytes; SHA-256 `a2471bba1429267794ad11b68eb1a870d0f835b9565744472b1909fdf9b957d2`. Dauerhafte Signatur wie Build 68, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält alle zuvor lokalen HRV-Änderungen: Löschen/Wiederimport, neuer Messbildschirm, Balkenbeschriftung und kontinuierliches Rand-Clipping. Sechs gezielte Tests erfolgreich, native Darstellung geprüft; kein Gesamtlauf oder Hardwaretest. Alles auf main und in APK enthalten, kein offener APK-Auftrag. Frühere Angaben zu lokalen Änderungen/fehlender APK unten sind Verlauf.

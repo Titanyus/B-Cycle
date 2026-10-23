@@ -856,9 +856,14 @@ class MainActivity : Activity() {
         if(notifications.enabled && notifications.granted) runCatching {
             android.service.notification.NotificationListenerService.requestRebind(android.content.ComponentName(this,MessageNotificationService::class.java))
         }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows()
-        if(HrvDailyLaunch(this).claim() && dialogs.empty && !runtime.recording && !runtime.saving && !runtime.hrv.busy) {
+        val dailyLaunch=HrvDailyLaunch(this);val today=java.time.LocalDate.now()
+        if(dailyLaunch.shouldShow(today) && !runtime.recording && !runtime.saving && !runtime.hrv.busy && !runtime.hrv.state.saveError) {
+            dialogs.closeAll();bikePicker?.dismiss()
+            if(dashboardEditing) finishDashboardEditor()
+            setMapFullscreen(false)
             dailyHrvPrompt?.close()
-            dailyHrvPrompt=HrvDailyPrompt(this,dashboardHost,dashboardRoot,runtime.themes) { showHrv(autoStart=true) }
+            dailyHrvPrompt=HrvDailyPrompt(this,dashboardHost,dashboardRoot,runtime.themes,
+                acknowledge={ dailyLaunch.acknowledge(today) }) { showHrv(autoStart=true) }
         }
     }
     override fun onStop() {

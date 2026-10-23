@@ -25,10 +25,9 @@ internal class HrvSettings(context:Context) {
 internal class HrvDailyLaunch(context:Context) {
     private val settings=HrvSettings(context)
     private val launches=context.getSharedPreferences("hrv-launch-state",0)
-    fun claim(day:java.time.LocalDate=java.time.LocalDate.now()):Boolean {
-        val today=day.toString()
-        if(launches.getString("lastDay",null)==today) return false
-        if(!launches.edit().putString("lastDay",today).commit()) return false
-        return settings.read().showOnFirstStart
+    fun shouldShow(day:java.time.LocalDate=java.time.LocalDate.now()):Boolean =
+        settings.read().showOnFirstStart && launches.getString("handledDay",null)!=day.toString()
+    fun acknowledge(day:java.time.LocalDate=java.time.LocalDate.now()) {
+        launches.edit().putString("handledDay",day.toString()).apply()
     }
 }

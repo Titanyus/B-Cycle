@@ -85,11 +85,6 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             canvas.drawPath(s.fill,paint)
             paint.shader=null; paint.style=Paint.Style.STROKE
             paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND
-            // Cached paths and a pair of soft strokes: no blur filter or offscreen bitmap.
-            paint.alpha=24; paint.strokeWidth=LiveGraphStyle.OUTER_GLOW_WIDTH_DP*density
-            canvas.drawPath(s.line,paint)
-            paint.alpha=60; paint.strokeWidth=LiveGraphStyle.INNER_GLOW_WIDTH_DP*density
-            canvas.drawPath(s.line,paint)
             paint.alpha=LiveGraphStyle.lineAlpha(mode); paint.strokeWidth=LiveGraphStyle.LINE_WIDTH_DP*density
             paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND
             canvas.drawPath(s.line,paint)

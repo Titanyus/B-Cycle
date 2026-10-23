@@ -307,3 +307,6 @@ Dashboard-Linien werden innerhalb bestehender zusammenhängender Abschnitte mit 
 `MonotoneGraphPath` erzeugt nur beim bisherigen Pfad-Rebuild die gemeinsame Geometrie für Linie, Halo und Füllung. Nullwerte/Break-Markierungen schließen einen Abschnitt; sie werden nicht überbrückt. Gleiche Distanz/zusammenfallende X-Koordinaten behalten ihre vertikale Kante, statt durch Null zu teilen oder neue Werte zu erfinden. Voll- und alle rollierenden Zeitfenster (30/60/120 s) nutzen denselben Renderer. Keine zusätzliche Nutzereinstellung oder externe Abhängigkeit.
 
 Drei gezielte neue Prüfungen für Punktdurchgang/fehlendes Überschwingen bei ungleichmäßigen Abständen und Spitzen, gleiche Distanz/getrennte Abschnitte sowie native Darstellung in allen Zeitfenstern. Bestehende Prüfungen für weichen Halo/Füllung ohne Lückenüberbrückung und unveränderte Zeichengrenzen ebenfalls erfolgreich. Natives Kurvenbild visuell geprüft. Veröffentlicht in APK 0.8.23 / Build 62.
+
+## Linien ohne Glow (23.10.2026)
+Dashboard-Verlaufslinien und die Leistungs-/Pulszonen-Verteilungen der Streckendetails zeichnen nur den eigentlichen Linienstrich, ohne breite halbtransparente Halo-Striche. Flächenverlauf, Linienfarbe/-stärke, Glättung, Achsen und Daten bleiben erhalten. Fachliche Zonen-/Fahrmodus-Hintergrundglows sind davon unabhängig.

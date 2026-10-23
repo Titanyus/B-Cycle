@@ -81,11 +81,8 @@ internal class RouteDistributionView(context: Context, private val themes: Theme
         paint.color = curveColor; paint.alpha = 255; paint.shader = fill
         canvas.drawPath(area, paint)
         paint.shader = null; paint.style = Paint.Style.STROKE; paint.strokeCap = Paint.Cap.ROUND; paint.strokeJoin = Paint.Join.ROUND
-        val strokes=if(themes.isSettingsPalette && themes.settingsLight) listOf(LiveGraphStyle.LINE_WIDTH_DP to LiveGraphStyle.LINE_ALPHA)
-            else listOf(LiveGraphStyle.OUTER_GLOW_WIDTH_DP to 24,LiveGraphStyle.INNER_GLOW_WIDTH_DP to 60,LiveGraphStyle.LINE_WIDTH_DP to LiveGraphStyle.LINE_ALPHA)
-        for ((width, alpha) in strokes) {
-            paint.strokeWidth = width * density; paint.alpha = alpha; canvas.drawPath(line, paint)
-        }
+        paint.strokeWidth=LiveGraphStyle.LINE_WIDTH_DP*density;paint.alpha=LiveGraphStyle.LINE_ALPHA
+        canvas.drawPath(line,paint)
         canvas.restoreToCount(saved)
         paint.shader = null; paint.style = Paint.Style.FILL; paint.color = foreground; paint.textSize = BicycleDesign.analysisLabelSp * scaled
         paint.textAlign = Paint.Align.CENTER
