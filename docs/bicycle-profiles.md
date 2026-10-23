@@ -242,3 +242,5 @@ Prüfstand Autostart: zwölf unterschiedliche gezielte Tests erfolgreich (sechs 
 ## Flexible Aufzeichnungsquellen nach Build 72
 
 Hauptquellen für Geschwindigkeit, Distanz, Fahrerleistung, Kadenz, Puls und Höhe anhand eingerichteter Sensoren. Auswahl erst ab zwei Quellen, sonst eindeutige Zuordnung bzw. keine Quelle. Präferenz je Profil/Backup, eingefroren beim Start; automatisch frische Ersatzquelle und Rückkehr zur bevorzugten. Smartphone-Drucksensor mit GPS-Referenz ergänzt. Outdoor-Präferenzen beim Indoor-Typwechsel erhalten. Separate Powermeter bleiben vorbereitet, nicht implementiert. Details [Quellenmodell](recording-source-selection-plan.md).
+
+Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.

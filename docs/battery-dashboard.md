@@ -123,3 +123,5 @@ Die private Analyse-FIT erhält alle vorhandenen Journalfelder unabhängig von d
 Konkreter Nutzerexport am 23.10.2026 geprüft: 7.668 Record-Messpunkte, kein gültiger Standard-/Developer-Akkustand. Ohne private Analysequelle kann für diese Fahrt kein tatsächlicher Verbrauch bestimmt werden. Private FIT-/Messwerte nicht ins Repository übernehmen.
 
 Prüfstand Akku-Aufnahme: drei gezielte Tests erfolgreich. Fünf Minuten unveränderte Live-Ladung bleibt im Sample, Offline-/Reconnect-Fallback bleibt draußen, ungültige Werte/echte Null korrekt; private Analyse zeigt Verbrauch trotz deaktiviertem Akku-Export. Bestehende Abdeckungs-/Nachladeprüfung erhalten. Keine APK.
+
+Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.

@@ -33,3 +33,5 @@ Auf Nutzerwunsch für später festgehalten, keine zusätzliche Implementierung b
 - Trainersteuerung bleibt ein eigenständiger Ausbau gegenüber dem heutigen Lesen: FTMS Control Point für ERG/Zielwatt, Widerstand und Steigung, jeweils nur bei bestätigten Gerätefähigkeiten.
 - Shimano Di2 benötigt eine eigene Integration für Gangposition und Schaltungsakku. Zuerst Generation, Funkmodul und verfügbaren Übertragungsweg prüfen; weder generelle Bluetooth-Gangdaten noch Unterstützung aller Di2-Modelle voraussetzen.
 - ANT+ ist ein separater Zugang mit eigener Geräte-/Adaptervoraussetzung; Bluetooth-Unterstützung ersetzt ihn nicht. Erst bei konkretem Bedarf planen.
+
+Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.

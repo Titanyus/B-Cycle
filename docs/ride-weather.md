@@ -70,3 +70,5 @@ Abruf, Speicherung, FIT und Berechnungen bleiben unverändert.
 Gezielte Prüfung: kompakte Hochformatzeile, Textgröße/Abstände, sichtbarer Ersatz
 der Abkürzung, fehlende Richtung sowie Rotationen für Nord/Ost/Süd/Südwest/Nordwest
 und 360° erfolgreich. Screenreader-Herkunft erhalten. Keine APK erstellt.
+
+Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.

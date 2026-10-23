@@ -76,3 +76,5 @@ ausgeschalteter Automatik und bereits bestätigtem Tag öffnen/wiederholen,
 Später ohne Messstart, kurzer Tipp weiterhin Streckenmanager und tatsächliche
 Aufnahme sperrt den HRV-Dialog. Bestehende Tages-/Lifecycle-/RR-Startprüfungen
 ebenfalls erfolgreich. Keine neue APK.
+
+Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.
