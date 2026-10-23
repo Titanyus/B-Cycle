@@ -22,3 +22,14 @@ Geräteprüfung für Bosch/FTMS/Pulsgurt und tatsächlichen Smartphone-Drucksens
 ## Prüfungen
 
 40 gezielte Fälle erfolgreich, kein Gesamtlauf: sieben neue Quellen-/Barometer-/FIT-/Runtime-/UI-/Backup-Prüfungen, 21 bestehende Aufnahmefälle auf Android 13/15/16, drei Sicherungsfälle, zwei Indoor-UI-Fälle, drei Indoor-Laufzeitfälle, drei Graphauswahlfälle und ein Journal-/FIT-Unverändertheitsfall. Der erweiterte UI-/Backupfall prüft zusätzlich inaktive Profile, echte Dropdownänderung und Aufnahmesperre. Zwei alte sechssekündige Indoor-Testfahrten auf zwölf Sekunden verlängert, um trotz der bereits eingeführten Zehnsekundengrenze weiterhin FIT-Ausgaben zu testen. Native Ansicht geprüft; Typografie-/Katalogprüfung erfolgreich.
+
+## Spätere Sensor-Erweiterungen
+
+Auf Nutzerwunsch für später festgehalten, keine zusätzliche Implementierung beauftragt. Aufgaben in [TODO.md](../TODO.md).
+
+- Bestehende Bluetooth-Herzfrequenz- und FTMS-Anbindung wiederverwenden. Für mehrere Fabrikate möglichst den gemeinsamen Standarddienst implementieren; proprietäre Besonderheiten erst bei belegtem Bedarf ergänzen.
+- Nächste sinnvolle Protokolle: Bluetooth Cycling Power Service für Powermeter/Leistungspedale und Cycling Speed and Cadence Service für separate Rad-/Kurbelsensoren. Geräte als konkrete Quellen unterscheiden; Radumfang für aus Umdrehungen ermittelte Geschwindigkeit/Distanz verwenden. In vorhandene Quellenwahl, automatische Ersatzquellen, Aufnahmesnapshot und Sicherung integrieren.
+- Wahoo KICKR CORE: vorhandenen FTMS-Empfang am konkreten Gerät samt Firmware und angebotenen Messwerten prüfen. Bei passender FTMS-Unterstützung ist für reine Messdaten keine eigene Wahoo-Anbindung nötig; noch kein Gerätetest oder zugesicherte Kompatibilität.
+- Trainersteuerung bleibt ein eigenständiger Ausbau gegenüber dem heutigen Lesen: FTMS Control Point für ERG/Zielwatt, Widerstand und Steigung, jeweils nur bei bestätigten Gerätefähigkeiten.
+- Shimano Di2 benötigt eine eigene Integration für Gangposition und Schaltungsakku. Zuerst Generation, Funkmodul und verfügbaren Übertragungsweg prüfen; weder generelle Bluetooth-Gangdaten noch Unterstützung aller Di2-Modelle voraussetzen.
+- ANT+ ist ein separater Zugang mit eigener Geräte-/Adaptervoraussetzung; Bluetooth-Unterstützung ersetzt ihn nicht. Erst bei konkretem Bedarf planen.
