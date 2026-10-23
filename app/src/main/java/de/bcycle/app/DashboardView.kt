@@ -305,7 +305,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             if(icon!=null) text.setSpan(SourceIconSpan(icon!!,context),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             graphs.forEachIndexed { i,chart ->
                 val at=prefix.length+i*3+2
-                text.setSpan(RecordingDotSpan(resources.displayMetrics.density,chart.color(Color.BLACK),7f),at,at+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                text.setSpan(RecordingDotSpan(resources.displayMetrics.density,chart.color(Color.BLACK),LiveGraphStyle.MARKER_DIAMETER_DP),at,at+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
             title.text=text
         }

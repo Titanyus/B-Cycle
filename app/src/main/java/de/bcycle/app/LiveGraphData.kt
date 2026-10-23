@@ -8,6 +8,8 @@ internal object LiveGraphStyle {
     const val LINE_ALPHA = 225
     const val FILL_ALPHA = 117
     const val LINE_WIDTH_DP = 2.6f
+    const val MARKER_DIAMETER_DP = 7f
+    const val SCALE_RETURN_MS = 3000L
     fun lineAlpha(mode: GraphDisplayMode)=if(mode==GraphDisplayMode.WITH_DATA) (LINE_ALPHA*.7f).toInt() else LINE_ALPHA
     fun fillAlpha(mode: GraphDisplayMode)=if(mode==GraphDisplayMode.WITH_DATA) (FILL_ALPHA*.85f).toInt() else FILL_ALPHA
     const val HEIGHT_FRACTION = .8f
@@ -20,14 +22,12 @@ internal data class GraphFrame(val version: Long, val distanceM: Double, val ser
     val windows:Map<GraphWindow,Map<AnalysisChart,GraphSeries>> = emptyMap(),val timeAxis:Boolean=false)
 
 /** Expands only, using original values before display reduction or smoothing. */
-internal class GraphScaleManager {
+internal class GraphScaleManager(private val baseline:Map<AnalysisChart,GraphRange> = emptyMap()) {
     private val ranges = mutableMapOf<AnalysisChart, GraphRange>()
     fun include(chart: AnalysisChart, value: Double) {
         val step = when(chart) { AnalysisChart.SPEED -> 5.0; AnalysisChart.CADENCE -> 10.0
             AnalysisChart.POWER -> 30.0; AnalysisChart.HEART -> 20.0; AnalysisChart.ELEVATION -> 25.0 }
-        val initial = when(chart) { AnalysisChart.SPEED -> GraphRange(0.0,20.0); AnalysisChart.CADENCE -> GraphRange(0.0,60.0)
-            AnalysisChart.POWER -> GraphRange(0.0,120.0); AnalysisChart.HEART -> GraphRange(50.0,100.0)
-            AnalysisChart.ELEVATION -> (round(value/step)*step).let { GraphRange(it-25,it+25) } }
+        val initial = baseline[chart] ?: initial(chart,value)
         val old = ranges[chart] ?: initial
         val margin = (old.high-old.low)*.1
         var low = old.low; var high = old.high
@@ -36,6 +36,11 @@ internal class GraphScaleManager {
         if(value >= high-margin) high = max(high+step, ceil(((value-.1*low)/.9)/step)*step)
         ranges[chart] = GraphRange(low,high)
     }
+    companion object {
+        fun initial(chart:AnalysisChart,value:Double):GraphRange=when(chart) { AnalysisChart.SPEED -> GraphRange(0.0,20.0); AnalysisChart.CADENCE -> GraphRange(0.0,60.0)
+            AnalysisChart.POWER -> GraphRange(0.0,120.0); AnalysisChart.HEART -> GraphRange(50.0,100.0)
+            AnalysisChart.ELEVATION -> (round(value/25)*25).let { GraphRange(it-25,it+25) } }
+    }
     fun range(chart: AnalysisChart) = ranges[chart]
 }
 
@@ -43,6 +48,7 @@ internal class GraphScaleManager {
 internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX_POINTS) {
     init { require(capacity >= 64) }
     val scales = GraphScaleManager()
+    private val initialRanges=mutableMapOf<AnalysisChart,GraphRange>()
     private val points = ArrayList<GraphPoint>()
     private val recent=java.util.ArrayDeque<GraphPoint>()
     val size get() = points.size
@@ -57,7 +63,9 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
         val timed=input.copy(values=values,breaks=input.breaks or if(timeGap) 31 else 0)
         recent.addLast(timed)
         while(recent.size>LiveGraphStyle.MAX_POINTS || recent.size>2 && recent.elementAt(1).elapsedMs<input.elapsedMs-120000) recent.removeFirst()
-        values.forEachIndexed { i,v -> if(v!=null) scales.include(AnalysisChart.entries[i],v) }
+        values.forEachIndexed { i,v -> if(v!=null) {
+            val chart=AnalysisChart.entries[i];initialRanges.putIfAbsent(chart,GraphScaleManager.initial(chart,v));scales.include(chart,v)
+        } }
         if(distance==null && (input.distanceM!=null || distanceM>0)) { pendingBreaks=31;return }
         val point = input.copy(distanceM=distance, values=values,
             breaks=input.breaks or pendingBreaks or if(timeGap) 31 else 0)
@@ -98,7 +106,11 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
             val history=recent.toList()
             val first=(history.indexOfFirst { it.elapsedMs>=start }.let { if(it<0) history.size else it }-1).coerceAtLeast(0)
             val selected=history.drop(first)
-            AnalysisChart.entries.mapNotNull { chart -> scales.range(chart)?.let { chart to GraphSeries(selected,it) } }.toMap()
+            val windowScales=GraphScaleManager(initialRanges)
+            selected.filter { it.elapsedMs>=start }.forEach { point -> point.values.forEachIndexed { i,value ->
+                if(value!=null) windowScales.include(AnalysisChart.entries[i],value)
+            } }
+            AnalysisChart.entries.mapNotNull { chart -> (windowScales.range(chart) ?: initialRanges[chart])?.let { chart to GraphSeries(selected,it) } }.toMap()
         }
         return GraphFrame(version,distanceM,series,elapsed,windows,points.none { it.distanceM!=null })
     }

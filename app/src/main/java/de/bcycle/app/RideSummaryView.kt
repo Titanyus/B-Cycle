@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.widget.LinearLayout
 
 /** Uses the same metric tiles and the saved analysis as the route details. No live-value estimates. */
-internal class RideSummaryView(context:Context,private val themes:ThemeManager,private val completion:RideCompletion):LinearLayout(context) {
+internal class RideSummaryView(context:Context,private val themes:ThemeManager,private val completion:RideCompletion,openDetails:()->Unit={}):LinearLayout(context) {
     private val metrics=LinearLayout(context).apply { orientation=VERTICAL }
     private val status=BicycleComponents.description(context,themes,"").apply { tag="ride_summary_status" }
     private val problem=BicycleComponents.description(context,themes,context.getString(R.string.ride_summary_loading)).apply { tag="ride_summary_loading" }
@@ -13,11 +13,13 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
     private val receipts=listOf("route-uploads","intervals-uploads","activity-uploads-dreeve","activity-uploads-strava",
         "route-export","intervals-settings","activity-service-dreeve","activity-service-strava").map { context.getSharedPreferences(it,0) }
     private val listener=SharedPreferences.OnSharedPreferenceChangeListener { _,_ -> post { updateStatus() } }
+    private val details=BicycleComponents.action(context,themes,context.getString(R.string.ride_summary_details),openDetails).apply { tag="ride_summary_details";isEnabled=false }
     init {
         orientation=VERTICAL;tag="ride_summary"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
         addView(metrics,LayoutParams(-1,-2));addView(problem,LayoutParams(-1,-2))
         addView(status,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(details)
         showMetrics(emptyMap());updateStatus()
     }
     private fun showMetrics(values:Map<AnalysisMetric,Double>) {
@@ -31,7 +33,7 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
         }
     }
     fun show(analysis:RouteAnalysis) {
-        entry=analysis.entry;showMetrics(analysis.metrics);problem.visibility=GONE;updateStatus()
+        entry=analysis.entry;details.isEnabled=true;showMetrics(analysis.metrics);problem.visibility=GONE;updateStatus()
     }
     fun loadingFailed() { problem.setText(R.string.ride_summary_load_failed) }
     private fun updateStatus() {

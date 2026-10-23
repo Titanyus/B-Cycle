@@ -67,7 +67,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         BatterySource.HEART to pulse.battery.takeIf { heartEnabled && heart.live },
         BatterySource.TRAINER to trainer.battery.takeIf { isIndoor && trainer.live },
         BatterySource.PHONE to phoneBattery.level))
-    val dashboardBikeData get() = bikeData.copy(indoor=isIndoor,batteries=batterySnapshot,otherValues = bikeData.otherValues - LiveMetric.AVERAGE_CADENCE - LiveMetric.BIKE_LIGHT +
+    val dashboardBikeData get() = bikeData.copy(indoor=isIndoor,batteries=batterySnapshot,otherValues = bikeData.otherValues - LiveMetric.AVERAGE_CADENCE - LiveMetric.BIKE_LIGHT - LiveMetric.BATTERY +
+        (currentBikeBattery?.let { mapOf(LiveMetric.BATTERY to it) } ?: emptyMap()) +
         (if(isIndoor) indoorRide.summaries()+listOfNotNull(indoorRide.times(elapsedMs,ride.bike.distanceM).movingAverageKmh?.let { LiveMetric.AVERAGE_SPEED to kotlin.math.round(it*100).toLong() }).toMap() else emptyMap()) +
         (currentBikeLight?.let { mapOf(LiveMetric.BIKE_LIGHT to if (it) 1L else 0L) } ?: emptyMap()) +
         (cadenceAverage.value?.let { mapOf(LiveMetric.AVERAGE_CADENCE to kotlin.math.round(it * 2).toLong()) } ?: emptyMap()))
@@ -172,10 +173,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     /** Reuse the existing connection/freshness rules; never expose a stale mode to the visual status. */
     val currentBikeLight: Boolean? get() = bikeData.value(LiveMetric.BIKE_LIGHT)
         ?.takeIf { it in 0..1 && fresh(LiveMetric.BIKE_LIGHT, SystemClock.elapsedRealtime()) }?.let { it == 1L }
-    val currentBikeBattery: Long? get() = bikeData.value(LiveMetric.BATTERY)
-        // Bosch sends battery changes, not a periodic heartbeat. Its connection buffer is
-        // cleared on disconnect; retain a valid reading for this live session only.
-        ?.takeIf { it in 0..100 && connection.isLive && !isIndoor }
+    private val savedBattery=BikeBatteryMemory(context.getSharedPreferences("bike-battery",0))
+    private fun batteryIdentity()=BikeIdentities.id(preferences,bikes.activeSlot)
+    val currentBikeBattery:Long? get()=if(isIndoor) null else
+        bikeData.value(LiveMetric.BATTERY)?.takeIf { it in 0..100 && connection.isLive }
+            ?: savedBattery.read(batteryIdentity())
     val currentAssistMode: Long? get() = bikeData.value(LiveMetric.ASSIST_MODE)
         .takeIf { fresh(LiveMetric.ASSIST_MODE, SystemClock.elapsedRealtime()) }
     internal fun trainingInputs(now: Long = SystemClock.elapsedRealtime()): TrainingInputs = TrainingInputs(
@@ -515,7 +517,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         drinkReminder.reset()
         completedElapsedMs = appendSample(); recording = false; saving = true; recordingUpdate = RecordingUpdate.Progress.SAVING_FIT
         ride.gps.setCollecting(false); ride.bike.pause()
-        liveGraphs.stop(); store.finish(); updateActivity()
+        liveGraphs.stop(); store.finish(discardShort=completedElapsedMs!!<10_000); updateActivity()
     }
     private fun appendSample(): Long {
         val sample = sample()
@@ -574,6 +576,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     override fun onData(data: LiveData, packetReceived: Boolean) {
         if(isIndoor) return
         bikeData = data
+        if(packetReceived) savedBattery.remember(batteryIdentity(),data.value(LiveMetric.BATTERY))
         if (packetReceived) { if (recording) ride.bike.update(data.value(LiveMetric.ODOMETER)); lastPacketAt = SystemClock.elapsedRealtime() }
         else {
             times.clear(); ride.bike.pause(); lastPacketAt = null; mainBikeSpeedSeen = false

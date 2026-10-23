@@ -665,8 +665,11 @@ class MainActivity : Activity() {
             dialogs.closeAll();dailyHrvPrompt?.close();dailyHrvPrompt=null
             if(dashboardEditing) finishDashboardEditor()
             setMapFullscreen(false)
-            val content=RideSummaryView(this,runtime.themes,completion)
-            val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY)
+            lateinit var screen:AlertDialog
+            val content=RideSummaryView(this,runtime.themes,completion) {
+                runtime.mapState.entries.firstOrNull { it.id==id }?.let { entry -> screen.dismiss();routeAnalysis(entry) }
+            }
+            screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY)
                 .setTitle(R.string.ride_summary_title).setView(content).show()
             val cancel=runtime.mapState.loadAnalysis(id) { result ->
                 if(!isDestroyed && screen.isShowing) result.fold(content::show) { content.loadingFailed() }

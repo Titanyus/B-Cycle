@@ -16,3 +16,7 @@ Unter den Kennzahlen steht der Speicherstatus einschließlich Teilfehlern/Warnun
 Geprüft am 23.10.2026: `RideSummaryTest` mit synthetischer FIT-Aufnahme, Abgleich aller fünf Kacheln mit der gespeicherten Analyse, zwei Zeilen in drei Hochformatbreiten, einmaliger Anzeige nach Hintergrundwechsel und Aktualisierung eines WebDAV-Belegs von ausstehend zu hochgeladen. Zusätzlich gemischte Dienstzustände und lokale Teilfehler; keine echten Netzwerk-Uploads oder neuen Dateiformate. Native Vorschau visuell geprüft. HRV-Korrektur durch bestehenden nativen Rendering-Test geprüft.
 
 Stand 23.10.2026: die beschriebenen neuen Funktionen sind in APK **0.8.31 / Build 70** enthalten. [Buildnachweis](build-70.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+Nach Build 72: Unter dem Speicher-/Uploadstatus steht „Zu den Details“. Erst nach dem Laden der gespeicherten Analyse aktiv; öffnet dieselbe Fahrt anhand ihrer stabilen ID in der vorhandenen Streckendetailansicht und schließt die Zusammenfassung. Keine neue Datenberechnung oder Auswahl einer anderen Fahrt. Noch keine APK.
+
+Prüfstand nach Build 72: 32 gezielte Tests in den Umsetzungsschritten erfolgreich (Aufnahmeregression auf Android 13/15/16, Detailsnavigation, Skalenrückkehr/Fenstergrenzen, Graphgeometrie, Akku-Persistenz/Rohdatentrennung und Zehnsekundengrenze); vier betroffene Tests nach letzter Absicherung nochmals erfolgreich. Native Summary geprüft. Typografie-/Atlasprüfung erfolgreich, kein Hardware-/Diensttest oder neuer APK-Build.

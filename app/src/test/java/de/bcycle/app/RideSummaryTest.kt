@@ -72,7 +72,11 @@ class RideSummaryTest {
                     File("build/reports/ui/ride-summary.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
                 }
             }
-            dialog.dismiss();host.pause().stop().start().resume();repeat(2) { drain(runtime) }
+            val details=view.findViewWithTag<View>("ride_summary_details")
+            assertTrue(details.isEnabled);details.performClick();drain(runtime)
+            assertFalse(dialog.isShowing)
+            assertNotNull(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("route_analysis_$id"))
+            host.pause().stop().start().resume();repeat(2) { drain(runtime) }
             assertFalse(dialog.isShowing);assertNull(runtime.pendingRideSummary)
             runtime.recordingChanged(RecordingUpdate.Finished(RideCompletion.NotSaved(RecordingFinishStage.ENCODE_FIT)))
             assertNull(runtime.pendingRideSummary)

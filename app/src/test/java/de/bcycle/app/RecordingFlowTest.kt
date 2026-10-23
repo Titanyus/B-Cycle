@@ -63,7 +63,7 @@ class RecordingFlowTest {
         assertTrue(runtime.gpsSensor.active)
         // Changing next-ride settings must not alter this ride's frozen field selection.
         runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER")))
-        repeat(6) { index ->
+        repeat(12) { index ->
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
             shadowOf(manager).simulateLocation(Location(LocationManager.GPS_PROVIDER).apply {
                 latitude = 50.0 + index * 0.000045; longitude = 8.0; accuracy = 3f
@@ -102,8 +102,8 @@ class RecordingFlowTest {
         runtime.saveConfig(RecordingConfig(setOf("GPS_ELAPSED_TIME")))
         runtime.setVisible(true); runtime.beginRecording()
         assertEquals(0L, runtime.gpsValues.elapsedMs)
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2250))
-        assertEquals(2250L, runtime.elapsedMs); assertEquals(2250L, runtime.gpsValues.elapsedMs)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(12250))
+        assertEquals(12250L, runtime.elapsedMs); assertEquals(12250L, runtime.gpsValues.elapsedMs)
         runtime.stopRecording()
         val stopped = runtime.elapsedMs
         val now = SystemClock.elapsedRealtime()
@@ -134,12 +134,12 @@ class RecordingFlowTest {
         assertFalse(runtime.recording); assertTrue(downloads.published.isEmpty())
         assertTrue(File(app.filesDir, "pending-rides").listFiles().orEmpty().isEmpty())
         runtime.beginRecording()
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2250))
-        assertEquals(2250L, runtime.gpsValues.elapsedMs)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(12250))
+        assertEquals(12250L, runtime.gpsValues.elapsedMs)
         runtime.stopRecording(); runtime.setVisible(false)
         await { !runtime.saving }
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5))
-        assertEquals(2250L, runtime.gpsValues.elapsedMs)
+        assertEquals(12250L, runtime.gpsValues.elapsedMs)
     }
     @Test fun slowUiWorkDoesNotAccumulateDriftBetweenRecordingSeconds() {
         val app = RuntimeEnvironment.getApplication(); provider()
@@ -187,6 +187,7 @@ class RecordingFlowTest {
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
         }
         assertTrue(runtime.mapState.track.points.size>=2)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(8))
         runtime.stopRecording(); runtime.setVisible(false)
         await { !runtime.saving }
         val records=downloads.published.single().inputStream().use { FitDecoder().decode(it).recordMesgs }

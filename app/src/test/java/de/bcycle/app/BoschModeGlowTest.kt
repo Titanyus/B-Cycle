@@ -167,7 +167,7 @@ class BoschModeGlowTest {
         glow.update(null, 11); assertEquals(0xffffb000.toInt(), glow.warningColor)
         glow.update(null, 0); assertEquals(0xffff3030.toInt(), glow.warningColor)
     }
-    @Test fun batteryWarningRetainsLastBatteryForLiveSessionButClearsOnDisconnect() {
+    @Test fun batteryRetainsLastKnownChargeAcrossDisconnectAndReconnectUntilFreshValues() {
         val runtime = RideRuntime.get(RuntimeEnvironment.getApplication())
         val phase = runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible = true }
         val live = requireNotNull(phase.type.enumConstants).single { it.toString() == "LIVE" }
@@ -177,13 +177,15 @@ class BoschModeGlowTest {
         runtime.onSamples(listOf(McspSample(LiveMetric.BATTERY.address, 20, true)))
         runtime.onData(LiveData(otherValues = mapOf(LiveMetric.BATTERY to 20L)), true)
         assertEquals(20L, runtime.currentBikeBattery)
-        phase.set(runtime.connection, stopped); assertNull(runtime.currentBikeBattery)
+        phase.set(runtime.connection, stopped); assertEquals(20L,runtime.currentBikeBattery)
         phase.set(runtime.connection, live)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(61)); assertEquals(20L,runtime.currentBikeBattery)
-        runtime.connection.stop();assertNull(runtime.currentBikeBattery)
-        phase.set(runtime.connection,live);assertNull(runtime.currentBikeBattery)
+        runtime.connection.stop();assertEquals(20L,runtime.currentBikeBattery)
+        assertEquals(20L,runtime.dashboardBikeData.value(LiveMetric.BATTERY))
+        assertNull(runtime.bikeData.value(LiveMetric.BATTERY)) // Cached display charge never enters raw sensor data.
+        phase.set(runtime.connection,live);assertEquals(20L,runtime.currentBikeBattery)
         runtime.onData(LiveData(otherValues=mapOf(LiveMetric.BATTERY to 0L)),true);assertEquals(0L,runtime.currentBikeBattery)
-        runtime.onData(LiveData(otherValues=mapOf(LiveMetric.BATTERY to 101L)),true);assertNull(runtime.currentBikeBattery)
+        runtime.onData(LiveData(otherValues=mapOf(LiveMetric.BATTERY to 101L)),true);assertEquals(0L,runtime.currentBikeBattery)
     }
     @Test fun everyDashboardKeepsGeometryTouchAndTextWhileGlowTracksActualSizeAndMode() {
         val app = RuntimeEnvironment.getApplication()

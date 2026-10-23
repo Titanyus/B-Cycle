@@ -310,3 +310,12 @@ Drei gezielte neue Prüfungen für Punktdurchgang/fehlendes Überschwingen bei u
 
 ## Linien ohne Glow (23.10.2026)
 Dashboard-Verlaufslinien und die Leistungs-/Pulszonen-Verteilungen der Streckendetails zeichnen nur den eigentlichen Linienstrich, ohne breite halbtransparente Halo-Striche. Flächenverlauf, Linienfarbe/-stärke, Glättung, Achsen und Daten bleiben erhalten. Fachliche Zonen-/Fahrmodus-Hintergrundglows sind davon unabhängig.
+
+## Rollierende Rückskalierung nach Build 72
+
+30-/60-/120-Sekunden-Fenster ermitteln ihren Zielbereich ausschließlich aus den gültigen Werten im aktuellen Zeitfenster, mindestens mit dem ursprünglichen Startbereich der Kennzahl (bei Höhe um den ersten Höhenwert). Der eine für kontinuierliche Randsegmente mitgeführte Punkt vor dem Fenster hält keinen alten Peak in der Skala fest. Voll bleibt nach oben/unten erweiternd wie bisher.
+Neue Peaks erweitern den Bereich sofort; Rückkehr zum kleineren Zielbereich über 3000 ms mit weichem Ein-/Auslauf. Übergang ist nur Darstellung, keine Messwertänderung. Pro Drawable/Kennzahl getrennt, beim Fenster-/Fahrtwechsel zurückgesetzt. Markergröße gemeinsam mit den 7-dp-Farbpunkten hinter den Dashboard-Beschriftungen definiert. Skalenwerte stehen innerhalb der Begrenzungslinien; beide Graphen nutzen unabhängig von einer/zweier Skalen dieselbe volle Breite.
+
+Alle Modi verwenden MonotoneGraphPath ohne Überschwingen. Voll hat davor zusätzlich Pixel-/Distanzreduktion und einen konvexen 75/25-Medianblend; rollierende Fenster behalten ihre zeitgenauen dichteren Punkte. Das erklärt die glattere Wahrnehmung von Voll; diese Datenaufbereitung wurde in diesem Schritt nicht geändert. Noch keine APK.
+
+Prüfstand nach Build 72: 32 gezielte Tests in den Umsetzungsschritten erfolgreich (Aufnahmeregression auf Android 13/15/16, Detailsnavigation, Skalenrückkehr/Fenstergrenzen, Graphgeometrie, Akku-Persistenz/Rohdatentrennung und Zehnsekundengrenze); vier betroffene Tests nach letzter Absicherung nochmals erfolgreich. Native Summary geprüft. Typografie-/Atlasprüfung erfolgreich, kein Hardware-/Diensttest oder neuer APK-Build.

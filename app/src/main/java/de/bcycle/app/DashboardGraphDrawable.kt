@@ -17,8 +17,11 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     private var padding=intArrayOf(0,0,0,0)
     private var mode=GraphDisplayMode.WITH_DATA
     private var window=GraphWindow.FULL
+    private val ranges=mutableMapOf<AnalysisChart,GraphRangeTransition>()
+    private val animation=Runnable { rebuild();invalidateSelf() }
     fun update(next: GraphFrame?, graphs: List<AnalysisChart>, insets: IntArray, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA,window:GraphWindow=GraphWindow.FULL) {
         if(frame===next && selected==graphs && padding.contentEquals(insets) && mode==display && this.window==window) return
+        if(this.window!=window || next==null || next.version<(frame?.version ?: 0)) { ranges.clear();unscheduleSelf(animation) }
         frame=next; selected=graphs; padding=insets; mode=display; this.window=window;rebuild(); invalidateSelf()
     }
     override fun onBoundsChange(bounds: Rect) { rebuild() }
@@ -30,8 +33,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         plot.set(inner.left,inner.top+free,inner.right,inner.bottom-free)
         val f=frame
         if(f==null || plot.width()<=0 || plot.height()<=0) { shapes=emptyList(); return }
-        val axis=minOf(26*density,plot.width()*.14f)
-        val left=plot.left+axis; val right=plot.right-if(selected.size==2) axis else 0f
+        val left=plot.left; val right=plot.right
         curve.set(left,plot.top,right,plot.bottom)
         // Graph boundaries are structural lines, independent of secondary text opacity.
         val boundaryColor=Color.rgb(163,163,163) and 0x00ffffff
@@ -42,6 +44,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         val start=if(window==GraphWindow.FULL) 0 else (f.elapsedMs-window.milliseconds).coerceAtLeast(0)
         val end=if(window==GraphWindow.FULL) f.elapsedMs else maxOf(window.milliseconds,f.elapsedMs)
         shapes=selected.mapNotNull { chart -> seriesByChart[chart]?.let { series ->
+            val range=if(window==GraphWindow.FULL) series.range else ranges.getOrPut(chart) { GraphRangeTransition() }.update(series.range,android.os.SystemClock.uptimeMillis())
             val line=Path();val fill=Path();val pending=ArrayList<PointF>();var fillTop=plot.bottom
             fun finish() {
                 if(pending.isEmpty()) return
@@ -56,7 +59,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
                 val fraction=if(window!=GraphWindow.FULL || f.timeAxis) (point.elapsedMs-start).toDouble()/(end-start).coerceAtLeast(1)
                     else if(f.distanceM>0) point.distanceM!!/f.distanceM else 0.0
                 val x=left+fraction.toFloat()*(right-left)
-                val y=plot.bottom-((v-series.range.low)/(series.range.high-series.range.low)).toFloat()*plot.height()
+                val y=plot.bottom-((v-range.low)/(range.high-range.low)).toFloat()*plot.height()
                 fillTop=minOf(fillTop,y);pending+=PointF(x,y)
             }
             finish()
@@ -65,11 +68,15 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             val gradient=LinearGradient(0f,fillTop.coerceAtMost(plot.bottom-1f),0f,plot.bottom,
                 intArrayOf(color or (fillAlpha shl 24),color or ((fillAlpha/3) shl 24),color),
                 floatArrayOf(0f,.55f,1f),Shader.TileMode.CLAMP)
-            Shape(line,fill,chart,series.range,gradient)
+            Shape(line,fill,chart,range,gradient)
         } }
     }
     override fun draw(canvas: Canvas) {
         if(shapes.isEmpty()) return
+        val now=android.os.SystemClock.uptimeMillis()
+        if(window!=GraphWindow.FULL && ranges.values.any { it.running(now) }) {
+            rebuild();scheduleSelf(animation,now+16)
+        }
         val save=canvas.save(); canvas.clipRect(plot)
         paint.typeface=BicycleDesign.bodyTypeface; paint.textSize=12.96f*density
         paint.style=Paint.Style.STROKE; paint.strokeWidth=density
@@ -93,11 +100,12 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             paint.textAlign=if(index==0) Paint.Align.LEFT else Paint.Align.RIGHT
             val x=if(index==0) plot.left+2*density else plot.right-2*density
             val top=plot.top+paint.textSize; val bottom=plot.bottom-2*density
-            canvas.drawText(String.format(Locale.getDefault(),"%.0f",s.range.high),x,top,paint)
+            val upper=String.format(Locale.getDefault(),"%.0f",s.range.high)
+            canvas.drawText(upper,x,top,paint)
             canvas.drawText(String.format(Locale.getDefault(),"%.0f",s.range.low),x,bottom,paint)
             paint.color=color; paint.alpha=LiveGraphStyle.LINE_ALPHA
-            val markerX=if(index==0) plot.left else plot.right-2*density
-            canvas.drawRect(markerX,top+2*density,markerX+2*density,top+8*density,paint)
+            val markerX=x+(if(index==0) 1 else -1)*paint.measureText(upper)/2
+            canvas.drawCircle(markerX,top+6*density,LiveGraphStyle.MARKER_DIAMETER_DP/2*density,paint)
         }
         canvas.restoreToCount(save)
     }

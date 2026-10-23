@@ -26,6 +26,7 @@ internal object RecordingStatusText {
         }
     }
     private fun completion(context: Context, result: RideCompletion): String = when (result) {
+        RideCompletion.TooShort -> context.getString(R.string.recording_too_short)
         is RideCompletion.NotSaved -> context.getString(R.string.recording_not_saved)
         is RideCompletion.LocallyRetained -> context.getString(R.string.recording_locally_retained)
         is RideCompletion.Completed -> buildString {

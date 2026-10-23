@@ -7,6 +7,7 @@ internal enum class RecordingWarning { INCOMPLETE_RECORDING, ELEVATION_CORRECTIO
 
 internal sealed interface RideCompletion {
     val rideId: String?
+    data object TooShort : RideCompletion { override val rideId:String?=null }
     // Remote destinations describe queueing only, never remote upload success.
     data class Completed(override val rideId: String, val destinations: Set<RecordingDestination> = emptySet(),
         val warnings: Set<RecordingWarning> = emptySet()) : RideCompletion

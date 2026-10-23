@@ -109,3 +109,7 @@ und die wieder sichtbaren Wetterfelder ergänzt.
 Native Vorschauen mit Testdaten:
 [Dashboard](previews/battery-dashboard.png), [Kartenfelder](previews/battery-map.png).
 Praktische Lesbarkeit und Android-/Sensor-Akkumeldungen auf dem Nutzergerät noch prüfen.
+
+Nach Build 72: Letzten gültigen Bosch-Akkustand je portabler Fahrradprofil-UUID in privatem bike-battery speichern. Bei Verbindungsende, Fahrtende oder App-Neustart anzeigen, bis ein neuer gültiger Wert kommt. Echte 0 bleibt gültig; null/ungültige Werte löschen die letzte Anzeige nicht. Kein Austausch zwischen Profilen/Indoor und kein Bezug zu wiederverwendeten Slots. Reine Anzeige, nie als Messwert in Journal/FIT/Performance übernehmen. Kein Einstellfeld und deshalb nicht in der Einstellungssicherung. Noch keine APK.
+
+Prüfstand nach Build 72: 32 gezielte Tests in den Umsetzungsschritten erfolgreich (Aufnahmeregression auf Android 13/15/16, Detailsnavigation, Skalenrückkehr/Fenstergrenzen, Graphgeometrie, Akku-Persistenz/Rohdatentrennung und Zehnsekundengrenze); vier betroffene Tests nach letzter Absicherung nochmals erfolgreich. Native Summary geprüft. Typografie-/Atlasprüfung erfolgreich, kein Hardware-/Diensttest oder neuer APK-Build.

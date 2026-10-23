@@ -49,7 +49,7 @@ class LiveGraphUiTest {
                     }
                 }
                 assertTrue(xs.isNotEmpty())
-                assertEquals(26+374*fraction,xs.average().toFloat(),12f)
+                assertEquals(400*fraction,xs.average().toFloat(),12f)
             } finally { image.recycle() }
         }
     }

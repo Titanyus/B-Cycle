@@ -60,10 +60,17 @@ internal class RecordingStore(private val context: Context, private val changed:
         }
         if (!accepted) queuedSamples.decrementAndGet()
     }
-    fun finish() = submit {
+    fun finish(discardShort:Boolean=false) = submit {
         val current = journal; journal = null
         try { current?.close() } catch (_: Exception) { failed = true }
         if (current == null) { report(RecordingUpdate.Notice.NO_JOURNAL); return@submit }
+        if(discardShort && !failed) {
+            val base=current.file.nameWithoutExtension
+            val files=listOf(File(directory,"$base.naming.json"),File(directory,"$base.profile.json"),current.file)
+            if(files.all { !it.exists() || it.delete() }) report(RecordingUpdate.Finished(RideCompletion.TooShort))
+            else report(RecordingUpdate.Finished(RideCompletion.NotSaved(RecordingFinishStage.FINALIZE)))
+            return@submit
+        }
         report(RecordingUpdate.Progress.SAVING_FIT)
         report(RecordingUpdate.Finished(export(current.file)))
     }
