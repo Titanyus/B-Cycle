@@ -27,3 +27,5 @@ Bei einem späteren profilabhängigen Radtyp-Overlay wird `bike_profile.sub_spor
 Stand 23.10.2026: die beschriebenen neuen Funktionen sind in APK **0.8.31 / Build 70** enthalten. [Buildnachweis](build-70.md). Frühere Angaben zu fehlender APK sind Verlauf.
 
 Nach Build 70: Alle Datenfeld-Auswahlen in den Dropdowns der Kategorie Strecken-Aufzeichnung verwenden ebenfalls native Schalter statt Checkboxen. Feld-IDs, Vorauswahl, automatische Speicherung und profilabhängige Filter bleiben erhalten. Metadaten ist das erste Dropdown innerhalb dieser Kategorie.
+
+Stand 23.10.2026: die beschriebenen Änderungen sind in APK **0.8.32 / Build 71** enthalten. [Buildnachweis](build-71.md).
