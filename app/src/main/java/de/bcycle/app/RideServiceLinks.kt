@@ -65,6 +65,18 @@ internal object RideServiceLinks {
         save(c, all)
     }
 
+    /** Remove only an explicitly verified missing activity, preserving other targets/versions. */
+    fun missing(c:Context,link:RideServiceLink)=synchronized(lock) {
+        val all=entries(c)
+        val retained=decode(all,link.rideId).filterNot {
+            it.service==link.service && it.accountId==link.accountId && it.activityId==link.activityId
+        }
+        if(retained.isEmpty()) all.remove(link.rideId) else all.put(link.rideId,JSONArray().apply {
+            retained.forEach { put(JSONObject().put("service",it.service.name).put("account",it.accountId).put("activity",it.activityId).put("hash",it.fileHash)) }
+        })
+        save(c,all)
+    }
+
     private fun decode(all: JSONObject, id: String): List<RideServiceLink> {
         val items = all.optJSONArray(id) ?: return emptyList()
         return (0 until items.length()).map { index ->

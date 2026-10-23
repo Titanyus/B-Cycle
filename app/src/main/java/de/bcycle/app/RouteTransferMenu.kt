@@ -74,7 +74,8 @@ internal object RouteTransferRows {
 /** Anchored menu stays open while individual jobs update. Listeners exist only while visible. */
 internal class RouteTransferMenu(private val context:Context,private val themes:ThemeManager,anchor:View,
     private val entry:()->ManagedRoute?,private val busy:()->Boolean,
-    private val choose:(RouteTransferTarget)->Unit,configure:()->Unit) {
+    private val choose:(RouteTransferTarget)->Unit,configure:()->Unit,
+    private val recheck:(RouteTransferTarget)->Unit={ choose(it) }) {
     private val handler=Handler(Looper.getMainLooper())
     private val preferences=listOf("route-export","intervals-settings","activity-service-dreeve","activity-service-strava",
         "route-uploads","intervals-uploads","activity-uploads-dreeve","activity-uploads-strava","route-local-saves","ride-service-links","ride-names")
@@ -82,6 +83,7 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
     private var rows=emptyList<RouteTransferRow>()
     private var attempt:RouteTransferTarget?=null
     private var sawBusy=false
+    private var checking=false
     private val failedStarts=mutableSetOf<RouteTransferTarget>()
     private var themeSubscription:ThemeSubscription?=null
     private val changed=Runnable { refresh() }
@@ -91,7 +93,7 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
         override fun getItem(position:Int)=rows[position]
         override fun getItemId(position:Int)=rows[position].target.ordinal.toLong()
         override fun areAllItemsEnabled()=false
-        override fun isEnabled(position:Int)=rows[position].canStart
+        override fun isEnabled(position:Int)=rows[position].canStart || canRecheck(rows[position])
         override fun getView(position:Int,convertView:View?,parent:ViewGroup):View {
             val row=rows[position];val tokens=themes.active.tokens
             return LinearLayout(context).apply {
@@ -109,6 +111,11 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
                     setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Check,tokens.foreground));importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 },LinearLayout.LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)))
                 contentDescription=context.getString(row.target.title)+", "+context.getString(row.text)
+                if(row.completed) {
+                    contentDescription=contentDescription.toString()+", "+context.getString(R.string.route_transfer_recheck_hint)
+                    TransferHold.bind(this,{ popup.isShowing && !busy() && rows.any { it.target==row.target && canRecheck(it) } },
+                        click={ if(row.canStart) start(row,false) },hold={ start(row,true) })
+                }
                 alpha=if(row.text==R.string.route_transfer_off) .6f else 1f
             }
         }
@@ -125,8 +132,7 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
         setOnItemClickListener { _,_,position,_->
             val row=rows.getOrNull(position) ?: return@setOnItemClickListener
             if(!row.canStart || busy()) return@setOnItemClickListener
-            failedStarts.remove(row.target);attempt=row.target;sawBusy=false
-            choose(row.target);refresh()
+            start(row,false)
         }
         setOnDismissListener {
             preferences.forEach { it.unregisterOnSharedPreferenceChangeListener(listener) }
@@ -134,6 +140,13 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
         }
     }
     private fun dp(value:Int)=BicycleDesign.dp(context,value)
+    private fun canRecheck(row:RouteTransferRow)=row.completed && !busy() && row.target.enabled(context)
+    private fun start(row:RouteTransferRow,check:Boolean) {
+        if(busy() || if(check) !canRecheck(row) else !row.canStart) return
+        failedStarts.remove(row.target);attempt=row.target;sawBusy=false;checking=check
+        if(check) recheck(row.target) else choose(row.target)
+        refresh()
+    }
     fun show() {
         refresh()
         preferences.forEach { it.registerOnSharedPreferenceChangeListener(listener) }
@@ -156,7 +169,7 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
         }
         rows=RouteTransferRows.read(context,current,running).map { row ->
             when {
-                row.target==attempt && running->row.copy(text=R.string.route_transfer_uploading,canStart=false)
+                row.target==attempt && running->row.copy(text=if(checking && row.target !in setOf(RouteTransferTarget.LOCAL,RouteTransferTarget.STRAVA)) R.string.route_transfer_checking else R.string.route_transfer_uploading,canStart=false)
                 row.target in failedStarts && !row.completed->row.copy(text=R.string.route_transfer_failed)
                 else->row
             }

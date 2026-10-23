@@ -1,0 +1,5 @@
+<resources>
+    <string name="route_transfer_recheck_hint">600 ms gedrückt halten: prüfen oder erneut übertragen</string>
+    <string name="route_transfer_checking">Vorhandene Übertragung prüfen …</string>
+    <string name="route_transfer_check_failed">Übertragung konnte nicht geprüft werden. Bitte Verbindung prüfen und erneut versuchen.</string>
+</resources>

@@ -13,9 +13,12 @@ import java.util.concurrent.TimeUnit
 internal class ActivityServiceFailure(val retryable:Boolean,val problem:Int):IOException()
 internal data class UploadProgress(val jobId:String,val activityId:String?=null)
 internal class ActivityHttp(private val cancelled:()->Boolean={false},private val http:OkHttpClient=client) {
-    fun json(request:Request,codes:Set<Int> = setOf(200)):JSONObject {
+    fun json(request:Request,codes:Set<Int> = setOf(200)):JSONObject=readJson(request,codes,false)!!
+    fun optionalJson(request:Request):JSONObject?=readJson(request,setOf(200),true)
+    private fun readJson(request:Request,codes:Set<Int>,missingAllowed:Boolean):JSONObject? {
         if(cancelled()) throw IOException()
         return http.newCall(request).execute().use { response ->
+            if(missingAllowed && response.code==404) return@use null
             if(response.code !in codes) throw ActivityServiceFailure(response.code==408 || response.code==429 || response.code>=500,
                 if(response.code==401 || response.code==403) R.string.service_auth_failed else R.string.service_upload_failed)
             val bytes=response.body?.byteStream()?.use { it.readNBytes(1024*1024+1) } ?: throw IOException()
@@ -79,6 +82,13 @@ internal class DreeveClient(config:ActivityServiceConfig,private val key:String,
         val array=http.json(request("gear").build()).getJSONArray("gear")
         return (0 until array.length()).mapNotNull { i -> val row=array.getJSONObject(i)
             row.validId("id")?.let { it to row.getString("name").take(120) } }.toMap()
+    }
+    fun activityExists(activityId:String):Boolean {
+        require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
+        val url=request("activities").build().url.newBuilder().addPathSegment(activityId).build()
+        val result=http.optionalJson(request("activities").url(url).build()) ?: return false
+        if(result.validId("id")!=activityId) throw ActivityServiceFailure(false,R.string.service_response_failed)
+        return true
     }
     fun activityName(activityId:String):String {
         val url=request("activities").build().url.newBuilder().addPathSegment(activityId).build()

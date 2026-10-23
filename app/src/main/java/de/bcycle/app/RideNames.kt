@@ -74,6 +74,9 @@ internal object RideNames {
         val all=data(c);names(all).remove(id);val jobs=tasks(all)
         jobs.keys().asSequence().toList().filter { jobs.getJSONObject(it).optString("ride")==id }.forEach(jobs::remove);save(c,all)
     }
+    fun missing(c:Context,link:RideServiceLink)=synchronized(lock) {
+        val all=data(c);tasks(all).remove(key(link));save(c,all)
+    }
     private fun current(c:Context,job:JSONObject):Boolean=when(RideService.valueOf(job.getString("service"))) {
         RideService.DREEVE->ActivityServiceSettings(c,ActivityService.DREEVE).read().identity(ActivityService.DREEVE)==job.getString("account")
         RideService.STRAVA->ActivityServiceSettings(c,ActivityService.STRAVA).read().identity(ActivityService.STRAVA)==job.getString("account")

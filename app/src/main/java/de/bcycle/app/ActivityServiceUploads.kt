@@ -47,14 +47,14 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
         if(latest?.optString("state")!="failed") return@synchronized null
         when(latest.optString("problem")) { "auth"->R.string.service_auth_failed;"duplicate"->R.string.service_duplicate;"response"->R.string.service_response_failed;else->R.string.service_upload_failed }
     }
-    fun enqueue(c:Context,file:File) {
+    fun enqueue(c:Context,file:File,force:Boolean=false) {
         val config=ActivityServiceSettings(c,service).read();if(!config.enabled) return
         val id=file.nameWithoutExtension;require(RouteUploads.eligible(c,id) && file.isFile)
         val hash=WebDavClient.hash(file);val target=config.identity(service);require(target.isNotBlank())
         val metadata=RouteTransferPayload.annotate(c,file,JSONObject())
         synchronized(lock) {
             val all=entries(c)
-            if(all.keys().asSequence().map { all.getJSONObject(it) }.any { it.optString("ride")==id && it.optString("target")==target && it.optString("hash")==hash &&
+            if(!force && all.keys().asSequence().map { all.getJSONObject(it) }.any { it.optString("ride")==id && it.optString("target")==target && it.optString("hash")==hash &&
                 it.optLong("length")==file.length() && it.optLong("modified")==file.lastModified() && it.optString("state")!="failed" }) return@synchronized
             val operation=UUID.randomUUID().toString()
             val sequence=all.keys().asSequence().map { all.getJSONObject(it).optLong("sequence") }.maxOrNull()?.plus(1) ?: 1L
@@ -64,7 +64,7 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
         }
         schedule(c)
     }
-    fun retry(c:Context,id:String)=enqueue(c,RouteTransferPayload.file(c,id))
+    fun retry(c:Context,id:String,force:Boolean=false)=enqueue(c,RouteTransferPayload.file(c,id),force)
     fun forget(c:Context,id:String)=synchronized(lock) {
         val all=entries(c);all.keys().asSequence().toList().filter { all.getJSONObject(it).optString("ride")==id }.forEach(all::remove);save(c,all)
     }

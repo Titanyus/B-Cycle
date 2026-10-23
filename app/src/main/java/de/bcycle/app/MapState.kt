@@ -343,6 +343,17 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             target.retry(context,id)
         }; workerRoute
     }
+    internal fun recheckTransfer(id:String,target:RouteTransferTarget) {
+        if(target==RouteTransferTarget.LOCAL) { exportRoute(id);return }
+        operate("") {
+            val entry=entries.single { it.id==id }
+            try { RouteTransferRecheck.run(context,entry,target) }
+            catch(e:ActivityServiceFailure) { throw IllegalStateException(context.getString(e.problem),e) }
+            catch(e:IntervalsFailure) { throw IllegalStateException(context.getString(e.problem),e) }
+            catch(e:java.io.IOException) { throw IllegalStateException(context.getString(R.string.route_transfer_check_failed),e) }
+            workerRoute
+        }
+    }
     fun saveRouteLocally(id: String) = operate("") {
         val file = if (fits.entries.any { it.id == id }) fits.file(id) else if(dreeveSummaries.entries.any { it.id==id }) dreeveSummaries.file(id) else library.file(id)
         require(file.isFile && file.canRead()) { "Lokale Originaldatei fehlt · bitte erneut importieren" }

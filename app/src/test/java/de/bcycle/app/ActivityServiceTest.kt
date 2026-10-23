@@ -312,4 +312,22 @@ class ActivityServiceTest {
         assertNull(scheduler.getPendingJob(ActivityService.DREEVE.job))
     }
 
+    @Test fun activityExistenceTreatsOnly404AsMissingAndRejectsWrongIdsAndAuthErrors() {
+        val server=MockWebServer();server.start()
+        try {
+            val dreeve=DreeveClient(ActivityServiceConfig(),"key",base=server.url("/"))
+            val intervals=IntervalsClient(IntervalsConfig(athlete="i1"),"key",base=server.url("/api/v1/"))
+            val checks=listOf<()->Boolean>({dreeve.activityExists("42")},{intervals.activityExists("42")})
+            for(check in checks) {
+                server.enqueue(MockResponse().setBody("{\"id\":42}"));assertTrue(check())
+                val request=server.takeRequest();assertEquals("GET",request.method)
+                assertTrue(request.path!!.endsWith("/42"));assertNotNull(request.getHeader("Authorization"))
+                server.enqueue(MockResponse().setResponseCode(404).setBody("not found"));assertFalse(check());server.takeRequest()
+                server.enqueue(MockResponse().setResponseCode(401).setBody("{}"));assertThrows(java.io.IOException::class.java) { check() };server.takeRequest()
+                server.enqueue(MockResponse().setResponseCode(503).setBody("{}"));assertThrows(java.io.IOException::class.java) { check() };server.takeRequest()
+                server.enqueue(MockResponse().setBody("{\"id\":99}"));assertThrows(java.io.IOException::class.java) { check() };server.takeRequest()
+            }
+        } finally { server.shutdown() }
+    }
+
 }

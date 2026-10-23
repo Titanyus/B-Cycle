@@ -53,7 +53,7 @@ internal object RouteUploads {
         if (!config.webdav) return
         queue(context, file, name, config)
     }
-    fun retry(context: Context, id: String) {
+    fun retry(context: Context, id: String, force:Boolean=false) {
         val config = RouteExportSettings(context).read()
         check(config.webdav) { "WebDAV bitte in den Streckeneinstellungen aktivieren" }
         require(eligible(context,id))
@@ -61,7 +61,7 @@ internal object RouteUploads {
         require(file.isFile)
         // MapState verifies RECORDED metadata before exposing this action; restored rides
         // may retain an imported-prefixed immutable original after metadata recovery.
-        queue(context, file, "B-Cycle-$id.fit", config)
+        queue(context, file, "B-Cycle-$id.fit", config,force)
     }
     internal fun eligible(context: Context, id: String): Boolean {
         if(id.matches(Regex("[a-f0-9-]{36}"))) return RouteTransferPayload.eligibleGpx(context,id)
@@ -76,14 +76,14 @@ internal object RouteUploads {
         // A recording worker retains the original before MapState registers its index entry.
         return id.startsWith("recorded-")
     }
-    private fun queue(context: Context, file: File, name: String, config: RouteExportConfig) {
+    private fun queue(context: Context, file: File, name: String, config: RouteExportConfig,force:Boolean=false) {
         require(eligible(context, file.nameWithoutExtension)) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
         val hash = fingerprint(file) // Only recording/library workers call this method.
         val metadata=RouteTransferPayload.annotate(context,file,JSONObject())
         synchronized(lock) {
             val all = entries(context); val id = file.nameWithoutExtension
             val destination = target(config); val existing = all.optJSONObject(id)
-            if (existing?.optString("target") == destination && existing.optString("hash") == hash &&
+            if (!force && existing?.optString("target") == destination && existing.optString("hash") == hash &&
                 existing.optLong("length") == file.length() && existing.optLong("modified") == file.lastModified() &&
                 existing.optString("state") in setOf("pending", "uploading", "saved")) return@synchronized
             all.put(id, metadata.put("name", existing?.optString("name")?.takeIf { it.isNotEmpty() } ?: name)

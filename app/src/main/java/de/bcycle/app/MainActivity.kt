@@ -1994,7 +1994,7 @@ class MainActivity : Activity() {
                     { detailEntry(detail) },{ runtime.mapState.busy },{ target ->
                         if(target==RouteTransferTarget.LOCAL) runtime.mapState.exportRoute(detail.id)
                         else runtime.mapState.uploadRoute(detail.id,target)
-                    },{ dataSettings(focusRoutes=true) }).also { it.show() }
+                    },{ dataSettings(focusRoutes=true) },recheck={ target -> runtime.mapState.recheckTransfer(detail.id,target) }).also { it.show() }
             }
             4 -> deleteRoute(entry)
         }

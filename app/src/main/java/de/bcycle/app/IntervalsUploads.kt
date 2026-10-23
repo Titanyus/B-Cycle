@@ -25,7 +25,7 @@ internal object IntervalsUploads {
             return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED)
         RouteUploadStatus(when(item.optString("state")) { "saved"->UploadState.UPLOADED;"failed"->UploadState.FAILED;"uploading"->UploadState.UPLOADING;else->UploadState.WAITING })
     }
-    fun enqueue(c:Context,file:File,name:String) {
+    fun enqueue(c:Context,file:File,name:String,force:Boolean=false) {
         val config=IntervalsSettings(c).read();if(!config.enabled) return
         require(RouteUploads.eligible(c,file.nameWithoutExtension))
         val hash=WebDavClient.hash(file)
@@ -33,16 +33,16 @@ internal object IntervalsUploads {
         synchronized(lock) {
             val all=entries(c);val old=all.optJSONObject(file.nameWithoutExtension)
             RideServiceLinks.links(c,file.nameWithoutExtension) // Migrate an existing confirmed receipt before replacing it.
-            if(old?.optString("athlete")==config.athlete && old.optString("hash")==hash && old.optLong("modified")==file.lastModified() &&
+            if(!force && old?.optString("athlete")==config.athlete && old.optString("hash")==hash && old.optLong("modified")==file.lastModified() &&
                 old.optString("state") in setOf("pending","uploading","saved")) return@synchronized
             all.put(file.nameWithoutExtension,metadata.put("athlete",config.athlete).put("hash",hash).put("length",file.length())
                 .put("modified",file.lastModified()).put("name",name).put("state","pending"));save(c,all)
         }
         schedule(c)
     }
-    fun retry(c:Context,id:String) {
+    fun retry(c:Context,id:String,force:Boolean=false) {
         check(IntervalsSettings(c).read().enabled) { c.getString(R.string.intervals_enable_first) }
-        enqueue(c,RouteTransferPayload.file(c,id),"B-Cycle-$id.fit")
+        enqueue(c,RouteTransferPayload.file(c,id),"B-Cycle-$id.fit",force)
     }
     fun forget(c:Context,id:String)=synchronized(lock) { val all=entries(c);all.remove(id);save(c,all) }
     fun schedule(c:Context) {

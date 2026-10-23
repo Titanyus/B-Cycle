@@ -56,6 +56,8 @@ class RouteStorageTest {
         assertEquals(4, state.route!!.originalPoints)
         state.exportRoute(ride.id); await(state)
         assertEquals(2, provider.files.size)
+        state.recheckTransfer(ride.id,RouteTransferTarget.LOCAL);await(state)
+        assertEquals(3,provider.files.size) // An explicit repeat saves another copy and preserves existing downloads.
         provider.files.values.forEach { assertArrayEquals(bytes, it.readBytes()) }
         state.selectRoute(planned.id); await(state)
         assertEquals(planned.id, state.selectedRoute)

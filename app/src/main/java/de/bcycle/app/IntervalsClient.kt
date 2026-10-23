@@ -20,10 +20,11 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         if(path.isNotEmpty()) addPathSegment(path)
     }.build()).header("Authorization",Credentials.basic("API_KEY",key))
         .header("User-Agent","B-Cycle/${AppVersion.name}").header("Accept","application/json")
-    private fun execute(request:Request):String {
+    private fun execute(request:Request,missingAllowed:Boolean=false):String {
         require(config.athlete.matches(Regex("i?[0-9]{1,15}")) && key.isNotEmpty())
         if(cancelled()) throw IOException()
         val result=http.newCall(request).execute().use { response ->
+            if(missingAllowed && response.code==404) return@use ""
             if(!response.isSuccessful) throw IntervalsFailure(response.code==408 || response.code==429 || response.code>=500,
                 if(response.code==401 || response.code==403) R.string.intervals_auth_failed else R.string.intervals_upload_failed)
             val bytes=response.body?.byteStream()?.use { it.readNBytes(1024*1024+1) } ?: throw IOException()
@@ -53,6 +54,14 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         val activity=when(parsed) { is JSONArray -> if(parsed.length()==1) parsed.optJSONObject(0) else null;is JSONObject->parsed;else->null }
         val id=activity?.optString("id")?.takeIf { it.isNotBlank() && it!="null" }
         return id ?: throw IntervalsFailure(false,R.string.intervals_response_failed)
+    }
+    fun activityExists(activityId:String):Boolean {
+        require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
+        val url=base.newBuilder().addPathSegment("activity").addPathSegment(activityId).build()
+        val text=execute(request("").url(url).get().build(),missingAllowed=true)
+        if(text.isEmpty()) return false
+        if(JSONObject(text).optString("id")!=activityId) throw IntervalsFailure(false,R.string.intervals_response_failed)
+        return true
     }
     fun rename(activityId:String,name:String) {
         require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
