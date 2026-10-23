@@ -2,6 +2,9 @@
 
 Stand: 23.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+Arbeitsstand nach Build 70 (keine neue APK angefragt): Metadaten-Accordion in die Kategorie Strecken-Aufzeichnung verschoben, als erster Dropdown-Eintrag vor den bisherigen Quellgruppen. Alle Datenfeld-Auswahlen dieser Quellgruppen auf native Schalter umgestellt; bestehende Werte/Feld-IDs/Listener/Profilfilter unverändert. Details docs/fit-metadata.md. Drei gezielte native UI-Tests für Gruppenzuordnung/Accordions, Schalter-/Profilspeicherung und Erhalt verborgener Outdoor-Auswahlen beim Radtypwechsel erfolgreich; Typografie-/Atlasprüfung ebenfalls erfolgreich. Keine neue APK erstellt.
+
+
 ## Aktueller Abschluss: APK 0.8.31 / Build 70
 
 APK **0.8.31 / Build 70 / versionCode 101** aus `7d7c03987b1dacb8008f19ec6624c1c7efe90bf8` über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.31-release-70.apk), [Buildnachweis](build-70.md). 2.241.834 Bytes; SHA-256 `2e3f92dc2c887d4bb2c2910e1b8371f6b620c709c4e47845780175cbcf1cdb02`. Dauerhafte Signatur wie Build 69, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält alle zuletzt besprochenen Änderungen: Fahrtenzusammenfassung, optionale Garmin-FIT-Metadaten samt Profilwerten/live aktualisierten Namen, erneutes HRV-Tagesangebot bis zum Tap, Starten/tieferer Kreisinhalt sowie entfernten Linien-Glow. 31 gezielte Tests in den Umsetzungsschritten erfolgreich; kein Gesamtlauf oder Hardwaretest. Alles auf main und in APK enthalten, kein offener APK-Auftrag. Frühere Angaben zu lokalen Änderungen/fehlender APK unten sind Verlauf.

@@ -135,7 +135,7 @@ class BikesViewTest {
             body.findViewWithTag<Spinner>("bike_category").setSelection(BikeCategory.TREKKING.ordinal)
             shadowOf(Looper.getMainLooper()).idle();assertEquals(BikeCategory.TREKKING,runtime.bikes.current().category)
             val fields=runtime.config.fields
-            body.findViewWithTag<CheckBox>("record_GPS_SPEED").performClick()
+            body.findViewWithTag<android.widget.Switch>("record_GPS_SPEED").performClick()
             assertNotEquals(fields,runtime.config.fields)
             val firstFields=runtime.config.fields
             body.findViewWithTag<View>("bike_profile_1").performClick();measure(decor)

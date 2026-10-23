@@ -1,6 +1,6 @@
 # Optionale FIT-Metadaten
 
-Unter Profil → FIT-Aufzeichnung steht oberhalb der bisherigen Aufzeichnungsgruppen das Accordion **Metadaten**. Sechs native Schalter zeigen `Bezeichnung (aktueller Profilwert)`, etwa `Fahrradname (Matrix ICR50)`. Alle sechs sind standardmäßig aktiv. Bei einer Umbenennung aktualisiert sich der angezeigte Profilname auch im offenen Formular. Die Auswahl gilt pro Profil für neue Aufnahmen; vorhandene Dateien werden nicht nachträglich verändert.
+Unter Profil → Strecken-Aufzeichnung steht als erster Eintrag vor den anderen Aufzeichnungsgruppen das Accordion **Metadaten**. Sechs native Schalter zeigen `Bezeichnung (aktueller Profilwert)`, etwa `Fahrradname (Matrix ICR50)`. Alle sechs sind standardmäßig aktiv. Bei einer Umbenennung aktualisiert sich der angezeigte Profilname auch im offenen Formular. Die Auswahl gilt pro Profil für neue Aufnahmen; vorhandene Dateien werden nicht nachträglich verändert.
 
 | Auswahl | Garmin-Nachricht/Feld | Wert |
 | --- | --- | --- |
@@ -25,3 +25,5 @@ Bei einem späteren profilabhängigen Radtyp-Overlay wird `bike_profile.sub_spor
 17 gezielte Tests erfolgreich: Garmin-FitDecoder und ActivityFileValidationPlugin prüfen Bike/E-Bike/Indoor, Unicode-Namen, numerische Kennungen, jede einzelne Abwahl und vollständig deaktivierte Metadaten. Weitere Prüfungen decken vorhandene Bike-Typ-Overlays, Snapshot-Erhalt nach Profilwechsel/Löschen, unabhängige Profile, alte/neue Sicherungen und die echte Indoor-FIT-Einstellungsansicht ab. Native Beschriftungen/Schalter in drei Hochformatbreiten einschließlich Umbenennung im offenen Formular geprüft. Bestehende FIT-/Indoor- und Profilregressionen erfolgreich; kein Gesamttestlauf, keine Dreeve-/Garmin-Connect-Importprüfung und keine APK erstellt.
 
 Stand 23.10.2026: die beschriebenen neuen Funktionen sind in APK **0.8.31 / Build 70** enthalten. [Buildnachweis](build-70.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+Nach Build 70: Alle Datenfeld-Auswahlen in den Dropdowns der Kategorie Strecken-Aufzeichnung verwenden ebenfalls native Schalter statt Checkboxen. Feld-IDs, Vorauswahl, automatische Speicherung und profilabhängige Filter bleiben erhalten. Metadaten ist das erste Dropdown innerhalb dieser Kategorie.

@@ -29,7 +29,7 @@ class IndoorUiTest {
             selectTestBikeType(root,BikeType.INDOOR)
             shadowOf(android.os.Looper.getMainLooper()).idle()
             assertFalse(runtime.gpsEnabled);assertFalse("GPS_POSITION" in runtime.config.fields)
-            root.findViewWithTag<CheckBox>("record_HEART_RATE").isChecked=false
+            root.findViewWithTag<android.widget.Switch>("record_HEART_RATE").isChecked=false
             shadowOf(android.os.Looper.getMainLooper()).idle()
             selectTestBikeType(root,BikeType.EBIKE)
             shadowOf(android.os.Looper.getMainLooper()).idle()

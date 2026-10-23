@@ -53,7 +53,17 @@ class StickyAccordionSettingsTest {
                     assertEquals(parent.height/2f,v.top+v.height/2f,1f)
                 }
             }
-            val checkbox=root.findViewWithTag<CheckBox>("record_NORMALIZED_POWER")
+            val trackBody=body(track) as ViewGroup
+            val metadata=root.findViewWithTag<View>("fit_metadata")
+            assertSame(trackBody,metadata.parent)
+            assertNull(body(fit).findViewWithTag<View>("fit_metadata"))
+            val items=(0 until trackBody.childCount).map(trackBody::getChildAt).filter {
+                it.tag=="fit_metadata" || it.tag?.toString()?.startsWith("fit_source_")==true
+            }
+            assertSame(metadata,items.first())
+            val fields=testDescendants(trackBody).filter { it.tag?.toString()?.startsWith("record_")==true }
+            assertTrue(fields.isNotEmpty());assertTrue(fields.all { it is android.widget.Switch })
+            val checkbox=root.findViewWithTag<android.widget.Switch>("record_NORMALIZED_POWER")
             checkbox.isChecked=true
             val expected=r.config
             fit.performClick();layout(root)

@@ -588,12 +588,12 @@ class MainActivity : Activity() {
         val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
         fun saveFields() { if(runtime.bikes.activeSlot!=slot || !speed.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE",metadata=metadata)) }
         observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
+        BicycleForm.section(root,settingsThemes,R.string.ui_track_recording)
+        root.addView(BicycleComponents.description(settingsContext,settingsThemes,getString(R.string.track_recording_description)).apply { tag="track_recording_description" })
         root.addView(FitMetadataView(settingsContext,settingsThemes,runtime.bikes.current(),metadata,
             currentProfile=runtime.bikes::current,expanded="FIT_METADATA" in expandedFitSources,onExpand={ if(it) expandedFitSources.add("FIT_METADATA") else expandedFitSources.remove("FIT_METADATA") }) {
             metadata=it;saveFields()
         })
-        BicycleForm.section(root,settingsThemes,R.string.ui_track_recording)
-        root.addView(BicycleComponents.description(settingsContext,settingsThemes,getString(R.string.track_recording_description)).apply { tag="track_recording_description" })
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
@@ -614,8 +614,8 @@ class MainActivity : Activity() {
             BicycleDialogStyle.accordion(toggle,settingsThemes)
             BicycleDialogStyle.actionIcon(toggle,settingsThemes,SensorIcons.forSource(source),BicycleIcon.Expand)
             root.addView(toggle);root.addView(content)
-            for (field in fields) content.addView(CheckBox(settingsContext).apply {
-                text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(48)
+            for (field in fields) content.addView(Switch(settingsContext).apply {
+                text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(BicycleDesign.touchSize)
                 setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id);saveFields() }
             })
         }

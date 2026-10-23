@@ -5,7 +5,7 @@ import android.os.Looper
 import org.robolectric.Shadows.shadowOf
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
+import android.widget.Switch
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,14 +26,14 @@ class PerformanceSettingsTest {
             shadowOf(Looper.getMainLooper()).idle()
         }
     }
-    @Test fun existingSelectionSurvivesAndNewIndependentCheckboxesPersistInTheSamePreferences() {
+    @Test fun existingSelectionSurvivesAndNewIndependentSwitchesPersistInTheSamePreferences() {
         val app = RuntimeEnvironment.getApplication()
         val prefs = app.getSharedPreferences("bike", 0)
         val runtime = RideRuntime.get(app)
         runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER", "CADENCE")))
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         val dialog = open(controller.get())
-        val checkboxes = views(dialog.window!!.decorView).filterIsInstance<CheckBox>().associateBy { it.tag }
+        val checkboxes = views(dialog.window!!.decorView).filterIsInstance<Switch>().associateBy { it.tag }
         for (field in RecordField.summaries) assertFalse(checkboxes.getValue("record_${field.id}").isChecked)
         assertTrue(checkboxes.getValue("record_RIDER_POWER").isChecked)
         checkboxes.getValue("record_EFFICIENCY_FACTOR").isChecked = true
@@ -48,7 +48,7 @@ class PerformanceSettingsTest {
         controller.pause().stop().destroy()
         val recreated = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val restored = views(open(recreated.get()).window!!.decorView).filterIsInstance<CheckBox>().associateBy { it.tag }
+            val restored = views(open(recreated.get()).window!!.decorView).filterIsInstance<Switch>().associateBy { it.tag }
             assertTrue(restored.getValue("record_EFFICIENCY_FACTOR").isChecked)
             assertTrue(restored.getValue("record_ESTIMATED_FTP").isChecked)
             assertFalse(restored.getValue("record_NORMALIZED_POWER").isChecked)
@@ -80,7 +80,7 @@ class PerformanceSettingsTest {
             assertEquals(View.GONE,sourceContent.visibility)
             content.findViewWithTag<View>("fit_source_$source").performClick()
             assertEquals(View.VISIBLE,sourceContent.visibility)
-            val checkbox = views(content).filterIsInstance<CheckBox>().single { it.tag == "record_NORMALIZED_POWER" }
+            val checkbox = views(content).filterIsInstance<Switch>().single { it.tag == "record_NORMALIZED_POWER" }
             assertEquals(runtime.themes.active.tokens.foreground, checkbox.currentTextColor)
             checkbox.isChecked = true
             dialog.window!!.decorView.findViewWithTag<View>("bike_profile_1").performClick()
@@ -88,7 +88,7 @@ class PerformanceSettingsTest {
             shadowOf(Looper.getMainLooper()).idle()
             assertSame(dialog, ShadowAlertDialog.getLatestAlertDialog())
             assertEquals(View.VISIBLE,dialog.window!!.decorView.findViewWithTag<View>("fit_source_content_$source").visibility)
-            assertTrue(dialog.window!!.decorView.findViewWithTag<CheckBox>("record_NORMALIZED_POWER").isChecked)
+            assertTrue(dialog.window!!.decorView.findViewWithTag<Switch>("record_NORMALIZED_POWER").isChecked)
             assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)
             testBack(dialog)
             assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)
