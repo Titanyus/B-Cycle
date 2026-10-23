@@ -593,6 +593,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="weather_humidity">%1$d %%</string>
     <string name="weather_humidity_accessibility">%1$d Prozent Luftfeuchtigkeit</string>
     <string name="weather_wind">%1$.1f km/h</string>
+    <string name="weather_wind_from">Wind aus %1$s</string>
     <string name="weather_accessibility">Wetter zur Tourmitte: %1$s</string>
     <string-array name="weather_directions"><item>N</item><item>NNO</item><item>NO</item><item>ONO</item><item>O</item><item>OSO</item><item>SO</item><item>SSO</item><item>S</item><item>SSW</item><item>SW</item><item>WSW</item><item>W</item><item>WNW</item><item>NW</item><item>NNW</item></string-array>
     <string name="sensor_received_values">%1$s · %2$s</string>

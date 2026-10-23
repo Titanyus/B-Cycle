@@ -82,6 +82,17 @@ class RideWeatherTest {
         val groups=(0 until row.childCount).map(row::getChildAt).groupBy { (it.top+it.bottom)/2 }
         groups.values.forEach { parts -> assertEquals(row.width/2f,(parts.minOf { it.left }+parts.maxOf { it.right })/2f,1f) }
         assertTrue(row.contentDescription.toString().contains("50"));assertTrue(row.contentDescription.toString().contains("NW"))
+        val arrow=row.findViewWithTag<android.widget.ImageView>("analysis_weather_wind_direction")
+        assertNotNull(arrow);assertEquals(180f,arrow.rotation,0f) // NW wind flows SE; compensate the NW-shaped icon.
+        assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.rowTitleSp,c.resources.displayMetrics).toInt(),arrow.layoutParams.width)
+        val windPart=row.getChildAt(2) as android.widget.LinearLayout
+        assertFalse((windPart.getChildAt(2) as TextView).text.contains("NW"))
+        for((direction,rotation) in mapOf(0.0 to 225f,90.0 to 315f,180.0 to 45f,225.0 to 90f,360.0 to 225f)) {
+            val other=RideWeatherRow(c,themes,RideWeatherData(null,null,null,6.0,direction))
+            assertEquals(rotation,other.findViewWithTag<View>("analysis_weather_wind_direction").rotation,0f)
+        }
+        val missing=RideWeatherRow(c,themes,RideWeatherData(null,null,null,6.0,null))
+        assertNull(missing.findViewWithTag<View>("analysis_weather_wind_direction"))
         assertEquals("analysis_weather",row.tag)
     }
 }

@@ -53,8 +53,8 @@ internal class RideWeatherRow(context:Context,themes:ThemeManager,data:RideWeath
     }
     init {
         orientation=HORIZONTAL;gravity=Gravity.CENTER;tag="analysis_weather"
-        fun part(text:String,icon:BicycleIcon) {
-            if(text.isEmpty()) return
+        fun part(text:String,icon:BicycleIcon,bearing:Double?=null) {
+            if(text.isEmpty() && bearing==null) return
             val separator=childCount>0
             addView(LinearLayout(context).apply {
                 gravity=Gravity.CENTER_VERTICAL
@@ -69,17 +69,27 @@ internal class RideWeatherRow(context:Context,themes:ThemeManager,data:RideWeath
                 addView(BicycleComponents.text(context,themes,text).apply {
                     textSize=BicycleDesign.rowTitleSp;typeface=BicycleDesign.bodyTypeface
                 },LayoutParams(-2,-2))
+                if(bearing!=null) {
+                    val size=android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
+                        BicycleDesign.rowTitleSp,resources.displayMetrics).toInt()
+                    addView(android.widget.ImageView(context).apply {
+                        tag="analysis_weather_wind_direction";importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+                        // Data is the wind origin. Show its flow (+180°), compensating Lucide's NW (315°) tip.
+                        rotation=((bearing+225)%360).toFloat()
+                        BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.WindDirection,it.foreground)) }
+                    },LayoutParams(size,size).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.smallGap) })
+                }
             },LayoutParams(-2,-2).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         }
         val temperature=data.temperature?.let { context.getString(R.string.weather_temperature,it) }
         part(listOfNotNull(data.code?.let { context.getString(WeatherSky.label(it)) },temperature).joinToString(" "),WeatherSky.icon(data.code))
         part(data.humidity?.let { context.getString(R.string.weather_humidity,it.toInt()) }.orEmpty(),BicycleIcon.Humidity)
         val direction=data.direction?.let { context.resources.getStringArray(R.array.weather_directions)[((it+11.25)/22.5).toInt()%16] }
-        part(listOfNotNull(data.wind?.let { context.getString(R.string.weather_wind,it) },direction).joinToString(" "),BicycleIcon.Wind)
+        part(data.wind?.let { context.getString(R.string.weather_wind,it) }.orEmpty(),BicycleIcon.Wind,data.direction)
         contentDescription=context.getString(R.string.weather_accessibility,
             listOfNotNull(data.code?.let { context.getString(WeatherSky.label(it)) },temperature,
                 data.humidity?.let { context.getString(R.string.weather_humidity_accessibility,it.toInt()) },
-                data.wind?.let { context.getString(R.string.weather_wind,it) },direction).joinToString(", "))
+                data.wind?.let { context.getString(R.string.weather_wind,it) },direction?.let { context.getString(R.string.weather_wind_from,it) }).joinToString(", "))
         importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_YES
     }
 }

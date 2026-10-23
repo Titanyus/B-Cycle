@@ -2,7 +2,9 @@
 
 Unter Datum/Uhrzeit steht eine kompakte Wetterzeile: Wetterzustand mit Icon und
 Temperatur (°C), Luftfeuchtigkeit (%) sowie Windgeschwindigkeit (km/h) und
-meteorologische Windrichtung (woher der Wind kommt). Texte und Beschreibungen
+einen Windrichtungspfeil. Die gespeicherten Wetterdaten enthalten weiterhin die
+meteorologische Herkunftsrichtung. Der Pfeil zeigt die Strömungsrichtung (wohin
+der Wind weht): Südwestwind ergibt einen Pfeil nach Nordost. Texte und Beschreibungen
 liegen in Android-Ressourcen; Icons und Texte folgen FOREGROUND.
 
 ## Zeitpunkt und Position
@@ -53,3 +55,18 @@ interne Streckensammlung.
 Die Ansicht lädt ohne Blockieren des übrigen Screens. Veraltete Callbacks nach
 Schließen/Neuladen werden ignoriert. Quellen und Lizenzen stehen zentral unter
 Erweitert → Quellen & Dienste; kein zusätzlicher Text an der Wetterzeile.
+
+## Windpfeil nach Build 72
+
+Lucide `mouse-pointer-2` aus bestehender Version 0.468.0 statt sichtbarer
+Himmelsrichtungs-Abkürzung. Pfeil in Textgröße (rowTitleSp), FOREGROUND und direkt
+hinter der Windgeschwindigkeit. Grundausrichtung des Icons ist Nordwest/315°.
+Rotation = (meteorologische Richtung + 180° − 315° + 360°) modulo 360°, also
+(Richtung + 225°) modulo 360°. Beispiele: Nordwind → Süden, Westwind → Osten,
+Südwestwind → Nordosten. Screenreader behalten die ausdrücklich als Herkunft
+benannte Richtung. Fehlende Richtung zeigt keinen erfundenen Pfeil. Wetterdaten,
+Abruf, Speicherung, FIT und Berechnungen bleiben unverändert.
+
+Gezielte Prüfung: kompakte Hochformatzeile, Textgröße/Abstände, sichtbarer Ersatz
+der Abkürzung, fehlende Richtung sowie Rotationen für Nord/Ost/Süd/Südwest/Nordwest
+und 360° erfolgreich. Screenreader-Herkunft erhalten. Keine APK erstellt.
