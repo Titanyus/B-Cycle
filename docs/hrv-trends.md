@@ -91,3 +91,5 @@ starrem Verschieben der Datumswerte, tatsächlich gesetztem Achsen-Clip in beide
 Diagrammen, Nachgleiten nach Fingerende und Stoppen bei neuer Berührung sowie
 bestehendem Pinch/Drag, Tagesauswahl und Teilbalken. Native Vorschau visuell geprüft;
 Typografie-/Atlasprüfung erfolgreich. Kein Hardwaretest und keine neue APK.
+
+Stand 23.10.2026: die beschriebenen Diagrammänderungen sind in APK **0.8.33 / Build 72** enthalten. [Buildnachweis](build-72.md).

@@ -2,6 +2,11 @@
 
 Stand: 23.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller Abschluss: APK 0.8.33 / Build 72
+
+APK **0.8.33 / Build 72 / versionCode 103** aus `7ebcdd2d59053e681aaf1902f3aa9566a98ff792` über Actions gebaut und direkt veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.33-release-72.apk), [Buildnachweis](build-72.md). 2.294.768 Bytes; SHA-256 `4e141c619be489504c983f46d7b76eae3dc34989f3d53c5a7dbafe183e395db6`. Dauerhafte Signatur wie Build 71, Version, fehlende Debug-/Test-Flags und Ausrichtung geprüft. Enthält Montagsdaten/Wochentrenner, Rand-Clipping beider HRV-Diagramme und native Scrollträgheit. Sieben gezielte Tests erfolgreich; native Vorschau visuell geprüft. Kein Gesamtlauf oder Hardwaretest. Alles auf main und in APK enthalten; frühere Angaben zu fehlender APK unten sind Verlauf.
+
+
 Arbeitsstand nach Build 71: HRV-Auswertung erhält feste kalendergebundene Montagsbeschriftungen mit Trennstrich vor dem Datum und native OverScroller-Trägheit beim horizontalen Wischen. Auswertung und RR-Messdiagramm clippen X-Achsenbeschriftungen direkt an der Diagrammgrenze statt sie am Rand festzuhalten. Zoom, Daten, feste Y-Skala und Statistik unverändert. Sieben gezielte native Tests erfolgreich: Montagsverankerung/Rand-Clipping, Sekunden-Clipping im Messdiagramm, Fling/Stoppen, bestehender Pinch/Drag/Tagesauswahl und Teilbalken. Native Auswertung visuell geprüft; Typografie-/Atlasprüfung und diff --check erfolgreich. Kein Hardwaretest, kein neuer APK-Auftrag; noch nicht veröffentlicht.
 
 ## Aktueller Abschluss: APK 0.8.32 / Build 71

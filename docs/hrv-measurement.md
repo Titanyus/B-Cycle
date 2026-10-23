@@ -123,3 +123,5 @@ ihrer tatsächlichen Zeitposition. Benachbarte Zehnsekundenmarkierungen außerha
 des Fensters mitzeichnen und den gesamten X-Achsenbereich an den Diagrammgrenzen
 clippen; keine am Rand festgehaltenen Texte. Zeitfenster, RR-Pfad, Daten und
 Messungsablauf unverändert. Noch keine neue APK.
+
+Stand 23.10.2026: die beschriebenen Diagrammänderungen sind in APK **0.8.33 / Build 72** enthalten. [Buildnachweis](build-72.md).
