@@ -110,15 +110,16 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
             selected.filter { it.elapsedMs>=start }.forEach { point -> point.values.forEachIndexed { i,value ->
                 if(value!=null) windowScales.include(AnalysisChart.entries[i],value)
             } }
-            AnalysisChart.entries.mapNotNull { chart -> (windowScales.range(chart) ?: initialRanges[chart])?.let { chart to GraphSeries(selected,it) } }.toMap()
+            AnalysisChart.entries.mapNotNull { chart -> (windowScales.range(chart) ?: initialRanges[chart])?.let { chart to GraphSeries(prepare(chart,pixelWidth,selected,true,window.milliseconds.toDouble(),start.toDouble(),1000.0),it) } }.toMap()
         }
         return GraphFrame(version,distanceM,series,elapsed,windows,points.none { it.distanceM!=null })
     }
-    private fun prepare(chart: AnalysisChart, width: Int): List<GraphPoint> {
+    private fun prepare(chart: AnalysisChart, width: Int, history:List<GraphPoint> = points,
+        time:Boolean=points.none { it.distanceM!=null },
+        extent:Double=if(time) (points.lastOrNull()?.elapsedMs ?: 0).toDouble() else distanceM,
+        origin:Double=0.0,minimumRadius:Double=0.0): List<GraphPoint> {
         val i=chart.ordinal; val mask=1 shl i
-        val time=points.none { it.distanceM!=null }
-        fun position(p:GraphPoint)=if(time) p.elapsedMs.toDouble() else p.distanceM!!
-        val extent=if(time) (points.lastOrNull()?.elapsedMs ?: 0).toDouble() else distanceM
+        fun position(p:GraphPoint)=(if(time) p.elapsedMs.toDouble() else p.distanceM!!)-origin
         val result=ArrayList<GraphPoint>(); val segment=ArrayList<GraphPoint>()
         fun flush() {
             if(segment.isEmpty()) return
@@ -132,7 +133,8 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
                 selected.forEach { reduced += bucket[it] }
             }
             // Gentle distance/pixel-adaptive median blend; convex, zero-preserving, gap-local.
-            val radius=if(extent>0) extent/width*2 else 0.0
+            // Short windows still blend adjacent one-second samples, even when far apart in pixels.
+            val radius=max(minimumRadius,if(extent>0) extent/width*2 else 0.0)
             reduced.forEachIndexed { j,p ->
                 val original=p.values[i]!!
                 val neighbors=listOfNotNull(reduced.getOrNull(j-1),p,reduced.getOrNull(j+1))
@@ -142,7 +144,7 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
             }
             segment.clear()
         }
-        for(p in points) {
+        for(p in history) {
             if(!time && p.distanceM==null) { flush();continue }
             if(p.breaks and mask != 0) flush()
             if(p.values[i]==null) { flush(); result += p } else {

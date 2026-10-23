@@ -319,3 +319,9 @@ Neue Peaks erweitern den Bereich sofort; Rückkehr zum kleineren Zielbereich üb
 Alle Modi verwenden MonotoneGraphPath ohne Überschwingen. Voll hat davor zusätzlich Pixel-/Distanzreduktion und einen konvexen 75/25-Medianblend; rollierende Fenster behalten ihre zeitgenauen dichteren Punkte. Das erklärt die glattere Wahrnehmung von Voll; diese Datenaufbereitung wurde in diesem Schritt nicht geändert. Noch keine APK.
 
 Prüfstand nach Build 72: 32 gezielte Tests in den Umsetzungsschritten erfolgreich (Aufnahmeregression auf Android 13/15/16, Detailsnavigation, Skalenrückkehr/Fenstergrenzen, Graphgeometrie, Akku-Persistenz/Rohdatentrennung und Zehnsekundengrenze); vier betroffene Tests nach letzter Absicherung nochmals erfolgreich. Native Summary geprüft. Typografie-/Atlasprüfung erfolgreich, kein Hardware-/Diensttest oder neuer APK-Build.
+
+## Glättung auch in rollierenden Fenstern
+
+Nachfolgender Nutzerauftrag: denselben konvexen 75/25-Medianblend auch auf 30/60/120 s anwenden. Alle Modi verwenden nun dieselbe Vorbereitung für Pixelreduktion und segmentlokale Glättung. In Fenstern ausschließlich Zeitkoordinaten verwenden, auch im Stillstand. Glättungsradius mindestens eine Sekunde, damit die regulären Sekundensamples trotz größerem Pixelabstand leicht geglättet werden. Tatsächliche Nullen und deren Nachbarn bleiben unverändert; fehlende Werte und Break-Flags begrenzen die Glättung. Monotone Kurveninterpolation unverändert. Zielskala weiterhin aus Rohwerten, daher bleibt Platz für ursprüngliche Spitzen. Keine Änderung an Journal, FIT, Leistungsberechnung oder Rohhistorie. Die vorherige Aussage über unaufbereitete Fenster ist damit historisch. Keine neue APK.
+
+Prüfstand Fenster-Glättung: 12 gezielte Tests erfolgreich, darunter alle drei Zeitfenster mit tatsächlicher Glättung trotz Stillstand, Null-/Lückenerhalt, ursprüngliche Skalenspitzen, native Zeitposition und unveränderte Journal-/FIT-Bytes. Keine neue APK.

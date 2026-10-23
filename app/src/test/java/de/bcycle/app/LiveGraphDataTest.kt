@@ -63,6 +63,32 @@ class LiveGraphDataTest {
         val peak=smooth.frame(2,64).series.getValue(AnalysisChart.POWER).points.first { it.distanceM==50.0 }.values[2]!!
         assertTrue(peak in 200.0..210.0);assertTrue(peak<210.0);assertTrue(peak>=207.0)
     }
+    @Test fun everyRollingWindowSmoothsOneSecondSamplesEvenAtStandstillWithoutChangingZerosGapsOrRawScales() {
+        val history=GraphHistoryBuffer()
+        val originals=(0..150).map { second ->
+            point(second*1000L,0.0,power=when(second) {
+                140->210.0;142,143->0.0;145->null;147->300.0;else->200.0
+            },breaks=if(second==147) 4 else 0)
+        }
+        originals.forEach(history::append)
+        val frame=history.frame(1,640)
+        GraphWindow.entries.filter { it!=GraphWindow.FULL }.forEach { window ->
+            val series=frame.windows.getValue(window).getValue(AnalysisChart.POWER)
+            val points=series.points.associateBy { it.elapsedMs }
+            assertEquals(207.5,points.getValue(140000).values[2]!!,0.0)
+            assertEquals(200.0,points.getValue(141000).values[2]!!,0.0) // Next to a real zero: no blending.
+            assertEquals(0.0,points.getValue(142000).values[2]!!,0.0)
+            assertEquals(0.0,points.getValue(143000).values[2]!!,0.0)
+            assertNull(points.getValue(145000).values[2])
+            assertEquals(200.0,points.getValue(146000).values[2]!!,0.0) // No blend across the explicit break.
+            assertEquals(4,points.getValue(147000).breaks)
+            assertTrue(series.range.high>300.0) // Scale always uses the original peak.
+            assertEquals(150000,series.points.last().elapsedMs)
+            assertTrue(series.points.size>=30) // Stationary distance never collapses the timed window.
+        }
+        assertEquals(210.0,originals[140].values[2]!!,0.0)
+        assertEquals(300.0,originals[147].values[2]!!,0.0)
+    }
     @Test fun severalHoursStayBoundedRetainExtremaZerosAndMissingSections() {
         val h=GraphHistoryBuffer()
         repeat(18_000) { i -> h.append(point(i*1000L,i*10.0,
