@@ -17,15 +17,15 @@ enum class BackupSection(val id: String, val title: Int) {
     RECORDING("recordingFit", R.string.backup_recording), MAPS("mapsNavigation", R.string.backup_maps),
     PROFILE("riderProfile", R.string.rider_profile), CLOUD("cloudSettings", R.string.backup_cloud)
 }
-enum class BackupProblem { FORMAT, VERSION, INVALID, TOO_LARGE, SELECTION, IO, ROLLBACK }
+enum class BackupProblem { FORMAT, VERSION, INVALID, TOO_LARGE, SELECTION, IO, ROLLBACK, PASSWORD, CREDENTIALS }
 class SettingsBackupFailure(val problem: BackupProblem) : Exception(problem.name)
-internal data class SettingsBackupDocument(val sections: Map<BackupSection, JSONObject>)
-internal data class SettingsRestorePlan(val bike: Map<String, Any?>, val route: Map<String, Any?>, val cloudNeedsPassword: Boolean, val additional:Map<String,Map<String,Any?>> = emptyMap())
+internal data class SettingsBackupDocument(val sections: Map<BackupSection, JSONObject>,val protectedData:ProtectedSettingsData?=null)
+internal data class SettingsRestorePlan(val bike: Map<String, Any?>, val route: Map<String, Any?>, val cloudNeedsPassword: Boolean, val additional:Map<String,Map<String,Any?>> = emptyMap(),val photos:Map<String,ByteArray?> = emptyMap())
 
 /** Explicit public schema; never serialize preferences.all, files, pairing or credentials. */
 internal class SettingsBackup(private val bike: SharedPreferences, private val route: SharedPreferences,
-    private val themes: ThemeManager, private val today: () -> LocalDate = LocalDate::now, private val context:Context?=null) {
-    constructor(context: Context, themes: ThemeManager) : this(context.getSharedPreferences("bike", 0), context.getSharedPreferences("route-export", 0), themes,context=context)
+    private val themes: ThemeManager, private val today: () -> LocalDate = LocalDate::now, private val context:Context?=null,private val secretKeys:((String)->javax.crypto.SecretKey)?=null) {
+    constructor(context: Context, themes: ThemeManager,secretKeys:((String)->javax.crypto.SecretKey)?=null) : this(context.getSharedPreferences("bike", 0), context.getSharedPreferences("route-export", 0), themes,context=context,secretKeys=secretKeys)
     companion object { const val MAX_BYTES = 262144; const val FORMAT = "bicycle-settings"; const val VERSION = 1 }
     private fun fail(reason: BackupProblem = BackupProblem.INVALID): Nothing = throw SettingsBackupFailure(reason)
     private fun check(ok: Boolean) { if (!ok) fail() }
@@ -78,7 +78,9 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
             } }).put("trendEnabled",TrendIndicatorSettings.read(bike).enabled).put("trendDisabledFields",jsonArray(TrendIndicatorSettings.read(bike).disabled.sorted())).put("catalog",bike.getString(DashboardPages.KEY,null) ?: JSONObject.NULL).put("activePage",bike.getInt("dashboardPage",0)).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null),bike.getStringSet("recordMetadata",null)).let {
                 JSONObject().put("fields", jsonArray(it.fields.sorted())).put("metadata",jsonArray(it.metadata.map { field -> field.name })).put("speedSource",it.speedSource).put("distanceSource",it.distanceSource).put("localSaveEnabled",route.getBoolean("save",true)) }
-            BackupSection.MAPS -> JSONObject().put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
+            BackupSection.MAPS -> JSONObject().put("zoom",bike.getInt("mapZoom",16)).put("latitude",bike.getFloat("mapLatitude",51f).toDouble()).put("longitude",bike.getFloat("mapLongitude",10f).toDouble())
+                .put("displayFitId",bike.getString("displayFitId","")).put("displayGpxId",bike.getString("displayGpxId",""))
+                .put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
                 .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true)).put("oval",bike.getBoolean(MapOvalAnchor.preference,false))
                 .put("showTrack",bike.getBoolean("mapTrackVisible",true)).put("showGpx",bike.getBoolean("mapGpxVisible",true))
                 .put("elevationCorrection",bike.getBoolean(FitElevationCorrection.preference,false))
@@ -260,6 +262,11 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     if(row.has("localSaveEnabled")) r["save"]=boolean(row,"localSaveEnabled")
                 }
                 BackupSection.MAPS -> {
+                    if(row.has("zoom")) b["mapZoom"]=integer(row,"zoom").also { check(it in 2..22) }
+                    listOf("latitude" to -85.0..85.0,"longitude" to -180.0..180.0).forEach { (key,range) -> if(row.has(key)) {
+                        val value=row.getDouble(key);check(value.isFinite() && value in range);b[if(key=="latitude") "mapLatitude" else "mapLongitude"]=value.toFloat()
+                    } }
+                    listOf("displayFitId","displayGpxId").forEach { key -> if(row.has(key)) b[key]=field(row,key,128).also { check(it.isEmpty() || it.matches(Regex("(recorded|imported)-[a-f0-9]{64}|[a-f0-9-]{36}"))) } }
                     if(row.has("routeStyles")) b[MapRouteStyles.key]=MapRouteStyles.validate(row.getJSONObject("routeStyles")).toString()
                     if(row.has("source")) b["mapSource"]=field(row,"source",30).also { v -> check(MapSource.entries.any { it.name==v }) }
                     mapOf("night" to "mapNight","follow" to "mapFollow","heading" to "mapHeading","oval" to MapOvalAnchor.preference,"showTrack" to "mapTrackVisible","showGpx" to "mapGpxVisible","elevationCorrection" to FitElevationCorrection.preference).forEach { (public,key) -> if(row.has(public)) b[key]=boolean(row,public) }
@@ -306,7 +313,8 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 }
             }
         } catch(_:Exception) { fail() }
-        return SettingsRestorePlan(b.toMap(),r.toMap(),needsPassword || additionalNeedsSecret,extra.toMap())
+        val plan=SettingsRestorePlan(b.toMap(),r.toMap(),needsPassword || additionalNeedsSecret,extra.toMap())
+        return if(context!=null && doc.protectedData!=null) SettingsPrivateData(context,secretKeys).plan(doc,selected,plan) else plan
     }
     /** Prepare/validate all sections first. Each preferences file commits atomically; failures roll back changed keys only. */
     fun apply(plan: SettingsRestorePlan) {
@@ -320,13 +328,22 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
             changes[target]=changes[target].orEmpty()+values
         }
         val before=changes.mapValues { (prefs,values) -> values.keys.associateWith { prefs.all[it] } }
+        val photos=plan.photos.mapKeys { (id,_) -> require(BikeIdentities.valid(id));java.io.File(context!!.filesDir,"bike-photos/by-id-$id.webp") }
+        val oldPhotos=photos.keys.associateWith { file -> if(file.isFile) file.readBytes().also { require(it.size<=SettingsArchive.MAX_PHOTO) } else null }
+        fun writePhoto(file:java.io.File,bytes:ByteArray?) {
+            val atomic=android.util.AtomicFile(file)
+            if(bytes==null) { atomic.delete();return }
+            file.parentFile!!.mkdirs();val output=atomic.startWrite()
+            try { output.write(bytes);atomic.finishWrite(output) } catch(e:Exception) { atomic.failWrite(output);throw e }
+        }
         fun write(p:SharedPreferences, values:Map<String,Any?>):Boolean {
             val e=p.edit();values.forEach { (k,v) -> when(v) { null->e.remove(k);is Boolean->e.putBoolean(k,v);is String->e.putString(k,v);is Int->e.putInt(k,v);is Float->e.putFloat(k,v);is Long->e.putLong(k,v);is Set<*>->e.putStringSet(k,v.filterIsInstance<String>().toSet());else->fail() } };return e.commit()
         }
-        try { changes.forEach { (prefs,values) -> if(!write(prefs,values)) fail(BackupProblem.IO) } }
+        try { changes.forEach { (prefs,values) -> if(!write(prefs,values)) fail(BackupProblem.IO) };photos.forEach(::writePhoto) }
         catch(_:Exception) {
-            val restored=before.map { (prefs,values) -> runCatching { write(prefs,values) }.getOrDefault(false) }.all { it }
-            fail(if(restored) BackupProblem.IO else BackupProblem.ROLLBACK)
+            val restoredPrefs=before.map { (prefs,values) -> runCatching { write(prefs,values) }.getOrDefault(false) }.all { it }
+            val restoredPhotos=oldPhotos.map { (file,bytes) -> runCatching { writePhoto(file,bytes) }.isSuccess }.all { it }
+            fail(if(restoredPrefs && restoredPhotos) BackupProblem.IO else BackupProblem.ROLLBACK)
         }
     }
 }

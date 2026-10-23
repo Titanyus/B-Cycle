@@ -17,6 +17,8 @@ dependencies {
     implementation("com.garmin:fit:21.218.0")
     // Android URLConnection rejects PROPFIND/MKCOL; WebDAV needs a full HTTP client.
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Standard password-protected AES ZIP; java.util.zip cannot encrypt archives.
+    implementation("net.lingala.zip4j:zip4j:2.11.5")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("com.squareup.okhttp3:okhttp-tls:4.12.0")
     testImplementation("junit:junit:4.13.2")

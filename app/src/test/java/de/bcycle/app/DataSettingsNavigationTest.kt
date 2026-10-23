@@ -178,6 +178,14 @@ class DataSettingsNavigationTest {
             assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
+    private val archivePassword="Test-Sicherungspasswort 2026"
+    private fun password(create:Boolean) {
+        val screen=latest()
+        screen.window!!.decorView.findViewWithTag<EditText>("backup_password").setText(archivePassword)
+        if(create) screen.window!!.decorView.findViewWithTag<EditText>("backup_password_confirm").setText(archivePassword)
+        click(screen,"backup_password_submit")
+        waitFor { !screen.isShowing }
+    }
     @Test fun backupSelectionAndSafCancelWriteNoSettingsAndConfirmationIsRequiredForRestore() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         val provider=Robolectric.buildContentProvider(SettingsProvider::class.java).create("settings-test").get()
@@ -189,21 +197,27 @@ class DataSettingsNavigationTest {
             click(choice,"backup_none");assertFalse(choice.window!!.decorView.findViewWithTag<Button>("backup_execute").isEnabled)
             click(choice,"backup_all");assertTrue(choice.window!!.decorView.findViewWithTag<Button>("backup_execute").isEnabled)
             val original=prefs.all.toMap();click(data,"data_BACKUP");assertEquals(original,prefs.all)
-            click(data,"data_BACKUP");val export=latest();export.window!!.decorView.findViewWithTag<Button>("backup_execute").performClick()
+            click(data,"data_BACKUP");val export=latest();export.window!!.decorView.findViewWithTag<Button>("backup_execute").performClick();password(true)
             val create=shadowOf(activity).nextStartedActivityForResult
             assertEquals(Intent.ACTION_CREATE_DOCUMENT,create.intent.action);assertEquals(12,create.requestCode)
             assertTrue(create.intent.getStringExtra(Intent.EXTRA_TITLE)!!.startsWith("BICYCLE_Settings_"))
             result(activity,12,android.app.Activity.RESULT_CANCELED,null);assertEquals(original,prefs.all)
-            click(data,"backup_execute");shadowOf(activity).nextStartedActivityForResult
+            click(data,"backup_execute");password(true);shadowOf(activity).nextStartedActivityForResult
             shadowOf(Looper.getMainLooper()).idle()
             val uri=Uri.parse("content://settings-test/document")
             result(activity,12,android.app.Activity.RESULT_OK,Intent().setData(uri))
             waitFor { provider.file.isFile && provider.file.length()>0 }
-            val bytes=provider.file.readBytes();assertEquals(6,SettingsBackup(activity,RideRuntime.get(activity).themes).decode(bytes).sections.size)
+            val bytes=provider.file.readBytes();assertTrue(SettingsArchive.isZip(bytes));assertEquals(6,SettingsArchive(activity).read(bytes,archivePassword.toCharArray()).sections.size)
             prefs.edit().putBoolean(ModeGlowSettings.key,true).commit()
             click(data,"data_RESTORE");val open=shadowOf(activity).nextStartedActivityForResult
             assertEquals(Intent.ACTION_OPEN_DOCUMENT,open.intent.action);assertEquals(13,open.requestCode)
             result(activity,13,android.app.Activity.RESULT_OK,Intent().setData(uri))
+            waitFor { latest().window!!.decorView.findViewWithTag<View>("settings_archive_password")!=null }
+            val unlock=latest();val beforeUnlock=prefs.all.toMap()
+            val input=unlock.window!!.decorView.findViewWithTag<EditText>("backup_password")
+            input.setText("falsches Passwort");click(unlock,"backup_password_submit")
+            waitFor { input.error!=null };assertTrue(unlock.isShowing);assertEquals(beforeUnlock,prefs.all)
+            password(false)
             waitFor { latest().isShowing && latest()!==data && latest().window!!.decorView.findViewWithTag<View>("backup_selection")!=null }
             val restore=latest();click(restore,"backup_none");assertFalse(restore.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled)
             (restore.window!!.decorView.findViewWithTag<View>("backup_designUi") as CheckBox).isChecked=true
@@ -224,16 +238,16 @@ class DataSettingsNavigationTest {
             val activity=old.get();val (_,data)=open(activity)
             click(data,"data_BACKUP");val choice=latest();click(choice,"backup_none")
             (choice.window!!.decorView.findViewWithTag<View>("backup_dashboard") as CheckBox).isChecked=true
-            choice.window!!.decorView.findViewWithTag<Button>("backup_execute").performClick()
+            choice.window!!.decorView.findViewWithTag<Button>("backup_execute").performClick();password(true)
             assertEquals(Intent.ACTION_CREATE_DOCUMENT,shadowOf(activity).nextStartedActivityForResult.intent.action)
             old.saveInstanceState(state)
         } finally { old.pause().stop().destroy() }
-        assertNotNull(state.getByteArray("settingsBackupPendingExport"))
+        assertNotNull(state.getString("settingsBackupPendingFile"));assertNull(state.getByteArray("settingsBackupPendingExport"))
         val fresh=Robolectric.buildActivity(MainActivity::class.java).setup(state)
         try {
             val activity=fresh.get();result(activity,12,android.app.Activity.RESULT_OK,Intent().setData(Uri.parse("content://settings-test/document")))
             waitFor { provider.file.isFile && provider.file.length()>0 }
-            val doc=SettingsBackup(activity,RideRuntime.get(activity).themes).decode(provider.file.readBytes())
+            val doc=SettingsArchive(activity).read(provider.file.readBytes(),archivePassword.toCharArray())
             assertEquals(setOf(BackupSection.DASHBOARD),doc.sections.keys)
             waitFor { latest().isShowing && latest().window!!.decorView.findViewWithTag<View>("data_settings")!=null }
         } finally { fresh.pause().stop().destroy() }

@@ -42,6 +42,17 @@ class RideDirectoryBackupTest {
         return id to journal
     }
     private fun parent(c:Context)=FileBackupDirectory(File(c.cacheDir,"destination-"+UUID.randomUUID()).apply { mkdirs() })
+    @Test fun protectedSettingsUseStandardZipAndRideRestoreStillReadsIndividualFits() {
+        val source=Library(context());recording(source)
+        val destination=parent(source.c);val password="Fahrten Sicherung Test 2026".toCharArray()
+        val report=source.backup.export(destination,password);val folder=destination.child(report.folder,false)
+        assertTrue(folder.entries().any { it.name=="settings.zip" });assertFalse(folder.entries().any { it.name=="settings.json" })
+        assertTrue(runCatching { source.backup.settings(folder) }.exceptionOrNull() is SettingsPasswordRequired)
+        val document=source.backup.settings(folder,password)
+        assertNotNull(document.protectedData)
+        val target=Library(context());val restored=target.backup.restore(folder)
+        assertEquals(1,restored.completed);assertEquals(0,restored.failed)
+    }
     @Test fun completeFitGpxSummarySettingsAndBikeIdentitiesRoundTripWithoutInventingRecordsOrUploads() {
         val source=Library(context());val target=Library(context())
         val prefs=source.c.getSharedPreferences("bike",0);val bikes=BikeProfileStore(source.c,prefs)

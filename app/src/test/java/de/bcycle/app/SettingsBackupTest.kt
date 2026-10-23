@@ -23,7 +23,7 @@ class SettingsBackupTest {
     private fun backup(b:SharedPreferences=bike,r:SharedPreferences=route)=SettingsBackup(b,r,ThemeManager(b))
     private fun seed() {
         bike.edit().putString("address","AA:BB:CC:DD:EE:FF").putString("heartAddress","SENSOR-PRIVATE").putString("name","PRIVATE BIKE")
-            .putBoolean("recordPermissionsAsked",true).putFloat("mapLatitude",51f).putFloat("mapLongitude",10f).putString("displayFitId","PRIVATE FIT")
+            .putBoolean("recordPermissionsAsked",true).putFloat("mapLatitude",51f).putFloat("mapLongitude",10f).putString("displayFitId","recorded-"+"a".repeat(64))
             .putStringSet("recordFields",setOf("RIDER_POWER","ESTIMATED_FTP")).putString("recordSpeed","GPS_SPEED").putString("recordDistance","GPS_DISTANCE")
             .putString("dashboard",DashboardLayout.defaults.replace(0,DashboardField("HEART_RATE")).encode()).putString("dashboardTemplate_0","HERO")
             .putString("mapDataField_1","GPS_ELAPSED_TIME").putBoolean("mapNight",true).putBoolean(ModeGlowSettings.key,true).commit()
@@ -91,7 +91,7 @@ class SettingsBackupTest {
         b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.MAPS)))
         assertTrue(FitElevationCorrection.enabled(context))
     }
-    @Test fun exportsEachOrAllSectionsWithPublicMetadataAndNoFilesDevicesPermissionsSecretsOrPaths() {
+    @Test fun exportsEachOrAllSectionsWithPublicMetadataAndNoCredentialsOrPermissionGrants() {
         seed();val b=backup()
         for(section in BackupSection.entries) {
             val root=json(b.export(setOf(section)));assertEquals(setOf(section.id),root.getJSONObject("sections").keys().asSequence().toSet())
@@ -99,7 +99,7 @@ class SettingsBackupTest {
             assertTrue(root.has("createdAt"));assertEquals(AppVersion.name,root.getString("appVersion"))
         }
         val bytes=b.export(BackupSection.entries.toSet());val text=String(bytes,Charsets.UTF_8)
-        for(secret in listOf("AA:BB","SENSOR-PRIVATE","PRIVATE BIKE","PRIVATE FIT","SECRET","DEVICE-SPECIFIC","permissions","Latitude","Longitude","password","token"))
+        for(secret in listOf("AA:BB","SENSOR-PRIVATE","PRIVATE BIKE","PRIVATE FIT","SECRET","DEVICE-SPECIFIC","permissions","password","token"))
             assertFalse(secret,text.contains(secret,ignoreCase=true))
         assertEquals(6,b.decode(bytes).sections.size)
         assertEquals(75.5,json(bytes).getJSONObject("sections").getJSONObject("riderProfile").getDouble("weightKg"),0.0)

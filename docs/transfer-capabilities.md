@@ -23,7 +23,7 @@ zur selben Implementierungsänderung:
    Aktivierungsbedingungen und Hilfetexte aktualisieren.
 3. Neue/geänderte gespeicherte öffentliche Einstellungen in Export und Import der
    Einstellungssicherung berücksichtigen, einschließlich Profilumfang, Standardwerten
-   und Migration. Keine geheimen Zugangsdaten oder Android-Berechtigungen exportieren.
+   und Migration. Zugangsdaten ausschließlich im ausdrücklich passwortverschlüsselten AES-256-ZIP sichern; öffentliches altes JSON bleibt geheimnisfrei. Android-Berechtigungen nicht exportieren. Siehe [Einstellungssicherung](settings-archive.md).
 4. Dokumentation und relevante Prüfungen entsprechend anpassen.
 
 Dabei Dateiformate, verfügbare Messwerte/Metadaten, Herkunftsgrenzen und den Unterschied

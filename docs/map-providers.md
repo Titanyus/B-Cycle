@@ -15,7 +15,7 @@ Wird eine OpenCycleMap-Einstellung ohne lokalen Schlüssel wiederhergestellt,
 verwendet die Darstellung CyclOSM. Kein schlüsselloser Thunderforest-Request.
 
 Speicherung ausschließlich in den privaten App-Einstellungen map-provider.
-Keine Aufnahme in die explizite Einstellungssicherung; Android-Backup ist für
+Nur im passwortgeschützten AES-256-ZIP der Einstellungssicherung enthalten, nie im öffentlichen JSON; Android-Backup ist für
 die App bereits deaktiviert. Kein Schlüssel in URLs der Konfiguration, Dateinamen
 oder eigenen Diagnosemeldungen. Formatprüfung ist keine serverseitige
 Authentifizierungsprüfung. Nachtansicht und Track-/Positionslayer bleiben erhalten.

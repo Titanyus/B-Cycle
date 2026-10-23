@@ -24,14 +24,17 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
         checkStop();require(source.isFile && source.length() in 1..FitRead.MAX_BYTES)
         directory.write(name,source);return descriptor(name,source)
     }
-    fun export(parent:BackupDirectory,progress:(Int)->Unit={}):RideBackupResult {
+    fun export(parent:BackupDirectory,password:CharArray?=null,progress:(Int)->Unit={}):RideBackupResult {
         val folder="Bicycle-Backup-"+Instant.now().toString().replace(':','-').replace('.','-')+"-"+UUID.randomUUID().toString().take(8)
         val directory=parent.child(folder,true)
         val temporary=java.nio.file.Files.createTempDirectory(context.cacheDir.toPath(),"ride-backup-").toFile()
         val entries=JSONArray();val failed=JSONArray()
         try {
-            val settings=File(temporary,"settings.json").apply { writeBytes(SettingsBackup(context,ThemeManager(context.getSharedPreferences("bike",0))).export(BackupSection.entries.toSet())) }
-            val settingsInfo=send(directory,"settings.json",settings)
+            val settingsName=if(password==null) "settings.json" else "settings.zip"
+            val settings=File(temporary,settingsName).apply { writeBytes(if(password==null)
+                SettingsBackup(context,ThemeManager(context.getSharedPreferences("bike",0))).export(BackupSection.entries.toSet())
+                else SettingsArchive(context).export(BackupSection.entries.toSet(),password)) }
+            val settingsInfo=send(directory,settingsName,settings)
             val names=RideNames.allNames(context)
             fun row(id:String,name:String,kind:String,origin:TrackOrigin,details:RouteDetails,files:()->JSONObject) {
                 checkStop()
@@ -114,11 +117,11 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
             require(it.getJSONArray("rides").length()<=20000)
         }
     }
-    fun settings(directory:BackupDirectory):SettingsBackupDocument {
+    fun settings(directory:BackupDirectory,password:CharArray?=null):SettingsBackupDocument {
         val temporary=File.createTempFile("backup-settings-",".json",context.cacheDir)
         try {
-            fetch(directory,index(directory).getJSONObject("settings"),temporary,SettingsBackup.MAX_BYTES.toLong())
-            return SettingsBackup(context,ThemeManager(context.getSharedPreferences("bike",0))).decode(temporary.readBytes())
+            fetch(directory,index(directory).getJSONObject("settings"),temporary,SettingsArchive.MAX_BYTES.toLong())
+            return SettingsArchive(context).read(temporary.readBytes(),password)
         } finally { temporary.delete() }
     }
     fun restore(directory:BackupDirectory,progress:(Int)->Unit={}):RideBackupResult {

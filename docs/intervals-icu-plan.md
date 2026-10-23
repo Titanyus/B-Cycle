@@ -37,9 +37,7 @@ aktivierten Dienste den aktuellen Dateistand erfolgreich übertragen haben.
 
 API-Schlüssel und WebDAV-Passwort nutzen denselben AES-GCM-Helfer mit getrennten
 Android-Keystore-Schlüsseln. Bestehende WebDAV-Verschlüsselung/Format bleiben
-kompatibel. intervals.icu-Zugangsdaten und Konfiguration sind derzeit nicht Teil
-der manuellen Einstellungssicherung; Android-Backups schließen App-Daten weiter
-wie bisher aus. Erfolgsbelege enthalten keine Zugangsdaten. Keine zusätzlichen
+kompatibel. intervals.icu-Konfiguration und Zugangsdaten sind seit Stand nach Build 70 im passwortgeschützten AES-256-ZIP der manuellen Einstellungssicherung enthalten (docs/settings-archive.md); altes öffentliches JSON enthält keine Zugangsdaten. Android-Backups schließen App-Daten weiter wie bisher aus. Erfolgsbelege enthalten keine Zugangsdaten. Keine zusätzlichen
 Bibliotheken erforderlich. Der direkte Anbieter-/Dokumentationszugriff ist hier
 per Netzwerkregel blockiert; Tests nutzen lokale HTTP-Testserver, keinen echten
 Upload. Quellenlink zentral unter Erweitert → Quellen & Dienste.

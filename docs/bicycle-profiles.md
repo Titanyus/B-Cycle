@@ -30,7 +30,7 @@ Bei der ersten Migration erhalten alle vorhandenen Fahrräder dieselben bisherig
 
 Auch gewählte Karte, Nachtansicht, Ausrichtung, Ovalmodus, Zoom/Kameraposition, Höhenkorrektur und die ausgewählte FIT-/GPX-Kartenstrecke sind profilbezogen. Dateizugriffe bleiben auf dem bestehenden Kartenworker. Fehlende/gelöschte Streckendateien erzeugen keine erfundenen Routen.
 
-**Global bleiben** Fahrerprofil, Benachrichtigungen, Streckenarchiv, Upload-Konfiguration/-Zugangsdaten und Kartenanbieter-Schlüssel. Die vorhandene selektive Einstellungssicherung betrifft weiterhin das aktive Profil; Gerätezuordnungen werden dadurch nicht exportiert. Konten und Gerätezuordnungen gehören nicht in die UI-Snapshots.
+**Global bleiben** Fahrerprofil, Benachrichtigungen, Streckenarchiv, Upload-Konfiguration/-Zugangsdaten und Kartenanbieter-Schlüssel. Die selektive Einstellungssicherung enthält im Bereich Profil inzwischen alle aktiven/inaktiven Profile samt bestätigten Gerätezuordnungen, portablen UUIDs und UI-Snapshots; neue verschlüsselte ZIPs zusätzlich die Bilder. Siehe docs/settings-archive.md. Konten und Gerätezuordnungen gehören nicht in die UI-Snapshots.
 
 Profilwechsel, Übernahme, Hinzufügen, Löschen und Umsortieren bleiben während Aufnahme/Speichern gesperrt. Nach einem Rebuild dürfen ausstehende Spinner-Callbacks keine alte Konfiguration zurückschreiben.
 
@@ -59,9 +59,7 @@ Ein gemeinsamer Fullscreen-Header, keine zusätzliche Footer-Navigation.
   Reskalierung bereits fertiger Bosch-Geschwindigkeits-/Distanzdaten.
 - Radumfang 500–4000 mm als Profilwert, noch kein zusätzlicher Radsensor-Decoder.
   Ungültige Eingaben überschreiben nicht den zuletzt gültigen Wert.
-- Der vorhandene explizite Einstellungsbackup exportiert weiter die aktive
-  FIT-Auswahl. Lokale Sensorzuordnungen werden weiterhin nicht exportiert; kein
-  unkontrolliertes Serialisieren der vollständigen Profil-Preferences in Backups.
+- Einstellungssicherung: aktive FIT-Auswahl plus alle Fahrradprofile samt Sensorzuordnung und UI-/Karten-Snapshots im Profilbereich; seit Stand nach Build 70 Bilder und Dienstzugänge im passwortgeschützten ZIP. Kein unkontrolliertes Serialisieren vollständiger Preferences. Details docs/settings-archive.md.
 
 `BikeProfileStore` hält die Profile mit stabiler Kennung versioniert und spiegelt nur das aktive
 Profil in die bisherigen Runtime-/Backup-Schlüssel. Bestehende Restore-Aufrufe auf

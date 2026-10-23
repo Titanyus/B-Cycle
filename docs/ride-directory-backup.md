@@ -18,7 +18,7 @@ während Aufnahme, Speichern oder anderer Bibliotheksverarbeitung ist sie gesper
 | GPX-Fahrt | Unverändertes `<id>.gpx` und daraus erzeugtes `<id>.fit` mit tatsächlich verfügbaren unterstützten GPX-Werten |
 | Dreeve-Zusammenfassung ohne Track | `<id>.summary.json`, keine erfundenen FIT-Messpunkte |
 | Jede Fahrt | `<id>.ride.json` mit Name, Herkunft, Details, bestätigten Dienstverknüpfungen, Fahrradzuordnung und Dateiprüfsummen |
-| Einstellungen | `settings.json` mit allen sechs bisherigen Sicherungsbereichen und ergänzter öffentlicher Konfiguration |
+| Einstellungen | `settings.zip`, passwortverschlüsselt mit AES-256, alle sechs Bereiche einschließlich Zugangsdaten/Bildern; alte `settings.json` weiterhin lesbar |
 | Fahrradbilder | `bike-<uuid>.webp` |
 | HRV-Messung | `hrv-<uuid>.json` mit Rohpaketen, RR-/NN-Folgen, Ergebnis und Qualitätsangaben |
 | Abschluss | `bicycle-backup.json` als Inhaltsverzeichnis, einschließlich fehlgeschlagener Fahrten |
@@ -32,8 +32,8 @@ Dienstuploads verwenden weiterhin die bisherige gefilterte FIT-Version.
 ## Wiederherstellen
 
 1. **Einstellungen aus Sicherungsordner wiederherstellen** wählen und die gewünschten
-   Bereiche im bestehenden Bestätigungsdialog übernehmen.
-2. Zugangsdaten und notwendige Android-Berechtigungen erneut einrichten.
+   Bereiche nach Eingabe des Sicherungspassworts im bestehenden Bestätigungsdialog übernehmen.
+2. Notwendige Android-Berechtigungen erneut erteilen; lokale Ordner ggf. neu auswählen. Zugangsdaten werden aus neuen ZIP-Sicherungen wiederhergestellt; alte JSON-Sicherungen enthalten sie nicht.
 3. **Fahrten aus Sicherungsordner importieren** wählen und bestätigen.
 
 Direkt einen Sicherungsordner oder dessen Elternordner auswählen. Bei mehreren
@@ -58,13 +58,14 @@ Die bestehende bereichsweise JSON-Sicherung wurde um folgende zuvor fehlende Dat
 - Benachrichtigungsauswahl, Position und Dauer sowie Schalter/Ziel der Fahrten-Sicherung.
 - Öffentliche intervals.icu-, Dreeve- und Strava-Konfiguration.
 
-Diese Ergänzungen sind optional im bestehenden Format; alte Backups bleiben lesbar.
-Profilbilder sind binäre Dateien und nur in der vollständigen Verzeichnissicherung
-enthalten. Passwörter, API-/OAuth-Schlüssel, Android-Keystore-Geheimnisse und
-Berechtigungsfreigaben werden bewusst nicht exportiert. Dienste ohne passende lokal
-vorhandene Zugangsdaten bleiben nach der Wiederherstellung ausgeschaltet. Bei geändertem
-Konto/Ziel werden alte Zugangsdaten nicht übernommen. Historische Uploadwarteschlangen,
-Live-Sensorzustand und flüchtige Kartenansichten gehören nicht zur Sicherung.
+Diese Ergänzungen bleiben im öffentlichen JSON-Schema optional; alte Backups bleiben lesbar.
+Seit dem Stand nach Build 70 enthält jede von der UI gestartete vollständige Sicherung
+stattdessen eine passwortgeschützte `settings.zip`: einschließlich Passwörtern, API-/OAuth-
+Zugangsdaten und Fahrradbildern. Die Passwortabfrage erfolgt vor dem Start. Keystore-
+Schlüssel und Android-Berechtigungen werden nicht übertragen. FIT-/GPX-/HRV-Dateien,
+Manifest und die separaten Fahrradbilder im Sicherungsordner bleiben unverschlüsselt.
+Details, Umfang und Abgrenzung: [Einstellungssicherung](settings-archive.md).
+Historische Uploadwarteschlangen und Live-Sensorzustände gehören nicht zur Sicherung.
 
 ## Integrität und Grenzen
 

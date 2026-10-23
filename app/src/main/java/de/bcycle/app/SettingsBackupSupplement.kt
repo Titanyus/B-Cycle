@@ -10,7 +10,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
     private val profileKeys=setOf("slot","name","type","category","wheelMm","autoConnect","gpsEnabled","bikeEnabled","heartEnabled",
         "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
-        BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY)),
+        BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY),"route-export" to setOf("tree")),
         BackupSection.DESIGN to mapOf("ride-backup" to setOf("enabled","target"),"message-notifications" to setOf("enabled","messengerOnly","packages","position","durationSeconds")),
         BackupSection.CLOUD to mapOf("intervals-settings" to setOf("enabled","athlete","wifi"),
             "activity-service-dreeve" to setOf("enabled","wifi","address"),
@@ -51,6 +51,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                         require(a.length()<=500)
                         (0 until a.length()).map { a.getString(it).also { p -> require(p.length in 1..255 && p.matches(Regex("[A-Za-z0-9_.]+"))) } }.toSet()
                     }
+                    "tree" -> (value as String).also { if(it.isNotEmpty()) { val uri=android.net.Uri.parse(it);require(it.length<=8192 && uri.scheme=="content" && !uri.authority.isNullOrBlank() && uri.path.orEmpty().startsWith("/tree/")) } }
                     "target" -> (value as String).also { RideBackupDestination.valueOf(it) }
                     "entries" -> (value as String).also { text ->
                         val all=BackupJson.objectValue(text.toByteArray(Charsets.UTF_8),65536);require(all.length()<=100)
@@ -114,6 +115,20 @@ internal class SettingsBackupSupplement(private val context:Context) {
                 values["recordFields"]=(0 until fields.length()).map(fields::getString).toSet()
                 values["recordMetadata"]=profile.optJSONArray("metadata")?.let { array -> (0 until array.length()).map { array.getString(it) }.toSet() } ?: FitMetadataField.defaults.map { it.name }.toSet()
                 values["recordSpeed"]=profile.getString("speed");values["recordDistance"]=profile.getString("distance")
+                // Restore the active projection too, not just the dormant per-profile bank.
+                (values[BikeUiConfigurationStore.KEY] as? String)?.let { text ->
+                    JSONObject(text).optJSONObject(active.toString())?.let { saved ->
+                        prefs(file).all.keys.filter { BikeUiConfigurationScope.designKey(it)||BikeUiConfigurationScope.mapKey(it) }.forEach { values[it]=null }
+                        saved.keys().forEach { key ->
+                        val item=saved.getJSONObject(key)
+                        values[key]=when(item.getString("type")) {
+                            "string"->item.getString("value");"boolean"->item.getBoolean("value");"int"->item.getInt("value")
+                            "long"->item.getLong("value");"float"->item.getDouble("value").toFloat()
+                            "set"->item.getJSONArray("value").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }
+                            else->error("setting type")
+                        }
+                    } }
+                }
             }
             if(file in setOf("intervals-settings","activity-service-dreeve","activity-service-strava")) {
                 val old=prefs(file)

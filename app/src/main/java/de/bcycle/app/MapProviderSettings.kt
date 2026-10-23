@@ -2,7 +2,7 @@ package de.bcycle.app
 
 import android.content.Context
 
-/** Provider key is private to this install; never part of settings exports or diagnostics. */
+/** Provider key is private to this install; never in public JSON exports or diagnostics; portable only in the password-encrypted archive. */
 internal object MapProviderSettings {
     private val keyPattern=Regex("[A-Fa-f0-9]{32}")
     fun valid(key: String)=keyPattern.matches(key)

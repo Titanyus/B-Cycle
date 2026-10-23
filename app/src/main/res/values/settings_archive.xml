@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_password_title">Sicherung schützen</string>
+    <string name="backup_unlock_title">Sicherung entsperren</string>
+    <string name="backup_password">Sicherungspasswort</string>
+    <string name="backup_password_confirm">Passwort wiederholen</string>
+    <string name="backup_password_hint">Alle ausgewählten Einstellungen, Fahrradbilder und zugehörigen Zugangsdaten werden in einem ZIP mit AES-256 verschlüsselt. Verwende mindestens 12 Zeichen, am besten einen langen Satz. Zum Wiederherstellen brauchst du dieses Passwort; die App speichert es nicht.</string>
+    <string name="backup_unlock_hint">Gib das Passwort dieser ZIP-Sicherung ein. Vor dem Entsperren und Bestätigen werden keine Einstellungen geändert.</string>
+    <string name="backup_password_required">Sicherungspasswort eingeben (höchstens 1024 Zeichen).</string>
+    <string name="backup_password_short">Mindestens 12 und höchstens 1024 Zeichen verwenden.</string>
+    <string name="backup_password_mismatch">Die Passwörter stimmen nicht überein.</string>
+    <string name="backup_password_failed">Passwort falsch oder Sicherung beschädigt.</string>
+    <string name="backup_credentials_failed">Zugangsdaten konnten nicht gelesen werden. Bitte die betroffenen Dienste erneut einrichten und die Sicherung wiederholen.</string>
+    <string name="backup_unlock">Entsperren</string>
+</resources>
