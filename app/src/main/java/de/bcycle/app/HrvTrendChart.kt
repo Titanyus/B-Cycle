@@ -10,8 +10,11 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import android.widget.OverScroller
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityNodeInfo
+import java.time.DayOfWeek
+import java.time.temporal.TemporalAdjusters
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
@@ -31,6 +34,10 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     var axis=HrvTrendAxis(0.0,1.0);private set
     private var selectedId:String?=null
     private var downX=0f;private var downY=0f;private var moved=false
+    private var multiTouch=false
+    private val scroller=OverScroller(context)
+    private var flingX=0
+    private val dateFormat=DateTimeFormatter.ofPattern("dd.MM")
     private val slop=ViewConfiguration.get(context).scaledTouchSlop
     private val density=resources.displayMetrics.density
     private val plotLeft get()=BicycleDesign.dp(context,BicycleDesign.hrvTrendAxisWidth).toFloat()
@@ -38,6 +45,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private fun x(day:LocalDate)=plotLeft+((day.toEpochDay()-(viewport.end-viewport.span))/viewport.span*(plotRight-plotLeft)).toFloat()
     private val scale=ScaleGestureDetector(context,object:ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector:ScaleGestureDetector):Boolean {
+            stopFling()
             viewport.zoom(detector.scaleFactor.toDouble(),((detector.focusX-plotLeft)/(plotRight-plotLeft)).toDouble());changed();return true
         }
     })
@@ -46,6 +54,12 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         override fun onScroll(e1:MotionEvent?,e2:MotionEvent,dx:Float,dy:Float):Boolean {
             if(!scale.isInProgress && moved && e2.pointerCount==1) { viewport.pan(dx/(plotRight-plotLeft)*viewport.span);changed() }
             return true
+        }
+        override fun onFling(e1:MotionEvent?,e2:MotionEvent,velocityX:Float,velocityY:Float):Boolean {
+            if(!moved || multiTouch || scale.isInProgress || abs(velocityX)<=abs(velocityY)) return false
+            flingX=0
+            scroller.fling(0,0,(-velocityX).toInt(),0,Int.MIN_VALUE,Int.MAX_VALUE,0,0)
+            postInvalidateOnAnimation();return true
         }
         override fun onSingleTapUp(e:MotionEvent):Boolean {
             if(moved || e.x !in plotLeft..plotRight) return false
@@ -60,6 +74,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         BicycleComponents.bindTheme(this,themes) { tokens=it;invalidate() }
     }
     fun show(rows:List<HrvTrendPoint>,reset:Boolean=false,axis:HrvTrendAxis=HrvTrendAxis.from(rows,HrvTrendMetric.RMSSD)) {
+        stopFling()
         points=rows;this.axis=axis
         if(reset) viewport.reset(rows.map { it.day })
         if(selectedId==null || rows.none { it.row.id==selectedId }) selectedId=rows.lastOrNull()?.row?.id
@@ -73,15 +88,28 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     }
     override fun performClick():Boolean { super.performClick();return true }
     override fun onTouchEvent(event:MotionEvent):Boolean {
-        if(event.actionMasked==MotionEvent.ACTION_DOWN) { downX=event.x;downY=event.y;moved=false }
-        if(event.actionMasked==MotionEvent.ACTION_POINTER_DOWN) { moved=true;parent?.requestDisallowInterceptTouchEvent(true) }
+        if(event.actionMasked==MotionEvent.ACTION_DOWN) { stopFling();downX=event.x;downY=event.y;moved=false;multiTouch=false }
+        if(event.actionMasked==MotionEvent.ACTION_POINTER_DOWN) { stopFling();multiTouch=true;moved=true;parent?.requestDisallowInterceptTouchEvent(true) }
         if(event.actionMasked==MotionEvent.ACTION_MOVE && abs(event.x-downX)>slop && abs(event.x-downX)>abs(event.y-downY)) {
             moved=true;parent?.requestDisallowInterceptTouchEvent(true)
         }
+        if(event.actionMasked==MotionEvent.ACTION_CANCEL) stopFling()
         scale.onTouchEvent(event);gestures.onTouchEvent(event)
         if(event.actionMasked==MotionEvent.ACTION_UP || event.actionMasked==MotionEvent.ACTION_CANCEL) parent?.requestDisallowInterceptTouchEvent(false)
         return true
     }
+    private fun stopFling() { scroller.forceFinished(true) }
+    override fun computeScroll() {
+        if(!scroller.computeScrollOffset()) return
+        val next=scroller.currX;val dx=next-flingX;flingX=next
+        val before=viewport.end
+        val days=dx/(plotRight-plotLeft)*viewport.span
+        viewport.pan(days)
+        if(dx!=0 && abs(viewport.end-before-days)>1e-6) stopFling()
+        changed()
+        if(!scroller.isFinished) postInvalidateOnAnimation()
+    }
+    override fun onDetachedFromWindow() { stopFling();super.onDetachedFromWindow() }
     override fun onDraw(canvas:Canvas) {
         super.onDraw(canvas)
         val top=16*density;val bottom=(height-32*density).coerceAtLeast(top+1)
@@ -98,13 +126,19 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             canvas.drawText(String.format(java.util.Locale.getDefault(),if(axis.maximum-axis.minimum>=100) "%.0f" else "%.1f",value),plotLeft-8*density,at+4*density,paint)
         }
         paint.textAlign=Paint.Align.CENTER
-        for(i in 0..4) {
-            val first=kotlin.math.ceil(viewport.end-viewport.span).toLong();val last=kotlin.math.floor(viewport.end).toLong()
-            val day=LocalDate.ofEpochDay((viewport.end-viewport.span+viewport.span*i/4).roundToLong().coerceIn(first,last))
-            val at=x(day).coerceIn(plotLeft,plotRight)
-            val label=day.format(DateTimeFormatter.ofPattern("dd.MM"));val half=paint.measureText(label)/2+4*density
-            canvas.drawText(label,at.coerceIn(half,width-half),bottom+24*density,paint)
+        // Calendar-anchored labels move with their Monday bar, including partially clipped labels.
+        val axisSave=canvas.save();canvas.clipRect(plotLeft,bottom,plotRight,height.toFloat())
+        var monday=LocalDate.ofEpochDay(kotlin.math.floor(viewport.end-viewport.span).toLong()-7)
+            .with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY))
+        val last=LocalDate.ofEpochDay(kotlin.math.ceil(viewport.end).toLong()+7)
+        while(!monday.isAfter(last)) {
+            val at=x(monday);val label=monday.format(dateFormat)
+            canvas.drawText(label,at,bottom+24*density,paint)
+            val separator=at-paint.measureText(label)/2-4*density
+            canvas.drawLine(separator,bottom+12*density,separator,bottom+26*density,paint)
+            monday=monday.plusWeeks(1)
         }
+        canvas.restoreToCount(axisSave)
         canvas.save();canvas.clipRect(plotLeft,top,plotRight,bottom)
         bandEdges.reset()
         for(index in 1 until points.size) {
@@ -162,6 +196,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         info.addAction(AccessibilityNodeInfo.AccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD,context.getString(R.string.hrvt_newer)))
     }
     override fun performAccessibilityAction(action:Int,args:Bundle?):Boolean {
+        stopFling()
         when(action) {
             ZOOM_IN->viewport.zoom(2.0,.5)
             ZOOM_OUT->viewport.zoom(.5,.5)

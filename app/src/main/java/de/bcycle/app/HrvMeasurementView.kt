@@ -316,13 +316,16 @@ internal class HrvGraphView(context:Context,themes:ThemeManager):View(context) {
             canvas.drawText("%.0f".format(java.util.Locale.ROOT,high-(high-low)*index/4),left-5*density,y+4*density,paint)
         }
         paint.textAlign=Paint.Align.CENTER;paint.color=BicycleDesign.hrvAxisColor
-        for(at in window.ticks) {
+        val axisSave=canvas.save();canvas.clipRect(left,bottom,right,bottom+24*density)
+        // Include adjacent offscreen ticks so labels leave the plot naturally instead of sticking.
+        for(at in ((window.startMs/10000)*10000)..(window.endMs+10000) step 10000) {
             val x=position(at)
             paint.color=BicycleDesign.dashboardUnitColor;canvas.drawLine(x,bottom,x,bottom+4*density,paint)
             paint.color=BicycleDesign.hrvAxisColor
-            val label=(at/1000).toString();val half=paint.measureText(label)/2
-            canvas.drawText(label,x.coerceIn(left+half,right-half),bottom+18*density,paint)
+            val label=(at/1000).toString()
+            canvas.drawText(label,x,bottom+18*density,paint)
         }
+        canvas.restoreToCount(axisSave)
         canvas.drawText(context.getString(R.string.hrv_time_axis),(left+right)/2,bottom+36*density,paint)
         path.rewind()
         // Retain one point before the clip for a continuous entry at the left edge.

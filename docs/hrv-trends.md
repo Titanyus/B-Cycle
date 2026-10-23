@@ -69,3 +69,25 @@ Jeder verfügbare Tagesbalken erhält oberhalb seinen Zahlenwert in 8 sp, FOREGR
 Randkorrektur: Balken anhand ihrer tatsächlichen Ausdehnung statt nur am Tagesmittelpunkt einbeziehen. Mittelwertsegmente, die den Rand schneiden, bis außerhalb zeichnen und durch Canvas clippen. Dadurch erscheinen Teilbalken/Segmente beim horizontalen Scrollen kontinuierlich. Wertebeschriftungen behalten ihre X-Position statt am Rand festzukleben. Keine Änderung von Daten oder Statistik.
 
 Prüfstand Balkenwerte/Rand: drei gezielte Tests erfolgreich (native Ansicht/Tagesauswahl, echte Pinch-/Wischgesten, Pixelregression für Teilbalken vor Eintritt seines Mittelpunkts am rechten Rand). Native Beschriftung visuell geprüft. Typografie und generierter Atlas konsistent. Keine APK erstellt.
+
+## Wochenbeschriftung und kinetisches Scrollen nach Build 71
+
+X-Achse: Datum an jedem Montag, senkrechter Trennstrich direkt vor dem Datum.
+Montage und Balken teilen dieselbe Kalender-/X-Position; Beschriftungen werden nicht
+an den Rand geschoben oder aus relativen Viertelpunkten neu berechnet. Angrenzende
+Montage außerhalb des Ausschnitts mitzeichnen, X-Achsenbereich horizontal clippen.
+So verlassen auch Teilbeschriftungen links/rechts gleichmäßig den Diagrammbereich.
+
+Horizontales Wischen erhält native OverScroller-Trägheit mit der erkannten
+Loslassgeschwindigkeit und Androids Reibung/Abbremsung. Neue Berührung, Pinch,
+Datensatz-/Kennzahlwechsel, Accessibility-Navigation und Detach stoppen das
+Nachgleiten; Datengrenzen bleiben begrenzt, kein Überschwingen. Nach einer
+Mehrfingergeste kein versehentlicher Fling. Vertikales Seitenscrollen bleibt beim
+Elterncontainer. Zweifinger-Zoom, Tagesauswahl, feste Y-Skala und Statistik unverändert.
+Keine neue Bibliothek und keine zusätzliche Benutzereinstellung. Noch keine neue APK.
+
+Prüfstand: sieben gezielte native Tests erfolgreich, einschließlich Kalenderverankerung und
+starrem Verschieben der Datumswerte, tatsächlich gesetztem Achsen-Clip in beiden
+Diagrammen, Nachgleiten nach Fingerende und Stoppen bei neuer Berührung sowie
+bestehendem Pinch/Drag, Tagesauswahl und Teilbalken. Native Vorschau visuell geprüft;
+Typografie-/Atlasprüfung erfolgreich. Kein Hardwaretest und keine neue APK.

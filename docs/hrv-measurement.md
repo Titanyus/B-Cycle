@@ -117,3 +117,9 @@ Weitere gewünschte Auswertung und recherchierter Vergleich: [HRV-Score und Verl
 ## Tagesbefinden nach gespeicherter Messung
 
 Optionaler Button unten sowie im historischen Ergebnis öffnet den konfigurierbaren Fragebogen. Antworten beeinflussen keine HRV-Messung/Bewertung. Separate atomare Datei, Einstellungssicherung für Fragenauswahl/Geschlecht, vollständige Sicherung und Analyseexport für Antworten. [Details und Prüfungen](hrv-questionnaire.md).
+
+Nach Build 71: Auch die Sekundenbeschriftungen des RR-Messdiagramms bleiben an
+ihrer tatsächlichen Zeitposition. Benachbarte Zehnsekundenmarkierungen außerhalb
+des Fensters mitzeichnen und den gesamten X-Achsenbereich an den Diagrammgrenzen
+clippen; keine am Rand festgehaltenen Texte. Zeitfenster, RR-Pfad, Daten und
+Messungsablauf unverändert. Noch keine neue APK.
