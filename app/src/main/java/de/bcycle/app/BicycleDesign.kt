@@ -33,7 +33,7 @@ object BicycleDesign {
     const val hrvTrendBandDotGapDp=4f
     const val hrvRingWidth=9f*1.35f
     const val hrvPulseSp=90f
-    const val hrvTextOffset=10
+    const val hrvTextOffset=0
     const val hrvActionHorizontalPadding=24
     const val hrvActionVerticalInset=8
     const val hrvTimeSp=18f
@@ -42,7 +42,7 @@ object BicycleDesign {
     val hrvAxisColor=0x80ffffff.toInt()
     const val hrvGlowFadeMs=1500L
     const val hrvGraphWindowMs=60000L
-    const val hrvActionOffset=54
+    const val hrvActionOffset=64
     const val hrvPromptDiameter=300
     const val hrvPromptBlurPx=14f
     const val fastScrollThumbHeight=40f

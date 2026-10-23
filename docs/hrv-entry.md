@@ -46,3 +46,5 @@ Kein neuer Test mit physischem Pulsmesser, Lautsprecher oder Vibrationsmotor. De
 Nachfolgende Erweiterung: „Zur Auswertung“ öffnet nach erfolgreichem Speichern des Tagesbefindens den neuen HRV-Verlauf, statt nur zurückzuspringen. Auch über HRV-Einstellungen → HRV-Auswertung erreichbar. Details [HRV-Auswertung](hrv-trends.md). Diese Ergänzung ist noch nicht in APK 0.8.25 enthalten.
 
 Veröffentlichung: Diese Ergänzung/Korrektur ist in APK **0.8.26 / Build 65** enthalten. [Buildnachweis](build-65.md). Frühere Aussagen zu fehlender neuer APK beschreiben den Stand vor dieser Veröffentlichung.
+
+23.10.2026, weitere Messbildschirm-Korrektur: „Starten“ statt „Messung starten“. Alle Inhalte innerhalb des Kreises (Phasentext, Puls/Einheit, Zeit, Aktionsbutton) gegenüber Build 69 um 10 dp nach unten versetzt. Kreisgeometrie bleibt unverändert.

@@ -52,6 +52,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     var recording = false; private set
     var saving = false; private set
     internal var recordingUpdate: RecordingUpdate? = null; private set
+    internal var pendingRideSummary: RideCompletion? = null; private set
+    internal fun takeRideSummary():RideCompletion? = pendingRideSummary.also { pendingRideSummary=null }
     val recordingStatus get() = recordingUpdate?.let { RecordingStatusText.text(context, it) }
         ?: context.getString(if (recording) R.string.recording_running else R.string.recording_ready)
     var visible = false; private set
@@ -122,6 +124,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private val store = RecordingStore(context, ::recordingChanged)
     internal fun recordingChanged(update: RecordingUpdate) {
         recordingUpdate = update; saving = update.busy
+        if(update is RecordingUpdate.Finished && update.result.rideId!=null) pendingRideSummary=update.result
         if (update is RecordingUpdate.Finished || update is RecordingUpdate.Recovered && update.results.isNotEmpty()) mapState.refreshLibrary()
         notifyChanged()
     }

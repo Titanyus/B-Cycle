@@ -1,8 +1,11 @@
 # Übergabe an einen neuen Chat
 
-Stand: 22.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
+Stand: 23.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
 Arbeitsstand 23.10.2026 nach Build 69 (noch keine neue APK beauftragt): Linien-Glow bei Dashboard-Graphen und Leistungs-/Pulszonen-Verteilungen entfernt, eigentliche Linien/Flächen erhalten. HRV-Tagesangebot wechselt beim Vordergrundstart zum Dashboard (auch aus erhaltenen Einstellungen) und bleibt bis zum Tap auf Herz/Hintergrund wiederkehrend. Neuer lokaler handledDay-Marker statt lastDay; Lifecycle/Zurück verbrauchen nichts. Laufende Aufnahme/Speicherung/HRV und Speicherfehler unterbrechen wir nicht. Details docs/hrv-entry.md. Elf gezielte Tests für Tagesangebot/Lifecycle/RR-Autostart, Sicherung/Signale, glowfreie Dashboard-Kurven und helle/dunkle Leistungs-/Pulszonen erfolgreich. Typografie-/Atlasprüfung und diff --check erfolgreich; kein Hardwaretest und keine neue APK.
+
+
+Weitere Änderungen nach Build 69: kompakter Dashboard-Dialog „Deine Daten“ nach Finished mit gespeicherter Fahrt-ID, fünf unveränderte AnalysisMetricTiles in zwei Zeilen (Distanz/Bewegungszeit/Ø Tempo, Ø Puls/NP). Bestehende MapState-Analyse auf Worker, keine Live-Schätzwerte oder neue Persistenz. Pending-Anzeige in RideRuntime über Hintergrundwechsel erhalten, nach Öffnen verbraucht; keine Zusammenfassung für nicht gespeicherte oder alte wiederhergestellte Fahrten. Statt doppeltem Toast unten Speicherstatus und aktive Uploadziele mit echten, live beobachteten Dienstbelegen (ausstehend/läuft/hochgeladen/fehlgeschlagen). Teilfehler bleiben sichtbar. HRV-Button nun „Starten“, gesamter Kreisinhalt inkl. Button 10 dp nach unten gegenüber Build 69, Ring unverändert. Drei gezielte Tests für gespeicherte Fahrt/Einmalanzeige/Hintergrundwechsel, echte Upload-Belegaktualisierung und native HRV-Darstellung erfolgreich; zwei native Vorschauen geprüft. Typografie-/Atlasprüfung erfolgreich. Keine neue APK angefragt.
 
 
 ## Aktueller Abschluss: APK 0.8.30 / Build 69

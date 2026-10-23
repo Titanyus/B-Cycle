@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ride_summary_title">Deine Daten</string>
+    <string name="ride_summary_loading">Fahrtdaten werden geladen …</string>
+    <string name="ride_summary_load_failed">Kennzahlen konnten nicht geladen werden. Die gespeicherte Fahrt bleibt in der Streckensammlung verfügbar.</string>
+    <string name="ride_summary_saved">Daten gespeichert.</string>
+    <string name="ride_summary_folder">Auch im Zielordner gespeichert.</string>
+    <string name="ride_summary_uploaded">Zu %1$s hochgeladen.</string>
+    <string name="ride_summary_uploading">Upload läuft: %1$s</string>
+    <string name="ride_summary_waiting">Upload ausstehend: %1$s</string>
+    <string name="ride_summary_upload_failed">Upload fehlgeschlagen: %1$s</string>
+</resources>

@@ -26,7 +26,7 @@ Empfangene Pakete: %3$d · ausgewertete RR-Intervalle: %4$d</string>
     <string name="hrv_sensor_used">Verwendeter Pulsmesser: %1$s</string>
     <string name="hrv_sensor_none">nicht verbunden</string>
     <string name="hrv_title">HRV-Messung</string>
-    <string name="hrv_start">Messung starten</string>
+    <string name="hrv_start">Starten</string>
     <string name="hrv_repeat">Erneut messen</string>
     <string name="hrv_abort">Abbruch</string>
     <string name="hrv_rest">Ruhephase</string>

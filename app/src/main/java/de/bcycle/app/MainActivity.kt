@@ -103,6 +103,7 @@ class MainActivity : Activity() {
     private var pendingStart = false
     private var pendingReport: String? = null
     private var displayedRecordingStatus: String? = null
+    private var rideSummaryPosted=false
     private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows() }
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
@@ -313,9 +314,11 @@ class MainActivity : Activity() {
         val message = runtime.recordingStatus
         if (message != displayedRecordingStatus) {
             displayedRecordingStatus = message
-            if (runtime.recordingUpdate?.let(RecordingStatusText::showFeedback) == true)
+            val update=runtime.recordingUpdate
+            if (update?.let(RecordingStatusText::showFeedback) == true && !(update is RecordingUpdate.Finished && update.result.rideId!=null))
                 BicycleFeedback.show(this, message, long = true)
         }
+        offerRideSummary()
         val trainingNow=android.os.SystemClock.elapsedRealtime()
         trainingSnapshot=trainingPresentation.update(runtime.trainingInputs(trainingNow),runtime.riderProfiles.read(),trainingNow)
         dashboard.showTraining(dashboardTrainingHelp.sources(dashboardLayout,dashboardDataVisibility),trainingSnapshot,dashboardTrainingHelp.mode==TrainingHelpMode.ZONE_TWO)
@@ -642,6 +645,26 @@ class MainActivity : Activity() {
                 root.setPadding(0,0,0,0)
                 root.addView(HrvTrendsView(this,runtime.themes,series,::showHrvHistoryResult),LinearLayout.LayoutParams(-1,-2))
             },{ root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
+        }
+    }
+    private fun offerRideSummary() {
+        if(rideSummaryPosted || !runtime.visible || runtime.recording || runtime.saving || runtime.pendingRideSummary==null) return
+        rideSummaryPosted=true
+        dashboardHost.post {
+            rideSummaryPosted=false
+            if(isDestroyed || isFinishing || !runtime.visible || runtime.recording || runtime.saving) return@post
+            val completion=runtime.takeRideSummary() ?: return@post
+            val id=completion.rideId ?: return@post
+            dialogs.closeAll();dailyHrvPrompt?.close();dailyHrvPrompt=null
+            if(dashboardEditing) finishDashboardEditor()
+            setMapFullscreen(false)
+            val content=RideSummaryView(this,runtime.themes,completion)
+            val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY)
+                .setTitle(R.string.ride_summary_title).setView(content).show()
+            val cancel=runtime.mapState.loadAnalysis(id) { result ->
+                if(!isDestroyed && screen.isShowing) result.fold(content::show) { content.loadingFailed() }
+            }
+            dialogs.onDismiss(screen,cancel)
         }
     }
     private fun showHrvHistory() {

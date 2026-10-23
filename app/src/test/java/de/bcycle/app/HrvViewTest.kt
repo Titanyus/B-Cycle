@@ -96,7 +96,7 @@ class HrvViewTest {
             textPaint.getTextBounds("73",0,2,bounds)
             val textLeft=180-(bounds.left+bounds.right)/2f
             fun inkCenter(left:Int,right:Int):Double {
-                val rows=((160+bounds.top)..(160+bounds.bottom)).filter { y -> (left..right).any { x ->
+                val rows=((170+bounds.top)..(170+bounds.bottom)).filter { y -> (left..right).any { x ->
                     val pixel=first.getPixel(x,y)
                     Color.red(pixel)>120 && Color.green(pixel)>120 && Color.blue(pixel)>120
                 } }
@@ -105,7 +105,7 @@ class HrvViewTest {
             assertEquals(inkCenter(textLeft.toInt(),(textLeft+pulseWidth-1).toInt()),
                 inkCenter((textLeft+pulseWidth+4).toInt(),(textLeft+pulseWidth+4+unitWidth).toInt()),2.0)
             val columns=(textLeft.toInt()..(textLeft+pulseWidth).toInt()).filter { x ->
-                ((160+bounds.top)..(160+bounds.bottom)).any { y ->
+                ((170+bounds.top)..(170+bounds.bottom)).any { y ->
                     val pixel=first.getPixel(x,y)
                     Color.red(pixel)>120 && Color.green(pixel)>120 && Color.blue(pixel)>120
                 }
