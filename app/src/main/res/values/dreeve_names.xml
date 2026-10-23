@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dreeve_names_sync">Fahrtnamen synchronisieren</string>
+    <string name="dreeve_names_hint">Aktuelle Dreeve-Namen für alle lokal vorhandenen, verknüpften Fahrten übernehmen. Dabei werden auch eigene lokale Namen ersetzt. Keine Fahrtuploads.</string>
+    <string name="dreeve_names_starting">Namensabgleich wird vorbereitet …</string>
+    <string name="dreeve_names_progress">Fahrtnamen: %1$d von %2$d geprüft</string>
+    <string name="dreeve_names_result">%1$d Namen aktualisiert · %2$d unverändert · %3$d fehlgeschlagen</string>
+    <string name="dreeve_names_interrupted">Abgleich unterbrochen. Bereits übernommene Namen bleiben erhalten.</string>
+</resources>

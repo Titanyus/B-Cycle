@@ -8,6 +8,8 @@ import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
+internal data class DreeveNameSyncResult(val updated:Int,val unchanged:Int,val failed:Int,val interrupted:Boolean=false)
+
 /** Durable, coalesced name changes. Never uploads ride files; manual names always win. */
 internal object RideNames {
     private const val JOB=8305
@@ -88,6 +90,42 @@ internal object RideNames {
         if(!pending) return
         if(scheduler.getPendingJob(JOB)==null) scheduler.schedule(JobInfo.Builder(JOB,ComponentName(c,RideNameService::class.java))
             .setPersisted(true).setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setBackoffCriteria(60000,JobInfo.BACKOFF_POLICY_EXPONENTIAL).build())
+    }
+    /** Explicit pull: Dreeve wins locally, without scheduling any outbound name/file transfers. */
+    fun pullDreeve(c:Context,account:String,localNames:Map<String,String>,exists:(String)->Boolean,
+        cancelled:()->Boolean,read:(RideServiceLink)->String,progress:(Int,Int)->Unit={ _,_-> }):DreeveNameSyncResult=synchronized(workerLock) {
+        fun current()= !cancelled() && ActivityServiceSettings(c,ActivityService.DREEVE).read().identity(ActivityService.DREEVE)==account
+        val links=RideServiceLinks.forAccount(c,RideService.DREEVE,account)
+            .filter { it.rideId in localNames && exists(it.rideId) }.groupBy { it.rideId }.values.map { it.last() }
+        var updated=0;var unchanged=0;var failed=0
+        fun state(all:JSONObject,id:String)=names(all).optJSONObject(id)?.toString() to tasks(all).keys().asSequence()
+            .filter { tasks(all).getJSONObject(it).optString("ride")==id }.sorted()
+            .map { it to tasks(all).getJSONObject(it).toString() }.toList()
+        progress(0,links.size)
+        for(link in links) {
+            if(!current()) return@synchronized DreeveNameSyncResult(updated,unchanged,failed,true)
+            val before=synchronized(lock) { state(data(c),link.rideId) }
+            try {
+                val name=read(link).trim().take(120)
+                require(name.isNotBlank() && name.none(Char::isISOControl))
+                if(!current()) return@synchronized DreeveNameSyncResult(updated,unchanged,failed,true)
+                val changed=synchronized(lock) {
+                    val all=data(c)
+                    check(current() && exists(link.rideId) && link in RideServiceLinks.links(c,link.rideId) && state(all,link.rideId)==before)
+                    val old=names(all).optJSONObject(link.rideId)?.optString("name") ?: localNames.getValue(link.rideId)
+                    names(all).put(link.rideId,JSONObject().put("name",name).put("manual",false))
+                    // Cancel stale writes/reads, including other services, without creating new tasks.
+                    val jobs=tasks(all);jobs.keys().asSequence().toList().filter { jobs.getJSONObject(it).optString("ride")==link.rideId }.forEach(jobs::remove)
+                    save(c,all);old!=name
+                }
+                if(changed) updated++ else unchanged++
+            } catch(_:Exception) {
+                if(!current()) return@synchronized DreeveNameSyncResult(updated,unchanged,failed,true)
+                failed++
+            }
+            progress(updated+unchanged+failed,links.size)
+        }
+        DreeveNameSyncResult(updated,unchanged,failed)
     }
     fun run(c:Context,cancelled:()->Boolean,read:((RideServiceLink)->String)?=null,write:((RideServiceLink,String)->Unit)?=null,
         wait:(Long,()->Boolean)->Boolean=ActivityServiceUploads::waitForConfirmation,round:Int=0):Boolean=synchronized(workerLock) {

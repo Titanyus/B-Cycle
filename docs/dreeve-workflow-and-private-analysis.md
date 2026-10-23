@@ -72,3 +72,13 @@ die ursprünglich unsichtbaren letzten Zeichen werden sichtbar. Schriftgröße u
 Header bleiben unverändert. Ablauf gemäß [gemeinsamer Text-Scroller-Konvention](text-scrollers.md): 3 s Einblenden → 4 s Halt → 4 s Beschleunigen → 18 dp/s → 4 s Abbremsen → 4 s Halt → 3 s Ausblenden → 2 s leer → Wiederholung. Kurze Titel bleiben zentriert; bei deaktivierten Systemanimationen
 gilt die bestehende statische Ellipsenanzeige. Ein nativer Render-Regressionstest
 prüft ausdrücklich ein farbiges Titelende außerhalb des anfänglichen Ausschnitts.
+
+## Manueller Namensabruf nach Build 72
+
+Daten & Speicher → Dreeve → **Fahrtnamen synchronisieren**. Mit konfigurierter Verbindung auch bei ausgeschaltetem Upload-Schalter nutzbar. Explizite Aktion, keine Abfrage beim Öffnen und kein periodischer Job. Vorab sichtbarer Hinweis: Dreeve-Namen ersetzen bewusst auch eigene lokale Namen. Ein Fortschrittsstatus und Zähler für aktualisiert/unverändert/fehlgeschlagen erscheinen in der Dreeve-Gruppe.
+
+Nur lokal vorhandene FIT-/GPX-/Zusammenfassungsfahrten mit bestätigter Verknüpfung zur aktuellen Dreeve-Instanz. Bei mehreren Links einer Fahrt zuletzt bestätigte Dreeve-Aktivität wählen, nur ein Abruf pro lokaler Fahrt. Bestehendes GET /api/v1/activities/{id} verwenden. Ausschließlich Namens-Overlay aktualisieren, weder Fahrtdatei/Metadatenformat ändern noch Uploads oder ausgehende Namensänderungen auslösen. Automatischen Namensworker über dessen workerLock serialisieren; veraltete Namensaufträge der übernommenen Fahrt entfernen, damit kein älterer Titel zurückgeschrieben wird.
+
+Beim Netzwerkabruf lokalen Namens-/Auftragszustand festhalten; bei konkurrierender Bearbeitung Antwort nicht übernehmen und als fehlgeschlagen zählen. Link und lokale Datei vor Schreiben erneut prüfen. Kontowechsel, geänderte Verbindungseinstellungen oder geschlossener Screen brechen weitere Übernahmen ab; bereits erfolgreich übernommene Namen bleiben. Teilfehler stoppen andere Fahrten nicht. Automatischer Abgleich außerhalb dieser ausdrücklich angeforderten Aktion behält bisherige Prioritätsregeln. Keine neue Einstellung, Zugangsdaten bleiben im vorhandenen verschlüsselten Dienstspeicher. IN-/OUT-Hilfe aktualisiert; keine neue APK.
+
+Prüfstand manueller Namensabruf: neun gezielte Tests erfolgreich (bestehender/gezielter Abruf, Quellkonto/Linkauswahl, Dateiexistenz, Konflikte/Abbruch/Teilfehler, keine ausgehenden Namensaufträge, HTTP-Verträge und UI). Typografie-/Atlasprüfung erfolgreich. Kein echter Dreeve-Kontentest und keine APK.

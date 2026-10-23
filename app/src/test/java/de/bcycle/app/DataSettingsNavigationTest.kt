@@ -157,6 +157,24 @@ class DataSettingsNavigationTest {
             assertFalse(ActivityServiceSettings(a,ActivityService.STRAVA).read().enabled)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun dreeveNameSyncIsAnExplicitIndependentActionAndNotShownForStrava() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get();val (_,data)=open(a)
+            click(data,"data_DREEVE")
+            val body=data.window!!.decorView.findViewWithTag<View>("data_details_DREEVE")
+            val button=body.findViewWithTag<Button>("dreeve_names_sync")
+            assertNotNull(button);assertFalse(button.isEnabled)
+            assertEquals("Fahrtnamen synchronisieren",button.text.toString())
+            var actions=0
+            val form=ActivityServiceView(a,ThemeManager(a.getSharedPreferences("test-sync",0)),ActivityService.DREEVE,
+                ActivityServiceConfig(enabled=false,address="https://dreeve.example/"),true,syncNames={actions++}) {}
+            assertTrue(form.nameSync.isEnabled);assertFalse(form.enabled.isChecked)
+            form.nameSync.performClick();assertEquals(1,actions)
+            val strava=data.window!!.decorView.findViewWithTag<View>("data_details_STRAVA")
+            assertNull(strava.findViewWithTag<View>("dreeve_names_sync"))
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun folderPickerReturnsToSameFormAndUpdatesItsSelectedFolder() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {

@@ -1724,8 +1724,41 @@ class MainActivity : Activity() {
     private fun activityServiceSettings(service:ActivityService,owner:AlertDialog?=null):View {
         val settings=ActivityServiceSettings(this,service)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
+        val revision=java.util.concurrent.atomic.AtomicLong()
+        val closed=java.util.concurrent.atomic.AtomicBoolean()
+        var syncing=false
         lateinit var content:ActivityServiceView
-        content=ActivityServiceView(settingsContext,settingsThemes,service,settings.read(),settings.hasSecret()) {
+        content=ActivityServiceView(settingsContext,settingsThemes,service,settings.read(),settings.hasSecret(),syncNames={
+            if(!syncing) {
+                if(runtime.recording || runtime.saving || runtime.mapState.busy) BicycleFeedback.show(this,R.string.ride_backup_busy)
+                else {
+                    val localNames=runtime.mapState.entries.associate { it.id to it.name }
+                    val token=revision.get();syncing=true;content.nameSync.isEnabled=false
+                    BicycleFeedback.update(content.nameSyncStatus,getString(R.string.dreeve_names_starting))
+                    worker.execute {
+                        fun cancelled()=closed.get() || revision.get()!=token
+                        val result=runCatching {
+                            check(settings.dreeveImportConfigured())
+                            val config=settings.read();val account=config.identity(service)
+                            val client=DreeveClient(config,settings.credentials().getString("secret"),::cancelled)
+                            fun exists(id:String)=listOf("fit-library/$id.fit","gpx-library/$id.gpx","dreeve-summaries/$id.json").any { java.io.File(filesDir,it).isFile }
+                            RideNames.pullDreeve(applicationContext,account,localNames,::exists,::cancelled,{ client.activityName(it.activityId) }) { done,total ->
+                                runOnUiThread { if(!closed.get() && !isDestroyed) BicycleFeedback.update(content.nameSyncStatus,getString(R.string.dreeve_names_progress,done,total)) }
+                            }
+                        }
+                        runOnUiThread {
+                            syncing=false
+                            if(!closed.get() && !isDestroyed) {
+                                content.nameSync.isEnabled=settings.dreeveImportConfigured()
+                                val text=result.fold({ report -> getString(R.string.dreeve_names_result,report.updated,report.unchanged,report.failed)+
+                                    if(report.interrupted) "\n"+getString(R.string.dreeve_names_interrupted) else "" },{ getString((it as? ActivityServiceFailure)?.problem ?: R.string.service_check_settings) })
+                                BicycleFeedback.update(content.nameSyncStatus,text);refreshDetails();render()
+                            }
+                        }
+                    }
+                }
+            }
+        }) {
             val config=content.config();val secret=content.newSecret();content.busy(true)
             worker.execute {
                 var authorization:android.net.Uri?=null
@@ -1746,10 +1779,10 @@ class MainActivity : Activity() {
                 }
             }
         }
+        if(service==ActivityService.DREEVE) content.nameSync.isEnabled=settings.dreeveImportConfigured()
         ActivityServiceUploads.forService(service).problem(this)?.let { BicycleFeedback.update(content.result,getString(it)) }
         activityServiceView=content
         val screen=owner ?: dataDialog(service.title,ScrollView(settingsContext).apply { addView(content) })
-        val revision=java.util.concurrent.atomic.AtomicLong()
         observeSettings(content) {
             val config=content.config();val secret=content.newSecret();val token=revision.incrementAndGet()
             worker.execute {
@@ -1759,11 +1792,12 @@ class MainActivity : Activity() {
                         val input=if(service==ActivityService.DREEVE) content.address else content.clientId
                         input.error=if(result.isFailure) getString(R.string.service_check_settings) else null
                         content.showAccount(settings.read().account)
+                        if(service==ActivityService.DREEVE) content.nameSync.isEnabled=!syncing && result.isSuccess && settings.dreeveImportConfigured()
                     } }
                 }
             }
         }
-        dialogs.onDismiss(screen) { if(activityServiceView===content) activityServiceView=null;worker.shutdown() }
+        dialogs.onDismiss(screen) { closed.set(true);if(activityServiceView===content) activityServiceView=null;worker.shutdown() }
         return content
     }
     private fun intervalsSettings(owner:AlertDialog?=null):View {

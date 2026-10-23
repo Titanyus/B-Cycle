@@ -51,6 +51,46 @@ class RideNameSyncTest {
         c.getSharedPreferences("activity-service-dreeve",0).edit().putString("address",account).commit()
         assertFalse(RideNames.run(c,{false},write={ target,name->assertEquals(RideService.DREEVE,target.service);assertEquals("Neuer Titel",name) }))
     }
+    @Test fun explicitDreevePullUsesOnlyExistingLinkedRidesAndCancelsStaleWritesWithoutPropagating() {
+        setup();RideNames.manual(c,ride,"Eigener Name")
+        RideServiceLinks.confirm(c,link().copy(activityId="newest"))
+        val imported="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        val deleted="bbbbbbbb-bbbb-cccc-dddd-eeeeeeeeeeee"
+        RideServiceLinks.confirm(c,link().copy(rideId=imported,activityId="imported"))
+        RideServiceLinks.confirm(c,link().copy(rideId=deleted,activityId="deleted"))
+        RideServiceLinks.confirm(c,link().copy(accountId="https://other.example/",activityId="wrong-account"))
+        val calls=mutableListOf<String>();val progress=mutableListOf<Pair<Int,Int>>()
+        val result=RideNames.pullDreeve(c,account,mapOf(ride to "Eigener Name",imported to "Unverändert",deleted to "Alt"),
+            { it!=deleted },{false},{ target -> calls+=target.activityId;if(target.rideId==ride) "Dreeve-Name" else "Unverändert" },{ done,total -> progress+=done to total })
+        assertEquals(DreeveNameSyncResult(1,1,0),result)
+        assertEquals(setOf("newest","imported"),calls.toSet())
+        assertEquals("Dreeve-Name",RideNames.name(c,ride));assertEquals("Unverändert",RideNames.name(c,imported))
+        assertEquals(2 to 2,progress.last())
+        RideNames.run(c,{false},read={ fail("No automatic reads");"" },write={ _,_->fail("No stale writes or new propagation") })
+    }
+    @Test fun explicitPullKeepsConcurrentLocalEditsAndCountsIndividualFailures() {
+        setup();RideNames.manual(c,ride,"Vorher")
+        val second="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        RideServiceLinks.confirm(c,link().copy(rideId=second,activityId="failed"))
+        val result=RideNames.pullDreeve(c,account,mapOf(ride to "Vorher",second to "Alt"),{true},{false},{ target ->
+            if(target.rideId==second) throw java.io.IOException()
+            RideNames.manual(c,ride,"Zwischenzeitlich geändert");"Dreeve"
+        })
+        assertEquals(DreeveNameSyncResult(0,0,2),result)
+        assertEquals("Zwischenzeitlich geändert",RideNames.name(c,ride))
+        assertEquals("pending",RideNames.pending(c,ride,RideService.DREEVE))
+    }
+    @Test fun accountSwitchOrCancellationDuringFetchDoesNotApplyTheOldResponse() {
+        setup();RideNames.manual(c,ride,"Behalten")
+        val result=RideNames.pullDreeve(c,account,mapOf(ride to "Behalten"),{true},{false},{
+            c.getSharedPreferences("activity-service-dreeve",0).edit().putString("address","https://other.example/").commit();"Alter Server"
+        })
+        assertTrue(result.interrupted);assertEquals(0,result.updated);assertEquals("Behalten",RideNames.name(c,ride))
+        c.getSharedPreferences("activity-service-dreeve",0).edit().putString("address",account).commit()
+        var stopped=false
+        val cancelled=RideNames.pullDreeve(c,account,mapOf(ride to "Behalten"),{true},{stopped},{ stopped=true;"Zu spät" })
+        assertTrue(cancelled.interrupted);assertEquals("Behalten",RideNames.name(c,ride))
+    }
     @Test fun importedLinkIsVisibleWithUploadsDisabledAndHttpRenameEndpointsAreCorrect() {
         setup()
         val imported="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
