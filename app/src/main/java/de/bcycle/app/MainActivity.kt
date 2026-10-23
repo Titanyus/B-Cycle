@@ -210,6 +210,14 @@ class MainActivity : Activity() {
             scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
             setPadding(dp(17), dp(17), dp(17), dp(17))
             setOnClickListener { routeSettings() }
+            setOnLongClickListener { showHrvDailyPrompt();true }
+            accessibilityDelegate=object:View.AccessibilityDelegate() {
+                override fun onInitializeAccessibilityNodeInfo(host:View,info:android.view.accessibility.AccessibilityNodeInfo) {
+                    super.onInitializeAccessibilityNodeInfo(host,info)
+                    info.addAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction(
+                        android.view.accessibility.AccessibilityNodeInfo.ACTION_LONG_CLICK,getString(R.string.hrv_daily_open)))
+                }
+            }
             BicycleComponents.bindTheme(this, runtime.themes) { tokens ->
                 imageTintList = android.content.res.ColorStateList.valueOf(tokens.foreground)
                 backgroundTintList = null
@@ -876,6 +884,15 @@ class MainActivity : Activity() {
             runOnUiThread { BicycleFeedback.show(applicationContext, if (ok) R.string.export_saved else R.string.export_failed, long = true) }
         }, "B-Cycle-diagnostic-export").start()
     }
+    private fun showHrvDailyPrompt(today:java.time.LocalDate=java.time.LocalDate.now()) {
+        if(!runtime.visible || runtime.recording || runtime.saving || runtime.hrv.busy || runtime.hrv.state.saveError) return
+        dialogs.closeAll();bikePicker?.dismiss()
+        if(dashboardEditing) finishDashboardEditor()
+        setMapFullscreen(false)
+        dailyHrvPrompt?.close()
+        dailyHrvPrompt=HrvDailyPrompt(this,dashboardHost,dashboardRoot,runtime.themes,
+            acknowledge={ HrvDailyLaunch(this).acknowledge(today) }) { showHrv(autoStart=true) }
+    }
     override fun onStart() { super.onStart();
         hrvObservation=runtime.hrv.observe { if(hrvWasBusy!=runtime.hrv.busy) { hrvWasBusy=runtime.hrv.busy;render() } }; updateDashboardFullscreen(); MessageNotifications.observers.add(messageObserver);notificationSettings?.refreshAccess();
         val notifications=MessageNotificationSettings(this)
@@ -883,14 +900,7 @@ class MainActivity : Activity() {
             android.service.notification.NotificationListenerService.requestRebind(android.content.ComponentName(this,MessageNotificationService::class.java))
         }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows()
         val dailyLaunch=HrvDailyLaunch(this);val today=java.time.LocalDate.now()
-        if(dailyLaunch.shouldShow(today) && !runtime.recording && !runtime.saving && !runtime.hrv.busy && !runtime.hrv.state.saveError) {
-            dialogs.closeAll();bikePicker?.dismiss()
-            if(dashboardEditing) finishDashboardEditor()
-            setMapFullscreen(false)
-            dailyHrvPrompt?.close()
-            dailyHrvPrompt=HrvDailyPrompt(this,dashboardHost,dashboardRoot,runtime.themes,
-                acknowledge={ dailyLaunch.acknowledge(today) }) { showHrv(autoStart=true) }
-        }
+        if(dailyLaunch.shouldShow(today)) showHrvDailyPrompt(today)
     }
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.

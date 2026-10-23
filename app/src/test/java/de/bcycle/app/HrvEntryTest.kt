@@ -103,6 +103,32 @@ class HrvEntryTest {
             assertFalse(runtime.recording)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun routesLongPressOpensHrvOfferEvenWhenDailyOfferIsOffAndAlreadyHandled() {
+        val c=RuntimeEnvironment.getApplication()
+        HrvDailyLaunch(c).acknowledge(LocalDate.now())
+        assertFalse(HrvSettings(c).read().showOnFirstStart)
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        val runtime=RideRuntime.get(host.get())
+        try {
+            val a=host.get();val root=a.findViewById<View>(android.R.id.content);layout(root)
+            val routes=root.findViewWithTag<View>("dashboard_routes")
+            assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))
+            assertTrue(routes.performLongClick())
+            assertNotNull(root.findViewWithTag<View>("hrv_daily_card"));assertFalse(runtime.hrv.busy)
+            assertFalse(runtime.recording)
+            root.findViewWithTag<View>("hrv_daily_later").performClick()
+            assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))
+            assertTrue(routes.performLongClick()) // Manual repeat remains available on the same day.
+            assertNotNull(root.findViewWithTag<View>("hrv_daily_prompt"))
+            root.findViewWithTag<View>("hrv_daily_later").performClick()
+            routes.performClick()
+            val manager=ShadowAlertDialog.getLatestAlertDialog()
+            assertTrue(manager.isShowing);assertNotNull(manager.window!!.decorView.findViewWithTag<View>("route_list"))
+            assertNull(root.findViewWithTag<View>("hrv_daily_prompt"));manager.dismiss()
+            runtime.beginRecording();assertTrue(runtime.recording)
+            assertTrue(routes.performLongClick());assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))
+        } finally { if(runtime.recording) runtime.stopRecording();host.pause().stop().destroy() }
+    }
     @Test fun dailyCardFitsPortraitUsesScreenAndLaterAcknowledgesWithoutStarting() {
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {

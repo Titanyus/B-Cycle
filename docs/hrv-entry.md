@@ -8,6 +8,8 @@ Die untere Leiste enthält drei Aktionen: Strecken links außen, Start/Stop geom
 
 Einstellungen → HRV-Messungen enthält **HRV beim ersten Start zeigen** als Schalter mit erklärendem Accordion. Standard aus. Bei aktivierter Option wechselt die App beim Vordergrundstart automatisch zum Dashboard und zeigt bis zur bewussten Bestätigung erneut den HRV-Einstiegsdialog: abgerundete SECONDARY-Fläche, 1-dp-TERTIARY-Rand und diffuser nativer Schatten über abgedunkeltem Dashboard. Die Herzgrafik nach der Nutzervorlage wird direkt mit BlendMode.SCREEN auf die Fläche gezeichnet; Schwarz bleibt neutral. Darunter HRV-Messung, der gewünschte Dreiminuten-Text, Herz/Messskala/Sonnenaufgang für Ruhepuls/Readiness/Tagesform, der normale zentrale Button Jetzt starten und die schlichte Textaktion Später. Grafik als WebP (ca. 40 KiB), keine Animation oder neue Sensorabfrage. Kleine Hochformatfenster können den Dialoginhalt scrollen. Tippen außerhalb und Android-Zurück schließen den Hinweis; Accessibility des Hintergrunds wird wiederhergestellt. Der frühere Kreis und der 14-px-Blur entfallen.
 
+**Manueller Aufruf:** Langer Druck auf den linken Streckenbutton des Dashboards öffnet denselben HRV-Dialog. Kurzer Tipp öffnet weiterhin den Streckenmanager. Der manuelle Aufruf funktioniert unabhängig vom Automatikschalter und auch nach einem bereits bestätigten Tagesangebot; er setzt den Tagesmarker nicht zurück. Jetzt starten/Später/Hintergrund bestätigen wie beim automatischen Angebot. Laufende Fahrtaufnahme, Speichern, aktive HRV und HRV-Speicherfehler behalten Vorrang. Nativen Android-Langdruck verwenden, eigener Accessibility-Aktionsname HRV-Einstieg öffnen.
+
 Jetzt starten öffnet die vorhandene HRV-Messansicht und startet ihr normales Ruhe-/Messprotokoll. Er benötigt weiterhin frische echte RR-Daten. Ohne diese bleibt die Ansicht zunächst wartend; sie startet beim Eintreffen, solange sie sichtbar im Vordergrund ist. App-Hintergrund oder überlagerte Ansichten lösen keinen Start aus; bewusster Wechsel zur Historie/Fragebogen verwirft den ausstehenden automatischen Start. Schließen der Messansicht behält das bisherige Abbruchverhalten.
 
 `HrvDailyLaunch` speichert erst Jetzt starten, Später oder einen Tap auf den Hintergrund unter `hrv-launch-state/handledDay`. Reines Anzeigen, App-Wechsel, Activity-Neuanlage, Android-Zurück oder spätes Aktivieren verbrauchen das Tagesangebot nicht. Der alte `lastDay`-Marker wird nicht mehr ausgewertet. Nach einem Tap bleibt der Hinweis an diesem lokalen Kalendertag aus; am nächsten Tag wird er wieder angeboten. Der Marker gehört nicht in die portable Einstellungssicherung.
@@ -68,3 +70,9 @@ Später ohne Start, Inhaltstap ohne Bestätigung, kleines Hochformat mit erreich
 Aktionen und tatsächliche Screen-Pixelverrechnung (Schwarz neutral, Neon sichtbar).
 Native 360×800-Vorschau visuell geprüft: [Dialog](previews/hrv-daily-prompt.png).
 Typografie-/UI-Katalogprüfung erfolgreich; keine neue APK.
+
+Manuellen Streckenbutton-Einstieg mit drei gezielten Fällen geprüft: trotz
+ausgeschalteter Automatik und bereits bestätigtem Tag öffnen/wiederholen,
+Später ohne Messstart, kurzer Tipp weiterhin Streckenmanager und tatsächliche
+Aufnahme sperrt den HRV-Dialog. Bestehende Tages-/Lifecycle-/RR-Startprüfungen
+ebenfalls erfolgreich. Keine neue APK.
