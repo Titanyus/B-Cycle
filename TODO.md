@@ -2,6 +2,7 @@
 
 - [ ] Wartungsanbindung zwischen Dreeve und B-Cycle.
 - [ ] Trainer einbauen (Umfang vor Umsetzung konkretisieren; bestehende Indoor-/FTMS-Anbindung berücksichtigen).
+- [ ] Statistikfunktionen für Monat und Jahr ergänzen, um eine schnelle Übersicht über die Fahrten zu ermöglichen.
 
 ## Sensoren und Indoor-Trainer – spätere Erweiterungen
 
