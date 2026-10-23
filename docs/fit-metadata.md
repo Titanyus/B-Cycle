@@ -23,3 +23,5 @@ Bei einem späteren profilabhängigen Radtyp-Overlay wird `bike_profile.sub_spor
 
 ## Prüfung
 17 gezielte Tests erfolgreich: Garmin-FitDecoder und ActivityFileValidationPlugin prüfen Bike/E-Bike/Indoor, Unicode-Namen, numerische Kennungen, jede einzelne Abwahl und vollständig deaktivierte Metadaten. Weitere Prüfungen decken vorhandene Bike-Typ-Overlays, Snapshot-Erhalt nach Profilwechsel/Löschen, unabhängige Profile, alte/neue Sicherungen und die echte Indoor-FIT-Einstellungsansicht ab. Native Beschriftungen/Schalter in drei Hochformatbreiten einschließlich Umbenennung im offenen Formular geprüft. Bestehende FIT-/Indoor- und Profilregressionen erfolgreich; kein Gesamttestlauf, keine Dreeve-/Garmin-Connect-Importprüfung und keine APK erstellt.
+
+Stand 23.10.2026: die beschriebenen neuen Funktionen sind in APK **0.8.31 / Build 70** enthalten. [Buildnachweis](build-70.md). Frühere Angaben zu fehlender APK sind Verlauf.

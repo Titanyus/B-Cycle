@@ -64,27 +64,35 @@ In APK 0.8.29: kombinierte Aufsteh-/Schlafenszeit, optionale Schlafdauer und glo
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.30 · Build 69 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.30-release-69.apk)**
+**[Version 0.8.31 · Build 70 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.31-release-70.apk)**
 
-**Build 69 vom 22.10.2026 · 2,23 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 70 vom 23.10.2026 · 2,24 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66 und 68 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 68 und 69 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.30](docs/release-0.8.30.md) ·
-[Buildnachweis und SHA-256](docs/build-69.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39834989340) ·
+[Änderungen in 0.8.31](docs/release-0.8.31.md) ·
+[Buildnachweis und SHA-256](docs/build-70.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/39925371710) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
 Gezielte Regressionstests lassen sich separat unter Actions → **Targeted regression tests** → **Run workflow** starten, lokal mit `bash scripts/test-regressions.sh`. Dabei werden nur Testberichte erzeugt; kein APK-Build und kein Signierschlüsselzugriff. [Umfang und Nachweise](docs/priority-optimizations.md).
-Sechs gezielte Tests für HRV-Löschung, Wiederimport, Messbildschirm und Diagrammdarstellung erfolgreich. Native Vorschauen visuell geprüft.
+31 gezielte Tests in den Umsetzungsschritten erfolgreich: HRV-Tagesangebot, Diagramme, Fahrtenzusammenfassung und FIT-Metadaten inklusive Garmin-Validierung. Native Vorschauen visuell geprüft.
 HRV-Messwerte und Aufzeichnungen erhalten; Antworten getrennt gespeichert und mitgesichert.
 Kein vollständiger Gesamttestlauf; frühere Prüfungen und bekannte ältere UI-Testfehler in den Buildnachweisen.
 
-Frühere APKs: [0.8.29 · Build 68](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.29-release-68.apk) · [0.8.27 · Build 66](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.27-release-66.apk) · [0.8.26 · Build 65](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.26-release-65.apk) · [0.8.25 · Build 64](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.25-release-64.apk) · [0.8.24 · Build 63](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.24-release-63.apk) · [0.8.23 · Build 62](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk) · [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
+Frühere APKs: [0.8.30 · Build 69](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.30-release-69.apk) · [0.8.29 · Build 68](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.29-release-68.apk) · [0.8.27 · Build 66](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.27-release-66.apk) · [0.8.26 · Build 65](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.26-release-65.apk) · [0.8.25 · Build 64](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.25-release-64.apk) · [0.8.24 · Build 63](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.24-release-63.apk) · [0.8.23 · Build 62](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk) · [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.31
+
+- **Deine Daten:** kompakte Fahrtenzusammenfassung nach dem Speichern mit fünf Kennzahlen und aktuellen Upload-Belegen.
+- **FIT-Metadaten:** Garmin-Fahrradprofilangaben und aufzeichnendes Gerät B|CYCLE je Profil wählbar; Schalter zeigen die aktuellen Werte in Klammern.
+- **HRV-Tagesangebot:** Rückkehr zum Dashboard mit Herz, bis zum bewussten Tap täglich wiederkehrend. Button „Starten“, Kreisinhalt 10 dp tiefer.
+- **Graphen:** Linien-Glow in Dashboard und Leistungs-/Pulszonen-Verteilungen entfernt.
+- [Details](docs/release-0.8.31.md).
 
 ## Neu in APK 0.8.30
 

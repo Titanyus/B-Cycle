@@ -48,3 +48,5 @@ Nachfolgende Erweiterung: „Zur Auswertung“ öffnet nach erfolgreichem Speich
 Veröffentlichung: Diese Ergänzung/Korrektur ist in APK **0.8.26 / Build 65** enthalten. [Buildnachweis](build-65.md). Frühere Aussagen zu fehlender neuer APK beschreiben den Stand vor dieser Veröffentlichung.
 
 23.10.2026, weitere Messbildschirm-Korrektur: „Starten“ statt „Messung starten“. Alle Inhalte innerhalb des Kreises (Phasentext, Puls/Einheit, Zeit, Aktionsbutton) gegenüber Build 69 um 10 dp nach unten versetzt. Kreisgeometrie bleibt unverändert.
+
+Stand 23.10.2026: die beschriebenen neuen Funktionen sind in APK **0.8.31 / Build 70** enthalten. [Buildnachweis](build-70.md). Frühere Angaben zu fehlender APK sind Verlauf.
