@@ -113,3 +113,13 @@ Praktische Lesbarkeit und Android-/Sensor-Akkumeldungen auf dem Nutzergerät noc
 Nach Build 72: Letzten gültigen Bosch-Akkustand je portabler Fahrradprofil-UUID in privatem bike-battery speichern. Bei Verbindungsende, Fahrtende oder App-Neustart anzeigen, bis ein neuer gültiger Wert kommt. Echte 0 bleibt gültig; null/ungültige Werte löschen die letzte Anzeige nicht. Kein Austausch zwischen Profilen/Indoor und kein Bezug zu wiederverwendeten Slots. Reine Anzeige, nie als Messwert in Journal/FIT/Performance übernehmen. Kein Einstellfeld und deshalb nicht in der Einstellungssicherung. Noch keine APK.
 
 Prüfstand nach Build 72: 32 gezielte Tests in den Umsetzungsschritten erfolgreich (Aufnahmeregression auf Android 13/15/16, Detailsnavigation, Skalenrückkehr/Fenstergrenzen, Graphgeometrie, Akku-Persistenz/Rohdatentrennung und Zehnsekundengrenze); vier betroffene Tests nach letzter Absicherung nochmals erfolgreich. Native Summary geprüft. Typografie-/Atlasprüfung erfolgreich, kein Hardware-/Diensttest oder neuer APK-Build.
+
+## Aufzeichnungsfrische bei unverändertem Bosch-Akku
+
+Bosch meldet Akkustandsänderungen; längeres Fahren ohne Unterstützung kann denselben Wert über viele Minuten behalten. Deshalb auch im Aufnahme-Sample kein 120-s-Ablauf für BATTERY mehr: innerhalb der laufenden Live-Verbindung gültigen tatsächlich empfangenen Stand (0–100) weiterführen. Bei Trennung Rohpuffer löschen, gespeicherten Anzeige-Fallback niemals aufzeichnen; neue Verbindung braucht ihren eigenen ersten Wert. Andere Messwerte/Frischegrenzen unverändert. Keine höhere Ersatzfrist, sondern Gültigkeit über die aktuelle Verbindung.
+
+Die private Analyse-FIT erhält alle vorhandenen Journalfelder unabhängig von der normalen FIT-Auswahl. Streckendetails lesen diese bevorzugt. Ein gefilterter Export ohne Akkustände beweist deshalb nicht, dass intern ebenfalls keine vorhanden sind. Verbrauch wird aus Start-/Endstand mit bisheriger Abdeckungs-/Nachladeprüfung berechnet; fehlende alte Daten nicht aus dem heutigen gemerkten Akkustand rekonstruieren. Keine neue APK.
+
+Konkreter Nutzerexport am 23.10.2026 geprüft: 7.668 Record-Messpunkte, kein gültiger Standard-/Developer-Akkustand. Ohne private Analysequelle kann für diese Fahrt kein tatsächlicher Verbrauch bestimmt werden. Private FIT-/Messwerte nicht ins Repository übernehmen.
+
+Prüfstand Akku-Aufnahme: drei gezielte Tests erfolgreich. Fünf Minuten unveränderte Live-Ladung bleibt im Sample, Offline-/Reconnect-Fallback bleibt draußen, ungültige Werte/echte Null korrekt; private Analyse zeigt Verbrauch trotz deaktiviertem Akku-Export. Bestehende Abdeckungs-/Nachladeprüfung erhalten. Keine APK.

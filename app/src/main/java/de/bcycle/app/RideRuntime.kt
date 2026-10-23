@@ -547,6 +547,10 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         return RideSample(startUtc + now - startElapsed, now - startElapsed, gps.latitude.takeIf { gpsEnabled && !isIndoor }, gps.longitude.takeIf { gpsEnabled && !isIndoor }, values, pendingPerformance.toList())
     }
     private fun fresh(metric: LiveMetric, now: Long): Boolean {
+        // Bosch sends charge changes, not a periodic battery heartbeat. Keep only the live
+        // connection's actual reading; the persisted dashboard fallback must never enter samples.
+        if(metric==LiveMetric.BATTERY && !isIndoor)
+            return connection.isLive && bikeData.value(metric)?.let { it in 0..100 }==true
         val limit = if (metric.group == 2) 120_000 else if (metric.group == 1 || metric == LiveMetric.ASSIST_MODE) 60_000 else 5_000
         if(isIndoor) return trainer.live && times[metric]?.let { now-it in 0..5000 }==true
         return connection.isLive && times[metric]?.let { now - it <= limit } == true
