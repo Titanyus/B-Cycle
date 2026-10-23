@@ -32,7 +32,7 @@ neue UI-Sicherungen verwenden ausschließlich `SettingsArchive`.
 | --- | --- |
 | Design & UI | Theme-Auswahl/eigene Themes, globaler heller Einstellungsmodus, Glow-/Vollbildoptionen, Benachrichtigungsauswahl/Position/Dauer, Fahrten-Sicherung an/aus/Ziel |
 | Dashboard | Seiten/Katalog/aktive Seite, Templates, Datenfelder/Kombifelder, Sichtbarkeit, Graphen/Anzeigemodi/Zeitfenster, Trainingshilfe/Zonen, Trendindikatoren, Kartenfelder, Trinkerinnerung |
-| Aufzeichnung/FIT | Messfelder, Metadaten-Auswahl, Geschwindigkeits-/Distanzquelle, lokale Speicherung, Fahrtbenennung, lokaler Exportordner als URI-Referenz |
+| Aufzeichnung/FIT | Messfelder, Metadaten-Auswahl, bevorzugte Quellen je Messgröße mit automatischem Ersatz (alte Geschwindigkeits-/Distanzquelle kompatibel), lokale Speicherung, Fahrtbenennung, lokaler Exportordner als URI-Referenz |
 | Karten | Quelle, Nachtmodus, Folgen/Ausrichtung, Positionsanker, Track-/Routensichtbarkeit, Darstellungsstile, Höhenkorrektur, Zoom/Position, ausgewählte Track-IDs, Thunderforest-Schlüssel |
 | Fahrer/Profile/HRV | Fahrerwerte einschließlich Geschlecht/Herzfrequenzmethode, sämtliche aktiven/inaktiven Fahrradprofile mit Sensorzuordnung/Korrekturfaktoren/FIT-Auswahl, UUIDs/zuletzt bekannter Radtyp, profilbezogene UI-/Karten-Snapshots, Fahrradbilder, Dreeve-Radzuordnungen, HRV-Zeiten/Tagesangebot/Endsignale, Frageauswahl/eigene Fragen |
 | Cloud | WebDAV-Konfiguration/Passwort, intervals.icu-Athlet/API-Schlüssel, Dreeve-Server/Token, Strava-Client/Konto/Client-Secret/OAuth-Zugang und Refresh-Token, Aktivierung/WLAN-Optionen |

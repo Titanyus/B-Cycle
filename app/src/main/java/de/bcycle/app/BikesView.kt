@@ -39,6 +39,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
         }
     }.apply { tag="profile_copy" }
+    private var shownSources:Map<RecordingQuantity,List<RecordingSource>> = emptyMap()
     private var shownSlot = -1
     private var shownType:BikeType?=null
     private lateinit var typeChoice:Spinner
@@ -89,6 +90,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         override fun afterTextChanged(s: Editable?) = Unit
     }
     private fun rebuild() {
+        shownSources=RecordingSources.available(runtime.bikes.current(),runtime.barometer.available)
         shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;correctionControls.clear()
         dashboardActions=null;designHeader=null
         removeAllViews();statuses.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
@@ -384,11 +386,12 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private fun paintCards() { strip.show(runtime.bikes.all(),runtime.bikes.activeSlot,runtime.recording || runtime.saving) }
     fun refreshPhoto() { photo?.refresh() }
     fun refresh() {
-        if(shownSlot!=runtime.bikes.activeSlot || shownType!=runtime.bikes.current().type) { rebuild();return }
+        if(shownSlot!=runtime.bikes.activeSlot || shownType!=runtime.bikes.current().type || shownSources!=RecordingSources.available(runtime.bikes.current(),runtime.barometer.available)) { rebuild();return }
         binding=true
         try {
             val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect;autoStartRecording.isChecked=p.autoStartRecording
             findViewWithTag<RideNamingView>("ride_naming")?.refreshLock()
+            findViewWithTag<RecordingSourcesView>("recording_sources")?.refreshLock()
             searchButton.isEnabled=!runtime.recording && !runtime.saving
             searchButton.alpha=if(searchButton.isEnabled) 1f else .4f
             val searchLabel=when {

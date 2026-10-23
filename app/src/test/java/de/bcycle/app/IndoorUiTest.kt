@@ -35,6 +35,7 @@ class IndoorUiTest {
             shadowOf(android.os.Looper.getMainLooper()).idle()
             assertTrue(runtime.gpsEnabled)
             assertEquals("GPS_SPEED",runtime.config.speedSource);assertEquals("GPS_DISTANCE",runtime.config.distanceSource)
+            assertEquals(RecordingSource.GPS,runtime.config.sourcePreferences!!.preferred[RecordingQuantity.SPEED])
             assertTrue(runtime.config.fields.containsAll(gpsFields+setOf("GPS_POSITION","MOTOR_POWER")))
             assertFalse("HEART_RATE" in runtime.config.fields) // Deliberate edit of a visible, shared field.
             assertNull(root.findViewWithTag<View>("record_GPS_POSITION"))

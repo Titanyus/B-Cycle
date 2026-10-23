@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="source_power">Leistung</string>
+    <string name="source_cadence">Kadenz</string>
+    <string name="source_heart">Puls</string>
+    <string name="source_height">Höhe</string>
+    <string name="source_phone_barometer">Barometer</string>
+    <string name="source_none">Keine Quelle eingerichtet</string>
+    <string name="source_fallback_hint">Bei Ausfall wird automatisch eine andere geeignete Quelle verwendet. Die bevorzugte Quelle bleibt gespeichert. Der Smartphone-Drucksensor benötigt zuerst eine GPS-Höhenreferenz.</string>
+</resources>

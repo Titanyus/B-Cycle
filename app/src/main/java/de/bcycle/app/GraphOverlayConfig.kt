@@ -47,13 +47,14 @@ internal enum class GraphWindow(val milliseconds:Long,val label:Int) {
 }
 /** Configured capabilities, independent of live reception or temporarily disconnected devices. */
 internal object GraphAvailability {
-    fun forProfile(p:BikeProfile):Set<AnalysisChart> = buildSet {
-        val trainer=p.type==BikeType.INDOOR && p.trainerEnabled && p.trainerAddress!=null
-        val bike=p.type==BikeType.EBIKE && p.bikeEnabled && p.bikeAddress!=null
-        val gps=p.type!=BikeType.INDOOR && p.gpsEnabled
-        if(trainer || if(p.recording.speedSource=="GPS_SPEED") gps else bike) add(AnalysisChart.SPEED)
-        if(trainer || bike) { add(AnalysisChart.CADENCE);add(AnalysisChart.POWER) }
-        if(p.heartEnabled && p.heartAddress!=null || trainer) add(AnalysisChart.HEART)
-        if(gps) add(AnalysisChart.ELEVATION)
+    fun forProfile(p:BikeProfile,barometer:Boolean=false):Set<AnalysisChart> {
+        val capabilities=RecordingSources.available(p,barometer)
+        return buildSet {
+            mapOf(AnalysisChart.SPEED to RecordingQuantity.SPEED,AnalysisChart.CADENCE to RecordingQuantity.CADENCE,
+                AnalysisChart.POWER to RecordingQuantity.POWER,AnalysisChart.HEART to RecordingQuantity.HEART,
+                AnalysisChart.ELEVATION to RecordingQuantity.HEIGHT).forEach { (chart,quantity) ->
+                if(capabilities.getValue(quantity).isNotEmpty()) add(chart)
+            }
+        }
     }
 }

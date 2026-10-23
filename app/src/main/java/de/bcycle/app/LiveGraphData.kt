@@ -167,8 +167,9 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
 internal fun graphPoint(sample: RideSample, config: RecordingConfig, continuedZero: Boolean,
     cadenceWasZero: Boolean): GraphPoint {
     val v=sample.values
-    val power=v["RIDER_POWER"] ?: if(continuedZero) 0.0 else null
-    val cadence=v["CADENCE"] ?: if(continuedZero && cadenceWasZero) 0.0 else null
-    return GraphPoint(sample.utcMs,sample.elapsedMs,v[config.distanceSource],
-        listOf(v[config.speedSource]?.times(3.6),cadence,power,v["HEART_RATE"],v["GPS_ALTITUDE"]))
+    fun primary(id:String)=PrimaryRecording.value(v,id,config)
+    val power=primary("RIDER_POWER") ?: if(continuedZero) 0.0 else null
+    val cadence=primary("CADENCE") ?: if(continuedZero && cadenceWasZero) 0.0 else null
+    return GraphPoint(sample.utcMs,sample.elapsedMs,primary(config.distanceSource),
+        listOf(primary(config.speedSource)?.times(3.6),cadence,power,primary("HEART_RATE"),primary("GPS_ALTITUDE")))
 }

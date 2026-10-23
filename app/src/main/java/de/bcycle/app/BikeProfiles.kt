@@ -50,7 +50,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         bikeEnabled = prefs.getBoolean("bikeEnabled", true), heartEnabled = prefs.getBoolean("heartEnabled", true),
         bikeAddress = prefs.getString("address", null), bikeName = prefs.getString("name", null),
         heartAddress = prefs.getString("heartAddress", null), heartName = prefs.getString("heartName", null),
-        recording = RecordingConfig.decode(prefs.getStringSet("recordFields", null), prefs.getString("recordSpeed", null), prefs.getString("recordDistance", null), prefs.getStringSet("recordMetadata",null)))
+        recording = RecordingConfig.decode(prefs.getStringSet("recordFields", null), prefs.getString("recordSpeed", null), prefs.getString("recordDistance", null), prefs.getStringSet("recordMetadata",null),prefs.getString(RecordingSources.KEY,null)))
     private var cachedJson: String? = null
     private var cachedProfiles: List<BikeProfile>? = null
     private fun parseStored(): List<BikeProfile> {
@@ -81,7 +81,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
                     trainerAddress=o.optString("trainerAddress").takeIf(String::isNotEmpty), trainerName=o.optString("trainerName").takeIf(String::isNotEmpty),trainerEnabled=o.optBoolean("trainerEnabled",true),
                     heartAddress = o.optString("heartAddress").takeIf(String::isNotEmpty), heartName = o.optString("heartName").takeIf(String::isNotEmpty),
                     indoorCorrection = IndoorCorrection(IndoorCorrection.storedStep(o.optInt("indoorPowerTenths",10)), IndoorCorrection.storedStep(o.optInt("indoorSpeedTenths",10))),
-                    recording = RecordingConfig.decode(o.getJSONArray("fields").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }, o.getString("speed"), o.getString("distance"),o.optJSONArray("metadata")?.let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }))
+                    recording = RecordingConfig.decode(o.getJSONArray("fields").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }, o.getString("speed"), o.getString("distance"),o.optJSONArray("metadata")?.let { a -> (0 until a.length()).map { a.getString(it) }.toSet() },o.optString("sources").takeIf { it.isNotEmpty() }))
             }.getOrDefault(fallback)
             stored
         }.ifEmpty { listOf(default(0)) }
@@ -132,12 +132,12 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         .putString("address", p.bikeAddress).putString("name", p.bikeName)
         .putString("heartAddress", p.heartAddress).putString("heartName", p.heartName)
         .putBoolean("gpsEnabled", p.gpsEnabled).putBoolean("bikeEnabled", p.bikeEnabled).putBoolean("heartEnabled", p.heartEnabled)
-        .putStringSet("recordFields", p.recording.fields).putString("recordSpeed", p.recording.speedSource).putString("recordDistance", p.recording.distanceSource).putStringSet("recordMetadata",p.recording.metadata.map { it.name }.toSet())
+        .putStringSet("recordFields", p.recording.fields).putString("recordSpeed", p.recording.speedSource).putString("recordDistance", p.recording.distanceSource).putStringSet("recordMetadata",p.recording.metadata.map { it.name }.toSet()).apply { p.recording.sourcePreferences?.let { putString(RecordingSources.KEY,it.json()) } ?: remove(RecordingSources.KEY) }
     private fun encode(rows: List<BikeProfile>) = JSONArray().apply { rows.forEach { p -> put(JSONObject()
         .put("slot", p.slot).put("name", p.name).put("type", p.type.name).put("category", p.category.name).put("wheelMm", p.wheelMm).put("autoConnect", p.autoConnect).put("autoStartRecording",p.autoStartRecording)
         .put("gpsEnabled", p.gpsEnabled).put("bikeEnabled", p.bikeEnabled).put("heartEnabled", p.heartEnabled)
         .put("bikeAddress", p.bikeAddress.orEmpty()).put("bikeName", p.bikeName.orEmpty()).put("heartAddress", p.heartAddress.orEmpty()).put("heartName", p.heartName.orEmpty())
         .put("trainerAddress",p.trainerAddress.orEmpty()).put("trainerName",p.trainerName.orEmpty()).put("trainerEnabled",p.trainerEnabled)
         .put("indoorPowerTenths",p.indoorCorrection.powerTenths).put("indoorSpeedTenths",p.indoorCorrection.speedTenths)
-        .put("fields", JSONArray(p.recording.fields.sorted())).put("metadata",JSONArray(p.recording.metadata.map { it.name })).put("speed", p.recording.speedSource).put("distance", p.recording.distanceSource)) } }.toString()
+        .put("sources",p.recording.sourcePreferences?.json() ?: "").put("fields", JSONArray(p.recording.fields.sorted())).put("metadata",JSONArray(p.recording.metadata.map { it.name })).put("speed", p.recording.speedSource).put("distance", p.recording.distanceSource)) } }.toString()
 }

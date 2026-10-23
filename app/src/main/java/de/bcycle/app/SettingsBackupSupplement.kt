@@ -7,7 +7,7 @@ import org.json.JSONObject
 /** Explicit additional public settings. No credentials, upload jobs or OS grants. */
 internal class SettingsBackupSupplement(private val context:Context) {
     private fun prefs(name:String)=context.getSharedPreferences(name,0)
-    private val profileKeys=setOf("slot","name","type","category","wheelMm","autoConnect","autoStartRecording","gpsEnabled","bikeEnabled","heartEnabled",
+    private val profileKeys=setOf("slot","name","type","category","sources","wheelMm","autoConnect","autoStartRecording","gpsEnabled","bikeEnabled","heartEnabled",
         "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
         BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY),"route-export" to setOf("tree")),
@@ -114,7 +114,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                 val fields=profile.getJSONArray("fields")
                 values["recordFields"]=(0 until fields.length()).map(fields::getString).toSet()
                 values["recordMetadata"]=profile.optJSONArray("metadata")?.let { array -> (0 until array.length()).map { array.getString(it) }.toSet() } ?: FitMetadataField.defaults.map { it.name }.toSet()
-                values["recordSpeed"]=profile.getString("speed");values["recordDistance"]=profile.getString("distance")
+                values["recordSpeed"]=profile.getString("speed");values["recordDistance"]=profile.getString("distance");values[RecordingSources.KEY]=profile.optString("sources").takeIf { it.isNotEmpty() }
                 // Restore the active projection too, not just the dormant per-profile bank.
                 (values[BikeUiConfigurationStore.KEY] as? String)?.let { text ->
                     JSONObject(text).optJSONObject(active.toString())?.let { saved ->
@@ -165,6 +165,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
             BikeType.valueOf(p.getString("type"));BikeCategory.valueOf(p.getString("category"))
             require(integer(p,"wheelMm") in 500..4000)
             listOf("autoConnect","gpsEnabled","bikeEnabled","heartEnabled").forEach { require(p.get(it) is Boolean) }
+            if(p.has("sources") && p.getString("sources").isNotEmpty()) RecordingSources.decode(p.getString("sources"))
             if(p.has("autoStartRecording")) require(p.get("autoStartRecording") is Boolean)
             listOf("indoorPowerTenths","indoorSpeedTenths").forEach { if(p.has(it)) require(integer(p,it) in 0..30) }
             listOf("bikeAddress","heartAddress","trainerAddress").forEach { if(p.has(it)) require(p.getString(it).isEmpty() || p.getString(it).matches(Regex("([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"))) }

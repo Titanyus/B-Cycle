@@ -238,3 +238,7 @@ Bei geöffneter App startet der bestehende RecordingService mit Foreground-Prior
 Laufende Aufnahme/Speicherung/HRV haben Vorrang, kein wartender Start nach deren Ende. Während verborgener App kein neuer Foreground-Start; laufende Aufnahmen wie bisher im Hintergrund fortsetzen. Auch eine zwischen Verbindungsereignis und Service-Start aktiv gewordene HRV-Messung darf nicht unterbrochen werden; Service räumt dann seine Priorität auf. Kein automatisches Stoppen bei Verbindungsverlust. Keine neue APK.
 
 Prüfstand Autostart: zwölf unterschiedliche gezielte Tests erfolgreich (sechs neue Verbindungs-/Appstart-/HRV-/UI-/Profilbackupfälle, drei bestehende Sicherungsfälle und Aufnahme mit Foreground-Service auf Android 13/15/16). HRV-Service-Grenze nach letzter Absicherung erneut erfolgreich, Typografie-/Atlasprüfung konsistent. Kein Hardwaretest und keine APK.
+
+## Flexible Aufzeichnungsquellen nach Build 72
+
+Hauptquellen für Geschwindigkeit, Distanz, Fahrerleistung, Kadenz, Puls und Höhe anhand eingerichteter Sensoren. Auswahl erst ab zwei Quellen, sonst eindeutige Zuordnung bzw. keine Quelle. Präferenz je Profil/Backup, eingefroren beim Start; automatisch frische Ersatzquelle und Rückkehr zur bevorzugten. Smartphone-Drucksensor mit GPS-Referenz ergänzt. Outdoor-Präferenzen beim Indoor-Typwechsel erhalten. Separate Powermeter bleiben vorbereitet, nicht implementiert. Details [Quellenmodell](recording-source-selection-plan.md).

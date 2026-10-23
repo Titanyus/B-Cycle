@@ -76,8 +76,8 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     .put("trainingHelp",JSONObject(DashboardTrainingHelp.read(bike,i).encode()))
                     .put("layout", DashboardTemplate.decode(bike.getString("dashboardTemplate_$i", DashboardTemplate.entries[i].name)).name))
             } }).put("trendEnabled",TrendIndicatorSettings.read(bike).enabled).put("trendDisabledFields",jsonArray(TrendIndicatorSettings.read(bike).disabled.sorted())).put("catalog",bike.getString(DashboardPages.KEY,null) ?: JSONObject.NULL).put("activePage",bike.getInt("dashboardPage",0)).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
-            BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null),bike.getStringSet("recordMetadata",null)).let {
-                JSONObject().put("fields", jsonArray(it.fields.sorted())).put("metadata",jsonArray(it.metadata.map { field -> field.name })).put("speedSource",it.speedSource).put("distanceSource",it.distanceSource).put("localSaveEnabled",route.getBoolean("save",true)) }
+            BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null),bike.getStringSet("recordMetadata",null),bike.getString(RecordingSources.KEY,null)).let {
+                JSONObject().put("sources",it.sourcePreferences?.json() ?: "").put("fields", jsonArray(it.fields.sorted())).put("metadata",jsonArray(it.metadata.map { field -> field.name })).put("speedSource",it.speedSource).put("distanceSource",it.distanceSource).put("localSaveEnabled",route.getBoolean("save",true)) }
             BackupSection.MAPS -> JSONObject().put("zoom",bike.getInt("mapZoom",16)).put("latitude",bike.getFloat("mapLatitude",51f).toDouble()).put("longitude",bike.getFloat("mapLongitude",10f).toDouble())
                 .put("displayFitId",bike.getString("displayFitId","")).put("displayGpxId",bike.getString("displayGpxId",""))
                 .put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
@@ -259,6 +259,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     if(row.has("fields")) { val fields=strings(array(row,"fields",RecordingFields.options.size));check(fields.distinct().size==fields.size && fields.all { id -> RecordingFields.options.any { it.id==id } });b["recordFields"]=fields.toSet() }
                     if(row.has("speedSource")) b["recordSpeed"]=field(row,"speedSource",30).also { check(it in listOf("SPEED","GPS_SPEED")) }
                     if(row.has("distanceSource")) b["recordDistance"]=field(row,"distanceSource",30).also { check(it in listOf("BIKE_DISTANCE","GPS_DISTANCE")) }
+                    b[RecordingSources.KEY]=if(row.has("sources")) field(row,"sources",4096).takeIf { it.isNotEmpty() }?.also { RecordingSources.decode(it) } else null
                     if(row.has("localSaveEnabled")) r["save"]=boolean(row,"localSaveEnabled")
                 }
                 BackupSection.MAPS -> {

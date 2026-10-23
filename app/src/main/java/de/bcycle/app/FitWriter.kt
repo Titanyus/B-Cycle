@@ -51,8 +51,8 @@ object FitWriter {
                 }
             }
             RideJournal.read(journal) { start, selectedConfig, allDeveloperIds, records ->
-                val config=if(fullData) selectedConfig.copy(fields=RecordingFields.options.map { it.id }.toSet()) else selectedConfig
-                val developerIds=allDeveloperIds.filter { it in config.fields || it=="GPS_ALTITUDE_MSL" && "GPS_ALTITUDE" in config.fields }
+                val config=if(fullData) selectedConfig.copy(fields=RecordingFields.options.map { it.id }.toSet()+(selectedConfig.fields intersect setOf(PrimaryRecording.FLAG))) else selectedConfig
+                val developerIds=allDeveloperIds.filter { it in config.fields || it=="GPS_ALTITUDE_MSL" && "GPS_ALTITUDE" in config.fields || PrimaryRecording.FLAG in config.fields && PrimaryRecording.control(it,config) in config.fields }
                 val startStamp = timestamp(start).toDouble()
                 message(0, 0, listOf(en(0, 4), u16(1, 255.0), u16(2, 0.0), number(3, 0x8c, 4, 1), u32(4, startStamp)))
                 // Device metadata identifies the generating application, not a fabricated Garmin device.
@@ -77,7 +77,7 @@ object FitWriter {
                     developerIds.forEachIndexed { index, id ->
                         val field = RecordingFields.options.find { it.id == id }
                         message(3, 206, listOf(u8(0, 0.0), u8(1, index.toDouble()), u8(2, 0x89.toDouble()),
-                            string(3, id), u8(6, 1.0), number(7, 1, 1, 0), string(8, field?.unit ?: "bool"), u16(14, 20.0)))
+                            string(3, id), u8(6, 1.0), number(7, 1, 1, 0), string(8, field?.unit ?: if(id in PrimaryRecording.columns) PrimaryRecording.unit(id) else "bool"), u16(14, 20.0)))
                     }
                 }
                 fun event(stamp: Double, type: Int) = message(1, 21, listOf(u32(253, stamp), en(0, 0), en(1, type), u8(4, 0.0)))
@@ -91,12 +91,12 @@ object FitWriter {
                     sample.performanceEvents.forEach(performance::accept)
                     performance.advance(sample.elapsedMs)
                     val v = sample.values
-                    fun selected(id: String) = v[id].takeIf { id in config.fields }
+                    fun selected(id: String) = PrimaryRecording.value(v,id,config).takeIf { id in config.fields }
                     val speed = selected(config.speedSource)
                     moving.add(sample.elapsedMs, speed)
                     val distance = selected(config.distanceSource)
                     val cadence = selected("CADENCE")
-                    val height = selected("GPS_ALTITUDE").takeIf { v["GPS_ALTITUDE_MSL"] == 1.0 }
+                    val height = selected("GPS_ALTITUDE").takeIf { PrimaryRecording.value(v,"GPS_ALTITUDE_MSL",config)==1.0 }
                     val grade = selected("GPS_GRADIENT")?.times(100)?.takeIf { it in -32768.0..32766.0 }?.roundToLong() ?: 32767
                     message(4, 20, listOf(u32(253, timestamp(sample.utcMs).toDouble()), coord(0, sample.latitude.takeIf { "GPS_POSITION" in config.fields }), coord(1, sample.longitude.takeIf { "GPS_POSITION" in config.fields }),
                         u16(2, height, 5.0, 500.0), u8(3, selected("HEART_RATE")), u8(4, cadence?.let { floor(it) }),
@@ -120,14 +120,14 @@ object FitWriter {
                     val hrId = if (session) 16 else 15
                     val cadId = if (session) 18 else 17
                     val ascentId = if (session) 22 else 21
-                    val distance = end.values[config.distanceSource].takeIf { config.distanceSource in config.fields }
+                    val distance = PrimaryRecording.value(end.values,config.distanceSource,config).takeIf { config.distanceSource in config.fields }
                     val fields = mutableListOf(u16(254, 0.0), u32(253, endStamp), en(0, if (session) 8 else 9), en(1, 1),
                         u32(2, startStamp), u32(7, seconds, 1000.0), u32(8, seconds, 1000.0), u32(9, distance, 100.0),
                         u16(speedId, distance?.takeIf { seconds > 0 }?.div(seconds), 1000.0), u16(speedId + 1, maxima[config.speedSource], 1000.0),
                         u8(hrId, average("HEART_RATE")), u8(hrId + 1, maxima["HEART_RATE"]),
                         u8(cadId, average("CADENCE")), u8(cadId + 1, maxima["CADENCE"]),
                         u16(powerId, average("RIDER_POWER")), u16(powerId + 1, maxima["RIDER_POWER"]),
-                        u16(ascentId, end.values["GPS_ASCENT"]), u16(ascentId + 1, end.values["GPS_DESCENT"]))
+                        u16(ascentId, PrimaryRecording.value(end.values,"GPS_ASCENT",config)), u16(ascentId + 1, PrimaryRecording.value(end.values,"GPS_DESCENT",config)))
                     if (session) fields += listOf(u32(com.garmin.fit.SessionMesg.TotalMovingTimeFieldNum, moving.value?.div(1000.0), 1000.0), en(5, 2), en(6, subtype), u16(25, 0.0), u16(26, 1.0))
                     else fields += listOf(en(24, 7), en(25, 2), en(39, subtype))
                     fun optional(id: String, value: Double?, maximum: Double, field: (Double) -> Field) {

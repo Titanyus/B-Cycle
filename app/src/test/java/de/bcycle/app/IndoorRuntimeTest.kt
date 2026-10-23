@@ -49,12 +49,12 @@ class IndoorRuntimeTest {
             r.saveConfig(RecordingConfig(setOf("SPEED","BIKE_DISTANCE","RIDER_POWER","CADENCE","GPS_ELAPSED_TIME","MECHANICAL_WORK")))
             r.beginRecording();assertEquals(0L,r.ride.bike.distanceM)
             r.setVisible(false);assertTrue(r.trainer.active);assertFalse(r.gpsSensor.active)
-            repeat(6) { i ->
+            repeat(12) { i ->
                 shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));send(link,125+i*10)
                 shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));send(link,130+i*10)
             }
-            assertEquals(6000L,r.elapsedMs);assertEquals(60L,r.ride.bike.distanceM)
-            assertEquals(1.2,r.performanceValues.knownMechanicalWorkKj,.001)
+            assertEquals(12000L,r.elapsedMs);assertEquals(120L,r.ride.bike.distanceM)
+            assertEquals(2.4,r.performanceValues.knownMechanicalWorkKj,.001)
             assertEquals(PowerSource.FTMS,r.powerMeasurement!!.source)
             r.stopRecording();val stopped=r.elapsedMs
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(3))
@@ -82,12 +82,12 @@ class IndoorRuntimeTest {
             r.saveConfig(RecordingConfig(setOf("SPEED","BIKE_DISTANCE","RIDER_POWER","CADENCE","GPS_ELAPSED_TIME","MECHANICAL_WORK")))
             r.beginRecording()
             assertFalse(r.setIndoorCorrection(IndoorCorrection(0,0)))
-            repeat(6) { i ->
+            repeat(12) { i ->
                 shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));send(link,125+i*10)
                 shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));send(link,130+i*10)
             }
-            assertEquals(120L,r.ride.bike.distanceM)
-            assertEquals(1.8,r.performanceValues.knownMechanicalWorkKj,.001)
+            assertEquals(240L,r.ride.bike.distanceM)
+            assertEquals(3.6,r.performanceValues.knownMechanicalWorkKj,.001)
             assertEquals(300L,r.dashboardBikeData.value(LiveMetric.AVERAGE_POWER))
             r.stopRecording()
             assertFalse(r.setIndoorCorrection(IndoorCorrection())) // Saving is also protected.
@@ -98,12 +98,12 @@ class IndoorRuntimeTest {
             val original=file.readBytes()
             val fit=file.inputStream().use { com.garmin.fit.FitDecoder().decode(it) }
             assertTrue(fit.recordMesgs.any { it.power?.toInt()==300 && kotlin.math.abs((it.speed ?: 0f)-20f/3.6f)<.01 })
-            assertEquals(120.0,fit.sessionMesgs.single().totalDistance.toDouble(),.01)
+            assertEquals(240.0,fit.sessionMesgs.single().totalDistance.toDouble(),.01)
             assertTrue(r.setIndoorCorrection(IndoorCorrection(0,0)))
             assertArrayEquals(original,file.readBytes()) // Existing rides are never rewritten/re-scaled.
             send(link,300)
             assertEquals(0.0,r.currentSpeedKmh!!,.001);assertEquals(0,r.dashboardBikeData.riderPowerWatts)
-            assertEquals(120L,r.ride.bike.distanceM) // Finished trip stays frozen.
+            assertEquals(240L,r.ride.bike.distanceM) // Finished trip stays frozen.
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6))
             assertNull(r.currentSpeedKmh);assertNull(r.dashboardBikeData.riderPowerWatts)
         } finally { if(r.recording) r.stopRecording();r.setVisible(false) }

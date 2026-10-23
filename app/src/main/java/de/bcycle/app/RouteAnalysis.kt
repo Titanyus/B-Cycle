@@ -134,7 +134,7 @@ internal object RouteAnalysisRead {
                     builder.record(time, v("distance") ?: dev("GPS_DISTANCE", "m") ?: dev("BIKE_DISTANCE", "m"), point,
                         v("enhanced_speed") ?: v("speed") ?: dev("SPEED", "m/s") ?: dev("GPS_SPEED", "m/s"),
                         v("power") ?: dev("RIDER_POWER", "W"), v("cadence") ?: dev("CADENCE", "rpm") ?: dev("CADENCE", "U/min"),
-                        v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("GPS_ALTITUDE", "m"),
+                        v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("PRIMARY_HEIGHT","m") ?: dev("GPS_ALTITUDE", "m"),
                         v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"), dev("SPEED", "m/s"))
                 }
                 18, 19 -> builder.summary(message, message.num == 18)

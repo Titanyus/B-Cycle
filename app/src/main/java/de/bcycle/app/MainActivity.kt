@@ -373,7 +373,7 @@ class MainActivity : Activity() {
         picker?.dismiss()
         val selected = if (mapField) MapFieldSelection.read(preferences, index) else dashboardLayout.fields[index]
         val graphs=if(!mapField && dashboard.template.supportsGraph(index))
-            GraphOverlayPicker(settingsContext,settingsThemes,dashboardGraphs.slots[index],dashboardGraphs.windows[index],GraphAvailability.forProfile(runtime.bikes.current())) else null
+            GraphOverlayPicker(settingsContext,settingsThemes,dashboardGraphs.slots[index],dashboardGraphs.windows[index],GraphAvailability.forProfile(runtime.bikes.current(),runtime.barometer.available)) else null
         fun saveGraphs() {
             if(graphs!=null) {
                 dashboardGraphs=dashboardGraphs.replace(index,graphs.selected).withWindow(index,graphs.window)
@@ -572,25 +572,18 @@ class MainActivity : Activity() {
             previewDetails
         }) { runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving })
         root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
-        fun source(title: String, chosen: String, bikeId: String): Spinner {
-            val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }
-            val caption=label(title,BicycleDesign.bodySp)
-            row.addView(caption,LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
-            val choice=Spinner(settingsContext).apply {
-                adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, if(current.indoor) listOf(getString(R.string.bikes_type_indoor)) else listOf(getString(R.string.ui_source_bike), getString(R.string.ui_source_gps)))
-                setSelection(if (chosen == bikeId) 0 else 1)
-                id=View.generateViewId();caption.labelFor=id
-            }
-            BicycleDialogStyle.spinner(choice,settingsThemes,BicycleDesign.profileDropdownSp,iconForLabel={ label ->
-                if(current.indoor) BicycleIcon.IndoorBike else if(label==getString(R.string.ui_source_gps)) BicycleIcon.GpsSensor else BicycleIcon.EBike
-            })
-            row.addView(choice,LinearLayout.LayoutParams(0,-2,1f));root.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
-            return choice
+        var sources=current.sourcePreferences ?: RecordingSources.defaults(current,current.indoor)
+        lateinit var sourceControls:RecordingSourcesView
+        fun saveFields() {
+            if(runtime.bikes.activeSlot!=slot || !sourceControls.isAttachedToWindow || runtime.recording || runtime.saving) return
+            runtime.saveConfig(RecordingConfig(selected.toSet(),
+                if(sources.preferred[RecordingQuantity.SPEED]==RecordingSource.GPS) "GPS_SPEED" else "SPEED",
+                if(sources.preferred[RecordingQuantity.DISTANCE]==RecordingSource.GPS) "GPS_DISTANCE" else "BIKE_DISTANCE",
+                metadata=metadata,sourcePreferences=sources))
         }
-        val speed = source(getString(R.string.bikes_fit_primary_speed), current.speedSource, "SPEED")
-        val distance = source(getString(R.string.bikes_fit_primary_distance), current.distanceSource, "BIKE_DISTANCE")
-        fun saveFields() { if(runtime.bikes.activeSlot!=slot || !speed.isAttachedToWindow) return;runtime.saveConfig(RecordingConfig(selected.toSet(),if(speed.selectedItemPosition==0) "SPEED" else "GPS_SPEED",if(distance.selectedItemPosition==0) "BIKE_DISTANCE" else "GPS_DISTANCE",metadata=metadata)) }
-        observeSettings(speed,::saveFields);observeSettings(distance,::saveFields)
+        sourceControls=RecordingSourcesView(settingsContext,settingsThemes,runtime.bikes.current(),runtime.barometer.available,sources,
+            editable={runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving}) { sources=it;saveFields() }
+        root.addView(sourceControls)
         BicycleForm.section(root,settingsThemes,R.string.ui_track_recording)
         root.addView(BicycleComponents.description(settingsContext,settingsThemes,getString(R.string.track_recording_description)).apply { tag="track_recording_description" })
         root.addView(FitMetadataView(settingsContext,settingsThemes,runtime.bikes.current(),metadata,

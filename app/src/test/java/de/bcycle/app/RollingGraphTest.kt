@@ -50,7 +50,7 @@ class RollingGraphTest {
         assertFalse(AnalysisChart.ELEVATION in GraphAvailability.forProfile(indoor))
         val gpsOnly=bikes.current().copy(recording=RecordingConfig(speedSource="GPS_SPEED"))
         assertEquals(setOf(AnalysisChart.SPEED,AnalysisChart.ELEVATION),GraphAvailability.forProfile(gpsOnly))
-        assertFalse(AnalysisChart.SPEED in GraphAvailability.forProfile(gpsOnly.copy(gpsEnabled=false,bikeAddress="00:11:22:33:44:55")))
+        assertTrue(AnalysisChart.SPEED in GraphAvailability.forProfile(gpsOnly.copy(gpsEnabled=false,bikeAddress="00:11:22:33:44:55"))) // Configured bike is now an automatic fallback.
         val first=bikes.activeSlot
         val config=GraphOverlayConfig().withWindow(0,GraphWindow.SECONDS_60)
         prefs.edit().putString(GraphOverlayConfig.windowKey(0),config.encodeWindows()).commit()
