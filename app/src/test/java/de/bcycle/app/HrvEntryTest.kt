@@ -49,6 +49,7 @@ class HrvEntryTest {
         settings.write(settings.read().copy(showOnFirstStart=false))
         assertFalse(HrvDailyLaunch(c).shouldShow(day.plusDays(1)))
     }
+    @Config(qualifiers="w360dp-h800dp-mdpi")
     @Test fun outsideDismissRestoresDashboardAndHeartStartsOnlyWhenFreshRrArrives() {
         val c=RuntimeEnvironment.getApplication();HrvSettings(c).write(HrvMeasurementConfig(showOnFirstStart=true))
         var host=Robolectric.buildActivity(MainActivity::class.java).setup()
@@ -100,6 +101,40 @@ class HrvEntryTest {
             host.pause().stop().start().resume()
             assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))
             assertFalse(runtime.recording)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun dailyCardFitsPortraitUsesScreenAndLaterAcknowledgesWithoutStarting() {
+        val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            val root=FrameLayout(a);val dashboard=View(a).apply { setBackgroundColor(android.graphics.Color.DKGRAY) }
+            root.addView(dashboard,FrameLayout.LayoutParams(-1,-1));a.setContentView(root)
+            var acknowledged=0;var started=0
+            val prompt=HrvDailyPrompt(a,root,dashboard,themes,{acknowledged++},{started++})
+            layout(root)
+            val card=root.findViewWithTag<ScrollView>("hrv_daily_card")
+            assertEquals(themes.active.tokens.secondary,(card.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            assertEquals(a.getString(R.string.hrv_daily_now),root.findViewWithTag<Button>("hrv_daily_start").text)
+            assertEquals(3,root.findViewWithTag<LinearLayout>("hrv_daily_metrics").childCount)
+            root.findViewWithTag<View>("hrv_daily_title").performClick();assertEquals(0,acknowledged)
+            root.measure(View.MeasureSpec.makeMeasureSpec(320,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(480,View.MeasureSpec.EXACTLY));root.layout(0,0,320,480)
+            assertTrue(card.left>=16 && card.right<=304);assertTrue(card.top>=16 && card.bottom<=464)
+            assertEquals("Initial entry must start at the top",0,card.scrollY)
+            card.fullScroll(View.FOCUS_DOWN);shadowOf(Looper.getMainLooper()).idle()
+            assertTrue("Both actions remain reachable by scrolling",card.scrollY>0)
+            val artwork=HrvScreenHeart(a)
+            artwork.measure(View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));artwork.layout(0,0,400,artwork.measuredHeight)
+            val image=Bitmap.createBitmap(400,artwork.height,Bitmap.Config.ARGB_8888)
+            val color=android.graphics.Color.rgb(32,48,64);val canvas=Canvas(image);canvas.drawColor(color);artwork.draw(canvas)
+            assertEquals("Black must disappear under SCREEN",color,image.getPixel(0,0))
+            var brightest=0
+            for(y in 0 until image.height) for(x in 0 until image.width) brightest=maxOf(brightest,android.graphics.Color.red(image.getPixel(x,y)))
+            assertTrue("Neon artwork must remain visible",brightest>200);image.recycle()
+            root.findViewWithTag<View>("hrv_daily_later").performClick()
+            assertEquals(1,acknowledged);assertEquals(0,started)
+            assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))
+            assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO,dashboard.importantForAccessibility)
+            prompt.close();assertEquals(1,acknowledged)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun ratingsUseNeutralOriginSleepTimesShareRowAndContinueWaitsForSuccessfulSave() {

@@ -43,8 +43,13 @@ object BicycleDesign {
     const val hrvGlowFadeMs=1500L
     const val hrvGraphWindowMs=60000L
     const val hrvActionOffset=64
-    const val hrvPromptDiameter=300
-    const val hrvPromptBlurPx=14f
+    const val hrvPromptMaxWidth=400
+    const val hrvPromptPadding=24
+    const val hrvPromptTitleSp=40f
+    const val hrvPromptCopySp=18f
+    const val hrvPromptShadow=24
+    const val hrvPromptDimAlpha=170
+    const val hrvPromptBorder=1
     const val fastScrollThumbHeight=40f
     const val fastScrollTouchWidth=24f
     const val fastScrollPreviewMaxWidth=180f

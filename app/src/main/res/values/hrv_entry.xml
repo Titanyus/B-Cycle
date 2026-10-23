@@ -1,9 +1,16 @@
 <resources>
     <string name="hrv_measurement_open">HRV-Messung</string>
     <string name="hrv_first_start">HRV beim ersten Start zeigen</string>
-    <string name="hrv_first_start_hint">Beim Öffnen der App wird automatisch das Dashboard mit dem HRV-Herz angezeigt. Der Hinweis erscheint bei weiteren Starts erneut, bis du auf das Herz oder daneben tippst. Am nächsten Tag erscheint er wieder.</string>
+    <string name="hrv_first_start_hint">Beim Öffnen der App erscheint auf dem abgedunkelten Dashboard ein HRV-Dialog. Mit Jetzt starten öffnest du die Messung. Später oder ein Tipp daneben schließt das Angebot für heute. Ohne bewusste Auswahl erscheint es bei weiteren Starts erneut; am nächsten Tag wird es wieder angeboten.</string>
     <string name="hrv_daily_start">HRV starten</string>
     <string name="hrv_daily_dismiss">HRV-Einstieg schließen</string>
+    <string name="hrv_daily_title">HRV-Messung</string>
+    <string name="hrv_daily_copy">In 3 Minuten zu deinem\nmorgendlichen Erholungswert.</string>
+    <string name="hrv_daily_resting">Ruhepuls</string>
+    <string name="hrv_daily_readiness">Readiness</string>
+    <string name="hrv_daily_condition">Tagesform</string>
+    <string name="hrv_daily_now">Jetzt starten</string>
+    <string name="hrv_daily_later">Später</string>
     <string name="hrv_vibrate_end">Vibrieren am Ende der Messung</string>
     <string name="hrv_sound_end">Akustisches Signal am Ende der Messung</string>
     <string name="hrvq_analysis">Zur Auswertung</string>
