@@ -70,14 +70,33 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
     }
     private fun pending(all:JSONObject,target:String)=all.keys().asSequence().filter { val it=all.getJSONObject(it)
         it.optString("target")==target && it.optString("state") in setOf("pending","processing") }.toList()
-    fun schedule(c:Context) {
+    fun schedule(c:Context)=schedule(c,confirmation=false)
+    private fun schedule(c:Context,confirmation:Boolean) {
         val config=ActivityServiceSettings(c,service).read();val scheduler=c.getSystemService(JobScheduler::class.java)
         if(!config.enabled || synchronized(lock) { pending(entries(c),config.identity(service)).isEmpty() }) { scheduler.cancel(service.job);return }
-        if(scheduler.getPendingJob(service.job)!=null) return
+        if(!confirmation && scheduler.getPendingJob(service.job)!=null) return
         val type=if(service==ActivityService.DREEVE) DreeveUploadService::class.java else StravaUploadService::class.java
-        scheduler.schedule(JobInfo.Builder(service.job,ComponentName(c,type)).setPersisted(true)
+        val job=JobInfo.Builder(service.job,ComponentName(c,type)).setPersisted(true)
             .setRequiredNetworkType(if(config.wifiOnly) JobInfo.NETWORK_TYPE_UNMETERED else JobInfo.NETWORK_TYPE_ANY)
-            .setBackoffCriteria(60000,JobInfo.BACKOFF_POLICY_EXPONENTIAL).build())
+            .setBackoffCriteria(60000,JobInfo.BACKOFF_POLICY_EXPONENTIAL)
+        if(confirmation) job.setMinimumLatency(CONFIRMATION_INTERVAL_MS)
+        scheduler.schedule(job.build())
+    }
+    /** Accepted remote work is not a failed transfer. Finish the old execution before replacing
+     * its job, so Android's exponential failure backoff cannot delay ordinary status checks. */
+    internal fun finishRun(c:Context,retry:Boolean,finished:(Boolean)->Unit) {
+        val confirmation=retry && service==ActivityService.DREEVE && runCatching {
+            val config=ActivityServiceSettings(c,service).read()
+            config.enabled && synchronized(lock) {
+                val all=entries(c)
+                pending(all,config.identity(service)).any {
+                    val item=all.getJSONObject(it)
+                    item.optString("state")=="processing" && item.optString("job").isNotEmpty() && !item.has("problem")
+                }
+            }
+        }.getOrDefault(false)
+        finished(retry && !confirmation)
+        if(confirmation) schedule(c,confirmation=true)
     }
     fun settingsChanged(c:Context) {
         c.getSystemService(JobScheduler::class.java).cancel(service.job)
@@ -139,7 +158,7 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
                         break
                     }
                     // Normal Dreeve processing is not a failed network transfer. Check it promptly.
-                    if(service!=ActivityService.DREEVE || confirmationWait==null || confirmationDelays.isEmpty()) break
+                    if(service!=ActivityService.DREEVE || item.getString("job").isNotEmpty() || confirmationWait==null || confirmationDelays.isEmpty()) break
                     if(!confirmationWait(confirmationDelays.removeFirst(),stopped) || stopped()) return@synchronized true
                 }
             } catch(e:Exception) {
@@ -153,6 +172,7 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
         synchronized(lock) { pending(entries(c),target).isNotEmpty() }
     }
     companion object {
+        internal const val CONFIRMATION_INTERVAL_MS=30_000L
         internal fun waitForConfirmation(delayMs:Long,stopped:()->Boolean):Boolean {
             val end=android.os.SystemClock.elapsedRealtime()+delayMs
             while(!stopped()) {
@@ -177,7 +197,7 @@ abstract class ActivityUploadService:JobService() {
         val token=AtomicBoolean(false);stopped=token
         Thread({ val retry=try { ActivityServiceUploads.forService(provider).run(applicationContext,token::get,confirmationWait=ActivityServiceUploads::waitForConfirmation) } catch(_:Exception) { true }
             if(!token.get() && provider==ActivityService.DREEVE) runCatching { RideNames.run(applicationContext,token::get) }
-            if(!token.get()) jobFinished(params,retry)
+            if(!token.get()) ActivityServiceUploads.forService(provider).finishRun(applicationContext,retry) { jobFinished(params,it) }
         },"B-Cycle-${provider.name}").start();return true
     }
     override fun onStopJob(params:JobParameters):Boolean { stopped.set(true);return true }

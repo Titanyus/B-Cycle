@@ -2,6 +2,8 @@
 
 Stand: 23.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+Dreeve-Statuskorrektur: Normale serverseitige Verarbeitung nach erstem 30-s-Bestätigungsfenster nicht mehr per exponentiellem Job-Fehlerbackoff verzögern. Persistente Folgeprüfung mit mindestens 30 s Latenz, pro vorhandenem Auftrag eine Abfrage je Lauf; keine zweite Dateiübertragung. Echte Netzwerkfehler behalten Backoff. 16 gezielte Dienst-/Statusfälle erfolgreich, kein Kontotest/APK. Details docs/dreeve-workflow-and-private-analysis.md.
+
 Für später vorgemerkt, ohne Implementierungsauftrag: Bluetooth Cycling Power (Powermeter/Pedale) und Cycling Speed and Cadence als nächste sinnvolle Sensor-Erweiterungen; KICKR CORE mit konkreter Firmware gegen vorhandenen FTMS-Empfang prüfen. FTMS-Steuerung (ERG/Zielwatt/Widerstand/Steigung), Shimano Di2 (Gang/Schaltungsakku abhängig von Generation/Funkmodul) und ANT+ separat betrachten. Aufgaben und technische Grenzen in TODO.md und docs/recording-source-selection-plan.md. Nur Dokumentation geändert, keine Tests oder APK nötig.
 
 Aktueller Zusatzauftrag: Aufnahme-Autostart je Profil unter Radumfang mit Trenner ergänzt. Default aus, Profil-/Backup-kompatibel. Bosch LIVE/Trainer subscribed startet vorhandenen Foreground-Service bei geöffneter App, ebenso Appöffnung mit bereits bereitstehendem Gerät. Aufnahme/Speicherung/HRV haben Vorrang, keine Vormerkung; keine Wiederholung durch Statuspakete. Zwölf unterschiedliche gezielte Tests erfolgreich: sechs neue Autostart-/UI-/Backupfälle, drei bestehende Sicherungsfälle und Aufnahme mit Foreground-Service auf Android 13/15/16; HRV-Service-Grenze nach letzter Absicherung nochmals erfolgreich. Typografie-/Atlasprüfung und diff --check erfolgreich. Kein Hardwaretest oder neue APK.

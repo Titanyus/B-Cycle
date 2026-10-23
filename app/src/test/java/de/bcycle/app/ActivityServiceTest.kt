@@ -256,4 +256,60 @@ class ActivityServiceTest {
         assertEquals(UploadState.UPLOADED,ActivityServiceUploads.dreeve.state(c,id,null).state)
     }
 
+    @Test fun slowDreeveProcessingUsesFixedConfirmationJobsAndEventuallyConfirmsWithoutReupload() {
+        configureDreeve()
+        val uploads=ActivityServiceUploads.dreeve
+        val file=FitLibrary.retainRecording(c.filesDir,fit());val id=file.nameWithoutExtension
+        uploads.enqueue(c,file)
+        val scheduler=c.getSystemService(android.app.job.JobScheduler::class.java)
+        var posts=0;var checks=0;var confirmed=false
+        val step={ _:ActivityServiceConfig,_:File,_:String,_:String,job:String,_:()->Boolean ->
+            if(job.isEmpty()) posts++ else { assertEquals("accepted",job);checks++ }
+            UploadProgress("accepted",if(confirmed) "slow-activity" else null)
+        }
+        assertTrue(uploads.run(c,{false},confirmationWait={ _,_->true },step=step))
+        assertEquals(1,posts);assertEquals(5,checks)
+        repeat(3) {
+            uploads.finishRun(c,true) { retry ->
+                assertFalse("Remote processing must not request Android failure backoff",retry)
+                // Keep the old job visible: finish delivery to Android can be asynchronous.
+            }
+            val job=scheduler.getPendingJob(ActivityService.DREEVE.job)!!
+            assertEquals(30_000L,job.minLatencyMillis)
+            assertEquals(android.app.job.JobInfo.NETWORK_TYPE_ANY,job.networkType)
+            assertTrue(job.isPersisted)
+            assertEquals(UploadState.UPLOADING,uploads.state(c,id,null).state)
+            assertTrue(RideServiceLinks.links(c,id).isEmpty())
+            val before=checks
+            assertTrue(uploads.run(c,{false},confirmationWait={ _,_->fail("Existing imports need one check per scheduled run");false },step=step))
+            assertEquals(before+1,checks)
+        }
+        val revision=RouteCloudUploads.revision(c)
+        confirmed=true
+        assertFalse(uploads.run(c,{false},step=step))
+        uploads.finishRun(c,false) { retry -> assertFalse(retry);scheduler.cancel(ActivityService.DREEVE.job) }
+        assertNull(scheduler.getPendingJob(ActivityService.DREEVE.job))
+        assertEquals(1,posts)
+        assertEquals(UploadState.UPLOADED,uploads.state(c,id,null).state)
+        assertNotEquals(revision,RouteCloudUploads.revision(c))
+        assertEquals("slow-activity",RideServiceLinks.links(c,id).single().activityId)
+    }
+
+    @Test fun failedDreeveStatusRequestKeepsFailureBackoffAndDisablingStopsConfirmationJobs() {
+        val settings=configureDreeve();val uploads=ActivityServiceUploads.dreeve
+        val file=FitLibrary.retainRecording(c.filesDir,fit());uploads.enqueue(c,file)
+        assertTrue(uploads.run(c,{false}) { _,_,_,_,_,_->UploadProgress("accepted") })
+        assertTrue(uploads.run(c,{false}) { _,_,_,_,_,_->throw java.io.IOException("offline") })
+        val scheduler=c.getSystemService(android.app.job.JobScheduler::class.java)
+        uploads.finishRun(c,true) { assertTrue("Actual network failures retain Android backoff",it) }
+        assertEquals(0L,scheduler.getPendingJob(ActivityService.DREEVE.job)!!.minLatencyMillis)
+        // A later successful check clears the network error but still awaits remote processing.
+        assertTrue(uploads.run(c,{false}) { _,_,_,_,job,_->UploadProgress(job) })
+        uploads.finishRun(c,true) {
+            assertFalse(it)
+            settings.write(settings.read().copy(enabled=false))
+        }
+        assertNull(scheduler.getPendingJob(ActivityService.DREEVE.job))
+    }
+
 }
