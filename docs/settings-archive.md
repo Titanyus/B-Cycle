@@ -89,3 +89,5 @@ und Rückkehr nach Activity-Neuerstellung ohne Passwort/Archiv im Bundle.
 Geräte-/WebDAV-Integration mit echten Zugangsdaten nicht in der Cloud getestet.
 
 Stand 23.10.2026: die beschriebenen Änderungen sind in APK **0.8.32 / Build 71** enthalten. [Buildnachweis](build-71.md).
+
+Nach Build 72: optionales `autoStartRecording` je Fahrradprofil in Profilkatalog, aktiven/inaktiven Profilen und Export/Restore berücksichtigt, alte Sicherungen ohne Feld ausgeschaltet. Keine Änderung des Archivschemas oder der FIT-/Journalfelder.

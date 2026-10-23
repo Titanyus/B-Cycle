@@ -7,7 +7,7 @@ import org.json.JSONObject
 /** Explicit additional public settings. No credentials, upload jobs or OS grants. */
 internal class SettingsBackupSupplement(private val context:Context) {
     private fun prefs(name:String)=context.getSharedPreferences(name,0)
-    private val profileKeys=setOf("slot","name","type","category","wheelMm","autoConnect","gpsEnabled","bikeEnabled","heartEnabled",
+    private val profileKeys=setOf("slot","name","type","category","wheelMm","autoConnect","autoStartRecording","gpsEnabled","bikeEnabled","heartEnabled",
         "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
         BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY),"route-export" to setOf("tree")),
@@ -165,6 +165,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
             BikeType.valueOf(p.getString("type"));BikeCategory.valueOf(p.getString("category"))
             require(integer(p,"wheelMm") in 500..4000)
             listOf("autoConnect","gpsEnabled","bikeEnabled","heartEnabled").forEach { require(p.get(it) is Boolean) }
+            if(p.has("autoStartRecording")) require(p.get("autoStartRecording") is Boolean)
             listOf("indoorPowerTenths","indoorSpeedTenths").forEach { if(p.has(it)) require(integer(p,it) in 0..30) }
             listOf("bikeAddress","heartAddress","trainerAddress").forEach { if(p.has(it)) require(p.getString(it).isEmpty() || p.getString(it).matches(Regex("([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"))) }
             listOf("bikeName","heartName","trainerName").forEach { if(p.has(it)) require(p.getString(it).let { s -> s.length<=248 && s.none(Char::isISOControl) }) }

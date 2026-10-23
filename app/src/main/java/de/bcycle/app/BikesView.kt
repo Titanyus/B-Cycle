@@ -70,6 +70,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val removes = mutableMapOf<BikeSensor, ImageButton>()
     private lateinit var nameHeading: TextView
     private lateinit var autoConnect: Switch
+    private lateinit var autoStartRecording:Switch
     private lateinit var searchButton: Button
     private lateinit var searchResults: LinearLayout
     private lateinit var searchStatus: TextView
@@ -201,6 +202,13 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             wheel.error=if(mm==null || mm !in 500..4000) context.getString(R.string.bikes_wheel_error) else null
             if(wheel.error==null) runtime.bikes.save(runtime.bikes.current().copy(wheelMm=mm!!))
         })
+        addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.sectionDividerGap).apply { tag="bike_autostart_divider" })
+        autoStartRecording=Switch(context).apply {
+            tag="bike_auto_start_recording";setText(R.string.bikes_auto_start_recording);isChecked=profile.autoStartRecording
+            setOnCheckedChangeListener { _,enabled -> if(!binding && runtime.bikes.activeSlot==slot)
+                runtime.bikes.save(runtime.bikes.current().copy(autoStartRecording=enabled)) }
+        }
+        BicycleDialogStyle.control(autoStartRecording,themes);addView(autoStartRecording,LayoutParams(-1,-2))
         section(R.string.bikes_sensors)
         autoConnect=Switch(context).apply {
             tag="bike_auto_connect";setText(R.string.bikes_autoconnect);isChecked=profile.autoConnect
@@ -379,7 +387,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         if(shownSlot!=runtime.bikes.activeSlot || shownType!=runtime.bikes.current().type) { rebuild();return }
         binding=true
         try {
-            val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect
+            val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect;autoStartRecording.isChecked=p.autoStartRecording
             findViewWithTag<RideNamingView>("ride_naming")?.refreshLock()
             searchButton.isEnabled=!runtime.recording && !runtime.saving
             searchButton.alpha=if(searchButton.isEnabled) 1f else .4f

@@ -40,7 +40,9 @@ class RecordingService : Service() {
         if (runtime.hasGps() && runtime.gpsEnabled) types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         try {
             startForeground(1, notification(), types)
-            runtime.beginRecording(); handler.removeCallbacks(refresh); handler.post(refresh)
+            runtime.beginRecording()
+            if(!runtime.recording && !runtime.saving) { stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();return START_NOT_STICKY }
+            handler.removeCallbacks(refresh); handler.post(refresh)
         } catch (_: SecurityException) { runtime.stopRecording(); stopSelf() }
         return START_NOT_STICKY
     }

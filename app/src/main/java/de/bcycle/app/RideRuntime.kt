@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +16,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
     internal val bikes = BikeProfileStore(context, preferences)
     private var connectionsRequested = bikes.current().autoConnect
+    private var autoStartWasConnected=false
     private val disconnectedSensors = mutableSetOf<BikeSensor>()
     val themes = ThemeManager(preferences)
     val riderProfiles = RiderProfileStore(preferences)
@@ -219,7 +221,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     init { RideNames.schedule(context);ActivityServiceUploads.all.forEach { runCatching { it.schedule(context) } }; IntervalsUploads.schedule(context); RouteUploads.schedule(context); diagnostics.reset("App=${AppVersion.name} Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
     fun notifyChanged() { observers.toList().forEach { it() } }
-    fun setVisible(value: Boolean) { visible = value;if(!value) hrv.abort("APP_BACKGROUND"); updateActivity() }
+    fun setVisible(value: Boolean) {
+        val opened=value && !visible
+        visible=value;if(!value) hrv.abort("APP_BACKGROUND");updateActivity()
+        if(opened) autoStartOnConnection(recheck=true)
+    }
     private fun updateActivity() {
         bikeReconnect.foreground = active; heartReconnect.foreground = active;trainerReconnect.foreground=active
         handler.removeCallbacks(tick)
@@ -316,7 +322,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val sharedAddress=if(reuseHeart && heartEnabled && hasBluetooth() && heart.live && !disconnected(BikeSensor.HEART)) heart.deviceAddress else null
         val sharedName=heartName;val sharedPulse=pulse;val sharedAt=heartAt;val sharedStatus=heartStatus
         connectionsRequested = false
-        connection.stop();trainer.stop();gpsSensor.stop()
+        connection.stop();trainer.stop();gpsSensor.stop();autoStartWasConnected=false
         if(sharedAddress==null) heart.stop()
         change()
         val target=bikes.current()
@@ -440,6 +446,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if(!isIndoor) return
         refreshTrainerData(SystemClock.elapsedRealtime())
         if(trainer.live) trainerReconnect.connected()
+        autoStartOnConnection()
         if(!trainer.active) {
             lastPacketAt=null;times.clear();ride.bike.pause()
             capturePerformance(PerformanceChannel.POWER,null,PowerSource.FTMS.name)
@@ -556,7 +563,16 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         return connection.isLive && times[metric]?.let { now - it <= limit } == true
     }
     fun retryPending() { if (!recording && !saving) { saving = true; store.retryPending() } }
-    override fun onStatus(message: String) { bikeStatus = message; scanStatus?.invoke(message); if (connection.isLive) bikeReconnect.connected(); notifyChanged() }
+    private fun autoStartOnConnection(recheck:Boolean=false) {
+        val connected=if(isIndoor) trainer.subscribed else connection.isLive
+        val newlyConnected=connected && (!autoStartWasConnected || recheck)
+        autoStartWasConnected=connected
+        if(!newlyConnected || !visible || !bikes.current().autoStartRecording || recording || saving || hrv.busy) return
+        try { context.startForegroundService(Intent(context,RecordingService::class.java).setAction(RecordingService.START)) }
+        catch(_:SecurityException) { BicycleFeedback.show(context,R.string.ui_record_permission_error,true) }
+        catch(_:IllegalStateException) { BicycleFeedback.show(context,R.string.ui_record_visible_error,true) }
+    }
+    override fun onStatus(message: String) { bikeStatus = message; scanStatus?.invoke(message); if (connection.isLive) bikeReconnect.connected();autoStartOnConnection(); notifyChanged() }
     override fun onDevice(device: BluetoothDevice, name: String) { scanFound?.invoke(device, name) }
     override fun onSamples(samples: List<McspSample>) {
         if(isIndoor) return
@@ -589,7 +605,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             val chosen = if (recording) activeConfig else config
             if (chosen.speedSource == "SPEED") capturePerformance(PerformanceChannel.SPEED, null, "SPEED")
         }
-        notifyChanged()
+        autoStartOnConnection();notifyChanged()
     }
     companion object {
         private var instance: RideRuntime? = null
