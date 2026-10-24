@@ -2,6 +2,10 @@
 
 Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller Abschluss: APK 0.8.36 / Build 75
+
+Alle Appänderungen seit Build 74 sind jetzt auf main veröffentlicht und in APK **0.8.36 / Build 75 / Code 106** enthalten. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.36-release-75.apk), [Buildnachweis](build-75.md), Actions-Quellstand `c710ad6cf804935efe2807d3df0d3a854b17d60c`. Größe 2.392.733 Bytes; SHA-256 `edc7c62f3760e6c72335a9c770ea6694313d9502811d900d9e8876dcd3aa8881`. Optimierter Release, gleiche dauerhafte Signatur wie Build 74, Version/Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Keine offene APK-Aufgabe. Flat-/Glow-/PRIMARY, rechts stehende Schalter, Scroll-Glow-Fix, Fenstergraphen, Quellen-Dropdowns, Dreeve-Namensrichtung und Zoomstufe enthalten. Autostart unverändert aktives Profil. Frühere Angaben zu fehlender APK/lokalem Stand darunter sind Verlauf. Gezielte Tests wie in Umsetzung und Buildnachweis; kein Gesamtlauf oder Hardware-/Cloudkontentest.
+
 ## Aktueller Auftrag: Fenstergraphen, Quellen-Dropdowns, Designmodi, Dreeve-Namen und Zoom
 
 Umgesetzt: sechs statt drei Glättungspunkte nur für Dashboard 30/60/120 s (Voll/Rohdaten/FIT unverändert, Grenzen um Null/Lücken erhalten). Alle sechs Hauptquellen als Dropdown, bei einer/keiner Quelle deaktiviert mit Quellenname/Keine Quelle. Globale Designvariante über Flat-Design bei Theme-Auswahl: aus = Glow (Nutzerstandard), an = Flat. Gemeinsame Controls/Geometrie/Listener, nur Dekoration unterschiedlich. PRIMARY ersetzt alle bisherigen UI-ACCENT-Hervorhebungen; ACCENT in Palette/Backup separat erhalten. DESIGN sichert Modus, Fahrradwechsel tauscht ihn nicht aus. Native Fokus-/Auswahlkonturen/-Glows gemeinsam; Bosch-Fahrmodus-Glow unabhängig. Details design-modes.md.
