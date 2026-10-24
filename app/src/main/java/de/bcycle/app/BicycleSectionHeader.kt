@@ -24,7 +24,10 @@ internal class BicycleSectionHeader(context: Context, private val manager: Theme
         outlineProvider = null
         fun rule() = View(context).apply {
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-            BicycleComponents.bindTheme(this, manager) { setBackgroundColor(it.foreground) }
+            BicycleComponents.bindTheme(this, manager) {
+                setBackgroundColor(it.foreground)
+                alpha=if(BicycleAppearance.flat(context)) 0f else 1f
+            }
         }
         fun addRule() {
             val thickness=BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)

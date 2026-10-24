@@ -40,3 +40,7 @@ Messscreen-Header und Header des Fahrtabschlussdialogs sind immer schlicht SECON
 ## Sticky-Typografie nach Build 78
 
 Alle Sticky-Kategorieheader zeigen League Gothic 30 sp jetzt ausschließlich in Großbuchstaben an. BicycleComponents.sectionTypography ist die gemeinsame Rolle, BicycleSectionHeader markiert den Titel, BicycleDialogStyle erhält die Rolle beim allgemeinen Styling. Damit wird die bisherige nachträgliche Body-Schrift auf Strecken-/FIT-Aufzeichnung, HRV-Fragenauswahl, Benachrichtigungs-Appauswahl und Daten-/Speichergruppen verhindert. Rohtext, Namen und Accessibility-Beschreibung behalten ihre Schreibweise; Farben, Geometrie und Accordion-/Scrollfunktion unverändert. Keine neue APK beauftragt.
+
+## Eingabeecken und Flat-Sticky-Linien nach Build 80
+
+Texteingaben verwenden jetzt auch in Glow die normalen 6-dp-Ecken statt des pillenartigen 24-dp-Exportradius. Rahmen und Nah-/Außen-Glow folgen derselben Eingabekontur; Farben, Stops und Blurwerte unverändert. Explizite Special-Pillen und andere Controls nicht umgestalten. Sticky-Header zeichnen ihre weiße obere/untere Begrenzung nur in Glow; Flat blendet die Linien bei unveränderter Höhe und Abstand aus. Typografie, Accordion-/Sticky-Funktion und alle Eingabefunktionen unverändert.

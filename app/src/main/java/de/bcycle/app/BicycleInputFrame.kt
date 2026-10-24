@@ -41,7 +41,7 @@ internal object BicycleInputFrame {
             else android.graphics.drawable.ColorDrawable(tokens.color(role))
         return decorate(view,tokens,true,fill,0)
     }
-    private class Frame(view:View,tokens:ThemeTokens,private val refresh:()->Unit,private val selected:Boolean?=null,private val radius:Float=BicycleInputStyle.radius(view.context)):GradientDrawable() {
+    private class Frame(view:View,tokens:ThemeTokens,private val refresh:()->Unit,private val selected:Boolean?=null,private val radius:Float=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()):GradientDrawable() {
         private val density=view.resources.displayMetrics.density
         private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeWidth=BicycleDesign.inputFocusStroke*density }
         private val flat=BicycleAppearance.flat(view.context)
@@ -81,7 +81,7 @@ internal object BicycleInputFrame {
             set(value) { if(field!=value) { field=value;clearCache() } }
         var radiusDp:Int?=null
             set(value) { if(field!=value) { field=value;clearCache() } }
-        private fun radius()=radiusDp?.let { BicycleDesign.dp(field.context,it).toFloat() } ?: BicycleInputStyle.radius(field.context)
+        private fun radius()=radiusDp?.let { BicycleDesign.dp(field.context,it).toFloat() } ?: BicycleDesign.dp(field.context,BicycleDesign.inputRadius).toFloat()
         var chromatic=BicycleInputStyle.defaultChromatic
             set(value) { if(field!=value) { field=value;clearCache() } }
         private data class Blurs(val width:Int,val height:Int,val density:Float,val pad:Float,val near:Bitmap,val outer:Bitmap)

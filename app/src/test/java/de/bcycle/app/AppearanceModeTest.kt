@@ -45,6 +45,7 @@ class AppearanceModeTest {
                 java.io.File("build/reports/ui/$name.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
             }
             snapshot("appearance-glow")
+            assertEquals(6f,(edit.background as android.graphics.drawable.GradientDrawable).cornerRadius,0f)
             assertFalse(themes.flatDesign);assertTrue(selected.elevation>0)
             val glowFill=fill();assertNotEquals(glowFill.getPixel(40,10),glowFill.getPixel(40,38));glowFill.recycle()
             assertEquals(tokens.primary,action.currentTextColor)
@@ -52,6 +53,7 @@ class AppearanceModeTest {
             assertTrue((toggle.thumbDrawable as android.graphics.drawable.LayerDrawable).getDrawable(1).current is BicycleChromaticSurface)
             themes.setFlatDesign(true);shadowOf(android.os.Looper.getMainLooper()).idle();layout()
             snapshot("appearance-flat")
+            assertEquals(6f,(edit.background as android.graphics.drawable.GradientDrawable).cornerRadius,0f)
             assertTrue(themes.flatDesign);assertEquals(0f,selected.elevation,0f)
             val flatFill=fill();assertEquals(tokens.primary,flatFill.getPixel(40,10));assertEquals(tokens.primary,flatFill.getPixel(40,38));flatFill.recycle()
             val image=Bitmap.createBitmap(360,600,Bitmap.Config.ARGB_8888);parent.draw(Canvas(image));assertEquals(tokens.secondary,image.getPixel(edit.left-3,edit.top+24));image.recycle()
