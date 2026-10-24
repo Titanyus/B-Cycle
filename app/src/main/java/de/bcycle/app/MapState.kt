@@ -350,7 +350,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             try { RouteTransferRecheck.run(context,entry,target) }
             catch(e:ActivityServiceFailure) { throw IllegalStateException(context.getString(e.problem),e) }
             catch(e:IntervalsFailure) { throw IllegalStateException(context.getString(e.problem),e) }
-            catch(e:java.io.IOException) { throw IllegalStateException(context.getString(R.string.route_transfer_check_failed),e) }
+            catch(e:java.io.IOException) { throw IllegalStateException(context.getString(ServiceProblems.text(e,R.string.route_transfer_check_failed)),e) }
             workerRoute
         }
     }

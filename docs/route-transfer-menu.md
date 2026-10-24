@@ -31,3 +31,9 @@ Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Bui
 ## Dreeve-Namen nach Upload, 24.10.2026
 
 Profilvorlagen erzeugen einen lokalen Ausgangsnamen und keinen manuellen Änderungsauftrag. Nach bestätigter Dreeve-Verarbeitung wird immer der Dreeve-Name gelesen, auch wenn ältere Appversionen den Ausgangsnamen als manual markiert hatten. Die Bestätigung schreibt keinen Namen nach Dreeve. Bewusste lokale Umbenennungen bleiben erlaubt; ein während des Abrufs neu erzeugter Auftrag schützt die lokale Änderung vor der älteren Antwort. Konto-/Abbruch-/Auftragsschutz und manueller Pull erhalten. Tests mit simulierten Diensten erfolgreich; kein echtes Dreeve-Konto verwendet. Bereits auf Dreeve überschriebene Originalnamen lassen sich aus dem Fix nicht rekonstruieren.
+
+## Dienstfehler
+
+ServiceProblems unterscheidet feste, zugangsdatenfreie Fehler für nicht erreichbare Dienste (inklusive lokalem Netz/VPN), Timeout, TLS, Anmeldung, Server und Ratenbegrenzung. Verbindungstests, Dreeve-Import, Uploadbelege/-menü, explizite Uploadprüfung und WebDAV-Sicherung verwenden dieselben Meldungen. Netzwerkfehler bleiben nach bestehender Retry-Regel ausstehend; Fehler sind kein bestätigter Upload und kein Löschungsnachweis. Konten-/Dateiversionsgrenzen und Auftrags-IDs bleiben erhalten.
+
+Dreeve-Namenssynchronisierung beendet die Sammelabfrage bei einem dienstweiten Fehler nach dem ersten betroffenen Eintrag und zeigt den konkreten Grund neben Teilresultaten. Einzelne ungültige Antworten bleiben pro Fahrt zählbar. WebDAV-Sicherung bricht bei dienstweitem Ausfall mit konkreter Meldung ab; bereits übertragene Teile werden nicht als vollständige Sicherung bestätigt. Lokale Datei-/Inhaltsfehler werden nicht pauschal zu Netzwerkfehlern umgedeutet. Neue feste Fehlerkennungen ergänzen bestehende Belege kompatibel; keine Serverantworten, Hosts oder Zugangsdaten werden darin gespeichert.

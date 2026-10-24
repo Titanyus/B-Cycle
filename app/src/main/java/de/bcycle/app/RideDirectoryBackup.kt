@@ -50,7 +50,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                     val metadata=jsonFile(temporary,"$id.ride.json",json);require(metadata.length()<=65536)
                     entries.put(send(directory,metadata.name,metadata))
                 } catch(e:Exception) {
-                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted) throw e
+                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
                     failed.put(id)
                 }
                 progress(entries.length()+failed.length())
@@ -87,7 +87,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                     val snapshot=File(temporary,"hrv-$id.json").apply { writeBytes(hrvStore.backup(id)) }
                     hrv.put(send(directory,snapshot.name,snapshot))
                 } catch(e:Exception) {
-                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted) throw e
+                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
                     hrvFailed.put(id)
                 }
             }
@@ -98,7 +98,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                     val snapshot=File(temporary,"hrv-day-$day.json").apply { writeBytes(hrvStore.backupQuestionnaireDay(day)) }
                     hrv.put(send(directory,snapshot.name,snapshot))
                 } catch(e:Exception) {
-                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted) throw e
+                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
                     hrvFailed.put(day)
                 }
             }
@@ -192,7 +192,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                     when(kind) { "FIT"->{ fits.delete(id);RideAnalysisFiles.file(context.filesDir,id).delete() }; "GPX"->gpx.delete(id); "SUMMARY"->summaries.delete(id) }
                     RideProfileColor.forget(context,id);RideServiceLinks.forget(context,id);RideNames.forget(context,id)
                 }
-                if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted) throw e
+                if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
                 failed++
             } finally { temporary.deleteRecursively();progress(position+1) }
         }
@@ -205,7 +205,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                 fetch(directory,hrvRows.getJSONObject(i),temporary,HrvStore.MAX_BYTES.toLong())
                 if(hrvStore.restore(temporary.readBytes())) hrvDone++ else hrvDuplicates++
             } catch(e:Exception) {
-                if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted) throw e
+                if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
                 hrvFailed++
             } finally { temporary.delete() }
         }

@@ -730,4 +730,11 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="training_help_details">Aktuelle und durchschnittliche Werte auswählen</string>
     <string name="ui_flat_design">Flat-Design</string>
     <string name="map_zoom_level">Zoom %1$d</string>
+    <string name="service_unreachable">Dienst nicht erreichbar. Netzwerk und Serveradresse prüfen; bei einem lokalen Server ggf. mit dessen WLAN oder VPN verbinden.</string>
+    <string name="service_timeout">Dienst antwortet nicht rechtzeitig. Verbindung prüfen und später erneut versuchen.</string>
+    <string name="service_tls_failed">Sichere Verbindung fehlgeschlagen. Serveradresse, Zertifikat und Gerätezeit prüfen.</string>
+    <string name="service_server_failed">Dienst ist vorübergehend nicht verfügbar. Später erneut versuchen.</string>
+    <string name="service_rate_limited">Dienst begrenzt die Anfragen. Bitte warten und später erneut versuchen.</string>
+    <string name="map_follow_heading">Fahrtrichtung oben</string>
+    <string name="map_follow_north">Genordet</string>
 </resources>

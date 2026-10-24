@@ -29,6 +29,12 @@ internal object RouteUploads {
     }
     fun revision(context: Context) = prefs(context).getLong("revision", 0)
     fun status(context: Context, id: String): String = state(context, id).message
+    fun problem(context:Context,id:String):Int?=synchronized(lock) {
+        val key=context.filesDir.path+":"+revision(context)
+        if(statusCacheKey!=key) { statusCache=entries(context);statusCacheKey=key }
+        val item=statusCache.optJSONObject(id) ?: return@synchronized null
+        if(item.optString("state")=="saved" || item.optString("target")!=runCatching { target(RouteExportSettings(context).read()) }.getOrNull()) null else ServiceProblems.resource(item.optString("issue"))
+    }
     fun state(context: Context, id: String, stamp: RouteFileStamp? = null): RouteUploadStatus = synchronized(lock) {
         val key = context.filesDir.path + ":" + revision(context)
         if (statusCacheKey != key) { statusCache = entries(context); statusCacheKey = key }
@@ -159,7 +165,7 @@ internal object RouteUploads {
                 val temporary = cancelled() || (e is DavFailure && e.retryable) || (e is java.io.IOException && e !is DavFailure && e !is javax.net.ssl.SSLHandshakeException)
                 retry = retry || temporary
                 // Only fixed client messages are retained; server responses and credentials never are.
-                val message = when {
+                val message = ServiceProblems.of(e)?.let { context.getString(it.text) } ?: when {
                     e is DavFailure -> e.message ?: "Übertragung fehlgeschlagen"
                     e is java.security.GeneralSecurityException -> "App-Passwort neu eingeben"
                     e is javax.net.ssl.SSLHandshakeException -> "Serverzertifikat prüfen"
@@ -167,17 +173,17 @@ internal object RouteUploads {
                     !file.isFile -> "Lokale FIT-Datei fehlt"
                     else -> "Einstellungen prüfen oder Upload erneut anstoßen"
                 }
-                update(context, id, if (temporary) "pending" else "failed", message, item.optString("hash").takeIf { it.isNotEmpty() }, item.optString("target"))
+                update(context, id, if (temporary) "pending" else "failed", message, item.optString("hash").takeIf { it.isNotEmpty() }, item.optString("target"),ServiceProblems.of(e)?.key.orEmpty())
             }
         }
         return retry || synchronized(lock) { val all = entries(context); all.keys().asSequence().any {
             all.getJSONObject(it).optString("state") in setOf("pending", "uploading") } }
     }
-    private fun update(context: Context, id: String, state: String, error: String = "", expectedHash: String? = null, expectedTarget: String? = null) = synchronized(lock) {
+    private fun update(context: Context, id: String, state: String, error: String = "", expectedHash: String? = null, expectedTarget: String? = null,issue:String="") = synchronized(lock) {
         val all = entries(context); val current = all.optJSONObject(id) ?: return@synchronized
         if (expectedHash != null && current.optString("hash") != expectedHash) return@synchronized
         if (expectedTarget != null && current.optString("target") != expectedTarget) return@synchronized
-        current.put("state", state).put("error", error); save(context, all)
+        current.put("state", state).put("error", error).put("issue",issue); save(context, all)
     }
 }
 

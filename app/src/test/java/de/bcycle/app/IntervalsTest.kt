@@ -61,6 +61,14 @@ class IntervalsTest {
             assertTrue(assertThrows(IntervalsFailure::class.java) { client.test() }.retryable)
         } finally { server.shutdown() }
     }
+    @Test fun offlineReceiptExposesCauseAndRemainsPendingForRetry() {
+        configure()
+        val file=FitLibrary.retainRecording(context.filesDir,fit());val id=file.nameWithoutExtension
+        IntervalsUploads.enqueue(context,file,"ride.fit")
+        assertTrue(IntervalsUploads.run(context,{false}) { _,_,_,_->throw java.net.ConnectException("private host") })
+        assertEquals(UploadState.WAITING,IntervalsUploads.state(context,id).state)
+        assertEquals(R.string.service_unreachable,IntervalsUploads.problem(context,id))
+    }
     @Test fun independentReceiptsDeduplicateAndCorrectedFileRequiresAnotherUpload() {
         configure()
         val original=FitLibrary.retainRecording(context.filesDir,fit());val id=original.nameWithoutExtension

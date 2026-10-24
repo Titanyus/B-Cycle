@@ -54,12 +54,25 @@ class RideNameSyncTest {
     @Test fun failedDestinationDoesNotBlockOthersAndAccountSwitchPausesTheQueue() {
         setup();RideServiceLinks.confirm(c,link(RideService.INTERVALS,"42"));RideNames.manual(c,ride,"Neuer Titel")
         val visited=mutableListOf<RideService>()
-        assertTrue(RideNames.run(c,{false},write={ target,_->visited.add(target.service);if(target.service==RideService.DREEVE) throw java.io.IOException() }))
+        assertTrue(RideNames.run(c,{false},write={ target,_->visited.add(target.service);if(target.service==RideService.DREEVE) throw java.net.ConnectException("private host") }))
         assertEquals(RideService.entries.filter { it!=RideService.STRAVA }.toSet(),visited.toSet())
+        assertEquals(R.string.service_unreachable,RideNames.problem(c,ride,RideService.DREEVE))
+        assertNull(RideNames.problem(c,ride,RideService.INTERVALS))
         c.getSharedPreferences("activity-service-dreeve",0).edit().putString("address","https://other.example/").commit()
         assertFalse(RideNames.run(c,{false},write={ _,_->fail("Wrong account") }))
+        assertNull(RideNames.problem(c,ride,RideService.DREEVE))
         c.getSharedPreferences("activity-service-dreeve",0).edit().putString("address",account).commit()
         assertFalse(RideNames.run(c,{false},write={ target,name->assertEquals(RideService.DREEVE,target.service);assertEquals("Neuer Titel",name) }))
+        assertNull(RideNames.problem(c,ride,RideService.DREEVE))
+    }
+    @Test fun unreachableDreeveAbortsBatchWithServiceDiagnosticInsteadOfRepeatingEveryRide() {
+        setup()
+        val ids=(0..3).map { "recorded-"+it.toString().repeat(64) }
+        ids.forEach { id -> RideServiceLinks.confirm(c,link().copy(rideId=id,activityId=id)) }
+        var reads=0
+        val report=RideNames.pullDreeve(c,account,ids.associateWith { "Lokal" },{true},{false},{ reads++;throw java.net.ConnectException("private address must not become UI text") })
+        assertEquals(1,reads);assertEquals(1,report.failed);assertEquals(R.string.service_unreachable,report.problem)
+        assertEquals(0,report.updated);assertFalse(report.interrupted)
     }
     @Test fun explicitDreevePullUsesOnlyExistingLinkedRidesAndCancelsStaleWritesWithoutPropagating() {
         setup();RideNames.manual(c,ride,"Eigener Name")

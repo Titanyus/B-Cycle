@@ -51,7 +51,14 @@ internal object RouteTransferRows {
                     entry.format=="GPX" && (entry.details.durationMs==null || entry.details.durationMs<=0))->RouteTransferRow(target,R.string.route_transfer_ineligible,false)
                 else->{
                     val state=target.status(context,entry).state
-                    RouteTransferRow(target,when(state) {
+                    val problem=if(state==UploadState.NOT_UPLOADED) null else when(target) {
+                        RouteTransferTarget.DREEVE->ActivityServiceUploads.dreeve.problem(context,entry.id,entry.fileStamp)
+                        RouteTransferTarget.STRAVA->ActivityServiceUploads.strava.problem(context,entry.id,entry.fileStamp)
+                        RouteTransferTarget.INTERVALS->IntervalsUploads.problem(context,entry.id)
+                        RouteTransferTarget.WEBDAV->RouteUploads.problem(context,entry.id)
+                        else->null
+                    }
+                    RouteTransferRow(target,problem ?: when(state) {
                         UploadState.NOT_UPLOADED->if(target==RouteTransferTarget.LOCAL) R.string.route_transfer_local_ready else R.string.route_transfer_ready
                         UploadState.WAITING->R.string.route_transfer_waiting
                         UploadState.UPLOADING->if(target==RouteTransferTarget.DREEVE) R.string.dreeve_upload_processing else R.string.route_transfer_uploading
@@ -63,7 +70,7 @@ internal object RouteTransferRows {
         }.getOrElse { RouteTransferRow(target,R.string.route_transfer_config_error,false) }
     }.map { row ->
         val service=when(row.target) { RouteTransferTarget.DREEVE->RideService.DREEVE;RouteTransferTarget.STRAVA->RideService.STRAVA;RouteTransferTarget.INTERVALS->RideService.INTERVALS;else->null }
-        if(!row.completed || service==null) row else when(RideNames.pending(context,entry.id,service)) {
+        if(!row.completed || service==null) row else RideNames.problem(context,entry.id,service)?.let { row.copy(text=it) } ?: when(RideNames.pending(context,entry.id,service)) {
             "pending"->row.copy(text=R.string.route_name_pending)
             "failed"->row.copy(text=R.string.route_name_failed)
             else->row

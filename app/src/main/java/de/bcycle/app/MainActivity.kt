@@ -1357,14 +1357,14 @@ class MainActivity : Activity() {
                         } }
                     }
                 } catch(e:Exception) {
-                    runOnUiThread { if(!closed.get()) content.failed((e as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_load_failed) }
+                    runOnUiThread { if(!closed.get()) content.failed(ServiceProblems.text(e,R.string.dreeve_import_load_failed)) }
                 }
             }
         },importSelection={ activities ->
             runCatching { client() }.fold({ (target,api) ->
                 if(target!=source) content.failed(R.string.dreeve_import_changed)
                 else chooseBikes(activities,target,api)
-            },{ content.failed((it as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_download_failed) })
+            },{ content.failed(ServiceProblems.text(it,R.string.dreeve_import_download_failed)) })
         })
         content.navigation=dialogs
         dialog().setTitle(R.string.dreeve_import_title).setView(content).create().apply {
@@ -1525,7 +1525,7 @@ class MainActivity : Activity() {
                     if(action==RideBackupAction.SETTINGS) runtime.mapState.backupSettings(directory) { settings ->
                         settings.fold({ backupSettings(it) },{ error ->
                             if(error is SettingsPasswordRequired) openSettingsPayload(error.payload)
-                            else BicycleFeedback.show(this,R.string.ride_backup_invalid,true)
+                            else BicycleFeedback.show(this,ServiceProblems.text(error,R.string.ride_backup_invalid),true)
                         })
                     } else dialog(fullscreen=false).setTitle(R.string.ride_backup_title).setMessage(R.string.ride_backup_confirm)
                         .setPositiveButton(R.string.ride_backup_import) { _,_->runRideBackup(directory,true) }.show()
@@ -1534,7 +1534,7 @@ class MainActivity : Activity() {
                 else dialog().setTitle(R.string.ride_backup_choose).setItems(folders.toTypedArray()) { _,position ->
                     chosen(root.child(folders[position],false))
                 }.show()
-            },{ BicycleFeedback.show(this,R.string.ride_backup_invalid,true) }) }
+            },{ BicycleFeedback.show(this,ServiceProblems.text(it,R.string.ride_backup_invalid),true) }) }
         },"Bicycle-backup-folders").start()
     }
     private fun runRideBackup(directory:BackupDirectory,restore:Boolean,password:CharArray?=null):Boolean {
@@ -1549,7 +1549,7 @@ class MainActivity : Activity() {
                     else getString(R.string.ride_backup_result,report.completed,report.failed,report.folder)
                     rides+"\n"+if(restore) getString(R.string.hrv_restore_result,report.hrvCompleted,report.hrvDuplicates,report.hrvFailed)
                     else getString(R.string.hrv_backup_result,report.hrvCompleted,report.hrvFailed)
-                },{ getString(R.string.ride_backup_failed) })
+                },{ getString(ServiceProblems.text(it,R.string.ride_backup_failed)) })
                 if(restore && result.isSuccess) runtime.mapState.restoreProfileRoute()
                 rideBackupControls?.status(text);BicycleFeedback.show(this,text,long=true);render()
             })
@@ -1722,7 +1722,7 @@ class MainActivity : Activity() {
             val result=runCatching { StravaClient(settings).authorize(code.getOrThrow());ActivityServiceUploads.strava.settingsChanged(applicationContext) }
             runOnUiThread {
                 if(isDestroyed) return@runOnUiThread
-                val text=getString(if(result.isSuccess) R.string.service_connected else R.string.service_auth_failed)
+                val text=getString(if(result.isSuccess) R.string.service_connected else ServiceProblems.text(result.exceptionOrNull(),R.string.service_auth_failed))
                 activityServiceView?.takeIf { it.service==ActivityService.STRAVA }?.let {
                     it.showAccount(settings.read().account);BicycleFeedback.update(it.result,text)
                 } ?: BicycleFeedback.show(this,text)
@@ -1758,8 +1758,8 @@ class MainActivity : Activity() {
                             syncing=false
                             if(!closed.get() && !isDestroyed) {
                                 content.nameSync.isEnabled=settings.dreeveImportConfigured()
-                                val text=result.fold({ report -> getString(R.string.dreeve_names_result,report.updated,report.unchanged,report.failed)+
-                                    if(report.interrupted) "\n"+getString(R.string.dreeve_names_interrupted) else "" },{ getString((it as? ActivityServiceFailure)?.problem ?: R.string.service_check_settings) })
+                                val text=result.fold({ report -> getString(R.string.dreeve_names_result,report.updated,report.unchanged,report.failed)+(report.problem?.let { "\n"+getString(it) } ?: "")+
+                                    if(report.interrupted) "\n"+getString(R.string.dreeve_names_interrupted) else "" },{ getString(ServiceProblems.text(it,R.string.service_check_settings)) })
                                 BicycleFeedback.update(content.nameSyncStatus,text);refreshDetails();render()
                             }
                         }
@@ -1783,7 +1783,7 @@ class MainActivity : Activity() {
                             BicycleFeedback.update(content.result,getString(R.string.service_auth_failed))
                         }
                     } else BicycleFeedback.update(content.result,getString(if(result.isSuccess) R.string.route_export_test_ok
-                        else (result.exceptionOrNull() as? ActivityServiceFailure)?.problem ?: R.string.service_check_settings))
+                        else ServiceProblems.text(result.exceptionOrNull(),R.string.service_check_settings)))
                 }
             }
         }
@@ -1820,7 +1820,7 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     content.testing(false)
                     BicycleFeedback.update(content.result,getString(if(result.isSuccess) R.string.route_export_test_ok
-                        else (result.exceptionOrNull() as? IntervalsFailure)?.problem ?: R.string.intervals_connection_failed))
+                        else ServiceProblems.text(result.exceptionOrNull(),R.string.intervals_connection_failed)))
                 }
             }
         }
@@ -1862,7 +1862,7 @@ class MainActivity : Activity() {
                 val message = try {
                     WebDavClient(config, newPassword ?: settings.password()).test(); getString(R.string.route_export_test_ok)
                 } catch (e: Exception) {
-                    when (e) {
+                    ServiceProblems.of(e)?.let { getString(it.text) } ?: when (e) {
                         is DavFailure -> e.message ?: getString(R.string.ui_connection_failed)
                         is IllegalArgumentException -> e.message ?: getString(R.string.ui_check_settings)
                         else -> getString(R.string.route_export_test_failed)

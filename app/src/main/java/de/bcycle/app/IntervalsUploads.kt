@@ -25,6 +25,10 @@ internal object IntervalsUploads {
             return@synchronized RouteUploadStatus(UploadState.NOT_UPLOADED)
         RouteUploadStatus(when(item.optString("state")) { "saved"->UploadState.UPLOADED;"failed"->UploadState.FAILED;"uploading"->UploadState.UPLOADING;else->UploadState.WAITING })
     }
+    fun problem(c:Context,id:String):Int?=synchronized(lock) {
+        val item=entries(c).optJSONObject(id) ?: return@synchronized null
+        if(item.optString("state")=="saved" || item.optString("athlete")!=IntervalsSettings(c).read().athlete) null else ServiceProblems.resource(item.optString("error"))
+    }
     fun enqueue(c:Context,file:File,name:String,force:Boolean=false) {
         val config=IntervalsSettings(c).read();if(!config.enabled) return
         require(RouteUploads.eligible(c,file.nameWithoutExtension))
@@ -99,7 +103,7 @@ internal object IntervalsUploads {
             } catch(e:Exception) {
                 val temporary=cancelled() || (e is IntervalsFailure && e.retryable) || (e is IOException && e !is IntervalsFailure && e !is javax.net.ssl.SSLHandshakeException)
                 retry=retry || temporary
-                update(c,id,item,if(temporary) "pending" else "failed",error=if(e is IntervalsFailure && e.problem==R.string.intervals_auth_failed) "auth" else "upload")
+                update(c,id,item,if(temporary) "pending" else "failed",error=ServiceProblems.of(e)?.key ?: if(e is IntervalsFailure && e.problem==R.string.intervals_auth_failed) "auth" else "upload")
             }
         }
         retry || synchronized(lock) { val latest=entries(c);latest.keys().asSequence().any { latest.getJSONObject(it).optString("state") in setOf("pending","uploading") } }

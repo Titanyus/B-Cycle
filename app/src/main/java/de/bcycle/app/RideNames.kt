@@ -8,7 +8,7 @@ import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
-internal data class DreeveNameSyncResult(val updated:Int,val unchanged:Int,val failed:Int,val interrupted:Boolean=false)
+internal data class DreeveNameSyncResult(val updated:Int,val unchanged:Int,val failed:Int,val interrupted:Boolean=false,val problem:Int?=null)
 
 /** Durable, coalesced name changes. Never uploads ride files; edits made during a fetch win. Dreeve confirmation always pulls. */
 internal object RideNames {
@@ -49,6 +49,12 @@ internal object RideNames {
         val jobs=tasks(data(c));val matching=jobs.keys().asSequence().map { jobs.getJSONObject(it) }
             .filter { it.optString("ride")==id && it.optString("service")==service.name && current(c,it) }.toList()
         if(matching.any { it.optString("state")=="failed" }) "failed" else if(matching.isNotEmpty()) "pending" else null
+    }
+    fun problem(c:Context,id:String,service:RideService):Int?=synchronized(lock) {
+        val jobs=tasks(data(c))
+        jobs.keys().asSequence().map { jobs.getJSONObject(it) }
+            .filter { it.optString("ride")==id && it.optString("service")==service.name && current(c,it) }
+            .mapNotNull { ServiceProblems.resource(it.optString("problem")) }.firstOrNull()
     }
     fun imported(c:Context,id:String,name:String)=synchronized(lock) {
         val all=data(c);if(names(all).has(id)) return@synchronized
@@ -124,9 +130,12 @@ internal object RideNames {
                     save(c,all);old!=name
                 }
                 if(changed) updated++ else unchanged++
-            } catch(_:Exception) {
+            } catch(error:Exception) {
                 if(!current()) return@synchronized DreeveNameSyncResult(updated,unchanged,failed,true)
                 failed++
+                ServiceProblems.of(error)?.takeIf(ServiceProblems::global)?.let {
+                    return@synchronized DreeveNameSyncResult(updated,unchanged,failed,problem=it.text)
+                }
             }
             progress(updated+unchanged+failed,links.size)
         }
@@ -174,7 +183,7 @@ internal object RideNames {
                 val temporary=cancelled() || e is IOException && (e !is ActivityServiceFailure || e.retryable) && (e !is IntervalsFailure || e.retryable)
                 retry=retry || temporary
                 synchronized(lock) { val all=data(c);val item=tasks(all).optJSONObject(key)
-                    if(item?.optString("token")==token) { item.put("state",if(temporary) "pending" else "failed");save(c,all) } }
+                    if(item?.optString("token")==token) { item.put("state",if(temporary) "pending" else "failed").put("problem",ServiceProblems.of(e)?.key.orEmpty());save(c,all) } }
             }
         }
         val pending=synchronized(lock) { val jobs=tasks(data(c));jobs.keys().asSequence().any { jobs.getJSONObject(it).optString("state")=="pending" && current(c,jobs.getJSONObject(it)) } }

@@ -109,7 +109,7 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
                 }
             } catch(e:Exception) {
                 if(cancelled()) return DreeveImportResult(result,true)
-                DreeveItemResult(activity.id,DreeveImportState.FAILED,problem=(e as? ActivityServiceFailure)?.problem ?: R.string.dreeve_import_download_failed)
+                DreeveItemResult(activity.id,DreeveImportState.FAILED,problem=ServiceProblems.text(e,R.string.dreeve_import_download_failed))
             }
             result.add(item);progress(item)
         }

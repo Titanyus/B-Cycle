@@ -67,10 +67,12 @@ class RouteExportTest {
         val file = File(context.filesDir, "fit-library/recorded-${"a".repeat(64)}.fit").apply { parentFile!!.mkdirs(); writeText("FIT") }
         RouteUploads.enqueue(context, file, "B-Cycle-test.fit")
         assertEquals(1, context.getSystemService(JobScheduler::class.java).allPendingJobs.size)
-        assertTrue(RouteUploads.run(context, { false }) { _, _, _, _ -> throw DavFailure(true, "Netzwerk vorübergehend nicht erreichbar") })
+        assertTrue(RouteUploads.run(context, { false }) { _, _, _, _ -> throw java.net.ConnectException("private host") })
         assertTrue(RouteUploads.status(context, file.nameWithoutExtension).contains("ausstehend"))
+        assertEquals(R.string.service_unreachable,RouteUploads.problem(context,file.nameWithoutExtension))
         assertFalse(RouteUploads.run(context, { false }) { _, source, name, _ -> assertEquals(file, source); assertEquals("B-Cycle-test.fit", name) })
         assertEquals("Nextcloud gesichert", RouteUploads.status(context, file.nameWithoutExtension))
+        assertNull(RouteUploads.problem(context,file.nameWithoutExtension))
         RouteUploads.enqueue(context, file, "B-Cycle-test.fit")
         var count = 0
         assertFalse(RouteUploads.run(context, { false }) { _, _, _, _ -> count++ }); assertEquals(0, count)

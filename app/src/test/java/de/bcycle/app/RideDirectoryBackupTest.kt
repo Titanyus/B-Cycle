@@ -154,6 +154,25 @@ class RideDirectoryBackupTest {
         target.backup.restore(folder)
         assertArrayEquals(photo.readBytes(),BikePhotos.file(target.c,bikes.activeSlot).readBytes())
     }
+    @Test fun unavailableBackupServiceStopsInsteadOfCommittingAnIncompleteIndex() {
+        val source=Library(context());recording(source)
+        val root=parent(source.c)
+        var writes=0
+        val broken=object:BackupDirectory by root {
+            override fun child(name:String,create:Boolean):BackupDirectory {
+                val actual=root.child(name,create)
+                return object:BackupDirectory by actual {
+                    override fun write(name:String,source:File) {
+                        writes++
+                        throw java.net.ConnectException("private host")
+                    }
+                }
+            }
+        }
+        assertThrows(java.net.ConnectException::class.java) { source.backup.export(broken) }
+        assertEquals(1,writes)
+        assertFalse(root.child(root.entries().single().name,false).entries().any { it.name==RideDirectoryBackup.INDEX })
+    }
     @Test fun interruptedExportHasNoCommittedIndexAndNoExistingFileIsOverwritten() {
         val source=Library(context());recording(source)
         val root=parent(source.c)

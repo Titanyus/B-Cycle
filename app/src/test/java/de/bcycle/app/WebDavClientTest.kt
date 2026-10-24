@@ -57,6 +57,7 @@ class WebDavClientTest {
             server.enqueue(MockResponse().setResponseCode(code).setHeader("Location", server.url("/elsewhere")))
             val error = assertThrows(DavFailure::class.java) { dav.test() }
             assertEquals(temporary, error.retryable); assertFalse(error.message!!.contains("secret"))
+            assertEquals(ServiceProblems.http(code),ServiceProblems.of(error))
             assertEquals("PROPFIND", server.takeRequest().method)
         }
         assertEquals(5, server.requestCount)

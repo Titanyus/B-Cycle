@@ -175,6 +175,16 @@ class ActivityServiceTest {
             assertEquals(1,server.requestCount)
         } finally { server.shutdown() }
     }
+    @Test fun offlineFailuresRemainRetryableAndExposeDiagnosticsForBothServices() {
+        configureDreeve();configureStrava()
+        val file=FitLibrary.retainRecording(c.filesDir,fit());val id=file.nameWithoutExtension
+        RouteCloudUploads.enqueue(c,file,"ride.fit")
+        for(provider in listOf(ActivityServiceUploads.dreeve,ActivityServiceUploads.strava)) {
+            assertTrue(provider.run(c,{false}) { _,_,_,_,_,_->throw java.net.ConnectException("private host") })
+            assertEquals(UploadState.WAITING,provider.state(c,id,null).state)
+            assertEquals(R.string.service_unreachable,provider.problem(c,id))
+        }
+    }
     @Test fun independentJobsRetainProcessingIdsAcrossRunsAndNeverConfirmCancelledAttempts() {
         configureDreeve();configureStrava()
         val original=FitLibrary.retainRecording(c.filesDir,fit());val id=original.nameWithoutExtension

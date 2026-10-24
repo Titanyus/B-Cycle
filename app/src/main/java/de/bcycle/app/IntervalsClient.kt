@@ -26,7 +26,7 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         val result=http.newCall(request).execute().use { response ->
             if(missingAllowed && response.code==404) return@use ""
             if(!response.isSuccessful) throw IntervalsFailure(response.code==408 || response.code==429 || response.code>=500,
-                if(response.code==401 || response.code==403) R.string.intervals_auth_failed else R.string.intervals_upload_failed)
+                ServiceProblems.http(response.code)?.let { if(it==ServiceProblems.Problem.AUTH) R.string.intervals_auth_failed else it.text } ?: R.string.intervals_upload_failed)
             val bytes=response.body?.byteStream()?.use { it.readNBytes(1024*1024+1) } ?: throw IOException()
             if(bytes.size>1024*1024) throw IntervalsFailure(false,R.string.intervals_response_failed)
             String(bytes,Charsets.UTF_8)

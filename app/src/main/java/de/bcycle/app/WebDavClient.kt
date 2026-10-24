@@ -12,7 +12,7 @@ import okhttp3.RequestBody
 import okhttp3.MediaType.Companion.toMediaType
 import okio.BufferedSink
 
-internal class DavFailure(val retryable: Boolean, message: String) : IOException(message)
+internal class DavFailure(val retryable: Boolean, message: String,val problem:Int?=null) : IOException(message)
 
 /** Ordinary TLS validation, no redirects or credential-bearing URLs. */
 internal class WebDavClient(private val config: RouteExportConfig, private val password: String,
@@ -72,9 +72,9 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
         client.newCall(request.build()).execute().use { response ->
             val code = response.code
             if (code in 200..299) consume?.invoke(response)
-            if (code == 401 || code == 403) throw DavFailure(false, "Zugang oder Schreibberechtigung prüfen")
+            if (code == 401 || code == 403) throw DavFailure(false, "Zugang oder Schreibberechtigung prüfen",R.string.service_auth_failed)
             if (code in 300..399) throw DavFailure(false, "Serveradresse prüfen · Weiterleitung wird nicht verfolgt")
-            if (code == 429 || code >= 500) throw DavFailure(true, "Nextcloud vorübergehend nicht verfügbar (HTTP $code)")
+            if (code == 429 || code >= 500) throw DavFailure(true, "Nextcloud vorübergehend nicht verfügbar (HTTP $code)",ServiceProblems.http(code)?.text)
             return code
         }
     }
@@ -153,7 +153,7 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
         if (actual != hash(file)) throw DavFailure(false, "Zieldatei unterscheidet sich · nichts überschrieben")
     }
     private fun checkResponse(code: Int, allowed: Set<Int>, text: String) {
-        if (code !in allowed) throw DavFailure(false, "$text (HTTP $code)")
+        if (code !in allowed) throw DavFailure(false, "$text (HTTP $code)",ServiceProblems.http(code)?.text)
     }
     fun backupChild(name:String,create:Boolean):WebDavClient {
         backupName(name)

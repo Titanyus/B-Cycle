@@ -20,7 +20,7 @@ internal class ActivityHttp(private val cancelled:()->Boolean={false},private va
         return http.newCall(request).execute().use { response ->
             if(missingAllowed && response.code==404) return@use null
             if(response.code !in codes) throw ActivityServiceFailure(response.code==408 || response.code==429 || response.code>=500,
-                if(response.code==401 || response.code==403) R.string.service_auth_failed else R.string.service_upload_failed)
+                ServiceProblems.http(response.code)?.text ?: R.string.service_upload_failed)
             val bytes=response.body?.byteStream()?.use { it.readNBytes(1024*1024+1) } ?: throw IOException()
             if(bytes.size>1024*1024) throw ActivityServiceFailure(false,R.string.service_response_failed)
             try { JSONObject(String(bytes,Charsets.UTF_8)) } catch(_:org.json.JSONException) { throw ActivityServiceFailure(false,R.string.service_response_failed) }
@@ -30,7 +30,7 @@ internal class ActivityHttp(private val cancelled:()->Boolean={false},private va
         if(cancelled()) throw IOException()
         http.newCall(request).execute().use { response ->
             if(response.code!=200) throw ActivityServiceFailure(response.code==408 || response.code==429 || response.code>=500,
-                if(response.code==401 || response.code==403) R.string.service_auth_failed else R.string.dreeve_import_download_failed)
+                ServiceProblems.http(response.code)?.text ?: R.string.dreeve_import_download_failed)
             val body=response.body ?: throw IOException()
             if(body.contentLength()>maximum) throw IOException()
             body.byteStream().use { input -> file.outputStream().use { output ->

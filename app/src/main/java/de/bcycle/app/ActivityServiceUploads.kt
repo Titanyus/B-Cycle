@@ -44,8 +44,13 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
     fun problem(c:Context):Int?=synchronized(lock) {
         val config=ActivityServiceSettings(c,service).read()
         val latest=statusIndex(c).latest[config.identity(service)]
-        if(latest?.optString("state")!="failed") return@synchronized null
-        when(latest.optString("problem")) { "auth"->R.string.service_auth_failed;"duplicate"->R.string.service_duplicate;"response"->R.string.service_response_failed;else->R.string.service_upload_failed }
+        if(latest==null || latest.optString("state")=="saved" || latest.optString("problem").isEmpty()) return@synchronized null
+        ServiceProblems.resource(latest.optString("problem")) ?: when(latest.optString("problem")) { "auth"->R.string.service_auth_failed;"duplicate"->R.string.service_duplicate;"response"->R.string.service_response_failed;else->R.string.service_upload_failed }
+    }
+    fun problem(c:Context,id:String,stamp:RouteFileStamp?=null):Int?=synchronized(lock) {
+        val target=ActivityServiceSettings(c,service).read().identity(service)
+        val item=statusIndex(c).rides[target to id].orEmpty().firstOrNull { RouteTransferPayload.metadataMatches(c,id,it) && (stamp==null || RouteTransferPayload.matches(it,stamp)) } ?: return@synchronized null
+        if(item.optString("state")=="saved") null else ServiceProblems.resource(item.optString("problem"))
     }
     fun enqueue(c:Context,file:File,force:Boolean=false) {
         val config=ActivityServiceSettings(c,service).read();if(!config.enabled) return
@@ -164,7 +169,7 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
             } catch(e:Exception) {
                 val transient=stopped() || (e is ActivityServiceFailure && e.retryable) || (e is IOException && e !is ActivityServiceFailure && e !is javax.net.ssl.SSLHandshakeException)
                 update(c,operation) { it.put("state",if(transient) (if(it.optString("job").isEmpty()) "pending" else "processing") else "failed")
-                    .put("problem",when((e as? ActivityServiceFailure)?.problem) {
+                    .put("problem",ServiceProblems.of(e)?.key ?: when((e as? ActivityServiceFailure)?.problem) {
                         R.string.service_auth_failed->"auth";R.string.service_duplicate->"duplicate";R.string.service_response_failed->"response";else->"upload"
                     }) }
             }
