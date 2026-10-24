@@ -33,7 +33,10 @@ internal class DrinkReminderPanel(context:Context,themes:ThemeManager):LinearLay
         },LayoutParams(0,-2,1f))
         setOnClickListener { clear() }
     }
-    fun showReminder() { removeCallbacks(timeout);visibility=VISIBLE;postDelayed(timeout,15_000) }
+    fun showReminder(durationSeconds:Int=15) {
+        require(DrinkReminderSettings.validDuration(durationSeconds))
+        removeCallbacks(timeout);visibility=VISIBLE;postDelayed(timeout,durationSeconds*1000L)
+    }
     fun clear() { removeCallbacks(timeout);visibility=GONE }
     override fun onDetachedFromWindow() { clear();super.onDetachedFromWindow() }
 }

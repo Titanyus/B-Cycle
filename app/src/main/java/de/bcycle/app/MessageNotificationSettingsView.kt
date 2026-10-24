@@ -42,44 +42,7 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
         addView(details,LayoutParams(-1,-2))
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.notification_position_heading)),LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
-        val tiles=mutableMapOf<MessagePosition,View>()
-        fun paint(tile:View,tokens:ThemeTokens) {
-            tile.background=android.graphics.drawable.GradientDrawable().apply {
-                cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-                setColor(if(tile.isSelected) tokens.tertiary else tokens.secondary)
-                setStroke(BicycleDesign.linePixels(context),BicycleComponents.selectionBorder(tokens,tile.isSelected))
-            }
-        }
-        val positions=LinearLayout(context)
-        MessagePosition.entries.forEach { position ->
-            val tile=LinearLayout(context).apply {
-                tag="notification_position_${position.name}";orientation=VERTICAL;gravity=Gravity.CENTER
-                isClickable=true;isFocusable=true;contentDescription=context.getString(position.label)
-                isSelected=settings.position==position
-                stateDescription=context.getString(if(isSelected) R.string.ui_selected else R.string.ui_not_selected)
-                addView(ImageView(context).apply {
-                    setImageDrawable(MessagePositionPreview(position))
-                    importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                    BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
-                },LayoutParams(BicycleDesign.dp(context,BicycleDesign.presetPreviewWidth),BicycleDesign.dp(context,BicycleDesign.presetPreviewHeight)))
-                addView(BicycleComponents.text(context,themes,context.getString(position.label)).apply { gravity=Gravity.CENTER },LayoutParams(-1,-2))
-                setOnClickListener {
-                    settings.position=position
-                    tiles.forEach { (p,t) ->
-                        t.isSelected=p==position
-                        t.stateDescription=context.getString(if(t.isSelected) R.string.ui_selected else R.string.ui_not_selected)
-                        paint(t,themes.active.tokens)
-                    }
-                }
-            }
-            tiles[position]=tile
-            BicycleComponents.bindTheme(tile,themes) { paint(tile,it) }
-            positions.addView(tile,LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.presetTileHeight),1f).apply {
-                setMargins(BicycleDesign.dp(context,BicycleDesign.presetTileGap),BicycleDesign.dp(context,BicycleDesign.presetTileGap),
-                    BicycleDesign.dp(context,BicycleDesign.presetTileGap),BicycleDesign.dp(context,BicycleDesign.presetTileGap))
-            })
-        }
-        addView(positions,LayoutParams(-1,-2))
+        addView(MessagePositionChoices(context,themes,settings.position,"notification_position") { settings.position=it },LayoutParams(-1,-2))
         val duration=GridLayout(context).apply { columnCount=2;tag="notification_duration_row" }
         val value=BicycleComponents.text(context,themes,"").apply { tag="notification_duration_value" }
         fun label(seconds: Int)=context.getString(R.string.notifications_seconds,seconds)

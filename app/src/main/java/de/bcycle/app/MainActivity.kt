@@ -252,6 +252,7 @@ class MainActivity : Activity() {
         drinkReminderPanel.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
         mapPanel.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
         dashboardArea.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
+        host.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
         messages=MessageNotificationPanel(this,runtime.themes) {
             val mapLocation=IntArray(2);val hostLocation=IntArray(2)
             mapPanel.getLocationInWindow(mapLocation);host.getLocationInWindow(hostLocation)
@@ -353,7 +354,7 @@ class MainActivity : Activity() {
         val drinkVisible=runtime.visible && dialogs.empty && !dashboardEditing
         if(!drinkVisible || !runtime.recording || !drinkSettings.enabled) drinkReminderPanel.clear()
         if(runtime.drinkReminder.update(runtime.recording,runtime.elapsedMs,drinkSettings,drinkVisible)) {
-            drinkReminderPanel.showReminder();placeDrinkReminder()
+            drinkReminderPanel.showReminder(drinkSettings.durationSeconds);placeDrinkReminder()
         }
         if (::mapPanel.isInitialized && currentTemplate().hasMap) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
@@ -366,13 +367,17 @@ class MainActivity : Activity() {
     }
     private fun placeDrinkReminder() {
         if(!::drinkReminderPanel.isInitialized || drinkReminderPanel.visibility!=View.VISIBLE) return
-        val anchor=if(currentTemplate().hasMap && mapPanel.visibility==View.VISIBLE) mapPanel else dashboardArea
-        val at=IntArray(2);val hostAt=IntArray(2)
-        anchor.getLocationInWindow(at);dashboardHost.getLocationInWindow(hostAt)
-        val top=(at[1]-hostAt[1]+(anchor.height-drinkReminderPanel.height)/2)
-            .coerceIn(0,(dashboardHost.height-drinkReminderPanel.height).coerceAtLeast(0))
+        val root=dashboardHost.getChildAt(0)
         val params=drinkReminderPanel.layoutParams as FrameLayout.LayoutParams
-        if(params.topMargin!=top) { params.topMargin=top;drinkReminderPanel.layoutParams=params }
+        val gravity=when(DrinkReminderSettings.read(preferences).position) {
+            MessagePosition.BOTTOM->Gravity.BOTTOM
+            MessagePosition.CENTER->Gravity.CENTER_VERTICAL
+            MessagePosition.TOP->Gravity.TOP
+        } or Gravity.CENTER_HORIZONTAL
+        if(params.gravity!=gravity || params.topMargin!=root.paddingTop || params.bottomMargin!=root.paddingBottom) {
+            params.gravity=gravity;params.topMargin=root.paddingTop;params.bottomMargin=root.paddingBottom
+            drinkReminderPanel.layoutParams=params
+        }
     }
     /** Source selector stays outside the scrollable list for dashboard and map fields. */
     private fun chooseField(index: Int, mapField: Boolean = false) {
@@ -420,7 +425,7 @@ class MainActivity : Activity() {
                     dashboardTrendIndicators=config
                     TrendIndicatorSettings.save(preferences,config);mapPanel.refreshSettings();render()
                 }
-            },trainingHelp=trainingHelpControls { trainingPage },drinkReminder=drinkReminderControls(),choose={ select(it) })
+            },trainingHelp=trainingHelpControls { trainingPage },choose={ select(it) })
         val builder = dialog().setTitle(if (mapField) getString(R.string.ui_map_field_title, MapFieldSelection.positionLabel(this, index)) else getString(R.string.ui_dashboard_field_title, index + 1))
             .setView(content)
         picker=builder.show()
@@ -1014,16 +1019,12 @@ class MainActivity : Activity() {
                 root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
                 root.addView(modeGlowControls())
             }
-            root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
-            root.addView(drinkReminderControls())
             BicycleDialogStyle.content(root,settingsThemes);return root
         }
         if(runtime.bikes.current().type==BikeType.EBIKE) {
             root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
             root.addView(modeGlowControls())
         }
-        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
-        root.addView(drinkReminderControls())
         val body=LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
             addView(BicycleStickyScrollView(settingsContext).apply { tag="design_ui_scroll";addView(root) },LinearLayout.LayoutParams(-1,0,1f))
@@ -1084,7 +1085,7 @@ class MainActivity : Activity() {
             preferences.edit().putString(DashboardTrainingHelp.key(id),config.encode()).apply()
             if(id==dashboardPage) dashboardTrainingHelp=config
             render()
-        }
+        }.apply { addDrinkReminder(drinkReminderControls()) }
     private fun appendTrainingHelp(root:LinearLayout,page:()->Int):TrainingHelpView {
         val heading=BicycleForm.section(root,settingsThemes,R.string.training_help_title).apply { revealOnOpen=true }
         return trainingHelpControls(page).also { it.revealAnchor=heading;root.addView(it) }

@@ -20,8 +20,10 @@ class DrinkReminderDashboardTest {
             val controls=MainActivity::class.java.getDeclaredMethod("dashboardControls",Boolean::class.javaPrimitiveType).apply { isAccessible=true }
             for(type in BikeType.entries.filter { it.available }) {
                 runtime.bikes.save(runtime.bikes.current().copy(type=type))
-                val page=controls.invoke(a,true) as View
-                assertNotNull(page.findViewWithTag<View>("drink_reminder_enabled"))
+                val page=controls.invoke(a,false) as View
+                val reminder=page.findViewWithTag<View>("drink_reminder_enabled")
+                assertNotNull(reminder)
+                assertTrue(testDescendants(page.findViewWithTag<TrainingHelpView>("training_help_controls")).contains(reminder))
                 if(type==BikeType.EBIKE) assertNotNull(page.findViewWithTag<View>("mode_glow_enabled"))
             }
             val render=MainActivity::class.java.getDeclaredMethod("render").apply { isAccessible=true }
@@ -40,6 +42,13 @@ class DrinkReminderDashboardTest {
             }
             assertEquals(View.VISIBLE,panel.visibility)
             assertTrue(panel.height>0 && panel.top>=0 && panel.bottom<=800)
+            for(position in MessagePosition.entries) {
+                DrinkReminderSettings.save(runtime.preferences,config.copy(position=position))
+                MainActivity::class.java.getDeclaredMethod("placeDrinkReminder").apply { isAccessible=true }.invoke(a)
+                val params=panel.layoutParams as android.widget.FrameLayout.LayoutParams
+                val expected=when(position) { MessagePosition.BOTTOM->android.view.Gravity.BOTTOM;MessagePosition.CENTER->android.view.Gravity.CENTER_VERTICAL;MessagePosition.TOP->android.view.Gravity.TOP }
+                assertEquals(expected,params.gravity and android.view.Gravity.VERTICAL_GRAVITY_MASK)
+            }
             recording.setBoolean(runtime,false);render.invoke(a);assertEquals(View.GONE,panel.visibility)
         } finally { recording.setBoolean(runtime,false);host.pause().stop().destroy() }
     }

@@ -227,7 +227,9 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         val sensorList=LinearLayout(context).apply { orientation=VERTICAL;tag="bike_sensor_list" }
         addView(sensorList,LayoutParams(-1,-2))
         profile.type.sensors.forEach { sensor ->
-            sensorList.addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.controlGap))
+            sensorList.addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.controlGap).apply {
+                alpha=0f // Test the separator-free appearance while preserving existing row spacing.
+            })
             val toggle=Switch(context).apply {
                 tag="bike_sensor_${sensor.name}";setText(sensor.label);isEnabled=sensor.supported
                 gravity=Gravity.START or Gravity.CENTER_VERTICAL

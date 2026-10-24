@@ -61,6 +61,8 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("settingsLight",themes.settingsLight).put("flatDesign",themes.flatDesign)
                 .put("drinkReminder",DrinkReminderSettings.read(bike).enabled)
                 .put("drinkReminderMinutes",DrinkReminderSettings.read(bike).minutes)
+                .put("drinkReminderDuration",DrinkReminderSettings.read(bike).durationSeconds)
+                .put("drinkReminderPosition",DrinkReminderSettings.read(bike).position.name)
                 .put("modeGlow", ModeGlowSettings.enabled(bike))
                 .put("modeGlowPlacement",ModeGlowSettings.placement(bike).name)
                 .put("dashboardFullscreen",DashboardFullscreen.enabled(bike))
@@ -154,6 +156,14 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     if(row.has("drinkReminderMinutes")) {
                         val minutes=integer(row,"drinkReminderMinutes");check(DrinkReminderSettings.valid(minutes))
                         b[DrinkReminderSettings.intervalKey]=minutes
+                    }
+                    if(row.has("drinkReminderDuration")) {
+                        val seconds=integer(row,"drinkReminderDuration");check(DrinkReminderSettings.validDuration(seconds))
+                        b[DrinkReminderSettings.durationKey]=seconds
+                    }
+                    if(row.has("drinkReminderPosition")) {
+                        val position=field(row,"drinkReminderPosition",20);check(MessagePosition.entries.any { it.name==position })
+                        b[DrinkReminderSettings.positionKey]=position
                     }
                     if(row.has("modeGlow")) b[ModeGlowSettings.key]=boolean(row,"modeGlow")
                     if(row.has("modeGlowPlacement")) {

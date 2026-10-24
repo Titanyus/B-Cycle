@@ -38,4 +38,10 @@ class DrinkReminderTest {
         assertTrue(timer.update(true,600100,on,true))
         timer.reset();assertFalse(timer.update(true,600100,on,true))
     }
+    @Test fun displayDurationAndPositionDoNotRestartTheInterval() {
+        val timer=DrinkReminder();timer.update(true,0,on,true)
+        assertFalse(timer.update(true,599999,on.copy(durationSeconds=60,position=MessagePosition.TOP),true))
+        assertTrue(timer.update(true,600000,on.copy(durationSeconds=5,position=MessagePosition.BOTTOM),true))
+    }
+
 }

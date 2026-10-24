@@ -8,7 +8,7 @@ import android.view.View
 import android.view.Gravity
 
 /** Shared controls for the quick screen and Design & UI; one authoritative mode. */
-internal class TrainingHelpView(context:Context,themes:ThemeManager,initial:DashboardTrainingHelp,
+internal class TrainingHelpView(context:Context,private val themes:ThemeManager,initial:DashboardTrainingHelp,
     private val changed:(DashboardTrainingHelp)->Unit):LinearLayout(context) {
     private var config=initial
     private var binding=false
@@ -57,6 +57,10 @@ internal class TrainingHelpView(context:Context,themes:ThemeManager,initial:Dash
         current.setOnCheckedChangeListener { _,on -> if(!binding) update(config.copy(current=on)) }
         average.setOnCheckedChangeListener { _,on -> if(!binding) update(config.copy(average=on)) }
         show(initial)
+    }
+    fun addDrinkReminder(view:DrinkReminderSettingsView) {
+        addView(BicycleComponents.sectionDivider(context,themes))
+        addView(view,LayoutParams(-1,-2))
     }
     fun show(value:DashboardTrainingHelp) {
         binding=true;config=value

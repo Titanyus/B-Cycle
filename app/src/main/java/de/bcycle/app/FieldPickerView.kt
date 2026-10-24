@@ -66,11 +66,12 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         if(graphPicker!=null) panels.addView(graphPicker)
         if(visualization!=null) panels.addView(visualization.apply { visibility=GONE })
         if(trainingHelp!=null) {
+            if(drinkReminder!=null) trainingHelp.addDrinkReminder(drinkReminder)
             BicycleForm.section(panels,themes,R.string.training_help_title)
             panels.addView(trainingHelp,LayoutParams(-1,-2))
         }
-        if(drinkReminder!=null) {
-            BicycleForm.section(panels,themes,R.string.drink_reminder_title)
+        if(drinkReminder!=null && trainingHelp==null) {
+            panels.addView(BicycleComponents.sectionDivider(context,themes))
             panels.addView(drinkReminder,LayoutParams(-1,-2))
         }
         var shown = -1

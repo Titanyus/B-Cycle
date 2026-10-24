@@ -31,6 +31,8 @@ class BikesViewTest {
         fun flag(name:String,value:Boolean) { RideRuntime::class.java.getDeclaredField(name).apply { isAccessible=true }.setBoolean(r,value) }
         try {
             val view=BikesView(host.get(),r,{}, {}, {}, { LinearLayout(host.get()) })
+            val sensorList=view.findViewWithTag<LinearLayout>("bike_sensor_list")
+            for(i in 0 until sensorList.childCount) sensorList.getChildAt(i).takeIf { it.tag=="bicycle_section_divider" }?.let { assertEquals(0f,it.alpha,0f) }
             val button=view.findViewWithTag<Button>("bike_sensor_search")
             assertTrue(button.isEnabled);assertEquals(1f,button.alpha,0f)
             flag("recording",true);view.refresh()
