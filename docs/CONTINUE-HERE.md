@@ -1,3 +1,7 @@
+# Aktueller APK-Auftrag: 0.8.37 / Code 107
+
+Nutzer hat neue APK beauftragt. Alle Änderungen seit Build 75 werden über GitHub Actions als optimierter Release mit dauerhafter Signatur gebaut und anschließend direkt als APK verlinkt. Kein lokaler APK-Build. Versionsänderung 0.8.37/107; Umfang docs/release-0.8.37.md. Bereits gezielte Tests erfolgreich; Build und Veröffentlichung laufen.
+
 # Neuester Auftrag: Chromatic-Engine und freigegebener Entwurf in der App
 
 Kotlin-Port ChromaticColor mit denselben OKLab-Matrizen/Gamut-Regeln wie Designer; 104 JS-Referenzfälle erfolgreich. Exportvorlage docs/designs/input-design.json nur dokumentiert, Laufzeit nutzt zentrale BicycleInputStyle-/BicycleDesign-Werte: 40 % Hell/50 % Dunkel, tatsächliche 14 Theme-Stärken aus der Datei (70–180 %, Bereich bis 300 %), sechs Konturstops/Alpha, 2 dp/66°, Radius 24, Nah 4/46 %/2-fach, Außen 18/100 %/6-fach, SCREEN; Innenfläche -115° mit Basisstopp bei 29,73 %. Nutzer erwähnt neuere Abstimmungen 60–260 %; ohne neue Datei weiterhin die konkret angehängten Werte verwenden, nichts schätzen.

@@ -1,0 +1,8 @@
+# B|CYCLE 0.8.37
+
+- Gemeinsame Chromatic-Color-Engine mit dem Input Designer: OKLCH statt einfacher Weiß-/Schwarz-Mischung, konkrete Theme-Stärken und freigegebene Kontur-/Flächen-/Glow-Werte aus dem Nutzerentwurf. Basis bleibt PRIMARY. Kontrastschutz und Flat-Modus erhalten; Layout, Eingabe und Bedienung unverändert. Keine Laufzeit-JSON oder neue Einstellungsfelder.
+- Karte: Zoom 6–19 mit echten halben Tastenschritten, OpenTopoMap bis 17. Zoomabhängige weiche Vorausschau; ein Modusbutton für Fahrtrichtung oben/Norden oben. Nach Verschieben setzt GPS-Zentrieren den letzten Modus wieder ein. Temporäre Zoomzahl entfernt. Fractional-Zoom mit Profilen und Sicherungen kompatibel.
+- Dashboard-Feldauswahl: gemeinsames Daten-Schalter-Accordion, letzte Auswahl beim Einschalten wiederherstellen und Auswahl automatisch aktivieren. Graph/Visualisierung unabhängig.
+- Dreeve, intervals.icu, Strava und WebDAV: konkrete Meldungen für Erreichbarkeit, Timeout, TLS, Anmeldung, Server und Ratenlimit. Belege/Retry-/Konto-/Dateigrenzen erhalten. Dreeve-Namensabfrage und WebDAV-Sicherung stoppen bei dienstweitem Ausfall mit konkretem Grund.
+
+Gezielte Regressionstests in den Umsetzungsschritten erfolgreich: 104 eingefrorene Designer-Farbreferenzen, Theme-/Fokus-/Glow-/Flat-/Scroll-/Eingabetests, Konfiguration gegen den freigegebenen Entwurf, Kartensteuerung/Projektion/Zoom/Profilbank/Sicherung, Feldauswahl und unabhängige Graphen, Dienstfehler/HTTP/Upload-/Namens-/Backupprüfungen. Native Vorschauen visuell geprüft; Typografie und generierte Werkzeuge konsistent. Keine komplette Testsuite oder echte Geräte-/Cloudkontenprüfung. Optimierter Release über GitHub Actions mit dauerhaftem Signierschlüssel und direktem APK-Download.
