@@ -21,6 +21,15 @@ internal open class BicycleStickyScrollView(context: Context) : ScrollView(conte
         super.dispatchDraw(canvas)
         canvas.restoreToCount(saved)
     }
+    /** View overlays draw after raised headers; field halos must leave these opaque areas untouched. */
+    internal fun clipInputGlow(canvas:android.graphics.Canvas) {
+        sections.forEach { (header,top,_) ->
+            if(header.visibility==VISIBLE) {
+                val y=top+header.translationY-scrollY
+                canvas.clipOutRect(0f,y,width.toFloat(),y+header.height)
+            }
+        }
+    }
     private fun topInContent(view: View): Int {
         var top = view.top
         var parent = view.parent

@@ -2,6 +2,12 @@
 
 Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Neuester Testentwurf: Fokusrahmen mit ACCENT-Verlauf und Außen-Glow
+
+Auf Nutzerwunsch testweise zentral in Eingaben umgesetzt, **keine neue APK angefragt/gebaut oder Veröffentlichung**. Normale Konturen bleiben erhalten. Fokus + enabled: 1-dp-Kontur mit fünf Stops dunkel/ACCENT/hell/ACCENT/dunkel, jeweils 35 % gegen Schwarz/Weiß gemischt, Verlauf 20° gegen Horizontale; sanfter statischer 8-dp-Glow nur außen. Keine Innenfüllung, festen Rotwerte, Animation, Softwarelayer oder neue Konfiguration. Regeln/Tokens in BicycleDesign, Implementierung BicycleInputFrame an den drei gemeinsamen Input-Stileinstiegen. Parent-Overlay im Scrollviewport, fixe und Sticky-Header nicht übermalen. Vorhandene Werte/Masken/Einheiten, Geometrie, Fokuslistener, Tastatur und Validierung erhalten; Normalhintergrund weiterhin GradientDrawable-kompatibel.
+
+Gezielte Tests erfolgreich: Ableitung einschließlich Schwarz/Weiß, nativer Verlauf/Innen-Transparenz/äußerer Glow, Scrollen, Themewechsel, disabled, Geometrie/Wert/Listener-Erhalt, Sticky-Header-Clipping und vorhandene Formular-/WebDAV-Scroll-/Profileingaben-/Einheitenprüfungen. Native Vorschau docs/previews/input-focus-frame.png visuell geprüft, CSS-Näherung im Atlas und zentrale Dokumentation aktualisiert. Typografie/Atlas/diff --check erfolgreich. Kein Hardware-/Tastaturtest oder Gesamtlauf. Details docs/input-focus-frame.md. Frühere Nachträge darunter bleiben ebenfalls nur lokal und noch nicht in Build 73.
+
 ## Aktueller Nachtrag: globale Eingabeeinheiten und Auswahlschalter
 
 Umgesetzt und lokal geprüft, keine neue APK angefragt/gebaut und noch nicht veröffentlicht. Baut auf dem vorherigen HRV-Auftrag auf (lokale Commits 442e3e4/f9c527f); veröffentlichte APK bleibt 0.8.34 / Build 73.

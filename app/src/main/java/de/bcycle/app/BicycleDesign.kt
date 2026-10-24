@@ -158,6 +158,13 @@ object BicycleDesign {
     const val controlBorder = 1
     const val inputHintAlpha = .5f
     const val inputUnitGap = 4
+    const val inputFocusDarken = .35f
+    const val inputFocusLighten = .35f
+    const val inputFocusAngle = 20
+    const val inputFocusStroke = 1f
+    const val inputFocusGlow = 8
+    const val inputFocusGlowAlpha = .18f
+    const val inputFocusGlowSteps = 12
     const val sliderScaleLabelAlpha = .5f
     const val fieldLabelGap = controlGap / 2
     const val fieldFeedbackGap = controlGap / 2
@@ -395,7 +402,7 @@ object BicycleComponents {
         })
         setPadding(dp(context, 12), dp(context, BicycleDesign.verticalPadding), dp(context, 12), dp(context, BicycleDesign.verticalPadding))
         bindTheme(this, manager) {
-            background=controlBackground(context,it,android.graphics.Color.TRANSPARENT)
+            background=BicycleInputFrame.background(this,it)
             setTextColor(it.foreground); setHintTextColor(it.foreground); backgroundTintList = null
             textCursorDrawable?.mutate()?.setTint(it.foreground)
             textSelectHandle?.mutate()?.setTint(it.foreground); textSelectHandleLeft?.mutate()?.setTint(it.foreground); textSelectHandleRight?.mutate()?.setTint(it.foreground)

@@ -86,7 +86,7 @@ internal object BicycleForm {
         }
         BicycleComponents.bindTheme(edit,themes) { tokens ->
             edit.backgroundTintList=null
-            edit.background=BicycleComponents.controlBackground(edit.context,tokens,Color.TRANSPARENT)
+            edit.background=BicycleInputFrame.background(edit,tokens)
         }
     }
     /** Shared label-left/input-right geometry; units belong inside the input. */

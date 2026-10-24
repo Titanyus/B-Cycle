@@ -105,7 +105,7 @@ internal object BicycleDialogStyle {
         stroke?.let { setStroke(BicycleDesign.linePixels(view.context), it) }
     }
     private fun inputBackground(view: View, tokens: ThemeTokens) =
-        BicycleComponents.controlBackground(view.context,tokens,Color.TRANSPARENT)
+        BicycleInputFrame.background(view,tokens)
     fun apply(screen: AlertDialog, themes: ThemeManager) {
         val decor = screen.window?.decorView ?: return
         // Phase 2 already styles this dialog, including its native footer; leave it unchanged.

@@ -5,4 +5,5 @@
     <item name="slider_question_group" type="id" />
     <item name="input_placeholder_hint" type="id" />
     <item name="input_unit" type="id" />
+    <item name="input_frame" type="id" />
 </resources>
