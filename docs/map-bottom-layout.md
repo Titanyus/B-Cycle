@@ -23,3 +23,7 @@ horizontale Innenpolsterung.
 Die vorher beschriebene gemeinsame Unterkante mit Minus gehört zum Stand 0.7.2;
 sie wurde durch die ausdrückliche Vorgabe ersetzt, Zoom oberhalb der Kartenwerte
 zu platzieren.
+
+## Zoomstufe, 24.10.2026
+
+Kleine, nicht bedienbare Zoom-Anzeige am rechten unteren Kartenrand oberhalb der Datenwerte. Zoom +/- stehen darüber mit reserviertem Abstand. Mapsforge-Positionsbeobachtung aktualisiert nur geänderte Zoomzahlen, auch bei Kartengesten und programmgesteuertem Zoom; Observer beim Zerstören entfernen. Anzeige bleibt unabhängig von ausgeblendeten Bedienelementen sichtbar. Keine Kamera-/Gesten-/Profilfunktion geändert.

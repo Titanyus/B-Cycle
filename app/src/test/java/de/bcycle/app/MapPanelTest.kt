@@ -30,6 +30,8 @@ class MapPanelTest {
         val runtime = RideRuntime.get(panel.context)
         val now = SystemClock.elapsedRealtime()
         runtime.ride.gps.accept(GpsFix(now, 51.0, 10.0, 3.0, speedMps = mps), now)
+        // Follow the runtime GPS receipt path so its primary-source resolver also sees the fix.
+        RideRuntime::class.java.getDeclaredMethod("captureGpsPerformance").apply { isAccessible=true }.invoke(runtime)
         panel.refresh()
     }
     private fun hideWhileMoving(panel: MapPanel) {
@@ -318,6 +320,14 @@ class MapPanelTest {
             assertEquals(4, (center.parent as ViewGroup).childCount)
             val zoom = descendants(panel).single { it.tag == "map_zoom_controls" } as ViewGroup
             assertEquals(2, zoom.childCount)
+            val zoomLevel=panel.findViewWithTag<android.widget.TextView>("map_zoom_level")
+            val beforeZoom=panel.mapView.model.mapViewPosition.zoomLevel.toInt()
+            zoom.getChildAt(0).performClick();shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(panel.context.getString(R.string.map_zoom_level,(beforeZoom+1).coerceAtMost(19)),zoomLevel.text.toString())
+            panel.mapView.model.mapViewPosition.setZoomLevel(13,false);shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(panel.context.getString(R.string.map_zoom_level,13),zoomLevel.text.toString())
+            assertTrue(zoomLevel.left>=panel.width/2)
+
             assertTrue(zoom.getChildAt(0).top < zoom.getChildAt(1).top)
             assertEquals("Karte vergrößern", zoom.getChildAt(0).contentDescription)
             assertTrue(zoom.left > panel.width / 2)

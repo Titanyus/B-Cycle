@@ -62,6 +62,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private lateinit var routeButton: Button
     private var routeShown: Boolean? = null
     private val credit = MapCreditView(context)
+    private val zoomLevel = TextView(context).apply { tag="map_zoom_level";textSize=BicycleDesign.mapStatusSp;maxLines=1;isClickable=false }
+    private val updateZoom=Runnable { updateZoomLevel() }
+    private val zoomObserver=org.mapsforge.map.model.common.Observer { handler.removeCallbacks(updateZoom);handler.post(updateZoom) }
+    private fun updateZoomLevel() { val label=context.getString(R.string.map_zoom_level,mapView.model.mapViewPosition.zoomLevel.toInt());if(zoomLevel.text!=label) zoomLevel.text=label }
     private val status = TextView(context)
     private val dataFields = MapDataFieldsView(context)
     private var editing = false
@@ -261,6 +265,13 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             setOnClickListener { requestGps(); revealControls() }
         }
         addView(status, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.START).apply { bottomMargin = dp(23) })
+        zoomLevel.setPadding(dp(BicycleDesign.smallGap),0,dp(BicycleDesign.smallGap),0)
+        BicycleComponents.bindTheme(zoomLevel,runtime.themes) { tokens ->
+            zoomLevel.setTextColor(tokens.foreground)
+            zoomLevel.setBackgroundColor((tokens.secondary and 0xffffff) or (220 shl 24))
+        }
+        addView(zoomLevel,LayoutParams(-2,-2,Gravity.BOTTOM or Gravity.END).apply { marginEnd=dp(MapControlDesign.edgeGap) })
+        mapView.model.mapViewPosition.addObserver(zoomObserver);updateZoomLevel()
         applyNight()
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCamera() }
     }
@@ -284,7 +295,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     fun pause() {
         running = false; phoneHeading.stop(); stopMotion(); handler.removeCallbacksAndMessages(null); downloads.onPause(); mapView.layerManager.pause(); saveCamera()
     }
-    fun destroy() { pause(); mapView.destroyAll() }
+    fun destroy() { mapView.model.mapViewPosition.removeObserver(zoomObserver);pause(); mapView.destroyAll() }
     internal fun refreshProfileSettings() {
         dataFields.resetTrends()
         refreshSettings()
@@ -372,7 +383,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val nextFieldMargin = 0
         val nextStatusMargin = nextFieldMargin + if (dataFields.visibility == VISIBLE) dataFields.measuredHeight else 0
         // Keep zoom above the complete value row so the right-hand field remains unobstructed.
-        val nextZoomMargin = nextFieldMargin + dataFields.measuredHeight + dp(BicycleDesign.smallGap)
+        val zoomLabelMargin=zoomLevel.layoutParams as LayoutParams
+        val nextLabelMargin=nextFieldMargin+dataFields.measuredHeight+dp(BicycleDesign.smallGap)
+        if(zoomLabelMargin.bottomMargin!=nextLabelMargin) { zoomLabelMargin.bottomMargin=nextLabelMargin;zoomLevel.layoutParams=zoomLabelMargin }
+        val nextZoomMargin = nextLabelMargin+zoomLevel.measuredHeight+dp(BicycleDesign.smallGap)
         // Short map panels still need both zoom buttons; reserve their column if it meets the top row.
         val topHeight = (measuredHeight-nextZoomMargin-dp(MapControlDesign.topRowReserve)).coerceIn(dp(MapControlDesign.compactMinHeight),dp(MapControlDesign.buttonHeight))
         val buttonHeight = ((measuredHeight-nextZoomMargin-topHeight-dp(MapControlDesign.zoomClearance))/2).coerceIn(dp(MapControlDesign.compactMinHeight),dp(MapControlDesign.buttonHeight))

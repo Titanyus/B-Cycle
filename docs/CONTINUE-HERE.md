@@ -2,6 +2,16 @@
 
 Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller Auftrag: Fenstergraphen, Quellen-Dropdowns, Designmodi, Dreeve-Namen und Zoom
+
+Umgesetzt: sechs statt drei Glättungspunkte nur für Dashboard 30/60/120 s (Voll/Rohdaten/FIT unverändert, Grenzen um Null/Lücken erhalten). Alle sechs Hauptquellen als Dropdown, bei einer/keiner Quelle deaktiviert mit Quellenname/Keine Quelle. Globale Designvariante über Flat-Design bei Theme-Auswahl: aus = Glow (Nutzerstandard), an = Flat. Gemeinsame Controls/Geometrie/Listener, nur Dekoration unterschiedlich. PRIMARY ersetzt alle bisherigen UI-ACCENT-Hervorhebungen; ACCENT in Palette/Backup separat erhalten. DESIGN sichert Modus, Fahrradwechsel tauscht ihn nicht aus. Native Fokus-/Auswahlkonturen/-Glows gemeinsam; Bosch-Fahrmodus-Glow unabhängig. Details design-modes.md.
+
+Dreeve-Bug: RecordingStore benutzte RideNames.manual für Profilvorlage. Jetzt generated-Ausgangsname ohne Schreibauftrag; Dreeve-Bestätigung immer Pull auch bei alten manual-Markierungen. Neuere bewusste lokale Änderungen während Abruf bleiben per Token geschützt, Konto/Abbruch ebenfalls. Bereits auf Dreeve überschriebene Namen nicht rekonstruierbar. IN/OUT-Hilfen aktualisiert. Kleine Zoomstufe rechts unten oberhalb Kartenwerte, Observer für Tasten/Gesten/Kameraänderungen, Zoom-Controls darüber; keine Autostartänderung.
+
+Rückfragen des Nutzers zum Autostart beantwortet: Aufnahme verwendet aktuell gewähltes Profil, kein Sensor-bedingter Profilwechsel. Indoor aktiv + E-Bike einschalten löst keinen E-Bike-Autostart aus. HRV hat weiter Vorrang. Kein Änderungsauftrag zum Autostart.
+
+Gezielte native Tests in den einzelnen Schritten erfolgreich: Fenster/Rohdaten/FIT, Quellen/Sicherung/Fallback, Dreeve-Leserichtung/Altmarkierung/Konkurrenz, Modus/PRIMARY-vs-ACCENT/Geometrie/Listener/Sicherung, HRV und Kartenzoom/Bedienung. Alte Karten-Testhilfe speiste GPS nur in den Darstellungszustand; für die bestehende Quellenauflösung nun zusätzlich den tatsächlichen GPS-Empfangspfad aufrufen. Kein Gesamtlauf, echtes Dreeve-Konto oder Geräteprüfung. Keine neue APK angefragt; veröffentlichte APK bleibt 0.8.35 / Build 74 und enthält diese Nachträge noch nicht.
+
 ## Neuester App-Nachtrag: Schalterposition und Scroll-Glow
 
 Auswahl-Schalter zentral rechts, Label links; native Checkbox-/RadioButton-Auswahl, Listener, RadioGroup-Ausschluss und Speicherung erhalten. RadioGroup-Zeilen für Sicherung/Sortierung über volle Listenbreite; separate Dreeve-/ZIP-Textblöcke links, Auswahl rechts mit unbeschnittener Breite. Keine RTL-Spiegelung. Regel: Designaufträge ändern keine Funktionalität; bei nötigen Gestaltungsentscheidungen zwischen alter Anordnung und Komponentenkonvention vorher nachfragen (AGENTS.md).
