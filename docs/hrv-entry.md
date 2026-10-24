@@ -1,6 +1,6 @@
 # Dashboard-Einstieg, HRV-Einstellungen und Tagesbefinden
 
-Stand 22.10.2026, Arbeitsstand nach APK 0.8.23 / Build 62. Keine neue APK beauftragt.
+Stand 22.10.2026, Arbeitsstand nach APK 0.8.23 / Build 62. In APK 0.8.39 / Build 78 enthalten.
 
 ## Dashboard und tägliches Angebot
 
@@ -91,4 +91,4 @@ HRV-Messung und Auswertung einschließlich Übersicht, Einzelresultat und Tagesb
 
 Der Messheader bleibt in Flat und Glow schlicht SECONDARY ohne Rahmen, Glow oder Schatten. Starten/Erneut messen verwendet die zentrale Special-Rahmen-Dekoration (weiß, 900 Black, normale Textgröße, Pille; Flat einfarbiger PRIMARY-Rand, Glow zentrale Kontur/Blurs). Laufender Abbruch und Speicherwiederholung bleiben vorhandene Textaktionen; Messzustand, Klickablauf und Sperren unverändert. Die Angebotskarte zeigt immer die SCREEN-Neon-Herzgrafik, auch im Flat-Modus.
 
-Sticky-Kategorieheader verwenden nun League Gothic wie Hauptheader, aber mit erhaltener Groß-/Kleinschreibung und 30 sp gegenüber 32 sp. Nur die Typografie dieser gemeinsamen Komponente ändern; sonstige Abschnittstitel bleiben in ihrer bisherigen Rolle. Keine neue APK beauftragt.
+Sticky-Kategorieheader verwenden nun League Gothic wie Hauptheader, aber mit erhaltener Groß-/Kleinschreibung und 30 sp gegenüber 32 sp. Nur die Typografie dieser gemeinsamen Komponente ändern; sonstige Abschnittstitel bleiben in ihrer bisherigen Rolle. In APK 0.8.39 / Build 78 enthalten.
