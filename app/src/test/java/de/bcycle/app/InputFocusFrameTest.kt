@@ -21,14 +21,14 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk=[33],qualifiers="mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class InputFocusFrameTest {
-    @Test fun derivedGradientKeepsAccentStopsAndHasPredictableDarkAndLightExtremes() {
-        for(accent in listOf(Color.RED,Color.BLUE,Color.GREEN,Color.WHITE,Color.BLACK,0xffe7aa22.toInt())) {
-            val stops=BicycleInputFrame.colors(accent)
-            assertEquals(5,stops.size);assertEquals(stops[0],stops[4]);assertEquals(accent,stops[1]);assertEquals(accent,stops[3])
-            for(channel in listOf<(Int)->Int>(Color::red,Color::green,Color::blue)) {
-                assertTrue(channel(stops[0])<=channel(accent));assertTrue(channel(stops[2])>=channel(accent))
-            }
-            assertTrue(stops.all { Color.alpha(it)==255 })
+    @Test fun derivedGradientUsesApprovedSortedStopsAndPreservesPrimary() {
+        for(primary in listOf(Color.RED,Color.BLUE,Color.GREEN,Color.WHITE,Color.BLACK,0xffe7aa22.toInt())) {
+            val stops=BicycleInputFrame.colors(primary)
+            assertEquals(6,stops.size);assertEquals(primary,stops[2]);assertEquals(primary,stops[4])
+            assertEquals(204,Color.alpha(stops[0]));assertEquals(166,Color.alpha(stops[1]))
+            assertEquals(stops[0] and 0xffffff,stops[3] and 0xffffff)
+            assertEquals(stops[1] and 0xffffff,stops[5] and 0xffffff)
+            assertTrue(BicycleInputFrame.positions().toList().zipWithNext().all { it.first<=it.second })
         }
     }
     @Test fun focusedContourAndTwoBlursFollowScrollThemeAndEnabledStateWithoutChangingEdits() {

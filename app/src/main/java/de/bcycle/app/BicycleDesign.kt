@@ -158,15 +158,17 @@ object BicycleDesign {
     const val controlBorder = 1
     const val inputHintAlpha = .5f
     const val inputUnitGap = 4
-    const val inputFocusDarken = .35f
-    const val inputFocusLighten = .35f
-    const val inputFocusAngle = 20
-    const val inputFocusStroke = 1.5f
-    const val inputFocusHighlightHalf = .06f
-    const val inputFocusNearBlur = 2.5f
-    const val inputFocusOuterBlur = 15f
-    const val inputFocusNearAlpha = .75f
-    const val inputFocusOuterAlpha = .55f
+    const val inputFocusDarken = .5f
+    const val inputFocusLighten = .4f
+    const val inputFocusAngle = 66
+    const val inputFocusStroke = 2f
+    const val inputGlowRadius = 24
+    const val inputFocusNearIntensity = 2f
+    const val inputFocusOuterIntensity = 6f
+    const val inputFocusNearBlur = 4f
+    const val inputFocusOuterBlur = 18f
+    const val inputFocusNearAlpha = .46f
+    const val inputFocusOuterAlpha = 1f
     const val selectedControlShadow=4
     const val accentFillAngle = -115
     const val inputFocusMaxBlurPixels = 512_000f
@@ -307,10 +309,10 @@ object BicycleComponents {
         })
     }
     internal fun bindTheme(view: View, manager: ThemeManager, apply: (ThemeTokens) -> Unit) {
-        fun refresh(tokens:ThemeTokens) { BicycleAppearance.base(view);apply(tokens) }
-        refresh(manager.active.tokens)
+        fun refresh(theme:BicycleTheme) { view.setTag(R.id.input_theme_id,theme.id);BicycleAppearance.base(view);apply(theme.tokens) }
+        refresh(manager.active)
         var subscription: ThemeSubscription? = null
-        fun subscribe() { if (subscription == null) subscription = manager.observe { refresh(it.tokens) } }
+        fun subscribe() { if (subscription == null) subscription = manager.observe { refresh(it) } }
         view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(view: View) = subscribe()
             override fun onViewDetachedFromWindow(view: View) { subscription?.close(); subscription = null }
@@ -427,9 +429,9 @@ object BicycleComponents {
         // Do not clear PasswordTransformationMethod when enforcing mixed-case display.
         if(view.isAllCaps) view.isAllCaps=false
     }
-    internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=(
-        if(fill==tokens.primary && fill!=tokens.secondary) BicycleAccentGradient.fill(context,tokens) else GradientDrawable()).apply {
-        setColor(fill);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
+    internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary,chromatic:Double=BicycleInputStyle.strength(context))=(
+        if(fill==tokens.primary && fill!=tokens.secondary) BicycleAccentGradient.fill(context,tokens,chromatic=chromatic) else GradientDrawable()).apply {
+        setColor(fill);cornerRadius=if(fill==tokens.primary && !BicycleAppearance.flat(context)) BicycleInputStyle.radius(context) else dp(context,BicycleDesign.inputRadius).toFloat()
         setStroke(dp(context,BicycleDesign.controlBorder),android.graphics.Color.argb(
             (android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt(),
             android.graphics.Color.red(tokens.foreground),android.graphics.Color.green(tokens.foreground),android.graphics.Color.blue(tokens.foreground)))
@@ -451,7 +453,7 @@ object BicycleComponents {
         row.setPadding(border,border,border,border)
     }
     internal fun outlinedControl(view:View,manager:ThemeManager) {
-        bindTheme(view,manager) { view.background=controlBackground(view.context,it);view.backgroundTintList=null }
+        bindTheme(view,manager) { view.background=controlBackground(view.context,it).apply { if(view.getTag(R.id.inline_control_row)==true) cornerRadius=BicycleInputStyle.radius(view.context) };view.backgroundTintList=null }
     }
     fun action(context: Context, manager: ThemeManager, label: String, click: () -> Unit) =
         action(context, manager, label, true, click)

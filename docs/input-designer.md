@@ -51,3 +51,8 @@ Nur Chromatic Strength wird je Theme gemerkt: `chromaticByTheme` ordnet stabile 
 Alte Dateien ohne Tabelle übernehmen ihren bisherigen globalen Wert zunächst für alle vorhandenen Themes; ohne alten Wert 50 %. Danach lassen sich alle Themes unabhängig anpassen. Bei neuer Tabelle gilt deren aktiver Theme-Wert; fehlende Einträge für andere Themes verwenden beim ersten Wechsel 50 %. Zurücksetzen entfernt alle individuellen Theme-Werte. Werte außerhalb 0–3 und ungültige Tabellen werden abgewiesen. Export/Import und Reload erhalten alle Theme-Werte.
 
 Gezielte Prüfungen erfolgreich: Engine bis 300 % einschließlich Kontinuität/Gamut und unveränderter Weiß-/Schwarz-Endpunkte, 14 unabhängige Theme-Werte im Browser, echte Wirkung oberhalb 100 %, Regler-/HEX-/Vorschauwechsel, JSON-Datei/Reload, beide Altformate, Validierung, Zurücksetzen und Mobilbreite. Bestehende Verlauf-/Stop-/Glow-/PNG-Prüfungen weiterhin erfolgreich. Ausschließlich Designer, keine Android-Änderung oder APK.
+
+
+## Kotlin-Übernahme des freigegebenen Entwurfs
+
+Die Colorengine und Werte aus docs/designs/input-design.json sind jetzt zentral in der App implementiert: ChromaticColor/BicycleInputStyle/BicycleDesign. Die App lädt die JSON nicht zur Laufzeit. Designer bleibt das unabhängige Werkzeug mit seinen bisherigen Startwerten; zum Vergleich die freigegebene JSON laden. Native Farb-/Theme-Berechnung ist anhand 104 Designerreferenzen geprüft, Browser-/native Blur-Näherungen bleiben verschieden und die App erhält ihren bestehenden Textkontrastschutz. Details input-focus-frame.md. Frühere Aussagen „nur im Designer“ beschreiben den Stand vor diesem Auftrag.

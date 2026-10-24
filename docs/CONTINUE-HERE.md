@@ -1,3 +1,9 @@
+# Neuester Auftrag: Chromatic-Engine und freigegebener Entwurf in der App
+
+Kotlin-Port ChromaticColor mit denselben OKLab-Matrizen/Gamut-Regeln wie Designer; 104 JS-Referenzfälle erfolgreich. Exportvorlage docs/designs/input-design.json nur dokumentiert, Laufzeit nutzt zentrale BicycleInputStyle-/BicycleDesign-Werte: 40 % Hell/50 % Dunkel, tatsächliche 14 Theme-Stärken aus der Datei (70–180 %, Bereich bis 300 %), sechs Konturstops/Alpha, 2 dp/66°, Radius 24, Nah 4/46 %/2-fach, Außen 18/100 %/6-fach, SCREEN; Innenfläche -115° mit Basisstopp bei 29,73 %. Nutzer erwähnt neuere Abstimmungen 60–260 %; ohne neue Datei weiterhin die konkret angehängten Werte verwenden, nichts schätzen.
+
+Gemeinsame View-Themenbindung trägt Theme-ID für gleiche PRIMARY und Settings-Hellprojektion; begrenzte Farb-/Kontrastcaches und Blur-Invalidierung nach Stärke. Layoutbeispiel 162×52 nicht übertragen; Bedienung/Masken/Abstände/Listener/Autosave/Persistenz/FIT erhalten. Flat ohne Effekte und mit alter Rundung. Kontrastschutz kann Innenfläche heller halten als Designer. Keine neuen Sicherungsfelder oder Laufzeit-JSON. Details docs/input-focus-frame.md. Gezielte Tests/native Vorschau und abschließende Eingaberegression erfolgreich. Keine APK beauftragt, veröffentlichte APK weiterhin Build 75.
+
 # Neuester Nachtrag: Chromatic Strength 300 % und Theme-Werte
 
 Designer-Regler und Engine 0–300 %, Standard 50 %. Chromatic Strength je Theme über chromaticByTheme gespeichert, beim Wechsel wiederhergestellt und in JSON/Browser erhalten. Alte globale Entwürfe initialisieren alle Theme-Werte mit ihrem bisherigen Wert; neue unangepasste Themes 50 %. Highlight/Schatten weiterhin global 0–100 %, übrige Bedienung erhalten. Engine-/Chromium-/Altimport-/Reload-/Export-/Mobil- und Bestandsprüfungen erfolgreich. Nur Designer, keine Appänderung/APK. Aktuelle externe Vorschau in docs/input-designer.md.

@@ -32,7 +32,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     private val analysis=BicycleComponents.textAction(context,themes,context.getString(R.string.hrvq_analysis)) { finishForm() }.apply {
         tag="hrvq_analysis"
         BicycleComponents.bindTheme(this,themes) { tokens ->
-            background=BicycleComponents.controlBackground(context,tokens,tokens.primary)
+            background=BicycleComponents.controlBackground(context,tokens,tokens.primary,BicycleInputStyle.strength(this))
             setTextColor(if(ThemeValidator.contrast(android.graphics.Color.WHITE,tokens.primary)>=ThemeValidator.contrast(android.graphics.Color.BLACK,tokens.primary)) android.graphics.Color.WHITE else android.graphics.Color.BLACK)
         }
     }

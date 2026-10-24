@@ -13,3 +13,8 @@ Die Einstellung uiTheme.flatDesign wird in DESIGN gesichert und wiederhergestell
 Der HTML-Designer benennt die Basisfarbe jetzt PRIMARY. Für bestehende Entwurfsdateien bleibt dessen Schema-1-Schlüssel accent samt Stop-Typ accent ein kompatibler technischer Name; er bezeichnet dort die PRIMARY-Basisfarbe des Werkzeugs, nicht die reservierte zweite Highlightfarbe der App. Die Intensitätsregler des Werkzeugs bleiben Entwurfsparameter und sind keine neuen App-Einstellungen.
 
 Gezielte native Prüfungen decken Theme mit unterschiedlichen PRIMARY-/ACCENT-Farben, Modewechsel bei gleichem Control und gleicher Geometrie, unveränderte Auswahl/Listener/Eingabe, Flat-Füllung ohne Verlauf/Glow/Schatten, Rückwechsel sowie Sicherung der Einstellung und separaten Palette ab. Weitere bestehende Komponenten-, HRV-, Graph- und Sicherungsprüfungen erhalten. Keine Geräteprüfung oder APK-Veröffentlichung in diesem Auftrag.
+
+
+## Freigegebener Chromatic-Entwurf in der App
+
+ChromaticColor als Kotlin-Port, themeabhängige Stärken und Designer-Exportwerte sind jetzt im Glow-Stil aktiv. JSON-Vorlage nur in docs/designs, keine Laufzeitdatei. Gemeinsame Fokus-/Auswahlkontur mit sechs Stops/Alpha, 2 dp bei 66°, Rundung 24 dp, Nah-/Außen-Glow 4/18 dp mit 2-/6-facher Verstärkung, Innenfläche mit verschobenem Basisstopp. Flat bleibt einfarbig und ohne Effekte mit bisheriger Rundung, Layout/Bedienung unverändert. Vorhandener Kontrastschutz bleibt aktiv. Details und konkrete Theme-Werte: input-focus-frame.md. Keine neuen Benutzereinstellungen oder Sicherungsfelder, keine APK für diesen Auftrag.

@@ -7,12 +7,11 @@ import kotlin.math.roundToInt
  * Blur premultiplied channels together, so transparent edges cannot create dark color fringes. */
 internal object BicycleContourBlur {
     fun radius(spread:Float)=(spread/3).roundToInt().coerceAtLeast(1)
-    fun blur(source:Bitmap,spread:Float):Bitmap {
-        if(spread<=0) return source.copy(Bitmap.Config.ARGB_8888,false)
+    fun blur(source:Bitmap,spread:Float,intensity:Float=1f):Bitmap {
         val width=source.width;val height=source.height;val r=radius(spread)
         var pixels=IntArray(width*height);var scratch=IntArray(pixels.size)
         source.getPixels(pixels,0,width,0,0,width,height)
-        for(i in pixels.indices) {
+        if(spread>0) for(i in pixels.indices) {
             val c=pixels[i];val a=c ushr 24
             pixels[i]=(a shl 24) or ((((c ushr 16) and 255)*a/255) shl 16) or
                 ((((c ushr 8) and 255)*a/255) shl 8) or ((c and 255)*a/255)
@@ -37,11 +36,15 @@ internal object BicycleContourBlur {
             }
             val old=pixels;pixels=scratch;scratch=old
         }
-        repeat(3) { pass(true);pass(false) }
-        for(i in pixels.indices) {
+        if(spread>0) repeat(3) { pass(true);pass(false) }
+        if(spread>0) for(i in pixels.indices) {
             val c=pixels[i];val a=c ushr 24
             pixels[i]=if(a==0) 0 else (a shl 24) or (((((c ushr 16) and 255)*255/a).coerceAtMost(255)) shl 16) or
                 (((((c ushr 8) and 255)*255/a).coerceAtMost(255)) shl 8) or (((c and 255)*255/a).coerceAtMost(255))
+        }
+        if(intensity!=1f) for(i in pixels.indices) {
+            val color=pixels[i];val alpha=((color ushr 24)*intensity).roundToInt().coerceIn(0,255)
+            pixels[i]=if(alpha==0) 0 else (color and 0xffffff) or (alpha shl 24)
         }
         return Bitmap.createBitmap(pixels,width,height,Bitmap.Config.ARGB_8888)
     }

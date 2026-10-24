@@ -30,6 +30,18 @@ class ContourBlurAndFillTest {
         assertEquals(Color.RED,source.getPixel(16,20))
         source.recycle();blurred.recycle()
     }
+    @Test fun designerIntensityAmplifiesOnlyBlurredAlphaAndKeepsSourceUnchanged() {
+        val source=Bitmap.createBitmap(40,40,Bitmap.Config.ARGB_8888)
+        Canvas(source).drawRect(12f,12f,28f,28f,Paint().apply { color=Color.WHITE })
+        val normal=BicycleContourBlur.blur(source,6f)
+        val boosted=BicycleContourBlur.blur(source,6f,6f)
+        val alpha=Color.alpha(normal.getPixel(10,20))
+        assertTrue(alpha>0);assertTrue(alpha<255)
+        assertEquals((alpha*6).coerceAtMost(255),Color.alpha(boosted.getPixel(10,20)))
+        assertEquals(0,Color.alpha(source.getPixel(10,20)))
+        assertEquals(Color.WHITE,source.getPixel(20,20))
+        listOf(source,normal,boosted).forEach(Bitmap::recycle)
+    }
     @Test fun activeFillHasItsOwnNegativeAngleAndReadableTextAcrossAllThemesWhileSelectionStillWorks() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
@@ -42,7 +54,7 @@ class ContourBlurAndFillTest {
                 themes.activate(theme.id)
                 val tokens=theme.tokens;val foreground=button.currentTextColor
                 assertTrue(ThemeValidator.contrast(foreground,tokens.primary)>=ThemeValidator.minimumTextContrast)
-                assertTrue(ThemeValidator.contrast(foreground,BicycleAccentGradient.fillDark(tokens.primary,foreground))>=ThemeValidator.minimumTextContrast)
+                assertTrue(ThemeValidator.contrast(foreground,BicycleAccentGradient.fillDark(tokens.primary,foreground,BicycleInputStyle.strength(theme.id)))>=ThemeValidator.minimumTextContrast)
             }
             themes.activate(BicycleThemes.red.id)
             val bitmap=Bitmap.createBitmap(156,48,Bitmap.Config.ARGB_8888)
