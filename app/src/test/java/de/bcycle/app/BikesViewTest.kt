@@ -124,7 +124,7 @@ class BikesViewTest {
             assertEquals("Tourenrad",runtime.bikes.current().name)
             val wheel=body.findViewWithTag<EditText>("bike_wheel_mm")
             assertEquals(decor.findViewWithTag<View>("bike_wheel_label").parent,wheel.parent)
-            assertEquals(decor.findViewWithTag<View>("bike_wheel_unit").parent,wheel.parent)
+            assertNull(decor.findViewWithTag<View>("bike_wheel_unit"));assertEquals("mm",BicycleInputUnit.unit(wheel))
             assertEquals(app.resources.getFont(R.font.league_gothic),wheel.typeface)
             assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
                 BicycleDesign.settingsMetricSp,app.resources.displayMetrics),wheel.textSize,.01f)

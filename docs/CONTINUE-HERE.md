@@ -2,6 +2,18 @@
 
 Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller Nachtrag: globale Eingabeeinheiten und Auswahlschalter
+
+Umgesetzt und lokal geprüft, keine neue APK angefragt/gebaut und noch nicht veröffentlicht. Baut auf dem vorherigen HRV-Auftrag auf (lokale Commits 442e3e4/f9c527f); veröffentlichte APK bleibt 0.8.34 / Build 73.
+
+Alle vorhandenen Eingaben mit Maßeinheiten über die gemeinsame `BicycleInputUnit`-Dekoration: Einheit 50 % FOREGROUND innerhalb des Feldrahmens unmittelbar nach dem Wert, zentral inputUnitGap=4 dp. Fahrerprofil (Größe/Gewicht/Ruhe-/Maximalpuls/FTP), Radumfang, HRV-Trainingsmengen und numerische Streckenfilter. Keine Einheiten im Editable/Clipboard oder gespeicherten Zahlentext; Listener/Validierung/Autosave erhalten. Leere vorhandene Platzhalter nicht doppelt mit Einheiten versehen, zugängliche Einheit über stateDescription. Gemeinsame Formularzeile nur noch Label + Eingabefeld, keine außen stehende dritte Einheit. Numerische/Maskenfelder bleiben auch ohne Fokus rechtsbündig sichtbar; riesige horizontale Textlayouts in diesen begrenzten Feldern unterbinden. Native Rundungsreste am rechten Glyphrand beim Zeichnen der Einheit berücksichtigen.
+
+Schlafdauer/Eingeschlafen/Aufgewacht als drei Zeilen untereinander, Titel links außerhalb, gleich breites 116-dp-Eingabefeld rechts, feste Zeitmaske weiterhin 00:00 h. Fachliche Speicherung/Tag, Datum/04:00-Uhr-Angebot/Schieberegler unverändert.
+
+Zusätzliche Nutzeranweisung: Listen mit Auswahlpunkten global auf Schalterdarstellung umstellen. Zentral über BicycleDialogStyle: gleiche transparente 48×24-dp-Pille und 18-dp-Daumen wie bestehende Schalter, FOREGROUND/ACCENT, disabled 50 %, Gap 4 dp, mindestens 48-dp-Touchhöhe. Native CheckBox-/RadioButton-Auswahlzustände/Listener/RadioGroup-Ausschluss erhalten; zugängliche Rolle Switch. Keine RadioGroup-Umbauten oder Änderung von Mehrfach-/Einzelauswahl. HRV-Konfiguration, Dashboard-Feldauswahl, Filter und andere Auswahlzeilen erfasst. Segmentierte Buttons ohne führenden Auswahlpunkt behalten ihre Form.
+
+Gezielte Prüfungen erfolgreich: Profileingaben/Fehler/Autosave/Navigation, Radumfang, numerische Streckenfilter, HRV-Maske und Mengen/Zeilen/Fragenkonfiguration/Backup/Zyklussperre, Dashboard-Feldauswahl und Themewechsel, native Auswahlfarben/Positionen/Deaktivierung/Einfach- und Mehrfachauswahl, Einheiten im Rahmen mit halber Deckkraft über Presets und helles Custom-Theme ohne ausgelöste Textänderung. Native HRV-Maskenvorschau und Auswahl-Schalter visuell geprüft. Typografie und aktualisierter HTML-Atlas geprüft. Keine komplette Suite, reale Tastatur/Hardware oder APK. Hilfetext/AGENTS/HRV-Dokumentation/UI-Konventionen/Atlas aktualisiert, keine neuen Einstellungen oder Datenformate.
+
 ## Aktueller Auftrag nach Build 73: HRV-Tagesdaten, Zeitmasken und 04:00-Uhr-Angebot
 
 Umgesetzt und lokal geprüft, **noch nicht in APK 0.8.34 / Build 73 und noch nicht veröffentlicht**. Keine neue APK angefragt. Gemeinsame feste Stunden-/Minutenmaske `BicycleTimeInput` mit geghosteter Beschriftung/Doppelpunkt/Einheit und Cursor-Sprung; Schlafdauer ein Feld, Eingeschlafen/Aufgewacht nebeneinander. Schlafdauer intern kompatibel als Stunden, Zeiten HH:mm. Trainingsmengen behalten km/min direkt hinter dem Zahlenwert, geghostet. Zeitgrenzen im Streckenfilter ebenfalls gemeinsame Maske, vorhandene Bereichs-/Sliderfunktion erhalten. Sichtbare Sliderstandards gelten ohne Berührung, andere Auswahlfelder bleiben fehlend.

@@ -157,6 +157,7 @@ object BicycleDesign {
     const val dialogRadius = 18
     const val controlBorder = 1
     const val inputHintAlpha = .5f
+    const val inputUnitGap = 4
     const val sliderScaleLabelAlpha = .5f
     const val fieldLabelGap = controlGap / 2
     const val fieldFeedbackGap = controlGap / 2

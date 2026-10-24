@@ -70,7 +70,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             maxLines = 1; setText(value)
         }
         inputs[field] = edit
-        root.addView(BicycleForm.numberRow(edit,themes,title,unit,"rider_unit"),
+        root.addView(BicycleForm.numberRow(edit,themes,title,unit),
             LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap); bottomMargin=dp(BicycleDesign.verticalPadding) })
     }
 

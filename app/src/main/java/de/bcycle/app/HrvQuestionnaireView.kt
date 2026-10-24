@@ -130,8 +130,8 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             if(placeholder) BicycleComponents.inputHint(this,themes,title)
             filters=arrayOf(android.text.InputFilter.LengthFilter(maxLength));setText(current)
         }
-        if(unit!=null) BicycleInputUnit.bind(edit,themes,unit,changed)
-        else edit.addTextChangedListener(object:TextWatcher {
+        if(unit!=null) BicycleInputUnit.bind(edit,themes,unit)
+        edit.addTextChangedListener(object:TextWatcher {
             override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int)=Unit
             override fun afterTextChanged(s:Editable?)=Unit
             override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int) {
@@ -149,7 +149,8 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             }.orEmpty()
         }
         val edit=BicycleComponents.input(context,themes).apply { tag="hrvq_$key";contentDescription=context.getString(title) }
-        BicycleTimeInput(edit,themes,context.getString(title),current) { text ->
+        val row=BicycleForm.inputRow(edit,themes,context.getString(title)).apply { tag="hrvq_row_$key" }
+        BicycleTimeInput(edit,themes,"",current) { text ->
             if(text==null) { edit.error=null;return@BicycleTimeInput }
             val parts=text.split(':')
             val hours=parts.getOrNull(0)?.toIntOrNull()
@@ -162,7 +163,9 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
                 change(value.copy(extras=if(normalized==null) value.extras-key else value.extras+(key to normalized)))
             }
         }
-        parent.addView(edit,LayoutParams(-1,-2))
+        parent.addView(row,LayoutParams(-1,-2).apply {
+            topMargin=dp(BicycleDesign.controlGap);bottomMargin=dp(BicycleDesign.verticalPadding)
+        })
     }
     private fun extra(parent:LinearLayout,key:String,title:String,numeric:Boolean=false) {
         input(parent,key,title,value.extras[key].orEmpty(),numeric) { text ->
@@ -241,11 +244,9 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             rating(body,HrvQuestion.SLEEP,"sleep",R.string.hrvq_bad,R.string.hrvq_normal,R.string.hrvq_good)
             if(enabled(HrvQuestion.SLEEP_DURATION)) timeInput(body,"sleepHours",R.string.hrvq_sleep_duration,true)
             if(enabled(HrvQuestion.WAKE) || enabled(HrvQuestion.BED)) {
-                val row=LinearLayout(context).apply { orientation=HORIZONTAL;tag="hrvq_sleep_times" }
-                for((q,key) in listOf(HrvQuestion.WAKE to "wake",HrvQuestion.BED to "bed")) if(enabled(q)) {
-                    row.addView(LinearLayout(context).apply { orientation=VERTICAL
-                        timeInput(this,key,if(q==HrvQuestion.WAKE) R.string.hrvq_awake_placeholder else R.string.hrvq_asleep_placeholder,false) },
-                        LayoutParams(0,-2,1f).apply { if(row.childCount>0) marginStart=dp(BicycleDesign.controlGap) })
+                val row=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_sleep_times" }
+                for((q,key) in listOf(HrvQuestion.BED to "bed",HrvQuestion.WAKE to "wake")) if(enabled(q)) {
+                    timeInput(row,key,if(q==HrvQuestion.WAKE) R.string.hrvq_awake_placeholder else R.string.hrvq_asleep_placeholder,false)
                 }
                 body.addView(row,LayoutParams(-1,-2))
             }

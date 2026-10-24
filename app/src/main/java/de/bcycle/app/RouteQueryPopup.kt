@@ -226,7 +226,10 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
                 if(time) {
                     times[i]=if((if(i==0) get().from else get().to)==null) "" else format(if(i==0) get().from else get().to)
                     BicycleTimeInput(input,themes,context.getString(if(i==0) R.string.route_filter_from else R.string.route_filter_to),times[i].orEmpty()) { value -> times[i]=value;updateInputs() }
-                } else input.onTextChanged { updateInputs() }
+                } else {
+                    BicycleInputUnit.bind(input,themes,context.getString(if(title==R.string.route_filter_distance) R.string.analysis_km else R.string.analysis_kmh))
+                    input.onTextChanged { updateInputs() }
+                }
             }
             section.addView(row)
             section.addView(slider,LinearLayout.LayoutParams(-1,dp(BicycleDesign.touchSize)))

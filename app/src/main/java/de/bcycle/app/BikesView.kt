@@ -194,7 +194,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             tag="bike_wheel_mm";setSingleLine();inputType=android.text.InputType.TYPE_CLASS_NUMBER
             setText(profile.wheelMm.toString());contentDescription=context.getString(R.string.bikes_wheel)
         }
-        val wheelRow=BicycleForm.numberRow(wheel,themes,R.string.bikes_wheel,R.string.bikes_wheel_mm,"bike_wheel_unit").apply {
+        val wheelRow=BicycleForm.numberRow(wheel,themes,R.string.bikes_wheel,R.string.bikes_wheel_mm).apply {
             tag="bike_wheel_row"; getChildAt(0).tag="bike_wheel_label"
         }
         addView(wheelRow,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })

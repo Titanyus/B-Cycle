@@ -52,7 +52,7 @@ class SettingsSectionsTest {
                 assertEquals(1,testDescendants(root).filterIsInstance<android.widget.ScrollView>().size)
                 testDescendants(root).filterIsInstance<EditText>().forEach { edit ->
                     val row=edit.parent as android.widget.LinearLayout
-                    assertEquals(3,row.childCount)
+                    assertEquals(2,row.childCount);assertNotNull(BicycleInputUnit.unit(edit))
                     assertTrue(row.getChildAt(0).width>0)
                     assertEquals(BicycleDesign.formNumberWidth,edit.width)
                     assertEquals(activity.resources.getFont(R.font.league_gothic),edit.typeface)

@@ -155,18 +155,26 @@ class HrvQuestionnaireTest {
             val scroll=android.widget.ScrollView(a).apply { setBackgroundColor(themes.active.tokens.secondary);addView(form) }
             a.setContentView(scroll);layout(scroll)
             fun edit(key:String)=form.findViewWithTag<EditText>("hrvq_$key")
-            assertEquals("Schlafdauer · 06:15 h",edit("sleepHours").text.toString())
-            assertEquals("Aufgewacht · 07:15 h",edit("wake").text.toString())
-            assertEquals("Eingeschlafen · 23:00 h",edit("bed").text.toString())
-            assertEquals("80 km",edit("distance").text.toString());assertEquals("160 min",edit("duration").text.toString())
+            assertEquals("06:15 h",edit("sleepHours").text.toString())
+            assertEquals("07:15 h",edit("wake").text.toString())
+            assertEquals("23:00 h",edit("bed").text.toString())
+            assertEquals("80",edit("distance").text.toString());assertEquals("km",BicycleInputUnit.unit(edit("distance")));assertEquals("160",edit("duration").text.toString());assertEquals("min",BicycleInputUnit.unit(edit("duration")))
             edit("sleepHours").setText("0613");form.flush()
             assertEquals(6+13.0/60,saved.last().extras["sleepHours"]!!.toDouble(),1e-9)
             edit("wake").setText("08");form.flush();assertEquals("07:15",saved.last().extras["wake"])
             edit("wake").setText("25:00");form.flush();assertNotNull(edit("wake").error);assertEquals("07:15",saved.last().extras["wake"])
             edit("wake").setText("0815");form.flush();assertNull(edit("wake").error);assertEquals("08:15",saved.last().extras["wake"])
-            edit("duration").text.insert(edit("duration").text.indexOf(" "),"5");form.flush()
-            assertEquals(1605.0,saved.last().trainingMinutes!!,0.0);assertEquals("1605 min",edit("duration").text.toString())
+            edit("duration").text.insert(edit("duration").length(),"5");form.flush()
+            assertEquals(1605.0,saved.last().trainingMinutes!!,0.0);assertEquals("1605",edit("duration").text.toString())
             edit("duration").setText("160");edit("wake").clearFocus();layout(scroll)
+            for((key,title) in listOf("sleepHours" to R.string.hrvq_sleep_duration,"bed" to R.string.hrvq_asleep_placeholder,"wake" to R.string.hrvq_awake_placeholder)) {
+                val e=edit(key);val row=e.parent as LinearLayout
+                assertEquals(a.getString(title),(row.getChildAt(0) as android.widget.TextView).text)
+                assertEquals(2,row.childCount);assertSame(e,row.getChildAt(1))
+                assertTrue(row.getChildAt(0).right<e.left);assertEquals(row.width,e.right)
+                assertEquals(BicycleDesign.formNumberWidth,e.width)
+                assertTrue(e.layout.width<=e.width) // Right-aligned masks must draw inside the field even without focus.
+            }
             val image=android.graphics.Bitmap.createBitmap(360,760,android.graphics.Bitmap.Config.ARGB_8888);scroll.draw(android.graphics.Canvas(image))
             File("build/reports/ui/hrv-time-masks.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };image.recycle()
         } finally { host.pause().stop().destroy() }

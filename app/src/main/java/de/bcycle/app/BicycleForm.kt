@@ -76,6 +76,7 @@ internal object BicycleForm {
     fun outlinedInput(edit: TextView, themes: ThemeManager, numeric: Boolean=false) {
         BicycleDialogStyle.control(edit,themes)
         if(numeric) edit.apply {
+            if(this is EditText) { maxLines=1;setHorizontallyScrolling(false) }
             typeface=BicycleDesign.narrowTypeface(context)
             textSize=BicycleDesign.settingsMetricSp
             gravity=Gravity.END or Gravity.CENTER_VERTICAL
@@ -88,21 +89,21 @@ internal object BicycleForm {
             edit.background=BicycleComponents.controlBackground(edit.context,tokens,Color.TRANSPARENT)
         }
     }
-    fun numberRow(edit: EditText, themes: ThemeManager, title: Int, unit: Int, unitTag: String): LinearLayout {
+    /** Shared label-left/input-right geometry; units belong inside the input. */
+    fun inputRow(edit:EditText,themes:ThemeManager,title:String):LinearLayout {
         val context=edit.context
         if(edit.id==android.view.View.NO_ID) edit.id=android.view.View.generateViewId()
         outlinedInput(edit,themes,numeric=true)
         return LinearLayout(context).apply {
             gravity=Gravity.CENTER_VERTICAL
             setTag(R.id.inline_control_row,true)
-            addView(BicycleComponents.text(context,themes,context.getString(title)).apply { labelFor=edit.id },
+            addView(BicycleComponents.text(context,themes,title).apply { labelFor=edit.id },
                 LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
             addView(edit,LinearLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.formNumberWidth),-2))
-            addView(TextView(context).apply {
-                text=context.getString(unit); tag=unitTag; textSize=BicycleDesign.bodySp
-                BicycleComponents.secondaryText(this,themes); gravity=Gravity.CENTER
-                importantForAccessibility=TextView.IMPORTANT_FOR_ACCESSIBILITY_NO
-            },LinearLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),-2))
         }
     }
+    fun numberRow(edit:EditText,themes:ThemeManager,title:Int,unit:Int):LinearLayout =
+        inputRow(edit,themes,edit.context.getString(title)).also {
+            BicycleInputUnit.bind(edit,themes,edit.context.getString(unit))
+        }
 }

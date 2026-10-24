@@ -24,7 +24,7 @@ internal class BicycleTimeInput(private val edit:EditText,themes:ThemeManager,ti
         else->digits.joinToString("").let { it.dropLast(2)+":"+it.takeLast(2) }
     }
     init {
-        edit.filters=emptyArray();edit.setSingleLine()
+        edit.filters=emptyArray();edit.setSingleLine();edit.setHorizontallyScrolling(false)
         edit.inputType=android.text.InputType.TYPE_CLASS_NUMBER
         load(initial)
         BicycleComponents.bindTheme(edit,themes) { tokens ->
@@ -78,36 +78,5 @@ internal class BicycleTimeInput(private val edit:EditText,themes:ThemeManager,ti
         fade(text.length-2,text.length)
         edit.setText(text);edit.setSelection(selection.coerceIn(prefix.length,text.length-2))
         updating=false
-    }
-}
-
-/** A persistent, non-answer unit directly after the editable number. */
-internal object BicycleInputUnit {
-    fun bind(edit:EditText,themes:ThemeManager,unit:String,changed:(String)->Boolean) {
-        var updating=false;var ghost=0
-        fun render() {
-            if(updating) return
-            updating=true
-            val old=edit.text.toString();val selection=edit.selectionStart
-            val raw=old.replace(unit,"").trim()
-            val text=SpannableString(if(raw.isEmpty()) "" else "$raw $unit")
-            if(raw.isNotEmpty()) text.setSpan(ForegroundColorSpan(ghost),raw.length,text.length,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            edit.setText(text);edit.setSelection(selection.coerceIn(0,raw.length))
-            updating=false
-        }
-        edit.filters=emptyArray()
-        BicycleComponents.bindTheme(edit,themes) { tokens ->
-            ghost=(tokens.foreground and 0xffffff) or ((Color.alpha(tokens.foreground)*BicycleDesign.inputHintAlpha).toInt() shl 24)
-            render()
-        }
-        edit.addTextChangedListener(object:TextWatcher {
-            override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int)=Unit
-            override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int)=Unit
-            override fun afterTextChanged(s:Editable?) {
-                if(updating) return
-                val raw=s.toString().replace(unit,"").trim()
-                render();edit.error=if(changed(raw)) null else edit.context.getString(R.string.hrvq_invalid_number)
-            }
-        })
     }
 }

@@ -163,7 +163,7 @@ class HrvEntryTest {
             prompt.close();assertEquals(1,acknowledged)
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun ratingsUseNeutralOriginSleepTimesShareRowAndContinueWaitsForSuccessfulSave() {
+    @Test fun ratingsUseNeutralOriginSleepTimesStackAndContinueWaitsForSuccessfulSave() {
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0));val settings=HrvQuestionSettings(a)
@@ -172,7 +172,7 @@ class HrvEntryTest {
             val form=HrvQuestionnaireView(a,themes,HrvQuestionnaire("2026-10-22"),null,complete={done++}) { value,finish -> saved=value;finish(succeeds) }
             a.setContentView(ScrollView(a).apply { addView(form) });layout(a.findViewById(android.R.id.content))
             assertEquals(2,form.findViewWithTag<LinearLayout>("hrvq_sleep_times").childCount)
-            assertEquals(form.findViewWithTag<EditText>("hrvq_wake").top,form.findViewWithTag<EditText>("hrvq_bed").top)
+            assertTrue(form.findViewWithTag<View>("hrvq_row_wake").top>form.findViewWithTag<View>("hrvq_row_bed").bottom)
             val sleep=form.findViewWithTag<BicycleRatingSlider>("hrvq_sleep")
             assertEquals(5,sleep.origin);assertEquals(5,sleep.progress)
             for(key in listOf("soreness","fatigue")) {

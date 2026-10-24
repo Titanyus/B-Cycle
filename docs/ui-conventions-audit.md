@@ -176,3 +176,9 @@ Karteneinstellungen: zentraler sectionDivider unmittelbar vor Trackaufzeichnung,
 Auswahlpunkt → Text: zentral choiceTextGap=4 dp statt bisher 8 dp Zusatzabstand für Checkboxen/RadioButtons. Circle-Geometrie, native Radio-Inset-Breite, 48-dp-Touchflächen, Farben, Listener und äußere Formularabstände erhalten. HTML-Atlas verwendet dasselbe Token; keine lokalen Extramargins für einzelne Listen.
 
 Schlafoptionen und globaler Auswahlabstand sind in APK **0.8.29 / Build 68** enthalten. [Buildnachweis](build-68.md).
+
+## Globale Konventionen 24.10.2026
+
+- Maßeinheiten im Eingabefeld als 50-%-Dekoration über BicycleInputUnit, mit zentralem Abstand inputUnitGap. Numerische Rohtexte und bestehende Parser unverändert, keine Einheiten in Persistenz/Clipboard/Selektion. Umgesetzt in Fahrerprofil, Radumfang, HRV-Trainingsmengen und numerischen Streckenfiltern; Zeitfelder verwenden weiterhin ihre feste Maske.
+- BicycleForm.inputRow/numberRow: Beschriftung links, Eingabefeld rechts, keine außen angehängte Einheit. Schlafdauer, Eingeschlafen und Aufgewacht nutzen drei Zeilen, nicht die frühere kompakte Nebeneinanderansicht.
+- Listen mit bisherigen Checkbox-/Radio-Punkten verwenden dieselbe transparente 48×24-dp-Pille/18-dp-Daumen wie unsere Schalter, aktiviert ACCENT, sonst FOREGROUND. Zentrale native Auswahlzustände/RadioGroup-Ausschluss/Mehrfachauswahl bleiben erhalten; zugängliche Rolle Switch. Segmentbuttons ohne führenden Punkt behalten ihre Form. Keine neuen Auswahlpunkte einführen.

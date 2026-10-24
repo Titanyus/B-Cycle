@@ -31,7 +31,7 @@ Beide standardmäßig aus und unabhängig schaltbar. Ein vollständig beendetes 
 
 ## Tagesbefinden
 
-Aufsteh- und Schlafenszeit stehen bei gemeinsamer Aktivierung in einer Zeile mit gleich hohen Beschriftungen. Bei nur einer aktivierten Frage volle Breite. Sportart entfällt aus Formular und Konfiguration; historische Sportangaben bleiben lesbar und gesichert. Der alte SPORT-Konfigurationswert wird beim Lesen/Restaurieren normalisiert und nicht als aktive Einstellung weiterexportiert.
+Schlafdauer, Einschlaf- und Aufwachzeit stehen jeweils in einer eigenen Zeile mit Titel links und Zeitmaske rechts. Sportart entfällt aus Formular und Konfiguration; historische Sportangaben bleiben lesbar und gesichert. Der alte SPORT-Konfigurationswert wird beim Lesen/Restaurieren normalisiert und nicht als aktive Einstellung weiterexportiert.
 
 Bewertungsslider verwenden weiterhin native SeekBar-Gesten, Tastatur, Accessibility und diskrete Positionen. Bei mittigem Ursprung läuft die ACCENT-Hervorhebung von der Mitte zur Position nach links oder rechts. Muskelkater und Müdigkeit beginnen stattdessen bei 0 und markieren von links. Unberührte Standardstellungen bleiben fehlende Antworten; historische Werte nicht zurücksetzen. RPE behält 0–10 und „Gar nicht“ links, ohne zusätzlichen sichtbaren „RPE x / 10“-Text.
 
@@ -83,4 +83,4 @@ Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Bui
 
 Das automatische Angebot verwendet einen lokalen Angebotstag von **04:00 Uhr bis vor 04:00 Uhr des Folgetags**. Um 01:00 Uhr zählt damit weiterhin der Vortag. Die Zuordnung erfolgt nach lokaler ziviler Uhrzeit, auch bei Sommer-/Winterzeit; keine feste 24-Stunden-Dauer. Nur bewusster Tap bestätigt das Angebot, und zwar für den Angebotstag zum Zeitpunkt des Taps. Ohne Bestätigung wird es beim nächsten Vordergrundstart erneut gezeigt. Option, manueller Langdruck, Dashboard-Navigation und Aufnahme-/HRV-Sperren bleiben erhalten. Kalenderdatum von Messungen, Tagesbefinden und Vortagsfahrten wird dadurch nicht verschoben.
 
-Zeitangaben im Tagesbefinden verwenden die zentrale Maske mit festen geghosteten Labels/Einheiten; sichtbare Sliderstandards sind ohne Berührung gültig. Antworten gelten jetzt gemeinsam pro Kalendertag. Details [Tagesbefinden](hrv-questionnaire.md).
+Zeitangaben im Tagesbefinden verwenden die zentrale Maske mit fester geghosteter Einheit; Titel stehen links außerhalb; sichtbare Sliderstandards sind ohne Berührung gültig. Antworten gelten jetzt gemeinsam pro Kalendertag. Details [Tagesbefinden](hrv-questionnaire.md).
