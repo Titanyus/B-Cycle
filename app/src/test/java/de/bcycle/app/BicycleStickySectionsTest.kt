@@ -104,12 +104,12 @@ class BicycleStickySectionsTest {
                 view.background.setBounds(0,0,300,300);view.background.draw(Canvas(bitmap))
                 val color=bitmap.getPixel(150,0);bitmap.recycle();return color
             }
-            assertEquals(runtime.themes.active.tokens.accent,border(decor.findViewWithTag("bike_profile_0")))
+            assertEquals(runtime.themes.active.tokens.primary,border(decor.findViewWithTag("bike_profile_0")))
             assertEquals(runtime.themes.active.tokens.foreground,border(decor.findViewWithTag("bike_profile_1")))
             val palettes=ThemePickerView(activity,runtime.themes);measure(palettes,1080,1000)
             assertEquals(127,android.graphics.Color.alpha(border(palettes.findViewWithTag("theme_choice"))))
             val dashboards=DashboardPresetPicker(activity,0,runtime.themes)
-            assertEquals(runtime.themes.active.tokens.accent,border(dashboards.findViewWithTag("preset_page_0")))
+            assertEquals(runtime.themes.active.tokens.primary,border(dashboards.findViewWithTag("preset_page_0")))
             val top=Bitmap.createBitmap(decor.width,decor.height,Bitmap.Config.ARGB_8888)
             decor.draw(Canvas(top))
             java.io.File("/tmp/bcycle-bikes-sections.png").outputStream().use { top.compress(Bitmap.CompressFormat.PNG,100,it) }

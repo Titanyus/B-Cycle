@@ -1,6 +1,6 @@
 # Interaktiver Eingabefeld-Designer
 
-[Designer im Browser öffnen](https://raw.githack.com/Titanyus/B-Cycle/e23a3a072489a22caebad9043f7442b1091e28b2/docs/previews/input-designer.html) · [HTML für Offline-Nutzung herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/e23a3a072489a22caebad9043f7442b1091e28b2/docs/previews/input-designer.html)
+[Designer im Browser öffnen](https://raw.githack.com/Titanyus/B-Cycle/cd6b18ea96020f88b7ac59ba890fde5cc030c6ed/docs/previews/input-designer.html) · [HTML für Offline-Nutzung herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/cd6b18ea96020f88b7ac59ba890fde5cc030c6ed/docs/previews/input-designer.html)
 
 Beim ersten Öffnen des Browser-Links zeigt raw.githack gegebenenfalls einen Herkunftshinweis. Mit „Open the page“ geht es zum Designer.
 
@@ -22,3 +22,6 @@ Die aktive Auswahl verwendet dieselbe Verlaufs-Kontur und beide Glows wie das Fo
 JSON und lokale Speicherung enthalten `near.intensity` und `outer.intensity`. Alte Schema-1-Entwürfe ohne diese Werte werden mit 1 (= 100 %) geladen; unzulässige Werte werden abgewiesen. Neue Intensitätseinstellung und Auswahlkontur sind zunächst nur im Visualisierer umgesetzt, nicht in APK 0.8.35.
 
 Gezielte Chromium-Prüfungen: nachgewiesene Helligkeitssteigerung außerhalb der aktiven Auswahl bei gleicher Blur-Breite, gemeinsame Kontur-/Glow-Ebenenschalter ohne Änderung der Innenfläche, Altimport/ungültige Werte und JSON-/Reload-Erhalt der Intensität. Bisherige Desktop-/Mobil-, Farb-/Stop- und Exportprüfungen weiter erfolgreich. Native App unverändert, kein APK-Build.
+
+
+Die Stil-Basisfarbe heißt ab 24.10.2026 PRIMARY. Bestehende Schema-1-Entwürfe behalten die technischen Namen accent/Stop-Typ accent für diese Basisfarbe, damit Export/Import kompatibel bleiben. Das ist unabhängig vom weiterhin separat gespeicherten ACCENT der App. Siehe design-modes.md.

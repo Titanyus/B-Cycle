@@ -216,18 +216,18 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
         val now=android.os.SystemClock.elapsedRealtime()
         val glowRadius=(radius-BicycleDesign.hrvRingWidth*density).coerceAtLeast(1f)
         if(glow.shader==null) glow.shader=RadialGradient(x,y,glowRadius,
-            intArrayOf(tokens.accent,tokens.accent,Color.TRANSPARENT),floatArrayOf(0f,.25f,1f),Shader.TileMode.CLAMP)
+            intArrayOf(tokens.primary,tokens.primary,Color.TRANSPARENT),floatArrayOf(0f,.25f,1f),Shader.TileMode.CLAMP)
         glow.alpha=(255*HrvPulseAnimation.opacity(now,state.lastBeatAtMs,state.beatIntervalMs,running && state.ready)).toInt()
-        canvas.drawCircle(x,y,glowRadius,glow)
+        if(!BicycleAppearance.flat(context)) canvas.drawCircle(x,y,glowRadius,glow)
         paint.style=Paint.Style.STROKE;paint.strokeWidth=BicycleDesign.hrvRingWidth*density;paint.strokeCap=Paint.Cap.ROUND
         paint.color=tokens.tertiary;canvas.drawCircle(x,y,radius,paint)
         val duration=if(state.phase==Phase.REST) state.restMs.toDouble() else state.measureMs.toDouble()
         val progress=when(state.phase) { Phase.COMPLETE->1f;Phase.REST,Phase.MEASURE->(1-remaining()/duration).coerceIn(0.0,1.0).toFloat();else->0f }
         val measuring=state.phase==Phase.MEASURE || state.phase==Phase.COMPLETE
-        paint.color=if(measuring) tokens.accent else tokens.foreground
+        paint.color=if(measuring) tokens.primary else tokens.foreground
         canvas.drawArc(x-radius,y-radius,x+radius,y+radius,-90f,360*progress,false,paint)
         paint.style=Paint.Style.FILL
-        paint.color=if(measuring) tokens.foreground else tokens.accent
+        paint.color=if(measuring) tokens.foreground else tokens.primary
         val angle=Math.toRadians((-90+360*progress).toDouble())
         canvas.drawCircle(x+radius*kotlin.math.cos(angle).toFloat(),y+radius*kotlin.math.sin(angle).toFloat(),
             BicycleDesign.hrvRingWidth*density*BicycleDesign.hrvRingEndScale/2,paint)
@@ -338,7 +338,7 @@ internal class HrvGraphView(context:Context,themes:ThemeManager):View(context) {
             started=true
         }
         val save=canvas.save();canvas.clipRect(left,top,right,bottom)
-        paint.style=Paint.Style.STROKE;paint.strokeWidth=2*density;paint.color=tokens.accent;canvas.drawPath(path,paint)
+        paint.style=Paint.Style.STROKE;paint.strokeWidth=2*density;paint.color=tokens.primary;canvas.drawPath(path,paint)
         canvas.restoreToCount(save)
         if(running && elapsed<measureMs && isAttachedToWindow && isShown) postInvalidateOnAnimation()
     }

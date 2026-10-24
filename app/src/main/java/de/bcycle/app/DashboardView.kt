@@ -32,6 +32,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     internal fun bindEditorTheme(themes: ThemeManager) {
         BicycleComponents.bindTheme(this, themes) { tokens ->
             editorColor = tokens.primary
+            tiles.forEach { it.refreshAppearance() }
             tiles.forEach { (it.container.foreground as? DashboardEditOutline)?.color = editorColor }
         }
     }
@@ -203,13 +204,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
             zoneGlow.update(training.glow(zoneConfig.sources[index],zoneTwoHelp))
         }
+        fun refreshAppearance() { if(plainBackground!=null) updateBackground();container.invalidate() }
         private fun updateBackground() {
             val layers=mutableListOf(plainBackground!!)
-            if(zoneShown) layers+=zoneGlow
+            if(zoneShown && !BicycleAppearance.flat(context)) layers+=zoneGlow
             if(graphShown) layers+=overlay
             container.background=if(layers.size==1) layers.single() else android.graphics.drawable.LayerDrawable(layers.toTypedArray())
         }
-        private val overlay=DashboardGraphDrawable(resources.displayMetrics.density)
+        private val overlay=DashboardGraphDrawable(resources.displayMetrics.density) { BicycleAppearance.flat(context) }
         private var graphShown=false
         private var plainBackground: android.graphics.drawable.Drawable?=null
         private fun selectedGraphs() = if(template.supportsGraph(index)) graphConfig.slots[index] else emptyList()

@@ -26,26 +26,28 @@ class ThemeManager(private val preferences: SharedPreferences, private val setti
     val customThemes: List<CustomTheme> get() = settingsSource?.customThemes ?: synchronized(lock) { customs.toList() }
     val isSettingsPalette get() = settingsSource != null
     val settings: ThemeManager by lazy { if(isSettingsPalette) this else ThemeManager(preferences,this) }
+    val flatDesign get() = preferences.getBoolean(BicycleAppearance.flatKey,false)
+    fun setFlatDesign(flat:Boolean) { preferences.edit().putBoolean(BicycleAppearance.flatKey,flat).apply() }
     val settingsLight get() = preferences.getBoolean(settingsLightKey,false)
     fun setSettingsLight(light:Boolean) { preferences.edit().putBoolean(settingsLightKey,light).apply() }
     fun forDisplay(theme:BicycleTheme):BicycleTheme {
         if(!isSettingsPalette || !settingsLight) return theme
         val colored=theme.id.endsWith("-color")
         val projected=theme.tokens.lightSettings(if(colored) 0xfff2f2f2.toInt() else 0xffd0d0d0.toInt())
-        // White accents from colored palettes disappear on the light settings surface.
-        val tokens=if(colored) projected.copy(accent=theme.tokens.primary) else projected
+        // Highlight rendering uses PRIMARY; the independent ACCENT remains a palette value.
+        val tokens=projected
         return when(theme) { is PresetTheme->theme.copy(tokens=tokens);is CustomTheme->theme.copy(tokens=tokens) }
     }
     internal val baseTokens get() = (settingsSource?.active ?: synchronized(lock) { current }).tokens
     val active: BicycleTheme get() = forDisplay(settingsSource?.active ?: synchronized(lock) { current })
     private val settingsListener=SharedPreferences.OnSharedPreferenceChangeListener { _,key ->
-        if(key==settingsLightKey) publish()
+        if(key==settingsLightKey && isSettingsPalette || key==BicycleAppearance.flatKey && !isSettingsPalette) publish()
     }
     init {
         check(presets.all { ThemeValidator.validate(it).valid } && presets.map { it.id }.distinct().size == presets.size)
         if (savedActiveId() != current.id) preferences.edit().putString(activeKey, current.id).apply()
+        preferences.registerOnSharedPreferenceChangeListener(settingsListener)
         if(isSettingsPalette) {
-            preferences.registerOnSharedPreferenceChangeListener(settingsListener)
             settingsSource!!.observe { publish() }
         }
     }

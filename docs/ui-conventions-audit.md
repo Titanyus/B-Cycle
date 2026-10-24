@@ -189,3 +189,7 @@ Schlafoptionen und globaler Auswahlabstand sind in APK **0.8.29 / Build 68** ent
 Appweite Schalterkonvention ausdrücklich auch bei bisherigen Checkbox-/Radio-Zeilen anwenden. Zentral BicycleDialogStyle: native CompoundButton-Auswahl bleibt erhalten, stateful Schalterzeichnung als rechte End-Dekoration statt linkem Button-Drawable. Text links, keine RTL-Spiegelung; RadioGroup-Zeilen füllen die Listenbreite. Separat beschriftete Dreeve-/ZIP-Importzeilen: Textblock links, Auswahl rechts, gesamte Schalterzeichnung unbeschnitten.
 
 Gestaltungsaufträge ändern ausschließlich die Optik, niemals Funktionalität. Falls beim Implementieren zwischen alter Anordnung und einer Komponentenkonvention entschieden werden muss, Nutzer vorher fragen. Verbindlich auch in AGENTS.md.
+
+## Designmodi und PRIMARY, 24.10.2026
+
+Bisherige UI-Hervorhebungen nutzen jetzt PRIMARY; ACCENT ist als zweite Themefarbe reserviert und wird weiterhin separat gesichert. Flat und Glow sind Dekorationsvarianten derselben Controls, keine separaten Screens oder Funktionalitäten. Glow ist Standard; der globale Flat-Design-Schalter ist Teil der DESIGN-Sicherung. Details design-modes.md.

@@ -20,3 +20,7 @@ Gezielte Tests erfolgreich: Blur-Farbverteilung und Quellbild-Erhalt, Farben ein
 Der native ScrollView-Overlay-Canvas trägt beim Zeichnen über einen Elterncontainer bereits den negativen Scrollversatz. Die aus Fensterpositionen abgeleitete Feldposition ist dagegen schon viewportbezogen. Den Canvas-Versatz deshalb genau einmal neutralisieren, bevor Kontur-Blurs und Viewport-/Sticky-Clips gezeichnet werden. Verhindert doppelte Scrollgeschwindigkeit, ändert weder Blur noch Feld-/Scrollfunktion.
 
 Regression zeichnet über den tatsächlichen Elterncontainer statt ScrollView.draw isoliert. So ist der frühere Fehler reproduzierbar; Farbwerte direkt neben dem Feld müssen nach Scrollen identisch mitwandern. Sticky-Header weiterhin aussparen.
+
+## Gemeinsame Modi und PRIMARY, 24.10.2026
+
+Die oben als ACCENT bezeichnete Stilbasis ist jetzt PRIMARY. ACCENT bleibt eigenständig gespeichert. Aktive Segmente und Fokusfelder verwenden dieselbe Kontur-/Blur-Dekoration. Flat-Design zeichnet die PRIMARY-Kontur einfarbig und unterdrückt beide Glows; Glow-Design (Standard) ergänzt die bisherigen Ableitungen auf derselben Grundgeometrie. Details design-modes.md.

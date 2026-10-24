@@ -55,7 +55,7 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
         super.dispatchDraw(canvas)
         if(!available()) return
         track()
-        paint.style=Paint.Style.FILL;paint.color=if(dragging) tokens.accent else tokens.foreground
+        paint.style=Paint.Style.FILL;paint.color=if(dragging) tokens.primary else tokens.foreground
         canvas.drawRoundRect(thumb,dp(2f),dp(2f),paint)
         if(!dragging) return
         paint.textSize=BicycleDesign.bodySp*resources.displayMetrics.scaledDensity

@@ -32,9 +32,10 @@ internal class MessageNotificationPanel(context: Context, private val themes: Th
         setPadding(gap,gap,gap,gap)
         elevation=BicycleDesign.dp(context,8).toFloat()
         BicycleComponents.bindTheme(this,themes) { t ->
+            elevation=if(BicycleAppearance.flat(context)) 0f else BicycleDesign.dp(context,8).toFloat()
             background=GradientDrawable().apply {
                 setColor(t.secondary);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-                setStroke(BicycleDesign.dp(context,3),t.accent)
+                setStroke(BicycleDesign.dp(context,3),t.primary)
             }
         }
         addView(LinearLayout(context).apply {

@@ -84,7 +84,7 @@ class HrvViewTest {
                 if(Color.alpha(pixel)==128 && Color.red(pixel)==255 && Color.green(pixel)==255 && Color.blue(pixel)==255) halfOpaqueLabels++
             }
             assertTrue(halfOpaqueLabels>10);graphBitmap.recycle()
-            val first=render();assertTrue(hasColor(first,themes.active.tokens.accent))
+            val first=render();assertTrue(hasColor(first,themes.active.tokens.primary))
             java.io.File("build/reports/hrv-first.png").outputStream().use { first.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) }
             val textPaint=android.graphics.Paint().apply { typeface=c.resources.getFont(R.font.league_gothic);textSize=BicycleDesign.hrvPulseSp }
             val pulseWidth=textPaint.measureText("73")
@@ -112,18 +112,18 @@ class HrvViewTest {
             }
             assertEquals(180.0,(columns.first()+columns.last())/2.0,1.0)
             first.recycle()
-            val next=themes.presets.first { it.tokens.accent!=themes.active.tokens.accent }
+            val next=themes.presets.first { it.tokens.primary!=themes.active.tokens.primary }
             assertTrue(themes.activate(next.id))
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             val second=render()
-            assertTrue(hasColor(second,themes.active.tokens.accent))
+            assertTrue(hasColor(second,themes.active.tokens.primary))
             val output=java.io.File("build/reports/hrv-measurement-preview.png").apply { parentFile?.mkdirs() }
             output.outputStream().use { second.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };second.recycle()
             assertTrue(view.findViewWithTag<View>("hrv_action").bottom<=760)
             val action=view.findViewWithTag<TextView>("hrv_action")
             BicycleDialogStyle.content(view,themes)
             assertNull(action.background)
-            assertEquals(themes.active.tokens.accent,action.currentTextColor)
+            assertEquals(themes.active.tokens.primary,action.currentTextColor)
             val circle=view.findViewWithTag<View>("hrv_circle")
             assertSame(circle.parent,action.parent)
             assertTrue(action.top>circle.height/2)
@@ -140,10 +140,10 @@ class HrvViewTest {
             assertTrue(start.background is android.graphics.drawable.InsetDrawable)
             fun border()=android.graphics.Bitmap.createBitmap(start.width,start.height,android.graphics.Bitmap.Config.ARGB_8888).also { start.draw(android.graphics.Canvas(it)) }
             val outline=border()
-            assertEquals(themes.active.tokens.accent,outline.getPixel(start.width/2,8))
+            assertEquals(themes.active.tokens.primary,outline.getPixel(start.width/2,8))
             assertEquals(0,Color.alpha(outline.getPixel(0,0)));outline.recycle()
-            assertTrue(themes.activate(themes.presets.first { it.tokens.accent!=themes.active.tokens.accent }.id))
-            val changed=border();assertEquals(themes.active.tokens.accent,changed.getPixel(start.width/2,8));changed.recycle()
+            assertTrue(themes.activate(themes.presets.first { it.tokens.primary!=themes.active.tokens.primary }.id))
+            val changed=border();assertEquals(themes.active.tokens.primary,changed.getPixel(start.width/2,8));changed.recycle()
             val idleImage=android.graphics.Bitmap.createBitmap(360,760,android.graphics.Bitmap.Config.ARGB_8888)
             idleImage.eraseColor(themes.active.tokens.secondary);idle.draw(android.graphics.Canvas(idleImage))
             java.io.File("build/reports/hrv-idle-preview.png").outputStream().use { idleImage.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };idleImage.recycle()

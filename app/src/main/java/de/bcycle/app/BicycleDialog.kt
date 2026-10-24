@@ -85,7 +85,7 @@ internal object BicycleDialogStyle {
                 setStroke(BicycleDesign.linePixels(view.context),alpha(tokens.foreground,opacity))
             }
             val thumb=GradientDrawable().apply {
-                shape=GradientDrawable.OVAL;setColor(alpha(if(checked) tokens.accent else tokens.foreground,opacity))
+                shape=GradientDrawable.OVAL;setColor(alpha(if(checked) tokens.primary else tokens.foreground,opacity))
             }
             val pill=LayerDrawable(arrayOf(track,thumb)).apply {
                 setLayerSize(1,dp(view,BicycleDesign.switchThumbDiameter),dp(view,BicycleDesign.switchThumbDiameter))
@@ -242,9 +242,9 @@ internal object BicycleDialogStyle {
                     view.setCompoundDrawablesRelativeWithIntrinsicBounds(null,null,indicator,null)
                     indicator.state=view.drawableState
                     view.minHeight=dp(view,BicycleDesign.touchSize)
-                } else view.buttonTintList = checkedColors(it.accent, it.foreground)
+                } else view.buttonTintList = checkedColors(it.primary, it.foreground)
                 if (view is Switch) {
-                    view.thumbTintList = checkedColors(it.accent, it.foreground)
+                    view.thumbTintList = checkedColors(it.primary, it.foreground)
                     view.trackTintList = null
                     view.trackDrawable=GradientDrawable().apply {
                         setColor(Color.TRANSPARENT)

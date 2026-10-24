@@ -25,7 +25,7 @@ class HrvVisualsTest {
     @Test fun restAndMeasurementSwapRingAndEnlargedEndDotColors() {
         val themes=ThemeManager(c.getSharedPreferences("hrv-visual-theme",0));val tokens=themes.active.tokens
         val ring=HrvCircleView(c,themes)
-        for((phase,line,dot) in listOf(Triple(Phase.REST,tokens.foreground,tokens.accent),Triple(Phase.MEASURE,tokens.accent,tokens.foreground))) {
+        for((phase,line,dot) in listOf(Triple(Phase.REST,tokens.foreground,tokens.primary),Triple(Phase.MEASURE,tokens.primary,tokens.foreground))) {
             ring.show(HrvState(phase=phase,remainingMs=if(phase==Phase.REST) 15000 else 90000,bpm=73))
             val image=render(ring)
             assertEquals(line,image.getPixel(308,160))
@@ -52,13 +52,13 @@ class HrvVisualsTest {
         val rest=HrvState(phase=Phase.REST,remainingMs=30000,bpm=73)
         ring.show(rest)
         val initial=render(ring)
-        assertNotEquals(themes.active.tokens.accent,initial.getPixel(168,12));initial.recycle()
+        assertNotEquals(themes.active.tokens.primary,initial.getPixel(168,12));initial.recycle()
         org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(125))
         val between=render(ring)
-        assertEquals(themes.active.tokens.accent,between.getPixel(168,12));between.recycle()
+        assertEquals(themes.active.tokens.primary,between.getPixel(168,12));between.recycle()
         ring.show(rest.copy(bpm=74))
         val updated=render(ring)
-        assertEquals(themes.active.tokens.accent,updated.getPixel(168,12));updated.recycle()
+        assertEquals(themes.active.tokens.primary,updated.getPixel(168,12));updated.recycle()
     }
     @Test fun graphConnectsOrdinaryPointsButKeepsExplicitDropoutsVisible() {
         val themes=ThemeManager(c.getSharedPreferences("hrv-gap-theme",0));val graph=HrvGraphView(c,themes)
@@ -68,7 +68,7 @@ class HrvVisualsTest {
         // Flat RR curve lies at y=136. Connected intervals at 15/35 s, genuine gap at 25 s.
         fun hasLine(second:Int):Boolean {
             val x=(48+300*second/60)
-            return (134..138).any { image.getPixel(x,it)==themes.active.tokens.accent }
+            return (134..138).any { image.getPixel(x,it)==themes.active.tokens.primary }
         }
         assertTrue(hasLine(15));assertFalse(hasLine(25));assertTrue(hasLine(35));image.recycle()
     }
@@ -82,7 +82,7 @@ class HrvVisualsTest {
         val themes=ThemeManager(c.getSharedPreferences("hrv-graph-theme",0));val graph=HrvGraphView(c,themes)
         fun accentCount(image:Bitmap):Int {
             val pixels=IntArray(image.width*image.height);image.getPixels(pixels,0,image.width,0,0,image.width,image.height)
-            return pixels.count { it==themes.active.tokens.accent }
+            return pixels.count { it==themes.active.tokens.primary }
         }
         graph.show((1..30).map { HrvPoint(it*1000L,800+it.toDouble()) },120000,false)
         val old=render(graph,height=220);assertEquals(0,accentCount(old));old.recycle()

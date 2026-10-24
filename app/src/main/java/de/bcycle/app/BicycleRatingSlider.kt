@@ -19,7 +19,7 @@ internal class BicycleRatingSlider(context:Context,themes:ThemeManager,internal 
             val y=bounds.exactCenterY()
             paint.color=(tokens.foreground and 0xffffff) or 0x55000000;paint.alpha=85*opacity/255
             canvas.drawLine(x(0f),y,x(1f),y,paint)
-            paint.color=tokens.accent;paint.alpha=Color.alpha(tokens.accent)*opacity/255
+            paint.color=tokens.primary;paint.alpha=Color.alpha(tokens.primary)*opacity/255
             canvas.drawLine(x(origin.toFloat()/max),y,x(level/10000f),y,paint)
         }
         override fun onLevelChange(level:Int):Boolean { invalidateSelf();return true }
@@ -33,7 +33,7 @@ internal class BicycleRatingSlider(context:Context,themes:ThemeManager,internal 
         splitTrack=false
         BicycleComponents.bindTheme(this,themes) {
             track.tokens=it;track.invalidateSelf()
-            thumbTintList=ColorStateList.valueOf(it.accent)
+            thumbTintList=ColorStateList.valueOf(it.primary)
             tickMarkTintList=ColorStateList.valueOf((it.foreground and 0xffffff) or 0x55000000)
         }
     }

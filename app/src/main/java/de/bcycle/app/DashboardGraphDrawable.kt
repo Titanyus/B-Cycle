@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable
 import java.util.Locale
 
 /** Cached display geometry below the tile children. No analysis or history reduction in draw(). */
-internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
+internal class DashboardGraphDrawable(private val density: Float,private val flat:()->Boolean={false}) : Drawable() {
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val plot=RectF()
     private val curve=RectF()
@@ -80,7 +80,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         val save=canvas.save(); canvas.clipRect(plot)
         paint.typeface=BicycleDesign.bodyTypeface; paint.textSize=12.96f*density
         paint.style=Paint.Style.STROKE; paint.strokeWidth=density
-        paint.color=Color.WHITE; paint.alpha=255; paint.shader=boundaryShader
+        paint.color=if(flat()) Color.rgb(163,163,163) else Color.WHITE; paint.alpha=if(flat()) 140 else 255; paint.shader=if(flat()) null else boundaryShader
         canvas.drawLine(curve.left,curve.top,curve.left,curve.bottom,paint)
         val boundaryRight=minOf(curve.right,plot.right-density/2)
         canvas.drawLine(boundaryRight,curve.top,boundaryRight,curve.bottom,paint)
@@ -88,7 +88,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         shapes.forEachIndexed { index,s ->
             val color=s.chart.color(Color.BLACK)
             val graphSave=canvas.save(); canvas.clipRect(curve)
-            paint.color=color; paint.alpha=255; paint.style=Paint.Style.FILL; paint.shader=s.fillShader
+            paint.color=color; paint.alpha=if(flat()) LiveGraphStyle.fillAlpha(mode) else 255; paint.style=Paint.Style.FILL; paint.shader=if(flat()) null else s.fillShader
             canvas.drawPath(s.fill,paint)
             paint.shader=null; paint.style=Paint.Style.STROKE
             paint.strokeCap=Paint.Cap.ROUND; paint.strokeJoin=Paint.Join.ROUND

@@ -18,16 +18,25 @@ internal object BicycleInputFrame {
     fun positions()=floatArrayOf(0f,.5f-BicycleDesign.inputFocusHighlightHalf,.5f,.5f+BicycleDesign.inputFocusHighlightHalf,1f)
     fun background(view:View,tokens:ThemeTokens):GradientDrawable {
         val binding=(view.getTag(R.id.input_frame) as? Glow) ?: Glow(view).also { view.setTag(R.id.input_frame,it) }
-        binding.accent=tokens.accent;binding.invalidateSelf()
-        return Frame(view,tokens) { binding.refresh() }
+        binding.selected=null;binding.primary=tokens.primary;binding.invalidateSelf()
+        return Frame(view,tokens,{ binding.refresh() })
     }
-    private class Frame(view:View,tokens:ThemeTokens,private val refresh:()->Unit):GradientDrawable() {
+    fun selectionBackground(view:View,tokens:ThemeTokens,selected:Boolean):Drawable {
+        val binding=(view.getTag(R.id.input_frame) as? Glow) ?: Glow(view).also { view.setTag(R.id.input_frame,it) }
+        binding.selected=selected;binding.primary=tokens.primary;binding.refresh()
+        val fill=if(selected) BicycleAccentGradient.fill(view.context,tokens) else GradientDrawable().apply {
+            setColor(tokens.secondary);cornerRadius=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()
+        }
+        return if(selected) android.graphics.drawable.LayerDrawable(arrayOf(fill,Frame(view,tokens,{ binding.refresh() },true))) else fill
+    }
+    private class Frame(view:View,tokens:ThemeTokens,private val refresh:()->Unit,private val selected:Boolean?=null):GradientDrawable() {
         private val density=view.resources.displayMetrics.density
         private val radius=BicycleDesign.inputRadius*density
         private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeWidth=BicycleDesign.inputFocusStroke*density }
-        private val stops=colors(tokens.accent)
+        private val flat=BicycleAppearance.flat(view.context)
+        private val stops=colors(tokens.primary)
         private val rect=RectF()
-        private var active=false
+        private var active=selected==true && view.isEnabled
         init {
             setColor(Color.TRANSPARENT);cornerRadius=radius
             setStroke(BicycleDesign.dp(view.context,BicycleDesign.controlBorder),Color.argb(
@@ -35,7 +44,7 @@ internal object BicycleInputFrame {
         }
         override fun isStateful()=true
         override fun onStateChange(stateSet:IntArray):Boolean {
-            val next=android.R.attr.state_focused in stateSet && android.R.attr.state_enabled in stateSet
+            val next=(selected ?: (android.R.attr.state_focused in stateSet)) && android.R.attr.state_enabled in stateSet
             val changed=next!=active;active=next
             if(changed) { invalidateSelf();refresh() }
             return super.onStateChange(stateSet) || changed
@@ -44,7 +53,8 @@ internal object BicycleInputFrame {
             super.onBoundsChange(bounds)
             val inset=paint.strokeWidth/2
             rect.set(bounds.left+inset,bounds.top+inset,bounds.right-inset,bounds.bottom-inset)
-            if(bounds.width()>0 && bounds.height()>0) paint.shader=BicycleAccentGradient.shader(RectF(bounds),BicycleDesign.inputFocusAngle,stops,positions())
+            paint.color=stops[1]
+            if(!flat && bounds.width()>0 && bounds.height()>0) paint.shader=BicycleAccentGradient.shader(RectF(bounds),BicycleDesign.inputFocusAngle,stops,positions())
         }
         override fun draw(canvas:Canvas) {
             if(active) canvas.drawRoundRect(rect,radius,radius,paint) else super.draw(canvas)
@@ -52,7 +62,9 @@ internal object BicycleInputFrame {
     }
     /** Draw in the scroll viewport, so row bounds cannot cut the outer glow in half. */
     private class Glow(private val field:View):Drawable(),View.OnAttachStateChangeListener {
-        var accent=Color.TRANSPARENT
+        var selected:Boolean?=null
+        private fun active()=(selected ?: field.isFocused) && field.isEnabled
+        var primary=Color.TRANSPARENT
             set(value) { if(field!=value) { field=value;clearCache() } }
         private data class Blurs(val width:Int,val height:Int,val density:Float,val pad:Float,val near:Bitmap,val outer:Bitmap)
         private var cache:Blurs?=null
@@ -77,7 +89,7 @@ internal object BicycleInputFrame {
             if(candidate!==host) { host?.overlay?.remove(this);host=candidate;host?.overlay?.add(this) }
             refresh()
         }
-        fun refresh() { if(!field.isFocused || !field.isEnabled) clearCache();host?.let { setBounds(0,0,it.width,it.height);it.invalidate() };invalidateSelf() }
+        fun refresh() { if(!active() || BicycleAppearance.flat(field.context)) clearCache();host?.let { setBounds(0,0,it.width,it.height);it.invalidate() };invalidateSelf() }
         override fun onViewAttachedToWindow(v:View)=attach()
         override fun onViewDetachedFromWindow(v:View) { host?.overlay?.remove(this);host=null;clearCache() }
         private fun blurs(density:Float):Blurs {
@@ -92,7 +104,7 @@ internal object BicycleInputFrame {
             val stroke=BicycleDesign.inputFocusStroke*density
             val contour=Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style=Paint.Style.STROKE;strokeWidth=stroke
-                shader=BicycleAccentGradient.shader(RectF(0f,0f,field.width.toFloat(),field.height.toFloat()),BicycleDesign.inputFocusAngle,colors(accent),positions())
+                shader=BicycleAccentGradient.shader(RectF(0f,0f,field.width.toFloat(),field.height.toFloat()),BicycleDesign.inputFocusAngle,colors(primary),positions())
             }
             canvas.drawRoundRect(stroke/2,stroke/2,field.width-stroke/2,field.height-stroke/2,
                 BicycleDesign.inputRadius*density,BicycleDesign.inputRadius*density,contour)
@@ -104,8 +116,9 @@ internal object BicycleInputFrame {
             } finally { source.recycle() }
         }
         override fun draw(canvas:Canvas) {
+            if(BicycleAppearance.flat(field.context)) { clearCache();return }
             val owner=host ?: return
-            if(!field.isFocused || !field.isEnabled || !field.isShown || !field.getGlobalVisibleRect(visible)) return
+            if(!active() || !field.isShown || !field.getGlobalVisibleRect(visible)) return
             field.getLocationInWindow(fieldPosition);owner.getLocationInWindow(hostPosition)
             frame.set((fieldPosition[0]-hostPosition[0]).toFloat(),(fieldPosition[1]-hostPosition[1]).toFloat(),
                 (fieldPosition[0]-hostPosition[0]+field.width).toFloat(),(fieldPosition[1]-hostPosition[1]+field.height).toFloat())

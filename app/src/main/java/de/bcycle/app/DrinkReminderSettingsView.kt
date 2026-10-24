@@ -33,7 +33,7 @@ internal class DrinkReminderSettingsView(context:Context,themes:ThemeManager,pre
             tag="drink_reminder_interval";id=View.generateViewId();max=10;progress=(initial.minutes-10)/5
             contentDescription=context.getString(R.string.drink_reminder_interval)
             BicycleComponents.bindTheme(this,themes) {
-                thumbTintList=ColorStateList.valueOf(it.accent);progressTintList=thumbTintList
+                thumbTintList=ColorStateList.valueOf(it.primary);progressTintList=thumbTintList
                 progressBackgroundTintList=ColorStateList.valueOf((it.foreground and 0x00ffffff) or 0x55000000)
             }
         }

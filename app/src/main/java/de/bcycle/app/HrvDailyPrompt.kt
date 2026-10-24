@@ -54,6 +54,7 @@ internal class HrvDailyCard(context:Context,themes:ThemeManager,later:()->Unit,s
         outlineAmbientShadowColor=Color.BLACK;outlineSpotShadowColor=Color.BLACK
         BicycleComponents.scrollStyle(this)
         BicycleComponents.bindTheme(this,themes) {
+            elevation=if(BicycleAppearance.flat(context)) 0f else BicycleDesign.dp(context,BicycleDesign.hrvPromptShadow).toFloat()
             background=GradientDrawable().apply {
                 cornerRadius=dp(BicycleDesign.dialogRadius).toFloat();setColor(it.secondary)
                 setStroke(dp(BicycleDesign.hrvPromptBorder).coerceAtLeast(1),it.tertiary)
@@ -65,7 +66,7 @@ internal class HrvDailyCard(context:Context,themes:ThemeManager,later:()->Unit,s
             isClickable=true // Taps within the card must never acknowledge the outside dismissal.
         }
         addView(body,LayoutParams(-1,-2))
-        body.addView(HrvScreenHeart(context),LinearLayout.LayoutParams(-1,-2))
+        body.addView(HrvScreenHeart(context,themes),LinearLayout.LayoutParams(-1,-2))
         body.addView(BicycleComponents.text(context,themes,context.getString(R.string.hrv_daily_title)).apply {
             tag="hrv_daily_title";textSize=BicycleDesign.hrvPromptTitleSp;typeface=BicycleDesign.narrowTypeface(context)
             gravity=Gravity.CENTER;isAccessibilityHeading=true
@@ -99,16 +100,21 @@ internal class HrvDailyCard(context:Context,themes:ThemeManager,later:()->Unit,s
 
 /** Draw directly onto the card's already painted surface: an isolated transparent layer would
  * retain the source's black rectangle. SCREEN makes black neutral and keeps the neon artwork. */
-internal class HrvScreenHeart(context:Context):View(context) {
+internal class HrvScreenHeart(context:Context,private val themes:ThemeManager?=null):View(context) {
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply { blendMode=BlendMode.SCREEN }
     private val image=artwork ?: BitmapFactory.decodeResource(resources,R.drawable.hrv_prompt_heart).also { artwork=it }
-    init { tag="hrv_daily_artwork";importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO }
+    init { tag="hrv_daily_artwork";importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO;themes?.let { BicycleComponents.bindTheme(this,it) { invalidate() } } }
     override fun onMeasure(w:Int,h:Int) {
         val width=MeasureSpec.getSize(w)
         setMeasuredDimension(width,resolveSize((width.toFloat()*image.height/image.width).toInt(),h))
     }
     override fun onDraw(canvas:Canvas) {
-        canvas.drawBitmap(image,null,RectF(0f,0f,width.toFloat(),height.toFloat()),paint)
+        if(BicycleAppearance.flat(context)) {
+            val size=minOf(width,height)*.65f
+            BicycleIcons.drawable(context,BicycleIcon.Heart,themes?.active?.tokens?.primary ?: BicycleThemes.red.tokens.primary).apply {
+                setBounds(((width-size)/2).toInt(),((height-size)/2).toInt(),((width+size)/2).toInt(),((height+size)/2).toInt());draw(canvas)
+            }
+        } else canvas.drawBitmap(image,null,RectF(0f,0f,width.toFloat(),height.toFloat()),paint)
     }
     companion object { private var artwork:Bitmap?=null }
 }

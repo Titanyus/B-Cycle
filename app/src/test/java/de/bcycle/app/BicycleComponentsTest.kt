@@ -140,13 +140,13 @@ class BicycleComponentsTest {
             assertTrue(manager.saveCustom(CustomTheme("custom:accent", "Accent", tokens)).valid)
             assertTrue(manager.activate("custom:accent")); layout()
             assertEquals(tokens.foreground and 0xffffff, pixel(standard) and 0xffffff)
-            assertEquals(tokens.accent and 0xffffff, pixel(highlight) and 0xffffff)
+            assertEquals(tokens.iconColor(ThemeRole.PRIMARY) and 0xffffff, pixel(highlight) and 0xffffff)
             assertEquals(before, listOf(standard.width, standard.height, highlight.width, highlight.height))
             assertEquals(tokens.foreground, BicycleIcons.color(tokens, BicycleIcon.LocalSaved, negative = true))
-            assertEquals(tokens.accent, BicycleIcons.color(tokens, BicycleIcon.CloudUploaded))
+            assertEquals(tokens.iconColor(ThemeRole.PRIMARY), BicycleIcons.color(tokens, BicycleIcon.CloudUploaded))
             assertEquals(tokens.foreground, BicycleIcons.color(tokens, BicycleIcon.ShowOnMap))
             manager.activate(BicycleThemes.red.id)
-            assertEquals(BicycleThemes.red.tokens.accent and 0xffffff, pixel(highlight) and 0xffffff)
+            assertEquals(BicycleThemes.red.tokens.primary and 0xffffff, pixel(highlight) and 0xffffff)
         } finally { controller.pause().stop().destroy() }
     }
 
@@ -176,12 +176,12 @@ class BicycleComponentsTest {
             val width=first.compoundDrawablesRelative[2]!!.intrinsicWidth
             first.performClick();second.performClick()
             assertTrue(first.isChecked);assertTrue(second.isChecked)
-            assertEquals(themes.active.tokens.accent,draw(first).getPixel(36,12))
+            assertEquals(themes.active.tokens.primary,draw(first).getPixel(36,12))
             first.performClick();assertFalse(first.isChecked);assertTrue(second.isChecked)
             assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,12)))
             val light=CustomTheme("custom:circle-light","Light",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),0xff000000.toInt()))
             assertTrue(themes.saveCustom(light).valid);assertTrue(themes.activate(light.id));layoutChoices()
-            assertEquals(light.tokens.accent,draw(second).getPixel(36,12))
+            assertEquals(light.tokens.primary,draw(second).getPixel(36,12))
             assertEquals(width,first.compoundDrawablesRelative[2]!!.intrinsicWidth)
             assertSame(thumb,toggle.thumbDrawable)
         } finally { controller.pause().stop().destroy() }
@@ -219,17 +219,17 @@ class BicycleComponentsTest {
             for(theme in BicycleThemes.presets + light) {
                 assertTrue(themes.activate(theme.id));layoutChoices()
                 val colors=theme.tokens
-                assertEquals(colors.accent,pixel(box));assertEquals(colors.accent,pixel(radio))
+                assertEquals(colors.primary,pixel(box));assertEquals(colors.primary,pixel(radio))
                 assertEquals(colors.foreground and 0xffffff,pixel(box,0) and 0xffffff)
                 assertEquals(colors.foreground,box.currentTextColor);assertEquals(colors.foreground,toggle.currentTextColor)
-                assertEquals(colors.accent,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
+                assertEquals(colors.primary,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
                 assertNull(toggle.trackTintList)
                 fun thumbPixel():Int {
                     val bitmap=android.graphics.Bitmap.createBitmap(24,24,android.graphics.Bitmap.Config.ARGB_8888)
                     toggle.thumbDrawable.setBounds(0,0,24,24);toggle.thumbDrawable.draw(android.graphics.Canvas(bitmap))
                     return bitmap.getPixel(12,12).also { bitmap.recycle() }
                 }
-                assertEquals(colors.accent,thumbPixel())
+                assertEquals(colors.primary,thumbPixel())
                 fun trackPixel(x:Int,y:Int):Int {
                     val track=toggle.trackDrawable
                     val bitmap=android.graphics.Bitmap.createBitmap(48,24,android.graphics.Bitmap.Config.ARGB_8888)
@@ -242,7 +242,7 @@ class BicycleComponentsTest {
                 box.isEnabled=false
                 assertEquals(127,android.graphics.Color.alpha(pixel(box)))
                 box.isEnabled=true
-                assertEquals(colors.accent,pixel(box))
+                assertEquals(colors.primary,pixel(box))
                 toggle.isChecked=false
                 assertEquals(colors.foreground,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
                 assertEquals(colors.foreground,thumbPixel())

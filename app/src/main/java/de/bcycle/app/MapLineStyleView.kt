@@ -82,7 +82,7 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
             max=maximum;progress=initial;keyProgressIncrement=1;tag=name;contentDescription=context.getString(title)
             minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
             BicycleComponents.bindTheme(this,themes) { tokens ->
-                progressTintList=android.content.res.ColorStateList.valueOf(tokens.accent)
+                progressTintList=android.content.res.ColorStateList.valueOf(tokens.primary)
                 thumbTintList=android.content.res.ColorStateList.valueOf(tokens.foreground)
             }
             setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {

@@ -56,7 +56,7 @@ internal class ThemePickerView(context:Context,private val themes:ThemeManager):
             stateDescription=context.getString(if(isSelected) R.string.bikes_selected else R.string.theme_not_selected)
             alpha=1f
             background=BicycleComponents.controlBackground(context,tokens,if(header) tokens.secondary else tokens.tertiary).apply {
-                if(!header && isSelected) setStroke(dp(BicycleDesign.themeSelectedBorder),tokens.accent)
+                if(!header && isSelected) setStroke(dp(BicycleDesign.themeSelectedBorder),tokens.primary)
             }
         }
     }

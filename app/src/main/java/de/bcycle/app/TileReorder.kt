@@ -112,7 +112,7 @@ internal class TileReorder(
             card.foreground=if(i==from) GradientDrawable().apply {
                 setColor(Color.TRANSPARENT)
                 cornerRadius=BicycleDesign.dp(row.context,BicycleDesign.inputRadius).toFloat()
-                setStroke(BicycleDesign.dp(row.context,2),themes.active.tokens.accent)
+                setStroke(BicycleDesign.dp(row.context,2),themes.active.tokens.primary)
             } else null
         }
     }

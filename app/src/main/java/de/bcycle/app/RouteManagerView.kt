@@ -209,7 +209,7 @@ internal class RouteManagerView(context: Context,
             background=if(route.id in checked) ColorDrawable(tokens.tertiary) else null
             origin.setImageDrawable(BicycleIcons.drawable(context, if(route.id in checked) BicycleIcon.Check else when (route.origin) {
                 TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
-            }, if(route.id in checked) tokens.accent else tokens.foreground))
+            }, if(route.id in checked) tokens.primary else tokens.foreground))
             val eyeKind = if (selected == route.id) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
             eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, selected != route.id))
             eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, selected != route.id))

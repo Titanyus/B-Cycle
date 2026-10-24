@@ -43,13 +43,12 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
     override fun getAccessibilityClassName():CharSequence=if(multiple) android.widget.CheckBox::class.java.name else super.getAccessibilityClassName()
     override fun drawableStateChanged() { super.drawableStateChanged();if(ready) paint(themes.active.tokens) }
     private fun paint(tokens:ThemeTokens) {
-        val fill=if(isChecked) tokens.accent else tokens.secondary
+        val fill=if(isChecked) tokens.primary else tokens.secondary
         val foreground=if(!isChecked || ThemeValidator.contrast(tokens.foreground,fill)>=ThemeValidator.minimumTextContrast) tokens.foreground
             else if(ThemeValidator.contrast(Color.BLACK,fill)>=ThemeValidator.contrast(Color.WHITE,fill)) Color.BLACK else Color.WHITE
+        BicycleAppearance.selected(this,isChecked)
         setTextColor(foreground)
         compoundDrawables.filterNotNull().forEach { it.setTint(foreground) }
-        background=RippleDrawable(ColorStateList.valueOf((foreground and 0x00ffffff) or 0x26000000),if(isChecked) BicycleAccentGradient.fill(context,tokens,foreground) else GradientDrawable().apply {
-            setColor(fill);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-        },null)
+        background=RippleDrawable(ColorStateList.valueOf((foreground and 0x00ffffff) or 0x26000000),BicycleInputFrame.selectionBackground(this,tokens,isChecked),null)
     }
 }

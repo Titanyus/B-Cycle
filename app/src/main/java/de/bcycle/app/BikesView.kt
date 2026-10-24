@@ -358,7 +358,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         addView(slider,LayoutParams(-1,-2))
         BicycleComponents.controlSpacing(slider)
         BicycleComponents.bindTheme(slider,themes) { tokens ->
-            val accent=android.content.res.ColorStateList.valueOf(tokens.accent)
+            val accent=android.content.res.ColorStateList.valueOf(tokens.primary)
             slider.thumbTintList=accent; slider.progressTintList=accent
             slider.progressBackgroundTintList=android.content.res.ColorStateList.valueOf((tokens.foreground and 0x00ffffff) or 0x55000000)
         }

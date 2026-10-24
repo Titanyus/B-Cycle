@@ -78,7 +78,7 @@ internal class RouteDistributionView(context: Context, private val themes: Theme
         }
         paint.shader = null; paint.color = foreground; paint.alpha = 30; paint.strokeWidth = density * .5f
         marks.forEach { value -> canvas.drawLine(x(value), plot.top, x(value), plot.bottom, paint) }
-        paint.color = curveColor; paint.alpha = 255; paint.shader = fill
+        paint.color = curveColor; paint.alpha = if(BicycleAppearance.flat(context)) LiveGraphStyle.fillAlpha(GraphDisplayMode.GRAPH_ONLY) else 255; paint.shader = if(BicycleAppearance.flat(context)) null else fill
         canvas.drawPath(area, paint)
         paint.shader = null; paint.style = Paint.Style.STROKE; paint.strokeCap = Paint.Cap.ROUND; paint.strokeJoin = Paint.Join.ROUND
         paint.strokeWidth=LiveGraphStyle.LINE_WIDTH_DP*density;paint.alpha=LiveGraphStyle.LINE_ALPHA

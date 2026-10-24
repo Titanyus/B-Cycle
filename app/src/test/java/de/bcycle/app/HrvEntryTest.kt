@@ -197,8 +197,8 @@ class HrvEntryTest {
                 val image=Bitmap.createBitmap(200,10,Bitmap.Config.ARGB_8888);track.draw(Canvas(image))
                 return image.getPixel(at,5).also { image.recycle() }
             }
-            assertEquals(themes.active.tokens.accent,color(120,6));assertNotEquals(themes.active.tokens.accent,color(20,6))
-            assertEquals(themes.active.tokens.accent,color(70,2));assertNotEquals(themes.active.tokens.accent,color(130,2))
+            assertEquals(themes.active.tokens.primary,color(120,6));assertNotEquals(themes.active.tokens.primary,color(20,6))
+            assertEquals(themes.active.tokens.primary,color(70,2));assertNotEquals(themes.active.tokens.primary,color(130,2))
         } finally { host.pause().stop().destroy() }
     }
 }

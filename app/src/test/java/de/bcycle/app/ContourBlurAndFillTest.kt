@@ -41,8 +41,8 @@ class ContourBlurAndFillTest {
             for(theme in BicycleThemes.presets) {
                 themes.activate(theme.id)
                 val tokens=theme.tokens;val foreground=button.currentTextColor
-                assertTrue(ThemeValidator.contrast(foreground,tokens.accent)>=ThemeValidator.minimumTextContrast)
-                assertTrue(ThemeValidator.contrast(foreground,BicycleAccentGradient.fillDark(tokens.accent,foreground))>=ThemeValidator.minimumTextContrast)
+                assertTrue(ThemeValidator.contrast(foreground,tokens.primary)>=ThemeValidator.minimumTextContrast)
+                assertTrue(ThemeValidator.contrast(foreground,BicycleAccentGradient.fillDark(tokens.primary,foreground))>=ThemeValidator.minimumTextContrast)
             }
             themes.activate(BicycleThemes.red.id)
             val bitmap=Bitmap.createBitmap(156,48,Bitmap.Config.ARGB_8888)

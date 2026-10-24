@@ -18,9 +18,10 @@ internal class DrinkReminderPanel(context:Context,themes:ThemeManager):LinearLay
         setPadding(gap*2,gap*2,gap*2,gap*2)
         elevation=BicycleDesign.dp(context,8).toFloat()
         BicycleComponents.bindTheme(this,themes) { tokens ->
+            elevation=if(BicycleAppearance.flat(context)) 0f else BicycleDesign.dp(context,8).toFloat()
             background=GradientDrawable().apply {
                 setColor(tokens.secondary);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-                setStroke(BicycleDesign.dp(context,3),tokens.accent)
+                setStroke(BicycleDesign.dp(context,3),tokens.primary)
             }
         }
         addView(ImageView(context).apply {

@@ -19,7 +19,7 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasureme
             setPadding(pad,0,pad,0);compoundDrawablePadding=BicycleDesign.dp(context,BicycleDesign.controlGap)
         }
         BicycleComponents.bindTheme(open,themes) { tokens ->
-            open.setCompoundDrawablesRelativeWithIntrinsicBounds(BicycleIcons.drawable(context,BicycleIcon.Heart,tokens.accent),null,null,null)
+            open.setCompoundDrawablesRelativeWithIntrinsicBounds(BicycleIcons.drawable(context,BicycleIcon.Heart,tokens.primary),null,null,null)
             styleHrvPill(open)
         }
         addView(FrameLayout(context).apply { addView(open,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER)) },LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
@@ -61,7 +61,7 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasureme
                 max=(maximum-minimum)/15;progress=(initial-minimum)/15
                 contentDescription=label.text;isEnabled=canEdit();label.labelFor=id
                 BicycleComponents.bindTheme(this,themes) {
-                    thumbTintList=ColorStateList.valueOf(it.accent);progressTintList=thumbTintList
+                    thumbTintList=ColorStateList.valueOf(it.primary);progressTintList=thumbTintList
                     progressBackgroundTintList=ColorStateList.valueOf((it.foreground and 0xffffff) or 0x55000000)
                 }
             }

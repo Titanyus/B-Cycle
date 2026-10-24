@@ -45,10 +45,10 @@ internal class BicycleRangeSlider(context:Context,themes:ThemeManager,private va
         paint.strokeWidth=dp(3);paint.strokeCap=Paint.Cap.ROUND
         paint.color=(tokens.foreground and 0xffffff) or 0x55000000
         canvas.drawLine(x(0.0),y,x(maximum),y,paint)
-        paint.color=tokens.accent;canvas.drawLine(x(lower),y,x(upper),y,paint)
+        paint.color=tokens.primary;canvas.drawLine(x(lower),y,x(upper),y,paint)
         listOf(lower,upper).forEachIndexed { i,value ->
             paint.color=tokens.foreground;canvas.drawCircle(x(value),y,dp(if(isFocused && active==i) 10 else 8),paint)
-            paint.color=tokens.accent;canvas.drawCircle(x(value),y,dp(5),paint)
+            paint.color=tokens.primary;canvas.drawCircle(x(value),y,dp(5),paint)
         }
     }
     private fun move(value:Double) {

@@ -167,6 +167,7 @@ object BicycleDesign {
     const val inputFocusOuterBlur = 15f
     const val inputFocusNearAlpha = .75f
     const val inputFocusOuterAlpha = .55f
+    const val selectedControlShadow=4
     const val accentFillAngle = -115
     const val inputFocusMaxBlurPixels = 512_000f
     const val sliderScaleLabelAlpha = .5f
@@ -229,7 +230,7 @@ fun ThemeTokens.color(role: ThemeRole) = when (role) {
 
 /** Contrast is contextual; no theme-name or header-specific color exception. */
 fun ThemeTokens.iconColor(role: ThemeRole, backgroundRole: ThemeRole = ThemeRole.SECONDARY): Int =
-    if (role == ThemeRole.ACCENT && ThemeValidator.contrast(accent, color(backgroundRole)) < ThemeValidator.minimumIconContrast)
+    if (role in setOf(ThemeRole.ACCENT,ThemeRole.PRIMARY) && ThemeValidator.contrast(color(role), color(backgroundRole)) < ThemeValidator.minimumIconContrast)
         foreground else color(role)
 
 internal val ThemeTokens.secondaryTextColor: Int get() = (foreground and 0x00ffffff) or (166 shl 24)
@@ -306,9 +307,10 @@ object BicycleComponents {
         })
     }
     internal fun bindTheme(view: View, manager: ThemeManager, apply: (ThemeTokens) -> Unit) {
-        apply(manager.active.tokens)
+        fun refresh(tokens:ThemeTokens) { BicycleAppearance.base(view);apply(tokens) }
+        refresh(manager.active.tokens)
         var subscription: ThemeSubscription? = null
-        fun subscribe() { if (subscription == null) subscription = manager.observe { apply(it.tokens) } }
+        fun subscribe() { if (subscription == null) subscription = manager.observe { refresh(it.tokens) } }
         view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(view: View) = subscribe()
             override fun onViewDetachedFromWindow(view: View) { subscription?.close(); subscription = null }
@@ -340,7 +342,7 @@ object BicycleComponents {
                       click: () -> Unit) = icon(context, manager,
         BicycleIcons.drawable(context, icon, manager.active.tokens), description, icon.colorRole, click)
     internal fun background(view: View, manager: ThemeManager, role: ThemeRole, radius: Int = 0, header: Boolean = false) = surface(view, manager, role, radius, header)
-    internal fun selectionBorder(tokens: ThemeTokens, selected: Boolean) = if (selected) tokens.accent else tokens.foreground
+    internal fun selectionBorder(tokens: ThemeTokens, selected: Boolean) = if (selected) tokens.primary else tokens.foreground
     fun header(context: Context, manager: ThemeManager) = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
         layoutParams = ViewGroup.LayoutParams(-1, dp(context, BicycleDesign.headerHeight))
@@ -426,7 +428,7 @@ object BicycleComponents {
         if(view.isAllCaps) view.isAllCaps=false
     }
     internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=(
-        if(fill==tokens.accent && fill!=tokens.secondary) BicycleAccentGradient.fill(context,tokens) else GradientDrawable()).apply {
+        if(fill==tokens.primary && fill!=tokens.secondary) BicycleAccentGradient.fill(context,tokens) else GradientDrawable()).apply {
         setColor(fill);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
         setStroke(dp(context,BicycleDesign.controlBorder),android.graphics.Color.argb(
             (android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt(),
@@ -459,7 +461,7 @@ object BicycleComponents {
         bindTheme(this,manager) { tokens ->
             background=null;backgroundTintList=null
             setTextColor(android.content.res.ColorStateList(arrayOf(intArrayOf(android.R.attr.state_enabled),intArrayOf()),
-                intArrayOf(tokens.accent,android.graphics.Color.argb(128,android.graphics.Color.red(tokens.accent),android.graphics.Color.green(tokens.accent),android.graphics.Color.blue(tokens.accent)))))
+                intArrayOf(tokens.primary,android.graphics.Color.argb(128,android.graphics.Color.red(tokens.primary),android.graphics.Color.green(tokens.primary),android.graphics.Color.blue(tokens.primary)))))
         }
         setOnClickListener { click() }
     }

@@ -157,7 +157,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             }
         }
         visible.forEach { point -> point.value?.let { value ->
-            paint.color=if(point.belowNormal) Color.WHITE else tokens.accent
+            paint.color=if(point.belowNormal) Color.WHITE else tokens.primary
             canvas.drawRect(x(point.day)-half,y(value),x(point.day)+half,bottom,paint)
         } }
         paint.color=Color.WHITE;paint.strokeWidth=density*BicycleDesign.hrvTrendBandLineDp

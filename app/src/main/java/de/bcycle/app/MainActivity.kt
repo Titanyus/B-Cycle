@@ -961,6 +961,11 @@ class MainActivity : Activity() {
         })
         if(!embedded) BicycleForm.section(root,settingsThemes,R.string.ui_theme)
         root.addView(ThemePickerView(settingsContext, settingsThemes))
+        root.addView(Switch(settingsContext).apply {
+            tag="flat_design";setText(R.string.ui_flat_design);isChecked=settingsThemes.flatDesign
+            BicycleDialogStyle.control(this,settingsThemes)
+            setOnCheckedChangeListener { _,checked -> settingsThemes.setFlatDesign(checked) }
+        })
         if(!embedded) BicycleForm.section(root,settingsThemes,R.string.ui_dashboard_page_choose)
         val presets = DashboardPresetPicker(settingsContext,dashboardPages.selected(),settingsThemes)
         val footer=bicycleFooter(settingsContext,settingsThemes)

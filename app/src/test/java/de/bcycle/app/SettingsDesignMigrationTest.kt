@@ -87,7 +87,7 @@ class SettingsDesignMigrationTest {
                 assertTrue(themes.activate(light().id)); shadowOf(Looper.getMainLooper()).idle(); measure(child)
                 assertEquals("Theme changed geometry in $action", before, geometry(child))
                 assertEquals(light().tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
-                val wrongColors=views(child).filterIsInstance<TextView>().filterNot { it.currentTextColor == light().tokens.foreground || (it is BicycleTextAction && it.currentTextColor==light().tokens.accent) || (it is BicycleSegmentButton && it.isChecked && ThemeValidator.contrast(it.currentTextColor,light().tokens.accent)>=ThemeValidator.minimumTextContrast) || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == light().tokens.secondaryTextColor) || !it.isEnabled }
+                val wrongColors=views(child).filterIsInstance<TextView>().filterNot { it.currentTextColor == light().tokens.foreground || (it is BicycleTextAction && it.currentTextColor==light().tokens.primary) || (it is BicycleSegmentButton && it.isChecked && ThemeValidator.contrast(it.currentTextColor,light().tokens.primary)>=ThemeValidator.minimumTextContrast) || (it.tag in setOf("rider_unit", "bike_wheel_unit") && it.currentTextColor == light().tokens.secondaryTextColor) || !it.isEnabled }
                 assertTrue("Unrecolored $action: "+wrongColors.joinToString { "${it.tag}: ${it.text} ${Integer.toHexString(it.currentTextColor)}" },wrongColors.isEmpty())
                 testBack(child)
                 if(parent!==root) testBack(parent)

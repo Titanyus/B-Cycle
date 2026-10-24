@@ -30,18 +30,18 @@ internal object BicycleAccentGradient {
         }
         return accent
     }
-    fun foreground(tokens:ThemeTokens):Int = if(ThemeValidator.contrast(tokens.foreground,tokens.accent)>=ThemeValidator.minimumTextContrast) tokens.foreground
-        else if(ThemeValidator.contrast(Color.BLACK,tokens.accent)>=ThemeValidator.contrast(Color.WHITE,tokens.accent)) Color.BLACK else Color.WHITE
-    fun fill(context:Context,tokens:ThemeTokens,foreground:Int=foreground(tokens)):GradientDrawable = object:GradientDrawable() {
+    fun foreground(tokens:ThemeTokens):Int = if(ThemeValidator.contrast(tokens.foreground,tokens.primary)>=ThemeValidator.minimumTextContrast) tokens.foreground
+        else if(ThemeValidator.contrast(Color.BLACK,tokens.primary)>=ThemeValidator.contrast(Color.WHITE,tokens.primary)) Color.BLACK else Color.WHITE
+    fun fill(context:Context,tokens:ThemeTokens,foreground:Int=foreground(tokens)):GradientDrawable = if(BicycleAppearance.flat(context)) GradientDrawable().apply { setColor(tokens.primary);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat() } else object:GradientDrawable() {
         private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
         private val rect=RectF()
         private val border=GradientDrawable().apply { setColor(Color.TRANSPARENT) }
         private val radius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-        init { setColor(tokens.accent);cornerRadius=radius;border.cornerRadius=radius }
+        init { setColor(tokens.primary);cornerRadius=radius;border.cornerRadius=radius }
         override fun setStroke(width:Int,color:Int) { super.setStroke(width,color);border.setStroke(width,color) }
         override fun onBoundsChange(bounds:Rect) {
             super.onBoundsChange(bounds);rect.set(bounds);border.bounds=bounds
-            if(bounds.width()>0 && bounds.height()>0) paint.shader=shader(rect,BicycleDesign.accentFillAngle,intArrayOf(tokens.accent,fillDark(tokens.accent,foreground)))
+            if(bounds.width()>0 && bounds.height()>0) paint.shader=shader(rect,BicycleDesign.accentFillAngle,intArrayOf(tokens.primary,fillDark(tokens.primary,foreground)))
         }
         override fun draw(canvas:Canvas) { paint.alpha=alpha;canvas.drawRoundRect(rect,radius,radius,paint);border.alpha=alpha;border.draw(canvas) }
     }

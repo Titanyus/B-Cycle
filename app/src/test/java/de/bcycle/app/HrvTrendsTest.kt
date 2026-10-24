@@ -249,7 +249,7 @@ class HrvTrendsTest {
             viewport.pan(-.6) // Last center sits 0.1 days beyond the right edge; part of its bar is visible.
             val image=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888)
             chart.draw(Canvas(image))
-            assertEquals(themes.active.tokens.accent,image.getPixel(350,300))
+            assertEquals(themes.active.tokens.primary,image.getPixel(350,300))
             image.recycle()
         } finally { host.pause().stop().destroy() }
     }

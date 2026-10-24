@@ -93,8 +93,8 @@ internal class MessageNotificationSettingsView(context: Context, private val the
             minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
             contentDescription=context.getString(R.string.notifications_duration);stateDescription=value.text
             BicycleComponents.bindTheme(this,themes) { t ->
-                thumbTintList=android.content.res.ColorStateList.valueOf(t.accent)
-                progressTintList=android.content.res.ColorStateList.valueOf(t.accent)
+                thumbTintList=android.content.res.ColorStateList.valueOf(t.primary)
+                progressTintList=android.content.res.ColorStateList.valueOf(t.primary)
             }
             setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
                 override fun onStartTrackingTouch(bar:SeekBar)=Unit

@@ -43,7 +43,7 @@ class RouteManagerViewTest {
             // Ignore antialiased edges, whose premultiplied RGB values can round by one.
             val opaque=pixels.filter { android.graphics.Color.alpha(it)==255 }
             assertTrue(opaque.isNotEmpty())
-            assertEquals(setOf(themes.active.tokens.accent),opaque.toSet())
+            assertEquals(setOf(themes.active.tokens.primary),opaque.toSet())
             card=list.adapter.getView(1,card,list)
             assertFalse(card.isActivated);assertNull(card.background)
             manager.clearSelection()
