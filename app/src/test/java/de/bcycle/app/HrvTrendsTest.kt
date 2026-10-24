@@ -199,6 +199,44 @@ class HrvTrendsTest {
             assertTrue(first<zoomedFirst);assertEquals("day80",chosen);assertEquals(fixedAxis,chart.axis)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun zoomedOutBarLabelsStayAttachedToTheSameDatesWhilePanning() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            val chart=HrvTrendChart(a,themes,{},{_,_->})
+            a.setContentView(chart)
+            chart.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));chart.layout(0,0,360,400)
+            val points=(0..350).filter { it%7!=0 }.map { day ->
+                HrvTrendPoint(row(day),start.plusDays(day.toLong()),"shared",if(day%11==0) null else if(day%3==0) 123.4 else 9.5,null,null,null)
+            }
+            chart.show(points,true,HrvTrendAxis(0.0,150.0))
+            val viewport=HrvTrendChart::class.java.getDeclaredField("viewport").apply { isAccessible=true }.get(chart) as HrvTrendViewport
+            viewport.zoom(14.0/100,.5);viewport.pan(-40.0)
+            val left=BicycleDesign.dp(a,BicycleDesign.hrvTrendAxisWidth).toDouble();val width=360-8-left
+            val image=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888)
+            fun labels():Set<Long> {
+                val dates=mutableSetOf<Long>()
+                val canvas=object:Canvas(image) {
+                    override fun drawText(text:String,x:Float,y:Float,paint:android.graphics.Paint) {
+                        if(paint.textSize==BicycleDesign.hrvTrendBarValueSp.toFloat() && x in (left+20).toFloat()..(352-20).toFloat()) {
+                            dates+=kotlin.math.round(viewport.end-viewport.span+(x-left)/width*viewport.span).toLong()
+                        }
+                        super.drawText(text,x,y,paint)
+                    }
+                }
+                chart.draw(canvas);return dates
+            }
+            val before=labels();val end=viewport.end
+            assertTrue(before.isNotEmpty())
+            for(delta in listOf(-.13,-.92,-1.17,-3.1)) {
+                viewport.pan(delta);val after=labels()
+                val low=maxOf(end-viewport.span,viewport.end-viewport.span)+10
+                val high=minOf(end,viewport.end)-10
+                assertEquals(before.filter { it.toDouble() in low..high }.toSet(),after.filter { it.toDouble() in low..high }.toSet())
+            }
+            image.recycle()
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun partiallyVisibleRightmostBarDrawsBeforeItsCenterEntersTheViewport() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

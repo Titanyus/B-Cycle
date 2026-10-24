@@ -31,6 +31,9 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     }
     private val viewport=HrvTrendViewport()
     private var points:List<HrvTrendPoint> = emptyList()
+    private var barLabels:List<Pair<HrvTrendPoint,String>> = emptyList()
+    private var labelSpacing=Double.NaN
+    private var labelTextSize=Float.NaN
     var axis=HrvTrendAxis(0.0,1.0);private set
     private var selectedId:String?=null
     private var downX=0f;private var downY=0f;private var moved=false
@@ -74,6 +77,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         BicycleComponents.bindTheme(this,themes) { tokens=it;invalidate() }
     }
     fun show(rows:List<HrvTrendPoint>,reset:Boolean=false,axis:HrvTrendAxis=HrvTrendAxis.from(rows,HrvTrendMetric.RMSSD)) {
+        labelSpacing=Double.NaN
         stopFling()
         points=rows;this.axis=axis
         if(reset) viewport.reset(rows.map { it.day })
@@ -174,17 +178,27 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         paint.textSize=BicycleDesign.hrvTrendBarValueSp*resources.displayMetrics.scaledDensity
         paint.textAlign=Paint.Align.CENTER;paint.color=tokens.foreground
         val gap=BicycleDesign.dp(context,BicycleDesign.hrvTrendBarValueGap).toFloat()
-        var previousRight=Float.NEGATIVE_INFINITY
-        visible.forEach { point -> point.value?.let { value ->
-            val label=barNumber.format(value);val halfWidth=paint.measureText(label)/2
-            if(halfWidth*2>plotRight-plotLeft) return@let
-            val center=x(point.day)
-            // Keep zoomed-out labels legible; zooming in reveals the intervening values.
-            if(center-halfWidth<previousRight+gap) return@let
-            val baseline=(y(value)-gap).coerceAtLeast(top-paint.fontMetrics.ascent)
-            canvas.drawText(label,center,baseline,paint)
-            previousRight=center+halfWidth
-        } }
+        val spacing=(plotRight-plotLeft)/viewport.span
+        if(spacing!=labelSpacing || paint.textSize!=labelTextSize) {
+            // Anchor collision decisions to the dataset, never to the first visible bar.
+            // Relative double coordinates avoid pan-dependent screen-pixel rounding.
+            var previousRight=Double.NEGATIVE_INFINITY
+            val first=points.firstOrNull()?.day?.toEpochDay() ?: 0L
+            barLabels=points.mapNotNull { point -> point.value?.let { value ->
+                val label=barNumber.format(value);val halfWidth=paint.measureText(label)/2
+                val center=(point.day.toEpochDay()-first)*spacing
+                if(halfWidth*2>plotRight-plotLeft || center-halfWidth<previousRight+gap) null
+                else { previousRight=center+halfWidth;point to label }
+            } }
+            labelSpacing=spacing;labelTextSize=paint.textSize
+        }
+        barLabels.forEach { (point,label) ->
+            val center=x(point.day);val halfWidth=paint.measureText(label)/2
+            if(center+halfWidth>=plotLeft && center-halfWidth<=plotRight) {
+                val baseline=(y(point.value!!)-gap).coerceAtLeast(top-paint.fontMetrics.ascent)
+                canvas.drawText(label,center,baseline,paint)
+            }
+        }
         canvas.restore()
     }
     private fun alpha(color:Int,factor:Float)=Color.argb((Color.alpha(color)*factor).toInt(),Color.red(color),Color.green(color),Color.blue(color))

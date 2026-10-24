@@ -93,3 +93,7 @@ bestehendem Pinch/Drag, Tagesauswahl und Teilbalken. Native Vorschau visuell gep
 Typografie-/Atlasprüfung erfolgreich. Kein Hardwaretest und keine neue APK.
 
 Stand 23.10.2026: die beschriebenen Diagrammänderungen sind in APK **0.8.33 / Build 72** enthalten. [Buildnachweis](build-72.md).
+
+## Stabile Balkenwerte beim Scrollen
+
+Korrektur 24.10.2026: Die Überlappungsvermeidung der kleinen Wertbeschriftungen wird bei gleicher Zoomstufe an der vollständigen Datenreihe verankert, nicht am ersten sichtbaren Balken. Relative Tageskoordinaten in doppelter Genauigkeit halten die Auswahl unabhängig von der Scrollposition; das Ergebnis wird bis zur nächsten Daten-/Zoom-/Breitenänderung wiederverwendet. Auch teilweise sichtbare Texte werden bis zur Diagrammgrenze mitgeführt und dort abgeschnitten. Somit wechseln bzw. flimmern Zahlen beim Verschieben eines schmal skalierten Diagramms nicht mehr. Zoom darf weiterhin zusätzliche Zwischenwerte sichtbar machen. Balken, Werte, Statistik und Y-Skalierung unverändert.
