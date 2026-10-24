@@ -1,19 +1,15 @@
-# Fokusrahmen für Eingabefelder – Testentwurf
+# Gemeinsamer Fokusrahmen und ACCENT-Flächen
 
-24.10.2026, auf Nutzerwunsch. Ausschließlich Kontur und äußerer Schein; keine Änderung an Innenfläche, Rundung, Feldgröße, Padding, Eingabewert, Tastatur, Einheiten, Auswahl, Validierung oder Autosave. Keine zusätzliche Abhängigkeit, Konfiguration oder Daueranimation.
+Stand 24.10.2026. Eingabefelder verwenden BicycleInputFrame an den drei gemeinsamen Stileinstiegen. Normalzustand, Feldmaße, Rundung, Padding, Text, Masken, Einheiten, Validierung, Tastatur und Autosave bleiben erhalten.
 
-## Gemeinsame Regeln
+Aktivierte fokussierte Felder erhalten eine 1,5-dp-Kontur. Fünf Stops bei 0/44/50/56/100 % ergeben dunkel → ACCENT → hell → ACCENT → dunkel. Die Ableitungen mischen ACCENT zu 35 % mit Schwarz beziehungsweise Weiß. Die schmale helle Spitze hat längere dunkle Anläufe. Achse +20°; 0° zeigt horizontal rechts, positive Winkel drehen im Uhrzeigersinn.
 
-`BicycleInputFrame` ist an den drei vorhandenen Eingabestil-Einstiegen angebunden (`BicycleComponents.input`, `BicycleDialogStyle.inputBackground`, `BicycleForm.outlinedInput`). Normale Controls/Buttons behalten ihre bisherige Gestaltung; das als Eingabe gestaltete Datumsfeld verwendet denselben Rahmen. Die normalen Eingabekonturen bleiben unverändert. Aktiviert und fokussiert:
+Aus genau dieser farbigen Kontur entstehen zwei echte Blur-Bitmaps: nahe 2,5 dp innen und außen (75 % Deckkraft), weit 15 dp ausschließlich außen (55 %). Beide werden mit BlendMode.SCREEN gezeichnet. Die RGB-Kanäle werden premultipliziert gemeinsam mit Alpha über drei separierbare Box-Pässe geglättet, als schnelle Gauß-Näherung. Helle Stellen erzeugen dadurch einen helleren Schein. Keine gestapelten Umrisslinien und kein Graphen-Blur.
 
-- 1-dp-Kontur mit fünf gleichmäßig verteilten Farbstopps: dunkel → ACCENT → hell → ACCENT → dunkel.
-- Dunkel = ACCENT mit 35 % Schwarz gemischt, hell = ACCENT mit 35 % Weiß, je RGB-Kanal. Deckende Themefarben bleiben deckend, auch Weiß/Schwarz als ACCENT sind gültig. Keine festen Rotwerte oder neuen Paletteinträge.
-- Verlaufachse 20° gegen die Horizontale. Die Shadergeometrie wird bei Größenänderung erneuert, keine Rotation des eigentlichen Feldes.
-- Weicher statischer ACCENT-Schein bis 8 dp nach außen. Zwölf abgestufte Konturen mit gaußähnlichem Abfall; maximale Deckkraft pro Kontur 18 %. Überlagerung benachbarter Konturen ergibt einen weichen Verlauf. Keine unzuverlässige Hardware-BlurMaskFilter-Schattierung, kein Softwarelayer, kein Render-Loop.
-- Ein Clip auf die abgerundete Feldfläche hält den Glow vollständig außerhalb. Zeichnen im übergeordneten Scrollviewport verhindert Abschneiden an schmalen Formularzeilen. Viewport und fixe Header werden respektiert; Sticky-Kategorien werden explizit ausgespart. Sichtbarkeit, Fokus, enabled, Scrollposition, Themewechsel und Detach berücksichtigen.
+Die Berechnung erfolgt nur bei Cache-Änderung, nicht in jedem Zeichenframe. Fokusverlust, disabled, Themewechsel und Detach geben den Cache frei; große Raster sind auf 512.000 Pixel begrenzt. Zeichnen im Parent-Overlay verhindert Abschneiden an Formularzeilen; Scrollviewport und Sticky-Header bleiben ausgespart. Vorhandene Fokuslistener werden nicht ersetzt.
 
-Alle Werte stehen in `BicycleDesign` (`inputFocus…`). Der Hintergrund bleibt eine `GradientDrawable`-Unterklasse für bestehende Rahmen-/Transparenzprüfungen. Fokus kommt aus dem nativen Drawable-Zustand; vorhandene Fokuslistener und Eingabecallbacks werden nicht ersetzt oder ausgelöst.
+Aktive ACCENT-Flächen und Segmentbuttons verwenden zentral BicycleAccentGradient: ACCENT nach dunkler ACCENT bei -115°. Damit zeigt die Achse nach oben links. Die Abdunklung wird bei Bedarf reduziert, damit der vorhandene Vordergrund mindestens 4,5:1 Kontrast behält. Kein neuer Profilparameter oder App-Schalter.
 
-Native Vorschau: [input-focus-frame.png](previews/input-focus-frame.png). Die HTML-Atlasdarstellung ist eine CSS-Näherung und separat als solche beschriftet. Noch keine neue APK angefragt oder erstellt.
+[Native Rahmenvorschau](previews/input-focus-frame.png) · [Fahrerprofil](previews/rider-profile-focus-preview.png) · [Interaktiver Designer](input-designer.md). Der Browser verwendet seine eigene Blur-Implementierung; native Darstellung ist maßgeblich.
 
-Gezielte Tests: Farbenableitung über mehrere Grundfarben einschließlich Weiß/Schwarz, nativer Rahmen/Innen-Transparenz/äußerer Glow, Scrollposition, Themewechsel, disabled, Listener-/Wert-/Geometrie-Erhalt sowie Einheiten-/Profil- und vorhandene Formular-/Scrollregressionen.
+Gezielte Tests erfolgreich: Blur-Farbverteilung und Quellbild-Erhalt, Farben einschließlich Weiß/Schwarz, nativer Rahmen/innerer und äußerer Schein, Scrollen, Sticky-Clipping, Cache-Wiederverwendung/-Freigabe, Theme/disabled, Geometrie/Werte/Listener und ausgewählte Formular-/HRV-Regressionsfälle. Füllwinkel und Textkontrast über alle Theme-Presets geprüft. Native Vorschauen visuell geprüft; kein Hardware-Benchmark oder Gesamtlauf.

@@ -1,0 +1,56 @@
+package de.bcycle.app
+
+import android.app.Activity
+import android.graphics.*
+import android.graphics.drawable.RippleDrawable
+import android.view.View
+import android.widget.LinearLayout
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[33],qualifiers="mdpi")
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class ContourBlurAndFillTest {
+    @Test fun blurSpreadsActualColoredHighlightsWithoutModifyingItsSourceOrFillingDistantPixels() {
+        val source=Bitmap.createBitmap(48,40,Bitmap.Config.ARGB_8888)
+        val canvas=Canvas(source);val paint=Paint().apply { color=Color.RED }
+        canvas.drawRect(8f,17f,24f,23f,paint);paint.color=Color.WHITE;canvas.drawRect(24f,17f,40f,23f,paint)
+        val blurred=BicycleContourBlur.blur(source,6f)
+        assertEquals(0,Color.alpha(source.getPixel(16,15)))
+        assertTrue(Color.alpha(blurred.getPixel(16,15))>0)
+        assertTrue(Color.red(blurred.getPixel(16,15))>Color.blue(blurred.getPixel(16,15)))
+        assertTrue(Color.blue(blurred.getPixel(32,15))>Color.blue(blurred.getPixel(16,15)))
+        assertEquals(0,Color.alpha(blurred.getPixel(0,0)))
+        assertEquals(Color.RED,source.getPixel(16,20))
+        source.recycle();blurred.recycle()
+    }
+    @Test fun activeFillHasItsOwnNegativeAngleAndReadableTextAcrossAllThemesWhileSelectionStillWorks() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("gradient-fill",0))
+            val button=BicycleSegmentButton(a,themes,multiple=true).apply { text="Mann" }
+            a.setContentView(LinearLayout(a).apply { addView(button,LinearLayout.LayoutParams(156,48)) })
+            button.measure(View.MeasureSpec.makeMeasureSpec(156,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(48,View.MeasureSpec.EXACTLY));button.layout(0,0,156,48)
+            button.performClick();assertTrue(button.isChecked)
+            for(theme in BicycleThemes.presets) {
+                themes.activate(theme.id)
+                val tokens=theme.tokens;val foreground=button.currentTextColor
+                assertTrue(ThemeValidator.contrast(foreground,tokens.accent)>=ThemeValidator.minimumTextContrast)
+                assertTrue(ThemeValidator.contrast(foreground,BicycleAccentGradient.fillDark(tokens.accent,foreground))>=ThemeValidator.minimumTextContrast)
+            }
+            themes.activate(BicycleThemes.red.id)
+            val bitmap=Bitmap.createBitmap(156,48,Bitmap.Config.ARGB_8888)
+            val fill=(button.background as RippleDrawable).getDrawable(0)
+            fill.setBounds(0,0,156,48);fill.draw(Canvas(bitmap))
+            assertTrue(Color.red(bitmap.getPixel(78,5))<Color.red(bitmap.getPixel(78,42))) // −115° points upward-left.
+            button.performClick();assertFalse(button.isChecked)
+            bitmap.recycle()
+        } finally { host.pause().stop().destroy() }
+    }
+}

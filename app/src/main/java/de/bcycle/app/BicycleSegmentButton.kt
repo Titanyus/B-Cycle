@@ -48,7 +48,7 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
             else if(ThemeValidator.contrast(Color.BLACK,fill)>=ThemeValidator.contrast(Color.WHITE,fill)) Color.BLACK else Color.WHITE
         setTextColor(foreground)
         compoundDrawables.filterNotNull().forEach { it.setTint(foreground) }
-        background=RippleDrawable(ColorStateList.valueOf((foreground and 0x00ffffff) or 0x26000000),GradientDrawable().apply {
+        background=RippleDrawable(ColorStateList.valueOf((foreground and 0x00ffffff) or 0x26000000),if(isChecked) BicycleAccentGradient.fill(context,tokens,foreground) else GradientDrawable().apply {
             setColor(fill);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
         },null)
     }

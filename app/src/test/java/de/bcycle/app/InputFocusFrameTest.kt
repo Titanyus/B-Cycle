@@ -31,7 +31,7 @@ class InputFocusFrameTest {
             assertTrue(stops.all { Color.alpha(it)==255 })
         }
     }
-    @Test fun focusedBorderAndOuterOnlyGlowFollowScrollThemeAndEnabledStateWithoutChangingEdits() {
+    @Test fun focusedContourAndTwoBlursFollowScrollThemeAndEnabledStateWithoutChangingEdits() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("focus-frame",0))
@@ -63,10 +63,16 @@ class InputFocusFrameTest {
             fun draw()=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888).also { scroll.draw(Canvas(it)) }
             val before=draw();val old=location();val geometry=listOf(focused.width,focused.height,focused.paddingLeft,focused.paddingRight)
             assertTrue(focused.requestFocus());layout()
-            val active=draw();val p=location();val x=p[0]-3;val y=p[1]+24
+            val active=draw()
+            val glow=focused.getTag(R.id.input_frame)
+            val cached=glow.javaClass.getDeclaredField("cache").apply { isAccessible=true }
+            val firstCache=cached.get(glow);assertNotNull(firstCache)
+            draw().recycle();assertSame(firstCache,cached.get(glow))
+            val p=location();val x=p[0]-3;val y=p[1]+24
             assertEquals(red.tokens.secondary,before.getPixel(x,y))
             assertNotEquals(red.tokens.secondary,active.getPixel(x,y))
-            assertEquals(before.getPixel(p[0]+8,y),active.getPixel(p[0]+8,y)) // Interior receives no halo/fill.
+            assertNotEquals(before.getPixel(p[0]+2,y),active.getPixel(p[0]+2,y)) // Narrow blur also reaches just inside.
+            assertEquals(before.getPixel(p[0]+8,y),active.getPixel(p[0]+8,y)) // Interior stays clear away from the contour.
             val background=Bitmap.createBitmap(focused.width,focused.height,Bitmap.Config.ARGB_8888)
             focused.background.draw(Canvas(background))
             assertEquals(0,Color.alpha(background.getPixel(focused.width/2,focused.height/2)))
@@ -80,7 +86,7 @@ class InputFocusFrameTest {
             val recolored=draw();val color=recolored.getPixel(next[0]-3,next[1]+24)
             assertTrue(Color.blue(color)>Color.red(color))
             focused.isEnabled=false
-            val disabled=draw();assertEquals(blue.tokens.secondary,disabled.getPixel(next[0]-3,next[1]+24))
+            val disabled=draw();assertNull(cached.get(glow));assertEquals(blue.tokens.secondary,disabled.getPixel(next[0]-3,next[1]+24))
             assertEquals(geometry,listOf(focused.width,focused.height,focused.paddingLeft,focused.paddingRight))
             assertEquals("183",focused.text.toString());assertEquals(0,changes);assertSame(listener,focused.onFocusChangeListener)
             listOf(before,active,background,shifted,recolored,disabled).forEach(Bitmap::recycle)

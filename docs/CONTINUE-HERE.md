@@ -2,6 +2,10 @@
 
 Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Aktueller APK-Auftrag: 0.8.35
+
+Alle lokalen Änderungen seit Build 73 werden auf Nutzerwunsch in einer optimierten Actions-APK veröffentlicht. Version 0.8.35 / Code 105. Kontur jetzt 1,5 dp mit schmalen Stops und zwei echten gecachten SCREEN-Blurs (2,5/15 dp), aktive Flächen Verlauf -115°, keine Graphänderung. Native Vorschauen aktualisiert, gezielte Tests erfolgreich. Interaktiver HTML-Designer fertig und separat veröffentlicht, siehe docs/input-designer.md. Die älteren Aussagen „keine APK angefragt“ darunter sind Verlauf und durch den aktuellen Auftrag ersetzt.
+
 ## Neueste Vorschau: Fahrerprofil
 
 Echte native Fahrerprofilansicht aus lokalem Quellstand d4959ad gerendert (390×1100, synthetische Beispielwerte, Ruhepuls im Fokus, aktuelle HELLFIRE-Palette). PNG docs/previews/rider-profile-focus-preview.png visuell geprüft. Temporärer Render-Driver wieder aus Tests entfernt; Kopie nur /workspace/.tools/RiderProfilePreviewTest.kt. Kein App-Code geändert, kein APK-Auftrag. Nur die PNG auf separatem Vorschau-Branch previews/rider-profile-2026-10-24 veröffentlicht; Quelländerungen bleiben lokal. Externer Link: https://github.com/Titanyus/B-Cycle/blob/b0931c021f1625f4dbc7c8b21a0f7222d2789cd5/docs/previews/rider-profile-focus-preview.png . Winkelklärung: native Definition 0° horizontal nach rechts, positive Winkel im Uhrzeigersinn, +20° nach rechts unten, +90° senkrecht nach unten. Keine Änderung des Winkelwerts beauftragt.

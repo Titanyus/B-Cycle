@@ -857,3 +857,5 @@ Details: [Offline-Sonnenwerte](docs/solar-weather.md) und
 
 
 </details>
+
+[Interaktiver Designer für Eingabefelder](docs/input-designer.md): Kontur, Glanz und Flächenverlauf direkt einstellen und exportieren.

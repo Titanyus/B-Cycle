@@ -161,10 +161,14 @@ object BicycleDesign {
     const val inputFocusDarken = .35f
     const val inputFocusLighten = .35f
     const val inputFocusAngle = 20
-    const val inputFocusStroke = 1f
-    const val inputFocusGlow = 8
-    const val inputFocusGlowAlpha = .18f
-    const val inputFocusGlowSteps = 12
+    const val inputFocusStroke = 1.5f
+    const val inputFocusHighlightHalf = .06f
+    const val inputFocusNearBlur = 2.5f
+    const val inputFocusOuterBlur = 15f
+    const val inputFocusNearAlpha = .75f
+    const val inputFocusOuterAlpha = .55f
+    const val accentFillAngle = -115
+    const val inputFocusMaxBlurPixels = 512_000f
     const val sliderScaleLabelAlpha = .5f
     const val fieldLabelGap = controlGap / 2
     const val fieldFeedbackGap = controlGap / 2
@@ -421,7 +425,8 @@ object BicycleComponents {
         // Do not clear PasswordTransformationMethod when enforcing mixed-case display.
         if(view.isAllCaps) view.isAllCaps=false
     }
-    internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=GradientDrawable().apply {
+    internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=(
+        if(fill==tokens.accent && fill!=tokens.secondary) BicycleAccentGradient.fill(context,tokens) else GradientDrawable()).apply {
         setColor(fill);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
         setStroke(dp(context,BicycleDesign.controlBorder),android.graphics.Color.argb(
             (android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt(),
