@@ -78,3 +78,9 @@ Aufnahme sperrt den HRV-Dialog. Bestehende Tages-/Lifecycle-/RR-Startprüfungen
 ebenfalls erfolgreich. Keine neue APK.
 
 Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+## Tagesgrenze ab 24.10.2026
+
+Das automatische Angebot verwendet einen lokalen Angebotstag von **04:00 Uhr bis vor 04:00 Uhr des Folgetags**. Um 01:00 Uhr zählt damit weiterhin der Vortag. Die Zuordnung erfolgt nach lokaler ziviler Uhrzeit, auch bei Sommer-/Winterzeit; keine feste 24-Stunden-Dauer. Nur bewusster Tap bestätigt das Angebot, und zwar für den Angebotstag zum Zeitpunkt des Taps. Ohne Bestätigung wird es beim nächsten Vordergrundstart erneut gezeigt. Option, manueller Langdruck, Dashboard-Navigation und Aufnahme-/HRV-Sperren bleiben erhalten. Kalenderdatum von Messungen, Tagesbefinden und Vortagsfahrten wird dadurch nicht verschoben.
+
+Zeitangaben im Tagesbefinden verwenden die zentrale Maske mit festen geghosteten Labels/Einheiten; sichtbare Sliderstandards sind ohne Berührung gültig. Antworten gelten jetzt gemeinsam pro Kalendertag. Details [Tagesbefinden](hrv-questionnaire.md).

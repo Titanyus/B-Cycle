@@ -884,14 +884,14 @@ class MainActivity : Activity() {
             runOnUiThread { BicycleFeedback.show(applicationContext, if (ok) R.string.export_saved else R.string.export_failed, long = true) }
         }, "B-Cycle-diagnostic-export").start()
     }
-    private fun showHrvDailyPrompt(today:java.time.LocalDate=java.time.LocalDate.now()) {
+    private fun showHrvDailyPrompt() {
         if(!runtime.visible || runtime.recording || runtime.saving || runtime.hrv.busy || runtime.hrv.state.saveError) return
         dialogs.closeAll();bikePicker?.dismiss()
         if(dashboardEditing) finishDashboardEditor()
         setMapFullscreen(false)
         dailyHrvPrompt?.close()
         dailyHrvPrompt=HrvDailyPrompt(this,dashboardHost,dashboardRoot,runtime.themes,
-            acknowledge={ HrvDailyLaunch(this).acknowledge(today) }) { showHrv(autoStart=true) }
+            acknowledge={ HrvDailyLaunch(this).acknowledge() }) { showHrv(autoStart=true) }
     }
     override fun onStart() { super.onStart();
         hrvObservation=runtime.hrv.observe { if(hrvWasBusy!=runtime.hrv.busy) { hrvWasBusy=runtime.hrv.busy;render() } }; updateDashboardFullscreen(); MessageNotifications.observers.add(messageObserver);notificationSettings?.refreshAccess();
@@ -899,8 +899,8 @@ class MainActivity : Activity() {
         if(notifications.enabled && notifications.granted) runCatching {
             android.service.notification.NotificationListenerService.requestRebind(android.content.ComponentName(this,MessageNotificationService::class.java))
         }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows()
-        val dailyLaunch=HrvDailyLaunch(this);val today=java.time.LocalDate.now()
-        if(dailyLaunch.shouldShow(today)) showHrvDailyPrompt(today)
+        val dailyLaunch=HrvDailyLaunch(this);val today=HrvDailyLaunch.day()
+        if(dailyLaunch.shouldShow(today)) showHrvDailyPrompt()
     }
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.

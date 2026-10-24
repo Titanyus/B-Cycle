@@ -1,6 +1,18 @@
 # Übergabe an einen neuen Chat
 
-Stand: 23.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
+Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
+
+## Aktueller Auftrag nach Build 73: HRV-Tagesdaten, Zeitmasken und 04:00-Uhr-Angebot
+
+Umgesetzt und lokal geprüft, **noch nicht in APK 0.8.34 / Build 73 und noch nicht veröffentlicht**. Keine neue APK angefragt. Gemeinsame feste Stunden-/Minutenmaske `BicycleTimeInput` mit geghosteter Beschriftung/Doppelpunkt/Einheit und Cursor-Sprung; Schlafdauer ein Feld, Eingeschlafen/Aufgewacht nebeneinander. Schlafdauer intern kompatibel als Stunden, Zeiten HH:mm. Trainingsmengen behalten km/min direkt hinter dem Zahlenwert, geghostet. Zeitgrenzen im Streckenfilter ebenfalls gemeinsame Maske, vorhandene Bereichs-/Sliderfunktion erhalten. Sichtbare Sliderstandards gelten ohne Berührung, andere Auswahlfelder bleiben fehlend.
+
+Tagesbefinden atomar gemeinsam pro lokalem Kalendertag unter hrv-measurements/days; erneute Messung übernimmt Antworten. Altdateien nach Antwort-Aktualisierung/Messzeit zusammenführen und unverändert behalten; nach Migration nicht erneut einmischen. Messungslöschung erhält Tagesdaten, auch vor erstem Öffnen eines Altfragebogens. Vollständige Sicherung/Analyseexport mit questionnaireScope=day, Tage ohne Messung als zusätzliche Tages-JSON; alte Backups ohne Scope lesbar und gemeinsam migrierbar, ältere Wiederherstellungen überschreiben keine neueren Tagesantworten. Keine neuen Einstellungen oder Änderungen an HRV-/RR-/Qualitätsberechnung.
+
+Automatisches HRV-Angebot zählt ab 04:00 Ortszeit als neuer Angebotstag, vorher Vortag; DST-sicher nach ziviler Uhrzeit, Bestätigung zum Zeitpunkt des Taps. Kalenderdatum der Messungen/Fragebögen/Vortagsfahrten bleibt unverändert. Manueller Langdruck und Aufnahme-/HRV-Sperren erhalten.
+
+Offenen Flimmerfehler der HRV-Balkenwerte ebenfalls behoben: Überlappungsauswahl an voller Datenreihe statt sichtbarem Startbalken verankert, mit datenrelativen Double-Koordinaten und Cache je Daten/Zoom/Breite. Gleichbleibende Labelauswahl beim Scrollen, Texte am Rand weiter clippen, Statistik/Skalierung unverändert.
+
+Gezielte Prüfungen erfolgreich: HRV-Formular/Sliderstandards/Mengen/Masken/ungültige Eingaben, native Navigation/Ende-Speicherfehler/RR-Sperren, Tagesmigration und Neustart/erneute Messung, Löschen inklusive ungeöffnetem Altbestand, unabhängige Tagesdaten-Sicherung, Altbackup-Restore, komplette Verzeichnissicherung, Import-Originalwerte und Reimportschutz, Uhrgrenze 03:59:59/04:00 einschließlich Sommer-/Winterzeit, Streckenfilter, native stabile Diagrammlabels bei mehreren gebrochenen Scrollschritten und vorhandenes kinetisches Scrollen/Clipping. Typografie, regenerierter UI-Atlas und diff --check erfolgreich. Native Maskenvorschau app/build/reports/ui/hrv-time-masks.png visuell geprüft. Keine vollständige Suite, echte Android-Tastatur/Hardware oder neue APK. Details docs/hrv-questionnaire.md, docs/hrv-entry.md, docs/hrv-trends.md, docs/ride-directory-backup.md. Frühere Angaben unten zu vollständig veröffentlichtem Stand beziehen sich auf Build 73 vor diesem Auftrag.
 
 ## Aktueller Abschluss: APK 0.8.34 / Build 73
 

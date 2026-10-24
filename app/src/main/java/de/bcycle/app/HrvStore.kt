@@ -96,15 +96,59 @@ internal class HrvStore(private val root:File) {
     /** Remove the entire measurement atomically from the visible/importable journal. */
     fun delete(id:String) {
         read(id) // Validate identity before touching any directory.
+        questionnaire(id) // Migrate legacy day answers before their original measurement disappears.
         val removed=File(root,".hrv-delete-${UUID.randomUUID()}")
         check(directory(id).renameTo(removed))
         removed.deleteRecursively() // Recovery retries interrupted cleanup; no import tombstone.
     }
-    fun questionnaire(id:String):HrvQuestionnaire? {
+    private fun legacyQuestionnaire(id:String):HrvQuestionnaire? {
         val file=File(directory(id),"questionnaire.json")
-        return if(!file.exists()) null else AtomicFile(file).openRead().use {
+        return if(!file.exists() && !File(file.path+".bak").exists()) null else AtomicFile(file).openRead().use {
             HrvQuestionnaire.decode(BackupJson.objectValue(it.readNBytes(65537),65536))
         }
+    }
+    private fun dayFile(day:String):File {
+        require(java.time.LocalDate.parse(day).toString()==day)
+        return File(File(root,"days"),"$day.json")
+    }
+    private fun readDay(day:String):HrvQuestionnaire? {
+        val file=dayFile(day)
+        return if(!file.exists() && !File(file.path+".bak").exists()) null else AtomicFile(file).openRead().use {
+            HrvQuestionnaire.decode(BackupJson.objectValue(it.readNBytes(65537),65536)).also { q -> require(q.day==day) }
+        }
+    }
+    private fun writeDay(value:HrvQuestionnaire) {
+        val bytes=value.json().toString().toByteArray();require(bytes.size<=65536)
+        val file=dayFile(value.day);check(file.parentFile!!.isDirectory || file.parentFile!!.mkdirs())
+        atomic(file,bytes)
+    }
+    fun questionnaire(id:String):HrvQuestionnaire? {
+        val day=HrvQuestionnaire.forMeasurement(read(id)).day
+        readDay(day)?.let { return it }
+        // One-time, deterministic migration. Original per-measurement files remain intact.
+        val older=list().filter { HrvDailySelection.day(it).toString()==day }
+            .mapNotNull { row -> legacyQuestionnaire(row.id)?.let { require(it.day==day);row.utcMs to it } }
+            .sortedWith(compareBy<Pair<Long,HrvQuestionnaire>> { it.second.updatedAtMs }.thenBy { it.first }.thenBy { it.second.json().toString() })
+        val merged=older.map { it.second }.reduceOrNull { old,new -> new.copy(
+            ratings=old.ratings+new.ratings,extras=old.extras+new.extras,customNames=old.customNames+new.customNames,
+            legacyRatings=old.legacyRatings+new.legacyRatings,
+            training=new.training ?: old.training,sport=new.sport ?: old.sport,
+            trainingKm=new.trainingKm ?: old.trainingKm,trainingMinutes=new.trainingMinutes ?: old.trainingMinutes,
+            trainingSource=new.trainingSource ?: old.trainingSource,rideIds=if(new.trainingSource!=null) new.rideIds else old.rideIds,
+            traveled=new.traveled ?: old.traveled,alcohol=new.alcohol ?: old.alcohol,sick=new.sick ?: old.sick,
+            injured=new.injured ?: old.injured,injury=new.injury.ifEmpty { old.injury },notes=new.notes.ifEmpty { old.notes }) }
+        merged?.let(::writeDay)
+        return merged
+    }
+    /** Canonical day files also survive deletion of that day's last measurement. */
+    fun questionnaireDays():List<String> = File(root,"days").listFiles().orEmpty().filter { it.isFile && it.extension=="json" }
+        .map { it.nameWithoutExtension }.sorted().onEach { checkNotNull(readDay(it)) }
+    fun backupQuestionnaireDay(day:String):ByteArray = JSONObject().put("format","bicycle-hrv-day-backup").put("schema",1)
+        .put("questionnaire",checkNotNull(readDay(day)).json()).toString().toByteArray()
+    private fun restoreDay(value:HrvQuestionnaire):Boolean {
+        val old=readDay(value.day)
+        if(old!=null && (old==value || old.updatedAtMs>=value.updatedAtMs)) return false
+        writeDay(value);return true
     }
     /** Upgrade imported missing answers from the archived original, never from a changed re-import. */
     fun questionnaireForEditing(id:String):HrvQuestionnaire? {
@@ -124,8 +168,7 @@ internal class HrvStore(private val root:File) {
     fun saveQuestionnaire(id:String,value:HrvQuestionnaire) {
         val row=read(id)
         require(value.day==HrvQuestionnaire.forMeasurement(row).day)
-        val bytes=value.json().toString().toByteArray();require(bytes.size<=65536)
-        atomic(File(directory(id),"questionnaire.json"),bytes)
+        writeDay(value)
     }
     fun recover() {
         root.listFiles().orEmpty().filter { it.isDirectory && listOf(".hrv4-import-",".hrv-delete-").any { prefix ->
@@ -149,7 +192,7 @@ internal class HrvStore(private val root:File) {
         require(bytes.size<=MAX_BYTES)
         return JSONObject().put("format","bicycle-hrv-backup").put("schema",1).put("result",result)
             .put("capture",android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP))
-            .apply { questionnaire(id)?.let { put("questionnaire",it.json()) } }.toString().toByteArray().also { require(it.size<=MAX_BYTES) }
+            .apply { questionnaire(id)?.let { put("questionnaire",it.json());put("questionnaireScope","day") } }.toString().toByteArray().also { require(it.size<=MAX_BYTES) }
     }
     fun analysisJson(id:String,dailySelected:Boolean?=null):ByteArray {
         val result=read(id)
@@ -166,7 +209,7 @@ internal class HrvStore(private val root:File) {
         return JSONObject().put("format","bicycle-hrv-analysis").put("schema",1)
             .put("rrTicksPerSecond",1024).put("result",result).put("packets",packets)
             .apply { dailySelected?.let { put("dailySelected",it) } }
-            .apply { questionnaire(id)?.let { put("questionnaire",it.json()) } }.toString(2).toByteArray()
+            .apply { questionnaire(id)?.let { put("questionnaire",it.json());put("questionnaireScope","day") } }.toString(2).toByteArray()
     }
     fun importHrv4Training(entry:HrvCsvEntry):Boolean {
         val row=entry.result;val id=row.getString("id")
@@ -187,11 +230,15 @@ internal class HrvStore(private val root:File) {
     }
     fun restore(bytes:ByteArray):Boolean {
         val backup=BackupJson.objectValue(bytes,MAX_BYTES)
-        require(backup.getString("format")=="bicycle-hrv-backup" && backup.getInt("schema")==1)
+        require(backup.getInt("schema")==1)
+        if(backup.getString("format")=="bicycle-hrv-day-backup") return restoreDay(HrvQuestionnaire.decode(backup.getJSONObject("questionnaire")))
+        require(backup.getString("format")=="bicycle-hrv-backup")
         val row=backup.getJSONObject("result");val id=row.getString("id")
         require(validId(id) && row.getString("format")=="bicycle-hrv" && row.getInt("schema")==1)
         require(row.getLong("utcMs")>=0 && Phase.valueOf(row.getString("phase")) in setOf(Phase.COMPLETE,Phase.ABORTED))
         require(!backup.has("questionnaire") || backup.get("questionnaire") is JSONObject)
+        require(!backup.has("questionnaireScope") || backup.getString("questionnaireScope")=="day")
+        val dailyQuestionnaire=backup.optString("questionnaireScope")=="day"
         val questionnaire=backup.optJSONObject("questionnaire")?.let(HrvQuestionnaire::decode)
         require(questionnaire==null || questionnaire.day==HrvQuestionnaire.forMeasurement(row).day)
         val capture=android.util.Base64.decode(backup.getString("capture"),android.util.Base64.DEFAULT)
@@ -205,7 +252,12 @@ internal class HrvStore(private val root:File) {
             require(android.util.Base64.decode(packet.getString("bytes"),android.util.Base64.DEFAULT).size<=512)
         }
         val dir=directory(id)
-        if(File(dir,"result.json").isFile) { require(backup(id).contentEquals(bytes)) { "Abweichende HRV-Messung bereits vorhanden" };return false }
+        if(File(dir,"result.json").isFile) {
+            val existing=JSONObject(backup(id).toString(Charsets.UTF_8))
+            require(existing.getJSONObject("result").toString()==row.toString() && existing.getString("capture")==backup.getString("capture")) { "Abweichende HRV-Messung bereits vorhanden" }
+            if(dailyQuestionnaire) questionnaire?.let(::restoreDay)
+            return false
+        }
         require(!dir.exists());check(dir.mkdir())
         try {
             atomic(File(dir,"capture.jsonl"),capture)
@@ -213,6 +265,7 @@ internal class HrvStore(private val root:File) {
             atomic(File(dir,"result.json"),row.toString().toByteArray())
         }
         catch(e:Exception) { dir.deleteRecursively();throw e }
+        if(dailyQuestionnaire) questionnaire?.let(::restoreDay)
         return true
     }
 }

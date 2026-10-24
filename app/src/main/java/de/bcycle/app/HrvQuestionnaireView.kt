@@ -12,7 +12,7 @@ import android.widget.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-/** Flexible person-level form. Untouched centered sliders are missing answers, not neutral answers. */
+/** Flexible daily form. Visible sliders contribute their displayed default; other choices remain optional. */
 internal class HrvQuestionnaireView(context:Context,private val themes:ThemeManager,initial:HrvQuestionnaire,
     private val training:HrvTrainingSummary?,private val complete:()->Unit={},private val save:(HrvQuestionnaire,(Boolean)->Unit)->Unit):LinearLayout(context) {
     private val settings=HrvQuestionSettings(context)
@@ -84,6 +84,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         fun show() {
             slider.stateDescription=if(key in value.ratings) if(key=="rpe") context.getString(R.string.hrvq_rpe_value,slider.progress) else context.getString(R.string.hrvq_rating_value,slider.progress,max) else context.getString(R.string.hrvq_unanswered)
         }
+        if(key !in value.ratings) change(value.copy(ratings=value.ratings+(key to origin)))
         show()
         slider.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(bar:SeekBar)=Unit
@@ -119,34 +120,55 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     private fun boolean(parent:LinearLayout,q:HrvQuestion,key:String,current:Boolean?,changed:(Boolean)->Unit) {
         if(enabled(q)) choices(parent,key,context.getString(q.label),listOf(R.string.hrvq_no,R.string.hrvq_yes),current?.let { if(it) 1 else 0 }) { changed(it==1) }
     }
-    private fun input(parent:LinearLayout,key:String,title:String,current:String,numeric:Boolean=false,time:Boolean=false,maxLength:Int=500,placeholder:Boolean=false,changed:(String)->Boolean):EditText {
+    private fun input(parent:LinearLayout,key:String,title:String,current:String,numeric:Boolean=false,maxLength:Int=500,placeholder:Boolean=false,unit:String?=null,changed:(String)->Boolean):EditText {
         if(!placeholder) parent.addView(BicycleComponents.fieldLabel(context,themes,title))
         val edit=BicycleComponents.input(context,themes).apply {
             tag="hrvq_$key";contentDescription=title
 
             inputType=when { numeric->android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL or android.text.InputType.TYPE_NUMBER_FLAG_SIGNED
-                time->android.text.InputType.TYPE_CLASS_DATETIME or android.text.InputType.TYPE_DATETIME_VARIATION_TIME
                 else->android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES }
             if(placeholder) BicycleComponents.inputHint(this,themes,title)
-            if(time) hint=context.getString(R.string.hrvq_time_hint)
             filters=arrayOf(android.text.InputFilter.LengthFilter(maxLength));setText(current)
         }
-        edit.addTextChangedListener(object:TextWatcher {
+        if(unit!=null) BicycleInputUnit.bind(edit,themes,unit,changed)
+        else edit.addTextChangedListener(object:TextWatcher {
             override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int)=Unit
             override fun afterTextChanged(s:Editable?)=Unit
             override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int) {
-                edit.error=if(changed(s?.toString().orEmpty())) null else context.getString(if(time) R.string.hrvq_invalid_time else R.string.hrvq_invalid_number)
+                edit.error=if(changed(s?.toString().orEmpty())) null else context.getString(R.string.hrvq_invalid_number)
             }
         })
         parent.addView(edit,LayoutParams(-1,-2))
         return edit
     }
-    private fun extra(parent:LinearLayout,key:String,title:String,numeric:Boolean=false,time:Boolean=false) {
-        input(parent,key,title,value.extras[key].orEmpty(),numeric,time) { text ->
+    private fun timeInput(parent:LinearLayout,key:String,title:Int,duration:Boolean) {
+        val current=value.extras[key].orEmpty().let { raw ->
+            if(!duration) raw else raw.toDoubleOrNull()?.let { hours ->
+                val minutes=kotlin.math.round(hours*60).toInt()
+                String.format(java.util.Locale.ROOT,"%02d:%02d",minutes/60,minutes%60)
+            }.orEmpty()
+        }
+        val edit=BicycleComponents.input(context,themes).apply { tag="hrvq_$key";contentDescription=context.getString(title) }
+        BicycleTimeInput(edit,themes,context.getString(title),current) { text ->
+            if(text==null) { edit.error=null;return@BicycleTimeInput }
+            val parts=text.split(':')
+            val hours=parts.getOrNull(0)?.toIntOrNull()
+            val minutes=parts.getOrNull(1)?.toIntOrNull()
+            val valid=text.isEmpty() || hours!=null && minutes!=null && minutes in 0..59 &&
+                if(duration) hours in 0..24 && (hours<24 || minutes==0) else hours in 0..23
+            edit.error=if(valid) null else context.getString(R.string.hrvq_invalid_time)
+            if(valid) {
+                val normalized=if(text.isEmpty()) null else if(duration) (hours!!+minutes!!/60.0).toString() else text
+                change(value.copy(extras=if(normalized==null) value.extras-key else value.extras+(key to normalized)))
+            }
+        }
+        parent.addView(edit,LayoutParams(-1,-2))
+    }
+    private fun extra(parent:LinearLayout,key:String,title:String,numeric:Boolean=false) {
+        input(parent,key,title,value.extras[key].orEmpty(),numeric) { text ->
             val normalized=when {
                 text.isBlank()->null
                 numeric->text.trim().replace(',','.').toDoubleOrNull()?.takeIf { it.isFinite() && it in (if(key=="sleepHours") 0.0..24.0 else -1_000_000.0..1_000_000.0) }?.toString() ?: return@input false
-                time->runCatching { java.time.LocalTime.parse(text.trim(),DateTimeFormatter.ofPattern("H:mm")).toString() }.getOrNull() ?: return@input false
                 else->text
             }
             val names=if(key.startsWith("custom") && normalized!=null) value.customNames+(key to title) else value.customNames
@@ -189,7 +211,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             fun amount(distance:Boolean) {
                 val old=if(distance) value.trainingKm else value.trainingMinutes
                 val text=old?.let { java.text.DecimalFormat("0.##").format(it) }.orEmpty()
-                val edit=input(row,if(distance) "distance" else "duration",context.getString(if(distance) R.string.hrvq_distance else R.string.hrvq_duration),text,numeric=true,maxLength=20,placeholder=true) { raw ->
+                val edit=input(row,if(distance) "distance" else "duration",context.getString(if(distance) R.string.hrvq_distance else R.string.hrvq_duration),text,numeric=true,maxLength=20,placeholder=true,unit=context.getString(if(distance) R.string.hrvq_unit_km else R.string.hrvq_unit_min)) { raw ->
                     val number=if(raw.isBlank()) null else raw.trim().replace(',','.').toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..1_000_000.0 } ?: return@input false
                     change(if(distance) value.copy(trainingKm=number,trainingSource="manual") else value.copy(trainingMinutes=number,trainingSource="manual"));true
                 }
@@ -217,12 +239,12 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         if(config.enabled.none(::enabled) && config.customNames.all(String::isBlank)) label(this,R.string.hrvq_empty)
         group(R.string.hrvq_sleep_group,HrvQuestion.entries.filter { it.group==0 }) { body ->
             rating(body,HrvQuestion.SLEEP,"sleep",R.string.hrvq_bad,R.string.hrvq_normal,R.string.hrvq_good)
-            if(enabled(HrvQuestion.SLEEP_DURATION)) extra(body,"sleepHours",context.getString(R.string.hrvq_sleep_hours),numeric=true)
+            if(enabled(HrvQuestion.SLEEP_DURATION)) timeInput(body,"sleepHours",R.string.hrvq_sleep_duration,true)
             if(enabled(HrvQuestion.WAKE) || enabled(HrvQuestion.BED)) {
                 val row=LinearLayout(context).apply { orientation=HORIZONTAL;tag="hrvq_sleep_times" }
                 for((q,key) in listOf(HrvQuestion.WAKE to "wake",HrvQuestion.BED to "bed")) if(enabled(q)) {
-                    row.addView(LinearLayout(context).apply { orientation=VERTICAL;extra(this,key,context.getString(q.label),time=true)
-                        (getChildAt(0) as TextView).minLines=if(enabled(HrvQuestion.WAKE) && enabled(HrvQuestion.BED)) 2 else 1 },
+                    row.addView(LinearLayout(context).apply { orientation=VERTICAL
+                        timeInput(this,key,if(q==HrvQuestion.WAKE) R.string.hrvq_awake_placeholder else R.string.hrvq_asleep_placeholder,false) },
                         LayoutParams(0,-2,1f).apply { if(row.childCount>0) marginStart=dp(BicycleDesign.controlGap) })
                 }
                 body.addView(row,LayoutParams(-1,-2))

@@ -25,9 +25,14 @@ internal class HrvSettings(context:Context) {
 internal class HrvDailyLaunch(context:Context) {
     private val settings=HrvSettings(context)
     private val launches=context.getSharedPreferences("hrv-launch-state",0)
-    fun shouldShow(day:java.time.LocalDate=java.time.LocalDate.now()):Boolean =
+    companion object {
+        /** Civil local time, not a fixed elapsed 24-hour interval (DST safe). */
+        fun day(now:java.time.ZonedDateTime=java.time.ZonedDateTime.now()):java.time.LocalDate =
+            now.toLocalDate().let { if(now.hour<4) it.minusDays(1) else it }
+    }
+    fun shouldShow(day:java.time.LocalDate=day()):Boolean =
         settings.read().showOnFirstStart && launches.getString("handledDay",null)!=day.toString()
-    fun acknowledge(day:java.time.LocalDate=java.time.LocalDate.now()) {
+    fun acknowledge(day:java.time.LocalDate=day()) {
         launches.edit().putString("handledDay",day.toString()).apply()
     }
 }

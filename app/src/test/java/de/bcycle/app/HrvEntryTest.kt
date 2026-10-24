@@ -63,7 +63,7 @@ class HrvEntryTest {
             host.pause().stop().start().resume();assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))
             host.pause().stop().destroy()
             // A later calendar day (simulate persisted launch marker, without changing device clocks).
-            c.getSharedPreferences("hrv-launch-state",0).edit().putString("handledDay",LocalDate.now().minusDays(1).toString()).commit()
+            c.getSharedPreferences("hrv-launch-state",0).edit().putString("handledDay",HrvDailyLaunch.day().minusDays(1).toString()).commit()
             host=Robolectric.buildActivity(MainActivity::class.java).setup();a=host.get();root=a.findViewById(android.R.id.content)
             val runtime=RideRuntime.get(a);drain(runtime.hrv)
             root.findViewWithTag<View>("hrv_daily_start").performClick()
@@ -105,7 +105,7 @@ class HrvEntryTest {
     }
     @Test fun routesLongPressOpensHrvOfferEvenWhenDailyOfferIsOffAndAlreadyHandled() {
         val c=RuntimeEnvironment.getApplication()
-        HrvDailyLaunch(c).acknowledge(LocalDate.now())
+        HrvDailyLaunch(c).acknowledge(HrvDailyLaunch.day())
         assertFalse(HrvSettings(c).read().showOnFirstStart)
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         val runtime=RideRuntime.get(host.get())
@@ -188,7 +188,7 @@ class HrvEntryTest {
             assertFalse(backed.contains("SPORT"))
             assertFalse(testDescendants(form).filterIsInstance<TextView>().any { it.text.toString().startsWith("RPE ") })
             val button=form.findViewWithTag<View>("hrvq_analysis");button.performClick();assertEquals(0,done)
-            assertTrue(saved!!.ratings.isEmpty()) // The initial zero/center is still unanswered.
+            assertEquals(5,saved!!.ratings["sleep"]);assertEquals(0,saved!!.ratings["soreness"]) // Displayed defaults are answers.
             succeeds=true;button.performClick();assertEquals(1,done)
             // Render the actual native track: accent begins at center in both directions.
             val track=sleep.progressDrawable;track.setBounds(0,0,200,10)

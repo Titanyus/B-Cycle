@@ -2,7 +2,7 @@
     <string name="hrvq_title">Tagesbefinden</string>
     <string name="hrvq_loading">Tagesbefinden wird geladen …</string>
     <string name="hrvq_load_failed">Tagesbefinden konnte nicht geladen werden. Bitte erneut öffnen.</string>
-    <string name="hrvq_intro">Angaben zur HRV-Messung am %1$s. Sie ergänzen die Analyse und ändern keine Messwerte. Änderungen werden automatisch gespeichert.</string>
+    <string name="hrvq_intro">Angaben für den Tag %1$s. Sie ergänzen die Analyse und ändern keine Messwerte. Änderungen werden automatisch gespeichert.</string>
     <string name="hrvq_sleep_group">Schlaf</string>
     <string name="hrvq_sleep">Wie gut hast du letzte Nacht geschlafen?</string>
     <string name="hrvq_training_group">Training</string>
@@ -59,7 +59,7 @@
     <string name="hrvq_no">Nein</string>
     <string name="hrvq_unanswered">Nicht beantwortet</string>
     <string name="hrvq_rating_value">Stufe %1$d von %2$d</string>
-    <string name="hrvq_optional">Alle Fragen sind optional. Die Ausgangsstellung der Slider zählt erst nach Berührung als Antwort.</string>
+    <string name="hrvq_optional">Auswahlfelder bleiben ohne Auswahl unbeantwortet. Bei Slidern wird der angezeigte Wert übernommen.</string>
     <string name="hrvq_remove">Angabe entfernen</string>
     <string name="hrvq_saving">Wird gespeichert …</string>
     <string name="hrvq_saved">Gespeichert</string>
@@ -85,7 +85,7 @@
     <string name="hrvq_custom_hint">Bis zu drei eigene numerische Angaben. Name leer lassen zum Deaktivieren.</string>
     <string name="hrvq_empty">Keine Fragen aktiviert. Wähle die gewünschten Fragen unter Einstellungen → HRV-Messungen → Tagesbefinden aus.</string>
     <string name="hrvq_time_hint">HH:mm</string>
-    <string name="hrvq_invalid_time">Bitte eine Uhrzeit als HH:mm eingeben.</string>
+    <string name="hrvq_invalid_time">Bitte gültige Stunden und Minuten eingeben (Minuten 00–59).</string>
     <string name="hrvq_base">Grundlage</string>
     <string name="hrvq_build">Aufbau</string>
     <string name="hrvq_competition">Wettkampf</string>
@@ -100,4 +100,8 @@
     <string name="rider_female">Frau</string>
     <string name="hrvq_cycle_locked">Menstruationszyklus ist nur bei „Frau“ im Fahrerprofil verfügbar.</string>
     <string name="hrvq_rpe_value">RPE %1$d / 10</string>
+    <string name="hrvq_awake_placeholder">Aufgewacht</string>
+    <string name="hrvq_asleep_placeholder">Eingeschlafen</string>
+    <string name="hrvq_unit_km">km</string>
+    <string name="hrvq_unit_min">min</string>
 </resources>

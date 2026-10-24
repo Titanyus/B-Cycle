@@ -32,7 +32,7 @@ class HrvSleepTest {
             assertEquals(settings.read(),HrvQuestionConfig.decode(settings.read().json()))
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun decimalSleepHoursValidateAndRoundTripWithoutDerivingThemFromTimes() {
+    @Test fun maskedSleepDurationValidatesAndKeepsStoredHoursCompatible() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
@@ -42,8 +42,8 @@ class HrvSleepTest {
             a.setContentView(view)
             assertNull(view.findViewWithTag<View>("hrvq_sleep_times"))
             val hours=view.findViewWithTag<EditText>("hrvq_sleepHours")
-            hours.setText("7,5");view.flush();assertEquals("7.5",saved!!.extras["sleepHours"])
-            hours.setText("25");view.flush();assertEquals("7.5",saved!!.extras["sleepHours"]);assertNotNull(hours.error)
+            hours.setText("0730");view.flush();assertEquals("7.5",saved!!.extras["sleepHours"])
+            hours.setText("25:00");view.flush();assertEquals("7.5",saved!!.extras["sleepHours"]);assertNotNull(hours.error)
             assertEquals(saved,HrvQuestionnaire.decode(saved!!.json()))
             assertEquals("07:00",saved!!.extras["wake"])
         } finally { host.pause().stop().destroy() }

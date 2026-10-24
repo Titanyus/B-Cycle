@@ -91,6 +91,17 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                     hrvFailed.put(id)
                 }
             }
+            val representedDays=hrvStore.list().mapTo(hashSetOf()) { HrvDailySelection.day(it).toString() }
+            hrvStore.questionnaireDays().filterNot { it in representedDays }.forEach { day ->
+                checkStop()
+                try {
+                    val snapshot=File(temporary,"hrv-day-$day.json").apply { writeBytes(hrvStore.backupQuestionnaireDay(day)) }
+                    hrv.put(send(directory,snapshot.name,snapshot))
+                } catch(e:Exception) {
+                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted) throw e
+                    hrvFailed.put(day)
+                }
+            }
             val index=JSONObject().put("format","bicycle-ride-backup").put("schema",1).put("createdAt",Instant.now().toString())
                 .put("settings",settingsInfo).put("rides",entries).put("failed",failed).put("photos",photos)
                 .put("hrv",hrv).put("hrvFailed",hrvFailed)

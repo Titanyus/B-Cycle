@@ -89,3 +89,5 @@ praktische Geräteprüfung.
 
 Ab 0.8.16 enthält der vollständige Ordner auch gespeicherte HRV-Messungen einschließlich
 Rohdaten. Die Bilanz führt HRV getrennt auf; alte Sicherungen ohne HRV bleiben lesbar.
+
+HRV-Tagesbefinden ab 24.10.2026: Messungsdateien enthalten den gemeinsamen Tagesdatensatz mit `questionnaireScope=day`. Tagesdaten ohne verbleibende Messung werden zusätzlich als `hrv-day-<Datum>.json` im vorhandenen HRV-Manifestbereich gesichert (`bicycle-hrv-day-backup`, Schema 1). Nur neuere Antwort-Aktualisierungen ersetzen bestehende Tagesdaten. Alte Backups ohne Scope bleiben als unveränderte messungsbezogene Quelldateien für die Tagesmigration lesbar. Einstellungen erhalten keine neuen Felder; Tagesdaten sind fachliche Nutzerdaten, keine Einstellungen.

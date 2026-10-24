@@ -40,7 +40,7 @@ class HrvRatingImportTest {
             val preview=Hrv4TrainingCsv.preview(csv.byteInputStream(),ZoneOffset.UTC);val store=HrvStore(root)
             Hrv4TrainingCsv.import(preview,store)
             val id=preview.entries.single().result.getString("id");val original=File(root,"$id/result.json").readBytes()
-            val old=store.questionnaire(id)!!.copy(ratings=mapOf("sleep" to 2),notes="Manuell bearbeitet",updatedAtMs=1234).json().put("schema",1)
+            val old=HrvQuestionnaire.decode(JSONObject(File(root,"$id/questionnaire.json").readText())).copy(ratings=mapOf("sleep" to 2),notes="Manuell bearbeitet",updatedAtMs=1234).json().put("schema",1)
             old.remove("legacyRatings");File(root,"$id/questionnaire.json").writeText(old.toString())
             val merged=store.questionnaireForEditing(id)!!
             assertEquals(3,merged.ratings["sleep"]);assertEquals(7,merged.ratings["energy"]);assertEquals(3,merged.ratings["fatigue"])

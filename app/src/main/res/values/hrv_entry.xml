@@ -1,7 +1,7 @@
 <resources>
     <string name="hrv_measurement_open">HRV-Messung</string>
     <string name="hrv_first_start">HRV beim ersten Start zeigen</string>
-    <string name="hrv_first_start_hint">Beim Öffnen der App erscheint auf dem abgedunkelten Dashboard ein HRV-Dialog. Mit Jetzt starten öffnest du die Messung. Später oder ein Tipp daneben schließt das Angebot für heute. Ohne bewusste Auswahl erscheint es bei weiteren Starts erneut; am nächsten Tag wird es wieder angeboten. Unabhängig davon öffnet ein langer Druck auf den linken Streckenbutton des Dashboards diesen Dialog jederzeit, auch wenn das automatische Angebot ausgeschaltet ist.</string>
+    <string name="hrv_first_start_hint">Beim Öffnen der App erscheint auf dem abgedunkelten Dashboard ein HRV-Dialog. Mit Jetzt starten öffnest du die Messung. Später oder ein Tipp daneben schließt das Angebot für heute. Ohne bewusste Auswahl erscheint es bei weiteren Starts erneut; ab 04:00 Uhr Ortszeit beginnt der nächste Angebotstag. Vor 04:00 Uhr zählt der vorherige Tag. Unabhängig davon öffnet ein langer Druck auf den linken Streckenbutton des Dashboards diesen Dialog jederzeit, auch wenn das automatische Angebot ausgeschaltet ist.</string>
     <string name="hrv_daily_start">HRV starten</string>
     <string name="hrv_daily_dismiss">HRV-Einstieg schließen</string>
     <string name="hrv_daily_open">HRV-Einstieg öffnen</string>

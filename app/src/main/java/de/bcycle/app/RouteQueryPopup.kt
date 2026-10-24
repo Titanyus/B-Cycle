@@ -206,21 +206,28 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
                 syncing=false;set(RouteRange(a,b));update()
             }.apply { tag="route_range_slider_$title" }
             reflect()
-            inputs.forEach { input -> input.onTextChanged {
-                if(syncing) return@onTextChanged
+            val times=arrayOfNulls<String>(2)
+            fun updateInputs() {
+                if(syncing) return
                 fun value(index:Int):Double? {
-                    val raw=inputs[index].text.toString().replace(',','.')
-                    if(!time || ':' !in raw) return raw.toDoubleOrNull()
+                    val raw=if(time) times[index] ?: return null else inputs[index].text.toString().replace(',','.')
+                    if(!time) return raw.toDoubleOrNull()
                     val parts=raw.split(':');if(parts.size!=2) return null
                     val hours=parts[0].toLongOrNull()?.takeIf { it>=0 } ?: return null
                     val minutes=parts[1].toIntOrNull()?.takeIf { it in 0..59 } ?: return null
                     return hours.toDouble()+minutes/60.0
                 }
                 val a=value(0);val b=value(1)
-                val valid=inputs.indices.all { inputs[it].text.isBlank() || (value(it)?.let { n -> n.isFinite() && n>=0 }==true) } && (a==null || b==null || a<=b)
+                val valid=inputs.indices.all { (if(time) times[it]=="" else inputs[it].text.isBlank()) || (value(it)?.let { n -> n.isFinite() && n>=0 }==true) } && (a==null || b==null || a<=b)
                 inputs.forEach { it.error=if(valid) null else context.getString(R.string.route_filter_invalid) }
                 if(valid) { set(RouteRange(a,b));reflect();update() }
-            } }
+            }
+            inputs.forEachIndexed { i,input ->
+                if(time) {
+                    times[i]=if((if(i==0) get().from else get().to)==null) "" else format(if(i==0) get().from else get().to)
+                    BicycleTimeInput(input,themes,context.getString(if(i==0) R.string.route_filter_from else R.string.route_filter_to),times[i].orEmpty()) { value -> times[i]=value;updateInputs() }
+                } else input.onTextChanged { updateInputs() }
+            }
             section.addView(row)
             section.addView(slider,LinearLayout.LayoutParams(-1,dp(BicycleDesign.touchSize)))
         }

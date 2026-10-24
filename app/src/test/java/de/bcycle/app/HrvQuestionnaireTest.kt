@@ -43,7 +43,7 @@ class HrvQuestionnaireTest {
         assertNull(HrvTrainingSummary.previousDay(day,zone,listOf(ride("unknown",start,null))).km)
         assertNull(HrvTrainingSummary.previousDay(day,zone,emptyList()).minutes)
     }
-    @Test fun unansweredCenterIsNotSavedUntilChosenAndTrainingAmountsStayEditableSideBySide() {
+    @Test fun untouchedSliderDefaultsAreSavedAndTrainingAmountsStayEditableSideBySide() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0));val saved=mutableListOf<HrvQuestionnaire>()
@@ -61,7 +61,7 @@ class HrvQuestionnaireTest {
             }
             assertEquals(0,(slider.layoutParams as LinearLayout.LayoutParams).topMargin)
             assertEquals(BicycleDesign.dp(a,4),(view.findViewWithTag<EditText>("hrvq_notes").layoutParams as LinearLayout.LayoutParams).topMargin)
-            assertEquals(10,slider.max);assertEquals(5,slider.progress);view.flush();assertTrue(saved.isEmpty())
+            assertEquals(10,slider.max);assertEquals(5,slider.progress);view.flush();assertEquals(5,saved.last().ratings["sleep"]);assertEquals(0,saved.last().ratings["soreness"]);assertNull(saved.last().training);assertNull(saved.last().sick)
             assertEquals(View.GONE,view.findViewWithTag<View>("hrvq_training_details").visibility)
             // A tap that chooses the existing center must count as an explicit neutral answer.
             slider.dispatchTouchEvent(android.view.MotionEvent.obtain(0,0,android.view.MotionEvent.ACTION_DOWN,slider.width/2f,slider.height/2f,0))
@@ -142,6 +142,33 @@ class HrvQuestionnaireTest {
             form.findViewWithTag<View>("hrvq_training_1").performClick();settle()
             assertEquals(32,gap(form.findViewWithTag("hrvq_training"),block("rpe")))
             assertEquals(32,gap(block("rpe"),block("motivation"))) // Existing trailing 32 dp must not become 64.
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun sleepTimeMasksAndTrainingUnitsStayVisibleAndIncompleteTimesDoNotOverwriteAnswers() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            HrvQuestionSettings(a).write(HrvQuestionConfig(setOf(HrvQuestion.SLEEP_DURATION,HrvQuestion.WAKE,HrvQuestion.BED,HrvQuestion.DISTANCE,HrvQuestion.DURATION,HrvQuestion.CONDITION)))
+            val initial=HrvQuestionnaire("2026-10-24",trainingKm=80.0,trainingMinutes=160.0,trainingSource="manual",extras=mapOf("sleepHours" to "6.25","wake" to "07:15","bed" to "23:00"))
+            val saved=mutableListOf<HrvQuestionnaire>()
+            val form=HrvQuestionnaireView(a,themes,initial,null) { value,done->saved+=value;done(true) }
+            val scroll=android.widget.ScrollView(a).apply { setBackgroundColor(themes.active.tokens.secondary);addView(form) }
+            a.setContentView(scroll);layout(scroll)
+            fun edit(key:String)=form.findViewWithTag<EditText>("hrvq_$key")
+            assertEquals("Schlafdauer · 06:15 h",edit("sleepHours").text.toString())
+            assertEquals("Aufgewacht · 07:15 h",edit("wake").text.toString())
+            assertEquals("Eingeschlafen · 23:00 h",edit("bed").text.toString())
+            assertEquals("80 km",edit("distance").text.toString());assertEquals("160 min",edit("duration").text.toString())
+            edit("sleepHours").setText("0613");form.flush()
+            assertEquals(6+13.0/60,saved.last().extras["sleepHours"]!!.toDouble(),1e-9)
+            edit("wake").setText("08");form.flush();assertEquals("07:15",saved.last().extras["wake"])
+            edit("wake").setText("25:00");form.flush();assertNotNull(edit("wake").error);assertEquals("07:15",saved.last().extras["wake"])
+            edit("wake").setText("0815");form.flush();assertNull(edit("wake").error);assertEquals("08:15",saved.last().extras["wake"])
+            edit("duration").text.insert(edit("duration").text.indexOf(" "),"5");form.flush()
+            assertEquals(1605.0,saved.last().trainingMinutes!!,0.0);assertEquals("1605 min",edit("duration").text.toString())
+            edit("duration").setText("160");edit("wake").clearFocus();layout(scroll)
+            val image=android.graphics.Bitmap.createBitmap(360,760,android.graphics.Bitmap.Config.ARGB_8888);scroll.draw(android.graphics.Canvas(image))
+            File("build/reports/ui/hrv-time-masks.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };image.recycle()
         } finally { host.pause().stop().destroy() }
     }
     @Test fun settingsAccordionAndRiderSexRoundTripInBackupAndPreserveOtherProfileInputs() {
