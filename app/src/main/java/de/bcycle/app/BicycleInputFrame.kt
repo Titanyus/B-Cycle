@@ -18,20 +18,31 @@ internal object BicycleInputFrame {
     fun positions()=BicycleInputStyle.outline.map { it.position }.toFloatArray()
     fun background(view:View,tokens:ThemeTokens):GradientDrawable {
         val binding=(view.getTag(R.id.input_frame) as? Glow) ?: Glow(view).also { view.setTag(R.id.input_frame,it) }
-        binding.selected=null;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.invalidateSelf()
+        binding.selected=null;binding.radiusDp=null;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.invalidateSelf()
         return Frame(view,tokens,{ binding.refresh() })
     }
-    fun selectionBackground(view:View,tokens:ThemeTokens,selected:Boolean):Drawable {
+    /** Shared active outline/halo, with independently chosen fill and corner geometry. */
+    fun decorate(view:View,tokens:ThemeTokens,active:Boolean,fill:Drawable?=null,radiusDp:Int=BicycleDesign.inputRadius):Drawable {
         val binding=(view.getTag(R.id.input_frame) as? Glow) ?: Glow(view).also { view.setTag(R.id.input_frame,it) }
-        binding.selected=selected;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.refresh()
-        val fill=if(selected) BicycleAccentGradient.fill(view.context,tokens,chromatic=BicycleInputStyle.strength(view)) else GradientDrawable().apply {
-            setColor(tokens.secondary);cornerRadius=BicycleInputStyle.radius(view.context)
-        }
-        return if(selected) android.graphics.drawable.LayerDrawable(arrayOf(fill,Frame(view,tokens,{ binding.refresh() },true))) else fill
+        binding.selected=active;binding.radiusDp=radiusDp;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.refresh()
+        val frame=Frame(view,tokens,{ binding.refresh() },active,BicycleDesign.dp(view.context,radiusDp).toFloat())
+        return if(fill==null) frame else android.graphics.drawable.LayerDrawable(arrayOf(fill,frame))
     }
-    private class Frame(view:View,tokens:ThemeTokens,private val refresh:()->Unit,private val selected:Boolean?=null):GradientDrawable() {
+    fun selectionBackground(view:View,tokens:ThemeTokens,selected:Boolean):Drawable {
+        val fill=if(selected) BicycleAccentGradient.fill(view.context,tokens,chromatic=BicycleInputStyle.strength(view),radiusDp=BicycleDesign.inputRadius) else GradientDrawable().apply {
+            setColor(tokens.secondary);cornerRadius=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()
+        }
+        val decorated=decorate(view,tokens,selected,fill)
+        return if(selected) decorated else fill
+    }
+    fun header(view:View,tokens:ThemeTokens,role:ThemeRole=ThemeRole.PRIMARY):Drawable {
+        if(BicycleAppearance.flat(view.context)) { decorate(view,tokens,false);return android.graphics.drawable.ColorDrawable(tokens.color(role)) }
+        val fill=if(role==ThemeRole.PRIMARY) BicycleAccentGradient.fill(view.context,tokens,foreground=tokens.foreground,chromatic=BicycleInputStyle.strength(view),radiusDp=0)
+            else android.graphics.drawable.ColorDrawable(tokens.color(role))
+        return decorate(view,tokens,true,fill,0)
+    }
+    private class Frame(view:View,tokens:ThemeTokens,private val refresh:()->Unit,private val selected:Boolean?=null,private val radius:Float=BicycleInputStyle.radius(view.context)):GradientDrawable() {
         private val density=view.resources.displayMetrics.density
-        private val radius=BicycleInputStyle.radius(view.context)
         private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeWidth=BicycleDesign.inputFocusStroke*density }
         private val flat=BicycleAppearance.flat(view.context)
         private val stops=if(flat) intArrayOf(tokens.primary) else colors(tokens.primary,BicycleInputStyle.strength(view))
@@ -43,6 +54,7 @@ internal object BicycleInputFrame {
             setStroke(BicycleDesign.dp(view.context,BicycleDesign.controlBorder),Color.argb(
                 (Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt(),Color.red(tokens.foreground),Color.green(tokens.foreground),Color.blue(tokens.foreground)))
         }
+        override fun getConstantState():ConstantState?=null
         override fun isStateful()=true
         override fun onStateChange(stateSet:IntArray):Boolean {
             val next=(selected ?: (android.R.attr.state_focused in stateSet)) && android.R.attr.state_enabled in stateSet
@@ -67,6 +79,9 @@ internal object BicycleInputFrame {
         private fun active()=(selected ?: field.isFocused) && field.isEnabled
         var primary=Color.TRANSPARENT
             set(value) { if(field!=value) { field=value;clearCache() } }
+        var radiusDp:Int?=null
+            set(value) { if(field!=value) { field=value;clearCache() } }
+        private fun radius()=radiusDp?.let { BicycleDesign.dp(field.context,it).toFloat() } ?: BicycleInputStyle.radius(field.context)
         var chromatic=BicycleInputStyle.defaultChromatic
             set(value) { if(field!=value) { field=value;clearCache() } }
         private data class Blurs(val width:Int,val height:Int,val density:Float,val pad:Float,val near:Bitmap,val outer:Bitmap)
@@ -110,7 +125,7 @@ internal object BicycleInputFrame {
                 shader=BicycleAccentGradient.shader(RectF(0f,0f,field.width.toFloat(),field.height.toFloat()),BicycleDesign.inputFocusAngle,colors(primary,chromatic),positions())
             }
             canvas.drawRoundRect(stroke/2,stroke/2,field.width-stroke/2,field.height-stroke/2,
-                BicycleInputStyle.radius(field.context),BicycleInputStyle.radius(field.context),contour)
+                radius(),radius(),contour)
             try {
                 val near=BicycleContourBlur.blur(source,BicycleDesign.inputFocusNearBlur*density*scale,BicycleDesign.inputFocusNearIntensity)
                 try {
@@ -126,7 +141,7 @@ internal object BicycleInputFrame {
             frame.set((fieldPosition[0]-hostPosition[0]).toFloat(),(fieldPosition[1]-hostPosition[1]).toFloat(),
                 (fieldPosition[0]-hostPosition[0]+field.width).toFloat(),(fieldPosition[1]-hostPosition[1]+field.height).toFloat())
             val density=field.resources.displayMetrics.density
-            val radius=BicycleInputStyle.radius(field.context)
+            val radius=radius()
             val blurred=blurs(density)
             inside.reset();inside.addRoundRect(frame,radius,radius,Path.Direction.CW)
             val saved=canvas.save()

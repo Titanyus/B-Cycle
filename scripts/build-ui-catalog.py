@@ -87,6 +87,8 @@ def main():
     result = TEMPLATE.read_text()
     replacements = {
         '__DESIGN_JSON__': json.dumps(manifest(), ensure_ascii=False).replace('</', '<\\/'),
+        '__CHROME_ENGINE__': (ROOT/'docs/previews/chromatic-color.js').read_text(),
+        '__INPUT_DESIGN__': (ROOT/'docs/designs/input-design.json').read_text(),
         '__BEBAS_FONT__': base64.b64encode((ROOT / 'docs/previews/fonts/BebasNeue-Regular.ttf').read_bytes()).decode(),
         '__LEAGUE_FONT__': base64.b64encode((APP / 'res/font/league_gothic.ttf').read_bytes()).decode(),
         '__LEAGUE_LICENSE__': html.escape((APP / 'assets/League-Gothic-OFL.txt').read_text()),

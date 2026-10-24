@@ -1,12 +1,12 @@
 {
   "format": "bcycle-input-design",
   "schema": 1,
-  "theme": "solar-flare-color",
-  "accent": "#F16A09",
+  "theme": "hellfire-color",
+  "accent": "#BF281B",
   "surface": "#161522",
   "foreground": "#FFFFFF",
-  "darken": 0.5,
-  "lighten": 0.4,
+  "darken": 0.3,
+  "lighten": 0.6,
   "outline": {
     "angle": 66,
     "stroke": 2,
@@ -20,14 +20,14 @@
       },
       {
         "id": 2,
-        "pos": 0.4794952931932856,
+        "pos": 0.3903785301050358,
         "type": "accent",
         "color": "#bf281b",
         "alpha": 1
       },
       {
         "id": 3,
-        "pos": 0.515,
+        "pos": 0.47397469245719587,
         "type": "light",
         "color": "#ffffff",
         "alpha": 1
@@ -57,15 +57,15 @@
   },
   "near": {
     "enabled": true,
-    "radius": 4,
-    "opacity": 0.46,
+    "radius": 3.5,
+    "opacity": 0.4,
     "intensity": 2
   },
   "outer": {
     "enabled": true,
-    "radius": 18,
+    "radius": 13,
     "opacity": 1,
-    "intensity": 6
+    "intensity": 2.5
   },
   "blend": "screen",
   "fill": {
@@ -92,19 +92,19 @@
     "height": 52,
     "radius": 24
   },
-  "chromatic": 1.5,
+  "chromatic": 1.49,
   "chromaticByTheme": {
-    "hellfire-color": 1.5,
+    "hellfire-color": 1.49,
     "hellfire-dark": 1.5,
-    "solar-flare-color": 1.5,
-    "solar-flare-dark": 1.5,
-    "sunstruck-color": 1.5,
-    "sunstruck-dark": 1.48,
+    "solar-flare-color": 2,
+    "solar-flare-dark": 2,
+    "sunstruck-color": 2.6,
+    "sunstruck-dark": 2.6,
     "acid-pop-color": 1.4,
     "acid-pop-dark": 1.4,
     "deep-dive-color": 1.8,
     "deep-dive-dark": 1.8,
-    "blue-riot-color": 0.7,
+    "blue-riot-color": 0.8,
     "blue-riot-dark": 0.7,
     "purple-haze-color": 1.7,
     "purple-haze-dark": 1.7
@@ -112,51 +112,51 @@
   "derived": {
     "engine": "oklch-chromatic-v1",
     "colors": {
-      "base": "#F16A09",
-      "light": "#e5b782",
-      "dark": "#5a2236"
+      "base": "#BF281B",
+      "light": "#d7bba1",
+      "dark": "#6f173d"
     },
     "outline": [
       {
         "position": 0.004731860970970131,
-        "color": "#e5b782",
+        "color": "#d7bba1",
         "opacity": 0.8
       },
       {
         "position": 0.16088327301298447,
-        "color": "#5a2236",
+        "color": "#6f173d",
         "opacity": 0.65
       },
       {
-        "position": 0.4794952931932856,
-        "color": "#F16A09",
+        "position": 0.3903785301050358,
+        "color": "#BF281B",
         "opacity": 1
       },
       {
-        "position": 0.515,
-        "color": "#e5b782",
+        "position": 0.47397469245719587,
+        "color": "#d7bba1",
         "opacity": 1
       },
       {
         "position": 0.7326499995451244,
-        "color": "#F16A09",
+        "color": "#BF281B",
         "opacity": 1
       },
       {
         "position": 1,
-        "color": "#5a2236",
+        "color": "#6f173d",
         "opacity": 1
       }
     ],
     "fill": [
       {
         "position": 0.29731864581093553,
-        "color": "#F16A09",
+        "color": "#BF281B",
         "opacity": 1
       },
       {
         "position": 1,
-        "color": "#5a2236",
+        "color": "#6f173d",
         "opacity": 1
       }
     ]

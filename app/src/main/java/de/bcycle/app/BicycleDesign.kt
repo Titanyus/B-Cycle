@@ -158,16 +158,18 @@ object BicycleDesign {
     const val controlBorder = 1
     const val inputHintAlpha = .5f
     const val inputUnitGap = 4
-    const val inputFocusDarken = .5f
-    const val inputFocusLighten = .4f
+    const val inputFocusDarken = .3f
+    const val inputFocusLighten = .6f
     const val inputFocusAngle = 66
     const val inputFocusStroke = 2f
     const val inputGlowRadius = 24
+    const val specialButtonRadius = 1000
+    const val popupGlowInset = 8
     const val inputFocusNearIntensity = 2f
-    const val inputFocusOuterIntensity = 6f
-    const val inputFocusNearBlur = 4f
-    const val inputFocusOuterBlur = 18f
-    const val inputFocusNearAlpha = .46f
+    const val inputFocusOuterIntensity = 2.5f
+    const val inputFocusNearBlur = 3.5f
+    const val inputFocusOuterBlur = 13f
+    const val inputFocusNearAlpha = .4f
     const val inputFocusOuterAlpha = 1f
     const val selectedControlShadow=4
     const val accentFillAngle = -115
@@ -352,6 +354,7 @@ object BicycleComponents {
         setPadding(dp(context, BicycleDesign.headerHorizontalPadding), dp(context, BicycleDesign.headerVerticalPadding),
             dp(context, BicycleDesign.headerHorizontalPadding), dp(context, BicycleDesign.headerVerticalPadding))
         surface(this, manager, ThemeRole.PRIMARY, BicycleDesign.dialogRadius, header = true)
+        bindTheme(this,manager) { background=BicycleInputFrame.header(this,it) }
     }
     fun dialogBody(context: Context, manager: ThemeManager) = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
@@ -453,8 +456,10 @@ object BicycleComponents {
         row.setPadding(border,border,border,border)
     }
     internal fun outlinedControl(view:View,manager:ThemeManager) {
-        bindTheme(view,manager) { view.background=controlBackground(view.context,it).apply { if(view.getTag(R.id.inline_control_row)==true) cornerRadius=BicycleInputStyle.radius(view.context) };view.backgroundTintList=null }
+        bindTheme(view,manager) { view.background=controlBackground(view.context,it).apply { if(view.getTag(R.id.inline_control_row)==true) cornerRadius=dp(view.context,BicycleDesign.inputRadius).toFloat() };view.backgroundTintList=null }
     }
+    fun specialFilled(context:Context,manager:ThemeManager,label:String,click:()->Unit):Button=BicycleSpecialButton(context,manager,true).apply { text=label;setOnClickListener { click() } }
+    fun specialOutline(context:Context,manager:ThemeManager,label:String,click:()->Unit):Button=BicycleSpecialButton(context,manager,false).apply { text=label;setOnClickListener { click() } }
     fun action(context: Context, manager: ThemeManager, label: String, click: () -> Unit) =
         action(context, manager, label, true, click)
     internal fun textAction(context:Context,manager:ThemeManager,label:String,click:()->Unit)=BicycleTextAction(context).apply {

@@ -41,21 +41,21 @@ class InputDesignConfigurationTest {
             }
         }
         val colors=BicycleAccentGradient.palette(android.graphics.Color.parseColor(spec.getString("accent")),spec.getDouble("chromatic"))
-        assertEquals(android.graphics.Color.parseColor("#e5b782"),colors.light)
-        assertEquals(android.graphics.Color.parseColor("#5a2236"),colors.dark)
+        assertEquals(android.graphics.Color.parseColor(spec.getJSONObject("derived").getJSONObject("colors").getString("light")),colors.light)
+        assertEquals(android.graphics.Color.parseColor(spec.getJSONObject("derived").getJSONObject("colors").getString("dark")),colors.dark)
     }
     @Test fun boundThemeIdentitySurvivesSettingsProjectionAndSamePrimaryWithDifferentStrength() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val activity=host.get();val themes=ThemeManager(activity.getSharedPreferences("input-style-test",0))
-            themes.activate("preset:sunstruck-color");themes.setSettingsLight(true)
+            themes.activate("preset:blue-riot-color");themes.setSettingsLight(true)
             val input=BicycleComponents.input(activity,themes.settings);activity.setContentView(input)
-            assertEquals(1.5,BicycleInputStyle.strength(input),0.0)
-            themes.activate("preset:sunstruck-dark")
-            assertEquals(1.48,BicycleInputStyle.strength(input),0.0)
-            assertEquals("preset:sunstruck-dark",input.getTag(R.id.input_theme_id))
+            assertEquals(0.8,BicycleInputStyle.strength(input),0.0)
+            themes.activate("preset:blue-riot-dark")
+            assertEquals(0.7,BicycleInputStyle.strength(input),0.0)
+            assertEquals("preset:blue-riot-dark",input.getTag(R.id.input_theme_id))
             val stops=input.background.javaClass.getDeclaredField("stops").apply { isAccessible=true }.get(input.background) as IntArray
-            assertArrayEquals(BicycleInputFrame.colors(themes.active.tokens.primary,1.48),stops)
+            assertArrayEquals(BicycleInputFrame.colors(themes.active.tokens.primary,0.7),stops)
             assertEquals(View.VISIBLE,input.visibility)
         } finally { host.pause().stop().destroy() }
     }

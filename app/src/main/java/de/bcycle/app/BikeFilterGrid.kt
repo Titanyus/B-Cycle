@@ -46,6 +46,8 @@ internal class BikeFilterGrid(context:Context,themes:ThemeManager,profiles:List<
                         cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
                         setStroke(BicycleDesign.dp(context,if(on) 2 else 1),BicycleComponents.selectionBorder(tokens,on))
                     }
+                    val outline=BicycleInputFrame.decorate(this,tokens,on)
+                    foreground=if(on) outline else null
                 }
                 BicycleComponents.bindTheme(this,themes,::paint)
                 setOnClickListener {

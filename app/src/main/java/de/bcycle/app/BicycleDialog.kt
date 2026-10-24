@@ -84,9 +84,8 @@ internal object BicycleDialogStyle {
                 setSize(dp(view,BicycleDesign.switchWidth),dp(view,BicycleDesign.switchHeight))
                 setStroke(BicycleDesign.linePixels(view.context),alpha(tokens.foreground,opacity))
             }
-            val thumb=GradientDrawable().apply {
-                shape=GradientDrawable.OVAL;setColor(alpha(if(checked) tokens.primary else tokens.foreground,opacity))
-            }
+            val thumb=if(checked && !BicycleAppearance.flat(view.context)) BicycleChromaticSurface(view.context,tokens,BicycleInputStyle.strength(view),BicycleDesign.specialButtonRadius,tokens.primary,true).apply { alpha=(255*opacity).toInt() }
+                else GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(alpha(if(checked) tokens.primary else tokens.foreground,opacity)) }
             val pill=LayerDrawable(arrayOf(track,thumb)).apply {
                 setLayerSize(1,dp(view,BicycleDesign.switchThumbDiameter),dp(view,BicycleDesign.switchThumbDiameter))
                 setLayerGravity(1,(if(checked) Gravity.END else Gravity.START) or Gravity.CENTER_VERTICAL)
@@ -118,6 +117,7 @@ internal object BicycleDialogStyle {
             decor.clipToOutline = true
         }
         content(decor, themes)
+        decor.findViewById<View>(decor.resources.getIdentifier("buttonPanel","id","android"))?.let(BicycleFooterShadow::bind)
         listOf(AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_POSITIVE).forEach { which ->
             screen.getButton(which)?.let { button ->
                 footer(button, themes)
@@ -183,7 +183,7 @@ internal object BicycleDialogStyle {
         if (view is DatePicker) BicycleNavigation.dateHeader(view,themes)
     }
     fun control(view: TextView, themes: ThemeManager) {
-        if(view is BicycleTextAction) return // Central transparent accent text action owns its styling.
+        if(view is BicycleTextAction || view is BicycleSpecialButton) return // Central transparent accent text action owns its styling.
         if(view.tag=="bicycle_content_heading") return // Central content-heading typography owns this role.
         if(view is BicycleSegmentButton) return // Own radio appearance; generic controls add selection circles.
         if(view is Button || view is EditText) BicycleComponents.controlSpacing(view)
@@ -244,7 +244,21 @@ internal object BicycleDialogStyle {
                     view.minHeight=dp(view,BicycleDesign.touchSize)
                 } else view.buttonTintList = checkedColors(it.primary, it.foreground)
                 if (view is Switch) {
-                    view.thumbTintList = checkedColors(it.primary, it.foreground)
+                    view.thumbTintList = null
+                    fun thumb(on:Boolean,enabled:Boolean):android.graphics.drawable.Drawable {
+                        val circle=if(on && !BicycleAppearance.flat(view.context)) BicycleChromaticSurface(view.context,it,BicycleInputStyle.strength(view),BicycleDesign.specialButtonRadius,it.primary,true)
+                            else GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(if(on) it.primary else it.foreground) }
+                        circle.alpha=if(enabled) 255 else 127
+                        return circle
+                    }
+                    val states=StateListDrawable().apply {
+                        addState(intArrayOf(-android.R.attr.state_enabled,android.R.attr.state_checked),thumb(true,false))
+                        addState(intArrayOf(-android.R.attr.state_enabled),thumb(false,false))
+                        addState(intArrayOf(android.R.attr.state_checked),thumb(true,true));addState(intArrayOf(),thumb(false,true))
+                    }
+                    states.state=view.drawableState
+                    (view.thumbDrawable as LayerDrawable).setDrawable(1,states)
+                    view.thumbDrawable.state=view.drawableState
                     view.trackTintList = null
                     view.trackDrawable=GradientDrawable().apply {
                         setColor(Color.TRANSPARENT)
@@ -291,6 +305,8 @@ internal object BicycleDialogStyle {
         BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) return
         view.minimumHeight = dp(view, BicycleDesign.touchSize)
+        val border=BicycleDesign.linePixels(view.context,BicycleDesign.controlBorder.toFloat())
+        view.setPadding(border,border,border,border)
         BicycleComponents.bindTheme(view, themes) { tokens ->
             view.backgroundTintList = null
             view.background = LayerDrawable(arrayOf(BicycleComponents.controlBackground(view.context,tokens),
@@ -299,7 +315,10 @@ internal object BicycleDialogStyle {
                 setLayerGravity(1, Gravity.END or Gravity.CENTER_VERTICAL)
                 setLayerInsetEnd(1, dp(view, BicycleDesign.horizontalPadding))
             }
-            view.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(view.context,tokens))
+            view.setPopupBackgroundDrawable(if(BicycleAppearance.flat(view.context)) BicycleComponents.dropdownBackground(view.context,tokens)
+                else BicycleChromaticSurface(view.context,tokens,BicycleInputStyle.strength(view),BicycleDesign.inputRadius,tokens.tertiary,insetDp=BicycleDesign.popupGlowInset).apply {
+                    val pad=dp(view,BicycleDesign.popupGlowInset)+border;setPadding(pad,pad,pad,pad)
+                })
         }
         val selected = view.selectedItemPosition
         val original = view.adapter ?: return
@@ -320,6 +339,9 @@ internal object BicycleDialogStyle {
                     }
                 }).apply {
                     isEnabled=isEnabled(position);alpha=if(isEnabled) 1f else .4f
+                    minHeight=if(dropdown) dp(view,BicycleDesign.touchSize) else dp(view,BicycleDesign.touchSize)-2*border
+                    maxLines=if(dropdown) Int.MAX_VALUE else 1
+                    ellipsize=if(dropdown) null else android.text.TextUtils.TruncateAt.END
                     val label=getItem(position).toString()
                     if (renderLabel != null) tag=label
                     text = renderLabel?.invoke(label,themes.active.tokens.foreground) ?: label

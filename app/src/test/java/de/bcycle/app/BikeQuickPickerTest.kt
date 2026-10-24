@@ -90,6 +90,10 @@ class BikeQuickPickerTest {
             val row=manager.getChildAt(0) as ViewGroup
             assertEquals(2,row.childCount);assertNotNull(manager.findViewWithTag<View>("bike_profile_add"))
             assertEquals(BicycleDesign.bodySp,((row.getChildAt(0) as ViewGroup).getChildAt(0) as TextView).textSize,.01f)
+            assertNotNull(row.getChildAt(0).foreground)
+            manager.show(listOf(profile,BikeProfile(1,"Zweites Rad")),1,false)
+            assertNull(row.getChildAt(0).foreground)
+            assertNotNull(row.getChildAt(1).foreground)
         } finally { host.pause().stop().destroy() }
     }
 }

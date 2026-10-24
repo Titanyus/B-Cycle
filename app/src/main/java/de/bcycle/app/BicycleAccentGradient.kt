@@ -40,12 +40,13 @@ internal object BicycleAccentGradient {
     }
     fun foreground(tokens:ThemeTokens):Int = if(ThemeValidator.contrast(tokens.foreground,tokens.primary)>=ThemeValidator.minimumTextContrast) tokens.foreground
         else if(ThemeValidator.contrast(Color.BLACK,tokens.primary)>=ThemeValidator.contrast(Color.WHITE,tokens.primary)) Color.BLACK else Color.WHITE
-    fun fill(context:Context,tokens:ThemeTokens,foreground:Int=foreground(tokens),chromatic:Double=BicycleInputStyle.strength(context)):GradientDrawable = if(BicycleAppearance.flat(context)) GradientDrawable().apply { setColor(tokens.primary);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat() } else object:GradientDrawable() {
+    fun fill(context:Context,tokens:ThemeTokens,foreground:Int=foreground(tokens),chromatic:Double=BicycleInputStyle.strength(context),radiusDp:Int=BicycleDesign.inputGlowRadius):GradientDrawable = if(BicycleAppearance.flat(context)) GradientDrawable().apply { setColor(tokens.primary);cornerRadius=BicycleDesign.dp(context,radiusDp).toFloat() } else object:GradientDrawable() {
         private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
         private val rect=RectF()
         private val border=GradientDrawable().apply { setColor(Color.TRANSPARENT) }
-        private val radius=BicycleInputStyle.radius(context)
+        private val radius=BicycleDesign.dp(context,radiusDp).toFloat()
         init { setColor(tokens.primary);cornerRadius=radius;border.cornerRadius=radius }
+        override fun getConstantState():ConstantState?=null
         override fun setStroke(width:Int,color:Int) { super.setStroke(width,color);border.setStroke(width,color) }
         override fun onBoundsChange(bounds:Rect) {
             super.onBoundsChange(bounds);rect.set(bounds);border.bounds=bounds

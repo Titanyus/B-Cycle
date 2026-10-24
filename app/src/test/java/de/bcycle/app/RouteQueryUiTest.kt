@@ -32,6 +32,10 @@ class RouteQueryUiTest {
             assertEquals(grid.getChildAt(0).top,grid.getChildAt(2).top)
             assertTrue(grid.getChildAt(3).top>grid.getChildAt(0).top)
             assertTrue(grid.getChildAt(2).right<=320)
+            grid.getChildAt(0).performClick()
+            assertNotNull(grid.getChildAt(0).foreground)
+            grid.getChildAt(0).performClick()
+            assertNull(grid.getChildAt(0).foreground)
             var pair=0.0 to 0.0
             val slider=BicycleRangeSlider(a,themes,"Range",{ it.toString() }) { from,to -> pair=from to to }
             slider.show(10.0,.1,2.0,8.0)

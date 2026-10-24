@@ -79,6 +79,8 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
                 if(p==null) setStroke(BicycleDesign.linePixels(context),color,dp(BicycleDesign.smallGap).toFloat(),dp(BicycleDesign.smallGap).toFloat())
                 else setStroke(if(selected) dp(2) else BicycleDesign.linePixels(context),color)
             }
+            val activeOutline=BicycleInputFrame.decorate(card,tokens,selected)
+            card.foreground=if(selected) activeOutline else null
             if(p!=null) {
                 (card.getChildAt(0) as TextView).text=context.getString(p.type.label)
                 (card.getChildAt(1) as ImageView).setImageDrawable(BikePreview(p.category).apply { setTint(tokens.foreground) })

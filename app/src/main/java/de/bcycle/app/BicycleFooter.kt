@@ -53,6 +53,7 @@ internal fun bicycleFooter(context: Context, themes: ThemeManager) = LinearLayou
 
 /** Draw above action children; nested action rows share their host separator. */
 internal fun styleBicycleFooter(view:android.view.View,themes:ThemeManager) {
+    BicycleFooterShadow.bind(view)
     BicycleComponents.background(view,themes,ThemeRole.SECONDARY)
     BicycleComponents.bindTheme(view,themes) { tokens ->
         view.foreground=object:android.graphics.drawable.Drawable() {

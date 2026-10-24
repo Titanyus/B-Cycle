@@ -14,6 +14,10 @@ internal class BicycleHeaderShadow(private val context: Context) {
     private val paint=Paint().apply {
         shader=LinearGradient(0f,0f,0f,height,Color.argb(BicycleDesign.headerShadowAlpha,0,0,0),Color.TRANSPARENT,Shader.TileMode.CLAMP)
     }
+    fun drawUp(canvas:Canvas,left:Float,bottom:Float,right:Float) {
+        val saved=canvas.save();canvas.translate(0f,bottom);canvas.scale(1f,-1f)
+        draw(canvas,left,0f,right);canvas.restoreToCount(saved)
+    }
     fun draw(canvas: Canvas, left: Float, top: Float, right: Float) {
         if(BicycleAppearance.flat(context)) return
         val saved=canvas.save();canvas.translate(0f,top)

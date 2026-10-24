@@ -18,6 +18,7 @@ internal object BicycleNavigation {
             tag="bicycle_navigation_header"
             layoutParams=ViewGroup.LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.headerHeight))
             BicycleComponents.background(this,themes,role)
+            BicycleComponents.bindTheme(this,themes) { background=BicycleInputFrame.header(this,it,role) }
         }
         if(title!=null) {
             BicycleComponents.headerTypography(title)

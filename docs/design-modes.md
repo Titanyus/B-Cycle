@@ -18,3 +18,17 @@ Gezielte native Prüfungen decken Theme mit unterschiedlichen PRIMARY-/ACCENT-Fa
 ## Freigegebener Chromatic-Entwurf in der App
 
 ChromaticColor als Kotlin-Port, themeabhängige Stärken und Designer-Exportwerte sind jetzt im Glow-Stil aktiv. JSON-Vorlage nur in docs/designs, keine Laufzeitdatei. Gemeinsame Fokus-/Auswahlkontur mit sechs Stops/Alpha, 2 dp bei 66°, Rundung 24 dp, Nah-/Außen-Glow 4/18 dp mit 2-/6-facher Verstärkung, Innenfläche mit verschobenem Basisstopp. Flat bleibt einfarbig und ohne Effekte mit bisheriger Rundung, Layout/Bedienung unverändert. Vorhandener Kontrastschutz bleibt aktiv. Details und konkrete Theme-Werte: input-focus-frame.md. Keine neuen Benutzereinstellungen oder Sicherungsfelder. In APK 0.8.37 / Build 76 enthalten, siehe build-76.md.
+
+Aktueller Preset-Nachtrag: Nutzerdatei „B-Cycle-Eingabedesign (8).json“ ersetzt die bisherigen Build-76-Stilwerte. Jetzt 60 % Hell / 30 % Dunkel, Nah 3,5 dp / 40 % / 200 %, Außen 13 dp / 100 % / 250 % und aktualisierte Theme-Stärken bis 260 %. Details und vollständige Werte in input-focus-frame.md; noch keine neue APK.
+
+## Gemeinsame Chromatic-Dekoration: Header, Footer und Auswahl
+
+Nach Build 76 erweitert, noch ohne neue APK. Nur Seiten- und Dialogheader bekommen im Glow-Modus die zentrale Kontur, Füllung und den Glow. Abschnitts-/Accordionüberschriften bleiben unverändert. Die bestehende SECONDARY-Ausnahme der HRV-Header bleibt erhalten; PRIMARY-Header verwenden die zentrale Verlaufsfüllung. Footer spiegeln den vorhandenen Header-Schatten nach oben (12 dp, maximale Alpha 102/255), ohne zusätzliche Höhe oder Touchfläche. Flat unterdrückt diese Effekte.
+
+Aktive Schalterdaumen, native Checkbox-/Radio-Zeilen in Schalterdarstellung und ausgewählte Fahrradkacheln nutzen dieselbe Chromatic-Kontur. Schalterposition, native Gesten, Einfach-/Mehrfachauswahl und Listener bleiben erhalten. Spinner-Popups behalten TERTIARY und bekommen Kontur plus Glow; 8 dp Innenreserve im Popup schützt die Dekoration. Geschlossene Spinner berücksichtigen ihren Rahmen innerhalb der bisherigen 48-dp-Mindesthöhe, damit der Text unten in beiden Modi vollständig passt.
+
+Segmentauswahlen (z. B. Aus / Alle Zonen / Zone 2) bleiben in beiden Modi eckig mit 6 dp Rundung. Die 24-dp-Rundung normaler Glow-Eingabefelder wird nicht auf diese Auswahlbuttons übertragen.
+
+Zwei ausdrücklich wählbare native Komponenten: `BicycleComponents.specialFilled` (Special-Füllung) und `specialOutline` (Special-Rahmen). Beide: normaler Textgrad, weiße Schrift, 900 Black, Pillenform, unverändertes natives Button-Verhalten. Glow: gemeinsame Kontur und Nah-/Außen-Glow, bei Füllung zusätzlich zentraler Flächenverlauf. Flat: PRIMARY einfarbig, ohne Glow/Verlauf/Schatten. Keine vorhandenen Aktionen automatisch ersetzt. Beispiele im [UI-Katalog](previews/ui-catalog.html); dessen CSS-Glow ist eine Näherung, kein Android-Pixelvergleich.
+
+Native Regressionen prüfen Moduswechsel, Geometrie/Listener, echte Verlaufs-Pixel, Auswahlwechsel ohne zurückbleibenden Rahmen, Popup-TERTIARY und Außen-Glow, Spinner-Textgrenzen sowie den gespiegelten Footer-Schatten. Browserprüfung: alle 14 Themes, beide Special-Varianten, Flat/Glow und schmale Hochformatbreiten. Kein Geräte-/GPU-Benchmark.

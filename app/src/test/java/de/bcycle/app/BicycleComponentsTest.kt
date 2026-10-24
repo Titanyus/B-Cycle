@@ -48,7 +48,7 @@ class BicycleComponentsTest {
             assertEquals(themes.active.tokens.tertiary,popupBackground.color!!.defaultColor)
             assertEquals(BicycleDesign.dp(activity,BicycleDesign.inputRadius).toFloat(),popupBackground.cornerRadius,0f)
             val popupPadding=android.graphics.Rect();assertTrue(popupBackground.getPadding(popupPadding))
-            assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlBorder),popupPadding.left)
+            assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlBorder+BicycleDesign.popupGlowInset),popupPadding.left)
             assertEquals(popupPadding.left,popupPadding.top)
 
             val toggle=android.widget.Switch(activity);BicycleDialogStyle.control(toggle,themes)
@@ -106,7 +106,7 @@ class BicycleComponentsTest {
             assertEquals(before, views.map(::geometry)); assertEquals(font, text.textSize, 0f)
             assertEquals(radius, (input.background as GradientDrawable).cornerRadius, 0f)
             assertEquals(light.tokens.foreground, text.currentTextColor)
-            assertEquals(light.tokens.primary, (header.background as GradientDrawable).color!!.defaultColor)
+            assertEquals(light.tokens.primary, ((header.background as android.graphics.drawable.LayerDrawable).getDrawable(0) as GradientDrawable).color!!.defaultColor)
             assertEquals(android.graphics.Color.TRANSPARENT, (input.background as GradientDrawable).color!!.defaultColor)
             assertEquals(BicycleDesign.linePixels(activity), divider.height)
             assertEquals(BicycleDesign.gridColumns, grid.columnCount); assertEquals(BicycleDesign.gridRows, grid.rowCount)
@@ -151,10 +151,10 @@ class BicycleComponentsTest {
     }
 
     @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
-    fun listChoiceSwitchesMoveThumbRemainIndependentAndFollowTheme() {
+    fun flatListChoiceSwitchesMoveThumbRemainIndependentAndFollowTheme() {
         val controller=Robolectric.buildActivity(Activity::class.java).setup()
         try {
-            val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("circle-ui",0))
+            val activity=controller.get();activity.getSharedPreferences("bike",0).edit().putBoolean(BicycleAppearance.flatKey,true).commit();val themes=ThemeManager(activity.getSharedPreferences("circle-ui",0))
             val root=LinearLayout(activity)
             val first=android.widget.CheckBox(activity);val second=android.widget.CheckBox(activity)
             val toggle=android.widget.Switch(activity)
@@ -188,10 +188,10 @@ class BicycleComponentsTest {
     }
 
     @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
-    fun listChoiceAndNativeSwitchThumbsUseAccentWhileOutlinesAndLabelsRemainForeground() {
+    fun flatListChoiceAndNativeSwitchThumbsUsePrimaryWhileOutlinesAndLabelsRemainForeground() {
         val controller=Robolectric.buildActivity(Activity::class.java).setup()
         try {
-            val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("accent-controls",0))
+            val activity=controller.get();activity.getSharedPreferences("bike",0).edit().putBoolean(BicycleAppearance.flatKey,true).commit();val themes=ThemeManager(activity.getSharedPreferences("accent-controls",0))
             val root=LinearLayout(activity).apply { orientation=LinearLayout.VERTICAL }
             val box=android.widget.CheckBox(activity)
             val radio=android.widget.RadioButton(activity)
@@ -222,7 +222,7 @@ class BicycleComponentsTest {
                 assertEquals(colors.primary,pixel(box));assertEquals(colors.primary,pixel(radio))
                 assertEquals(colors.foreground and 0xffffff,pixel(box,0) and 0xffffff)
                 assertEquals(colors.foreground,box.currentTextColor);assertEquals(colors.foreground,toggle.currentTextColor)
-                assertEquals(colors.primary,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
+                assertNull(toggle.thumbTintList)
                 assertNull(toggle.trackTintList)
                 fun thumbPixel():Int {
                     val bitmap=android.graphics.Bitmap.createBitmap(24,24,android.graphics.Bitmap.Config.ARGB_8888)
@@ -244,7 +244,7 @@ class BicycleComponentsTest {
                 box.isEnabled=true
                 assertEquals(colors.primary,pixel(box))
                 toggle.isChecked=false
-                assertEquals(colors.foreground,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
+                assertNull(toggle.thumbTintList)
                 assertEquals(colors.foreground,thumbPixel())
                 assertEquals(colors.foreground,trackPixel(24,0))
                 toggle.isEnabled=false

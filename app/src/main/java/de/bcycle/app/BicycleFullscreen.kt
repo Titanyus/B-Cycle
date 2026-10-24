@@ -77,6 +77,7 @@ internal object BicycleFullscreen {
             it.minimumHeight = BicycleDesign.dp(context, BicycleDesign.touchSize)
             BicycleComponents.bindTheme(it, themes) { tokens -> it.setBackgroundColor(tokens.secondary) }
             host.addView(it, LinearLayout.LayoutParams(-1, -2))
+            BicycleFooterShadow.bind(it)
         }
         window.setDecorFitsSystemWindows(false)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
