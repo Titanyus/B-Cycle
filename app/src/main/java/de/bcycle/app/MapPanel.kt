@@ -162,6 +162,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         controlsVisibilityChanged?.invoke(false)
     }
     val mapView: MapView
+    private val pinchZoom:MapPinchZoom
     private val routes = RouteTrackLayer(resources.displayMetrics.density)
 
     init {
@@ -179,6 +180,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             setCenter(LatLong(lat, lon))
             layerManager.pause()
         }
+        pinchZoom=MapPinchZoom(mapView) { MapZoom.maximum(source) }
         addView(mapView, LayoutParams(-1, -1))
         downloads = createDownloadLayer(source)
         mapView.layerManager.layers.add(downloads)
@@ -199,13 +201,13 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
                 touchingMap = false
                 if (controls.visibility == VISIBLE) scheduleHide()
             }
-            false
+            pinchZoom.onTouch(event)
         }
         fun icon(symbol: String, description: String, parent: LinearLayout? = controls, action: () -> Unit): Button = Button(context).apply {
             text = symbol; textSize = MapControlDesign.symbolSp; setTextColor(MapControlDesign.foreground); isAllCaps = false
             contentDescription = description; minWidth = 0; minHeight = 0; setPadding(0, 0, 0, 0)
             background = MapControlDesign.background(context)
-            setOnClickListener { action(); revealControls() }
+            setOnClickListener { pinchZoom.stop();action(); revealControls() }
             setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) handler.removeCallbacks(hideControls)
                 if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) scheduleHide()
@@ -282,10 +284,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun resume() { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis()); lastTrack = -1L; running = true; mapView.layerManager.proceed(); downloads.onResume(); revealControls(); refresh() }
     fun pause() {
+        pinchZoom.cancel()
         running = false; phoneHeading.stop(); stopMotion(); handler.removeCallbacksAndMessages(null); downloads.onPause(); mapView.layerManager.pause(); saveCamera()
     }
     fun destroy() { mapView.model.mapViewPosition.removeObserver(zoomObserver);pause(); mapView.destroyAll() }
     internal fun refreshProfileSettings() {
+        pinchZoom.cancel()
         dataFields.resetTrends()
         refreshSettings()
         mapView.model.mapViewPosition.setZoom(MapZoom.read(preferences,source),false)
@@ -297,6 +301,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
         val nextKey=MapProviderSettings.read(context)
         if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey)) {
+            pinchZoom.cancel()
             mapView.layerManager.layers.remove(downloads); downloads.onDestroy(); downloads.tileCache.destroy()
             source = next; providerKey=nextKey
             mapView.setZoomLevelMax(MapZoom.maximum(source).toByte())
@@ -473,6 +478,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         mapView.model.mapViewPosition.setZoomLevel(level.toByte(), false); revealControls(); refreshRoutes()
     }
     private fun zoom(delta: Int) {
+        pinchZoom.stop()
         mapView.model.mapViewPosition.setZoom((mapView.model.mapViewPosition.zoom + delta*.5).coerceIn(MapZoom.minimum.toDouble(),MapZoom.maximum(source).toDouble()), false)
         saveCamera()
     }

@@ -18,6 +18,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
     internal lateinit var map: MapView
         private set
     private lateinit var layer: MapNightLayer
+    private var pinchZoom:MapPinchZoom?=null
     private var destroyed = false; private var fitted = false
     init {
         tag = "analysis_map"; contentDescription = context.getString(R.string.analysis_map)
@@ -32,6 +33,10 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             // Preview never consumes scroll gestures. The dedicated fullscreen view supports native pan/zoom.
             if (!interactive) setOnTouchListener { _, _ -> true }
         }
+        if(interactive) {
+            pinchZoom=MapPinchZoom(map) { MapZoom.maximum(source) }
+            map.setOnTouchListener { _,event -> pinchZoom!!.onTouch(event) }
+        }
         layer = MapNightLayer(ViewportTileCache(), map.model.mapViewPosition, source.tiles(MapProviderSettings.read(context))).apply { this.night = this@RouteAnalysisMap.night }
         map.layerManager.layers.add(layer)
         map.layerManager.layers.add(RouteTrackLayer(resources.displayMetrics.density).apply { update(route, emptyList(), GpsValues(), true, false, night,savedStyle=MapRouteStyles.read(prefs,MapLineKind.SAVED,night)) })
@@ -40,7 +45,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             val buttons = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }
             val themes = ThemeManager(prefs)
             fun control(icon: BicycleIcon, description: Int, action: () -> Unit) {
-                buttons.addView(BicycleComponents.icon(context, themes, icon, context.getString(description), action), android.widget.LinearLayout.LayoutParams(BicycleDesign.dp(context, MapControlDesign.detailWidth), BicycleDesign.dp(context, MapControlDesign.buttonHeight)))
+                buttons.addView(BicycleComponents.icon(context, themes, icon, context.getString(description)) { pinchZoom?.stop();action() }, android.widget.LinearLayout.LayoutParams(BicycleDesign.dp(context, MapControlDesign.detailWidth), BicycleDesign.dp(context, MapControlDesign.buttonHeight)))
             }
             control(BicycleIcon.ZoomIn, R.string.analysis_zoom_in) { map.model.mapViewPosition.setZoom((map.model.mapViewPosition.zoom+.5).coerceAtMost(MapZoom.maximum(source).toDouble()),false) }
             control(BicycleIcon.ZoomOut, R.string.analysis_zoom_out) { map.model.mapViewPosition.setZoom((map.model.mapViewPosition.zoom-.5).coerceAtLeast(MapZoom.minimum.toDouble()),false) }
@@ -83,10 +88,10 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
         if (visibility == View.VISIBLE) resume() else { layer.onPause(); map.layerManager.pause() }
     }
     private fun resume() { if (!destroyed) { map.layerManager.proceed(); layer.onResume() } }
-    fun dispose() { if (!destroyed) { destroyed = true; layer.onPause(); map.layerManager.pause(); map.destroyAll() } }
+    fun dispose() { if (!destroyed) { destroyed = true; layer.onPause(); map.layerManager.pause(); pinchZoom?.cancel();map.destroyAll() } }
     override fun onDetachedFromWindow() {
         // Fullscreen host rehouses views after showing: detach pauses, the owning screen disposes on close.
-        if (!destroyed) { layer.onPause(); map.layerManager.pause() }
+        if (!destroyed) { pinchZoom?.cancel();layer.onPause(); map.layerManager.pause() }
         super.onDetachedFromWindow()
     }
 }

@@ -1,0 +1,7 @@
+# Kontinuierlicher Pinch-Zoom nach Build 78
+
+MapPinchZoom übernimmt ausschließlich Mehrfinger-Zoom auf Dashboard- und interaktiver Streckendetailkarte. Native einhändige Verschiebung/Fling, Doppeltipp und andere Mapsforge-Gesten bleiben erhalten. Keine zusätzliche Bibliothek. Die bisherige Android-ScaleGestureDetector-Mindestspanne kann eine Verkleinerung vor Ende der Fingerbewegung beenden; die neue Verarbeitung verwendet den tatsächlichen Abstand zweier stabiler Pointer-IDs ohne diese Mindestspanne.
+
+Zoomdelta aus log2(aktueller Abstand / letzter Abstand), mit bestehenden Grenzen 6–19 bzw. Quellmaximum. Grenzen pro Schritt anwenden, damit Richtungswechsel sofort reagieren. Beim Loslassen begrenzte, geglättete Zoomgeschwindigkeit kurz mit DecelerateInterpolator auslaufen lassen; kein Nachlaufen nach Pause vor dem Loslassen, Abbruch oder gegen die Zoomgrenze. Neue Berührung, Kartenbefehle, Quellen-/Profilwechsel und Pause/Detach beenden die Zoomanimation. Weitere Finger neu zuordnen, ohne Sprung; nach Pinch keine versehentliche einhändige Verschiebung aus dem verbleibenden Finger starten. Bestehende GPS-Folgeregel und Kamerasicherung erhalten.
+
+Gezielte Tests: kontinuierliche Verkleinerung über 300/200/100/50/25/12 Pixel Fingerabstand, Nachlauf und sofortiger Stopp, Min-/Quellmaximum und Cancel; bestehende Kartensteuerungs-/Zoomprüfungen erhalten. Ohne echten Hardware-/Mehrfinger-Gerätetest; das Bewegungsgefühl bitte mit der APK im Einsatz prüfen.
