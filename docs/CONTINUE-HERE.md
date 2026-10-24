@@ -1,3 +1,7 @@
+# Aktueller APK-Auftrag: 0.8.38 / Code 108
+
+Alle Änderungen seit Build 76 einschließlich neuer Presets und Chromatic-UI-Erweiterung werden auf Nutzerwunsch über GitHub Actions als optimierter Release mit dauerhaftem Signierschlüssel gebaut. Umfang docs/release-0.8.38.md. Gezielte Tests bereits erfolgreich; kein lokaler APK-Build. Build und direkte APK-Veröffentlichung laufen.
+
 # Neuester Nachtrag: Preset „B-Cycle-Eingabedesign (8).json“
 
 Angehängte JSON unverändert nach docs/designs/input-design.json übernommen, zentrale Kotlin-Werte entsprechend aktualisiert. Highlight 60 %, Schatten 30 %, Konturstops Basis 39,037853 % / Highlight 47,397469 %, Nah-Glow 3,5 dp / 40 % / 200 %, Außen-Glow 13 dp / 100 % / 250 %. Theme-Chromatic: HELLFIRE 149 / DARK 150 %, SOLAR FLARE 200 %, SUNSTRUCK 260 %, ACID 140 %, DEEP 180 %, BLUE RIOT 80 / DARK 70 %, PURPLE 170 %; Custom-Fallback 149 %. Winkel, Konturstärke, Füllstops und komponentenspezifische Radien unverändert. Keine Laufzeit-JSON, kein erzwungener Themewechsel, keine neue APK beauftragt. Design-Konfigurationstest gegen neue Datei aktualisiert; Theme-ID-Test verwendet jetzt BLUE RIOT (gleiche Basis, unterschiedliche Stärken). UI-Katalog aus neuer Referenz regeneriert. Alle 12 gezielten Preset-/Glow-/Flat-/Eingabeprüfungen erfolgreich, native Vorschau visuell geprüft; Browserprüfung über 14 Themes und beide Modi erfolgreich. Details input-focus-frame.md. Vorheriger Chrome-Auftrag bleibt vollständig erhalten.
