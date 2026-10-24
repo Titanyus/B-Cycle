@@ -339,6 +339,10 @@ object BicycleComponents {
         gravity = Gravity.CENTER; isAccessibilityHeading = true; maxLines = 1;tag="bicycle_page_heading"
         bindTheme(this,manager) { setTextColor(textColor(this,manager,it)) }
     }
+    internal fun sectionTypography(view:TextView) {
+        view.typeface=BicycleDesign.narrowTypeface(view.context);view.textSize=BicycleDesign.sectionTitleSp
+        view.isAllCaps=true
+    }
     internal fun headerTypography(view:TextView) {
         view.typeface=BicycleDesign.narrowTypeface(view.context);view.textSize=BicycleDesign.headingSp
         view.isAllCaps=true

@@ -75,7 +75,7 @@ def manifest():
     fingerprint = hashlib.sha256(b''.join(p.read_bytes() for p in tracked)).hexdigest()[:16]
     return dict(tokens=tokens, themes=themes, icons=icons, fingerprint=fingerprint,
                 exceptions=[dict(area='Schriftfamilien', value='Zentrale Rollen in BicycleDesign', detail='League Gothic für schmale Eingaben, Titel und Messwerte. System-/kompakte Systemschrift und 900 Black bleiben benannte Beschriftungsrollen.'),
-                            dict(area='Großschreibung', value='Nur Fenstertitel im Hauptheader erzwungen', detail='Eingaben und gespeicherte Namen werden nicht in Großbuchstaben umgewandelt.'),
+                            dict(area='Großschreibung', value='Fenstertitel und Sticky-Kategorieheader erzwungen', detail='Eingaben und gespeicherte Namen werden nicht in Großbuchstaben umgewandelt.'),
                             dict(area='Gruppenabstand / Nähe von Label und Control', value='Kein durchgängiger Token', detail='Slider-Fragen verwenden 32 dp Gruppenabstand, 0 dp oberhalb des Sliders und -8 dp zur Skala. Der allgemeine Formular-Abstandsentwurf bleibt separat.'),
                             dict(area='Abschnittstrenner', value=f'{values["sectionDividerGap"]} dp je Seite', detail='Dokumentation auf den bestehenden Codewert abgeglichen; kein App-Abstand geändert.')])
 

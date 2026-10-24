@@ -36,3 +36,7 @@ Native Regressionen prüfen Moduswechsel, Geometrie/Listener, echte Verlaufs-Pix
 ## HRV-/Abschluss-Ausnahmen nach Build 77
 
 Messscreen-Header und Header des Fahrtabschlussdialogs sind immer schlicht SECONDARY passend zum Inhalt, ohne dekorativen Rahmen/Glow. Die HRV-Angebotsgrafik bleibt unabhängig vom Modus die SCREEN-Neon-Grafik. HRV-Start/Erneut messen verwendet die gemeinsame Special-Rahmen-Dekoration auch auf der vorhandenen Textaktions-View, sodass dynamische Abbruch-/Fehlerzustände erhalten bleiben. Sticky-Kategorieheader jetzt League Gothic 30 sp mit Groß-/Kleinschreibung statt Systemschrift/900 Black; kein zusätzlicher Glow für Kategorien. In APK 0.8.39 / Build 78 enthalten.
+
+## Sticky-Typografie nach Build 78
+
+Alle Sticky-Kategorieheader zeigen League Gothic 30 sp jetzt ausschließlich in Großbuchstaben an. BicycleComponents.sectionTypography ist die gemeinsame Rolle, BicycleSectionHeader markiert den Titel, BicycleDialogStyle erhält die Rolle beim allgemeinen Styling. Damit wird die bisherige nachträgliche Body-Schrift auf Strecken-/FIT-Aufzeichnung, HRV-Fragenauswahl, Benachrichtigungs-Appauswahl und Daten-/Speichergruppen verhindert. Rohtext, Namen und Accessibility-Beschreibung behalten ihre Schreibweise; Farben, Geometrie und Accordion-/Scrollfunktion unverändert. Keine neue APK beauftragt.

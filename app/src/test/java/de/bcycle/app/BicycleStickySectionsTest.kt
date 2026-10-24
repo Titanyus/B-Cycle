@@ -69,13 +69,35 @@ class BicycleStickySectionsTest {
                 assertEquals(android.view.Gravity.CENTER,label.gravity)
                 assertEquals(BicycleDesign.narrowTypeface(context),label.typeface)
                 assertEquals(BicycleDesign.sectionTitleSp,label.textSize/context.resources.displayMetrics.scaledDensity,.01f)
-                assertEquals(label.text,label.transformationMethod?.getTransformation(label.text,label) ?: label.text)
+                assertEquals(label.text.toString().uppercase(java.util.Locale.getDefault()),label.transformationMethod.getTransformation(label.text,label).toString())
                 for(index in listOf(0,2)) {
                     assertEquals(BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp),header.getChildAt(index).height)
                     assertEquals(themes.active.tokens.foreground,(header.getChildAt(index).background as ColorDrawable).color)
                 }
             }
         } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun dialogStylingCannotOverrideGlobalStickyTypographyOrAlterStoredTitles() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("sticky-dialog-role",0))
+            val labels=listOf("Strecken-Aufzeichnung","FIT-Aufzeichnung","Tagesbefinden","Apps auswählen","Fahrten sichern","HRV-Pulsdaten","Fahrrad Müller")
+            val body=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL }
+            val headers=labels.map { title -> BicycleSectionHeader(c,themes,title).also { body.addView(it) } }
+            val scroll=BicycleStickyScrollView(c).apply { addView(body) };c.setContentView(scroll)
+            for(flat in listOf(false,true)) {
+                themes.setFlatDesign(flat)
+                repeat(2) { BicycleDialogStyle.content(scroll,themes) }
+                headers.zip(labels).forEach { (header,title) ->
+                    val label=header.titleView
+                    assertEquals(BicycleDesign.narrowTypeface(c),label.typeface)
+                    assertEquals(BicycleDesign.sectionTitleSp,label.textSize/c.resources.displayMetrics.scaledDensity,.01f)
+                    assertEquals(title,label.text.toString())
+                    assertEquals(title.uppercase(java.util.Locale.getDefault()),label.transformationMethod.getTransformation(label.text,label).toString())
+                    assertEquals(title,header.contentDescription)
+                }
+            }
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun bikesUseFullWidthHeadingsAndSelectedTilesUseAccent() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()

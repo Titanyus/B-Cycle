@@ -13,7 +13,7 @@ internal class BicycleSectionHeader(context: Context, private val manager: Theme
     var expanded:Boolean?=null;private set
     var revealOnOpen=false
     val titleView = BicycleComponents.text(context, manager, title).apply {
-        typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.sectionTitleSp;isAllCaps=false
+        tag="bicycle_section_title";BicycleComponents.sectionTypography(this)
     }
     init {
         BicycleComponents.bindTheme(titleView,manager) { titleView.setTextColor(it.foreground) }
