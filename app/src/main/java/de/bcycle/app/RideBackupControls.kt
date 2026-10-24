@@ -30,7 +30,7 @@ internal class RideBackupControls(context:Context,private val themes:ThemeManage
         }
         local=option(RideBackupDestination.LOCAL,R.string.ride_backup_local)
         cloud=option(RideBackupDestination.WEBDAV,R.string.ride_backup_webdav)
-        addView(RadioGroup(context).apply { orientation=VERTICAL;addView(local);addView(cloud) },LayoutParams(-1,-2))
+        addView(RadioGroup(context).apply { orientation=VERTICAL;addView(local,RadioGroup.LayoutParams(-1,-2));addView(cloud,RadioGroup.LayoutParams(-1,-2)) },LayoutParams(-1,-2))
         listOf(RideBackupAction.EXPORT to R.string.ride_backup_export,
             RideBackupAction.SETTINGS to R.string.ride_backup_restore_settings,
             RideBackupAction.IMPORT to R.string.ride_backup_import).forEach { (mode,title) ->

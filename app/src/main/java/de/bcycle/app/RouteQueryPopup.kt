@@ -242,7 +242,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
                 id=View.generateViewId();text=context.getString(sort.label);isChecked=sort==query.sort
                 BicycleDialogStyle.control(this,themes)
                 setOnCheckedChangeListener { _,on -> if(on) { query.sort=sort;update() } }
-            }) };section.addView(radios)
+            },RadioGroup.LayoutParams(-1,-2)) };section.addView(radios)
         }
         group(R.string.route_sort_direction,{ context.getString(if(query.descending) R.string.route_sort_down else R.string.route_sort_up) }) { section,update ->
             val radios=RadioGroup(context)
@@ -250,7 +250,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
                 id=View.generateViewId();text=context.getString(if(down) R.string.route_sort_down else R.string.route_sort_up);isChecked=down==query.descending
                 BicycleDialogStyle.control(this,themes)
                 setOnCheckedChangeListener { _,on -> if(on) { query.descending=down;update() } }
-            }) };section.addView(radios)
+            },RadioGroup.LayoutParams(-1,-2)) };section.addView(radios)
         }
         shell(R.string.route_sort_button)
     }

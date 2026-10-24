@@ -212,10 +212,10 @@ internal class DreeveActivityRow(context:Context,themes:ThemeManager):LinearLayo
         orientation=HORIZONTAL;gravity=android.view.Gravity.CENTER_VERTICAL
         val gap=BicycleDesign.dp(context,BicycleDesign.smallGap);setPadding(0,gap,0,gap)
         importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-        addView(box,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
         addView(LinearLayout(context).apply {
             orientation=VERTICAL;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
             labels.forEach { addView(it,LayoutParams(-1,-2)) }
         },LayoutParams(0,-2,1f))
+        addView(box,LayoutParams(-2,BicycleDesign.dp(context,BicycleDesign.touchSize)))
     }
 }

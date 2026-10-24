@@ -73,7 +73,7 @@ class FormUnitsAndChoicesTest {
             val group=RadioGroup(a)
             val radios=(0..1).map { RadioButton(a).apply {
                 id=View.generateViewId();text="Option $it";BicycleDialogStyle.control(this,themes)
-                group.addView(this)
+                group.addView(this,RadioGroup.LayoutParams(-1,-2))
             } }
             root.addView(group)
             radios[0].performClick();assertTrue(radios[0].isChecked)
@@ -81,12 +81,18 @@ class FormUnitsAndChoicesTest {
             val config=HrvQuestionSettings(a);config.write(HrvQuestionConfig(emptySet()))
             val questions=HrvQuestionSettingsView(a,themes);root.addView(questions)
             a.setContentView(root);layout(root)
+            assertEquals(group.width,radios[0].width)
             for(key in listOf("SLEEP","CONDITION")) {
                 val choice=questions.findViewWithTag<CompoundButton>("hrvq_enabled_$key")
                 choice.performClick()
                 assertTrue(choice.isChecked)
                 assertEquals(Switch::class.java.name,choice.createAccessibilityNodeInfo().className)
-                assertEquals(BicycleDesign.switchWidth+BicycleDesign.choiceTextGap,choice.buttonDrawable!!.intrinsicWidth)
+                assertNull(choice.buttonDrawable)
+                assertNull(choice.compoundDrawablesRelative[0])
+                assertEquals(choice.paddingLeft,choice.compoundPaddingLeft)
+                assertTrue(choice.compoundPaddingRight>choice.paddingRight)
+                assertEquals(android.view.Gravity.LEFT,choice.gravity and android.view.Gravity.HORIZONTAL_GRAVITY_MASK)
+                assertEquals(BicycleDesign.switchWidth+BicycleDesign.choiceTextGap,choice.compoundDrawablesRelative[2]!!.intrinsicWidth)
             }
             assertTrue(config.read().enabled.containsAll(setOf(HrvQuestion.SLEEP,HrvQuestion.CONDITION)))
             assertFalse(questions.findViewWithTag<CompoundButton>("hrvq_enabled_CYCLE").isEnabled)

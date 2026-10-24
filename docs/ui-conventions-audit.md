@@ -182,3 +182,10 @@ Schlafoptionen und globaler Auswahlabstand sind in APK **0.8.29 / Build 68** ent
 - Maßeinheiten im Eingabefeld als 50-%-Dekoration über BicycleInputUnit, mit zentralem Abstand inputUnitGap. Numerische Rohtexte und bestehende Parser unverändert, keine Einheiten in Persistenz/Clipboard/Selektion. Umgesetzt in Fahrerprofil, Radumfang, HRV-Trainingsmengen und numerischen Streckenfiltern; Zeitfelder verwenden weiterhin ihre feste Maske.
 - BicycleForm.inputRow/numberRow: Beschriftung links, Eingabefeld rechts, keine außen angehängte Einheit. Schlafdauer, Eingeschlafen und Aufgewacht nutzen drei Zeilen, nicht die frühere kompakte Nebeneinanderansicht.
 - Listen mit bisherigen Checkbox-/Radio-Punkten verwenden dieselbe transparente 48×24-dp-Pille/18-dp-Daumen wie unsere Schalter, aktiviert ACCENT, sonst FOREGROUND. Zentrale native Auswahlzustände/RadioGroup-Ausschluss/Mehrfachauswahl bleiben erhalten; zugängliche Rolle Switch. Segmentbuttons ohne führenden Punkt behalten ihre Form. Keine neuen Auswahlpunkte einführen.
+
+
+## Korrektur 24.10.2026: Beschriftung links, Schalter rechts
+
+Appweite Schalterkonvention ausdrücklich auch bei bisherigen Checkbox-/Radio-Zeilen anwenden. Zentral BicycleDialogStyle: native CompoundButton-Auswahl bleibt erhalten, stateful Schalterzeichnung als rechte End-Dekoration statt linkem Button-Drawable. Text links, keine RTL-Spiegelung; RadioGroup-Zeilen füllen die Listenbreite. Separat beschriftete Dreeve-/ZIP-Importzeilen: Textblock links, Auswahl rechts, gesamte Schalterzeichnung unbeschnitten.
+
+Gestaltungsaufträge ändern ausschließlich die Optik, niemals Funktionalität. Falls beim Implementieren zwischen alter Anordnung und einer Komponentenkonvention entschieden werden muss, Nutzer vorher fragen. Verbindlich auch in AGENTS.md.

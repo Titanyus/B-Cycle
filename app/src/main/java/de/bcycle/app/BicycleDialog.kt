@@ -93,7 +93,7 @@ internal object BicycleDialogStyle {
                 val inset=dp(view,(BicycleDesign.switchHeight-BicycleDesign.switchThumbDiameter)/2)
                 setLayerInsetStart(1,inset);setLayerInsetEnd(1,inset)
             }
-            return android.graphics.drawable.InsetDrawable(pill,0,0,dp(view,BicycleDesign.choiceTextGap),0)
+            return android.graphics.drawable.InsetDrawable(pill,dp(view,BicycleDesign.choiceTextGap),0,0,0)
         }
         addState(intArrayOf(-android.R.attr.state_enabled,android.R.attr.state_checked),toggle(true,false))
         addState(intArrayOf(-android.R.attr.state_enabled),toggle(false,false))
@@ -223,6 +223,7 @@ internal object BicycleDialogStyle {
             }
             val listChoice=view is CheckBox || view is RadioButton
             if(listChoice) {
+                view.gravity=Gravity.START or Gravity.CENTER_VERTICAL
                 view.setPadding(dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding),
                     dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding))
             }
@@ -236,7 +237,10 @@ internal object BicycleDialogStyle {
                 view.setTextColor(colors(it.foreground))
                 if (listChoice) {
                     view.buttonTintList = null
-                    view.buttonDrawable = selectionSwitch(view,it)
+                    view.buttonDrawable = null
+                    val indicator=selectionSwitch(view,it)
+                    view.setCompoundDrawablesRelativeWithIntrinsicBounds(null,null,indicator,null)
+                    indicator.state=view.drawableState
                     view.minHeight=dp(view,BicycleDesign.touchSize)
                 } else view.buttonTintList = checkedColors(it.accent, it.foreground)
                 if (view is Switch) {

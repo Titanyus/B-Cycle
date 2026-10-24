@@ -161,23 +161,28 @@ class BicycleComponentsTest {
             for(view in listOf(first,second,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
             val thumb=toggle.thumbDrawable
             activity.setContentView(root)
+            fun layoutChoices() {
+                root.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY))
+                root.layout(0,0,360,800)
+            }
+            layoutChoices()
             fun draw(box: android.widget.CheckBox): android.graphics.Bitmap {
                 val bitmap=android.graphics.Bitmap.createBitmap(48,24,android.graphics.Bitmap.Config.ARGB_8888)
-                (box.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,24);draw(android.graphics.Canvas(bitmap)) }
+                (box.compoundDrawablesRelative[2]!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,24);draw(android.graphics.Canvas(bitmap)) }
                 return bitmap
             }
             assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,12)))
             assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(2,2)))
-            val width=first.buttonDrawable!!.intrinsicWidth
+            val width=first.compoundDrawablesRelative[2]!!.intrinsicWidth
             first.performClick();second.performClick()
             assertTrue(first.isChecked);assertTrue(second.isChecked)
             assertEquals(themes.active.tokens.accent,draw(first).getPixel(36,12))
             first.performClick();assertFalse(first.isChecked);assertTrue(second.isChecked)
             assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,12)))
             val light=CustomTheme("custom:circle-light","Light",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),0xff000000.toInt()))
-            assertTrue(themes.saveCustom(light).valid);assertTrue(themes.activate(light.id))
+            assertTrue(themes.saveCustom(light).valid);assertTrue(themes.activate(light.id));layoutChoices()
             assertEquals(light.tokens.accent,draw(second).getPixel(36,12))
-            assertEquals(width,first.buttonDrawable!!.intrinsicWidth)
+            assertEquals(width,first.compoundDrawablesRelative[2]!!.intrinsicWidth)
             assertSame(thumb,toggle.thumbDrawable)
         } finally { controller.pause().stop().destroy() }
     }
@@ -196,10 +201,15 @@ class BicycleComponentsTest {
             for(view in listOf(box,radio,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
             val originalThumb=toggle.thumbDrawable
             activity.setContentView(root)
-            assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.choiceTextGap),radio.buttonDrawable!!.intrinsicWidth)
+            fun layoutChoices() {
+                root.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY))
+                root.layout(0,0,360,800)
+            }
+            layoutChoices()
+            assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.choiceTextGap),radio.compoundDrawablesRelative[2]!!.intrinsicWidth)
             fun pixel(button: android.widget.CompoundButton,x:Int=36):Int {
                 val bitmap=android.graphics.Bitmap.createBitmap(48,24,android.graphics.Bitmap.Config.ARGB_8888)
-                (button.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,24);draw(android.graphics.Canvas(bitmap)) }
+                (button.compoundDrawablesRelative[2]!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,24);draw(android.graphics.Canvas(bitmap)) }
                 val color=bitmap.getPixel(x,12);bitmap.recycle();return color
             }
             box.performClick();radio.performClick();toggle.performClick()
@@ -207,7 +217,7 @@ class BicycleComponentsTest {
             val light=CustomTheme("custom:accent-light","Light",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),0xff000000.toInt(),0xff002266.toInt()))
             assertTrue(themes.saveCustom(light).valid)
             for(theme in BicycleThemes.presets + light) {
-                assertTrue(themes.activate(theme.id))
+                assertTrue(themes.activate(theme.id));layoutChoices()
                 val colors=theme.tokens
                 assertEquals(colors.accent,pixel(box));assertEquals(colors.accent,pixel(radio))
                 assertEquals(colors.foreground and 0xffffff,pixel(box,0) and 0xffffff)
@@ -240,7 +250,7 @@ class BicycleComponentsTest {
                 toggle.isEnabled=false
                 assertEquals(127,android.graphics.Color.alpha(trackPixel(24,0)))
                 toggle.isEnabled=true;toggle.isChecked=true
-                assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.choiceTextGap),radio.buttonDrawable!!.intrinsicWidth)
+                assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.choiceTextGap),radio.compoundDrawablesRelative[2]!!.intrinsicWidth)
                 assertSame(originalThumb,toggle.thumbDrawable)
             }
             box.performClick();assertEquals(2,changes)
