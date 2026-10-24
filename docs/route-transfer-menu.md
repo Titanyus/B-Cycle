@@ -27,3 +27,7 @@ Bei alten Dienstbelegen ohne Aktivitäts-ID ist nur erneute Übertragung möglic
 Prüfung am 23.10.2026: gezielte Tests für echte 600-ms-Grenze, kurze Tipps, Scroll-/Detach-Abbruch, Sperren und bestehende Menüaktualisierung; GET-Nachweise/404/Auth-/Serverfehler, Konto-/Dateiwechsel, neue dauerhafte Versuche nur für betroffene Ziele, Namens-/Linkerhalt, geplante Dreeve-Strecken, Strava-Schreibrechte und lokale Downloadkopien. Kein echter Cloudkontentest, keine APK für diesen Auftrag.
 
 Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+## Dreeve-Namen nach Upload, 24.10.2026
+
+Profilvorlagen erzeugen einen lokalen Ausgangsnamen und keinen manuellen Änderungsauftrag. Nach bestätigter Dreeve-Verarbeitung wird immer der Dreeve-Name gelesen, auch wenn ältere Appversionen den Ausgangsnamen als manual markiert hatten. Die Bestätigung schreibt keinen Namen nach Dreeve. Bewusste lokale Umbenennungen bleiben erlaubt; ein während des Abrufs neu erzeugter Auftrag schützt die lokale Änderung vor der älteren Antwort. Konto-/Abbruch-/Auftragsschutz und manueller Pull erhalten. Tests mit simulierten Diensten erfolgreich; kein echtes Dreeve-Konto verwendet. Bereits auf Dreeve überschriebene Originalnamen lassen sich aus dem Fix nicht rekonstruieren.

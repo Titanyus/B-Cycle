@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 internal data class DreeveNameSyncResult(val updated:Int,val unchanged:Int,val failed:Int,val interrupted:Boolean=false)
 
-/** Durable, coalesced name changes. Never uploads ride files; manual names always win. */
+/** Durable, coalesced name changes. Never uploads ride files; edits made during a fetch win. Dreeve confirmation always pulls. */
 internal object RideNames {
     private const val JOB=8305
     private val lock=Any();private val workerLock=Any()
@@ -54,6 +54,8 @@ internal object RideNames {
         val all=data(c);if(names(all).has(id)) return@synchronized
         names(all).put(id,JSONObject().put("name",name).put("manual",false));save(c,all)
     }
+    /** A profile template is a local baseline, never a request to rename a remote activity. */
+    fun generated(c:Context,id:String,name:String)=imported(c,id,name)
     fun manual(c:Context,id:String,name:String) {
         require(name.isNotBlank() && name.length<=120)
         val links=RideServiceLinks.links(c,id)
@@ -65,7 +67,7 @@ internal object RideNames {
     fun confirmed(c:Context,link:RideServiceLink) {
         synchronized(lock) {
             val all=data(c);val row=names(all).optJSONObject(link.rideId)
-            if(link.service==RideService.DREEVE && row?.optBoolean("manual")!=true) task(all,link,null,read=true)
+            if(link.service==RideService.DREEVE) task(all,link,null,read=true)
             else row?.optString("name")?.takeIf { it.isNotBlank() }?.let { task(all,link,it) }
             save(c,all)
         };schedule(c)
@@ -149,10 +151,11 @@ internal object RideNames {
                     val result=(read?.invoke(link) ?: DreeveClient(ActivityServiceSettings(c,ActivityService.DREEVE).read(),
                         ActivityServiceSettings(c,ActivityService.DREEVE).credentials().getString("secret"),{ !valid() }).activityName(link.activityId)).trim().take(120)
                     require(result.isNotBlank())
+                    if(!valid()) continue
                     val links=RideServiceLinks.links(c,link.rideId)
                     synchronized(lock) {
                         val all=data(c);val latest=tasks(all).optJSONObject(key)
-                        if(latest?.optString("token")==token && names(all).optJSONObject(link.rideId)?.optBoolean("manual")!=true) {
+                        if(latest?.optString("token")==token) {
                             names(all).put(link.rideId,JSONObject().put("name",result).put("manual",false))
                             tasks(all).remove(key);links.filter { it.service!=RideService.DREEVE }.forEach { task(all,it,result) };save(c,all)
                         }

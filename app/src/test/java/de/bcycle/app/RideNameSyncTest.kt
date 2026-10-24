@@ -32,6 +32,16 @@ class RideNameSyncTest {
         assertEquals("Abendrunde · 42 km",RideNames.name(c,ride));assertEquals(listOf(RideService.INTERVALS to "Abendrunde · 42 km"),writes)
         assertFalse(RideNames.run(c,{false},read={ fail("Already fetched");"" },write={ _,_->fail("Already applied") }))
     }
+    @Test fun profileGeneratedAndLegacyPreUploadNamesNeverOverwriteDreeveAfterConfirmation() {
+        setup();RideNames.generated(c,ride,"Profilrunde · 20km")
+        assertEquals("Profilrunde · 20km",RideNames.name(c,ride))
+        RideNames.run(c,{false},read={ fail("No read before upload confirmation");"" },write={ _,_->fail("Generated name must never enqueue a write") })
+        // Older builds marked generated names as manual; confirmation must also repair that case.
+        RideNames.manual(c,ride,"Alter automatisch erzeugter Titel")
+        RideNames.confirmed(c,link())
+        assertFalse(RideNames.run(c,{false},read={ "Dreeve · vollständiger Name" },write={ _,_->fail("Confirmation must pull, never PATCH Dreeve") },wait={ _,_->true }))
+        assertEquals("Dreeve · vollständiger Name",RideNames.name(c,ride))
+    }
     @Test fun manualNamesWinOverInflightAutomaticResponseAndCoalescePerRemoteActivity() {
         setup();RideNames.confirmed(c,link())
         val writes=mutableListOf<String>()

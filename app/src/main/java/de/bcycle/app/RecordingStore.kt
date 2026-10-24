@@ -110,7 +110,7 @@ internal class RecordingStore(private val context: Context, private val changed:
                 val snapshot=JSONObject(namingFile.readText())
                 val template=RideNaming.decode(snapshot.getJSONObject("template"))
                 val details=FitRead.read(RideAnalysisFiles.file(context.filesDir,original.nameWithoutExtension)).details
-                RideNames.manual(context,original.nameWithoutExtension,template.format(details,ZoneId.of(snapshot.getString("zone")),java.util.Locale.forLanguageTag(snapshot.getString("locale"))))
+                RideNames.generated(context,original.nameWithoutExtension,template.format(details,ZoneId.of(snapshot.getString("zone")),java.util.Locale.forLanguageTag(snapshot.getString("locale"))))
             }
             val exportFile=FitLibrary.activeFile(context.filesDir,original.nameWithoutExtension)
             val config = RouteExportSettings(context).read()
