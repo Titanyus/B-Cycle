@@ -35,3 +35,7 @@ Auf Nutzerwunsch für später festgehalten, keine zusätzliche Implementierung b
 - ANT+ ist ein separater Zugang mit eigener Geräte-/Adaptervoraussetzung; Bluetooth-Unterstützung ersetzt ihn nicht. Erst bei konkretem Bedarf planen.
 
 Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+## Einheitliche Quellen-Dropdowns, 24.10.2026
+
+Geschwindigkeit, Distanz, Leistung, Kadenz, Puls und Höhe zeigen jeweils ein eigenes Dropdown. Zwei oder mehr konfigurierte Quellen: Wahl wie bisher. Eine Quelle: ihr Name sichtbar, Dropdown deaktiviert. Keine Quelle: Keine Quelle sichtbar, deaktiviert. Aufnahmesperre bleibt zusätzlich wirksam. Keine Auswahl wird allein durch das Anzeigen einer deaktivierten Zeile gespeichert; automatische Ersatzquellen, FIT-IDs, Profil-/Sicherungsformat und Quellauflösung unverändert.

@@ -64,7 +64,7 @@ class RecordingSourcesTest {
         SystemClock.sleep(6000);assertNull(barometer.reading(null))
         barometer.stop();pressure(998f);assertNull(barometer.reading(SourceReading(500.0,SystemClock.elapsedRealtime(),true)))
     }
-    @Test fun capabilitiesAndUiOnlyOfferSelectorsForMultipleConfiguredSourcesAndBackupPreservesChoices() {
+    @Test fun allQuantitiesShowSourceDropdownsButOnlyMultipleConfiguredSourcesAreEditableAndBackedUp() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val activity=host.get();val prefs=activity.getSharedPreferences("bike",0);val profiles=BikeProfileStore(activity,prefs)
@@ -77,7 +77,12 @@ class RecordingSourcesTest {
             activity.setContentView(view)
             assertNotNull(view.findViewWithTag<Spinner>("record_source_choice_SPEED"))
             assertNotNull(view.findViewWithTag<Spinner>("record_source_choice_HEIGHT"))
-            assertNull(view.findViewWithTag<View>("record_source_choice_POWER"))
+            val power=view.findViewWithTag<Spinner>("record_source_choice_POWER")
+            assertNotNull(power);assertFalse(power.isEnabled)
+            assertEquals(activity.getString(RecordingSource.BIKE.label),power.selectedItem)
+            val heart=view.findViewWithTag<Spinner>("record_source_choice_HEART")
+            assertFalse(heart.isEnabled);assertEquals(activity.getString(R.string.source_none),heart.selectedItem)
+            assertTrue(RecordingQuantity.entries.all { view.findViewWithTag<Spinner>("record_source_choice_${it.name}")!=null })
             shadowOf(android.os.Looper.getMainLooper()).idle();assertTrue(changes.isEmpty())
             val speed=view.findViewWithTag<Spinner>("record_source_choice_SPEED")
             speed.setSelection(0);shadowOf(android.os.Looper.getMainLooper()).idle()
@@ -85,6 +90,7 @@ class RecordingSourcesTest {
             editable=false;view.refreshLock();assertFalse(speed.isEnabled)
             speed.setSelection(1);shadowOf(android.os.Looper.getMainLooper()).idle()
             assertEquals(0,speed.selectedItemPosition);assertEquals(1,changes.size)
+            editable=true;view.refreshLock();assertTrue(speed.isEnabled);assertFalse(power.isEnabled);assertFalse(heart.isEnabled)
             val other=profiles.add()!!;profiles.select(other.slot)
             profiles.save(profiles.current().copy(recording=profile.recording.copy(sourcePreferences=sources)))
             profiles.select(profile.slot)
