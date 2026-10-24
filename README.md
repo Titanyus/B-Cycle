@@ -30,7 +30,7 @@
 
 Die Vorschauen zeigen native App-Ansichten mit Testdaten; Kartenkacheln sind in der Dashboard-Vorschau nicht geladen.
 
-[UI-Atlas als HTML herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/docs/previews/ui-catalog.html) · Datei lokal im Browser öffnen. Offline-Übersicht mit 20 Bauteilgruppen, Theme-/Breiten-/Schriftvergleich, Abstandshilfen und Quelleninspektor. [Anleitung und Prüfstand](docs/ui-catalog.md).
+[UI-Atlas als HTML herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/docs/previews/ui-catalog.html) · Datei lokal im Browser öffnen. Offline-Übersicht mit 21 Bauteilgruppen, Theme-/Breiten-/Schriftvergleich, Abstandshilfen und Quelleninspektor. [Anleitung und Prüfstand](docs/ui-catalog.md).
 
 League Gothic ersetzt im aktuellen Quellstand die bisherige Bebas Neue; Schriftrollen zentral, Großschreibung nur für Fenstertitel erzwungen. In APK 0.8.24 enthalten.
 
@@ -64,27 +64,34 @@ In APK 0.8.29: kombinierte Aufsteh-/Schlafenszeit, optionale Schlafdauer und glo
 
 [![Android Optimized APK](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml/badge.svg)](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml)
 
-**[Version 0.8.37 · Build 76 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.37-release-76.apk)**
+**[Version 0.8.38 · Build 77 – APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.38-release-77.apk)**
 
-**Build 76 vom 24.10.2026 · 2,41 MB · Android 13+.** Direkter APK-Download ohne ZIP.
+**Build 77 vom 24.10.2026 · 2,41 MB · Android 13+.** Direkter APK-Download ohne ZIP.
 Optimierter Release mit R8 und Ressourcenverkleinerung, ohne Debug- oder Test-Flag.
 APK-Prüfsumme, Ausrichtung und dauerhafte Signatur wurden geprüft.
-**Als Update über Builds 53, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 68, 69, 70, 71, 72, 73, 74 und 75 installierbar.** Ältere, anders signierte Installationen
+**Als Update über Builds 53, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 68, 69, 70, 71, 72, 73, 74, 75 und 76 installierbar.** Ältere, anders signierte Installationen
 (einschließlich Build 52 und der alten Testschlüssel) lassen sich damit nicht direkt
 aktualisieren. Bestehende Appdaten vor einem Installationswechsel sichern.
 
-[Änderungen in 0.8.37](docs/release-0.8.37.md) ·
-[Buildnachweis und SHA-256](docs/build-76.md) ·
-[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/40102129775) ·
+[Änderungen in 0.8.38](docs/release-0.8.38.md) ·
+[Buildnachweis und SHA-256](docs/build-77.md) ·
+[Erfolgreicher Actions-Build](https://github.com/Titanyus/B-Cycle/actions/runs/40112706401) ·
 [Build-Anleitung und Signierung](docs/github-actions.md).
 Gezielte Regressionstests lassen sich separat unter Actions → **Targeted regression tests** → **Run workflow** starten, lokal mit `bash scripts/test-regressions.sh`. Dabei werden nur Testberichte erzeugt; kein APK-Build und kein Signierschlüsselzugriff. [Umfang und Nachweise](docs/priority-optimizations.md).
 Gezielte Chromatic-/Designerreferenz-, Formular-, Flat-/Glow-, Karten-/Zoom-, Feldauswahl-, Dienst-/HTTP-, Upload-/Namens- und Sicherungsprüfungen während der Umsetzung erfolgreich; native Vorschauen sowie Typografie-/Atlas-/Designerprüfung erfolgreich.
 HRV-Messwerte und Aufzeichnungen erhalten; Antworten getrennt gespeichert und mitgesichert.
 Kein vollständiger Gesamttestlauf; frühere Prüfungen und bekannte ältere UI-Testfehler in den Buildnachweisen.
 
-Frühere APKs: [0.8.36 · Build 75](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.36-release-75.apk) · [0.8.35 · Build 74](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.35-release-74.apk) · [0.8.34 · Build 73](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.34-release-73.apk) · [0.8.33 · Build 72](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.33-release-72.apk) · [0.8.32 · Build 71](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.32-release-71.apk) · [0.8.31 · Build 70](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.31-release-70.apk) · [0.8.30 · Build 69](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.30-release-69.apk) · [0.8.29 · Build 68](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.29-release-68.apk) · [0.8.27 · Build 66](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.27-release-66.apk) · [0.8.26 · Build 65](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.26-release-65.apk) · [0.8.25 · Build 64](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.25-release-64.apk) · [0.8.24 · Build 63](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.24-release-63.apk) · [0.8.23 · Build 62](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk) · [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
+Frühere APKs: [0.8.37 · Build 76](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.37-release-76.apk) · [0.8.36 · Build 75](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.36-release-75.apk) · [0.8.35 · Build 74](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.35-release-74.apk) · [0.8.34 · Build 73](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.34-release-73.apk) · [0.8.33 · Build 72](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.33-release-72.apk) · [0.8.32 · Build 71](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.32-release-71.apk) · [0.8.31 · Build 70](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.31-release-70.apk) · [0.8.30 · Build 69](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.30-release-69.apk) · [0.8.29 · Build 68](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.29-release-68.apk) · [0.8.27 · Build 66](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.27-release-66.apk) · [0.8.26 · Build 65](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.26-release-65.apk) · [0.8.25 · Build 64](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.25-release-64.apk) · [0.8.24 · Build 63](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.24-release-63.apk) · [0.8.23 · Build 62](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.23-release-62.apk) · [0.8.22 · Build 61](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.22-release-61.apk) · [0.8.21 · Build 60](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.21-release-60.apk) · [0.8.20 · Build 59](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.20-release-59.apk) · [0.8.19 · Build 58](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.19-release-58.apk) · [0.8.18 · Build 57](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.18-release-57.apk).
 Weitere Builds unter [GitHub Actions](https://github.com/Titanyus/B-Cycle/actions/workflows/android-debug.yml).
 Compile-/Target-SDK 36; feste Signierung für künftige Updates über Actions-Secret.
+
+## Neu in APK 0.8.38
+
+- **Neue Presets:** abgestimmte Theme-Stärken, hellere Highlights und feinere Glows aus dem aktuellen Nutzerexport.
+- **Glow-Design:** gemeinsame Dekoration für Seiten-/Dialogheader, aktive Schalter, Fahrradkacheln und Dropdowns; Footer-Schatten nach oben.
+- **Controls:** Segmentauswahl wieder mit kleinen runden Ecken, Spinner-Text vollständig sichtbar; zwei zentrale Special-Button-Varianten im UI-Katalog. Flat bleibt ohne Effekte.
+- [Alle Änderungen](docs/release-0.8.38.md) · [Stilwerte](docs/input-focus-frame.md).
 
 ## Neu in APK 0.8.37
 
