@@ -1,3 +1,7 @@
+# Aktueller APK-Auftrag: 0.8.39 / Code 109
+
+Nutzer beauftragt neue APK mit HRV-/Headeranpassungen und neuer Sechseck-Farbpalette. Gezielte Tests bereits erfolgreich; optimierter Release über GitHub Actions mit dauerhaftem Signierschlüssel, kein lokaler APK-Build. Umfang release-0.8.39.md. Build und direkter Download werden geprüft/veröffentlicht.
+
 # Aktueller Nachtrag: Karten-Farbpalette
 
 FixedColorPalette: regelmäßige Einzelhexagone und axial mit gleichem Maßstab angeordnete Mittelpunkte, responsiv für schmale Dialoge. Sechs Felder pro Außenkante statt fünf (91 statt 61 Spektralfelder), weiße Mitte, Sättigung ringweise nach außen. Separate neun Grauwerte entfernt, ein nativer Helligkeitsregler mit zehn Rastpositionen 0–9 (Schwarz/voll eingeschlossen) ersetzt sie. Helligkeit aus bisheriger Farbe initialisiert; nur angebotene Farben ändern, keine Speicherung vor Farbfeldtap. Mitte bietet zehn Graustufen. Natives Übernehmen/Schließen, Profile, Deckkraft und Sicherungsformat erhalten. Alle vier gezielten MapRouteStyleTests erfolgreich: regelmäßige Seiten/Mittelpunkte, 288/320/360-px-Breiten, zehn neutrale Stufen/Endpunkte, Vorschau ohne Speicherung, unmittelbare Übernahme sowie Profil-/Sicherungsregression. Native Vorschau visuell geprüft. Kein APK-Auftrag; aktuelle APK weiterhin 0.8.38 / Build 77, enthält weder diesen noch vorherigen HRV-Nachtrag. Details map-route-style.md.
