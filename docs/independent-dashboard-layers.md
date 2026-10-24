@@ -2,9 +2,10 @@
 
 Der Feldauswahldialog besitzt drei zunächst geschlossene Accordions:
 
-- **Daten:** „Keine Daten anzeigen“ über dem bisherigen Quellen-Dropdown;
-  anschließend die vorhandenen Messwerte und Kategorien. Dropdown und Option
-  bleiben außerhalb der eigenen, begrenzten Messwertliste.
+- **Daten:** gemeinsames Schalter-Accordion, Beschriftung links, Schalter rechts.
+  Aus blendet den Hauptmesswert aus; Ein stellt die letzte Auswahl wieder her.
+  Eine Messwertauswahl aktiviert den Schalter automatisch. Darunter bleiben
+  Quellen-Dropdown, vorhandene Messwerte und Kategorien.
 - **Graph:** „Keine Graphen“ oder maximal zwei Grapharten mit ihren Farbpunkten.
   Das frühere Auswahlfeld „Graph-Darstellung“ ist vollständig entfernt.
 - **Visualisierung:** unveränderte unabhängige Auswahl der Zonen-Glow-Quelle.
@@ -12,14 +13,14 @@ Der Feldauswahldialog besitzt drei zunächst geschlossene Accordions:
 Graph und Visualisierung sind eigene Geschwister des Daten-Accordions und werden
 beim Quellenwechsel nicht entfernt/neu angehängt. Ein äußerer Scrollbereich macht
 alle drei Bereiche auch bei gleichzeitiger Öffnung erreichbar. Die Messwertliste
-hat eine intern begrenzte Höhe, keine zusätzliche Benutzereinstellung.
+wächst vollständig im gemeinsamen äußeren Scrollbereich, ohne inneren Scroller.
 Graphen bleiben wie bisher auf den geeigneten großen Kacheln verfügbar.
-Kartenfelder besitzen das Daten-Accordion und die bisherige leere Feldbelegung.
+Kartenfelder verwenden dasselbe Schalter-Accordion; ausgeschaltet bleibt ihr Platz leer.
 
 ## Zustand und Darstellung
 
 DashboardDataVisibility speichert acht unabhängige Sichtbarkeiten je Seite in
-dashboardDataVisible_0 bis _3. „Keine Daten“ blendet Hauptwert, Einheit und
+dashboardDataVisible_0 bis _3. Der ausgeschaltete Datenschalter blendet Hauptwert, Einheit und
 Hauptbeschriftung aus, ohne Kachelgeometrie, Sensoren oder den gewählten Feld-ID
 zu ändern. Bei erneuter Feldwahl wird Datenanzeige aktiviert. Graphen und Glow
 werden durch diese beiden Aktionen nicht geändert. Ohne Daten gibt es auch

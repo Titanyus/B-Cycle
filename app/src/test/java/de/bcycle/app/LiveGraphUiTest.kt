@@ -191,7 +191,7 @@ class LiveGraphUiTest {
         assertEquals(0,Color.alpha(gap.getPixel(200,60)));assertEquals(0,Color.alpha(gap.getPixel(200,80)))
     }
 
-    @Test fun curveBoundaryLinesAreSymmetricAndFadeAtBothVerticalEnds() {
+    @Test fun fullWidthCurveBoundariesStayAtPlotEdgesAndFadeAtBothVerticalEnds() {
         val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
         // Missing samples retain valid scales, isolating the boundary from curve/fill pixels.
         val series=GraphSeries(emptyList(),GraphRange(0.0,40.0))
@@ -199,10 +199,13 @@ class LiveGraphUiTest {
             listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),intArrayOf(0,0,0,0))
         val b=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888);d.draw(Canvas(b))
         fun opacity(x: Int,y: Int)=maxOf(Color.alpha(b.getPixel(x,y)),Color.alpha(b.getPixel(x-1,y)))
-        val middle=opacity(26,100)
-        assertTrue(middle>0);assertEquals(middle,opacity(374,100))
-        assertTrue(opacity(26,30)<middle);assertTrue(opacity(26,170)<middle)
-        assertEquals(0,opacity(26,10));assertEquals(0,opacity(374,190))
+        for(x in listOf(1,399)) {
+            val middle=opacity(x,100)
+            assertTrue(middle>0)
+            assertTrue(opacity(x,30)<middle);assertTrue(opacity(x,170)<middle)
+            assertEquals(0,opacity(x,10));assertEquals(0,opacity(x,190))
+        }
+        assertEquals(0,opacity(26,100));assertEquals(0,opacity(374,100))
     }
 
     @Test fun hiddenDataKeepsGeometryAndGraphSelectionIndependentFromNumberAndCaptionVisibility() {
@@ -256,12 +259,12 @@ class LiveGraphUiTest {
             }
             val screen=choose()
             assertFalse(all(screen.window!!.decorView).any { it.tag=="graph_display_mode" })
-            all(screen.window!!.decorView).single { it.tag=="dashboard_field_empty" }.performClick()
+            all(screen.window!!.decorView).single { it.tag=="field_data_enabled" }.performClick()
             assertFalse(DashboardDataVisibility.read(prefs,0).visible[2])
             assertTrue(DashboardDataVisibility.read(prefs,0).visible[0])
             assertTrue(DashboardDataVisibility.read(prefs,1).visible[2])
             val reopened=choose()
-            assertTrue((all(reopened.window!!.decorView).single { it.tag=="dashboard_field_empty" } as android.widget.RadioButton).isChecked)
+            assertFalse((all(reopened.window!!.decorView).single { it.tag=="field_data_enabled" } as android.widget.Switch).isChecked)
             testBack(reopened)
             val backup=SettingsBackup(prefs,activity.getSharedPreferences("route-export",0),ThemeManager(prefs))
             val bytes=backup.export(setOf(BackupSection.DASHBOARD))

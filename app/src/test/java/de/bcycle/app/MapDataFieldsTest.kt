@@ -122,7 +122,7 @@ class MapDataFieldsTest {
             assertFalse(restarted.get().dashboardEditing)
             assertEquals("GPS_SPEED", MapFieldSelection.read(preferences, 0)?.id)
             enter(restarted.get()); fields(restarted.get()).single { it.tag == "map_value_0" }.performClick()
-            click(latest(), "map_field_empty")
+            click(latest(), "field_data_enabled")
             assertNull(MapFieldSelection.read(preferences, 0))
         } finally { restarted.pause().stop().destroy() }
     }

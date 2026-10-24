@@ -21,7 +21,7 @@ import org.robolectric.shadows.ShadowAlertDialog
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class DashboardPresentationTest {
     private val context get()=RuntimeEnvironment.getApplication()
-    @Test fun independentAccordionsRemainScrollableAndNonePrecedesTheFixedSourceDropdown() {
+    @Test fun independentSwitchAccordionsRemainScrollableAndDataToggleIsAboveTheSourceDropdown() {
         val themes=ThemeManager(context.getSharedPreferences("sections",0))
         val graph=GraphOverlayPicker(context,themes,emptyList());val glow=ZoneGlowPicker(context,themes,ZoneGlowSource.OFF)
         var chosen: DashboardField?=DashboardField("SPEED")
@@ -36,8 +36,8 @@ class DashboardPresentationTest {
         assertTrue(scroll.height<=640);assertTrue(scroll.getChildAt(0).height>scroll.height)
         val list=picker.findViewWithTag<LinearLayout>("field_list")
         val source=picker.findViewWithTag<Spinner>("field_source")
-        val none=picker.findViewWithTag<RadioButton>("dashboard_field_empty")
-        assertTrue(none.top<source.top);assertTrue(source.bottom<=list.top)
+        val none=picker.findViewWithTag<android.widget.Switch>("field_data_enabled")
+        assertNull(picker.findViewWithTag<View>("dashboard_field_empty"));assertTrue(source.bottom<=list.top)
         assertEquals(1,testDescendants(picker).filterIsInstance<ScrollView>().size)
         assertTrue(list.getChildAt(list.childCount-1).bottom<=list.height)
         graph.findViewWithTag<View>("graph_SPEED").performClick()
@@ -60,13 +60,13 @@ class DashboardPresentationTest {
             root.findViewWithTag<View>("graph_SPEED").performClick()
             assertTrue(DashboardDataVisibility.read(prefs,0).visible[2]) // old global flag cannot hide data when adding a graph
             root.findViewWithTag<RadioButton>("training_help_all").isChecked=true
-            root.findViewWithTag<View>("dashboard_field_empty").performClick()
+            root.findViewWithTag<View>("field_data_enabled").performClick()
             assertFalse(DashboardDataVisibility.read(prefs,0).visible[2])
             assertEquals("SPEED",DashboardLayout.decode(prefs.getString("dashboard",null)).fields[2].id)
             assertEquals(listOf(AnalysisChart.SPEED),GraphOverlayConfig.read(prefs,0).slots[2])
             assertEquals(TrainingHelpMode.ALL_ZONES,DashboardTrainingHelp.read(prefs,0).mode)
             val reopened=choose()
-            assertTrue(reopened.window!!.decorView.findViewWithTag<RadioButton>("dashboard_field_empty").isChecked)
+            assertFalse(reopened.window!!.decorView.findViewWithTag<android.widget.Switch>("field_data_enabled").isChecked)
             val graph=testDescendants(reopened.window!!.decorView).filterIsInstance<GraphOverlayPicker>().single()
             testDescendants(graph).filterIsInstance<CheckBox>().first().performClick()
             assertFalse(DashboardDataVisibility.read(prefs,0).visible[2]);assertTrue(GraphOverlayConfig.read(prefs,0).slots[2].isEmpty())

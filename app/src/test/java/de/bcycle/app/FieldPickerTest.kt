@@ -58,8 +58,12 @@ class FieldPickerTest {
         assertTrue(testDescendants(list).any { it.tag == "WEATHER_SUNRISE" })
         testDescendants(list).single { it.tag == "WEATHER_DAYLIGHT" }.performClick()
         assertEquals(DashboardField("WEATHER_DAYLIGHT"), selected.last())
-        testDescendants(view).single { it.tag == "map_field_empty" }.performClick()
-        assertNull(selected.last())
+        val enabled=view.findViewWithTag<android.widget.Switch>("field_data_enabled")
+        enabled.performClick();assertNull(selected.last());assertFalse(enabled.isChecked)
+        enabled.performClick();assertEquals(DashboardField("WEATHER_DAYLIGHT"),selected.last())
+        enabled.performClick();assertNull(selected.last())
+        testDescendants(list).single { it.tag=="WEATHER_DAYLIGHT" }.performClick()
+        assertTrue(enabled.isChecked);assertEquals(DashboardField("WEATHER_DAYLIGHT"),selected.last())
     }
     @Test fun selectedSourceAndDropdownRowsReuseDashboardIconsWithThemeForeground() {
         val context=RuntimeEnvironment.getApplication()

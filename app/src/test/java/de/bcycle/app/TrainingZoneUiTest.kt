@@ -109,7 +109,7 @@ class TrainingZoneUiTest {
             assertTrue(graph==null || testDescendants(fields).indexOf(controls)>testDescendants(fields).indexOf(graph))
             fields.findViewWithTag<RadioButton>("training_help_zone_two").performClick()
             assertEquals(TrainingHelpMode.ZONE_TWO,DashboardTrainingHelp.read(prefs,0).mode)
-            fields.findViewWithTag<RadioButton>("dashboard_field_empty").performClick()
+            fields.findViewWithTag<android.widget.Switch>("field_data_enabled").performClick()
             assertEquals(View.VISIBLE,controls.visibility)
             fields.findViewWithTag<Switch>("training_help_average").performClick()
             assertTrue(DashboardTrainingHelp.read(prefs,0).average)

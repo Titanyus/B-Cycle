@@ -31,22 +31,23 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         val scroll=BicycleStickyScrollView(context).apply { tag="field_picker_scroll";addView(panels) }
         addView(scroll,LayoutParams(-1,-1))
         val dataContent=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="field_data_content" }
-        lateinit var dataToggle: android.widget.Button
-        dataToggle=BicycleComponents.action(context,themes,context.getString(R.string.field_data_title)) {
-            dataContent.visibility=if(dataContent.visibility==VISIBLE) GONE else VISIBLE
-            dataToggle.stateDescription=context.getString(if(dataContent.visibility==VISIBLE) R.string.zone_expanded else R.string.zone_collapsed)
-        }.apply { tag="field_data_toggle";isAccessibilityHeading=true;stateDescription=context.getString(R.string.zone_collapsed) }
-        BicycleDialogStyle.accordion(dataToggle,themes)
-        BicycleDialogStyle.actionIcon(dataToggle,themes,BicycleIcon.Expand)
-        panels.addView(dataToggle);panels.addView(dataContent)
         var currentSelection=selected
-        var pickerDataVisible=dataVisible
-        val emptyChoice=RadioButton(context).apply {
-            setText(R.string.field_no_data);tag=if(allowEmpty) "map_field_empty" else "dashboard_field_empty"
-            isChecked=!dataVisible || selected==null
+        var pickerDataVisible=dataVisible && selected!=null
+        var reflecting=false
+        val dataEnabled=android.widget.Switch(context).apply {
+            tag="field_data_enabled";setText(R.string.field_data_title);isChecked=pickerDataVisible
             BicycleDialogStyle.control(this,themes)
         }
-        dataContent.addView(emptyChoice,LayoutParams(-1,dp(BicycleDesign.touchSize)))
+        val dataToggle=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.field_data_title)) {
+            val open=dataContent.visibility!=VISIBLE
+            dataContent.visibility=if(open) VISIBLE else GONE
+            findViewWithTag<View>("field_data_toggle").apply {
+                rotation=if(open) 180f else 0f
+                stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
+            }
+        }.apply { tag="field_data_toggle";stateDescription=context.getString(R.string.zone_collapsed) }
+        panels.addView(LinearLayout(context).apply { BicycleComponents.switchAccordion(this,dataEnabled,dataToggle,themes) },LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)))
+        panels.addView(dataContent)
         val groups = DashboardField.groups(data, selected, includeTraining = !allowEmpty).groupBy { it.source }
         val sources = groups.keys.toList()
         val selector = Spinner(context).apply {
@@ -80,14 +81,20 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         var combined=dataVisible && selected?.batterySources!=null
         var refreshBatteryChecks:()->Unit={}
         fun reflectSelection(field:DashboardField?) {
-            currentSelection=field;pickerDataVisible=field!=null
+            if(field!=null) currentSelection=field
+            pickerDataVisible=field!=null
+            reflecting=true;dataEnabled.isChecked=field!=null;reflecting=false
             combined=field?.batterySources!=null
             batterySelection=field?.batterySources.orEmpty().filter { it in availableBatteries }
-            emptyChoice.isChecked=field==null
             for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.let { it.isChecked=field!=null && !combined && it.tag==field.id }
             refreshBatteryChecks()
         }
-        emptyChoice.setOnClickListener { reflectSelection(null);choose(null) }
+        dataEnabled.setOnCheckedChangeListener { _,enabled ->
+            if(!reflecting) {
+                val field=if(enabled) currentSelection ?: groups.values.flatten().flatMap { it.fields }.firstOrNull { it.id!=BatteryFields.COMBINED } else null
+                reflectSelection(field);choose(field)
+            }
+        }
         fun populate(position: Int) {
             if (shown == position) return
             shown = position;refreshBatteryChecks={}; rows.removeAllViews()
