@@ -75,22 +75,30 @@ internal object BicycleDialogStyle {
         arrayOf(intArrayOf(-android.R.attr.state_enabled, android.R.attr.state_checked),
             intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_checked), intArrayOf()),
         intArrayOf(alpha(active, .5f), alpha(inactive, .5f), active, inactive))
-    private fun selectionCircle(view: CompoundButton, tokens: ThemeTokens, inset: Int) = StateListDrawable().apply {
-        fun circle(checked: Boolean, enabled: Boolean): android.graphics.drawable.Drawable {
-            val opacity = if (enabled) 1f else .5f
-            val ring = view.context.getDrawable(R.drawable.selection_circle_empty)!!.mutate().apply { setTint(alpha(tokens.foreground, opacity)) }
-            val drawable = if (!checked) ring else LayerDrawable(arrayOf(ring, GradientDrawable().apply {
-                shape = GradientDrawable.OVAL; setColor(alpha(tokens.accent, opacity))
-            })).apply {
-                setLayerSize(1, dp(view, 10), dp(view, 10)); setLayerGravity(1, Gravity.CENTER)
+    /** Switch geometry for all list choices; native single/multiple selection logic stays intact. */
+    private fun selectionSwitch(view:CompoundButton,tokens:ThemeTokens)=StateListDrawable().apply {
+        fun toggle(checked:Boolean,enabled:Boolean):android.graphics.drawable.Drawable {
+            val opacity=if(enabled) 1f else .5f
+            val track=GradientDrawable().apply {
+                setColor(Color.TRANSPARENT);cornerRadius=dp(view,BicycleDesign.switchHeight)/2f
+                setSize(dp(view,BicycleDesign.switchWidth),dp(view,BicycleDesign.switchHeight))
+                setStroke(BicycleDesign.linePixels(view.context),alpha(tokens.foreground,opacity))
             }
-            val nativeCircle=if(inset>0) android.graphics.drawable.InsetDrawable(drawable,inset) else drawable
-            return android.graphics.drawable.InsetDrawable(nativeCircle,0,0,dp(view,BicycleDesign.choiceTextGap),0)
+            val thumb=GradientDrawable().apply {
+                shape=GradientDrawable.OVAL;setColor(alpha(if(checked) tokens.accent else tokens.foreground,opacity))
+            }
+            val pill=LayerDrawable(arrayOf(track,thumb)).apply {
+                setLayerSize(1,dp(view,BicycleDesign.switchThumbDiameter),dp(view,BicycleDesign.switchThumbDiameter))
+                setLayerGravity(1,(if(checked) Gravity.END else Gravity.START) or Gravity.CENTER_VERTICAL)
+                val inset=dp(view,(BicycleDesign.switchHeight-BicycleDesign.switchThumbDiameter)/2)
+                setLayerInsetStart(1,inset);setLayerInsetEnd(1,inset)
+            }
+            return android.graphics.drawable.InsetDrawable(pill,0,0,dp(view,BicycleDesign.choiceTextGap),0)
         }
-        addState(intArrayOf(-android.R.attr.state_enabled, android.R.attr.state_checked), circle(true, false))
-        addState(intArrayOf(-android.R.attr.state_enabled), circle(false, false))
-        addState(intArrayOf(android.R.attr.state_checked), circle(true, true))
-        addState(intArrayOf(), circle(false, true))
+        addState(intArrayOf(-android.R.attr.state_enabled,android.R.attr.state_checked),toggle(true,false))
+        addState(intArrayOf(-android.R.attr.state_enabled),toggle(false,false))
+        addState(intArrayOf(android.R.attr.state_checked),toggle(true,true))
+        addState(intArrayOf(),toggle(false,true))
     }
     private fun shape(view: View, color: Int, stroke: Int? = null) = GradientDrawable().apply {
         setColor(color); cornerRadius = dp(view, BicycleDesign.inputRadius).toFloat()
@@ -213,18 +221,22 @@ internal object BicycleDialogStyle {
                     setLayerGravity(1,Gravity.CENTER)
                 }
             }
-            val circular = view is CheckBox || view is RadioButton
-            if(circular) {
+            val listChoice=view is CheckBox || view is RadioButton
+            if(listChoice) {
                 view.setPadding(dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding),
                     dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding))
             }
-            // Keep the native radio-button allocation, with the shared 24-dp circle centered inside.
-            val circleInset = if (view is RadioButton) ((view.buttonDrawable?.intrinsicWidth ?: dp(view, 24)) - dp(view, 24)).coerceAtLeast(0) / 2 else 0
+            if(listChoice) view.accessibilityDelegate=object:View.AccessibilityDelegate() {
+                override fun onInitializeAccessibilityNodeInfo(host:View,info:android.view.accessibility.AccessibilityNodeInfo) {
+                    super.onInitializeAccessibilityNodeInfo(host,info)
+                    info.className=Switch::class.java.name
+                }
+            }
             BicycleComponents.bindTheme(view, themes) {
                 view.setTextColor(colors(it.foreground))
-                if (circular) {
+                if (listChoice) {
                     view.buttonTintList = null
-                    view.buttonDrawable = selectionCircle(view, it, circleInset)
+                    view.buttonDrawable = selectionSwitch(view,it)
                     view.minHeight=dp(view,BicycleDesign.touchSize)
                 } else view.buttonTintList = checkedColors(it.accent, it.foreground)
                 if (view is Switch) {

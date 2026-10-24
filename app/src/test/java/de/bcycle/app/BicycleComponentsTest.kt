@@ -151,7 +151,7 @@ class BicycleComponentsTest {
     }
 
     @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
-    fun checkboxCirclesFillOnSelectionRemainIndependentAndFollowTheme() {
+    fun listChoiceSwitchesMoveThumbRemainIndependentAndFollowTheme() {
         val controller=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("circle-ui",0))
@@ -162,45 +162,45 @@ class BicycleComponentsTest {
             val thumb=toggle.thumbDrawable
             activity.setContentView(root)
             fun draw(box: android.widget.CheckBox): android.graphics.Bitmap {
-                val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
-                (box.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
+                val bitmap=android.graphics.Bitmap.createBitmap(48,24,android.graphics.Bitmap.Config.ARGB_8888)
+                (box.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,24);draw(android.graphics.Canvas(bitmap)) }
                 return bitmap
             }
-            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,24)))
-            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(6,6)))
+            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,12)))
+            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(2,2)))
             val width=first.buttonDrawable!!.intrinsicWidth
             first.performClick();second.performClick()
             assertTrue(first.isChecked);assertTrue(second.isChecked)
-            assertEquals(themes.active.tokens.accent,draw(first).getPixel(24,24))
+            assertEquals(themes.active.tokens.accent,draw(first).getPixel(36,12))
             first.performClick();assertFalse(first.isChecked);assertTrue(second.isChecked)
-            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,24)))
+            assertEquals(0,android.graphics.Color.alpha(draw(first).getPixel(24,12)))
             val light=CustomTheme("custom:circle-light","Light",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),0xff000000.toInt()))
             assertTrue(themes.saveCustom(light).valid);assertTrue(themes.activate(light.id))
-            assertEquals(light.tokens.foreground,draw(second).getPixel(24,24))
+            assertEquals(light.tokens.accent,draw(second).getPixel(36,12))
             assertEquals(width,first.buttonDrawable!!.intrinsicWidth)
             assertSame(thumb,toggle.thumbDrawable)
         } finally { controller.pause().stop().destroy() }
     }
 
     @Test @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
-    fun selectionCentersAndEnabledSwitchesUseAccentWhileOutlinesAndLabelsRemainForeground() {
+    fun listChoiceAndNativeSwitchThumbsUseAccentWhileOutlinesAndLabelsRemainForeground() {
         val controller=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("accent-controls",0))
             val root=LinearLayout(activity).apply { orientation=LinearLayout.VERTICAL }
             val box=android.widget.CheckBox(activity)
             val radio=android.widget.RadioButton(activity)
-            val radioWidth=radio.buttonDrawable!!.intrinsicWidth
+            val radioWidth=BicycleDesign.dp(activity,BicycleDesign.switchWidth)
             val toggle=android.widget.Switch(activity)
             var changes=0;box.setOnCheckedChangeListener { _,_->changes++ }
             for(view in listOf(box,radio,toggle)) { BicycleDialogStyle.control(view,themes);root.addView(view) }
             val originalThumb=toggle.thumbDrawable
             activity.setContentView(root)
             assertEquals(radioWidth+BicycleDesign.dp(activity,BicycleDesign.choiceTextGap),radio.buttonDrawable!!.intrinsicWidth)
-            fun pixel(button: android.widget.CompoundButton,x:Int=24):Int {
-                val bitmap=android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
-                (button.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,48);draw(android.graphics.Canvas(bitmap)) }
-                val color=bitmap.getPixel(x,24);bitmap.recycle();return color
+            fun pixel(button: android.widget.CompoundButton,x:Int=36):Int {
+                val bitmap=android.graphics.Bitmap.createBitmap(48,24,android.graphics.Bitmap.Config.ARGB_8888)
+                (button.buttonDrawable!!.current as android.graphics.drawable.InsetDrawable).drawable!!.apply { setBounds(0,0,48,24);draw(android.graphics.Canvas(bitmap)) }
+                val color=bitmap.getPixel(x,12);bitmap.recycle();return color
             }
             box.performClick();radio.performClick();toggle.performClick()
             assertEquals(1,changes)
@@ -210,7 +210,7 @@ class BicycleComponentsTest {
                 assertTrue(themes.activate(theme.id))
                 val colors=theme.tokens
                 assertEquals(colors.accent,pixel(box));assertEquals(colors.accent,pixel(radio))
-                assertEquals(colors.foreground,pixel(box,6))
+                assertEquals(colors.foreground and 0xffffff,pixel(box,0) and 0xffffff)
                 assertEquals(colors.foreground,box.currentTextColor);assertEquals(colors.foreground,toggle.currentTextColor)
                 assertEquals(colors.accent,toggle.thumbTintList!!.getColorForState(toggle.drawableState,0))
                 assertNull(toggle.trackTintList)
