@@ -73,8 +73,9 @@ class MapRouteStyleTest {
             val root=dialog.window!!.decorView
             fun nodes(v:View):List<View> = listOf(v)+if(v is android.view.ViewGroup) (0 until v.childCount).flatMap { nodes(v.getChildAt(it)) } else emptyList()
             val palette=root.findViewWithTag<View>("map_color_palette")
-            assertFalse(nodes(palette).any { it is EditText || it is SeekBar })
-            assertEquals(70,nodes(palette).filterIsInstance<android.widget.ImageButton>().size)
+            assertFalse(nodes(palette).any { it is EditText })
+            assertEquals(9,palette.findViewWithTag<SeekBar>("map_palette_brightness").max)
+            assertEquals(91,nodes(palette).filterIsInstance<android.widget.ImageButton>().size)
             val color=FixedColorPalette.spectrum.first().first()
             palette.findViewWithTag<View>("map_palette_${String.format(java.util.Locale.ROOT,"%06X",color and 0xffffff)}").performClick()
             assertFalse(dialog.isShowing)
@@ -88,6 +89,52 @@ class MapRouteStyleTest {
             assertEquals(51,MapRouteStyles.read(prefs,MapLineKind.SAVED).opacity)
             assertEquals(99,MapRouteStyles.read(prefs,MapLineKind.RECORDED).opacity)
             assertTrue(changes>=5)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun regularSixEdgePaletteFitsNarrowScreensAndBrightnessProvidesTenNeutralLevels() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("palette-geometry",0))
+            val chosen=mutableListOf<Int>()
+            val palette=FixedColorPalette(a,themes,Color.WHITE) { chosen.add(it) };a.setContentView(palette)
+            val grid=palette.findViewWithTag<android.view.ViewGroup>("map_palette_grid")
+            assertEquals(listOf(6,7,8,9,10,11,10,9,8,7,6),FixedColorPalette.spectrum.map { it.size })
+            assertEquals(Color.WHITE,FixedColorPalette.spectrum.flatten()[45])
+            for(width in listOf(288,320,360)) {
+                palette.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.AT_MOST))
+                palette.layout(0,0,width,palette.measuredHeight)
+                for(i in 0 until grid.childCount) {
+                    val chip=grid.getChildAt(i)
+                    assertTrue(chip.left>=0);assertTrue(chip.right<=grid.width)
+                    val drawable=chip.background
+                    drawable.setBounds(0,0,chip.width,chip.height)
+                    val path=HexColorDrawable::class.java.getDeclaredField("path").apply { isAccessible=true }.get(drawable) as android.graphics.Path
+                    val points=path.approximate(.01f)
+                    val lengths=(3 until points.size step 3).map { n -> kotlin.math.hypot(points[n+1]-points[n-2],points[n+2]-points[n-1]) }.filter { it>.1f }
+                    assertEquals(6,lengths.size)
+                    assertTrue("All hex sides equal",lengths.max()-lengths.min()<.01f)
+                }
+                val centre=grid.getChildAt(45)
+                fun distance(v:View)=kotlin.math.hypot((v.left+v.right-centre.left-centre.right)/2f,(v.top+v.bottom-centre.top-centre.bottom)/2f)
+                val nearest=(0 until grid.childCount).filter { it!=45 }.map { distance(grid.getChildAt(it)) }.sorted().take(6)
+                assertTrue("Hex centres form a regular lattice",nearest.max()-nearest.min()<1.5f)
+            }
+            val slider=palette.findViewWithTag<SeekBar>("map_palette_brightness")
+            val neutrals=mutableSetOf<Int>()
+            for(step in 0..9) {
+                slider.progress=step
+                val chip=grid.getChildAt(45)
+                val image=Bitmap.createBitmap(chip.width,chip.height,Bitmap.Config.ARGB_8888)
+                chip.draw(Canvas(image));val color=image.getPixel(chip.width/2,chip.height/2);image.recycle()
+                assertEquals(Color.red(color),Color.green(color));assertEquals(Color.green(color),Color.blue(color));neutrals.add(color)
+            }
+            assertEquals(10,neutrals.size);assertTrue(Color.BLACK in neutrals);assertTrue(Color.WHITE in neutrals)
+            assertTrue("Brightness previews do not persist a selection",chosen.isEmpty())
+            val image=Bitmap.createBitmap(palette.width,palette.height,Bitmap.Config.ARGB_8888)
+            image.eraseColor(themes.active.tokens.secondary);palette.draw(Canvas(image))
+            java.io.File("build/reports/ui/map-color-palette.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
+            slider.progress=4;grid.getChildAt(45).performClick()
+            assertEquals(listOf(FixedColorPalette.withBrightness(Color.WHITE,4)),chosen)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun screenshotPreviewShowsOpacityAndUsesActualNightPalette() {

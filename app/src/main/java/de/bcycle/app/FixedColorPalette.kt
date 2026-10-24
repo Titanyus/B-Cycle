@@ -4,58 +4,107 @@ import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.SeekBar
 import kotlin.math.*
 
-/** Fixed spectrum in staggered hexagonal rows. Native buttons retain focus and accessibility. */
+/** Regular axial hex grid with a white centre; native swatches keep focus/accessibility. */
 internal class FixedColorPalette(context:Context,themes:ThemeManager,initial:Int,choose:(Int)->Unit):LinearLayout(context) {
     companion object {
-        // Axial hex coordinates: 61 spectrum colors plus nine evenly spaced neutral shades.
-        val spectrum:List<List<Int>> = (-4..4).map { row ->
-            (maxOf(-4,-row-4)..minOf(4,-row+4)).map { col ->
-                val x=col+row/2.0;val y=row*sqrt(3.0)/2
-                val radius=sqrt(x*x+y*y)/4
-                val hue=((atan2(y,x)*180/PI+360)%360).toFloat()
-                Color.HSVToColor(floatArrayOf(hue,radius.toFloat().coerceIn(0f,1f),(.98-maxOf(0.0,y/4)*.35).toFloat()))
+        private const val rings=5 // Six cells per outer edge, 91 cells including the centre.
+        private val coordinates=(-rings..rings).flatMap { row ->
+            (maxOf(-rings,-row-rings)..minOf(rings,-row+rings)).map { col -> col to row }
+        }
+        val spectrum:List<List<Int>> = (-rings..rings).map { row ->
+            coordinates.filter { it.second==row }.map { (col,r) ->
+                val hue=((atan2(r*sqrt(3.0)/2,col+r/2.0)*180/PI+360)%360).toFloat()
+                val saturation=maxOf(abs(col),abs(r),abs(col+r)).toFloat()/rings
+                Color.HSVToColor(floatArrayOf(hue,saturation,1f))
             }
         }
-        val neutrals=(0..8).map { val c=(255*(1-it/8.0)).roundToInt();Color.rgb(c,c,c) }
+        fun withBrightness(color:Int,step:Int):Int {
+            val hsv=FloatArray(3);Color.colorToHSV(color,hsv);hsv[2]=step.coerceIn(0,9)/9f
+            return Color.HSVToColor(hsv)
+        }
     }
     init {
         orientation=VERTICAL;gravity=Gravity.CENTER;tag="map_color_palette"
         val gap=BicycleDesign.dp(context,BicycleDesign.controlGap)
         setPadding(gap,gap,gap,gap)
-        var number=0
-        (spectrum+listOf(neutrals)).forEachIndexed { rowIndex,colors ->
-            addView(LinearLayout(context).apply {
-                gravity=Gravity.CENTER;orientation=HORIZONTAL
-                colors.forEach { color ->
-                    val ordinal=++number
-                    addView(ImageButton(context).apply {
-                        tag="map_palette_${String.format(java.util.Locale.ROOT,"%06X",color and 0xffffff)}"
-                        contentDescription=context.getString(R.string.map_palette_color,ordinal)
-                        isSelected=color==initial
-                        if(isSelected) stateDescription=context.getString(R.string.bikes_selected)
-                        BicycleComponents.bindTheme(this,themes) { tokens ->
-                            background=HexColorDrawable(color,isSelected,tokens.foreground,resources.displayMetrics.density)
-                        }
-                        setOnClickListener { choose(color) }
-                    },LayoutParams(BicycleDesign.dp(context,30),BicycleDesign.dp(context,34)))
+        val hsv=FloatArray(3);Color.colorToHSV(initial,hsv)
+        var brightness=(hsv[2]*9).roundToInt()
+        val baseColors=spectrum.flatten()
+        val grid=object:ViewGroup(context) {
+            private var cellWidth=0f;private var cellHeight=0f
+            override fun onMeasure(w:Int,h:Int) {
+                val available=if(MeasureSpec.getMode(w)==MeasureSpec.UNSPECIFIED) BicycleDesign.dp(context,330) else MeasureSpec.getSize(w)
+                cellWidth=minOf(BicycleDesign.dp(context,30).toFloat(),available/11f)
+                cellHeight=cellWidth*2/sqrt(3f)
+                for(i in 0 until childCount) getChildAt(i).measure(
+                    MeasureSpec.makeMeasureSpec(cellWidth.roundToInt(),MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(cellHeight.roundToInt(),MeasureSpec.EXACTLY))
+                setMeasuredDimension(resolveSize(ceil(cellWidth*11).toInt(),w),resolveSize(ceil(cellHeight*8.5f).toInt(),h))
+            }
+            override fun onLayout(changed:Boolean,l:Int,t:Int,r:Int,b:Int) {
+                coordinates.forEachIndexed { index,(col,row) ->
+                    val child=getChildAt(index)
+                    val x=(width/2f+(col+row/2f)*cellWidth-child.measuredWidth/2f).roundToInt()
+                    val y=((row+rings)*cellHeight*.75f).roundToInt()
+                    child.layout(x,y,x+child.measuredWidth,y+child.measuredHeight)
                 }
-            },LayoutParams(-1,-2).apply { if(rowIndex==spectrum.size) topMargin=gap })
+            }
+        }.apply { tag="map_palette_grid" }
+        fun paint(button:ImageButton,index:Int,tokens:ThemeTokens) {
+            val color=withBrightness(baseColors[index],brightness)
+            button.tag="map_palette_${String.format(java.util.Locale.ROOT,"%06X",color and 0xffffff)}"
+            button.contentDescription=context.getString(R.string.map_palette_color,index+1)+" · "+String.format(java.util.Locale.ROOT,"#%06X",color and 0xffffff)
+            button.isSelected=color==initial
+            button.stateDescription=if(button.isSelected) context.getString(R.string.bikes_selected) else null
+            button.background=HexColorDrawable(color,button.isSelected,tokens.foreground,resources.displayMetrics.density)
         }
+        baseColors.forEachIndexed { index,base ->
+            grid.addView(ImageButton(context).apply {
+                BicycleComponents.bindTheme(this,themes) { paint(this,index,it) }
+                setOnClickListener { choose(withBrightness(base,brightness)) }
+            })
+        }
+        addView(grid,LayoutParams(-1,-2))
+        addView(BicycleComponents.text(context,themes,context.getString(R.string.map_palette_brightness)).apply {
+            setPadding(0,gap,0,0)
+        },LayoutParams(-1,-2))
+        val slider=BicycleRatingSlider(context,themes,0,9).apply {
+            tag="map_palette_brightness";contentDescription=context.getString(R.string.map_palette_brightness);progress=brightness
+            minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
+            setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
+                override fun onStartTrackingTouch(bar:SeekBar)=Unit
+                override fun onStopTrackingTouch(bar:SeekBar)=Unit
+                override fun onProgressChanged(bar:SeekBar,value:Int,fromUser:Boolean) {
+                    brightness=value
+                    stateDescription="${(value*100/9f).roundToInt()} %"
+                    for(i in baseColors.indices) paint(grid.getChildAt(i) as ImageButton,i,themes.active.tokens)
+                }
+            })
+        }
+        addView(slider,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.touchSize)))
+        addView(LinearLayout(context).apply {
+            for((label,gravity) in listOf(R.string.map_palette_black to Gravity.START,R.string.map_palette_full to Gravity.END))
+                addView(BicycleComponents.sliderScaleLabel(context,themes,context.getString(label)).apply { this.gravity=gravity },LayoutParams(0,-2,1f))
+        },LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sliderScaleLabelGap) })
     }
 }
 
-private class HexColorDrawable(private val color:Int,private val selected:Boolean,private val foreground:Int,private val density:Float):Drawable() {
+internal class HexColorDrawable(private val color:Int,private val selected:Boolean,private val foreground:Int,private val density:Float):Drawable() {
     private val path=Path();private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     override fun onBoundsChange(bounds:Rect) {
         path.reset()
+        val radius=(minOf(bounds.width()/sqrt(3f),bounds.height()/2f)-density).coerceAtLeast(0f)
         for(i in 0..5) {
             val angle=(60*i-90)*PI/180
-            val x=bounds.exactCenterX()+(bounds.width()/2f-1)*cos(angle).toFloat()
-            val y=bounds.exactCenterY()+(bounds.height()/2f-1)*sin(angle).toFloat()
+            val x=bounds.exactCenterX()+radius*cos(angle).toFloat()
+            val y=bounds.exactCenterY()+radius*sin(angle).toFloat()
             if(i==0) path.moveTo(x,y) else path.lineTo(x,y)
         }
         path.close()
