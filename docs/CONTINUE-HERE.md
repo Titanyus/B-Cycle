@@ -1,3 +1,7 @@
+# Neuester Nachtrag: Chromatic Strength 300 % und Theme-Werte
+
+Designer-Regler und Engine 0–300 %, Standard 50 %. Chromatic Strength je Theme über chromaticByTheme gespeichert, beim Wechsel wiederhergestellt und in JSON/Browser erhalten. Alte globale Entwürfe initialisieren alle Theme-Werte mit ihrem bisherigen Wert; neue unangepasste Themes 50 %. Highlight/Schatten weiterhin global 0–100 %, übrige Bedienung erhalten. Engine-/Chromium-/Altimport-/Reload-/Export-/Mobil- und Bestandsprüfungen erfolgreich. Nur Designer, keine Appänderung/APK. Aktuelle externe Vorschau in docs/input-designer.md.
+
 # Neuester Nachtrag: Chromatic-Engine nur im Input Designer
 
 Nutzerauftrag vollständig umgesetzt: OKLCH-Engine mit unabhängigen Highlight-/Schattenstärken und Chromatic Strength, Basis/Hell/Dunkel plus HEX-Anzeige, bestehende Stops/Glows/Custom-Farben erhalten. Alle 14 verfügbaren Themes, alte Schema-1-Dateien und lokale Speicherung kompatibel. Reines Rechenmodul docs/previews/chromatic-color.js für späteren Kotlin-Port; generierte HTML weiterhin vollständig offline. Android-App unverändert, keine APK. Details und aktuelle externe Vorschau in docs/input-designer.md. Engine-/Chromium-/Bestands-/Mobilprüfungen erfolgreich. App-Nachträge des vorigen Auftrags bleiben lokal unter den unten dokumentierten Commits; Vorschau-Branch enthält nur HTML.

@@ -20,7 +20,7 @@ assert(Math.abs(engine.toLab('#ff0000')[0]-.62795536)<1e-7,'D65 OKLab red refere
 for(const base of bases){
  const original=engine.toLab(base);
  for(const t of [.000001,.00001,.0001]){const p=engine.palette(base,t,t,1);for(const key of ['light','dark'])assert(distance(engine.toLab(p[key]),original)<.003,'No cusp jump immediately after 0 %');}
- for(const k of [0,.5,1]){
+ for(const k of [0,.5,1,2,3]){
   const zero=engine.palette(base,0,0,k),end=engine.palette(base,1,1,k);
   assert.equal(zero.base,base);assert.equal(zero.light,base);assert.equal(zero.dark,base);
   assert.equal(end.light,'#ffffff');assert.equal(end.dark,'#000000');
@@ -46,6 +46,7 @@ for(const base of bases){
   for(const color of Object.values(engine.palette(base,.4,.6,1))){const [r,g,b]=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16));assert.equal(r,g);assert.equal(g,b);}
  }
 }
+assert.notEqual(engine.palette('#bf281b',.5,.5,1).dark,engine.palette('#bf281b',.5,.5,3).dark,'Strength above 100 % must not be clamped to 100 %');
 for(const [base,lightDirection,darkDirection] of [['#ff0000',1,-1],['#0000ff',-1,1]]){
  const p=engine.palette(base,.5,.5,1);
  assert(delta(hue(base),hue(p.light))*lightDirection>0,'Natural highlight hue direction');
@@ -58,7 +59,7 @@ let previous;
 for(let h=0;h<=360;h++){
  const f=n=>{const k=(n+h/60)%6;return Math.round(255*(1-Math.max(0,Math.min(k,4-k,1))));};
  const base='#'+[f(5),f(3),f(1)].map(v=>v.toString(16).padStart(2,'0')).join('');
- const p=engine.palette(base,.45,.45,1);
+ const p=engine.palette(base,.45,.45,3);
  if(previous)for(const key of ['light','dark'])assert(distance(engine.toLab(p[key]),engine.toLab(previous[key]))<.025,'Continuous hue field');
  previous=p;
 }

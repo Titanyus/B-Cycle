@@ -47,7 +47,7 @@ const ChromaticColor=(()=>{
   return '#'+channels.map(x=>Math.round(clamp(encoded(clamp(x)))*255).toString(16).padStart(2,'0')).join('');
  }
  function tone(base,strength,chromatic,highlight){
-  const t=clamp(strength),k=clamp(chromatic);
+  const t=clamp(strength),k=Math.max(0,Math.min(3,chromatic));
   if(t===0)return base;
   if(t===1)return highlight?'#ffffff':'#000000';
   const [L,a,b]=toLab(base),C=Math.hypot(a,b),h=Math.atan2(b,a);
