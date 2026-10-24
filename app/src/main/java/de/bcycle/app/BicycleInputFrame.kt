@@ -114,6 +114,9 @@ internal object BicycleInputFrame {
             val blurred=blurs(density)
             inside.reset();inside.addRoundRect(frame,radius,radius,Path.Direction.CW)
             val saved=canvas.save()
+            // Window positions are already viewport coordinates. Parent drawing applies the
+            // host's -scroll offset to this overlay canvas; cancel it exactly once.
+            canvas.translate(owner.scrollX.toFloat(),owner.scrollY.toFloat())
             canvas.clipRect(0,0,owner.width,owner.height)
             (owner as? BicycleStickyScrollView)?.clipInputGlow(canvas)
             bitmapBounds.set(frame.left-blurred.pad,frame.top-blurred.pad,frame.right+blurred.pad,frame.bottom+blurred.pad)

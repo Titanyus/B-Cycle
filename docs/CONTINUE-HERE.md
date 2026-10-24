@@ -2,6 +2,14 @@
 
 Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Neuester App-Nachtrag: Schalterposition und Scroll-Glow
+
+Auswahl-Schalter zentral rechts, Label links; native Checkbox-/RadioButton-Auswahl, Listener, RadioGroup-Ausschluss und Speicherung erhalten. RadioGroup-Zeilen für Sicherung/Sortierung über volle Listenbreite; separate Dreeve-/ZIP-Textblöcke links, Auswahl rechts mit unbeschnittener Breite. Keine RTL-Spiegelung. Regel: Designaufträge ändern keine Funktionalität; bei nötigen Gestaltungsentscheidungen zwischen alter Anordnung und Komponentenkonvention vorher nachfragen (AGENTS.md).
+
+Textfeld-Glow scrollte doppelt schnell: Canvas des ScrollView-Overlays trägt schon -scrollY, Fensterpositionen sind bereits viewportbezogen. Canvas-Offset einmal ausgleichen, Viewport-/Sticky-Clips erhalten. Fehler mit Parent-Rendering in den Regressionstests vor Fix reproduziert; nach Fix Tests für mitwandernde Pixel und Sticky-Clipping erfolgreich.
+
+Gezielte Auswahl-/Theme-/disabled-/Listener-/RadioGroup- und Dreeve-Zeilenprüfungen sowie bestehende Streckenfilterprüfungen erfolgreich. Native Schaltervorschau visuell geprüft, Atlas und Typografie konsistent. Kein Gesamtlauf, keine Geräteprüfung, keine neue APK beauftragt/gebaut. APK 0.8.35 / Build 74 enthält diese späteren Korrekturen noch nicht.
+
 ## Neuester Nachtrag: Visualisierer mit Glow-Verstärkung
 
 Nur das HTML-Designwerkzeug erweitert: separate Intensität je Blur 0–2000 %, Verstärkung nach Blur und vor Deckkraft/SCREEN (BlendMode SCREEN); Standard 100 %, Altentwürfe bleiben kompatibel. Aktive Auswahl jetzt gemeinsame Kontur und Nah-/Außen-Glow plus eigener Flächenverlauf. Browser-/Pixel-/JSON-/Mobilprüfungen erfolgreich; keine Appänderung, keine neue APK. Öffentliche neue Vorschau und Details in docs/input-designer.md. APK bleibt 0.8.35 / Build 74 und enthält diese späteren Designer-Erweiterungen nicht als Appfunktion.

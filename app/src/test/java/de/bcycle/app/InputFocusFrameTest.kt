@@ -45,9 +45,9 @@ class InputFocusFrameTest {
                 body.addView(BicycleForm.numberRow(edit,themes,R.string.rider_resting,R.string.analysis_bpm),LinearLayout.LayoutParams(-1,48).apply { topMargin=48 })
             }
             val scroll=ScrollView(a).apply { setBackgroundColor(red.tokens.secondary);addView(body) }
-            a.setContentView(scroll)
+            val viewport=android.widget.FrameLayout(a).apply { addView(scroll,android.widget.FrameLayout.LayoutParams(-1,-1)) };a.setContentView(viewport)
             fun layout() { repeat(2) {
-                scroll.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));scroll.layout(0,0,360,400)
+                viewport.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));viewport.layout(0,0,360,400)
             } }
             layout();body.requestFocus()
             var changes=0;focused.addTextChangedListener(object:android.text.TextWatcher {
@@ -60,7 +60,7 @@ class InputFocusFrameTest {
                 val field=IntArray(2);val owner=IntArray(2);focused.getLocationInWindow(field);scroll.getLocationInWindow(owner)
                 return intArrayOf(field[0]-owner[0],field[1]-owner[1])
             }
-            fun draw()=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888).also { scroll.draw(Canvas(it)) }
+            fun draw()=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888).also { viewport.draw(Canvas(it)) }
             val before=draw();val old=location();val geometry=listOf(focused.width,focused.height,focused.paddingLeft,focused.paddingRight)
             assertTrue(focused.requestFocus());layout()
             val active=draw()
@@ -80,7 +80,9 @@ class InputFocusFrameTest {
             java.io.File("build/reports/ui/input-focus-frame.png").apply { parentFile!!.mkdirs() }.outputStream().use { active.compress(Bitmap.CompressFormat.PNG,100,it) }
             scroll.scrollTo(0,40);layout()
             val shifted=draw();val next=location()
-            assertEquals(p[1]-40,next[1]);assertNotEquals(red.tokens.secondary,shifted.getPixel(next[0]-3,next[1]+24))
+            assertEquals(p[1]-40,next[1])
+            // Draw via a parent, as Android does: the ScrollView canvas already carries -scrollY.
+            for(offset in listOf(-3,-6)) assertEquals(active.getPixel(p[0]+offset,p[1]+24),shifted.getPixel(next[0]+offset,next[1]+24))
             assertEquals(red.tokens.secondary,shifted.getPixel(x,old[1]+24))
             themes.activate(blue.id);scroll.setBackgroundColor(blue.tokens.secondary);layout()
             val recolored=draw();val color=recolored.getPixel(next[0]-3,next[1]+24)
@@ -101,9 +103,9 @@ class InputFocusFrameTest {
             val edit=BicycleComponents.input(a,themes).apply { setText("183") }
             body.addView(BicycleForm.numberRow(edit,themes,R.string.rider_resting,R.string.analysis_bpm),LinearLayout.LayoutParams(-1,48).apply { topMargin=20 })
             val scroll=BicycleStickyScrollView(a).apply { setBackgroundColor(themes.active.tokens.secondary);addView(body) }
-            a.setContentView(scroll)
+            val viewport=android.widget.FrameLayout(a).apply { addView(scroll,android.widget.FrameLayout.LayoutParams(-1,-1)) };a.setContentView(viewport)
             fun layout() { repeat(2) {
-                scroll.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));scroll.layout(0,0,360,400)
+                viewport.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));viewport.layout(0,0,360,400)
             } }
             layout();edit.requestFocus();layout()
             fun position():IntArray {
@@ -112,7 +114,7 @@ class InputFocusFrameTest {
             }
             scroll.scrollTo(0,position()[1]-header.height+2);layout()
             val p=position();assertEquals(header.height-2,p[1])
-            val image=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888);scroll.draw(Canvas(image))
+            val image=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888);viewport.draw(Canvas(image))
             assertEquals(themes.active.tokens.tertiary,image.getPixel(p[0]-3,header.height-4))
             assertNotEquals(themes.active.tokens.secondary,image.getPixel(p[0]-3,p[1]+24))
             image.recycle()

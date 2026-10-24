@@ -13,3 +13,10 @@ Aktive ACCENT-Flächen und Segmentbuttons verwenden zentral BicycleAccentGradien
 [Native Rahmenvorschau](previews/input-focus-frame.png) · [Fahrerprofil](previews/rider-profile-focus-preview.png) · [Interaktiver Designer](input-designer.md). Der Browser verwendet seine eigene Blur-Implementierung; native Darstellung ist maßgeblich.
 
 Gezielte Tests erfolgreich: Blur-Farbverteilung und Quellbild-Erhalt, Farben einschließlich Weiß/Schwarz, nativer Rahmen/innerer und äußerer Schein, Scrollen, Sticky-Clipping, Cache-Wiederverwendung/-Freigabe, Theme/disabled, Geometrie/Werte/Listener und ausgewählte Formular-/HRV-Regressionsfälle. Füllwinkel und Textkontrast über alle Theme-Presets geprüft. Native Vorschauen visuell geprüft; kein Hardware-Benchmark oder Gesamtlauf.
+
+
+## Scrollkorrektur 24.10.2026
+
+Der native ScrollView-Overlay-Canvas trägt beim Zeichnen über einen Elterncontainer bereits den negativen Scrollversatz. Die aus Fensterpositionen abgeleitete Feldposition ist dagegen schon viewportbezogen. Den Canvas-Versatz deshalb genau einmal neutralisieren, bevor Kontur-Blurs und Viewport-/Sticky-Clips gezeichnet werden. Verhindert doppelte Scrollgeschwindigkeit, ändert weder Blur noch Feld-/Scrollfunktion.
+
+Regression zeichnet über den tatsächlichen Elterncontainer statt ScrollView.draw isoliert. So ist der frühere Fehler reproduzierbar; Farbwerte direkt neben dem Feld müssen nach Scrollen identisch mitwandern. Sticky-Header weiterhin aussparen.
