@@ -6,7 +6,7 @@ Der Feldauswahldialog besitzt drei zunächst geschlossene Accordions:
   Aus blendet den Hauptmesswert aus; Ein stellt die letzte Auswahl wieder her.
   Eine Messwertauswahl aktiviert den Schalter automatisch. Darunter bleiben
   Quellen-Dropdown, vorhandene Messwerte und Kategorien.
-- **Graph:** „Keine Graphen“ oder maximal zwei Grapharten mit ihren Farbpunkten.
+- **Graph:** gemeinsames Schalter-Accordion wie Daten und Trendindikator, statt separater „Keine Graphen“-Zeile. Aus leert die Graphauswahl; Ein stellt innerhalb des geöffneten Dialogs die letzte verfügbare Auswahl wieder her (sonst erster verfügbarer Graph). Eine Graphauswahl aktiviert den Schalter automatisch. Maximal zwei Grapharten mit ihren Farbpunkten.
   Das frühere Auswahlfeld „Graph-Darstellung“ ist vollständig entfernt.
 - **Visualisierung:** unveränderte unabhängige Auswahl der Zonen-Glow-Quelle.
 
@@ -52,3 +52,7 @@ drei Ebenen, Scrollbarkeit, Quellenplatzierung, alte Modi, Presets sowie neue un
 alte Backups. Bestehende FieldPicker-, LiveGraph-, Trainingszonen-, Stil- und
 Backup-Prüfungen decken den Funktionserhalt ab. 44 gezielte Tests und Kotlin-Kompilierung bestanden. Keine Änderungen an FIT,
 Sensorverarbeitung, Graphdaten oder Performance Engine.
+
+## Einheitliche Listenkategorien nach Build 78
+
+Datenlisten verwenden die kleine zentrale contentHeading statt alter großer Überschriften. Zwischen Kategorien (Fahrt, Höhe, Leistung usw.) liegen gemeinsame horizontale Abschnittstrenner. Die beiden Trendgruppen Aktuelle Werte / Durchschnittswerte verwenden dieselbe listCategory-Komponente und dadurch dieselbe Trennung. Die erste Kategorie bekommt keinen zusätzlichen oberen Trenner. Auswahl, Quellenwechsel und der gemeinsame Scrollbereich bleiben erhalten. Graph-Zeitfenster, Verfügbarkeitsfilter, Reihenfolge und Zwei-Graphen-Grenze sowie das bestehende GraphOverlayConfig-/Backupformat unverändert. Schalterauswahl und Aufklappen unabhängig; keine neue gespeicherte Enable-Option.

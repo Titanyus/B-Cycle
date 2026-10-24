@@ -56,15 +56,15 @@ class LiveGraphUiTest {
     @Test fun orderedChoicesPreventThirdRemainDeselectableAndReloadPerPageAndSlot() {
         val prefs=context.getSharedPreferences("graphs",0);val themes=ThemeManager(prefs)
         val chooser=GraphOverlayPicker(context,themes,emptyList());val boxes=all(chooser).filterIsInstance<CheckBox>()
-        assertTrue(boxes.first().isChecked);boxes[1].performClick();boxes[2].performClick()
+        assertTrue(boxes.none { it.isChecked });boxes[0].performClick();boxes[1].performClick()
         assertEquals(listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),chooser.selected)
-        assertFalse(boxes[3].isEnabled);boxes[3].performClick();assertEquals(2,chooser.selected.size)
-        boxes[1].performClick();boxes[3].performClick();assertEquals(listOf(AnalysisChart.CADENCE,AnalysisChart.POWER),chooser.selected)
+        assertFalse(boxes[2].isEnabled);boxes[2].performClick();assertEquals(2,chooser.selected.size)
+        boxes[0].performClick();boxes[2].performClick();assertEquals(listOf(AnalysisChart.CADENCE,AnalysisChart.POWER),chooser.selected)
         val config=GraphOverlayConfig().replace(2,chooser.selected)
         prefs.edit().putString(GraphOverlayConfig.key(3),config.encode()).commit()
         assertEquals(config,GraphOverlayConfig.read(context.getSharedPreferences("graphs",0),3));assertTrue(GraphOverlayConfig.read(prefs,0).slots.all { it.isEmpty() })
         assertTrue(GraphOverlayConfig.decode(null).slots.all { it.isEmpty() });assertEquals(2,GraphOverlayConfig.decode("SPEED,POWER,CADENCE").slots[0].size)
-        boxes.first().performClick();assertTrue(chooser.selected.isEmpty())
+        chooser.findViewWithTag<android.widget.Switch>("graph_overlay_enabled").performClick();assertTrue(chooser.selected.isEmpty())
     }
     @Test fun overlaysDoNotChangeGeometryFontsForegroundOrUnsupportedTiles() {
         for(template in DashboardTemplate.entries) for((w,h) in listOf(960 to 1500,1440 to 2400)) {

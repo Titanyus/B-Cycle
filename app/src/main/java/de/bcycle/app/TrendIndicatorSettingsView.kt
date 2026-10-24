@@ -26,7 +26,7 @@ internal class TrendIndicatorSettingsView(context:Context,themes:ThemeManager,in
             LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
         listOf(R.string.trend_current_values to AverageTrends.currentFields,
             R.string.trend_average_values to AverageTrends.averageFields).forEach { (heading,fields) ->
-            details.addView(BicycleComponents.contentHeading(context,themes,context.getString(heading)))
+            BicycleComponents.listCategory(details,themes,context.getString(heading))
             fields.forEach { id ->
                 val field=DashboardField(id)
                 details.addView(CheckBox(context).apply {

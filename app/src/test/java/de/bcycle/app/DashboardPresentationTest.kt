@@ -68,7 +68,7 @@ class DashboardPresentationTest {
             val reopened=choose()
             assertFalse(reopened.window!!.decorView.findViewWithTag<android.widget.Switch>("field_data_enabled").isChecked)
             val graph=testDescendants(reopened.window!!.decorView).filterIsInstance<GraphOverlayPicker>().single()
-            testDescendants(graph).filterIsInstance<CheckBox>().first().performClick()
+            graph.findViewWithTag<Switch>("graph_overlay_enabled").performClick()
             assertFalse(DashboardDataVisibility.read(prefs,0).visible[2]);assertTrue(GraphOverlayConfig.read(prefs,0).slots[2].isEmpty())
             assertEquals(TrainingHelpMode.ALL_ZONES,DashboardTrainingHelp.read(prefs,0).mode)
             testBack(reopened)
@@ -80,6 +80,29 @@ class DashboardPresentationTest {
             assertTrue(DashboardDataVisibility.read(prefs,0).visible[2]);assertTrue(GraphOverlayConfig.read(prefs,0).slots[2].isEmpty())
             assertEquals(TrainingHelpMode.ALL_ZONES,DashboardTrainingHelp.read(prefs,0).mode)
         } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun dataAndTrendCategoriesKeepCompactHeadingsAndSharedSeparatorsAfterDialogStyling() {
+        val themes=ThemeManager(context.getSharedPreferences("compact-field-categories",0))
+        val picker=FieldPickerView(context,LiveData(),GpsValues(),null,PulseValues(),DashboardField("GPS_SPEED"),false,themes,
+            trendChanged={}) {}
+        fun verify(group:LinearLayout) {
+            val children=(0 until group.childCount).map { group.getChildAt(it) }
+            val headings=children.filterIsInstance<TextView>().filter { it.tag=="bicycle_content_heading" }
+            assertTrue(headings.isNotEmpty())
+            assertEquals(headings.size-1,children.count { it.tag=="bicycle_section_divider" })
+            headings.forEach { heading ->
+                assertEquals(BicycleDesign.contentHeadingSp,heading.textSize/context.resources.displayMetrics.scaledDensity,.01f)
+                assertEquals(BicycleDesign.strongTypeface,heading.typeface)
+            }
+        }
+        BicycleDialogStyle.content(picker,themes)
+        val source=picker.findViewWithTag<Spinner>("field_source")
+        for(i in 0 until source.adapter.count) {
+            source.setSelection(i);shadowOf(Looper.getMainLooper()).idle()
+            BicycleDialogStyle.content(picker,themes)
+            verify(picker.findViewWithTag("field_list"))
+        }
+        verify(picker.findViewWithTag("field_trend_details"))
     }
     @Test fun legacyGraphOnlyMigratesOnlyWhereGraphsWereVisibleAndExplicitChoicesSurvivePresets() {
         val prefs=context.getSharedPreferences("visibility-migration",0)

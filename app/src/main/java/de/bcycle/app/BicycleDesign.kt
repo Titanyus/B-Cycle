@@ -395,6 +395,11 @@ object BicycleComponents {
         textSize=BicycleDesign.contentHeadingSp
         gravity=Gravity.START
     }
+    /** Compact list categories share the same heading and separator spacing. */
+    fun listCategory(parent:LinearLayout,manager:ThemeManager,value:String) {
+        if(parent.childCount>0) parent.addView(sectionDivider(parent.context,manager))
+        parent.addView(contentHeading(parent.context,manager,value))
+    }
     /** A stacked control label: its control owns the single shared label gap. */
     fun fieldLabel(context:Context,manager:ThemeManager,value:String)=text(context,manager,value).apply {
         tag="bicycle_field_label"

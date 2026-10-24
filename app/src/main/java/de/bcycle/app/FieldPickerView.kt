@@ -7,7 +7,6 @@ import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.Spinner
-import android.widget.TextView
 
 /** One scroll host keeps every data choice and the following training help reachable. */
 internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
@@ -99,10 +98,8 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             if (shown == position) return
             shown = position;refreshBatteryChecks={}; rows.removeAllViews()
             for (section in groups.getValue(sources[position])) {
-                rows.addView(TextView(context).apply {
-                    text = if(section.source=="Leistung") context.getString(R.string.training_category) else DashboardTextResources.section(context,section.title); isAccessibilityHeading=true; textSize = BicycleDesign.bodySp; BicycleDialogStyle.control(this, themes)
-                    setPadding(0, dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.smallGap)); isAccessibilityHeading = true
-                })
+                BicycleComponents.listCategory(rows,themes,
+                    if(section.source=="Leistung") context.getString(R.string.training_category) else DashboardTextResources.section(context,section.title))
                 for (field in section.fields.filter { BatteryFields.single(it.id)==null }) {
                     val value = field.value(data, gps, bikeDistanceM, pulse, training)
                     val title = if (field.id == "RIDER_POWER") context.getString(R.string.ui_rider_power_own) else field.title(context,data, gps)

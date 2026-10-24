@@ -13,16 +13,33 @@ internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initia
     var window=initialWindow;private set
     val selected get()=choice.toList()
     private val boxes=linkedMapOf<AnalysisChart,CheckBox>()
-    private val none=CheckBox(context)
+    private var reflecting=false
+    private var remembered=choice.toList()
+    private val enabled=android.widget.Switch(context)
     init {
         orientation=VERTICAL; tag="graph_overlay_picker"
-        lateinit var toggle: android.widget.Button
-        toggle=BicycleComponents.action(context,themes,context.getString(R.string.zone_graph_toggle)) {
-            content.visibility=if(content.visibility==VISIBLE) GONE else VISIBLE
-            toggle.stateDescription=context.getString(if(content.visibility==VISIBLE) R.string.zone_expanded else R.string.zone_collapsed)
-        }.apply { tag="graph_overlay_toggle";isAccessibilityHeading=true;stateDescription=context.getString(R.string.zone_collapsed) }
-        BicycleDialogStyle.accordion(toggle,themes)
-        BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Expand);addView(toggle);addView(content)
+        enabled.apply {
+            tag="graph_overlay_enabled";setText(R.string.zone_graph_toggle);isChecked=choice.isNotEmpty()
+            BicycleDialogStyle.control(this,themes)
+            setOnCheckedChangeListener { _,on ->
+                if(!reflecting) {
+                    if(on) choice.addAll(remembered.filter { it in available }.ifEmpty { AnalysisChart.entries.filter { it in available }.take(1) })
+                    else choice.clear()
+                    refresh();changed()
+                }
+            }
+        }
+        val toggle=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.zone_graph_toggle)) {
+            val open=content.visibility!=VISIBLE
+            content.visibility=if(open) VISIBLE else GONE
+            findViewWithTag<View>("graph_overlay_toggle").apply {
+                rotation=if(open) 180f else 0f
+                stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
+            }
+        }.apply { tag="graph_overlay_toggle";stateDescription=context.getString(R.string.zone_collapsed) }
+        addView(LinearLayout(context).apply { BicycleComponents.switchAccordion(this,enabled,toggle,themes) },
+            LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
+        addView(content)
         val segments=android.widget.RadioGroup(context).apply { orientation=HORIZONTAL;tag="graph_windows";BicycleComponents.segmentedControlRow(this,themes) }
         val buttons=GraphWindow.entries.map { value -> BicycleSegmentButton(context,themes).apply {
             id=View.generateViewId();tag="graph_window_${value.name}";setText(value.label);isChecked=value==window
@@ -30,9 +47,6 @@ internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initia
         } }
         buttons.forEach { segments.addView(it,android.widget.RadioGroup.LayoutParams(0,-2,1f)) }
         content.addView(segments,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        none.setText(R.string.graph_none); BicycleDialogStyle.control(none,themes)
-        none.setOnClickListener { choice.clear(); refresh(); changed() }; content.addView(none)
-        BicycleComponents.controlSpacing(none)
         AnalysisChart.entries.forEach { chart ->
             val label=when(chart) { AnalysisChart.SPEED -> R.string.graph_speed; AnalysisChart.HEART -> R.string.graph_heart; else -> chart.label }
             val box=CheckBox(context).apply { tag="graph_${chart.name}"
@@ -47,5 +61,9 @@ internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initia
         }
         refresh()
     }
-    private fun refresh() { none.isChecked=choice.isEmpty(); boxes.forEach { (chart,box) -> box.isChecked=chart in choice; box.isEnabled=chart in available && (chart in choice || choice.size<2);box.alpha=if(box.isEnabled) 1f else .4f } }
+    private fun refresh() {
+        if(choice.isNotEmpty()) remembered=choice.toList()
+        reflecting=true;enabled.isChecked=choice.isNotEmpty();reflecting=false
+        enabled.isEnabled=available.isNotEmpty() || choice.isNotEmpty()
+        boxes.forEach { (chart,box) -> box.isChecked=chart in choice; box.isEnabled=chart in available && (chart in choice || choice.size<2);box.alpha=if(box.isEnabled) 1f else .4f } }
 }

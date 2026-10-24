@@ -91,20 +91,18 @@ class FieldPickerTest {
     @Test fun graphChoicesHaveTheirCorrespondingDashboardColoredDotsAndKeepSelectionLimit() {
         val context=RuntimeEnvironment.getApplication();val themes=ThemeManager(context.getSharedPreferences("graph-dots-picker",0))
         val picker=GraphOverlayPicker(context,themes,emptyList())
-        val toggle=picker.findViewWithTag<android.widget.Button>("graph_overlay_toggle")
-        assertEquals(android.graphics.Typeface.DEFAULT,toggle.typeface)
-        assertEquals(android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL,toggle.gravity)
-        assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
-            BicycleDesign.choiceSp,context.resources.displayMetrics),toggle.textSize,.01f)
+        val toggle=picker.findViewWithTag<View>("graph_overlay_toggle")
+        val enabled=picker.findViewWithTag<android.widget.Switch>("graph_overlay_enabled")
+        assertFalse(enabled.isChecked)
         toggle.performClick()
         picker.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1800,View.MeasureSpec.AT_MOST))
         picker.layout(0,0,picker.measuredWidth,picker.measuredHeight)
         val choices=testDescendants(picker).filterIsInstance<android.widget.CheckBox>()
         val content=picker.findViewWithTag<View>("graph_overlay_content")
         assertTrue(content.top+choices.first().top-toggle.bottom>=BicycleDesign.dp(context,BicycleDesign.controlGap))
-        assertFalse(choices.first().text is android.text.Spanned)
+        assertEquals(AnalysisChart.entries.size,choices.size)
         AnalysisChart.entries.forEachIndexed { index,chart ->
-            val box=choices[index+1];val text=box.text as android.text.Spanned
+            val box=choices[index];val text=box.text as android.text.Spanned
             assertTrue(box.contentDescription.isNotEmpty());val dot=text.getSpans(0,text.length,RecordingDotSpan::class.java).single()
             assertEquals(kotlin.math.ceil(BicycleDesign.graphChoiceDotDiameter*context.resources.displayMetrics.density).toInt(),
                 dot.getSize(android.graphics.Paint(),text,0,1,null))
@@ -112,9 +110,14 @@ class FieldPickerTest {
             dot.draw(android.graphics.Canvas(b),text,0,1,0f,0,20,30,android.graphics.Paint().apply { textSize=18f })
             assertTrue((0 until 30).any { y -> (0 until 30).any { x -> b.getPixel(x,y)==chart.color(android.graphics.Color.BLACK) } })
         }
-        choices[1].performClick();choices[2].performClick()
+        choices[0].performClick();choices[1].performClick()
         assertEquals(listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),picker.selected)
-        assertFalse(choices[3].isEnabled);choices[1].performClick();assertTrue(choices[3].isEnabled)
+        assertTrue(enabled.isChecked)
+        assertFalse(choices[2].isEnabled);choices[0].performClick();assertTrue(choices[2].isEnabled)
+        enabled.performClick();assertTrue(picker.selected.isEmpty());assertFalse(enabled.isChecked)
+        enabled.performClick();assertEquals(listOf(AnalysisChart.CADENCE),picker.selected)
+        enabled.performClick();choices[2].performClick();assertTrue(enabled.isChecked)
+        assertEquals(listOf(AnalysisChart.POWER),picker.selected)
     }
 
 }
