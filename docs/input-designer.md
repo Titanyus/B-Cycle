@@ -1,6 +1,6 @@
 # Interaktiver Eingabefeld-Designer
 
-[Designer im Browser öffnen](https://raw.githack.com/Titanyus/B-Cycle/d52c9fae8cbf715513bf0beb32dbb7fd7b218809/docs/previews/input-designer.html) · [HTML für Offline-Nutzung herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/d52c9fae8cbf715513bf0beb32dbb7fd7b218809/docs/previews/input-designer.html)
+[Designer im Browser öffnen](https://raw.githack.com/Titanyus/B-Cycle/e23a3a072489a22caebad9043f7442b1091e28b2/docs/previews/input-designer.html) · [HTML für Offline-Nutzung herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/e23a3a072489a22caebad9043f7442b1091e28b2/docs/previews/input-designer.html)
 
 Beim ersten Öffnen des Browser-Links zeigt raw.githack gegebenenfalls einen Herkunftshinweis. Mit „Open the page“ geht es zum Designer.
 
@@ -11,3 +11,14 @@ Mit „JSON exportieren“ werden alle Parameter und abgeleiteten Farben gespeic
 Erzeugung: `python3 scripts/build-input-designer.py`; Konsistenz: derselbe Aufruf mit `--check`. Quelle ist input-designer.template.html; Paletten und Schrift kommen aus dem Repository. Browser-Blur und native Box-Blur-Näherung können geringfügig abweichen. Die native App bleibt Referenz.
 
 Geprüft in Chromium bei 1440 und 390 Pixel Breite: keine horizontale Überbreite, alle 14 Paletten und Schrift, Live-Änderungen, Stops ziehen, Ebenen, JSON-Export/Import, ungültiger Import, Wiederherstellung nach Reload. Öffentlicher Vorschau-Link mit HTTP 200 und denselben funktionalen Browserprüfungen nach Bestätigung des Herkunftshinweises geprüft.
+
+
+## Nachtrag: Glow-Intensität und aktive Auswahl
+
+Zusätzlich zur Deckkraft gibt es für nahen und äußeren Schein je einen Intensitätsregler von 0 bis 2000 % (0–20-fach). Standard 100 % erhält die bisherige Wirkung. Verstärkt wird ausschließlich der Alphakanal des bereits weichgezeichneten Konturbildes; danach folgen Deckkraft und SCREEN/Normal. Dadurch lassen sich dünne, weit verteilte Konturen aufhellen, ohne Blur-Radius oder Konturstärke zu verändern. Die Deckkraft bleibt bei 0–100 %. Sehr hohe Verstärkung sättigt den Schein entsprechend.
+
+Die aktive Auswahl verwendet dieselbe Verlaufs-Kontur und beide Glows wie das Fokusfeld. Zusätzlich erhält sie den separat eingestellten Flächenverlauf. Inaktive Auswahl unverändert; Ebenenschalter wirken auf beide aktiven Beispiele.
+
+JSON und lokale Speicherung enthalten `near.intensity` und `outer.intensity`. Alte Schema-1-Entwürfe ohne diese Werte werden mit 1 (= 100 %) geladen; unzulässige Werte werden abgewiesen. Neue Intensitätseinstellung und Auswahlkontur sind zunächst nur im Visualisierer umgesetzt, nicht in APK 0.8.35.
+
+Gezielte Chromium-Prüfungen: nachgewiesene Helligkeitssteigerung außerhalb der aktiven Auswahl bei gleicher Blur-Breite, gemeinsame Kontur-/Glow-Ebenenschalter ohne Änderung der Innenfläche, Altimport/ungültige Werte und JSON-/Reload-Erhalt der Intensität. Bisherige Desktop-/Mobil-, Farb-/Stop- und Exportprüfungen weiter erfolgreich. Native App unverändert, kein APK-Build.

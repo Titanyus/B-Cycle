@@ -2,6 +2,10 @@
 
 Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.
 
+## Neuester Nachtrag: Visualisierer mit Glow-Verstärkung
+
+Nur das HTML-Designwerkzeug erweitert: separate Intensität je Blur 0–2000 %, Verstärkung nach Blur und vor Deckkraft/SCREEN (BlendMode SCREEN); Standard 100 %, Altentwürfe bleiben kompatibel. Aktive Auswahl jetzt gemeinsame Kontur und Nah-/Außen-Glow plus eigener Flächenverlauf. Browser-/Pixel-/JSON-/Mobilprüfungen erfolgreich; keine Appänderung, keine neue APK. Öffentliche neue Vorschau und Details in docs/input-designer.md. APK bleibt 0.8.35 / Build 74 und enthält diese späteren Designer-Erweiterungen nicht als Appfunktion.
+
 ## Aktueller Abschluss: APK 0.8.35 / Build 74
 
 Alle lokalen Änderungen seit Build 73 sind jetzt veröffentlicht und in APK **0.8.35 / Build 74 / Code 105** enthalten. Actions-Quellstand `71ad3d96028544cce03b8f7af8ef89825e930695`, [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.35-release-74.apk), [Buildnachweis](build-74.md). Größe 2.387.097 Bytes; SHA-256 `925e4442f36eb9d77d5aeeb03a465dbb51f22896a739e22ef020e88635d0e4a1`. Optimierter Release, dauerhafte Signatur wie Build 73, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Kein offener APK-Auftrag. Designer: docs/input-designer.md, live über raw.githack, Desktop/Mobil/Export/Import geprüft. Native Vorschauen aktualisiert. Frühere Angaben über lokalen Stand oder fehlende APK darunter sind Verlauf.
