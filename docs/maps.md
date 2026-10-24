@@ -46,7 +46,7 @@ als Originaldateien im Arbeitsbereich abrufbar.
   Die frei werdende Höhe geht vollständig an die Karte; die Datenfelder bleiben gleich groß. Kartenattribution, Position und Strecken bleiben
   sichtbar. Bei aktivierter TalkBack-Tastenerkundung bleiben Buttons sichtbar.
 - Manuelles Verschieben pausiert GPS-Folgen. Ein Kartentipp setzt es nicht fort;
-  dazu **◎** verwenden. In Fahrtrichtung liegt die Position etwa im unteren Drittel.
+  dazu **◎** verwenden. Die Position ist bei Zoom 6–11 mittig und erhält mit höherem Zoom mehr Platz in Fahrtrichtung (bis 25 % Randabstand). Siehe map-motion.md.
   Im Stand bleibt die letzte brauchbare Richtung erhalten; ohne Richtung erscheint
   ein Positionspunkt. Veraltete GPS-Positionen werden nicht als aktuell dargestellt.
 - **☰ → Kartenmanager** speichert Kartenquelle, Ausrichtung, Verfolgung sowie

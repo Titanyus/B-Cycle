@@ -9,7 +9,7 @@ internal object BikeUiConfigurationScope {
         ModeGlowSettings.placementKey,DashboardFullscreen.key,DashboardPages.KEY,"dashboardPage",GraphDisplaySettings.key,
         MapFieldSelection.key(0),MapFieldSelection.key(1),MapFieldSelection.key(2))
     private val mapKeys=setOf(MapRouteStyles.key,"mapSource","mapNight","mapFollow","mapHeading",MapOvalAnchor.preference,"mapTrackVisible","mapGpxVisible",
-        "mapZoom","mapLatitude","mapLongitude","displayFitId","displayGpxId",FitElevationCorrection.preference)
+        "mapZoom",MapZoom.preference,"mapLatitude","mapLongitude","displayFitId","displayGpxId",FitElevationCorrection.preference)
     fun designKey(key:String)=key in designKeys || (0 until DashboardPages.MAX).any { key in DashboardPages.keys(it) }
     fun mapKey(key:String)=key in mapKeys
     fun capture(prefs:SharedPreferences,selectedGpxRouteId:String?=null)=BikeUiConfiguration(design=prefs.all.filterKeys(::designKey).toMap(),maps=prefs.all.filterKeys(::mapKey).toMap(),selectedGpxRouteId=selectedGpxRouteId)

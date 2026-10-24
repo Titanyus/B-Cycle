@@ -69,6 +69,17 @@ class SettingsBackupTest {
         assertEquals(field,DashboardLayout.decode(bike.getString("dashboard",null)).fields[2])
         assertEquals(field,MapFieldSelection.read(bike,0));assertEquals("FULL_DATA",bike.getString("dashboardTemplate_0",null))
     }
+    @Test fun fractionalMapZoomRoundTripsAndLegacyWorldZoomIsClamped() {
+        bike.edit().putFloat(MapZoom.preference,15.5f).putInt("mapZoom",15).commit()
+        val b=backup();val bytes=b.export(setOf(BackupSection.MAPS))
+        bike.edit().putFloat(MapZoom.preference,12f).commit()
+        b.apply(b.plan(b.decode(bytes),setOf(BackupSection.MAPS)))
+        assertEquals(15.5f,bike.getFloat(MapZoom.preference,0f),0f)
+        val legacy=json(bytes)
+        legacy.getJSONObject("sections").getJSONObject(BackupSection.MAPS.id).put("zoom",2)
+        b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.MAPS)))
+        assertEquals(6.0,MapZoom.read(bike,MapSource.entries.first()),0.0)
+    }
     @Test fun ovalMapModeRoundTripsAndOldMapsBackupsKeepExistingChoice() {
         bike.edit().putBoolean(MapOvalAnchor.preference,true).commit()
         val b=backup();val bytes=b.export(setOf(BackupSection.MAPS))

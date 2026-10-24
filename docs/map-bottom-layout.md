@@ -24,6 +24,6 @@ Die vorher beschriebene gemeinsame Unterkante mit Minus gehört zum Stand 0.7.2;
 sie wurde durch die ausdrückliche Vorgabe ersetzt, Zoom oberhalb der Kartenwerte
 zu platzieren.
 
-## Zoomstufe, 24.10.2026
+## Temporäre Zoomanzeige entfernt
 
-Kleine, nicht bedienbare Zoom-Anzeige am rechten unteren Kartenrand oberhalb der Datenwerte. Zoom +/- stehen darüber mit reserviertem Abstand. Mapsforge-Positionsbeobachtung aktualisiert nur geänderte Zoomzahlen, auch bei Kartengesten und programmgesteuertem Zoom; Observer beim Zerstören entfernen. Anzeige bleibt unabhängig von ausgeblendeten Bedienelementen sichtbar. Keine Kamera-/Gesten-/Profilfunktion geändert.
+Die nur zum Ausprobieren eingeführte Zoomzahl ist auf Nutzerwunsch wieder entfernt. Plus/Minus bleiben über den Kartenwerten; keine zusätzliche Zeile wird reserviert. Der Positionsobserver dient jetzt ausschließlich weichen zoomabhängigen Ankeränderungen. Details: map-motion.md.

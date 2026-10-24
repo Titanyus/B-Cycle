@@ -1,3 +1,13 @@
+# Neuester Stand: Kartensteuerung, Datenschalter und Dienstfehler
+
+Auftrag vom 24.10.2026 vollständig umgesetzt, keine neue APK angefragt. Aktuelle veröffentlichte APK bleibt 0.8.36 / Build 75; diese Nachträge sind darin noch nicht enthalten.
+
+- Karte: Zoom 6–19 mit echten 0,5-Tastenschritten, OpenTopoMap max. 17; fractional Zoom inklusive Profilbank und Sicherung, alte Integer-Backups lesbar/geklammert. Temporäre Zoomzahl entfernt. Ein Modusbutton Fahrtrichtung oben/Norden oben, jeweils GPS-Folgen; manueller Pan deaktiviert, GPS-Button stellt letzten Modus wieder her. Alter aktiver Ovalmodus wird zu Norden oben migriert. Anker bis Zoom 11 Mitte, Zoom 12 40 %, danach je Level 3 Prozentpunkte weniger bis 17–19 25 %, Zwischenwerte und Radius weich. Bestehende Kurs-/GPS-Filter erhalten. Details map-motion.md.
+- Feldauswahl: Daten als gemeinsames Schalter-Accordion, Schalter rechts, Label links. Aus verbirgt nur Hauptwert, Ein stellt letzte Auswahl wieder her; Auswahl aktiviert automatisch. Graph/Visualisierung unabhängig, Kartenfelder gleicher Einstieg. Details independent-dashboard-layers.md.
+- ServiceProblems: feste Fehlerkennungen für Erreichbarkeit, Timeout, TLS, Anmeldung, Server und Ratenlimit. Verbindungstests, Import, Uploadmenü/Belege, Namensaufträge, explizite Statusprüfung und WebDAV-Sicherung zeigen konkrete Meldungen. Bestehende Retry-/Konto-/Versions-/Bestätigungsgrenzen bleiben erhalten. Dreeve-Sammel-Pull und WebDAV-Sicherung stoppen bei dienstweitem Fehler; keine falsche Vollständigkeit/Erfolgsbestätigung, keine Rohservertexte/Zugangsdaten speichern. Details route-transfer-menu.md.
+
+Gezielte JVM-/Robolectric-/native Grafiktests: Kartenbedienung/Projektion/Pan/Lifecycle, Zoom/Profilbank/Sicherung, Winkel/Anker/Glättung, gemeinsame Feldwahl und unabhängige Graphen, reale HTTP-Fehler mit MockWebServer, alle Uploadwarteschlangen, Namensrichtung/Konto-/Konkurrenzschutz und Backup-Abbruch. Veraltete Tests an bereits vorhandene 3er-Dashboardtoolbar, echte GPS-Empfangsverarbeitung und volle Graphbreite angepasst; halbe Zoomwerte jetzt als Double prüfen. Kein Gesamtlauf, kein Hardware-/echter Cloudkontentest. Typografie, XML und generierte UI-Werkzeuge geprüft. Keine App-Version erhöht und kein APK-Build gestartet.
+
 # Übergabe an einen neuen Chat
 
 Stand: 24.10.2026. Repository `Titanyus/B-Cycle`, Android/Kotlin, native Views.

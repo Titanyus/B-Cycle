@@ -21,12 +21,13 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
     private var destroyed = false; private var fitted = false
     init {
         tag = "analysis_map"; contentDescription = context.getString(R.string.analysis_map)
+        MapZoom.enableFractional()
         AndroidGraphicFactory.createInstance(context.applicationContext)
         map = MapView(context).apply {
             model.displayModel.setFixedTileSize(256)
             model.displayModel.backgroundColor = if (night) MapNightPalette.background else Color.rgb(225, 225, 225)
             setBuiltInZoomControls(false); mapScaleBar?.isVisible = false
-            setZoomLevelMin(2); setZoomLevelMax(source.maximumZoom.toByte()); setZoomLevel(2)
+            setZoomLevelMin(MapZoom.minimum.toByte()); setZoomLevelMax(MapZoom.maximum(source).toByte()); model.mapViewPosition.setZoom(MapZoom.minimum.toDouble(),false)
             touchGestureHandler.setRotationEnabled(false); layerManager.pause()
             // Preview never consumes scroll gestures. The dedicated fullscreen view supports native pan/zoom.
             if (!interactive) setOnTouchListener { _, _ -> true }
@@ -41,8 +42,8 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             fun control(icon: BicycleIcon, description: Int, action: () -> Unit) {
                 buttons.addView(BicycleComponents.icon(context, themes, icon, context.getString(description), action), android.widget.LinearLayout.LayoutParams(BicycleDesign.dp(context, MapControlDesign.detailWidth), BicycleDesign.dp(context, MapControlDesign.buttonHeight)))
             }
-            control(BicycleIcon.ZoomIn, R.string.analysis_zoom_in) { map.model.mapViewPosition.zoomIn() }
-            control(BicycleIcon.ZoomOut, R.string.analysis_zoom_out) { map.model.mapViewPosition.zoomOut() }
+            control(BicycleIcon.ZoomIn, R.string.analysis_zoom_in) { map.model.mapViewPosition.setZoom((map.model.mapViewPosition.zoom+.5).coerceAtMost(MapZoom.maximum(source).toDouble()),false) }
+            control(BicycleIcon.ZoomOut, R.string.analysis_zoom_out) { map.model.mapViewPosition.setZoom((map.model.mapViewPosition.zoom-.5).coerceAtLeast(MapZoom.minimum.toDouble()),false) }
             control(BicycleIcon.Locate, R.string.analysis_fit_route) { fit(width, height) }
             BicycleComponents.background(buttons, themes, ThemeRole.TERTIARY, BicycleDesign.inputRadius)
             addView(buttons, LayoutParams(-2, -2, android.view.Gravity.TOP or android.view.Gravity.END))
@@ -65,15 +66,15 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
         val minLon = points.minOf(::lon); val maxLon = points.maxOf(::lon)
         val centerLon = (((minLon + maxLon) / 2 + 540) % 360) - 180
         map.setCenter(LatLong((minLat + maxLat) / 2, centerLon))
-        var zoom = source.maximumZoom
-        while (zoom > 2) {
+        var zoom = MapZoom.maximum(source)
+        while (zoom > MapZoom.minimum) {
             val size = MercatorProjection.getMapSize(zoom.toByte(), 256)
             val dx = (maxLon - minLon) / 360 * size
             val dy = abs(MercatorProjection.latitudeToPixelY(maxLat, size) - MercatorProjection.latitudeToPixelY(minLat, size))
             if (dx <= w * .8 && dy <= h * .75) break
             zoom--
         }
-        map.setZoomLevel(zoom.toByte())
+        map.model.mapViewPosition.setZoom(zoom.toDouble(),false)
     }
     override fun onAttachedToWindow() { super.onAttachedToWindow(); resume() }
     override fun onWindowVisibilityChanged(visibility: Int) {

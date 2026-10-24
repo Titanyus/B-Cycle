@@ -4,7 +4,7 @@ Die bestehende Mapsforge-Karte verwendet ausschließlich bereits empfangene GPS-
 
 Es gibt keine Extrapolation: Ohne neue Positionen endet die Bewegung am letzten gültigen Punkt. Mehr als fünf Sekunden ohne neuen Fix sowie Sprünge über 200 m werden nicht überbrückt. Erster Fix, Stillstand und Wiederaufnahme nach App-Unterbrechung werden direkt übernommen. Longitude und GPS-Kurs verwenden den kürzesten Winkelweg, Latitude wird in Mercator-Koordinaten interpoliert. GPS-Zähler und alle Live-Messwerte bleiben unverändert; ausschließlich die Anzeige erhält interpolierte Koordinaten.
 
-Der Positionspunkt wird auch in manueller Kartenansicht und während des Verschiebens weich bewegt. Die Kamera wird nur bei aktivem Folgen und außerhalb einer Berührung nachgeführt. Manuelles Verschieben erhält Mittelpunkt und Drehung. Der bestehende Ausrichtungsbutton kann die Drehung weiterhin ausdrücklich ändern, ohne die Karte ungefragt auf die Position zurückzusetzen. Zentrieren bleibt eine bewusste Aktion. Bei verdeckter oder pausierter Karte laufen keine Animationsframes.
+Der Positionspunkt wird auch in manueller Kartenansicht und während des Verschiebens weich bewegt. Die Kamera wird nur bei aktivem Folgen und außerhalb einer Berührung nachgeführt. Manuelles Verschieben erhält Mittelpunkt und Drehung. Nach manuellem Verschieben ist der Modusbutton inaktiv; Zentrieren stellt den letzten Modus wieder her. Bei verdeckter oder pausierter Karte laufen keine Animationsframes.
 
 ## Kleiner Smartphone-Richtungspfeil
 
@@ -24,14 +24,12 @@ PhoneHeadingTest: Winkelglättung über Norden, alte/unzuverlässige/fehlende Me
 
 Subjektive Flüssigkeit, Kompassgenauigkeit und Energieverbrauch sind anschließend auf dem Zieltelefon zu prüfen. APK-Build nach Nutzerfreigabe über GitHub Actions, kein lokaler APK-Build.
 
-## Optionaler Vorausschau-Ovalmodus
+## Gemeinsamer Folgemodus und variabler Vorausschauanker
 
-Ein eigener Button in der rechten Karten-Controlgruppe schaltet den zusätzlichen Modus ein/aus. Das Icon zeigt ein Oval; im ausgeschalteten Zustand ist es durchgestrichen. Der Modus startet ausgeschaltet. Die Einstellung mapOvalFollow bleibt erhalten und wird im Kartenbackup sowie im vorbereiteten Bike-Konfigurationsumfang berücksichtigt.
+Ein Modusbutton wechselt zwischen Fahrtrichtung oben und Norden oben. Beide folgen automatisch der GPS-Position. Manuelles Verschieben setzt Folgen aus und deaktiviert den Modusbutton; der GPS-Button reaktiviert den zuletzt verwendeten Modus. Icons benennen den aktuellen Zustand. Alte aktivierte Oval-Einstellungen werden zu Norden oben migriert; vorhandene Backupfelder bleiben lesbar.
 
-Die Karte bleibt nach Norden ausgerichtet. Der GPS-Anker wandert auf einer Ellipse im mittleren Kartendrittel entgegen der GPS-Fahrtrichtung: Norden → unten, Süden → oben, Osten → links, Westen → rechts. Die Ellipse hat Halbachsen Kartenbreite/6 und Kartenhöhe/6. Für diagonale Richtungen wird der Schnitt des entgegengesetzten Kursstrahls mit der Ellipse verwendet; dadurch zeigt der Kurs geometrisch in die Kartenmitte, auch auf hohen/schmalen Karten.
+In Fahrtrichtung liegt der GPS-Anker unterhalb der Mitte, in Nordausrichtung auf der Ellipse entgegen dem gefilterten GPS-Kurs. Abstand vom Rand: Zoom 6–11 = 50 % (Mitte), 12 = 40 %, 13 = 37 %, 14 = 34 %, 15 = 31 %, 16 = 28 %, 17–19 = 25 %. Zwischenstufen werden linear interpoliert; 11–12 verbindet Mitte und 40 %. Radiusänderungen werden mit 350-ms-Zeitkonstante weich nachgeführt, auch im Stand. Winkel bleiben bei Stillstand/unbrauchbarem Kurs stehen; 4°-Totbereich und höchstens 60°/s bleiben erhalten. Keine Messdatenänderung.
 
-Der Ankerwinkel verwendet die bestehende angezeigte GPS-Richtung, einen 4°-Totbereich, sanftes Nachführen und höchstens 60° Winkeländerung pro Sekunde. Im Stand, bei unbrauchbarem Kurs oder manuell ausgesetztem Folgen wird er gehalten. Der Smartphone-Kompass bleibt davon unabhängig. Keine Änderungen an Positionsmessung, FIT oder Statistik.
+MapZoom begrenzt Dashboard-, Vollbild- und Detailkarten auf 6–19, OpenTopoMap weiterhin bis 17. Plus/Minus verwenden echte Mapsforge-Zoomschritte von 0,5. Fractional-Zoom ist aktiviert; Gesten dürfen weiterhin feinere Zwischenwerte liefern. Neue Float-Preference mapZoomFractional ergänzt die bisherige ganzzahlige mapZoom, inklusive profilabhängiger Konfiguration und Sicherung. Alte Sicherungen mit ganzzahligem Zoom bleiben lesbar und werden auf den neuen Bereich begrenzt. Die temporäre Zoomanzeige ist entfernt.
 
-Zentrieren reaktiviert den gewählten Folgemodus. Ausschalten des Ovalmodus erhält den vorherigen normalen North-up-/Heading-up-Modus; der explizite Ausrichtungsbutton kann Oval verlassen und in Fahrtrichtungsansicht wechseln. Bei manueller Karte bleibt der Ausschnitt erhalten. Enge Kartenflächen verkleinern die rechte Button-Gruppe bei Bedarf innerhalb der zentralen kompakten Maße, ohne linke Buttons oder Zoom zu überdecken.
-
-Gezielte Tests prüfen Kardinal-/Diagonalgeometrie, Ellipsengrenzen, Winkelgeschwindigkeit, Norddurchgang, Rauschen, Stillstand, echte Mapsforge-Projektion, manuellen Pan, bisherigen Richtungsmodus, Layoutkollisionen und Backup-Kompatibilität.
+Gezielte Tests prüfen Zoom-/Profil-/Sicherungsrückkehr, Kardinal-/Diagonalgeometrie, Ellipsengrenzen, weiche Radiusänderungen, Winkelgeschwindigkeit, Norddurchgang, Stillstand, echte Mapsforge-Projektion, manuellen Pan, Moduswiederherstellung und Layoutkollisionen.

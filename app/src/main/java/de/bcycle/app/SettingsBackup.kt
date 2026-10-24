@@ -78,7 +78,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
             } }).put("trendEnabled",TrendIndicatorSettings.read(bike).enabled).put("trendDisabledFields",jsonArray(TrendIndicatorSettings.read(bike).disabled.sorted())).put("catalog",bike.getString(DashboardPages.KEY,null) ?: JSONObject.NULL).put("activePage",bike.getInt("dashboardPage",0)).put("mapFields", JSONArray().apply { repeat(3) { put(MapFieldSelection.read(bike,it)?.id ?: JSONObject.NULL) } })
             BackupSection.RECORDING -> RecordingConfig.decode(bike.getStringSet("recordFields", null), bike.getString("recordSpeed",null), bike.getString("recordDistance",null),bike.getStringSet("recordMetadata",null),bike.getString(RecordingSources.KEY,null)).let {
                 JSONObject().put("sources",it.sourcePreferences?.json() ?: "").put("fields", jsonArray(it.fields.sorted())).put("metadata",jsonArray(it.metadata.map { field -> field.name })).put("speedSource",it.speedSource).put("distanceSource",it.distanceSource).put("localSaveEnabled",route.getBoolean("save",true)) }
-            BackupSection.MAPS -> JSONObject().put("zoom",bike.getInt("mapZoom",16)).put("latitude",bike.getFloat("mapLatitude",51f).toDouble()).put("longitude",bike.getFloat("mapLongitude",10f).toDouble())
+            BackupSection.MAPS -> JSONObject().put("zoom",bike.getFloat(MapZoom.preference,bike.getInt("mapZoom",16).toFloat()).toDouble()).put("latitude",bike.getFloat("mapLatitude",51f).toDouble()).put("longitude",bike.getFloat("mapLongitude",10f).toDouble())
                 .put("displayFitId",bike.getString("displayFitId","")).put("displayGpxId",bike.getString("displayGpxId",""))
                 .put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
                 .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true)).put("oval",bike.getBoolean(MapOvalAnchor.preference,false))
@@ -264,7 +264,12 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     if(row.has("localSaveEnabled")) r["save"]=boolean(row,"localSaveEnabled")
                 }
                 BackupSection.MAPS -> {
-                    if(row.has("zoom")) b["mapZoom"]=integer(row,"zoom").also { check(it in 2..22) }
+                    if(row.has("zoom")) {
+                        val zoom=(row.get("zoom") as? Number)?.toDouble() ?: fail()
+                        check(zoom.isFinite() && zoom in 2.0..22.0)
+                        val bounded=zoom.coerceIn(6.0,19.0)
+                        b["mapZoom"]=bounded.toInt();b[MapZoom.preference]=bounded.toFloat()
+                    }
                     listOf("latitude" to -85.0..85.0,"longitude" to -180.0..180.0).forEach { (key,range) -> if(row.has(key)) {
                         val value=row.getDouble(key);check(value.isFinite() && value in range);b[if(key=="latitude") "mapLatitude" else "mapLongitude"]=value.toFloat()
                     } }

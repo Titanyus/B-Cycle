@@ -115,9 +115,9 @@ class MapPanelTest {
             val root = activity.findViewById<ViewGroup>(android.R.id.content)
             measure(root, 1080, 2100)
             val toolbar = descendants(root).single { it.tag == "ride_toolbar" } as ViewGroup
-            assertEquals(4, toolbar.childCount)
-            val route = toolbar.getChildAt(2) as android.widget.ImageButton
-            val settings = toolbar.getChildAt(3)
+            assertEquals(3, toolbar.childCount)
+            val route = toolbar.getChildAt(0) as android.widget.ImageButton
+            val settings = toolbar.getChildAt(2)
             assertEquals("Strecken öffnen", route.contentDescription)
             assertEquals(route.width.toDouble(), settings.width.toDouble(),1.0)
             val runtime = RideRuntime.get(activity); runtime.themes.activate("preset:electric-blue")
@@ -177,6 +177,7 @@ class MapPanelTest {
             fun fix(lon: Double, speed: Double) {
                 val now = SystemClock.elapsedRealtime()
                 assertTrue(runtime.ride.gps.accept(GpsFix(now,51.0,lon,3.0,speed,.2,bearingDegrees=90.0,bearingAccuracyDegrees=3.0),now))
+                RideRuntime::class.java.getDeclaredMethod("captureGpsPerformance").apply { isAccessible=true }.invoke(runtime)
                 panel.refresh()
             }
             fix(10.0,5.0)
@@ -216,27 +217,28 @@ class MapPanelTest {
             assertEquals(runtime.gpsValues.longitude!!,panel.mapView.model.mapViewPosition.center.longitude,.0000001)
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun ovalButtonKeepsNorthUpMovesGpsAnchorAndManualPanStillPreservesCamera() {
+    @Test fun combinedModeKeepsNorthUpAndGpsButtonRestoresTheRememberedMode() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val root=controller.get().findViewById<ViewGroup>(android.R.id.content);measure(root,1080,2100)
             val panel=descendants(root).filterIsInstance<MapPanel>().single()
             val runtime=RideRuntime.get(controller.get())
-            val button=panel.findViewWithTag<View>("map_oval_follow")
-            assertFalse(button.isActivated)
+            val button=panel.findViewWithTag<View>("map_follow_mode")
+            assertTrue(button.isEnabled)
             fun fix(index:Int,course:Double) {
                 val now=SystemClock.elapsedRealtime()
                 assertTrue(runtime.ride.gps.accept(GpsFix(now,51.0-index*.000045,10.0,3.0,5.0,.2,
                     bearingDegrees=course,bearingAccuracyDegrees=3.0),now))
+                RideRuntime::class.java.getDeclaredMethod("captureGpsPerformance").apply { isAccessible=true }.invoke(runtime)
                 panel.refresh()
             }
             fix(0,180.0)
             button.performClick()
-            assertTrue(button.isActivated);assertTrue(runtime.preferences.getBoolean(MapOvalAnchor.preference,false))
-            assertTrue(runtime.preferences.getBoolean("mapHeading",true))
+            assertTrue(button.isEnabled);assertFalse(runtime.preferences.getBoolean(MapOvalAnchor.preference,true))
+            assertFalse(runtime.preferences.getBoolean("mapHeading",true))
             for(i in 1..8) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));fix(i,180.0) }
             assertEquals(0f,panel.mapView.mapRotation.degrees,.001f)
-            assertEquals(.5f,panel.mapView.mapViewCenterX,.01f);assertEquals(1f/3,panel.mapView.mapViewCenterY,.01f)
+            assertEquals(.5f,panel.mapView.mapViewCenterX,.01f);assertEquals(MapZoom.margin(panel.mapView.model.mapViewPosition.zoom).toFloat(),panel.mapView.mapViewCenterY,.01f)
             val pose=MapPanel::class.java.getDeclaredField("displayedGps").apply { isAccessible=true }.get(panel) as GpsValues
             val pixel=panel.mapView.mapViewProjection.toPixels(org.mapsforge.core.model.LatLong(pose.latitude!!,pose.longitude!!),true)
             assertEquals(panel.width*panel.mapView.mapViewCenterX,pixel.x.toFloat(),1f)
@@ -247,10 +249,16 @@ class MapPanelTest {
             for(i in 9..10) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));fix(i,90.0) }
             assertEquals(centre,panel.mapView.model.mapViewPosition.center)
             assertEquals(x,panel.mapView.mapViewCenterX,0f);assertEquals(y,panel.mapView.mapViewCenterY,0f)
-            panel.setFollow(true);button.performClick()
-            assertFalse(button.isActivated);assertFalse(runtime.preferences.getBoolean(MapOvalAnchor.preference,true))
-            assertEquals(.5f,panel.mapView.mapViewCenterX,0f);assertEquals(.68f,panel.mapView.mapViewCenterY,.001f)
-            assertTrue(runtime.preferences.getBoolean("mapHeading",true))
+            assertFalse(button.isEnabled)
+            assertFalse(runtime.preferences.getBoolean("mapHeading",true))
+            descendants(panel).single { it.contentDescription=="GPS-Zentrierung aktivieren" }.performClick()
+            assertTrue(button.isEnabled)
+            assertFalse(runtime.preferences.getBoolean("mapHeading",true))
+            button.performClick()
+            assertTrue(runtime.preferences.getBoolean("mapHeading",false))
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5))
+            assertEquals(.5f,panel.mapView.mapViewCenterX,.01f)
+            assertEquals((1-MapZoom.margin(panel.mapView.model.mapViewPosition.zoom)).toFloat(),panel.mapView.mapViewCenterY,.01f)
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun phoneCompassOnlyRunsForVisibleMapAndDoesNotControlGpsCameraHeading() {
@@ -282,7 +290,7 @@ class MapPanelTest {
             panel.pause();assertTrue(shadowOf(manager).listeners.isEmpty())
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun headingUpCameraKeepsGpsInLowerThirdAndNorthSettingResetsRotation() {
+    @Test fun headingUpCameraUsesZoomMarginAndNorthSettingResetsRotation() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val root = controller.get().findViewById<ViewGroup>(android.R.id.content)
@@ -295,14 +303,15 @@ class MapPanelTest {
             assertEquals(-90f, panel.mapView.mapRotation.degrees, .001f)
             val pixel = panel.mapView.mapViewProjection.toPixels(org.mapsforge.core.model.LatLong(51.0, 10.0), true)
             assertEquals(panel.width / 2.0, pixel.x, 1.0)
-            assertEquals(panel.height * .68, pixel.y, 1.0)
-            descendants(panel).single { it.contentDescription == "Fahrtrichtung oben · wechseln zu Norden" }.performClick()
+            assertEquals(panel.height * (1-MapZoom.margin(panel.mapView.model.mapViewPosition.zoom)), pixel.y, 1.0)
+            descendants(panel).single { it.tag == "map_follow_mode" }.performClick()
             assertEquals(0f, panel.mapView.mapRotation.degrees, .001f)
-            assertEquals(2f / 3f, panel.mapView.mapViewCenterY, .001f)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5))
+            assertEquals(0f,panel.mapView.mapRotation.degrees,.001f)
             panel.setFollow(false)
             val manualCenter=panel.mapView.model.mapViewPosition.center
-            descendants(panel).single { it.contentDescription==controller.get().getString(R.string.ui_map_north_to_heading) }.performClick()
-            assertEquals(-90f,panel.mapView.mapRotation.degrees,.001f)
+            descendants(panel).single { it.tag=="map_follow_mode" }.performClick()
+            assertEquals(0f,panel.mapView.mapRotation.degrees,.001f)
             assertEquals(manualCenter,panel.mapView.model.mapViewPosition.center)
         } finally { controller.pause().stop().destroy() }
     }
@@ -317,17 +326,13 @@ class MapPanelTest {
             val panel = descendants(root).filterIsInstance<MapPanel>().single()
             assertFalse(descendants(panel).any { it.contentDescription == "Nächstes Dashboard" || it.contentDescription == "Vorheriges Dashboard" })
             val center = descendants(panel).single { it.contentDescription == "GPS-Zentrierung aktivieren" }
-            assertEquals(4, (center.parent as ViewGroup).childCount)
+            assertEquals(3, (center.parent as ViewGroup).childCount)
             val zoom = descendants(panel).single { it.tag == "map_zoom_controls" } as ViewGroup
             assertEquals(2, zoom.childCount)
-            val zoomLevel=panel.findViewWithTag<android.widget.TextView>("map_zoom_level")
-            val beforeZoom=panel.mapView.model.mapViewPosition.zoomLevel.toInt()
+            assertNull(panel.findViewWithTag<View>("map_zoom_level"))
+            val beforeZoom=panel.mapView.model.mapViewPosition.zoom
             zoom.getChildAt(0).performClick();shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(panel.context.getString(R.string.map_zoom_level,(beforeZoom+1).coerceAtMost(19)),zoomLevel.text.toString())
-            panel.mapView.model.mapViewPosition.setZoomLevel(13,false);shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(panel.context.getString(R.string.map_zoom_level,13),zoomLevel.text.toString())
-            assertTrue(zoomLevel.left>=panel.width/2)
-
+            assertEquals((beforeZoom+.5).coerceAtMost(19.0),panel.mapView.model.mapViewPosition.zoom,.0001)
             assertTrue(zoom.getChildAt(0).top < zoom.getChildAt(1).top)
             assertEquals("Karte vergrößern", zoom.getChildAt(0).contentDescription)
             assertTrue(zoom.left > panel.width / 2)
