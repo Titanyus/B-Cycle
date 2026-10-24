@@ -110,14 +110,14 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
             selected.filter { it.elapsedMs>=start }.forEach { point -> point.values.forEachIndexed { i,value ->
                 if(value!=null) windowScales.include(AnalysisChart.entries[i],value)
             } }
-            AnalysisChart.entries.mapNotNull { chart -> (windowScales.range(chart) ?: initialRanges[chart])?.let { chart to GraphSeries(prepare(chart,pixelWidth,selected,true,window.milliseconds.toDouble(),start.toDouble(),1000.0),it) } }.toMap()
+            AnalysisChart.entries.mapNotNull { chart -> (windowScales.range(chart) ?: initialRanges[chart])?.let { chart to GraphSeries(prepare(chart,pixelWidth,selected,true,window.milliseconds.toDouble(),start.toDouble(),3000.0,6),it) } }.toMap()
         }
         return GraphFrame(version,distanceM,series,elapsed,windows,points.none { it.distanceM!=null })
     }
     private fun prepare(chart: AnalysisChart, width: Int, history:List<GraphPoint> = points,
         time:Boolean=points.none { it.distanceM!=null },
         extent:Double=if(time) (points.lastOrNull()?.elapsedMs ?: 0).toDouble() else distanceM,
-        origin:Double=0.0,minimumRadius:Double=0.0): List<GraphPoint> {
+        origin:Double=0.0,minimumRadius:Double=0.0,smoothingSamples:Int=3): List<GraphPoint> {
         val i=chart.ordinal; val mask=1 shl i
         fun position(p:GraphPoint)=(if(time) p.elapsedMs.toDouble() else p.distanceM!!)-origin
         val result=ArrayList<GraphPoint>(); val segment=ArrayList<GraphPoint>()
@@ -137,9 +137,17 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
             val radius=max(minimumRadius,if(extent>0) extent/width*2 else 0.0)
             reduced.forEachIndexed { j,p ->
                 val original=p.values[i]!!
-                val neighbors=listOfNotNull(reduced.getOrNull(j-1),p,reduced.getOrNull(j+1))
+                val immediate=listOfNotNull(reduced.getOrNull(j-1),p,reduced.getOrNull(j+1))
+                // Expand from three to six samples only within the same nonzero segment.
+                val neighbors=if(smoothingSamples==3 || immediate.any { it.values[i]==0.0 }) immediate else {
+                    fun side(offsets:IntProgression)=offsets.mapNotNull { reduced.getOrNull(j+it) }
+                        .takeWhile { it.values[i]!=0.0 && abs(position(it)-position(p))<=radius }
+                    side(-1 downTo -2).reversed()+p+side(1..3)
+                }
+                val ordered=neighbors.map { it.values[i]!! }.sorted()
+                val median=if(smoothingSamples!=3 && ordered.size%2==0) (ordered[ordered.size/2-1]+ordered[ordered.size/2])/2 else ordered[ordered.size/2]
                 val smooth=if(original==0.0 || neighbors.any { it.values[i]==0.0 } || neighbors.any { abs(position(it)-position(p))>radius }) original
-                    else original*.75 + neighbors.map { it.values[i]!! }.sorted()[neighbors.size/2]*.25
+                    else original*.75 + median*.25
                 result += p.copy(values=p.values.mapIndexed { k,v -> if(k==i) smooth else v })
             }
             segment.clear()

@@ -24,6 +24,17 @@ class RollingGraphTest {
         }
         assertTrue(f.series.getValue(AnalysisChart.HEART).points.size>2)
     }
+    @Test fun rollingWindowsUseSixNeighborSamplesWhileFullAndOriginalMeasurementsStayUnchanged() {
+        val history=GraphHistoryBuffer()
+        val original=(0..40).map { i -> GraphPoint(i*1000L,i*1000L,null,listOf(null,null,if(i%6<3) 100.0 else 300.0,null,null)) }
+        original.forEach(history::append)
+        val frame=history.frame(1,400)
+        assertEquals(100.0,frame.series.getValue(AnalysisChart.POWER).points.single { it.elapsedMs==14000L }.values[2]!!,0.0)
+        for(window in GraphWindow.entries.filter { it!=GraphWindow.FULL }) {
+            assertEquals(125.0,frame.windows.getValue(window).getValue(AnalysisChart.POWER).points.single { it.elapsedMs==14000L }.values[2]!!,0.0)
+        }
+        assertEquals(100.0,original[14].values[2]!!,0.0)
+    }
     @Test fun rollingProviderPublishesAtOneSecondAndRetainsTheLatestSample() {
         val provider=LiveGraphProvider {}.apply { rolling=true }
         val worker=LiveGraphProvider::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(provider) as java.util.concurrent.ExecutorService
