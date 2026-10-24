@@ -231,7 +231,7 @@ class MainActivity : Activity() {
         root.addView(toolbar)
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->
-            controlsVisible = visible || runtime.bikes.current().type==BikeType.INDOOR || !currentTemplate().hasMap
+            controlsVisible = visible || !currentTemplate().hasMap
             toolbar.visibility = if (controlsVisible) View.VISIBLE else View.GONE
             dashboardArea.requestLayout()
         }

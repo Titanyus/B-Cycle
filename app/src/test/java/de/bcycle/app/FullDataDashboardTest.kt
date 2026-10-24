@@ -37,6 +37,15 @@ class FullDataDashboardTest {
             root.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2240,View.MeasureSpec.EXACTLY));root.layout(0,0,1080,2240)
             assertEquals(View.GONE,views(root).filterIsInstance<MapPanel>().single().visibility)
             assertEquals(View.VISIBLE,views(root).single { it.tag=="ride_toolbar" }.visibility)
+            val runtime=RideRuntime.get(a);val original=runtime.bikes.current()
+            val map=views(root).filterIsInstance<MapPanel>().single()
+            val toolbar=views(root).single { it.tag=="ride_toolbar" }
+            for(type in BikeType.entries.filter { it.available }) {
+                runtime.bikes.save(original.copy(type=type))
+                map.controlsVisibilityChanged!!.invoke(false)
+                assertEquals("Map-free dashboard keeps footer for $type",View.VISIBLE,toolbar.visibility)
+            }
+            runtime.bikes.save(original)
             val tiles=views(root).filter { it.tag?.toString()?.startsWith("dashboard_tile_")==true }
             val geometry=tiles.map { listOf(it.left,it.top,it.width,it.height) }
             a.setDashboardEditing(true)
@@ -47,6 +56,10 @@ class FullDataDashboardTest {
             MainActivity::class.java.getDeclaredMethod("changeDashboard",Int::class.javaPrimitiveType).apply { isAccessible=true }.invoke(a,1)
             assertEquals(View.VISIBLE,views(root).filterIsInstance<MapPanel>().single().visibility)
             assertEquals(View.GONE,finish.visibility)
+            map.controlsVisibilityChanged!!.invoke(false)
+            assertEquals("Map dashboard retains auto-hide",View.GONE,toolbar.visibility)
+            map.controlsVisibilityChanged!!.invoke(true)
+            assertEquals(View.VISIBLE,toolbar.visibility)
         } finally { c.pause().stop().destroy() }
     }
 }

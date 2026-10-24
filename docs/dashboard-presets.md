@@ -78,3 +78,7 @@ Die feste Zahlengröße wurde auf Nutzerwunsch von 32 auf 45 sp erhöht (+40,625
 Bezeichnungen und Einheiten behalten ihre Größen. Bei ausgeblendetem Chevron wird
 kein Platz dafür abgezogen. Für diese letzte Größenänderung wurde ausdrücklich keine
 Testsuite ausgeführt; die frühere Validierung mit 32 sp gilt nicht als neue Prüfung von 45 sp.
+
+## Footer ohne Karte
+
+Die untere Dashboard-Bedienleiste bleibt bei jedem tatsächlich aktiven Layout ohne Karte immer sichtbar, unabhängig vom Fahrradtyp. Indoor fällt über seine kartenlosen Layouts unter dieselbe Regel; keine gesonderte Radtyp-Ausnahme. Layouts mit Karte behalten die bestehende Auto-Hide-/Bewegungs-/Touchlogik. Wechsel zurück zu einem kartenlosen Layout blendet die Leiste über die vorhandene Reveal-Logik wieder ein.
