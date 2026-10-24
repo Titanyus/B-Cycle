@@ -1,3 +1,7 @@
+# Neuester Nachtrag: Chromatic-Engine nur im Input Designer
+
+Nutzerauftrag vollständig umgesetzt: OKLCH-Engine mit unabhängigen Highlight-/Schattenstärken und Chromatic Strength, Basis/Hell/Dunkel plus HEX-Anzeige, bestehende Stops/Glows/Custom-Farben erhalten. Alle 14 verfügbaren Themes, alte Schema-1-Dateien und lokale Speicherung kompatibel. Reines Rechenmodul docs/previews/chromatic-color.js für späteren Kotlin-Port; generierte HTML weiterhin vollständig offline. Android-App unverändert, keine APK. Details und aktuelle externe Vorschau in docs/input-designer.md. Engine-/Chromium-/Bestands-/Mobilprüfungen erfolgreich. App-Nachträge des vorigen Auftrags bleiben lokal unter den unten dokumentierten Commits; Vorschau-Branch enthält nur HTML.
+
 # Neuester Stand: Kartensteuerung, Datenschalter und Dienstfehler
 
 Auftrag vom 24.10.2026 vollständig umgesetzt, keine neue APK angefragt. Aktuelle veröffentlichte APK bleibt 0.8.36 / Build 75; diese Nachträge sind darin noch nicht enthalten.

@@ -1,14 +1,14 @@
 # Interaktiver Eingabefeld-Designer
 
-[Designer im Browser öffnen](https://raw.githack.com/Titanyus/B-Cycle/cd6b18ea96020f88b7ac59ba890fde5cc030c6ed/docs/previews/input-designer.html) · [HTML für Offline-Nutzung herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/cd6b18ea96020f88b7ac59ba890fde5cc030c6ed/docs/previews/input-designer.html)
+[Designer im Browser öffnen](https://raw.githack.com/Titanyus/B-Cycle/50dbc052a3c57e76656c2dc4bb1b4d3f79239973/docs/previews/input-designer.html) · [HTML für Offline-Nutzung herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/50dbc052a3c57e76656c2dc4bb1b4d3f79239973/docs/previews/input-designer.html)
 
 Beim ersten Öffnen des Browser-Links zeigt raw.githack gegebenenfalls einen Herkunftshinweis. Mit „Open the page“ geht es zum Designer.
 
 Die einzelne HTML-Datei enthält League Gothic samt Lizenz und die 14 App-Paletten, lädt keine externen Ressourcen und funktioniert nach dem Herunterladen offline. Kontur und aktive Innenfläche lassen sich unabhängig bearbeiten: Winkel, verschiebbare Farbstops, schmale Highlights, Theme-Ableitungen, eigene Farben, Konturstärke sowie Nah- und Außen-Blur mit SCREEN. Die Ebenenschalter helfen beim Vergleich. Felder und Segmentauswahl sind sofort in der Vorschau sichtbar.
 
-Mit „JSON exportieren“ werden alle Parameter und abgeleiteten Farben gespeichert. Diese Datei kann später wieder importiert oder für die Übernahme in die App weitergegeben werden. „PNG exportieren“ speichert die Vorschau. Browseränderungen bleiben lokal gespeichert; Zurücksetzen stellt die aktuellen App-Standardwerte wieder her. Der Designer ändert keine App-Einstellung und überträgt keine Daten automatisch.
+Mit „JSON exportieren“ werden alle Parameter und abgeleiteten Farben gespeichert. Diese Datei kann später wieder importiert oder für die Übernahme in die App weitergegeben werden. „PNG exportieren“ speichert die Vorschau. Browseränderungen bleiben lokal gespeichert; Zurücksetzen stellt den Startentwurf des Designers wieder her. Der Designer ändert keine App-Einstellung und überträgt keine Daten automatisch.
 
-Erzeugung: `python3 scripts/build-input-designer.py`; Konsistenz: derselbe Aufruf mit `--check`. Quelle ist input-designer.template.html; Paletten und Schrift kommen aus dem Repository. Browser-Blur und native Box-Blur-Näherung können geringfügig abweichen. Die native App bleibt Referenz.
+Erzeugung: `python3 scripts/build-input-designer.py`; Konsistenz: derselbe Aufruf mit `--check`. Quelle ist input-designer.template.html; Paletten und Schrift kommen aus dem Repository. Browser-Blur und native Box-Blur-Näherung können geringfügig abweichen. Die Chromatic-Engine ist zunächst nur im Designer aktiv; die Android-App behält ihre bisherige Farbberechnung.
 
 Geprüft in Chromium bei 1440 und 390 Pixel Breite: keine horizontale Überbreite, alle 14 Paletten und Schrift, Live-Änderungen, Stops ziehen, Ebenen, JSON-Export/Import, ungültiger Import, Wiederherstellung nach Reload. Öffentlicher Vorschau-Link mit HTTP 200 und denselben funktionalen Browserprüfungen nach Bestätigung des Herkunftshinweises geprüft.
 
@@ -25,3 +25,18 @@ Gezielte Chromium-Prüfungen: nachgewiesene Helligkeitssteigerung außerhalb der
 
 
 Die Stil-Basisfarbe heißt ab 24.10.2026 PRIMARY. Bestehende Schema-1-Entwürfe behalten die technischen Namen accent/Stop-Typ accent für diese Basisfarbe, damit Export/Import kompatibel bleiben. Das ist unabhängig vom weiterhin separat gespeicherten ACCENT der App. Siehe design-modes.md.
+
+
+## Chromatic Color Engine
+
+Schlanke, reine Rechenfunktionen in `docs/previews/chromatic-color.js`, vom Generator direkt in die einzelne Offline-HTML eingebettet. Keine Bibliothek, keine Netzabfragen und keine Android-Änderung. Die technischen Stop-Typen accent/light/dark bleiben kompatibel; in der Oberfläche heißen sie Basis/Hell/Dunkel. Eigene HEX-Farben und sämtliche bisherigen Verlauf-/Glow-Einstellungen bleiben erhalten. Alle 14 vorhandenen Themes unterstützt; Basis wird exakt übernommen.
+
+Drei Regler: Highlight-Stärke (lighten), Schatten-Stärke (darken), Chromatic Strength (chromatic), jeweils 0–100 %. Standard 35/35/50 %. Highlight und Schatten sind unabhängig; Chromatic Strength beeinflusst ausschließlich den Farbton, nicht die Zielhelligkeit. Berechnete Basis-/Hell-/Dunkel-Farben werden mit HEX angezeigt und sind für Kontur, Innenfläche, Glows, Vorschau und Export gemeinsam wirksam.
+
+Portierbare Berechnung: sRGB nach linearem RGB, D65-OKLab-Matrizen, C=hypot(a,b), h=atan2(b,a). Für Stärke t: Highlight-L=L+(1-L)*t, Schatten-L=L*(1-t). C wird nichtlinear mit (1-t)^1,5 bzw. (1-t)^1,15 reduziert. Die kontinuierliche Farbtonverschiebung ist k*sin(t*pi/2)*min(1,C/0,04)*sin(Zielton-h)*Maximalwinkel: Highlight-Zielton 100°/Winkel 32°, Schatten 300°/45°. Neutrale Farben erhalten keinen Farbstich. 0 % liefert die Originalfarbe, 100 % exakt Weiß bzw. Schwarz.
+
+Gamutgrenzen: Bei Bedarf C mit 20 Bisektionsschritten reduzieren, L und h als Ziele erhalten. Eine lokale Clipping-Toleranz von 0,01 OKLab-Distanz vermeidet den Sprung einer streng radialen Begrenzung an der nicht konvexen Gamutspitze von reinem Blau. Ziel-L bleibt von k unabhängig; das gerenderte 8-Bit-HEX kann durch diese begrenzte Gamutabbildung und Rundung geringfügig abweichen. Kein diskreter Hue-Sektorwechsel oder Wechsel bei 0°/360°. Funktionen verwenden nur Double-Arithmetik, Potenzen, trigonometrische Funktionen und Arrays; später direkt nach Kotlin übertragbar. Palette wird bei unveränderten vier Eingaben gecacht.
+
+Schema 1 und Browser-Speicherschlüssel bleiben erhalten. Alte Entwürfe ohne chromatic erhalten 0,5; vorhandene lighten/darken-Werte und eigene Farben bleiben unverändert gespeichert, die abgeleiteten Farben werden neu berechnet. Export enthält chromatic, die bisherigen Regler und `derived.engine=oklch-chromatic-v1` sowie `derived.colors` und aufgelöste Stop-Farben. Ungültige Werte werden abgewiesen, ohne den aktuellen Entwurf zu ersetzen. Zurücksetzen ist der Designer-Startentwurf, keine Änderung der App.
+
+Prüfung: `node scripts/test-chromatic-color.cjs` (ohne Pakete) prüft alle Themes, reine RGB-/Neutralfarben, Weiß/Schwarz, unabhängige Stärke, nichtlineare Entsättigung, Zielhelligkeit unter Gamut-/HEX-Toleranz und Kontinuität über alle Farbtöne. Chromium Desktop/Mobil: bestehende Stops/Gesten/Ebenen, neue Regler und HEX, alle Themes, eigene Farben, alte/ungültige JSONs, Export/Import/Reload, PNG und Glow-Intensität erfolgreich geprüft. Öffentlicher Vorschau-Link ausschließlich auf separatem Vorschau-Branch, kein App-Build.

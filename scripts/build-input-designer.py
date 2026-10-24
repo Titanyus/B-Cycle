@@ -12,6 +12,7 @@ module=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 result=(ROOT/'docs/previews/input-designer.template.html').read_text()
 result=result.replace('__THEMES__',json.dumps(module.manifest()['themes'],ensure_ascii=False).replace('</','<\\/'))
+result=result.replace('__CHROMATIC_ENGINE__',(ROOT/'docs/previews/chromatic-color.js').read_text())
 result=result.replace('__FONT__',base64.b64encode((ROOT/'app/src/main/res/font/league_gothic.ttf').read_bytes()).decode())
 result=result.replace('__LICENSE__',html.escape((ROOT/'app/src/main/assets/League-Gothic-OFL.txt').read_text()))
 target=ROOT/'docs/previews/input-designer.html'
