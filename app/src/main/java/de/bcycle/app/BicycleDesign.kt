@@ -74,6 +74,7 @@ object BicycleDesign {
     const val choiceSp = bodySp
     const val headerHeight = 64
     const val headingSp = 32f
+    const val sectionTitleSp = headingSp - 2f
     const val rowTitleSp = 16f
     const val routeMetricSp = 20f
     const val riderZoneRangeWidth = 116

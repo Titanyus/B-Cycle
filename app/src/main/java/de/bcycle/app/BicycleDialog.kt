@@ -19,7 +19,8 @@ import android.widget.*
 /** Existing AlertDialog lifecycle, buttons, adapters and scroll containers are retained. */
 internal class BicycleDialogBuilder(context: Context, private val themes: ThemeManager,
     private val navigation: DialogNavigation, private val fullscreen: Boolean = true,
-    private val helpEnabled:Boolean = true, private val headerRole:ThemeRole = ThemeRole.PRIMARY) : AlertDialog.Builder(context,
+    private val helpEnabled:Boolean = true, private val headerRole:ThemeRole = ThemeRole.PRIMARY,
+    private val plainHeader:Boolean = false, private val hideStatusBar:Boolean = false) : AlertDialog.Builder(context,
         if (fullscreen) R.style.SettingsFullscreenTheme else R.style.SettingsDialogTheme) {
     override fun setTitle(title: CharSequence?): AlertDialog.Builder {
         super.setTitle(title)
@@ -40,7 +41,7 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
     override fun create(): AlertDialog = super.create().also { screen ->
         navigation.track(screen, overlay = !fullscreen) {
             screen.window?.let {
-                DashboardFullscreen.apply(it,false)
+                DashboardFullscreen.apply(it,hideStatusBar)
                 // AlertController blocks the IME when no editor exists at show(). Inline service
                 // forms are installed afterwards; allow native keyboard focus in every app dialog.
                 it.clearFlags(android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
@@ -50,13 +51,13 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
             val help=if(fullscreen && helpEnabled) SettingsHelp.resolve(screen)?.let { page ->
                 { SettingsHelp.show(context,themes,navigation,page,screen.window!!.decorView) }
             } else null
-            if (fullscreen) BicycleFullscreen.apply(screen, themes,help,headerRole)
+            if (fullscreen) BicycleFullscreen.apply(screen, themes,help,headerRole,plainHeader)
             else {
                 BicycleDialogStyle.messageSpacing(screen)
                 val top=screen.window?.decorView?.findViewById<ViewGroup>(context.resources.getIdentifier("topPanel","id","android"))
                 if(top!=null && top.childCount>0) {
                     val original=top.getChildAt(0); top.removeAllViews()
-                    top.addView(BicycleNavigation.header(original,screen,themes),ViewGroup.LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.headerHeight)))
+                    top.addView(BicycleNavigation.header(original,screen,themes,role=headerRole,plain=plainHeader),ViewGroup.LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.headerHeight)))
                 }
             }
         }

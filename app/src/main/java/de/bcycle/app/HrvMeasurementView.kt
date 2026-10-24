@@ -49,7 +49,11 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
     }
     private fun styleAction() {
         action.typeface=if(startAction) BicycleDesign.strongTypeface else BicycleDesign.bodyTypeface
-        if(startAction) styleHrvPill(action,slim=true) else action.background=null
+        if(startAction) styleSpecialButton(action,themes.active.tokens,false) else {
+            BicycleInputFrame.decorate(action,themes.active.tokens,false)
+            action.background=null
+            action.setTextColor(themes.active.tokens.primary)
+        }
         val inset=BicycleDesign.dp(context,BicycleDesign.hrvActionHorizontalPadding)
         action.setPadding(inset,0,inset,0)
     }

@@ -16,10 +16,16 @@ internal class BicycleSpecialButton(context:Context,themes:ThemeManager,val fill
             BicycleDesign.dp(context,BicycleDesign.horizontalPadding),BicycleDesign.dp(context,BicycleDesign.verticalPadding))
         BicycleComponents.controlSpacing(this)
         BicycleComponents.bindTheme(this,themes) { tokens ->
-            setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled),intArrayOf()),intArrayOf(0x80ffffff.toInt(),Color.WHITE)))
-            backgroundTintList=null
-            val fill=if(filled) BicycleAccentGradient.fill(context,tokens,foreground=Color.WHITE,chromatic=BicycleInputStyle.strength(this),radiusDp=BicycleDesign.specialButtonRadius) else null
-            background=RippleDrawable(ColorStateList.valueOf(0x26ffffff),BicycleInputFrame.decorate(this,tokens,true,fill,BicycleDesign.specialButtonRadius),null)
+            styleSpecialButton(this,tokens,filled)
         }
     }
+}
+
+/** Shared decoration also for a control whose running state remains a plain text action. */
+internal fun styleSpecialButton(view:android.widget.TextView,tokens:ThemeTokens,filled:Boolean) {
+    view.setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled),intArrayOf()),intArrayOf(0x80ffffff.toInt(),Color.WHITE)))
+    view.typeface=BicycleDesign.strongTypeface;view.textSize=BicycleDesign.bodySp
+    view.backgroundTintList=null
+    val fill=if(filled) BicycleAccentGradient.fill(view.context,tokens,foreground=Color.WHITE,chromatic=BicycleInputStyle.strength(view),radiusDp=BicycleDesign.specialButtonRadius) else null
+    view.background=RippleDrawable(ColorStateList.valueOf(0x26ffffff),BicycleInputFrame.decorate(view,tokens,true,fill,BicycleDesign.specialButtonRadius),null)
 }

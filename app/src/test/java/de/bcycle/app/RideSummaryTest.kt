@@ -50,6 +50,8 @@ class RideSummaryTest {
             val dialog=ShadowAlertDialog.getLatestAlertDialog();assertTrue(dialog.isShowing);assertFalse(menu.isShowing)
             val view=dialog.window!!.decorView.findViewWithTag<RideSummaryView>("ride_summary");assertNotNull(view)
             assertNull(runtime.pendingRideSummary)
+            val header=dialog.window!!.decorView.findViewWithTag<View>("bicycle_navigation_header")
+            assertEquals(runtime.themes.active.tokens.secondary,(header.background as android.graphics.drawable.ColorDrawable).color)
             val rows=(view.getChildAt(0) as ViewGroup)
             assertEquals(2,rows.childCount);assertEquals(3,(rows.getChildAt(0) as ViewGroup).childCount);assertEquals(2,(rows.getChildAt(1) as ViewGroup).childCount)
             var analysis:RouteAnalysis?=null

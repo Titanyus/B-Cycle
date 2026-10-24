@@ -155,7 +155,11 @@ class HrvEntryTest {
             assertEquals("Black must disappear under SCREEN",color,image.getPixel(0,0))
             var brightest=0
             for(y in 0 until image.height) for(x in 0 until image.width) brightest=maxOf(brightest,android.graphics.Color.red(image.getPixel(x,y)))
-            assertTrue("Neon artwork must remain visible",brightest>200);image.recycle()
+            assertTrue("Neon artwork must remain visible",brightest>200)
+            val pixels=IntArray(image.width*image.height);image.getPixels(pixels,0,image.width,0,0,image.width,image.height)
+            themes.setFlatDesign(true);canvas.drawColor(color);artwork.draw(canvas)
+            val flatPixels=IntArray(pixels.size);image.getPixels(flatPixels,0,image.width,0,0,image.width,image.height)
+            assertArrayEquals("Heart artwork is identical in Flat and Glow",pixels,flatPixels);image.recycle()
             root.findViewWithTag<View>("hrv_daily_later").performClick()
             assertEquals(1,acknowledged);assertEquals(0,started)
             assertNull(root.findViewWithTag<View>("hrv_daily_prompt"))

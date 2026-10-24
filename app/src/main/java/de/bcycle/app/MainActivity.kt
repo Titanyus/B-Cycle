@@ -633,7 +633,7 @@ class MainActivity : Activity() {
         if(runtime.recording || runtime.saving) { BicycleFeedback.show(this,R.string.hrv_ride_busy);return }
         val body=HrvMeasurementView(this,runtime.themes,runtime.hrv,
             sensor={ runtime.heartName },canStart={ runtime.visible && !runtime.recording && !runtime.saving },history=::showHrvHistory,questionnaire=::showHrvQuestionnaire,autoStart=autoStart)
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_title)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(R.string.hrv_title)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(body) }).create()
         dialogs.onDismiss(screen) { runtime.hrv.abort("VIEW_CLOSED") }
         screen.show()
@@ -644,7 +644,7 @@ class MainActivity : Activity() {
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
             addView(BicycleComponents.description(this@MainActivity,runtime.themes,getString(R.string.hrvt_loading)))
         }
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrvt_title)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,hideStatusBar=true).setTitle(R.string.hrvt_title)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
         runtime.hrv.trends { result ->
             if(isDestroyed || !screen.isShowing) return@trends
@@ -670,7 +670,7 @@ class MainActivity : Activity() {
             val content=RideSummaryView(this,runtime.themes,completion) {
                 runtime.mapState.entries.firstOrNull { it.id==id }?.let { entry -> screen.dismiss();routeAnalysis(entry) }
             }
-            screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY)
+            screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY,plainHeader=true)
                 .setTitle(R.string.ride_summary_title).setView(content).show()
             val cancel=runtime.mapState.loadAnalysis(id) { result ->
                 if(!isDestroyed && screen.isShowing) result.fold(content::show) { content.loadingFailed() }
@@ -723,7 +723,7 @@ class MainActivity : Activity() {
                 }
                 setOnItemClickListener { _,_,position,_ -> overview.dismiss();showHrvHistoryResult(rows[position].id) }
             }
-            overview=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_history)
+            overview=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,hideStatusBar=true).setTitle(R.string.hrv_history)
                 .setView(list).show()
         }
     }
@@ -731,7 +731,7 @@ class MainActivity : Activity() {
         val root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
             addView(BicycleComponents.description(this@MainActivity,runtime.themes,getString(R.string.hrv_result_loading))) }
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrv_result)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,hideStatusBar=true).setTitle(R.string.hrv_result)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
         runtime.hrv.measurement(id) { result ->
             if(isDestroyed || !screen.isShowing) return@measurement
@@ -746,7 +746,7 @@ class MainActivity : Activity() {
         val root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad) }
         val loading=BicycleComponents.description(this,runtime.themes,getString(R.string.hrvq_loading));root.addView(loading)
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY).setTitle(R.string.hrvq_title)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,hideStatusBar=true).setTitle(R.string.hrvq_title)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
         val id=row.getString("id")
         runtime.hrv.questionnaire(id) { result ->

@@ -12,7 +12,9 @@ internal class BicycleSectionHeader(context: Context, private val manager: Theme
     var sectionEnd: View? = null
     var expanded:Boolean?=null;private set
     var revealOnOpen=false
-    val titleView = BicycleComponents.text(context, manager, title, true)
+    val titleView = BicycleComponents.text(context, manager, title).apply {
+        typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.sectionTitleSp;isAllCaps=false
+    }
     init {
         BicycleComponents.bindTheme(titleView,manager) { titleView.setTextColor(it.foreground) }
         orientation = if(inlineRules) HORIZONTAL else VERTICAL; gravity=Gravity.CENTER_VERTICAL; isAccessibilityHeading = true; contentDescription = title

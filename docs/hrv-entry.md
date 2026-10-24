@@ -84,3 +84,11 @@ Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Bui
 Das automatische Angebot verwendet einen lokalen Angebotstag von **04:00 Uhr bis vor 04:00 Uhr des Folgetags**. Um 01:00 Uhr zählt damit weiterhin der Vortag. Die Zuordnung erfolgt nach lokaler ziviler Uhrzeit, auch bei Sommer-/Winterzeit; keine feste 24-Stunden-Dauer. Nur bewusster Tap bestätigt das Angebot, und zwar für den Angebotstag zum Zeitpunkt des Taps. Ohne Bestätigung wird es beim nächsten Vordergrundstart erneut gezeigt. Option, manueller Langdruck, Dashboard-Navigation und Aufnahme-/HRV-Sperren bleiben erhalten. Kalenderdatum von Messungen, Tagesbefinden und Vortagsfahrten wird dadurch nicht verschoben.
 
 Zeitangaben im Tagesbefinden verwenden die zentrale Maske mit fester geghosteter Einheit; Titel stehen links außerhalb; sichtbare Sliderstandards sind ohne Berührung gültig. Antworten gelten jetzt gemeinsam pro Kalendertag. Details [Tagesbefinden](hrv-questionnaire.md).
+
+## Darstellungsnachtrag nach Build 77
+
+HRV-Messung und Auswertung einschließlich Übersicht, Einzelresultat und Tagesbefinden blenden die Android-Statusleiste aus. Android-Navigation, transientes Einblenden per Randgeste und vorhandene Cutout-/IME-Inset-Behandlung bleiben erhalten. Normale Einstellungsdialoge behalten ihre sichtbare Statusleiste; keine globale Einstellung geändert.
+
+Der Messheader bleibt in Flat und Glow schlicht SECONDARY ohne Rahmen, Glow oder Schatten. Starten/Erneut messen verwendet die zentrale Special-Rahmen-Dekoration (weiß, 900 Black, normale Textgröße, Pille; Flat einfarbiger PRIMARY-Rand, Glow zentrale Kontur/Blurs). Laufender Abbruch und Speicherwiederholung bleiben vorhandene Textaktionen; Messzustand, Klickablauf und Sperren unverändert. Die Angebotskarte zeigt immer die SCREEN-Neon-Herzgrafik, auch im Flat-Modus.
+
+Sticky-Kategorieheader verwenden nun League Gothic wie Hauptheader, aber mit erhaltener Groß-/Kleinschreibung und 30 sp gegenüber 32 sp. Nur die Typografie dieser gemeinsamen Komponente ändern; sonstige Abschnittstitel bleiben in ihrer bisherigen Rolle. Keine neue APK beauftragt.

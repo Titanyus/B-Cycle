@@ -109,12 +109,7 @@ internal class HrvScreenHeart(context:Context,private val themes:ThemeManager?=n
         setMeasuredDimension(width,resolveSize((width.toFloat()*image.height/image.width).toInt(),h))
     }
     override fun onDraw(canvas:Canvas) {
-        if(BicycleAppearance.flat(context)) {
-            val size=minOf(width,height)*.65f
-            BicycleIcons.drawable(context,BicycleIcon.Heart,themes?.active?.tokens?.primary ?: BicycleThemes.red.tokens.primary).apply {
-                setBounds(((width-size)/2).toInt(),((height-size)/2).toInt(),((width+size)/2).toInt(),((height+size)/2).toInt());draw(canvas)
-            }
-        } else canvas.drawBitmap(image,null,RectF(0f,0f,width.toFloat(),height.toFloat()),paint)
+        canvas.drawBitmap(image,null,RectF(0f,0f,width.toFloat(),height.toFloat()),paint)
     }
     companion object { private var artwork:Bitmap?=null }
 }

@@ -17,7 +17,7 @@ internal object BicycleFullscreen {
         if (view is ViewGroup) for (i in 0 until view.childCount) yieldAll(descendants(view.getChildAt(i)))
     }
     @Suppress("DEPRECATION") // Native edge-to-edge/IME compatibility for API 33+; no new dependency.
-    fun apply(screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null, headerRole:ThemeRole=ThemeRole.PRIMARY) {
+    fun apply(screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null, headerRole:ThemeRole=ThemeRole.PRIMARY,plainHeader:Boolean=false) {
         val window = screen.window ?: return
         if (descendants(window.decorView).any { it.tag == "bicycle_fullscreen" }) return
         val context = screen.context
@@ -33,7 +33,7 @@ internal object BicycleFullscreen {
         val header = embeddedHeader ?: nativeHeader
         val footer = nativeFooter ?: content?.let { descendants(it).firstOrNull { child -> child.tag == "bicycle_action_footer" || child.tag == "route_analysis_footer" } }
         fun detach(view: View) { (view.parent as? ViewGroup)?.removeView(view) }
-        val host = BicycleFullscreenHost(context).apply { orientation = LinearLayout.VERTICAL; tag = "bicycle_fullscreen"; showHeaderShadow=headerRole==ThemeRole.PRIMARY }
+        val host = BicycleFullscreenHost(context).apply { orientation = LinearLayout.VERTICAL; tag = "bicycle_fullscreen"; showHeaderShadow=!plainHeader && headerRole==ThemeRole.PRIMARY }
         BicycleComponents.bindTheme(host,themes) { host.invalidate() }
         BicycleComponents.bindTheme(host, themes) { _ ->
             // Match the existing dashboard's black system-bar/cutout backdrop.
@@ -43,7 +43,7 @@ internal object BicycleFullscreen {
         header?.let {
             detach(it); it.tag = if (it.tag == null) "bicycle_fullscreen_header" else it.tag
             if (it === nativeHeader) it.setPadding(0, 0, 0, 0)
-            host.addView(BicycleNavigation.header(it,screen,themes,help,headerRole), LinearLayout.LayoutParams(-1, BicycleDesign.dp(context,BicycleDesign.headerHeight)))
+            host.addView(BicycleNavigation.header(it,screen,themes,help,headerRole,plainHeader), LinearLayout.LayoutParams(-1, BicycleDesign.dp(context,BicycleDesign.headerHeight)))
             val colored = descendants(it).firstOrNull { child -> child.tag == "bicycle_dialog_header" } ?: it
             BicycleComponents.bindTheme(colored, themes) { tokens -> colored.background = GradientDrawable().apply { setColor(if(headerRole==ThemeRole.SECONDARY) tokens.secondary else tokens.primary); cornerRadius = 0f } }
         }

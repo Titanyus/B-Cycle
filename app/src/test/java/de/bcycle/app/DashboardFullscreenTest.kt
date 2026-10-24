@@ -37,6 +37,26 @@ class DashboardFullscreenTest {
             assertFalse(visible(activity.window,"ITYPE_STATUS_BAR"))
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun hrvDialogsHideOnlyStatusBarAndKeepPlainHeaderAcrossThemeChanges() {
+        val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            for(fullscreen in listOf(true,false)) {
+                val screen=BicycleDialogBuilder(a,themes,DialogNavigation(),fullscreen=fullscreen,
+                    headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=fullscreen)
+                    .setTitle("HRV-Messung").setView(android.widget.TextView(a).apply { text="Inhalt" }).show()
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                assertEquals(!fullscreen,visible(screen.window!!,"ITYPE_STATUS_BAR"))
+                assertTrue(visible(screen.window!!,"ITYPE_NAVIGATION_BAR"))
+                val header=screen.window!!.decorView.findViewWithTag<View>("bicycle_navigation_header")
+                for(flat in listOf(false,true,false)) {
+                    themes.setFlatDesign(flat)
+                    assertEquals(themes.active.tokens.secondary,(header.background as android.graphics.drawable.ColorDrawable).color)
+                }
+                assertNotNull(header.findViewWithTag<View>("dialog_back"));screen.dismiss()
+            }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun topGlowUsesWholeWindowIncludingStatusCutoutSpaceWhileContentKeepsSafeInsets() {
         val app=org.robolectric.RuntimeEnvironment.getApplication()
         val prefs=app.getSharedPreferences("bike",0)
