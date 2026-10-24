@@ -1,3 +1,7 @@
+# Aktueller Abschluss: APK 0.8.37 / Build 76
+
+Alle Appänderungen seit Build 75 sind auf main veröffentlicht und in APK **0.8.37 / Build 76 / Code 107** enthalten. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.37-release-76.apk), [Buildnachweis](build-76.md), Actions-Quellstand `3dd2c62e509403426bce817c51ad7d4e10374d1d`. Größe 2.407.205 Bytes; SHA-256 `66d3f715a3232d4e98349b9bc0893b0d4a223b9c54d66be39dd0059b692d1e58`. Optimierter Release, gleiche dauerhafte Signatur wie Build 75, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Chromatic-Engine/Entwurf, Karten-/Feldauswahl-/Dienstfehler-Nachträge enthalten. Keine offene APK-Aufgabe. Frühere Angaben zu fehlender APK/laufendem Auftrag darunter sind Verlauf. Gezielte Tests wie dokumentiert, kein Gesamtlauf oder Hardware-/Cloudkontentest.
+
 # Aktueller APK-Auftrag: 0.8.37 / Code 107
 
 Nutzer hat neue APK beauftragt. Alle Änderungen seit Build 75 werden über GitHub Actions als optimierter Release mit dauerhafter Signatur gebaut und anschließend direkt als APK verlinkt. Kein lokaler APK-Build. Versionsänderung 0.8.37/107; Umfang docs/release-0.8.37.md. Bereits gezielte Tests erfolgreich; Build und Veröffentlichung laufen.
