@@ -1,4 +1,4 @@
-> Neu ab 25.10.2026: [Gemeinsame Dialogbasis](dialog-surfaces.md) ersetzt die früheren Chromatic-/SECONDARY-Dialogheader durch TERTIARY. Dialog-Kartenschatten gelten ausdrücklich auch in Flat. Sonstige Komponentendekorationen unverändert.
+> Rücknahme am 25.10.2026: Die allgemeine TERTIARY-Dialogbasis ist verworfen; bisherige Seiten-/Dialogheader und SECONDARY-Seitenflächen sind wiederhergestellt. Nur der PRIMARY-Trink-Alert mit Schatten in beiden Designs bleibt. [Aktueller Umfang](dialog-surfaces.md).
 
 # Flat und Glow auf gemeinsamer UI-Basis
 

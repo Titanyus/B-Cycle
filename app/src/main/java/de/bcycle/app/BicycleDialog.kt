@@ -19,12 +19,11 @@ import android.widget.*
 /** Existing AlertDialog lifecycle, buttons, adapters and scroll containers are retained. */
 internal class BicycleDialogBuilder(context: Context, private val themes: ThemeManager,
     private val navigation: DialogNavigation, private val fullscreen: Boolean = true,
-    private val helpEnabled:Boolean = true, private val headerRole:ThemeRole = BicycleDialogSurface.normal,
-    private val plainHeader:Boolean = true, private val hideStatusBar:Boolean = false) : AlertDialog.Builder(context,
+    private val helpEnabled:Boolean = true, private val headerRole:ThemeRole = ThemeRole.PRIMARY,
+    private val plainHeader:Boolean = false, private val hideStatusBar:Boolean = false) : AlertDialog.Builder(context,
         if (fullscreen) R.style.SettingsFullscreenTheme else R.style.SettingsDialogTheme) {
     override fun setTitle(title: CharSequence?): AlertDialog.Builder {
         super.setTitle(title)
-        if(title.isNullOrBlank()) { setCustomTitle(null);return this }
         val header = BicycleComponents.header(context, themes).apply {
             tag = "bicycle_dialog_header"
             setPadding(BicycleDesign.dp(context, BicycleDesign.headerHorizontalPadding), 0,
@@ -49,7 +48,6 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
             }
             BicycleNavigation.hideNavigationFooter(screen)
             BicycleDialogStyle.apply(screen, themes)
-            BicycleDialogSurface.window(screen,themes,headerRole)
             val help=if(fullscreen && helpEnabled) SettingsHelp.resolve(screen)?.let { page ->
                 { SettingsHelp.show(context,themes,navigation,page,screen.window!!.decorView) }
             } else null
@@ -57,12 +55,11 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
             else {
                 BicycleDialogStyle.messageSpacing(screen)
                 val top=screen.window?.decorView?.findViewById<ViewGroup>(context.resources.getIdentifier("topPanel","id","android"))
-                if(top!=null && top.visibility!=View.GONE && top.childCount>0) {
+                if(top!=null && top.childCount>0) {
                     val original=top.getChildAt(0); top.removeAllViews()
                     top.addView(BicycleNavigation.header(original,screen,themes,role=headerRole,plain=plainHeader),ViewGroup.LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.headerHeight)))
                 }
             }
-            BicycleDialogSurface.content(screen.window!!.decorView,themes,headerRole)
         }
     }
 }
@@ -114,6 +111,12 @@ internal object BicycleDialogStyle {
         // Phase 2 already styles this dialog, including its native footer; leave it unchanged.
         if (descendants(decor).any { it is RouteManagerView }) return
         if (styled.put(decor, true) != null) return
+        BicycleComponents.bindTheme(decor, themes) { tokens ->
+            screen.window?.setBackgroundDrawable(GradientDrawable().apply {
+                setColor(tokens.secondary); cornerRadius = dp(decor, BicycleDesign.dialogRadius).toFloat()
+            })
+            decor.clipToOutline = true
+        }
         content(decor, themes)
         decor.findViewById<View>(decor.resources.getIdentifier("buttonPanel","id","android"))?.let(BicycleFooterShadow::bind)
         listOf(AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL, AlertDialog.BUTTON_POSITIVE).forEach { which ->

@@ -15,7 +15,7 @@ internal class DrinkReminderPanel(context:Context,themes:ThemeManager):LinearLay
         contentDescription=context.getString(R.string.drink_reminder_dismiss)
         val gap=BicycleDesign.dp(context,BicycleDesign.controlGap)
         setPadding(gap*2,gap*2,gap*2,gap*2)
-        BicycleDialogSurface.bind(this,themes,BicycleDialogSurface.alert)
+        BicycleAlertSurface.bind(this,themes)
         addView(ImageView(context).apply {
             importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.DrinkReminder,it)) }

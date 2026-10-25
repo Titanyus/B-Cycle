@@ -20,13 +20,13 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33],qualifiers="mdpi")
 @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
-class BicycleDialogSurfaceTest {
+class BicycleAlertSurfaceTest {
     private fun color(view:View)=when(val background=view.background) {
         is GradientDrawable -> background.color!!.defaultColor
         is ColorDrawable -> background.color
         else -> error("No surface: ${view.tag}")
     }
-    @Test fun cardsShareTertiaryChromeAndAlertUsesPrimaryInBothModesWithoutChangingActions() {
+    @Test fun hrvCardKeepsItsOriginalStyleWhileAlertStaysPrimaryInBothModes() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
@@ -38,9 +38,9 @@ class BicycleDialogSurfaceTest {
             a.setContentView(root)
             for(flat in listOf(false,true,false)) {
                 themes.setFlatDesign(flat);shadowOf(Looper.getMainLooper()).idle()
-                assertEquals(themes.active.tokens.tertiary,color(daily))
+                assertEquals(themes.active.tokens.secondary,color(daily))
                 assertEquals(themes.active.tokens.primary,color(drink))
-                assertEquals(daily.elevation,drink.elevation,0f);assertTrue(drink.elevation>0f)
+                assertEquals(if(flat) 0f else BicycleDesign.dp(a,BicycleDesign.hrvPromptShadow).toFloat(),daily.elevation,0f);assertTrue(drink.elevation>0f)
                 assertEquals((daily.background as GradientDrawable).cornerRadius,(drink.background as GradientDrawable).cornerRadius,0f)
                 assertNull(drink.findViewWithTag<View>("bicycle_navigation_header"))
                 drink.showReminder(5);assertEquals(View.VISIBLE,drink.visibility)
@@ -55,7 +55,7 @@ class BicycleDialogSurfaceTest {
             daily.findViewWithTag<View>("hrv_daily_start").performClick();assertTrue(started)
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun compactAndFullscreenUseSamePlainHeaderSurfaceAndKeepNativeActionsAndScrolling() {
+    @Test fun normalDialogsRestorePrimaryHeaderAndSecondaryBodyAndKeepActions() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0)).settings
@@ -63,35 +63,25 @@ class BicycleDialogSurfaceTest {
                 var action=false
                 val body=LinearLayout(a).apply { orientation=LinearLayout.VERTICAL
                     BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
-                    repeat(30) { addView(android.widget.TextView(a).apply { text="Eintrag $it";minimumHeight=48 }) }
                 }
                 val scroll=ScrollView(a).apply { addView(body) }
                 val screen=BicycleDialogBuilder(a,themes,DialogNavigation(),fullscreen=fullscreen)
                     .setTitle("Dialog").setView(scroll).setPositiveButton("Exportieren") { _,_->action=true }.show()
                 shadowOf(Looper.getMainLooper()).idle()
-                val decor=screen.window!!.decorView
                 for(light in listOf(false,true,false)) {
-                    themes.setSettingsLight(light)
-                    for(flat in listOf(false,true)) {
-                        themes.setFlatDesign(flat);shadowOf(Looper.getMainLooper()).idle()
-                        val header=decor.findViewWithTag<View>("bicycle_navigation_header")
-                        assertEquals(themes.active.tokens.tertiary,color(header))
-                        assertEquals(themes.active.tokens.tertiary,color(body))
-                        assertNotNull(header.findViewWithTag<View>("dialog_back"))
-                        assertEquals(themes.active.tokens.foreground,header.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").currentTextColor)
-                        assertTrue(screen.window!!.decorView.elevation>0f)
-                    }
+                    themes.setSettingsLight(light);themes.setFlatDesign(true)
+                    shadowOf(Looper.getMainLooper()).idle()
+                    val header=screen.window!!.decorView.findViewWithTag<View>("bicycle_navigation_header")
+                    assertEquals(themes.active.tokens.primary,color(header))
+                    assertEquals(themes.active.tokens.secondary,color(body))
+                    assertNotNull(header.findViewWithTag<View>("dialog_back"))
+                    if(fullscreen) assertEquals(themes.active.tokens.secondary,color(scroll))
+                    themes.setFlatDesign(false);shadowOf(Looper.getMainLooper()).idle()
+                    assertTrue(header.background is android.graphics.drawable.LayerDrawable)
+                    assertEquals(themes.active.tokens.secondary,color(body))
                 }
                 screen.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
                 shadowOf(Looper.getMainLooper()).idle();assertTrue(action)
-            }
-            for(role in listOf(BicycleDialogSurface.normal,BicycleDialogSurface.alert)) {
-                val noHeader=BicycleDialogBuilder(a,themes,DialogNavigation(),fullscreen=false,headerRole=role)
-                    .setMessage("Ohne Header").show()
-                shadowOf(Looper.getMainLooper()).idle()
-                assertNull(noHeader.window!!.decorView.findViewWithTag<View>("bicycle_navigation_header"))
-                assertEquals(themes.active.tokens.color(role),color(noHeader.window!!.decorView))
-                noHeader.dismiss()
             }
         } finally { host.pause().stop().destroy() }
     }

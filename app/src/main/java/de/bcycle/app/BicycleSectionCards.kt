@@ -23,7 +23,7 @@ internal object BicycleSectionCards {
                 override fun draw(canvas:Canvas) {
                     if(BicycleAppearance.flat(root.context)) { original?.let { it.bounds=bounds;it.draw(canvas) };return }
                     val tokens=manager.active.tokens
-                    // The section cards need a distinct page surface; dialogs themselves stay TERTIARY.
+                    // The section cards need a distinct page surface; dialog styling stays independent.
                     paint.color=tokens.secondary;canvas.drawRect(bounds,paint)
                     paint.color=tokens.tertiary
                     val radius=BicycleDesign.dp(root.context,BicycleDesign.sectionCardRadius).toFloat()
