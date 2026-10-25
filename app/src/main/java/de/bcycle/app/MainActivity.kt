@@ -964,13 +964,14 @@ class MainActivity : Activity() {
                 updateDashboardFullscreen()
             }
         })
-        if(!embedded) BicycleForm.section(root,settingsThemes,R.string.ui_theme)
-        root.addView(ThemePickerView(settingsContext, settingsThemes))
+        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="design_appearance_divider" })
         root.addView(Switch(settingsContext).apply {
             tag="flat_design";setText(R.string.ui_flat_design);isChecked=settingsThemes.flatDesign
             BicycleDialogStyle.control(this,settingsThemes)
             setOnCheckedChangeListener { _,checked -> settingsThemes.setFlatDesign(checked) }
         })
+        root.addView(ThemePickerView(settingsContext,settingsThemes))
+        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="design_dashboard_divider" })
         if(!embedded) BicycleForm.section(root,settingsThemes,R.string.ui_dashboard_page_choose)
         val presets = DashboardPresetPicker(settingsContext,dashboardPages.selected(),settingsThemes)
         val footer=bicycleFooter(settingsContext,settingsThemes)
@@ -1122,11 +1123,10 @@ class MainActivity : Activity() {
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
+        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
         root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs) {
             if(runtime.bikes.activeSlot==slot) mapPanel.refreshSettings()
         },LinearLayout.LayoutParams(-1,-2))
-        root.addView(BicycleComponents.sectionDivider(settingsContext, settingsThemes))
-        root.addView(button(getString(R.string.ui_map_legend), BicycleIcon.Info) { openMapLink(MapProviderSettings.source(this,preferences.getString("mapSource",null)).creditUrl) })
         observeSettings(root) {
             if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
             val chosen=MapSource.entries[source.selectedItemPosition]

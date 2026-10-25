@@ -187,14 +187,15 @@ class RouteQueryUiTest {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("accordion-test",0))
             val root=LinearLayout(a).apply { orientation=LinearLayout.VERTICAL }
             val name=BicycleSectionHeader(a,themes,"Bike").apply { tag="bike_name_header" }
-            var renamed=false;name.setOnClickListener { renamed=true };root.addView(name)
+            var renamed=false;name.titleView.setOnClickListener { renamed=true };root.addView(name)
             val header=BicycleForm.section(root,themes,R.string.data_routes)
             val input=EditText(a).apply { setText("keep") };root.addView(input)
             val scroll=BicycleStickyScrollView(a).apply { addView(root) };a.setContentView(scroll);layout(scroll)
-            assertEquals(true,header.expanded);assertNull(name.expanded)
+            assertEquals(true,header.expanded);assertEquals(true,name.expanded)
             val parent=input.parent;header.performClick();assertEquals(View.GONE,(input.parent as View).visibility)
             layout(scroll);header.performClick();assertSame(parent,input.parent);assertEquals("keep",input.text.toString())
-            name.performClick();assertTrue(renamed);assertNull(name.expanded)
+            name.titleView.performClick();assertTrue(renamed);assertEquals(true,name.expanded)
+            name.performClick();assertEquals(false,name.expanded)
         } finally { host.pause().stop().destroy() }
     }
 }

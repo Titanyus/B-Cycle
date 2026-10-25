@@ -34,7 +34,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
     private var retained=initial
     private var heartMethod=initial.heartRateMethod
     private val methodExplanation=BicycleComponents.description(context,themes,context.getString(heartMethod.explanation)).apply { tag="rider_method_explanation" }
-    private val zoneMethod=text(context.getString(heartMethod.label)).apply { tag="rider_zone_method" }
+    private val zoneMethod=BicycleComponents.contentHeading(context,themes,context.getString(heartMethod.label)).apply { tag="rider_zone_method" }
     private var birthDate = initial.birthDate
     private val root = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
@@ -156,16 +156,16 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                 }
                 val unit = TextView(context).apply {
                     text = context.getString(R.string.analysis_bpm); tag = "rider_unit"; typeface = BicycleDesign.narrowTypeface(context)
-                    textSize = BicycleDesign.settingsUnitSp; BicycleComponents.secondaryText(this,themes)
+                    textSize = BicycleDesign.settingsMetricSp; BicycleComponents.secondaryText(this,themes)
                     gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
                 }
                 ranges += value
-                addView(AnalysisValueRow(context, value, unit), LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth), dp(BicycleDesign.touchSize)))
+                addView(AnalysisValueRow(context, value, unit,alignEnd=true,uniformSize=true), LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth), dp(BicycleDesign.touchSize)))
             }, LinearLayout.LayoutParams(-1, -2))
         }
         root.addView(zoneRows, LinearLayout.LayoutParams(-1, -2))
         section(R.string.training_power_zones)
-        root.addView(text(context.getString(R.string.training_coggan)))
+        root.addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.training_coggan)).apply { tag="rider_power_zone_method" })
         root.addView(powerHint)
         val powerNames=listOf(R.string.training_power_z1,R.string.training_power_z2,R.string.training_power_z3,R.string.training_power_z4,R.string.training_power_z5,R.string.training_power_z6,R.string.training_power_z7)
         powerNames.forEachIndexed { i,name ->
@@ -180,9 +180,9 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
                     setAutoSizeTextTypeUniformWithConfiguration(12,BicycleDesign.settingsMetricSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
                 }
                 val unit=TextView(context).apply { text=context.getString(R.string.analysis_watts);tag="rider_unit";typeface=BicycleDesign.narrowTypeface(context)
-                    textSize=BicycleDesign.settingsUnitSp;BicycleComponents.secondaryText(this,themes);gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1 }
+                    textSize=BicycleDesign.settingsMetricSp;BicycleComponents.secondaryText(this,themes);gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1 }
                 powerRanges+=value
-                addView(AnalysisValueRow(context,value,unit),LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth),dp(BicycleDesign.touchSize)))
+                addView(AnalysisValueRow(context,value,unit,alignEnd=true,uniformSize=true),LinearLayout.LayoutParams(dp(BicycleDesign.riderZoneRangeWidth),dp(BicycleDesign.touchSize)))
             },LinearLayout.LayoutParams(-1,-2))
         }
         root.addView(powerRows);root.addView(saveError)

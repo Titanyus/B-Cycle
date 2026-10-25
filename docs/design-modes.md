@@ -56,3 +56,6 @@ Die Einstellungsregler in Trink-Erinnerung/Trackdarstellung/Benachrichtigungsdau
 ## Dezenteres Preset 9, 25.10.2026
 
 Nutzerexport B-Cycle-Eingabedesign (9).json vollständig in die zentrale Stilkonfiguration übernommen: Highlight5 %, Schatten10 %, HELLFIRE COLOR/Custom-Fallback50 % Chromatic Strength (andere Theme-Werte erhalten). Kontur1,5dp/−54°, aktualisierte Stop-Positionen und durchgehend100 % Konturdeckkraft. Flächenwinkel+40°. Nah3,5dp/30 %/300 %, Außen10dp/100 %/250 %. Vorlage unverändert im Repository, kein Laufzeit-JSON. Eingabe-Rundung6dp, explizite Special-Pillen, Wert-Slider und HRV-Puls-Ausnahme unverändert. Noch keine neue APK beauftragt.
+
+
+Globale Reihenfolge ab25.10.2026: Dashboard im Vollbild → horizontale Linie → Flat-Design-Schalter → Themeauswahl → horizontale Linie → übrige Dashboardeinstellungen. Gilt für eingebettete Profilabschnitte und separate Designseite gleichermaßen sowie Flat/Glow und E-Bike/Indoor. Alte zusätzliche Theme-Kategorie an dieser Stelle entfällt zugunsten des gemeinsamen Blocks; Funktionen und Speichergrenzen unverändert.

@@ -288,12 +288,34 @@ internal class BestEffortTile(context: Context, themes: ThemeManager, effort: Be
 }
 
 /** Measure once within available width, then center the combined number+unit and both vertical centers. */
-internal class AnalysisValueRow(context: Context, private val value: TextView, private val unit: TextView) : android.view.ViewGroup(context) {
+internal class AnalysisValueRow(context: Context, private val value: TextView, private val unit: TextView,
+    private val alignEnd:Boolean=false,private val uniformSize:Boolean=false) : android.view.ViewGroup(context) {
     private val gap = BicycleDesign.dp(context, BicycleDesign.smallGap)
-    init { addView(value); addView(unit) }
+    private val density=resources.displayMetrics.scaledDensity
+    private val maximumSp=value.textSize/density
+    private val minimumSp=if(value.autoSizeMinTextSize>0) value.autoSizeMinTextSize/density else maximumSp
+    private val sizingPaint=android.graphics.Paint()
+    init {
+        if(uniformSize) value.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE)
+        addView(value); addView(unit)
+    }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val available = MeasureSpec.getSize(widthMeasureSpec)
         val height = MeasureSpec.getSize(heightMeasureSpec)
+        if(uniformSize) {
+            var sp=maximumSp
+            fun fits():Boolean {
+                sizingPaint.set(value.paint);sizingPaint.textSize=sp*density
+                val number=sizingPaint.measureText(value.text.toString())
+                sizingPaint.set(unit.paint);sizingPaint.textSize=sp*density
+                val suffix=if(unit.visibility==GONE) 0f else gap+sizingPaint.measureText(unit.text.toString())
+                return number+suffix<=available
+            }
+            while(sp>minimumSp && !fits()) sp=(sp-1f).coerceAtLeast(minimumSp)
+            val pixels=sp*density
+            if(kotlin.math.abs(value.textSize-pixels)>.01f) value.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,pixels)
+            if(kotlin.math.abs(unit.textSize-pixels)>.01f) unit.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,pixels)
+        }
         if (unit.visibility != GONE) unit.measure(MeasureSpec.makeMeasureSpec(available / 2, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
         val reserve = if (unit.visibility == GONE) 0 else unit.measuredWidth + gap
         value.measure(MeasureSpec.makeMeasureSpec((available - reserve).coerceAtLeast(0), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
@@ -308,10 +330,11 @@ internal class AnalysisValueRow(context: Context, private val value: TextView, p
             // Native TextView autosizing finishes in layout: place actual glyphs, not oversized text boxes.
             val numberWidth = value.layout?.getLineWidth(0) ?: value.measuredWidth.toFloat()
             val unitWidth = unit.layout?.getLineWidth(0) ?: unit.measuredWidth.toFloat()
-            val start = (width - numberWidth - gap - unitWidth) / 2
+            val free=width-numberWidth-gap-unitWidth
+            val start=if(alignEnd) free else free/2
             value.offsetLeftAndRight((start - (value.measuredWidth - numberWidth) / 2).toInt())
             unit.offsetLeftAndRight((start + numberWidth + gap - (unit.measuredWidth - unitWidth) / 2).toInt())
-        } else value.offsetLeftAndRight((width - value.measuredWidth) / 2)
+        } else value.offsetLeftAndRight(if(alignEnd) width-value.measuredWidth else (width-value.measuredWidth)/2)
     }
 }
 

@@ -32,6 +32,41 @@ class RiderProfileViewTest {
         decor.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY))
         decor.layout(0,0,width,height)
     }
+    @Test fun zoneValuesAndUnitsShareFontSizeAlignRightAndUseSmallMethodHeadings() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            val store=RiderProfileStore(a.getSharedPreferences("bike",0))
+            store.write(RiderProfile(restingHeartRate=55,maximumHeartRate=185,ftpW=250))
+            val screen=showRiderProfile(a,themes,DialogNavigation(),store)
+            for(flat in listOf(false,true)) for(width in listOf(320,360)) {
+                themes.setFlatDesign(flat);measure(screen,width,800)
+                val root=screen.window!!.decorView
+                for(tag in listOf("rider_zone_method","rider_power_zone_method")) {
+                    val title=root.findViewWithTag<TextView>(tag)
+                    assertEquals(BicycleDesign.strongTypeface,title.typeface)
+                    assertEquals(BicycleDesign.contentHeadingSp*a.resources.displayMetrics.scaledDensity,title.textSize,.01f)
+                }
+                val rows=views(root).filterIsInstance<AnalysisValueRow>()
+                assertEquals(12,rows.size)
+                for(row in rows) {
+                    val value=row.getChildAt(0) as TextView;val unit=row.getChildAt(1) as TextView
+                    assertEquals(value.textSize,unit.textSize,.01f)
+                    val glyphEnd=unit.left+(unit.width-unit.layout.getLineWidth(0))/2f+unit.layout.getLineWidth(0)
+                    assertEquals(row.width.toFloat(),glyphEnd,1f)
+                    assertTrue(value.left>=-1);assertTrue(unit.right<=row.width+1)
+                }
+                if(width==360) {
+                    val zones=root.findViewWithTag<View>("rider_zones").parent as View
+                    val image=android.graphics.Bitmap.createBitmap(zones.width,zones.height,android.graphics.Bitmap.Config.ARGB_8888)
+                    zones.draw(android.graphics.Canvas(image))
+                    java.io.File("build/reports/ui/rider-heart-zones-${if(flat) "flat" else "glow"}.png").apply { parentFile!!.mkdirs() }
+                        .outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };image.recycle()
+                }
+            }
+            assertEquals(RiderProfile(restingHeartRate=55,maximumHeartRate=185,ftpW=250),store.read())
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun sectionsCollapseIndependentlyAndBirthBorderFitsTheEntireRow() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
@@ -88,7 +123,7 @@ class RiderProfileViewTest {
             edit(screen,"resting_heart_rate").setText("55");assertEquals(activity.getString(R.string.rider_hint_maximum),hint.text)
             edit(screen,"maximum_heart_rate").setText("185")
             val first=screen.window!!.decorView.findViewWithTag<TextView>("rider_zone_value_1")
-            assertEquals((BicycleDesign.settingsMetricSp*activity.resources.displayMetrics.scaledDensity).toInt(),first.autoSizeMaxTextSize)
+            assertEquals(BicycleDesign.settingsMetricSp*activity.resources.displayMetrics.scaledDensity,first.textSize,.01f)
             assertEquals("120–132",first.text);assertEquals(View.VISIBLE,zones.visibility)
             edit(screen,"maximum_heart_rate").setText("195");assertEquals("125–138",first.text)
             edit(screen,"weight").setText("bad");assertEquals(View.VISIBLE,zones.visibility)
@@ -155,7 +190,7 @@ class RiderProfileViewTest {
                         val value=row.getChildAt(0) as TextView;val unit=row.getChildAt(1) as TextView
                         assertEquals(BicycleDesign.dashboardUnitColor,unit.currentTextColor)
                         assertEquals((value.top+value.bottom)/2f,(unit.top+unit.bottom)/2f,1f)
-                        assertTrue(value.textSize>unit.textSize)
+                        assertEquals(value.textSize,unit.textSize,.01f)
                     }
                 }
                 views(root).filterIsInstance<EditText>().forEach { field ->

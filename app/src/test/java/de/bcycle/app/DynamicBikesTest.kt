@@ -84,7 +84,7 @@ class DynamicBikesTest {
             }
             val title=decor.findViewWithTag<android.widget.TextView>("bike_profile_name")
             assertTrue(title.parent is BicycleSectionHeader)
-            assertNull((title.parent as BicycleSectionHeader).expanded)
+            assertEquals(true,(title.parent as BicycleSectionHeader).expanded)
             decor.findViewWithTag<View>("bike_rename").performClick()
             val edit=decor.findViewWithTag<android.widget.EditText>("bike_profile_name_edit")
             assertEquals(View.VISIBLE,edit.visibility);edit.setText("Neuer Name")

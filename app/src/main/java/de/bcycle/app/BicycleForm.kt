@@ -26,7 +26,7 @@ internal object BicycleForm {
             var i=0
             while(i<root.childCount) {
                 val header=root.getChildAt(i) as? BicycleSectionHeader
-                if(header!=null && header.expanded==null && header.tag!="bike_name_header") {
+                if(header!=null && header.expanded==null) {
                     val body=LinearLayout(root.context).apply { orientation=LinearLayout.VERTICAL;tag="sticky_accordion_content" }
                     while(i+1<root.childCount && root.getChildAt(i+1) !is BicycleSectionHeader) {
                         val child=root.getChildAt(i+1);root.removeViewAt(i+1);body.addView(child,child.layoutParams)

@@ -110,22 +110,51 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         nameHeading = (nameHeader.titleView).apply {
             tag="bike_profile_name";gravity=Gravity.CENTER;minimumHeight=dp(BicycleDesign.sectionHeaderMinHeight);isClickable=true;isFocusable=true
             contentDescription=context.getString(R.string.bikes_name_edit)
+            importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_YES
         }
         val nameEdit = BicycleComponents.input(context,themes).apply {
             tag="bike_profile_name_edit";visibility=GONE;setSingleLine();setText(profile.name)
             hint=context.getString(R.string.bikes_name_hint);contentDescription=context.getString(R.string.bikes_name_edit)
             filters=arrayOf(android.text.InputFilter.LengthFilter(60));imeOptions=EditorInfo.IME_ACTION_DONE
         }
+        var naming=false
+        val titleLayout=nameHeading.layoutParams
         fun finishNaming() {
-            if(nameEdit.text.toString().trim().isEmpty()) return
-            nameEdit.visibility=GONE;nameHeading.visibility=VISIBLE;nameHeader.visibility=VISIBLE;nameEdit.clearFocus()
-            context.getSystemService(InputMethodManager::class.java).hideSoftInputFromWindow(nameEdit.windowToken,0)
+            if(!naming || nameEdit.text.toString().trim().isEmpty()) return
+            naming=false;nameEdit.clearFocus()
+            nameHeader.removeView(nameEdit);nameEdit.visibility=GONE
+            nameHeader.addView(nameHeading,1,titleLayout)
+            context.getSystemService(InputMethodManager::class.java).hideSoftInputFromWindow(nameHeader.windowToken,0)
         }
         nameHeading.setOnClickListener {
-            nameHeader.visibility=GONE;nameHeading.visibility=GONE;nameEdit.visibility=VISIBLE;nameEdit.requestFocus();nameEdit.selectAll()
-            context.getSystemService(InputMethodManager::class.java).showSoftInput(nameEdit,InputMethodManager.SHOW_IMPLICIT)
+            if(!naming) {
+                naming=true
+                val height=nameHeading.height.coerceAtLeast(nameHeading.minimumHeight)
+                nameHeader.removeView(nameHeading)
+                nameEdit.visibility=VISIBLE
+                nameHeader.addView(nameEdit,1,LayoutParams(titleLayout).apply { this.height=height })
+                nameEdit.requestFocus();nameEdit.selectAll()
+                context.getSystemService(InputMethodManager::class.java).showSoftInput(nameEdit,InputMethodManager.SHOW_IMPLICIT)
+            }
         }
-        nameHeader.apply { isClickable=true;isFocusable=true;setOnClickListener { nameHeading.performClick() } }
+        // The title edits the name; its existing end-chevron still toggles the section.
+        var toggleTouch=false
+        nameHeading.setOnTouchListener { view,event ->
+            when(event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    val end=if(view.layoutDirection==LAYOUT_DIRECTION_RTL) event.x<=dp(BicycleDesign.touchSize)
+                        else event.x>=view.width-dp(BicycleDesign.touchSize)
+                    toggleTouch=end;end
+                }
+                android.view.MotionEvent.ACTION_UP -> {
+                    val consumed=toggleTouch;toggleTouch=false
+                    if(consumed) nameHeader.performClick()
+                    consumed
+                }
+                android.view.MotionEvent.ACTION_CANCEL -> { val consumed=toggleTouch;toggleTouch=false;consumed }
+                else -> toggleTouch
+            }
+        }
         nameEdit.addTextChangedListener(watcher { value ->
             if(runtime.bikes.activeSlot!=slot) return@watcher
             val name=value.trim()
@@ -134,7 +163,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         })
         nameEdit.setOnEditorActionListener { _,action,_ -> if(action==EditorInfo.IME_ACTION_DONE) { finishNaming();true } else false }
         nameEdit.setOnFocusChangeListener { _,focused -> if(!focused && nameEdit.visibility==VISIBLE) finishNaming() }
-        addView(nameHeader,LayoutParams(-1,-2).apply { marginStart=-paddingLeft;marginEnd=-paddingRight });addView(nameEdit,LayoutParams(-1,-2))
+        addView(nameHeader,LayoutParams(-1,-2).apply { marginStart=-paddingLeft;marginEnd=-paddingRight })
         photo=BikePhotoView(context,themes,slot,profile.type) { choosePhoto(slot) }.also { addView(it,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.sectionContentGap) }) }
         if(additionalSections==null) section(R.string.bikes_type)
         typeChoice=Spinner(context).apply {
@@ -312,10 +341,10 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
             addView(body,LayoutParams(-1,-2))
         }
-        if(additionalSections!=null) groupSections(nameHeader)
+        groupSections()
         refresh();footerChanged()
     }
-    private fun groupSections(nameHeader:BicycleSectionHeader) {
+    private fun groupSections() {
         val nodes=(0 until childCount).map(::getChildAt)
         removeAllViews()
         var body:LinearLayout?=null
@@ -323,11 +352,12 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             if(node is BicycleSectionHeader) {
                 body=null
                 addView(node,LayoutParams(-1,-2).apply { marginStart=-paddingLeft;marginEnd=-paddingRight })
-                if(node!==nameHeader) {
-                    val key=node.contentDescription.toString()
+                run {
+                    val key=if(node.tag=="bike_name_header") "bike_profile" else node.contentDescription.toString()
                     body=LinearLayout(context).apply {
                         orientation=VERTICAL
                         tag=when(key) {
+                            "bike_profile"->"bike_profile_details"
                             context.getString(R.string.ui_recording_title)->"bike_fit_settings"
                             context.getString(R.string.ui_track_recording)->"bike_track_settings"
                             else->"profile_section_content_$key"

@@ -63,6 +63,7 @@ internal object BicycleContentSpacing {
         descendants(view).filterIsInstance<LinearLayout>().forEach { parent ->
             val visible=(0 until parent.childCount).map(parent::getChildAt).filter { it.visibility!=View.GONE }
             visible.forEachIndexed { index,child -> if(child is BicycleSectionHeader) {
+                if(BicycleSectionCards.spacing(child)) return@forEachIndexed
                 val lp=child.layoutParams as? ViewGroup.MarginLayoutParams
                 if(lp!=null && (lp.topMargin!=0 || lp.bottomMargin!=0)) { lp.topMargin=0;lp.bottomMargin=0;child.layoutParams=lp }
                 fun gap(v:View?,before:Boolean) {

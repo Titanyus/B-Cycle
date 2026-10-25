@@ -82,7 +82,7 @@ internal class BikePhotoView(context:Context,private val themes:ThemeManager,pri
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY,BicycleDesign.inputRadius)
         addView(image,LayoutParams(-1,-1));addView(select,LayoutParams(-1,-1))
         addView(remove,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),android.view.Gravity.TOP or android.view.Gravity.END))
-        image.setOnClickListener { choose() }
+        // Existing photos are read-only here; use the delete action before choosing another.
     }
     override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
         val width=android.view.View.MeasureSpec.getSize(widthMeasureSpec)
