@@ -1,3 +1,7 @@
+# Aktueller Abschluss: APK 0.8.43 / Build 83
+
+APK **0.8.43 / Build83 / Code113** auf main veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.43-release-83.apk), [Buildnachweis](build-83.md), Actions-Quellstand `a657e39bcf3031ad4425b50c1c112924df1c1c86`. Größe 2.425.717 Bytes; SHA-256 `dd177b8d53f7292002226462603b6790a3d268475e82bb1c540a8681a59ff640`. Optimierter Release, dauerhafte Signatur wie Build82; Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Allgemeine Dialog-/Einstellungsumstellung zurückgenommen, ursprüngliche Header und SECONDARY-Seiten/HRV-Karte wiederhergestellt. PRIMARY-Trink-Alert und Glow-Sticky-Karten erhalten. 31 gezielte Tests erfolgreich; native Vorschau geprüft; kein Gesamtlauf oder Hardwaretest. Keine offene APK-Aufgabe. Frühere Aufträge darunter sind Verlauf.
+
 # Aktueller Auftrag: APK nach Dialog-Rücknahme
 
 Neue APK ausdrücklich beauftragt. Version0.8.43/Code113 vorbereitet; allgemeine Dialog-/Seitenumstellung zurückgenommen, Trink-Alert und Glow-Sticky-Karten erhalten. Die 31 Tests aus dem unmittelbar vorherigen Arbeitsgang sind erfolgreich; seither nur Versions-/Release-Dokumentation geändert, kein unnötiger Testwiederholungslauf. Veröffentlichung über Actions folgt. Bisheriger öffentlicher Download0.8.42/Build82 enthält noch die zurückgenommene allgemeine Umstellung.
