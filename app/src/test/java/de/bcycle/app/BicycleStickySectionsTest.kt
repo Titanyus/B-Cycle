@@ -83,7 +83,10 @@ class BicycleStickySectionsTest {
             val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
             val labels=listOf("Strecken-Aufzeichnung","FIT-Aufzeichnung","Tagesbefinden","Apps auswählen","Fahrten sichern","HRV-Pulsdaten","Fahrrad Müller")
             val body=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL }
-            val headers=labels.map { title -> BicycleSectionHeader(c,themes,title).also { body.addView(it) } }
+            val headers=labels.map { title -> BicycleSectionHeader(c,themes,title).also {
+                if(title=="FIT-Aufzeichnung") it.titleView.tag="fit_primary_heading"
+                body.addView(it)
+            } }
             val scroll=BicycleStickyScrollView(c).apply { addView(body) };c.setContentView(scroll)
             for(flat in listOf(false,true)) {
                 themes.setFlatDesign(flat)
@@ -115,6 +118,9 @@ class BicycleStickySectionsTest {
             assertNotNull(decor.findViewWithTag<View>("bicycle_fullscreen"))
             val scroll=testDescendants(decor).filterIsInstance<BicycleStickyScrollView>().single()
             val body=decor.findViewWithTag<View>("bikes_manager")
+            val fit=body.findViewWithTag<android.widget.TextView>("fit_primary_heading")
+            assertNotNull(fit);assertEquals(BicycleDesign.narrowTypeface(activity),fit.typeface)
+            assertEquals(BicycleDesign.sectionTitleSp,fit.textSize/activity.resources.displayMetrics.scaledDensity,.01f)
             val headings=testDescendants(body).filterIsInstance<BicycleSectionHeader>()
             assertTrue(headings.any { it.contentDescription==runtime.bikes.current().name })
             assertEquals(0,testDescendants(body).filterIsInstance<ProfileAccordion>().size)

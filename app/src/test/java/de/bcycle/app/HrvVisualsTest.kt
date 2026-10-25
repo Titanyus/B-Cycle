@@ -38,14 +38,30 @@ class HrvVisualsTest {
         }
         assertEquals(18f,BicycleDesign.hrvTimeSp,0f)
     }
-    @Test fun glowPeaksOnBeatFadesForOneAndAHalfSecondsAndResetsAtNextBeat() {
-        assertEquals(.45f,HrvPulseAnimation.opacity(1000,1000,2000.0,true),.0001f)
-        assertEquals(.275f,HrvPulseAnimation.opacity(1750,1000,2000.0,true),.0001f)
-        assertEquals(.1f,HrvPulseAnimation.opacity(2500,1000,2000.0,true),.0001f)
-        assertEquals(.45f,HrvPulseAnimation.opacity(3000,1000,2000.0,true),.0001f)
-        assertEquals(.45f,HrvPulseAnimation.opacity(2800,2800,2000.0,true),.0001f)
+    @Test fun glowRampsForThreeHundredMillisecondsThenFadesAndStaysContinuousAtBeatBoundaries() {
+        assertEquals(.1f,HrvPulseAnimation.opacity(1000,1000,2000.0,true),.0001f)
+        assertEquals(.275f,HrvPulseAnimation.opacity(1150,1000,2000.0,true),.0001f)
+        assertEquals(.45f,HrvPulseAnimation.opacity(1300,1000,2000.0,true),.0001f)
+        assertEquals(.275f,HrvPulseAnimation.opacity(2050,1000,2000.0,true),.0001f)
+        assertEquals(.1f,HrvPulseAnimation.opacity(2800,1000,2000.0,true),.0001f)
+        assertEquals(.1f,HrvPulseAnimation.opacity(3000,1000,2000.0,true),.0001f)
+        val before=HrvPulseAnimation.opacity(1799,1000,800.0,true)
+        val after=HrvPulseAnimation.opacity(1800,1000,800.0,true)
+        assertEquals(before,after,.001f)
+        // A newly received heartbeat begins at the prior opacity, not by flashing to min/max.
+        assertEquals(after,HrvPulseAnimation.opacity(1800,1800,810.0,true,after),.0001f)
+        assertEquals(.45f,HrvPulseAnimation.opacity(2100,1800,810.0,true,after),.0001f)
         assertEquals(.1f,HrvPulseAnimation.opacity(9000,1000,2000.0,true),.0001f)
         assertEquals(.1f,HrvPulseAnimation.opacity(1000,1000,2000.0,false),.0001f)
+    }
+    @Test fun functionalHrvGlowIsIdenticalInFlatAndGlowDesign() {
+        val themes=ThemeManager(c.getSharedPreferences("bike",0));val ring=HrvCircleView(c,themes)
+        val now=android.os.SystemClock.elapsedRealtime()
+        ring.show(HrvState(phase=Phase.MEASURE,remainingMs=100000,bpm=73,ready=true,lastBeatAtMs=now-300,beatIntervalMs=800.0))
+        themes.setFlatDesign(false);val glow=render(ring)
+        themes.setFlatDesign(true);val flat=render(ring)
+        assertEquals(glow.getPixel(160,120),flat.getPixel(160,120))
+        assertTrue(glow.sameAs(flat));glow.recycle();flat.recycle()
     }
     @Test fun progressMovesBetweenStatusUpdatesAndBpmUpdatesDoNotRestartItsTimeline() {
         val themes=ThemeManager(c.getSharedPreferences("hrv-smooth-theme",0));val ring=HrvCircleView(c,themes)

@@ -33,7 +33,7 @@ class DrinkReminderUiTest {
             toggle.performClick();assertTrue(DrinkReminderSettings.read(prefs).enabled)
             val slider=view.findViewWithTag<SeekBar>("drink_reminder_interval")
             assertEquals(10,slider.max);assertEquals(4,slider.progress)
-            assertEquals("30 min",view.findViewWithTag<TextView>("drink_reminder_interval_value").text.toString())
+            assertEquals("30 min",(slider as BicycleSettingSlider).valueText)
             val listener=android.widget.SeekBar::class.java.getDeclaredField("mOnSeekBarChangeListener").apply { isAccessible=true }.get(slider) as SeekBar.OnSeekBarChangeListener
             for(step in 0..10) {
                 slider.progress=step;listener.onProgressChanged(slider,step,true)

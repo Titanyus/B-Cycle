@@ -40,6 +40,7 @@ object BicycleDesign {
     // Endpoint grows 40% from its previous size, independently of the thicker ring.
     const val hrvRingEndScale=1.3f*1.4f/1.35f
     val hrvAxisColor=0x80ffffff.toInt()
+    const val hrvGlowAttackMs=300L
     const val hrvGlowFadeMs=1500L
     const val hrvGraphWindowMs=60000L
     const val hrvActionOffset=64
@@ -181,6 +182,10 @@ object BicycleDesign {
     const val sliderScaleLabelGap = -8
     const val sliderLabelGap = 0
     const val sliderQuestionGap = 32
+    const val settingSliderValueSp = bodySp * .75f
+    const val settingSliderRowHeight = touchSize + 2 * controlGap
+    const val settingSliderPillWidth = 56
+    const val settingSliderPillHeight = 24
     const val controlBorderAlpha = .5f
     const val inputRadius = 6
     const val scrollbarSize = 2

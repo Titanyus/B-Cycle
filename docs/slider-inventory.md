@@ -2,6 +2,18 @@
 
 Stand: 25.10.2026, Quellstand nach APK 0.8.41. Bestandsaufnahme ohne Änderung der Android-App. Alle Maße dp, Schriften sp. Außenabstände beziehen sich auf View-/Containergrenzen, nicht auf die sichtbare Linie. Bei 48 dp Höhe liegt deren Mitte normalerweise etwa 24 dp unter der View-Oberkante. Textzeilenhöhe und Android-Schrift-/Anzeigegröße kommen hinzu; die Gesamtblockhöhe ist deshalb nicht pauschal fest.
 
+[Native Vorschau der Trink-Regler](https://github.com/Titanyus/B-Cycle/blob/01a01bf66045dc4c260bbbc1222c6a4004b5601c/docs/previews/setting-slider-pills.png)
+
+## Neuer gemeinsamer Einstellungsregler
+
+Trink-Erinnerung (Intervall und Dauer), Trackdarstellung (Deckkraft und Breite) und Benachrichtigungsdauer verwenden jetzt BicycleSettingSlider und settingSliderRow. Titel links, Schieberegler rechts, kein Zahlenwert mehr darüber. Der native Griff ist eine solide PRIMARY-Pille mit FOREGROUND-Wert einschließlich bisheriger Einheit. Schrift 10,5 sp = bisherige bodySp 14 × 0,75. Pillenhöhe mindestens 24 dp, Breite mindestens 56 dp, bei Bedarf für Werte/Schriftvergrößerung breiter. Maximalbreite des gesamten Wertebereichs einmal vorab messen, damit sich die Griffbreite beim Ziehen nicht ändert. Gemeinsame 3-dp-Spur und native SeekBar-Gesten/Tastatur/Accessibility bleiben erhalten.
+
+Bedienfläche 48 dp, Zeilenhöhe mindestens 64 dp mit 8 dp vertikalem Innenabstand. Dadurch liegen die sichtbaren Linien zweier aufeinanderfolgender Regler bei normaler Schriftgröße **64 dp** auseinander, durch nativen Layouttest gegen die Mitte zweier RecordingSourcesView-Dropdownzeilen geprüft. Titel und Slider stehen in einer Zeile; zwischen ihnen 8 dp, Breitenverhältnis 1:2. Keine separaten Zahlenzeilen oder negativen Margins in diesen drei Bereichen. Wertebereiche, Schritte, Profil-/Sicherungsfelder und Speicher-Listener unverändert. Tagesbefinden, HRV-Messzeiten, Indoor-Korrektur, Farbhelligkeit und Bereichsfilter nicht umstellen.
+
+## Vorheriger Stand zur Ursachenanalyse
+
+Die folgende Bestandsaufnahme beschreibt die Varianten vor dieser Vereinheitlichung. Für die drei oben genannten Bereiche gilt jetzt die gemeinsame Komponente.
+
 ## Drei technische Komponenten
 
 | Typ | Verwendung | Höhe / Darstellung | Hervorhebung |

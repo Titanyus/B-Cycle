@@ -4,7 +4,7 @@ Stand 24.10.2026. Glow-Design ist auf Nutzerwunsch Standard. Unter Design & UI b
 
 Die Varianten verwenden dieselben nativen Views, Layouts, Maße, Beschriftungen und Listener. BicycleAppearance entscheidet nur über Dekoration. Keine zweite Bedienlogik und keine modusspezifischen Datenmodelle. Auch nach einem Wechsel bleiben Eingaben, Auswahl, Fokus, Navigation und Aufnahmefunktionen erhalten.
 
-- Flat: einfarbige PRIMARY-Hervorhebung, kein dekorativer Kontur-/Flächenverlauf, kein Eingabe-/Auswahl-/HRV-/Zonen-Glow, keine dekorativen Schatten. Diagrammfüllungen ebenfalls einfarbig bei gleicher Datengeometrie. Der Bosch-Fahrmodus-Glow bleibt unabhängig aktivierbar.
+- Flat: einfarbige PRIMARY-Hervorhebung, kein dekorativer Kontur-/Flächenverlauf, kein Eingabe-/Auswahl-/Zonen-Glow, keine dekorativen Schatten. Diagrammfüllungen ebenfalls einfarbig bei gleicher Datengeometrie. Der Bosch-Fahrmodus-Glow bleibt unabhängig aktivierbar. Der pulssynchrone HRV-Mess-Glow ist eine funktionale Ausnahme und bleibt ebenfalls in beiden Modi sichtbar.
 - Glow: gemeinsame Flat-Geometrie mit abgeleitetem Flächen- und Konturverlauf, gecachten Nah-/Außen-Blurs an Fokusfeldern und aktiven Segmenten sowie Schatten aktiver Segmente und bestehender Hinweis-/HRV-Karten. Bestehende semantische Diagramm-/Zonenfarben erhalten.
 - Alle bisherigen ACCENT-Hervorhebungen verwenden PRIMARY. ACCENT bleibt in ThemeTokens, gespeicherten benutzerdefinierten Paletten und Backups separat erhalten. Kein Überschreiben oder Zusammenlegen der beiden Farben. Kontrastschutz für kleine Icons und Text bleibt bestehen.
 
@@ -44,3 +44,9 @@ Alle Sticky-Kategorieheader zeigen League Gothic 30 sp jetzt ausschließlich in 
 ## Eingabeecken und Flat-Sticky-Linien nach Build 80
 
 Texteingaben verwenden jetzt auch in Glow die normalen 6-dp-Ecken statt des pillenartigen 24-dp-Exportradius. Rahmen und Nah-/Außen-Glow folgen derselben Eingabekontur; Farben, Stops und Blurwerte unverändert. Explizite Special-Pillen und andere Controls nicht umgestalten. Sticky-Header zeichnen ihre weiße obere/untere Begrenzung nur in Glow; Flat blendet die Linien bei unveränderter Höhe und Abstand aus. Typografie, Accordion-/Sticky-Funktion und alle Eingabefunktionen unverändert.
+
+## HRV-Puls und gemeinsame Wert-Slider
+
+Der HRV-Mess-Glow ist unabhängig von Flat/Glow sichtbar. Jeder Herzschlag startet einen weichen 300-ms-Anstieg von der bestehenden Helligkeit bis zur bisherigen Spitze 45 %, danach Abfall über 1500 ms bis 10 %. Bestehende kurze Rhythmusinterpolation erhalten; neue RR-Pakete beginnen von der zuvor berechneten Deckkraft statt von einer sprungartigen Rücksetzung. Reine Animation, keine RR-/Artefakt-/Messdatenänderung.
+
+Die Einstellungsregler in Trink-Erinnerung/Trackdarstellung/Benachrichtigungsdauer verwenden unabhängig vom Designmodus solide PRIMARY-Pillen mit FOREGROUND-Wert; kein zusätzlicher Glow oder Flächenverlauf im Griff. Tagesbefinden unverändert. Details slider-inventory.md.

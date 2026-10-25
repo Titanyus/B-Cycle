@@ -73,26 +73,17 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
     }
     private fun addSlider(parent:LinearLayout,title:Int,maximum:Int,initial:Int,name:String,
         format:(Int)->String,change:(Int)->Unit):SeekBar {
-        val row=LinearLayout(context).apply { gravity=Gravity.CENTER_VERTICAL;orientation=HORIZONTAL }
-        val label=BicycleComponents.text(context,themes,context.getString(title))
-        row.addView(label,LayoutParams(0,-2,1f))
-        val value=BicycleComponents.text(context,themes,format(initial)).apply { gravity=Gravity.END }
-        row.addView(value,LayoutParams(-2,-2));parent.addView(row,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,8) })
-        return SeekBar(context).apply {
+        return BicycleSettingSlider(context,themes,format).apply {
             max=maximum;progress=initial;keyProgressIncrement=1;tag=name;contentDescription=context.getString(title)
-            minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
-            BicycleComponents.bindTheme(this,themes) { tokens ->
-                progressTintList=android.content.res.ColorStateList.valueOf(tokens.primary)
-                thumbTintList=android.content.res.ColorStateList.valueOf(tokens.foreground)
-            }
             setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
                 override fun onStartTrackingTouch(bar:SeekBar)=Unit
                 override fun onStopTrackingTouch(bar:SeekBar)=Unit
-                override fun onProgressChanged(bar:SeekBar,p:Int,user:Boolean) { value.text=format(p);if(user) change(p) }
+                override fun onProgressChanged(bar:SeekBar,p:Int,user:Boolean) { bar.stateDescription=valueText;if(user) change(p) }
             })
-            parent.addView(this,LayoutParams(-1,-2))
+            parent.addView(settingSliderRow(context,themes,context.getString(title),this),LayoutParams(-1,-2))
         }
     }
+
     private fun showColor(kind:MapLineKind,update:()->Unit) {
         lateinit var dialog:android.app.AlertDialog
         val palette=FixedColorPalette(context,themes,MapRouteStyles.read(prefs,kind).color) { color ->

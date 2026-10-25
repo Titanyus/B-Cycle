@@ -43,39 +43,21 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         addView(details,LayoutParams(-1,-2))
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.notification_position_heading)),LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
         addView(MessagePositionChoices(context,themes,settings.position,"notification_position") { settings.position=it },LayoutParams(-1,-2))
-        val duration=GridLayout(context).apply { columnCount=2;tag="notification_duration_row" }
-        val value=BicycleComponents.text(context,themes,"").apply { tag="notification_duration_value" }
-        fun label(seconds: Int)=context.getString(R.string.notifications_seconds,seconds)
-        value.text=label(settings.durationSeconds);value.gravity=Gravity.CENTER
-        duration.addView(value,GridLayout.LayoutParams(GridLayout.spec(0),GridLayout.spec(1,1f)).apply {
-            width=0;setGravity(Gravity.FILL_HORIZONTAL);bottomMargin=-BicycleDesign.dp(context,BicycleDesign.controlGap)
-        })
-        val slider=SeekBar(context).apply {
-            id=View.generateViewId()
+        val slider=BicycleSettingSlider(context,themes) { context.getString(R.string.notifications_seconds,it) }.apply {
             tag="notification_duration";min=5;max=180;progress=settings.durationSeconds;keyProgressIncrement=1
-            minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize)
-            contentDescription=context.getString(R.string.notifications_duration);stateDescription=value.text
-            BicycleComponents.bindTheme(this,themes) { t ->
-                thumbTintList=android.content.res.ColorStateList.valueOf(t.primary)
-                progressTintList=android.content.res.ColorStateList.valueOf(t.primary)
-            }
+            contentDescription=context.getString(R.string.notifications_duration)
             setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
                 override fun onStartTrackingTouch(bar:SeekBar)=Unit
                 override fun onStopTrackingTouch(bar:SeekBar)=Unit
                 override fun onProgressChanged(bar:SeekBar,progress:Int,fromUser:Boolean) {
-                    if(fromUser) { settings.durationSeconds=progress;value.text=label(progress);bar.stateDescription=value.text }
+                    bar.stateDescription=valueText;if(fromUser) settings.durationSeconds=progress
                 }
             })
         }
-        duration.addView(BicycleComponents.text(context,themes,context.getString(R.string.notifications_duration)).apply {
-            tag="notification_duration_label";labelFor=slider.id;gravity=Gravity.CENTER_VERTICAL
-        },GridLayout.LayoutParams(GridLayout.spec(1,GridLayout.CENTER),GridLayout.spec(0)).apply {
-            marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap)
-        })
-        duration.addView(slider,GridLayout.LayoutParams(GridLayout.spec(1),GridLayout.spec(1,1f)).apply {
-            width=0;height=BicycleDesign.dp(context,BicycleDesign.touchSize);setGravity(Gravity.FILL_HORIZONTAL)
-        })
-        addView(duration,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(settingSliderRow(context,themes,context.getString(R.string.notifications_duration),slider).apply {
+            tag="notification_duration_row"
+            (getChildAt(0) as TextView).tag="notification_duration_label"
+        },LayoutParams(-1,-2))
         BicycleForm.section(this,themes,R.string.notifications_apps)
         addView(Switch(context).apply {
             tag="notification_messenger_filter";setText(R.string.notifications_messenger_filter);isChecked=settings.messengerOnly

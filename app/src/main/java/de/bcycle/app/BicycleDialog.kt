@@ -184,7 +184,7 @@ internal object BicycleDialogStyle {
         if (view is DatePicker) BicycleNavigation.dateHeader(view,themes)
     }
     fun control(view: TextView, themes: ThemeManager) {
-        if(view.tag=="bicycle_section_title") { BicycleComponents.sectionTypography(view);return }
+        if(view.getTag(R.id.section_title_role)==true) { BicycleComponents.sectionTypography(view);return }
         if(view is BicycleTextAction || view is BicycleSpecialButton) return // Central transparent accent text action owns its styling.
         if(view.tag=="bicycle_content_heading") return // Central content-heading typography owns this role.
         if(view is BicycleSegmentButton) return // Own radio appearance; generic controls add selection circles.

@@ -2,7 +2,6 @@ package de.bcycle.app
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.ColorStateList
 import android.view.Gravity
 import android.view.View
 import android.widget.*
@@ -29,65 +28,39 @@ internal class DrinkReminderSettingsView(context:Context,themes:ThemeManager,pre
         addView(LinearLayout(context).apply {
             BicycleComponents.switchAccordion(this,enabled,expand,themes,icon=BicycleIcon.DrinkReminder)
         },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
-        val value=BicycleComponents.text(context,themes,"").apply { tag="drink_reminder_interval_value";gravity=Gravity.CENTER }
-        val slider=SeekBar(context).apply {
-            tag="drink_reminder_interval";id=View.generateViewId();max=10;progress=(initial.minutes-10)/5
+        val slider=BicycleSettingSlider(context,themes) { context.getString(R.string.drink_reminder_minutes,10+it*5) }.apply {
+            tag="drink_reminder_interval";max=10;progress=(initial.minutes-10)/5
             contentDescription=context.getString(R.string.drink_reminder_interval)
-            BicycleComponents.bindTheme(this,themes) {
-                thumbTintList=ColorStateList.valueOf(it.primary);progressTintList=thumbTintList
-                progressBackgroundTintList=ColorStateList.valueOf((it.foreground and 0x00ffffff) or 0x55000000)
-            }
-        }
-        fun showValue() {
-            value.text=context.getString(R.string.drink_reminder_minutes,10+slider.progress*5)
-            slider.stateDescription=value.text
         }
         fun save() {
             if(!canEdit()) return
             config=config.copy(enabled=enabled.isChecked,minutes=10+slider.progress*5)
             DrinkReminderSettings.save(prefs,config);changed()
         }
-        showValue()
         enabled.setOnCheckedChangeListener { _,_->save() }
         slider.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(bar:SeekBar)=Unit
             override fun onStopTrackingTouch(bar:SeekBar)=Unit
-            override fun onProgressChanged(bar:SeekBar,progress:Int,fromUser:Boolean) { showValue();if(fromUser) save() }
+            override fun onProgressChanged(bar:SeekBar,progress:Int,fromUser:Boolean) {
+                bar.stateDescription=slider.valueText;if(fromUser) save()
+            }
         })
-        val duration=GridLayout(context).apply { columnCount=2 }
-        duration.addView(value,GridLayout.LayoutParams(GridLayout.spec(0),GridLayout.spec(1,1f)).apply { width=0;setGravity(Gravity.FILL_HORIZONTAL) })
-        duration.addView(BicycleComponents.text(context,themes,context.getString(R.string.drink_reminder_interval)).apply {
-            labelFor=slider.id;gravity=Gravity.CENTER_VERTICAL
-        },GridLayout.LayoutParams(GridLayout.spec(1,GridLayout.CENTER),GridLayout.spec(0)).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        duration.addView(slider,GridLayout.LayoutParams(GridLayout.spec(1),GridLayout.spec(1,1f)).apply {
-            width=0;height=BicycleDesign.dp(context,BicycleDesign.touchSize);setGravity(Gravity.FILL_HORIZONTAL)
-        })
-        details.addView(duration,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        val seconds=BicycleComponents.text(context,themes,context.getString(R.string.drink_reminder_seconds,initial.durationSeconds)).apply {
-            tag="drink_reminder_duration_value";gravity=Gravity.CENTER
-        }
-        val durationSlider=BicycleRatingSlider(context,themes,0,11).apply {
-            tag="drink_reminder_duration";id=View.generateViewId();progress=(initial.durationSeconds-5)/5
+        details.addView(settingSliderRow(context,themes,context.getString(R.string.drink_reminder_interval),slider),LayoutParams(-1,-2))
+        val durationSlider=BicycleSettingSlider(context,themes) { context.getString(R.string.drink_reminder_seconds,5+it*5) }.apply {
+            tag="drink_reminder_duration";max=11;progress=(initial.durationSeconds-5)/5
             contentDescription=context.getString(R.string.drink_reminder_duration)
             setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
                 override fun onStartTrackingTouch(bar:SeekBar)=Unit
                 override fun onStopTrackingTouch(bar:SeekBar)=Unit
                 override fun onProgressChanged(bar:SeekBar,progress:Int,fromUser:Boolean) {
-                    val value=5+progress*5;seconds.text=context.getString(R.string.drink_reminder_seconds,value);stateDescription=seconds.text
-                    if(fromUser && canEdit()) { config=config.copy(durationSeconds=value);save() }
+                    bar.stateDescription=valueText
+                    if(fromUser && canEdit()) { config=config.copy(durationSeconds=5+progress*5);save() }
                 }
             })
         }
-        details.addView(GridLayout(context).apply {
-            columnCount=2;tag="drink_reminder_duration_row"
-            addView(seconds,GridLayout.LayoutParams(GridLayout.spec(0),GridLayout.spec(1,1f)).apply { width=0;setGravity(Gravity.FILL_HORIZONTAL) })
-            addView(BicycleComponents.text(context,themes,context.getString(R.string.drink_reminder_duration)).apply {
-                labelFor=durationSlider.id;gravity=Gravity.CENTER_VERTICAL
-            },GridLayout.LayoutParams(GridLayout.spec(1,GridLayout.CENTER),GridLayout.spec(0)).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-            addView(durationSlider,GridLayout.LayoutParams(GridLayout.spec(1),GridLayout.spec(1,1f)).apply {
-                width=0;height=BicycleDesign.dp(context,BicycleDesign.touchSize);setGravity(Gravity.FILL_HORIZONTAL)
-            })
-        },LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        details.addView(settingSliderRow(context,themes,context.getString(R.string.drink_reminder_duration),durationSlider).apply {
+            tag="drink_reminder_duration_row"
+        },LayoutParams(-1,-2))
         details.addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.notification_position_heading)),LayoutParams(-1,-2).apply {
             topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap)
         })

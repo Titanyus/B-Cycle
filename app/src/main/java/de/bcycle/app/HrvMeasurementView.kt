@@ -171,12 +171,25 @@ internal object HrvVisuals { const val warningOrange=0xffff8a26.toInt() }
 
 /** Animation only: BLE receipt anchors the rhythm; interpolation never changes RR measurements. */
 internal object HrvPulseAnimation {
-    fun opacity(nowMs:Long,beatAtMs:Long?,intervalMs:Double?,running:Boolean):Float {
-        if(!running || beatAtMs==null || intervalMs==null || intervalMs<=0) return .1f
+    fun opacity(nowMs:Long,beatAtMs:Long?,intervalMs:Double?,running:Boolean,from:Float=.1f):Float {
+        if(!running || beatAtMs==null || intervalMs==null || !intervalMs.isFinite() || intervalMs<=0) return .1f
         val age=(nowMs-beatAtMs).coerceAtLeast(0).toDouble()
-        val sinceBeat=if(age<=5000) age%intervalMs else age
-        return (.45-.35*(sinceBeat/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)).toFloat()
+        fun wave(t:Double):Double {
+            val phase=t%intervalMs
+            val attack=minOf(BicycleDesign.hrvGlowAttackMs.toDouble(),intervalMs)
+            val trough=.45-.35*((intervalMs-attack)/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)
+            val start=if(t<intervalMs) from.toDouble() else trough
+            if(phase<attack) {
+                val u=phase/attack;val eased=u*u*(3-2*u)
+                return start+(.45-start)*eased
+            }
+            return .45-.35*((phase-attack)/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)
+        }
+        // Keep the existing short rhythm interpolation, then fade rather than invent more beats.
+        return if(age<=5000) wave(age).toFloat() else
+            (wave(5000.0)+(.1-wave(5000.0))*((age-5000)/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)).toFloat()
     }
+
 }
 
 internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) {
@@ -191,11 +204,16 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
     private val phaseBounds=Rect()
     private var state=HrvState()
     private var phaseDeadlineMs=0L
+    private var pulseFrom=.1f
     init {
         BicycleComponents.bindTheme(this,themes) { tokens=it;glow.shader=null;invalidate() }
         importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_YES
     }
     fun show(value:HrvState) {
+        if(value.lastBeatAtMs!=state.lastBeatAtMs) {
+            pulseFrom=HrvPulseAnimation.opacity(value.lastBeatAtMs ?: android.os.SystemClock.elapsedRealtime(),state.lastBeatAtMs,
+                state.beatIntervalMs,(state.phase==Phase.REST || state.phase==Phase.MEASURE) && state.ready,pulseFrom)
+        }
         // Establish one continuous monotonic timeline per phase; packet/tick updates
         // change live values without restarting the progress animation.
         if(value.phase!=state.phase) phaseDeadlineMs=android.os.SystemClock.elapsedRealtime()+value.remainingMs
@@ -221,8 +239,8 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
         val glowRadius=(radius-BicycleDesign.hrvRingWidth*density).coerceAtLeast(1f)
         if(glow.shader==null) glow.shader=RadialGradient(x,y,glowRadius,
             intArrayOf(tokens.primary,tokens.primary,Color.TRANSPARENT),floatArrayOf(0f,.25f,1f),Shader.TileMode.CLAMP)
-        glow.alpha=(255*HrvPulseAnimation.opacity(now,state.lastBeatAtMs,state.beatIntervalMs,running && state.ready)).toInt()
-        if(!BicycleAppearance.flat(context)) canvas.drawCircle(x,y,glowRadius,glow)
+        glow.alpha=(255*HrvPulseAnimation.opacity(now,state.lastBeatAtMs,state.beatIntervalMs,running && state.ready,pulseFrom)).toInt()
+        canvas.drawCircle(x,y,glowRadius,glow)
         paint.style=Paint.Style.STROKE;paint.strokeWidth=BicycleDesign.hrvRingWidth*density;paint.strokeCap=Paint.Cap.ROUND
         paint.color=tokens.tertiary;canvas.drawCircle(x,y,radius,paint)
         val duration=if(state.phase==Phase.REST) state.restMs.toDouble() else state.measureMs.toDouble()

@@ -92,3 +92,7 @@ HRV-Messung und Auswertung einschließlich Übersicht, Einzelresultat und Tagesb
 Der Messheader bleibt in Flat und Glow schlicht SECONDARY ohne Rahmen, Glow oder Schatten. Starten/Erneut messen verwendet die zentrale Special-Rahmen-Dekoration (weiß, 900 Black, normale Textgröße, Pille; Flat einfarbiger PRIMARY-Rand, Glow zentrale Kontur/Blurs). Laufender Abbruch und Speicherwiederholung bleiben vorhandene Textaktionen; Messzustand, Klickablauf und Sperren unverändert. Die Angebotskarte zeigt immer die SCREEN-Neon-Herzgrafik, auch im Flat-Modus.
 
 Sticky-Kategorieheader verwenden nun League Gothic wie Hauptheader, mit 30 sp gegenüber 32 sp. Nachtrag nach Build 78: Anzeige immer in Großbuchstaben, Rohtext unverändert. Nur die Typografie dieser gemeinsamen Komponente ändern; sonstige Abschnittstitel bleiben in ihrer bisherigen Rolle. In APK 0.8.39 / Build 78 enthalten.
+
+## Pulssynchroner Glow nach Build 81
+
+Die Flat-Regel unterdrückt den HRV-Mess-Glow nicht mehr. In beiden Designs identische funktionale Animation: 300 ms weicher Anstieg aus der momentanen Deckkraft bis 45 %, dann 1,5 Sekunden Auslauf bis 10 %. Bereits vorhandene kurze Pulstakt-Interpolation bleibt erhalten, bei ausbleibenden Daten weich auf den Grundwert auslaufen. Puls-/RR-/Qualitätsberechnung und Messablauf unverändert. Gezielte Rampen-/Übergangs- und Flat-/Glow-Pixeltests erfolgreich.
