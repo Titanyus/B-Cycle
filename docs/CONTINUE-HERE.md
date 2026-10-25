@@ -1,3 +1,7 @@
+# Aktueller Auftrag: APK0.8.46 / Code116
+
+Neue Release-APK ausdrücklich angefordert. Enthält alle Änderungen seit Build85: nahtlose Glow-Sticky-Karten/unterer Bogen, transparente8dp-Passage unter Hauptheader,32dp vor erster Profilkarte, HRV-Balkenwerte ohne Kollisionsunterdrückung, Original-App-Logo aus BClogo3.zip. Gezielte Tests und Ressourcenprüfung bereits erfolgreich. GitHub-Actions-Build/Signaturprüfung und direkter APK-Download folgen.
+
 # Aktueller Nachtrag: Neues App-Logo BClogo3
 
 Nutzer-PNG aus BClogo3.zip (1024×1024, RGBA) bytegenau als launcher_cyclist_image.png und docs/assets/app-icon.png übernommen. Archivgrafik unterscheidet sich von vorheriger Chat-Vorschau; neueste Datei maßgeblich. Adaptive-Icon-Verweis/16,6667%-Inset und native Launcher-Masken erhalten, Hintergrund von bisherRot auf #28243B passend zur neuen Grafik geändert. Keine Änderungen an Settings-Branding/Benachrichtigungs-Small-Icon/Bedienung. Ressourcen-Kompilierung processDebugResources erfolgreich, beide PNGs byteidentisch mit Upload/intakt und XML-Verweise geprüft. Keine neue APK angefragt.
