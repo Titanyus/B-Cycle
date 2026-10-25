@@ -1,3 +1,7 @@
+# Vorgemerkt für nächsten Durchlauf: BClogo5 + neues Header2
+
+Nutzer wünscht Einbau erst beim nächsten Durchlauf. Originalarchive zur dauerhaften Übergabe lokal im Repo gesichert: docs/assets/pending/BClogo5.zip (App-Logo) und docs/assets/pending/Header2.zip (neues Einstellungsbild, ersetzt frühere gleichnamige Vorlage). Beide ZIPs auf Integrität geprüft. Noch KEINE aktiven App-/README-Bildressourcen ersetzt und keine APK erstellt. Beim nächsten beauftragten Umsetzungsdurchlauf integrieren, bestehende Launcher-Maskierung bzw. FIT_CENTER/Buildinfo erhalten. Original-Upload-IDs: file_00000000cba081f4b6588137eb8a4642 und file_000000003cb081f499baf35f4de1d26f. Aktuell veröffentlicht bleibt0.8.47/Build87.
+
 # Aktueller Abschluss: APK0.8.47 / Build87
 
 APK **0.8.47 / Build87 / Code117** auf main veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.47-release-87.apk), [Buildnachweis](build-87.md), Actions-Quellstand `78d7d3664ebfaba9b07fd2c2e23a11dba6dde525`. Größe 2.938.537 Bytes; SHA-256 `34a563b229aab8829f0c32b399454fdfddfe61edf69fe9314ef9259033db323d`. Optimierter Release, dauerhafte Signatur wie Build86, kein Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Neues Einstellungsmotiv Header2 verlustfrei eingebunden. Vorhandene Funktionalität und alle bisherigen Korrekturen enthalten. Ressourcen-/Pixel-/Diffprüfung erfolgreich. Kein Gesamtlauf/Gerätetest. Keine offene APK-Aufgabe; ältere Angaben unten Verlauf.
