@@ -1,6 +1,6 @@
 # Interaktiver Eingabefeld-Designer
 
-[Designer im Browser öffnen](https://raw.githack.com/Titanyus/B-Cycle/e44df1c8f1c509df0a4eb82558451fd67d707da5/docs/previews/input-designer.html) · [HTML für Offline-Nutzung herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/e44df1c8f1c509df0a4eb82558451fd67d707da5/docs/previews/input-designer.html)
+[Designer im Browser öffnen](https://raw.githack.com/Titanyus/B-Cycle/0fd3933f5842cdba220cef3cff1dd3b7d1d2fe88/docs/previews/input-designer.html) · [HTML für Offline-Nutzung herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/0fd3933f5842cdba220cef3cff1dd3b7d1d2fe88/docs/previews/input-designer.html)
 
 Beim ersten Öffnen des Browser-Links zeigt raw.githack gegebenenfalls einen Herkunftshinweis. Mit „Open the page“ geht es zum Designer.
 
@@ -56,3 +56,11 @@ Gezielte Prüfungen erfolgreich: Engine bis 300 % einschließlich Kontinuität/G
 ## Kotlin-Übernahme des freigegebenen Entwurfs
 
 Die Colorengine und Werte aus docs/designs/input-design.json sind jetzt zentral in der App implementiert: ChromaticColor/BicycleInputStyle/BicycleDesign. Die App lädt die JSON nicht zur Laufzeit. Designer bleibt das unabhängige Werkzeug mit seinen bisherigen Startwerten; zum Vergleich die freigegebene JSON laden. Native Farb-/Theme-Berechnung ist anhand 104 Designerreferenzen geprüft, Browser-/native Blur-Näherungen bleiben verschieden und die App erhält ihren bestehenden Textkontrastschutz. Details input-focus-frame.md. Frühere Aussagen „nur im Designer“ beschreiben den Stand vor diesem Auftrag.
+
+## Flat-/Glow-Vergleich und weitere Komponenten, 25.10.2026
+
+Prominenter Schalter oberhalb der Regler: Flat-Design ein = einfarbige Vorschau ohne Kontur-/Flächenverläufe oder Glows, aus = bisherige Glow-Vorschau. Die Auswahl wird separat unter bcycle-input-designer-flat-preview gespeichert. Regler, Stopps, Layer, JSON-Export und Import bleiben unverändert; Umschalten verändert den Entwurf nicht. Nach Rückkehr zu Glow sind alle Effekte wieder da. PNG zeigt den gerade gewählten Vorschau-Modus.
+
+Zusätzlich zur bisherigen Eingabe-/Segmentvorschau: Schalter aus und aktiv mit echter runder Kontur und demselben Kontur-/Nah-/Außen-Glow; geschlossenes Dropdown und geöffnete Liste. Die Popup-Fläche kommt aus TERTIARY des gewählten Themes, Rahmen/Glow aus dem Entwurf. Radius für Schalterkreis bzw. Popup ist unabhängig von der bearbeitbaren Eingabemusterform. Keine zusätzlichen Android-Einstellungen oder Appänderungen.
+
+Bestehende Browserprüfungen sowie neue Prüfungen für Modus/Pixel/fehlende Flat-Glows, unveränderten Export, Reload, 14 Themes, PNG und 320/390/412-px-Breiten erfolgreich. Vorschauen visuell geprüft. Slider-Bestandsaufnahme der App: [Typen, Maße und Abstände](slider-inventory.md); reine Analyse, keine Slideränderung.
