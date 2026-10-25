@@ -65,6 +65,33 @@ class BicycleSectionCardsTest {
                     assertEquals(tokens.tertiary,bitmap.getPixel(180,content.bottom-1))
                     assertEquals(tokens.secondary,bitmap.getPixel(1,content.bottom-1))
                     for(index in listOf(0,2)) assertEquals(0f,first.getChildAt(index).alpha,0f)
+                    val bodyBackground=content.background
+                    content.setBackgroundColor(Color.RED)
+                    scroll.scrollTo(0,content.top+20)
+                    val gapImage=Bitmap.createBitmap(360,520,Bitmap.Config.ARGB_8888)
+                    // Direct View.draw lacks the parent's normal scroll-coordinate transform.
+                    scroll.draw(Canvas(gapImage).apply { translate(0f,-scroll.scrollY.toFloat()) })
+                    assertEquals("Content remains visible in the 8dp header gap",Color.RED,gapImage.getPixel(180,4))
+                    gapImage.recycle();content.background=bodyBackground
+                    scroll.scrollTo(0,0)
+                    // An expanded header joins the body without lower-corner gaps. As the
+                    // card end passes underneath, use exactly that card's rounded lower arc.
+                    val radius=BicycleDesign.dp(a,BicycleDesign.sectionCardRadius)
+                    for(remaining in listOf(radius,12,6,0)) {
+                        scroll.scrollTo(0,content.bottom+16-first.height-8-remaining)
+                        val actual=Bitmap.createBitmap(first.width,first.height,Bitmap.Config.ARGB_8888)
+                        first.background.setBounds(0,0,first.width,first.height)
+                        first.background.draw(Canvas(actual))
+                        val expected=Bitmap.createBitmap(first.width,first.height,Bitmap.Config.ARGB_8888)
+                        Canvas(expected).apply {
+                            drawColor(tokens.secondary)
+                            drawRoundRect(0f,0f,first.width.toFloat(),(first.height+remaining).toFloat(),radius.toFloat(),radius.toFloat(),
+                                android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color=tokens.tertiary })
+                        }
+                        assertTrue("Joined card arc with $remaining px remaining",actual.sameAs(expected))
+                        actual.recycle();expected.recycle()
+                    }
+                    scroll.scrollTo(0,0)
                 } else {
                     assertEquals(0,first.left);assertEquals(360,first.right)
                     assertEquals(16,content.left);assertEquals(344,content.right)

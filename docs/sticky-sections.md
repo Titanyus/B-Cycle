@@ -1,8 +1,8 @@
-## Aktualisierung: Glow rundum und8dp angehefteter Abstand
+## Aktualisierung: Nahtloser Glow-Kasten und 8dp angehefteter Abstand
 
-Alle Glow-Sticky-Header erhalten in offenem, geschlossenem und angeheftetem Zustand vier runde Ecken. Angeheftet bleiben8dp Abstand zum Hauptheader; Nutzerbestätigung vom25.10.2026. Führende Kategorien beginnen ebenfalls mit8dp, normale Elemente weiter16dp. Flat bleibt bei bisheriger bündiger/rechteckiger Anheftung. Pin-Linie = scrollY+8dp inGlow, Push-Grenze weiterhin nächste Headeroberkante; Abstand24dp zwischen Hintergrundboxen bleibt unabhängig vom direkten Headerkontakt beim Wegschieben.
+Geschlossene Glow-Sticky-Header haben vier runde Ecken. Geöffnet bilden Header und Inhalt eine durchgehende Box: oben runder Header, unten runder gemeinsamer Abschluss. Beim Scrollen übernimmt der Header exakt den unteren Bogen der gemeinsamen Karte, sobald deren Abschluss unter ihn fährt; keine offenen Ecklücken und kein eckiger Rest. Angeheftet bleiben8dp Abstand zum Hauptheader; Nutzerbestätigung vom25.10.2026. Führende Kategorien beginnen ebenfalls mit8dp, normale Elemente weiter16dp. Flat bleibt bei bisheriger bündiger/rechteckiger Anheftung. Pin-Linie = scrollY+8dp inGlow, Push-Grenze weiterhin nächste Headeroberkante; Abstand24dp zwischen Hintergrundboxen bleibt unabhängig vom direkten Headerkontakt beim Wegschieben.
 
-SECONDARY-Matte unter der Headerkontur hält die vier Rundungen über dem gleichfarbigen Inhalt sichtbar. Der angeheftete obere8dp-Streifen wird leer gezeichnet und übernimmt native Scrollgesten statt Klicks auf unsichtbare Inhalte. Keine neuen Headerkopien oder Scrollcontainer.
+SECONDARY-Matte unter der Headerkontur hält die oberen Rundungen und den beim Scrollen erreichten unteren Kartenbogen frei. Die Kontur wird als Ausschnitt derselben verlängerten Rundung gezeichnet, statt die unteren Ecken dauerhaft abzurunden. Nur bei geänderter Anschlussgeometrie wird der Header neu gezeichnet; keine neuen Zeichenobjekte pro Scrollschritt. Der 8dp-Abstand bleibt beim Anheften bestehen, erhält aber keine deckende Maske: Seiteninhalt scrollt sichtbar bis unter den Hauptheader und seinen transparent auslaufenden Schatten. Native Touch-/Scrollbehandlung bleibt bestehen. Keine neuen Headerkopien oder Scrollcontainer.
 
 ## Glow-Kartenversuch ab 25.10.2026
 

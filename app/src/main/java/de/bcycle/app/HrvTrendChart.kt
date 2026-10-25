@@ -32,8 +32,6 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private val viewport=HrvTrendViewport()
     private var points:List<HrvTrendPoint> = emptyList()
     private var barLabels:List<Pair<HrvTrendPoint,String>> = emptyList()
-    private var labelSpacing=Double.NaN
-    private var labelTextSize=Float.NaN
     var axis=HrvTrendAxis(0.0,1.0);private set
     private var selectedId:String?=null
     private var downX=0f;private var downY=0f;private var moved=false
@@ -77,9 +75,9 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         BicycleComponents.bindTheme(this,themes) { tokens=it;invalidate() }
     }
     fun show(rows:List<HrvTrendPoint>,reset:Boolean=false,axis:HrvTrendAxis=HrvTrendAxis.from(rows,HrvTrendMetric.RMSSD)) {
-        labelSpacing=Double.NaN
         stopFling()
         points=rows;this.axis=axis
+        barLabels=rows.mapNotNull { point -> point.value?.let { point to barNumber.format(it) } }
         if(reset) viewport.reset(rows.map { it.day })
         if(selectedId==null || rows.none { it.row.id==selectedId }) selectedId=rows.lastOrNull()?.row?.id
         rows.firstOrNull { it.row.id==selectedId }?.let { selected(it) }
@@ -178,20 +176,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         paint.textSize=BicycleDesign.hrvTrendBarValueSp*resources.displayMetrics.scaledDensity
         paint.textAlign=Paint.Align.CENTER;paint.color=tokens.foreground
         val gap=BicycleDesign.dp(context,BicycleDesign.hrvTrendBarValueGap).toFloat()
-        val spacing=(plotRight-plotLeft)/viewport.span
-        if(spacing!=labelSpacing || paint.textSize!=labelTextSize) {
-            // Anchor collision decisions to the dataset, never to the first visible bar.
-            // Relative double coordinates avoid pan-dependent screen-pixel rounding.
-            var previousRight=Double.NEGATIVE_INFINITY
-            val first=points.firstOrNull()?.day?.toEpochDay() ?: 0L
-            barLabels=points.mapNotNull { point -> point.value?.let { value ->
-                val label=barNumber.format(value);val halfWidth=paint.measureText(label)/2
-                val center=(point.day.toEpochDay()-first)*spacing
-                if(halfWidth*2>plotRight-plotLeft || center-halfWidth<previousRight+gap) null
-                else { previousRight=center+halfWidth;point to label }
-            } }
-            labelSpacing=spacing;labelTextSize=paint.textSize
-        }
+        // Every value stays centered on its own bar, even when adjacent labels overlap.
         barLabels.forEach { (point,label) ->
             val center=x(point.day);val halfWidth=paint.measureText(label)/2
             if(center+halfWidth>=plotLeft && center-halfWidth<=plotRight) {

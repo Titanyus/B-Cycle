@@ -228,8 +228,14 @@ class HrvTrendsTest {
             }
             val before=labels();val end=viewport.end
             assertTrue(before.isNotEmpty())
+            fun expectedLabels():Set<Long> = points.filter { point ->
+                val center=left+(point.day.toEpochDay()-(viewport.end-viewport.span))/viewport.span*width
+                point.value!=null && center in (left+20)..(352.0-20)
+            }.map { it.day.toEpochDay() }.toSet()
+            assertEquals("Do not suppress overlapping values at small zoom",expectedLabels(),before)
             for(delta in listOf(-.13,-.92,-1.17,-3.1)) {
                 viewport.pan(delta);val after=labels()
+                assertEquals(expectedLabels(),after)
                 val low=maxOf(end-viewport.span,viewport.end-viewport.span)+10
                 val high=minOf(end,viewport.end)-10
                 assertEquals(before.filter { it.toDouble() in low..high }.toSet(),after.filter { it.toDouble() in low..high }.toSet())

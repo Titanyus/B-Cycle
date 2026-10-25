@@ -13,6 +13,14 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
     var expanded:Boolean?=null;private set
     var cardContent:View?=null;private set
     var revealOnOpen=false
+    private var cardJoinExtension=0f
+    /** Match the shared card's lower arc as its end scrolls underneath this native header. */
+    internal fun updateCardJoin() {
+        val radius=BicycleDesign.dp(context,BicycleDesign.sectionCardRadius).toFloat()
+        val extension=cardContent?.takeIf { expanded==true && it.visibility==VISIBLE && it.parent===parent }
+            ?.let { (it.bottom+BicycleDesign.dp(context,BicycleDesign.sectionCardBottomPadding)-bottom-translationY).coerceIn(0f,radius) } ?: 0f
+        if(extension!=cardJoinExtension) { cardJoinExtension=extension;invalidate() }
+    }
     val titleView = BicycleComponents.text(context, manager, title).apply {
         tag="bicycle_section_title";setTag(R.id.section_title_role,true);BicycleComponents.sectionTypography(this)
     }
@@ -50,10 +58,16 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
         val radius=if(flat) 0f else BicycleDesign.dp(context,BicycleDesign.sectionCardRadius).toFloat()
         background=object:android.graphics.drawable.GradientDrawable() {
             private val matte=android.graphics.Paint().apply { color=tokens.secondary }
+            private val fill=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color=tokens.tertiary }
+            private val card=android.graphics.RectF()
             override fun draw(canvas:android.graphics.Canvas) {
-                // Keep all four corners visible when this header floats above its section body.
-                if(!flat) canvas.drawRect(bounds,matte)
-                super.draw(canvas)
+                if(flat) { super.draw(canvas);return }
+                canvas.drawRect(bounds,matte)
+                val saved=canvas.save()
+                canvas.clipRect(bounds)
+                card.set(bounds.left.toFloat(),bounds.top.toFloat(),bounds.right.toFloat(),bounds.bottom+cardJoinExtension)
+                canvas.drawRoundRect(card,radius,radius,fill)
+                canvas.restoreToCount(saved)
             }
         }.apply { setColor(tokens.tertiary);cornerRadii=FloatArray(8) { radius } }
     }
