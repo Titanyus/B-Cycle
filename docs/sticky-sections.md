@@ -1,3 +1,9 @@
+## Glow-Kartenversuch ab 25.10.2026
+
+Aufklappbare Sticky-Kategorien bilden in Glow einen TERTIARY-Kasten für Header und geöffneten Inhalt. Geschlossen vier runde Ecken, geöffnet runder Header oben und gemeinsame Karte unten, Radius18dp. Keine Rahmen und keine horizontalen Headerlinien. SECONDARY zwischen den Karten macht ihre Form sichtbar. Nur das Styling ändert sich, nicht die bisherigen Maße/Abstände oder Funktionen. Flat behält seine bestehende Darstellung.
+
+BicycleSectionCards zeichnet den Verbund auf dem vorhandenen Parent-Hintergrund; keine neuen Container oder Reparentings. Header und Body bleiben Geschwister, alle IDs/Listener/Entwürfe sowie die bestehende native Sticky-/Push-Mechanik erhalten. Der Body ist in Glow transparent über der gemeinsamen Karte; Flat nutzt seinen bisherigen Hintergrund. Theme-/Designwechsel aktualisieren die Darstellung. Normale Dropdowns/Accordions und nicht aufklappbare Profilnamenheader bleiben unverändert.
+
 # Sticky-Kategorien in den Einstellungen
 
 `BicycleSectionHeader` ist die gemeinsame Kategoriekomponente: bestehende

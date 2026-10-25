@@ -7,10 +7,11 @@ import android.view.View
 import android.widget.LinearLayout
 
 /** Shared category heading. Natural and pinned states use exactly the same native view. */
-internal class BicycleSectionHeader(context: Context, private val manager: ThemeManager, title: String, private val inlineRules:Boolean=false) : LinearLayout(context) {
+internal class BicycleSectionHeader(context: Context, internal val manager: ThemeManager, title: String, private val inlineRules:Boolean=false) : LinearLayout(context) {
     /** Optional section boundary, e.g. an independent accordion after the last category. */
     var sectionEnd: View? = null
     var expanded:Boolean?=null;private set
+    var cardContent:View?=null;private set
     var revealOnOpen=false
     val titleView = BicycleComponents.text(context, manager, title).apply {
         tag="bicycle_section_title";setTag(R.id.section_title_role,true);BicycleComponents.sectionTypography(this)
@@ -26,7 +27,7 @@ internal class BicycleSectionHeader(context: Context, private val manager: Theme
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this, manager) {
                 setBackgroundColor(it.foreground)
-                alpha=if(BicycleAppearance.flat(context)) 0f else 1f
+                alpha=if(BicycleAppearance.flat(context) || expanded!=null) 0f else 1f
             }
         }
         fun addRule() {
@@ -47,7 +48,17 @@ internal class BicycleSectionHeader(context: Context, private val manager: Theme
     /** Opt-in collapsing; the title remains centered by reserving equal icon space on each side. */
     fun accordion(content:View,open:Boolean=true,changed:(Boolean)->Unit={}) {
         isClickable=true;isFocusable=true
+        cardContent=content
+        BicycleSectionCards.content(content,this)
         val themesUpdate:(ThemeTokens)->Unit={ tokens ->
+            val radius=if(BicycleAppearance.flat(context)) 0f else BicycleDesign.dp(context,BicycleDesign.sectionCardRadius).toFloat()
+            background=android.graphics.drawable.GradientDrawable().apply {
+                setColor(tokens.tertiary)
+                cornerRadii=if(expanded==true) floatArrayOf(radius,radius,radius,radius,0f,0f,0f,0f)
+                    else FloatArray(8) { radius }
+            }
+            for(index in listOf(0,2)) getChildAt(index).alpha=0f
+            (parent as? View)?.invalidate()
             val size=BicycleDesign.dp(context,BicycleDesign.iconSize)
             val left=android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT).apply { setBounds(0,0,size,size) }
             val right=BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground).apply { setBounds(0,0,size,size) }

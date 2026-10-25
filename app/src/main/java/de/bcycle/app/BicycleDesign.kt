@@ -48,6 +48,7 @@ object BicycleDesign {
     const val hrvPromptPadding=24
     const val hrvPromptTitleSp=40f
     const val hrvPromptCopySp=18f
+    const val sectionCardRadius=18
     const val dialogShadow=24
     const val hrvPromptDimAlpha=170
     const val hrvPromptBorder=1
