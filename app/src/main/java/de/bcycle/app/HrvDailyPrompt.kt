@@ -3,7 +3,6 @@ package de.bcycle.app
 import android.app.Activity
 import android.content.Context
 import android.graphics.*
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.*
@@ -50,16 +49,8 @@ internal class HrvDailyCard(context:Context,themes:ThemeManager,later:()->Unit,s
     init {
         tag="hrv_daily_card";isClickable=true;clipToOutline=true
         accessibilityPaneTitle=context.getString(R.string.hrv_daily_title)
-        elevation=dp(BicycleDesign.hrvPromptShadow).toFloat()
-        outlineAmbientShadowColor=Color.BLACK;outlineSpotShadowColor=Color.BLACK
         BicycleComponents.scrollStyle(this)
-        BicycleComponents.bindTheme(this,themes) {
-            elevation=if(BicycleAppearance.flat(context)) 0f else BicycleDesign.dp(context,BicycleDesign.hrvPromptShadow).toFloat()
-            background=GradientDrawable().apply {
-                cornerRadius=dp(BicycleDesign.dialogRadius).toFloat();setColor(it.secondary)
-                setStroke(dp(BicycleDesign.hrvPromptBorder).coerceAtLeast(1),it.tertiary)
-            }
-        }
+        BicycleDialogSurface.bind(this,themes)
         val body=LinearLayout(context).apply {
             orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER_HORIZONTAL
             setPadding(dp(BicycleDesign.hrvPromptPadding),dp(BicycleDesign.hrvPromptPadding),dp(BicycleDesign.hrvPromptPadding),dp(BicycleDesign.hrvPromptPadding))

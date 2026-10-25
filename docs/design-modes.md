@@ -1,3 +1,5 @@
+> Neu ab 25.10.2026: [Gemeinsame Dialogbasis](dialog-surfaces.md) ersetzt die früheren Chromatic-/SECONDARY-Dialogheader durch TERTIARY. Dialog-Kartenschatten gelten ausdrücklich auch in Flat. Sonstige Komponentendekorationen unverändert.
+
 # Flat und Glow auf gemeinsamer UI-Basis
 
 Stand 24.10.2026. Glow-Design ist auf Nutzerwunsch Standard. Unter Design & UI bei der Theme-Auswahl steht der globale Schalter Flat-Design. Aus = Glow, ein = Flat. Bestehende Nutzer starten ohne zusätzliche Migration mit Glow.

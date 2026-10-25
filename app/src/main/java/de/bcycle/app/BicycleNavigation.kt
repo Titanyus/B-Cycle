@@ -25,7 +25,7 @@ internal object BicycleNavigation {
             (title.parent as? ViewGroup)?.removeView(title)
             title.gravity=Gravity.CENTER
             BicycleComponents.bindTheme(title,themes) {
-                title.setTextColor(BicycleComponents.textColor(title,themes,it))
+                title.setTextColor(if(role==ThemeRole.TERTIARY) it.foreground else BicycleComponents.textColor(title,themes,it))
             }
             val main=all(screen.window!!.decorView).any { it is SettingsMenuView && it.isMainPage }
             val inset=BicycleDesign.dp(context,BicycleDesign.touchSize*(if(main && help!=null) 2 else 1)+BicycleDesign.smallGap)

@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -16,14 +15,7 @@ internal class DrinkReminderPanel(context:Context,themes:ThemeManager):LinearLay
         contentDescription=context.getString(R.string.drink_reminder_dismiss)
         val gap=BicycleDesign.dp(context,BicycleDesign.controlGap)
         setPadding(gap*2,gap*2,gap*2,gap*2)
-        elevation=BicycleDesign.dp(context,8).toFloat()
-        BicycleComponents.bindTheme(this,themes) { tokens ->
-            elevation=if(BicycleAppearance.flat(context)) 0f else BicycleDesign.dp(context,8).toFloat()
-            background=GradientDrawable().apply {
-                setColor(tokens.secondary);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-                setStroke(BicycleDesign.dp(context,3),tokens.primary)
-            }
-        }
+        BicycleDialogSurface.bind(this,themes,BicycleDialogSurface.alert)
         addView(ImageView(context).apply {
             importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.DrinkReminder,it)) }

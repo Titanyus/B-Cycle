@@ -139,7 +139,7 @@ class HrvEntryTest {
             val prompt=HrvDailyPrompt(a,root,dashboard,themes,{acknowledged++},{started++})
             layout(root)
             val card=root.findViewWithTag<ScrollView>("hrv_daily_card")
-            assertEquals(themes.active.tokens.secondary,(card.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            assertEquals(themes.active.tokens.tertiary,(card.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             assertEquals(a.getString(R.string.hrv_daily_now),root.findViewWithTag<Button>("hrv_daily_start").text)
             assertEquals(3,root.findViewWithTag<LinearLayout>("hrv_daily_metrics").childCount)
             root.findViewWithTag<View>("hrv_daily_title").performClick();assertEquals(0,acknowledged)

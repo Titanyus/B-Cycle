@@ -17,7 +17,7 @@ internal object BicycleFullscreen {
         if (view is ViewGroup) for (i in 0 until view.childCount) yieldAll(descendants(view.getChildAt(i)))
     }
     @Suppress("DEPRECATION") // Native edge-to-edge/IME compatibility for API 33+; no new dependency.
-    fun apply(screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null, headerRole:ThemeRole=ThemeRole.PRIMARY,plainHeader:Boolean=false) {
+    fun apply(screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null, headerRole:ThemeRole=BicycleDialogSurface.normal,plainHeader:Boolean=true) {
         val window = screen.window ?: return
         if (descendants(window.decorView).any { it.tag == "bicycle_fullscreen" }) return
         val context = screen.context
@@ -45,7 +45,7 @@ internal object BicycleFullscreen {
             if (it === nativeHeader) it.setPadding(0, 0, 0, 0)
             host.addView(BicycleNavigation.header(it,screen,themes,help,headerRole,plainHeader), LinearLayout.LayoutParams(-1, BicycleDesign.dp(context,BicycleDesign.headerHeight)))
             val colored = descendants(it).firstOrNull { child -> child.tag == "bicycle_dialog_header" } ?: it
-            BicycleComponents.bindTheme(colored, themes) { tokens -> colored.background = GradientDrawable().apply { setColor(if(headerRole==ThemeRole.SECONDARY) tokens.secondary else tokens.primary); cornerRadius = 0f } }
+            BicycleComponents.bindTheme(colored, themes) { tokens -> colored.background = GradientDrawable().apply { setColor(tokens.color(headerRole)); cornerRadius = 0f } }
         }
         content?.let { original ->
             detach(original)
@@ -64,18 +64,18 @@ internal object BicycleFullscreen {
             BicycleContentSpacing.page(spacingTarget)
             host.contentSpacingTarget=spacingTarget
             body.tag = body.tag ?: "bicycle_fullscreen_content"
-            BicycleComponents.bindTheme(body, themes) { body.setBackgroundColor(it.secondary) }
+            BicycleComponents.bindTheme(body, themes) { body.setBackgroundColor(it.color(headerRole)) }
             host.addView(body, LinearLayout.LayoutParams(-1, 0, 1f))
         }
         if (content == null) host.addView(android.widget.FrameLayout(context).apply {
             tag = "bicycle_fullscreen_content"
-            BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.secondary) }
+            BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.color(headerRole)) }
         },
             LinearLayout.LayoutParams(-1, 0, 1f))
         footer?.let {
             detach(it); it.tag = "bicycle_fullscreen_footer"
             it.minimumHeight = BicycleDesign.dp(context, BicycleDesign.touchSize)
-            BicycleComponents.bindTheme(it, themes) { tokens -> it.setBackgroundColor(tokens.secondary) }
+            BicycleComponents.bindTheme(it, themes) { tokens -> it.setBackgroundColor(tokens.color(headerRole)) }
             host.addView(it, LinearLayout.LayoutParams(-1, -2))
             BicycleFooterShadow.bind(it)
         }
