@@ -1,3 +1,7 @@
+# Aktueller Auftrag: APK0.8.47 / Code117
+
+Release-APK nach Einstellungsgrafik Header2 ausdrücklich angefordert. Nur Bildressource plus Versions-/Veröffentlichungsmetadaten seit Build86. Ressourcen-Kompilierung/Pixelgleichheit erfolgreich geprüft. Actions-Veröffentlichung und direkter Download folgen.
+
 # Aktueller Nachtrag nach Build86: Einstellungsbild Header2
 
 Header2.png aus Nutzerarchiv Header2.zip als neues settings_brand.webp (940×1150) verlustfrei konvertiert, Pixelgleichheit RGBA geprüft. App-Ressource und docs/assets/settings_brand.webp synchron ersetzt. Bestehender FIT_CENTER/adjustViewBounds und Buildinfo-Overlay unverändert, kein Zuschnitt/keine Farbänderung. App-Icon BClogo3 bleibt. Ressourcen-Kompilierung processDebugResources und Diffprüfung erfolgreich. Keine neue APK angefragt.
