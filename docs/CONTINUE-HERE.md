@@ -1,3 +1,7 @@
+# Aktueller Abschluss: APK0.8.45 / Build85
+
+APK **0.8.45 / Build85 / Code115** auf main veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.45-release-85.apk), [Buildnachweis](build-85.md), Actions-Quellstand `6b8395743f08d26661f0575bbb44f25dee560173`. Größe 2.437.205 Bytes; SHA-256 `d8c1ebb3c635986acee7c619679225b54e442c4bc9c99b5551c61defbff8fb6b`. Optimierter Release, dauerhafte Signatur wie Build84; Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Sensor-Startkarte/profilbezogene Tagespause/Sucheinstieg und HRV-Restauffälligkeiten als Warnung (Policyv5) enthalten, ebenso alle a1e9743-Nachträge seit Build84: Positionskacheln, umsortierbare Einzel-Namenskarten/DatumZeitGruppe/Reihenfolgekompatibilität, GlowStickyRundung/8dp, TERTIARY-Footer ohne Rahmen. Neue und vorherige gezielte Tests erfolgreich, native Vorschauen geprüft. Keine stille Umbewertung alter HRV-Daten. Kein Gesamtlauf/Gerätetest. Keine offene Implementierungs-/APK-Aufgabe; ältere Angaben darunter sind Verlauf.
+
 # Aktueller Auftrag: APK0.8.45 mit Sensor-Startkarte, HRV-Warnpolicy und Nachträgen
 
 Nutzer fordert neue APK nach Abschluss. Version0.8.45/Code115 vorbereitet, alle Änderungen seit Build84 einschließen (a1e9743 + neue Sensor-/HRV-Änderungen). Gezielte Nachprüfungen erfolgreich, native Startkarte visuell geprüft. RootPolicy/App32sFinalcheck ebenfalls erfolgreich. Kein Hardwaretest/kein Gesamtlauf. Veröffentlichung über Actions folgt; aktuell öffentlicher Download noch0.8.44/Build84.
