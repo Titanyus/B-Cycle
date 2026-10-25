@@ -1,3 +1,7 @@
+# Aktueller Nachtrag: Neues App-Logo BClogo3
+
+Nutzer-PNG aus BClogo3.zip (1024×1024, RGBA) bytegenau als launcher_cyclist_image.png und docs/assets/app-icon.png übernommen. Archivgrafik unterscheidet sich von vorheriger Chat-Vorschau; neueste Datei maßgeblich. Adaptive-Icon-Verweis/16,6667%-Inset und native Launcher-Masken erhalten, Hintergrund von bisherRot auf #28243B passend zur neuen Grafik geändert. Keine Änderungen an Settings-Branding/Benachrichtigungs-Small-Icon/Bedienung. Ressourcen-Kompilierung processDebugResources erfolgreich, beide PNGs byteidentisch mit Upload/intakt und XML-Verweise geprüft. Keine neue APK angefragt.
+
 # Zusatz: Radprofil-Kacheln vor erstem Glow-Sticky
 
 BicycleContentSpacing.sections berücksichtigt eigenständigen Vorgänger vor erster Glow-Karte wieder mit bestehendem sectionEndGap32dp. Zugeordnete Karten-Bodys ausnehmen, damit24dp Kartenabstand erhalten bleibt. Bestehender echter Einstellungsseiten-Test um wiederholtes Layout und32dp Tiles→Fahrradnamen-Header ergänzt. Zwei gezielte Tests erfolgreich: echte Einstellungsseiten/Profilabstand sowie nativer Glow-/Flat-Karten-/Pinning-/Pixeltest. Typografie-/Diffprüfung erfolgreich. Kein APK-Auftrag.
