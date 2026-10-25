@@ -1,3 +1,7 @@
+# Aktueller Nachtrag nach Build86: Einstellungsbild Header2
+
+Header2.png aus Nutzerarchiv Header2.zip als neues settings_brand.webp (940×1150) verlustfrei konvertiert, Pixelgleichheit RGBA geprüft. App-Ressource und docs/assets/settings_brand.webp synchron ersetzt. Bestehender FIT_CENTER/adjustViewBounds und Buildinfo-Overlay unverändert, kein Zuschnitt/keine Farbänderung. App-Icon BClogo3 bleibt. Ressourcen-Kompilierung processDebugResources und Diffprüfung erfolgreich. Keine neue APK angefragt.
+
 # Aktueller Abschluss: APK0.8.46 / Build86
 
 APK **0.8.46 / Build86 / Code116** auf main veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.46-release-86.apk), [Buildnachweis](build-86.md), Actions-Quellstand `39f328cc3e143bd1624a1aa57bd53ba51e953a08`. Größe 2.268.321 Bytes; SHA-256 `b9723c59c692f3ba26a12bf119c0c2f4f32b0baa4ef7f4dfcd1f7ac934e31570`. Optimierter Release, dauerhafte Signatur wie Build85, kein Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Nachträge seit Build85 enthalten: Original-Logo aus BClogo3.zip, nahtlose Glow-Sticky-Karte mit korrektem unteren Bogen, transparente8dp-Passage unter Hauptheader,32dp Radkacheln→ersteKarte, alle HRV-Balkenwerte ohne Kollisionsunterdrückung. Gezielte Tests und Ressourcenprüfung erfolgreich, keine Änderungen an Messdaten/Bedienlogik/Aufzeichnung. Kein vollständiger Gesamtlauf/Gerätetest. Keine offene APK-Aufgabe; ältere Angaben unten Verlauf.
