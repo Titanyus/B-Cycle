@@ -42,7 +42,7 @@ class ContourBlurAndFillTest {
         assertEquals(Color.WHITE,source.getPixel(20,20))
         listOf(source,normal,boosted).forEach(Bitmap::recycle)
     }
-    @Test fun activeFillHasItsOwnNegativeAngleAndReadableTextAcrossAllThemesWhileSelectionStillWorks() {
+    @Test fun activeFillHasItsOwnAngleAndReadableTextAcrossAllThemesWhileSelectionStillWorks() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("gradient-fill",0))
@@ -60,7 +60,9 @@ class ContourBlurAndFillTest {
             val bitmap=Bitmap.createBitmap(156,48,Bitmap.Config.ARGB_8888)
             val fill=(button.background as RippleDrawable).getDrawable(0)
             fill.setBounds(0,0,156,48);fill.draw(Canvas(bitmap))
-            assertTrue(Color.red(bitmap.getPixel(78,5))<Color.red(bitmap.getPixel(78,42))) // −115° points upward-left.
+            val top=Color.red(bitmap.getPixel(78,5));val bottom=Color.red(bitmap.getPixel(78,42))
+            if(kotlin.math.sin(Math.toRadians(BicycleDesign.accentFillAngle.toDouble()))>0) assertTrue(top>bottom)
+            else assertTrue(top<bottom)
             button.performClick();assertFalse(button.isChecked)
             bitmap.recycle()
         } finally { host.pause().stop().destroy() }

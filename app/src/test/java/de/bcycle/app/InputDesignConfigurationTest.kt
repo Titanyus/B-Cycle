@@ -22,6 +22,7 @@ class InputDesignConfigurationTest {
         assertEquals(spec.getDouble("lighten"),BicycleDesign.inputFocusLighten.toDouble(),1e-7)
         assertEquals(spec.getDouble("darken"),BicycleDesign.inputFocusDarken.toDouble(),1e-7)
         assertEquals(spec.getJSONObject("outline").getInt("angle"),BicycleDesign.inputFocusAngle)
+        assertEquals(spec.getJSONObject("fill").getInt("angle"),BicycleDesign.accentFillAngle)
         assertEquals(spec.getJSONObject("outline").getDouble("stroke"),BicycleDesign.inputFocusStroke.toDouble(),0.0)
         assertEquals(spec.getJSONObject("shape").getInt("radius"),BicycleDesign.inputGlowRadius)
         for((name,radius,opacity,intensity) in listOf(

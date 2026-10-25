@@ -5,22 +5,22 @@
   "accent": "#BF281B",
   "surface": "#161522",
   "foreground": "#FFFFFF",
-  "darken": 0.3,
-  "lighten": 0.6,
+  "darken": 0.1,
+  "lighten": 0.05,
   "outline": {
-    "angle": 66,
-    "stroke": 2,
+    "angle": -54,
+    "stroke": 1.5,
     "stops": [
       {
         "id": 1,
         "pos": 0.16088327301298447,
         "type": "dark",
         "color": "#800000",
-        "alpha": 0.65
+        "alpha": 1
       },
       {
         "id": 2,
-        "pos": 0.3903785301050358,
+        "pos": 0.38801259961955076,
         "type": "accent",
         "color": "#bf281b",
         "alpha": 1
@@ -48,28 +48,28 @@
       },
       {
         "id": 6,
-        "pos": 0.004731860970970131,
+        "pos": 0.0031545258456678014,
         "type": "light",
         "color": "#BF281B",
-        "alpha": 0.8
+        "alpha": 1
       }
     ]
   },
   "near": {
     "enabled": true,
     "radius": 3.5,
-    "opacity": 0.4,
-    "intensity": 2
+    "opacity": 0.3,
+    "intensity": 3
   },
   "outer": {
     "enabled": true,
-    "radius": 13,
+    "radius": 10,
     "opacity": 1,
     "intensity": 2.5
   },
   "blend": "screen",
   "fill": {
-    "angle": -115,
+    "angle": 40,
     "stops": [
       {
         "id": 7,
@@ -92,9 +92,9 @@
     "height": 52,
     "radius": 24
   },
-  "chromatic": 1.49,
+  "chromatic": 0.5,
   "chromaticByTheme": {
-    "hellfire-color": 1.49,
+    "hellfire-color": 0.5,
     "hellfire-dark": 1.5,
     "solar-flare-color": 2,
     "solar-flare-dark": 2,
@@ -113,28 +113,28 @@
     "engine": "oklch-chromatic-v1",
     "colors": {
       "base": "#BF281B",
-      "light": "#d7bba1",
-      "dark": "#6f173d"
+      "light": "#c23b29",
+      "dark": "#a52223"
     },
     "outline": [
       {
-        "position": 0.004731860970970131,
-        "color": "#d7bba1",
-        "opacity": 0.8
+        "position": 0.0031545258456678014,
+        "color": "#c23b29",
+        "opacity": 1
       },
       {
         "position": 0.16088327301298447,
-        "color": "#6f173d",
-        "opacity": 0.65
+        "color": "#a52223",
+        "opacity": 1
       },
       {
-        "position": 0.3903785301050358,
+        "position": 0.38801259961955076,
         "color": "#BF281B",
         "opacity": 1
       },
       {
         "position": 0.47397469245719587,
-        "color": "#d7bba1",
+        "color": "#c23b29",
         "opacity": 1
       },
       {
@@ -144,7 +144,7 @@
       },
       {
         "position": 1,
-        "color": "#6f173d",
+        "color": "#a52223",
         "opacity": 1
       }
     ],
@@ -156,7 +156,7 @@
       },
       {
         "position": 1,
-        "color": "#6f173d",
+        "color": "#a52223",
         "opacity": 1
       }
     ]

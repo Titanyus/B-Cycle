@@ -25,7 +25,7 @@ class InputFocusFrameTest {
         for(primary in listOf(Color.RED,Color.BLUE,Color.GREEN,Color.WHITE,Color.BLACK,0xffe7aa22.toInt())) {
             val stops=BicycleInputFrame.colors(primary)
             assertEquals(6,stops.size);assertEquals(primary,stops[2]);assertEquals(primary,stops[4])
-            assertEquals(204,Color.alpha(stops[0]));assertEquals(166,Color.alpha(stops[1]))
+            assertTrue(stops.all { Color.alpha(it)==255 })
             assertEquals(stops[0] and 0xffffff,stops[3] and 0xffffff)
             assertEquals(stops[1] and 0xffffff,stops[5] and 0xffffff)
             assertTrue(BicycleInputFrame.positions().toList().zipWithNext().all { it.first<=it.second })

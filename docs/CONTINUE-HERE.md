@@ -1,3 +1,7 @@
+# Aktueller Auftrag: Preset 9 übernehmen
+
+Neue Nutzerdatei B-Cycle-Eingabedesign (9).json nach docs/designs/input-design.json kopiert und Kotlin-Werte angeglichen. Highlight5 %, Schatten10 %, HELLFIRE COLOR und Custom-Fallback .5; Kontur1,5dp/−54°, Stops .0031545258456678014/.16088327301298447/.38801259961955076/.47397469245719587/.7326499995451244/1, alle volle Deckkraft. Innenfläche+40°. Nah3,5dp/.3/3x, Außen10dp/1/2.5x. Übrige Theme-Werte und Formen/Funktionen unverändert, keine Laufzeitdatei. Gezielte Konfigurations-/Frame-/Blur-/Glow-/Flat-Tests erfolgreich; alter Frame-Test mit früheren Alpha204/166 auf voll deckende neue Kontur angepasst, alte Flächenwinkel-/Pixelpaarannahmen an den neuen Verlauf angepasst. Native Vorschau visuell geprüft. Kein APK-Auftrag, vorherige Slider-/FIT-/HRV-Änderungen im lokalen Stand erhalten. Öffentlich weiterhin APK0.8.41/Build81.
+
 # Aktueller Abschluss nach Build 81: Pillen-Slider, FIT-Schriftrolle und HRV-Puls
 
 Drei Einstellungsbereiche vereinheitlicht (Trink-Intervall/Dauer, Karten-Deckkraft/Breite, Benachrichtigungsdauer): BicycleSettingSlider/settingSliderRow, Titel links, Wert im soliden PRIMARY-Pillengriff mit FOREGROUND. Wert10,5sp statt14, Bedienhöhe48, Zeile64/8dpPadding; sichtbarer Linienabstand64 gegen native FIT-Dropdownzeilen geprüft. Tagesbefinden unverändert. NeueKeyedRole R.id.section_title_role verhindert, dass öffentlicher Sondertag fit_primary_heading die Sticky-Typografie aushebelt. Synthetischer Rollen- und echter Profilregressionstest erfolgreich.

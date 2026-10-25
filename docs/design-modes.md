@@ -50,3 +50,7 @@ Texteingaben verwenden jetzt auch in Glow die normalen 6-dp-Ecken statt des pill
 Der HRV-Mess-Glow ist unabhängig von Flat/Glow sichtbar. Jeder Herzschlag startet einen weichen 300-ms-Anstieg von der bestehenden Helligkeit bis zur bisherigen Spitze 45 %, danach Abfall über 1500 ms bis 10 %. Bestehende kurze Rhythmusinterpolation erhalten; neue RR-Pakete beginnen von der zuvor berechneten Deckkraft statt von einer sprungartigen Rücksetzung. Reine Animation, keine RR-/Artefakt-/Messdatenänderung.
 
 Die Einstellungsregler in Trink-Erinnerung/Trackdarstellung/Benachrichtigungsdauer verwenden unabhängig vom Designmodus solide PRIMARY-Pillen mit FOREGROUND-Wert; kein zusätzlicher Glow oder Flächenverlauf im Griff. Tagesbefinden unverändert. Details slider-inventory.md.
+
+## Dezenteres Preset 9, 25.10.2026
+
+Nutzerexport B-Cycle-Eingabedesign (9).json vollständig in die zentrale Stilkonfiguration übernommen: Highlight5 %, Schatten10 %, HELLFIRE COLOR/Custom-Fallback50 % Chromatic Strength (andere Theme-Werte erhalten). Kontur1,5dp/−54°, aktualisierte Stop-Positionen und durchgehend100 % Konturdeckkraft. Flächenwinkel+40°. Nah3,5dp/30 %/300 %, Außen10dp/100 %/250 %. Vorlage unverändert im Repository, kein Laufzeit-JSON. Eingabe-Rundung6dp, explizite Special-Pillen, Wert-Slider und HRV-Puls-Ausnahme unverändert. Noch keine neue APK beauftragt.

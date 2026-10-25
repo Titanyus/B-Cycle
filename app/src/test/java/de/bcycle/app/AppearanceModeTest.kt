@@ -47,7 +47,7 @@ class AppearanceModeTest {
             snapshot("appearance-glow")
             assertEquals(6f,(edit.background as android.graphics.drawable.GradientDrawable).cornerRadius,0f)
             assertFalse(themes.flatDesign);assertTrue(selected.elevation>0)
-            val glowFill=fill();assertNotEquals(glowFill.getPixel(40,10),glowFill.getPixel(40,38));glowFill.recycle()
+            val glowFill=fill();assertNotEquals(glowFill.getPixel(glowFill.width/4,glowFill.height/2),glowFill.getPixel(glowFill.width*3/4,glowFill.height/2));glowFill.recycle()
             assertEquals(tokens.primary,action.currentTextColor)
             assertNull(toggle.thumbTintList)
             assertTrue((toggle.thumbDrawable as android.graphics.drawable.LayerDrawable).getDrawable(1).current is BicycleChromaticSurface)
