@@ -1,3 +1,7 @@
+# Aktueller Abschluss: APK0.8.46 / Build86
+
+APK **0.8.46 / Build86 / Code116** auf main veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.46-release-86.apk), [Buildnachweis](build-86.md), Actions-Quellstand `39f328cc3e143bd1624a1aa57bd53ba51e953a08`. Größe 2.268.321 Bytes; SHA-256 `b9723c59c692f3ba26a12bf119c0c2f4f32b0baa4ef7f4dfcd1f7ac934e31570`. Optimierter Release, dauerhafte Signatur wie Build85, kein Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Nachträge seit Build85 enthalten: Original-Logo aus BClogo3.zip, nahtlose Glow-Sticky-Karte mit korrektem unteren Bogen, transparente8dp-Passage unter Hauptheader,32dp Radkacheln→ersteKarte, alle HRV-Balkenwerte ohne Kollisionsunterdrückung. Gezielte Tests und Ressourcenprüfung erfolgreich, keine Änderungen an Messdaten/Bedienlogik/Aufzeichnung. Kein vollständiger Gesamtlauf/Gerätetest. Keine offene APK-Aufgabe; ältere Angaben unten Verlauf.
+
 # Aktueller Auftrag: APK0.8.46 / Code116
 
 Neue Release-APK ausdrücklich angefordert. Enthält alle Änderungen seit Build85: nahtlose Glow-Sticky-Karten/unterer Bogen, transparente8dp-Passage unter Hauptheader,32dp vor erster Profilkarte, HRV-Balkenwerte ohne Kollisionsunterdrückung, Original-App-Logo aus BClogo3.zip. Gezielte Tests und Ressourcenprüfung bereits erfolgreich. GitHub-Actions-Build/Signaturprüfung und direkter APK-Download folgen.
