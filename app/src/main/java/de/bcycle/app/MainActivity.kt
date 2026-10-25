@@ -173,7 +173,7 @@ class MainActivity : Activity() {
         if(!currentTemplate().hasMap) { mapFullscreen=false;dashboard.visibility=View.VISIBLE;mapPanel.visibility=View.GONE }
         mapPanel.showFullscreen(mapFullscreen)
         root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
-        val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar";BicycleFooterShadow.bind(this) }
+        val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar";styleBicycleFooter(this,runtime.themes) }
         fun toolbarButton(title: String, role: ThemeRole = ThemeRole.PRIMARY, action: () -> Unit) = Button(this).apply {
             text = title; isAllCaps = false; setOnClickListener { action() }
             textSize = 20f; minWidth = 0; minHeight = 0
@@ -182,7 +182,7 @@ class MainActivity : Activity() {
                 setTextColor(tokens.foreground)
                 backgroundTintList = null
                 background = android.graphics.drawable.GradientDrawable().apply {
-                    setColor(tokens.color(role)); setStroke(BicycleDesign.linePixels(this@MainActivity), tokens.tertiary)
+                    setColor(tokens.color(role))
                 }
             }
         }
@@ -222,12 +222,12 @@ class MainActivity : Activity() {
                 imageTintList = android.content.res.ColorStateList.valueOf(tokens.foreground)
                 backgroundTintList = null
                 background = android.graphics.drawable.GradientDrawable().apply {
-                    setColor(tokens.secondary); setStroke(BicycleDesign.linePixels(this@MainActivity), tokens.tertiary)
+                    setColor(tokens.tertiary)
                 }
             }
         }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
         toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarMainWeight))
-        toolbar.addView(toolbarButton("☰", ThemeRole.SECONDARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
+        toolbar.addView(toolbarButton("☰", ThemeRole.TERTIARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
         root.addView(toolbar)
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->

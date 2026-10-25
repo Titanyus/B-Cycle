@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -13,11 +12,7 @@ internal class MessagePositionChoices(context:Context,themes:ThemeManager,initia
     private val tiles=mutableMapOf<MessagePosition,View>()
     init {
         fun paint(tile:View,tokens:ThemeTokens) {
-            tile.background=GradientDrawable().apply {
-                cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-                setColor(if(tile.isSelected) tokens.tertiary else tokens.secondary)
-                setStroke(BicycleDesign.linePixels(context),BicycleComponents.selectionBorder(tokens,tile.isSelected))
-            }
+            BicycleSelectionCard.apply(tile,tokens,tile.isSelected)
         }
         MessagePosition.entries.forEach { position ->
             val tile=LinearLayout(context).apply {
@@ -40,8 +35,8 @@ internal class MessagePositionChoices(context:Context,themes:ThemeManager,initia
                 }
             }
             tiles[position]=tile;BicycleComponents.bindTheme(tile,themes) { paint(tile,it) }
-            addView(tile,LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.presetTileHeight),1f).apply {
-                val gap=BicycleDesign.dp(context,BicycleDesign.presetTileGap);setMargins(gap,gap,gap,gap)
+            addView(tile,LayoutParams(0,BicycleDesign.dp(context,BicycleDesign.bikeTileHeight),1f).apply {
+                marginStart=if(position==MessagePosition.entries.first()) 0 else BicycleDesign.dp(context,BicycleDesign.controlGap)
             })
         }
     }

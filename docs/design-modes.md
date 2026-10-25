@@ -59,3 +59,6 @@ Nutzerexport B-Cycle-Eingabedesign (9).json vollständig in die zentrale Stilkon
 
 
 Globale Reihenfolge ab25.10.2026: Dashboard im Vollbild → horizontale Linie → Flat-Design-Schalter → Themeauswahl → horizontale Linie → übrige Dashboardeinstellungen. Gilt für eingebettete Profilabschnitte und separate Designseite gleichermaßen sowie Flat/Glow und E-Bike/Indoor. Alte zusätzliche Theme-Kategorie an dieser Stelle entfällt zugunsten des gemeinsamen Blocks; Funktionen und Speichergrenzen unverändert.
+
+
+Nachtrag25.10.2026: Gemeinsame Auswahlkacheln nach Fahrradprofilstandard über BicycleSelectionCard, nun auch Meldungs-/Trinkposition. FIT-Namensfelder sind einzelne umsortierbare Karten, ungewählt1dp/50%-Kontur, gewählt bisheriger Stil; keine äußere Gruppenbox. Footer beider Designs TERTIARY und rahmenlos, Glow-Schatten weiter vorhanden. Glow-Sticky-Header rundum gerundet und auch angeheftet8dp Abstand, Flat bleibt flush. Diese aktuellen Nutzerentscheidungen ersetzen ältere nur-oben-Rundungen sowie Footertrennlinien.

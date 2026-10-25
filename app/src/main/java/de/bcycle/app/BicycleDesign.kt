@@ -83,6 +83,8 @@ object BicycleDesign {
     const val sectionTitleSp = headingSp - 2f
     const val rowTitleSp = 16f
     const val routeMetricSp = 20f
+    const val rideNamePartWidth = 72
+    const val rideNamePartHeight = 72
     const val riderZoneRangeWidth = 116
     const val formNumberWidth = 116
     const val formDateWidth = 148

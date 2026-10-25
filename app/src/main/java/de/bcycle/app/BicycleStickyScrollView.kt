@@ -12,6 +12,8 @@ import android.widget.ScrollView
 internal open class BicycleStickyScrollView(context: Context) : ScrollView(context) {
     private data class Section(val header: BicycleSectionHeader, val top: Int, val end: Int)
     private var sections = emptyList<Section>()
+    private var pinnedInset=0
+    private val insetPaint=android.graphics.Paint()
     init { BicycleComponents.scrollStyle(this) }
     override fun dispatchDraw(canvas: android.graphics.Canvas) {
         val saved = canvas.save()
@@ -19,6 +21,10 @@ internal open class BicycleStickyScrollView(context: Context) : ScrollView(conte
         // including its scroll offset, so raised headings cannot cover the fixed window header.
         canvas.clipRect(scrollX, scrollY, scrollX + width, scrollY + height)
         super.dispatchDraw(canvas)
+        if(pinnedInset>0) sections.firstOrNull()?.header?.manager?.active?.tokens?.let {
+            insetPaint.color=it.secondary
+            canvas.drawRect(scrollX.toFloat(),scrollY.toFloat(),(scrollX+width).toFloat(),(scrollY+pinnedInset).toFloat(),insetPaint)
+        }
         canvas.restoreToCount(saved)
     }
     /** View overlays draw after raised headers; field halos must leave these opaque areas untouched. */
@@ -56,13 +62,21 @@ internal open class BicycleStickyScrollView(context: Context) : ScrollView(conte
         }
         pin()
     }
+    override fun onInterceptTouchEvent(event:android.view.MotionEvent):Boolean {
+        if(event.actionMasked==android.view.MotionEvent.ACTION_DOWN && pinnedInset>0 && event.y<pinnedInset) return true
+        return super.onInterceptTouchEvent(event)
+    }
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
         super.onScrollChanged(l, t, oldl, oldt); pin()
     }
     private fun pin() {
+        val inset=if(BicycleAppearance.flat(context)) 0 else BicycleDesign.dp(context,BicycleDesign.controlGap)
+        val pinLine=scrollY+inset
+        pinnedInset=0
         sections.forEach { (header, top, end) ->
-            val active = scrollY >= top && scrollY < end
-            header.translationY = if (active) minOf(scrollY - top, end - top - header.height).coerceAtLeast(0).toFloat() else 0f
+            val active = pinLine >= top && pinLine < end
+            if(active) pinnedInset=inset
+            header.translationY = if (active) minOf(pinLine - top, end - top - header.height).coerceAtLeast(0).toFloat() else 0f
             // Native buttons have their own elevation, including a pressed-state animation.
             // Keep the opaque category above them without adding a shadow.
             header.translationZ = if (active) BicycleDesign.dp(context, BicycleDesign.sectionHeaderRaisedZ).toFloat() else 0f

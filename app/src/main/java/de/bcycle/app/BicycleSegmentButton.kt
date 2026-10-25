@@ -10,7 +10,7 @@ import android.view.Gravity
 import android.widget.RadioButton
 
 /** Native mutually exclusive radio semantics, presented as a segment without a selection circle. */
-internal class BicycleSegmentButton(context: Context, private val themes: ThemeManager,private val multiple:Boolean=false) : RadioButton(context) {
+internal class BicycleSegmentButton(context: Context, private val themes: ThemeManager,private val multiple:Boolean=false,private val standalone:Boolean=false) : RadioButton(context) {
     private var ready=false
     init {
         buttonDrawable=null;buttonTintList=null
@@ -35,7 +35,7 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
         }
     }
     override fun onAttachedToWindow() {
-        (parent as? android.widget.LinearLayout)?.takeIf { it.orientation==android.widget.LinearLayout.HORIZONTAL }
+        if(!standalone) (parent as? android.widget.LinearLayout)?.takeIf { it.orientation==android.widget.LinearLayout.HORIZONTAL }
             ?.let { BicycleComponents.segmentedControlRow(it,themes) }
         super.onAttachedToWindow()
     }
@@ -49,6 +49,11 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
         BicycleAppearance.selected(this,isChecked)
         setTextColor(foreground)
         compoundDrawables.filterNotNull().forEach { it.setTint(foreground) }
-        background=RippleDrawable(ColorStateList.valueOf((foreground and 0x00ffffff) or 0x26000000),BicycleInputFrame.selectionBackground(this,tokens,isChecked),null)
+        val surface=BicycleInputFrame.selectionBackground(this,tokens,isChecked)
+        if(standalone && !isChecked && surface is GradientDrawable) {
+            val outline=(tokens.foreground and 0x00ffffff) or ((Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
+            surface.setStroke(BicycleDesign.dp(context,BicycleDesign.controlBorder),outline)
+        }
+        background=RippleDrawable(ColorStateList.valueOf((foreground and 0x00ffffff) or 0x26000000),surface,null)
     }
 }

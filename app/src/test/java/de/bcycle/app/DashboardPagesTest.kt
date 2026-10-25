@@ -54,6 +54,7 @@ class DashboardPagesTest {
             }
             val x=(row.getChildAt(1).left+row.getChildAt(1).right)/2f
             assertTrue(row.getChildAt(0).isLongClickable)
+            val selectedFrame=row.getChildAt(0).foreground
             send(android.view.DragEvent.ACTION_DRAG_STARTED,10f)
             send(android.view.DragEvent.ACTION_DRAG_LOCATION,x)
             shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
@@ -63,7 +64,7 @@ class DashboardPagesTest {
             assertEquals(listOf(0,1,2,3),picker.pages.all().map { it.id })
             send(android.view.DragEvent.ACTION_DRAG_ENDED,x)
             assertEquals(0f,row.getChildAt(0).translationX,0f)
-            assertNull(row.getChildAt(0).foreground)
+            assertSame(selectedFrame,row.getChildAt(0).foreground)
             assertEquals(listOf(0,1,2,3),picker.pages.all().map { it.id })
             send(android.view.DragEvent.ACTION_DRAG_STARTED,10f)
             send(android.view.DragEvent.ACTION_DROP,x)

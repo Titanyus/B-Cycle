@@ -28,7 +28,7 @@ class ContentSpacingTest {
         }
         val scroll=ScrollView(c).apply { addView(body) }
         repeat(3) { BicycleContentSpacing.page(scroll) }
-        assertEquals(0,body.paddingTop) // The first category touches the window header.
+        assertEquals(8,body.paddingTop) // Glow categories keep the shared inset from the window header.
         for(i in 0 until body.childCount) {
             val child=body.getChildAt(i);val lp=child.layoutParams as LinearLayout.LayoutParams
             if(child is BicycleSectionHeader) { assertEquals(0,lp.topMargin);assertEquals(0,lp.bottomMargin) }

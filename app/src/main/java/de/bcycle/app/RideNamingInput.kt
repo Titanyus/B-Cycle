@@ -61,7 +61,8 @@ internal fun rideNamingPreview(context:Context,naming:RideNaming,details:RouteDe
         })
     }
     val chunks=mutableListOf<String>()
-    listOf(RideNamePart.DATE,RideNamePart.TIME).filter { it in naming.parts }.joinToString(" ") { part(it) }.takeIf { it.isNotEmpty() }?.let(chunks::add)
-    listOf(RideNamePart.DISTANCE,RideNamePart.MOVING,RideNamePart.SPEED).filter { it in naming.parts }.forEach { chunks+=part(it) }
+    naming.order.forEach { group ->
+        group.parts.filter { it in naming.parts }.joinToString(" ") { part(it) }.takeIf { it.isNotEmpty() }?.let(chunks::add)
+    }
     return if(chunks.isEmpty()) "" else (if(naming.text.isBlank()) "" else " · ")+chunks.joinToString(" · ")
 }

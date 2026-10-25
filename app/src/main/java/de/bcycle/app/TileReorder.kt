@@ -16,6 +16,7 @@ internal class TileReorder(
     private val locked: () -> Boolean = { false }, private val move: (Int, Int) -> Boolean
 ) {
     internal data class Payload(val owner: TileReorder, val id: Int)
+    private val foregrounds=mutableMapOf<View,android.graphics.drawable.Drawable?>()
     private var source: Int? = null
     private var target = -1
     private var pointer = 0f
@@ -73,11 +74,11 @@ internal class TileReorder(
             override fun onViewDetachedFromWindow(v:View) { clear() }
         })
     }
-    fun bind(card:View,id:Int) {
+    fun bind(card:View,id:Int,dragView:View=card) {
         card.tooltipText=row.context.getString(R.string.tiles_move_hint)
         card.setOnLongClickListener {
             !locked() && ids().size>1 && card.startDragAndDrop(
-                ClipData.newPlainText("", ""),View.DragShadowBuilder(card),Payload(this,id),0)
+                ClipData.newPlainText("", ""),View.DragShadowBuilder(dragView),Payload(this,id),0)
         }
         card.accessibilityDelegate=object:View.AccessibilityDelegate() {
             override fun onInitializeAccessibilityNodeInfo(host:View,info:AccessibilityNodeInfo) {
@@ -98,25 +99,31 @@ internal class TileReorder(
         target=index
         val list=cards;val from=ids().indexOf(source)
         if(from !in list.indices || index !in list.indices) return
+        val order=list.indices.toMutableList().apply { add(index,removeAt(from)) }
+        val gap=if(list.size>1) (list[1].left-list[0].right).coerceAtLeast(0) else 0
+        val lefts=FloatArray(list.size)
+        var left=list.first().left.toFloat()
+        order.forEach { i -> lefts[i]=left;left+=list[i].width+gap }
         list.forEachIndexed { i,card ->
+            if(!foregrounds.containsKey(card)) foregrounds[card]=card.foreground
             card.animate().cancel()
-            val destination=when {
-                i==from -> index
-                from<index && i in (from+1)..index -> i-1
-                from>index && i in index until from -> i+1
-                else -> i
-            }
-            card.animate().translationX((list[destination].left-card.left).toFloat())
+            card.animate().translationX(lefts[i]-card.left)
                 .alpha(if(i==from) .45f else 1f)
                 .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator()).setDuration(180).start()
             card.foreground=if(i==from) GradientDrawable().apply {
                 setColor(Color.TRANSPARENT)
                 cornerRadius=BicycleDesign.dp(row.context,BicycleDesign.inputRadius).toFloat()
                 setStroke(BicycleDesign.dp(row.context,2),themes.active.tokens.primary)
-            } else null
+            } else foregrounds[card]
         }
     }
-    private fun resetPreview() { cards.forEach { it.animate().cancel();it.translationX=0f;it.alpha=if(locked()) .4f else 1f;it.foreground=null } }
+    private fun resetPreview() {
+        cards.forEach {
+            it.animate().cancel();it.translationX=0f;it.alpha=if(locked()) .4f else 1f
+            if(foregrounds.containsKey(it)) it.foreground=foregrounds[it]
+        }
+        foregrounds.clear()
+    }
     private fun stopEdge() { direction=0;row.removeCallbacks(edge) }
     private fun clear() { stopEdge();resetPreview();source=null;target=-1 }
 }

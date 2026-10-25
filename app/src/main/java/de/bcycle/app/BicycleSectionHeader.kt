@@ -20,14 +20,14 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
         BicycleComponents.bindTheme(titleView,manager) { titleView.setTextColor(it.foreground) }
         orientation = if(inlineRules) HORIZONTAL else VERTICAL; gravity=Gravity.CENTER_VERTICAL; isAccessibilityHeading = true; contentDescription = title
         tag = "section_header_$title"
-        BicycleComponents.background(this, manager, ThemeRole.TERTIARY)
+        BicycleComponents.bindTheme(this,manager,::paintHeader)
         // Keep the separation opaque even when this same header is pinned above controls.
         outlineProvider = null
         fun rule() = View(context).apply {
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
             BicycleComponents.bindTheme(this, manager) {
                 setBackgroundColor(it.foreground)
-                alpha=if(BicycleAppearance.flat(context) || expanded!=null) 0f else 1f
+                alpha=0f
             }
         }
         fun addRule() {
@@ -45,19 +45,24 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
         }, LayoutParams(if(inlineRules) -2 else -1, -2))
         addRule()
     }
+    private fun paintHeader(tokens:ThemeTokens) {
+        val flat=BicycleAppearance.flat(context)
+        val radius=if(flat) 0f else BicycleDesign.dp(context,BicycleDesign.sectionCardRadius).toFloat()
+        background=object:android.graphics.drawable.GradientDrawable() {
+            private val matte=android.graphics.Paint().apply { color=tokens.secondary }
+            override fun draw(canvas:android.graphics.Canvas) {
+                // Keep all four corners visible when this header floats above its section body.
+                if(!flat) canvas.drawRect(bounds,matte)
+                super.draw(canvas)
+            }
+        }.apply { setColor(tokens.tertiary);cornerRadii=FloatArray(8) { radius } }
+    }
     /** Opt-in collapsing; the title remains centered by reserving equal icon space on each side. */
     fun accordion(content:View,open:Boolean=true,changed:(Boolean)->Unit={}) {
         isClickable=true;isFocusable=true
         cardContent=content
         BicycleSectionCards.content(content,this)
         val themesUpdate:(ThemeTokens)->Unit={ tokens ->
-            val radius=if(BicycleAppearance.flat(context)) 0f else BicycleDesign.dp(context,BicycleDesign.sectionCardRadius).toFloat()
-            background=android.graphics.drawable.GradientDrawable().apply {
-                setColor(tokens.tertiary)
-                cornerRadii=if(expanded==true) floatArrayOf(radius,radius,radius,radius,0f,0f,0f,0f)
-                    else FloatArray(8) { radius }
-            }
-            for(index in listOf(0,2)) getChildAt(index).alpha=0f
             (parent as? View)?.invalidate()
             val size=BicycleDesign.dp(context,BicycleDesign.iconSize)
             val left=android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT).apply { setBounds(0,0,size,size) }

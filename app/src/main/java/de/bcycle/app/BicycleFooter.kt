@@ -51,21 +51,9 @@ internal fun bicycleFooter(context: Context, themes: ThemeManager) = LinearLayou
     styleBicycleFooter(this, themes)
 }
 
-/** Draw above action children; nested action rows share their host separator. */
+/** Shared footer surface in both designs; action handlers and glow shadow stay unchanged. */
 internal fun styleBicycleFooter(view:android.view.View,themes:ThemeManager) {
     BicycleFooterShadow.bind(view)
-    BicycleComponents.background(view,themes,ThemeRole.SECONDARY)
-    BicycleComponents.bindTheme(view,themes) { tokens ->
-        view.foreground=object:android.graphics.drawable.Drawable() {
-            private val paint=android.graphics.Paint().apply { color=tokens.foreground }
-            override fun draw(canvas:android.graphics.Canvas) {
-                if((view.parent as? android.view.View)?.tag=="bicycle_action_footer") return
-                canvas.drawRect(bounds.left.toFloat(),bounds.top.toFloat(),bounds.right.toFloat(),
-                    bounds.top+BicycleDesign.linePixels(view.context,BicycleDesign.footerRuleDp).toFloat(),paint)
-            }
-            override fun setAlpha(alpha:Int) { paint.alpha=alpha;invalidateSelf() }
-            override fun setColorFilter(filter:android.graphics.ColorFilter?) { paint.colorFilter=filter;invalidateSelf() }
-            @Deprecated("Deprecated in Java") override fun getOpacity()=android.graphics.PixelFormat.TRANSLUCENT
-        }
-    }
+    BicycleComponents.background(view,themes,ThemeRole.TERTIARY)
+    BicycleComponents.bindTheme(view,themes) { view.foreground=null }
 }

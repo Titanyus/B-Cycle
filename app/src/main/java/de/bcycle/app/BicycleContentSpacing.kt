@@ -55,7 +55,9 @@ internal object BicycleContentSpacing {
             if(view!==body && (wrapper(view) || view is ListView) && view.paddingTop!=0)
                 view.setPadding(view.paddingLeft,0,view.paddingRight,view.paddingBottom)
         }
-        val top=if(leading is BicycleSectionHeader) 0 else BicycleDesign.dp(body.context,BicycleDesign.pageContentGap)
+        val top=if(leading is BicycleSectionHeader) {
+            if(BicycleAppearance.flat(body.context)) 0 else BicycleDesign.dp(body.context,BicycleDesign.controlGap)
+        } else BicycleDesign.dp(body.context,BicycleDesign.pageContentGap)
         if(body.paddingTop!=top) body.setPadding(body.paddingLeft,top,body.paddingRight,body.paddingBottom)
         sections(body)
     }

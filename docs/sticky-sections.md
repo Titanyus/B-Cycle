@@ -1,3 +1,9 @@
+## Aktualisierung: Glow rundum und8dp angehefteter Abstand
+
+Alle Glow-Sticky-Header erhalten in offenem, geschlossenem und angeheftetem Zustand vier runde Ecken. Angeheftet bleiben8dp Abstand zum Hauptheader; Nutzerbestätigung vom25.10.2026. Führende Kategorien beginnen ebenfalls mit8dp, normale Elemente weiter16dp. Flat bleibt bei bisheriger bündiger/rechteckiger Anheftung. Pin-Linie = scrollY+8dp inGlow, Push-Grenze weiterhin nächste Headeroberkante; Abstand24dp zwischen Hintergrundboxen bleibt unabhängig vom direkten Headerkontakt beim Wegschieben.
+
+SECONDARY-Matte unter der Headerkontur hält die vier Rundungen über dem gleichfarbigen Inhalt sichtbar. Der angeheftete obere8dp-Streifen wird leer gezeichnet und übernimmt native Scrollgesten statt Klicks auf unsichtbare Inhalte. Keine neuen Headerkopien oder Scrollcontainer.
+
 ## Glow-Kartenversuch ab 25.10.2026
 
 Aufklappbare Sticky-Kategorien bilden in Glow einen TERTIARY-Kasten für Header und geöffneten Inhalt. Geschlossen vier runde Ecken, geöffnet runder Header oben und gemeinsame Karte unten, Radius18dp. Keine Rahmen und keine horizontalen Headerlinien. SECONDARY zwischen den Karten macht ihre Form sichtbar. Glow-Karten bekommen16dp seitlichen Randabstand, weitere16dp Einzug für den Inhalt und16dp Luft unten nach dem Body. Zwischen Boxen24dp, sowohl bei geöffneten als auch geschlossenen Abschnitten. Flat behält seine bisherigen Maße und Abstände.

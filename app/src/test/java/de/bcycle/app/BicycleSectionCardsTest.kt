@@ -84,10 +84,10 @@ class BicycleSectionCardsTest {
                 scroll.scrollTo(0,second.top-first.height/2)
                 assertEquals(second.top.toFloat(),first.top+first.translationY+first.height,0f)
                 scroll.scrollTo(0,second.top+4)
-                assertEquals(0f,second.top+second.translationY-scroll.scrollY,0f)
+                assertEquals(if(flat) 0f else 8f,second.top+second.translationY-scroll.scrollY,0f)
                 scroll.scrollTo(0,0)
                 scroll.scrollTo(0,40);layout()
-                assertEquals(0f,first.top+first.translationY-scroll.scrollY,0f)
+                assertEquals(if(flat) 0f else 8f,first.top+first.translationY-scroll.scrollY,0f)
                 scroll.scrollTo(0,0)
             }
             themes.activate("preset:black-ops");layout()

@@ -22,17 +22,31 @@ class RideNamingTest {
         assertEquals("17:30h",RideNaming("",setOf(RideNamePart.TIME)).format(details,ZoneId.of("Europe/Berlin")))
         assertThrows(IllegalArgumentException::class.java) { RideNaming.decode(template.json().put("text","bad\nname")) }
     }
+    @Test fun customOrderKeepsDateAndTimeTogetherAndOldTemplatesUseOriginalOrder() {
+        val details=RouteDetails(Instant.parse("2026-10-21T15:30:00Z").toEpochMilli(),32400.0,4520000,movingMs=4520000)
+        val order=listOf(RideNameGroup.SPEED,RideNameGroup.MOVING,RideNameGroup.DATE_TIME,RideNameGroup.DISTANCE)
+        val naming=RideNaming("Tour",RideNamePart.entries.toSet(),order)
+        assertEquals("Tour · 25,8km/h · 1:15:20h · 21.10.2026 17:30h · 32,4km",naming.format(details,ZoneId.of("Europe/Berlin"),Locale.GERMANY))
+        assertEquals(naming,RideNaming.decode(naming.json()))
+        assertEquals(RideNameGroup.entries.toList(),RideNaming.decode(naming.json().apply { remove("order") }).order)
+        val preview=rideNamingPreview(RuntimeEnvironment.getApplication(),naming,details,ZoneId.of("Europe/Berlin"),Locale.GERMANY)
+        assertEquals(naming.format(details,ZoneId.of("Europe/Berlin"),Locale.GERMANY).removePrefix("Tour"),preview)
+        assertEquals("17:30h",naming.copy(text="",parts=setOf(RideNamePart.TIME)).format(details,ZoneId.of("Europe/Berlin")))
+        assertEquals("21.10.2026",naming.copy(text="",parts=setOf(RideNamePart.DATE)).format(details,ZoneId.of("Europe/Berlin")))
+        assertThrows(IllegalArgumentException::class.java) { RideNaming.decode(naming.json().put("order",org.json.JSONArray(listOf("DATE_TIME","DATE_TIME","SPEED","MOVING")))) }
+    }
     @Test fun profileTemplatesAndRecordingSettingsBackupRemainIndependentAndUiSupportsMultipleChoices() {
         val c=RuntimeEnvironment.getApplication();val prefs=c.getSharedPreferences("bike",0)
         val bikes=BikeProfileStore(c,prefs);val settings=RideNamingSettings(c)
-        val original=bikes.activeSlot;settings.write(RideNaming("Tour",setOf(RideNamePart.DATE)))
+        val expected=RideNaming("Tour",setOf(RideNamePart.DATE),RideNameGroup.entries.reversed())
+        val original=bikes.activeSlot;settings.write(expected)
         val second=bikes.add()!!;bikes.select(second.slot);settings.write(RideNaming("Indoor",setOf(RideNamePart.DISTANCE)))
         bikes.select(original);assertEquals("Tour",settings.read().text)
         prefs.edit().putString("recordSpeed","GPS_SPEED").putString("recordDistance","GPS_DISTANCE").commit()
         val backup=SettingsBackup(c,ThemeManager(prefs));val bytes=backup.export(setOf(BackupSection.RECORDING))
         prefs.edit().putString("recordSpeed","SPEED").putString("recordDistance","BIKE_DISTANCE").commit()
         settings.write(RideNaming());val doc=backup.decode(bytes);backup.apply(backup.plan(doc,doc.sections.keys))
-        assertEquals(RideNaming("Tour",setOf(RideNamePart.DATE)),settings.read())
+        assertEquals(expected,settings.read())
         assertEquals("GPS_SPEED",prefs.getString("recordSpeed",null));assertEquals("GPS_DISTANCE",prefs.getString("recordDistance",null))
         val view=RideNamingView(c,ThemeManager(prefs)) { true }
         view.findViewWithTag<android.view.View>("ride_name_TIME").performClick()

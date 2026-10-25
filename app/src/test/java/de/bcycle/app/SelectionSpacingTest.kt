@@ -45,9 +45,13 @@ class SelectionSpacingTest {
             val parts=naming.findViewWithTag<LinearLayout>("ride_naming_parts")
             val windows=graph.findViewWithTag<RadioGroup>("graph_windows")
             assertEquals(8,(input.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
-            assertEquals(8,parts.top-input.bottom)
+            val scroller=naming.findViewWithTag<View>("ride_naming_scroller")
+            assertEquals(8,scroller.top-input.bottom)
+            assertNull(parts.background)
+            for(i in 0 until parts.childCount) assertNull(parts.getChildAt(i).background)
+            assertEquals(5,testDescendants(parts).filterIsInstance<BicycleSegmentButton>().size)
             assertEquals("Fahrtzeit",naming.findViewWithTag<TextView>("ride_name_MOVING").text.toString())
-            for(row in listOf(parts,windows,training.findViewWithTag<RadioGroup>("training_help_modes"))) {
+            for(row in listOf(windows,training.findViewWithTag<RadioGroup>("training_help_modes"))) {
                 assertEquals(1,row.paddingTop);assertEquals(1,row.paddingBottom)
                 assertEquals(true,row.getTag(R.id.inline_control_row))
                 val bitmap=Bitmap.createBitmap(row.width,row.height,Bitmap.Config.ARGB_8888)
@@ -118,7 +122,7 @@ class SelectionSpacingTest {
             assertTrue(rows.first()>0)
         }
     }
-    @Test fun actualSettingsPagesUseSixteenDpAndLeadingStickyHeadersStayFlush() {
+    @Test fun actualSettingsPagesUseSixteenDpAndGlowStickyHeadersKeepEightDp() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=host.get()
@@ -141,12 +145,12 @@ class SelectionSpacingTest {
                 }
                 val header=decor.findViewWithTag<View>("bicycle_navigation_header")
                 val a=IntArray(2);val b=IntArray(2);target.getLocationOnScreen(a);header.getLocationOnScreen(b)
-                assertEquals("header gap on $action",if(target is BicycleSectionHeader) 0 else 16,a[1]-b[1]-header.height)
+                assertEquals("header gap on $action",if(target is BicycleSectionHeader) 8 else 16,a[1]-b[1]-header.height)
                 dialog.dismiss()
             }
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun lateFormsNormalizeNestedInsetsAndKeepStickyHeadersFlushWithoutAccumulatingGaps() {
+    @Test fun lateFormsNormalizeNestedInsetsAndKeepGlowStickyGapWithoutAccumulating() {
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
             val c=host.get();val themes=ThemeManager(c.getSharedPreferences("spacing",0))
@@ -167,7 +171,7 @@ class SelectionSpacingTest {
                 nested.removeAllViews()
                 val header=BicycleForm.section(nested,themes,R.string.hrv_title)
                 nested.addView(TextView(c).apply { text="Test" })
-                repeat(3) { layout(decor);assertEquals(0,gap(header)) }
+                repeat(3) { layout(decor);assertEquals(8,gap(header)) }
             } finally { dialog.dismiss() }
         } finally { host.pause().stop().destroy() }
     }
