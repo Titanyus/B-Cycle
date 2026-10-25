@@ -62,19 +62,26 @@ internal object BicycleContentSpacing {
         sections(body)
     }
     fun sections(view:View) {
+        val cardBodies=descendants(view).filterIsInstance<BicycleSectionHeader>().mapNotNull { it.cardContent }.toSet()
         descendants(view).filterIsInstance<LinearLayout>().forEach { parent ->
             val visible=(0 until parent.childCount).map(parent::getChildAt).filter { it.visibility!=View.GONE }
             visible.forEachIndexed { index,child -> if(child is BicycleSectionHeader) {
-                if(BicycleSectionCards.spacing(child)) return@forEachIndexed
-                val lp=child.layoutParams as? ViewGroup.MarginLayoutParams
-                if(lp!=null && (lp.topMargin!=0 || lp.bottomMargin!=0)) { lp.topMargin=0;lp.bottomMargin=0;child.layoutParams=lp }
                 fun gap(v:View?,before:Boolean) {
                     val margins=v?.layoutParams as? ViewGroup.MarginLayoutParams ?: return
                     val size=BicycleDesign.dp(v.context,if(before) BicycleDesign.sectionEndGap else BicycleDesign.sectionContentGap)
                     if(before && margins.bottomMargin!=size) { margins.bottomMargin=size;v.layoutParams=margins }
                     if(!before && margins.topMargin!=size) { margins.topMargin=size;v.layoutParams=margins }
                 }
-                gap(previousContent(child,view)?.takeUnless { it is BicycleSectionHeader },true)
+                val previous=previousContent(child,view)?.takeUnless { it is BicycleSectionHeader }
+                if(BicycleSectionCards.spacing(child)) {
+                    // Card-to-card gaps belong to the shared card geometry. Standalone
+                    // content above the first card still needs the normal section gap.
+                    if(previous !in cardBodies) gap(previous,true)
+                    return@forEachIndexed
+                }
+                val lp=child.layoutParams as? ViewGroup.MarginLayoutParams
+                if(lp!=null && (lp.topMargin!=0 || lp.bottomMargin!=0)) { lp.topMargin=0;lp.bottomMargin=0;child.layoutParams=lp }
+                gap(previous,true)
                 gap(visible.getOrNull(index+1)?.takeUnless { it is BicycleSectionHeader },false)
             } }
         }

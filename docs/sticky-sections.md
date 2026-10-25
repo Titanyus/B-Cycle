@@ -74,3 +74,5 @@ Navigation/Dashboard-/FIT-Bedienung. Testergebnis im Abschlussbericht und in
 Accordion-Beschriftungen sind ausdrücklich keine Sticky-Abschnittstitel:
 BicycleDialogStyle.accordion verwendet wie Dropdowns 16 sp, normale Systemschrift
 und linksbündigen Text. Bedienung, Expand-Icon und Zustand bleiben erhalten.
+
+Abstand vor erster Glow-Karte: Stehen davor eigenständige Inhalte (z. B. Radprofil-Kacheln), gilt auch in Glow der zentrale Abschnittsabstand sectionEndGap=32dp. Der frühere vorzeitige Rücksprung der Karten-Geometrie darf diesen Abstand nicht überspringen. Zwischen Header/Body-Karten weiterhin24dp, keine doppelten Abstände und kein Aufsummieren bei erneutem Layout.

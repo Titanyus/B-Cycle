@@ -144,6 +144,12 @@ class SelectionSpacingTest {
                     else -> decor.findViewWithTag("settings_PROFILE")
                 }
                 val header=decor.findViewWithTag<View>("bicycle_navigation_header")
+                if(action==SettingsAction.PROFILES) {
+                    val name=decor.findViewWithTag<View>("bike_name_header")
+                    assertEquals("Profile tiles to first card use the normal section gap",BicycleDesign.dp(activity,BicycleDesign.sectionEndGap),name.top-target.bottom)
+                    repeat(2) { layout(decor) }
+                    assertEquals(BicycleDesign.dp(activity,BicycleDesign.sectionEndGap),name.top-target.bottom)
+                }
                 val a=IntArray(2);val b=IntArray(2);target.getLocationOnScreen(a);header.getLocationOnScreen(b)
                 assertEquals("header gap on $action",if(target is BicycleSectionHeader) 8 else 16,a[1]-b[1]-header.height)
                 dialog.dismiss()

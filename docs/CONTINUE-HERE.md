@@ -1,3 +1,7 @@
+# Zusatz: Radprofil-Kacheln vor erstem Glow-Sticky
+
+BicycleContentSpacing.sections berücksichtigt eigenständigen Vorgänger vor erster Glow-Karte wieder mit bestehendem sectionEndGap32dp. Zugeordnete Karten-Bodys ausnehmen, damit24dp Kartenabstand erhalten bleibt. Bestehender echter Einstellungsseiten-Test um wiederholtes Layout und32dp Tiles→Fahrradnamen-Header ergänzt. Zwei gezielte Tests erfolgreich: echte Einstellungsseiten/Profilabstand sowie nativer Glow-/Flat-Karten-/Pinning-/Pixeltest. Typografie-/Diffprüfung erfolgreich. Kein APK-Auftrag.
+
 # Aktueller Nachtrag nach Build85: Sticky-Anschluss / HRV-Balkenwerte
 
 Glow: Header geöffnet nahtlos mit Body; untere Rundung als exakter Ausschnitt des gemeinsamen Kartenbogens, sobald das Ende unter den Header scrollt. Geschlossen vier Rundungen. Deckende 8dp-Maske unter Hauptheader entfernt; Sticky-Abstand8dp und echter transparenter Headerschatten bleiben. Flat/Accordion-/Scroll-/Speicherlogik unverändert.
