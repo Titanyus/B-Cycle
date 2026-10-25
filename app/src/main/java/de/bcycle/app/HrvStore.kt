@@ -12,7 +12,7 @@ import java.util.UUID
 internal class HrvStore(private val root:File) {
     init { check(root.isDirectory || root.mkdirs()) }
     companion object {
-        const val POLICY="bcycle-hrv-v4-frequency-boundary"
+        const val POLICY="bcycle-hrv-v5-residual-warning"
         const val MAX_BYTES=4*1024*1024
         fun validId(id:String)=runCatching { UUID.fromString(id).toString()==id }.getOrDefault(false)
     }

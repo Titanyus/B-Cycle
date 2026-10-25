@@ -1,0 +1,5 @@
+<resources>
+    <string name="sensor_setup_message">Für dieses Radprofil sind keine Sensoren erfasst</string>
+    <string name="sensor_setup_search">Sensoren suchen</string>
+    <string name="sensor_setup_later">Jetzt nicht</string>
+</resources>

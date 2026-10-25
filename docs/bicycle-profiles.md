@@ -250,3 +250,6 @@ Bildauswahl: Nur der leere Platzhalter öffnet die Dateiauswahl. Ein vorhandenes
 
 
 Fahrerprofil: Herzfrequenz- und Leistungszonen zeigen Werte samt Einheiten rechtsbündig und in gleicher Schriftgröße (settingsMetricSp, bei Platzmangel gemeinsam verkleinert). Methodenbezeichnungen als zentrale kleine900-Black-Überschriften. Nur Darstellung; Zahlenbereiche, aktuelle Methode und FTP-/Pulsberechnung unverändert. AnalysisValueRow-Defaults für andere Screens nicht geändert.
+
+
+Fehlende Hauptsensoren: Neue [Sensor-Startkarte](sensor-setup.md) für E-Bike ohne Bikezuordnung und Indoor ohne Trainerzuordnung. Tagespause getrennt je Profil, vorhandene getrennte Geräte nicht als fehlend behandeln. Einstieg nutzt bestehende Suche/Zuweisung.

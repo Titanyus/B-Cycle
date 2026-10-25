@@ -83,4 +83,5 @@ Das Tagesbefinden wird gemeinsam je Kalendertag gespeichert und bei einer erneut
     <string name="hrv_delete_title">Messung löschen?</string>
     <string name="hrv_delete_confirm">Diese Messung mit RR-Daten und Tagesbefinden löschen? Eine ältere Messung desselben Tages wird gegebenenfalls wieder sichtbar. Ein erneuter Import kann die gelöschte Messung wieder ergänzen.</string>
     <string name="hrv_delete_failed">Messung konnte nicht gelöscht werden. Bitte laufende Messung oder Speicherung zuerst abschließen.</string>
+    <string name="hrv_residual_warning">Verbleibende RR-Auffälligkeiten: %1$d. Die Messung wird ausgewertet; die HRV-Werte können dadurch verzerrt sein.</string>
 </resources>

@@ -58,14 +58,11 @@ oder stagnierender Durchlauf ersetzt die bisherige Folge nicht. Das Referenzprof
 seine 62 Golden-Fälle bleiben separat unverändert; das Messprofil trägt die Version
 `nk-ff419d9-int1024-best-pass-v2`.
 
-**Mehr als 5 % veränderte Rohintervalle sind bei vollständig bereinigter Folge eine
-orange Warnung statt einer Anzeigesperre.** Die Kennzahlen werden ausdrücklich als
+**Mehr als 5 % veränderte Rohintervalle sind eine orange Warnung statt einer Anzeigesperre.** Die Kennzahlen werden ausdrücklich als
 möglicherweise verzerrte Schätzung angezeigt. Ein verschobener Peak verändert zwei
 benachbarte Intervalle; die Quote ist keine Fehlbeatquote. Dies ist eine Produktregel,
 keine wissenschaftliche Zusicherung der Verlässlichkeit oberhalb einer Prozentgrenze.
-Verbleibende Auffälligkeiten sperren weiterhin die Anzeige. Technisches Scheitern,
-Restauffälligkeiten und die frühere 5-%-Sperre haben getrennte Meldungen. Der veränderte
-Anteil und Restzählwerte werden angezeigt und mit Klassifikationen gespeichert.
+Seit25.10.2026 sind auch verbleibende Detektor-Auffälligkeiten eine orange Warnung mit Anzahl statt einer Anzeigesperre. Sonst auswertbare vollständige Messungen zeigen ihre korrigierten Kennzahlen sowie LF/HF, sofern berechenbar. Keine zusätzlichen Glättungen oder veränderten Detektorschwellen. Technisches Scheitern und die frühere5-%-Sperre bleiben für historische Ergebnisse getrennt lesbar. Veränderte Anteile, Restzählwerte und Klassifikationen bleiben gespeichert; neue Qualitätspolicy bcycle-hrv-v5-residual-warning.
 
 Weiter erforderlich: mindestens 60 Sekunden nutzbare RR-Daten (beim 60-s-Protokoll 55 s mit Randtoleranz), Zeit-/Paketkonsistenz,
 Kontakt/Unterbrechung, gültige Korrektur und keine überlange RR-Gesamtdauer. Rohdaten

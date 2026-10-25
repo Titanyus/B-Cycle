@@ -407,6 +407,12 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         })
         correctionControls += slider to value
     }
+    fun revealSensorSetup() {
+        val header=(0 until childCount).map(::getChildAt).filterIsInstance<BicycleSectionHeader>()
+            .firstOrNull { it.contentDescription==context.getString(R.string.bikes_sensors) } ?: return
+        if(header.expanded==false) header.performClick()
+        BicycleContentSpacing.revealAfterLayout(header);requestLayout()
+    }
     fun beginSearch() { searchResults.removeAllViews();searchStatus.visibility=VISIBLE }
     fun scanStatus(message: String) { BicycleFeedback.update(searchStatus,message,hideWhenEmpty=true) }
     fun addCandidate(name: String, address: String, sensor: BikeSensor, choose: () -> Unit) {

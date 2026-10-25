@@ -55,13 +55,11 @@ verwirft einen Korrekturversuch, wenn danach gleich viele oder mehr Auffälligke
 Weniger Detektorauffälligkeiten beweisen allein keine physiologische Richtigkeit.
 
 Die bisherige Sperre bei >5 % **veränderten Rohintervallen** wird zur deutlichen
-Unsicherheitswarnung, sofern die Folge ohne verbleibende Detektorauffälligkeit ist
-und alle anderen Prüfungen bestehen. Bei einem verschobenen Peak können zwei
+Unsicherheitswarnung. Seit25.10.2026 gilt dies ausdrücklich auch für verbleibende Detektorauffälligkeiten, wenn die sonstigen technischen Prüfungen bestehen. Bei einem verschobenen Peak können zwei
 Intervalle verändert werden; dieser Anteil darf nicht als Fehlbeatquote bezeichnet
 oder direkt mit Kubios-Prozentanzeigen verglichen werden. Die App zeigt in diesem
 Fall eine Schätzung mit möglicher Verzerrung, keine Zusicherung guter Qualität.
-Restauffälligkeiten, technische Fehler, unvollständige Sitzungen und die übrigen
-Konsistenzprüfungen sperren weiterhin. Keine zusätzliche Glättung zur Erzwingung
+Restauffälligkeiten allein sperren neue Messungen nicht mehr: Anzahl und möglicher Einfluss werden orange angezeigt. Technische Fehler, unvollständige Sitzungen und die übrigen Konsistenzprüfungen sperren weiterhin. Keine zusätzliche Glättung zur Erzwingung
 eines Ergebnisses; Empfangslücken werden nicht mit erfundenen Beats aufgefüllt.
 
 Aus getrennten Messungen verschiedener Apps lässt sich nicht ableiten, dass

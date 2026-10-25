@@ -152,6 +152,13 @@ internal fun hrvResult(context:Context,themes:ThemeManager,row:JSONObject,includ
             BicycleDialogStyle.control(this,themes)
             BicycleComponents.bindTheme(this,themes) { setTextColor(HrvVisuals.warningOrange) }
         })
+    if((0 until (warnings?.length() ?: 0)).any { warnings!!.optString(it)=="RESIDUAL_ARTIFACTS" })
+        addView(BicycleComponents.description(context,themes,context.getString(R.string.hrv_residual_warning,
+            row.optJSONObject("residualArtifacts")?.optInt("count") ?: 0)).apply {
+            tag="hrv_residual_warning"
+            BicycleDialogStyle.control(this,themes)
+            BicycleComponents.bindTheme(this,themes) { setTextColor(HrvVisuals.warningOrange) }
+        })
     row.optJSONObject("residualArtifacts")?.let { residual ->
         addView(BicycleComponents.description(context,themes,context.getString(R.string.hrv_correction_info,
             row.optDouble("affectedFraction")*100,residual.optInt("count"))))

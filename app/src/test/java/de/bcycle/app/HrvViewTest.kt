@@ -173,6 +173,13 @@ class HrvViewTest {
         assertNotNull(estimated.findViewWithTag<View>("hrv_metrics"))
         val correction=estimated.findViewWithTag<TextView>("hrv_correction_warning")
         assertTrue(correction.text.contains("Schätzung"));assertEquals(HrvVisuals.warningOrange,correction.currentTextColor)
+        row.put("acceptable",true).put("warnings",JSONArray().put("RESIDUAL_ARTIFACTS"))
+            .put("residualArtifacts",JSONObject().put("count",3))
+        val flagged=hrvResult(c,themes,row)
+        assertNotNull(flagged.findViewWithTag<View>("hrv_metrics"))
+        val residual=flagged.findViewWithTag<TextView>("hrv_residual_warning")
+        assertTrue(residual.text.contains("3"));assertTrue(residual.text.contains("ausgewertet"))
+        assertEquals(HrvVisuals.warningOrange,residual.currentTextColor)
         for((reason,text) in listOf("RESIDUAL_ARTIFACTS" to "weiterhin auffällige", "CORRECTION_FAILED" to "technisch fehlgeschlagen")) {
             row.put("acceptable",false).put("reasons",JSONArray().put(reason))
             val failed=hrvResult(c,themes,row)

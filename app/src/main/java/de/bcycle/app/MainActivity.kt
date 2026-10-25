@@ -19,6 +19,10 @@ import java.io.IOException
 class MainActivity : Activity() {
     private lateinit var runtime: RideRuntime
     private var dailyHrvPrompt:HrvDailyPrompt?=null
+    private var sensorSetupPrompt:SensorSetupPrompt?=null
+    private var sensorSetupProfileId:String?=null
+    private var sensorSetupPosted=false
+    private val sensorSetupLaunch by lazy { SensorSetupLaunch(this) }
     private lateinit var dashboardRoot:View
     private lateinit var dashboardHost: FrameLayout
     private lateinit var dashboard: DashboardView
@@ -110,7 +114,10 @@ class MainActivity : Activity() {
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
     private val settingsThemes get() = runtime.themes.settings
     private val dialogs = DialogNavigation()
-    private fun dialog(fullscreen: Boolean = true) = BicycleDialogBuilder(this, settingsThemes, dialogs, fullscreen)
+    private fun dialog(fullscreen: Boolean = true):BicycleDialogBuilder {
+        closeSensorSetupPrompt()
+        return BicycleDialogBuilder(this,settingsThemes,dialogs,fullscreen)
+    }
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
     private fun label(text: String, size: Float = BicycleDesign.bodySp) = BicycleComponents.text(settingsContext, settingsThemes, text).apply {
         isAccessibilityHeading = size >= BicycleDesign.inputSp
@@ -364,6 +371,7 @@ class MainActivity : Activity() {
         }
         if (runtime.visible && (runtime.connection.isActive || runtime.trainer.active || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        offerSensorSetup()
     }
     private fun placeDrinkReminder() {
         if(!::drinkReminderPanel.isInitialized || drinkReminderPanel.visibility!=View.VISIBLE) return
@@ -889,8 +897,46 @@ class MainActivity : Activity() {
             runOnUiThread { BicycleFeedback.show(applicationContext, if (ok) R.string.export_saved else R.string.export_failed, long = true) }
         }, "B-Cycle-diagnostic-export").start()
     }
+    private fun closeSensorSetupPrompt() {
+        sensorSetupPrompt?.close();sensorSetupPrompt=null;sensorSetupProfileId=null
+    }
+    private fun canOfferSensorSetup() = runtime.visible && !isFinishing && !isDestroyed &&
+        !runtime.recording && !runtime.saving && !runtime.hrv.busy && !runtime.hrv.state.saveError &&
+        dialogs.empty && !dashboardEditing && bikePicker?.isShowing!=true && dailyHrvPrompt?.showing!=true &&
+        runtime.pendingRideSummary==null && !rideSummaryPosted
+    private fun offerSensorSetup() {
+        if(!canOfferSensorSetup()) { closeSensorSetupPrompt();return }
+        val profile=runtime.bikes.current()
+        if(!sensorSetupLaunch.shouldShow(profile)) { closeSensorSetupPrompt();return }
+        if(sensorSetupPrompt?.showing==true && sensorSetupProfileId==sensorSetupLaunch.identity(profile)) return
+        if(sensorSetupPosted) return
+        sensorSetupPosted=true
+        dashboardHost.post {
+            sensorSetupPosted=false
+            if(!canOfferSensorSetup()) return@post
+            val selected=runtime.bikes.current()
+            if(!sensorSetupLaunch.shouldShow(selected)) return@post
+            val id=sensorSetupLaunch.identity(selected)
+            if(sensorSetupPrompt?.showing==true && sensorSetupProfileId==id) return@post
+            closeSensorSetupPrompt();sensorSetupProfileId=id
+            sensorSetupPrompt=SensorSetupPrompt(this,dashboardHost,dashboardRoot,runtime.themes,
+                later={ sensorSetupLaunch.later(selected) }) {
+                closeSensorSetupPrompt()
+                if(runtime.recording || runtime.saving || runtime.hrv.busy || !runtime.visible ||
+                    sensorSetupLaunch.identity(runtime.bikes.current())!=id) return@SensorSetupPrompt
+                showSensorManager()
+                val manager=bikesManager
+                dashboardHost.post search@{
+                    if(manager==null || bikesManager!==manager || sensorManager?.isShowing!=true || !runtime.visible ||
+                        runtime.recording || runtime.saving || runtime.hrv.busy || sensorSetupLaunch.identity(runtime.bikes.current())!=id) return@search
+                    manager.revealSensorSetup();searchSensors()
+                }
+            }
+        }
+    }
     private fun showHrvDailyPrompt() {
         if(!runtime.visible || runtime.recording || runtime.saving || runtime.hrv.busy || runtime.hrv.state.saveError) return
+        closeSensorSetupPrompt()
         dialogs.closeAll();bikePicker?.dismiss()
         if(dashboardEditing) finishDashboardEditor()
         setMapFullscreen(false)
@@ -910,12 +956,14 @@ class MainActivity : Activity() {
     override fun onStop() {
         // App switches preserve the dialog stack, scroll positions and in-progress input.
         hrvObservation?.close();hrvObservation=null
+        closeSensorSetupPrompt()
         stopScan();bikePicker?.dismiss();recordingIndicator?.stop()
         MessageNotifications.observers.remove(messageObserver);messages.clear();drinkReminderPanel.clear()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {
         dailyHrvPrompt?.close();dailyHrvPrompt=null
+        closeSensorSetupPrompt()
         if(mapBackRegistered) onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
         recordingIndicator?.stop();bikePicker?.dismiss();dialogs.closeAll(); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
     }

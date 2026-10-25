@@ -55,15 +55,19 @@ class CorrectionPolicyTest {
         }
     }
 
-    @Test fun unresolvedEdgeArtefactsStillRejectInsteadOfBeingHiddenByTolerance() {
+    @Test fun unresolvedEdgeArtefactsWarnButKeepMetricsAndRawData() {
         val p=Properties().apply { File("validation/fixtures/misaligned_1.properties").reader().use(::load) }
-        val session=MeasurementSession(0)
-        for(second in 1..209) session.accept(second*1000L,byteArrayOf(0x16,60,0,4))
-        session.advance(210000)
+        val session=MeasurementSession(0,Protocol(measureMs=200_000))
+        for(second in 1..229) session.accept(second*1000L,byteArrayOf(0x16,60,0,4))
+        session.advance(230000)
         session.rrTicks.clear();session.rrTicks.addAll(p.getProperty("rawTicks").split(',').map(String::toInt))
         val value=Evaluate.session(session)
-        assertFalse(value.acceptable)
-        assertTrue("RESIDUAL_ARTIFACTS" in value.reasons)
+        assertTrue(value.reasons.toString(),value.acceptable)
+        assertFalse("RESIDUAL_ARTIFACTS" in value.reasons)
+        assertTrue("RESIDUAL_ARTIFACTS" in value.warnings)
         assertTrue(value.correction!!.residual.count>0)
+        assertNotNull(value.corrected?.lnRmssd)
+        assertNotNull(value.frequency)
+        assertEquals(p.getProperty("rawTicks").split(',').map(String::toInt),session.rrTicks)
     }
 }

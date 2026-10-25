@@ -1,0 +1,11 @@
+# Sensor-Startkarte bei fehlender Hauptzuordnung
+
+Für das gewählte E-Bike-Profil zählt bikeAddress, für Indoor trainerAddress. Fehlt diese Zuordnung, erscheint auf dem Dashboard eine eigene mittige Startkarte. Pulsmesser/GPS ersetzen die Hauptzuordnung nicht. Eine vorhandene Adresse gilt auch bei ausgeschaltetem, getrenntem oder bewusst deaktiviertem Gerät als konfiguriert; Verbindungszustände lösen die Karte nicht aus. Der noch nicht verfügbare normale Bike-Typ hat hier keine Pflichtquelle.
+
+Kein Header; TERTIARY, dialogRadius18dp, diffuser schwarzer24dp-Schatten in Flat und Glow, gemeinsame24dp-Innenabstände und400dp-Maximalbreite wie die HRV-Angebotskarte. Dashboard abgedunkelt, verdeckte Controls für Accessibility ausgeblendet und nach Schließen wiederhergestellt. Oberfläche ausschließlich über scoped BicycleAlertSurface mit expliziter TERTIARY-Rolle; keine Änderung allgemeiner Dialoge oder Header. HRV-Grafik nicht auf die Sensorkarte übernommen.
+
+„Sensoren suchen“ öffnet die bestehende Profil-Sensorverwaltung, scrollt zum Sensorabschnitt und startet die vorhandene Suche samt Berechtigungsablauf. BLE-Erkennung, Kandidatenklassifikation und Zuordnung bleiben beim bestehenden Fachcode. Vor dem asynchronen Einstieg werden aktive Profil-UUID, Sichtbarkeit und Aufnahme-/HRV-Sperren erneut geprüft. Keine eigenmächtige Zuordnung eines gefundenen Geräts.
+
+„Jetzt nicht“, Android-Zurück und ein Tipp außerhalb stellen die Karte für dieses Profil bis zum nächsten lokalen Kalendertag zurück. Kein24-Stunden-Timer und keine HRV-04:00-Uhr-Sonderregel. Schlüssel ist die stabile Profil-UUID, nicht Slot oder Name. Neues Profil bzw. nächster Tag wird unabhängig behandelt. Nur bewusste Abwahl zählt; Hintergrund/Lifecycle-Schließen bestätigt nichts. Das lokale sensor-setup-launch-state ist Laufzeitbuchhaltung, kein portables Einstellfeld, wie hrv-launch-state.
+
+Während Aufnahme, Speichern, HRV, täglichem HRV-Angebot, offenen Dialogen, Dashboardbearbeitung oder noch ausstehender Fahrtzusammenfassung wartet die Karte. HRV-Angebot hat Vorrang. Vor Profilwechsel/Zuordnung/Lifecycle oder anderen Dialogen wird die alte Karte entfernt, ohne Navigation oder Scrollentwürfe zu löschen. Kein neues Netzwerk, keine neue Berechtigung.

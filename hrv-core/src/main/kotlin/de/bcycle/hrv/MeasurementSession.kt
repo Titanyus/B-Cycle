@@ -120,7 +120,8 @@ object Evaluate {
         // A changed peak affects both adjacent raw intervals; this is not a bad-beat rate.
         // Display fully corrected series with an explicit uncertainty warning above 5%.
         if (affected > 0.05) warnings += "HIGH_CORRECTION"
-        if (result.residual.count > 0) reasons += "RESIDUAL_ARTIFACTS"
+        // Detector flags alone are uncertainty, not grounds to discard an otherwise complete capture.
+        if (result.residual.count > 0) warnings += "RESIDUAL_ARTIFACTS"
         val corrected = Metrics.fromNnMs(result.nnMs)
         if (corrected.lnRmssd == null) reasons += "ZERO_VARIABILITY"
         val frequency = if(reasons.isEmpty()) FrequencyDomain.calculate(result.nnMs) else null

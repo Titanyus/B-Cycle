@@ -1,3 +1,13 @@
+# Aktueller Auftrag: APK0.8.45 mit Sensor-Startkarte, HRV-Warnpolicy und Nachträgen
+
+Nutzer fordert neue APK nach Abschluss. Version0.8.45/Code115 vorbereitet, alle Änderungen seit Build84 einschließen (a1e9743 + neue Sensor-/HRV-Änderungen). Gezielte Nachprüfungen erfolgreich, native Startkarte visuell geprüft. RootPolicy/App32sFinalcheck ebenfalls erfolgreich. Kein Hardwaretest/kein Gesamtlauf. Veröffentlichung über Actions folgt; aktuell öffentlicher Download noch0.8.44/Build84.
+
+# Aktueller Auftrag: Sensor-Startkarte / HRV-Warnpolicy / neue APK
+
+SensorSetupLaunch+SensorSetupPrompt integriert: fehlende Hauptadresse EBIKE/INDOOR, per Profil-UUID/Tag „Jetzt nicht“, headerlos TERTIARY/Schatten/18Radius, bestehender Sucheinstieg+Sensorabschnitt, Lifecycle-/HRV-/Aufnahme-/Dialogpriorität. Keine Live-Disconnect-Nagging, Puls allein genügt nicht. HrvDailyPrompt.showing Readonly für Priorität. Scoped BicycleAlertSurface zusätzliche Rolle; Schattenfarben nach Flat-Basis neu gesetzt, damit Schatten wirklich in beiden Designs sichtbar.
+
+HRV Evaluate RESIDUAL_ARTIFACTS jetztWarnung stattReason, Korrekturalgorithmus/Rohdaten unverändert. Orange Anzahl/Einfluss, neue gespeichertePolicyv5, Werte/LFHF verfügbarwennsonstauswertbar. Vorhandene Altresultateunverändert. CoretestRestfixture193,5s benötigt passendes200sMessprotokoll statt alter180sTesthülle, damit nicht zusätzlich RR_DURATION feuert; Fixture selbstnichtgeändert. 16Core+17AppTests erfolgreich (Policy/Fehlerfälle/Frequenz/Sensor-Card/Tag/Profil/Lifecycle/Suche/HRVbestehend). Native Sensor-Karte geprüft. Kleine Schattenfarbkorrektur/BegriffRR-Auffälligkeiten und erweiterte Schattenassertions abschließend erfolgreich geprüft (SensorSetup/BicycleAlertSurface/HrvView). Nutzer fordert danach neue APK; muss alle unveröffentlichten Nachträge seit Build84 aus a1e9743 enthalten. Version aktuell0.8.44/Code114; Build84 letzter öffentlicherDownload.
+
 # Aktueller Auftrag: Positionskacheln / FIT-Namensreihenfolge / Sticky-/Footer-Korrektur
 
 PositionswahlBenachrichtigung/Trink-Erinnerung auf globalen BicycleSelectionCard-Profilstil umgestellt (154dp/8Gap). RideNaming.order optional in rideNamingV1, vier Gruppen DATE_TIME/DISTANCE/MOVING/SPEED; DATE+TIME weiterhin unabhängig aktiv, aber gemeinsam DnD inklShadow. Namen/Live-Vorschau undSTART-/Retry-Snapshot folgenOrder; alteJSONohneOrder Standardreihenfolge. Vorlage-/Profilbank-/Backuphelper nutzen dieselbeJSONundValidierung, keine zusätzlichePref. TileReorder variableBlockbreiten undursprüngliche Foregrounds beiCancel erhalten. Fünf Namensbuttons nun standaloneeinzelneKartenohneAußenrahmen,inaktiv1dp50%, aktivalterStil; GroupDateTimeinternnurunsichtbareDraggruppe.

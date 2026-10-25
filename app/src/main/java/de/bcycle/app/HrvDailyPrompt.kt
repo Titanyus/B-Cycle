@@ -15,6 +15,7 @@ internal class HrvDailyPrompt(private val activity:Activity,private val host:Fra
     private val dashboard:View,themes:ThemeManager,private val acknowledge:()->Unit,start:()->Unit):AutoCloseable {
     private val accessibility=dashboard.importantForAccessibility
     private var closed=false
+    val showing get()=!closed
     private val back=OnBackInvokedCallback { close() }
     private fun later() { acknowledge();close() }
     private val overlay=FrameLayout(activity).apply {
