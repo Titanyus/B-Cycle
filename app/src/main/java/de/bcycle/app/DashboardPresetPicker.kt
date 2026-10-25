@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.*
@@ -35,8 +34,11 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
     private val reorder=TileReorder(scroller,row,themes,{ pages.all().map { it.id } }) { id,index ->
         pages.move(id,index).also { if(it) { refresh();changed() } }
     }
-    private val layoutChoice=BicycleComponents.action(context,themes,"") { showLayoutGrid() }.apply { tag="dashboard_layout_choice" }
-    var layoutPopup:PopupWindow?=null;private set
+    private val layoutBody=LinearLayout(context).apply { orientation=VERTICAL;tag="dashboard_layout_details";visibility=GONE }
+    private val layoutChoice=BicycleComponents.action(context,themes,"") {
+        layoutBody.visibility=if(layoutBody.visibility==GONE) VISIBLE else GONE
+        refreshLayoutChoices()
+    }.apply { tag="dashboard_layout_choice" }
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
     private fun template(id:Int)=DashboardTemplate.decode(prefs.getString("dashboardTemplate_$id",DashboardTemplate.entries[id].name)).forBike(bikeType)
     init {
@@ -47,11 +49,12 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         layoutChoice.includeFontPadding=false
         layoutChoice.setSingleLine();layoutChoice.ellipsize=android.text.TextUtils.TruncateAt.END
         layoutChoice.compoundDrawablePadding=dp(BicycleDesign.controlGap)
-        BicycleDialogStyle.control(layoutChoice,themes)
+        BicycleDialogStyle.accordion(layoutChoice,themes)
         BicycleComponents.bindTheme(layoutChoice,themes) { tokens ->
             updateLayoutLabel(tokens.foreground)
         }
         addView(layoutChoice,LayoutParams(-1,dp(56)))
+        addView(layoutBody,LayoutParams(-1,-2))
         refresh()
     }
     fun refresh() {
@@ -75,10 +78,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
                     gravity=Gravity.CENTER;setLines(2);ellipsize=android.text.TextUtils.TruncateAt.END;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                 },LayoutParams(-1,-2))
                 BicycleComponents.bindTheme(this,themes) { tokens ->
-                    background=GradientDrawable().apply {
-                        cornerRadius=dp(BicycleDesign.inputRadius).toFloat();setColor(if(active) tokens.tertiary else tokens.secondary)
-                        setStroke(if(active) dp(2) else BicycleDesign.linePixels(context),BicycleComponents.selectionBorder(tokens,active))
-                    }
+                    BicycleSelectionCard.apply(this,tokens,active,add=page==null)
                 }
                 if(page!=null) reorder.bind(this,page.id)
                 setOnClickListener {
@@ -91,46 +91,28 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
             row.addView(tile,LayoutParams(0,dp(BicycleDesign.bikeTileHeight)))
         }
         pages.all().forEach(::card);if(pages.all().size<DashboardPages.MAX) card(null)
-        updateLayoutLabel(themes.active.tokens.foreground)
+        refreshLayoutChoices()
         scroller.post { scroller.scrollTo(x,0) }
+    }
+    private fun refreshLayoutChoices() {
+        layoutBody.removeAllViews()
+        if(layoutBody.visibility==VISIBLE) layoutBody.addView(DashboardLayoutGrid(context,themes,template(pages.selected()),availableTemplates) { chosen ->
+            prefs.edit().putString("dashboardTemplate_${pages.selected()}",chosen.name).apply()
+            refresh();changed()
+        },LayoutParams(-1,-2))
+        updateLayoutLabel(themes.active.tokens.foreground)
     }
     private fun updateLayoutLabel(color:Int) {
         val selected=template(pages.selected())
         val preview=DashboardPreview(selected).apply { setBounds(0,0,dp(28),dp(40));setTint(color) }
         layoutChoice.contentDescription=selected.displayTitle(context)
         layoutChoice.text=selected.displayTitle(context)
-        val arrow=BicycleIcons.drawable(context,BicycleIcon.Expand,color).apply {
+        val icon=BicycleIcons.drawable(context,BicycleIcon.Expand,color)
+        val arrow=android.graphics.drawable.RotateDrawable().apply {
+            drawable=icon;fromDegrees=if(layoutBody.visibility==VISIBLE) 180f else 0f;toDegrees=fromDegrees;level=10000
             setBounds(0,0,dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize))
         }
+        layoutChoice.stateDescription=context.getString(if(layoutBody.visibility==VISIBLE) R.string.zone_expanded else R.string.zone_collapsed)
         layoutChoice.setCompoundDrawablesRelative(preview,null,arrow,null)
     }
-    private fun showLayoutGrid() {
-        layoutPopup?.dismiss()
-        val frame=android.graphics.Rect().also(layoutChoice::getWindowVisibleDisplayFrame)
-        val availableWidth=frame.width().takeIf { it>0 } ?: resources.displayMetrics.widthPixels
-        val popupWidth=minOf(layoutChoice.width.takeIf { it>0 } ?: availableWidth,availableWidth)
-        val availableHeight=frame.height().takeIf { it>0 } ?: resources.displayMetrics.heightPixels
-        val desired=dp((BicycleDesign.presetTileHeight+2*BicycleDesign.presetTileGap)*((availableTemplates.size+2)/3))
-        val popup=PopupWindow().apply {
-            width=popupWidth;height=minOf(desired,(availableHeight*.6f).toInt()).coerceAtLeast(dp(BicycleDesign.touchSize))
-            isFocusable=true;isOutsideTouchable=true;inputMethodMode=PopupWindow.INPUT_METHOD_NOT_NEEDED
-            setBackgroundDrawable(BicycleComponents.dropdownBackground(context,themes.active.tokens))
-        }
-        val grid=DashboardLayoutGrid(context,themes,template(pages.selected()),availableTemplates) { chosen ->
-            prefs.edit().putString("dashboardTemplate_${pages.selected()}",chosen.name).apply()
-            popup.dismiss();refresh();changed()
-        }
-        popup.contentView=ScrollView(context).apply {
-            BicycleComponents.scrollStyle(this)
-            background=android.graphics.drawable.GradientDrawable().apply {
-                setColor(themes.active.tokens.tertiary);cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
-            }
-            clipToOutline=true;addView(grid)
-        }
-        layoutPopup=popup
-        popup.setOnDismissListener { if(layoutPopup===popup) layoutPopup=null }
-        popup.showAsDropDown(layoutChoice,0,0,Gravity.START)
-    }
-    override fun onDetachedFromWindow() { layoutPopup?.dismiss();super.onDetachedFromWindow() }
-
 }

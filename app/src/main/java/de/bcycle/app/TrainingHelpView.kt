@@ -25,13 +25,14 @@ internal class TrainingHelpView(context:Context,private val themes:ThemeManager,
     private val average=Switch(context).apply { tag="training_help_average";setText(R.string.training_help_average) }
     init {
         orientation=VERTICAL;tag="training_help_controls"
-        addView(BicycleComponents.description(context,themes,context.getString(R.string.training_help_explanation)))
         BicycleComponents.segmentedControlRow(modes,themes)
         modeButtons.values.forEach { modes.addView(it,RadioGroup.LayoutParams(0,-2,1f)) }
         val details=LinearLayout(context).apply {
             orientation=VERTICAL;tag="training_help_details";visibility=GONE
             addView(BicycleComponents.sectionDivider(context,themes))
-            addView(BicycleComponents.text(context,themes,context.getString(R.string.training_help_for)))
+            addView(BicycleComponents.description(context,themes,context.getString(R.string.training_help_explanation)).apply { tag="training_help_explanation" },
+                LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+            addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.training_help_for)))
             addView(current);addView(average)
         }
         val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.training_help_details)) {

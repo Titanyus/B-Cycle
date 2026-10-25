@@ -34,9 +34,9 @@ internal fun testBack(dialog: android.app.AlertDialog) {
 }
 
 internal fun selectTestDashboardLayout(picker:DashboardPresetPicker,template:DashboardTemplate) {
-    picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
-    val popup=requireNotNull(picker.layoutPopup)
-    popup.contentView.findViewWithTag<View>("preset_${template.name}").performClick()
+    val details=picker.findViewWithTag<View>("dashboard_layout_details")
+    if(details.visibility!=View.VISIBLE) picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
+    picker.findViewWithTag<View>("preset_${template.name}").performClick()
     shadowOf(Looper.getMainLooper()).idle()
 }
 internal fun selectTestDashboardLayout(dialog:AlertDialog,template:DashboardTemplate) {

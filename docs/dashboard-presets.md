@@ -1,3 +1,9 @@
+## Inline-Layoutauswahl und einheitliche Auswahlkarten ab25.10.2026
+
+Die bisherige Popup-Auswahl der Layoutvorschauen ist ein Accordion im DashboardPresetPicker. Öffnen zeigt das vorhandene dreispaltige Raster im Seitenfluss, kein Popup und kein innerer Scrollcontainer. Das Raster wird nur bei offenem Accordion aufgebaut und beim Schließen freigegeben. Auswählen aktualisiert Vorlage/Preview/Markierung; Accordion bleibt geöffnet. Benannte Seiten und ihre Auswahl, IDs, Anlage/Löschung/Umbenennung/Sortierung und profileigene Speicherung bleiben unverändert; Indoor bietet weiterhin ausschließlich kartenlose Vorlagen an.
+
+BicycleSelectionCard stellt Fahrradprofil-, Dashboardseiten- und Layoutkarten in beiden Designs einheitlich dar: aktiver2dp-Rand, inputRadius, TERTIARY/SECONDARY-Füllung und gemeinsame Auswahlkontur/Glow. Flat ohne zusätzliche Effekte. Bestehende Vorschaugrafiken, Rastergeometrie und Bedienlogik bleiben erhalten. BikeProfileStrip berücksichtigt Flat/Glow zusätzlich in seiner Zeichen-Signatur, damit Umschalten auch bei identischen Farbwerten aktualisiert. Native Pixelvergleiche der Rahmen und funktionale Auswahl-/Indoor-/Sortier-/Sicherungsregressionen erfolgreich.
+
 # Dashboard-Vorlagen und Bezeichnungen
 
 Stand: 12.10.2026. Vier gespeicherte Dashboard-Seiten können unabhängig aus acht Vorlagen wählen.

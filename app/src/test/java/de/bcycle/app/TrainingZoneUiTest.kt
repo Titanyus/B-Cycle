@@ -37,6 +37,10 @@ class TrainingZoneUiTest {
         assertTrue(off.isChecked);assertTrue(changes.isEmpty())
         val details=view.findViewWithTag<View>("training_help_details")
         assertEquals(View.GONE,details.visibility)
+        assertSame(details,view.findViewWithTag<View>("training_help_explanation").parent)
+        val heading=testDescendants(details).filterIsInstance<android.widget.TextView>().single { it.text.toString()==context.getString(R.string.training_help_for) }
+        assertEquals(BicycleDesign.strongTypeface,heading.typeface)
+        assertEquals(BicycleDesign.contentHeadingSp*context.resources.displayMetrics.scaledDensity,heading.textSize,.01f)
         view.findViewWithTag<View>("training_help_expand").performClick()
         assertEquals(View.VISIBLE,details.visibility);assertTrue(off.isChecked);assertTrue(changes.isEmpty())
         for((button,mode) in listOf(all to TrainingHelpMode.ALL_ZONES,zone to TrainingHelpMode.ZONE_TWO,off to TrainingHelpMode.OFF)) {

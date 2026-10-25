@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -62,7 +61,7 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
     }
     private fun paint() {
         val tokens=themes.active.tokens
-        val signature="$active:$locked:${tokens.hashCode()}:"+profiles.joinToString { "${it.slot}:${it.name}:${it.type}:${it.category}" }
+        val signature="$active:$locked:${tokens.hashCode()}:${BicycleAppearance.flat(context)}:"+profiles.joinToString { "${it.slot}:${it.name}:${it.type}:${it.category}" }
         if(signature==painted) return
         painted=signature
         for(index in 0 until row.childCount) {
@@ -72,15 +71,7 @@ internal class BikeProfileStrip(context: Context, private val themes: ThemeManag
             card.contentDescription=if(p==null) context.getString(R.string.bikes_new) else if(compact) context.getString(R.string.ui_source_field_description,context.getString(p.type.label),p.name) else p.name
             card.tooltipText=if(compact) p?.name else if(p!=null) context.getString(R.string.bikes_move_hint) else null
             card.stateDescription=context.getString(if(selected) R.string.bikes_selected else R.string.ui_not_selected)
-            card.background=GradientDrawable().apply {
-                setColor(if(selected) tokens.tertiary else tokens.secondary)
-                cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
-                val color=BicycleComponents.selectionBorder(tokens,selected)
-                if(p==null) setStroke(BicycleDesign.linePixels(context),color,dp(BicycleDesign.smallGap).toFloat(),dp(BicycleDesign.smallGap).toFloat())
-                else setStroke(if(selected) dp(2) else BicycleDesign.linePixels(context),color)
-            }
-            val activeOutline=BicycleInputFrame.decorate(card,tokens,selected)
-            card.foreground=if(selected) activeOutline else null
+            BicycleSelectionCard.apply(card,tokens,selected,add=p==null,scale=scale)
             if(p!=null) {
                 (card.getChildAt(0) as TextView).text=context.getString(p.type.label)
                 (card.getChildAt(1) as ImageView).setImageDrawable(BikePreview(p.category).apply { setTint(tokens.foreground) })

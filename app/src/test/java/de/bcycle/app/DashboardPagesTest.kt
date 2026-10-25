@@ -90,9 +90,9 @@ class DashboardPagesTest {
         try {
             val picker=DashboardPresetPicker(host.get(),0);host.get().setContentView(picker)
             picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
-            val grid=picker.layoutPopup!!.contentView.findViewWithTag<DashboardLayoutGrid>("dashboard_layout_grid")
+            val grid=picker.findViewWithTag<View>("dashboard_layout_details").findViewWithTag<DashboardLayoutGrid>("dashboard_layout_grid")
             assertEquals(10,allViews(grid).count { it.tag?.toString()?.startsWith("preset_")==true && it.isClickable })
-            picker.layoutPopup!!.dismiss()
+            picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
             picker.findViewWithTag<View>("preset_page_1").performClick()
             selectTestDashboardLayout(picker,DashboardTemplate.HERO_SEVEN)
             assertEquals("HERO_SEVEN",prefs.getString("dashboardTemplate_1",null))

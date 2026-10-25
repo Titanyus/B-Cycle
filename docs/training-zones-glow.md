@@ -96,3 +96,6 @@ Live-Wattwert, FIT-Rohdaten oder Performance Engine.
 ## Pulsmodelle ab 0.8.2
 
 Pulszonen und Zone-2-Grenzen folgen der global im Fahrerprofil gewählten Methode (Karvonen, Maximalpuls oder Friel-Rad). HF-Reserve (%) bleibt unverändert. Siehe [Pulsmodelle](heart-rate-methods.md).
+
+
+Trainingshilfe ab25.10.2026: Der Erklärungstext steht innerhalb des gemeinsamen Detail-Accordions, nicht davor. „Trainingshilfe für“ nutzt die kleine zentrale contentHeading14/900Black. Auf-/Zuklappen, automatisches Sichtbar-Scrollen, Modus-/Aktuell-/Durchschnittsauswahl und Trink-Erinnerung bleiben unverändert. Der zusätzlich erwähnte horizontale Strich war ein vom Nutzer zurückgenommener Tippfehler und wird nicht ergänzt.

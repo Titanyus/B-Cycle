@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -31,10 +30,7 @@ internal class DashboardLayoutGrid(context:Context,themes:ThemeManager,selected:
                             gravity=Gravity.CENTER;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                         },LayoutParams(-1,dp(BicycleDesign.iconSize)))
                         BicycleComponents.bindTheme(this,themes) { tokens ->
-                            background=GradientDrawable().apply {
-                                cornerRadius=dp(BicycleDesign.inputRadius).toFloat();setColor(if(isSelected) tokens.tertiary else tokens.secondary)
-                                setStroke(BicycleDesign.linePixels(context),BicycleComponents.selectionBorder(tokens,isSelected))
-                            }
+                            BicycleSelectionCard.apply(this,tokens,isSelected)
                         }
                         setOnClickListener { choose(template) }
                     }
