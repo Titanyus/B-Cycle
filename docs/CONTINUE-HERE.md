@@ -1,3 +1,7 @@
+# Aktueller APK-Auftrag26.10.2026: Version0.8.50 / Code120
+
+Neue APK angefordert. Alle Änderungen seit Build89 enthalten: separate Powermeter, gruppierte Wartung mit Automatik/Offlinecache, Dreeve-FIT-Originaldownload mit GPX-Ersatz und SRAM-AXS-Schaltgruppe beim E-Bike. Vorhandene gezielte Umsetzungstests erfolgreich; keine unnötige Wiederholung/Gesamtsuite. Version0.8.50/120 vorbereitet. Optimierter Release via bestehendem GitHub-Actions-Workflow, dauerhafte Signatur nach Build prüfen. Umfang und Grenzen docs/release-0.8.50.md. Veröffentlichung läuft; ältere Angaben darunter sind Verlauf.
+
 # Aktueller Stand26.10.2026 nach Build89: SRAM-AXS-Schaltgruppe beim E-Bike
 
 Neu: Schaltgruppe als reguläres Sensor-Schalter-Accordion beim E-Bike. Über Sensorsuche mehrere AXS-Komponenten (max8) zuordnen, Akkus abfragen, Name/letzten Prozentwert/Zeitstempel/Status je Gerät anzeigen und einzeln entfernen. Kurze serielle read-only GATT-Abfragen180F/2A19,10sTimeout, automatische Versuche bei sichtbarer App/aktivierten Verbindungen je Gerät höchstens alle5min, manuelles Abfragen erzwingt. Aus/Hintergrund/Profilwechsel stoppen, alte Callbacks ignorieren, Cache bei Fehler nicht löschen. Keine SRAMBond-/Schaltbefehle/Gangdaten und keine neuen FIT-/Dashboardfelder. Vollständige Diensterkennung vor Zuordnung, FTMS/CPS/Bosch behalten Priorität. Komponenten und Gruppenschalter in Profile/Kopie/Zielgeräteerhalt/Sicherung/Validierung integriert. Details docs/sram-axs.md.
