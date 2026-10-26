@@ -1,3 +1,7 @@
+# Aktueller Auftrag26.10.2026: APK0.8.49 / Code119
+
+Neue APK ausdrücklich angefordert. Enthält c7826b4 nach Build88: Rollentrainer-/Profilwahl, Distanz-Fallback, tatsächliche Messwertarten aufklappbar, Profilzuordnung im Footer. 18 unterschiedliche gezielte Tests bereits erfolgreich; keine erneute Gesamtsuite erforderlich. Typografie-/Atlas-/Diffchecks erfolgreich. Version0.8.49/119 vorbereitet, Veröffentlichung via Actions mit dauerhaftem Schlüssel folgt. Noch kein KICKR-Gerätetest, virtuelle Schaltung/Trainersteuerung weiter vorgemerkt. Releaseumfang in release-0.8.49.md.
+
 # Aktueller Abschluss26.10.2026 nach Build88: Rollentrainer, Sensorliste, Zuordnungsfooter
 
 Nutzer beauftragt: Rollentrainer aktivieren, gemeinsames Profil für eingespanntes Rad und Zwift Ride; Rest der grundlegenden KICKR-Messwertintegration einschließlich Distanz-Fallback, keine aktuelle Steuerung/virtuelle Schaltung. Zwift Ride/Click separat für später vormerken, Gestaltung noch offen. Dazu Sensor-Messwertanzahl als kleines aufklappbares Textdisclosure mit tatsächlichen empfangenen Arten/Einheiten. Zuordnungsbutton aus Profilkacheln in Aktionsfooter direkt links von Löschen verschieben.
