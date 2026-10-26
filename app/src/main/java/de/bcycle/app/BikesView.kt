@@ -13,7 +13,7 @@ import android.widget.*
 internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val search: () -> Unit, private val stopSearch: () -> Unit, private val enableGps: () -> Unit, private val recordingControls: () -> View, private val choosePhoto:(Int)->Unit = {},
     private val confirmDelete:(Int,String,()->Unit)->Unit = { _,_,_ -> },
-    private val additionalSections:(()->List<Pair<Int,View>>)?=null, private val editDashboard:()->Unit={}) : LinearLayout(context) {
+    private val additionalSections:(()->List<Pair<Int,View>>)?=null, private val editDashboard:()->Unit={},private val assignProfiles:()->Unit={}) : LinearLayout(context) {
     private val themes = runtime.themes.settings
     private val collapsedSections=mutableSetOf<String>()
     private val expandedSensors=mutableSetOf<BikeSensor>()
@@ -48,6 +48,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private var binding = false
     private var photo:BikePhotoView?=null
     private lateinit var strip:BikeProfileStrip
+    private val assignmentButton=BicycleComponents.action(context,themes,context.getString(R.string.profile_assignment_title),assignProfiles).apply { tag="profile_assignment_open" }
     private val deleteAction=BicycleFooterAction(context,themes,BicycleIcon.DeleteTrack,context.getString(if(additionalSections==null) R.string.bikes_delete else R.string.profiles_delete)) {
         val p=runtime.bikes.current()
         if(!runtime.recording && !runtime.saving && runtime.bikes.all().size>1) confirmDelete(p.slot,p.name) {
@@ -106,6 +107,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         addView(strip,LayoutParams(-1,-2))
         strip.show(runtime.bikes.all(),slot,runtime.recording || runtime.saving)
         strip.revealActive()
+        addView(assignmentButton,LayoutParams(-1,-2));BicycleComponents.controlSpacing(assignmentButton)
         val nameHeader = BicycleSectionHeader(context,themes,profile.name).apply { tag="bike_name_header" }
         nameHeading = (nameHeader.titleView).apply {
             tag="bike_profile_name";gravity=Gravity.CENTER;minimumHeight=dp(BicycleDesign.sectionHeaderMinHeight);isClickable=true;isFocusable=true
@@ -424,6 +426,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private fun paintCards() { strip.show(runtime.bikes.all(),runtime.bikes.activeSlot,runtime.recording || runtime.saving) }
     fun refreshPhoto() { photo?.refresh() }
     fun refresh() {
+        assignmentButton.visibility=if(runtime.mapState.orphanProfiles().isNotEmpty()) VISIBLE else GONE
+        assignmentButton.isEnabled=!runtime.mapState.busy
         if(shownSlot!=runtime.bikes.activeSlot || shownType!=runtime.bikes.current().type || shownSources!=RecordingSources.available(runtime.bikes.current(),runtime.barometer.available)) { rebuild();return }
         binding=true
         try {

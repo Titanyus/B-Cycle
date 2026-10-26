@@ -10,6 +10,7 @@ import android.widget.TextView
 internal data class SettingsHelpGroup(val heading:Int,val sections:List<SettingsHelpSection>)
 internal data class SettingsHelpSection(val heading:Int,val body:Int)
 internal enum class SettingsHelpPage(val title:Int,val sections:List<SettingsHelpSection>) {
+    PROFILE_ASSIGNMENT(R.string.profile_assignment_title,listOf(SettingsHelpSection(R.string.profile_assignment_title,R.string.profile_assignment_help))),
     MAINTENANCE(R.string.maintenance_title,listOf(SettingsHelpSection(R.string.maintenance_title,R.string.maintenance_description))),
     MAIN(R.string.ui_settings,listOf(SettingsHelpSection(R.string.help_navigation_heading,R.string.help_navigation_body),SettingsHelpSection(R.string.help_appearance_heading,R.string.help_appearance_body),SettingsHelpSection(R.string.help_rider_heading,R.string.help_rider_body),SettingsHelpSection(R.string.help_profiles_heading,R.string.help_profiles_body),SettingsHelpSection(R.string.help_routes_heading,R.string.help_routes_body),SettingsHelpSection(R.string.help_notifications_heading,R.string.help_notifications_body),SettingsHelpSection(R.string.help_data_heading,R.string.help_data_body),SettingsHelpSection(R.string.help_advanced_heading,R.string.help_advanced_body))),
     RIDER(R.string.rider_profile,listOf(SettingsHelpSection(R.string.help_personal_heading,R.string.help_personal_body),SettingsHelpSection(R.string.help_heart_method_heading,R.string.help_heart_method_body),SettingsHelpSection(R.string.help_karvonen_heading,R.string.help_karvonen_body),SettingsHelpSection(R.string.help_maximum_heading,R.string.help_maximum_body),SettingsHelpSection(R.string.help_threshold_heading,R.string.help_threshold_body),SettingsHelpSection(R.string.help_zone_model_details_heading,R.string.help_zone_model_details_body),SettingsHelpSection(R.string.help_ftp_heading,R.string.help_ftp_body),SettingsHelpSection(R.string.help_power_zones_heading,R.string.help_power_zones_body),SettingsHelpSection(R.string.help_heart_zones_heading,R.string.help_heart_zones_body))),
@@ -53,6 +54,7 @@ internal object SettingsHelp {
         if(nodes.any { it.tag=="settings_help_page" }) return null
         when {
             nodes.any { it is RouteAnalysisView } -> return SettingsHelpPage.ROUTE_DETAILS
+            nodes.any { it is OrphanProfilesView } -> return SettingsHelpPage.PROFILE_ASSIGNMENT
             nodes.any { it is DreeveMaintenanceView } -> return SettingsHelpPage.MAINTENANCE
             nodes.any { it is RouteAnalysisMap } -> return SettingsHelpPage.ROUTE_MAP
             nodes.any { it is RouteManagerView } -> return SettingsHelpPage.ROUTES

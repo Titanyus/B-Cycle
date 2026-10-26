@@ -39,6 +39,9 @@ class MainActivity : Activity() {
     private lateinit var mapPanel: MapPanel
     private lateinit var dashboardArea: LinearLayout
     private var routeManager: RouteManagerView? = null
+    private var orphanProfilesView:OrphanProfilesView?=null
+    private var orphanProfilesScreen:AlertDialog?=null
+    private var routeOrphanPending:RouteManagerView?=null
     private var routeImportButton: BicycleFooterAction? = null
     private var routePopup: ListPopupWindow? = null
     private var routeSignature = ""
@@ -109,7 +112,7 @@ class MainActivity : Activity() {
     private var pendingReport: String? = null
     private var displayedRecordingStatus: String? = null
     private var rideSummaryPosted=false
-    private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows() }
+    private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows();refreshOrphanProfiles() }
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
     private val settingsThemes get() = runtime.themes.settings
@@ -524,7 +527,7 @@ class MainActivity : Activity() {
             R.string.ui_settings_map to mapControls(),
             R.string.ui_design_title to dashboardControls(embedded=true),
             R.string.training_help_title to trainingHelpControls { dashboardPages.selected() }.apply { tag="profile_training_help" }
-        ) }, editDashboard=::enterDashboardEditor)
+        ) }, editDashboard=::enterDashboardEditor,assignProfiles=::showOrphanProfiles)
         bikesManager = content
         val scroll=BicycleStickyScrollView(settingsContext).apply { addView(content) }
         val footer=ProfileContextFooter(settingsContext,settingsThemes,content.footer)
@@ -1306,6 +1309,39 @@ class MainActivity : Activity() {
         dialogs.onDismiss(screen, map::dispose)
         screen.show()
     }
+    private fun canAssignProfiles()=!runtime.recording && !runtime.saving && !runtime.hrv.busy
+    private fun refreshOrphanProfiles() {
+        val content=orphanProfilesView ?: return
+        if(orphanProfilesScreen?.isShowing==true) content.show(runtime.mapState.orphanProfiles(),runtime.bikes.all(),runtime.mapState.busy || !canAssignProfiles())
+    }
+    private fun showOrphanProfiles() {
+        if(orphanProfilesScreen?.isShowing==true || runtime.mapState.busy) return
+        val groups=runtime.mapState.orphanProfiles()
+        if(groups.isEmpty()) { BicycleFeedback.show(this,R.string.profile_assignment_empty);return }
+        lateinit var content:OrphanProfilesView
+        content=OrphanProfilesView(settingsContext,settingsThemes) { group,target,type ->
+            val accepted=runtime.mapState.assignOrphanProfile(group,target,type,::canAssignProfiles) { result ->
+                if(orphanProfilesView!==content) return@assignOrphanProfile
+                result.fold({ count ->
+                    BicycleFeedback.show(this,getString(R.string.profile_assignment_done,count))
+                    if(runtime.mapState.orphanProfiles().isEmpty()) orphanProfilesScreen?.dismiss() else refreshOrphanProfiles()
+                },{ refreshOrphanProfiles();content.failed() })
+            }
+            if(!accepted) { refreshOrphanProfiles();content.failed() }
+        }
+        content.show(groups,runtime.bikes.all(),!canAssignProfiles())
+        val screen=dialog().setTitle(R.string.profile_assignment_title)
+            .setView(ScrollView(settingsContext).apply { BicycleComponents.scrollStyle(this);addView(content) }).create()
+        orphanProfilesView=content;orphanProfilesScreen=screen
+        dialogs.onDismiss(screen) { if(orphanProfilesView===content) { orphanProfilesView=null;orphanProfilesScreen=null } }
+        screen.show()
+    }
+    private fun offerOrphanProfiles() {
+        val content=routeOrphanPending ?: return
+        if(!runtime.visible || runtime.mapState.busy || routeManager!==content || !content.isShown || orphanProfilesScreen?.isShowing==true) return
+        routeOrphanPending=null
+        if(runtime.mapState.orphanProfiles().isNotEmpty()) showOrphanProfiles()
+    }
     private fun routeSettings() {
         setDashboardEditing(false)
         val state = runtime.mapState
@@ -1346,8 +1382,10 @@ class MainActivity : Activity() {
         routeImportButton = import
         menu = dialog().setView(root).create().apply {
             setView(root, 0, 0, 0, 0)
-            dialogs.onDismiss(this) { if (routeManager === content) { routePopup?.dismiss(); routePopup = null; routeManager = null; routeImportButton = null } }; show()
+            dialogs.onDismiss(this) { if (routeManager === content) { routePopup?.dismiss(); routePopup = null; routeManager = null; routeImportButton = null;routeOrphanPending=null } }; show()
         }
+        routeOrphanPending=content
+        menu?.window?.decorView?.post { offerOrphanProfiles() }
         menu?.window?.decorView?.findViewWithTag<View>("dialog_back")?.setOnClickListener {
             if(content.selecting) content.clearSelection() else menu?.dismiss()
         }
@@ -2010,6 +2048,7 @@ class MainActivity : Activity() {
     }
     private fun refreshRouteRows() {
         refreshDetails()
+        offerOrphanProfiles()
         val state = runtime.mapState
         if (!state.busy && pendingMapRoute != null) {
             if (pendingMapRoute == state.selectedRoute && state.route != null) {

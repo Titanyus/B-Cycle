@@ -12,13 +12,34 @@ internal object RideProfileColor {
         return JSONObject().put("slot",bikes.activeSlot).put("bikeId",BikeIdentities.id(prefs,bikes.activeSlot)).put("primary",ThemeManager(prefs).baseTokens.primary).put("name",bikes.current().name).put("type",bikes.current().type.name).toString()
     }
     fun assign(context:Context,id:String,slot:Int) {
+        assignment(context,slot)?.let { confirm(context,id,it.toString()) }
+    }
+    private fun assignment(context:Context,slot:Int):JSONObject? {
         val prefs=context.getSharedPreferences("bike",0);val bikes=BikeProfileStore(context,prefs)
-        val profile=bikes.all().singleOrNull { it.slot==slot } ?: return
+        val profile=bikes.all().singleOrNull { it.slot==slot } ?: return null
         val stored=JSONObject(prefs.getString(BikeUiConfigurationStore.KEY,"{}")!!).optJSONObject(slot.toString())
             ?.optJSONObject(ThemeManager.activeKey)?.optString("value")
         val primary=if(bikes.activeSlot==slot) ThemeManager(prefs).baseTokens.primary else
             BicycleThemes.findPreset(stored)?.tokens?.primary ?: ThemeManager(prefs).baseTokens.primary
-        confirm(context,id,JSONObject().put("slot",slot).put("bikeId",BikeIdentities.id(prefs,slot)).put("name",profile.name).put("primary",primary).put("type",profile.type.name).toString())
+        return JSONObject().put("slot",slot).put("bikeId",BikeIdentities.id(prefs,slot)).put("name",profile.name).put("primary",primary).put("type",profile.type.name)
+    }
+    /** One preference transaction for an explicitly confirmed group; original files/links/names stay untouched. */
+    internal fun reassign(context:Context,expected:Map<String,String?>,targetId:String,targetType:BikeType):Int {
+        val bike=context.getSharedPreferences("bike",0)
+        val slot=BikeIdentities.slot(context,targetId) ?: error("Profile changed")
+        val target=assignment(context,slot) ?: error("Profile changed")
+        check(target.getString("bikeId")==targetId && target.getString("type")==targetType.name)
+        val prefs=context.getSharedPreferences(STORE,0)
+        check(expected.all { (id,row) -> prefs.getString(id,null)==row })
+        val edit=prefs.edit()
+        expected.forEach { (id,text) ->
+            val row=text?.let(::JSONObject) ?: JSONObject()
+            target.keys().forEach { key -> row.put(key,target.get(key)) }
+            edit.putString(id,row.toString())
+        }
+        check(BikeIdentities.id(bike,slot)==targetId && BikeProfileStore(context,bike).all().any { it.slot==slot && it.type==targetType })
+        check(edit.commit());RideProfileCatalogCache.invalidate(context)
+        return expected.size
     }
     fun forget(context:Context,id:String) { check(context.getSharedPreferences(STORE,0).edit().remove(id).commit());RideProfileCatalogCache.invalidate(context) }
     fun confirm(context:Context,id:String,json:String) {

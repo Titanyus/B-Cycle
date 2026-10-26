@@ -72,6 +72,41 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         return cachedEntries
     }
     fun entry(id:String):ManagedRoute? { entries;return entriesById[id] }
+    private var orphanEntries:List<ManagedRoute>?=null
+    private var orphanGroups=emptyList<OrphanProfileGroup>()
+    internal fun orphanProfiles():List<OrphanProfileGroup> {
+        val current=entries
+        if(orphanEntries!==current) { orphanGroups=OrphanRideProfiles.find(context,current);orphanEntries=current }
+        return orphanGroups
+    }
+    internal fun assignOrphanProfile(group:OrphanProfileGroup,targetId:String,targetType:BikeType,canEdit:()->Boolean,
+        complete:(Result<Int>)->Unit):Boolean {
+        if(busy || !canEdit()) return false
+        val ids=group.rides.map { it.id }.toSet()
+        if(ids.isEmpty()) return false
+        val snapshot=entries
+        val raw=RideProfileColor.catalog(context).raw
+        val expected=ids.associateWith { raw[it] }
+        busy=true;changed()
+        worker.execute {
+            var result:Result<Int> = Result.failure(IllegalStateException())
+            finishOperation("") {
+                result=runCatching {
+                    check(canEdit())
+                    val present=(library.entries.filter { it.origin==TrackOrigin.RECORDED }.map { it.id }+
+                        fits.entries.filter { it.origin==TrackOrigin.RECORDED }.map { it.id }+
+                        dreeveSummaries.entries.filter { it.origin==TrackOrigin.RECORDED }.map { it.id }).toSet()
+                    check(ids.all { it in present })
+                    val current=OrphanRideProfiles.find(context,snapshot).singleOrNull { it.key==group.key }
+                    check(current?.rides?.map { it.id }?.toSet()==ids)
+                    RideProfileColor.reassign(context,expected,targetId,targetType)
+                }
+                workerRoute
+            }
+            handler.post { complete(result) }
+        }
+        return true
+    }
     init {
         worker.execute { finishOperation("") {
             workerRoute = library.load(); fits.load(); dreeveSummaries.load();fits.discoverDownloads(context)
