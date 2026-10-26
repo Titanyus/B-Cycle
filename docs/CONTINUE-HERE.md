@@ -1,3 +1,7 @@
+# Aktueller Abschluss26.10.2026: APK0.8.52 / Build92
+
+APK **0.8.52 / Build92 / Code122** veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.52-release-92.apk), [Buildnachweis](build-92.md), Actions-Quellstand `756d34a32c3c6911279a441170e57f2d95389629`. Größe2.392.529 Bytes; SHA-256 `3a32caddcc5ad665a137d76e6f64e5a142b81ebd8304b76cf22d6c151a46ef4f`. Optimierter Release, dauerhafte Signatur wie Build91, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Änderungen seitBuild91 enthalten; Umfang/Prüfgrenzen release-0.8.52.md.25 gezielte Umsetzungstests erfolgreich, kein unnötiger Gesamtlauf. Nutzer bestätigt bisherige SRAM-Akkuabfrage am Gerät, neue UI/Warnung noch nicht am Gerät geprüft. Keine offene APK-Aufgabe; ältere Angaben darunter sind Verlauf.
+
 # APK-Auftrag26.10.2026: Version0.8.52 / Code122 vorbereitet
 
 Neue APK ausdrücklich beauftragt. Enthält Schaltwerk-Dashboard-/Sammelfeldanzeige, gespeicherten letzten Stand, konfigurierbare zehnsekündige Startwarnung unter20%, kompakte Sensoransicht und neue Nutzericons sowie gespeicherte SRAM-Referenzen.25 gezielte Tests bereits erfolgreich, kein erneuter Gesamtlauf. Build über Push main/Actions, danach Signatur/Prüfsumme/Manifest/Ausrichtung/Download prüfen. Umfang release-0.8.52.md.

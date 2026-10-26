@@ -12,4 +12,4 @@ Vorerst wird gemäß Nutzerentscheidung das zuerst zugeordnete SRAM-Gerät als S
 
 25 gezielte Tests während der Umsetzung erfolgreich, einschließlich Aufzeichnungsstart, Warnschwelle/Timeout, Sammelfelder, Profilgrenzen, Altbackup-/Booleanprüfung und bestehender Trinkerinnerung. Typografie-/UI-Katalog-/Diffprüfung erfolgreich. Kein erneuter vollständiger Testlauf. Nutzer hat erfolgreiche SRAM-Erkennung/Akkuabfrage in Build91 bestätigt; diese Erweiterung wurde nicht erneut am Gerät getestet.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-92.md).
