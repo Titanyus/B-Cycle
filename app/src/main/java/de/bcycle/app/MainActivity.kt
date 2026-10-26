@@ -681,36 +681,12 @@ class MainActivity : Activity() {
     }
 
     private fun showMaintenance() {
-        val closed=java.util.concurrent.atomic.AtomicBoolean(false)
-        val worker=java.util.concurrent.Executors.newSingleThreadExecutor { task -> Thread(task,"B-Cycle-maintenance") }
-        lateinit var content:DreeveMaintenanceView
-        fun refresh() {
-            if(closed.get()) return
-            content.loading()
-            worker.execute {
-                val settings=ActivityServiceSettings(this,ActivityService.DREEVE)
-                val config=settings.read()
-                var secret=""
-                val result=runCatching {
-                    secret=settings.credentials().optString("secret")
-                    if(config.address.isBlank() || secret.isBlank()) throw ActivityServiceFailure(false,R.string.dreeve_import_config_missing)
-                    val client=DreeveClient(config,secret,closed::get)
-                    val tasks=client.maintenance()
-                    val gears=runCatching { client.gears() }
-                    Triple(tasks,gears.getOrDefault(emptyMap()),gears.exceptionOrNull()?.let { ServiceProblems.text(it,R.string.maintenance_failed) })
-                }
-                runOnUiThread {
-                    if(closed.get()) return@runOnUiThread
-                    if(settings.read()!=config || runCatching { settings.credentials().optString("secret") }.getOrDefault("")!=secret)
-                        content.failed(R.string.maintenance_changed)
-                    else result.fold({ content.loaded(it.first,it.second,it.third) },{ content.failed(ServiceProblems.text(it,R.string.maintenance_failed)) })
-                }
-            }
-        }
-        content=DreeveMaintenanceView(settingsContext,settingsThemes,::refresh)
+        val repository=MaintenanceRepository.get(this)
+        val content=DreeveMaintenanceView(settingsContext,settingsThemes) { repository.refresh(MaintenanceRepository.Reason.MANUAL) }
         val screen=dialog().setTitle(R.string.maintenance_title).setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).show()
-        dialogs.onDismiss(screen) { closed.set(true);worker.shutdownNow() }
-        refresh()
+        val subscription=repository.observe(content::render)
+        dialogs.onDismiss(screen) { subscription.close() }
+        repository.refresh()
     }
     private fun showHrv()=showHrv(false)
     private fun showHrv(autoStart:Boolean) {

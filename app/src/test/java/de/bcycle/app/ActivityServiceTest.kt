@@ -220,12 +220,26 @@ class ActivityServiceTest {
     }
     @Test fun dreeveConfirmsPromptlyInSameWorkerWithoutPostingAcceptedFileAgain() {
         configureDreeve()
+        val count=java.util.concurrent.atomic.AtomicInteger()
+        val now=java.util.concurrent.atomic.AtomicLong(System.currentTimeMillis())
+        val repository=MaintenanceRepository(c,{MaintenanceAccount(ActivityServiceConfig(address="https://dreeve.example.org/sub/"),"test")},
+            { _,_->count.incrementAndGet();MaintenancePayload(emptyList(),emptyMap()) },now::get)
+        val field=MaintenanceRepository::class.java.getDeclaredField("instance").apply { isAccessible=true }
+        (field.get(null) as? MaintenanceRepository)?.close();field.set(null,repository)
+        fun awaitCache(condition:()->Boolean) {
+            val end=System.nanoTime()+5_000_000_000L
+            while(!condition() && System.nanoTime()<end) { org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();Thread.sleep(5) }
+            assertTrue(condition())
+        }
+        try {
+        repository.refresh();awaitCache { repository.state.snapshot!=null };assertEquals(1,count.get())
+        now.incrementAndGet()
         val file=FitLibrary.retainRecording(c.filesDir,fit());val id=file.nameWithoutExtension
         ActivityServiceUploads.dreeve.enqueue(c,file)
         val waits=mutableListOf<Long>();val jobs=mutableListOf<String>()
         val pending=ActivityServiceUploads.dreeve.run(c,{false},confirmationWait={ delay,stopped ->
             assertFalse(stopped());assertEquals(UploadState.UPLOADING,ActivityServiceUploads.dreeve.state(c,id,null).state)
-            assertTrue(RideServiceLinks.links(c,id).isEmpty());waits.add(delay);true
+            assertTrue(RideServiceLinks.links(c,id).isEmpty());assertEquals(1,count.get());waits.add(delay);true
         }) { _,_,_,_,job,_->
             jobs.add(job)
             if(jobs.size==3) UploadProgress("accepted","activity-confirmed") else UploadProgress("accepted")
@@ -234,6 +248,8 @@ class ActivityServiceTest {
         assertEquals(listOf(2000L,3000L),waits)
         assertEquals(UploadState.UPLOADED,ActivityServiceUploads.dreeve.state(c,id,null).state)
         assertEquals("activity-confirmed",RideServiceLinks.links(c,id).single().activityId)
+        awaitCache { repository.state.snapshot?.fetchedAt==now.get() };assertEquals(2,count.get())
+        } finally { repository.close();field.set(null,null) }
     }
     @Test fun dreeveConfirmationIsBoundedAndNetworkFailuresKeepTheirBackoff() {
         configureDreeve()

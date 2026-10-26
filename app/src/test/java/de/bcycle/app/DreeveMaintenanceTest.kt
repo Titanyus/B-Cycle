@@ -76,6 +76,25 @@ class DreeveMaintenanceTest {
             view.loaded(emptyList(),emptyMap());assertEquals(a.getString(R.string.maintenance_empty),view.findViewWithTag<TextView>("maintenance_status").text.toString())
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun cacheStatusRetainsRowsAndTimestampAcrossLoadingAndOfflineAndClearsOnAccountChange() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0));val view=DreeveMaintenanceView(c,themes) {}
+            c.setContentView(view)
+            val data=MaintenanceSnapshot(DreeveMaintenanceTask.decode(JSONObject(fixture())),mapOf("gear-bike-a" to "Bike"),1_790_000_000_000L)
+            view.render(MaintenanceState(data));val task=view.findViewWithTag<View>("maintenance_maintenanceTask-chain-clean")
+            assertNotNull(task)
+            val stamp=view.findViewWithTag<TextView>("maintenance_updated").text.toString();assertTrue(stamp.startsWith("Aktualisiert:"))
+            view.render(MaintenanceState(data,loading=true));assertSame(task,view.findViewWithTag<View>("maintenance_maintenanceTask-chain-clean"))
+            view.render(MaintenanceState(data,problem=R.string.service_unreachable))
+            assertSame(task,view.findViewWithTag<View>("maintenance_maintenanceTask-chain-clean"))
+            assertEquals(stamp,view.findViewWithTag<TextView>("maintenance_updated").text.toString())
+            assertTrue(view.findViewWithTag<TextView>("maintenance_status").text.contains("letzte erfolgreiche Stand"))
+            view.render(MaintenanceState(problem=R.string.dreeve_import_config_missing))
+            assertNull(view.findViewWithTag<View>("maintenance_maintenanceTask-chain-clean"))
+            assertEquals(View.GONE,view.findViewWithTag<TextView>("maintenance_updated").visibility)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun realSettingsEntryShowsMissingConfigurationAndClosesCleanly() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {

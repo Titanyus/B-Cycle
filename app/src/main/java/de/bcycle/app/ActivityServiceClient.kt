@@ -55,11 +55,13 @@ internal class ActivityHttp(private val cancelled:()->Boolean={false},private va
     companion object {
         private val client=OkHttpClient.Builder().followRedirects(false).followSslRedirects(false)
             .connectTimeout(15,TimeUnit.SECONDS).readTimeout(60,TimeUnit.SECONDS).callTimeout(120,TimeUnit.SECONDS).build()
+        fun brief(cancelled:()->Boolean)=ActivityHttp(cancelled,client.newBuilder()
+            .connectTimeout(5,TimeUnit.SECONDS).readTimeout(10,TimeUnit.SECONDS).callTimeout(15,TimeUnit.SECONDS).build())
     }
 }
-internal class DreeveClient(config:ActivityServiceConfig,private val key:String,cancelled:()->Boolean={false},base:HttpUrl?=null) {
+internal class DreeveClient(config:ActivityServiceConfig,private val key:String,cancelled:()->Boolean={false},base:HttpUrl?=null,transport:ActivityHttp?=null) {
     private val base=base ?: dreeveUrl(config.address)
-    private val http=ActivityHttp(cancelled)
+    private val http=transport ?: ActivityHttp(cancelled)
     private fun request(path:String)=Request.Builder().url(base.newBuilder().addPathSegments("api/v1/$path").build())
         .header("Authorization","Bearer $key").header("Accept","application/json").header("User-Agent","B-Cycle/${AppVersion.name}")
     fun test() {

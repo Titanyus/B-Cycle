@@ -11,6 +11,8 @@ import java.text.NumberFormat
 
 internal class DreeveMaintenanceView(context:Context,private val themes:ThemeManager,refresh:()->Unit):LinearLayout(context) {
     private val status=BicycleFeedback.status(context,themes).apply { tag="maintenance_status" }
+    private val updated=BicycleComponents.description(context,themes,"").apply { tag="maintenance_updated";visibility=GONE }
+    private var shown:Pair<List<DreeveMaintenanceTask>,Map<String,String>>?=null
     private val list=LinearLayout(context).apply {
         orientation=VERTICAL;tag="maintenance_tasks"
         val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,0)
@@ -25,17 +27,42 @@ internal class DreeveMaintenanceView(context:Context,private val themes:ThemeMan
         setPadding(0,0,0,dp(BicycleDesign.horizontalPadding))
         addView(LinearLayout(context).apply {
             orientation=VERTICAL;val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,0)
-            addView(reload);addView(status)
+            addView(reload);addView(updated);addView(status)
         })
         addView(list)
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
     }
     fun loading() { reload.isEnabled=false;list.removeAllViews();BicycleFeedback.update(status,context.getString(R.string.maintenance_loading)) }
     fun failed(problem:Int) { reload.isEnabled=true;BicycleFeedback.update(status,context.getString(problem)) }
+    fun render(state:MaintenanceState) {
+        val data=state.snapshot
+        val gearProblem=state.gearProblem ?: R.string.maintenance_names_stale.takeIf { data?.incompleteNames==true }
+        if(data==null) { list.removeAllViews();shown=null;updated.visibility=GONE }
+        else {
+            val signature=data.tasks to data.gears
+            if(signature!=shown) loaded(data.tasks,data.gears,gearProblem)
+            updated.visibility=VISIBLE
+            val time=java.time.Instant.ofEpochMilli(data.fetchedAt).atZone(java.time.ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+            updated.text=context.getString(R.string.maintenance_updated,time)
+        }
+        reload.isEnabled=!state.loading
+        val message=when {
+            state.loading->context.getString(R.string.maintenance_loading)
+            state.problem==R.string.maintenance_cache_failed->context.getString(state.problem)
+            state.problem!=null && data!=null->context.getString(R.string.maintenance_cached_problem,context.getString(state.problem))
+            state.problem!=null->context.getString(state.problem)
+            data!=null->loadedStatus(data.tasks,gearProblem)
+            else->""
+        }
+        BicycleFeedback.update(status,message)
+    }
+    private fun loadedStatus(tasks:List<DreeveMaintenanceTask>,gearProblem:Int?)=
+        context.getString(if(tasks.isEmpty()) R.string.maintenance_empty else R.string.maintenance_count,tasks.size)+
+            (gearProblem?.let { "\n"+context.getString(R.string.maintenance_gear_warning,context.getString(it)) } ?: "")
     fun loaded(tasks:List<DreeveMaintenanceTask>,gears:Map<String,String>,gearProblem:Int?=null) {
-        reload.isEnabled=true;list.removeAllViews()
-        BicycleFeedback.update(status,context.getString(if(tasks.isEmpty()) R.string.maintenance_empty else R.string.maintenance_count,tasks.size)+
-            (gearProblem?.let { "\n"+context.getString(R.string.maintenance_gear_warning,context.getString(it)) } ?: ""))
+        reload.isEnabled=true;list.removeAllViews();shown=tasks to gears
+        BicycleFeedback.update(status,loadedStatus(tasks,gearProblem))
         val groups=MaintenanceGrouping.bikes(tasks)
         expandedBikes.keys.retainAll(groups.keys)
         val activeParts=mutableSetOf<Pair<String?,String>>()

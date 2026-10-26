@@ -1,7 +1,8 @@
 # App-To-dos
 
 - [x] Schreibgeschützter Dreeve-Wartungsprototyp unter Einstellungen → Wartung: Aufgaben, Räder, Intervalle und Fälligkeit abrufen. [Umfang](docs/dreeve-maintenance.md).
-- [ ] Wartungsdaten automatisch aktualisieren und letzten Stand mit Zeitstempel offline anzeigen: Vorschlag Appstart, Öffnen und nach bestätigter Fahrtverarbeitung; Dreeve bleibt einzige Verwaltung. Automatik/Cache noch nicht umgesetzt, Details in docs/dreeve-maintenance.md.
+- [x] Wartungsdaten automatisch bei Appstart/Öffnen/nach bestätigter Fahrtverarbeitung aktualisieren, mit kontogebundenem Offline-Stand/Zeitstempel und dauerhafter Aktualisierungsvormerkung. Dreeve bleibt einzige Verwaltung. Details docs/dreeve-maintenance.md.
+- [ ] Dreeve-Import später um bevorzugten Original-FIT-Download ergänzen: API in v5.7.0 bestätigt, Aktivitätsfilter/hasFile/Originaldownload; bestehende Identität/Verknüpfung und GPX-Ersatzweg erhalten. Noch nicht implementiert, Nachweis docs/dreeve-original-files-api.md.
 - [ ] Wartungsanbindung später um ausdrücklich beauftragte Bearbeitung/Erledigtmeldungen erweitern.
 - [ ] Trainer einbauen (Umfang vor Umsetzung konkretisieren; bestehende Indoor-/FTMS-Anbindung berücksichtigen).
 - [ ] Statistikfunktionen für Monat und Jahr ergänzen, um eine schnelle Übersicht über die Fahrten zu ermöglichen.

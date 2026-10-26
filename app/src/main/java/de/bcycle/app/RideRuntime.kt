@@ -268,7 +268,10 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     fun setVisible(value: Boolean) {
         val opened=value && !visible
         visible=value;if(!value) hrv.abort("APP_BACKGROUND");updateActivity()
-        if(opened) autoStartOnConnection(recheck=true)
+        if(opened) {
+            autoStartOnConnection(recheck=true)
+            MaintenanceRepository.get(context).refresh()
+        }
     }
     private fun updateActivity() {
         bikeReconnect.foreground = active; heartReconnect.foreground = active;trainerReconnect.foreground=active;powerReconnect.foreground=active

@@ -153,12 +153,17 @@ internal class ActivityServiceUploads private constructor(val service:ActivitySe
                     update(c,operation) { it.put("job",job).put("state","processing").remove("problem") }
                     if(stopped()) return@synchronized true
                     if(result.activityId!=null && file.isFile && RouteUploads.eligible(c,id)) {
+                        var confirmed=false
                         synchronized(lock) {
                             if(entries(c).has(operation)) {
                                 RideServiceLinks.confirm(c,RideServiceLink(id,service.link,target,result.activityId,item.getString("hash")))
                                 update(c,operation) { it.put("state","saved").put("remoteId",result.activityId).remove("problem") }
                                 RideNames.confirmed(c,RideServiceLink(id,service.link,target,result.activityId,item.getString("hash")))
+                                confirmed=true
                             }
+                        }
+                        if(confirmed && service==ActivityService.DREEVE) runCatching {
+                            MaintenanceRepository.get(c).refresh(MaintenanceRepository.Reason.UPLOAD)
                         }
                         break
                     }
