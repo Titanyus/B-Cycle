@@ -253,3 +253,7 @@ Fahrerprofil: Herzfrequenz- und Leistungszonen zeigen Werte samt Einheiten recht
 
 
 Fehlende Hauptsensoren: Neue [Sensor-Startkarte](sensor-setup.md) für E-Bike ohne Bikezuordnung und Indoor ohne Trainerzuordnung. Tagespause getrennt je Profil, vorhandene getrennte Geräte nicht als fehlend behandeln. Einstieg nutzt bestehende Suche/Zuweisung.
+
+## Gelöschtes Profil und neu angelegtes gleichnamiges Fahrrad
+
+Fahrten behalten die alte Profil-UUID, Namen/Typ/Farbe als Snapshot; der letzte Radtyp ist zusätzlich pro gelöschter UUID gesichert. Das neue Profil bekommt eine neue UUID. Fahrtnamen und Dreeve-Links hängen nicht von dieser aktiven Profilzuordnung ab und bleiben erhalten. RouteQueryPopup zeigt bisher nur aktuelle Profile, RideProfileColor.slot liefert für die alte UUID null: der aktuelle Fahrradfilter ist daher deaktiviert, Typfilter E-Bike und „Ohne Profilzuordnung“ bleiben verwendbar. Dies verhindert absichtliche falsche Zuordnungen bei wiederverwendeten Slots, ist aber eine fehlende Wiederzuordnungsfunktion im UI. Keine stille Wiederverknüpfung anhand gleicher Namen. Mögliche Erweiterung: verwaiste UUID-Gruppen zeigen, Name/Typ nur als Vorschlag, Auswahl und Bestätigung eines aktuellen Ziels; erst danach lokale Metadaten auf bestehendem Bibliotheksworker ändern, FIT-Originale und Dienstlinks erhalten. Nutzerentscheidung zur Umsetzung noch offen (26.10.2026).

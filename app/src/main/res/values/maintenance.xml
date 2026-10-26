@@ -1,0 +1,26 @@
+<resources>
+    <string name="maintenance_title">Wartung</string>
+    <string name="maintenance_description">Wartungsaufgaben aus Dreeve, nach Dringlichkeit sortiert. Intervalle und Fälligkeit werden von Dreeve übernommen. Die Verbindung wird unter Daten &amp; Speicher eingerichtet; der automatische Fahrtupload muss nicht aktiviert sein.\n\n→ IN: Aufgaben, Komponenten, Dreeve-Fahrräder, Intervalle, Restwerte und letzter Wartungstermin.\n← OUT: Keine Übertragung; Wartungen können hier noch nicht bearbeitet oder als erledigt markiert werden.</string>
+    <string name="maintenance_refresh">Von Dreeve abrufen</string>
+    <string name="maintenance_loading">Wartungen werden geladen …</string>
+    <string name="maintenance_empty">Keine Wartungsaufgaben vorhanden oder Wartung in Dreeve deaktiviert.</string>
+    <string name="maintenance_count">%1$d Wartungsaufgaben geladen</string>
+    <string name="maintenance_api_unavailable">Diese Dreeve-Version bietet die Wartungs-API nicht an. Bitte Dreeve aktualisieren.</string>
+    <string name="maintenance_failed">Wartungen konnten nicht geladen werden.</string>
+    <string name="maintenance_changed">Die Dreeve-Verbindung wurde geändert. Bitte erneut abrufen.</string>
+    <string name="maintenance_gear_warning">Fahrradnamen nicht verfügbar; stattdessen werden Dreeve-Kennungen angezeigt. %1$s</string>
+    <string name="maintenance_overdue">Überfällig</string>
+    <string name="maintenance_due">Fällig</string>
+    <string name="maintenance_upcoming">Anstehend</string>
+    <string name="maintenance_no_gear">Derzeit keinem Fahrrad in Dreeve zugeordnet</string>
+    <string name="maintenance_interval">Intervall: %1$s</string>
+    <string name="maintenance_remaining">Noch %1$s</string>
+    <string name="maintenance_past_by">Um %1$s überschritten</string>
+    <string name="maintenance_last">Zuletzt erledigt: %1$s</string>
+    <string name="maintenance_km">km</string>
+    <string name="maintenance_miles">mi</string>
+    <string name="maintenance_hours">h</string>
+    <string name="maintenance_days">Tage</string>
+    <string name="maintenance_days_used">Nutzungstage</string>
+    <string name="maintenance_unknown_unit">(unbekannte Einheit)</string>
+</resources>

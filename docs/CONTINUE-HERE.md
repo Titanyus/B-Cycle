@@ -1,3 +1,9 @@
+# Aktueller Nachtrag26.10.2026: Wartungs-PoC und Diagnose gelöschtes Radprofil
+
+Einstellungen → Wartung über bestehende Dreeve-Konfiguration schreibgeschützt angebunden (GET gear/maintenance-tasks und gear). Eigenständiger einmaliger Worker, Aktualisieren, Dringlichkeit/Intervalle/Räder/Rest/letzte Wartung, eindeutige Fehler, Hilfe und IN/OUT. Keine neue Einstellung/Persistenz/Upload. 6 gezielte Tests erfolgreich. Details docs/dreeve-maintenance.md. Keine neue APK angefragt.
+
+Profilvorfall codebasiert erklärt: alte Fahrt-UUID nach Profil-Löschung absichtlich nicht an neues gleichnamiges Profil gebunden; Typ/Name/Dreeve-Verknüpfung erhalten. Filter bietet nur aktuelle Profile, alte Fahrten slot=null/„Ohne Profilzuordnung“. Automatischer Vorschlag plus bestätigte Zuordnung sinnvoll, NICHT still anhand Name/Slot. Nutzer konkretisiert Lösung zur Diskussion: Einstellungen/Profile kontextueller „Profil zuordnen“-Button nur bei nicht zugeordneten als Gefahren gespeicherten Fahrten; nach alter Profil-UUID gruppierte Accordions, darin nur Fahrtnamen plus Zielwahl/Bestätigungsaktion. Mehrere gelöschte Profile getrennt, ohne frühere ID eigene unbekannte Gruppe. Noch nicht implementieren, aktuelle Nutzerfrage prüft Sinn/fehlende Aspekte. Keine Fahrten-/Profilmetadaten geändert. Bestehende Profil-Löschungs- und Filter-Regressionsprüfungen erfolgreich.
+
 # Aktueller Nachtrag26.10.2026: HRV-Header / Zwischenzoom / kombinierte Kartengesten
 
 HRV-Fullscreen-Fenster (hideStatusBar) setzt nun SECONDARY bis in Status-/Cutoutbereich fort; Inhalt behält sichere Insets. Nur Messbildschirm: HrvHeaderFade blendet Header-Kinder beim aktiven Ablauf (REST+MEASURE) einmalig über2s aus; COMPLETE/ABORTED sofort wieder sichtbar. Hintergrund, Höhe und Back-Handler unverändert, Subscription/Animation bei Dismiss aufgeräumt.

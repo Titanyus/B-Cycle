@@ -45,7 +45,7 @@ class SettingsMenuTest {
                 body.layout(0,0,width,body.measuredHeight)
                 val brand = descendants(body).single { it.tag == "settings_brand_art" }
                 assertEquals(width, brand.width)
-                assertEquals(width * 1167f / 945f, brand.height.toFloat(), 2f)
+                assertEquals(width * 1150f / 940f, brand.height.toFloat(), 2f)
                 assertTrue(buildInfo.top > brand.height * .8f)
                 assertEquals(android.graphics.Color.WHITE, buildInfo.currentTextColor)
                 if (width == 960) {
@@ -58,8 +58,8 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_PROFILE", "settings_PROFILES", "settings_ROUTES", "settings_HRV", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Fahrer", "Profile", "Strecken", "HRV-Messungen", "Benachrichtigungen", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(listOf("settings_PROFILE", "settings_PROFILES", "settings_ROUTES", "settings_HRV", "settings_MAINTENANCE", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Fahrer", "Profile", "Strecken", "HRV-Messungen", "Wartung", "Benachrichtigungen", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
                 rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()

@@ -1,6 +1,7 @@
 # App-To-dos
 
-- [ ] Wartungsanbindung zwischen Dreeve und B-Cycle.
+- [x] Schreibgeschützter Dreeve-Wartungsprototyp unter Einstellungen → Wartung: Aufgaben, Räder, Intervalle und Fälligkeit abrufen. [Umfang](docs/dreeve-maintenance.md).
+- [ ] Wartungsanbindung später um ausdrücklich beauftragte Bearbeitung/Erledigtmeldungen erweitern.
 - [ ] Trainer einbauen (Umfang vor Umsetzung konkretisieren; bestehende Indoor-/FTMS-Anbindung berücksichtigen).
 - [ ] Statistikfunktionen für Monat und Jahr ergänzen, um eine schnelle Übersicht über die Fahrten zu ermöglichen.
 

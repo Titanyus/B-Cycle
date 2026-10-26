@@ -83,6 +83,11 @@ internal class DreeveClient(config:ActivityServiceConfig,private val key:String,
         return (0 until array.length()).mapNotNull { i -> val row=array.getJSONObject(i)
             row.validId("id")?.let { it to row.getString("name").take(120) } }.toMap()
     }
+    fun maintenance():List<DreeveMaintenanceTask> {
+        val response=http.optionalJson(request("gear/maintenance-tasks").build())
+            ?: throw ActivityServiceFailure(false,R.string.maintenance_api_unavailable)
+        return DreeveMaintenanceTask.decode(response)
+    }
     fun activityExists(activityId:String):Boolean {
         require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
         val url=request("activities").build().url.newBuilder().addPathSegment(activityId).build()
