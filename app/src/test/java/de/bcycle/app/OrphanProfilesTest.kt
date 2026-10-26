@@ -114,6 +114,9 @@ class OrphanProfilesTest {
             shadowOf(Looper.getMainLooper()).idle()
             val profiles=ShadowAlertDialog.getLatestAlertDialog()
             val open=profiles.window!!.decorView.findViewWithTag<View>("profile_assignment_open")
+            assertEquals("bicycle_action_footer",(open.parent as View).tag)
+            val footer=open.parent as android.view.ViewGroup
+            assertEquals("bike_delete",footer.getChildAt(footer.indexOfChild(open)+1).tag)
             assertEquals(View.VISIBLE,open.visibility);open.performClick();shadowOf(Looper.getMainLooper()).idle()
             val screen=ShadowAlertDialog.getLatestAlertDialog();val form=screen.window!!.decorView.findViewWithTag<View>("orphan_profiles")
             assertNotNull(form);assertNull(RideProfileColor.slot(c,setup.ids.first()))

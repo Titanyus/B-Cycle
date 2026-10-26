@@ -108,6 +108,45 @@ class IndoorRuntimeTest {
             assertNull(r.currentSpeedKmh);assertNull(r.dashboardBikeData.riderPowerWatts)
         } finally { if(r.recording) r.stopRecording();r.setVisible(false) }
     }
+    @Test fun speedOnlyTrainerRecordsFallbackDistanceAndListsOnlyActuallyReceivedFields() {
+        val (r,_,link)=setup()
+        try {
+            assertTrue(r.setIndoorType(IndoorBikeType.ROLLER_TRAINER))
+            assertTrue(r.setIndoorCorrection(IndoorCorrection(10,20)))
+            fun speedOnly() {
+                val (gatt,data)=link
+                Shadow.extract<TrainerConnectionTest.GattShadow>(gatt).gattCallback.onCharacteristicChanged(gatt,data,
+                    ftmsFrame(4 or 64,232,3,180,0,200,0))
+                shadowOf(Looper.getMainLooper()).idle()
+            }
+            speedOnly()
+            assertEquals(3,r.receivedValueCount(BikeSensor.TRAINER))
+            assertEquals(3,r.receivedValueNames(BikeSensor.TRAINER)!!.size)
+            assertFalse(r.receivedValueNames(BikeSensor.TRAINER)!!.any { it.contains("Distanz") })
+            assertNull(r.ride.bike.distanceM)
+            r.saveConfig(RecordingConfig(setOf("SPEED","BIKE_DISTANCE","RIDER_POWER","CADENCE")))
+            r.beginRecording()
+            assertFalse(r.setIndoorType(IndoorBikeType.EXERCISE_BIKE))
+            repeat(12) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));speedOnly() }
+            assertEquals(66L,r.ride.bike.distanceM)
+            assertEquals(20.0,r.currentSpeedKmh!!,.001)
+            val before=r.ride.bike.distanceM!!
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(8));speedOnly()
+            assertEquals(before,r.ride.bike.distanceM!!)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));speedOnly()
+            assertTrue(r.ride.bike.distanceM!!>before)
+            r.stopRecording()
+            val end=System.nanoTime()+10_000_000_000L
+            while(r.saving && System.nanoTime()<end) { shadowOf(Looper.getMainLooper()).idle();Thread.sleep(10) }
+            assertFalse(r.saving)
+            val file=java.io.File(r.context.filesDir,"fit-library").listFiles { f -> f.extension=="fit" }!!.single()
+            val fit=file.inputStream().use { com.garmin.fit.FitDecoder().decode(it) }
+            assertTrue(fit.recordMesgs.any { (it.distance ?: 0f)>0f })
+            assertEquals(r.ride.bike.distanceM!!.toDouble(),fit.sessionMesgs.single().totalDistance.toDouble(),1.0)
+            assertEquals(com.garmin.fit.SubSport.INDOOR_CYCLING,fit.sessionMesgs.single().subSport)
+            assertTrue(fit.recordMesgs.all { it.positionLat==null && it.positionLong==null })
+        } finally { if(r.recording) r.stopRecording();r.setVisible(false) }
+    }
     @Test fun disconnectReconnectTypeSwitchAndPersistedTrainerAreIndependentOfBoschPairing() {
         val (r,device,link)=setup()
         try {

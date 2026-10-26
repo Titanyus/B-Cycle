@@ -38,6 +38,7 @@ internal class TrainerReadings {
     private val values=mutableMapOf<TrainerField,Pair<Long,Double>>()
     private val received=mutableSetOf<TrainerField>()
     val count get()=received.size
+    internal val receivedTypes get()=received.toSet()
     var lastAt:Long?=null;private set
     fun apply(m:TrainerMeasurement,now:Long) {
         m.values.forEach { (field,value)->

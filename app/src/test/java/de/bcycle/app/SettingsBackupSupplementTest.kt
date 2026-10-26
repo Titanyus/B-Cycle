@@ -15,7 +15,7 @@ class SettingsBackupSupplementTest {
     private val prefs get()=c.getSharedPreferences("bike",0)
     @Test fun profilesNotificationsServiceConfigurationAndPortableIdsAreRestoredWithoutCredentialsOrJobs() {
         val bikes=BikeProfileStore(c,prefs);val second=bikes.add()!!
-        bikes.select(second.slot);bikes.save(bikes.current().copy(name="Indoor privat",type=BikeType.INDOOR,indoorCorrection=IndoorCorrection(12,15)))
+        bikes.select(second.slot);bikes.save(bikes.current().copy(name="Indoor privat",type=BikeType.INDOOR,indoorType=IndoorBikeType.ROLLER_TRAINER,indoorCorrection=IndoorCorrection(12,15)))
         val bikeId=BikeIdentities.id(prefs,second.slot)
         c.getSharedPreferences("message-notifications",0).edit().putBoolean("enabled",true)
             .putStringSet("packages",setOf("org.example.chat")).putInt("durationSeconds",35).putString("position","TOP").commit()
@@ -31,6 +31,7 @@ class SettingsBackupSupplementTest {
         val restored=BikeProfileStore(c,prefs)
         assertEquals(second.slot,restored.activeSlot)
         assertEquals("Indoor privat",restored.current().name);assertEquals(IndoorCorrection(12,15),restored.current().indoorCorrection)
+        assertEquals(IndoorBikeType.ROLLER_TRAINER,restored.current().indoorType)
         assertEquals(bikeId,BikeIdentities.id(prefs,second.slot))
         assertEquals(setOf("org.example.chat"),MessageNotificationSettings(c).packages)
         assertEquals(35,MessageNotificationSettings(c).durationSeconds)

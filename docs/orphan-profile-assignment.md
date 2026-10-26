@@ -21,3 +21,6 @@ Automatisches Managerangebot bleibt ein rein lokaler Hinweis, ohne Cloud-Abfrage
 ## Prüfung
 
 15 gezielte Tests erfolgreich: neue Gruppierung mit gleichnamigen gelöschten Profilen/fehlenden Kennungen/mehrdeutigen Vorschlägen, echte Bibliothekszuordnung mit Filter- und Sicherungsmetadaten/Originalhashes/Fahrtnamen/Dreeve-Link, gesperrter/staler Auftrag und verschwundenes Ziel sowie beide echten UI-Einstiege/Typwechselwarnung/Dismiss ohne Wiederholung/verschwindender Button. Dazu bisherige dynamische Profile, Profil-Löschung und Filter. Zusätzliche UI-Nachprüfung nach Foreground-Schutz erfolgreich. Typografie- und Diffprüfung erfolgreich. Kein Gerätetest, kein Gesamtlauf und keine neue APK.
+
+
+26.10.2026: Der kontextuelle Button „Profil zuordnen“ steht jetzt im Profil-Aktionsfooter direkt links neben „Löschen“, statt bei den Profilkacheln. Sichtbarkeit, Sperren und gemeinsamer Zuordnungsdialog unverändert.

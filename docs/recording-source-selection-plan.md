@@ -39,3 +39,6 @@ Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Bui
 ## Einheitliche Quellen-Dropdowns, 24.10.2026
 
 Geschwindigkeit, Distanz, Leistung, Kadenz, Puls und Höhe zeigen jeweils ein eigenes Dropdown. Zwei oder mehr konfigurierte Quellen: Wahl wie bisher. Eine Quelle: ihr Name sichtbar, Dropdown deaktiviert. Keine Quelle: Keine Quelle sichtbar, deaktiviert. Aufnahmesperre bleibt zusätzlich wirksam. Keine Auswahl wird allein durch das Anzeigen einer deaktivierten Zeile gespeichert; automatische Ersatzquellen, FIT-IDs, Profil-/Sicherungsformat und Quellauflösung unverändert.
+
+
+26.10.2026: gemeinsames Rollentrainer-Profil für echtes Fahrrad und Zwift Ride aktiviert, Profil-/Sicherungsfeld indoorType optional mit Hometrainer-Standard. Distanz-Fallback aus beobachteten Geschwindigkeitsintervallen umgesetzt, kein neuer auswählbarer Sensor. Zwift Ride/Click und virtuelle Schaltung als separater späterer Ausbau vorgemerkt; Bedienung/Grafik offen, Controller-Kompatibilität eigens prüfen. FTMS bleibt derzeit schreibgeschützt. Details indoor-ftms.md.

@@ -10,6 +10,19 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
 class BikeProfilesTest {
+    @Test fun oldProfilesDefaultToHometrainerAndIndoorTypeSurvivesSwitches() {
+        val c=RuntimeEnvironment.getApplication();val prefs=c.getSharedPreferences("indoor-type",0)
+        val store=BikeProfileStore(c,prefs)
+        assertEquals(IndoorBikeType.EXERCISE_BIKE,store.current().indoorType)
+        val first=store.current().slot
+        store.save(store.current().copy(type=BikeType.INDOOR,indoorType=IndoorBikeType.ROLLER_TRAINER))
+        val second=store.add()!!;store.select(second.slot)
+        assertEquals(IndoorBikeType.EXERCISE_BIKE,store.current().indoorType)
+        store.select(first);assertEquals(IndoorBikeType.ROLLER_TRAINER,store.current().indoorType)
+        val rows=org.json.JSONArray(prefs.getString(BikeProfileStore.KEY,null));rows.getJSONObject(0).remove("indoorType")
+        prefs.edit().putString(BikeProfileStore.KEY,rows.toString()).commit()
+        assertEquals(IndoorBikeType.EXERCISE_BIKE,BikeProfileStore(c,prefs).current().indoorType)
+    }
     @Test fun migrationRetainsLegacyPairingsAndFitSelectionOnlyInBikeOneAndIsIdempotent() {
         val app=RuntimeEnvironment.getApplication();val prefs=app.getSharedPreferences("profiles-migration",0)
         prefs.edit().putString("address","00:11:22:33:44:55").putString("name","Bosch")

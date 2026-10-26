@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sensor_values_speed">Geschwindigkeit · km/h</string>
+    <string name="sensor_values_power">Leistung · W</string>
+    <string name="sensor_values_cadence">Kadenz · U/min</string>
+    <string name="sensor_values_distance">Distanzzähler · m</string>
+    <string name="sensor_values_heart">Puls · bpm</string>
+    <string name="sensor_values_elapsed">Trainingszeit · s</string>
+    <string name="sensor_values_rr">RR-Intervalle</string>
+    <string name="sensor_values_energy">Energieverbrauch · kJ</string>
+    <string name="sensor_values_battery">Akkustand · %</string>
+    <string name="sensor_values_range">Reichweiten · km</string>
+</resources>

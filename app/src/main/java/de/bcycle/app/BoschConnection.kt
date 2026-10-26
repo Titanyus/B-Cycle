@@ -51,6 +51,8 @@ class BoschConnection(context: Context, private val listener: Listener, private 
     private var negotiatedMtu = 23
     private var liveData = LiveData()
     val receivedValueCount get() = liveData.measurementCount
+    internal val receivedMetrics get()=LiveMetric.entries.filter { liveData.value(it)!=null }
+    internal val receivedRanges get()=liveData.rangesKm?.isNotEmpty()==true
     private var liveMeasurementsReceived = false
     private var receiverRegistered = false
     private var lastDiagnosticStatus: String? = null

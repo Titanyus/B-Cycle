@@ -47,7 +47,7 @@ LiveData-/Dashboard-/Record-IDs und Einheiten normalisiert. Keine MCSP-Nachricht
 werden simuliert. Der vom Trainer gesendete Distanzzähler dient als Anker für die
 bestehende BikeRide-Fahrtstrecke: vor START keine App-Fahrtstrecke, bei START null,
 danach Geräte-Differenzen; Neustarts/Rücksprünge erzeugen keine negative Strecke.
-Fehlt die Distanz, wird keine Strecke erfunden. Die Geräte-Trainingszeit setzt die
+Fehlt ein frischer Distanzzähler, wird seit dem Nachtrag26.10.2026 die beobachtete Trainergeschwindigkeit zeitlich integriert; Details unten. Die Geräte-Trainingszeit setzt die
 BICYCLE-Aufnahmezeit nicht vor und ersetzt sie nicht.
 
 IndoorRide verwendet MovingTime und RideAnalysisMeans für bestehende Bewegungs-
@@ -139,3 +139,16 @@ Faktorschritten/Nullen/fehlenden Werten, UI-Auswahl, korrigierter Live-Anzeige u
 Performance, Distanz, FIT-Roundtrip, Aufnahmesperre und unveränderten alten FIT-Bytes.
 Release-Build einschließlich R8, Resource-Shrinking und Lint Vital erfolgreich.
 Diese Korrektur ist seit APK 0.7.27 enthalten.
+
+
+## Rollentrainer und Messwertdiagnose, 26.10.2026
+
+Die vorhandene Indoor-Typwahl bietet jetzt Hometrainer und Rollentrainer. `BikeProfile.indoorType` speichert die Auswahl pro Profil, einschließlich Profilkopie und Einstellungssicherung. Alte Profile/Backups ohne Feld verwenden Hometrainer. Bei Aufnahme/Speichern/HRV ist die Änderung gesperrt. Der Radtyp und FIT-Untertyp bleiben INDOOR/INDOOR_CYCLING; es entstehen keine neuen FIT- oder Journalformate.
+
+Ein Rollentrainer-Profil deckt sowohl ein eingespanntes Fahrrad als auch einen Zwift-Ride-Rahmen ab: dieselbe Trainerverbindung und Aufzeichnung. Virtuelle Schaltung/Click sind separat für später geplant, siehe TODO. Es gibt weder eine neue Controllerverbindung noch neue Widerstands-/ERG-Befehle. KICKR CORE mit FTMS-fähiger Firmware ist die Zielhardware; CORE2 und tatsächlich angebotene Dienste/Felder müssen am Gerät geprüft werden. Ohne Gerätetest keine zugesicherte Kompatibilität.
+
+`TrainerDistance` bevorzugt einen frischen Zähler. Fehlt dieser, werden aufeinanderfolgende tatsächliche Geschwindigkeitsmessungen mit Trapezregel integriert (km/h → m/s, maximal5s Abstand). Wiederholte Verarbeitung desselben Zeitstempels, fehlende/ungültige/stale Geschwindigkeit und Verbindungsabbruch addieren keine Strecke. Quellenwechsel setzen einen neuen Anker, ohne fremde Zählerstände aufzuschlagen; ein Zählerrücksprung addiert nichts Negatives. Start setzt die Fahrtstrecke zurück und verhindert das Einbeziehen der Zeit vor START. Der bestehende Geschwindigkeitskorrekturfaktor gilt einmalig auch für die daraus berechnete Distanz. Dashboard und aufgezeichnete Hauptdistanz verwenden dieselbe Fahrtstrecke; kein synthetischer Roh-Distanzzähler in den Sensordaten.
+
+Die Statuszeile mit Messwertanzahl ist über ein kleines Chevron aufklappbar und listet die tatsächlich empfangenen Arten samt Einheiten. Bosch: bisherige dekodierte Messfelder/Reichweiten; Pulsgurt: Puls, RR, Energie, Akku; FTMS: tatsächlich empfangene Trainerfelder und optional Akku. Abgeleitete Strecke oder nicht empfangene optionale Felder erscheinen dort nicht. Historie gilt nur für die aktuelle Verbindung; Trennung schließt/leert die Liste. Status-/Sensorverbindung und GATT-Schreibverhalten unverändert.
+
+Prüfung26.10.2026:18unterschiedliche gezielte Tests erfolgreich zu nativer Trainerdistanz und neuem Fallback, einmaliger Korrektur, Datenlücken/Quellenwechsel/Nullen/Zählerrücksprung/duplizierten und älteren Zeitstempeln, echter synthetischer FIT-Ausgabe, Profilwahl/Migration/Sicherung, aufklappbarer Messwertliste und erhaltenem Pulsgurt-/Zuordnungsdialogverhalten. Typografie-/Atlas-/Diffprüfung erfolgreich. Kein Gerätetest oder neue APK; CORE/CORE2 bleiben hardwareseitig zu prüfen.

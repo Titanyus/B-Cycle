@@ -48,7 +48,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private var binding = false
     private var photo:BikePhotoView?=null
     private lateinit var strip:BikeProfileStrip
-    private val assignmentButton=BicycleComponents.action(context,themes,context.getString(R.string.profile_assignment_title),assignProfiles).apply { tag="profile_assignment_open" }
+    private val assignmentButton=BicycleFooterAction(context,themes,BicycleIcon.Bikes,context.getString(R.string.profile_assignment_title),click=assignProfiles).apply { tag="profile_assignment_open" }
     private val deleteAction=BicycleFooterAction(context,themes,BicycleIcon.DeleteTrack,context.getString(if(additionalSections==null) R.string.bikes_delete else R.string.profiles_delete)) {
         val p=runtime.bikes.current()
         if(!runtime.recording && !runtime.saving && runtime.bikes.all().size>1) confirmDelete(p.slot,p.name) {
@@ -62,9 +62,11 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         if(additionalSections!=null) {
             addView(copyAction,LayoutParams(0,-2,1f))
         }
+        addView(assignmentButton,LayoutParams(0,-2,1f))
         addView(deleteAction,LayoutParams(0,-2,1f))
     }
     private val statuses = mutableMapOf<BikeSensor, TextView>()
+    private val measurementDetails=mutableMapOf<BikeSensor,SensorMeasurementDetails>()
     private val batteries = mutableMapOf<BikeSensor, TextView>()
     private val switches = mutableMapOf<BikeSensor, Switch>()
     private val disconnects = mutableMapOf<BikeSensor, Button>()
@@ -94,7 +96,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         shownSources=RecordingSources.available(runtime.bikes.current(),runtime.barometer.available)
         shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;correctionControls.clear()
         dashboardActions=null;designHeader=null
-        removeAllViews();statuses.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
+        removeAllViews();statuses.clear();measurementDetails.clear();batteries.clear();switches.clear();disconnects.clear();deviceNames.clear();removes.clear()
         val profile = runtime.bikes.current(); val slot = profile.slot
         strip=BikeProfileStrip(context,themes,{ id ->
             stopSearch()
@@ -107,7 +109,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         addView(strip,LayoutParams(-1,-2))
         strip.show(runtime.bikes.all(),slot,runtime.recording || runtime.saving)
         strip.revealActive()
-        addView(assignmentButton,LayoutParams(-1,-2));BicycleComponents.controlSpacing(assignmentButton)
         val nameHeader = BicycleSectionHeader(context,themes,profile.name).apply { tag="bike_name_header" }
         nameHeading = (nameHeader.titleView).apply {
             tag="bike_profile_name";gravity=Gravity.CENTER;minimumHeight=dp(BicycleDesign.sectionHeaderMinHeight);isClickable=true;isFocusable=true
@@ -202,7 +203,15 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 override fun areAllItemsEnabled()=false
                 override fun isEnabled(position:Int)=IndoorBikeType.entries[position].available
             }
-            setSelection(IndoorBikeType.EXERCISE_BIKE.ordinal)
+            setSelection(profile.indoorType.ordinal)
+            onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
+                override fun onNothingSelected(parent:AdapterView<*>?)=Unit
+                override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) {
+                    if(!isAttachedToWindow || runtime.bikes.activeSlot!=slot || binding) return
+                    val type=IndoorBikeType.entries[position]
+                    if(!runtime.setIndoorType(type)) setSelection(runtime.bikes.current().indoorType.ordinal)
+                }
+            }
         }
         BicycleDialogStyle.spinner(indoorTypeChoice,themes,BicycleDesign.profileDropdownSp)
         addView(indoorTypeChoice,LayoutParams(-1,dp(BicycleDesign.touchSize)))
@@ -306,7 +315,9 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 tag=when(sensor) { BikeSensor.GPS->"gps_state";BikeSensor.EBIKE->"bike_state";BikeSensor.HEART->"heart_state";else->"power_state" }
                 textSize=BicycleDesign.sensorStatusSp
             }
-            statuses[sensor]=state;details.addView(state,LayoutParams(-1,-2))
+            statuses[sensor]=state
+            val received=SensorMeasurementDetails(context,themes,state).apply { tag="sensor_measurements_${sensor.name}" }
+            measurementDetails[sensor]=received;details.addView(received,LayoutParams(-1,-2))
             if(sensor.supported) details.addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL
                 val disconnect=BicycleComponents.action(context,themes,context.getString(R.string.bikes_disconnect)) { runtime.disconnectSensor(sensor) }.apply { tag="bike_disconnect_${sensor.name}" }
@@ -432,6 +443,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         binding=true
         try {
             val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect;autoStartRecording.isChecked=p.autoStartRecording
+            indoorTypeChoice.setSelection(p.indoorType.ordinal)
             findViewWithTag<RideNamingView>("ride_naming")?.refreshLock()
             findViewWithTag<RecordingSourcesView>("recording_sources")?.refreshLock()
             searchButton.isEnabled=!runtime.recording && !runtime.saving
@@ -466,6 +478,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 val count=runtime.receivedValueCount(sensor)
                 BicycleFeedback.update(view,if(count!=null && count>0) context.getString(R.string.sensor_received_values,value,
                     resources.getQuantityString(R.plurals.sensor_value_count,count,count)) else value)
+                measurementDetails[sensor]?.update(runtime.receivedValueNames(sensor))
                 deviceNames[sensor]?.let { BicycleFeedback.update(it,when(sensor) { BikeSensor.EBIKE->p.bikeName;BikeSensor.HEART->p.heartName;BikeSensor.TRAINER->p.trainerName;else->null } ?: context.getString(R.string.bikes_not_assigned)) }
                 val battery=when(sensor) { BikeSensor.EBIKE->runtime.currentBikeBattery?.toInt();BikeSensor.HEART->runtime.pulseValues.battery.takeIf { runtime.heart.live };BikeSensor.TRAINER->runtime.trainer.battery;else->null }
                 batteries[sensor]?.let { BicycleFeedback.update(it,context.getString(R.string.bikes_battery, battery?.let { value -> context.getString(R.string.bikes_battery_value,value) } ?: context.getString(R.string.bikes_battery_missing))) }
