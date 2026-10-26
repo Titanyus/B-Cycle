@@ -1,3 +1,7 @@
+# Aktueller Abschluss26.10.2026: APK0.8.49 / Build89
+
+APK **0.8.49 / Build89 / Code119** auf main veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.49-release-89.apk), [Buildnachweis](build-89.md), Actions-Quellstand `2a37db5d71bf5b98e49380635285f5dd04d35fb3`. Größe 2.307.029 Bytes; SHA-256 `a1d081961ea7a201c1cfdbc3b12922250078c3dc88d034f5d1769d8b8d2ff0cb`. Optimierter Release, dauerhafte Signatur wie Build88, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Änderungen seit Build88 enthalten; Umfang und Prüfgrenzen in release-0.8.49.md. 18 unterschiedliche gezielte Umsetzungstests erfolgreich, keine unnötige Wiederholung/Gesamtsuite. Kein KICKR-Gerätetest, virtuelle Schaltung/Click und Trainersteuerung weiter vorgemerkt. Keine offene APK-Aufgabe; ältere Angaben darunter sind Verlauf.
+
 # Aktueller Auftrag26.10.2026: APK0.8.49 / Code119
 
 Neue APK ausdrücklich angefordert. Enthält c7826b4 nach Build88: Rollentrainer-/Profilwahl, Distanz-Fallback, tatsächliche Messwertarten aufklappbar, Profilzuordnung im Footer. 18 unterschiedliche gezielte Tests bereits erfolgreich; keine erneute Gesamtsuite erforderlich. Typografie-/Atlas-/Diffchecks erfolgreich. Version0.8.49/119 vorbereitet, Veröffentlichung via Actions mit dauerhaftem Schlüssel folgt. Noch kein KICKR-Gerätetest, virtuelle Schaltung/Trainersteuerung weiter vorgemerkt. Releaseumfang in release-0.8.49.md.

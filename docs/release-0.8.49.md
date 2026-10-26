@@ -9,4 +9,4 @@
 
 KICKR CORE/CORE2 benötigen weiterhin einen Test mit realer Hardware/Firmware. Zwift Ride/Click und virtuelle Schaltung sind für später vorgemerkt; noch keine Controller-Anbindung, ERG-, Widerstands- oder Steigungssteuerung. Keine neuen Abhängigkeiten oder Änderungen vorhandener FIT-/Journalformate.
 
-Optimierter Release über GitHub Actions. Buildnachweis folgt nach Veröffentlichung.
+Optimierter Release über GitHub Actions. [Buildnachweis und Download](build-89.md).
