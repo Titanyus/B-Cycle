@@ -1,3 +1,7 @@
+# Aktueller Abschluss26.10.2026: APK0.8.50 / Build90
+
+APK **0.8.50 / Build90 / Code120** auf main veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.50-release-90.apk), [Buildnachweis](build-90.md), Actions-Quellstand `647f2a012e14c106b952322786282f9713b8e578`. Größe 2.349.901 Bytes; SHA-256 `3e25990aa0a5232a67bb62b7b492c6bba9f77e07d7ed1f260665598b35425ac3`. Optimierter Release, dauerhafte Signatur wie Build89, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Änderungen seit Build89 enthalten; Umfang und Prüfgrenzen in release-0.8.50.md. Gezielte Umsetzungstests erfolgreich, darunter24 AXS-/Sensor-/Sicherungsfälle und45 FIT-/Dreeve-/UI-/Archivfälle. Keine unnötige Wiederholung/Gesamtsuite. Kein Hardware- oder privater Dreeve-Servertest; Gangdaten/virtuelle Schaltung/Trainersteuerung weiter vorgemerkt. Keine offene APK-Aufgabe; ältere Angaben darunter sind Verlauf.
+
 # Aktueller APK-Auftrag26.10.2026: Version0.8.50 / Code120
 
 Neue APK angefordert. Alle Änderungen seit Build89 enthalten: separate Powermeter, gruppierte Wartung mit Automatik/Offlinecache, Dreeve-FIT-Originaldownload mit GPX-Ersatz und SRAM-AXS-Schaltgruppe beim E-Bike. Vorhandene gezielte Umsetzungstests erfolgreich; keine unnötige Wiederholung/Gesamtsuite. Version0.8.50/120 vorbereitet. Optimierter Release via bestehendem GitHub-Actions-Workflow, dauerhafte Signatur nach Build prüfen. Umfang und Grenzen docs/release-0.8.50.md. Veröffentlichung läuft; ältere Angaben darunter sind Verlauf.

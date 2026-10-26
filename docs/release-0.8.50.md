@@ -10,4 +10,4 @@ Neue optimierte APK nach Build89, versionCode120, Android13+.
 
 Gezielte Tests während der Umsetzung erfolgreich, einschließlich24 AXS-/Sensor-/Sicherungsfällen und45 FIT-/Dreeve-/UI-/Archivfällen; Powermeter- und Wartungstests gesondert in den Fachdokumenten. Typografie-/UI-Katalog-/Diffprüfung erfolgreich. Kein erneuter vollständiger Testlauf. Kein physischer SRAM-/KICKR-/Powermeter-Gerätetest oder Test gegen den privaten Dreeve-Server. Keine neue Trainersteuerung/virtuelle Schaltung.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-90.md).
