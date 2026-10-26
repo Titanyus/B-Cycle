@@ -10,4 +10,4 @@ Optimierte APK nach Build90, versionCode121, Android13+.
 
 44 gezielte Tests für Sammelupload, Verknüpfungen, Sensorsuche und bestehende Transferwege sowie26 gezielte Import-/UI-/HRV-Gestenfälle erfolgreich. Typografie, UI-Katalog und Diff geprüft. Kein erneuter vollständiger Testlauf. Kein privates Cloudkonto, privater Dreeve-Server oder physisches SRAM-Gerät getestet.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-91.md).

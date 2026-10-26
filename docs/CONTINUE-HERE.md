@@ -1,3 +1,7 @@
+# Aktueller Abschluss26.10.2026: APK0.8.51 / Build91
+
+APK **0.8.51 / Build91 / Code121** auf main veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.51-release-91.apk), [Buildnachweis](build-91.md), Actions-Quellstand `66583ecdd89feee5f79efb4bbe9ae63b1f861c81`. Größe 2.372.593 Bytes; SHA-256 `538cc0e5db49c383a15365653ace055e0bfe4aaa2116e4e4973286461b61ff76`. Optimierter Release, dauerhafte Signatur wie Build90, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Änderungen seit Build90 enthalten; Umfang und Prüfgrenzen in release-0.8.51.md. 44 gezielte Sammelupload-/Sensor-/Transferprüfungen und26 Import-/UI-/HRV-Gestenfälle erfolgreich. Keine unnötige Wiederholung/Gesamtsuite. Kein Hardware- oder privater Dreeve-Servertest; Gangdaten/virtuelle Schaltung/Trainersteuerung weiter vorgemerkt. Keine offene APK-Aufgabe; ältere Angaben darunter sind Verlauf.
+
 # APK-Auftrag26.10.2026: Version0.8.51 / Code121 vorbereitet
 
 Neue APK ausdrücklich beauftragt. Enthält beide Änderungen nach Build90: intervals-Sammelupload/Dreeve-Verknüpfungsstatus/SRAM-Suche sowie kompakte Dreeve-Importliste/Schalter-Ripple/HRV-Pinch. Gezielte Prüfungen bereits erfolgreich (44 plus26 Fälle); keine Gesamtsuite erneut ausführen. Release über Push main und genau einen Actions-Lauf. Danach dauerhafte Signatur, Version/Manifest, Prüfsumme, Ausrichtung und direkten Download prüfen. Umfang: release-0.8.51.md.
