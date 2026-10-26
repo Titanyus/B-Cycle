@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 class DreeveImportUiTest {
     private fun activity(id:String,gpx:Boolean=true)=DreeveActivity(id,"Fahrt $id","2026-10-19T08:00:00",12000.0,"Ride",gpx)
     @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
-    @Test fun fourSeparateLinesKeepLongTitleOnOneLineAndShowBikeTypeAndGpxAvailability() {
+    @Test fun fourSeparateLinesKeepLongTitleAndShowPreferredFitFallbackAndWarnings() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
@@ -40,10 +40,18 @@ class DreeveImportUiTest {
             assertTrue(row.labels[0].layout.getEllipsisCount(0)>0)
             assertTrue(row.labels[1].text.contains("12"));assertTrue(row.labels[1].text.contains("1:01:05"))
             assertEquals("Reiserad (${a.getString(R.string.bikes_type_bike)})",row.labels[2].text.toString())
-            assertEquals("GPX abrufbar",row.labels[3].text.toString())
+            assertEquals("FIT bevorzugt · GPX abrufbar",row.labels[3].text.toString())
             val reused=list.adapter.getView(1,row,list) as DreeveActivityRow
-            assertEquals("GPX nicht abrufbar",reused.labels[3].text.toString())
+            assertEquals("FIT prüfen · kein GPX",reused.labels[3].text.toString())
             assertFalse(reused.box.isChecked)
+            view.complete(Result.success(DreeveImportResult(listOf(
+                DreeveItemResult("long",DreeveImportState.IMPORTED,fileFormat="GPX",fallbackProblem=R.string.dreeve_fit_invalid_fallback),
+                DreeveItemResult("summary",DreeveImportState.IMPORTED,fileFormat="FIT")))))
+            val fit=list.adapter.getView(1,reused,list) as DreeveActivityRow
+            assertTrue(fit.labels[3].text.contains("FIT-Original"));assertFalse(fit.box.contentDescription.contains("Zusammenfassung"))
+            val fallback=list.adapter.getView(0,row,list) as DreeveActivityRow
+            assertTrue(fallback.labels[3].text.contains("GPX verwendet"));assertTrue(fallback.box.contentDescription.contains("FIT nicht lesbar"))
+            assertTrue(view.findViewWithTag<TextView>("dreeve_import_status").text.contains("Bei 1 Fahrten"))
         } finally { host.pause().stop().destroy() }
     }
     @Test fun all398ActivitiesAcrossEightApiPagesRemainScrollableAndSelectableInFullscreen() {

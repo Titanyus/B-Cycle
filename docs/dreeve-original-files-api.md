@@ -10,7 +10,13 @@ Ja: Die aktuelle API bietet den unveränderten Download gespeicherter Originalda
 
 Nicht jede Aktivität besitzt eine Original-FIT-Datei. GPX-Importe werden dadurch nicht zu Original-FITs; übersprungene Dubletten oder andere Quellen können keine gespeicherte Datei haben. Quelle, Aktivitäts-ID und hasFile prüfen; niemals allein auf Dateiendung oder einen fehlgeschlagenen Request vertrauen.
 
-**App-Stand:** B|Cycle hat diesen Downloadweg noch nicht in den Dreeve-Import integriert. Bestehender GPX-/Zusammenfassungsimport bleibt unverändert. Eine spätere Integration kann Original-FIT bevorzugen und GPX bei fehlendem FIT verwenden. Dabei bestehende Fahrtenidentitäten, Dreeve-Verknüpfungen, Profilzuordnung, Filter/Dublettenregeln und Fehlersemantik erhalten; FIT-Integrität/Größe prüfen. Kein Auftrag für diese weitergehende Importänderung in diesem Schritt.
+**App-Stand:** Integriert26.10.2026. Nur ausgewählte, noch nicht verknüpfte Fahrten prüfen den Dateiimport-Katalog (Filter Aktivität/fitFile/success, Pagination100). Download nach FileImport-ID, niemals nach Dateiname. Unveränderte Originalbytes gehen durch den bestehenden FIT-Reader (CRC, maximal100MiB/600000 Records) und die bestehende FIT-Bibliothek. Indoor-FIT ohne GPX/GPS ist möglich. Herkunft Importiert/Gefahren und bestätigte Profilzuordnung gelten unverändert; Profiltyp wird als lokales Metadatum geführt, nicht in Originalbytes umgeschrieben.
+
+Keine verfügbare Datei, alte API ohne hasFile/404 oder fehlender Originaldownload404 → GPX. Ein defektes FIT führt mit sichtbarem Hinweis zu GPX; ohne GPX bleibt die bisherige Zusammenfassung. Authentifizierungs-, Netzwerk-, Server- und ungültige API-Antworten bleiben konkrete Fehler. Abbruch bereinigt temporäre Dateien. Kein automatischer Cloud-Upload.
+
+Bestehende GPX-/Zusammenfassungsimporte werden nicht aufgewertet oder ersetzt. FIT behält seine Hash-ID; Dreeve-Link und neue Profil-/Namensmetadaten verwenden diese tatsächliche lokale ID. Bereits byteidentisches FIT wird nur verknüpft, nicht dupliziert; Name, Herkunft und Profil bleiben unverändert. Linkbeleg enthält den Hash des heruntergeladenen Originals, auch falls lokal bereits eine abgeleitete Version aktiv ist. Löschen entfernt wie bisher lokale Verknüpfungen und erlaubt erneuten Import.
+
+45 gezielte Tests mit MockWebServer und Robolectric erfolgreich; sie prüfen API-Pagination/Filter/Datei-ID, Originalbytes, Indoor, Herkunft, Dubletten, Ersatzwege, klare Fehler und Abbruch. Kein Test gegen den privaten Nutzer-Server.
 
 ## Quellen
 

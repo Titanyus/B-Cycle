@@ -1,6 +1,6 @@
 <resources>
     <string name="dreeve_import_title">Aus Dreeve importieren</string>
-    <string name="dreeve_import_description">Fahrten mit GPX samt verfügbaren Sensorwerten übernehmen. Ohne GPX werden die verfügbaren Kennzahlen als Zusammenfassung importiert, ohne Karte oder Messwertverläufe. Kein Original-FIT-Download.</string>
+    <string name="dreeve_import_description">Verfügbare FIT-Originale werden bevorzugt unverändert übernommen, sonst GPX mit vorhandenen Sensorwerten. Fehlen beide, werden verfügbare Kennzahlen als Zusammenfassung ohne Karte oder Messwertverläufe importiert.</string>
     <string name="dreeve_import_reload">Neu laden</string>
     <string name="dreeve_import_more">Mehr laden</string>
     <string name="dreeve_import_selection">Importieren (%1$d)</string>
@@ -12,7 +12,14 @@
     <string name="dreeve_filter_all">Alle Tracks</string>
     <string name="dreeve_filter_not_imported">Noch nicht importiert</string>
     <string name="dreeve_import_load_failed">Fahrten konnten nicht geladen werden. Bitte Verbindung und Dreeve-Konfiguration prüfen.</string>
-    <string name="dreeve_import_download_failed">Import fehlgeschlagen. Bitte Verbindung und GPX-Verfügbarkeit prüfen.</string>
+    <string name="dreeve_import_download_failed">Import fehlgeschlagen. Bitte Verbindung und FIT-/GPX-Verfügbarkeit prüfen.</string>
+    <string name="dreeve_import_original_check">FIT-Original wird beim Import geprüft</string>
+    <string name="dreeve_import_fit">FIT-Original</string>
+    <string name="dreeve_import_gpx_used">GPX verwendet</string>
+    <string name="dreeve_import_fit_or_gpx">FIT bevorzugt · GPX abrufbar</string>
+    <string name="dreeve_import_fit_check_no_gpx">FIT prüfen · kein GPX</string>
+    <string name="dreeve_fit_invalid_fallback">FIT nicht lesbar; Ersatzdaten verwendet</string>
+    <string name="dreeve_fit_fallback_warning">Bei %1$d Fahrten war das FIT-Original nicht lesbar; GPX oder Zusammenfassung wurde verwendet.</string>
     <string name="dreeve_import_changed">Dreeve-Ziel geändert. Bitte die Fahrtenliste neu laden.</string>
     <string name="dreeve_import_imported">Importiert</string>
     <string name="dreeve_import_exists">Bereits vorhanden</string>
@@ -33,7 +40,7 @@
     <string name="dreeve_field_cadence">Kadenz</string>
     <string name="dreeve_field_temperature">Temperatur</string>
     <string name="help_dreeve_import_heading">Fahrten aus Dreeve</string>
-    <string name="help_dreeve_import_body">Fahrten mit GPX samt verfügbaren Sensorwerten übernehmen. Ohne GPX werden die verfügbaren Kennzahlen als Zusammenfassung importiert, ohne Karte oder Messwertverläufe. Kein Original-FIT-Download.\n\nDie Fahrtenliste wird automatisch vollständig geladen. Nach einem Abruffehler setzt Mehr laden an der erreichten Seite fort; Neu laden beginnt von vorn. Der oberste Filter Importstatus bietet Alle Tracks oder Noch nicht importiert. Filter und Sortierung funktionieren sonst wie im Streckenmanager. Alle gefilterten markiert die aktuell gefilterten, noch nicht importierten Fahrten. Vor dem Import kannst du Dreeve-Fahrräder deinen angelegten Profilen zuordnen. Diese Zuordnung bleibt für weitere Importe gespeichert; ohne Zuordnung wird kein Fahrrad geraten. Fahrten mit GPX erhalten verfügbare Sensorverläufe und die daraus berechenbaren Auswertungen. Ohne GPX werden nur verfügbare Kennzahlen als Zusammenfassung übernommen, ohne Karte, Best Efforts oder Zonenanteile. Bekannte externe IDs verhindern doppelte Importe. Der Dreeve-Haken bedeutet verknüpft und löst keinen erneuten Upload aus. Importierte Fahrten werden nicht automatisch zu anderen Diensten hochgeladen.</string>
+    <string name="help_dreeve_import_body">Verfügbare FIT-Originale werden bevorzugt unverändert übernommen, sonst GPX mit vorhandenen Sensorwerten. Fehlen beide, werden verfügbare Kennzahlen als Zusammenfassung ohne Karte oder Messwertverläufe importiert.\n\nDie Fahrtenliste wird automatisch vollständig geladen. Nach einem Abruffehler setzt Mehr laden an der erreichten Seite fort; Neu laden beginnt von vorn. Der oberste Filter Importstatus bietet Alle Tracks oder Noch nicht importiert. Filter und Sortierung funktionieren sonst wie im Streckenmanager. Alle gefilterten markiert die aktuell gefilterten, noch nicht importierten Fahrten. Vor dem Import kannst du Dreeve-Fahrräder deinen angelegten Profilen zuordnen. Diese Zuordnung bleibt für weitere Importe gespeichert; ohne Zuordnung wird kein Fahrrad geraten. FIT und GPX erhalten vorhandene Sensorverläufe und die daraus berechenbaren Auswertungen. FIT-Originale können auch Indoor-Fahrten ohne GPS enthalten. Ohne FIT und GPX werden nur verfügbare Kennzahlen als Zusammenfassung übernommen, ohne Karte, Best Efforts oder Zonenanteile. Ein nicht lesbares FIT führt mit Hinweis zum Ersatzweg; Verbindungs-, Anmelde- und Serverfehler bleiben Fehler. Bereits vorhandene Fahrten werden nicht ersetzt. Bekannte externe IDs verhindern doppelte Importe. Der Dreeve-Haken bedeutet verknüpft und löst keinen erneuten Upload aus. Importierte Fahrten werden nicht automatisch zu anderen Diensten hochgeladen.</string>
     <string name="dreeve_import_summary_imported">Zusammenfassung importiert</string>
     <string name="dreeve_summary_notice">Dreeve-Zusammenfassung: verfügbare Kennzahlen ohne GPS-Spur und Messwertverläufe. Keine Original-FIT-Datei.</string>
     <string name="dreeve_bikes_title">Fahrräder zuordnen</string>

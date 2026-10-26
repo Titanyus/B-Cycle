@@ -104,6 +104,7 @@ class DreeveSummaryTest {
             val activity=api.activities().activities.single()
             assertEquals("/api/v1/activities",server.takeRequest().requestUrl!!.encodedPath)
             var imported:Result<DreeveImportResult>?=null
+            server.enqueue(MockResponse().setResponseCode(404)) // Older server: original-FIT API unavailable.
             state.importDreeve(target,listOf(activity),api,{false},{},{ imported=it },mappings=mapOf("gear-matrix" to BikeProfileStore(c,c.getSharedPreferences("bike",0)).current().slot))
             await { imported!=null && !state.busy };assertEquals(1,imported!!.getOrThrow().count(DreeveImportState.IMPORTED))
             val entry=state.entries.single()
@@ -119,7 +120,8 @@ class DreeveSummaryTest {
             assertTrue(rows.filter { it.target!=RouteTransferTarget.LOCAL }.none { it.canStart })
             state.renameRoute(entry.id,"Indoor neu");await { !state.busy };assertEquals("Indoor neu",state.entries.single().name)
             state.deleteRoute(entry.id);await { !state.busy };assertTrue(state.entries.isEmpty());assertTrue(RideServiceLinks.links(c,entry.id).isEmpty())
-            assertEquals(1,server.requestCount)
+            assertEquals(2,server.requestCount)
+            assertEquals("/api/v1/file-imports",server.takeRequest().requestUrl!!.encodedPath)
         } finally {
             (MapState::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(state) as ExecutorService).shutdownNow()
             server.shutdown()

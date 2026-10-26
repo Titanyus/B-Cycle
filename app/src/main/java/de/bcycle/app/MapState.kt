@@ -263,7 +263,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         worker.execute {
             var result:Result<DreeveImportResult> = Result.failure(IllegalStateException())
             finishOperation("") {
-                result=runCatching { DreeveImport(context,library,{ library.entries.map { it.id }.toSet()+fits.entries.map { it.id }+dreeveSummaries.entries.map { it.id } },dreeveSummaries,client::downloadGpx)
+                result=runCatching { DreeveImport(context,library,{ library.entries.map { it.id }.toSet()+fits.entries.map { it.id }+dreeveSummaries.entries.map { it.id } },dreeveSummaries,fits=fits,downloadFit=client::downloadOriginalFit,download=client::downloadGpx)
                     .read(target,items,cancelled,origin=origin,bikeTypeFor={ activity ->
                         activity.summary.gearId?.let { mappings[it] }?.let { slot ->
                             BikeProfileStore(context,preferences).all().find { it.slot==slot }?.type
@@ -271,7 +271,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
                     }) { item ->
                         if(item.state==DreeveImportState.IMPORTED) {
                             val activity=items.find { it.id==item.id }
-                            val local=DreeveImport.localId(target,item.id)
+                            val local=item.localId ?: DreeveImport.localId(target,item.id)
                             activity?.summary?.gearId?.let { mappings[it] }?.takeIf { it>=0 }?.let { RideProfileColor.assign(context,local,it) }
                             activity?.let { RideNames.imported(context,local,it.name) }
                         }

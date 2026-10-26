@@ -94,7 +94,7 @@ internal class FitLibrary(root: File) {
         }
         if (next != entries) save(next)
     }
-    fun add(input: InputStream, name: String, recorded: Boolean, automatic: Boolean = false, preserveDate: Boolean = false): StoredFit? {
+    fun add(input: InputStream, name: String, recorded: Boolean, automatic: Boolean = false, preserveDate: Boolean = false,upgradeExisting:Boolean=true): StoredFit? {
         val temporary = File(directory, "${UUID.randomUUID()}.tmp")
         try {
             temporary.outputStream().use { output -> copyBounded(input, output) }
@@ -110,7 +110,7 @@ internal class FitLibrary(root: File) {
                     try { temporary.inputStream().use { it.copyTo(output) }; original.finishWrite(output) }
                     catch (e: Exception) { original.failWrite(output); throw e }
                 }
-                if (recorded && !existing.recorded) {
+                if (upgradeExisting && recorded && !existing.recorded) {
                     val upgraded = existing.copy(recorded = true, origin = TrackOrigin.RECORDED, details = readDetails(existing.id).details)
                     save(entries.map { if (it.id == existing.id) upgraded else it }); return upgraded
                 }

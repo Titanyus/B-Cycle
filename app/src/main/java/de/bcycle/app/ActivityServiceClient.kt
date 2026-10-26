@@ -26,9 +26,10 @@ internal class ActivityHttp(private val cancelled:()->Boolean={false},private va
             try { JSONObject(String(bytes,Charsets.UTF_8)) } catch(_:org.json.JSONException) { throw ActivityServiceFailure(false,R.string.service_response_failed) }
         }
     }
-    fun download(request:Request,file:File,maximum:Long) {
+    fun download(request:Request,file:File,maximum:Long,missingAllowed:Boolean=false):Boolean {
         if(cancelled()) throw IOException()
         http.newCall(request).execute().use { response ->
+            if(missingAllowed && response.code==404) return false
             if(response.code!=200) throw ActivityServiceFailure(response.code==408 || response.code==429 || response.code>=500,
                 ServiceProblems.http(response.code)?.text ?: R.string.dreeve_import_download_failed)
             val body=response.body ?: throw IOException()
@@ -43,6 +44,7 @@ internal class ActivityHttp(private val cancelled:()->Boolean={false},private va
                 }
             } }
         }
+        return true
     }
     fun file(file:File)=object:RequestBody() {
         override fun contentType()="application/octet-stream".toMediaType()
@@ -110,6 +112,24 @@ internal class DreeveClient(config:ActivityServiceConfig,private val key:String,
         require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
         val url=request("activities").build().url.newBuilder().addPathSegment(activityId).addPathSegment("gpx").build()
         http.download(request("activities").url(url).header("Accept","application/gpx+xml").build(),file,GpxImport.MAX_BYTES)
+    }
+    fun downloadOriginalFit(activityId:String,file:File):Boolean {
+        require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
+        var page=1
+        do {
+            val url=request("file-imports").build().url.newBuilder()
+                .addQueryParameter("filters[activityId]",activityId).addQueryParameter("filters[source]","fitFile")
+                .addQueryParameter("filters[status]","success").addQueryParameter("pagination[page]",page.toString())
+                .addQueryParameter("pagination[size]","100").build()
+            val json=http.optionalJson(request("file-imports").url(url).build()) ?: return false
+            val candidates=DreeveOriginalFits.decode(json,page,activityId)
+            for(id in candidates.ids) {
+                val download=request("file-imports").build().url.newBuilder().addPathSegment(id).addPathSegment("file").build()
+                if(http.download(request("file-imports").url(download).header("Accept","application/octet-stream").build(),file,FitRead.MAX_BYTES,missingAllowed=true)) return true
+            }
+            page++
+        } while(page<=candidates.totalPages)
+        return false
     }
     fun step(file:File,filename:String,jobId:String):UploadProgress {
         // Recover a lost 202 response by looking up this durable, unique attempt filename first.

@@ -9,7 +9,8 @@ internal data class ReadFit(val details: RouteDetails, val route: GpxRoute?)
 /** Garmin's official streaming decoder. Never accumulate sensor records in memory. */
 internal object FitRead {
     const val MAX_BYTES = 100L * 1024 * 1024
-    fun read(file: File): ReadFit {
+    fun read(file:File):ReadFit=read(file,null)
+    fun read(file: File,recordSeen:((com.garmin.fit.Mesg)->Unit)?): ReadFit {
         require(file.length() in 14..MAX_BYTES) { "FIT-Datei leer oder größer als 100 MB" }
         require(file.inputStream().buffered().use { Decode().checkFileIntegrity(it) }) { "FIT-Datei unvollständig oder Prüfsumme ungültig" }
         val track = MapTrack(); var count = 0; var positions = 0
@@ -32,6 +33,7 @@ internal object FitRead {
             when (message.num) {
                 0 -> value("time_created")?.let { date = (it * 1000 + 631065600000L).toLong() }
                 20 -> {
+                    recordSeen?.invoke(message)
                     count++; require(count <= 600_000) { "FIT enthält zu viele Messpunkte" }
                     val stamp = value("timestamp")?.let { (it * 1000 + 631065600000L).toLong() }
                     if (stamp != null) { first = minOf(first ?: stamp, stamp); last = maxOf(last ?: stamp, stamp) }

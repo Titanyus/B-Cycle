@@ -10,6 +10,8 @@ Filter und Sortierung sind ausdrücklich keine zweite Implementierung: RouteQuer
 
 GET /api/v1/gear liefert Namen zu gearId. Liste zeigt zusätzlich Dauer und Radname; bei fehlgeschlagenem Gear-Abruf bleibt die bekannte ID sichtbar, Fahrtenabruf bleibt möglich. Vor Import expliziter Zuordnungsdialog mit gemeinsamen Spinnerstilen. Ohne Zuordnung ist gültig. DreeveBikeMappings speichert Instanz → Gear-ID → stabiler Profilslot, entfernt nicht mehr vorhandene Profile aus der Vorbelegung. Erst bestätigter Dialog speichert. Neue lokale Einträge erhalten RideProfileColor-Zuordnung mit Profilname und PRIMARY-Rückfall. Kein Fahrrad aus dem Aktivitätsnamen oder Sporttyp erraten. Bereits vorhandene Fahrten nicht heimlich neu zuordnen.
 
+Seit26.10.2026 bevorzugt der Import unveränderte FIT-Originale über die Dreeve-Dateiimport-API; GPX ist Ersatz, reine Zusammenfassungen bleiben letzter Rückfall. Hash-basierte FIT-IDs, Originalbytes und bestehende Dubletten erhalten; neue Links/Profilzuordnungen auf die tatsächliche lokale FIT-ID. Details und Prüfgrenzen: [Originaldateien](dreeve-original-files-api.md).
+
 GPX bleibt unverändert; RouteAnalysisRead berechnet Norm. Leistung, Energie, EF, Verhältnis, Best Efforts und FTP-Schätzung nach den bestehenden Qualitäts-/Zeitregeln, soweit tatsächliche Messreihen reichen. Für GPX wird die allgemeine Powerquelle ohne Bosch-spezifisches Festhalten unveränderter Nullwerte verwendet. Reine JSON-Zusammenfassungen erhalten keine erfundenen Reihen oder Trainingsauswertungen.
 
 ## Verknüpfung und Namensabgleich

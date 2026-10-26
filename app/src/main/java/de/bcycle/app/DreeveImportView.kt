@@ -60,8 +60,9 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
                 result?.state==DreeveImportState.IMPORTED->context.getString(R.string.dreeve_import_imported)+
                     result.fields.takeIf { it.isNotEmpty() }?.joinToString(", "," · ") { context.getString(it.label) }.orEmpty()
                 item.id in existing->context.getString(R.string.dreeve_import_exists)
-                !item.hasGpx->context.getString(R.string.dreeve_import_no_gpx)
                 result?.state==DreeveImportState.FAILED->context.getString(result.problem ?: R.string.dreeve_import_download_failed)
+                !archiveMode->context.getString(R.string.dreeve_import_original_check)
+                !item.hasGpx->context.getString(R.string.dreeve_import_no_gpx)
                 else->context.getString(R.string.dreeve_import_gpx)
             }
             val date=runCatching { LocalDateTime.parse(item.startLocal).let { start ->
@@ -80,15 +81,21 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
                 BikeType.INDOOR->context.getString(R.string.bikes_type_indoor)
                 null->item.sportType.ifBlank { context.getString(R.string.dreeve_type_unknown) }
             }
-            val gpx=if(item.fileFormat!=null) context.getString(R.string.archive_file_available,item.fileFormat)
-                else context.getString(if(item.hasGpx) R.string.dreeve_import_gpx else R.string.dreeve_gpx_unavailable)
+            val gpx=when {
+                result?.fileFormat=="FIT"->context.getString(R.string.dreeve_import_fit)
+                result?.fileFormat=="GPX"->context.getString(R.string.dreeve_import_gpx_used)
+                result?.summaryOnly==true->context.getString(R.string.dreeve_import_no_gpx)
+                item.fileFormat!=null->context.getString(R.string.archive_file_available,item.fileFormat)
+                !archiveMode->context.getString(if(item.hasGpx) R.string.dreeve_import_fit_or_gpx else R.string.dreeve_import_fit_check_no_gpx)
+                else->context.getString(if(item.hasGpx) R.string.dreeve_import_gpx else R.string.dreeve_gpx_unavailable)
+            }
             val outcome=when {
                 item.id in existing->context.getString(R.string.dreeve_import_imported)
                 result?.state==DreeveImportState.FAILED->context.getString(R.string.dreeve_row_failed)
                 else->null
             }
             val lines=listOf(item.name,"$date · $distance · $duration",context.getString(R.string.dreeve_bike_type,bike,type),
-                listOfNotNull(gpx,outcome).joinToString(" · "))
+                listOfNotNull(gpx,outcome,result?.fallbackProblem?.let { context.getString(it) }).joinToString(" · "))
             row.labels.forEachIndexed { i,label -> label.text=lines[i] }
             box.contentDescription=lines.joinToString("; ")+"; "+state
             box.isChecked=item.id in selected || item.id in existing
@@ -193,7 +200,8 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
         result.fold({ summary ->
             summary.items.forEach(::progress);importing=false;controls();adapter.notifyDataSetChanged()
             BicycleFeedback.update(status,context.getString(R.string.dreeve_import_result,summary.count(DreeveImportState.IMPORTED),
-                summary.count(DreeveImportState.DUPLICATE),summary.count(DreeveImportState.FAILED)))
+                summary.count(DreeveImportState.DUPLICATE),summary.count(DreeveImportState.FAILED))+
+                summary.items.count { it.fallbackProblem!=null }.takeIf { it>0 }?.let { "\n"+context.getString(R.string.dreeve_fit_fallback_warning,it) }.orEmpty())
         },{ failed(R.string.dreeve_import_download_failed) })
     }
 }
