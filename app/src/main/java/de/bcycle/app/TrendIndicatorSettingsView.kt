@@ -6,6 +6,17 @@ import android.widget.*
 
 internal class TrendIndicatorSettingsView(context:Context,themes:ThemeManager,initial:TrendIndicatorConfig,
     changed:(TrendIndicatorConfig)->Unit):LinearLayout(context) {
+    fun setDataAvailable(available:Boolean) {
+        fun enable(view:View) {
+            view.isEnabled=available
+            if(view is android.view.ViewGroup) for(index in 0 until view.childCount) enable(view.getChildAt(index))
+        }
+        enable(this);alpha=if(available) 1f else .5f
+        if(!available) {
+            findViewWithTag<View>("field_trend_details").visibility=GONE
+            findViewWithTag<View>("field_trend_expand").apply { rotation=0f;stateDescription=context.getString(R.string.zone_collapsed) }
+        }
+    }
     init {
         orientation=VERTICAL;tag="trend_indicator_settings"
         var config=initial

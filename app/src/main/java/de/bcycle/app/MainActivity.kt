@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.Gravity
 import android.view.WindowInsets
+import android.view.Window
 import android.view.WindowManager
 import android.widget.*
 import java.io.IOException
@@ -83,11 +84,24 @@ class MainActivity : Activity() {
         mapBackRegistered=mapFullscreen
     }
     internal var dashboardEditing = false; private set
+    private val editorHandler=android.os.Handler(android.os.Looper.getMainLooper())
+    private val editorTimeout=Runnable {
+        if(dashboardEditing && runtime.visible) {
+            finishDashboardEditor()
+            if(!dashboardEditing) dialogs.closeAll() else restartEditorTimeout()
+        }
+    }
+    private fun restartEditorTimeout() {
+        editorHandler.removeCallbacks(editorTimeout)
+        if(dashboardEditing && runtime.visible) editorHandler.postDelayed(editorTimeout,if(picker?.isShowing==true) 12000L else 5000L)
+    }
+    override fun onUserInteraction() { super.onUserInteraction();restartEditorTimeout() }
     internal fun setDashboardEditing(value: Boolean) {
         dashboardEditing = value
         dashboard.setEditing(value); mapPanel.setEditing(value)
         if(::noMapEditorFinish.isInitialized) noMapEditorFinish.visibility=if(value && !currentTemplate().hasMap) View.VISIBLE else View.GONE
         if (value && mapFullscreen) setMapFullscreen(false)
+        restartEditorTimeout()
     }
     private fun finishDashboardEditor() {
         // commit waits for the existing field/graph apply writes; retain EDIT on a reported disk failure.
@@ -406,10 +420,11 @@ class MainActivity : Activity() {
                     .putString(DashboardDataVisibility.key(dashboardPage),dashboardDataVisibility.encode()).apply()
             }
         }
-        graphs?.changed = { saveGraphs(); render() }
+        graphs?.changed = { if(permitted()) { restartEditorTimeout();saveGraphs(); render() } }
         fun select(field: DashboardField?) {
             // Ignore stale selections after the dashboard editor has been exited.
             if (!permitted()) return
+            restartEditorTimeout()
             if (mapField) {
                 preferences.edit().apply {
                     if (field == null) remove(MapFieldSelection.key(index)) else putString(MapFieldSelection.key(index), field.id)
@@ -433,13 +448,32 @@ class MainActivity : Activity() {
             batteryChoose={ select(it) },trendConfig=dashboardTrendIndicators,
             trendChanged={ config ->
                 if(permitted()) {
+                    restartEditorTimeout()
                     dashboardTrendIndicators=config
                     TrendIndicatorSettings.save(preferences,config);mapPanel.refreshSettings();render()
                 }
-            },trainingHelp=trainingHelpControls { trainingPage },choose={ select(it) })
+            },trainingHelp=trainingHelpControls { trainingPage },choose={ select(it) }).apply { interaction=::restartEditorTimeout }
         val builder = dialog().setTitle(if (mapField) getString(R.string.ui_map_field_title, MapFieldSelection.positionLabel(this, index)) else getString(R.string.ui_dashboard_field_title, index + 1))
             .setView(content)
-        picker=builder.show()
+        val screen=builder.create()
+        picker=screen
+        val window=screen.window!!
+        val original=window.callback
+        val interaction=object:Window.Callback by original {
+            override fun dispatchTouchEvent(event:android.view.MotionEvent):Boolean {
+                restartEditorTimeout();return original.dispatchTouchEvent(event)
+            }
+            override fun dispatchKeyEvent(event:android.view.KeyEvent):Boolean {
+                restartEditorTimeout();return original.dispatchKeyEvent(event)
+            }
+        }
+        window.callback=interaction
+        dialogs.onDismiss(screen) {
+            if(window.callback===interaction) window.callback=original
+            if(picker===screen) picker=null
+            restartEditorTimeout()
+        }
+        screen.show();restartEditorTimeout()
     }
     private fun showNotificationSettings() {
         val content=MessageNotificationSettingsView(settingsContext,settingsThemes)
@@ -995,8 +1029,10 @@ class MainActivity : Activity() {
         }; if(currentTemplate().hasMap) mapPanel.resume(); runtime.observers.add(observer); runtime.setVisible(true); render(); refreshRouteRows()
         val dailyLaunch=HrvDailyLaunch(this);val today=HrvDailyLaunch.day()
         if(dailyLaunch.shouldShow(today)) showHrvDailyPrompt()
+        restartEditorTimeout()
     }
     override fun onStop() {
+        editorHandler.removeCallbacks(editorTimeout)
         // App switches preserve the dialog stack, scroll positions and in-progress input.
         hrvObservation?.close();hrvObservation=null
         closeSensorSetupPrompt()
@@ -1008,7 +1044,7 @@ class MainActivity : Activity() {
         dailyHrvPrompt?.close();dailyHrvPrompt=null
         closeSensorSetupPrompt()
         if(mapBackRegistered) onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
-        recordingIndicator?.stop();bikePicker?.dismiss();dialogs.closeAll(); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
+        recordingIndicator?.stop();bikePicker?.dismiss();dialogs.closeAll();editorHandler.removeCallbacks(editorTimeout); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
     }
 
     private fun setMapFullscreen(full: Boolean) {

@@ -27,6 +27,40 @@ import java.time.Duration
 @Config(sdk = [33])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class DashboardEditorTest {
+    @Test fun editorExitsAfterFiveIdleSecondsAndDashboardInteractionRestartsTheTimer() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=controller.get();tile(a,2).performLongClick()
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(4));assertTrue(a.dashboardEditing)
+            a.onUserInteraction()
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(4));assertTrue(a.dashboardEditing)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));assertFalse(a.dashboardEditing)
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun openPickerUsesTwelveIdleSecondsAndKeepsSavedSelectionWhenItTimesOut() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=controller.get();tile(a,2).performLongClick();tile(a,2).performClick()
+            val screen=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
+            selectTestSource(screen,"E-Bike");all(screen.window!!.decorView).single { it.tag=="CADENCE" }.performClick()
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11));assertTrue(a.dashboardEditing);assertTrue(screen.isShowing)
+            screen.window!!.callback.dispatchKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN,android.view.KeyEvent.KEYCODE_SHIFT_LEFT))
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11));assertTrue(a.dashboardEditing);assertTrue(screen.isShowing)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));assertFalse(a.dashboardEditing);assertFalse(screen.isShowing)
+            assertEquals("CADENCE",DashboardLayout.decode(RideRuntime.get(a).preferences.getString("dashboard",null)).fields[2].id)
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun dismissingPickerStartsFreshFiveSecondDeadlineAndBackgroundSuspendsIt() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=controller.get();tile(a,2).performLongClick();tile(a,2).performClick()
+            val screen=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(10));screen.dismiss();shadowOf(Looper.getMainLooper()).idle()
+            controller.pause().stop();shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(20));assertTrue(a.dashboardEditing)
+            controller.start().resume();shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(4));assertTrue(a.dashboardEditing)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));assertFalse(a.dashboardEditing)
+        } finally { controller.pause().stop().destroy() }
+    }
     private fun all(v: View) = testDescendants(v)
     private fun root(activity: MainActivity) = activity.findViewById<ViewGroup>(android.R.id.content)
     private fun tagged(activity: MainActivity, tag: String) = all(root(activity)).single { it.tag == tag }
@@ -199,6 +233,7 @@ class DashboardEditorTest {
             assertTrue(controller.get().dashboardEditing)
             assertEquals(View.VISIBLE,tagged(controller.get(),"dashboard_editor_finish").visibility)
             assertEquals(controller.get().getString(R.string.dashboard_editor_save_failed),org.robolectric.shadows.ShadowToast.getTextOfLatestToast())
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5));assertTrue(controller.get().dashboardEditing)
         } finally { property.set(runtime,original); controller.pause().stop().destroy() }
     }
     @Test fun normalTapIsInertButEditorCanOpenAndCommitUpperAndMapFieldsDuringMovement() {
@@ -208,7 +243,15 @@ class DashboardEditorTest {
             val tile = testDescendants(activity.findViewById(android.R.id.content)).single { it.tag == "dashboard_tile_0" }
             ShadowSystemClock.advanceBy(Duration.ofSeconds(1))
             val now = SystemClock.elapsedRealtime()
-            assertTrue(runtime.ride.gps.accept(GpsFix(now, 48.0, 11.0, 3.0, speedMps = 4.0), now))
+            // Movement uses enabled live sources; send a real sensor callback rather than
+            // writing only the GPS trip accumulator with GPS still disabled.
+            shadowOf(activity.application).grantPermissions(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            runtime.setGpsEnabled(true)
+            val listener=GpsSensor::class.java.getDeclaredField("listener").apply { isAccessible=true }.get(runtime.gpsSensor) as android.location.LocationListener
+            listener.onLocationChanged(android.location.Location("gps").apply {
+                latitude=48.0;longitude=11.0;accuracy=3f;speed=4f;elapsedRealtimeNanos=now*1_000_000
+            })
+            assertEquals(1,runtime.ride.gps.accepted)
             assertTrue(runtime.isMoving)
             tile.performClick(); assertNull(ShadowAlertDialog.getLatestAlertDialog()); assertFalse(activity.dashboardEditing)
             tile(activity,2).performLongClick(); assertTrue(activity.dashboardEditing); assertNull(ShadowAlertDialog.getLatestAlertDialog())

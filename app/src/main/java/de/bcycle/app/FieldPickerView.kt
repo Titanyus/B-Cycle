@@ -22,6 +22,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     trainingHelp:TrainingHelpView? = null,
     drinkReminder:DrinkReminderSettingsView? = null,
     choose: (DashboardField?) -> Unit) : LinearLayout(context) {
+    var interaction:()->Unit={}
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
         orientation = VERTICAL; setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
@@ -60,7 +61,8 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             }
         }
         dataContent.addView(selector, LayoutParams(-1, dp(BicycleDesign.touchSize)))
-        if(trendChanged!=null) panels.addView(TrendIndicatorSettingsView(context,themes,trendConfig,trendChanged),LayoutParams(-1,-2))
+        val trend=trendChanged?.let { TrendIndicatorSettingsView(context,themes,trendConfig,it).apply { setDataAvailable(pickerDataVisible) } }
+        if(trend!=null) panels.addView(trend,LayoutParams(-1,-2))
         val rows = LinearLayout(context).apply { orientation = VERTICAL;tag="field_list" }
         dataContent.addView(rows, LayoutParams(-1,-2))
         if(graphPicker!=null) panels.addView(graphPicker)
@@ -83,6 +85,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         fun reflectSelection(field:DashboardField?) {
             if(field!=null) currentSelection=field
             pickerDataVisible=field!=null
+            trend?.setDataAvailable(pickerDataVisible)
             reflecting=true;dataEnabled.isChecked=field!=null;reflecting=false
             combined=field?.batterySources!=null
             batterySelection=field?.batterySources.orEmpty().filter { it in availableBatteries }
@@ -153,7 +156,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             }
         }
         selector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) = populate(position)
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { if(shown!=position) interaction();populate(position) }
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
         val initial = sources.indexOf(if(BatteryFields.single(selected?.id.orEmpty())!=null) "Akku" else selected?.source(data)).coerceAtLeast(0)

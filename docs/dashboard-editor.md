@@ -115,3 +115,9 @@ zusätzlich kamen drei reine Interpolations-Tests und ein Karten-Lebenszyklustes
 Vorhandene Bedienungs- und Layouttests nutzen den neuen Editor-Einstieg beziehungsweise
 unterschiedliche Hochformat-Größen. Sensorverarbeitung, FIT-Rohdaten und Performance-
 Berechnungen wurden nicht geändert. Dieser Entwicklungsstand ist jetzt in der signierten [Test-APK 0.7.11](milestone-0711.md) enthalten.
+
+## Inaktivitätsende ab26.10.2026
+
+Im Vordergrund endet EDIT nach5s ohne Bedienung, solange keine Feldauswahl offen ist. Mit offener Dashboard-/Kartenfeldauswahl gilt12s. Tippen/Scrollen/Tasteneingaben und Auswahlaktionen setzen den jeweiligen Timer zurück; Sensor-/Graphaktualisierungen tun das nicht. Schließen der Feldauswahl startet eine neue5s-Frist. Der Timeout verwendet denselben Speicherschritt wie „Editor beenden“ und schließt danach Editorfenster. Bei Speicherfehler bleibt EDIT erhalten und die bestehende Fehlermeldung erscheint. Appwechsel pausiert die Frist; Rückkehr startet passend zum erhaltenen Editor-/Pickerzustand neu. Nach Ende/Zerstörung keine ausstehenden Timer. Kein neuer Einstellungs- oder Sicherungsschlüssel.
+
+Trendverfügbarkeit26.10.2026: DatenanzeigeAus deaktiviert die komplette Trend-Schalter-/Accordion-Kombination in der Feldauswahl und klappt ihre Details zu. Gespeicherter globaler Schalter und Einzelfeldauswahl unverändert. DatenanzeigeAn beziehungsweise Auswahl eines Datenwerts aktiviert die Kombination wieder; Graphen bleiben unabhängig. Quellenwechsel in der nativen Spinnerliste zählt ebenfalls als Bedienung für den Editortimer.
