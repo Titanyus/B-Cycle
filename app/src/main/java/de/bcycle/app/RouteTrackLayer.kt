@@ -13,7 +13,8 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /** Routes share the map framebuffer, including its live pinch scale and zoom pivot. */
-internal class RouteTrackLayer(private val density: Float) : Layer() {
+internal class RouteTrackLayer(private val density: Float,private val position:org.mapsforge.map.model.MapViewPosition?=null) : Layer() {
+    private var symbolScale=1f
     private data class State(val route: GpxRoute?, val track: List<MapPoint>, val gps: GpsValues,
         val showRoute: Boolean, val showTrack: Boolean, val heightLabel: String? = null, val night: Boolean = false, val phoneHeading:Double?=null,
         val recordedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.RECORDED),val savedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.SAVED))
@@ -26,7 +27,7 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
     private val heightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = dp(14); typeface = BicycleDesign.strongTypeface
     }
-    private fun dp(n: Int) = n * density
+    private fun dp(n: Int) = n * density / symbolScale
     fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean, night: Boolean = false, phoneHeading:Double?=null,
         recordedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.RECORDED),savedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.SAVED,night)) {
         // Publish an immutable snapshot; drawing occurs on Mapsforge's layer thread.
@@ -35,6 +36,11 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
     }
     override fun draw(boundingBox: BoundingBox, zoomLevel: Byte, canvas: Canvas, topLeftPoint: Point, rotation: Rotation) {
         val snapshot = state
+        // Geographic coordinates stay in the integer tile frame. Only screen-sized artwork
+        // compensates the fractional scale applied later by Mapsforge's framebuffer.
+        symbolScale=if(org.mapsforge.core.util.Parameters.FRACTIONAL_ZOOM && position!=null)
+            (position.scaleFactor/Math.pow(2.0,zoomLevel.toDouble())).toFloat().coerceAtLeast(.001f) else 1f
+        heightPaint.textSize=dp(14)
         val target = AndroidGraphicFactory.getCanvas(canvas)
         val mapSize = MercatorProjection.getMapSize(zoomLevel, displayModel.tileSize)
         fun x(lon: Double): Float {
@@ -54,13 +60,13 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
             }
             paint.style = Paint.Style.STROKE
             val group=if(!planned && style.opacity<100) {
-                path.computeBounds(lineBounds,true);lineBounds.inset(-(style.widthDp+2)*density,-(style.widthDp+2)*density)
+                path.computeBounds(lineBounds,true);lineBounds.inset(-(style.widthDp+2)*density/symbolScale,-(style.widthDp+2)*density/symbolScale)
                 target.saveLayerAlpha(lineBounds,android.graphics.Color.alpha(style.argb))
             } else -1
             if (!planned) {
-                paint.color = android.graphics.Color.WHITE; paint.strokeWidth = (style.widthDp+2)*density; target.drawPath(path, paint)
+                paint.color = android.graphics.Color.WHITE; paint.strokeWidth = (style.widthDp+2)*density/symbolScale; target.drawPath(path, paint)
             }
-            paint.color = if(group>=0) style.color else style.argb; paint.strokeWidth = style.widthDp*density; target.drawPath(path, paint)
+            paint.color = if(group>=0) style.color else style.argb; paint.strokeWidth = style.widthDp*density/symbolScale; target.drawPath(path, paint)
             if(group>=0) target.restoreToCount(group)
         }
         val route = snapshot.route
@@ -104,12 +110,16 @@ internal class RouteTrackLayer(private val density: Float) : Layer() {
                 target.save(); target.translate(x(longitude), y(latitude))
                 // Mapsforge rotates the whole framebuffer; keep the attached label upright.
                 target.rotate(-rotation.degrees)
-                val left = dp(18); val inset = dp(5)
+                target.scale(1f/symbolScale,1f/symbolScale)
+                // Keep font metrics at their intended size too; shrinking textSize before
+                // framebuffer scaling causes different glyph hinting at fractional zoom.
+                heightPaint.textSize=14*density
+                val left = 18*density; val inset = 5*density
                 val metrics = heightPaint.fontMetrics
-                val halfHeight = (metrics.descent - metrics.ascent) / 2 + dp(3)
+                val halfHeight = (metrics.descent - metrics.ascent) / 2 + 3*density
                 heightPaint.color = android.graphics.Color.argb(220, 255, 255, 255)
                 target.drawRoundRect(left, -halfHeight, left + heightPaint.measureText(text) + inset * 2,
-                    halfHeight, dp(4), dp(4), heightPaint)
+                    halfHeight, 4*density, 4*density, heightPaint)
                 heightPaint.color = android.graphics.Color.BLACK
                 target.drawText(text, left + inset, -(metrics.ascent + metrics.descent) / 2, heightPaint)
                 target.restore()

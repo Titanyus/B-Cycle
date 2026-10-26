@@ -11,6 +11,7 @@ internal class MapPinchZoom(private val map:MapView,private val maximum:()->Int)
     private var consuming=false
     private var pointerA=-1;private var pointerB=-1
     private var span=0.0;private var time=0L;private var movedAt=0L
+    private var focusX=0.0;private var focusY=0.0
     private var velocity=0.0
     private var animation:ValueAnimator?=null
     fun stop() { animation?.cancel();animation=null }
@@ -24,6 +25,11 @@ internal class MapPinchZoom(private val map:MapView,private val maximum:()->Int)
         stop();map.parent?.requestDisallowInterceptTouchEvent(true)
         pointerA=event.getPointerId(0);pointerB=event.getPointerId(1)
         span=distance(event);time=event.eventTime;movedAt=0;velocity=0.0
+        rememberFocus(event)
+    }
+    private fun rememberFocus(event:MotionEvent) {
+        val a=event.findPointerIndex(pointerA);val b=event.findPointerIndex(pointerB)
+        if(a>=0 && b>=0) { focusX=(event.getX(a)+event.getX(b))/2.0;focusY=(event.getY(a)+event.getY(b))/2.0 }
     }
     private fun distance(event:MotionEvent):Double {
         val a=event.findPointerIndex(pointerA);val b=event.findPointerIndex(pointerB)
@@ -53,7 +59,19 @@ internal class MapPinchZoom(private val map:MapView,private val maximum:()->Int)
                 if(next>0 && span>0) {
                     val before=map.model.mapViewPosition.zoom
                     val zoom=(before+ln(next/span)/ln(2.0)).coerceIn(MapZoom.minimum.toDouble(),maximum().toDouble())
+                    val oldX=focusX;val oldY=focusY
+                    rememberFocus(event)
+                    val ratio=2.0.pow(zoom-before)
+                    val centerX=map.width*map.mapViewCenterX.toDouble()
+                    val centerY=map.height*map.mapViewCenterY.toDouble()
+                    val dx=focusX-centerX-(oldX-centerX)*ratio
+                    val dy=focusY-centerY-(oldY-centerY)*ratio
+                    if(abs(dx)>.001 || abs(dy)>.001) map.onMoveEvent()
                     map.model.mapViewPosition.setZoom(zoom,false)
+                    if(abs(dx)>.001 || abs(dy)>.001) {
+                        val rotated=org.mapsforge.core.model.Rotation(map.mapRotation.degrees,0f,0f).rotate(dx,dy)
+                        map.model.mapViewPosition.moveCenter(rotated.x,rotated.y,false)
+                    }
                     val dt=event.eventTime-time
                     if(dt>0 && dt<=120) {
                         val sample=((zoom-before)*1000/dt).coerceIn(-6.0,6.0)
@@ -67,6 +85,7 @@ internal class MapPinchZoom(private val map:MapView,private val maximum:()->Int)
                 if(event.pointerCount>2) {
                     val remaining=(0 until event.pointerCount).filter { it!=event.actionIndex }
                     pointerA=event.getPointerId(remaining[0]);pointerB=event.getPointerId(remaining[1]);span=distance(event);time=event.eventTime;velocity=0.0
+                    rememberFocus(event)
                 } else { coast(event.eventTime);pointerA=-1;pointerB=-1 }
             }
             MotionEvent.ACTION_UP -> { consuming=false;map.parent?.requestDisallowInterceptTouchEvent(false) }

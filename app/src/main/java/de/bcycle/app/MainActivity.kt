@@ -650,6 +650,13 @@ class MainActivity : Activity() {
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(body) }).create()
         dialogs.onDismiss(screen) { runtime.hrv.abort("VIEW_CLOSED") }
         screen.show()
+        screen.window!!.decorView.post {
+            if(!screen.isShowing) return@post
+            val header=screen.window!!.decorView.findViewWithTag<android.view.ViewGroup>("bicycle_navigation_header") ?: return@post
+            val fade=HrvHeaderFade(header)
+            val subscription=runtime.hrv.observe { fade.show(it.phase==de.bcycle.hrv.Phase.REST || it.phase==de.bcycle.hrv.Phase.MEASURE) }
+            dialogs.onDismiss(screen) { subscription.close();fade.close() }
+        }
     }
     private fun showHrvTrends() {
         val root=LinearLayout(this).apply {

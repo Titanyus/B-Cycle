@@ -17,7 +17,7 @@ internal object BicycleFullscreen {
         if (view is ViewGroup) for (i in 0 until view.childCount) yieldAll(descendants(view.getChildAt(i)))
     }
     @Suppress("DEPRECATION") // Native edge-to-edge/IME compatibility for API 33+; no new dependency.
-    fun apply(screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null, headerRole:ThemeRole=ThemeRole.PRIMARY,plainHeader:Boolean=false) {
+    fun apply(screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null, headerRole:ThemeRole=ThemeRole.PRIMARY,plainHeader:Boolean=false,extendPageBackground:Boolean=false) {
         val window = screen.window ?: return
         if (descendants(window.decorView).any { it.tag == "bicycle_fullscreen" }) return
         val context = screen.context
@@ -35,10 +35,12 @@ internal object BicycleFullscreen {
         fun detach(view: View) { (view.parent as? ViewGroup)?.removeView(view) }
         val host = BicycleFullscreenHost(context).apply { orientation = LinearLayout.VERTICAL; tag = "bicycle_fullscreen"; showHeaderShadow=!plainHeader && headerRole==ThemeRole.PRIMARY }
         BicycleComponents.bindTheme(host,themes) { host.invalidate() }
-        BicycleComponents.bindTheme(host, themes) { _ ->
-            // Match the existing dashboard's black system-bar/cutout backdrop.
-            host.setBackgroundColor(android.graphics.Color.BLACK)
-            window.setBackgroundDrawable(GradientDrawable().apply { setColor(android.graphics.Color.BLACK); cornerRadius = 0f })
+        BicycleComponents.bindTheme(host, themes) { tokens ->
+            // HRV continues its page surface behind the hidden status bar/cutout;
+            // other fullscreen dialogs retain the dashboard's black backdrop.
+            val backdrop=if(extendPageBackground) tokens.secondary else android.graphics.Color.BLACK
+            host.setBackgroundColor(backdrop)
+            window.setBackgroundDrawable(GradientDrawable().apply { setColor(backdrop); cornerRadius = 0f })
         }
         header?.let {
             detach(it); it.tag = if (it.tag == null) "bicycle_fullscreen_header" else it.tag
@@ -80,6 +82,9 @@ internal object BicycleFullscreen {
             BicycleFooterShadow.bind(it)
         }
         window.setDecorFitsSystemWindows(false)
+        if(extendPageBackground) window.attributes=window.attributes.apply {
+            layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        }
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
         window.decorView.clipToOutline = false

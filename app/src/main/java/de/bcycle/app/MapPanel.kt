@@ -163,7 +163,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     val mapView: MapView
     private val pinchZoom:MapPinchZoom
-    private val routes = RouteTrackLayer(resources.displayMetrics.density)
+    private val routes by lazy { RouteTrackLayer(resources.displayMetrics.density,mapView.model.mapViewPosition) }
 
     init {
         MapZoom.enableFractional()

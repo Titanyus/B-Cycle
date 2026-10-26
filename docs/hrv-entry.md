@@ -96,3 +96,5 @@ Sticky-Kategorieheader verwenden nun League Gothic wie Hauptheader, mit 30 sp ge
 ## Pulssynchroner Glow nach Build 81
 
 Die Flat-Regel unterdrückt den HRV-Mess-Glow nicht mehr. In beiden Designs identische funktionale Animation: 300 ms weicher Anstieg aus der momentanen Deckkraft bis 45 %, dann 1,5 Sekunden Auslauf bis 10 %. Bereits vorhandene kurze Pulstakt-Interpolation bleibt erhalten, bei ausbleibenden Daten weich auf den Grundwert auslaufen. Puls-/RR-/Qualitätsberechnung und Messablauf unverändert. Gezielte Rampen-/Übergangs- und Flat-/Glow-Pixeltests erfolgreich.
+
+26.10.2026: Verborgene Statusleiste/Cutoutbereich auf HRV-Fullscreen-Seiten zeigen die SECONDARY-Seitenfarbe statt schwarzem Fensterhintergrund; sichere Inhaltsinsets bleiben. Im Messscreen blenden nur Titel/Icons bei Start des Ablaufs (einschließlich Ruhephase) weich über2s aus. Laufende Updates starten den Fade nicht erneut. Abschluss/Abbruch zeigt sie sofort wieder; Hintergrund und Navigation bleiben unverändert.

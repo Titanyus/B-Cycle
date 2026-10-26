@@ -14,11 +14,39 @@ import java.time.Duration
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33],qualifiers="mdpi")
 class MapPinchZoomTest {
-    private fun event(action:Int,time:Long,span:Float):MotionEvent {
+    private fun event(action:Int,time:Long,span:Float,centerX:Float=180f,centerY:Float=200f):MotionEvent {
         val count=if(action==MotionEvent.ACTION_DOWN || action==MotionEvent.ACTION_UP) 1 else 2
         val properties=Array(count) { i -> MotionEvent.PointerProperties().apply { id=i;toolType=MotionEvent.TOOL_TYPE_FINGER } }
-        val coords=Array(count) { i -> MotionEvent.PointerCoords().apply { x=180f+(if(i==0) -span/2 else span/2);y=200f;pressure=1f;size=1f } }
+        val coords=Array(count) { i -> MotionEvent.PointerCoords().apply { x=centerX+(if(i==0) -span/2 else span/2);y=centerY;pressure=1f;size=1f } }
         return MotionEvent.obtain(1000,time,action,count,properties,coords,0,0,1f,1f,0,0,android.view.InputDevice.SOURCE_TOUCHSCREEN,0)
+    }
+    @Test fun pinchScalesAndTranslatesTogetherIncludingRotatedMapsAndPureTwoFingerPan() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val map=testDescendants(host.get().window.decorView).filterIsInstance<MapPanel>().single().mapView
+            map.layout(0,0,360,400);map.setMapViewCenterX(.5f);map.setMapViewCenterY(.5f)
+            val pinch=MapPinchZoom(map) { 19 }
+            for(angle in listOf(0f,90f)) {
+                map.rotate(org.mapsforge.core.model.Rotation(angle,180f,200f))
+                map.setCenter(org.mapsforge.core.model.LatLong(0.0,0.0));map.model.mapViewPosition.setZoom(12.0,false)
+                fun send(action:Int,time:Long,span:Float,x:Float=180f,y:Float=200f) {
+                    val e=event(action,time,span,x,y);try { pinch.onTouch(e) } finally { e.recycle() }
+                }
+                send(MotionEvent.ACTION_DOWN,1000,100f)
+                send(MotionEvent.ACTION_POINTER_DOWN or (1 shl 8),1010,100f)
+                send(MotionEvent.ACTION_MOVE,1030,200f,200f,230f)
+                assertEquals(13.0,map.model.mapViewPosition.zoom,.0001)
+                val size=org.mapsforge.core.util.MercatorProjection.getMapSize(13,256)
+                val center=map.model.mapViewPosition.center
+                val shift=org.mapsforge.core.model.Rotation(angle,0f,0f).rotate(20.0,30.0)
+                assertEquals(size/2.0-shift.x,org.mapsforge.core.util.MercatorProjection.longitudeToPixelX(center.longitude,size),.01)
+                assertEquals(size/2.0-shift.y,org.mapsforge.core.util.MercatorProjection.latitudeToPixelY(center.latitude,size),.01)
+                send(MotionEvent.ACTION_MOVE,1050,200f,220f,240f)
+                assertEquals(13.0,map.model.mapViewPosition.zoom,.0001)
+                assertNotEquals(center,map.model.mapViewPosition.center)
+                send(MotionEvent.ACTION_CANCEL,1060,200f)
+            }
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun pinchContinuesBelowPlatformSpanThresholdAndCoastsUntilNewTouch() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()

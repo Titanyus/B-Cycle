@@ -51,7 +51,7 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
             val help=if(fullscreen && helpEnabled) SettingsHelp.resolve(screen)?.let { page ->
                 { SettingsHelp.show(context,themes,navigation,page,screen.window!!.decorView) }
             } else null
-            if (fullscreen) BicycleFullscreen.apply(screen, themes,help,headerRole,plainHeader)
+            if (fullscreen) BicycleFullscreen.apply(screen, themes,help,headerRole,plainHeader,extendPageBackground=hideStatusBar)
             else {
                 BicycleDialogStyle.messageSpacing(screen)
                 val top=screen.window?.decorView?.findViewById<ViewGroup>(context.resources.getIdentifier("topPanel","id","android"))

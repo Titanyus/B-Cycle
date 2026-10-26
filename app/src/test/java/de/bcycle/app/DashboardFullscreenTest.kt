@@ -52,6 +52,14 @@ class DashboardFullscreenTest {
                 for(flat in listOf(false,true,false)) {
                     themes.setFlatDesign(flat)
                     assertEquals(themes.active.tokens.secondary,(header.background as android.graphics.drawable.ColorDrawable).color)
+                    if(fullscreen) {
+                        val host=screen.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen")
+                        assertEquals(themes.active.tokens.secondary,(host.background as android.graphics.drawable.ColorDrawable).color)
+                        val cutout=android.view.WindowInsets.Builder().setInsets(android.view.WindowInsets.Type.displayCutout(),android.graphics.Insets.of(0,40,0,0)).build()
+                        host.dispatchApplyWindowInsets(cutout)
+                        assertEquals(40,host.paddingTop)
+                        assertEquals(android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS,screen.window!!.attributes.layoutInDisplayCutoutMode)
+                    }
                 }
                 assertNotNull(header.findViewWithTag<View>("dialog_back"));screen.dismiss()
             }

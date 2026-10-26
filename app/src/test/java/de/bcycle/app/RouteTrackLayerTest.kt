@@ -25,6 +25,36 @@ import org.robolectric.RobolectricTestRunner
 @Config(sdk = [33])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RouteTrackLayerTest {
+    @Test fun fractionalZoomKeepsLineDotAndHeightLabelScreenSizesAndGeographicAlignment() {
+        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
+        val previous=org.mapsforge.core.util.Parameters.FRACTIONAL_ZOOM
+        MapZoom.enableFractional()
+        val model=Model();model.displayModel.setFixedTileSize(256)
+        try {
+            val base=MercatorProjection.getMapSize(10,256)
+            fun point(x:Double,y:Double)=MapPoint(MercatorProjection.pixelYToLatitude(base/2.0-256+y,base),MercatorProjection.pixelXToLongitude(base/2.0-256+x,base))
+            val layer=RouteTrackLayer(1f,model.mapViewPosition);layer.setDisplayModel(model.displayModel)
+            layer.update(GpxRoute(listOf(point(100.0,180.0),point(400.0,180.0)),2,1),emptyList(),
+                GpsValues(latitude=0.0,longitude=0.0,altitudeM=487.0),true,false)
+            var labelWidth:Int?=null
+            for(zoom in listOf(10.0,10.5,10.99,11.0,11.5)) {
+                model.mapViewPosition.setZoom(zoom,false)
+                val level=kotlin.math.floor(zoom).toInt()
+                val size=MercatorProjection.getMapSize(level.toByte(),256)
+                val bitmap=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
+                val factor=Math.pow(2.0,zoom-level).toFloat()
+                val target=android.graphics.Canvas(bitmap).apply { scale(factor,factor,256f,256f) }
+                layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),level.toByte(),AndroidGraphicFactory.createGraphicContext(target),Point(size/2.0-256,size/2.0-256),Rotation.NULL_ROTATION)
+                val lineY=(256+(180-256)*Math.pow(2.0,zoom-10)).toInt()
+                assertEquals("Line width at $zoom",6.0,(lineY-8..lineY+8).count { Color.alpha(bitmap.getPixel(256,it))>50 }.toDouble(),2.0)
+                assertEquals("Dot diameter at $zoom",22.0,(240..270).count { Color.alpha(bitmap.getPixel(it,256))>100 }.toDouble(),2.0)
+                val width=(274..400).count { Color.alpha(bitmap.getPixel(it,256))>100 }
+                if(labelWidth==null) labelWidth=width else assertEquals("Height label at $zoom",labelWidth!!.toDouble(),width.toDouble(),2.0)
+                assertEquals(Color.rgb(0,100,245),bitmap.getPixel(256,256))
+                bitmap.recycle()
+            }
+        } finally { model.mapViewPosition.destroy();org.mapsforge.core.util.Parameters.FRACTIONAL_ZOOM=previous }
+    }
     @Test fun routeUsesMapFramebufferScaleAroundGesturePivotBeforeZoomLevelChanges() {
         AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
         val model = Model()
