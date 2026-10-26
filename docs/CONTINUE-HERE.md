@@ -1,3 +1,7 @@
+# APK-Auftrag26.10.2026: Version0.8.51 / Code121 vorbereitet
+
+Neue APK ausdrücklich beauftragt. Enthält beide Änderungen nach Build90: intervals-Sammelupload/Dreeve-Verknüpfungsstatus/SRAM-Suche sowie kompakte Dreeve-Importliste/Schalter-Ripple/HRV-Pinch. Gezielte Prüfungen bereits erfolgreich (44 plus26 Fälle); keine Gesamtsuite erneut ausführen. Release über Push main und genau einen Actions-Lauf. Danach dauerhafte Signatur, Version/Manifest, Prüfsumme, Ausrichtung und direkten Download prüfen. Umfang: release-0.8.51.md.
+
 # Aktueller Stand26.10.2026 nachBuild90: kompakte Dreeve-Liste und HRV-Pinch
 
 Dreeve drei normale Zeilen, Fahrrad näher an Datum/Strecke, bestätigte FIT-/GPX-Kennzeichen rechts über unverändertem Schalter. Optionale paginierte Sammelmetadatenabfrage nach vollständig geladener Liste, keine Dateidownloads/N+1; Liste sofort bedienbar, Generation/Konto/Dismiss-Schutz. Erfolgsstatus nur ausgewählt/deaktiviert, tatsächliche Importfehler weiter sichtbar. Archiv vier Zeilen. compact_choice_role begrenzt Ripple auf sichtbare Pille und vermeidet unnötiges Formularpadding/-margins; feste52dp Breite bei aktuellen Tokens,48dp Touchhöhe. Import-/Dubletten-/Downloadlogik unverändert. Details docs/dreeve-original-files-api.md.
