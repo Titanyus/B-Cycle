@@ -16,6 +16,30 @@ import org.robolectric.shadows.ShadowAlertDialog
 @Config(sdk=[33],qualifiers="xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class IndoorUiTest {
+    @Test fun externalPowerAndCadenceUseIndependentSourceDropdownsAndRetainPreferenceWhenDisabled() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=controller.get();val r=RideRuntime.get(a);r.changeBikeType(BikeType.INDOOR)
+            r.bikes.save(r.bikes.current().copy(autoConnect=false,trainerAddress="00:11:22:33:44:11",powerAddress="00:11:22:33:44:22"))
+            MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(a)
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            val power=root.findViewWithTag<Spinner>("record_source_choice_POWER")
+            val cadence=root.findViewWithTag<Spinner>("record_source_choice_CADENCE")
+            assertEquals(2,power.count);assertTrue(power.isEnabled);assertEquals(2,cadence.count)
+            assertEquals(a.getString(R.string.bikes_power_meter),power.adapter.getItem(1))
+            power.setSelection(1);shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(RecordingSource.POWER,r.config.sourcePreferences!!.preferred[RecordingQuantity.POWER])
+            assertEquals(0,cadence.selectedItemPosition)
+            cadence.setSelection(1);shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(RecordingSource.POWER,r.config.sourcePreferences!!.preferred[RecordingQuantity.CADENCE])
+            root.findViewWithTag<android.widget.Switch>("bike_sensor_POWER").isChecked=false
+            shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertFalse(root.findViewWithTag<Spinner>("record_source_choice_POWER").isEnabled)
+            assertEquals(RecordingSource.POWER,r.config.sourcePreferences!!.preferred[RecordingQuantity.POWER])
+            assertFalse(BikeProfileStore(a,r.preferences).current().powerEnabled)
+        } finally { controller.pause().stop().destroy() }
+    }
     @Test fun changingTypesAndEditingIndoorFitPreservesHiddenOutdoorSelectionAndPrimarySources() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -53,8 +77,8 @@ class IndoorUiTest {
             shadowOf(android.os.Looper.getMainLooper()).idle()
             assertEquals(BikeType.INDOOR,runtime.bikes.current().type)
             assertFalse(runtime.gpsEnabled);assertFalse(runtime.gpsSensor.active);assertFalse(runtime.config.needsGps)
-            assertNotNull(decor.findViewWithTag<View>("bike_sensor_TRAINER"));assertNotNull(decor.findViewWithTag<View>("bike_sensor_HEART"))
-            for(sensor in listOf("GPS","EBIKE","POWER")) assertNull(decor.findViewWithTag<View>("bike_sensor_$sensor"))
+            assertNotNull(decor.findViewWithTag<View>("bike_sensor_TRAINER"));assertNotNull(decor.findViewWithTag<View>("bike_sensor_POWER"));assertNotNull(decor.findViewWithTag<View>("bike_sensor_HEART"))
+            for(sensor in listOf("GPS","EBIKE")) assertNull(decor.findViewWithTag<View>("bike_sensor_$sensor"))
             assertEquals(View.GONE,decor.findViewWithTag<View>("bike_category").visibility)
             val indoorType=decor.findViewWithTag<Spinner>("bike_indoor_type_choice")
             assertEquals(View.VISIBLE,indoorType.visibility)

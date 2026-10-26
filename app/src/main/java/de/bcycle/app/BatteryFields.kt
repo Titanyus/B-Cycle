@@ -30,7 +30,7 @@ internal object BatteryFields {
         require(sources.size in 1..4 && sources.distinct().size==sources.size)
         return DashboardField("$COMBINED:"+sources.sortedBy { it.ordinal }.joinToString(",") { it.name })
     }
-    fun choices(data:LiveData)=listOf(if(data.indoor) BatterySource.TRAINER else BatterySource.EBIKE,BatterySource.HEART,BatterySource.PHONE)
+    fun choices(data:LiveData)=listOf(if(data.indoor) BatterySource.TRAINER else BatterySource.EBIKE,BatterySource.HEART,BatterySource.POWER,BatterySource.PHONE)
         .filter { data.batteries.level(it)!=null }
     fun icon(source: BatterySource)=when(source) {
         BatterySource.EBIKE,BatterySource.TRAINER->SensorIcons.forSensor(if(source==BatterySource.EBIKE) BikeSensor.EBIKE else BikeSensor.TRAINER)

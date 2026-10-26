@@ -110,7 +110,7 @@ class BikesViewTest {
             assertFalse(typeAdapter.isEnabled(BikeType.BIKE.ordinal))
             assertTrue(typeAdapter.isEnabled(BikeType.EBIKE.ordinal))
             assertTrue(typeAdapter.isEnabled(BikeType.INDOOR.ordinal))
-            assertFalse(body.findViewWithTag<View>("bike_sensor_POWER").isEnabled)
+            assertTrue(body.findViewWithTag<View>("bike_sensor_POWER").isEnabled)
             assertNotNull(body.findViewWithTag<View>("bike_sensor_search"))
             val fitContent = body.findViewWithTag<View>("bike_fit_settings")
             assertNull(body.findViewWithTag<View>("bike_fit_toggle"))

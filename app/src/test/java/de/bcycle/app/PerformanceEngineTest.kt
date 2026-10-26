@@ -216,6 +216,18 @@ class PerformanceEngineTest {
         assertNotNull(actual.speedToPowerRatio);assertNotNull(actual.caloriesKcal)
     }
 
+    @Test fun resolvedExternalZeroNeverUsesBoschHeartbeatContinuation() {
+        val engine=PerformanceEngine(resolvedPower=true)
+        engine.accept(PerformanceEvent(PerformanceChannel.POWER,0,0.0,source=PowerSource.CYCLING_POWER_BLE.name))
+        for(i in 0..9) {
+            engine.accept(PerformanceEvent(PerformanceChannel.BIKE_ACTIVITY,i*1000L,10.0,source="SPEED"))
+            engine.accept(PerformanceEvent(PerformanceChannel.SPEED,i*1000L,10.0,source="SPEED"))
+        }
+        engine.advance(10000)
+        assertEquals(5000L,engine.snapshot().quality.powerMs)
+        assertEquals(0L,engine.snapshot().quality.continuedZeroMs)
+    }
+
     @Test fun comparisonSourceCannotOverwriteOrInvalidateBoschAndRetainsItsOwnAge() {
         val engine = PerformanceEngine()
         engine.accept(power(0, 200.0))

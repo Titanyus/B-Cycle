@@ -9,7 +9,7 @@
 
 Vorgemerkt am 23.10.2026, noch kein Umsetzungsauftrag. Protokolle gemeinsam unterstützen, statt für jedes Fabrikat eine eigene Anbindung zu bauen. Details und Abgrenzung: [Quellenplanung](docs/recording-source-selection-plan.md#spätere-sensor-erweiterungen).
 
-- [ ] Bluetooth Cycling Power Service für separate Powermeter und Leistungspedale anbinden; danach als zusätzliche Leistungsquelle anbieten. Sinnvolle nächste Ergänzung.
+- [x] Bluetooth Cycling Power Service für ein separates Powermeter/Leistungspedale je Profil: unabhängige Leistungs-/Kadenzquelle mit automatischem Ersatz, Aufzeichnung und Sicherung. [Umfang und Grenzen](docs/cycling-power.md). Hardwaretests und herstellerspezifische Besonderheiten weiter offen.
 - [ ] Bluetooth Cycling Speed and Cadence Service für separate Geschwindigkeits-/Kadenzsensoren anbinden; Geschwindigkeit/Distanz aus Radumdrehungen und Profil-Radumfang berechnen. Ebenfalls als nächste Ergänzung sinnvoll.
 - [ ] Wahoo KICKR CORE und CORE 2 mit konkreter Firmware gegen die bestehende FTMS-Messwertanbindung prüfen; Unterstützung nicht ohne Gerätetest zusagen.
 - [ ] FTMS-Trainersteuerung separat ergänzen: ERG/Zielwatt, Widerstand und Steigung, soweit vom Gerät unterstützt. Messwertempfang ist bereits vorhanden und bedeutet noch keine Steuerbarkeit.

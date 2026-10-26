@@ -11,7 +11,7 @@ import java.util.UUID
 /** One bounded scan, with serial service discovery for devices that omit service UUIDs in advertising. */
 @SuppressLint("MissingPermission")
 internal class BikeSensorScanner(private val context: Context, private val excluded: Set<String>,
-    private val found: (BluetoothDevice, String, BikeSensor) -> Unit, private val status: (String) -> Unit, private val allowed:Set<BikeSensor> = setOf(BikeSensor.EBIKE,BikeSensor.HEART,BikeSensor.TRAINER)) {
+    private val found: (BluetoothDevice, String, BikeSensor) -> Unit, private val status: (String) -> Unit, private val allowed:Set<BikeSensor> = setOf(BikeSensor.EBIKE,BikeSensor.HEART,BikeSensor.TRAINER,BikeSensor.POWER)) {
     private val adapter = context.getSystemService(BluetoothManager::class.java).adapter
     private val handler = Handler(Looper.getMainLooper())
     private var callback: ScanCallback? = null
@@ -24,6 +24,7 @@ internal class BikeSensorScanner(private val context: Context, private val exclu
     private fun kind(services: List<UUID>) = when {
         BikeSensor.TRAINER in allowed && TrainerConnection.SERVICE in services -> BikeSensor.TRAINER
         BikeSensor.EBIKE in allowed && BoschConnection.MCSP_SERVICE in services -> BikeSensor.EBIKE
+        BikeSensor.POWER in allowed && CyclingPowerConnection.SERVICE in services -> BikeSensor.POWER
         BikeSensor.HEART in allowed && HeartRateConnection.SERVICE in services -> BikeSensor.HEART
         else -> null
     }
@@ -41,7 +42,9 @@ internal class BikeSensorScanner(private val context: Context, private val exclu
                         if (address in excluded || !seen.add(address)) return@post
                         val name = result.scanRecord?.deviceName ?: device.name ?: address
                         val category = kind(result.scanRecord?.serviceUuids.orEmpty().map { it.uuid })
-                        if (category != null) found(device, name, category)
+                        // A trainer may advertise only Cycling Power but also expose FTMS.
+                        // Discover its full service list before assigning the Powermeter role.
+                        if (category != null && category!=BikeSensor.POWER) found(device, name, category)
                         else if (queue.size < 10) { queue.addLast(device to name); nextProbe() }
                     } catch (_: SecurityException) { stop(); status(context.getString(R.string.bikes_scan_permission)) }
                 } }

@@ -42,7 +42,7 @@ data class PerformanceValues(
 )
 
 /** Only bounded state: actual events -> time integral -> complete 1 s bins -> complete 30 s windows. */
-class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), powerDurationsMs: List<Long> = emptyList(), private val primaryPowerSource:PowerSource=PowerSource.BOSCH_RIDER) {
+class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), powerDurationsMs: List<Long> = emptyList(), private val primaryPowerSource:PowerSource=PowerSource.BOSCH_RIDER,private val resolvedPower:Boolean=false) {
     companion object {
         const val MODEL_VERSION = 3
         const val MAX_HOLD_MS = 5_000L
@@ -67,11 +67,13 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
     var latestPower: PowerMeasurement? = null; private set
     private val measurements = mutableMapOf<PowerSource, PowerMeasurement>()
     val powerSources: Map<PowerSource, PowerMeasurement> get() = measurements.toMap()
+    private fun selectedPower(event:PerformanceEvent)=event.source==primaryPowerSource.name ||
+        (resolvedPower && (event.source==PowerSource.CYCLING_POWER_BLE.name || event.source==PowerSource.FTMS.name || event.source==PowerSource.BOSCH_RIDER.name))
 
     fun accept(event: PerformanceEvent) {
         require(event.atMs >= cursor) { "Performance events must be monotonic" }
         advance(event.atMs)
-        if (event.channel == PerformanceChannel.POWER && event.source != primaryPowerSource.name) {
+        if (event.channel == PerformanceChannel.POWER && !selectedPower(event)) {
             runCatching { PowerSource.valueOf(event.source) }.getOrNull()?.let { source ->
                 measurements[source] = PowerMeasurement(source, event.value, event.receivedAtMs, event.sensorTimeMs,
                     event.connected, event.value?.let { it.isFinite() && it in 0.0..65535.0 } == true)
@@ -85,7 +87,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
                 val finite = event.value?.isFinite() == true
                 val valid = finite && event.connected && event.receivedAtMs <= event.atMs &&
                     (event.sensorTimeMs == null || event.sensorTimeMs <= event.receivedAtMs) && when (event.channel) {
-                        PerformanceChannel.POWER -> event.source == primaryPowerSource.name && event.value!! in 0.0..65535.0 &&
+                        PerformanceChannel.POWER -> selectedPower(event) && event.value!! in 0.0..65535.0 &&
                             (event.value != 0.0 || observedDeadline(event) > event.atMs)
                         PerformanceChannel.HEART_RATE -> event.value!! in 1.0..255.0
                         PerformanceChannel.SPEED -> event.value!! in 0.0..35.0
@@ -96,7 +98,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
                 if (event.channel == PerformanceChannel.POWER) { latestPower = PowerMeasurement(
                     runCatching { PowerSource.valueOf(event.source) }.getOrDefault(PowerSource.BOSCH_RIDER),
                     event.value, event.receivedAtMs, event.sensorTimeMs, event.connected, valid, gapMs.takeIf { it > 0 })
-                    measurements[primaryPowerSource] = latestPower!!
+                    measurements[latestPower!!.source] = latestPower!!
                 }
             }
         }
@@ -105,7 +107,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
         event.sensorTimeMs ?: event.receivedAtMs) + MAX_HOLD_MS
     private fun deadline(event: PerformanceEvent): Long {
         val observed = observedDeadline(event)
-        if (primaryPowerSource!=PowerSource.BOSCH_RIDER || event.channel != PerformanceChannel.POWER || event.value != 0.0) return observed
+        if (event.source!=PowerSource.BOSCH_RIDER.name || event.channel != PerformanceChannel.POWER || event.value != 0.0) return observed
         // Bosch may stop repeating an unchanged zero. Only live bike telemetry can
         // maintain that explicit state; GPS alone never proves bike connectivity.
         val heartbeat = readings[PerformanceChannel.BIKE_ACTIVITY]

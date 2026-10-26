@@ -1,0 +1,29 @@
+# Separate Bluetooth-Powermeter
+
+Stand26.10.2026 nach Build89. Separate Leistungsmesser/Leistungspedale verwenden den standardisierten Bluetooth Cycling Power Service01818 mit Measurement02A63. Derselbe Adapter ist in Indoor- und E-Bike-Profilen verfügbar; normales Bike bleibt unverändert deaktiviert. Pro Profil wird ein Bluetooth-Powermeter gespeichert; bei beidseitigen Pedalen muss der ausgewählte Sensor bereits die zusammengeführte Leistung senden. Keine Verdopplung einseitiger Leistung und keine neue Links-/Rechts-Zusammenrechnung.
+
+## Bedienung und Quellen
+
+Unter Profile → Sensoren nach Powermeter suchen und bewusst zuordnen. Die bestehende Sensorsuche prüft bei Cycling-Power-Werbung zunächst die vollständigen Dienste, damit ein KICKR mit zusätzlichem FTMS weiterhin als Trainer erkannt wird. Bekannte aktuelle Trainer/Pulsgurt/Powermeter-Adressen nicht doppelt anbieten. Gerät, Schalter, manuelles Trennen, Entfernen, Wiederverbindung, Akku und aufklappbare tatsächlich empfangene Arten folgen dem vorhandenen Sensorstil. Trennen erhält Zuordnung und verhindert automatisches Wiederverbinden bis zur bewussten Aktion.
+
+Unter FIT-Aufzeichnung Leistung und Kadenz jeweils unabhängig zwischen Trainer/Bike und Powermeter wählen. Die ursprüngliche Trainer-/Bike-Priorität bleibt Standard. Frische Werte der gewählten Quelle gewinnen; bei Ausfall automatisch passende frische Ersatzquelle, bei Rückkehr wieder bevorzugte Quelle. Verbindungs-/Feldfrische maximal5s. Wenn keine Quelle liefert, bleibt die Kennzahl fehlend. Eine Powermeterzuordnung allein erzeugt keine Kadenz: diese muss tatsächlich übertragen werden. Geschwindigkeit und Distanz bleiben beim Trainer; der Indoor-Korrekturfaktor verändert nur Trainerwerte, nicht die externen Powermeterwerte.
+
+Dashboard, Trends, Hauptfelder in Journal/FIT, Live-Graphen, Kadenzdurchschnitt und Indoor-Leistungsmittel verwenden dieselbe aufgelöste Quelle. Rohe Trainer-/Bike-Kanäle bleiben erhalten; Standard-FIT-Leistung/Kadenz kommen aus bestehenden PRIMARY_POWER/PRIMARY_CADENCE-Spalten. Es werden keine Leistungswerte addiert. Eine Quellenwahl vor START wird im bestehenden Aufnahmesnapshot eingefroren; verborgene Outdoor-GPS-/Distanz-/Höhenpräferenzen bleiben bei Indoor-Änderungen erhalten.
+
+## Protokoll und Berechnung
+
+CyclingPowerConnection ist ein eigener schreibgeschützter GATT-Client. Serienfolge: Dienste prüfen, Measurement-Notify/CCCD aktivieren, danach optional Standard-Battery-Service lesen. Keine Nullung, Kalibrierung, Control-Point- oder Trainerbefehle. Android-Callback-Generationen nach Stop/Profilwechsel ignorieren; unvollständige/unbekannte Frames ändern weder Messwerte noch Kurbelanker.
+
+CyclingPowerMeasurements dekodiert Flags und überspringt alle standardisierten optionalen Nutzdaten. Leistung ist signed16; gültige Fahrerleistung0…32766W, negative/reservierte Werte fehlen. Kadenz aus Differenz der Kurbelumdrehungen und letztem Kurbelereignis (1/1024s), jeweils16Bit mit Überlauf. Keine Kadenz aus Radumdrehungen. Erster Wert, Zeitlücke>5s oder unplausible Differenz etabliert nur einen Anker. Wiederholte Kurbelzähler mit unverändertem Ereignis markieren nach3s fortlaufend empfangener Daten0U/min; fehlende Kurbel-Nutzdaten bleiben unbekannt. Diese Schwelle entspricht einer Erkennungsgrenze bei sehr niedriger Kadenz, keine Labor-Kadenzmessung.
+
+PerformanceEngine behält standardmäßig die bisherige Trennung von Haupt- und Vergleichsquellen. Nur Runtime und FIT-Replay bereits aufgelöster PRIMARY_SOURCES_V1-Aufnahmen aktivieren resolvedPower: sie erhalten ausschließlich vorher ausgewählte Power-Events, mit tatsächlicher physischer Quelle und ursprünglichem Mess-/Empfangszeitpunkt. Nicht ausgewählte Trainerpakete erneuern keine Powermeterzeit. Keine Bosch-Nullverlängerung für CYCLING_POWER_BLE oder FTMS. Alte Aufnahmen ohne PRIMARY-Flag bleiben im bisherigen Replaypfad; alte Aufnahmen mit Flag hatten nur ihre bisherige Bosch-/FTMS-Quelle und bleiben lesbar. Keine neue Journalversion oder FIT-Feld-ID.
+
+## Speicherung und Grenzen
+
+BikeProfile enthält powerAddress/powerName/powerEnabled, optional mit leerer Zuordnung und enabled=true. Profilwechsel stoppt die vorige Verbindung und leert Messkanäle; Kopieren behält die Ziel-Gerätezuordnung. Auch inaktive Profile und Quellenpräferenzen werden über die bestehende Einstellungssicherung einschließlich passwortgeschützter ZIP gesichert und streng validiert. Keine Tokens oder weiteren Dienste nötig. Vorhandene BatterySource.POWER wird für den optional tatsächlich gelesenen Akku nutzbar.
+
+Kein ANT+-Zugang und keine Hersteller-Sonderprotokolle. Kein PowerMatch-Steuern des KICKR, keine virtuelle Schaltung/Click-Unterstützung, keine neue Kalibrier-UI. Der Powermeterempfang allein löst keinen Aufnahme-Autostart aus; dieser bleibt an die vorhandene Trainer-/Bike-Verbindung gebunden. Reale Hardware/Firmware muss zusätzlich getestet werden; BLE-Standardtests sind kein Gerätenachweis.
+
+## Prüfstand
+
+64 unterschiedliche gezielte Testfälle erfolgreich: Cycling-Power-Decoder einschließlich Null/ungültig/Überläufen/optionalem Payload/Trunkierung, synthetische gleichzeitige FTMS-/CPS-Verbindungen mit unabhängiger Kadenz-/Leistungswahl, Ausfall/Rückkehr, einmaliger Trainerkorrektur, Akku/Empfangsliste und FIT-/Live-Arbeitgleichheit. Quellen-UI und deaktivierte Präferenz, Profil-/Sicherung, Scanner inklusive CPS-Werbung mit verstecktem FTMS, bestehende Indoor-/Quellen-/Performance-/FIT-Regressionen. Neue Nulltestregel belegt, dass externe Nullleistung nicht durch Bosch-Heartbeat verlängert wird. Der erste Integrationstest identifizierte die alte Indoor-Speicherbegrenzung auf Puls; POWER/CADENCE wurden im selben bestehenden Speicherschritt ergänzt und nachgeprüft. Typografie-/UI-Atlas-/Diffprüfung erfolgreich. Kein Gesamtlauf oder realer Geräte-/ANT+-Test. Keine neue APK für diesen Umsetzungsschritt angefordert.

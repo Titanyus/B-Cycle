@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="power_meter_disconnected">Powermeter · Nicht verbunden</string>
+    <string name="power_meter_connecting">Powermeter · Verbinden</string>
+    <string name="power_meter_waiting">Powermeter · Verbunden, warte auf Daten</string>
+    <string name="power_meter_live">Powermeter · Live</string>
+    <string name="power_meter_stale">Powermeter · Daten veraltet</string>
+    <string name="power_meter_timeout">Powermeter · Zeitlimit erreicht</string>
+    <string name="power_meter_permission">Powermeter · Bluetooth-Zugriff fehlt</string>
+    <string name="power_meter_unavailable">Powermeter · Bluetooth nicht verfügbar</string>
+    <string name="power_meter_discovery_failed">Powermeter · Dienstsuche nicht möglich</string>
+    <string name="power_meter_not_cps">Kein Powermeter mit Bluetooth Cycling Power Service</string>
+    <string name="power_meter_subscribe_failed">Powermeter · Datenfreigabe fehlgeschlagen</string>
+</resources>

@@ -8,7 +8,7 @@ import org.json.JSONObject
 internal class SettingsBackupSupplement(private val context:Context) {
     private fun prefs(name:String)=context.getSharedPreferences(name,0)
     private val profileKeys=setOf("slot","name","type","category","indoorType","sources","wheelMm","autoConnect","autoStartRecording","gpsEnabled","bikeEnabled","heartEnabled",
-        "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
+        "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","powerAddress","powerName","powerEnabled","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
         BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY),"route-export" to setOf("tree")),
         BackupSection.DESIGN to mapOf("ride-backup" to setOf("enabled","target"),"message-notifications" to setOf("enabled","messengerOnly","packages","position","durationSeconds")),
@@ -168,9 +168,10 @@ internal class SettingsBackupSupplement(private val context:Context) {
             listOf("autoConnect","gpsEnabled","bikeEnabled","heartEnabled").forEach { require(p.get(it) is Boolean) }
             if(p.has("sources") && p.getString("sources").isNotEmpty()) RecordingSources.decode(p.getString("sources"))
             if(p.has("autoStartRecording")) require(p.get("autoStartRecording") is Boolean)
+            if(p.has("powerEnabled")) require(p.get("powerEnabled") is Boolean)
             listOf("indoorPowerTenths","indoorSpeedTenths").forEach { if(p.has(it)) require(integer(p,it) in 0..30) }
-            listOf("bikeAddress","heartAddress","trainerAddress").forEach { if(p.has(it)) require(p.getString(it).isEmpty() || p.getString(it).matches(Regex("([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"))) }
-            listOf("bikeName","heartName","trainerName").forEach { if(p.has(it)) require(p.getString(it).let { s -> s.length<=248 && s.none(Char::isISOControl) }) }
+            listOf("bikeAddress","heartAddress","trainerAddress","powerAddress").forEach { if(p.has(it)) require(p.getString(it).isEmpty() || p.getString(it).matches(Regex("([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}"))) }
+            listOf("bikeName","heartName","trainerName","powerName").forEach { if(p.has(it)) require(p.getString(it).let { s -> s.length<=248 && s.none(Char::isISOControl) }) }
             if(p.has("metadata")) { val selected=p.getJSONArray("metadata");require(selected.length()<=FitMetadataField.entries.size)
                 val names=(0 until selected.length()).map { selected.getString(it) };require(names.distinct().size==names.size && names.all { name -> FitMetadataField.entries.any { it.name==name } }) }
             val fields=p.getJSONArray("fields");require(fields.length()<=RecordingFields.options.size)

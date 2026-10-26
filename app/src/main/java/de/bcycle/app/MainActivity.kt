@@ -386,7 +386,7 @@ class MainActivity : Activity() {
             displayedMapMessage = mapMessage
             if (mapMessage.isNotEmpty()) BicycleFeedback.show(this, mapMessage, long = true)
         }
-        if (runtime.visible && (runtime.connection.isActive || runtime.trainer.active || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (runtime.visible && (runtime.connection.isActive || runtime.trainer.active || runtime.powerMeter.active || runtime.gpsSensor.active || runtime.heart.active)) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         offerSensorSetup()
     }
@@ -589,7 +589,7 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot
         val profile=runtime.bikes.current()
         manager.beginSearch()
-        scan=BikeSensorScanner(this,setOfNotNull(if(profile.type==BikeType.INDOOR) profile.trainerAddress else profile.bikeAddress,profile.heartAddress),{ device,name,category ->
+        scan=BikeSensorScanner(this,setOfNotNull(if(profile.type==BikeType.INDOOR) profile.trainerAddress else profile.bikeAddress,profile.heartAddress,profile.powerAddress),{ device,name,category ->
             if(runtime.bikes.activeSlot!=slot || bikesManager!==manager || category !in profile.type.sensors || !category.supported) return@BikeSensorScanner
             manager.addCandidate(name,device.address,category) {
                 if(runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving) {
@@ -598,6 +598,7 @@ class MainActivity : Activity() {
                         BikeSensor.EBIKE->runtime.selectBike(device,name)
                         BikeSensor.HEART->runtime.selectHeart(device,name)
                         BikeSensor.TRAINER->runtime.selectTrainer(device,name)
+                        BikeSensor.POWER->runtime.selectPowerMeter(device,name)
                         else->Unit
                     }
                     manager.clearSearch();manager.refresh()

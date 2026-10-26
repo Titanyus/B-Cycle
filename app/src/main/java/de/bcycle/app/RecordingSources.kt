@@ -9,7 +9,7 @@ enum class RecordingQuantity(val label:Int) {
 }
 enum class RecordingSource(val label:Int) {
     BIKE(R.string.ui_source_bike),GPS(R.string.ui_source_gps),TRAINER(R.string.bikes_trainer),
-    HEART(R.string.ui_source_heart),BAROMETER(R.string.source_phone_barometer)
+    HEART(R.string.ui_source_heart),BAROMETER(R.string.source_phone_barometer),POWER(R.string.bikes_power_meter)
 }
 data class RecordingSources(val preferred:Map<RecordingQuantity,RecordingSource>) {
     fun json()=JSONObject().apply { preferred.forEach { (quantity,source)->put(quantity.name,source.name) } }.toString()
@@ -17,7 +17,7 @@ data class RecordingSources(val preferred:Map<RecordingQuantity,RecordingSource>
         const val KEY="recordSourcesV1"
         fun allowed(q:RecordingQuantity)=when(q) {
             RecordingQuantity.SPEED,RecordingQuantity.DISTANCE->setOf(RecordingSource.BIKE,RecordingSource.GPS,RecordingSource.TRAINER)
-            RecordingQuantity.POWER,RecordingQuantity.CADENCE->setOf(RecordingSource.BIKE,RecordingSource.TRAINER)
+            RecordingQuantity.POWER,RecordingQuantity.CADENCE->setOf(RecordingSource.BIKE,RecordingSource.TRAINER,RecordingSource.POWER)
             RecordingQuantity.HEART->setOf(RecordingSource.HEART,RecordingSource.TRAINER)
             RecordingQuantity.HEIGHT->setOf(RecordingSource.GPS,RecordingSource.BAROMETER)
         }
@@ -44,6 +44,7 @@ data class RecordingSources(val preferred:Map<RecordingQuantity,RecordingSource>
                     if(barometer && q==RecordingQuantity.HEIGHT) add(RecordingSource.BAROMETER)
                 }
                 if(profile.heartEnabled && profile.heartAddress!=null && q==RecordingQuantity.HEART) add(RecordingSource.HEART)
+                if(profile.powerEnabled && profile.powerAddress!=null && q in setOf(RecordingQuantity.POWER,RecordingQuantity.CADENCE)) add(RecordingSource.POWER)
             }
         }
     }

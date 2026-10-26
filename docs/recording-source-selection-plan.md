@@ -5,7 +5,7 @@ Stand 23.10.2026, nach Build 72. Nutzerentscheidung: bei Ausfällen automatisch 
 ## Umgesetzter Umfang
 
 - `RecordingSources`: fachliche Zuordnung für Geschwindigkeit, Distanz, Fahrerleistung, Kadenz, Puls und Höhe. UI bietet ab zwei konfigurierten, aktivierten Quellen eine Auswahl; eine Quelle wird benannt, fehlende Quelle als solche ausgewiesen. Verbindungsunterbrechungen löschen keine Präferenz. Profilwechsel, Kopie und Einstellungssicherung erhalten die Auswahl einschließlich inaktiver Profile.
-- Tatsächlich angebunden: Bosch und GPS outdoor, FTMS indoor, BLE-Pulsgurt und Smartphone-Drucksensor. Leistung/Kadenz haben derzeit je Profil nur Bosch oder FTMS. Separate BLE-Powermeter/Pedale und ANT+ sind weiter nicht angebunden und werden nicht als wählbar angeboten.
+- Tatsächlich angebunden: Bosch und GPS outdoor, FTMS indoor, BLE-Pulsgurt und Smartphone-Drucksensor. Leistung/Kadenz bieten Bosch beziehungsweise FTMS sowie seit dem Nachtrag26.10.2026 ein separates Bluetooth-Powermeter je Profil. Seit dem Nachtrag26.10.2026 sind separate Bluetooth-Cycling-Power-Powermeter/Pedale angebunden; ANT+ bleibt offen.
 - Frische Werte der bevorzugten Quelle gewinnen; ansonsten erste geeignete frische Ersatzquelle, bei Rückkehr automatisch wieder bevorzugte Quelle. Ein Wert älter als fünf Sekunden ist kein frischer Primärwert. Auswahl bei START einfrieren; Änderungen der nächsten Aufnahme verändern laufende Aufnahmen nicht.
 - Standard-FIT, private Analyse-FIT, Live-Aufzeichnungsgraphen und Performance-Geschwindigkeit nutzen aufgelöste Werte. Bestehende unabhängige Dashboard-Datenfelder und Rohkanäle bleiben erhalten. Fahrerleistung bleibt strikt von Motorleistung getrennt.
 - Distanz als Summe beobachteter Zählerdifferenzen: beim Quellenwechsel neuer Ausgangspunkt, kein Sprung auf den schon angesammelten Zähler der Ersatzquelle. Nicht beobachtete Lücken werden nicht nachträglich als Strecke erfunden.
@@ -42,3 +42,6 @@ Geschwindigkeit, Distanz, Leistung, Kadenz, Puls und Höhe zeigen jeweils ein ei
 
 
 26.10.2026: gemeinsames Rollentrainer-Profil für echtes Fahrrad und Zwift Ride aktiviert, Profil-/Sicherungsfeld indoorType optional mit Hometrainer-Standard. Distanz-Fallback aus beobachteten Geschwindigkeitsintervallen umgesetzt, kein neuer auswählbarer Sensor. Zwift Ride/Click und virtuelle Schaltung als separater späterer Ausbau vorgemerkt; Bedienung/Grafik offen, Controller-Kompatibilität eigens prüfen. FTMS bleibt derzeit schreibgeschützt. Details indoor-ftms.md.
+
+
+26.10.2026 nach Build89: eigener read-only Cycling-Power-Client, Quelle POWER an RecordingSource angehängt, ein separat zugeordnetes Powermeter pro Indoor-/E-Bike-Profil. Leistung/Kadenz unabhängig wählbar, frische Ersatzquelle und Rückkehr, ursprüngliche physische Power-Events für Performance/Replay erhalten. Quellenwahl samt aktiven/inaktiven Geräten in Sicherung, optionale Akkuanzeige und tatsächliche Messwertliste. Kein ANT+/PowerMatch/virtuelle Schaltung. Vollständige Regeln und Prüfgrenzen: cycling-power.md.

@@ -69,4 +69,22 @@ class BikeSensorScannerTest {
         assertTrue(shadowOf(adapter.bluetoothLeScanner).scanCallbacks.isEmpty())
     }
 
+    @Test fun cyclingPowerAdvertisingIsProbedAndFtmsHasPriorityOverThePowerMeterRole() {
+        val adapter=adapter();val app=RuntimeEnvironment.getApplication();val found=mutableListOf<BikeSensor>()
+        val scanner=BikeSensorScanner(app,emptySet(),{ _,_,kind->found+=kind },{},setOf(BikeSensor.TRAINER,BikeSensor.POWER))
+        scanner.start();val callback=shadowOf(adapter.bluetoothLeScanner).scanCallbacks.single()
+        val record=ReflectionHelpers.callStaticMethod<ScanRecord>(ScanRecord::class.java,"parseFromBytes",ReflectionHelpers.ClassParameter.from(ByteArray::class.java,byteArrayOf(3,3,0x18,0x18,0)))
+        for((index,trainer) in listOf(false,true).withIndex()) {
+            val device=adapter.getRemoteDevice("00:11:22:33:44:8$index")
+            callback.onScanResult(1,ScanResult(device,record,-50,100));shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(index,found.size)
+            val gatt=shadowOf(device).bluetoothGatts.last();val shadow=shadowOf(gatt)
+            shadow.addDiscoverableService(BluetoothGattService(CyclingPowerConnection.SERVICE,0))
+            if(trainer) shadow.addDiscoverableService(BluetoothGattService(TrainerConnection.SERVICE,0))
+            shadow.gattCallback.onConnectionStateChange(gatt,0,2);shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(shadow.isClosed)
+        }
+        assertEquals(listOf(BikeSensor.POWER,BikeSensor.TRAINER),found);scanner.stop()
+    }
+
 }

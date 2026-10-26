@@ -32,6 +32,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private val bikeReconnect = AutoReconnect()
     private val heartReconnect = AutoReconnect()
     private val trainerReconnect=AutoReconnect()
+    private val powerReconnect=AutoReconnect()
     private val phoneBattery=PhoneBattery(context,::notifyChanged)
     private val indoorRide=IndoorRide()
     private val trainerDistance=TrainerDistance()
@@ -45,9 +46,15 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private var primarySlope:Pair<Double,Double>?=null
     private val rawSpeeds=mutableMapOf<RecordingSource,PerformanceEvent>()
     private var selectedSpeedSource:RecordingSource?=null
+    private val rawPowers=mutableMapOf<RecordingSource,PerformanceEvent>()
+    private val rawCadences=mutableMapOf<RecordingSource,SourceReading>()
+    private var selectedPowerSource:RecordingSource?=null
+    private var lastCadenceSample:Pair<RecordingSource,Long>?=null
     internal val isIndoor get()=bikes.current().type==BikeType.INDOOR
     private val primaryPowerSource get()=if(isIndoor) PowerSource.FTMS else PowerSource.BOSCH_RIDER
     internal val trainer=TrainerConnection(context,::trainerChanged,::onTrainerMeasurement)
+    internal val powerMeter=CyclingPowerConnection(context,::powerMeterChanged,::onPowerMeterMeasurement)
+    internal val powerEnabled get()=bikes.current().powerEnabled
     internal val trainerEnabled get()=bikes.current().trainerEnabled
     internal val trainerAddress get()=bikes.current().trainerAddress
     private val times = mutableMapOf<LiveMetric, Long>()
@@ -79,8 +86,9 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         BatterySource.EBIKE to currentBikeBattery?.toInt().takeUnless { isIndoor },
         BatterySource.HEART to pulse.battery.takeIf { heartEnabled && heart.live },
         BatterySource.TRAINER to trainer.battery.takeIf { isIndoor && trainer.live },
+        BatterySource.POWER to powerMeter.battery.takeIf { powerEnabled && powerMeter.live },
         BatterySource.PHONE to phoneBattery.level))
-    val dashboardBikeData get() = bikeData.copy(indoor=isIndoor,batteries=batterySnapshot,otherValues = bikeData.otherValues - LiveMetric.AVERAGE_CADENCE - LiveMetric.BIKE_LIGHT - LiveMetric.BATTERY +
+    val dashboardBikeData get() = selectedBikeData(SystemClock.elapsedRealtime()).copy(indoor=isIndoor,batteries=batterySnapshot,otherValues = selectedBikeData(SystemClock.elapsedRealtime()).otherValues - LiveMetric.AVERAGE_CADENCE - LiveMetric.BIKE_LIGHT - LiveMetric.BATTERY +
         (currentBikeBattery?.let { mapOf(LiveMetric.BATTERY to it) } ?: emptyMap()) +
         (if(isIndoor) indoorRide.summaries()+listOfNotNull(indoorRide.times(elapsedMs,ride.bike.distanceM).movingAverageKmh?.let { LiveMetric.AVERAGE_SPEED to kotlin.math.round(it*100).toLong() }).toMap() else emptyMap()) +
         (currentBikeLight?.let { mapOf(LiveMetric.BIKE_LIGHT to if (it) 1L else 0L) } ?: emptyMap()) +
@@ -90,8 +98,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     internal val trendBikeData:LiveData get() {
         val now=SystemClock.elapsedRealtime();val data=dashboardBikeData
         return data.copy(speedHundredths=data.speedHundredths.takeIf { fresh(LiveMetric.SPEED,now) },
-            riderPowerWatts=data.riderPowerWatts.takeIf { fresh(LiveMetric.RIDER_POWER,now) },
-            otherValues=if(fresh(LiveMetric.CADENCE,now)) data.otherValues else data.otherValues-LiveMetric.CADENCE)
+            riderPowerWatts=data.riderPowerWatts.takeIf { primaryPower(now)!=null },
+            otherValues=if(primaryCadence(now)!=null) data.otherValues else data.otherValues-LiveMetric.CADENCE)
     }
     private var startElapsed = 0L
     private var startUtc = 0L
@@ -106,7 +114,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private var performanceOverflow = false
     private var mainBikeSpeedSeen = false
     val powerMeasurement: PowerMeasurement? get() = latestPerformance[PerformanceChannel.POWER]?.let {
-        PowerMeasurement(primaryPowerSource, it.value, it.receivedAtMs, it.sensorTimeMs, it.connected,
+        PowerMeasurement(runCatching { PowerSource.valueOf(it.source) }.getOrDefault(primaryPowerSource), it.value, it.receivedAtMs, it.sensorTimeMs, it.connected,
             it.connected && it.value != null && SystemClock.elapsedRealtime() - it.receivedAtMs <= PerformanceEngine.MAX_HOLD_MS)
     }
     private fun capturePerformance(channel: PerformanceChannel, value: Double?, source: String,
@@ -121,6 +129,16 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             val original=chosen?.let { rawSpeeds[it.source] }
             event=event.copy(value=chosen?.reading?.value,receivedAtMs=original?.receivedAtMs ?: now,sensorTimeMs=original?.sensorTimeMs,
                 source=(if(recording) activeConfig else config).speedSource,connected=chosen!=null)
+        }
+        if(channel==PerformanceChannel.POWER) {
+            val provider=when(source) { PowerSource.CYCLING_POWER_BLE.name->RecordingSource.POWER;PowerSource.FTMS.name->RecordingSource.TRAINER;else->RecordingSource.BIKE }
+            rawPowers[provider]=event.copy(value=value?.takeIf { it.isFinite() && it in 0.0..65535.0 })
+            val chosen=primaryPower(now)
+            if(chosen?.source!=provider && chosen?.source==selectedPowerSource) return
+            selectedPowerSource=chosen?.source
+            val original=chosen?.let { rawPowers[it.source] }
+            event=event.copy(value=chosen?.reading?.value,receivedAtMs=original?.receivedAtMs ?: now,sensorTimeMs=original?.sensorTimeMs,
+                source=original?.source ?: source,connected=chosen!=null)
         }
         latestPerformance[channel] = event
         if (!recording || performanceOverflow) return
@@ -253,7 +271,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if(opened) autoStartOnConnection(recheck=true)
     }
     private fun updateActivity() {
-        bikeReconnect.foreground = active; heartReconnect.foreground = active;trainerReconnect.foreground=active
+        bikeReconnect.foreground = active; heartReconnect.foreground = active;trainerReconnect.foreground=active;powerReconnect.foreground=active
         handler.removeCallbacks(tick)
         if (active) {
             phoneBattery.start()
@@ -262,7 +280,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             reconnectSensors(); scheduleTick()
         } else {
             phoneBattery.stop();barometer.stop()
-            connection.onForegroundChanged(false); trainer.stop();heart.stop(); gpsSensor.stop(); ride.bike.pause(); heartAt = null
+            connection.onForegroundChanged(false); trainer.stop();powerMeter.stop();heart.stop(); gpsSensor.stop(); ride.bike.pause(); heartAt = null
         }
         notifyChanged()
     }
@@ -282,6 +300,10 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         trainerReconnect.enabled=isIndoor && trainerEnabled && connectionsRequested && BikeSensor.TRAINER !in disconnectedSensors
         trainerAddress?.takeIf { android.bluetooth.BluetoothAdapter.checkBluetoothAddress(it) }?.let {
             if(trainerReconnect.due(now,trainer.active)) { trainerReconnect.attempted(now);trainer.connect(adapter.getRemoteDevice(it)) }
+        }
+        powerReconnect.enabled=powerEnabled && connectionsRequested && BikeSensor.POWER !in disconnectedSensors
+        bikes.current().powerAddress?.takeIf { android.bluetooth.BluetoothAdapter.checkBluetoothAddress(it) }?.let {
+            if(powerReconnect.due(now,powerMeter.active)) { powerReconnect.attempted(now);powerMeter.connect(adapter.getRemoteDevice(it)) }
         }
         heartAddress?.takeIf { android.bluetooth.BluetoothAdapter.checkBluetoothAddress(it) }?.let {
             if (heartReconnect.due(now, heart.active)) { heartReconnect.attempted(now); heart.connect(adapter.getRemoteDevice(it)) }
@@ -328,7 +350,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             bikes.save(source.copy(slot=target.slot,name=target.name,
                 bikeAddress=target.bikeAddress,bikeName=target.bikeName,
                 heartAddress=target.heartAddress,heartName=target.heartName,
-                trainerAddress=target.trainerAddress,trainerName=target.trainerName))
+                trainerAddress=target.trainerAddress,trainerName=target.trainerName,
+                powerAddress=target.powerAddress,powerName=target.powerName))
             bikes.ui.copy(sourceSlot,target.slot)
         }
         return true
@@ -354,14 +377,14 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val sharedAddress=if(reuseHeart && heartEnabled && hasBluetooth() && heart.live && !disconnected(BikeSensor.HEART)) heart.deviceAddress else null
         val sharedName=heartName;val sharedPulse=pulse;val sharedAt=heartAt;val sharedStatus=heartStatus
         connectionsRequested = false
-        connection.stop();trainer.stop();gpsSensor.stop();autoStartWasConnected=false
+        connection.stop();trainer.stop();powerMeter.stop();gpsSensor.stop();autoStartWasConnected=false
         if(sharedAddress==null) heart.stop()
         change()
         val target=bikes.current()
         val keepHeart=sharedAddress!=null && target.heartEnabled && (target.heartAddress==null || target.heartAddress==sharedAddress)
         if(keepHeart && target.heartAddress==null) bikes.save(target.copy(heartAddress=sharedAddress,heartName=sharedName))
         if(sharedAddress!=null && !keepHeart) heart.stop()
-        profileRevision++;rawSpeeds.clear();selectedSpeedSource=null;barometer.resetReference()
+        profileRevision++;rawSpeeds.clear();rawPowers.clear();rawCadences.clear();selectedPowerSource=null;selectedSpeedSource=null;lastCadenceSample=null;barometer.resetReference()
         if(isIndoor) barometer.stop()
         themes.reloadFromPreferences()
         mapState.restoreProfileRoute()
@@ -376,7 +399,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         bikeStatus = context.getString(R.string.bikes_disconnected)
         heartStatus = if(keepHeart) sharedStatus else context.getString(R.string.bikes_disconnected)
         gpsStatus = context.getString(R.string.bikes_gps_disconnect)
-        bikeReconnect.connected();trainerReconnect.connected(); heartReconnect.connected()
+        bikeReconnect.connected();trainerReconnect.connected();powerReconnect.connected(); heartReconnect.connected()
         updateActivity()
     }
     internal fun restoredBikeSettings() {
@@ -408,13 +431,14 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     internal fun connectAssignedSensors() {
         connectionsRequested = true; disconnectedSensors.clear()
-        bikeReconnect.connected();trainerReconnect.connected(); heartReconnect.connected(); updateActivity()
+        bikeReconnect.connected();trainerReconnect.connected();powerReconnect.connected(); heartReconnect.connected(); updateActivity()
     }
     internal fun disconnected(sensor: BikeSensor) = sensor in disconnectedSensors
     internal fun receivedValueCount(sensor: BikeSensor): Int? = if (disconnected(sensor)) null else when (sensor) {
         BikeSensor.EBIKE -> connection.receivedValueCount.takeIf { connection.isLive }
         BikeSensor.HEART -> heart.receivedValueCount.takeIf { heart.live }
         BikeSensor.TRAINER -> trainer.receivedValueCount.takeIf { trainer.live }
+        BikeSensor.POWER -> powerMeter.receivedValueCount.takeIf { powerMeter.live }
         else -> null
     }
     internal fun receivedValueNames(sensor:BikeSensor):List<String>? {
@@ -434,6 +458,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
                 TrainerField.CADENCE->R.string.sensor_values_cadence;TrainerField.DISTANCE->R.string.sensor_values_distance
                 TrainerField.HEART->R.string.sensor_values_heart;TrainerField.ELAPSED->R.string.sensor_values_elapsed
             }) }+if(trainer.receivedValueCount>trainer.readings.count) listOf(label(R.string.sensor_values_battery)) else emptyList()
+            BikeSensor.POWER->buildList {
+                if(TrainerField.POWER in powerMeter.readings.receivedTypes) add(label(R.string.sensor_values_power))
+                if(TrainerField.CADENCE in powerMeter.readings.receivedTypes) add(label(R.string.sensor_values_cadence))
+                if(powerMeter.receivedValueCount>powerMeter.readings.count) add(label(R.string.sensor_values_battery))
+            }
             else->emptyList()
         }
     }
@@ -444,7 +473,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             BikeSensor.HEART -> { heart.stop(); heartAt = null; pulse = pulse.copy(bpm = null); capturePerformance(PerformanceChannel.HEART_RATE, null, "HEART_RATE") }
             BikeSensor.GPS -> { gpsSensor.stop(); gpsStatus = context.getString(R.string.bikes_gps_disconnect); capturePerformance(PerformanceChannel.SPEED, null, "GPS_SPEED") }
             BikeSensor.TRAINER -> { trainer.stop();trainerChanged() }
-            BikeSensor.POWER -> Unit
+            BikeSensor.POWER -> { powerMeter.stop();powerMeterChanged() }
         }
         notifyChanged()
     }
@@ -455,6 +484,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             BikeSensor.EBIKE -> bikes.save(p.copy(bikeAddress = null, bikeName = null))
             BikeSensor.HEART -> bikes.save(p.copy(heartAddress = null, heartName = null))
             BikeSensor.TRAINER -> bikes.save(p.copy(trainerAddress=null,trainerName=null))
+            BikeSensor.POWER -> bikes.save(p.copy(powerAddress=null,powerName=null))
             else -> Unit
         }
         notifyChanged()
@@ -464,6 +494,56 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         bikes.save(bikes.current().copy(trainerAddress=device.address,trainerName=name,trainerEnabled=true))
         connectionsRequested=true;disconnectedSensors.remove(BikeSensor.TRAINER)
         trainer.stop();trainerReconnect.start();reconnectSensors();notifyChanged()
+    }
+    internal fun selectPowerMeter(device:BluetoothDevice,name:String) {
+        if(recording || saving) return
+        bikes.save(bikes.current().copy(powerAddress=device.address,powerName=name,powerEnabled=true))
+        connectionsRequested=true;disconnectedSensors.remove(BikeSensor.POWER)
+        powerMeter.stop();rawPowers.remove(RecordingSource.POWER);rawCadences.remove(RecordingSource.POWER)
+        powerReconnect.start();reconnectSensors();notifyChanged()
+    }
+    internal fun setPowerEnabled(enabled:Boolean) {
+        bikes.save(bikes.current().copy(powerEnabled=enabled))
+        if(!enabled) { powerMeter.stop();powerMeterChanged() }
+        else { connectionsRequested=true;disconnectedSensors.remove(BikeSensor.POWER);powerReconnect.start() }
+        reconnectSensors();notifyChanged()
+    }
+    private fun powerMeterChanged() {
+        if(powerMeter.live) powerReconnect.connected()
+        if(!powerMeter.active) {
+            captureCadence(null,RecordingSource.POWER,SystemClock.elapsedRealtime())
+            capturePerformance(PerformanceChannel.POWER,null,PowerSource.CYCLING_POWER_BLE.name)
+        }
+        notifyChanged()
+    }
+    internal fun onPowerMeterMeasurement(frame:TrainerMeasurement,now:Long) {
+        if(TrainerField.POWER in frame.values) capturePerformance(PerformanceChannel.POWER,frame.values[TrainerField.POWER],PowerSource.CYCLING_POWER_BLE.name,now)
+        if(TrainerField.CADENCE in frame.values) captureCadence(frame.values[TrainerField.CADENCE],RecordingSource.POWER,now)
+    }
+    private fun powerSourceConnected(source:RecordingSource)=when(source) {
+        RecordingSource.POWER->powerEnabled && powerMeter.live
+        RecordingSource.TRAINER->isIndoor && trainerEnabled && trainer.live
+        RecordingSource.BIKE->!isIndoor && bikeEnabled && connection.isLive
+        else->false
+    }
+    private fun primaryPower(now:Long):ChosenReading? = chooseReading(RecordingQuantity.POWER,sources(),rawPowers.mapNotNull { (source,event) ->
+        if(powerSourceConnected(source) && event.connected && event.value!=null)
+            source to SourceReading(event.value,event.sensorTimeMs ?: event.receivedAtMs) else null
+    }.toMap(),now)
+    private fun primaryCadence(now:Long)=chooseReading(RecordingQuantity.CADENCE,sources(),rawCadences.filterKeys(::powerSourceConnected),now)
+    private fun captureCadence(value:Double?,source:RecordingSource,now:Long) {
+        val valid=value?.takeIf { it.isFinite() && it in 0.0..254.0 }
+        if(valid==null) rawCadences.remove(source) else rawCadences[source]=SourceReading(valid,now)
+        val chosen=primaryCadence(now) ?: return
+        val key=chosen.source to chosen.reading.atMs
+        if(recording && key!=lastCadenceSample) { cadenceAverage.add(chosen.reading.value);lastCadenceSample=key }
+    }
+    private fun selectedBikeData(now:Long):LiveData {
+        if(bikes.current().powerAddress==null) return bikeData
+        val watts=primaryPower(now)?.reading?.value?.toInt()
+        val cadence=primaryCadence(now)?.reading?.value
+        return bikeData.copy(riderPowerWatts=watts,otherValues=(bikeData.otherValues-LiveMetric.CADENCE)+
+            (cadence?.let { mapOf(LiveMetric.CADENCE to kotlin.math.round(it*2).toLong()) } ?: emptyMap()))
     }
     internal fun setTrainerEnabled(enabled:Boolean) {
         bikes.save(bikes.current().copy(trainerEnabled=enabled))
@@ -518,7 +598,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             when(field) {
                 TrainerField.SPEED -> capturePerformance(PerformanceChannel.SPEED,value?.div(3.6),"SPEED",now)
                 TrainerField.POWER -> capturePerformance(PerformanceChannel.POWER,value,PowerSource.FTMS.name,now)
-                TrainerField.CADENCE -> if(recording && value!=null) cadenceAverage.add(value)
+                TrainerField.CADENCE -> captureCadence(value,RecordingSource.TRAINER,now)
                 TrainerField.DISTANCE -> Unit // Resolved once below, with a speed fallback.
                 TrainerField.HEART -> if(useTrainerHeart) {
                     capturePerformance(PerformanceChannel.HEART_RATE,value,"HEART_RATE",now)
@@ -549,12 +629,19 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val config=if(isIndoor) storedConfig.let { stored -> stored.copy(
             fields=(stored.fields-IndoorFields.allowed)+(config.fields intersect IndoorFields.allowed),metadata=config.metadata,
             sourcePreferences=config.sourcePreferences?.let { incoming ->
-                // Heart is the only shared indoor multi-source choice. Retain outdoor wheel/GPS/height preferences.
+                // Indoor multi-source choices; retain hidden outdoor wheel/GPS/height preferences.
                 val previous=stored.sourcePreferences ?: RecordingSources.defaults(stored,false)
-                RecordingSources(previous.preferred+incoming.preferred.filterKeys { it==RecordingQuantity.HEART })
+                RecordingSources(previous.preferred+incoming.preferred.filterKeys { it in setOf(RecordingQuantity.HEART,RecordingQuantity.POWER,RecordingQuantity.CADENCE) })
             } ?: stored.sourcePreferences) } else config
         preferences.edit().putStringSet("recordFields", config.fields).putString("recordSpeed", config.speedSource).putString("recordDistance", config.distanceSource).putStringSet("recordMetadata",config.metadata.map { it.name }.toSet()).apply { config.sourcePreferences?.let { putString(RecordingSources.KEY,it.json()) } ?: remove(RecordingSources.KEY) }.apply()
         bikes.persistActive()
+        if(!recording) {
+            val now=SystemClock.elapsedRealtime();val selected=primaryPower(now)
+            selectedPowerSource=selected?.source
+            val event=selected?.let { rawPowers[it.source] }
+            if(event==null) latestPerformance.remove(PerformanceChannel.POWER)
+            else latestPerformance[PerformanceChannel.POWER]=event.copy(atMs=now)
+        }
     }
     fun beginRecording() {
         if (recording || saving || hrv.busy) return
@@ -566,17 +653,17 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         ride.gps.reset(); ride.bike.reset(bikeData.value(LiveMetric.ODOMETER).takeIf { !isIndoor && connection.isLive })
         trainerDistance.reset()
         if(isIndoor) updateTrainerDistance(SystemClock.elapsedRealtime(),seed=true)
-        cadenceAverage.reset();indoorRide.reset()
+        cadenceAverage.reset();lastCadenceSample=null;indoorRide.reset()
         heartSum = 0; heartCount = 0; pulse = pulse.copy(average = null, maximum = null)
         startElapsed = SystemClock.elapsedRealtime(); startUtc = System.currentTimeMillis()
         completedElapsedMs = null
-        performance = PerformanceEngine(primaryPowerSource=primaryPowerSource); pendingPerformance.clear(); performanceOverflow = false
+        performance = PerformanceEngine(primaryPowerSource=primaryPowerSource,resolvedPower=true); pendingPerformance.clear(); performanceOverflow = false
         graphContinuedZeroMs=0; liveGraphs.begin()
         if (activeConfig.speedSource == "GPS_SPEED") captureGpsPerformance()
         listOf(PerformanceChannel.POWER, PerformanceChannel.HEART_RATE, PerformanceChannel.SPEED, PerformanceChannel.BIKE_ACTIVITY).forEach { channel ->
             val event = latestPerformance[channel]
             val connected = when (channel) {
-                PerformanceChannel.POWER -> if(isIndoor) trainer.live else connection.isLive
+                PerformanceChannel.POWER -> primaryPower(SystemClock.elapsedRealtime())!=null
                 PerformanceChannel.HEART_RATE -> heartAvailable
                 PerformanceChannel.BIKE_ACTIVITY -> connection.isLive
                 else -> primarySpeed(SystemClock.elapsedRealtime())!=null
@@ -616,8 +703,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         if(isIndoor && recording) updateTrainerDistance(now)
         if(isIndoor && recording) indoorRide.add(now-startElapsed,
             bikeData.speedHundredths?.div(100.0).takeIf { fresh(LiveMetric.SPEED,now) },
-            bikeData.riderPowerWatts?.toDouble().takeIf { fresh(LiveMetric.RIDER_POWER,now) },
-            bikeData.value(LiveMetric.CADENCE)?.div(2.0).takeIf { fresh(LiveMetric.CADENCE,now) })
+            primaryPower(now)?.reading?.value,primaryCadence(now)?.reading?.value)
         val gps = gpsValues
         val fresh = LiveData(
             bikeData.speedHundredths.takeIf { fresh(LiveMetric.SPEED, now) }, bikeData.riderPowerWatts.takeIf { fresh(LiveMetric.RIDER_POWER, now) },
@@ -635,7 +721,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
                 if(bikeValid) ride.bike.distanceM?.let { put(if(isIndoor) RecordingSource.TRAINER else RecordingSource.BIKE,SourceReading(it.toDouble(),now)) }
             }
             val distance=primaryDistance.add(chooseReading(RecordingQuantity.DISTANCE,sources(),distances,now));set("PRIMARY_DISTANCE",distance)
-            set("PRIMARY_POWER",fresh.riderPowerWatts?.toDouble());set("PRIMARY_CADENCE",fresh.value(LiveMetric.CADENCE)?.div(2.0))
+            set("PRIMARY_POWER",primaryPower(now)?.reading?.value);set("PRIMARY_CADENCE",primaryCadence(now)?.reading?.value)
             set("PRIMARY_HEART",chooseReading(RecordingQuantity.HEART,sources(),heartReadings(now),now)?.reading?.value)
             val reference=if(gpsValid) gps.altitudeM?.let { SourceReading(it,gpsAt!!,gps.seaLevel) } else null
             val heights=buildMap<RecordingSource,SourceReading> {
@@ -692,7 +778,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val now = SystemClock.elapsedRealtime()
         samples.forEach { sample -> LiveMetric.forAddress(sample.address)?.let {
             times[it] = now
-            if (recording && it == LiveMetric.CADENCE && sample.value in 0..it.maxRaw) cadenceAverage.add(sample.value / it.divisor)
+            if (it == LiveMetric.CADENCE && sample.value in 0..it.maxRaw) captureCadence(sample.value / it.divisor,RecordingSource.BIKE,now)
             if (it == LiveMetric.SPEED) {
                 if (sample.address == LiveMetric.SPEED.address) mainBikeSpeedSeen = true
                 if (sample.address == LiveMetric.SPEED.address || !mainBikeSpeedSeen)

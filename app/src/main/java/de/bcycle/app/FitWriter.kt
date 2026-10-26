@@ -84,7 +84,7 @@ object FitWriter {
                 event(startStamp, 0)
                 var last: RideSample? = null
                 val sums = mutableMapOf<String, Double>(); val counts = mutableMapOf<String, Int>(); val maxima = mutableMapOf<String, Double>()
-                val performance = PerformanceEngine(primaryPowerSource=if(config.indoor) PowerSource.FTMS else PowerSource.BOSCH_RIDER)
+                val performance = PerformanceEngine(primaryPowerSource=if(config.indoor) PowerSource.FTMS else PowerSource.BOSCH_RIDER,resolvedPower=PrimaryRecording.FLAG in config.fields)
                 val moving = MovingTime()
                 var count = 0
                 for (sample in records) {
