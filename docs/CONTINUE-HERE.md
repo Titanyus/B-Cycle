@@ -1,3 +1,7 @@
+# Aktueller Abschluss26.10.2026: Editorfristen, Trendverfügbarkeit und mittlere Skalenwerte
+
+Zuerst Editor-/Trendprüfungen abgeschlossen (13gezielteTests erfolgreich), danach neuangeforderteDashboard-Skalenmitte umgesetzt undgeprüft (18gezielteGraph-/Darstellungstests erfolgreich). DashboardGraphDrawable zeichnet jeAchse zusätzlich(low+high)/2 mittig, vorhandenesZahlenformat/Deckung/Ausrichtung beibehalten. Alle5Charts, beideAchsen, alle4Zeitfenster imneuenTest geprüft. Keine Änderungen an Graphdaten/Skalierung/Glättung. Typografie/Diff erfolgreich, keinGerätetest/keine neueAPKangefragt.
+
 # Aktuelle Ergänzungen26.10.2026: Editor-Inaktivität und Trendverfügbarkeit
 
 Editor:5s ohneFeldauswahl,12s mitoffenerFeldauswahl, Bedienung setztFristzurück, Sensordaten nicht. Timeout nutztbestehendenCommit/Fehlerguard undschließtEditorfenster; Appwechsel pausiert/Foreground startetneu, Dismiss neuer5sTimer. Window.Callback derFeldauswahl delegiertallebisherigenEvents/Handler undwirdbeiDismiss zurückgesetzt. 13 gezielte Tests erfolgreich (12DashboardEditor,1PersistentFieldPicker). Alter Bewegungstest scheiterte identisch mit unveränderter MainActivity bereits vor Editorstart: GPS abgeschaltet und nurTrip-Akkumulator befüllt, kein Live-Quellenevent. Testfixture auf aktivierten echten GPS-Listenercallback korrigiert, Bewegungsassertion erhalten; keine Produktions-Sensorlogik geändert. Neuerliche Prüfung dieses Tests und der Trend-Auswahl erfolgreich.

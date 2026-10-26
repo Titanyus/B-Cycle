@@ -102,6 +102,9 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             val top=plot.top+paint.textSize; val bottom=plot.bottom-2*density
             val upper=String.format(Locale.getDefault(),"%.0f",s.range.high)
             canvas.drawText(upper,x,top,paint)
+            val middle=(s.range.low+s.range.high)/2
+            val middleY=plot.centerY()-(paint.ascent()+paint.descent())/2
+            canvas.drawText(String.format(Locale.getDefault(),"%.0f",middle),x,middleY,paint)
             canvas.drawText(String.format(Locale.getDefault(),"%.0f",s.range.low),x,bottom,paint)
         }
         canvas.restoreToCount(save)

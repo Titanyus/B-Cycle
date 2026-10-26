@@ -25,6 +25,35 @@ import java.time.Duration
 @Config(sdk=[33],qualifiers="mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class DashboardAppearanceTest {
+    @Test fun everyChartAndTimeWindowShowsMaximumMidpointAndMinimumOnBothAxes() {
+        val history=GraphHistoryBuffer()
+        repeat(61) { i -> history.append(GraphPoint(i*1000L,i*1000L,i*20.0,listOf(30.0,80.0,180.0,130.0,500.0))) }
+        val frame=history.frame(1,400)
+        data class Label(val text:String,val x:Float,val y:Float,val align:Paint.Align)
+        val selections=AnalysisChart.entries.map { listOf(it) }+listOf(listOf(AnalysisChart.SPEED,AnalysisChart.POWER))
+        for(window in GraphWindow.entries) for(charts in selections) {
+            val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
+            d.update(frame,charts,intArrayOf(0,0,0,0),window=window)
+            val labels=mutableListOf<Label>()
+            val bitmap=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888)
+            d.draw(object:Canvas(bitmap) {
+                override fun drawText(text:String,x:Float,y:Float,paint:Paint) {
+                    labels+=Label(text,x,y,paint.textAlign);super.drawText(text,x,y,paint)
+                }
+            })
+            assertEquals("$window $charts",charts.size*3,labels.size)
+            charts.forEachIndexed { index,chart ->
+                val range=(if(window==GraphWindow.FULL) frame.series else frame.windows.getValue(window)).getValue(chart).range
+                val axis=labels.drop(index*3).take(3)
+                val expected=listOf(range.high,(range.low+range.high)/2,range.low).map { String.format(java.util.Locale.getDefault(),"%.0f",it) }
+                assertEquals(expected,axis.map { it.text })
+                assertTrue(axis[1].y>axis[0].y && axis[1].y<axis[2].y)
+                assertTrue(axis.all { it.align==if(index==0) Paint.Align.LEFT else Paint.Align.RIGHT })
+                assertTrue(axis.all { it.x in d.plotBounds().left..d.plotBounds().right })
+            }
+            bitmap.recycle()
+        }
+    }
     private fun layout(view:View,w:Int,h:Int) {
         view.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));view.layout(0,0,w,h)
     }
