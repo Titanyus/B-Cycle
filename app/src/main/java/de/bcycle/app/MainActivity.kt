@@ -708,7 +708,7 @@ class MainActivity : Activity() {
             }
         }
         content=DreeveMaintenanceView(settingsContext,settingsThemes,::refresh)
-        val screen=dialog().setTitle(R.string.maintenance_title).setView(ScrollView(settingsContext).apply { addView(content) }).show()
+        val screen=dialog().setTitle(R.string.maintenance_title).setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).show()
         dialogs.onDismiss(screen) { closed.set(true);worker.shutdownNow() }
         refresh()
     }

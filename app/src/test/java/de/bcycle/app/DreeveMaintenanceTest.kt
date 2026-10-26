@@ -34,6 +34,7 @@ class DreeveMaintenanceTest {
             assertNull(tasks.first().lastPerformed)
             val shared=tasks[2];assertTrue(shared.due);assertFalse(shared.overdue)
             assertEquals(listOf("gear-bike-a","gear-bike-b"),shared.gearIds)
+            assertEquals("gearComponent-chain",tasks.first().componentId)
             assertEquals("days",tasks[3].unit);assertTrue(tasks.last().gearIds.isEmpty())
         }
     }
@@ -60,8 +61,15 @@ class DreeveMaintenanceTest {
             view.loading();assertFalse(view.findViewWithTag<View>("maintenance_refresh").isEnabled)
             view.loaded(DreeveMaintenanceTask.decode(JSONObject(fixture())),mapOf("gear-bike-a" to "E-Bike","gear-bike-b" to "Indoor"))
             val text=testDescendants(view).filterIsInstance<TextView>().joinToString("\n") { it.text }
-            assertTrue(text.contains("Überfällig"));assertTrue(text.contains("E-Bike · Indoor"));assertTrue(text.contains("Noch 9,6 km"));assertTrue(text.contains("Um 370,4 km überschritten"))
-            assertEquals(6,(view.findViewWithTag<android.widget.LinearLayout>("maintenance_tasks")).childCount/2+1)
+            assertTrue(text.contains("E-Bike"));assertTrue(text.contains("Indoor"));assertTrue(text.contains("9,6 km verbleibend"));assertTrue(text.contains("370,4 km überfällig"))
+            assertTrue(testDescendants(view).any { it.stateDescription==a.getString(R.string.maintenance_overdue) })
+            assertEquals(3,testDescendants(view).filterIsInstance<BicycleSectionHeader>().size)
+            val actions=testDescendants(view).filter { it.tag?.toString()?.startsWith("maintenance_action_")==true }
+            assertEquals(7,actions.size);assertTrue(actions.all { !it.isEnabled })
+            val toggle=view.findViewWithTag<View>("maintenance_component_gear-bike-a_id:gearComponent-chain")
+            toggle.performClick()
+            view.loading();view.loaded(DreeveMaintenanceTask.decode(JSONObject(fixture())),mapOf("gear-bike-a" to "E-Bike","gear-bike-b" to "Indoor"))
+            assertEquals(View.GONE,view.findViewWithTag<View>("maintenance_component_body_gear-bike-a_id:gearComponent-chain").visibility)
             view.loading();view.failed(R.string.service_unreachable)
             assertEquals(a.getString(R.string.service_unreachable),view.findViewWithTag<TextView>("maintenance_status").text.toString())
             view.findViewWithTag<View>("maintenance_refresh").performClick();assertEquals(1,reload)

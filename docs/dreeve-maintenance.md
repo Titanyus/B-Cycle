@@ -19,3 +19,19 @@ Dreeve-Quellstand `93c214fd11cb0ff0d3fc2bad74fe2a0d910a0cce`:
 - [Öffentliche Testantwort](https://github.com/dreeveapp/dreeve/blob/93c214fd11cb0ff0d3fc2bad74fe2a0d910a0cce/tests/Controller/Api/V1/Gear/__snapshots__/GearMaintenanceTaskSearchRequestHandlerTest__testItListsMaintenanceTasksMostUrgentFirst__1.json), als API-Testfixture übernommen.
 
 Sechs gezielte Tests erfolgreich: vier API-/UI-/Navigationstests, tatsächliches Einstellungsmenü und bestehende Dreeve-Pagination/Gear-Abfrage. Keine echte Verbindung zum Nutzer-Server und kein Gerätetest; installierte Dreeve-Version unbekannt. Keine neue APK angefordert.
+
+## Gruppierte Darstellung, 26.10.2026 nach Build89
+
+Fahrräder aus Dreeve sind echte, verschiebbare Sticky-Abschnitte im vorhandenen BicycleStickyScrollView. Darunter normale Bauteil-Accordions, gruppiert nach component.id, mit allen Aufgaben dieses Bauteils. Fahrrad-/Bauteilnamen sind keine Identität: gleiche Namen führen nicht zur Zusammenlegung. Bei fehlender Bauteil-ID werden Aufgaben vorsichtig einzeln angezeigt. Gemeinsame Bauteile stehen bei jedem zugeordneten Fahrrad, mit Hinweis; unzugeordnete Teile bleiben in einem eigenen Abschnitt. Die Anzahl zählt eindeutige API-Aufgaben, keine zusätzlichen Kopien geteilter Bauteile. Dreeves Dringlichkeitsreihenfolge bleibt innerhalb der Gruppen erhalten. Klappzustände bleiben beim manuellen Neuladen erhalten.
+
+Je Aufgabe: Name und Intervall, letzte Wartung (bei null „nie“), vergangene Menge und verbleibende beziehungsweise überschrittene Menge, Fortschrittsbalken und bei Überschreitung Zielmarke samt Zielwert. Einheiten km/mi/h/Kalendertage/Nutzungstage wie vom Server. Fälligkeitsflags bleiben maßgeblich, keine eigene Fälligkeitsprognose oder zusätzliche Schweregradschwelle.
+
+Solange nicht überfällig ist der Fortschritt grün. Bei überfälligen Aufgaben zeigt der Balken den Anteil bis zum Intervallziel heller rot und die Überschreitung dunkler rot, mit einer1dp-Zielmarke. Balkenproportion aus elapsed/interval, bei fehlendem elapsed aus remaining oder percentage; fehlende Textwerte bleiben Strich. Keine künstliche zweite Rotwarnschwelle. Gemeinsame Grundfarben für Pulszonen, FTP-Zonen und Wartung stehen jetzt in TrainingZoneColors.kt. Vorhandene Grundfarbwerte bleiben exakt erhalten; Wartungs-Rotabstufungen sind daraus abgeleitet. Künftige Änderungen an green/red wirken an allen drei Stellen.
+
+Schnellaktionen sind normale App-Buttons mit deaktiviertem Zustand. Bekannte Aufgaben haben passende Beschriftungen wie Gemessen/Getauscht/Gereinigt; unbekannte Aufgaben Erledigt. Es gibt keine schreibenden API-Aufrufe. Verwaltung bleibt ausschließlich Dreeve. Navigation und Header entsprechen der App; kein zusätzlicher Footer oder Plus aus dem Mockup. Die bestehende Erläuterung ist weiterhin über(i) zugänglich, die Datenseite beginnt mit Abruf und Anzahl.
+
+Sieben gezielte Tests zu API, Fehlern/Schließen, Gruppierung nach Identität, gemeinsamem/unzugeordnetem Bauteil, Akkordeon-Zustand, deaktivierten Aktionen, Farb-/Balkenpixeln und echtem Sticky-Pinning/Verdrängen in Flat/Glow erfolgreich. Native Vorschauen geprüft. Kein Test mit dem Nutzer-Server und keine neue APK für diesen Darstellungsschritt.
+
+## Vorgeschlagene automatische Aktualisierung – noch nicht umgesetzt
+
+Nutzer fragt nach Aktualisierung beim Appstart. Empfehlung: beim Appstart asynchron abrufen, beim Öffnen von Wartung aktualisieren und nach bestätigter Dreeve-Verarbeitung einer Fahrt erneut abrufen. Doppelte unmittelbar aufeinanderfolgende Abfragen zusammenfassen. Letzten erfolgreichen Stand kontogebunden lokal vorhalten und Zeitstempel zeigen; bei nicht erreichbarem Server den alten Stand ausdrücklich als solchen anzeigen. Manuellen Abruf erhalten. Dafür gibt es noch keinen Cache/automatischen Trigger: Aktuell unverändert nur Öffnen und manueller Abruf, ohne dauerhafte Wartungskopie oder Polling.
