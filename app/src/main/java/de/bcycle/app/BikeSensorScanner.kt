@@ -18,6 +18,7 @@ internal class BikeSensorScanner(private val context: Context, private val exclu
     private var probe: BluetoothGatt? = null
     private var running = false
     private val seen = mutableSetOf<String>()
+    private val axsCandidates=mutableSetOf<String>()
     private val queue = ArrayDeque<Pair<BluetoothDevice, String>>()
     private val finish = Runnable { stop(); status(context.getString(R.string.bikes_search_done)) }
     private val probeTimeout = Runnable { endProbe(); nextProbe() }
@@ -26,10 +27,11 @@ internal class BikeSensorScanner(private val context: Context, private val exclu
         BikeSensor.EBIKE in allowed && BoschConnection.MCSP_SERVICE in services -> BikeSensor.EBIKE
         BikeSensor.POWER in allowed && CyclingPowerConnection.SERVICE in services -> BikeSensor.POWER
         BikeSensor.HEART in allowed && HeartRateConnection.SERVICE in services -> BikeSensor.HEART
+        BikeSensor.SHIFT in allowed && AxsBatteryGroup.isSram("",services) -> BikeSensor.SHIFT
         else -> null
     }
     fun start() {
-        stop(); running = true; seen.clear()
+        stop(); running = true; seen.clear();axsCandidates.clear()
         try {
             val scanner = adapter?.takeIf { it.isEnabled }?.bluetoothLeScanner
                 ?: run { stop(); status(context.getString(R.string.bikes_scan_bluetooth)); return }
@@ -41,10 +43,14 @@ internal class BikeSensorScanner(private val context: Context, private val exclu
                         val address = device.address
                         if (address in excluded || !seen.add(address)) return@post
                         val name = result.scanRecord?.deviceName ?: device.name ?: address
-                        val category = kind(result.scanRecord?.serviceUuids.orEmpty().map { it.uuid })
+                        val services=result.scanRecord?.serviceUuids.orEmpty().map { it.uuid }
+                        val axs=BikeSensor.SHIFT in allowed && AxsBatteryGroup.isSram(name,services,result.scanRecord?.getManufacturerSpecificData(0x0933)!=null)
+                        if(axs) axsCandidates.add(address)
+                        val category = kind(services)
                         // A trainer may advertise only Cycling Power but also expose FTMS.
+                        // SRAM hints also need discovery, so a Quarq is not misclassified as a shifter.
                         // Discover its full service list before assigning the Powermeter role.
-                        if (category != null && category!=BikeSensor.POWER) found(device, name, category)
+                        if (category != null && category!=BikeSensor.POWER && category!=BikeSensor.SHIFT) found(device, name, category)
                         else if (queue.size < 10) { queue.addLast(device to name); nextProbe() }
                     } catch (_: SecurityException) { stop(); status(context.getString(R.string.bikes_scan_permission)) }
                 } }
@@ -80,7 +86,9 @@ internal class BikeSensorScanner(private val context: Context, private val exclu
                 override fun onServicesDiscovered(gatt: BluetoothGatt, statusCode: Int) { handler.post {
                     if (!running || probe !== gatt) return@post
                     try {
-                        if (statusCode == BluetoothGatt.GATT_SUCCESS) kind(gatt.services.map { it.uuid })?.let { found(device, name, it) }
+                        if (statusCode == BluetoothGatt.GATT_SUCCESS) (kind(gatt.services.map { it.uuid }) ?: BikeSensor.SHIFT.takeIf {
+                            it in allowed && (device.address in axsCandidates || AxsBatteryGroup.isSram(name,emptyList())) && gatt.getService(AxsBatteryGroup.BATTERY_SERVICE)!=null
+                        })?.let { found(device, name, it) }
                     } catch (_: SecurityException) { stop();status(context.getString(R.string.bikes_scan_permission));return@post }
                     endProbe(); nextProbe()
                 } }

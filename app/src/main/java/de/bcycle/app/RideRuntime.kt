@@ -54,6 +54,8 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private val primaryPowerSource get()=if(isIndoor) PowerSource.FTMS else PowerSource.BOSCH_RIDER
     internal val trainer=TrainerConnection(context,::trainerChanged,::onTrainerMeasurement)
     internal val powerMeter=CyclingPowerConnection(context,::powerMeterChanged,::onPowerMeterMeasurement)
+    internal val shiftGroup=AxsBatteryGroup(context,::notifyChanged)
+    internal val shiftEnabled get()=bikes.current().shiftEnabled
     internal val powerEnabled get()=bikes.current().powerEnabled
     internal val trainerEnabled get()=bikes.current().trainerEnabled
     internal val trainerAddress get()=bikes.current().trainerAddress
@@ -267,7 +269,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     fun notifyChanged() { observers.toList().forEach { it() } }
     fun setVisible(value: Boolean) {
         val opened=value && !visible
-        visible=value;if(!value) hrv.abort("APP_BACKGROUND");updateActivity()
+        visible=value;if(!value) { hrv.abort("APP_BACKGROUND");shiftGroup.stop() };updateActivity()
         if(opened) {
             autoStartOnConnection(recheck=true)
             MaintenanceRepository.get(context).refresh()
@@ -282,6 +284,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             if (!isIndoor && gpsEnabled && connectionsRequested && BikeSensor.GPS !in disconnectedSensors) gpsSensor.start()
             reconnectSensors(); scheduleTick()
         } else {
+            shiftGroup.stop()
             phoneBattery.stop();barometer.stop()
             connection.onForegroundChanged(false); trainer.stop();powerMeter.stop();heart.stop(); gpsSensor.stop(); ride.bike.pause(); heartAt = null
         }
@@ -295,6 +298,9 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val adapter = context.getSystemService(BluetoothManager::class.java).adapter ?: return
         if (!adapter.isEnabled) return
         val now = SystemClock.elapsedRealtime()
+        val profile=bikes.current()
+        shiftGroup.configure(if(profile.type==BikeType.EBIKE) profile.shiftDevices else emptyList())
+        if(visible && shiftEnabled && connectionsRequested && BikeSensor.SHIFT !in disconnectedSensors) shiftGroup.refresh()
         bikeReconnect.enabled = !isIndoor && bikeEnabled && connectionsRequested && BikeSensor.EBIKE !in disconnectedSensors
         heartReconnect.enabled = heartEnabled && connectionsRequested && BikeSensor.HEART !in disconnectedSensors
         bikeAddress?.takeIf { android.bluetooth.BluetoothAdapter.checkBluetoothAddress(it) }?.let {
@@ -354,7 +360,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
                 bikeAddress=target.bikeAddress,bikeName=target.bikeName,
                 heartAddress=target.heartAddress,heartName=target.heartName,
                 trainerAddress=target.trainerAddress,trainerName=target.trainerName,
-                powerAddress=target.powerAddress,powerName=target.powerName))
+                powerAddress=target.powerAddress,powerName=target.powerName,shiftDevices=target.shiftDevices))
             bikes.ui.copy(sourceSlot,target.slot)
         }
         return true
@@ -377,6 +383,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         return true
     }
     private fun activateBike(reuseHeart:Boolean=false,change:()->Unit) {
+        shiftGroup.stop()
         val sharedAddress=if(reuseHeart && heartEnabled && hasBluetooth() && heart.live && !disconnected(BikeSensor.HEART)) heart.deviceAddress else null
         val sharedName=heartName;val sharedPulse=pulse;val sharedAt=heartAt;val sharedStatus=heartStatus
         connectionsRequested = false
@@ -477,6 +484,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             BikeSensor.GPS -> { gpsSensor.stop(); gpsStatus = context.getString(R.string.bikes_gps_disconnect); capturePerformance(PerformanceChannel.SPEED, null, "GPS_SPEED") }
             BikeSensor.TRAINER -> { trainer.stop();trainerChanged() }
             BikeSensor.POWER -> { powerMeter.stop();powerMeterChanged() }
+            BikeSensor.SHIFT -> shiftGroup.stop()
         }
         notifyChanged()
     }
@@ -488,6 +496,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             BikeSensor.HEART -> bikes.save(p.copy(heartAddress = null, heartName = null))
             BikeSensor.TRAINER -> bikes.save(p.copy(trainerAddress=null,trainerName=null))
             BikeSensor.POWER -> bikes.save(p.copy(powerAddress=null,powerName=null))
+            BikeSensor.SHIFT -> { bikes.save(p.copy(shiftDevices=emptyList()));shiftGroup.configure(emptyList()) }
             else -> Unit
         }
         notifyChanged()
@@ -504,6 +513,34 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         connectionsRequested=true;disconnectedSensors.remove(BikeSensor.POWER)
         powerMeter.stop();rawPowers.remove(RecordingSource.POWER);rawCadences.remove(RecordingSource.POWER)
         powerReconnect.start();reconnectSensors();notifyChanged()
+    }
+    internal fun selectShiftComponent(device:BluetoothDevice,name:String) {
+        val p=bikes.current()
+        if(recording || saving || p.type!=BikeType.EBIKE) return
+        val address=device.address.uppercase(java.util.Locale.ROOT)
+        if(p.shiftDevices.any { it.address==address } || p.shiftDevices.size>=AxsDevice.MAX_COUNT) return
+        val safeName=name.filterNot(Char::isISOControl).trim().take(248).ifBlank { address }
+        val component=AxsDevice(address,safeName)
+        bikes.save(p.copy(shiftEnabled=true,shiftDevices=p.shiftDevices+component))
+        connectionsRequested=true;disconnectedSensors.remove(BikeSensor.SHIFT)
+        refreshShiftGroup()
+    }
+    internal fun setShiftEnabled(enabled:Boolean) {
+        bikes.save(bikes.current().copy(shiftEnabled=enabled))
+        if(!enabled) shiftGroup.stop() else { connectionsRequested=true;disconnectedSensors.remove(BikeSensor.SHIFT) }
+        if(enabled) refreshShiftGroup()
+        reconnectSensors();notifyChanged()
+    }
+    internal fun refreshShiftGroup() {
+        val p=bikes.current()
+        if(p.type!=BikeType.EBIKE || !p.shiftEnabled || !hasBluetooth() || !visible) return
+        connectionsRequested=true;disconnectedSensors.remove(BikeSensor.SHIFT)
+        shiftGroup.configure(p.shiftDevices);shiftGroup.refresh(force=true);notifyChanged()
+    }
+    internal fun removeShiftComponent(address:String) {
+        if(recording || saving) return
+        val p=bikes.current();bikes.save(p.copy(shiftDevices=p.shiftDevices.filterNot { it.address==address }))
+        shiftGroup.configure(bikes.current().shiftDevices);notifyChanged()
     }
     internal fun setPowerEnabled(enabled:Boolean) {
         bikes.save(bikes.current().copy(powerEnabled=enabled))

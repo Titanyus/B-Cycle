@@ -18,3 +18,6 @@ Vorgemerkt am 23.10.2026, noch kein Umsetzungsauftrag. Protokolle gemeinsam unte
 - [ ] Zwift Ride und Zwift Click für virtuelle Schaltung vorbereiten: gemeinsames Rollentrainer-Profil für Fahrrad und Zwift-Ride-Rahmen beibehalten. Controller-Protokoll/Generation und tatsächliche Nutzbarkeit getrennt vom FTMS-Messwertempfang prüfen; keine Kompatibilität mit Zwift-Controllern allein aus FTMS ableiten. Spätere Schaltlogik an dieselbe Trainersteuerung anbinden, keine zweite Aufzeichnung. Grafik/Bedienung ausdrücklich noch offen; keine Platzhalter-UI oder funktionslosen Sensorrollen anlegen.
 - [ ] Shimano Di2 prüfen: Gangposition und Schaltungsakku; Generation/Funkmodul und tatsächlich zugängliches Protokoll vor Umsetzung klären. Bluetooth-Verfügbarkeit allein garantiert keine Gangdaten.
 - [ ] ANT+ bei konkretem Bedarf prüfen: eigener Protokollzugang und unterstütztes Smartphone bzw. passender Adapter erforderlich; nicht durch Bluetooth abgedeckt.
+
+- [x] SRAM AXS als Schaltgruppe beim E-Bike: mehrere Komponenten zuordnen und Standard-Bluetooth-Akkustand abfragen; Profile/Sicherung integriert. Details docs/sram-axs.md.
+- [ ] SRAM-AXS-Gerätetest am Apex-XPLR-Schaltwerk und vorhandenen Apex-Controllern; tatsächlich erreichbare Wireless Blips prüfen. Gangdaten/verschlüsseltes Protokoll und passive Akku-Advertising-Auswertung erst bei Bedarf ergänzen.

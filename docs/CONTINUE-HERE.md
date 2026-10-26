@@ -1,3 +1,11 @@
+# Aktueller Stand26.10.2026 nach Build89: SRAM-AXS-Schaltgruppe beim E-Bike
+
+Neu: Schaltgruppe als reguläres Sensor-Schalter-Accordion beim E-Bike. Über Sensorsuche mehrere AXS-Komponenten (max8) zuordnen, Akkus abfragen, Name/letzten Prozentwert/Zeitstempel/Status je Gerät anzeigen und einzeln entfernen. Kurze serielle read-only GATT-Abfragen180F/2A19,10sTimeout, automatische Versuche bei sichtbarer App/aktivierten Verbindungen je Gerät höchstens alle5min, manuelles Abfragen erzwingt. Aus/Hintergrund/Profilwechsel stoppen, alte Callbacks ignorieren, Cache bei Fehler nicht löschen. Keine SRAMBond-/Schaltbefehle/Gangdaten und keine neuen FIT-/Dashboardfelder. Vollständige Diensterkennung vor Zuordnung, FTMS/CPS/Bosch behalten Priorität. Komponenten und Gruppenschalter in Profile/Kopie/Zielgeräteerhalt/Sicherung/Validierung integriert. Details docs/sram-axs.md.
+
+Nutzer nennt Apex-XPLR-Schaltwerk, zwei Apex-Controller und zwei Wireless Blips. Tatsächliche Standard-Batterie-Unterstützung erst am Gerät prüfen; Blips nicht als direkt erreichbare BLE-Geräte behaupten. Zum Test aufwecken und offizielle SRAM-App schließen. Kein Hardwaretest/neue APK beauftragt. Alle Änderungen nach Build89 einschließlich FIT-Import und Powermeter für nächsten APK-Auftrag behalten.
+
+24 gezielte Tests erfolgreich (5 AXS,13 Scanner,3 Sicherung,3 Sensor-Setup), Kotlin-Kompilierung/Typografie-/UI-Katalog-/Diffprüfung erfolgreich. Details und Testlogs docs/sram-axs.md. Keine offene Code-/Testaufgabe; tatsächliche Apex-/Controller-Unterstützung am Gerät verifizieren.
+
 # Aktueller Stand26.10.2026 nach Build89: Original-FIT-Import aus Dreeve
 
 Neu umgesetzt: Dreeve-Import bevorzugt unveränderte FIT-Originale (Dateiimporte mit Aktivitätsfilter/hasFile), sonst GPX, sonst bestehende Zusammenfassung. Defektes FIT fällt mit Hinweis zurück; Netzwerk-/Authentifizierungs-/Serverfehler bleiben Fehler. Bestehende Importe werden nicht ersetzt, identisches lokales FIT nur verknüpft. Tatsächliche FIT-Hash-ID für Profilzuordnung und Dreeve-Link; Originalbytes und bestehende Metadaten bleiben erhalten. Details docs/dreeve-original-files-api.md. Keine neue Einstellung/Abhängigkeit. Noch keine neue APK beauftragt; alle Änderungen nach Build89 für nächsten APK-Auftrag behalten.

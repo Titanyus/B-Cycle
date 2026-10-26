@@ -8,6 +8,7 @@ internal object SensorIcons {
         BikeSensor.HEART->BicycleIcon.Heart
         BikeSensor.POWER->BicycleIcon.PowerMeter
         BikeSensor.TRAINER->BicycleIcon.IndoorBike
+        BikeSensor.SHIFT->BicycleIcon.Sensors
     }
     fun forSource(source:String)=when(source) {
         "E-Bike"->BicycleIcon.EBike

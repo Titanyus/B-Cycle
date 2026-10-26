@@ -20,6 +20,27 @@ import java.time.Duration
 @Config(sdk=[33,35,36])
 @Suppress("DEPRECATION")
 class BikeSensorScannerTest {
+    @Config(sdk=[33])
+    @Test fun axsIsRecognizedByItsOwnAdvertisementButGenericBatteryIsNotAShiftingGroup() {
+        val adapter=adapter();val app=RuntimeEnvironment.getApplication();val found=mutableListOf<BikeSensor>()
+        val scanner=BikeSensorScanner(app,emptySet(),{ _,_,kind->found+=kind },{},setOf(BikeSensor.SHIFT))
+        scanner.start();val callback=shadowOf(adapter.bluetoothLeScanner).scanCallbacks.single()
+        val frames=listOf(byteArrayOf(3,3,0x51,0xfe.toByte(),0),byteArrayOf(4,0xff.toByte(),0x33,0x09,0x00,0),byteArrayOf(3,3,0x0f,0x18,0))
+        frames.forEachIndexed { index,bytes ->
+            val record=ReflectionHelpers.callStaticMethod<ScanRecord>(ScanRecord::class.java,"parseFromBytes",ReflectionHelpers.ClassParameter.from(ByteArray::class.java,bytes))
+            callback.onScanResult(1,ScanResult(adapter.getRemoteDevice("00:11:22:33:44:7$index"),record,-50,100))
+        }
+        shadowOf(Looper.getMainLooper()).idle();assertTrue(found.isEmpty())
+        for(index in 0..2) {
+            val device=adapter.getRemoteDevice("00:11:22:33:44:7$index")
+            val gatt=shadowOf(device).bluetoothGatts.last();val shadow=shadowOf(gatt)
+            shadow.addDiscoverableService(BluetoothGattService(AxsBatteryGroup.BATTERY_SERVICE,0))
+            shadow.gattCallback.onConnectionStateChange(gatt,0,BluetoothProfile.STATE_CONNECTED)
+            shadowOf(Looper.getMainLooper()).idle()
+        }
+        assertEquals(listOf(BikeSensor.SHIFT,BikeSensor.SHIFT),found)
+        scanner.stop()
+    }
     private fun adapter(): BluetoothAdapter {
         val app=RuntimeEnvironment.getApplication()
         shadowOf(app).grantPermissions(Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH_CONNECT)
