@@ -189,7 +189,7 @@ internal object BicycleDialogStyle {
         if(view is BicycleTextAction || view is BicycleSpecialButton) return // Central transparent accent text action owns its styling.
         if(view.tag=="bicycle_content_heading") return // Central content-heading typography owns this role.
         if(view is BicycleSegmentButton) return // Own radio appearance; generic controls add selection circles.
-        if(view is Button || view is EditText) BicycleComponents.controlSpacing(view)
+        if((view is Button || view is EditText) && view.getTag(R.id.compact_choice_role)!=true) BicycleComponents.controlSpacing(view)
         if (styled.put(view, true) != null) {
             if(view is EditText) { BicycleComponents.inputTypography(view);return }
             if(view.isAccessibilityHeading) { view.typeface=BicycleDesign.strongTypeface;view.textSize=BicycleDesign.titleSp }
@@ -225,9 +225,11 @@ internal object BicycleDialogStyle {
                 }
             }
             val listChoice=view is CheckBox || view is RadioButton
+            val compactChoice=listChoice && view.getTag(R.id.compact_choice_role)==true
             if(listChoice) {
                 view.gravity=Gravity.START or Gravity.CENTER_VERTICAL
-                view.setPadding(dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding),
+                if(compactChoice) view.setPadding(0,0,0,0)
+                else view.setPadding(dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding),
                     dp(view,BicycleDesign.horizontalPadding),dp(view,BicycleDesign.verticalPadding))
             }
             if(listChoice) view.accessibilityDelegate=object:View.AccessibilityDelegate() {
@@ -271,7 +273,8 @@ internal object BicycleDialogStyle {
                         state=view.drawableState
                     }
                 }
-                view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), null, ColorDrawable(Color.WHITE))
+                view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), null,
+                    if(compactChoice) compactChoiceMask(view) else ColorDrawable(Color.WHITE))
             }
         } else if (view is Button) {
             view.minimumHeight = dp(view, BicycleDesign.touchSize); view.isAllCaps = false
@@ -283,6 +286,20 @@ internal object BicycleDialogStyle {
                 view.compoundDrawablesRelative.filterNotNull().forEach { drawable -> drawable.setTint(it.foreground) }
             }
         } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(BicycleComponents.textColor(view,themes,it)) }
+    }
+    /** Keep the 48dp touch target while limiting feedback to the visible switch pill. */
+    private fun compactChoiceMask(view:TextView)=object:android.graphics.drawable.Drawable() {
+        private val paint=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color=Color.WHITE }
+        override fun draw(canvas:android.graphics.Canvas) {
+            val width=dp(view,BicycleDesign.switchWidth).toFloat();val height=dp(view,BicycleDesign.switchHeight).toFloat()
+            val left=if(view.layoutDirection==View.LAYOUT_DIRECTION_RTL) view.paddingLeft+dp(view,BicycleDesign.choiceTextGap).toFloat()
+                else bounds.right-view.paddingRight-width
+            val top=bounds.top+(bounds.height()-height)/2
+            canvas.drawRoundRect(left,top,left+width,top+height,height/2,height/2,paint)
+        }
+        override fun setAlpha(alpha:Int) { paint.alpha=alpha }
+        override fun setColorFilter(filter:android.graphics.ColorFilter?) { paint.colorFilter=filter }
+        @Suppress("DEPRECATION") override fun getOpacity()=android.graphics.PixelFormat.TRANSLUCENT
     }
     private fun footer(button: Button, themes: ThemeManager) {
         button.typeface = BicycleDesign.bodyTypeface; button.textSize = BicycleDesign.bodySp

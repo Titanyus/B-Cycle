@@ -131,6 +131,19 @@ internal class DreeveClient(config:ActivityServiceConfig,private val key:String,
         } while(page<=candidates.totalPages)
         return false
     }
+    /** Optional display metadata only; no file downloads or per-activity requests. */
+    fun originalFitActivities():Set<String> {
+        val activities=mutableSetOf<String>();var page=1
+        do {
+            val url=request("file-imports").build().url.newBuilder().addQueryParameter("filters[source]","fitFile")
+                .addQueryParameter("filters[status]","success").addQueryParameter("pagination[page]",page.toString())
+                .addQueryParameter("pagination[size]","100").build()
+            val json=http.optionalJson(request("file-imports").url(url).build()) ?: return emptySet()
+            val data=DreeveOriginalFits.decode(json,page)
+            activities.addAll(data.activityIds);page++
+        } while(page<=data.totalPages)
+        return activities
+    }
     fun step(file:File,filename:String,jobId:String):UploadProgress {
         // Recover a lost 202 response by looking up this durable, unique attempt filename first.
         val query=request("file-imports").build().url.newBuilder().addQueryParameter("filters[filename]",filename)

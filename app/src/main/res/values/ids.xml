@@ -10,4 +10,5 @@
     <item name="footer_shadow" type="id" />
     <item name="section_title_role" type="id" />
     <item name="summary_transfer_state" type="id" />
+    <item name="compact_choice_role" type="id" />
 </resources>

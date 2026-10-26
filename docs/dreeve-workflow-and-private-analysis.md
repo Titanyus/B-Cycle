@@ -88,3 +88,7 @@ Prüfstand manueller Namensabruf: neun gezielte Tests erfolgreich (bestehender/g
 ## Uploadbestätigung nach Build 72
 
 Nach HTTP-Annahme bis zu 30 s im ersten Worker zeitnah bestätigen (2/3/5/10/10 s). Ist der Import danach noch offen, Android-Ausführung ohne Fehler abschließen und einen persistenten Bestätigungsjob frühestens 30 s später einplanen. Bestehende Importaufträge pro Folgelauf einmal abfragen, keine erneute POST-Anfrage. Keine exponentielle Fehlerwartezeit allein wegen normaler Dreeve-Verarbeitung. Android darf Jobs abhängig von Netz/Energie/Quoten später ausführen; kein exaktes Zeitversprechen. Echte Netzwerkfehler behalten Backoff, Abschalten/Kontowechsel und bestätigte Aktivitäts-ID bleiben geschützt. Menü/Details beobachten vorhandene Revisions-/Preference-Änderungen. 16 gezielte Dienst-/Statusfälle erfolgreich, einschließlich langsamer Bestätigung über mehrere Jobs ohne erneuten Upload, Netzwerkfehler und Abschalten. Kein Live-Dreeve-Test oder APK-Auftrag.
+
+## Kompakte Importliste nach Build90
+
+Drei normale Zeilen statt vier, Fahrradzeile2dp näher an Datum/Strecke. Bestätigt verfügbare FIT/GPX rechts über dem Schalter als bestehende kleine Formatkennzeichen; Status importiert nur durch markierte deaktivierte Auswahl, Fehler weiter sichtbar. Optionale gemeinsame Servermetadatenabfrage nach vollständig geladener Liste, kein Vorabdownload. Archivliste behält vier Zeilen. Druckmarkierung auf die Schalterpille begrenzt, Touchfläche erhalten. Details [Originaldateien](dreeve-original-files-api.md).

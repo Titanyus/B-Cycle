@@ -17,7 +17,7 @@ import org.robolectric.annotation.Config
 class DreeveImportUiTest {
     private fun activity(id:String,gpx:Boolean=true)=DreeveActivity(id,"Fahrt $id","2026-10-19T08:00:00",12000.0,"Ride",gpx)
     @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
-    @Test fun fourSeparateLinesKeepLongTitleAndShowPreferredFitFallbackAndWarnings() {
+    @Test fun compactThreeLinesKeepTitleAndPutKnownFormatsAboveTheSwitchWithClippedFeedback() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
@@ -25,6 +25,7 @@ class DreeveImportUiTest {
             view.gearNames=mapOf("bike" to "Reiserad")
             view.loaded(DreeveActivityPage(listOf(activity("long").copy(name="Eine sehr lange Fahrtüberschrift ".repeat(12),
                 summary=DreeveSummary(mapOf(AnalysisMetric.ELAPSED to 3665.0),"bike")),activity("summary",false)),1,1,2),emptySet())
+            view.originalFits(setOf("long"))
             val list=view.findViewWithTag<ListView>("dreeve_import_list")
             val row=list.adapter.getView(0,null,list) as DreeveActivityRow
             row.measure(View.MeasureSpec.makeMeasureSpec(288,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));row.layout(0,0,288,row.measuredHeight)
@@ -33,24 +34,33 @@ class DreeveImportUiTest {
             assertTrue(row.labels.none { it.includeFontPadding })
             assertEquals(BicycleDesign.dp(a,BicycleDesign.smallGap),row.paddingTop)
             assertTrue(row.labels[1].text.contains("08:00"))
-            assertSame(row.box,row.getChildAt(row.childCount-1))
-            assertTrue(row.box.left>row.getChildAt(0).left)
+            assertSame(row.box.parent,row.getChildAt(row.childCount-1))
+            assertTrue((row.box.parent as View).left>row.getChildAt(0).left)
             assertTrue(row.box.width>=row.box.compoundPaddingRight+row.box.paddingLeft)
-            assertEquals(4,row.labels.size);assertEquals(1,row.labels[0].lineCount)
+            assertEquals(3,row.labels.size);assertEquals(1,row.labels[0].lineCount)
             assertTrue(row.labels[0].layout.getEllipsisCount(0)>0)
             assertTrue(row.labels[1].text.contains("12"));assertTrue(row.labels[1].text.contains("1:01:05"))
             assertEquals("Reiserad (${a.getString(R.string.bikes_type_bike)})",row.labels[2].text.toString())
-            assertEquals("FIT bevorzugt · GPX abrufbar",row.labels[3].text.toString())
+            assertTrue(row.labels[2].top<row.labels[1].bottom)
+            assertEquals(listOf("FIT","GPX"),(0 until row.formats.childCount).map { (row.formats.getChildAt(it) as TextView).text.toString() })
+            assertEquals(View.VISIBLE,row.formats.visibility);assertTrue(row.formats.bottom<=row.box.top)
+            val mask=(row.box.background as android.graphics.drawable.RippleDrawable).findDrawableByLayerId(android.R.id.mask)
+            val bitmap=android.graphics.Bitmap.createBitmap(row.box.width,row.box.height,android.graphics.Bitmap.Config.ARGB_8888)
+            mask.setBounds(0,0,bitmap.width,bitmap.height);mask.draw(android.graphics.Canvas(bitmap))
+            assertEquals(0,android.graphics.Color.alpha(bitmap.getPixel(0,0)))
+            assertTrue(android.graphics.Color.alpha(bitmap.getPixel(bitmap.width/2,bitmap.height/2))>0)
+            assertTrue(row.box.height>=BicycleDesign.dp(a,BicycleDesign.touchSize))
             val reused=list.adapter.getView(1,row,list) as DreeveActivityRow
-            assertEquals("FIT prüfen · kein GPX",reused.labels[3].text.toString())
+            assertEquals(View.GONE,reused.formats.visibility)
             assertFalse(reused.box.isChecked)
             view.complete(Result.success(DreeveImportResult(listOf(
                 DreeveItemResult("long",DreeveImportState.IMPORTED,fileFormat="GPX",fallbackProblem=R.string.dreeve_fit_invalid_fallback),
                 DreeveItemResult("summary",DreeveImportState.IMPORTED,fileFormat="FIT")))))
             val fit=list.adapter.getView(1,reused,list) as DreeveActivityRow
-            assertTrue(fit.labels[3].text.contains("FIT-Original"));assertFalse(fit.box.contentDescription.contains("Zusammenfassung"))
+            assertTrue(fit.formats.contentDescription.contains("FIT"));assertFalse(fit.box.contentDescription.contains("Zusammenfassung"))
+            assertFalse(fit.box.isEnabled);assertEquals(3,fit.labels.size)
             val fallback=list.adapter.getView(0,row,list) as DreeveActivityRow
-            assertTrue(fallback.labels[3].text.contains("GPX verwendet"));assertTrue(fallback.box.contentDescription.contains("FIT nicht lesbar"))
+            assertTrue(fallback.formats.contentDescription.contains("GPX"));assertTrue(fallback.box.contentDescription.contains("FIT nicht lesbar"))
             assertTrue(view.findViewWithTag<TextView>("dreeve_import_status").text.contains("Bei 1 Fahrten"))
         } finally { host.pause().stop().destroy() }
     }

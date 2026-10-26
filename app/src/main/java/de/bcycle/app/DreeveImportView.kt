@@ -27,6 +27,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
     private val selected=mutableSetOf<String>()
     private val existing=mutableSetOf<String>()
     private val results=mutableMapOf<String,DreeveItemResult>()
+    private var fitActivities:Set<String> = emptySet()
     private var loading=false;private var importing=false;private var nextPage:Int?=null
     private val status=BicycleFeedback.status(context,themes).apply { tag="dreeve_import_status" }
     private val preparation=BicycleComponents.text(context,themes,context.getString(R.string.archive_preparing)).apply {
@@ -50,7 +51,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
         override fun getItemId(position:Int)=position.toLong()
         override fun getView(position:Int,recycled:View?,parent:ViewGroup):View {
             val item=visible[position]
-            val row=(recycled as? DreeveActivityRow) ?: DreeveActivityRow(context,themes)
+            val row=(recycled as? DreeveActivityRow) ?: DreeveActivityRow(context,themes,compact=!archiveMode)
             val box=row.box
             box.setOnCheckedChangeListener(null)
             row.tag="dreeve_row_${item.id}";box.tag="dreeve_activity_${item.id}"
@@ -97,7 +98,17 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
             val lines=listOf(item.name,"$date · $distance · $duration",context.getString(R.string.dreeve_bike_type,bike,type),
                 listOfNotNull(gpx,outcome,result?.fallbackProblem?.let { context.getString(it) }).joinToString(" · "))
             row.labels.forEachIndexed { i,label -> label.text=lines[i] }
-            box.contentDescription=lines.joinToString("; ")+"; "+state
+            if(!archiveMode) {
+                val formats=buildSet {
+                    if(item.id in fitActivities || result?.fileFormat=="FIT") add("FIT")
+                    if(item.hasGpx || result?.fileFormat=="GPX") add("GPX")
+                }
+                row.showFormats(formats)
+                row.error.text=if(result?.state==DreeveImportState.FAILED) context.getString(result.problem ?: R.string.dreeve_import_download_failed) else ""
+                row.error.visibility=if(row.error.text.isEmpty()) GONE else VISIBLE
+            }
+            box.contentDescription=(if(archiveMode) lines else lines.take(3)+listOf(row.formats.contentDescription?.toString().orEmpty(),
+                result?.fallbackProblem?.let { context.getString(it) }.orEmpty())).filter { it.isNotEmpty() }.joinToString("; ")+"; "+state
             box.isChecked=item.id in selected || item.id in existing
             box.isEnabled=item.id !in existing && !loading && !importing
             row.isEnabled=box.isEnabled;row.alpha=if(box.isEnabled) 1f else .5f
@@ -178,7 +189,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
     }
     fun loaded(page:DreeveActivityPage,known:Set<String>,continuing:Boolean=false) {
         preparation.visibility=GONE;list.visibility=VISIBLE
-        if(page.page==1) { activities.clear();selected.clear();existing.clear();results.clear() }
+        if(page.page==1) { activities.clear();selected.clear();existing.clear();results.clear();fitActivities=emptySet() }
         val ids=activities.map { it.id }.toSet()
         activities.addAll(page.activities.filter { it.id !in ids });existing.addAll(known);selected.removeAll(existing)
         nextPage=if(page.page<page.totalPages) page.page+1 else null
@@ -191,6 +202,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
         loading=false;importing=false;controls();adapter.notifyDataSetChanged()
         BicycleFeedback.update(status,context.getString(problem))
     }
+    fun originalFits(available:Set<String>) { fitActivities=available.toSet();adapter.notifyDataSetChanged() }
     fun progress(item:DreeveItemResult) {
         results[item.id]=item
         if(item.state in setOf(DreeveImportState.IMPORTED,DreeveImportState.DUPLICATE)) { existing.add(item.id);selected.remove(item.id) }
@@ -206,24 +218,50 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
     }
 }
 
-/** Separate labels make title ellipsizing independent of the remaining three information lines. */
-internal class DreeveActivityRow(context:Context,themes:ThemeManager):LinearLayout(context) {
-    val box=CheckBox(context).apply { BicycleDialogStyle.control(this,themes) }
-    val labels=List(4) { index -> BicycleComponents.description(context,themes,"").apply {
+/** Dreeve uses three lines and format marks; archive rows retain their existing four lines. */
+internal class DreeveActivityRow(context:Context,themes:ThemeManager,private val compact:Boolean=false):LinearLayout(context) {
+    val box=CheckBox(context).apply { setTag(R.id.compact_choice_role,true);BicycleDialogStyle.control(this,themes) }
+    val labels=List(if(compact) 3 else 4) { index -> BicycleComponents.description(context,themes,"").apply {
         maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END
         tag=if(index==0) "dreeve_row_title" else "dreeve_row_line_$index"
         includeFontPadding=false
         BicycleDialogStyle.control(this,themes)
         if(index==0) typeface=BicycleDesign.strongTypeface
     } }
+    val error=BicycleComponents.description(context,themes,"").apply { visibility=GONE;tag="dreeve_row_error" }
+    val formats=LinearLayout(context).apply { orientation=HORIZONTAL;gravity=android.view.Gravity.CENTER;tag="dreeve_row_formats" }
+    private val fit=format("FIT",themes)
+    private val gpx=format("GPX",themes)
+    private fun format(value:String,themes:ThemeManager)=BicycleComponents.text(context,themes,value).apply {
+        BicycleDialogStyle.control(this,themes)
+        textSize=BicycleDesign.formatSp;includeFontPadding=false;setSingleLine();gravity=android.view.Gravity.CENTER
+        contentDescription=context.getString(R.string.ui_file_format_description,value)
+        importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+    fun showFormats(available:Set<String>) {
+        fit.visibility=if("FIT" in available) VISIBLE else GONE;gpx.visibility=if("GPX" in available) VISIBLE else GONE
+        (gpx.layoutParams as? LayoutParams)?.let { it.marginStart=if(fit.visibility==VISIBLE) BicycleDesign.dp(context,BicycleDesign.smallGap) else 0;gpx.layoutParams=it }
+        formats.visibility=if(available.isEmpty()) GONE else VISIBLE
+        formats.contentDescription=available.joinToString(" · ") { context.getString(R.string.ui_file_format_description,it) }
+    }
     init {
         orientation=HORIZONTAL;gravity=android.view.Gravity.CENTER_VERTICAL
         val gap=BicycleDesign.dp(context,BicycleDesign.smallGap);setPadding(0,gap,0,gap)
+        val choiceWidth=BicycleDesign.dp(context,BicycleDesign.switchWidth+BicycleDesign.choiceTextGap)
         importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
         addView(LinearLayout(context).apply {
             orientation=VERTICAL;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-            labels.forEach { addView(it,LayoutParams(-1,-2)) }
+            labels.forEachIndexed { index,label -> addView(label,LayoutParams(-1,-2).apply {
+                if(compact && index==2) topMargin=-BicycleDesign.dp(context,BicycleDesign.smallGap)/2
+            }) }
+            if(compact) addView(error,LayoutParams(-1,-2))
         },LayoutParams(0,-2,1f))
-        addView(box,LayoutParams(-2,BicycleDesign.dp(context,BicycleDesign.touchSize)))
+        if(compact) addView(LinearLayout(context).apply {
+            orientation=VERTICAL;gravity=android.view.Gravity.CENTER_HORIZONTAL
+            formats.addView(fit,LayoutParams(-2,-2))
+            formats.addView(gpx,LayoutParams(-2,-2).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.smallGap) })
+            addView(formats,LayoutParams(-1,-2));addView(box,LayoutParams(choiceWidth,BicycleDesign.dp(context,BicycleDesign.touchSize)))
+        },LayoutParams(choiceWidth,-2))
+        else addView(box,LayoutParams(choiceWidth,BicycleDesign.dp(context,BicycleDesign.touchSize)))
     }
 }

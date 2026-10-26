@@ -17,6 +17,22 @@ import java.util.UUID
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
 class DreeveOriginalFitTest {
+    @Test fun optionalFitAvailabilityReadsOnlyMetadataAndSupportsPaginationAndOlderServers() {
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody(page(listOf(row(),row("missing","no-file",false)),pages=2).toString()))
+            server.enqueue(MockResponse().setBody(page(listOf(row("second","activity-b"),row("gpx","activity-c").put("source","gpxFile")),2,2).toString()))
+            val client=DreeveClient(ActivityServiceConfig(),"test",base=server.url("/"))
+            assertEquals(setOf("activity-a","activity-b"),client.originalFitActivities())
+            repeat(2) { i ->
+                val request=server.takeRequest();assertEquals("/api/v1/file-imports",request.requestUrl!!.encodedPath)
+                assertEquals("GET",request.method);assertEquals((i+1).toString(),request.requestUrl!!.queryParameter("pagination[page]"))
+                assertEquals("fitFile",request.requestUrl!!.queryParameter("filters[source]"))
+            }
+            server.enqueue(MockResponse().setResponseCode(404));assertTrue(client.originalFitActivities().isEmpty())
+            server.enqueue(MockResponse().setBody(page(listOf(row().apply { remove("hasFile") }),pages=9).toString()))
+            assertTrue(client.originalFitActivities().isEmpty());assertEquals(4,server.requestCount)
+        }
+    }
     private val c get()=RuntimeEnvironment.getApplication()
     private val account="https://dreeve.example/sub/"
     private fun row(id:String="fileImport-a",activity:String="activity-a",hasFile:Boolean=true)=JSONObject()

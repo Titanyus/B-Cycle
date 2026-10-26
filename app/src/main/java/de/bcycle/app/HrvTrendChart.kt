@@ -44,20 +44,33 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private val plotLeft get()=BicycleDesign.dp(context,BicycleDesign.hrvTrendAxisWidth).toFloat()
     private val plotRight get()=(width-BicycleDesign.dp(context,8)).toFloat().coerceAtLeast(plotLeft+1)
     private fun x(day:LocalDate)=plotLeft+((day.toEpochDay()-(viewport.end-viewport.span))/viewport.span*(plotRight-plotLeft)).toFloat()
-    private val scale=ScaleGestureDetector(context,object:ScaleGestureDetector.SimpleOnScaleGestureListener() {
+    private var pointerA=-1;private var pointerB=-1;private var pinchSpan=0.0
+    private val pinching get()=pointerA>=0 && pointerB>=0
+    private fun beginPinch(event:MotionEvent,exclude:Int=-1) {
+        val indices=(0 until event.pointerCount).filter { it!=exclude }
+        pointerA=indices.getOrNull(0)?.let(event::getPointerId) ?: -1
+        pointerB=indices.getOrNull(1)?.let(event::getPointerId) ?: -1
+        pinchSpan=distance(event)
+    }
+    private fun distance(event:MotionEvent):Double {
+        val a=event.findPointerIndex(pointerA);val b=event.findPointerIndex(pointerB)
+        return if(a>=0 && b>=0) kotlin.math.hypot((event.getX(a)-event.getX(b)).toDouble(),(event.getY(a)-event.getY(b)).toDouble()) else 0.0
+    }
+    private fun endPinch() { pointerA=-1;pointerB=-1;pinchSpan=0.0 }
+    // Preserve native one-finger quick-scale; multi-finger zoom has no minimum-span cutoff.
+    private val quickScale=ScaleGestureDetector(context,object:ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector:ScaleGestureDetector):Boolean {
-            stopFling()
-            viewport.zoom(detector.scaleFactor.toDouble(),((detector.focusX-plotLeft)/(plotRight-plotLeft)).toDouble());changed();return true
+            stopFling();viewport.zoom(detector.scaleFactor.toDouble(),((detector.focusX-plotLeft)/(plotRight-plotLeft)).toDouble());changed();return true
         }
     })
     private val gestures=GestureDetector(context,object:GestureDetector.SimpleOnGestureListener() {
         override fun onDown(e:MotionEvent)=true
         override fun onScroll(e1:MotionEvent?,e2:MotionEvent,dx:Float,dy:Float):Boolean {
-            if(!scale.isInProgress && moved && e2.pointerCount==1) { viewport.pan(dx/(plotRight-plotLeft)*viewport.span);changed() }
+            if(!pinching && !quickScale.isInProgress && moved && e2.pointerCount==1) { viewport.pan(dx/(plotRight-plotLeft)*viewport.span);changed() }
             return true
         }
         override fun onFling(e1:MotionEvent?,e2:MotionEvent,velocityX:Float,velocityY:Float):Boolean {
-            if(!moved || multiTouch || scale.isInProgress || abs(velocityX)<=abs(velocityY)) return false
+            if(!moved || multiTouch || pinching || quickScale.isInProgress || abs(velocityX)<=abs(velocityY)) return false
             flingX=0
             scroller.fling(0,0,(-velocityX).toInt(),0,Int.MIN_VALUE,Int.MAX_VALUE,0,0)
             postInvalidateOnAnimation();return true
@@ -90,14 +103,28 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     }
     override fun performClick():Boolean { super.performClick();return true }
     override fun onTouchEvent(event:MotionEvent):Boolean {
-        if(event.actionMasked==MotionEvent.ACTION_DOWN) { stopFling();downX=event.x;downY=event.y;moved=false;multiTouch=false }
-        if(event.actionMasked==MotionEvent.ACTION_POINTER_DOWN) { stopFling();multiTouch=true;moved=true;parent?.requestDisallowInterceptTouchEvent(true) }
+        if(event.actionMasked==MotionEvent.ACTION_DOWN) { stopFling();endPinch();downX=event.x;downY=event.y;moved=false;multiTouch=false }
+        if(event.actionMasked==MotionEvent.ACTION_POINTER_DOWN) {
+            stopFling();multiTouch=true;moved=true;beginPinch(event);parent?.requestDisallowInterceptTouchEvent(true)
+            MotionEvent.obtain(event).also { it.action=MotionEvent.ACTION_CANCEL;quickScale.onTouchEvent(it);it.recycle() }
+        }
+        if(event.actionMasked==MotionEvent.ACTION_MOVE && pinching) {
+            val next=distance(event)
+            if(next>0 && pinchSpan>0) {
+                val a=event.findPointerIndex(pointerA);val b=event.findPointerIndex(pointerB)
+                val focus=(event.getX(a)+event.getX(b))/2
+                viewport.zoom(next/pinchSpan,((focus-plotLeft)/(plotRight-plotLeft)).toDouble());changed()
+            }
+            pinchSpan=next
+        }
+        if(event.actionMasked==MotionEvent.ACTION_POINTER_UP) beginPinch(event,event.actionIndex)
         if(event.actionMasked==MotionEvent.ACTION_MOVE && abs(event.x-downX)>slop && abs(event.x-downX)>abs(event.y-downY)) {
             moved=true;parent?.requestDisallowInterceptTouchEvent(true)
         }
         if(event.actionMasked==MotionEvent.ACTION_CANCEL) stopFling()
-        scale.onTouchEvent(event);gestures.onTouchEvent(event)
-        if(event.actionMasked==MotionEvent.ACTION_UP || event.actionMasked==MotionEvent.ACTION_CANCEL) parent?.requestDisallowInterceptTouchEvent(false)
+        if(!multiTouch) quickScale.onTouchEvent(event)
+        gestures.onTouchEvent(event)
+        if(event.actionMasked==MotionEvent.ACTION_UP || event.actionMasked==MotionEvent.ACTION_CANCEL) { endPinch();parent?.requestDisallowInterceptTouchEvent(false) }
         return true
     }
     private fun stopFling() { scroller.forceFinished(true) }
@@ -111,7 +138,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         changed()
         if(!scroller.isFinished) postInvalidateOnAnimation()
     }
-    override fun onDetachedFromWindow() { stopFling();super.onDetachedFromWindow() }
+    override fun onDetachedFromWindow() { stopFling();endPinch();super.onDetachedFromWindow() }
     override fun onDraw(canvas:Canvas) {
         super.onDraw(canvas)
         val top=16*density;val bottom=(height-32*density).coerceAtLeast(top+1)

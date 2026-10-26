@@ -174,6 +174,38 @@ class HrvTrendsTest {
             assertTrue(settings.isShowing);assertNotNull(settings.window!!.decorView.findViewWithTag<View>("hrv_open_analysis"))
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun closeFingersContinueZoomingAndPointerChangesDoNotJumpOrChangeTheAxis() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val chart=HrvTrendChart(a,ThemeManager(a.getSharedPreferences("pinch",0)),{},{_,_->})
+            a.setContentView(chart);chart.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));chart.layout(0,0,360,400)
+            chart.show(HrvTrends.series((0..365).map { row(it) },HrvTrendMetric.RMSSD),true)
+            val viewport=HrvTrendChart::class.java.getDeclaredField("viewport").apply { isAccessible=true }.get(chart) as HrvTrendViewport
+            val axis=chart.axis
+            fun event(time:Long,action:Int,ids:IntArray,vararg xs:Float) {
+                val props=Array(ids.size) { i -> MotionEvent.PointerProperties().apply { id=ids[i];toolType=MotionEvent.TOOL_TYPE_FINGER } }
+                val coords=Array(ids.size) { i -> MotionEvent.PointerCoords().apply { x=xs[i];y=150f;pressure=1f;size=1f } }
+                MotionEvent.obtain(0,time,action,ids.size,props,coords,0,0,1f,1f,0,0,android.view.InputDevice.SOURCE_TOUCHSCREEN,0).also { chart.onTouchEvent(it);it.recycle() }
+            }
+            event(0,MotionEvent.ACTION_DOWN,intArrayOf(7),100f)
+            event(10,MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),intArrayOf(7,42),100f,300f)
+            event(30,MotionEvent.ACTION_MOVE,intArrayOf(7,42),150f,250f)
+            val wide=viewport.span
+            event(50,MotionEvent.ACTION_MOVE,intArrayOf(7,42),185f,215f)
+            val close=viewport.span;assertTrue(close>wide)
+            event(70,MotionEvent.ACTION_MOVE,intArrayOf(7,42),192.5f,207.5f)
+            assertEquals(close*2,viewport.span,1e-5)
+            event(90,MotionEvent.ACTION_POINTER_DOWN or (2 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),intArrayOf(7,42,99),192.5f,207.5f,280f)
+            val before=viewport.span
+            event(100,MotionEvent.ACTION_POINTER_UP or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),intArrayOf(7,42,99),192.5f,207.5f,280f)
+            event(120,MotionEvent.ACTION_MOVE,intArrayOf(7,99),180f,267.5f)
+            assertEquals(before,viewport.span,1e-5)
+            event(140,MotionEvent.ACTION_MOVE,intArrayOf(7,99),160f,270f)
+            assertTrue(viewport.span<before)
+            event(150,MotionEvent.ACTION_CANCEL,intArrayOf(7,99),160f,270f)
+            assertEquals(axis,chart.axis)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun nativePinchAndHorizontalDragChangeOnlyTheDisplayedPeriod() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

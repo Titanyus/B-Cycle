@@ -1455,6 +1455,7 @@ class MainActivity : Activity() {
         val closed=java.util.concurrent.atomic.AtomicBoolean(false)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor { task -> Thread(task,"B-Cycle-dreeve-import") }
         var source:String?=null
+        var listGeneration=0
         lateinit var content:DreeveImportView
         fun client():Pair<String,DreeveClient> {
             val settings=ActivityServiceSettings(this,ActivityService.DREEVE)
@@ -1483,6 +1484,7 @@ class MainActivity : Activity() {
         }
         content=DreeveImportView(settingsContext,settingsThemes,loadPage={ page ->
             val expected=source
+            val generation=++listGeneration
             worker.execute {
                 try {
                     val (target,api)=client()
@@ -1497,6 +1499,10 @@ class MainActivity : Activity() {
                             content.profileFor={ activity -> activity.summary.gearId?.let { bikeMappings[it] }?.takeIf { it>=0 } }
                             content.loaded(data,runtime.mapState.existingDreeve(target,data.activities),continuing=data.page<data.totalPages)
                         } }
+                    }
+                    // The list is already usable. Missing/old metadata APIs must not block importing.
+                    runCatching { api.originalFitActivities() }.getOrNull()?.let { available ->
+                        runOnUiThread { if(!closed.get() && listGeneration==generation && source==target) content.originalFits(available) }
                     }
                 } catch(e:Exception) {
                     runOnUiThread { if(!closed.get()) content.failed(ServiceProblems.text(e,R.string.dreeve_import_load_failed)) }
