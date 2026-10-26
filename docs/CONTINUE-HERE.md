@@ -1,3 +1,7 @@
+# APK-Auftrag26.10.2026: Version0.8.52 / Code122 vorbereitet
+
+Neue APK ausdrücklich beauftragt. Enthält Schaltwerk-Dashboard-/Sammelfeldanzeige, gespeicherten letzten Stand, konfigurierbare zehnsekündige Startwarnung unter20%, kompakte Sensoransicht und neue Nutzericons sowie gespeicherte SRAM-Referenzen.25 gezielte Tests bereits erfolgreich, kein erneuter Gesamtlauf. Build über Push main/Actions, danach Signatur/Prüfsumme/Manifest/Ausrichtung/Download prüfen. Umfang release-0.8.52.md.
+
 # Aktueller Stand26.10.2026 nachBuild91: Schaltwerk im Dashboard und Startwarnung
 
 Umgesetzt: Schaltgruppe/Schaltwerk-Einzelfeld SHIFT_BATTERY sowie SHIFT in Akku-Sammelfeldern/Map-Konfiguration. Vorerst erstes zugeordnetes Gerät nach Nutzerentscheidung; keine Controller-Rollenwahl/Aggregation. Letzter erfolgreicher Akku über Disconnect/App-Neustart erhalten, Quellen bei Gruppe-Aus/fehlender Zuordnung/anderem Typ als fehlend. Sensoransicht ohne lange Hinweise, Name/letzter Stand mit Zeitstempel/Status und tatsächlicher Messwertart-Anzahl mit gemeinsamem Chevron. Nutzer-Schaltwerk-SVG als proportionaler tintbarer VectorDrawable. Neues App-Logo aus BClogo2-w.zip unverändert übernommen, adaptive Geometrie erhalten/heller Hintergrund.
