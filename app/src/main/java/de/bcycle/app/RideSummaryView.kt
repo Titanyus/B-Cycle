@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 internal class RideSummaryView(context:Context,private val themes:ThemeManager,private val completion:RideCompletion,openDetails:()->Unit={}):LinearLayout(context) {
     private val metrics=LinearLayout(context).apply { orientation=VERTICAL }
     private val status=BicycleComponents.description(context,themes,"").apply { tag="ride_summary_status" }
+    private val transfers=RideSummaryTransfers(context,themes)
     private val problem=BicycleComponents.description(context,themes,context.getString(R.string.ride_summary_loading)).apply { tag="ride_summary_loading" }
     private var entry:ManagedRoute?=null
     private val receipts=listOf("route-uploads","intervals-uploads","activity-uploads-dreeve","activity-uploads-strava",
@@ -19,6 +20,9 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
         addView(metrics,LayoutParams(-1,-2));addView(problem,LayoutParams(-1,-2))
         addView(status,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(transfers,LayoutParams(-1,-2).apply {
+            topMargin=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);bottomMargin=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
+        })
         addView(details)
         showMetrics(emptyMap());updateStatus()
     }
@@ -31,6 +35,15 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
                 fields.forEach { metric -> addView(AnalysisMetricTile(context,themes,listOf(metric),values),LayoutParams(0,-1,1f)) }
             },LayoutParams(-1,-2))
         }
+        if(entry?.details?.bikeType==BikeType.EBIKE) {
+            metrics.addView(BicycleComponents.sectionDivider(context,themes))
+            metrics.addView(LinearLayout(context).apply {
+                tag="ride_summary_battery";orientation=HORIZONTAL;isBaselineAligned=false
+                listOf(AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE).forEach { metric ->
+                    addView(AnalysisMetricTile(context,themes,listOf(metric),values),LayoutParams(0,-1,1f))
+                }
+            },LayoutParams(-1,-2))
+        }
     }
     fun show(analysis:RouteAnalysis) {
         entry=analysis.entry;details.isEnabled=true;showMetrics(analysis.metrics);problem.visibility=GONE;updateStatus()
@@ -40,7 +53,14 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
         val states=RideSummaryStatus.targets(completion).associateWith { target ->
             entry?.let { runCatching { target.status(context,it).state }.getOrDefault(UploadState.FAILED) } ?: UploadState.WAITING
         }
-        status.text=RideSummaryStatus.text(context,completion,states)
+        val warning=RideSummaryStatus.warnings(context,completion)
+        status.text=warning;status.visibility=if(warning.isEmpty()) GONE else VISIBLE
+        val folder=(completion as? RideCompletion.Completed)?.destinations?.contains(RecordingDestination.LOCAL_FOLDER)==true
+        val localFailed=completion is RideCompletion.LocallyRetained && completion.failedAt==RecordingFinishStage.EXPORT_LOCAL
+        transfers.show(listOf(SummaryTransfer(RouteTransferTarget.LOCAL,context.getString(if(folder || localFailed) R.string.ride_summary_local_folder else R.string.ride_summary_internal),
+            if(localFailed) UploadState.FAILED else UploadState.UPLOADED))+states.map { (target,state) ->
+            SummaryTransfer(target,context.getString(if(target==RouteTransferTarget.WEBDAV) R.string.ride_backup_webdav else target.title),state)
+        })
     }
     override fun onAttachedToWindow() {
         super.onAttachedToWindow();receipts.forEach { it.registerOnSharedPreferenceChangeListener(listener) };updateStatus()
@@ -59,18 +79,9 @@ internal object RideSummaryStatus {
         RecordingDestination.DREEVE->RouteTransferTarget.DREEVE
         RecordingDestination.STRAVA->RouteTransferTarget.STRAVA
     } }.sortedBy { it.ordinal }
-    fun text(context:Context,completion:RideCompletion,states:Map<RouteTransferTarget,UploadState>):String = buildList {
+    fun warnings(context:Context,completion:RideCompletion):String = buildList {
         if(completion !is RideCompletion.Completed) { add(RecordingStatusText.text(context,RecordingUpdate.Finished(completion)));return@buildList }
-        add(context.getString(R.string.ride_summary_saved))
-        if(RecordingDestination.LOCAL_FOLDER in completion.destinations) add(context.getString(R.string.ride_summary_folder))
         if(RecordingWarning.INCOMPLETE_RECORDING in completion.warnings) add(context.getString(R.string.recording_incomplete).trim(' ','·'))
         if(RecordingWarning.ELEVATION_CORRECTION_FAILED in completion.warnings) add(context.getString(R.string.elevation_auto_failed))
-        val targets=targets(completion)
-        listOf(UploadState.UPLOADED to R.string.ride_summary_uploaded,UploadState.UPLOADING to R.string.ride_summary_uploading,
-            UploadState.WAITING to R.string.ride_summary_waiting,UploadState.FAILED to R.string.ride_summary_upload_failed).forEach { (state,label) ->
-            val names=targets.filter { (states[it] ?: UploadState.WAITING).let { actual -> if(actual==UploadState.NOT_UPLOADED) UploadState.WAITING else actual }==state }
-                .map { if(it==RouteTransferTarget.WEBDAV) context.getString(R.string.ride_backup_webdav) else context.getString(it.title) }
-            if(names.isNotEmpty()) add(context.getString(label,names.joinToString(", ")))
-        }
     }.joinToString("\n")
 }

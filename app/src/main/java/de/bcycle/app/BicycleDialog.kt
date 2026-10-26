@@ -20,7 +20,7 @@ import android.widget.*
 internal class BicycleDialogBuilder(context: Context, private val themes: ThemeManager,
     private val navigation: DialogNavigation, private val fullscreen: Boolean = true,
     private val helpEnabled:Boolean = true, private val headerRole:ThemeRole = ThemeRole.PRIMARY,
-    private val plainHeader:Boolean = false, private val hideStatusBar:Boolean = false) : AlertDialog.Builder(context,
+    private val plainHeader:Boolean = false, private val hideStatusBar:Boolean = false,private val dashboardSurface:Boolean=false) : AlertDialog.Builder(context,
         if (fullscreen) R.style.SettingsFullscreenTheme else R.style.SettingsDialogTheme) {
     override fun setTitle(title: CharSequence?): AlertDialog.Builder {
         super.setTitle(title)
@@ -60,6 +60,7 @@ internal class BicycleDialogBuilder(context: Context, private val themes: ThemeM
                     top.addView(BicycleNavigation.header(original,screen,themes,role=headerRole,plain=plainHeader),ViewGroup.LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.headerHeight)))
                 }
             }
+            if(dashboardSurface) BicycleComponents.bindTheme(screen.window!!.decorView,themes) { DashboardModal.shadow(screen.window!!) }
         }
     }
 }

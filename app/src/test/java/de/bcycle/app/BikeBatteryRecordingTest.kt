@@ -12,6 +12,25 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
 class BikeBatteryRecordingTest {
+    @Test fun summaryReadsLastValidChargeAndTemperatureFromPrivateSavedRideIncludingZeroAndNegativeValues() {
+        val start=1_790_000_000_000L
+        val journal=File(context.cacheDir,"last-battery.ride")
+        RideJournal(journal,start,RecordingConfig(setOf("RIDER_POWER"))).use { writer ->
+            listOf(mapOf("BATTERY" to 80.0,"BATTERY_TEMPERATURE" to 24.5),
+                mapOf("BATTERY" to 0.0,"BATTERY_TEMPERATURE" to -3.5),emptyMap(),
+                mapOf("BATTERY" to 101.0,"BATTERY_TEMPERATURE" to 200.0)).forEachIndexed { i,values ->
+                writer.append(RideSample(start+i*1000,i*1000L,values=values))
+            }
+        }
+        val exported=File(context.cacheDir,"last-battery.fit");FitWriter.encode(journal,exported)
+        val id="recorded-"+"b".repeat(64)
+        val entry=ManagedRoute(id,"Fahrt",true,"FIT",RouteDetails(start,bikeType=BikeType.EBIKE),false)
+        assertNull(RouteAnalysisRead.read(exported,entry).metrics[AnalysisMetric.BATTERY_LEVEL])
+        RideAnalysisFiles.retain(context.filesDir,id,journal)
+        val saved=RouteAnalysisRead.read(RideAnalysisFiles.file(context.filesDir,id),entry)
+        assertEquals(0.0,saved.metrics[AnalysisMetric.BATTERY_LEVEL]!!,.001)
+        assertEquals(-3.5,saved.metrics[AnalysisMetric.BATTERY_TEMPERATURE]!!,.001)
+    }
     private val context get()=RuntimeEnvironment.getApplication()
     private fun live(runtime:RideRuntime) {
         val phase=runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible=true }

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ride_summary_title">Deine Daten</string>
+    <string name="ride_summary_title">Zusammenfassung</string>
+    <string name="ride_summary_battery">Akkustand E-Bike</string>
+    <string name="ride_summary_temperature">Akkutemperatur</string>
+    <string name="ride_summary_celsius">°C</string>
+    <string name="ride_summary_internal">Lokal</string>
+    <string name="ride_summary_local_folder">Zielordner</string>
+    <string name="ride_summary_target_status">%1$s: %2$s</string>
     <string name="ride_summary_loading">Fahrtdaten werden geladen …</string>
     <string name="ride_summary_load_failed">Kennzahlen konnten nicht geladen werden. Die gespeicherte Fahrt bleibt in der Streckensammlung verfügbar.</string>
     <string name="ride_summary_saved">Daten gespeichert.</string>

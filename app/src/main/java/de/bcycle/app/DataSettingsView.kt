@@ -11,9 +11,9 @@ internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
     BACKUP(R.string.data_backup, BicycleIcon.ExportTrack), RESTORE(R.string.data_restore, BicycleIcon.RestoreSettings),
     IMPORT(R.string.data_route_import, BicycleIcon.Import),
     RIDE_BACKUP(R.string.ride_backup_title,BicycleIcon.ExportTrack),
-    LOCAL(R.string.data_local, BicycleIcon.Save), CLOUD(R.string.data_cloud, BicycleIcon.WebDav),
-    INTERVALS(R.string.intervals_title,BicycleIcon.Intervals),
-    DREEVE(R.string.dreeve_title,BicycleIcon.Dreeve), STRAVA(R.string.strava_title,BicycleIcon.Strava)
+    LOCAL(R.string.data_local, TransferSymbols.local), CLOUD(R.string.data_cloud, TransferSymbols.webdav),
+    INTERVALS(R.string.intervals_title,TransferSymbols.intervals),
+    DREEVE(R.string.dreeve_title,TransferSymbols.dreeve), STRAVA(R.string.strava_title,TransferSymbols.strava)
 }
 /** Inline service forms reuse their existing controls; expanding never enables an upload. */
 internal class DataSettingsView(context: Context, private val themes: ThemeManager, selected: (DataAction)->Unit) : LinearLayout(context) {

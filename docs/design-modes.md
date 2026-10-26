@@ -72,3 +72,6 @@ Globale Reihenfolge ab25.10.2026: Dashboard im Vollbild → horizontale Linie �
 
 
 Nachtrag25.10.2026: Gemeinsame Auswahlkacheln nach Fahrradprofilstandard über BicycleSelectionCard, nun auch Meldungs-/Trinkposition. FIT-Namensfelder sind einzelne umsortierbare Karten, ungewählt1dp/50%-Kontur, gewählt bisheriger Stil; keine äußere Gruppenbox. Footer beider Designs TERTIARY und rahmenlos, Glow-Schatten weiter vorhanden. Glow-Sticky-Header rundum gerundet und auch angeheftet8dp Abstand, Flat bleibt flush. Diese aktuellen Nutzerentscheidungen ersetzen ältere nur-oben-Rundungen sowie Footertrennlinien.
+
+
+Nachtrag26.10.2026: Die beiden Dashboard-Dialoge tägliche HRV-Karte und Fahrtzusammenfassung erhalten unabhängig vom Einstellungsdesign12dp native Dashboard-Weichzeichnung und24dp diffusen schwarzen Schatten. Nur DashboardModal/der explizite dashboardSurface-Aufruf verwenden diese Ausnahme; normale Einstellungsdialoge behalten die bestehenden Rollen und ihr Design. Ältere Aussagen zu ausschließlich Glow bei diesen beiden Dashboard-Dialogen sind ersetzt.

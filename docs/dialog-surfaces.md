@@ -9,3 +9,6 @@ Damit gelten erneut SECONDARY für Seiten-/Dialoginhalte sowie PRIMARY für norm
 Die später separat eingeführten [Glow-Sticky-Karten](sticky-sections.md) bleiben erhalten. Sie sind unabhängig von der zurückgenommenen allgemeinen Dialoggestaltung.
 
 Gezielte Regressionen für Wiederherstellung der PRIMARY-/SECONDARY-Rollen, ursprüngliche HRV-Karte, erhaltenen Alert in Flat/Glow und beim Themewechsel, native Dialogaktionen, Vollbild/Insets, HRV-Einstieg, Trink-Timer/-Position und Glow-Sticky-Karten. Keine neue APK ohne gesonderten Auftrag.
+
+
+Nachtrag26.10.2026: Die beiden Dashboard-Dialoge tägliche HRV-Karte und Fahrtzusammenfassung erhalten unabhängig vom Einstellungsdesign12dp native Dashboard-Weichzeichnung und24dp diffusen schwarzen Schatten. Nur DashboardModal/der explizite dashboardSurface-Aufruf verwenden diese Ausnahme; normale Einstellungsdialoge behalten die bestehenden Rollen und ihr Design. Ältere Aussagen zu ausschließlich Glow bei diesen beiden Dashboard-Dialogen sind ersetzt.

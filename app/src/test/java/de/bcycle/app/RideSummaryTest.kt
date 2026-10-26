@@ -53,17 +53,23 @@ class RideSummaryTest {
             val header=dialog.window!!.decorView.findViewWithTag<View>("bicycle_navigation_header")
             assertEquals(runtime.themes.active.tokens.secondary,(header.background as android.graphics.drawable.ColorDrawable).color)
             val rows=(view.getChildAt(0) as ViewGroup)
-            assertEquals(2,rows.childCount);assertEquals(3,(rows.getChildAt(0) as ViewGroup).childCount);assertEquals(2,(rows.getChildAt(1) as ViewGroup).childCount)
+            assertEquals(3,(rows.getChildAt(0) as ViewGroup).childCount);assertEquals(2,(rows.getChildAt(1) as ViewGroup).childCount)
             var analysis:RouteAnalysis?=null
             runtime.mapState.loadAnalysis(id) { analysis=it.getOrThrow() };drain(runtime)
             val tiles=all(view).filterIsInstance<AnalysisMetricTile>()
-            assertEquals(listOf(AnalysisMetric.DISTANCE,AnalysisMetric.MOVING,AnalysisMetric.AVG_SPEED,AnalysisMetric.AVG_HEART,AnalysisMetric.NP),tiles.map { it.alternatives.single() })
+            val battery=if(analysis!!.entry.details.bikeType==BikeType.EBIKE) listOf(AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE) else emptyList()
+            assertEquals(listOf(AnalysisMetric.DISTANCE,AnalysisMetric.MOVING,AnalysisMetric.AVG_SPEED,AnalysisMetric.AVG_HEART,AnalysisMetric.NP)+battery,tiles.map { it.alternatives.single() })
             tiles.forEach { tile -> assertEquals(AnalysisMetricTile(c,runtime.themes,tile.alternatives,analysis!!.metrics).contentDescription,tile.contentDescription) }
             val status=view.findViewWithTag<android.widget.TextView>("ride_summary_status")
-            assertTrue(status.text.contains("Upload ausstehend: WebDAV"));assertFalse(status.text.contains("hochgeladen"))
+            assertEquals(View.GONE,status.visibility)
+            fun upload()=view.findViewWithTag<View>("ride_summary_state_WEBDAV").getTag(R.id.summary_transfer_state)
+            assertEquals(UploadState.WAITING,upload())
             assertFalse(RouteUploads.run(c,{false}) { _,_,_,_ -> })
             shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(status.text.contains("Zu WebDAV hochgeladen."))
+            assertEquals(UploadState.UPLOADED,upload())
+            val dashboard=c.findViewById<View>(android.R.id.content).findViewWithTag<android.widget.FrameLayout>("dashboard_host").getChildAt(0)
+            assertTrue(DashboardModal.blurred(dashboard))
+            assertEquals(BicycleDesign.dp(c,BicycleDesign.dashboardModalShadow).toFloat(),dialog.window!!.decorView.elevation,0f)
             for(width in listOf(288,328,380)) {
                 view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
                 view.layout(0,0,width,view.measuredHeight)
@@ -77,6 +83,7 @@ class RideSummaryTest {
             val details=view.findViewWithTag<View>("ride_summary_details")
             assertTrue(details.isEnabled);details.performClick();drain(runtime)
             assertFalse(dialog.isShowing)
+            assertFalse(DashboardModal.blurred(dashboard))
             assertNotNull(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("route_analysis_$id"))
             host.pause().stop().start().resume();repeat(2) { drain(runtime) }
             assertFalse(dialog.isShowing);assertNull(runtime.pendingRideSummary)
@@ -89,15 +96,14 @@ class RideSummaryTest {
     @Test fun queuedAndFailedServicesAreNeverReportedAsSuccessfulUploads() {
         val c=RuntimeEnvironment.getApplication()
         val result=RideCompletion.Completed("ride",RecordingDestination.entries.toSet())
-        val waiting=RideSummaryStatus.text(c,result,emptyMap())
-        assertFalse(waiting.contains("hochgeladen"));assertTrue(waiting.contains("WebDAV"));assertTrue(waiting.contains(c.getString(R.string.intervals_title)))
-        val text=RideSummaryStatus.text(c,result,mapOf(RouteTransferTarget.WEBDAV to UploadState.UPLOADED,
-            RouteTransferTarget.INTERVALS to UploadState.UPLOADING,RouteTransferTarget.DREEVE to UploadState.WAITING,RouteTransferTarget.STRAVA to UploadState.FAILED))
-        assertTrue(text.contains("Zu WebDAV hochgeladen."))
-        assertTrue(text.contains(c.getString(R.string.ride_summary_uploading,c.getString(R.string.intervals_title))))
-        assertTrue(text.contains(c.getString(R.string.ride_summary_waiting,c.getString(R.string.dreeve_title))))
-        assertTrue(text.contains(c.getString(R.string.ride_summary_upload_failed,c.getString(R.string.strava_title))))
-        val failure=RideSummaryStatus.text(c,RideCompletion.LocallyRetained("ride",RecordingFinishStage.EXPORT_LOCAL),emptyMap())
+        assertEquals("",RideSummaryStatus.warnings(c,result))
+        val states=mapOf(RouteTransferTarget.WEBDAV to UploadState.UPLOADED,
+            RouteTransferTarget.INTERVALS to UploadState.UPLOADING,RouteTransferTarget.DREEVE to UploadState.WAITING,RouteTransferTarget.STRAVA to UploadState.FAILED)
+        val view=RideSummaryTransfers(c,ThemeManager(c.getSharedPreferences("bike",0)))
+        view.show(states.map { (target,state) -> SummaryTransfer(target,c.getString(target.title),state) })
+        states.forEach { (target,state) -> assertEquals(state,view.findViewWithTag<View>("ride_summary_state_${target.name}").getTag(R.id.summary_transfer_state)) }
+        assertTrue(view.findViewWithTag<View>("ride_summary_transfer_STRAVA").contentDescription.contains(c.getString(R.string.route_transfer_failed)))
+        val failure=RideSummaryStatus.warnings(c,RideCompletion.LocallyRetained("ride",RecordingFinishStage.EXPORT_LOCAL))
         assertEquals(c.getString(R.string.recording_locally_retained),failure)
     }
 }

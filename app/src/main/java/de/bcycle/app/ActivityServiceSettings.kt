@@ -8,8 +8,8 @@ import java.security.SecureRandom
 import javax.crypto.SecretKey
 
 internal enum class ActivityService(val title:Int,val icon:BicycleIcon,val job:Int,val link:RideService) {
-    DREEVE(R.string.dreeve_title,BicycleIcon.Dreeve,8303,RideService.DREEVE),
-    STRAVA(R.string.strava_title,BicycleIcon.Strava,8304,RideService.STRAVA)
+    DREEVE(R.string.dreeve_title,TransferSymbols.dreeve,8303,RideService.DREEVE),
+    STRAVA(R.string.strava_title,TransferSymbols.strava,8304,RideService.STRAVA)
 }
 internal data class StravaAuthorization(val code:String,val clientId:String,val generation:Long)
 internal data class ActivityServiceConfig(val enabled:Boolean=false,val wifiOnly:Boolean=true,val address:String="",val clientId:String="",val account:String="") {

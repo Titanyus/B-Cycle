@@ -14,6 +14,7 @@ import android.window.OnBackInvokedDispatcher
 internal class HrvDailyPrompt(private val activity:Activity,private val host:FrameLayout,
     private val dashboard:View,themes:ThemeManager,private val acknowledge:()->Unit,start:()->Unit):AutoCloseable {
     private val accessibility=dashboard.importantForAccessibility
+    private val backdrop=DashboardModal.blur(dashboard)
     private var closed=false
     val showing get()=!closed
     private val back=OnBackInvokedCallback { close() }
@@ -38,7 +39,7 @@ internal class HrvDailyPrompt(private val activity:Activity,private val host:Fra
     override fun close() {
         if(closed) return
         closed=true;activity.onBackInvokedDispatcher.unregisterOnBackInvokedCallback(back)
-        host.removeView(overlay);dashboard.importantForAccessibility=accessibility
+        host.removeView(overlay);dashboard.importantForAccessibility=accessibility;backdrop.close()
     }
 }
 
@@ -55,7 +56,7 @@ internal class HrvDailyCard(context:Context,themes:ThemeManager,later:()->Unit,s
         outlineAmbientShadowColor=Color.BLACK;outlineSpotShadowColor=Color.BLACK
         BicycleComponents.scrollStyle(this)
         BicycleComponents.bindTheme(this,themes) {
-            elevation=if(BicycleAppearance.flat(context)) 0f else BicycleDesign.dp(context,BicycleDesign.hrvPromptShadow).toFloat()
+            DashboardModal.shadow(this)
             background=GradientDrawable().apply {
                 cornerRadius=dp(BicycleDesign.dialogRadius).toFloat();setColor(it.secondary)
                 setStroke(dp(BicycleDesign.hrvPromptBorder).coerceAtLeast(1),it.tertiary)

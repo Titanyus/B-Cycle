@@ -1,3 +1,11 @@
+# Abschlussprüfungen26.10.2026: APK0.8.48 / Code118 vorbereitet
+
+Alle16gezielten Tests erfolgreich, letzter Akkutemperaturtest nach gezielter Korrektur separat erfolgreich (summary-battery-recheck.log). Vorher15andere Tests aus summary-modal-tests.log erfolgreich: RideSummary2, SummaryPresentation3, BikeBattery2, HrvEntry6, BicycleAlertSurface2. Negative Temperaturen werden ausschließlich mit explizitem signed-Opt-in gelesen; bisheriger nichtnegativer Default anderer Developer-Felder bleibt. Native Zusammenfassung geprüft, Typografie-/Atlas-/Diffprüfung erfolgreich. Alle seit Build87aufgeführten gezielten Prüfungen abgeschlossen; kein erneuter Gesamtlauf/Gerätetest. Nutzer fordert neue APK; Version0.8.48/118, Actions-Veröffentlichung folgt. Releaseumfang in release-0.8.48.md.
+
+# Aktueller Auftrag26.10.2026: Abschluss Zusammenfassung und APK0.8.48
+
+Neue APK ausdrücklich angefordert; alle lokalen Änderungen seit Build87 einschließen. Zusammenfassung mit letzten gespeicherten E-Bike-Akkuwerten, gemeinsamen Dienstsymbolen und bestätigungsbasierten Statusgruppen; Dashboard-Blur12dp/Schatten24dp bei HRV-Tageskarte und Zusammenfassung in beiden Designs. 15von16gezielten Tests erfolgreich; letzter Test identifizierte bisherige Unterdrückung negativer Developer-Werte. Opt-in signed ausschließlich für Akkutemperatur ergänzt, bestehende übrige Leserfilter erhalten. Nachprüfung läuft. Native Summary-Vorschau geprüft; Lokal-Kurzlabel verhindert unschönen Umbruch. Frühere Einzelprüfungen der übrigen Features abgeschlossen. Release-Build via Actions und direkte signierte APK folgen. Noch kein Gerätetest.
+
 # Aktueller Abschluss26.10.2026: Editorfristen, Trendverfügbarkeit und mittlere Skalenwerte
 
 Zuerst Editor-/Trendprüfungen abgeschlossen (13gezielteTests erfolgreich), danach neuangeforderteDashboard-Skalenmitte umgesetzt undgeprüft (18gezielteGraph-/Darstellungstests erfolgreich). DashboardGraphDrawable zeichnet jeAchse zusätzlich(low+high)/2 mittig, vorhandenesZahlenformat/Deckung/Ausrichtung beibehalten. Alle5Charts, beideAchsen, alle4Zeitfenster imneuenTest geprüft. Keine Änderungen an Graphdaten/Skalierung/Glättung. Typografie/Diff erfolgreich, keinGerätetest/keine neueAPKangefragt.

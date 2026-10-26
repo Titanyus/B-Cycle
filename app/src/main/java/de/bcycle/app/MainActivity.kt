@@ -760,12 +760,13 @@ class MainActivity : Activity() {
             val content=RideSummaryView(this,runtime.themes,completion) {
                 runtime.mapState.entries.firstOrNull { it.id==id }?.let { entry -> screen.dismiss();routeAnalysis(entry) }
             }
-            screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY,plainHeader=true)
-                .setTitle(R.string.ride_summary_title).setView(content).show()
+            screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY,plainHeader=true,dashboardSurface=true)
+                .setTitle(R.string.ride_summary_title).setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(content) }).show()
+            val backdrop=DashboardModal.blur(dashboardRoot)
             val cancel=runtime.mapState.loadAnalysis(id) { result ->
                 if(!isDestroyed && screen.isShowing) result.fold(content::show) { content.loadingFailed() }
             }
-            dialogs.onDismiss(screen,cancel)
+            dialogs.onDismiss(screen) { cancel();backdrop.close() }
         }
     }
     private fun showHrvHistory() {

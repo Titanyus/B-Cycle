@@ -236,7 +236,7 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
             val seconds = number.toLong(); context.getString(R.string.analysis_duration_format, seconds / 3600, seconds / 60 % 60, seconds % 60)
         } else context.getString(when (metric) {
             AnalysisMetric.EF, AnalysisMetric.RATIO, AnalysisMetric.RIDER_BIKE_RATIO -> R.string.analysis_ratio_format
-            AnalysisMetric.DISTANCE, AnalysisMetric.AVG_SPEED, AnalysisMetric.MAX_SPEED -> R.string.analysis_number_format
+            AnalysisMetric.DISTANCE, AnalysisMetric.AVG_SPEED, AnalysisMetric.MAX_SPEED,AnalysisMetric.BATTERY_TEMPERATURE -> R.string.analysis_number_format
             else -> R.string.analysis_integer_format
         }, number)
         val unitText = context.getString(metric.unit)

@@ -40,7 +40,7 @@ class BicycleAlertSurfaceTest {
                 themes.setFlatDesign(flat);shadowOf(Looper.getMainLooper()).idle()
                 assertEquals(themes.active.tokens.secondary,color(daily))
                 assertEquals(themes.active.tokens.primary,color(drink))
-                assertEquals(if(flat) 0f else BicycleDesign.dp(a,BicycleDesign.hrvPromptShadow).toFloat(),daily.elevation,0f);assertTrue(drink.elevation>0f)
+                assertEquals(BicycleDesign.dp(a,BicycleDesign.dashboardModalShadow).toFloat(),daily.elevation,0f);assertTrue(drink.elevation>0f)
                 assertEquals((daily.background as GradientDrawable).cornerRadius,(drink.background as GradientDrawable).cornerRadius,0f)
                 assertNull(drink.findViewWithTag<View>("bicycle_navigation_header"))
                 drink.showReminder(5);assertEquals(View.VISIBLE,drink.visibility)

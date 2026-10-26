@@ -53,6 +53,10 @@ object BicycleDesign {
     const val sectionCardBottomPadding=16
     const val sectionCardGap=24
     const val hrvPromptShadow=24
+    const val dashboardModalBlur=12
+    const val dashboardModalShadow=24
+    const val rideSummaryStatusGap=24
+    const val rideSummaryStatusWidth=64
     const val alertShadow=24
     const val hrvPromptDimAlpha=170
     const val hrvPromptBorder=1

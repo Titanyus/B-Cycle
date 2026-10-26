@@ -9,4 +9,5 @@
     <item name="input_theme_id" type="id" />
     <item name="footer_shadow" type="id" />
     <item name="section_title_role" type="id" />
+    <item name="summary_transfer_state" type="id" />
 </resources>

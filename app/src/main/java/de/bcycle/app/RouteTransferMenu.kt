@@ -10,11 +10,11 @@ import android.view.ViewGroup
 import android.widget.*
 
 internal enum class RouteTransferTarget(val title:Int,val icon:BicycleIcon) {
-    LOCAL(R.string.route_transfer_local,BicycleIcon.Save),
-    WEBDAV(R.string.data_cloud,BicycleIcon.WebDav),
-    INTERVALS(R.string.intervals_title,BicycleIcon.Intervals),
-    DREEVE(R.string.dreeve_title,BicycleIcon.Dreeve),
-    STRAVA(R.string.strava_title,BicycleIcon.Strava);
+    LOCAL(R.string.route_transfer_local,TransferSymbols.local),
+    WEBDAV(R.string.data_cloud,TransferSymbols.webdav),
+    INTERVALS(R.string.intervals_title,TransferSymbols.intervals),
+    DREEVE(R.string.dreeve_title,TransferSymbols.dreeve),
+    STRAVA(R.string.strava_title,TransferSymbols.strava);
     fun enabled(c:Context)=when(this) {
         LOCAL->true // Manual export remains available independently of automatic local saving.
         WEBDAV->RouteExportSettings(c).read().webdav

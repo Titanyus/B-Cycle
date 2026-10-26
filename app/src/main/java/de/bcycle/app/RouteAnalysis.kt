@@ -27,7 +27,9 @@ internal enum class AnalysisMetric(val label: Int, val unit: Int, val icon: Bicy
     WORK(R.string.analysis_work, R.string.analysis_kj, BicycleIcon.Work),
     CALORIES(R.string.analysis_calories, R.string.analysis_kcal, BicycleIcon.Calories),
     EF(R.string.analysis_ef, R.string.analysis_w_bpm, BicycleIcon.Distance),
-    RATIO(R.string.analysis_ratio, R.string.analysis_speed_w, BicycleIcon.Distance)
+    RATIO(R.string.analysis_ratio, R.string.analysis_speed_w, BicycleIcon.Distance),
+    BATTERY_LEVEL(R.string.ride_summary_battery, R.string.analysis_percent, BicycleIcon.Battery),
+    BATTERY_TEMPERATURE(R.string.ride_summary_temperature, R.string.ride_summary_celsius, BicycleIcon.Battery)
 }
 /** Fixed semantic order. Color alternatives differ only in brightness for dark/light backgrounds. */
 internal enum class AnalysisChart(val label: Int, val unit: Int, val darkColor: Int, val lightColor: Int) {
@@ -135,7 +137,7 @@ internal object RouteAnalysisRead {
                         v("enhanced_speed") ?: v("speed") ?: dev("SPEED", "m/s") ?: dev("GPS_SPEED", "m/s"),
                         v("power") ?: dev("RIDER_POWER", "W"), v("cadence") ?: dev("CADENCE", "rpm") ?: dev("CADENCE", "U/min"),
                         v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("PRIMARY_HEIGHT","m") ?: dev("GPS_ALTITUDE", "m"),
-                        v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"), dev("SPEED", "m/s"))
+                        v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"), dev("SPEED", "m/s"),FitDeveloperValues.number(message,"BATTERY_TEMPERATURE","°C",signed=true))
                 }
                 18, 19 -> builder.summary(message, message.num == 18)
                 21 -> if (number(message, "event") == 0.0) builder.timer(number(message, "timestamp"), number(message, "event_type"))
@@ -172,6 +174,8 @@ internal object RouteAnalysisRead {
         var nativeDistanceMode: Boolean? = null
         val maxima = mutableMapOf<AnalysisMetric, Double>()
         private var inferredPauseMs=0L
+        private var lastBattery:Double?=null
+        private var lastBatteryTemperature:Double?=null
         fun gpxPause(gap:GpxPauseInference.Gap) {
             val start=firstTime ?: return
             performance.accept(PerformanceEvent(PerformanceChannel.PAUSE,gap.fromMs-start))
@@ -188,7 +192,7 @@ internal object RouteAnalysisRead {
                 performance.accept(PerformanceEvent(if (kind == 0.0) PerformanceChannel.RESUME else PerformanceChannel.PAUSE, time))
             }
         }
-        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null) {
+        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null,batteryTemperature:Double?=null) {
             count++; require(count <= 600_000)
             val stamp = time?.takeIf { firstTime == null || it >= (lastTime ?: it) }
             if (stamp != null) { if (firstTime == null) firstTime = stamp; lastTime = stamp }
@@ -209,6 +213,10 @@ internal object RouteAnalysisRead {
                 lastDistance = distance; distanceMax = maxOf(distanceMax, distance); distanceCount++
             }
             fun valid(value: Double?, range: ClosedFloatingPointRange<Double>) = value?.takeIf { it.isFinite() && it in range }
+            if(stamp!=null) {
+                valid(battery,0.0..100.0)?.let { lastBattery=it }
+                valid(batteryTemperature,-100.0..150.0)?.let { lastBatteryTemperature=it }
+            }
             val s = valid(speed, 0.0..35.0); val p = valid(power, 0.0..65535.0)
             val c = valid(rpm, 0.0..254.0); val h = valid(heart, 1.0..254.0); val a = valid(altitude, -500.0..10000.0)
             zones.add(stamp, distance, p, h, point?.segmentStart == true)
@@ -289,6 +297,8 @@ internal object RouteAnalysisRead {
             fallback(AnalysisMetric.AVG_MOTOR, rideMeans.motorMean)
             fallback(AnalysisMetric.RIDER_BIKE_RATIO, rideMeans.pairedRatio)
             fallback(AnalysisMetric.BATTERY_USAGE, rideMeans.batteryUsage)
+            lastBattery?.let { metrics[AnalysisMetric.BATTERY_LEVEL]=it }
+            lastBatteryTemperature?.let { metrics[AnalysisMetric.BATTERY_TEMPERATURE]=it }
             val calculated = performance.snapshot()
             fallback(AnalysisMetric.FTP, calculated.estimatedFtpW)
             fallback(AnalysisMetric.NP, calculated.normalizedPowerW); fallback(AnalysisMetric.WORK, calculated.mechanicalWorkKj)
