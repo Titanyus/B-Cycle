@@ -1,5 +1,5 @@
 <resources>
-    <color name="icon_background">#28243B</color>
+    <color name="icon_background">#F4F4F4</color>
     <string name="find_bike">Fahrrad auswählen</string>
     <string name="no_bike_selected">Noch kein Fahrrad ausgewählt</string>
     <string name="selected_bike_name">Ausgewählt: %1$s</string>
