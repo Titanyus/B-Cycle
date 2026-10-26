@@ -1,3 +1,7 @@
+# Nachtrag26.10.2026: Sammelupload
+
+Alle Fahrten prüfen/fehlende übertragen ist umgesetzt, einschließlich bestätigter Dreeve-Importe. Details [Sammelupload](intervals-bulk-upload.md). Nachfolgende ältere Planungs-/Standangaben sind Verlauf.
+
 # intervals.icu – FIT-Upload und spätere Trainingsprogramme
 
 Stand: 15.10.2026. Erster Ausbau implementiert. Der Nutzer hat den erfolgreichen

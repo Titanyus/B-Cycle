@@ -378,6 +378,21 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             target.retry(context,id)
         }; workerRoute
     }
+    internal fun uploadAllIntervals(cancelled:()->Boolean,progress:(Int,Int,IntervalsBulkItem)->Unit,
+        complete:(Result<IntervalsBulkResult>)->Unit):Boolean {
+        if(busy) return false
+        val snapshot=entries.toList()
+        busy=true;changed()
+        worker.execute {
+            var result:Result<IntervalsBulkResult> = Result.failure(IllegalStateException())
+            finishOperation("") {
+                result=runCatching { IntervalsBulkUpload(context).run(snapshot,cancelled) { done,total,item -> handler.post { progress(done,total,item) } } }
+                workerRoute
+            }
+            handler.post { complete(result) }
+        }
+        return true
+    }
     internal fun recheckTransfer(id:String,target:RouteTransferTarget) {
         if(target==RouteTransferTarget.LOCAL) { exportRoute(id);return }
         operate("") {

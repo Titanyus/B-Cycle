@@ -14,6 +14,22 @@ import java.util.concurrent.atomic.AtomicBoolean
 internal object IntervalsUploads {
     private const val JOB=8302
     private val lock=Any();private val runLock=Any()
+    internal fun <T> serial(action:()->T):T=synchronized(runLock) { action() }
+    internal fun takePending(c:Context,id:String)=synchronized(lock) {
+        val all=entries(c)
+        if(all.optJSONObject(id)?.optString("state") in setOf("pending","uploading","failed")) { all.remove(id);save(c,all) }
+    }
+    /** Only an acknowledged POST is a receipt for this exact file; a GET match is just a link. */
+    internal fun completed(c:Context,file:File,name:String,config:IntervalsConfig,remote:String) {
+        val metadata=RouteTransferPayload.annotate(c,file,JSONObject())
+        val hash=WebDavClient.hash(file)
+        RideServiceLinks.confirm(c,RideServiceLink(file.nameWithoutExtension,RideService.INTERVALS,config.athlete,remote,hash))
+        synchronized(lock) {
+            val all=entries(c)
+            all.put(file.nameWithoutExtension,metadata.put("athlete",config.athlete).put("hash",hash).put("length",file.length())
+                .put("modified",file.lastModified()).put("name",name).put("state","saved").put("remoteId",remote));save(c,all)
+        }
+    }
     private fun prefs(c:Context)=c.getSharedPreferences("intervals-uploads",0)
     private fun entries(c:Context)=JSONObject(prefs(c).getString("entries","{}")!!)
     private fun save(c:Context,all:JSONObject) { check(prefs(c).edit().putString("entries",all.toString()).putLong("revision",System.nanoTime()).commit()) }

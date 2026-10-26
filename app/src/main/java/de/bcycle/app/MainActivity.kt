@@ -1967,6 +1967,38 @@ class MainActivity : Activity() {
             }
         }
         val screen=owner ?: dataDialog(R.string.intervals_title,ScrollView(settingsContext).apply { addView(content) })
+        val closed=java.util.concurrent.atomic.AtomicBoolean(false)
+        var bulkStop:java.util.concurrent.atomic.AtomicBoolean?=null
+        content.uploadAll={
+            val running=bulkStop
+            if(running!=null) { running.set(true);BicycleFeedback.update(content.bulkResult,getString(R.string.intervals_bulk_stopping)) }
+            else if(runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy) BicycleFeedback.show(this,R.string.ride_backup_busy)
+            else {
+                val stopped=java.util.concurrent.atomic.AtomicBoolean(false);bulkStop=stopped
+                content.bulkRunning(true);BicycleFeedback.update(content.bulkResult,getString(R.string.intervals_bulk_starting))
+                // Reuse the settings worker so pending athlete/key edits are committed first.
+                worker.execute { runOnUiThread {
+                    if(closed.get()) return@runOnUiThread
+                    val started=runtime.mapState.uploadAllIntervals({ stopped.get() || closed.get() || runtime.recording || runtime.saving || runtime.hrv.busy },
+                        progress={ done,total,item -> if(!closed.get()) BicycleFeedback.update(content.bulkResult,getString(R.string.intervals_bulk_progress,done,total,item.name)) },
+                        complete={ result ->
+                            bulkStop=null
+                            if(!closed.get()) {
+                                content.bulkRunning(false)
+                                BicycleFeedback.update(content.bulkResult,result.fold({ report ->
+                                    getString(R.string.intervals_bulk_done,report.count(IntervalsBulkState.UPLOADED),report.count(IntervalsBulkState.EXISTS),report.count(IntervalsBulkState.SKIPPED),report.count(IntervalsBulkState.UNCLEAR),report.count(IntervalsBulkState.FAILED))+
+                                        (if(report.interrupted) "\n"+getString(R.string.intervals_bulk_interrupted) else "")+
+                                        report.problem?.let { "\n"+getString(it) }.orEmpty()+
+                                        report.items.filter { it.state in setOf(IntervalsBulkState.FAILED,IntervalsBulkState.UNCLEAR,IntervalsBulkState.SKIPPED) }.take(20).joinToString("") { item ->
+                                            "\n"+item.name+" · "+getString(item.problem ?: if(item.state==IntervalsBulkState.UNCLEAR) R.string.intervals_bulk_unclear else R.string.intervals_bulk_skipped)
+                                        }
+                                },{ getString(ServiceProblems.text(it,R.string.intervals_upload_failed)) }))
+                            }
+                        })
+                    if(!started) { bulkStop=null;content.bulkRunning(false);BicycleFeedback.update(content.bulkResult,getString(R.string.ride_backup_busy)) }
+                } }
+            }
+        }
         val revision=java.util.concurrent.atomic.AtomicLong()
         observeSettings(content) {
             val config=content.config();val key=content.newKey();val token=revision.incrementAndGet()
@@ -1982,7 +2014,7 @@ class MainActivity : Activity() {
                 }
             }
         }
-        dialogs.onDismiss(screen) { worker.shutdown() }
+        dialogs.onDismiss(screen) { closed.set(true);bulkStop?.set(true);worker.shutdown() }
         return content
     }
     private fun routeExportSettings(part: RouteExportPart,owner:AlertDialog?=null):View {

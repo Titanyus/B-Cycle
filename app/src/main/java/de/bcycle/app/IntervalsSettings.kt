@@ -9,6 +9,7 @@ internal class IntervalsSettings(context:Context,key:(()->SecretKey)?=null) {
     private val secret=StoredSecret(prefs,"bcycle-intervals",key)
     fun read()=IntervalsConfig(prefs.getBoolean("enabled",false),prefs.getString("athlete","")!!,prefs.getBoolean("wifi",true))
     fun hasKey()=prefs.contains("password")
+    internal fun connectionToken()=prefs.all.let { listOf(it["enabled"],it["athlete"],it["wifi"],it["password"],it["needsPassword"]).joinToString("\u0000") }
     fun apiKey()=secret.read()
     fun write(config:IntervalsConfig,apiKey:String?=null) {
         require(config.athlete.isEmpty() || config.athlete.matches(Regex("i?[0-9]{1,15}")))

@@ -25,12 +25,13 @@ internal object RouteTransferPayload {
     }
     fun eligibleGpx(c:Context,id:String)=gpx(c,id)?.origin==TrackOrigin.RECORDED
     private fun source(c:Context,id:String)=if(gpxId(id)) File(c.filesDir,"gpx-library/$id.gpx") else FitLibrary.activeFile(c.filesDir,id)
-    fun file(c:Context,id:String):File {
+    internal fun fromDreeve(c:Context,id:String)=RideServiceLinks.links(c,id).any { it.service==RideService.DREEVE }
+    fun file(c:Context,id:String,allowDreeveImport:Boolean=false):File {
         val original=source(c,id);require(original.isFile)
         val entry=gpx(c,id)
         val type=RideProfileColor.type(c,id) ?: entry?.details?.bikeType
         if(entry==null && (type==null || FitRead.read(original).details.bikeType==type)) return original
-        require(entry==null || entry.origin==TrackOrigin.RECORDED)
+        require(entry==null || entry.origin==TrackOrigin.RECORDED || allowDreeveImport && fromDreeve(c,id))
         val key=MessageDigest.getInstance("SHA-256").digest((WebDavClient.hash(original)+":"+type?.name+":"+GpxActivityFit.VERSION).toByteArray())
             .joinToString("") { "%02x".format(it.toInt() and 255) }
         val target=File(File(directory(c,id),key),"$id.fit")

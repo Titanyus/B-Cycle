@@ -44,7 +44,8 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                         addView(BicycleComponents.description(context,themes,
                             context.getString(R.string.transfer_in,context.getString(incoming))))
                         addView(BicycleComponents.description(context,themes,
-                            context.getString(R.string.transfer_out,context.getString(outgoing))))
+                            context.getString(R.string.transfer_out,context.getString(outgoing)+
+                                if(action==DataAction.INTERVALS) " "+context.getString(R.string.intervals_bulk_capability) else "")))
                     },LayoutParams(-1,-2))
                 }
                 val label=BicycleComponents.text(context,themes,context.getString(action.title)).apply {

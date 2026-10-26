@@ -38,7 +38,14 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         val result=JSONObject(execute(request("").get().build()))
         if(result.optString("id")!=config.athlete) throw IntervalsFailure(false,R.string.intervals_response_failed)
     }
-    fun upload(file:File,name:String):String {
+    fun activities(oldest:java.time.LocalDate,newest:java.time.LocalDate):List<IntervalsActivity> {
+        val url=request("activities").build().url.newBuilder().addQueryParameter("oldest",oldest.toString())
+            .addQueryParameter("newest",newest.toString()).addQueryParameter("limit","1000")
+            .addQueryParameter("fields","id,type,start_date,start_date_local,timezone,elapsed_time,distance,external_id").build()
+        return IntervalsActivity.decode(execute(request("activities").url(url).get().build()))
+    }
+    fun upload(file:File,name:String):String=upload(file,name,null,null)
+    fun upload(file:File,name:String,externalId:String?,title:String?):String {
         require(file.isFile && file.extension.equals("fit",true))
         val body=object:RequestBody() {
             override fun contentType()="application/octet-stream".toMediaType()
@@ -48,10 +55,17 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
                 while(true) { if(cancelled()) throw IOException();val n=input.read(buffer);if(n<0) break;sink.write(buffer,0,n) }
             } }
         }
-        val data=execute(request("activities").post(MultipartBody.Builder().setType(MultipartBody.FORM)
+        val url=request("activities").build().url.newBuilder().apply {
+            externalId?.let { addQueryParameter("external_id",it) };title?.let { addQueryParameter("name",it) }
+        }.build()
+        val data=execute(request("activities").url(url).post(MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart("file",name.replace(Regex("[\\r\\n\\\"]"),"_"),body).build()).build())
         val parsed=org.json.JSONTokener(data).nextValue()
-        val activity=when(parsed) { is JSONArray -> if(parsed.length()==1) parsed.optJSONObject(0) else null;is JSONObject->parsed;else->null }
+        val activity=when(parsed) {
+            is JSONArray -> if(parsed.length()==1) parsed.optJSONObject(0) else null
+            is JSONObject -> if(parsed.has("activities")) parsed.optJSONArray("activities")?.takeIf { it.length()==1 }?.optJSONObject(0) else parsed
+            else->null
+        }
         val id=activity?.optString("id")?.takeIf { it.isNotBlank() && it!="null" }
         return id ?: throw IntervalsFailure(false,R.string.intervals_response_failed)
     }

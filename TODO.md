@@ -21,3 +21,7 @@ Vorgemerkt am 23.10.2026, noch kein Umsetzungsauftrag. Protokolle gemeinsam unte
 
 - [x] SRAM AXS als Schaltgruppe beim E-Bike: mehrere Komponenten zuordnen und Standard-Bluetooth-Akkustand abfragen; Profile/Sicherung integriert. Details docs/sram-axs.md.
 - [ ] SRAM-AXS-Gerätetest am Apex-XPLR-Schaltwerk und vorhandenen Apex-Controllern; tatsächlich erreichbare Wireless Blips prüfen. Gangdaten/verschlüsseltes Protokoll und passive Akku-Advertising-Auswertung erst bei Bedarf ergänzen.
+
+- [x] intervals.icu-Sammelupload in Daten & Speicher: vorhandene Fahrten prüfen und nur fehlende übertragen, einschließlich bestätigter Dreeve-Importe mit Messdaten. Details docs/intervals-bulk-upload.md.
+- [x] Dreeve-Haken bei als Gefahren importierten FIT-Originalen: vorhandene Kontoverknüpfung auch ohne eigenen Uploadbeleg anzeigen.
+- [x] SRAM-Suche: spätere Namensantworten und priorisierte Kandidaten berücksichtigen, Probe-Timeout verhindert Auswahl nicht. Hardwaretest am Apex bleibt offen.

@@ -1,6 +1,6 @@
 <resources>
     <string name="axs_group">Schaltgruppe</string>
-    <string name="axs_hint">SRAM-AXS-Komponenten einzeln über die Sensorsuche hinzufügen. Für die Akkuabfrage Komponenten aufwecken und die SRAM-App schließen. Nicht jede Komponente ist einzeln über Bluetooth erreichbar; das gilt insbesondere für Wireless Blips.</string>
+    <string name="axs_hint">SRAM-AXS-Komponenten einzeln über die Sensorsuche hinzufügen. Nicht in den Android-Bluetooth-Einstellungen koppeln. Komponenten aufwecken und die SRAM-App schließen. Erkannte SRAM-Geräte bleiben auch ohne erfolgreiche Diensteprüfung auswählbar; der Akkudienst wird danach geprüft. Nicht jede Komponente ist einzeln über Bluetooth erreichbar; das gilt insbesondere für Wireless Blips.</string>
     <string name="axs_refresh">Akkus abfragen</string>
     <string name="axs_add">Komponente hinzufügen</string>
     <string name="axs_waiting">Noch nicht abgefragt</string>

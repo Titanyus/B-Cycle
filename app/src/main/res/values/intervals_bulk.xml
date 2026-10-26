@@ -1,0 +1,16 @@
+<resources>
+    <string name="intervals_bulk_button">Alle Fahrten zu intervals.icu hochladen</string>
+    <string name="intervals_bulk_hint">Prüft vorhandene Fahrten und lädt nur fehlende hoch, auch Importe aus Dreeve. Beim Schließen wird der Vorgang beendet.</string>
+    <string name="intervals_bulk_capability">Alle Fahrten hochladen prüft vorhandene intervals-Aktivitäten vor der Übertragung. Berücksichtigt auch aus Dreeve importierte FIT- und vollständig zeitgestempelte GPX-Fahrten, unabhängig von der lokalen Kennzeichnung Importiert oder Gefahren. Originale und Kennzeichnung bleiben unverändert. Geplante Tracks ohne Fahrtnachweis und reine Zusammenfassungen werden übersprungen, unklare Treffer nicht hochgeladen. Keine automatische Weiterleitung dieser Importe an andere Dienste.</string>
+    <string name="intervals_bulk_cancel">Sammelupload abbrechen</string>
+    <string name="intervals_bulk_starting">Fahrten werden geprüft …</string>
+    <string name="intervals_bulk_stopping">Abbruch angefordert …</string>
+    <string name="intervals_bulk_progress">%1$d / %2$d · %3$s</string>
+    <string name="intervals_bulk_done">%1$d hochgeladen · %2$d bereits vorhanden · %3$d übersprungen · %4$d unklar · %5$d fehlgeschlagen</string>
+    <string name="intervals_bulk_wifi">Für diesen Upload ist eine WLAN-Verbindung ohne Datenlimit erforderlich.</string>
+    <string name="intervals_bulk_changed">intervals.icu-Zugang geändert. Bitte erneut starten.</string>
+    <string name="intervals_bulk_interrupted">Vorgang unterbrochen. Ein erneuter Start prüft vorhandene Fahrten erneut.</string>
+    <string name="intervals_bulk_unclear">Keine eindeutige Zuordnung; nicht hochgeladen</string>
+    <string name="intervals_bulk_skipped">Keine übertragbare Fahrt mit Messdaten</string>
+    <string name="intervals_linked">Mit intervals.icu verknüpft</string>
+</resources>

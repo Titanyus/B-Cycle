@@ -95,8 +95,13 @@ class DataSettingsNavigationTest {
             assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_athlete"))
             assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_key"))
             assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_test"))
+            assertNotNull(intervals.window!!.decorView.findViewWithTag<View>("intervals_bulk_upload"))
             assertFalse(IntervalsSettings(activity).read().enabled)
             assertSame(data,intervals)
+            waitFor { !RideRuntime.get(activity).mapState.busy }
+            click(data,"intervals_bulk_upload")
+            waitFor { intervals.window!!.decorView.findViewWithTag<TextView>("intervals_bulk_result").text.contains(activity.getString(R.string.intervals_enable_first)) }
+            assertFalse(IntervalsSettings(activity).read().enabled)
             click(data,"data_INTERVALS");shadowOf(Looper.getMainLooper()).idle()
             assertEquals(View.GONE,data.window!!.decorView.findViewWithTag<View>("data_details_INTERVALS").visibility)
             assertEquals(View.VISIBLE,data.window!!.decorView.visibility)

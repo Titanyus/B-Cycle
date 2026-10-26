@@ -15,6 +15,9 @@ internal class IntervalsView(context:Context,themes:ThemeManager,config:Interval
     val wifi=Switch(context).apply { setText(R.string.route_export_wifi);isChecked=config.wifiOnly;tag="intervals_wifi" }
     val result=BicycleFeedback.status(context,themes).apply { tag="intervals_result" }
     val testButton=BicycleComponents.action(context,themes,context.getString(R.string.route_export_test),test).apply { tag="intervals_test" }
+    var uploadAll:()->Unit={}
+    val bulkButton=BicycleComponents.action(context,themes,context.getString(R.string.intervals_bulk_button)) { uploadAll() }.apply { tag="intervals_bulk_upload" }
+    val bulkResult=BicycleFeedback.status(context,themes).apply { tag="intervals_bulk_result";setText(R.string.intervals_bulk_hint) }
     init {
         orientation=VERTICAL
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad/2,pad,pad/2)
@@ -35,11 +38,15 @@ internal class IntervalsView(context:Context,themes:ThemeManager,config:Interval
             addView(eye,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
         },LayoutParams(-1,-2))
         addView(wifi);addView(testButton);addView(result)
+        addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.sectionDividerGap))
+        addView(bulkButton);addView(bulkResult)
         BicycleDialogStyle.content(this,themes)
         listOf(athlete,apiKey).forEach { BicycleForm.outlinedInput(it,themes) }
         BicycleDialogStyle.actionIcon(testButton,themes,BicycleIcon.Connection)
+        BicycleDialogStyle.actionIcon(bulkButton,themes,TransferSymbols.intervals)
     }
     fun config()=IntervalsConfig(enabled.isChecked,athlete.text.toString().trim(),wifi.isChecked)
     fun newKey()=apiKey.text.toString().trim().takeIf { it.isNotEmpty() }
     fun testing(busy:Boolean) { testButton.isEnabled=!busy;BicycleFeedback.update(result,if(busy) context.getString(R.string.route_export_testing) else "") }
+    fun bulkRunning(running:Boolean) { bulkButton.setText(if(running) R.string.intervals_bulk_cancel else R.string.intervals_bulk_button) }
 }

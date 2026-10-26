@@ -44,7 +44,8 @@ internal object RouteTransferRows {
     fun read(context:Context,entry:ManagedRoute,busy:Boolean)=RouteTransferTarget.entries.map { target ->
         runCatching {
             when {
-                target==RouteTransferTarget.DREEVE && (entry.origin==TrackOrigin.IMPORTED || entry.format!="FIT") && RideServiceLinks.links(context,entry.id).any { it.service==RideService.DREEVE && it.accountId==ActivityServiceSettings(context,ActivityService.DREEVE).read().identity(ActivityService.DREEVE) }->RouteTransferRow(target,R.string.dreeve_linked,false,true)
+                target==RouteTransferTarget.DREEVE && (entry.origin==TrackOrigin.IMPORTED || entry.format!="FIT" || target.status(context,entry).state==UploadState.NOT_UPLOADED) && RideServiceLinks.links(context,entry.id).any { it.service==RideService.DREEVE && it.accountId==ActivityServiceSettings(context,ActivityService.DREEVE).read().identity(ActivityService.DREEVE) }->RouteTransferRow(target,R.string.dreeve_linked,false,true)
+                target==RouteTransferTarget.INTERVALS && (entry.origin!=TrackOrigin.RECORDED || target.status(context,entry).state==UploadState.NOT_UPLOADED) && RideServiceLinks.links(context,entry.id).any { it.service==RideService.INTERVALS && it.accountId==IntervalsSettings(context).read().athlete }->RouteTransferRow(target,R.string.intervals_linked,false,true)
                 !target.enabled(context)->RouteTransferRow(target,R.string.route_transfer_off,false)
                 !entry.locallySaved->RouteTransferRow(target,R.string.route_transfer_missing,false)
                 target!=RouteTransferTarget.LOCAL && (entry.format !in setOf("FIT","GPX") || entry.origin!=TrackOrigin.RECORDED ||

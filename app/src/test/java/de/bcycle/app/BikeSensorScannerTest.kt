@@ -21,6 +21,37 @@ import java.time.Duration
 @Suppress("DEPRECATION")
 class BikeSensorScannerTest {
     @Config(sdk=[33])
+    @Test fun delayedSramNameSurvivesDiscoveryTimeoutAndIsReportedOnceWithoutAndroidBonding() {
+        val adapter=adapter();val app=RuntimeEnvironment.getApplication();val found=mutableListOf<Pair<String,BikeSensor>>()
+        val scanner=BikeSensorScanner(app,emptySet(),{ _,name,kind->found+=name to kind },{},setOf(BikeSensor.SHIFT))
+        scanner.start();val callback=shadowOf(adapter.bluetoothLeScanner).scanCallbacks.single()
+        val device=adapter.getRemoteDevice("00:11:22:33:44:99")
+        callback.onScanResult(1,ScanResult(device,null,-50,100))
+        shadowOf(Looper.getMainLooper()).idle()
+        val name="SRAM 1234567890".toByteArray()
+        val bytes=byteArrayOf((name.size+1).toByte(),9)+name+byteArrayOf(0)
+        val record=ReflectionHelpers.callStaticMethod<ScanRecord>(ScanRecord::class.java,"parseFromBytes",ReflectionHelpers.ClassParameter.from(ByteArray::class.java,bytes))
+        repeat(3) { callback.onScanResult(1,ScanResult(device,record,-50,100)) }
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11))
+        assertEquals(listOf("SRAM 1234567890" to BikeSensor.SHIFT),found)
+        assertEquals(BluetoothDevice.BOND_NONE,device.bondState)
+        callback.onScanResult(1,ScanResult(device,record,-50,100));shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(1,found.size)
+    }
+    @Config(sdk=[33])
+    @Test fun sramCandidateHasPriorityOverUnknownNoiseAndExplicitStopNeverPublishesIt() {
+        val adapter=adapter();val app=RuntimeEnvironment.getApplication();var found=0
+        val scanner=BikeSensorScanner(app,emptySet(),{ _,_,_->found++ },{},setOf(BikeSensor.SHIFT))
+        scanner.start();val callback=shadowOf(adapter.bluetoothLeScanner).scanCallbacks.single()
+        repeat(12) { index -> callback.onScanResult(1,ScanResult(adapter.getRemoteDevice("00:11:22:33:44:"+index.toString(16).uppercase(java.util.Locale.ROOT).padStart(2,'0')),null,-50,100)) }
+        val device=adapter.getRemoteDevice("00:11:22:33:44:99")
+        val record=ReflectionHelpers.callStaticMethod<ScanRecord>(ScanRecord::class.java,"parseFromBytes",ReflectionHelpers.ClassParameter.from(ByteArray::class.java,byteArrayOf(4,0xff.toByte(),0x33,0x09,0,0)))
+        callback.onScanResult(1,ScanResult(device,record,-50,100))
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(3100))
+        assertTrue(shadowOf(device).bluetoothGatts.isNotEmpty());assertEquals(0,found)
+        scanner.stop();shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(11));assertEquals(0,found)
+    }
+    @Config(sdk=[33])
     @Test fun axsIsRecognizedByItsOwnAdvertisementButGenericBatteryIsNotAShiftingGroup() {
         val adapter=adapter();val app=RuntimeEnvironment.getApplication();val found=mutableListOf<BikeSensor>()
         val scanner=BikeSensorScanner(app,emptySet(),{ _,_,kind->found+=kind },{},setOf(BikeSensor.SHIFT))
