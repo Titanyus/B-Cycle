@@ -10,7 +10,7 @@ import android.os.BatteryManager
 enum class BatterySource(val label: Int) {
     EBIKE(R.string.ui_source_bike), HEART(R.string.ui_source_heart),
     TRAINER(R.string.bikes_trainer), PHONE(R.string.battery_phone),
-    POWER(R.string.bikes_power_meter)
+    POWER(R.string.bikes_power_meter), SHIFT(R.string.axs_derailleur)
 }
 
 data class BatterySnapshot(val levels: Map<BatterySource,Int?> = emptyMap()) {
@@ -30,17 +30,18 @@ internal object BatteryFields {
         require(sources.size in 1..4 && sources.distinct().size==sources.size)
         return DashboardField("$COMBINED:"+sources.sortedBy { it.ordinal }.joinToString(",") { it.name })
     }
-    fun choices(data:LiveData)=listOf(if(data.indoor) BatterySource.TRAINER else BatterySource.EBIKE,BatterySource.HEART,BatterySource.POWER,BatterySource.PHONE)
+    fun choices(data:LiveData)=listOf(if(data.indoor) BatterySource.TRAINER else BatterySource.EBIKE,BatterySource.HEART,BatterySource.POWER,BatterySource.PHONE,BatterySource.SHIFT)
         .filter { data.batteries.level(it)!=null }
     fun icon(source: BatterySource)=when(source) {
         BatterySource.EBIKE,BatterySource.TRAINER->SensorIcons.forSensor(if(source==BatterySource.EBIKE) BikeSensor.EBIKE else BikeSensor.TRAINER)
         BatterySource.HEART->SensorIcons.forSensor(BikeSensor.HEART)
         BatterySource.POWER->SensorIcons.forSensor(BikeSensor.POWER)
         BatterySource.PHONE->BicycleIcon.Phone
+        BatterySource.SHIFT->BicycleIcon.Derailleur
     }
     fun single(id: String)=when(id) {
         "BATTERY"->BatterySource.EBIKE;"HEART_BATTERY"->BatterySource.HEART
-        "TRAINER_BATTERY"->BatterySource.TRAINER;"PHONE_BATTERY"->BatterySource.PHONE;else->null
+        "SHIFT_BATTERY"->BatterySource.SHIFT;"TRAINER_BATTERY"->BatterySource.TRAINER;"PHONE_BATTERY"->BatterySource.PHONE;else->null
     }
     fun warning(level: Int?)=when { level==null->0;level<10->2;level<20->1;else->0 }
     fun description(context: Context, sources: List<BatterySource>, snapshot: BatterySnapshot)=sources.joinToString(" · ") { source ->

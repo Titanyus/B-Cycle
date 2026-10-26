@@ -104,7 +104,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             for (section in groups.getValue(sources[position])) {
                 BicycleComponents.listCategory(rows,themes,
                     if(section.source=="Leistung") context.getString(R.string.training_category) else DashboardTextResources.section(context,section.title))
-                for (field in section.fields.filter { BatteryFields.single(it.id)==null }) {
+                for (field in section.fields.filter { BatteryFields.single(it.id)==null || section.source=="Schaltgruppe" }) {
                     val value = field.value(data, gps, bikeDistanceM, pulse, training)
                     val title = if (field.id == "RIDER_POWER") context.getString(R.string.ui_rider_power_own) else field.title(context,data, gps)
                     if(field.id==BatteryFields.COMBINED) {
@@ -159,7 +159,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { if(shown!=position) interaction();populate(position) }
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
-        val initial = sources.indexOf(if(BatteryFields.single(selected?.id.orEmpty())!=null) "Akku" else selected?.source(data)).coerceAtLeast(0)
+        val initial = sources.indexOf(if(BatteryFields.single(selected?.id.orEmpty())!=null && selected?.id!="SHIFT_BATTERY") "Akku" else selected?.source(data)).coerceAtLeast(0)
         selector.setSelection(initial); populate(initial)
     }
 }

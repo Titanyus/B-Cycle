@@ -125,3 +125,7 @@ Konkreter Nutzerexport am 23.10.2026 geprüft: 7.668 Record-Messpunkte, kein gü
 Prüfstand Akku-Aufnahme: drei gezielte Tests erfolgreich. Fünf Minuten unveränderte Live-Ladung bleibt im Sample, Offline-/Reconnect-Fallback bleibt draußen, ungültige Werte/echte Null korrekt; private Analyse zeigt Verbrauch trotz deaktiviertem Akku-Export. Bestehende Abdeckungs-/Nachladeprüfung erhalten. Keine APK.
 
 Stand 23.10.2026: die beschriebenen neuen Änderungen sind in APK **0.8.34 / Build 73** enthalten. [Buildnachweis](build-73.md). Frühere Angaben zu fehlender APK sind Verlauf.
+
+## Schaltwerk nach Build91
+
+Dashboardquelle Schaltgruppe/Schaltwerk und neue Sammelfeldquelle SHIFT aus dem ersten zugeordneten SRAM-Gerät des aktiven E-Bike-Profils. Letzter erfolgreich gelesener Stand bleibt bei der absichtlich kurzen Verbindung verfügbar, bei deaktivierter Gruppe/fehlender Zuordnung/anderem Profiltyp Strich. Keine FIT-Messgröße. Direkte Auswahl unter Schaltgruppe ist eine bewusst angeforderte Ausnahme von den ausgeblendeten alten Einzel-Prozentoptionen. Unter Akku bleibt die gemeinsame Mehrfachauswahl mit maximal vier Quellen. Warnschalter und Startwarnung siehe [SRAM](sram-axs.md).

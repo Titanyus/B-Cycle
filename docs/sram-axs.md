@@ -1,6 +1,6 @@
 # SRAM AXS: Akku-Anbindung als erster Schritt
 
-Stand26.10.2026 nach Build89. E-Bike → Sensoren → Schaltgruppe als reguläres Schalter-Accordion. Mehrere Komponenten einzeln über die vorhandene Sensorsuche hinzufügen; maximal8. Ein Schalter für die ganze Gruppe, je Komponente Name, letzter Prozentwert/Zeitstempel, Abfragestatus und Entfernen. Akkus abfragen erzwingt einen neuen Versuch; Komponente hinzufügen verwendet die bestehende Suche. Abfrage ist unabhängig von FIT, Aufzeichnungsquellen und Aufnahme-Autostart. Noch keine Gangdaten und keine zusätzlichen Dashboardfelder.
+Stand26.10.2026 nach Build89. E-Bike → Sensoren → Schaltgruppe als reguläres Schalter-Accordion. Mehrere Komponenten einzeln über die vorhandene Sensorsuche hinzufügen; maximal8. Ein Schalter für die ganze Gruppe, je Komponente Name, letzter Prozentwert/Zeitstempel, Abfragestatus und Entfernen. Akkus abfragen erzwingt einen neuen Versuch; Komponente hinzufügen verwendet die bestehende Suche. Abfrage ist unabhängig von FIT, Aufzeichnungsquellen und Aufnahme-Autostart. Noch keine Gangdaten. Dashboard-Erweiterung siehe unten.
 
 ## Bluetooth
 
@@ -12,7 +12,7 @@ Letzte erfolgreiche Werte mit realem Abfragezeitpunkt privat im axs-battery-cach
 
 ## Hardware und Grenzen
 
-Nutzer nennt Apex-XPLR-Schaltwerk, zwei Apex-Controller und zwei Wireless Blips. Kein Hardwaretest durchgeführt; Sichtbarkeit ist kein Beweis eines lesbaren Akkudiensts. Komponenten zum Test aufwecken und offizielle SRAM-App schließen. Blips nicht als direkt erreichbare BLE-Komponenten oder automatisch bekannte Akkus darstellen. Falls ein Gerät den Standard-Akkudienst nicht anbietet, klare Rückmeldung; kein ausgedachter Prozentwert oder Schätzung aus Spannung. Passives Advertising als möglicher späterer Zusatz; seine Spannungs-/Prozentformate sind modellabhängig. Gangdaten separat später, da beim öffentlich getesteten GX-Eagle-Transmission verschlüsselt und proprietär gekoppelt.
+Nutzer nennt Apex-XPLR-Schaltwerk, zwei Apex-Controller und zwei Wireless Blips. Nach Build91 hat der Nutzer erfolgreiche Erkennung und Akkuabfrage am Apex-Schaltwerk bestätigt (36%). Weitere Komponenten sind damit nicht bestätigt. Sichtbarkeit allein ist kein Beweis eines lesbaren Akkudiensts. Komponenten zum Test aufwecken und offizielle SRAM-App schließen. Blips nicht als direkt erreichbare BLE-Komponenten oder automatisch bekannte Akkus darstellen. Falls ein Gerät den Standard-Akkudienst nicht anbietet, klare Rückmeldung; kein ausgedachter Prozentwert oder Schätzung aus Spannung. Passives Advertising als möglicher späterer Zusatz; seine Spannungs-/Prozentformate sind modellabhängig. Gangdaten separat später, da beim öffentlich getesteten GX-Eagle-Transmission verschlüsselt und proprietär gekoppelt.
 
 ## Quellen
 
@@ -29,3 +29,19 @@ Kotlin-Kompilierung und24 unterschiedliche gezielte Tests erfolgreich:5 neue Akk
 ## Suchkorrektur nach Nutzerfeedback26.10.2026
 
 Android-Systemsuche sieht SRAM + Seriennummer, System-Kopplung abgelehnt, Appsuche leer. Keine Systemkopplung notwendig: native BLE-GATT-Akkuabfrage separat. Scanner ignorierte spätere Scanantworten nach dem ersten (ggf. namenlosen) Paket und konnte SRAM in der begrenzten generischen Probe-Warteschlange verlieren. Nun nachträgliche SRAM-Erkennung, priorisierte Warteschlange und abschließende Kandidatenanzeige trotz Probe-Timeout/Fehler. Expliziter Suchabbruch meldet nichts mehr, bekannte CPS-Geräte werden nicht als ungeprüfte Schaltgruppe ausgegeben, erfolgreiche FTMS/CPS-Erkennung behält Vorrang. Keine neue Pairing-/Bonding-Anforderung und keine Änderung am Akku-Decoder; ob konkrete Apex-Hardware den Standarddienst lesbar anbietet, bleibt am Gerät zu testen.
+
+## Dashboard und Startwarnung nach Build91
+
+Vorerst wird gemäß Nutzerentscheidung das zuerst gespeicherte SRAM-Gerät als **Schaltwerk** verwendet. Keine Aggregation oder Vermutung über Controller/Blips, keine neue Rollenauswahl. Bestehende weitere Gerätezuordnungen/Abfragen bleiben erhalten, ihre Akkus werden hier nicht vermischt. Bei Entfernen des ersten Geräts ist das erste verbleibende Gerät maßgeblich.
+
+- Dashboardquelle **Schaltgruppe**, Unterpunkt **Schaltwerk**, stabile Feld-ID `SHIFT_BATTERY`.
+- Unter **Akku** zusätzlich **Schaltwerk** als `BatterySource.SHIFT` in der vorhandenen Ein-bis-vier-Mehrfachauswahl. Quellen-Enum nur am Ende erweitert; alte Feld-IDs/Layouts bleiben lesbar. Map-Felder verwenden dieselbe Anzeige. Gespeicherte Auswahl bleibt erhalten, fehlender Akku als Strich.
+- Anzeige nutzt ausschließlich den letzten erfolgreichen Standard-BLE-Wert des ersten Geräts im aktiven E-Bike-Profil, wenn die Schaltgruppe aktiviert ist. Kurzverbindungen brauchen keine dauerhafte Live-Verbindung; Gruppen-Aus/anderer Profiltyp/fehlende Zuordnung liefert keinen Wert. Cache bleibt Telemetrie und wird nicht in FIT oder Einstellungssicherung exportiert.
+- Pro Radprofil Schalter **Akkuwarnung bei unter 20% Kapazität**, anfangs an; optionales `shiftBatteryWarning` im vorhandenen Profil-JSON, bei Altdaten Standard true. In Profilkopie, Validierung und Einstellungssicherung enthalten.
+- Gemeinsamer Aufnahmebeginn für manuell/Autostart merkt genau eine Warnung für einen gültigen letzten Stand von0–19% vor.20% und unbekannt warnen nicht. Falls der Dashboardinhalt gerade verdeckt ist, einmal bis zum sichtbaren Dashboard während derselben Aufnahme zurückstellen. Nach Aufnahmeende/Schalter-Aus verwerfen. Kein nachträglicher Alarm allein durch regelmäßige Messwerte.
+- Hinweis mittig für10s, antippbar zum Schließen, im selben PRIMARY-Alertstil wie die Trinkerinnerung inklusive Schatten in Flat/Glow. Trinkkonfiguration beeinflusst ihn nicht; gleichzeitig fälligen Trinkhinweis währenddessen zurückstellen, dessen Intervall nicht verändern. Kein Ton/Vibrieren/Blockieren des Aufnahmestarts.
+- Kompakte Sensoranzeige ohne langen Einführungstext: Gerätename, Prozent/Zeitpunkt, Abfragestatus und tatsächlich empfangene Messwertarten mit vorhandenem Chevron-Disclosure. Nur ein erfolgreich in dieser Gruppenkonfiguration gelesener Akkustand zählt als eine Art, keine Cache-Abfrage als neue Messung.
+
+Schaltwerk-Symbol aus dem Nutzer-ZIP `Schaltwerk.zip`, unveränderte Pfadgeometrie als lokaler tintbarer Android-Vektor mit proportionaler Darstellung. Neues Launcher-Motiv aus `BClogo2-w.zip` unverändert übernommen; adaptive Maskengeometrie erhalten, heller Hintergrund passend zum Motiv. Kein neuer Dienst, Protokollbefehl oder externe Abhängigkeit.
+
+Prüfung dieser Erweiterung:25 unterschiedliche gezielte Tests erfolgreich (5 neue Dashboard-/Warnungs-/Picker-/Runtimefälle,5 AXS,6 Akku,4 Sicherung,1 bestehender Dashboard-Trinkfall,4 bestehende Trink-UI-Fälle). Abschließend13 betroffene Fälle nach mehrzeiligem Warnlayout und strikter Altbackup-/Booleanprüfung nochmals grün. Logs shift-dashboard-tests.log und shift-dashboard-final-tests.log unter /workspace/.tools. Typografie, UI-Katalog, XML-Ressourcen und Diff erfolgreich geprüft. Keine Gesamtsuite, neue APK oder erneuter Hardwaretest.

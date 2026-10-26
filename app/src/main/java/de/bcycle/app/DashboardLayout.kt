@@ -55,7 +55,7 @@ data class DashboardField(val id: String) {
     private val weatherMetric get() = WeatherMetric.entries.find { it.name == id }
     private val gpsMetric get() = GpsMetric.entries.find { it.name == id }
     private val rangeIndex get() = id.removePrefix("RANGE_").toIntOrNull()
-    val source get() = if(id=="PHONE_TIME" || id=="PHONE_BATTERY") "Smartphone" else if (batterySources != null || BatteryFields.single(id)!=null) "Akku" else if (trainingMetric != null) "Leistung" else if (weatherMetric != null) "Wetter" else if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
+    val source get() = if(id=="SHIFT_BATTERY") "Schaltgruppe" else if(id=="PHONE_TIME" || id=="PHONE_BATTERY") "Smartphone" else if (batterySources != null || BatteryFields.single(id)!=null) "Akku" else if (trainingMetric != null) "Leistung" else if (weatherMetric != null) "Wetter" else if (id.startsWith("HEART_")) "Pulsmesser" else if (gpsMetric != null) "GPS" else "E-Bike"
     fun source(data:LiveData)=if(data.indoor && (source=="E-Bike" || id in IndoorFields.rideIds)) "Indoor-Bike" else source
     /** Only speed and distance captions need a source to distinguish related ride values. */
     val showSource get() = when (id) {
@@ -65,7 +65,7 @@ data class DashboardField(val id: String) {
     }
     val requiresGps get() = gpsMetric != null || weatherMetric != null
     val captionIcon get() = BatteryFields.single(id)?.let { when(it) {
-        BatterySource.EBIKE->"E-Bike";BatterySource.TRAINER->"Indoor-Bike";BatterySource.HEART->"Pulsmesser";BatterySource.PHONE->"Smartphone";BatterySource.POWER->"Powermeter"
+        BatterySource.EBIKE->"E-Bike";BatterySource.TRAINER->"Indoor-Bike";BatterySource.HEART->"Pulsmesser";BatterySource.PHONE->"Smartphone";BatterySource.POWER->"Powermeter";BatterySource.SHIFT->"Schaltwerk"
     } } ?: when (id) {
         "BIKE_LIGHT" -> "Light"
         "WEATHER_SUNRISE" -> "Sunrise"
@@ -82,6 +82,7 @@ data class DashboardField(val id: String) {
         "PHONE_TIME" -> "Uhrzeit"
         "PHONE_BATTERY" -> "Smartphone-Akku"
         "TRAINER_BATTERY" -> "Indoor-Trainer-Akku"
+        "SHIFT_BATTERY" -> "Schaltwerk"
         "BIKE_DISTANCE" -> "Gefahrene Distanz"
         "HEART_RATE" -> "Herzfrequenz"
         "HEART_AVERAGE" -> "Ø Herzfrequenz"
@@ -147,7 +148,7 @@ data class DashboardField(val id: String) {
         batterySources?.let { sources ->
             return DashboardValue(sources.joinToString(" / ") { data.batteries.level(it)?.let { "$it%" } ?: "—" },"",sources.any { data.batteries.level(it)!=null })
         }
-        if(id=="PHONE_BATTERY" || id=="TRAINER_BATTERY") {
+        if(id=="PHONE_BATTERY" || id=="TRAINER_BATTERY" || id=="SHIFT_BATTERY") {
             val level=data.batteries.level(BatteryFields.single(id)!!)
             return DashboardValue(level?.toString() ?: "—","%",level!=null)
         }
@@ -175,7 +176,7 @@ data class DashboardField(val id: String) {
 
     companion object {
         val baseOptions = LiveMetric.entries.map { DashboardField(it.name) } +
-            listOf("PHONE_TIME","BATTERIES","PHONE_BATTERY","TRAINER_BATTERY","BIKE_DISTANCE", "CURRENT_RANGE", "RANGES", "HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY").map { DashboardField(it) } +
+            listOf("SHIFT_BATTERY","PHONE_TIME","BATTERIES","PHONE_BATTERY","TRAINER_BATTERY","BIKE_DISTANCE", "CURRENT_RANGE", "RANGES", "HEART_RATE", "HEART_AVERAGE", "HEART_MAXIMUM", "HEART_BATTERY").map { DashboardField(it) } +
             GpsMetric.entries.map { DashboardField(it.name) } + WeatherMetric.entries.map { DashboardField(it.name) } + TrainingMetric.entries.map { DashboardField(it.name) }
         fun options(data: LiveData) = baseOptions + List(data.rangesKm?.size ?: 0) { DashboardField("RANGE_$it") }
         fun groups(data: LiveData, selected: DashboardField? = null, includeTraining: Boolean = false): List<FieldGroup> {
@@ -199,7 +200,8 @@ data class DashboardField(val id: String) {
                 val allowed=group.fields.filter { it.id in IndoorFields.allowed }
                 if(allowed.isEmpty()) null else group.copy(source=if(group.source=="Pulsmesser") group.source else "Indoor-Bike",fields=allowed)
             }.groupBy { it.source to it.title }.values.map { same -> same.first().copy(fields=same.flatMap { it.fields }.distinct()) } } +
-                listOf(FieldGroup("Akku","Akku",fields("BATTERIES","BATTERY","HEART_BATTERY","TRAINER_BATTERY","PHONE_BATTERY")),
+                (if(!data.indoor) listOf(FieldGroup("Schaltgruppe","Schaltgruppe",fields("SHIFT_BATTERY"))) else emptyList()) +
+                listOf(FieldGroup("Akku","Akku",fields("BATTERIES","BATTERY","HEART_BATTERY","TRAINER_BATTERY","PHONE_BATTERY","SHIFT_BATTERY")),
                     FieldGroup("Smartphone","Smartphone",fields("PHONE_TIME","PHONE_BATTERY"))) + if(includeTraining) listOf(FieldGroup("Leistung", "Leistung", TrainingMetric.entries.map { DashboardField(it.name) })) else emptyList()
         }
         fun fromId(id: String): DashboardField? = id.takeIf { BatteryFields.sources(it)!=null }?.let(::DashboardField) ?: baseOptions.find { it.id == id } ?: id.takeIf {

@@ -91,3 +91,5 @@ Geräte-/WebDAV-Integration mit echten Zugangsdaten nicht in der Cloud getestet.
 Stand 23.10.2026: die beschriebenen Änderungen sind in APK **0.8.32 / Build 71** enthalten. [Buildnachweis](build-71.md).
 
 Nach Build 72: optionales `autoStartRecording` je Fahrradprofil in Profilkatalog, aktiven/inaktiven Profilen und Export/Restore berücksichtigt, alte Sicherungen ohne Feld ausgeschaltet. Keine Änderung des Archivschemas oder der FIT-/Journalfelder.
+
+Schaltwerk nach Build91: Optionales Profilfeld `shiftBatteryWarning` (Standard true für ältere Sicherungen) wird mit Profilen gesichert, strikt als Boolean validiert und wiederhergestellt. Dashboard-IDs `SHIFT_BATTERY`/`BATTERIES:…SHIFT` bleiben in den vorhandenen Dashboard-/Map-Konfigurationen. Kein neuer Sicherungsbereich und keine Telemetrie-Akkucaches im Einstellungsarchiv.

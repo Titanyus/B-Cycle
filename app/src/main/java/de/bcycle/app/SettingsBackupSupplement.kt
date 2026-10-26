@@ -8,7 +8,7 @@ import org.json.JSONObject
 internal class SettingsBackupSupplement(private val context:Context) {
     private fun prefs(name:String)=context.getSharedPreferences(name,0)
     private val profileKeys=setOf("slot","name","type","category","indoorType","sources","wheelMm","autoConnect","autoStartRecording","gpsEnabled","bikeEnabled","heartEnabled",
-        "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","powerAddress","powerName","powerEnabled","shiftEnabled","shiftDevices","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
+        "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","powerAddress","powerName","powerEnabled","shiftEnabled","shiftDevices","shiftBatteryWarning","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
         BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY),"route-export" to setOf("tree")),
         BackupSection.DESIGN to mapOf("ride-backup" to setOf("enabled","target"),"message-notifications" to setOf("enabled","messengerOnly","packages","position","durationSeconds")),
@@ -169,6 +169,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
             if(p.has("sources") && p.getString("sources").isNotEmpty()) RecordingSources.decode(p.getString("sources"))
             if(p.has("autoStartRecording")) require(p.get("autoStartRecording") is Boolean)
             if(p.has("powerEnabled")) require(p.get("powerEnabled") is Boolean)
+            if(p.has("shiftBatteryWarning")) require(p.get("shiftBatteryWarning") is Boolean)
             if(p.has("shiftEnabled")) require(p.get("shiftEnabled") is Boolean)
             if(p.has("shiftDevices")) AxsDevice.decode(p.getJSONArray("shiftDevices"))
             listOf("indoorPowerTenths","indoorSpeedTenths").forEach { if(p.has(it)) require(integer(p,it) in 0..30) }

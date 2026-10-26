@@ -50,6 +50,8 @@ internal class AxsBatteryGroup(private val context:Context,private val changed:(
     private val cache=context.getSharedPreferences("axs-battery-cache",Context.MODE_PRIVATE)
     private val attempted=mutableMapOf<String,Long>()
     private val states=mutableMapOf<String,Int>()
+    private val received=mutableSetOf<String>()
+    fun receivedBattery(address:String)=address in received
     private var devices:List<AxsDevice> = emptyList()
     private val pending=ArrayDeque<AxsDevice>()
     private var client:BluetoothGatt?=null
@@ -64,7 +66,7 @@ internal class AxsBatteryGroup(private val context:Context,private val changed:(
     fun state(address:String)=states[address] ?: R.string.axs_waiting
     fun configure(selected:List<AxsDevice>) {
         if(devices==selected) return
-        stop();devices=selected.toList();attempted.clear();states.clear()
+        stop();devices=selected.toList();attempted.clear();states.clear();received.clear()
     }
     fun refresh(force:Boolean=false) {
         if(active) return
@@ -104,6 +106,7 @@ internal class AxsBatteryGroup(private val context:Context,private val changed:(
                         val percent=percent(copy)
                         if(status!=BluetoothGatt.GATT_SUCCESS || percent==null) { finish(R.string.axs_failed);return@dispatch }
                         cache.edit().putInt("${device.address}:level",percent).putLong("${device.address}:at",System.currentTimeMillis()).apply()
+                        received.add(device.address)
                         finish(R.string.axs_read_ok)
                     }
                 }

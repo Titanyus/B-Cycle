@@ -71,6 +71,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     var gpsStatus = "GPS · Aus"; private set
     var lastPacketAt: Long? = null; private set
     internal val drinkReminder=DrinkReminder()
+    internal val shiftBatteryWarning=ShiftBatteryWarning()
     var recording = false; private set
     var saving = false; private set
     internal var recordingUpdate: RecordingUpdate? = null; private set
@@ -83,13 +84,17 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private var heartAt: Long? = null
     private var pulse = PulseValues()
     private val cadenceAverage = PedalingAverage()
+    /** First paired SRAM component is the currently supported derailleur; never combine other batteries. */
+    internal val derailleurBattery:AxsBattery? get() = bikes.current().takeIf { it.type==BikeType.EBIKE && it.shiftEnabled }
+        ?.shiftDevices?.firstOrNull()?.let { shiftGroup.battery(it.address) }
     /** Derived display values never replace the sensor values used by the recording journal. */
     internal val batterySnapshot get() = BatterySnapshot(mapOf(
         BatterySource.EBIKE to currentBikeBattery?.toInt().takeUnless { isIndoor },
         BatterySource.HEART to pulse.battery.takeIf { heartEnabled && heart.live },
         BatterySource.TRAINER to trainer.battery.takeIf { isIndoor && trainer.live },
         BatterySource.POWER to powerMeter.battery.takeIf { powerEnabled && powerMeter.live },
-        BatterySource.PHONE to phoneBattery.level))
+        BatterySource.PHONE to phoneBattery.level,
+        BatterySource.SHIFT to derailleurBattery?.percent))
     val dashboardBikeData get() = selectedBikeData(SystemClock.elapsedRealtime()).copy(indoor=isIndoor,batteries=batterySnapshot,otherValues = selectedBikeData(SystemClock.elapsedRealtime()).otherValues - LiveMetric.AVERAGE_CADENCE - LiveMetric.BIKE_LIGHT - LiveMetric.BATTERY +
         (currentBikeBattery?.let { mapOf(LiveMetric.BATTERY to it) } ?: emptyMap()) +
         (if(isIndoor) indoorRide.summaries()+listOfNotNull(indoorRide.times(elapsedMs,ride.bike.distanceM).movingAverageKmh?.let { LiveMetric.AVERAGE_SPEED to kotlin.math.round(it*100).toLong() }).toMap() else emptyMap()) +
@@ -715,12 +720,13 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         recordingUpdate = null
         store.begin(startUtc, activeConfig); recording = true; ride.gps.setCollecting(!isIndoor)
         drinkReminder.reset();drinkReminder.update(true,0,DrinkReminderSettings.read(preferences),false)
+        shiftBatteryWarning.start(derailleurBattery?.percent,bikes.current().shiftBatteryWarning)
         connectionsRequested = true
         appendSample(); updateActivity()
     }
     fun stopRecording() {
         if (!recording) return
-        drinkReminder.reset()
+        drinkReminder.reset();shiftBatteryWarning.clear()
         completedElapsedMs = appendSample(); recording = false; saving = true; recordingUpdate = RecordingUpdate.Progress.SAVING_FIT
         ride.gps.setCollecting(false); ride.bike.pause()
         liveGraphs.stop(); store.finish(discardShort=completedElapsedMs!!<10_000); updateActivity()

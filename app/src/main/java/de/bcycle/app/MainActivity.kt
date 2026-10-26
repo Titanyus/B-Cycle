@@ -32,6 +32,7 @@ class MainActivity : Activity() {
     private lateinit var startButton: Button
     private lateinit var noMapEditorFinish: Button
     private lateinit var drinkReminderPanel:DrinkReminderPanel
+    private lateinit var shiftBatteryWarningPanel:ShiftBatteryWarningPanel
     private lateinit var messages: MessageNotificationPanel
     private var notificationSettings: MessageNotificationSettingsView?=null
     private val messageObserver: (IncomingMessage?)->Unit = { message ->
@@ -273,6 +274,10 @@ class MainActivity : Activity() {
         host.addView(drinkReminderPanel,FrameLayout.LayoutParams(-1,-2,Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
             marginStart=dp(BicycleDesign.horizontalPadding);marginEnd=dp(BicycleDesign.horizontalPadding)
         })
+        shiftBatteryWarningPanel=ShiftBatteryWarningPanel(this,runtime.themes)
+        host.addView(shiftBatteryWarningPanel,FrameLayout.LayoutParams(-1,-2,Gravity.CENTER).apply {
+            marginStart=dp(BicycleDesign.horizontalPadding);marginEnd=dp(BicycleDesign.horizontalPadding)
+        })
         drinkReminderPanel.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
         mapPanel.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
         dashboardArea.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->placeDrinkReminder() }
@@ -376,8 +381,13 @@ class MainActivity : Activity() {
         dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
         val drinkSettings=DrinkReminderSettings.read(preferences)
         val drinkVisible=runtime.visible && dialogs.empty && !dashboardEditing
+        val warningEnabled=runtime.bikes.current().shiftBatteryWarning && runtime.shiftEnabled
+        if(!drinkVisible || !runtime.recording || !warningEnabled) shiftBatteryWarningPanel.clear()
+        runtime.shiftBatteryWarning.take(runtime.recording,drinkVisible,warningEnabled)?.let { level ->
+            drinkReminderPanel.clear();shiftBatteryWarningPanel.showBattery(level)
+        }
         if(!drinkVisible || !runtime.recording || !drinkSettings.enabled) drinkReminderPanel.clear()
-        if(runtime.drinkReminder.update(runtime.recording,runtime.elapsedMs,drinkSettings,drinkVisible)) {
+        if(runtime.drinkReminder.update(runtime.recording,runtime.elapsedMs,drinkSettings,drinkVisible && shiftBatteryWarningPanel.visibility!=View.VISIBLE)) {
             drinkReminderPanel.showReminder(drinkSettings.durationSeconds);placeDrinkReminder()
         }
         if (::mapPanel.isInitialized && currentTemplate().hasMap) mapPanel.refresh()
@@ -1016,7 +1026,7 @@ class MainActivity : Activity() {
         hrvObservation?.close();hrvObservation=null
         closeSensorSetupPrompt()
         stopScan();bikePicker?.dismiss();recordingIndicator?.stop()
-        MessageNotifications.observers.remove(messageObserver);messages.clear();drinkReminderPanel.clear()
+        MessageNotifications.observers.remove(messageObserver);messages.clear();drinkReminderPanel.clear();shiftBatteryWarningPanel.clear()
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {
