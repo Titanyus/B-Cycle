@@ -18,6 +18,15 @@ Nutzer nennt Apex-XPLR-Schaltwerk, zwei Apex-Controller und zwei Wireless Blips.
 
 Nur Protokollinformationen und Standard-BLE-Technik verwendet; kein fremder Programmcode übernommen, keine Abhängigkeit hinzugefügt.
 
+Für spätere Erweiterungen dauerhaft vorgemerkte Projektseiten und aktuelle Protokolldokumentation (Nutzerreferenzen):
+
+- [GaborWnuk/sram-axs – Projekt](https://github.com/GaborWnuk/sram-axs)
+- [tarekrached/esphome-sram-axs – Projekt](https://github.com/tarekrached/esphome-sram-axs)
+- [karl-petter/sram-axs-for-ha – Projekt](https://github.com/karl-petter/sram-axs-for-ha)
+- [Technische Protokolldokumentation: GaborWnuk/sram-axs, PROTOCOL.md (aktueller main-Stand)](https://github.com/GaborWnuk/sram-axs/blob/main/PROTOCOL.md)
+
+Die Protokolldokumentation stammt aus dem Community-Projekt, nicht aus einer offiziellen SRAM-Veröffentlichung. Die folgenden festen Versionslinks dokumentieren den für die bisherige Implementierung geprüften Stand; für spätere Arbeiten zusätzlich die aktuellen Projektstände prüfen.
+
 - [karl-petter/sram-axs-for-ha](https://github.com/karl-petter/sram-axs-for-ha/tree/316dbfd30d46eb7664074ae72713658d40da6f46): Standard-GATT-Batterie, kurz verbinden/lesen/trennen; beobachtet an eigenen Komponenten, keine allgemeine Hardwaregarantie.
 - [tarekrached/esphome-sram-axs](https://github.com/tarekrached/esphome-sram-axs/blob/7c3106c6e4a85b7f599de6f39137dc7df478d90f/docs/protocol.md): Advertising/Wake-Verhalten, insbesondere keine Advertising-Prozentwerte bei Knopfzellen.
 - [GaborWnuk/sram-axs](https://github.com/GaborWnuk/sram-axs/blob/366913e6e26df5019f42ec3086f768924b118b9b/PROTOCOL.md): offener Batteriedienst vs. verschlüsselte Gangdaten; Hardwareabdeckung GX Eagle Transmission und AXS Controller.
