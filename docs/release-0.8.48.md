@@ -11,4 +11,4 @@
 - Verwaiste eigene Fahrten nach Profillöschung ausdrücklich neu zuordnen: Button unter Profile und gemeinsamer Hinweis im Streckenmanager. Gruppierung nach ehemaliger Profilidentität; Namen/Typ nur als Vorschlag. Fahrtdateien, Titel, Links und Uploadbelege erhalten.
 - Nutzerdateien BClogo5.zip und Header2.zip als neues App-Logo und Einstellungsmotiv übernommen.
 
-Gezielte Tests zu jedem Umsetzungsschritt, native UI-Vorschauen und zentrale Typografie-/Atlas-/Diffprüfungen. Keine neuen externen Abhängigkeiten oder Änderungen bestehender Aufnahme-/Profil-/FIT-Formate. Kein vollständiger Gesamttestlauf, kein Hardwaretest oder Test gegen einen echten Dreeve-Server. Signierter optimierter Release über GitHub Actions; Buildnachweis folgt nach Veröffentlichung.
+Gezielte Tests zu jedem Umsetzungsschritt, native UI-Vorschauen und zentrale Typografie-/Atlas-/Diffprüfungen. Keine neuen externen Abhängigkeiten oder Änderungen bestehender Aufnahme-/Profil-/FIT-Formate. Kein vollständiger Gesamttestlauf, kein Hardwaretest oder Test gegen einen echten Dreeve-Server. Signierter optimierter Release über GitHub Actions; [Buildnachweis und Download](build-88.md).
