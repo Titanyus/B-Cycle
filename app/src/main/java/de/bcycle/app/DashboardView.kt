@@ -207,11 +207,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         fun refreshAppearance() { if(plainBackground!=null) updateBackground();container.invalidate() }
         private fun updateBackground() {
             val layers=mutableListOf(plainBackground!!)
-            if(zoneShown && !BicycleAppearance.flat(context)) layers+=zoneGlow
+            if(zoneShown) layers+=zoneGlow
             if(graphShown) layers+=overlay
             container.background=if(layers.size==1) layers.single() else android.graphics.drawable.LayerDrawable(layers.toTypedArray())
         }
-        private val overlay=DashboardGraphDrawable(resources.displayMetrics.density) { BicycleAppearance.flat(context) }
+        private val overlay=DashboardGraphDrawable(resources.displayMetrics.density)
         private var graphShown=false
         private var plainBackground: android.graphics.drawable.Drawable?=null
         private fun selectedGraphs() = if(template.supportsGraph(index)) graphConfig.slots[index] else emptyList()
@@ -303,10 +303,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             title.tag = captionKey
             if (graphs.isEmpty() && icon == null) { title.text=short; return }
             val prefix=if(icon!=null) "\uFFFC $short" else short
-            val text=android.text.SpannableString(prefix+graphs.joinToString("") { "  \uFFFC" })
-            if(icon!=null) text.setSpan(SourceIconSpan(icon!!,context),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            val left=if(graphs.isNotEmpty()) "\uFFFC  " else ""
+            val text=android.text.SpannableString(left+prefix+if(graphs.size>1) "  \uFFFC" else "")
+            if(icon!=null) text.setSpan(SourceIconSpan(icon!!,context),left.length,left.length+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             graphs.forEachIndexed { i,chart ->
-                val at=prefix.length+i*3+2
+                val at=if(i==0) 0 else text.length-1
                 text.setSpan(RecordingDotSpan(resources.displayMetrics.density,chart.color(Color.BLACK),LiveGraphStyle.MARKER_DIAMETER_DP),at,at+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
             title.text=text

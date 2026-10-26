@@ -6,11 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 
 /** Same cached header shadow mirrored upwards; no layout, elevation or touch changes. */
-internal class BicycleFooterShadow private constructor(private val footer:View):Drawable(),View.OnAttachStateChangeListener {
+internal class BicycleFooterShadow private constructor(private val footer:View,alwaysGlow:Boolean):Drawable(),View.OnAttachStateChangeListener {
     companion object {
-        fun bind(view:View) { if(view.getTag(R.id.footer_shadow)==null) view.setTag(R.id.footer_shadow,BicycleFooterShadow(view)) }
+        fun bind(view:View,alwaysGlow:Boolean=false) { if(view.getTag(R.id.footer_shadow)==null) view.setTag(R.id.footer_shadow,BicycleFooterShadow(view,alwaysGlow)) }
     }
-    private val shadow=BicycleHeaderShadow(footer.context)
+    private val shadow=BicycleHeaderShadow(footer.context,alwaysGlow)
     private var owner:ViewGroup?=null
     private val a=IntArray(2);private val b=IntArray(2)
     private val layout=View.OnLayoutChangeListener { _,_,_,_,_,_,_,_,_->refresh() }

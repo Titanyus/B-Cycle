@@ -158,6 +158,10 @@ class LiveGraphUiTest {
         val text=caption.text as android.text.Spanned
         val dots=text.getSpans(0,text.length,RecordingDotSpan::class.java)
         assertEquals(2,dots.size);assertTrue(text.toString().contains("Tempo"))
+        assertEquals(0,text.getSpanStart(dots[0]))
+        assertEquals(text.length-1,text.getSpanStart(dots[1]))
+        assertTrue(text.getSpanStart(dots[0])<text.toString().indexOf("Tempo"))
+        assertTrue(text.getSpanStart(dots[1])>text.toString().indexOf("Tempo"))
         dots.forEachIndexed { i,dot ->
             val b=Bitmap.createBitmap(30,30,Bitmap.Config.ARGB_8888)
             dot.draw(Canvas(b),"x",0,1,0f,0,20,30,Paint().apply { textSize=18f })
@@ -166,6 +170,9 @@ class LiveGraphUiTest {
         }
         assertEquals(before,all(view).filter { it.isClickable }.map { listOf(it.width,it.height) })
         assertTrue(all(view).filterIsInstance<TextView>().any { it.text.toString()=="30,0" })
+        view.showGraphs(cfg.replace(2,listOf(AnalysisChart.CADENCE)),history())
+        val single=caption.text as android.text.Spanned
+        assertEquals(0,single.getSpanStart(single.getSpans(0,single.length,RecordingDotSpan::class.java).single()))
         view.showGraphs(GraphOverlayConfig(),null)
         assertFalse(all(view).filterIsInstance<TextView>().any { it.text is android.text.Spanned &&
             (it.text as android.text.Spanned).getSpans(0,it.text.length,RecordingDotSpan::class.java).isNotEmpty() })

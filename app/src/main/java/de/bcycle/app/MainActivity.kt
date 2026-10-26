@@ -183,7 +183,7 @@ class MainActivity : Activity() {
         if(!currentTemplate().hasMap) { mapFullscreen=false;dashboard.visibility=View.VISIBLE;mapPanel.visibility=View.GONE }
         mapPanel.showFullscreen(mapFullscreen)
         root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
-        val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar";styleBicycleFooter(this,runtime.themes) }
+        val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar";styleBicycleFooter(this,runtime.themes,dashboard=true) }
         fun toolbarButton(title: String, role: ThemeRole = ThemeRole.PRIMARY, action: () -> Unit) = Button(this).apply {
             text = title; isAllCaps = false; setOnClickListener { action() }
             textSize = 20f; minWidth = 0; minHeight = 0

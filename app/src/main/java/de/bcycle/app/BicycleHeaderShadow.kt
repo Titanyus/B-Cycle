@@ -9,7 +9,7 @@ import android.graphics.Shader
 import android.widget.LinearLayout
 
 /** Cached, downward-only visual depth; no elevation-dependent blur or extra layout space. */
-internal class BicycleHeaderShadow(private val context: Context) {
+internal class BicycleHeaderShadow(private val context: Context,private val alwaysGlow:Boolean=false) {
     private val height=BicycleDesign.dp(context,BicycleDesign.headerShadowHeight).toFloat()
     private val paint=Paint().apply {
         shader=LinearGradient(0f,0f,0f,height,Color.argb(BicycleDesign.headerShadowAlpha,0,0,0),Color.TRANSPARENT,Shader.TileMode.CLAMP)
@@ -19,7 +19,7 @@ internal class BicycleHeaderShadow(private val context: Context) {
         draw(canvas,left,0f,right);canvas.restoreToCount(saved)
     }
     fun draw(canvas: Canvas, left: Float, top: Float, right: Float) {
-        if(BicycleAppearance.flat(context)) return
+        if(!alwaysGlow && BicycleAppearance.flat(context)) return
         val saved=canvas.save();canvas.translate(0f,top)
         canvas.drawRect(left,0f,right,height,paint);canvas.restoreToCount(saved)
     }

@@ -99,3 +99,5 @@ Pulszonen und Zone-2-Grenzen folgen der global im Fahrerprofil gewählten Method
 
 
 Trainingshilfe ab25.10.2026: Der Erklärungstext steht innerhalb des gemeinsamen Detail-Accordions, nicht davor. „Trainingshilfe für“ nutzt die kleine zentrale contentHeading14/900Black. Auf-/Zuklappen, automatisches Sichtbar-Scrollen, Modus-/Aktuell-/Durchschnittsauswahl und Trink-Erinnerung bleiben unverändert. Der zusätzlich erwähnte horizontale Strich war ein vom Nutzer zurückgenommener Tippfehler und wird nicht ergänzt.
+
+26.10.2026: Trainingshilfe-/Zonen-Glow auf dem Dashboard ist vom Flat/Glow-UI-Schalter unabhängig und bleibt in beiden Modi in derselben Ebene unter dem Graphen sichtbar. Dashboard-Graphfüllungen nutzen immer den nach unten transparenten Verlauf. Keine Änderung an Zonenberechnung, Quellen, Farben oder Speicherung.

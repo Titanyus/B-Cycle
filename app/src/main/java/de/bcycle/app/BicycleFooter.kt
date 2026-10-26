@@ -52,8 +52,8 @@ internal fun bicycleFooter(context: Context, themes: ThemeManager) = LinearLayou
 }
 
 /** Shared footer surface in both designs; action handlers and glow shadow stay unchanged. */
-internal fun styleBicycleFooter(view:android.view.View,themes:ThemeManager) {
-    BicycleFooterShadow.bind(view)
+internal fun styleBicycleFooter(view:android.view.View,themes:ThemeManager,dashboard:Boolean=false) {
+    BicycleFooterShadow.bind(view,alwaysGlow=dashboard)
     BicycleComponents.background(view,themes,ThemeRole.TERTIARY)
     BicycleComponents.bindTheme(view,themes) { view.foreground=null }
 }

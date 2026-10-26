@@ -1,3 +1,13 @@
+## Abgrenzung26.10.2026: Dashboard unabhängig vom UI-Designmodus
+
+Flat/Glow unterscheiden die Einstellungs-UI. Das Dashboard verwendet immer seine bisherige Glow-Darstellung: nach unten transparente Graphfüllung, an beiden Enden auslaufende Achsenbegrenzungen, Trainingshilfe-/Zonen-Glow und Dashboard-Footerschatten. Fachliche Bosch-/HRV-Glows bleiben ohnehin unabhängig. Daten, Themefarben, Auswahl/Skalen/Glättung/Bedienung und Sicherungsschlüssel unverändert.
+
+DashboardGraphDrawable hat keine Flat-Abfrage mehr. ZoneAmbientGlow bleibt als bestehende Ebene unter der Graphfüllung; deren nach unten auslaufende Transparenz gibt den Glow frei. Nur der Dashboard-Footer bindet den vorhandenen Schatten mit alwaysGlow, Einstellungsfooter bleiben modusabhängig.
+
+Graphkennfarben nur an der Feldbeschriftung: erste Graphfarbe links, zweite rechts, entsprechend linker/rechter Skala. Kein Kreis mehr unter dem oberen Skalenwert. Auswahlreihenfolge und Skalenwerte unverändert.
+
+Prüfung dieser Abgrenzung:19 gezielte Tests erfolgreich, einschließlich nativer identischer Dashboard-Pixel nach Flat/Glow-Wechsel, sichtbarem Trainingshilfe-Glow unter Graphfüllung, konstantem Dashboard-Footer und weiterhin modusabhängigem Einstellungsfooter, Fade/Glättung/Rollfenstern, neuen Captionpositionen und entferntem Skalenmarker. Testaufnahmen verwenden denselben gemessenen Viewport nach der initialen Activity-Traversierung. Keine Geräteprüfung oder APK für diesen Nachtrag.
+
 > Rücknahme am 25.10.2026: Die allgemeine TERTIARY-Dialogbasis ist verworfen; bisherige Seiten-/Dialogheader und SECONDARY-Seitenflächen sind wiederhergestellt. Nur der PRIMARY-Trink-Alert mit Schatten in beiden Designs bleibt. [Aktueller Umfang](dialog-surfaces.md).
 
 # Flat und Glow auf gemeinsamer UI-Basis
@@ -6,11 +16,11 @@ Stand 24.10.2026. Glow-Design ist auf Nutzerwunsch Standard. Unter Design & UI b
 
 Die Varianten verwenden dieselben nativen Views, Layouts, Maße, Beschriftungen und Listener. BicycleAppearance entscheidet nur über Dekoration. Keine zweite Bedienlogik und keine modusspezifischen Datenmodelle. Auch nach einem Wechsel bleiben Eingaben, Auswahl, Fokus, Navigation und Aufnahmefunktionen erhalten.
 
-- Flat: einfarbige PRIMARY-Hervorhebung, kein dekorativer Kontur-/Flächenverlauf, kein Eingabe-/Auswahl-/Zonen-Glow, keine dekorativen Schatten. Diagrammfüllungen ebenfalls einfarbig bei gleicher Datengeometrie. Der Bosch-Fahrmodus-Glow bleibt unabhängig aktivierbar. Der pulssynchrone HRV-Mess-Glow ist eine funktionale Ausnahme und bleibt ebenfalls in beiden Modi sichtbar.
+- Flat: einfarbige PRIMARY-Hervorhebung in der Einstellungs-UI, kein dekorativer Kontur-/Flächenverlauf, kein Eingabe-/Auswahl-Glow und keine dekorativen Einstellungsschatten. Das Dashboard bleibt vom Modus unabhängig: Graphfüllungen und Randlinien immer mit bisherigen Glow-Verläufen, Trainingshilfe-/Bosch-Glow und Dashboard-Footerschatten bleiben sichtbar. Der pulssynchrone HRV-Mess-Glow ist eine funktionale Ausnahme und bleibt ebenfalls in beiden Modi sichtbar.
 - Glow: gemeinsame Flat-Geometrie mit abgeleitetem Flächen- und Konturverlauf, gecachten Nah-/Außen-Blurs an Fokusfeldern und aktiven Segmenten sowie Schatten aktiver Segmente und bestehender Hinweis-/HRV-Karten. Bestehende semantische Diagramm-/Zonenfarben erhalten.
 - Alle bisherigen ACCENT-Hervorhebungen verwenden PRIMARY. ACCENT bleibt in ThemeTokens, gespeicherten benutzerdefinierten Paletten und Backups separat erhalten. Kein Überschreiben oder Zusammenlegen der beiden Farben. Kontrastschutz für kleine Icons und Text bleibt bestehen.
 
-Die Einstellung uiTheme.flatDesign wird in DESIGN gesichert und wiederhergestellt; sie ist appweit und wird beim Fahrradprofilwechsel nicht ausgetauscht. Alte Sicherungen ohne das zusätzliche Feld bleiben lesbar. Einstellungenpalette und Dashboard erhalten Mode-Änderungen über vorhandene Theme-Abonnements. Header-Schatten und gecachte Input-Glows beachten denselben Modus; Z-Reihenfolge für fixe Header bleibt erhalten.
+Die Einstellung uiTheme.flatDesign wird in DESIGN gesichert und wiederhergestellt; sie ist appweit und wird beim Fahrradprofilwechsel nicht ausgetauscht. Alte Sicherungen ohne das zusätzliche Feld bleiben lesbar. Einstellungscontrols erhalten Mode-Änderungen über vorhandene Theme-Abonnements; das Dashboard ignoriert den Flat-Schalter für seine Zeichnung. Einstellungskopf-Schatten und gecachte Input-Glows beachten den Modus; Z-Reihenfolge für fixe Header bleibt erhalten.
 
 Der HTML-Designer benennt die Basisfarbe jetzt PRIMARY. Für bestehende Entwurfsdateien bleibt dessen Schema-1-Schlüssel accent samt Stop-Typ accent ein kompatibler technischer Name; er bezeichnet dort die PRIMARY-Basisfarbe des Werkzeugs, nicht die reservierte zweite Highlightfarbe der App. Die Intensitätsregler des Werkzeugs bleiben Entwurfsparameter und sind keine neuen App-Einstellungen.
 
