@@ -27,5 +27,7 @@ internal fun styleSpecialButton(view:android.widget.TextView,tokens:ThemeTokens,
     view.typeface=BicycleDesign.strongTypeface;view.textSize=BicycleDesign.bodySp
     view.backgroundTintList=null
     val fill=if(filled) BicycleAccentGradient.fill(view.context,tokens,foreground=Color.WHITE,chromatic=BicycleInputStyle.strength(view),radiusDp=BicycleDesign.specialButtonRadius) else null
-    view.background=RippleDrawable(ColorStateList.valueOf(0x26ffffff),BicycleInputFrame.decorate(view,tokens,true,fill,BicycleDesign.specialButtonRadius),null)
+    val padding=intArrayOf(view.paddingLeft,view.paddingTop,view.paddingRight,view.paddingBottom)
+    view.background=RippleDrawable(ColorStateList.valueOf(0x26ffffff),BicycleInputFrame.decorate(view,tokens,true,fill,BicycleDesign.specialButtonRadius,((1.0-BicycleDesign.specialButtonHeightScale)/2).toFloat()),null)
+    view.setPadding(padding[0],padding[1],padding[2],padding[3])
 }

@@ -187,6 +187,7 @@ object BicycleDesign {
     const val inputFocusAngle = -54
     const val inputFocusStroke = 1.5f
     const val inputGlowRadius = 24
+    const val specialButtonHeightScale = .8
     const val specialButtonRadius = 1000
     const val popupGlowInset = 8
     const val inputFocusNearIntensity = 3f

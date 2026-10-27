@@ -67,6 +67,35 @@ class GlowChromeTest {
             spinner.setSelection(1);assertEquals(1,spinner.selectedItemPosition)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun specialPillsReduceOnlyTheirVisualHeightInBothModes() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
+            var clicks=0
+            val buttons=listOf(BicycleComponents.specialFilled(a,themes,"Füllung") { clicks++ },
+                BicycleComponents.specialOutline(a,themes,"Rahmen") { clicks++ })
+            for(flat in listOf(false,true)) {
+                themes.setFlatDesign(flat)
+                for(button in buttons) {
+                    val padding=listOf(button.paddingLeft,button.paddingTop,button.paddingRight,button.paddingBottom)
+                    layout(button,240,100)
+                    button.background.setBounds(0,0,240,100)
+                    val inset=(button.background as RippleDrawable).getDrawable(0) as InsetDrawable
+                    assertEquals(Rect(0,10,240,90),inset.drawable!!.bounds)
+                    val image=Bitmap.createBitmap(240,100,Bitmap.Config.ARGB_8888)
+                    button.background.draw(Canvas(image))
+                    assertEquals(0,Color.alpha(image.getPixel(120,5)))
+                    assertEquals(0,Color.alpha(image.getPixel(120,95)))
+                    if((button as BicycleSpecialButton).filled) assertTrue(Color.alpha(image.getPixel(120,50))>0)
+                    image.recycle()
+                    assertEquals(240,button.width);assertEquals(100,button.height)
+                    assertEquals(padding,listOf(button.paddingLeft,button.paddingTop,button.paddingRight,button.paddingBottom))
+                    button.performClick()
+                }
+            }
+            assertEquals(4,clicks)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun footerUsesMirroredHeaderShadowWithoutSpacingAndFlatRemovesIt() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

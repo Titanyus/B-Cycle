@@ -3,6 +3,7 @@ package de.bcycle.app
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ScrollView
@@ -18,15 +19,16 @@ internal object BicycleInputFrame {
     fun positions()=BicycleInputStyle.outline.map { it.position }.toFloatArray()
     fun background(view:View,tokens:ThemeTokens):GradientDrawable {
         val binding=(view.getTag(R.id.input_frame) as? Glow) ?: Glow(view).also { view.setTag(R.id.input_frame,it) }
-        binding.selected=null;binding.radiusDp=null;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.invalidateSelf()
+        binding.verticalInsetFraction=0f;binding.selected=null;binding.radiusDp=null;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.invalidateSelf()
         return Frame(view,tokens,{ binding.refresh() })
     }
     /** Shared active outline/halo, with independently chosen fill and corner geometry. */
-    fun decorate(view:View,tokens:ThemeTokens,active:Boolean,fill:Drawable?=null,radiusDp:Int=BicycleDesign.inputRadius):Drawable {
+    fun decorate(view:View,tokens:ThemeTokens,active:Boolean,fill:Drawable?=null,radiusDp:Int=BicycleDesign.inputRadius,verticalInsetFraction:Float=0f):Drawable {
         val binding=(view.getTag(R.id.input_frame) as? Glow) ?: Glow(view).also { view.setTag(R.id.input_frame,it) }
-        binding.selected=active;binding.radiusDp=radiusDp;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.refresh()
+        binding.verticalInsetFraction=verticalInsetFraction;binding.selected=active;binding.radiusDp=radiusDp;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.refresh()
         val frame=Frame(view,tokens,{ binding.refresh() },active,BicycleDesign.dp(view.context,radiusDp).toFloat())
-        return if(fill==null) frame else android.graphics.drawable.LayerDrawable(arrayOf(fill,frame))
+        val surface=if(fill==null) frame else android.graphics.drawable.LayerDrawable(arrayOf(fill,frame))
+        return if(verticalInsetFraction==0f) surface else InsetDrawable(surface,0f,verticalInsetFraction,0f,verticalInsetFraction)
     }
     fun selectionBackground(view:View,tokens:ThemeTokens,selected:Boolean):Drawable {
         val fill=if(selected) BicycleAccentGradient.fill(view.context,tokens,chromatic=BicycleInputStyle.strength(view),radiusDp=BicycleDesign.inputRadius) else GradientDrawable().apply {
@@ -75,6 +77,8 @@ internal object BicycleInputFrame {
     }
     /** Draw in the scroll viewport, so row bounds cannot cut the outer glow in half. */
     private class Glow(private val field:View):Drawable(),View.OnAttachStateChangeListener {
+        var verticalInsetFraction=0f
+            set(value) { if(field!=value) { field=value;clearCache() } }
         var selected:Boolean?=null
         private fun active()=(selected ?: field.isFocused) && field.isEnabled
         var primary=Color.TRANSPARENT
@@ -120,11 +124,13 @@ internal object BicycleInputFrame {
             val source=Bitmap.createBitmap(ceil((field.width+2*pad)*scale).toInt(),ceil((field.height+2*pad)*scale).toInt(),Bitmap.Config.ARGB_8888)
             val canvas=Canvas(source);canvas.scale(scale,scale);canvas.translate(pad,pad)
             val stroke=BicycleDesign.inputFocusStroke*density
+            val inset=(field.height*verticalInsetFraction).toInt().toFloat()
+            val contourBounds=RectF(0f,inset,field.width.toFloat(),field.height-inset)
             val contour=Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style=Paint.Style.STROKE;strokeWidth=stroke
-                shader=BicycleAccentGradient.shader(RectF(0f,0f,field.width.toFloat(),field.height.toFloat()),BicycleDesign.inputFocusAngle,colors(primary,chromatic),positions())
+                shader=BicycleAccentGradient.shader(contourBounds,BicycleDesign.inputFocusAngle,colors(primary,chromatic),positions())
             }
-            canvas.drawRoundRect(stroke/2,stroke/2,field.width-stroke/2,field.height-stroke/2,
+            canvas.drawRoundRect(stroke/2,inset+stroke/2,field.width-stroke/2,field.height-inset-stroke/2,
                 radius(),radius(),contour)
             try {
                 val near=BicycleContourBlur.blur(source,BicycleDesign.inputFocusNearBlur*density*scale,BicycleDesign.inputFocusNearIntensity)
@@ -143,7 +149,9 @@ internal object BicycleInputFrame {
             val density=field.resources.displayMetrics.density
             val radius=radius()
             val blurred=blurs(density)
-            inside.reset();inside.addRoundRect(frame,radius,radius,Path.Direction.CW)
+            inside.reset()
+            val inset=(field.height*verticalInsetFraction).toInt().toFloat()
+            inside.addRoundRect(frame.left,frame.top+inset,frame.right,frame.bottom-inset,radius,radius,Path.Direction.CW)
             val saved=canvas.save()
             // Window positions are already viewport coordinates. Parent drawing applies the
             // host's -scroll offset to this overlay canvas; cancel it exactly once.

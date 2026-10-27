@@ -117,3 +117,7 @@ den Dashboard-Hintergrund. Besitzerwechsel statt zweiter Glow-Instanz; keine dop
 Animation oder Touch-Overlay. Nur der Besitzer legt die Drawable-Grenzen fest.
 Android 13–14 erhalten dafür explizit Edge-to-edge/Cutout-Layout; die Systemnavigation
 und sichtbaren Dialog-Statusleisten bleiben erhalten.
+
+## Spezialbuttons: kompaktere Pillen
+
+Spezial Füllung und Spezial Rahmen verwenden zentral `BicycleDesign.specialButtonHeightScale = .8`: sichtbare Kontur und Füllung sind bei gleicher Breite20% flacher. Die gemeinsame Dekoration setzt vertikal je10% ein und zeichnet den konturbasierten Glow an denselben Grenzen. Bedienfläche und Textpadding bleiben erhalten. Gilt für Flat/Glow und den HRV-Startbutton; andere Eingabefelder und Controls werden nicht verkleinert.
