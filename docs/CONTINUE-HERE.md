@@ -1,3 +1,7 @@
+# APK-Auftrag27.10.2026: Version0.8.54 / Code124 vorbereitet
+
+Neue APK ausdrücklich beauftragt. Umfang release-0.8.54.md; alle lokalen Änderungen seit Build93 enthalten. Relevante Umsetzungsprüfungen bereits erfolgreich, keine Gesamtsuite wiederholen. Genau ein Actions-Build durch Push main, erwarteter Build94. Danach CI-Artefakt/Signatur/Version/Manifest/SHA/Ausrichtung prüfen und direkten Download mit [skip ci] veröffentlichen. Letzter Lauf93/40479134824 erfolgreich.
+
 # Abschluss nach Build93: Leistungs-/Pulsverteilungen als Histogramme
 
 Nutzerauftrag umgesetzt und finale Präferenz berücksichtigt: gleich breite Balken mit festen Watt-/bpm-Schritten, unterschiedliche Balkenzahl je Zone, lineare Werteskala. Standard5W/2bpm; bei großen Peaks Basisschritte verbreitern fürmax128Balken. RouteTimeHistogram erhält bestehende Zeitgewichtung und liefert feste Klassen; keine Kurvenglättung. Inklusive Leistungs-Obergrenzen/finaler HR-Maximalwert gehören zum richtigen Intervall. Summen bleiben unverändert; keine Rohdaten/FIT-/Kennzahlenänderung.
