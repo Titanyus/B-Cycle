@@ -1,3 +1,11 @@
+# Abschluss 27.10.2026: kompakte Wartung und Dropdown-Rahmen
+
+Aktueller Auftrag abgeschlossen, noch keine neue APK beauftragt. BicycleFrameDropdown ist eine wiederverwendbare, explizit gewählte Komponente: vorhandene Kontur umfasst Kopf und geöffneten Inhalt; Chevron dreht mit dem Zustand. Inhalt seitlich/unten 16 dp, Abstand unter Kopf 24 dp aus zentralen Tokens. Optional rechts nativer Schalter oder Spezial-Füllung-Pille mit unabhängiger Bedienung. Bestehende Dropdowns bleiben unverändert. Details docs/dropdown-frame.md.
+
+Wartung verwendet den Rahmen für Bauteilgruppen. Intervall und Zuletzt erledigt bilden direkt untereinander den linken Block, vertikal mittig zur rechten Spezial-Rahmen-Pille. API-Aktionen bleiben deaktiviert. Daten, Gruppierung, Cache und gespeicherter Aufklappzustand unverändert. UI-Katalog Abschnitt 06 enthält alle drei Varianten.
+
+Zehn unterschiedliche gezielte Fälle grün: BicycleFrameDropdownTest (2), MaintenancePresentationTest (3), DreeveMaintenanceTest (5). Log /workspace/.tools/maintenance-frame-tests.log. Nach letzter Barrierefreiheits-/Gruppierungsprüfung drei betroffene UI-Fälle erneut grün in maintenance-frame-final-tests.log. Native Screenshots in app/build/reports/ui/maintenance-{flat,glow}.png. Typografie, generierter Katalog, JavaScript-Syntax und Diff geprüft. Keine Gesamtsuite, kein privater Server- oder Gerätetest. Letzte veröffentlichte APK bleibt 0.8.52 / Build 92; frühere abgeschlossene Änderungen darunter weiterhin für die nächste APK enthalten.
+
 # Abschluss27.10.2026 nachBuild92: Importauswertung, Fast-Scroller und Dreeve-Fortschritt
 
 Alle aktuellen Aufträge abgeschlossen, noch keine neueAPK beauftragt. Robuste GPX-/FIT-Auswertung separat in49afcd3, frühereFIT-Teilrecord-Korrektur11d17e9 und Sticky-/Wartungs-/Zuordnungsänderungenbc933d1 weiterhin enthalten. Private Nutzerdateien ausschließlichlokal geprüft, temporärerBoschMotionPrivateTest liegt außerhalbRepository unter /workspace/.tools/bosch-fit-review. Originalhash/Quellen/IDs erhalten. Neue nativeWerte/Schätzungsgrenzen siehe docs/imported-motion.md.

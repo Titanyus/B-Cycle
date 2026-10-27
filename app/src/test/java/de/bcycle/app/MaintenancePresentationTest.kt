@@ -67,6 +67,13 @@ class MaintenancePresentationTest {
                 scroll.layout(0,0,360,640)
                 val headers=testDescendants(view).filterIsInstance<BicycleSectionHeader>()
                 assertEquals(2,headers.size)
+                val action=view.findViewWithTag<BicycleSpecialButton>("maintenance_action_task-0")
+                assertFalse(action.filled);assertFalse(action.isEnabled)
+                val text=view.findViewWithTag<View>("maintenance_text_task-0")
+                assertEquals(text.top+text.height/2f,action.top+action.height/2f,1f)
+                assertTrue(action.left>=text.right)
+                assertEquals(2,(text as android.view.ViewGroup).childCount)
+                assertEquals(14,testDescendants(view).filterIsInstance<BicycleFrameDropdown>().size)
                 assertSame(view.findViewWithTag<View>("maintenance_tasks"),view.getChildAt(0))
                 assertSame(view,view.findViewWithTag<View>("maintenance_refresh").parent.parent)
                 fun top(v:View):Int { var y=v.top;var p=v.parent;while(p is View && p!==scroll) { y+=p.top;p=p.parent };return y }

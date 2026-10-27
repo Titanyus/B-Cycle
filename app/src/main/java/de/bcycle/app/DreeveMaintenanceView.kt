@@ -76,22 +76,16 @@ internal class DreeveMaintenanceView(context:Context,private val themes:ThemeMan
             header.accordion(body,expandedBikes.getOrPut(gear) { true }) { expandedBikes[gear]=it }
             MaintenanceGrouping.components(tasks).forEach { (component,partTasks) ->
                 val key=gear to component;activeParts+=key
-                val content=LinearLayout(context).apply { orientation=VERTICAL;tag="maintenance_component_body_${gear}_$component" }
-                val toggle=BicycleComponents.action(context,themes,partTasks.first().component) {}.apply {
-                    tag="maintenance_component_${gear}_$component"
-                }
-                BicycleDialogStyle.accordion(toggle,themes);BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Expand)
-                fun show(open:Boolean) {
-                    expandedParts[key]=open;content.visibility=if(open) VISIBLE else GONE
-                    toggle.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-                }
-                toggle.setOnClickListener { show(content.visibility!=VISIBLE) };show(expandedParts.getOrPut(key) { true })
-                body.addView(toggle);BicycleComponents.controlSpacing(toggle)
+                val dropdown=BicycleFrameDropdown(context,themes,partTasks.first().component,expandedParts.getOrPut(key) { true }) {
+                    expandedParts[key]=it
+                }.apply { tag="maintenance_dropdown_${gear}_$component" }
+                dropdown.header.tag="maintenance_component_${gear}_$component"
+                val content=dropdown.content.apply { tag="maintenance_component_body_${gear}_$component" }
+                body.addView(dropdown,LayoutParams(-1,-2));BicycleComponents.controlSpacing(dropdown)
                 partTasks.forEachIndexed { index,task ->
                     if(index>0) content.addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.controlGap))
                     content.addView(taskRow(task),LayoutParams(-1,-2))
                 }
-                body.addView(content,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap);bottomMargin=dp(BicycleDesign.controlGap) })
             }
             val end=View(context);list.addView(end,LayoutParams(-1,0));header.sectionEnd=end
         }
@@ -105,20 +99,23 @@ internal class DreeveMaintenanceView(context:Context,private val themes:ThemeMan
     private fun taskRow(task:DreeveMaintenanceTask)=LinearLayout(context).apply {
         orientation=VERTICAL;tag="maintenance_${task.id}"
         stateDescription=context.getString(when { task.overdue->R.string.maintenance_overdue;task.due->R.string.maintenance_due;else->R.string.maintenance_upcoming })
-        val pad=dp(BicycleDesign.controlGap);setPadding(0,pad,0,pad)
+        val pad=dp(BicycleDesign.controlGap);setPadding(0,0,0,pad)
         addView(LinearLayout(context).apply {
             tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL;isBaselineAligned=false
-            addView(BicycleComponents.text(context,themes,context.getString(R.string.maintenance_every,task.label,amount(task.interval,task.unit))).apply {
-                typeface=BicycleDesign.strongTypeface
+            addView(LinearLayout(context).apply {
+                orientation=VERTICAL;tag="maintenance_text_${task.id}"
+                addView(BicycleComponents.text(context,themes,context.getString(R.string.maintenance_every,task.label,amount(task.interval,task.unit))).apply {
+                    typeface=BicycleDesign.strongTypeface
+                },LayoutParams(-1,-2))
+                addView(BicycleComponents.description(context,themes,context.getString(R.string.maintenance_last,
+                    task.lastPerformed?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: context.getString(R.string.maintenance_never))),LayoutParams(-1,-2))
             },LayoutParams(0,-2,1f).apply { marginEnd=pad })
-            addView(BicycleComponents.action(context,themes,actionLabel(task.label)) {}.apply {
+            addView(BicycleComponents.specialOutline(context,themes,actionLabel(task.label)) {}.apply {
                 tag="maintenance_action_${task.id}";isEnabled=false
                 tooltipText=context.getString(R.string.maintenance_action_unavailable)
                 contentDescription=context.getString(R.string.maintenance_action_for,task.label,context.getString(R.string.maintenance_action_unavailable))
             },LayoutParams(-2,-2))
         })
-        addView(BicycleComponents.description(context,themes,context.getString(R.string.maintenance_last,
-            task.lastPerformed?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: context.getString(R.string.maintenance_never))))
         if(task.gearIds.size>1) addView(BicycleComponents.description(context,themes,context.getString(R.string.maintenance_shared)))
         if(task.due && !task.overdue) addView(BicycleComponents.description(context,themes,context.getString(R.string.maintenance_due)))
         addView(LinearLayout(context).apply {

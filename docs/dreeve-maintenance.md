@@ -52,3 +52,5 @@ Die Seite hält vorhandene Zeilen/Klappzustände während Abruf und Fehlern sich
 API-Recherche zu Original-FITs separat in [Dreeve-Originaldateien](dreeve-original-files-api.md). Dieser Downloadweg ist noch nicht im App-Import eingebaut.
 
 Darstellungsänderung27.10.2026: Wartung beginnt mit den Fahrrad-Sticky-Abschnitten. „Von Dreeve abrufen“, Zeitstempel und Status-/Infotext stehen gemeinsam nach der gesamten Fahrradliste am Seitenende. Bei leerer Liste bleiben dieselben Controls sichtbar. Abruf, Cache, Fehleranzeige und Accordionzustände unverändert.
+
+Darstellung27.10.2026, Dropdown-Rahmen: Bauteile verwenden nun [BicycleFrameDropdown](dropdown-frame.md), dessen bisherige Kopfkontur den gesamten geöffneten Inhalt umfasst.16dp Innenabstand/24dp zum Kopf, Chevron zustandsabhängig gedreht. Intervall und letzter Termin bilden direkt untereinander einen linken Block, vertikal mittig zur rechten Spezial-Rahmen-Pillenaktion. Gruppierung/Status/API/Cache/Offenzustände erhalten; keine neuen schreibenden Aktionen.

@@ -33,3 +33,5 @@ Prüfstand Beschriftungsabstand/Skalenregler: 11 gezielte Android-Tests erfolgre
 Finale Startwerte für APK 0.8.24: Gruppen 32 dp, Label → Slider 0 dp, Slider → Skala −8 dp. Der Skalenregler unterstützt −16 bis 24 dp. Eingabefeld-Labelabstand bleibt 4 dp.
 
 APK 0.8.24 / Build 63 veröffentlicht; alle zuvor lokalen Schrift-/UI-Änderungen stehen jetzt auf main. Die Veröffentlichungsaussagen früherer Zwischenstände oben sind Verlauf. [Buildnachweis](build-63.md).
+
+Ergänzung27.10.2026: Abschnitt06 enthält den neuen Dropdown-Rahmen als normale Variante, mit rechtem Schalter und mit rechtem Spezial-Füllung-Button. Inhalt bleibt im gemeinsamen Rahmen, Chevron folgt dem Klappzustand; Controls rechts schalten/handeln unabhängig. Inspector zeigt die zentralen16dp-/24dp-Innentokens. [Native Komponente und Regeln](dropdown-frame.md).
