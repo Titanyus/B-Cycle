@@ -43,9 +43,10 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP) } else
-            listOf(SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.ROUTES,SettingsAction.HRV,SettingsAction.MAINTENANCE,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
+            listOf(SettingsAction.ROUTES,SettingsAction.HRV,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
-            if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.linePixels(context)))
+            if(index>0 && (advanced || action==SettingsAction.PROFILE || action==SettingsAction.ADVANCED))
+                addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.linePixels(context)))
             addView(BicycleComponents.listRow(context,themes).apply {
                 tag="settings_${action.name}";contentDescription=action.label(context);isClickable=true;isFocusable=true
                 minimumHeight=BicycleDesign.dp(context,if(advanced) BicycleDesign.touchSize else BicycleDesign.settingsRowHeight)

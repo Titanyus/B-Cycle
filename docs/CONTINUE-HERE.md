@@ -1,3 +1,7 @@
+# Abschluss 27.10.2026: Einstellungsübersicht neu gruppiert
+
+Hauptmenü: Strecken, HRV-Messung, Wartung; Trenner; Fahrer, Fahrradprofile, Benachrichtigungen, Backup & Cloud; Trenner; Erweitert. Keine Trenner innerhalb der Gruppen. Untermenü Erweitert unverändert. Titel über bestehende Ressourcen umbenannt; aktive Hilfetexte und Einrichtungshinweise verweisen ebenfalls auf Backup & Cloud. Navigation und Einstellungen unverändert. Vorhandene SettingsMenuTest-Hauptmenüprüfung auf Reihenfolge, Texte und genau zwei Trenner aktualisiert und gezielt erfolgreich ausgeführt. Keine APK beauftragt; letzte Veröffentlichung weiterhin Build 92.
+
 # Abschluss 27.10.2026: kompakte Wartung und Dropdown-Rahmen
 
 Aktueller Auftrag abgeschlossen, noch keine neue APK beauftragt. BicycleFrameDropdown ist eine wiederverwendbare, explizit gewählte Komponente: vorhandene Kontur umfasst Kopf und geöffneten Inhalt; Chevron dreht mit dem Zustand. Inhalt seitlich/unten 16 dp, Abstand unter Kopf 24 dp aus zentralen Tokens. Optional rechts nativer Schalter oder Spezial-Füllung-Pille mit unabhängiger Bedienung. Bestehende Dropdowns bleiben unverändert. Details docs/dropdown-frame.md.

@@ -58,8 +58,11 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_PROFILE", "settings_PROFILES", "settings_ROUTES", "settings_HRV", "settings_MAINTENANCE", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Fahrer", "Profile", "Strecken", "HRV-Messungen", "Wartung", "Benachrichtigungen", "Daten & Speicher", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(listOf("settings_ROUTES", "settings_HRV", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Strecken", "HRV-Messung", "Wartung", "Fahrer", "Fahrradprofile", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(11, body.childCount) // Eight rows, two group dividers and brand image.
+                assertSame(rows[2],body.getChildAt(2));assertSame(rows[3],body.getChildAt(4))
+                assertSame(rows[6],body.getChildAt(7));assertSame(rows[7],body.getChildAt(9))
                 rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()

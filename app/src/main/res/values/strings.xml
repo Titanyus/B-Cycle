@@ -170,7 +170,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
         <item quantity="one">Alter: %d Jahr</item>
         <item quantity="other">Alter: %d Jahre</item>
     </plurals>
-    <string name="data_title">Daten &amp; Speicher</string>
+    <string name="data_title">Backup &amp; Cloud</string>
     <string name="data_global">GLOBALE DATEN</string>
     <string name="data_routes">STRECKENDATEN</string>
     <string name="data_backup">Einstellungen sichern</string>
@@ -563,8 +563,8 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="intervals_auth_failed">Athleten-ID und API-Schlüssel prüfen</string>
     <string name="intervals_upload_failed">intervals.icu-Upload fehlgeschlagen</string>
     <string name="intervals_response_failed">intervals.icu hat den Upload nicht eindeutig bestätigt</string>
-    <string name="intervals_enable_first">intervals.icu unter Daten &amp; Speicher aktivieren</string>
-    <string name="intervals_no_target">Ein Uploadziel unter Daten &amp; Speicher aktivieren</string>
+    <string name="intervals_enable_first">intervals.icu unter Backup &amp; Cloud aktivieren</string>
+    <string name="intervals_no_target">Ein Uploadziel unter Backup &amp; Cloud aktivieren</string>
     <string name="intervals_queued">intervals.icu-Upload vorgemerkt</string>
     <string name="cloud_uploads_queued">Cloud-Uploads vorgemerkt</string>
     <string name="intervals_connection_failed">Verbindung zu intervals.icu nicht möglich</string>
@@ -708,7 +708,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="tiles_move_hint">Zum Umsortieren gedrückt halten und ziehen</string>
     <string name="tiles_move_left">Nach links verschieben</string>
     <string name="tiles_move_right">Nach rechts verschieben</string>
-    <string name="profiles_title">Profile</string>
+    <string name="profiles_title">Fahrradprofile</string>
     <string name="profiles_bike">Bike</string>
     <string name="profiles_design">Design</string>
     <string name="profiles_copy">Profil übernehmen</string>

@@ -2,7 +2,7 @@
 
 ## Navigation und Umzug
 
-„Daten & Speicher“ ist über das zentrale Einstellungsmenü erreichbar. Der Fullscreen-Screen enthält zwei Abschnitte und sieben Einträge:
+„Backup & Cloud“ (bisher „Daten & Speicher“) ist über das zentrale Einstellungsmenü erreichbar. Der Fullscreen-Screen enthält zwei Abschnitte und sieben Einträge:
 
 1. **GLOBALE DATEN**: Einstellungen sichern als Inline-Accordion und Einstellungen wiederherstellen mit direkter Dateiauswahl.
 2. **STRECKENDATEN**: Lokale Speicherung im bisherigen Unterdialog sowie WebDAV, intervals.icu, Dreeve und Strava als Inline-Schalter-/Accordion-Zeilen.

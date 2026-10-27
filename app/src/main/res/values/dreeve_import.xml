@@ -5,7 +5,7 @@
     <string name="dreeve_import_more">Mehr laden</string>
     <string name="dreeve_import_selection">Importieren (%1$d)</string>
     <string name="dreeve_import_configure">Konfigurieren</string>
-    <string name="dreeve_import_config_missing">Bitte Dreeve unter Daten &amp; Speicher mit Adresse und API-Schlüssel konfigurieren. Der automatische Upload muss dafür nicht eingeschaltet sein.</string>
+    <string name="dreeve_import_config_missing">Bitte Dreeve unter Backup &amp; Cloud mit Adresse und API-Schlüssel konfigurieren. Der automatische Upload muss dafür nicht eingeschaltet sein.</string>
     <string name="dreeve_import_loading">Fahrten werden geladen …</string>
     <string name="dreeve_import_loaded">%1$d Fahrten geladen</string>
     <string name="dreeve_filter_import_status">Importstatus</string>

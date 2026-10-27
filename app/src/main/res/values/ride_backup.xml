@@ -14,6 +14,6 @@
     <string name="ride_backup_failed">Sicherung nicht abgeschlossen. Zugriff, Verbindung und freien Speicher prüfen. Originaldaten wurden nicht gelöscht.</string>
     <string name="ride_backup_invalid">Der Ordner enthält keine lesbare BICYCLE-Sicherung oder eine Datei ist beschädigt.</string>
     <string name="ride_backup_confirm">Fahrten aus diesem Sicherungsordner importieren? Vorhandene Fahrten werden nicht überschrieben. Für vollständige Fahrradzuordnungen zuerst die Einstellungen desselben Sicherungsordners wiederherstellen.</string>
-    <string name="ride_backup_cloud_missing">Bitte zuerst WebDAV unter Daten &amp; Speicher konfigurieren.</string>
+    <string name="ride_backup_cloud_missing">Bitte zuerst WebDAV unter Backup &amp; Cloud konfigurieren.</string>
     <string name="ride_backup_loading">Sicherungsordner werden geladen …</string>
 </resources>
