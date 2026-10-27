@@ -10,4 +10,4 @@ Enthält alle Änderungen seit APK 0.8.52 / Build 92.
 
 Gezielte Prüfungen während der Umsetzung: Importauswertung/Metadaten, 13 Import-/Scrollerfälle, zehn Wartungs-/Dropdownfälle, Einstellungsmenü und Passwortfeld, 32 Backup-/Navigation-/Transportfälle. Relevante Tests erfolgreich; keine unnötige Gesamtsuite für den APK-Auftrag wiederholt. WebDAV über simulierten TLS-Server, private FIT-/GPX-Beispiele ausschließlich lokal untersucht. Kein erneuter Test am Android-Gerät oder privaten Cloudserver. Keine Änderungen an den Originaldateien und keine privaten Daten veröffentlicht.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-93.md).

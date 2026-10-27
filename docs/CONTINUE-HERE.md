@@ -1,3 +1,7 @@
+# Aktueller Abschluss 27.10.2026: APK 0.8.53 / Build 93
+
+APK **0.8.53 / Build93 / Code123** veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.53-release-93.apk), [Buildnachweis](build-93.md), Actions-Quellstand `0b77423494ff9a9b2cd9187d253e38da3d4f5894`. Größe 2.389.685 Bytes; SHA-256 `f00035e9b959a4813c5185835b3356771ad100944ccf05d3b3ca216dff6ce928`. Optimierter Release, dauerhafte Signatur wie Build92, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Änderungen seit Build92 enthalten; Umfang/Prüfgrenzen release-0.8.53.md. Relevante Umsetzungstests grün; kein unnötiger Gesamtlauf und kein privater Cloud-/erneuter Gerätetest. Keine offene APK-Aufgabe; ältere Angaben darunter sind Verlauf.
+
 # APK-Auftrag 27.10.2026: Version 0.8.53 / Code 123
 
 APK ausdrücklich beauftragt. Alle lokalen Änderungen seit Build92 enthalten; Umfang docs/release-0.8.53.md. Relevante Prüfungen während der Umsetzung bereits erfolgreich, keine neue Gesamtsuite nötig. Push main startet genau einen Actions-Release-Build; danach Artefakt herunterladen, dauerhafte Signatur/Version/Manifest/Prüfsumme/Ausrichtung prüfen und APK/Prüfsumme/Buildnachweis mit [skip ci] veröffentlichen. Letzter Actions-Lauf Build92/40382001247 erfolgreich; erwarteter nächster Lauf Build93.
