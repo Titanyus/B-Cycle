@@ -1,3 +1,7 @@
+# Nutzerpause: APK-Build noch nicht fortsetzen
+
+Nutzer hat nach Start des Release-Pushs ausdrücklich weitere kleine Änderungen angekündigt und „warte mit dem Build noch“ angeordnet. Quellstand e2513659df7c422f082357a037f4a961fdbeebce ist bereits auf main, Version0.8.54/Code124 vorbereitet. Automatischen Actions-Lauf94/40516634288 noch während queued per gh run cancel gestoppt. Keine APK veröffentlicht und keinen weiteren Build starten, bis Nutzer die Fortsetzung beauftragt. Nächster tatsächlicher Lauf erhält voraussichtlich Build95; Nummer vor späterem Build prüfen, Version0.8.54 kann bleiben. Zuletzt veröffentlicht bleibt0.8.53/Build93.
+
 # APK-Auftrag27.10.2026: Version0.8.54 / Code124 vorbereitet
 
 Neue APK ausdrücklich beauftragt. Umfang release-0.8.54.md; alle lokalen Änderungen seit Build93 enthalten. Relevante Umsetzungsprüfungen bereits erfolgreich, keine Gesamtsuite wiederholen. Genau ein Actions-Build durch Push main, erwarteter Build94. Danach CI-Artefakt/Signatur/Version/Manifest/SHA/Ausrichtung prüfen und direkten Download mit [skip ci] veröffentlichen. Letzter Lauf93/40479134824 erfolgreich.
