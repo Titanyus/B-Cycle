@@ -1,3 +1,7 @@
+# APK-Auftrag 27.10.2026: Version 0.8.53 / Code 123
+
+APK ausdrücklich beauftragt. Alle lokalen Änderungen seit Build92 enthalten; Umfang docs/release-0.8.53.md. Relevante Prüfungen während der Umsetzung bereits erfolgreich, keine neue Gesamtsuite nötig. Push main startet genau einen Actions-Release-Build; danach Artefakt herunterladen, dauerhafte Signatur/Version/Manifest/Prüfsumme/Ausrichtung prüfen und APK/Prüfsumme/Buildnachweis mit [skip ci] veröffentlichen. Letzter Actions-Lauf Build92/40382001247 erfolgreich; erwarteter nächster Lauf Build93.
+
 # Abschluss 27.10.2026: getrennte Backups und Cloud-Oberfläche
 
 Auftrag „leg los“ vollständig umgesetzt. DataSettingsView enthält zwei Sticky-Bereiche Backup & Restore / Cloud samt exakten Nutzer-Erklärungen. Drei unabhängige Sicherungsdropdowns Einstellungen/Strecken/HRV, jeweils Lokal oder WebDAV (ohne Konfiguration deaktiviert, unabhängig von Auto-Upload). Danach Trenner, Einstellungen/Fahrten wiederherstellen und HRV-Dropdown mit Restore/HRV4Training-CSV. Restore bietet Lokal/WebDAV. Streckenimport sichtbar deaktiviert. Kein eigener HRV-Sticky-Header und keine Gesamtsicherung mehr.
