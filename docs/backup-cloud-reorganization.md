@@ -20,6 +20,6 @@ Lange IN-/OUT-Beschreibungen entfernen, nur kompakte log-in/log-out-Symbole: aus
 
 ## Kompatibilität und bewusste Einschränkungen
 
-Bisherige RideBackup-Gesamtsicherung enthält Einstellungen und HRV zusätzlich zu Fahrten; neue Aktionen sollen diese Bereiche trennen. Nach ausdrücklicher Nutzerkorrektur sind alte Gesamtsicherungen irrelevant; keine zusätzliche Kompatibilitätslogik dafür entwickeln. Zugriff zur Wiederherstellung über WebDAV erhalten. Wiederherstellung mit Bereichsauswahl nicht mit der bewusst entfallenden Bereichsauswahl beim Sichern verwechseln.
+Bisherige RideBackup-Gesamtsicherung enthält Einstellungen und HRV zusätzlich zu Fahrten; neue Aktionen sollen diese Bereiche trennen. Nach ausdrücklicher Nutzerkorrektur wird vollständig auf die neue Methode umgestellt: Alte Gesamtsicherungen und bisherige HRV-Exporte müssen nicht eingelesen werden können. Keine Kompatibilitätslogik für diese Formate entwickeln. HRV4Training-CSV ist davon unabhängig und bleibt als ausdrücklich gewünschter Import erhalten. Zugriff zur Wiederherstellung über WebDAV erhalten. Wiederherstellung mit Bereichsauswahl nicht mit der bewusst entfallenden Bereichsauswahl beim Sichern verwechseln.
 
 Bisheriger HrvDiagnosticExport enthält auch verworfene und ältere Messungen und ist nicht gleichbedeutend mit der geplanten Tageswertsicherung. Diagnoseumfang wäre durch die neue Sicherung nicht abgedeckt; Nutzer wurde darauf hingewiesen. Kein eigenmächtiger zusätzlicher Menüpunkt oder Datenlöschung.

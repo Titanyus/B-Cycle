@@ -1,3 +1,7 @@
+# Verbindliche Formatentscheidung 27.10.2026
+
+Nutzer: vollständig auf die neue Sicherungsmethode umstellen. Weder alte Gesamtsicherungen noch bisherige HRV-Exporte müssen lesbar bleiben. Keine entsprechende Kompatibilitätslogik erforderlich. HRV4Training-CSV-Import bleibt expliziter Bestandteil der neuen Oberfläche und ist hiervon nicht betroffen. Spezifikation docs/backup-cloud-reorganization.md maßgeblich; entgegen älteren Verlaufseinträgen keine Legacy-Restore-Anforderung.
+
 # Ergänzung 27.10.2026 zur geplanten Backup-&-Cloud-Neuordnung
 
 Nutzer ergänzt direkt unter „Cloud“, vor dem ersten Unterpunkt, exakt: „Sichert nach jeder Fahrt die Streckendaten + Metadaten lokal oder zu den entsprechenden Clouddiensten.“ Nutzer stellt klar: alte Gesamtsicherungen sind irrelevant (einziger Nutzer); entgegen früherem Vorschlag keine zusätzliche Abwärtskompatibilität dafür entwickeln. Maßgebliche Spezifikation docs/backup-cloud-reorganization.md aktualisiert. Neuordnung selbst weiterhin noch nicht implementiert; vorherige Unterhaltung bat um Zusammenfassung und Umfangsabgleich. Passwortauge separat bereits umgesetzt und geprüft. Keine neue APK beauftragt.
