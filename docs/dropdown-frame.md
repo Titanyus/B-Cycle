@@ -26,3 +26,7 @@ Bauteilgruppen liegen vollständig im Dropdown-Rahmen, Zuordnung/Reihenfolge/API
 ## Nachweis
 
 Native Tests in `BicycleFrameDropdownTest` prüfen Rahmen/Farbe, wachsende Geometrie, sichtbare Chevrondrehung, generisches Styling, Flat/Glow und unabhängig bedienbare rechte Controls. Bestehende `MaintenancePresentationTest` und `DreeveMaintenanceTest` prüfen weiter Gruppierung, Status/Cache/Retry/Offenzustände; Textblock-/Buttonausrichtung und Rahmen für alle Bauteile gezielt ergänzt. Native Wartungsvorschauen unter app/build/reports/ui/maintenance-flat.png und maintenance-glow.png, mit synthetischen Daten. HTML-Atlas Abschnitt06 enthält alle drei Varianten mit Tokeninspektor. Kein vollständiger Gesamtlauf oder neuer APK-Build.
+
+## Icon und Chevron nach Build 93
+
+Optionaler Parameter leadingIcon setzt ein führendes Fachicon vor den linksbündigen Titel und ein separat bedienbares drehendes Chevron rechts daneben. Eine zusätzliche rechte Aktion oder ein Schalter folgt danach, also Icon · Name · Chevron · Schalter. Ohne leadingIcon bleibt die bisherige Anordnung erhalten. Keine Änderung an Öffnungszustand, rechter Zusatzaktion, Rahmen, Theme-Bindung oder Inhaltspadding. Backup & Restore nutzt diese Variante für die drei Sicherungen und die HRV-Wiederherstellung; die lokalen/Cloud-Speicherziele nutzen zusätzlich ihre unverändert übernommenen Schalter. Die beiden direkten Wiederherstellungsbuttons verwenden das zentrale RestoreSettings-Icon und linksbündigen Text.

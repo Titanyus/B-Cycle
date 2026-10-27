@@ -35,3 +35,7 @@ DataSettingsView und BackupDestinationView bilden die neue UI; bestehende Servic
 Die komplette Einstellungssicherung verwendet unverändert SettingsArchive und das Sicherungspasswort. WebDAV-Sicherungen erhalten eindeutige Dateinamen; Wiederherstellung listet passende ZIPs. Lokal wird die Systemdateiauswahl verwendet. Stand-alone-Strecken-/HRV-Ordner verwenden weiterhin die vorhandene BackupDirectory-Abstraktion für Android-Ordner und WebDAV.
 
 Prüfung abgeschlossen: 32 unterschiedliche gezielte Fälle aus Einstellungen/ZIP, Navigation, Strecken-/HRV-Roundtrips, Dubletten/Integrität und SAF-/WebDAV-Transport erfolgreich. Keine echten Cloudkonten oder Gerätetests verwendet. Keine neue APK beauftragt.
+
+Darstellung nach Build93: Die drei Sicherungsdropdowns und HRV-Wiederherstellung verwenden BicycleFrameDropdown mit gemeinsamem Rahmen um Kopf und geöffneten Inhalt, führendem Icon und Chevron rechts. Direkte Einstellungs-/Fahrten-Wiederherstellungsbuttons sind linksbündig mit zentralem Wiederherstellungssymbol. Speicherziele, Verfügbarkeit und sämtliche Aktionen bleiben unverändert.
+
+Auch lokale Speicherung und alle Cloud-Speicherziele verwenden den gemeinsamen Rahmen um Header und Inhalt. Verbindliche Anordnung nach Nutzerkorrektur: Icon · Name · Chevron · Schalter (Chevron links vom Schalter). Bestehende native Switches werden mit ihren Listenern/Zuständen umgehängt; Aufklappen bleibt unabhängig. Das Rahmenpadding ersetzt das bisherige horizontale Formpadding, damit kein doppelter Innenabstand entsteht.

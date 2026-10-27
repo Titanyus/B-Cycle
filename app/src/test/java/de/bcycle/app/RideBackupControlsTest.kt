@@ -23,7 +23,7 @@ class RideBackupControlsTest {
             val screen=DataSettingsView(c,themes) {}
             screen.install(DataAction.RIDE_BACKUP,controls)
             c.setContentView(screen)
-            screen.findViewWithTag<View>("data_expand_RIDE_BACKUP").performClick()
+            screen.findViewWithTag<View>("data_RIDE_BACKUP").performClick()
             assertTrue(actions.isEmpty())
             assertEquals(View.VISIBLE,screen.findViewWithTag<View>("data_details_RIDE_BACKUP").visibility)
             val cloud=controls.findViewWithTag<View>("backup_target_webdav")

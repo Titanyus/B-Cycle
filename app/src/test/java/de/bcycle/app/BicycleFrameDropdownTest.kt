@@ -63,12 +63,15 @@ class BicycleFrameDropdownTest {
             val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
             val root=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL };c.setContentView(root)
             val toggle=Switch(c);BicycleDialogStyle.control(toggle,themes)
-            val first=BicycleFrameDropdown(c,themes,"Option",trailing=toggle)
+            val first=BicycleFrameDropdown(c,themes,"Option",trailing=toggle,leadingIcon=BicycleIcon.Heart)
             root.addView(first);layout(root)
             assertEquals("Option",toggle.contentDescription)
             toggle.performClick();assertTrue(toggle.isChecked);assertTrue(first.expanded)
             first.header.performClick();assertFalse(first.expanded);assertTrue(toggle.isChecked)
             assertTrue(toggle.left>=first.header.right)
+            assertTrue(first.expandControl.left>=first.header.right)
+            assertTrue(toggle.left>=first.expandControl.right)
+            first.expandControl.performClick();assertTrue(first.expanded);assertTrue(toggle.isChecked)
             var actions=0
             val action=BicycleComponents.specialFilled(c,themes,"Tauschen") { actions++ } as BicycleSpecialButton
             val second=BicycleFrameDropdown(c,themes,"Bauteil",trailing=action)

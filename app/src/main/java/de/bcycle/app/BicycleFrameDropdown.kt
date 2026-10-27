@@ -9,6 +9,7 @@ import android.graphics.drawable.RotateDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Switch
 
@@ -16,7 +17,7 @@ import android.widget.Switch
  * The optional trailing switch/special-filled button owns its action independently of expansion.
  */
 internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:String,open:Boolean=true,
-    trailing:View?=null,private val changed:(Boolean)->Unit={}):LinearLayout(context) {
+    trailing:View?=null,leadingIcon:BicycleIcon?=null,private val changed:(Boolean)->Unit={}):LinearLayout(context) {
     /** Explicit typography/background role; generic dialog styling must not add a second frame. */
     internal class Header(context:Context):Button(context)
     val header:Button=Header(context)
@@ -26,10 +27,14 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         setPadding(pad,BicycleDesign.dp(context,BicycleDesign.dropdownFrameHeaderGap),pad,pad)
     }
     private val arrow=RotateDrawable().apply { fromDegrees=0f;toDegrees=180f }
+    private val row=LinearLayout(context)
+    private var trailingControl:View?=null
+    private val endToggle:ImageButton?=if(leadingIcon!=null) BicycleComponents.icon(context,themes,BicycleIcon.Expand,title) { setExpanded(!expanded) } else null
+    val expandControl:View get()=endToggle ?: header
     var expanded=open;private set
     init {
         orientation=VERTICAL;clipChildren=false;clipToPadding=false
-        val row=LinearLayout(context).apply {
+        row.apply {
             orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;isBaselineAligned=false
             setTag(R.id.inline_control_row,true)
         }
@@ -44,12 +49,8 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
             setOnClickListener { setExpanded(!expanded) }
         }
         row.addView(header,LayoutParams(0,-2,1f))
-        trailing?.let { action ->
-            if(action is Switch && action.contentDescription.isNullOrEmpty()) action.contentDescription=title
-            row.addView(action,LayoutParams(if(action is Switch) BicycleDesign.dp(context,BicycleDesign.switchWidth) else -2,-2).apply {
-                marginEnd=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
-            })
-        }
+        endToggle?.let { row.addView(it,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize))) }
+        trailing?.let(::setTrailing)
         addView(row,LayoutParams(-1,-2));addView(content,LayoutParams(-1,-2))
         BicycleComponents.bindTheme(this,themes) { tokens ->
             background=BicycleComponents.controlBackground(context,tokens)
@@ -61,10 +62,28 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
             val size=BicycleDesign.dp(context,BicycleDesign.iconSize)
             arrow.drawable=BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground)
             arrow.level=if(expanded) 10000 else 0
-            header.setCompoundDrawablesRelative(BicycleTextIcon(header,arrow).apply { setBounds(0,0,size,size) },null,null,null)
+            val chevron=BicycleTextIcon(header,arrow).apply { setBounds(0,0,size,size) }
+            val icon=leadingIcon?.let { BicycleTextIcon(header,BicycleIcons.drawable(context,it,tokens.foreground)).apply { setBounds(0,0,size,size) } }
+            header.setCompoundDrawablesRelative(icon ?: chevron,null,null,null)
+            endToggle?.setImageDrawable(arrow)
         }
         render()
         BicycleComponents.controlSpacing(this)
+    }
+    /** Reparents the original control, preserving checked state and existing listeners. */
+    fun setTrailing(action:View) {
+        trailingControl?.let { row.removeView(it) }
+        (action.parent as? android.view.ViewGroup)?.removeView(action)
+        if(action is Switch) {
+            action.contentDescription=header.text
+            action.text="";action.setCompoundDrawablesRelative(null,null,null,null)
+            action.setPadding(0,0,0,0);action.switchPadding=0
+        }
+        row.addView(action,LayoutParams(if(action is Switch) BicycleDesign.dp(context,BicycleDesign.switchWidth) else -2,-2).apply {
+            marginEnd=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
+            if(endToggle!=null) marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap)
+        })
+        trailingControl=action
     }
     fun setExpanded(open:Boolean) {
         if(expanded==open) return
@@ -75,5 +94,7 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         arrow.level=if(expanded) 10000 else 0
         header.stateDescription=context.getString(if(expanded) R.string.zone_expanded else R.string.zone_collapsed)
         header.invalidate()
+        expandControl.stateDescription=header.stateDescription
+        endToggle?.invalidate()
     }
 }

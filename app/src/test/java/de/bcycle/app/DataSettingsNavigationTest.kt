@@ -51,13 +51,32 @@ class DataSettingsNavigationTest {
             val text=views(data.window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(text.indexOf(activity.getString(R.string.data_global))<text.indexOf(activity.getString(R.string.data_routes)))
             assertEquals(listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA") } })
+            val frames=listOf("data_frame_BACKUP","data_frame_RIDE_BACKUP","data_frame_HRV_EXPORT","data_HRV_RESTORE_GROUP").map {
+                data.window!!.decorView.findViewWithTag<BicycleFrameDropdown>(it)
+            }
+            assertEquals(4,frames.size)
+            frames.forEach { frame ->
+                assertNotNull(frame.header.compoundDrawablesRelative[0]);assertTrue(frame.expandControl is android.widget.ImageButton)
+                assertSame(frame,frame.content.parent)
+                assertFalse(frame.expanded)
+            }
+            listOf("data_RESTORE","data_RIDE_RESTORE").forEach { tag ->
+                val button=data.window!!.decorView.findViewWithTag<Button>(tag)
+                assertEquals(android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL,button.gravity)
+                assertNotNull(button.compoundDrawablesRelative[0])
+            }
             click(data,"data_LOCAL");val local=latest();measure(local)
             assertSame(data,local)
             val localBody=local.window!!.decorView.findViewWithTag<View>("data_details_LOCAL")
             assertNotNull(localBody.findViewWithTag<View>("export_folder_choose"));assertNull(localBody.findViewWithTag<View>("export_server"))
             click(data,"data_LOCAL");shadowOf(Looper.getMainLooper()).idle();assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
             click(data,"data_CLOUD");val cloud=data;measure(cloud)
+            val webdav=data.window!!.decorView.findViewWithTag<BicycleFrameDropdown>("data_frame_CLOUD")
+            val toggle=webdav.findViewWithTag<Switch>("export_webdav")
+            assertTrue(webdav.expandControl.left>=webdav.header.right);assertTrue(toggle.left>=webdav.expandControl.right)
+            assertTrue((webdav.expandControl as android.widget.ImageButton).drawable.level==10000)
             val cloudBody=cloud.window!!.decorView.findViewWithTag<View>("data_details_CLOUD")
+            assertEquals(0,views(cloudBody).filterIsInstance<RouteExportView>().single().paddingLeft)
             assertNotNull(cloudBody.findViewWithTag<View>("export_server"));assertNull(cloudBody.findViewWithTag<View>("export_folder_choose"))
             assertEquals("https://cloud.example.test",cloud.window!!.decorView.findViewWithTag<EditText>("export_server").text.toString())
             assertNotNull(cloud.window!!.decorView.findViewWithTag<View>("export_password_visibility"));assertNotNull(cloud.window!!.decorView.findViewWithTag<View>("export_test"))
@@ -140,7 +159,7 @@ class DataSettingsNavigationTest {
             a.getSharedPreferences("intervals-settings",0).edit().putBoolean("enabled",true).putString("athlete","42").commit()
             val (_,data)=open(a);measure(data)
             val root=data.window!!.decorView
-            val header=root.findViewWithTag<ViewGroup>("data_INTERVALS")
+            val header=root.findViewWithTag<BicycleFrameDropdown>("data_frame_INTERVALS").header.parent as ViewGroup
             val toggle=root.findViewWithTag<Switch>("intervals_enabled")
             val body=root.findViewWithTag<View>("data_details_INTERVALS")
             assertSame(header,toggle.parent);assertTrue(toggle.isChecked);assertEquals(View.GONE,body.visibility)
@@ -148,7 +167,8 @@ class DataSettingsNavigationTest {
             val label=header.getChildAt(0)
             label.performClick();assertEquals(View.VISIBLE,body.visibility);assertTrue(toggle.isChecked)
             label.performClick();assertEquals(View.GONE,body.visibility);assertTrue(toggle.isChecked)
-            assertEquals(header.height,toggle.height)
+            assertTrue(toggle.height>=BicycleDesign.dp(a,BicycleDesign.touchSize))
+            assertEquals(header.height/2f,toggle.top+toggle.height/2f,1f)
             assertEquals(0,(toggle.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
             root.findViewWithTag<View>("data_expand_INTERVALS").performClick()
             assertEquals(View.VISIBLE,body.visibility);assertTrue(toggle.isChecked)

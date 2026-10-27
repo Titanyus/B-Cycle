@@ -21,7 +21,7 @@ internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
 /** Inline service forms reuse their existing controls; expanding never enables an upload. */
 internal class DataSettingsView(context: Context, private val themes: ThemeManager, selected: (DataAction)->Unit) : LinearLayout(context) {
     val backupStatus=BicycleFeedback.status(context,themes).apply { tag="backup_status" }
-    private val headers=mutableMapOf<DataAction,LinearLayout>()
+    private val frames=mutableMapOf<DataAction,BicycleFrameDropdown>()
     private val bodies=mutableMapOf<DataAction,LinearLayout>()
     private fun dp(value:Int)=BicycleDesign.dp(context,value)
     init {
@@ -31,20 +31,32 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
             addView(BicycleComponents.description(context,themes,context.getString(
                 if(title==R.string.data_global) R.string.backup_section_hint else R.string.cloud_section_hint)),LayoutParams(-1,-2))
             actions.forEach { action ->
+                if(action!=DataAction.IMPORT) {
+                    val dropdown=BicycleFrameDropdown(context,themes,context.getString(action.title),false,leadingIcon=action.icon).apply {
+                        tag="data_frame_${action.name}"
+                    }
+                    dropdown.header.apply { tag="data_${action.name}";contentDescription=context.getString(action.title) }
+                    dropdown.content.tag="data_details_${action.name}"
+                    dropdown.expandControl.tag="data_expand_${action.name}"
+                    frames[action]=dropdown
+                    bodies[action]=dropdown.content
+                    if(action in setOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA)) {
+                        dropdown.content.addView(LinearLayout(context).apply {
+                            orientation=VERTICAL;tag="data_transfer_${action.name}"
+                            fun transfer(icon:BicycleIcon,title:Int) {
+                                addView(BicycleComponents.description(context,themes,context.getString(title)).apply {
+                                    BicycleDialogStyle.actionIcon(this,themes,icon)
+                                },LayoutParams(-1,-2))
+                            }
+                            transfer(BicycleIcon.TransferOut,R.string.backup_fit_data)
+                            if(action==DataAction.DREEVE) transfer(BicycleIcon.TransferIn,R.string.backup_maintenance_data)
+                        },LayoutParams(-1,-2))
+                    }
+                    addView(dropdown,LayoutParams(-1,-2))
+                    return@forEach
+                }
                 val inline=action !in setOf(DataAction.RESTORE,DataAction.RIDE_RESTORE)
                 val body=LinearLayout(context).apply { orientation=VERTICAL;tag="data_details_${action.name}";visibility=GONE }
-                if(action in setOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA)) {
-                    body.addView(LinearLayout(context).apply {
-                        orientation=VERTICAL;tag="data_transfer_${action.name}"
-                        fun transfer(icon:BicycleIcon,title:Int) {
-                            addView(BicycleComponents.description(context,themes,context.getString(title)).apply {
-                                BicycleDialogStyle.actionIcon(this,themes,icon)
-                            },LayoutParams(-1,-2))
-                        }
-                        transfer(BicycleIcon.TransferOut,R.string.backup_fit_data)
-                        if(action==DataAction.DREEVE) transfer(BicycleIcon.TransferIn,R.string.backup_maintenance_data)
-                    },LayoutParams(-1,-2))
-                }
                 val label=BicycleComponents.text(context,themes,context.getString(action.title)).apply {
                     gravity=Gravity.CENTER_VERTICAL
                     BicycleDialogStyle.actionIcon(this,themes,action.icon)
@@ -72,7 +84,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                 header.addView(expand,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap) })
                 // Same geometry as the sensor switch/chevron row.
                 addView(header,LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
-                if(inline) { headers[action]=header;bodies[action]=body;addView(body,LayoutParams(-1,-2));showState() }
+                if(inline) { bodies[action]=body;addView(body,LayoutParams(-1,-2));showState() }
             }
         }
         section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RIDE_BACKUP,DataAction.HRV_EXPORT))
@@ -81,9 +93,11 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         listOf(DataAction.RESTORE,DataAction.RIDE_RESTORE).forEach { action ->
             addView(BicycleComponents.action(context,themes,context.getString(action.title)) { selected(action) }.apply {
                 tag="data_${action.name}";contentDescription=context.getString(action.title)
+                gravity=Gravity.START or Gravity.CENTER_VERTICAL
+                BicycleDialogStyle.actionIcon(this,themes,action.icon)
             },LayoutParams(-1,-2))
         }
-        val restore=BicycleFrameDropdown(context,themes,context.getString(R.string.hrv_restore_title),false)
+        val restore=BicycleFrameDropdown(context,themes,context.getString(R.string.hrv_restore_title),false,leadingIcon=BicycleIcon.RestoreSettings)
         restore.tag="data_HRV_RESTORE_GROUP"
         listOf(DataAction.HRV_RESTORE,DataAction.HRV_IMPORT).forEach { action ->
             restore.content.addView(BicycleComponents.action(context,themes,context.getString(action.title)) { selected(action) }.apply {
@@ -94,13 +108,9 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         section(R.string.data_routes,listOf(DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
     }
     fun install(action:DataAction,content:View,enabled:Switch?=null) {
-        val header=headers.getValue(action)
-        if(enabled!=null) {
-            (enabled.parent as? android.view.ViewGroup)?.removeView(enabled)
-            val label=header.getChildAt(0) as TextView
-            val expand=header.getChildAt(1)
-            BicycleComponents.switchAccordion(header,enabled,expand,themes,label)
-        }
+        if(enabled!=null) frames.getValue(action).setTrailing(enabled)
+        // The frame owns the horizontal inset; service forms must not add it a second time.
+        content.setPadding(0,content.paddingTop,0,content.paddingBottom)
         bodies.getValue(action).addView(content,LayoutParams(-1,-2))
     }
 }
