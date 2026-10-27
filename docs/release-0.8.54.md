@@ -11,4 +11,4 @@ Enthält alle Änderungen seit APK0.8.53 / Build93.
 
 Gezielte Prüfungen während Umsetzung erfolgreich: Karten-/Wartungs-/Backupdarstellung,19 Trend-/Feldwahlfälle,14 Rahmen-/Backup-Navigationsfälle,3 globale Rahmen-/Wartungsfälle,8 Histogramm-/Native-Darstellungsfälle und zwölf Streckenfilter-/UI-Fälle. Keine unnötige Gesamtsuite für den APK-Auftrag wiederholt. Native Vorschau mit synthetischen Daten; kein erneuter Gerätetest oder privater Cloudzugriff.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-95.md).
