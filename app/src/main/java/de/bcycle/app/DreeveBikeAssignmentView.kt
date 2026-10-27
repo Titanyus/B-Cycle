@@ -26,6 +26,7 @@ internal class DreeveBikeAssignmentView(context:Context,themes:ThemeManager,gear
             }
         },LayoutParams(-1,-2))
         addView(BicycleComponents.description(context,themes,context.getString(R.string.dreeve_import_origin_hint)))
+        if(gear.isNotEmpty()) addView(BicycleComponents.sectionDivider(context,themes))
         gear.distinct().forEach { id ->
             addView(BicycleComponents.contentHeading(context,themes,names[id] ?: id))
             val picker=Spinner(context).apply {

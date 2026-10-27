@@ -1,3 +1,9 @@
+# Aktueller Stand27.10.2026 nachBuild92: Sticky-Anheftung und kompakte Seitenanordnung
+
+Abgeschlossen: Glow-Sticky-Header heften bündig am Hauptheader an; normaler8dp-Anfangsabstand bleibt und scrollt weg. Flat, Rundungen/Push und native Gesten unverändert. Wartung beginnt mit Fahrrädern, Abrufbutton+Zeitstempel+Infostatus danach am Seitenende. Dreeve-Importdialog „Fahrräder zuordnen“ erhält nach Infotext/vor erster Gruppe sectionDivider; ohneGear kein Trenner. Keine fachlichen Änderungen/neuen Einstellungen.
+
+Vier gezielte bestehende Tests grün: Sticky-Pin/Push/Drag, Glow-Kartenabschluss/Flat, Wartungsinitialabstand/bündigeAnheftung/beideDesigns, Dreeve-Zuordnung. Log /workspace/.tools/sticky-maintenance-assignment-tests.log. Typografie/UI-Katalog/Diff erfolgreich. Noch keine APK hierfür beauftragt; letzte APK0.8.52/Build92. Neuer Auftrag: angehängten Bosch-Flow-Export prüfen und Importfall abfangen; Dateiname.gpx, tatsächliches Format erst prüfen.
+
 # Aktueller Abschluss26.10.2026: APK0.8.52 / Build92
 
 APK **0.8.52 / Build92 / Code122** veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.52-release-92.apk), [Buildnachweis](build-92.md), Actions-Quellstand `756d34a32c3c6911279a441170e57f2d95389629`. Größe2.392.529 Bytes; SHA-256 `3a32caddcc5ad665a137d76e6f64e5a142b81ebd8304b76cf22d6c151a46ef4f`. Optimierter Release, dauerhafte Signatur wie Build91, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Änderungen seitBuild91 enthalten; Umfang/Prüfgrenzen release-0.8.52.md.25 gezielte Umsetzungstests erfolgreich, kein unnötiger Gesamtlauf. Nutzer bestätigt bisherige SRAM-Akkuabfrage am Gerät, neue UI/Warnung noch nicht am Gerät geprüft. Keine offene APK-Aufgabe; ältere Angaben darunter sind Verlauf.

@@ -62,12 +62,17 @@ class MaintenancePresentationTest {
                 val data=(0..9).map { base.copy(id="task-$it",componentId="part-$it",component="Bauteil $it",gearIds=listOf("a")) }+
                     (10..13).map { base.copy(id="task-$it",componentId="part-$it",gearIds=listOf("b")) }
                 view.loaded(data,mapOf("a" to "E-Bike","b" to "Indoor"))
+                BicycleContentSpacing.page(scroll)
                 scroll.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(640,View.MeasureSpec.EXACTLY))
                 scroll.layout(0,0,360,640)
                 val headers=testDescendants(view).filterIsInstance<BicycleSectionHeader>()
                 assertEquals(2,headers.size)
+                assertSame(view.findViewWithTag<View>("maintenance_tasks"),view.getChildAt(0))
+                assertSame(view,view.findViewWithTag<View>("maintenance_refresh").parent.parent)
                 fun top(v:View):Int { var y=v.top;var p=v.parent;while(p is View && p!==scroll) { y+=p.top;p=p.parent };return y }
+                assertEquals(if(flat) 0 else BicycleDesign.dp(c,BicycleDesign.controlGap),top(headers.first()))
                 scroll.scrollTo(0,top(headers.first())+100);assertTrue(headers.first().translationY>0)
+                assertEquals(0f,top(headers.first())+headers.first().translationY-scroll.scrollY,0f)
                 scroll.scrollTo(0,top(headers.last())-10)
                 assertTrue(headers.first().y+headers.first().height<=headers.last().top+1)
                 scroll.scrollTo(0,0)

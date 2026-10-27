@@ -25,11 +25,11 @@ internal class DreeveMaintenanceView(context:Context,private val themes:ThemeMan
     init {
         orientation=VERTICAL;tag="maintenance_screen";clipToPadding=false
         setPadding(0,0,0,dp(BicycleDesign.horizontalPadding))
+        addView(list)
         addView(LinearLayout(context).apply {
             orientation=VERTICAL;val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,0)
             addView(reload);addView(updated);addView(status)
         })
-        addView(list)
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
     }
     fun loading() { reload.isEnabled=false;list.removeAllViews();BicycleFeedback.update(status,context.getString(R.string.maintenance_loading)) }

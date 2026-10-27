@@ -71,14 +71,14 @@ class BicycleSectionCardsTest {
                     val gapImage=Bitmap.createBitmap(360,520,Bitmap.Config.ARGB_8888)
                     // Direct View.draw lacks the parent's normal scroll-coordinate transform.
                     scroll.draw(Canvas(gapImage).apply { translate(0f,-scroll.scrollY.toFloat()) })
-                    assertEquals("Content remains visible in the 8dp header gap",Color.RED,gapImage.getPixel(180,4))
+                    assertEquals("Pinned header now reaches the viewport edge",tokens.tertiary,gapImage.getPixel(180,4))
                     gapImage.recycle();content.background=bodyBackground
                     scroll.scrollTo(0,0)
                     // An expanded header joins the body without lower-corner gaps. As the
                     // card end passes underneath, use exactly that card's rounded lower arc.
                     val radius=BicycleDesign.dp(a,BicycleDesign.sectionCardRadius)
                     for(remaining in listOf(radius,12,6,0)) {
-                        scroll.scrollTo(0,content.bottom+16-first.height-8-remaining)
+                        scroll.scrollTo(0,content.bottom+16-first.height-remaining)
                         val actual=Bitmap.createBitmap(first.width,first.height,Bitmap.Config.ARGB_8888)
                         first.background.setBounds(0,0,first.width,first.height)
                         first.background.draw(Canvas(actual))
@@ -111,10 +111,10 @@ class BicycleSectionCardsTest {
                 scroll.scrollTo(0,second.top-first.height/2)
                 assertEquals(second.top.toFloat(),first.top+first.translationY+first.height,0f)
                 scroll.scrollTo(0,second.top+4)
-                assertEquals(if(flat) 0f else 8f,second.top+second.translationY-scroll.scrollY,0f)
+                assertEquals(0f,second.top+second.translationY-scroll.scrollY,0f)
                 scroll.scrollTo(0,0)
                 scroll.scrollTo(0,40);layout()
-                assertEquals(if(flat) 0f else 8f,first.top+first.translationY-scroll.scrollY,0f)
+                assertEquals(0f,first.top+first.translationY-scroll.scrollY,0f)
                 scroll.scrollTo(0,0)
             }
             themes.activate("preset:black-ops");layout()

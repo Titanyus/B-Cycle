@@ -92,3 +92,5 @@ Nach HTTP-Annahme bis zu 30 s im ersten Worker zeitnah bestätigen (2/3/5/10/10 
 ## Kompakte Importliste nach Build90
 
 Drei normale Zeilen statt vier, Fahrradzeile2dp näher an Datum/Strecke. Bestätigt verfügbare FIT/GPX rechts über dem Schalter als bestehende kleine Formatkennzeichen; Status importiert nur durch markierte deaktivierte Auswahl, Fehler weiter sichtbar. Optionale gemeinsame Servermetadatenabfrage nach vollständig geladener Liste, kein Vorabdownload. Archivliste behält vier Zeilen. Druckmarkierung auf die Schalterpille begrenzt, Touchfläche erhalten. Details [Originaldateien](dreeve-original-files-api.md).
+
+Darstellung27.10.2026: „Fahrräder zuordnen“ (Dreeve-Import) erhält nach dem Herkunfts-Infotext und vor der ersten Fahrradzuordnung einen zentralen horizontalen Abschnittstrenner. Ohne Fahrradzuordnungen kein leerer Trenner. Herkunftswahl und bestätigte Zuordnung unverändert.

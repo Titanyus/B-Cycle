@@ -39,11 +39,11 @@ class BicycleStickySectionsTest {
             for(width in listOf(720,1080)) {
                 measure(scroll,width,1200)
                 scroll.scrollTo(0,first.top+100)
-                assertEquals(BicycleDesign.dp(context,BicycleDesign.controlGap).toFloat(),first.top+first.translationY-scroll.scrollY,0f)
+                assertEquals(0f,first.top+first.translationY-scroll.scrollY,0f)
                 val push=second.top-first.height/2;scroll.scrollTo(0,push)
                 assertEquals((second.top-scroll.scrollY-first.height).toFloat(),first.top+first.translationY-scroll.scrollY,0f)
                 scroll.scrollTo(0,second.top+50)
-                assertEquals(BicycleDesign.dp(context,BicycleDesign.controlGap).toFloat(),second.top+second.translationY-scroll.scrollY,0f)
+                assertEquals(0f,second.top+second.translationY-scroll.scrollY,0f)
                 assertEquals(0f,first.translationY,0f)
                 scroll.scrollTo(0,end.top)
                 assertEquals(0f,second.translationY,0f)

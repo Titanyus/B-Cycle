@@ -60,8 +60,8 @@ internal open class BicycleStickyScrollView(context: Context) : ScrollView(conte
         super.onScrollChanged(l, t, oldl, oldt); pin()
     }
     private fun pin() {
-        val inset=if(BicycleAppearance.flat(context)) 0 else BicycleDesign.dp(context,BicycleDesign.controlGap)
-        val pinLine=scrollY+inset
+        // The leading page gap remains part of the content and scrolls away naturally.
+        val pinLine=scrollY
         sections.forEach { (header, top, end) ->
             val active = pinLine >= top && pinLine < end
             header.translationY = if (active) minOf(pinLine - top, end - top - header.height).coerceAtLeast(0).toFloat() else 0f
