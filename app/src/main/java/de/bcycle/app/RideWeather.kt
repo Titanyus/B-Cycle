@@ -106,6 +106,25 @@ internal class RideWeatherStore(context:Context) {
         val atomic=file(id);val out=atomic.startWrite()
         try { out.write(json.toString().toByteArray());atomic.finishWrite(out) } catch(e:Exception) { atomic.failWrite(out);throw e }
     }
+    private fun validateBackup(row:JSONObject) {
+        require(row.getInt("schema")==1 && row.getLong("time")>=0)
+        require(row.getDouble("latitude").let { it.isFinite() && it in -90.0..90.0 })
+        require(row.getDouble("longitude").let { it.isFinite() && it in -180.0..180.0 })
+        RideWeatherData.from(row.getJSONObject("data"))
+    }
+    fun backup(id:String):JSONObject? {
+        val atomic=file(id)
+        if(!atomic.baseFile.isFile && !File(atomic.baseFile.path+".bak").isFile) return null
+        return atomic.openRead().use { BackupJson.objectValue(it.readNBytes(8193),8192) }.also(::validateBackup)
+    }
+    fun restore(id:String,row:JSONObject) {
+        validateBackup(row)
+        val atomic=file(id)
+        if(atomic.baseFile.exists() || File(atomic.baseFile.path+".bak").exists()) return
+        val bytes=row.toString().toByteArray();require(bytes.size<=8192);root.mkdirs()
+        val stream=atomic.startWrite()
+        try { stream.write(bytes);atomic.finishWrite(stream) } catch(e:Exception) { atomic.failWrite(stream);throw e }
+    }
     fun delete(id:String) { file(id).delete() }
 }
 internal object RideWeather {

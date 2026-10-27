@@ -1,0 +1,14 @@
+<resources>
+    <string name="backup_section_hint">Sichert die Einstellungen der App, Streckendaten und HRV-Messdaten samt Tagesbefinden auf Wunsch lokal oder per WebDAV. Alle Einstellungen können wiederhergestellt werden</string>
+    <string name="cloud_section_hint">Sichert nach jeder Fahrt die Streckendaten + Metadaten lokal oder zu den entsprechenden Clouddiensten.</string>
+    <string name="hrv_backup_title">HRV-Daten sichern</string>
+    <string name="hrv_restore_title">HRV-Daten wiederherstellen</string>
+    <string name="ride_restore_title">Fahrten wiederherstellen</string>
+    <string name="backup_fit_data">FIT-Streckendaten</string>
+    <string name="backup_maintenance_data">Wartungsintervalle</string>
+    <string name="backup_destination">Lokal oder WebDAV</string>
+    <string name="backup_processing">Sicherung wird verarbeitet …</string>
+    <string name="backup_hrv_result">%1$d Einträge gesichert · %2$d fehlgeschlagen. Ordner: %3$s</string>
+    <string name="backup_hrv_restore_confirm">HRV-Messungen und Tagesbefinden aus diesem Sicherungsordner wiederherstellen? Vorhandene Messungen werden nicht überschrieben.</string>
+    <string name="backup_progress">%1$d Einträge verarbeitet …</string>
+</resources>

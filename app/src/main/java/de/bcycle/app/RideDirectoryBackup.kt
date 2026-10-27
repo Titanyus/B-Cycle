@@ -7,13 +7,14 @@ import java.io.File
 import java.time.Instant
 import java.util.UUID
 
-internal data class RideBackupResult(val completed:Int=0,val duplicates:Int=0,val failed:Int=0,val folder:String="",val hrvCompleted:Int=0,val hrvDuplicates:Int=0,val hrvFailed:Int=0)
+internal data class RideBackupResult(val completed:Int=0,val duplicates:Int=0,val failed:Int=0,val folder:String="")
 
 /** Library-worker operation. Checked data first, metadata last; never overwrite a destination. */
 internal class RideDirectoryBackup(private val context:Context,private val fits:FitLibrary,
     private val gpx:GpxLibrary,private val summaries:DreeveSummaryLibrary) {
     companion object {
-        const val INDEX="bicycle-backup.json"
+        const val INDEX="bicycle-routes.json"
+        const val PREFIX="Bicycle-Routes-"
         const val MAX_JSON=4*1024*1024
         private val rideId=Regex("(recorded|imported)-[a-f0-9]{64}|[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}")
     }
@@ -24,17 +25,12 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
         checkStop();require(source.isFile && source.length() in 1..FitRead.MAX_BYTES)
         directory.write(name,source);return descriptor(name,source)
     }
-    fun export(parent:BackupDirectory,password:CharArray?=null,progress:(Int)->Unit={}):RideBackupResult {
-        val folder="Bicycle-Backup-"+Instant.now().toString().replace(':','-').replace('.','-')+"-"+UUID.randomUUID().toString().take(8)
+    fun export(parent:BackupDirectory,progress:(Int)->Unit={}):RideBackupResult {
+        val folder=PREFIX+Instant.now().toString().replace(':','-').replace('.','-')+"-"+UUID.randomUUID().toString().take(8)
         val directory=parent.child(folder,true)
         val temporary=java.nio.file.Files.createTempDirectory(context.cacheDir.toPath(),"ride-backup-").toFile()
         val entries=JSONArray();val failed=JSONArray()
         try {
-            val settingsName=if(password==null) "settings.json" else "settings.zip"
-            val settings=File(temporary,settingsName).apply { writeBytes(if(password==null)
-                SettingsBackup(context,ThemeManager(context.getSharedPreferences("bike",0))).export(BackupSection.entries.toSet())
-                else SettingsArchive(context).export(BackupSection.entries.toSet(),password)) }
-            val settingsInfo=send(directory,settingsName,settings)
             val names=RideNames.allNames(context)
             fun row(id:String,name:String,kind:String,origin:TrackOrigin,details:RouteDetails,files:()->JSONObject) {
                 checkStop()
@@ -47,6 +43,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                         .put("name",names[id] ?: name).put("origin",origin.name)
                         .put("details",details.copy(bikeType=RideProfileColor.type(context,id) ?: details.bikeType).json())
                         .put("bike",RideProfileColor.backup(context,id) ?: JSONObject.NULL).put("links",links).put("files",payloads)
+                        .put("weather",RideWeatherStore(context).backup(id) ?: JSONObject.NULL)
                     val metadata=jsonFile(temporary,"$id.ride.json",json);require(metadata.length()<=65536)
                     entries.put(send(directory,metadata.name,metadata))
                 } catch(e:Exception) {
@@ -71,42 +68,10 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
             summaries.entries.forEach { entry -> row(entry.id,entry.activity.name,"SUMMARY",entry.origin,entry.details) {
                 JSONObject().put("summary",send(directory,"${entry.id}.summary.json",summaries.file(entry.id)))
             } }
-            val photos=JSONArray()
-            BikeProfileStore(context,context.getSharedPreferences("bike",0)).all().forEach { profile ->
-                val photo=BikePhotos.file(context,profile.slot)
-                if(photo.isFile) {
-                    val id=BikeIdentities.id(context.getSharedPreferences("bike",0),profile.slot)
-                    photos.put(JSONObject().put("bikeId",id).put("file",send(directory,"bike-$id.webp",photo)))
-                }
-            }
-            val hrv=JSONArray();val hrvFailed=JSONArray()
-            val hrvStore=HrvStore(File(context.filesDir,"hrv-measurements"))
-            hrvStore.ids().forEach { id ->
-                checkStop()
-                try {
-                    val snapshot=File(temporary,"hrv-$id.json").apply { writeBytes(hrvStore.backup(id)) }
-                    hrv.put(send(directory,snapshot.name,snapshot))
-                } catch(e:Exception) {
-                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
-                    hrvFailed.put(id)
-                }
-            }
-            val representedDays=hrvStore.list().mapTo(hashSetOf()) { HrvDailySelection.day(it).toString() }
-            hrvStore.questionnaireDays().filterNot { it in representedDays }.forEach { day ->
-                checkStop()
-                try {
-                    val snapshot=File(temporary,"hrv-day-$day.json").apply { writeBytes(hrvStore.backupQuestionnaireDay(day)) }
-                    hrv.put(send(directory,snapshot.name,snapshot))
-                } catch(e:Exception) {
-                    if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
-                    hrvFailed.put(day)
-                }
-            }
-            val index=JSONObject().put("format","bicycle-ride-backup").put("schema",1).put("createdAt",Instant.now().toString())
-                .put("settings",settingsInfo).put("rides",entries).put("failed",failed).put("photos",photos)
-                .put("hrv",hrv).put("hrvFailed",hrvFailed)
+            val index=JSONObject().put("format","bicycle-routes-backup").put("schema",1).put("createdAt",Instant.now().toString())
+                .put("rides",entries).put("failed",failed)
             val file=jsonFile(temporary,INDEX,index);require(file.length()<=MAX_JSON);send(directory,INDEX,file)
-            return RideBackupResult(entries.length(),failed=failed.length(),folder=folder,hrvCompleted=hrv.length(),hrvFailed=hrvFailed.length())
+            return RideBackupResult(entries.length(),failed=failed.length(),folder=folder)
         } finally { temporary.deleteRecursively() }
     }
     private fun fetch(directory:BackupDirectory,info:JSONObject,target:File,max:Long):File {
@@ -124,16 +89,9 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
     private fun index(directory:BackupDirectory):JSONObject=directory.open(INDEX).use { input ->
         val bytes=input.readNBytes(MAX_JSON+1);require(bytes.size<=MAX_JSON)
         BackupJson.objectValue(bytes,MAX_JSON).also {
-            require(it.getString("format")=="bicycle-ride-backup" && it.getInt("schema")==1)
+            require(it.getString("format")=="bicycle-routes-backup" && it.getInt("schema")==1)
             require(it.getJSONArray("rides").length()<=20000)
         }
-    }
-    fun settings(directory:BackupDirectory,password:CharArray?=null):SettingsBackupDocument {
-        val temporary=File.createTempFile("backup-settings-",".json",context.cacheDir)
-        try {
-            fetch(directory,index(directory).getJSONObject("settings"),temporary,SettingsArchive.MAX_BYTES.toLong())
-            return SettingsArchive(context).read(temporary.readBytes(),password)
-        } finally { temporary.delete() }
     }
     fun restore(directory:BackupDirectory,progress:(Int)->Unit={}):RideBackupResult {
         val index=index(directory);val rows=index.getJSONArray("rides")
@@ -185,47 +143,18 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                 if(restored) {
                     createdId=id;bike?.let { RideProfileColor.confirm(context,id,it.toString()) }
                     restoredLinks.forEach { RideServiceLinks.confirm(context,it) };RideNames.imported(context,id,name)
+                    row.optJSONObject("weather")?.let { RideWeatherStore(context).restore(id,it) }
                     done++;createdId=null
                 } else duplicates++
             } catch(e:Exception) {
                 createdId?.let { id ->
                     when(kind) { "FIT"->{ fits.delete(id);RideAnalysisFiles.file(context.filesDir,id).delete() }; "GPX"->gpx.delete(id); "SUMMARY"->summaries.delete(id) }
-                    RideProfileColor.forget(context,id);RideServiceLinks.forget(context,id);RideNames.forget(context,id)
+                    RideProfileColor.forget(context,id);RideServiceLinks.forget(context,id);RideNames.forget(context,id);RideWeatherStore(context).delete(id)
                 }
                 if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
                 failed++
             } finally { temporary.deleteRecursively();progress(position+1) }
         }
-        var hrvDone=0;var hrvDuplicates=0;var hrvFailed=index.optJSONArray("hrvFailed")?.length() ?: 0
-        val hrvRows=index.optJSONArray("hrv") ?: JSONArray();require(hrvRows.length()<=20000 && hrvFailed<=20000)
-        val hrvStore=HrvStore(File(context.filesDir,"hrv-measurements"))
-        repeat(hrvRows.length()) { i ->
-            checkStop();val temporary=File.createTempFile("hrv-restore-",".json",context.cacheDir)
-            try {
-                fetch(directory,hrvRows.getJSONObject(i),temporary,HrvStore.MAX_BYTES.toLong())
-                if(hrvStore.restore(temporary.readBytes())) hrvDone++ else hrvDuplicates++
-            } catch(e:Exception) {
-                if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
-                hrvFailed++
-            } finally { temporary.delete() }
-        }
-        val photos=index.optJSONArray("photos") ?: JSONArray();require(photos.length()<=BikeProfileStore.MAX_COUNT)
-        repeat(photos.length()) { i ->
-            val row=photos.getJSONObject(i);val id=row.getString("bikeId");require(BikeIdentities.valid(id))
-            val photo=File(context.filesDir,"bike-photos/by-id-$id.webp")
-            if(!photo.isFile) {
-                val temporary=File.createTempFile("backup-photo-",".webp",context.cacheDir)
-                try {
-                    fetch(directory,row.getJSONObject("file"),temporary,25L*1024*1024)
-                    val options=android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds=true }
-                    android.graphics.BitmapFactory.decodeFile(temporary.path,options)
-                    require(options.outWidth in 1..1200 && options.outHeight in 1..1200)
-                    photo.parentFile!!.mkdirs();val atomic=android.util.AtomicFile(photo);val out=atomic.startWrite()
-                    try { temporary.inputStream().use { it.copyTo(out) };atomic.finishWrite(out) }
-                    catch(e:Exception) { atomic.failWrite(out);throw e }
-                } finally { temporary.delete() }
-            }
-        }
-        return RideBackupResult(done,duplicates,failed,hrvCompleted=hrvDone,hrvDuplicates=hrvDuplicates,hrvFailed=hrvFailed)
+        return RideBackupResult(done,duplicates,failed)
     }
 }

@@ -9,11 +9,13 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import java.io.File
 import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RideDirectoryBackupTest {
     private class IsolatedContext(base:Context,val prefix:String):ContextWrapper(base) {
         private val root=File(base.cacheDir,prefix).apply { mkdirs() }
@@ -42,16 +44,19 @@ class RideDirectoryBackupTest {
         return id to journal
     }
     private fun parent(c:Context)=FileBackupDirectory(File(c.cacheDir,"destination-"+UUID.randomUUID()).apply { mkdirs() })
-    @Test fun protectedSettingsUseStandardZipAndRideRestoreStillReadsIndividualFits() {
-        val source=Library(context());recording(source)
-        val destination=parent(source.c);val password="Fahrten Sicherung Test 2026".toCharArray()
-        val report=source.backup.export(destination,password);val folder=destination.child(report.folder,false)
-        assertTrue(folder.entries().any { it.name=="settings.zip" });assertFalse(folder.entries().any { it.name=="settings.json" })
-        assertTrue(runCatching { source.backup.settings(folder) }.exceptionOrNull() is SettingsPasswordRequired)
-        val document=source.backup.settings(folder,password)
-        assertNotNull(document.protectedData)
+    @Test fun routesAreStandaloneAndContainNeitherSettingsNorHrv() {
+        val source=Library(context());val (id,_)=recording(source)
+        val weatherTarget=WeatherTarget(1792483200000L,50.0,8.0)
+        val weather=RideWeatherData(1,17.5,60.0,8.0,225.0)
+        RideWeatherStore(source.c).write(id,weatherTarget,weather)
+        val destination=parent(source.c)
+        val report=source.backup.export(destination);val folder=destination.child(report.folder,false)
+        assertFalse(folder.entries().any { it.name.startsWith("settings") || it.name.startsWith("hrv") || it.name.startsWith("bike-") })
+        val index=folder.open(RideDirectoryBackup.INDEX).use { JSONObject(it.reader().readText()) }
+        assertFalse(index.has("settings"));assertFalse(index.has("hrv"));assertFalse(index.has("photos"))
         val target=Library(context());val restored=target.backup.restore(folder)
         assertEquals(1,restored.completed);assertEquals(0,restored.failed)
+        assertEquals(weather,RideWeatherStore(target.c).read(id,weatherTarget))
     }
     @Test fun completeFitGpxSummarySettingsAndBikeIdentitiesRoundTripWithoutInventingRecordsOrUploads() {
         val source=Library(context());val target=Library(context())
@@ -75,7 +80,7 @@ class RideDirectoryBackupTest {
         val directory=destination.child(exported.folder,false)
         assertTrue(directory.entries().any { it.name=="$fitId.fit" })
         assertFalse(directory.entries().any { it.name=="$summaryId.fit" })
-        val allSettings=target.backup.settings(directory)
+        val allSettings=SettingsBackup(target.c,ThemeManager(target.c.getSharedPreferences("bike",0))).decode(SettingsBackup(source.c,ThemeManager(source.c.getSharedPreferences("bike",0))).export(BackupSection.entries.toSet()))
         val settings=SettingsBackup(target.c,ThemeManager(target.c.getSharedPreferences("bike",0)))
         settings.apply(settings.plan(allSettings,allSettings.sections.keys))
         val result=target.backup.restore(directory)
@@ -108,7 +113,7 @@ class RideDirectoryBackupTest {
         assertEquals(1,target.backup.restore(folder).completed)
         assertNull(RideProfileColor.slot(target.c,id));assertEquals("Mein Rad",RideProfileColor.name(target.c,id))
         val settings=SettingsBackup(target.c,ThemeManager(target.c.getSharedPreferences("bike",0)))
-        val doc=target.backup.settings(folder);settings.apply(settings.plan(doc,setOf(BackupSection.PROFILE)))
+        val doc=settings.decode(SettingsBackup(source.c,ThemeManager(source.c.getSharedPreferences("bike",0))).export(BackupSection.entries.toSet()));settings.apply(settings.plan(doc,setOf(BackupSection.PROFILE)))
         assertEquals(a.activeSlot,RideProfileColor.slot(target.c,id))
     }
     @Test fun corruptFullFitIsReportedAndDoesNotInstallAReducedOrPartiallyRestoredRide() {
@@ -150,7 +155,8 @@ class RideDirectoryBackupTest {
         finally { bitmap.recycle() }
         val destination=parent(source.c);val result=source.backup.export(destination);val folder=destination.child(result.folder,false)
         val settings=SettingsBackup(target.c,ThemeManager(target.c.getSharedPreferences("bike",0)))
-        val doc=source.backup.settings(folder);settings.apply(settings.plan(doc,doc.sections.keys))
+        val password="Separate Settings Test 2026".toCharArray()
+        val doc=SettingsArchive(target.c).read(SettingsArchive(source.c).export(BackupSection.entries.toSet(),password),password);settings.apply(settings.plan(doc,doc.sections.keys))
         target.backup.restore(folder)
         assertArrayEquals(photo.readBytes(),BikePhotos.file(target.c,bikes.activeSlot).readBytes())
     }
@@ -192,22 +198,17 @@ class RideDirectoryBackupTest {
         assertFalse(folder.entries().any { it.name==RideDirectoryBackup.INDEX })
         assertThrows(Exception::class.java) { source.backup.restore(folder) }
     }
-    @Test fun fullDirectoryAlsoRestoresPersonLevelHrvMeasurementsAndRawCapture() {
+    @Test fun routesNeverRestoreHrvOrChangeSettings() {
         val source=Library(context());val target=Library(context())
         val store=HrvStore(File(source.c.filesDir,"hrv-measurements"))
         val id=UUID.randomUUID().toString();val session=de.bcycle.hrv.MeasurementSession(0)
         store.begin(id,1000,"Gurt",session)
-        session.accept(1000,byteArrayOf(0x16,75,0,4));store.append(id,session.packets.last())
         session.abort("USER_ABORT");store.save(id,session,de.bcycle.hrv.Evaluate.session(session),1000)
-        store.saveQuestionnaire(id,HrvQuestionnaire.forMeasurement(store.read(id)).copy(alcohol=0,ratings=mapOf("sleep" to 4)))
+        val prefs=target.c.getSharedPreferences("bike",0);prefs.edit().putString("riderName","Unchanged").commit()
         val destination=parent(source.c);val exported=source.backup.export(destination)
-        assertEquals(1,exported.hrvCompleted);assertEquals(0,exported.hrvFailed)
-        val folder=destination.child(exported.folder,false)
-        val imported=target.backup.restore(folder)
-        assertEquals(1,imported.hrvCompleted);assertEquals(0,imported.hrvFailed)
-        val restored=HrvStore(File(target.c.filesDir,"hrv-measurements"))
-        assertArrayEquals(store.backup(id),restored.backup(id))
-        assertEquals(1,target.backup.restore(folder).hrvDuplicates)
+        val imported=target.backup.restore(destination.child(exported.folder,false))
+        assertEquals(0,imported.completed)
+        assertTrue(HrvStore(File(target.c.filesDir,"hrv-measurements")).ids().isEmpty())
+        assertEquals("Unchanged",prefs.getString("riderName",null))
     }
-
 }

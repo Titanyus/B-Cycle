@@ -1,6 +1,6 @@
 <resources>
     <string name="hrv4_import">HRV4Training-CSV importieren</string>
-    <string name="hrv4_import_hint">→ IN: HRV4Training-CSV mit HRV-Kennzahlen und Tagesangaben. Passende Tagesbefinden-Slider werden auf ganze Werte von 0 bis 10 gerundet; Originalwerte bleiben erhalten. Keine RR-Rohdaten. Vor dem Import Datumsformat und Zeitzone prüfen. Vorhandene Einträge bleiben erhalten.\n← OUT: Importierte Originalwerte sind in HRV-Sicherung und JSON-Analyseexport enthalten.</string>
+    <string name="hrv4_import_hint">HRV4Training-CSV mit Messwerten und Tagesbefinden importieren. Datumsformat und Zeitzone prüfen. Vorhandene Einträge bleiben erhalten.</string>
     <string name="hrv4_loading">HRV4Training-Datei wird geprüft …</string>
     <string name="hrv4_bad_csv">Die Datei ist keine unterstützte UTF-8-CSV von HRV4Training oder enthält ungültige CSV-Felder.</string>
     <string name="hrv4_too_large">Die CSV darf höchstens 4 MiB enthalten.</string>

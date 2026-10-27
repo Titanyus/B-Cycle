@@ -7,7 +7,10 @@ import android.widget.*
 
 internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
     HRV_IMPORT(R.string.hrv4_import, BicycleIcon.Import),
-    HRV_EXPORT(R.string.hrv_export, BicycleIcon.ExportTrack),
+    HRV_EXPORT(R.string.hrv_backup_title, BicycleIcon.ExportTrack),
+    HRV_RESTORE(R.string.hrv_restore_title,BicycleIcon.RestoreSettings),
+    HRV_RESTORE_GROUP(R.string.hrv_restore_title,BicycleIcon.Heart),
+    RIDE_RESTORE(R.string.ride_restore_title,BicycleIcon.RestoreSettings),
     BACKUP(R.string.data_backup, BicycleIcon.ExportTrack), RESTORE(R.string.data_restore, BicycleIcon.RestoreSettings),
     IMPORT(R.string.data_route_import, BicycleIcon.Import),
     RIDE_BACKUP(R.string.ride_backup_title,BicycleIcon.ExportTrack),
@@ -17,6 +20,7 @@ internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
 }
 /** Inline service forms reuse their existing controls; expanding never enables an upload. */
 internal class DataSettingsView(context: Context, private val themes: ThemeManager, selected: (DataAction)->Unit) : LinearLayout(context) {
+    val backupStatus=BicycleFeedback.status(context,themes).apply { tag="backup_status" }
     private val headers=mutableMapOf<DataAction,LinearLayout>()
     private val bodies=mutableMapOf<DataAction,LinearLayout>()
     private fun dp(value:Int)=BicycleDesign.dp(context,value)
@@ -24,28 +28,21 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         orientation=VERTICAL;tag="data_settings";setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),0);BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         fun section(title:Int, actions:List<DataAction>) {
             BicycleForm.section(this,themes,title).apply { if(title==R.string.data_routes) tag="data_routes_heading" }
+            addView(BicycleComponents.description(context,themes,context.getString(
+                if(title==R.string.data_global) R.string.backup_section_hint else R.string.cloud_section_hint)),LayoutParams(-1,-2))
             actions.forEach { action ->
-                val inline=action!=DataAction.RESTORE
+                val inline=action !in setOf(DataAction.RESTORE,DataAction.RIDE_RESTORE)
                 val body=LinearLayout(context).apply { orientation=VERTICAL;tag="data_details_${action.name}";visibility=GONE }
-                val transfer=when(action) {
-                    DataAction.IMPORT -> R.string.transfer_import_in to R.string.transfer_import_out
-                    DataAction.LOCAL -> R.string.transfer_local_in to R.string.transfer_local_out
-                    DataAction.CLOUD -> R.string.transfer_webdav_in to R.string.transfer_webdav_out
-                    DataAction.INTERVALS -> R.string.transfer_intervals_in to R.string.transfer_service_out
-                    DataAction.DREEVE -> R.string.transfer_dreeve_in to R.string.transfer_service_out
-                    DataAction.STRAVA -> R.string.transfer_strava_in to R.string.transfer_service_out
-                    DataAction.RIDE_BACKUP -> R.string.transfer_backup_in to R.string.transfer_backup_out
-                    else -> null
-                }
-                transfer?.let { (incoming,outgoing) ->
+                if(action in setOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA)) {
                     body.addView(LinearLayout(context).apply {
                         orientation=VERTICAL;tag="data_transfer_${action.name}"
-                        setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.controlGap))
-                        addView(BicycleComponents.description(context,themes,
-                            context.getString(R.string.transfer_in,context.getString(incoming))))
-                        addView(BicycleComponents.description(context,themes,
-                            context.getString(R.string.transfer_out,context.getString(outgoing)+
-                                if(action==DataAction.INTERVALS) " "+context.getString(R.string.intervals_bulk_capability) else "")))
+                        fun transfer(icon:BicycleIcon,title:Int) {
+                            addView(BicycleComponents.description(context,themes,context.getString(title)).apply {
+                                BicycleDialogStyle.actionIcon(this,themes,icon)
+                            },LayoutParams(-1,-2))
+                        }
+                        transfer(BicycleIcon.TransferOut,R.string.backup_fit_data)
+                        if(action==DataAction.DREEVE) transfer(BicycleIcon.TransferIn,R.string.backup_maintenance_data)
                     },LayoutParams(-1,-2))
                 }
                 val label=BicycleComponents.text(context,themes,context.getString(action.title)).apply {
@@ -65,7 +62,9 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                     expand.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
                     header.stateDescription=expand.stateDescription
                 }
+                if(action==DataAction.IMPORT) { header.isEnabled=false;label.isEnabled=false;expand.isEnabled=false;header.alpha=.5f }
                 header.setOnClickListener {
+                    if(action==DataAction.IMPORT) return@setOnClickListener
                     if(inline) { body.visibility=if(body.visibility==VISIBLE) GONE else VISIBLE;showState() }
                     else selected(action)
                 }
@@ -76,17 +75,23 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                 if(inline) { headers[action]=header;bodies[action]=body;addView(body,LayoutParams(-1,-2));showState() }
             }
         }
-        section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RESTORE))
-        section(R.string.data_routes,listOf(DataAction.RIDE_BACKUP,DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
-        BicycleForm.section(this,themes,R.string.hrv_data_title)
-        addView(BicycleComponents.action(context,themes,context.getString(R.string.hrv4_import)) { selected(DataAction.HRV_IMPORT) }.apply {
-            tag="data_HRV_IMPORT";contentDescription=context.getString(R.string.hrv4_import)
-        },LayoutParams(-1,-2))
-        addView(BicycleComponents.description(context,themes,context.getString(R.string.hrv4_import_hint)))
-        addView(BicycleComponents.action(context,themes,context.getString(R.string.hrv_export)) { selected(DataAction.HRV_EXPORT) }.apply {
-            tag="data_HRV_EXPORT";contentDescription=context.getString(R.string.hrv_export)
-        },LayoutParams(-1,-2))
-        addView(BicycleComponents.description(context,themes,context.getString(R.string.hrvq_export_hint)))
+        section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RIDE_BACKUP,DataAction.HRV_EXPORT))
+        addView(backupStatus,LayoutParams(-1,-2))
+        addView(BicycleComponents.sectionDivider(context,themes))
+        listOf(DataAction.RESTORE,DataAction.RIDE_RESTORE).forEach { action ->
+            addView(BicycleComponents.action(context,themes,context.getString(action.title)) { selected(action) }.apply {
+                tag="data_${action.name}";contentDescription=context.getString(action.title)
+            },LayoutParams(-1,-2))
+        }
+        val restore=BicycleFrameDropdown(context,themes,context.getString(R.string.hrv_restore_title),false)
+        restore.tag="data_HRV_RESTORE_GROUP"
+        listOf(DataAction.HRV_RESTORE,DataAction.HRV_IMPORT).forEach { action ->
+            restore.content.addView(BicycleComponents.action(context,themes,context.getString(action.title)) { selected(action) }.apply {
+                tag="data_${action.name}";contentDescription=context.getString(action.title)
+            },LayoutParams(-1,-2))
+        }
+        addView(restore,LayoutParams(-1,-2))
+        section(R.string.data_routes,listOf(DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
     }
     fun install(action:DataAction,content:View,enabled:Switch?=null) {
         val header=headers.getValue(action)

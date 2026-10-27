@@ -9,7 +9,7 @@ import java.io.InputStream
 internal data class BackupDirectoryEntry(val name:String,val directory:Boolean)
 internal interface BackupDirectory {
     fun entries():List<BackupDirectoryEntry>
-    fun isSnapshot()=entries().any { it.name==RideDirectoryBackup.INDEX && !it.directory }
+    fun isSnapshot()=entries().any { it.name in setOf(RideDirectoryBackup.INDEX,HrvDirectoryBackup.INDEX) && !it.directory }
     fun child(name:String,create:Boolean):BackupDirectory
     fun open(name:String):InputStream
     fun write(name:String,source:File)
@@ -89,7 +89,7 @@ internal class DocumentBackupDirectory(private val context:Context,private val t
 }
 internal class DavBackupDirectory(private val client:WebDavClient):BackupDirectory {
     override fun entries()=client.listBackupDirectory()
-    override fun isSnapshot()=client.backupIndexPresent()
+    override fun isSnapshot()=client.backupIndexPresent() || client.backupIndexPresent(HrvDirectoryBackup.INDEX)
     override fun child(name:String,create:Boolean)=DavBackupDirectory(client.backupChild(backupName(name),create))
     override fun open(name:String)=client.openBackupFile(backupName(name))
     override fun write(name:String,source:File)=client.upload(source,backupName(name))

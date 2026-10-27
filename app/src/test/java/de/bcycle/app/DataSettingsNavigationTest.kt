@@ -67,24 +67,23 @@ class DataSettingsNavigationTest {
             assertNull(manager.window!!.decorView.findViewWithTag<View>("route_settings"))
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun routeImportAccordionUsesExistingDocumentPickersWithoutLeavingDataPage() {
+    @Test fun routeImportIsDisabledAndHrvRestoreGroupsItsTwoExplicitActions() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val (_,screen)=open(a)
-            click(screen,"data_expand_IMPORT");measure(screen)
-            assertEquals(View.VISIBLE,screen.window!!.decorView.findViewWithTag<View>("data_details_IMPORT").visibility)
-            for((index,code) in listOf(8,9,15).withIndex()) {
-                click(screen,"data_import_$index")
-                val request=shadowOf(a).nextStartedActivityForResult
-                assertEquals(code,request.requestCode)
-                assertEquals(Intent.ACTION_OPEN_DOCUMENT,request.intent.action)
-                val mime=request.intent.getStringArrayExtra(Intent.EXTRA_MIME_TYPES)!!.toList()
-                assertTrue(if(index==2) "application/zip" in mime else "application/vnd.ant.fit" in mime)
-                if(index==0) assertTrue("application/gpx+xml" in mime)
-                assertSame(screen,latest());assertTrue(screen.isShowing)
-            }
-            click(screen,"data_expand_IMPORT")
+            assertFalse(screen.window!!.decorView.findViewWithTag<View>("data_IMPORT").isEnabled)
+            assertFalse(screen.window!!.decorView.findViewWithTag<View>("data_expand_IMPORT").isEnabled)
             assertEquals(View.GONE,screen.window!!.decorView.findViewWithTag<View>("data_details_IMPORT").visibility)
+            val frame=screen.window!!.decorView.findViewWithTag<BicycleFrameDropdown>("data_HRV_RESTORE_GROUP")
+            frame.header.performClick();measure(screen)
+            click(screen,"data_HRV_IMPORT")
+            val request=shadowOf(a).nextStartedActivityForResult
+            assertEquals(19,request.requestCode);assertEquals(Intent.ACTION_OPEN_DOCUMENT,request.intent.action)
+            assertTrue(frame.expanded)
+            click(screen,"data_HRV_RESTORE")
+            val source=latest();click(source,"backup_target_local")
+            val restore=shadowOf(a).nextStartedActivityForResult
+            assertEquals(23,restore.requestCode);assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE,restore.intent.action)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun intervalsExpandsInlineWithoutEnablingUploadsOrOpeningAnotherDialog() {
@@ -216,23 +215,21 @@ class DataSettingsNavigationTest {
         try {
             val activity=controller.get();val (_,data)=open(activity);val prefs=activity.getSharedPreferences("bike",0)
             click(data,"data_BACKUP");val choice=latest();measure(choice)
-            assertEquals(6,views(choice.window!!.decorView).filterIsInstance<CheckBox>().size)
-            click(choice,"backup_none");assertFalse(choice.window!!.decorView.findViewWithTag<Button>("backup_execute").isEnabled)
-            click(choice,"backup_all");assertTrue(choice.window!!.decorView.findViewWithTag<Button>("backup_execute").isEnabled)
+            assertFalse(views(choice.window!!.decorView).any { it is CheckBox })
             val original=prefs.all.toMap();click(data,"data_BACKUP");assertEquals(original,prefs.all)
-            click(data,"data_BACKUP");val export=latest();export.window!!.decorView.findViewWithTag<Button>("backup_execute").performClick();password(true)
+            click(data,"data_BACKUP");val export=latest();click(export,"backup_target_local");password(true)
             val create=shadowOf(activity).nextStartedActivityForResult
             assertEquals(Intent.ACTION_CREATE_DOCUMENT,create.intent.action);assertEquals(12,create.requestCode)
             assertTrue(create.intent.getStringExtra(Intent.EXTRA_TITLE)!!.startsWith("BICYCLE_Settings_"))
             result(activity,12,android.app.Activity.RESULT_CANCELED,null);assertEquals(original,prefs.all)
-            click(data,"backup_execute");password(true);shadowOf(activity).nextStartedActivityForResult
+            click(data,"backup_target_local");password(true);shadowOf(activity).nextStartedActivityForResult
             shadowOf(Looper.getMainLooper()).idle()
             val uri=Uri.parse("content://settings-test/document")
             result(activity,12,android.app.Activity.RESULT_OK,Intent().setData(uri))
             waitFor { provider.file.isFile && provider.file.length()>0 }
             val bytes=provider.file.readBytes();assertTrue(SettingsArchive.isZip(bytes));assertEquals(6,SettingsArchive(activity).read(bytes,archivePassword.toCharArray()).sections.size)
             prefs.edit().putBoolean(ModeGlowSettings.key,true).commit()
-            click(data,"data_RESTORE");val open=shadowOf(activity).nextStartedActivityForResult
+            click(data,"data_RESTORE");click(latest(),"backup_target_local");val open=shadowOf(activity).nextStartedActivityForResult
             assertEquals(Intent.ACTION_OPEN_DOCUMENT,open.intent.action);assertEquals(13,open.requestCode)
             result(activity,13,android.app.Activity.RESULT_OK,Intent().setData(uri))
             waitFor { latest().window!!.decorView.findViewWithTag<View>("settings_archive_password")!=null }
@@ -259,9 +256,7 @@ class DataSettingsNavigationTest {
         val state=android.os.Bundle()
         try {
             val activity=old.get();val (_,data)=open(activity)
-            click(data,"data_BACKUP");val choice=latest();click(choice,"backup_none")
-            (choice.window!!.decorView.findViewWithTag<View>("backup_dashboard") as CheckBox).isChecked=true
-            choice.window!!.decorView.findViewWithTag<Button>("backup_execute").performClick();password(true)
+            click(data,"data_BACKUP");val choice=latest();click(choice,"backup_target_local");password(true)
             assertEquals(Intent.ACTION_CREATE_DOCUMENT,shadowOf(activity).nextStartedActivityForResult.intent.action)
             old.saveInstanceState(state)
         } finally { old.pause().stop().destroy() }
@@ -271,7 +266,7 @@ class DataSettingsNavigationTest {
             val activity=fresh.get();result(activity,12,android.app.Activity.RESULT_OK,Intent().setData(Uri.parse("content://settings-test/document")))
             waitFor { provider.file.isFile && provider.file.length()>0 }
             val doc=SettingsArchive(activity).read(provider.file.readBytes(),archivePassword.toCharArray())
-            assertEquals(setOf(BackupSection.DASHBOARD),doc.sections.keys)
+            assertEquals(BackupSection.entries.toSet(),doc.sections.keys)
             waitFor { latest().isShowing && latest().window!!.decorView.findViewWithTag<View>("data_settings")!=null }
         } finally { fresh.pause().stop().destroy() }
     }
@@ -279,6 +274,7 @@ class DataSettingsNavigationTest {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get();val (_,data)=open(activity);val themes=RideRuntime.get(activity).themes
+            data.window!!.decorView.findViewWithTag<BicycleFrameDropdown>("data_HRV_RESTORE_GROUP").setExpanded(true)
             for((w,h) in listOf(280 to 640,360 to 640,480 to 800)) {
                 measure(data,w,h);val root=data.window!!.decorView.findViewWithTag<ViewGroup>("bicycle_fullscreen")
                 assertEquals(BicycleDesign.headerHeight,root.getChildAt(0).height)
@@ -287,7 +283,7 @@ class DataSettingsNavigationTest {
                 val geometry=views(root).map { listOf(it.left,it.top,it.width,it.height) }
                 for(theme in BicycleThemes.presets) {
                     themes.activate(theme.id);measure(data,w,h);assertEquals(geometry,views(root).map { listOf(it.left,it.top,it.width,it.height) })
-                    for(action in DataAction.entries) { val row=root.findViewWithTag<View>("data_${action.name}");assertTrue(row.isClickable);assertTrue(row.height>=BicycleDesign.touchSize);assertEquals(activity.getString(action.title),row.contentDescription) }
+                    for(action in DataAction.entries.filterNot { it in setOf(DataAction.HRV_RESTORE_GROUP,DataAction.IMPORT) }) { val row=root.findViewWithTag<View>("data_${action.name}");assertTrue(row.isClickable);assertTrue(row.height>=BicycleDesign.touchSize);assertEquals(activity.getString(action.title),row.contentDescription) }
                 }
             }
         } finally { controller.pause().stop().destroy() }

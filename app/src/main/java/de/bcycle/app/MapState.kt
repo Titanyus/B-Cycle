@@ -22,29 +22,27 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "B-Cycle-routes") }
     private val library = GpxLibrary(context.filesDir)
     private val fits = FitLibrary(context.filesDir)
-    internal fun transferBackup(directory:BackupDirectory,restore:Boolean,password:CharArray?=null,progress:(Int)->Unit,complete:(Result<RideBackupResult>)->Unit):Boolean {
+    internal fun transferBackup(directory:BackupDirectory,restore:Boolean,hrv:Boolean=false,progress:(Int)->Unit,complete:(Result<RideBackupResult>)->Unit):Boolean {
         if(busy) return false
         busy=true;changed()
         worker.execute {
             var result:Result<RideBackupResult> = Result.failure(IllegalStateException())
             finishOperation("") {
                 result=runCatching {
-                    val backup=RideDirectoryBackup(context,fits,library,dreeveSummaries)
                     val report:(Int)->Unit={ count -> handler.post { progress(count) } }
-                    if(restore) backup.restore(directory,report) else backup.export(directory,password,report)
+                    if(hrv) {
+                        val backup=HrvDirectoryBackup(context)
+                        if(restore) backup.restore(directory,report) else backup.export(directory,report)
+                    } else {
+                        val backup=RideDirectoryBackup(context,fits,library,dreeveSummaries)
+                        if(restore) backup.restore(directory,report) else backup.export(directory,report)
+                    }
                 }
                 workerRoute
             }
-            password?.fill('\u0000')
             handler.post { complete(result) }
         }
         return true
-    }
-    internal fun backupSettings(directory:BackupDirectory,complete:(Result<SettingsBackupDocument>)->Unit) {
-        worker.execute {
-            val result=runCatching { RideDirectoryBackup(context,fits,library,dreeveSummaries).settings(directory) }
-            handler.post { complete(result) }
-        }
     }
     private val dreeveSummaries=DreeveSummaryLibrary(context.filesDir)
     private var summaries:List<StoredDreeveSummary> = emptyList()

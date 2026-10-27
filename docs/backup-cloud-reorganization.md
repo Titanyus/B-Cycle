@@ -1,6 +1,6 @@
 # Backup & Cloud: vereinbarte Neuordnung
 
-Nutzerentwurf 27.10.2026, bisher zusammengefasst und hinsichtlich Funktionsumfang abgeglichen. Die folgende Neuordnung ist noch nicht implementiert. Separat umgesetzt ist die Position des Passwortauges innerhalb des Eingaberahmens (BicycleForm.passwordField), rechts und vertikal mittig, für WebDAV, intervals.icu, Dreeve und Strava. Maskierung, explizites Lesen gespeicherter WebDAV-Zugangsdaten, Cursor und automatische Speicherung unverändert; vorhandene RouteExportTest-Passwortprüfung inklusive Geometrie aller vier Dienste erfolgreich.
+Umgesetzt am 27.10.2026 nach ausdrücklichem „leg los“. Die drei Bereiche werden getrennt gesichert und wiederhergestellt. Separat umgesetzt ist die Position des Passwortauges innerhalb des Eingaberahmens (BicycleForm.passwordField), rechts und vertikal mittig, für WebDAV, intervals.icu, Dreeve und Strava. Maskierung, explizites Lesen gespeicherter WebDAV-Zugangsdaten, Cursor und automatische Speicherung unverändert; vorhandene RouteExportTest-Passwortprüfung inklusive Geometrie aller vier Dienste erfolgreich.
 
 ## Backup & Restore (bisher Globale Daten)
 
@@ -24,6 +24,14 @@ Lange IN-/OUT-Beschreibungen entfernen, nur kompakte log-in/log-out-Symbole: aus
 
 ## Kompatibilität und bewusste Einschränkungen
 
-Bisherige RideBackup-Gesamtsicherung enthält Einstellungen und HRV zusätzlich zu Fahrten; neue Aktionen sollen diese Bereiche trennen. Nach ausdrücklicher Nutzerkorrektur wird vollständig auf die neue Methode umgestellt: Alte Gesamtsicherungen und bisherige HRV-Exporte müssen nicht eingelesen werden können. Keine Kompatibilitätslogik für diese Formate entwickeln. HRV4Training-CSV ist davon unabhängig und bleibt als ausdrücklich gewünschter Import erhalten. Zugriff zur Wiederherstellung über WebDAV erhalten. Wiederherstellung mit Bereichsauswahl nicht mit der bewusst entfallenden Bereichsauswahl beim Sichern verwechseln.
+Die frühere RideBackup-Gesamtsicherung enthielt Einstellungen und HRV zusätzlich zu Fahrten; die neuen Aktionen trennen diese Bereiche. Nach ausdrücklicher Nutzerkorrektur wird vollständig auf die neue Methode umgestellt: Alte Gesamtsicherungen und bisherige HRV-Exporte müssen nicht eingelesen werden können. Keine Kompatibilitätslogik für diese Formate entwickeln. HRV4Training-CSV ist davon unabhängig und bleibt als ausdrücklich gewünschter Import erhalten. Zugriff zur Wiederherstellung über WebDAV erhalten. Wiederherstellung mit Bereichsauswahl nicht mit der bewusst entfallenden Bereichsauswahl beim Sichern verwechseln.
 
 Bisheriger HrvDiagnosticExport enthält auch verworfene und ältere Messungen und ist nicht gleichbedeutend mit der geplanten Tageswertsicherung. Diagnoseumfang wäre durch die neue Sicherung nicht abgedeckt; Nutzer wurde darauf hingewiesen. Kein eigenmächtiger zusätzlicher Menüpunkt oder Datenlöschung.
+
+## Implementierung
+
+DataSettingsView und BackupDestinationView bilden die neue UI; bestehende Serviceformulare bleiben. RideDirectoryBackup schreibt nur Strecken in bicycle-routes.json-Snapshots. HrvDirectoryBackup schreibt eigene bicycle-hrv.json-Snapshots, jeweils mit SHA-256/Größe und Abschlussindex zuletzt. Gültige eigene Messungen (acceptable) und importierte HRV4-Messwerte werden vor der Tagesauswahl berücksichtigt. Gemeinsame Tagesantworten werden auch für Tage ohne gültige Messung gesichert; keine Rohdatenlöschung. Wiederholte Wiederherstellung ergänzt fehlende Daten ohne neue Uploads.
+
+Die komplette Einstellungssicherung verwendet unverändert SettingsArchive und das Sicherungspasswort. WebDAV-Sicherungen erhalten eindeutige Dateinamen; Wiederherstellung listet passende ZIPs. Lokal wird die Systemdateiauswahl verwendet. Stand-alone-Strecken-/HRV-Ordner verwenden weiterhin die vorhandene BackupDirectory-Abstraktion für Android-Ordner und WebDAV.
+
+Prüfung abgeschlossen: 32 unterschiedliche gezielte Fälle aus Einstellungen/ZIP, Navigation, Strecken-/HRV-Roundtrips, Dubletten/Integrität und SAF-/WebDAV-Transport erfolgreich. Keine echten Cloudkonten oder Gerätetests verwendet. Keine neue APK beauftragt.

@@ -17,7 +17,7 @@ internal class IntervalsView(context:Context,themes:ThemeManager,config:Interval
     val testButton=BicycleComponents.action(context,themes,context.getString(R.string.route_export_test),test).apply { tag="intervals_test" }
     var uploadAll:()->Unit={}
     val bulkButton=BicycleComponents.action(context,themes,context.getString(R.string.intervals_bulk_button)) { uploadAll() }.apply { tag="intervals_bulk_upload" }
-    val bulkResult=BicycleFeedback.status(context,themes).apply { tag="intervals_bulk_result";setText(R.string.intervals_bulk_hint) }
+    val bulkResult=BicycleFeedback.status(context,themes).apply { tag="intervals_bulk_result" }
     init {
         orientation=VERTICAL
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad/2,pad,pad/2)
@@ -38,6 +38,7 @@ internal class IntervalsView(context:Context,themes:ThemeManager,config:Interval
         }
         addView(wifi);addView(testButton);addView(result)
         addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.sectionDividerGap))
+        addView(BicycleComponents.description(context,themes,context.getString(R.string.intervals_bulk_hint)))
         addView(bulkButton);addView(bulkResult)
         BicycleDialogStyle.content(this,themes)
         listOf(athlete,apiKey).forEach { BicycleForm.outlinedInput(it,themes) }

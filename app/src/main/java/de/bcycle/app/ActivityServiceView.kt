@@ -44,6 +44,7 @@ internal class ActivityServiceView(context:Context,themes:ThemeManager,val servi
         addView(wifi);if(service==ActivityService.STRAVA) addView(account)
         addView(button);addView(result)
         if(service==ActivityService.DREEVE) {
+            addView(BicycleComponents.sectionDivider(context,themes))
             addView(BicycleComponents.description(context,themes,context.getString(R.string.dreeve_names_hint)))
             addView(nameSync);addView(nameSyncStatus)
             BicycleDialogStyle.actionIcon(nameSync,themes,BicycleIcon.RenameTrack)

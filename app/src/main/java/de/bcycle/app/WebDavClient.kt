@@ -56,8 +56,8 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
                         consume: ((okhttp3.Response) -> Unit)? = null): Int {
         if (cancelled()) throw DavFailure(true, "Upload unterbrochen")
         val body = file?.let { source -> object : RequestBody() {
-            override fun contentType() = when(source.extension.lowercase()) {
-                "json"->"application/json";"gpx"->"application/gpx+xml";"webp"->"image/webp";else->"application/vnd.ant.fit"
+            override fun contentType() = when(uri.path.substringAfterLast('.').lowercase()) {
+                "zip"->"application/zip";"json"->"application/json";"gpx"->"application/gpx+xml";"webp"->"image/webp";else->"application/vnd.ant.fit"
             }.toMediaType()
             override fun contentLength() = source.length()
             override fun writeTo(sink: BufferedSink) { source.inputStream().use { input ->
@@ -132,11 +132,11 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
     }
     fun upload(file: File, name: String) {
         require(password.isNotEmpty()) { "App-Passwort fehlt" }
-        require(name.matches(Regex("[A-Za-z0-9_.-]+\\.(fit|json|gpx|webp)")))
+        require(name.matches(Regex("[A-Za-z0-9_.-]+\\.(fit|json|gpx|webp|zip)")))
         ensureDirectories()
         val uri = URI("https", null, target.host, target.port, target.path + name, null, null)
         val code = request(uri, "PUT", file, mapOf("If-None-Match" to "*"))
-        checkResponse(code, setOf(200, 201, 204, 412), "FIT-Upload fehlgeschlagen")
+        checkResponse(code, setOf(200, 201, 204, 412), "Datei-Upload fehlgeschlagen")
         // A previous upload may have succeeded before a network/process failure. Verify bytes,
         // rather than overwrite a remote file or create a duplicate on retry.
         var actual: String? = null
@@ -166,8 +166,8 @@ internal class WebDavClient(private val config: RouteExportConfig, private val p
         }
         return child
     }
-    fun backupIndexPresent():Boolean {
-        val uri=URI("https",null,target.host,target.port,target.path+RideDirectoryBackup.INDEX,null,null)
+    fun backupIndexPresent(name:String=RideDirectoryBackup.INDEX):Boolean {
+        val uri=URI("https",null,target.host,target.port,target.path+backupName(name),null,null)
         val code=request(uri,"HEAD")
         if(code==404) return false
         checkResponse(code,setOf(200),"Sicherungsverzeichnis nicht erreichbar")

@@ -31,6 +31,7 @@ class BackupDirectoryTransportTest {
                 return when(request.method) {
                     "MKCOL" -> MockResponse().setResponseCode(if(synchronized(directories) { directories.add(path) }) 201 else 405)
                     "PUT" -> {
+                        if(path.endsWith(".zip")) assertEquals("application/zip",request.getHeader("Content-Type"))
                         assertEquals("*",request.getHeader("If-None-Match"))
                         val existing=files.putIfAbsent(path,request.body.readByteArray())
                         MockResponse().setResponseCode(if(existing==null) 201 else 412)
@@ -63,6 +64,10 @@ class BackupDirectoryTransportTest {
             assertArrayEquals(file.readBytes(),snapshot.open("ride.fit").use { it.readBytes() })
             assertArrayEquals(json.readBytes(),snapshot.open("ride.json").use { it.readBytes() })
             snapshot.write(RideDirectoryBackup.INDEX,json);assertTrue(snapshot.isSnapshot())
+            directory.write("Bicycle-Settings-test.zip",json)
+            assertArrayEquals(json.readBytes(),directory.open("Bicycle-Settings-test.zip").use { it.readBytes() })
+            val hrv=directory.child("Bicycle-HRV-test",true)
+            hrv.write(HrvDirectoryBackup.INDEX,json);assertTrue(hrv.isSnapshot())
             snapshot.write("ride.fit",file) // Retry only verifies the exact previously written bytes.
             file.writeText("other")
             assertThrows(DavFailure::class.java) { snapshot.write("ride.fit",file) }

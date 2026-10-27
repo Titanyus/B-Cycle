@@ -18,26 +18,20 @@ class RideBackupControlsTest {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
-            var available=false;val actions=mutableListOf<Pair<RideBackupDestination,RideBackupAction>>()
-            val controls=RideBackupControls(c,themes,{available},{true}) { destination,action -> actions+=destination to action }
+            var available=false;val actions=mutableListOf<RideBackupDestination>()
+            val controls=BackupDestinationView(c,themes,{available}) { actions+=it }
             val screen=DataSettingsView(c,themes) {}
-            screen.install(DataAction.RIDE_BACKUP,controls,controls.findViewWithTag("ride_backup_enabled"))
+            screen.install(DataAction.RIDE_BACKUP,controls)
             c.setContentView(screen)
-            val toggle=screen.findViewWithTag<Switch>("ride_backup_enabled")
             screen.findViewWithTag<View>("data_expand_RIDE_BACKUP").performClick()
-            assertFalse(toggle.isChecked);assertTrue(actions.isEmpty())
+            assertTrue(actions.isEmpty())
             assertEquals(View.VISIBLE,screen.findViewWithTag<View>("data_details_RIDE_BACKUP").visibility)
-            val cloud=screen.findViewWithTag<RadioButton>("ride_backup_webdav")
+            val cloud=controls.findViewWithTag<View>("backup_target_webdav")
             assertFalse(cloud.isEnabled)
-            assertFalse(screen.findViewWithTag<View>("ride_backup_action_export").isEnabled)
-            toggle.performClick();assertTrue(actions.isEmpty())
-            screen.findViewWithTag<View>("ride_backup_action_export").performClick()
-            assertEquals(listOf(RideBackupDestination.LOCAL to RideBackupAction.EXPORT),actions)
-            available=true;controls.refreshConnection();cloud.performClick()
-            screen.findViewWithTag<View>("ride_backup_action_import").performClick()
-            assertEquals(RideBackupDestination.WEBDAV to RideBackupAction.IMPORT,actions.last())
-            controls.working(true);assertFalse(toggle.isEnabled);assertFalse(cloud.isEnabled)
-            assertFalse(screen.findViewWithTag<View>("ride_backup_action_import").isEnabled)
+            controls.findViewWithTag<View>("backup_target_local").performClick()
+            assertEquals(listOf(RideBackupDestination.LOCAL),actions)
+            available=true;controls.refresh();cloud.performClick()
+            assertEquals(RideBackupDestination.WEBDAV,actions.last())
         } finally { host.pause().stop().destroy() }
     }
 }

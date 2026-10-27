@@ -53,7 +53,6 @@ class MainActivity : Activity() {
     private var pendingBackupExport: java.io.File? = null
     private var passwordOperation=0
     private var dataSettingsScreen: AlertDialog? = null
-    private var rideBackupControls:RideBackupControls?=null
     private var localExportView: RouteExportView? = null
     private var pendingBikePhotoSlot:Int?=null
     private var activityServiceView:ActivityServiceView?=null
@@ -319,7 +318,6 @@ class MainActivity : Activity() {
     }
     private var shownProfileRevision=0
     private fun render() {
-        rideBackupControls?.refresh()
         if (!::dashboard.isInitialized) return
         if(::mapPanel.isInitialized && shownProfileRevision!=runtime.profileRevision) {
             shownProfileRevision=runtime.profileRevision
@@ -913,13 +911,12 @@ class MainActivity : Activity() {
             };return
         }
         if(requestCode == 12 || requestCode == 13) { backupResult(requestCode,resultCode,data);return }
-        if(requestCode in 16..18) {
+        if(requestCode in setOf(16,17,22,23)) {
             if(resultCode==RESULT_OK) data?.data?.let { tree ->
                 runCatching { contentResolver.takePersistableUriPermission(tree,data.flags and
                     (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)) }
-                chooseRideBackupDirectory(DocumentBackupDirectory(this,tree),when(requestCode) {
-                    16->RideBackupAction.EXPORT;17->RideBackupAction.IMPORT;else->RideBackupAction.SETTINGS
-                })
+                chooseRideBackupDirectory(DocumentBackupDirectory(this,tree),
+                    if(requestCode in setOf(16,22)) RideBackupAction.EXPORT else RideBackupAction.IMPORT,requestCode in setOf(22,23))
             }
             return
         }
@@ -1604,14 +1601,12 @@ class MainActivity : Activity() {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
                     .putExtra(Intent.EXTRA_MIME_TYPES,arrayOf("text/csv","text/comma-separated-values","application/csv","text/plain","application/octet-stream","application/vnd.ms-excel")),19)
             } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this,R.string.backup_picker_error,long=true) }
-            DataAction.HRV_EXPORT -> runtime.hrv.export { count,ok ->
-                if(!isDestroyed) BicycleFeedback.show(this,if(ok) getString(R.string.hrv_export_done,count) else getString(R.string.hrv_export_failed),long=true)
-            }
-            DataAction.BACKUP -> backupSettings()
-            DataAction.RESTORE -> try {
-                startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
-                    .putExtra(Intent.EXTRA_MIME_TYPES,arrayOf("application/zip","application/json","text/json","text/plain","application/octet-stream")),13)
-            } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this, R.string.backup_picker_error, long = true) }
+            DataAction.HRV_EXPORT -> Unit // Installed as destination commands below.
+            DataAction.HRV_RESTORE -> chooseBackupSource(R.string.hrv_restore_title) { requestRideBackup(it,RideBackupAction.IMPORT,true) }
+            DataAction.HRV_RESTORE_GROUP -> Unit
+            DataAction.RIDE_RESTORE -> chooseBackupSource(R.string.ride_restore_title) { requestRideBackup(it,RideBackupAction.IMPORT) }
+            DataAction.BACKUP -> Unit
+            DataAction.RESTORE -> chooseBackupSource(R.string.data_restore,::requestSettingsRestore)
             DataAction.IMPORT -> Unit // Inline accordion; actions reuse importRoute below.
             DataAction.RIDE_BACKUP -> Unit
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
@@ -1622,26 +1617,12 @@ class MainActivity : Activity() {
         } }
         val screen=dataDialog(R.string.data_title,BicycleStickyScrollView(settingsContext).apply { addView(content) })
         dataSettingsScreen=screen;menu=screen
-        content.install(DataAction.BACKUP,backupExportControls())
-        val rideBackup=RideBackupControls(settingsContext,settingsThemes,
-            cloudAvailable={ RouteExportSettings(this).backupConfigured() },
-            canEdit={ !runtime.recording && !runtime.saving && !runtime.mapState.busy && !runtime.hrv.busy },
-            action=::requestRideBackup)
-        rideBackupControls=rideBackup
-        content.install(DataAction.RIDE_BACKUP,rideBackup,rideBackup.findViewWithTag("ride_backup_enabled"))
-        content.install(DataAction.IMPORT,LinearLayout(settingsContext).apply {
-            orientation=LinearLayout.VERTICAL
-            val titles=listOf(R.string.ui_import_planned,R.string.ui_import_recorded,R.string.archive_import_title)
-            val icons=listOf(BicycleIcon.TrackImported,BicycleIcon.TrackRecorded,BicycleIcon.Import)
-            titles.forEachIndexed { index,title ->
-                addView(BicycleComponents.action(settingsContext,settingsThemes,getString(title)) {
-                    importRoute(recorded=index==1,archive=index==2)
-                }.apply {
-                    tag="data_import_$index"
-                    BicycleDialogStyle.actionIcon(this,settingsThemes,icons[index])
-                },LinearLayout.LayoutParams(-1,-2))
-            }
-        })
+        backupStatus=content.backupStatus
+        fun targets(action:(RideBackupDestination)->Unit)=BackupDestinationView(settingsContext,settingsThemes,
+            cloudAvailable={ RouteExportSettings(this).backupConfigured() },action=action)
+        content.install(DataAction.BACKUP,targets { requestBackupExport(it) })
+        content.install(DataAction.RIDE_BACKUP,targets { requestRideBackup(it,RideBackupAction.EXPORT) })
+        content.install(DataAction.HRV_EXPORT,targets { requestRideBackup(it,RideBackupAction.EXPORT,true) })
         val local=routeExportSettings(RouteExportPart.LOCAL,screen)
         content.install(DataAction.LOCAL,local,local.findViewWithTag("export_save"))
         val cloud=routeExportSettings(RouteExportPart.CLOUD,screen)
@@ -1662,44 +1643,73 @@ class MainActivity : Activity() {
         })
         dialogs.onDismiss(screen) {
             if(dataSettingsScreen===screen) dataSettingsScreen=null
-            if(rideBackupControls===rideBackup) rideBackupControls=null
+            if(backupStatus===content.backupStatus) backupStatus=null
         }
     }
-    private fun requestRideBackup(destination:RideBackupDestination,action:RideBackupAction) {
+    private var backupStatus:TextView?=null
+    private fun backupMessage(text:String) { backupStatus?.let { BicycleFeedback.update(it,text) } }
+    private fun chooseBackupSource(title:Int,action:(RideBackupDestination)->Unit) {
+        lateinit var screen:AlertDialog
+        val body=BackupDestinationView(settingsContext,settingsThemes,{ RouteExportSettings(this).backupConfigured() }) {
+            screen.dismiss();action(it)
+        }
+        screen=dialog(fullscreen=false).setTitle(title).setView(body).show()
+    }
+    private fun requestSettingsRestore(destination:RideBackupDestination) {
+        if(destination==RideBackupDestination.LOCAL) try {
+            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/zip"),13)
+        } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this,R.string.backup_picker_error,true) }
+        else {
+            val settings=RouteExportSettings(this)
+            if(!settings.backupConfigured()) return
+            backupMessage(getString(R.string.ride_backup_loading))
+            Thread({
+                val result=runCatching {
+                    val root=DavBackupDirectory(WebDavClient(settings.read(),settings.password()))
+                    root to root.entries().filter { !it.directory && it.name.startsWith("Bicycle-Settings-") && it.name.endsWith(".zip") }.map { it.name }.sortedDescending().also { require(it.isNotEmpty()) }
+                }
+                runOnUiThread { if(!isDestroyed) result.fold({ (root,names) ->
+                    backupMessage("")
+                    dialog().setTitle(R.string.data_restore).setItems(names.toTypedArray()) { _,index ->
+                        Thread({
+                            val bytes=runCatching { root.open(names[index]).use { it.readNBytes(SettingsArchive.MAX_BYTES+1).also { require(it.size<=SettingsArchive.MAX_BYTES) } } }
+                            runOnUiThread { if(!isDestroyed) bytes.fold(::openSettingsPayload) { BicycleFeedback.show(this,ServiceProblems.text(it,R.string.backup_io_error),true) } }
+                        },"Bicycle-settings-fetch").start()
+                    }.show()
+                },{ BicycleFeedback.show(this,ServiceProblems.text(it,R.string.backup_io_error),true) }) }
+            },"Bicycle-settings-list").start()
+        }
+    }
+    private fun requestRideBackup(destination:RideBackupDestination,action:RideBackupAction,hrv:Boolean=false) {
         if(runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy) { BicycleFeedback.show(this,R.string.ride_backup_busy);return }
         if(destination==RideBackupDestination.LOCAL) {
             try {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
                         if(action==RideBackupAction.EXPORT) Intent.FLAG_GRANT_WRITE_URI_PERMISSION else 0),
-                    when(action) { RideBackupAction.EXPORT->16;RideBackupAction.IMPORT->17;RideBackupAction.SETTINGS->18 })
+                    if(hrv) { if(action==RideBackupAction.EXPORT) 22 else 23 } else { if(action==RideBackupAction.EXPORT) 16 else 17 })
             } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this,R.string.backup_picker_error,true) }
         } else {
             val settings=RouteExportSettings(this)
             if(!settings.backupConfigured()) { BicycleFeedback.show(this,R.string.ride_backup_cloud_missing);return }
-            chooseRideBackupDirectory(DavBackupDirectory(WebDavClient(settings.read(),settings.password())),action)
+            chooseRideBackupDirectory(DavBackupDirectory(WebDavClient(settings.read(),settings.password())),action,hrv)
         }
     }
-    private fun chooseRideBackupDirectory(root:BackupDirectory,action:RideBackupAction) {
-        if(action==RideBackupAction.EXPORT) {
-            archivePassword(true) { password,finish -> finish(if(runRideBackup(root,false,password)) Result.success(Unit) else Result.failure(java.io.IOException())) }
-            return
-        }
-        rideBackupControls?.status(getString(R.string.ride_backup_loading))
+    private fun chooseRideBackupDirectory(root:BackupDirectory,action:RideBackupAction,hrv:Boolean=false) {
+        if(action==RideBackupAction.EXPORT) { runRideBackup(root,false,hrv);return }
+        backupMessage(getString(R.string.ride_backup_loading))
         Thread({
             val result=runCatching {
-                if(root.isSnapshot()) null else
-                    root.entries().filter { it.directory && it.name.startsWith("Bicycle-Backup-") }.map { it.name }.sortedDescending().also { require(it.isNotEmpty()) }
+                val entries=root.entries()
+                if(entries.any { !it.directory && it.name==if(hrv) HrvDirectoryBackup.INDEX else RideDirectoryBackup.INDEX }) null else
+                    entries.filter { it.directory && it.name.startsWith(if(hrv) HrvDirectoryBackup.PREFIX else RideDirectoryBackup.PREFIX) }.map { it.name }.sortedDescending().also { require(it.isNotEmpty()) }
             }
             runOnUiThread { if(!isDestroyed) result.fold({ folders ->
+                backupMessage("")
                 fun chosen(directory:BackupDirectory) {
-                    if(action==RideBackupAction.SETTINGS) runtime.mapState.backupSettings(directory) { settings ->
-                        settings.fold({ backupSettings(it) },{ error ->
-                            if(error is SettingsPasswordRequired) openSettingsPayload(error.payload)
-                            else BicycleFeedback.show(this,ServiceProblems.text(error,R.string.ride_backup_invalid),true)
-                        })
-                    } else dialog(fullscreen=false).setTitle(R.string.ride_backup_title).setMessage(R.string.ride_backup_confirm)
-                        .setPositiveButton(R.string.ride_backup_import) { _,_->runRideBackup(directory,true) }.show()
+                    dialog(fullscreen=false).setTitle(if(hrv) R.string.hrv_restore_title else R.string.ride_restore_title)
+                        .setMessage(if(hrv) R.string.backup_hrv_restore_confirm else R.string.ride_backup_confirm)
+                        .setPositiveButton(R.string.backup_restore_execute) { _,_->runRideBackup(directory,true,hrv) }.show()
                 }
                 if(folders==null) chosen(root)
                 else dialog().setTitle(R.string.ride_backup_choose).setItems(folders.toTypedArray()) { _,position ->
@@ -1708,23 +1718,20 @@ class MainActivity : Activity() {
             },{ BicycleFeedback.show(this,ServiceProblems.text(it,R.string.ride_backup_invalid),true) }) }
         },"Bicycle-backup-folders").start()
     }
-    private fun runRideBackup(directory:BackupDirectory,restore:Boolean,password:CharArray?=null):Boolean {
-        if(runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy) { password?.fill('\u0000');BicycleFeedback.show(this,R.string.ride_backup_busy);return false }
-        rideBackupControls?.working(true)
-        val started=runtime.mapState.transferBackup(directory,restore,password,
-            progress={ rideBackupControls?.status(getString(R.string.ride_backup_progress,it)) },
+    private fun runRideBackup(directory:BackupDirectory,restore:Boolean,hrv:Boolean=false):Boolean {
+        if(runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy) { BicycleFeedback.show(this,R.string.ride_backup_busy);return false }
+        backupMessage(getString(R.string.backup_processing))
+        val started=runtime.mapState.transferBackup(directory,restore,hrv,
+            progress={ backupMessage(getString(R.string.backup_progress,it)) },
             complete={ result ->
-                rideBackupControls?.working(false)
                 val text=result.fold({ report ->
-                    val rides=if(restore) getString(R.string.ride_backup_import_result,report.completed,report.duplicates,report.failed)
-                    else getString(R.string.ride_backup_result,report.completed,report.failed,report.folder)
-                    rides+"\n"+if(restore) getString(R.string.hrv_restore_result,report.hrvCompleted,report.hrvDuplicates,report.hrvFailed)
-                    else getString(R.string.hrv_backup_result,report.hrvCompleted,report.hrvFailed)
+                    if(restore) getString(R.string.ride_backup_import_result,report.completed,report.duplicates,report.failed)
+                    else getString(if(hrv) R.string.backup_hrv_result else R.string.ride_backup_result,report.completed,report.failed,report.folder)
                 },{ getString(ServiceProblems.text(it,R.string.ride_backup_failed)) })
-                if(restore && result.isSuccess) runtime.mapState.restoreProfileRoute()
-                rideBackupControls?.status(text);BicycleFeedback.show(this,text,long=true);render()
+                if(restore && result.isSuccess && !hrv) runtime.mapState.restoreProfileRoute()
+                backupMessage(text);BicycleFeedback.show(this,text,long=true);render()
             })
-        if(!started) { password?.fill('\u0000');rideBackupControls?.working(false);BicycleFeedback.show(this,R.string.ride_backup_busy) }
+        if(!started) BicycleFeedback.show(this,R.string.ride_backup_busy)
         return started
     }
     private fun backupError(error: Throwable): Int = when((error as? SettingsBackupFailure)?.problem) {
@@ -1747,7 +1754,8 @@ class MainActivity : Activity() {
         dialogs.onDismiss(screen) { if(passwordOperation==generation) passwordOperation++ }
     }
     private fun openSettingsPayload(bytes:ByteArray) {
-        if(SettingsArchive.isZip(bytes)) archivePassword(false) { password,finish ->
+        if(!SettingsArchive.isZip(bytes)) { BicycleFeedback.show(this,R.string.backup_format_error,true);return }
+        archivePassword(false) { password,finish ->
             val generation=passwordOperation
             Thread({
                 val result=try { runCatching { SettingsArchive(applicationContext).read(bytes,password) } } finally { password.fill('\u0000') }
@@ -1755,24 +1763,34 @@ class MainActivity : Activity() {
                     if(!isDestroyed && passwordOperation==generation) result.fold({ document -> backupSettings(document);finish(Result.success(Unit)) },{ finish(Result.failure(it)) })
                 }
             },"Bicycle-settings-unlock").start()
-        } else {
-            Thread({
-                val result=runCatching { SettingsArchive(applicationContext).read(bytes) }
-                runOnUiThread { if(!isDestroyed) result.fold(::backupSettings) { BicycleFeedback.show(this,backupError(it),true) } }
-            },"Bicycle-settings-read").start()
         }
     }
-    private fun requestBackupExport(selected:Set<BackupSection>) {
+    private fun requestBackupExport(destination:RideBackupDestination) {
         archivePassword(true) { password,finish ->
             val generation=passwordOperation
             Thread({
                 val result=try { runCatching {
-                    val bytes=SettingsArchive(applicationContext).export(selected,password)
+                    val bytes=SettingsArchive(applicationContext).export(BackupSection.entries.toSet(),password)
                     java.io.File(cacheDir,"settings-export-${java.util.UUID.randomUUID()}.zip").apply { writeBytes(bytes) }
                 } } finally { password.fill('\u0000') }
                 runOnUiThread {
                     if(isDestroyed || passwordOperation!=generation) result.getOrNull()?.delete()
                     else result.fold({ file ->
+                        if(destination==RideBackupDestination.WEBDAV) {
+                            Thread({
+                                val saved=runCatching {
+                                    val settings=RouteExportSettings(applicationContext)
+                                    require(settings.backupConfigured())
+                                    DavBackupDirectory(WebDavClient(settings.read(),settings.password())).write("Bicycle-Settings-${java.time.LocalDate.now()}-${java.util.UUID.randomUUID().toString().take(8)}.zip",file)
+                                }
+                                file.delete()
+                                runOnUiThread { if(!isDestroyed) {
+                                    finish(saved)
+                                    BicycleFeedback.show(this,if(saved.isSuccess) R.string.backup_written else ServiceProblems.text(saved.exceptionOrNull(),R.string.backup_io_error),true)
+                                } }
+                            },"Bicycle-settings-webdav").start()
+                            return@fold
+                        }
                         pendingBackupExport?.delete();pendingBackupExport=file
                         try {
                             startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/zip")
@@ -1784,27 +1802,17 @@ class MainActivity : Activity() {
             },"Bicycle-settings-encrypt").start()
         }
     }
-    private fun backupExportControls():View {
-        val choices=BackupSelectionView(settingsContext,settingsThemes,BackupSection.entries.toSet())
-        val action=button(getString(R.string.backup_execute),BicycleIcon.ExportTrack) { requestBackupExport(choices.selected()) }.apply { tag="backup_execute" }
-        choices.changed={ action.isEnabled=choices.selected().isNotEmpty() }
-        return LinearLayout(settingsContext).apply {
-            orientation=LinearLayout.VERTICAL;addView(choices);addView(action,LinearLayout.LayoutParams(-1,-2))
-        }
-    }
-    private fun backupSettings(document: SettingsBackupDocument? = null) {
+    private fun backupSettings(document: SettingsBackupDocument) {
         val backup=SettingsBackup(this,settingsThemes)
-        val choices=BackupSelectionView(settingsContext,settingsThemes,document?.sections?.keys ?: BackupSection.entries.toSet())
-        val screen=dataDialog(if(document==null) R.string.data_backup else R.string.data_restore,
-            ScrollView(settingsContext).apply { addView(choices) },if(document==null) R.string.backup_execute else R.string.backup_restore_execute)
+        val choices=BackupSelectionView(settingsContext,settingsThemes,document.sections.keys)
+        val screen=dataDialog(R.string.data_restore,
+            ScrollView(settingsContext).apply { addView(choices) },R.string.backup_restore_execute)
         val button=screen.getButton(AlertDialog.BUTTON_POSITIVE)
-        BicycleDialogStyle.actionIcon(button,settingsThemes,if(document==null) BicycleIcon.ExportTrack else BicycleIcon.RestoreSettings)
+        BicycleDialogStyle.actionIcon(button,settingsThemes,BicycleIcon.RestoreSettings)
         choices.changed={ button.isEnabled=choices.selected().isNotEmpty() }
         button.setOnClickListener {
             val selected=choices.selected()
-            if(document==null) {
-                requestBackupExport(selected)
-            } else {
+            run {
                 dialog(fullscreen=false).setTitle(R.string.backup_confirm_title)
                     .setMessage(getString(R.string.backup_confirm_message,selected.joinToString(", ") { getString(it.title) }))
                     .setPositiveButton(R.string.backup_restore_execute) { _,_->
