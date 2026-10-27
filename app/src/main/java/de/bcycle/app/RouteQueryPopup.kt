@@ -122,7 +122,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
             },LinearLayout.LayoutParams(-1,-2))
         }
 
-        if(displayed!=null) body.addView(BicycleSegmentButton(context,themes,multiple=true).apply {
+        if(displayed!=null) body.addView(BicycleSegmentButton(context,themes,multiple=true,standalone=true).apply {
             tag="route_filter_displayed";setText(R.string.route_filter_displayed);isChecked=query.displayedOnly
             setOnCheckedChangeListener { _,on -> query.displayedOnly=on;refreshAvailability();changed() }
         },LinearLayout.LayoutParams(-1,-2))

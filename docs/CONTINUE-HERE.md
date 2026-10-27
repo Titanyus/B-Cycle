@@ -1,3 +1,7 @@
+# Nach Build95: Rahmen des Kartenfilters korrigiert
+
+„Auf Karte angezeigt“ nutzt jetzt die vorhandene standalone-Variante von BicycleSegmentButton: inaktiv derselbe zentrale1dp/50%-FOREGROUND-Rahmen wie „Filter zurücksetzen“, aktiv bestehende Auswahlgestaltung. Nur standalone=true am Aufrufer ergänzt; Umschalten/Query/Listener unverändert. Quellprüfung und git diff --check erfolgreich, keine neuen Tests für diese einzeilige Darstellungsänderung. Keine neue APK angefordert/gestartet; für nächsten Build enthalten. Letzte veröffentlichte APK0.8.54/Build95 enthält diese nachträgliche Korrektur noch nicht.
+
 # Aktueller Abschluss 27.10.2026: APK 0.8.54 / Build 95
 
 APK **0.8.54 / Build95 / Code124** veröffentlicht. [Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.54-release-95.apk), [Buildnachweis](build-95.md), Actions-Quellstand `62d1ec2764ecf72041110b2c998a49ea7ce62469`. Größe 2.394.573 Bytes; SHA-256 `f757a81fc2add5961ae373a9b9197d5a819f0284a76c63e3a339d8e047070ba9`. Optimierter Release, dauerhafte Signatur wie Build93, Manifest ohne Debug/Test, Ausrichtung und CI-Prüfsumme geprüft. Alle Änderungen seit Build93 enthalten; Umfang/Prüfgrenzen release-0.8.54.md. Relevante Umsetzungstests grün; zuletzt zwölf Filterfälle. Kein unnötiger Gesamtlauf und kein privater Cloud-/erneuter Gerätetest. Build94 war auf Nutzerwunsch abgebrochen,95 nach ausdrücklicher Fortsetzung gebaut. Keine offene APK-Aufgabe; ältere Angaben darunter sind Verlauf.
