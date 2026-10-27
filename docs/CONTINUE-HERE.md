@@ -1,3 +1,9 @@
+# Abschluss nach Build93: globale Reihenfolge aller Dropdown-Rahmen
+
+Nutzererweiterung umgesetzt: Bei Wartungs-Bauteilen und jedem BicycleFrameDropdown gilt Icon · Titel · Chevron · optionaler Schalter/Aktionsbutton. leadingIcon nun verpflichtend, kein Zweig ohne Icon oder mit Chevron links vor dem Titel. Wartung nutzt vorhandenes BicycleIcon.Work, andere bestehende Aufrufer behalten passende Icons. Chevron/Schalter unabhängig bedienbar, fachliche Aktionen und Sticky-Fahrradheader unverändert. HTML-Atlas Abschnitt06 um passende führende Icons/Reihenfolge korrigiert, Dokumentation aktualisiert.
+
+Drei gezielte native Fälle grün: BicycleFrameDropdownTest2 (Kontur, rechter Chevrondrehung in Flat/Glow, unabhängiger Switch/Spezialbutton) und MaintenancePresentationTest.realBikeSectionsPinAndPushAndComponentsStayOrdinaryAccordionsInBothDesigns (reale Gruppierung, neue Icon-/Chevronposition, volle Flat-Breite und16dp Trenner). Log /workspace/.tools/frame-global-icon-order-tests.log. Typografie/Katalog/Diff grün; keine neue Gesamtsuite oder APK. Letzte veröffentlichte APK weiterhin0.8.53/Build93; alle weiteren lokalen Änderungen für nächste APK enthalten.
+
 # Abschluss nach Build93: Rahmen für Sicherungen und Cloud-Dropdowns
 
 Nutzerauftrag umgesetzt: Einstellungen/Strecken/HRV sichern und HRV-Wiederherstellungsgruppe als BicycleFrameDropdown, gemeinsamer Rahmen um Kopf und gesamten geöffneten Inhalt. Icon links, Titel linksbündig; rechts Chevron. Einstellungen/Fahrten wiederherstellen als linksbündige normale Buttons mit zentralem RestoreSettings-Icon. Cloud-Ergänzung ebenfalls umgesetzt für lokale Speicherung, WebDAV, intervals.icu, Dreeve, Strava. Verbindliche Nutzerkorrektur zur Reihenfolge: **Icon · Name · Chevron · Schalter**, Chevron links vom Schalter, nicht umgekehrt.

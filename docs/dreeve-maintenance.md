@@ -58,3 +58,5 @@ Darstellung27.10.2026, Dropdown-Rahmen: Bauteile verwenden nun [BicycleFrameDrop
 ## Korrektur nach Build 93
 
 Die gepaddete Wartungsliste schneidet überstehende Sticky-Header nicht mehr am Padding ab (clipToPadding=false), sodass Flat-Header bis zum Bildschirmrand gezeichnet werden. Glow-Inset und Klapp-/Sticky-Verhalten bleiben erhalten. Trenner zwischen Aktionen verwenden wieder den globalen sectionDividerGap von 16 dp oben/unten; lokale 8-dp-Ausnahme und zusätzliches unteres Zeilenpadding entfernt.
+
+Dropdown-Rahmen jetzt mit globalem Aufbau: Work-Icon vor Bauteiltitel, danach drehendes Chevron rechts; optionaler Schalter/Aktionsbutton folgt ganz rechts. Gemeinsame Komponente verlangt ein passendes Icon. Fahrrad-Sticky-Header, Aufgaben, API-Aktionen und Daten unverändert.

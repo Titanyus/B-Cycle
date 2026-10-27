@@ -76,7 +76,7 @@ internal class DreeveMaintenanceView(context:Context,private val themes:ThemeMan
             header.accordion(body,expandedBikes.getOrPut(gear) { true }) { expandedBikes[gear]=it }
             MaintenanceGrouping.components(tasks).forEach { (component,partTasks) ->
                 val key=gear to component;activeParts+=key
-                val dropdown=BicycleFrameDropdown(context,themes,partTasks.first().component,expandedParts.getOrPut(key) { true }) {
+                val dropdown=BicycleFrameDropdown(context,themes,partTasks.first().component,expandedParts.getOrPut(key) { true },leadingIcon=BicycleIcon.Work) {
                     expandedParts[key]=it
                 }.apply { tag="maintenance_dropdown_${gear}_$component" }
                 dropdown.header.tag="maintenance_component_${gear}_$component"

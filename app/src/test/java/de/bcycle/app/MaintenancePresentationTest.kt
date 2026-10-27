@@ -69,6 +69,8 @@ class MaintenancePresentationTest {
                 assertEquals(2,headers.size)
                 if(flat) { assertEquals(0,headers.first().left);assertEquals(360,headers.first().right) }
                 val frame=view.findViewWithTag<BicycleFrameDropdown>("maintenance_dropdown_a_id:part-0")
+                assertNotNull(frame.header.compoundDrawablesRelative[0])
+                assertTrue(frame.expandControl.left>=frame.header.right)
                 val divider=frame.content.getChildAt(1)
                 val margins=divider.layoutParams as android.view.ViewGroup.MarginLayoutParams
                 assertEquals(BicycleDesign.dp(c,BicycleDesign.sectionDividerGap),margins.topMargin)

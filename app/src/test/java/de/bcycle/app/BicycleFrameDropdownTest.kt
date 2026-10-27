@@ -29,7 +29,7 @@ class BicycleFrameDropdownTest {
             val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
             for(flat in listOf(true,false)) {
                 themes.setFlatDesign(flat);var changes=0
-                val dropdown=BicycleFrameDropdown(c,themes,"Kette",open=false) { changes++ }
+                val dropdown=BicycleFrameDropdown(c,themes,"Kette",open=false,leadingIcon=BicycleIcon.Work) { changes++ }
                 dropdown.content.addView(View(c),LinearLayout.LayoutParams(-1,80))
                 c.setContentView(dropdown);layout(dropdown)
                 val closed=image(dropdown);val height=dropdown.height
@@ -39,7 +39,11 @@ class BicycleFrameDropdownTest {
                 assertEquals(c.getString(R.string.zone_expanded),dropdown.header.stateDescription)
                 val opened=image(dropdown)
                 var different=0
-                for(y in 10 until 38) for(x in 16 until 40) if(opened.getPixel(x,y)!=closed.getPixel(x,y)) different++
+                val arrow=dropdown.expandControl
+                assertNotNull(dropdown.header.compoundDrawablesRelative[0])
+                assertTrue(arrow.left>=dropdown.header.right)
+                for(y in arrow.top until arrow.bottom) for(x in arrow.left until arrow.right)
+                    if(opened.getPixel(x,y)!=closed.getPixel(x,y)) different++
                 assertTrue("Chevron must turn",different>10)
                 val reference=Bitmap.createBitmap(dropdown.width,dropdown.height,Bitmap.Config.ARGB_8888)
                 BicycleComponents.controlBackground(c,themes.active.tokens).apply {
@@ -74,7 +78,7 @@ class BicycleFrameDropdownTest {
             first.expandControl.performClick();assertTrue(first.expanded);assertTrue(toggle.isChecked)
             var actions=0
             val action=BicycleComponents.specialFilled(c,themes,"Tauschen") { actions++ } as BicycleSpecialButton
-            val second=BicycleFrameDropdown(c,themes,"Bauteil",trailing=action)
+            val second=BicycleFrameDropdown(c,themes,"Bauteil",trailing=action,leadingIcon=BicycleIcon.Work)
             root.addView(second);layout(root)
             action.performClick();assertEquals(1,actions);assertTrue(second.expanded);assertTrue(action.filled)
             second.header.performClick();assertFalse(second.expanded);assertEquals(1,actions)

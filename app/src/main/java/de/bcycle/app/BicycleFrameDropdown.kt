@@ -17,7 +17,7 @@ import android.widget.Switch
  * The optional trailing switch/special-filled button owns its action independently of expansion.
  */
 internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:String,open:Boolean=true,
-    trailing:View?=null,leadingIcon:BicycleIcon?=null,private val changed:(Boolean)->Unit={}):LinearLayout(context) {
+    trailing:View?=null,leadingIcon:BicycleIcon,private val changed:(Boolean)->Unit={}):LinearLayout(context) {
     /** Explicit typography/background role; generic dialog styling must not add a second frame. */
     internal class Header(context:Context):Button(context)
     val header:Button=Header(context)
@@ -29,8 +29,8 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
     private val arrow=RotateDrawable().apply { fromDegrees=0f;toDegrees=180f }
     private val row=LinearLayout(context)
     private var trailingControl:View?=null
-    private val endToggle:ImageButton?=if(leadingIcon!=null) BicycleComponents.icon(context,themes,BicycleIcon.Expand,title) { setExpanded(!expanded) } else null
-    val expandControl:View get()=endToggle ?: header
+    private val endToggle:ImageButton=BicycleComponents.icon(context,themes,BicycleIcon.Expand,title) { setExpanded(!expanded) }
+    val expandControl:View get()=endToggle
     var expanded=open;private set
     init {
         orientation=VERTICAL;clipChildren=false;clipToPadding=false
@@ -49,7 +49,7 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
             setOnClickListener { setExpanded(!expanded) }
         }
         row.addView(header,LayoutParams(0,-2,1f))
-        endToggle?.let { row.addView(it,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize))) }
+        row.addView(endToggle,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
         trailing?.let(::setTrailing)
         addView(row,LayoutParams(-1,-2));addView(content,LayoutParams(-1,-2))
         BicycleComponents.bindTheme(this,themes) { tokens ->
@@ -62,10 +62,10 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
             val size=BicycleDesign.dp(context,BicycleDesign.iconSize)
             arrow.drawable=BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground)
             arrow.level=if(expanded) 10000 else 0
-            val chevron=BicycleTextIcon(header,arrow).apply { setBounds(0,0,size,size) }
-            val icon=leadingIcon?.let { BicycleTextIcon(header,BicycleIcons.drawable(context,it,tokens.foreground)).apply { setBounds(0,0,size,size) } }
-            header.setCompoundDrawablesRelative(icon ?: chevron,null,null,null)
-            endToggle?.setImageDrawable(arrow)
+            arrow.setBounds(0,0,size,size)
+            val icon=BicycleTextIcon(header,BicycleIcons.drawable(context,leadingIcon,tokens.foreground)).apply { setBounds(0,0,size,size) }
+            header.setCompoundDrawablesRelative(icon,null,null,null)
+            endToggle.setImageDrawable(arrow)
         }
         render()
         BicycleComponents.controlSpacing(this)
@@ -81,7 +81,7 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         }
         row.addView(action,LayoutParams(if(action is Switch) BicycleDesign.dp(context,BicycleDesign.switchWidth) else -2,-2).apply {
             marginEnd=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
-            if(endToggle!=null) marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap)
+            marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap)
         })
         trailingControl=action
     }
@@ -95,6 +95,6 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         header.stateDescription=context.getString(if(expanded) R.string.zone_expanded else R.string.zone_collapsed)
         header.invalidate()
         expandControl.stateDescription=header.stateDescription
-        endToggle?.invalidate()
+        endToggle.invalidate()
     }
 }
