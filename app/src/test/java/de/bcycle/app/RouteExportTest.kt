@@ -39,6 +39,23 @@ class RouteExportTest {
             (0 until node.childCount).flatMap { descendants(node.getChildAt(it)) } else emptyList()
         assertFalse(descendants(view).filterIsInstance<android.widget.Button>().any { it.text.toString() == "Downloads / B-Cycle verwenden" })
         val eye = descendants(view).single { it.tag == "export_password_visibility" }
+        val intervals=IntervalsView(context,ThemeManager(context.getSharedPreferences("bike",0)),IntervalsConfig(),false) {}
+        val serviceFields=ActivityService.entries.map { service ->
+            ActivityServiceView(context,ThemeManager(context.getSharedPreferences("bike",0)),service,ActivityServiceConfig(),false) {}
+        }
+        val fields=listOf(view.password to eye,
+            intervals.apiKey to descendants(intervals).single { it.contentDescription=="Passwort anzeigen" })+
+            serviceFields.map { it.secret to descendants(it).single { node -> node.contentDescription=="Passwort anzeigen" } }
+        fields.forEach { (input,action) ->
+            val row=input.parent as android.widget.FrameLayout
+            assertSame(row,action.parent)
+            row.measure(View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
+            row.layout(0,0,600,row.measuredHeight)
+            assertTrue(action.left>=input.left && action.right<=input.right)
+            assertEquals((input.top+input.bottom)/2f,(action.top+action.bottom)/2f,1f)
+            assertTrue(input.paddingEnd>=action.width)
+            assertTrue(action.height>=BicycleDesign.dp(context,BicycleDesign.touchSize))
+        }
         val inputType = view.password.inputType
         assertTrue(view.password.text.isEmpty()); assertEquals(0, reads)
         assertTrue(view.password.transformationMethod is android.text.method.PasswordTransformationMethod)

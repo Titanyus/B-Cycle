@@ -89,6 +89,21 @@ internal object BicycleForm {
             edit.background=BicycleInputFrame.background(edit,tokens)
         }
     }
+    /** Keeps the existing input frame and visibility action together, with room for typed text. */
+    fun passwordField(edit:EditText,eye:android.widget.ImageButton,themes:ThemeManager):android.widget.FrameLayout {
+        outlinedInput(edit,themes)
+        val context=edit.context
+        val actionSize=BicycleDesign.dp(context,BicycleDesign.touchSize)
+        edit.setPaddingRelative(edit.paddingStart,edit.paddingTop,
+            actionSize+BicycleDesign.dp(context,BicycleDesign.inputHorizontalPadding),edit.paddingBottom)
+        return android.widget.FrameLayout(context).apply {
+            setTag(R.id.inline_control_row,true)
+            clipChildren=false;clipToPadding=false
+            addView(edit,android.widget.FrameLayout.LayoutParams(-1,-2))
+            addView(eye,android.widget.FrameLayout.LayoutParams(actionSize,actionSize,Gravity.END or Gravity.CENTER_VERTICAL))
+            BicycleComponents.controlSpacing(this)
+        }
+    }
     /** Shared label-left/input-right geometry; units belong inside the input. */
     fun inputRow(edit:EditText,themes:ThemeManager,title:String):LinearLayout {
         val context=edit.context

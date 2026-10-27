@@ -22,8 +22,7 @@ internal class IntervalsView(context:Context,themes:ThemeManager,config:Interval
         orientation=VERTICAL
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad/2,pad,pad/2)
         addView(enabled);addView(athlete)
-        addView(LinearLayout(context).apply {
-            addView(apiKey,LayoutParams(0,-2,1f))
+        run {
             var visible=false
             val eye=BicycleComponents.icon(context,themes,BicycleIcon.HideOnMap,context.getString(R.string.route_export_password_show)) { }
             eye.tag="intervals_key_visibility"
@@ -35,8 +34,8 @@ internal class IntervalsView(context:Context,themes:ThemeManager,config:Interval
                 eye.contentDescription=context.getString(if(visible) R.string.route_export_password_hide else R.string.route_export_password_show)
                 BicycleComponents.bindTheme(eye,themes) { tokens -> eye.setImageDrawable(BicycleIcons.drawable(context,if(visible) BicycleIcon.ShowOnMap else BicycleIcon.HideOnMap,tokens.foreground)) }
             }
-            addView(eye,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
-        },LayoutParams(-1,-2))
+            addView(BicycleForm.passwordField(apiKey,eye,themes),LayoutParams(-1,-2))
+        }
         addView(wifi);addView(testButton);addView(result)
         addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.sectionDividerGap))
         addView(bulkButton);addView(bulkResult)

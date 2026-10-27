@@ -292,7 +292,7 @@ object BicycleComponents {
         fun apply() {
             val margins=view.layoutParams as? ViewGroup.MarginLayoutParams ?: return
             val parent=view.parent as? LinearLayout
-            if(parent?.tag==BicycleDesign.inlineControlRowTag || parent?.getTag(R.id.inline_control_row)==true) {
+            if(parent?.tag==BicycleDesign.inlineControlRowTag || (view.parent as? ViewGroup)?.getTag(R.id.inline_control_row)==true) {
                 if(margins.topMargin!=0 || margins.bottomMargin!=0) {
                     margins.topMargin=0;margins.bottomMargin=0;view.requestLayout()
                 }

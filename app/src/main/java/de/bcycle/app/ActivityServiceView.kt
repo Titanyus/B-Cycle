@@ -29,8 +29,7 @@ internal class ActivityServiceView(context:Context,themes:ThemeManager,val servi
             addView(BicycleComponents.text(context,themes,context.getString(R.string.strava_setup)).apply { android.text.util.Linkify.addLinks(this,android.text.util.Linkify.WEB_URLS);BicycleComponents.bindTheme(this,themes) { setLinkTextColor(it.foreground) } })
             addView(clientId)
         }
-        addView(LinearLayout(context).apply {
-            addView(secret,LayoutParams(0,-2,1f))
+        run {
             var visible=false
             val eye=BicycleComponents.icon(context,themes,BicycleIcon.HideOnMap,context.getString(R.string.route_export_password_show)) { }
             eye.setOnClickListener {
@@ -40,8 +39,8 @@ internal class ActivityServiceView(context:Context,themes:ThemeManager,val servi
                 eye.contentDescription=context.getString(if(visible) R.string.route_export_password_hide else R.string.route_export_password_show)
                 BicycleComponents.bindTheme(eye,themes) { eye.setImageDrawable(BicycleIcons.drawable(context,if(visible) BicycleIcon.ShowOnMap else BicycleIcon.HideOnMap,it.foreground)) }
             }
-            addView(eye,LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize)))
-        },LayoutParams(-1,-2))
+            addView(BicycleForm.passwordField(secret,eye,themes),LayoutParams(-1,-2))
+        }
         addView(wifi);if(service==ActivityService.STRAVA) addView(account)
         addView(button);addView(result)
         if(service==ActivityService.DREEVE) {

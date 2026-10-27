@@ -37,8 +37,6 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
         if(part != RouteExportPart.CLOUD) { addView(save); addView(folderButton); refreshFolder() }
         if(part == RouteExportPart.ALL) addView(BicycleComponents.sectionDivider(context, themes))
         if(part != RouteExportPart.LOCAL) { addView(dav); addView(server); addView(user) }
-        val passwordRow = LinearLayout(context).apply { orientation = HORIZONTAL; isBaselineAligned = false }
-        passwordRow.addView(password, LayoutParams(0, -2, 1f))
         var passwordVisible = false
         lateinit var eye: ImageButton
         fun updateEye() {
@@ -60,8 +58,7 @@ internal class RouteExportView(context: Context, config: RouteExportConfig, pass
             updateEye()
         }.apply { tag = "export_password_visibility" }
         updateEye()
-        passwordRow.addView(eye, LayoutParams(BicycleDesign.dp(context, BicycleDesign.touchSize),
-            BicycleDesign.dp(context, BicycleDesign.touchSize)).apply { topMargin = BicycleDesign.dp(context, BicycleDesign.verticalPadding) })
+        val passwordRow=BicycleForm.passwordField(password,eye,themes)
         if(part != RouteExportPart.LOCAL) {
             addView(passwordRow); addView(folder); addView(wifi)
             addView(BicycleComponents.sectionDivider(context, themes)); addView(testButton)
