@@ -58,11 +58,11 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_ROUTES", "settings_HRV", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Strecken", "HRV-Messung", "Wartung", "Fahrer", "Fahrradprofile", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
-                assertEquals(11, body.childCount) // Eight rows, two group dividers and brand image.
-                assertSame(rows[2],body.getChildAt(2));assertSame(rows[3],body.getChildAt(4))
-                assertSame(rows[6],body.getChildAt(7));assertSame(rows[7],body.getChildAt(9))
+                assertEquals(listOf("settings_ROUTES", "settings_STATISTICS", "settings_HRV", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Strecken", "Statistiken", "HRV-Messung", "Wartung", "Fahrer", "Fahrradprofile", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(12, body.childCount) // Nine rows, two group dividers and brand image.
+                assertSame(rows[3],body.getChildAt(3));assertSame(rows[4],body.getChildAt(5))
+                assertSame(rows[7],body.getChildAt(8));assertSame(rows[8],body.getChildAt(10))
                 rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()
@@ -75,6 +75,18 @@ class SettingsMenuTest {
             rows.forEach { assertEquals(BicycleDesign.dp(controller.get(),BicycleDesign.touchSize),it.minimumHeight) }
             testBack(advanced);assertEquals(View.VISIBLE,menu.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun statisticsEntryOpensSeparatePageAndBackRestoresMenu() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val a=host.get();val parent=open(a)
+            views(parent).single { it.tag=="settings_STATISTICS" }.performClick()
+            val child=ShadowAlertDialog.getLatestAlertDialog()
+            assertNotSame(parent,child);assertTrue(child.isShowing)
+            assertTrue(views(child).any { it.tag=="statistics_screen" })
+            testBack(child);shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(parent.isShowing)
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun appSwitchKeepsNestedSettingsDraftScrollAndBackStackUntilActivityIsDestroyed() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()

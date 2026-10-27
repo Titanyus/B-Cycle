@@ -5,7 +5,7 @@
 - [x] Dreeve-Import: bevorzugter Original-FIT-Download mit GPX-Ersatzweg, bestehenden Identitäten/Verknüpfungen und Dublettenschutz. Details docs/dreeve-original-files-api.md.
 - [ ] Wartungsanbindung später um ausdrücklich beauftragte Bearbeitung/Erledigtmeldungen erweitern.
 - [ ] Trainer einbauen (Umfang vor Umsetzung konkretisieren; bestehende Indoor-/FTMS-Anbindung berücksichtigen).
-- [ ] Statistikfunktionen für Monat und Jahr ergänzen, um eine schnelle Übersicht über die Fahrten zu ermöglichen.
+- [x] Statistikseite: monatliche Kilometer mit Jahresvergleich, ISO-Wochen des aktuellen Jahres und Fahrzeit-Tortengrafik je Fahrrad in Profilfarben. Cached Bibliotheksauswertung; siehe [Statistiken](docs/ride-statistics.md). Im Quellstand nach Build95, noch nicht als APK veröffentlicht.
 
 ## Sensoren und Indoor-Trainer – spätere Erweiterungen
 

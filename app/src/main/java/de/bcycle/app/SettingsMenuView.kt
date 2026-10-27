@@ -19,6 +19,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     MAP("", BicycleIcon.MapManager.resource, titleResource = R.string.ui_settings_map),
     DASHBOARDS("", BicycleIcon.Dashboard.resource, titleResource = R.string.ui_settings_dashboards),
     ROUTES("", BicycleIcon.Route.resource, titleResource = R.string.ui_settings_routes),
+    STATISTICS("", BicycleIcon.Distance.resource, titleResource=R.string.statistics_title),
     ADVANCED("", BicycleIcon.Advanced.resource, titleResource = R.string.ui_settings_advanced),
     PROFILE("", BicycleIcon.RiderProfile.resource, R.string.ui_settings_profile),
     DATA("", BicycleIcon.DataStorage.resource, R.string.data_title),
@@ -43,7 +44,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
         val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP) } else
-            listOf(SettingsAction.ROUTES,SettingsAction.HRV,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
+            listOf(SettingsAction.ROUTES,SettingsAction.STATISTICS,SettingsAction.HRV,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0 && (advanced || action==SettingsAction.PROFILE || action==SettingsAction.ADVANCED))
                 addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.linePixels(context)))

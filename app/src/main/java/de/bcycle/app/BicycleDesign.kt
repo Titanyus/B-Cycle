@@ -125,6 +125,10 @@ object BicycleDesign {
     const val analysisZoneTrackAlpha = .18f
     const val analysisChartFillAlpha = 255
     const val analysisChartHeight = 120
+    const val statisticsWeekWidth = 48
+    const val statisticsChartHeight = 240
+    const val statisticsPieHeight = 220
+    const val statisticsWeekValueSp = 9f
     const val analysisDistributionPowerStep = 5
     const val analysisDistributionHeartStep = 2
     const val analysisDistributionMaxBars = 128

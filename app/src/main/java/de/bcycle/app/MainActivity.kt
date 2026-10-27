@@ -41,6 +41,7 @@ class MainActivity : Activity() {
     private lateinit var mapPanel: MapPanel
     private lateinit var dashboardArea: LinearLayout
     private var routeManager: RouteManagerView? = null
+    private var statisticsView:RideStatisticsView?=null
     private var orphanProfilesView:OrphanProfilesView?=null
     private var orphanProfilesScreen:AlertDialog?=null
     private var routeOrphanPending:RouteManagerView?=null
@@ -126,7 +127,7 @@ class MainActivity : Activity() {
     private var pendingReport: String? = null
     private var displayedRecordingStatus: String? = null
     private var rideSummaryPosted=false
-    private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows();refreshOrphanProfiles() }
+    private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows();refreshOrphanProfiles();refreshStatistics() }
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
     private val settingsThemes get() = runtime.themes.settings
@@ -490,6 +491,18 @@ class MainActivity : Activity() {
             .setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).show()
         dialogs.onDismiss(screen) { if(notificationSettings===content) notificationSettings=null }
     }
+    private fun showStatistics() {
+        val content=RideStatisticsView(settingsContext,settingsThemes)
+        statisticsView=content
+        val screen=dialog().setTitle(R.string.statistics_title)
+            .setView(BicycleStickyScrollView(settingsContext).apply { addView(content) }).show()
+        dialogs.onDismiss(screen) { if(statisticsView===content) { statisticsView=null;runtime.mapState.cancelStatistics() } }
+        refreshStatistics()
+    }
+    private fun refreshStatistics() {
+        val content=statisticsView ?: return
+        runtime.mapState.loadStatistics { if(statisticsView===content) content.show(it) }
+    }
     private fun showMenu(advanced: Boolean = false) {
         setDashboardEditing(false)
         messages.clear()
@@ -505,6 +518,7 @@ class MainActivity : Activity() {
                 SettingsAction.MAP -> mapSettings()
                 SettingsAction.DASHBOARDS -> dashboardSettings()
                 SettingsAction.ROUTES -> routeSettings()
+                SettingsAction.STATISTICS -> showStatistics()
                 SettingsAction.ADVANCED -> showMenu(advanced = true)
                 SettingsAction.RECOVERY -> recoverySettings()
                 SettingsAction.GPS_HELP -> menu = dialog().setTitle(getString(R.string.ui_gps_help_title)).setMessage(R.string.ui_gps_help_body).show()

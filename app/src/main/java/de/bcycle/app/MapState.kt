@@ -20,6 +20,29 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     var archiveStatus = ""; private set
     private val handler = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor { task -> Thread(task, "B-Cycle-routes") }
+    private val statisticsCache=RideStatisticsCache()
+    private var statisticsEntries:List<ManagedRoute>?=null
+    private var statisticsProfiles:RideProfileCatalog?=null
+    private var statisticsYear=0
+    private var statisticsZone:java.time.ZoneId?=null
+    private var statistics:RideStatistics?=null
+    private var statisticsGeneration=0
+    private var statisticsCallback:((RideStatistics)->Unit)?=null
+    internal fun loadStatistics(complete:(RideStatistics)->Unit) {
+        val source=entries;val profiles=RideProfileColor.catalog(context)
+        val zone=java.time.ZoneId.systemDefault();val year=java.time.LocalDate.now(zone).year
+        statisticsCallback=complete
+        if(statisticsEntries===source && statisticsProfiles===profiles && statisticsYear==year && statisticsZone==zone) {
+            statistics?.let(complete);return
+        }
+        statisticsEntries=source;statisticsProfiles=profiles;statisticsYear=year;statisticsZone=zone;statistics=null
+        val generation=++statisticsGeneration
+        worker.execute {
+            val value=statisticsCache.get(source,profiles,year,zone)
+            handler.post { if(statisticsGeneration==generation) { statistics=value;statisticsCallback?.invoke(value) } }
+        }
+    }
+    internal fun cancelStatistics() { statisticsCallback=null }
     private val library = GpxLibrary(context.filesDir)
     private val fits = FitLibrary(context.filesDir)
     internal fun transferBackup(directory:BackupDirectory,restore:Boolean,hrv:Boolean=false,progress:(Int)->Unit,complete:(Result<RideBackupResult>)->Unit):Boolean {
