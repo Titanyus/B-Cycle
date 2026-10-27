@@ -4,6 +4,10 @@ Nutzerentwurf 27.10.2026, bisher zusammengefasst und hinsichtlich Funktionsumfan
 
 ## Backup & Restore (bisher Globale Daten)
 
+Direkt nach dem Sticky-Header, vor den drei Sicherungs-Dropdowns, steht:
+
+„Sichert die Einstellungen der App, Streckendaten und HRV-Messdaten samt Tagesbefinden auf Wunsch lokal oder per WebDAV. Alle Einstellungen können wiederhergestellt werden“
+
 Drei Dropdowns: Einstellungen sichern, Strecken sichern, HRV-Daten sichern. Jedes mit Lokal (Systemauswahl) und WebDAV (bestehende Verbindung; ohne Konfiguration deaktiviert). Einstellungen immer vollständig, ohne Bereichsauswahl, weiterhin passwortverschlüsseltes ZIP inklusive Zugangsdaten. Strecken umfassen den vollständig wiederherstellbaren Bestand, keine bloße FIT-Exportkopie. HRV: letzte gültige Messung pro Tag plus Tagesbefinden; ältere lokale Messungen nicht löschen.
 
 Nach horizontalem Trenner: Einstellungen wiederherstellen, Fahrten wiederherstellen. HRV-Dropdown mit HRV-Daten wiederherstellen und HRV4Training-CSV importieren. Eigener HRV-Sticky-Header entfällt.

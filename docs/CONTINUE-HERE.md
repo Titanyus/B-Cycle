@@ -1,3 +1,7 @@
+# Ergänzung 27.10.2026: Beschreibung Backup & Restore
+
+Für die geplante Neuordnung direkt unter dem Sticky-Header „Backup & Restore“, vor den drei Sicherungs-Dropdowns, exakt ergänzen: „Sichert die Einstellungen der App, Streckendaten und HRV-Messdaten samt Tagesbefinden auf Wunsch lokal oder per WebDAV. Alle Einstellungen können wiederhergestellt werden“. Spezifikation docs/backup-cloud-reorganization.md aktualisiert; analog zur bereits vereinbarten Cloud-Erklärung. Keine funktionalen Änderungen in diesem Ergänzungsschritt.
+
 # Verbindliche Formatentscheidung 27.10.2026
 
 Nutzer: vollständig auf die neue Sicherungsmethode umstellen. Weder alte Gesamtsicherungen noch bisherige HRV-Exporte müssen lesbar bleiben. Keine entsprechende Kompatibilitätslogik erforderlich. HRV4Training-CSV-Import bleibt expliziter Bestandteil der neuen Oberfläche und ist hiervon nicht betroffen. Spezifikation docs/backup-cloud-reorganization.md maßgeblich; entgegen älteren Verlaufseinträgen keine Legacy-Restore-Anforderung.
