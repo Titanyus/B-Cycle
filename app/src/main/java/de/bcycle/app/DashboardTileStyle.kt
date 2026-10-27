@@ -13,7 +13,7 @@ internal enum class DashboardTileStyle(
     ONE(captionWeight = .10f, heightWeight = 2f * BicycleDesign.dashboardLargeCompactRatio),
     TWO,
     THREE(horizontalPadding = BicycleDesign.tripleHorizontalPadding, valueUnitGap = 4,
-        fixedValueSp = BicycleDesign.tripleValueSp, fixedUnitSp = BicycleDesign.tripleUnitSp, unitWidthDivisor = 2);
+        unitWidthDivisor = 2);
 
     val topPadding = 8
     val bottomPadding = 4

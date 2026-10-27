@@ -150,7 +150,7 @@ internal object BicycleDialogStyle {
                 setBounds(0, 0, dp(view, BicycleDesign.iconSize), dp(view, BicycleDesign.iconSize))
             }, null, endIcon?.let { BicycleIcons.drawable(view.context,it,tokens.foreground).apply {
                 setBounds(0,0,dp(view,BicycleDesign.iconSize),dp(view,BicycleDesign.iconSize))
-            } }, null)
+            } } ?: if(view is CompoundButton && view !is Switch) view.compoundDrawablesRelative[2] else null, null)
         }
     }
     fun content(view: View, themes: ThemeManager) {

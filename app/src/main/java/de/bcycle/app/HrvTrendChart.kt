@@ -22,6 +22,7 @@ import kotlin.math.roundToLong
 
 internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private val selected:(HrvTrendPoint)->Unit,private val period:(LocalDate,LocalDate)->Unit):View(context) {
+    var onDaySelected:(LocalDate)->Unit={}
     private var tokens=themes.active.tokens
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.bodyTypeface }
     private val path=Path()
@@ -34,6 +35,9 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private var barLabels:List<Pair<HrvTrendPoint,String>> = emptyList()
     var axis=HrvTrendAxis(0.0,1.0);private set
     private var selectedId:String?=null
+    private var moonRange:Triple<LocalDate,LocalDate,java.time.ZoneId>?=null
+    private var moons:List<Pair<LocalDate,LunarPhase>> = emptyList()
+    private val moonBounds=android.graphics.RectF()
     private var downX=0f;private var downY=0f;private var moved=false
     private var multiTouch=false
     private val scroller=OverScroller(context)
@@ -90,15 +94,26 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     fun show(rows:List<HrvTrendPoint>,reset:Boolean=false,axis:HrvTrendAxis=HrvTrendAxis.from(rows,HrvTrendMetric.RMSSD)) {
         stopFling()
         points=rows;this.axis=axis
+        val first=rows.minOfOrNull { it.day };val last=rows.maxOfOrNull { it.day }
+        if(first!=null && last!=null) {
+            val range=Triple(first.minusDays(14),last.plusDays(14),java.time.ZoneId.systemDefault())
+            if(moonRange!=range) {
+                moonRange=range
+                moons=LunarPhases.between(range.first,range.second,range.third).map { it.day(range.third) to it.phase }
+            }
+        } else { moons=emptyList();moonRange=null }
         barLabels=rows.mapNotNull { point -> point.value?.let { point to barNumber.format(it) } }
         if(reset) viewport.reset(rows.map { it.day })
         if(selectedId==null || rows.none { it.row.id==selectedId }) selectedId=rows.lastOrNull()?.row?.id
         rows.firstOrNull { it.row.id==selectedId }?.let { selected(it) }
         changed()
     }
-    private fun select(point:HrvTrendPoint) { selectedId=point.row.id;selected(point);invalidate() }
+    private fun select(point:HrvTrendPoint) { selectedId=point.row.id;selected(point);onDaySelected(point.day);invalidate() }
     private fun changed() {
         period(LocalDate.ofEpochDay(kotlin.math.ceil(viewport.end-viewport.span).toLong()),LocalDate.ofEpochDay(kotlin.math.floor(viewport.end).toLong()))
+        contentDescription=context.getString(R.string.hrvt_gestures)+". "+moons.filter { viewport.contains(it.first) }.joinToString("; ") {
+            context.getString(R.string.moon_date_label,it.first.format(dateFormat),context.getString(it.second.label))
+        }
         invalidate()
     }
     override fun performClick():Boolean { super.performClick();return true }
@@ -212,6 +227,29 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             }
         }
         canvas.restore()
+        drawMoons(canvas,top)
+    }
+    private fun drawMoons(canvas:Canvas,top:Float) {
+        // Stay calendar-anchored, including days without measurements. Never clamp to an edge.
+        val radius=minOf(BicycleDesign.hrvTrendMoonSize*density/2,(plotRight-plotLeft)/viewport.span.toFloat()*2.5f)
+        val save=canvas.save();canvas.clipRect(plotLeft,0f,plotRight,top+radius+density)
+        paint.style=Paint.Style.FILL;paint.pathEffect=null;paint.shader=null;paint.alpha=255
+        moons.forEach { (day,phase) ->
+            val center=x(day)
+            if(center+radius<plotLeft || center-radius>plotRight) return@forEach
+            paint.color=tokens.secondary;canvas.drawCircle(center,top,radius,paint)
+            paint.color=tokens.foreground
+            moonBounds.set(center-radius,top-radius,center+radius,top+radius)
+            when(phase) {
+                LunarPhase.FULL->canvas.drawCircle(center,top,radius,paint)
+                LunarPhase.FIRST_QUARTER->canvas.drawArc(moonBounds,-90f,180f,true,paint)
+                LunarPhase.LAST_QUARTER->canvas.drawArc(moonBounds,90f,180f,true,paint)
+                LunarPhase.NEW->Unit
+            }
+            paint.style=Paint.Style.STROKE;paint.strokeWidth=minOf(density,radius/4)
+            canvas.drawCircle(center,top,radius,paint);paint.style=Paint.Style.FILL
+        }
+        canvas.restoreToCount(save)
     }
     private fun alpha(color:Int,factor:Float)=Color.argb((Color.alpha(color)*factor).toInt(),Color.red(color),Color.green(color),Color.blue(color))
     override fun onInitializeAccessibilityNodeInfo(info:AccessibilityNodeInfo) {

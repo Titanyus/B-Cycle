@@ -27,8 +27,9 @@ internal class FitLibrary(root: File) {
     private val seenDownloads = mutableSetOf<String>()
     private val analysisStamps=mutableMapOf<String,Pair<Long,Long>>()
     private val correctedHashes=mutableMapOf<String,Triple<Long,Long,String>>()
-    private fun correctedHash(id:String):String? {
-        val corrected=correctedFile(directory.parentFile!!,id)
+    private fun correctedHash(id:String)=derivedHash("height:$id",correctedFile(directory.parentFile!!,id))
+    private fun exportHash(id:String)=derivedHash("export:$id",FitReexport.file(directory.parentFile!!,id))
+    private fun derivedHash(id:String,corrected:File):String? {
         if(!corrected.isFile) { correctedHashes.remove(id);return null }
         val length=corrected.length();val modified=corrected.lastModified()
         val cached=correctedHashes[id]
@@ -36,16 +37,16 @@ internal class FitLibrary(root: File) {
         return hash(corrected).also { correctedHashes[id]=Triple(length,modified,it) }
     }
     internal fun file(id: String): File = activeFile(directory.parentFile!!,id)
-    internal fun analysisFile(id:String)=RideAnalysisFiles.file(directory.parentFile!!,id).takeIf { it.isFile } ?: file(id)
+    internal fun analysisFile(id:String)=RideAnalysisFiles.file(directory.parentFile!!,id).takeIf { it.isFile } ?: baseFile(directory.parentFile!!,id)
     private fun readDetails(id:String):ReadFit {
         val source=analysisFile(id);val result=FitRead.read(source)
         analysisStamps[id]=source.length() to source.lastModified()
-        return if(source!=file(id) && corrected(id)) result.copy(details=result.details.copy(ascentM=FitRead.read(file(id)).details.ascentM)) else result
+        return if(source!=file(id) && corrected(id)) result.copy(details=result.details.copy(ascentM=FitRead.read(correctedFile(directory.parentFile!!,id)).details.ascentM)) else result
     }
     internal fun originalFile(id:String):File { validateId(id);return File(directory,"$id.fit") }
     internal fun corrected(id:String)=correctedFile(directory.parentFile!!,id).isFile
     internal fun refreshDetails(id:String) {
-        correctedHashes.remove(id)
+        correctedHashes.remove("height:$id");correctedHashes.remove("export:$id")
         val read=readDetails(id)
         save(entries.map { if(it.id==id) it.copy(details=read.details.copy(dateMs=it.details.dateMs),hasRoute=read.route!=null) else it })
     }
@@ -104,7 +105,7 @@ internal class FitLibrary(root: File) {
             // A Downloads copy may contain our corrected version, whose bytes differ
             // from the immutable original. Match the active version by exact hash too.
             val existing = entries.firstOrNull { it.id.endsWith(hash) }
-                ?: entries.firstOrNull { correctedHash(it.id)==hash }
+                ?: entries.firstOrNull { correctedHash(it.id)==hash || exportHash(it.id)==hash }
             if (existing != null) {
                 if (!file(existing.id).isFile) {
                     val original = AtomicFile(file(existing.id)); val output = original.startWrite()
@@ -156,13 +157,14 @@ internal class FitLibrary(root: File) {
         require(title.isNotEmpty()) { "Bitte einen Namen eingeben" }
         save(entries.map { if (it.id == id) it.copy(name = title) else it })
     }
-    internal fun restoreBackup(id:String,name:String,origin:TrackOrigin,details:RouteDetails,original:File,full:File,corrected:File?):Boolean {
+    internal fun restoreBackup(id:String,name:String,origin:TrackOrigin,details:RouteDetails,original:File,full:File,corrected:File?,reexported:File?=null):Boolean {
         validateId(id)
         require(hash(original)==id.substringAfter('-')) { "Original-ID stimmt nicht mit FIT überein" }
-        val read=FitRead.read(full);FitRead.read(original);corrected?.let(FitRead::read)
+        val read=FitRead.read(full);FitRead.read(original);corrected?.let(FitRead::read);reexported?.let(FitRead::read)
         if(entries.any { it.id==id }) {
             require(hash(originalFile(id))==hash(original) && hash(analysisFile(id))==hash(full)) { "Vorhandene Fahrt hat andere Daten" }
-            if(corrected!=null && this.corrected(id)) require(hash(file(id))==hash(corrected)) { "Andere Höhenkorrektur vorhanden" }
+            if(corrected!=null && this.corrected(id)) require(hash(correctedFile(directory.parentFile!!,id))==hash(corrected)) { "Andere Höhenkorrektur vorhanden" }
+            if(reexported!=null && FitReexport.file(directory.parentFile!!,id).isFile) require(hash(FitReexport.file(directory.parentFile!!,id))==hash(reexported)) { "Andere Exportversion vorhanden" }
             return false
         }
         val targets=mutableListOf<File>()
@@ -176,6 +178,7 @@ internal class FitLibrary(root: File) {
             install(original,originalFile(id))
             if(hash(full)!=hash(original)) install(full,RideAnalysisFiles.file(directory.parentFile!!,id))
             corrected?.let { install(it,correctedFile(directory.parentFile!!,id)) }
+            reexported?.let { install(it,FitReexport.file(directory.parentFile!!,id)) }
             excluded.remove(id.substringAfter('-'))
             save(entries+StoredFit(id,name,origin==TrackOrigin.RECORDED,
                 read.details.copy(dateMs=details.dateMs,bikeType=details.bikeType,
@@ -186,8 +189,9 @@ internal class FitLibrary(root: File) {
     fun delete(id: String) {
         require(entries.any { it.id == id })
         // Persist the exclusion before deleting, so a Downloads scan cannot resurrect it.
+        file(id).takeIf { it.isFile }?.let { excluded+=hash(it) }
         excluded += id.substringAfter('-')
-        save(entries.filter { it.id != id }); AtomicFile(originalFile(id)).delete();AtomicFile(correctedFile(directory.parentFile!!,id)).delete()
+        save(entries.filter { it.id != id }); AtomicFile(originalFile(id)).delete();AtomicFile(correctedFile(directory.parentFile!!,id)).delete();AtomicFile(FitReexport.file(directory.parentFile!!,id)).delete()
     }
     private fun save(next: List<StoredFit>) {
         val array = JSONArray()
@@ -202,7 +206,8 @@ internal class FitLibrary(root: File) {
     companion object {
         private fun validateId(id:String) { require(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}"))) }
         internal fun correctedFile(root:File,id:String):File { validateId(id);return File(root,"fit-library/corrected/$id.fit") }
-        internal fun activeFile(root:File,id:String):File {
+        internal fun activeFile(root:File,id:String):File = FitReexport.file(root,id).takeIf { it.isFile } ?: baseFile(root,id)
+        internal fun baseFile(root:File,id:String):File {
             val corrected=correctedFile(root,id)
             if(corrected.isFile) return corrected
             return File(root,"fit-library/$id.fit")

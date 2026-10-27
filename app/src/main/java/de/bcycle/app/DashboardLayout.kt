@@ -220,8 +220,8 @@ class DashboardLayout private constructor(val fields: List<DashboardField>) {
     fun encode() = fields.joinToString("|") { it.id }
 
     companion object {
-        const val FIELD_COUNT = 8
-        val defaults get() = DashboardLayout(listOf("RIDER_POWER", "CADENCE", "SPEED", "BATTERY", "ASSIST_MODE", "ODOMETER", "MOTOR_POWER", "HEART_RATE").map { DashboardField(it) })
+        const val FIELD_COUNT = 9
+        val defaults get() = DashboardLayout(listOf("RIDER_POWER", "CADENCE", "SPEED", "BATTERY", "ASSIST_MODE", "ODOMETER", "MOTOR_POWER", "HEART_RATE", "AVERAGE_SPEED").map { DashboardField(it) })
         fun decode(encoded: String?): DashboardLayout {
             val saved = encoded?.split('|').orEmpty()
             return DashboardLayout(defaults.fields.mapIndexed { index, fallback ->

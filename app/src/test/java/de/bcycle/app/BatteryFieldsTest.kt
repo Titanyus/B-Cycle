@@ -73,6 +73,41 @@ class BatteryFieldsTest {
         assertNull(missing.findViewWithTag<View>("battery_select_EBIKE"));assertNull(missing.findViewWithTag<View>("battery_select_HEART"))
         assertNotNull(missing.findViewWithTag<View>("battery_select_PHONE"))
     }
+    @Test fun batteryIconsKeepRightHandSwitchesAndEachRowSelectsItsOwnStableSource() {
+        val host=org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("battery-picker-switches",0))
+            for(flat in listOf(false,true,false)) {
+                themes.setFlatDesign(flat)
+                val available=listOf(BatterySource.EBIKE,BatterySource.HEART,BatterySource.PHONE,BatterySource.SHIFT)
+                var chosen:DashboardField?=null
+                val picker=FieldPickerView(a,LiveData(batteries=BatterySnapshot(available.associateWith { 60 })),GpsValues(),null,PulseValues(),BatteryFields.field(listOf(BatterySource.PHONE)),false,
+                    themes=themes,batteryChoose={chosen=it},choose={chosen=it})
+                a.setContentView(picker)
+                picker.findViewWithTag<View>("field_data_toggle").performClick()
+                picker.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2400,View.MeasureSpec.EXACTLY));picker.layout(0,0,1080,2400)
+                shadowOf(Looper.getMainLooper()).idle()
+                for(source in available) {
+                    val button=picker.findViewWithTag<CheckBox>("battery_select_${source.name}")
+                    assertNotNull(button.compoundDrawablesRelative[0]);assertNotNull(button.compoundDrawablesRelative[2])
+                    val before=button.isChecked
+                    val expected=available.filter { picker.findViewWithTag<CheckBox>("battery_select_${it.name}").isChecked }.toMutableSet()
+                    if(before) expected.remove(source) else expected.add(source)
+                    val rowPosition=IntArray(2);val pickerPosition=IntArray(2)
+                    button.getLocationInWindow(rowPosition);picker.getLocationInWindow(pickerPosition)
+                    val x=(rowPosition[0]-pickerPosition[0]+button.width-12).toFloat()
+                    val y=(rowPosition[1]-pickerPosition[1]+button.height/2).toFloat()
+                    val now=android.os.SystemClock.uptimeMillis()
+                    for((action,time) in listOf(android.view.MotionEvent.ACTION_DOWN to now,android.view.MotionEvent.ACTION_UP to now+40)) {
+                        val event=android.view.MotionEvent.obtain(now,time,action,x,y,0);picker.dispatchTouchEvent(event);event.recycle()
+                    }
+                    shadowOf(Looper.getMainLooper()).idle()
+                    assertEquals(expected,chosen?.batterySources?.toSet() ?: emptySet<BatterySource>())
+                    available.forEach { item -> assertEquals(item in expected,picker.findViewWithTag<CheckBox>("battery_select_${item.name}").isChecked) }
+                }
+            }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun individualPercentOptionsAreAbsentInEveryCategoryButLegacyIdsStillLoad() {
         val picker=FieldPickerView(app,LiveData(batteries=BatterySnapshot(mapOf(BatterySource.PHONE to 50))),GpsValues(),null,PulseValues(),DashboardField("PHONE_BATTERY"),false,choose={})
         val spinner=picker.findViewWithTag<Spinner>("field_source")

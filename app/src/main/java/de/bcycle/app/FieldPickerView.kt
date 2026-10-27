@@ -91,7 +91,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             trend?.setDataAvailable(pickerDataVisible)
             reflecting=true;dataEnabled.isChecked=field!=null;reflecting=false
             combined=field?.batterySources!=null
-            batterySelection=field?.batterySources.orEmpty().filter { it in availableBatteries }
+            batterySelection=(field?.batterySources ?: BatteryFields.single(field?.id.orEmpty())?.let(::listOf).orEmpty()).filter { it in availableBatteries }
             for(i in 0 until rows.childCount) (rows.getChildAt(i) as? RadioButton)?.let { it.isChecked=field!=null && !combined && it.tag==field.id }
             refreshBatteryChecks()
         }
@@ -141,7 +141,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
                                     }
                                 }
                             }
-                            checks[source]=check;rows.addView(check)
+                            checks[source]=check;rows.addView(check,LayoutParams(-1,-2))
                         }
                         updateChecks()
                     } else {

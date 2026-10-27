@@ -119,7 +119,7 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
                     setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Check,tokens.foreground));importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 },LinearLayout.LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)))
                 contentDescription=context.getString(row.target.title)+", "+context.getString(row.text)
-                if(row.completed) {
+                if(canRecheck(row)) {
                     contentDescription=contentDescription.toString()+", "+context.getString(R.string.route_transfer_recheck_hint)
                     TransferHold.bind(this,{ popup.isShowing && !busy() && rows.any { it.target==row.target && canRecheck(it) } },
                         click={ if(row.canStart) start(row,false) },hold={ start(row,true) })
@@ -148,7 +148,7 @@ internal class RouteTransferMenu(private val context:Context,private val themes:
         }
     }
     private fun dp(value:Int)=BicycleDesign.dp(context,value)
-    private fun canRecheck(row:RouteTransferRow)=row.completed && !busy() && row.target.enabled(context)
+    private fun canRecheck(row:RouteTransferRow)=(row.completed || row.canStart) && !busy() && row.target.enabled(context)
     private fun start(row:RouteTransferRow,check:Boolean) {
         if(busy() || if(check) !canRecheck(row) else !row.canStart) return
         failedStarts.remove(row.target);attempt=row.target;sawBusy=false;checking=check

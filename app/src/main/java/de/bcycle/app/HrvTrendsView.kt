@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter
 
 internal class HrvTrendsView(context:Context,private val themes:ThemeManager,series:Map<HrvTrendMetric,List<HrvTrendPoint>>,
     open:(String)->Unit):LinearLayout(context) {
+    var onDaySelected:(LocalDate)->Unit={}
     private val series=series
     private val axes=HrvTrendMetric.entries.associateWith { HrvTrendAxis.from(series.getValue(it),it) }
     private val metricButtons=linkedMapOf<HrvTrendMetric,BicycleSegmentButton>()
@@ -21,7 +22,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
     private val statistics=BicycleComponents.description(context,themes,"")
     private val empty=BicycleComponents.description(context,themes,context.getString(R.string.hrvt_empty)).apply { tag="hrv_trend_empty" }
     private val button=BicycleComponents.action(context,themes,context.getString(R.string.hrvt_detail)) { selected?.let { open(it.row.id) } }.apply { tag="hrv_trend_detail" }
-    private val chart=HrvTrendChart(context,themes,::select) { first,last -> range.text=context.getString(R.string.hrvt_period,first.format(dateFormat),last.format(dateFormat)) }
+    private val chart=HrvTrendChart(context,themes,::select) { first,last -> range.text=context.getString(R.string.hrvt_period,first.format(dateFormat),last.format(dateFormat)) }.apply { onDaySelected={ day -> this@HrvTrendsView.onDaySelected(day) } }
     init {
         orientation=VERTICAL;tag="hrv_trends";clipToPadding=false
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)

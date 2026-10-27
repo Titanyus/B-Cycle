@@ -56,6 +56,17 @@ class RouteTransferRecheckTest {
             assertEquals(links.size,RideServiceLinks.links(c,entry.id).size)
         }
     }
+    @Test fun changedExportIsQueuedEvenWhenCloudStillHasPreviousFileAndOldLinkIsRetained() {
+        configure();val (file,entry)=fixture();val target=RouteTransferTarget.DREEVE
+        target.retry(c,entry.id);complete(target,entry.id,"original-remote")
+        val links=RideServiceLinks.links(c,entry.id)
+        val regenerated=FitReexport.file(c.filesDir,entry.id).apply { parentFile!!.mkdirs() }
+        FitReexport.encode(file,regenerated,RecordingConfig(emptySet()))
+        RouteTransferRecheck.run(c,entry,target) { _,_->true }
+        assertEquals(links,RideServiceLinks.links(c,entry.id))
+        val stamp=RouteFileStamp(regenerated.length(),regenerated.lastModified(),WebDavClient.hash(regenerated))
+        assertEquals(UploadState.WAITING,ActivityServiceUploads.dreeve.state(c,entry.id,stamp).state)
+    }
     @Test fun networkAndAccountChangesNeverEraseReceiptsOrQueueAnUpload() {
         configure();val (_,entry)=fixture();val target=RouteTransferTarget.DREEVE
         target.retry(c,entry.id);complete(target,entry.id,"remote")

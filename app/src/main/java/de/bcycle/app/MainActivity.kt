@@ -729,19 +729,22 @@ class MainActivity : Activity() {
         }
     }
     private fun showHrvTrends() {
+        fun datedTitle(day:java.time.LocalDate)=getString(R.string.hrvt_dated_title,day.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")))
         val root=LinearLayout(this).apply {
             orientation=LinearLayout.VERTICAL;tag="hrv_trends_host"
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
             addView(BicycleComponents.description(this@MainActivity,runtime.themes,getString(R.string.hrvt_loading)))
         }
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,hideStatusBar=true).setTitle(R.string.hrvt_title)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(datedTitle(java.time.LocalDate.now()))
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
         runtime.hrv.trends { result ->
             if(isDestroyed || !screen.isShowing) return@trends
             root.removeAllViews()
             result.fold({ series ->
                 root.setPadding(0,0,0,0)
-                root.addView(HrvTrendsView(this,runtime.themes,series,::showHrvHistoryResult),LinearLayout.LayoutParams(-1,-2))
+                root.addView(HrvTrendsView(this,runtime.themes,series,::showHrvHistoryResult).apply {
+                    onDaySelected={ day -> screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=datedTitle(day) }
+                },LinearLayout.LayoutParams(-1,-2))
             },{ root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
         }
     }
@@ -814,7 +817,7 @@ class MainActivity : Activity() {
                 }
                 setOnItemClickListener { _,_,position,_ -> overview.dismiss();showHrvHistoryResult(rows[position].id) }
             }
-            overview=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,hideStatusBar=true).setTitle(R.string.hrv_history)
+            overview=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(R.string.hrv_history)
                 .setView(list).show()
         }
     }
@@ -822,7 +825,7 @@ class MainActivity : Activity() {
         val root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
             addView(BicycleComponents.description(this@MainActivity,runtime.themes,getString(R.string.hrv_result_loading))) }
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,hideStatusBar=true).setTitle(R.string.hrv_result)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(R.string.hrv_result)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
         runtime.hrv.measurement(id) { result ->
             if(isDestroyed || !screen.isShowing) return@measurement
@@ -837,7 +840,7 @@ class MainActivity : Activity() {
         val root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad) }
         val loading=BicycleComponents.description(this,runtime.themes,getString(R.string.hrvq_loading));root.addView(loading)
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,hideStatusBar=true).setTitle(R.string.hrvq_title)
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(R.string.hrvq_title)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
         val id=row.getString("id")
         runtime.hrv.questionnaire(id) { result ->
@@ -1244,9 +1247,7 @@ class MainActivity : Activity() {
         root.addView(providerStatus)
         keyRow.visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
-        val heading = toggle(getString(R.string.ui_map_heading), "mapHeading", true)
-        val follow = toggle(getString(R.string.ui_map_follow), "mapFollow", true)
-        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_track_divider" })
+        root.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.map_options_title)).apply { tag="map_options_title" })
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
@@ -1267,8 +1268,7 @@ class MainActivity : Activity() {
             BicycleFeedback.update(providerStatus,if(!available) getString(R.string.map_thunderforest_required) else "",hideWhenEmpty=true)
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
-            edit.putBoolean("mapHeading",heading.isChecked).putBoolean("mapFollow",follow.isChecked)
-                .putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked)
+            edit.putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked)
                 .putBoolean(FitElevationCorrection.preference,elevation.isChecked).apply()
             mapPanel.refreshSettings()
         }

@@ -59,6 +59,7 @@ internal object SettingsHelp {
             nodes.any { it is RouteAnalysisMap } -> return SettingsHelpPage.ROUTE_MAP
             nodes.any { it is RouteManagerView } -> return SettingsHelpPage.ROUTES
             nodes.any { it is DreeveImportView } -> return if(nodes.filterIsInstance<DreeveImportView>().first().archiveMode) SettingsHelpPage.ARCHIVE_IMPORT else SettingsHelpPage.DREEVE_IMPORT
+            nodes.any { it.tag=="hrv_trends_host" || it is HrvTrendsView } -> return SettingsHelpPage.HRV_TRENDS
             nodes.any { it is HrvSettingsView } -> return SettingsHelpPage.HRV
             nodes.any { it is BikesView } -> return SettingsHelpPage.PROFILES
             nodes.any { it is RiderProfileView } -> return SettingsHelpPage.RIDER

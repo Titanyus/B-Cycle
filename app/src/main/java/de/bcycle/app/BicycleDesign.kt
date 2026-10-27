@@ -24,6 +24,7 @@ object BicycleDesign {
     const val hrvCircleHeight=320
     const val hrvGraphHeight=286
     const val hrvTrendGraphHeight=504
+    const val hrvTrendMoonSize=12
     const val hrvTrendAxisWidth=40
     const val hrvTrendBarValueSp=8f
     const val hrvTrendBarValueGap=3
@@ -74,8 +75,6 @@ object BicycleDesign {
     // Secondary metric text composites with its actual surface instead of using opaque gray.
     val dashboardUnitColor = android.graphics.Color.argb(166, 255, 255, 255) // 65% opacity (8-bit alpha)
     const val dashboardCaptionSp = 13.5f
-    const val tripleValueSp = 45f
-    const val tripleUnitSp = 10f
     const val tripleHorizontalPadding = 3
     const val dashboardLargeCompactRatio = .75f / .85f
     const val titleSp = 23f

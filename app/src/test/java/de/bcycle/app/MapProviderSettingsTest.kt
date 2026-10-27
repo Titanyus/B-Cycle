@@ -49,6 +49,10 @@ class MapProviderSettingsTest {
             MainActivity::class.java.getDeclaredMethod("mapSettings").apply { isAccessible=true }.invoke(activity)
             shadowOf(Looper.getMainLooper()).idle()
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+
+            assertNull(root.findViewWithTag<View>("mapHeading"));assertNull(root.findViewWithTag<View>("mapFollow"))
+            assertNull(root.findViewWithTag<View>("map_track_divider"));assertNotNull(root.findViewWithTag<View>("map_options_title"))
+            listOf("mapTrackVisible","mapGpxVisible","mapHeightVisible","map_elevation_correction").forEach { assertNotNull(root.findViewWithTag<View>(it)) }
             val source=testDescendants(root).filterIsInstance<Spinner>().single()
             source.setSelection(MapSource.OPENCYCLEMAP.ordinal);shadowOf(Looper.getMainLooper()).idle()
             assertEquals("OSM",runtime.preferences.getString("mapSource",null))

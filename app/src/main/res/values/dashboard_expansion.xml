@@ -1,0 +1,7 @@
+<resources>
+    <string name="dashboard_with_map">Dashboards mit Karte</string>
+    <string name="dashboard_without_map">Dashboards ohne Karte</string>
+    <string name="dashboard_full_eight">8 Werte · ohne Karte</string>
+    <string name="dashboard_full_four">4 Werte · ohne Karte</string>
+    <string name="dashboard_full_nine">9 Werte · ohne Karte</string>
+</resources>

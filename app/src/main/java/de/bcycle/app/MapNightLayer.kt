@@ -89,9 +89,13 @@ private class NightCanvas(private val target: Canvas, private val tiles: MapNigh
 internal class MapNightLayer(cache: TileCache, position: MapViewPosition, source: TileSource) :
     TileDownloadLayer(cache, position, source, AndroidGraphicFactory.INSTANCE) {
     @Volatile var night = false
+    @Volatile private var active=false
+    override fun onResume() { active=true;super.onResume() }
+    override fun onPause() { active=false;super.onPause() }
     private val drawLock = Any()
     private val derived = MapNightTiles { cache.capacityFirstLevel }
     override fun draw(box: BoundingBox, zoom: Byte, canvas: Canvas, topLeft: Point, rotation: Rotation) = synchronized(drawLock) {
+        if(!active) return@synchronized
         if (night) super.draw(box, zoom, NightCanvas(canvas, derived), topLeft, rotation)
         else { derived.clear(); super.draw(box, zoom, canvas, topLeft, rotation) }
     }

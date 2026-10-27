@@ -226,6 +226,13 @@ class HrvQuestionnaireTest {
             val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             val form=dialog.window!!.decorView.findViewWithTag<HrvQuestionnaireView>("hrv_questionnaire")
             assertNotNull(form)
+            fun plainHeader(screen:android.app.AlertDialog) {
+                val header=screen.window!!.decorView.findViewWithTag<View>("bicycle_navigation_header")
+                assertTrue(header.background is android.graphics.drawable.ColorDrawable)
+                assertEquals(runtime.themes.active.tokens.secondary,(header.background as android.graphics.drawable.ColorDrawable).color)
+                assertNull(header.getTag(R.id.input_frame))
+            }
+            plainHeader(dialog)
             form.findViewWithTag<EditText>("hrvq_notes").setText("Heute gut erholt");form.flush();drain()
             assertEquals("Heute gut erholt",store.questionnaire(id)!!.notes)
             val decor=dialog.window!!.decorView;layout(decor);shadowOf(Looper.getMainLooper()).idle();layout(decor)
@@ -235,6 +242,8 @@ class HrvQuestionnaireTest {
             form.findViewWithTag<View>("hrvq_analysis").performClick();drain();assertFalse(dialog.isShowing)
             repeat(2) { drain() }
             assertNotNull(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("hrv_trends"))
+            MainActivity::class.java.getDeclaredMethod("showHrvHistoryResult",String::class.java).apply { isAccessible=true }.invoke(a,id)
+            drain();plainHeader(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog())
         } finally { host.pause().stop().destroy() }
     }
     @Test fun annotationRoundTripsThroughAnalysisAndBackupWhileOriginalMeasurementStaysByteIdentical() {

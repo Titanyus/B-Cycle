@@ -44,6 +44,7 @@ internal object RouteTransferRecheck {
         // Existing Strava authorization requests activity:write only. A 404 without read_all
         // cannot establish deletion of a private ride, so its explicit hold repeats the upload.
         val canVerify=target!=RouteTransferTarget.STRAVA
+        var remotePresent=false
         if(link!=null && canVerify) {
             val present=if(exists!=null) exists(link,stopped) else when(target) {
                 RouteTransferTarget.DREEVE->ActivityServiceSettings(c,ActivityService.DREEVE).let {
@@ -52,7 +53,8 @@ internal object RouteTransferRecheck {
                 else->IntervalsClient(IntervalsSettings(c).read(),IntervalsSettings(c).apiKey(),stopped).activityExists(link.activityId)
             }
             unchanged()
-            if(present) return
+            remotePresent=present
+            if(present && link.fileHash==hash) return
         }
         unchanged()
         if(RouteUploads.eligible(c,id)) {
@@ -63,6 +65,6 @@ internal object RouteTransferRecheck {
             }
         } else check(link!=null) { c.getString(R.string.route_transfer_ineligible) }
         // Queue replacement first so legacy intervals receipts cannot recreate the deleted link.
-        if(link!=null && canVerify) { RideServiceLinks.missing(c,link);RideNames.missing(c,link) }
+        if(link!=null && canVerify && !remotePresent) { RideServiceLinks.missing(c,link);RideNames.missing(c,link) }
     }
 }

@@ -57,7 +57,9 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                 val full=if(type!=null && FitRead.read(source).details.bikeType!=type) File(temporary,"${entry.id}.typed.fit").also { FitBikeType.write(source,it,type) } else source
                 JSONObject().put("full",send(directory,"${entry.id}.fit",full))
                     .put("original",send(directory,"${entry.id}.original.fit",fits.originalFile(entry.id))).apply {
-                        if(fits.corrected(entry.id)) put("corrected",send(directory,"${entry.id}.corrected.fit",fits.file(entry.id)))
+                        if(fits.corrected(entry.id)) put("corrected",send(directory,"${entry.id}.corrected.fit",FitLibrary.correctedFile(context.filesDir,entry.id)))
+                        val regenerated=FitReexport.file(context.filesDir,entry.id)
+                        if(regenerated.isFile) put("reexported",send(directory,"${entry.id}.reexported.fit",regenerated))
                     }
             } }
             gpx.entries.forEach { entry -> row(entry.id,entry.name,"GPX",entry.origin,entry.details) {
@@ -128,7 +130,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                     "FIT" -> {
                         val original=get("original",".original.fit");val full=get("full",".fit")
                         val corrected=if(files.has("corrected")) get("corrected",".corrected.fit") else null
-                        fits.restoreBackup(id,name,origin,details,original,full,corrected)
+                        fits.restoreBackup(id,name,origin,details,original,full,corrected,if(files.has("reexported")) get("reexported",".reexported.fit") else null)
                     }
                     "GPX" -> {
                         FitRead.read(get("full",".fit"))

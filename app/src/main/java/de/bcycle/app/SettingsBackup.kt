@@ -198,7 +198,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                                 b[key]=(fields + current.drop(fields.size).map { it.id }).joinToString("|")
                             }
                             if(page.has("graphs")) {
-                                val graphs=array(page,"graphs",DashboardLayout.FIELD_COUNT);check(graphs.length()==DashboardLayout.FIELD_COUNT)
+                                val graphs=array(page,"graphs",DashboardLayout.FIELD_COUNT);check(graphs.length() in 8..DashboardLayout.FIELD_COUNT)
                                 val slots=(0 until graphs.length()).map { slot ->
                                     val values=graphs.opt(slot) as? JSONArray ?: fail()
                                     check(values.length()<=2)
@@ -209,7 +209,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                             }
                             if(page.has("graphWindows")) {
                                 val windows=strings(array(page,"graphWindows",DashboardLayout.FIELD_COUNT))
-                                check(windows.size==DashboardLayout.FIELD_COUNT && windows.all { value -> GraphWindow.entries.any { it.name==value } })
+                                check(windows.size in 8..DashboardLayout.FIELD_COUNT && windows.all { value -> GraphWindow.entries.any { it.name==value } })
                                 b[GraphOverlayConfig.windowKey(index)]=windows.joinToString("|")
                             } else b[GraphOverlayConfig.windowKey(index)]=null
                             if(page.has("trainingHelp")) {
@@ -218,24 +218,24 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                             } else b[DashboardTrainingHelp.key(index)]=null
                             if(page.has("trendIndicators")) {
                                 val values=array(page,"trendIndicators",DashboardLayout.FIELD_COUNT)
-                                check(values.length()==DashboardLayout.FIELD_COUNT)
+                                check(values.length() in 8..DashboardLayout.FIELD_COUNT)
                                 val flags=(0 until values.length()).map { slot -> values.opt(slot) as? Boolean ?: fail() }
                                 b[DashboardTrendIndicators.key(index)]=DashboardTrendIndicators(flags).encode()
                             } else b[DashboardTrendIndicators.key(index)]=null // Old backups keep the former always-visible behavior.
                             if(page.has("dataVisible")) {
                                 val values=array(page,"dataVisible",DashboardLayout.FIELD_COUNT)
-                                check(values.length()==DashboardLayout.FIELD_COUNT)
+                                check(values.length() in 8..DashboardLayout.FIELD_COUNT)
                                 val flags=(0 until values.length()).map { slot -> values.opt(slot) as? Boolean ?: fail() }
                                 b[DashboardDataVisibility.key(index)]=DashboardDataVisibility(flags).encode()
                             }
                             if(page.has("zoneGlowSources")) {
                                 val sources=strings(array(page,"zoneGlowSources",DashboardLayout.FIELD_COUNT))
-                                check(sources.size==DashboardLayout.FIELD_COUNT && sources.all { name -> ZoneGlowSource.entries.any { it.name==name } })
+                                check(sources.size in 8..DashboardLayout.FIELD_COUNT && sources.all { name -> ZoneGlowSource.entries.any { it.name==name } })
                                 b[ZoneGlowConfig.key(index)]=sources.joinToString("|")
                             }
                             if(page.has("graphDisplayModes")) {
                                 val modes=strings(array(page,"graphDisplayModes",DashboardLayout.FIELD_COUNT))
-                                check(modes.size==DashboardLayout.FIELD_COUNT && modes.all { name -> GraphDisplayMode.entries.any { it.name==name } })
+                                check(modes.size in 8..DashboardLayout.FIELD_COUNT && modes.all { name -> GraphDisplayMode.entries.any { it.name==name } })
                                 b[GraphDisplaySettings.key(index)]=modes.joinToString("|")
                             }
                             if(page.has("layout")) { val layout=field(page,"layout",30);check(DashboardTemplate.entries.any { it.name==layout });b["dashboardTemplate_$index"]=layout }

@@ -29,14 +29,14 @@ class IndoorDashboardUiTest {
             assertTrue(picker.selection.all { !it.hasMap })
             picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
             val options=nodes(picker.findViewWithTag<View>("dashboard_layout_details")).filter { it.isClickable && it.tag?.toString()?.startsWith("preset_")==true }
-            assertEquals(listOf("preset_FULL_DATA"),options.map { it.tag })
+            assertEquals(listOf("preset_FULL_DATA","preset_FULL_EIGHT","preset_FULL_FOUR","preset_FULL_NINE"),options.map { it.tag })
             picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
             assertEquals("HERO",prefs.getString("dashboardTemplate_0",null))
             bikes.save(bikes.current().copy(type=BikeType.EBIKE))
             val outdoor=DashboardPresetPicker(a,0);a.setContentView(outdoor)
             assertEquals(DashboardTemplate.HERO,outdoor.selection.first())
             outdoor.findViewWithTag<View>("dashboard_layout_choice").performClick()
-            assertEquals(10,nodes(outdoor.findViewWithTag<View>("dashboard_layout_details")).count { it.isClickable && it.tag?.toString()?.startsWith("preset_")==true })
+            assertEquals(13,nodes(outdoor.findViewWithTag<View>("dashboard_layout_details")).count { it.isClickable && it.tag?.toString()?.startsWith("preset_")==true })
             outdoor.findViewWithTag<View>("dashboard_layout_choice").performClick()
         } finally { host.pause().stop().destroy() }
     }

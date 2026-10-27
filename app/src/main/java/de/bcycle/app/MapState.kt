@@ -196,6 +196,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
                     val backup=if(target.isFile) java.io.File.createTempFile("height-previous-",".fit",context.cacheDir).also { target.copyTo(it,true) } else null
                     try {
                         FitElevationCorrection.correct(context,fits.originalFile(id),target,cancelled::get)
+                        FitReexport.refreshElevation(context.filesDir,id)
                         fits.refreshDetails(id)
                     } catch(e:Exception) {
                         if(backup!=null) java.nio.file.Files.move(backup.toPath(),target.toPath(),java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING)
@@ -381,7 +382,8 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         RideNames.manual(context,id,name.trim().take(120))
         workerRoute
     }
-    fun exportRoute(id: String) = operate("Nach Download/B-Cycle exportiert") {
+    fun exportRoute(id: String) = operate("Nach Download/B-Cycle exportiert") { writeRouteDownload(id);workerRoute }
+    private fun writeRouteDownload(id:String) {
         val fit = fits.entries.firstOrNull { it.id == id }
         val summary=dreeveSummaries.entries.singleOrNull { it.id==id }
         val file = if (fit != null) RouteTransferPayload.file(context,id) else if(summary!=null) dreeveSummaries.file(id) else library.file(id)
@@ -389,7 +391,6 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         RouteLocalSaves.perform(context, id, file, "Downloads/B-Cycle") {
             DownloadFiles.write(context, file, "$name.${file.extension}")
         }
-        workerRoute
     }
     internal fun uploadRoute(id: String,target:RouteTransferTarget?=null) = operate(context.getString(R.string.cloud_uploads_queued)) {
         val origin=fits.entries.singleOrNull { it.id==id }?.origin ?: library.entries.singleOrNull { it.id==id }?.origin
@@ -415,10 +416,12 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         return true
     }
     internal fun recheckTransfer(id:String,target:RouteTransferTarget) {
-        if(target==RouteTransferTarget.LOCAL) { exportRoute(id);return }
         operate("") {
             val entry=entries.single { it.id==id }
-            try { RouteTransferRecheck.run(context,entry,target) }
+            try {
+                if(FitReexport.rebuild(context,entry)) fits.refreshDetails(id)
+                if(target==RouteTransferTarget.LOCAL) writeRouteDownload(id) else RouteTransferRecheck.run(context,entry,target)
+            }
             catch(e:ActivityServiceFailure) { throw IllegalStateException(context.getString(e.problem),e) }
             catch(e:IntervalsFailure) { throw IllegalStateException(context.getString(e.problem),e) }
             catch(e:java.io.IOException) { throw IllegalStateException(context.getString(ServiceProblems.text(e,R.string.route_transfer_check_failed)),e) }

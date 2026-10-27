@@ -119,6 +119,13 @@ class RouteTransferMenuTest {
             assertTrue(local.performLongClick());assertEquals(RouteTransferTarget.LOCAL,checks.last())
             busy=true;assertFalse(cloud.performLongClick());assertEquals(2,checks.size)
             menu.dismiss();busy=false;assertFalse(cloud.performLongClick())
+            a.getSharedPreferences("activity-uploads-dreeve",0).edit().putString("entries","{}").commit()
+            val ready=RouteTransferMenu(a,ThemeManager(a.getSharedPreferences("bike",0)),anchor,{entry},{busy},{taps+=it},{},recheck={ checks+=it })
+            ready.show();shadowOf(Looper.getMainLooper()).idle()
+            val readyList=ready.popup.listView!!;val readyCloud=readyList.adapter.getView(3,null,readyList)
+            assertTrue(readyCloud.performLongClick());assertEquals(3,checks.size)
+            readyCloud.performClick();assertEquals(RouteTransferTarget.DREEVE,taps.last())
+            ready.dismiss()
         } finally { host.pause().stop().destroy() }
     }
     @Test fun transferHoldWaits600msAndCancelsOnReleaseScrollAndDetach() {

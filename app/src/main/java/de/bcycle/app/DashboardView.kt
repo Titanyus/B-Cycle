@@ -48,7 +48,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var dataVisibility = DashboardDataVisibility()
     internal fun showDataVisibility(config: DashboardDataVisibility) {
         if(dataVisibility==config) return
-        dataVisibility=config;tiles.forEach { it.updateGraph() }
+        dataVisibility=config;tiles.forEach { it.updateGraph() };requestLayout()
     }
     private var graphConfig = GraphOverlayConfig()
     private var graphFrame: GraphFrame? = null
@@ -179,7 +179,17 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
         }
         if (captionsChanged) super.onMeasure(widthMeasureSpec, height)
-
+        // Shared sizes are derived only from this template's visible numeric tiles.
+        // Units are fitted first because they determine the space left for each value.
+        for(units in listOf(true,false)) {
+            var changed=false
+            for(style in listOf(DashboardTileStyle.TWO,DashboardTileStyle.THREE)) {
+                val group=template.slots.map { tiles[it] }.filter { it.participates(style) }
+                val size=group.mapNotNull { it.fittingSp(units) }.minOrNull() ?: continue
+                group.forEach { if(it.applySharedSize(units,size)) changed=true }
+            }
+            if(changed) super.onMeasure(widthMeasureSpec,height)
+        }
     }
 
     fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues(),trendSnapshot:RideTrendSnapshot=RideTrendSnapshot()) {
@@ -262,6 +272,33 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             setOnLongClickListener { activateEditor?.invoke();true }
             setOnTouchListener { _, event -> swipe.onTouchEvent(event) }
         }
+        fun participates(candidate:DashboardTileStyle)=style==candidate && row.visibility==VISIBLE && container.visibility==VISIBLE
+        private val fitPaint=android.text.TextPaint()
+        fun fittingSp(units:Boolean):Int? {
+            val view=if(units) unit else value
+            if(view.visibility!=VISIBLE || view.text.isEmpty()) return null
+            val width=if(units) row.measuredWidth/style.unitWidthDivisor else row.availableValueWidth
+            val height=row.measuredHeight
+            if(width<=0 || height<=0) return null
+            fitPaint.set(view.paint)
+            val scale=resources.displayMetrics.scaledDensity
+            var low=if(units) style.unitMinSp else style.valueMinSp
+            var high=if(units) style.unitMaxSp else style.valueMaxSp
+            while(low<high) {
+                val middle=(low+high+1)/2
+                fitPaint.textSize=middle*scale
+                val metrics=fitPaint.fontMetrics
+                if(fitPaint.measureText(view.text.toString())<=width && kotlin.math.ceil((metrics.descent-metrics.ascent).toDouble())<=height) low=middle else high=middle-1
+            }
+            return low
+        }
+        fun applySharedSize(units:Boolean,size:Int):Boolean {
+            val view=if(units) unit else value
+            if(view.visibility!=VISIBLE) return false
+            val px=size*resources.displayMetrics.scaledDensity
+            if(kotlin.math.abs(view.textSize-px)<.1f) return false
+            view.setTextSize(TypedValue.COMPLEX_UNIT_PX,px);return true
+        }
         fun markEditable() {
             container.foreground = if (editing) DashboardEditOutline(resources.displayMetrics.density, editorColor) else null
         }
@@ -272,12 +309,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             textSize = style.captionSp; setTextColor(BicycleDesign.dashboardUnitColor)
         }
         private val value = text(style.valueMinSp, style.valueMaxSp, numbers, 1).apply {
+            if(style!=DashboardTileStyle.ONE) { setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);textSize=style.valueMinSp.toFloat() }
             style.fixedValueSp?.let { fixed ->
                 setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE)
                 textSize = fixed; ellipsize = android.text.TextUtils.TruncateAt.END
             }
         }
         private val unit = text(style.unitMinSp, style.unitMaxSp, captions, 1).apply {
+            if(style!=DashboardTileStyle.ONE) { setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);textSize=style.unitMaxSp.toFloat() }
             style.fixedUnitSp?.let { fixed -> setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE); textSize = fixed }
         }
 
@@ -345,11 +384,13 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     /** Keep the number centred in its tile, with the unit following its actual text edge. */
     private inner class ValueRow(private val value: TextView, private val unit: TextView, private val style: DashboardTileStyle) : ViewGroup(context) {
         private val threeColumns = style == DashboardTileStyle.THREE
-        val chevrons=TrendChevrons(this) { if(threeColumns) requestLayout() }
+        val chevrons=TrendChevrons(this) { if(style!=DashboardTileStyle.ONE) requestLayout() }
         var direction = 0
             set(next) { if (field != next) {
-                field = next;chevrons.update(next);if (threeColumns) requestLayout(); invalidate()
+                field = next;chevrons.update(next);if (style!=DashboardTileStyle.ONE) requestLayout(); invalidate()
             } }
+        var availableValueWidth=1;private set
+        private val sharedChevronSpace get()=kotlin.math.ceil(dp(14)*TrendChevrons.SCALE+dp(style.valueUnitGap)).toInt()
         private val chevronSpace get() = kotlin.math.ceil(minOf(dp(14).toFloat(), value.textSize * .28f) * TrendChevrons.SCALE + dp(style.valueUnitGap)).toInt()
         init { addView(value); addView(unit) }
         override fun dispatchDraw(canvas: android.graphics.Canvas) {
@@ -366,7 +407,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val height = MeasureSpec.getSize(heightMeasureSpec)
             if (threeColumns) {
                 if (unit.visibility != GONE) unit.measure(MeasureSpec.makeMeasureSpec(width / style.unitWidthDivisor, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
-                val reserve = (if (chevrons.visible) chevronSpace else 0) + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
+                val reserve = (if (chevrons.visible) sharedChevronSpace else 0) + if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
+                availableValueWidth=(width-reserve).coerceAtLeast(1)
                 value.measure(MeasureSpec.makeMeasureSpec((width - reserve).coerceAtLeast(1), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
                 setMeasuredDimension(width, height)
                 return
@@ -375,6 +417,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 MeasureSpec.makeMeasureSpec(width / style.unitWidthDivisor, MeasureSpec.AT_MOST),
                 MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
             val reserve = if (unit.visibility == GONE) 0 else unit.measuredWidth + dp(style.valueUnitGap)
+            availableValueWidth=(width-2*maxOf(reserve,if(chevrons.visible) sharedChevronSpace else 0)).coerceAtLeast(1)
             value.measure(MeasureSpec.makeMeasureSpec((width - 2 * reserve).coerceAtLeast(1), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
             setMeasuredDimension(width, height)

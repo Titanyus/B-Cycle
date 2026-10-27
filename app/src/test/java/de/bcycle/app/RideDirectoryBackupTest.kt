@@ -65,6 +65,8 @@ class RideDirectoryBackupTest {
         val second=bikes.add()!!;bikes.select(second.slot);bikes.save(bikes.current().copy(name="Gleicher Name",type=BikeType.INDOOR))
         val (fitId,_)=recording(source)
         RideProfileColor.assign(source.c,fitId,first.slot)
+        val regenerated=FitReexport.file(source.c.filesDir,fitId).apply { parentFile!!.mkdirs() }
+        FitReexport.encode(source.fits.analysisFile(fitId),regenerated,RecordingConfig(setOf("RIDER_POWER","HEART_RATE")))
         val gpxId=UUID.randomUUID().toString()
         val xml="<gpx><trk><trkseg>"+(0..3).joinToString("") { i ->
             "<trkpt lat='${50+i*.00001}' lon='8'><ele>100</ele><time>${java.time.Instant.ofEpochMilli(1792483200000+i*1000)}</time><extensions><power>210</power></extensions></trkpt>"
@@ -87,6 +89,7 @@ class RideDirectoryBackupTest {
         assertEquals(RideBackupResult(3),result)
         assertArrayEquals(source.fits.originalFile(fitId).readBytes(),target.fits.originalFile(fitId).readBytes())
         assertArrayEquals(source.fits.analysisFile(fitId).readBytes(),target.fits.analysisFile(fitId).readBytes())
+        assertArrayEquals(regenerated.readBytes(),FitReexport.file(target.c.filesDir,fitId).readBytes())
         assertArrayEquals(source.gpx.file(gpxId).readBytes(),target.gpx.file(gpxId).readBytes())
         assertEquals(1,target.summaries.entries.size)
         assertEquals(source.summaries.entries.single().origin,target.summaries.entries.single().origin)

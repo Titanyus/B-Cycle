@@ -10,14 +10,20 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
     HERO("", listOf(2, 3, 4, 5), .42f, R.string.ui_preset_hero),
     HERO_SEVEN("", listOf(2, 0, 1, 3, 4, 5, 6), .56f, R.string.dashboard_preset_seven),
     HERO_FIVE("", listOf(2, 0, 1, 3, 4), .56f, R.string.dashboard_preset_eight),
-    EIGHT("", (0 until DashboardLayout.FIELD_COUNT).toList(), .42f, R.string.dashboard_preset_nine),
-    FULL_DATA("",listOf(0,1,2,3,4),1f,R.string.dashboard_preset_ten);
+    EIGHT("", (0 until 8).toList(), .42f, R.string.dashboard_preset_nine),
+    FULL_DATA("",listOf(0,1,2,3,4),1f,R.string.dashboard_preset_ten),
+    FULL_EIGHT("",(0 until 8).toList(),1f,R.string.dashboard_full_eight),
+    FULL_FOUR("",(0 until 4).toList(),1f,R.string.dashboard_full_four),
+    FULL_NINE("",(0 until 9).toList(),1f,R.string.dashboard_full_nine);
     val hasMap get()=dataFraction<1f
     /** Display-only fallback: trying Indoor must never erase a saved outdoor layout. */
     fun forBike(type:BikeType)=if(type==BikeType.INDOOR && hasMap) FULL_DATA else this
     fun displayTitle(context: android.content.Context) = if (titleResource != 0) context.getString(titleResource) else title
     val largeTop: Boolean get() = this == HERO || this == HERO_SEVEN || this == HERO_FIVE
     val rows: List<List<Int>> get() = when (this) {
+        FULL_EIGHT -> listOf(listOf(0),listOf(1),listOf(2,3),listOf(4,5),listOf(6,7))
+        FULL_FOUR -> slots.map { listOf(it) }
+        FULL_NINE -> listOf(listOf(0),listOf(1),listOf(2),listOf(3,4,5),listOf(6,7,8))
         FULL_DATA -> listOf(listOf(0),listOf(1),listOf(2),listOf(3,4))
         DATA -> listOf(listOf(0, 1), listOf(2), listOf(3, 4), listOf(5, 6))
         OVERVIEW -> listOf(slots)
@@ -29,13 +35,13 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
         else -> slots.chunked(2)
     }
     fun rowWeight(index: Int, wide: Boolean = false) = when {
-        this == FULL_DATA && index<3 -> DashboardTileStyle.ONE.heightWeight
+        !hasMap && rows[index].size==1 -> DashboardTileStyle.ONE.heightWeight
         this == DATA && index == 1 -> DashboardTileStyle.ONE.heightWeight
         largeTop && index == 0 -> if (wide && this == HERO) 3f * LARGE_COMPACT_RATIO else DashboardTileStyle.ONE.heightWeight
         else -> DashboardTileStyle.TWO.heightWeight
     }
     internal fun tileStyle(slot: Int) = when {
-        this == FULL_DATA && slot<3 -> DashboardTileStyle.ONE
+        !hasMap && rows.any { it.size==1 && slot in it } -> DashboardTileStyle.ONE
         rows.any { it.size == 3 && slot in it } -> DashboardTileStyle.THREE
         slot == 2 && (this == DATA || largeTop) -> DashboardTileStyle.ONE
         else -> DashboardTileStyle.TWO

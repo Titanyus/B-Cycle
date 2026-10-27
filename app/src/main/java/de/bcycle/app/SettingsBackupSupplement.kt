@@ -90,7 +90,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                                 if((0 until DashboardPages.MAX).any { GraphOverlayConfig.windowKey(it)==k }) {
                                     require(item.getString("type")=="string")
                                     val windows=item.getString("value").split('|')
-                                    require(windows.size==DashboardLayout.FIELD_COUNT && windows.all { name -> GraphWindow.entries.any { it.name==name } })
+                                    require(windows.size in 8..DashboardLayout.FIELD_COUNT && windows.all { name -> GraphWindow.entries.any { it.name==name } })
                                 }
                                 require(item.toString().length<=65536)
                             }
