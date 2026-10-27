@@ -102,3 +102,15 @@ Garmins Lizenztext ist unter Erweitert → Bibliotheken & Lizenzen und in
 `app/src/main/assets/Garmin-FIT-LICENSE.txt` enthalten.
 
 Gerätemetadaten: `device_info.product_name` lautet ab 18.10.2026 `B|CYCLE`. Die Pipe ist ein gültiges ASCII-Zeichen im FIT-String. Herstellerkennung 255 (Development), Produkt-ID 0 und bisherige Softwareversionsangabe bleiben erhalten. Bestehende FIT-Dateien werden nicht rückwirkend geändert.
+
+## Import ergänzender FIT-Records (Bosch Flow, nach Build92)
+
+Ein FIT-Record ist nicht automatisch ein vollständiger GPS-/Sensorzeitpunkt. Bosch-Flow-Exporte können Position und Fahrdaten in benachbarte `record`-Nachrichten mit gleichem Zeitstempel aufteilen. Der bisherige Kartenleser behandelte den positionslosen Fahrdatenrecord als Unterbrechung; die Detailauswertung bekam außerdem abwechselnd unvollständige Messzeilen. Eine gültige CRC allein schließt solche Leserannahmen nicht aus.
+
+`FitRecordJoiner` hält höchstens eine Nachricht zurück und verbindet nur unmittelbar aufeinanderfolgende Records mit demselben gültigen Timestamp und vollständig ergänzenden Feldern. Native Feldnummern (außer timestamp253) dürfen nicht überlappen; Developerfelder werden nach Datenindex/Feldnummer geprüft. Überlappende Werte werden nie überschrieben oder gemittelt, unterschiedliche/fehlende Zeitstempel und Nicht-Record-Nachrichten erzwingen Ausgabe. Rohrecord-Limit600000 vor Zusammenführung erhalten, originaler recordSeen-Callback sieht weiter jeden Rohrecord.
+
+Gemeinsam in FitRead und RouteAnalysisRead, dadurch konsistente Karte/Vorschau und zusammenhängende Detailverläufe/Distanzachse. Echter Zeitabstand/GPS-Ausfall bleibt eine Segmentgrenze; Indoor ohne Position erhält keine erfundene Karte. CRC-/Größenlimits, Developer-Identitäten/Einheiten und Originalbytes bleiben unverändert. Keine neue Bibliothek oder Änderung am Aufzeichnungsencoder.
+
+Privater FitLibrary-Index detailsVersion2: bei älterem Index einmal nur bisher als kartenlos gespeicherte vorhandene FIT-Fahrten erneut lesen (zusätzlich zu bestehenden Metadatenreparaturen). Stabile IDs, Dateihashes, Titel, Herkunft und Datum erhalten; keine Dubletten/neuer Import. Auch bei leerer Kandidatenliste Version fortschreiben, damit die Prüfung nicht bei jedem Start wiederholt wird.
+
+Prüfung:23 dauerhafte gezielte Fälle (4 Teilrecord-,6 Bibliotheks-,7 Analyse-,6 Encoderprüfungen) plus einmaliger lokaler Test mit Nutzerdatei erfolgreich. Synthetische Fälle prüfen beide Recordreihenfolgen, Überschneidungen/Ereignisse/Zeitgrenzen, echte GPS-Lücke, Sensor-only und bestehende Indexreparatur. Originalhash lokal unverändert bestätigt; private Fahrt und temporärer dateispezifischer Prüffall nicht im Repository. Log /workspace/.tools/bosch-fit-review/tests.log. Keine Gesamtsuite oder neue APK.

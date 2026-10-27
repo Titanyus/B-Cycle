@@ -33,7 +33,6 @@ internal object FitRead {
             when (message.num) {
                 0 -> value("time_created")?.let { date = (it * 1000 + 631065600000L).toLong() }
                 20 -> {
-                    recordSeen?.invoke(message)
                     count++; require(count <= 600_000) { "FIT enthält zu viele Messpunkte" }
                     val stamp = value("timestamp")?.let { (it * 1000 + 631065600000L).toLong() }
                     if (stamp != null) { first = minOf(first ?: stamp, stamp); last = maxOf(last ?: stamp, stamp) }
@@ -56,7 +55,9 @@ internal object FitRead {
                 }
             }
         }
-        require(file.inputStream().buffered().use { Decode().read(it, listener) }) { "FIT-Datei kann nicht gelesen werden" }
+        val joined=FitRecordJoiner(listener,recordSeen)
+        require(file.inputStream().buffered().use { Decode().read(it, joined) }) { "FIT-Datei kann nicht gelesen werden" }
+        joined.flush()
         if (hasDistance) distance = sessionDistance
         if (hasDuration) duration = sessionDuration
         val points = track.points.toList()

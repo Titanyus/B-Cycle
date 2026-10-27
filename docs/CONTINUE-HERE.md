@@ -1,3 +1,9 @@
+# Aktueller Stand27.10.2026 nachBuild92: Bosch-Flow-Teilrecords beim FIT-Import
+
+Umgesetzt: Garmin-Decoder liest gültigesBoschFIT, Position/Fahrdaten liegen aber in getrennten Records gleichenZeitstempels. FitRecordJoiner verbindet nur ergänzende benachbarteRecords gleicherZeit, überschreibt keine Überschneidungen, gibt vorEreignissen/andererZeit aus und hält nur eineNachricht. GemeinsameLeseschicht inFitRead/RouteAnalysisRead, Rohrecord-Counter/600000Limit/rawCallback/CRC/Originalbytes erhalten. Vorschau/Karte/Detailverläufe/Distanzachse funktionieren. FitLibrary-indexVersion2 liest einmal ältere bisherkartenlose vorhandeneFITs neu; IDs/Titel/Herkunft/Datum/Bytes erhalten, keineReimporte. Andere vorhandeneMetadatenreparaturen erhalten. Details docs/fit.md.
+
+24gezielteTests grün:4 neuesynthetischeTeilrecordfälle,6FitLibrary,7RouteAnalysis,6FitWriter plus1temporärerOriginaldateitest. PrivateOriginaldatei nichtinsRepo; temporärenOriginaltest nach erfolgreicherPrüfung nach /workspace/.tools/bosch-fit-review verschoben, dauerhafteTests ausschließlichsynthetisch. Originalhash bestätigt, tatsächlicheKarte undDetails nutzbar. Log /workspace/.tools/bosch-fit-review/tests.log. KeineGesamtsuite; Typografie/UI-Katalog/Diff erfolgreich. Noch keineAPK hierfürbeauftragt; letzteAPK0.8.52/Build92. Vorherige3Layoutänderungen weiterhinenthalten, separatcommittet undvierTests grün (sieheVerlauf). KeineANT-Anbindung beauftragt.
+
 # Aktueller Stand27.10.2026 nachBuild92: Sticky-Anheftung und kompakte Seitenanordnung
 
 Abgeschlossen: Glow-Sticky-Header heften bündig am Hauptheader an; normaler8dp-Anfangsabstand bleibt und scrollt weg. Flat, Rundungen/Push und native Gesten unverändert. Wartung beginnt mit Fahrrädern, Abrufbutton+Zeitstempel+Infostatus danach am Seitenende. Dreeve-Importdialog „Fahrräder zuordnen“ erhält nach Infotext/vor erster Gruppe sectionDivider; ohneGear kein Trenner. Keine fachlichen Änderungen/neuen Einstellungen.

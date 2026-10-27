@@ -143,7 +143,9 @@ internal object RouteAnalysisRead {
                 21 -> if (number(message, "event") == 0.0) builder.timer(number(message, "timestamp"), number(message, "event_type"))
             }
         }
-        require(file.inputStream().buffered().use { Decode().read(it, listener) })
+        val joined=FitRecordJoiner(listener)
+        require(file.inputStream().buffered().use { Decode().read(it, joined) })
+        joined.flush()
         val points = track.points.toList()
         val route = points.takeIf { it.zipWithNext().any { pair -> !pair.second.segmentStart } }?.let { GpxRoute(it, it.size, it.count { p -> p.segmentStart }) }
         return builder.finish(route)
