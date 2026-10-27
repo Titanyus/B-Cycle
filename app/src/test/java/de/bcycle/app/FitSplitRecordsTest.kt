@@ -79,6 +79,21 @@ class FitSplitRecordsTest {
             assertNull(FitRead.read(indoor).route)
         } finally { root.deleteRecursively() }
     }
+    @Test fun telemetryBetweenSlowerGpsUpdatesDoesNotBreakMapOrNativeSpeedTime() {
+        val root=Files.createTempDirectory("slow-gps-fit").toFile()
+        try {
+            val file=java.io.File(root,"different-rates.fit");val encoder=FileEncoder(file,Fit.ProtocolVersion.V2_0)
+            try {
+                for(i in 0..60) { if(i%2==0) encoder.write(gps(i));encoder.write(telemetry(i)) }
+            } finally { encoder.close() }
+            val read=FitRead.read(file);assertNotNull(read.route);assertEquals(1,read.route!!.segments)
+            assertEquals(60000L,read.details.movingMs)
+            val analysis=RouteAnalysisRead.read(file,ManagedRoute("id","Fahrt",false,"FIT",read.details,true))
+            assertEquals(1,analysis.route!!.segments)
+            assertEquals(60.0,analysis.metrics.getValue(AnalysisMetric.MOVING),.001)
+            assertEquals(36.0,analysis.metrics.getValue(AnalysisMetric.AVG_SPEED),.001)
+        } finally { root.deleteRecursively() }
+    }
     @Test fun existingMissingMapIsRepairedOnceWithoutChangingIdNameDateOriginOrBytes() {
         val root=Files.createTempDirectory("split-index").toFile()
         try {
@@ -92,7 +107,7 @@ class FitSplitRecordsTest {
             assertTrue(repaired.hasRoute);assertEquals(entry.id,repaired.id);assertEquals(entry.name,repaired.name)
             assertEquals(entry.origin,repaired.origin);assertEquals(entry.details.dateMs,repaired.details.dateMs)
             assertArrayEquals(bytes,reopened.originalFile(entry.id).readBytes())
-            assertEquals(2,JSONObject(index.readText()).getInt("detailsVersion"))
+            assertEquals(3,JSONObject(index.readText()).getInt("detailsVersion"))
         } finally { root.deleteRecursively() }
     }
 }

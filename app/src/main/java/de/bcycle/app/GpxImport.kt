@@ -9,7 +9,7 @@ data class GpxRoute(val points: List<MapPoint>, val originalPoints: Int, val seg
                     val distanceM: Double? = null, val durationMs: Long? = null, val ascentM: Double? = null, val movingMs: Long? = null)
 
 internal data class GpxMeasurement(val point:MapPoint,val time:Long?,val height:Double?,val speed:Double?,
-    val power:Double?,val cadence:Double?,val heart:Double?,val temperature:Double?)
+    val power:Double?,val cadence:Double?,val heart:Double?,val temperature:Double?,val intervalSpeed:Double?=speed)
 
 /** Streaming parser: bounded input, points, nesting and segments; no external entities. */
 object GpxImport {
@@ -32,7 +32,7 @@ object GpxImport {
         var total = 0; var segments = 0; var start = true
         var root = false; var trackDepth = -1; var segmentDepth = -1; var routeDepth = -1
         var pointDepth = -1; var firstTime: Long? = null; var lastTime: Long? = null
-        val moving = MovingTime(); var pointTime: Long? = null; var previousPointTime: Long? = null
+        val moving = MovingTime();val motion=GpxMotion(); var nativeSpeed:Double?=null; var pointTime: Long? = null; var previousPointTime: Long? = null
         var previousPoint: MapPoint? = null
         val elevation = RouteElevation(); var pointHeight: Double? = null; var heightStart = false
         var extensionDepth=-1;var garminDepth=-1
@@ -63,7 +63,7 @@ object GpxImport {
                     if (start) { segments++; require(segments <= 1_000) { "GPX enthält zu viele Abschnitte" } }
                     points.add(MapPoint(lat, lon, start)); heightStart = start; pointHeight = null; pointTime = null; start = false
                     pointDepth = parser.depth;extensionDepth=-1;garminDepth=-1
-                    power=null;cadence=null;heart=null;temperature=null
+                    power=null;cadence=null;heart=null;temperature=null;nativeSpeed=null
                 } else if(name=="extensions" && pointDepth>0 && parser.depth==pointDepth+1) {
                     extensionDepth=parser.depth
                 } else if(name=="TrackPointExtension" && extensionDepth>0 && parser.depth==extensionDepth+1 && parser.namespace in garminNamespaces) {
@@ -77,6 +77,8 @@ object GpxImport {
                         "cad"->cadence=value?.takeIf { it in 0.0..254.0 }
                         "atemp"->temperature=value?.takeIf { it in -100.0..100.0 }
                     }
+                } else if(name=="speed" && pointDepth>0 && parser.depth==pointDepth+1 && parser.namespace in setOf("","http://www.topografix.com/GPX/1/0")) {
+                    nativeSpeed=parser.nextText().toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..35.0 }
                 } else if (name == "ele" && pointDepth > 0 && parser.depth == pointDepth + 1) {
                     pointHeight = parser.nextText().toDoubleOrNull()
                 } else if (name == "time" && pointDepth > 0 && parser.depth == pointDepth + 1) {
@@ -92,13 +94,15 @@ object GpxImport {
                         elevation.add(pointHeight, heightStart)
                         val current = points.last()
                         val dt = pointTime?.let { stamp -> previousPointTime?.let { stamp - it } }
-                        val speed = if (!heightStart && dt != null && dt > 0 && previousPoint != null)
+                        val intervalSpeed = if (!heightStart && dt != null && dt > 0 && previousPoint != null)
                             routeDistance(listOf(previousPoint!!, current)) * 1000 / dt else null
+                        val sample=GpxMeasurement(current,pointTime,pointHeight,nativeSpeed,power,cadence,heart,temperature,intervalSpeed)
+                        val speed=motion.speed(sample)
                         // A segment's first point establishes time only; no cross-segment movement.
                         if (heightStart) moving.add(null, null)
                         moving.add(pointTime, speed ?: if (heightStart && pointTime != null) 0.0 else null)
                         observed?.invoke(current, pointTime, pointHeight, speed)
-                        samples?.invoke(GpxMeasurement(current,pointTime,pointHeight,speed,power,cadence,heart,temperature))
+                        samples?.invoke(sample.copy(speed=speed))
                         previousPointTime = pointTime; previousPoint = current; pointDepth = -1
                     }
                     "trk" -> if (parser.depth == trackDepth) trackDepth = -1

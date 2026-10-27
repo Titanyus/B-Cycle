@@ -53,11 +53,11 @@ internal class FitLibrary(root: File) {
         if (index.baseFile.exists() || File(index.baseFile.path + ".bak").exists()) {
             val json = index.openRead().bufferedReader().use { JSONObject(it.readText()) }
             val refreshMetadata=json.optInt("detailsVersion",0)<1
-            val recoverSplitRecords=json.optInt("detailsVersion",0)<2
+            val recoverSplitRecords=json.optInt("detailsVersion",0)<3
             val array = json.getJSONArray("entries")
             val missingAscent = mutableSetOf<String>()
             entries = List(array.length()) { i -> val item = array.getJSONObject(i)
-                if ((recoverSplitRecords && !item.getBoolean("hasRoute")) || refreshMetadata || !item.getJSONObject("details").has("moving") || !item.getJSONObject("details").has("bikeType")) missingAscent += item.getString("id")
+                if (recoverSplitRecords || refreshMetadata || !item.getJSONObject("details").has("moving") || !item.getJSONObject("details").has("bikeType")) missingAscent += item.getString("id")
                 val origin = if (item.has("origin")) runCatching { TrackOrigin.valueOf(item.getString("origin")) }.getOrDefault(TrackOrigin.UNKNOWN)
                     else if (item.opt("recorded") is Boolean) { if (item.getBoolean("recorded")) TrackOrigin.RECORDED else TrackOrigin.IMPORTED }
                     else TrackOrigin.UNKNOWN
@@ -193,7 +193,7 @@ internal class FitLibrary(root: File) {
         val array = JSONArray()
         next.forEach { array.put(JSONObject().put("id", it.id).put("name", it.name).put("recorded", it.recorded)
             .put("origin", it.origin.name).put("details", it.details.json()).put("hasRoute", it.hasRoute)) }
-        val bytes = JSONObject().put("detailsVersion",2).put("entries", array).put("excluded", JSONArray(excluded.toList()))
+        val bytes = JSONObject().put("detailsVersion",3).put("entries", array).put("excluded", JSONArray(excluded.toList()))
             .put("seenDownloads", JSONArray(seenDownloads.toList())).toString().toByteArray()
         val stream = index.startWrite()
         try { stream.write(bytes); index.finishWrite(stream) } catch (e: Exception) { index.failWrite(stream); throw e }

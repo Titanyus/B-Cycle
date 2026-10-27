@@ -132,12 +132,14 @@ internal object RouteAnalysisRead {
                     val lat = v("position_lat")?.times(180.0 / 2147483648.0)
                     val lon = v("position_long")?.times(180.0 / 2147483648.0)
                     val point = if (lat != null && lon != null && lat in -85.05112878..85.05112878 && lon in -180.0..180.0) MapPoint(lat, lon) else null
-                    track.append(RideSample(time ?: 0, time ?: 0, point?.latitude, point?.longitude))
+                    val positionObserved=message.getField("position_lat")!=null || message.getField("position_long")!=null
+                    if(positionObserved) track.append(RideSample(time ?: 0, time ?: 0, point?.latitude, point?.longitude))
                     builder.record(time, v("distance") ?: dev("GPS_DISTANCE", "m") ?: dev("BIKE_DISTANCE", "m"), point,
                         v("enhanced_speed") ?: v("speed") ?: dev("SPEED", "m/s") ?: dev("GPS_SPEED", "m/s"),
                         v("power") ?: dev("RIDER_POWER", "W"), v("cadence") ?: dev("CADENCE", "rpm") ?: dev("CADENCE", "U/min"),
                         v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("PRIMARY_HEIGHT","m") ?: dev("GPS_ALTITUDE", "m"),
-                        v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"), dev("SPEED", "m/s"),FitDeveloperValues.number(message,"BATTERY_TEMPERATURE","°C",signed=true))
+                        v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"), dev("SPEED", "m/s"),FitDeveloperValues.number(message,"BATTERY_TEMPERATURE","°C",signed=true),positionObserved=positionObserved,
+                        speedObserved=message.getField("speed")!=null || message.getField("enhanced_speed")!=null || dev("SPEED","m/s")!=null || dev("GPS_SPEED","m/s")!=null)
                 }
                 18, 19 -> builder.summary(message, message.num == 18)
                 21 -> if (number(message, "event") == 0.0) builder.timer(number(message, "timestamp"), number(message, "event_type"))
@@ -171,7 +173,7 @@ internal object RouteAnalysisRead {
         val rideMeans = RideAnalysisMeans()
         var count = 0; var firstTime: Long? = null; var lastTime: Long? = null
         var previousRecordTime: Long? = null
-        var previous: MapPoint? = null; var geoDistance = 0.0; var nativeStart: Double? = null
+        var previous: MapPoint? = null;var previousPositionTime:Long?=null; var geoDistance = 0.0; var nativeStart: Double? = null
         var distanceMax = 0.0; var distanceCount = 0; var lastDistance: Double? = null; var invalidDistance = false
         var nativeDistanceMode: Boolean? = null
         val maxima = mutableMapOf<AnalysisMetric, Double>()
@@ -194,17 +196,19 @@ internal object RouteAnalysisRead {
                 performance.accept(PerformanceEvent(if (kind == 0.0) PerformanceChannel.RESUME else PerformanceChannel.PAUSE, time))
             }
         }
-        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null,batteryTemperature:Double?=null) {
+        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null,batteryTemperature:Double?=null,positionObserved:Boolean=true,speedObserved:Boolean=true) {
             count++; require(count <= 600_000)
             val stamp = time?.takeIf { firstTime == null || it >= (lastTime ?: it) }
             if (stamp != null) { if (firstTime == null) firstTime = stamp; lastTime = stamp }
             weather.add(stamp,point)
             val seconds = stamp?.let { (it - firstTime!!) / 1000.0 }
             val dataGap = stamp != null && previousRecordTime != null && stamp - previousRecordTime!! > 10_000
-            val timeGap = stamp != null && previousRecordTime != null && stamp - previousRecordTime!! > 5_000
-            if (point != null && previous != null && !point.segmentStart && !timeGap) geoDistance += routeDistance(listOf(previous!!, point))
+            if(positionObserved) {
+                val positionGap=stamp!=null && previousPositionTime!=null && stamp-previousPositionTime!! !in 0..5_000
+                if(point!=null && previous!=null && !point.segmentStart && !positionGap) geoDistance+=routeDistance(listOf(previous!!,point))
+                previous=point;previousPositionTime=stamp
+            }
             previousRecordTime = stamp
-            previous = point
             val native = nativeDistance?.takeIf { it.isFinite() && it >= 0 }
             if (nativeDistanceMode == null && (native != null || point != null)) {
                 nativeDistanceMode = native != null; nativeStart = native
@@ -222,7 +226,7 @@ internal object RouteAnalysisRead {
             val s = valid(speed, 0.0..35.0); val p = valid(power, 0.0..65535.0)
             val c = valid(rpm, 0.0..254.0); val h = valid(heart, 1.0..254.0); val a = valid(altitude, -500.0..10000.0)
             zones.add(stamp, distance, p, h, point?.segmentStart == true)
-            c?.let(cadence::add); moving.add(stamp, s)
+            c?.let(cadence::add); if(speedObserved) moving.add(stamp, s)
             rideMeans.add(stamp, p, valid(motor, 0.0..65535.0), valid(battery, 0.0..100.0))
             elevation.add(a, point?.segmentStart == true)
             listOf(AnalysisMetric.MAX_SPEED to s?.times(3.6), AnalysisMetric.MAX_POWER to p,
@@ -232,6 +236,7 @@ internal object RouteAnalysisRead {
             val readings = mapOf(AnalysisChart.SPEED to s?.times(3.6), AnalysisChart.CADENCE to c,
                 AnalysisChart.POWER to p, AnalysisChart.HEART to h, AnalysisChart.ELEVATION to a)
             readings.forEach { (chart, value) ->
+                if(chart==AnalysisChart.SPEED && !speedObserved) return@forEach
                 val buffer = buffers.getValue(chart)
                 if (dataGap || point?.segmentStart == true) buffer.add(AnalysisPoint(distance, seconds, null))
                 buffer.add(AnalysisPoint(distance, seconds, value))
@@ -247,7 +252,7 @@ internal object RouteAnalysisRead {
                 // The central engine still expires it when bike telemetry becomes stale.
                 if (powerSource!=PowerSource.BOSCH_RIDER || p != null || performance.latestPower?.watts != 0.0)
                     performance.accept(PerformanceEvent(PerformanceChannel.POWER, at, p, source = powerSource.name))
-                performance.accept(PerformanceEvent(PerformanceChannel.SPEED, at, s, source = "FIT"))
+                if(speedObserved) performance.accept(PerformanceEvent(PerformanceChannel.SPEED, at, s, source = "FIT"))
                 performance.accept(PerformanceEvent(PerformanceChannel.HEART_RATE, at, h, source = "FIT"))
             }
         }

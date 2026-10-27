@@ -9,7 +9,7 @@ import kotlin.math.roundToLong
  * pause events and derived summaries. No synthetic samples or invented timestamps.
  */
 internal object GpxActivityFit {
-    const val VERSION="gpx-activity-v1-stationary-pauses"
+    const val VERSION="gpx-activity-v2-windowed-speed"
     fun write(source:File,destination:File,entry:StoredGpx,type:BikeType?) {
         val details=entry.details.copy(bikeType=type)
         val analysis=RouteAnalysisRead.read(source,ManagedRoute(entry.id,entry.name,false,"GPX",details,true,entry.origin))

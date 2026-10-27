@@ -15,7 +15,7 @@
     <string name="help_profiles_heading">Profile</string>
     <string name="help_profiles_body">Ein Profil bündelt Fahrrad, Sensorzuordnungen, Aufzeichnung, Karten und Design. Beim Profilwechsel werden die passenden Einstellungen geladen. Fahrerprofil, Benachrichtigungen und Uploadkonten bleiben global. Autostart der Aufnahme startet bei geöffneter App, sobald das E-Bike oder der Indoor-Trainer verbunden ist – auch wenn das Rad beim Appstart schon eingeschaltet war. Eine laufende HRV-Messung hat Vorrang; es wird kein Start für danach vorgemerkt. Standardmäßig ausgeschaltet, je Profil gespeichert.</string>
     <string name="help_routes_heading">Strecken</string>
-    <string name="help_routes_body">Hier findest du aufgezeichnete und importierte Fahrten sowie geplante Strecken. Filter helfen bei der Auswahl. Tippe eine Fahrt für ihre Auswertung an.</string>
+    <string name="help_routes_body">Hier findest du aufgezeichnete und importierte Fahrten sowie geplante Strecken. Filter helfen bei der Auswahl. Tippe eine Fahrt für ihre Auswertung an. Bei GPX ohne gemessene Geschwindigkeit werden Tempo und Fahrtzeit aus den Positionsdaten geschätzt; unregelmäßige Updates werden dabei geglättet.</string>
     <string name="help_notifications_heading">Benachrichtigungen</string>
     <string name="help_notifications_body">Lass ausgewählte Android-Benachrichtigungen länger auf dem Dashboard anzeigen. Zugriff, Apps, Position und Anzeigedauer legst du auf dieser Seite fest.</string>
     <string name="help_data_heading">Daten &amp; Speicher</string>

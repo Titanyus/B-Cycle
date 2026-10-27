@@ -11,7 +11,7 @@ internal class GpxPauseInference {
         val before=previous;previous=sample
         val start=before?.time ?: return null;val end=sample.time ?: return null
         if(end-start<=PerformanceEngine.MAX_HOLD_MS || before.power!=0.0 || before.cadence!=0.0) return null
-        val speed=sample.speed ?: return null
+        val speed=sample.intervalSpeed ?: return null
         if(speed>=.7 || routeDistance(listOf(before.point,sample.point.copy(segmentStart=false)))>20.0) return null
         return Gap(start,end)
     }

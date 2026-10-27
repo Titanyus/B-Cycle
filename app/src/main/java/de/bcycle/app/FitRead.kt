@@ -36,14 +36,18 @@ internal object FitRead {
                     count++; require(count <= 600_000) { "FIT enthält zu viele Messpunkte" }
                     val stamp = value("timestamp")?.let { (it * 1000 + 631065600000L).toLong() }
                     if (stamp != null) { first = minOf(first ?: stamp, stamp); last = maxOf(last ?: stamp, stamp) }
-                    moving.add(stamp, value("enhanced_speed") ?: value("speed")
-                        ?: FitDeveloperValues.number(message,"SPEED","m/s") ?: FitDeveloperValues.number(message,"GPS_SPEED","m/s"))
+                    val speed=value("enhanced_speed") ?: value("speed")
+                        ?: FitDeveloperValues.number(message,"SPEED","m/s") ?: FitDeveloperValues.number(message,"GPS_SPEED","m/s")
+                    // Pure position/other telemetry rows do not invalidate a native speed sample.
+                    if(speed!=null || message.getField("speed")!=null || message.getField("enhanced_speed")!=null) moving.add(stamp,speed)
                     val lat = value("position_lat")?.times(180.0 / 2147483648.0)
                     val lon = value("position_long")?.times(180.0 / 2147483648.0)
                     val valid = lat != null && lon != null && lat in -85.05112878..85.05112878 && lon in -180.0..180.0
-                    elevation.add(if (valid) value("enhanced_altitude") ?: value("altitude") else null)
+                    if(message.getField("enhanced_altitude")!=null || message.getField("altitude")!=null)
+                        elevation.add(value("enhanced_altitude") ?: value("altitude"))
                     if (valid) positions++
-                    track.append(RideSample(stamp ?: 0, stamp ?: count * 1000L, if (valid) lat else null, if (valid) lon else null))
+                    if(message.getField("position_lat")!=null || message.getField("position_long")!=null)
+                        track.append(RideSample(stamp ?: 0, stamp ?: count * 1000L, if (valid) lat else null, if (valid) lon else null))
                     (value("distance") ?: FitDeveloperValues.number(message,"GPS_DISTANCE","m")
                         ?: FitDeveloperValues.number(message,"BIKE_DISTANCE","m"))?.takeIf { it >= 0 }?.let { distance = maxOf(distance ?: 0.0, it) }
                 }
