@@ -6,6 +6,7 @@
     <string name="route_filter_bike_type">Radtyp</string>
     <string name="route_filter_bike">Fahrrad</string>
     <string name="route_filter_unknown_bike">Ohne Zuordnung</string>
+    <string name="route_filter_displayed">Auf Karte angezeigt</string>
     <string name="route_filter_date">Datum</string>
     <string name="route_filter_distance">Distanz (km)</string>
     <string name="route_filter_moving">Bewegungszeit</string>

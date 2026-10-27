@@ -13,6 +13,19 @@ class RouteQueryTest {
             if(imported) TrackOrigin.IMPORTED else TrackOrigin.RECORDED)
     private val entries=listOf(route("a","2026-10-18",BikeType.EBIKE,30.0,1.0),route("b","2026-10-19",BikeType.INDOOR,50.0,2.0),
         route("c","2026-10-17",BikeType.BIKE,10.0,1.0,true),route("missing","2026-10-16",null,null,null))
+    @Test fun displayedFilterUsesActualVisibleRouteCombinesWithOthersAndResets() {
+        val q=RouteQuery();q.displayedOnly=true
+        assertEquals(listOf("b"),q.apply(entries,{null},zone,displayedId="b").map { it.id })
+        assertTrue(q.apply(entries,{null},zone,displayedId=null).isEmpty())
+        q.bikeTypes=setOf(BikeType.EBIKE)
+        assertTrue(q.apply(entries,{null},zone,displayedId="b").isEmpty())
+        q.bikeTypes=emptySet()
+        assertEquals(setOf(BikeType.INDOOR),q.availability(entries,{null},zone,displayedId="b").bikeTypes)
+        assertEquals(1,q.activeCount)
+        q.sort=RouteSort.DISTANCE;q.clearFilters()
+        assertFalse(q.displayedOnly);assertEquals(0,q.activeCount);assertEquals(RouteSort.DISTANCE,q.sort)
+        assertEquals(entries.size,q.apply(entries,{null},zone).size)
+    }
     @Test fun independentGroupsCombineWhileKindsAndBikesAllowMultipleSelectionsAndUnknownAssignments() {
         val q=RouteQuery();q.bikeTypes=setOf(BikeType.EBIKE,BikeType.INDOOR)
         q.bikes=setOf(2);assertEquals(listOf("a"),q.apply(entries,{ if(it=="a") 2 else null },zone).map { it.id })

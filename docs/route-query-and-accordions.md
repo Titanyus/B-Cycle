@@ -22,7 +22,7 @@ Filter und Sortierung verwenden normale Accordion-Buttons wie die Dashboard-Feld
 
 Streckenart: unabhängig schaltbare Segmente im Stil der Trainingshilfe, keine erzwungene Einfachauswahl. Keine Auswahl bedeutet alle. Fahrräder: mehrfache Auswahl über Profilkacheln in drei Spalten, zusätzliche Auswahl Ohne Zuordnung erhalten.
 
-Distanz, Bewegungszeit und Geschwindigkeit kombinieren native schmale Zahleneingaben mit einem gemeinsamen Zwei-Griff-Slider. Schritte 0,1 km / eine Minute / 0,1 km/h; Skala aus den vollständigen vorhandenen Fahrten, nach oben auf 10 km / eine Stunde / 5 km/h gerundet. Ohne Fahrtdaten 100 km / 8 h / 50 km/h. Größere gültige Texteingaben erweitern die Skala; ungültige Entwürfe verändern keine gültige Query. Slider und Felder synchron, keine kreuzenden Griffe. Tastatur und getrennte Accessibility-Aktionen für beide Griffe. Keine neue Datenaufzeichnung oder Statistik.
+Distanz, Bewegungszeit und Geschwindigkeit kombinieren native schmale Zahleneingaben mit einem gemeinsamen Zwei-Griff-Slider. Schritte ab 0.8.54: 5 km / fünf Minuten / 5 km/h; Skala aus den vollständigen vorhandenen Fahrten, nach oben auf 10 km / eine Stunde / 5 km/h gerundet. Ohne Fahrtdaten 100 km / 8 h / 50 km/h. Größere gültige Texteingaben erweitern die Skala; ungültige Entwürfe verändern keine gültige Query. Slider und Felder synchron, keine kreuzenden Griffe. Tastatur und getrennte Accessibility-Aktionen für beide Griffe. Keine neue Datenaufzeichnung oder Statistik.
 
 ## Korrigierte Dropdown-Hierarchie nach 0.8.8 (19.10.2026)
 
@@ -45,3 +45,9 @@ Die vorige rahmenlose Segmentdarstellung wird durch den zentralen Helfer Bicycle
 RouteQuery.availability bestimmt aus dem vollständigen Fahrtenbestand, welche Herkunftsarten, Radtypen und Profilzuordnungen unter den übrigen Filtern vorkommen. Die jeweils eigene Gruppe wird dabei ignoriert, damit Mehrfachauswahl erweitert werden kann. Datum, Distanz, Bewegungszeit und Geschwindigkeit wirken bei dieser Prüfung mit. Das Prädikat wird mit der normalen Ergebnisliste geteilt; für Verfügbarkeit wird nicht sortiert und die Query nicht verändert. Profilzuordnungen pro geöffnetem Filterfenster zwischenspeichern.
 
 Nur die Optionen der ersten drei Gruppen werden bei fehlenden Treffern deaktiviert und gedimmt. Ausgewählte Optionen bleiben immer bedienbar, auch bei null Treffern. Auswahl niemals automatisch entfernen. Datums-/Bereichsgruppen, Slider und Gruppenöffner bleiben jederzeit aktiv. „Ohne Zuordnung“ wird wie ein weiteres Profil geprüft. Nach gültigen Eingabeänderungen und vor dem Öffnen eines Unterfensters aktualisieren.
+
+## Kartenfilter und gröberes Raster ab 0.8.54
+
+Im Streckenmanager steht vor Datum ein unabhängig umschaltbarer Button „Auf Karte angezeigt“. Er filtert auf die tatsächlich sichtbare Strecke, nicht nur auf eine geladene, ausgeblendete Strecke. Ohne sichtbare Strecke bleibt die Ergebnisliste bei aktivem Button leer. Kombination mit anderen Filtern, Verfügbarkeitsberechnung und Zurücksetzen sind integriert. Dreeve-/Archivimport bekommen keinen Kartenfilter.
+
+Die drei Bereichsslider verwenden 5 km, 5 km/h und fünf Minuten als Schritte; direkte Texteingaben bleiben unverändert möglich. Zwölf gezielte Modell-/UI-Prüfungen erfolgreich, einschließlich Schrittraster und Accessibility.

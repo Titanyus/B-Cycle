@@ -21,6 +21,33 @@ class RouteQueryUiTest {
     private fun layout(v:View,w:Int=360,h:Int=800) {
         v.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));v.layout(0,0,w,h)
     }
+    @Test fun displayedButtonPrecedesDateAndFilterSlidersUseFiveUnitSteps() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0));val query=RouteQuery()
+            val anchor=Button(a);a.setContentView(anchor);layout(anchor)
+            val popup=RouteQueryPopup(a,themes,DialogNavigation(),query,displayed={"shown"}) {}
+            popup.filters {};popup.show(anchor);shadowOf(Looper.getMainLooper()).idle();layout(popup.contentView,320,popup.height)
+            val button=popup.contentView.findViewWithTag<CompoundButton>("route_filter_displayed")
+            val date=popup.contentView.findViewWithTag<View>("route_query_group_${R.string.route_filter_date}")
+            assertSame(button.parent,date.parent)
+            val parent=button.parent as ViewGroup
+            assertEquals(parent.indexOfChild(date)-1,parent.indexOfChild(button))
+            button.performClick();assertTrue(query.displayedOnly);assertTrue(button.isChecked)
+            button.performClick();assertFalse(query.displayedOnly)
+            for((title,step) in listOf(R.string.route_filter_distance to 5.0,R.string.route_filter_speed to 5.0,R.string.route_filter_moving to 5.0/60)) {
+                popup.contentView.findViewWithTag<View>("route_query_group_$title").performClick()
+                val slider=popup.groupPopup!!.contentView.findViewWithTag<BicycleRangeSlider>("route_range_slider_$title")
+                slider.accessibilityNodeProvider!!.performAction(0,android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_FORWARD,null)
+                val range=when(title) { R.string.route_filter_distance->query.distance;R.string.route_filter_speed->query.speed;else->query.moving }
+                assertEquals(step,range.from!!,.000001)
+                val args=android.os.Bundle().apply { putFloat(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE,(step*2.4).toFloat()) }
+                slider.accessibilityNodeProvider!!.performAction(0,android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS.id,args)
+                assertEquals(step*2,slider.lower,.000001)
+            }
+            popup.dismiss()
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun sixBikesUseThreeColumnsAndRangeHandlesCannotCross() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

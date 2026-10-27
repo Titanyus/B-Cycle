@@ -1,3 +1,7 @@
+# APK-Fortsetzung 27.10.2026: Kartenfilter und 5er-Raster abgeschlossen
+
+Nutzer hat neue APK nach diesen Änderungen ausdrücklich beauftragt. Version0.8.54/Code124 bleibt; Build94/40516634288 wurde auf vorherigen Nutzerwunsch bestätigt abgebrochen. Nächster automatischer Lauf voraussichtlich95, bei Push prüfen. Neue Änderungen: Streckenmanager-Button „Auf Karte angezeigt“ vor Datum, tatsächlich sichtbare ausgewählte Strecke, mit übrigen Filtern kombinierbar/resetbar. Bereichsslider5km/5kmh/5min; manuelle Eingaben unverändert. Zwölf gezielte Fälle grün (RouteQueryTest7, RouteQueryUiTest5), Log /workspace/.tools/route-map-filter-grid-tests.log. Typografie/Katalog/Diff geprüft. Alle Änderungen seit Build93 enthalten, siehe release-0.8.54.md. Keine lokale APK/Gesamtsuite nötig. Ein automatischer Actions-Build, danach Artefakt prüfen und direkt veröffentlichen.
+
 # Nutzerpause: APK-Build noch nicht fortsetzen
 
 Nutzer hat nach Start des Release-Pushs ausdrücklich weitere kleine Änderungen angekündigt und „warte mit dem Build noch“ angeordnet. Quellstand e2513659df7c422f082357a037f4a961fdbeebce ist bereits auf main, Version0.8.54/Code124 vorbereitet. Automatischen Actions-Lauf94/40516634288 noch während queued per gh run cancel gestoppt. Keine APK veröffentlicht und keinen weiteren Build starten, bis Nutzer die Fortsetzung beauftragt. Nächster tatsächlicher Lauf erhält voraussichtlich Build95; Nummer vor späterem Build prüfen, Version0.8.54 kann bleiben. Zuletzt veröffentlicht bleibt0.8.53/Build93.
