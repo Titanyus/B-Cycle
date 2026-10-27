@@ -1,35 +1,27 @@
-# Streckendetails: zeitgewichtete Verteilungskurven
+# Streckendetails: zeitgewichtete Zonen-Histogramme
 
-Unter den bisherigen Streckenverlaufsdiagrammen folgen zwei native, ungefähr quadratische Diagramme (jeweils volle verfügbare Inhaltsbreite, untereinander): Leistung und Puls. Die bestehenden Strecken-Zonenbalken bleiben unverändert distanzgewichtet.
+Unter den bisherigen Streckenverlaufsdiagrammen folgen zwei native quadratische Diagramme: Leistung und Puls. Seit der Änderung nach Build93 ersetzen feine Balken die bisherige geglättete Kurve und deren farbigen Hintergrund. Die fünf Verlaufsgrafiken darüber und die bestehenden distanzgewichteten Zonenbalken bleiben unverändert.
 
-## Daten
+## Daten und Einteilung
 
-Die neue Kurve zeigt den **Zeitanteil pro Messwertbereich**, nicht den zeitlichen Verlauf und nicht den Streckenanteil. Derselbe Streaming-Detail-Lader und dieselben gültigen Intervalle wie bei den Zonenbalken liefern die Daten vor jeder Diagrammverdichtung. Es gibt keine neue Aufzeichnung und keine Änderungen an FIT, Sensoren oder Performance Engine.
+RouteZoneAccumulator verwendet dieselben bekannten Zeitintervalle wie zuvor (vorheriger gültiger Messwert, maximal fünf Sekunden; keine Überbrückung von Datenlücken, Pausen oder Segmentwechseln). Fehlende Messwerte werden nicht als null gewertet; echte null Watt bleiben erhalten. Der bestehende Integer-Histogramm-Akkumulator erhält die Zeiten, bevor die Diagrammdaten auf dem Bibliotheksworker reduziert werden. Keine Änderungen an Sensorwerten, FIT-Aufzeichnung, Importdateien oder gespeicherten Fahrtkennzahlen.
 
-Ein gültiger vorheriger Messwert gilt für das folgende Intervall von höchstens fünf Sekunden. Echte 0 W zählen mit. Fehlende Werte, Timer-Pausen, neue Segmente und längere Lücken werden nicht mit Null gefüllt oder überbrückt. Zeitverteilungen funktionieren auch ohne GPS oder verlässliche Distanzdaten. Leistung und Puls werden unabhängig ausgewertet; pro Kurve sind gültige Messintervalle und passende Profilzonen erforderlich. Fehlende Kurven entfallen.
+Verbindliche Nutzerentscheidung: **gleich breite Balken mit festen Watt-/bpm-Schritten, unterschiedlich viele Balken je Zone**. Standard 5 W bzw. 2 bpm, aus zentralen BicycleDesign-Tokens. Bei sehr großen Messspitzen wird die feste Schrittweite um ganze Basiseinheiten verbreitert, sodass höchstens128Balken entstehen. Achsengrenzen werden auf diese Schrittweite ausgerichtet; sämtliche Balken haben dieselbe numerische und sichtbare Breite. Die X-Achse bleibt linear. Keine Kurvenglättung und kein Verschieben der Zeitsummen zwischen Histogrammbereichen. Klassen berücksichtigen inklusive Leistungs-Obergrenzen und den maximalen Puls der letzten Zone, damit exakte Grenzwerte nicht fälschlich im anschließenden Zonenbereich erscheinen.
 
-Histogramme sind unabhängig von der Fahrtdauer begrenzt (Watt-/BPM-Buckets); im Ergebnis bleiben höchstens 128 Anzeigebuckets je Kurve. Glättung nur an dieser Darstellung: dezenter Fünf-Punkt-Filter in zwei Durchläufen, keine negativen Werte, Gesamtdauer bleibt erhalten. Die native Kurve verwendet quadratische, innerhalb ihrer Kontrollpunkte bleibende Übergänge. Keine künstliche Glockenkurve und kein Rückschluss von der Profilzone auf Messwerte.
+Leistung zeigt alle sieben Coggan-Zonen und die gemessenen Spitzen, mindestens bis175%FTP für ausreichend Platz in der offenen letzten Zone. Puls folgt der im Fahrerprofil eingestellten Methode und den Messspitzen. Werte außerhalb definierter Pulszonen bleiben als neutrale Balken sichtbar, statt als eine falsche Zone markiert zu werden.
 
 ## Darstellung
 
-Bekannte sieben Coggan- und fünf Karvonen-Zonen aus dem aktuellen Fahrerprofil, mit den vorhandenen semantischen Zonenfarben als vollständig deckende, einfarbige Hintergrundflächen. Keine Transparenz und kein Farbverlauf in den Zonenflächen; der transparente Verlauf bleibt ausschließlich in der weißen Kurvenfüllung. Am oberen Rand ausschließlich die Zahlen 1 … 7 beziehungsweise 1 … 5. Keine zusätzlichen Prozentangaben oder AVG-Marker. Seitliche Bezeichnung und X-Achsentexte verwenden die vorhandene Details-Typografie und Theme-Farben.
+Balken haben kleine Lücken und abgerundete Ecken. Ihre Höhe stellt die erfasste Zeit im jeweiligen Werteintervall dar, relativ zum höchsten Balken; fünf Prozent Platz oberhalb des Peaks. Die Werte- und Zeitverteilungen bleiben unmodifiziert.
 
-Die X-Achse deckt alle beobachteten Werte einschließlich des letzten Samples ab. Zusätzlich sind sämtliche Profilzonen sichtbar: Leistung ab 0 W mindestens bis 175 % FTP (Platz für offene Zone 7), Puls mindestens vom unteren Profilbereich bis zum Profil-Maximalpuls, bei Bedarf nach unten/oben erweitert. Achsengrenzen auf 5 Einheiten gerundet. Puls außerhalb der Profilzonen bleibt sichtbar, erhält aber keine falsche Zonenfarbe.
+Farben stammen ausschließlich aus der bestehenden gemeinsamen Leistungs-/Pulszonenpalette (ZoneGlowColors.powerColors / TrainingZoneColors.values). Harte Farbübergänge liegen exakt an den Profil-Zonengrenzen. Trifft eine Grenze einen Balken, ändert dieser genau dort seine Farbe; seine Breite bleibt gleich. Der verwendete Shader hat doppelte Stopppositionen und erzeugt keinen weichen Farbverlauf und keine Zwischenfarben.
 
-Weiße Hauptlinie, beide Leuchtsäume und transparente Verlaufsfüllung verwenden die vorhandenen `LiveGraphStyle`-Stärken/Deckkräfte. Pfade und Shader werden beim Größenwechsel vorbereitet; beim Scrollen keine erneute Auswertung oder Histogrammverarbeitung.
+Oberhalb stehen Z1…Z7 bzw. Z1…Z5 mit kurzen farbigen Linien. Feine gestrichelte senkrechte Linien trennen die echten Zonen zusätzlich. Seitenbeschriftung, Watt-/bpm-Skala, Theme-Typografie und ungefähr quadratische Größe bleiben. Darstellung in Flat und Glow identisch; neutrale Balken/Schrift folgen dem hellen/dunklen Theme, Zonenfarben bleiben semantisch gleich.
 
-Vorschau aus echten nativen Views mit reproduzierbaren **synthetischen Testdaten**, BLACK OPS: [Diagramme](previews/track-distributions.png).
+Balkengeometrie wird beim Größenwechsel gecacht, Farbstopps bei Größe/Theme aktualisiert. draw() verarbeitet keine Rohdaten, glättet nicht und erzeugt keine neue Histogramm-Auswertung. Speicher ist auf maximal128Balken und wenige Farbstopps begrenzt.
 
-Validierung: 37 gezielte Tests bestanden (Zeitgewichtung, Lücken/Nullwerte/Pausen, Skalierung und Zonenfarben, FIT-Wiedereinlesen, bestehende Details/Best Efforts/Zonenbalken, quadratische Hochformat-Layouts in allen Presets). Release-Kotlin-Kompilierung erfolgreich.
+## Nachweis
 
-## Lesbarkeit in hellen Einstellungen
+RouteValueDistributionTest prüft Zeitgewichtung, Lücken/Pausen, exakte Summe, feste Watt-/bpm-Breiten, Zonengrenzen, Messspitzen und begrenzte Größe. Native RouteDistributionViewTest-Fälle prüfen echte Balken/Lücken, Farbwechsel innerhalb eines Balkens, neutrale Werte, Themewechsel, Zonenmarkierungen und Hochformat-Größen in allen Theme-Presets. Keine echte Fahrt für Vorschauen verwendet.
 
-Im Hellmodus folgen Kurve, Leuchtsaum und transparenter Füllverlauf der dunklen, leicht getönten FOREGROUND-Textfarbe. So bleiben Puls- und Leistungsverteilung auch auf dem weißen Bereich unterhalb Z1 sichtbar. Im Dunkelmodus bleibt die bisherige weiße Kurve. Die deckenden Zonenfarben bleiben unverändert. Ein Themewechsel aktualisiert den gecachten Füllshader direkt, auch bei unveränderter Viewgröße. Histogramme und Fahrtdaten werden nicht neu verarbeitet oder verändert.
-
-Die fünf Verlaufsdiagramme darüber behalten dagegen in beiden Modi dieselben semantischen Farben aus der unprojizierten Basispalette. Die frühere Wahl sehr dunkler Varianten anhand des weißen Seitenhintergrunds entfällt dort. Flächenfüllung weiterhin 100 %.
-
-## Umgesetzt in 0.8: Kein Glow im hellen Design
-
-Nutzerwunsch vom 17.10.2026 nach Build 33, in Version 0.8 umgesetzt: Bei Leistungs- und Pulsverteilung auf der Streckendetailseite im Hellmodus die zusätzlichen Leuchtsaum-Striche entfernen. Hauptkurve in dunkler Textfarbe, transparenter Füllverlauf und Zonenbänder bleiben bestehen. Dunkelmodus und die fünf Verlaufsdiagramme bleiben unverändert. In Version 0.8 umgesetzt.
-
-23.10.2026: Linien-Glow jetzt auch im dunklen Design entfernt. Helle/dunkle Leistungs- und Pulszonen-Verteilungen zeichnen nur die Hauptlinie mit bisherigem Flächenverlauf, ohne die zwei breiten Halo-Striche. Farben, Glättung und Zonendaten unverändert.
+[Vorschau aus synthetischen Daten](previews/track-distributions.png).

@@ -1,3 +1,13 @@
+# Abschluss nach Build93: Leistungs-/Pulsverteilungen als Histogramme
+
+Nutzerauftrag umgesetzt und finale Präferenz berücksichtigt: gleich breite Balken mit festen Watt-/bpm-Schritten, unterschiedliche Balkenzahl je Zone, lineare Werteskala. Standard5W/2bpm; bei großen Peaks Basisschritte verbreitern fürmax128Balken. RouteTimeHistogram erhält bestehende Zeitgewichtung und liefert feste Klassen; keine Kurvenglättung. Inklusive Leistungs-Obergrenzen/finaler HR-Maximalwert gehören zum richtigen Intervall. Summen bleiben unverändert; keine Rohdaten/FIT-/Kennzahlenänderung.
+
+RouteDistributionView zeichnet gecachte schmale abgerundete Balken mit zentralen Zonenfarben und harten Shaderstopps an exakten Profilgrenzen (auch wenn diese einen Balken schneiden). Kein farbiger Plot-Hintergrund/keine weiße Kurve/keine Verlaufsfläche mehr. Oben Z1…Z7/Z1…Z5 und farbige Linien, feine gestrichelte vertikale Zonenteiler. Neutrale außerhalb-HR-Werte bleiben sichtbar. Flat/Glow identisch, helle/dunkle Themes berücksichtigt. Fünf Verlaufsgrafiken und bestehende distanzgewichtete Zonenbalken unverändert. Native synthetische Vorschau docs/previews/track-distributions.png aktualisiert; docs/track-value-distributions.md maßgeblich.
+
+Acht unterschiedliche gezielte Fälle erfolgreich: RouteValueDistributionTest5, RouteDistributionViewTest3. Logs /workspace/.tools/zone-histogram-tests.log (Modell grün), zone-histogram-native-final-tests.log (native3grün), zone-histogram-boundary-final-tests.log (4Modell+native1grün; alter noch kompilierter139/140-Klassenassert), zone-histogram-edge-verified-tests.log (finaler aktualisierterGrenzfallgrün). Native Vorschau zusätzlich zone-histogram-preview-tests.log. Unveränderte Zeitsummen, Nullwerte/Pausen/Lücken, gleich breite Klassen, exakteFarben/Marker, Pixel-Farbwechsel innerhalbGrenzbalken, Profile/Peaks und Speicherlimit geprüft. Typografie/Katalog/Diff grün; keine Gesamtsuite/echte Fahrt nötig.
+
+Nutzer hat anschließend neue APK ausdrücklich beauftragt; neue Veröffentlichung wird nun vorbereitet. Letzte veröffentlichte APK bislang0.8.53/Build93, alle lokalen Änderungen seitdem einschließen.
+
 # Abschluss nach Build93: globale Reihenfolge aller Dropdown-Rahmen
 
 Nutzererweiterung umgesetzt: Bei Wartungs-Bauteilen und jedem BicycleFrameDropdown gilt Icon · Titel · Chevron · optionaler Schalter/Aktionsbutton. leadingIcon nun verpflichtend, kein Zweig ohne Icon oder mit Chevron links vor dem Titel. Wartung nutzt vorhandenes BicycleIcon.Work, andere bestehende Aufrufer behalten passende Icons. Chevron/Schalter unabhängig bedienbar, fachliche Aktionen und Sticky-Fahrradheader unverändert. HTML-Atlas Abschnitt06 um passende führende Icons/Reihenfolge korrigiert, Dokumentation aktualisiert.
