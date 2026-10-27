@@ -47,10 +47,12 @@ class DashboardTrendIndicatorsTest {
         val dashboard=DashboardView(c) {}
         dashboard.setTemplate(DashboardTemplate.BALANCED)
         val layout=DashboardLayout.defaults.replace(0,DashboardField("GPS_SPEED")).replace(1,DashboardField("GPS_MOVING_AVERAGE")).replace(3,DashboardField("GPS_SPEED"))
+        val engine=AverageTrends()
         var flags=TrendIndicatorConfig(disabled=setOf("GPS_SPEED"))
         fun show(second:Int) {
             dashboard.showTrendIndicators(flags)
-            dashboard.show(layout,LiveData(),GpsValues(speedKmh=35.0,movingAverageKmh=25.0+second*.1))
+            dashboard.show(layout,LiveData(speedHundredths=1000),GpsValues(speedKmh=10.0,movingAverageKmh=50.0),
+                trendSnapshot=engine.update(PrimaryTrendInputs(speed=TrendReading(35.0,25.0+second*.1)),android.os.SystemClock.elapsedRealtime()))
         }
         for(second in 0..10) { show(second);ShadowSystemClock.advanceBy(Duration.ofSeconds(1)) }
         fun direction(slot:Int):Int {
@@ -81,16 +83,18 @@ class DashboardTrendIndicatorsTest {
     @Test fun globalSwitchAlsoControlsMapFieldsWithoutClearingTrendHistory() {
         prefs.edit().putString(MapFieldSelection.key(0),"GPS_SPEED").apply()
         val map=MapDataFieldsView(c);map.reload(prefs)
+        val engine=AverageTrends()
+        fun snapshot()=engine.update(PrimaryTrendInputs(speed=TrendReading(35.0,25.0)),android.os.SystemClock.elapsedRealtime())
         fun direction()=(MapDataFieldsView::class.java.getDeclaredField("directions").apply { isAccessible=true }.get(map) as IntArray)[0]
         for(i in 0..5) {
-            map.show(LiveData(),GpsValues(speedKmh=35.0,movingAverageKmh=25.0),null,PulseValues())
+            map.show(LiveData(),GpsValues(speedKmh=35.0,movingAverageKmh=25.0),null,PulseValues(),trendSnapshot=snapshot())
             ShadowSystemClock.advanceBy(Duration.ofSeconds(1))
         }
         assertEquals(3,direction())
         TrendIndicatorSettings.save(prefs,TrendIndicatorConfig(enabled=false));map.reload(prefs)
-        map.show(LiveData(),GpsValues(speedKmh=35.0,movingAverageKmh=25.0),null,PulseValues());assertEquals(0,direction())
+        map.show(LiveData(),GpsValues(speedKmh=35.0,movingAverageKmh=25.0),null,PulseValues(),trendSnapshot=snapshot());assertEquals(0,direction())
         TrendIndicatorSettings.save(prefs,TrendIndicatorConfig());map.reload(prefs)
-        map.show(LiveData(),GpsValues(speedKmh=35.0,movingAverageKmh=25.0),null,PulseValues());assertEquals(3,direction())
+        map.show(LiveData(),GpsValues(speedKmh=35.0,movingAverageKmh=25.0),null,PulseValues(),trendSnapshot=snapshot());assertEquals(3,direction())
     }
     @Test fun flagsDefaultToEnabledAndPersistPerPageIncludingBackupAndFutureBikeScope() {
         assertTrue(DashboardTrendIndicators.read(prefs,0).enabled.all { it })

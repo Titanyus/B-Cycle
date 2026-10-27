@@ -19,8 +19,9 @@ import org.robolectric.RobolectricTestRunner
 class FieldPickerTest {
     @Test fun oneScrollHostShowsEveryValueBeforeTrainingHelpAndSwitchingSourcesReplacesList() {
         val selected = mutableListOf<DashboardField?>()
+        val themes=ThemeManager(RuntimeEnvironment.getApplication().getSharedPreferences("bike",0)).apply { setFlatDesign(false) }
         val view = FieldPickerView(RuntimeEnvironment.getApplication(), LiveData(), GpsValues(), null,
-            PulseValues(), DashboardField("RIDER_POWER"), true,
+            PulseValues(), DashboardField("RIDER_POWER"), true,themes=themes,
             trainingHelp=TrainingHelpView(RuntimeEnvironment.getApplication(),ThemeManager(RuntimeEnvironment.getApplication().getSharedPreferences("theme",0)),DashboardTrainingHelp()) {}) { selected += it }
         view.findViewWithTag<View>("field_data_toggle").performClick()
         fun measure() {
@@ -34,6 +35,7 @@ class FieldPickerTest {
         assertEquals(1,testDescendants(view).filterIsInstance<ScrollView>().size)
         assertEquals("E-Bike", dropdown.selectedItem)
         assertTrue(list.height > 0)
+        assertEquals(BicycleDesign.dp(view.context,BicycleDesign.sectionContentGap),list.top-dropdown.bottom)
         val last=list.getChildAt(list.childCount-1)
         assertTrue(last.bottom<=list.height)
         val training=view.findViewWithTag<View>("training_help_controls")
@@ -42,6 +44,11 @@ class FieldPickerTest {
         scroll.offsetDescendantRectToMyCoords(last,lastBounds)
         scroll.offsetDescendantRectToMyCoords(training,trainingBounds)
         assertTrue(lastBounds.bottom<=trainingBounds.top)
+        val header=testDescendants(view).filterIsInstance<BicycleSectionHeader>().single()
+        val bounds=android.graphics.Rect(0,0,header.width,header.height)
+        scroll.offsetDescendantRectToMyCoords(header,bounds)
+        assertEquals(BicycleDesign.dp(view.context,BicycleDesign.sectionCardInset),bounds.left)
+        assertEquals(720-BicycleDesign.dp(view.context,BicycleDesign.sectionCardInset),bounds.right)
         scroll.isSmoothScrollingEnabled=false
         scroll.fullScroll(View.FOCUS_DOWN);shadowOf(Looper.getMainLooper()).idle()
         assertTrue(scroll.scrollY>0)

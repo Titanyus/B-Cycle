@@ -49,7 +49,6 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     private var wasLightOn = false
     private val lightIcon = LightStatusSpan(context)
     private val recordingDot = RecordingDotSpan(resources.displayMetrics.density)
-    private val trends = AverageTrends()
     private var fields = List<DashboardField?>(3) { null }
     val preferredHeightDp get()=if(fields.any { (it?.batterySources?.size ?: 0)>2 }) 76 else 62
     private val values = List(3) { index -> BatteryMapTextView(context).apply {
@@ -65,7 +64,7 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     } }
     private val chevrons=values.map { TrendChevrons(it) }
     private var previousElapsed:Long?=null
-    internal fun resetTrends() { trends.clear();chevrons.forEach { it.clear() };directions.fill(0);previousElapsed=null }
+    internal fun resetTrends() { chevrons.forEach { it.clear() };directions.fill(0);previousElapsed=null }
     init {
         tag = "map_data_fields"; orientation = HORIZONTAL; isBaselineAligned = false
         values.forEach { addView(it, LayoutParams(0, -1, 1f)) }
@@ -74,11 +73,11 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     fun reload(preferences: SharedPreferences) {
         trendIndicators=TrendIndicatorSettings.read(preferences)
         val next=List(3) { MapFieldSelection.read(preferences, it) }
-        if(next!=fields) { trends.clear();chevrons.forEach { it.clear() };directions.fill(0) }
+        if(next!=fields) { chevrons.forEach { it.clear() };directions.fill(0) }
         fields = next
     }
-    fun show(data: LiveData, gps: GpsValues, bikeDistanceM: Long?, pulse: PulseValues, recording: Boolean = false, bikeLight: Boolean? = null,trendData:LiveData=data) {
-        if(gps.elapsedMs!=null && previousElapsed?.let { gps.elapsedMs<it }==true) { trends.clear();chevrons.forEach { it.clear() } }
+    fun show(data: LiveData, gps: GpsValues, bikeDistanceM: Long?, pulse: PulseValues, recording: Boolean = false, bikeLight: Boolean? = null,trendSnapshot:RideTrendSnapshot=RideTrendSnapshot()) {
+        if(gps.elapsedMs!=null && previousElapsed?.let { gps.elapsedMs<it }==true) { chevrons.forEach { it.clear() } }
         previousElapsed=gps.elapsedMs
         fields.forEachIndexed { index, field ->
             val batterySources=field?.batterySources
@@ -105,7 +104,7 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
             view.gravity=Gravity.CENTER
             val value = field?.value(data, gps, bikeDistanceM, pulse)
             val next = value?.takeIf { it.available }?.text.orEmpty()
-            val calculated = field?.let { trends.indicator(it, trendData, gps, pulse, android.os.SystemClock.elapsedRealtime()) } ?: 0
+            val calculated = field?.let { trendSnapshot.indicator(it) } ?: 0
             val direction = if(field!=null && trendIndicators.shows(field)) calculated else 0
             chevrons[index].update(direction)
             val hasValue = next.isNotEmpty()

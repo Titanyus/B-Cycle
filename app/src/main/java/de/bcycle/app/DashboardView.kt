@@ -19,8 +19,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     fun showModeGlow(enabled: Boolean, mode: Long?, names: List<String>? = null, batteryPercent: Long? = null) {
         modeGlow.update(if (enabled) BoschModeColors.color(mode, names) else null, batteryPercent)
     }
-    private val trends = AverageTrends()
-    internal fun resetTrends() { trends.clear();tiles.forEach { it.resetTrend() } }
+    internal fun resetTrends() { tiles.forEach { it.resetTrend() } }
     private var trendIndicators=TrendIndicatorConfig()
     internal fun showTrendIndicators(config:TrendIndicatorConfig) { trendIndicators=config }
     private val numbers = BicycleDesign.narrowTypeface(context)
@@ -62,7 +61,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var gps = GpsValues()
     private var bikeDistanceM: Long? = null
     private var pulse = PulseValues()
-    private var trendData=LiveData()
+    private var trendSnapshot=RideTrendSnapshot()
     private var landscape = false
     private var viewportWide: Boolean? = null
     private var viewportWidth = 0
@@ -108,7 +107,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 if (index > 0) addView(line(), LayoutParams(LayoutParams.MATCH_PARENT, BicycleDesign.linePixels(context)))
                 addView(pair(slots, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(index, wide)))
             }
-            show(layout, data, gps, bikeDistanceM, pulse,trendData)
+            show(layout, data, gps, bikeDistanceM, pulse,trendSnapshot)
             return
         }
         orientation = if (wide) HORIZONTAL else VERTICAL
@@ -121,7 +120,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 right.addView(pair(indexes, indexed), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
             }
             addView(right, LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-            show(layout, data, gps, bikeDistanceM, pulse,trendData)
+            show(layout, data, gps, bikeDistanceM, pulse,trendSnapshot)
             return
         }
         val groups = template.rows
@@ -135,7 +134,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
             addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 0, template.rowWeight(rowIndex)))
         }
-        show(layout, data, gps, bikeDistanceM, pulse,trendData)
+        show(layout, data, gps, bikeDistanceM, pulse,trendSnapshot)
     }
 
     private fun pair(indexes: List<Int>, indexed: List<Tile>) = LinearLayout(context).apply {
@@ -183,10 +182,10 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     }
 
-    fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues(),trendData:LiveData=data) {
+    fun show(layout: DashboardLayout, data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues(),trendSnapshot:RideTrendSnapshot=RideTrendSnapshot()) {
         if(gps.elapsedMs!=null && this.gps.elapsedMs?.let { gps.elapsedMs<it }==true) resetTrends()
         this.layout = layout; this.data = data; this.gps = gps; this.bikeDistanceM = bikeDistanceM
-        this.trendData=trendData
+        this.trendSnapshot=trendSnapshot
         this.pulse = pulse
         tiles.forEachIndexed { index, tile -> tile.show(layout.fields[index], data) }
     }
@@ -327,7 +326,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val next = field.value(data, gps, bikeDistanceM, pulse, training)
             val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), field.title(context,data, gps)) else field.title(context,data, gps)
             showCaption(field)
-            val direction = trends.indicator(field, trendData, gps, pulse, android.os.SystemClock.elapsedRealtime())
+            val direction = trendSnapshot.indicator(field)
             row.direction = if(trendIndicators.shows(field)) direction else 0
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }
                 ?.let { String.format(Locale.GERMANY, "%.1f", it) } else null

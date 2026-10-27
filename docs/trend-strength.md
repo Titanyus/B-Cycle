@@ -1,6 +1,12 @@
 # Trendstärke und Aufnahmeindikator – 19.10.2026
 
-Die bestehenden Trendindikatoren vergleichen den zeitgewichteten aktuellen 3-Sekunden-Anzeigewert mit dem vorhandenen Fahrtdurchschnitt derselben Quelle. Direkte Messwerte und ihre Durchschnittsfelder zeigen dieselbe Abweichung. Aufzeichnung, FIT-Werte und Durchschnittsberechnung bleiben unverändert.
+Seit 27.10.2026 berechnet RideRuntime genau einen gemeinsamen Trendstand für Tempo, Leistung, Kadenz und Puls, höchstens einmal pro Sekunde. DashboardView und MapDataFieldsView lesen nur RideTrendSnapshot, ohne eigene Glättungsfenster. Alle Tempo-Feldvarianten (Fahrrad/GPS, aktuell/Bewegungs-/Gesamtdurchschnitt) verwenden denselben Tempo-Trend. Die angezeigte Messgröße oder Quelle beeinflusst dessen Berechnung nicht.
+
+Quelle ist jeweils die tatsächlich aufgelöste FIT-Primärquelle einschließlich des vorhandenen automatischen Fallbacks. Tempo nutzt den Durchschnitt dieser Quelle; Kadenz und Puls die bestehenden ausgewählten Fahrtdurchschnitte. Bei laufender/abgeschlossener Aufnahme wird für Leistung der bereits integrierte Mittelwert der aufgelösten Aufnahmeleistung nur lesend verwendet; vor Aufnahme vorhandene Durchschnittswerte der Quelle. Rohdaten, FIT-Aufzeichnung und gespeicherte Kennzahlen bleiben unverändert.
+
+Die bestehenden Sichtbarkeitseinstellungen bleiben ausdrücklich pro Feldtyp erhalten: gemeinsamer globaler Schalter, unabhängige Feld-Auswahl und Bindung an aktivierte Datenanzeige. Ausblenden stoppt oder löscht keine Trendhistorie. Dreisekündiges Zeitfenster, Stärkeschwellen, Hysterese und Animation bleiben; Profilwechsel/Aufnahmestart löschen den zentralen Zustand, Quellenwechsel/fehlende oder überalterte Werte neutralisieren den betroffenen Kanal.
+
+Der zeitgewichtete aktuelle 3-Sekunden-Wert wird mit dem jeweiligen Fahrtdurchschnitt verglichen. Aktuelle Felder und Durchschnittsfelder teilen denselben Trendstand.
 
 | Messgröße | Ruhebereich | 1 Chevron | 2 Chevrons | 3 Chevrons |
 | --- | --- | --- | --- | --- |

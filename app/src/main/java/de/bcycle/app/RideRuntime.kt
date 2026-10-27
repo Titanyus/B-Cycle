@@ -101,12 +101,32 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         (currentBikeLight?.let { mapOf(LiveMetric.BIKE_LIGHT to if (it) 1L else 0L) } ?: emptyMap()) +
         (cadenceAverage.value?.let { mapOf(LiveMetric.AVERAGE_CADENCE to kotlin.math.round(it * 2).toLong()) } ?: emptyMap()))
     private var heartSum = 0L; private var heartCount = 0
-    /** Only the trend presentation uses this freshness mask; displayed/stored measurements stay intact. */
-    internal val trendBikeData:LiveData get() {
-        val now=SystemClock.elapsedRealtime();val data=dashboardBikeData
-        return data.copy(speedHundredths=data.speedHundredths.takeIf { fresh(LiveMetric.SPEED,now) },
-            riderPowerWatts=data.riderPowerWatts.takeIf { primaryPower(now)!=null },
-            otherValues=if(primaryCadence(now)!=null) data.otherValues else data.otherValues-LiveMetric.CADENCE)
+    /** One bounded display calculation; every view reads this same snapshot. */
+    private val averageTrends=AverageTrends()
+    internal var trendSnapshot=RideTrendSnapshot();private set
+    private var trendUpdatedAt:Long?=null
+    private fun resetDisplayTrends() { averageTrends.clear();trendSnapshot=RideTrendSnapshot();trendUpdatedAt=null }
+    private fun updateDisplayTrends(now:Long) {
+        if(trendUpdatedAt?.let { now>=it && now-it<1000 }==true) return
+        trendUpdatedAt=now
+        val speed=primarySpeed(now);val power=primaryPower(now);val cadence=primaryCadence(now)
+        val heart=chooseReading(RecordingQuantity.HEART,sources(),heartReadings(now),now)
+        val speedMean=when(speed?.source) {
+            RecordingSource.GPS->ride.gps.snapshot(now).movingAverageKmh
+            RecordingSource.TRAINER->indoorRide.times(elapsedMs,ride.bike.distanceM).movingAverageKmh
+            RecordingSource.BIKE->bikeData.value(LiveMetric.AVERAGE_SPEED)?.div(LiveMetric.AVERAGE_SPEED.divisor)
+            else->null
+        }
+        val powerMean=if(recording || completedElapsedMs!=null) performance.observedAveragePowerW else when(power?.source) {
+            RecordingSource.BIKE->bikeData.value(LiveMetric.AVERAGE_POWER)?.toDouble()
+            RecordingSource.TRAINER->indoorRide.averagePower
+            else->null
+        }
+        trendSnapshot=averageTrends.update(PrimaryTrendInputs(
+            TrendReading(speed?.reading?.value?.times(3.6),speedMean,speed?.source),
+            TrendReading(power?.reading?.value,powerMean,power?.source),
+            TrendReading(cadence?.reading?.value,cadenceAverage.value,cadence?.source),
+            TrendReading(heart?.reading?.value,pulse.average,heart?.source)),now)
     }
     private var startElapsed = 0L
     private var startUtc = 0L
@@ -271,7 +291,10 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         }
     }
     init { RideNames.schedule(context);ActivityServiceUploads.all.forEach { runCatching { it.schedule(context) } }; IntervalsUploads.schedule(context); RouteUploads.schedule(context); diagnostics.reset("App=${AppVersion.name} Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
-    fun notifyChanged() { observers.toList().forEach { it() } }
+    fun notifyChanged() {
+        if(observers.isNotEmpty()) updateDisplayTrends(SystemClock.elapsedRealtime())
+        observers.toList().forEach { it() }
+    }
     fun setVisible(value: Boolean) {
         val opened=value && !visible
         visible=value;if(!value) { hrv.abort("APP_BACKGROUND");shiftGroup.stop() };updateActivity()
@@ -399,7 +422,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val keepHeart=sharedAddress!=null && target.heartEnabled && (target.heartAddress==null || target.heartAddress==sharedAddress)
         if(keepHeart && target.heartAddress==null) bikes.save(target.copy(heartAddress=sharedAddress,heartName=sharedName))
         if(sharedAddress!=null && !keepHeart) heart.stop()
-        profileRevision++;rawSpeeds.clear();rawPowers.clear();rawCadences.clear();selectedPowerSource=null;selectedSpeedSource=null;lastCadenceSample=null;barometer.resetReference()
+        profileRevision++;resetDisplayTrends();rawSpeeds.clear();rawPowers.clear();rawCadences.clear();selectedPowerSource=null;selectedSpeedSource=null;lastCadenceSample=null;barometer.resetReference()
         if(isIndoor) barometer.stop()
         themes.reloadFromPreferences()
         mapState.restoreProfileRoute()
@@ -690,6 +713,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     fun beginRecording() {
         if (recording || saving || hrv.busy) return
+        resetDisplayTrends()
         // Reserve the coordinate columns outdoors even if GPS is enabled later during this ride.
         // Actual coordinate values below remain strictly controlled by the GPS sensor switch.
         activeConfig=config.withGpsPosition(!isIndoor).let { it.copy(fields=it.fields+PrimaryRecording.FLAG,sourcePreferences=it.sourcePreferences ?: RecordingSources.defaults(it,isIndoor)) }

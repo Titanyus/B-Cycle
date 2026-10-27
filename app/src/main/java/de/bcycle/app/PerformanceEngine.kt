@@ -176,6 +176,8 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
         }
     }
     private fun clearWindow() { window.clear(); windowSum = 0.0 }
+    /** Read-only mean of the already integrated, resolved recording power. */
+    internal val observedAveragePowerW get()=if(powerMs>0) workJ*1000/powerMs else null
     fun snapshot(): PerformanceValues {
         val quality = PerformanceQuality(activeMs, powerMs, speedMs, heartMs, longestGap, gapCount, windowCount, heartAvailableMs, continuedZeroMs,potentialWindows)
         // A local gap breaks its 30 s windows and FTP continuity, not an otherwise

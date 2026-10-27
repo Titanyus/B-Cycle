@@ -364,7 +364,7 @@ class MainActivity : Activity() {
         dashboard.showTrendIndicators(dashboardTrendIndicators)
         runtime.liveGraphs.rolling=dashboardGraphs.windows.indices.any { dashboard.template.supportsGraph(it) && dashboardGraphs.slots[it].isNotEmpty() && dashboardGraphs.windows[it]!=GraphWindow.FULL }
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
-        dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues,runtime.trendBikeData)
+        dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues,runtime.trendSnapshot)
         val placement=ModeGlowSettings.placement(preferences)
         dashboard.modeGlow.place(placement)
         // The top light belongs to the whole window, including the cutout/status inset.

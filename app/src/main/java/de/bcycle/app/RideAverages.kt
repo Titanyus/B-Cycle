@@ -12,18 +12,30 @@ internal class PedalingAverage {
     fun reset() { count = 0; value = null }
 }
 
-/** Display-only, time-weighted current values compared with the existing ride averages. */
+/** One immutable result shared by every dashboard and map occurrence. No calculation on lookup. */
+data class RideTrendSnapshot(val speed:Int=0,val power:Int=0,val cadence:Int=0,val heart:Int=0) {
+    internal fun indicator(field:DashboardField):Int=when(AverageTrends.key(field.id)) {
+        "AVERAGE_SPEED"->speed;"AVERAGE_POWER"->power;"AVERAGE_CADENCE"->cadence;"HEART_AVERAGE"->heart;else->0
+    }
+}
+internal data class TrendReading(val current:Double?=null,val average:Double?=null,val source:RecordingSource?=null)
+internal data class PrimaryTrendInputs(val speed:TrendReading=TrendReading(),val power:TrendReading=TrendReading(),
+    val cadence:TrendReading=TrendReading(),val heart:TrendReading=TrendReading())
+
+/** Display-only. Updated once centrally from the resolved FIT sources, never by individual fields. */
 internal class AverageTrends {
     companion object {
-        private val aliases=mapOf("SPEED" to "AVERAGE_SPEED","GPS_SPEED" to "GPS_MOVING_AVERAGE",
+        private val aliases=mapOf("SPEED" to "AVERAGE_SPEED","GPS_SPEED" to "AVERAGE_SPEED",
+            "GPS_MOVING_AVERAGE" to "AVERAGE_SPEED","GPS_OVERALL_AVERAGE" to "AVERAGE_SPEED",
             "RIDER_POWER" to "AVERAGE_POWER","CADENCE" to "AVERAGE_CADENCE","HEART_RATE" to "HEART_AVERAGE")
         private val averages=setOf("AVERAGE_SPEED","GPS_MOVING_AVERAGE","GPS_OVERALL_AVERAGE","AVERAGE_POWER","AVERAGE_CADENCE","HEART_AVERAGE")
-        val currentFields get()=aliases.keys.toList()
+        val currentFields get()=listOf("SPEED","GPS_SPEED","RIDER_POWER","CADENCE","HEART_RATE")
         val averageFields get()=averages.toList()
-        fun supports(field:DashboardField?)=field?.id in aliases || field?.id in averages
+        internal fun key(id:String)=aliases[id] ?: id
+        fun supports(field:DashboardField?)=field!=null && key(field.id) in averages
         internal fun level(id:String,deviation:Double,previous:Int=0):Int {
             if(!deviation.isFinite()) return 0
-            val key=aliases[id] ?: id
+            val key=key(id)
             val limits=when(key) {
                 "AVERAGE_POWER"->doubleArrayOf(2.0,20.0,40.0,1.0)
                 "HEART_AVERAGE"->doubleArrayOf(1.0,3.0,7.0,.25)
@@ -42,29 +54,23 @@ internal class AverageTrends {
     }
     private class Channel {
         var window=TrainingDisplayWindow()
-        var start:Long?=null;var last:Long?=null;var level=0
+        var start:Long?=null;var last:Long?=null;var level=0;var source:RecordingSource?=null
     }
     private val channels=mutableMapOf<String,Channel>()
     fun clear() { channels.clear() }
-    fun indicator(field:DashboardField,data:LiveData,gps:GpsValues,pulse:PulseValues,now:Long):Int {
-        val key=aliases[field.id] ?: field.id
-        if(key !in averages) return 0
-        val current=when(key) {
-            "AVERAGE_POWER"->data.riderPowerWatts?.toDouble()
-            "AVERAGE_CADENCE"->data.value(LiveMetric.CADENCE)?.div(LiveMetric.CADENCE.divisor)
-            "AVERAGE_SPEED"->data.speedHundredths?.div(100.0)
-            "HEART_AVERAGE"->pulse.bpm?.toDouble()?.takeIf { it>0 }
-            else->gps.speedKmh
-        }
-        val reference=DashboardField(key).averageNumber(data,gps,pulse)
+    fun update(input:PrimaryTrendInputs,now:Long)=RideTrendSnapshot(
+        calculate("AVERAGE_SPEED",input.speed,now),calculate("AVERAGE_POWER",input.power,now),
+        calculate("AVERAGE_CADENCE",input.cadence,now),calculate("HEART_AVERAGE",input.heart,now))
+    private fun calculate(key:String,input:TrendReading,now:Long):Int {
+        val current=input.current;val reference=input.average
         if(current==null || !current.isFinite() || current<0 || reference==null || !reference.isFinite() || reference<=0) {
             channels.remove(key);return 0
         }
         val channel=channels.getOrPut(key) { Channel() }
-        if(channel.last?.let { now<it || now-it>5000 }==true) {
+        if(channel.source!=input.source || channel.last?.let { now<it || now-it>5000 }==true) {
             channel.window=TrainingDisplayWindow();channel.start=null;channel.level=0
         }
-        channel.last=now
+        channel.source=input.source;channel.last=now
         if(channel.start==null) channel.start=now
         val mean=channel.window.update(current,now,now) ?: return 0
         if(now-channel.start!!<3000) return 0

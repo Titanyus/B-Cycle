@@ -26,25 +26,30 @@ class RideAveragesTest {
         assertEquals(0,AverageTrends.level("SPEED",Double.NaN))
         assertFalse(AverageTrends.supports(DashboardField("MOTOR_POWER")))
     }
-    @Test fun directAndAverageFieldsCompareCurrentWithTheirOwnMeanNotChangesOfTheMean() {
-        val trend=AverageTrends()
-        val data=LiveData(3000,200,otherValues=mapOf(LiveMetric.AVERAGE_SPEED to 2500L,
-            LiveMetric.CADENCE to 180L,LiveMetric.AVERAGE_CADENCE to 200L,LiveMetric.AVERAGE_POWER to 150L))
-        val gps=GpsValues(speedKmh=30.0,movingAverageKmh=25.0,overallAverageKmh=20.0)
-        val pulse=PulseValues(140,120.0)
+    @Test fun oneSnapshotSharesEachMetricAcrossEveryCurrentAverageAndGpsAlias() {
+        val engine=AverageTrends()
+        val input=PrimaryTrendInputs(speed=TrendReading(30.0,25.0,RecordingSource.BIKE),
+            power=TrendReading(200.0,150.0,RecordingSource.POWER),cadence=TrendReading(90.0,100.0,RecordingSource.POWER),
+            heart=TrendReading(140.0,120.0,RecordingSource.HEART))
         val pairs=listOf(Triple("SPEED","AVERAGE_SPEED",3),Triple("GPS_SPEED","GPS_MOVING_AVERAGE",3),
             Triple("CADENCE","AVERAGE_CADENCE",-2),Triple("RIDER_POWER","AVERAGE_POWER",2),Triple("HEART_RATE","HEART_AVERAGE",3))
-        for(second in 0..10) repeat(20) {
-            for((direct,average,expected) in pairs) {
-                assertEquals(if(second<3) 0 else expected,trend.indicator(DashboardField(direct),data,gps,pulse,second*1000L))
-                assertEquals(if(second<3) 0 else expected,trend.indicator(DashboardField(average),data,gps,pulse,second*1000L))
+        for(second in 0..10) {
+            val snapshot=engine.update(input,second*1000L)
+            repeat(20) {
+                pairs.forEach { (direct,average,expected) ->
+                    assertEquals(if(second<3) 0 else expected,snapshot.indicator(DashboardField(direct)))
+                    assertEquals(snapshot.indicator(DashboardField(direct)),snapshot.indicator(DashboardField(average)))
+                }
+                assertEquals(snapshot.speed,snapshot.indicator(DashboardField("GPS_OVERALL_AVERAGE")))
             }
-            assertEquals(if(second<3) 0 else 3,trend.indicator(DashboardField("GPS_OVERALL_AVERAGE"),data,gps,pulse,second*1000L))
         }
+        val changed=engine.update(input.copy(speed=TrendReading(40.0,25.0,RecordingSource.GPS)),12000)
+        assertEquals(0,changed.speed);assertEquals(2,changed.power)
+        assertEquals(3,engine.update(input.copy(speed=TrendReading(40.0,25.0,RecordingSource.GPS)),15000).speed)
     }
     @Test fun timeWeightedWindowKeepsShortPedalingPausesSoftButIncludesRealZeroAndResetsMissingAndStale() {
         val trend=AverageTrends();val field=DashboardField("RIDER_POWER")
-        fun show(power:Int?,second:Int)=trend.indicator(field,LiveData(riderPowerWatts=power,otherValues=mapOf(LiveMetric.AVERAGE_POWER to 150L)),GpsValues(),PulseValues(),second*1000L)
+        fun show(power:Int?,second:Int)=trend.update(PrimaryTrendInputs(power=TrendReading(power?.toDouble(),150.0)),second*1000L).indicator(field)
         for(second in 0..3) assertEquals(if(second<3) 0 else 3,show(300,second))
         assertEquals(3,show(0,4))
         for(second in 5..7) show(0,second)
@@ -56,12 +61,12 @@ class RideAveragesTest {
     @Test fun absentInvalidOrZeroReferenceNeverProducesAnApparentTrend() {
         val trend=AverageTrends();val field=DashboardField("GPS_SPEED")
         for(mean in listOf(null,0.0,-1.0,Double.NaN,Double.POSITIVE_INFINITY))
-            for(second in 0..5) assertEquals(0,trend.indicator(field,LiveData(),GpsValues(speedKmh=30.0,movingAverageKmh=mean),PulseValues(),second*1000L))
-        for(second in 10..13) trend.indicator(field,LiveData(),GpsValues(speedKmh=30.0,movingAverageKmh=25.0),PulseValues(),second*1000L)
-        assertEquals(0,trend.indicator(field,LiveData(),GpsValues(movingAverageKmh=25.0),PulseValues(),14000))
-        assertEquals(0,trend.indicator(field,LiveData(),GpsValues(speedKmh=30.0,movingAverageKmh=25.0),PulseValues(),15000))
+            for(second in 0..5) assertEquals(0,trend.update(PrimaryTrendInputs(speed=TrendReading(30.0,mean)),second*1000L).indicator(field))
+        for(second in 10..13) trend.update(PrimaryTrendInputs(speed=TrendReading(30.0,25.0)),second*1000L).indicator(field)
+        assertEquals(0,trend.update(PrimaryTrendInputs(speed=TrendReading(null,25.0)),14000).indicator(field))
+        assertEquals(0,trend.update(PrimaryTrendInputs(speed=TrendReading(30.0,25.0)),15000).indicator(field))
         trend.clear()
-        assertEquals(0,trend.indicator(field,LiveData(),GpsValues(speedKmh=30.0,movingAverageKmh=25.0),PulseValues(),18000))
+        assertEquals(0,trend.update(PrimaryTrendInputs(speed=TrendReading(30.0,25.0)),18000).indicator(field))
     }
     @Test fun hysteresisPreventsFlappingAroundEachStrengthBoundary() {
         assertEquals(1,AverageTrends.level("SPEED",5.3,1))

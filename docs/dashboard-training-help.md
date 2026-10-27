@@ -19,3 +19,7 @@ Umstellung am 18.10.2026: identische Segmente in Design & UI und im Feldauswahl-
 ## Pulsmodelle ab 0.8.2
 
 Pulszonen und Zone-2-Grenzen folgen der global im Fahrerprofil gewählten Methode (Karvonen, Maximalpuls oder Friel-Rad). HF-Reserve (%) bleibt unverändert. Siehe [Pulsmodelle](heart-rate-methods.md).
+
+## Feldwahlbreite und Gruppierungsabstand nach Build 93
+
+FieldPickerView legt den horizontalen Seitenabstand ausschließlich in das direkte innere panels-Layout des Scrollbereichs. Der äußere Host hat kein zusätzliches horizontales Padding. Dadurch erhält die Glow-Trainingshilfe ihren üblichen sectionCardInset statt eines doppelten Randabstands; Datenlisten behalten ihren Seitenabstand und ihre Bedienung. Zwischen Datenquellen-Dropdown und erster Kategorie stehen sectionContentGap=16dp als Abstand der Feldliste.

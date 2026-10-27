@@ -25,9 +25,12 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     var interaction:()->Unit={}
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
-        orientation = VERTICAL; setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
+        orientation = VERTICAL; setPadding(0, dp(BicycleDesign.verticalPadding), 0, 0)
         BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
-        val panels=LinearLayout(context).apply { orientation=VERTICAL }
+        val panels=LinearLayout(context).apply {
+            orientation=VERTICAL;clipToPadding=false
+            setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),0)
+        }
         val scroll=BicycleStickyScrollView(context).apply { tag="field_picker_scroll";addView(panels) }
         addView(scroll,LayoutParams(-1,-1))
         val dataContent=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="field_data_content" }
@@ -64,7 +67,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         val trend=trendChanged?.let { TrendIndicatorSettingsView(context,themes,trendConfig,it).apply { setDataAvailable(pickerDataVisible) } }
         if(trend!=null) panels.addView(trend,LayoutParams(-1,-2))
         val rows = LinearLayout(context).apply { orientation = VERTICAL;tag="field_list" }
-        dataContent.addView(rows, LayoutParams(-1,-2))
+        dataContent.addView(rows, LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.sectionContentGap) })
         if(graphPicker!=null) panels.addView(graphPicker)
         if(visualization!=null) panels.addView(visualization.apply { visibility=GONE })
         if(trainingHelp!=null) {
