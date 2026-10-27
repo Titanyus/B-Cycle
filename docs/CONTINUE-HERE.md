@@ -1,3 +1,7 @@
+# Ergänzung 27.10.2026 zur geplanten Backup-&-Cloud-Neuordnung
+
+Nutzer ergänzt direkt unter „Cloud“, vor dem ersten Unterpunkt, exakt: „Sichert nach jeder Fahrt die Streckendaten + Metadaten lokal oder zu den entsprechenden Clouddiensten.“ Nutzer stellt klar: alte Gesamtsicherungen sind irrelevant (einziger Nutzer); entgegen früherem Vorschlag keine zusätzliche Abwärtskompatibilität dafür entwickeln. Maßgebliche Spezifikation docs/backup-cloud-reorganization.md aktualisiert. Neuordnung selbst weiterhin noch nicht implementiert; vorherige Unterhaltung bat um Zusammenfassung und Umfangsabgleich. Passwortauge separat bereits umgesetzt und geprüft. Keine neue APK beauftragt.
+
 # Stand 27.10.2026: Cloud-Passwortauge und Entwurf Backup & Restore
 
 Passwortaugen für WebDAV/intervals.icu/Dreeve/Strava innerhalb des bestehenden Eingaberahmens, rechts und vertikal mittig. Zentral BicycleForm.passwordField: bestehendes EditText mit unverändertem Rahmen, überlagerter zugänglicher 48-dp-Iconbutton, Text-Endpadding verhindert Überdeckung. Inline-Control-Marker gilt auch für FrameLayout, damit kein Kind-Außenabstand die Zentrierung verschiebt. Funktionen unverändert. Vorhandene RouteExportTest-Passwortprüfung gezielt grün, nun inklusive Geometrie aller vier Dienste; Log /workspace/.tools/cloud-password-eye-tests.log. Typografie/Katalog/Diff erfolgreich.
