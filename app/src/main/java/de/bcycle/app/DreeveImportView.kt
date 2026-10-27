@@ -211,7 +211,7 @@ internal class DreeveImportView(context:Context,private val themes:ThemeManager,
     fun complete(result:Result<DreeveImportResult>) {
         result.fold({ summary ->
             summary.items.forEach(::progress);importing=false;controls();adapter.notifyDataSetChanged()
-            BicycleFeedback.update(status,context.getString(R.string.dreeve_import_result,summary.count(DreeveImportState.IMPORTED),
+            BicycleFeedback.update(status,(if(summary.interrupted) context.getString(R.string.dreeve_import_interrupted)+"\n" else "")+context.getString(R.string.dreeve_import_result,summary.count(DreeveImportState.IMPORTED),
                 summary.count(DreeveImportState.DUPLICATE),summary.count(DreeveImportState.FAILED))+
                 summary.items.count { it.fallbackProblem!=null }.takeIf { it>0 }?.let { "\n"+context.getString(R.string.dreeve_fit_fallback_warning,it) }.orEmpty())
         },{ failed(R.string.dreeve_import_download_failed) })

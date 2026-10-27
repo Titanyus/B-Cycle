@@ -31,11 +31,10 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
     private fun available()=rows>childCount && childCount>0 && height>dp(64f)
     private fun fraction():Float {
         if(dragging) return dragFraction
-        val visible=(lastVisiblePosition-firstVisiblePosition+1).coerceAtLeast(1)
-        val maximum=(rows-visible).coerceAtLeast(1)
-        val firstChild=getChildAt(0)
-        val partial=if(firstChild!=null && firstChild.height>0) (paddingTop-firstChild.top).toFloat()/firstChild.height else 0f
-        return ((firstVisiblePosition-headerViewsCount+partial)/maximum).coerceIn(0f,1f)
+        // Native metrics include the fractional visibility of both edge rows. Counting whole
+        // visible rows changes the denominator at each row boundary and makes the thumb jump.
+        val maximum=computeVerticalScrollRange()-computeVerticalScrollExtent()
+        return if(maximum>0) (computeVerticalScrollOffset().toFloat()/maximum).coerceIn(0f,1f) else 0f
     }
     private fun track() {
         val top=paddingTop+dp(4f);val bottom=height-paddingBottom-dp(4f)
@@ -81,6 +80,9 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
         if(event.actionMasked==MotionEvent.ACTION_DOWN && hit(event)) {
             val cancel=MotionEvent.obtain(event).apply { action=MotionEvent.ACTION_CANCEL }
             super.onTouchEvent(cancel);cancel.recycle()
+            // Normalize native touch/focus state before jumping between interactive rows.
+            findFocus()?.takeIf { it!==this }?.clearFocus()
+            if(isInTouchMode) onTouchModeChanged(true)
             dragging=true;parent?.requestDisallowInterceptTouchEvent(true)
         }
         if(!dragging) return super.onTouchEvent(event)
@@ -89,7 +91,11 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
                 val top=paddingTop+dp(4f);val height=(height-paddingBottom-dp(4f)-top-dp(BicycleDesign.fastScrollThumbHeight)).coerceAtLeast(1f)
                 dragFraction=((event.y-top-dp(BicycleDesign.fastScrollThumbHeight)/2)/height).coerceIn(0f,1f)
                 dragPosition=(dragFraction*(rows-1).coerceAtLeast(0)).toInt()
-                setSelectionFromTop(dragPosition+headerViewsCount,0);invalidate()
+                setSelectionFromTop(dragPosition+headerViewsCount,0)
+                // Apply the drag target immediately instead of letting a pending parent layout
+                // restore the old list anchor before the target becomes visible.
+                if(isLaidOut) layoutChildren()
+                invalidate()
             }
             MotionEvent.ACTION_UP,MotionEvent.ACTION_CANCEL->{
                 dragging=false;previewBounds.setEmpty();parent?.requestDisallowInterceptTouchEvent(false);invalidate()

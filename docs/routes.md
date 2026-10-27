@@ -146,3 +146,7 @@ verwenden das gleiche native `ListPopupWindow` wie die Importauswahl, direkt
 am jeweiligen Drei-Punkte-Button. Das Schließen des Dropdowns verändert die
 Streckenauswahl nicht. Umbenennen und die Bestätigung vor dem Löschen behalten
 ihre Dialoge und kehren beim Abbrechen zur vorhandenen Streckenliste zurück.
+
+## Fast-Scroller nach Build92
+
+Der gemeinsame BicycleFastScrollList normalisiert beim Griffziehen den nativen Touch-/Eingabefokus und wendet setSelectionFromTop mit layoutChildren unmittelbar an. Dadurch wird die Zielposition sichtbar, bevor ein weiterer Seitenlayoutpass den alten Anker wiederherstellt. Keine privaten Android-APIs im Produktivcode, keine Änderung an Mehrfachauswahl/Fahrtaktionen. Der Daumen nutzt außerhalb des Drags native Scrolloffset-/Extent-/Range-Metriken statt einer bei Zeilengrenzen springenden Ganzzahl sichtbarer Zeilen. Importliste verwendet denselben Fix. Regression: echte Streckenkarten im FullscreenHost, Touchmodus, zuvor fokussiertes Auge, Drag/Release/Relayout, monotone Daumenposition und keine ausgelöste Fahrtaktion; bestehender Importlisten-Scroller bleibt geprüft.

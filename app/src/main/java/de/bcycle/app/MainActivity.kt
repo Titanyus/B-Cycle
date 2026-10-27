@@ -1464,6 +1464,8 @@ class MainActivity : Activity() {
     private fun showDreeveImport() {
         val closed=java.util.concurrent.atomic.AtomicBoolean(false)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor { task -> Thread(task,"B-Cycle-dreeve-import") }
+        val importCancelled=java.util.concurrent.atomic.AtomicBoolean(false)
+        var importProgress:android.app.AlertDialog?=null
         var source:String?=null
         var listGeneration=0
         lateinit var content:DreeveImportView
@@ -1471,11 +1473,22 @@ class MainActivity : Activity() {
             val settings=ActivityServiceSettings(this,ActivityService.DREEVE)
             val config=settings.read();val key=settings.credentials().optString("secret")
             if(config.address.isBlank() || key.isBlank()) throw ActivityServiceFailure(false,R.string.dreeve_import_config_missing)
-            return config.identity(ActivityService.DREEVE) to DreeveClient(config,key,closed::get)
+            return config.identity(ActivityService.DREEVE) to DreeveClient(config,key,{ closed.get() || importCancelled.get() })
         }
         fun startImport(activities:List<DreeveActivity>,target:String,api:DreeveClient,mappings:Map<String,Int>,origin:TrackOrigin) {
-            runtime.mapState.importDreeve(target,activities,api,closed::get,
-                progress={ if(!closed.get()) content.progress(it) },complete={ if(!closed.get()) content.complete(it) },mappings=mappings,origin=origin)
+            importCancelled.set(false)
+            val progressView=DreeveImportProgressView(settingsContext,settingsThemes,activities.distinctBy { it.id }.size) { importCancelled.set(true) }
+            val names=activities.associate { it.id to it.name }
+            val progressDialog=BicycleDialogBuilder(settingsContext,settingsThemes,dialogs,fullscreen=false,helpEnabled=false)
+                .setView(progressView).setCancelable(false).create()
+            progressDialog.setCanceledOnTouchOutside(false)
+            importProgress=progressDialog;progressDialog.show()
+            runtime.mapState.importDreeve(target,activities,api,{ closed.get() || importCancelled.get() },
+                progress={ item -> if(!closed.get()) { content.progress(item);progressView.completed(names[item.id] ?: item.id) } },
+                complete={ result ->
+                    progressDialog.dismiss();if(importProgress===progressDialog) importProgress=null
+                    if(!closed.get()) content.complete(result)
+                },mappings=mappings,origin=origin)
         }
         fun chooseBikes(activities:List<DreeveActivity>,target:String,api:DreeveClient) {
             val gear=activities.mapNotNull { it.summary.gearId }.distinct()
@@ -1526,7 +1539,7 @@ class MainActivity : Activity() {
         })
         content.navigation=dialogs
         dialog().setTitle(R.string.dreeve_import_title).setView(content).create().apply {
-            dialogs.onDismiss(this) { closed.set(true);worker.shutdownNow() }
+            dialogs.onDismiss(this) { closed.set(true);importCancelled.set(true);importProgress?.dismiss();importProgress=null;worker.shutdownNow() }
             show()
         }
         content.refresh()

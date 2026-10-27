@@ -4,7 +4,7 @@ Stand: 20.10.2026, ab APK 0.8.14. [Build 51 und Download](build-51.md).
 
 ## Dreeve-Seite und gemeinsame Auswahl
 
-Eigener Vollbild-Screen über den bestehenden Importbutton, fester nativer Header/Footer und gemeinsame horizontale Abstände. DreeveClient.allActivities lädt alle API-Seiten automatisch in 50er-Anfragen; keine 50-Fahrten-Begrenzung im UI. Fortschritt pro Seite, IDs über Seitengrenzen zusammenführen. Bei Fehler bereits geladene Einträge behalten und über Mehr laden ab der nächsten Seite fortsetzen. Zurück schließt den Screen und beendet weitere Abfragen. Alle gefilterten markiert/demarkiert nur sichtbare, noch nicht importierte Fahrten; bestehende Auswahl außerhalb des Filters bleibt erhalten.
+Eigener Vollbild-Screen über den bestehenden Importbutton, fester nativer Header/Footer und gemeinsame horizontale Abstände. DreeveClient.allActivities lädt alle API-Seiten automatisch in 50er-Anfragen; keine 50-Fahrten-Begrenzung im UI. Fortschritt pro Seite, IDs über Seitengrenzen zusammenführen. Bei Fehler bereits geladene Einträge behalten und über Mehr laden ab der nächsten Seite fortsetzen. Außerhalb eines laufenden Imports schließt Zurück den Screen und beendet weitere Abfragen. Alle gefilterten markiert/demarkiert nur sichtbare, noch nicht importierte Fahrten; bestehende Auswahl außerhalb des Filters bleibt erhalten.
 
 Filter und Sortierung sind ausdrücklich keine zweite Implementierung: RouteQuery und RouteQueryPopup wie im Streckenmanager, mit injiziertem Profilresolver für externe Aktivitäten. Footer-Buttonreferenzen bleiben nach dem Herauslösen in den gemeinsamen Vollbildhost gültig. Dateibestand, Filtermodell und UI-Messung bleiben bei den bestehenden Komponenten.
 
@@ -94,3 +94,9 @@ Nach HTTP-Annahme bis zu 30 s im ersten Worker zeitnah bestätigen (2/3/5/10/10 
 Drei normale Zeilen statt vier, Fahrradzeile2dp näher an Datum/Strecke. Bestätigt verfügbare FIT/GPX rechts über dem Schalter als bestehende kleine Formatkennzeichen; Status importiert nur durch markierte deaktivierte Auswahl, Fehler weiter sichtbar. Optionale gemeinsame Servermetadatenabfrage nach vollständig geladener Liste, kein Vorabdownload. Archivliste behält vier Zeilen. Druckmarkierung auf die Schalterpille begrenzt, Touchfläche erhalten. Details [Originaldateien](dreeve-original-files-api.md).
 
 Darstellung27.10.2026: „Fahrräder zuordnen“ (Dreeve-Import) erhält nach dem Herkunfts-Infotext und vor der ersten Fahrradzuordnung einen zentralen horizontalen Abschnittstrenner. Ohne Fahrradzuordnungen kein leerer Trenner. Herkunftswahl und bestätigte Zuordnung unverändert.
+
+## Modaler Importfortschritt27.10.2026
+
+Nach bestätigter Fahrrad-/Herkunftszuordnung eigener kompakter headerloser BicycleDialogBuilder-Overlay: Anzahl bearbeitet/gesamt, Fortschrittsbalken und zuletzt bearbeiteter Fahrtname. Nur zentrale rahmenlose Textaktion „Abbrechen“. Nicht abbrechbar über Android-Zurück oder Außentippen; Auswahl-/Zuordnungsdialoge behalten außerhalb des aktiven Jobs ihre bisherige Navigation.
+
+Abbrechen setzt einen separaten Importtoken, auch für die HTTP-Downloadprüfung; Dialog bleibt mit Abbruchhinweis sichtbar und deaktivierter Aktion, bis der MapState-Worker den sicheren Abschluss bestätigt. Bereits erfolgreich importierte Fahrten/Links bleiben erhalten, keine Rücknahme. Danach zurück zur Liste mit Ergebnisbilanz und explizitem Abbruchtext. Eltern-Dismiss/Activity-Cleanup beendet Token und Fortschrittsfenster; callbacks geschlossenener Screens bleiben verworfen. Keine zweite Workerpipeline, periodische Jobs oder neue Persistenz. Keine Übertragung privater Fahrten in UI-Tests.
