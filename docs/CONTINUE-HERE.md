@@ -1,3 +1,7 @@
+# APK veröffentlicht: 0.8.55 / Build96 / Code125
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.55-release-96.apk) · [Buildnachweis](build-96.md). Alle seit Build95 offenen Aufträge enthalten. GitHub-Actions-Quelle `5b54662b26f279b125bf79f0d5150a76a7a123ef`, Größe 2.428.473 Bytes, SHA-256 `76f3671e84a71f8e44ccacfbcbaaf09905365ebab94e64352b5f47ac6e258d27`. Signatur wie bisher, Release ohne Debug-/Test-Flag, CI-Prüfsumme und ZIP-Ausrichtung geprüft. Keine offene APK-Aufgabe. Nachfolgende Abschnitte sind Umsetzungshistorie mit Testnachweisen.
+
 # Abschluss 27.10.2026: Änderungen fertig, APK 0.8.55 in Vorbereitung
 
 Alle offenen Aufträge seit Build95 umgesetzt; Umfang in release-0.8.55.md. Akku-Feldauswahl mit echten Touchereignissen in Flat/Glow geprüft. Neue No-Map-Layouts, neuntes Feld und Rückwärtskompatibilität bestehender acht Felder geprüft. GPS bleibt bei pausierter Karte aktiv. Sichtbare Zweier-/Dreiergruppen teilen jeweils passende Zahlen-/Einheitengrößen; ausgeblendete lange Werte erzwingen keine kleinere Schrift. Drei native Dashboardvorschauen visuell geprüft.

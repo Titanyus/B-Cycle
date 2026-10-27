@@ -14,4 +14,4 @@ Enthält alle Änderungen seit APK0.8.54 / Build95.
 
 Gezielte Prüfungen während Umsetzung; keine Gesamtsuite oder privaten Cloudaufrufe. Einzelheiten in docs/CONTINUE-HERE.md, docs/ride-statistics.md und docs/fit-reexport.md. Prüfung mit synthetischen Daten, kein erneuter Test auf dem Nutzertelefon.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-96.md).
