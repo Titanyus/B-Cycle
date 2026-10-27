@@ -315,6 +315,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_map_heading">Fahrtrichtung oben (sonst Norden)</string>
     <string name="ui_map_follow">GPS automatisch folgen</string>
     <string name="ui_map_track">Gefahrenen Track anzeigen</string>
+    <string name="ui_map_height">Höhe auf Karte anzeigen</string>
     <string name="ui_map_gpx">Importierte GPX-Strecke anzeigen</string>
     <string name="ui_map_gps_enable">GPS aktivieren / Berechtigung erlauben</string>
     <string name="ui_map_legend">CyclOSM-Legende öffnen</string>
@@ -659,7 +660,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="notifications_access_missing">Android-Einstellungen für Benachrichtigungszugriff nicht verfügbar</string>
     <string name="notifications_privacy">Zeigt neue Nachrichten ausgewählter Apps auf dem Dashboard. Inhalte bleiben nur vorübergehend im Arbeitsspeicher und werden weder gespeichert noch in FIT übernommen. Die Apps bestimmen, welchen Text Android bereitstellt.</string>
     <string name="notifications_duration">Anzeigedauer</string>
-    <string name="notifications_seconds">%1$d Sekunden</string>
+    <string name="notifications_seconds">%1$d s</string>
     <string name="notifications_apps">Apps auswählen</string>
     <string name="notifications_messenger_filter">Nur gängige Messenger anzeigen</string>
     <string name="notifications_no_apps">Keine passenden Apps gefunden. Deaktiviere gegebenenfalls den Messenger-Filter.</string>

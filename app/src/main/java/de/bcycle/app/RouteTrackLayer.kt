@@ -29,10 +29,10 @@ internal class RouteTrackLayer(private val density: Float,private val position:o
     }
     private fun dp(n: Int) = n * density / symbolScale
     fun update(route: GpxRoute?, track: List<MapPoint>, gps: GpsValues, showRoute: Boolean, showTrack: Boolean, night: Boolean = false, phoneHeading:Double?=null,
-        recordedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.RECORDED),savedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.SAVED,night)) {
+        recordedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.RECORDED),savedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.SAVED,night),showHeight:Boolean=true) {
         // Publish an immutable snapshot; drawing occurs on Mapsforge's layer thread.
         state = State(route, track, gps, showRoute, showTrack,
-            gps.altitudeM?.takeIf { it.isFinite() }?.let { "${it.roundToInt()} m" }, night,phoneHeading?.takeIf { it.isFinite() }?.let(PhoneHeadingFilter::normalize),recordedStyle,savedStyle); requestRedraw()
+            gps.altitudeM?.takeIf { showHeight && it.isFinite() }?.let { "${it.roundToInt()} m" }, night,phoneHeading?.takeIf { it.isFinite() }?.let(PhoneHeadingFilter::normalize),recordedStyle,savedStyle); requestRedraw()
     }
     override fun draw(boundingBox: BoundingBox, zoomLevel: Byte, canvas: Canvas, topLeftPoint: Point, rotation: Rotation) {
         val snapshot = state

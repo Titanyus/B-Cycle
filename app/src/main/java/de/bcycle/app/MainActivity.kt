@@ -1235,6 +1235,7 @@ class MainActivity : Activity() {
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_track_divider" })
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
+        val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
         root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs) {
@@ -1253,7 +1254,7 @@ class MainActivity : Activity() {
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
             edit.putBoolean("mapHeading",heading.isChecked).putBoolean("mapFollow",follow.isChecked)
-                .putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked)
+                .putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked)
                 .putBoolean(FitElevationCorrection.preference,elevation.isChecked).apply()
             mapPanel.refreshSettings()
         }

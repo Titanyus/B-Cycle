@@ -54,3 +54,7 @@ API-Recherche zu Original-FITs separat in [Dreeve-Originaldateien](dreeve-origin
 Darstellungsänderung27.10.2026: Wartung beginnt mit den Fahrrad-Sticky-Abschnitten. „Von Dreeve abrufen“, Zeitstempel und Status-/Infotext stehen gemeinsam nach der gesamten Fahrradliste am Seitenende. Bei leerer Liste bleiben dieselben Controls sichtbar. Abruf, Cache, Fehleranzeige und Accordionzustände unverändert.
 
 Darstellung27.10.2026, Dropdown-Rahmen: Bauteile verwenden nun [BicycleFrameDropdown](dropdown-frame.md), dessen bisherige Kopfkontur den gesamten geöffneten Inhalt umfasst.16dp Innenabstand/24dp zum Kopf, Chevron zustandsabhängig gedreht. Intervall und letzter Termin bilden direkt untereinander einen linken Block, vertikal mittig zur rechten Spezial-Rahmen-Pillenaktion. Gruppierung/Status/API/Cache/Offenzustände erhalten; keine neuen schreibenden Aktionen.
+
+## Korrektur nach Build 93
+
+Die gepaddete Wartungsliste schneidet überstehende Sticky-Header nicht mehr am Padding ab (clipToPadding=false), sodass Flat-Header bis zum Bildschirmrand gezeichnet werden. Glow-Inset und Klapp-/Sticky-Verhalten bleiben erhalten. Trenner zwischen Aktionen verwenden wieder den globalen sectionDividerGap von 16 dp oben/unten; lokale 8-dp-Ausnahme und zusätzliches unteres Zeilenpadding entfernt.

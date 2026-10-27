@@ -92,11 +92,12 @@ class SettingsBackupTest {
         assertTrue(bike.getBoolean(MapOvalAnchor.preference,false))
     }
     @Test fun heightCorrectionPreferenceRoundTripsAndLegacyMapsDoNotResetIt() {
-        bike.edit().putBoolean(FitElevationCorrection.preference,true).commit()
+        bike.edit().putBoolean(FitElevationCorrection.preference,true).putBoolean("mapHeightVisible",false).commit()
+        assertTrue(BikeUiConfigurationScope.mapKey("mapHeightVisible"))
         val b=backup();val bytes=b.export(setOf(BackupSection.MAPS))
-        bike.edit().putBoolean(FitElevationCorrection.preference,false).commit()
+        bike.edit().putBoolean(FitElevationCorrection.preference,false).putBoolean("mapHeightVisible",true).commit()
         b.apply(b.plan(b.decode(bytes),setOf(BackupSection.MAPS)))
-        assertTrue(FitElevationCorrection.enabled(context))
+        assertTrue(FitElevationCorrection.enabled(context));assertFalse(bike.getBoolean("mapHeightVisible",true))
         val legacy=json(bytes)
         legacy.getJSONObject("sections").getJSONObject(BackupSection.MAPS.id).remove("elevationCorrection")
         b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.MAPS)))

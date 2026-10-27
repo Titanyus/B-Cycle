@@ -61,12 +61,20 @@ class MaintenancePresentationTest {
                 val base=tasks().first()
                 val data=(0..9).map { base.copy(id="task-$it",componentId="part-$it",component="Bauteil $it",gearIds=listOf("a")) }+
                     (10..13).map { base.copy(id="task-$it",componentId="part-$it",gearIds=listOf("b")) }
-                view.loaded(data,mapOf("a" to "E-Bike","b" to "Indoor"))
+                view.loaded(data+data.first().copy(id="task-extra"),mapOf("a" to "E-Bike","b" to "Indoor"))
                 BicycleContentSpacing.page(scroll)
                 scroll.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(640,View.MeasureSpec.EXACTLY))
                 scroll.layout(0,0,360,640)
                 val headers=testDescendants(view).filterIsInstance<BicycleSectionHeader>()
                 assertEquals(2,headers.size)
+                if(flat) { assertEquals(0,headers.first().left);assertEquals(360,headers.first().right) }
+                val frame=view.findViewWithTag<BicycleFrameDropdown>("maintenance_dropdown_a_id:part-0")
+                val divider=frame.content.getChildAt(1)
+                val margins=divider.layoutParams as android.view.ViewGroup.MarginLayoutParams
+                assertEquals(BicycleDesign.dp(c,BicycleDesign.sectionDividerGap),margins.topMargin)
+                assertEquals(margins.topMargin,margins.bottomMargin)
+                assertEquals(margins.topMargin,divider.top-frame.content.getChildAt(0).bottom)
+                assertEquals(margins.bottomMargin,frame.content.getChildAt(2).top-divider.bottom)
                 val action=view.findViewWithTag<BicycleSpecialButton>("maintenance_action_task-0")
                 assertFalse(action.filled);assertFalse(action.isEnabled)
                 val text=view.findViewWithTag<View>("maintenance_text_task-0")
@@ -84,6 +92,7 @@ class MaintenancePresentationTest {
                 assertTrue(headers.first().y+headers.first().height<=headers.last().top+1)
                 scroll.scrollTo(0,0)
                 val image=Bitmap.createBitmap(360,640,Bitmap.Config.ARGB_8888);image.eraseColor(themes.active.tokens.secondary);scroll.draw(Canvas(image))
+                if(flat) assertEquals(themes.active.tokens.tertiary,image.getPixel(0,headers.first().height/2))
                 java.io.File("build/reports/ui/maintenance-${if(flat) "flat" else "glow"}.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
             }
         } finally { host.pause().stop().destroy() }

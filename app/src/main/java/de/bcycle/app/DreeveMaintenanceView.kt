@@ -14,7 +14,7 @@ internal class DreeveMaintenanceView(context:Context,private val themes:ThemeMan
     private val updated=BicycleComponents.description(context,themes,"").apply { tag="maintenance_updated";visibility=GONE }
     private var shown:Pair<List<DreeveMaintenanceTask>,Map<String,String>>?=null
     private val list=LinearLayout(context).apply {
-        orientation=VERTICAL;tag="maintenance_tasks"
+        orientation=VERTICAL;tag="maintenance_tasks";clipToPadding=false
         val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,0)
     }
     private val reload=BicycleComponents.action(context,themes,context.getString(R.string.maintenance_refresh),refresh).apply { tag="maintenance_refresh" }
@@ -83,7 +83,7 @@ internal class DreeveMaintenanceView(context:Context,private val themes:ThemeMan
                 val content=dropdown.content.apply { tag="maintenance_component_body_${gear}_$component" }
                 body.addView(dropdown,LayoutParams(-1,-2));BicycleComponents.controlSpacing(dropdown)
                 partTasks.forEachIndexed { index,task ->
-                    if(index>0) content.addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.controlGap))
+                    if(index>0) content.addView(BicycleComponents.sectionDivider(context,themes))
                     content.addView(taskRow(task),LayoutParams(-1,-2))
                 }
             }
@@ -99,7 +99,7 @@ internal class DreeveMaintenanceView(context:Context,private val themes:ThemeMan
     private fun taskRow(task:DreeveMaintenanceTask)=LinearLayout(context).apply {
         orientation=VERTICAL;tag="maintenance_${task.id}"
         stateDescription=context.getString(when { task.overdue->R.string.maintenance_overdue;task.due->R.string.maintenance_due;else->R.string.maintenance_upcoming })
-        val pad=dp(BicycleDesign.controlGap);setPadding(0,0,0,pad)
+        val pad=dp(BicycleDesign.controlGap)
         addView(LinearLayout(context).apply {
             tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL;isBaselineAligned=false
             addView(LinearLayout(context).apply {

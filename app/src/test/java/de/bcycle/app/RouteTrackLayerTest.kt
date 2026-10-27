@@ -188,8 +188,8 @@ class RouteTrackLayerTest {
         val model = Model(); model.displayModel.setFixedTileSize(256)
         val origin = MercatorProjection.getMapSize(10, 256) / 2.0 - 256
         val layer = RouteTrackLayer(1f); layer.setDisplayModel(model.displayModel)
-        fun labelPixels(height: Double?): Int {
-            layer.update(null, emptyList(), GpsValues(latitude = 0.0, longitude = 0.0, altitudeM = height), false, false)
+        fun labelPixels(height: Double?,showHeight:Boolean=true): Int {
+            layer.update(null, emptyList(), GpsValues(latitude = 0.0, longitude = 0.0, altitudeM = height), false, false,showHeight=showHeight)
             val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
             layer.draw(BoundingBox(-1.0, -1.0, 1.0, 1.0), 10,
                 AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)), Point(origin, origin), Rotation.NULL_ROTATION)
@@ -197,6 +197,7 @@ class RouteTrackLayerTest {
         }
         assertEquals(0, labelPixels(null)); assertEquals(0, labelPixels(Double.NaN))
         assertTrue(labelPixels(0.0) > 100); assertTrue(labelPixels(487.0) > 100)
+        assertEquals(0,labelPixels(487.0,false));assertTrue(labelPixels(487.0,true)>100)
         model.mapViewPosition.destroy()
     }
 
