@@ -29,7 +29,7 @@ class RouteDistributionViewTest {
             for(kind in listOf(AnalysisChart.POWER,AnalysisChart.HEART)) {
                 val bars=List(10) { i -> DistributionBar(i*20.0,(i+1)*20.0,100.0) }
                 val distribution=RouteValueDistribution(kind,0.0,200.0,List(10) { 100.0 },1000.0,
-                    listOf(DistributionBand(1,50.0,200.0,android.graphics.Color.GREEN)),200.0,bars)
+                    listOf(DistributionBand(1,50.0,200.0,android.graphics.Color.GREEN)),200.0,bars,listOf(750.0))
                 val chart=RouteDistributionView(context,themes,distribution);context.setContentView(chart,ViewGroup.LayoutParams(720,720))
                 org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
                 chart.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY));chart.layout(0,0,720,720)
@@ -48,7 +48,7 @@ class RouteDistributionViewTest {
                     assertEquals(android.graphics.Color.GREEN,image.getPixel(x(54.0),y)) // Exact boundary within one equal-width bin.
                     assertEquals(background,image.getPixel(x(40.0),y)) // Empty gap, no curve or filled area.
                     assertEquals(background,image.getPixel(x(130.0),bounds.top.toInt()+2))
-                    assertEquals(android.graphics.Color.GREEN,image.getPixel(x(130.0),(bounds.top-BicycleDesign.dp(context,BicycleDesign.controlGap)).toInt()))
+                    assertEquals(android.graphics.Color.GREEN,image.getPixel(x(130.0),(bounds.top-BicycleDesign.dp(context,BicycleDesign.controlGap+BicycleDesign.analysisDistributionLegendRowHeight)).toInt()))
                     image.recycle()
                 }
             }
@@ -100,6 +100,7 @@ class RouteDistributionViewTest {
                 assertEquals(listOf(AnalysisChart.POWER, AnalysisChart.HEART), charts.map { it.distribution.chart })
                 charts.forEach { chart ->
                     assertEquals(chart.width, chart.height)
+                    assertTrue(chart.contentDescription.toString().contains("%"))
                     assertTrue(chart.plotBounds().width() > chart.width * .75f)
                     assertTrue(chart.contentDescription.toString().contains(context.getString(R.string.analysis_watts)) || chart.contentDescription.toString().contains(context.getString(R.string.analysis_bpm)))
                     val bitmap = Bitmap.createBitmap(chart.width, chart.height, Bitmap.Config.ARGB_8888)
@@ -109,7 +110,7 @@ class RouteDistributionViewTest {
                         val value = (band.lower + band.upper) / 2
                         val x = (plot.left + ((value - chart.distribution.minimum) / (chart.distribution.maximum - chart.distribution.minimum)) * plot.width()).toInt()
                         // Zone colours belong to the legend and bars, never a full plot backdrop.
-                        assertEquals(band.color,bitmap.getPixel(x,(plot.top-BicycleDesign.dp(context,BicycleDesign.controlGap)).toInt()))
+                        assertEquals(band.color,bitmap.getPixel(x,(plot.top-BicycleDesign.dp(context,BicycleDesign.controlGap+BicycleDesign.analysisDistributionLegendRowHeight)).toInt()))
                         assertEquals(0,Color.alpha(bitmap.getPixel(x,plot.top.toInt()+5)))
                     }
                     bitmap.recycle()

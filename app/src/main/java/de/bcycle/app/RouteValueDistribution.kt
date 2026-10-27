@@ -7,7 +7,7 @@ internal data class DistributionBand(val zone: Int, val lower: Double, val upper
 internal data class DistributionBar(val lower:Double,val upper:Double,val milliseconds:Double)
 internal data class RouteValueDistribution(val chart: AnalysisChart, val minimum: Double, val maximum: Double,
     val milliseconds: List<Double>, val totalMs: Double, val bands: List<DistributionBand>, val observedMaximum: Double,
-    val bars:List<DistributionBar>)
+    val bars:List<DistributionBar>, val zoneMilliseconds:List<Double>)
 
 /** Integer-unit histogram before chart downsampling. FIT power/BPM are integer fields. */
 internal class RouteTimeHistogram(private val maximumValue: Int) {
@@ -51,8 +51,14 @@ internal class RouteTimeHistogram(private val maximumValue: Int) {
         while(kotlin.math.round((axisHigh-axisLow)/step)>BicycleDesign.analysisDistributionMaxBars) {
             step+=base;axisLow=floor(low/step)*step;axisHigh=ceil(high/step)*step
         }
+        val zoneTime=DoubleArray(bands.size)
+        val heartModel=if(chart==AnalysisChart.HEART) profile.heartZones() else null
         val bins=DoubleArray(kotlin.math.round((axisHigh-axisLow)/step).toInt().coerceAtLeast(1))
         milliseconds.forEachIndexed { value,ms -> if(ms>0) {
+            // Derive shares from integer-unit samples, not colour-split display bins.
+            val zone=if(chart==AnalysisChart.POWER) Coggan.zone(value.toDouble(),profile.ftpW) else heartModel?.zoneFor(value)?.index
+            val band=bands.indexOfFirst { it.zone==zone }
+            if(band>=0) zoneTime[band]+=ms
             // Match the profile's inclusive power upper limits and final HR maximum.
             // Otherwise a sample exactly on a zone edge could be coloured as the next zone.
             val rightClosed=chart==AnalysisChart.POWER || value.toDouble()==bands.last().upper
@@ -68,6 +74,6 @@ internal class RouteTimeHistogram(private val maximumValue: Int) {
             else->band
         } }
         val bars=bins.indices.map { index -> DistributionBar(axisLow+step*index,axisLow+step*(index+1),bins[index]) }
-        return RouteValueDistribution(chart,axisLow,axisHigh,bins.toList(),total,displayBands,observed,bars)
+        return RouteValueDistribution(chart,axisLow,axisHigh,bins.toList(),total,displayBands,observed,bars,zoneTime.toList())
     }
 }

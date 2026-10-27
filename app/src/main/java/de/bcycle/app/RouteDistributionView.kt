@@ -24,12 +24,13 @@ internal class RouteDistributionView(context: Context, private val themes: Theme
     }.filter { it > distribution.minimum && it < distribution.maximum } + distribution.maximum).distinct()
     private val labels = marks.map { context.getString(R.string.analysis_integer_format, it) }
     private val zoneLabels = distribution.bands.map { context.getString(R.string.analysis_distribution_zone_number, it.zone) }
+    private val zonePercentLabels=distribution.zoneMilliseconds.map { context.getString(R.string.analysis_zone_percent,if(distribution.totalMs>0) it*100/distribution.totalMs else 0.0) }
     init {
         tag = "analysis_distribution_${distribution.chart.name}"
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         contentDescription = context.getString(R.string.analysis_distribution_description, title,
             context.getString(R.string.analysis_integer_format, distribution.minimum),
-            context.getString(R.string.analysis_integer_format, distribution.maximum), unit)
+            context.getString(R.string.analysis_integer_format, distribution.maximum), unit)+". "+zoneLabels.indices.joinToString("; ") { context.getString(R.string.analysis_distribution_zone_share,zoneLabels[it],zonePercentLabels[it]) }
         BicycleComponents.bindTheme(this, themes) { foreground=it.foreground;updateFill();invalidate() }
     }
     internal fun plotBounds() = RectF(plot)
@@ -94,10 +95,15 @@ internal class RouteDistributionView(context: Context, private val themes: Theme
             paint.color=foreground;paint.textSize=BicycleDesign.analysisLabelSp*scaled
             val available=(right-left)*.8f;val measured=paint.measureText(zoneLabels[i])
             if(measured>available) paint.textSize*=available/measured
-            canvas.drawText(zoneLabels[i],(left+right)/2,plot.top-2*BicycleDesign.controlGap*density,paint)
+            canvas.drawText(zoneLabels[i],(left+right)/2,plot.top-(2*BicycleDesign.controlGap+BicycleDesign.analysisDistributionLegendRowHeight)*density,paint)
             paint.color=band.color;paint.strokeWidth=BicycleDesign.analysisDistributionMarkerWidth*density;paint.strokeCap=Paint.Cap.ROUND
             val inset=minOf(BicycleDesign.smallGap*density,(right-left)*.15f)
-            canvas.drawLine(left+inset,plot.top-BicycleDesign.controlGap*density,right-inset,plot.top-BicycleDesign.controlGap*density,paint)
+            val markerY=plot.top-(BicycleDesign.controlGap+BicycleDesign.analysisDistributionLegendRowHeight)*density
+            canvas.drawLine(left+inset,markerY,right-inset,markerY,paint)
+            paint.color=foreground;paint.textSize=BicycleDesign.analysisDistributionPercentSp*scaled
+            val percentWidth=paint.measureText(zonePercentLabels[i])
+            if(percentWidth>available) paint.textSize*=available/percentWidth
+            canvas.drawText(zonePercentLabels[i],(left+right)/2,plot.top-BicycleDesign.controlGap*density,paint)
         }
         paint.strokeCap=Paint.Cap.BUTT;paint.textSize=BicycleDesign.analysisLabelSp*scaled
         paint.color=themes.active.tokens.secondaryTextColor

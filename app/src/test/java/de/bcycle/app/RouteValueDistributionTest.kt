@@ -68,12 +68,15 @@ class RouteValueDistributionTest {
         val result=power.result(AnalysisChart.POWER,profile.copy(ftpW=253))!!
         assertEquals(7000.0,result.bars.sumOf { it.milliseconds },0.0)
         assertEquals(253*.55,result.bands.first().upper,.000001)
+        assertEquals(listOf(3000.0,3000.0,0.0,0.0,0.0,0.0,1000.0),result.zoneMilliseconds) // 139 and 140 share a display bin, but belong to different zones.
         assertTrue(result.bars.all { it.upper-it.lower==5.0 })
         assertEquals(5000.0,result.bars.single { it.lower==135.0 && it.upper==140.0 }.milliseconds,0.0)
         val heart=RouteTimeHistogram(250)
         for(value in listOf(80.0,120.0,159.0,180.0)) { heart.observe(value);heart.add(value,1000) }
         val pulse=heart.result(AnalysisChart.HEART,profile)!!
         assertEquals(4000.0,pulse.bars.sumOf { it.milliseconds },0.0)
+        assertEquals(2000.0,pulse.zoneMilliseconds.sum(),0.0) // 80 and 180 bpm are outside the profile's zones, not reassigned.
+        assertEquals(1000.0,pulse.zoneMilliseconds.last(),0.0)
         assertTrue(pulse.bars.all { it.upper-it.lower==2.0 })
         val boundaryPower=RouteTimeHistogram(65535)
         boundaryPower.observe(110.0);boundaryPower.add(110.0,1000)

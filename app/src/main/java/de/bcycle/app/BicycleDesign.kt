@@ -128,7 +128,9 @@ object BicycleDesign {
     const val analysisDistributionPowerStep = 5
     const val analysisDistributionHeartStep = 2
     const val analysisDistributionMaxBars = 128
-    const val analysisDistributionHeaderHeight = 40
+    const val analysisDistributionPercentSp = 9f
+    const val analysisDistributionLegendRowHeight = 16
+    const val analysisDistributionHeaderHeight = 56
     const val analysisDistributionAxisHeight = 32
     const val analysisDistributionBarGap = .2f
     const val analysisDistributionPeakFraction = .95f
