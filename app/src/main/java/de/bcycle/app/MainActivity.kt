@@ -181,7 +181,7 @@ class MainActivity : Activity() {
             if(::dashboardStatus.isInitialized) {
                 val params=dashboardStatus.layoutParams
                 if(params.height!=top) { params.height=top;dashboardStatus.layoutParams=params }
-                dashboardStatus.insets(bars.left,bars.right,insets.displayCutout?.boundingRects.orEmpty())
+                dashboardStatus.insets(bars.left,bars.right,insets.displayCutout?.boundingRects.orEmpty(),insets.privacyIndicatorBounds)
             }
             insets
         }

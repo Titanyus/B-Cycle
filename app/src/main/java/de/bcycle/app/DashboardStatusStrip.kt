@@ -80,7 +80,11 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
             messengerPackage=selected;drawing.messenger=selected?.let { runCatching { context.packageManager.getApplicationIcon(it).mutate() }.getOrNull() };invalidate()
         }
     }
-    fun insets(left:Int,right:Int,blocked:List<Rect>) { safeLeft=left;safeRight=right;cutouts=blocked.map(::Rect);invalidate() }
+    fun insets(left:Int,right:Int,blocked:List<Rect>,privacyIndicator:Rect?=null) {
+        safeLeft=left;safeRight=right
+        cutouts=(blocked+listOfNotNull(privacyIndicator?.takeUnless { it.isEmpty })).map(::Rect)
+        invalidate()
+    }
     fun show(value:DashboardStatusSnapshot) {
         if(value==state) return
         state=value;describe();invalidate()
@@ -103,11 +107,12 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
         DashboardStatusItem.NOTIFICATIONS->s.notifications>0 || preview
         else->true
     }
-    /** Largest safe interval in each half also handles off-centre camera holes. */
+    /** Largest safe interval in each half avoids camera holes and system privacy-indicator bounds. */
     internal fun regions():List<Pair<Float,Float>> {
         val gap=8*density;val mid=width/2f
         val blocked=if(preview) listOf(Rect((mid-22*density).toInt(),0,(mid+22*density).toInt(),height)) else cutouts.filter { it.top<height && it.bottom>0 }
-        return listOf(safeLeft+gap to mid-gap,mid+gap to width-safeRight-gap).mapIndexed { side,region ->
+        val edge=BicycleDesign.dashboardStatusEdgeInset*density
+        return listOf(safeLeft+edge to mid-gap,mid+gap to width-safeRight-edge).mapIndexed { side,region ->
             var free=listOf(region)
             blocked.forEach { r -> free=free.flatMap { (start,end) ->
                 if(r.right+gap<=start || r.left-gap>=end) listOf(start to end)

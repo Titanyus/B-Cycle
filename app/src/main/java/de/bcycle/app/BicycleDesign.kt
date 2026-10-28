@@ -81,6 +81,7 @@ object BicycleDesign {
     const val bodySp = 14f
     // Normal content headings, as introduced in grouped settings help.
     const val contentHeadingSp = 14f
+    const val dashboardStatusEdgeInset = 15
     const val dashboardStatusSp = 12f
     const val dashboardStatusMinHeight = 24
     const val dashboardStatusPreviewHeight = 40
