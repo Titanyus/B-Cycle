@@ -1,3 +1,7 @@
+# APK veröffentlicht28.10.2026:0.8.60 / Build101 / Code130
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.60-release-101.apk) · [Buildnachweis](build-101.md). Quelle `30958281483b9180e892d601cb8eb679f2d7b784`, Größe 2493585 Bytes, SHA-256 `3d610ac6b2c3f557aae1e30c999047ebd54554473ba971c39a571428d131b941`. HRV4-Kontextkorrektur und neue Symbole enthalten. Signatur/Update-Kompatibilität, CI-Prüfsumme, Manifest und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci]. Keine offene APK-Aufgabe; nachfolgende Abschnitte sind Umsetzungshistorie.
+
 # HRV-Kontextsymbole nach Build100
 
 Nutzerwunsch: Reihenfolge Standard/Tagesbefinden/Training/Schlaf/Energie/Muskelkater. Exakte Lucide-Symbole bed, biceps-flexed, target und face-slightly-smiling. Letzteres aus aktuellem offiziellen Lucide-Commit f3a26ccff137ac9980c778aa91ea4f15557dd3d9; Importskript pinnt die Geometrie reproduzierbar. Keine Änderung von Berechnung, Farben oder Persistenz. Prüfung bestehender HrvContextUiTest (320/360dp, Flat/Glow), Log /workspace/.tools/hrv-context-icons-final.log. Kein APK-Auftrag. Vorheriger HRV4-Kontextfix weiterhin für nächste APK vorgemerkt.

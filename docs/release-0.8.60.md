@@ -5,4 +5,4 @@
 
 Prüfung:26 gezielte Import-/Fragebogen-/Tagesauswertungsfälle sowie bestehende native Kontextvorschau bei320/360dp in Flat und Glow erfolgreich. Typografie, UI-Katalog und Diff geprüft. Keine Gesamtsuite und kein neuer Telefon-/Cloudtest.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-101.md).

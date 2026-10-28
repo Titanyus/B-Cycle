@@ -21,3 +21,6 @@ Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.59/Build100** en
 
 
 Korrektur nach Build100: Ältere HRV4-Importe konnten Training, aber noch keine bzw. nur einzelne später unterstützte Sliderantworten enthalten. Der bisherige Kontextlader migrierte nur komplette Legacydateien, wenn noch keine kanonischen Tagesantworten existierten. Anders als der Fragebogen rief er die bestehende Ergänzung aus external.originalColumns nicht auf. trendQuestionnaires verwendet nun auch bei bereits vorhandenen Tagesantworten den fill-missing-only-Resolver questionnaireForEditing für importierte Datensätze. Damit profitieren Farbansicht und Tagesauswertung gemeinsam, ohne Fragebogenöffnung/Neuimport. Vorhandene Werte/Notizen/Zeitstempel und Original-CSV-Felder bleiben erhalten; explizite0nicht als fehlend behandeln.
+
+
+Veröffentlichung28.10.2026: HRV4-Kontextkorrektur und aktualisierte Symbole/Reihenfolge in **APK0.8.60/Build101** enthalten. [Download und Buildnachweis](build-101.md).
