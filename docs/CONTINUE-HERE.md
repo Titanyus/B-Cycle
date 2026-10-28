@@ -1,3 +1,7 @@
+# HRV4Training-Tagesempfehlung recherchiert28.10.2026
+
+Nutzerbeispiele: oberhalb/innerhalb Normalbereich Proceed as planned, darunter+subjektiv positiv Limit intensity, darunter+negativ Take it easy. Offizielle FAQ/Normalbereichsübersicht/Daily-advice-Blog gelesen; Verknüpfung von persönlichem Normalbereich und subjektiven vergangenen Tagen dokumentiert, exakt4Tage nicht bestätigt. Hohe HRV meistpositiv, seltene hohe Abweichung+schlechter subjektiver Trend lautFAQ vorsichtig behandeln. Exakte moderne Score-/Entscheidungsformel nicht offengelegt. Eigene4Tage-Regel möglich; Mittelwert≠Trend. Recherche/Links/Abgrenzungen in docs/hrv-daily-assessment-plan.md. Nur Recherche, keine Änderung an App/Empfehlungsberechnung, Auswertung imFooter weiterdeaktiviert. Vorherige lokalen Änderungen für nächste APK bleiben erhalten.
+
 # Nach Build99: HRV-Kontextfarben und kompakte Auswertung
 
 Nutzerauftrag umgesetzt: sechs reine Symbolsegmente unter der Zeitraum-/Datumszeile für Standard/Training/Schlaf/Energie/Muskelkater/Tagesbefinden, ausgewählter Name separat darunter. Ausdrücklich keine Legende. Diagrammhöhe zentral504→454dp. Nach Rückfrage gesamten unteren Textblock inklusive Tageswert/Mittelwert/Korridorgrenzen sowie allgemeine Erklärungen entfernt. Messergebnis zusätzlich im festen Tagesfooter: Auswertung(deaktiviert), Messergebnis, Tagesbefinden, Löschen; kein Inline-Ergebnisbutton.
