@@ -1,3 +1,7 @@
+# APK-Auftrag28.10.2026:0.8.57/Code127
+
+Nutzer hat neue APK angefordert. Lokale Änderungen10c8de5 und1082218 vollständig enthalten: kompakte Statuskonfiguration/Dropdown/Handyvorschau/Prozent sowie adaptive HRV-Achsenlabels ohne Weglassen. Relevante Tests bereits grün; keine erneute Gesamtsuite. Ein automatischer GitHub-Actions-Releasebuild nach Push; kein zusätzlicher Dispatch. Signatur, Version, Manifest, CI-Prüfsumme und ZIP-Ausrichtung prüfen, direkten Download veröffentlichen und abgleichen. Erwarteter Lauf98, tatsächliche Nummer prüfen. Umfang: release-0.8.57.md.
+
 # Nach Build97: HRV-Achsen nur verkürzen, keine Wochen/Monate auslassen
 
 Nutzerwunsch umgesetzt: WochenkürzelKW05 bei Platzmangel nur05, MonatskürzelJan/Aug nurJ/A. Gleichmäßiger Formatwechsel nach gemessener maximaler Textbreite und tatsächlicher Pixelspanne je Periode; unabhängig von Scrollposition. Für Wochen/Monate strideimmer1, daher auch bei noch engerem Zoom alle Labels vorhanden. Normales Clipping an beiden Rändern erhalten. Tagesdatum-Strides, Messwertlabels und sämtliche Messwert-/Trend-/Korridor-/Y-Achsberechnungen unverändert; keine neue Ansicht oder Zoomgrenze eingeführt. Verwendet bestehende WEEK/MONTH-Achsentypen; Nutzer bezeichnete die Zeitübersichten als Monat/Jahr.
