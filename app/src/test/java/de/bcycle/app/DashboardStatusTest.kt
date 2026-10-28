@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.ComponentName
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Rect
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -40,11 +41,11 @@ class DashboardStatusTest {
             val root=screen.window!!.decorView
             root.findViewWithTag<View>("dashboard_status_expand").performClick()
             root.findViewWithTag<View>("dashboard_status_slot_0").performClick()
-            val choice=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            choice.window!!.decorView.findViewWithTag<View>("dashboard_status_choice_TIME").performClick()
+            val settings=root.findViewWithTag<DashboardStatusSettingsView>("dashboard_fullscreen_settings")
+            settings.popup!!.contentView.findViewWithTag<View>("dashboard_status_choice_TIME").performClick()
             assertEquals(DashboardStatusItem.TIME,DashboardStatusConfig.read(prefs).slots[0])
             root.findViewWithTag<View>("dashboard_status_slot_3").performClick()
-            org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("dashboard_status_choice_VPN").performClick()
+            settings.popup!!.contentView.findViewWithTag<View>("dashboard_status_choice_VPN").performClick()
             assertEquals(DashboardStatusItem.VPN,DashboardStatusConfig.read(prefs).slots[3])
             screen.dismiss();a.onWindowFocusChanged(true)
             assertEquals(View.VISIBLE,strip.visibility)
@@ -56,6 +57,72 @@ class DashboardStatusTest {
             val monitor=MainActivity::class.java.getDeclaredField("dashboardStatusMonitor").apply { isAccessible=true }.get(a)
             assertNull(DashboardStatusMonitor::class.java.getDeclaredField("receiver").apply { isAccessible=true }.get(monitor))
         } finally { host.destroy() }
+    }
+    @Test fun sixNeutralSlotsShareOneLineAndDropdownHasTwoAlignedRowsBelowTheSameAnchor() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val prefs=a.getSharedPreferences("bike",0);val themes=ThemeManager(prefs)
+            DashboardStatusConfig.write(prefs,full)
+            for(flat in listOf(false,true)) for(width in listOf(320,360,480)) {
+                themes.setFlatDesign(flat)
+                val content=DashboardStatusSettingsView(a,themes,prefs,changed={})
+                a.setContentView(content);content.findViewWithTag<View>("dashboard_status_expand").performClick();layout(content,width,500)
+                val cards=(0..5).map { content.findViewWithTag<BicycleSegmentButton>("dashboard_status_slot_$it") }
+                val positions=cards.map { card -> IntArray(2).also(card::getLocationOnScreen) }
+                assertEquals(1,positions.map { it[1] }.distinct().size)
+                assertTrue(cards.all { it.width>0 && !it.showSelectionHighlight })
+                assertTrue(positions.zipWithNext().all { it.second[0]>it.first[0] })
+                assertTrue(positions.last()[0]+cards.last().width<=width)
+                val dot=content.findViewWithTag<View>("dashboard_status_separator")
+                val dotPosition=IntArray(2).also(dot::getLocationOnScreen)
+                assertEquals(width/2f,dotPosition[0]+dot.width/2f,1f)
+                assertTrue(cards.first().isChecked) // Styling must not erase assignment or native state.
+                for(index in listOf(0,3,5)) {
+                    val card=cards[index]
+                    assertTrue(card.textSize>0);assertTrue(card.layout.width<=card.width)
+                    assertTrue(card.layout.getLineWidth(0)>0)
+                }
+                val sample=Bitmap.createBitmap(cards.first().width,cards.first().height,Bitmap.Config.ARGB_8888)
+                cards.first().draw(Canvas(sample));assertEquals(themes.active.tokens.secondary,sample.getPixel(sample.width/2,8));sample.recycle()
+                val body=content.findViewWithTag<android.view.ViewGroup>("dashboard_status_details")
+                assertFalse((0 until body.childCount).map(body::getChildAt).filterIsInstance<android.widget.TextView>().isNotEmpty())
+                val phone=content.findViewWithTag<View>("dashboard_status_phone_preview")
+                val phonePosition=IntArray(2).also(phone::getLocationOnScreen)
+                assertTrue(phonePosition[1]>=positions[0][1]+cards.first().height)
+                cards.first().performClick()
+                val popup=content.popup!!;assertTrue(popup.isShowing)
+                val grid=popup.contentView as android.view.ViewGroup
+                layout(grid,popup.width,180)
+                assertEquals(2,grid.childCount)
+                for(rowIndex in 0..1) {
+                    val row=grid.getChildAt(rowIndex) as android.view.ViewGroup
+                    assertEquals(3,row.childCount)
+                    assertEquals(1,(0..2).map { row.getChildAt(it).top }.distinct().size)
+                    assertTrue((0..2).all { !(row.getChildAt(it) as BicycleSegmentButton).showSelectionHighlight })
+                    assertTrue((0..2).map { row.getChildAt(it).height }.distinct().size==1)
+                }
+                assertEquals(grid.getChildAt(0).bottom+BicycleDesign.dp(a,BicycleDesign.controlGap),grid.getChildAt(1).top)
+                if(!flat && width==360) {
+                    val image=Bitmap.createBitmap(grid.width,grid.height,Bitmap.Config.ARGB_8888)
+                    grid.draw(Canvas(image))
+                    java.io.File("build/reports/ui/dashboard-status-options.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
+                }
+                val old=DashboardStatusConfig.read(prefs);popup.dismiss();assertEquals(old,DashboardStatusConfig.read(prefs))
+            }
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun batteryGlyphIncludesMeasuredPercentAndNeverInventsZeroWhenUnknown() {
+        val drawing=DashboardStatusDrawing(c);drawing.paint.textSize=12f
+        val bitmap=Bitmap.createBitmap(180,40,Bitmap.Config.ARGB_8888)
+        val texts=mutableListOf<String>()
+        val canvas=object:Canvas(bitmap) { override fun drawText(text:String,x:Float,y:Float,paint:android.graphics.Paint) { texts+=text;super.drawText(text,x,y,paint) } }
+        for(level in listOf(0,72,100,null)) {
+            texts.clear();val state=DashboardStatusSnapshot(battery=level)
+            drawing.draw(canvas,DashboardStatusItem.BATTERY,state,0f,20f,Color.WHITE)
+            assertEquals(listOf(level?.let { c.getString(R.string.dashboard_status_percent,it) } ?: c.getString(R.string.hrvt_unavailable)),texts)
+            assertEquals(25f+drawing.paint.measureText(texts.single()),drawing.width(DashboardStatusItem.BATTERY,state),.01f)
+        }
+        bitmap.recycle()
     }
     @Test fun slotsAreEmptyInitiallyUniqueMovableAndStrictlyValidatedInBackup() {
         val prefs=c.getSharedPreferences("bike",0);val config=DashboardStatusConfig.read(prefs)
@@ -156,8 +223,7 @@ class DashboardStatusTest {
         try {
             val a=host.get();val prefs=a.getSharedPreferences("bike",0);val themes=ThemeManager(prefs)
             DashboardStatusConfig.write(prefs,full)
-            var chosenIndex=-1
-            val view=DashboardStatusSettingsView(a,themes,prefs,choose={ index,_,choose -> chosenIndex=index;choose(DashboardStatusItem.BATTERY) },changed={})
+            val view=DashboardStatusSettingsView(a,themes,prefs,changed={})
             a.setContentView(view);layout(view,360,620)
             view.findViewWithTag<View>("dashboard_status_expand").performClick();layout(view,360,620)
             assertEquals(View.VISIBLE,view.findViewWithTag<View>("dashboard_status_details").visibility)
@@ -166,13 +232,14 @@ class DashboardStatusTest {
             assertEquals("10:28",first.text.toString());assertTrue(first.isChecked)
             assertTrue(first.performAccessibilityAction(R.id.bike_move_right,null))
             assertEquals(DashboardStatusItem.NOTIFICATIONS,DashboardStatusConfig.read(prefs).slots[0])
-            view.findViewWithTag<View>("dashboard_status_slot_0").performClick();assertEquals(0,chosenIndex)
+            view.findViewWithTag<View>("dashboard_status_slot_0").performClick()
+            view.popup!!.contentView.findViewWithTag<View>("dashboard_status_choice_BATTERY").performClick()
             assertEquals(DashboardStatusItem.BATTERY,DashboardStatusConfig.read(prefs).slots[0])
             assertEquals(DashboardStatusItem.EMPTY,DashboardStatusConfig.read(prefs).slots[4])
             DashboardStatusConfig.write(prefs,full)
             for(flat in listOf(false,true)) {
                 themes.setFlatDesign(flat)
-                val preview=DashboardStatusSettingsView(a,themes,prefs,choose={_,_,_->},changed={})
+                val preview=DashboardStatusSettingsView(a,themes,prefs,changed={})
                 a.setContentView(preview);preview.findViewWithTag<View>("dashboard_status_expand").performClick();layout(preview,360,620)
                 val row=preview.findViewWithTag<android.view.ViewGroup>("dashboard_status_side_0")
                 assertEquals((0 until row.childCount).map { row.getChildAt(it).top }.distinct().size,1)

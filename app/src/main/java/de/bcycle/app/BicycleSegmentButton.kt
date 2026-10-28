@@ -12,6 +12,9 @@ import android.widget.RadioButton
 /** Native mutually exclusive radio semantics, presented as a segment without a selection circle. */
 internal class BicycleSegmentButton(context: Context, private val themes: ThemeManager,private val multiple:Boolean=false,private val standalone:Boolean=false) : RadioButton(context) {
     private var ready=false
+    /** Styling opt-out; native checked state and selection callbacks remain intact. */
+    var showSelectionHighlight=true
+        set(value) { field=value;if(ready) paint(themes.active.tokens) }
     init {
         buttonDrawable=null;buttonTintList=null
         gravity=Gravity.CENTER;typeface=BicycleDesign.bodyTypeface;textSize=BicycleDesign.choiceSp
@@ -43,14 +46,15 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
     override fun getAccessibilityClassName():CharSequence=if(multiple) android.widget.CheckBox::class.java.name else super.getAccessibilityClassName()
     override fun drawableStateChanged() { super.drawableStateChanged();if(ready) paint(themes.active.tokens) }
     private fun paint(tokens:ThemeTokens) {
-        val fill=if(isChecked) tokens.primary else tokens.secondary
-        val foreground=if(!isChecked || ThemeValidator.contrast(tokens.foreground,fill)>=ThemeValidator.minimumTextContrast) tokens.foreground
+        val selected=isChecked && showSelectionHighlight
+        val fill=if(selected) tokens.primary else tokens.secondary
+        val foreground=if(!selected || ThemeValidator.contrast(tokens.foreground,fill)>=ThemeValidator.minimumTextContrast) tokens.foreground
             else if(ThemeValidator.contrast(Color.BLACK,fill)>=ThemeValidator.contrast(Color.WHITE,fill)) Color.BLACK else Color.WHITE
-        BicycleAppearance.selected(this,isChecked)
+        BicycleAppearance.selected(this,selected)
         setTextColor(foreground)
         compoundDrawables.filterNotNull().forEach { it.setTint(foreground) }
-        val surface=BicycleInputFrame.selectionBackground(this,tokens,isChecked)
-        if(standalone && !isChecked && surface is GradientDrawable) {
+        val surface=BicycleInputFrame.selectionBackground(this,tokens,selected)
+        if(standalone && !selected && surface is GradientDrawable) {
             val outline=(tokens.foreground and 0x00ffffff) or ((Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
             surface.setStroke(BicycleDesign.dp(context,BicycleDesign.controlBorder),outline)
         }

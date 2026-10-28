@@ -1121,20 +1121,7 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot
         val revision=runtime.profileRevision
         val root = column()
-        root.addView(DashboardStatusSettingsView(settingsContext,settingsThemes,preferences,choose={ index,config,assign ->
-            val choices=GridLayout(settingsContext).apply { columnCount=3;setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.horizontalPadding)) }
-            lateinit var selection:AlertDialog
-            DashboardStatusItem.entries.forEachIndexed { position,item ->
-                choices.addView(BicycleSegmentButton(settingsContext,settingsThemes,standalone=true).apply {
-                    tag="dashboard_status_choice_${item.name}";isChecked=config.slots[index]==item
-                    statusSlotAppearance(this,item,settingsThemes)
-                    setOnClickListener { assign(item);selection.dismiss() }
-                },GridLayout.LayoutParams(GridLayout.spec(position/3),GridLayout.spec(position%3,1f)).apply {
-                    width=0;height=dp(BicycleDesign.rideNamePartHeight);setMargins(dp(BicycleDesign.controlGap/2),dp(BicycleDesign.controlGap/2),dp(BicycleDesign.controlGap/2),dp(BicycleDesign.controlGap/2))
-                })
-            }
-            selection=dialog(fullscreen=false).setTitle(R.string.dashboard_status_choose).setView(choices).show()
-        },changed={ updateDashboardFullscreen() }))
+        root.addView(DashboardStatusSettingsView(settingsContext,settingsThemes,preferences,changed={ updateDashboardFullscreen() }))
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="design_appearance_divider" })
         root.addView(Switch(settingsContext).apply {
             tag="flat_design";setText(R.string.ui_flat_design);isChecked=settingsThemes.flatDesign

@@ -5,10 +5,11 @@ import android.view.Gravity
 import android.widget.*
 
 internal class DashboardStatusSettingsView(context:Context,private val themes:ThemeManager,private val prefs:android.content.SharedPreferences,
-    private val choose:(Int,DashboardStatusConfig,(DashboardStatusItem)->Unit)->Unit,private val changed:()->Unit):LinearLayout(context) {
+    private val changed:()->Unit):LinearLayout(context) {
     private var config=DashboardStatusConfig.read(prefs)
     private val preview=DashboardStatusStrip(context,themes,preview=true)
     private val body=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="dashboard_status_details";BicycleContentSpacing.accordionContent(this) }
+    internal var popup:DashboardStatusPopup?=null;private set
     private val rows=mutableListOf<LinearLayout>()
     private val orders=listOf((0..2).toMutableList(),(3..5).toMutableList())
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
@@ -25,17 +26,21 @@ internal class DashboardStatusSettingsView(context:Context,private val themes:Th
                 tag="dashboard_status_expand";stateDescription=context.getString(R.string.zone_collapsed)
                 setOnClickListener {
                     val open=body.visibility==GONE;body.visibility=if(open) VISIBLE else GONE;rotation=if(open) 180f else 0f
+                    if(!open) popup?.dismiss()
                     stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
                 }
             }
             BicycleComponents.switchAccordion(this,enabled,expand,themes)
         },LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)))
-        body.addView(preview,LayoutParams(-1,dp(BicycleDesign.dashboardStatusPreviewHeight)))
-        body.addView(BicycleComponents.description(context,themes,context.getString(R.string.dashboard_status_preview_note)))
+        val headings=LinearLayout(context).apply { orientation=HORIZONTAL;isBaselineAligned=false }
+        for(side in 0..1) headings.addView(BicycleComponents.contentHeading(context,themes,context.getString(if(side==0) R.string.dashboard_status_left else R.string.dashboard_status_right)).apply {
+            gravity=(if(side==0) Gravity.START else Gravity.END) or Gravity.CENTER_VERTICAL
+        },LayoutParams(0,-2,1f))
+        body.addView(headings,LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.controlGap) })
+        val slots=LinearLayout(context).apply { orientation=HORIZONTAL;isBaselineAligned=false;tag="dashboard_status_slots";gravity=Gravity.CENTER_VERTICAL }
         for(side in 0..1) {
-            body.addView(BicycleComponents.contentHeading(context,themes,context.getString(if(side==0) R.string.dashboard_status_left else R.string.dashboard_status_right)))
             val row=LinearLayout(context).apply { orientation=HORIZONTAL;isBaselineAligned=false;tag="dashboard_status_side_$side";setTag(R.id.inline_control_row,true) }
-            val scroll=HorizontalScrollView(context).apply { isHorizontalScrollBarEnabled=false;addView(row,FrameLayout.LayoutParams(-2,-2)) }
+            val scroll=HorizontalScrollView(context).apply { isHorizontalScrollBarEnabled=false;isFillViewport=true;addView(row,FrameLayout.LayoutParams(-1,-2)) }
             val reorder=TileReorder(scroll,row,themes,{ orders[side].toList() }) { id,to ->
                 val from=orders[side].indexOf(id)
                 if(from<0 || from==to || to !in 0..2) false else {
@@ -50,28 +55,38 @@ internal class DashboardStatusSettingsView(context:Context,private val themes:Th
                 val slot=side*3+offset
                 val card=BicycleSegmentButton(context,themes,multiple=true,standalone=true).apply {
                     tag="dashboard_status_slot_$slot"
-                    textSize=BicycleDesign.analysisLabelSp
+                    showSelectionHighlight=false;textSize=BicycleDesign.analysisLabelSp
+                    setPadding(dp(BicycleDesign.dashboardStatusSlotPadding),0,dp(BicycleDesign.dashboardStatusSlotPadding),0)
+                    maxLines=1;setHorizontallyScrolling(false);setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp,BicycleDesign.analysisLabelSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
                     setOnClickListener {
                         val index=side*3+orders[side].indexOf(slot)
                         isChecked=config.slots[index]!=DashboardStatusItem.EMPTY
-                        choose(index,config) { item -> config=config.assign(index,item);save() }
+                        popup?.dismiss()
+                        popup=DashboardStatusPopup(this,themes,config.slots[index]) { item -> config=config.assign(index,item);save() }.also { it.show(this) }
                     }
                 }
-                row.addView(card,LayoutParams(dp(BicycleDesign.rideNamePartWidth),dp(BicycleDesign.rideNamePartHeight)).apply { marginStart=if(offset==0) 0 else dp(BicycleDesign.controlGap) })
+                row.addView(card,LayoutParams(0,dp(BicycleDesign.rideNamePartHeight),1f).apply { marginStart=if(offset==0) 0 else dp(BicycleDesign.controlGap/2) })
                 reorder.bind(card,slot)
             }
-            body.addView(scroll,LayoutParams(-1,-2))
+            if(side==1) slots.addView(android.view.View(context).apply {
+                tag="dashboard_status_separator"
+                background=android.graphics.drawable.GradientDrawable().apply { shape=android.graphics.drawable.GradientDrawable.OVAL;setColor(themes.active.tokens.foreground) }
+                BicycleComponents.bindTheme(this,themes) { background.setTint(it.foreground) }
+            },LayoutParams(dp(BicycleDesign.controlGap/2),dp(BicycleDesign.controlGap/2)).apply { marginStart=dp(BicycleDesign.controlGap/2);marginEnd=dp(BicycleDesign.controlGap/2) })
+            slots.addView(scroll,LayoutParams(0,-2,1f))
         }
-        body.addView(BicycleComponents.description(context,themes,context.getString(R.string.dashboard_status_hint)))
+        body.addView(slots,LayoutParams(-1,-2))
+        body.addView(DashboardStatusPhonePreview(context,themes,preview),LayoutParams(-1,dp(BicycleDesign.dashboardStatusPhoneHeight)).apply { topMargin=dp(BicycleDesign.sectionContentGap) })
         addView(body,LayoutParams(-1,-2));render()
     }
+    override fun onDetachedFromWindow() { popup?.dismiss();popup=null;super.onDetachedFromWindow() }
     private fun save() { DashboardStatusConfig.write(prefs,config);render();changed() }
     private fun render() {
         preview.config=config;preview.reloadMessenger();preview.show(DashboardStatusSnapshot("10:28",true,72,2,3))
         rows.forEachIndexed { side,row -> for(offset in 0..2) {
             val item=config.slots[side*3+offset];val card=row.getChildAt(offset) as BicycleSegmentButton
             card.tag="dashboard_status_slot_${side*3+offset}"
-            (card.layoutParams as LayoutParams).marginStart=if(offset==0) 0 else dp(BicycleDesign.controlGap)
+            (card.layoutParams as LayoutParams).marginStart=if(offset==0) 0 else dp(BicycleDesign.controlGap/2)
             card.isChecked=item!=DashboardStatusItem.EMPTY
             statusSlotAppearance(card,item,themes)
         } }

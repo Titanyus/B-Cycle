@@ -15,11 +15,13 @@ internal class DashboardStatusDrawing(private val context:Context) {
     private val bell=BicycleIcons.drawable(context,BicycleIcon.Notifications,android.graphics.Color.WHITE)
     var messenger:Drawable?=null
     private val density=context.resources.displayMetrics.density
+    private fun batteryText(state:DashboardStatusSnapshot)=state.battery?.takeIf { it in 0..100 }?.let { context.getString(R.string.dashboard_status_percent,it) }
+        ?: context.getString(R.string.hrvt_unavailable)
     fun width(item:DashboardStatusItem,state:DashboardStatusSnapshot):Float=when(item) {
         DashboardStatusItem.TIME->paint.measureText(state.time)
         DashboardStatusItem.VPN->paint.measureText("VPN")
         DashboardStatusItem.NOTIFICATIONS->16*density+if(state.notifications>0) 3*density+paint.measureText(state.notifications.coerceAtMost(99).toString()+if(state.notifications>99) "+" else "") else 0f
-        DashboardStatusItem.BATTERY->22*density
+        DashboardStatusItem.BATTERY->25*density+paint.measureText(batteryText(state))
         DashboardStatusItem.CELLULAR->17*density
         DashboardStatusItem.EMPTY->0f
     }
@@ -41,6 +43,7 @@ internal class DashboardStatusDrawing(private val context:Context) {
                 val level=state.battery
                 if(level==null) canvas.drawRect(x+6*density,center-.5f*density,x+12*density,center+.5f*density,paint)
                 else canvas.drawRect(x+2*density,center-3*density,x+(2+14*level.coerceIn(0,100)/100f)*density,center+3*density,paint)
+                canvas.drawText(batteryText(state),x+25*density,baseline,paint)
             }
             DashboardStatusItem.CELLULAR->{
                 for(i in 0..3) {

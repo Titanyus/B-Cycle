@@ -84,6 +84,9 @@ object BicycleDesign {
     const val dashboardStatusSp = 12f
     const val dashboardStatusMinHeight = 24
     const val dashboardStatusPreviewHeight = 40
+    const val dashboardStatusPhoneHeight = 112
+    const val dashboardStatusPhoneRadius = 28
+    const val dashboardStatusSlotPadding = 2
     const val inputSp = 16f
     const val choiceSp = bodySp
     const val headerHeight = 64
