@@ -8,4 +8,4 @@
 
 Gezielte Prüfungen aus der Umsetzung: zehn unterschiedliche Status-/Umsortierungsfälle sowie acht HRV-Achsen-/Scrollfälle erfolgreich. Native Vorschauen in Flat/Glow und verschiedenen Hochformatbreiten geprüft; Typografie, UI-Atlas und Diff konsistent. Keine Gesamtsuite, kein neuer Telefon-/privater Cloudtest. Echte Mobilfunk-/VPN-/Notchdarstellung weiterhin praktisch auf dem Gerät prüfen.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-98.md).

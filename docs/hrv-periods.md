@@ -32,3 +32,6 @@ Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.56/Build97** ent
 
 
 Nach Build97: adaptive Wochen-/Monatskürzel ohne Auslassungen umgesetzt; noch nicht in APK0.8.56 enthalten. Acht gezielte native UI-/Scrollfälle grün (HrvTrendPeriodUiTest5, HrvChartScrollingTest3). Prüfungen zählen pro Periodentrenner genau ein Label bei mehreren Zoomstufen/Pan, langes/kurzes Format, identischeY-Skala, Auswahl und bestehendes Scrollen. Keine neue Auflösung oder Zoombegrenzung; Tagesberechnungen unverändert.
+
+
+Veröffentlichung28.10.2026: Auch die zuletzt nach Build97 ergänzten Änderungen sind in **APK0.8.57/Build98** enthalten. [Buildnachweis und Download](build-98.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

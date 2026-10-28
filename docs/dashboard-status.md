@@ -35,3 +35,6 @@ Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.56/Build97** ent
 ## Kompakte Weiterentwicklung nach Build97
 
 Die oben beschriebene einzeilige/neutrale Slotansicht, Akku-Prozentwerte, das3×2-Dropdown und Handy-Mockup sind **noch nicht in APK0.8.56/Build97** enthalten. Keine neue APK beauftragt. Zehn gezielte unterschiedliche Fälle grün: neun DashboardStatusTest-Fälle (bestehende sieben plus Geometrie-/Prozentfall) und RideNamingReorderTest. Native Prüfungen in Flat/Glow und320/360/480px Hochformat, alle Slots sichtbar/gleich hoch, mittiger Punkt, neutrale Darstellung bei erhaltenem Checked-Zustand, Popup-Raster und Abbruch ohne Änderung, Prozent0/72/100/unbekannt. Normales Fahrtnamen-Highlight/Drag unverändert. Native Voransichten geprüft; keine neue Gesamtsuite oder Telefonprüfung. [Dropdown-Vorschau](previews/dashboard-status-options.png).
+
+
+Veröffentlichung28.10.2026: Auch die zuletzt nach Build97 ergänzten Änderungen sind in **APK0.8.57/Build98** enthalten. [Buildnachweis und Download](build-98.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

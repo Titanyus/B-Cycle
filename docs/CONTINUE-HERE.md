@@ -1,3 +1,7 @@
+# APK veröffentlicht28.10.2026:0.8.57 / Build98 / Code127
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.57-release-98.apk) · [Buildnachweis](build-98.md). Quelle `85a306968ea45346db22a8907470662db956c4e7`, Größe 2.468.133 Bytes, SHA-256 `45d2ba03eac6a8a8429cbef0e21562c7a1987cc54d5b76e45cad0df74ae3e868`. Alle Änderungen seit Build97 enthalten. Signatur wie bisher, Release ohne Debug-/Test-Flags, CI-Prüfsumme und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci], kein zweiter APK-Build. Keine offene APK-Aufgabe; nachfolgende Abschnitte sind Umsetzungshistorie. Zusätzliche HRV-Zoombegrenzung weiterhin erst nach Nutzeransicht entscheiden.
+
 # APK-Auftrag28.10.2026:0.8.57/Code127
 
 Nutzer hat neue APK angefordert. Lokale Änderungen10c8de5 und1082218 vollständig enthalten: kompakte Statuskonfiguration/Dropdown/Handyvorschau/Prozent sowie adaptive HRV-Achsenlabels ohne Weglassen. Relevante Tests bereits grün; keine erneute Gesamtsuite. Ein automatischer GitHub-Actions-Releasebuild nach Push; kein zusätzlicher Dispatch. Signatur, Version, Manifest, CI-Prüfsumme und ZIP-Ausrichtung prüfen, direkten Download veröffentlichen und abgleichen. Erwarteter Lauf98, tatsächliche Nummer prüfen. Umfang: release-0.8.57.md.
