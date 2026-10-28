@@ -1,3 +1,7 @@
+# Nach Build98: Eigene Y-Skalen für HRV Tag/Woche/Monat
+
+HrvTrendsView cached Achsen jetzt je Auflösung UND Kennzahl aus deren vollständigen Punkten statt Tagesachsen für alle Ansichten. Aggregierte Balken, Trend und Korridor bestimmen Wochen-/Monatsskala, bestehende5bpm-/5%-Reserve erhalten. Keine Änderung an Daten/Aggregation/Referenzfenstern. Pan/Zoom verändern Skala nicht, Umschalten stellt passende Achse wieder her. Neun gezielte native Fälle grün: HrvTrendPeriodUiTest6 und HrvChartScrollingTest3, Log /workspace/.tools/hrv-period-separate-axis-tests.log. Neuer Test mit Tagesausreißer prüft getrennte engere Aggregatachsen, vollständige Einbeziehung aller gezeichneten Werte, Rückkehr zu Tagesachse und Stabilität bei Zoom/Pan für RMSSD/Puls. Native Monatsbilder aktualisiert; Typografie/Atlas/Diff erfolgreich. Keine Gesamtsuite oder Telefonprüfung. Alle Änderungen nach Build98 bleiben für nächste APK enthalten, kein neuer APK-Auftrag; letzter Download0.8.57/Build98.
+
 # Nach Build98: HRV-Korridorfüllung dezenter
 
 Weiße Korridorfüllung von30% auf15% Deckkraft reduziert. Begrenzungslinien unverändert. Gemeinsames zentrales Token gilt für Tag/Woche/Monat und beide Designs. Reine Tokenänderung, keine zusätzlichen Tests; Typografie/Atlas/Diff erfolgreich geprüft; generierten Atlas aktualisiert. Statistik-Skalenänderung ausb4cfe2b bleibt für nächste APK enthalten. Kein neuer APK-Auftrag, letzte veröffentlichte0.8.57/Build98.

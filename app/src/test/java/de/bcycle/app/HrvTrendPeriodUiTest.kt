@@ -143,10 +143,10 @@ class HrvTrendPeriodUiTest {
             var opened:String?=null
             val view=HrvTrendsView(a,themes,series) { opened=it };a.setContentView(view);layout(view,1100)
             val chart=view.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
-            val axis=chart.axis;var periodTitle="";view.onPeriodSelected={periodTitle=it}
+            var periodTitle="";view.onPeriodSelected={periodTitle=it}
             view.findViewWithTag<View>("hrv_period_MONTH").performClick();layout(view,1100)
             assertEquals(View.GONE,view.findViewWithTag<View>("hrv_trend_detail").visibility)
-            assertTrue(periodTitle.contains("2025"));assertEquals(axis,chart.axis)
+            assertTrue(periodTitle.contains("2025"));assertEquals(HrvTrendAxis.from(HrvTrendAggregation.series(series.getValue(HrvTrendMetric.RMSSD),HrvTrendPeriod.MONTH),HrvTrendMetric.RMSSD),chart.axis)
             val month=LocalDate.of(2024,10,1);val viewport=viewport(chart)
             val x=(40+(HrvTrendPeriod.MONTH.index(month)-(viewport.end-viewport.span))/viewport.span*(chart.width-48)).toFloat()
             val now=android.os.SystemClock.uptimeMillis()
@@ -171,6 +171,34 @@ class HrvTrendPeriodUiTest {
             assertEquals(View.VISIBLE,view.findViewWithTag<View>("hrv_trend_detail").visibility)
             view.findViewWithTag<View>("hrv_trend_detail").performClick();assertTrue(opened!!.startsWith("2024-10"))
         } finally { host.pause().stop().destroy();Locale.setDefault(oldLocale) }
+    }
+    @Test fun eachResolutionUsesItsOwnCompleteSeriesAxisAndKeepsItDuringNavigation() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get()
+            val rows=(0..420).map { i -> row(LocalDate.of(2024,1,1).plusDays(i.toLong()),if(i==120) 300.0 else 40.0,if(i==120) 150.0 else 60.0) }
+            val series=HrvTrendMetric.entries.associateWith { HrvTrends.series(rows,it) }
+            val view=HrvTrendsView(a,ThemeManager(a.getSharedPreferences("period-independent-scale",0)),series) {}
+            a.setContentView(view);layout(view,1100)
+            val chart=view.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
+            for(metric in listOf(HrvTrendMetric.RMSSD,HrvTrendMetric.HR)) {
+                view.findViewWithTag<View>("hrv_trend_${metric.name}").performClick()
+                val daily=HrvTrendAxis.from(series.getValue(metric),metric)
+                for(mode in listOf(HrvTrendPeriod.DAY,HrvTrendPeriod.WEEK,HrvTrendPeriod.MONTH,HrvTrendPeriod.DAY)) {
+                    view.findViewWithTag<View>("hrv_period_${mode.name}").performClick()
+                    val points=HrvTrendAggregation.series(series.getValue(metric),mode)
+                    val expected=HrvTrendAxis.from(points,metric)
+                    assertEquals(expected,chart.axis)
+                    if(mode!=HrvTrendPeriod.DAY) assertTrue(expected.maximum-expected.minimum<daily.maximum-daily.minimum)
+                    val values=points.flatMap { listOfNotNull(it.value,it.average,it.lower,it.upper) }
+                    assertTrue(values.all { it>=expected.minimum && it<=expected.maximum })
+                    chart.performAccessibilityAction(HrvTrendChart.ZOOM_IN,null)
+                    viewport(chart).pan(-20.0)
+                    chart.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD,null)
+                    assertEquals(expected,chart.axis)
+                }
+            }
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun runningPeriodReportsElapsedDaysAndUnavailableMetricHasNoInventedValue() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()

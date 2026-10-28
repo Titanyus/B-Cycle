@@ -14,7 +14,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
     var onPeriodSelected:(String)->Unit={}
     private val series=series
     private val grouped=mutableMapOf<Pair<HrvTrendPeriod,HrvTrendMetric>,List<HrvTrendPoint>>()
-    private val axes=HrvTrendMetric.entries.associateWith { HrvTrendAxis.from(series.getValue(it),it) }
+    private val axes=mutableMapOf<Pair<HrvTrendPeriod,HrvTrendMetric>,HrvTrendAxis>()
     private val metricButtons=linkedMapOf<HrvTrendMetric,BicycleSegmentButton>()
     private var metric=HrvTrendMetric.RMSSD
     private var resolution=HrvTrendPeriod.DAY
@@ -113,6 +113,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
             selected=null;detail.text="";statistics.text="";statistics.visibility=GONE
             metricButtons.forEach { (candidate,choice) -> choice.text=context.getString(candidate.label)+"\n"+context.getString(R.string.hrvt_unavailable) }
         }
-        chart.show(points,reset,axes.getValue(metric),resolution,anchor)
+        val axis=axes.getOrPut(resolution to metric) { HrvTrendAxis.from(points,metric) }
+        chart.show(points,reset,axis,resolution,anchor)
     }
 }
