@@ -28,7 +28,7 @@ class MainActivity : Activity() {
     private lateinit var dashboardStatusMonitor:DashboardStatusMonitor
     private var statusForeground=false
     private val statusPreferences=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,key ->
-        if(statusForeground && (key==DashboardFullscreen.key || key==DashboardStatusConfig.key)) updateDashboardFullscreen()
+        if(statusForeground && (key==DashboardFullscreen.key || key==DashboardStatusConfig.key || key==BikeLightSettings.key)) updateDashboardFullscreen()
     }
     private val statusMessagesPreferences=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,_ ->
         if(statusForeground && ::dashboardStatus.isInitialized) { dashboardStatus.reloadMessenger();updateDashboardFullscreen() }
@@ -341,6 +341,7 @@ class MainActivity : Activity() {
     private fun render() {
         if (!::dashboard.isInitialized) return
         if(::dashboardStatusMonitor.isInitialized) dashboardStatusMonitor.battery(runtime.batterySnapshot.level(BatterySource.PHONE))
+        if(::dashboardStatus.isInitialized && dashboardStatus.bikeLightOn!=(BikeLightSettings.top(preferences) && runtime.currentBikeLight==true)) updateDashboardFullscreen()
         if(::mapPanel.isInitialized && shownProfileRevision!=runtime.profileRevision) {
             shownProfileRevision=runtime.profileRevision
             dashboard.resetTrends()
@@ -1105,7 +1106,8 @@ class MainActivity : Activity() {
         if(::dashboardStatus.isInitialized) {
             val config=DashboardStatusConfig.read(preferences)
             dashboardStatus.config=config
-            dashboardStatus.visibility=if(fullscreen && config.populated) View.VISIBLE else View.GONE
+            dashboardStatus.bikeLightOn=BikeLightSettings.top(preferences) && runtime.currentBikeLight==true
+            dashboardStatus.visibility=if(fullscreen && (config.populated || dashboardStatus.bikeLightOn)) View.VISIBLE else View.GONE
             if(statusForeground) dashboardStatusMonitor.configure(if(fullscreen) config else DashboardStatusConfig())
             dashboardRoot.requestApplyInsets()
         }
@@ -1177,12 +1179,14 @@ class MainActivity : Activity() {
             if(runtime.bikes.current().type==BikeType.EBIKE) {
                 root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
                 root.addView(modeGlowControls())
+                root.addView(bikeLightControls())
             }
             BicycleDialogStyle.content(root,settingsThemes);return root
         }
         if(runtime.bikes.current().type==BikeType.EBIKE) {
             root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
             root.addView(modeGlowControls())
+            root.addView(bikeLightControls())
         }
         val body=LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
@@ -1194,6 +1198,11 @@ class MainActivity : Activity() {
     private fun drinkReminderControls():DrinkReminderSettingsView {
         val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision
         return DrinkReminderSettingsView(settingsContext,settingsThemes,preferences,
+            canEdit={ slot==runtime.bikes.activeSlot && revision==runtime.profileRevision },changed={ render() })
+    }
+    private fun bikeLightControls():View {
+        val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision
+        return BikeLightSettingsView(settingsContext,settingsThemes,preferences,
             canEdit={ slot==runtime.bikes.activeSlot && revision==runtime.profileRevision },changed={ render() })
     }
     private fun modeGlowControls():View {

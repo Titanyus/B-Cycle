@@ -44,3 +44,6 @@ Nach Build98: Statusgruppen links/rechts mindestens15dp zum sicheren Bildschirmr
 
 
 Veröffentlichung28.10.2026: Die zuletzt nach Build98 ergänzten Änderungen sind in **APK0.8.58/Build99** enthalten. [Buildnachweis und Download](build-99.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
+
+
+Nutzerkorrektur nach Praxistest Build99: **links8dp/rechts25dp** feste Außenabstände, bestehende Systembounds zusätzlich berücksichtigen. Ersetzt die vorherige15dp-/Automatik-Mindestkonvention. Fahrradlicht oben ist ein separat über Design konfigurierbares festes Statussymbol links der Kamera, keine siebte Slotoption; [Details](bike-light-status.md).

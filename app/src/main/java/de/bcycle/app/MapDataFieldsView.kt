@@ -151,11 +151,12 @@ internal class RecordingDotSpan(density: Float, color: Int = Color.RED, diameter
 /** Same static red as the recording dot; cached drawable, no extra layout or touch target. */
 private class LightStatusSpan(context: Context) : android.text.style.ReplacementSpan() {
     private val size = (21 * context.resources.displayMetrics.density).toInt()
-    private val icon = BicycleIcons.drawable(context, BicycleIcon.Light, Color.RED).apply { setBounds(0, 0, size, size) }
+    private val width = size*4/3
+    private val icon = BicycleIcons.drawable(context, BicycleIcon.Light, Color.RED).apply { setBounds(0, 0, width, size) }
     override fun getSize(paint: android.graphics.Paint, text: CharSequence, start: Int, end: Int,
                          fm: android.graphics.Paint.FontMetricsInt?): Int {
         fm?.let { paint.getFontMetricsInt(it) }
-        return size
+        return width
     }
     override fun draw(canvas: android.graphics.Canvas, text: CharSequence, start: Int, end: Int,
                       x: Float, top: Int, y: Int, bottom: Int, paint: android.graphics.Paint) {

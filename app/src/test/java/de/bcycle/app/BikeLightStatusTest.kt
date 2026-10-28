@@ -1,0 +1,94 @@
+package de.bcycle.app
+
+import android.app.Activity
+import android.graphics.*
+import android.view.View
+import android.widget.Spinner
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import org.json.JSONObject
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[33],qualifiers="mdpi")
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class BikeLightStatusTest {
+    private fun layout(v:View,w:Int=360,h:Int=40) { v.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));v.layout(0,0,w,h) }
+    @Test fun placementRequiresFullscreenAndDoesNotLosePreferenceWhenFullscreenIsDisabled() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val prefs=a.getSharedPreferences("bike",0);prefs.edit().clear().commit()
+            val themes=ThemeManager(prefs);val view=BikeLightSettingsView(a,themes,prefs)
+            a.setContentView(view);layout(view,360,100);shadowOf(android.os.Looper.getMainLooper()).idle()
+            val spinner=view.findViewWithTag<Spinner>("bike_light_placement")
+            assertEquals(BikeLightPlacement.BOTTOM,BikeLightSettings.placement(prefs))
+            spinner.setSelection(BikeLightPlacement.TOP.ordinal);shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertTrue(BikeLightSettings.top(prefs))
+            prefs.edit().putBoolean(DashboardFullscreen.key,false).commit();shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertFalse(BikeLightSettings.top(prefs));assertEquals(BikeLightPlacement.TOP,BikeLightSettings.placement(prefs))
+            assertFalse((spinner.adapter as android.widget.ListAdapter).isEnabled(BikeLightPlacement.TOP.ordinal));assertEquals(BikeLightPlacement.BOTTOM.ordinal,spinner.selectedItemPosition)
+            spinner.setSelection(BikeLightPlacement.TOP.ordinal);shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertFalse(BikeLightSettings.top(prefs));assertEquals(BikeLightPlacement.BOTTOM.ordinal,spinner.selectedItemPosition)
+            prefs.edit().putBoolean(DashboardFullscreen.key,true).commit();shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(BikeLightPlacement.TOP.ordinal,spinner.selectedItemPosition)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun profileCopyAndBackupPreservePlacementAndRejectInvalidValues() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val prefs=a.getSharedPreferences("bike",0);prefs.edit().clear().commit()
+            val themes=ThemeManager(prefs);val bank=BikeUiConfigurationStore(prefs);bank.ensure(listOf(0,1))
+            prefs.edit().putString(BikeLightSettings.key,"TOP").commit();bank.save(0)
+            bank.apply(1);assertEquals(BikeLightPlacement.BOTTOM,BikeLightSettings.placement(prefs))
+            bank.copy(0,1);assertTrue(BikeLightSettings.top(prefs))
+            val backup=SettingsBackup(a,themes);val saved=backup.export(setOf(BackupSection.DESIGN))
+            prefs.edit().remove(BikeLightSettings.key).commit()
+            backup.apply(backup.plan(backup.decode(saved),setOf(BackupSection.DESIGN)))
+            assertTrue(BikeLightSettings.top(prefs))
+            val invalid=JSONObject(String(saved));invalid.getJSONObject("sections").getJSONObject(BackupSection.DESIGN.id).put("bikeLightPlacement","SIDE")
+            assertThrows(SettingsBackupFailure::class.java) { backup.decode(invalid.toString().toByteArray()) }
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun realDesignPagePlacesTheLightDropdownAfterBoschControls() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        try {
+            val a=host.get();val runtime=RideRuntime.get(a)
+            assertEquals(BikeType.EBIKE,runtime.bikes.current().type)
+            MainActivity::class.java.getDeclaredMethod("dashboardSettings").apply { isAccessible=true }.invoke(a)
+            val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            val light=dialog.window!!.decorView.findViewWithTag<View>("bike_light_settings")
+            assertNotNull(light)
+            val parent=light.parent as android.view.ViewGroup
+            val glow=parent.findViewWithTag<View>("mode_glow_enabled")
+            var ancestor=glow
+            while(ancestor.parent!==parent) ancestor=ancestor.parent as View
+            assertEquals(parent.indexOfChild(ancestor)+1,parent.indexOfChild(light))
+            dialog.dismiss()
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun goldLightHasFifteenDpGapToNotchAndDoesNotOverlapTheLeftSlots() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("gold-light",0));val view=DashboardStatusStrip(a,themes)
+            a.setContentView(view);layout(view);view.insets(0,0,listOf(Rect(165,0,195,30)),Rect(340,0,360,25))
+            assertNull(view.lightBounds());view.bikeLightOn=true
+            assertEquals(150f,view.lightBounds()!!.right,0f)
+            assertEquals(24f,view.lightBounds()!!.width(),0f);assertTrue(view.regions()[0].second<=view.lightBounds()!!.left-6)
+            for(flat in listOf(true,false)) {
+                themes.setFlatDesign(flat)
+                val image=Bitmap.createBitmap(360,40,Bitmap.Config.ARGB_8888);view.draw(Canvas(image))
+                val pixels=IntArray(360*40);image.getPixels(pixels,0,360,0,0,360,40)
+                assertTrue(pixels.any { Color.alpha(it)>200 && Color.red(it)>240 && Color.green(it) in 180..220 && Color.blue(it)<120 })
+                java.io.File("build/reports/ui/bike-light-${if(flat) "flat" else "glow"}.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
+            }
+            assertTrue(view.contentDescription.toString().contains(a.getString(R.string.ui_bike_light_on)))
+            view.bikeLightOn=false;assertNull(view.lightBounds());assertEquals("",view.contentDescription)
+            view.bikeLightOn=true;view.insets(0,0,emptyList());assertEquals(165f,view.lightBounds()!!.right,0f)
+        } finally { host.pause().stop().destroy() }
+    }
+}

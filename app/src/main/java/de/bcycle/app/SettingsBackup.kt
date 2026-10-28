@@ -65,6 +65,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("drinkReminderPosition",DrinkReminderSettings.read(bike).position.name)
                 .put("modeGlow", ModeGlowSettings.enabled(bike))
                 .put("modeGlowPlacement",ModeGlowSettings.placement(bike).name)
+                .put("bikeLightPlacement",BikeLightSettings.placement(bike).name)
                 .put("dashboardFullscreen",DashboardFullscreen.enabled(bike))
                 .put("dashboardStatusSlots",DashboardStatusConfig.read(bike).encode())
 
@@ -171,6 +172,10 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                         val placement=row.opt("modeGlowPlacement") as? String ?: fail()
                         check(ModeGlowPlacement.entries.any { it.name==placement })
                         b[ModeGlowSettings.placementKey]=placement
+                    }
+                    if(row.has("bikeLightPlacement")) {
+                        val placement=field(row,"bikeLightPlacement",20);check(BikeLightPlacement.entries.any { it.name==placement })
+                        b[BikeLightSettings.key]=placement
                     }
                     if(row.has("dashboardFullscreen")) b[DashboardFullscreen.key]=boolean(row,"dashboardFullscreen")
                     if(row.has("dashboardStatusSlots")) b[DashboardStatusConfig.key]=DashboardStatusConfig.parse(field(row,"dashboardStatusSlots",256)).encode()

@@ -65,6 +65,9 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
     private var state=DashboardStatusSnapshot()
     private var messengerPackage:String?=null
     private var cutouts:List<Rect> = emptyList()
+    private var cameras:List<Rect> = emptyList()
+    var bikeLightOn=false;set(value) { if(field!=value) { field=value;describe();invalidate() } }
+    private val bikeLight=BicycleIcons.drawable(context,BicycleIcon.Light,BicycleDesign.bikeLightStatusColor)
     private var safeLeft=0;private var safeRight=0
     private val density=resources.displayMetrics.density
     private val rect=RectF()
@@ -81,7 +84,7 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
         }
     }
     fun insets(left:Int,right:Int,blocked:List<Rect>,privacyIndicator:Rect?=null) {
-        safeLeft=left;safeRight=right
+        safeLeft=left;safeRight=right;cameras=blocked.map(::Rect)
         cutouts=(blocked+listOfNotNull(privacyIndicator?.takeUnless { it.isEmpty })).map(::Rect)
         invalidate()
     }
@@ -91,7 +94,7 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
     }
     private fun describe() {
         val value=state
-        contentDescription=config.slots.filter { visible(it,value) }.joinToString(", ") {
+        val status=config.slots.filter { visible(it,value) }.joinToString(", ") {
             context.getString(it.label)+when(it) {
                 DashboardStatusItem.TIME->" "+value.time
                 DashboardStatusItem.NOTIFICATIONS->" "+value.notifications
@@ -100,6 +103,7 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
                 else->""
             }
         }
+        contentDescription=listOfNotNull(status.takeIf { it.isNotEmpty() },context.getString(R.string.ui_bike_light_on).takeIf { bikeLightOn }).joinToString(", ")
     }
     private fun visible(item:DashboardStatusItem,s:DashboardStatusSnapshot)=when(item) {
         DashboardStatusItem.EMPTY->false
@@ -107,12 +111,26 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
         DashboardStatusItem.NOTIFICATIONS->s.notifications>0 || preview
         else->true
     }
+    internal fun lightBounds():RectF? {
+        if(!bikeLightOn) return null
+        val camera=if(preview) Rect((width/2f-22*density).toInt(),0,(width/2f+22*density).toInt(),height)
+            else cameras.filter { it.top<height && it.bottom>0 }.minByOrNull { kotlin.math.abs(it.exactCenterX()-width/2f) }
+        val anchor=camera?.left?.toFloat() ?: (width/2f)
+        val right=anchor-BicycleDesign.bikeLightNotchGap*density
+        val w=BicycleDesign.bikeLightStatusWidth*density;val h=BicycleDesign.bikeLightStatusHeight*density
+        val box=RectF(right-w,(height-h)/2f,right,(height+h)/2f)
+        if(box.left<safeLeft+BicycleDesign.dashboardStatusLeftInset*density) return null
+        if(cutouts.any { RectF.intersects(box,RectF(it)) }) return null
+        return box
+    }
     /** Largest safe interval in each half avoids camera holes and system privacy-indicator bounds. */
     internal fun regions():List<Pair<Float,Float>> {
         val gap=8*density;val mid=width/2f
         val blocked=if(preview) listOf(Rect((mid-22*density).toInt(),0,(mid+22*density).toInt(),height)) else cutouts.filter { it.top<height && it.bottom>0 }
-        val edge=BicycleDesign.dashboardStatusEdgeInset*density
-        return listOf(safeLeft+edge to mid-gap,mid+gap to width-safeRight-edge).mapIndexed { side,region ->
+        val edge=BicycleDesign.dashboardStatusLeftInset*density
+        val rightEdge=BicycleDesign.dashboardStatusRightInset*density
+        val leftEnd=lightBounds()?.let { minOf(mid-gap,it.left-6*density) } ?: (mid-gap)
+        return listOf(safeLeft+edge to leftEnd,mid+gap to width-safeRight-rightEdge).mapIndexed { side,region ->
             var free=listOf(region)
             blocked.forEach { r -> free=free.flatMap { (start,end) ->
                 if(r.right+gap<=start || r.left-gap>=end) listOf(start to end)
@@ -130,6 +148,7 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
             rect.set(width/2f-22*density,0f,width/2f+22*density,height*.55f)
             canvas.drawRoundRect(rect,8*density,8*density,drawing.paint)
         }
+        lightBounds()?.let { box -> bikeLight.setBounds(box.left.toInt(),box.top.toInt(),box.right.toInt(),box.bottom.toInt());bikeLight.draw(canvas) }
         regions().forEachIndexed { side,(left,right) ->
             val items=config.slots.subList(side*3,side*3+3).filter { visible(it,state) }
             if(items.isEmpty() || right<=left) return@forEachIndexed

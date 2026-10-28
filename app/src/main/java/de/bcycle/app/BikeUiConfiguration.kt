@@ -6,7 +6,7 @@ import android.content.SharedPreferences
 internal data class BikeUiConfiguration(val version:Int=1,val design:Map<String,Any?>,val maps:Map<String,Any?>,val selectedGpxRouteId:String?=null)
 internal object BikeUiConfigurationScope {
     private val designKeys=setOf(RideNamingSettings.KEY,TrendIndicatorSettings.enabledKey,TrendIndicatorSettings.disabledKey,DrinkReminderSettings.enabledKey,DrinkReminderSettings.intervalKey,DrinkReminderSettings.durationKey,DrinkReminderSettings.positionKey,ThemeManager.activeKey,ThemeManager.customsKey,ModeGlowSettings.key,
-        ModeGlowSettings.placementKey,DashboardFullscreen.key,DashboardStatusConfig.key,DashboardPages.KEY,"dashboardPage",GraphDisplaySettings.key,
+        ModeGlowSettings.placementKey,BikeLightSettings.key,DashboardFullscreen.key,DashboardStatusConfig.key,DashboardPages.KEY,"dashboardPage",GraphDisplaySettings.key,
         MapFieldSelection.key(0),MapFieldSelection.key(1),MapFieldSelection.key(2))
     private val mapKeys=setOf(MapRouteStyles.key,"mapSource","mapNight","mapFollow","mapHeading",MapOvalAnchor.preference,"mapTrackVisible","mapGpxVisible","mapHeightVisible",
         "mapZoom",MapZoom.preference,"mapLatitude","mapLongitude","displayFitId","displayGpxId",FitElevationCorrection.preference)

@@ -365,7 +365,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             preferences.getBoolean("mapHeightVisible",true))
     }
     private fun refreshDataFields() {
-        dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight,runtime.trendSnapshot)
+        dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight.takeUnless { BikeLightSettings.top(preferences) },runtime.trendSnapshot)
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val dataLayout=dataFields.layoutParams
