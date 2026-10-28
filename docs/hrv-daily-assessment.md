@@ -30,3 +30,6 @@ Semantische Farben direkt TrainingZoneColors: Grün/Yellow/Rot/Grau. Text nennt 
 ## Umsetzung
 
 HrvController.dailyAssessment liest vorhandene kleine Verlaufssummaries und Tagesantworten im bestehenden Speicherworker. HrvDailyAssessment berechnet das Modell; HrvDailyAssessmentView zeigt es in beiden Designs mit zentralen Schrift-/Abstands-/Kartenmaßen. Zwei leichte Canvas-Bereichsanzeigen, kein Polling/keine zusätzliche Bibliothek. Eigene große Werttypografie bleibt bei erneutem Dialogstyling erhalten. Screenhilfe SettingsHelpPage.HRV_DAY. Alle anderen HRV-/FIT-/Import-/Sicherungswege bleiben erhalten.
+
+
+Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.59/Build100** enthalten. [Buildnachweis und Download](build-100.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

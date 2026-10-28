@@ -10,4 +10,4 @@ Alle Änderungen seit Build99:
 
 Prüfstand: gezielte Sensor-/FIT-/Status-/Sicherungs-/HRV-/Fragebogen-/Hilfe-/Navigationsfälle während der Umsetzung erfolgreich. Native320/360dp Flat/Glow-Vorschauen geprüft; Typografie/Atlas/Diff konsistent. Die Testgruppen der einzelnen Aufträge überlappen; kein vollständiger Gesamttestlauf und kein neuer Telefon-/privater Cloudtest. Tatsächliche Poco-Statusindikatorposition weiterhin am Gerät prüfen. Trainingshinweise sind der ausdrücklich beauftragte erste eigene Entwurf für spätere Anpassung.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-100.md).

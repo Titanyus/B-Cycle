@@ -9,3 +9,6 @@ Oben verwendet DashboardStatusStrip das neue horizontale Lucide-flashlight-Deriv
 Die reine Positionspräferenz gehört zum Fahrrad-Designprofil, Profilübernahme sowie Design-Sicherung/-Wiederherstellung. Ungültige Sicherungswerte vor Anwendung ablehnen; Altstände ohne Feld behalten Standard/Bestand. Keine Live-Lichtwerte persistieren.
 
 Zusätzliche Nutzerkorrektur nach Test am Poco: feste Außenabstände der Statusgruppen links8dp/rechts25dp. Gemeldete Systemindikator-/Kamerabounds mit bisherigen8dp Sicherheitsabstand weiterhin berücksichtigen. Keine zuverlässige Erkennung der tatsächlichen Punkt-Sichtbarkeit behaupten.
+
+
+Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.59/Build100** enthalten. [Buildnachweis und Download](build-100.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

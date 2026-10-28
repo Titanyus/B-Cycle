@@ -44,3 +44,6 @@ Nach Build99: Ein bewusster Tipp in der Tagesansicht markiert den ausgewählten 
 
 
 Aktueller kompakter Ausbau nach Build99: Diagrammhöhe454dp, unter Zeitraumzeile sechs Kontext-Farbsymbole mit separat benanntem Modus ohne Legende. Sämtliche unteren Erklärungs-/Tageswert-/Referenztextblöcke entfernt. Tagesfooter zusätzlich Messergebnis, vorhandene Ergebnisfunktion direkt erreichbar. [Farbregeln und Datenbezug](hrv-context-colors.md). Die vorherigen Textblockbeschreibungen sind Umsetzungshistorie.
+
+
+Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.59/Build100** enthalten. [Buildnachweis und Download](build-100.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

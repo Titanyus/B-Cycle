@@ -1,3 +1,7 @@
+# APK veröffentlicht28.10.2026:0.8.59 / Build100 / Code129
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.59-release-100.apk) · [Buildnachweis](build-100.md). Quelle `080a852682ab689646258e99c4f31bd994233cc0`, Größe 2.490.669 Bytes, SHA-256 `f38d69e4e91676418fdce69ccae057345ca0508f656d67737c5bcf0e26ec8893`. Alle Änderungen seit Build99 enthalten. Signatur wie bisher, Release ohne Debug-/Test-Flags, CI-Prüfsumme und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci], kein zweiter APK-Build. Keine offene APK-Aufgabe. Nachfolgende Abschnitte sind Umsetzungshistorie. Eigene HRV-Tageshinweise als ausdrücklich beauftragter erster Entwurf, später gemeinsam anpassen. Keine Alterskorrektur/keine identische HRV4Training-Formel behaupten.
+
 # APK-Auftrag28.10.2026:0.8.59/Code129
 
 Nutzer fordert neue APK. Alle Änderungen seit Build99 enthalten: Fahrradlicht/Statusränder, HRV-Tagesfooter/Resultat, Kontextfarben/kompakte Ansicht und eigener Tagesauswertungsscreen. Relevante Tests bereits erfolgreich, keine erneute Gesamtsuite. Automatischer GitHub-Actions-Releasebuild nach Quellpush, erwarteter Lauf100. Anschließend tatsächliche Signatur/Version/Manifest/CI-Prüfsumme/ZIP-Ausrichtung prüfen, direkten Download veröffentlichen und byteidentisch abrufen. Veröffentlichung nur mit[skip ci]. Umfang release-0.8.59.md.

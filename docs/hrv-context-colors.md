@@ -15,3 +15,6 @@ Fünf gleich breite Belastungsintervalle0–<2,2–<4,4–<6,6–<8,8–10 entsp
 Woche/Monat mitteln die tatsächlich verfügbaren Kontextwerte im echten Kalenderzeitraum; Training wird danach auf die nächste vorhandene Kategorie gerundet. Auch Antworttage ohne HRV-Messung werden einbezogen. Keine Nullfüllung, keine Gewichtung nach Anzahl der Messungen. Farben werden außerhalb von onDraw vorbereitet und je Auflösung/Modus gecacht.
 
 HrvController.trendsWithContext lädt Tageswerte und kanonische Tagesantworten auf dem vorhandenen Speicherworker. HrvStore.trendQuestionnaires berücksichtigt Antworttage ohne Messung und vorhandene Legacyantwortmigration. Keine neue Datei, Datenbank, RR-Neuberechnung oder Backupformatänderung. Beim Zurückkehren aus dem Tagesfragebogen wird Kontext neu geladen und die bisherige Tagesauswahl erhalten.
+
+
+Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.59/Build100** enthalten. [Buildnachweis und Download](build-100.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
