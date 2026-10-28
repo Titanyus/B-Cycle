@@ -38,3 +38,6 @@ Veröffentlichung28.10.2026: Auch die zuletzt nach Build97 ergänzten Änderunge
 
 
 Veröffentlichung28.10.2026: Die zuletzt nach Build98 ergänzten Änderungen sind in **APK0.8.58/Build99** enthalten. [Buildnachweis und Download](build-99.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
+
+
+Nach Build99: Ein bewusster Tipp in der Tagesansicht markiert den ausgewählten Balken mit halbierten RGB-Kanälen (auch bei zuvor weißen Balken) und zeigt den festen globalen Aktionsfooter: Auswertung vorerst deaktiviert, Tagesbefinden direkt zum vorhandenen Tageseingabedialog, Löschen zur bestätigten bestehenden Messungslöschung. Initiale automatische Kennzahlenwahl/Scrollen zeigen keinen Footer. Zeitraumwechsel blendet ihn aus und entfernt die Markierung, Kennzahlenwechsel erhält den gewählten Tag. Keine Aktionen für aggregierte Wochen/Monate. Bisheriger Inlinebutton Messung und Tagesbefinden entfällt zugunsten des Footers. Löschen lädt Tagesbestand/Aggregate/Achsen neu; Tagesantworten bleiben gemäß bestehender Tageslogik gespeichert, ältere Messung kann wieder sichtbar werden. Keine neue Tagesauswertung vorwegnehmen.

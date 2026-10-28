@@ -145,7 +145,7 @@ class HrvTrendsTest {
             assertTrue(chart.performAccessibilityAction(HrvTrendChart.ZOOM_IN,null))
             chart.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD,null)
             assertNotNull(chart.createAccessibilityNodeInfo().actionList.firstOrNull { it.id==HrvTrendChart.ZOOM_OUT })
-            view.findViewWithTag<View>("hrv_trend_detail").performClick();assertEquals("day73",opened)
+            view.findViewWithTag<View>("hrv_day_questionnaire").performClick();assertEquals("day73",opened)
             view.findViewWithTag<View>("hrv_trend_RMSSD").performClick()
             chart.show(series.getValue(HrvTrendMetric.RMSSD),reset=true)
             val image=Bitmap.createBitmap(360,1000,Bitmap.Config.ARGB_8888);scroll.draw(Canvas(image))
@@ -178,7 +178,7 @@ class HrvTrendsTest {
             trends.onDaySelected(LocalDate.of(2024,4,8))
             assertEquals("Auswertung: 08.04.2024",title.text.toString())
             assertEquals(SettingsHelpPage.HRV_TRENDS,SettingsHelp.resolve(dialog))
-            assertFalse(root.findViewWithTag<View>("hrv_trend_detail").isEnabled)
+            assertFalse(root.findViewWithTag<View>("hrv_day_questionnaire").isEnabled)
             dialog.dismiss();shadowOf(Looper.getMainLooper()).idle()
             assertTrue(settings.isShowing);assertNotNull(settings.window!!.decorView.findViewWithTag<View>("hrv_open_analysis"))
         } finally { host.pause().stop().destroy() }

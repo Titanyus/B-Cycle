@@ -9,10 +9,12 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.IsoFields
 
 internal class HrvTrendsView(context:Context,private val themes:ThemeManager,series:Map<HrvTrendMetric,List<HrvTrendPoint>>,
-    open:(String)->Unit):LinearLayout(context) {
+    actionFooter:LinearLayout?=null,delete:(String)->Unit={},open:(String)->Unit):LinearLayout(context) {
     var onDaySelected:(LocalDate)->Unit={}
     var onPeriodSelected:(String)->Unit={}
-    private val series=series
+    private var series=series
+    private var actionDay:LocalDate?=null
+    private val footer=actionFooter ?: bicycleFooter(context,themes)
     private val grouped=mutableMapOf<Pair<HrvTrendPeriod,HrvTrendMetric>,List<HrvTrendPoint>>()
     private val axes=mutableMapOf<Pair<HrvTrendPeriod,HrvTrendMetric>,HrvTrendAxis>()
     private val metricButtons=linkedMapOf<HrvTrendMetric,BicycleSegmentButton>()
@@ -25,16 +27,28 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
     private val detail=BicycleComponents.description(context,themes,"").apply { tag="hrv_trend_selected";accessibilityLiveRegion=ACCESSIBILITY_LIVE_REGION_POLITE }
     private val statistics=BicycleComponents.description(context,themes,"").apply { tag="hrv_trend_statistics" }
     private val empty=BicycleComponents.description(context,themes,context.getString(R.string.hrvt_empty)).apply { tag="hrv_trend_empty" }
-    private val button=BicycleComponents.action(context,themes,context.getString(R.string.hrvt_detail)) { selected?.let { open(it.row.id) } }.apply { tag="hrv_trend_detail" }
+    private val analysis=BicycleFooterAction(context,themes,BicycleIcon.Distance,context.getString(R.string.hrvt_day_analysis)) {}.apply {
+        tag="hrv_day_analysis";isEnabled=false
+    }
+    private val questionnaire=BicycleFooterAction(context,themes,BicycleIcon.RenameTrack,context.getString(R.string.hrvq_title)) {
+        selected?.takeIf { resolution==HrvTrendPeriod.DAY && actionDay==it.day }?.let { open(it.row.id) }
+    }.apply { tag="hrv_day_questionnaire";isEnabled=false }
+    private val remove=BicycleFooterAction(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.route_action_delete)) {
+        selected?.takeIf { resolution==HrvTrendPeriod.DAY && actionDay==it.day }?.let { delete(it.row.id) }
+    }.apply { tag="hrv_day_delete";isEnabled=false }
     private val chart=HrvTrendChart(context,themes,::select) { first,last ->
         range.text=if(resolution==HrvTrendPeriod.DAY) context.getString(R.string.hrvt_period,first.format(dateFormat),last.format(dateFormat))
             else context.getString(R.string.hrvt_aggregate_range,title(first),title(last),first.format(dateFormat),last.format(dateFormat))
-    }.apply { onDaySelected={ day ->
+    }.apply { onDayTapped={ point ->
+        this@HrvTrendsView.actionDay=point.day;this.actionDay=point.day;questionnaire.isEnabled=true;remove.isEnabled=true;footer.visibility=VISIBLE
+    };onDaySelected={ day ->
         if(resolution==HrvTrendPeriod.DAY) this@HrvTrendsView.onDaySelected(day)
         else this@HrvTrendsView.onPeriodSelected(title(day))
     } }
     init {
         orientation=VERTICAL;tag="hrv_trends";clipToPadding=false
+        footer.visibility=GONE
+        listOf(analysis,questionnaire,remove).forEach { footer.addView(it,LayoutParams(0,-2,1f)) }
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
         val periods=RadioGroup(context).apply { orientation=HORIZONTAL;tag="hrv_trend_periods" }
         BicycleComponents.segmentedControlRow(periods,themes)
@@ -43,6 +57,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
                 id=generateViewId();tag="hrv_period_${candidate.name}";text=context.getString(candidate.label);isChecked=candidate==resolution
                 setOnCheckedChangeListener { _,checked -> if(checked && resolution!=candidate) {
                     val anchor=selected?.let { HrvDailySelection.day(it.row) }
+                    actionDay=null;chart.actionDay=null;footer.visibility=GONE;questionnaire.isEnabled=false;remove.isEnabled=false
                     resolution=candidate;refresh(true,anchor)
                     selected?.let { if(candidate==HrvTrendPeriod.DAY) onDaySelected(it.day) else onPeriodSelected(title(it.day)) }
                 } }
@@ -65,9 +80,13 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         addView(range);addView(BicycleComponents.description(context,themes,context.getString(R.string.hrvt_legend)))
         addView(BicycleComponents.description(context,themes,context.getString(R.string.hrvt_period_gestures)))
         addView(BicycleComponents.sectionDivider(context,themes))
-        addView(detail);addView(statistics);addView(button)
+        addView(detail);addView(statistics)
         addView(BicycleComponents.description(context,themes,context.getString(R.string.hrvt_collecting)))
+        if(actionFooter==null) addView(footer)
         refresh(true)
+    }
+    fun updateSeries(next:Map<HrvTrendMetric,List<HrvTrendPoint>>) {
+        series=next;grouped.clear();axes.clear();actionDay=null;chart.actionDay=null;footer.visibility=GONE;questionnaire.isEnabled=false;remove.isEnabled=false;refresh()
     }
     private fun points(candidate:HrvTrendMetric)=grouped.getOrPut(resolution to candidate) { HrvTrendAggregation.series(series.getValue(candidate),resolution) }
     private fun number(value:Double)=String.format(java.util.Locale.getDefault(),"%.1f",value)
@@ -77,7 +96,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         HrvTrendPeriod.MONTH->day.format(DateTimeFormatter.ofPattern("LLLL yyyy",java.util.Locale.getDefault()))
     }
     private fun select(point:HrvTrendPoint) {
-        selected=point;button.isEnabled=true
+        selected=point
         metricButtons.forEach { (candidate,choice) ->
             val value=points(candidate).firstOrNull { it.day==point.day }?.value
             choice.text=context.getString(candidate.label)+"\n"+(value?.let(::number) ?: context.getString(R.string.hrvt_unavailable))
@@ -107,8 +126,6 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         val points=points(metric)
         val hasValue=points.any { it.value!=null }
         empty.visibility=if(hasValue) GONE else VISIBLE;chart.visibility=if(hasValue) VISIBLE else GONE
-        button.visibility=if(resolution==HrvTrendPeriod.DAY) VISIBLE else GONE
-        button.isEnabled=points.isNotEmpty()
         if(points.isEmpty()) {
             selected=null;detail.text="";statistics.text="";statistics.visibility=GONE
             metricButtons.forEach { (candidate,choice) -> choice.text=context.getString(candidate.label)+"\n"+context.getString(R.string.hrvt_unavailable) }

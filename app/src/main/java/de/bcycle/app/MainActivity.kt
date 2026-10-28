@@ -757,19 +757,48 @@ class MainActivity : Activity() {
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
             addView(BicycleComponents.description(this@MainActivity,runtime.themes,getString(R.string.hrvt_loading)))
         }
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(datedTitle(java.time.LocalDate.now()))
-            .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(root) }).show()
-        runtime.hrv.trends { result ->
-            if(isDestroyed || !screen.isShowing) return@trends
-            root.removeAllViews()
-            result.fold({ series ->
-                root.setPadding(0,0,0,0)
-                root.addView(HrvTrendsView(this,runtime.themes,series,::showHrvHistoryResult).apply {
-                    onDaySelected={ day -> screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=datedTitle(day) }
-                    onPeriodSelected={ label -> screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=getString(R.string.hrvt_dated_title,label) }
-                },LinearLayout.LayoutParams(-1,-2))
-            },{ root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
+        val footer=bicycleFooter(this,runtime.themes).apply { visibility=View.GONE }
+        val body=LinearLayout(this).apply {
+            orientation=LinearLayout.VERTICAL
+            addView(ScrollView(this@MainActivity).apply { BicycleComponents.scrollStyle(this);addView(root) },LinearLayout.LayoutParams(-1,0,1f))
+            addView(footer,LinearLayout.LayoutParams(-1,-2))
         }
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(datedTitle(java.time.LocalDate.now()))
+            .setView(body).show()
+        var content:HrvTrendsView?=null
+        fun load() { runtime.hrv.trends { result ->
+            if(isDestroyed || screen.window?.decorView?.isAttachedToWindow!=true) return@trends
+            result.fold({ series ->
+                if(content!=null) content!!.updateSeries(series)
+                else {
+                    root.removeAllViews();root.setPadding(0,0,0,0)
+                    content=HrvTrendsView(this,runtime.themes,series,actionFooter=footer,delete={ id ->
+                        dialog(fullscreen=false).setTitle(R.string.hrv_delete_title).setMessage(R.string.hrvt_day_delete_confirm)
+                            .setPositiveButton(R.string.route_action_delete) { _,_ ->
+                                (0 until footer.childCount).forEach { footer.getChildAt(it).isEnabled=false }
+                                runtime.hrv.deleteMeasurement(id) { outcome ->
+                                    (1 until footer.childCount).forEach { footer.getChildAt(it).isEnabled=true }
+                                    if(!isDestroyed && screen.window?.decorView?.isAttachedToWindow==true) outcome.fold(onSuccess={ load() },
+                                        onFailure={ BicycleFeedback.show(this,R.string.hrv_delete_failed) })
+                                }
+                            }.setNegativeButton(R.string.route_cancel,null).show()
+                    },open={ id ->
+                        runtime.hrv.measurement(id) { result ->
+                            if(!isDestroyed && screen.isShowing) result.fold(onSuccess={ row -> showHrvQuestionnaire(row,{}) },
+                                onFailure={ BicycleFeedback.show(this,R.string.hrv_result_load_failed) })
+                        }
+                    }).apply {
+                        onDaySelected={ day -> screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=datedTitle(day) }
+                        onPeriodSelected={ label -> screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=getString(R.string.hrvt_dated_title,label) }
+                    }
+                    root.addView(content,LinearLayout.LayoutParams(-1,-2))
+                }
+            },{
+                if(content==null) { root.removeAllViews();root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) }
+                else BicycleFeedback.show(this,R.string.hrv_result_load_failed)
+            })
+        } }
+        load()
     }
     private fun offerRideSummary() {
         if(rideSummaryPosted || !runtime.visible || runtime.recording || runtime.saving || runtime.pendingRideSummary==null) return
@@ -859,7 +888,8 @@ class MainActivity : Activity() {
             },{ root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
         }
     }
-    private fun showHrvQuestionnaire(row:org.json.JSONObject) {
+    private fun showHrvQuestionnaire(row:org.json.JSONObject)=showHrvQuestionnaire(row,null)
+    private fun showHrvQuestionnaire(row:org.json.JSONObject,completed:(()->Unit)?) {
         val root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad) }
         val loading=BicycleComponents.description(this,runtime.themes,getString(R.string.hrvq_loading));root.addView(loading)
@@ -873,7 +903,7 @@ class MainActivity : Activity() {
             val training=if(runtime.mapState.busy) null else HrvTrainingSummary.previousDay(
                 java.time.LocalDate.parse(initial.day),java.time.ZoneId.of(row.getString("zone")),runtime.mapState.entries)
             root.removeAllViews();root.setPadding(0,0,0,0)
-            root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) { screen.dismiss();showHrvTrends() } }) { value,done ->
+            root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) { screen.dismiss();if(completed!=null) completed() else showHrvTrends() } }) { value,done ->
                 runtime.hrv.saveQuestionnaire(id,value) { saved -> done(saved.isSuccess) }
             },LinearLayout.LayoutParams(-1,-2))
         }

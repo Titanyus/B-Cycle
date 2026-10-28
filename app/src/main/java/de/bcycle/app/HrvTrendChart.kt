@@ -23,6 +23,8 @@ import kotlin.math.roundToLong
 internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private val selected:(HrvTrendPoint)->Unit,private val period:(LocalDate,LocalDate)->Unit):View(context) {
     var onDaySelected:(LocalDate)->Unit={}
+    var onDayTapped:(HrvTrendPoint)->Unit={}
+    var actionDay:LocalDate?=null;set(value) { field=value;invalidate() }
     private var tokens=themes.active.tokens
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.bodyTypeface }
     private val path=Path()
@@ -120,7 +122,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         rows.firstOrNull { it.row.id==selectedId }?.let { selected(it) }
         changed()
     }
-    private fun select(point:HrvTrendPoint) { selectedId=point.row.id;selected(point);onDaySelected(point.day);invalidate() }
+    private fun select(point:HrvTrendPoint) { selectedId=point.row.id;selected(point);onDaySelected(point.day);if(resolution==HrvTrendPeriod.DAY) onDayTapped(point);invalidate() }
     private fun changed() {
         period(resolution.date(kotlin.math.ceil(viewport.end-viewport.span).toLong()),resolution.end(resolution.date(kotlin.math.floor(viewport.end).toLong())))
         contentDescription=context.getString(R.string.hrvt_period_gestures)+". "+moons.filter { resolution==HrvTrendPeriod.DAY && viewport.contains(it.first) }.joinToString("; ") {
@@ -232,7 +234,8 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             }
         }
         visible.forEach { point -> point.value?.let { value ->
-            paint.color=if(point.belowNormal) Color.WHITE else tokens.primary
+            val color=if(point.belowNormal) Color.WHITE else tokens.primary
+            paint.color=if(resolution==HrvTrendPeriod.DAY && actionDay==point.day) Color.rgb(Color.red(color)/2,Color.green(color)/2,Color.blue(color)/2) else color
             canvas.drawRect(x(point.day)-half,y(value),x(point.day)+half,bottom,paint)
         } }
         paint.color=Color.WHITE;paint.strokeWidth=density*BicycleDesign.hrvTrendBandLineDp

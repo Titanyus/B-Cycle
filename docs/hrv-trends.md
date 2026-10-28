@@ -4,7 +4,7 @@ Seit28.10.2026 zusätzlich Wochen-/Monatsmittel mit unverändertem Tagestrend un
 
 # HRV-Auswertung
 
-Eigener nativer Bildschirm: HRV-Einstellungen → HRV-Auswertung oder nach dem erfolgreichen Speichern des Tagesbefindens über „Zur Auswertung“. Vorhandene Zurück-Navigation und HRV-Header in Fensterfarbe erhalten. Sechs Kennzahlen wie im Vorbild: Puls, SDNN, RMSSD, pNN50, LF und HF. Oben Auswahl mit den Werten des ausgewählten Tages, darunter Balken, Mittelwert und Normalbereich. Standard: RMSSD und letzte 14 Kalendertage. Tageswert antippen und „Messung und Tagesbefinden“ öffnet vorhandene Details.
+Eigener nativer Bildschirm: HRV-Einstellungen → HRV-Auswertung oder nach dem erfolgreichen Speichern des Tagesbefindens über „Zur Auswertung“. Vorhandene Zurück-Navigation und HRV-Header in Fensterfarbe erhalten. Sechs Kennzahlen wie im Vorbild: Puls, SDNN, RMSSD, pNN50, LF und HF. Oben Auswahl mit den Werten des ausgewählten Tages, darunter Balken, Mittelwert und Normalbereich. Standard: RMSSD und letzte 14 Kalendertage. Tageswert bewusst antippen dunkelt den Balken ab und zeigt den festen Tagesfooter: Auswertung (vorerst deaktiviert), Tagesbefinden direkt zu den Eingaben, bestätigtes Löschen der Messung.
 
 ## Transparente eigene Berechnung
 

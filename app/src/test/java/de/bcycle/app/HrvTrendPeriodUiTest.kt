@@ -145,7 +145,7 @@ class HrvTrendPeriodUiTest {
             val chart=view.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
             var periodTitle="";view.onPeriodSelected={periodTitle=it}
             view.findViewWithTag<View>("hrv_period_MONTH").performClick();layout(view,1100)
-            assertEquals(View.GONE,view.findViewWithTag<View>("hrv_trend_detail").visibility)
+            assertEquals(View.GONE,view.findViewWithTag<View>("bicycle_action_footer").visibility)
             assertTrue(periodTitle.contains("2025"));assertEquals(HrvTrendAxis.from(HrvTrendAggregation.series(series.getValue(HrvTrendMetric.RMSSD),HrvTrendPeriod.MONTH),HrvTrendMetric.RMSSD),chart.axis)
             val month=LocalDate.of(2024,10,1);val viewport=viewport(chart)
             val x=(40+(HrvTrendPeriod.MONTH.index(month)-(viewport.end-viewport.span))/viewport.span*(chart.width-48)).toFloat()
@@ -168,8 +168,13 @@ class HrvTrendPeriodUiTest {
                 java.io.File("build/reports/ui/hrv-period-month-${if(flat) "flat" else "glow"}.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
             }
             view.findViewWithTag<View>("hrv_period_DAY").performClick()
-            assertEquals(View.VISIBLE,view.findViewWithTag<View>("hrv_trend_detail").visibility)
-            view.findViewWithTag<View>("hrv_trend_detail").performClick();assertTrue(opened!!.startsWith("2024-10"))
+            assertEquals(View.GONE,view.findViewWithTag<View>("bicycle_action_footer").visibility)
+            val day=LocalDate.of(2024,10,31);val dailyViewport=viewport(chart)
+            val dayX=(40+(day.toEpochDay()-(dailyViewport.end-dailyViewport.span))/dailyViewport.span*(chart.width-48)).toFloat()
+            MotionEvent.obtain(now+1000,now+1000,MotionEvent.ACTION_DOWN,dayX,150f,0).also { chart.onTouchEvent(it);it.recycle() }
+            MotionEvent.obtain(now+1000,now+1030,MotionEvent.ACTION_UP,dayX,150f,0).also { chart.onTouchEvent(it);it.recycle() }
+            assertEquals(View.VISIBLE,view.findViewWithTag<View>("bicycle_action_footer").visibility)
+            view.findViewWithTag<View>("hrv_day_questionnaire").performClick();assertTrue(opened!!.startsWith("2024-10"))
         } finally { host.pause().stop().destroy();Locale.setDefault(oldLocale) }
     }
     @Test fun eachResolutionUsesItsOwnCompleteSeriesAxisAndKeepsItDuringNavigation() {
