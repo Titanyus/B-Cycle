@@ -107,3 +107,6 @@ Balkenbeschriftung (25.10.2026): Jeder vorhandene Messwert wird mittig über sei
 ## Kontinuierliches Pinch nach Build90
 
 Der Zweifingerzoom verwendet dieselbe laufende Abstandsverhältnis-Idee wie MapPinchZoom, ohne Android-Mindestspanne. Dadurch stoppt das Verkleinern nicht mehr bei eng zusammenliegenden Fingern. Stabile Pointer-IDs, Neuverankerung beim Fingerwechsel und Ignorieren einer Nullspanne verhindern Sprünge. Native Einfinger-Quickscale sowie horizontaler Drag/Fling bleiben erhalten, einschließlich Abbruch durch neue Berührung. Bestehende7-Tage-/Gesamtbereichsgrenzen, Y-Achse und Messdaten unverändert. Geprüft mit Bewegung200→100→30→15px, Pointerwechsel/Abbruch, bestehendem Pinch/Pan und kinetischem Scrollen.
+
+
+Nach Build98: Korridorfüllung auf Nutzerwunsch von30% auf15% Deckkraft reduziert (BicycleDesign.hrvTrendBandAlpha). Gemeinsame Darstellung für Tag/Woche/Monat; weiße gepunktete1-dp-Grenzen unverändert. Nur Gestaltung, keine Berechnungsänderung.

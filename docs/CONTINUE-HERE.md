@@ -1,3 +1,7 @@
+# Nach Build98: HRV-Korridorfüllung dezenter
+
+Weiße Korridorfüllung von30% auf15% Deckkraft reduziert. Begrenzungslinien unverändert. Gemeinsames zentrales Token gilt für Tag/Woche/Monat und beide Designs. Reine Tokenänderung, keine zusätzlichen Tests; Typografie/Atlas/Diff erfolgreich geprüft; generierten Atlas aktualisiert. Statistik-Skalenänderung ausb4cfe2b bleibt für nächste APK enthalten. Kein neuer APK-Auftrag, letzte veröffentlichte0.8.57/Build98.
+
 # Nach Build98: Statistik-Skalen links über durchgehenden Linien
 
 Nutzeränderung umgesetzt: gemeinsame Monats-/Wochenstatistik zeichnet Y-Skalen links innerhalb der Diagrammbreite und oberhalb der jeweiligen horizontalen Rasterlinie, einschließlich oberster Linie. Hintergrundmasken entfernt, Linien über volle Breite durchgehend. Kein0-km-Label, Daten/Zoom/Jahreswahl/Flat-Glow unverändert. Sechs gezielte native Fälle grün: StatisticsDistanceChartTest5 und RideStatisticsViewTest1, Log /workspace/.tools/statistics-left-axis-tests.log. Test prüft beide Ansichten, vier volle Linien, linksbündige Labels oberhalb und keine Masken; bestehende Gesten/Labelkollisionen erhalten. Vorschauen aktualisiert, Typografie/Atlas/Diff geprüft. Keine Gesamtsuite, kein neuer APK-Auftrag; letzter veröffentlichter Download0.8.57/Build98. Änderung lokal für nächste APK speichern.

@@ -29,7 +29,7 @@ object BicycleDesign {
     const val hrvTrendBarValueSp=8f
     const val hrvTrendBarValueGap=3
     const val choiceTextGap=4
-    const val hrvTrendBandAlpha=.3f
+    const val hrvTrendBandAlpha=.15f
     const val hrvTrendBandLineDp=1f
     const val hrvTrendBandDotGapDp=4f
     const val hrvRingWidth=9f*1.35f
