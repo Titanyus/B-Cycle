@@ -13,3 +13,6 @@ DashboardTemplate.pickerOrder ist ausschließlich die Anzeigeordnung. Enumreihen
 Gezielter nativer Test prüft komplette Kartenreihenfolge, Indoor-Teilliste, Vollständigkeit und unveränderte Enum-Standardseiten. Noch nicht in APK0.8.55/Build96 enthalten.
 
 Geöffneter Auswahlbereich erhält zentral16dp Abstand unter dem Accordionkopf; kleine Überschriften berücksichtigen bereits vorhandenes Containerpadding. Beide Designs nativ auf den tatsächlichen sichtbaren Abstand geprüft.
+
+
+Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.56/Build97** enthalten. [Buildnachweis und Download](build-97.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

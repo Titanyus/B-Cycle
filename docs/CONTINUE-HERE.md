@@ -1,3 +1,7 @@
+# APK veröffentlicht28.10.2026:0.8.56 / Build97 / Code126
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.56-release-97.apk) · [Buildnachweis](build-97.md). Quelle `85fe4cd14a0b6efea1cd4bcbfb4df4970554d691`, Größe 2.466.821 Bytes, SHA-256 `165a150a56b60d90fe6e14646655a50321ea6e3d259b12c42af9506e856ad065`. Alle lokalen Änderungen seit Build96 enthalten. Signatur wie zuvor, Release ohne Debug-/Test-Flags, CI-Prüfsumme und ZIP-Ausrichtung geprüft. Veröffentlichung zuletzt mit[skip ci], kein zweiter APK-Build. Keine offene APK-Aufgabe; Testnachweise und fachliche Grenzen in release-0.8.56.md und nachfolgender Umsetzungshistorie. Zusätzliche HRV-Zoombegrenzung weiterhin ausdrücklich erst nach Nutzeransicht entscheiden.
+
 # APK-Auftrag28.10.2026:0.8.56/Code126
 
 Alle offenen Änderungen seit Build96 fertig geprüft. Nutzer hat nach der gemeinsamen Statistikansicht ausdrücklich neue APK beauftragt. Umfang in release-0.8.56.md: HRV-Zeiträume, Dashboard-Reihenfolge/Abstände, Statusslots/Mobilfunk/VPN/Messenger und Kartenüberschrift, umschaltbare Statistik mit Jahresfilter/Zoom. Lokale Quellcommits3cecc37 und46cc588 bleiben enthalten; Statistik/Version werden jetzt gemeinsam committed. Ein automatischer GitHub-Actions-Releasebuild nach Push, kein zusätzlicher Dispatch. Artefakt anschließend Signatur/Version/Manifest/Prüfsumme/Ausrichtung prüfen, direkt veröffentlichen und echten Download abgleichen. Letzter Download aktuell0.8.55/Build96; nächster Lauf voraussichtlich97, tatsächliche Nummer prüfen.

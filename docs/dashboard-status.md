@@ -27,3 +27,6 @@ Belegung wie der bestehende Vollbildschalter im Fahrrad-Designprofil, einschlie�
 39 unterschiedliche gezielte Fälle grün: DashboardStatusTest7, DashboardFullscreenTest4, MessageNotificationsTest4, MapProviderSettingsTest2, ProfileSectionConventionTest1, SettingsBackupTest17, SettingsBackupSupplementTest4. Neue Prüfungen für Belegung/Leerzustand/Eindeutigkeit/Sortieren, Profil-/Backup-Roundtrip, Messenger-Auswahlreihenfolge samt Restore, aktive/entfernte Benachrichtigungen, VPN-Callbacks und verspätete Ereignisse nach Stop, Android-Mobilfunklevel/Flugmodus, tatsächliche Slot-Auswahl aus Design & UI, Kameraausschnitte sowie Native-Flat/Glow-Rendering und Symbolzentrierung.
 
 [Konfigurationsvorschau Glow](previews/dashboard-status-settings-glow.png) · [Flat](previews/dashboard-status-settings-flat.png) · [Beispiel Statuszeile](previews/dashboard-status-glow.png). Synthetische Daten; die Glocke ist der Ersatz für ein in der Testumgebung nicht installiertes Messengericon. Kein echter Mobilfunk-/WireGuard-/Notchtest am Nutzertelefon, keine Gesamtsuite und keine neue APK beauftragt.
+
+
+Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.56/Build97** enthalten. [Buildnachweis und Download](build-97.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

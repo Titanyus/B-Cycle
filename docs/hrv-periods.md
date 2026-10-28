@@ -26,3 +26,6 @@ Umschaltung oberhalb der bestehenden Kennzahlenauswahl. Jede neue Auswertungssei
 ## Prüfung
 
 Gezielte Modelltests prüfen Tagesauswahl/fehlende Werte, Tagesgewichtung statt Wochengewichtung, leere Monate, Schaltjahr, ISO-Jahresgrenzen, gleiche Kalenderbreiten und Zusammenfassung der unveränderten täglichen Trend-/Referenzwerte. Native UI-/Canvas-Prüfungen für Balkenkanten/volle Trenner bei mehreren Zoomstufen, kurze Wochen-/Monatslabels, vollständige Periodenwahl, feste Y-Skala, Kennzahlenwechsel im älteren Monat trotz unterschiedlicher Messtage, laufende Zeiträume, fehlende Frequenzwerte sowie Flat/Glow-Vorschauen. Bestehende HRV-Diagramm-/Pinch-/Fling-/Mondphasentests bleiben erhalten. Native Testvorschauen: [Glow](previews/hrv-period-month-glow.png) · [Flat](previews/hrv-period-month-flat.png). Aktueller genauer Prüfstand in CONTINUE-HERE.md. Kein erneuter Hardwaretest; noch keine neue APK beauftragt.
+
+
+Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.56/Build97** enthalten. [Buildnachweis und Download](build-97.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

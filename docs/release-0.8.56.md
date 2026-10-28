@@ -10,4 +10,4 @@ Alle Änderungen seit APK0.8.55/Build96.
 
 Gezielte Umsetzungstests und native Vorschauen erfolgreich; keine Gesamtsuite und kein erneuter Telefon-/privater Cloudtest. Neue Status-/WireGuard-/Mobilfunkdarstellung noch am realen Gerät prüfen. Bekannte Darstellungsgrenze: bei sehr vielen dicht liegenden Jahreskurven können Punktwerte überlappen; keine Werte werden absichtlich unterdrückt. Benachrichtigungszähler zählt aktive passende Android-Meldungen, keine garantierte Zahl ungelesener Nachrichten.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-97.md).
