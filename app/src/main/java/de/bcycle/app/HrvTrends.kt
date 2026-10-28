@@ -12,7 +12,9 @@ internal enum class HrvTrendMetric(val key:String,val label:Int,val unit:Int) {
     HF("hfMs2",R.string.hrvt_hf,R.string.hrvt_ms2)
 }
 internal data class HrvTrendPoint(val row:HrvHistorySummary,val day:LocalDate,val cohort:String,val value:Double?,
-    val average:Double?,val lower:Double?,val upper:Double?) {
+    val average:Double?,val lower:Double?,val upper:Double?,
+    val periodEnd:LocalDate=day,val sampleDays:Int=if(value==null) 0 else 1,
+    val trendDays:Int=if(average==null) 0 else 1,val bandDays:Int=if(lower==null || upper==null) 0 else 1) {
     val belowNormal get()=value!=null && lower!=null && value<lower
 }
 
@@ -71,8 +73,11 @@ internal class HrvTrendViewport {
     var end=0.0;private set
     private var first=0.0;private var last=0.0
     fun reset(days:List<LocalDate>) {
-        first=(days.minOrNull()?.toEpochDay() ?: LocalDate.now().toEpochDay()).toDouble()-.5
-        last=(days.maxOrNull()?.toEpochDay() ?: LocalDate.now().toEpochDay()).toDouble()+.5
+        resetIndices(days.map { it.toEpochDay() },LocalDate.now().toEpochDay())
+    }
+    fun resetIndices(indices:List<Long>,fallback:Long) {
+        first=(indices.minOrNull() ?: fallback).toDouble()-.5
+        last=(indices.maxOrNull() ?: fallback).toDouble()+.5
         span=14.0.coerceAtMost(maxSpan());end=last;clamp()
     }
     private fun maxSpan()=(last-first).coerceAtLeast(14.0)
@@ -84,5 +89,6 @@ internal class HrvTrendViewport {
         span=(span/factor).coerceIn(7.0,maxSpan())
         end=pivot+span*(1-anchor.coerceIn(0.0,1.0));clamp()
     }
+    fun focus(index:Double) { if(index !in (end-span)..end) { end=index+span/2;clamp() } }
     fun contains(day:LocalDate)=day.toEpochDay().toDouble() in (end-span)..end
 }

@@ -34,7 +34,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
     private val reorder=TileReorder(scroller,row,themes,{ pages.all().map { it.id } }) { id,index ->
         pages.move(id,index).also { if(it) { refresh();changed() } }
     }
-    private val layoutBody=LinearLayout(context).apply { orientation=VERTICAL;tag="dashboard_layout_details";visibility=GONE }
+    private val layoutBody=LinearLayout(context).apply { orientation=VERTICAL;tag="dashboard_layout_details";visibility=GONE;BicycleContentSpacing.accordionContent(this) }
     private val layoutChoice=BicycleComponents.action(context,themes,"") {
         layoutBody.visibility=if(layoutBody.visibility==GONE) VISIBLE else GONE
         refreshLayoutChoices()

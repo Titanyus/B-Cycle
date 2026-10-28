@@ -113,3 +113,12 @@ Bild 2 des UI-Vergleichs ist der gemeinsame Standard: 4 dp zwischen Beschriftung
 ## Finale Sliderwerte für 0.8.24
 
 32 dp zwischen Slider-Fragenblöcken; 0 dp zwischen Label und Slider-Touchfläche; −8 dp von Slider-Touchfläche zur Skalenzeile, bei weiterhin 50 % Deckkraft. Der negative Abstand gehört zur ganzen Skalenzeile, deren Textkinder keine negativen Margins erhalten. So bleibt die Schrift vollständig sichtbar. Texteingaben/Dropdowns behalten 4 dp zwischen Label und Control. HTML-Vergleichsregler starten bei denselben Werten; Skalenregler erlaubt −16 bis 24 dp.
+
+
+## Kleine Inhaltsüberschriften und Standard-Accordion-Inhalt (28.10.2026)
+
+BicycleComponents.contentHeading sichert beim Anhängen den zentralen Mindestgruppenabstand sectionContentGap=16dp zum vorherigen Inhalt, auch bei nachträglich vergebenen LayoutParams oder umbenanntem Tag. Kein zusätzlicher Abstand vor einer ersten Seitenüberschrift. Vorhandenes führendes Wrapperpadding und vorherige Trennermargins werden mitgezählt, größere bewusste Außenabstände erhalten. Schrift und fachliche Inhalte bleiben unverändert.
+
+BicycleContentSpacing.accordionContent gibt normalem geöffnetem Accordion-Inhalt denselben16dp-Innenabstand oben, unabhängig vom ersten Widget. Zunächst Dashboard-Vorlagenauswahl, deren Container zuvor keinen Abstand hatte. Dadurch braucht die erste kleine Überschrift dort keinen weiteren Außenabstand. Dropdown-Rahmen behalten ihre vorhandene eigene24dp-Regel unter dem Kopf. Nicht beide Regeln aufaddieren.
+
+Native Prüfungen: Dashboard geöffnet Flat/Glow exakt16dp zwischen Accordionkopf und erster Überschrift; direkte kleine Überschrift nach Control, verschachtelte Wrapper, Überschrift nach Divider, erste Überschrift und idempotentes erneutes Anwenden.

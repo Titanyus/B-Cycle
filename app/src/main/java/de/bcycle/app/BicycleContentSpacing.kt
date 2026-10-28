@@ -8,6 +8,37 @@ import android.widget.ListView
 
 /** Spacing belongs to content, never to a pinned heading. Reapplying is idempotent. */
 internal object BicycleContentSpacing {
+    /** Open standard-accordion content begins below its header, independent of its first widget. */
+    fun accordionContent(view:View) {
+        val top=BicycleDesign.dp(view.context,BicycleDesign.sectionContentGap)
+        if(view.paddingTop<top) view.setPadding(view.paddingLeft,top,view.paddingRight,view.paddingBottom)
+    }
+    /** Small headings start a content group. Count existing wrapper/divider spacing once. */
+    fun contentHeading(view:View) {
+        val margins=view.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        var current=view
+        var supplied=0
+        var previous:View?=null
+        while(true) {
+            val parent=current.parent as? LinearLayout ?: break
+            if(parent.orientation!=LinearLayout.VERTICAL) break
+            val index=parent.indexOfChild(current)
+            previous=(index-1 downTo 0).map(parent::getChildAt).firstOrNull { it.visibility!=View.GONE }
+            if(previous!=null) break
+            supplied+=parent.paddingTop
+            // A ScrollView is a page boundary; a screen's first heading uses its page padding.
+            val outer=parent.parent
+            if(outer is ScrollView || outer==null) break
+            supplied+=(parent.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin ?: 0
+            current=parent
+        }
+        val target=if(previous==null) 0 else {
+            supplied+=(previous.layoutParams as? ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
+            (BicycleDesign.dp(view.context,BicycleDesign.sectionContentGap)-supplied).coerceAtLeast(0)
+        }
+        // Respect intentionally larger heading margins; the shared minimum survives late addView parameters.
+        if(margins.topMargin<target) { margins.topMargin=target;view.requestLayout() }
+    }
     /** Wait for newly opened content to be measured before the native ScrollView clamps its range. */
     fun revealAfterLayout(anchor:View) {
         val observer=anchor.viewTreeObserver

@@ -32,6 +32,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     }
     private val viewport=HrvTrendViewport()
     private var points:List<HrvTrendPoint> = emptyList()
+    private var resolution=HrvTrendPeriod.DAY
     private var barLabels:List<Pair<HrvTrendPoint,String>> = emptyList()
     var axis=HrvTrendAxis(0.0,1.0);private set
     private var selectedId:String?=null
@@ -43,11 +44,14 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private val scroller=OverScroller(context)
     private var flingX=0
     private val dateFormat=DateTimeFormatter.ofPattern("dd.MM")
+    private val monthNames=DateTimeFormatter.ofPattern("MMM",java.util.Locale.getDefault()).let { format ->
+        (1..12).map { LocalDate.of(2024,it,1).format(format).removeSuffix(".") }
+    }
     private val slop=ViewConfiguration.get(context).scaledTouchSlop
     private val density=resources.displayMetrics.density
     private val plotLeft get()=BicycleDesign.dp(context,BicycleDesign.hrvTrendAxisWidth).toFloat()
     private val plotRight get()=(width-BicycleDesign.dp(context,8)).toFloat().coerceAtLeast(plotLeft+1)
-    private fun x(day:LocalDate)=plotLeft+((day.toEpochDay()-(viewport.end-viewport.span))/viewport.span*(plotRight-plotLeft)).toFloat()
+    private fun x(day:LocalDate)=plotLeft+((resolution.index(day)-(viewport.end-viewport.span))/viewport.span*(plotRight-plotLeft)).toFloat()
     private var pointerA=-1;private var pointerB=-1;private var pinchSpan=0.0
     private val pinching get()=pointerA>=0 && pointerB>=0
     private fun beginPinch(event:MotionEvent,exclude:Int=-1) {
@@ -81,8 +85,8 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         }
         override fun onSingleTapUp(e:MotionEvent):Boolean {
             if(moved || e.x !in plotLeft..plotRight) return false
-            val day=(viewport.end-viewport.span+(e.x-plotLeft)/(plotRight-plotLeft)*viewport.span).roundToLong()
-            points.firstOrNull { it.day.toEpochDay()==day }?.let { select(it) }
+            val index=(viewport.end-viewport.span+(e.x-plotLeft)/(plotRight-plotLeft)*viewport.span).roundToLong()
+            points.firstOrNull { resolution.index(it.day)==index }?.let { select(it) }
             performClick();return true
         }
     })
@@ -91,8 +95,11 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         contentDescription=context.getString(R.string.hrvt_gestures)
         BicycleComponents.bindTheme(this,themes) { tokens=it;invalidate() }
     }
-    fun show(rows:List<HrvTrendPoint>,reset:Boolean=false,axis:HrvTrendAxis=HrvTrendAxis.from(rows,HrvTrendMetric.RMSSD)) {
+    fun show(rows:List<HrvTrendPoint>,reset:Boolean=false,axis:HrvTrendAxis=HrvTrendAxis.from(rows,HrvTrendMetric.RMSSD),
+        resolution:HrvTrendPeriod=HrvTrendPeriod.DAY,anchor:LocalDate?=null) {
         stopFling()
+        val previousDay=points.firstOrNull { it.row.id==selectedId }?.day
+        val modeChanged=this.resolution!=resolution;this.resolution=resolution
         points=rows;this.axis=axis
         val first=rows.minOfOrNull { it.day };val last=rows.maxOfOrNull { it.day }
         if(first!=null && last!=null) {
@@ -103,15 +110,20 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             }
         } else { moons=emptyList();moonRange=null }
         barLabels=rows.mapNotNull { point -> point.value?.let { point to barNumber.format(it) } }
-        if(reset) viewport.reset(rows.map { it.day })
+        if(reset || modeChanged) viewport.resetIndices(rows.map { resolution.index(it.day) },resolution.index(LocalDate.now()))
+        if(modeChanged && anchor!=null) {
+            selectedId=rows.firstOrNull { !anchor.isBefore(it.day) && !anchor.isAfter(it.periodEnd) }?.row?.id
+            selectedId?.let { id -> rows.firstOrNull { it.row.id==id }?.let { viewport.focus(resolution.index(it.day).toDouble()) } }
+        }
+        if(!modeChanged && previousDay!=null) selectedId=rows.firstOrNull { it.day==previousDay }?.row?.id
         if(selectedId==null || rows.none { it.row.id==selectedId }) selectedId=rows.lastOrNull()?.row?.id
         rows.firstOrNull { it.row.id==selectedId }?.let { selected(it) }
         changed()
     }
     private fun select(point:HrvTrendPoint) { selectedId=point.row.id;selected(point);onDaySelected(point.day);invalidate() }
     private fun changed() {
-        period(LocalDate.ofEpochDay(kotlin.math.ceil(viewport.end-viewport.span).toLong()),LocalDate.ofEpochDay(kotlin.math.floor(viewport.end).toLong()))
-        contentDescription=context.getString(R.string.hrvt_gestures)+". "+moons.filter { viewport.contains(it.first) }.joinToString("; ") {
+        period(resolution.date(kotlin.math.ceil(viewport.end-viewport.span).toLong()),resolution.end(resolution.date(kotlin.math.floor(viewport.end).toLong())))
+        contentDescription=context.getString(R.string.hrvt_period_gestures)+". "+moons.filter { resolution==HrvTrendPeriod.DAY && viewport.contains(it.first) }.joinToString("; ") {
             context.getString(R.string.moon_date_label,it.first.format(dateFormat),context.getString(it.second.label))
         }
         invalidate()
@@ -169,25 +181,45 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             paint.color=alpha(tokens.foreground,.5f)
             canvas.drawText(String.format(java.util.Locale.getDefault(),if(axis.maximum-axis.minimum>=100) "%.0f" else "%.1f",value),plotLeft-8*density,at+4*density,paint)
         }
-        paint.textAlign=Paint.Align.CENTER
-        // Calendar-anchored labels move with their Monday bar, including partially clipped labels.
-        val axisSave=canvas.save();canvas.clipRect(plotLeft,bottom,plotRight,height.toFloat())
-        var monday=LocalDate.ofEpochDay(kotlin.math.floor(viewport.end-viewport.span).toLong()-7)
-            .with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY))
-        val last=LocalDate.ofEpochDay(kotlin.math.ceil(viewport.end).toLong()+7)
-        while(!monday.isAfter(last)) {
-            val at=x(monday);val label=monday.format(dateFormat)
-            canvas.drawText(label,at,bottom+24*density,paint)
-            val separator=at-paint.measureText(label)/2-4*density
-            canvas.drawLine(separator,bottom+12*density,separator,bottom+26*density,paint)
-            monday=monday.plusWeeks(1)
+        // The separator is tied to the bar's left edge, never to the label's width.
+        val axisSave=canvas.save();canvas.clipRect(plotLeft,top,plotRight,height.toFloat())
+        paint.textAlign=Paint.Align.LEFT
+        var tick=if(resolution==HrvTrendPeriod.DAY)
+            resolution.date(kotlin.math.floor(viewport.end-viewport.span).toLong()-7).with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY))
+            else resolution.date(kotlin.math.floor(viewport.end-viewport.span).toLong()-1)
+        val finalTick=resolution.date(kotlin.math.ceil(viewport.end).toLong()+1)
+        // Thin only axis text at small zoom; every calendar separator and bar value stays drawn.
+        // Anchor the stride to calendar indices so panning never reassigns a label to another bar.
+        val tickUnits=if(resolution==HrvTrendPeriod.DAY) 7.0 else 1.0
+        val widest=when(resolution) {
+            HrvTrendPeriod.DAY->paint.measureText("00.00")
+            HrvTrendPeriod.WEEK->paint.measureText(context.getString(R.string.hrvt_week_axis,53))
+            HrvTrendPeriod.MONTH->monthNames.maxOf { paint.measureText(it) }
+        }
+        val stride=kotlin.math.ceil((widest+8*density)/((plotRight-plotLeft)/viewport.span*tickUnits)).toLong().coerceAtLeast(1)
+        while(!tick.isAfter(finalTick)) {
+            val at=x(tick)-half
+            val label=when(resolution) {
+                HrvTrendPeriod.DAY->tick.format(dateFormat)
+                HrvTrendPeriod.WEEK->context.getString(R.string.hrvt_week_axis,tick.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR))
+                HrvTrendPeriod.MONTH->monthNames[tick.monthValue-1]
+            }
+            paint.color=alpha(tokens.foreground,.18f);paint.strokeWidth=density
+            canvas.drawLine(at,top,at,bottom+26*density,paint)
+            // Clip text separately so labels never spill upward into the plot.
+            val labelSave=canvas.save();canvas.clipRect(plotLeft,bottom,plotRight,height.toFloat())
+            paint.color=alpha(tokens.foreground,.5f)
+            val tickIndex=if(resolution==HrvTrendPeriod.DAY) HrvTrendPeriod.WEEK.index(tick) else resolution.index(tick)
+            if(Math.floorMod(tickIndex,stride)==0L) canvas.drawText(label,at+4*density,bottom+24*density,paint)
+            canvas.restoreToCount(labelSave)
+            tick=if(resolution==HrvTrendPeriod.DAY) tick.plusWeeks(1) else resolution.next(tick)
         }
         canvas.restoreToCount(axisSave)
         canvas.save();canvas.clipRect(plotLeft,top,plotRight,bottom)
         bandEdges.reset()
         for(index in 1 until points.size) {
             val a=points[index-1];val b=points[index]
-            if(b.day.toEpochDay()-a.day.toEpochDay()!=1L || a.cohort!=b.cohort || a.value==null || b.value==null) continue
+            if(resolution.next(a.day)!=b.day || a.cohort!=b.cohort || a.value==null || b.value==null) continue
             if(a.lower!=null && a.upper!=null && b.lower!=null && b.upper!=null) {
                 path.reset();path.moveTo(x(a.day),y(a.lower));path.lineTo(x(a.day),y(a.upper))
                 path.lineTo(x(b.day),y(b.upper));path.lineTo(x(b.day),y(b.lower));path.close()
@@ -211,7 +243,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             val previous=points.getOrNull(index-1)
             // Include the segment crossing either edge; Canvas clips it continuously.
             if(x(point.day)<plotLeft || x(previous?.day ?: point.day)>plotRight) continue
-            if(previous?.average!=null && previous.cohort==point.cohort && point.day.toEpochDay()-previous.day.toEpochDay()==1L)
+            if(previous?.average!=null && previous.cohort==point.cohort && resolution.next(previous.day)==point.day)
                 canvas.drawLine(x(previous.day),y(previous.average),x(point.day),y(mean),paint)
             canvas.drawCircle(x(point.day),y(mean),2*density,paint)
         }
@@ -227,7 +259,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             }
         }
         canvas.restore()
-        drawMoons(canvas,top)
+        if(resolution==HrvTrendPeriod.DAY) drawMoons(canvas,top)
     }
     private fun drawMoons(canvas:Canvas,top:Float) {
         // Stay calendar-anchored, including days without measurements. Never clamp to an edge.

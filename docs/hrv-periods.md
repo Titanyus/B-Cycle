@@ -1,0 +1,28 @@
+# HRV: Tag, Woche und Monat
+
+Umschaltung oberhalb der bestehenden Kennzahlenauswahl. Jede neue Auswertungsseite beginnt in Tag; kein neues dauerhaftes Setting. Bestehende HRV-Dateien, Tagesauswahl, Messungsqualität und Fragebögen unverändert.
+
+## Berechnung
+
+- HrvTrends berechnet unverändert zuerst die Tageswerte: genau eine zentral ausgewählte Messung pro lokalem Tag; abgelehnte oder fehlende Kennzahlen bleiben Lücken. Verschiedene Apps bleiben gemeinsamer Bestand bei bekannter Einheit.
+- HrvTrendAggregation fasst nur diese Tageswerte zusammen: ISO-Woche Montag bis Sonntag oder Kalendermonat. Jeder vorhandene gültige Messtag hat dasselbe Gewicht. Kein Mittel der Wochenmittel für Monate, keine Nullfüllung und keine Summierung mehrerer Messungen desselben Tages. Alle Kennzahlen oben zeigen den entsprechenden Periodenmittelwert.
+- Linie: arithmetisches Mittel der im Zeitraum vorhandenen **täglich berechneten** 7-Tage-Trendwerte (weiterhin mindestens fünf Messtage im jeweiligen täglichen Siebentagefenster).
+- Korridor: untere und obere Grenze der vorhandenen **täglich berechneten** Normalbereiche jeweils mitteln, über dieselben Tage mit vorhandenem Grenzenpaar. Tägliche Basis bleibt die Stichprobenstreuung der vorherigen 60 Kalendertage, ab 14 Werten, ohne aktuellen Tag. Kein neuer Referenzbereich aus Wochen-/Monatsmitteln, kein Konfidenzintervall und keine 7-Wochen-/7-Monats-Glättung.
+- Die Periodenmittel verwenden alle gültigen Tage, Trend und Korridor jeweils nur die Tage mit verfügbarer Statistik. Messtage, Trendtage und Referenztage stehen deshalb bei der Auswahl. Frühere Werte dürfen weiterhin nötig sein, um den täglichen Trend zu bestimmen.
+- Laufende Woche/Monat: „bisher“, Zeitraum endet beim heutigen Tag; Nenner der Messtage zählt nur bereits vergangene Tage einschließlich heute. Ein einzelner Messtag ist darstellbar, aber über die Tagesanzahl als dünne Datenbasis erkennbar. Keine erfundene Mindestanzahl für Wochen-/Monatsmittel.
+- Feste Y-Achse je Kennzahl weiterhin aus dem kompletten Tagesbestand inklusive Trend und Grenzen; auch der Auflösungswechsel ändert sie nicht. Alle zusammengefassten Werte liegen innerhalb dieser Grenzen.
+- Balken unter ihrer vorhandenen zusammengefassten Untergrenze bleiben weiß, sonst PRIMARY; rein beschreibend, keine neue Readiness-/Trainingsempfehlung. Fehlende Perioden werden nicht überbrückt. RMSSD wird in seiner angezeigten Einheit gemittelt; kein implizites Logarithmieren oder neue lnRMSSD-Kennzahl.
+
+## Kalender und Darstellung
+
+- Tagesansicht: wöchentlicher senkrechter Strich an der **linken sichtbaren Balkenkante des Montags**, von der oberen Rasterlinie bis unter die X-Achse. Datum rechts daneben, nicht mehr mittig über einem vom Text abhängigen Strich. Montage ohne Messung bleiben kalendarisch vorhanden.
+- Wochenansicht: gleich breite Kalenderwochen, X-Achse kurz `KW5`, ohne Jahr/Datum. ISO-Wochenjahr im vollständigen ausgewählten bzw. sichtbaren Zeitraum, einschließlich KW53/Jahreswechsel.
+- Monatsansicht: gleich breite Kalendermonate, X-Achse Monatsabkürzung wie `Okt`, ohne Jahr und abschließenden Punkt. Vollständiger Monatsname und Jahr im Zeitraum.
+- Wochen/Monate verwenden ebenfalls durchgehende Periodentrenner an der linken Balkenkante. Bei engem Zoom nur X-Achsentext in kalenderfesten Schritten ausdünnen; alle Trennstriche, Balken und deren Wertbeschriftungen bleiben erhalten. Text wird an beiden Plotgrenzen abgeschnitten, niemals festgehalten. Auswahl des Schritts unabhängig von Scrollposition.
+- Zusätzliche Zoombegrenzung ausdrücklich erst später nach Nutzeransicht entscheiden; bisherige7-/14-Bucket-Grenzen unverändert. Alle Auflösungen behalten echte Zweifinger-Gesten ohne Mindestabstandssperre, kinetisches Scrollen und Accessibility-Zoom. Navigation erfolgt in gleichen Kalender-Buckets, nicht mit 30-Tage-Näherungen. Tagesmondphasen bleiben in Tag sichtbar; in Monats-/Wochenbalken würden sich mehrere Mondphasen überlagern und werden deshalb dort nicht eingezeichnet.
+- Ausgewählte Periode bleibt beim Kennzahlenwechsel erhalten, auch wenn der letzte gültige Messtag der Kennzahlen verschieden ist. Auflösungswechsel nimmt die zuletzt repräsentierte Messung als Kalenderanker. Einzelmessungsdetails bleiben in Tag verfügbar; Wochen-/Monatsbalken öffnen keine irreführende einzelne Messung.
+- Header bleibt schlicht SECONDARY ohne Glow/Rahmen; nach Periodenauswahl z.B. „Auswertung: KW5 2026“ bzw. „Auswertung: Oktober 2026“. Frisch geöffnete Auswertung weiterhin Tagesansicht mit heutigem Headerdatum.
+
+## Prüfung
+
+Gezielte Modelltests prüfen Tagesauswahl/fehlende Werte, Tagesgewichtung statt Wochengewichtung, leere Monate, Schaltjahr, ISO-Jahresgrenzen, gleiche Kalenderbreiten und Zusammenfassung der unveränderten täglichen Trend-/Referenzwerte. Native UI-/Canvas-Prüfungen für Balkenkanten/volle Trenner bei mehreren Zoomstufen, kurze Wochen-/Monatslabels, vollständige Periodenwahl, feste Y-Skala, Kennzahlenwechsel im älteren Monat trotz unterschiedlicher Messtage, laufende Zeiträume, fehlende Frequenzwerte sowie Flat/Glow-Vorschauen. Bestehende HRV-Diagramm-/Pinch-/Fling-/Mondphasentests bleiben erhalten. Native Testvorschauen: [Glow](previews/hrv-period-month-glow.png) · [Flat](previews/hrv-period-month-flat.png). Aktueller genauer Prüfstand in CONTINUE-HERE.md. Kein erneuter Hardwaretest; noch keine neue APK beauftragt.

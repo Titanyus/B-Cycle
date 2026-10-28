@@ -17,6 +17,43 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class DashboardExpansionTest {
     private fun layout(view:View) { repeat(3) { view.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(780,View.MeasureSpec.EXACTLY));view.layout(0,0,360,780) } }
+    @Test fun expandedDashboardChoicesHaveOneGlobalGapBelowTheAccordionInBothDesigns() {
+        val host=org.robolectric.Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
+            for(flat in listOf(false,true)) {
+                themes.setFlatDesign(flat)
+                val picker=DashboardPresetPicker(c,0,themes);c.setContentView(picker)
+                val toggle=picker.findViewWithTag<View>("dashboard_layout_choice")
+                toggle.performClick();layout(picker)
+                val body=picker.findViewWithTag<ViewGroup>("dashboard_layout_details")
+                val grid=body.getChildAt(0) as ViewGroup
+                val heading=grid.getChildAt(0)
+                val a=IntArray(2);val b=IntArray(2);heading.getLocationOnScreen(a);toggle.getLocationOnScreen(b)
+                assertEquals(BicycleDesign.dp(c,BicycleDesign.sectionContentGap),a[1]-b[1]-toggle.height)
+                toggle.performClick();toggle.performClick();layout(picker)
+                assertEquals(BicycleDesign.dp(c,BicycleDesign.sectionContentGap),body.paddingTop)
+            }
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun pickerUsesRequestedVisualOrderWithoutChangingEnumIdsOrDefaults() {
+        val c=org.robolectric.RuntimeEnvironment.getApplication()
+        val themes=ThemeManager(c.getSharedPreferences("dashboard-order",0))
+        val grid=DashboardLayoutGrid(c,themes,DashboardTemplate.DATA) {}
+        val expected=listOf(DashboardTemplate.FULL_FOUR,DashboardTemplate.FULL_DATA,DashboardTemplate.FULL_NINE,DashboardTemplate.FULL_EIGHT,
+            DashboardTemplate.MAP,DashboardTemplate.OVERVIEW,DashboardTemplate.BALANCED,DashboardTemplate.FIVE,DashboardTemplate.EIGHT,
+            DashboardTemplate.HERO,DashboardTemplate.HERO_FIVE,DashboardTemplate.HERO_SEVEN,DashboardTemplate.DATA)
+        fun cards(view:View):List<String> {
+            val own=listOfNotNull(view.tag?.toString()?.takeIf { it.startsWith("preset_") && view.isClickable })
+            return own+if(view is android.view.ViewGroup) (0 until view.childCount).flatMap { cards(view.getChildAt(it)) } else emptyList()
+        }
+        assertEquals(expected.map { "preset_${it.name}" },cards(grid))
+        assertEquals(DashboardTemplate.entries.toSet(),expected.toSet())
+        assertEquals(listOf(DashboardTemplate.DATA,DashboardTemplate.BALANCED,DashboardTemplate.MAP,DashboardTemplate.OVERVIEW),DashboardTemplate.entries.take(4))
+        assertEquals(DashboardTemplate.DATA,DashboardTemplate.decode(null))
+        val indoor=DashboardLayoutGrid(c,themes,DashboardTemplate.FULL_DATA,DashboardTemplate.entries.filter { !it.hasMap }) {}
+        assertEquals(expected.filter { !it.hasMap }.map { "preset_${it.name}" },cards(indoor))
+    }
     @Test fun newNoMapLayoutsKeepNineMapPresetsAndMigrateOldEightFields() {
         assertEquals(9,DashboardTemplate.entries.count { it.hasMap })
         assertEquals(4,DashboardTemplate.entries.count { !it.hasMap })

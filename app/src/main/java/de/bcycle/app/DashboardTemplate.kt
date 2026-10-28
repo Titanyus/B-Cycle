@@ -60,6 +60,9 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
     fun supportsGraph(slot: Int) = rows.any { it.size == 1 && it.single() == slot }
 
     companion object {
+        /** Picker-only order. Enum order remains the persisted default-page compatibility boundary. */
+        val pickerOrder=listOf(FULL_FOUR,FULL_DATA,FULL_NINE,FULL_EIGHT,
+            MAP,OVERVIEW,BALANCED,FIVE,EIGHT,HERO,HERO_FIVE,HERO_SEVEN,DATA)
         // Halve the large label area while keeping the original value-row space.
         const val LARGE_COMPACT_RATIO = BicycleDesign.dashboardLargeCompactRatio
         fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: DATA }

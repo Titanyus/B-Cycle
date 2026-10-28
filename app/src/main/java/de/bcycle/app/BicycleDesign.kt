@@ -427,6 +427,10 @@ object BicycleComponents {
         tag="bicycle_content_heading"
         textSize=BicycleDesign.contentHeadingSp
         gravity=Gravity.START
+        addOnAttachStateChangeListener(object:View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v:View) { BicycleContentSpacing.contentHeading(v) }
+            override fun onViewDetachedFromWindow(v:View)=Unit
+        })
     }
     /** Compact list categories share the same heading and separator spacing. */
     fun listCategory(parent:LinearLayout,manager:ThemeManager,value:String) {

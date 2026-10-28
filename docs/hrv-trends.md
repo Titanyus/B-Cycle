@@ -1,3 +1,7 @@
+# Aktuelle Erweiterung: Tag · Woche · Monat
+
+Seit28.10.2026 zusätzlich Wochen-/Monatsmittel mit unverändertem Tagestrend und Normalbereich. Kompakte Achsen KW5/Okt, durchgehende kalendergebundene Trenner und vollständige Zeiträume. [Berechnung, Bedienung und Prüfung](hrv-periods.md). Noch nicht in der zuletzt veröffentlichten APK0.8.55/Build96. Frühere Angaben darunter beschreiben die Entwicklung der Tagesansicht.
+
 # HRV-Auswertung
 
 Eigener nativer Bildschirm: HRV-Einstellungen → HRV-Auswertung oder nach dem erfolgreichen Speichern des Tagesbefindens über „Zur Auswertung“. Vorhandene Zurück-Navigation und HRV-Header in Fensterfarbe erhalten. Sechs Kennzahlen wie im Vorbild: Puls, SDNN, RMSSD, pNN50, LF und HF. Oben Auswahl mit den Werten des ausgewählten Tages, darunter Balken, Mittelwert und Normalbereich. Standard: RMSSD und letzte 14 Kalendertage. Tageswert antippen und „Messung und Tagesbefinden“ öffnet vorhandene Details.

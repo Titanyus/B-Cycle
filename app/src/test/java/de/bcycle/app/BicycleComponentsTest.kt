@@ -14,6 +14,32 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class BicycleComponentsTest {
+    @Test fun smallHeadingsKeepOneSharedGapAcrossAccordionWrappersAndExistingDividers() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("content-heading-gaps",0))
+            val root=LinearLayout(a).apply { orientation=LinearLayout.VERTICAL }
+            val first=BicycleComponents.contentHeading(a,themes,"First")
+            root.addView(first,LinearLayout.LayoutParams(-1,-2))
+            root.addView(BicycleComponents.action(a,themes,"Control") {})
+            val direct=BicycleComponents.contentHeading(a,themes,"Direct").apply { tag="custom-heading-tag" }
+            root.addView(direct,LinearLayout.LayoutParams(-1,-2))
+            root.addView(BicycleComponents.action(a,themes,"Accordion") {})
+            val body=LinearLayout(a).apply { orientation=LinearLayout.VERTICAL;BicycleContentSpacing.accordionContent(this) }
+            val wrapped=BicycleComponents.contentHeading(a,themes,"Wrapped")
+            body.addView(wrapped,LinearLayout.LayoutParams(-1,-2));root.addView(body)
+            val divider=BicycleComponents.sectionDivider(a,themes);root.addView(divider)
+            val separated=BicycleComponents.contentHeading(a,themes,"After divider")
+            root.addView(separated,LinearLayout.LayoutParams(-1,-2));a.setContentView(root)
+            val gap=BicycleDesign.dp(a,BicycleDesign.sectionContentGap)
+            assertEquals(0,(first.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin)
+            assertEquals(gap,(direct.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin)
+            assertEquals(gap,body.paddingTop);assertEquals(0,(wrapped.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin)
+            assertEquals(0,(separated.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin)
+            repeat(2) { BicycleContentSpacing.accordionContent(body);BicycleContentSpacing.contentHeading(wrapped) }
+            assertEquals(gap,body.paddingTop);assertEquals(0,(wrapped.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun adjacentChoiceRowsUseDropdownHeightWithoutExtraGapsAndInputsUseNarrowOutlinedStyle() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

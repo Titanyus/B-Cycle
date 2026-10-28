@@ -744,6 +744,7 @@ class MainActivity : Activity() {
                 root.setPadding(0,0,0,0)
                 root.addView(HrvTrendsView(this,runtime.themes,series,::showHrvHistoryResult).apply {
                     onDaySelected={ day -> screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=datedTitle(day) }
+                    onPeriodSelected={ label -> screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=getString(R.string.hrvt_dated_title,label) }
                 },LinearLayout.LayoutParams(-1,-2))
             },{ root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
         }

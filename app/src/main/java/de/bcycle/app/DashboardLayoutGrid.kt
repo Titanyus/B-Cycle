@@ -13,11 +13,11 @@ internal class DashboardLayoutGrid(context:Context,themes:ThemeManager,selected:
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
     init {
         orientation=VERTICAL;tag="dashboard_layout_grid"
-        listOf(true,false).forEach { hasMap ->
-        val matching=templates.filter { it.hasMap==hasMap }
+        listOf(false,true).forEach { hasMap ->
+        val matching=DashboardTemplate.pickerOrder.filter { it in templates && it.hasMap==hasMap }
         if(matching.isEmpty()) return@forEach
         addView(BicycleComponents.contentHeading(context,themes,context.getString(if(hasMap) R.string.dashboard_with_map else R.string.dashboard_without_map)),LayoutParams(-1,-2).apply {
-            topMargin=if(childCount==0) 0 else dp(BicycleDesign.sectionContentGap);bottomMargin=dp(BicycleDesign.controlGap)
+            bottomMargin=dp(BicycleDesign.controlGap)
         })
         matching.chunked(3).forEachIndexed { index,templates ->
             addView(LinearLayout(context).apply {
