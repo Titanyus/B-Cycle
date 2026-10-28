@@ -53,6 +53,10 @@ class MapProviderSettingsTest {
             assertNull(root.findViewWithTag<View>("mapHeading"));assertNull(root.findViewWithTag<View>("mapFollow"))
             assertNull(root.findViewWithTag<View>("map_track_divider"));assertNotNull(root.findViewWithTag<View>("map_options_title"))
             listOf("mapTrackVisible","mapGpxVisible","mapHeightVisible","map_elevation_correction").forEach { assertNotNull(root.findViewWithTag<View>(it)) }
+            val heading=root.findViewWithTag<android.widget.TextView>("map_options_title")
+            assertEquals(BicycleDesign.strongTypeface,heading.typeface)
+            assertEquals(BicycleDesign.contentHeadingSp*activity.resources.displayMetrics.scaledDensity,heading.textSize,.01f)
+            assertTrue((heading.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin>=BicycleDesign.dp(activity,BicycleDesign.sectionContentGap))
             val source=testDescendants(root).filterIsInstance<Spinner>().single()
             source.setSelection(MapSource.OPENCYCLEMAP.ordinal);shadowOf(Looper.getMainLooper()).idle()
             assertEquals("OSM",runtime.preferences.getString("mapSource",null))

@@ -24,6 +24,15 @@ class MainActivity : Activity() {
     private var sensorSetupProfileId:String?=null
     private var sensorSetupPosted=false
     private val sensorSetupLaunch by lazy { SensorSetupLaunch(this) }
+    private lateinit var dashboardStatus:DashboardStatusStrip
+    private lateinit var dashboardStatusMonitor:DashboardStatusMonitor
+    private var statusForeground=false
+    private val statusPreferences=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,key ->
+        if(statusForeground && (key==DashboardFullscreen.key || key==DashboardStatusConfig.key)) updateDashboardFullscreen()
+    }
+    private val statusMessagesPreferences=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,_ ->
+        if(statusForeground && ::dashboardStatus.isInitialized) { dashboardStatus.reloadMessenger();updateDashboardFullscreen() }
+    }
     private lateinit var dashboardRoot:View
     private lateinit var dashboardHost: FrameLayout
     private lateinit var dashboard: DashboardView
@@ -166,11 +175,22 @@ class MainActivity : Activity() {
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.TRANSPARENT) }
         root.setOnApplyWindowInsetsListener { view, insets ->
             val bars = insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
+            val custom=::dashboardStatus.isInitialized && dashboardStatus.visibility==View.VISIBLE
+            val top=if(custom) maxOf(bars.top,insets.getInsetsIgnoringVisibility(WindowInsets.Type.statusBars()).top,dp(BicycleDesign.dashboardStatusMinHeight)) else bars.top
+            view.setPadding(bars.left,top,bars.right,bars.bottom)
+            if(::dashboardStatus.isInitialized) {
+                val params=dashboardStatus.layoutParams
+                if(params.height!=top) { params.height=top;dashboardStatus.layoutParams=params }
+                dashboardStatus.insets(bars.left,bars.right,insets.displayCutout?.boundingRects.orEmpty())
+            }
+            insets
         }
         dashboardRoot=root
         val host=FrameLayout(this).apply { tag="dashboard_host";setBackgroundColor(Color.BLACK);addView(root,FrameLayout.LayoutParams(-1,-1)) }
         dashboardHost=host
+        dashboardStatus=DashboardStatusStrip(this,runtime.themes).apply { visibility=View.GONE }
+        host.addView(dashboardStatus,FrameLayout.LayoutParams(-1,dp(BicycleDesign.dashboardStatusMinHeight),Gravity.TOP))
+        dashboardStatusMonitor=DashboardStatusMonitor(this) { dashboardStatus.show(it) }
         setContentView(host)
         dashboard = DashboardView(this) { chooseField(it) }
         dashboard.bindEditorTheme(runtime.themes)
@@ -320,6 +340,7 @@ class MainActivity : Activity() {
     private var shownProfileRevision=0
     private fun render() {
         if (!::dashboard.isInitialized) return
+        if(::dashboardStatusMonitor.isInitialized) dashboardStatusMonitor.battery(runtime.batterySnapshot.level(BatterySource.PHONE))
         if(::mapPanel.isInitialized && shownProfileRevision!=runtime.profileRevision) {
             shownProfileRevision=runtime.profileRevision
             dashboard.resetTrends()
@@ -1026,6 +1047,8 @@ class MainActivity : Activity() {
             acknowledge={ HrvDailyLaunch(this).acknowledge() }) { showHrv(autoStart=true) }
     }
     override fun onStart() { super.onStart();
+        statusForeground=true;preferences.registerOnSharedPreferenceChangeListener(statusPreferences)
+        getSharedPreferences("message-notifications",MODE_PRIVATE).registerOnSharedPreferenceChangeListener(statusMessagesPreferences)
         hrvObservation=runtime.hrv.observe { if(hrvWasBusy!=runtime.hrv.busy) { hrvWasBusy=runtime.hrv.busy;render() } }; updateDashboardFullscreen(); MessageNotifications.observers.add(messageObserver);notificationSettings?.refreshAccess();
         val notifications=MessageNotificationSettings(this)
         if(notifications.enabled && notifications.granted) runCatching {
@@ -1036,6 +1059,9 @@ class MainActivity : Activity() {
         restartEditorTimeout()
     }
     override fun onStop() {
+        statusForeground=false;preferences.unregisterOnSharedPreferenceChangeListener(statusPreferences)
+        getSharedPreferences("message-notifications",MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(statusMessagesPreferences)
+        dashboardStatusMonitor.stop()
         editorHandler.removeCallbacks(editorTimeout)
         // App switches preserve the dialog stack, scroll positions and in-progress input.
         hrvObservation?.close();hrvObservation=null
@@ -1073,7 +1099,16 @@ class MainActivity : Activity() {
         setMapFullscreen(false); render()
     }
     private fun updateDashboardFullscreen() {
-        if(::runtime.isInitialized) DashboardFullscreen.apply(window,DashboardFullscreen.enabled(preferences) && dialogs.empty)
+        if(!::runtime.isInitialized) return
+        val fullscreen=DashboardFullscreen.enabled(preferences) && dialogs.empty
+        DashboardFullscreen.apply(window,fullscreen)
+        if(::dashboardStatus.isInitialized) {
+            val config=DashboardStatusConfig.read(preferences)
+            dashboardStatus.config=config
+            dashboardStatus.visibility=if(fullscreen && config.populated) View.VISIBLE else View.GONE
+            if(statusForeground) dashboardStatusMonitor.configure(if(fullscreen) config else DashboardStatusConfig())
+            dashboardRoot.requestApplyInsets()
+        }
     }
     override fun onWindowFocusChanged(hasFocus:Boolean) {
         super.onWindowFocusChanged(hasFocus)
@@ -1086,15 +1121,20 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot
         val revision=runtime.profileRevision
         val root = column()
-        root.addView(Switch(settingsContext).apply {
-            tag="dashboard_fullscreen";setText(R.string.dashboard_fullscreen)
-            isChecked=DashboardFullscreen.enabled(preferences)
-            BicycleDialogStyle.control(this,settingsThemes)
-            setOnCheckedChangeListener { _,checked ->
-                preferences.edit().putBoolean(DashboardFullscreen.key,checked).apply()
-                updateDashboardFullscreen()
+        root.addView(DashboardStatusSettingsView(settingsContext,settingsThemes,preferences,choose={ index,config,assign ->
+            val choices=GridLayout(settingsContext).apply { columnCount=3;setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),dp(BicycleDesign.horizontalPadding)) }
+            lateinit var selection:AlertDialog
+            DashboardStatusItem.entries.forEachIndexed { position,item ->
+                choices.addView(BicycleSegmentButton(settingsContext,settingsThemes,standalone=true).apply {
+                    tag="dashboard_status_choice_${item.name}";isChecked=config.slots[index]==item
+                    statusSlotAppearance(this,item,settingsThemes)
+                    setOnClickListener { assign(item);selection.dismiss() }
+                },GridLayout.LayoutParams(GridLayout.spec(position/3),GridLayout.spec(position%3,1f)).apply {
+                    width=0;height=dp(BicycleDesign.rideNamePartHeight);setMargins(dp(BicycleDesign.controlGap/2),dp(BicycleDesign.controlGap/2),dp(BicycleDesign.controlGap/2),dp(BicycleDesign.controlGap/2))
+                })
             }
-        })
+            selection=dialog(fullscreen=false).setTitle(R.string.dashboard_status_choose).setView(choices).show()
+        },changed={ updateDashboardFullscreen() }))
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="design_appearance_divider" })
         root.addView(Switch(settingsContext).apply {
             tag="flat_design";setText(R.string.ui_flat_design);isChecked=settingsThemes.flatDesign

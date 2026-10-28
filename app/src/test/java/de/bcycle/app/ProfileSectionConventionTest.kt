@@ -33,7 +33,7 @@ class ProfileSectionConventionTest {
                 for(embedded in listOf(false,true)) {
                     val page=designMethod.invoke(a,embedded) as android.view.ViewGroup
                     val design=if(embedded) page else page.findViewWithTag<BicycleStickyScrollView>("design_ui_scroll").getChildAt(0) as android.view.ViewGroup
-                    assertEquals("dashboard_fullscreen",design.getChildAt(0).tag)
+                    assertEquals("dashboard_fullscreen_settings",design.getChildAt(0).tag)
                     assertEquals("design_appearance_divider",design.getChildAt(1).tag)
                     assertEquals("flat_design",design.getChildAt(2).tag)
                     assertEquals("theme_picker",design.getChildAt(3).tag)

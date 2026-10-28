@@ -11,7 +11,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
         "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","powerAddress","powerName","powerEnabled","shiftEnabled","shiftDevices","shiftBatteryWarning","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
         BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY),"route-export" to setOf("tree")),
-        BackupSection.DESIGN to mapOf("ride-backup" to setOf("enabled","target"),"message-notifications" to setOf("enabled","messengerOnly","packages","position","durationSeconds")),
+        BackupSection.DESIGN to mapOf("ride-backup" to setOf("enabled","target"),"message-notifications" to setOf("enabled","messengerOnly","packages","packageOrder","position","durationSeconds")),
         BackupSection.CLOUD to mapOf("intervals-settings" to setOf("enabled","athlete","wifi"),
             "activity-service-dreeve" to setOf("enabled","wifi","address"),
             "activity-service-strava" to setOf("enabled","wifi","clientId")),
@@ -47,6 +47,11 @@ internal class SettingsBackupSupplement(private val context:Context) {
                 values[key]=when(key) {
                     RideNamingSettings.KEY -> (value as String).also { RideNaming.decode(JSONObject(it)) }
                     "enabled","messengerOnly","wifi","showOnFirstStart","vibrateAtEnd","soundAtEnd" -> (value as? Boolean) ?: error("boolean")
+                    "packageOrder" -> (value as String).also { text ->
+                        require(text.length<=128000)
+                        val items=text.split(',').filter { it.isNotEmpty() }
+                        require(items.size<=500 && items.distinct().size==items.size && items.all { it.length in 1..255 && it.matches(Regex("[A-Za-z0-9_.]+")) })
+                    }
                     "packages" -> (value as JSONArray).let { a ->
                         require(a.length()<=500)
                         (0 until a.length()).map { a.getString(it).also { p -> require(p.length in 1..255 && p.matches(Regex("[A-Za-z0-9_.]+"))) } }.toSet()
@@ -86,6 +91,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                             saved.keys().forEach { k ->
                                 require(BikeUiConfigurationScope.designKey(k)||BikeUiConfigurationScope.mapKey(k))
                                 val item=saved.getJSONObject(k);require(item.getString("type") in setOf("string","boolean","int","long","float","set"))
+                                if(k==DashboardStatusConfig.key) { require(item.getString("type")=="string");DashboardStatusConfig.parse(item.getString("value")) }
                                 if(k==RideNamingSettings.KEY) { require(item.getString("type")=="string");RideNaming.decode(JSONObject(item.getString("value"))) }
                                 if((0 until DashboardPages.MAX).any { GraphOverlayConfig.windowKey(it)==k }) {
                                     require(item.getString("type")=="string")

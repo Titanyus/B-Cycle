@@ -59,7 +59,7 @@ class MessageNotificationsTest {
             settings.enabled=false;assertNull(received.last())
             MessageNotifications.receive(app,"key","com.whatsapp",notification("secret").build())
             assertFalse(received.filterNotNull().any { it.text=="secret" })
-            assertEquals(setOf("enabled","packages"),app.getSharedPreferences("message-notifications",0).all.keys)
+            assertEquals(setOf("enabled","packages","packageOrder"),app.getSharedPreferences("message-notifications",0).all.keys)
         } finally { MessageNotifications.observers-=observer;MessageNotifications.clear() }
     }
     @Test fun preferencesPersistAndFilteringDoesNotRemoveSelections() {

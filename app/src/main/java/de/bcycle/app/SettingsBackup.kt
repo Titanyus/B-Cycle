@@ -66,6 +66,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("modeGlow", ModeGlowSettings.enabled(bike))
                 .put("modeGlowPlacement",ModeGlowSettings.placement(bike).name)
                 .put("dashboardFullscreen",DashboardFullscreen.enabled(bike))
+                .put("dashboardStatusSlots",DashboardStatusConfig.read(bike).encode())
 
             BackupSection.DASHBOARD -> JSONObject().put("pages", JSONArray().apply { dashboardIds().forEach { i ->
                 put(JSONObject().put("index", i).put("fields", jsonArray(DashboardLayout.decode(bike.getString(if(i==0) "dashboard" else "dashboard_$i", null)).fields.map { it.id }))
@@ -172,6 +173,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                         b[ModeGlowSettings.placementKey]=placement
                     }
                     if(row.has("dashboardFullscreen")) b[DashboardFullscreen.key]=boolean(row,"dashboardFullscreen")
+                    if(row.has("dashboardStatusSlots")) b[DashboardStatusConfig.key]=DashboardStatusConfig.parse(field(row,"dashboardStatusSlots",256)).encode()
                     if(row.has("graphDisplay")) {
                         val mode=row.opt("graphDisplay") as? String ?: fail()
                         check(GraphDisplayMode.entries.any { it.name==mode })

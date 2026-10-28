@@ -11,4 +11,5 @@
     <item name="section_title_role" type="id" />
     <item name="summary_transfer_state" type="id" />
     <item name="compact_choice_role" type="id" />
+    <item name="content_heading_role" type="id" />
 </resources>

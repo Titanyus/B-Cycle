@@ -109,7 +109,7 @@ class DashboardFullscreenTest {
             val screen=ShadowAlertDialog.getLatestAlertDialog()
             val toggle=screen.window!!.decorView.findViewWithTag<Switch>("dashboard_fullscreen")
             val parent=toggle.parent as android.view.ViewGroup
-            assertSame(toggle,parent.getChildAt(0))
+            assertSame(toggle,parent.getChildAt(parent.childCount-1))
             assertTrue(toggle.isChecked);toggle.performClick()
             assertFalse(DashboardFullscreen.enabled(prefs))
             assertTrue(visible(screen.window!!,"ITYPE_STATUS_BAR"))

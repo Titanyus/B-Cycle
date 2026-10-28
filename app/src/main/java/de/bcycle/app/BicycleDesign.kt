@@ -81,6 +81,9 @@ object BicycleDesign {
     const val bodySp = 14f
     // Normal content headings, as introduced in grouped settings help.
     const val contentHeadingSp = 14f
+    const val dashboardStatusSp = 12f
+    const val dashboardStatusMinHeight = 24
+    const val dashboardStatusPreviewHeight = 40
     const val inputSp = 16f
     const val choiceSp = bodySp
     const val headerHeight = 64
@@ -424,7 +427,7 @@ object BicycleComponents {
     }
     /** Content hierarchy below page/section headers; does not resize sticky headers or menu titles. */
     fun contentHeading(context:Context,manager:ThemeManager,value:String)=text(context,manager,value,true).apply {
-        tag="bicycle_content_heading"
+        tag="bicycle_content_heading";setTag(R.id.content_heading_role,true)
         textSize=BicycleDesign.contentHeadingSp
         gravity=Gravity.START
         addOnAttachStateChangeListener(object:View.OnAttachStateChangeListener {

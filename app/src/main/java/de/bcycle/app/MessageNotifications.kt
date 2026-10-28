@@ -28,7 +28,15 @@ internal class MessageNotificationSettings(private val context: Context) {
         set(value) { prefs.edit().putBoolean("messengerOnly",value).apply() }
     var packages: Set<String>
         get()=prefs.getStringSet("packages",emptySet())!!.toSet()
-        set(value) { prefs.edit().putStringSet("packages",value.toSet()).apply();MessageNotifications.clear() }
+        set(value) {
+            val order=orderedPackages.filter { it in value }+value.filter { it !in packages }
+            prefs.edit().putStringSet("packages",value.toSet()).putString("packageOrder",order.joinToString(",")).apply();MessageNotifications.clear()
+        }
+    val orderedPackages:List<String> get() {
+        val selected=packages
+        val order=prefs.getString("packageOrder","").orEmpty().split(',').filter { it in selected }.distinct()
+        return order+(selected-order.toSet()).sorted()
+    }
     var position: MessagePosition
         get()=runCatching { MessagePosition.valueOf(prefs.getString("position","BOTTOM")!!) }.getOrDefault(MessagePosition.BOTTOM)
         set(value) { prefs.edit().putString("position",value.name).apply() }
@@ -96,8 +104,22 @@ class MessageNotificationService: NotificationListenerService() {
     private var generation=0
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val session=generation
-        main.post { if(session==generation) MessageNotifications.receive(applicationContext,sbn.key,sbn.packageName,sbn.notification) }
+        main.post { if(session==generation) {
+            MessageStatusNotifications.posted(applicationContext,sbn.key,sbn.packageName,sbn.notification)
+            MessageNotifications.receive(applicationContext,sbn.key,sbn.packageName,sbn.notification)
+        } }
     }
-    override fun onListenerDisconnected() { generation++;main.removeCallbacksAndMessages(null);MessageNotifications.clear() }
-    override fun onDestroy() { generation++;main.removeCallbacksAndMessages(null);MessageNotifications.clear();super.onDestroy() }
+    override fun onNotificationRemoved(sbn:StatusBarNotification) {
+        val session=generation;main.post { if(session==generation) MessageStatusNotifications.removed(sbn.key) }
+    }
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        val session=generation
+        main.post { if(session==generation) {
+            MessageStatusNotifications.clear()
+            runCatching { activeNotifications }.getOrNull()?.forEach { MessageStatusNotifications.posted(applicationContext,it.key,it.packageName,it.notification) }
+        } }
+    }
+    override fun onListenerDisconnected() { generation++;main.removeCallbacksAndMessages(null);MessageNotifications.clear();MessageStatusNotifications.clear() }
+    override fun onDestroy() { generation++;main.removeCallbacksAndMessages(null);MessageNotifications.clear();MessageStatusNotifications.clear();super.onDestroy() }
 }

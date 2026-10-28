@@ -1,0 +1,11 @@
+<resources>
+    <string name="dashboard_status_empty">Leer</string>
+    <string name="dashboard_status_time">Uhrzeit</string>
+    <string name="dashboard_status_vpn">VPN</string>
+    <string name="dashboard_status_cellular">Mobilfunk</string>
+    <string name="dashboard_status_left">Links</string>
+    <string name="dashboard_status_right">Rechts</string>
+    <string name="dashboard_status_choose">Statussymbol auswählen</string>
+    <string name="dashboard_status_preview_note">Vorschau mit Beispielwerten · Mitte für den Kameraausschnitt freigehalten.</string>
+    <string name="dashboard_status_hint">Kachel antippen zum Belegen, lange drücken zum Umsortieren. Leer bleibt unsichtbar. Benachrichtigungen verwenden die gewählten Apps; der Zähler zählt aktive Meldungen.</string>
+</resources>
