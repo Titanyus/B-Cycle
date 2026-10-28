@@ -18,3 +18,6 @@ HrvController.trendsWithContext lädt Tageswerte und kanonische Tagesantworten a
 
 
 Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.59/Build100** enthalten. [Buildnachweis und Download](build-100.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
+
+
+Korrektur nach Build100: Ältere HRV4-Importe konnten Training, aber noch keine bzw. nur einzelne später unterstützte Sliderantworten enthalten. Der bisherige Kontextlader migrierte nur komplette Legacydateien, wenn noch keine kanonischen Tagesantworten existierten. Anders als der Fragebogen rief er die bestehende Ergänzung aus external.originalColumns nicht auf. trendQuestionnaires verwendet nun auch bei bereits vorhandenen Tagesantworten den fill-missing-only-Resolver questionnaireForEditing für importierte Datensätze. Damit profitieren Farbansicht und Tagesauswertung gemeinsam, ohne Fragebogenöffnung/Neuimport. Vorhandene Werte/Notizen/Zeitstempel und Original-CSV-Felder bleiben erhalten; explizite0nicht als fehlend behandeln.

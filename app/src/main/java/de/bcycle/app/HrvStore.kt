@@ -146,9 +146,17 @@ internal class HrvStore(private val root:File) {
     /** Include answer-only days; legacy answer migration uses the existing canonical day resolver. */
     fun trendQuestionnaires():Map<java.time.LocalDate,HrvQuestionnaire> {
         val answers=questionnaireDays().associateWith { checkNotNull(readDay(it)) }.toMutableMap()
-        list().filter { File(directory(it.id),"questionnaire.json").isFile }.forEach { row ->
+        list().forEach { row ->
             val day=HrvDailySelection.day(row).toString()
-            if(day !in answers) questionnaire(row.id)?.let { answers[day]=it }
+            val legacy=File(directory(row.id),"questionnaire.json")
+            val value=when {
+                // Older imports may have only training or partially upgraded canonical day answers.
+                // Reuse the editor's fill-missing-only upgrade before any context consumer reads them.
+                row.importedDay!=null -> questionnaireForEditing(row.id)
+                day !in answers && (legacy.isFile || File(legacy.path+".bak").isFile) -> questionnaire(row.id)
+                else -> null
+            }
+            value?.let { answers[day]=it }
         }
         return answers.mapKeys { java.time.LocalDate.parse(it.key) }
     }

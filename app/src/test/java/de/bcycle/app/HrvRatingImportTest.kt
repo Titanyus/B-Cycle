@@ -57,4 +57,36 @@ class HrvRatingImportTest {
             assertEquals(7,export.getJSONObject("questionnaire").getJSONObject("ratings").getInt("energy"))
         } finally { root.deleteRecursively();other.deleteRecursively() }
     }
+    @Test fun trendContextUpgradesArchivedRatingsEvenWhenDayAnswersAlreadyExist() {
+        val c=RuntimeEnvironment.getApplication();val root=File(c.cacheDir,"trend-import-${UUID.randomUUID()}")
+        try {
+            val csv="date,time,rMSSD,sleep_quality,mental_energy,muscle_soreness,fatigue,training\n2024-10-16,07:00,40,9,6.5,7,4,easy\n"
+            val entry=Hrv4TrainingCsv.preview(csv.byteInputStream(),ZoneOffset.UTC).entries.single()
+            val store=HrvStore(root);store.importHrv4Training(entry.copy(questionnaire=entry.questionnaire.copy(ratings=emptyMap())))
+            val id=entry.result.getString("id");val original=File(root,"$id/result.json").readBytes()
+            store.saveQuestionnaire(id,HrvQuestionnaire("2024-10-16",ratings=mapOf("sleep" to 3),notes="Manuell",training=1,updatedAtMs=1234))
+            val day=java.time.LocalDate.of(2024,10,16)
+            val answers=store.trendQuestionnaires().getValue(day)
+            assertEquals(3,answers.ratings["sleep"]);assertEquals(7,answers.ratings["energy"]);assertEquals(7,answers.ratings["soreness"])
+            assertEquals("Manuell",answers.notes);assertEquals(1234L,answers.updatedAtMs)
+            assertEquals(answers,store.questionnaire(id));assertEquals(answers,store.trendQuestionnaires().getValue(day))
+            assertArrayEquals(original,File(root,"$id/result.json").readBytes())
+            val colors=HrvContextColors.daily(mapOf(day to answers)).getValue(day)
+            assertNotEquals(TrainingZoneColors.grey,HrvContextColors.color(HrvContextMode.ENERGY,colors[HrvContextMode.ENERGY]))
+            store.saveQuestionnaire(id,answers.copy(ratings=answers.ratings+("energy" to 0)))
+            assertEquals(0,store.trendQuestionnaires().getValue(day).ratings["energy"])
+        } finally { root.deleteRecursively() }
+    }
+    @Test fun freshImportsExposeRatingsAndTrainingToColorsWithoutOpeningTheQuestionnaire() {
+        val c=RuntimeEnvironment.getApplication();val root=File(c.cacheDir,"trend-fresh-${UUID.randomUUID()}")
+        try {
+            val csv="date,time,rMSSD,sleep_quality,mental_energy,muscle_soreness,training\n2024-10-16,07:00,40,10,8,2,intense\n"
+            val entry=Hrv4TrainingCsv.preview(csv.byteInputStream(),ZoneOffset.UTC).entries.single()
+            val store=HrvStore(root);store.importHrv4Training(entry)
+            val day=java.time.LocalDate.of(2024,10,16);val context=HrvContextColors.daily(store.trendQuestionnaires())
+            assertEquals(TrainingZoneColors.green,HrvContextColors.color(HrvContextMode.SLEEP,context.getValue(day)[HrvContextMode.SLEEP]))
+            assertEquals(TrainingZoneColors.red,HrvContextColors.color(HrvContextMode.TRAINING,context.getValue(day.minusDays(1))[HrvContextMode.TRAINING]))
+        } finally { root.deleteRecursively() }
+    }
+
 }
