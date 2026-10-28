@@ -174,6 +174,10 @@ internal class HrvController(private val context:Context,private val clock:()->L
             val rows=checkNotNull(store).daily()
             HrvTrendMetric.entries.associateWith { HrvTrends.series(rows,it) }
         }
+    fun trendsWithContext(done:(Result<HrvTrendPresentation>)->Unit) = storageTask(done) {
+        val storage=checkNotNull(store);val rows=storage.daily()
+        HrvTrendPresentation(HrvTrendMetric.entries.associateWith { HrvTrends.series(rows,it) },HrvContextColors.daily(storage.trendQuestionnaires()))
+    }
     fun questionnaire(id:String,done:(Result<HrvQuestionnaire?>)->Unit) =
         storageTask(done) { checkNotNull(store).questionnaireForEditing(id) }
     fun saveQuestionnaire(id:String,value:HrvQuestionnaire,done:(Result<Unit>)->Unit) =

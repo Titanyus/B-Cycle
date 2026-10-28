@@ -135,13 +135,13 @@ class HrvTrendsTest {
             val scroll=ScrollView(a).apply { setBackgroundColor(themes.active.tokens.secondary);addView(view) };a.setContentView(scroll)
             repeat(2) { scroll.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY));scroll.layout(0,0,360,1000);shadowOf(Looper.getMainLooper()).idle() }
             val chart=view.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
-            val label=view.findViewWithTag<android.widget.TextView>("hrv_trend_selected")
-            assertTrue(label.text.contains("RMSSD"));view.findViewWithTag<View>("hrv_trend_HR").performClick();assertTrue(label.text.contains("Puls"))
+            var selectedDay:LocalDate?=null;view.onDaySelected={selectedDay=it}
+            assertNull(view.findViewWithTag<View>("hrv_trend_selected"));view.findViewWithTag<View>("hrv_trend_HR").performClick();assertTrue(view.findViewWithTag<BicycleSegmentButton>("hrv_trend_HR").isChecked)
             val axisWidth=BicycleDesign.hrvTrendAxisWidth.toFloat()
             val tapX=axisWidth+(chart.width-axisWidth-8f)*11.5f/14f
             MotionEvent.obtain(2000,2000,MotionEvent.ACTION_DOWN,tapX,150f,0).also { chart.onTouchEvent(it);it.recycle() }
             MotionEvent.obtain(2000,2020,MotionEvent.ACTION_UP,tapX,150f,0).also { chart.onTouchEvent(it);it.recycle() }
-            assertTrue(label.text.contains(start.plusDays(73).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"))))
+            assertEquals(start.plusDays(73),selectedDay)
             assertTrue(chart.performAccessibilityAction(HrvTrendChart.ZOOM_IN,null))
             chart.performAccessibilityAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD,null)
             assertNotNull(chart.createAccessibilityNodeInfo().actionList.firstOrNull { it.id==HrvTrendChart.ZOOM_OUT })

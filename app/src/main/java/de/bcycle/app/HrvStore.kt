@@ -143,6 +143,15 @@ internal class HrvStore(private val root:File) {
     /** Canonical day files also survive deletion of that day's last measurement. */
     fun questionnaireDays():List<String> = File(root,"days").listFiles().orEmpty().filter { it.isFile && it.extension=="json" }
         .map { it.nameWithoutExtension }.sorted().onEach { checkNotNull(readDay(it)) }
+    /** Include answer-only days; legacy answer migration uses the existing canonical day resolver. */
+    fun trendQuestionnaires():Map<java.time.LocalDate,HrvQuestionnaire> {
+        val answers=questionnaireDays().associateWith { checkNotNull(readDay(it)) }.toMutableMap()
+        list().filter { File(directory(it.id),"questionnaire.json").isFile }.forEach { row ->
+            val day=HrvDailySelection.day(row).toString()
+            if(day !in answers) questionnaire(row.id)?.let { answers[day]=it }
+        }
+        return answers.mapKeys { java.time.LocalDate.parse(it.key) }
+    }
     fun backupQuestionnaireDay(day:String):ByteArray = JSONObject().put("format","bicycle-hrv-day-backup").put("schema",1)
         .put("questionnaire",checkNotNull(readDay(day)).json()).toString().toByteArray()
     private fun restoreDay(value:HrvQuestionnaire):Boolean {

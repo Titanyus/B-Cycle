@@ -155,8 +155,7 @@ class HrvTrendPeriodUiTest {
             assertEquals("Oktober 2024",periodTitle)
             for(metric in listOf(HrvTrendMetric.RMSSD,HrvTrendMetric.HR,HrvTrendMetric.SDNN)) {
                 view.findViewWithTag<View>("hrv_trend_${metric.name}").performClick()
-                val detail=view.findViewWithTag<TextView>("hrv_trend_selected").text.toString()
-                assertTrue(detail.contains("Oktober 2024"));assertTrue(detail.contains("31.10.2024"))
+                assertEquals("Oktober 2024",periodTitle);assertNull(view.findViewWithTag<View>("hrv_trend_selected"))
                 val value=HrvTrendAggregation.series(series.getValue(metric),HrvTrendPeriod.MONTH).single { it.day==month }.value!!
                 val label=view.findViewWithTag<TextView>("hrv_trend_${metric.name}").text.toString()
                 assertTrue(label.endsWith(String.format(Locale.GERMAN,"%.1f",value)))
@@ -213,12 +212,12 @@ class HrvTrendPeriodUiTest {
             val series=HrvTrendMetric.entries.associateWith { HrvTrends.series(rows,it) }
             val view=HrvTrendsView(a,ThemeManager(a.getSharedPreferences("running-period",0)),series) {};a.setContentView(view);layout(view,1100)
             view.findViewWithTag<View>("hrv_period_MONTH").performClick()
-            val detail=view.findViewWithTag<TextView>("hrv_trend_selected").text.toString()
-            assertTrue(detail.contains("bisher"));assertTrue(detail.contains("${rows.size} von ${today.dayOfMonth} Tagen"))
+            assertNull(view.findViewWithTag<View>("hrv_trend_selected"))
+            assertEquals(rows.size,HrvTrendAggregation.series(series.getValue(HrvTrendMetric.RMSSD),HrvTrendPeriod.MONTH).single().sampleDays)
             view.findViewWithTag<View>("hrv_trend_HF").performClick()
             assertEquals(View.VISIBLE,view.findViewWithTag<View>("hrv_trend_empty").visibility)
             assertTrue(view.findViewWithTag<TextView>("hrv_trend_HF").text.toString().endsWith("—"))
-            assertTrue(view.findViewWithTag<TextView>("hrv_trend_selected").text.toString().contains("0 von ${today.dayOfMonth} Tagen"))
+            assertNull(view.findViewWithTag<View>("hrv_trend_statistics"))
         } finally { host.pause().stop().destroy() }
     }
 }

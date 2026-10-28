@@ -12,6 +12,18 @@ import android.widget.RadioButton
 /** Native mutually exclusive radio semantics, presented as a segment without a selection circle. */
 internal class BicycleSegmentButton(context: Context, private val themes: ThemeManager,private val multiple:Boolean=false,private val standalone:Boolean=false) : RadioButton(context) {
     private var ready=false
+    private var centeredIcon:android.graphics.drawable.Drawable?=null
+    fun iconOnly(icon:BicycleIcon) {
+        text=""
+        BicycleComponents.bindTheme(this,themes) { centeredIcon=BicycleIcons.drawable(context,icon,currentTextColor);invalidate() }
+    }
+    override fun onDraw(canvas:android.graphics.Canvas) {
+        super.onDraw(canvas)
+        centeredIcon?.let { icon ->
+            val size=BicycleDesign.dp(context,BicycleDesign.iconSize)
+            icon.setBounds((width-size)/2,(height-size)/2,(width+size)/2,(height+size)/2);icon.draw(canvas)
+        }
+    }
     /** Styling opt-out; native checked state and selection callbacks remain intact. */
     var showSelectionHighlight=true
         set(value) { field=value;if(ready) paint(themes.active.tokens) }
@@ -52,6 +64,7 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
             else if(ThemeValidator.contrast(Color.BLACK,fill)>=ThemeValidator.contrast(Color.WHITE,fill)) Color.BLACK else Color.WHITE
         BicycleAppearance.selected(this,selected)
         setTextColor(foreground)
+        centeredIcon?.setTint(foreground)
         compoundDrawables.filterNotNull().forEach { it.setTint(foreground) }
         val surface=BicycleInputFrame.selectionBackground(this,tokens,selected)
         if(standalone && !selected && surface is GradientDrawable) {

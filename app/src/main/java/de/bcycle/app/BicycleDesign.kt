@@ -23,7 +23,7 @@ object BicycleDesign {
     const val dashboardToolbarActionWeight=.9f
     const val hrvCircleHeight=320
     const val hrvGraphHeight=286
-    const val hrvTrendGraphHeight=504
+    const val hrvTrendGraphHeight=454
     const val hrvTrendMoonSize=12
     const val hrvTrendAxisWidth=40
     const val hrvTrendBarValueSp=8f

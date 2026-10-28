@@ -41,3 +41,6 @@ Veröffentlichung28.10.2026: Die zuletzt nach Build98 ergänzten Änderungen sin
 
 
 Nach Build99: Ein bewusster Tipp in der Tagesansicht markiert den ausgewählten Balken mit halbierten RGB-Kanälen (auch bei zuvor weißen Balken) und zeigt den festen globalen Aktionsfooter: Auswertung vorerst deaktiviert, Tagesbefinden direkt zum vorhandenen Tageseingabedialog, Löschen zur bestätigten bestehenden Messungslöschung. Initiale automatische Kennzahlenwahl/Scrollen zeigen keinen Footer. Zeitraumwechsel blendet ihn aus und entfernt die Markierung, Kennzahlenwechsel erhält den gewählten Tag. Keine Aktionen für aggregierte Wochen/Monate. Bisheriger Inlinebutton Messung und Tagesbefinden entfällt zugunsten des Footers. Löschen lädt Tagesbestand/Aggregate/Achsen neu; Tagesantworten bleiben gemäß bestehender Tageslogik gespeichert, ältere Messung kann wieder sichtbar werden. Keine neue Tagesauswertung vorwegnehmen.
+
+
+Aktueller kompakter Ausbau nach Build99: Diagrammhöhe454dp, unter Zeitraumzeile sechs Kontext-Farbsymbole mit separat benanntem Modus ohne Legende. Sämtliche unteren Erklärungs-/Tageswert-/Referenztextblöcke entfernt. Tagesfooter zusätzlich Messergebnis, vorhandene Ergebnisfunktion direkt erreichbar. [Farbregeln und Datenbezug](hrv-context-colors.md). Die vorherigen Textblockbeschreibungen sind Umsetzungshistorie.

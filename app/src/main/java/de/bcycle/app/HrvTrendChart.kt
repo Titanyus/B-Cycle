@@ -38,6 +38,8 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private var barLabels:List<Pair<HrvTrendPoint,String>> = emptyList()
     var axis=HrvTrendAxis(0.0,1.0);private set
     private var selectedId:String?=null
+    private var contextColors:Map<LocalDate,Int>?=null
+    fun colorBars(colors:Map<LocalDate,Int>?) { contextColors=colors;invalidate() }
     private var moonRange:Triple<LocalDate,LocalDate,java.time.ZoneId>?=null
     private var moons:List<Pair<LocalDate,LunarPhase>> = emptyList()
     private val moonBounds=android.graphics.RectF()
@@ -234,7 +236,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             }
         }
         visible.forEach { point -> point.value?.let { value ->
-            val color=if(point.belowNormal) Color.WHITE else tokens.primary
+            val color=contextColors?.get(point.day) ?: if(contextColors!=null) TrainingZoneColors.grey else if(point.belowNormal) Color.WHITE else tokens.primary
             paint.color=if(resolution==HrvTrendPeriod.DAY && actionDay==point.day) Color.rgb(Color.red(color)/2,Color.green(color)/2,Color.blue(color)/2) else color
             canvas.drawRect(x(point.day)-half,y(value),x(point.day)+half,bottom,paint)
         } }
