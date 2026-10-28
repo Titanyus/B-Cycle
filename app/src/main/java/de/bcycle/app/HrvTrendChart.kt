@@ -188,21 +188,24 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             resolution.date(kotlin.math.floor(viewport.end-viewport.span).toLong()-7).with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY))
             else resolution.date(kotlin.math.floor(viewport.end-viewport.span).toLong()-1)
         val finalTick=resolution.date(kotlin.math.ceil(viewport.end).toLong()+1)
-        // Thin only axis text at small zoom; every calendar separator and bar value stays drawn.
-        // Anchor the stride to calendar indices so panning never reassigns a label to another bar.
+        // Keep every week/month label. Shorten the format uniformly when space gets tight;
+        // the decision depends only on zoom, never on the scroll position.
         val tickUnits=if(resolution==HrvTrendPeriod.DAY) 7.0 else 1.0
         val widest=when(resolution) {
             HrvTrendPeriod.DAY->paint.measureText("00.00")
             HrvTrendPeriod.WEEK->paint.measureText(context.getString(R.string.hrvt_week_axis,53))
             HrvTrendPeriod.MONTH->monthNames.maxOf { paint.measureText(it) }
         }
-        val stride=kotlin.math.ceil((widest+8*density)/((plotRight-plotLeft)/viewport.span*tickUnits)).toLong().coerceAtLeast(1)
+        val available=(plotRight-plotLeft)/viewport.span*tickUnits
+        val compact=widest+8*density>available
+        // Daily date ticks keep their existing calendar stride; aggregated axes never skip labels.
+        val stride=if(resolution==HrvTrendPeriod.DAY) kotlin.math.ceil((widest+8*density)/available).toLong().coerceAtLeast(1) else 1L
         while(!tick.isAfter(finalTick)) {
             val at=x(tick)-half
             val label=when(resolution) {
                 HrvTrendPeriod.DAY->tick.format(dateFormat)
-                HrvTrendPeriod.WEEK->context.getString(R.string.hrvt_week_axis,tick.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR))
-                HrvTrendPeriod.MONTH->monthNames[tick.monthValue-1]
+                HrvTrendPeriod.WEEK->context.getString(if(compact) R.string.hrvt_week_axis_number else R.string.hrvt_week_axis,tick.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR))
+                HrvTrendPeriod.MONTH->monthNames[tick.monthValue-1].let { if(compact) it.take(1).uppercase(java.util.Locale.getDefault()) else it }
             }
             paint.color=alpha(tokens.foreground,.18f);paint.strokeWidth=density
             canvas.drawLine(at,top,at,bottom+26*density,paint)

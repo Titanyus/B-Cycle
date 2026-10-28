@@ -78,11 +78,11 @@ class HrvTrendPeriodUiTest {
                     val drawing=Drawing(image);chart.draw(drawing)
                     val labels=drawing.labels.filter { it.y==392f };assertTrue(labels.isNotEmpty())
                     if(mode==HrvTrendPeriod.WEEK) {
-                        assertTrue(labels.all { it.text.matches(Regex("KW[0-9]{1,2}")) })
+                        assertTrue(labels.all { it.text.matches(Regex("(?:KW)?[0-9]{2}")) })
                         assertEquals(java.time.DayOfWeek.MONDAY,first!!.dayOfWeek);assertEquals(java.time.DayOfWeek.SUNDAY,last!!.dayOfWeek)
                     } else {
                         val months=(1..12).map { LocalDate.of(2024,it,1).format(java.time.format.DateTimeFormatter.ofPattern("MMM",Locale.GERMAN)).removeSuffix(".") }
-                        assertTrue(labels.all { it.text in months });assertTrue(labels.none { it.text.contains("2024") || it.text.contains(".") })
+                        assertTrue(labels.all { it.text in months || it.text in months.map { name -> name.take(1).uppercase(Locale.GERMAN) } });assertTrue(labels.none { it.text.contains("2024") || it.text.contains(".") })
                         assertEquals(1,first!!.dayOfMonth);assertEquals(last!!.lengthOfMonth(),last!!.dayOfMonth)
                     }
                     val target=points[points.lastIndex-2];val viewport=viewport(chart)
@@ -92,6 +92,40 @@ class HrvTrendPeriodUiTest {
                     MotionEvent.obtain(now,now+30,MotionEvent.ACTION_UP,x,160f,0).also { chart.onTouchEvent(it);it.recycle() }
                     assertEquals(target,selected);assertEquals(axis,chart.axis)
                     assertTrue(chart.performAccessibilityAction(HrvTrendChart.ZOOM_IN,null));assertEquals(axis,chart.axis)
+                }
+            } finally { image.recycle() }
+        } finally { host.pause().stop().destroy();Locale.setDefault(oldLocale) }
+    }
+    @Test fun crowdedAxesShortenEveryLabelInsteadOfDroppingWeeksOrMonths() {
+        val oldLocale=Locale.getDefault();Locale.setDefault(Locale.GERMAN)
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val chart=HrvTrendChart(a,ThemeManager(a.getSharedPreferences("hrv-adaptive-axis",0)),{},{_,_->})
+            a.setContentView(chart);layout(chart)
+            val daily=HrvTrends.series((0..900).map { row(LocalDate.of(2023,1,1).plusDays(it.toLong()),30.0+it%19) },HrvTrendMetric.RMSSD)
+            val axis=HrvTrendAxis.from(daily,HrvTrendMetric.RMSSD)
+            val image=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888)
+            try {
+                for(mode in listOf(HrvTrendPeriod.WEEK,HrvTrendPeriod.MONTH)) {
+                    chart.show(HrvTrendAggregation.series(daily,mode),true,axis,mode)
+                    val viewport=viewport(chart)
+                    fun drawing():Drawing=Drawing(image).also { chart.draw(it) }
+                    fun verifyEveryTick(drawing:Drawing,compact:Boolean) {
+                        val labels=drawing.labels.filter { it.y==392f }
+                        val separators=drawing.lines.filter { it.x==it.endX && it.y==16f && it.endY==394f }
+                        assertEquals(separators.size,labels.size)
+                        for(i in labels.indices) assertEquals(separators[i].x+4f,labels[i].x,.001f)
+                        if(mode==HrvTrendPeriod.WEEK) assertTrue(labels.all { it.text.matches(Regex(if(compact) "[0-9]{2}" else "KW[0-9]{2}")) })
+                        else assertTrue(labels.all { if(compact) it.text.length==1 else it.text.length>=3 })
+                        assertEquals(axis,chart.axis)
+                    }
+                    viewport.zoom(2.0,.5);verifyEveryTick(drawing(),false) // Seven buckets have room for the full labels.
+                    viewport.zoom(.25,.5);val before=drawing();verifyEveryTick(before,true)
+                    viewport.pan(-.2);val after=drawing();verifyEveryTick(after,true)
+                    val beforeLabels=before.labels.filter { it.y==392f }.map { it.text }
+                    val afterLabels=after.labels.filter { it.y==392f }.map { it.text }
+                    assertEquals(beforeLabels,afterLabels)
+                    viewport.zoom(.5,.5);verifyEveryTick(drawing(),true) // Even at smaller zoom, none are culled.
                 }
             } finally { image.recycle() }
         } finally { host.pause().stop().destroy();Locale.setDefault(oldLocale) }

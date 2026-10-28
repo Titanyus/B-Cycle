@@ -16,9 +16,9 @@ Umschaltung oberhalb der bestehenden Kennzahlenauswahl. Jede neue Auswertungssei
 ## Kalender und Darstellung
 
 - Tagesansicht: wöchentlicher senkrechter Strich an der **linken sichtbaren Balkenkante des Montags**, von der oberen Rasterlinie bis unter die X-Achse. Datum rechts daneben, nicht mehr mittig über einem vom Text abhängigen Strich. Montage ohne Messung bleiben kalendarisch vorhanden.
-- Wochenansicht: gleich breite Kalenderwochen, X-Achse kurz `KW5`, ohne Jahr/Datum. ISO-Wochenjahr im vollständigen ausgewählten bzw. sichtbaren Zeitraum, einschließlich KW53/Jahreswechsel.
-- Monatsansicht: gleich breite Kalendermonate, X-Achse Monatsabkürzung wie `Okt`, ohne Jahr und abschließenden Punkt. Vollständiger Monatsname und Jahr im Zeitraum.
-- Wochen/Monate verwenden ebenfalls durchgehende Periodentrenner an der linken Balkenkante. Bei engem Zoom nur X-Achsentext in kalenderfesten Schritten ausdünnen; alle Trennstriche, Balken und deren Wertbeschriftungen bleiben erhalten. Text wird an beiden Plotgrenzen abgeschnitten, niemals festgehalten. Auswahl des Schritts unabhängig von Scrollposition.
+- Wochenansicht: gleich breite Kalenderwochen, X-Achse `KW05`, bei Platzmangel nur `05`, ohne Jahr/Datum. ISO-Wochenjahr im vollständigen ausgewählten bzw. sichtbaren Zeitraum, einschließlich KW53/Jahreswechsel.
+- Monatsansicht: gleich breite Kalendermonate, X-Achse Monatsabkürzung wie `Okt`, bei Platzmangel nur der Anfangsbuchstabe wie `O`, ohne Jahr und abschließenden Punkt. Vollständiger Monatsname und Jahr im Zeitraum.
+- Wochen/Monate verwenden ebenfalls durchgehende Periodentrenner an der linken Balkenkante. Wochen-/Monatsbeschriftungen werden niemals ausgedünnt. Reicht der Platz nicht für das längste volle Kürzel samt Abstand, wechseln alle sichtbaren Labels einheitlich zum kurzen Format; Entscheidung nur anhand der Zoomstufe, nicht der Scrollposition. Auch bei noch engerem Zoom bleiben alle Labels gezeichnet. Alle Trennstriche, Balken und deren Wertbeschriftungen bleiben erhalten. Text wird an beiden Plotgrenzen abgeschnitten, niemals festgehalten. Die bisherige Kalenderdatums-Ausdünnung der Tagesansicht bleibt unverändert.
 - Zusätzliche Zoombegrenzung ausdrücklich erst später nach Nutzeransicht entscheiden; bisherige7-/14-Bucket-Grenzen unverändert. Alle Auflösungen behalten echte Zweifinger-Gesten ohne Mindestabstandssperre, kinetisches Scrollen und Accessibility-Zoom. Navigation erfolgt in gleichen Kalender-Buckets, nicht mit 30-Tage-Näherungen. Tagesmondphasen bleiben in Tag sichtbar; in Monats-/Wochenbalken würden sich mehrere Mondphasen überlagern und werden deshalb dort nicht eingezeichnet.
 - Ausgewählte Periode bleibt beim Kennzahlenwechsel erhalten, auch wenn der letzte gültige Messtag der Kennzahlen verschieden ist. Auflösungswechsel nimmt die zuletzt repräsentierte Messung als Kalenderanker. Einzelmessungsdetails bleiben in Tag verfügbar; Wochen-/Monatsbalken öffnen keine irreführende einzelne Messung.
 - Header bleibt schlicht SECONDARY ohne Glow/Rahmen; nach Periodenauswahl z.B. „Auswertung: KW5 2026“ bzw. „Auswertung: Oktober 2026“. Frisch geöffnete Auswertung weiterhin Tagesansicht mit heutigem Headerdatum.
@@ -29,3 +29,6 @@ Gezielte Modelltests prüfen Tagesauswahl/fehlende Werte, Tagesgewichtung statt 
 
 
 Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.56/Build97** enthalten. [Buildnachweis und Download](build-97.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
+
+
+Nach Build97: adaptive Wochen-/Monatskürzel ohne Auslassungen umgesetzt; noch nicht in APK0.8.56 enthalten. Acht gezielte native UI-/Scrollfälle grün (HrvTrendPeriodUiTest5, HrvChartScrollingTest3). Prüfungen zählen pro Periodentrenner genau ein Label bei mehreren Zoomstufen/Pan, langes/kurzes Format, identischeY-Skala, Auswahl und bestehendes Scrollen. Keine neue Auflösung oder Zoombegrenzung; Tagesberechnungen unverändert.

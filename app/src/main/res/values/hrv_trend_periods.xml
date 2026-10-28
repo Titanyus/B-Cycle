@@ -2,7 +2,8 @@
     <string name="hrvt_day">Tag</string>
     <string name="hrvt_week">Woche</string>
     <string name="hrvt_month">Monat</string>
-    <string name="hrvt_week_axis">KW%1$d</string>
+    <string name="hrvt_week_axis">KW%1$02d</string>
+    <string name="hrvt_week_axis_number">%1$02d</string>
     <string name="hrvt_week_title">KW%1$d %2$d</string>
     <string name="hrvt_aggregate_range">%1$s – %2$s\n%3$s – %4$s</string>
     <string name="hrvt_aggregate_selected">%1$s\n%2$s – %3$s\nMittelwert: %4$s\n%5$d von %6$d Tagen gemessen</string>
