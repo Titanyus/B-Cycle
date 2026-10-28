@@ -38,3 +38,6 @@ Zehn unterschiedliche gezielte Fälle grün: RideStatisticsTest4, RideStatistics
 
 
 Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.56/Build97** enthalten. [Buildnachweis und Download](build-97.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
+
+
+Veröffentlichung28.10.2026: Die zuletzt nach Build98 ergänzten Änderungen sind in **APK0.8.58/Build99** enthalten. [Buildnachweis und Download](build-99.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

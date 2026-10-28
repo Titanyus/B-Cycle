@@ -35,3 +35,6 @@ Nach Build97: adaptive Wochen-/Monatskürzel ohne Auslassungen umgesetzt; noch n
 
 
 Veröffentlichung28.10.2026: Auch die zuletzt nach Build97 ergänzten Änderungen sind in **APK0.8.57/Build98** enthalten. [Buildnachweis und Download](build-98.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
+
+
+Veröffentlichung28.10.2026: Die zuletzt nach Build98 ergänzten Änderungen sind in **APK0.8.58/Build99** enthalten. [Buildnachweis und Download](build-99.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

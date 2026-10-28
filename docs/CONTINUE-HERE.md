@@ -1,3 +1,7 @@
+# APK veröffentlicht28.10.2026:0.8.58 / Build99 / Code128
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.58-release-99.apk) · [Buildnachweis](build-99.md). Quelle `e6d8ebed7acd5b8beff92099435b25cde2adac4b`, Größe 2.468.041 Bytes, SHA-256 `4f5d1fcae21ba0296f9a086f231a02d502e7ccf8c24274af2f5fb68179f68550`. Alle Änderungen seit Build98 enthalten. Signatur wie bisher, Release ohne Debug-/Test-Flags, CI-Prüfsumme und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci], kein zweiter APK-Build. Keine offene APK-Aufgabe. Nachfolgende Abschnitte sind Umsetzungshistorie. Poco-Datenschutzindikator und reale Statusdarstellung am Gerät prüfen; keine automatische Aktivzustandserkennung behaupten.
+
 # APK-Auftrag28.10.2026:0.8.58/Code128
 
 Alle vier Änderungen seit Build98 enthalten: Statistik-Skalen links/durchgehende Linien, HRV-Korridor15%, eigene Y-Achsen je Zeitraum, Status15dp plus Systemindikatoraussparung. Nutzer hat APK angefordert. Gezielte Tests bereits erfolgreich; keine neue Gesamtsuite. Automatischer GitHub-Actions-Build nach Push, erwarteter Lauf99. Version/Signatur/Manifest/CI-Prüfsumme/ZIP-Ausrichtung und echten direkten Download prüfen; Veröffentlichungscommit mit[skip ci]. Umfang release-0.8.58.md.

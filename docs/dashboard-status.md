@@ -41,3 +41,6 @@ Veröffentlichung28.10.2026: Auch die zuletzt nach Build97 ergänzten Änderunge
 
 
 Nach Build98: Statusgruppen links/rechts mindestens15dp zum sicheren Bildschirmrand. Zusätzlich meldet MainActivity die öffentlichen WindowInsets.privacyIndicatorBounds an denselben Sicherheitsbereichsrenderer wie Kameraausschnitte. Der vom System reservierte Indikatorbereich wird mit vorhandenem8dp-Sicherheitsabstand ausgespart, sofern er die Statuszeile schneidet. Leere/fehlende Angaben reservieren keinen Zusatzplatz; keine pauschalen25dp und keine Geräte-/Herstellerliste. Bounds sind kein zuverlässiger Sichtbarkeitsstatus und können dauerhaft reserviert oder vom Hersteller unvollständig gemeldet werden. Keine AppOps-Abfragen, neuen Berechtigungen oder Polling. Poco-Verhalten erst auf echtem Gerät verifizieren.
+
+
+Veröffentlichung28.10.2026: Die zuletzt nach Build98 ergänzten Änderungen sind in **APK0.8.58/Build99** enthalten. [Buildnachweis und Download](build-99.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

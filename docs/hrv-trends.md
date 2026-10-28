@@ -110,3 +110,6 @@ Der Zweifingerzoom verwendet dieselbe laufende Abstandsverhältnis-Idee wie MapP
 
 
 Nach Build98: Korridorfüllung auf Nutzerwunsch von30% auf15% Deckkraft reduziert (BicycleDesign.hrvTrendBandAlpha). Gemeinsame Darstellung für Tag/Woche/Monat; weiße gepunktete1-dp-Grenzen unverändert. Nur Gestaltung, keine Berechnungsänderung.
+
+
+Veröffentlichung28.10.2026: Die zuletzt nach Build98 ergänzten Änderungen sind in **APK0.8.58/Build99** enthalten. [Buildnachweis und Download](build-99.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.

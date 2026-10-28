@@ -9,4 +9,4 @@
 
 Prüfstand: sechs gezielte Statistikfälle, neun HRV-Achsen-/Scrollfälle sowie13Status-/Vollbildfälle erfolgreich. Native Vorschauen aktualisiert; Typografie/Atlas/Diff geprüft. Keine Gesamtsuite und kein neuer Telefon-/privater Cloudtest. Android meldet reservierte Indikatorflächen, keinen zuverlässigen Sichtbarkeitsstatus; Poco F7 Ultra muss praktisch geprüft werden.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-99.md).
