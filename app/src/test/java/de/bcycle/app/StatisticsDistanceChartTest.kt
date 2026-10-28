@@ -20,16 +20,17 @@ import java.time.Duration
 class StatisticsDistanceChartTest {
     private data class Label(val text:String,val x:Float,val y:Float,val color:Int,val align:Paint.Align,val clip:Rect,val textWidth:Float,val top:Float,val bottom:Float)
     private class Drawing(bitmap:Bitmap):Canvas(bitmap) {
-        val labels=mutableListOf<Label>();val pathColors=mutableListOf<Int>();val rectColors=mutableListOf<Int>()
+        val labels=mutableListOf<Label>();val pathColors=mutableListOf<Int>();val rectColors=mutableListOf<Int>();val lines=mutableListOf<RectF>()
         override fun drawText(text:String,x:Float,y:Float,paint:Paint) { labels+=Label(text,x,y,paint.color,paint.textAlign,Rect(clipBounds),paint.measureText(text),y+paint.ascent(),y+paint.descent());super.drawText(text,x,y,paint) }
         override fun drawPath(path:Path,paint:Paint) { pathColors+=paint.color;super.drawPath(path,paint) }
+        override fun drawLine(startX:Float,startY:Float,stopX:Float,stopY:Float,paint:Paint) { lines+=RectF(startX,startY,stopX,stopY);super.drawLine(startX,startY,stopX,stopY,paint) }
         override fun drawRect(rect:RectF,paint:Paint) { rectColors+=paint.color;super.drawRect(rect,paint) }
     }
     private fun layout(chart:View) { chart.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(240,View.MeasureSpec.EXACTLY));chart.layout(0,0,360,240) }
     private fun draw(chart:View):Drawing { val image=Bitmap.createBitmap(360,240,Bitmap.Config.ARGB_8888);return Drawing(image).also { chart.draw(it);image.recycle() } }
     private fun series(weeks:Boolean)=listOf(StatisticsYearSeries(2025,Color.BLUE,List(if(weeks) 52 else 12) { 101.0+it }),
         StatisticsYearSeries(2026,Color.GREEN,List(if(weeks) 53 else 12) { 301.0+it }))
-    @Test fun fullWidthPlotHasInsideRightScalesNoZeroAndColoredPointValuesForBothModes() {
+    @Test fun fullWidthPlotHasLeftScalesAboveUnbrokenLinesAndColoredPointValuesForBothModes() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val c=host.get();val chart=StatisticsDistanceChart(c,ThemeManager(c.getSharedPreferences("statistics-axis",0)))
@@ -42,7 +43,13 @@ class StatisticsDistanceChartTest {
                 assertFalse(drawing.rectColors.any { it==Color.BLUE || it==Color.GREEN })
                 val scale=drawing.labels.filter { it.text.endsWith(" km") }
                 assertEquals(4,scale.size);assertFalse(scale.any { it.text=="0 km" })
-                assertTrue(scale.all { it.align==Paint.Align.RIGHT && it.x==356f && it.y in 24f..212f })
+                assertTrue(scale.all { it.align==Paint.Align.LEFT && it.x==4f })
+                assertEquals(4,drawing.lines.size)
+                scale.zip(drawing.lines).forEach { (label,line) ->
+                    assertEquals(0f,line.left,0f);assertEquals(360f,line.right,0f)
+                    assertEquals(line.top,line.bottom,0f);assertTrue(label.bottom<line.top)
+                }
+                assertTrue("No background rectangle may cover the grid",drawing.rectColors.isEmpty())
                 val pointLabels=drawing.labels.filter { it.color==Color.BLUE || it.color==Color.GREEN }
                 assertTrue(pointLabels.any { it.color==Color.BLUE });assertTrue(pointLabels.any { it.color==Color.GREEN })
                 assertTrue(pointLabels.all { it.align==Paint.Align.CENTER && it.clip.left==0 && it.clip.right==360 })
@@ -67,7 +74,7 @@ class StatisticsDistanceChartTest {
             val axes=drawing.labels.filter { it.text.endsWith(" km") }
             for(value in values) for(axis in axes) {
                 val point=RectF(value.x-value.textWidth/2,value.top,value.x+value.textWidth/2,value.bottom)
-                val scale=RectF(axis.x-axis.textWidth,axis.top,axis.x,axis.bottom)
+                val scale=RectF(axis.x,axis.top,axis.x+axis.textWidth,axis.bottom)
                 assertFalse("Point label must not be hidden by scale",RectF.intersects(point,scale))
             }
         } finally { host.pause().stop().destroy() }

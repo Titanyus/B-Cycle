@@ -35,7 +35,7 @@ internal class StatisticsDistanceChart(context:Context,private val themes:ThemeM
     private data class Curve(val series:StatisticsYearSeries,val path:Path,val points:List<PointF>,val labels:List<String>)
     private val density=resources.displayMetrics.density
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.bodyTypeface }
-    private data class ScaleLabel(val text:String,val right:Float,val baseline:Float,val box:RectF)
+    private data class ScaleLabel(val text:String,val left:Float,val baseline:Float,val box:RectF)
     private data class PointLabel(val text:String,val x:Float,val baseline:Float,val color:Int)
     private val rect=RectF()
     private var scaleLayout:List<ScaleLabel> = emptyList()
@@ -94,9 +94,9 @@ internal class StatisticsDistanceChart(context:Context,private val themes:ThemeM
         }
         paint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity
         scaleLayout=scaleLabels.mapIndexed { i,label ->
-            val baseline=(rect.bottom-rect.height()*(i+1)/4-3*density).coerceAtLeast(rect.top-paint.ascent())
-            val right=rect.right-4*density
-            ScaleLabel(label,right,baseline,RectF(right-paint.measureText(label)-2*density,baseline+paint.ascent(),rect.right,baseline+paint.descent()))
+            val baseline=rect.bottom-rect.height()*(i+1)/4-3*density
+            val left=rect.left+4*density
+            ScaleLabel(label,left,baseline,RectF(rect.left,baseline+paint.ascent(),left+paint.measureText(label)+2*density,baseline+paint.descent()))
         }
         paint.textSize=BicycleDesign.statisticsWeekValueSp*resources.displayMetrics.scaledDensity
         val ascent=paint.ascent();val descent=paint.descent();val labelHeight=descent-ascent
@@ -138,10 +138,9 @@ internal class StatisticsDistanceChart(context:Context,private val themes:ThemeM
         labels.forEachIndexed { i,label -> if(i%stride==0) canvas.drawText(label,x(i),height-7*density,paint) }
         canvas.restoreToCount(axisSave)
         // Inside the full-width plot; there is deliberately no zero/baseline label.
-        paint.textAlign=Paint.Align.RIGHT
+        paint.textAlign=Paint.Align.LEFT
         scaleLayout.forEach { label ->
-            paint.color=themes.active.tokens.secondary;paint.alpha=220;canvas.drawRect(label.box,paint);paint.alpha=255
-            paint.color=themes.active.tokens.secondaryTextColor;canvas.drawText(label.text,label.right,label.baseline,paint)
+            paint.color=themes.active.tokens.secondaryTextColor;canvas.drawText(label.text,label.left,label.baseline,paint)
         }
     }
     private fun beginPinch(event:MotionEvent,exclude:Int=-1) {
