@@ -2,9 +2,10 @@
 from pathlib import Path
 import concurrent.futures, urllib.request, xml.etree.ElementTree as ET, re, sys
 VERSION = '0.468.0'
-ICON_REFS = {'cloud-check': '70562c1ee1c4fdcf736fe97bc893fb8511927934', 'save-check': '70562c1ee1c4fdcf736fe97bc893fb8511927934'}
+ICON_REFS = {'face-slightly-smiling': 'f3a26ccff137ac9980c778aa91ea4f15557dd3d9', 'cloud-check': '70562c1ee1c4fdcf736fe97bc893fb8511927934', 'save-check': '70562c1ee1c4fdcf736fe97bc893fb8511927934'}
 ICONS = ['bike', 'log-in', 'log-out', 'file', 'ellipsis', 'ellipsis-vertical', 'eye', 'cloud-upload', 'cloud-alert', 'smartphone', 'trash-2', 'pencil', 'download', 'x', 'arrow-left', 'calendar-days', 'clock', 'chart-no-axes-combined', 'mountain', 'chevron-down', 'circle-help', 'loader-circle', 'bluetooth', 'unplug', 'map', 'save', 'folder-open', 'rotate-ccw', 'plus', 'link', 'info', 'radio', 'map-pinned', 'layout-dashboard', 'route', 'settings']
 ICONS.extend(['minimize', 'chevron-left', 'arrow-up-from-dot', 'cloud-sun', 'database', 'upload', 'chevron-right', 'user-round', 'activity', 'sunrise', 'sunset', 'lightbulb', 'locate-fixed', 'compass', 'maximize', 'eye-closed', 'sun', 'moon', 'gauge', 'zap', 'heart', 'flame', 'repeat-2', 'minus', 'cloud', 'check', 'cloud-check', 'save-check', 'mouse-pointer-2'])
+ICONS.extend(['bed', 'target', 'biceps-flexed', 'face-slightly-smiling'])
 if sys.argv[1:]:
     assert all(name in ICONS for name in sys.argv[1:]), 'Unknown Lucide icon'
     ICONS = sys.argv[1:]
@@ -36,6 +37,8 @@ for name,data in concurrent.futures.ThreadPoolExecutor(max_workers=6).map(fetch,
     parts=['<!-- Lucide '+ICON_REFS.get(name, VERSION)+' / '+name+'; ISC + Feather MIT, see assets/Lucide-LICENSE.txt -->', '<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">']
     for node in doc:
         p=path(node).replace('&','&amp;').replace('"','&quot;')
+        # SVG permits adjacent arc flags; Android PathParser needs separate numbers.
+        if name == 'face-slightly-smiling': p=p.replace('a6 6 0 01-8.943', 'a6 6 0 0 1 -8.943')
         parts.append(f'    <path android:pathData="{p}" android:fillColor="@android:color/transparent" android:strokeColor="?android:attr/textColorPrimary" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" />')
     parts.append('</vector>')
     (ROOT/'app/src/main/res/drawable'/('ic_lucide_'+name.replace('-','_')+'.xml')).write_text('\n'.join(parts)+'\n')

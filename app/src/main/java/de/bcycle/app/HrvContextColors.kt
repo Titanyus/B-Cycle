@@ -4,9 +4,10 @@ import java.time.LocalDate
 import kotlin.math.roundToInt
 
 internal enum class HrvContextMode(val label:Int,val icon:BicycleIcon) {
-    STANDARD(R.string.hrvc_standard,BicycleIcon.Distance),TRAINING(R.string.hrvc_training,BicycleIcon.Bikes),
-    SLEEP(R.string.hrvc_sleep,BicycleIcon.Moon),ENERGY(R.string.hrvc_energy,BicycleIcon.Power),
-    SORENESS(R.string.hrvc_soreness,BicycleIcon.RecordingSettings),WELLBEING(R.string.hrvc_wellbeing,BicycleIcon.Heart)
+    STANDARD(R.string.hrvc_standard,BicycleIcon.Distance),WELLBEING(R.string.hrvc_wellbeing,BicycleIcon.Wellbeing),
+    TRAINING(R.string.hrvc_training,BicycleIcon.Bikes),
+    SLEEP(R.string.hrvc_sleep,BicycleIcon.Sleep),ENERGY(R.string.hrvc_energy,BicycleIcon.Energy),
+    SORENESS(R.string.hrvc_soreness,BicycleIcon.Soreness)
 }
 
 /** Subjective context only: 0 good .. 10 poor; training retains its explicit 0..3 categories. */

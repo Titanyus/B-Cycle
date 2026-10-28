@@ -1,3 +1,7 @@
+# HRV-Kontextsymbole nach Build100
+
+Nutzerwunsch: Reihenfolge Standard/Tagesbefinden/Training/Schlaf/Energie/Muskelkater. Exakte Lucide-Symbole bed, biceps-flexed, target und face-slightly-smiling. Letzteres aus aktuellem offiziellen Lucide-Commit f3a26ccff137ac9980c778aa91ea4f15557dd3d9; Importskript pinnt die Geometrie reproduzierbar. Keine Änderung von Berechnung, Farben oder Persistenz. Prüfung bestehender HrvContextUiTest (320/360dp, Flat/Glow), Log /workspace/.tools/hrv-context-icons-final.log. Kein APK-Auftrag. Vorheriger HRV4-Kontextfix weiterhin für nächste APK vorgemerkt.
+
 # Nach Build100: HRV4-Befindenswerte für Farben/Tagesauswertung nachladen
 
 Nutzer meldet vereinzelt Befindensfarben trotz vorhandener Fragebogenwerte, Training häufiger. Originaldatei My_Measurements_Android.csv lokal geprüft (nicht ins Repo übernehmen):77Datensätze, je57befüllte Schlaf-/Energie-/Muskelkater-/Müdigkeitsfelder, Training77. Fehler reproduziert: ältere Importjournale/kanonische Tage enthalten nur damals unterstützte Antworten; trendQuestionnaires übersprang bei schon vorhandenem Tag jede Ergänzung aus external.originalColumns, während Fragebogen questionnaireForEditing fehlende Ratings ergänzt. Neu: gemeinsamer Kontextlader nutzt auch bei vorhandener day-Datei für jeden HRV4-Import denselben fill-missing-only-Resolver. Vorhandene Antworten/echt0/Notizen/Zeitstempel/result.json erhalten. Keine erneute CSV nötig; nächste APK ergänzt beim Öffnen der Auswertung automatisch. Native Legacy-.bak-Fälle ebenfalls im vorhandenen Loader berücksichtigen.
