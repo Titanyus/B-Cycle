@@ -23,21 +23,38 @@ class RideStatisticsTest {
         assertEquals(4,result.rideCount)
         assertEquals(10.0,result.months[2025]!![11],0.0)
         assertEquals(50.0,result.months[2026]!![0],0.0)
-        assertEquals(53,result.weeks.size)
-        assertEquals(30.0,result.weeks[0],0.0) // Includes the December dates belonging to ISO week 1.
-        assertEquals(40.0,result.weeks.last(),0.0) // January 1, 2027 still belongs to ISO year 2026.
-        assertEquals(52,cache.get(entries,profiles(),2025,zone).weeks.size)
+        assertEquals(53,result.weeks.getValue(2026).size)
+        assertEquals(30.0,result.weeks.getValue(2026)[0],0.0) // Includes the December dates belonging to ISO week 1.
+        assertEquals(40.0,result.weeks.getValue(2026).last(),0.0) // January 1, 2027 still belongs to ISO year 2026.
+        assertEquals(52,RideStatisticsCache.weekCount(2025))
     }
     @Test fun timeSharesKeepBikeIdentityProfileColorsAndFallbackDuration() {
         val cache=RideStatisticsCache()
         val entries=listOf(ride("one","2026-01-01"),ride("two","2026-02-01",moving=null),ride("unknown","2026-02-01",moving=180000))
         val result=cache.get(entries,profiles(),2026,zone)
-        val bike=result.bikes.single { it.id=="bike-one" }
+        val bike=result.bikes.getValue(2026).single { it.id=="bike-one" }
         assertEquals("E-Bike",bike.name);assertEquals(0xffaabbcc.toInt(),bike.color)
         assertEquals(180000.0,bike.milliseconds,0.0)
-        assertEquals(120000.0,result.bikes.single { it.id=="" }.milliseconds,0.0) // Invalid moving > elapsed uses duration.
+        assertEquals(120000.0,result.bikes.getValue(2026).single { it.id=="" }.milliseconds,0.0) // Invalid moving > elapsed uses duration.
         val changed=profiles().let { RideProfileCatalog(it.values.mapValues { entry -> entry.value.copy(color=0xff112233.toInt()) },it.raw) }
-        assertEquals(0xff112233.toInt(),cache.get(entries,changed,2026,zone).bikes.single { it.id=="bike-one" }.color)
+        assertEquals(0xff112233.toInt(),cache.get(entries,changed,2026,zone).bikes.getValue(2026).single { it.id=="bike-one" }.color)
+    }
+    @Test fun everyYearHasItsOwnIsoWeeksAndBikeTimeWithoutLeakingOtherYears() {
+        val cache=RideStatisticsCache()
+        val rows=listOf(ride("one","2025-12-29",10.0,moving=60000),ride("two","2026-01-01",20.0,moving=120000),
+            ride("third","2026-02-01",30.0,moving=120000))
+        val data=cache.get(rows,profiles(),2026,zone)
+        assertEquals(30.0,data.weeks.getValue(2026)[0],0.0)
+        assertEquals(10.0,data.months.getValue(2025).sum(),0.0)
+        assertEquals(50.0,data.months.getValue(2026).sum(),0.0)
+        assertEquals(60000.0,RideStatisticsCache.selectedBikes(data,setOf(2025)).sumOf { it.milliseconds },0.0)
+        assertEquals(240000.0,RideStatisticsCache.selectedBikes(data,setOf(2026)).sumOf { it.milliseconds },0.0)
+        assertEquals(300000.0,RideStatisticsCache.selectedBikes(data,setOf(2025,2026)).sumOf { it.milliseconds },0.0)
+        assertTrue(RideStatisticsCache.selectedBikes(data,emptySet()).isEmpty())
+        assertEquals(0xffaabbcc.toInt(),RideStatisticsCache.selectedBikes(data,setOf(2025,2026)).single { it.id=="bike-one" }.color)
+        val undated=ride("undated","2025-01-01").copy(details=RouteDetails(dateMs=0,durationMs=100000))
+        val empty=cache.get(listOf(undated),profiles(),2026,zone)
+        assertTrue(empty.months.isEmpty());assertTrue(empty.weeks.isEmpty());assertTrue(empty.bikes.isEmpty())
     }
     @Test fun cachedSnapshotChangesOnlyForRelevantInputsAndHandlesMissingValues() {
         val cache=RideStatisticsCache();val entries=listOf(ride("one","2026-01-01"))
@@ -47,6 +64,6 @@ class RideStatisticsTest {
         assertEquals(0,cache.get(emptyList(),profiles(),2026,zone).rideCount)
         val missing=ride("none","2026-01-01").copy(details=RouteDetails())
         val result=cache.get(listOf(missing),profiles(),2026,zone)
-        assertTrue(result.months.isEmpty());assertTrue(result.bikes.isEmpty());assertTrue(result.weeks.all { it==0.0 })
+        assertTrue(result.months.isEmpty());assertTrue(result.bikes.isEmpty());assertTrue(result.weeks.isEmpty())
     }
 }
