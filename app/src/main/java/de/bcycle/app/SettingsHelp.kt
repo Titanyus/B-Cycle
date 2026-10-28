@@ -27,6 +27,7 @@ internal enum class SettingsHelpPage(val title:Int,val sections:List<SettingsHel
     WEBDAV(R.string.data_cloud,listOf(SettingsHelpSection(R.string.help_webdav_heading,R.string.help_webdav_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     INTERVALS(R.string.intervals_title,listOf(SettingsHelpSection(R.string.help_intervals_heading,R.string.help_intervals_body),SettingsHelpSection(R.string.help_uploads_heading,R.string.help_uploads_body))),
     HRV(R.string.hrv_title,listOf(SettingsHelpSection(R.string.hrv_help_heading,R.string.hrv_help_body))),
+    HRV_DAY(R.string.hrva_title,listOf(SettingsHelpSection(R.string.hrva_title,R.string.hrva_help))),
     HRV_TRENDS(R.string.hrvt_title,listOf(SettingsHelpSection(R.string.hrvt_title,R.string.hrvt_help))),
     DREEVE_IMPORT(R.string.dreeve_import_title,listOf(SettingsHelpSection(R.string.help_dreeve_import_heading,R.string.help_dreeve_import_body))),
     ARCHIVE_IMPORT(R.string.archive_import_title,listOf(SettingsHelpSection(R.string.archive_import_title,R.string.archive_selection_help))),
@@ -59,6 +60,7 @@ internal object SettingsHelp {
             nodes.any { it is RouteAnalysisMap } -> return SettingsHelpPage.ROUTE_MAP
             nodes.any { it is RouteManagerView } -> return SettingsHelpPage.ROUTES
             nodes.any { it is DreeveImportView } -> return if(nodes.filterIsInstance<DreeveImportView>().first().archiveMode) SettingsHelpPage.ARCHIVE_IMPORT else SettingsHelpPage.DREEVE_IMPORT
+            nodes.any { it.tag=="hrv_daily_assessment_host" || it is HrvDailyAssessmentView } -> return SettingsHelpPage.HRV_DAY
             nodes.any { it.tag=="hrv_trends_host" || it is HrvTrendsView } -> return SettingsHelpPage.HRV_TRENDS
             nodes.any { it is HrvSettingsView } -> return SettingsHelpPage.HRV
             nodes.any { it is BikesView } -> return SettingsHelpPage.PROFILES

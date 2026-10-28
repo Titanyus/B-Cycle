@@ -40,8 +40,8 @@ class HrvDayFooterTest {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("day-footer",0))
             val rows=(0..30).map { i -> val day=LocalDate.of(2024,1,1).plusDays(i.toLong());HrvHistorySummary("day$i",day.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),true,40.0,zoneId=ZoneId.systemDefault().id,metrics=mapOf("rmssdMs" to 40.0,"restingHrBpm" to 60.0)) }
             val series=HrvTrendMetric.entries.associateWith { HrvTrends.series(rows,it) }
-            var opened:String?=null;var deleted:String?=null
-            val view=HrvTrendsView(a,themes,series,delete={ deleted=it }) { opened=it }
+            var opened:String?=null;var deleted:String?=null;var assessed:String?=null
+            val view=HrvTrendsView(a,themes,series,delete={ deleted=it },assess={ assessed=it }) { opened=it }
             a.setContentView(view);layout(view)
             val footer=view.findViewWithTag<View>("bicycle_action_footer");val chart=view.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
             assertEquals(View.GONE,footer.visibility);assertNull(chart.actionDay)
@@ -52,7 +52,7 @@ class HrvDayFooterTest {
             chart.draw(object:Canvas(image) { override fun drawRect(l:Float,t:Float,r:Float,b:Float,p:Paint) { colors+=p.color;super.drawRect(l,t,r,b,p) } })
             val base=themes.active.tokens.primary;val half=Color.rgb(Color.red(base)/2,Color.green(base)/2,Color.blue(base)/2)
             assertEquals(1,colors.count { it==half });assertTrue(colors.count { it==base }>1);image.recycle()
-            val analysis=view.findViewWithTag<View>("hrv_day_analysis");assertFalse(analysis.isEnabled);analysis.performClick();assertNull(opened)
+            val analysis=view.findViewWithTag<View>("hrv_day_analysis");assertTrue(analysis.isEnabled);analysis.performClick();assertEquals("day30",assessed);assertNull(opened)
             view.findViewWithTag<View>("hrv_day_questionnaire").performClick();assertEquals("day30",opened)
             view.findViewWithTag<View>("hrv_day_delete").performClick();assertEquals("day30",deleted)
             view.findViewWithTag<View>("hrv_trend_RMSSD").performClick();assertEquals(View.VISIBLE,footer.visibility)
@@ -74,6 +74,12 @@ class HrvDayFooterTest {
             val question=decor.findViewWithTag<View>("hrv_day_questionnaire");val footer=question.parent as View
             assertEquals("bicycle_fullscreen_footer",footer.tag);assertEquals("bicycle_fullscreen",(footer.parent as View).tag)
             assertEquals(View.GONE,footer.visibility);tap(chart);assertEquals(View.VISIBLE,footer.visibility)
+            decor.findViewWithTag<View>("hrv_day_analysis").performClick();drain(controller)
+            val assessment=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+            assertNotNull(assessment.window!!.decorView.findViewWithTag<View>("hrv_daily_assessment"))
+            assertEquals(SettingsHelpPage.HRV_DAY,SettingsHelp.resolve(assessment))
+            assertTrue(assessment.window!!.decorView.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").text.contains("16.10.2024"))
+            assessment.dismiss();shadowOf(Looper.getMainLooper()).idle()
             question.performClick();drain(controller);drain(controller)
             val questionnaire=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             assertNotSame(screen,questionnaire);assertNotNull(questionnaire.window!!.decorView.findViewWithTag<View>("hrvq_notes"));assertFalse(screen.isShowing) // Existing navigation suspends the parent while a child is visible.
@@ -83,7 +89,8 @@ class HrvDayFooterTest {
             confirm.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).performClick();shadowOf(Looper.getMainLooper()).idle();assertTrue(id in store.ids())
             decor.findViewWithTag<View>("hrv_day_delete").performClick()
             org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
-            drain(controller);drain(controller)
+            // Native confirmation posts its click; delete then posts a separate series reload.
+            repeat(4) { drain(controller) }
             assertFalse(id in store.ids());assertEquals(View.GONE,footer.visibility);assertTrue(screen.isShowing)
             screen.dismiss()
         } finally { host.pause().stop().destroy() }

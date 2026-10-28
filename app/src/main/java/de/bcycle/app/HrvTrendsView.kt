@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.IsoFields
 
 internal class HrvTrendsView(context:Context,private val themes:ThemeManager,series:Map<HrvTrendMetric,List<HrvTrendPoint>>,
-    actionFooter:LinearLayout?=null,delete:(String)->Unit={},result:(String)->Unit={},dayContext:Map<LocalDate,Map<HrvContextMode,Double>> = emptyMap(),open:(String)->Unit):LinearLayout(context) {
+    actionFooter:LinearLayout?=null,delete:(String)->Unit={},result:(String)->Unit={},assess:(String)->Unit={},dayContext:Map<LocalDate,Map<HrvContextMode,Double>> = emptyMap(),open:(String)->Unit):LinearLayout(context) {
     var onDaySelected:(LocalDate)->Unit={}
     var onPeriodSelected:(String)->Unit={}
     private var series=series
@@ -30,7 +30,9 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
     private val caption=BicycleComponents.contentHeading(context,themes,"")
     private val range=BicycleComponents.description(context,themes,"").apply { gravity=Gravity.CENTER;tag="hrv_trend_range" }
     private val empty=BicycleComponents.description(context,themes,context.getString(R.string.hrvt_empty)).apply { tag="hrv_trend_empty" }
-    private val analysis=BicycleFooterAction(context,themes,BicycleIcon.Distance,context.getString(R.string.hrvt_day_analysis)) {}.apply {
+    private val analysis=BicycleFooterAction(context,themes,BicycleIcon.Distance,context.getString(R.string.hrvt_day_analysis)) {
+        selected?.takeIf { resolution==HrvTrendPeriod.DAY && actionDay==it.day }?.let { assess(it.row.id) }
+    }.apply {
         tag="hrv_day_analysis";isEnabled=false
     }
     private val measurement=BicycleFooterAction(context,themes,BicycleIcon.Heart,context.getString(R.string.hrv_result)) {
@@ -46,7 +48,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         range.text=if(resolution==HrvTrendPeriod.DAY) context.getString(R.string.hrvt_period,first.format(dateFormat),last.format(dateFormat))
             else context.getString(R.string.hrvt_aggregate_range,title(first),title(last),first.format(dateFormat),last.format(dateFormat))
     }.apply { onDayTapped={ point ->
-        this@HrvTrendsView.actionDay=point.day;this.actionDay=point.day;questionnaire.isEnabled=true;measurement.isEnabled=true;remove.isEnabled=true;footer.visibility=VISIBLE
+        this@HrvTrendsView.actionDay=point.day;this.actionDay=point.day;analysis.isEnabled=true;questionnaire.isEnabled=true;measurement.isEnabled=true;remove.isEnabled=true;footer.visibility=VISIBLE
     };onDaySelected={ day ->
         if(resolution==HrvTrendPeriod.DAY) this@HrvTrendsView.onDaySelected(day)
         else this@HrvTrendsView.onPeriodSelected(title(day))
@@ -63,7 +65,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
                 id=generateViewId();tag="hrv_period_${candidate.name}";text=context.getString(candidate.label);isChecked=candidate==resolution
                 setOnCheckedChangeListener { _,checked -> if(checked && resolution!=candidate) {
                     val anchor=selected?.let { HrvDailySelection.day(it.row) }
-                    actionDay=null;chart.actionDay=null;footer.visibility=GONE;questionnaire.isEnabled=false;measurement.isEnabled=false;remove.isEnabled=false
+                    actionDay=null;chart.actionDay=null;footer.visibility=GONE;analysis.isEnabled=false;questionnaire.isEnabled=false;measurement.isEnabled=false;remove.isEnabled=false
                     resolution=candidate;refresh(true,anchor)
                     selected?.let { if(candidate==HrvTrendPeriod.DAY) onDaySelected(it.day) else onPeriodSelected(title(it.day)) }
                 } }
@@ -100,7 +102,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
     }
     fun updateSeries(next:Map<HrvTrendMetric,List<HrvTrendPoint>>,dayContext:Map<LocalDate,Map<HrvContextMode,Double>> = contextData,preserveSelection:Boolean=false) {
         series=next;contextData=dayContext;grouped.clear();axes.clear();contextGroups.clear();colorCache.clear()
-        if(!preserveSelection) { actionDay=null;chart.actionDay=null;footer.visibility=GONE;questionnaire.isEnabled=false;measurement.isEnabled=false;remove.isEnabled=false }
+        if(!preserveSelection) { actionDay=null;chart.actionDay=null;footer.visibility=GONE;analysis.isEnabled=false;questionnaire.isEnabled=false;measurement.isEnabled=false;remove.isEnabled=false }
         refresh()
     }
     private fun applyColors() {

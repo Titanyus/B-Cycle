@@ -1,0 +1,26 @@
+<resources>
+    <string name="hrva_title">Tagesauswertung</string>
+    <string name="hrva_dated_title">Tagesauswertung: %1$s</string>
+    <string name="hrva_hrv">Herzfrequenzvariabilität</string>
+    <string name="hrva_pulse">Ruhepuls</string>
+    <string name="hrva_unavailable">Keine Einordnung möglich</string>
+    <string name="hrva_collecting_title">Normalbereich aufbauen</string>
+    <string name="hrva_plan">Wie geplant trainieren</string>
+    <string name="hrva_limit">Intensität heute begrenzen</string>
+    <string name="hrva_easy">Heute ruhig angehen</string>
+    <string name="hrva_hrv_missing">Für diesen Tag liegt kein auswertbarer HRV-Wert vor.</string>
+    <string name="hrva_collecting">Für deinen persönlichen Normalbereich fehlen noch regelmäßige Messungen.</string>
+    <string name="hrva_low">Deine HRV liegt unter deinem persönlichen Normalbereich.</string>
+    <string name="hrva_normal">Deine HRV liegt in deinem persönlichen Normalbereich.</string>
+    <string name="hrva_high">Deine HRV liegt über deinem persönlichen Normalbereich.</string>
+    <string name="hrva_subjective_unknown">Für die letzten vier Tage liegen keine Angaben zum Befinden vor.</string>
+    <string name="hrva_subjective_good">Dein subjektives Befinden der letzten vier Tage fällt insgesamt gut aus.</string>
+    <string name="hrva_subjective_mixed">Dein subjektives Befinden der letzten vier Tage fällt gemischt aus.</string>
+    <string name="hrva_subjective_poor">Dein subjektives Befinden der letzten vier Tage deutet auf erhöhte Belastung hin.</string>
+    <string name="hrva_subjective_period">Tagesbefinden · %1$s–%2$s · %3$d von 4 Tagen</string>
+    <string name="hrva_pulse_value">%1$s bpm</string>
+    <string name="hrva_range">Normalbereich: %1$s–%2$s</string>
+    <string name="hrva_range_missing">Normalbereich noch nicht verfügbar</string>
+    <string name="hrva_metric_accessibility">%1$s: %2$s. %3$s</string>
+    <string name="hrva_help">Der vorläufige HRV-Wert wird als 2 × ln(RMSSD in Millisekunden) berechnet. Eine zusätzliche Alterskorrektur wird derzeit nicht angewendet. Die Skala ist nicht auf 0–10 begrenzt.\n\nDer persönliche Normalbereich stammt unverändert aus unserer HRV-Auswertung: die vorherigen 60 Kalendertage, mindestens 14 verfügbare Tageswerte, Mittelwert plus/minus eine Stichproben-Standardabweichung. Für die Anzeige werden die Bereichsgrenzen ebenfalls logarithmisch umgerechnet.\n\nDas subjektive Befinden umfasst den ausgewählten Tag und seine drei Vortage. Pro Tag werden vorhandene Angaben zu Schlafqualität, Energie, Motivation, Müdigkeit und Muskelkater gleichgewichtet zusammengefasst; anschließend werden vorhandene Tage gemittelt. Fehlende Angaben zählen nicht als normale oder gute Werte.\n\nVorläufige Einordnung: unterhalb des HRV-Bereichs Intensität begrenzen, bei zusätzlich ungünstigem Befinden ruhig angehen. Innerhalb oder oberhalb wie geplant, bei ungünstigem Befinden ebenfalls Intensität begrenzen. Ohne ausreichende HRV-Historie geben wir keine Trainingsempfehlung. Die Hinweise folgen unseren eigenen vorläufigen Regeln und deinem persönlichen Verlauf.</string>
+</resources>

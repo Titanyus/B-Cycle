@@ -158,7 +158,7 @@ internal object BicycleDialogStyle {
         if (view is DatePicker) { BicycleNavigation.dateHeader(view,themes); return }
         if (view is BicycleFooterAction || view.tag == "bicycle_action_footer") return
         // This reference screen owns every detail, including its compact action geometry.
-        if (view is SettingsMenuView || view is BikesView || view is RiderProfileView || view is RouteManagerView || view is ThemePickerView || view is RouteAnalysisView || view is RouteAnalysisMap || view.tag == "route_analysis_header" || view.tag == "bicycle_dialog_header") return
+        if (view is HrvDailyAssessmentView || view is SettingsMenuView || view is BikesView || view is RiderProfileView || view is RouteManagerView || view is ThemePickerView || view is RouteAnalysisView || view is RouteAnalysisMap || view.tag == "route_analysis_header" || view.tag == "bicycle_dialog_header") return
         if (view is Spinner) { spinner(view, themes); return }
         if (view is ListView) {
             BicycleComponents.bindTheme(view, themes) { tokens ->

@@ -29,3 +29,6 @@ Entscheidung 22.10.2026: eine tägliche Readiness-Messung ist das Produktziel. K
 Aktualisierte Entscheidung: Bei Wiederholungen gilt jetzt ausschließlich die letzte Messung pro gespeichertem lokalem Tag; ältere bleiben archiviert. Diese ausdrücklich nachträglich beauftragte Regel ersetzt den früheren Ausschluss einer Mehrfachmessungsauswahl. Implementierung und Grenzfälle: [HRV-Tagesauswahl](hrv-daily-selection.md). Kein neuer Score und keine allgemeine Altersformel implementiert. Aus einem Export mit nur einer festen Altersangabe lässt sich eine persönliche Umrechnung sehr genau anpassen, jedoch keine allgemeine Altersabhängigkeit identifizieren.
 
 Nachfolgender Auftrag: transparenter Kennzahlenverlauf ohne neuen Score umgesetzt, siehe [HRV-Auswertung](hrv-trends.md). Er ersetzt die frühere Aussage, dass noch kein Langzeitgraph vorhanden sei. Baseline und eigener Normalbereich sind ausdrücklich dokumentiert; keine allgemeine Altersformel.
+
+
+28.10.2026: Nutzer beauftragt ausdrücklich eigenen nachvollziehbaren Wert statt exakter HRV4Training-Nachbildung. Erster funktionaler Tagesauswertungsscreen mit2×ln(RMSSD inms), ohne Alterskorrektur, unverändertem persönlichen Bereich und vier Tagen Befinden umgesetzt. Keine Behauptung einer identischen oder validierten HRV4Training-Formel. [Aktuelle Regeln](hrv-daily-assessment.md).

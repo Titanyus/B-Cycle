@@ -23,3 +23,6 @@ Daraus ergeben sich drei belegte Beispiele, kein vollständiger Entscheidungsbau
 Vorhandenen Tages-RMSSD bzw. transparentes lnRMSSD gegen eigenen persönlichen Normalbereich prüfen; HRV4Training-Skala nicht erforderlich. Empfehlung und subjektiven Kontext separat ausgeben, damit niedrige HRV und gutes Befinden zusammen verständlich bleiben. Eigener Vier-Tage-Mittelwert ist ein Zustandsmaß, noch kein steigender/fallender Trend; für Trendformulierungen muss eine Vergleichsreferenz definiert werden. Krankheit/Schmerzen und zu geringe Messhistorie nicht in einem Durchschnitt verschwinden lassen. Nicht aus Restpuls allein eine gegenteilige Trainingsfreigabe ableiten.
 
 Bestehender B|CYCLE-Diagrammkorridor ist eigene beschreibende Statistik (Mittelwert±1Stichproben-SD vorheriger60Tage, mindestens14Werte). Ihn nicht als identisch zu HRV4Training oder als schon validierte Trainingssteuerung ausgeben. Bestehende Messdaten, Akzeptanz und Tagesauswahl unverändert.
+
+
+Nachfolgend ausdrücklich beauftragt und als eigener Entwurf umgesetzt: [HRV-Tagesauswertung](hrv-daily-assessment.md). Eigener2ln-Wert ohne Alterskorrektur, eigener bestehender persönlicher Korridor, vier subjektive Kalendertage und bewusst keine Trendzeile. Die frühere Angabe nicht umgesetzt/deaktiviert ist Recherchehistorie.
