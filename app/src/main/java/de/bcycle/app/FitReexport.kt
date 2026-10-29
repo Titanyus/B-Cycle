@@ -95,6 +95,7 @@ internal object FitReexport {
         name in config.fields->true
         name=="GPS_ALTITUDE_MSL"->"GPS_ALTITUDE" in config.fields
         name in PrimaryRecording.columns->PrimaryRecording.control(name,config) in config.fields
+        name in setOf(ConfirmedBikePause.FLAG,"NP_DATA_COVERAGE","NP_PAUSED_TIME")->"NORMALIZED_POWER" in config.fields
         name=="ENERGY_GROSS_EFFICIENCY"->"CALORIES" in config.fields
         name in qualityDeveloper->RecordingFields.summaries.any { it.id in config.fields }
         else->false

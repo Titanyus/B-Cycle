@@ -5,7 +5,7 @@ import java.io.*
 /** Disk-backed, bounded sensor-event batches in the existing samples; memory does not grow with ride duration. Worker thread only. */
 class RideJournal(val file: File, val startUtcMs: Long, val config: RecordingConfig) : Closeable {
     private val fields = RecordingFields.options.filter { it.id != "GPS_POSITION" && it.scope == FitFieldScope.RECORD }.map { it.id } +
-        listOf("GPS_ALTITUDE_MSL")+PrimaryRecording.columns
+        listOf("GPS_ALTITUDE_MSL",ConfirmedBikePause.FLAG)+PrimaryRecording.columns
     private val stream = FileOutputStream(file)
     private val output = DataOutputStream(BufferedOutputStream(stream))
     private var count = 0

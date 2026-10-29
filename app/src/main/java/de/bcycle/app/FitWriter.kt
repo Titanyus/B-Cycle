@@ -52,7 +52,7 @@ object FitWriter {
             }
             RideJournal.read(journal) { start, selectedConfig, allDeveloperIds, records ->
                 val config=if(fullData) selectedConfig.copy(fields=RecordingFields.options.map { it.id }.toSet()+(selectedConfig.fields intersect setOf(PrimaryRecording.FLAG))) else selectedConfig
-                val developerIds=allDeveloperIds.filter { it in config.fields || it=="GPS_ALTITUDE_MSL" && "GPS_ALTITUDE" in config.fields || PrimaryRecording.FLAG in config.fields && PrimaryRecording.control(it,config) in config.fields }
+                val developerIds=allDeveloperIds.filter { it in config.fields || it==ConfirmedBikePause.FLAG && (fullData || "NORMALIZED_POWER" in config.fields) || it=="GPS_ALTITUDE_MSL" && "GPS_ALTITUDE" in config.fields || PrimaryRecording.FLAG in config.fields && PrimaryRecording.control(it,config) in config.fields }
                 val startStamp = timestamp(start).toDouble()
                 message(0, 0, listOf(en(0, 4), u16(1, 255.0), u16(2, 0.0), number(3, 0x8c, 4, 1), u32(4, startStamp)))
                 // Device metadata identifies the generating application, not a fabricated Garmin device.
@@ -88,8 +88,7 @@ object FitWriter {
                 val moving = MovingTime()
                 var count = 0
                 for (sample in records) {
-                    sample.performanceEvents.forEach(performance::accept)
-                    performance.advance(sample.elapsedMs)
+                    performance.acceptSample(sample)
                     val v = sample.values
                     fun selected(id: String) = PrimaryRecording.value(v,id,config).takeIf { id in config.fields }
                     val speed = selected(config.speedSource)
@@ -162,6 +161,10 @@ object FitWriter {
                     custom += Triple("POWER_ZERO_STATE_TIME", "s", calculated.quality.continuedZeroMs / 1000.0)
                     custom += Triple("POWER_MISSING_TIME", "s", (calculated.quality.activeMs - calculated.quality.powerMs) / 1000.0)
                     custom += Triple("POWER_MAX_GAP", "s", calculated.quality.longestPowerGapMs / 1000.0)
+                    if("NORMALIZED_POWER" in config.fields) {
+                        custom += Triple("NP_DATA_COVERAGE","%",calculated.quality.npPowerCoverage*100)
+                        custom += Triple("NP_PAUSED_TIME","s",calculated.quality.npPausedMs/1000.0)
+                    }
                     custom += Triple("PERFORMANCE_MODEL_VERSION", "version", PerformanceEngine.MODEL_VERSION.toDouble())
                     if ("CALORIES" in config.fields && calculated.caloriesKcal != null) custom += Triple("ENERGY_GROSS_EFFICIENCY", "ratio", .24)
                 }

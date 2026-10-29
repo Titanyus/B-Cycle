@@ -18,6 +18,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class PerformanceSettingsTest {
+    private fun resolved(c:RecordingConfig)=c.copy(sourcePreferences=c.sourcePreferences ?: RecordingSources.defaults(c,c.indoor))
     private fun views(v: View): List<View> = listOf(v) + if (v is ViewGroup)
         (0 until v.childCount).flatMap { views(v.getChildAt(it)) } else emptyList()
     private fun open(activity: MainActivity): AlertDialog {
@@ -52,7 +53,7 @@ class PerformanceSettingsTest {
             assertTrue(restored.getValue("record_EFFICIENCY_FACTOR").isChecked)
             assertTrue(restored.getValue("record_ESTIMATED_FTP").isChecked)
             assertFalse(restored.getValue("record_NORMALIZED_POWER").isChecked)
-            assertEquals(runtime.config, RecordingConfig.decode(prefs.getStringSet("recordFields", null), prefs.getString("recordSpeed", null), prefs.getString("recordDistance", null)))
+            assertEquals(runtime.config, RecordingConfig.decode(prefs.getStringSet("recordFields", null), prefs.getString("recordSpeed", null), prefs.getString("recordDistance", null),prefs.getStringSet("recordMetadata",null),prefs.getString(RecordingSources.KEY,null)))
         } finally { recreated.pause().stop().destroy() }
     }
     @Test fun defaultsDoNotEnableSummariesAndGpsDependencyDoesNotChangeExportSelection() {
@@ -89,9 +90,9 @@ class PerformanceSettingsTest {
             assertSame(dialog, ShadowAlertDialog.getLatestAlertDialog())
             assertEquals(View.VISIBLE,dialog.window!!.decorView.findViewWithTag<View>("fit_source_content_$source").visibility)
             assertTrue(dialog.window!!.decorView.findViewWithTag<Switch>("record_NORMALIZED_POWER").isChecked)
-            assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)
+            assertEquals(resolved(before.copy(fields=before.fields+"NORMALIZED_POWER")),resolved(runtime.config))
             testBack(dialog)
-            assertEquals(before.copy(fields=before.fields+"NORMALIZED_POWER"),runtime.config)
+            assertEquals(resolved(before.copy(fields=before.fields+"NORMALIZED_POWER")),resolved(runtime.config))
         } finally { controller.pause().stop().destroy() }
     }
 

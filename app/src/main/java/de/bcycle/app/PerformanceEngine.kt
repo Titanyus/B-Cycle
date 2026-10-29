@@ -4,7 +4,7 @@ import kotlin.math.*
 
 /** Sources are identities, not claims about accuracy or about where a future meter is mounted. */
 enum class PowerSource { BOSCH_RIDER, CYCLING_POWER_BLE, ANT_PLUS, PEDAL, FTMS }
-enum class PerformanceChannel { POWER, HEART_RATE, SPEED, PAUSE, RESUME, BIKE_ACTIVITY }
+enum class PerformanceChannel { POWER, HEART_RATE, SPEED, PAUSE, RESUME, BIKE_ACTIVITY, NP_PAUSE }
 
 /** All times use the ride's monotonic epoch. Null sensor time means receipt time, never invented timing. */
 data class PerformanceEvent(
@@ -27,9 +27,11 @@ data class PerformanceQuality(
     val longestPowerGapMs: Long, val powerGapCount: Long, val npWindows: Long, val heartAvailableMs: Long,
     val continuedZeroMs: Long = 0,
     val potentialNpWindows: Long = 0,
+    val npPausedMs:Long=0,
 ) {
     /** Coverage includes telemetry-supported explicit zero states; it is not sensor accuracy. */
     val powerCoverage get() = if (activeMs > 0) powerMs.toDouble() / activeMs else 0.0
+    val npPowerCoverage get() = (activeMs-npPausedMs).let { if(it>0) powerMs.toDouble()/it else 0.0 }
     val npWindowCoverage get() = if(potentialNpWindows>0) npWindows.toDouble()/potentialNpWindows else 0.0
 }
 
@@ -44,7 +46,7 @@ data class PerformanceValues(
 /** Only bounded state: actual events -> time integral -> complete 1 s bins -> complete 30 s windows. */
 class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), powerDurationsMs: List<Long> = emptyList(), private val primaryPowerSource:PowerSource=PowerSource.BOSCH_RIDER,private val resolvedPower:Boolean=false) {
     companion object {
-        const val MODEL_VERSION = 4
+        const val MODEL_VERSION = 5
         const val MAX_HOLD_MS = 5_000L
         const val MIN_COVERAGE = .95
         const val MIN_NP_COVERAGE = .90
@@ -55,6 +57,9 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
     }.toMap()
     private var cursor = 0L
     private var paused = false
+    private var npPaused=false
+    private var npPausedMs=0L
+    private var npPauseUntil=0L
     private val readings = mutableMapOf<PerformanceChannel, PerformanceEvent>()
     private var activeMs = 0L; private var powerMs = 0L; private var continuedZeroMs = 0L
     private var workJ = 0.0; private var speedMs = 0L; private var speedIntegral = 0.0; private var pairedWorkJ = 0.0
@@ -82,8 +87,13 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
             return // An independent comparison source must never invalidate or overwrite Bosch.
         }
         when (event.channel) {
-            PerformanceChannel.PAUSE -> { paused = true; powerWindows.values.forEach { it.breakContinuity() }; readings.clear(); clearWindow(); segmentSeconds = 0; gapMs = 0; binPowerMs = 0; binWorkJ = 0.0 }
-            PerformanceChannel.RESUME -> { paused = false; powerWindows.values.forEach { it.breakContinuity() }; readings.clear(); clearWindow(); segmentSeconds = 0; gapMs = 0; binEnd = cursor + 1_000; binPowerMs = 0; binWorkJ = 0.0 }
+            PerformanceChannel.NP_PAUSE -> {
+                val confirmed=event.connected && event.value==1.0 && reading(PerformanceChannel.POWER)==null
+                if(confirmed) npPauseUntil=cursor+MAX_HOLD_MS
+                setNpPaused(confirmed)
+            }
+            PerformanceChannel.PAUSE -> { paused = true; npPaused=false; powerWindows.values.forEach { it.breakContinuity() }; readings.clear(); clearWindow(); segmentSeconds = 0; gapMs = 0; binPowerMs = 0; binWorkJ = 0.0 }
+            PerformanceChannel.RESUME -> { paused = false; npPaused=false; powerWindows.values.forEach { it.breakContinuity() }; readings.clear(); clearWindow(); segmentSeconds = 0; gapMs = 0; binEnd = cursor + 1_000; binPowerMs = 0; binWorkJ = 0.0 }
             else -> {
                 val finite = event.value?.isFinite() == true
                 val valid = finite && event.connected && event.receivedAtMs <= event.atMs &&
@@ -96,6 +106,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
                         else -> false
                     }
                 if (valid) readings[event.channel] = event else readings.remove(event.channel)
+                if(valid && event.channel==PerformanceChannel.POWER && npPaused) setNpPaused(false)
                 if (event.channel == PerformanceChannel.POWER) { latestPower = PowerMeasurement(
                     runCatching { PowerSource.valueOf(event.source) }.getOrDefault(PowerSource.BOSCH_RIDER),
                     event.value, event.receivedAtMs, event.sensorTimeMs, event.connected, valid, gapMs.takeIf { it > 0 })
@@ -103,6 +114,10 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
                 }
             }
         }
+    }
+    private fun setNpPaused(value:Boolean) {
+        if(npPaused==value) return
+        npPaused=value;clearWindow();segmentSeconds=0;binEnd=cursor+1000;binPowerMs=0;binWorkJ=0.0
     }
     private fun observedDeadline(event: PerformanceEvent) = minOf(event.receivedAtMs,
         event.sensorTimeMs ?: event.receivedAtMs) + MAX_HOLD_MS
@@ -128,22 +143,28 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
         require(untilMs >= cursor) { "Performance clock must be monotonic" }
         if (paused) { cursor = untilMs; return }
         while (cursor < untilMs) {
+            if(npPaused && cursor>=npPauseUntil) setNpPaused(false)
             val power = reading(PerformanceChannel.POWER)
             val speed = reading(PerformanceChannel.SPEED)
             val heart = reading(PerformanceChannel.HEART_RATE)
+            if(power!=null && npPaused) setNpPaused(false)
             // Long empty stretches take constant time rather than iterating over hours of missing bins.
             if (power == null) {
                 powerWindows.values.forEach { it.breakContinuity() }
-                var end = untilMs
+                var end = if(npPaused) minOf(untilMs,npPauseUntil) else untilMs
                 speed?.let { end = minOf(end, deadline(it)) }; heart?.let { end = minOf(end, deadline(it)) }
                 val dt = end - cursor
                 if (heart != null) { heartAvailableMs += dt; heartAvailableIntegral += heart.value!! * dt }
                 activeMs += dt; if (gapMs == 0L) gapCount++
                 gapMs += dt; longestGap = maxOf(longestGap, gapMs)
                 clearWindow(); binPowerMs = 0; binWorkJ = 0.0
-                val crossed = if (end >= binEnd) (end - binEnd) / 1000 + 1 else 0
-                potentialWindows += (segmentSeconds + crossed - 29).coerceAtLeast(0) - (segmentSeconds - 29).coerceAtLeast(0)
-                segmentSeconds += crossed; binEnd += crossed * 1000
+                if(npPaused) {
+                    npPausedMs+=dt;segmentSeconds=0;binEnd=end+1000
+                } else {
+                    val crossed = if (end >= binEnd) (end - binEnd) / 1000 + 1 else 0
+                    potentialWindows += (segmentSeconds + crossed - 29).coerceAtLeast(0) - (segmentSeconds - 29).coerceAtLeast(0)
+                    segmentSeconds += crossed; binEnd += crossed * 1000
+                }
                 cursor = end
                 continue
             }
@@ -180,11 +201,11 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
     /** Read-only mean of the already integrated, resolved recording power. */
     internal val observedAveragePowerW get()=if(powerMs>0) workJ*1000/powerMs else null
     fun snapshot(): PerformanceValues {
-        val quality = PerformanceQuality(activeMs, powerMs, speedMs, heartMs, longestGap, gapCount, windowCount, heartAvailableMs, continuedZeroMs,potentialWindows)
+        val quality = PerformanceQuality(activeMs, powerMs, speedMs, heartMs, longestGap, gapCount, windowCount, heartAvailableMs, continuedZeroMs,potentialWindows,npPausedMs)
         // A local gap breaks its 30 s windows and FTP continuity, not an otherwise
         // well-covered ride. Coverage and complete-window coverage remain required.
         val enough = activeMs > 0 && quality.powerCoverage >= MIN_COVERAGE
-        val np = if (activeMs > 0 && quality.powerCoverage >= MIN_NP_COVERAGE && windowCount > 0 && potentialWindows > 0 && windowCount.toDouble() / potentialWindows >= MIN_NP_COVERAGE)
+        val np = if (activeMs > 0 && quality.npPowerCoverage >= MIN_NP_COVERAGE && windowCount > 0 && potentialWindows > 0 && windowCount.toDouble() / potentialWindows >= MIN_NP_COVERAGE)
             fourthMean.coerceAtLeast(0.0).pow(.25).takeIf { it.isFinite() } else null
         // Work is the observed integral, not a rescaled estimate for unobserved seconds.
         val work = (workJ / 1000).takeIf { enough && it.isFinite() }

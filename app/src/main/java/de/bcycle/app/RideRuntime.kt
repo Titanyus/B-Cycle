@@ -139,6 +139,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private val latestPerformance = mutableMapOf<PerformanceChannel, PerformanceEvent>()
     private val pendingPerformance = ArrayList<PerformanceEvent>()
     private var performanceOverflow = false
+    private val confirmedBikePause=ConfirmedBikePause()
     private var mainBikeSpeedSeen = false
     val powerMeasurement: PowerMeasurement? get() = latestPerformance[PerformanceChannel.POWER]?.let {
         PowerMeasurement(runCatching { PowerSource.valueOf(it.source) }.getOrDefault(primaryPowerSource), it.value, it.receivedAtMs, it.sensorTimeMs, it.connected,
@@ -726,7 +727,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         cadenceAverage.reset();lastCadenceSample=null;indoorRide.reset()
         heartSum = 0; heartCount = 0; pulse = pulse.copy(average = null, maximum = null)
         startElapsed = SystemClock.elapsedRealtime(); startUtc = System.currentTimeMillis()
-        completedElapsedMs = null
+        completedElapsedMs = null;confirmedBikePause.reset()
         performance = PerformanceEngine(primaryPowerSource=primaryPowerSource,resolvedPower=true); pendingPerformance.clear(); performanceOverflow = false
         graphContinuedZeroMs=0; liveGraphs.begin()
         if (activeConfig.speedSource == "GPS_SPEED") captureGpsPerformance()
@@ -758,8 +759,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     private fun appendSample(): Long {
         val sample = sample()
-        sample.performanceEvents.forEach(performance::accept)
-        performance.advance(sample.elapsedMs)
+        performance.acceptSample(sample)
         val continued=performance.snapshot().quality.continuedZeroMs
         liveGraphs.append(graphPoint(sample,activeConfig,continued > graphContinuedZeroMs,
             connection.isLive && bikeData.value(LiveMetric.CADENCE)==0L))
@@ -814,6 +814,10 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
             } else { primaryElevation.breakSegment();primarySlope=null }
             set("PRIMARY_ASCENT",primaryElevation.ascent);set("PRIMARY_DESCENT",primaryElevation.descent)
         }
+        val npPause=confirmedBikePause.update(now,recording && bikes.current().type==BikeType.EBIKE,
+            connection.isLive,primaryPower(now)!=null,gps.speedKmh?.div(3.6),
+            ride.gps.lastObservationTimeMs.takeIf { gpsEnabled && !isIndoor },ride.gps.lastObservationAccuracyM)
+        values[ConfirmedBikePause.FLAG]=if(npPause) 1.0 else 0.0
         return RideSample(startUtc + now - startElapsed, now - startElapsed, gps.latitude.takeIf { gpsEnabled && !isIndoor }, gps.longitude.takeIf { gpsEnabled && !isIndoor }, values, pendingPerformance.toList())
     }
     private fun primarySpeed(now:Long):ChosenReading? {

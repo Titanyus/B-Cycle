@@ -27,6 +27,7 @@ class GpsRide(private var collecting: Boolean = true) {
     private var seenTime = -1L
     private var last: GpsFix? = null
     val lastObservationTimeMs get() = last?.timeMs
+    internal val lastObservationAccuracyM get() = last?.accuracyM
     private var anchor: GpsFix? = null
     private var clock: Long? = null
     private var hasFix = false

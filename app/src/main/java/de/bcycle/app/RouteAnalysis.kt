@@ -139,7 +139,7 @@ internal object RouteAnalysisRead {
                         v("power") ?: dev("RIDER_POWER", "W"), v("cadence") ?: dev("CADENCE", "rpm") ?: dev("CADENCE", "U/min"),
                         v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("PRIMARY_HEIGHT","m") ?: dev("GPS_ALTITUDE", "m"),
                         v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"), dev("SPEED", "m/s"),FitDeveloperValues.number(message,"BATTERY_TEMPERATURE","°C",signed=true),positionObserved=positionObserved,
-                        speedObserved=message.getField("speed")!=null || message.getField("enhanced_speed")!=null || dev("SPEED","m/s")!=null || dev("GPS_SPEED","m/s")!=null)
+                        npPaused=dev(ConfirmedBikePause.FLAG,"bool"),speedObserved=message.getField("speed")!=null || message.getField("enhanced_speed")!=null || dev("SPEED","m/s")!=null || dev("GPS_SPEED","m/s")!=null)
                 }
                 18, 19 -> builder.summary(message, message.num == 18)
                 21 -> if (number(message, "event") == 0.0) builder.timer(number(message, "timestamp"), number(message, "event_type"))
@@ -196,7 +196,7 @@ internal object RouteAnalysisRead {
                 performance.accept(PerformanceEvent(if (kind == 0.0) PerformanceChannel.RESUME else PerformanceChannel.PAUSE, time))
             }
         }
-        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null,batteryTemperature:Double?=null,positionObserved:Boolean=true,speedObserved:Boolean=true) {
+        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null,batteryTemperature:Double?=null,positionObserved:Boolean=true,speedObserved:Boolean=true,npPaused:Double?=null) {
             count++; require(count <= 600_000)
             val stamp = time?.takeIf { firstTime == null || it >= (lastTime ?: it) }
             if (stamp != null) { if (firstTime == null) firstTime = stamp; lastTime = stamp }
@@ -254,6 +254,7 @@ internal object RouteAnalysisRead {
                     performance.accept(PerformanceEvent(PerformanceChannel.POWER, at, p, source = powerSource.name))
                 if(speedObserved) performance.accept(PerformanceEvent(PerformanceChannel.SPEED, at, s, source = "FIT"))
                 performance.accept(PerformanceEvent(PerformanceChannel.HEART_RATE, at, h, source = "FIT"))
+                npPaused?.takeIf { it==0.0 || it==1.0 }?.let { performance.accept(PerformanceEvent(PerformanceChannel.NP_PAUSE,at,it)) }
             }
         }
         fun summary(message: Mesg, session: Boolean) {

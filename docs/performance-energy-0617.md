@@ -188,3 +188,6 @@ kein zusätzlicher vollständiger Lint-Lauf oder Gerätetest. Keine neue signier
 
 
 NachBuild104,29.10.2026: ausdrückliche Nutzerentscheidung reduziert ausschließlich die NP-Daten-/Fensterqualitätsgrenzen von95% auf90% (MIN_NP_COVERAGE). Gemeinsame95%-Grenzen für Arbeit/Kalorien/Ratio bleiben erhalten; FTP95%-Faktor bleibt erhalten. Vollständige30sFenster weiter ohne Lückenfüllung/Verkettung, EF wiebisher vollständig gepaartePulsintervalle. Performance-MODEL_VERSION4 kennzeichnet geänderteFreigabepolitik bei künftigen Exporten; Rohdaten/Dateiformat unverändert, vorhandeneFITnichtautomatischüberschreiben. Fehlerhinweise verwenden90%.
+
+
+NachfolgendeNutzerentscheidung29.10.2026: bestätigte E-Bike-Standpausen werden ausschließlich aus NP-Zeit/Fensterabdeckung entfernt. Aufnahme/Gesamtzeit bleiben durchgehend; keine Wattwerte erfinden.90%-NP-Grenzen beziehen sich aufNP-Auswertungszeit. Andere95%-Kennzahlenregeln bleiben unverändert. Modellversion5, benannte Journal-/FIT-Marker, keine automatische Änderung alterFIT. [Nachweise und Grenzen](confirmed-np-pauses.md).

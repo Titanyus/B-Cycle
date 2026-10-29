@@ -139,6 +139,36 @@ class RecordingFlowTest {
             assertTrue(fit.recordMesgs.any { it.power==null })
         } finally { controller.destroy();runtime.setVisible(false) }
     }
+    @Test @Config(sdk=[33]) fun runtimeMarksOnlyGpsConfirmedBikeRestWithoutStoppingRecording() {
+        val app=RuntimeEnvironment.getApplication();provider()
+        shadowOf(app).grantPermissions(Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION)
+        val runtime=RideRuntime.get(app);runtime.setGpsEnabled(true)
+        runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER","NORMALIZED_POWER","GPS_ELAPSED_TIME")))
+        val phase=runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible=true }
+        phase.set(runtime.connection,phase.type.enumConstants!!.single { it.toString()=="LIVE" })
+        fun tick():RideSample {
+            SystemClock.sleep(1000)
+            val now=SystemClock.elapsedRealtime()
+            runtime.ride.gps.accept(GpsFix(now,50.0,8.0,3.0,speedMps=0.0,speedAccuracyMps=.1),now)
+            val row=RideRuntime::class.java.getDeclaredMethod("sample").apply { isAccessible=true }.invoke(runtime) as RideSample
+            RideRuntime::class.java.getDeclaredMethod("appendSample").apply { isAccessible=true }.invoke(runtime)
+            return row
+        }
+        runtime.beginRecording();runtime.setVisible(false)
+        try {
+            repeat(3) { tick() }
+            runtime.connection.stop()
+            var row:RideSample?=null
+            repeat(14) { row=tick() }
+            assertEquals(1.0,row!!.values[ConfirmedBikePause.FLAG]!!,0.0)
+            assertTrue(runtime.recording);assertTrue(runtime.active)
+            runtime.setGpsEnabled(false)
+            row=RideRuntime::class.java.getDeclaredMethod("sample").apply { isAccessible=true }.invoke(runtime) as RideSample
+            assertEquals(0.0,row.values[ConfirmedBikePause.FLAG]!!,0.0)
+            assertTrue(runtime.recording)
+        } finally { runtime.stopRecording();await { !runtime.saving };runtime.setVisible(false) }
+    }
     @Test fun recordingClockWorksWithoutGpsFreezesAtStopAndMatchesFitTerminalSample() {
         val app = RuntimeEnvironment.getApplication()
         val downloads = provider(); val runtime = RideRuntime.get(app)
