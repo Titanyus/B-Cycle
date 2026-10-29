@@ -36,3 +36,14 @@ Ohne aufgezeichnete GPS-Koordinaten kann keine echte Kartenstrecke rekonstruiert
 ## Private Vollauswertung und begrenzter FIT-Export (20.10.2026)
 
 Das BCY7-Journal bewahrt verfügbare Rohwerte während der Aufnahme unabhängig von der FIT-Feldauswahl. Die Auswahl wird gesondert erhalten und im normalen FitWriter vollständig angewandt, einschließlich Entwicklerfeldern und GPS. Private vollständige Auswertungsquelle und reduzierter Export sind getrennt. Die bestehenden START/STOPP-, Sensor- und GPS-Grenzen bleiben erhalten. Details: [Private Auswertung](dreeve-workflow-and-private-analysis.md). Ältere bereits verworfene Daten bleiben verloren.
+
+
+## Eine Fahrt bis zum manuellen Stoppen
+
+Ausdrückliche Nutzerregel29.10.2026: Abschalten/automatisches Einschlafen des Fahrrads oder eine längere Pause beenden und speichern keine laufende Aufnahme. Wiederverbindung liefert weitere Messwerte in dieselbe Sitzung, ohne Uhr/Journal/ID zurückzusetzen. Gesamtdauer umfasst die Pause; Bewegungszeit wächst nur aus gültigen Bewegungswerten. Fehlende Sensorwerte bleiben unbekannt, keine erfundenen Nullen oder Messwertfortschreibung über die bestehenden Grenzen.
+
+Bereits im Produktcode vorhanden: active=visible||recording hält Runtime-Ticks und Wiederverbindungsregeln auch ohne sichtbare Activity aktiv. Die Aufnahme setzt connectionsRequested; bekannte und aktivierte Sensoren werden bei ungeplanter Trennung erneut verbunden (Versuche3s bis30s). Manuell in der App getrennte Sensoren bleiben absichtlich ausgeschlossen. RecordingService arbeitet als Vordergrunddienst mit PARTIAL_WAKE_LOCK, GPS läuft bei aktivierter Auswahl weiter. Rad-Aus ist kein STOP-Trigger. Erneutes START bei laufender Aufnahme ist wirkungslos.
+
+Neuer Integrationstest longBikeShutdownWithScreenOffKeepsOneRideUntilManualStop:45min simulierte Trennung ohne sichtbare Activity, weiterhin Aufnahme/Foregroundservice/Retrybereitschaft, fehlende Wattwerte statt Nullen, neue Werte nach simuliertemReconnect, unverändertes Journal bei erneutemSTART und genau eine Sitzung/FIT nach manuellemSTOP. Zusammen mit bestehendem Hintergrund-/GPS-Test und AutoReconnectTest9Fälle grün (beide Integrationsfälle aufAPI33/35/36, Policy3Fälle). Log/workspace/.tools/recording-long-bike-pause-tests.log. KeineProduktionsänderung nötig, kein physischerLangzeittest amRad.
+
+Betriebssystemseitiges Beenden/Force-Stop/Handyneustart ist kein bloßes Bildschirm-Aus und wird durch diese Regel nicht als garantiert unterbrechungsfrei fortsetzbar behauptet. Unabhängige Einschränkung: ohne explizite Pauseereignisse zählt unbekannte Leistung während Rad-Aus aktuell zur NP-Datenabdeckung; lange Pausen können NP trotz erhaltener Gesamtsitzung sperren. Die NP-/Pausenpolitik wurde hier nicht verändert.

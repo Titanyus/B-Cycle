@@ -96,6 +96,49 @@ class RecordingFlowTest {
         assertEquals(1, provider.published.size)
         controller.destroy()
     }
+    @Test fun longBikeShutdownWithScreenOffKeepsOneRideUntilManualStop() {
+        val app=RuntimeEnvironment.getApplication()
+        shadowOf(app).grantPermissions(Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.POST_NOTIFICATIONS)
+        val downloads=provider();val runtime=RideRuntime.get(app)
+        runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER","GPS_ELAPSED_TIME")))
+        val phase=runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible=true }
+        fun live(power:Long) {
+            phase.set(runtime.connection,phase.type.enumConstants!!.single { it.toString()=="LIVE" })
+            runtime.onSamples(listOf(McspSample(LiveMetric.RIDER_POWER.address,power,true)))
+            runtime.onData(LiveData(riderPowerWatts=power.toInt()),true)
+        }
+        fun append() { RideRuntime::class.java.getDeclaredMethod("appendSample").apply { isAccessible=true }.invoke(runtime) }
+        live(150);runtime.setVisible(true)
+        val controller=Robolectric.buildService(RecordingService::class.java).create();val service=controller.get()
+        try {
+            service.onStartCommand(Intent(app,RecordingService::class.java).setAction(RecordingService.START),0,1)
+            await { File(app.filesDir,"pending-rides").listFiles().orEmpty().count { it.extension=="ride" }==1 }
+            val journal=File(app.filesDir,"pending-rides").listFiles()!!.single { it.extension=="ride" }.name
+            runtime.setVisible(false);SystemClock.sleep(1000);append()
+            runtime.connection.stop()
+            SystemClock.sleep(45*60_000L);append()
+            assertTrue(runtime.recording);assertTrue(runtime.active);assertFalse(runtime.saving)
+            assertFalse(shadowOf(service).isForegroundStopped)
+            assertTrue(runtime.elapsedMs>=45*60_000L)
+            val reconnect=RideRuntime::class.java.getDeclaredField("bikeReconnect").apply { isAccessible=true }.get(runtime) as AutoReconnect
+            assertTrue(reconnect.foreground);assertTrue(reconnect.enabled)
+            assertNull((RideRuntime::class.java.getDeclaredMethod("sample").apply { isAccessible=true }.invoke(runtime) as RideSample).values["RIDER_POWER"])
+            live(250);SystemClock.sleep(1000);append()
+            val elapsed=runtime.elapsedMs
+            runtime.beginRecording() // A repeated start/reconnect must not open a second ride.
+            assertEquals(elapsed,runtime.elapsedMs)
+            assertEquals(listOf(journal),File(app.filesDir,"pending-rides").listFiles().orEmpty().filter { it.extension=="ride" }.map { it.name })
+            assertTrue(downloads.published.isEmpty())
+            service.onStartCommand(Intent(app,RecordingService::class.java).setAction(RecordingService.STOP),0,2)
+            await { !runtime.saving }
+            assertFalse(runtime.recording);assertEquals(1,downloads.published.size)
+            val fit=downloads.published.single().inputStream().use { FitDecoder().decode(it) }
+            assertEquals(1,fit.sessionMesgs.size)
+            assertTrue(fit.sessionMesgs.single().totalElapsedTime>=2700f)
+            assertTrue(fit.recordMesgs.any { it.power==150 });assertTrue(fit.recordMesgs.any { it.power==250 })
+            assertTrue(fit.recordMesgs.any { it.power==null })
+        } finally { controller.destroy();runtime.setVisible(false) }
+    }
     @Test fun recordingClockWorksWithoutGpsFreezesAtStopAndMatchesFitTerminalSample() {
         val app = RuntimeEnvironment.getApplication()
         val downloads = provider(); val runtime = RideRuntime.get(app)
