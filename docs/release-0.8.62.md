@@ -5,4 +5,4 @@
 
 Prüfung:9gezielte Fälle für Dashboarddarstellung, Schattenfreiheit, Kreisabstand, unveränderte Footerhöhe, lange Namen, Start/Stop, Profilwahl und Animation/Lifecycle erfolgreich. Native320/360dpFlat/Glow-Vorschauen geprüft. Typografie/Atlas/Diff konsistent. Keine Gesamtsuite und kein neuer Telefon-/Cloudtest.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-103.md).

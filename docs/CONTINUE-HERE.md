@@ -1,3 +1,7 @@
+# APK veröffentlicht29.10.2026:0.8.62 / Build103 / Code132
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.62-release-103.apk) · [Buildnachweis](build-103.md). Quelle `61425d9c03d82b86f7da7ab3fdb7c2bf38fd18ef`, Größe 2497125 Bytes, SHA-256 `c8a0c0fabef45e4c4563245deeee211a67052c56063bd2541f5044839203219a`. Schattenfreier Dashboard-Footer und größerer Record-Kreis enthalten. Signatur/Update-Kompatibilität, CI-Prüfsumme, Manifest und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci]. Keine offene APK-Aufgabe; nachfolgende Abschnitte sind Umsetzungshistorie.
+
 # Nach Build102: Dashboard-Footer ohne Schatten und größerer Record-Kreis
 
 Neuer Nutzerauftrag umgesetzt: Dashboard-Footer inFlat/Glow ohneSchatten, Einstellungsfooter unverändert. Record-Kreis60dpDurchmesser/30dpRadius um20dpIcon; jeSeite20dpFreiraum, wie im Startupdate als Auslegung erklärt. Footerfläche58dp, RecordpositionaufKörperkante, zentrierterName/Rechtskürzung/Bedienung unverändert; nurÜberstand30statt14dp. ZentralerToken ausIcondurchmesser abgeleitet. Nichtmehrbenötigten Dashboard-Schatten-Topinset ausFooterhelper/Shadow entfernt, Shadow fürnormaleEinstellungen erhalten.
