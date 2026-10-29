@@ -1,3 +1,9 @@
+# NachBuild103: Benachrichtigung5sRaster und Hinweise48dp vertikal
+
+Nutzer fordert danachneueAPK. Änderungenumgesetzt: Benachrichtigungs-Slider imbestehenden5–180sBereich in5sSchritten, internIndex0–35, weiterhinSekundenpersistenz. Altwerte nichtbeimÖffnenüberschreiben. Nachrichten+Trinkerinnerung TOP/BOTTOM haben48dpvertikaleMarginszusätzlichsicherenInsets; ausdrücklicheKlarstellung: NICHTseitlich. CENTERundseitlicheAbständeunverändert. NachrichtenmaxhöheumRandabstandangepasst, bestehendeKartengrenzeerhalten. KeineanderenWarnpanelsverschieben.
+
+10Testsgrün: MessageNotificationUiTest5, DrinkReminderDashboardTest1, DrinkReminderUiTest4. Log /workspace/.tools/dashboard-alert-insets-tests.log. NativeUIPosition/Mitte/Seitenmargins/Langtext/Kartengrenze/Sliderkey/Timergeprüft, Typografie/Atlas/Diff grün. KeineGesamtsuite/neuerGerätetest. APK-Auftragaktiv, Version0.8.63/Code133, voraussichtlichBuild104 (tatsächlichenLaufprüfen).
+
 # APK veröffentlicht29.10.2026:0.8.62 / Build103 / Code132
 
 [APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.62-release-103.apk) · [Buildnachweis](build-103.md). Quelle `61425d9c03d82b86f7da7ab3fdb7c2bf38fd18ef`, Größe 2497125 Bytes, SHA-256 `c8a0c0fabef45e4c4563245deeee211a67052c56063bd2541f5044839203219a`. Schattenfreier Dashboard-Footer und größerer Record-Kreis enthalten. Signatur/Update-Kompatibilität, CI-Prüfsumme, Manifest und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci]. Keine offene APK-Aufgabe; nachfolgende Abschnitte sind Umsetzungshistorie.

@@ -48,6 +48,10 @@ class DrinkReminderDashboardTest {
                 val params=panel.layoutParams as android.widget.FrameLayout.LayoutParams
                 val expected=when(position) { MessagePosition.BOTTOM->android.view.Gravity.BOTTOM;MessagePosition.CENTER->android.view.Gravity.CENTER_VERTICAL;MessagePosition.TOP->android.view.Gravity.TOP }
                 assertEquals(expected,params.gravity and android.view.Gravity.VERTICAL_GRAVITY_MASK)
+                val edge=if(position==MessagePosition.CENTER) 0 else 48
+                assertEquals(edge,params.topMargin);assertEquals(edge,params.bottomMargin)
+                assertEquals(BicycleDesign.horizontalPadding,params.marginStart)
+                assertEquals(BicycleDesign.horizontalPadding,params.marginEnd)
             }
             recording.setBoolean(runtime,false);render.invoke(a);assertEquals(View.GONE,panel.visibility)
         } finally { recording.setBoolean(runtime,false);host.pause().stop().destroy() }

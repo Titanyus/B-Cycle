@@ -11,3 +11,6 @@ DrinkReminder zählt ausschließlich monotone Aufnahmezeit inklusive Stillstand.
 Dashboard-Hinweis mit Flaschensymbol und „Trinken nicht vergessen!“ an der gewählten Position. Wie App-Benachrichtigungen innerhalb des Dashboard-Fensters platzieren, Systemleisten-/Cutout-Inset-Sicherheit erhalten. SECONDARY und bestehende Rundung/3-dp-PRIMARY-Rahmen, Flat ohne Schatten. Nach eingestellter Dauer oder Antippen schließen. Schließen bestätigt keine Menge und setzt das periodische Intervall nicht zurück. Bei Aufnahmeende, Deaktivierung und Activity-Verlassen Timeout/Panel entfernen. Keine zusätzliche Systembenachrichtigung oder Hintergrundaufgabe.
 
 Gezielte Tests: Intervall und Messende, Dauer-Endpunkte/Schritte/Timeout, unabhängiges Accordion, Positionen, Integration als letzter Trainingshilfepunkt ohne eigenen Sticky-Header, Profile/Kopie/Backup und unveränderter Benachrichtigungsdialog. Keine Trinkmengenbestätigung im Umfang.
+
+
+NachBuild103: Trinkerinnerung oben/unten48dp zusätzlicherVERTIKALERAbstand zum sicherenDashboardrand; Mitte und seitlicheAbstände unverändert. Gemeinsamer BicycleDesign.dashboardMessageEdgeInset mit App-Nachrichten. Zeitplan, Anzeigedauer und Berührungsaktion unverändert.

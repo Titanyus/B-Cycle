@@ -63,7 +63,8 @@ class MessageNotificationUiTest {
         assertEquals(setOf("com.whatsapp","custom.app"),settings.packages)
         val slider=view.findViewWithTag<SeekBar>("notification_duration")
         slider.onKeyDown(KeyEvent.KEYCODE_DPAD_RIGHT,KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_RIGHT))
-        assertEquals(61,settings.durationSeconds)
+        assertEquals(65,settings.durationSeconds)
+        assertEquals("65 s",(slider as BicycleSettingSlider).valueText)
         for(position in MessagePosition.entries) {
             view.findViewWithTag<View>("notification_position_${position.name}").performClick()
             assertEquals(position,settings.position)
@@ -144,6 +145,12 @@ class MessageNotificationUiTest {
                 n.extras.putCharSequence(Notification.EXTRA_BIG_TEXT,text)
                 MessageNotifications.receive(a,"key-$i","com.whatsapp",n);layout();layout()
                 assertEquals(View.VISIBLE,panel.visibility)
+                val params=panel.layoutParams as android.widget.FrameLayout.LayoutParams
+                val edge=if(position==MessagePosition.CENTER) 0 else BicycleDesign.dp(a,48)
+                assertEquals(edge,params.topMargin);assertEquals(edge,params.bottomMargin)
+                assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),params.marginStart)
+                assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),params.marginEnd)
+                if(position==MessagePosition.BOTTOM) assertEquals(parent.height-edge,panel.bottom)
                 when(position) {
                     MessagePosition.BOTTOM -> {
                         val point=IntArray(2);map.getLocationInWindow(point)
@@ -151,7 +158,7 @@ class MessageNotificationUiTest {
                         assertTrue("Bottom message cannot cover dashboard values",panelPoint[1]>=point[1])
                     }
                     MessagePosition.CENTER -> assertEquals(parent.height/2.0,panel.top+panel.height/2.0,2.0)
-                    MessagePosition.TOP -> assertEquals(0,panel.top)
+                    MessagePosition.TOP -> assertEquals(BicycleDesign.dp(a,48),panel.top)
                 }
                 if(position!=MessagePosition.BOTTOM) assertTrue(panel.height<=BicycleDesign.dp(a,320))
             }

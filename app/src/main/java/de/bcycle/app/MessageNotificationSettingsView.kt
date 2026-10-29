@@ -43,14 +43,14 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         addView(details,LayoutParams(-1,-2))
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.notification_position_heading)),LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
         addView(MessagePositionChoices(context,themes,settings.position,"notification_position") { settings.position=it },LayoutParams(-1,-2))
-        val slider=BicycleSettingSlider(context,themes) { context.getString(R.string.notifications_seconds,it) }.apply {
-            tag="notification_duration";min=5;max=180;progress=settings.durationSeconds;keyProgressIncrement=1
+        val slider=BicycleSettingSlider(context,themes) { context.getString(R.string.notifications_seconds,5+it*5) }.apply {
+            tag="notification_duration";max=35;progress=(settings.durationSeconds-5)/5;keyProgressIncrement=1
             contentDescription=context.getString(R.string.notifications_duration)
             setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
                 override fun onStartTrackingTouch(bar:SeekBar)=Unit
                 override fun onStopTrackingTouch(bar:SeekBar)=Unit
                 override fun onProgressChanged(bar:SeekBar,progress:Int,fromUser:Boolean) {
-                    bar.stateDescription=valueText;if(fromUser) settings.durationSeconds=progress
+                    bar.stateDescription=valueText;if(fromUser) settings.durationSeconds=5+progress*5
                 }
             })
         }

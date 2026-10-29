@@ -21,6 +21,7 @@ object BicycleDesign {
     val compactTypeface:android.graphics.Typeface by lazy { android.graphics.Typeface.create("sans-serif-condensed",android.graphics.Typeface.NORMAL) }
     const val dashboardToolbarMainWeight=2.5f
     const val dashboardToolbarActionWeight=.8f
+    const val dashboardMessageEdgeInset=48
     const val dashboardToolbarHeight=58
     const val dashboardRecordIconSize=20
     // One icon diameter of clearance on either side: 20 + 20 + 20 = 60 dp circle.

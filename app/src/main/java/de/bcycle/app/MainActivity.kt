@@ -311,9 +311,11 @@ class MainActivity : Activity() {
         messages=MessageNotificationPanel(this,runtime.themes) {
             val mapLocation=IntArray(2);val hostLocation=IntArray(2)
             mapPanel.getLocationInWindow(mapLocation);host.getLocationInWindow(hostLocation)
-            val available=(host.height-root.paddingTop-root.paddingBottom).coerceAtLeast(0)
-            if(MessageNotificationSettings(this).position==MessagePosition.BOTTOM && currentTemplate().hasMap)
-                (host.height-root.paddingBottom-(mapLocation[1]-hostLocation[1])).coerceIn(0,available)
+            val position=MessageNotificationSettings(this).position
+            val edge=if(position==MessagePosition.CENTER) 0 else dp(BicycleDesign.dashboardMessageEdgeInset)
+            val available=(host.height-root.paddingTop-root.paddingBottom-2*edge).coerceAtLeast(0)
+            if(position==MessagePosition.BOTTOM && currentTemplate().hasMap)
+                (host.height-root.paddingBottom-edge-(mapLocation[1]-hostLocation[1])).coerceIn(0,available)
             else minOf(dp(320),available)
         }
         mapPanel.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ -> if(messages.visibility==View.VISIBLE) messages.requestLayout() }
@@ -322,12 +324,14 @@ class MainActivity : Activity() {
         })
         fun placeMessage() {
             val params=messages.layoutParams as FrameLayout.LayoutParams
-            params.gravity=when(MessageNotificationSettings(this).position) {
+            val position=MessageNotificationSettings(this).position
+            val edge=if(position==MessagePosition.CENTER) 0 else dp(BicycleDesign.dashboardMessageEdgeInset)
+            params.gravity=when(position) {
                 MessagePosition.BOTTOM -> android.view.Gravity.BOTTOM
                 MessagePosition.CENTER -> android.view.Gravity.CENTER
                 MessagePosition.TOP -> android.view.Gravity.TOP
             }
-            params.topMargin=root.paddingTop;params.bottomMargin=root.paddingBottom
+            params.topMargin=root.paddingTop+edge;params.bottomMargin=root.paddingBottom+edge
             messages.layoutParams=params
         }
         messages.positionChanged=::placeMessage
@@ -429,13 +433,15 @@ class MainActivity : Activity() {
         if(!::drinkReminderPanel.isInitialized || drinkReminderPanel.visibility!=View.VISIBLE) return
         val root=dashboardHost.getChildAt(0)
         val params=drinkReminderPanel.layoutParams as FrameLayout.LayoutParams
-        val gravity=when(DrinkReminderSettings.read(preferences).position) {
+        val position=DrinkReminderSettings.read(preferences).position
+        val edge=if(position==MessagePosition.CENTER) 0 else dp(BicycleDesign.dashboardMessageEdgeInset)
+        val gravity=when(position) {
             MessagePosition.BOTTOM->Gravity.BOTTOM
             MessagePosition.CENTER->Gravity.CENTER_VERTICAL
             MessagePosition.TOP->Gravity.TOP
         } or Gravity.CENTER_HORIZONTAL
-        if(params.gravity!=gravity || params.topMargin!=root.paddingTop || params.bottomMargin!=root.paddingBottom) {
-            params.gravity=gravity;params.topMargin=root.paddingTop;params.bottomMargin=root.paddingBottom
+        if(params.gravity!=gravity || params.topMargin!=root.paddingTop+edge || params.bottomMargin!=root.paddingBottom+edge) {
+            params.gravity=gravity;params.topMargin=root.paddingTop+edge;params.bottomMargin=root.paddingBottom+edge
             drinkReminderPanel.layoutParams=params
         }
     }
