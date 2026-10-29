@@ -220,7 +220,7 @@ class MainActivity : Activity() {
         root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
         val toolbar = LinearLayout(this).apply {
             orientation=LinearLayout.HORIZONTAL;gravity=Gravity.BOTTOM;tag="ride_toolbar"
-            styleBicycleFooter(this,runtime.themes,dashboard=true,surfaceTopInset=dp(BicycleDesign.dashboardRecordCapHeight))
+            styleBicycleFooter(this,runtime.themes,dashboard=true)
             BicycleComponents.bindTheme(this,runtime.themes) { tokens ->
                 background=android.graphics.drawable.InsetDrawable(android.graphics.drawable.ColorDrawable(tokens.tertiary),0,dp(BicycleDesign.dashboardRecordCapHeight),0,0)
                 setPadding(0,0,0,0)

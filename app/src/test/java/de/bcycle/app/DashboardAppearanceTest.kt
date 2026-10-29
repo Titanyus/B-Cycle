@@ -127,18 +127,19 @@ class DashboardAppearanceTest {
                 assertEquals(1,(button.text as android.text.Spanned).getSpans(0,button.text.length,android.text.style.ImageSpan::class.java).size)
                 val image=Bitmap.createBitmap(width,800,Bitmap.Config.ARGB_8888)
                 root.draw(Canvas(image))
-                assertEquals(14,button.recordIcon!!.bounds.centerY())
+                assertEquals(30,button.recordIcon!!.bounds.centerY())
+                assertEquals("Circle clearance equals one record icon diameter",button.recordIcon!!.bounds.width(),button.recordIcon!!.bounds.top)
                 assertEquals(button.width/2f,button.recordIcon!!.bounds.exactCenterX(),.5f)
                 val aPosition=IntArray(2);val bPosition=IntArray(2)
                 root.getLocationInWindow(aPosition);button.getLocationInWindow(bPosition)
-                assertTrue("Record icon must be visible in the actual dashboard",(4..23).any { y ->
+                assertTrue("Record icon must be visible in the actual dashboard",(button.recordIcon!!.bounds.top until button.recordIcon!!.bounds.bottom).any { y ->
                     (button.width/2-10 until button.width/2+10).any { x -> val pixel=image.getPixel(bPosition[0]-aPosition[0]+x,bPosition[1]-aPosition[1]+y);Color.green(pixel)>220 && Color.blue(pixel)>220 }
                 })
                 val surface=Bitmap.createBitmap(button.width,button.height,Bitmap.Config.ARGB_8888)
                 button.background.draw(Canvas(surface))
                 assertEquals(0,Color.alpha(surface.getPixel(1,1)))
                 assertEquals(runtime.themes.active.tokens.primary,surface.getPixel(button.width/2,2))
-                assertEquals(runtime.themes.active.tokens.primary,surface.getPixel(8,32))
+                assertEquals(runtime.themes.active.tokens.primary,surface.getPixel(8,48))
                 java.io.File("build/reports/ui/dashboard-record-${if(flat) "flat" else "glow"}-$width.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) }
                 image.recycle();surface.recycle()
             }
@@ -169,7 +170,7 @@ class DashboardAppearanceTest {
         assertTrue(Color.alpha(b.getPixel(200,80))>Color.alpha(b.getPixel(200,170)))
         assertEquals(0,Color.alpha(b.getPixel(200,190)));b.recycle()
     }
-    @Test fun dashboardFooterKeepsItsShadowAcrossSettingsDesignModes() {
+    @Test fun dashboardFooterHasNoShadowAcrossSettingsDesignModes() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
@@ -177,7 +178,8 @@ class DashboardAppearanceTest {
             val footer=LinearLayout(a).apply { styleBicycleFooter(this,themes,dashboard=true) }
             root.addView(footer,FrameLayout.LayoutParams(-1,48,Gravity.BOTTOM));a.setContentView(root);layout(root,180,180)
             fun image()=Bitmap.createBitmap(180,180,Bitmap.Config.ARGB_8888).also { root.draw(Canvas(it)) }
-            val glow=image();assertTrue(Color.red(glow.getPixel(90,131))<255)
+            val glow=image();assertEquals(Color.WHITE,glow.getPixel(90,131))
+            assertNull(footer.getTag(R.id.footer_shadow))
             themes.setFlatDesign(true);shadowOf(Looper.getMainLooper()).idle();layout(root,180,180)
             val flat=image();assertTrue(glow.sameAs(flat));flat.recycle();glow.recycle()
         } finally { host.pause().stop().destroy() }

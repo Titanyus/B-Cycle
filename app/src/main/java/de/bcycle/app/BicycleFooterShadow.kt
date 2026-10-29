@@ -6,9 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 
 /** Same cached header shadow mirrored upwards; no layout, elevation or touch changes. */
-internal class BicycleFooterShadow private constructor(private val footer:View,alwaysGlow:Boolean,private val surfaceTopInset:Int):Drawable(),View.OnAttachStateChangeListener {
+internal class BicycleFooterShadow private constructor(private val footer:View,alwaysGlow:Boolean):Drawable(),View.OnAttachStateChangeListener {
     companion object {
-        fun bind(view:View,alwaysGlow:Boolean=false,surfaceTopInset:Int=0) { if(view.getTag(R.id.footer_shadow)==null) view.setTag(R.id.footer_shadow,BicycleFooterShadow(view,alwaysGlow,surfaceTopInset)) }
+        fun bind(view:View,alwaysGlow:Boolean=false) { if(view.getTag(R.id.footer_shadow)==null) view.setTag(R.id.footer_shadow,BicycleFooterShadow(view,alwaysGlow)) }
     }
     private val shadow=BicycleHeaderShadow(footer.context,alwaysGlow)
     private var owner:ViewGroup?=null
@@ -25,7 +25,7 @@ internal class BicycleFooterShadow private constructor(private val footer:View,a
         footer.getLocationInWindow(a);parent.getLocationInWindow(b)
         val saved=canvas.save();canvas.translate(parent.scrollX.toFloat(),parent.scrollY.toFloat())
         canvas.clipRect(0,0,parent.width,parent.height)
-        shadow.drawUp(canvas,(a[0]-b[0]).toFloat(),(a[1]-b[1]+surfaceTopInset).toFloat(),(a[0]-b[0]+footer.width).toFloat())
+        shadow.drawUp(canvas,(a[0]-b[0]).toFloat(),(a[1]-b[1]).toFloat(),(a[0]-b[0]+footer.width).toFloat())
         canvas.restoreToCount(saved)
     }
     override fun setAlpha(alpha:Int)=Unit

@@ -8,3 +8,8 @@ Fahrtzusammenfassung: vor Warn-/Uploadangaben ein zentraler sectionDivider mit u
 
 
 Veröffentlichung29.10.2026: Diese Änderungen sind in **APK0.8.61/Build102** enthalten. [Download und Buildnachweis](build-102.md). Frühere Angaben zu noch fehlender APK sind Umsetzungshistorie.
+
+
+## Nach Build102: größerer Kreis, kein Dashboard-Footerschatten
+
+Dashboard-Footer zeichnet in Flat und Glow keinen Schatten mehr. Normale Einstellungsfooter behalten ihre bisherige Darstellung. Der Record-Indikator bleibt20dp; der umgebende Kreis hat60dpDurchmesser (20dpAbstand +20dpIcon +20dpAbstand), entsprechend30dpRadius/Überstand. Die echte Kreisform und ihre kleinen verrundeten Anschlüsse bleiben erhalten. Footerfläche58dp, Iconposition auf der Körperoberkante, zentrierter Name und Bedienung unverändert; größerer Überstand wird weiterhin vollständig vom negativen Topmargin kompensiert.

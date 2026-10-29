@@ -78,3 +78,6 @@ Nachtrag26.10.2026: Die beiden Dashboard-Dialoge tägliche HRV-Karte und Fahrtzu
 
 
 Nachtrag29.10.2026: Nutzer fordert ausdrücklich eine Ausnahme für die Trainingszonenvisualisierung auf dem Dashboard: Flat nutzt untere Farbrechtecke (volle Breite,8% Kachelhöhe), Glow das bisherige Licht. Farben/Überblendung/Trainingslogik identisch; Graphen und Bosch-Glow bleiben unverändert. Diese Entscheidung ersetzt nur für diese Zonenform die frühere vollständige Dashboard-Gleichheit.
+
+
+NachBuild102: Dashboard-Footer in Flat UND Glow ohne Schatten. Diese ausdrückliche Nutzerentscheidung ersetzt frühere Aussagen zum gemeinsamen Dashboard-Footerschatten. Übrige Footer und Bosch-Glow unverändert.
