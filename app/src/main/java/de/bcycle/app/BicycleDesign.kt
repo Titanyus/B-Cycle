@@ -190,8 +190,10 @@ object BicycleDesign {
     const val headerShadowHeight = 12
     const val headerShadowAlpha = 102
     const val graphChoiceDotDiameter = 10.5f
-    const val settingsRowHeight = 72
-    const val settingsIconSize = 32
+    const val settingsRowHeight = 54
+    const val settingsRowVerticalPadding = 6
+    const val settingsIconSize = 24
+    const val settingsChevronSize = 18
     const val switchWidth = 48
     const val switchHeight = 24
     const val switchThumbDiameter = 18

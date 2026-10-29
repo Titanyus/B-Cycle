@@ -1,3 +1,9 @@
+# NachBuild104: kompaktes Einstellungsmenü und Dreeve-Rückfrage
+
+Haupteinstellungsmenü gemäßNutzerbild umgesetzt: LeagueGothic/sectionTitleSp30sp, Labelschreibweise erhalten,54dpZeilen/6dpvertikalPadding, Haupticons32→24dp undChevron24→18dp (75%). Nur Hauptmenü, Erweitert/übrigeListen unverändert. Reihenfolge/Trenner/Art-/Buildanzeige/Navigation/Listener erhalten.7SettingsMenuTestsgrün; nativeVorschauvisuellgeprüft: docs/previews/settings-menu-compact.png. Log/workspace/.tools/settings-menu-league-compact-final-tests.log. ErsterLauf6/7: altesPaddingüberschritt54dpumFontmetrik, korrigiertüberzentral6dpPadding. Typografie/Atlas/Diff prüfen. KeinAPK-Auftrag, vorherigeLicht-/NP-/Flatbalkenänderungen bleiben fürnächsteAPK enthalten.
+
+NeueFragewährenddessen: Dreeve-Haken weiterverzögert, erscheintnachNeustartoderUploadaus/ein. Codegelesen ActivityServiceUploads, ActivityServiceClient, RideNames, RouteTransferMenu. AktiveBestätigungnurfürfrischangenommenenUploadmitinsgesamt30sWartebudget; danachJobScheduler30sMINDESTARTZEIT, keinverbindlicherTakt. VorhandeneProcessingjobsnureinGETproLauf. Umschalten/Runtime-Neustartplantneu; MenüsbeobachtenPrefsbereits. PlausibleUrsacheunserPrüfzyklus/AndroidJobs, keinBeweisfürkonkretenVorfallundkeinLivecheckvonDreeve. NutzerbereitsinCommentaryerklärt. KEINEUploadfunktionalitätgeändert(FragenurUrsacheneinordnung). Empfehlung: direkterStatuscheckwährendAppsichtbar, HintergrundjobalsAbsicherung; Umsetzungerstwennbeauftragt. DetailsimNachtragdocs/cloud-activity-uploads.md.
+
 # Nach Build104: NP-Grenze90% und Flat-Balken im ModusNormal
 
 Aktuelle Nutzerentscheidungen umgesetzt und für nächste APK gespeichert. Kein neuer APK-Auftrag; letzte Veröffentlichung0.8.63/Build104. Vorherige Licht-/Warnungs-/Kreis-/Schriftänderungen aus2881d10 bleiben enthalten.

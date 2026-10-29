@@ -19,7 +19,7 @@ Auswahllisten verwenden global die zentrale Schalterdarstellung über BicycleDia
 
 ## Einheitliche Navigation und Zustands-Icons
 
-Jeder Einstellungs-Menüpunkt öffnet einen eigenen Unterdialog. „Erweitert“ ist ein separater Screen, kein Accordion. Im Haupt-Einstellungsmenü verwenden die Zeilen 72 dp Mindesthöhe, die Menütexte die gemeinsame Abschnittstypografie (BicycleDesign.titleSp, 23 sp / 900 Black) und führende Icons 32 dp; Untermenüs verwenden die normale Listenhöhe und Typografie. Header-Chevron und Android-Zurück führen zum vorherigen Screen und erhalten dessen Scrollposition. Ein Footer ohne fachliche Aktionen wird vollständig entfernt, inklusive seines Platzbedarfs.
+Jeder Einstellungs-Menüpunkt öffnet einen eigenen Unterdialog. „Erweitert“ ist ein separater Screen, kein Accordion. Im Haupt-Einstellungsmenü verwenden die Zeilen54dpMindesthöhe/6dpvertikalesInnenpadding, MenütexteLeagueGothic/BicycleDesign.sectionTitleSp(30sp) mit unveränderterGroß-/Kleinschreibung, führendeIcons24dp undChevrons18dp; Untermenüs verwenden die normale Listenhöhe und Typografie. Header-Chevron und Android-Zurück führen zum vorherigen Screen und erhalten dessen Scrollposition. Ein Footer ohne fachliche Aktionen wird vollständig entfernt, inklusive seines Platzbedarfs.
 
 Umschalt-Icons zeigen **den aktuellen Zustand**, nicht die nächste Aktion. Beispiele: helle Karte = sun, dunkle Karte = moon; Norden oben = compass, Fahrtrichtung oben = arrow-up-from-dot; Passwort verborgen = eye-closed, sichtbar = eye. Reine Befehls-Icons (Import, Löschen usw.) bleiben Aktionssymbole. Accessibility-Beschreibungen dürfen zusätzlich die nächste Aktion erklären.
 

@@ -63,7 +63,17 @@ class SettingsMenuTest {
                 assertEquals(12, body.childCount) // Nine rows, two group dividers and brand image.
                 assertSame(rows[3],body.getChildAt(3));assertSame(rows[4],body.getChildAt(5))
                 assertSame(rows[7],body.getChildAt(8));assertSame(rows[8],body.getChildAt(10))
-                rows.forEach { assertEquals(width, it.width);assertTrue(it.height>=BicycleDesign.dp(controller.get(),BicycleDesign.settingsRowHeight)) }
+                rows.forEach { row ->
+                    assertEquals(width,row.width)
+                    assertEquals(BicycleDesign.dp(controller.get(),54),row.height)
+                    val label=descendants(row).filterIsInstance<TextView>().single()
+                    assertEquals(BicycleDesign.narrowTypeface(controller.get()),label.typeface)
+                    assertEquals(BicycleDesign.sectionTitleSp*label.resources.displayMetrics.scaledDensity,label.textSize,.1f)
+                    assertEquals(row.contentDescription.toString(),label.text.toString())
+                    val images=descendants(row).filterIsInstance<android.widget.ImageView>()
+                    assertEquals(BicycleDesign.dp(controller.get(),24),images.first().width)
+                    assertEquals(BicycleDesign.dp(controller.get(),18),images.last().width)
+                }
             }
             views(menu).single { it.tag=="settings_ADVANCED" }.performClick()
             val advanced=ShadowAlertDialog.getLatestAlertDialog();shadowOf(Looper.getMainLooper()).idle()

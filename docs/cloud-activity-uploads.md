@@ -180,3 +180,10 @@ Gezielte Tests: Annahme → queued → success im selben Worker, Begrenzung ohne
 ## Namensabgleich und importierte Verknüpfungen (20.10.2026)
 
 Jetzt implementiert: drei Sekunden nach bestätigtem Dreeve-Import einmalig den Automationsnamen lesen; lokale Fahrt und verknüpfte Dienste aktualisieren. Manuell gesetzte Namen haben Vorrang. Eigene dauerhafte, nach Dienst/Konto getrennte Namensaufträge, keine erneuten FIT-Uploads. Importierte Dreeve-Fahrten zeigen ihre bestätigte Verknüpfung unabhängig vom Upload-Schalter. [Architektur, HTTP-Endpunkte und Verifikationsgrenzen](dreeve-workflow-and-private-analysis.md). Noch keine APK dieses Entwicklungsschritts.
+
+
+## Erneute Rückmeldung zur Dreeve-Bestätigung,29.10.2026
+
+Nutzer meldet weiterhin verzögerten Haken, der nach App-Neustart oder Aus-/Einschalten erscheint. Codeprüfung ohne privaten Serverzugriff: frischer Dreeve-Upload erhält aktiven begrenzten Bestätigungszyklus (2/3/5/10/10s). Danach folgen JobScheduler-Prüfungen mit30sMindestlatenz; das ist keine feste Frist, Android kann den Lauf später ausführen. Bereits akzeptierte Operationen erhalten pro Folgejob eine GET-Prüfung, keinen neuen POST. Einstellungen umschalten storniert/geplant den Job neu; Runtime-Neustart plant ebenfalls offene Operationen. Sichtbare Uploadmenüs beobachten die Beleg-Preferences bereits.
+
+Dies ist eine plausible Ursache auf App-Seite und passt zum Symptom, beweist ohne zeitlich zugeordnetes Ablaufprotokoll aber nicht den konkreten Fehler. Dreeves Verarbeitung/Antwortzeiten wurden hier nicht live geprüft. Noch keine Änderung am Uploadpfad vorgenommen: Nutzer fragte nach Ursache während eines separaten Designauftrags. Sinnvoller nächster Schritt wäre direkte begrenzte Statusprüfung im sichtbaren App-Lifecycle, Hintergrundjob weiterhin als Absicherung. Vor Umsetzung bestehende Parallelitäts-/Kontogrenzen, kein Doppelupload und Abbruch-/Netzwerkregeln erhalten.

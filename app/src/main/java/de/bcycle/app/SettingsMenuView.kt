@@ -36,7 +36,7 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 
-/** One row per destination; the main menu uses section typography and taller rows. */
+/** One row per destination; main menu uses compact League Gothic labels. */
 internal class SettingsMenuView(context: Context, private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
     private val advanced: Boolean = false, private val selected: (SettingsAction) -> Unit) : LinearLayout(context) {
     val isMainPage get() = !advanced
@@ -51,15 +51,16 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             addView(BicycleComponents.listRow(context,themes).apply {
                 tag="settings_${action.name}";contentDescription=action.label(context);isClickable=true;isFocusable=true
                 minimumHeight=BicycleDesign.dp(context,if(advanced) BicycleDesign.touchSize else BicycleDesign.settingsRowHeight)
+                if(!advanced) setPadding(paddingLeft,BicycleDesign.dp(context,BicycleDesign.settingsRowVerticalPadding),paddingRight,BicycleDesign.dp(context,BicycleDesign.settingsRowVerticalPadding))
                 setOnClickListener { selected(action) }
                 if(action.icon!=0) addView(ImageView(context).apply {
                     setImageResource(action.icon);BicycleComponents.bindTheme(this,themes) { setColorFilter(it.foreground) }
                     importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                 },LayoutParams(BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsIconSize),BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsIconSize)))
-                addView(BicycleComponents.text(context,themes,action.label(context)).apply { gravity=Gravity.CENTER_VERTICAL; textSize=if(advanced) BicycleDesign.bodySp else BicycleDesign.titleSp; if(!advanced) typeface=BicycleDesign.strongTypeface },
+                addView(BicycleComponents.text(context,themes,action.label(context)).apply { gravity=Gravity.CENTER_VERTICAL; textSize=if(advanced) BicycleDesign.bodySp else BicycleDesign.sectionTitleSp; if(!advanced) typeface=BicycleDesign.narrowTypeface(context) },
                     LayoutParams(0,-2,1f).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.verticalPadding) })
                 addView(ImageView(context).apply { BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
-                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
+                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO },LayoutParams(BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsChevronSize),BicycleDesign.dp(context,if(advanced) BicycleDesign.iconSize else BicycleDesign.settingsChevronSize)))
             },LayoutParams(-1,-2))
         }
         if (!advanced) addView(FrameLayout(context).apply {
