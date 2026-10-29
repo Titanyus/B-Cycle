@@ -23,3 +23,6 @@ FIT: die bool-Markierung wird bei ausgewähltem NORMALIZED_POWER und in der priv
 Neue Tests: ConfirmedBikePauseTest (frische/genaue/kontinuierliche Belege, Bewegung/Signalverlust/Reset, lange bestätigte Pause, unveränderte Gesamtdauer, getrennte30s-Fenster, unbekannter Ausfall, gültige Wattwerte, auslaufende Belege); ConfirmedPauseFitTest (Live=Journal, Standard-NP-Rundung auf1W, eine FIT-Sitzung mit kompletter Dauer, tatsächliche Nachberechnung nach Entfernen nur des NP-Summaryfelds, Marker bei erneutem Export/Feldwahl); zusätzlicher RecordingFlowTest für reale Runtimeanbindung, ohne sichtbare Activity, Ende des Pausenzustands ohne GPS, Aufnahme weiter aktiv.
 
 Bestehende PerformanceEngine-/Journal-/FIT-, GPS-, Detail-, Neuexport- und45min-Aufnahmeprüfungen wurden gezielt ausgeführt. Keine Gesamtsuite oder physischer Langzeittest. Private Nutzer-FIT bleibt außerhalb des Repositorys.
+
+
+Veröffentlichung29.10.2026: Änderungen nachBuild104 sind in **APK0.8.64/Build105** enthalten. [Download und Buildnachweis](build-105.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.

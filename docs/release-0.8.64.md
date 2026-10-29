@@ -12,4 +12,4 @@ Alle Änderungen seit Build104:
 
 Prüfung: gezielte Leistungs-/Pausen-/Journal-/FIT-/Neuexport-/GPS-/Runtime-/UI-Tests erfolgreich, inklusive identischer Live-/Replay-Ergebnisse, tatsächlicher NP-Nachberechnung aus FIT, unveränderter Gesamtzeit, Marker-Feldwahl und langer Aufnahme bei ausgeblendeter Activity aufAndroid13/15/16. Weitere bereits abgeschlossene Prüfungen zu Licht/Akku/Schrift/Kreis, Flat-Farbtreue und Einstellungsnavigation. Testgruppen überschneiden sich; keine vollständige Gesamtsuite, kein neuer physischer Rad-/Langzeit-/Cloudtest. Typografie/Atlas/Diff geprüft.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-105.md).

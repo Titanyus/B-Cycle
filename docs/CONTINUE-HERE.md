@@ -1,3 +1,7 @@
+# APK veröffentlicht29.10.2026:0.8.64 / Build105 / Code134
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.64-release-105.apk) · [Buildnachweis](build-105.md). Quelle `02a59759ee5c4ca05f71c9067dcbf450e141b139`, Größe 2499205 Bytes, SHA-256 `9e1f7275c1c50056ac4e41363af156a2bc5ff2c73caec4b178709257f862c23e`. Alle Änderungen seitBuild104 enthalten. Signatur/Update-Kompatibilität, CI-Prüfsumme, Manifest und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci]. Keine offene APK-Aufgabe; nachfolgende Abschnitte sind Umsetzungshistorie. NP-Pausen setzen bestätigten GPS-Stillstand voraus und ändern nurNP-Zeit/Fenster, niemalsAufnahmetimer. KeineDreeveStatuskorrekturclaimen, dieserPfadwurdeNURdiagnostiziert.
+
 # APK-Auftrag aktiv:0.8.64/Code134, bestätigte NP-Pausen
 
 Aktuelle Nutzerautorisierung: bestätigte Standpausen ausNP ausnehmen, AufnahmebismanuellSTOPbehalten; danachneueAPK. Implementiert: ConfirmedBikePause benötigt EBIKE/keineVerbindung/keineLeistungsquelle/10s kontinuierlichfrischesGPSunter.7m/sbeiGenauigkeit<=25m. KeineGPS-Aktivierung. NeueBewegung/Leistung/Verbindung/GPSverlustendetZustand.10sBestätigungszeitnichtretrospektivumdeuten. AlleHinweiseinCommentarymitgeteilt. NutzerklärungphysischerBosch-PowermeterDefekt!=BLE-Datenverlustverstanden.

@@ -37,3 +37,6 @@ Farbprüfung nachBuild104: ZoneGlowColors verwendet direkt TrainingZoneColors (d
 
 
 NachfolgendeNutzerentscheidung29.10.2026: Flat-Farbbalken jetzt imZeichenmodusNormal(SRC_OVER), bei vollerDeckkraft exakt TrainingZoneColors, keinPLUS/keineGlowAlpha-/Mehrfachpass-Aufhellung. Bereich weiterhinvolleBreite/8%Höhe;1,5sÜbergang undweicheZonengrenzen erhalten. Glow-Design radial/additiv unverändert. DieseRegel ersetzt obigenStand zuradditivenFlat-Zeichnung.
+
+
+Veröffentlichung29.10.2026: Änderungen nachBuild104 sind in **APK0.8.64/Build105** enthalten. [Download und Buildnachweis](build-105.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.

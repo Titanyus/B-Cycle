@@ -191,3 +191,6 @@ NachBuild104,29.10.2026: ausdrückliche Nutzerentscheidung reduziert ausschließ
 
 
 NachfolgendeNutzerentscheidung29.10.2026: bestätigte E-Bike-Standpausen werden ausschließlich aus NP-Zeit/Fensterabdeckung entfernt. Aufnahme/Gesamtzeit bleiben durchgehend; keine Wattwerte erfinden.90%-NP-Grenzen beziehen sich aufNP-Auswertungszeit. Andere95%-Kennzahlenregeln bleiben unverändert. Modellversion5, benannte Journal-/FIT-Marker, keine automatische Änderung alterFIT. [Nachweise und Grenzen](confirmed-np-pauses.md).
+
+
+Veröffentlichung29.10.2026: Änderungen nachBuild104 sind in **APK0.8.64/Build105** enthalten. [Download und Buildnachweis](build-105.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.

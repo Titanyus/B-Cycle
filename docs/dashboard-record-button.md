@@ -19,3 +19,6 @@ Veröffentlichung29.10.2026: Schattenfreier Dashboard-Footer und größerer Krei
 
 
 NachBuild104: Kreis aufNutzerwunsch10%kleiner:54dpDurchmesser/27dpÜberstand, Record-Symbol weiter20dp. Footerhöhe58dp und Profilnamenanordnung unverändert.
+
+
+Veröffentlichung29.10.2026: Änderungen nachBuild104 sind in **APK0.8.64/Build105** enthalten. [Download und Buildnachweis](build-105.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.

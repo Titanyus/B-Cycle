@@ -50,3 +50,6 @@ Betriebssystemseitiges Beenden/Force-Stop/Handyneustart ist kein bloßes Bildsch
 
 
 NachfolgendeUmsetzung29.10.2026: die getrennte NP-Einschränkung ist jetzt für bestätigte E-Bike-Standpausen behoben, ohne die laufende Aufnahme/Gesamtzeit zu stoppen. Verlässlicher GPS-Stillstand und fehlende Rad-/Leistungsdaten erforderlich; unbekannte Ausfälle bleiben Lücken. [Details](confirmed-np-pauses.md).
+
+
+Veröffentlichung29.10.2026: Änderungen nachBuild104 sind in **APK0.8.64/Build105** enthalten. [Download und Buildnachweis](build-105.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.

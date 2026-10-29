@@ -7,3 +7,6 @@ Nur SettingsMenuView-Hauptseite; Unterseite Erweitert weiter bisherige normale Z
 Prüfung: sieben SettingsMenuTest-Fälle grün, native240/320dp-Hochformatbreiten beixxhdpi, tatsächliche Zeilenhöhe/Schrift-/Iconmaße und unveränderte Einstiegs-/Zurück-/Scroll-/Appwechselpfade. Log /workspace/.tools/settings-menu-league-compact-final-tests.log. Im ersten Lauf6/7grün; League-Gothic-Fontmetriken plus altes8dpInnenpadding überschritten54dp geringfügig, mit zentralem6dpInnenpadding korrigiert. Kein Schrift-Clipping oder Funktionswechsel als Lösung.
 
 Native Vorschau: [Einstellungsmenü](previews/settings-menu-compact.png). Keine APK für diese Änderung angefordert.
+
+
+Veröffentlichung29.10.2026: Änderungen nachBuild104 sind in **APK0.8.64/Build105** enthalten. [Download und Buildnachweis](build-105.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.
