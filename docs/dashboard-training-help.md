@@ -34,3 +34,6 @@ Veröffentlichung29.10.2026: Diese Änderungen sind in **APK0.8.61/Build102** en
 
 
 Farbprüfung nachBuild104: ZoneGlowColors verwendet direkt TrainingZoneColors (dieselbe Palette wie Leistungs-/Pulsverteilungen und Wartung), nahe Zonengrenzen weich interpoliert. Flat-Rechtecke werden weiterhin mit ursprünglicher Glowintensität140/255 und3PLUS-Durchgängen additiv gezeichnet; dadurch visuell heller/sättigender als reine Zonenfüllungen. Auf Nachfrage nur erläutert, keine Änderung dieses Farb-/Blendverhaltens.
+
+
+NachfolgendeNutzerentscheidung29.10.2026: Flat-Farbbalken jetzt imZeichenmodusNormal(SRC_OVER), bei vollerDeckkraft exakt TrainingZoneColors, keinPLUS/keineGlowAlpha-/Mehrfachpass-Aufhellung. Bereich weiterhinvolleBreite/8%Höhe;1,5sÜbergang undweicheZonengrenzen erhalten. Glow-Design radial/additiv unverändert. DieseRegel ersetzt obigenStand zuradditivenFlat-Zeichnung.

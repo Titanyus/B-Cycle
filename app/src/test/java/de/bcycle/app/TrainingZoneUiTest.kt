@@ -212,10 +212,17 @@ class TrainingZoneUiTest {
         assertTrue(Color.alpha(solid.getPixel(0,92))>0)
         assertEquals(solid.getPixel(0,96),solid.getPixel(100,96))
         assertEquals(solid.getPixel(100,96),solid.getPixel(199,99))
-        zone.update(Color.RED);now=2250;val mixed=zone.currentColor()
+        assertEquals("Normal blend preserves the source zone color",Color.BLUE,solid.getPixel(100,96))
+        for(zoneColor in TrainingZoneColors.powerValues) {
+            zone.update(zoneColor);now+=1500
+            val paletteImage=image()
+            assertEquals(zoneColor,paletteImage.getPixel(100,96));paletteImage.recycle()
+        }
+        zone.update(Color.BLUE);now+=1500
+        zone.update(Color.RED);now+=750;val mixed=zone.currentColor()
         assertTrue(Color.red(mixed)>0 && Color.blue(mixed)>0)
         zone.flat=false;assertEquals(mixed,zone.currentColor())
-        zone.flat=true;zone.update(null);now=3750
+        zone.flat=true;zone.update(null);now+=1500
         val cleared=image();assertEquals(0,Color.alpha(cleared.getPixel(100,99)))
         solid.recycle();cleared.recycle()
     }

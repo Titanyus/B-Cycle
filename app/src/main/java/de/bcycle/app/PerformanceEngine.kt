@@ -44,9 +44,10 @@ data class PerformanceValues(
 /** Only bounded state: actual events -> time integral -> complete 1 s bins -> complete 30 s windows. */
 class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), powerDurationsMs: List<Long> = emptyList(), private val primaryPowerSource:PowerSource=PowerSource.BOSCH_RIDER,private val resolvedPower:Boolean=false) {
     companion object {
-        const val MODEL_VERSION = 3
+        const val MODEL_VERSION = 4
         const val MAX_HOLD_MS = 5_000L
         const val MIN_COVERAGE = .95
+        const val MIN_NP_COVERAGE = .90
     }
     private val powerWindows = (powerDurationsMs + 20 * 60 * 1000L).distinct().associateWith { PowerDurationWindow(it) }
     internal fun bestPowerAverages(): Map<Long, Double> = powerWindows.mapNotNull { (duration, window) ->
@@ -183,7 +184,7 @@ class PerformanceEngine(private val energy: EnergyEngine = EnergyEngine(), power
         // A local gap breaks its 30 s windows and FTP continuity, not an otherwise
         // well-covered ride. Coverage and complete-window coverage remain required.
         val enough = activeMs > 0 && quality.powerCoverage >= MIN_COVERAGE
-        val np = if (enough && windowCount > 0 && potentialWindows > 0 && windowCount.toDouble() / potentialWindows >= MIN_COVERAGE)
+        val np = if (activeMs > 0 && quality.powerCoverage >= MIN_NP_COVERAGE && windowCount > 0 && potentialWindows > 0 && windowCount.toDouble() / potentialWindows >= MIN_NP_COVERAGE)
             fourthMean.coerceAtLeast(0.0).pow(.25).takeIf { it.isFinite() } else null
         // Work is the observed integral, not a rescaled estimate for unobserved seconds.
         val work = (workJ / 1000).takeIf { enough && it.isFinite() }

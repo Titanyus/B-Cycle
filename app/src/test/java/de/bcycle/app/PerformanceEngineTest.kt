@@ -18,6 +18,24 @@ class PerformanceEngineTest {
         engine.advance(values.size * 1000L)
         return engine.snapshot()
     }
+    @Test fun npUsesNinetyPercentCoverageWhileEnergyKeepsItsExistingThreshold() {
+        fun ride(missingSeconds:Int):PerformanceValues {
+            val e=PerformanceEngine()
+            for(second in 0 until 600) {
+                e.accept(power(second*1000L,if(second<missingSeconds) null else 200.0))
+            }
+            e.advance(600000);return e.snapshot()
+        }
+        // Startup missing intervals avoid a second recovery window: 57/571=9.98%.
+        val accepted=ride(57)
+        assertTrue(accepted.quality.npWindowCoverage>=.90 && accepted.quality.npWindowCoverage<.95)
+        assertEquals(200.0,accepted.normalizedPowerW!!,1e-9)
+        assertNull(accepted.mechanicalWorkKj);assertNull(accepted.caloriesKcal)
+        assertTrue(accepted.quality.powerCoverage<.95)
+        val rejected=ride(58)
+        assertTrue(rejected.quality.npWindowCoverage<.90)
+        assertNull(rejected.normalizedPowerW)
+    }
     @Test fun oneHourAt200WattsMatchesPhysicalAndTrainingReferenceValues() {
         val v = series(List(3600) { 200.0 })
         assertEquals(200.0, v.normalizedPowerW!!, 1e-9)

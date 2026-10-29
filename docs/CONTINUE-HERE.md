@@ -1,3 +1,13 @@
+# Nach Build104: NP-Grenze90% und Flat-Balken im ModusNormal
+
+Aktuelle Nutzerentscheidungen umgesetzt und für nächste APK gespeichert. Kein neuer APK-Auftrag; letzte Veröffentlichung0.8.63/Build104. Vorherige Licht-/Warnungs-/Kreis-/Schriftänderungen aus2881d10 bleiben enthalten.
+
+NP: separate MIN_NP_COVERAGE=.90 für Leistungsabdeckung UND vollständige30sFenster. Arbeit/Kalorien/Ratio bleiben bei bisheriger MIN_COVERAGE=.95, FTP-Faktor.95 unverändert. Keine Lückenfüllen, keine Fensterverkettung, vollständig gepaarte EF-Pulsregel erhalten. Performance-MODEL_VERSION4 für neue Exporte. RouteAnalysisView nutzt neueGrenze und Hinweise nennen90%. VorhandeneFITnichtüberschreiben; fehlendeNP wird beimLesen nachbestehenderLogikneuermittelt. Privater OriginalFIT mit tatsächlichemRouteAnalysisRead nochmals geprüft: NP nunberechenbar, Ergebnis/Qualitätsdatenin/workspace/.tools/current-fit-review/report.md. KeineprivateDateiinsRepo.
+
+Flat-Trainingsbalken: ausdrücklichNormal(SRC_OVER), vollständigeZonenfarbe bei vollerDeckkraft, keineGlowAlpha140/255 und keine3PLUS-Durchgänge mehr. PaletteTrainingZoneColors,8%-Geometrie, weicheZonengrenzen/1,5sTransition erhalten. Glow-Modus weiter radial/additiv; Bosch-Glow unverändert. Nutzer hat Änderung direkt und zusätzlich perOptionsantwort bestätigt.
+
+60eindeutigeTestsgrün überrelevanteLäufe: PerformanceEngineTest23(inklneuem90%-Grenztestundbestehenden95%-Energieanforderungen), TrainingZoneUiTest10(alle7ZonenpixelidentischzurPalette), DashboardAppearanceTest5, RouteAnalysisViewTest8, FitWriterTest6, PerformanceFitTest8. Logs /workspace/.tools/np-ninety-flat-normal-tests.log(46), np-ninety-ui-export-tests.log(14,RouteViewwiederholt), np-ninety-fit-tests.log(8). Typografie/Atlas/Diffgrün, native Trainingsvorschauen aktualisiert. KeineGesamtsuite/neuerGerätetest/APK-Build. NächsterAPK voraussichtlich0.8.64/Code134/Build105 (prüfen).
+
 # NachBuild104: Lichtzustand, verbundene Akkuwarnung, Kreis und3erSchriftlimits
 
 NeuesterNutzerauftragumgesetzt, keineAPKangefordert. LetzteVeröffentlichung0.8.63/Build104, nächsterBuildvoraussichtlich0.8.64/Code134/Build105 (prüfen).

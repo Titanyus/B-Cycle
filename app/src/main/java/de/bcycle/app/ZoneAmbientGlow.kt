@@ -37,10 +37,10 @@ internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.Syst
         }
         if (flat && !bounds.isEmpty && Color.alpha(color)>0) {
             paint.shader=null
-            paint.color=(color and 0xffffff) or ((Color.alpha(color)*BicycleDesign.modeGlowAlpha/255) shl 24)
-            paint.blendMode=BlendMode.PLUS
+            paint.color=color
+            paint.blendMode=BlendMode.SRC_OVER
             val top=bounds.bottom-bounds.height()*BicycleDesign.trainingBarHeightFraction
-            repeat(BicycleDesign.ambientGlowPasses) { canvas.drawRect(bounds.left.toFloat(),top,bounds.right.toFloat(),bounds.bottom.toFloat(),paint) }
+            canvas.drawRect(bounds.left.toFloat(),top,bounds.right.toFloat(),bounds.bottom.toFloat(),paint)
             paint.blendMode=null
         } else if (!flat && !bounds.isEmpty && shader != null) {
             matrix.setScale((bounds.width() * .5f - .5f).coerceAtLeast(.5f), bounds.height() * .4f)

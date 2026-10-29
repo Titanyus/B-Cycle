@@ -43,7 +43,7 @@ Zwischen zwei Beobachtungen wird der letzte gültige Wert stückweise konstant v
 - Leistung gültig 0…65.535 W (Protokollbereich), Puls 1…255 bpm, Geschwindigkeit 0…35 m/s.
 - Exportierbare Arbeit/Ratio: mindestens 95 % zeitliche Leistungsabdeckung. Unbekannte Abschnitte werden nicht ergänzt; eine einzelne längere Lücke sperrt eine ansonsten ausreichend belegte Fahrt nicht pauschal.
 - Arbeit ist auch dann ausschließlich das Integral der bekannten Abschnitte. Bis zu 5 % fehlende Zeit wird **nicht extrapoliert**. Der Wert kann daher den vollständigen Fahrtwert unterschätzen. Qualitätsfelder machen dies nachvollziehbar.
-- NP zusätzlich: mindestens ein vollständiges 30-s-Fenster und mindestens 95 % nutzbare vollständige Fenster im aktiven Auswertungszeitraum. Eine Lücke verwirft alle über sie laufenden Fenster.
+- NP: mindestens90% zeitliche Leistungsabdeckung, mindestens ein vollständiges30-s-Fenster und mindestens90% nutzbare vollständige Fenster im aktiven Auswertungszeitraum. Eine Lücke verwirft alle über sie laufenden Fenster.
 - EF erfordert vollständige Pulsabdeckung aller tatsächlich ausgewerteten Leistungsabschnitte. Fehlender Puls macht EF unverfügbar, nicht aber gültige Leistungskennzahlen.
 - Sehr kurze Fahrten können Arbeit/Kalorien liefern, aber vor 30 vollständigen Sekunden keine NP/EF.
 
@@ -137,7 +137,7 @@ Kalorien, Speed-to-Power und EF werden aus dem gemeinsamen Modell berechnet.
 `POWER_ZERO_STATE_TIME` in Lap/Session (Developer Field, Sekunden) kennzeichnet
 die Zeit, in der eine explizite Null durch frische Bike-Telemetrie fortgeführt wurde.
 Diese Zeit ist in der berechneten Leistungsabdeckung enthalten. Die Grenzen von
-95 % Leistungsabdeckung und für NP zusätzlich 95 % vollständige 30-Sekunden-Fenster bleiben erforderlich. Die fünf Sekunden begrenzen die Fortschreibung einzelner Messungen; sie sind kein pauschales Ausschlusskriterium für eine ganze lange Fahrt. EF erfordert Puls über alle ausgewerteten Leistungsabschnitte.
+Für Arbeit/Ratio/Kalorien bleiben95% Leistungsabdeckung erforderlich; NP verwendet seit29.10.2026 jeweils90% Leistungs- und vollständige30-Sekunden-Fensterabdeckung. Die fünf Sekunden begrenzen die Fortschreibung einzelner Messungen; sie sind kein pauschales Ausschlusskriterium für eine ganze lange Fahrt. EF erfordert Puls über alle ausgewerteten Leistungsabschnitte.
 
 Das neue, am Ende des Enums ergänzte BIKE_ACTIVITY-Ereignis hält Rad-Telemetrie
 auch bei ausgewählter GPS-Hauptquelle separat fest. Journal-Version 5 bleibt lesbar;
@@ -165,8 +165,7 @@ beziehungsweise Aufzeichnungslücken bleiben unbekannt oder unterbrechen das Fen
 
 Diese Interpretation ändert keine FIT-Records, keine Dateien und keine Rohkurven.
 Geschwindigkeit und echte Nullwerte werden weder in UI-Kurven noch im Journal erfunden.
-Die globale Gültigkeit nutzt die zeitliche Leistungsabdeckung (95 %) und für NP die
-Abdeckung vollständiger 30-s-Fenster (95 %). Dadurch entwertet ein kurzer Akku-Ausfall
+Arbeit/Ratio/Kalorien nutzen weiterhin95% zeitliche Leistungsabdeckung; NP verlangt seit29.10.2026 jeweils90% Leistungsabdeckung und90% vollständige30-s-Fenster. Dadurch entwertet ein kurzer Akku-Ausfall
 nicht automatisch eine sonst gut belegte lange Fahrt. Arbeit bleibt ausschließlich
 beobachtete Arbeit ohne Hochrechnung. EF verwendet vollständig gepaarte Pulsdaten
 über die gültigen Leistungsintervalle. FTP bleibt an exakt 20 Minuten unterbrechungs-
@@ -186,3 +185,6 @@ kleinen Dreier-Kachel-Dauer-/Einheitenanpassung wurden **43 gezielte UI-/Trend-/
 und der Release-Build erneut erfolgreich ausgeführt (**57s**). Keine erneute vollständige
 Suite nach dieser reinen Darstellungskorrektur. Bestehende `onBackPressed()`-Warnung bleibt;
 kein zusätzlicher vollständiger Lint-Lauf oder Gerätetest. Keine neue signierte APK veröffentlicht.
+
+
+NachBuild104,29.10.2026: ausdrückliche Nutzerentscheidung reduziert ausschließlich die NP-Daten-/Fensterqualitätsgrenzen von95% auf90% (MIN_NP_COVERAGE). Gemeinsame95%-Grenzen für Arbeit/Kalorien/Ratio bleiben erhalten; FTP95%-Faktor bleibt erhalten. Vollständige30sFenster weiter ohne Lückenfüllung/Verkettung, EF wiebisher vollständig gepaartePulsintervalle. Performance-MODEL_VERSION4 kennzeichnet geänderteFreigabepolitik bei künftigen Exporten; Rohdaten/Dateiformat unverändert, vorhandeneFITnichtautomatischüberschreiben. Fehlerhinweise verwenden90%.

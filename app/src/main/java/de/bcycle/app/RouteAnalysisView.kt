@@ -122,9 +122,9 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
                             val reason=when {
                                 quality.activeMs==0L->R.string.analysis_np_no_time
                                 quality.activeMs<30000->R.string.analysis_np_too_short
-                                quality.powerCoverage<PerformanceEngine.MIN_COVERAGE->R.string.analysis_np_power_coverage
+                                quality.powerCoverage<PerformanceEngine.MIN_NP_COVERAGE->R.string.analysis_np_power_coverage
                                 quality.npWindows==0L->R.string.analysis_np_no_window
-                                quality.npWindowCoverage<PerformanceEngine.MIN_COVERAGE->R.string.analysis_np_window_coverage
+                                quality.npWindowCoverage<PerformanceEngine.MIN_NP_COVERAGE->R.string.analysis_np_window_coverage
                                 else->R.string.analysis_np_missing
                             }
                             addView(BicycleComponents.description(context,themes,context.getString(R.string.analysis_np_reason,
