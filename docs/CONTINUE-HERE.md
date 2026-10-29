@@ -1,3 +1,7 @@
+# APK veröffentlicht29.10.2026:0.8.61 / Build102 / Code131
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.61-release-102.apk) · [Buildnachweis](build-102.md). Quelle `ed83408d9d2c2199196e297bedbea2f57c391786`, Größe 2497213 Bytes, SHA-256 `a10b6aaa8f1f6ce8f50915d4130ce087a4920cf6102b882a32332e877259ce68`. Alle Änderungen seitBuild101 enthalten: Aufnahmebutton/Kreisform/Footerhöhe/zentrierterName, Flat-Zonenbalken, FULL_SIX alsNr3ohneKarte, Zusammenfassungstrenner. Signatur/Update-Kompatibilität, CI-Prüfsumme, Manifest und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci]. Keine offene APK-Aufgabe; nachfolgende Abschnitte sind Umsetzungshistorie.
+
 # Nach Build101: Dashboard-Balken, Aufnahmebutton, Zusammenfassung und neues Layout29.10.2026
 
 Alle aktuellen Nutzeraufträge umgesetzt, keine APK angefordert. Letzte veröffentlichte APK0.8.60/Build101; nächster Build voraussichtlich0.8.61/Code131/Build102, Laufnummer vor Auftrag prüfen.

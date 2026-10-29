@@ -28,3 +28,6 @@ FieldPickerView legt den horizontalen Seitenabstand ausschließlich in das direk
 ## Flat-Balken statt Zonenlicht,29.10.2026
 
 Explizite neue Dashboard-Ausnahme: Im Flat-Design ersetzt ZoneAmbientGlow nur die radiale Trainingszonen-Darstellung durch ein scharfes horizontales Rechteck am Kachelunterrand, volle Kachelbreite und8% der Kachelhöhe (BicycleDesign.trainingBarHeightFraction). Unveränderte Datenquellen, Zonenpalette, Intensität/PLUS-Überblendung und derselbe1,5s-Farb-/Sichtbarkeitsübergang. Wechsel Flat/Glow übernimmt laufende Übergänge statt sie neu zu starten. Glow-Design behält die bisherige radiale Form. Graphfüllungen/Skalen und Bosch-Fahrmodus-/Akkuwarn-Glow bleiben designunabhängig wie bisher. Keine neue Einstellung oder Änderung der Trainingsberechnung.
+
+
+Veröffentlichung29.10.2026: Diese Änderungen sind in **APK0.8.61/Build102** enthalten. [Download und Buildnachweis](build-102.md). Frühere Angaben zu noch fehlender APK sind Umsetzungshistorie.

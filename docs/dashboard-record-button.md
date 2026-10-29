@@ -5,3 +5,6 @@ Zentrale native DashboardRecordButton-Instanz mit unveränderten Click-/LongClic
 DashboardRecordSurface cached eine einzige native Path-Kontur (kein Bitmap, Blur, SVG oder Union je Frame). Zentrale Tokens: Körper58dp, Wölbung14dp, Icon20dp, Rechteckradius12dp. Toolbargewichte0,8/2,5/0,8, damit Mitte etwas breiter. Die14dp Wölbung überlagert den Inhalt über negativen Toolbar-Topmargin; der rechteckige Footer verbraucht weiterhin58dp. Fahrradicon und Name gemeinsam mittig im unteren Körper, feste20sp und Rechtskürzung bei Überlänge; vollständiger Name bleibt zugänglich. Record-Indikator als eigener nativer Foreground, um den internen horizontalen TextView-Scroll kompensiert, damit er auch bei sehr langen Namen ortsfest bleibt. Seitenbuttons58dp, TERTIARY-Hintergrund beginnt erst am Körper. Gesamter Button inklusive Wölbung liegt im nativen Touchziel. Kein zusätzlicher Bedienknopf.
 
 Fahrtzusammenfassung: vor Warn-/Uploadangaben ein zentraler sectionDivider mit unveränderten globalen Abständen; vorhandene E-Bike-Batterietrennung bleibt zusätzlich bestehen.
+
+
+Veröffentlichung29.10.2026: Diese Änderungen sind in **APK0.8.61/Build102** enthalten. [Download und Buildnachweis](build-102.md). Frühere Angaben zu noch fehlender APK sind Umsetzungshistorie.

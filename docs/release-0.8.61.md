@@ -7,4 +7,4 @@
 
 Prüfung:38gezielte Fälle für Dashboarddarstellung, Zonenlicht/-balken, Zusammenfassung, Aufnahme, Indoor, Auswahl und Profilseiten erfolgreich. Native320/360dpFlat/Glow-Bilder visuell geprüft, tatsächliche Iconpixel im Dashboard,58dpFooter und lange Namen geprüft. Typografie/Atlas/Diff konsistent. Kein vollständiger Gesamtlauf/neuer Telefon-/privater Cloudtest.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-102.md).

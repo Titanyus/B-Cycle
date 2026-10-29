@@ -19,3 +19,6 @@ Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.56/Build97** ent
 
 
 Erweiterung29.10.2026: FULL_SIX mit1/1/1/3 ausdrücklich zusätzlich alsNr3 ohneKarte eingefügt. Bestehende1/1/1/2 bleibt. Enumwert amEnde ergänzt, Standardseiten-/Belegungs-IDs nicht verschieben. Insgesamt14Vorlagen, davon5ohne/9mitKarte.
+
+
+Veröffentlichung29.10.2026: Diese Änderungen sind in **APK0.8.61/Build102** enthalten. [Download und Buildnachweis](build-102.md). Frühere Angaben zu noch fehlender APK sind Umsetzungshistorie.
