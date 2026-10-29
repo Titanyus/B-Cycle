@@ -75,3 +75,6 @@ Nachtrag25.10.2026: Gemeinsame Auswahlkacheln nach Fahrradprofilstandard über B
 
 
 Nachtrag26.10.2026: Die beiden Dashboard-Dialoge tägliche HRV-Karte und Fahrtzusammenfassung erhalten unabhängig vom Einstellungsdesign12dp native Dashboard-Weichzeichnung und24dp diffusen schwarzen Schatten. Nur DashboardModal/der explizite dashboardSurface-Aufruf verwenden diese Ausnahme; normale Einstellungsdialoge behalten die bestehenden Rollen und ihr Design. Ältere Aussagen zu ausschließlich Glow bei diesen beiden Dashboard-Dialogen sind ersetzt.
+
+
+Nachtrag29.10.2026: Nutzer fordert ausdrücklich eine Ausnahme für die Trainingszonenvisualisierung auf dem Dashboard: Flat nutzt untere Farbrechtecke (volle Breite,8% Kachelhöhe), Glow das bisherige Licht. Farben/Überblendung/Trainingslogik identisch; Graphen und Bosch-Glow bleiben unverändert. Diese Entscheidung ersetzt nur für diese Zonenform die frühere vollständige Dashboard-Gleichheit.

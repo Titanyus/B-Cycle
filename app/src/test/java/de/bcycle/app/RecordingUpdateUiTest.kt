@@ -23,6 +23,12 @@ class RecordingUpdateUiTest {
         worker.submit {}.get(10,TimeUnit.SECONDS)
         shadowOf(Looper.getMainLooper()).idle()
     }
+    private fun assertSummaryShown() {
+        shadowOf(Looper.getMainLooper()).idle()
+        val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+        assertNotNull(dialog?.window?.decorView?.findViewWithTag<android.view.View>("ride_summary"))
+        assertNotNull(dialog?.window?.decorView?.findViewWithTag<android.view.View>("ride_summary_transfer_divider"))
+    }
     @Test fun runtimeRefreshesLibraryOnCompletionAndRecoveryButNotProgressOrWriteNotices() {
         val runtime=RideRuntime.get(RuntimeEnvironment.getApplication())
         drainLibrary(runtime)
@@ -74,7 +80,8 @@ class RecordingUpdateUiTest {
             assertSame(errorToast,ShadowToast.getLatestToast())
             runtime.recordingChanged(RecordingUpdate.Finished(RideCompletion.Completed("ride")))
             assertTrue(button.isEnabled)
-            assertEquals("Gespeichert: FIT in Streckensammlung",ShadowToast.getTextOfLatestToast())
+            assertSame(errorToast,ShadowToast.getLatestToast())
+            assertSummaryShown()
             assertTrue(runtime.switchBike(other.slot))
         } finally { host.pause().stop().destroy() }
     }
@@ -87,7 +94,8 @@ class RecordingUpdateUiTest {
             runtime.recordingChanged(RecordingUpdate.Notice.NO_PENDING)
             assertSame(initial,ShadowToast.getLatestToast())
             runtime.recordingChanged(RecordingUpdate.Finished(RideCompletion.LocallyRetained("ride",RecordingFinishStage.QUEUE_UPLOADS)))
-            assertEquals("FIT lokal gespeichert · Ordnerexport oder Upload-Vormerkung fehlgeschlagen. Im Menü erneut versuchen.",ShadowToast.getTextOfLatestToast())
+            assertSame(initial,ShadowToast.getLatestToast())
+            assertSummaryShown()
             runtime.recordingChanged(RecordingUpdate.Finished(RideCompletion.NotSaved(RecordingFinishStage.ENCODE_FIT)))
             assertEquals("FIT nicht gespeichert · Daten bleiben erhalten. Im Menü erneut speichern.",ShadowToast.getTextOfLatestToast())
             runtime.recordingChanged(RecordingUpdate.Recovered(listOf(RideCompletion.Completed("ride"),RideCompletion.NotSaved(RecordingFinishStage.ENCODE_FIT))))

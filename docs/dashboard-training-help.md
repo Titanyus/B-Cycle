@@ -23,3 +23,8 @@ Pulszonen und Zone-2-Grenzen folgen der global im Fahrerprofil gewählten Method
 ## Feldwahlbreite und Gruppierungsabstand nach Build 93
 
 FieldPickerView legt den horizontalen Seitenabstand ausschließlich in das direkte innere panels-Layout des Scrollbereichs. Der äußere Host hat kein zusätzliches horizontales Padding. Dadurch erhält die Glow-Trainingshilfe ihren üblichen sectionCardInset statt eines doppelten Randabstands; Datenlisten behalten ihren Seitenabstand und ihre Bedienung. Zwischen Datenquellen-Dropdown und erster Kategorie stehen sectionContentGap=16dp als Abstand der Feldliste.
+
+
+## Flat-Balken statt Zonenlicht,29.10.2026
+
+Explizite neue Dashboard-Ausnahme: Im Flat-Design ersetzt ZoneAmbientGlow nur die radiale Trainingszonen-Darstellung durch ein scharfes horizontales Rechteck am Kachelunterrand, volle Kachelbreite und8% der Kachelhöhe (BicycleDesign.trainingBarHeightFraction). Unveränderte Datenquellen, Zonenpalette, Intensität/PLUS-Überblendung und derselbe1,5s-Farb-/Sichtbarkeitsübergang. Wechsel Flat/Glow übernimmt laufende Übergänge statt sie neu zu starten. Glow-Design behält die bisherige radiale Form. Graphfüllungen/Skalen und Bosch-Fahrmodus-/Akkuwarn-Glow bleiben designunabhängig wie bisher. Keine neue Einstellung oder Änderung der Trainingsberechnung.

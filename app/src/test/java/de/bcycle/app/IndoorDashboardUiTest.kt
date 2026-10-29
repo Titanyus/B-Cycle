@@ -29,14 +29,14 @@ class IndoorDashboardUiTest {
             assertTrue(picker.selection.all { !it.hasMap })
             picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
             val options=nodes(picker.findViewWithTag<View>("dashboard_layout_details")).filter { it.isClickable && it.tag?.toString()?.startsWith("preset_")==true }
-            assertEquals(listOf("preset_FULL_DATA","preset_FULL_EIGHT","preset_FULL_FOUR","preset_FULL_NINE"),options.map { it.tag })
+            assertEquals(listOf("preset_FULL_FOUR","preset_FULL_DATA","preset_FULL_SIX","preset_FULL_NINE","preset_FULL_EIGHT"),options.map { it.tag })
             picker.findViewWithTag<View>("dashboard_layout_choice").performClick()
             assertEquals("HERO",prefs.getString("dashboardTemplate_0",null))
             bikes.save(bikes.current().copy(type=BikeType.EBIKE))
             val outdoor=DashboardPresetPicker(a,0);a.setContentView(outdoor)
             assertEquals(DashboardTemplate.HERO,outdoor.selection.first())
             outdoor.findViewWithTag<View>("dashboard_layout_choice").performClick()
-            assertEquals(13,nodes(outdoor.findViewWithTag<View>("dashboard_layout_details")).count { it.isClickable && it.tag?.toString()?.startsWith("preset_")==true })
+            assertEquals(14,nodes(outdoor.findViewWithTag<View>("dashboard_layout_details")).count { it.isClickable && it.tag?.toString()?.startsWith("preset_")==true })
             outdoor.findViewWithTag<View>("dashboard_layout_choice").performClick()
         } finally { host.pause().stop().destroy() }
     }
@@ -56,13 +56,13 @@ class IndoorDashboardUiTest {
             val render=MainActivity::class.java.getDeclaredMethod("render").apply { isAccessible=true }
             field.setBoolean(runtime,true);render.invoke(a)
             val button=root.findViewWithTag<Button>("record_bike_button")
-            val cue=(button.text as Spanned).getSpans(0,button.text.length,ImageSpan::class.java).first().drawable as RecordingButtonIndicator
+            val cue=(button as DashboardRecordButton).recordIcon as RecordingButtonIndicator
             assertTrue(cue.running)
             button.performClick();assertEquals(RecordingService.STOP,shadowOf(a).nextStartedService.action)
             field.setBoolean(runtime,false);render.invoke(a);assertFalse(cue.running)
-            assertFalse((button.text as Spanned).getSpans(0,button.text.length,ImageSpan::class.java).first().drawable is RecordingButtonIndicator)
+            assertFalse((button as DashboardRecordButton).recordIcon is RecordingButtonIndicator)
             field.setBoolean(runtime,true);render.invoke(a)
-            val next=(button.text as Spanned).getSpans(0,button.text.length,ImageSpan::class.java).first().drawable as RecordingButtonIndicator
+            val next=(button as DashboardRecordButton).recordIcon as RecordingButtonIndicator
             host.pause().stop();assertFalse(next.running)
             host.start().resume();assertTrue(next.running)
         } finally { field.setBoolean(runtime,false);host.pause().stop().destroy() }
@@ -78,7 +78,7 @@ class IndoorDashboardUiTest {
             val render=MainActivity::class.java.getDeclaredMethod("render").apply { isAccessible=true }
             field.setBoolean(runtime,true);render.invoke(a)
             val button=a.window.decorView.findViewWithTag<Button>("record_bike_button")
-            val cue=(button.text as Spanned).getSpans(0,button.text.length,ImageSpan::class.java).first().drawable as RecordingButtonIndicator
+            val cue=(button as DashboardRecordButton).recordIcon as RecordingButtonIndicator
             assertTrue(cue.running)
             button.performClick();assertEquals(RecordingService.STOP,shadowOf(a).nextStartedService.action)
             field.setBoolean(runtime,false);render.invoke(a);assertFalse(cue.running)

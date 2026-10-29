@@ -204,7 +204,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     private inner class Tile(private val index: Int) {
         fun resetTrend() { row.direction=0;row.chevrons.clear() }
-        internal val zoneGlow=ZoneAmbientGlow()
+        internal val zoneGlow=ZoneAmbientGlow().apply { flat=BicycleAppearance.flat(context) }
         private var zoneShown=false
         fun updateGlow() {
             if(!zoneShown && zoneConfig.sources[index]!=ZoneGlowSource.OFF) {
@@ -213,7 +213,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             }
             zoneGlow.update(training.glow(zoneConfig.sources[index],zoneTwoHelp))
         }
-        fun refreshAppearance() { if(plainBackground!=null) updateBackground();container.invalidate() }
+        fun refreshAppearance() { zoneGlow.flat=BicycleAppearance.flat(context);if(plainBackground!=null) updateBackground();container.invalidate() }
         private fun updateBackground() {
             val layers=mutableListOf(plainBackground!!)
             if(zoneShown) layers+=zoneGlow

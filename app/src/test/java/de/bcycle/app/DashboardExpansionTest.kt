@@ -40,7 +40,7 @@ class DashboardExpansionTest {
         val c=org.robolectric.RuntimeEnvironment.getApplication()
         val themes=ThemeManager(c.getSharedPreferences("dashboard-order",0))
         val grid=DashboardLayoutGrid(c,themes,DashboardTemplate.DATA) {}
-        val expected=listOf(DashboardTemplate.FULL_FOUR,DashboardTemplate.FULL_DATA,DashboardTemplate.FULL_NINE,DashboardTemplate.FULL_EIGHT,
+        val expected=listOf(DashboardTemplate.FULL_FOUR,DashboardTemplate.FULL_DATA,DashboardTemplate.FULL_SIX,DashboardTemplate.FULL_NINE,DashboardTemplate.FULL_EIGHT,
             DashboardTemplate.MAP,DashboardTemplate.OVERVIEW,DashboardTemplate.BALANCED,DashboardTemplate.FIVE,DashboardTemplate.EIGHT,
             DashboardTemplate.HERO,DashboardTemplate.HERO_FIVE,DashboardTemplate.HERO_SEVEN,DashboardTemplate.DATA)
         fun cards(view:View):List<String> {
@@ -56,9 +56,10 @@ class DashboardExpansionTest {
     }
     @Test fun newNoMapLayoutsKeepNineMapPresetsAndMigrateOldEightFields() {
         assertEquals(9,DashboardTemplate.entries.count { it.hasMap })
-        assertEquals(4,DashboardTemplate.entries.count { !it.hasMap })
+        assertEquals(5,DashboardTemplate.entries.count { !it.hasMap })
         assertEquals(listOf(1,1,2,2,2),DashboardTemplate.FULL_EIGHT.rows.map { it.size })
         assertEquals(listOf(1,1,1,1),DashboardTemplate.FULL_FOUR.rows.map { it.size })
+        assertEquals(listOf(1,1,1,3),DashboardTemplate.FULL_SIX.rows.map { it.size })
         assertEquals(listOf(1,1,1,3,3),DashboardTemplate.FULL_NINE.rows.map { it.size })
         assertEquals(8,DashboardTemplate.EIGHT.slots.size)
         val old=List(8) { "HEART_RATE" }.joinToString("|")
@@ -67,7 +68,7 @@ class DashboardExpansionTest {
         val c=org.robolectric.RuntimeEnvironment.getApplication()
         val grid=DashboardLayoutGrid(c,ThemeManager(c.getSharedPreferences("grid",0)),DashboardTemplate.FULL_NINE) {}
         val headings=(0 until grid.childCount).map(grid::getChildAt).filterIsInstance<TextView>()
-        assertEquals(listOf("Dashboards mit Karte","Dashboards ohne Karte"),headings.map { it.text.toString() })
+        assertEquals(listOf("Dashboards ohne Karte","Dashboards mit Karte"),headings.map { it.text.toString() })
         DashboardTemplate.entries.forEach { assertNotNull(grid.findViewWithTag<View>("preset_${it.name}")) }
     }
     @Test fun visibleTwoAndThreeColumnValuesShareSizeAndHiddenLongValuesDoNotLimitThem() {
@@ -88,7 +89,7 @@ class DashboardExpansionTest {
             view.showDataVisibility(DashboardDataVisibility(List(9) { it !in listOf(0,3) }));layout(view)
             assertTrue("two: before=$two after=${number(1).textSize} text=${number(1).text}, width=${number(1).width}, height=${number(1).height}, hidden=${number(0).parent.let { it as View }.visibility}",number(1).textSize>two);assertTrue("three: before=$three after=${number(2).textSize}",number(2).textSize>three)
             assertEquals(number(2).textSize,number(4).textSize,.01f)
-            for(template in listOf(DashboardTemplate.FULL_EIGHT,DashboardTemplate.FULL_FOUR,DashboardTemplate.FULL_NINE)) {
+            for(template in listOf(DashboardTemplate.FULL_EIGHT,DashboardTemplate.FULL_FOUR,DashboardTemplate.FULL_NINE,DashboardTemplate.FULL_SIX)) {
                 view.setTemplate(template);view.show(DashboardLayout.decode(fields),LiveData(),GpsValues(elapsedMs=360000000));layout(view)
                 template.slots.forEach { assertTrue(view.findViewWithTag<View>("dashboard_tile_$it").height>0) }
                 view.showDataVisibility(DashboardDataVisibility())

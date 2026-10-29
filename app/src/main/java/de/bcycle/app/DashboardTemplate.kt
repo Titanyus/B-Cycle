@@ -14,7 +14,8 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
     FULL_DATA("",listOf(0,1,2,3,4),1f,R.string.dashboard_preset_ten),
     FULL_EIGHT("",(0 until 8).toList(),1f,R.string.dashboard_full_eight),
     FULL_FOUR("",(0 until 4).toList(),1f,R.string.dashboard_full_four),
-    FULL_NINE("",(0 until 9).toList(),1f,R.string.dashboard_full_nine);
+    FULL_NINE("",(0 until 9).toList(),1f,R.string.dashboard_full_nine),
+    FULL_SIX("",(0 until 6).toList(),1f,R.string.dashboard_full_six);
     val hasMap get()=dataFraction<1f
     /** Display-only fallback: trying Indoor must never erase a saved outdoor layout. */
     fun forBike(type:BikeType)=if(type==BikeType.INDOOR && hasMap) FULL_DATA else this
@@ -22,6 +23,7 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
     val largeTop: Boolean get() = this == HERO || this == HERO_SEVEN || this == HERO_FIVE
     val rows: List<List<Int>> get() = when (this) {
         FULL_EIGHT -> listOf(listOf(0),listOf(1),listOf(2,3),listOf(4,5),listOf(6,7))
+        FULL_SIX -> listOf(listOf(0),listOf(1),listOf(2),listOf(3,4,5))
         FULL_FOUR -> slots.map { listOf(it) }
         FULL_NINE -> listOf(listOf(0),listOf(1),listOf(2),listOf(3,4,5),listOf(6,7,8))
         FULL_DATA -> listOf(listOf(0),listOf(1),listOf(2),listOf(3,4))
@@ -61,7 +63,7 @@ enum class DashboardTemplate(val title: String, val slots: List<Int>, val dataFr
 
     companion object {
         /** Picker-only order. Enum order remains the persisted default-page compatibility boundary. */
-        val pickerOrder=listOf(FULL_FOUR,FULL_DATA,FULL_NINE,FULL_EIGHT,
+        val pickerOrder=listOf(FULL_FOUR,FULL_DATA,FULL_SIX,FULL_NINE,FULL_EIGHT,
             MAP,OVERVIEW,BALANCED,FIVE,EIGHT,HERO,HERO_FIVE,HERO_SEVEN,DATA)
         // Halve the large label area while keeping the original value-row space.
         const val LARGE_COMPACT_RATIO = BicycleDesign.dashboardLargeCompactRatio

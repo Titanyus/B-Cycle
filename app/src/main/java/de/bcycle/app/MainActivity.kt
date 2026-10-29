@@ -38,7 +38,7 @@ class MainActivity : Activity() {
     private lateinit var dashboard: DashboardView
     private var hrvObservation:AutoCloseable?=null
     private var hrvWasBusy=false
-    private lateinit var startButton: Button
+    private lateinit var startButton: DashboardRecordButton
     private lateinit var noMapEditorFinish: Button
     private lateinit var drinkReminderPanel:DrinkReminderPanel
     private lateinit var shiftBatteryWarningPanel:ShiftBatteryWarningPanel
@@ -218,7 +218,14 @@ class MainActivity : Activity() {
         if(!currentTemplate().hasMap) { mapFullscreen=false;dashboard.visibility=View.VISIBLE;mapPanel.visibility=View.GONE }
         mapPanel.showFullscreen(mapFullscreen)
         root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
-        val toolbar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; tag = "ride_toolbar";styleBicycleFooter(this,runtime.themes,dashboard=true) }
+        val toolbar = LinearLayout(this).apply {
+            orientation=LinearLayout.HORIZONTAL;gravity=Gravity.BOTTOM;tag="ride_toolbar"
+            styleBicycleFooter(this,runtime.themes,dashboard=true,surfaceTopInset=dp(BicycleDesign.dashboardRecordCapHeight))
+            BicycleComponents.bindTheme(this,runtime.themes) { tokens ->
+                background=android.graphics.drawable.InsetDrawable(android.graphics.drawable.ColorDrawable(tokens.tertiary),0,dp(BicycleDesign.dashboardRecordCapHeight),0,0)
+                setPadding(0,0,0,0)
+            }
+        }
         fun toolbarButton(title: String, role: ThemeRole = ThemeRole.PRIMARY, action: () -> Unit) = Button(this).apply {
             text = title; isAllCaps = false; setOnClickListener { action() }
             textSize = 20f; minWidth = 0; minHeight = 0
@@ -231,12 +238,11 @@ class MainActivity : Activity() {
                 }
             }
         }
-        startButton = toolbarButton(getString(R.string.ui_record_start)) {
-            if (runtime.recording) startService(Intent(this, RecordingService::class.java).setAction(RecordingService.STOP)) else startRide()
-        }
+        startButton = DashboardRecordButton(this,runtime.themes).apply { setOnClickListener {
+            if (runtime.recording) startService(Intent(this@MainActivity, RecordingService::class.java).setAction(RecordingService.STOP)) else startRide()
+        } }
         startButton.apply {
             tag="record_bike_button";setSingleLine();ellipsize=android.text.TextUtils.TruncateAt.END
-            setAutoSizeTextTypeUniformWithConfiguration(12,20,1,android.util.TypedValue.COMPLEX_UNIT_SP)
             setOnLongClickListener {
                 if(runtime.recording || runtime.saving) true else {
                     bikePicker?.dismiss()
@@ -270,10 +276,10 @@ class MainActivity : Activity() {
                     setColor(tokens.tertiary)
                 }
             }
-        }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
-        toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarMainWeight))
-        toolbar.addView(toolbarButton("☰", ThemeRole.TERTIARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(58), BicycleDesign.dashboardToolbarActionWeight))
-        root.addView(toolbar)
+        }, LinearLayout.LayoutParams(0, dp(BicycleDesign.dashboardToolbarHeight), BicycleDesign.dashboardToolbarActionWeight))
+        toolbar.addView(startButton, LinearLayout.LayoutParams(0, dp(BicycleDesign.dashboardToolbarHeight+BicycleDesign.dashboardRecordCapHeight), BicycleDesign.dashboardToolbarMainWeight))
+        toolbar.addView(toolbarButton("☰", ThemeRole.TERTIARY) { showMenu() }.apply { contentDescription = getString(R.string.ui_menu_open) }, LinearLayout.LayoutParams(0, dp(BicycleDesign.dashboardToolbarHeight), BicycleDesign.dashboardToolbarActionWeight))
+        root.addView(toolbar,LinearLayout.LayoutParams(-1,-2).apply { topMargin=-dp(BicycleDesign.dashboardRecordCapHeight) })
         // Keep the data area height stable; all reclaimed toolbar space goes to the map.
         mapPanel.controlsVisibilityChanged = { visible ->
             controlsVisible = visible || !currentTemplate().hasMap
@@ -358,15 +364,13 @@ class MainActivity : Activity() {
         if(buttonSignature!=recordButtonSignature) {
         recordButtonSignature=buttonSignature
         recordingIndicator?.stop();recordingIndicator=null
-        startButton.text=android.text.SpannableString("\uFFFC  \uFFFC $buttonLabel").apply {
-            listOf(if(runtime.recording) BicycleIcon.StopRecording else BicycleIcon.RecordReady,BikeTypeIcons.forType(bike.type)).forEachIndexed { i,icon ->
-                val drawable=if(i==0 && runtime.recording)
-                    RecordingButtonIndicator(this@MainActivity,runtime.themes.active.tokens.foreground) { startButton.invalidate() }.also { recordingIndicator=it }
-                    else BicycleIcons.drawable(this@MainActivity,icon,runtime.themes.active.tokens.foreground)
-                drawable.setBounds(0,0,dp(20),dp(20))
-                val offset=if(i==0) 0 else 3
-                setSpan(android.text.style.ImageSpan(drawable,android.text.style.ImageSpan.ALIGN_CENTER),offset,offset+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            }
+        startButton.recordIcon=if(runtime.recording)
+            RecordingButtonIndicator(this@MainActivity,runtime.themes.active.tokens.foreground) { startButton.invalidate() }.also { recordingIndicator=it }
+            else BicycleIcons.drawable(this@MainActivity,BicycleIcon.RecordReady,runtime.themes.active.tokens.foreground)
+        startButton.text=android.text.SpannableString("\uFFFC $buttonLabel").apply {
+            val drawable=BicycleIcons.drawable(this@MainActivity,BikeTypeIcons.forType(bike.type),runtime.themes.active.tokens.foreground)
+            drawable.setBounds(0,0,dp(20),dp(20))
+            setSpan(android.text.style.ImageSpan(drawable,android.text.style.ImageSpan.ALIGN_CENTER),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         }
         recordingIndicator?.setAnimating(runtime.visible && dialogs.empty)

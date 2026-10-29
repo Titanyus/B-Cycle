@@ -19,8 +19,13 @@ object BicycleDesign {
     fun narrowTypeface(context:Context):android.graphics.Typeface=context.resources.getFont(R.font.league_gothic)
     val bodyTypeface:android.graphics.Typeface get()=android.graphics.Typeface.DEFAULT
     val compactTypeface:android.graphics.Typeface by lazy { android.graphics.Typeface.create("sans-serif-condensed",android.graphics.Typeface.NORMAL) }
-    const val dashboardToolbarMainWeight=2.3f
-    const val dashboardToolbarActionWeight=.9f
+    const val dashboardToolbarMainWeight=2.5f
+    const val dashboardToolbarActionWeight=.8f
+    const val dashboardToolbarHeight=58
+    const val dashboardRecordCapHeight=14
+    const val dashboardRecordCornerRadius=12
+    const val dashboardRecordIconSize=20
+    const val trainingBarHeightFraction=.08f
     const val hrvCircleHeight=320
     const val hrvGraphHeight=286
     const val hrvAssessmentScoreSp=64f

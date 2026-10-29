@@ -3,8 +3,10 @@ package de.bcycle.app
 import android.graphics.*
 import android.graphics.drawable.Drawable
 
-/** Same cached radial-light approach as BoschModeGlow, localized to the bottom of one tile. */
+/** Shared zone transition: radial light in Glow, solid bottom strip in Flat. */
 internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.SystemClock.uptimeMillis() }) : Drawable() {
+    var flat=false
+        set(value) { if(field!=value) { field=value;invalidateSelf() } }
     private var from = Color.TRANSPARENT
     private var target = Color.TRANSPARENT
     private var started = -1500L
@@ -33,10 +35,17 @@ internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.Syst
             shader = if (alpha == 0) null else RadialGradient(0f, 0f, 1f,
                 intArrayOf(rgb or (alpha shl 24), rgb or ((alpha / 2) shl 24), rgb), floatArrayOf(0f, .4f, 1f), Shader.TileMode.CLAMP)
         }
-        if (!bounds.isEmpty && shader != null) {
+        if (flat && !bounds.isEmpty && Color.alpha(color)>0) {
+            paint.shader=null
+            paint.color=(color and 0xffffff) or ((Color.alpha(color)*BicycleDesign.modeGlowAlpha/255) shl 24)
+            paint.blendMode=BlendMode.PLUS
+            val top=bounds.bottom-bounds.height()*BicycleDesign.trainingBarHeightFraction
+            repeat(BicycleDesign.ambientGlowPasses) { canvas.drawRect(bounds.left.toFloat(),top,bounds.right.toFloat(),bounds.bottom.toFloat(),paint) }
+            paint.blendMode=null
+        } else if (!flat && !bounds.isEmpty && shader != null) {
             matrix.setScale((bounds.width() * .5f - .5f).coerceAtLeast(.5f), bounds.height() * .4f)
             matrix.postTranslate(bounds.exactCenterX(), bounds.bottom.toFloat())
-            shader!!.setLocalMatrix(matrix); paint.shader = shader
+            shader!!.setLocalMatrix(matrix); paint.color=Color.WHITE;paint.shader = shader
             val save = canvas.save(); canvas.clipRect(bounds)
             paint.blendMode=BlendMode.PLUS
             repeat(BicycleDesign.ambientGlowPasses) { canvas.drawRect(bounds, paint) }

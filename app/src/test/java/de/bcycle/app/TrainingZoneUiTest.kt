@@ -201,6 +201,24 @@ class TrainingZoneUiTest {
         glow.update(null);now=4500;assertTrue(Color.alpha(glow.currentColor()) in 1..254)
         now=5250;assertEquals(0,Color.alpha(glow.currentColor()))
     }
+    @Test fun flatStripUsesFullTileWidthAndEightPercentHeightWithoutResettingColorTransitions() {
+        var now=0L;val zone=ZoneAmbientGlow { now };zone.setBounds(0,0,200,100)
+        zone.update(Color.BLUE);now=750;val color=zone.currentColor()
+        zone.flat=true;assertEquals(color,zone.currentColor())
+        now=1500
+        fun image()=Bitmap.createBitmap(200,100,Bitmap.Config.ARGB_8888).also { zone.draw(Canvas(it)) }
+        val solid=image()
+        assertEquals(0,Color.alpha(solid.getPixel(100,91)))
+        assertTrue(Color.alpha(solid.getPixel(0,92))>0)
+        assertEquals(solid.getPixel(0,96),solid.getPixel(100,96))
+        assertEquals(solid.getPixel(100,96),solid.getPixel(199,99))
+        zone.update(Color.RED);now=2250;val mixed=zone.currentColor()
+        assertTrue(Color.red(mixed)>0 && Color.blue(mixed)>0)
+        zone.flat=false;assertEquals(mixed,zone.currentColor())
+        zone.flat=true;zone.update(null);now=3750
+        val cleared=image();assertEquals(0,Color.alpha(cleared.getPixel(100,99)))
+        solid.recycle();cleared.recycle()
+    }
     @Test fun dashboardZoneValueAndGlowAreIndependentFromMainMetricGraphsAndModeWarning() {
         val view=DashboardView(context) {};val profile=RiderProfile(ftpW=200,restingHeartRate=50,maximumHeartRate=150)
         val snapshot=TrainingSnapshot(profile,180.0,130.0)

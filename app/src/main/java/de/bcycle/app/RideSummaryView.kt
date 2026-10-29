@@ -19,6 +19,7 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
         orientation=VERTICAL;tag="ride_summary"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
         addView(metrics,LayoutParams(-1,-2));addView(problem,LayoutParams(-1,-2))
+        addView(BicycleComponents.sectionDivider(context,themes).apply { tag="ride_summary_transfer_divider" })
         addView(status,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(transfers,LayoutParams(-1,-2).apply {
             topMargin=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);bottomMargin=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
