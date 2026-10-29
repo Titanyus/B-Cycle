@@ -12,3 +12,6 @@ Zusätzliche Nutzerkorrektur nach Test am Poco: feste Außenabstände der Status
 
 
 Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.59/Build100** enthalten. [Buildnachweis und Download](build-100.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
+
+
+NachBuild104: Bosch-Licht ist ein Ereigniszustand, kein periodischer Messwert. Letzter bestätigter0/1-Zustand bleibt für die bestehende Verbindung gültig; keine60s-Verfallsgrenze. Trennung/Profilwechsel löschen den Sessionbezug, nach Wiederverbindung ist ein neuer Lichtzustand nötig. Beide Statusorte und BIKE_LIGHT-Aufzeichnung verwenden denselben Runtimepfad. Keine zusätzliche Bluetoothabfrage.

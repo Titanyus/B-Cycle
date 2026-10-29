@@ -85,10 +85,12 @@ class DashboardExpansionTest {
             }
             assertEquals(number(0).textSize,number(1).textSize,.01f)
             assertEquals(number(2).textSize,number(3).textSize,.01f);assertEquals(number(2).textSize,number(4).textSize,.01f)
+            assertTrue(number(2).textSize<=45*c.resources.displayMetrics.scaledDensity)
             val two=number(1).textSize;val three=number(2).textSize
             view.showDataVisibility(DashboardDataVisibility(List(9) { it !in listOf(0,3) }));layout(view)
             assertTrue("two: before=$two after=${number(1).textSize} text=${number(1).text}, width=${number(1).width}, height=${number(1).height}, hidden=${number(0).parent.let { it as View }.visibility}",number(1).textSize>two);assertTrue("three: before=$three after=${number(2).textSize}",number(2).textSize>three)
             assertEquals(number(2).textSize,number(4).textSize,.01f)
+            assertTrue(number(2).textSize<=45*c.resources.displayMetrics.scaledDensity)
             for(template in listOf(DashboardTemplate.FULL_EIGHT,DashboardTemplate.FULL_FOUR,DashboardTemplate.FULL_NINE,DashboardTemplate.FULL_SIX)) {
                 view.setTemplate(template);view.show(DashboardLayout.decode(fields),LiveData(),GpsValues(elapsedMs=360000000));layout(view)
                 template.slots.forEach { assertTrue(view.findViewWithTag<View>("dashboard_tile_$it").height>0) }

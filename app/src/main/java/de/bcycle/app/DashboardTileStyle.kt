@@ -20,8 +20,8 @@ internal enum class DashboardTileStyle(
     val captionSp = BicycleDesign.dashboardCaptionSp
     val valueWeight = .65f
     val valueMinSp = 10
-    val valueMaxSp = 240
+    val valueMaxSp get() = if(this==THREE) BicycleDesign.tripleValueMaxSp else 240
     val unitMinSp = 5
-    val unitMaxSp = 16
+    val unitMaxSp get() = if(this==THREE) BicycleDesign.tripleUnitMaxSp else 16
 
 }

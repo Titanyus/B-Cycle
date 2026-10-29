@@ -37,6 +37,14 @@ class BikeBatteryRecordingTest {
         phase.set(runtime.connection,phase.type.enumConstants!!.single { it.toString()=="LIVE" })
     }
     private fun sample(runtime:RideRuntime)=RideRuntime::class.java.getDeclaredMethod("sample").apply { isAccessible=true }.invoke(runtime) as RideSample
+    @Test fun rememberedLowChargeDoesNotWarnWhenBikeIsDisconnected() {
+        val runtime=RideRuntime.get(context);live(runtime)
+        runtime.onData(LiveData.sample(LiveMetric.BATTERY,10),true)
+        assertEquals(10L,runtime.bikeBatteryWarningLevel)
+        runtime.connection.stop()
+        assertEquals(10L,runtime.currentBikeBattery)
+        assertNull(runtime.bikeBatteryWarningLevel)
+    }
     @Test fun unchangedConnectedChargeIsStillRecordedAfterSeveralMinutesButDisconnectedDisplayChargeIsNot() {
         val runtime=RideRuntime.get(context);live(runtime)
         runtime.onSamples(listOf(McspSample(LiveMetric.BATTERY.address,80,true)))

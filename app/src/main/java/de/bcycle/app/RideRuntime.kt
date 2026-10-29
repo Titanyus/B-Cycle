@@ -243,7 +243,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     /** Use the same preferred/fallback speed as recording and performance, never cached display values. */
     val currentSpeedKmh: Double? get() = primarySpeed(SystemClock.elapsedRealtime())?.reading?.value?.times(3.6)
     val isMoving: Boolean get() = currentSpeedKmh?.let { it > 0.0 } == true
-    /** Reuse the existing connection/freshness rules; never expose a stale mode to the visual status. */
+    /** Bosch light state is sent on change; retain it for this connection, never across disconnect. */
     val currentBikeLight: Boolean? get() = bikeData.value(LiveMetric.BIKE_LIGHT)
         ?.takeIf { it in 0..1 && fresh(LiveMetric.BIKE_LIGHT, SystemClock.elapsedRealtime()) }?.let { it == 1L }
     private val savedBattery=BikeBatteryMemory(context.getSharedPreferences("bike-battery",0))
@@ -251,6 +251,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     val currentBikeBattery:Long? get()=if(isIndoor) null else
         bikeData.value(LiveMetric.BATTERY)?.takeIf { it in 0..100 && connection.isLive }
             ?: savedBattery.read(batteryIdentity())
+    internal val bikeBatteryWarningLevel:Long? get()=currentBikeBattery.takeIf { bikes.current().type==BikeType.EBIKE && connection.isLive }
     val currentAssistMode: Long? get() = bikeData.value(LiveMetric.ASSIST_MODE)
         .takeIf { fresh(LiveMetric.ASSIST_MODE, SystemClock.elapsedRealtime()) }
     internal fun trainingInputs(now: Long = SystemClock.elapsedRealtime()): TrainingInputs = TrainingInputs(
@@ -825,6 +826,9 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private fun fresh(metric: LiveMetric, now: Long): Boolean {
         // Bosch sends charge changes, not a periodic battery heartbeat. Keep only the live
         // connection's actual reading; the persisted dashboard fallback must never enter samples.
+        // Light is likewise a state-change notification, not a periodic measurement.
+        if(metric==LiveMetric.BIKE_LIGHT && !isIndoor)
+            return connection.isLive && times[metric]!=null && bikeData.value(metric)?.let { it in 0..1 }==true
         if(metric==LiveMetric.BATTERY && !isIndoor)
             return connection.isLive && bikeData.value(metric)?.let { it in 0..100 }==true
         val limit = if (metric.group == 2) 120_000 else if (metric.group == 1 || metric == LiveMetric.ASSIST_MODE) 60_000 else 5_000

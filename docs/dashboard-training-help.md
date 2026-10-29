@@ -31,3 +31,6 @@ Explizite neue Dashboard-Ausnahme: Im Flat-Design ersetzt ZoneAmbientGlow nur di
 
 
 Veröffentlichung29.10.2026: Diese Änderungen sind in **APK0.8.61/Build102** enthalten. [Download und Buildnachweis](build-102.md). Frühere Angaben zu noch fehlender APK sind Umsetzungshistorie.
+
+
+Farbprüfung nachBuild104: ZoneGlowColors verwendet direkt TrainingZoneColors (dieselbe Palette wie Leistungs-/Pulsverteilungen und Wartung), nahe Zonengrenzen weich interpoliert. Flat-Rechtecke werden weiterhin mit ursprünglicher Glowintensität140/255 und3PLUS-Durchgängen additiv gezeichnet; dadurch visuell heller/sättigender als reine Zonenfüllungen. Auf Nachfrage nur erläutert, keine Änderung dieses Farb-/Blendverhaltens.

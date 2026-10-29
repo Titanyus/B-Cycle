@@ -1,3 +1,17 @@
+# NachBuild104: Lichtzustand, verbundene Akkuwarnung, Kreis und3erSchriftlimits
+
+NeuesterNutzerauftragumgesetzt, keineAPKangefordert. LetzteVeröffentlichung0.8.63/Build104, nächsterBuildvoraussichtlich0.8.64/Code134/Build105 (prüfen).
+
+Lichtproblem: currentBikeLight verwendete60s-Freshness für Ereigniszustand. fresh(BIKE_LIGHT) nun nurgültiger0/1-Wert+Live-Verbindung+ZeitstempelinderaktuellenSession, ohneAltergrenze; DisconnectlöschtSession, ReconnectfordertneuenState. BeideStatusindikatoren/dashboardBikeData undFIT-SamplesprofitiertenüberdenselbenRuntimepfad. KeinPolling.
+Akkuwarnung: eigenes Runtime.bikeBatteryWarningLevel nurbeiaktuellverbundenemEBIKE, MainActivity-Bosch-Glow verwendetdiesen. currentBikeBattery/BatterySnapshot zeigen gespeichertenLadestandweiterhin.
+Record-Kreis10%kleiner:54dpDurchmesser/27dpÜberstand statt60/30, Symbol20dp undFooter58dp unverändert.
+3er-Tiles: frühereFixgrößen ausGit53bc8ac geprüft45sp/10sp, jetztvalueMaxSp/unitMaxSp-Obergrenzen, weiterhin gemeinsameDynamiknurfürsichtbaregleichartigeTiles. Zweier-/Einzelwerteunverändert.
+
+FIT privatmitGarminSDKundtatsächlichemRouteAnalysisRead geprüft: NPfehltimlap/session, ReaderreproduziertQualitätsgrenzevollständiger30sFenster<95%. KeinDecoderfehler, keineNP-/Qualitätsregelgeändert. VollständigeMesszahlen/Interpretationsgrenzen undprivateDiagnosehelper in/workspace/.tools/current-fit-review/report.md, Quelldateiin/workspace/attachments/50516681-a3b4-4da7-ad38-d5f49c11e1dd (nichtinsRepository). NichtdenbedingtenNP-TestwertausvollständigenTeilfensternalsvollenFahrtwertausgeben.
+Trainingsbalken-Farbfrage: gleicheTrainingZoneColors-PalettewieZonenstatistiken, aber140/255Alpha*3additivePLUS-DurchgängeundweicheZonengrenzen, daheroptischhelleralsreineZonenflächen. Nurerläutert,nichtgeändert.
+
+21gezielteTestsgrün: BikeLightStatusTest5 inkl5min/aus/an/disconnect/reconnect, BikeLightTest2, BikeBatteryRecordingTest4 inklgespeichertem10%ohneWarnungnachDisconnect, DashboardExpansionTest5 mit45spCap, DashboardAppearanceTest5 inkl27dp/Icon/58dp/LongName undnativeFlat/Glow. Log/workspace/.tools/dashboard-light-warning-type-tests.log. NativeVorschauvisuellgeprüft, PNGsaktualisiert, Typografie/Atlas/Diffgrün. KeineGesamtsuite/neuerGerätetest/neuerAPK-Build.
+
 # APK veröffentlicht29.10.2026:0.8.63 / Build104 / Code133
 
 [APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.63-release-104.apk) · [Buildnachweis](build-104.md). Quelle `f9754b7d39d4e78ea6cc4215c70f178b8ebc15cd`, Größe 2497189 Bytes, SHA-256 `585a82250165c910531eb0a80249e295db5036535bf9ba9a829f1a3b131bb18a`.5sBenachrichtigungsraster und48dpVERTIKALEAbstände der Nachrichten/Trinkerinnerungen enthalten. Seiten undMitte unverändert. Signatur/Update-Kompatibilität, CI-Prüfsumme, Manifest und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci]. Keine offene APK-Aufgabe; nachfolgende Abschnitte sind Umsetzungshistorie.

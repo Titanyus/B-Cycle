@@ -81,3 +81,6 @@ Nachtrag29.10.2026: Nutzer fordert ausdrücklich eine Ausnahme für die Training
 
 
 NachBuild102: Dashboard-Footer in Flat UND Glow ohne Schatten. Diese ausdrückliche Nutzerentscheidung ersetzt frühere Aussagen zum gemeinsamen Dashboard-Footerschatten. Übrige Footer und Bosch-Glow unverändert.
+
+
+NachBuild104: E-Bike-Akkuwarnung im Bosch-Glow nur bei tatsächlich bestehender E-Bike-Verbindung. Gespeicherter Akkustand bleibt außerhalb der Verbindung im Dashboard sichtbar, löst aber kein Blinken aus. Dynamische3er-Kachelwerte gedeckelt auf frühere45sp, Einheiten10sp; weiter gemeinsam passend verkleinern. Zweier-/Einzelwerte unverändert.

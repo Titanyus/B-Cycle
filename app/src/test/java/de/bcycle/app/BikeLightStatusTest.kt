@@ -19,6 +19,25 @@ import org.json.JSONObject
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class BikeLightStatusTest {
     private fun layout(v:View,w:Int=360,h:Int=40) { v.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));v.layout(0,0,w,h) }
+    @Test fun unchangedLightPersistsDuringConnectionButNotAfterDisconnectOrReconnectWithoutNewState() {
+        val runtime=RideRuntime.get(org.robolectric.RuntimeEnvironment.getApplication())
+        val phase=runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible=true }
+        fun live() { phase.set(runtime.connection,phase.type.enumConstants!!.single { it.toString()=="LIVE" }) }
+        fun light(value:Long) {
+            runtime.onSamples(listOf(McspSample(LiveMetric.BIKE_LIGHT.address,value,true)))
+            runtime.onData(LiveData.sample(LiveMetric.BIKE_LIGHT,value),true)
+        }
+        live();light(1)
+        android.os.SystemClock.sleep(5*60_000)
+        assertEquals(true,runtime.currentBikeLight)
+        assertEquals(1L,runtime.dashboardBikeData.value(LiveMetric.BIKE_LIGHT))
+        light(0);assertEquals(false,runtime.currentBikeLight)
+        light(1);android.os.SystemClock.sleep(61_000);assertEquals(true,runtime.currentBikeLight)
+        runtime.connection.stop();assertNull(runtime.currentBikeLight)
+        live();assertNull(runtime.currentBikeLight)
+        light(0);assertEquals(false,runtime.currentBikeLight)
+        runtime.connection.stop()
+    }
     @Test fun placementRequiresFullscreenAndDoesNotLosePreferenceWhenFullscreenIsDisabled() {
         val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
         try {

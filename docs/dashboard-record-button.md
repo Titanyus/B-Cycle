@@ -16,3 +16,6 @@ Dashboard-Footer zeichnet in Flat und Glow keinen Schatten mehr. Normale Einstel
 
 
 Veröffentlichung29.10.2026: Schattenfreier Dashboard-Footer und größerer Kreis sind in **APK0.8.62/Build103** enthalten. [Download und Buildnachweis](build-103.md).
+
+
+NachBuild104: Kreis aufNutzerwunsch10%kleiner:54dpDurchmesser/27dpÜberstand, Record-Symbol weiter20dp. Footerhöhe58dp und Profilnamenanordnung unverändert.

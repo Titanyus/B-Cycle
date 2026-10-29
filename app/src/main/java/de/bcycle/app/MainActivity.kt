@@ -407,7 +407,7 @@ class MainActivity : Activity() {
         } else if(dashboard.background!==dashboard.modeGlow) {
             dashboardHost.setBackgroundColor(Color.BLACK);dashboard.background=dashboard.modeGlow
         }
-        dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.currentBikeBattery)
+        dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.bikeBatteryWarningLevel)
         val drinkSettings=DrinkReminderSettings.read(preferences)
         val drinkVisible=runtime.visible && dialogs.empty && !dashboardEditing
         val warningEnabled=runtime.bikes.current().shiftBatteryWarning && runtime.shiftEnabled

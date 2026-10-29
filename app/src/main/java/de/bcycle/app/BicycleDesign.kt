@@ -24,10 +24,12 @@ object BicycleDesign {
     const val dashboardMessageEdgeInset=48
     const val dashboardToolbarHeight=58
     const val dashboardRecordIconSize=20
-    // One icon diameter of clearance on either side: 20 + 20 + 20 = 60 dp circle.
-    const val dashboardRecordCapHeight=dashboardRecordIconSize*3/2
+    const val dashboardRecordCircleDiameter=54 // 10% smaller than the previous 60 dp circle.
+    const val dashboardRecordCapHeight=dashboardRecordCircleDiameter/2
     const val dashboardRecordCornerRadius=12
     const val trainingBarHeightFraction=.08f
+    const val tripleValueMaxSp=45
+    const val tripleUnitMaxSp=10
     const val hrvCircleHeight=320
     const val hrvGraphHeight=286
     const val hrvAssessmentScoreSp=64f
