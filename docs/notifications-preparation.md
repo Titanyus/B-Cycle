@@ -100,3 +100,6 @@ Ein zweispaltiges Grid hält den Sekundenwert über dem Slider und die Beschrift
 
 
 NachBuild103: Anzeigedauer im bisherigen5–180sBereich mit5sRaster (nativeSliderposition0–35, Anzeige/Speicherung weiterhinSekunden). BereitsgespeicherteSekundenwerte nichtstillschweigendumschreiben; beimnächstenBedienen5sWerte. Dashboard-Nachrichten oben/unten48dp zusätzlicherVERTIKALERAbstand innerhalb sichererSystemInsets, Seitenabstände unverändert. Mitte erhältkeinenneuenAbstand. MaximaleNachrichtenhöhe berücksichtigt Einrückung und bestehendeKartengrenze, langeNachrichten weiterinternscrollbar.
+
+
+Veröffentlichung29.10.2026: Änderungen nachBuild103 sind in **APK0.8.63/Build104** enthalten. [Download und Buildnachweis](build-104.md).

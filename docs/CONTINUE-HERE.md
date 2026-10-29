@@ -1,3 +1,7 @@
+# APK veröffentlicht29.10.2026:0.8.63 / Build104 / Code133
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.63-release-104.apk) · [Buildnachweis](build-104.md). Quelle `f9754b7d39d4e78ea6cc4215c70f178b8ebc15cd`, Größe 2497189 Bytes, SHA-256 `585a82250165c910531eb0a80249e295db5036535bf9ba9a829f1a3b131bb18a`.5sBenachrichtigungsraster und48dpVERTIKALEAbstände der Nachrichten/Trinkerinnerungen enthalten. Seiten undMitte unverändert. Signatur/Update-Kompatibilität, CI-Prüfsumme, Manifest und ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci]. Keine offene APK-Aufgabe; nachfolgende Abschnitte sind Umsetzungshistorie.
+
 # NachBuild103: Benachrichtigung5sRaster und Hinweise48dp vertikal
 
 Nutzer fordert danachneueAPK. Änderungenumgesetzt: Benachrichtigungs-Slider imbestehenden5–180sBereich in5sSchritten, internIndex0–35, weiterhinSekundenpersistenz. Altwerte nichtbeimÖffnenüberschreiben. Nachrichten+Trinkerinnerung TOP/BOTTOM haben48dpvertikaleMarginszusätzlichsicherenInsets; ausdrücklicheKlarstellung: NICHTseitlich. CENTERundseitlicheAbständeunverändert. NachrichtenmaxhöheumRandabstandangepasst, bestehendeKartengrenzeerhalten. KeineanderenWarnpanelsverschieben.

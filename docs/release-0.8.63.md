@@ -5,4 +5,4 @@
 
 Prüfung:10gezielte Benachrichtigungs-/Trinkerinnerungs-UI- und Dashboardfälle erfolgreich, einschließlich Sliderbedienung, genauer vertikaler Margins, unveränderter Seitenabstände/Mitte, langer Nachrichten und bestehender Timer-/Dialogfunktionen. Typografie/Atlas/Diff geprüft. Keine Gesamtsuite oder neuer Gerätetest.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-104.md).

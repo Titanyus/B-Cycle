@@ -14,3 +14,6 @@ Gezielte Tests: Intervall und Messende, Dauer-Endpunkte/Schritte/Timeout, unabh�
 
 
 NachBuild103: Trinkerinnerung oben/unten48dp zusätzlicherVERTIKALERAbstand zum sicherenDashboardrand; Mitte und seitlicheAbstände unverändert. Gemeinsamer BicycleDesign.dashboardMessageEdgeInset mit App-Nachrichten. Zeitplan, Anzeigedauer und Berührungsaktion unverändert.
+
+
+Veröffentlichung29.10.2026: Änderungen nachBuild103 sind in **APK0.8.63/Build104** enthalten. [Download und Buildnachweis](build-104.md).
