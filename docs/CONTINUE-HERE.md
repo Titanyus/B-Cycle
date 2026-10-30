@@ -1,3 +1,7 @@
+# APK-Auftrag 0.8.67 / Code 137
+
+Neue APK ausdrücklich angefordert. Version erhöht, 26 gezielte Fälle bereits erfolgreich; nur Versions-/Veröffentlichungsangaben seitdem geändert. GitHub Actions bauen lassen, Signatur/Version/Manifest/Prüfsumme/Download prüfen und veröffentlichen. Quelle und Buildnachweis nach Abschluss hier ergänzen.
+
 # Änderungen nach Build 107: farbige Trackwahl ohne Nummern
 
 Dashboard: drei Track-Augenbuttons vertikal statt horizontal, ohne sichtbare Nummern. Streckenmanager: Nummernfeld entfernt, Auge in deckender zugeordneter Trackfarbe; nicht zugeordnete Augen bleiben neutral. Manager-Platzwahl weiterhin horizontal und ohne Nummern: belegte Plätze mit zentriertem Auge, freie Plätze ohne Symbol, aktueller Platz mit bisherigem stärkerem Kontrastrahmen. Accessibility nennt Belegung/Route/Platz weiterhin. Auswahl, Ersetzen, Sichtbarkeit und Speicherung unverändert.
