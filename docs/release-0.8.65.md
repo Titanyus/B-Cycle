@@ -11,4 +11,4 @@ Alle Änderungen seit Build105:
 
 Prüfung:17gezielteUI-Fälle sowie69eindeutigeHRV-/API-/Upload-/Formular-/Zonen-/Navigationstests über gezielte Läufe erfolgreich. Native Rahmenpixel und Abstände inFlat/Glow, HTTP-Testserver, echter Messabschluss mit Outbox, gespeicherteFIT→Vorauswahl sowie bestehendeFIT-Uploadpfade geprüft. Typografie/Atlas/Diff erfolgreich. KeineGesamtsuite und kein neuerLive-Konto-/Gerätetest. Dreeve-Bestätigungsverzögerung nicht geändert.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-106.md).

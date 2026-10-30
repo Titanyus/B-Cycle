@@ -1,3 +1,7 @@
+# APK veröffentlicht30.10.2026:0.8.65 / Build106 / Code135
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.65-release-106.apk) · [Buildnachweis](build-106.md). Quelle `547347580d3c5d5867793e8737be46b2cc5fc131`, Größe 2520765 Bytes, SHA-256 `f4a50620bf66b1e472490062bd58a16581544c5dc875eb5aec25121449cd90e4`. Alle Änderungen seitBuild105 enthalten. CI-Prüfsumme/Signatur/Update-Kompatibilität/Manifest/ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit[skip ci]. Keine offene APK-Aufgabe; nachfolgende Auftrags-/Prüfabschnitte sind Umsetzungshistorie. Live-Upload zum echten intervals-Konto bleibt nochungeprüft; Dreeve-Bestätigungsverzögerung nicht geändert.
+
 # APK-Auftrag aktiv:0.8.65/Code135
 
 Nutzer beauftragt neueAPK mit allen Änderungen seitBuild105: Dropdownrahmen/Abstände/transparenteFahrradauswahl, intervals.icu-HRV einschließlichSammelupload, Trainingsvorauswahl/bedingteRPE. Bisherige17UI-und69Funktionsfälleerfolgreich, keineerneuteGesamtsuite. ErwarteterActions-Build106, tatsächlichenLaufprüfen. NachErfolgSignatur/Version/Manifest/CISHA/zipalignundveröffentlichtenRawDownloadverifizieren.

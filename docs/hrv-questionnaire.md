@@ -96,3 +96,6 @@ Die subjektive Anstrengungsfrage RPE erscheint nur bei erkannter Fahrt oder manu
 Explizites „Kein Training“ entfernt Kilometer, Minuten, Ride-IDs, Herkunft und RPE aus der Tagesantwort und blendet Trainingsdetails aus; diese versteckten Werte dürfen nicht in eine spätere Auswertung eingehen. Die ursprünglichen Fahrten bleiben erhalten. Bei erneuter positiver Auswahl können vorhandene Vortagsfahrten wieder zur Vorbelegung dienen. Andere Tagesantworten bleiben unangetastet.
 
 Prüfung: HrvTrainingSuggestionTest5 (alle Zonen, Pulsdauergewichtung, fehlende Daten, echte FIT→MapState-Worker→Vorauswahl, unveränderte Datei/Karte, manuelle Vorränge, kein Training, bedingte RPE). Bestehende HrvQuestionnaireTest8, HrvDailyQuestionnaireTest5, RouteValueDistributionTest5, RouteZoneDistributionTest4 und HrvDayFooterTest2 grün. Keine Gesamtsuite und kein physischer Geräteversuch.
+
+
+Veröffentlichung30.10.2026: Änderungen nachBuild105 sind in **APK0.8.65/Build106** enthalten. [Download und Buildnachweis](build-106.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.

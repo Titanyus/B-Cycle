@@ -42,3 +42,6 @@ Die Wellness-API bietet hier kein bedingtes atomisches „nur wenn unverändert�
 - IntervalsHrvTest10: Mapping, Sammelduplikate, fremde Werte, GET/PUT-Rennen, eigene Aktualisierung, neuere lokale Änderung währendPUT, Dienstfehler/Abbruch/Konto/Wiederaufnahme, echte Import-/Tagesauswahl, Schlafmaske/SDNN, UI-Reihenfolge/Button.
 - HrvControllerTest ergänzt: echter Messabschluss stellt RMSSD ein, Tagesantwort aktualisiert Schlafqualität in derselben Outbox.
 - Bestehende FIT-Client-/Sammeluploadtests weiterhin erfolgreich. Keine private Live-Übertragung und kein Geräteserver-Test; HTTP-Testserver genutzt.
+
+
+Veröffentlichung30.10.2026: Änderungen nachBuild105 sind in **APK0.8.65/Build106** enthalten. [Download und Buildnachweis](build-106.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.
