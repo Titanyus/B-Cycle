@@ -126,6 +126,20 @@ class RouteAnalysisTest {
             assertFalse(a.metrics.containsKey(AnalysisMetric.WORK))
         } finally { root.deleteRecursively() }
     }
+    @Test fun cadenceReductionRetainsPedallingRunsWithoutAddingHolesInsideThem() {
+        val buffer=AnalysisSeriesBuffer()
+        for(i in 0 until 16_000) buffer.add(AnalysisPoint(i.toDouble(),i.toDouble(),if(i%200 in 180..199) null else 80.0+i%7))
+        val points=buffer.points();assertTrue(points.size<=4096)
+        val segments=RouteChartCurve.prepare(AnalysisSeries(AnalysisChart.CADENCE,points),false,16_000.0,1000f)
+        // Every 180-second pedalling section must still reach from its first to its last sample.
+        assertEquals(80,segments.size)
+        for((index,segment) in segments.withIndex()) {
+            assertEquals(index*200.0,segment.first().x,0.0)
+            assertEquals(index*200.0+179,segment.last().x,0.0)
+            assertTrue(segment.size>=2)
+        }
+        assertFalse(points.any { it.value==0.0 })
+    }
     @Test fun longSeriesAreBoundedPreservePeaksAndNeverTurnMissingIntoZero() {
         val buffer = AnalysisSeriesBuffer()
         for (i in 0 until 100_000) buffer.add(AnalysisPoint(i.toDouble(), i.toDouble(), if (i % 17 == 0) null else if (i == 7777) 999.0 else 50.0))

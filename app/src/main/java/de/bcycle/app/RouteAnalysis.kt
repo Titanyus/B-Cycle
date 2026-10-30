@@ -80,22 +80,51 @@ internal class AnalysisSeriesBuffer {
             val reduced = ArrayList<AnalysisPoint>()
             for (start in data.indices step 8) {
                 val end = minOf(start + 8, data.size)
-                val indices = mutableSetOf(start, end - 1)
-                val valid = (start until end).filter { data[it].value != null }
-                valid.minByOrNull { data[it].value!! }?.let(indices::add)
-                valid.maxByOrNull { data[it].value!! }?.let(indices::add)
-                (start until end).firstOrNull { data[it].value == null }?.let(indices::add)
-                // Collapse a mixed bucket to disconnected points: never bridge a discarded gap.
-                val hasGap = (start until end).any { data[it].value == null }
-                indices.sorted().forEach { i ->
-                    if (hasGap && reduced.lastOrNull()?.value != null && data[i].value != null)
-                        reduced.add(data[i].copy(value = null))
-                    reduced.add(data[i])
+                val indices = sortedSetOf<Int>()
+                var run=start
+                while(run<end) {
+                    if(data[run].value==null) { indices.add(run);run++;continue }
+                    val from=run
+                    while(run<end && data[run].value!=null) run++
+                    indices.add(from);indices.add(run-1)
+                    (from until run).minByOrNull { data[it].value!! }?.let(indices::add)
+                    (from until run).maxByOrNull { data[it].value!! }?.let(indices::add)
+                }
+                // Keep each real run connected; a gap only breaks the runs it actually separates.
+                indices.forEach { i ->
+                    if(data[i].value!=null || reduced.lastOrNull()?.value!=null || reduced.isEmpty()) reduced.add(data[i])
                 }
             }
             data = reduced
-            // Worst case fragmented data: retain markers and thin isolated observations.
-            if (data.size > 4096) data = ArrayList(data.filterIndexed { i, p -> p.value == null || i % 2 == 0 })
+            if(data.size>4096) reduceFragmented()
+        }
+    }
+    /** When there are more separate runs than the point budget can describe, drop whole runs,
+     * never scatter artificial holes through a retained one. Preserve endpoints and global extrema.
+     */
+    private fun reduceFragmented() {
+        val runs=mutableListOf<Pair<AnalysisPoint?,List<AnalysisPoint>>>()
+        var gap:AnalysisPoint?=null;var index=0
+        while(index<data.size) {
+            if(data[index].value==null) { gap=data[index++];continue }
+            val start=index
+            while(index<data.size && data[index].value!=null) index++
+            runs.add(gap to data.subList(start,index).toList());gap=null
+        }
+        if(runs.isEmpty()) { data=ArrayList(data.take(1));return }
+        val required=setOf(0,runs.lastIndex,
+            runs.indices.minBy { i -> runs[i].second.minOf { it.value!! } },
+            runs.indices.maxBy { i -> runs[i].second.maxOf { it.value!! } })
+        var selected=runs.indices.toList()
+        fun size()=selected.sumOf { runs[it].second.size+if(runs[it].first!=null) 1 else 0 }+if(gap!=null) 1 else 0
+        while(size()>4096) {
+            val next=selected.filterIndexed { i,id -> i%2==0 || id in required }
+            if(next.size==selected.size) break
+            selected=next
+        }
+        data=ArrayList<AnalysisPoint>().apply {
+            selected.forEach { id -> runs[id].first?.let(::add);addAll(runs[id].second) }
+            gap?.let(::add)
         }
     }
     fun points() = data.toList()
