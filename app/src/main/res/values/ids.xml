@@ -12,4 +12,6 @@
     <item name="summary_transfer_state" type="id" />
     <item name="compact_choice_role" type="id" />
     <item name="content_heading_role" type="id" />
+    <item name="route_chart_zoom_in" type="id" />
+    <item name="route_chart_zoom_out" type="id" />
 </resources>

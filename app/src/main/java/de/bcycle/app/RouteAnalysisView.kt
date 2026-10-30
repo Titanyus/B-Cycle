@@ -27,6 +27,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private val fullMap: (RouteAnalysis) -> Unit) : ScrollView(context) {
     private val body = BicycleComponents.dialogBody(context, themes)
     private var preview: RouteAnalysisMap? = null
+    private var chartNavigation:RouteChartNavigation?=null
     private var cancelled: (() -> Unit)? = null
     private var closed = false
     private var weatherTask:java.util.concurrent.Future<*>?=null
@@ -37,9 +38,9 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     }
     init { tag = "route_analysis_$id"; BicycleComponents.scrollStyle(this); addView(body); loading() }
     fun cancellation(cancel: () -> Unit) { cancelled = cancel }
-    fun dispose() { closed = true; weatherTask?.cancel(true); cancelled?.invoke(); preview?.dispose() }
+    fun dispose() { chartNavigation?.dispose();closed = true; weatherTask?.cancel(true); cancelled?.invoke(); preview?.dispose() }
     private fun text(resource: Int, heading: Boolean = false) = BicycleComponents.text(context, themes, context.getString(resource), heading)
-    private fun reset() { weatherTask?.cancel(true); weatherRevision++;preview?.dispose(); preview = null; body.removeAllViews() }
+    private fun reset() { chartNavigation?.dispose();chartNavigation=null;weatherTask?.cancel(true); weatherRevision++;preview?.dispose(); preview = null; body.removeAllViews() }
     fun loading() { reset(); body.addView(BicycleFeedback.status(context, themes, context.getString(R.string.analysis_loading))) }
     fun failed(retry: () -> Unit) {
         if (closed) return
@@ -178,7 +179,8 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             body.addView(frame, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(BicycleDesign.rowGap) })
         }
         if (analysis.series.isNotEmpty()) {
-            analysis.series.forEach { body.addView(RouteChartView(context, themes, analysis, it), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
+            val navigation=RouteChartNavigation(context);chartNavigation=navigation
+            analysis.series.forEach { body.addView(RouteChartView(context, themes, analysis, it,navigation), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
         }
         analysis.distributions.forEach { distribution ->
             body.addView(RouteDistributionView(context, themes, distribution), LinearLayout.LayoutParams(-1, -2).apply {

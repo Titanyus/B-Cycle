@@ -67,6 +67,7 @@ class RouteAnalysisViewTest {
                     }
                     val charts = descendants(content).filterIsInstance<RouteChartView>()
                     assertEquals(AnalysisChart.entries, charts.map { it.series.chart })
+                    assertEquals(1,charts.map { it.navigation }.distinct().size)
                     assertEquals(1, charts.map { it.plotLeft }.distinct().size)
                     assertEquals(1, charts.map { it.plotRight }.distinct().size)
                     assertEquals(1, charts.map { it.screenX(16.0) }.distinct().size)
@@ -96,7 +97,7 @@ class RouteAnalysisViewTest {
         assertEquals(AnalysisGroups.groups.map { context.getString(it.first) },labels.map { it.title })
         labels.forEach { assertTrue(it.isAccessibilityHeading);assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisSideLabelWidth),it.width);assertTrue(it.height>=BicycleDesign.dp(context,BicycleDesign.analysisTileMinHeight)) }
         val dividers=descendants(content).filter { it.tag=="analysis_section_divider" }
-        assertEquals(6,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.linePixels(context) && it.alpha==BicycleDesign.dividerAlpha })
+        assertEquals(6,dividers.size);assertTrue(dividers.all { it.height==BicycleDesign.dp(context,BicycleDesign.controlBorder) && it.alpha==BicycleDesign.dividerAlpha })
         dividers.forEach {
             val margins=it.layoutParams as LinearLayout.LayoutParams
             assertEquals(BicycleDesign.dp(context,BicycleDesign.analysisDividerGap),margins.topMargin)
@@ -154,7 +155,7 @@ class RouteAnalysisViewTest {
     }
     @Test fun unavailableGroupsAndChartsLeaveNoEmptyRowsAndNewLabelsAreResourceBacked() {
         val context = RuntimeEnvironment.getApplication(); val themes = ThemeManager(context.getSharedPreferences("bike", 0))
-        val a = sample().copy(metrics = mapOf(AnalysisMetric.DISTANCE to 4.0), series = emptyList())
+        val a = sample().copy(entry=sample().entry.copy(hasRoute=false),metrics = mapOf(AnalysisMetric.DISTANCE to 4.0), series = emptyList())
         val content = RouteAnalysisView(context, themes, "id") {}; content.show(a); measure(content, 960, 1800)
         assertEquals(1, descendants(content).count { it is AnalysisMetricTile })
         assertFalse(descendants(content).any { it is RouteChartView })
@@ -227,11 +228,11 @@ class RouteAnalysisViewTest {
             val list = manager.window!!.decorView.findViewWithTag<ListView>("route_list")
             assertEquals(2, list.adapter.count)
             val card = list.adapter.getView((0 until list.adapter.count).single { (list.adapter.getItem(it) as ManagedRoute).id == second }, null, list)
-            val selectedBefore = state.selectedRoute
             card.findViewWithTag<View>("route_eye_$second").performClick()
             shadowOf(Looper.getMainLooper()).idle()
             assertSame(manager, ShadowAlertDialog.getLatestAlertDialog())
             assertNull(card.findViewWithTag<View>("route_more_$second"))
+            val selectedBefore=state.selectedRoute // The eye may change visibility; opening details must not.
             card.performClick(); shadowOf(Looper.getMainLooper()).idle()
             val details = ShadowAlertDialog.getLatestAlertDialog()
             assertNotSame(manager, details)

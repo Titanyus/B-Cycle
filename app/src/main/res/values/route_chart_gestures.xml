@@ -1,0 +1,4 @@
+<resources>
+    <string name="route_chart_zoom_in">Diagramme vergrößern</string>
+    <string name="route_chart_zoom_out">Diagramme verkleinern</string>
+</resources>
