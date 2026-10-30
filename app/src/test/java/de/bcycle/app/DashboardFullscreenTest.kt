@@ -68,7 +68,7 @@ class DashboardFullscreenTest {
     @Test fun topGlowUsesWholeWindowIncludingStatusCutoutSpaceWhileContentKeepsSafeInsets() {
         val app=org.robolectric.RuntimeEnvironment.getApplication()
         val prefs=app.getSharedPreferences("bike",0)
-        prefs.edit().putString(ModeGlowSettings.placementKey,"TOP").commit()
+        prefs.edit().putString("modeGlowPlacement","TOP").commit()
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get()
@@ -91,10 +91,10 @@ class DashboardFullscreenTest {
             assertEquals(84,root.paddingTop);assertEquals(30,root.paddingBottom)
             assertEquals(android.graphics.Rect(0,0,1080,2240),dashboard.modeGlow.bounds)
             assertEquals(android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS,activity.window.attributes.layoutInDisplayCutoutMode)
-            prefs.edit().putString(ModeGlowSettings.placementKey,"SIDES").commit()
+            prefs.edit().putString("modeGlowPlacement","SIDES").commit()
             RideRuntime.get(activity).onData(LiveData(),false);draw()
-            assertSame(dashboard.modeGlow,dashboard.background);assertNotSame(dashboard.modeGlow,host.background)
-            assertEquals(dashboard.height,dashboard.modeGlow.bounds.height())
+            assertSame(dashboard.modeGlow,host.background);assertNull(dashboard.background)
+            assertEquals(host.height,dashboard.modeGlow.bounds.height())
             assertEquals(84,root.paddingTop)
         } finally { controller.pause().stop().destroy() }
     }

@@ -5,8 +5,8 @@ import android.content.SharedPreferences
 /** Per-bike display and map configuration, projected into existing active preferences. */
 internal data class BikeUiConfiguration(val version:Int=1,val design:Map<String,Any?>,val maps:Map<String,Any?>,val selectedGpxRouteId:String?=null)
 internal object BikeUiConfigurationScope {
-    private val designKeys=setOf(RideNamingSettings.KEY,TrendIndicatorSettings.enabledKey,TrendIndicatorSettings.disabledKey,DrinkReminderSettings.enabledKey,DrinkReminderSettings.intervalKey,DrinkReminderSettings.durationKey,DrinkReminderSettings.positionKey,ThemeManager.activeKey,ThemeManager.customsKey,ModeGlowSettings.key,
-        ModeGlowSettings.placementKey,BikeLightSettings.key,DashboardFullscreen.key,DashboardStatusConfig.key,DashboardPages.KEY,"dashboardPage",GraphDisplaySettings.key,
+    private val designKeys=setOf(RideNamingSettings.KEY,TrendIndicatorSettings.enabledKey,TrendIndicatorSettings.disabledKey,DrinkReminderSettings.enabledKey,DrinkReminderSettings.intervalKey,DrinkReminderSettings.durationKey,DrinkReminderSettings.positionKey,ThemeManager.activeKey,ThemeManager.customsKey,
+        DashboardFullscreen.key,DashboardStatusConfig.key,DashboardPages.KEY,"dashboardPage",GraphDisplaySettings.key,
         MapFieldSelection.key(0),MapFieldSelection.key(1),MapFieldSelection.key(2))
     private val mapKeys=setOf(MapRouteSlots.KEY,MapRouteStyles.key,"mapSource","mapNight","mapFollow","mapHeading",MapOvalAnchor.preference,"mapTrackVisible","mapGpxVisible","mapHeightVisible",
         "mapZoom",MapZoom.preference,"mapLatitude","mapLongitude","displayFitId","displayGpxId",FitElevationCorrection.preference)
@@ -18,7 +18,7 @@ internal object BikeUiConfigurationScope {
 /** The active preferences remain the compatibility boundary for all existing controls. */
 internal class BikeUiConfigurationStore(private val prefs:SharedPreferences) {
     companion object { const val KEY="bikeUiProfilesV1" }
-    private fun bank()=runCatching { org.json.JSONObject(prefs.getString(KEY,"{}")!!) }.getOrDefault(org.json.JSONObject())
+    private fun bank()=runCatching { RetiredProfileSettings.cleanBank(org.json.JSONObject(prefs.getString(KEY,"{}")!!)) }.getOrDefault(org.json.JSONObject())
     private fun encode(values:Map<String,Any?>)=org.json.JSONObject().apply {
         values.forEach { (k,v) ->
             val kind=when(v) { is String->"string";is Boolean->"boolean";is Int->"int";is Long->"long";is Float->"float";is Set<*>->"set";else->return@forEach }
@@ -59,7 +59,7 @@ internal class BikeUiConfigurationStore(private val prefs:SharedPreferences) {
     fun apply(slot:Int) {
         val row=bank().optJSONObject(slot.toString()) ?: return
         val values=decode(row);val edit=prefs.edit()
-        prefs.all.keys.filter { BikeUiConfigurationScope.designKey(it) || BikeUiConfigurationScope.mapKey(it) }.forEach(edit::remove)
+        prefs.all.keys.filter { BikeUiConfigurationScope.designKey(it) || BikeUiConfigurationScope.mapKey(it) || it in RetiredProfileSettings.designKeys }.forEach(edit::remove)
         values.forEach { (k,v) -> when(v) {
             is String->edit.putString(k,v);is Boolean->edit.putBoolean(k,v);is Int->edit.putInt(k,v)
             is Long->edit.putLong(k,v);is Float->edit.putFloat(k,v);is Set<*>->edit.putStringSet(k,v.filterIsInstance<String>().toSet())

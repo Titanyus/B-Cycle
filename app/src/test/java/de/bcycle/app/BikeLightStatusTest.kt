@@ -38,26 +38,18 @@ class BikeLightStatusTest {
         light(0);assertEquals(false,runtime.currentBikeLight)
         runtime.connection.stop()
     }
-    @Test fun statusPositionDependsOnlyOnFullscreenNotLegacyPlacement() {
-        val prefs=org.robolectric.RuntimeEnvironment.getApplication().getSharedPreferences("bike",0)
-        for(legacy in listOf("BOTTOM","TOP")) {
-            prefs.edit().putString(BikeLightSettings.key,legacy).putBoolean(DashboardFullscreen.key,true).commit()
-            assertTrue(BikeLightSettings.top(prefs))
-            prefs.edit().putBoolean(DashboardFullscreen.key,false).commit();assertFalse(BikeLightSettings.top(prefs))
-        }
-    }
-    @Test fun profileCopyAndBackupPreservePlacementAndRejectInvalidValues() {
+    @Test fun profileCopyAndBackupDiscardRetiredPlacementAndRejectInvalidLegacyValues() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val prefs=a.getSharedPreferences("bike",0);prefs.edit().clear().commit()
             val themes=ThemeManager(prefs);val bank=BikeUiConfigurationStore(prefs);bank.ensure(listOf(0,1))
-            prefs.edit().putString(BikeLightSettings.key,"TOP").commit();bank.save(0)
-            bank.apply(1);assertEquals(BikeLightPlacement.BOTTOM,BikeLightSettings.placement(prefs))
-            bank.copy(0,1);assertTrue(BikeLightSettings.top(prefs))
+            prefs.edit().putString("bikeLightPlacement","TOP").commit();bank.save(0)
+            bank.apply(1);assertFalse(prefs.contains("bikeLightPlacement"))
+            bank.copy(0,1);assertTrue(DashboardFullscreen.enabled(prefs))
             val backup=SettingsBackup(a,themes);val saved=backup.export(setOf(BackupSection.DESIGN))
-            prefs.edit().remove(BikeLightSettings.key).commit()
+            prefs.edit().remove("bikeLightPlacement").commit()
             backup.apply(backup.plan(backup.decode(saved),setOf(BackupSection.DESIGN)))
-            assertTrue(BikeLightSettings.top(prefs))
+            assertTrue(DashboardFullscreen.enabled(prefs))
             val invalid=JSONObject(String(saved));invalid.getJSONObject("sections").getJSONObject(BackupSection.DESIGN.id).put("bikeLightPlacement","SIDE")
             assertThrows(SettingsBackupFailure::class.java) { backup.decode(invalid.toString().toByteArray()) }
         } finally { host.pause().stop().destroy() }

@@ -63,9 +63,6 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("drinkReminderMinutes",DrinkReminderSettings.read(bike).minutes)
                 .put("drinkReminderDuration",DrinkReminderSettings.read(bike).durationSeconds)
                 .put("drinkReminderPosition",DrinkReminderSettings.read(bike).position.name)
-                .put("modeGlow", ModeGlowSettings.enabled(bike))
-                .put("modeGlowPlacement",ModeGlowSettings.placement(bike).name)
-                .put("bikeLightPlacement",BikeLightSettings.placement(bike).name)
                 .put("dashboardFullscreen",DashboardFullscreen.enabled(bike))
                 .put("dashboardStatusSlots",DashboardStatusConfig.read(bike).encode())
 
@@ -168,15 +165,14 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                         val position=field(row,"drinkReminderPosition",20);check(MessagePosition.entries.any { it.name==position })
                         b[DrinkReminderSettings.positionKey]=position
                     }
-                    if(row.has("modeGlow")) b[ModeGlowSettings.key]=boolean(row,"modeGlow")
+                    RetiredProfileSettings.designKeys.forEach { b[it]=null }
+                    if(row.has("modeGlow")) boolean(row,"modeGlow") // Validate legacy input, never reapply it.
                     if(row.has("modeGlowPlacement")) {
                         val placement=row.opt("modeGlowPlacement") as? String ?: fail()
-                        check(ModeGlowPlacement.entries.any { it.name==placement })
-                        b[ModeGlowSettings.placementKey]=placement
+                        check(placement in setOf("SIDES","TOP"))
                     }
                     if(row.has("bikeLightPlacement")) {
-                        val placement=field(row,"bikeLightPlacement",20);check(BikeLightPlacement.entries.any { it.name==placement })
-                        b[BikeLightSettings.key]=placement
+                        val placement=field(row,"bikeLightPlacement",20);check(placement in setOf("BOTTOM","TOP"))
                     }
                     if(row.has("dashboardFullscreen")) b[DashboardFullscreen.key]=boolean(row,"dashboardFullscreen")
                     if(row.has("dashboardStatusSlots")) b[DashboardStatusConfig.key]=DashboardStatusConfig.parse(field(row,"dashboardStatusSlots",256)).encode()

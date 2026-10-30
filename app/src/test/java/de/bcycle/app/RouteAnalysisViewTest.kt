@@ -26,7 +26,7 @@ class RouteAnalysisViewTest {
     private fun measure(v: View, w: Int, h: Int) {
         v.measure(View.MeasureSpec.makeMeasureSpec(w, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(h, View.MeasureSpec.EXACTLY)); v.layout(0, 0, w, h)
     }
-    private fun sample() = RouteAnalysis(ManagedRoute("id", "An unusually long ride title that should remain readable", true, "FIT", RouteDetails(1_791_626_400_000), false),
+    private fun sample() = RouteAnalysis(ManagedRoute("id", "An unusually long ride title that should remain readable", true, "FIT", RouteDetails(1_791_626_400_000), true),
         AnalysisMetric.entries.associateWith { when (it) {
             AnalysisMetric.MOVING -> 3600.0; AnalysisMetric.ELAPSED -> 4200.0; AnalysisMetric.DISTANCE -> 32.1
             AnalysisMetric.EF, AnalysisMetric.RATIO -> .21; else -> 129.0
@@ -252,4 +252,20 @@ class RouteAnalysisViewTest {
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun ridesWithoutGpsOmitElevationRowEvenIfHeightSummaryContainsZeros() {
+        val c=RuntimeEnvironment.getApplication();val themes=ThemeManager(c.getSharedPreferences("bike",0))
+        val a=sample();val view=RouteAnalysisView(c,themes,"id") {}
+        for(flat in listOf(true,false)) {
+            themes.setFlatDesign(flat)
+            val without=a.copy(entry=a.entry.copy(hasRoute=false),metrics=a.metrics+(AnalysisMetric.ASCENT to 0.0)+(AnalysisMetric.DESCENT to 0.0))
+            view.show(without)
+            assertNull(view.findViewWithTag<View>("analysis_group_${R.string.analysis_elevation}"))
+            assertNotNull(view.findViewWithTag<View>("analysis_group_${R.string.analysis_power_group}"))
+            assertEquals(0.0,without.metrics[AnalysisMetric.ASCENT])
+            view.show(a)
+            assertNotNull(view.findViewWithTag<View>("analysis_group_${R.string.analysis_elevation}"))
+        }
+        view.dispose()
+    }
+
 }

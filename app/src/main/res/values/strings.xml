@@ -684,8 +684,6 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="battery_percent_compact">%1$d%%</string>
     <string name="battery_missing">—</string>
     <string name="dashboard_fullscreen">Dashboard im Vollbild</string>
-    <string name="mode_glow_sides">Seitlich</string>
-    <string name="mode_glow_top">Oben</string>
     <string name="dashboard_default_name">Dashboard %1$d</string>
     <string name="dashboard_new">Neues Dashboard</string>
     <string name="dashboard_delete">Dashboard löschen</string>

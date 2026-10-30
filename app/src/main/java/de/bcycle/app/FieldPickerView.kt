@@ -33,7 +33,6 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
         }
         val scroll=BicycleStickyScrollView(context).apply { tag="field_picker_scroll";addView(panels) }
         addView(scroll,LayoutParams(-1,-1))
-        val dataContent=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="field_data_content" }
         var currentSelection=selected
         var pickerDataVisible=dataVisible && selected!=null
         var reflecting=false
@@ -41,16 +40,11 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             tag="field_data_enabled";setText(R.string.field_data_title);isChecked=pickerDataVisible
             BicycleDialogStyle.control(this,themes)
         }
-        val dataToggle=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.field_data_title)) {
-            val open=dataContent.visibility!=VISIBLE
-            dataContent.visibility=if(open) VISIBLE else GONE
-            findViewWithTag<View>("field_data_toggle").apply {
-                rotation=if(open) 180f else 0f
-                stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            }
-        }.apply { tag="field_data_toggle";stateDescription=context.getString(R.string.zone_collapsed) }
-        panels.addView(LinearLayout(context).apply { BicycleComponents.switchAccordion(this,dataEnabled,dataToggle,themes) },LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)))
-        panels.addView(dataContent)
+        val dataFrame=BicycleFrameDropdown(context,themes,context.getString(R.string.field_data_title),open=false,
+            trailing=dataEnabled,leadingIcon=BicycleIcon.Dashboard)
+        dataFrame.expandControl.tag="field_data_toggle"
+        val dataContent=dataFrame.content.apply { tag="field_data_content" }
+        panels.addView(dataFrame,LayoutParams(-1,-2))
         val groups = DashboardField.groups(data, selected, includeTraining = !allowEmpty).groupBy { it.source }
         val sources = groups.keys.toList()
         val selector = Spinner(context).apply {
@@ -75,10 +69,7 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
             BicycleForm.section(panels,themes,R.string.training_help_title)
             panels.addView(trainingHelp,LayoutParams(-1,-2))
         }
-        if(drinkReminder!=null && trainingHelp==null) {
-            panels.addView(BicycleComponents.sectionDivider(context,themes))
-            panels.addView(drinkReminder,LayoutParams(-1,-2))
-        }
+        if(drinkReminder!=null && trainingHelp==null) panels.addView(drinkReminder,LayoutParams(-1,-2))
         var shown = -1
         val availableBatteries=BatteryFields.choices(data)
         var batterySelection=if(dataVisible) (selected?.batterySources

@@ -7,7 +7,7 @@ import android.view.View
 
 internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initial: List<AnalysisChart>, initialWindow:GraphWindow=GraphWindow.FULL,
     private val available:Set<AnalysisChart> = AnalysisChart.entries.toSet()) : LinearLayout(context) {
-    private val content=LinearLayout(context).apply { orientation=VERTICAL; visibility=GONE; tag="graph_overlay_content" }
+    private val content:LinearLayout
     private val choice=initial.distinct().take(2).toMutableList()
     var changed: () -> Unit = {}
     var window=initialWindow;private set
@@ -29,17 +29,11 @@ internal class GraphOverlayPicker(context: Context, themes: ThemeManager, initia
                 }
             }
         }
-        val toggle=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.zone_graph_toggle)) {
-            val open=content.visibility!=VISIBLE
-            content.visibility=if(open) VISIBLE else GONE
-            findViewWithTag<View>("graph_overlay_toggle").apply {
-                rotation=if(open) 180f else 0f
-                stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            }
-        }.apply { tag="graph_overlay_toggle";stateDescription=context.getString(R.string.zone_collapsed) }
-        addView(LinearLayout(context).apply { BicycleComponents.switchAccordion(this,enabled,toggle,themes) },
-            LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
-        addView(content)
+        val frame=BicycleFrameDropdown(context,themes,context.getString(R.string.zone_graph_toggle),open=false,
+            trailing=enabled,leadingIcon=BicycleIcon.Distance)
+        frame.expandControl.tag="graph_overlay_toggle"
+        content=frame.content.apply { tag="graph_overlay_content" }
+        addView(frame,LayoutParams(-1,-2))
         val segments=android.widget.RadioGroup(context).apply { orientation=HORIZONTAL;tag="graph_windows";BicycleComponents.segmentedControlRow(this,themes) }
         val buttons=GraphWindow.entries.map { value -> BicycleSegmentButton(context,themes).apply {
             id=View.generateViewId();tag="graph_window_${value.name}";setText(value.label);isChecked=value==window

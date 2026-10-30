@@ -1,7 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.GridLayout
@@ -41,13 +40,7 @@ internal class BikeFilterGrid(context:Context,themes:ThemeManager,profiles:List<
                 fun paint(tokens:ThemeTokens) {
                     val on=p.slot in selected;isSelected=on
                     stateDescription=context.getString(if(on) R.string.bikes_selected else R.string.ui_not_selected)
-                    background=GradientDrawable().apply {
-                        setColor(if(on) tokens.tertiary else tokens.secondary)
-                        cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-                        setStroke(BicycleDesign.dp(context,if(on) 2 else BicycleDesign.controlBorder),BicycleComponents.selectionBorder(tokens,on))
-                    }
-                    val outline=BicycleInputFrame.decorate(this,tokens,on)
-                    foreground=if(on) outline else null
+                    BicycleSelectionCard.apply(this,tokens,on)
                 }
                 BicycleComponents.bindTheme(this,themes,::paint)
                 setOnClickListener {

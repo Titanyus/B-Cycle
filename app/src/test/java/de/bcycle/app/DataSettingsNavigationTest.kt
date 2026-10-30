@@ -248,7 +248,7 @@ class DataSettingsNavigationTest {
             result(activity,12,android.app.Activity.RESULT_OK,Intent().setData(uri))
             waitFor { provider.file.isFile && provider.file.length()>0 }
             val bytes=provider.file.readBytes();assertTrue(SettingsArchive.isZip(bytes));assertEquals(6,SettingsArchive(activity).read(bytes,archivePassword.toCharArray()).sections.size)
-            prefs.edit().putBoolean(ModeGlowSettings.key,true).commit()
+            prefs.edit().putBoolean(ThemeManager.settingsLightKey,true).commit()
             click(data,"data_RESTORE");click(latest(),"backup_target_local");val open=shadowOf(activity).nextStartedActivityForResult
             assertEquals(Intent.ACTION_OPEN_DOCUMENT,open.intent.action);assertEquals(13,open.requestCode)
             result(activity,13,android.app.Activity.RESULT_OK,Intent().setData(uri))
@@ -262,10 +262,10 @@ class DataSettingsNavigationTest {
             val restore=latest();click(restore,"backup_none");assertFalse(restore.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled)
             (restore.window!!.decorView.findViewWithTag<View>("backup_designUi") as CheckBox).isChecked=true
             restore.getButton(AlertDialog.BUTTON_POSITIVE).performClick();val confirm=latest()
-            assertTrue(prefs.getBoolean(ModeGlowSettings.key,false));testBack(confirm);shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(prefs.getBoolean(ModeGlowSettings.key,false))
+            assertTrue(prefs.getBoolean(ThemeManager.settingsLightKey,false));testBack(confirm);shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(prefs.getBoolean(ThemeManager.settingsLightKey,false))
             restore.getButton(AlertDialog.BUTTON_POSITIVE).performClick();latest().getButton(AlertDialog.BUTTON_POSITIVE).performClick()
-            waitFor { !prefs.getBoolean(ModeGlowSettings.key,true) && !restore.isShowing }
+            waitFor { !prefs.getBoolean(ThemeManager.settingsLightKey,true) && !restore.isShowing }
             assertEquals(View.VISIBLE,data.window!!.decorView.visibility)
         } finally { controller.pause().stop().destroy() }
     }

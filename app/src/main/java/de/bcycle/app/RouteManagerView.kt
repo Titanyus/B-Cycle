@@ -81,11 +81,11 @@ internal class RouteManagerView(context: Context,
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
         addView(status, LayoutParams(-1, -2))
         addView(BicycleFastScrollList(context,themes).apply {
-            tag = "route_list"; adapter = rows; dividerHeight = BicycleDesign.linePixels(context)
+            tag = "route_list"; adapter = rows; dividerHeight = dp(BicycleDesign.controlBorder)
             setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
             BicycleComponents.scrollStyle(this)
             BicycleComponents.bindTheme(this, themes) {
-                divider = ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }; dividerHeight = BicycleDesign.linePixels(context)
+                divider = ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }; dividerHeight = dp(BicycleDesign.controlBorder)
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)
                 selector = ColorDrawable(it.tertiary)
             }

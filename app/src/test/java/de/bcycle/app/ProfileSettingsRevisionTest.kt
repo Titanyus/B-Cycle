@@ -72,7 +72,7 @@ class ProfileSettingsRevisionTest {
             }
             val corner=a.window.decorView.findViewWithTag<ImageView>("dashboard_bike_light")
             val strip=testDescendants(a.window.decorView).filterIsInstance<DashboardStatusStrip>().single()
-            prefs.edit().putString(BikeLightSettings.key,"BOTTOM").putBoolean(DashboardFullscreen.key,false).commit()
+            prefs.edit().putString("bikeLightPlacement","BOTTOM").putBoolean(DashboardFullscreen.key,false).commit()
             light(1);assertEquals(View.VISIBLE,corner.visibility);assertFalse(strip.bikeLightOn)
             val root=(corner.parent as ViewGroup).getChildAt(0)
             root.dispatchApplyWindowInsets(WindowInsets.Builder().setInsets(WindowInsets.Type.statusBars(),Insets.of(0,30,0,0)).build())

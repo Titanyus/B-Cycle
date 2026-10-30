@@ -43,6 +43,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
     private fun template(id:Int)=DashboardTemplate.decode(prefs.getString("dashboardTemplate_$id",DashboardTemplate.entries[id].name)).forBike(bikeType)
     init {
         orientation=VERTICAL
+        BicycleComponents.controlSpacing(this)
         pages.select(initialPage)
         addView(scroller,LayoutParams(-1,-2))
         layoutChoice.gravity=Gravity.START or Gravity.CENTER_VERTICAL

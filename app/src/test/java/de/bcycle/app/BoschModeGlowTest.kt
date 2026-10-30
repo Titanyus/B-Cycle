@@ -48,16 +48,16 @@ class BoschModeGlowTest {
         assertEquals(Color.MAGENTA, bitmap.getPixel(0, 170))
         assertEquals(Color.MAGENTA, bitmap.getPixel(100, 340))
         assertEquals(Color.BLACK, bitmap.getPixel(100, 170))
-        val center = Color.green(bitmap.getPixel(11, 170))
+        val center = Color.green(bitmap.getPixel(110, 21))
         assertTrue(center > 40)
-        assertEquals(center, Color.green(bitmap.getPixel(208, 170)))
-        assertTrue(center > Color.green(bitmap.getPixel(11, 25)))
-        assertTrue(center > Color.green(bitmap.getPixel(28, 170)))
-        val shader = glow.leftShader
+        assertTrue(Color.green(bitmap.getPixel(110,319))<center)
+        assertTrue(center > Color.green(bitmap.getPixel(11, 21)))
+        assertTrue(center > Color.green(bitmap.getPixel(110, 48)))
+        val shader = glow.modeShader
         repeat(50) { glow.update(BoschModeColors.color(1)) }
-        assertSame(shader, glow.leftShader)
-        glow.setBounds(10, 20, 210, 160); assertNotSame(shader, glow.leftShader)
-        glow.update(null); now += 1500; assertNull(glow.leftShader)
+        assertSame(shader, glow.modeShader)
+        glow.setBounds(10, 20, 210, 160); assertNotSame(shader, glow.modeShader)
+        glow.update(null); now += 1500; assertNull(glow.modeShader)
         bitmap.eraseColor(Color.MAGENTA); glow.draw(Canvas(bitmap)); assertEquals(Color.BLACK, bitmap.getPixel(11, 80))
     }
     @Test fun topPlacementMovesTheLightWithoutResettingModeOrBatteryBreathing() {
@@ -65,26 +65,24 @@ class BoschModeGlowTest {
         val glow=BoschModeGlow(24f) { now };glow.setBounds(0,0,200,300)
         glow.update(Color.BLUE);now=1500
         val b=Bitmap.createBitmap(200,300,Bitmap.Config.ARGB_8888)
-        glow.place(ModeGlowPlacement.TOP);glow.draw(Canvas(b))
+        glow.draw(Canvas(b))
         assertTrue(Color.blue(b.getPixel(100,2))>0)
         assertEquals(Color.BLACK,b.getPixel(2,150))
         assertEquals(Color.BLACK,b.getPixel(100,80))
         assertTrue(Color.blue(b.getPixel(100,2))>Color.blue(b.getPixel(2,2)))
-        val shader=glow.leftShader;glow.place(ModeGlowPlacement.TOP);assertSame(shader,glow.leftShader)
+        val shader=glow.modeShader;glow.update(Color.BLUE);assertSame(shader,glow.modeShader)
         glow.update(null,10);now=3500;glow.draw(Canvas(b))
         assertTrue(Color.red(b.getPixel(100,2))>0);assertTrue(Color.red(b.getPixel(100,2))>Color.blue(b.getPixel(100,2)))
         assertEquals(Color.BLACK,b.getPixel(2,150))
-        glow.place(ModeGlowPlacement.SIDES);glow.draw(Canvas(b))
-        assertTrue(Color.red(b.getPixel(2,150))>0);assertEquals(Color.BLACK,b.getPixel(100,2))
+        assertEquals(Color.BLACK,b.getPixel(2,150))
     }
     @Test fun modeIsAlwaysAtTopAndNoLongerConfigurableInDesignSettings() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=controller.get();val prefs=a.getSharedPreferences("bike",0)
-            prefs.edit().putBoolean(ModeGlowSettings.key,false).putString(ModeGlowSettings.placementKey,"SIDES").commit()
+            prefs.edit().putBoolean("modeGlowEnabled",false).putString("modeGlowPlacement","SIDES").commit()
             MainActivity::class.java.getDeclaredMethod("render").apply { isAccessible=true }.invoke(a)
             val dashboard=views(a.window.decorView).filterIsInstance<DashboardView>().single()
-            assertEquals(ModeGlowPlacement.TOP,dashboard.modeGlow.placement)
             MainActivity::class.java.getDeclaredMethod("dashboardSettings").apply { isAccessible=true }.invoke(a)
             val screen=ShadowAlertDialog.getLatestAlertDialog()
             assertNull(screen.window!!.decorView.findViewWithTag<View>("mode_glow_placement"))
@@ -96,12 +94,12 @@ class BoschModeGlowTest {
         var now = 0L
         val glow = BoschModeGlow(24f) { now }; glow.setBounds(0, 0, 200, 300)
         val bitmap = Bitmap.createBitmap(200, 300, Bitmap.Config.ARGB_8888)
-        fun pixel(): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(18, 150) }
+        fun pixel(): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(100,18) }
         glow.update(BoschModeColors.color(1)); assertEquals(Color.BLACK, pixel())
         now = 750; val halfway = pixel(); assertTrue(Color.green(halfway) > 0)
-        val shader = glow.leftShader
+        val shader = glow.modeShader
         now = 1500; val bright = pixel(); assertTrue(Color.green(bright) > Color.green(halfway))
-        assertSame(shader, glow.leftShader)
+        assertSame(shader, glow.modeShader)
         glow.update(BoschModeColors.color(2)); assertEquals(bright, pixel())
         now = 2250; val mixed = pixel(); assertTrue(Color.green(mixed) > 0); assertTrue(Color.blue(mixed) > 0)
         glow.update(null); val interrupted = pixel()
@@ -113,15 +111,15 @@ class BoschModeGlowTest {
         var now = 0L
         val glow = BoschModeGlow(24f) { now }; glow.setBounds(0, 0, 200, 300)
         val bitmap = Bitmap.createBitmap(200, 300, Bitmap.Config.ARGB_8888)
-        fun pixel(x: Int = 4): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(x, 150) }
+        fun pixel(depth: Int = 4): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(100,depth) }
         glow.update(BoschModeColors.color(2)); now = 1500
         val base = pixel(); assertEquals(Color.BLACK, pixel(36))
-        glow.update(BoschModeColors.color(2), 20); val shader = glow.warningLeft
+        glow.update(BoschModeColors.color(2), 20); val shader = glow.warningShader
         assertEquals(base, pixel())
         now = 2500; val half = pixel()
         assertTrue(Color.red(half) > 0 && Color.blue(half) > 0)
         repeat(30) { glow.update(BoschModeColors.color(2), 19) }
-        assertSame(shader, glow.warningLeft)
+        assertSame(shader, glow.warningShader)
         now = 3500; val peak = pixel()
         assertTrue(Color.red(peak) > Color.red(half)); assertEquals(0, Color.blue(peak))
         assertTrue(Color.red(pixel(36)) > 0)
@@ -141,7 +139,7 @@ class BoschModeGlowTest {
             override fun unscheduleDrawable(who: android.graphics.drawable.Drawable, what: Runnable) {}
         }
         val bitmap = Bitmap.createBitmap(200, 300, Bitmap.Config.ARGB_8888)
-        fun pixel(): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(4, 150) }
+        fun pixel(): Int { glow.draw(Canvas(bitmap)); return bitmap.getPixel(100,4) }
         glow.update(null, 10); assertNull(glow.modeColor); assertEquals(Color.BLACK, pixel())
         now = 1000; val half = pixel(); assertTrue(Color.red(half) > 0)
         now = 2000; assertTrue(Color.red(pixel()) > Color.red(half))
@@ -192,9 +190,9 @@ class BoschModeGlowTest {
                 dashboard.showModeGlow(true, 1)
                 assertEquals(height, dashboard.modeGlow.bounds.height())
                 assertEquals(1080, dashboard.modeGlow.bounds.width())
-                val cached = dashboard.modeGlow.leftShader
+                val cached = dashboard.modeGlow.modeShader
                 repeat(10) { dashboard.show(DashboardLayout.defaults, data); dashboard.showModeGlow(true, 1) }
-                assertSame(cached, dashboard.modeGlow.leftShader)
+                assertSame(cached, dashboard.modeGlow.modeShader)
                 assertEquals(before, views(dashboard).map { listOf(it.left, it.top, it.width, it.height) })
                 assertTrue(clicks.first().performClick()); assertTrue(selected >= 0)
                 dashboard.showModeGlow(true, 4); assertEquals(BoschModeColors.color(4), dashboard.modeGlow.modeColor)
@@ -227,7 +225,7 @@ class BoschModeGlowTest {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get();val runtime=RideRuntime.get(activity)
-            runtime.preferences.edit().putBoolean(ModeGlowSettings.key,false).commit()
+            runtime.preferences.edit().putBoolean("modeGlowEnabled",false).commit()
             val phase=runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible=true }
             phase.set(runtime.connection,phase.type.enumConstants!!.single { it.toString()=="LIVE" })
             runtime.onSamples(listOf(McspSample(LiveMetric.ASSIST_MODE.address,1,true)))
@@ -236,8 +234,7 @@ class BoschModeGlowTest {
                 runtime.themes.setFlatDesign(flat);runtime.themes.activate("preset:solar-flare")
                 MainActivity::class.java.getDeclaredMethod("render").apply { isAccessible=true }.invoke(activity)
                 val dashboard=views(activity.window.decorView).filterIsInstance<DashboardView>().single()
-                assertEquals(ModeGlowPlacement.TOP,dashboard.modeGlow.placement)
-                assertEquals(0xff80ff28.toInt(),dashboard.modeGlow.modeColor)
+                    assertEquals(0xff80ff28.toInt(),dashboard.modeGlow.modeColor)
             }
         } finally { controller.pause().stop().destroy() }
     }

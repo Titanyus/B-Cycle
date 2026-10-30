@@ -117,4 +117,27 @@ class SelectionChromeTest {
             }
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun actualDashboardLayoutHeadingUsesTheSameGapAsPositionChoices() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val c=host.get();val runtime=RideRuntime.get(c)
+            for(flat in listOf(true,false)) {
+                runtime.themes.setFlatDesign(flat)
+                MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(c)
+                val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+                val root=dialog.window!!.decorView;shadowOf(Looper.getMainLooper()).idle();layout(root,1080)
+                val heading=testDescendants(root).filterIsInstance<android.widget.TextView>().single {
+                    it.getTag(R.id.content_heading_role)==true && it.text.toString()==c.getString(R.string.ui_dashboard_page_choose)
+                }
+                val parent=heading.parent as LinearLayout
+                val picker=parent.getChildAt(parent.indexOfChild(heading)+1)
+                assertTrue(picker is DashboardPresetPicker)
+                assertEquals(BicycleDesign.dp(c,BicycleDesign.controlGap),picker.top-heading.bottom)
+                BicycleDialogStyle.content(parent,runtime.themes.settings);layout(root,1080)
+                assertEquals(BicycleDesign.dp(c,BicycleDesign.controlGap),picker.top-heading.bottom)
+                dialog.dismiss()
+            }
+        } finally { host.pause().stop().destroy() }
+    }
+
 }

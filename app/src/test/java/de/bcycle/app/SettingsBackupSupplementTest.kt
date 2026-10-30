@@ -15,7 +15,7 @@ class SettingsBackupSupplementTest {
     private val prefs get()=c.getSharedPreferences("bike",0)
     @Test fun profilesNotificationsServiceConfigurationAndPortableIdsAreRestoredWithoutCredentialsOrJobs() {
         val bikes=BikeProfileStore(c,prefs);val second=bikes.add()!!
-        bikes.select(second.slot);bikes.save(bikes.current().copy(name="Indoor privat",type=BikeType.INDOOR,powerAddress="00:11:22:33:44:22",powerName="Test-Pedale",powerEnabled=false,shiftEnabled=false,shiftBatteryWarning=false,shiftDevices=listOf(AxsDevice("00:11:22:33:44:33","SRAM Apex")),indoorType=IndoorBikeType.ROLLER_TRAINER,indoorCorrection=IndoorCorrection(12,15)))
+        bikes.select(second.slot);bikes.save(bikes.current().copy(name="Indoor privat",type=BikeType.INDOOR,powerAddress="00:11:22:33:44:22",powerName="Test-Pedale",powerEnabled=false,shiftEnabled=false,shiftDevices=listOf(AxsDevice("00:11:22:33:44:33","SRAM Apex")),indoorType=IndoorBikeType.ROLLER_TRAINER,indoorCorrection=IndoorCorrection(12,15)))
         val bikeId=BikeIdentities.id(prefs,second.slot)
         c.getSharedPreferences("message-notifications",0).edit().putBoolean("enabled",true)
             .putStringSet("packages",setOf("org.example.chat")).putInt("durationSeconds",35).putString("position","TOP").commit()
@@ -33,7 +33,7 @@ class SettingsBackupSupplementTest {
         assertEquals("Indoor privat",restored.current().name);assertEquals(IndoorCorrection(12,15),restored.current().indoorCorrection)
         assertEquals(IndoorBikeType.ROLLER_TRAINER,restored.current().indoorType)
         assertEquals("00:11:22:33:44:22",restored.current().powerAddress);assertEquals("Test-Pedale",restored.current().powerName);assertFalse(restored.current().powerEnabled)
-        assertFalse(restored.current().shiftBatteryWarning);assertFalse(restored.current().shiftEnabled);assertEquals(listOf(AxsDevice("00:11:22:33:44:33","SRAM Apex")),restored.current().shiftDevices)
+        assertFalse(restored.current().shiftEnabled);assertEquals(listOf(AxsDevice("00:11:22:33:44:33","SRAM Apex")),restored.current().shiftDevices)
         assertEquals(bikeId,BikeIdentities.id(prefs,second.slot))
         assertEquals(setOf("org.example.chat"),MessageNotificationSettings(c).packages)
         assertEquals(35,MessageNotificationSettings(c).durationSeconds)
@@ -59,11 +59,11 @@ class SettingsBackupSupplementTest {
         profiles.getJSONObject(0).put("slot",0.5);bike.put(BikeProfileStore.KEY,profiles.toString())
         assertThrows(SettingsBackupFailure::class.java) { backup.decode(invalid.toString().toByteArray()) }
     }
-    @Test fun oldProfilesDefaultToWarningsAndMalformedWarningSwitchIsRejected() {
+    @Test fun oldProfilesDropRetiredWarningFlagAndRejectMalformedLegacyInput() {
         val profiles=BikeProfileStore(c,prefs)
         val rows=org.json.JSONArray(profiles.backupJson());rows.getJSONObject(0).remove("shiftBatteryWarning")
         prefs.edit().putString(BikeProfileStore.KEY,rows.toString()).commit()
-        assertTrue(BikeProfileStore(c,prefs).current().shiftBatteryWarning)
+        assertFalse(org.json.JSONArray(BikeProfileStore(c,prefs).backupJson()).getJSONObject(0).has("shiftBatteryWarning"))
         val backup=SettingsBackup(c,ThemeManager(prefs))
         val invalid=JSONObject(String(backup.export(setOf(BackupSection.PROFILE))))
         val bike=invalid.getJSONObject("sections").getJSONObject("riderProfile").getJSONObject("additional").getJSONObject("bike")

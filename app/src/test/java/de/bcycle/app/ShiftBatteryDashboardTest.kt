@@ -78,7 +78,7 @@ class ShiftBatteryDashboardTest {
     }
     @Test fun actualRecordingStartShowsIndependentWarningAndStopClearsIt() {
         val runtime=RideRuntime.get(c);cached(device.address,19)
-        runtime.bikes.save(runtime.bikes.current().copy(shiftDevices=listOf(device),bikeAddress="00:11:22:33:44:77",shiftBatteryWarning=false))
+        runtime.bikes.save(runtime.bikes.current().copy(shiftDevices=listOf(device),bikeAddress="00:11:22:33:44:77"))
         DrinkReminderSettings.save(runtime.preferences,DrinkReminderConfig(enabled=false))
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         val activity=host.get()

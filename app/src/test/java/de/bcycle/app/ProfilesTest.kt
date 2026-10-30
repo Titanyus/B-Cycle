@@ -105,21 +105,21 @@ class ProfilesTest {
         try {
             val a=controller.get();val r=RideRuntime.get(a);val p=r.preferences
             r.saveConfig(RecordingConfig(setOf("RIDER_POWER")))
-            p.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[0].name).apply()
+            p.edit().putString("modeGlowPlacement","SIDES").apply()
             assertTrue(r.addBike());val second=r.bikes.activeSlot
             r.saveConfig(RecordingConfig(setOf("HEART_RATE")))
-            p.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[1].name).apply()
+            p.edit().putString("modeGlowPlacement","TOP").apply()
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(a)
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
             root.findViewWithTag<View>("bike_profile_0").performClick()
             root.findViewWithTag<View>("bike_profile_$second").performClick()
             Shadows.shadowOf(Looper.getMainLooper()).idle()
             assertEquals(setOf("HEART_RATE","GPS_POSITION"),r.config.fields)
-            assertEquals(ModeGlowPlacement.entries[1],ModeGlowSettings.placement(p))
+            assertFalse(p.contains("modeGlowPlacement"))
             root.findViewWithTag<View>("bike_profile_0").performClick()
             Shadows.shadowOf(Looper.getMainLooper()).idle()
             assertEquals(setOf("RIDER_POWER","GPS_POSITION"),r.config.fields)
-            assertEquals(ModeGlowPlacement.entries[0],ModeGlowSettings.placement(p))
+            assertFalse(p.contains("modeGlowPlacement"))
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun copyDropdownOffersOnlyOtherProfilesAndPreservesName() {
@@ -167,19 +167,8 @@ class ProfilesTest {
                 assertEquals(1,headings.count { it.contentDescription==a.getString(id) })
             assertFalse(headings.any { it.contentDescription==a.getString(R.string.bikes_fit_heading) })
             assertFalse(headings.any { it.contentDescription==a.getString(R.string.ui_bosch_mode) })
-            val glow=root.findViewWithTag<Switch>("mode_glow_enabled")
-            val glowDetails=root.findViewWithTag<View>("mode_glow_details")
-            assertEquals(a.getString(R.string.ui_bosch_mode),root.findViewWithTag<TextView>("mode_glow_enabled_label").text.toString())
-            assertSame(glow,(glow.parent as ViewGroup).getChildAt((glow.parent as ViewGroup).childCount-1))
-            assertEquals(View.GONE,glowDetails.visibility)
-            val glowEnabled=glow.isChecked
-            root.findViewWithTag<View>("mode_glow_expand").performClick()
-            assertEquals(View.VISIBLE,glowDetails.visibility);assertEquals(glowEnabled,glow.isChecked)
-            glow.performClick();assertEquals(!glowEnabled,ModeGlowSettings.enabled(a.getSharedPreferences("bike",0)))
-            assertEquals(View.VISIBLE,glowDetails.visibility)
-            assertNotNull(glowDetails.findViewWithTag<Spinner>("mode_glow_placement"))
-            val designContent=root.findViewWithTag<View>("profile_section_content_${a.getString(R.string.ui_design_title)}")
-            assertSame(glow,designContent.findViewWithTag<Switch>("mode_glow_enabled"))
+            assertNull(root.findViewWithTag<View>("mode_glow_enabled"))
+            assertNull(root.findViewWithTag<View>("mode_glow_placement"))
 
             val fit=root.findViewWithTag<View>("bike_fit_settings")
             val choices=testDescendants(fit).filterIsInstance<Spinner>()

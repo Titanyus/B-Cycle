@@ -26,7 +26,7 @@ class SettingsBackupTest {
             .putBoolean("recordPermissionsAsked",true).putFloat("mapLatitude",51f).putFloat("mapLongitude",10f).putString("displayFitId","recorded-"+"a".repeat(64))
             .putStringSet("recordFields",setOf("RIDER_POWER","ESTIMATED_FTP")).putString("recordSpeed","GPS_SPEED").putString("recordDistance","GPS_DISTANCE")
             .putString("dashboard",DashboardLayout.defaults.replace(0,DashboardField("HEART_RATE")).encode()).putString("dashboardTemplate_0","HERO")
-            .putString("mapDataField_1","GPS_ELAPSED_TIME").putBoolean("mapNight",true).putBoolean(ModeGlowSettings.key,true).commit()
+            .putString("mapDataField_1","GPS_ELAPSED_TIME").putBoolean("mapNight",true).putBoolean("modeGlowEnabled",true).commit()
         RiderProfileStore(bike).write(RiderProfile(LocalDate.of(1972,10,12),180,75.5,55,185,245))
         route.edit().putBoolean("save",false).putString("tree","content://provider/tree/DEVICE-SPECIFIC").putString("password","SECRET ENCRYPTED CIPHER")
             .putString("server","https://cloud.example.test").putString("user","bernd").putString("folder","rides").putBoolean("webdav",true).putBoolean("wifi",false).commit()
@@ -35,17 +35,16 @@ class SettingsBackupTest {
     private fun failAs(reason:BackupProblem,action:()->Unit) {
         try { action();fail("Expected $reason") } catch(e:SettingsBackupFailure) { assertEquals(reason,e.problem) }
     }
-    @Test fun glowPlacementRoundTripsAndLegacyDesignKeepsCurrentPlacement() {
-        bike.edit().putString(ModeGlowSettings.placementKey,"TOP").commit()
+    @Test fun legacyDesignOptionsAreValidatedButNeverExportedOrRestored() {
+        bike.edit().putString("modeGlowPlacement","TOP").putBoolean("modeGlowEnabled",false).commit()
         val b=backup();val bytes=b.export(setOf(BackupSection.DESIGN))
-        bike.edit().putString(ModeGlowSettings.placementKey,"SIDES").commit()
-        b.apply(b.plan(b.decode(bytes),setOf(BackupSection.DESIGN)))
-        assertEquals(ModeGlowPlacement.TOP,ModeGlowSettings.placement(bike))
-        val legacy=json(bytes)
-        legacy.getJSONObject("sections").getJSONObject("designUi").remove("modeGlowPlacement")
+        val row=json(bytes).getJSONObject("sections").getJSONObject(BackupSection.DESIGN.id)
+        assertFalse(row.has("modeGlowPlacement"));assertFalse(row.has("modeGlow"));assertFalse(row.has("bikeLightPlacement"))
+        val legacy=json(bytes);val design=legacy.getJSONObject("sections").getJSONObject(BackupSection.DESIGN.id)
+        design.put("modeGlowPlacement","SIDES").put("modeGlow",false).put("bikeLightPlacement","BOTTOM")
         b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.DESIGN)))
-        assertEquals(ModeGlowPlacement.TOP,ModeGlowSettings.placement(bike))
-        legacy.getJSONObject("sections").getJSONObject("designUi").put("modeGlowPlacement","UNKNOWN")
+        RetiredProfileSettings.designKeys.forEach { assertFalse(bike.contains(it)) }
+        design.put("modeGlowPlacement","UNKNOWN")
         failAs(BackupProblem.INVALID) { b.decode(legacy.toString().toByteArray()) }
     }
     @Test fun dashboardFullscreenRoundTripsAndLegacyDesignKeepsExistingChoice() {
@@ -120,7 +119,7 @@ class SettingsBackupTest {
     @Test fun selectiveDashboardRestoreLeavesEveryOtherSettingUnchangedAndSurvivesReload() {
         seed();val source=backup();val bytes=source.export(BackupSection.entries.toSet())
         bike.edit().putString("dashboard",DashboardLayout.defaults.encode()).putString("dashboardTemplate_0","MAP").putString("mapDataField_1","HEART_RATE")
-            .putBoolean("mapNight",false).putBoolean(ModeGlowSettings.key,false).commit()
+            .putBoolean("mapNight",false).putBoolean("modeGlowEnabled",false).commit()
         RiderProfileStore(bike).write(RiderProfile(ftpW=300))
         val before=bike.all.toMap();val routesBefore=route.all.toMap()
         val b=backup();b.apply(b.plan(b.decode(bytes),setOf(BackupSection.DASHBOARD)))
@@ -184,7 +183,7 @@ class SettingsBackupTest {
         val doc=b.decode(root.toString().toByteArray());assertEquals(setOf(BackupSection.PROFILE,BackupSection.DESIGN),doc.sections.keys)
         b.apply(b.plan(doc,doc.sections.keys))
         assertEquals(260,RiderProfileStore(bike).read().ftpW);assertEquals(75.5,RiderProfileStore(bike).read().weightKg!!,0.0)
-        assertEquals(55,RiderProfileStore(bike).read().restingHeartRate);assertFalse(ModeGlowSettings.enabled(bike))
+        assertEquals(55,RiderProfileStore(bike).read().restingHeartRate)
         assertFalse(bike.contains("futureSetting"));failAs(BackupProblem.SELECTION) { b.plan(doc,setOf(BackupSection.DASHBOARD)) }
     }
     @Test fun malformedUntrustedBackupsNeverChangePreferences() {

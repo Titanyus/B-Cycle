@@ -30,7 +30,7 @@ class DashboardTrendIndicatorsTest {
         val details=picker.findViewWithTag<View>("field_trend_details")
         assertEquals(View.VISIBLE,toggle.visibility);assertTrue(toggle.isChecked)
         assertEquals(View.GONE,details.visibility)
-        picker.findViewWithTag<View>("field_trend_indicator_label").performClick()
+        (toggle.parent.parent as BicycleFrameDropdown).header.performClick()
         assertEquals(View.VISIBLE,details.visibility);assertTrue(config.enabled)
         val checks=all(details).filterIsInstance<android.widget.CheckBox>()
         assertEquals(11,checks.size)

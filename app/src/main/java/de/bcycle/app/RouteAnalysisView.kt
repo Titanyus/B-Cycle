@@ -99,6 +99,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         body.addView(android.widget.Space(context).apply { tag="analysis_identity_gap" },LinearLayout.LayoutParams(-1,dp(10)))
         var groupsShown=0
         AnalysisGroups.groups.forEach { (heading, alternatives) ->
+            if(heading==R.string.analysis_elevation && !analysis.entry.hasRoute) return@forEach
             val canCorrect=analysis.entry.format=="FIT" && analysis.entry.origin==TrackOrigin.RECORDED && analysis.entry.hasRoute
             val available = if(heading==R.string.analysis_elevation && canCorrect) alternatives
                 else if (heading == R.string.analysis_power_group && alternatives.flatten().any { it in analysis.metrics }) alternatives

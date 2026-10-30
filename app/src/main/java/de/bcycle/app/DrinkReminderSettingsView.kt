@@ -16,18 +16,11 @@ internal class DrinkReminderSettingsView(context:Context,themes:ThemeManager,pre
             tag="drink_reminder_enabled";setText(R.string.drink_reminder_title);isChecked=initial.enabled
             BicycleDialogStyle.control(this,themes)
         }
-        val details=LinearLayout(context).apply { orientation=VERTICAL;tag="drink_reminder_details";visibility=GONE }
-        val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.drink_reminder_title)) {
-            val open=details.visibility!=VISIBLE
-            details.visibility=if(open) VISIBLE else GONE
-            findViewWithTag<View>("drink_reminder_expand").apply {
-                rotation=if(open) 180f else 0f
-                stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            }
-        }.apply { tag="drink_reminder_expand";stateDescription=context.getString(R.string.zone_collapsed) }
-        addView(LinearLayout(context).apply {
-            BicycleComponents.switchAccordion(this,enabled,expand,themes,icon=BicycleIcon.DrinkReminder)
-        },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
+        val frame=BicycleFrameDropdown(context,themes,context.getString(R.string.drink_reminder_title),open=false,
+            trailing=enabled,leadingIcon=BicycleIcon.DrinkReminder)
+        frame.expandControl.tag="drink_reminder_expand"
+        val details=frame.content.apply { tag="drink_reminder_details" }
+        addView(frame,LayoutParams(-1,-2))
         val slider=BicycleSettingSlider(context,themes) { context.getString(R.string.drink_reminder_minutes,10+it*5) }.apply {
             tag="drink_reminder_interval";max=10;progress=(initial.minutes-10)/5
             contentDescription=context.getString(R.string.drink_reminder_interval)
@@ -67,6 +60,5 @@ internal class DrinkReminderSettingsView(context:Context,themes:ThemeManager,pre
         details.addView(MessagePositionChoices(context,themes,initial.position,"drink_reminder_position",canEdit) {
             config=config.copy(position=it);save()
         },LayoutParams(-1,-2))
-        addView(details,LayoutParams(-1,-2))
     }
 }

@@ -6,16 +6,14 @@ import android.widget.*
 
 internal class TrendIndicatorSettingsView(context:Context,themes:ThemeManager,initial:TrendIndicatorConfig,
     changed:(TrendIndicatorConfig)->Unit):LinearLayout(context) {
+    private val frame:BicycleFrameDropdown
     fun setDataAvailable(available:Boolean) {
         fun enable(view:View) {
             view.isEnabled=available
             if(view is android.view.ViewGroup) for(index in 0 until view.childCount) enable(view.getChildAt(index))
         }
         enable(this);alpha=if(available) 1f else .5f
-        if(!available) {
-            findViewWithTag<View>("field_trend_details").visibility=GONE
-            findViewWithTag<View>("field_trend_expand").apply { rotation=0f;stateDescription=context.getString(R.string.zone_collapsed) }
-        }
+        if(!available) frame.setExpanded(false)
     }
     init {
         orientation=VERTICAL;tag="trend_indicator_settings"
@@ -24,17 +22,11 @@ internal class TrendIndicatorSettingsView(context:Context,themes:ThemeManager,in
             tag="field_trend_indicator";setText(R.string.field_trend_indicator);isChecked=config.enabled
             BicycleDialogStyle.control(this,themes)
         }
-        val details=LinearLayout(context).apply { orientation=VERTICAL;tag="field_trend_details";visibility=GONE }
-        val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.field_trend_indicator)) {
-            val open=details.visibility!=VISIBLE
-            details.visibility=if(open) VISIBLE else GONE
-            findViewWithTag<View>("field_trend_expand").apply {
-                rotation=if(open) 180f else 0f
-                stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            }
-        }.apply { tag="field_trend_expand";stateDescription=context.getString(R.string.zone_collapsed) }
-        addView(LinearLayout(context).apply { BicycleComponents.switchAccordion(this,toggle,expand,themes) },
-            LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
+        frame=BicycleFrameDropdown(context,themes,context.getString(R.string.field_trend_indicator),open=false,
+            trailing=toggle,leadingIcon=BicycleIcon.HeadingUp)
+        frame.expandControl.tag="field_trend_expand"
+        val details=frame.content.apply { tag="field_trend_details" }
+        addView(frame,LayoutParams(-1,-2))
         listOf(R.string.trend_current_values to AverageTrends.currentFields,
             R.string.trend_average_values to AverageTrends.averageFields).forEach { (heading,fields) ->
             BicycleComponents.listCategory(details,themes,context.getString(heading))
@@ -51,6 +43,5 @@ internal class TrendIndicatorSettingsView(context:Context,themes:ThemeManager,in
             }
         }
         toggle.setOnCheckedChangeListener { _,on -> config=config.copy(enabled=on);changed(config) }
-        addView(details,LayoutParams(-1,-2))
     }
 }

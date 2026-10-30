@@ -84,4 +84,34 @@ class BicycleFrameDropdownTest {
             second.header.performClick();assertFalse(second.expanded);assertEquals(1,actions)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun titleAndChevronPressHighlightTheWholeFrameAndCancelClearsIt() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
+            for(flat in listOf(true,false)) {
+                themes.setFlatDesign(flat)
+                val toggle=Switch(c);BicycleDialogStyle.control(toggle,themes)
+                val frame=BicycleFrameDropdown(c,themes,"Sensor",open=true,trailing=toggle,leadingIcon=BicycleIcon.Sensors)
+                frame.content.addView(View(c),LinearLayout.LayoutParams(-1,100));c.setContentView(frame);layout(frame)
+                fun event(action:Int,x:Float,y:Float) {
+                    val now=android.os.SystemClock.uptimeMillis()
+                    android.view.MotionEvent.obtain(now,now,action,x,y,0).also { frame.dispatchTouchEvent(it);it.recycle() }
+                }
+                val ripple=frame.background as android.graphics.drawable.RippleDrawable
+                assertNull(frame.header.background)
+                for(target in listOf(frame.header,frame.expandControl)) {
+                    val x=target.left+target.width/2f;val y=target.top+target.height/2f
+                    event(android.view.MotionEvent.ACTION_DOWN,x,y);assertTrue(frame.isPressed)
+                    val mask=ripple.findDrawableByLayerId(android.R.id.mask)
+                    val before=image(frame);assertEquals(frame.width,mask.bounds.width());assertEquals(frame.height,mask.bounds.height());before.recycle()
+                    event(android.view.MotionEvent.ACTION_CANCEL,x,y);assertFalse(frame.isPressed)
+                }
+                event(android.view.MotionEvent.ACTION_DOWN,toggle.left+toggle.width/2f,toggle.height/2f)
+                assertFalse(frame.isPressed) // Switch retains its own feedback and action.
+                event(android.view.MotionEvent.ACTION_CANCEL,0f,0f)
+                assertTrue(frame.expanded);assertFalse(toggle.isChecked)
+            }
+        } finally { host.pause().stop().destroy() }
+    }
+
 }

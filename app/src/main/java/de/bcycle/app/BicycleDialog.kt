@@ -165,7 +165,7 @@ internal object BicycleDialogStyle {
                 view.setBackgroundColor(tokens.secondary)
                 view.selector = shape(view, tokens.secondary, tokens.foreground)
                 view.divider = ColorDrawable(alpha(tokens.foreground, BicycleDesign.dividerAlpha))
-                view.dividerHeight = BicycleDesign.linePixels(view.context)
+                view.dividerHeight = dp(view,BicycleDesign.controlBorder)
                 view.verticalScrollbarThumbDrawable = ColorDrawable(tokens.foreground)
             }
             BicycleComponents.scrollStyle(view)

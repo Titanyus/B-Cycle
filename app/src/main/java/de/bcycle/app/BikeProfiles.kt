@@ -31,7 +31,7 @@ internal data class BikeProfile(val slot: Int, val name: String, val type: BikeT
     val trainerAddress:String?=null,val trainerName:String?=null,val trainerEnabled:Boolean=true, val recording: RecordingConfig = RecordingConfig(), val indoorCorrection: IndoorCorrection = IndoorCorrection(),val autoStartRecording:Boolean=false,
     val indoorType:IndoorBikeType=IndoorBikeType.EXERCISE_BIKE,
     val powerAddress:String?=null,val powerName:String?=null,val powerEnabled:Boolean=true,
-    val shiftEnabled:Boolean=true,val shiftDevices:List<AxsDevice> = emptyList(),val shiftBatteryWarning:Boolean=true)
+    val shiftEnabled:Boolean=true,val shiftDevices:List<AxsDevice> = emptyList())
 
 /** Up to six profiles with stable identities; array order is presentation only. */
 internal class BikeProfileStore(private val context: Context, private val prefs: SharedPreferences,private val initialize:Boolean=true) {
@@ -84,7 +84,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
                     bikeAddress = o.optString("bikeAddress").takeIf(String::isNotEmpty), bikeName = o.optString("bikeName").takeIf(String::isNotEmpty),
                     trainerAddress=o.optString("trainerAddress").takeIf(String::isNotEmpty), trainerName=o.optString("trainerName").takeIf(String::isNotEmpty),trainerEnabled=o.optBoolean("trainerEnabled",true),
                     powerAddress=o.optString("powerAddress").takeIf(String::isNotEmpty),powerName=o.optString("powerName").takeIf(String::isNotEmpty),powerEnabled=o.optBoolean("powerEnabled",true),
-                    shiftBatteryWarning=o.optBoolean("shiftBatteryWarning",true),shiftEnabled=o.optBoolean("shiftEnabled",true),shiftDevices=AxsDevice.decode(o.optJSONArray("shiftDevices") ?: JSONArray()),
+                    shiftEnabled=o.optBoolean("shiftEnabled",true),shiftDevices=AxsDevice.decode(o.optJSONArray("shiftDevices") ?: JSONArray()),
                     heartAddress = o.optString("heartAddress").takeIf(String::isNotEmpty), heartName = o.optString("heartName").takeIf(String::isNotEmpty),
                     indoorCorrection = IndoorCorrection(IndoorCorrection.storedStep(o.optInt("indoorPowerTenths",10)), IndoorCorrection.storedStep(o.optInt("indoorSpeedTenths",10))),
                     recording = RecordingConfig.decode(o.getJSONArray("fields").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }, o.getString("speed"), o.getString("distance"),o.optJSONArray("metadata")?.let { a -> (0 until a.length()).map { a.getString(it) }.toSet() },o.optString("sources").takeIf { it.isNotEmpty() }))
@@ -145,7 +145,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         .put("bikeAddress", p.bikeAddress.orEmpty()).put("bikeName", p.bikeName.orEmpty()).put("heartAddress", p.heartAddress.orEmpty()).put("heartName", p.heartName.orEmpty())
         .put("trainerAddress",p.trainerAddress.orEmpty()).put("trainerName",p.trainerName.orEmpty()).put("trainerEnabled",p.trainerEnabled)
         .put("powerAddress",p.powerAddress.orEmpty()).put("powerName",p.powerName.orEmpty()).put("powerEnabled",p.powerEnabled)
-        .put("shiftBatteryWarning",p.shiftBatteryWarning).put("shiftEnabled",p.shiftEnabled).put("shiftDevices",AxsDevice.encode(p.shiftDevices))
+        .put("shiftEnabled",p.shiftEnabled).put("shiftDevices",AxsDevice.encode(p.shiftDevices))
         .put("indoorPowerTenths",p.indoorCorrection.powerTenths).put("indoorSpeedTenths",p.indoorCorrection.speedTenths)
         .put("sources",p.recording.sourcePreferences?.json() ?: "").put("fields", JSONArray(p.recording.fields.sorted())).put("metadata",JSONArray(p.recording.metadata.map { it.name })).put("speed", p.recording.speedSource).put("distance", p.recording.distanceSource)) } }.toString()
 }

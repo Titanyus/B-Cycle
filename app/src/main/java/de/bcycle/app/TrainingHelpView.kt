@@ -60,7 +60,6 @@ internal class TrainingHelpView(context:Context,private val themes:ThemeManager,
         show(initial)
     }
     fun addDrinkReminder(view:DrinkReminderSettingsView) {
-        addView(BicycleComponents.sectionDivider(context,themes))
         addView(view,LayoutParams(-1,-2))
     }
     fun show(value:DashboardTrainingHelp) {

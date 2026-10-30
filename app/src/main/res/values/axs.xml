@@ -13,7 +13,6 @@
     <string name="axs_battery_value">%1$d%% · Letzte Abfrage: %2$s</string>
     <string name="axs_remove">%1$s entfernen</string>
     <string name="axs_derailleur">Schaltwerk</string>
-    <string name="axs_warning_enabled">Akkuwarnung bei unter 20% Kapazität</string>
     <string name="axs_warning_message">Schaltwerk-Akku niedrig
 Letzter Stand: %1$d%%</string>
     <string name="axs_warning_dismiss">Akkuwarnung schließen</string>

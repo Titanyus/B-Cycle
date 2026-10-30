@@ -8,6 +8,7 @@ import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.RotateDrawable
 import android.view.Gravity
 import android.view.View
+import android.view.MotionEvent
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -53,12 +54,14 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         trailing?.let(::setTrailing)
         addView(row,LayoutParams(-1,-2));addView(content,LayoutParams(-1,-2))
         BicycleComponents.bindTheme(this,themes) { tokens ->
-            background=BicycleComponents.controlBackground(context,tokens)
+            background=RippleDrawable(ColorStateList.valueOf((tokens.foreground and 0xffffff) or 0x26000000),
+                BicycleComponents.controlBackground(context,tokens),GradientDrawable().apply {
+                    setColor(Color.WHITE);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
+                })
         }
         BicycleComponents.bindTheme(header,themes) { tokens ->
             header.setTextColor(tokens.foreground);header.backgroundTintList=null
-            header.background=RippleDrawable(ColorStateList.valueOf((tokens.foreground and 0xffffff) or 0x26000000),null,
-                GradientDrawable().apply { setColor(Color.WHITE);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat() })
+            header.background=null
             val size=BicycleDesign.dp(context,BicycleDesign.iconSize)
             arrow.drawable=BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground)
             arrow.level=if(expanded) 10000 else 0
@@ -70,6 +73,19 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         render()
         BicycleComponents.controlSpacing(this)
     }
+    override fun dispatchTouchEvent(event:MotionEvent):Boolean {
+        if(event.actionMasked==MotionEvent.ACTION_DOWN) {
+            val trailing=trailingControl
+            val onTrailing=trailing!=null && event.x>=trailing.left && event.x<trailing.right
+            isPressed=isEnabled && event.y>=0 && event.y<row.bottom && !onTrailing
+            if(isPressed) drawableHotspotChanged(event.x,event.y)
+        }
+        if(event.actionMasked==MotionEvent.ACTION_MOVE && (event.x<0 || event.x>=width || event.y<0 || event.y>=row.bottom)) isPressed=false
+        return try { super.dispatchTouchEvent(event) } finally {
+            if(event.actionMasked==MotionEvent.ACTION_UP || event.actionMasked==MotionEvent.ACTION_CANCEL) isPressed=false
+        }
+    }
+    override fun onDetachedFromWindow() { isPressed=false;super.onDetachedFromWindow() }
     /** Reparents the original control, preserving checked state and existing listeners. */
     fun setTrailing(action:View) {
         trailingControl?.let { row.removeView(it) }

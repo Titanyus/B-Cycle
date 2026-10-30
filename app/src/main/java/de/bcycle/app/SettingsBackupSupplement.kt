@@ -71,7 +71,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                     "restSeconds" -> integer(row,key).also { require(it in 15..60 && it%15==0) }
                     "measureSeconds" -> integer(row,key).also { require(it in 60..300 && it%15==0) }
                     BikeProfileStore.ACTIVE,"nextBikeSlot" -> integer(row,key).also { require(it in 0 until Int.MAX_VALUE) }
-                    BikeProfileStore.KEY -> (value as String).also(::validateProfiles)
+                    BikeProfileStore.KEY -> (value as String).also(::validateProfiles).let { RetiredProfileSettings.cleanProfiles(JSONArray(it)).toString() }
                     BikeIdentities.RETAINED_TYPES -> (value as String).also { text ->
                         val types=BackupJson.objectValue(text.toByteArray(Charsets.UTF_8),65536);require(types.length()<=10000)
                         types.keys().forEach { id -> require(BikeIdentities.valid(id));BikeType.valueOf(types.getString(id)) }
@@ -83,11 +83,12 @@ internal class SettingsBackupSupplement(private val context:Context) {
                             ids.getString(slot).also { require(BikeIdentities.valid(it)) }
                         }.toList();require(all.distinct().size==all.size)
                     }
-                    BikeUiConfigurationStore.KEY -> (value as String).also { text ->
+                    BikeUiConfigurationStore.KEY -> (value as String).let { text ->
                         val bank=BackupJson.objectValue(text.toByteArray(Charsets.UTF_8),65536);require(bank.length()<=BikeProfileStore.MAX_COUNT)
                         bank.keys().forEach { slot ->
                             require(slot.toIntOrNull()?.let { it>=0 }==true)
                             val saved=bank.getJSONObject(slot)
+                            RetiredProfileSettings.designKeys.forEach(saved::remove)
                             saved.keys().forEach { k ->
                                 require(BikeUiConfigurationScope.designKey(k)||BikeUiConfigurationScope.mapKey(k))
                                 val item=saved.getJSONObject(k);require(item.getString("type") in setOf("string","boolean","int","long","float","set"))
@@ -103,6 +104,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                                 require(item.toString().length<=65536)
                             }
                         }
+                        bank.toString()
                     }
                     "address" -> (value as String).also { if(it.isNotBlank()) dreeveUrl(it) }
                     "clientId" -> (value as String).also { require(it.isEmpty()||it.matches(Regex("[0-9]{1,20}"))) }

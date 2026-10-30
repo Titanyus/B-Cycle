@@ -14,6 +14,7 @@ import android.os.SystemClock
 /** Activity and recording service share existing sensors; no second Bosch client is created. */
 class RideRuntime private constructor(val context: Context) : BoschConnection.Listener {
     val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
+    init { RetiredProfileSettings.purge(preferences) }
     internal val bikes = BikeProfileStore(context, preferences)
     private var connectionsRequested = bikes.current().autoConnect
     private var autoStartWasConnected=false
