@@ -268,4 +268,23 @@ class RouteAnalysisViewTest {
         view.dispose()
     }
 
+    @Test fun detailValuesCentreOnTheirIconAndUnitsRemainOnTheRight() {
+        val c=RuntimeEnvironment.getApplication();val themes=ThemeManager(c.getSharedPreferences("bike",0))
+        for(metric in listOf(AnalysisMetric.DISTANCE,AnalysisMetric.AVG_POWER,AnalysisMetric.MOVING,AnalysisMetric.RATIO)) {
+            val tile=AnalysisMetricTile(c,themes,listOf(metric),mapOf(metric to 129.0))
+            for(width in listOf(240,320,480)) {
+                measure(tile,width,420)
+                val icon=descendants(tile).filterIsInstance<ImageView>().first()
+                val row=descendants(tile).filterIsInstance<AnalysisValueRow>().single()
+                val value=row.getChildAt(0);val unit=row.getChildAt(1)
+                val valueBox=android.graphics.Rect(0,0,value.width,value.height);tile.offsetDescendantRectToMyCoords(value,valueBox)
+                val iconBox=android.graphics.Rect(0,0,icon.width,icon.height);tile.offsetDescendantRectToMyCoords(icon,iconBox)
+                assertEquals(iconBox.exactCenterX(),valueBox.exactCenterX(),1f)
+                if(unit.visibility==View.VISIBLE) {
+                    assertTrue(unit.left>=value.right);assertTrue(unit.right<=row.width)
+                }
+            }
+        }
+    }
+
 }

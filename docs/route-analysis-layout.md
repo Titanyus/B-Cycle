@@ -38,3 +38,9 @@ Themenwechsel, Einheiten, gemeinsame Achse und bisherige Interaktionen.
 ## Umgesetzt in 0.8: Kürzere Leistungsbeschriftung
 
 Nutzerwunsch vom 17.10.2026 nach Build 33: In den Streckendetails „Normalisierte Leistung“ durch „Norm. Leistung“ ersetzen, damit die Beschriftung nicht zweizeilig wird. In Version 0.8 umgesetzt; Berechnung und übrige Verwendungen bleiben erhalten.
+
+## Anpassungen nach Build 109
+
+Bei Fahrten ohne GPS-Geometrie entfällt die Höhen-Kennzahlenzeile vollständig, auch wenn Metadaten Nullwerte für Auf-/Abstieg enthalten. Andere Kennzahlen und die gespeicherten Werte bleiben erhalten.
+
+Die Zahlen der normalen AnalysisMetricTile-Kacheln stehen mit ihrer Mitte unter dem Icon. Die Einheit wird unabhängig rechts daneben angeordnet; Platz für sie wird beim Messen symmetrisch reserviert. Option nur für diese Streckendetailkacheln, keine Änderung der rechtsbündigen Fahrerprofilwerte, Streckenlisten oder übrigen AnalysisValueRow-Nutzer. Beschriftung bleibt zentriert. Gezielte Native-Tests für mehrere Kachelbreiten/Einheiten und GPS-lose Fahrten erfolgreich.

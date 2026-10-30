@@ -214,7 +214,7 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
         val inset = dp(BicycleDesign.smallGap); setPadding(inset, dp(BicycleDesign.verticalPadding), inset, dp(BicycleDesign.verticalPadding))
         background = null
         metrics.addView(icon, LinearLayout.LayoutParams(dp(BicycleDesign.analysisMetricIconSize), dp(BicycleDesign.analysisMetricIconSize)).apply { gravity = Gravity.CENTER_HORIZONTAL })
-        metrics.addView(AnalysisValueRow(context, value, unit), LinearLayout.LayoutParams(-1, dp(40)))
+        metrics.addView(AnalysisValueRow(context, value, unit,centerValue=true), LinearLayout.LayoutParams(-1, dp(40)))
         metrics.addView(label, LinearLayout.LayoutParams(-1, -2))
         addView(metrics, LayoutParams(-1, -2, Gravity.CENTER))
         if (alternatives.size > 1) {
@@ -288,9 +288,9 @@ internal class BestEffortTile(context: Context, themes: ThemeManager, effort: Be
     }
 }
 
-/** Measure once within available width, then center the combined number+unit and both vertical centers. */
+/** Shared row: combined centring/right alignment elsewhere, independent value centring in detail tiles. */
 internal class AnalysisValueRow(context: Context, private val value: TextView, private val unit: TextView,
-    private val alignEnd:Boolean=false,private val uniformSize:Boolean=false) : android.view.ViewGroup(context) {
+    private val alignEnd:Boolean=false,private val uniformSize:Boolean=false,private val centerValue:Boolean=false) : android.view.ViewGroup(context) {
     private val gap = BicycleDesign.dp(context, BicycleDesign.smallGap)
     private val density=resources.displayMetrics.scaledDensity
     private val maximumSp=value.textSize/density
@@ -319,12 +319,24 @@ internal class AnalysisValueRow(context: Context, private val value: TextView, p
         }
         if (unit.visibility != GONE) unit.measure(MeasureSpec.makeMeasureSpec(available / 2, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
         val reserve = if (unit.visibility == GONE) 0 else unit.measuredWidth + gap
-        value.measure(MeasureSpec.makeMeasureSpec((available - reserve).coerceAtLeast(0), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST))
-        setMeasuredDimension(resolveSize(value.measuredWidth + reserve, widthMeasureSpec), resolveSize(maxOf(value.measuredHeight, if (unit.visibility == GONE) 0 else unit.measuredHeight), heightMeasureSpec))
+        val reserved=if(centerValue) 2*reserve else reserve
+        value.measure(MeasureSpec.makeMeasureSpec((available-reserved).coerceAtLeast(0),MeasureSpec.AT_MOST),MeasureSpec.makeMeasureSpec(height,MeasureSpec.AT_MOST))
+        setMeasuredDimension(resolveSize(value.measuredWidth+reserved, widthMeasureSpec), resolveSize(maxOf(value.measuredHeight, if (unit.visibility == GONE) 0 else unit.measuredHeight), heightMeasureSpec))
     }
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val y = (height - value.measuredHeight) / 2
         value.layout(0, y, value.measuredWidth, y + value.measuredHeight)
+        if(centerValue) {
+            value.offsetLeftAndRight((width-value.measuredWidth)/2)
+            if(unit.visibility!=GONE) {
+                val uy=(height-unit.measuredHeight)/2
+                val numberWidth=(value.layout?.getLineWidth(0) ?: value.measuredWidth.toFloat()).coerceAtMost(value.measuredWidth.toFloat())
+                val unitWidth=(unit.layout?.getLineWidth(0) ?: unit.measuredWidth.toFloat()).coerceAtMost(unit.measuredWidth.toFloat())
+                val left=(width/2f+numberWidth/2+gap-(unit.measuredWidth-unitWidth)/2).toInt()
+                unit.layout(left,uy,left+unit.measuredWidth,uy+unit.measuredHeight)
+            }
+            return
+        }
         if (unit.visibility != GONE) {
             val uy = (height - unit.measuredHeight) / 2
             unit.layout(0, uy, unit.measuredWidth, uy + unit.measuredHeight)
