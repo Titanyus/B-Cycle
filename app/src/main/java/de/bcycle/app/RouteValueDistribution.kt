@@ -7,11 +7,12 @@ internal data class DistributionBand(val zone: Int, val lower: Double, val upper
 internal data class DistributionBar(val lower:Double,val upper:Double,val milliseconds:Double)
 internal data class RouteValueDistribution(val chart: AnalysisChart, val minimum: Double, val maximum: Double,
     val milliseconds: List<Double>, val totalMs: Double, val bands: List<DistributionBand>, val observedMaximum: Double,
-    val bars:List<DistributionBar>, val zoneMilliseconds:List<Double>)
+    val bars:List<DistributionBar>, val zoneMilliseconds:List<Double>, val mean:Double?=null)
 
 /** Integer-unit histogram before chart downsampling. FIT power/BPM are integer fields. */
 internal class RouteTimeHistogram(private val maximumValue: Int) {
     private val milliseconds = DoubleArray(maximumValue + 1)
+    private var integral=0.0
     private var observedMin: Double? = null
     private var observedMax: Double? = null
     fun observe(value: Double?) {
@@ -21,6 +22,7 @@ internal class RouteTimeHistogram(private val maximumValue: Int) {
     fun add(value: Double?, durationMs: Long) {
         if (value == null || !value.isFinite() || value !in 0.0..maximumValue.toDouble() || durationMs <= 0) return
         milliseconds[value.toInt()] += durationMs.toDouble()
+        integral+=value*durationMs
     }
     fun result(chart: AnalysisChart, profile: RiderProfile): RouteValueDistribution? {
         val total = milliseconds.sum().takeIf { it > 0 } ?: return null
@@ -74,6 +76,6 @@ internal class RouteTimeHistogram(private val maximumValue: Int) {
             else->band
         } }
         val bars=bins.indices.map { index -> DistributionBar(axisLow+step*index,axisLow+step*(index+1),bins[index]) }
-        return RouteValueDistribution(chart,axisLow,axisHigh,bins.toList(),total,displayBands,observed,bars,zoneTime.toList())
+        return RouteValueDistribution(chart,axisLow,axisHigh,bins.toList(),total,displayBands,observed,bars,zoneTime.toList(),integral/total)
     }
 }

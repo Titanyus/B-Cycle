@@ -39,7 +39,14 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     private val listener=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,_->
         handler.post { val next=settings.read();if(next!=config) { config=next;build() } }
     }
-    init { orientation=VERTICAL;tag="hrv_questionnaire";val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad);build() }
+    init {
+        orientation=VERTICAL;tag="hrv_questionnaire";val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
+        if(value.training==null && enabled(HrvQuestion.TRAINING) && value.trainingSource!="manual" && training!=null) {
+            val suggestion=if(training.rideIds.isEmpty()) 0 else training.intensity
+            if(suggestion!=null) change(value.withTraining(suggestion))
+        }
+        build()
+    }
     private fun change(next:HrvQuestionnaire) {
         value=next.copy(updatedAtMs=System.currentTimeMillis());pending=true;revision++
         status.visibility=VISIBLE;BicycleFeedback.update(status,context.getString(R.string.hrvq_saving));retry.visibility=GONE
@@ -201,7 +208,8 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         }
     }
     private fun trainingFields(parent:LinearLayout) {
-        rating(parent,HrvQuestion.RPE,"rpe",R.string.hrvq_no_effort,R.string.hrvq_middle,R.string.hrvq_max_effort,10)
+        if(value.training!=0 && (value.training?.let { it>0 }==true || training?.rideIds?.isNotEmpty()==true))
+            rating(parent,HrvQuestion.RPE,"rpe",R.string.hrvq_no_effort,R.string.hrvq_middle,R.string.hrvq_max_effort,10)
         if(enabled(HrvQuestion.DISTANCE) || enabled(HrvQuestion.DURATION)) {
             parent.addView(BicycleComponents.description(context,themes,context.getString(when {
                 value.trainingSource=="manual"->R.string.hrvq_manual
@@ -226,7 +234,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         }
     }
     private fun prefill() {
-        if(training==null || training.rideIds.isEmpty() || value.trainingSource=="manual") return
+        if(value.training==0 || training==null || training.rideIds.isEmpty() || value.trainingSource=="manual") return
         if(value.trainingSource=="rides" && value.rideIds!=training.rideIds) return
         if(listOf(HrvQuestion.DISTANCE,HrvQuestion.DURATION).none(::enabled)) return
         val next=value.copy(trainingKm=if(enabled(HrvQuestion.DISTANCE)) value.trainingKm ?: training.km else value.trainingKm,
@@ -254,14 +262,14 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         group(R.string.hrvq_training_group,HrvQuestion.entries.filter { it.group==1 }) { body ->
             val details=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_training_details" }
             fun showDetails() {
-                val show=!enabled(HrvQuestion.TRAINING) || value.training?.let { it>0 }==true
+                val show=value.training!=0 && (!enabled(HrvQuestion.TRAINING) || value.training?.let { it>0 }==true || training?.rideIds?.isNotEmpty()==true)
                 details.removeAllViews();details.visibility=if(show) VISIBLE else GONE
                 if(show) { prefill();trainingFields(details) }
                 BicycleForm.sliderQuestionSpacing(this@HrvQuestionnaireView)
             }
             if(enabled(HrvQuestion.TRAINING)) choices(body,"training",context.getString(R.string.hrvq_training,date.minusDays(1).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))),
                 listOf(R.string.hrvq_rest,R.string.hrvq_easy,R.string.hrvq_moderate,R.string.hrvq_intense),value.training) { selected ->
-                change(value.copy(training=selected));showDetails()
+                change(value.withTraining(selected));showDetails()
             }
             extraDropdown(body,HrvQuestion.PHASE,"phase",HrvQuestionnaire.phases,listOf(R.string.hrvq_base,R.string.hrvq_build,R.string.hrvq_competition,R.string.hrvq_recovery,R.string.hrvq_other))
             body.addView(details,LayoutParams(-1,-2));showDetails()

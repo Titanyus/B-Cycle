@@ -23,6 +23,8 @@ class RouteValueDistributionTest {
         assertEquals(4000.0, power.milliseconds[bin(power, 200.0)], 0.0)
         assertEquals(1000.0, power.milliseconds[bin(power, 0.0)], 0.0)
         assertEquals(5000.0, heart.totalMs, 0.0)
+        assertEquals(144.0,heart.mean!!,0.0) // 1 second at 120 plus 4 seconds at 150.
+        assertEquals(150.0,power.mean!!,0.0)
         assertNull(a.result().power); assertNull(a.result().heart)
         assertEquals(power.totalMs, power.bars.sumOf { it.milliseconds }, .000001)
         assertTrue(power.bars.all { it.milliseconds.isFinite() && it.milliseconds >= 0 })

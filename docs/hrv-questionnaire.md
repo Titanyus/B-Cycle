@@ -82,3 +82,17 @@ Gemeinsame `BicycleTimeInput` für Stunden-/Minutenangaben: im Feld ausschließl
 Trainingsmengen bleiben Zahlenfelder nebeneinander mit optionalen Werten und dauerhaft geghosteten Einheiten unmittelbar nach dem Wert (`80 km`, `160 min`). Auch die Stunden-/Minuten-Grenzen im Streckenfilter benutzen die Zeitmaske, ohne die Bereichs-/Sliderfunktion zu ändern.
 
 Globale Auswahlkonvention: Fragenliste in den HRV-Einstellungen verwendet Schalter statt Auswahlpunkte, ohne Änderungen an Aktivierung, Mehrfachauswahl, Zyklussperre oder Sicherung. Maßeinheiten bei Trainingsmengen werden über `BicycleInputUnit` gezeichnet; der editierbare/gespeicherte Text bleibt rein numerisch. Datumsspeicherung, Sliderwerte und 04:00-Uhr-Angebot bleiben unverändert.
+
+## Automatische Trainingsvorauswahl30.10.2026
+
+Beim Öffnen werden vorhandene, als Gefahren markierte Fahrten des vorherigen Kalendertags über alle Fahrradprofile berücksichtigt. Zeitgrenzen folgen der gespeicherten Messzeitzone, einschließlich Sommerzeitwechsel. Reine importierte/geplante Strecken zählen nicht automatisch als gefahren. Vorhandene Tagesantworten und manuelle Werte gewinnen; eine weitere Messung desselben Tages darf sie nicht neu einstufen.
+
+Die vorhandene MapState-Workerpipeline liest die Original-/vollständigen privaten FIT-Analysedaten bzw. GPX/JSON-Zusammenfassungen. Verfügbare Pulswerte werden zuerst innerhalb der Fahrt anhand der tatsächlich aufgezeichneten gültigen Intervalle zeitgewichtet, dann nach erfasster Pulsdauer über die Fahrten gemittelt. Der Histogramm-Mittelwert wird vor der Darstellungsrasterung berechnet, keine ausgedünnte Diagrammkurve verwenden. Keine Überbrückung von Sensorausfällen oder Timerpausen. Für reine Zusammenfassungen können vorhandener Durchschnittspuls und Fahrtdauer als Gewicht dienen.
+
+Die aktuellen fünf Fahrer-Pulszonen geben die Vorauswahl vor: Z1 leicht, Z2/3 moderat, Z4/5 schwer. Kein Trainingsnachweis → Kein Training; bei nachgewiesener Fahrt ohne auswertbaren Puls/definierte Zone wird keine Intensität geraten. Kurze Spitzen bestimmen nicht allein die Einstufung. Dies ist eine editierbare Beschreibung des Vortags, keine medizinische Belastungsbewertung und kein neuer HRV-Score. Keine Rohwerte/FIT ändern.
+
+Die subjektive Anstrengungsfrage RPE erscheint nur bei erkannter Fahrt oder manuell positiver Trainingsstufe. Das gilt auch, wenn die separate Trainingsfrage deaktiviert ist: ohne Beleg kein unberührter Standard-RPE. Bei erkannter Fahrt ohne Puls kann RPE sichtbar sein, während die Intensitätsauswahl noch offen bleibt. Vorhandene manuelle Distanz-/Dauerfelder bei deaktivierter Trainingsfrage bleiben nutzbar.
+
+Explizites „Kein Training“ entfernt Kilometer, Minuten, Ride-IDs, Herkunft und RPE aus der Tagesantwort und blendet Trainingsdetails aus; diese versteckten Werte dürfen nicht in eine spätere Auswertung eingehen. Die ursprünglichen Fahrten bleiben erhalten. Bei erneuter positiver Auswahl können vorhandene Vortagsfahrten wieder zur Vorbelegung dienen. Andere Tagesantworten bleiben unangetastet.
+
+Prüfung: HrvTrainingSuggestionTest5 (alle Zonen, Pulsdauergewichtung, fehlende Daten, echte FIT→MapState-Worker→Vorauswahl, unveränderte Datei/Karte, manuelle Vorränge, kein Training, bedingte RPE). Bestehende HrvQuestionnaireTest8, HrvDailyQuestionnaireTest5, RouteValueDistributionTest5, RouteZoneDistributionTest4 und HrvDayFooterTest2 grün. Keine Gesamtsuite und kein physischer Geräteversuch.

@@ -47,7 +47,7 @@ class HrvQuestionnaireTest {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0));val saved=mutableListOf<HrvQuestionnaire>()
-            val view=HrvQuestionnaireView(a,themes,HrvQuestionnaire("2026-10-21"),HrvTrainingSummary(listOf("ride-a","ride-b"),42.5,95.0)) { value,done->saved+=value;done(true) }
+            val view=HrvQuestionnaireView(a,themes,HrvQuestionnaire("2026-10-21"),HrvTrainingSummary(listOf("ride-a","ride-b"),42.5,95.0,2)) { value,done->saved+=value;done(true) }
             val scroll=android.widget.ScrollView(a).apply { addView(view) };a.setContentView(scroll);layout(scroll)
             val slider=view.findViewWithTag<SeekBar>("hrvq_sleep")
             val block=view.findViewWithTag<LinearLayout>("hrvq_block_sleep")
@@ -61,8 +61,8 @@ class HrvQuestionnaireTest {
             }
             assertEquals(0,(slider.layoutParams as LinearLayout.LayoutParams).topMargin)
             assertEquals(BicycleDesign.dp(a,4),(view.findViewWithTag<EditText>("hrvq_notes").layoutParams as LinearLayout.LayoutParams).topMargin)
-            assertEquals(10,slider.max);assertEquals(5,slider.progress);view.flush();assertEquals(5,saved.last().ratings["sleep"]);assertEquals(0,saved.last().ratings["soreness"]);assertNull(saved.last().training);assertNull(saved.last().sick)
-            assertEquals(View.GONE,view.findViewWithTag<View>("hrvq_training_details").visibility)
+            assertEquals(10,slider.max);assertEquals(5,slider.progress);view.flush();assertEquals(5,saved.last().ratings["sleep"]);assertEquals(0,saved.last().ratings["soreness"]);assertEquals(2,saved.last().training);assertNull(saved.last().sick)
+            assertEquals(View.VISIBLE,view.findViewWithTag<View>("hrvq_training_details").visibility)
             // A tap that chooses the existing center must count as an explicit neutral answer.
             slider.dispatchTouchEvent(android.view.MotionEvent.obtain(0,0,android.view.MotionEvent.ACTION_DOWN,slider.width/2f,slider.height/2f,0))
             slider.dispatchTouchEvent(android.view.MotionEvent.obtain(0,10,android.view.MotionEvent.ACTION_UP,slider.width/2f,slider.height/2f,0))

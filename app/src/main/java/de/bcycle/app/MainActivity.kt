@@ -930,12 +930,17 @@ class MainActivity : Activity() {
             if(isDestroyed || !screen.isShowing) return@questionnaire
             if(result.isFailure) { loading.setText(R.string.hrvq_load_failed);return@questionnaire }
             val initial=result.getOrNull() ?: HrvQuestionnaire.forMeasurement(row)
-            val training=if(runtime.mapState.busy) null else HrvTrainingSummary.previousDay(
-                java.time.LocalDate.parse(initial.day),java.time.ZoneId.of(row.getString("zone")),runtime.mapState.entries)
-            root.removeAllViews();root.setPadding(0,0,0,0)
-            root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) { screen.dismiss();if(completed==null) showHrvTrends() } }) { value,done ->
-                runtime.hrv.saveQuestionnaire(id,value) { saved -> done(saved.isSuccess) }
-            },LinearLayout.LayoutParams(-1,-2))
+            fun show(training:HrvTrainingSummary?) {
+                if(isDestroyed || !screen.isShowing) return
+                root.removeAllViews();root.setPadding(0,0,0,0)
+                root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) { screen.dismiss();if(completed==null) showHrvTrends() } }) { value,done ->
+                    runtime.hrv.saveQuestionnaire(id,value) { saved -> done(saved.isSuccess) }
+                },LinearLayout.LayoutParams(-1,-2))
+            }
+            if(runtime.mapState.busy) show(null) else {
+                val cancel=runtime.mapState.loadHrvTraining(java.time.LocalDate.parse(initial.day),java.time.ZoneId.of(row.getString("zone")),::show)
+                dialogs.onDismiss(screen,cancel)
+            }
         }
     }
     private fun startRide() {

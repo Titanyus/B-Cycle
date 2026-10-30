@@ -28,6 +28,9 @@ internal data class HrvQuestionnaire(
     val customNames:Map<String,String> = emptyMap(),
     val legacyRatings:Map<String,Int> = emptyMap()
 ) {
+    /** An explicit rest day must not retain hidden exercise inputs for any later evaluation. */
+    fun withTraining(level:Int?):HrvQuestionnaire = if(level==0) copy(training=0,ratings=ratings-"rpe",
+        trainingKm=null,trainingMinutes=null,trainingSource=null,rideIds=emptyList()) else copy(training=level)
     fun json():JSONObject {
         validate()
         return JSONObject().put("schema",2).put("day",day).put("ratings",JSONObject().apply { ratings.toSortedMap().forEach { (k,v)->put(k,v) } })
@@ -101,7 +104,20 @@ internal data class HrvQuestionnaire(
     }
 }
 
-internal data class HrvTrainingSummary(val rideIds:List<String>,val km:Double?,val minutes:Double?) {
+internal data class HrvTrainingSummary(val rideIds:List<String>,val km:Double?,val minutes:Double?,val intensity:Int?=null) {
+    /** Weight the actual recorded HR durations, rather than giving every ride the same influence. */
+    fun withHeart(profile:RiderProfile,analyses:List<RouteAnalysis>):HrvTrainingSummary {
+        val observations=analyses.filter { it.entry.id in rideIds }.mapNotNull { analysis ->
+            val distribution=analysis.distributions.firstOrNull { it.chart==AnalysisChart.HEART }
+            val mean=distribution?.mean ?: analysis.metrics[AnalysisMetric.AVG_HEART]
+            val time=distribution?.totalMs ?: analysis.metrics[AnalysisMetric.ELAPSED]?.times(1000)
+            if(mean==null || !mean.isFinite() || mean !in 1.0..250.0 || time==null || !time.isFinite() || time<=0) null else mean to time
+        }
+        val total=observations.sumOf { it.second }
+        val average=if(total>0) observations.sumOf { it.first*it.second }/total else null
+        val zone=average?.let { profile.heartZones()?.zoneFor(it)?.index }
+        return copy(intensity=when { rideIds.isEmpty()->0;zone==1->1;zone in 2..3->2;zone in 4..5->3;else->null })
+    }
     companion object {
         /** Calendar day in the measurement's saved timezone, including DST and all bike profiles. */
         fun previousDay(day:LocalDate,zone:ZoneId,entries:List<ManagedRoute>):HrvTrainingSummary {

@@ -152,6 +152,30 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         setSelectedFit(latest.id)
         return displayed
     }
+    /** Yesterday's training suggestions use the same local sources and HR zones as ride details. */
+    internal fun loadHrvTraining(day:java.time.LocalDate,zone:java.time.ZoneId,complete:(HrvTrainingSummary)->Unit):()->Unit {
+        val cancelled=java.util.concurrent.atomic.AtomicBoolean(false)
+        val source=entries
+        val summary=HrvTrainingSummary.previousDay(day,zone,source)
+        val profile=RiderProfileStore(preferences).read()
+        worker.execute {
+            val analyses=source.filter { it.id in summary.rideIds }.mapNotNull { entry ->
+                if(cancelled.get()) return@execute
+                runCatching {
+                    val file=when(entry.format) {
+                        "FIT"->fits.analysisFile(entry.id)
+                        "GPX"->library.file(entry.id)
+                        "JSON"->dreeveSummaries.file(entry.id)
+                        else->return@mapNotNull null
+                    }
+                    RouteAnalysisRead.read(file,entry,profile,cancelled::get)
+                }.getOrNull()
+            }
+            val value=summary.withHeart(profile,analyses)
+            handler.post { if(!cancelled.get()) complete(value) }
+        }
+        return { cancelled.set(true) }
+    }
     /** Details share the existing worker; decoding never mutates the displayed route or library. */
     internal fun loadAnalysis(id: String, complete: (Result<RouteAnalysis>) -> Unit): () -> Unit {
         val cancelled = java.util.concurrent.atomic.AtomicBoolean(false)
