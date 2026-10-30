@@ -35,3 +35,6 @@ Veröffentlichung 30.10.2026: Änderungen nach Build 106 sind in **APK 0.8.66 / 
 
 
 Nach Build 107: Darstellung ohne sichtbare Platznummern, vertikale Dashboard-Auswahl, trackfarbige Manager-Augen sowie Belegt-Augen in der weiterhin horizontalen Platzwahl. Bedienung und Persistenz unverändert. 26 gezielte Fälle (ThreeMapTracksTest 12, RouteManagerViewTest 4, MapPanelTest 10) erfolgreich; native Vorschau aktualisiert und visuell geprüft. Typografie/Atlas/Diff erfolgreich. Kein neuer physischer Gerätetest.
+
+
+Die Darstellung ohne Nummern ist in [APK 0.8.67 / Build 108](build-108.md) veröffentlicht.

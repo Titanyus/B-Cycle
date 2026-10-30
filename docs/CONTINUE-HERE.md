@@ -1,3 +1,7 @@
+# APK veröffentlicht: 0.8.67 / Build 108 / Code 137 – 30.10.2026
+
+[Direkter APK-Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.67-release-108.apk) · [Buildnachweis](build-108.md). Quelle `9e4b4691860f63f7ab3d4b36430db0e743502148`, 2536077 Bytes, SHA-256 `2c2065c13f90a77c5753868bd03363ed2ff13191b256a58dd3f521bc55194d38`. Enthält alle Änderungen nach Build 107. Signatur/Update-Kompatibilität/CI-Prüfsumme/Manifest/ZIP-Ausrichtung geprüft. Veröffentlichung mit [skip ci]. Frühere offene APK-Aufträge unten sind Umsetzungshistorie.
+
 # APK-Auftrag 0.8.67 / Code 137
 
 Neue APK ausdrücklich angefordert. Version erhöht, 26 gezielte Fälle bereits erfolgreich; nur Versions-/Veröffentlichungsangaben seitdem geändert. GitHub Actions bauen lassen, Signatur/Version/Manifest/Prüfsumme/Download prüfen und veröffentlichen. Quelle und Buildnachweis nach Abschluss hier ergänzen.

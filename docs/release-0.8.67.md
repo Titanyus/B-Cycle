@@ -9,4 +9,4 @@
 
 26 gezielte Fälle erfolgreich: ThreeMapTracksTest 12, RouteManagerViewTest 4, MapPanelTest 10. Native Vorschau visuell geprüft, Typografie-/UI-Katalog-/Diff-Prüfungen erfolgreich. Kein neuer physischer Gerätetest und keine vollständige Testsuite.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-108.md).
