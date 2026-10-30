@@ -79,3 +79,5 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 - Bis zum erfolgreichen Lauf warten, Artefakt herunterladen; SHA-256, Signatur, Version, kein Debug-/Test-Flag, ZIP-Ausrichtung prüfen. Update-Kompatibilität nur bei passendem Zertifikat.
 - APK und SHA in downloads veröffentlichen, README/Buildnachweis/Übergabe aktualisieren. Reine Veröffentlichung mit `[skip ci]`, Appänderungen niemals damit überspringen.
 - Tatsächlichen direkten Raw-Download laden und binär gegen Artefakt vergleichen. Kein neues APK ohne Auftrag; nicht geprüfte Geräteszenarien offen benennen.
+
+Dashboardwechsel: DashboardPageViewport um Daten+Karte, Footer/Status außerhalb. 300-ms-Slide über gemeinsamen ValueAnimator, eine lebende MapView, begrenzter RAM-Snapshot; nach Ende/Cancel freigeben. Systemanimation aus → sofort, Delta0/Editor sofort. Keine Folgewisch-Warteschlange, App-/Fokuswechsel canceln. [Details](docs/dashboard-page-transition.md). Streckendetailwerte unabhängig von Einheit zum Icon zentrieren; AnalysisValueRow-Opt-in nur in AnalysisMetricTile, andere Nutzer unverändert.

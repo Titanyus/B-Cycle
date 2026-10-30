@@ -250,6 +250,7 @@ object BicycleDesign {
     const val sectionDividerGap = 16
     const val footerRuleDp = 1f
     const val footerHeight = 64
+    const val dashboardPageTransitionMs = 300L
     const val modeFooterTransitionMs = 180L
     const val modeFooterHysteresis = 24
     const val footerLabelSp = 11f

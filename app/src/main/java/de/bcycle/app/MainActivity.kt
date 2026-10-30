@@ -72,6 +72,7 @@ class MainActivity : Activity() {
     private var bikePicker:BikeQuickPicker?=null
     private var recordButtonSignature=""
     private var recordingIndicator:RecordingButtonIndicator?=null
+    private lateinit var dashboardViewport:DashboardPageViewport
     private var dashboardPage = 0
     private val dashboardPages get() = DashboardPages(this,preferences)
     private var mapFullscreen = false
@@ -233,7 +234,8 @@ class MainActivity : Activity() {
         dashboard.visibility = if (mapFullscreen) View.GONE else View.VISIBLE
         if(!currentTemplate().hasMap) { mapFullscreen=false;dashboard.visibility=View.VISIBLE;mapPanel.visibility=View.GONE }
         mapPanel.showFullscreen(mapFullscreen)
-        root.addView(dashboardArea, LinearLayout.LayoutParams(-1, 0, 1f))
+        dashboardViewport=DashboardPageViewport(this).apply { setPage(dashboardArea) }
+        root.addView(dashboardViewport,LinearLayout.LayoutParams(-1,0,1f))
         val toolbar = LinearLayout(this).apply {
             orientation=LinearLayout.HORIZONTAL;gravity=Gravity.BOTTOM;tag="ride_toolbar"
             styleBicycleFooter(this,runtime.themes,dashboard=true)
@@ -1127,6 +1129,7 @@ class MainActivity : Activity() {
         restartEditorTimeout()
     }
     override fun onStop() {
+        if(::dashboardViewport.isInitialized) dashboardViewport.cancelTransition()
         statusForeground=false;preferences.unregisterOnSharedPreferenceChangeListener(statusPreferences)
         getSharedPreferences("message-notifications",MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(statusMessagesPreferences)
         dashboardStatusMonitor.stop()
@@ -1157,7 +1160,15 @@ class MainActivity : Activity() {
     private fun changeDashboard(delta: Int) {
         val pages=dashboardPages.all()
         val position=pages.indexOfFirst { it.id==dashboardPages.selected() }.coerceAtLeast(0)
-        dashboardPage = pages[Math.floorMod(position+delta,pages.size)].id
+        val target=pages[Math.floorMod(position+delta,pages.size)].id
+        if(delta!=0 && target!=dashboardPage && !dashboardEditing && runtime.visible && dialogs.empty) {
+            dashboardViewport.slide(delta) { showDashboardPage(target) }
+        } else {
+            dashboardViewport.cancelTransition();showDashboardPage(target)
+        }
+    }
+    private fun showDashboardPage(target:Int) {
+        dashboardPage=target
         preferences.edit().putInt("dashboardPage", dashboardPage).apply()
         dashboardLayout = DashboardLayout.decode(preferences.getString(dashboardKey, null))
         dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=TrendIndicatorSettings.read(preferences)
@@ -1183,6 +1194,7 @@ class MainActivity : Activity() {
     }
     override fun onWindowFocusChanged(hasFocus:Boolean) {
         super.onWindowFocusChanged(hasFocus)
+        if(!hasFocus && ::dashboardViewport.isInitialized) dashboardViewport.cancelTransition()
         if(hasFocus) updateDashboardFullscreen()
     }
     private fun dashboardSettings() {

@@ -14,9 +14,9 @@ import org.robolectric.annotation.Config
 @Config(sdk=[33],qualifiers="xxhdpi")
 class FullDataDashboardTest {
     private fun views(v:View):List<View> = listOf(v)+if(v is ViewGroup) (0 until v.childCount).flatMap { views(v.getChildAt(it)) } else emptyList()
-    @Test fun tenthPresetHasThreeFullWidthRowsAndTwoBottomFieldsAndUsesWholeViewport() {
+    @Test fun fullDataPresetHasThreeFullWidthRowsAndTwoBottomFieldsAndUsesWholeViewport() {
         val t=DashboardTemplate.FULL_DATA
-        assertEquals(10,DashboardTemplate.entries.size);assertFalse(t.hasMap)
+        assertEquals(14,DashboardTemplate.entries.size);assertFalse(t.hasMap)
         assertEquals(listOf(listOf(0),listOf(1),listOf(2),listOf(3,4)),t.rows)
         assertEquals(1500,t.heightForViewport(1500,20))
         for(slot in 0..2) { assertEquals(DashboardTileStyle.ONE,t.tileStyle(slot));assertTrue(t.supportsGraph(slot)) }
