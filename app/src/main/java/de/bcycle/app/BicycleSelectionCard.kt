@@ -11,8 +11,8 @@ internal object BicycleSelectionCard {
         view.background=GradientDrawable().apply {
             setColor(if(selected) tokens.tertiary else tokens.secondary)
             cornerRadius=dp(BicycleDesign.inputRadius).toFloat()
-            if(add) setStroke(BicycleDesign.linePixels(view.context),color,dp(BicycleDesign.smallGap).toFloat(),dp(BicycleDesign.smallGap).toFloat())
-            else setStroke(if(selected) dp(2) else BicycleDesign.linePixels(view.context),color)
+            if(add) setStroke(if(selected) BicycleDesign.linePixels(view.context) else BicycleDesign.dp(view.context,BicycleDesign.controlBorder),color,dp(BicycleDesign.smallGap).toFloat(),dp(BicycleDesign.smallGap).toFloat())
+            else setStroke(if(selected) dp(2) else BicycleDesign.dp(view.context,BicycleDesign.controlBorder),color)
         }
         val outline=BicycleInputFrame.decorate(view,tokens,selected)
         view.foreground=if(selected) outline else null

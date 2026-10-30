@@ -18,7 +18,7 @@ Schaltwerk-Warnschalter entfernt. Der vorhandene Hinweis beim Aufnahmestart unte
 
 ## Rahmen
 
-Normalrahmen zentral über `BicycleDesign.controlBorder=2` dp und `controlBorderAlpha=.25f`: FOREGROUND mit 25 % seiner Deckkraft, Radius weiterhin 6 dp. Wirkt auch auf neutrale Eingaberahmen und normale segmentierte Controls, die diese Tokens verwenden. Besondere ausgewählte/Glow-Konturen und Spezialbutton-Stile bleiben unverändert (aktive Kontur 1,5 dp, Preset-Farbverlauf/Deckkräfte).
+Normalrahmen zentral über `BicycleDesign.controlBorder=2` dp und `controlBorderAlpha=.25f`: FOREGROUND mit 25 % seiner Deckkraft, Radius weiterhin 6 dp. Wirkt auch auf neutrale Eingaberahmen und normale segmentierte Controls, die diese Tokens verwenden. Die nachfolgende Nutzerergänzung gilt auch für alle nicht ausgewählten Auswahlkacheln: Fahrradprofile, Dashboardseiten/-layouts, Benachrichtigungs-/Trinkpositionen und Fahrradfilter sowie gestrichelte Hinzufügen-Kacheln. Inaktive Strichbreite 2 dp unabhängig von der Inhaltsskalierung. Besondere ausgewählte/Glow-Konturen und Spezialbutton-Stile bleiben unverändert (aktive Kontur 1,5 dp, Preset-Farbverlauf/Deckkräfte).
 
 Native Spinner-Popups in Flat und Glow mit derselben einfachen TERTIARY-Fläche und Normalrahmen, ohne zusätzliche Chromatic-Surface/Glow-Inset. Gleiche Auswahl, deaktivierte Quellen, Adapter und Listener.
 

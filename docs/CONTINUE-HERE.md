@@ -1,3 +1,7 @@
+# Ergänzung: inaktive Auswahlkacheln ebenfalls 2 dp / FOREGROUND 25 %
+
+Auf ausdrücklichen Folgeauftrag auch BicycleSelectionCard und Fahrradfilter vereinheitlicht. Betrifft Fahrradprofile, Dashboardseiten/-layouts, Benachrichtigungs-/Trinkpositionen und Hinzufügen-Kacheln. Ausgewählte Kontur, Glow, Füllung und Bedienung unverändert. 12 gezielte Fälle erfolgreich: DashboardSelectionStyle, SelectionChrome, BikeQuickPicker und RouteQueryUi. Native Kartenzeichnung in Flat/Glow, komplette untere Ränder, transparente Popupfläche und Auswahlbedienung geprüft. Typografie/Atlas/Diff erfolgreich. Log /workspace/.tools/inactive-card-border-tests.log. Kein neuer physischer Gerätetest. Noch keine neue APK für diese Änderungen beauftragt; letzte Veröffentlichung bleibt Build 108.
+
 # Fertig nach Build 108: Fahrradprofil-Reihenfolge, Rahmen, Anzeigen und Farbdialog
 
 Alle aktuellen Nutzeränderungen umgesetzt, geprüft und lokal committed; noch keine neue APK für diesen Auftrag angefordert. [Änderungen und Nachweise](profile-settings-revision.md). 76 eindeutige gezielte Fälle über mehrere Läufe erfolgreich; native Ansichten und 2-dp-/25%-Rahmen visuell bzw. per Pixelprüfung geprüft. Typografie/Atlas/Diff erfolgreich. Keine Gesamtsuite/kein neuer physischer Gerätetest. Letzte veröffentlichte APK bleibt 0.8.67 / Build 108; nächste APK muss diese neuen Änderungen aufnehmen.

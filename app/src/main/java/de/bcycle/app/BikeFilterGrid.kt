@@ -44,7 +44,7 @@ internal class BikeFilterGrid(context:Context,themes:ThemeManager,profiles:List<
                     background=GradientDrawable().apply {
                         setColor(if(on) tokens.tertiary else tokens.secondary)
                         cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
-                        setStroke(BicycleDesign.dp(context,if(on) 2 else 1),BicycleComponents.selectionBorder(tokens,on))
+                        setStroke(BicycleDesign.dp(context,if(on) 2 else BicycleDesign.controlBorder),BicycleComponents.selectionBorder(tokens,on))
                     }
                     val outline=BicycleInputFrame.decorate(this,tokens,on)
                     foreground=if(on) outline else null

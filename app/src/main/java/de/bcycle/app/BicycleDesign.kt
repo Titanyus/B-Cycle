@@ -412,7 +412,8 @@ object BicycleComponents {
                       click: () -> Unit) = icon(context, manager,
         BicycleIcons.drawable(context, icon, manager.active.tokens), description, icon.colorRole, click)
     internal fun background(view: View, manager: ThemeManager, role: ThemeRole, radius: Int = 0, header: Boolean = false) = surface(view, manager, role, radius, header)
-    internal fun selectionBorder(tokens: ThemeTokens, selected: Boolean) = if (selected) tokens.primary else tokens.foreground
+    internal fun selectionBorder(tokens: ThemeTokens, selected: Boolean) = if (selected) tokens.primary else
+        (tokens.foreground and 0xffffff) or ((android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
     fun header(context: Context, manager: ThemeManager) = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER
         layoutParams = ViewGroup.LayoutParams(-1, dp(context, BicycleDesign.headerHeight))
