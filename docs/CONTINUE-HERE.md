@@ -1,3 +1,7 @@
+# APK veröffentlicht 30.10.2026: 0.8.66 / Build 107 / Code 136
+
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.66-release-107.apk) · [Buildnachweis](build-107.md). Quelle `7190e8ae75a8a09c4e1242503b2e64f566810458`, Größe 2535809 Bytes, SHA-256 `a1b8e9f6fa4b06fe89d04b2248593b8447706d0b38b4c390dbb45b43b6a9f213`. Alle Änderungen seit Build 106 enthalten, einschließlich Statusdiagnose/Privacyregel und finaler expliziter Manager-Platzwahl. CI-Prüfsumme/Signatur/Update-Kompatibilität/Manifest/ZIP-Ausrichtung geprüft. Veröffentlichungscommit mit [skip ci]. Keine offene APK-Aufgabe; nachfolgende Auftrags-/Prüfabschnitte sind Umsetzungshistorie. Keine reale Poco-Ursache/Liveservertests behaupten.
+
 # Drei Kartentracks umgesetzt, APK-Auftrag aktiv
 
 Nutzer bestätigt alle Tracks/Fahrten mitGPS, festeNummern1–3 stattNamen. NachträglicheUX-Verfeinerung hat Vorrang vor ursprünglichemManager-FIFO: sichtbareStreckeAugenkurz→Slotfreigeben; Augenlangimmerbzw.kurzbeiausgeblendet→farbigeNummernwahl1–3,aktuellerPlatzmarkiert;Belegunggezieltersetzen/umplatzieren. DashboardbleibtHauptaugealleaus/alleein,LongpressPopup3deckendfarbigeButtonsmitAuge+Nummer;individuelleSichtbarkeitohneSlotverlust. LaufendeAufzeichnung/GPSunabhängig. Programmaticselect/import behältfreienPlatz/FIFO-Fallback. AlleDetails in docs/three-map-tracks.md.

@@ -59,3 +59,6 @@ Der bestehende manuelle Diagnoseexport enthält künftig zusätzlich die Statusg
 ## Nutzerkorrektur nach Build106: Privacy nur rechts
 
 Der gemeldete Datenschutzbereich wird nicht mehr als geometrische Ausschlussfläche verwendet. Links bleiben8dp plus echte System-/Kamerasicherheitsabstände; die Uhr und das obere Fahrradlicht werden nicht wegen einer links gemeldeten Privacyfläche verschoben/ausgeblendet. Eine nichtleere, vertikal zur Statuszeile passende Privacy-Meldung erhöht ausschließlich den rechten Grundabstand um4dp von25auf29dp, unabhängig von ihren horizontalen Koordinaten. Ohne passende Meldung bleiben25dp. Kameraausschnitte und seitliche Systeminsets bleiben geschützt. Vorschau hat keinen realen Privacy-Zuschlag. Zentral dashboardStatusPrivacyExtraInset, keine zusätzliche Nutzereinstellung. Diagnosebericht behält originale Systemangaben und nennt privacyExtraRightDp. Native Seiten-/Leer-/Kamera-/Lichttests erfolgreich; in der veröffentlichten APK0.8.65/Build106 noch nicht enthalten.
+
+
+Veröffentlichung 30.10.2026: Änderungen nach Build 106 sind in **APK 0.8.66 / Build 107** enthalten. [Download und Buildnachweis](build-107.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.

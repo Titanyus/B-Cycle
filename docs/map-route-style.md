@@ -41,3 +41,6 @@ Profile/Karten ab25.10.2026: Ein horizontaler Abschnittstrenner steht unmittelba
 
 
 Nach Build106: gespeicherte Tracks haben drei nummerierte Stile und drei gleichzeitige Plätze, laufende Aufzeichnung bleibt separat. Bestehender saved-Stil migriert zuTrack1. Explizite Platzwahl im Manager und farbige Augen-Buttons im Dashboard: [three-map-tracks.md](three-map-tracks.md).
+
+
+Veröffentlichung 30.10.2026: Änderungen nach Build 106 sind in **APK 0.8.66 / Build 107** enthalten. [Download und Buildnachweis](build-107.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.
