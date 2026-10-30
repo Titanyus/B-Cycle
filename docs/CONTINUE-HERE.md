@@ -33,3 +33,9 @@ Nutzer-SVG als schwarzer70%-Vektor in24-dp-Iconfläche mittig auf dem Vergröße
 Windrose-Mittelpunkt nach Nutzerhinweis korrigiert: Innenkreis des Originals(45.3,46.9) statt SVG-Flächenmitte. Quadratischer93.8-Vektor mittranslateX1.6, tatsächlicher Kreismittelpunkt deckungsgleich mit24-dp-Icon-/Drehmittelpunkt.
 
 Einstellungs-Hauptmenü: zusätzlich eine halbe Zeilenhöhe zwischen „Erweitert“ und Brandbild, abgeleitet aus settingsRowHeight54dp →27dp obere Bildmarge. Nur diese Stelle, keine Zeilen-/Bildgrößenänderung.
+
+## Für APK0.8.70 zusätzlich
+
+[Streckendetail-Zoom](route-analysis-navigation.md): gemeinsamer X-Ausschnitt für Tempo/Kadenz/Leistung/Puls/Höhe, native HRV-Pinch ohne Mindestspanne und OverScroller-Nachlauf, stabile Y-Achse, Kurvenpfad nur transformieren/clippen. Kadenz-Verdichtungsfehler behoben (keine künstlichen Löcher innerhalb echter Tretabschnitte), Tretpausen/Max4096 unverändert. [Streckenfilter](three-map-tracks.md) steht oben und umfasst alle3 zugewiesenen Slots, auch wenn ausgeblendet.
+
+Nutzer hat neue APK ausdrücklich beauftragt. Build0.8.70/Code140 wird vorbereitet; alle Änderungen seitBuild110 einschließen. Gezielt41 Tests sowie abschließende4 Gesten-/Pixeltests; Typografie/Atlas/Diff. Logs in `/workspace/.tools/route-chart-*.log`. Bisher keine vollständige Gesamtsuite/physischer Test.
