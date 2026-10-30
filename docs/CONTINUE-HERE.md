@@ -31,3 +31,5 @@ Logs: `/workspace/.tools/ui-summary-hrv-tests.log` und abschließende `/workspac
 Nutzer-SVG als schwarzer70%-Vektor in24-dp-Iconfläche mittig auf dem Vergrößern-Symbol. Nur bei Folgen+ausgeblendeten Buttons, nicht im Editor; dreht mit Kartenrotation (Norden im Original oben). Neue profilbezogene Kartenoption „Windrose im Folgemodus anzeigen“, zunächst aus, mitgesichert. [Details](map-motion.md). Native MapPanel-/Backuptests und Typografie/Atlas/Diff; Logs `map-wind-rose-tests.log`/`map-wind-rose-final-tests.log` unter `/workspace/.tools`. Noch keine neue APK angefordert.
 
 Windrose-Mittelpunkt nach Nutzerhinweis korrigiert: Innenkreis des Originals(45.3,46.9) statt SVG-Flächenmitte. Quadratischer93.8-Vektor mittranslateX1.6, tatsächlicher Kreismittelpunkt deckungsgleich mit24-dp-Icon-/Drehmittelpunkt.
+
+Einstellungs-Hauptmenü: zusätzlich eine halbe Zeilenhöhe zwischen „Erweitert“ und Brandbild, abgeleitet aus settingsRowHeight54dp →27dp obere Bildmarge. Nur diese Stelle, keine Zeilen-/Bildgrößenänderung.

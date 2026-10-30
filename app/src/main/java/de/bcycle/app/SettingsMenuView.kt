@@ -82,6 +82,8 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             }, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL).apply {
                 bottomMargin = BicycleDesign.dp(context, BicycleDesign.verticalPadding)
             })
-        }, LayoutParams(-1, -2))
+        }, LayoutParams(-1, -2).apply {
+            topMargin=BicycleDesign.dp(context,BicycleDesign.settingsRowHeight)/2
+        })
     }
 }
