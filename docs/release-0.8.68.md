@@ -12,4 +12,4 @@
 
 [Details und Prüfstand](profile-settings-revision.md). 76 gezielte Fälle während der Profilrevision, danach 12 Prüfungen zur inaktiven Kachelkontur erfolgreich (fünf davon wiederholt). Native Vorschauen, Typografie, UI-Katalog und Diff geprüft. Keine vollständige Testsuite und kein neuer physischer Gerätetest.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-109.md).
