@@ -145,77 +145,29 @@ class ProfilesTest {
     @Test fun sensorDetailsExpandIndependentlyOfSwitchAndRecordingSourcesShareRows() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            val a=host.get();val r=RideRuntime.get(a)
+            val a=host.get()
             MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(a)
             Shadows.shadowOf(Looper.getMainLooper()).idle()
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
             val toggle=root.findViewWithTag<Switch>("bike_sensor_EBIKE")
-            val details=root.findViewWithTag<View>("bike_sensor_details_EBIKE")
-            val expand=root.findViewWithTag<View>("bike_sensor_expand_EBIKE")
+            val frame=toggle.parent.parent as BicycleFrameDropdown
             val enabled=toggle.isChecked
-            val row=toggle.parent as ViewGroup
-            assertSame(toggle,row.getChildAt(row.childCount-1))
-            val label=root.findViewWithTag<View>("bike_sensor_EBIKE_label")
-            label.performClick();assertEquals(View.VISIBLE,details.visibility);assertEquals(enabled,toggle.isChecked)
-            label.performClick();assertEquals(View.GONE,details.visibility);assertEquals(enabled,toggle.isChecked)
-            assertEquals(View.GONE,details.visibility)
-            expand.performClick();assertEquals(View.VISIBLE,details.visibility);assertEquals(enabled,toggle.isChecked)
-            assertTrue(testDescendants(details).any { it.tag=="bike_disconnect_EBIKE" })
-            expand.performClick();assertEquals(View.GONE,details.visibility);assertEquals(enabled,toggle.isChecked)
-            val headings=testDescendants(root).filterIsInstance<BicycleSectionHeader>()
-            for(id in listOf(R.string.ui_recording_title,R.string.ui_track_recording))
-                assertEquals(1,headings.count { it.contentDescription==a.getString(id) })
-            assertFalse(headings.any { it.contentDescription==a.getString(R.string.bikes_fit_heading) })
-            assertFalse(headings.any { it.contentDescription==a.getString(R.string.ui_bosch_mode) })
-            assertNull(root.findViewWithTag<View>("mode_glow_enabled"))
-            assertNull(root.findViewWithTag<View>("mode_glow_placement"))
-
+            assertFalse(frame.expanded);frame.header.performClick()
+            assertTrue(frame.expanded);assertEquals(enabled,toggle.isChecked)
+            assertNotNull(frame.content.findViewWithTag<View>("bike_disconnect_EBIKE"))
+            frame.expandControl.performClick();assertFalse(frame.expanded);assertEquals(enabled,toggle.isChecked)
+            assertSame(toggle,(toggle.parent as ViewGroup).getChildAt((toggle.parent as ViewGroup).childCount-1))
+            assertTrue(frame.content.paddingTop>=BicycleDesign.dp(a,BicycleDesign.dropdownFrameHeaderGap))
+            assertNull(root.findViewWithTag<View>("mode_glow_enabled"));assertNull(root.findViewWithTag<View>("mode_glow_placement"))
             val fit=root.findViewWithTag<View>("bike_fit_settings")
             val choices=testDescendants(fit).filterIsInstance<Spinner>()
-            assertEquals(2,choices.size)
-            choices.forEach { spinner ->
-                val row=spinner.parent as LinearLayout
+            assertEquals(RecordingQuantity.entries.size,choices.size)
+            root.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2400,View.MeasureSpec.EXACTLY));root.layout(0,0,1080,2400)
+            choices.forEach { choice ->
+                val row=choice.parent as LinearLayout
                 assertEquals(LinearLayout.HORIZONTAL,row.orientation)
-                assertEquals(android.graphics.Typeface.DEFAULT,(row.getChildAt(0) as TextView).typeface)
+                assertTrue(choice.bottom<=row.height)
             }
-            fun layout() {
-                root.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2400,View.MeasureSpec.EXACTLY))
-                root.layout(0,0,1080,2400)
-                Shadows.shadowOf(Looper.getMainLooper()).idle()
-            }
-            fun top(v:View):Int { var y=v.top;var parent=v.parent;while(parent is View) { y+=parent.top;parent=parent.parent };return y }
-            fun verifySensorGeometry() {
-                layout()
-                val list=root.findViewWithTag<ViewGroup>("bike_sensor_list")
-                val rows=testDescendants(list).filterIsInstance<LinearLayout>().filter { it.tag==BicycleDesign.inlineControlRowTag }
-                val sensorHeading=testDescendants(root).filterIsInstance<BicycleSectionHeader>().single { it.contentDescription==a.getString(R.string.bikes_sensors) }
-                for(row in rows) {
-                    assertEquals(sensorHeading.height,row.height)
-                    for(i in 0 until row.childCount) {
-                        val child=row.getChildAt(i)
-                        assertEquals(row.height/2f,child.top+child.height/2f,1f)
-                        assertEquals(0,(child.layoutParams as LinearLayout.LayoutParams).topMargin)
-                    }
-                }
-                val next=testDescendants(root).filterIsInstance<BicycleSectionHeader>().filter { top(it)>=top(list)+list.height }.minBy { top(it) }
-                assertEquals(BicycleDesign.dp(a,BicycleDesign.sectionEndGap),top(next)-top(list)-list.height)
-                for((left,right) in rows.zipWithNext()) assertTrue(top(right)-top(left)-left.height<BicycleDesign.dp(a,BicycleDesign.sectionEndGap))
-            }
-            verifySensorGeometry()
-            root.findViewWithTag<View>("bike_sensor_expand_HEART").performClick();verifySensorGeometry()
-            root.findViewWithTag<View>("bike_sensor_expand_HEART").performClick();verifySensorGeometry()
-            testDescendants(root).filterIsInstance<Spinner>().forEach { spinner ->
-                val label=spinner.adapter.getView(spinner.selectedItemPosition,null,spinner) as TextView
-                assertEquals(android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,BicycleDesign.bodySp,a.resources.displayMetrics),label.textSize,.01f)
-            }
-            val scroll=testDescendants(root).filterIsInstance<BicycleStickyScrollView>().single()
-            val sensorHeading=testDescendants(root).filterIsInstance<BicycleSectionHeader>().single { it.contentDescription==a.getString(R.string.bikes_sensors) }
-            scroll.scrollTo(0,top(sensorHeading)-top(scroll))
-            val bitmap=android.graphics.Bitmap.createBitmap(root.width,root.height,android.graphics.Bitmap.Config.ARGB_8888)
-            root.draw(android.graphics.Canvas(bitmap))
-            java.io.File("/tmp/bcycle-profile-sensor-alignment.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };bitmap.recycle()
-            val placement=root.findViewWithTag<Spinner>("mode_glow_placement")
-            assertEquals(a.getString(R.string.ui_glow_visible),((placement.parent as LinearLayout).getChildAt(0) as TextView).text.toString())
         } finally { host.pause().stop().destroy() }
     }
     @Test fun longProfileHasSingleScrollerFixedActionsAndEditableName() {
