@@ -1,19 +1,20 @@
-# Aktueller Auftrag und Stand
+# APK-Auftrag 0.8.69 / Code 139 – 30.10.2026
 
-Datum 30.10.2026. Nutzer hat Sicherung des bisherigen Stands, anschließende Codebereinigung und danach einen gleitenden Dashboardwechsel beauftragt. Währenddessen weitere UI-Korrekturen ergänzt. Keine davon ersetzt den Dashboard-Auftrag.
+Alle Nutzeraufträge umgesetzt und geprüft. APK ausdrücklich angefordert; jetzt über GitHub Actions bauen, prüfen und veröffentlichen. Keine weitere Funktionsänderung ohne neuen Auftrag.
 
-## Gesicherter Stand / letzte APK
+## Stand
 
-- Git-Tag `vor-den-bereinigungen-2026-10-30` auf GitHub, Quelle `ed35551`.
-- Letzte veröffentlichte APK: [0.8.68 / Build 109](build-109.md), Code 138; noch vor den Bereinigungen.
-- Vollständige frühere Übergabe: [Archiv](archive/CONTINUE-vor-bereinigung-2026-10-30.md). Historische offene APK-Aufträge dort sind erledigt.
+- Letzte veröffentlichte APK noch [0.8.68 / Build 109](build-109.md), Quelle vor den Bereinigungen.
+- Sicherungstag `vor-den-bereinigungen-2026-10-30` auf GitHub, Quelle ed35551.
+- Bereinigung 8000677; Detailzentrierung 9d6ae8c; Test-/Textereste a973a10; Dashboardübergang 896eae5.
+- [Änderungen dieser Version](release-0.8.69.md), [Bereinigung](cleanup-2026-10-30.md), [Dashboardwechsel](dashboard-page-transition.md).
 
-## Abgeschlossen
+## Prüfnachweise
 
-[Bereinigung und ergänzte UI-Korrekturen](cleanup-2026-10-30.md): alte Modus-/Licht-Optionen und seitlicher Bosch-Zeichenpfad weg, alte Warnoption aus Profilmodell weg, alte Sicherungen weiterhin lesbar aber bereinigte neue Exporte. Zentrale Kacheldekoration auch im Fahrradfilter. Unbenutzter Code/Texte entfernt. AGENTS.md auf aktuelle Regeln verdichtet, unveränderte Historie archiviert.
+Cleanup-Regressions-/Migrations-/Field-UI-Läufe in `/workspace/.tools/cleanup-*.log`, letzter Profiltest `cleanup-current-profile-test.log` erfolgreich. Unveränderte aktuelle UI-/Sicherungsregeln und alte gültige Daten nachgewiesen. Veraltete Tests auf inzwischen entfernte Bedienelemente angepasst.
 
-Zusätzliche Nutzerwünsche: Dashboard-Layout-Kacheln mit Standardabstand nach kleiner Überschrift; horizontale Trenner 2 dp/25 %; Rahmen-Ripple deckt Titel und Chevron einschließlich gesamten Rahmens ab; Trink-Erinnerung im Rahmen ohne Trenner davor; Feldauswahl Daten/Trend/Graph jeweils im Rahmen; Höhenzeile bei Fahrten ohne GPS entfernt. Bedienung/Listener/Persistenz erhalten. Siehe Prüfstand im Bereinigungsdokument. Gezielte Prüfungen erfolgreich; keine Gesamtsuite/kein realer Gerätetest.
+Dashboardübergang und Wertzentrierung: `dashboard-transition-verified-tests.log` erfolgreich; nach Lifecycle-Korrektur `dashboard-transition-release-checks.log` erfolgreich (Viewport 5, Editor 2, Detailzentrierung 1). Native Zwischenstandsvorschau visuell geprüft. Gemeinsam getakteter ValueAnimator, Bitmapfreigabe, fester Footer, MapPanel-Identität, Wechsel Karte/ohne Karte und Cancel getestet. Frühere Timingversuche verwendeten automatische Robolectric-Vsync; finale Tests takten den echten Animator gezielt. Kein Produktverhalten nur für Testannahmen geändert.
 
-## Noch auszuführen
+Keine Gesamtsuite und kein physischer Gerätetest. Source/Versionsänderungen jetzt committed; nächster Schritt Push, passenden Lauf verfolgen, Signatur/Version/Manifest/ZIP-Ausrichtung/SHA-256 prüfen, APK/README/Buildnachweis veröffentlichen, tatsächlichen Raw-Download gegen Artefakt vergleichen.
 
-Gleitender Dashboardwechsel bis 0,5 s, vorgesehen 300 ms. Dashboardbereich einschließlich Karte und Kartenbuttons gemeinsam seitlich bewegen, Footer bleibt stehen. Vorhandene Swipe-Geste auf Datenfeldern und Karten-Pan/Pinch beibehalten. Ein lebender Karten-/Sensorbaum, keine zweite MapView. Auf reduzierte/deaktivierte Systemanimation, schnelle Folgewischgesten, Appwechsel, Profilwechsel und Bitmap-/Listener-Freigabe achten. Eigenen Änderungscommit nach Bereinigung erstellen und gezielt prüfen. Keine neue APK ohne weiteren Auftrag.
+Alte vollständige Übergabe im [Archiv](archive/CONTINUE-vor-bereinigung-2026-10-30.md). Dortige offene APK-Aufträge sind Vergangenheit.
