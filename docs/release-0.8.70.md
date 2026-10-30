@@ -14,4 +14,4 @@
 
 Gezielte native UI-/Gesten-/Pixel-, HRV-HTTP-, Sicherungs-, Aufzeichnungsabschluss- und Filtertests erfolgreich; Typografie/Atlas/Diff geprüft. Keine vollständige Gesamtsuite, kein physischer Gerätetest und kein privater Live-HRV-Upload zu intervals. Der Zugang selbst funktioniert laut Nutzer (400 Fahrten hochgeladen).
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-111.md).

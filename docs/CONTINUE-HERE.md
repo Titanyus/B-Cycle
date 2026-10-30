@@ -1,41 +1,18 @@
-# Aktueller Stand: UI-/Zusammenfassungs-/HRV-Korrekturen nach Build 110 – 30.10.2026
+# Aktueller Stand: APK0.8.70 / Build111 veröffentlicht – 30.10.2026
 
-[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.69-release-110.apk) · [Buildnachweis](build-110.md). VersionCode 139, Quelle `1830fc1ab844e1676be52ce5772e39475b151fe1`, 2531313 Bytes, SHA-256 `0657892cbea304f8f922eaf09a035a5e8c4084ff207c6ecf618fd87f95abb641`. Signatur/Update-Kompatibilität/Manifest/ZIP-Ausrichtung/CI-Prüfsumme geprüft. Veröffentlichung mit [skip ci]. Letzte veröffentlichte APK; die folgende Korrektur ist darin noch nicht enthalten. Kein neuer APK-Auftrag.
+[APK direkt](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.70-release-111.apk) · [Buildnachweis](build-111.md) · [Änderungen](release-0.8.70.md). Code140, Quelle`8c74a236554af2b4361e7b51e52d2c8ea4138b2a`, 2540981Bytes, SHA-256`159293c006204c600abb966e910bc5e9ae8977a6515bf7b9e5da0e88650932dd`. CI-SHA, Signatur/Update-Kompatibilität, Manifest und ZIP-Ausrichtung geprüft. Alle aktuellen Aufträge abgeschlossen, kein offener Buildauftrag.
 
-## Enthalten
+## Enthalten seit Build110
 
-[Bereinigung und zusätzliche UI-Korrekturen](cleanup-2026-10-30.md), [300-ms-Dashboardwechsel](dashboard-page-transition.md), [Versionsänderungen](release-0.8.69.md). Normale/inaktive Rahmen und horizontale UI-Trenner 2 dp/25 %. Rahmen-Accordion-Druck über gesamte Fläche; Sensoren, Fahrtbenennung, Strecken-Aufzeichnung, Trink-Erinnerung und Daten/Trend/Graph im Rahmen. Abstand vor Dashboardkacheln, Höhenzeile ohne GPS weg, Zahlen unabhängig von Einheit unter Icon zentriert.
+- Drag-and-drop-Kacheln kehren nach Ablegen/Abbruch/neuem Drag/Detach auf volle Größe zurück; Einrasten nachDRAG_ENDED.
+- [Dashboard/Summary](dashboard-summary-adjustments.md): Statuslinks25/rechts25+4Privacy; Licht bei Androidstatus oben0/rechts16. Schaltwerk-Akku bei Stopp festhalten und links vor Bike-Akku; Summary-Warnfarben inklusive20/10%. Footer: untere mittlere Dreierkachel ohne Karte12dp höher. Menütrenner32dp je Seite,27dp vor Bild nachErweitert. Aufzeichnungs-/Schaltwerk-Accordions kompakter; normale Sensoraktionen.
+- [Intervals-HRV](intervals-hrv.md): monatlicherGET aufwellness.json, Nulltag, konkrete Fehler mitTag/HTTP-Code. Fremde HRV erhalten. Nutzer bestätigt FIT-Zugang (400Uploads); privater HRV-Live-Test nicht möglich.
+- [Windrose](map-motion.md): Schwarz70%,24-dp-Iconfläche am Vergrößern-Symbol, nurFolgen+Buttonsunsichtbar, tatsächliche Kartenrotation. Profiloption standardaus und mitgesichert. Original-Innenkreis(45.3,46.9) stattSVG-Flächenmitte; quadratischer93.8-Vektor mittranslateX1.6 bringt Kreis exakt aufDrehpunkt. Smartphone-Pfeil bleibt getrennt vonGPS-Kurs; keine Änderung am Kompass.
+- [Streckendetaildiagramme](route-analysis-navigation.md): gemeinsamerX-Zoom bis64×, Pan/OverScroller wieHRV, direkte Pointerdistanz ohne Mindestspanne, stabileY-Achsen, gecachte Kurvenpfade/Clipping. Kadenzverdichtung erhält echte zusammenhängende Tretabschnitte und echteLücken, max4096 Punkte; Kennzahlen/Rohdaten unverändert.
+- [Streckenfilter](three-map-tracks.md) ganz oben: alle3 zugewiesenen Plätze unabhängig von Sichtbarkeit.
 
-Snapshot vor Bereinigung: Tag `vor-den-bereinigungen-2026-10-30`, Quelle ed35551, auf GitHub. Entwicklungsschritte: Bereinigung 8000677; Detailzentrierung 9d6ae8c; Test-/Textereste a973a10; Dashboardübergang 896eae5. Vollständige alte Übergabe im [Archiv](archive/CONTINUE-vor-bereinigung-2026-10-30.md), keine aktuellen offenen Aufträge daraus ableiten.
+## Prüfung und Historie
 
-## Prüfstand
+Logs unter`/workspace/.tools/`: tile-reorder-scale-tests (7), ui-summary-hrv-tests/final-tests (abschließend24), map-wind-rose-tests/final-tests/centre-tests, route-chart-filter-final-tests (41), route-chart-pixels-final-tests (4). Typografie/Atlas/Diff geprüft. Keine vollständige Gesamtsuite, kein physischer Gerätetest. Screenshot-Fahrt61,5km nicht als Datei vorliegend; Kadenzfehler mit gezielter16k/80-Abschnitte-Regression und100k-Budgettest geprüft.
 
-Gezielte Cleanup-/Migrations-/Backup-/Frame-/Field-/Sensor-/Trink-/Licht-/Graphprüfungen erfolgreich. Finale Dashboardprüfung `/workspace/.tools/dashboard-transition-release-checks.log`: Viewport 5, Editor 2, Zentrierung 1; `/workspace/.tools/cleanup-current-profile-test.log` erfolgreich. Native Zwischenstandsvorschau visuell geprüft. Typografie/Atlas/Diff erfolgreich. Keine vollständige Gesamtsuite und kein physischer Gerätetest. Frühere Timingtestversuche verwendeten automatische Robolectric-Vsync; final den echten ValueAnimator gezielt getaktet. Eine lebende MapView, begrenzter Snapshot, Footer fest; Abbruch/Freigabe/keine Animation bei deaktivierter Systemanimation geprüft.
-
-## Seit Build 110: Kachelgröße nach Drag-and-drop
-
-Nutzer meldete verkleinert hängenbleibende Kacheln nach Umsortieren. `TileReorder`: DROP speichert weiterhin einmal, aber die 260-ms-Einrastanimation startet erst nach DRAG_ENDED. Dessen bisherige Bereinigung konnte eine bereits gestartete Animation abbrechen, ohne die Skalierung zurückzusetzen. Vorschau/Abbruch/neuer Drag/Detach normalisieren jetzt ausdrücklich beide Skalierungen, ausstehende Rückanimationen werden entfernt. Gemeinsame Lösung für Fahrrad-, Dashboard-, Status- und Namenskacheln; keine Änderungen an Auswahl oder Speicherung.
-
-Prüfung: vier neue native TileReorder-Regressionsfälle (DROP/END-Reihenfolge, neuer Drag vor/während Rückanimation, Abbruch/Detach/Sperre) sowie bestehende RideNamingReorder-, Dashboard- und Fahrrad-Drag-/Accessibility-Tests: sieben Tests erfolgreich. Log `/workspace/.tools/tile-reorder-scale-tests.log`. Typografie/Atlas/Diff geprüft. Kein physischer Gerätetest, keine neue APK erstellt.
-
-## Weitere Änderungen nach Build 110
-
-[Dashboard, Zusammenfassung, Sensoren und Abstände](dashboard-summary-adjustments.md) umgesetzt. Status links Grundabstand25dp, rechts25dp+4Privacy; Licht oben0/rechts16dp bei sichtbarer Android-Statusleiste. Akkusnapshot Schaltwerk bei Stopp links vor Bike-Akku; Summary inklusive20/10%-Farben. Menütrenner nur hier32dp je Seite. Untere mittlere Dreierkachel ohne Karte bei Footer12dp höher. Aufzeichnungsaccordions ohne doppelte Schaltermarge, Schaltwerk wie andere Sensoren ohne separate Abfrage-/Hinzufügenbuttons.
-
-[Intervals-HRV-Korrektur](intervals-hrv.md): Bereichs-GET auf `wellness.json` statt `wellness`, Nulltag zulässig, fremde Daten weiterhin geschützt. Fehlermeldung mit Tag/HTTP-Code vor Zählung, Serverfehler nicht pauschal „unterbrochen“. Nutzer bestätigt FIT-Zugang funktioniert (400 Uploads), Fehlanzeige zuvor nur „Vorgang unterbrochen“. Privaten Live-HRV-Upload nicht möglich.
-
-Logs: `/workspace/.tools/ui-summary-hrv-tests.log` und abschließende `/workspace/.tools/ui-summary-hrv-final-tests.log`. Native/HTTP-Tests, Typografie/Atlas/Diff; keine neue APK angefordert/gebaut. Kompassfrage beantwortet: Pfeil ist Smartphone-Ausrichtung, getrennt vom GPS-Kurs; Kalibrierung oder magnetische Störung als mögliche Abweichung, keine Sensoränderung beauftragt.
-
-## Windrose auf Karte – ebenfalls nach Build 110
-
-Nutzer-SVG als schwarzer70%-Vektor in24-dp-Iconfläche mittig auf dem Vergrößern-Symbol. Nur bei Folgen+ausgeblendeten Buttons, nicht im Editor; dreht mit Kartenrotation (Norden im Original oben). Neue profilbezogene Kartenoption „Windrose im Folgemodus anzeigen“, zunächst aus, mitgesichert. [Details](map-motion.md). Native MapPanel-/Backuptests und Typografie/Atlas/Diff; Logs `map-wind-rose-tests.log`/`map-wind-rose-final-tests.log` unter `/workspace/.tools`. Noch keine neue APK angefordert.
-
-Windrose-Mittelpunkt nach Nutzerhinweis korrigiert: Innenkreis des Originals(45.3,46.9) statt SVG-Flächenmitte. Quadratischer93.8-Vektor mittranslateX1.6, tatsächlicher Kreismittelpunkt deckungsgleich mit24-dp-Icon-/Drehmittelpunkt.
-
-Einstellungs-Hauptmenü: zusätzlich eine halbe Zeilenhöhe zwischen „Erweitert“ und Brandbild, abgeleitet aus settingsRowHeight54dp →27dp obere Bildmarge. Nur diese Stelle, keine Zeilen-/Bildgrößenänderung.
-
-## Für APK0.8.70 zusätzlich
-
-[Streckendetail-Zoom](route-analysis-navigation.md): gemeinsamer X-Ausschnitt für Tempo/Kadenz/Leistung/Puls/Höhe, native HRV-Pinch ohne Mindestspanne und OverScroller-Nachlauf, stabile Y-Achse, Kurvenpfad nur transformieren/clippen. Kadenz-Verdichtungsfehler behoben (keine künstlichen Löcher innerhalb echter Tretabschnitte), Tretpausen/Max4096 unverändert. [Streckenfilter](three-map-tracks.md) steht oben und umfasst alle3 zugewiesenen Slots, auch wenn ausgeblendet.
-
-Nutzer hat neue APK ausdrücklich beauftragt. Build0.8.70/Code140 wird vorbereitet; alle Änderungen seitBuild110 einschließen. Gezielt41 Tests sowie abschließende4 Gesten-/Pixeltests; Typografie/Atlas/Diff. Logs in `/workspace/.tools/route-chart-*.log`. Bisher keine vollständige Gesamtsuite/physischer Test.
+Build110 bleibt [hier](build-110.md), Snapshot vor Bereinigung als Tag`vor-den-bereinigungen-2026-10-30` aufGitHub. Alte Übergabe/Regeln imArchiv; aktuelleAGENTS.md beachten. Fachänderungen getrennt committen; APK ausschließlichActions, Veröffentlichung[skip ci].
