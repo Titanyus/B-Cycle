@@ -21,7 +21,24 @@ class RouteQueryUiTest {
     private fun layout(v:View,w:Int=360,h:Int=800) {
         v.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.EXACTLY));v.layout(0,0,w,h)
     }
-    @Test fun displayedButtonPrecedesDateAndFilterSlidersUseFiveUnitSteps() {
+    @Test fun managerFilterIncludesAllThreeAssignedRoutesEvenWhenHidden() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val manager=RouteManagerView(a,{})
+            val entries=(0..4).map { ManagedRoute("ride$it","Fahrt $it",true,"FIT",RouteDetails(),false) }
+            a.setContentView(manager)
+            val slots=entries.take(3).mapIndexed { index,route -> route.id to index+1 }.toMap()
+            manager.submit(entries,entries.first().id,false,slots,setOf(entries.first().id))
+            manager.query.displayedOnly=true;manager.refreshQuery()
+            val list=nodes(manager).filterIsInstance<ListView>().single()
+            assertEquals(slots.keys,(0 until list.adapter.count).map { (list.adapter.getItem(it) as ManagedRoute).id }.toSet())
+            manager.submit(entries,entries.first().id,false,slots,emptySet())
+            assertEquals(3,list.adapter.count)
+            manager.submit(entries,entries.first().id,false,slots-entries[1].id,emptySet())
+            assertEquals(setOf(entries[0].id,entries[2].id),(0 until list.adapter.count).map { (list.adapter.getItem(it) as ManagedRoute).id }.toSet())
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun displayedButtonIsFirstAndFilterSlidersUseFiveUnitSteps() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0));val query=RouteQuery()
@@ -32,7 +49,7 @@ class RouteQueryUiTest {
             val date=popup.contentView.findViewWithTag<View>("route_query_group_${R.string.route_filter_date}")
             assertSame(button.parent,date.parent)
             val parent=button.parent as ViewGroup
-            assertEquals(parent.indexOfChild(date)-1,parent.indexOfChild(button))
+            assertEquals(0,parent.indexOfChild(button))
             button.performClick();assertTrue(query.displayedOnly);assertTrue(button.isChecked)
             button.performClick();assertFalse(query.displayedOnly)
             for((title,step) in listOf(R.string.route_filter_distance to 5.0,R.string.route_filter_speed to 5.0,R.string.route_filter_moving to 5.0/60)) {

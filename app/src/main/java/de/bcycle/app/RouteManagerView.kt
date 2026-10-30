@@ -46,7 +46,7 @@ internal class RouteManagerView(context: Context,
     private var queryPopup:RouteQueryPopup?=null
     fun showFilters(anchor:View,navigation:DialogNavigation) {
         queryPopup?.dismiss()
-        queryPopup=RouteQueryPopup(context,themes,navigation,query,all,displayed={selected},displayedMany={shownIds}) { refreshQuery() }.also {
+        queryPopup=RouteQueryPopup(context,themes,navigation,query,all,displayed={selected},displayedMany={mapNumbers.keys}) { refreshQuery() }.also {
             it.filters { showFilters(anchor,navigation) };it.show(anchor)
         }
     }
@@ -115,7 +115,7 @@ internal class RouteManagerView(context: Context,
         }, hideWhenEmpty = true)
     }
     private fun updateRows() {
-        filtered = query.apply(all,{ RideProfileColor.slot(context,it) },displayedId=selected,displayedIds=shownIds)
+        filtered = query.apply(all,{ RideProfileColor.slot(context,it) },displayedId=selected,displayedIds=mapNumbers.keys)
         updateStatus()
         routeSections=RouteListSections(filtered,query.sort,context.getString(R.string.ui_field_missing_value))
         rows.notifyDataSetChanged()

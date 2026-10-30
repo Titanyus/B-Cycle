@@ -77,6 +77,11 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         }
     }
     fun filters(reset:()->Unit) {
+        if(displayed!=null || displayedMany!=null) body.addView(BicycleSegmentButton(context,themes,multiple=true,standalone=true).apply {
+            tag="route_filter_displayed";setText(R.string.route_filter_displayed);isChecked=query.displayedOnly
+            setOnCheckedChangeListener { _,on -> query.displayedOnly=on;refreshAvailability();changed() }
+        },LinearLayout.LayoutParams(-1,-2))
+
         group(R.string.route_filter_kind,{ count(query.kinds.size) }) { section,update ->
             val segments=LinearLayout(context).apply { BicycleComponents.segmentedControlRow(this,themes) }
             RouteKind.entries.forEach { kind ->
@@ -122,10 +127,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
             },LinearLayout.LayoutParams(-1,-2))
         }
 
-        if(displayed!=null || displayedMany!=null) body.addView(BicycleSegmentButton(context,themes,multiple=true,standalone=true).apply {
-            tag="route_filter_displayed";setText(R.string.route_filter_displayed);isChecked=query.displayedOnly
-            setOnCheckedChangeListener { _,on -> query.displayedOnly=on;refreshAvailability();changed() }
-        },LinearLayout.LayoutParams(-1,-2))
+
 
         group(R.string.route_filter_date,{ listOfNotNull(query.fromDate?.toString(),query.toDate?.toString()).joinToString(" – ").ifEmpty { context.getString(R.string.route_filter_range) } }) { section,update ->
             val dates=LinearLayout(context)

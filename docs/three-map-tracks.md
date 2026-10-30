@@ -38,3 +38,7 @@ Nach Build 107: Darstellung ohne sichtbare Platznummern, vertikale Dashboard-Aus
 
 
 Die Darstellung ohne Nummern ist in [APK 0.8.67 / Build 108](build-108.md) veröffentlicht.
+
+## Filter nach belegten Plätzen – 30.10.2026, nach Build110
+
+„Auf Karte angezeigt“ steht als erster Punkt der Filterliste. Er dient zum schnellen Wiederfinden der ausgewählten Strecken und umfasst deshalb alle belegten Kartenplätze1–3, unabhängig vom individuellen oder gemeinsamen Sichtbarkeitsschalter. RouteManager filtert nach den Schlüssel-IDs der Slotzuordnung, die Augenanzeige weiterhin nach tatsächlicher Sichtbarkeit. Nicht zugewiesene Strecken bleiben ausgefiltert. Die anderen Filter kombinieren sich wie bisher. Regression prüft3 belegte Slots mit nur1/keiner sichtbaren Strecke, anschließende Freigabe und oberste Filterposition.
