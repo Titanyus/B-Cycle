@@ -6,7 +6,8 @@ import org.json.JSONObject
 import kotlin.math.roundToInt
 
 internal enum class MapLineKind(val id:String,val title:Int) {
-    RECORDED("recorded",R.string.map_line_recorded),SAVED("saved",R.string.map_line_saved)
+    RECORDED("recorded",R.string.map_line_recorded),SAVED("saved",R.string.map_line_saved),
+    SAVED_TWO("saved2",R.string.map_line_saved_two),SAVED_THREE("saved3",R.string.map_line_saved_three)
 }
 internal data class MapLineStyle(val color:Int,val widthDp:Float,val opacity:Int) {
     val argb get()=Color.argb((opacity*255/100f).roundToInt(),Color.red(color),Color.green(color),Color.blue(color))
@@ -16,7 +17,12 @@ internal object MapRouteStyles {
     const val key="mapRouteStylesV1"
     fun default(kind:MapLineKind,night:Boolean=false)=if(kind==MapLineKind.RECORDED)
         MapLineStyle(Color.rgb(220,45,30),3f,100)
-        else MapLineStyle(if(night) Color.rgb(90,150,255) else Color.rgb(18,59,117),6f,50)
+        else MapLineStyle(when(kind) {
+            MapLineKind.SAVED_TWO->if(night) Color.rgb(255,190,70) else Color.rgb(180,95,0)
+            MapLineKind.SAVED_THREE->if(night) Color.rgb(190,120,255) else Color.rgb(115,40,165)
+            else->if(night) Color.rgb(90,150,255) else Color.rgb(18,59,117)
+        },6f,50)
+    fun saved(slot:Int)=listOf(MapLineKind.SAVED,MapLineKind.SAVED_TWO,MapLineKind.SAVED_THREE)[slot]
     fun validate(row:JSONObject):JSONObject {
         MapLineKind.entries.forEach { kind -> if(row.has(kind.id)) {
             val v=row.getJSONObject(kind.id)

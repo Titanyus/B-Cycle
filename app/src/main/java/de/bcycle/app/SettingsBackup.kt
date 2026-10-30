@@ -84,6 +84,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 JSONObject().put("sources",it.sourcePreferences?.json() ?: "").put("fields", jsonArray(it.fields.sorted())).put("metadata",jsonArray(it.metadata.map { field -> field.name })).put("speedSource",it.speedSource).put("distanceSource",it.distanceSource).put("localSaveEnabled",route.getBoolean("save",true)) }
             BackupSection.MAPS -> JSONObject().put("zoom",bike.getFloat(MapZoom.preference,bike.getInt("mapZoom",16).toFloat()).toDouble()).put("latitude",bike.getFloat("mapLatitude",51f).toDouble()).put("longitude",bike.getFloat("mapLongitude",10f).toDouble())
                 .put("displayFitId",bike.getString("displayFitId","")).put("displayGpxId",bike.getString("displayGpxId",""))
+                .put("routeSlots",bike.getString(MapRouteSlots.KEY,null)?.let { MapRouteSlots.parse(JSONObject(it)).json() } ?: JSONObject.NULL)
                 .put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
                 .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true)).put("oval",bike.getBoolean(MapOvalAnchor.preference,false))
                 .put("showTrack",bike.getBoolean("mapTrackVisible",true)).put("showGpx",bike.getBoolean("mapGpxVisible",true)).put("showHeight",bike.getBoolean("mapHeightVisible",true))
@@ -291,6 +292,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                         val value=row.getDouble(key);check(value.isFinite() && value in range);b[if(key=="latitude") "mapLatitude" else "mapLongitude"]=value.toFloat()
                     } }
                     listOf("displayFitId","displayGpxId").forEach { key -> if(row.has(key)) b[key]=field(row,key,128).also { check(it.isEmpty() || it.matches(Regex("(recorded|imported)-[a-f0-9]{64}|[a-f0-9-]{36}"))) } }
+                    b[MapRouteSlots.KEY]=if(row.has("routeSlots") && !row.isNull("routeSlots")) MapRouteSlots.parse(row.getJSONObject("routeSlots")).json().toString() else null
                     if(row.has("routeStyles")) b[MapRouteStyles.key]=MapRouteStyles.validate(row.getJSONObject("routeStyles")).toString()
                     if(row.has("source")) b["mapSource"]=field(row,"source",30).also { v -> check(MapSource.entries.any { it.name==v }) }
                     mapOf("night" to "mapNight","follow" to "mapFollow","heading" to "mapHeading","oval" to MapOvalAnchor.preference,"showTrack" to "mapTrackVisible","showGpx" to "mapGpxVisible","showHeight" to "mapHeightVisible","elevationCorrection" to FitElevationCorrection.preference).forEach { (public,key) -> if(row.has(public)) b[key]=boolean(row,public) }

@@ -12,7 +12,7 @@ import java.time.temporal.TemporalAdjusters
 
 /** Compact query menu with native dropdowns, retaining drafts until the menu is dismissed. */
 internal class RouteQueryPopup(private val context:Context,private val themes:ThemeManager,
-    private val navigation:DialogNavigation,private val query:RouteQuery,private val routes:List<ManagedRoute> = emptyList(),private val profile:(String)->Int?={ RideProfileColor.slot(context,it) },private val displayed:(()->String?)?=null,private val changed:()->Unit):PopupWindow() {
+    private val navigation:DialogNavigation,private val query:RouteQuery,private val routes:List<ManagedRoute> = emptyList(),private val profile:(String)->Int?={ RideProfileColor.slot(context,it) },private val displayed:(()->String?)?=null,private val displayedMany:(()->Set<String>)?=null,private val changed:()->Unit):PopupWindow() {
     private val content=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL }
     internal var groupPopup:PopupWindow?=null;private set
     private val body=BicycleComponents.dialogBody(context,themes)
@@ -20,7 +20,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     private val profileSlots by lazy { routes.associate { it.id to profile(it.id) } }
     private fun refreshAvailability() {
         if(availabilityUpdates.isEmpty()) return
-        val available=query.availability(routes,{ profileSlots[it] },displayedId=displayed?.invoke())
+        val available=query.availability(routes,{ profileSlots[it] },displayedId=displayed?.invoke(),displayedIds=displayedMany?.invoke() ?: setOfNotNull(displayed?.invoke()))
         availabilityUpdates.forEach { it(available) }
     }
     private fun option(view:View,selected:()->Boolean,available:(RouteFilterAvailability)->Boolean) {
@@ -122,7 +122,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
             },LinearLayout.LayoutParams(-1,-2))
         }
 
-        if(displayed!=null) body.addView(BicycleSegmentButton(context,themes,multiple=true,standalone=true).apply {
+        if(displayed!=null || displayedMany!=null) body.addView(BicycleSegmentButton(context,themes,multiple=true,standalone=true).apply {
             tag="route_filter_displayed";setText(R.string.route_filter_displayed);isChecked=query.displayedOnly
             setOnCheckedChangeListener { _,on -> query.displayedOnly=on;refreshAvailability();changed() }
         },LinearLayout.LayoutParams(-1,-2))

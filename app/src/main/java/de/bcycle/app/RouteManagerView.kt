@@ -27,9 +27,14 @@ internal class RouteManagerView(context: Context,
     private var all: List<ManagedRoute> = emptyList()
     private var filtered: List<ManagedRoute> = emptyList()
     private var selected: String? = null
+    private var mapNumbers:Map<String,Int> = emptyMap()
+    private var shownIds:Set<String> = emptySet()
     private var busy = false
     private var importStatus = ""
     internal val query=RouteQuery()
+    var chooseMapSlot:((View,ManagedRoute)->Unit)?=null
+    private var assignmentPopup:MapRouteSlotPopup?=null
+    internal fun showRouteSlots(popup:MapRouteSlotPopup) { assignmentPopup?.dismiss();assignmentPopup=popup;popup.show() }
     var queryChanged:()->Unit={}
     var selectionChanged:()->Unit={}
     private val checked=linkedSetOf<String>()
@@ -41,7 +46,7 @@ internal class RouteManagerView(context: Context,
     private var queryPopup:RouteQueryPopup?=null
     fun showFilters(anchor:View,navigation:DialogNavigation) {
         queryPopup?.dismiss()
-        queryPopup=RouteQueryPopup(context,themes,navigation,query,all,displayed={selected}) { refreshQuery() }.also {
+        queryPopup=RouteQueryPopup(context,themes,navigation,query,all,displayed={selected},displayedMany={shownIds}) { refreshQuery() }.also {
             it.filters { showFilters(anchor,navigation) };it.show(anchor)
         }
     }
@@ -49,7 +54,7 @@ internal class RouteManagerView(context: Context,
         queryPopup?.dismiss()
         queryPopup=RouteQueryPopup(context,themes,navigation,query,all) { refreshQuery() }.also { it.sorting();it.show(anchor) }
     }
-    override fun onDetachedFromWindow() { queryPopup?.dismiss();super.onDetachedFromWindow() }
+    override fun onDetachedFromWindow() { queryPopup?.dismiss();assignmentPopup?.dismiss();super.onDetachedFromWindow() }
     private val status = BicycleFeedback.status(context, themes).apply {
         tag="route_status"
         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
@@ -94,8 +99,10 @@ internal class RouteManagerView(context: Context,
             clipToPadding=false
         }
     }
-    fun submit(entries: List<ManagedRoute>, active: String?, working: Boolean) {
-        all = entries; selected = active; busy = working;checked.retainAll(entries.map { it.id }.toSet());updateRows();selectionChanged()
+    fun submit(entries: List<ManagedRoute>, active: String?, working: Boolean,
+        numbers:Map<String,Int> = active?.let { mapOf(it to 1) } ?: emptyMap(),shown:Set<String> = numbers.keys) {
+        mapNumbers=numbers;shownIds=shown
+        all = entries; selected = active; busy = working;assignmentPopup?.takeIf { it.isShowing }?.refresh();checked.retainAll(entries.map { it.id }.toSet());updateRows();selectionChanged()
     }
     fun showImportStatus(text: String) {
         if (importStatus == text) return
@@ -108,7 +115,7 @@ internal class RouteManagerView(context: Context,
         }, hideWhenEmpty = true)
     }
     private fun updateRows() {
-        filtered = query.apply(all,{ RideProfileColor.slot(context,it) },displayedId=selected)
+        filtered = query.apply(all,{ RideProfileColor.slot(context,it) },displayedId=selected,displayedIds=shownIds)
         updateStatus()
         routeSections=RouteListSections(filtered,query.sort,context.getString(R.string.ui_field_missing_value))
         rows.notifyDataSetChanged()
@@ -128,8 +135,18 @@ internal class RouteManagerView(context: Context,
         private val title = BicycleComponents.text(context, themes, "").apply {
             textSize = BicycleDesign.rowTitleSp; maxLines = 1; ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.CENTER_VERTICAL
         }
-        private val eye = BicycleComponents.icon(context, themes, BicycleIcon.ShowOnMap,
-            context.getString(R.string.route_list_visibility)) { entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let(toggle) }
+        private val eye:ImageButton = BicycleComponents.icon(context, themes, BicycleIcon.ShowOnMap,
+            context.getString(R.string.route_list_visibility)) {
+                entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let { route ->
+                    if(route.id in shownIds || chooseMapSlot==null) toggle(route) else chooseMapSlot?.invoke(eye,route)
+                }
+            }.apply {
+                setOnLongClickListener { entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let { chooseMapSlot?.invoke(this,it) };true }
+            }
+        private val mapNumber=BicycleComponents.text(context,themes,"").apply {
+            tag="route_map_number";gravity=Gravity.CENTER;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+            setOnClickListener { eye.performClick() }
+        }
         private inner class Reading(labelId: Int? = null, unitId: Int? = null) : LinearLayout(context) {
             val number = BicycleComponents.text(context, themes, "").apply {
                 typeface = BicycleDesign.narrowTypeface(context); textSize = BicycleDesign.routeMetricSp
@@ -186,6 +203,7 @@ internal class RouteManagerView(context: Context,
                 },LayoutParams(-2,dp(BicycleDesign.touchSize)).apply { marginEnd=dp(BicycleDesign.smallGap) })
                 addView(title,LayoutParams(0,dp(BicycleDesign.touchSize),1f))
                 addView(eye,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)))
+                addView(mapNumber,LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.touchSize)))
             },LayoutParams(-1,-2))
             addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL
@@ -210,9 +228,11 @@ internal class RouteManagerView(context: Context,
             origin.setImageDrawable(BicycleIcons.drawable(context, if(route.id in checked) BicycleIcon.Check else when (route.origin) {
                 TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
             }, if(route.id in checked) tokens.primary else tokens.foreground))
-            val eyeKind = if (selected == route.id) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
-            eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, selected != route.id))
-            eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, selected != route.id))
+            mapNumber.text=mapNumbers[route.id]?.let { context.getString(R.string.map_route_slot_number,it) }.orEmpty()
+            mapNumber.visibility=if(mapNumbers.containsKey(route.id)) VISIBLE else INVISIBLE
+            val eyeKind = if (route.id in shownIds) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
+            eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, route.id !in shownIds))
+            eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, route.id !in shownIds))
         }
         fun bind(route: ManagedRoute) {
             isActivated=route.id in checked
@@ -240,7 +260,8 @@ internal class RouteManagerView(context: Context,
             preview.points = route.details.preview; preview.contentDescription = if (route.hasRoute) context.getString(R.string.ui_route_preview) else context.getString(R.string.ui_route_no_gps)
             eye.visibility=if(route.hasRoute && !selecting) VISIBLE else GONE
             eye.tag = "route_eye_${route.id}"; eye.isEnabled = !busy && route.hasRoute && route.locallySaved
-            eye.contentDescription = context.getString(if (selected == route.id) R.string.route_list_hide_named else R.string.route_list_show_named, route.name)
+            eye.contentDescription = context.getString(if (route.id in shownIds) R.string.route_list_hide_named else R.string.route_list_show_named, route.name)+
+                mapNumbers[route.id]?.let { " · "+context.getString(R.string.map_route_slot_number,it) }.orEmpty()
             paintState(themes.active.tokens)
         }
     }

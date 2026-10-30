@@ -61,6 +61,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private val zoomControls = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "map_zoom_controls" }
     private lateinit var routeButton: Button
     private var routeShown: Boolean? = null
+    private var routePopup:MapRouteSlotPopup?=null
     private val credit = MapCreditView(context)
     private var observedZoom=Double.NaN
     private val updateZoom=Runnable {
@@ -79,6 +80,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun setEditing(value: Boolean) {
         editing = value
+        if(value) routePopup?.dismiss()
         dataFields.setEditing(value, runtime.themes.active.tokens.primary)
         editorFinish.visibility = if (value) VISIBLE else GONE
         for (i in 0 until controls.childCount) controls.getChildAt(i).isEnabled = !value
@@ -157,7 +159,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var layerTrack: List<MapPoint> = emptyList()
     var controlsVisibilityChanged: ((Boolean) -> Unit)? = null
     private val hideControls = Runnable {
-        if (!running || editing || !runtime.isMoving) return@Runnable
+        if (!running || editing || !runtime.isMoving || routePopup?.isShowing==true) return@Runnable
         controls.visibility = GONE; zoomControls.visibility = GONE; routeButton.visibility = GONE; nightButton.visibility = GONE
         controlsVisibilityChanged?.invoke(false)
     }
@@ -238,8 +240,16 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         }.apply { tag = "map_night" }
         addView(nightButton, LayoutParams(dp(MapControlDesign.dashboardWidth), dp(MapControlDesign.buttonHeight), Gravity.TOP or Gravity.START).apply { topMargin = dp(MapControlDesign.edgeGap); marginStart = dp(MapControlDesign.nightOffset) })
         routeButton = icon("", context.getString(R.string.ui_map_track_toggle), null) {
-            runtime.mapState.setRouteVisible(!preferences.getBoolean("mapGpxVisible", true))
+            runtime.mapState.setRouteVisible(runtime.mapState.visibleRouteIds().isEmpty())
         }.apply {
+            setOnLongClickListener {
+                if(!editing && !runtime.mapState.busy && runtime.mapState.mapRoutes.isNotEmpty()) {
+                    holdControls()
+                    routePopup?.dismiss()
+                    routePopup=MapRouteSlotPopup(this,runtime) { scheduleHide() }.also { it.show() }
+                }
+                true
+            }
             tag="map_route_toggle"; gravity = Gravity.CENTER; setPadding(dp(MapControlDesign.trackHorizontalPadding), dp(MapControlDesign.trackTopPadding), dp(MapControlDesign.trackHorizontalPadding), 0)
         }
         refreshRouteButton()
@@ -284,6 +294,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun resume() { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis()); lastTrack = -1L; running = true; mapView.layerManager.proceed(); downloads.onResume(); revealControls(); refresh() }
     fun pause() {
+        routePopup?.dismiss()
         pinchZoom.cancel()
         running = false; phoneHeading.stop(); stopMotion(); handler.removeCallbacksAndMessages(null); downloads.onPause(); mapView.layerManager.pause(); saveCamera()
     }
@@ -342,8 +353,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         status.visibility = if (next.isEmpty()) GONE else VISIBLE
     }
     private fun refreshRouteButton() {
-        val available = runtime.mapState.route != null
-        val shown = available && preferences.getBoolean("mapGpxVisible", true)
+        val available = runtime.mapState.mapRoutes.isNotEmpty()
+        val shown = runtime.mapState.visibleRouteIds().isNotEmpty()
+        routePopup?.takeIf { it.isShowing }?.refresh()
         routeButton.isEnabled = available && !runtime.mapState.busy && !editing
         routeButton.alpha = if (routeButton.isEnabled) 1f else .45f
         routeButton.contentDescription = if (!available) context.getString(R.string.ui_map_route_missing) else if (shown) context.getString(R.string.ui_map_route_hide) else context.getString(R.string.ui_map_route_show)
@@ -362,7 +374,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         routes.update(runtime.mapState.route, layerTrack, displayedGps,
             preferences.getBoolean("mapGpxVisible", true), preferences.getBoolean("mapTrackVisible", true), night, displayedPhoneHeading,
             MapRouteStyles.read(preferences,MapLineKind.RECORDED,night),MapRouteStyles.read(preferences,MapLineKind.SAVED,night),
-            preferences.getBoolean("mapHeightVisible",true))
+            preferences.getBoolean("mapHeightVisible",true),
+            overlays=runtime.mapState.mapRoutes.filter { runtime.mapState.routeVisible(it.id) }.map { StyledMapRoute(it.route,MapRouteStyles.read(preferences,MapRouteStyles.saved(it.slot),night)) })
     }
     private fun refreshDataFields() {
         dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight.takeUnless { BikeLightSettings.top(preferences) },runtime.trendSnapshot)
@@ -460,7 +473,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (follow) Color.rgb(110, 230, 130) else Color.WHITE)
     }
     fun fitRoute() {
-        val points = runtime.mapState.route?.points ?: return
+        val visible=runtime.mapState.mapRoutes.filter { runtime.mapState.routeVisible(it.id) }
+        val points=(visible.ifEmpty { runtime.mapState.mapRoutes }).flatMap { it.route.points }
         if (points.isEmpty() || width <= 0 || height <= 0) return
         setFollow(false)
         mapView.setMapViewCenterX(.5f);mapView.setMapViewCenterY(.5f)

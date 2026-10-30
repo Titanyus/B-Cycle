@@ -8,7 +8,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 
-/** Two independent inline accordions; edits reuse the active profile's map preferences. */
+/** Live recording and three saved-route styles; edits reuse the active profile's map preferences. */
 internal class MapLineStyleView(context:Context,private val prefs:SharedPreferences,private val themes:ThemeManager,
     private val navigation:DialogNavigation,private val changed:()->Unit):LinearLayout(context) {
     init {

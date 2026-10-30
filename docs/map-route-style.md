@@ -38,3 +38,6 @@ Die gespeicherte Linie verwendet denselben Stil auch in der Streckendetailkarte.
 
 
 Profile/Karten ab25.10.2026: Ein horizontaler Abschnittstrenner steht unmittelbar vor Trackdarstellung (MapLineStyleView). Separater Legendenbutton und zugehörige abschließende Linie entfernt; Kartenattribution/Quelleninformationen bleiben wie zuvor verfügbar. Gemeinsamer mapControls-Aufbau für beide Designs und alle Profile; keine Karten-/Track-/Farb-/Speicherlogik geändert.
+
+
+Nach Build106: gespeicherte Tracks haben drei nummerierte Stile und drei gleichzeitige Plätze, laufende Aufzeichnung bleibt separat. Bestehender saved-Stil migriert zuTrack1. Explizite Platzwahl im Manager und farbige Augen-Buttons im Dashboard: [three-map-tracks.md](three-map-tracks.md).

@@ -1,0 +1,9 @@
+<resources>
+    <string name="map_line_saved_two">Track 2</string>
+    <string name="map_line_saved_three">Track 3</string>
+    <string name="map_route_slot_number">%1$d</string>
+    <string name="map_route_slot_description">Track %1$d · %2$s · %3$s</string>
+    <string name="map_route_slot_empty">Track %1$d · nicht belegt</string>
+    <string name="map_route_slot_assign">Track %1$d für %2$s verwenden</string>
+    <string name="map_route_slots_choose">Tracks einzeln ein- oder ausblenden</string>
+</resources>

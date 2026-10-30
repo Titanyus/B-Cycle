@@ -1356,6 +1356,7 @@ class MainActivity : Activity() {
         root.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.map_options_title)).apply { tag="map_options_title" })
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
+        var lastGpxVisibility=gpx.isChecked
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
@@ -1374,8 +1375,9 @@ class MainActivity : Activity() {
             BicycleFeedback.update(providerStatus,if(!available) getString(R.string.map_thunderforest_required) else "",hideWhenEmpty=true)
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
-            edit.putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapGpxVisible",gpx.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked)
+            edit.putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked)
                 .putBoolean(FitElevationCorrection.preference,elevation.isChecked).apply()
+            if(gpx.isChecked!=lastGpxVisibility) { lastGpxVisibility=gpx.isChecked;runtime.mapState.setRouteVisible(gpx.isChecked) }
             mapPanel.refreshSettings()
         }
         root.setPadding(0,0,0,0)
@@ -1490,10 +1492,9 @@ class MainActivity : Activity() {
         val state = runtime.mapState
         routeSignature = ""
         val content = RouteManagerView(settingsContext, { entry ->
-            val displayed = state.selectedRoute == entry.id && state.route != null && preferences.getBoolean("mapGpxVisible", true)
-            state.setRouteVisible(!displayed)
-            if (!displayed && state.selectedRoute != entry.id) state.selectRoute(entry.id)
+            state.toggleMapRoute(entry.id)
         }, themes = settingsThemes, details = ::routeAnalysis)
+        content.chooseMapSlot={ anchor,entry -> content.showRouteSlots(MapRouteSlotPopup(anchor,runtime,assignId=entry.id) {}) }
         routeManager = content
         refreshRouteRows()
         val footer = bicycleFooter(settingsContext, settingsThemes)
@@ -1955,6 +1956,7 @@ class MainActivity : Activity() {
                                     button.isEnabled=choices.selected().isNotEmpty()
                                     result.fold({ plan ->
                                         if(plan.bike.containsKey(BikeProfileStore.KEY)) runtime.restoredBikeSettings()
+                                        else if(BackupSection.MAPS in selected) runtime.mapState.restoreProfileRoute()
                                         if(BackupSection.DASHBOARD in selected || BackupSection.PROFILE in selected) {
                                             dashboardPage=dashboardPages.selected()
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
@@ -2300,7 +2302,8 @@ class MainActivity : Activity() {
         val signature = "${state.routeRevision}:${state.busy}:${RouteCloudUploads.revision(this)}:$displayed"
         if (routeSignature == signature) return
         routeSignature = signature
-        manager.submit(state.entries, displayed, state.busy)
+        manager.submit(state.entries, displayed, state.busy,
+            state.mapSlots.ids.mapIndexedNotNull { index,id -> id?.let { it to index+1 } }.toMap(),state.visibleRouteIds())
     }
     private fun renameRoute(entry: ManagedRoute) {
         val input = EditText(settingsContext).apply { setText(entry.name); setSingleLine(); selectAll()

@@ -123,8 +123,8 @@ class MapPanelTest {
             val runtime = RideRuntime.get(activity); runtime.themes.activate("preset:electric-blue")
             val theme = runtime.themes.active.tokens
             assertEquals(theme.foreground, route.imageTintList!!.defaultColor)
-            assertEquals(theme.secondary, (route.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
-            assertEquals(theme.secondary, (settings.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            assertEquals(theme.tertiary, (route.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+            assertEquals(theme.tertiary, (settings.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             route.performClick()
             val dialog = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             assertTrue(descendants(dialog.window!!.decorView).any { it is RouteManagerView })

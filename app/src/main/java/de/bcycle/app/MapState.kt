@@ -14,6 +14,13 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     var routes: List<StoredGpx> = emptyList(); private set
     var activities: List<StoredFit> = emptyList(); private set
     var selectedRoute: String? = null; private set
+    internal var mapSlots=MapRouteSlots();private set
+    internal var mapRoutes:List<DisplayedMapRoute> = emptyList();private set
+    private data class CachedMapRoute(val path:String,val length:Long,val modified:Long,val route:GpxRoute)
+    private val mapRouteCache=mutableMapOf<String,CachedMapRoute>()
+    internal fun routeNumber(id:String)=mapSlots.slot(id)?.plus(1)
+    internal fun routeVisible(id:String)=preferences.getBoolean("mapGpxVisible",true) && mapSlots.slot(id)?.let { mapSlots.visible[it] }==true && mapRoutes.any { it.id==id }
+    internal fun visibleRouteIds()=mapRoutes.filter { routeVisible(it.id) }.map { it.id }.toSet()
     var routeRevision = 0L; private set
     var busy = true; private set
     var message = ""; private set
@@ -72,6 +79,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
     private var selectedFit: String? = null
     private var workerRoute: GpxRoute? = null
+    @Volatile private var mapProfileGeneration=0
     private var retainedFiles: Map<String, RouteFileStamp> = emptyMap()
     private var correctedIds=emptySet<String>()
     private var entriesRevision=-1L
@@ -145,7 +153,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     }
     /** Worker only: use a GPS-capable recorded ride, never an arbitrary imported track. */
     private fun defaultRouteIfUnselected(): GpxRoute? {
-        if (selectedFit != null || library.selected != null) return workerRoute
+        if (preferences.contains(MapRouteSlots.KEY) || selectedFit != null || library.selected != null) return workerRoute
         val latest = fits.entries.filter { it.origin == TrackOrigin.RECORDED && it.hasRoute && fits.file(it.id).canRead() }
             .maxByOrNull { it.details.dateMs } ?: return workerRoute
         val displayed = FitRead.read(fits.analysisFile(latest.id)).route ?: return workerRoute
@@ -237,16 +245,72 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         return { cancelled.set(true) }
     }
     fun setRouteVisible(visible: Boolean) {
-        if (preferences.getBoolean("mapGpxVisible", true) == visible) return
+        if (preferences.getBoolean("mapGpxVisible", true) == visible && (!visible || mapSlots.visible.all { it })) return
+        if(visible) { mapSlots=mapSlots.all(true);mapSlots.write(preferences) }
         preferences.edit().putBoolean("mapGpxVisible", visible).apply()
         routeRevision++; changed()
     }
+    internal fun setRouteSlotVisible(slot:Int) {
+        if(busy || mapSlots.ids.getOrNull(slot)==null) return
+        val master=preferences.getBoolean("mapGpxVisible",true)
+        mapSlots=(if(master) mapSlots else mapSlots.all(false)).show(slot,!(master && mapSlots.visible[slot]))
+        mapSlots.write(preferences)
+        preferences.edit().putBoolean("mapGpxVisible",true).apply()
+        routeRevision++;changed()
+    }
+    internal fun toggleMapRoute(id:String) {
+        if(routeNumber(id)!=null && routeVisible(id)) removeMapRoute(id)
+        else selectRoute(id)
+    }
+    internal fun removeMapRoute(id:String) {
+        if(busy) return
+        mapSlots=mapSlots.remove(id);mapSlots.write(preferences)
+        operate("") { workerRoute }
+    }
+    internal fun assignMapRoute(id:String,slot:Int) {
+        if(busy || entries.none { it.id==id && it.hasRoute && it.locallySaved }) return
+        val current=if(preferences.getBoolean("mapGpxVisible",true)) mapSlots else mapSlots.all(false)
+        mapSlots=current.assign(id,slot);mapSlots.write(preferences)
+        preferences.edit().putBoolean("mapGpxVisible",true).apply()
+        operate("") { workerRoute }
+    }
+    /** Only the library worker decodes geometry; unchanged routes are reused across refreshes. */
+    private fun prepareMapRoutes():Pair<MapRouteSlots,List<DisplayedMapRoute>> {
+        var slots=if(preferences.contains(MapRouteSlots.KEY)) MapRouteSlots.read(preferences) else {
+            val legacy=preferences.getString("displayFitId",null)?.takeIf { it.isNotEmpty() }
+                ?: preferences.getString("displayGpxId",null)?.takeIf { it.isNotEmpty() }
+            if(legacy!=null && MapRouteSlots.validId(legacy)) MapRouteSlots().add(legacy) else MapRouteSlots()
+        }
+        val loaded=slots.ids.mapIndexedNotNull { index,id ->
+            if(id==null) return@mapIndexedNotNull null
+            val file=when {
+                fits.entries.any { it.id==id && it.hasRoute } -> fits.analysisFile(id)
+                library.entries.any { it.id==id } -> library.file(id)
+                else->null
+            }
+            val geometry=file?.takeIf { it.isFile }?.let { source ->
+                mapRouteCache[id]?.takeIf { it.path==source.absolutePath && it.length==source.length() && it.modified==source.lastModified() }?.route
+                    ?: runCatching {
+                        val route=if(source.extension.equals("gpx",true)) source.inputStream().use(GpxImport::read) else FitRead.read(source).route
+                        route?.takeIf { it.points.isNotEmpty() }?.also { mapRouteCache[id]=CachedMapRoute(source.absolutePath,source.length(),source.lastModified(),it) }
+                    }.getOrNull()
+            }
+            if(geometry==null) { slots=slots.remove(id);null } else DisplayedMapRoute(index,id,geometry)
+        }
+        mapRouteCache.keys.retainAll(loaded.map { it.id }.toSet())
+        return slots to loaded
+    }
     private fun finishOperation(success: String, action: () -> GpxRoute?) {
+        val generation=mapProfileGeneration
         var text = success
         try { workerRoute = action() }
         catch (e: Exception) { text = "Strecke nicht geändert: ${e.message ?: "Datei nicht verfügbar"}" }
         val summaryEntries=dreeveSummaries.entries
-        val gpxEntries = library.entries; val fitEntries = fits.entries; val selected = selectedFit ?: library.selected
+        val prepared=prepareMapRoutes()
+        val primary=prepared.first.order.lastOrNull()?.let { prepared.first.ids[it] }
+        workerRoute=prepared.second.firstOrNull { it.id==primary }?.route
+        val gpxEntries = library.entries; val fitEntries = fits.entries; val selected = primary
+        val primaryFit=primary?.takeIf { id -> fitEntries.any { it.id==id } }
         val files = (gpxEntries.map { it.id to library.file(it.id) } + fitEntries.map { it.id to fits.file(it.id) } + summaryEntries.map { it.id to dreeveSummaries.file(it.id) })
             .mapNotNull { (id, file) -> if (file.isFile && file.canRead()) id to RouteFileStamp(file.length(), file.lastModified()) else null }.toMap()
         val displayed = workerRoute
@@ -254,8 +318,16 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         handler.post {
             summaries=summaryEntries
             correctedIds=corrected
-            retainedFiles = files; route = displayed; routes = gpxEntries; activities = fitEntries; selectedRoute = selected; routeRevision++
-            busy = false; message = text
+            retainedFiles = files;routes=gpxEntries;activities=fitEntries
+            if(generation==mapProfileGeneration) {
+                val latest=MapRouteSlots.read(preferences)
+                mapSlots=if(latest.ids==prepared.first.ids) prepared.first.copy(visible=latest.visible) else prepared.first
+                mapRoutes=prepared.second;mapSlots.write(preferences)
+                preferences.edit().putString("displayFitId",primaryFit ?: "").putString("displayGpxId",primary?.takeUnless { it==primaryFit } ?: "").apply()
+                route=displayed;selectedRoute=selected
+                busy=false
+            }
+            routeRevision++;message = text
             if (archiveStatus.isNotEmpty() && text.isNotEmpty()) archiveStatus = text
             changed()
         }
@@ -289,10 +361,11 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             if (recorded || isFit || name.endsWith(".fit", true)) {
                 val entry = fits.add(input, name, recorded) ?: error("FIT konnte nicht übernommen werden")
                 val displayed = FitRead.read(fits.file(entry.id)).route
-                if (displayed != null) { library.select(null); setSelectedFit(entry.id) }
+                if (displayed != null) { library.select(null); setSelectedFit(entry.id);MapRouteSlots.read(preferences).add(entry.id).write(preferences) }
                 displayed ?: workerRoute
             } else {
-                val displayed = library.add(input, name); setSelectedFit(null); displayed
+                val displayed = library.add(input, name); setSelectedFit(null)
+                library.selected?.let { MapRouteSlots.read(preferences).add(it).write(preferences) };displayed
             }
         } ?: error("Datei kann nicht geöffnet werden")
     }
@@ -385,6 +458,8 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private fun setSelectedFit(id: String?) { selectedFit = id; preferences.edit().apply { if (id == null) remove("displayFitId") else putString("displayFitId", id);putString("displayGpxId",if(id==null) library.selected ?: "" else "") }.apply() }
     /** Queued on the existing library worker, so switching during a library operation is safe. */
     internal fun restoreProfileRoute() {
+        mapProfileGeneration++
+        mapSlots=MapRouteSlots.read(preferences);mapRoutes=emptyList();route=null;selectedRoute=null;routeRevision++
         val fit=preferences.getString("displayFitId",null)
         val gpx=preferences.getString("displayGpxId",null)
         busy=true
@@ -395,11 +470,14 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
             selectedFit?.let { runCatching { FitRead.read(fits.analysisFile(it)).route }.getOrNull() } ?: displayed
         } }
     }
-    fun selectRoute(id: String?) = operate(if (id == null) "Strecke ausgeblendet" else "Strecke angezeigt") {
-        if (id != null && fits.entries.any { it.id == id }) {
-            val displayed = FitRead.read(fits.analysisFile(id)).route ?: error("Diese FIT-Datei enthält keine darstellbaren GPS-Punkte")
-            library.select(null); preferences.edit().putString("displayGpxId","").apply();setSelectedFit(id); displayed
-        } else { val displayed = library.select(id);preferences.edit().putString("displayGpxId",id ?: "").apply(); setSelectedFit(null); displayed }
+    fun selectRoute(id: String?) {
+        if(busy) return
+        if(id!=null) require(entries.any { it.id==id && it.hasRoute })
+        val current=if(preferences.getBoolean("mapGpxVisible",true)) mapSlots else mapSlots.all(false)
+        mapSlots=if(id==null) MapRouteSlots() else current.add(id)
+        mapSlots.write(preferences)
+        if(id!=null) preferences.edit().putBoolean("mapGpxVisible",true).apply()
+        operate(if(id==null) "Strecke ausgeblendet" else "Strecke angezeigt") { workerRoute }
     }
     fun renameRoute(id: String, name: String) = operate("") {
         if (fits.entries.any { it.id == id }) fits.rename(id, name) else if(dreeveSummaries.entries.any { it.id==id }) dreeveSummaries.rename(id,name) else library.rename(id, name)
@@ -462,6 +540,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         ids.forEach { id -> workerRoute=deleteOne(id) };workerRoute
     }
     private fun deleteOne(id:String):GpxRoute? {
+        MapRouteSlots.read(preferences).remove(id).write(preferences)
         val active = (selectedFit ?: library.selected) == id
         if (fits.entries.any { it.id == id }) { fits.delete(id); if (selectedFit == id) setSelectedFit(null) } else if(dreeveSummaries.entries.any { it.id==id }) dreeveSummaries.delete(id) else library.delete(id)
         RideAnalysisFiles.file(context.filesDir,id).delete()

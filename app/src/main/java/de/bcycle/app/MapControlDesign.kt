@@ -22,6 +22,8 @@ internal object MapControlDesign {
     const val radius = 5
     const val strokeWidth = 1
     const val symbolSp = 20f
+    const val slotLabelSp = 12f
+    const val slotIconSize = 20
     const val topRowReserve = 58
     const val zoomClearance = 10
     const val collisionGap = 4
