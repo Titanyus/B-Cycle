@@ -229,6 +229,27 @@ class DashboardStatusTest {
             strip.config=DashboardStatusConfig();strip.show(DashboardStatusSnapshot());assertEquals("",strip.contentDescription)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun indicatorCoordinatesCanReserveEitherSideAndDiagnosticReportsTheOriginalSource() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val strip=DashboardStatusStrip(a,ThemeManager(a.getSharedPreferences("status",0)))
+            a.setContentView(strip);layout(strip,360,32)
+            val right=Rect(333,0,360,24)
+            strip.insets(0,0,emptyList(),right)
+            assertEquals(8f,strip.regions()[0].first,0f);assertEquals(325f,strip.regions()[1].second,0f)
+            assertTrue(strip.geometryReport().contains("privacyIndicatorBoundsPx=Rect(333, 0 - 360, 24)"))
+            right.setEmpty();assertTrue(strip.geometryReport().contains("Rect(333, 0 - 360, 24)"))
+            // Simulate an erroneous/mirrored OEM report: the renderer follows coordinates, not an assumed side.
+            strip.insets(0,0,emptyList(),Rect(0,0,32,24))
+            assertEquals(40f,strip.regions()[0].first,0f);assertEquals(335f,strip.regions()[1].second,0f)
+            assertTrue(strip.geometryReport().contains("cameraBoundsPx=[] privacyIndicatorBoundsPx=Rect(0, 0 - 32, 24)"))
+            strip.insets(12,0,emptyList())
+            assertEquals(20f,strip.regions()[0].first,0f)
+            val report=strip.geometryReport()
+            assertTrue(report.contains("safeInsetsPx left=12 right=0"));assertTrue(report.contains("configuredDp left=8 right=25"))
+            assertTrue(report.contains("privacyIndicatorBoundsPx=null"));assertFalse(report.contains("10:28"))
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun accordionSlotsUseNamePartCardsAndNativeReorderAccessibilityPersistsTheNewOrder() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

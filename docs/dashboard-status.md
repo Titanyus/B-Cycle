@@ -47,3 +47,10 @@ Veröffentlichung28.10.2026: Die zuletzt nach Build98 ergänzten Änderungen sin
 
 
 Nutzerkorrektur nach Praxistest Build99: **links8dp/rechts25dp** feste Außenabstände, bestehende Systembounds zusätzlich berücksichtigen. Ersetzt die vorherige15dp-/Automatik-Mindestkonvention. Fahrradlicht oben ist ein separat über Design konfigurierbares festes Statussymbol links der Kamera, keine siebte Slotoption; [Details](bike-light-status.md).
+
+
+## Diagnose der Poco-Randabstände nach Build106
+
+Der ursprüngliche linke Grundabstand war8dp und ist derzeit wieder8dp. Neu ist seit a8b5e93 die Berücksichtigung der System-Privacybounds. Die gemeldeten Koordinaten werden geometrisch ausgespart; ein links liegendes Rechteck verschiebt die linke Gruppe, auch wenn der sichtbare Punkt tatsächlich rechts erscheint. Ob das Poco solche Rechtecke liefert, ist noch nicht belegt. Keine Layout-/Abstandsänderung auf Verdacht.
+
+Der bestehende manuelle Diagnoseexport enthält künftig zusätzlich die Statusgeometrie, beim Öffnen der Einstellungen aufgenommen, bevor die Systemstatusleiste zurückkehrt: Dichte/Größe/Fensterposition, gemeldete seitliche Insets, eigene8/25dp, getrennte Kamera-/Privacyrechtecke und resultierende Freiräume. Keine Live-Symbolwerte oder neue Hintergrundaufzeichnung. Simulationen beider Seiten und bestehende Vollbildprüfungen grün. Erst ein Bericht vom Gerät erlaubt die Unterscheidung zwischen gemeldeter Schutzfläche und anderen Layoutursachen. In APK0.8.65/Build106 noch nicht enthalten.

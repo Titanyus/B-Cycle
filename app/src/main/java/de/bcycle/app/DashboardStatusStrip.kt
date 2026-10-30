@@ -66,6 +66,7 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
     private var messengerPackage:String?=null
     private var cutouts:List<Rect> = emptyList()
     private var cameras:List<Rect> = emptyList()
+    private var privacyBounds:Rect?=null
     var bikeLightOn=false;set(value) { if(field!=value) { field=value;describe();invalidate() } }
     private val bikeLight=BicycleIcons.drawable(context,BicycleIcon.Light,BicycleDesign.bikeLightStatusColor)
     private var safeLeft=0;private var safeRight=0
@@ -85,8 +86,17 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
     }
     fun insets(left:Int,right:Int,blocked:List<Rect>,privacyIndicator:Rect?=null) {
         safeLeft=left;safeRight=right;cameras=blocked.map(::Rect)
-        cutouts=(blocked+listOfNotNull(privacyIndicator?.takeUnless { it.isEmpty })).map(::Rect)
+        privacyBounds=privacyIndicator?.takeUnless { it.isEmpty }?.let(::Rect)
+        cutouts=(blocked+listOfNotNull(privacyBounds)).map(::Rect)
         invalidate()
+    }
+    /** Explicit diagnostic export only: geometry, without live status values or message details. */
+    internal fun geometryReport():String {
+        val location=IntArray(2);getLocationInWindow(location)
+        return "DashboardStatus widthPx=$width heightPx=$height density=$density windowOrigin=${location.joinToString()} visibility=$visibility\n"+
+            "safeInsetsPx left=$safeLeft right=$safeRight configuredDp left=${BicycleDesign.dashboardStatusLeftInset} right=${BicycleDesign.dashboardStatusRightInset}\n"+
+            "cameraBoundsPx=$cameras privacyIndicatorBoundsPx=$privacyBounds\n"+
+            "freeRegionsPx=${regions()} bikeLightBoundsPx=${lightBounds()}\n"
     }
     fun show(value:DashboardStatusSnapshot) {
         if(value==state) return

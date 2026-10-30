@@ -24,6 +24,7 @@ class MainActivity : Activity() {
     private var sensorSetupProfileId:String?=null
     private var sensorSetupPosted=false
     private val sensorSetupLaunch by lazy { SensorSetupLaunch(this) }
+    private var dashboardStatusReport:String?=null
     private lateinit var dashboardStatus:DashboardStatusStrip
     private lateinit var dashboardStatusMonitor:DashboardStatusMonitor
     private var statusForeground=false
@@ -536,6 +537,9 @@ class MainActivity : Activity() {
         runtime.mapState.loadStatistics { if(statisticsView===content) content.show(it) }
     }
     private fun showMenu(advanced: Boolean = false) {
+        // Capture before settings restore Android's own status bar and change the insets.
+        if(::dashboardStatus.isInitialized && dashboardStatus.visibility==View.VISIBLE)
+            dashboardStatusReport=dashboardStatus.geometryReport()
         setDashboardEditing(false)
         messages.clear()
         val content = SettingsMenuView(settingsContext, settingsThemes, advanced) { action ->
@@ -979,7 +983,7 @@ class MainActivity : Activity() {
     }
     private fun exportDiagnostic() {
         val gps = runtime.gpsValues
-        pendingReport = runtime.diagnostics.report() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
+        pendingReport = runtime.diagnostics.report() + "\n" + dashboardStatusReport.orEmpty() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
             GpsMetric.entries.joinToString("\n") { "${it.name}=${it.value(gps).text} ${it.unit}" }
         try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/plain")
             .putExtra(Intent.EXTRA_TITLE, "B-Cycle-${AppVersion.name}-diagnose.txt"), 2) }
