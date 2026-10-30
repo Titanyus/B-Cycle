@@ -1,20 +1,13 @@
-# APK-Auftrag 0.8.69 / Code 139 – 30.10.2026
+# Aktueller Stand: APK 0.8.69 / Build 110 veröffentlicht – 30.10.2026
 
-Alle Nutzeraufträge umgesetzt und geprüft. APK ausdrücklich angefordert; jetzt über GitHub Actions bauen, prüfen und veröffentlichen. Keine weitere Funktionsänderung ohne neuen Auftrag.
+[APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.69-release-110.apk) · [Buildnachweis](build-110.md). VersionCode 139, Quelle `1830fc1ab844e1676be52ce5772e39475b151fe1`, 2531313 Bytes, SHA-256 `0657892cbea304f8f922eaf09a035a5e8c4084ff207c6ecf618fd87f95abb641`. Signatur/Update-Kompatibilität/Manifest/ZIP-Ausrichtung/CI-Prüfsumme geprüft. Veröffentlichung mit [skip ci]. Alle bisherigen Aufträge abgeschlossen; keine offene APK-Aufgabe.
 
-## Stand
+## Enthalten
 
-- Letzte veröffentlichte APK noch [0.8.68 / Build 109](build-109.md), Quelle vor den Bereinigungen.
-- Sicherungstag `vor-den-bereinigungen-2026-10-30` auf GitHub, Quelle ed35551.
-- Bereinigung 8000677; Detailzentrierung 9d6ae8c; Test-/Textereste a973a10; Dashboardübergang 896eae5.
-- [Änderungen dieser Version](release-0.8.69.md), [Bereinigung](cleanup-2026-10-30.md), [Dashboardwechsel](dashboard-page-transition.md).
+[Bereinigung und zusätzliche UI-Korrekturen](cleanup-2026-10-30.md), [300-ms-Dashboardwechsel](dashboard-page-transition.md), [Versionsänderungen](release-0.8.69.md). Normale/inaktive Rahmen und horizontale UI-Trenner 2 dp/25 %. Rahmen-Accordion-Druck über gesamte Fläche; Sensoren, Fahrtbenennung, Strecken-Aufzeichnung, Trink-Erinnerung und Daten/Trend/Graph im Rahmen. Abstand vor Dashboardkacheln, Höhenzeile ohne GPS weg, Zahlen unabhängig von Einheit unter Icon zentriert.
 
-## Prüfnachweise
+Snapshot vor Bereinigung: Tag `vor-den-bereinigungen-2026-10-30`, Quelle ed35551, auf GitHub. Entwicklungsschritte: Bereinigung 8000677; Detailzentrierung 9d6ae8c; Test-/Textereste a973a10; Dashboardübergang 896eae5. Vollständige alte Übergabe im [Archiv](archive/CONTINUE-vor-bereinigung-2026-10-30.md), keine aktuellen offenen Aufträge daraus ableiten.
 
-Cleanup-Regressions-/Migrations-/Field-UI-Läufe in `/workspace/.tools/cleanup-*.log`, letzter Profiltest `cleanup-current-profile-test.log` erfolgreich. Unveränderte aktuelle UI-/Sicherungsregeln und alte gültige Daten nachgewiesen. Veraltete Tests auf inzwischen entfernte Bedienelemente angepasst.
+## Prüfstand
 
-Dashboardübergang und Wertzentrierung: `dashboard-transition-verified-tests.log` erfolgreich; nach Lifecycle-Korrektur `dashboard-transition-release-checks.log` erfolgreich (Viewport 5, Editor 2, Detailzentrierung 1). Native Zwischenstandsvorschau visuell geprüft. Gemeinsam getakteter ValueAnimator, Bitmapfreigabe, fester Footer, MapPanel-Identität, Wechsel Karte/ohne Karte und Cancel getestet. Frühere Timingversuche verwendeten automatische Robolectric-Vsync; finale Tests takten den echten Animator gezielt. Kein Produktverhalten nur für Testannahmen geändert.
-
-Keine Gesamtsuite und kein physischer Gerätetest. Source/Versionsänderungen jetzt committed; nächster Schritt Push, passenden Lauf verfolgen, Signatur/Version/Manifest/ZIP-Ausrichtung/SHA-256 prüfen, APK/README/Buildnachweis veröffentlichen, tatsächlichen Raw-Download gegen Artefakt vergleichen.
-
-Alte vollständige Übergabe im [Archiv](archive/CONTINUE-vor-bereinigung-2026-10-30.md). Dortige offene APK-Aufträge sind Vergangenheit.
+Gezielte Cleanup-/Migrations-/Backup-/Frame-/Field-/Sensor-/Trink-/Licht-/Graphprüfungen erfolgreich. Finale Dashboardprüfung `/workspace/.tools/dashboard-transition-release-checks.log`: Viewport 5, Editor 2, Zentrierung 1; `/workspace/.tools/cleanup-current-profile-test.log` erfolgreich. Native Zwischenstandsvorschau visuell geprüft. Typografie/Atlas/Diff erfolgreich. Keine vollständige Gesamtsuite und kein physischer Gerätetest. Frühere Timingtestversuche verwendeten automatische Robolectric-Vsync; final den echten ValueAnimator gezielt getaktet. Eine lebende MapView, begrenzter Snapshot, Footer fest; Abbruch/Freigabe/keine Animation bei deaktivierter Systemanimation geprüft.

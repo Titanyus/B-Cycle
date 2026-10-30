@@ -11,3 +11,6 @@ Bei deaktivierten Android-Animationen, vor dem ersten Layout oder wenn keine sic
 Gezielte Native-Tests prüfen Richtung, Zwischenpositionen mit gemeinsamem Abstand, 300-ms-Dauer, festen Footer, Freigabe nach Ende/Cancel/Detach, keine Bitmap bei deaktivierter Animation und den tatsächlichen Activity-Wechsel mit/ohne Karte bei unveränderter MapPanel-Instanz. Editor-/Konfigurationsspeicherung ebenfalls geprüft. Der Test taktet den tatsächlichen ValueAnimator gezielt, statt sich auf automatische Robolectric-Vsync-Zeitsprünge zu verlassen. Kein neuer physischer Gerätetest.
 
 [Native Vorschau eines Zwischenstands](previews/dashboard-page-transition.png): synthetische Daten, in der Testumgebung keine geladenen Kartenkacheln.
+
+
+Veröffentlicht in [APK 0.8.69 / Build 110](build-110.md). Ältere Angaben zu noch fehlender APK sind Umsetzungshistorie.

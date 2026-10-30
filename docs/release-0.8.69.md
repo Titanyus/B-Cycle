@@ -10,6 +10,6 @@
 - Abstand zwischen Dashboard-Layout-Überschrift und Kacheln vereinheitlicht. Horizontale UI-Trenner 2 dp / 25 % wie die normalen Rahmen.
 - Streckendetails ohne GPS ohne Höhen-Kennzahlenzeile. Werte unabhängig von rechts stehender Einheit unter dem Icon zentriert; übrige Wertezeilen behalten ihre Ausrichtung.
 
-Gezielte Native-/Sicherungs-/Migrations-/UI-Prüfungen erfolgreich, darunter alter Backupbestand, neue Exporte, Frame-Ripple, Sensor-/Graph-/Trend-/Trinkbedienung, 300-ms-Zwischenstände und Abbruch/Freigabe, actual Activity-Wechsel mit/ohne Karte bei fester Footerposition, Editor-Persistenz und Detailwertausrichtung. Typografie und UI-Katalog/Diff geprüft. Keine vollständige Gesamtsuite und kein neuer physischer Gerätetest. Prüfprotokolle in den Detaildokumenten.
+Gezielte Native-/Sicherungs-/Migrations-/UI-Prüfungen erfolgreich, darunter alter Backupbestand, neue Exporte, Frame-Ripple, Sensor-/Graph-/Trend-/Trinkbedienung, 300-ms-Zwischenstände und Abbruch/Freigabe, tatsächlicher Activity-Wechsel mit/ohne Karte bei fester Footerposition, Editor-Persistenz und Detailwertausrichtung. Typografie und UI-Katalog/Diff geprüft. Keine vollständige Gesamtsuite und kein neuer physischer Gerätetest. Prüfprotokolle in den Detaildokumenten.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-110.md).
