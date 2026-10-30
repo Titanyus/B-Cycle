@@ -33,3 +33,11 @@ In Fahrtrichtung liegt der GPS-Anker unterhalb der Mitte, in Nordausrichtung auf
 MapZoom begrenzt Dashboard-, Vollbild- und Detailkarten auf 6–19, OpenTopoMap weiterhin bis 17. Plus/Minus verwenden echte Mapsforge-Zoomschritte von 0,5. Fractional-Zoom ist aktiviert; Gesten dürfen weiterhin feinere Zwischenwerte liefern. Neue Float-Preference mapZoomFractional ergänzt die bisherige ganzzahlige mapZoom, inklusive profilabhängiger Konfiguration und Sicherung. Alte Sicherungen mit ganzzahligem Zoom bleiben lesbar und werden auf den neuen Bereich begrenzt. Die temporäre Zoomanzeige ist entfernt.
 
 Gezielte Tests prüfen Zoom-/Profil-/Sicherungsrückkehr, Kardinal-/Diagonalgeometrie, Ellipsengrenzen, weiche Radiusänderungen, Winkelgeschwindigkeit, Norddurchgang, Stillstand, echte Mapsforge-Projektion, manuellen Pan, Moduswiederherstellung und Layoutkollisionen.
+
+## Windrose – nach Build 110, 30.10.2026
+
+„Windrose im Folgemodus anzeigen“ unter Kartenoptionen, zunächst aus. `mapWindRoseVisible` gehört zum Fahrradprofil und zur Einstellungssicherung (MAPS-Feld `showWindRose`, inklusive Profilbank). Keine neue Sensorabfrage: Orientierung aus derselben tatsächlichen Mapsforge-Kartenrotation wie die Karte, nicht aus dem Smartphonekompass.
+
+Geometrie der bereitgestellten Windrose.svg als native Vektorgrafik, Schwarz mit70% Deckkraft. 24-dp-Iconfläche wie Vergrößern, exakt auf dessen Mittelpunkt; Grafikseitenverhältnis erhalten. Sichtbar nur bei aktivem GPS-Folgen und ausgeblendeter Buttonreihe, nicht im Editor. Bei Buttons/Abbruch des Folgens sofort ausblenden. Die unsichtbare obere Buttonreihe behält ihre Layoutgeometrie (INVISIBLE), sodass der Anker auch bei Größenwechsel/kurzen Karten dieselbe Position behält; kein Hintergrundkasten, keine Touchaktion, keine eigene Zeitsteuerung.
+
+Native MapPanel-/Backuptests: Position bei verschiedenen Breiten, Rotation, Ein-/Ausblenden, manueller Folgestopp, Editor und Opt-out; vorhandene Kartensteuerungen/Einzel-Map bleiben erhalten. Ein alter Mehrseiten-Test wurde an den bereits bestehenden 300-ms-Viewport angepasst (Übergang zwischen Einzelprüfungen beenden), keine Produktfunktion dafür geändert. Logs `/workspace/.tools/map-wind-rose-tests.log`, abschließend `/workspace/.tools/map-wind-rose-final-tests.log`. Keine APK erstellt, kein physischer Gerätetest.

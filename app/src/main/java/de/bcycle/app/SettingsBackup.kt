@@ -84,7 +84,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("routeSlots",bike.getString(MapRouteSlots.KEY,null)?.let { MapRouteSlots.parse(JSONObject(it)).json() } ?: JSONObject.NULL)
                 .put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
                 .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true)).put("oval",bike.getBoolean(MapOvalAnchor.preference,false))
-                .put("showTrack",bike.getBoolean("mapTrackVisible",true)).put("showGpx",bike.getBoolean("mapGpxVisible",true)).put("showHeight",bike.getBoolean("mapHeightVisible",true))
+                .put("showTrack",bike.getBoolean("mapTrackVisible",true)).put("showGpx",bike.getBoolean("mapGpxVisible",true)).put("showHeight",bike.getBoolean("mapHeightVisible",true)).put("showWindRose",bike.getBoolean("mapWindRoseVisible",false))
                 .put("elevationCorrection",bike.getBoolean(FitElevationCorrection.preference,false))
                 .put("routeStyles",runCatching { MapRouteStyles.validate(JSONObject(bike.getString(MapRouteStyles.key,"{}")!!)) }.getOrDefault(JSONObject()))
             BackupSection.PROFILE -> profileJson(RiderProfileStore(bike,today).read())
@@ -291,7 +291,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     b[MapRouteSlots.KEY]=if(row.has("routeSlots") && !row.isNull("routeSlots")) MapRouteSlots.parse(row.getJSONObject("routeSlots")).json().toString() else null
                     if(row.has("routeStyles")) b[MapRouteStyles.key]=MapRouteStyles.validate(row.getJSONObject("routeStyles")).toString()
                     if(row.has("source")) b["mapSource"]=field(row,"source",30).also { v -> check(MapSource.entries.any { it.name==v }) }
-                    mapOf("night" to "mapNight","follow" to "mapFollow","heading" to "mapHeading","oval" to MapOvalAnchor.preference,"showTrack" to "mapTrackVisible","showGpx" to "mapGpxVisible","showHeight" to "mapHeightVisible","elevationCorrection" to FitElevationCorrection.preference).forEach { (public,key) -> if(row.has(public)) b[key]=boolean(row,public) }
+                    mapOf("night" to "mapNight","follow" to "mapFollow","heading" to "mapHeading","oval" to MapOvalAnchor.preference,"showTrack" to "mapTrackVisible","showGpx" to "mapGpxVisible","showHeight" to "mapHeightVisible","showWindRose" to "mapWindRoseVisible","elevationCorrection" to FitElevationCorrection.preference).forEach { (public,key) -> if(row.has(public)) b[key]=boolean(row,public) }
                 }
                 BackupSection.PROFILE -> {
                     val old=RiderProfileStore(bike,today).read()

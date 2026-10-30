@@ -90,6 +90,15 @@ class SettingsBackupTest {
         b.apply(b.plan(b.decode(legacy.toString().toByteArray()),setOf(BackupSection.MAPS)))
         assertTrue(bike.getBoolean(MapOvalAnchor.preference,false))
     }
+    @Test fun windRoseIsProfileScopedAndRoundTripsWithMapSettings() {
+        bike.edit().putBoolean("mapWindRoseVisible",true).commit()
+        assertTrue(BikeUiConfigurationScope.mapKey("mapWindRoseVisible"))
+        assertEquals(true,BikeUiConfigurationScope.capture(bike).maps["mapWindRoseVisible"])
+        val b=backup();val bytes=b.export(setOf(BackupSection.MAPS))
+        bike.edit().putBoolean("mapWindRoseVisible",false).commit()
+        b.apply(b.plan(b.decode(bytes),setOf(BackupSection.MAPS)))
+        assertTrue(bike.getBoolean("mapWindRoseVisible",false))
+    }
     @Test fun heightCorrectionPreferenceRoundTripsAndLegacyMapsDoNotResetIt() {
         bike.edit().putBoolean(FitElevationCorrection.preference,true).putBoolean("mapHeightVisible",false).commit()
         assertTrue(BikeUiConfigurationScope.mapKey("mapHeightVisible"))

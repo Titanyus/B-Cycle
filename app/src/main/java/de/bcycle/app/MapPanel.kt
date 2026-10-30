@@ -57,6 +57,13 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
                private val openCredit: (String) -> Unit) : FrameLayout(context) {
     private val preferences = runtime.preferences
     private val handler = Handler(Looper.getMainLooper())
+    private val windRose=android.widget.ImageView(context).apply {
+        tag="map_wind_rose";visibility=GONE
+        setImageResource(R.drawable.map_wind_rose);alpha=.70f
+        scaleType=android.widget.ImageView.ScaleType.FIT_CENTER
+        importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+        isClickable=false;isFocusable=false
+    }
     private val controls = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
     private val zoomControls = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "map_zoom_controls" }
     private lateinit var routeButton: Button
@@ -93,7 +100,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         nightButton.isEnabled = !value
         refreshRouteButton()
         if (value) handler.removeCallbacks(hideControls) else scheduleHide()
-        refreshDataFields()
+        refreshDataFields();updateWindRose()
     }
     private var directionIconHeading: Boolean? = null
     private lateinit var directionButton: Button
@@ -160,8 +167,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     var controlsVisibilityChanged: ((Boolean) -> Unit)? = null
     private val hideControls = Runnable {
         if (!running || editing || !runtime.isMoving || routePopup?.isShowing==true) return@Runnable
-        controls.visibility = GONE; zoomControls.visibility = GONE; routeButton.visibility = GONE; nightButton.visibility = GONE
-        controlsVisibilityChanged?.invoke(false)
+        controls.visibility = INVISIBLE; zoomControls.visibility = GONE; routeButton.visibility = GONE; nightButton.visibility = GONE
+        updateWindRose();controlsVisibilityChanged?.invoke(false)
     }
     val mapView: MapView
     private val pinchZoom:MapPinchZoom
@@ -235,6 +242,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         graphic(directionButton, BicycleIcon.Compass)
         graphic(fullButton, BicycleIcon.Maximize)
         addView(controls, LayoutParams(-2, dp(MapControlDesign.buttonHeight), Gravity.TOP or Gravity.END).apply { topMargin = dp(MapControlDesign.edgeGap); marginEnd = dp(MapControlDesign.edgeGap) })
+        addView(windRose,LayoutParams(dp(MapControlDesign.iconSize),dp(MapControlDesign.iconSize)))
         nightButton = icon("", context.getString(R.string.ui_map_night_enable), null) {
             night = !night; preferences.edit().putBoolean("mapNight", night).apply(); applyNight()
         }.apply { tag = "map_night" }
@@ -434,6 +442,19 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         }
     }
+    override fun onLayout(changed:Boolean,left:Int,top:Int,right:Int,bottom:Int) {
+        super.onLayout(changed,left,top,right,bottom)
+        // Retain the button row's geometry while invisible, including compact map layouts.
+        val size=dp(MapControlDesign.iconSize)
+        val x=controls.left+fullButton.left+(fullButton.width-size)/2
+        val y=controls.top+fullButton.top+(fullButton.height-size)/2
+        windRose.layout(x,y,x+size,y+size)
+        updateWindRose()
+    }
+    private fun updateWindRose() {
+        windRose.visibility=if(follow && !editing && controls.visibility!=VISIBLE && preferences.getBoolean("mapWindRoseVisible",false)) VISIBLE else GONE
+        windRose.rotation=mapView.mapRotation.degrees
+    }
     fun showFullscreen(value: Boolean) {
         MapControlDesign.icon(fullButton, if(value) BicycleIcon.Maximize else BicycleIcon.Minimize)
         fullButton.contentDescription = if (value) context.getString(R.string.ui_map_return_dashboard) else context.getString(R.string.ui_map_fullscreen); revealControls() }
@@ -441,6 +462,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         if (follow == value) return
         if (!value) { ovalAnchor.hold(android.os.SystemClock.uptimeMillis());refreshRoutes() }
         follow = value; preferences.edit().putBoolean("mapFollow", value).apply()
+        updateWindRose()
         if(::directionButton.isInitialized) { directionButton.isEnabled=value && !editing;directionButton.alpha=if(value) 1f else .4f }
         if (::centerButton.isInitialized) centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (value) Color.rgb(110, 230, 130) else Color.WHITE)
     }
@@ -460,6 +482,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
                 if(mapView.model.mapViewPosition.center!=center) mapView.setCenter(center)
             }
         }
+        updateWindRose()
         if (!updateControls) return
         val effectiveHeading=heading
         if(directionIconHeading!=effectiveHeading) {
@@ -502,7 +525,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         preferences.edit().putInt("mapZoom", position.zoomLevel.toInt()).putFloat(MapZoom.preference,position.zoom.toFloat()).putFloat("mapLatitude", position.center.latitude.toFloat())
             .putFloat("mapLongitude", position.center.longitude.toFloat()).apply()
     }
-    fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; nightButton.visibility = VISIBLE; controlsVisibilityChanged?.invoke(true); scheduleHide() }
+    fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; nightButton.visibility = VISIBLE; updateWindRose();controlsVisibilityChanged?.invoke(true); scheduleHide() }
     fun holdControls() { handler.removeCallbacks(hideControls) }
     private fun updateMotionControls() {
         val next = runtime.isMoving

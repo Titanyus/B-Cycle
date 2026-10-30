@@ -8,7 +8,7 @@ internal object BikeUiConfigurationScope {
     private val designKeys=setOf(RideNamingSettings.KEY,TrendIndicatorSettings.enabledKey,TrendIndicatorSettings.disabledKey,DrinkReminderSettings.enabledKey,DrinkReminderSettings.intervalKey,DrinkReminderSettings.durationKey,DrinkReminderSettings.positionKey,ThemeManager.activeKey,ThemeManager.customsKey,
         DashboardFullscreen.key,DashboardStatusConfig.key,DashboardPages.KEY,"dashboardPage",GraphDisplaySettings.key,
         MapFieldSelection.key(0),MapFieldSelection.key(1),MapFieldSelection.key(2))
-    private val mapKeys=setOf(MapRouteSlots.KEY,MapRouteStyles.key,"mapSource","mapNight","mapFollow","mapHeading",MapOvalAnchor.preference,"mapTrackVisible","mapGpxVisible","mapHeightVisible",
+    private val mapKeys=setOf(MapRouteSlots.KEY,MapRouteStyles.key,"mapSource","mapNight","mapFollow","mapHeading",MapOvalAnchor.preference,"mapTrackVisible","mapGpxVisible","mapHeightVisible","mapWindRoseVisible",
         "mapZoom",MapZoom.preference,"mapLatitude","mapLongitude","displayFitId","displayGpxId",FitElevationCorrection.preference)
     fun designKey(key:String)=key in designKeys || (0 until DashboardPages.MAX).any { key in DashboardPages.keys(it) }
     fun mapKey(key:String)=key in mapKeys

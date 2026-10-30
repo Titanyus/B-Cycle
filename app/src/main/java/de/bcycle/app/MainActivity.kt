@@ -1312,6 +1312,7 @@ class MainActivity : Activity() {
         val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
         var lastGpxVisibility=gpx.isChecked
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
+        val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
         root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs) {
@@ -1329,7 +1330,7 @@ class MainActivity : Activity() {
             BicycleFeedback.update(providerStatus,if(!available) getString(R.string.map_thunderforest_required) else "",hideWhenEmpty=true)
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
-            edit.putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked)
+            edit.putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
                 .putBoolean(FitElevationCorrection.preference,elevation.isChecked).apply()
             if(gpx.isChecked!=lastGpxVisibility) { lastGpxVisibility=gpx.isChecked;runtime.mapState.setRouteVisible(gpx.isChecked) }
             mapPanel.refreshSettings()

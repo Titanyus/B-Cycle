@@ -25,3 +25,7 @@ Prüfung: vier neue native TileReorder-Regressionsfälle (DROP/END-Reihenfolge, 
 [Intervals-HRV-Korrektur](intervals-hrv.md): Bereichs-GET auf `wellness.json` statt `wellness`, Nulltag zulässig, fremde Daten weiterhin geschützt. Fehlermeldung mit Tag/HTTP-Code vor Zählung, Serverfehler nicht pauschal „unterbrochen“. Nutzer bestätigt FIT-Zugang funktioniert (400 Uploads), Fehlanzeige zuvor nur „Vorgang unterbrochen“. Privaten Live-HRV-Upload nicht möglich.
 
 Logs: `/workspace/.tools/ui-summary-hrv-tests.log` und abschließende `/workspace/.tools/ui-summary-hrv-final-tests.log`. Native/HTTP-Tests, Typografie/Atlas/Diff; keine neue APK angefordert/gebaut. Kompassfrage beantwortet: Pfeil ist Smartphone-Ausrichtung, getrennt vom GPS-Kurs; Kalibrierung oder magnetische Störung als mögliche Abweichung, keine Sensoränderung beauftragt.
+
+## Windrose auf Karte – ebenfalls nach Build 110
+
+Nutzer-SVG als schwarzer70%-Vektor in24-dp-Iconfläche mittig auf dem Vergrößern-Symbol. Nur bei Folgen+ausgeblendeten Buttons, nicht im Editor; dreht mit Kartenrotation (Norden im Original oben). Neue profilbezogene Kartenoption „Windrose im Folgemodus anzeigen“, zunächst aus, mitgesichert. [Details](map-motion.md). Native MapPanel-/Backuptests und Typografie/Atlas/Diff; Logs `map-wind-rose-tests.log`/`map-wind-rose-final-tests.log` unter `/workspace/.tools`. Noch keine neue APK angefordert.

@@ -40,6 +40,40 @@ class MapPanelTest {
         speed(panel, 5.0)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2))
     }
+    @Test fun windRoseSharesMaximiseCentreFollowsMapRotationAndHidesWithControlsOrFreePan() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val c=host.get();val prefs=c.getSharedPreferences("bike",0)
+            val root=c.findViewById<ViewGroup>(android.R.id.content)
+            measure(root,1080,2100)
+            val panel=descendants(root).filterIsInstance<MapPanel>().single()
+            val rose=panel.findViewWithTag<android.widget.ImageView>("map_wind_rose")
+            val full=descendants(panel).single { it.contentDescription==c.getString(R.string.ui_map_fullscreen) }
+            val controls=full.parent as View
+            assertEquals(View.GONE,rose.visibility)
+            prefs.edit().putBoolean("mapWindRoseVisible",true).commit();panel.refreshSettings()
+            assertEquals(View.GONE,rose.visibility)
+            hideWhileMoving(panel);measure(root,1080,2100)
+            assertEquals(View.VISIBLE,rose.visibility);assertEquals(.7f,rose.alpha,0f)
+            fun checkAnchor() {
+                assertEquals(controls.left+full.left+full.width/2f,rose.left+rose.width/2f,1f)
+                assertEquals(controls.top+full.top+full.height/2f,rose.top+rose.height/2f,1f)
+                assertEquals(BicycleDesign.dp(c,MapControlDesign.iconSize),rose.width)
+            }
+            checkAnchor()
+            val update=MapPanel::class.java.getDeclaredMethod("updateWindRose").apply { isAccessible=true }
+            panel.mapView.rotate(org.mapsforge.core.model.Rotation(-90f,0f,0f));update.invoke(panel)
+            assertEquals(-90f,rose.rotation,0f)
+            panel.revealControls();assertEquals(View.GONE,rose.visibility)
+            hideWhileMoving(panel);panel.setFollow(false);assertEquals(View.GONE,rose.visibility)
+            panel.setFollow(true);assertEquals(View.VISIBLE,rose.visibility)
+            panel.setEditing(true);assertEquals(View.GONE,rose.visibility)
+            panel.setEditing(false);assertEquals(View.VISIBLE,rose.visibility)
+            measure(root,600,1600);checkAnchor()
+            prefs.edit().putBoolean("mapWindRoseVisible",false).commit();panel.refreshSettings()
+            assertEquals(View.GONE,rose.visibility)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun stationaryAndUnknownSpeedKeepControlsVisibleAndStoppingRestoresThem() {
         val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -145,7 +179,7 @@ class MapPanelTest {
             val dataHeight = dashboard.height
             val mapHeight = panel.height
             hideWhileMoving(panel)
-            assertEquals(View.GONE, controls.visibility)
+            assertEquals(View.INVISIBLE, controls.visibility)
             assertEquals(View.GONE, toolbar.visibility)
             measure(root, 1080, 2100)
             assertEquals(dataHeight, dashboard.height)
@@ -388,6 +422,8 @@ class MapPanelTest {
             val expected = listOf(4, 2, 3, 7)
             expected.forEachIndexed { index, count ->
                 swipeTestDashboard(root); measure(root, 1080, 2100)
+                // This test checks page identity/fields; transition timing has its own viewport tests.
+                descendants(root).filterIsInstance<DashboardPageViewport>().single().cancelTransition()
                 val dashboard = descendants(root).filterIsInstance<DashboardView>().single()
                 assertEquals(count, descendants(dashboard).count { it.isClickable })
                 assertSame(panel, descendants(root).filterIsInstance<MapPanel>().single())
