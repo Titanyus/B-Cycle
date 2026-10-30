@@ -1,3 +1,7 @@
+# APK-Auftrag aktiv:0.8.65/Code135
+
+Nutzer beauftragt neueAPK mit allen Änderungen seitBuild105: Dropdownrahmen/Abstände/transparenteFahrradauswahl, intervals.icu-HRV einschließlichSammelupload, Trainingsvorauswahl/bedingteRPE. Bisherige17UI-und69Funktionsfälleerfolgreich, keineerneuteGesamtsuite. ErwarteterActions-Build106, tatsächlichenLaufprüfen. NachErfolgSignatur/Version/Manifest/CISHA/zipalignundveröffentlichtenRawDownloadverifizieren.
+
 # Nach Build105: Trainingsvorauswahl und bedingte Belastungsfrage,30.10.2026
 
 Umgesetzt: MapState.loadHrvTraining lädt Vortagsfahrten auf vorhandenem Worker, vorhandene private FIT-Analyse bevorzugen, gespeicherte HRV-Zeitzone/DST/alleProfile/Gefahren-Filter aus HrvTrainingSummary.previousDay erhalten. RouteTimeHistogram liefert exakten zeitgewichteten Mittelwert vor Diagrammrasterung (laufendesIntegral), mitHerzErfassungszeit überFahrten gewichten; Zusammenfassungen ggf.ØPuls/Fahrtdauer. Bestehendes Fahrer-Zonenmodell:1leicht/2+3moderat/4+5schwer. OhnePulskeineIntensität raten; keineFahrt wähltRuhetag. BestehendeTagesantworten/manualWertegewinnen. Manuell„KeinTraining“ entfernt RPE/Kilometer/Minuten/RideIDs/Herkunft ausTagesantwort, Originalfahrtenunverändert. RPE nurbeiFahrtnachweis oderpositiverManuellstufe, auchbeiabgeschalteterTrainingsfrage; sonstige manuelle MengenfelderbeiabgeschalteterFrage erhalten. Dokumentiert docs/hrv-questionnaire.md. KeineHRV-Metrik-/Bewertungsänderung.
