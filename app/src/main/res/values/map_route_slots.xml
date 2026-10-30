@@ -6,4 +6,6 @@
     <string name="map_route_slot_empty">Track %1$d · nicht belegt</string>
     <string name="map_route_slot_assign">Track %1$d für %2$s verwenden</string>
     <string name="map_route_slots_choose">Tracks einzeln ein- oder ausblenden</string>
+    <string name="map_route_slot_available">Frei</string>
+    <string name="map_route_slot_occupied">Belegt</string>
 </resources>

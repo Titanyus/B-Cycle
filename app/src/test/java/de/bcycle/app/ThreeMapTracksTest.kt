@@ -185,7 +185,11 @@ class ThreeMapTracksTest {
             }
             eye(ids[0]).performLongClick();assertEquals(1,opens);assertTrue(popup!!.isShowing)
             val selected=popup!!.contentView.findViewWithTag<Button>("map_route_slot_0")
-            assertTrue(selected.isSelected);assertTrue(selected.compoundDrawables.all { it==null })
+            assertTrue(selected.isSelected);assertTrue(selected.text.isEmpty());assertNotNull(selected.foreground)
+            assertEquals(a.getString(R.string.map_route_slot_occupied),selected.stateDescription)
+            val free=popup!!.contentView.findViewWithTag<Button>("map_route_slot_1")
+            assertTrue(free.text.isEmpty());assertNull(free.foreground)
+            assertEquals(a.getString(R.string.map_route_slot_available),free.stateDescription)
             popup!!.dismiss()
             eye(ids[0]).performClick();drain(state);assertNull(state.routeNumber(ids[0]));submit()
             eye(ids[1]).performClick();assertEquals(2,opens);assertNull(state.routeNumber(ids[1]))
@@ -219,7 +223,7 @@ class ThreeMapTracksTest {
             panel.setEditing(true);assertFalse(popup.isShowing);panel.pause()
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun numberedEyesAndOpaquePopupColoursUseTheSameIndividualVisibilityState() {
+    @Test fun colouredEyesAndVerticalOpaquePopupUseTheSameIndividualVisibilityState() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();seed(a);val runtime=RideRuntime.get(a);val state=runtime.mapState;drain(state)
@@ -233,15 +237,23 @@ class ThreeMapTracksTest {
             val list=manager.findViewWithTag<ListView>("route_list")
             for(i in 0 until list.adapter.count) {
                 val entry=list.adapter.getItem(i) as ManagedRoute;val row=list.adapter.getView(i,null,list)
-                assertEquals(numbers[entry.id]?.toString().orEmpty(),row.findViewWithTag<TextView>("route_map_number").text.toString())
+                assertNull(row.findViewWithTag<TextView>("route_map_number"))
+                val eye=testDescendants(row).filterIsInstance<android.widget.ImageButton>().single()
+                val tint=eye.colorFilter as android.graphics.PorterDuffColorFilter
+                val expected=numbers[entry.id]?.let { MapRouteStyles.read(runtime.preferences,MapRouteStyles.saved(it-1)).color }
+                    ?: BicycleIcons.color(runtime.themes.active.tokens,BicycleIcon.ShowOnMap,true)
+                assertEquals(android.graphics.PorterDuffColorFilter(expected,android.graphics.PorterDuff.Mode.SRC_ATOP),tint)
             }
             val popup=MapRouteSlotPopup(manager,runtime) {};val root=popup.contentView
-            root.measure(View.MeasureSpec.makeMeasureSpec(200,View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(100,View.MeasureSpec.AT_MOST));root.layout(0,0,root.measuredWidth,root.measuredHeight)
+            assertEquals(android.widget.LinearLayout.VERTICAL,(root as android.widget.LinearLayout).orientation)
+            root.measure(View.MeasureSpec.makeMeasureSpec(200,View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(250,View.MeasureSpec.AT_MOST));root.layout(0,0,root.measuredWidth,root.measuredHeight)
             val preview=Bitmap.createBitmap(root.width,root.height,Bitmap.Config.ARGB_8888);root.draw(android.graphics.Canvas(preview))
             java.io.File("build/reports/ui/map-three-route-buttons.png").apply { parentFile!!.mkdirs() }.outputStream().use { preview.compress(Bitmap.CompressFormat.PNG,100,it) };preview.recycle()
             for(slot in 0..2) {
                 val button=root.findViewWithTag<Button>("map_route_slot_$slot")
-                assertEquals((slot+1).toString(),button.text);assertEquals(1f,button.alpha,0f)
+                assertTrue(button.text.isEmpty());assertEquals(1f,button.alpha,0f)
+                assertNotNull(button.foreground)
+                if(slot>0) assertTrue(button.top>root.findViewWithTag<Button>("map_route_slot_${slot-1}").bottom)
                 val image=Bitmap.createBitmap(button.width,button.height,Bitmap.Config.ARGB_8888);button.background.setBounds(0,0,button.width,button.height);button.background.draw(android.graphics.Canvas(image))
                 assertEquals(MapRouteStyles.read(runtime.preferences,MapRouteStyles.saved(slot)).color,image.getPixel(button.width/2,button.height/2));image.recycle()
             }

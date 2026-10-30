@@ -143,10 +143,6 @@ internal class RouteManagerView(context: Context,
             }.apply {
                 setOnLongClickListener { entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let { chooseMapSlot?.invoke(this,it) };true }
             }
-        private val mapNumber=BicycleComponents.text(context,themes,"").apply {
-            tag="route_map_number";gravity=Gravity.CENTER;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
-            setOnClickListener { eye.performClick() }
-        }
         private inner class Reading(labelId: Int? = null, unitId: Int? = null) : LinearLayout(context) {
             val number = BicycleComponents.text(context, themes, "").apply {
                 typeface = BicycleDesign.narrowTypeface(context); textSize = BicycleDesign.routeMetricSp
@@ -203,7 +199,6 @@ internal class RouteManagerView(context: Context,
                 },LayoutParams(-2,dp(BicycleDesign.touchSize)).apply { marginEnd=dp(BicycleDesign.smallGap) })
                 addView(title,LayoutParams(0,dp(BicycleDesign.touchSize),1f))
                 addView(eye,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)))
-                addView(mapNumber,LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.touchSize)))
             },LayoutParams(-1,-2))
             addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL
@@ -228,11 +223,11 @@ internal class RouteManagerView(context: Context,
             origin.setImageDrawable(BicycleIcons.drawable(context, if(route.id in checked) BicycleIcon.Check else when (route.origin) {
                 TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
             }, if(route.id in checked) tokens.primary else tokens.foreground))
-            mapNumber.text=mapNumbers[route.id]?.let { context.getString(R.string.map_route_slot_number,it) }.orEmpty()
-            mapNumber.visibility=if(mapNumbers.containsKey(route.id)) VISIBLE else INVISIBLE
             val eyeKind = if (route.id in shownIds) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
-            eye.setImageDrawable(BicycleIcons.drawable(context, eyeKind, tokens, route.id !in shownIds))
-            eye.setColorFilter(BicycleIcons.color(tokens, eyeKind, route.id !in shownIds))
+            val color=mapNumbers[route.id]?.let { MapRouteStyles.read(context.getSharedPreferences("bike",Context.MODE_PRIVATE),MapRouteStyles.saved(it-1)).color or Color.BLACK }
+                ?: BicycleIcons.color(tokens,eyeKind,route.id !in shownIds)
+            eye.setImageDrawable(BicycleIcons.drawable(context,eyeKind,color,negative=route.id !in shownIds))
+            eye.setColorFilter(color)
         }
         fun bind(route: ManagedRoute) {
             isActivated=route.id in checked

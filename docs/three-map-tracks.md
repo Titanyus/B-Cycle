@@ -1,12 +1,12 @@
-# Drei nummerierte Tracks auf der Dashboard-Karte
+# Drei farblich zugeordnete Tracks auf der Dashboard-Karte
 
 Umgesetzt nach Build106. Die nachträglich bestätigte explizite Platzwahl im Streckenmanager ersetzt dort die zunächst vorgeschlagene automatische FIFO-Auswahl.
 
 ## Bedienung
 
 - Drei feste Plätze1–3 für alle lokalen GPX-Strecken und FIT-Fahrten mit darstellbaren GPS-Daten. Fahrten/Zusammenfassungen ohne Geometrie bleiben wie bisher nicht auf der Karte auswählbar.
-- Im Streckenmanager: kurzer Druck auf eine sichtbare Strecke entfernt sie aus ihrem Platz. Kurzer oder langer Druck auf eine nicht sichtbare Strecke öffnet drei nummerierte, deckend farbige Buttons. Langer Druck auf eine sichtbare Strecke öffnet dieselbe Auswahl mit markiertem aktuellem Platz (kontrastierender stärkerer Rahmen). Ziel wählen ersetzt dessen bisherigen Track; Umplatzieren gibt den alten Platz frei. Dieselbe Strecke belegt nie zwei Plätze. Nummer hinter dem Auge, Namen bleiben in der bestehenden Zeile.
-- Dashboard: kurzer Druck auf das Hauptauge blendet alle aus bzw. alle wieder ein. Langer Druck öffnet darunter drei Buttons mit Auge und Nummer. Ihre Hintergrundfarben entsprechen den Platzstilen, immer100%Deckkraft unabhängig von der Linien-Deckkraft. Auge/Schrift verwenden kontrastierendes Weiß oder Schwarz. Individuelles Ausblenden behält Nummer, Stil und Zuordnung. Nach gemeinsamem Ausblenden kann ein einzelner Button nur seinen Track wieder aktivieren.
+- Im Streckenmanager: kurzer Druck auf eine sichtbare Strecke entfernt sie aus ihrem Platz. Kurzer oder langer Druck auf eine nicht sichtbare Strecke öffnet drei deckend farbige Buttons ohne Nummern. Langer Druck auf eine sichtbare Strecke öffnet dieselbe Auswahl mit markiertem aktuellem Platz (kontrastierender stärkerer Rahmen). Ziel wählen ersetzt dessen bisherigen Track; Umplatzieren gibt den alten Platz frei. Dieselbe Strecke belegt nie zwei Plätze. Das Auge übernimmt die deckende Trackfarbe, ohne Nummer dahinter. Belegte Ziele zeigen ein Auge, freie Ziele sind reine Farbflächen. Der aktuelle Platz bleibt durch den stärkeren Rahmen markiert. Namen bleiben in der bestehenden Zeile.
+- Dashboard: kurzer Druck auf das Hauptauge blendet alle aus bzw. alle wieder ein. Langer Druck öffnet darunter drei vertikal angeordnete Buttons nur mit Auge. Ihre Hintergrundfarben entsprechen den Platzstilen, immer100%Deckkraft unabhängig von der Linien-Deckkraft. Auge/Schrift verwenden kontrastierendes Weiß oder Schwarz. Individuelles Ausblenden behält Platz, Stil und Zuordnung. Nach gemeinsamem Ausblenden kann ein einzelner Button nur seinen Track wieder aktivieren.
 - Der Filter „Auf Karte angezeigt“ erfasst alle tatsächlich sichtbaren Tracks, keine nur zugeordneten ausgeblendeten Tracks.
 - Lange Streckenzeilen-Drücke zur Mehrfachlöschung bleiben unverändert, Augen-Longpress ist ein eigenes Touchziel. Popup schließt bei Außenklick/Zurück/Seitenwechsel; Kartenpopup beim Dashboard-Editor oder Pause. Profilwechsel verwirft ein altes Popup.
 
@@ -32,3 +32,6 @@ Erste Testdaten hatten einen FIT mit ausschließlich voneinander getrennten GPS-
 
 
 Veröffentlichung 30.10.2026: Änderungen nach Build 106 sind in **APK 0.8.66 / Build 107** enthalten. [Download und Buildnachweis](build-107.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.
+
+
+Nach Build 107: Darstellung ohne sichtbare Platznummern, vertikale Dashboard-Auswahl, trackfarbige Manager-Augen sowie Belegt-Augen in der weiterhin horizontalen Platzwahl. Bedienung und Persistenz unverändert. 26 gezielte Fälle (ThreeMapTracksTest 12, RouteManagerViewTest 4, MapPanelTest 10) erfolgreich; native Vorschau aktualisiert und visuell geprüft. Typografie/Atlas/Diff erfolgreich. Kein neuer physischer Gerätetest.

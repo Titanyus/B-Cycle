@@ -2,6 +2,7 @@ package de.bcycle.app
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.LayerDrawable
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -19,12 +20,12 @@ internal class MapRouteSlotPopup(private val anchor:View,private val runtime:Rid
         isFocusable=true;isOutsideTouchable=true;inputMethodMode=INPUT_METHOD_NOT_NEEDED
         setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         contentView=LinearLayout(context).apply {
-            orientation=LinearLayout.HORIZONTAL;isBaselineAligned=false;tag="map_route_slot_controls"
+            orientation=if(assignId==null) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL;isBaselineAligned=false;tag="map_route_slot_controls"
             repeat(MapRouteSlots.COUNT) { slot ->
                 val button=Button(context).apply {
                     tag="map_route_slot_$slot";gravity=Gravity.CENTER;isAllCaps=false
                     minWidth=0;minHeight=0;minimumWidth=0;minimumHeight=0;stateListAnimator=null;elevation=0f
-                    text=context.getString(R.string.map_route_slot_number,slot+1)
+                    text=""
                     typeface=BicycleDesign.bodyTypeface;textSize=MapControlDesign.slotLabelSp
                     setPadding(0,0,0,0);compoundDrawablePadding=BicycleDesign.dp(context,MapControlDesign.buttonGap)
                     setOnClickListener {
@@ -36,7 +37,10 @@ internal class MapRouteSlotPopup(private val anchor:View,private val runtime:Rid
                 }
                 buttons+=button
                 addView(button,LinearLayout.LayoutParams(BicycleDesign.dp(context,MapControlDesign.dashboardWidth),BicycleDesign.dp(context,MapControlDesign.buttonHeight)).apply {
-                    if(slot>0) marginStart=BicycleDesign.dp(context,MapControlDesign.buttonGap)
+                    if(slot>0) {
+                        if(assignId==null) topMargin=BicycleDesign.dp(context,MapControlDesign.buttonGap)
+                        else marginStart=BicycleDesign.dp(context,MapControlDesign.buttonGap)
+                    }
                 })
             }
         }
@@ -61,9 +65,12 @@ internal class MapRouteSlotPopup(private val anchor:View,private val runtime:Rid
             button.setTextColor(foreground);button.isEnabled=(assignId!=null || id!=null) && !runtime.mapState.busy
             button.alpha=1f;button.isSelected=on
             val size=BicycleDesign.dp(context,MapControlDesign.slotIconSize)
-            button.setCompoundDrawables(if(assignId==null) BicycleIcons.drawable(context,BicycleIcon.ShowOnMap,foreground,negative=!on).apply { setBounds(0,0,size,size) } else null,null,null,null)
-            button.stateDescription=context.getString(if(on) R.string.ui_selected else R.string.ui_not_selected)
-            button.contentDescription=if(assignId!=null) context.getString(R.string.map_route_slot_assign,slot+1,runtime.mapState.entry(assignId)?.name.orEmpty()) else if(id==null) context.getString(R.string.map_route_slot_empty,slot+1) else
+            // Occupied assignment targets carry an eye; empty targets stay plain. The
+            // existing outline still distinguishes the incoming route's current target.
+            val glyph=if(assignId==null || id!=null) BicycleIcons.drawable(context,BicycleIcon.ShowOnMap,foreground,negative=assignId==null && !on).apply { setBounds(0,0,size,size) } else null
+            button.foreground=glyph?.let { LayerDrawable(arrayOf(it)).apply { setLayerGravity(0,Gravity.CENTER);setLayerSize(0,size,size) } }
+            button.stateDescription=if(assignId!=null) context.getString(if(id==null) R.string.map_route_slot_available else R.string.map_route_slot_occupied) else context.getString(if(on) R.string.ui_selected else R.string.ui_not_selected)
+            button.contentDescription=if(assignId!=null) context.getString(R.string.map_route_slot_assign,slot+1,runtime.mapState.entry(assignId)?.name.orEmpty())+" · "+button.stateDescription+(id?.let { " · "+runtime.mapState.entry(it)?.name.orEmpty() }.orEmpty()) else if(id==null) context.getString(R.string.map_route_slot_empty,slot+1) else
                 context.getString(R.string.map_route_slot_description,slot+1,runtime.mapState.entry(id)?.name.orEmpty(),button.stateDescription)
         }
     }
