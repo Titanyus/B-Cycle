@@ -746,7 +746,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         recordingUpdate = null
         store.begin(startUtc, activeConfig); recording = true; ride.gps.setCollecting(!isIndoor)
         drinkReminder.reset();drinkReminder.update(true,0,DrinkReminderSettings.read(preferences),false)
-        shiftBatteryWarning.start(derailleurBattery?.percent,bikes.current().shiftBatteryWarning)
+        shiftBatteryWarning.start(derailleurBattery?.percent,true)
         connectionsRequested = true
         appendSample(); updateActivity()
     }

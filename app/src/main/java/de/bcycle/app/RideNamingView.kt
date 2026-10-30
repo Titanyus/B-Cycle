@@ -19,15 +19,11 @@ internal class RideNamingView(context:Context,themes:ThemeManager,private val la
     init {
         orientation=VERTICAL;tag="ride_naming"
         val settings=RideNamingSettings(context);var current=settings.read()
-        val content=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="ride_naming_content" }
-        lateinit var toggle:android.widget.Button
-        toggle=BicycleComponents.action(context,themes,context.getString(R.string.ride_name_title)) {
-            content.visibility=if(content.visibility==VISIBLE) GONE else VISIBLE
-            if(content.visibility==VISIBLE) refreshPreview()
-            toggle.stateDescription=context.getString(if(content.visibility==VISIBLE) R.string.zone_expanded else R.string.zone_collapsed)
-        }.apply { tag="ride_naming_toggle";stateDescription=context.getString(R.string.zone_collapsed) }
-        BicycleDialogStyle.accordion(toggle,themes);BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Expand)
-        addView(toggle);addView(content)
+        val frame=BicycleFrameDropdown(context,themes,context.getString(R.string.ride_name_title),open=false,
+            leadingIcon=BicycleIcon.NameRide) { open -> if(open) refreshPreview() }
+        frame.header.tag="ride_naming_toggle"
+        val content=frame.content.apply { tag="ride_naming_content" }
+        addView(frame,LayoutParams(-1,-2))
         val input=BicycleComponents.input(RideNamingInput(context),themes).apply {
             BicycleDialogStyle.control(this,themes);
             tag="ride_naming_text";hint=context.getString(R.string.ride_name_text);contentDescription=hint

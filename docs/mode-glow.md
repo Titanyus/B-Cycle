@@ -1,5 +1,7 @@
 # Fahrmodus-Glow
 
+Aktueller Stand nach Build 108: [Fahrradprofil-Revision](profile-settings-revision.md). Die dortigen Regeln ersetzen ältere Positionsschalter, Aufklappgestaltung und Farbdialog-Bedienung im folgenden historischen Umsetzungsstand.
+
 ## Umsetzung und Dateien
 
 - `BoschModeGlow.kt`: zentrale funktionale Modusfarben, gecachter Drawable und Einstellungszugriff.

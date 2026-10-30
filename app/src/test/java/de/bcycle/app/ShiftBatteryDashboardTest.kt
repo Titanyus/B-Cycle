@@ -78,7 +78,7 @@ class ShiftBatteryDashboardTest {
     }
     @Test fun actualRecordingStartShowsIndependentWarningAndStopClearsIt() {
         val runtime=RideRuntime.get(c);cached(device.address,19)
-        runtime.bikes.save(runtime.bikes.current().copy(shiftDevices=listOf(device),bikeAddress="00:11:22:33:44:77"))
+        runtime.bikes.save(runtime.bikes.current().copy(shiftDevices=listOf(device),bikeAddress="00:11:22:33:44:77",shiftBatteryWarning=false))
         DrinkReminderSettings.save(runtime.preferences,DrinkReminderConfig(enabled=false))
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         val activity=host.get()
@@ -97,14 +97,12 @@ class ShiftBatteryDashboardTest {
             host.pause().stop().destroy()
         }
     }
-    @Test fun compactSensorWarningSwitchPersistsAndWarningUsesSameSurfaceInBothDesignModes() {
+    @Test fun sensorWarningIsMandatoryAndUsesSameSurfaceInBothDesignModes() {
         val runtime=RideRuntime.get(c);cached(device.address,36)
         runtime.bikes.save(runtime.bikes.current().copy(shiftDevices=listOf(device)))
         val view=AxsGroupView(c,runtime,{})
         assertFalse(testDescendants(view).filterIsInstance<TextView>().any { it.text==c.getString(R.string.axs_hint) })
-        val toggle=view.findViewWithTag<Switch>("axs_warning_enabled")
-        assertTrue(toggle.isChecked);toggle.performClick();assertFalse(runtime.bikes.current().shiftBatteryWarning)
-        assertFalse(BikeProfileStore(c,runtime.preferences).current().shiftBatteryWarning)
+        assertNull(view.findViewWithTag<Switch>("axs_warning_enabled"))
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
             for(flat in listOf(false,true)) {

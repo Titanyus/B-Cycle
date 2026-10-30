@@ -85,13 +85,17 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
     }
 
     private fun showColor(kind:MapLineKind,update:()->Unit) {
-        lateinit var dialog:android.app.AlertDialog
-        val palette=FixedColorPalette(context,themes,MapRouteStyles.read(prefs,kind).color) { color ->
-            MapRouteStyles.write(prefs,kind,MapRouteStyles.read(prefs,kind).copy(color=color))
-            update();dialog.dismiss()
-        }
-        dialog=BicycleDialogBuilder(context,themes,navigation,fullscreen=false,helpEnabled=false)
+        val initial=MapRouteStyles.read(prefs,kind).color
+        val slot=prefs.getInt(BikeProfileStore.ACTIVE,0)
+        val palette=FixedColorPalette(context,themes,initial) { /* Persist the draft only when leaving. */ }
+        val dialog=BicycleDialogBuilder(context,themes,navigation,fullscreen=false,helpEnabled=false)
             .setTitle(R.string.map_line_choose_color).setView(palette).show()
+        navigation.onDismiss(dialog) {
+            if(prefs.getInt(BikeProfileStore.ACTIVE,0)==slot && palette.selectedColor!=initial) {
+                MapRouteStyles.write(prefs,kind,MapRouteStyles.read(prefs,kind).copy(color=palette.selectedColor))
+                update()
+            }
+        }
     }
 }
 

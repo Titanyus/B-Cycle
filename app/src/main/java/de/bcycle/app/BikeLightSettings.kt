@@ -8,5 +8,5 @@ internal enum class BikeLightPlacement(val label:Int) { BOTTOM(R.string.bike_lig
 internal object BikeLightSettings {
     const val key="bikeLightPlacement"
     fun placement(prefs:SharedPreferences)=runCatching { BikeLightPlacement.valueOf(prefs.getString(key,BikeLightPlacement.BOTTOM.name)!!) }.getOrDefault(BikeLightPlacement.BOTTOM)
-    fun top(prefs:SharedPreferences)=placement(prefs)==BikeLightPlacement.TOP && DashboardFullscreen.enabled(prefs)
+    fun top(prefs:SharedPreferences)=DashboardFullscreen.enabled(prefs)
 }

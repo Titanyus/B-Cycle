@@ -38,24 +38,13 @@ class BikeLightStatusTest {
         light(0);assertEquals(false,runtime.currentBikeLight)
         runtime.connection.stop()
     }
-    @Test fun placementRequiresFullscreenAndDoesNotLosePreferenceWhenFullscreenIsDisabled() {
-        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
-        try {
-            val a=host.get();val prefs=a.getSharedPreferences("bike",0);prefs.edit().clear().commit()
-            val themes=ThemeManager(prefs);val view=BikeLightSettingsView(a,themes,prefs)
-            a.setContentView(view);layout(view,360,100);shadowOf(android.os.Looper.getMainLooper()).idle()
-            val spinner=view.findViewWithTag<Spinner>("bike_light_placement")
-            assertEquals(BikeLightPlacement.BOTTOM,BikeLightSettings.placement(prefs))
-            spinner.setSelection(BikeLightPlacement.TOP.ordinal);shadowOf(android.os.Looper.getMainLooper()).idle()
+    @Test fun statusPositionDependsOnlyOnFullscreenNotLegacyPlacement() {
+        val prefs=org.robolectric.RuntimeEnvironment.getApplication().getSharedPreferences("bike",0)
+        for(legacy in listOf("BOTTOM","TOP")) {
+            prefs.edit().putString(BikeLightSettings.key,legacy).putBoolean(DashboardFullscreen.key,true).commit()
             assertTrue(BikeLightSettings.top(prefs))
-            prefs.edit().putBoolean(DashboardFullscreen.key,false).commit();shadowOf(android.os.Looper.getMainLooper()).idle()
-            assertFalse(BikeLightSettings.top(prefs));assertEquals(BikeLightPlacement.TOP,BikeLightSettings.placement(prefs))
-            assertFalse((spinner.adapter as android.widget.ListAdapter).isEnabled(BikeLightPlacement.TOP.ordinal));assertEquals(BikeLightPlacement.BOTTOM.ordinal,spinner.selectedItemPosition)
-            spinner.setSelection(BikeLightPlacement.TOP.ordinal);shadowOf(android.os.Looper.getMainLooper()).idle()
-            assertFalse(BikeLightSettings.top(prefs));assertEquals(BikeLightPlacement.BOTTOM.ordinal,spinner.selectedItemPosition)
-            prefs.edit().putBoolean(DashboardFullscreen.key,true).commit();shadowOf(android.os.Looper.getMainLooper()).idle()
-            assertEquals(BikeLightPlacement.TOP.ordinal,spinner.selectedItemPosition)
-        } finally { host.pause().stop().destroy() }
+            prefs.edit().putBoolean(DashboardFullscreen.key,false).commit();assertFalse(BikeLightSettings.top(prefs))
+        }
     }
     @Test fun profileCopyAndBackupPreservePlacementAndRejectInvalidValues() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
@@ -73,20 +62,14 @@ class BikeLightStatusTest {
             assertThrows(SettingsBackupFailure::class.java) { backup.decode(invalid.toString().toByteArray()) }
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun realDesignPagePlacesTheLightDropdownAfterBoschControls() {
+    @Test fun realDesignPageDoesNotOfferLightOrBoschPlacementChoices() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         try {
-            val a=host.get();val runtime=RideRuntime.get(a)
-            assertEquals(BikeType.EBIKE,runtime.bikes.current().type)
+            val a=host.get()
             MainActivity::class.java.getDeclaredMethod("dashboardSettings").apply { isAccessible=true }.invoke(a)
             val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            val light=dialog.window!!.decorView.findViewWithTag<View>("bike_light_settings")
-            assertNotNull(light)
-            val parent=light.parent as android.view.ViewGroup
-            val glow=parent.findViewWithTag<View>("mode_glow_enabled")
-            var ancestor=glow
-            while(ancestor.parent!==parent) ancestor=ancestor.parent as View
-            assertEquals(parent.indexOfChild(ancestor)+1,parent.indexOfChild(light))
+            assertNull(dialog.window!!.decorView.findViewWithTag<View>("bike_light_settings"))
+            assertNull(dialog.window!!.decorView.findViewWithTag<View>("mode_glow_enabled"))
             dialog.dismiss()
         } finally { host.pause().stop().destroy() }
     }

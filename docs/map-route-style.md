@@ -1,5 +1,7 @@
 # Kartenlinie, Höhe und Aufnahmestatus
 
+Aktueller Stand nach Build 108: [Fahrradprofil-Revision](profile-settings-revision.md). Die dortigen Regeln ersetzen ältere Positionsschalter, Aufklappgestaltung und Farbdialog-Bedienung im folgenden historischen Umsetzungsstand.
+
 Übernommene Gestaltung der Vorschau:
 
 - Geplante/importierte Strecke: durchgehend, 6 dp breit, Dunkelblau `#123B75`, Deckkraft 50 % (Alpha 128/255), ohne weiße Kontur. Die bestehende Darstellung des gefahrenen Live-Tracks und der Start-/Endpunkte bleibt erhalten.

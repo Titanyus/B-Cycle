@@ -212,7 +212,7 @@ object BicycleDesign {
     const val headerHorizontalPadding = 24
     const val headerVerticalPadding = 12
     const val dialogRadius = 18
-    const val controlBorder = 1
+    const val controlBorder = 2
     const val inputHintAlpha = .5f
     const val inputUnitGap = 4
     const val inputFocusDarken = .1f
@@ -242,7 +242,7 @@ object BicycleDesign {
     const val settingSliderRowHeight = touchSize + 2 * controlGap
     const val settingSliderPillWidth = 56
     const val settingSliderPillHeight = 24
-    const val controlBorderAlpha = .5f
+    const val controlBorderAlpha = .25f
     const val inputRadius = 6
     const val scrollbarSize = 2
     const val tileDropSettleMs = 260L

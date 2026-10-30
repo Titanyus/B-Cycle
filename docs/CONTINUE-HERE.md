@@ -1,3 +1,11 @@
+# Fertig nach Build 108: Fahrradprofil-Reihenfolge, Rahmen, Anzeigen und Farbdialog
+
+Alle aktuellen Nutzeränderungen umgesetzt, geprüft und lokal committed; noch keine neue APK für diesen Auftrag angefordert. [Änderungen und Nachweise](profile-settings-revision.md). 76 eindeutige gezielte Fälle über mehrere Läufe erfolgreich; native Ansichten und 2-dp-/25%-Rahmen visuell bzw. per Pixelprüfung geprüft. Typografie/Atlas/Diff erfolgreich. Keine Gesamtsuite/kein neuer physischer Gerätetest. Letzte veröffentlichte APK bleibt 0.8.67 / Build 108; nächste APK muss diese neuen Änderungen aufnehmen.
+
+Aktuell verbindlich: normaler Rahmen 2 dp / FOREGROUND 25 %, aktive Glow-/Spezialkontur unverändert. Profilreihenfolge Name/Sensoren/Design & UI/Trainingshilfe/Karten/FIT/Strecken-Aufzeichnung. Autostart unter Sensoren zuerst. Design Flat/Theme/Vollbild-Rahmen/Trenner/kleine Dashboard-Layout-Überschrift. Bosch-Modus immer oben aktiv; Licht bei an immer oben (Fullscreen-Statusplatz oder Dashboard rechts oben mit sicheren Insets+16 dp), untere automatische Markierung weg. Schaltwerk-Warnung immer aktiv, historisches false-Flag ignorieren. Globale Spinner-Popups einfach wie Flat. Sensoren, Fahrtbenennung mit map-pin-pen, Metadaten und Aufzeichnungsgruppen als Rahmen-Accordions, Funktion erhalten. Farbdialog offen/markiert, Helligkeit erhält Auswahl, Speichern erst beim Verlassen. Design-Kontextfooter endet nun an der folgenden Profilsektion, damit die neue Reihenfolge keine falschen Aktionen zeigt.
+
+Historische Status-/APK-Aufträge unten sind abgeschlossen. Obsolete Mode-/Licht-/Warnpräferenzen bleiben zur Backup-Kompatibilität erhalten, aber keine entsprechende UI oder fachliche Wirkung mehr. Keine zusätzlichen Funktionen/Navigation angefordert.
+
 # APK veröffentlicht: 0.8.67 / Build 108 / Code 137 – 30.10.2026
 
 [Direkter APK-Download](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.67-release-108.apk) · [Buildnachweis](build-108.md). Quelle `9e4b4691860f63f7ab3d4b36430db0e743502148`, 2536077 Bytes, SHA-256 `2c2065c13f90a77c5753868bd03363ed2ff13191b256a58dd3f521bc55194d38`. Enthält alle Änderungen nach Build 107. Signatur/Update-Kompatibilität/CI-Prüfsumme/Manifest/ZIP-Ausrichtung geprüft. Veröffentlichung mit [skip ci]. Frühere offene APK-Aufträge unten sind Umsetzungshistorie.

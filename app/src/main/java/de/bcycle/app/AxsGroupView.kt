@@ -15,17 +15,6 @@ internal class AxsGroupView(context:Context,private val runtime:RideRuntime,sear
     private val labels=mutableMapOf<String,Pair<TextView,TextView>>()
     private val removes=mutableListOf<View>()
     private val measurements=mutableMapOf<String,SensorMeasurementDetails>()
-    private var binding=false
-    private val warning=android.widget.Switch(context).apply {
-        tag="axs_warning_enabled";setText(R.string.axs_warning_enabled)
-        isChecked=runtime.bikes.current().shiftBatteryWarning
-        setOnCheckedChangeListener { _,enabled ->
-            if(!binding && runtime.bikes.activeSlot==slot) {
-                runtime.bikes.save(runtime.bikes.current().copy(shiftBatteryWarning=enabled))
-                if(!enabled) runtime.shiftBatteryWarning.clear()
-            }
-        }
-    }
     private val read=BicycleComponents.action(context,themes,context.getString(R.string.axs_refresh)) {
         if(runtime.bikes.activeSlot==slot) if(runtime.hasBluetooth()) runtime.refreshShiftGroup() else search()
     }.apply { tag="axs_refresh" }
@@ -37,7 +26,6 @@ internal class AxsGroupView(context:Context,private val runtime:RideRuntime,sear
             orientation=HORIZONTAL
             addView(add,LayoutParams(0,-2,1f));addView(read,LayoutParams(0,-2,1f))
         },LayoutParams(-1,-2))
-        addView(warning,LayoutParams(-1,-2))
         BicycleDialogStyle.content(this,themes);refresh()
     }
     fun refresh() {
@@ -76,7 +64,6 @@ internal class AxsGroupView(context:Context,private val runtime:RideRuntime,sear
                 resources.getQuantityString(R.plurals.sensor_value_count,count,count)) else status)
             measurements[device.address]?.update(if(count>0) listOf(context.getString(R.string.sensor_values_battery)) else emptyList())
         }
-        binding=true;warning.isChecked=p.shiftBatteryWarning;binding=false
         add.isEnabled=!runtime.recording && !runtime.saving && p.shiftDevices.size<AxsDevice.MAX_COUNT
         read.isEnabled=p.shiftEnabled && p.shiftDevices.isNotEmpty() && !runtime.shiftGroup.active
         removes.forEach { it.isEnabled=!runtime.recording && !runtime.saving;it.alpha=if(it.isEnabled) 1f else .4f }

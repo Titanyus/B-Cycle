@@ -512,7 +512,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_wheel">Radumfang</string>
     <string name="bikes_wheel_mm">mm</string>
     <string name="bikes_wheel_error">Bitte 500 bis 4000 mm eingeben</string>
-    <string name="bikes_autoconnect">Beim App-Start automatisch verbinden</string>
+    <string name="bikes_autoconnect">Sensoren automatisch verbinden</string>
     <string name="bikes_search">Sensor suchen / verbinden</string>
     <string name="bikes_sensors">Sensoren</string>
     <string name="bikes_name_edit">Bike-Namen bearbeiten</string>
@@ -530,7 +530,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="bikes_profile_selected">%1$s ausgewählt</string>
     <string name="bikes_fit_primary_speed">Geschwindigkeit</string>
     <string name="bikes_fit_primary_distance">Distanz</string>
-    <string name="bikes_fit_explanation">Die Hauptquelle liefert den Standardwert der FIT-Datei. Weitere Quellen kannst du zusätzlich aufzeichnen.</string>
+    <string name="bikes_fit_explanation">Diese Sensoren/Datenquellen werden als Hauptwerte in die .fit-Datei übernommen.</string>
     <string name="bikes_fit_additional">Aufzuzeichnende Werte</string>
     <string name="bikes_search_recording_locked">Sensorsuche während Aufnahme gesperrt</string>
     <string name="bikes_search_saving_locked">Sensorsuche während Speichern gesperrt</string>

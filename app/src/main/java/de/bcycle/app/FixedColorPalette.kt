@@ -30,6 +30,7 @@ internal class FixedColorPalette(context:Context,themes:ThemeManager,initial:Int
             return Color.HSVToColor(hsv)
         }
     }
+    var selectedColor:Int=initial;private set
     init {
         orientation=VERTICAL;gravity=Gravity.CENTER;tag="map_color_palette"
         val gap=BicycleDesign.dp(context,BicycleDesign.controlGap)
@@ -37,6 +38,12 @@ internal class FixedColorPalette(context:Context,themes:ThemeManager,initial:Int
         val hsv=FloatArray(3);Color.colorToHSV(initial,hsv)
         var brightness=(hsv[2]*9).roundToInt()
         val baseColors=spectrum.flatten()
+        val originalBase=Color.HSVToColor(floatArrayOf(hsv[0],hsv[1],1f))
+        var selectedBase=originalBase
+        var selectedIndex=baseColors.indices.minBy { index ->
+            val c=baseColors[index]
+            (Color.red(c)-Color.red(originalBase)).toDouble().pow(2)+(Color.green(c)-Color.green(originalBase)).toDouble().pow(2)+(Color.blue(c)-Color.blue(originalBase)).toDouble().pow(2)
+        }
         val grid=object:ViewGroup(context) {
             private var cellWidth=0f;private var cellHeight=0f
             override fun onMeasure(w:Int,h:Int) {
@@ -61,14 +68,18 @@ internal class FixedColorPalette(context:Context,themes:ThemeManager,initial:Int
             val color=withBrightness(baseColors[index],brightness)
             button.tag="map_palette_${String.format(java.util.Locale.ROOT,"%06X",color and 0xffffff)}"
             button.contentDescription=context.getString(R.string.map_palette_color,index+1)+" · "+String.format(java.util.Locale.ROOT,"#%06X",color and 0xffffff)
-            button.isSelected=color==initial
+            button.isSelected=index==selectedIndex
             button.stateDescription=if(button.isSelected) context.getString(R.string.bikes_selected) else null
             button.background=HexColorDrawable(color,button.isSelected,tokens.foreground,resources.displayMetrics.density)
         }
         baseColors.forEachIndexed { index,base ->
             grid.addView(ImageButton(context).apply {
                 BicycleComponents.bindTheme(this,themes) { paint(this,index,it) }
-                setOnClickListener { choose(withBrightness(base,brightness)) }
+                setOnClickListener {
+                    selectedIndex=index;selectedBase=base;selectedColor=withBrightness(selectedBase,brightness)
+                    for(i in baseColors.indices) paint(grid.getChildAt(i) as ImageButton,i,themes.active.tokens)
+                    choose(selectedColor)
+                }
             })
         }
         addView(grid,LayoutParams(-1,-2))
@@ -83,6 +94,8 @@ internal class FixedColorPalette(context:Context,themes:ThemeManager,initial:Int
                 override fun onStopTrackingTouch(bar:SeekBar)=Unit
                 override fun onProgressChanged(bar:SeekBar,value:Int,fromUser:Boolean) {
                     brightness=value
+                    selectedColor=withBrightness(selectedBase,brightness)
+                    if(fromUser) choose(selectedColor)
                     stateDescription="${(value*100/9f).roundToInt()} %"
                     for(i in baseColors.indices) paint(grid.getChildAt(i) as ImageButton,i,themes.active.tokens)
                 }

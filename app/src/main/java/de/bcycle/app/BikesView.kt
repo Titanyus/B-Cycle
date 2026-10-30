@@ -245,14 +245,13 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             wheel.error=if(mm==null || mm !in 500..4000) context.getString(R.string.bikes_wheel_error) else null
             if(wheel.error==null) runtime.bikes.save(runtime.bikes.current().copy(wheelMm=mm!!))
         })
-        addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.sectionDividerGap).apply { tag="bike_autostart_divider" })
+        section(R.string.bikes_sensors)
         autoStartRecording=Switch(context).apply {
             tag="bike_auto_start_recording";setText(R.string.bikes_auto_start_recording);isChecked=profile.autoStartRecording
             setOnCheckedChangeListener { _,enabled -> if(!binding && runtime.bikes.activeSlot==slot)
                 runtime.bikes.save(runtime.bikes.current().copy(autoStartRecording=enabled)) }
         }
         BicycleDialogStyle.control(autoStartRecording,themes);addView(autoStartRecording,LayoutParams(-1,-2))
-        section(R.string.bikes_sensors)
         autoConnect=Switch(context).apply {
             tag="bike_auto_connect";setText(R.string.bikes_autoconnect);isChecked=profile.autoConnect
             setOnCheckedChangeListener { _,enabled -> if(!binding && runtime.bikes.activeSlot==slot) runtime.setAutoConnect(enabled) }
@@ -289,26 +288,13 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 }
             }
             BicycleDialogStyle.control(toggle,themes);switches[sensor]=toggle
-            val details=LinearLayout(context).apply {
-                orientation=VERTICAL;tag="bike_sensor_details_${sensor.name}"
-                visibility=if(sensor in expandedSensors) VISIBLE else GONE
-            }
-            val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.sensor_details,context.getString(sensor.label))) {
-                val open=details.visibility!=VISIBLE
-                details.visibility=if(open) VISIBLE else GONE
+            val frame=BicycleFrameDropdown(context,themes,context.getString(sensor.label),open=sensor in expandedSensors,
+                trailing=toggle,leadingIcon=SensorIcons.forSensor(sensor)) { open ->
                 if(open) expandedSensors.add(sensor) else expandedSensors.remove(sensor)
-                val button=findViewWithTag<View>("bike_sensor_expand_${sensor.name}")
-                button.rotation=if(open) 180f else 0f
-                button.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            }.apply {
-                tag="bike_sensor_expand_${sensor.name}";rotation=if(sensor in expandedSensors) 180f else 0f
-                stateDescription=context.getString(if(sensor in expandedSensors) R.string.zone_expanded else R.string.zone_collapsed)
             }
-            sensorList.addView(LinearLayout(context).apply {
-                tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
-                BicycleComponents.switchAccordion(this,toggle,expand,themes,icon=SensorIcons.forSensor(sensor))
-            },LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
-            sensorList.addView(details,LayoutParams(-1,-2))
+            frame.expandControl.tag="bike_sensor_expand_${sensor.name}"
+            val details=frame.content.apply { tag="bike_sensor_details_${sensor.name}" }
+            sensorList.addView(frame,LayoutParams(-1,-2))
             if(sensor==BikeSensor.SHIFT) {
                 shiftView=AxsGroupView(context,runtime,search)
                 details.addView(shiftView,LayoutParams(-1,-2))
@@ -339,13 +325,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             correctionSlider(slot, R.string.indoor_correction_power, "power", profile.indoorCorrection.powerTenths)
             correctionSlider(slot, R.string.indoor_correction_speed, "speed", profile.indoorCorrection.speedTenths)
         }
-        val recording=recordingControls()
-        if(recording is LinearLayout && additionalSections!=null) {
-            while(recording.childCount>0) {
-                val child=recording.getChildAt(0);recording.removeViewAt(0)
-                addView(child,child.layoutParams)
-            }
-        } else addView(recording,LayoutParams(-1,-2))
         additionalSections?.invoke()?.filter { (title,_) -> title!=R.string.ui_settings_map || BikeSensor.GPS in profile.type.sensors }?.forEach { (title,body) ->
             val heading=section(title)
             if(title==R.string.training_help_title) {
@@ -361,6 +340,13 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
             addView(body,LayoutParams(-1,-2))
         }
+        val recording=recordingControls()
+        if(recording is LinearLayout && additionalSections!=null) {
+            while(recording.childCount>0) {
+                val child=recording.getChildAt(0);recording.removeViewAt(0)
+                addView(child,child.layoutParams)
+            }
+        } else addView(recording,LayoutParams(-1,-2))
         groupSections()
         refresh();footerChanged()
     }

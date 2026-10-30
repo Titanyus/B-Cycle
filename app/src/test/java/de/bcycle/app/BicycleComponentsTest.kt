@@ -74,7 +74,7 @@ class BicycleComponentsTest {
             assertEquals(themes.active.tokens.tertiary,popupBackground.color!!.defaultColor)
             assertEquals(BicycleDesign.dp(activity,BicycleDesign.inputRadius).toFloat(),popupBackground.cornerRadius,0f)
             val popupPadding=android.graphics.Rect();assertTrue(popupBackground.getPadding(popupPadding))
-            assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlBorder+BicycleDesign.popupGlowInset),popupPadding.left)
+            assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlBorder),popupPadding.left)
             assertEquals(popupPadding.left,popupPadding.top)
 
             val toggle=android.widget.Switch(activity);BicycleDialogStyle.control(toggle,themes)

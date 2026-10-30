@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="bikes_auto_start_recording">Autostart der Aufnahme</string>
+    <string name="bikes_auto_start_recording">Aufnahme automatisch starten</string>
 </resources>

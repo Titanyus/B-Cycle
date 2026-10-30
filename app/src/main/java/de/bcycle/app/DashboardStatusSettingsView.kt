@@ -20,18 +20,15 @@ internal class DashboardStatusSettingsView(context:Context,private val themes:Th
             BicycleDialogStyle.control(this,themes)
             setOnCheckedChangeListener { _,value -> prefs.edit().putBoolean(DashboardFullscreen.key,value).apply();changed() }
         }
-        addView(LinearLayout(context).apply {
-            tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
-            val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.dashboard_fullscreen)) {}.apply {
-                tag="dashboard_status_expand";stateDescription=context.getString(R.string.zone_collapsed)
-                setOnClickListener {
-                    val open=body.visibility==GONE;body.visibility=if(open) VISIBLE else GONE;rotation=if(open) 180f else 0f
-                    if(!open) popup?.dismiss()
-                    stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-                }
-            }
-            BicycleComponents.switchAccordion(this,enabled,expand,themes)
-        },LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)))
+        val frame=BicycleFrameDropdown(context,themes,context.getString(R.string.dashboard_fullscreen),open=false,
+            trailing=enabled,leadingIcon=BicycleIcon.Dashboard) { open ->
+            body.visibility=if(open) VISIBLE else GONE
+            if(!open) popup?.dismiss()
+        }
+        frame.expandControl.tag="dashboard_status_expand"
+        body.setPadding(0,0,0,0)
+        frame.content.addView(body,LayoutParams(-1,-2))
+        addView(frame,LayoutParams(-1,-2))
         val headings=LinearLayout(context).apply { orientation=HORIZONTAL;isBaselineAligned=false }
         for(side in 0..1) headings.addView(BicycleComponents.contentHeading(context,themes,context.getString(if(side==0) R.string.dashboard_status_left else R.string.dashboard_status_right)).apply {
             gravity=(if(side==0) Gravity.START else Gravity.END) or Gravity.CENTER_VERTICAL
@@ -77,7 +74,7 @@ internal class DashboardStatusSettingsView(context:Context,private val themes:Th
         }
         body.addView(slots,LayoutParams(-1,-2))
         body.addView(DashboardStatusPhonePreview(context,themes,preview),LayoutParams(-1,dp(BicycleDesign.dashboardStatusPhoneHeight)).apply { topMargin=dp(BicycleDesign.sectionContentGap) })
-        addView(body,LayoutParams(-1,-2));render()
+;render()
     }
     override fun onDetachedFromWindow() { popup?.dismiss();popup=null;super.onDetachedFromWindow() }
     private fun save() { DashboardStatusConfig.write(prefs,config);render();changed() }

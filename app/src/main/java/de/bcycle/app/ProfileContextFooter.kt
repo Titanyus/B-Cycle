@@ -3,6 +3,7 @@ package de.bcycle.app
 import android.content.Context
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ScrollView
 
@@ -33,7 +34,15 @@ internal class ProfileContextFooter(context:Context,themes:ThemeManager,private 
         while(parent is View && parent!==scroll) { y+=parent.top;parent=parent.parent }
         val relative=y-scroll.scrollY
         val margin=if(dashboardMode) BicycleDesign.dp(context,BicycleDesign.modeFooterHysteresis) else 0
-        val dashboard=header!=null && header.expanded!=false && dashboardActions!=null && scroll.scrollY>0 && relative<=scroll.height/2+margin
+        // Design is no longer the final section. Stop offering dashboard actions
+        // once the following section crosses the same viewport midpoint.
+        val siblings=header?.parent as? ViewGroup
+        val next=siblings?.let { group ->
+            (group.indexOfChild(header)+1 until group.childCount).map(group::getChildAt).firstOrNull { it is BicycleSectionHeader }
+        }
+        val end=(next?.top ?: siblings?.height ?: 0)+(y-(header?.top ?: 0))-scroll.scrollY
+        val dashboard=header!=null && header.expanded!=false && dashboardActions!=null && scroll.scrollY>0 &&
+            relative<=scroll.height/2+margin && end>scroll.height/2-margin
         if(dashboard==dashboardMode) return
         finishAnimations()
         val outgoing=if(dashboardMode) dashboardActions else profileActions

@@ -17,14 +17,11 @@ internal class FitMetadataView(context:Context,themes:ThemeManager,profile:BikeP
     init {
         orientation=VERTICAL;tag="fit_metadata"
         val chosen=selected.toMutableSet()
-        val content=LinearLayout(context).apply { orientation=VERTICAL;tag="fit_metadata_content";visibility=if(expanded) View.VISIBLE else View.GONE }
-        lateinit var toggle:android.widget.Button
-        toggle=BicycleComponents.action(context,themes,context.getString(R.string.fit_metadata_title)) {
-            val open=content.visibility!=View.VISIBLE;content.visibility=if(open) View.VISIBLE else View.GONE
-            toggle.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed);onExpand(open)
-        }.apply { tag="fit_metadata_toggle";isAccessibilityHeading=true;stateDescription=context.getString(if(expanded) R.string.zone_expanded else R.string.zone_collapsed) }
-        BicycleDialogStyle.accordion(toggle,themes);BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Info,BicycleIcon.Expand)
-        addView(toggle);addView(content)
+        val frame=BicycleFrameDropdown(context,themes,context.getString(R.string.fit_metadata_title),open=expanded,
+            leadingIcon=BicycleIcon.Info,changed=onExpand)
+        frame.header.apply { tag="fit_metadata_toggle";isAccessibilityHeading=true }
+        val content=frame.content.apply { tag="fit_metadata_content" }
+        addView(frame,LayoutParams(-1,-2))
         FitMetadataField.entries.forEach { field ->
             content.addView(Switch(context).apply {
                 tag="fit_metadata_${field.name}";switches[field]=this

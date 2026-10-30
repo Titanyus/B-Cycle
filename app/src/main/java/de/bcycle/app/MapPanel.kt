@@ -378,7 +378,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             overlays=runtime.mapState.mapRoutes.filter { runtime.mapState.routeVisible(it.id) }.map { StyledMapRoute(it.route,MapRouteStyles.read(preferences,MapRouteStyles.saved(it.slot),night)) })
     }
     private fun refreshDataFields() {
-        dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, runtime.currentBikeLight.takeUnless { BikeLightSettings.top(preferences) },runtime.trendSnapshot)
+        dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, null,runtime.trendSnapshot)
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val dataLayout=dataFields.layoutParams

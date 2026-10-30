@@ -35,6 +35,7 @@ class MainActivity : Activity() {
         if(statusForeground && ::dashboardStatus.isInitialized) { dashboardStatus.reloadMessenger();updateDashboardFullscreen() }
     }
     private lateinit var dashboardRoot:View
+    private lateinit var cornerBikeLight:ImageView
     private lateinit var dashboardHost: FrameLayout
     private lateinit var dashboard: DashboardView
     private var hrvObservation:AutoCloseable?=null
@@ -179,6 +180,12 @@ class MainActivity : Activity() {
             val custom=::dashboardStatus.isInitialized && dashboardStatus.visibility==View.VISIBLE
             val top=if(custom) maxOf(bars.top,insets.getInsetsIgnoringVisibility(WindowInsets.Type.statusBars()).top,dp(BicycleDesign.dashboardStatusMinHeight)) else bars.top
             view.setPadding(bars.left,top,bars.right,bars.bottom)
+            if(::cornerBikeLight.isInitialized) {
+                val p=cornerBikeLight.layoutParams as FrameLayout.LayoutParams
+                p.topMargin=top+dp(BicycleDesign.horizontalPadding)
+                p.marginEnd=bars.right+dp(BicycleDesign.horizontalPadding)
+                cornerBikeLight.layoutParams=p
+            }
             if(::dashboardStatus.isInitialized) {
                 val params=dashboardStatus.layoutParams
                 if(params.height!=top) { params.height=top;dashboardStatus.layoutParams=params }
@@ -191,6 +198,14 @@ class MainActivity : Activity() {
         dashboardHost=host
         dashboardStatus=DashboardStatusStrip(this,runtime.themes).apply { visibility=View.GONE }
         host.addView(dashboardStatus,FrameLayout.LayoutParams(-1,dp(BicycleDesign.dashboardStatusMinHeight),Gravity.TOP))
+        cornerBikeLight=ImageView(this).apply {
+            tag="dashboard_bike_light";visibility=View.GONE
+            contentDescription=getString(R.string.ui_bike_light_on)
+            setImageDrawable(BicycleIcons.drawable(this@MainActivity,BicycleIcon.Light,BicycleDesign.bikeLightStatusColor))
+        }
+        host.addView(cornerBikeLight,FrameLayout.LayoutParams(dp(BicycleDesign.bikeLightStatusWidth),dp(BicycleDesign.bikeLightStatusHeight),Gravity.TOP or Gravity.END).apply {
+            topMargin=dp(BicycleDesign.horizontalPadding);marginEnd=dp(BicycleDesign.horizontalPadding)
+        })
         dashboardStatusMonitor=DashboardStatusMonitor(this) { dashboardStatus.show(it) }
         setContentView(host)
         dashboard = DashboardView(this) { chooseField(it) }
@@ -352,7 +367,7 @@ class MainActivity : Activity() {
     private fun render() {
         if (!::dashboard.isInitialized) return
         if(::dashboardStatusMonitor.isInitialized) dashboardStatusMonitor.battery(runtime.batterySnapshot.level(BatterySource.PHONE))
-        if(::dashboardStatus.isInitialized && dashboardStatus.bikeLightOn!=(BikeLightSettings.top(preferences) && runtime.currentBikeLight==true)) updateDashboardFullscreen()
+        if(::dashboardStatus.isInitialized && (dashboardStatus.bikeLightOn!=(BikeLightSettings.top(preferences) && runtime.currentBikeLight==true) || cornerBikeLight.visibility!=(if(!DashboardFullscreen.enabled(preferences) && dialogs.empty && runtime.currentBikeLight==true) View.VISIBLE else View.GONE))) updateDashboardFullscreen()
         if(::mapPanel.isInitialized && shownProfileRevision!=runtime.profileRevision) {
             shownProfileRevision=runtime.profileRevision
             dashboard.resetTrends()
@@ -397,21 +412,15 @@ class MainActivity : Activity() {
         runtime.liveGraphs.rolling=dashboardGraphs.windows.indices.any { dashboard.template.supportsGraph(it) && dashboardGraphs.slots[it].isNotEmpty() && dashboardGraphs.windows[it]!=GraphWindow.FULL }
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues,runtime.trendSnapshot)
-        val placement=ModeGlowSettings.placement(preferences)
-        dashboard.modeGlow.place(placement)
-        // The top light belongs to the whole window, including the cutout/status inset.
-        // Content retains its existing safe padding; the one Drawable changes owners only.
-        if(placement==ModeGlowPlacement.TOP) {
-            if(dashboardHost.background!==dashboard.modeGlow) {
-                dashboard.background=null;dashboardHost.background=dashboard.modeGlow
-            }
-        } else if(dashboard.background!==dashboard.modeGlow) {
-            dashboardHost.setBackgroundColor(Color.BLACK);dashboard.background=dashboard.modeGlow
+        dashboard.modeGlow.place(ModeGlowPlacement.TOP)
+        // Top mode light includes the system/cutout inset; content keeps its safe padding.
+        if(dashboardHost.background!==dashboard.modeGlow) {
+            dashboard.background=null;dashboardHost.background=dashboard.modeGlow
         }
-        dashboard.showModeGlow(ModeGlowSettings.enabled(preferences), runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.bikeBatteryWarningLevel)
+        dashboard.showModeGlow(true, runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.bikeBatteryWarningLevel)
         val drinkSettings=DrinkReminderSettings.read(preferences)
         val drinkVisible=runtime.visible && dialogs.empty && !dashboardEditing
-        val warningEnabled=runtime.bikes.current().shiftBatteryWarning && runtime.shiftEnabled
+        val warningEnabled=runtime.shiftEnabled
         if(!drinkVisible || !runtime.recording || !warningEnabled) shiftBatteryWarningPanel.clear()
         runtime.shiftBatteryWarning.take(runtime.recording,drinkVisible,warningEnabled)?.let { level ->
             drinkReminderPanel.clear();shiftBatteryWarningPanel.showBattery(level)
@@ -616,9 +625,9 @@ class MainActivity : Activity() {
                     if(runtime.bikes.activeSlot==slot) remove()
                 }.show()
         }, additionalSections={ listOf(
-            R.string.ui_settings_map to mapControls(),
             R.string.ui_design_title to dashboardControls(embedded=true),
-            R.string.training_help_title to trainingHelpControls { dashboardPages.selected() }.apply { tag="profile_training_help" }
+            R.string.training_help_title to trainingHelpControls { dashboardPages.selected() }.apply { tag="profile_training_help" },
+            R.string.ui_settings_map to mapControls()
         ) }, editDashboard=::enterDashboardEditor,assignProfiles=::showOrphanProfiles)
         bikesManager = content
         val scroll=BicycleStickyScrollView(settingsContext).apply { addView(content) }
@@ -683,6 +692,7 @@ class MainActivity : Activity() {
         BicycleForm.section(root,settingsThemes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
         var previewRevision=Long.MIN_VALUE
         var previewDetails:RouteDetails?=null
+        root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         root.addView(RideNamingView(settingsContext,settingsThemes,latestRide={
             if(previewRevision!=runtime.mapState.routeRevision) {
                 previewRevision=runtime.mapState.routeRevision
@@ -690,7 +700,6 @@ class MainActivity : Activity() {
             }
             previewDetails
         }) { runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving })
-        root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         var sources=current.sourcePreferences ?: RecordingSources.defaults(current,current.indoor)
         lateinit var sourceControls:RecordingSourcesView
         fun saveFields() {
@@ -712,23 +721,13 @@ class MainActivity : Activity() {
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
-            val content=LinearLayout(settingsContext).apply {
-                orientation=LinearLayout.VERTICAL;tag="fit_source_content_$source"
-                visibility=if(source in expandedFitSources) View.VISIBLE else View.GONE
-            }
-            lateinit var toggle: Button
-            toggle=BicycleComponents.action(settingsContext,settingsThemes,DashboardTextResources.source(this,source)) {
-                val open=content.visibility!=View.VISIBLE
-                content.visibility=if(open) View.VISIBLE else View.GONE
+            val frame=BicycleFrameDropdown(settingsContext,settingsThemes,DashboardTextResources.source(this,source),
+                open=source in expandedFitSources,leadingIcon=SensorIcons.forSource(source)) { open ->
                 if(open) expandedFitSources.add(source) else expandedFitSources.remove(source)
-                toggle.stateDescription=getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            }.apply {
-                tag="fit_source_$source";isAccessibilityHeading=true
-                stateDescription=getString(if(source in expandedFitSources) R.string.zone_expanded else R.string.zone_collapsed)
             }
-            BicycleDialogStyle.accordion(toggle,settingsThemes)
-            BicycleDialogStyle.actionIcon(toggle,settingsThemes,SensorIcons.forSource(source),BicycleIcon.Expand)
-            root.addView(toggle);root.addView(content)
+            frame.header.apply { tag="fit_source_$source";isAccessibilityHeading=true }
+            val content=frame.content.apply { tag="fit_source_content_$source" }
+            root.addView(frame)
             for (field in fields) content.addView(Switch(settingsContext).apply {
                 text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(BicycleDesign.touchSize)
                 setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id);saveFields() }
@@ -1175,7 +1174,9 @@ class MainActivity : Activity() {
         if(::dashboardStatus.isInitialized) {
             val config=DashboardStatusConfig.read(preferences)
             dashboardStatus.config=config
-            dashboardStatus.bikeLightOn=BikeLightSettings.top(preferences) && runtime.currentBikeLight==true
+            val lightOn=runtime.currentBikeLight==true
+            dashboardStatus.bikeLightOn=fullscreen && lightOn
+            cornerBikeLight.visibility=if(!fullscreen && dialogs.empty && lightOn) View.VISIBLE else View.GONE
             dashboardStatus.visibility=if(fullscreen && (config.populated || dashboardStatus.bikeLightOn)) View.VISIBLE else View.GONE
             if(statusForeground) dashboardStatusMonitor.configure(if(fullscreen) config else DashboardStatusConfig())
             dashboardRoot.requestApplyInsets()
@@ -1192,16 +1193,15 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot
         val revision=runtime.profileRevision
         val root = column()
-        root.addView(DashboardStatusSettingsView(settingsContext,settingsThemes,preferences,changed={ updateDashboardFullscreen() }))
-        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="design_appearance_divider" })
         root.addView(Switch(settingsContext).apply {
             tag="flat_design";setText(R.string.ui_flat_design);isChecked=settingsThemes.flatDesign
             BicycleDialogStyle.control(this,settingsThemes)
             setOnCheckedChangeListener { _,checked -> settingsThemes.setFlatDesign(checked) }
         })
         root.addView(ThemePickerView(settingsContext,settingsThemes))
+        root.addView(DashboardStatusSettingsView(settingsContext,settingsThemes,preferences,changed={ updateDashboardFullscreen() }))
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="design_dashboard_divider" })
-        if(!embedded) BicycleForm.section(root,settingsThemes,R.string.ui_dashboard_page_choose)
+        root.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.ui_dashboard_page_choose)))
         val presets = DashboardPresetPicker(settingsContext,dashboardPages.selected(),settingsThemes)
         val footer=bicycleFooter(settingsContext,settingsThemes)
         var trainingControls:TrainingHelpView?=null
@@ -1245,17 +1245,7 @@ class MainActivity : Activity() {
             // BikesView moves these existing actions into its context-sensitive fixed footer.
             footer.tag="dashboard_inline_actions"
             root.setPadding(0,0,0,0);root.addView(footer)
-            if(runtime.bikes.current().type==BikeType.EBIKE) {
-                root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
-                root.addView(modeGlowControls())
-                root.addView(bikeLightControls())
-            }
             BicycleDialogStyle.content(root,settingsThemes);return root
-        }
-        if(runtime.bikes.current().type==BikeType.EBIKE) {
-            root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes))
-            root.addView(modeGlowControls())
-            root.addView(bikeLightControls())
         }
         val body=LinearLayout(settingsContext).apply {
             orientation=LinearLayout.VERTICAL
@@ -1268,53 +1258,6 @@ class MainActivity : Activity() {
         val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision
         return DrinkReminderSettingsView(settingsContext,settingsThemes,preferences,
             canEdit={ slot==runtime.bikes.activeSlot && revision==runtime.profileRevision },changed={ render() })
-    }
-    private fun bikeLightControls():View {
-        val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision
-        return BikeLightSettingsView(settingsContext,settingsThemes,preferences,
-            canEdit={ slot==runtime.bikes.activeSlot && revision==runtime.profileRevision },changed={ render() })
-    }
-    private fun modeGlowControls():View {
-        val slot=runtime.bikes.activeSlot;val revision=runtime.profileRevision
-        val root=column().apply { setPadding(0,0,0,0) }
-        val glow=Switch(settingsContext).apply {
-            setText(R.string.ui_bosch_mode);tag="mode_glow_enabled";isChecked=ModeGlowSettings.enabled(preferences)
-            setOnCheckedChangeListener { _,checked ->
-                if(slot==runtime.bikes.activeSlot && revision==runtime.profileRevision) { ModeGlowSettings.save(preferences,checked);render() }
-            }
-        }
-        BicycleDialogStyle.control(glow,settingsThemes)
-        glow.gravity=Gravity.START or Gravity.CENTER_VERTICAL
-        val details=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL;tag="mode_glow_details";visibility=View.GONE }
-        val expand=BicycleComponents.icon(settingsContext,settingsThemes,BicycleIcon.Expand,getString(R.string.ui_bosch_mode)) {
-            val open=details.visibility!=View.VISIBLE
-            details.visibility=if(open) View.VISIBLE else View.GONE
-            root.findViewWithTag<View>("mode_glow_expand").apply {
-                rotation=if(open) 180f else 0f
-                stateDescription=getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-            }
-        }.apply { tag="mode_glow_expand";stateDescription=getString(R.string.zone_collapsed) }
-        root.addView(LinearLayout(settingsContext).apply {
-            tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
-            BicycleComponents.switchAccordion(this,glow,expand,settingsThemes,icon=BicycleIcon.EBike)
-        },LinearLayout.LayoutParams(-1,dp(BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(settingsContext,BicycleDesign.sectionRuleDp)))
-        root.addView(details,LinearLayout.LayoutParams(-1,-2))
-        val row=LinearLayout(settingsContext).apply { gravity=Gravity.CENTER_VERTICAL;tag=BicycleDesign.inlineControlRowTag }
-        val title=label(getString(R.string.ui_glow_visible),BicycleDesign.bodySp)
-        row.addView(title,LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(BicycleDesign.controlGap) })
-        val placement=Spinner(settingsContext).apply {
-            tag="mode_glow_placement";id=View.generateViewId();title.labelFor=id
-            adapter=ArrayAdapter(settingsContext,android.R.layout.simple_spinner_dropdown_item,ModeGlowPlacement.entries.map { getString(it.label) })
-            setSelection(ModeGlowSettings.placement(preferences).ordinal)
-            BicycleDialogStyle.spinner(this,settingsThemes,BicycleDesign.profileDropdownSp)
-            observeSettings(this) {
-                if(slot!=runtime.bikes.activeSlot || revision!=runtime.profileRevision || !root.isAttachedToWindow) return@observeSettings
-                preferences.edit().putString(ModeGlowSettings.placementKey,ModeGlowPlacement.entries[selectedItemPosition].name).apply();render()
-            }
-        }
-        row.addView(placement,LinearLayout.LayoutParams(0,-2,1f));details.addView(row,LinearLayout.LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
-        BicycleDialogStyle.content(root,settingsThemes)
-        return root
     }
     private fun trainingHelpControls(page:()->Int)=
         TrainingHelpView(settingsContext,settingsThemes,DashboardTrainingHelp.read(preferences,page())) { config ->

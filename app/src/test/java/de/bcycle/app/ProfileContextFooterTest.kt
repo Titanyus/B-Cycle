@@ -53,6 +53,14 @@ class ProfileContextFooterTest {
             position(scroll.height/2+12);assertTrue("scroll=${scroll.scrollY}, height=${scroll.height}, content=${body.height}, root=${root.height}, header=${top()}, design=${root.findViewWithTag<View>("profile_section_content_${a.getString(R.string.ui_design_title)}").height}, expanded=${body.designHeader!!.expanded}",footer.dashboardMode)
             position(scroll.height/2+30);assertFalse(footer.dashboardMode)
             position(scroll.height/2);assertTrue("scroll=${scroll.scrollY}, height=${scroll.height}, content=${body.height}, root=${root.height}, header=${top()}, design=${root.findViewWithTag<View>("profile_section_content_${a.getString(R.string.ui_design_title)}").height}, expanded=${body.designHeader!!.expanded}",footer.dashboardMode)
+            val following=(0 until body.childCount).map(body::getChildAt).filterIsInstance<BicycleSectionHeader>()
+                .first { it.contentDescription==a.getString(R.string.ui_recording_title) }
+            var target=following.top;var outer=following.parent
+            while(outer is View && outer!==scroll) { target+=outer.top;outer=outer.parent }
+            scroll.scrollTo(0,target);footer.update(scroll,body.designHeader)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250))
+            assertFalse("Later profile sections must restore profile actions",footer.dashboardMode)
+            position(scroll.height/2);assertTrue(footer.dashboardMode)
             body.designHeader!!.performClick()
             footer.update(scroll,body.designHeader)
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250))

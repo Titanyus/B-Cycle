@@ -88,7 +88,7 @@ class BikesViewTest {
             val menu=ShadowAlertDialog.getLatestAlertDialog()
             menu.window!!.decorView.findViewWithTag<View>("settings_PROFILES").performClick()
             val screen=ShadowAlertDialog.getLatestAlertDialog();val decor=screen.window!!.decorView;measure(decor)
-            assertEquals("Profile",decor.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
+            assertEquals(app.getString(R.string.profiles_title),decor.findViewWithTag<TextView>("bicycle_dialog_title").text.toString())
             val body=decor.findViewWithTag<View>("bikes_manager")
             val cardLayouts=testDescendants(body).filter { it.tag?.toString()?.matches(Regex("bike_profile_[0-3]"))==true }.map { it as LinearLayout }
             cardLayouts.forEach { card ->
@@ -106,7 +106,7 @@ class BikesViewTest {
             val sourceToggle=body.findViewWithTag<android.widget.Button>("fit_source_GPS")
             assertEquals(BicycleDesign.choiceSp*app.resources.displayMetrics.scaledDensity,sourceToggle.textSize,.1f)
             assertNotNull(sourceToggle.compoundDrawablesRelative[0])
-            assertNotNull(sourceToggle.compoundDrawablesRelative[2])
+            assertNotNull((sourceToggle.parent.parent as BicycleFrameDropdown).expandControl)
             assertFalse(typeAdapter.isEnabled(BikeType.BIKE.ordinal))
             assertTrue(typeAdapter.isEnabled(BikeType.EBIKE.ordinal))
             assertTrue(typeAdapter.isEnabled(BikeType.INDOOR.ordinal))

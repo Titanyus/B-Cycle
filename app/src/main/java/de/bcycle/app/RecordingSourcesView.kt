@@ -47,6 +47,5 @@ internal class RecordingSourcesView(context:Context,themes:ThemeManager,profile:
             addView(row,LayoutParams(-1,-2))
         }
         refreshLock()
-        addView(BicycleComponents.description(context,themes,context.getString(R.string.source_fallback_hint)))
     }
 }

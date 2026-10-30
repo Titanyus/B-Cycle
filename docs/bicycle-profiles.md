@@ -1,5 +1,7 @@
 # Fahrradbezogene Profile
 
+Aktueller Stand nach Build 108: [Fahrradprofil-Revision](profile-settings-revision.md). Die dortigen Regeln ersetzen ältere Positionsschalter, Aufklappgestaltung und Farbdialog-Bedienung im folgenden historischen Umsetzungsstand.
+
 Seit der Profil-Integration bündelt **Einstellungen → Profile** die bisherigen Bereiche Bikes, Karten und Design & UI auf einer Seite. Fahrer und Upload-Dienste bleiben global.
 
 - Oben ein bis sechs Fahrradkacheln, drei sichtbar, horizontales Scrollen und gemeinsame Drag-and-drop-Vorschau.

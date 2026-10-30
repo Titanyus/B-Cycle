@@ -31,7 +31,7 @@ internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = Th
     CloudConfirmed(R.drawable.ic_lucide_cloud_check), SaveConfirmed(R.drawable.ic_lucide_save_check),
     CloudNotUploaded(R.drawable.ic_lucide_cloud_upload), CloudFailed(R.drawable.ic_lucide_cloud_alert), LocalSaved(R.drawable.ic_lucide_hard_drive_download, ThemeRole.PRIMARY),
     LocalNotSaved(R.drawable.ic_lucide_hard_drive_download), DeleteTrack(R.drawable.ic_lucide_trash_2),
-    RenameTrack(R.drawable.ic_lucide_pencil), CorrectElevation(R.drawable.ic_lucide_mountain), ExportTrack(R.drawable.ic_lucide_download),
+    RenameTrack(R.drawable.ic_lucide_pencil), NameRide(R.drawable.ic_lucide_map_pin_pen), CorrectElevation(R.drawable.ic_lucide_mountain), ExportTrack(R.drawable.ic_lucide_download),
     Cancel(R.drawable.ic_lucide_x), Close(R.drawable.ic_lucide_log_out), Back(R.drawable.ic_lucide_chevron_left), Import(R.drawable.ic_lucide_download),
     Date(R.drawable.ic_lucide_calendar_days), Distance(R.drawable.ic_lucide_chart_no_axes_combined),
     Duration(R.drawable.ic_lucide_clock), Ascent(R.drawable.ic_lucide_mountain),

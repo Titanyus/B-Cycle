@@ -25,7 +25,7 @@ class StickyAccordionSettingsTest {
         v.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2400,View.MeasureSpec.EXACTLY))
         v.layout(0,0,width,2400)
     }
-    @Test fun profileSectionsCollapseIndependentlyRemainFullWidthAndKeepFitSelections() {
+    @Test fun profileSectionsCollapseIndependentlyKeepGlowInsetsAndFitSelections() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val r=RideRuntime.get(a);r.themes.activate("preset:black-ops")
@@ -40,10 +40,10 @@ class StickyAccordionSettingsTest {
             for(width in listOf(720,1080)) {
                 layout(root,width)
                 for(h in listOf(fit,track,header(R.string.bikes_sensors),header(R.string.ui_settings_map))) {
-                    assertSame(bikes,h.parent);assertEquals(bikes.width,h.width);assertEquals(0,h.left)
+                    assertSame(bikes,h.parent);val inset=BicycleDesign.dp(a,BicycleDesign.sectionCardInset);assertEquals(bikes.width-2*inset,h.width);assertEquals(inset,h.left)
                     assertEquals(true,h.expanded)
                     assertEquals(r.themes.active.tokens.tertiary,(h.background as GradientDrawable).color!!.defaultColor)
-                    assertEquals(h.titleView.compoundDrawablesRelative[0]!!.bounds.width(),h.titleView.compoundDrawablesRelative[2]!!.bounds.width())
+                    assertNotNull(h.titleView.compoundDrawablesRelative[2])
                 }
             }
             testDescendants(root).filterIsInstance<Spinner>().forEach { v ->
@@ -86,12 +86,12 @@ class StickyAccordionSettingsTest {
             assertTrue(r.addBike());bikes.refresh();shadowOf(Looper.getMainLooper()).idle();layout(root)
             assertEquals(false,header(R.string.bikes_sensors).expanded)
             val name=root.findViewWithTag<BicycleSectionHeader>("bike_name_header")
-            assertNull(name.expanded);name.performClick()
+            assertEquals(true,name.expanded);root.findViewWithTag<View>("bike_profile_name").performClick()
             root.findViewWithTag<EditText>("bike_profile_name_edit").apply { setText("Mein Indoor-Rad");onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_DONE) }
-            assertEquals("Mein Indoor-Rad",r.bikes.current().name);assertEquals(View.VISIBLE,name.visibility);assertNull(name.expanded)
+            assertEquals("Mein Indoor-Rad",r.bikes.current().name);assertEquals(View.VISIBLE,name.visibility);assertEquals(true,name.expanded)
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun outlinedControlsAndInputsFollowThemeWithHalfOpacityBorders() {
+    @Test fun outlinedControlsAndInputsFollowThemeWithTwoDpQuarterOpacityBorders() {
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("new-control-style",0))
@@ -107,29 +107,33 @@ class StickyAccordionSettingsTest {
                 themes.activate(theme)
                 for(v in listOf(button,spinner,input,number)) {
                     val bitmap=Bitmap.createBitmap(600,160,Bitmap.Config.ARGB_8888)
-                    val fill=when(v) { input->themes.active.tokens.tertiary;number->android.graphics.Color.TRANSPARENT;else->themes.active.tokens.secondary }
-                    // Render onto the same surface; GradientDrawable clips its fill under the stroke.
-                    bitmap.eraseColor(fill)
+                    val base=(v.background as? GradientDrawable) ?: ((v.background as android.graphics.drawable.LayerDrawable).getDrawable(0) as GradientDrawable)
+                    val fill=base.color?.defaultColor ?: android.graphics.Color.TRANSPARENT
+                    val underlay=themes.active.tokens.secondary
+                    bitmap.eraseColor(underlay)
                     v.background.setBounds(0,0,600,160);v.background.draw(Canvas(bitmap))
                     val border=BicycleDesign.dp(a,BicycleDesign.controlBorder)
-                    assertEquals(BicycleDesign.dp(a,1),border)
+                    assertEquals(BicycleDesign.dp(a,2),border)
+                    val foreground=themes.active.tokens.foreground
                     val expected=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
-                    Canvas(expected).apply { drawColor(fill);drawColor(android.graphics.Color.argb(127,255,255,255)) }
-                    // Native stroke/fill composition may round individual color channels by one.
+                    val center=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+                    Canvas(center).apply { drawColor(underlay);drawColor(fill) }
+                    Canvas(expected).apply { drawColor(underlay);drawColor(fill);drawColor((foreground and 0xffffff) or (63 shl 24)) }
                     for(x in listOf(1,border-1)) for(shift in listOf(0,8,16,24)) {
                         assertEquals(((expected.getPixel(0,0) ushr shift) and 255).toDouble(),
                             ((bitmap.getPixel(x,80) ushr shift) and 255).toDouble(),1.0)
                     }
+                    val centerColor=center.getPixel(0,0);center.recycle()
                     expected.recycle()
-                    assertEquals(fill,bitmap.getPixel(border+2,80))
-                    assertEquals(fill,bitmap.getPixel(300,80))
-                    assertEquals(fill,bitmap.getPixel(0,0))
+                    assertEquals(centerColor,bitmap.getPixel(border+2,80))
+                    assertEquals(centerColor,bitmap.getPixel(300,80))
+                    assertEquals(underlay,bitmap.getPixel(0,0))
                     bitmap.recycle()
                 }
-                assertEquals(themes.active.tokens.secondary,(spinner.popupBackground as GradientDrawable).color!!.defaultColor)
+                assertEquals(themes.active.tokens.tertiary,(spinner.popupBackground as GradientDrawable).color!!.defaultColor)
                 val bitmap=Bitmap.createBitmap(600,160,Bitmap.Config.ARGB_8888)
                 input.background.setBounds(0,0,600,160);input.background.draw(Canvas(bitmap))
-                assertEquals(themes.active.tokens.tertiary,bitmap.getPixel(300,80));bitmap.recycle()
+                assertEquals(android.graphics.Color.TRANSPARENT,bitmap.getPixel(300,80));bitmap.recycle()
             }
         } finally { host.pause().stop().destroy() }
     }

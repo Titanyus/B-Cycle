@@ -77,29 +77,19 @@ class BoschModeGlowTest {
         glow.place(ModeGlowPlacement.SIDES);glow.draw(Canvas(b))
         assertTrue(Color.red(b.getPixel(2,150))>0);assertEquals(Color.BLACK,b.getPixel(100,2))
     }
-    @Test fun placementChoiceIsSavedImmediatelyAndRestoredInDesignSettings() {
+    @Test fun modeIsAlwaysAtTopAndNoLongerConfigurableInDesignSettings() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=controller.get();val prefs=a.getSharedPreferences("bike",0)
-            assertEquals(ModeGlowPlacement.SIDES,ModeGlowSettings.placement(prefs))
-            fun open():android.app.AlertDialog {
-                views(a.window.decorView).single { it.contentDescription==a.getString(R.string.ui_menu_open) }.performClick()
-                val menu=ShadowAlertDialog.getLatestAlertDialog()
-                views(menu.window!!.decorView).single { it.tag=="settings_PROFILES" }.performClick()
-                return ShadowAlertDialog.getLatestAlertDialog().also {
-                    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
-                    org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
-                }
-            }
-            var screen=open()
-            screen.window!!.decorView.findViewWithTag<android.widget.Spinner>("mode_glow_placement").setSelection(ModeGlowPlacement.TOP.ordinal)
-            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
-            assertEquals(ModeGlowPlacement.TOP,ModeGlowSettings.placement(prefs))
+            prefs.edit().putBoolean(ModeGlowSettings.key,false).putString(ModeGlowSettings.placementKey,"SIDES").commit()
+            MainActivity::class.java.getDeclaredMethod("render").apply { isAccessible=true }.invoke(a)
             val dashboard=views(a.window.decorView).filterIsInstance<DashboardView>().single()
             assertEquals(ModeGlowPlacement.TOP,dashboard.modeGlow.placement)
-            screen.dismiss();ShadowAlertDialog.getLatestAlertDialog().dismiss()
-            screen=open()
-            assertEquals(ModeGlowPlacement.TOP.ordinal,screen.window!!.decorView.findViewWithTag<android.widget.Spinner>("mode_glow_placement").selectedItemPosition)
+            MainActivity::class.java.getDeclaredMethod("dashboardSettings").apply { isAccessible=true }.invoke(a)
+            val screen=ShadowAlertDialog.getLatestAlertDialog()
+            assertNull(screen.window!!.decorView.findViewWithTag<View>("mode_glow_placement"))
+            assertNull(screen.window!!.decorView.findViewWithTag<View>("mode_glow_enabled"))
+            screen.dismiss()
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun transitionsFadeFor1500msIncludingOffAndInterruptedChangesWithoutShaderChurn() {
@@ -233,32 +223,22 @@ class BoschModeGlowTest {
         assertEquals(3L, runtime.currentAssistMode)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(61)); assertNull(runtime.currentAssistMode)
     }
-    @Test fun switchDefaultsOffChangesImmediatelyAndRestoresWithThemeIndependentColor() {
-        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+    @Test fun legacyOffCannotDisableMandatoryModeAndThemeDoesNotChangeFunctionalColours() {
+        val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
-            var activity = controller.get(); val runtime = RideRuntime.get(activity)
-            assertFalse(ModeGlowSettings.enabled(runtime.preferences))
-            fun open(): AlertDialog {
-                views(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-                val menu = ShadowAlertDialog.getLatestAlertDialog()
-                views(menu.window!!.decorView).single { it.tag == "settings_PROFILES" }.performClick()
-                return ShadowAlertDialog.getLatestAlertDialog()
+            val activity=controller.get();val runtime=RideRuntime.get(activity)
+            runtime.preferences.edit().putBoolean(ModeGlowSettings.key,false).commit()
+            val phase=runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible=true }
+            phase.set(runtime.connection,phase.type.enumConstants!!.single { it.toString()=="LIVE" })
+            runtime.onSamples(listOf(McspSample(LiveMetric.ASSIST_MODE.address,1,true)))
+            runtime.onData(LiveData(otherValues=mapOf(LiveMetric.ASSIST_MODE to 1L)),true)
+            for(flat in listOf(true,false)) {
+                runtime.themes.setFlatDesign(flat);runtime.themes.activate("preset:solar-flare")
+                MainActivity::class.java.getDeclaredMethod("render").apply { isAccessible=true }.invoke(activity)
+                val dashboard=views(activity.window.decorView).filterIsInstance<DashboardView>().single()
+                assertEquals(ModeGlowPlacement.TOP,dashboard.modeGlow.placement)
+                assertEquals(0xff80ff28.toInt(),dashboard.modeGlow.modeColor)
             }
-            val screen = open()
-            val toggle = views(screen.window!!.decorView).single { it.tag == "mode_glow_enabled" } as Switch
-            assertFalse(toggle.isChecked); toggle.isChecked = true
-            testBack(screen); shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(ModeGlowSettings.enabled(activity.getSharedPreferences("bike", 0)))
-            ShadowAlertDialog.getLatestAlertDialog().dismiss(); shadowOf(Looper.getMainLooper()).idle()
-            controller.recreate(); activity = controller.get()
-            val next = open()
-            val restored = views(next.window!!.decorView).single { it.tag == "mode_glow_enabled" } as Switch
-            assertTrue(restored.isChecked); restored.isChecked = false
-            runtime.themes.activate("preset:solar-flare"); shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(runtime.themes.active.tokens.foreground, restored.currentTextColor)
-            assertEquals(0xff80ff28.toInt(), BoschModeColors.color(1))
-            testBack(next); shadowOf(Looper.getMainLooper()).idle()
-            assertFalse(ModeGlowSettings.enabled(activity.getSharedPreferences("bike", 0)))
         } finally { controller.pause().stop().destroy() }
     }
 }
