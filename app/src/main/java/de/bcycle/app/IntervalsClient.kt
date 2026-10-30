@@ -12,7 +12,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 internal class IntervalsFailure(val retryable:Boolean,val problem:Int):IOException()
-/** Activity upload only. Future workout APIs belong to separate client capabilities. */
+/** Activity and daily wellness APIs. Workout APIs remain a separate capability. */
 internal class IntervalsClient(private val config:IntervalsConfig,private val key:String,
     private val cancelled:()->Boolean={false},private val base:HttpUrl="https://intervals.icu/api/v1/".toHttpUrl(),
     private val http:OkHttpClient=client) {
@@ -43,6 +43,45 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
             .addQueryParameter("newest",newest.toString()).addQueryParameter("limit","1000")
             .addQueryParameter("fields","id,type,start_date,start_date_local,timezone,elapsed_time,distance,external_id").build()
         return IntervalsActivity.decode(execute(request("activities").url(url).get().build()))
+    }
+    fun wellness(oldest:java.time.LocalDate,newest:java.time.LocalDate):Map<java.time.LocalDate,JSONObject> {
+        require(!newest.isBefore(oldest) && java.time.temporal.ChronoUnit.DAYS.between(oldest,newest)<=31)
+        val url=request("wellness").build().url.newBuilder().addQueryParameter("oldest",oldest.toString())
+            .addQueryParameter("newest",newest.toString()).build()
+        try {
+            val rows=JSONArray(execute(request("wellness").url(url).get().build()))
+            val result=linkedMapOf<java.time.LocalDate,JSONObject>()
+            require(rows.length()<=32)
+            for(index in 0 until rows.length()) {
+                val row=rows.getJSONObject(index);val day=java.time.LocalDate.parse(row.getString("id"))
+                require(day>=oldest && day<=newest && result.put(day,row)==null)
+                validateWellness(row)
+            }
+            return result
+        } catch(error:IntervalsFailure) { throw error } catch(error:IOException) { throw error }
+        catch(_:Exception) { throw IntervalsFailure(false,R.string.intervals_response_failed) }
+    }
+    fun wellness(day:java.time.LocalDate):JSONObject {
+        val url=request("wellness").build().url.newBuilder().addPathSegment(day.toString()).build()
+        val text=execute(request("wellness").url(url).get().build(),missingAllowed=true)
+        if(text.isEmpty()) return JSONObject().put("id",day.toString())
+        try {
+            return JSONObject(text).also { require(it.getString("id")==day.toString());validateWellness(it) }
+        } catch(_:Exception) { throw IntervalsFailure(false,R.string.intervals_response_failed) }
+    }
+    fun updateWellness(day:java.time.LocalDate,patch:JSONObject) {
+        require(patch.has("hrv") && patch.keys().asSequence().all { it in IntervalsWellness.fields })
+        val data=JSONObject(patch.toString()).put("id",day.toString())
+        val url=request("wellness").build().url.newBuilder().addPathSegment(day.toString()).build()
+        val text=execute(request("wellness").url(url).put(data.toString().toRequestBody("application/json".toMediaType())).build())
+        try {
+            val result=JSONObject(text);require(result.getString("id")==day.toString())
+            require(patch.keys().asSequence().all { IntervalsWellness.same(result.opt(it),patch.opt(it)) })
+        } catch(_:Exception) { throw IntervalsFailure(false,R.string.intervals_response_failed) }
+    }
+    private fun validateWellness(row:JSONObject) {
+        for(key in IntervalsWellness.fields) if(row.has(key) && !row.isNull(key))
+            require(row.get(key) is Number && row.getDouble(key).isFinite() && row.getDouble(key)>=0)
     }
     fun upload(file:File,name:String):String=upload(file,name,null,null)
     fun upload(file:File,name:String,externalId:String?,title:String?):String {

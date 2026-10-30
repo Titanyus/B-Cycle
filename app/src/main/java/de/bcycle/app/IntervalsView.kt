@@ -18,6 +18,9 @@ internal class IntervalsView(context:Context,themes:ThemeManager,config:Interval
     var uploadAll:()->Unit={}
     val bulkButton=BicycleComponents.action(context,themes,context.getString(R.string.intervals_bulk_button)) { uploadAll() }.apply { tag="intervals_bulk_upload" }
     val bulkResult=BicycleFeedback.status(context,themes).apply { tag="intervals_bulk_result" }
+    var uploadAllHrv:()->Unit={}
+    val hrvButton=BicycleComponents.action(context,themes,context.getString(R.string.intervals_hrv_bulk_button)) { uploadAllHrv() }.apply { tag="intervals_hrv_bulk_upload" }
+    val hrvResult=BicycleFeedback.status(context,themes).apply { tag="intervals_hrv_bulk_result" }
     init {
         orientation=VERTICAL
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad/2,pad,pad/2)
@@ -40,13 +43,17 @@ internal class IntervalsView(context:Context,themes:ThemeManager,config:Interval
         addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.sectionDividerGap))
         addView(BicycleComponents.description(context,themes,context.getString(R.string.intervals_bulk_hint)))
         addView(bulkButton);addView(bulkResult)
+        addView(BicycleComponents.description(context,themes,context.getString(R.string.intervals_hrv_bulk_hint)))
+        addView(hrvButton);addView(hrvResult)
         BicycleDialogStyle.content(this,themes)
         listOf(athlete,apiKey).forEach { BicycleForm.outlinedInput(it,themes) }
         BicycleDialogStyle.actionIcon(testButton,themes,BicycleIcon.Connection)
         BicycleDialogStyle.actionIcon(bulkButton,themes,TransferSymbols.intervals)
+        BicycleDialogStyle.actionIcon(hrvButton,themes,BicycleIcon.Heart)
     }
     fun config()=IntervalsConfig(enabled.isChecked,athlete.text.toString().trim(),wifi.isChecked)
     fun newKey()=apiKey.text.toString().trim().takeIf { it.isNotEmpty() }
     fun testing(busy:Boolean) { testButton.isEnabled=!busy;BicycleFeedback.update(result,if(busy) context.getString(R.string.route_export_testing) else "") }
-    fun bulkRunning(running:Boolean) { bulkButton.setText(if(running) R.string.intervals_bulk_cancel else R.string.intervals_bulk_button) }
+    fun bulkRunning(running:Boolean) { bulkButton.setText(if(running) R.string.intervals_bulk_cancel else R.string.intervals_bulk_button);hrvButton.isEnabled=!running }
+    fun hrvRunning(running:Boolean) { hrvButton.setText(if(running) R.string.intervals_bulk_cancel else R.string.intervals_hrv_bulk_button);bulkButton.isEnabled=!running }
 }

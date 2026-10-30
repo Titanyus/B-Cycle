@@ -1,0 +1,10 @@
+<resources>
+    <string name="dreeve_in_data">FIT-Streckendaten | Wartungsintervalle</string>
+    <string name="intervals_out_data">FIT-Streckendaten | HRV-Daten</string>
+    <string name="intervals_hrv_bulk_button">Alle HRV-Daten zu intervals.icu hochladen</string>
+    <string name="intervals_hrv_bulk_hint">Prüft vorhandene HRV-Tage und lädt nur fehlende hoch.</string>
+    <string name="intervals_hrv_starting">HRV-Tage werden geprüft …</string>
+    <string name="intervals_hrv_done">%1$d hochgeladen · %2$d bereits vorhanden · %3$d fehlgeschlagen</string>
+    <string name="intervals_hrv_interrupted">Vorgang unterbrochen. Ein erneuter Start prüft vorhandene HRV-Tage erneut.</string>
+    <string name="intervals_hrv_failed">HRV-Daten konnten nicht übertragen werden.</string>
+</resources>

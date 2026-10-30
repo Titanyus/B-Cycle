@@ -40,7 +40,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                     dropdown.expandControl.tag="data_expand_${action.name}"
                     frames[action]=dropdown
                     bodies[action]=dropdown.content
-                    if(action in setOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA)) {
+                    if(action in setOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.DREEVE,DataAction.INTERVALS,DataAction.STRAVA)) {
                         dropdown.content.addView(LinearLayout(context).apply {
                             orientation=VERTICAL;tag="data_transfer_${action.name}"
                             fun transfer(icon:BicycleIcon,title:Int) {
@@ -48,8 +48,8 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                                     BicycleDialogStyle.actionIcon(this,themes,icon)
                                 },LayoutParams(-1,-2))
                             }
-                            transfer(BicycleIcon.TransferOut,R.string.backup_fit_data)
-                            if(action==DataAction.DREEVE) transfer(BicycleIcon.TransferIn,R.string.backup_maintenance_data)
+                            transfer(BicycleIcon.TransferOut,if(action==DataAction.INTERVALS) R.string.intervals_out_data else R.string.backup_fit_data)
+                            if(action==DataAction.DREEVE) transfer(BicycleIcon.TransferIn,R.string.dreeve_in_data)
                         },LayoutParams(-1,-2))
                     }
                     addView(dropdown,LayoutParams(-1,-2))
@@ -105,7 +105,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
             },LayoutParams(-1,-2))
         }
         addView(restore,LayoutParams(-1,-2))
-        section(R.string.data_routes,listOf(DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.INTERVALS,DataAction.DREEVE,DataAction.STRAVA))
+        section(R.string.data_routes,listOf(DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.DREEVE,DataAction.INTERVALS,DataAction.STRAVA))
     }
     fun install(action:DataAction,content:View,enabled:Switch?=null) {
         if(enabled!=null) frames.getValue(action).setTrailing(enabled)

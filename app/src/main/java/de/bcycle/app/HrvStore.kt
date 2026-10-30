@@ -83,6 +83,9 @@ internal class HrvStore(private val root:File) {
             }
         }.getOrNull() }.sortedByDescending { it.utcMs }
     fun daily():List<HrvHistorySummary> = HrvDailySelection.latest(list())
+    fun intervalsWellness(day:java.time.LocalDate?=null):List<IntervalsWellness> = daily()
+        .filter { day==null || HrvDailySelection.day(it)==day }
+        .mapNotNull { row -> IntervalsWellness.from(row,questionnaireForEditing(row.id)) }
     fun readDaily(id:String):JSONObject {
         val rows=list();val selected=rows.firstOrNull { it.id==id } ?: error("Missing HRV measurement")
         val day=HrvDailySelection.day(selected)

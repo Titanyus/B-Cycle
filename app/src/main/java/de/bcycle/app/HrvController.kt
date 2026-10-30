@@ -137,6 +137,7 @@ internal class HrvController(private val context:Context,private val clock:()->L
         publish(state.copy(phase=current.phase,points=points.toList(),saving=true,saveError=false))
         val saved=checkNotNull(store).save(id,current,evaluation,clock())
         pending=null;busy=false
+        refreshIntervals(saved)
         main.removeCallbacks(tick)
         publish(HrvState(current.phase,current.diagnostics(clock()).measurementElapsedMs,0,bpm,clock()-lastRrAt<=5000,points.toList(),saved))
     }
@@ -162,10 +163,24 @@ internal class HrvController(private val context:Context,private val clock:()->L
     }
     fun measurement(id:String,done:(Result<JSONObject>)->Unit) =
         storageTask(done) { checkNotNull(store).readDaily(id) }
+    fun intervalsWellness(done:(Result<List<IntervalsWellness>>)->Unit) =
+        storageTask(done) { checkNotNull(store).intervalsWellness() }
+    private fun refreshIntervals(row:JSONObject) {
+        if(!IntervalsSettings(context).read().enabled) return
+        // Queue failures must never invalidate an otherwise successfully saved measurement.
+        runCatching {
+            val day=java.time.LocalDate.parse(HrvQuestionnaire.forMeasurement(row).day)
+            val record=checkNotNull(store).intervalsWellness(day).singleOrNull()
+            if(record==null) IntervalsHrvUploads.discard(context,day.toString()) else IntervalsHrvUploads.enqueue(context,record)
+        }
+    }
     fun deleteMeasurement(id:String,done:(Result<Unit>)->Unit) =
         storageTask(done) {
             check(!busy && pending==null)
+            val removed=checkNotNull(store).read(id)
             checkNotNull(store).delete(id)
+            // Deletion is local only; never delete the remote day. Resolve any remaining local measurement.
+            refreshIntervals(removed)
             if(state.result?.optString("id")==id)
                 publish(state.copy(result=null,phase=null,elapsedMs=0,remainingMs=state.measureMs,points=emptyList()))
         }
@@ -185,7 +200,10 @@ internal class HrvController(private val context:Context,private val clock:()->L
     fun questionnaire(id:String,done:(Result<HrvQuestionnaire?>)->Unit) =
         storageTask(done) { checkNotNull(store).questionnaireForEditing(id) }
     fun saveQuestionnaire(id:String,value:HrvQuestionnaire,done:(Result<Unit>)->Unit) =
-        storageTask(done) { checkNotNull(store).saveQuestionnaire(id,value) }
+        storageTask(done) {
+            checkNotNull(store).saveQuestionnaire(id,value)
+            refreshIntervals(checkNotNull(store).read(id))
+        }
     fun previewHrv4Training(uri:android.net.Uri,order:HrvCsvDateOrder?,done:(Result<HrvCsvPreview>)->Unit) =
         storageTask(done) {
             check(!busy)

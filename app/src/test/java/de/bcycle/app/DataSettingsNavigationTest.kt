@@ -50,7 +50,7 @@ class DataSettingsNavigationTest {
             val before=settings.read();val (root,data)=open(activity);measure(data)
             val text=views(data.window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(text.indexOf(activity.getString(R.string.data_global))<text.indexOf(activity.getString(R.string.data_routes)))
-            assertEquals(listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_INTERVALS","data_DREEVE","data_STRAVA") } })
+            assertEquals(listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_DREEVE","data_INTERVALS","data_STRAVA"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_DREEVE","data_INTERVALS","data_STRAVA") } })
             val frames=listOf("data_frame_BACKUP","data_frame_RIDE_BACKUP","data_frame_HRV_EXPORT","data_HRV_RESTORE_GROUP").map {
                 data.window!!.decorView.findViewWithTag<BicycleFrameDropdown>(it)
             }

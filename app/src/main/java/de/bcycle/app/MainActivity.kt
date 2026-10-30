@@ -2118,6 +2118,7 @@ class MainActivity : Activity() {
         val screen=owner ?: dataDialog(R.string.intervals_title,ScrollView(settingsContext).apply { addView(content) })
         val closed=java.util.concurrent.atomic.AtomicBoolean(false)
         var bulkStop:java.util.concurrent.atomic.AtomicBoolean?=null
+        var hrvStop:java.util.concurrent.atomic.AtomicBoolean?=null
         content.uploadAll={
             val running=bulkStop
             if(running!=null) { running.set(true);BicycleFeedback.update(content.bulkResult,getString(R.string.intervals_bulk_stopping)) }
@@ -2148,6 +2149,37 @@ class MainActivity : Activity() {
                 } }
             }
         }
+        content.uploadAllHrv={
+            val running=hrvStop
+            if(running!=null) { running.set(true);BicycleFeedback.update(content.hrvResult,getString(R.string.intervals_bulk_stopping)) }
+            else if(bulkStop!=null || runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy) BicycleFeedback.show(this,R.string.ride_backup_busy)
+            else {
+                val stop=java.util.concurrent.atomic.AtomicBoolean(false);hrvStop=stop
+                val cancelled={ stop.get() || closed.get() || runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy }
+                content.hrvRunning(true);BicycleFeedback.update(content.hrvResult,getString(R.string.intervals_hrv_starting))
+                // Read on the existing HRV storage worker; no RR arrays or network IO on the UI thread.
+                worker.execute { runOnUiThread {
+                    if(!closed.get()) runtime.hrv.intervalsWellness { snapshot ->
+                        if(!closed.get()) worker.execute {
+                            val result=snapshot.mapCatching { rows -> IntervalsHrvUpload(applicationContext).run(rows,cancelled) { done,total,item ->
+                                runOnUiThread { if(!closed.get()) BicycleFeedback.update(content.hrvResult,getString(R.string.intervals_bulk_progress,done,total,item.name)) }
+                            } }
+                            runOnUiThread {
+                                hrvStop=null
+                                if(!closed.get()) {
+                                    content.hrvRunning(false)
+                                    BicycleFeedback.update(content.hrvResult,result.fold({ report ->
+                                        getString(R.string.intervals_hrv_done,report.count(IntervalsBulkState.UPLOADED),report.count(IntervalsBulkState.EXISTS),report.count(IntervalsBulkState.FAILED))+
+                                            (if(report.interrupted) "\n"+getString(R.string.intervals_hrv_interrupted) else "")+
+                                            report.problem?.let { "\n"+getString(it) }.orEmpty()
+                                    },{ getString(ServiceProblems.text(it,R.string.intervals_hrv_failed)) }))
+                                }
+                            }
+                        }
+                    }
+                } }
+            }
+        }
         val revision=java.util.concurrent.atomic.AtomicLong()
         observeSettings(content) {
             val config=content.config();val key=content.newKey();val token=revision.incrementAndGet()
@@ -2163,7 +2195,7 @@ class MainActivity : Activity() {
                 }
             }
         }
-        dialogs.onDismiss(screen) { closed.set(true);bulkStop?.set(true);worker.shutdown() }
+        dialogs.onDismiss(screen) { closed.set(true);bulkStop?.set(true);hrvStop?.set(true);worker.shutdown() }
         return content
     }
     private fun routeExportSettings(part: RouteExportPart,owner:AlertDialog?=null):View {

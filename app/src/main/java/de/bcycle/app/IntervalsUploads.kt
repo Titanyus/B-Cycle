@@ -75,6 +75,7 @@ internal object IntervalsUploads {
             .setPersisted(true).setBackoffCriteria(60000,JobInfo.BACKOFF_POLICY_EXPONENTIAL).build())
     }
     fun settingsChanged(c:Context) {
+        IntervalsHrvUploads.settingsChanged(c)
         c.getSystemService(JobScheduler::class.java).cancel(JOB)
         synchronized(lock) { val all=entries(c);val athlete=IntervalsSettings(c).read().athlete
             all.keys().forEach { val item=all.getJSONObject(it);if(item.optString("athlete")==athlete && item.optString("state")=="failed") item.put("state","pending") };save(c,all)

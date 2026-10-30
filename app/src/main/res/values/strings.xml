@@ -558,7 +558,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="elevation_credit">Höhendaten: Mapterhorn · Quellen und Lizenzen</string>
     <string name="settings_build_info">Version %1$s\nBuild: %2$s</string>
     <string name="intervals_title">intervals.icu</string>
-    <string name="intervals_enabled">Fahrten automatisch hochladen</string>
+    <string name="intervals_enabled">Fahrten und HRV automatisch hochladen</string>
     <string name="intervals_athlete">Athleten-ID (z. B. i12345)</string>
     <string name="intervals_key">API-Schlüssel</string>
     <string name="intervals_key_saved">API-Schlüssel · gespeichert</string>

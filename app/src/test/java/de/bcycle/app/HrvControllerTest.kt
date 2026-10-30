@@ -55,6 +55,8 @@ class HrvControllerTest {
         var now=0L
         val context=RuntimeEnvironment.getApplication()
         HrvSettings(context).write(HrvMeasurementConfig(vibrateAtEnd=true,soundAtEnd=true))
+        val apiEncryptionKey=javax.crypto.KeyGenerator.getInstance("AES").apply { init(256) }.generateKey()
+        IntervalsSettings(context) { apiEncryptionKey }.write(IntervalsConfig(true,"i123",false),"test-api-key")
         val vibrator=context.getSystemService(android.os.VibratorManager::class.java).defaultVibrator
         org.robolectric.Shadows.shadowOf(vibrator).setHasVibrator(true)
         val controller=HrvController(RuntimeEnvironment.getApplication()) { now }
@@ -77,6 +79,12 @@ class HrvControllerTest {
             assertEquals(250L,org.robolectric.Shadows.shadowOf(vibrator).milliseconds)
             assertEquals(Phase.COMPLETE,controller.state.phase);assertTrue(result.getBoolean("acceptable"))
             assertTrue(result.getDouble("coverage")<.95);assertEquals(179,controller.state.points.size)
+            val day=HrvQuestionnaire.forMeasurement(result).day
+            fun queued()=org.json.JSONObject(context.getSharedPreferences("intervals-hrv-uploads",0).getString("entries","{}")!!).getJSONObject("i123:$day")
+            assertEquals("pending",queued().getString("state"))
+            assertEquals(result.getJSONObject("corrected").getDouble("rmssdMs"),queued().getJSONObject("data").getDouble("hrv"),0.0)
+            controller.saveQuestionnaire(result.getString("id"),HrvQuestionnaire(day,ratings=mapOf("sleep" to 10))) { assertTrue(it.isSuccess) };drain()
+            assertEquals(1,queued().getJSONObject("data").getInt("sleepQuality"))
             assertTrue(controller.start("Gurt"));drain();controller.disconnected();drain()
             assertFalse(controller.busy);assertEquals(Phase.ABORTED,controller.state.phase)
             assertEquals("DISCONNECTED",controller.state.result!!.getString("problem"))

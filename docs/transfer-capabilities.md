@@ -1,3 +1,7 @@
+# Aktueller Nachtrag30.10.2026
+
+Nach Build105: kompakte Cloud-Angaben in backup_domains.xml/intervals_hrv.xml. Dreeve steht vor intervals.icu; Dreeve IN „FIT-Streckendaten | Wartungsintervalle“, intervals OUT „FIT-Streckendaten | HRV-Daten“. Neuer täglicher automatischer HRV-Upload und expliziter Nur-fehlende-Tage-Sammelupload: [intervals-hrv.md](intervals-hrv.md). Bisherige Aussagen „kein HRV-Cloud-Upload“ sind damit für intervals.icu überholt. Messungs-/Tagesbefinden-Sicherung und täglicher Wellness-Upload bleiben getrennte Wege. Bestehende Konto-/WLAN-Einstellungen samt verschlüsselter Zugangssicherung gelten unverändert, keine neuen öffentlichen Einstellungen.
+
 # Angaben zu Import und Export
 
 Unter Daten & Speicher zeigen die Details der Import-/Exportwege zwei kurze Angaben:

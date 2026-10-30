@@ -1,3 +1,11 @@
+# Nach Build105: HRV-Upload zu intervals.icu,30.10.2026
+
+Umgesetzt: Dreeve vorintervals, DreeveIN FIT-Streckendaten|Wartungsintervalle, intervalsOUT FIT-Streckendaten|HRV-Daten. IntervalsWellness/IntervalsClient täglicheGET/PUT+monatlichePrüfung. Sammelbutton lädt nur Tage ohnehrv/SDNN, ergänzt sonstige Wellnessfelder nurwennfehlend. Automatisch nachneuerMessung/Tagesantwort aktuelleTagesauswahl in eigene persistenteOutbox/Job8306; vorhandenerAccount/WLAN/Enable gemeinsam. Nutzer bestätigt automatischeAktualisierungnachweislicheigenerunveränderterHRV, fremdeimmererhalten. Quellen/Mapping/Skalen/Schutzgrenzen/Retry/Belege in docs/intervals-hrv.md. Keine Roh-RR/Notizen/Score senden. Keine alten Importe blind automatisch weiterleiten. Sammelbutton überträgt auch vorhandeneHRV4Training-Messungen. Keine neuen öffentlichenBackupfelder, Übertragungsbelegeprivatlokal.
+
+Tests: erster38erLauf37grün, nuralteCloudreihenfolge-Erwartungrot; ErwartungaufbeauftragteReihenfolge korrigiert. Neuer10erIntervalsHrvTest und echterController-Messabschluss/Tagesantwort-Outboxgrün. BestehendeIntervalsTest9/IntervalsBulkUploadTest7/HrvControllerTest3/DataSettingsNavigationTest11 finalgeprüft, betroffenergeänderterTesterneutgrün. WeitereFormular-/Trainingsprüfungen separat. Logs /workspace/.tools/intervals-hrv-tests.log und hrv-cloud-training-final-tests.log. KeinLive-Konto/keine privatenDatenübertragen, keineGesamtsuite. LetzteAPKweiter0.8.64/Build105, keinneuerAPK-Auftrag. Dreeve-Bestätigungsfrageunverändertnurdiagnostiziert.
+
+Nutzerfragte nachIssue-/Commitstruktur; zwei fachlichgetrennteCommits fürCloud/HRV undTrainingsvorauswahl vorgesehen, ohneerfundeneIssue-IDs oderungefragteIssueanlage.
+
 # Nach Build105: Dropdownrahmen, Auswahlabstände und intervals.icu-HRV
 
 Nutzerauftrag30.10.2026: abgeschnittene untere Rahmen in FIT-Aufzeichnung und Dashboard-Fahrradauswahl korrigieren; fehlenden Abstand zwischen kleiner Überschrift und Positionskacheln bei Benachrichtigung/Trinkerinnerung gemeinsam beheben; Dashboard-Fahrradauswahl außen transparent, Kachelfarben erhalten. Nur Gestaltung ändern, keine Auswahl-/Sensor-/Speicherlogik.
