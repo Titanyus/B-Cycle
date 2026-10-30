@@ -51,6 +51,23 @@ class IntervalsHrvTest {
         assertNull(IntervalsWellness.from(row.copy(rmssdMs=null),null))
         assertEquals(4,IntervalsWellness.from(row,answers.copy(ratings=mapOf("sleep" to 0,"fatigue" to 10)))!!.values.getInt("sleepQuality"))
     }
+    @Test fun missingDayReturnedAsJsonNullIsUploadedAndMalformedDayStillFailsClosed() {
+        configure()
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody("[]"))
+            server.enqueue(MockResponse().setBody("null"))
+            server.enqueue(MockResponse().setBody(record().json().toString()))
+            val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(record()),{false}) { _,_,_-> }
+            assertEquals(1,report.count(IntervalsBulkState.UPLOADED));assertEquals(0,report.count(IntervalsBulkState.FAILED))
+            val query=server.takeRequest();assertEquals("/api/v1/athlete/i123/wellness.json",query.requestUrl!!.encodedPath)
+            val fields=query.requestUrl!!.queryParameter("fields")!!.split(',').toSet()
+            assertEquals(IntervalsWellness.fields+"id",fields)
+            assertEquals("GET",server.takeRequest().method);assertEquals("PUT",server.takeRequest().method)
+            server.enqueue(MockResponse().setBody("{}"))
+            assertThrows(IntervalsFailure::class.java) { api(server).wellness(day) }
+            assertEquals(4,server.requestCount)
+        }
+    }
     @Test fun historySkipsAnyExistingHrvButFillsDaysWithOnlyOtherWellnessFields() {
         configure();val first=record(day.minusDays(1));val second=record()
         MockWebServer().use { server ->
@@ -60,7 +77,7 @@ class IntervalsHrvTest {
             server.enqueue(MockResponse().setBody(expected.toString()))
             val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(first,second),{false}) { _,_,_-> }
             assertEquals(1,report.count(IntervalsBulkState.EXISTS));assertEquals(1,report.count(IntervalsBulkState.UPLOADED))
-            val month=server.takeRequest();assertEquals("/api/v1/athlete/i123/wellness",month.requestUrl!!.encodedPath)
+            val month=server.takeRequest();assertEquals("/api/v1/athlete/i123/wellness.json",month.requestUrl!!.encodedPath)
             assertEquals("2026-10-01",month.requestUrl!!.queryParameter("oldest"))
             assertEquals("GET",server.takeRequest().method)
             val upload=server.takeRequest();assertEquals("PUT",upload.method);assertEquals("/api/v1/athlete/i123/wellness/2026-10-29",upload.path)
@@ -124,6 +141,9 @@ class IntervalsHrvTest {
                 server.enqueue(response)
                 val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(record()),{false}) { _,_,_-> }
                 assertTrue(report.interrupted);assertEquals(1,report.count(IntervalsBulkState.FAILED));assertEquals(1,server.requestCount)
+                assertTrue(report.detail!!.startsWith(day.toString()))
+                if(report.problem==R.string.service_auth_failed) assertTrue(report.detail!!.contains("HTTP 401"))
+                assertFalse(report.detail!!.contains("test-key"))
             }
         }
         MockWebServer().use { server ->

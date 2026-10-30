@@ -9,7 +9,7 @@ import java.io.IOException
 
 internal enum class IntervalsBulkState { UPLOADED,EXISTS,SKIPPED,FAILED,UNCLEAR }
 internal data class IntervalsBulkItem(val name:String,val state:IntervalsBulkState,val problem:Int?=null)
-internal data class IntervalsBulkResult(val items:List<IntervalsBulkItem>,val interrupted:Boolean=false,val problem:Int?=null) {
+internal data class IntervalsBulkResult(val items:List<IntervalsBulkItem>,val interrupted:Boolean=false,val problem:Int?=null,val detail:String?=null) {
     fun count(state:IntervalsBulkState)=items.count { it.state==state }
 }
 

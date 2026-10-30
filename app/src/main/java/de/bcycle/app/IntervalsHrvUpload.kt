@@ -41,7 +41,10 @@ internal class IntervalsHrvUpload(private val context:Context,
                 val item=IntervalsBulkItem(record.day.toString(),IntervalsBulkState.FAILED,problem)
                 result.add(item);progress(result.size,days.size,item)
                 // No blind PUT after malformed, unavailable or unauthorised remote state.
-                return@serial IntervalsBulkResult(result,true,problem)
+                val status=(error as? IntervalsFailure)?.httpStatus
+                val detail=context.getString(R.string.intervals_hrv_day_error,record.day.toString(),context.getString(problem))+
+                    (status?.let { " (HTTP $it)" } ?: "")
+                return@serial IntervalsBulkResult(result,true,problem,detail)
             }
             result.add(item);progress(result.size,days.size,item)
         }

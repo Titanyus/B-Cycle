@@ -11,7 +11,7 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-internal class IntervalsFailure(val retryable:Boolean,val problem:Int):IOException()
+internal class IntervalsFailure(val retryable:Boolean,val problem:Int,val httpStatus:Int?=null):IOException()
 /** Activity and daily wellness APIs. Workout APIs remain a separate capability. */
 internal class IntervalsClient(private val config:IntervalsConfig,private val key:String,
     private val cancelled:()->Boolean={false},private val base:HttpUrl="https://intervals.icu/api/v1/".toHttpUrl(),
@@ -26,7 +26,7 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         val result=http.newCall(request).execute().use { response ->
             if(missingAllowed && response.code==404) return@use ""
             if(!response.isSuccessful) throw IntervalsFailure(response.code==408 || response.code==429 || response.code>=500,
-                ServiceProblems.http(response.code)?.let { if(it==ServiceProblems.Problem.AUTH) R.string.intervals_auth_failed else it.text } ?: R.string.intervals_upload_failed)
+                ServiceProblems.http(response.code)?.let { if(it==ServiceProblems.Problem.AUTH) R.string.intervals_auth_failed else it.text } ?: R.string.intervals_upload_failed,response.code)
             val bytes=response.body?.byteStream()?.use { it.readNBytes(1024*1024+1) } ?: throw IOException()
             if(bytes.size>1024*1024) throw IntervalsFailure(false,R.string.intervals_response_failed)
             String(bytes,Charsets.UTF_8)
@@ -46,10 +46,10 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
     }
     fun wellness(oldest:java.time.LocalDate,newest:java.time.LocalDate):Map<java.time.LocalDate,JSONObject> {
         require(!newest.isBefore(oldest) && java.time.temporal.ChronoUnit.DAYS.between(oldest,newest)<=31)
-        val url=request("wellness").build().url.newBuilder().addQueryParameter("oldest",oldest.toString())
-            .addQueryParameter("newest",newest.toString()).build()
+        val url=request("wellness.json").build().url.newBuilder().addQueryParameter("oldest",oldest.toString())
+            .addQueryParameter("newest",newest.toString()).addQueryParameter("fields",(listOf("id")+IntervalsWellness.fields).joinToString(",")).build()
         try {
-            val rows=JSONArray(execute(request("wellness").url(url).get().build()))
+            val rows=JSONArray(execute(request("wellness.json").url(url).get().build()))
             val result=linkedMapOf<java.time.LocalDate,JSONObject>()
             require(rows.length()<=32)
             for(index in 0 until rows.length()) {
@@ -64,7 +64,7 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
     fun wellness(day:java.time.LocalDate):JSONObject {
         val url=request("wellness").build().url.newBuilder().addPathSegment(day.toString()).build()
         val text=execute(request("wellness").url(url).get().build(),missingAllowed=true)
-        if(text.isEmpty()) return JSONObject().put("id",day.toString())
+        if(text.isBlank() || text.trim()=="null") return JSONObject().put("id",day.toString())
         try {
             return JSONObject(text).also { require(it.getString("id")==day.toString());validateWellness(it) }
         } catch(_:Exception) { throw IntervalsFailure(false,R.string.intervals_response_failed) }

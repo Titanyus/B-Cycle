@@ -45,3 +45,9 @@ Die Wellness-API bietet hier kein bedingtes atomisches „nur wenn unverändert�
 
 
 Veröffentlichung30.10.2026: Änderungen nachBuild105 sind in **APK0.8.65/Build106** enthalten. [Download und Buildnachweis](build-106.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.
+
+## Korrektur nach Build 110 – 30.10.2026
+
+Der Sammelabruf nutzt nun ausdrücklich GET `/athlete/{id}/wellness.json?oldest=...&newest=...&fields=...` gemäß dem `wellness{ext}`-Endpunkt der aktuellen OpenAPI. Vorher wurde für diese Bereichsabfrage `wellness` ohne Dateiendung verwendet. PUT und Einzelabruf bleiben bei `/wellness/{date}`. Die Monatsantwort enthält nur ID und die tatsächlich abgeglichenen Wellnessfelder. HTTP-200 mit JSON-null beim Einzelabruf bedeutet fehlender Tagesdatensatz; sonstige fehlerhafte Antworten bleiben Fehler, kein blinder Upload.
+
+Im Sammelergebnis stehen Datum und konkrete Fehlermeldung zuerst; bei HTTP-Fehlern zusätzlich Statuscode. Ein Serverfehler wird nicht mehr ausschließlich als „Vorgang unterbrochen“ angezeigt. Keine Antwortkörper, API-Schlüssel oder sonstigen Zugangsdaten in der Diagnose. Bestehende fremde HRV-Tage bleiben geschützt. Zusätzliche Tests prüfen `.json`, Nulltag, fehlerhafte Antworten und sichere HTTP-Fehlerangaben. Der Nutzer bestätigte funktionierende FIT-Uploads (400 Fahrten); ein privater Live-HRV-Upload konnte hier nicht geprüft werden.

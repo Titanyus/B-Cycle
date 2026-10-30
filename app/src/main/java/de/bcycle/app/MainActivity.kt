@@ -2132,9 +2132,9 @@ class MainActivity : Activity() {
                                 if(!closed.get()) {
                                     content.hrvRunning(false)
                                     BicycleFeedback.update(content.hrvResult,result.fold({ report ->
-                                        getString(R.string.intervals_hrv_done,report.count(IntervalsBulkState.UPLOADED),report.count(IntervalsBulkState.EXISTS),report.count(IntervalsBulkState.FAILED))+
-                                            (if(report.interrupted) "\n"+getString(R.string.intervals_hrv_interrupted) else "")+
-                                            report.problem?.let { "\n"+getString(it) }.orEmpty()
+                                        (report.detail ?: report.problem?.let(::getString))?.let { "$it\n" }.orEmpty()+
+                                            getString(R.string.intervals_hrv_done,report.count(IntervalsBulkState.UPLOADED),report.count(IntervalsBulkState.EXISTS),report.count(IntervalsBulkState.FAILED))+
+                                            (if(report.interrupted && report.count(IntervalsBulkState.FAILED)==0) "\n"+getString(R.string.intervals_hrv_interrupted) else "")
                                     },{ getString(ServiceProblems.text(it,R.string.intervals_hrv_failed)) }))
                                 }
                             }
