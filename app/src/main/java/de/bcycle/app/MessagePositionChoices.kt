@@ -11,6 +11,7 @@ internal class MessagePositionChoices(context:Context,themes:ThemeManager,initia
     prefix:String,private val canEdit:()->Boolean={true},private val changed:(MessagePosition)->Unit):LinearLayout(context) {
     private val tiles=mutableMapOf<MessagePosition,View>()
     init {
+        BicycleComponents.controlSpacing(this)
         fun paint(tile:View,tokens:ThemeTokens) {
             BicycleSelectionCard.apply(tile,tokens,tile.isSelected)
         }
