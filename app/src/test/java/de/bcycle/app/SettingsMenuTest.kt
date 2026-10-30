@@ -61,6 +61,11 @@ class SettingsMenuTest {
                 assertEquals(listOf("settings_ROUTES", "settings_STATISTICS", "settings_HRV", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
                 assertEquals(listOf("Strecken", "Statistiken", "HRV-Messung", "Wartung", "Fahrer", "Fahrradprofile", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
                 assertEquals(12, body.childCount) // Nine rows, two group dividers and brand image.
+                descendants(body).filter { it.tag=="settings_group_divider" }.forEach { divider ->
+                    val margins=divider.layoutParams as ViewGroup.MarginLayoutParams
+                    assertEquals(BicycleDesign.dp(controller.get(),32),margins.topMargin)
+                    assertEquals(margins.topMargin,margins.bottomMargin)
+                }
                 assertSame(rows[3],body.getChildAt(3));assertSame(rows[4],body.getChildAt(5))
                 assertSame(rows[7],body.getChildAt(8));assertSame(rows[8],body.getChildAt(10))
                 rows.forEach { row ->

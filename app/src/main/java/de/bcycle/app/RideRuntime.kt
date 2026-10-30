@@ -76,6 +76,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     var recording = false; private set
     var saving = false; private set
     internal var recordingUpdate: RecordingUpdate? = null; private set
+    private var shiftBatteryAtStop:Int?=null
     internal var pendingRideSummary: RideCompletion? = null; private set
     internal fun takeRideSummary():RideCompletion? = pendingRideSummary.also { pendingRideSummary=null }
     val recordingStatus get() = recordingUpdate?.let { RecordingStatusText.text(context, it) }
@@ -194,7 +195,11 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     private val store = RecordingStore(context, ::recordingChanged)
     internal fun recordingChanged(update: RecordingUpdate) {
         recordingUpdate = update; saving = update.busy
-        if(update is RecordingUpdate.Finished && update.result.rideId!=null) pendingRideSummary=update.result
+        if(update is RecordingUpdate.Finished && update.result.rideId!=null) pendingRideSummary=when(val result=update.result) {
+            is RideCompletion.Completed -> result.copy(shiftBatteryAtEnd=shiftBatteryAtStop)
+            is RideCompletion.LocallyRetained -> result.copy(shiftBatteryAtEnd=shiftBatteryAtStop)
+            else -> result
+        }
         if (update is RecordingUpdate.Finished || update is RecordingUpdate.Recovered && update.results.isNotEmpty()) mapState.refreshLibrary()
         notifyChanged()
     }
@@ -747,6 +752,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         recordingUpdate = null
         store.begin(startUtc, activeConfig); recording = true; ride.gps.setCollecting(!isIndoor)
         drinkReminder.reset();drinkReminder.update(true,0,DrinkReminderSettings.read(preferences),false)
+        shiftBatteryAtStop=null
         shiftBatteryWarning.start(derailleurBattery?.percent,true)
         connectionsRequested = true
         appendSample(); updateActivity()
@@ -754,6 +760,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     fun stopRecording() {
         if (!recording) return
         drinkReminder.reset();shiftBatteryWarning.clear()
+        shiftBatteryAtStop=derailleurBattery?.percent
         completedElapsedMs = appendSample(); recording = false; saving = true; recordingUpdate = RecordingUpdate.Progress.SAVING_FIT
         ride.gps.setCollecting(false); ride.bike.pause()
         liveGraphs.stop(); store.finish(discardShort=completedElapsedMs!!<10_000); updateActivity()

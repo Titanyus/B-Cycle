@@ -44,6 +44,14 @@ internal object BatteryFields {
         "SHIFT_BATTERY"->BatterySource.SHIFT;"TRAINER_BATTERY"->BatterySource.TRAINER;"PHONE_BATTERY"->BatterySource.PHONE;else->null
     }
     fun warning(level: Int?)=when { level==null->0;level<10->2;level<20->1;else->0 }
+    fun color(level:Int?,foreground:Int,inclusive:Boolean=false):Int {
+        val warning=if(inclusive) when { level==null->0;level<=10->2;level<=20->1;else->0 } else warning(level)
+        return when(warning) {
+            2->if(foreground==android.graphics.Color.BLACK) 0xffa51c1c.toInt() else 0xffff3030.toInt()
+            1->if(foreground==android.graphics.Color.BLACK) 0xff8c5700.toInt() else 0xffffb000.toInt()
+            else->foreground
+        }
+    }
     fun description(context: Context, sources: List<BatterySource>, snapshot: BatterySnapshot)=sources.joinToString(" · ") { source ->
         context.getString(R.string.battery_reading,context.getString(source.label),snapshot.level(source)?.let {
             context.getString(R.string.battery_percent,it)

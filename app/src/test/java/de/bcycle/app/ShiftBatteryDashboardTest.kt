@@ -46,6 +46,20 @@ class ShiftBatteryDashboardTest {
         runtime.bikes.save(runtime.bikes.current().copy(type=BikeType.EBIKE,shiftDevices=emptyList()))
         assertNull(runtime.dashboardBikeData.batteries.level(BatterySource.SHIFT))
     }
+    @Test fun rideSummaryKeepsStopBatteryWhenTheCacheChangesDuringSaving() {
+        val runtime=RideRuntime.get(c);cached(device.address,20)
+        runtime.bikes.save(runtime.bikes.current().copy(shiftDevices=listOf(device)))
+        runtime.beginRecording()
+        android.os.SystemClock.sleep(11_000)
+        runtime.stopRecording()
+        cached(device.address,70)
+        val until=System.nanoTime()+10_000_000_000L
+        while((runtime.saving || runtime.mapState.busy) && System.nanoTime()<until) {
+            shadowOf(Looper.getMainLooper()).idle();Thread.sleep(5)
+        }
+        assertEquals(70,runtime.derailleurBattery?.percent)
+        assertEquals(20,runtime.takeRideSummary()?.shiftBatteryAtEnd)
+    }
     @Test fun pickerOffersDerailleurUnderShiftGroupAndInBatteryMultiselect() {
         var chosen:DashboardField?=null
         val data=LiveData(batteries=BatterySnapshot(mapOf(BatterySource.SHIFT to 36,BatterySource.PHONE to 80)))
@@ -100,7 +114,7 @@ class ShiftBatteryDashboardTest {
     @Test fun sensorWarningIsMandatoryAndUsesSameSurfaceInBothDesignModes() {
         val runtime=RideRuntime.get(c);cached(device.address,36)
         runtime.bikes.save(runtime.bikes.current().copy(shiftDevices=listOf(device)))
-        val view=AxsGroupView(c,runtime,{})
+        val view=AxsGroupView(c,runtime)
         assertFalse(testDescendants(view).filterIsInstance<TextView>().any { it.text==c.getString(R.string.axs_hint) })
         assertNull(view.findViewWithTag<Switch>("axs_warning_enabled"))
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()

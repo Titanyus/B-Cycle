@@ -25,6 +25,15 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private val numbers = BicycleDesign.narrowTypeface(context)
     private val captions = BicycleDesign.compactTypeface
     private val tiles = mutableListOf<Tile>()
+    private var footerVisible=true
+    internal fun showFooter(visible:Boolean) {
+        footerVisible=visible;updateFooterOffset()
+    }
+    private fun updateFooterOffset() {
+        val last=template.rows.lastOrNull().orEmpty()
+        val middle=if(footerVisible && !template.hasMap && !landscape && last.size==3) last[1] else -1
+        tiles.forEachIndexed { index,tile -> tile.footerOffset(if(index==middle) -dp(12).toFloat() else 0f) }
+    }
     var editing = false; private set
     private var editorColor = BicycleThemes.red.tokens.primary
     var activateEditor: (() -> Unit)? = null
@@ -198,12 +207,16 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         this.trendSnapshot=trendSnapshot
         this.pulse = pulse
         tiles.forEachIndexed { index, tile -> tile.show(layout.fields[index], data) }
+        updateFooterOffset()
     }
 
     private fun line() = View(context).apply { setBackgroundColor(Color.rgb(44, 44, 44)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 
     private inner class Tile(private val index: Int) {
         fun resetTrend() { row.direction=0;row.chevrons.clear() }
+        fun footerOffset(offset:Float) {
+            title.translationY=offset;row.translationY=offset;batteryGrid.translationY=offset
+        }
         internal val zoneGlow=ZoneAmbientGlow().apply { flat=BicycleAppearance.flat(context) }
         private var zoneShown=false
         fun updateGlow() {

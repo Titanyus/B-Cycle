@@ -183,7 +183,7 @@ class MainActivity : Activity() {
             view.setPadding(bars.left,top,bars.right,bars.bottom)
             if(::cornerBikeLight.isInitialized) {
                 val p=cornerBikeLight.layoutParams as FrameLayout.LayoutParams
-                p.topMargin=top+dp(BicycleDesign.horizontalPadding)
+                p.topMargin=top
                 p.marginEnd=bars.right+dp(BicycleDesign.horizontalPadding)
                 cornerBikeLight.layoutParams=p
             }
@@ -205,7 +205,7 @@ class MainActivity : Activity() {
             setImageDrawable(BicycleIcons.drawable(this@MainActivity,BicycleIcon.Light,BicycleDesign.bikeLightStatusColor))
         }
         host.addView(cornerBikeLight,FrameLayout.LayoutParams(dp(BicycleDesign.bikeLightStatusWidth),dp(BicycleDesign.bikeLightStatusHeight),Gravity.TOP or Gravity.END).apply {
-            topMargin=dp(BicycleDesign.horizontalPadding);marginEnd=dp(BicycleDesign.horizontalPadding)
+            topMargin=0;marginEnd=dp(BicycleDesign.horizontalPadding)
         })
         dashboardStatusMonitor=DashboardStatusMonitor(this) { dashboardStatus.show(it) }
         setContentView(host)
@@ -302,6 +302,7 @@ class MainActivity : Activity() {
         mapPanel.controlsVisibilityChanged = { visible ->
             controlsVisible = visible || !currentTemplate().hasMap
             toolbar.visibility = if (controlsVisible) View.VISIBLE else View.GONE
+            dashboard.showFooter(controlsVisible)
             dashboardArea.requestLayout()
         }
         for (i in 0 until toolbar.childCount) toolbar.getChildAt(i).setOnTouchListener { _, event ->
@@ -730,6 +731,7 @@ class MainActivity : Activity() {
             val content=frame.content.apply { tag="fit_source_content_$source" }
             root.addView(frame)
             for (field in fields) content.addView(Switch(settingsContext).apply {
+                setTag(R.id.compact_choice_role,true)
                 text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(BicycleDesign.touchSize)
                 setOnCheckedChangeListener { _, checked -> if (checked) selected.add(field.id) else selected.remove(field.id);saveFields() }
             })

@@ -24,6 +24,7 @@ internal class FitMetadataView(context:Context,themes:ThemeManager,profile:BikeP
         addView(frame,LayoutParams(-1,-2))
         FitMetadataField.entries.forEach { field ->
             content.addView(Switch(context).apply {
+                setTag(R.id.compact_choice_role,true)
                 tag="fit_metadata_${field.name}";switches[field]=this
                 minHeight=BicycleDesign.dp(context,BicycleDesign.touchSize);isChecked=field in chosen
                 setOnCheckedChangeListener { _,enabled -> if(enabled) chosen.add(field) else chosen.remove(field);changed(chosen.toSet()) }

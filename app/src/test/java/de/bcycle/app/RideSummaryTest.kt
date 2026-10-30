@@ -45,7 +45,7 @@ class RideSummaryTest {
             all(c.findViewById(android.R.id.content)).single { it.contentDescription==c.getString(R.string.ui_menu_open) }.performClick()
             val menu=ShadowAlertDialog.getLatestAlertDialog()
             host.pause().stop();runtime.recordingChanged(RecordingUpdate.Finished(completion))
-            assertSame(completion,runtime.pendingRideSummary)
+            assertEquals(completion,runtime.pendingRideSummary)
             host.start().resume();repeat(4) { drain(runtime) }
             val dialog=ShadowAlertDialog.getLatestAlertDialog();assertTrue(dialog.isShowing);assertFalse(menu.isShowing)
             val view=dialog.window!!.decorView.findViewWithTag<RideSummaryView>("ride_summary");assertNotNull(view)
@@ -57,7 +57,7 @@ class RideSummaryTest {
             var analysis:RouteAnalysis?=null
             runtime.mapState.loadAnalysis(id) { analysis=it.getOrThrow() };drain(runtime)
             val tiles=all(view).filterIsInstance<AnalysisMetricTile>()
-            val battery=if(analysis!!.entry.details.bikeType==BikeType.EBIKE) listOf(AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE) else emptyList()
+            val battery=if(analysis!!.entry.details.bikeType==BikeType.EBIKE) listOf(AnalysisMetric.SHIFT_BATTERY_LEVEL,AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE) else emptyList()
             assertEquals(listOf(AnalysisMetric.DISTANCE,AnalysisMetric.MOVING,AnalysisMetric.AVG_SPEED,AnalysisMetric.AVG_HEART,AnalysisMetric.NP)+battery,tiles.map { it.alternatives.single() })
             tiles.forEach { tile -> assertEquals(AnalysisMetricTile(c,runtime.themes,tile.alternatives,analysis!!.metrics).contentDescription,tile.contentDescription) }
             val status=view.findViewWithTag<android.widget.TextView>("ride_summary_status")

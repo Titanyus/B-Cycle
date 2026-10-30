@@ -29,7 +29,8 @@ internal enum class AnalysisMetric(val label: Int, val unit: Int, val icon: Bicy
     EF(R.string.analysis_ef, R.string.analysis_w_bpm, BicycleIcon.Distance),
     RATIO(R.string.analysis_ratio, R.string.analysis_speed_w, BicycleIcon.Distance),
     BATTERY_LEVEL(R.string.ride_summary_battery, R.string.analysis_percent, BicycleIcon.Battery),
-    BATTERY_TEMPERATURE(R.string.ride_summary_temperature, R.string.ride_summary_celsius, BicycleIcon.Battery)
+    BATTERY_TEMPERATURE(R.string.ride_summary_temperature, R.string.ride_summary_celsius, BicycleIcon.Battery),
+    SHIFT_BATTERY_LEVEL(R.string.axs_derailleur, R.string.analysis_percent, BicycleIcon.Derailleur)
 }
 /** Fixed semantic order. Color alternatives differ only in brightness for dark/light backgrounds. */
 internal enum class AnalysisChart(val label: Int, val unit: Int, val darkColor: Int, val lightColor: Int) {

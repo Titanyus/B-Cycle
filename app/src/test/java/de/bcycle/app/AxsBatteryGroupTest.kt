@@ -95,7 +95,7 @@ class AxsBatteryGroupTest {
             assertTrue(toggle.isChecked)
             assertNotNull(view.findViewWithTag<android.view.View>("axs_components"))
             read(link(adapter,a),66);runtime.shiftGroup.stop();view.refresh()
-            assertTrue(view.findViewWithTag<TextView>("axs_battery_${a.address}").text.contains("66%"))
+            assertTrue(view.findViewWithTag<TextView>("axs_battery_${a.address}").text.toString()==c.getString(R.string.bikes_battery,c.getString(R.string.bikes_battery_value,66)))
             assertTrue(view.findViewWithTag<TextView>("axs_status_${a.address}").text.contains("1"))
             assertTrue(view.findViewWithTag<TextView>("axs_status_${a.address}").isClickable)
             toggle.performClick();assertFalse(runtime.bikes.current().shiftEnabled);assertFalse(runtime.shiftGroup.active)

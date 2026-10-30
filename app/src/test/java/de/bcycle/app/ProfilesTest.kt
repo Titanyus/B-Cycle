@@ -158,6 +158,11 @@ class ProfilesTest {
             frame.expandControl.performClick();assertFalse(frame.expanded);assertEquals(enabled,toggle.isChecked)
             assertSame(toggle,(toggle.parent as ViewGroup).getChildAt((toggle.parent as ViewGroup).childCount-1))
             assertTrue(frame.content.paddingTop>=BicycleDesign.dp(a,BicycleDesign.dropdownFrameHeaderGap))
+            testDescendants(root).filterIsInstance<BicycleFrameDropdown>().filter { it.header.tag?.toString()?.startsWith("fit_source_")==true || it.header.tag=="fit_metadata_toggle" }.forEach { fields ->
+                assertEquals(BicycleDesign.dp(a,BicycleDesign.dropdownFrameHeaderGap),fields.content.paddingTop)
+                val first=fields.content.getChildAt(0)
+                assertEquals(0,(first.layoutParams as ViewGroup.MarginLayoutParams).topMargin)
+            }
             assertNull(root.findViewWithTag<View>("mode_glow_enabled"));assertNull(root.findViewWithTag<View>("mode_glow_placement"))
             val fit=root.findViewWithTag<View>("bike_fit_settings")
             val choices=testDescendants(fit).filterIsInstance<Spinner>()

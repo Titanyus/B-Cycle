@@ -29,12 +29,32 @@ class SummaryPresentationTest {
                 view.show(RouteAnalysis(entry,metrics,null,false,0.0,emptyList()))
                 val battery=view.findViewWithTag<ViewGroup>("ride_summary_battery")
                 if(type==BikeType.EBIKE) {
-                    assertEquals(2,battery.childCount)
-                    assertTrue(battery.getChildAt(0).contentDescription.contains("34"))
-                    assertTrue(battery.getChildAt(1).contentDescription.contains("23"))
+                    assertEquals(3,battery.childCount)
+                    assertTrue(battery.getChildAt(1).contentDescription.contains("34"))
+                    assertTrue(battery.getChildAt(2).contentDescription.contains("23"))
                     view.show(RouteAnalysis(entry,emptyMap(),null,false,0.0,emptyList()))
                     assertTrue(view.findViewWithTag<ViewGroup>("ride_summary_battery").getChildAt(0).contentDescription.contains(c.getString(R.string.analysis_missing)))
                 } else assertNull(battery)
+            }
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun summaryBatteryThresholdsAreInclusiveAndShareDashboardColors() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
+            val entry=ManagedRoute("ride","Fahrt",true,"FIT",RouteDetails(bikeType=BikeType.EBIKE),false)
+            for(level in listOf(0,10,11,20,21,100)) {
+                val view=RideSummaryView(c,themes,RideCompletion.Completed("ride",shiftBatteryAtEnd=level))
+                view.show(RouteAnalysis(entry,mapOf(AnalysisMetric.BATTERY_LEVEL to level.toDouble()),null,false,0.0,emptyList()))
+                c.setContentView(view)
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                val row=view.findViewWithTag<ViewGroup>("ride_summary_battery")
+                for(index in 0..1) {
+                    val text=testDescendants(row.getChildAt(index)).filterIsInstance<android.widget.TextView>().single { it.text.toString()==level.toString() }
+                    val expected=when { level<=10->0xffff3030.toInt();level<=20->0xffffb000.toInt();else->themes.active.tokens.foreground }
+                    assertEquals(expected,text.currentTextColor)
+                }
+                assertTrue(row.getChildAt(0).contentDescription.contains(level.toString()))
             }
         } finally { host.pause().stop().destroy() }
     }

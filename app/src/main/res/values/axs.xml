@@ -1,8 +1,6 @@
 <resources>
     <string name="axs_group">Schaltgruppe</string>
     <string name="axs_hint">SRAM-AXS-Komponenten einzeln über die Sensorsuche hinzufügen. Nicht in den Android-Bluetooth-Einstellungen koppeln. Komponenten aufwecken und die SRAM-App schließen. Erkannte SRAM-Geräte bleiben auch ohne erfolgreiche Diensteprüfung auswählbar; der Akkudienst wird danach geprüft. Nicht jede Komponente ist einzeln über Bluetooth erreichbar; das gilt insbesondere für Wireless Blips.</string>
-    <string name="axs_refresh">Akkus abfragen</string>
-    <string name="axs_add">Komponente hinzufügen</string>
     <string name="axs_waiting">Noch nicht abgefragt</string>
     <string name="axs_reading">Akku wird abgefragt …</string>
     <string name="axs_timeout">Keine Antwort. Komponente aufwecken und erneut abfragen.</string>
@@ -10,7 +8,6 @@
     <string name="axs_failed">Akku konnte nicht gelesen werden.</string>
     <string name="axs_no_battery">Kein lesbarer Bluetooth-Akkustand verfügbar.</string>
     <string name="axs_read_ok">Akku erfolgreich abgefragt</string>
-    <string name="axs_battery_value">%1$d%% · Letzte Abfrage: %2$s</string>
     <string name="axs_remove">%1$s entfernen</string>
     <string name="axs_derailleur">Schaltwerk</string>
     <string name="axs_warning_message">Schaltwerk-Akku niedrig

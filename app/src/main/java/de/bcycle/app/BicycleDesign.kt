@@ -99,7 +99,7 @@ object BicycleDesign {
     const val bikeLightStatusWidth = 24
     const val bikeLightStatusHeight = 18
     const val bikeLightNotchGap = 15
-    const val dashboardStatusLeftInset = 8
+    const val dashboardStatusLeftInset = 25
     const val dashboardStatusRightInset = 25
     const val dashboardStatusPrivacyExtraInset = 4
     const val dashboardStatusSp = 12f

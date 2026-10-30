@@ -296,7 +296,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             val details=frame.content.apply { tag="bike_sensor_details_${sensor.name}" }
             sensorList.addView(frame,LayoutParams(-1,-2))
             if(sensor==BikeSensor.SHIFT) {
-                shiftView=AxsGroupView(context,runtime,search)
+                shiftView=AxsGroupView(context,runtime)
                 details.addView(shiftView,LayoutParams(-1,-2))
                 return@forEach
             }

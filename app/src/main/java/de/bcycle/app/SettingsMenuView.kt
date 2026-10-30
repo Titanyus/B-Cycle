@@ -47,7 +47,9 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             listOf(SettingsAction.ROUTES,SettingsAction.STATISTICS,SettingsAction.HRV,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0 && (advanced || action==SettingsAction.PROFILE || action==SettingsAction.ADVANCED))
-                addView(BicycleComponents.divider(context,themes),LayoutParams(-1,BicycleDesign.linePixels(context)))
+                addView(BicycleComponents.divider(context,themes).apply { tag="settings_group_divider" },LayoutParams(-1,BicycleDesign.linePixels(context)).apply {
+                    if(!advanced) { topMargin=BicycleDesign.dp(context,2*BicycleDesign.sectionDividerGap);bottomMargin=topMargin }
+                })
             addView(BicycleComponents.listRow(context,themes).apply {
                 tag="settings_${action.name}";contentDescription=action.label(context);isClickable=true;isFocusable=true
                 minimumHeight=BicycleDesign.dp(context,if(advanced) BicycleDesign.touchSize else BicycleDesign.settingsRowHeight)

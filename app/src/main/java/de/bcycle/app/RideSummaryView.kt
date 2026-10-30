@@ -40,8 +40,9 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
             metrics.addView(BicycleComponents.sectionDivider(context,themes))
             metrics.addView(LinearLayout(context).apply {
                 tag="ride_summary_battery";orientation=HORIZONTAL;isBaselineAligned=false
-                listOf(AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE).forEach { metric ->
-                    addView(AnalysisMetricTile(context,themes,listOf(metric),values),LayoutParams(0,-1,1f))
+                listOf(AnalysisMetric.SHIFT_BATTERY_LEVEL,AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE).forEach { metric ->
+                    val saved=completion.shiftBatteryAtEnd?.let { values+(AnalysisMetric.SHIFT_BATTERY_LEVEL to it.toDouble()) } ?: values
+                    addView(AnalysisMetricTile(context,themes,listOf(metric),saved,batteryWarning=metric!=AnalysisMetric.BATTERY_TEMPERATURE),LayoutParams(0,-1,1f))
                 }
             },LayoutParams(-1,-2))
         }

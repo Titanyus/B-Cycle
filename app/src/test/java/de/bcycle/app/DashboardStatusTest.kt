@@ -206,7 +206,7 @@ class DashboardStatusTest {
             val strip=DashboardStatusStrip(a,themes);a.setContentView(strip);layout(strip,360,32)
             strip.config=full;strip.show(DashboardStatusSnapshot("10:28",true,72,3,3))
             strip.insets(0,0,emptyList())
-            assertEquals(8f,strip.regions()[0].first,0f);assertEquals(335f,strip.regions()[1].second,0f)
+            assertEquals(25f,strip.regions()[0].first,0f);assertEquals(335f,strip.regions()[1].second,0f)
             val indicator=Rect(333,0,360,24)
             strip.insets(0,0,emptyList(),indicator)
             assertEquals(331f,strip.regions()[1].second,0f)
@@ -236,12 +236,12 @@ class DashboardStatusTest {
             a.setContentView(strip);layout(strip,360,32)
             val right=Rect(333,0,360,24)
             strip.insets(0,0,emptyList(),right)
-            assertEquals(8f,strip.regions()[0].first,0f);assertEquals(331f,strip.regions()[1].second,0f)
+            assertEquals(25f,strip.regions()[0].first,0f);assertEquals(331f,strip.regions()[1].second,0f)
             assertTrue(strip.geometryReport().contains("privacyIndicatorBoundsPx=Rect(333, 0 - 360, 24)"))
             right.setEmpty();assertTrue(strip.geometryReport().contains("Rect(333, 0 - 360, 24)"))
             // Even a left-side OEM report is only a presence signal for the fixed right-side increment.
             strip.insets(0,0,emptyList(),Rect(0,0,32,24))
-            assertEquals(8f,strip.regions()[0].first,0f);assertEquals(331f,strip.regions()[1].second,0f)
+            assertEquals(25f,strip.regions()[0].first,0f);assertEquals(331f,strip.regions()[1].second,0f)
             assertTrue(strip.geometryReport().contains("privacyExtraRightDp=4"))
             assertTrue(strip.geometryReport().contains("cameraBoundsPx=[] privacyIndicatorBoundsPx=Rect(0, 0 - 32, 24)"))
             strip.bikeLightOn=true
@@ -251,9 +251,9 @@ class DashboardStatusTest {
             strip.insets(0,0,listOf(Rect(0,0,32,24)))
             assertEquals(40f,strip.regions()[0].first,0f) // Real camera cutouts still reserve space.
             strip.insets(12,0,emptyList())
-            assertEquals(20f,strip.regions()[0].first,0f)
+            assertEquals(37f,strip.regions()[0].first,0f)
             val report=strip.geometryReport()
-            assertTrue(report.contains("safeInsetsPx left=12 right=0"));assertTrue(report.contains("configuredDp left=8 right=25"))
+            assertTrue(report.contains("safeInsetsPx left=12 right=0"));assertTrue(report.contains("configuredDp left=25 right=25"))
             assertTrue(report.contains("privacyIndicatorBoundsPx=null"));assertFalse(report.contains("10:28"))
         } finally { host.pause().stop().destroy() }
     }

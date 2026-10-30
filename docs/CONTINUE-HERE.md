@@ -1,4 +1,4 @@
-# Aktueller Stand: Drag-and-drop-Korrektur nach Build 110 – 30.10.2026
+# Aktueller Stand: UI-/Zusammenfassungs-/HRV-Korrekturen nach Build 110 – 30.10.2026
 
 [APK direkt herunterladen](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.69-release-110.apk) · [Buildnachweis](build-110.md). VersionCode 139, Quelle `1830fc1ab844e1676be52ce5772e39475b151fe1`, 2531313 Bytes, SHA-256 `0657892cbea304f8f922eaf09a035a5e8c4084ff207c6ecf618fd87f95abb641`. Signatur/Update-Kompatibilität/Manifest/ZIP-Ausrichtung/CI-Prüfsumme geprüft. Veröffentlichung mit [skip ci]. Letzte veröffentlichte APK; die folgende Korrektur ist darin noch nicht enthalten. Kein neuer APK-Auftrag.
 
@@ -17,3 +17,11 @@ Gezielte Cleanup-/Migrations-/Backup-/Frame-/Field-/Sensor-/Trink-/Licht-/Graphp
 Nutzer meldete verkleinert hängenbleibende Kacheln nach Umsortieren. `TileReorder`: DROP speichert weiterhin einmal, aber die 260-ms-Einrastanimation startet erst nach DRAG_ENDED. Dessen bisherige Bereinigung konnte eine bereits gestartete Animation abbrechen, ohne die Skalierung zurückzusetzen. Vorschau/Abbruch/neuer Drag/Detach normalisieren jetzt ausdrücklich beide Skalierungen, ausstehende Rückanimationen werden entfernt. Gemeinsame Lösung für Fahrrad-, Dashboard-, Status- und Namenskacheln; keine Änderungen an Auswahl oder Speicherung.
 
 Prüfung: vier neue native TileReorder-Regressionsfälle (DROP/END-Reihenfolge, neuer Drag vor/während Rückanimation, Abbruch/Detach/Sperre) sowie bestehende RideNamingReorder-, Dashboard- und Fahrrad-Drag-/Accessibility-Tests: sieben Tests erfolgreich. Log `/workspace/.tools/tile-reorder-scale-tests.log`. Typografie/Atlas/Diff geprüft. Kein physischer Gerätetest, keine neue APK erstellt.
+
+## Weitere Änderungen nach Build 110
+
+[Dashboard, Zusammenfassung, Sensoren und Abstände](dashboard-summary-adjustments.md) umgesetzt. Status links Grundabstand25dp, rechts25dp+4Privacy; Licht oben0/rechts16dp bei sichtbarer Android-Statusleiste. Akkusnapshot Schaltwerk bei Stopp links vor Bike-Akku; Summary inklusive20/10%-Farben. Menütrenner nur hier32dp je Seite. Untere mittlere Dreierkachel ohne Karte bei Footer12dp höher. Aufzeichnungsaccordions ohne doppelte Schaltermarge, Schaltwerk wie andere Sensoren ohne separate Abfrage-/Hinzufügenbuttons.
+
+[Intervals-HRV-Korrektur](intervals-hrv.md): Bereichs-GET auf `wellness.json` statt `wellness`, Nulltag zulässig, fremde Daten weiterhin geschützt. Fehlermeldung mit Tag/HTTP-Code vor Zählung, Serverfehler nicht pauschal „unterbrochen“. Nutzer bestätigt FIT-Zugang funktioniert (400 Uploads), Fehlanzeige zuvor nur „Vorgang unterbrochen“. Privaten Live-HRV-Upload nicht möglich.
+
+Logs: `/workspace/.tools/ui-summary-hrv-tests.log` und abschließende `/workspace/.tools/ui-summary-hrv-final-tests.log`. Native/HTTP-Tests, Typografie/Atlas/Diff; keine neue APK angefordert/gebaut. Kompassfrage beantwortet: Pfeil ist Smartphone-Ausrichtung, getrennt vom GPS-Kurs; Kalibrierung oder magnetische Störung als mögliche Abweichung, keine Sensoränderung beauftragt.

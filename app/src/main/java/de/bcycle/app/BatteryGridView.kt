@@ -26,7 +26,7 @@ internal class BatteryGridRenderer(private val context:Context, private val fore
             val left=bounds.left+(index%columns)*cellWidth+(cellWidth-46*u)/2
             val center=top+(index/columns+.5f)*rowHeight
             val level=snapshot.level(source)
-            val color=when(BatteryFields.warning(level)) { 2->if(foreground==Color.BLACK) 0xffa51c1c.toInt() else 0xffff3030.toInt();1->if(foreground==Color.BLACK) 0xff8c5700.toInt() else 0xffffb000.toInt();else->foreground }
+            val color=BatteryFields.color(level,foreground)
             icons.getOrPut(source) { BicycleIcons.drawable(context,BatteryFields.icon(source),foreground) }.apply { setBounds(left.toInt(),(center-7*u).toInt(),(left+14*u).toInt(),(center+7*u).toInt());draw(canvas) }
             val bar=RectF(left+17*u,center-8*u,left+23*u,center+8*u)
             paint.style=Paint.Style.FILL;paint.color=(foreground and 0x00ffffff) or 0x33000000

@@ -17,6 +17,22 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class DashboardExpansionTest {
     private fun layout(view:View) { repeat(3) { view.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(780,View.MeasureSpec.EXACTLY));view.layout(0,0,360,780) } }
+    @Test fun footerRaisesOnlyCentreContentOfBottomThreeAndResetsOnLayoutChange() {
+        val c=org.robolectric.RuntimeEnvironment.getApplication()
+        val view=DashboardView(c) {}
+        view.setTemplate(DashboardTemplate.FULL_SIX)
+        val left=view.findViewWithTag<android.view.ViewGroup>("dashboard_tile_3")
+        val middle=view.findViewWithTag<android.view.ViewGroup>("dashboard_tile_4")
+        val right=view.findViewWithTag<android.view.ViewGroup>("dashboard_tile_5")
+        val offset=-BicycleDesign.dp(c,12).toFloat()
+        assertEquals(offset,middle.getChildAt(0).translationY,0f)
+        assertEquals(0f,middle.translationY,0f)
+        assertEquals(0f,left.getChildAt(0).translationY,0f);assertEquals(0f,right.getChildAt(0).translationY,0f)
+        view.showFooter(false);assertEquals(0f,middle.getChildAt(0).translationY,0f)
+        view.showFooter(true);assertEquals(offset,middle.getChildAt(1).translationY,0f)
+        view.setTemplate(DashboardTemplate.EIGHT)
+        assertEquals(0f,view.findViewWithTag<android.view.ViewGroup>("dashboard_tile_4").getChildAt(0).translationY,0f)
+    }
     @Test fun expandedDashboardChoicesHaveOneGlobalGapBelowTheAccordionInBothDesigns() {
         val host=org.robolectric.Robolectric.buildActivity(Activity::class.java).setup()
         try {

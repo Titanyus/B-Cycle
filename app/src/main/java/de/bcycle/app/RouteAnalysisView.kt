@@ -190,7 +190,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
 }
 
-internal class AnalysisMetricTile(context: Context, private val themes: ThemeManager, val alternatives: List<AnalysisMetric>, private val values: Map<AnalysisMetric, Double>) : FrameLayout(context) {
+internal class AnalysisMetricTile(context: Context, private val themes: ThemeManager, val alternatives: List<AnalysisMetric>, private val values: Map<AnalysisMetric, Double>, private val batteryWarning:Boolean=false) : FrameLayout(context) {
     private var index = 0
     private val value = BicycleComponents.text(context, themes, "").apply {
         typeface = BicycleDesign.narrowTypeface(context); textSize = BicycleDesign.analysisMetricSp; gravity = Gravity.CENTER
@@ -226,10 +226,15 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
         BicycleComponents.bindTheme(this, themes) { tokens ->
             icon.setImageDrawable(BicycleIcons.drawable(context, alternatives[index].icon, tokens.foreground))
             switching.setColorFilter(tokens.foreground)
+            updateValueColor(tokens.foreground)
         }
+        if(batteryWarning) BicycleComponents.bindTheme(value,themes) { updateValueColor(it.foreground) }
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         listOf(icon, value, unit, label).forEach { it.importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
         update()
+    }
+    private fun updateValueColor(foreground:Int) {
+        if(batteryWarning) value.setTextColor(BatteryFields.color(values[alternatives[index]]?.toInt(),foreground,inclusive=true))
     }
     private fun update() {
         val metric = alternatives[index]; val number = values[metric]
@@ -244,6 +249,7 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
         value.text = formatted; unit.text = unitText; unit.visibility = if (unitText.isEmpty()) GONE else VISIBLE
         label.text = context.getString(if(metric==AnalysisMetric.NP) R.string.analysis_np_short else metric.label)
         val tokens = themes.active.tokens
+        updateValueColor(tokens.foreground)
         icon.setImageDrawable(BicycleIcons.drawable(context, metric.icon, tokens.foreground))
         contentDescription = if (alternatives.size > 1) context.getString(R.string.analysis_switch, label.text, formatted, unitText, context.getString(alternatives[(index + 1) % alternatives.size].let { if(it==AnalysisMetric.NP) R.string.analysis_np_short else it.label }))
             else context.getString(R.string.analysis_metric_description, label.text, formatted, unitText)
