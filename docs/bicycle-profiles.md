@@ -84,6 +84,9 @@ neu aufgebaut. Keine zweite Sensorverarbeitung oder parallele Aufzeichnung.
   Größenanimation ein. Hover verändert keine gespeicherten Daten; Abbruch setzt
   die Vorschau zurück. Plus-Kacheln und die kompakte Schnellauswahl bleiben ausgenommen.
   TalkBack bietet zusätzlich „Nach links/rechts verschieben“ an.
+  Die Einrastanimation startet erst nach `DRAG_ENDED`, damit dessen Bereinigung
+  sie nicht halbwegs abbrechen kann. Abbruch, erneutes Ziehen und Entfernen der
+  Ansicht verwerfen ausstehende Animationen und setzen beide Skalierungen auf 1.
 - Auswahl bleibt beim Verschieben erhalten. Sensor-/FIT-Konfiguration und Fotos
   hängen an der Profil-ID, nicht an der sichtbaren Position.
 - Gemeinsamer fachlicher Footer mit „Rad löschen“ und Bestätigung für das aktuell

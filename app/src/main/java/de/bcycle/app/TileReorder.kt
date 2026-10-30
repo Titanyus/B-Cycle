@@ -17,6 +17,9 @@ internal class TileReorder(
 ) {
     internal data class Payload(val owner: TileReorder, val id: Int)
     private val foregrounds=mutableMapOf<View,android.graphics.drawable.Drawable?>()
+    private var dropped:Int?=null
+    private var settleTask:Runnable?=null
+    private var settling:View?=null
     private var source: Int? = null
     private var target = -1
     private var pointer = 0f
@@ -37,11 +40,15 @@ internal class TileReorder(
             val payload = event.localState as? Payload
             if (payload?.owner !== this) return@setOnDragListener false
             if (event.action == DragEvent.ACTION_DRAG_ENDED) {
-                clear();return@setOnDragListener true
+                stopSettling();clear()
+                val id=dropped;dropped=null
+                if(id!=null) settleAfterDrag(id)
+                return@setOnDragListener true
             }
-            if (locked()) { clear();return@setOnDragListener false }
+            if (locked()) { stopSettling();dropped=null;clear();return@setOnDragListener false }
             when (event.action) {
                 DragEvent.ACTION_DRAG_STARTED -> {
+                    stopSettling();dropped=null;clear()
                     if (ids().size < 2 || payload.id !in ids()) false
                     else { source=payload.id;preview(ids().indexOf(payload.id));true }
                 }
@@ -58,12 +65,7 @@ internal class TileReorder(
                     val index=nearest(event.x)
                     clear()
                     val changed=index>=0 && move(payload.id,index)
-                    if(changed) row.post {
-                        val card=row.getChildAt(ids().indexOf(payload.id))
-                        card?.apply { scaleX=.94f;scaleY=.94f;animate().scaleX(1f).scaleY(1f)
-                            .setInterpolator(android.view.animation.OvershootInterpolator(BicycleDesign.tileDropOvershoot))
-                            .setDuration(BicycleDesign.tileDropSettleMs).start() }
-                    }
+                    dropped=payload.id.takeIf { changed }
                     changed
                 }
                 else -> true
@@ -71,7 +73,7 @@ internal class TileReorder(
         }
         row.addOnAttachStateChangeListener(object:View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v:View) {}
-            override fun onViewDetachedFromWindow(v:View) { clear() }
+            override fun onViewDetachedFromWindow(v:View) { stopSettling();dropped=null;clear() }
         })
     }
     fun bind(card:View,id:Int,dragView:View=card) {
@@ -89,7 +91,9 @@ internal class TileReorder(
             }
             override fun performAccessibilityAction(host:View,action:Int,args:android.os.Bundle?):Boolean {
                 val offset=when(action) { R.id.bike_move_left -> -1;R.id.bike_move_right -> 1;else -> return super.performAccessibilityAction(host,action,args) }
-                return !locked() && move(id,ids().indexOf(id)+offset)
+                if(locked()) return false
+                stopSettling();dropped=null;clear()
+                return move(id,ids().indexOf(id)+offset)
             }
         }
     }
@@ -106,7 +110,7 @@ internal class TileReorder(
         order.forEach { i -> lefts[i]=left;left+=list[i].width+gap }
         list.forEachIndexed { i,card ->
             if(!foregrounds.containsKey(card)) foregrounds[card]=card.foreground
-            card.animate().cancel()
+            card.animate().withEndAction(null).cancel();card.scaleX=1f;card.scaleY=1f
             card.animate().translationX(lefts[i]-card.left)
                 .alpha(if(i==from) .45f else 1f)
                 .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator()).setDuration(180).start()
@@ -118,11 +122,36 @@ internal class TileReorder(
         }
     }
     private fun resetPreview() {
-        cards.forEach {
-            it.animate().cancel();it.translationX=0f;it.alpha=if(locked()) .4f else 1f
+        (cards+foregrounds.keys).distinct().forEach {
+            it.animate().withEndAction(null).cancel();it.translationX=0f;it.scaleX=1f;it.scaleY=1f
+            it.alpha=if(locked()) .4f else 1f
             if(foregrounds.containsKey(it)) it.foreground=foregrounds[it]
         }
         foregrounds.clear()
+    }
+    /** DRAG_ENDED must finish preview cleanup before a successful drop starts its settle. */
+    private fun settleAfterDrag(id:Int) {
+        stopSettling()
+        if(!row.isAttachedToWindow) return
+        val task=Runnable {
+            settleTask=null
+            if(locked() || source!=null || !row.isAttachedToWindow || !android.animation.ValueAnimator.areAnimatorsEnabled()) return@Runnable
+            val card=row.getChildAt(ids().indexOf(id)) ?: return@Runnable
+            settling=card
+            card.scaleX=.94f;card.scaleY=.94f
+            card.animate().scaleX(1f).scaleY(1f)
+                .setInterpolator(android.view.animation.OvershootInterpolator(BicycleDesign.tileDropOvershoot))
+                .setDuration(BicycleDesign.tileDropSettleMs)
+                .withEndAction {
+                    if(settling===card) { card.scaleX=1f;card.scaleY=1f;settling=null }
+                }.start()
+        }
+        settleTask=task;row.post(task)
+    }
+    private fun stopSettling() {
+        settleTask?.let(row::removeCallbacks);settleTask=null
+        settling?.let { it.animate().withEndAction(null).cancel();it.scaleX=1f;it.scaleY=1f }
+        settling=null
     }
     private fun stopEdge() { direction=0;row.removeCallbacks(edge) }
     private fun clear() { stopEdge();resetPreview();source=null;target=-1 }
