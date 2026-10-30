@@ -64,7 +64,6 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
     var config=DashboardStatusConfig();set(value) { field=value;describe();invalidate() }
     private var state=DashboardStatusSnapshot()
     private var messengerPackage:String?=null
-    private var cutouts:List<Rect> = emptyList()
     private var cameras:List<Rect> = emptyList()
     private var privacyBounds:Rect?=null
     var bikeLightOn=false;set(value) { if(field!=value) { field=value;describe();invalidate() } }
@@ -87,15 +86,16 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
     fun insets(left:Int,right:Int,blocked:List<Rect>,privacyIndicator:Rect?=null) {
         safeLeft=left;safeRight=right;cameras=blocked.map(::Rect)
         privacyBounds=privacyIndicator?.takeUnless { it.isEmpty }?.let(::Rect)
-        cutouts=(blocked+listOfNotNull(privacyBounds)).map(::Rect)
         invalidate()
     }
+    private val privacyExtraDp get()=if(!preview && privacyBounds?.let { it.top<height && it.bottom>0 }==true)
+        BicycleDesign.dashboardStatusPrivacyExtraInset else 0
     /** Explicit diagnostic export only: geometry, without live status values or message details. */
     internal fun geometryReport():String {
         val location=IntArray(2);getLocationInWindow(location)
         return "DashboardStatus widthPx=$width heightPx=$height density=$density windowOrigin=${location.joinToString()} visibility=$visibility\n"+
             "safeInsetsPx left=$safeLeft right=$safeRight configuredDp left=${BicycleDesign.dashboardStatusLeftInset} right=${BicycleDesign.dashboardStatusRightInset}\n"+
-            "cameraBoundsPx=$cameras privacyIndicatorBoundsPx=$privacyBounds\n"+
+            "cameraBoundsPx=$cameras privacyIndicatorBoundsPx=$privacyBounds privacyExtraRightDp=$privacyExtraDp\n"+
             "freeRegionsPx=${regions()} bikeLightBoundsPx=${lightBounds()}\n"
     }
     fun show(value:DashboardStatusSnapshot) {
@@ -130,15 +130,15 @@ internal class DashboardStatusStrip(context:Context,themes:ThemeManager,private 
         val w=BicycleDesign.bikeLightStatusWidth*density;val h=BicycleDesign.bikeLightStatusHeight*density
         val box=RectF(right-w,(height-h)/2f,right,(height+h)/2f)
         if(box.left<safeLeft+BicycleDesign.dashboardStatusLeftInset*density) return null
-        if(cutouts.any { RectF.intersects(box,RectF(it)) }) return null
+        if(cameras.any { RectF.intersects(box,RectF(it)) }) return null
         return box
     }
-    /** Largest safe interval in each half avoids camera holes and system privacy-indicator bounds. */
+    /** Camera holes remain geometric exclusions; a privacy report adds a fixed right-side gap only. */
     internal fun regions():List<Pair<Float,Float>> {
         val gap=8*density;val mid=width/2f
-        val blocked=if(preview) listOf(Rect((mid-22*density).toInt(),0,(mid+22*density).toInt(),height)) else cutouts.filter { it.top<height && it.bottom>0 }
+        val blocked=if(preview) listOf(Rect((mid-22*density).toInt(),0,(mid+22*density).toInt(),height)) else cameras.filter { it.top<height && it.bottom>0 }
         val edge=BicycleDesign.dashboardStatusLeftInset*density
-        val rightEdge=BicycleDesign.dashboardStatusRightInset*density
+        val rightEdge=(BicycleDesign.dashboardStatusRightInset+privacyExtraDp)*density
         val leftEnd=lightBounds()?.let { minOf(mid-gap,it.left-6*density) } ?: (mid-gap)
         return listOf(safeLeft+edge to leftEnd,mid+gap to width-safeRight-rightEdge).mapIndexed { side,region ->
             var free=listOf(region)

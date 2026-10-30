@@ -209,9 +209,9 @@ class DashboardStatusTest {
             assertEquals(8f,strip.regions()[0].first,0f);assertEquals(335f,strip.regions()[1].second,0f)
             val indicator=Rect(333,0,360,24)
             strip.insets(0,0,emptyList(),indicator)
-            assertEquals(325f,strip.regions()[1].second,0f)
+            assertEquals(331f,strip.regions()[1].second,0f)
             indicator.setEmpty() // Insets own their rectangle: later caller changes must not shift the strip.
-            assertEquals(325f,strip.regions()[1].second,0f)
+            assertEquals(331f,strip.regions()[1].second,0f)
             strip.insets(0,0,emptyList(),Rect(333,40,360,60))
             assertEquals(335f,strip.regions()[1].second,0f)
             strip.insets(0,0,emptyList(),Rect())
@@ -229,20 +229,27 @@ class DashboardStatusTest {
             strip.config=DashboardStatusConfig();strip.show(DashboardStatusSnapshot());assertEquals("",strip.contentDescription)
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun indicatorCoordinatesCanReserveEitherSideAndDiagnosticReportsTheOriginalSource() {
+    @Test fun privacyReportsOnlyAddFourDpOnRightAndNeverShiftTheLeftGroup() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val strip=DashboardStatusStrip(a,ThemeManager(a.getSharedPreferences("status",0)))
             a.setContentView(strip);layout(strip,360,32)
             val right=Rect(333,0,360,24)
             strip.insets(0,0,emptyList(),right)
-            assertEquals(8f,strip.regions()[0].first,0f);assertEquals(325f,strip.regions()[1].second,0f)
+            assertEquals(8f,strip.regions()[0].first,0f);assertEquals(331f,strip.regions()[1].second,0f)
             assertTrue(strip.geometryReport().contains("privacyIndicatorBoundsPx=Rect(333, 0 - 360, 24)"))
             right.setEmpty();assertTrue(strip.geometryReport().contains("Rect(333, 0 - 360, 24)"))
-            // Simulate an erroneous/mirrored OEM report: the renderer follows coordinates, not an assumed side.
+            // Even a left-side OEM report is only a presence signal for the fixed right-side increment.
             strip.insets(0,0,emptyList(),Rect(0,0,32,24))
-            assertEquals(40f,strip.regions()[0].first,0f);assertEquals(335f,strip.regions()[1].second,0f)
+            assertEquals(8f,strip.regions()[0].first,0f);assertEquals(331f,strip.regions()[1].second,0f)
+            assertTrue(strip.geometryReport().contains("privacyExtraRightDp=4"))
             assertTrue(strip.geometryReport().contains("cameraBoundsPx=[] privacyIndicatorBoundsPx=Rect(0, 0 - 32, 24)"))
+            strip.bikeLightOn=true
+            val light=strip.lightBounds()
+            strip.insets(0,0,emptyList(),Rect(0,0,180,32))
+            assertEquals(light,strip.lightBounds()) // A falsely placed privacy rectangle cannot suppress the light either.
+            strip.insets(0,0,listOf(Rect(0,0,32,24)))
+            assertEquals(40f,strip.regions()[0].first,0f) // Real camera cutouts still reserve space.
             strip.insets(12,0,emptyList())
             assertEquals(20f,strip.regions()[0].first,0f)
             val report=strip.geometryReport()
