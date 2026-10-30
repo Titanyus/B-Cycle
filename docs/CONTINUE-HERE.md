@@ -1,3 +1,7 @@
+# APK-Auftrag: 0.8.68 / Code 138
+
+Neue APK ausdrücklich angefordert. Alle Änderungen seit Build 108 enthalten, einschließlich inaktiver Kachelrahmen 2 dp / 25 %. Bestehende gezielte Tests erfolgreich; seitdem nur Versions-/Veröffentlichungsangaben geändert. Über GitHub Actions bauen, Signatur/Version/Manifest/Prüfsumme/ZIP-Ausrichtung und tatsächlichen Download prüfen, veröffentlichen. Buildnachweis nach Abschluss ergänzen.
+
 # Ergänzung: inaktive Auswahlkacheln ebenfalls 2 dp / FOREGROUND 25 %
 
 Auf ausdrücklichen Folgeauftrag auch BicycleSelectionCard und Fahrradfilter vereinheitlicht. Betrifft Fahrradprofile, Dashboardseiten/-layouts, Benachrichtigungs-/Trinkpositionen und Hinzufügen-Kacheln. Ausgewählte Kontur, Glow, Füllung und Bedienung unverändert. 12 gezielte Fälle erfolgreich: DashboardSelectionStyle, SelectionChrome, BikeQuickPicker und RouteQueryUi. Native Kartenzeichnung in Flat/Glow, komplette untere Ränder, transparente Popupfläche und Auswahlbedienung geprüft. Typografie/Atlas/Diff erfolgreich. Log /workspace/.tools/inactive-card-border-tests.log. Kein neuer physischer Gerätetest. Noch keine neue APK für diese Änderungen beauftragt; letzte Veröffentlichung bleibt Build 108.
