@@ -66,7 +66,7 @@ class RouteAnalysisViewTest {
                         assertTrue(children.all { it.height > 0 && it.right <= row.width })
                     }
                     val charts = descendants(content).filterIsInstance<RouteChartView>()
-                    assertEquals(AnalysisChart.entries, charts.map { it.series.chart })
+                    assertEquals(listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE,AnalysisChart.HEART,AnalysisChart.POWER,AnalysisChart.ELEVATION), charts.map { it.series.chart })
                     assertEquals(1,charts.map { it.navigation }.distinct().size)
                     assertEquals(1, charts.map { it.plotLeft }.distinct().size)
                     assertEquals(1, charts.map { it.plotRight }.distinct().size)

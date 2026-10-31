@@ -198,7 +198,8 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         if (analysis.series.isNotEmpty()) {
             val navigation=RouteChartNavigation(context);chartNavigation=navigation
             val group=RouteChartGroup(context,navigation)
-            analysis.series.forEach { group.addView(RouteChartView(context, themes, analysis, it,navigation), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
+            val chartOrder=listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE,AnalysisChart.HEART,AnalysisChart.POWER,AnalysisChart.ELEVATION)
+            analysis.series.sortedBy { chartOrder.indexOf(it.chart) }.forEach { group.addView(RouteChartView(context, themes, analysis, it,navigation), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
             body.addView(group,LinearLayout.LayoutParams(-1,-2))
         }
         analysis.distributions.forEach { distribution ->

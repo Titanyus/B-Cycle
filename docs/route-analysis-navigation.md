@@ -21,3 +21,5 @@ Logs `/workspace/.tools/route-chart-filter-final-tests.log` (41Tests) und `/work
 ## Gemeinsame Gestenfläche nach Build114
 
 RouteChartGroup umschließt alle vorhandenen Zeit-/Distanzdiagramme samt Zwischenräumen. Der beim Berührungsbeginn gewählte sichtbare Chart bleibt für die ganze Geste der Host der bisherigen RouteChartNavigation. Finger dürfen andere Diagramme oder Zwischenräume durchqueren; Pointerabstand, gemeinsame X-Achse, Quick-Scale und OverScroller bleiben unverändert. Bei dominant vertikalem Einfingerziehen erhält der umgebende ScrollView die Geste zurück, auch nach Zoom. Karte und Zonenverteilungen gehören weiterhin nicht dazu. RouteChartGroupTest prüft echte ViewGroup-Ereignisverteilung mit zwei und fünf Charts sowie Seitenscrollen nach Zoom.
+
+Reihenfolge nach Build115: Tempo, Kadenz, Puls, Leistung, Höhe. Nur die Darstellung wird umgeordnet; Messkanal-IDs, FIT-Leser und gemeinsame Navigation bleiben unverändert. Fehlende Diagramme werden wie bisher ausgelassen.
