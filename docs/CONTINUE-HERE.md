@@ -18,6 +18,6 @@ Kein zusätzliches oberes Listenpadding; normale Monats-/Distanz-/Zeit-/Tempokö
 
 Neue Nutzerrückmeldung währendBuild114: „Intervals lehnte die HRV-Anfrage ab · Tagesdaten übertragen (HTTP422)“, 0hochgeladen/0vorhanden/1fehlgeschlagen. Bestätigter Fehler liegt nun beim TagesPUT, nicht beim MonatsGET. Kein gesicherter Grund aus der bisherigen sicheren Diagnose; bekannte Feldnamen/Datentypen mit offiziellerOpenAPI verglichen, passend. ÖffentlicherAPI-Beitrag16966 zeigt erfolgreichenPUT ohneBody-ID aufDatums-URL; fehlendeID deshalb nicht als bewieseneUrsache behandeln. Keine blinden Feld-/Wertänderungen und keine Änderung amHRV-Code in dieserAPK.
 
-Nutzer bestätigt betroffenesDatum2026-08-28 (gültig, nichtzukünftig). Noch offen: ob automatischeheutigeMessung weiterhin hochlädt. MitAntwort weiteruntersuchen. Keine privatenZugangsdaten oderLivepayload vorhanden. [HRV-Details](intervals-hrv.md).
+Nutzer bestätigt betroffenesDatum2026-08-28 (gültig, nichtzukünftig), zugleich allerersterTag mit eigenerMessung. Sammellauf bricht beim erstenFehler ab; daraus nicht auf isoliertenDefekt gerade diesesTags schließen. Noch offen: ob automatischeheutigeMessung weiterhin hochlädt. MitAntwort weiteruntersuchen. Keine privatenZugangsdaten oderLivepayload vorhanden. [HRV-Details](intervals-hrv.md).
 
 APK nurGitHubActions; Appcode nichtmit[skip ci] überspringen, reine Veröffentlichungmit[skip ci]. DirektenRawDownload binär gegenArtefakt prüfen. Snapshot vorBereinigung alsTag`vor-den-bereinigungen-2026-10-30`.
