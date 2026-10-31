@@ -9,4 +9,4 @@
 
 Geprüft: 51 gezielte Tests für Diagramme, Footer und FIT einschließlich lokaler Originaldatei-Prüfung; dauerhafte synthetische Regression für eigene FIT-Aufnahmen mit GPS-Ausfall. Backup-/Restore-/Lifecycle-/Intervals-Prüfungen einschließlich 64-Tage-HRV-Export erfolgreich, zuletzt 16 gezielte Screen-off-/MapState-/Startfehlerprüfungen. Typografie, UI-Atlas und Diff geprüft. Keine vollständige Gesamtsuite, kein physischer Gerätetest und kein privater Liveupload. Private Nutzerdaten und temporäre Tests nicht enthalten.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-115.md).
