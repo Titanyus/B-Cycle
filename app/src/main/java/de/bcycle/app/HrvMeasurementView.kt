@@ -256,10 +256,6 @@ internal class HrvCircleView(context:Context,themes:ThemeManager):View(context) 
         paint.color=if(measuring) tokens.primary else tokens.foreground
         canvas.drawArc(x-radius,y-radius,x+radius,y+radius,-90f,360*progress,false,paint)
         paint.style=Paint.Style.FILL
-        paint.color=if(measuring) tokens.foreground else tokens.primary
-        val angle=Math.toRadians((-90+360*progress).toDouble())
-        canvas.drawCircle(x+radius*kotlin.math.cos(angle).toFloat(),y+radius*kotlin.math.sin(angle).toFloat(),
-            BicycleDesign.hrvRingWidth*density*BicycleDesign.hrvRingEndScale/2,paint)
         val pulse=state.bpm?.toString() ?: "–";val unit=context.getString(R.string.hrv_bpm)
         paint.textAlign=Paint.Align.LEFT
         paint.typeface=numbers;paint.textSize=BicycleDesign.hrvPulseSp*scaled

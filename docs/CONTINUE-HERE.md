@@ -16,3 +16,7 @@
 Logs unter`/workspace/.tools/`: tile-reorder-scale-tests (7), ui-summary-hrv-tests/final-tests (abschließend24), map-wind-rose-tests/final-tests/centre-tests, route-chart-filter-final-tests (41), route-chart-pixels-final-tests (4). Typografie/Atlas/Diff geprüft. Keine vollständige Gesamtsuite, kein physischer Gerätetest. Screenshot-Fahrt61,5km nicht als Datei vorliegend; Kadenzfehler mit gezielter16k/80-Abschnitte-Regression und100k-Budgettest geprüft.
 
 Build110 bleibt [hier](build-110.md), Snapshot vor Bereinigung als Tag`vor-den-bereinigungen-2026-10-30` aufGitHub. Alte Übergabe/Regeln imArchiv; aktuelleAGENTS.md beachten. Fachänderungen getrennt committen; APK ausschließlichActions, Veröffentlichung[skip ci].
+
+## Nach Build111 – 31.10.2026
+
+HRV-Messbild: separaten Abschluss-/Endpunktkreis am Fortschrittsbogen entfernt, gemeinsam für Ruhe- und Messphase. Nur der farbige sich füllende Ring bleibt; abgerundete Linienenden erhalten. Ungenutzten hrvRingEndScale-Token entfernt. Typografie/Atlas/Diff geprüft, reine Zeichenänderung; keine neue APK beauftragt.

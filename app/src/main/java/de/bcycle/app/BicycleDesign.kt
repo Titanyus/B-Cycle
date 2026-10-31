@@ -53,7 +53,6 @@ object BicycleDesign {
     const val hrvActionVerticalInset=8
     const val hrvTimeSp=18f
     // Endpoint grows 40% from its previous size, independently of the thicker ring.
-    const val hrvRingEndScale=1.3f*1.4f/1.35f
     val hrvAxisColor=0x80ffffff.toInt()
     const val hrvGlowAttackMs=300L
     const val hrvGlowFadeMs=1500L
