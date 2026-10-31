@@ -58,6 +58,17 @@ class IntervalsHrvTest {
             assertTrue(report.detail!!.contains("hrvSDNN"));assertNull(IntervalsHrvUploads.receipt(c,"i123",day.toString()))
         }
     }
+    @Test fun rejectedFieldExtractionHandlesValueErrorsWithoutExposingServerDetails() {
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(422).setBody("""{"error":"Invalid value for sleepSecs: SECRET-VALUE; account PRIVATE-ID; test-key"}"""))
+            val error=assertThrows(IntervalsFailure::class.java) { api(server).updateWellness(day,JSONObject().put("hrv",42).put("sleepSecs",0)) }
+            assertEquals("sleepSecs",error.wellnessField);assertEquals(IntervalsWellnessStage.WRITE,error.wellnessStage)
+            assertNull(error.message)
+            server.enqueue(MockResponse().setResponseCode(422).setBody("""{"error":"Invalid hrv or sleepSecs; PRIVATE-ID"}"""))
+            val ambiguous=assertThrows(IntervalsFailure::class.java) { api(server).updateWellness(day,JSONObject().put("hrv",42)) }
+            assertNull(ambiguous.wellnessField)
+        }
+    }
     @Test fun mappingUsesMillisecondsAndIndependentRoundedSubjectiveScalesWithoutInventingMissingData() {
         val row=HrvHistorySummary("id",0,true,42.25,importedDay=day.toString(),metrics=mapOf("sdnnMs" to 50.5,"restingHrBpm" to 51.6,"pnn50Percent" to 20.0,"lfMs2" to 100.0))
         val answers=HrvQuestionnaire(day.toString(),ratings=mapOf("sleep" to 10,"motivation" to 0,"soreness" to 5,"fatigue" to 0,"energy" to 6,"condition" to 8,"lifestyle" to 9),
@@ -73,6 +84,15 @@ class IntervalsHrvTest {
         assertNotNull(IntervalsWellness.from(row.copy(acceptable=false),null)) // Imported raw measurements remain eligible.
         assertNull(IntervalsWellness.from(row.copy(rmssdMs=null),null))
         assertEquals(4,IntervalsWellness.from(row,answers.copy(ratings=mapOf("sleep" to 0,"fatigue" to 10)))!!.values.getInt("sleepQuality"))
+    }
+    @Test fun identicalImportedSleepTimesAreUnknownWhileExplicitZeroRemainsAUserValue() {
+        val row=HrvHistorySummary("id",0,true,16.2,importedDay=day.toString(),metrics=mapOf("sdnnMs" to 32.2,"restingHrBpm" to 76.4))
+        val answers=HrvQuestionnaire(day.toString(),ratings=mapOf("sleep" to 7),extras=mapOf("bed" to "01:59","wake" to "01:59"))
+        val mapped=IntervalsWellness.from(row,answers)!!.values
+        assertFalse(mapped.has("sleepSecs"));assertEquals(16.2,mapped.getDouble("hrv"),0.0)
+        assertEquals(7,mapped.getInt("sleepScore"));assertEquals(76,mapped.getInt("restingHR"))
+        assertEquals(0,IntervalsWellness.from(row,answers.copy(extras=answers.extras+("sleepHours" to "0")))!!.values.getInt("sleepSecs"))
+        assertEquals(7*3600,IntervalsWellness.from(row,answers.copy(extras=mapOf("bed" to "23:00","wake" to "06:00")))!!.values.getInt("sleepSecs"))
     }
     @Test fun missingDayReturnedAsJsonNullIsUploadedAndMalformedDayStillFailsClosed() {
         configure()

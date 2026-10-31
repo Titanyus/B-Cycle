@@ -39,7 +39,8 @@ internal data class IntervalsWellness(val day:LocalDate,val values:JSONObject) {
                     ?: runCatching {
                         val bed=java.time.LocalTime.parse(q.extras["bed"] ?: return@runCatching null)
                         val wake=java.time.LocalTime.parse(q.extras["wake"] ?: return@runCatching null)
-                        Math.floorMod(wake.toSecondOfDay()-bed.toSecondOfDay(),86400)
+                        // Equal import placeholders do not establish a sleep duration.
+                        Math.floorMod(wake.toSecondOfDay()-bed.toSecondOfDay(),86400).takeIf { it>0 }
                     }.getOrNull()
                 seconds?.let { data.put("sleepSecs",it) }
             }

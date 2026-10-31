@@ -37,8 +37,10 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
                 }
                 // Extract only a recognized field name, never echo response bodies or account details.
                 val field=if(response.code==422 && stage!=null) runCatching {
-                    Regex("Unrecognized wellness field \\[([A-Za-z][A-Za-z0-9_]{0,63})]")
-                        .find(response.peekBody(4096).string())?.groupValues?.get(1)?.takeIf { it=="id" || it in IntervalsWellness.fields }
+                    val message=response.peekBody(4096).string()
+                    val explicit=Regex("(?i)(?:unrecognized|unknown|invalid|missing|required) (?:wellness )?field [\\[\"']?([A-Za-z][A-Za-z0-9_]{0,63})")
+                        .find(message)?.groupValues?.get(1)?.takeIf { it=="id" || it in IntervalsWellness.fields }
+                    explicit ?: IntervalsWellness.fields.filter { key -> Regex("(?<![A-Za-z0-9_])"+Regex.escape(key)+"(?![A-Za-z0-9_])").containsMatchIn(message) }.singleOrNull()
                 }.getOrNull() else null
                 val problem=if(response.code==422 && stage!=null) R.string.intervals_hrv_rejected else
                     ServiceProblems.http(response.code)?.let { if(it==ServiceProblems.Problem.AUTH) R.string.intervals_auth_failed else it.text } ?: R.string.intervals_upload_failed
