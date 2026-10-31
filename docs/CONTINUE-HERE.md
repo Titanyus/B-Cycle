@@ -13,6 +13,6 @@ Neue APK ausdrücklich beauftragt. Letzter veröffentlichter Stand: [0.8.70/Buil
 
 ## Prüfungen
 
-Gruppen-/Cloudtests40 erfolgreich, native Gruppenvorschau visuell geprüft (`route-groups-hrv-final-tests.log`). Stress/Backup/Fragebogen/Intervals34 erfolgreich (`hrv-wellness-stress-tests.log`). Abschließende36 Ergänzungs-/Fragebogentests erfolgreich unter`/workspace/.tools/hrv-supplement-final-tests.log`. Typografie/Atlas/Diff geprüft. Keine private Liveübertragung, keine vollständige Gesamtsuite oder physischer Gerätetest.
+Gruppen-/Cloudtests40 erfolgreich, native Gruppenvorschau visuell geprüft (`route-groups-hrv-final-tests.log`). Stress/Backup/Fragebogen/Intervals34 erfolgreich (`hrv-wellness-stress-tests.log`). Abschließende36 Ergänzungs-/Fragebogentests erfolgreich unter`/workspace/.tools/hrv-supplement-final-tests.log`. Zusätzlich16 vorhandene Intervals-FIT-/Sammeluploadtests erfolgreich (`intervals-fit-regression-oct31.log`). Typografie/Atlas/Diff geprüft. Keine private Liveübertragung, keine vollständige Gesamtsuite oder physischer Gerätetest.
 
 APK nur via GitHubActions, keine lokalen APKs. Dauerhafte Signatur prüfen, CI-SHA/Version/Manifest/ZIP prüfen; veröffentlichen mit[skip ci], direktenRawDownload binär vergleichen. Historie: [Build111](build-111.md), Snapshot vor Bereinigung alsTag`vor-den-bereinigungen-2026-10-30`.
