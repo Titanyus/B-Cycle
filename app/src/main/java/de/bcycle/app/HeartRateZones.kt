@@ -18,7 +18,6 @@ data class HeartRateZoneModel(val method:HeartRateMethod,val offset:Int,val scal
     fun zoneFor(bpm:Int)=zones.firstOrNull { bpm in it }
     fun zoneFor(bpm:Double):KarvonenZone? {
         if(!bpm.isFinite() || bpm !in 1.0..maximumHeartRate.toDouble()) return null
-        if(bpm<offset+scale*zones.first().fromPercent/100.0) return null
         return zones[boundariesPercent.count { bpm>=offset+scale*it/100.0 }]
     }
 }
@@ -33,11 +32,11 @@ object HeartRateZones {
             HeartRateMethod.MAXIMUM->profile.maximumHeartRate?.takeIf { it in RiderProfileValidation.maximumRange }
             else->profile.thresholdHeartRate?.takeIf { it in RiderProfileValidation.thresholdRange }
         } ?: return null
-        val boundaries=if(method==HeartRateMethod.MAXIMUM) listOf(50,60,70,80,90,100) else listOf(0,81,90,94,100,0)
+        val boundaries=if(method==HeartRateMethod.MAXIMUM) listOf(0,60,70,80,90,100) else listOf(0,81,90,94,100,0)
         val open=method==HeartRateMethod.THRESHOLD
         val maximum=if(open) 250 else reference
         val zones=List(5) { i ->
-            val lower=if(open && i==0) 1 else (reference*boundaries[i]+99)/100
+            val lower=if(i==0) 1 else (reference*boundaries[i]+99)/100
             val upper=if(i==4) maximum+1 else (reference*boundaries[i+1]+99)/100
             KarvonenZone(i+1,boundaries[i],boundaries[i+1],lower,upper)
         }

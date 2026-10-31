@@ -12,7 +12,7 @@ data class KarvonenResult(val restingHeartRate: Int, val maximumHeartRate: Int, 
     fun zoneFor(bpm: Int): KarvonenZone? = zones.firstOrNull { bpm in it }
 }
 object Karvonen {
-    val boundariesPercent: List<Int> = listOf(50, 60, 70, 80, 90, 100)
+    val boundariesPercent: List<Int> = listOf(0, 60, 70, 80, 90, 100)
     fun targetBpm(resting: Int, maximum: Int, intensity: Double): Double? =
         if (resting !in RiderProfileValidation.restingRange || maximum !in RiderProfileValidation.maximumRange || maximum <= resting || !intensity.isFinite() || intensity !in 0.0..1.0) null
         else resting + (maximum - resting) * intensity
@@ -21,7 +21,7 @@ object Karvonen {
         // Exact integer ceiling avoids floating-point artefacts at boundaries such as 133.000...1.
         val limits = boundariesPercent.map { (resting * 100 + (maximum - resting) * it + 99) / 100 }
         return KarvonenResult(resting, maximum, List(5) { i ->
-            KarvonenZone(i + 1, boundariesPercent[i], boundariesPercent[i + 1], limits[i], if (i == 4) maximum + 1 else limits[i + 1])
+            KarvonenZone(i + 1, boundariesPercent[i], boundariesPercent[i + 1], if(i==0) 1 else limits[i], if (i == 4) maximum + 1 else limits[i + 1])
         })
     }
 }

@@ -297,7 +297,7 @@ internal class RiderProfileView(context: Context, private val themes: ThemeManag
             ranges[i].text = when {
                 zone.isEmpty->context.getString(R.string.analysis_missing)
                 result.openLastZone && i==4->context.getString(R.string.rider_zone_above,zone.lowerBpm)
-                result.openLastZone && i==0->context.getString(R.string.rider_zone_below,zone.upperExclusiveBpm)
+                i==0->context.getString(R.string.rider_zone_below,zone.upperExclusiveBpm)
                 else->context.getString(R.string.rider_zone_range,zone.lowerBpm,zone.upperBpm)
             }
             (ranges[i].parent.parent as View).contentDescription=context.getString(R.string.heart_zone_accessibility,context.getString(heartMethod.label),zone.index,ranges[i].text)

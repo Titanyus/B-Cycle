@@ -77,7 +77,7 @@ class RouteValueDistributionTest {
         for(value in listOf(80.0,120.0,159.0,180.0)) { heart.observe(value);heart.add(value,1000) }
         val pulse=heart.result(AnalysisChart.HEART,profile)!!
         assertEquals(4000.0,pulse.bars.sumOf { it.milliseconds },0.0)
-        assertEquals(2000.0,pulse.zoneMilliseconds.sum(),0.0) // 80 and 180 bpm are outside the profile's zones, not reassigned.
+        assertEquals(3000.0,pulse.zoneMilliseconds.sum(),0.0) // 80 bpm now belongs to open Z1; 180 remains above the profile maximum.
         assertEquals(1000.0,pulse.zoneMilliseconds.last(),0.0)
         assertTrue(pulse.bars.all { it.upper-it.lower==2.0 })
         val boundaryPower=RouteTimeHistogram(65535)

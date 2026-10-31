@@ -4,8 +4,8 @@ Unter Fahrer → Trainingsparameter steht Methode mit Erklärung und drei Mögli
 
 | Methode | Erforderliche Eingaben | Fünf Zonen |
 | --- | --- | --- |
-| Karvonen (Standard) | Ruhe- und Maximalpuls | 50–60–70–80–90–100 % Herzfrequenzreserve, jeweils plus Ruhepuls |
-| Maximalpuls | Maximalpuls | 50–60–70–80–90–100 % Maximalpuls |
+| Karvonen (Standard) | Ruhe- und Maximalpuls | Z1 unter Z2; Z2–Z5 ab 60–70–80–90 % Herzfrequenzreserve, jeweils plus Ruhepuls, bis Maximalpuls |
+| Maximalpuls | Maximalpuls | Z1 unter 60 %; Z2–Z5 ab 60–70–80–90 % Maximalpuls, bis Maximalpuls |
 | Schwellenpuls · Friel (Rad) | Schwellenpuls | unter 81 %, 81–90 %, 90–94 %, 94–100 %, ab 100 % Schwellenpuls |
 
 Bei Friel werden 5a–5c zur fünften Hauptzone zusammengefasst. Schwellenpuls ist ein selbst ermittelter Trainingsparameter, keine automatische Schätzung aus einer Fahrt. Sein gültiger Eingabebereich beträgt 60–250 bpm. Die technische Sensorobergrenze von 250 bpm begrenzt gültige Messwerte, nicht die Diagrammachse.
@@ -19,3 +19,9 @@ HeartRateZones ist die gemeinsame Berechnung für Vorschau, Dashboard, Trainings
 RiderProfile speichert heartRateMethod und thresholdHeartRate optional im vorhandenen riderProfile.v1. Alte Profile ohne Methode verwenden Karvonen. Einstellungssicherung erhält beide Angaben; bestehende Sicherungen bleiben lesbar. Keine FIT-, BLE- oder Performance-Engine-Änderung.
 
 Die lokale Hilfe erklärt Formeln, Beispiele, erforderliche Eingaben und Grenzen ausführlicher unter Trainingsparameter. Ihre Sticky-Accordions entsprechen den Hauptabschnitten der Ursprungsseite, darunter stehen normale Unterüberschriften mit Erklärungen.
+
+## Z1 nach unten offen nach Build115
+
+Alle gültigen Pulswerte unterhalb der Z2-Grenze gehören bei allen drei Methoden zu Z1. Technische Untergrenze1bpm, keine Zuordnung von0/negativen/nichtendlichen/fehlenden Werten. Karvonen-/Maximalpuls-Obergrenzen unverändert; Friel weiter oben offen bis zur gültigen Sensorgrenze. Int-/Double-Zuordnung, Live-/Durchschnittsfarben, HRV-Vortagstraining, distanzbasierte Anteile und zeitbasierte Histogramme nutzen dieselbe zentrale Berechnung. HF-Reserve-Prozent und Trainingsgrenzen ab Z2 bleiben unverändert.
+
+Fahrerprofil zeigt Z1 als „unter …“. Histogramme zeichnen die Z1-Farbe bis zum unteren Achsenrand, mit allen tatsächlich beobachteten niedrigen Werten im Bereich; kein Zwang, die Pulsachse bei0 zu beginnen. FIT-/BLE-/NP-Berechnung unverändert, keine Rohdaten oder alten Aufnahmen umschreiben.

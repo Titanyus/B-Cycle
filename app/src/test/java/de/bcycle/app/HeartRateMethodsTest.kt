@@ -20,7 +20,7 @@ class HeartRateMethodsTest {
         assertEquals(Karvonen.calculate(50,190)!!.zones,original.heartZones()!!.zones)
         val maximum=original.copy(heartRateMethod=HeartRateMethod.MAXIMUM)
         val threshold=original.copy(heartRateMethod=HeartRateMethod.THRESHOLD)
-        assertEquals(listOf(95,114,133,152,171),maximum.heartZones()!!.zones.map { it.lowerBpm })
+        assertEquals(listOf(1,114,133,152,171),maximum.heartZones()!!.zones.map { it.lowerBpm })
         assertEquals(listOf(1,138,153,160,170),threshold.heartZones()!!.zones.map { it.lowerBpm })
         for(profile in listOf(original,maximum,threshold)) {
             val model=profile.heartZones()!!
@@ -51,6 +51,35 @@ class HeartRateMethodsTest {
         assertNull(RiderProfile(heartRateMethod=HeartRateMethod.THRESHOLD).heartZones())
         assertNull(RiderProfile(maximumHeartRate=190,heartRateMethod=HeartRateMethod.THRESHOLD).heartZones())
         assertNotNull(RiderProfile(maximumHeartRate=190,heartRateMethod=HeartRateMethod.MAXIMUM).heartZones())
+    }
+    @Test fun openZoneOneIncludesLowPulseInEveryModelLiveColorDistanceAndTimeWithoutAcceptingInvalidPulse() {
+        val base=RiderProfile(restingHeartRate=55,maximumHeartRate=185,thresholdHeartRate=170)
+        for(method in HeartRateMethod.entries) {
+            val profile=base.copy(heartRateMethod=method)
+            val model=profile.heartZones()!!
+            assertEquals(1,model.zones.first().lowerBpm)
+            for(bpm in listOf(1.0,40.0,55.0,model.zones[1].lowerBpm-1.0)) {
+                assertEquals(1,model.zoneFor(bpm.toInt())!!.index)
+                assertEquals(1,model.zoneFor(bpm)!!.index)
+                val live=TrainingSnapshot(profile,heart=bpm,averageHeart=bpm)
+                assertEquals(1,live.heartZone)
+                assertNotNull(live.glow(ZoneGlowSource.HEART_CURRENT))
+                assertNotNull(live.glow(ZoneGlowSource.HEART_AVERAGE))
+            }
+            for(bpm in listOf(-1.0,0.0,.5,Double.NaN,Double.POSITIVE_INFINITY,model.maximumHeartRate+1.0))
+                assertNull(model.zoneFor(bpm))
+            val accumulator=RouteZoneAccumulator(profile)
+            accumulator.add(0,0.0,null,40.0)
+            accumulator.add(1000,10.0,null,70.0)
+            accumulator.add(2000,20.0,null,0.0)
+            accumulator.add(3000,30.0,null,null)
+            assertEquals(listOf(20.0,0.0,0.0,0.0,0.0),accumulator.result().heart!!.meters)
+            val distribution=accumulator.timeDistributions().single()
+            assertEquals(2000.0,distribution.totalMs,0.0)
+            assertEquals(listOf(2000.0,0.0,0.0,0.0,0.0),distribution.zoneMilliseconds)
+            assertEquals(distribution.minimum,distribution.bands.first().lower,0.0)
+            assertEquals(model.zones[1].lowerBpm.toDouble(),distribution.bands.first().upper,0.0)
+        }
     }
     @Test fun methodControlsEnableOnlyRequiredFieldsAndPreserveOthersAcrossBackup() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()

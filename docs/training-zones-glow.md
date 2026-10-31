@@ -45,8 +45,9 @@ Puffer keinen scheinbar frischen Wert. Ø-Quellen verwenden ausschließlich den
 vorhandenen Bosch-Leistungsdurchschnitt bzw. Pulsdurchschnitt und benötigen
 weiterhin frische Daten der entsprechenden Quelle.
 
-Karvonen bleibt bei 50–100 % HF-Reserve. Unterhalb der ersten Zone und oberhalb
-des persönlichen Maximalpulses gibt es keine HF-Zone/keinen HF-Glow. HF-Reserve
+Karvonen verwendet Z2–Z5 ab60/70/80/90 % HF-Reserve. Z1 ist nach unten offen:
+Alle gültigen Pulswerte unter Z2 erhalten Z1 und deren Farbe. Oberhalb
+des persönlichen Maximalpulses sowie bei ungültigem/fehlendem Puls gibt es keine HF-Zone/keinen HF-Glow. HF-Reserve
 selbst zeigt die berechnete Prozentzahl. Fehlende Profilparameter liefern „—“.
 
 ## Darstellung und Persistenz

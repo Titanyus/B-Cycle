@@ -40,9 +40,9 @@ internal class RouteTimeHistogram(private val maximumValue: Int) {
         } else {
             require(chart == AnalysisChart.HEART)
             val model = profile.heartZones() ?: return null
-            low = floor((if(model.openLastZone) minOf(observedMin!!,model.zones[1].lowerBpm-10.0) else minOf(observedMin!!,model.zones.first().lowerBpm.toDouble()))/5)*5
+            low = floor(minOf(observedMin!!,model.zones[1].lowerBpm-10.0)/5)*5
             high = ceil(maxOf(observed, if(model.openLastZone) model.zones.last().lowerBpm+10.0 else model.maximumHeartRate.toDouble()) / 5) * 5
-            bands = model.zones.filterNot { it.isEmpty }.map { zone -> DistributionBand(zone.index, if(model.openLastZone && zone.index==1) low else zone.lowerBpm.toDouble(),
+            bands = model.zones.filterNot { it.isEmpty }.map { zone -> DistributionBand(zone.index, if(zone.index==1) low else zone.lowerBpm.toDouble(),
                 if (zone.index == 5) { if(model.openLastZone) high else model.maximumHeartRate.toDouble() } else zone.upperExclusiveBpm.toDouble(), TrainingZoneColors.values[zone.index - 1]) }
         }
         // Equal numeric intervals preserve a linear axis and identical bar widths. Very large
@@ -71,7 +71,7 @@ internal class RouteTimeHistogram(private val maximumValue: Int) {
         val openHeart=chart==AnalysisChart.HEART && profile.heartZones()?.openLastZone==true
         val displayBands=bands.map { band -> when {
             chart==AnalysisChart.POWER && band.zone==7 -> band.copy(upper=axisHigh)
-            openHeart && band.zone==1 -> band.copy(lower=axisLow)
+            chart==AnalysisChart.HEART && band.zone==1 -> band.copy(lower=axisLow)
             openHeart && band.zone==5 -> band.copy(upper=axisHigh)
             else->band
         } }

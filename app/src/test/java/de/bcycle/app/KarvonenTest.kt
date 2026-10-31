@@ -8,14 +8,14 @@ class KarvonenTest {
         val result = Karvonen.calculate(55, 185)!!
         assertEquals(130, result.reserve)
         assertEquals(146.0, Karvonen.targetBpm(55, 185, .7)!!, 0.0)
-        assertEquals(listOf(120 to 132, 133 to 145, 146 to 158, 159 to 171, 172 to 185), result.zones.map { it.lowerBpm to it.upperBpm })
+        assertEquals(listOf(1 to 132, 133 to 145, 146 to 158, 159 to 171, 172 to 185), result.zones.map { it.lowerBpm to it.upperBpm })
         assertEquals(2, result.zoneFor(133)!!.index)
         assertEquals(5, result.zoneFor(185)!!.index)
-        assertNull(result.zoneFor(119)); assertNull(result.zoneFor(186))
+        assertEquals(1,result.zoneFor(119)!!.index); assertNull(result.zoneFor(0)); assertNull(result.zoneFor(186))
         assertEquals("karvonen-hrr-v1", result.modelId)
     }
     @Test fun fractionalBoundariesRoundUpAndMeasuredBpmHaveExactlyOneZone() {
-        assertEquals(listOf(122, 135, 147, 159, 171), Karvonen.calculate(61, 183)!!.zones.map { it.lowerBpm })
+        assertEquals(listOf(1, 135, 147, 159, 171), Karvonen.calculate(61, 183)!!.zones.map { it.lowerBpm })
         for (rest in 20..140 step 7) for (max in 60..250 step 11) if (max > rest) {
             val result = Karvonen.calculate(rest, max)!!
             assertEquals(5, result.zones.size)
@@ -27,7 +27,7 @@ class KarvonenTest {
             result.zones.zipWithNext().forEach { (a,b) -> assertEquals(a.upperExclusiveBpm,b.lowerBpm) }
         }
         val narrow = Karvonen.calculate(140, 141)!!
-        assertTrue(narrow.zones.take(4).all { it.isEmpty }); assertEquals(5,narrow.zoneFor(141)!!.index)
+        assertTrue(narrow.zones.drop(1).take(3).all { it.isEmpty }); assertEquals(5,narrow.zoneFor(141)!!.index)
     }
     @Test fun missingInvalidAndReversedInputsNeverProduceZones() {
         listOf(null to 185, 55 to null, 0 to 185, -1 to 185, 55 to 0, 140 to 140, 140 to 120, 55 to 251).forEach {

@@ -98,7 +98,7 @@ class TrainingZonesTest {
         assertNull(stale.glow(ZoneGlowSource.POWER_AVERAGE));assertNull(stale.glow(ZoneGlowSource.HEART_AVERAGE))
         assertNull(s.copy(profile=RiderProfile()).powerZone);assertNull(s.copy(profile=RiderProfile()).heartZone)
         assertEquals(1,s.copy(heart=100.0).heartZone);assertEquals(5,s.copy(heart=150.0).heartZone)
-        assertNull(s.copy(heart=99.0).heartZone);assertNull(s.copy(heart=151.0).heartZone)
+        assertEquals(1,s.copy(heart=99.0).heartZone);assertNull(s.copy(heart=151.0).heartZone)
         assertFalse(TrainingMetric.TRAINING_POWER_ZONE.value(stale).available)
     }
     @Test fun zoneColorsInterpolateAcrossEveryBoundaryWithoutChangingExactZone() {
