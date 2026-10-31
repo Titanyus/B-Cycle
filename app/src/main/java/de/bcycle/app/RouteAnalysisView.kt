@@ -26,7 +26,17 @@ internal object AnalysisGroups {
 internal class RouteAnalysisView(context: Context, private val themes: ThemeManager, val id: String,
     private val fullMap: (RouteAnalysis) -> Unit) : ScrollView(context),BicycleFooterPage {
     override val footerVisibility=BicycleFooterVisibility(context)
-    private val body = BicycleComponents.dialogBody(context, themes)
+    private val body = BicycleComponents.dialogBody(context, themes,object:LinearLayout(context) {
+        private val headerPaint=android.graphics.Paint()
+        override fun dispatchDraw(canvas:android.graphics.Canvas) {
+            // Extend only the header surface into the page's existing top/side insets.
+            findViewWithTag<View>("analysis_detail_head")?.let { head ->
+                headerPaint.color=themes.active.tokens.tertiary
+                canvas.drawRect(0f,0f,width.toFloat(),head.bottom.toFloat(),headerPaint)
+            }
+            super.dispatchDraw(canvas)
+        }
+    })
     private var preview: RouteAnalysisMap? = null
     private var chartNavigation:RouteChartNavigation?=null
     private var cancelled: (() -> Unit)? = null
@@ -53,6 +63,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         reset()
         val detailHead=LinearLayout(context).apply {
             orientation=LinearLayout.VERTICAL;tag="analysis_detail_head"
+            setPadding(0,0,0,dp(8))
             BicycleComponents.bindTheme(this,themes) { setBackgroundColor(it.tertiary) }
         }
         body.addView(detailHead,LinearLayout.LayoutParams(-1,-2))

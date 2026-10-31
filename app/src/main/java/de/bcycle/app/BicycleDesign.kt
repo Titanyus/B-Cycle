@@ -423,7 +423,7 @@ object BicycleComponents {
         surface(this, manager, ThemeRole.PRIMARY, BicycleDesign.dialogRadius, header = true)
         bindTheme(this,manager) { background=BicycleInputFrame.header(this,it) }
     }
-    fun dialogBody(context: Context, manager: ThemeManager) = LinearLayout(context).apply {
+    fun dialogBody(context: Context, manager: ThemeManager, body:LinearLayout=LinearLayout(context)) = body.apply {
         orientation = LinearLayout.VERTICAL
         setPadding(dp(context, BicycleDesign.horizontalPadding), dp(context, BicycleDesign.verticalPadding),
             dp(context, BicycleDesign.horizontalPadding), dp(context, BicycleDesign.verticalPadding))
