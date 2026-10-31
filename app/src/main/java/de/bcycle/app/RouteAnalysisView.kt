@@ -181,7 +181,9 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         }
         if (analysis.series.isNotEmpty()) {
             val navigation=RouteChartNavigation(context);chartNavigation=navigation
-            analysis.series.forEach { body.addView(RouteChartView(context, themes, analysis, it,navigation), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
+            val group=RouteChartGroup(context,navigation)
+            analysis.series.forEach { group.addView(RouteChartView(context, themes, analysis, it,navigation), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
+            body.addView(group,LinearLayout.LayoutParams(-1,-2))
         }
         analysis.distributions.forEach { distribution ->
             body.addView(RouteDistributionView(context, themes, distribution), LinearLayout.LayoutParams(-1, -2).apply {
