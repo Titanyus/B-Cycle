@@ -134,7 +134,7 @@ class BicycleComponentsTest {
             assertEquals(light.tokens.foreground, text.currentTextColor)
             assertEquals(light.tokens.primary, ((header.background as android.graphics.drawable.LayerDrawable).getDrawable(0) as GradientDrawable).color!!.defaultColor)
             assertEquals(android.graphics.Color.TRANSPARENT, (input.background as GradientDrawable).color!!.defaultColor)
-            assertEquals(BicycleDesign.linePixels(activity), divider.height)
+            assertEquals(BicycleDesign.dp(activity,BicycleDesign.controlBorder), divider.height)
             assertEquals(BicycleDesign.gridColumns, grid.columnCount); assertEquals(BicycleDesign.gridRows, grid.rowCount)
             assertEquals(BicycleDesign.scrollFillViewport, scroll.isFillViewport)
             assertEquals(BicycleDesign.scrollClipToPadding, scroll.clipToPadding)
