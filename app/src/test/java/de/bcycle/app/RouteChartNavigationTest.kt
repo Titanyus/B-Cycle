@@ -125,4 +125,29 @@ class RouteChartNavigationTest {
             f.navigation.dispose()
         } finally { f.close() }
     }
+    @Test fun roundTickLabelsSlidePartiallyUnderTheFixedEdgeRatherThanDisappearing() {
+        val f=Fixture()
+        try {
+            val chart=f.charts.first()
+            f.navigation.zoom(chart,10.0)
+            val text=android.graphics.Paint().apply { textSize=9f }
+            val clipLeft=chart.plotLeft+text.measureText("47.0")+4f
+            val counts=listOf(3f,0f,-3f).map { shift ->
+                val tickX=clipLeft+shift
+                val from=48.0-(tickX-chart.plotLeft)/(chart.plotRight-chart.plotLeft)*10.0
+                f.navigation.viewport.pan(from/100-f.navigation.viewport.start)
+                val image=android.graphics.Bitmap.createBitmap(360,140,android.graphics.Bitmap.Config.ARGB_8888)
+                try {
+                    val canvas=android.graphics.Canvas(image);canvas.drawColor(android.graphics.Color.BLACK);chart.draw(canvas)
+                    var ink=0
+                    for(x in kotlin.math.ceil(clipLeft.toDouble()).toInt()..(clipLeft+12).toInt())
+                        for(y in 120..132) if(image.getPixel(x,y)!=android.graphics.Color.BLACK) ink++
+                    ink
+                } finally { image.recycle() }
+            }
+            assertTrue("Clipped glyph remains partially visible: $counts",counts[1]>0)
+            assertTrue("The glyph leaves progressively: $counts",counts.first()>counts.last())
+        } finally { f.close() }
+    }
+
 }

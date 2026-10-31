@@ -7,7 +7,7 @@ import android.graphics.Path
 import android.view.View
 
 
-/** Compact native Canvas chart; geometry/labels cached when its size changes, not while scrolling. */
+/** Native Canvas chart: cached curve geometry, round X ticks cached per visible viewport. */
 internal class RouteChartView(context: Context, themes: ThemeManager, val analysis: RouteAnalysis, val series: AnalysisSeries, internal val navigation:RouteChartNavigation=RouteChartNavigation(context)) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -26,7 +26,11 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
     private val minimum get()=scale.minimum
     private val maximum get()=scale.maximum
     private var labelsStart=Double.NaN;private var labelsSpan=Double.NaN
-    private val xLabels = Array(5) { "" }; private var yLabels = emptyList<String>()
+    private var xAxis=RouteChartXAxis.calculate(0.0,1.0)
+    private var xLabels=emptyList<String>()
+    private val edgeLabels=Array(2) { "" }
+    private val xFormat=java.text.NumberFormat.getNumberInstance(resources.configuration.locales[0]).apply { isGroupingUsed=false }
+    private var yLabels = emptyList<String>()
     private val title = context.getString(series.chart.detailLabel)
     private val unit = context.getString(series.chart.unit)
     private val axisUnit = context.getString(if (analysis.distanceAxis) R.string.analysis_km else R.string.analysis_minutes)
@@ -90,12 +94,20 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
     override fun onDraw(canvas: Canvas) {
         val viewport=navigation.viewport
         if(labelsStart!=viewport.start || labelsSpan!=viewport.span) {
-            for(i in xLabels.indices) xLabels[i]=context.getString(R.string.analysis_axis_format,analysis.axisEnd*(viewport.start+viewport.span*i/4)/if(analysis.distanceAxis) 1 else 60)
+            val divisor=if(analysis.distanceAxis) 1 else 60
+            xAxis=RouteChartXAxis.calculate(analysis.axisEnd*viewport.start/divisor,analysis.axisEnd*(viewport.start+viewport.span)/divisor)
+            xFormat.minimumFractionDigits=0;xFormat.maximumFractionDigits=xAxis.decimals
+            xLabels=xAxis.marks.map(xFormat::format)
+            xFormat.minimumFractionDigits=maxOf(1,xAxis.decimals);xFormat.maximumFractionDigits=maxOf(1,xAxis.decimals)
+            edgeLabels[0]=xFormat.format(xAxis.start);edgeLabels[1]=xFormat.format(xAxis.end)
             labelsStart=viewport.start;labelsSpan=viewport.span
         }
         val top = 12 * density; val bottom = height - 24 * density
         paint.style = Paint.Style.STROKE; paint.strokeWidth = density * .5f; paint.color = foreground; paint.alpha = 35
-        for (i in 0..4) { val x = plotLeft+(plotRight-plotLeft)*i/4; canvas.drawLine(x, top, x, bottom, paint) }
+        canvas.drawLine(plotLeft,top,plotLeft,bottom,paint);canvas.drawLine(plotRight,top,plotRight,bottom,paint)
+        canvas.save();canvas.clipRect(plotLeft,top,plotRight,bottom)
+        for(mark in xAxis.marks) { val x=screenX(mark*if(analysis.distanceAxis) 1 else 60);canvas.drawLine(x,top,x,bottom,paint) }
+        canvas.restore()
         for (mark in scale.marks) { val y = bottom - (bottom - top) * ((mark-minimum)/(maximum-minimum)).toFloat(); canvas.drawLine(plotLeft, y, plotRight, y, paint) }
         paint.style = Paint.Style.FILL; paint.color = curve; paint.alpha = BicycleDesign.analysisChartFillAlpha
         canvas.save();canvas.clipRect(plotLeft,top,plotRight,bottom)
@@ -105,11 +117,18 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
         paint.style = Paint.Style.FILL; paint.color = foreground; paint.alpha = 180; paint.textSize = 9 * scaled
         paint.textAlign = Paint.Align.RIGHT
         for ((i,mark) in scale.marks.withIndex()) canvas.drawText(yLabels[i], plotLeft - 4 * density, bottom - (bottom - top) * ((mark-minimum)/(maximum-minimum)).toFloat() + paint.textSize / 3, paint)
+        // Keep both edge readings stationary. World ticks slide underneath their reserved
+        // regions, with clipping instead of switching individual labels on/off near an edge.
         paint.textAlign = Paint.Align.CENTER
-        for (i in 0..4) {
-            paint.textAlign = if (i == 4) Paint.Align.RIGHT else if (i == 0) Paint.Align.LEFT else Paint.Align.CENTER
-            canvas.drawText(xLabels[i], plotLeft+(plotRight-plotLeft)*i/4, height - 9 * density, paint)
+        val leftEdge=plotLeft+paint.measureText(edgeLabels[0])+4*density
+        val rightEdge=plotRight-paint.measureText(edgeLabels[1])-4*density
+        canvas.save();canvas.clipRect(leftEdge,bottom,rightEdge,height.toFloat())
+        xAxis.marks.forEachIndexed { i,mark ->
+            canvas.drawText(xLabels[i],screenX(mark*if(analysis.distanceAxis) 1 else 60),height-9*density,paint)
         }
+        canvas.restore()
+        paint.textAlign=Paint.Align.LEFT;canvas.drawText(edgeLabels[0],plotLeft,height-9*density,paint)
+        paint.textAlign=Paint.Align.RIGHT;canvas.drawText(edgeLabels[1],plotRight,height-9*density,paint)
         paint.textAlign = Paint.Align.RIGHT; canvas.drawText(unit, plotRight, top - 2 * density, paint)
         canvas.drawText(axisUnit, plotRight, height.toFloat(), paint)
         titlePaint.color = foreground

@@ -4,7 +4,7 @@ Tempo, Kadenz, Leistung, Puls und Höhe teilen eine RouteChartNavigation mit nor
 
 Zwei-Finger-Pinch über direkte Distanz der Pointer-IDs wie HrvTrendChart, kein Android-Mindestabstand. Fingerwechsel startet nur die Referenzdistanz neu, keine Sprünge. Native Quick-Scale erhalten. Horizontales Schieben mit GestureDetector und OverScroller mit derselben Standardträgheit wie HRV; eine gemeinsame Bewegung für alle Diagramme. Neue Berührung auch auf einem anderen Diagramm, Rand, CANCEL, Entfernen oder Schließen beenden den Nachlauf. Vertikales Seitenscrollen bleibt möglich, horizontale/Pinch-Gesten sperren das Abfangen nur während der Geste.
 
-Vorbereitete Kurvenpfade bleiben zwischengespeichert, nur die X-Transformation ändert sich. Kurven clippen auf die Zeichenfläche, Beschriftungen/Grid bleiben im Plotrahmen; fünf passende X-Werte pro Ansicht. Keine Datei-/FIT-Dekodierung, Y-Neuskalierung oder Kurvenanalyse pro Bewegungsframe. Ausreichende Darstellung hängt weiterhin von den begrenzten vorbereiteten Analysedaten ab. Accessibility-Aktionen für gemeinsamen Zoom und Seitenschritt ohne neue sichtbare Buttons.
+Vorbereitete Kurvenpfade bleiben zwischengespeichert, nur die X-Transformation ändert sich. Kurven clippen auf die Zeichenfläche, Beschriftungen/Grid bleiben im Plotrahmen; Runde, an absoluten Werten verankerte X-Raster je Zoomstufe sowie feste aktuelle Randwerte. Keine Datei-/FIT-Dekodierung, Y-Neuskalierung oder Kurvenanalyse pro Bewegungsframe. Ausreichende Darstellung hängt weiterhin von den begrenzten vorbereiteten Analysedaten ab. Accessibility-Aktionen für gemeinsamen Zoom und Seitenschritt ohne neue sichtbare Buttons.
 
 ## Kadenzdarstellung
 
@@ -23,3 +23,9 @@ Logs `/workspace/.tools/route-chart-filter-final-tests.log` (41Tests) und `/work
 RouteChartGroup umschließt alle vorhandenen Zeit-/Distanzdiagramme samt Zwischenräumen. Der beim Berührungsbeginn gewählte sichtbare Chart bleibt für die ganze Geste der Host der bisherigen RouteChartNavigation. Finger dürfen andere Diagramme oder Zwischenräume durchqueren; Pointerabstand, gemeinsame X-Achse, Quick-Scale und OverScroller bleiben unverändert. Bei dominant vertikalem Einfingerziehen erhält der umgebende ScrollView die Geste zurück, auch nach Zoom. Karte und Zonenverteilungen gehören weiterhin nicht dazu. RouteChartGroupTest prüft echte ViewGroup-Ereignisverteilung mit zwei und fünf Charts sowie Seitenscrollen nach Zoom.
 
 Reihenfolge nach Build115: Tempo, Kadenz, Puls, Leistung, Höhe. Nur die Darstellung wird umgeordnet; Messkanal-IDs, FIT-Leser und gemeinsame Navigation bleiben unverändert. Fehlende Diagramme werden wie bisher ausgelassen.
+
+## Runde mitlaufende X-Skala nach Build115
+
+RouteChartXAxis wählt je sichtbarem Bereich Schritte1/2/5×10ⁿ (km oder Minuten). Rasterlinien/Beschriftungen bleiben an diesen absoluten Werten verankert und wandern mit der Kurve, statt in fünf festen Bildschirmpositionen krumme Zwischenwerte zu zeigen. Ein gemeinsamer Ausschnitt ergibt identische Raster in allen vorhandenen Diagrammen. Exakte aktuelle Anfangs-/Endwerte bleiben an beiden Rändern mit mindestens einer Dezimalstelle; bei kleinen Schritten zusätzliche notwendige Dezimalstellen.
+
+Ein Rasterwert außerhalb jeder sichtbaren Seite bleibt vorbereitet. Bewegte Beschriftungen werden in einem festen Bereich zwischen den reservierten Randwerten geclippt und fahren teilweise unter diesen Rand; keine Sichtbarkeitsschalter oder überlappende Randtexte. Linien im Plot geclippt, Werte und Einheit außerhalb stabil. Nur Darstellungsraster geändert, Y-Skalen, Messwerte, gemeinsame Fingerabstandssteuerung und Trägheit erhalten. Relevante X-Achsen-/Navigation-/Gruppen-/Detailtests erfolgreich; native Pixelprüfung bestätigt teilweise sichtbare Glyphen am Cliprand.
