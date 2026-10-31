@@ -48,6 +48,11 @@ class RouteManagerFastScrollTest {
             touch(MotionEvent.ACTION_MOVE,list.height*.8f)
             assertTrue("dragged first=${list.firstVisiblePosition}",list.firstVisiblePosition>250)
             val at=list.firstVisiblePosition
+            val indexer=list.adapter as android.widget.SectionIndexer
+            val firstContent=at+if(list.getChildAt(0).bottom<=list.paddingTop) 1 else 0
+            assertEquals(firstContent,indexer.getPositionForSection(indexer.getSectionForPosition(firstContent)))
+            touch(MotionEvent.ACTION_MOVE,list.height*.805f)
+            assertEquals(at,list.firstVisiblePosition)
             touch(MotionEvent.ACTION_UP,list.height*.8f)
             repeat(3) { layout() }
             assertEquals(at,list.firstVisiblePosition)

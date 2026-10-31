@@ -59,6 +59,7 @@ internal class RouteManagerView(context: Context,
         tag="route_status"
         setPadding(dp(BicycleDesign.horizontalPadding), dp(BicycleDesign.verticalPadding), dp(BicycleDesign.horizontalPadding), 0)
     }
+    private var sectionSort=RouteSort.DATE
     private var routeSections=RouteListSections(emptyList(),RouteSort.DATE,context.getString(R.string.ui_field_missing_value))
     private val rows = object : BaseAdapter(), SectionIndexer {
         override fun getSections():Array<String> = routeSections.labels
@@ -68,7 +69,7 @@ internal class RouteManagerView(context: Context,
         override fun getItem(position: Int) = filtered[position]
         override fun getItemId(position: Int) = position.toLong()
         override fun getView(position: Int, recycled: View?, parent: ViewGroup): View =
-            ((recycled as? Card) ?: Card()).apply { bind(filtered[position]) }
+            ((recycled as? Card) ?: Card()).apply { bind(filtered[position],routeSections.groupAt(position)) }
     }
     init {
         orientation = VERTICAL
@@ -81,7 +82,7 @@ internal class RouteManagerView(context: Context,
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
         addView(status, LayoutParams(-1, -2))
         addView(BicycleFastScrollList(context,themes).apply {
-            tag = "route_list"; adapter = rows; dividerHeight = dp(BicycleDesign.controlBorder)
+            tag = "route_list";sectionSteps=true; adapter = rows; dividerHeight = dp(BicycleDesign.controlBorder)
             setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
             BicycleComponents.scrollStyle(this)
             BicycleComponents.bindTheme(this, themes) {
@@ -115,9 +116,23 @@ internal class RouteManagerView(context: Context,
         }, hideWhenEmpty = true)
     }
     private fun updateRows() {
-        filtered = query.apply(all,{ RideProfileColor.slot(context,it) },displayedId=selected,displayedIds=mapNumbers.keys)
+        val next=query.apply(all,{ RideProfileColor.slot(context,it) },displayedId=selected,displayedIds=mapNumbers.keys)
+        val changed=next!=filtered || sectionSort!=query.sort
+        filtered=next
         updateStatus()
-        routeSections=RouteListSections(filtered,query.sort,context.getString(R.string.ui_field_missing_value))
+        if(changed) {
+            sectionSort=query.sort
+            routeSections=RouteListSections(filtered,query.sort,context.getString(R.string.route_group_missing),title={ kind,upper ->
+                val number=if(kind==RouteSort.MOVING && upper<1) upper*60 else upper
+                val formatted=String.format(Locale.GERMANY,if(number%1.0==0.0) "%.0f" else "%.1f",number)
+                when(kind) {
+                    RouteSort.DISTANCE->context.getString(R.string.route_group_distance,formatted)
+                    RouteSort.MOVING->context.getString(R.string.route_group_moving,formatted,context.getString(if(upper<1) R.string.analysis_minutes else R.string.analysis_hours))
+                    RouteSort.SPEED->context.getString(R.string.route_group_speed,formatted)
+                    RouteSort.DATE->error("Date group is formatted by month")
+                }
+            })
+        }
         rows.notifyDataSetChanged()
     }
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -143,36 +158,11 @@ internal class RouteManagerView(context: Context,
             }.apply {
                 setOnLongClickListener { entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let { chooseMapSlot?.invoke(this,it) };true }
             }
-        private inner class Reading(labelId: Int? = null, unitId: Int? = null) : LinearLayout(context) {
-            val number = BicycleComponents.text(context, themes, "").apply {
-                typeface = BicycleDesign.narrowTypeface(context); textSize = BicycleDesign.routeMetricSp
-                gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
-                setAutoSizeTextTypeUniformWithConfiguration(if (labelId == null) 10 else 12, BicycleDesign.routeMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
-            }
-            val unit = TextView(context).apply {
-                text = unitId?.let(context::getString).orEmpty(); typeface = BicycleDesign.narrowTypeface(context)
-                textSize = BicycleDesign.formatSp; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
-                BicycleComponents.secondaryText(this,themes)
-                setAutoSizeTextTypeUniformWithConfiguration(8, BicycleDesign.formatSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
-            }
-            val label = BicycleComponents.text(context, themes, labelId?.let(context::getString).orEmpty()).apply {
-                textSize = BicycleDesign.routeMetricLabelSp; gravity = Gravity.CENTER; includeFontPadding = false
-                maxLines = 1; ellipsize = TextUtils.TruncateAt.END
-            }
-            init {
-                orientation = VERTICAL
-                addView(AnalysisValueRow(context, number, unit), LayoutParams(-1, dp(BicycleDesign.routeMetricHeight)))
-                addView(label, LayoutParams(-1, -2))
-            }
-            fun bind(value: String?, id: String, kind: String) {
-                number.text = value.orEmpty(); number.tag = "route_${kind}_$id"
-                unit.visibility = if (value == null || unit.text.isEmpty()) GONE else VISIBLE
-            }
-        }
-        private val date = Reading()
-        private val distance = Reading(R.string.route_list_distance, R.string.analysis_km)
-        private val moving = Reading(R.string.route_list_moving, R.string.analysis_hours)
-        private val average = Reading(R.string.route_list_average, R.string.analysis_kmh)
+        private val groupHeader=RouteListGroupHeader(context,themes)
+        private val date = RouteListReading(context,themes)
+        private val distance = RouteListReading(context,themes,R.string.route_list_distance, R.string.analysis_km)
+        private val moving = RouteListReading(context,themes,R.string.route_list_moving, R.string.analysis_hours)
+        private val average = RouteListReading(context,themes,R.string.route_list_average, R.string.analysis_kmh)
         private val metrics = LinearLayout(context).apply {
             orientation = HORIZONTAL
             listOf(date, distance, moving, average).forEachIndexed { index, reading ->
@@ -188,6 +178,7 @@ internal class RouteManagerView(context: Context,
             setOnClickListener { entry?.takeIf { !busy }?.let { if(selecting) toggleSelection(it.id) else details(it) } }
             setOnLongClickListener { entry?.takeIf { !busy }?.let { toggleSelection(it.id) };true }
             setPadding(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.rowGap))
+            addView(groupHeader,LayoutParams(-1,-2))
             addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
                 // The identity prefix owns its natural width, independently of the tiny map preview.
@@ -229,7 +220,8 @@ internal class RouteManagerView(context: Context,
             eye.setImageDrawable(BicycleIcons.drawable(context,eyeKind,color,negative=route.id !in shownIds))
             eye.setColorFilter(color)
         }
-        fun bind(route: ManagedRoute) {
+        fun bind(route: ManagedRoute,group:RouteListGroup?) {
+            groupHeader.bind(group)
             isActivated=route.id in checked
             entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
             contentDescription = context.getString(R.string.analysis_open, route.name)+(if(route.id in checked) " · "+context.getString(R.string.route_selected) else "")

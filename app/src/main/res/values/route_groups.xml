@@ -1,0 +1,8 @@
+<resources>
+    <string name="route_group_missing">Ohne Angabe</string>
+    <string name="route_group_distance">Distanz bis %1$s km</string>
+    <string name="route_group_moving">Fahrzeit bis %1$s %2$s</string>
+    <string name="route_group_speed">Ø-Tempo bis %1$s km/h</string>
+    <string name="route_group_activities">Aktivitäten</string>
+    <string name="route_group_time">Fahrzeit</string>
+</resources>

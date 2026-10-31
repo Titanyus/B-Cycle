@@ -18,6 +18,8 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
     private val paint=android.text.TextPaint(Paint.ANTI_ALIAS_FLAG)
     private val thumb=RectF()
     internal val previewBounds=RectF()
+    internal var sectionSteps=false
+    private val sectionIndexer get()=((adapter as? HeaderViewListAdapter)?.wrappedAdapter ?: adapter) as? SectionIndexer
     private var dragging=false
     private var dragFraction=0f
     private var dragPosition=0
@@ -31,6 +33,18 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
     private fun available()=rows>childCount && childCount>0 && height>dp(64f)
     private fun fraction():Float {
         if(dragging) return dragFraction
+        val indexer=sectionIndexer
+        val sections=indexer?.sections
+        if(sectionSteps && indexer!=null && sections!=null && sections.isNotEmpty()) {
+            val position=(firstVisiblePosition-headerViewsCount).coerceIn(0,(rows-1).coerceAtLeast(0))
+            if(lastVisiblePosition>=count-1 && getChildAt(childCount-1)?.bottom?.let { it<=height-paddingBottom }==true) return 1f
+            val section=indexer.getSectionForPosition(position).coerceIn(0,sections.lastIndex)
+            val from=indexer.getPositionForSection(section)
+            val until=if(section<sections.lastIndex) indexer.getPositionForSection(section+1) else rows
+            val first=getChildAt(0)
+            val part=first?.let { ((paddingTop-it.top).toFloat()/it.height.coerceAtLeast(1)).coerceIn(0f,1f) } ?: 0f
+            return ((section+(position-from+part)/(until-from).coerceAtLeast(1))/sections.size).coerceIn(0f,1f)
+        }
         // Native metrics include the fractional visibility of both edge rows. Counting whole
         // visible rows changes the denominator at each row boundary and makes the thumb jump.
         val maximum=computeVerticalScrollRange()-computeVerticalScrollExtent()
@@ -90,7 +104,12 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
             MotionEvent.ACTION_DOWN,MotionEvent.ACTION_MOVE->{
                 val top=paddingTop+dp(4f);val height=(height-paddingBottom-dp(4f)-top-dp(BicycleDesign.fastScrollThumbHeight)).coerceAtLeast(1f)
                 dragFraction=((event.y-top-dp(BicycleDesign.fastScrollThumbHeight)/2)/height).coerceIn(0f,1f)
-                dragPosition=(dragFraction*(rows-1).coerceAtLeast(0)).toInt()
+                val indexer=sectionIndexer
+                val sections=indexer?.sections
+                dragPosition=if(sectionSteps && indexer!=null && sections!=null && sections.isNotEmpty()) {
+                    val section=(dragFraction*sections.size).toInt().coerceIn(0,sections.lastIndex)
+                    indexer.getPositionForSection(section).coerceIn(0,(rows-1).coerceAtLeast(0))
+                } else (dragFraction*(rows-1).coerceAtLeast(0)).toInt()
                 setSelectionFromTop(dragPosition+headerViewsCount,0)
                 // Apply the drag target immediately instead of letting a pending parent layout
                 // restore the old list anchor before the target becomes visible.
