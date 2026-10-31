@@ -1,6 +1,6 @@
 # HRV zu intervals.icu
 
-Stand31.10.2026. Basis veröffentlicht inBuild106; aktuelle Ergänzungen für die nächste APK vorbereitet.
+Stand31.10.2026. Basis veröffentlicht inBuild106; aktuelle Ergänzungen veröffentlicht in[0.8.71/Build112](build-112.md).
 
 Die bestehende intervals.icu-Aktivierung gilt für Fahrten und HRV. Athleten-ID, geschützter API-Schlüssel und WLAN-Vorgabe bleiben gemeinsam; keine neue Konfiguration und kein zusätzliches Backupfeld. Cloud-Reihenfolge: Lokal, WebDAV, Dreeve, intervals.icu, Strava. Kompakte Angaben: Dreeve IN „FIT-Streckendaten | Wartungsintervalle“, intervals OUT „FIT-Streckendaten | HRV-Daten“.
 

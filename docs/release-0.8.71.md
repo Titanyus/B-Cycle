@@ -8,4 +8,4 @@
 
 Geprüft mit gezielten nativen UI-, Modell-, HTTP- und Sicherungstests. Keine vollständige Gesamtsuite oder physischer Gerätetest. Ob die Änderung den gemeldeten422 beim privaten Konto behebt, muss ein erneuter echter Sammelupload zeigen.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-112.md).

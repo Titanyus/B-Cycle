@@ -1,6 +1,6 @@
-# Aktueller Auftrag –31.10.2026
+# Aktueller Stand: APK0.8.71 / Build112 veröffentlicht –31.10.2026
 
-Neue APK ausdrücklich beauftragt. Letzter veröffentlichter Stand: [0.8.70/Build111](build-111.md). Aktuelle Änderungen lokal, Veröffentlichung erst nach erfolgreichem Actions-Build und APK-Prüfung.
+[APK direkt](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.71-release-112.apk) · [Buildnachweis](build-112.md) · [Änderungen](release-0.8.71.md). Code141, Quelle`cbebd12ab7f3ef794beeb5b96aff12ebe1bf65c4`, 2553561Bytes, SHA-256`ff0b8d6f98aa495a8ab34739c455fd1bd21c446810c7676a3e49862862196aa1`. Signatur/Manifest/Version/CI-Prüfsumme/ZIP-Ausrichtung geprüft. Alle aktuellen Aufträge erledigt, kein offener Buildauftrag.
 
 ## Seit Build111
 
