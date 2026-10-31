@@ -53,3 +53,9 @@ verwendet denselben Footer mit Importicon und „Strecke importieren“ links.
 Accessibility-Erfolgsbeschreibungen bleiben unabhängig von der kurzen Beschriftung.
 Der feste Fullscreen-Footer wird aus dem Scrollinhalt herausgelöst. Keine zusätzliche
 Schließen-Schaltfläche, keine Änderung an den fünf Aktionen oder ihren Services.
+
+## Footer und Detailkopf nach Build114
+
+Streckendetails und Fahrradprofile verwenden wie der Streckenmanager das Panel-Symbol links neben Info zum Ein-/Ausblenden des Footers. Standard bei jedem Öffnen ausgeblendet; Kontextaktionen der Fahrradprofile bleiben erhalten. BicycleFooterVisibility bündelt die seitenlokale Sichtbarkeit einschließlich temporärer Einblendung bei Langdruck-Auswahl im Streckenmanager. Keine Footeränderung am Fahrerprofil.
+
+Fahrrad-/Datumsangaben und gegebenenfalls nachgeladene Wetterdaten liegen gemeinsam in einem TERTIARY-Container (`analysis_detail_head`). Themebindung aktualisiert die gesamte Fläche. Abstände, übrige Statistikgruppen und Diagrammhintergründe unverändert.

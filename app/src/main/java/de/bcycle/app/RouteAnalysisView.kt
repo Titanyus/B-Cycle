@@ -51,6 +51,11 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     fun show(analysis: RouteAnalysis) {
         if (closed) return
         reset()
+        val detailHead=LinearLayout(context).apply {
+            orientation=LinearLayout.VERTICAL;tag="analysis_detail_head"
+            BicycleComponents.bindTheme(this,themes) { setBackgroundColor(it.tertiary) }
+        }
+        body.addView(detailHead,LinearLayout.LayoutParams(-1,-2))
         val identity=FrameLayout(context).apply { tag="analysis_identity" }
         val lines=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER }
         val bikeName=RideProfileColor.name(context,id)
@@ -84,11 +89,11 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             addView(BicycleComponents.text(context,themes,analysis.entry.format).apply { textSize=BicycleDesign.formatSp;gravity=Gravity.CENTER },LinearLayout.LayoutParams(-1,-2))
             contentDescription=context.getString(R.string.route_file_identity,context.getString(analysis.entry.details.bikeType?.label ?: R.string.ui_route_unknown_origin),analysis.entry.format)
         },FrameLayout.LayoutParams(dp(52),dp(52),Gravity.START or Gravity.CENTER_VERTICAL).apply { if(profileColor!=null) marginStart=dp(5+BicycleDesign.controlGap) })
-        body.addView(identity,LinearLayout.LayoutParams(-1,dp(52)))
-        if(analysis.entry.format=="JSON") body.addView(BicycleComponents.description(context,themes,context.getString(R.string.dreeve_summary_notice)).apply { tag="analysis_summary_notice" })
+        detailHead.addView(identity,LinearLayout.LayoutParams(-1,dp(52)))
+        if(analysis.entry.format=="JSON") detailHead.addView(BicycleComponents.description(context,themes,context.getString(R.string.dreeve_summary_notice)).apply { tag="analysis_summary_notice" })
         analysis.weatherTarget?.let { target ->
             val holder=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;visibility=GONE }
-            body.addView(holder,LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.smallGap) })
+            detailHead.addView(holder,LinearLayout.LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.smallGap) })
             val revision=weatherRevision
             weatherTask=RideWeather.load(context.applicationContext,id,target) { data ->
                 if(!closed && revision==weatherRevision && data!=null) {
