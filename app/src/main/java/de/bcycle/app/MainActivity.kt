@@ -634,6 +634,7 @@ class MainActivity : Activity() {
         bikesManager = content
         val scroll=BicycleStickyScrollView(settingsContext).apply { addView(content) }
         val footer=ProfileContextFooter(settingsContext,settingsThemes,content.footer)
+        content.footerVisibility.bindFooter(footer)
         fun updateFooter() { footer.update(scroll,content.designHeader) }
         content.footerChanged={ footer.bindDashboard(content.dashboardActions);scroll.post { updateFooter() } }
         footer.bindDashboard(content.dashboardActions)
@@ -1353,6 +1354,7 @@ class MainActivity : Activity() {
     private fun routeAnalysis(entry: ManagedRoute) {
         val content = RouteAnalysisView(settingsContext, settingsThemes, entry.id, ::routeAnalysisMap)
         val footer = bicycleFooter(settingsContext, settingsThemes)
+        content.footerVisibility.bindFooter(footer)
         val root = LinearLayout(settingsContext).apply {
             orientation = LinearLayout.VERTICAL
             addView(content, LinearLayout.LayoutParams(-1, 0, 1f))

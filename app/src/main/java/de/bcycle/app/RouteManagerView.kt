@@ -21,7 +21,7 @@ import kotlin.math.cos
 internal class RouteManagerView(context: Context,
     private val toggle: (ManagedRoute) -> Unit,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
-    private val details: (ManagedRoute) -> Unit = {}) : LinearLayout(context) {
+    private val details: (ManagedRoute) -> Unit = {}) : LinearLayout(context),BicycleFooterPage {
     private fun dp(value: Int) = BicycleDesign.dp(context, value)
     internal var fullscreen = false
     private var all: List<ManagedRoute> = emptyList()
@@ -40,26 +40,12 @@ internal class RouteManagerView(context: Context,
     private val checked=linkedSetOf<String>()
     val checkedIds get()=checked.toSet()
     val selecting get()=checked.isNotEmpty()
-    private var footerPinned=false
-    private var selectionFooter=false
-    private var footerView:View?=null
-    private var footerToggle:View?=null
-    internal val footerVisible get()=footerPinned || selectionFooter && selecting
-    internal fun bindFooter(view:View) { footerView=view;updateFooter() }
-    internal fun bindFooterToggle(view:View) {
-        footerToggle=view
-        view.setOnClickListener { footerPinned=!footerVisible;selectionFooter=false;updateFooter() }
-        updateFooter()
-    }
-    private fun updateFooter() {
-        footerView?.visibility=if(footerVisible) VISIBLE else GONE
-        footerToggle?.apply {
-            isActivated=footerVisible
-            contentDescription=context.getString(if(footerVisible) R.string.route_footer_hide else R.string.route_footer_show)
-        }
-    }
+    override val footerVisibility=BicycleFooterVisibility(context)
+    internal val footerVisible get()=footerVisibility.visible
+    internal fun bindFooter(view:View)=footerVisibility.bindFooter(view)
+    internal fun bindFooterToggle(view:View)=footerVisibility.bindToggle(view)
     fun clearSelection() { checked.clear();updateStatus();rows.notifyDataSetChanged();selectionChanged() }
-    private fun toggleSelection(id:String,fromLongPress:Boolean=false) { if(!checked.add(id)) checked.remove(id);if(fromLongPress && selecting) selectionFooter=true;updateStatus();rows.notifyDataSetChanged();selectionChanged() }
+    private fun toggleSelection(id:String,fromLongPress:Boolean=false) { if(!checked.add(id)) checked.remove(id);if(fromLongPress && selecting) footerVisibility.temporary(true);updateStatus();rows.notifyDataSetChanged();selectionChanged() }
     fun refreshQuery() { updateRows();queryChanged() }
     private var queryPopup:RouteQueryPopup?=null
     fun showFilters(anchor:View,navigation:DialogNavigation) {
@@ -143,8 +129,7 @@ internal class RouteManagerView(context: Context,
         updateStatus()
     }
     private fun updateStatus() {
-        if(!selecting) selectionFooter=false
-        updateFooter()
+        if(!selecting) footerVisibility.temporary(false)
         BicycleFeedback.update(status, if(selecting) context.getString(R.string.route_selection_count,checked.size) else importStatus.ifEmpty {
             if (!busy && filtered.isEmpty()) context.getString(R.string.ui_routes_empty) else ""
         }, hideWhenEmpty = true)

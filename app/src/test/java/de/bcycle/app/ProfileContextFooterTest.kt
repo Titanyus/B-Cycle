@@ -30,6 +30,10 @@ class ProfileContextFooterTest {
             val body=testDescendants(root).filterIsInstance<BikesView>().single()
             val scroll=testDescendants(root).filterIsInstance<ScrollView>().single()
             val footer=testDescendants(root).filterIsInstance<ProfileContextFooter>().single()
+            assertEquals(View.GONE,footer.visibility)
+            root.findViewWithTag<View>("route_footer_toggle").performClick()
+            root.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY));root.layout(0,0,360,800)
+            shadowOf(Looper.getMainLooper()).idle()
             assertFalse(footer.dashboardMode)
             assertTrue(footer.findViewWithTag<View>("bike_rename").isShown)
             assertFalse(footer.findViewWithTag<View>("dashboard_rename").isShown)
@@ -78,6 +82,8 @@ class ProfileContextFooterTest {
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
             val body=testDescendants(root).filterIsInstance<BikesView>().single()
             val footer=testDescendants(root).filterIsInstance<ProfileContextFooter>().single()
+            assertEquals(View.GONE,footer.visibility)
+            root.findViewWithTag<View>("route_footer_toggle").performClick()
             val old=footer.findViewWithTag<View>("dashboard_footer_actions")
             val other=runtime.bikes.all().first { it.slot!=runtime.bikes.activeSlot }
             assertTrue(runtime.switchBike(other.slot));body.refresh()

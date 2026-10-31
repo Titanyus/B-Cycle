@@ -148,6 +148,8 @@ class BikesViewTest {
             assertEquals("Tourenrad",decor.findViewWithTag<TextView>("bike_profile_name").text.toString())
             val scrolling=testDescendants(decor).filterIsInstance<ScrollView>().single { testDescendants(it).contains(body) }
             assertTrue(scrolling.getChildAt(0).height>scrolling.height)
+            assertEquals(View.GONE,decor.findViewWithTag<View>("bicycle_fullscreen_footer").visibility)
+            decor.findViewWithTag<View>("route_footer_toggle").performClick();measure(decor)
             assertEquals(View.VISIBLE,decor.findViewWithTag<View>("bicycle_fullscreen_footer").visibility)
             // Capture the real Android view, including fixed header, not an illustrative mockup.
             fun snapshot(name: String) {

@@ -13,7 +13,8 @@ import android.widget.*
 internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val search: () -> Unit, private val stopSearch: () -> Unit, private val enableGps: () -> Unit, private val recordingControls: () -> View, private val choosePhoto:(Int)->Unit = {},
     private val confirmDelete:(Int,String,()->Unit)->Unit = { _,_,_ -> },
-    private val additionalSections:(()->List<Pair<Int,View>>)?=null, private val editDashboard:()->Unit={},private val assignProfiles:()->Unit={}) : LinearLayout(context) {
+    private val additionalSections:(()->List<Pair<Int,View>>)?=null, private val editDashboard:()->Unit={},private val assignProfiles:()->Unit={}) : LinearLayout(context),BicycleFooterPage {
+    override val footerVisibility=BicycleFooterVisibility(context)
     private val themes = runtime.themes.settings
     private val collapsedSections=mutableSetOf<String>()
     private val expandedSensors=mutableSetOf<BikeSensor>()

@@ -24,7 +24,8 @@ internal object AnalysisGroups {
 
 /** One scrolling body. It owns its typography so generic dialog styling must not overwrite it. */
 internal class RouteAnalysisView(context: Context, private val themes: ThemeManager, val id: String,
-    private val fullMap: (RouteAnalysis) -> Unit) : ScrollView(context) {
+    private val fullMap: (RouteAnalysis) -> Unit) : ScrollView(context),BicycleFooterPage {
+    override val footerVisibility=BicycleFooterVisibility(context)
     private val body = BicycleComponents.dialogBody(context, themes)
     private var preview: RouteAnalysisMap? = null
     private var chartNavigation:RouteChartNavigation?=null

@@ -54,6 +54,9 @@ class RouteDetailActionsTest {
             waitFor { detail.window!!.decorView.findViewWithTag<View>("detail_map").isEnabled }
             measure(detail.window!!.decorView)
             val footer = detail.window!!.decorView.findViewWithTag<ViewGroup>("bicycle_fullscreen_footer")
+            assertEquals(View.GONE,footer.visibility)
+            detail.window!!.decorView.findViewWithTag<View>("route_footer_toggle").performClick()
+            assertEquals(View.VISIBLE,footer.visibility)
             var activeFooter = footer
             assertEquals(5, footer.childCount)
             assertEquals(listOf("detail_map", "detail_rename", "detail_elevation", "detail_upload", "detail_delete"), (0 until footer.childCount).map { footer.getChildAt(it).tag })
