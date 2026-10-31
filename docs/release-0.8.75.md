@@ -8,4 +8,4 @@
 
 Geprüft:10 Detailansicht- und7 Komponentenprüfungen für die Kopf-/Layoutänderung;57 gezielte Pulsmodell-/Titel-/Zonen-/Darstellungsfälle mit erfolgreichen Nachprüfungen der angepassten Profil-/Glow-Erwartungen. Abschließend19 Achsen-/Navigation-/Gruppen-/Detailprüfungen erfolgreich, darunter native Pixelprüfung teilweise sichtbarer Schrift am Cliprand. Typografie/Atlas/Diff geprüft. Kein physischer Gerätetest und keine vollständige Gesamtsuite. Rohdaten, FIT-Aufzeichnung und NP-Berechnung unverändert.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-116.md).
