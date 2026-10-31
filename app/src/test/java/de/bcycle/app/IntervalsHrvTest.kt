@@ -35,6 +35,29 @@ class IntervalsHrvTest {
     private fun api(server:MockWebServer,config:IntervalsConfig=IntervalsConfig(true,"i123",false),stop:()->Boolean={false})=
         IntervalsClient(config,"test-key",stop,server.url("/api/v1/"))
     private fun run(server:MockWebServer)=IntervalsHrvUploads.run(c,{false}) { config,stop -> api(server,config,stop) }
+    @Test fun wellness422IdentifiesTheStageAndOnlyKnownFieldNamesWithoutEchoingTheResponse() {
+        configure()
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(422).setBody("""{"error":"Unrecognized wellness field [id] for athlete SECRET-ACCOUNT; test-key"}"""))
+            val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(record()),{false}) { _,_,_-> }
+            val request=server.takeRequest()
+            assertNull(request.requestUrl!!.queryParameter("fields"));assertEquals("GET",request.method)
+            assertEquals(1,report.count(IntervalsBulkState.FAILED));assertEquals(1,server.requestCount)
+            assertTrue(report.detail!!.contains("HTTP 422"));assertTrue(report.detail!!.contains(c.getString(R.string.intervals_hrv_read_history)))
+            assertTrue(report.detail!!.contains(c.getString(R.string.intervals_hrv_rejected_field,"id")))
+            assertFalse(report.detail!!.contains("SECRET-ACCOUNT"));assertFalse(report.detail!!.contains("test-key"))
+        }
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody("[]"))
+            server.enqueue(MockResponse().setBody(JSONObject().put("id",day.toString()).toString()))
+            server.enqueue(MockResponse().setResponseCode(422).setBody("""{"error":"Unrecognized wellness field [hrvSDNN]"}"""))
+            val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(record()),{false}) { _,_,_-> }
+            server.takeRequest();server.takeRequest();val sent=JSONObject(server.takeRequest().body.readUtf8())
+            assertFalse(sent.has("id"));assertEquals(42.25,sent.getDouble("hrv"),0.0)
+            assertTrue(report.detail!!.contains(c.getString(R.string.intervals_hrv_write_day)))
+            assertTrue(report.detail!!.contains("hrvSDNN"));assertNull(IntervalsHrvUploads.receipt(c,"i123",day.toString()))
+        }
+    }
     @Test fun mappingUsesMillisecondsAndIndependentRoundedSubjectiveScalesWithoutInventingMissingData() {
         val row=HrvHistorySummary("id",0,true,42.25,importedDay=day.toString(),metrics=mapOf("sdnnMs" to 50.5,"restingHrBpm" to 51.6,"pnn50Percent" to 20.0,"lfMs2" to 100.0))
         val answers=HrvQuestionnaire(day.toString(),ratings=mapOf("sleep" to 10,"motivation" to 0,"soreness" to 5,"fatigue" to 0,"energy" to 6,"condition" to 8,"lifestyle" to 9),
@@ -42,7 +65,7 @@ class IntervalsHrvTest {
         val result=IntervalsWellness.from(row,answers)!!
         assertEquals(42.25,result.values.getDouble("hrv"),0.0);assertEquals(50.5,result.values.getDouble("hrvSDNN"),0.0)
         assertEquals(52,result.values.getInt("restingHR"));assertEquals(1,result.values.getInt("sleepQuality"))
-        assertEquals(4,result.values.getInt("motivation"));assertEquals(2,result.values.getInt("soreness"));assertEquals(0,result.values.getInt("fatigue"))
+        assertEquals(10,result.values.getInt("sleepScore"));assertEquals(4,result.values.getInt("motivation"));assertEquals(2,result.values.getInt("soreness"));assertEquals(0,result.values.getInt("fatigue"))
         assertEquals(22380,result.values.getInt("sleepSecs"));assertFalse(result.values.has("comments"));assertFalse(result.values.has("mood"));assertFalse(result.values.has("stress"))
         assertFalse(result.values.has("lf"));assertFalse(result.values.has("readiness"))
         assertEquals(setOf("hrv","hrvSDNN","restingHR"),IntervalsWellness.from(row,null)!!.values.keys().asSequence().toSet())
@@ -60,13 +83,33 @@ class IntervalsHrvTest {
             val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(record()),{false}) { _,_,_-> }
             assertEquals(1,report.count(IntervalsBulkState.UPLOADED));assertEquals(0,report.count(IntervalsBulkState.FAILED))
             val query=server.takeRequest();assertEquals("/api/v1/athlete/i123/wellness.json",query.requestUrl!!.encodedPath)
-            val fields=query.requestUrl!!.queryParameter("fields")!!.split(',').toSet()
-            assertEquals(IntervalsWellness.fields+"id",fields)
+            assertNull(query.requestUrl!!.queryParameter("fields"))
             assertEquals("GET",server.takeRequest().method);assertEquals("PUT",server.takeRequest().method)
             server.enqueue(MockResponse().setBody("{}"))
             assertThrows(IntervalsFailure::class.java) { api(server).wellness(day) }
             assertEquals(4,server.requestCount)
         }
+    }
+    @Test fun numericalSleepAndInjuryMapExplicitAnswersAndPreserveRemoteScores() {
+        val row=HrvHistorySummary("id",0,true,42.25,importedDay=day.toString())
+        for((answer,expected) in listOf(false to 1,true to 4)) {
+            val values=IntervalsWellness.from(row,HrvQuestionnaire(day.toString(),ratings=mapOf("sleep" to 7),injured=answer,injury="Private injury details"))!!.values
+            assertEquals(7,values.getInt("sleepScore"));assertEquals(expected,values.getInt("injury"))
+            assertFalse(values.has("comments"))
+        }
+        for(stress in 1..4) {
+            val data=IntervalsWellness.from(row,HrvQuestionnaire(day.toString(),stress=stress,ratings=mapOf("lifestyle" to 10)))!!.values
+            assertEquals(stress,data.getInt("stress"))
+        }
+        val missing=IntervalsWellness.from(row,HrvQuestionnaire(day.toString(),ratings=mapOf("lifestyle" to 0)))!!.values
+        assertFalse(missing.has("injury"));assertFalse(missing.has("sleepScore"));assertFalse(missing.has("stress"))
+        val record=IntervalsWellness.from(row,HrvQuestionnaire(day.toString(),ratings=mapOf("sleep" to 0),injured=false))!!
+        val patch=IntervalsWellness.patch(record,JSONObject().put("sleepScore",85).put("injury",2),null)
+        assertFalse(patch.has("sleepScore"));assertFalse(patch.has("injury"))
+        assertEquals(0,record.values.getInt("sleepScore"))
+        val old=JSONObject().put("sleepScore",8).put("injury",4)
+        val own=IntervalsWellness.patch(record,old,old)
+        assertEquals(0,own.getInt("sleepScore"));assertEquals(1,own.getInt("injury"))
     }
     @Test fun historySkipsAnyExistingHrvButFillsDaysWithOnlyOtherWellnessFields() {
         configure();val first=record(day.minusDays(1));val second=record()
@@ -82,12 +125,53 @@ class IntervalsHrvTest {
             assertEquals("GET",server.takeRequest().method)
             val upload=server.takeRequest();assertEquals("PUT",upload.method);assertEquals("/api/v1/athlete/i123/wellness/2026-10-29",upload.path)
             assertEquals(Credentials.basic("API_KEY","test-key"),upload.getHeader("Authorization"))
-            val sent=JSONObject(upload.body.readUtf8());assertFalse(sent.has("restingHR"));assertFalse(sent.has("sleepSecs"));assertEquals(42.25,sent.getDouble("hrv"),0.0)
+            val sent=JSONObject(upload.body.readUtf8());assertFalse(sent.has("id"));assertFalse(sent.has("restingHR"));assertFalse(sent.has("sleepSecs"));assertEquals(42.25,sent.getDouble("hrv"),0.0)
             assertNotNull(IntervalsHrvUploads.receipt(c,"i123",day.toString()))
             // Explicit history never overwrites even our own acknowledged measurement.
             server.enqueue(MockResponse().setBody(JSONArray().put(second.json()).toString()))
             assertEquals(1,IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(record(hrv=60.0)),{false}) { _,_,_-> }.count(IntervalsBulkState.EXISTS))
             assertEquals(4,server.requestCount)
+        }
+    }
+    @Test fun bulkSupplementsOnlyMissingOwnFieldsAndRechecksBeforeWriting() {
+        configure();val old=record()
+        IntervalsHrvUploads.confirm(c,"i123",day.toString(),old.values)
+        val next=record(hrv=60.0).apply { values.put("sleepScore",8).put("stress",3).put("injury",1) }
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody(JSONArray().put(old.json()).toString()))
+            // A sleep score from another source appeared since the monthly query.
+            server.enqueue(MockResponse().setBody(old.json().put("sleepScore",90).toString()))
+            val remote=old.json().put("sleepScore",90).put("stress",3).put("injury",1)
+            server.enqueue(MockResponse().setBody(remote.toString()))
+            val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(next),{false}) { _,_,_-> }
+            assertEquals(1,report.count(IntervalsBulkState.UPLOADED))
+            server.takeRequest();server.takeRequest()
+            val sent=JSONObject(server.takeRequest().body.readUtf8())
+            assertEquals(2,sent.length());assertEquals(3,sent.getInt("stress"));assertEquals(1,sent.getInt("injury"))
+            assertFalse(sent.has("hrv"));assertFalse(sent.has("sleepScore"))
+            val receipt=IntervalsHrvUploads.receipt(c,"i123",day.toString())!!
+            assertEquals(42.25,receipt.getDouble("hrv"),0.0);assertFalse(receipt.has("sleepScore"))
+            server.enqueue(MockResponse().setBody(JSONArray().put(remote).toString()))
+            assertEquals(1,IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(next),{false}) { _,_,_-> }.count(IntervalsBulkState.EXISTS))
+            assertEquals(4,server.requestCount)
+        }
+    }
+    @Test fun bulkPreservesChangedHrvAndAddsAllThreeFieldsOnlyForAnUnchangedOwnDay() {
+        configure();val old=record();IntervalsHrvUploads.confirm(c,"i123",day.toString(),old.values)
+        val next=record().apply { values.put("sleepScore",0).put("stress",4).put("injury",4) }
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody(JSONArray().put(old.json()).toString()))
+            server.enqueue(MockResponse().setBody(old.json().put("hrv",70).toString()))
+            assertEquals(1,IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(next),{false}) { _,_,_-> }.count(IntervalsBulkState.EXISTS))
+            assertEquals(2,server.requestCount)
+            server.enqueue(MockResponse().setBody(JSONArray().put(old.json()).toString()))
+            server.enqueue(MockResponse().setBody(old.json().put("sleepScore",JSONObject.NULL).toString()))
+            server.enqueue(MockResponse().setBody(next.json().toString()))
+            assertEquals(1,IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(next),{false}) { _,_,_-> }.count(IntervalsBulkState.UPLOADED))
+            repeat(4) { server.takeRequest() }
+            val patch=JSONObject(server.takeRequest().body.readUtf8())
+            assertEquals(3,patch.length());assertEquals(0,patch.getInt("sleepScore"))
+            assertEquals(4,patch.getInt("stress"));assertEquals(4,patch.getInt("injury"))
         }
     }
     @Test fun remoteHrvAddedBetweenMonthQueryAndPutIsPreservedIncludingSdnnOnly() {
@@ -125,7 +209,7 @@ class IntervalsHrvTest {
             server.dispatcher=object:Dispatcher() {
                 override fun dispatch(request:RecordedRequest):MockResponse {
                     if(request.method=="GET") return MockResponse().setBody((remote ?: JSONObject().put("id",day)).toString())
-                    val sent=JSONObject(request.body.readUtf8());remote=sent
+                    val sent=JSONObject(request.body.readUtf8()).put("id",day.toString());remote=sent
                     if(sent.getDouble("hrv")==42.25) IntervalsHrvUploads.enqueue(c,latest)
                     return MockResponse().setBody(sent.toString())
                 }

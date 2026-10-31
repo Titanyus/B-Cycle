@@ -68,7 +68,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 - Drei getrennte Backupbereiche: Einstellungen (verschlüsseltes Passwort-ZIP inkl. Zugangsdaten), Strecken, HRV inkl. Tagesbefinden/letzter gültiger Messung je Tag. Lokal/WebDAV, Berechtigungen nicht als App-Einstellung sichern. Keine neue alte Gesamtsicherung einführen.
 - Neue aktive Optionen in passenden Profilumfang, Sicherung und Validierung aufnehmen; alte ausgebauten Optionen nur am Kompatibilitätsrand lesen/ignorieren, nicht neu exportieren. Keine Zugangsdaten ins Log/Repo.
 - Dreeve-Import bevorzugt Original-FIT, GPX-Fallback; importierte eigene Fahrten verknüpfen. Namensabgleich vom Dienst zur App. Wartung nur Daten lesen, keine schreibenden Schnellaktionen. Importfortschritt mit Abbrechen, kein unbeabsichtigtes Verlassen.
-- Intervals HRV nur eigenes unverändertes Tageswellness aktualisieren; fremde HRV erhalten. Sammelupload nur fehlende Tage/Fahrten. Keine fremden Wellnessfelder überschreiben. [Intervals](docs/intervals-hrv.md).
+- Intervals HRV nur eigenes unverändertes Tageswellness aktualisieren; fremde HRV erhalten. Sammelupload nur fehlende Tage/Fahrten; eigene unveränderte HRV-Tage dürfen um fehlende Schlafbewertung-, Stress- und Verletzungsfelder ergänzt werden. Keine fremden Wellnessfelder überschreiben. [Intervals](docs/intervals-hrv.md).
 - Kompakte In-/Out-Zeilen der Cloud manuell gemäß Nutzerauftrag pflegen, keine alten langen dynamischen Erklärungen wieder einführen. Fehler bei unerreichbarem Dienst aussagekräftig darstellen.
 - Nachrichteninhalte nur RAM, nie FIT/Prefs/Diagnose. Android-Benachrichtigungszugriff explizit durch Nutzer; keine neuen Systemberechtigungen für Styling.
 

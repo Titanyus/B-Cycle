@@ -139,7 +139,7 @@ internal class HrvStore(private val root:File) {
             trainingKm=new.trainingKm ?: old.trainingKm,trainingMinutes=new.trainingMinutes ?: old.trainingMinutes,
             trainingSource=new.trainingSource ?: old.trainingSource,rideIds=if(new.trainingSource!=null) new.rideIds else old.rideIds,
             traveled=new.traveled ?: old.traveled,alcohol=new.alcohol ?: old.alcohol,sick=new.sick ?: old.sick,
-            injured=new.injured ?: old.injured,injury=new.injury.ifEmpty { old.injury },notes=new.notes.ifEmpty { old.notes }) }
+            stress=new.stress ?: old.stress,injured=new.injured ?: old.injured,injury=new.injury.ifEmpty { old.injury },notes=new.notes.ifEmpty { old.notes }) }
         merged?.let(::writeDay)
         return merged
     }

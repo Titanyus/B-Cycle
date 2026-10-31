@@ -1,0 +1,7 @@
+<resources>
+    <string name="hrvq_stress">Wie gestresst bist du?</string>
+    <string name="hrvq_stress_low">Wenig</string>
+    <string name="hrvq_stress_average">Durchschnittlich</string>
+    <string name="hrvq_stress_high">Sehr</string>
+    <string name="hrvq_stress_extreme">Extrem</string>
+</resources>

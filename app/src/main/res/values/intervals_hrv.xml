@@ -8,4 +8,9 @@
     <string name="intervals_hrv_interrupted">Vorgang unterbrochen. Ein erneuter Start prüft vorhandene HRV-Tage erneut.</string>
     <string name="intervals_hrv_failed">HRV-Daten konnten nicht übertragen werden.</string>
     <string name="intervals_hrv_day_error">%1$s: %2$s</string>
+    <string name="intervals_hrv_rejected">intervals.icu lehnt die HRV-Anfrage ab.</string>
+    <string name="intervals_hrv_read_history">Tagesdaten abrufen</string>
+    <string name="intervals_hrv_read_day">Vorhandenen Tag prüfen</string>
+    <string name="intervals_hrv_write_day">Tagesdaten übertragen</string>
+    <string name="intervals_hrv_rejected_field">Nicht unterstütztes Feld: %1$s</string>
 </resources>

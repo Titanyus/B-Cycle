@@ -119,6 +119,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         BicycleComponents.segmentedControlRow(row,themes)
         val buttons=labels.mapIndexed { index,id -> BicycleSegmentButton(context,themes).apply {
             this.id=View.generateViewId();setText(id);tag="hrvq_${key}_$index"
+            if(key=="stress") setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisLabelSp.toInt(),BicycleDesign.choiceSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
         }.also { row.addView(it,RadioGroup.LayoutParams(0,-2,1f)) } }
         selected?.let { buttons.getOrNull(it)?.isChecked=true }
         row.setOnCheckedChangeListener { _,id->buttons.indexOfFirst { it.id==id }.takeIf { it>=0 }?.let(changed) }
@@ -287,6 +288,8 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             extraDropdown(body,HrvQuestion.CYCLE,"cycle",HrvQuestionnaire.cycles,listOf(R.string.hrvq_menstruation,R.string.hrvq_follicular,R.string.hrvq_ovulation,R.string.hrvq_luteal,R.string.hrvq_unknown))
         }
         group(R.string.hrvq_lifestyle_group,HrvQuestion.entries.filter { it.group==3 }) { body ->
+            if(enabled(HrvQuestion.STRESS)) choices(body,"stress",context.getString(R.string.hrvq_stress),
+                listOf(R.string.hrvq_stress_low,R.string.hrvq_stress_average,R.string.hrvq_stress_high,R.string.hrvq_stress_extreme),value.stress?.minus(1)) { change(value.copy(stress=it+1)) }
             rating(body,HrvQuestion.LIFESTYLE,"lifestyle",R.string.hrvq_unstable,R.string.hrvq_normal,R.string.hrvq_routine)
             boolean(body,HrvQuestion.TRAVEL,"traveled",value.traveled) { change(value.copy(traveled=it)) }
             if(enabled(HrvQuestion.ALCOHOL)) choices(body,"alcohol",context.getString(R.string.hrvq_alcohol),listOf(R.string.hrvq_none,R.string.hrvq_little,R.string.hrvq_much),value.alcohol) { change(value.copy(alcohol=it)) }

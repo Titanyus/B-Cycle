@@ -1,6 +1,6 @@
 # HRV zu intervals.icu
 
-Stand 30.10.2026, nach Build105. Implementiert, noch nicht als APK veröffentlicht.
+Stand31.10.2026. Basis veröffentlicht inBuild106; aktuelle Ergänzungen für die nächste APK vorbereitet.
 
 Die bestehende intervals.icu-Aktivierung gilt für Fahrten und HRV. Athleten-ID, geschützter API-Schlüssel und WLAN-Vorgabe bleiben gemeinsam; keine neue Konfiguration und kein zusätzliches Backupfeld. Cloud-Reihenfolge: Lokal, WebDAV, Dreeve, intervals.icu, Strava. Kompakte Angaben: Dreeve IN „FIT-Streckendaten | Wartungsintervalle“, intervals OUT „FIT-Streckendaten | HRV-Daten“.
 
@@ -21,9 +21,9 @@ Die gemeinsame Tagesauswahl und ihre Qualitätsprüfung entsprechen der vorhande
 
 ## Sammelupload
 
-Unter dem bisherigen Fahrtenbutton stehen Beschreibung und „Alle HRV-Daten zu intervals.icu hochladen“, mit unabhängigem Status und Abbruch. Der HRV-Worker erstellt nur tägliche API-Zusammenfassungen; Netzwerk läuft auf dem Einstellungsworker. Monatliche GET-Abfragen erkennen bereits vorhandene HRV-Tage. Ein vorhandener `hrv` **oder** `hrvSDNN` (auch Nullwert 0) genügt zum Überspringen, unabhängig von der Herkunft. JSON-null bedeutet fehlend. Ein Tag mit nur Gewicht, Schlaf oder Ruhepuls blockiert HRV nicht.
+Unter dem bisherigen Fahrtenbutton stehen Beschreibung und „Alle HRV-Daten zu intervals.icu hochladen“, mit unabhängigem Status und Abbruch. Der HRV-Worker erstellt nur tägliche API-Zusammenfassungen; Netzwerk läuft auf dem Einstellungsworker. Monatliche GET-Abfragen erkennen bereits vorhandene HRV-Tage. Ein vorhandener `hrv` **oder** `hrvSDNN` (auch Nullwert0) schützt vor einem erneuten HRV-Upload. Nur nachweislich eigene unveränderte Tage dürfen fehlende neue Zusatzfelder erhalten. JSON-null bedeutet fehlend. Ein Tag mit nur Gewicht, Schlaf oder Ruhepuls blockiert HRV nicht.
 
-Fehlende Tage werden unmittelbar vor PUT erneut gelesen. Es werden nur HRV und fehlende Zusatzfelder ergänzt, keine fremden Wellnesswerte überschrieben. Auch eigene vorhandene HRV-Tage bleiben beim expliziten Sammelupload unangetastet. Fehlerhafte Antworten, Authentifizierungs-/Dienstfehler, Kontowechsel und Abbruch erlauben keinen blinden Upload; erneuter Start prüft remote neu. Während Messung/Aufnahme/Verarbeitung kein Start, beim Beginn solcher Arbeit abbrechen.
+Fehlende Tage werden unmittelbar vor PUT erneut gelesen. Es werden nur HRV und fehlende Zusatzfelder ergänzt, keine fremden Wellnesswerte überschrieben. Eigene unveränderte HRV-Tage werden ausschließlich um fehlende sleepScore-/stress-/injury-Felder ergänzt; vorhandene Werte und HRV bleiben unangetastet. Fehlerhafte Antworten, Authentifizierungs-/Dienstfehler, Kontowechsel und Abbruch erlauben keinen blinden Upload; erneuter Start prüft remote neu. Während Messung/Aufnahme/Verarbeitung kein Start, beim Beginn solcher Arbeit abbrechen.
 
 ## Automatisch und dauerhaft
 
@@ -48,6 +48,28 @@ Veröffentlichung30.10.2026: Änderungen nachBuild105 sind in **APK0.8.65/Build1
 
 ## Korrektur nach Build 110 – 30.10.2026
 
-Der Sammelabruf nutzt nun ausdrücklich GET `/athlete/{id}/wellness.json?oldest=...&newest=...&fields=...` gemäß dem `wellness{ext}`-Endpunkt der aktuellen OpenAPI. Vorher wurde für diese Bereichsabfrage `wellness` ohne Dateiendung verwendet. PUT und Einzelabruf bleiben bei `/wellness/{date}`. Die Monatsantwort enthält nur ID und die tatsächlich abgeglichenen Wellnessfelder. HTTP-200 mit JSON-null beim Einzelabruf bedeutet fehlender Tagesdatensatz; sonstige fehlerhafte Antworten bleiben Fehler, kein blinder Upload.
+Der Sammelabruf nutzt nun ausdrücklich GET `/athlete/{id}/wellness.json?oldest=...&newest=...` gemäß dem `wellness{ext}`-Endpunkt der aktuellen OpenAPI. Vorher wurde für diese Bereichsabfrage `wellness` ohne Dateiendung verwendet. PUT und Einzelabruf bleiben bei `/wellness/{date}`. Die Monatsantwort liefert die Standardfelder der API; kein zusätzlicher Feldfilter. HTTP-200 mit JSON-null beim Einzelabruf bedeutet fehlender Tagesdatensatz; sonstige fehlerhafte Antworten bleiben Fehler, kein blinder Upload.
 
 Im Sammelergebnis stehen Datum und konkrete Fehlermeldung zuerst; bei HTTP-Fehlern zusätzlich Statuscode. Ein Serverfehler wird nicht mehr ausschließlich als „Vorgang unterbrochen“ angezeigt. Keine Antwortkörper, API-Schlüssel oder sonstigen Zugangsdaten in der Diagnose. Bestehende fremde HRV-Tage bleiben geschützt. Zusätzliche Tests prüfen `.json`, Nulltag, fehlerhafte Antworten und sichere HTTP-Fehlerangaben. Der Nutzer bestätigte funktionierende FIT-Uploads (400 Fahrten); ein privater Live-HRV-Upload konnte hier nicht geprüft werden.
+
+## HTTP422 nach Build111 – 31.10.2026
+
+Nutzer meldet422 beim Sammelupload, während ein einzelner Tagesupload inzwischen erfolgreich war. Das grenzt den Fehler auf den zusätzlichen Bereichsabruf ein, beweist die Ursache aber noch nicht. Bereichs-GET nun ohne zusätzliche fields-Liste; die API liefert ihre Standardfelder. Insbesondere wird die Metadaten-ID nicht als auswählbares Wellnessfeld angefordert. Einzel-PUT enthält nur den berechneten Patch, kein redundantes id-Feld (Datum steht bereits im URL). Antwortdatum und bestätigte Messwerte werden weiterhin geprüft; keine blinden Uploads und keine Belege bei422.
+
+Fehlerdiagnose kennt Bereichsabruf, Einzelprüfung und Übertragung. Bei422 kann ausschließlich ein vom Server als unbekannt benannter, eigener bekannter Feldname extrahiert werden (id bzw. unsere übertragenen Wellnessfelder). Maximal4KiB werden kurz imRAM gelesen; keine Antwortkörper, Athletenkennungen oder Zugangsdaten in UI/Logs. Nativer HTTP-Testserver prüft422 beiGET undPUT, unveränderte Messwerte, keine falschen Upload-Belege und keine Ausgabe des Testschlüssels/der Kontokennung. Bestehende Fremddatenschutz-/Wiederaufnahme-/FIT-Clienttests bestehen. Ein erneuter privater Live-Sammelupload ist noch nötig.
+
+Aktuelle offizielle OpenAPI am31.10.2026 gelesen; Forum nennt422 bei nicht erkannten Wellnessfeldern ([API-Thread, Beitrag243](https://forum.intervals.icu/t/609/243), [Companion-Fall](https://forum.intervals.icu/t/124208/58)). Nicht durch ignoreMissingFields oder blindes Weglassen unbestätigter Messwerte umgehen.
+
+Zusätzliche Nutzerfrage beantwortet, noch kein Implementierungsauftrag: Wellness liefertCTL/Fitness undATL/Ermüdung; Form ausCTL−ATL, bei Darstellung absolute/prozentuale Intervals-Variante berücksichtigen. Keine Fitnessdaten-Abholung oder neue Anzeige eingebaut.
+
+## Weitere Wellnessfelder und eigene Stressfrage – 31.10.2026
+
+Schlafbewertung: sleepScore erhält die eigene subjektive0–10-Bewertung unverändert als Zahl; kein erfundener Garmin-/100-Punkte-Score. sleepQuality bleibt zusätzlich die bisherige4-stufige Umrechnung. Verletzung: explizit nein→injury1/Excellent, ja→injury4/Injured, unbeantwortet auslassen. Freitext zur Verletzung bleibt lokal. Stress: neue Tagesfrage „Wie gestresst bist du?“ mit Wenig/Durchschnittlich/Sehr/Extrem, direktstress1/2/3/4. Keine Auswahl voraussetzen und keine Alltagsregelmäßigkeit in Stress umdeuten.
+
+Stress ist ein optionales eigenständiges Int-Feld im Tagesfragebogen, Bereich1–4, in JSON/Tageszusammenführung/HRV-Sicherung enthalten und bei weiterer Messung vorausgewählt. Neue Frage imAlltag-Abschnitt; über globale Fragenauswahl abschaltbar. Konfigurationsschema2: bisherigeSchema1-Konfigurationen bekommen die Frage einmal hinzu, danach bleibt eine ausdrückliche Deaktivierung erhalten. Alte Fragebogen-Datensätze ohneStress bleiben gültig; keine nachträgliche Ableitung für alte Tage. HRV-Wertberechnung und Empfehlungen nicht verändert.
+
+Zusätzliche Prüfungen: native Vierfachauswahl samt langem Label/Leerzustand/Vorauswahl, Validierung/Migration, echte HRV-Backup-Rückübertragung, Schlafscore und boolesche Verletzungszuordnung, alle vier Stressstufen, Fremdwertschutz und eigene Updates.34 gezielte Tests erfolgreich, Log `/workspace/.tools/hrv-wellness-stress-tests.log`. Bisherige Gruppen-/Uploadtests40 erfolgreich.
+
+Nutzerentscheidung31.10.: Sammelupload ergänzt eigene unveränderte HRV-Tage um fehlende sleepScore-/stress-/injury-Felder. Tages-GET prüft direkt vor PUT erneut Eigentumsbeleg und fehlende Werte. Der ergänzende PUT enthält ausschließlich die noch fehlenden Zusatzfelder, keine HRV-Felder. Bestehende Werte einschließlich nachträglich fremder Zusatzfelder bleiben erhalten. Bestätigte Ergänzungen erweitern den bisherigen Beleg. Ohne passenden Beleg oder nach Änderung der entfernten HRV wird übersprungen.
+
+Abschließende Prüfung31.10.:36 HRV-/Stress-/Fragebogen-/Sicherungstests erfolgreich, einschließlich Ergänzung aller drei Felder, bestehender Fremdfelder, geänderter HRV zwischen Monats- und Tagesabruf sowie wiederholtem Sammellauf. Log`hrv-supplement-final-tests.log`.

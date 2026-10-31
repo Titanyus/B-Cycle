@@ -186,7 +186,7 @@ class HrvEntryTest {
             assertNull(form.findViewWithTag<View>("hrvq_sport"))
             assertNull(HrvQuestionSettingsView(a,themes).findViewWithTag<View>("hrvq_enabled_SPORT"))
             val old=JSONObject("""{"schema":1,"enabled":["SPORT","SLEEP"],"customNames":["","",""]}""")
-            assertEquals(setOf(HrvQuestion.SLEEP),HrvQuestionConfig.decode(old).enabled)
+            assertEquals(setOf(HrvQuestion.SLEEP,HrvQuestion.STRESS),HrvQuestionConfig.decode(old).enabled)
             settings.preferences.edit().putString(HrvQuestionSettings.KEY,old.toString()).commit()
             val backed=SettingsBackupSupplement(a).export(BackupSection.PROFILE).getJSONObject(HrvQuestionSettings.STORE).getString(HrvQuestionSettings.KEY)
             assertFalse(backed.contains("SPORT"))

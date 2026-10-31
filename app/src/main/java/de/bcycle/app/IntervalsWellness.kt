@@ -15,7 +15,8 @@ internal data class IntervalsWellness(val day:LocalDate,val values:JSONObject) {
     fun json()=JSONObject(values.toString()).put("id",day.toString())
     companion object {
         val hrvFields=setOf("hrv","hrvSDNN")
-        val fields=hrvFields+setOf("restingHR","sleepSecs","sleepQuality","motivation","soreness","fatigue")
+        val supplementFields=setOf("sleepScore","stress","injury")
+        val fields=hrvFields+setOf("restingHR","sleepSecs","sleepScore","sleepQuality","motivation","soreness","fatigue","injury","stress")
         fun from(row:HrvHistorySummary,answers:HrvQuestionnaire?):IntervalsWellness? {
             if(!(row.acceptable || row.importedDay!=null && row.hasMeasurement)) return null
             val rmssd=(row.metrics["rmssdMs"] ?: row.rmssdMs)?.takeIf { it.isFinite() && it>=0 } ?: return null
@@ -26,7 +27,12 @@ internal data class IntervalsWellness(val day:LocalDate,val values:JSONObject) {
             row.metrics["restingHrBpm"]?.takeIf { it.isFinite() && it>0 && it<=300 }?.let { data.put("restingHR",it.roundToInt()) }
             answers?.let { q ->
                 // API: positive ratings are Excellent(1)..Poor(4), burden None(0)..Extreme(4).
-                q.ratings["sleep"]?.let { data.put("sleepQuality",1+((10-it)*3.0/10).roundToInt()) }
+                q.ratings["sleep"]?.let {
+                    data.put("sleepScore",it) // Numeric subjective 0–10 score, no invented provider normalization.
+                    data.put("sleepQuality",1+((10-it)*3.0/10).roundToInt())
+                }
+                q.injured?.let { data.put("injury",if(it) 4 else 1) }
+                q.stress?.let { data.put("stress",it) }
                 q.ratings["motivation"]?.let { data.put("motivation",1+((10-it)*3.0/10).roundToInt()) }
                 for(key in listOf("soreness","fatigue")) q.ratings[key]?.let { data.put(key,(it*4.0/10).roundToInt()) }
                 val seconds=q.extras["sleepHours"]?.toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..24.0 }?.times(3600)?.roundToInt()
@@ -45,6 +51,10 @@ internal data class IntervalsWellness(val day:LocalDate,val values:JSONObject) {
             else a==b
         fun ownsHrv(remote:JSONObject,receipt:JSONObject?)=receipt!=null && hasHrv(remote) &&
             hrvFields.filter { remote.has(it) && !remote.isNull(it) }.all { receipt.has(it) && same(remote.opt(it),receipt.opt(it)) }
+        fun missingSupplements(record:IntervalsWellness,remote:JSONObject)=JSONObject().apply {
+            supplementFields.filter { record.values.has(it) && (!remote.has(it) || remote.isNull(it)) }
+                .forEach { put(it,record.values.get(it)) }
+        }
         /** Existing foreign wellness fields are preserved even when that day has no HRV yet. */
         fun patch(record:IntervalsWellness,remote:JSONObject,receipt:JSONObject?):JSONObject = JSONObject().apply {
             record.values.keys().forEach { key ->

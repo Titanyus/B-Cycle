@@ -11,7 +11,11 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-internal class IntervalsFailure(val retryable:Boolean,val problem:Int,val httpStatus:Int?=null):IOException()
+internal enum class IntervalsWellnessStage(val label:Int) {
+    HISTORY(R.string.intervals_hrv_read_history),DAY(R.string.intervals_hrv_read_day),WRITE(R.string.intervals_hrv_write_day)
+}
+internal class IntervalsFailure(val retryable:Boolean,val problem:Int,val httpStatus:Int?=null,
+    val wellnessStage:IntervalsWellnessStage?=null,val wellnessField:String?=null):IOException()
 /** Activity and daily wellness APIs. Workout APIs remain a separate capability. */
 internal class IntervalsClient(private val config:IntervalsConfig,private val key:String,
     private val cancelled:()->Boolean={false},private val base:HttpUrl="https://intervals.icu/api/v1/".toHttpUrl(),
@@ -25,8 +29,21 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         if(cancelled()) throw IOException()
         val result=http.newCall(request).execute().use { response ->
             if(missingAllowed && response.code==404) return@use ""
-            if(!response.isSuccessful) throw IntervalsFailure(response.code==408 || response.code==429 || response.code>=500,
-                ServiceProblems.http(response.code)?.let { if(it==ServiceProblems.Problem.AUTH) R.string.intervals_auth_failed else it.text } ?: R.string.intervals_upload_failed,response.code)
+            if(!response.isSuccessful) {
+                val stage=when {
+                    request.url.pathSegments.lastOrNull()=="wellness.json"->IntervalsWellnessStage.HISTORY
+                    "wellness" in request.url.pathSegments->if(request.method=="PUT") IntervalsWellnessStage.WRITE else IntervalsWellnessStage.DAY
+                    else->null
+                }
+                // Extract only a recognized field name, never echo response bodies or account details.
+                val field=if(response.code==422 && stage!=null) runCatching {
+                    Regex("Unrecognized wellness field \\[([A-Za-z][A-Za-z0-9_]{0,63})]")
+                        .find(response.peekBody(4096).string())?.groupValues?.get(1)?.takeIf { it=="id" || it in IntervalsWellness.fields }
+                }.getOrNull() else null
+                val problem=if(response.code==422 && stage!=null) R.string.intervals_hrv_rejected else
+                    ServiceProblems.http(response.code)?.let { if(it==ServiceProblems.Problem.AUTH) R.string.intervals_auth_failed else it.text } ?: R.string.intervals_upload_failed
+                throw IntervalsFailure(response.code==408 || response.code==429 || response.code>=500,problem,response.code,stage,field)
+            }
             val bytes=response.body?.byteStream()?.use { it.readNBytes(1024*1024+1) } ?: throw IOException()
             if(bytes.size>1024*1024) throw IntervalsFailure(false,R.string.intervals_response_failed)
             String(bytes,Charsets.UTF_8)
@@ -47,7 +64,7 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
     fun wellness(oldest:java.time.LocalDate,newest:java.time.LocalDate):Map<java.time.LocalDate,JSONObject> {
         require(!newest.isBefore(oldest) && java.time.temporal.ChronoUnit.DAYS.between(oldest,newest)<=31)
         val url=request("wellness.json").build().url.newBuilder().addQueryParameter("oldest",oldest.toString())
-            .addQueryParameter("newest",newest.toString()).addQueryParameter("fields",(listOf("id")+IntervalsWellness.fields).joinToString(",")).build()
+            .addQueryParameter("newest",newest.toString()).build()
         try {
             val rows=JSONArray(execute(request("wellness.json").url(url).get().build()))
             val result=linkedMapOf<java.time.LocalDate,JSONObject>()
@@ -71,7 +88,14 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
     }
     fun updateWellness(day:java.time.LocalDate,patch:JSONObject) {
         require(patch.has("hrv") && patch.keys().asSequence().all { it in IntervalsWellness.fields })
-        val data=JSONObject(patch.toString()).put("id",day.toString())
+        patchWellness(day,patch)
+    }
+    fun supplementWellness(day:java.time.LocalDate,patch:JSONObject) {
+        require(patch.length()>0 && patch.keys().asSequence().all { it in IntervalsWellness.supplementFields })
+        patchWellness(day,patch)
+    }
+    private fun patchWellness(day:java.time.LocalDate,patch:JSONObject) {
+        val data=JSONObject(patch.toString())
         val url=request("wellness").build().url.newBuilder().addPathSegment(day.toString()).build()
         val text=execute(request("wellness").url(url).put(data.toString().toRequestBody("application/json".toMediaType())).build())
         try {

@@ -26,7 +26,8 @@ internal data class HrvQuestionnaire(
     val updatedAtMs:Long=0,
     val extras:Map<String,String> = emptyMap(),
     val customNames:Map<String,String> = emptyMap(),
-    val legacyRatings:Map<String,Int> = emptyMap()
+    val legacyRatings:Map<String,Int> = emptyMap(),
+    val stress:Int?=null
 ) {
     /** An explicit rest day must not retain hidden exercise inputs for any later evaluation. */
     fun withTraining(level:Int?):HrvQuestionnaire = if(level==0) copy(training=0,ratings=ratings-"rpe",
@@ -39,7 +40,7 @@ internal data class HrvQuestionnaire(
             .put("trainingKm",trainingKm ?: JSONObject.NULL).put("trainingMinutes",trainingMinutes ?: JSONObject.NULL)
             .put("trainingSource",trainingSource ?: JSONObject.NULL).put("rideIds",JSONArray(rideIds))
             .put("traveled",traveled ?: JSONObject.NULL).put("alcohol",alcohol ?: JSONObject.NULL)
-            .put("sick",sick ?: JSONObject.NULL).put("injured",injured ?: JSONObject.NULL)
+            .put("sick",sick ?: JSONObject.NULL).put("injured",injured ?: JSONObject.NULL).put("stress",stress ?: JSONObject.NULL)
             .put("injury",injury).put("notes",notes).put("updatedAtMs",updatedAtMs)
             .put("extras",JSONObject().apply { extras.toSortedMap().forEach { (k,v)->put(k,v) } })
             .put("customNames",JSONObject().apply { customNames.toSortedMap().forEach { (k,v)->put(k,v) } })
@@ -54,6 +55,7 @@ internal data class HrvQuestionnaire(
         require(trainingSource==null || trainingSource in setOf("rides","manual"))
         require(rideIds.size<=10000 && rideIds.distinct().size==rideIds.size && rideIds.all { it.length in 1..128 && it.none(Char::isISOControl) })
         require(alcohol==null || alcohol in 0..2)
+        require(stress==null || stress in 1..4)
         require(extras.keys.all { it in extraKeys } && extras.values.all { it.length<=500 })
         extras.forEach { (key,value)-> when(key) {
             "wake","bed"->require(java.time.LocalTime.parse(value).second==0)
@@ -99,7 +101,7 @@ internal data class HrvQuestionnaire(
             val normalized=if(schema==1) original.mapValues { (key,value)->if(key=="rpe") value else (value*10.0/8).roundToInt() } else original
             return HrvQuestionnaire(row.getString("day"),normalized,int("training"),string("sport"),number("trainingKm"),number("trainingMinutes"),string("trainingSource"),
                 (0 until ids.length()).map(ids::getString),boolean("traveled"),int("alcohol"),boolean("sick"),boolean("injured"),
-                row.getString("injury"),row.getString("notes"),row.getLong("updatedAtMs"),map("extras"),map("customNames"),legacy).also { it.validate() }
+                row.getString("injury"),row.getString("notes"),row.getLong("updatedAtMs"),map("extras"),map("customNames"),legacy,stress=int("stress")).also { it.validate() }
         }
     }
 }

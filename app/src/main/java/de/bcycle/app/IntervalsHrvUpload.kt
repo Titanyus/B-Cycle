@@ -30,7 +30,10 @@ internal class IntervalsHrvUpload(private val context:Context,
             val item=try {
                 val month=YearMonth.from(record.day)
                 val known=months.getOrPut(month) { api.wellness(month.atDay(1),month.atEndOfMonth()) }[record.day]
-                if(known!=null && IntervalsWellness.hasHrv(known)) IntervalsBulkItem(record.day.toString(),IntervalsBulkState.EXISTS)
+                if(known!=null && IntervalsWellness.hasHrv(known) &&
+                    (!IntervalsWellness.ownsHrv(known,IntervalsHrvUploads.receipt(context,config.athlete,record.day.toString())) ||
+                        IntervalsWellness.missingSupplements(record,known).length()==0))
+                    IntervalsBulkItem(record.day.toString(),IntervalsBulkState.EXISTS)
                 else {
                     // Recheck immediately before PUT; preserve a measurement added since the month query.
                     transfer(context,config,api,record,allowOwnUpdate=false,stopped)
@@ -41,9 +44,11 @@ internal class IntervalsHrvUpload(private val context:Context,
                 val item=IntervalsBulkItem(record.day.toString(),IntervalsBulkState.FAILED,problem)
                 result.add(item);progress(result.size,days.size,item)
                 // No blind PUT after malformed, unavailable or unauthorised remote state.
-                val status=(error as? IntervalsFailure)?.httpStatus
+                val failure=error as? IntervalsFailure
                 val detail=context.getString(R.string.intervals_hrv_day_error,record.day.toString(),context.getString(problem))+
-                    (status?.let { " (HTTP $it)" } ?: "")
+                    failure?.wellnessStage?.let { " · "+context.getString(it.label) }.orEmpty()+
+                    failure?.wellnessField?.let { " · "+context.getString(R.string.intervals_hrv_rejected_field,it) }.orEmpty()+
+                    failure?.httpStatus?.let { " (HTTP $it)" }.orEmpty()
                 return@serial IntervalsBulkResult(result,true,problem,detail)
             }
             result.add(item);progress(result.size,days.size,item)
@@ -57,13 +62,15 @@ internal class IntervalsHrvUpload(private val context:Context,
             allowOwnUpdate:Boolean,stopped:()->Boolean):IntervalsBulkItem {
             val remote=api.wellness(record.day)
             val receipt=IntervalsHrvUploads.receipt(context,config.athlete,record.day.toString())
-            if(IntervalsWellness.hasHrv(remote) && !(allowOwnUpdate && IntervalsWellness.ownsHrv(remote,receipt)))
+            if(IntervalsWellness.hasHrv(remote) && !IntervalsWellness.ownsHrv(remote,receipt))
                 return IntervalsBulkItem(record.day.toString(),IntervalsBulkState.EXISTS)
-            val patch=IntervalsWellness.patch(record,remote,if(allowOwnUpdate) receipt else null)
+            val supplementOnly=IntervalsWellness.hasHrv(remote) && !allowOwnUpdate
+            val patch=if(supplementOnly) IntervalsWellness.missingSupplements(record,remote)
+                else IntervalsWellness.patch(record,remote,if(allowOwnUpdate) receipt else null)
             if(patch.keys().asSequence().all { IntervalsWellness.same(patch.opt(it),remote.opt(it)) })
                 return IntervalsBulkItem(record.day.toString(),IntervalsBulkState.EXISTS)
             if(stopped()) throw IOException()
-            api.updateWellness(record.day,patch)
+            if(supplementOnly) api.supplementWellness(record.day,patch) else api.updateWellness(record.day,patch)
             // Persist only an acknowledged payload, also if a newer local edit arrived during this PUT.
             IntervalsHrvUploads.confirm(context,config.athlete,record.day.toString(),patch)
             return IntervalsBulkItem(record.day.toString(),IntervalsBulkState.UPLOADED)
