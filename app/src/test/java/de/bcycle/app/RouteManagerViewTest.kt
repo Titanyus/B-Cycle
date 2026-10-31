@@ -35,7 +35,7 @@ class RouteManagerViewTest {
             var card=list.adapter.getView(1,null,list)
             card.performLongClick();card=list.adapter.getView(1,card,list)
             assertTrue(card.isActivated)
-            assertEquals(themes.active.tokens.tertiary,(card.findViewWithTag<View>("route_selection_body").background as android.graphics.drawable.ColorDrawable).color)
+            assertEquals(themes.active.tokens.tertiary,(card.background as android.graphics.drawable.ColorDrawable).color)
             val check=descendants(card).filterIsInstance<android.widget.ImageView>().first().drawable
             val bitmap=Bitmap.createBitmap(48,48,Bitmap.Config.ARGB_8888)
             check.setBounds(0,0,48,48);check.draw(Canvas(bitmap))
@@ -45,7 +45,7 @@ class RouteManagerViewTest {
             assertTrue(opaque.isNotEmpty())
             assertEquals(setOf(themes.active.tokens.primary),opaque.toSet())
             card=list.adapter.getView(2,card,list)
-            assertFalse(card.isActivated);assertNull(card.findViewWithTag<View>("route_selection_body").background)
+            assertFalse(card.isActivated);assertNull(card.background)
             manager.clearSelection()
             card=list.adapter.getView(1,card,list)
             assertNull(card.background)

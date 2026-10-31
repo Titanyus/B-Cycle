@@ -20,9 +20,7 @@ internal class RouteStickyList(context:Context,themes:ThemeManager,
     init {
         // The cached drawing view is detached, so refresh it with this attached list's theme.
         BicycleComponents.bindTheme(this,themes) {
-            pinned=RouteListGroupHeader(context,themes).apply {
-                BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
-            }
+            pinned=RouteListGroupHeader(context,themes)
             measuredWidth=-1;invalidate()
         }
     }
@@ -33,7 +31,7 @@ internal class RouteStickyList(context:Context,themes:ThemeManager,
         val section=indexer.getSectionForPosition(firstVisiblePosition)
         val start=indexer.getPositionForSection(section)
         val header=getChildAt(start-firstVisiblePosition)
-        // At entry, retain the page gap; only pin once the real header reaches the top.
+        // The real and pinned headers share the same top position.
         if(header!=null && header.top>=0) return
         val group=groupAt(start) ?: return
         val availableWidth=width-paddingLeft-paddingRight

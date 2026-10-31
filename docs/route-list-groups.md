@@ -8,9 +8,9 @@ Unter dem Titel vier Kennzahlen in derselben Wert-/Einheiten-/Label-Komponente w
 
 RouteListSections bereitet Grenzen, Labels und Summen gemeinsam vor. RouteManager hält diesen Stand, bis sich die gefilterten Fahrten oder Sortierung ändern; ein reiner Uploadstatus-/Busy-Wechsel baut die Summen nicht neu.
 
-Gruppenköpfe sind seit der Nutzerkorrektur nachBuild112 eigenständige, nicht auswählbare Adaptereinträge mit eigenem Viewtyp. Fahrtkarten enthalten ausschließlich die Fahrt; Köpfe können nicht durch Longpress oder Recycling mitmarkiert werden. Indexerpositionen berücksichtigen die zusätzlichen Kopfzeilen; fachliche Auswahl und Aktionen verwenden weiterhin stabile Fahrt-IDs.
+Gruppenköpfe sind seit der Nutzerkorrektur nachBuild112 eigenständige, nicht auswählbare Adaptereinträge mit eigenem Viewtyp. Fahrtkarten enthalten ausschließlich die Fahrt; Köpfe können nicht durch Longpress oder Recycling mitmarkiert werden. Die Auswahlfarbe füllt die vollständige Fahrtzeile inklusive ihrer Innenabstände bis zu den Trennern. Indexerpositionen berücksichtigen die zusätzlichen Kopfzeilen; fachliche Auswahl und Aktionen verwenden weiterhin stabile Fahrt-IDs.
 
-Der aktuelle Gruppenkopf einschließlich Kennzahlen bleibt als Sticky-Header unter dem Hauptheader stehen. Der nächste Kopf schiebt ihn nach oben weg. Der anfängliche Seitenabstand scrollt weg. Gecachte Kopf-View ohne Datei-/Summenberechnung im Zeichenpfad, deckender SECONDARY-Hintergrund; Fast-Scroll-Zugpunkt/Label liegen darüber. Touch auf dem angehefteten Kopf wird an die native Scroll-/Flingbehandlung weitergegeben, ohne die verdeckte Fahrt zu öffnen/selektieren.
+Der aktuelle Gruppenkopf einschließlich Kennzahlen bleibt als Sticky-Header unter dem Hauptheader stehen. Der nächste Kopf schiebt ihn nach oben weg. Seit der Korrektur nachBuild113 gibt es keinen zusätzlichen oberen Listenabstand: normale Köpfe und Fast-Scroll-Ziele stehen sofort an derselben Position wie angeheftete Köpfe. Gecachte Kopf-View ohne Datei-/Summenberechnung im Zeichenpfad, deckender TERTIARY-Hintergrund; Fast-Scroll-Zugpunkt/Label liegen darüber. Touch auf dem angehefteten Kopf wird an die native Scroll-/Flingbehandlung weitergegeben, ohne die verdeckte Fahrt zu öffnen/selektieren.
 
 ## Footer und Augenfarben
 
@@ -31,3 +31,7 @@ Nach der abschließenden Nutzerentscheidung nach dem Chat-Absturz gilt: **Gruppe
 NachBuild112:67 gezielte Listen-/Farb-/Sticky-/Dialogtests erfolgreich, abschließend81 relevante Tests über Gesamtlauf und8 erfolgreiche Nachprüfungen der finalen Popupgeometrie. Logs`route-sticky-colour-footer-final-tests.log`, `route-sticky-sort-release-tests.log`, `route-sort-geometry-final-tests.log`. 320/360/480-dp-Kachelreihe beider Designs nativ geprüft und Vorschau visuell gesichtet; keine Geräteprüfung.
 
 Veröffentlichung der Korrekturen nachBuild112: [0.8.72/Build113](build-113.md).
+
+NachBuild113: Titel bleiben auch nach Recycling einzeilig vor dem Auge gekürzt. Nach der dynamischen linken Titel-Ausrichtung wird das Textlayout bei geändertem Inset sofort mit der endgültigen Breite gemessen, statt eine während ListView-Layout eventuell unterdrückte Neuanordnung vorauszusetzen. Recycelte Titel starten ohne horizontalen Textscroll. Kein zusätzlicher oberer Listenabstand; normale und angeheftete Gruppenköpfe TERTIARY. Vollständige Auswahlfarbe auf der Fahrtzeile statt nur auf ihrem inneren Inhaltscontainer.
+
+Prüfung der Korrekturen nachBuild113:32 relevante Tests, nach dem gefundenen Textlayout-Fehler alle8 gezielten Titel-/Recycling-/Geometrieprüfungen erfolgreich. Echte ListView-Sprünge weg/zurück in320/360/420dp, END-Ellipse vor Auge, TERTIARY-Köpfe und gleicher Startpunkt bei allen Sortierungen sowie Auswahlfarbe in oberen/unteren Zeilenabständen. Logs`route-list-layout-final-tests.log` und`route-title-recycle-final-tests.log`. Noch nicht alsAPK veröffentlicht.

@@ -125,10 +125,10 @@ internal class RouteManagerView(context: Context,
         }, LayoutParams(-1, 0, 1f))
     }
     internal fun applyPageSpacing() {
-        // The initial gap scrolls away with the first row, rather than masking the list below the header.
+        // Group headers start at the same position as their pinned representation.
         setPadding(paddingLeft,0,paddingRight,paddingBottom)
         findViewWithTag<ListView>("route_list").apply {
-            setPadding(paddingLeft,dp(BicycleDesign.pageContentGap),paddingRight,paddingBottom)
+            setPadding(paddingLeft,0,paddingRight,paddingBottom)
             clipToPadding=false
         }
     }
@@ -189,7 +189,8 @@ internal class RouteManagerView(context: Context,
         private val origin = ImageView(context)
         private val format = BicycleComponents.text(context, themes, "").apply { textSize = BicycleDesign.formatSp;setSingleLine() }
         private val title = BicycleComponents.text(context, themes, "").apply {
-            textSize = BicycleDesign.rowTitleSp; maxLines = 1; ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.CENTER_VERTICAL
+            textSize = BicycleDesign.rowTitleSp;setSingleLine();setHorizontallyScrolling(false)
+            ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.CENTER_VERTICAL
         }
         private val eye:ImageButton = BicycleComponents.icon(context, themes, BicycleIcon.ShowOnMap,
             context.getString(R.string.route_list_visibility)) {
@@ -249,13 +250,22 @@ internal class RouteManagerView(context: Context,
             val heading=android.graphics.Rect();offsetDescendantRectToMyCoords(title,heading)
             val left=text.left+date.number.compoundPaddingLeft+(date.number.layout?.getLineLeft(0) ?: 0f)
             val inset=(left-heading.left).toInt().coerceIn(0,(title.width-dp(BicycleDesign.iconSize)).coerceAtLeast(0))
-            if(title.paddingLeft!=inset) title.setPadding(inset,title.paddingTop,title.paddingRight,title.paddingBottom)
+            val insetChanged=title.paddingLeft!=inset
+            if(insetChanged) title.setPadding(inset,title.paddingTop,title.paddingRight,title.paddingBottom)
+            if(insetChanged || title.layout==null) {
+                // ListView may suppress a requestLayout made while laying out recycled rows.
+                // Rebuild the text layout now with its final inset and available width.
+                title.forceLayout()
+                title.measure(MeasureSpec.makeMeasureSpec(title.width,MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(title.height,MeasureSpec.EXACTLY))
+                title.layout(title.left,title.top,title.right,title.bottom)
+            }
         }
         private fun paintState(tokens: ThemeTokens) {
             preview.foreground = tokens.foreground
             val route = entry ?: return
-            background=null
-            rideBody.background=if(route.id in checked) ColorDrawable(tokens.tertiary) else null
+            background=if(route.id in checked) ColorDrawable(tokens.tertiary) else null
+            rideBody.background=null
             origin.setImageDrawable(BicycleIcons.drawable(context, if(route.id in checked) BicycleIcon.Check else when (route.origin) {
                 TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
             }, if(route.id in checked) tokens.primary else tokens.foreground))
@@ -273,6 +283,7 @@ internal class RouteManagerView(context: Context,
             isActivated=route.id in checked
             entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
             contentDescription = context.getString(R.string.analysis_open, route.name)+(if(route.id in checked) " · "+context.getString(R.string.route_selected) else "")
+            title.scrollTo(0,0)
             title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name
             origin.contentDescription = when (route.origin) { TrackOrigin.IMPORTED -> context.getString(R.string.ui_route_imported); TrackOrigin.RECORDED -> context.getString(R.string.ui_route_recorded); TrackOrigin.UNKNOWN -> context.getString(R.string.ui_route_unknown_origin) }
             profileColor.tag="route_profile_color_${route.id}"

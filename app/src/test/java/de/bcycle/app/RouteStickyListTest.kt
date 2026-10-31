@@ -65,7 +65,7 @@ class RouteStickyListTest {
                     assertEquals(6,list.pinnedGroup!!.first);assertEquals(0,list.pinnedOffset)
                     themes.activate(BicycleThemes.presets[if(flat) 0 else 1].id)
                     draw();image.eraseColor(android.graphics.Color.TRANSPARENT);list.draw(Canvas(image))
-                    assertEquals(themes.active.tokens.secondary,image.getPixel(list.paddingLeft+1,2))
+                    assertEquals(themes.active.tokens.tertiary,image.getPixel(list.paddingLeft+1,2))
                 }
             } finally { image.recycle() }
         } finally { host.pause().stop().destroy() }

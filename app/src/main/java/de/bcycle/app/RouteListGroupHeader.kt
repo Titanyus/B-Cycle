@@ -20,6 +20,7 @@ internal class RouteListGroupHeader(context:Context,themes:ThemeManager):LinearL
     private val average=RouteListReading(context,themes,R.string.route_list_average,R.string.analysis_kmh)
     init {
         orientation=VERTICAL;visibility=GONE
+        BicycleComponents.background(this,themes,ThemeRole.TERTIARY)
         setPadding(dp(BicycleDesign.verticalPadding),dp(BicycleDesign.rowGap),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.sectionDividerGap))
         // A heading is not a ride action. ListView can still intercept a vertical scroll here.
         setOnTouchListener { _,_->true }

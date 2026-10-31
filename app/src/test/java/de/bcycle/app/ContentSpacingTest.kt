@@ -124,7 +124,7 @@ class ContentSpacingTest {
                         else decor.findViewWithTag<View>(if(kind==0) "bike_profile_strip" else "analysis_identity")
                     val header=decor.findViewWithTag<View>("bicycle_navigation_header")
                     val a=IntArray(2);val b=IntArray(2);target.getLocationOnScreen(a);header.getLocationOnScreen(b)
-                    assertEquals("page $kind header/content gap",BicycleDesign.dp(activity,BicycleDesign.pageContentGap),a[1]-b[1]-header.height)
+                    assertEquals("page $kind header/content gap",if(kind==1) 0 else BicycleDesign.dp(activity,BicycleDesign.pageContentGap),a[1]-b[1]-header.height)
                 } finally { analysis?.dispose();dialog.dismiss() }
             }
         } finally { controller.pause().stop().destroy() }

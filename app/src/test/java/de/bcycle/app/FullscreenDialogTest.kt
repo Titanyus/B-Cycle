@@ -116,7 +116,7 @@ class FullscreenDialogTest {
             val body = views(root).filterIsInstance<RouteManagerView>().single()
             assertEquals(0,body.paddingTop)
             val routeList=body.findViewWithTag<android.widget.ListView>("route_list")
-            assertEquals(BicycleDesign.dp(activity,BicycleDesign.pageContentGap),routeList.paddingTop)
+            assertEquals(0,routeList.paddingTop)
             assertFalse(routeList.clipToPadding)
             // The native buttonPanel may itself scroll; the route body must not wrap its ListView.
             assertTrue(views(body).none { it is ScrollView })
