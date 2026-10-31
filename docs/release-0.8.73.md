@@ -7,4 +7,4 @@
 
 Geprüft mit32 relevanten nativen UI-/Scroll-/Sticky-/Dialogtests und nach der endgültigen Textlayoutkorrektur8 erfolgreichen Titel-/Recycling-/Geometrie-Nachprüfungen. Typografie/Atlas/Diff geprüft. Keine vollständige Gesamtsuite und kein physischer Gerätetest.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-114.md).

@@ -35,3 +35,5 @@ Veröffentlichung der Korrekturen nachBuild112: [0.8.72/Build113](build-113.md).
 NachBuild113: Titel bleiben auch nach Recycling einzeilig vor dem Auge gekürzt. Nach der dynamischen linken Titel-Ausrichtung wird das Textlayout bei geändertem Inset sofort mit der endgültigen Breite gemessen, statt eine während ListView-Layout eventuell unterdrückte Neuanordnung vorauszusetzen. Recycelte Titel starten ohne horizontalen Textscroll. Kein zusätzlicher oberer Listenabstand; normale und angeheftete Gruppenköpfe TERTIARY. Vollständige Auswahlfarbe auf der Fahrtzeile statt nur auf ihrem inneren Inhaltscontainer.
 
 Prüfung der Korrekturen nachBuild113:32 relevante Tests, nach dem gefundenen Textlayout-Fehler alle8 gezielten Titel-/Recycling-/Geometrieprüfungen erfolgreich. Echte ListView-Sprünge weg/zurück in320/360/420dp, END-Ellipse vor Auge, TERTIARY-Köpfe und gleicher Startpunkt bei allen Sortierungen sowie Auswahlfarbe in oberen/unteren Zeilenabständen. Logs`route-list-layout-final-tests.log` und`route-title-recycle-final-tests.log`. Noch nicht alsAPK veröffentlicht.
+
+Veröffentlichung der Korrekturen nachBuild113: [0.8.73/Build114](build-114.md).
