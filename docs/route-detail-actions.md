@@ -61,3 +61,5 @@ Streckendetails und Fahrradprofile verwenden wie der Streckenmanager das Panel-S
 Fahrrad-/Datumsangaben und gegebenenfalls nachgeladene Wetterdaten liegen gemeinsam in einem TERTIARY-Container (`analysis_detail_head`). Themebindung aktualisiert die gesamte Fläche. Abstände, übrige Statistikgruppen und Diagrammhintergründe unverändert.
 
 Korrektur nach Build115: Die TERTIARY-Fläche des Detailkopfs wird auch in die bestehenden seitlichen und oberen Seitenabstände gezeichnet, bis an beide Seitenränder und direkt unter den Hauptheader. Die Inhaltspositionen bleiben erhalten; der Kopf erhält unten zusätzlich8dp Innenabstand. Die gemeinsame Dialog-Body-Fabrik kann dafür einen spezialisierten LinearLayout übernehmen; andere Aufrufer verwenden unverändert den Standardbody.
+
+Fahrttitel nach Build115 immer linksbündig, auch nach Header-Rehousing, Umbenennung und Größenwechsel. Links ein Back-Button-Inset, rechts Platz für Footer-Umschalter und Info. RideTitleView behält Scroll-/Fade-/Animationsphasen und Endkürzung bei deaktivierter Animation.

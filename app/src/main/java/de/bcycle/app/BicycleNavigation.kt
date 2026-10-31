@@ -24,13 +24,14 @@ internal object BicycleNavigation {
         if(title!=null) {
             BicycleComponents.headerTypography(title)
             (title.parent as? ViewGroup)?.removeView(title)
-            title.gravity=Gravity.CENTER
+            val rideTitle=title.tag=="analysis_title"
+            title.gravity=if(rideTitle) Gravity.START or Gravity.CENTER_VERTICAL else Gravity.CENTER
             BicycleComponents.bindTheme(title,themes) {
                 title.setTextColor(BicycleComponents.textColor(title,themes,it))
             }
             val main=all(screen.window!!.decorView).any { it is SettingsMenuView && it.isMainPage }
             val inset=BicycleDesign.dp(context,BicycleDesign.touchSize*(if((main || footerControl!=null) && help!=null) 2 else 1)+BicycleDesign.smallGap)
-            title.setPadding(inset,0,inset,0)
+            title.setPadding(if(rideTitle) BicycleDesign.dp(context,BicycleDesign.touchSize+BicycleDesign.smallGap) else inset,0,inset,0)
             frame.addView(title,FrameLayout.LayoutParams(-1,-1))
         } else {
             (original.parent as? ViewGroup)?.removeView(original)

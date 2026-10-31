@@ -11,12 +11,12 @@ import android.widget.TextView
 internal class RideTitleView(context:Context):TextView(context) {
     private var motion:ValueAnimator?=null
     private var offset=0f
-    init { setSingleLine();setHorizontallyScrolling(true);BicycleComponents.headerTypography(this) }
+    init { gravity=Gravity.START or Gravity.CENTER_VERTICAL;setSingleLine();setHorizontallyScrolling(true);BicycleComponents.headerTypography(this) }
     private fun titleWidth()=paint.measureText(transformationMethod?.getTransformation(text,this)?.toString() ?: text.toString())
     private fun restart() {
         motion?.cancel();motion=null;offset=0f;alpha=1f
         val distance=(titleWidth()-(width-paddingLeft-paddingRight)).coerceAtLeast(0f)
-        gravity=if(distance>0) Gravity.START or Gravity.CENTER_VERTICAL else Gravity.CENTER
+        gravity=Gravity.START or Gravity.CENTER_VERTICAL
         ellipsize=if(ValueAnimator.areAnimatorsEnabled()) null else TextUtils.TruncateAt.END
         if(distance<=0 || !isAttachedToWindow || windowVisibility!=VISIBLE || !ValueAnimator.areAnimatorsEnabled()) { invalidate();return }
         val timeline=TextScrollerMotion(distance,resources.displayMetrics.density)

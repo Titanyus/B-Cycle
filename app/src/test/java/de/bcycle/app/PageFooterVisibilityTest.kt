@@ -26,6 +26,11 @@ class PageFooterVisibilityTest {
                 val button=root.findViewWithTag<View>("route_footer_toggle")
                 val info=root.findViewWithTag<View>("settings_help")
                 assertNotNull(button);assertNotNull(info);assertTrue(button.right<=info.left)
+                root.findViewWithTag<android.widget.TextView>("analysis_title")?.let { title ->
+                    assertEquals(android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL,title.gravity)
+                    assertEquals(BicycleDesign.dp(a,BicycleDesign.touchSize+BicycleDesign.smallGap),title.paddingLeft)
+                    assertTrue(title.paddingRight>title.paddingLeft)
+                }
                 assertEquals(View.GONE,footer.visibility);assertFalse(button.isActivated)
                 button.performClick();assertEquals(View.VISIBLE,footer.visibility);assertTrue(button.isActivated)
                 button.performClick();assertEquals(View.GONE,footer.visibility)
