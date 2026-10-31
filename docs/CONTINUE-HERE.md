@@ -1,24 +1,21 @@
-# Aktueller Stand: APK0.8.71 / Build112 veröffentlicht –31.10.2026
+# Aktueller Stand: APK0.8.72 / Build113 veröffentlicht –31.10.2026
 
-[APK direkt](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.71-release-112.apk) · [Buildnachweis](build-112.md) · [Änderungen](release-0.8.71.md). Code141, Quelle`cbebd12ab7f3ef794beeb5b96aff12ebe1bf65c4`, 2553561Bytes, SHA-256`ff0b8d6f98aa495a8ab34739c455fd1bd21c446810c7676a3e49862862196aa1`. Signatur/Manifest/Version/CI-Prüfsumme/ZIP-Ausrichtung geprüft. Alle aktuellen Aufträge erledigt, kein offener Buildauftrag.
+[APK direkt](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.72-release-113.apk) · [Buildnachweis](build-113.md) · [Änderungen](release-0.8.72.md). Code142, Quelle`0976e258fba3f74b30b4e62835b2399352513ed1`, 2558385Bytes, SHA-256`7d92c44ab5755d7486fc2cb98e27e5cebcc5bb4fb10e0479d2620018e6f55dd3`. CI-Prüfsumme, Signatur/Update-Kompatibilität, Manifest, Version und ZIP-Ausrichtung geprüft. Alle aktuellen Aufträge erledigt; kein offener Buildauftrag.
 
-## Seit Build111
+## Seit Build112
 
-- HRV-Ruhe-/Messring ohne separaten Abschlusskreis, runde Bogenenden erhalten. Commitd67a988.
-- [Streckenübersicht](route-list-groups.md): Gruppen nach Monat/Jahr oder vereinbarten Distanz-/Zeit-/Tempobereichen, gefilterte Summen und gewichtetes Tempo. Cached bis Daten-/Sortänderung. Fast-Scroller springt auf Gruppenanfänge (letzte ausdrückliche Nutzerentscheidung nach Chatabsturz); normales Scrollen bleibt stufenlos. Commit5fb97b9.
-- [Intervals-HRV](intervals-hrv.md): BereichsGET ohne fields-Liste, EinzelPUT ohne redundantes id-Feld; sichere422-Diagnose mit Anfrageschritt. Nutzer bestätigt erfolgreichen Einzelupload, Ursache des Sammelfehlers nicht privat live verifiziert.
-- Wellness ergänzt numerischen Schlafscore0–10, Verletzung nein→1/ja→4 und neue Stressfrage „Wie gestresst bist du?“ mit Wenig/Durchschnittlich/Sehr/Extrem→1/2/3/4. Optional, ohne Standardantwort, proTag gespeichert/vorausgewählt, validiert und HRV-gesichert. FragenauswahlSchema2 migriert einmalig mit neuer Frage; späteres Abschalten bleibt erhalten. Keine Änderung der HRV-Empfehlungen.
-- Nutzer genehmigt Sammelergänzung eigener unveränderter HRV-Tage um ausschließlich fehlende sleepScore/stress/injury. TagesGET prüft Eigentum/Fehlfelder erneut; ZusatzPUT ohneHRV. Vorhandene/fremde Werte erhalten, Beleg erst nach bestätigtem PUT ergänzen.
-- Fitness/Ermüdung/Form über Intervals als möglich beantwortet, kein Implementierungsauftrag.
+[Streckenliste](route-list-groups.md): Monats-/Bereichsköpfe als eigenständige nicht auswählbare Adaptereinträge mit eigenem Viewtyp. Fahrtmarkierung auf Fahrt begrenzt. Sticky-Kopf mit Kennzahlen unter Hauptheader, nächster Kopf schiebt ihn weg; anfänglicher Seitenabstand scrollt weg. Gecachte Zeichenview/Geometrie, bei Themenwechsel erneuern; Pan/Fling auch auf dem angehefteten Kopf, kein Durchklicken auf verdeckte Fahrten. Fast-Scroller-Positionen berücksichtigen zusätzliche Köpfe.
 
-## Prüfungen
+Footer standardaus. Panel-bottom-Symbol links neben Info schaltet manuell; Longpress blendet temporär bis Auswahlende ein. Manuelle Einblendung bleibt nach Auswahlende erhalten; manuelles Ausblenden auch während Auswahl möglich. Neue Seite beginnt wieder verborgen. Auswahl-/Zurück-/Löschlogik unverändert.
 
-Gruppen-/Cloudtests40 erfolgreich, native Gruppenvorschau visuell geprüft (`route-groups-hrv-final-tests.log`). Stress/Backup/Fragebogen/Intervals34 erfolgreich (`hrv-wellness-stress-tests.log`). Abschließende36 Ergänzungs-/Fragebogentests erfolgreich unter`/workspace/.tools/hrv-supplement-final-tests.log`. Zusätzlich16 vorhandene Intervals-FIT-/Sammeluploadtests erfolgreich (`intervals-fit-regression-oct31.log`). Typografie/Atlas/Diff geprüft. Keine private Liveübertragung, keine vollständige Gesamtsuite oder physischer Gerätetest.
+Track-Augen: generische Iconbindung überschreibt die Trackfarbe bei Reattach. Zusätzlicher Icon-Farbrefresh stellt aktuelle Trackplatzfarbe nach Standardbindung wieder her; Schleifen aus Detach/Reattach/Recycling mit belegten/leeren Plätzen geprüft. Farben deckend, Sichtbarkeitslogik unverändert.
 
-APK nur via GitHubActions, keine lokalen APKs. Dauerhafte Signatur prüfen, CI-SHA/Version/Manifest/ZIP prüfen; veröffentlichen mit[skip ci], direktenRawDownload binär vergleichen. Historie: [Build111](build-111.md), Snapshot vor Bereinigung alsTag`vor-den-bereinigungen-2026-10-30`.
+Sortierpopup: seitenbreite einzeilige Auswahl im Fahrtbenennungsstil, vier Kriterien plus Richtung. Globale Inline-Abstandsregel verhindert vertikal versetzte Kacheln; native Geometrie bei320/360/480dp in beiden Designs. Änderungen sofort, vorhandene Filter bleiben erhalten.
 
-## Nach Build112: Streckenliste – noch unveröffentlicht
+## Prüfungen und offene Grenzen
 
-Nutzerkorrekturen: Gruppenköpfe als eigene nicht auswählbare Listeneinträge und Sticky unter dem Hauptheader; nächster Kopf schiebt vorherigen weg. Mehrfachauswahl markiert nur Fahrtkarten. Fast-Scroller auf neue Headerpositionen umgestellt. Footer standardaus, Header-Panel-Symbol links nebenInfo schaltet manuell; Longpress temporär bis Auswahlende. Farbige Augen verlieren beim Reattach die Trackfarbe durch generische Iconbindung: eigener Farbrefresh am Icon nach Standardbindung, mit aktueller Trackplatzfarbe. [Details](route-list-groups.md). 67 gezielte Tests erfolgreich unter`route-sticky-colour-footer-final-tests.log`; NeueAPK ausdrücklich beauftragt, nach abschließender Prüfung viaActions veröffentlichen.
+Logs`/workspace/.tools/`: `route-sticky-colour-footer-final-tests.log`67 erfolgreich; `route-sticky-sort-release-tests.log`81 relevante Prüfungen, darin3 Sortier-/Adaptererwartungen anschließend korrigiert und alle8 gezielten Nachprüfungen erfolgreich in`route-sort-geometry-final-tests.log`. FinaleKachelvorschau visuell geprüft; Typografie/Atlas/Diff erfolgreich. Keine vollständige Gesamtsuite oder physischer Gerätetest.
 
-Sortierpopup ersetzt durch5 gleich hohe Icon-/Textkacheln in einer seitenbreiten Reihe: Datum/Distanz/Fahrzeit/Ø-Tempo, dazu Umschalten Auf-/Absteigend. Bestehende Filter/Sortierlogik bleiben erhalten. 81 gezielte Tests in zwei abschließenden Läufen erfolgreich: `route-sticky-sort-release-tests.log` mit anschließend korrigierten und erfolgreichen8 Popup-/Stickyprüfungen in`route-sort-geometry-final-tests.log`. Native320/360/480-dp-Geometrie inFlat/Glow, Sortier-Vorschau visuell geprüft; Typografie/Atlas/Diff erfolgreich.
+[Build112](build-112.md): HRV-Ring ohneEndpunkt, Streckengruppen, Stressfrage und zusätzliche Intervals-Wellnessfelder/eigene Ergänzungen sowie422-Diagnose. Noch kein privater Livebeweis für Behebung des kontospezifischen422. Fitness/Ermüdung/Form nur als möglich beantwortet, kein Implementierungsauftrag.
+
+APK ausschließlichGitHubActions; Appcode nichtmit[skip ci] überspringen, Veröffentlichungscommitmit[skip ci]. DirektenRawDownload binär gegenArtefakt prüfen. Snapshot vorBereinigung alsTag`vor-den-bereinigungen-2026-10-30`.

@@ -29,3 +29,5 @@ Nach der abschließenden Nutzerentscheidung nach dem Chat-Absturz gilt: **Gruppe
 40 gezielte Tests erfolgreich: Grenzfälle/Filter/Gewichtung/fehlende Werte, native Header-/Einheitengeometrie in schmalen Breiten und beiden Designs, Recycling/Bedienung, tatsächliche Fast-Scroll-Sprünge und stabiler Thumb bei normalem Scrollen, bestehende Filter-/Intervals-Tests. Log `/workspace/.tools/route-groups-hrv-final-tests.log`. Native Vorschauen `app/build/reports/ui/route-groups-flat.png` und `route-groups-glow.png`; Flat visuell geprüft. Typografie/Atlas/Diff geprüft. Kein physischer Gerätetest. Veröffentlicht in[0.8.71/Build112](build-112.md).
 
 NachBuild112:67 gezielte Listen-/Farb-/Sticky-/Dialogtests erfolgreich, abschließend81 relevante Tests über Gesamtlauf und8 erfolgreiche Nachprüfungen der finalen Popupgeometrie. Logs`route-sticky-colour-footer-final-tests.log`, `route-sticky-sort-release-tests.log`, `route-sort-geometry-final-tests.log`. 320/360/480-dp-Kachelreihe beider Designs nativ geprüft und Vorschau visuell gesichtet; keine Geräteprüfung.
+
+Veröffentlichung der Korrekturen nachBuild112: [0.8.72/Build113](build-113.md).

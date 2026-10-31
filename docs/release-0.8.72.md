@@ -8,4 +8,4 @@
 
 Gezielte native UI-, Recycling-, Sticky-, Sortier-, Fast-Scroller- und Streckenaktionsprüfungen. Keine vollständige Gesamtsuite und kein physischer Gerätetest.
 
-Buildnachweis folgt nach Veröffentlichung.
+[Buildnachweis und Download](build-113.md).
