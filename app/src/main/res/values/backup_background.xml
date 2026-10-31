@@ -1,0 +1,5 @@
+<resources>
+    <string name="backup_background_channel">Sicherung und Wiederherstellung</string>
+    <string name="backup_background_title">B|CYCLE · Sicherung und Wiederherstellung</string>
+    <string name="backup_background_failed">Sicherung oder Wiederherstellung konnte nicht gestartet werden.</string>
+</resources>

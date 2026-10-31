@@ -33,7 +33,7 @@ internal class HrvDirectoryBackup(private val context:Context) {
                 rows.put(JSONObject().put("name",name).put("bytes",file.length()).put("sha256",WebDavClient.hash(file)))
                 file.delete();progress(rows.length())
             }
-            measurements.forEach { send("hrv-${it.id}.json",store.backup(it.id)) }
+            measurements.forEach { send("hrv-${HrvDailySelection.day(it)}-${it.id}.json",store.backup(it.id)) }
             store.questionnaireDays().filterNot { it in represented }.forEach { send("day-$it.json",store.backupQuestionnaireDay(it)) }
             val index=JSONObject().put("format","bicycle-hrv-daily-backup").put("schema",1)
                 .put("createdAt",Instant.now().toString()).put("entries",rows).toString().toByteArray()

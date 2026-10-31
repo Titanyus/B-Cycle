@@ -54,11 +54,16 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private val fits = FitLibrary(context.filesDir)
     internal fun transferBackup(directory:BackupDirectory,restore:Boolean,hrv:Boolean=false,progress:(Int)->Unit,complete:(Result<RideBackupResult>)->Unit):Boolean {
         if(busy) return false
+        val protection=runCatching { BackupWork.begin(context) }
+        if(protection.isFailure) { handler.post { complete(Result.failure(protection.exceptionOrNull()!!)) };return true }
+        val lease=protection.getOrThrow()
         busy=true;changed()
-        worker.execute {
+        try { worker.execute {
+            lease.use {
             var result:Result<RideBackupResult> = Result.failure(IllegalStateException())
             finishOperation("") {
                 result=runCatching {
+                    lease.enter()
                     val report:(Int)->Unit={ count -> handler.post { progress(count) } }
                     if(hrv) {
                         val backup=HrvDirectoryBackup(context)
@@ -71,7 +76,8 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
                 workerRoute
             }
             handler.post { complete(result) }
-        }
+            }
+        } } catch(error:Exception) { lease.close();busy=false;changed();throw error }
         return true
     }
     private val dreeveSummaries=DreeveSummaryLibrary(context.filesDir)

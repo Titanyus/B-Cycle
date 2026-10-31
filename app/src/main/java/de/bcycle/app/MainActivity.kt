@@ -1741,7 +1741,7 @@ class MainActivity : Activity() {
             val settings=RouteExportSettings(this)
             if(!settings.backupConfigured()) return
             backupMessage(getString(R.string.ride_backup_loading))
-            Thread({
+            BackupWork.start(this,"Bicycle-settings-list") {
                 val result=runCatching {
                     val root=DavBackupDirectory(WebDavClient(settings.read(),settings.password()))
                     root to root.entries().filter { !it.directory && it.name.startsWith("Bicycle-Settings-") && it.name.endsWith(".zip") }.map { it.name }.sortedDescending().also { require(it.isNotEmpty()) }
@@ -1749,13 +1749,13 @@ class MainActivity : Activity() {
                 runOnUiThread { if(!isDestroyed) result.fold({ (root,names) ->
                     backupMessage("")
                     dialog().setTitle(R.string.data_restore).setItems(names.toTypedArray()) { _,index ->
-                        Thread({
+                        BackupWork.start(this,"Bicycle-settings-fetch") {
                             val bytes=runCatching { root.open(names[index]).use { it.readNBytes(SettingsArchive.MAX_BYTES+1).also { require(it.size<=SettingsArchive.MAX_BYTES) } } }
                             runOnUiThread { if(!isDestroyed) bytes.fold(::openSettingsPayload) { BicycleFeedback.show(this,ServiceProblems.text(it,R.string.backup_io_error),true) } }
-                        },"Bicycle-settings-fetch").start()
+                        }
                     }.show()
                 },{ BicycleFeedback.show(this,ServiceProblems.text(it,R.string.backup_io_error),true) }) }
-            },"Bicycle-settings-list").start()
+            }
         }
     }
     private fun requestRideBackup(destination:RideBackupDestination,action:RideBackupAction,hrv:Boolean=false) {
@@ -1776,7 +1776,7 @@ class MainActivity : Activity() {
     private fun chooseRideBackupDirectory(root:BackupDirectory,action:RideBackupAction,hrv:Boolean=false) {
         if(action==RideBackupAction.EXPORT) { runRideBackup(root,false,hrv);return }
         backupMessage(getString(R.string.ride_backup_loading))
-        Thread({
+        BackupWork.start(this,"Bicycle-backup-folders") {
             val result=runCatching {
                 val entries=root.entries()
                 if(entries.any { !it.directory && it.name==if(hrv) HrvDirectoryBackup.INDEX else RideDirectoryBackup.INDEX }) null else
@@ -1794,7 +1794,7 @@ class MainActivity : Activity() {
                     chosen(root.child(folders[position],false))
                 }.show()
             },{ BicycleFeedback.show(this,ServiceProblems.text(it,R.string.ride_backup_invalid),true) }) }
-        },"Bicycle-backup-folders").start()
+        }
     }
     private fun runRideBackup(directory:BackupDirectory,restore:Boolean,hrv:Boolean=false):Boolean {
         if(runtime.recording || runtime.saving || runtime.mapState.busy || runtime.hrv.busy) { BicycleFeedback.show(this,R.string.ride_backup_busy);return false }
@@ -1807,7 +1807,7 @@ class MainActivity : Activity() {
                     else getString(if(hrv) R.string.backup_hrv_result else R.string.ride_backup_result,report.completed,report.failed,report.folder)
                 },{ getString(ServiceProblems.text(it,R.string.ride_backup_failed)) })
                 if(restore && result.isSuccess && !hrv) runtime.mapState.restoreProfileRoute()
-                backupMessage(text);BicycleFeedback.show(this,text,long=true);render()
+                if(!isDestroyed) { backupMessage(text);BicycleFeedback.show(this,text,long=true);render() }
             })
         if(!started) BicycleFeedback.show(this,R.string.ride_backup_busy)
         return started
@@ -1835,49 +1835,47 @@ class MainActivity : Activity() {
         if(!SettingsArchive.isZip(bytes)) { BicycleFeedback.show(this,R.string.backup_format_error,true);return }
         archivePassword(false) { password,finish ->
             val generation=passwordOperation
-            Thread({
+            BackupWork.start(this,"Bicycle-settings-unlock",failed={ password.fill('\u0000');finish(Result.failure(it)) }) {
                 val result=try { runCatching { SettingsArchive(applicationContext).read(bytes,password) } } finally { password.fill('\u0000') }
                 runOnUiThread {
                     if(!isDestroyed && passwordOperation==generation) result.fold({ document -> backupSettings(document);finish(Result.success(Unit)) },{ finish(Result.failure(it)) })
                 }
-            },"Bicycle-settings-unlock").start()
+            }
         }
     }
     private fun requestBackupExport(destination:RideBackupDestination) {
         archivePassword(true) { password,finish ->
             val generation=passwordOperation
-            Thread({
-                val result=try { runCatching {
+            BackupWork.start(this,"Bicycle-settings-export",failed={ password.fill('\u0000');finish(Result.failure(it)) }) {
+                val result:Result<java.io.File?> = try { runCatching {
                     val bytes=SettingsArchive(applicationContext).export(BackupSection.entries.toSet(),password)
-                    java.io.File(cacheDir,"settings-export-${java.util.UUID.randomUUID()}.zip").apply { writeBytes(bytes) }
+                    val file=java.io.File(cacheDir,"settings-export-${java.util.UUID.randomUUID()}.zip").apply { writeBytes(bytes) }
+                    if(destination==RideBackupDestination.WEBDAV) {
+                        // Keep encryption and transfer in one protected operation, even if the screen locks between them.
+                        try {
+                            val settings=RouteExportSettings(applicationContext)
+                            require(settings.backupConfigured())
+                            DavBackupDirectory(WebDavClient(settings.read(),settings.password())).write("Bicycle-Settings-${java.time.LocalDate.now()}-${java.util.UUID.randomUUID().toString().take(8)}.zip",file)
+                        } finally { file.delete() }
+                        null
+                    } else file
                 } } finally { password.fill('\u0000') }
                 runOnUiThread {
                     if(isDestroyed || passwordOperation!=generation) result.getOrNull()?.delete()
                     else result.fold({ file ->
-                        if(destination==RideBackupDestination.WEBDAV) {
-                            Thread({
-                                val saved=runCatching {
-                                    val settings=RouteExportSettings(applicationContext)
-                                    require(settings.backupConfigured())
-                                    DavBackupDirectory(WebDavClient(settings.read(),settings.password())).write("Bicycle-Settings-${java.time.LocalDate.now()}-${java.util.UUID.randomUUID().toString().take(8)}.zip",file)
-                                }
-                                file.delete()
-                                runOnUiThread { if(!isDestroyed) {
-                                    finish(saved)
-                                    BicycleFeedback.show(this,if(saved.isSuccess) R.string.backup_written else ServiceProblems.text(saved.exceptionOrNull(),R.string.backup_io_error),true)
-                                } }
-                            },"Bicycle-settings-webdav").start()
-                            return@fold
+                        if(file==null) {
+                            finish(Result.success(Unit));BicycleFeedback.show(this,R.string.backup_written,true)
+                        } else {
+                            pendingBackupExport?.delete();pendingBackupExport=file
+                            try {
+                                startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/zip")
+                                    .putExtra(Intent.EXTRA_TITLE,getString(R.string.backup_filename,java.time.LocalDate.now().toString())),12)
+                                finish(Result.success(Unit))
+                            } catch(e:Exception) { file.delete();pendingBackupExport=null;finish(Result.failure(e)) }
                         }
-                        pendingBackupExport?.delete();pendingBackupExport=file
-                        try {
-                            startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/zip")
-                                .putExtra(Intent.EXTRA_TITLE,getString(R.string.backup_filename,java.time.LocalDate.now().toString())),12)
-                            finish(Result.success(Unit))
-                        } catch(e:Exception) { file.delete();pendingBackupExport=null;finish(Result.failure(e)) }
-                    },{ finish(Result.failure(it));BicycleFeedback.show(this,backupError(it),true) })
+                    },{ finish(Result.failure(it));BicycleFeedback.show(this,if(destination==RideBackupDestination.WEBDAV) ServiceProblems.text(it,backupError(it)) else backupError(it),true) })
                 }
-            },"Bicycle-settings-encrypt").start()
+            }
         }
     }
     private fun backupSettings(document: SettingsBackupDocument) {
@@ -1896,7 +1894,7 @@ class MainActivity : Activity() {
                     .setPositiveButton(R.string.backup_restore_execute) { _,_->
                         if(runtime.recording || runtime.saving) { BicycleFeedback.show(this,R.string.ride_backup_busy);return@setPositiveButton }
                         button.isEnabled=false
-                        Thread({
+                        BackupWork.start(this,"B-Cycle-settings-restore",failed={ button.isEnabled=choices.selected().isNotEmpty();BicycleFeedback.show(this,backupError(it),true) }) {
                             val result=runCatching {
                                 val plan=backup.plan(document,selected);backup.apply(plan)
                                 if(BackupSection.DESIGN in selected || BackupSection.PROFILE in selected) settingsThemes.reloadFromPreferences()
@@ -1926,7 +1924,7 @@ class MainActivity : Activity() {
                                     },{ BicycleFeedback.show(this, backupError(it), long = true) })
                                 }
                             }
-                        },"B-Cycle-settings-restore").start()
+                        }
                     }.show()
             }
         }
@@ -1937,7 +1935,7 @@ class MainActivity : Activity() {
         val uri=data?.data
         if(resultCode!=RESULT_OK || uri==null) { file?.delete();return }
         val origin=dataSettingsScreen
-        Thread({
+        BackupWork.start(this,"B-Cycle-settings-document",failed={ file?.delete();BicycleFeedback.show(this,backupError(it),true) }) {
             val result=runCatching {
                 if(requestCode==12) {
                     require(file!=null && file.isFile)
@@ -1953,7 +1951,7 @@ class MainActivity : Activity() {
                     if(bytes==null) BicycleFeedback.show(this,R.string.backup_written,true) else openSettingsPayload(bytes)
                 },{ BicycleFeedback.show(this,backupError(it),true) })
             }
-        },"B-Cycle-settings-document").start()
+        }
     }
     private fun sourcesSettings() {
         val body=BicycleComponents.dialogBody(settingsContext,settingsThemes)

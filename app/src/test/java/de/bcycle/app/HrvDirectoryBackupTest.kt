@@ -45,7 +45,7 @@ class HrvDirectoryBackupTest {
         val exported=HrvDirectoryBackup(source).export(parent)
         assertEquals(2,exported.completed)
         val folder=parent.child(exported.folder,false)
-        assertEquals(setOf(HrvDirectoryBackup.INDEX,"hrv-$chosen.json","day-2026-10-26.json"),folder.entries().map { it.name }.toSet())
+        assertEquals(setOf(HrvDirectoryBackup.INDEX,"hrv-2026-10-25-$chosen.json","day-2026-10-26.json"),folder.entries().map { it.name }.toSet())
         assertEquals(4,journal.ids().size);assertTrue(journal.ids().contains(older))
         val imported=HrvDirectoryBackup(target).restore(folder)
         assertEquals(2,imported.completed);assertEquals(0,imported.failed)
@@ -65,9 +65,21 @@ class HrvDirectoryBackupTest {
         assertEquals(1,HrvDirectoryBackup(target).restore(folder).completed)
         assertEquals(id,store(target).ids().single())
         val root=File(source.cacheDir,"backup/${report.folder}")
-        File(root,"hrv-$id.json").appendText(" ")
+        File(root,"hrv-2026-10-25-$id.json").appendText(" ")
         val empty=device();assertEquals(1,HrvDirectoryBackup(empty).restore(folder).failed)
         assertTrue(store(empty).ids().isEmpty())
         assertThrows(Exception::class.java) { HrvDirectoryBackup(empty).restore(parent) }
+    }    @Test fun filenamesUseMeasurementDayAndOlderIndexedNamesStillRestore() {
+        val source=device();val target=device();val id=save(source,"2026-10-25T08:00:00Z")
+        val parent=FileBackupDirectory(File(source.cacheDir,"dates").apply { mkdirs() })
+        val exported=HrvDirectoryBackup(source).export(parent)
+        val directory=File(source.cacheDir,"dates/${exported.folder}")
+        val dated="hrv-2026-10-25-$id.json";val old="hrv-$id.json"
+        assertTrue(File(directory,dated).renameTo(File(directory,old)))
+        val index=File(directory,HrvDirectoryBackup.INDEX)
+        val value=JSONObject(index.readText());value.getJSONArray("entries").getJSONObject(0).put("name",old);index.writeText(value.toString())
+        assertEquals(1,HrvDirectoryBackup(target).restore(parent.child(exported.folder,false)).completed)
+        assertEquals(id,store(target).ids().single())
     }
+
 }
