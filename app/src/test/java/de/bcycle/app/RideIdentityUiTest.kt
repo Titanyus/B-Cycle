@@ -27,7 +27,7 @@ class RideIdentityUiTest {
         val manager=RouteManagerView(c,{},themes);manager.submit(listOf(route),null,false)
         val list=manager.findViewWithTag<ListView>("route_list")
         for(width in listOf(320,360,420)) {
-            val card=list.adapter.getView(0,null,list) as ViewGroup;layout(card,width)
+            val card=list.adapter.getView(1,null,list) as ViewGroup;layout(card,width)
             val title=card.findViewWithTag<TextView>("route_name_known");val date=card.findViewWithTag<TextView>("route_date_known")
             fun left(v:TextView):Float {
                 val r=android.graphics.Rect();card.offsetDescendantRectToMyCoords(v,r)

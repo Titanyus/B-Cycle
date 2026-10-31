@@ -175,7 +175,7 @@ class ThreeMapTracksTest {
             manager.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(640,View.MeasureSpec.EXACTLY));manager.layout(0,0,360,640)
             fun eye(id:String):View {
                 val list=manager.findViewWithTag<ListView>("route_list")
-                val position=(0 until list.adapter.count).single { (list.adapter.getItem(it) as ManagedRoute).id==id }
+                val position=(0 until list.adapter.count).single { (list.adapter.getItem(it) as? ManagedRoute)?.id==id }
                 val row=list.adapter.getView(position,null,list)
                 val icon=testDescendants(row).filterIsInstance<android.widget.ImageButton>().single()
                 // Anchor must be attached for a real popup window.
@@ -236,7 +236,7 @@ class ThreeMapTracksTest {
             manager.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(640,View.MeasureSpec.EXACTLY));manager.layout(0,0,360,640)
             val list=manager.findViewWithTag<ListView>("route_list")
             for(i in 0 until list.adapter.count) {
-                val entry=list.adapter.getItem(i) as ManagedRoute;val row=list.adapter.getView(i,null,list)
+                val entry=list.adapter.getItem(i) as? ManagedRoute ?: continue;val row=list.adapter.getView(i,null,list)
                 assertNull(row.findViewWithTag<TextView>("route_map_number"))
                 val eye=testDescendants(row).filterIsInstance<android.widget.ImageButton>().single()
                 val tint=eye.colorFilter as android.graphics.PorterDuffColorFilter

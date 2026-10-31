@@ -1478,6 +1478,7 @@ class MainActivity : Activity() {
             addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
             addView(footer, LinearLayout.LayoutParams(-1, dp(BicycleDesign.footerHeight)))
         }
+        content.bindFooter(footer)
         routeImportButton = import
         menu = dialog().setView(root).create().apply {
             setView(root, 0, 0, 0, 0)

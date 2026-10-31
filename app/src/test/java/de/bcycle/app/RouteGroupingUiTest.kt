@@ -39,9 +39,9 @@ class RouteGroupingUiTest {
             val entries=listOf(route("a","2026-10-31",20.0,1.0),route("b","2026-10-30",100.0,4.0),route("c","2026-09-30",10.0,.5),route("d",null,30.0,1.0))
             host.get().setContentView(manager);manager.submit(entries,null,false);layout(manager,360,800)
             val list=manager.findViewWithTag<ListView>("route_list")
-            assertEquals(4,list.adapter.count)
-            var card=list.adapter.getView(0,null,list);layout(card,344)
-            val header=card.findViewWithTag<View>("route_group_header_0")
+            assertEquals(7,list.adapter.count)
+            var card=list.adapter.getView(1,null,list);layout(card,344)
+            var header=list.adapter.getView(0,null,list);layout(header,344)
             val title=header.findViewWithTag<TextView>("route_group_title")
             assertEquals("Oktober 2026",title.text.toString());assertEquals(BicycleDesign.narrowTypeface(c),title.typeface)
             assertTrue(title.isAccessibilityHeading)
@@ -58,25 +58,77 @@ class RouteGroupingUiTest {
                 }
             }
             for(width in listOf(288,344,420)) {
-                layout(card,width)
+                layout(header,width)
                 for(view in nodes(header)) { assertTrue(view.width>=0);if(view is RouteListReading) assertTrue(view.number.right<=view.width) }
             }
             for(action in listOf(MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP)) {
-                MotionEvent.obtain(0,10,action,100f,header.top+8f,0).also { card.dispatchTouchEvent(it);it.recycle() }
+                MotionEvent.obtain(0,10,action,100f,header.top+8f,0).also { header.dispatchTouchEvent(it);it.recycle() }
             }
             assertEquals(0,opened);card.performClick();assertEquals(1,opened)
-            card=list.adapter.getView(1,card,list)
-            assertEquals(View.GONE,nodes(card).filterIsInstance<RouteListGroupHeader>().single().visibility)
-            assertNull(card.findViewWithTag<View>("route_group_count_0"))
-            card=list.adapter.getView(2,card,list);layout(card,344)
-            assertEquals("September 2026",card.findViewWithTag<TextView>("route_group_title").text.toString())
+            assertFalse(list.adapter.isEnabled(0));assertTrue(list.adapter.isEnabled(1))
+            assertFalse(header.isLongClickable);assertFalse(manager.selecting)
+            assertNull(card.findViewWithTag<View>("route_group_title"))
+            card=list.adapter.getView(2,card,list)
+            assertNull(card.findViewWithTag<View>("route_group_title"))
+            header=list.adapter.getView(3,header,list);layout(header,344)
+            assertEquals("September 2026",header.findViewWithTag<TextView>("route_group_title").text.toString())
             manager.query.fromDate=LocalDate.of(2026,1,1);manager.query.distance=RouteRange(from=25.0);manager.refreshQuery()
-            assertEquals(1,list.adapter.count)
-            card=list.adapter.getView(0,card,list)
+            assertEquals(2,list.adapter.count)
+            card=list.adapter.getView(0,header,list)
             assertEquals("1",card.findViewWithTag<TextView>("route_group_count_0").text.toString())
             assertEquals("100,0",card.findViewWithTag<TextView>("route_group_distance_0").text.toString())
             assertEquals("25,0",card.findViewWithTag<TextView>("route_group_average_0").text.toString())
         } finally { Locale.setDefault(locale);host.pause().stop().destroy() }
+    }
+    @Test fun selectionLeavesMonthHeaderUnpaintedAndFooterVisibilityFollowsExplicitAndTemporaryChoices() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("bike",0))
+            val manager=RouteManagerView(c,{},themes).apply { fullscreen=true }
+            manager.submit(listOf(route("a","2026-10-31",20.0,1.0),route("b","2026-09-30",10.0,.5)),null,false)
+            val footer=bicycleFooter(c,themes)
+            manager.bindFooter(footer)
+            val root=android.widget.LinearLayout(c).apply {
+                orientation=android.widget.LinearLayout.VERTICAL
+                addView(manager,android.widget.LinearLayout.LayoutParams(-1,0,1f))
+                addView(footer,android.widget.LinearLayout.LayoutParams(-1,48))
+            }
+            val screen=BicycleDialogBuilder(c,themes,DialogNavigation()).setView(root).create()
+            try {
+                screen.show()
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                val decor=screen.window!!.decorView
+                layout(decor,360,800)
+                val toggle=decor.findViewWithTag<View>("route_footer_toggle")
+                val help=decor.findViewWithTag<View>("settings_help")
+                assertNotNull("Footer toggle missing: "+nodes(decor).map { it.tag },toggle);assertNotNull("Info missing",help)
+                assertTrue(toggle.right<=help.left)
+                assertEquals(View.GONE,footer.visibility)
+                assertEquals(c.getString(R.string.route_footer_show),toggle.contentDescription)
+                val list=manager.findViewWithTag<ListView>("route_list")
+                var row=list.adapter.getView(3,null,list);layout(row,344)
+                val header=list.adapter.getView(2,null,list);layout(header,344)
+                val before=Bitmap.createBitmap(header.width,header.height,Bitmap.Config.ARGB_8888)
+                header.draw(Canvas(before))
+                row.performLongClick();row=list.adapter.getView(3,row,list);layout(row,344)
+                assertEquals(setOf("b"),manager.checkedIds)
+                assertTrue(row.isActivated);assertNull(row.background)
+                assertNotNull(row.findViewWithTag<View>("route_selection_body").background)
+                val after=Bitmap.createBitmap(header.width,header.height,Bitmap.Config.ARGB_8888)
+                header.draw(Canvas(after));assertTrue(before.sameAs(after));before.recycle();after.recycle()
+                assertEquals(View.VISIBLE,footer.visibility)
+                manager.clearSelection();assertEquals(View.GONE,footer.visibility)
+                toggle.performClick();assertEquals(View.VISIBLE,footer.visibility)
+                row.performLongClick();manager.clearSelection();assertEquals(View.VISIBLE,footer.visibility)
+                toggle.performClick();assertEquals(View.GONE,footer.visibility)
+                row.performLongClick();assertEquals(View.VISIBLE,footer.visibility)
+                toggle.performClick();assertEquals(View.GONE,footer.visibility)
+                manager.clearSelection();assertEquals(View.GONE,footer.visibility)
+                // Recycling a selected first-of-month row must clear the next row's selection paint.
+                row=list.adapter.getView(1,row,list)
+                assertNull(row.findViewWithTag<View>("route_selection_body").background)
+            } finally { screen.dismiss() }
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun numericTitlesAndMonthPreviewRenderInBothDesignModes() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()

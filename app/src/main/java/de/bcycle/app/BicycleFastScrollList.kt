@@ -13,7 +13,7 @@ import android.widget.SectionIndexer
 /** Shared fast navigation with public ListView APIs and a compact theme-aware preview.
  * ListView retains normal scrolling, recycling, accessibility and item selection.
  */
-internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListView(context) {
+internal open class BicycleFastScrollList(context:Context,themes:ThemeManager):ListView(context) {
     private var tokens=themes.active.tokens
     private val paint=android.text.TextPaint(Paint.ANTI_ALIAS_FLAG)
     private val thumb=RectF()
@@ -64,8 +64,10 @@ internal class BicycleFastScrollList(context:Context,themes:ThemeManager):ListVi
         if(sections!=null && sections.isNotEmpty()) return sections[indexer.getSectionForPosition(position).coerceIn(0,sections.lastIndex)].toString()
         return "${position+1} / $rows"
     }
+    protected open fun drawContentOverlay(canvas:Canvas) {}
     override fun dispatchDraw(canvas:Canvas) {
         super.dispatchDraw(canvas)
+        drawContentOverlay(canvas)
         if(!available()) return
         track()
         paint.style=Paint.Style.FILL;paint.color=if(dragging) tokens.primary else tokens.foreground

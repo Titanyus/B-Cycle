@@ -82,7 +82,7 @@ class RouteExportNavigationTest {
             while (state.busy && System.currentTimeMillis() < deadline) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }
             val id = state.entries.single().id
             val list = manager.window!!.decorView.findViewWithTag<android.widget.ListView>("route_list")
-            val card = list.adapter.getView(0, null, list)
+            val card = list.adapter.getView(1, null, list)
             assertNull(card.findViewWithTag<View>("route_more_$id"))
             card.performClick(); shadowOf(Looper.getMainLooper()).idle()
             val details = ShadowAlertDialog.getLatestAlertDialog()

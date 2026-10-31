@@ -5,7 +5,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import java.util.Locale
 
-/** A section prefix in the first ride row keeps ListView positions and fast-scroll anchors stable. */
+/** Independent, non-selectable group row; never part of a ride card. */
 internal class RouteListGroupHeader(context:Context,themes:ThemeManager):LinearLayout(context) {
     private fun dp(value:Int)=BicycleDesign.dp(context,value)
     private val title=BicycleComponents.text(context,themes,"").apply {
@@ -20,7 +20,7 @@ internal class RouteListGroupHeader(context:Context,themes:ThemeManager):LinearL
     private val average=RouteListReading(context,themes,R.string.route_list_average,R.string.analysis_kmh)
     init {
         orientation=VERTICAL;visibility=GONE
-        setPadding(0,0,dp(BicycleDesign.verticalPadding),dp(BicycleDesign.sectionDividerGap))
+        setPadding(dp(BicycleDesign.verticalPadding),dp(BicycleDesign.rowGap),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.sectionDividerGap))
         // A heading is not a ride action. ListView can still intercept a vertical scroll here.
         setOnTouchListener { _,_->true }
         addView(title,LayoutParams(-1,-2))

@@ -44,7 +44,7 @@ class RouteDetailActionsTest {
             views(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag == "settings_ROUTES" }.performClick()
             val manager = ShadowAlertDialog.getLatestAlertDialog(); waitFor { !state.busy }; measure(manager.window!!.decorView)
             val list = manager.window!!.decorView.findViewWithTag<ListView>("route_list")
-            val index = (0 until list.adapter.count).single { (list.adapter.getItem(it) as ManagedRoute).id == id }
+            val index = (0 until list.adapter.count).single { (list.adapter.getItem(it) as? ManagedRoute)?.id == id }
             val card = list.adapter.getView(index, null, list)
             assertNull(card.findViewWithTag<View>("route_more_$id")); assertNotNull(card.findViewWithTag<View>("route_eye_$id"))
             assertNull(card.findViewWithTag<View>("route_cloud_$id")); assertNull(card.findViewWithTag<View>("route_local_$id"))
@@ -123,7 +123,7 @@ class RouteDetailActionsTest {
             waitFor { !state.busy && state.entries.none { it.id == id } && manager.window!!.decorView.visibility == View.VISIBLE }
             assertEquals(View.VISIBLE, manager.window!!.decorView.visibility)
             assertEquals(1, state.entries.size); assertEquals("Other", state.entries.single().name)
-            assertEquals(1, list.adapter.count)
+            assertEquals(2, list.adapter.count)
         } finally { controller.pause().stop().destroy() }
     }
     @Test fun cloudReceiptUpdatesFooterAfterSuccessAndAfterReopeningAndStaysIndependentOfSave() {

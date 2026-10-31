@@ -1,0 +1,4 @@
+<resources>
+    <string name="route_footer_show">Fußzeile anzeigen</string>
+    <string name="route_footer_hide">Fußzeile ausblenden</string>
+</resources>

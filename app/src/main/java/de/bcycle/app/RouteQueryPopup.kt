@@ -13,6 +13,7 @@ import java.time.temporal.TemporalAdjusters
 /** Compact query menu with native dropdowns, retaining drafts until the menu is dismissed. */
 internal class RouteQueryPopup(private val context:Context,private val themes:ThemeManager,
     private val navigation:DialogNavigation,private val query:RouteQuery,private val routes:List<ManagedRoute> = emptyList(),private val profile:(String)->Int?={ RideProfileColor.slot(context,it) },private val displayed:(()->String?)?=null,private val displayedMany:(()->Set<String>)?=null,private val changed:()->Unit):PopupWindow() {
+    private var fullWidth=false
     private val content=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL }
     internal var groupPopup:PopupWindow?=null;private set
     private val body=BicycleComponents.dialogBody(context,themes)
@@ -243,22 +244,42 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         }
     }
     fun sorting() {
-        group(R.string.route_sort_field,{ context.getString(query.sort.label) }) { section,update ->
-            val radios=RadioGroup(context)
-            RouteSort.entries.forEach { sort -> radios.addView(RadioButton(context).apply {
-                id=View.generateViewId();text=context.getString(sort.label);isChecked=sort==query.sort
-                BicycleDialogStyle.control(this,themes)
-                setOnCheckedChangeListener { _,on -> if(on) { query.sort=sort;update() } }
-            },RadioGroup.LayoutParams(-1,-2)) };section.addView(radios)
+        fullWidth=true
+        val row=LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL;isBaselineAligned=false;tag="route_sort_choices";setTag(R.id.inline_control_row,true) }
+        val choices=linkedMapOf<RouteSort,BicycleSegmentButton>()
+        val labels=listOf(R.string.ride_name_date,R.string.ride_name_distance,R.string.ride_name_moving,R.string.ride_name_speed)
+        val icons=listOf(BicycleIcon.Date,AnalysisMetric.DISTANCE.icon,BicycleIcon.Duration,BicycleIcon.Speed)
+        fun tile(button:BicycleSegmentButton,index:Int) {
+            button.textSize=BicycleDesign.analysisLabelSp
+            button.setPadding(dp(2),0,dp(2),0);button.maxLines=1
+            button.setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisUnitMinSp,BicycleDesign.analysisLabelSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
+            row.addView(button,LinearLayout.LayoutParams(0,dp(BicycleDesign.rideNamePartHeight),1f).apply {
+                marginStart=if(index==0) 0 else dp(BicycleDesign.controlGap)
+            })
+            BicycleComponents.controlSpacing(button)
         }
-        group(R.string.route_sort_direction,{ context.getString(if(query.descending) R.string.route_sort_down else R.string.route_sort_up) }) { section,update ->
-            val radios=RadioGroup(context)
-            listOf(false,true).forEach { down -> radios.addView(RadioButton(context).apply {
-                id=View.generateViewId();text=context.getString(if(down) R.string.route_sort_down else R.string.route_sort_up);isChecked=down==query.descending
-                BicycleDialogStyle.control(this,themes)
-                setOnCheckedChangeListener { _,on -> if(on) { query.descending=down;update() } }
-            },RadioGroup.LayoutParams(-1,-2)) };section.addView(radios)
+        RouteSort.entries.forEachIndexed { index,sort ->
+            val button=BicycleSegmentButton(context,themes,standalone=true).apply {
+                tag="route_sort_${sort.name}";setText(labels[index]);stackedIcon(icons[index])
+                isChecked=query.sort==sort;contentDescription=context.getString(sort.label)
+                setOnClickListener {
+                    query.sort=sort;choices.forEach { (value,view) -> view.isChecked=value==sort };changed()
+                }
+            }
+            choices[sort]=button;tile(button,index)
         }
+        val direction=BicycleSegmentButton(context,themes,multiple=true,standalone=true).apply {
+            tag="route_sort_direction";showSelectionHighlight=false;stackedIcon(BicycleIcon.Sort)
+        }
+        fun directionLabel() {
+            direction.isChecked=query.descending
+            direction.setText(if(query.descending) R.string.route_sort_down else R.string.route_sort_up)
+            direction.contentDescription=context.getString(if(query.descending) R.string.route_sort_down else R.string.route_sort_up)
+        }
+        directionLabel()
+        direction.setOnClickListener { query.descending=!query.descending;directionLabel();changed() }
+        tile(direction,4)
+        body.addView(row,LinearLayout.LayoutParams(-1,-2))
         shell(R.string.route_sort_button)
     }
     private fun shell(title:Int) {
@@ -276,7 +297,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     private fun dimensions(anchor:View):Triple<android.graphics.Rect,Int,Int> {
         val frame=android.graphics.Rect().also(anchor::getWindowVisibleDisplayFrame)
         if(frame.isEmpty) frame.set(0,0,context.resources.displayMetrics.widthPixels,context.resources.displayMetrics.heightPixels)
-        val w=(frame.width()-2*dp(16)).coerceAtLeast(1)
+        val w=(frame.width()-if(fullWidth) 0 else 2*dp(16)).coerceAtLeast(1)
         val limit=(frame.height()*.75f).toInt().coerceAtLeast(dp(48))
         content.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(limit,View.MeasureSpec.AT_MOST))
         return Triple(frame,w,content.measuredHeight.coerceIn(dp(48),limit))
@@ -319,6 +340,6 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         val position=IntArray(2);anchor.getLocationOnScreen(position)
         val top=(position[1]-height).coerceIn(frame.top,(frame.bottom-height).coerceAtLeast(frame.top))
         setIsClippedToScreen(true);setIsLaidOutInScreen(true)
-        showAtLocation(anchor,Gravity.TOP or Gravity.LEFT,frame.left+dp(16),top)
+        showAtLocation(anchor,Gravity.TOP or Gravity.LEFT,frame.left+(if(fullWidth) 0 else dp(16)),top)
     }
 }

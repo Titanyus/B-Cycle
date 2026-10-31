@@ -40,8 +40,26 @@ internal class RouteManagerView(context: Context,
     private val checked=linkedSetOf<String>()
     val checkedIds get()=checked.toSet()
     val selecting get()=checked.isNotEmpty()
+    private var footerPinned=false
+    private var selectionFooter=false
+    private var footerView:View?=null
+    private var footerToggle:View?=null
+    internal val footerVisible get()=footerPinned || selectionFooter && selecting
+    internal fun bindFooter(view:View) { footerView=view;updateFooter() }
+    internal fun bindFooterToggle(view:View) {
+        footerToggle=view
+        view.setOnClickListener { footerPinned=!footerVisible;selectionFooter=false;updateFooter() }
+        updateFooter()
+    }
+    private fun updateFooter() {
+        footerView?.visibility=if(footerVisible) VISIBLE else GONE
+        footerToggle?.apply {
+            isActivated=footerVisible
+            contentDescription=context.getString(if(footerVisible) R.string.route_footer_hide else R.string.route_footer_show)
+        }
+    }
     fun clearSelection() { checked.clear();updateStatus();rows.notifyDataSetChanged();selectionChanged() }
-    private fun toggleSelection(id:String) { if(!checked.add(id)) checked.remove(id);updateStatus();rows.notifyDataSetChanged();selectionChanged() }
+    private fun toggleSelection(id:String,fromLongPress:Boolean=false) { if(!checked.add(id)) checked.remove(id);if(fromLongPress && selecting) selectionFooter=true;updateStatus();rows.notifyDataSetChanged();selectionChanged() }
     fun refreshQuery() { updateRows();queryChanged() }
     private var queryPopup:RouteQueryPopup?=null
     fun showFilters(anchor:View,navigation:DialogNavigation) {
@@ -61,15 +79,29 @@ internal class RouteManagerView(context: Context,
     }
     private var sectionSort=RouteSort.DATE
     private var routeSections=RouteListSections(emptyList(),RouteSort.DATE,context.getString(R.string.ui_field_missing_value))
+    private data class ListRow(val route:ManagedRoute?=null,val group:RouteListGroup?=null)
+    private var listRows:List<ListRow> = emptyList()
+    private var groupPositions=IntArray(0)
     private val rows = object : BaseAdapter(), SectionIndexer {
         override fun getSections():Array<String> = routeSections.labels
-        override fun getPositionForSection(sectionIndex:Int)=routeSections.position(sectionIndex)
-        override fun getSectionForPosition(position:Int)=routeSections.section(position)
-        override fun getCount() = filtered.size
-        override fun getItem(position: Int) = filtered[position]
+        override fun getPositionForSection(sectionIndex:Int)=if(groupPositions.isEmpty()) 0 else groupPositions[sectionIndex.coerceIn(0,groupPositions.lastIndex)]
+        override fun getSectionForPosition(position:Int):Int {
+            val at=groupPositions.binarySearch(position)
+            return if(at>=0) at else (-at-2).coerceAtLeast(0)
+        }
+        override fun getCount() = listRows.size
+        override fun getItem(position: Int):Any = listRows[position].let { it.route ?: requireNotNull(it.group) }
         override fun getItemId(position: Int) = position.toLong()
-        override fun getView(position: Int, recycled: View?, parent: ViewGroup): View =
-            ((recycled as? Card) ?: Card()).apply { bind(filtered[position],routeSections.groupAt(position)) }
+        override fun getViewTypeCount()=2
+        override fun getItemViewType(position:Int)=if(listRows[position].group!=null) 1 else 0
+        override fun areAllItemsEnabled()=false
+        override fun isEnabled(position:Int)=listRows[position].route!=null
+        override fun getView(position: Int, recycled: View?, parent: ViewGroup): View {
+            val row=listRows[position]
+            return row.group?.let { group ->
+                ((recycled as? RouteListGroupHeader) ?: RouteListGroupHeader(context,themes)).apply { bind(group) }
+            } ?: ((recycled as? Card) ?: Card()).apply { bind(requireNotNull(row.route)) }
+        }
     }
     init {
         orientation = VERTICAL
@@ -81,14 +113,14 @@ internal class RouteManagerView(context: Context,
         }, LayoutParams(-1, -1))
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
         addView(status, LayoutParams(-1, -2))
-        addView(BicycleFastScrollList(context,themes).apply {
+        addView(RouteStickyList(context,themes) { listRows.getOrNull(it)?.group }.apply {
             tag = "route_list";sectionSteps=true; adapter = rows; dividerHeight = dp(BicycleDesign.controlBorder)
             setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
             BicycleComponents.scrollStyle(this)
             BicycleComponents.bindTheme(this, themes) {
                 divider = ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }; dividerHeight = dp(BicycleDesign.controlBorder)
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)
-                selector = ColorDrawable(it.tertiary)
+                selector = ColorDrawable(Color.TRANSPARENT)
             }
         }, LayoutParams(-1, 0, 1f))
     }
@@ -111,6 +143,8 @@ internal class RouteManagerView(context: Context,
         updateStatus()
     }
     private fun updateStatus() {
+        if(!selecting) selectionFooter=false
+        updateFooter()
         BicycleFeedback.update(status, if(selecting) context.getString(R.string.route_selection_count,checked.size) else importStatus.ifEmpty {
             if (!busy && filtered.isEmpty()) context.getString(R.string.ui_routes_empty) else ""
         }, hideWhenEmpty = true)
@@ -132,6 +166,13 @@ internal class RouteManagerView(context: Context,
                     RouteSort.DATE->error("Date group is formatted by month")
                 }
             })
+            groupPositions=routeSections.groups.mapIndexed { index,group -> group.first+index }.toIntArray()
+            listRows=buildList {
+                filtered.forEachIndexed { index,route ->
+                    routeSections.groupAt(index)?.let { add(ListRow(group=it)) }
+                    add(ListRow(route=route))
+                }
+            }
         }
         rows.notifyDataSetChanged()
     }
@@ -158,7 +199,7 @@ internal class RouteManagerView(context: Context,
             }.apply {
                 setOnLongClickListener { entry?.takeIf { !busy && it.hasRoute && it.locallySaved }?.let { chooseMapSlot?.invoke(this,it) };true }
             }
-        private val groupHeader=RouteListGroupHeader(context,themes)
+        private val rideBody=LinearLayout(context).apply { orientation=VERTICAL;tag="route_selection_body" }
         private val date = RouteListReading(context,themes)
         private val distance = RouteListReading(context,themes,R.string.route_list_distance, R.string.analysis_km)
         private val moving = RouteListReading(context,themes,R.string.route_list_moving, R.string.analysis_hours)
@@ -176,10 +217,10 @@ internal class RouteManagerView(context: Context,
         init {
             orientation = VERTICAL; gravity = Gravity.TOP
             setOnClickListener { entry?.takeIf { !busy }?.let { if(selecting) toggleSelection(it.id) else details(it) } }
-            setOnLongClickListener { entry?.takeIf { !busy }?.let { toggleSelection(it.id) };true }
+            setOnLongClickListener { entry?.takeIf { !busy }?.let { toggleSelection(it.id,fromLongPress=true) };true }
             setPadding(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.rowGap))
-            addView(groupHeader,LayoutParams(-1,-2))
-            addView(LinearLayout(context).apply {
+            addView(rideBody,LayoutParams(-1,-2))
+            rideBody.addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
                 // The identity prefix owns its natural width, independently of the tiny map preview.
                 addView(LinearLayout(context).apply {
@@ -191,12 +232,15 @@ internal class RouteManagerView(context: Context,
                 addView(title,LayoutParams(0,dp(BicycleDesign.touchSize),1f))
                 addView(eye,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)))
             },LayoutParams(-1,-2))
-            addView(LinearLayout(context).apply {
+            rideBody.addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL
                 addView(preview,LayoutParams(dp(BicycleDesign.previewWidth),dp(BicycleDesign.previewHeight)).apply { marginEnd=dp(BicycleDesign.rowGap) })
                 addView(metrics,LayoutParams(0,-2,1f).apply { topMargin=-dp(BicycleDesign.metadataSpacingTrim)+dp(BicycleDesign.routeMetricTopOffset) })
             },LayoutParams(-1,-2))
             BicycleComponents.bindTheme(this, themes) { paintState(it) }
+            // Child icons refresh their default tint when reattached. Restore the current
+            // row's semantic track colour after that refresh, including during recycling.
+            BicycleComponents.bindTheme(eye,themes) { paintEye(it) }
         }
         override fun onLayout(changed:Boolean,l:Int,t:Int,r:Int,b:Int) {
             super.onLayout(changed,l,t,r,b)
@@ -210,18 +254,22 @@ internal class RouteManagerView(context: Context,
         private fun paintState(tokens: ThemeTokens) {
             preview.foreground = tokens.foreground
             val route = entry ?: return
-            background=if(route.id in checked) ColorDrawable(tokens.tertiary) else null
+            background=null
+            rideBody.background=if(route.id in checked) ColorDrawable(tokens.tertiary) else null
             origin.setImageDrawable(BicycleIcons.drawable(context, if(route.id in checked) BicycleIcon.Check else when (route.origin) {
                 TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
             }, if(route.id in checked) tokens.primary else tokens.foreground))
+            paintEye(tokens)
+        }
+        private fun paintEye(tokens:ThemeTokens) {
+            val route=entry ?: return
             val eyeKind = if (route.id in shownIds) BicycleIcon.ActiveOnMap else BicycleIcon.ShowOnMap
             val color=mapNumbers[route.id]?.let { MapRouteStyles.read(context.getSharedPreferences("bike",Context.MODE_PRIVATE),MapRouteStyles.saved(it-1)).color or Color.BLACK }
                 ?: BicycleIcons.color(tokens,eyeKind,route.id !in shownIds)
             eye.setImageDrawable(BicycleIcons.drawable(context,eyeKind,color,negative=route.id !in shownIds))
             eye.setColorFilter(color)
         }
-        fun bind(route: ManagedRoute,group:RouteListGroup?) {
-            groupHeader.bind(group)
+        fun bind(route: ManagedRoute) {
             isActivated=route.id in checked
             entry = route; tag = "route_entry_${route.id}"; isEnabled = !busy
             contentDescription = context.getString(R.string.analysis_open, route.name)+(if(route.id in checked) " · "+context.getString(R.string.route_selected) else "")

@@ -121,6 +121,10 @@ class FullscreenDialogTest {
             // The native buttonPanel may itself scroll; the route body must not wrap its ListView.
             assertTrue(views(body).none { it is ScrollView })
             val footer = views(root).single { it.tag == "bicycle_fullscreen_footer" }
+            assertEquals(View.GONE,footer.visibility)
+            route.window!!.decorView.findViewWithTag<View>("route_footer_toggle").performClick()
+            measure(route,800,1200)
+            assertEquals(View.VISIBLE,footer.visibility)
             assertEquals(footer.top - root.getChildAt(0).bottom, body.height)
             assertEquals(1200, footer.bottom)
             assertTrue(body.height > BicycleDesign.managerMaxHeight)

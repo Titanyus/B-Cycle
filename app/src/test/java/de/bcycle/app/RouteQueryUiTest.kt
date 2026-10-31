@@ -31,11 +31,11 @@ class RouteQueryUiTest {
             manager.submit(entries,entries.first().id,false,slots,setOf(entries.first().id))
             manager.query.displayedOnly=true;manager.refreshQuery()
             val list=nodes(manager).filterIsInstance<ListView>().single()
-            assertEquals(slots.keys,(0 until list.adapter.count).map { (list.adapter.getItem(it) as ManagedRoute).id }.toSet())
+            assertEquals(slots.keys,(0 until list.adapter.count).mapNotNull { (list.adapter.getItem(it) as? ManagedRoute)?.id }.toSet())
             manager.submit(entries,entries.first().id,false,slots,emptySet())
-            assertEquals(3,list.adapter.count)
+            assertEquals(4,list.adapter.count)
             manager.submit(entries,entries.first().id,false,slots-entries[1].id,emptySet())
-            assertEquals(setOf(entries[0].id,entries[2].id),(0 until list.adapter.count).map { (list.adapter.getItem(it) as ManagedRoute).id }.toSet())
+            assertEquals(setOf(entries[0].id,entries[2].id),(0 until list.adapter.count).mapNotNull { (list.adapter.getItem(it) as? ManagedRoute)?.id }.toSet())
         } finally { host.pause().stop().destroy() }
     }
     @Test fun displayedButtonIsFirstAndFilterSlidersUseFiveUnitSteps() {
@@ -167,19 +167,14 @@ class RouteQueryUiTest {
             layout(sort.contentView,sort.width,sort.height)
             val menuScroll=(sort.contentView as LinearLayout).getChildAt(0) as ScrollView
             assertTrue("Menu content ${menuScroll.getChildAt(0).height}, viewport ${menuScroll.height}",menuScroll.getChildAt(0).height<=menuScroll.height)
-            val sortHeader=sort.contentView.findViewWithTag<View>("route_query_group_${R.string.route_sort_field}")
-            sortHeader.performClick()
-            val sortChoice=nodes(sort.groupPopup!!.contentView).filterIsInstance<RadioButton>().single { it.text==a.getString(R.string.route_filter_distance) }
-            val sortContent=sortChoice.parent.parent as View
-            assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),sortContent.paddingBottom)
-            sortChoice.isChecked=true
+            val sortTiles=sort.contentView.findViewWithTag<LinearLayout>("route_sort_choices")
+            assertEquals(5,sortTiles.childCount);assertNull(sort.groupPopup)
+            val sortChoice=sort.contentView.findViewWithTag<CompoundButton>("route_sort_DISTANCE")
+            sortChoice.performClick()
             assertEquals(RouteSort.DISTANCE,query.sort);assertEquals(RouteRange(15.0,20.0),query.distance)
-            sort.groupPopup!!.dismiss()
-            sort.contentView.findViewWithTag<View>("route_query_group_${R.string.route_sort_direction}").performClick()
-            val directionPopup=sort.groupPopup!!
-            layout(directionPopup.contentView,directionPopup.width,directionPopup.height)
-            val directionScroll=directionPopup.contentView as ScrollView
-            assertTrue("Direction content ${directionScroll.getChildAt(0).height}, viewport ${directionScroll.height}",directionScroll.getChildAt(0).height<=directionScroll.height)
+            val direction=sort.contentView.findViewWithTag<View>("route_sort_direction")
+            val old=query.descending;direction.performClick();assertEquals(!old,query.descending)
+            direction.performClick();assertEquals(old,query.descending)
             sort.dismiss();assertNull(sort.groupPopup)
         } finally { host.pause().stop().destroy() }
     }

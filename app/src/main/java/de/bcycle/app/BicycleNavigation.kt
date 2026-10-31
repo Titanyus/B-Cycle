@@ -12,6 +12,7 @@ internal object BicycleNavigation {
     private fun all(v: View): List<View> = listOf(v) + if(v is ViewGroup) (0 until v.childCount).flatMap { all(v.getChildAt(it)) } else emptyList()
     fun header(original: View, screen: AlertDialog, themes: ThemeManager, help:(()->Unit)?=null, role:ThemeRole=ThemeRole.PRIMARY,plain:Boolean=false): View {
         val context=original.context
+        val routeManager=all(screen.window!!.decorView).filterIsInstance<RouteManagerView>().firstOrNull()
         val title=all(original).filterIsInstance<TextView>().firstOrNull { it.tag=="analysis_title" || it.tag=="bicycle_dialog_title" }
             ?: all(original).filterIsInstance<TextView>().firstOrNull()
         val frame=FrameLayout(context).apply {
@@ -28,7 +29,7 @@ internal object BicycleNavigation {
                 title.setTextColor(BicycleComponents.textColor(title,themes,it))
             }
             val main=all(screen.window!!.decorView).any { it is SettingsMenuView && it.isMainPage }
-            val inset=BicycleDesign.dp(context,BicycleDesign.touchSize*(if(main && help!=null) 2 else 1)+BicycleDesign.smallGap)
+            val inset=BicycleDesign.dp(context,BicycleDesign.touchSize*(if((main || routeManager!=null) && help!=null) 2 else 1)+BicycleDesign.smallGap)
             title.setPadding(inset,0,inset,0)
             frame.addView(title,FrameLayout.LayoutParams(-1,-1))
         } else {
@@ -46,6 +47,13 @@ internal object BicycleNavigation {
                 toggle.setImageDrawable(BicycleIcons.drawable(context,if(light) BicycleIcon.Sun else BicycleIcon.Moon,tokens.foreground))
                 toggle.contentDescription=context.getString(if(light) R.string.settings_light_mode else R.string.settings_dark_mode)
             }
+            frame.addView(toggle,FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL).apply {
+                marginEnd=if(help!=null) BicycleDesign.dp(context,BicycleDesign.touchSize) else 0
+            })
+        }
+        routeManager?.let { manager ->
+            val toggle=BicycleComponents.icon(context,themes,BicycleIcon.Footer,context.getString(R.string.route_footer_show)) {}.apply { tag="route_footer_toggle" }
+            manager.bindFooterToggle(toggle)
             frame.addView(toggle,FrameLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.touchSize),BicycleDesign.dp(context,BicycleDesign.touchSize),Gravity.END or Gravity.CENTER_VERTICAL).apply {
                 marginEnd=if(help!=null) BicycleDesign.dp(context,BicycleDesign.touchSize) else 0
             })

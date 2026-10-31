@@ -44,6 +44,7 @@ internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = Th
     Sleep(R.drawable.ic_lucide_bed), Energy(R.drawable.ic_lucide_biceps_flexed),
     Soreness(R.drawable.ic_lucide_target), Wellbeing(R.drawable.ic_lucide_face_slightly_smiling),
     Cadence(R.drawable.ic_lucide_gauge), Work(R.drawable.ic_lucide_settings), Calories(R.drawable.ic_lucide_flame), SwitchMetric(R.drawable.ic_lucide_repeat_2),
+    Footer(R.drawable.ic_lucide_panel_bottom),
     Filter(R.drawable.ic_lucide_list_filter), Sort(R.drawable.ic_lucide_arrow_down_up),
     Expand(R.drawable.ic_lucide_chevron_down), Loading(R.drawable.ic_lucide_loader_circle)
 }
