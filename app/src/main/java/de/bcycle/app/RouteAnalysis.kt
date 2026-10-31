@@ -151,11 +151,13 @@ internal object RouteAnalysisRead {
         require(file.length() in 14..FitRead.MAX_BYTES)
         require(file.inputStream().buffered().use { Decode().checkFileIntegrity(it) })
         val track = MapTrack()
+        var ownRecording=false
         val listener = MesgListener { message ->
             check(!cancelled())
             when (message.num) {
                 12 -> builder.sport(number(message,"sub_sport"))
                 20 -> {
+                    ownRecording=ownRecording || FitDeveloperValues.hasOwnFields(message)
                     fun v(name: String) = number(message, name)
                     fun dev(name: String, units: String) = developer(message, name, units)
                     val time = v("timestamp")?.let { (it * 1000 + 631065600000L).toLong() }
@@ -169,7 +171,14 @@ internal object RouteAnalysisRead {
                         v("power") ?: dev("RIDER_POWER", "W"), v("cadence") ?: dev("CADENCE", "rpm") ?: dev("CADENCE", "U/min"),
                         v("heart_rate") ?: dev("HEART_RATE", "bpm"), v("enhanced_altitude") ?: v("altitude") ?: dev("PRIMARY_HEIGHT","m") ?: dev("GPS_ALTITUDE", "m"),
                         v("motor_power") ?: dev("MOTOR_POWER", "W"), v("battery_soc") ?: dev("BATTERY", "%"), dev("SPEED", "m/s"),FitDeveloperValues.number(message,"BATTERY_TEMPERATURE","°C",signed=true),positionObserved=positionObserved,
-                        npPaused=dev(ConfirmedBikePause.FLAG,"bool"),speedObserved=message.getField("speed")!=null || message.getField("enhanced_speed")!=null || dev("SPEED","m/s")!=null || dev("GPS_SPEED","m/s")!=null)
+                        npPaused=dev(ConfirmedBikePause.FLAG,"bool"),speedObserved=message.getField("speed")!=null || message.getField("enhanced_speed")!=null || dev("SPEED","m/s")!=null || dev("GPS_SPEED","m/s")!=null,
+                        observedCharts=if(ownRecording) null else buildSet {
+                            if(message.getField("speed")!=null || message.getField("enhanced_speed")!=null || dev("SPEED","m/s")!=null || dev("GPS_SPEED","m/s")!=null) add(AnalysisChart.SPEED)
+                            if(message.getField("cadence")!=null || dev("CADENCE","rpm")!=null || dev("CADENCE","U/min")!=null) add(AnalysisChart.CADENCE)
+                            if(message.getField("power")!=null || dev("RIDER_POWER","W")!=null) add(AnalysisChart.POWER)
+                            if(message.getField("heart_rate")!=null || dev("HEART_RATE","bpm")!=null) add(AnalysisChart.HEART)
+                            if(message.getField("altitude")!=null || message.getField("enhanced_altitude")!=null || dev("PRIMARY_HEIGHT","m")!=null || dev("GPS_ALTITUDE","m")!=null) add(AnalysisChart.ELEVATION)
+                        })
                 }
                 18, 19 -> builder.summary(message, message.num == 18)
                 21 -> if (number(message, "event") == 0.0) builder.timer(number(message, "timestamp"), number(message, "event_type"))
@@ -189,6 +198,9 @@ internal object RouteAnalysisRead {
         val weather=WeatherTargetBuffer()
         val zones = RouteZoneAccumulator(profile)
         val buffers = AnalysisChart.entries.associateWith { AnalysisSeriesBuffer() }
+        private val pendingSeriesGaps=mutableSetOf<AnalysisChart>()
+        private val previousSeriesTimes=mutableMapOf<AnalysisChart,Long>()
+        private var seriesNeedsTimeAxis=false
         val sessions = mutableListOf<Map<AnalysisMetric, Double>>()
         val laps = mutableListOf<Map<AnalysisMetric, Double>>()
         val cadence = PedalingAverage(); val moving = MovingTime(); val elevation = RouteElevation()
@@ -226,7 +238,7 @@ internal object RouteAnalysisRead {
                 performance.accept(PerformanceEvent(if (kind == 0.0) PerformanceChannel.RESUME else PerformanceChannel.PAUSE, time))
             }
         }
-        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null,batteryTemperature:Double?=null,positionObserved:Boolean=true,speedObserved:Boolean=true,npPaused:Double?=null) {
+        fun record(time: Long?, nativeDistance: Double?, point: MapPoint?, speed: Double?, power: Double?, rpm: Double?, heart: Double?, altitude: Double?, motor: Double?, battery: Double?, bikeSpeed: Double? = null,batteryTemperature:Double?=null,positionObserved:Boolean=true,speedObserved:Boolean=true,npPaused:Double?=null,observedCharts:Set<AnalysisChart>?=null) {
             count++; require(count <= 600_000)
             val stamp = time?.takeIf { firstTime == null || it >= (lastTime ?: it) }
             if (stamp != null) { if (firstTime == null) firstTime = stamp; lastTime = stamp }
@@ -258,18 +270,26 @@ internal object RouteAnalysisRead {
             zones.add(stamp, distance, p, h, point?.segmentStart == true)
             c?.let(cadence::add); if(speedObserved) moving.add(stamp, s)
             rideMeans.add(stamp, p, valid(motor, 0.0..65535.0), valid(battery, 0.0..100.0))
-            elevation.add(a, point?.segmentStart == true)
+            fun channelGap(chart:AnalysisChart)=observedCharts!=null && stamp!=null &&
+                previousSeriesTimes[chart]?.let { stamp-it>10_000 }==true
+            if(observedCharts==null || AnalysisChart.ELEVATION in observedCharts)
+                elevation.add(a, point?.segmentStart==true || channelGap(AnalysisChart.ELEVATION))
             listOf(AnalysisMetric.MAX_SPEED to s?.times(3.6), AnalysisMetric.MAX_POWER to p,
                 AnalysisMetric.MAX_CADENCE to c, AnalysisMetric.MAX_HEART to h).forEach { (key, value) ->
                 if (value != null) maxima[key] = maxOf(maxima[key] ?: value, value)
             }
             val readings = mapOf(AnalysisChart.SPEED to s?.times(3.6), AnalysisChart.CADENCE to c,
                 AnalysisChart.POWER to p, AnalysisChart.HEART to h, AnalysisChart.ELEVATION to a)
+            if(dataGap || point?.segmentStart==true) pendingSeriesGaps.addAll(AnalysisChart.entries)
             readings.forEach { (chart, value) ->
-                if(chart==AnalysisChart.SPEED && !speedObserved) return@forEach
+                // A field omitted from a FIT record is not an invalidation of that sensor.
+                // Channels such as Bosch altitude/cadence arrive at independent frequencies.
+                if((observedCharts!=null && chart !in observedCharts) || (chart==AnalysisChart.SPEED && !speedObserved)) return@forEach
+                if(observedCharts!=null && value!=null && seconds!=null && distance==null) seriesNeedsTimeAxis=true
                 val buffer = buffers.getValue(chart)
-                if (dataGap || point?.segmentStart == true) buffer.add(AnalysisPoint(distance, seconds, null))
+                if(pendingSeriesGaps.remove(chart) || channelGap(chart)) buffer.add(AnalysisPoint(distance, seconds, null))
                 buffer.add(AnalysisPoint(distance, seconds, value))
+                if(stamp!=null) previousSeriesTimes[chart]=stamp
             }
             if (seconds != null) {
                 val at = (seconds * 1000).toLong()
@@ -342,7 +362,7 @@ internal object RouteAnalysisRead {
             fallback(AnalysisMetric.NP, calculated.normalizedPowerW); fallback(AnalysisMetric.WORK, calculated.mechanicalWorkKj)
             fallback(AnalysisMetric.CALORIES, calculated.caloriesKcal); fallback(AnalysisMetric.EF, calculated.efficiencyFactor)
             fallback(AnalysisMetric.RATIO, calculated.speedToPowerRatio)
-            val distanceAxis = !invalidDistance && distanceCount > 1 && distanceMax > 0
+            val distanceAxis = !invalidDistance && !seriesNeedsTimeAxis && distanceCount > 1 && distanceMax > 0
             val end = if (distanceAxis) maxOf(distanceMax / 1000, metrics[AnalysisMetric.DISTANCE] ?: 0.0) else firstTime?.let { lastTime?.minus(it)?.div(1000.0) } ?: 0.0
             val series = AnalysisChart.entries.mapNotNull { chart ->
                 val data = buffers.getValue(chart).points()

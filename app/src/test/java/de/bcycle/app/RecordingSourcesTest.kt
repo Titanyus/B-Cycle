@@ -179,4 +179,35 @@ class RecordingSourcesTest {
         FitWriter.encode(legacy,file)
         assertEquals(10.0,file.inputStream().use { FitDecoder().decode(it).recordMesgs.last().speed.toDouble() },.001)
     }
+    @Test fun ownFitKeepsBikeDistanceMovingTimeAndChartsDuringLongGpsOutage() {
+        val root=java.nio.file.Files.createTempDirectory("own-fit-gps-outage").toFile()
+        try {
+            val start=1_790_000_000_000L
+            val config=RecordingConfig(setOf("GPS_POSITION","SPEED","BIKE_DISTANCE","RIDER_POWER","CADENCE","GPS_ALTITUDE",PrimaryRecording.FLAG))
+            val journal=File(root,"ride.ride")
+            RideJournal(journal,start,config).use { writer ->
+                for(i in 0..60) {
+                    val hasGps=i<5 || i>45
+                    writer.append(RideSample(start+i*1000,i*1000L,
+                        latitude=if(hasGps) 50.0+i*.00001 else null,longitude=if(hasGps) 8.0 else null,
+                        values=mapOf("PRIMARY_SPEED" to 10.0,"PRIMARY_DISTANCE" to i*10.0,
+                            "PRIMARY_POWER" to 200.0,"PRIMARY_CADENCE" to 80.0,
+                            "PRIMARY_HEIGHT" to 500.0+i,"PRIMARY_HEIGHT_MSL" to 1.0)))
+                }
+            }
+            val file=File(root,"ride.fit");FitWriter.encode(journal,file)
+            val read=FitRead.read(file)
+            assertEquals(600.0,read.details.distanceM!!,.001)
+            assertEquals(60000L,read.details.movingMs);assertEquals(2,read.route!!.segments)
+            val analysis=RouteAnalysisRead.read(file,ManagedRoute("id","Test",false,"FIT",read.details,true))
+            assertEquals(60.0,analysis.metrics.getValue(AnalysisMetric.MOVING),.001)
+            assertEquals(36.0,analysis.metrics.getValue(AnalysisMetric.AVG_SPEED),.001)
+            for(chart in listOf(AnalysisChart.CADENCE,AnalysisChart.ELEVATION)) {
+                val series=analysis.series.single { it.chart==chart }
+                assertEquals(61,series.points.count { it.value!=null })
+                assertTrue(RouteChartCurve.prepare(series,analysis.distanceAxis,analysis.axisEnd,300f).any { it.size>30 })
+            }
+        } finally { root.deleteRecursively() }
+    }
+
 }

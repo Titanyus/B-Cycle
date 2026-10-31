@@ -76,6 +76,7 @@ internal object FitRead {
 /** Only our declared application, units and scalar fields can supply missing standard values. */
 internal object FitDeveloperValues {
     private val appId=java.util.UUID.fromString("a4d3c076-05cc-4b59-b1ab-c4963f348248")
+    fun hasOwnFields(message:com.garmin.fit.Mesg)=message.developerFields.any { it.isDefined && it.appUUID==appId }
     fun number(message:com.garmin.fit.Mesg,name:String,units:String,signed:Boolean=false):Double? = message.developerFields.firstOrNull {
         it.isDefined && it.appUUID==appId && it.name==name && it.units==units && it.numValues==1
     }?.doubleValue?.takeIf { it.isFinite() && (signed || it>=0) }

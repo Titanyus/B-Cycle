@@ -94,6 +94,38 @@ class FitSplitRecordsTest {
             assertEquals(36.0,analysis.metrics.getValue(AnalysisMetric.AVG_SPEED),.001)
         } finally { root.deleteRecursively() }
     }
+    @Test fun sparseCadenceAndHeightUpdatesSurviveOtherTelemetryAndGpsOutageWithoutArtificialGaps() {
+        val root=Files.createTempDirectory("sparse-fit-channels").toFile()
+        try {
+            val file=java.io.File(root,"sparse.fit");val encoder=FileEncoder(file,Fit.ProtocolVersion.V2_0)
+            try {
+                for(i in 0..60) {
+                    if(i<5 || i>45) encoder.write(gps(i))
+                    encoder.write(RecordMesg().apply { setTimestamp(time(i));setDistance(i*10f);setSpeed(10f);setPower(200) })
+                    if(i%3==0) encoder.write(RecordMesg().apply {
+                        setTimestamp(time(i));setPower(200);setCadence((if(i in 18..36) 255 else if(i in 42..48) 0 else 80).toShort())
+                    })
+                    if(i%5==0) encoder.write(RecordMesg().apply { setTimestamp(time(i));setPower(200);setAltitude(500f+i) })
+                }
+                encoder.write(SessionMesg().apply { setStartTime(time(0));setTotalDistance(600f);setTotalElapsedTime(60f);setTotalTimerTime(60f) })
+            } finally { encoder.close() }
+            val read=FitRead.read(file)
+            assertEquals(600.0,read.details.distanceM!!,.001);assertEquals(60000L,read.details.movingMs)
+            assertEquals(2,read.route!!.segments)
+            val analysis=RouteAnalysisRead.read(file,ManagedRoute("id","Fahrt",false,"FIT",read.details,true))
+            assertEquals(60.0,analysis.metrics.getValue(AnalysisMetric.MOVING),.001)
+            assertEquals(36.0,analysis.metrics.getValue(AnalysisMetric.AVG_SPEED),.001)
+            assertFalse(analysis.distanceAxis) // Preserve channel samples without a simultaneous distance counter.
+            val height=analysis.series.single { it.chart==AnalysisChart.ELEVATION }
+            val cad=analysis.series.single { it.chart==AnalysisChart.CADENCE }
+            assertEquals(13,height.points.count { it.value!=null })
+            assertEquals(1,RouteChartCurve.prepare(height,false,analysis.axisEnd,300f).size)
+            val cadenceRuns=RouteChartCurve.prepare(cad,false,analysis.axisEnd,300f)
+            assertEquals(2,cadenceRuns.size) // A prolonged channel outage remains a genuine gap, despite other telemetry.
+            assertTrue(cadenceRuns.all { it.size>1 })
+            assertTrue(cad.points.any { it.value==0.0 }) // Real coasting is never filled with invented pedalling.
+        } finally { root.deleteRecursively() }
+    }
     @Test fun existingMissingMapIsRepairedOnceWithoutChangingIdNameDateOriginOrBytes() {
         val root=Files.createTempDirectory("split-index").toFile()
         try {
