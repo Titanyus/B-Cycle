@@ -32,11 +32,7 @@ object BicycleDesign {
     const val tripleUnitMaxSp=10
     const val hrvCircleHeight=320
     const val hrvGraphHeight=286
-    const val hrvAssessmentScoreSp=64f
-    const val hrvAssessmentGaugeHeight=72
-    const val hrvAssessmentPulseGaugeHeight=48
-    const val hrvAssessmentTrackHeight=32
-    const val hrvAssessmentPulseTrackHeight=6
+    const val hrvDayIndexHeight=48
     const val hrvTrendGraphHeight=454
     const val hrvTrendMoonSize=12
     const val hrvTrendAxisWidth=40
@@ -48,6 +44,7 @@ object BicycleDesign {
     const val hrvTrendBandDotGapDp=4f
     const val hrvRingWidth=9f*1.35f
     const val hrvPulseSp=90f
+    const val hrvDayValueSp=hrvPulseSp*.8f
     const val hrvTextOffset=0
     const val hrvActionHorizontalPadding=24
     const val hrvActionVerticalInset=8

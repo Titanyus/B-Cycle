@@ -69,7 +69,7 @@ class HrvViewTest {
             HrvController::class.java.getDeclaredField("state").apply { isAccessible=true }.set(controller,
                 HrvState(de.bcycle.hrv.Phase.MEASURE,60000,120000,73,true,points))
             HrvController::class.java.getDeclaredField("busy").apply { isAccessible=true }.setBoolean(controller,true)
-            val view=HrvMeasurementView(c,themes,controller,{"Testgurt"},{true},{})
+            val view=HrvMeasurementView(c,themes,controller,{"Testgurt"},{true})
             val scroll=android.widget.ScrollView(c).apply { addView(view) };c.setContentView(scroll)
             scroll.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(760,View.MeasureSpec.EXACTLY));scroll.layout(0,0,360,760)
             fun render():android.graphics.Bitmap=android.graphics.Bitmap.createBitmap(360,760,android.graphics.Bitmap.Config.ARGB_8888).also {
@@ -137,7 +137,7 @@ class HrvViewTest {
             assertFalse(all(view).filterIsInstance<TextView>().any { it.text==c.getString(R.string.hrv_title) })
             HrvController::class.java.getDeclaredField("busy").apply { isAccessible=true }.setBoolean(controller,false)
             HrvController::class.java.getDeclaredField("state").apply { isAccessible=true }.set(controller,HrvState(bpm=73,ready=true))
-            val idle=HrvMeasurementView(c,themes,controller,{"Testgurt"},{true},{})
+            val idle=HrvMeasurementView(c,themes,controller,{"Testgurt"},{true})
             c.setContentView(idle)
             idle.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(760,View.MeasureSpec.EXACTLY));idle.layout(0,0,360,760)
             val start=idle.findViewWithTag<TextView>("hrv_action")

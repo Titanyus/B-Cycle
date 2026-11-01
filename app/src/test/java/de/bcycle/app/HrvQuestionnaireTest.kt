@@ -208,7 +208,7 @@ class HrvQuestionnaireTest {
             assertTrue(HrvQuestion.CYCLE in settings.read().enabled) // Configuration/history retained while unavailable.
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun savedMeasurementButtonOpensEditableQuestionnaireAndWorkerPersistsIt() {
+    @Test fun completedMeasurementAutomaticallyOpensQuestionsThenCombinedEvaluation() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val runtime=RideRuntime.get(a);val worker=HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(runtime.hrv) as java.util.concurrent.ThreadPoolExecutor
@@ -217,12 +217,16 @@ class HrvQuestionnaireTest {
             val store=HrvStore(File(a.filesDir,"hrv-measurements"));val id=UUID.randomUUID().toString();val session=MeasurementSession(0)
             store.begin(id,java.time.Instant.parse("2026-10-21T07:00:00Z").toEpochMilli(),"Gurt",session);session.abort("USER_ABORT")
             val row=store.save(id,session,Evaluate.session(session),0)
-            HrvController::class.java.getDeclaredField("state").apply { isAccessible=true }.set(runtime.hrv,HrvState(result=row))
-            val view=HrvMeasurementView(a,runtime.themes,runtime.hrv,{"Gurt"},{true},{},questionnaire={ result ->
+            val view=HrvMeasurementView(a,runtime.themes,runtime.hrv,{"Gurt"},{true},questionnaire={ result ->
                 MainActivity::class.java.getDeclaredMethod("showHrvQuestionnaire",JSONObject::class.java).apply { isAccessible=true }.invoke(a,result)
             })
             a.setContentView(view);layout(view)
-            val button=view.findViewWithTag<View>("hrv_questionnaire_button");assertEquals(View.VISIBLE,button.visibility);button.performClick();drain()
+            assertNull(view.findViewWithTag<View>("hrv_questionnaire_button"))
+            assertNull(view.findViewWithTag<View>("hrv_history"))
+            val completed=HrvState(phase=de.bcycle.hrv.Phase.COMPLETE,result=row)
+            HrvController::class.java.getDeclaredField("state").apply { isAccessible=true }.set(runtime.hrv,completed)
+            HrvMeasurementView::class.java.getDeclaredMethod("show",HrvState::class.java).apply { isAccessible=true }.invoke(view,completed)
+            drain()
             val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             val form=dialog.window!!.decorView.findViewWithTag<HrvQuestionnaireView>("hrv_questionnaire")
             assertNotNull(form)
@@ -241,7 +245,11 @@ class HrvQuestionnaireTest {
             java.io.File("build/reports/ui/hrv-questionnaire-dialog.png").apply { parentFile?.mkdirs() }.outputStream().use { image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };image.recycle()
             form.findViewWithTag<View>("hrvq_analysis").performClick();drain();assertFalse(dialog.isShowing)
             repeat(2) { drain() }
-            assertNotNull(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("hrv_trends"))
+            val evaluation=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
+            assertNotNull(evaluation.findViewWithTag<View>("hrv_trends"))
+            assertNotNull(evaluation.findViewWithTag<View>("hrva_circle"))
+            assertNotNull(evaluation.findViewWithTag<View>("hrva_details"))
+            assertTrue(evaluation.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").text.toString().contains("21.10.2026"))
             MainActivity::class.java.getDeclaredMethod("showHrvHistoryResult",String::class.java).apply { isAccessible=true }.invoke(a,id)
             drain();plainHeader(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog())
         } finally { host.pause().stop().destroy() }

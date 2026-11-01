@@ -9,12 +9,11 @@ import org.json.JSONObject
 
 /** Native foreground measurement; colors follow the active dashboard palette. */
 internal class HrvMeasurementView(context:Context,private val themes:ThemeManager,private val controller:HrvController,
-    private val sensor:()->String,private val canStart:()->Boolean,private val history:()->Unit,
+    private val sensor:()->String,private val canStart:()->Boolean,
     private val questionnaire:(JSONObject)->Unit={},autoStart:Boolean=false):LinearLayout(context) {
     private var autoStartPending=autoStart
     private val circle=HrvCircleView(context,themes).apply { tag="hrv_circle" }
     private val status=BicycleFeedback.status(context,themes).apply { tag="hrv_status" }
-    private val result=LinearLayout(context).apply { orientation=VERTICAL;tag="hrv_result" }
     private val graph=HrvGraphView(context,themes).apply { tag="hrv_graph" }
     private val action=BicycleComponents.textAction(context,themes,context.getString(R.string.hrv_start)) {
         autoStartPending=false
@@ -22,16 +21,9 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
             controller.busy -> controller.abort()
             canStart() -> controller.start(sensor()) }
     }.apply { tag="hrv_action" }
-    private val historyButton=BicycleComponents.action(context,themes,context.getString(R.string.hrv_history)) {
-        autoStartPending=false;history()
-    }.apply { tag="hrv_history" }
-    private val questionnaireButton=BicycleComponents.action(context,themes,context.getString(R.string.hrvq_title)) {
-        autoStartPending=false
-        controller.state.result?.let(questionnaire)
-    }.apply { tag="hrv_questionnaire_button";visibility=GONE }
     private var startAction=true
     private var subscription:AutoCloseable?=null
-    private var shown:JSONObject?=null
+    private var shown:JSONObject?=controller.state.result
     init {
         orientation=VERTICAL;tag="hrv_measurement"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
@@ -42,8 +34,7 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
             })
         },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvCircleHeight)))
         addView(status,LayoutParams(-1,-2))
-        addView(graph,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvGraphHeight)))
-        addView(result,LayoutParams(-1,-2));addView(historyButton,LayoutParams(-1,-2));addView(questionnaireButton,LayoutParams(-1,-2))
+        addView(graph,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvGraphHeight)).apply { topMargin=BicycleDesign.dp(context,24) })
         BicycleComponents.bindTheme(action,themes) { styleAction() }
         show(controller.state)
     }
@@ -70,22 +61,19 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         action.isEnabled=!state.saving && (state.saveError && controller.canRetrySave || running || state.ready && canStart())
         startAction=!running && !(state.saveError && controller.canRetrySave)
         styleAction()
-        historyButton.isEnabled=!running && !state.saving
-        historyButton.visibility=if(running) GONE else VISIBLE
-        status.visibility=if(state.saveError) VISIBLE else GONE
-        questionnaireButton.visibility=if(state.result!=null && !running && !state.saving) VISIBLE else GONE
-        graph.visibility=if(state.result==null) VISIBLE else GONE
+        status.visibility=if(state.saveError || state.phase==Phase.ABORTED) VISIBLE else GONE
         BicycleFeedback.update(status,context.getString(when {
             state.saveError->R.string.hrv_save_failed;state.saving->R.string.hrv_saving
+            state.phase==Phase.ABORTED->R.string.hrv_user_abort
             state.result!=null->R.string.hrv_saved;running->R.string.hrv_running_hint;!state.ready && !running->R.string.hrv_sensor_needed;else->R.string.hrv_ready },
             state.restMs/1000,state.measureMs/1000))
-        if(shown!==state.result) {
-            shown=state.result;result.removeAllViews()
-            state.result?.let { result.addView(hrvResult(context,themes,it))
-                post { (parent as? ScrollView)?.smoothScrollTo(0,result.top) }
-            }
+        if(shown!==state.result && state.result!=null && state.phase==Phase.COMPLETE && !state.saving && !state.saveError) {
+            val completed=state.result
+            shown=completed
+            post { if(isAttachedToWindow && isShown && controller.state.result===completed) questionnaire(completed) }
         }
     }
+
     override fun onAttachedToWindow() { super.onAttachedToWindow();subscription=controller.observe(::show) }
     override fun onDetachedFromWindow() { subscription?.close();subscription=null;keepScreenOn=false;super.onDetachedFromWindow() }
 }
@@ -178,19 +166,20 @@ internal object HrvVisuals { const val warningOrange=0xffff8a26.toInt() }
 
 /** Animation only: BLE receipt anchors the rhythm; interpolation never changes RR measurements. */
 internal object HrvPulseAnimation {
+    const val PEAK_OPACITY=.45f
     fun opacity(nowMs:Long,beatAtMs:Long?,intervalMs:Double?,running:Boolean,from:Float=.1f):Float {
         if(!running || beatAtMs==null || intervalMs==null || !intervalMs.isFinite() || intervalMs<=0) return .1f
         val age=(nowMs-beatAtMs).coerceAtLeast(0).toDouble()
         fun wave(t:Double):Double {
             val phase=t%intervalMs
             val attack=minOf(BicycleDesign.hrvGlowAttackMs.toDouble(),intervalMs)
-            val trough=.45-.35*((intervalMs-attack)/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)
+            val trough=PEAK_OPACITY-.35*((intervalMs-attack)/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)
             val start=if(t<intervalMs) from.toDouble() else trough
             if(phase<attack) {
                 val u=phase/attack;val eased=u*u*(3-2*u)
-                return start+(.45-start)*eased
+                return start+(PEAK_OPACITY-start)*eased
             }
-            return .45-.35*((phase-attack)/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)
+            return PEAK_OPACITY-.35*((phase-attack)/BicycleDesign.hrvGlowFadeMs).coerceIn(0.0,1.0)
         }
         // Keep the existing short rhythm interpolation, then fade rather than invent more beats.
         return if(age<=5000) wave(age).toFloat() else

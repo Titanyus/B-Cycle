@@ -13,7 +13,7 @@ internal enum class HrvDayAdvice(val label:Int) {
 
 /** Prototype display and daily guidance; no age correction, persisted score or change to capture acceptance. */
 internal data class HrvDailyAssessment(val day:LocalDate,val hrv:HrvTrendPoint,val pulse:HrvTrendPoint?,
-    val subjectiveBurden:Double?,val subjectiveDays:Int) {
+    val subjectiveBurden:Double?,val subjectiveDays:Int,val indices:HrvAutonomicIndices=HrvAutonomicIndices()) {
     val score get()=score(hrv.value)
     val lower get()=score(hrv.lower)
     val upper get()=score(hrv.upper)
@@ -44,7 +44,7 @@ internal data class HrvDailyAssessment(val day:LocalDate,val hrv:HrvTrendPoint,v
             val pulse=HrvTrends.series(rows,HrvTrendMetric.HR).firstOrNull { it.day==day }
             val context=HrvContextColors.daily(answers)
             val recent=(0L..3L).mapNotNull { context[day.minusDays(it)]?.get(HrvContextMode.WELLBEING) }
-            return HrvDailyAssessment(day,hrv,pulse,recent.takeIf { it.isNotEmpty() }?.average(),recent.size)
+            return HrvDailyAssessment(day,hrv,pulse,recent.takeIf { it.isNotEmpty() }?.average(),recent.size,HrvAutonomicIndices.from(rows,day))
         }
     }
 }

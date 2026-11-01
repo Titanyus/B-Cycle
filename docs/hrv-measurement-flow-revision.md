@@ -1,6 +1,6 @@
 # Vorgemerkt: HRV-Ablauf und gemeinsame Auswertung – 01.11.2026
 
-Nutzerauftrag festhalten, noch nicht umsetzen: Das Nutzermockup für den Tagesscreen liegt inzwischen vor; Plausibilität und offene Regeln werden gerade besprochen. Zuerst dessen Darstellung festlegen, dann den Ablauf und die gemeinsame Auswertungsseite passend umsetzen. Messberechnung, Tagesempfehlungen und Diagrammfunktionen erhalten; beauftragt sind Darstellung und Navigation.
+Am01.11.2026 umgesetzt, inklusive bestätigtem Tagesscreen und persönlichen PNS-/Aktivierungsindikatoren. Messberechnung, Tagesempfehlungen und Diagrammfunktionen bleiben erhalten.
 
 ## Messung und Tagesfragen
 
@@ -20,6 +20,8 @@ Nutzerauftrag festhalten, noch nicht umsetzen: Das Nutzermockup für den Tagessc
 - Danach können beide Abschnitte als eine gemeinsame Seite hoch und herunter gescrollt werden. Keine getrennten Screens für Tages- und Detailauswertung.
 - Konkrete Maße über die genannten24dp und den bestehenden sinnvollen oberen Abstand hinaus sind noch nicht festgelegt. Kein neues Tageslayout erfinden; vorliegende Nutzervorlage und die dort offenen Regeln beachten.
 
-Zusätzlicher Wunsch für den Tagesscreen: nachvollziehbare eigene PNS-/SNS-Aktivierungsindikatoren zur Belastungseinschätzung. Keine exakte Kubios-Nachbildung. Fachliche Grenzen und noch festzulegende Berechnung siehe [Vorschlag](hrv-autonomic-index-proposal.md). Noch keine Layout- oder Rechenänderung umgesetzt.
+Messung behält Start/Abbruch/Speicherwiederholung innerhalb des Kreises; nur der untere Navigations-/Ergebnisbereich entfällt. Automatischer Wechsel erst nach abgeschlossener und gespeicherter Messung, nicht bei Abbruch oder Speicherfehler und nicht erneut für ein bereits beim Öffnen vorhandenes Ergebnis. Messdetails/Qualitätshinweise bleiben über den Verlauf zugänglich.
 
-Tagesscreen-Details nun erhalten: [zweigeteilter150°-Kreis, Normmarker, PNS/SNS-Balken und freie Empfehlung](hrv-day-screen-design.md).
+Gemeinsamer nativer ScrollView: Der Tagesbereich bleibt in der freien Anfangsfläche stehen, bis der Verlauf mit24dp Abstand ankommt; danach wird er weggeschoben. Auf kleinen Displays bleibt der gesamte höhere Tagesinhalt scrollbar. Textbutton fährt den Verlauf bis auf den normalen oberen Seitenabstand. Historischer Tageskopf bleibt bis zum Verlaufsbereich datiert, dort übernimmt der gewählte Verlaufstag/-zeitraum. Tagesbefinden-Änderungen laden auch den Tagesbereich neu.
+
+[Tagesscreen](hrv-day-screen-design.md), [bestätigte Indexformeln und Grenzen](hrv-autonomic-index-proposal.md).

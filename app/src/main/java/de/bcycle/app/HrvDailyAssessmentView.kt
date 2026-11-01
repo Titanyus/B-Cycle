@@ -2,38 +2,29 @@ package de.bcycle.app
 
 import android.content.Context
 import android.graphics.*
-import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.TextView
-import java.time.format.DateTimeFormatter
 import java.text.NumberFormat
+import java.time.format.DateTimeFormatter
+import kotlin.math.cos
+import kotlin.math.sin
 
-/** HRV page surface, normal app cards/typography, deliberately no trend or baseline row. */
-internal class HrvDailyAssessmentView(context:Context,private val themes:ThemeManager,val assessment:HrvDailyAssessment):LinearLayout(context) {
-    private val format=NumberFormat.getNumberInstance().apply { maximumFractionDigits=1;minimumFractionDigits=1 }
-    private fun number(value:Double?)=value?.let(format::format) ?: context.getString(R.string.hrvt_unavailable)
-    private fun gap(value:Int)=BicycleDesign.dp(context,value)
-    private fun card()=LinearLayout(context).apply {
-        orientation=VERTICAL;val pad=gap(BicycleDesign.sectionCardInset);setPadding(pad,pad,pad,pad)
-        BicycleComponents.bindTheme(this,themes) { tokens -> background=GradientDrawable().apply { setColor(tokens.tertiary);cornerRadius=gap(BicycleDesign.sectionCardRadius).toFloat() } }
-    }
+internal class HrvDailyAssessmentView(context:Context,themes:ThemeManager,val assessment:HrvDailyAssessment):LinearLayout(context) {
     init {
         orientation=VERTICAL;tag="hrv_daily_assessment"
-        val pad=gap(BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
-        addView(BicycleComponents.text(context,themes,number(assessment.score)).apply {
-            tag="hrva_score";gravity=Gravity.CENTER;typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.hrvAssessmentScoreSp;includeFontPadding=false
-            BicycleComponents.bindTheme(this,themes) { setTextColor(assessment.advice.color) }
-        },LayoutParams(-1,-2))
-        addView(BicycleComponents.text(context,themes,context.getString(R.string.hrva_hrv)).apply { gravity=Gravity.CENTER },LayoutParams(-1,-2))
-        addView(HrvAssessmentGauge(context,themes,assessment.score,assessment.lower,assessment.upper,assessment.advice.color,true).apply { tag="hrva_hrv_gauge" },
-            LayoutParams(-1,gap(BicycleDesign.hrvAssessmentGaugeHeight)).apply { topMargin=gap(BicycleDesign.controlGap) })
-        addView(card().apply {
-            tag="hrva_advice_card"
+        val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
+        setPadding(pad,pad,pad,pad)
+        addView(HrvDayCircle(context,themes,assessment),LayoutParams(-1,-2))
+        addView(HrvIndexView(context,themes,context.getString(R.string.hrva_pns),assessment.indices.pns).apply { tag="hrva_pns" },
+            LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionCardGap) })
+        addView(HrvIndexView(context,themes,context.getString(R.string.hrva_activation),assessment.indices.activation).apply { tag="hrva_activation" },
+            LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(LinearLayout(context).apply {
+            orientation=VERTICAL;tag="hrva_advice_text"
             addView(BicycleComponents.contentHeading(context,themes,context.getString(assessment.advice.label)).apply {
                 tag="hrva_advice";BicycleComponents.bindTheme(this,themes) { setTextColor(assessment.advice.color) }
-            },LayoutParams(-1,-2))
+            })
             val reason=when(assessment.position) {
                 HrvDayPosition.UNAVAILABLE->R.string.hrva_hrv_missing;HrvDayPosition.COLLECTING->R.string.hrva_collecting
                 HrvDayPosition.LOW->R.string.hrva_low;HrvDayPosition.NORMAL->R.string.hrva_normal;HrvDayPosition.HIGH->R.string.hrva_high
@@ -43,82 +34,137 @@ internal class HrvDailyAssessmentView(context:Context,private val themes:ThemeMa
                 HrvSubjectiveState.MIXED->R.string.hrva_subjective_mixed;HrvSubjectiveState.POOR->R.string.hrva_subjective_poor
             }
             addView(BicycleComponents.text(context,themes,context.getString(reason)+"\n\n"+context.getString(feeling)).apply { tag="hrva_reason" },
-                LayoutParams(-1,-2).apply { topMargin=gap(BicycleDesign.controlGap) })
+                LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
             val dates=DateTimeFormatter.ofPattern("dd.MM.yyyy")
-            addView(BicycleComponents.text(context,themes,context.getString(R.string.hrva_subjective_period,assessment.day.minusDays(3).format(dates),assessment.day.format(dates),assessment.subjectiveDays)).apply {
-                tag="hrva_subjective_period";textSize=BicycleDesign.analysisLabelSp
-                BicycleComponents.bindTheme(this,themes) { setTextColor(it.secondaryTextColor) }
-            },LayoutParams(-1,-2).apply { topMargin=gap(BicycleDesign.controlGap) })
-        },LayoutParams(-1,-2).apply { topMargin=gap(BicycleDesign.sectionCardGap) })
-        addView(card().apply {
-            tag="hrva_pulse_card"
-            addView(LinearLayout(context).apply {
-                gravity=Gravity.CENTER_VERTICAL
-                addView(BicycleComponents.text(context,themes,context.getString(R.string.hrva_pulse)).apply {
-                    val icon=BicycleIcons.drawable(context,BicycleIcon.Heart,themes.active.tokens.foreground)
-                    val size=gap(BicycleDesign.iconSize);icon.setBounds(0,0,size,size);setCompoundDrawablesRelative(icon,null,null,null);compoundDrawablePadding=gap(BicycleDesign.controlGap)
-                    BicycleComponents.bindTheme(this,themes) { icon.setTint(it.foreground) }
-                },LayoutParams(0,-2,1f))
-                val pulse=assessment.pulse?.value?.takeIf { it>0 }?.let { kotlin.math.round(it).toInt().toString() } ?: context.getString(R.string.hrvt_unavailable)
-                addView(BicycleComponents.text(context,themes,context.getString(R.string.hrva_pulse_value,pulse)).apply {
-                    tag="hrva_pulse";typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.analysisMetricSp;gravity=Gravity.END
-                },LayoutParams(-2,-2))
-            },LayoutParams(-1,-2))
-            addView(HrvAssessmentGauge(context,themes,assessment.pulse?.value?.takeIf { it>0 },assessment.pulse?.lower,assessment.pulse?.upper,themes.active.tokens.foreground,false).apply { tag="hrva_pulse_gauge" },
-                LayoutParams(-1,gap(BicycleDesign.hrvAssessmentPulseGaugeHeight)).apply { topMargin=gap(BicycleDesign.controlGap) })
-        },LayoutParams(-1,-2).apply { topMargin=gap(BicycleDesign.sectionCardGap) })
+            addView(BicycleComponents.description(context,themes,context.getString(R.string.hrva_subjective_period,
+                assessment.day.minusDays(3).format(dates),assessment.day.format(dates),assessment.subjectiveDays)).apply { tag="hrva_subjective_period" },
+                LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        },LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,24) })
     }
 }
 
-/** Finite display range includes today's value and known normal bounds; labels denote real bounds. */
-internal class HrvAssessmentGauge(context:Context,themes:ThemeManager,private val value:Double?,private val lower:Double?,private val upper:Double?,
-    private val color:Int,private val filled:Boolean):View(context) {
-    private val density=resources.displayMetrics.density
-    private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.bodyTypeface }
-    private var foreground=themes.active.tokens.foreground
-    private val rect=RectF()
-    private val fillRect=RectF()
-    private val number=NumberFormat.getNumberInstance().apply { maximumFractionDigits=1 }
-    private val labels=listOfNotNull(lower,upper).filter(Double::isFinite).distinct().map { it to number.format(it) }
-    private val values=listOfNotNull(value,lower,upper).filter(Double::isFinite)
-    private val low=values.minOrNull() ?: 0.0
-    private val high=values.maxOrNull() ?: 1.0
-    private val padding=maxOf((high-low)*.5,if(filled) .2 else 2.0)
-    private val minimum=low-padding
-    private val maximum=high+padding
-    private val dots=DashPathEffect(floatArrayOf(.1f*density,BicycleDesign.hrvTrendBandDotGapDp*density),0f)
+/** Fixed corridor placement: 25% / 75%. Today's outliers never move the reference markers. */
+internal fun hrvCorridorFraction(value:Double?,lower:Double?,upper:Double?):Float? {
+    if(value==null || lower==null || upper==null || !value.isFinite() || !lower.isFinite() || !upper.isFinite() || upper<=lower) return null
+    return (.25+.5*(value-lower)/(upper-lower)).coerceIn(0.0,1.0).toFloat()
+}
+
+internal class HrvDayCircle(context:Context,themes:ThemeManager,private val data:HrvDailyAssessment):View(context) {
+    private var tokens=themes.active.tokens
+    private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
+    private val glow=Paint(Paint.ANTI_ALIAS_FLAG)
+    private val bounds=Rect()
+    private val number=NumberFormat.getNumberInstance().apply { minimumFractionDigits=1;maximumFractionDigits=1 }
+    private val limit=NumberFormat.getNumberInstance().apply { maximumFractionDigits=1 }
+    private fun formatted(v:Double?)=v?.takeIf(Double::isFinite)?.let(number::format) ?: context.getString(R.string.hrvt_unavailable)
+    private val score=formatted(data.score)
+    private val pulse=data.pulse?.value?.takeIf { it.isFinite() && it>0 }?.let { kotlin.math.round(it).toInt().toString() } ?: context.getString(R.string.hrvt_unavailable)
     init {
-        val range=if(labels.isEmpty()) context.getString(R.string.hrva_range_missing) else context.getString(R.string.hrva_range,lower?.let(number::format) ?: context.getString(R.string.hrvt_unavailable),upper?.let(number::format) ?: context.getString(R.string.hrvt_unavailable))
-        contentDescription=(value?.let(number::format) ?: context.getString(R.string.hrvt_unavailable))+". "+range
-        importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_YES
-        BicycleComponents.bindTheme(this,themes) { foreground=it.foreground;invalidate() }
+        tag="hrva_circle";importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_YES
+        fun range(low:Double?,high:Double?)=if(low==null || high==null) context.getString(R.string.hrva_range_missing)
+            else context.getString(R.string.hrva_range,limit.format(low),limit.format(high))
+        contentDescription=context.getString(R.string.hrva_metric_accessibility,context.getString(R.string.hrva_hrv),score,range(data.lower,data.upper))+". "+
+            context.getString(R.string.hrva_metric_accessibility,context.getString(R.string.hrva_pulse),context.getString(R.string.hrva_pulse_value,pulse),range(data.pulse?.lower,data.pulse?.upper))
+        BicycleComponents.bindTheme(this,themes) { tokens=it;glow.shader=null;invalidate() }
     }
+    override fun onMeasure(w:Int,h:Int) {
+        val side=MeasureSpec.getSize(w).coerceAtMost(BicycleDesign.dp(context,400))
+        setMeasuredDimension(resolveSize(side,w),resolveSize(side,h))
+    }
+    override fun onSizeChanged(w:Int,h:Int,oldw:Int,oldh:Int) { glow.shader=null }
     override fun onDraw(canvas:Canvas) {
         super.onDraw(canvas)
-        val edge=BicycleDesign.controlGap*density
-        val trackHeight=(if(filled) BicycleDesign.hrvAssessmentTrackHeight else BicycleDesign.hrvAssessmentPulseTrackHeight)*density
-        rect.set(edge,edge,width-edge,edge+trackHeight)
-        fun x(v:Double)=rect.left+((v-minimum)/(maximum-minimum)).toFloat()*rect.width()
-        paint.style=Paint.Style.FILL;paint.color=foreground;paint.alpha=40;paint.pathEffect=null
-        canvas.drawRoundRect(rect,trackHeight/2,trackHeight/2,paint);paint.alpha=255
-        if(value!=null && value.isFinite()) {
-            if(filled) {
-                fillRect.set(rect.left,rect.top,x(value),rect.bottom)
-                paint.color=color;canvas.drawRoundRect(fillRect,trackHeight/2,trackHeight/2,paint)
-            } else { paint.color=foreground;canvas.drawCircle(x(value),rect.centerY(),trackHeight/2,paint) }
+        val d=resources.displayMetrics.density;val sp=resources.displayMetrics.scaledDensity
+        val x=width/2f;val y=height/2f
+        val radius=minOf(width,height)/2f-24*d
+        if(radius<=0) return
+        val ring=BicycleDesign.hrvRingWidth*d
+        val glowRadius=(radius-ring).coerceAtLeast(1f)
+        if(glow.shader==null) glow.shader=RadialGradient(x,y,glowRadius,intArrayOf(data.advice.color,data.advice.color,Color.TRANSPARENT),floatArrayOf(0f,.25f,1f),Shader.TileMode.CLAMP)
+        glow.alpha=(255*HrvPulseAnimation.PEAK_OPACITY).toInt();canvas.drawCircle(x,y,glowRadius,glow)
+        fun arc(start:Float,sweep:Float,stroke:Float,value:Double?,low:Double?,high:Double?,color:Int) {
+            paint.style=Paint.Style.STROKE;paint.strokeCap=Paint.Cap.ROUND;paint.strokeWidth=stroke;paint.color=tokens.tertiary;paint.alpha=255
+            canvas.drawArc(x-radius,y-radius,x+radius,y+radius,start,sweep,false,paint)
+            hrvCorridorFraction(value,low,high)?.takeIf { it>0 }?.let { fraction ->
+                paint.color=color;canvas.drawArc(x-radius,y-radius,x+radius,y+radius,start,sweep*fraction,false,paint)
+            }
+            if(low!=null && high!=null && high>low) listOf(.25f to low,.75f to high).forEach { (fraction,v) ->
+                val angle=Math.toRadians((start+sweep*fraction).toDouble())
+                val c=cos(angle).toFloat();val s=sin(angle).toFloat()
+                val inside=radius-stroke/2-3*d;val outside=radius+stroke/2+3*d
+                paint.color=tokens.foreground;paint.strokeWidth=2*d;paint.strokeCap=Paint.Cap.BUTT
+                canvas.drawLine(x+c*inside,y+s*inside,x+c*outside,y+s*outside,paint)
+                paint.style=Paint.Style.FILL;paint.typeface=BicycleDesign.bodyTypeface;paint.textSize=BicycleDesign.analysisLabelSp*sp
+                paint.textAlign=if(c<0) Paint.Align.RIGHT else Paint.Align.LEFT
+                val tx=x+c*(outside+4*d);val ty=y+s*(outside+4*d)
+                canvas.drawText(limit.format(v),tx,ty-(paint.ascent()+paint.descent())/2,paint)
+                paint.style=Paint.Style.STROKE
+            }
         }
-        paint.color=foreground;paint.alpha=180;paint.strokeWidth=BicycleDesign.hrvTrendBandLineDp*density;paint.pathEffect=dots;paint.strokeCap=Paint.Cap.ROUND
-        labels.forEach { (v,_) -> canvas.drawLine(x(v),rect.centerY()-maxOf(trackHeight/2-4*density,6*density),x(v),rect.centerY()+maxOf(trackHeight/2-4*density,6*density),paint) }
-        paint.pathEffect=null;paint.strokeCap=Paint.Cap.BUTT;paint.alpha=255
-        paint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity;paint.textAlign=Paint.Align.CENTER
-        val baseline=rect.bottom+BicycleDesign.horizontalPadding*density-paint.ascent()/2
-        if(labels.isEmpty()) canvas.drawText(context.getString(R.string.hrva_range_missing),width/2f,baseline,paint)
-        else labels.forEachIndexed { index,(v,text) ->
-            val half=paint.measureText(text)/2
-            var at=x(v).coerceIn(half,(width-half).coerceAtLeast(half))
-            if(labels.size==2 && kotlin.math.abs(x(labels[1].first)-x(labels[0].first))<paint.measureText(labels[0].second)+4*density)
-                at=if(index==0) width/2f-half-4*density else width/2f+half+4*density
-            canvas.drawText(text,at,baseline,paint)
+        arc(195f,150f,ring*2,data.score,data.lower,data.upper,data.advice.color)
+        arc(165f,-150f,ring,data.pulse?.value,data.pulse?.lower,data.pulse?.upper,Color.WHITE)
+        paint.style=Paint.Style.STROKE;paint.strokeCap=Paint.Cap.BUTT;paint.strokeWidth=2*d;paint.color=tokens.foreground;paint.alpha=64
+        canvas.drawLine(x-radius*.7f,y,x+radius*.7f,y,paint)
+        paint.alpha=255;paint.style=Paint.Style.FILL
+        // Values retain their own center; bpm is placed to their right, not part of the centering width.
+        fun value(text:String,cy:Float,color:Int,unit:String?=null) {
+            paint.color=color;paint.typeface=BicycleDesign.narrowTypeface(context);paint.textSize=BicycleDesign.hrvDayValueSp*sp
+            // Respect narrow devices and accessibility font sizes without crossing the circle.
+            val maxWidth=radius*1.1f
+            if(paint.measureText(text)>maxWidth) paint.textSize*=maxWidth/paint.measureText(text)
+            paint.getTextBounds(text,0,text.length,bounds)
+            val baseline=cy-(bounds.top+bounds.bottom)/2f
+            val left=x-(bounds.left+bounds.right)/2f
+            paint.textAlign=Paint.Align.LEFT;canvas.drawText(text,left,baseline,paint)
+            if(unit!=null) {
+                val right=left+paint.measureText(text)
+                paint.typeface=BicycleDesign.compactTypeface;paint.textSize=BicycleDesign.analysisLabelSp*sp
+                canvas.drawText(unit,right+4*d,cy-(paint.ascent()+paint.descent())/2,paint)
+            }
         }
+        value(score,y-radius*.55f,data.advice.color)
+        value(pulse,y+radius*.55f,Color.WHITE,context.getString(R.string.hrv_bpm))
+        paint.typeface=BicycleDesign.bodyTypeface;paint.textSize=BicycleDesign.bodySp*sp;paint.textAlign=Paint.Align.CENTER;paint.color=tokens.foreground
+        val label=context.getString(R.string.hrva_hrv)
+        if(paint.measureText(label)>radius*1.7f) paint.textSize*=radius*1.7f/paint.measureText(label)
+        canvas.drawText(label,x,y-radius*sin(Math.toRadians(15.0)).toFloat()-(paint.ascent()+paint.descent())/2,paint)
+        canvas.drawText(context.getString(R.string.hrva_pulse),x,y+radius*sin(Math.toRadians(15.0)).toFloat()-(paint.ascent()+paint.descent())/2,paint)
+    }
+}
+
+/** Signed deviation: square at zero, rounded only at its outward end. No diagnostic colors. */
+internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,private val value:Double?):LinearLayout(context) {
+    init {
+        orientation=VERTICAL
+        val formatted=value?.let { NumberFormat.getNumberInstance().apply { minimumFractionDigits=1;maximumFractionDigits=1 }.format(if(kotlin.math.abs(it)<.05) 0.0 else it) } ?: context.getString(R.string.hrvt_unavailable)
+        addView(LinearLayout(context).apply {
+            gravity=Gravity.CENTER_VERTICAL
+            addView(BicycleComponents.text(context,themes,label),LayoutParams(0,-2,1f))
+            addView(BicycleComponents.text(context,themes,formatted).apply { tag="hrva_index_value" },LayoutParams(-2,-2))
+        },LayoutParams(-1,-2))
+        addView(object:View(context) {
+            private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
+            private var foreground=themes.active.tokens.foreground
+            private var track=themes.active.tokens.tertiary
+            init { BicycleComponents.bindTheme(this,themes) { foreground=it.foreground;track=it.tertiary;invalidate() } }
+            override fun onDraw(canvas:Canvas) {
+                val d=resources.displayMetrics.density;val bar=BicycleDesign.hrvRingWidth*d
+                val center=width/2f;val y=bar/2+4*d
+                paint.style=Paint.Style.FILL;paint.color=track
+                canvas.drawRoundRect(0f,y-bar/2,width.toFloat(),y+bar/2,bar/2,bar/2,paint)
+                value?.takeIf { it.isFinite() && it!=0.0 }?.let {
+                    val end=center+(it.coerceIn(-2.0,2.0)/4*width).toFloat()
+                    val save=canvas.save();canvas.clipRect(minOf(center,end),y-bar/2,maxOf(center,end),y+bar/2)
+                    paint.color=foreground
+                    canvas.drawRoundRect(minOf(center,end)-if(it>0) bar/2 else 0f,y-bar/2,
+                        maxOf(center,end)+if(it<0) bar/2 else 0f,y+bar/2,bar/2,bar/2,paint)
+                    canvas.restoreToCount(save)
+                }
+                paint.color=foreground;paint.strokeWidth=2*d
+                canvas.drawLine(center,y-bar/2-3*d,center,y+bar/2+3*d,paint)
+                paint.typeface=BicycleDesign.bodyTypeface;paint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity;paint.textAlign=Paint.Align.CENTER
+                canvas.drawText("0",center,y+bar/2+6*d-paint.ascent(),paint)
+            }
+        },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvDayIndexHeight)))
     }
 }

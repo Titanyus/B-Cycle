@@ -1,39 +1,33 @@
-# Vorgemerkt: eigene PNS-/Aktivierungsindikatoren – 01.11.2026
+# Persönliche PNS- und Aktivierungsindikatoren
 
-Nutzer wünscht nachvollziehbare eigene Werte für parasympathische und sympathische Regulation, um Stress/Belastung einschätzen zu können. Kubios muss ausdrücklich nicht exakt nachgebildet werden. In den vorgemerkten HRV-/Tagesscreen-Umbau aufnehmen; Gestaltung und konkrete eigene Formel noch festlegen, aktuell keine Berechnung/Empfehlung oder UI eigenmächtig umstellen.
+Am01.11.2026 vom Nutzer bestätigt und umgesetzt. Eigene beschreibende Indizes, keine Kubios-Kopie. Bestehende HRV-Tagesempfehlung und Annahmeregeln bleiben unverändert.
 
-## Quellen und Grenzen
+## Berechnung
 
-[Kubios: PNS/SNS](https://www.kubios.com/blog/hrv-ans-function/), am01.11.2026 gelesen: PNS aus mittleremRR, RMSSD, normalisiertemSD1; SNS aus mittlererHF, Baevsky-Stressindex, normalisiertemSD2. Einzelgrößen gegen Ruhe-Populationsnormen standardisiert; Gewichtung proprietär. Keine Behauptung, ein bloßes arithmetisches Mittel der z-Werte sei die Kubios-Formel. ±2 ist typischer Darstellungs-/Ruhebereich, keine harte Grenze; SNS kann laut Kubios bei Belastung deutlich darüber liegen. [Analyseverfahren](https://www.kubios.com/blog/hrv-analysis-methods/) und [Handbuch v3.5](https://www.kubios.com/downloads/Kubios_HRV_Users_Guide.pdf): dortiger Stressindex ist die Quadratwurzel des Baevsky-Index; Normgrundlagen und Aufbereitung sind zusätzlich relevant.
+- PNS: `(ln(RMSSD heute) − Mittelwert ln(RMSSD Referenz)) / Stichproben-Standardabweichung ln(RMSSD Referenz)`.
+- Aktivierung: dieselbe Formel mit Ruhepuls in bpm als Eingangsgröße. Bewusst „Aktivierungsindex“, kein isolierter SNS-Messwert.
+- Referenz: vorherige60 Kalendertage, mindestens14 gültige verfügbare Tageswerte je Messgröße. Heute und Zukunft ausgeschlossen. Tagesauswahl vor Qualitätsprüfung wie bisher; eine spätere fehlgeschlagene Messung lässt keinen früheren guten Wert wiederaufleben.
+- Vergleichbare Protokolle: gleiche gespeicherte Ruhe-/Messdauer. Importierte Werte mit unbekanntem Protokoll bilden eine separate Referenz gegenüber eigenen Messungen. Vorhandene RMSSD-/Puls-Korridore für Tagesempfehlung und Kreisbögen werden dadurch nicht verändert.
+- Fehlende/nichtpositive/nichtendliche Messwerte, zu kurze Referenz oder praktisch fehlende Streuung ergeben keinen Index („–“). Beide Messgrößen unabhängig prüfen; fehlender Puls verhindert keinen gültigen PNS-Wert.
+- Keine Gewichtung, künstliche Gegenrechnung oder Alterskorrektur. Kein Baevsky-Index und keine LF/HF-Balance. Aggregierte Importwerte benötigen keine erfundenen RR-Rohdaten.
 
-HRV liefert Hinweise auf kardiale autonome Regulation. Parasympathische/vagale Modulation ist besser aus kurzfristiger HRV zugänglich als isolierte Sympathikusaktivität. Einen eigenen SNS-Wert daher als Aktivierungsindikator erklären, keine direkte Nervenmessung und keinen validierten psychischen Stressmesser behaupten. Auch Training, Infekt, Wärme, Flüssigkeitsmangel, Atmung und Messbedingungen können dieselben Größen verändern. PNS/SNS nicht als unabhängige direkte Messungen behandeln; eine belastbare Stressklassifikation erst mit geeigneter Validierung beanspruchen.
+0 bedeutet persönliche Basis; +1/−1 eine Standardabweichung darüber/darunter. Das Referenzfenster und die Mindestanzahl sind Produktentscheidungen, keine wissenschaftlich validierten Normgrenzen. ±1SD beschreibt persönliche Streuung, keine klinischen Grenzwerte. Werte bleiben rechnerisch unbegrenzt; nur die Balkenzeichnung wird auf−2…+2 begrenzt. Mittlere50% zeigen−1…+1, beidseits25% Puffer. Weiß/FOREGROUND ohne neue diagnostische Warnschwellen; die bestehende Empfehlung behält ihre bisherigen funktionalen Farben.
 
-## Vorschlag für die Ausgestaltung – noch keine festgelegte Formel
+## Aussage und Grenzen
 
-- Persönliche Referenz aus ausreichend vielen vergleichbaren Ruhemessungen, gleiche Datenqualität/Protokolle berücksichtigen. Referenzniveau0, positive/negative Abweichungen; nicht künstlich auf−2…+2 begrenzen.
-- PNS-Indikator primär aus kurzfristiger HRV (insbesondere lnRMSSD), weitere Größen nur bei begründetem Mehrwert.
-- SNS-/Aktivierungsindikator aus Ruhepuls und gegebenenfalls einem aus echten RR-Daten berechneten Baevsky-Stressmaß; genaue Aufbereitung, Normierung und Kombination vor Implementierung explizit definieren.
-- Messqualität und fehlende Referenzwerte sichtbar berücksichtigen. Keine Ersatz-RR-Reihen aus aggregierten Importwerten erfinden. Vorhandene subjektive Stressangabe als Kontext nutzbar, nicht als Beleg einer eindeutigen HRV-Ursache ausgeben.
-- Nachvollziehbare Formeln und Begründungen dokumentieren; bestehende Trainingsempfehlungen ohne gesonderten Auftrag nicht umstellen.
+lnRMSSD eignet sich als Indikator kurzfristiger vagaler/kardialer parasympathischer Modulation, nicht als direkte Messung der Nervenaktivität. Ein höherer Ruhepuls kann sowohl stärkere sympathische Aktivierung als auch geringeren vagalen Einfluss und andere Ursachen abbilden. Daher keine Behauptung, zwei unabhängige autonome Zweige isoliert zu messen.
 
-Aktueller Datenbestand: HrvStore speichert meanNnMs/RMSSD/lnRMSSD/SDNN/Puls plus originale BLE-Pakete in capture.jsonl für eigene Messungen. Metrics berechnet diese aus der bereinigten zusammenhängenden NN-Reihe. Aggregierte HRV4-Importe liefern nicht automatisch RR-Rohdaten und damit keinen Baevsky-Index.
+Training, Infekt, Schlaf, Temperatur, Flüssigkeit, Atmung und Messbedingungen können beide Größen verändern. Subjektive Stressfrage separat als Kontext behalten. Keine zuverlässige individuelle Diagnose psychischen Stresses oder einer Erkrankung aus einer Einzelmessung ableiten. Die wissenschaftliche Grundlage der Messgrößen validiert nicht automatisch unseren eigenen persönlichen z-Index.
 
-## Wissenschaftliche Präzisierung – Vorschlag, nicht implementiert
+Formeln und Grenzen auch in der In-App-Hilfe „Tagesauswertung“ erklärt. Auf dem Tagesscreen zuerst PNS, dann Aktivierung. Vorhandene HRV-Empfehlungen nicht durch die neuen Indizes ersetzen.
 
-Nutzer fordert ausdrücklich eine wissenschaftlich begründete, nachvollziehbare eigene Berechnung. Die wissenschaftliche Grundlage der Eingangsgrößen und eine Validierung unseres daraus abgeleiteten Index sind zu unterscheiden.
+## Gelesene Fachquellen (01.11.2026)
 
-- Vagal-/PNS-Indikator: `z = (lnRMSSD heute − Mittelwert lnRMSSD der persönlichen Referenz) / Standardabweichung dieser Referenz`. Positive Werte bedeuten höhere, negative niedrigere kurzfristige vagale Modulation gegenüber der eigenen Basis; kein direkter Messwert der Nervenaktivität und kein automatisches Gut-/Schlecht-Urteil. lnRMSSD ist bereits gespeichert. SD1 nicht zusätzlich als vermeintlich unabhängige Information gewichten.
-- Zweiter Indikator: persönlich standardisierte Ruhepulsabweichung mit derselben z-Formel, aber Puls als Eingangsgröße. Als **Aktivierungsindikator**, nicht als validierter isolierter SNS-Index empfehlen. Höherer Puls kann sowohl stärkere sympathische Aktivierung als auch geringeren vagalen Einfluss und weitere Ursachen abbilden. Zwei Indizes sind keine unabhängigen Gegenpole; keinen künstlichen Gegenwert `SNS = −PNS` bilden.
-- Vorhandene Referenzlogik (vorherige60 Kalendertage, mindestens14 vergleichbare gültige Tageswerte, aktuelle Messung nicht in ihre eigene Basis einbeziehen) kann als technische Ausgangsbasis dienen. Fenster und Mindestanzahl sind Produktentscheidungen, keine wissenschaftlich validierten Normgrenzen. Protokoll/Kohorte, Datenqualität und ausreichende Streuung prüfen; fehlende oder nicht belastbare Referenz nicht als0 darstellen.
-- Mittlere50% der Darstellung entsprechen bei dieser Standardisierung−1…+1, außen bis−2/+2 nur Darstellungsreserve. ±1SD bezeichnet persönliche Streuung, weder klinischen Normbereich noch validierte Stressschwelle. Keine Warnfarbe allein aus hohem PNS ableiten; bestehende HRV-Empfehlung unverändert.
-- Baevsky, SD2 oder LF/HF nicht allein wegen des SNS-Wunschs ergänzen. LF/HF ist kein verlässliches Maß einer sympathovagalen Balance; zusätzliche Kennwerte benötigen einen belegten Mehrwert und eine genaue Protokolldefinition. Keine beliebige Gewichtung aus Puls und HRV als wissenschaftlich validierten Stressscore präsentieren.
-- Subjektive Stressfrage separat als Kontext erhalten. HRV-/Pulsabweichungen können ebenso durch Training, Infekt, Schlaf, Temperatur, Flüssigkeit oder Atmung entstehen. Aus einer Einzelmessung keinen zuverlässigen psychischen Stress oder eine Erkrankung diagnostizieren.
+1. [Laborde, Mosley & Thayer2017](https://doi.org/10.3389/fpsyg.2017.00213): HRV und kardiale vagale Regulation; RMSSD, Logarithmierung, Messbedingungen und Grenzen der LF/HF-Deutung.
+2. [Shaffer & Ginsberg2017](https://doi.org/10.3389/fpubh.2017.00258): Kennwerte, Normen, Protokoll-/Dauerabhängigkeit und Kontext.
+3. [Billman2013](https://doi.org/10.3389/fphys.2013.00026): LF/HF ist kein genaues Maß der sympathovagalen Balance; keine einfache reziproke Bilanz beider Zweige.
+4. [Kim et al.2018](https://doi.org/10.30773/pi.2017.08.17): Zusammenhang HRV/Stress auf Studienebene; keine Validierung unseres persönlichen Index oder individueller Diagnosen.
 
-Gelesene frei zugängliche Fachquellen am01.11.2026:
+Kubios-Vorarbeit: [ANS-Funktion](https://www.kubios.com/blog/hrv-ans-function/), [Analyseverfahren](https://www.kubios.com/blog/hrv-analysis-methods/) und [älteres Handbuch v3.5](https://www.kubios.com/downloads/Kubios_HRV_Users_Guide.pdf). Dort PNS aus mittleremRR, RMSSD und normalisiertemSD1, SNS aus mittlererHF, Baevsky-Stressmaß und normalisiertemSD2, standardisiert gegen Ruhe-Populationsnormen. Gewichtung proprietär. Das ist nicht unsere Formel; ±2 kein physiologischer Maximalwert.
 
-1. [Laborde, Mosley & Thayer2017: HRV and Cardiac Vagal Tone – Recommendations](https://doi.org/10.3389/fpsyg.2017.00213): RMSSD als vagal relevantes Maß, Logarithmierung, Messbedingungen und Grenzen der LF/HF-Deutung.
-2. [Shaffer & Ginsberg2017: An Overview of HRV Metrics and Norms](https://doi.org/10.3389/fpubh.2017.00258): Bedeutung kurzfristiger Kennwerte, Protokoll-/Dauerabhängigkeit und Kontext.
-3. [Billman2013: The LF/HF ratio does not accurately measure cardiac sympatho-vagal balance](https://doi.org/10.3389/fphys.2013.00026): keine einfache Trennung oder reziproke Bilanz beider autonomer Zweige.
-4. [Kim et al.2018: Stress and Heart Rate Variability – A Meta-Analysis and Review](https://doi.org/10.30773/pi.2017.08.17): Zusammenhang mit Stress auf Studienebene, keine Validierung unseres persönlichen z-Index oder einer individuellen Diagnose.
-
-Diese Empfehlung ändert noch keine Formel, Beschriftung oder Funktion der App. Insbesondere die bisher gewünschte Beschriftung „SNS-Index“ bleibt fachlich klärungsbedürftig; die ehrliche Alternative ist „Aktivierung“.
+Implementierung: `HrvAutonomicIndices`, angebunden auf dem bestehenden HRV-Speicherworker über `HrvDailyAssessment.from`. Keine Datei-/RR-Auswertung beim Zeichnen, kein zusätzlicher persistierter Score.

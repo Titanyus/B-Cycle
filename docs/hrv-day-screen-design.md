@@ -1,6 +1,6 @@
 # HRV-Tagesscreen: Nutzermockup – 01.11.2026
 
-Gestaltungsvorgabe erhalten, aktuell Plausibilitäts-/Vollständigkeitsbesprechung. Keine offenen Indexformeln stillschweigend festlegen. Die Darstellung wurde nachfolgend präzisiert; Berechnung und bestehende Tagesempfehlung erhalten. Die vorgemerkte gemeinsame Tages-/Detailauswertung und danach die Dashboard-Gesten bleiben Teil der Aufgabenfolge.
+Am01.11.2026 umgesetzt. Bestehende HRV-/Puls-Korridore und Tagesempfehlung erhalten. Eigene persönliche Indizes ausdrücklich bestätigt: PNS aus lnRMSSD, zweiter Balken als Aktivierungsindex aus Ruhepuls; Details in hrv-autonomic-index-proposal.md. Gemeinsame Tages-/Verlaufsauswertung umgesetzt, Dashboard-Gesten danach als eigener Änderungsschritt.
 
 ## Zweigeteilter Kreis
 
@@ -19,14 +19,14 @@ Gestaltungsvorgabe erhalten, aktuell Plausibilitäts-/Vollständigkeitsbesprechu
 
 Zusätzliche ausdrückliche Nutzervorgabe: Den pulsierenden Glow innerhalb des Messkreises auch im Tagesscreen verwenden, dort dauerhaft und ohne Pulsieren. Dessen Maximalwert/Spitzenintensität aus dem Messscreen übernehmen, keine neue stärkere Intensität erfinden. Farbe entsprechend der HRV-Auswertung (bei gutem Wert leichtes Grün). Der Glow liegt gemeinsam im gesamten Kreis hinter beiden Bereichen; keine getrennte Einfärbung oder Intensität für HRV- und Pulshälfte. Ruhepulswert/-bogen weiterhin weiß. Bereits bestehende funktionale HRV-Glow-Darstellung in Flat/Glow berücksichtigen. Die präzisierte bisherige HRV-Einordnung verwenden, keine Warnfarbe allein wegen hohen HRV-Werts oberhalb des Korridors.
 
-## PNS-/SNS-Balken
+## PNS-/Aktivierungsbalken
 
-- Unter dem Kreis nach Mockup zuerstPNS, dannSNS; je links Indexname, rechts Zahlenwert.
+- Unter dem Kreis nach Mockup zuerstPNS, dannAktivierung; je links Indexname, rechts Zahlenwert.
 - Ähnliche horizontale Bahn wie bisheriger HRV-Bereichsbalken, Dicke wie Messkreis/Ruhepulsbogen.
 - Null liegt in der Mitte. Füllung von dort je nach Vorzeichen nach links oder rechts.
 - Füllung am Nullpunkt gerade abschneiden, nur das äußere linke/rechte Ende abrunden.
 - Mittige FOREGROUND-Linie steht3dp über; darunter kleine„0“.
-- Skalierung vom Nutzer präzisiert: Auch hier mittlere50% für den persönlichen Normbereich, links/rechts je25% Puffer;0 bleibt in der Mitte. Als nachvollziehbare normierte Darstellung bietet sich Normalbereich−1…+1 innerhalb einer sichtbaren Skala−2…+2 an. Konkrete eigene Indexformel/Referenz weiterhin offen; diese Darstellungsdefinition nicht als bereits implementierte oder validierte Berechnung ausgeben. Werte außerhalb der sichtbaren Skala nicht rechnerisch begrenzen, tatsächlichen Zahlenwert erhalten. PNS/SNS benötigen begründete semantische Farben; siehe hrv-autonomic-index-proposal.md.
+- Mittlere50% zeigen persönliche Abweichungen−1…+1, außen25% Puffer bis−2/+2. Tatsächliche Zahlenwerte nicht begrenzen. Ohne ausreichende Referenz „–“. Beide Balken FOREGROUND ohne erfundene Stress-/Warnschwellen. Berechnung und wissenschaftliche Grenzen in hrv-autonomic-index-proposal.md und In-App-Hilfe erklärt.
 
 ## Empfehlung und Ablauf
 
