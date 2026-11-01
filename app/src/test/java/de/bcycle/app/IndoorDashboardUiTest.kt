@@ -84,6 +84,36 @@ class IndoorDashboardUiTest {
             field.setBoolean(runtime,false);render.invoke(a);assertFalse(cue.running)
         } finally { field.setBoolean(runtime,false);host.pause().stop().destroy() }
     }
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun recordingCueSleepsDuringStableStatesAndCancelsPendingTransitions() {
+        org.robolectric.shadows.ShadowChoreographer.setFrameDelay(java.time.Duration.ofMillis(16))
+        android.animation.ValueAnimator::class.java.getDeclaredMethod("setDurationScale",Float::class.javaPrimitiveType).invoke(null,1f)
+        org.robolectric.shadows.ShadowChoreographer.setPaused(true)
+        val app=RuntimeEnvironment.getApplication();var redraws=0
+        val cue=RecordingButtonIndicator(app,android.graphics.Color.WHITE) { redraws++ }
+        val main=shadowOf(android.os.Looper.getMainLooper())
+        fun advance(ms:Long)=main.idleFor(java.time.Duration.ofMillis(ms))
+        fun animator()=RecordingButtonIndicator::class.java.getDeclaredField("animator").apply { isAccessible=true }.get(cue) as android.animation.ValueAnimator
+        try {
+            cue.setAnimating(true);assertTrue(cue.running);assertFalse(cue.transitioning)
+            val initial=redraws;advance(1400);assertEquals(initial,redraws)
+            cue.setAnimating(true);advance(100);assertTrue(cue.transitioning)
+            animator().currentPlayTime=250
+            assertEquals(.5f,cue.dotFraction,.001f)
+            advance(500);animator().end();main.idle()
+            assertFalse(cue.transitioning);assertEquals(1f,cue.dotFraction,0f)
+            val stable=redraws;advance(1400);assertEquals(stable,redraws)
+            advance(100);assertTrue(cue.transitioning);animator().currentPlayTime=250
+            assertEquals(.5f,cue.dotFraction,.001f)
+            advance(500);animator().end();main.idle()
+            assertFalse(cue.transitioning);assertEquals(0f,cue.dotFraction,0f)
+            val next=redraws;advance(1200);assertEquals(next,redraws)
+            cue.stop();assertFalse(cue.running);advance(2000);assertEquals(next,redraws)
+            cue.setAnimating(true);advance(1500);assertTrue(cue.transitioning);animator().currentPlayTime=250
+            cue.stop();val stopped=redraws;advance(5000)
+            assertFalse(cue.running);assertFalse(cue.transitioning);assertEquals(0f,cue.dotFraction,0f);assertEquals(stopped,redraws)
+        } finally { cue.stop();org.robolectric.shadows.ShadowChoreographer.setPaused(false) }
+    }
     @Test fun recordingCueHasTwoSecondStatesWithSoftTransitions() {
         assertEquals(0f,RecordingButtonIndicator.dotAt(0),0f)
         assertEquals(0f,RecordingButtonIndicator.dotAt(1_500),0f)

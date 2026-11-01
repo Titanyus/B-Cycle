@@ -1,6 +1,11 @@
 package de.bcycle.app
 
 import android.animation.ValueAnimator
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
@@ -26,18 +31,55 @@ internal class RecordingButtonIndicator(context:Context,private val foreground:I
     private var animator:ValueAnimator?=null
     private var opacity=255
     internal var dotFraction=0f;private set
-    internal val running get()=animator?.isStarted==true
+    private val handler=Handler(Looper.getMainLooper())
+    private var startedAt=0L
+    private val advance=Runnable { advanceCycle() }
+    internal var running=false;private set
+    internal val transitioning get()=animator?.isStarted==true
+    private fun showFraction(value:Float) {
+        if(dotFraction==value) return
+        dotFraction=value;redraw()
+    }
     fun setAnimating(enabled:Boolean) {
         if(!enabled) { if(running || dotFraction!=0f) stop();return }
         if(running) return
-        if(!ValueAnimator.areAnimatorsEnabled()) { dotFraction=1f;redraw();return }
-        animator=ValueAnimator.ofFloat(0f,CYCLE_MS.toFloat()).apply {
-            duration=CYCLE_MS;repeatCount=ValueAnimator.INFINITE;interpolator=LinearInterpolator()
-            addUpdateListener { dotFraction=dotAt((it.animatedValue as Float).toLong());redraw() }
-            start()
-        }
+        if(!ValueAnimator.areAnimatorsEnabled()) { showFraction(1f);return }
+        running=true;startedAt=SystemClock.uptimeMillis();advanceCycle()
     }
-    fun stop() { animator?.cancel();animator=null;dotFraction=0f;redraw() }
+    private fun advanceCycle() {
+        if(!running) return
+        if(!ValueAnimator.areAnimatorsEnabled()) { stop();showFraction(1f);return }
+        val now=SystemClock.uptimeMillis()
+        val phase=Math.floorMod(now-startedAt,CYCLE_MS)
+        showFraction(dotAt(phase))
+        val boundary=when {
+            phase<1500->1500L
+            phase<2000->2000L
+            phase<3500->3500L
+            else->CYCLE_MS
+        }
+        if(phase<1500 || phase in 2000..3499) {
+            // No animator or frame callbacks while the symbol remains unchanged.
+            handler.postAtTime(advance,now+boundary-phase)
+            return
+        }
+        animator=ValueAnimator.ofFloat(phase.toFloat(),boundary.toFloat()).apply {
+            duration=boundary-phase;interpolator=LinearInterpolator()
+            addUpdateListener { showFraction(dotAt((it.animatedValue as Float).toLong())) }
+            addListener(object:AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation:Animator) {
+                    if(!running || animator!==animation) return
+                    animator=null;handler.post(advance)
+                }
+            })
+        }
+        animator?.start()
+    }
+    fun stop() {
+        running=false;handler.removeCallbacks(advance)
+        val previous=animator;animator=null;previous?.cancel()
+        showFraction(0f)
+    }
     override fun onBoundsChange(bounds:Rect) { stop.bounds=bounds }
     override fun draw(canvas:Canvas) {
         stop.alpha=((1-dotFraction)*opacity).toInt();stop.draw(canvas)

@@ -1,6 +1,6 @@
 # Dashboard während der Fahrt: CPU/GPU und möglicher Akkuschonmodus
 
-Stand01.11.2026, Quellprüfung nach Build118. Analyse beauftragt, noch keine Energiesparfunktion implementiert. Die Bewertung ist eine begründete Schätzung, keine Messung. Annahme: Outdoorfahrt mit sichtbarem Dashboard, GPS-Folgen, eingeschaltetem Bildschirm, verbundenen Sensoren und gegebenenfalls Graphen/gespeicherten Strecken. Geräte, Kartengröße, Punktzahlen und Dashboardkonfiguration können die Rangfolge verändern. Prozentwerte einer CPU-/GPU-Auslastung oder Akkuersparnis wären ohne Messung nicht belastbar.
+Stand01.11.2026, Quellprüfung nach Build118. Analyse beauftragt; anschließend nur die unten beschriebene Aufnahmeanimation bereits optimiert. Noch kein Akkuschonmodus implementiert. Die Bewertung ist eine begründete Schätzung, keine Messung. Annahme: Outdoorfahrt mit sichtbarem Dashboard, GPS-Folgen, eingeschaltetem Bildschirm, verbundenen Sensoren und gegebenenfalls Graphen/gespeicherten Strecken. Geräte, Kartengröße, Punktzahlen und Dashboardkonfiguration können die Rangfolge verändern. Prozentwerte einer CPU-/GPU-Auslastung oder Akkuersparnis wären ohne Messung nicht belastbar.
 
 ## Wahrscheinliche Rangfolge
 
@@ -77,3 +77,9 @@ VTM kann vorbereitete Vektorgeometrie effizient auf der GPU bewegen. Das beseiti
 4. Dunkler Vektorstil, offlinefähige Quelle und vorbereitete Streckengeometrie im Rahmen einer möglichen VTM-Umstellung.
 
 Erwartung: hoher Effekt auf die Grafiklast mit bewegter Karte, mittlerer bis hoher Effekt auf unnötige UI-CPU-Arbeit. Ohne Karte fallen Aufnahme-/Graphanimationen und Ereignisbündelung stärker ins Gewicht. Eine seriöse Prozentzahl für die gesamte Akkulaufzeit lässt sich aus dem Code nicht ableiten. Für spätere Bestätigung genügen zunächst identische kurze Fahr-/GPS-Replay-Szenarien mit gleicher Helligkeit: Normal/Sparmodus, mit/ohne Karte, mit/ohne kurze Graphfenster; CPU-/Frameprofil und Energieindikatoren getrennt betrachten. Keine Tests oder Produktänderungen allein für diese Analyse durchgeführt.
+
+## Bereits für Build119 umgesetzt
+
+Auf Nutzerauftrag ist die Aufnahmeanzeige nun schon im Normalbetrieb optimiert: Zwei500-ms-Übergangsanimatoren, dazwischen je1,5s Ruhe ohne laufenden Animator oder Frame-Callbacks. Ein geplanter Handler-Weckzeitpunkt startet den nächsten Übergang, Aus-/Appwechsel entfernt ihn. Vier-Sekunden-Zyklus und Kosinusüberblendung bleiben erhalten, wiederholte Render-Aufrufe starten den Zyklus nicht neu.75% der Zyklusdauer benötigen damit keine eigenen Animationsframes; das ist keine Aussage über die Gesamtersparnis.
+
+Ausdrückliche Entscheidung: Trainingshilfe bleibt aktuell weich überblendet. Harte Farbwechsel erst im späteren Akkuschonmodus. Karte, Datenanzeige und Graphen bislang unverändert.

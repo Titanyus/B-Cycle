@@ -37,4 +37,4 @@ APK0.8.78/code148 jetzt beauftragt, ausschließlichGitHubActions. Dauerhafte Sig
 
 ## Aktueller Zusatzauftrag
 
-CPU-/GPU-Schätzung in [dashboard-energy-analysis.md](dashboard-energy-analysis.md) erstellt. Keine Optimierung implementieren; VTM bislang nur besprochen. Danach neue APK mit bisherigen HRV-/Einstellungsänderungen veröffentlichen und tatsächlichen Download prüfen.
+CPU-/GPU-Schätzung in [dashboard-energy-analysis.md](dashboard-energy-analysis.md) erstellt. Auf zusätzlichen Auftrag Aufnahmeanimation optimiert:500-ms-Übergänge mit je1,5s Ruhe, unveränderter4-s-Zyklus; Tests `recording-cue-idle-tests.log` und `recording-cue-idle-final-test.log`. Trainingshilfe ausdrücklich weiterhin weich; harte Farben erst im künftigen Sparmodus. VTM bislang nur besprochen. Danach neue APK mit bisherigen HRV-/Einstellungsänderungen veröffentlichen und tatsächlichen Download prüfen.
