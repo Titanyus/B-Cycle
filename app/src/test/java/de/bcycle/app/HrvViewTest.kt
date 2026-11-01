@@ -80,7 +80,8 @@ class HrvViewTest {
                 return values.count { it==color }>50
             }
             val graph=view.findViewWithTag<View>("hrv_graph")
-            assertEquals(286,graph.height)
+            assertEquals(315,graph.height)
+            assertEquals(36,graph.top-(view.findViewWithTag<View>("hrv_circle").parent as View).bottom)
             val graphBitmap=android.graphics.Bitmap.createBitmap(graph.width,graph.height,android.graphics.Bitmap.Config.ARGB_8888)
             graph.draw(android.graphics.Canvas(graphBitmap))
             // Axis glyph interiors retain 50% alpha even on a transparent canvas.

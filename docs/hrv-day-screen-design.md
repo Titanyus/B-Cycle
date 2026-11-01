@@ -43,3 +43,7 @@ HRV- und Puls-Grenzwerte sind genau die bereits aus den bestehenden Korridoren b
 Nach Build117 kompakter: Empfehlung, HRV-Begründung und subjektives Befinden in einem durchgehenden Absatz, Empfehlung weiterhin hervorgehoben/funktional gefärbt. Zusätzliche Zeitraum-/„von4 Tagen“-Zeile entfällt; berechnete Daten/Empfehlungslogik unverändert. Textbutton „Zur genauen Auswertung“ bleibt. Obere Grenzwertbeschriftungen3dp höher, untere3dp tiefer; Markierungslinien unverändert.
 
 Oberer Seitenabstand für Mess- und gemeinsame Auswertungsseite von16dp auf8dp reduziert. Im echten360-dp-Layout betrug der Abstand Header→sichtbarer Kreisrand zuvor ca.21,9dp (Messung) bzw.27,8dp (Tag), danach ca.13,9/19,8dp; der Unterschied stammt aus der Kreiszeichnung, nicht aus zusätzlichen Seitenrändern. Zwei gezielte native Fälle erfolgreich in `hrv-compact-header-label-tests.log` (echte Header-/Kreispositionen, kompakter Text/fehlende Werte und beide Designs), Vorschau visuell geprüft. Keine neue APK beauftragt.
+
+### Verfeinerung nach Build118
+
+Die hervorgehobene Kurzempfehlung (z.B. „Heute Intensität begrenzen.“) steht in einer eigenen Zeile. Danach folgen HRV-Begründung und subjektives Befinden zusammen ohne weiteren Absatz. Berechnung unverändert.

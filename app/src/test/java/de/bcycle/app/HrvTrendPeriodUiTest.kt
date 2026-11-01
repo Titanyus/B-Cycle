@@ -215,9 +215,10 @@ class HrvTrendPeriodUiTest {
             assertNull(view.findViewWithTag<View>("hrv_trend_selected"))
             assertEquals(rows.size,HrvTrendAggregation.series(series.getValue(HrvTrendMetric.RMSSD),HrvTrendPeriod.MONTH).single().sampleDays)
             view.findViewWithTag<View>("hrv_trend_more").performClick()
-            view.findViewWithTag<View>("hrv_trend_HF").performClick()
+            val hf=view.metricPopup!!.contentView.findViewWithTag<TextView>("hrv_trend_HF")
+            hf.performClick()
             assertEquals(View.VISIBLE,view.findViewWithTag<View>("hrv_trend_empty").visibility)
-            assertTrue(view.findViewWithTag<TextView>("hrv_trend_HF").text.toString().endsWith("—"))
+            assertTrue(hf.text.toString().endsWith("—"))
             assertNull(view.findViewWithTag<View>("hrv_trend_statistics"))
         } finally { host.pause().stop().destroy() }
     }

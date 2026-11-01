@@ -65,7 +65,7 @@ class HrvDailyAssessmentUiTest {
                 val scroll=ScrollView(a).apply { addView(content) };a.setContentView(scroll)
                 scroll.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(900,View.MeasureSpec.EXACTLY));scroll.layout(0,0,width,900)
                 val advice=content.findViewWithTag<TextView>("hrva_advice").text.toString()
-                assertTrue(advice.startsWith(a.getString(data.advice.label)+". "));assertFalse(advice.contains('\n'))
+                assertTrue(advice.startsWith(a.getString(data.advice.label)+".\n"));assertEquals(1,advice.count { it=='\n' })
                 assertNull(content.findViewWithTag<View>("hrva_subjective_period"))
                 assertTrue(content.findViewWithTag<View>("hrva_circle").contentDescription.toString().contains("52 bpm"))
                 assertNull(content.findViewWithTag<View>("hrva_advice_text").background)
@@ -75,7 +75,7 @@ class HrvDailyAssessmentUiTest {
             }
             val missing=HrvDailyAssessmentView(a,themes,HrvDailyAssessment(day,hrv.copy(value=null,lower=null,upper=null),null,null,0))
             assertTrue(missing.findViewWithTag<View>("hrva_circle").contentDescription.toString().contains(a.getString(R.string.hrva_range_missing)))
-            assertTrue(missing.findViewWithTag<TextView>("hrva_advice").text.startsWith(a.getString(R.string.hrva_unavailable)+". "))
+            assertTrue(missing.findViewWithTag<TextView>("hrva_advice").text.startsWith(a.getString(R.string.hrva_unavailable)+".\n"))
             assertEquals(a.getString(R.string.hrva_index_missing),missing.findViewWithTag<View>("hrva_pns").findViewWithTag<TextView>("hrva_index_value").text.toString())
         } finally { host.pause().stop().destroy() }
     }

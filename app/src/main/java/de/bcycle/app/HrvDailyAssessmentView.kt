@@ -30,9 +30,9 @@ internal class HrvDailyAssessmentView(context:Context,themes:ThemeManager,val as
                 HrvSubjectiveState.MIXED->R.string.hrva_subjective_mixed;HrvSubjectiveState.POOR->R.string.hrva_subjective_poor
             }
             val advice=context.getString(assessment.advice.label)
-            val paragraph=android.text.SpannableStringBuilder("$advice. ${context.getString(reason)} ${context.getString(feeling)}").apply {
-                setSpan(android.text.style.TypefaceSpan(BicycleDesign.strongTypeface),0,advice.length,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                setSpan(android.text.style.ForegroundColorSpan(assessment.advice.color),0,advice.length,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            val paragraph=android.text.SpannableStringBuilder("$advice.\n${context.getString(reason)} ${context.getString(feeling)}").apply {
+                setSpan(android.text.style.TypefaceSpan(BicycleDesign.strongTypeface),0,advice.length+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                setSpan(android.text.style.ForegroundColorSpan(assessment.advice.color),0,advice.length+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
             addView(BicycleComponents.text(context,themes,"").apply { tag="hrva_advice";text=paragraph },LayoutParams(-1,-2))
         },LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,24) })

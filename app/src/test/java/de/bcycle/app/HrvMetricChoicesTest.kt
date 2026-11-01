@@ -37,25 +37,40 @@ class HrvMetricChoicesTest {
                 fun layout() { scroll.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY));scroll.layout(0,0,width,1000) }
                 layout()
                 val primary=view.findViewWithTag<RadioGroup>("hrv_trend_metrics")
-                val extra=view.findViewWithTag<RadioGroup>("hrv_trend_advanced")
                 val more=view.findViewWithTag<BicycleSegmentButton>("hrv_trend_more")
-                assertEquals(5,primary.childCount);assertEquals(3,extra.childCount)
+                assertEquals(5,primary.childCount);assertNull(view.metricPopup)
                 assertEquals(listOf("hrv_trend_HRV","hrv_trend_HR","hrv_trend_SDNN","hrv_trend_RMSSD","hrv_trend_more"),(0 until primary.childCount).map { primary.getChildAt(it).tag })
-                assertEquals(View.GONE,extra.visibility);assertTrue((primary.getChildAt(0) as BicycleSegmentButton).isChecked)
+                assertTrue((primary.getChildAt(0) as BicycleSegmentButton).isChecked)
                 val chart=view.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
                 assertEquals(HrvTrendAxis.from(series.getValue(HrvTrendMetric.HRV),HrvTrendMetric.HRV),chart.axis)
-                for(i in 0 until primary.childCount) assertTrue(primary.getChildAt(i).width>=48)
+                for(i in 0 until primary.childCount) {
+                    val tile=primary.getChildAt(i) as BicycleSegmentButton
+                    assertTrue(tile.width>=48)
+                    assertEquals("full tile height: ${tile.tag}",primary.paddingTop,tile.top)
+                    assertEquals("full highlight height: ${tile.tag}",primary.height-primary.paddingBottom,tile.bottom)
+                    val textCenter=tile.top+tile.baseline-tile.layout.getLineBaseline(0)+tile.layout.height/2f
+                    assertEquals("centred text: ${tile.tag}",primary.height/2f,textCenter,1f)
+                }
                 assertEquals("More label must fit",1,more.lineCount)
+                val chartTop=chart.top
                 more.performClick();layout()
-                assertEquals(View.VISIBLE,extra.visibility);assertFalse(more.isChecked)
+                val popup=checkNotNull(view.metricPopup)
+                val extra=popup.contentView as RadioGroup
+                extra.measure(View.MeasureSpec.makeMeasureSpec(popup.width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
+                extra.layout(0,0,popup.width,extra.measuredHeight)
+                assertTrue(popup.isShowing);assertEquals(3,extra.childCount);assertFalse(more.isChecked)
+                assertEquals(chartTop,chart.top)
+                assertEquals((2..4).sumOf { primary.getChildAt(it).width }+extra.paddingLeft+extra.paddingRight,popup.width)
+                for(i in 0 until extra.childCount) assertEquals(primary.getChildAt(i+2).width,extra.getChildAt(i).width)
                 assertTrue((primary.getChildAt(0) as BicycleSegmentButton).isChecked)
                 for(metric in listOf(HrvTrendMetric.PNN50,HrvTrendMetric.LF,HrvTrendMetric.HF)) {
-                    val choice=view.findViewWithTag<BicycleSegmentButton>("hrv_trend_${metric.name}")
-                    choice.performClick();assertTrue(choice.isChecked);assertTrue(more.isChecked)
+                    if(view.metricPopup==null) more.performClick()
+                    val choice=view.metricPopup!!.contentView.findViewWithTag<BicycleSegmentButton>("hrv_trend_${metric.name}")
+                    choice.performClick();assertTrue(choice.isChecked);assertTrue(more.isChecked);assertNull(view.metricPopup)
                     assertFalse((primary.getChildAt(0) as BicycleSegmentButton).isChecked)
                     assertEquals(HrvTrendAxis.from(series.getValue(metric),metric),chart.axis)
                 }
-                more.performClick();assertEquals(View.GONE,extra.visibility);assertTrue(more.isChecked)
+                more.performClick();assertTrue(more.isChecked)
                 view.findViewWithTag<View>("hrv_trend_HRV").performClick();assertFalse(more.isChecked)
                 assertTrue((primary.getChildAt(0) as BicycleSegmentButton).isChecked)
                 more.performClick();layout()

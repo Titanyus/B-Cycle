@@ -26,8 +26,8 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
     private val axes=mutableMapOf<Pair<HrvTrendPeriod,HrvTrendMetric>,HrvTrendAxis>()
     private val metricButtons=linkedMapOf<HrvTrendMetric,BicycleSegmentButton>()
     private val primaryMetrics=listOf(HrvTrendMetric.HRV,HrvTrendMetric.HR,HrvTrendMetric.SDNN,HrvTrendMetric.RMSSD)
-    private val choices=RadioGroup(context).apply { orientation=HORIZONTAL;tag="hrv_trend_metrics" }
-    private val advancedChoices=RadioGroup(context).apply { orientation=HORIZONTAL;tag="hrv_trend_advanced";visibility=GONE }
+    private val choices=RadioGroup(context).apply { orientation=HORIZONTAL;isBaselineAligned=false;tag="hrv_trend_metrics" }
+    private val advancedChoices=RadioGroup(context).apply { orientation=HORIZONTAL;isBaselineAligned=false;tag="hrv_trend_advanced";visibility=GONE }
     private val moreArrow=android.graphics.drawable.RotateDrawable().apply { fromDegrees=0f;toDegrees=180f }
     private val more=BicycleSegmentButton(context,themes).apply {
         id=generateViewId();tag="hrv_trend_more";text=context.getString(R.string.hrvt_more)
@@ -35,6 +35,8 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         val inset=BicycleDesign.dp(context,BicycleDesign.choiceTextGap)/2;setPadding(inset,0,inset,0)
         compoundDrawablePadding=BicycleDesign.dp(context,2)
     }
+    internal var metricPopup:android.widget.PopupWindow?=null
+        private set
     private var metric=HrvTrendMetric.HRV
     private var resolution=HrvTrendPeriod.DAY
     private var selected:HrvTrendPoint?=null
@@ -89,22 +91,18 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
                 // Let the native RadioGroup finish its checked-state callback before coordinating both rows.
                 setOnClickListener { chooseMetric(candidate) }
             }
-            metricButtons[candidate]=choice;row.addView(choice,RadioGroup.LayoutParams(0,-2,1f))
+            metricButtons[candidate]=choice;row.addView(choice,RadioGroup.LayoutParams(0,-1,1f))
         }
         primaryMetrics.forEach { addMetric(it,choices) }
-        choices.addView(more,RadioGroup.LayoutParams(0,-2,1f))
+        choices.addView(more,RadioGroup.LayoutParams(0,-1,1f))
         listOf(HrvTrendMetric.PNN50,HrvTrendMetric.LF,HrvTrendMetric.HF).forEach { addMetric(it,advancedChoices) }
-        more.setOnClickListener {
-            advancedChoices.visibility=if(advancedChoices.visibility==VISIBLE) GONE else VISIBLE
-            moreArrow.level=if(advancedChoices.visibility==VISIBLE) 10000 else 0
-        }
+        more.setOnClickListener { if(metricPopup!=null) metricPopup?.dismiss() else showMetricPopup() }
         BicycleComponents.bindTheme(more,themes) {
             moreArrow.drawable=BicycleIcons.drawable(context,BicycleIcon.Expand,more.currentTextColor)
             val size=BicycleDesign.dp(context,10);moreArrow.setBounds(0,0,size,size)
             more.setCompoundDrawablesRelative(null,null,moreArrow,null)
         }
         addView(choices,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        addView(advancedChoices,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(caption,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(empty);addView(chart,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvTrendGraphHeight)).apply { marginStart=-pad })
         addView(range)
@@ -132,7 +130,29 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         metric=candidate
         choices.check(if(candidate in primaryMetrics) metricButtons.getValue(candidate).id else more.id)
         if(candidate in primaryMetrics) advancedChoices.clearCheck() else advancedChoices.check(metricButtons.getValue(candidate).id)
+        metricPopup?.dismiss()
         refresh()
+    }
+    private fun showMetricPopup() {
+        val width=(2..4).sumOf { choices.getChildAt(it).width }+advancedChoices.paddingLeft+advancedChoices.paddingRight
+        if(width<=0) return
+        advancedChoices.visibility=VISIBLE
+        val popup=android.widget.PopupWindow(advancedChoices,width,android.view.ViewGroup.LayoutParams.WRAP_CONTENT,true).apply {
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            isOutsideTouchable=true;inputMethodMode=android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED
+            setOnDismissListener {
+                metricPopup=null;moreArrow.level=0
+                more.stateDescription=context.getString(R.string.zone_collapsed)
+                (advancedChoices.parent as? android.view.ViewGroup)?.removeView(advancedChoices)
+                advancedChoices.visibility=GONE
+            }
+        }
+        metricPopup=popup;moreArrow.level=10000;more.stateDescription=context.getString(R.string.zone_expanded)
+        popup.showAsDropDown(choices,0,BicycleDesign.dp(context,BicycleDesign.controlGap),Gravity.END)
+    }
+    override fun onDetachedFromWindow() {
+        metricPopup?.dismiss()
+        super.onDetachedFromWindow()
     }
     private fun applyColors() {
         val colors=if(colorMode==HrvContextMode.STANDARD) null else colorCache.getOrPut(resolution to colorMode) {

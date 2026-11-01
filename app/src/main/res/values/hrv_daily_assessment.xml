@@ -15,7 +15,7 @@
     <string name="hrva_unavailable">Keine Einordnung möglich</string>
     <string name="hrva_collecting_title">Normalbereich aufbauen</string>
     <string name="hrva_plan">Wie geplant trainieren</string>
-    <string name="hrva_limit">Intensität heute begrenzen</string>
+    <string name="hrva_limit">Heute Intensität begrenzen</string>
     <string name="hrva_easy">Heute ruhig angehen</string>
     <string name="hrva_hrv_missing">Für diesen Tag liegt kein auswertbarer HRV-Wert vor.</string>
     <string name="hrva_collecting">Für deinen persönlichen Normalbereich fehlen noch regelmäßige Messungen.</string>

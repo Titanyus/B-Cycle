@@ -34,7 +34,7 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
             })
         },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvCircleHeight)))
         addView(status,LayoutParams(-1,-2))
-        addView(graph,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvGraphHeight)).apply { topMargin=BicycleDesign.dp(context,24) })
+        addView(graph,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvGraphHeight)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.hrvMeasurementGraphGap) })
         BicycleComponents.bindTheme(action,themes) { styleAction() }
         show(controller.state)
     }
