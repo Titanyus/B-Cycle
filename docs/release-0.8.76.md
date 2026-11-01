@@ -10,4 +10,4 @@
 
 Gezielt geprüfte Bereiche: Streckensammlungen/Filter/Importmetadaten/Sicherung und Listendarstellung; HRV-Referenzen, Empfehlung, Ablauf, gemeinsame Tagesauswahl, Footer, Legende und Scrollverhalten; Dashboard-Gesten, Abbruch und Karten-/Editorbedienung. Nur betroffene oder fehlgeschlagene Fälle nach Korrekturen erneut geprüft. Native Vorschauen in Flat/Glow und schmalen Breiten sowie Typografie/Atlas/Diff geprüft. Kein vollständiger Gesamtlauf oder physischer Gerätetest. Bestehende Aufzeichnung, FIT-/NP-Berechnung und HRV-Trainingsempfehlungen unverändert.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-117.md).
