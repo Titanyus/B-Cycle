@@ -20,6 +20,48 @@ import java.time.ZoneId
 @Config(sdk=[33],qualifiers="w360dp-h800dp-mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RouteStickyListTest {
+    @Test fun pinningKeepsAllFourSummaryValuesAndTheirUnitsVisible() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val c=host.get();val themes=ThemeManager(c.getSharedPreferences("sticky-summary",0))
+            val manager=RouteManagerView(c,{},themes).apply { fullscreen=true }
+            c.setContentView(manager)
+            manager.submit((1..20).map { day -> ManagedRoute("r$day","Fahrt $day",false,"FIT",
+                RouteDetails(LocalDate.of(2026,10,day).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                    20000.0,movingMs=3600000),true) },null,false)
+            val list=manager.findViewWithTag<RouteStickyList>("route_list")
+            val bitmap=Bitmap.createBitmap(360,800,Bitmap.Config.ARGB_8888)
+            fun draw() {
+                manager.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY))
+                manager.layout(0,0,360,800);manager.draw(Canvas(bitmap))
+            }
+            try {
+                draw();org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();draw()
+                list.setSelectionFromTop(1,-20);manager.forceLayout();draw()
+                assertNotNull(list.pinnedGroup)
+                val pinned=RouteStickyList::class.java.getDeclaredField("pinned").apply { isAccessible=true }.get(list) as RouteListGroupHeader
+                val readings=testDescendants(pinned).filterIsInstance<RouteListReading>()
+                assertEquals(4,readings.size)
+                val headerImage=Bitmap.createBitmap(pinned.width,pinned.height,Bitmap.Config.ARGB_8888)
+                pinned.draw(Canvas(headerImage))
+                for(reading in readings) {
+                    assertTrue("Summary not measured: ${reading.number.tag}; parent=${reading.parent}; size=${reading.width}x${reading.height}; value=${reading.number.width}x${reading.number.height}",reading.number.width>0 && reading.number.height>0)
+                    assertTrue("Empty text layout: ${reading.number.tag}",(reading.number.layout?.getLineWidth(0) ?: 0f)>0f)
+                    assertTrue(reading.number.text.isNotEmpty())
+                    if(reading.unit.text.isNotEmpty()) assertTrue("Missing unit: ${reading.number.tag}",reading.unit.width>0)
+                    val rect=android.graphics.Rect(0,0,reading.number.width,reading.number.height)
+                    pinned.offsetDescendantRectToMyCoords(reading.number,rect)
+                    var ink=0
+                    for(y in rect.top.coerceAtLeast(0) until rect.bottom.coerceAtMost(headerImage.height))
+                        for(x in rect.left.coerceAtLeast(0) until rect.right.coerceAtMost(headerImage.width))
+                            if(headerImage.getPixel(x,y)==themes.active.tokens.foreground) ink++
+                    assertTrue("Value not painted: ${reading.number.tag}; ink=$ink; requested=${pinned.isLayoutRequested}; size=${reading.number.textSize}, baseline=${reading.number.baseline}, height=${reading.number.height}; lineLeft=${reading.number.layout.getLineLeft(0)}, layoutWidth=${reading.number.layout.width}, scroll=${reading.number.scrollX}",ink>0)
+                }
+                headerImage.recycle()
+                java.io.File("build/reports/ui/route-sticky-summary.png").apply { parentFile!!.mkdirs() }.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+            } finally { bitmap.recycle() }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun independentGroupHeadersPinPushAndNeverSelectTheCoveredRide() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

@@ -28,6 +28,10 @@ internal class RouteListGroupHeader(context:Context,themes:ThemeManager):LinearL
         addView(LinearLayout(context).apply {
             orientation=HORIZONTAL;isBaselineAligned=false
             listOf(count,distance,moving,average).forEachIndexed { index,reading ->
+                // The pinned copy is drawn detached: it has no TextView pre-draw to scroll a
+                // single-line VERY_WIDE layout back into view. Keep text inside the measured cell.
+                reading.number.setHorizontallyScrolling(false)
+                reading.unit.setHorizontallyScrolling(false)
                 if(index>0) addView(BicycleComponents.divider(context,themes).apply { tag="route_group_divider_$index" },LayoutParams(BicycleDesign.linePixels(context),-1))
                 addView(reading,LayoutParams(0,-2,1f))
             }

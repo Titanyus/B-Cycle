@@ -39,3 +39,10 @@ Prüfung der Korrekturen nachBuild113:32 relevante Tests, nach dem gefundenen Te
 Veröffentlichung der Korrekturen nachBuild113: [0.8.73/Build114](build-114.md).
 
 Korrektur nach Build116: Alle vier Werte samt Einheiten beim ListView-Recycling ausdrücklich einzeilig halten und beim Neubinden Zahl, Einheit, Wertezeile sowie Fahrtkarte neu vermessen. So bleibt keine alte Breite einer zuvor angezeigten Fahrt erhalten. Bisherige native Textgrößenanpassung und Maximalgrößen bleiben erhalten. Der gezielte native Regressionstest scrollt bei320/360/420dp weit weg/zurück und prüft Datum, Distanz, Fahrzeit und Tempo auf vollständige einzeilige Layouts innerhalb ihrer Zellen (`route-reading-bind-remeasure-final-tests.log`).
+
+
+## Nach Build117: Summen beim Anheften sichtbar halten
+
+Der normale Kopf zeigte seine vier Werte, die separat und ohne Fensteranbindung gezeichnete Sticky-Kopie dagegen nur Titel/Labels. Einzeilige zentrierte TextViews verwendeten horizontal scrollbare, überbreite Textlayouts; die angeheftete Kopie erhält keinen normalen Fenster-Pre-Draw, der die Ziffern wieder ins Sichtfeld scrollt. Nur im RouteListGroupHeader bei Wert und Einheit horizontales Textscrollen deaktiviert. Einzeiligkeit, native automatische Schriftgrößenanpassung und bestehende Geometrie bleiben erhalten. Gilt auch für Distanz-/Zeit-/Tempogruppen; Fahrtzeilen unverändert.
+
+Gezielte Reproduktion prüft echte Vordergrundpixel für alle vier angehefteten Zahlen statt nur positive Maße oder vorhandenen Text. Vor Korrektur fehlgeschlagen (keine gezeichneten Ziffern), danach erfolgreich. Insgesamt drei relevante Fälle erfolgreich in `route-sticky-summary-fixed-tests.log`: Pixelregression, vorhandenes Anheften/Verdrängen/Berührung in Flat/Glow sowie Gruppenkopfwerte/Einheiten/Recycling/Filter. Native Vorschau visuell geprüft; kein Gesamtlauf oder physischer Gerätetest. Noch keine neue APK beauftragt.
