@@ -103,6 +103,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         if(!preserveSelection) { actionDay=null;chart.actionDay=null;footerVisibility.temporary(false);questionnaire.isEnabled=false;measurement.isEnabled=false;remove.isEnabled=false }
         refresh()
     }
+    fun focusDay(day:LocalDate) { activeDay=day;refresh();chart.focusDay(day) }
     private fun applyColors() {
         val colors=if(colorMode==HrvContextMode.STANDARD) null else colorCache.getOrPut(resolution to colorMode) {
             contextGroups.getOrPut(resolution) { HrvContextColors.aggregate(contextData,resolution) }

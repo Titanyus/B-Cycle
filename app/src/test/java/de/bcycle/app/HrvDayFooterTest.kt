@@ -144,4 +144,44 @@ class HrvDayFooterTest {
             screen.dismiss()
         } finally { host.pause().stop().destroy() }
     }
+    @Test @Config(qualifiers="w360dp-h1000dp-mdpi") fun horizontalDaySwipesUseTheSharedMotionAndKeepTitleChartAndFooterSynchronized() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        try {
+            val a=host.get();val controller=RideRuntime.get(a).hrv;drain(controller)
+            val today=LocalDate.now();val yesterday=today.minusDays(1)
+            val store=HrvStore(File(a.filesDir,"hrv-measurements"))
+            Hrv4TrainingCsv.preview("date,time,rMSSD,HR\n$yesterday,07:15,30,65\n$today,07:15,40,60\n".byteInputStream(),ZoneId.systemDefault()).entries.forEach(store::importHrv4Training)
+            MainActivity::class.java.getDeclaredMethod("showHrvTrends").apply { isAccessible=true }.invoke(a)
+            repeat(2) { drain(controller) }
+            val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();val decor=screen.window!!.decorView;layout(decor)
+            decor.findViewWithTag<View>("route_footer_toggle").performClick();layout(decor)
+            val pager=decor.findViewWithTag<DashboardPageViewport>("hrv_day_viewport")
+            assertTrue(pager.height>0)
+            val footer=decor.findViewWithTag<View>("hrv_day_result").parent as View
+            val footerPosition=IntArray(2);footer.getLocationOnScreen(footerPosition)
+            org.robolectric.shadows.ShadowChoreographer.setPaused(true)
+            android.animation.ValueAnimator::class.java.getDeclaredMethod("setDurationScale",Float::class.javaPrimitiveType).invoke(null,1f)
+            fun touch(action:Int,x:Float,time:Long) {
+                MotionEvent.obtain(0,time,action,x,80f,0).also { pager.dispatchTouchEvent(it);it.recycle() }
+            }
+            fun motion()=DashboardPageViewport::class.java.getDeclaredField("animator").apply { isAccessible=true }.get(pager) as android.animation.ValueAnimator
+            fun selected()=decor.findViewWithTag<HrvDailyAssessmentView>("hrv_daily_assessment").assessment.day
+            touch(MotionEvent.ACTION_DOWN,120f,0);touch(MotionEvent.ACTION_MOVE,140f,30)
+            assertEquals(4f,pager.getChildAt(0).translationX,.01f)
+            touch(MotionEvent.ACTION_MOVE,200f,80);touch(MotionEvent.ACTION_UP,200f,90)
+            repeat(2) { drain(controller) };layout(decor);pager.viewTreeObserver.dispatchOnPreDraw()
+            assertTrue("day=${selected()} visible=${RideRuntime.get(a).visible} width=${pager.width} x=${pager.getChildAt(0).translationX}",pager.running);assertEquals(yesterday,selected())
+            assertEquals(yesterday,decor.findViewWithTag<HrvTrendChart>("hrv_trend_chart").actionDay)
+            assertEquals(yesterday.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")),decor.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").text.toString())
+            motion().currentPlayTime=80
+            val after=IntArray(2);footer.getLocationOnScreen(after);assertEquals(footerPosition[1],after[1])
+            motion().end();assertFalse(pager.running);assertEquals(1,pager.childCount)
+            touch(MotionEvent.ACTION_DOWN,180f,1000);touch(MotionEvent.ACTION_MOVE,160f,1030);touch(MotionEvent.ACTION_MOVE,100f,1080);touch(MotionEvent.ACTION_UP,100f,1090)
+            layout(decor);pager.viewTreeObserver.dispatchOnPreDraw();assertEquals(today,selected());motion().end()
+            // Today is the upper boundary: bounce back instead of opening an empty future day.
+            touch(MotionEvent.ACTION_DOWN,180f,2000);touch(MotionEvent.ACTION_MOVE,100f,2080);touch(MotionEvent.ACTION_UP,100f,2090)
+            assertEquals(today,selected());motion().end();assertEquals(0f,pager.getChildAt(0).translationX,0f)
+            screen.dismiss()
+        } finally { org.robolectric.shadows.ShadowChoreographer.setPaused(false);host.pause().stop().destroy() }
+    }
 }

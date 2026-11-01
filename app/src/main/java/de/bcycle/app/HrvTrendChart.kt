@@ -131,6 +131,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         changed()
     }
     private fun select(point:HrvTrendPoint) { selectedId=point.row.id;selected(point);onDaySelected(point.day);if(resolution==HrvTrendPeriod.DAY) onDayTapped(point);invalidate() }
+    fun focusDay(day:LocalDate) { stopFling();viewport.focus(resolution.index(day).toDouble());changed() }
     private fun changed() {
         period(resolution.date(kotlin.math.ceil(viewport.end-viewport.span).toLong()),resolution.end(resolution.date(kotlin.math.floor(viewport.end).toLong())))
         contentDescription=context.getString(R.string.hrvt_period_gestures)+". "+moons.filter { resolution==HrvTrendPeriod.DAY && viewport.contains(it.first) }.joinToString("; ") {

@@ -41,6 +41,20 @@ class DashboardPageViewportTest {
         val event=MotionEvent.obtain(0,time,action,x,y,0)
         try { view.dispatchTouchEvent(event) } finally { event.recycle() }
     }
+    @Test fun velocityHandoffStopsSmoothlyWithoutOvershootingAtAnySupportedInitialSpeed() {
+        for(slope in listOf(0f,.2f,1f,2f,3f,10f)) {
+            val easing=pageHandoffInterpolator(slope)
+            assertEquals(0f,easing.getInterpolation(0f),0f);assertEquals(1f,easing.getInterpolation(1f),.00001f)
+            var previous=0f
+            for(i in 1..1000) {
+                val value=easing.getInterpolation(i/1000f)
+                assertTrue("slope=$slope t=$i value=$value",value>=previous-.000001f && value<=1.000001f)
+                previous=value
+            }
+            assertEquals(slope.coerceAtMost(3f),easing.getInterpolation(.0001f)/.0001f,.002f)
+            assertTrue(1-easing.getInterpolation(.9999f)<.00001f)
+        }
+    }
     @Test fun shortDragFollowsFingerThenCommitsBeforeLiftAndContinuesFromThatPosition() {
         val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
         try {
@@ -52,8 +66,8 @@ class DashboardPageViewportTest {
             viewport.changePage={ delta -> assertEquals(1,delta);viewport.slide(delta) { changes++ } }
             touch(viewport,MotionEvent.ACTION_DOWN,180f)
             touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
-            assertEquals(-20f,page.translationX,.01f);assertEquals(0,changes)
-            touch(viewport,MotionEvent.ACTION_MOVE,125f,time=80)
+            assertEquals(-4f,page.translationX,.01f);assertEquals(0,changes)
+            touch(viewport,MotionEvent.ACTION_MOVE,109f,time=80)
             assertEquals(1,changes);assertTrue(viewport.running)
             val picture=viewport.findViewWithTag<ImageView>("dashboard_page_outgoing")
             assertEquals(-55f,picture.translationX,.01f);assertEquals(305f,page.translationX,.01f)
@@ -61,6 +75,7 @@ class DashboardPageViewportTest {
             assertEquals(1,changes)
             viewport.viewTreeObserver.dispatchOnPreDraw()
             assertTrue(animator(viewport).duration<=300)
+            assertTrue("handoff must start moving, not restart at zero speed",animator(viewport).interpolator.getInterpolation(.001f)>.0001f)
             animator(viewport).currentPlayTime=100
             assertEquals(360f,page.translationX-picture.translationX,.01f)
             animator(viewport).end();assertFalse(viewport.running);assertEquals(0f,page.translationX,0f)
@@ -173,7 +188,7 @@ class DashboardPageViewportTest {
             val change=MainActivity::class.java.getDeclaredMethod("changeDashboard",Int::class.javaPrimitiveType).apply { isAccessible=true }
             touch(viewport,MotionEvent.ACTION_DOWN,180f)
             touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
-            assertEquals(-20f,viewport.getChildAt(0).translationX,.01f)
+            assertEquals(-4f,viewport.getChildAt(0).translationX,.01f)
             touch(viewport,MotionEvent.ACTION_MOVE,110f,time=80)
             touch(viewport,MotionEvent.ACTION_UP,110f,time=90)
             layout(root)

@@ -23,3 +23,12 @@ Native Tests: erste kurze Bewegung folgt direkt; Übernahme vor Loslassen; Forts
 Erster Lauf neun relevante Fälle: sechs bestanden, drei neue Dragfälle machten die verzögerte erste Move-Verarbeitung sichtbar. Nur diese drei nach Korrektur erneut geprüft; Ergebnis in `dashboard-direct-drag-final-tests.log`. Kein Gesamtlauf.
 
 [Native Zwischenansicht](previews/dashboard-page-transition.png) zeigt den bisherigen Übergang mit synthetischen Daten ohne geladene Kartenkacheln. Ursprüngliche Animation veröffentlicht in [Build110](build-110.md); direktes Dragverhalten lokal nach Build116.
+
+
+## Nach Build117: weicher Gestenbeginn und Geschwindigkeitsübergang
+
+Beim Erkennen einer horizontalen Geste den Android-Touchslop vom sichtbaren Weg abziehen. Die Seite beginnt dadurch an der Schwelle bei0, statt um den gesamten seit Touch-Down gesammelten Weg zu springen. Übernahme speichert die aktuelle Fingergeschwindigkeit. Eine monotone kubische Hermite-Kurve setzt diese anfängliche Geschwindigkeit fort und kommt ohne Überschwingen mit Geschwindigkeit0 an; Dauer an Restweg/Geschwindigkeit angepasst, weiterhin höchstens300ms. Programmatische Wechsel ohne Drag behalten ihre bisherige Kurve. Abbruch weiterhin180ms zurück.
+
+Die Komponente wird auch für die HRV-Tagesansicht mit Wrap-Content verwendet. Nicht klickbare Kreisflächen müssen die Bewegung im eigenen Touchhandler erkennen, da Android nach eigenem DOWN keine weitere Elterninterzeption ausführt. Lokale Datenvorbereitung kann die ausgehende Seite kurz halten, statt einen Ladehinweis hereinzuschieben. Focusverlust/Detach/Cancel räumt auf.
+
+Drei gezielte Übergangsfälle erfolgreich in `page-smooth-handoff-tests.log`: Geschwindigkeit am Start, ruhendes Ende/Monotonie, tatsächlicher Fingerübergang und Abbruch. Fünf der sechs integrierten HRV-/Dashboard-/Header-/Scrollfälle sofort erfolgreich in `hrv-day-swipe-smooth-pages-tests.log`; der neue HRV-Gestenfall nach Korrektur der nicht klickbaren Fläche und passender Testfenstergröße erfolgreich in `hrv-day-swipe-final-test.log`. Kein Gesamtlauf oder physischer Gerätetest.

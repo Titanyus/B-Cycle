@@ -18,9 +18,15 @@ Windrose1,8-fach (43,2dp sichtbar bei gleicher24-dp-Ankerfläche), unveränderte
 
 Empfehlung/HRV-Begründung/subjektives Befinden jetzt ein zusammenhängender Absatz; zusätzliche Zeitraum-/Anzahlzeile entfernt. Beiden HRV-Seiten oben8 statt16dp Seitenabstand; sichtbare Kreisränder ca.14/20 statt22/28dp unter dem Header. Obere Grenzwerttexte3dp hoch, untere3dp runter, Linien unverändert. Zwei gezielte Native-Fälle erfolgreich in `hrv-compact-header-label-tests.log`, Vorschau geprüft. [Gestaltung](hrv-day-screen-design.md). Noch unveröffentlicht.
 
-## Aktuell: weichere Seitenwechsel und HRV-Tageswischen
+## Lokale Änderung: weiche Dashboard- und HRV-Tageswechsel
 
-Nutzer wünscht horizontales Wischen im HRV-Tagesbereich zum Tageswechsel mit derselben Animation wie Dashboard. Gemeinsame Tagesauswahl/Header/Diagramm/Empfehlung erhalten. Dashboard am Gestenbeginn ohne Sprung nach Touchschwelle, bei automatischer Übernahme Fingergeschwindigkeit aufnehmen und weich abbremsen; weiterhin schneller, ruhiger Wechsel. Umsetzung als nächster Schritt.
+Touchslop vom sichtbaren Weg abgezogen, dadurch kein Anfangssprung. Aktuelle Fingergeschwindigkeit bei Übernahme in monotone Hermite-Kurve mit ruhendem Ende übernehmen, maximal300ms; Abbruch180ms. Derselbe Viewport jetzt auf HRV-Tagesbereich (Wrap-Content), Kalender-Tagesschritte zwischen frühestem Mess-/Antworttag und heute. Gemeinsame Auswahl, Datum, Empfehlung und Diagrammaktionen erhalten, Footer fest, Diagrammpan außerhalb Tagespager. Ladehinweis nicht animieren; bis lokales Modell bereitsteht alte Seite halten, maximal16 besuchte Tage im RAM-Cache, bei Datenänderungen leeren. Eigene Gestenerkennung für nicht klickbare Kreise. [Übergang](dashboard-page-transition.md), [HRV-Ablauf](hrv-measurement-flow-revision.md).
+
+Drei Übergangsfälle erfolgreich in `page-smooth-handoff-tests.log`; fünf von sechs Integrationsfällen sofort erfolgreich in `hrv-day-swipe-smooth-pages-tests.log`; neuer Tageswischfall nach Korrektur eigener Touchverarbeitung und passender Testfenstergröße erfolgreich in `hrv-day-swipe-final-test.log`. Kein Gesamtlauf/Gerätetest. Noch unveröffentlicht.
+
+## Aktuell: gemeinsame PNS-/Aktivierungsreferenz und Erklärung fehlender Werte
+
+Nutzer ausdrücklich: eine Messhistorie, Importe an der Grenze sauber übernehmen, danach kein separater Datenbestand. PNS/Aktivierung sollen wie bestehender HRV-Korridor die gemeinsame Historie verwenden; Mindestzahl14 gültige frühere Tageswerte innerhalb60 Tagen bleibt. Außerdem kompakter Hinweis statt Strich: Indexname links, rechts „noch XX Tage bis zum ersten Wert“; fehlender Tagesmesswert und fehlende Streuung ebenfalls kurz verständlich benennen. Umsetzung als nächster Schritt.
 
 ## In Build117 enthalten
 

@@ -789,7 +789,8 @@ class MainActivity : Activity() {
         val footer=bicycleFooter(this,runtime.themes)
         val footerControl=BicycleFooterVisibility(this).apply { bindFooter(footer) }
         val daily=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;tag="hrv_daily_assessment_host" }
-        val evaluation=HrvEvaluationScrollView(this,daily,root)
+        val dayPager=DashboardPageViewport(this).apply { tag="hrv_day_viewport";setPage(daily,wrapContent=true) }
+        val evaluation=HrvEvaluationScrollView(this,dayPager,root)
         // Bind before showing the dialog so the shared header discovers the footer toggle immediately.
         val body=object:LinearLayout(this),BicycleFooterPage {
             override val footerVisibility=footerControl
@@ -801,28 +802,50 @@ class MainActivity : Activity() {
         val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true)
             .setTitle(getString(R.string.hrvt_dated_title,selectedDay.format(dateFormat))).setView(body).show()
         var dailyRevision=0
-        fun loadDaily() {
-            val requestedDay=selectedDay;val revision=++dailyRevision
-            screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=getString(R.string.hrvt_dated_title,requestedDay.format(dateFormat))
-            // Keep the history's vertical position while the selected day's worker result is pending.
-            daily.minimumHeight=daily.height
-            daily.removeAllViews()
-            daily.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrvt_loading)))
-            runtime.hrv.dailyAssessment(requestedDay) { outcome ->
-                if(isDestroyed || !screen.isShowing || revision!=dailyRevision || selectedDay!=requestedDay) return@dailyAssessment
-                daily.removeAllViews();daily.minimumHeight=0
-                outcome.fold({ assessment ->
-                    daily.addView(HrvDailyAssessmentView(this,runtime.themes,assessment))
-                    daily.addView(BicycleComponents.textAction(this,runtime.themes,getString(R.string.hrva_details)) { evaluation.showDetails() }.apply { tag="hrva_details" },LinearLayout.LayoutParams(-1,-2))
-                },{ daily.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
-            }
-        }
         var content:HrvTrendsView?=null
+        var firstDay=selectedDay
+        val dailyCache=linkedMapOf<java.time.LocalDate,HrvDailyAssessment>()
+        fun loadDaily(requestedDay:java.time.LocalDate=selectedDay,direction:Int=0) {
+            val revision=++dailyRevision
+            fun title() { screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=getString(R.string.hrvt_dated_title,requestedDay.format(dateFormat)) }
+            if(direction!=0) dayPager.awaitPage() else {
+                dayPager.cancelTransition();selectedDay=requestedDay;title()
+                daily.minimumHeight=daily.height;daily.removeAllViews()
+                daily.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrvt_loading)))
+            }
+            fun show(outcome:Result<HrvDailyAssessment>) {
+                if(isDestroyed || !screen.isShowing || revision!=dailyRevision) return
+                outcome.fold({ assessment ->
+                    dailyCache[requestedDay]=assessment
+                    if(dailyCache.size>16) dailyCache.remove(dailyCache.keys.first())
+                    val change={
+                        selectedDay=requestedDay;title()
+                        daily.removeAllViews();daily.minimumHeight=0
+                        daily.addView(HrvDailyAssessmentView(this,runtime.themes,assessment))
+                        daily.addView(BicycleComponents.textAction(this,runtime.themes,getString(R.string.hrva_details)) { evaluation.showDetails() }.apply { tag="hrva_details" },LinearLayout.LayoutParams(-1,-2))
+                        if(direction!=0) content?.focusDay(requestedDay)
+                    }
+                    if(direction!=0 && runtime.visible) dayPager.slide(direction,change) else { dayPager.cancelTransition();change() }
+                },{
+                    if(direction!=0) { dayPager.returnToPage();BicycleFeedback.show(this,R.string.hrv_result_load_failed) }
+                    else { daily.removeAllViews();daily.minimumHeight=0;daily.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) }
+                })
+            }
+            val cached=dailyCache[requestedDay]
+            if(cached!=null) show(Result.success(cached)) else runtime.hrv.dailyAssessment(requestedDay,::show)
+        }
+        dayPager.swipeEnabledAt={ _,_ -> firstDay<java.time.LocalDate.now() && daily.findViewWithTag<View>("hrv_daily_assessment")!=null }
+        dayPager.changePage={ delta ->
+            val target=selectedDay.plusDays(delta.toLong())
+            if(target<firstDay || target>java.time.LocalDate.now()) dayPager.returnToPage() else loadDaily(target,delta)
+        }
         fun load(preserveSelection:Boolean=false) {
-            loadDaily()
+            dailyCache.clear();loadDaily()
             runtime.hrv.trendsWithContext { result ->
                 if(isDestroyed || screen.window?.decorView?.isAttachedToWindow!=true) return@trendsWithContext
                 result.fold({ presentation ->
+                    firstDay=(presentation.series.getValue(HrvTrendMetric.RMSSD).map { it.day }+presentation.context.keys+java.time.LocalDate.now()).min()
+
                     if(content!=null) content!!.updateSeries(presentation.series,presentation.context,preserveSelection)
                     else {
                         root.removeAllViews();root.setPadding(0,0,0,0)
@@ -843,7 +866,7 @@ class MainActivity : Activity() {
                                     onFailure={ BicycleFeedback.show(this,R.string.hrv_result_load_failed) })
                             }
                         }).apply {
-                            onDaySelected={ day -> if(day!=selectedDay) { selectedDay=day;loadDaily() } }
+                            onDaySelected={ day -> if(day!=selectedDay) loadDaily(day) }
                         }
                         root.addView(content,LinearLayout.LayoutParams(-1,-2))
                     }

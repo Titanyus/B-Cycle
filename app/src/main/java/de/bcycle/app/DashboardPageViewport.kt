@@ -16,6 +16,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import kotlin.math.sqrt
 import kotlin.math.abs
+import kotlin.math.sign
 
 /** Slides one live dashboard/map tree against a short-lived outgoing picture. Footer is outside. */
 internal class DashboardPageViewport(context:Context,
@@ -32,22 +33,30 @@ internal class DashboardPageViewport(context:Context,
     private val touchSlop=ViewConfiguration.get(context).scaledTouchSlop
     private var startX=0f
     private var startY=0f
+    private var dragOriginX=0f
+    private var handoffVelocity=0f
+    private var waitingForPage=false
     private var candidate=false
     private var dragging=false
     private var velocity:VelocityTracker?=null
     private val commitDistance get()=minOf(BicycleDesign.dashboardSwipeCommitDp*resources.displayMetrics.density,width*.15f).coerceAtLeast(touchSlop*3f)
     var running=false;private set
     init { tag="dashboard_page_viewport";clipChildren=true;clipToPadding=true }
-    fun setPage(view:View) {
-        check(page==null);page=view;addView(view,LayoutParams(-1,-1))
+    fun setPage(view:View,wrapContent:Boolean=false) {
+        check(page==null);page=view;addView(view,LayoutParams(-1,if(wrapContent) -2 else -1))
     }
+    /** Retain the outgoing day while its local model is being prepared; do not animate a loading label. */
+    fun awaitPage() { waitingForPage=true }
+    fun returnToPage() { waitingForPage=false;returnDrag() }
     fun slide(direction:Int,change:()->Unit) {
         if(running) return // Consume rapid extra flings without queuing stale page selections.
+        waitingForPage=false
         val live=page
         if(live==null || direction==0 || !animationsEnabled() || !isAttachedToWindow || !isLaidOut || width<=0 || height<=0) {
             cancelTransition();change();return
         }
         val start=live.translationX
+        val speed=handoffVelocity;handoffVelocity=0f
         val shot=capture(live) ?: run { cancelTransition();change();return }
         val token=++generation
         running=true;bitmap=shot
@@ -65,8 +74,11 @@ internal class DashboardPageViewport(context:Context,
                 removePending()
                 if(!running || token!=generation) return true
                 val motion=ValueAnimator.ofFloat(0f,1f).apply {
-                    duration=(BicycleDesign.dashboardPageTransitionMs*(abs(distance+start)/width).coerceIn(.3f,1f)).toLong()
-                    interpolator=PathInterpolator(.2f,0f,.1f,1f)
+                    val remaining=abs(distance+start)
+                    val movingSpeed=if(speed*start>0) abs(speed) else 0f
+                    val base=BicycleDesign.dashboardPageTransitionMs*(remaining/width).coerceIn(.3f,1f)
+                    duration=if(movingSpeed>0) minOf(base,2000*remaining/movingSpeed).toLong().coerceAtLeast(90L) else base.toLong()
+                    interpolator=if(start!=0f) pageHandoffInterpolator(movingSpeed*duration/1000/remaining.coerceAtLeast(1f)) else PathInterpolator(.2f,0f,.1f,1f)
                     addUpdateListener {
                         val fraction=it.animatedValue as Float
                         outgoing.translationX=start-(distance+start)*fraction;live.translationX=outgoing.translationX+distance
@@ -101,6 +113,7 @@ internal class DashboardPageViewport(context:Context,
         pending=null;observer=null
     }
     fun cancelTransition() {
+        waitingForPage=false;handoffVelocity=0f
         resetGesture()
         generation++;removePending()
         animator?.let { it.removeAllListeners();it.removeAllUpdateListeners();it.cancel() };animator=null
@@ -112,7 +125,7 @@ internal class DashboardPageViewport(context:Context,
         candidate=false;dragging=false;velocity?.recycle();velocity=null
     }
     override fun onInterceptTouchEvent(event:MotionEvent):Boolean {
-        if(running) return true
+        if(running || waitingForPage) return true
         when(event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 resetGesture();startX=event.x;startY=event.y
@@ -124,6 +137,8 @@ internal class DashboardPageViewport(context:Context,
                 val dx=event.x-startX;val dy=event.y-startY
                 if(abs(dy)>touchSlop && abs(dy)>abs(dx)) { resetGesture();return false }
                 if(abs(dx)>touchSlop && abs(dx)>abs(dy)*1.5f) {
+                    // Recognition consumes the slop: start at its edge, not at the original down point.
+                    dragOriginX=startX+sign(dx)*touchSlop
                     dragging=true;parent?.requestDisallowInterceptTouchEvent(true)
                     velocity?.addMovement(event)
                     dragTo(event.x)
@@ -136,8 +151,16 @@ internal class DashboardPageViewport(context:Context,
         return super.onInterceptTouchEvent(event)
     }
     override fun onTouchEvent(event:MotionEvent):Boolean {
-        if(running) return true
-        if(!dragging) return true // Remaining events of an already completed/aborted gesture are consumed.
+        if(running || waitingForPage) return true
+        // A non-clickable day circle leaves this container owning DOWN. Android then skips
+        // interception on MOVE, so recognize the same gesture here as for clickable dashboard tiles.
+        if(!dragging && candidate && event.actionMasked==MotionEvent.ACTION_MOVE) {
+            onInterceptTouchEvent(event);return true
+        }
+        if(!dragging) {
+            if(event.actionMasked in intArrayOf(MotionEvent.ACTION_UP,MotionEvent.ACTION_CANCEL,MotionEvent.ACTION_POINTER_DOWN)) resetGesture()
+            return true // Remaining events of an already completed/aborted gesture are consumed.
+        }
         velocity?.addMovement(event)
         when(event.actionMasked) {
             MotionEvent.ACTION_MOVE -> {
@@ -154,15 +177,17 @@ internal class DashboardPageViewport(context:Context,
         return true
     }
     private fun dragTo(x:Float) {
-        page?.translationX=(x-startX).coerceIn(-width.toFloat(),width.toFloat())
+        page?.translationX=(x-dragOriginX).coerceIn(-width.toFloat(),width.toFloat())
         if(abs(page?.translationX ?: 0f)>=commitDistance) commitDrag()
     }
     private fun commitDrag() {
         val offset=page?.translationX ?: 0f
+        velocity?.computeCurrentVelocity(1000);handoffVelocity=velocity?.xVelocity ?: 0f
         val change=changePage;resetGesture()
         if(change!=null && offset!=0f) change(if(offset<0) 1 else -1) else returnDrag()
     }
     private fun returnDrag() {
+        handoffVelocity=0f
         resetGesture()
         val live=page ?: return;val start=live.translationX
         if(start==0f || !animationsEnabled()) { live.translationX=0f;return }
@@ -181,4 +206,17 @@ internal class DashboardPageViewport(context:Context,
         if(oldw>0 && w!=oldw) cancelTransition()
     }
     override fun onDetachedFromWindow() { cancelTransition();super.onDetachedFromWindow() }
+    override fun onWindowFocusChanged(hasWindowFocus:Boolean) {
+        super.onWindowFocusChanged(hasWindowFocus)
+        if(!hasWindowFocus) cancelTransition()
+    }
+}
+
+/** Cubic Hermite handoff: preserve initial speed, arrive at rest, remain monotone without overshoot. */
+internal fun pageHandoffInterpolator(slope:Float):android.animation.TimeInterpolator {
+    val initial=slope.coerceIn(0f,3f)
+    return android.animation.TimeInterpolator { t ->
+        val square=t*t;val cube=square*t
+        -2*cube+3*square+initial*(cube-2*square+t)
+    }
 }
