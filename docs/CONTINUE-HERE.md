@@ -26,3 +26,7 @@ VTM bislang nur analysiert, noch kein Umbau beauftragt. Mapsforge-Datenkompatibi
 Build118: sichtbare Sticky-Summen, aktualisierender manueller Intervals-HRV-Sammelupload, größere Windrose, weiche Tages-/Dashboardgesten, eine gemeinsame Indexhistorie mit14-Tage-Hinweisen,±4-Indexdarstellung und HRV-Verlauf. [Build118](build-118.md). Build117: gefahrene Strecken/Vorlagen und28-Tage-Fahrzeitschätzung, gemeinsame Kartenplätze und gemeinsamer HRV-Tag/Verlauf. [Build117](build-117.md).
 
 Physisches Wischgefühl, neue Dropdownbedienung/Animation und Intervals-Sammelaktualisierung am Smartphone noch bestätigen. Alte422-Bestandsmeldung laut Nutzer erledigt; Ursprung früherer Remote-Pulsabweichungen ohne Remote-Historie nicht belegt. Keine privaten Messdaten ins Repo. Weitere APK nur auf Auftrag ausschließlichGitHubActions; nächste Version voraussichtlich0.8.79/code149/Build120. Dauerhafte Signatur und tatsächlichen Raw-Download prüfen; Appcode nie mit[skip ci] überspringen.
+
+## Neuer gesicherter Meilenstein
+
+Auf ausdrücklichen Nutzerwunsch vollständigen aktuellen Stand als annotierten Git-Tag `v0.8.78` und GitHub-Release sichern. APK0.8.78/Build119 samt Prüfsumme und komprimiertem R8-Mapping als dauerhafte Release-Anhänge. [Umfang](milestone-0.8.78.md). Keine Appcodeänderung oder neuer APK-Build.

@@ -1059,6 +1059,8 @@ Architektur, Rundung, Speicherung und Tests: [Fahrerprofil](docs/rider-profile.m
 
 ## Gesicherte Stände
 
+**[v0.8.78 · Build119 – neuer Meilenstein](https://github.com/Titanyus/B-Cycle/releases/tag/v0.8.78)** sichert den vollständigen aktuellen Projektstand, die geprüfte APK und das R8-Mapping. [Nachweis und Umfang](docs/milestone-0.8.78.md).
+
 [v0.6.21](https://github.com/Titanyus/B-Cycle/tree/v0.6.21) sichert den vollständigen
 Meilenstein vor der Bereinigung: Quellcode, Tests, Ressourcen, Build-Konfiguration,
 Dokumentation und signierte APK. [v0.7.0](https://github.com/Titanyus/B-Cycle/tree/v0.7.0)
