@@ -1,8 +1,8 @@
-# Aktueller Stand: VTM-Migration lokal umgesetzt, noch keine neue APK
+# Aktueller Stand: APK0.8.79 mit VTM beauftragt
 
 ## Aktueller Auftrag und Ergebnis
 
-Nutzer hat nach Sicherung des Meilensteins den Austausch Mapsforge → Mapsforge-VTM beauftragt: alle Dashboardkartenfunktionen erhalten, zunächst dieselben Raster-Tiles; invertierte Nachtkarte vorerst unwichtig. Implementierung abgeschlossen, gezielt geprüft. Kein neuer APK-Auftrag, nicht auf main pushen. [Vollständiger Umfang/Prüfnachweise](vtm-migration.md).
+Nutzer hat nach Sicherung des Meilensteins den Austausch Mapsforge → Mapsforge-VTM beauftragt: alle Dashboardkartenfunktionen erhalten, zunächst dieselben Raster-Tiles; invertierte Nachtkarte vorerst unwichtig. Implementierung abgeschlossen, gezielt geprüft. Neue APK ausdrücklich beauftragt:0.8.79/code149 über GitHub Actions bauen und veröffentlichen. [Vollständiger Umfang/Prüfnachweise](vtm-migration.md).
 
 - Stabile VTM0.25.0-Android-/HTTP-Abhängigkeiten und vier native ABIs, OpenGL ES2. Alte Mapsforge-Map-/Core-Abhängigkeit/Imports entfernt. Anbieter/URLs/Keys/Attributionen unverändert, begrenzter geteilter HTTP-Cache.
 - Kamera, bestehende Präferenzschlüssel und Zoom6–19/0,5-Schritte; OpenTopoMap17; gemeinsame Pinch-/Pan-/Nachlaufsteuerung. GPS-Folgen, Norden/Fahrtrichtung, Vorausschauanker und33-ms-Interpolation erhalten.
