@@ -12,4 +12,4 @@ Gezielt geprüft: fünf betroffene HRV-Fälle, Menüanordnung und Sensorlebenszy
 
 Noch kein Akkuschonmodus und kein Wechsel zu VTM implementiert.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-119.md).
