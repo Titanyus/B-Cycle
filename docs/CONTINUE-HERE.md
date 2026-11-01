@@ -18,6 +18,8 @@ Tagesscreen-Nutzermockup inzwischen erhalten: [Gestaltungsvorgaben und offene Pu
 
 Zusätzlich gewünscht: eigene nachvollziehbare PNS-/SNS-Aktivierungsindikatoren zur Belastungseinschätzung, keine Kubios-Kopie. Formel/Referenz noch festlegen; HRV isoliert Sympathikus und psychischen Stress nicht zuverlässig. Vorschlag und vorhandene Daten in [hrv-autonomic-index-proposal.md](hrv-autonomic-index-proposal.md), für Tagesscreen vormerken, noch keine Berechnung/UI geändert.
 
+Tagesscreen-Zusatz: Messkreis-Glow in seiner maximalen Messscreen-Intensität übernehmen, im Tagesscreen dauerhaft ohne Pulsieren. Ein gemeinsamer Glow über den gesamten Kreis, Farbe der HRV-Auswertung, bei gutem Wert leicht grün; keine unterschiedliche Behandlung der Hälften, Ruhepuls bleibt weiß. In der Mockup-Vorgabe dokumentiert.
+
 ## Danach: Dashboard-Wischverhalten
 
 Erst nach Abschluss der HRV-Änderungen umsetzen. Bereits kurzer seitlicher Drag soll den Dashboardbereich sichtbar dem Finger folgen lassen; nach etwas weiterem Wischen übernimmt die Automatik und vollendet den Wechsel. Aktuell zu langer Wischweg/zu spätes Ansprechen. Footer bleibt fest, Dashboard samt Karte/Buttons bewegt sich wie bisher; keine konkreten Schwellwerte erfunden. [Vorgemerkt](dashboard-page-transition.md). Noch keine Implementierung.

@@ -15,6 +15,10 @@ Gestaltungsvorgabe erhalten, aktuell Plausibilitäts-/Vollständigkeitsbesprechu
 - HRV-Farben nach Nutzer: Grün im Korridor, Gelb außerhalb, Rot deutlich außerhalb. Noch klären, wie „deutlich“ definiert wird und ob auch hohe HRV oberhalb rot werden soll: bisherige Tagesempfehlung behandelt oberhalb wie innerhalb und hängt zusätzlich vom Befinden ab. Farbentscheidung nicht versehentlich in eine neue Empfehlungsregel umdeuten.
 - Ruhepulswert/Bogen ausschließlich weiß laut Nutzervorgabe; Grenzen als echte bpm-Werte, nicht die im Mockup wiederholten HRV-Beispielzahlen6,3/7,5 übernehmen.
 
+## Gemeinsamer ruhender Glow
+
+Zusätzliche ausdrückliche Nutzervorgabe: Den pulsierenden Glow innerhalb des Messkreises auch im Tagesscreen verwenden, dort dauerhaft und ohne Pulsieren. Dessen Maximalwert/Spitzenintensität aus dem Messscreen übernehmen, keine neue stärkere Intensität erfinden. Farbe entsprechend der HRV-Auswertung (bei gutem Wert leichtes Grün). Der Glow liegt gemeinsam im gesamten Kreis hinter beiden Bereichen; keine getrennte Einfärbung oder Intensität für HRV- und Pulshälfte. Ruhepulswert/-bogen weiterhin weiß. Bereits bestehende funktionale HRV-Glow-Darstellung in Flat/Glow berücksichtigen. Die zuvor offenen Regeln für die HRV-Auswertungsfarbe bleiben zu klären.
+
 ## PNS-/SNS-Balken
 
 - Unter dem Kreis nach Mockup zuerstPNS, dannSNS; je links Indexname, rechts Zahlenwert.
