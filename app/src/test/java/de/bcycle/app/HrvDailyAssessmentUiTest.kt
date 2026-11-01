@@ -76,7 +76,7 @@ class HrvDailyAssessmentUiTest {
             val missing=HrvDailyAssessmentView(a,themes,HrvDailyAssessment(day,hrv.copy(value=null,lower=null,upper=null),null,null,0))
             assertTrue(missing.findViewWithTag<View>("hrva_circle").contentDescription.toString().contains(a.getString(R.string.hrva_range_missing)))
             assertTrue(missing.findViewWithTag<TextView>("hrva_advice").text.startsWith(a.getString(R.string.hrva_unavailable)+". "))
-            assertEquals(a.getString(R.string.hrvt_unavailable),missing.findViewWithTag<View>("hrva_pns").findViewWithTag<TextView>("hrva_index_value").text.toString())
+            assertEquals(a.getString(R.string.hrva_index_missing),missing.findViewWithTag<View>("hrva_pns").findViewWithTag<TextView>("hrva_index_value").text.toString())
         } finally { host.pause().stop().destroy() }
     }
     @Test fun corridorMarkersStayFixedAndOnlyTheDrawingClampsOutliers() {
@@ -85,6 +85,25 @@ class HrvDailyAssessmentUiTest {
         assertEquals(.5f,hrvCorridorFraction(40.0,30.0,50.0)!!,0f)
         assertEquals(1f,hrvCorridorFraction(100.0,30.0,50.0)!!,0f)
         assertNull(hrvCorridorFraction(40.0,null,null));assertNull(hrvCorridorFraction(40.0,40.0,40.0))
+    }
+    @Test fun missingIndexShowsTheRemainingDaysOrItsActualReasonBesideTheName() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("index-hints",0))
+            for(label in listOf("PNS-Index","Aktivierungsindex")) for(width in listOf(288,328)) {
+                for((days,expected) in listOf(0 to "noch 14 Tage bis zum ersten Wert",13 to "noch 1 Tag bis zum ersten Wert",
+                    14 to a.getString(R.string.hrva_index_constant),null to a.getString(R.string.hrva_index_missing))) {
+                    val index=HrvIndexView(a,themes,label,null,days);a.setContentView(index)
+                    index.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
+                    index.layout(0,0,width,index.measuredHeight)
+                    assertEquals(expected,index.findViewWithTag<TextView>("hrva_index_value").text.toString())
+                    val row=index.getChildAt(0) as android.view.ViewGroup
+                    assertEquals(label,(row.getChildAt(0) as TextView).text.toString())
+                    assertTrue(row.getChildAt(0).right<=row.getChildAt(1).left)
+                    assertTrue(row.getChildAt(1).right<=width)
+                }
+            }
+        } finally { host.pause().stop().destroy() }
     }
     @Test fun detailArrivalPinsDayUntilContactThenPushesItAndCanScrollBack() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()

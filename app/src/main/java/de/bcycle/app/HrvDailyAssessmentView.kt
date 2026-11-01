@@ -15,9 +15,9 @@ internal class HrvDailyAssessmentView(context:Context,themes:ThemeManager,val as
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
         setPadding(pad,0,pad,pad)
         addView(HrvDayCircle(context,themes,assessment),LayoutParams(-1,-2))
-        addView(HrvIndexView(context,themes,context.getString(R.string.hrva_pns),assessment.indices.pns).apply { tag="hrva_pns" },
+        addView(HrvIndexView(context,themes,context.getString(R.string.hrva_pns),assessment.indices.pns,assessment.indices.pnsReferenceDays).apply { tag="hrva_pns" },
             LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionCardGap) })
-        addView(HrvIndexView(context,themes,context.getString(R.string.hrva_activation),assessment.indices.activation).apply { tag="hrva_activation" },
+        addView(HrvIndexView(context,themes,context.getString(R.string.hrva_activation),assessment.indices.activation,assessment.indices.activationReferenceDays).apply { tag="hrva_activation" },
             LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(LinearLayout(context).apply {
             orientation=VERTICAL;tag="hrva_advice_text"
@@ -129,14 +129,21 @@ internal class HrvDayCircle(context:Context,themes:ThemeManager,private val data
 }
 
 /** Signed deviation: square at zero, rounded only at its outward end. No diagnostic colors. */
-internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,private val value:Double?):LinearLayout(context) {
+internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,private val value:Double?,referenceDays:Int?=null):LinearLayout(context) {
     init {
         orientation=VERTICAL
-        val formatted=value?.let { NumberFormat.getNumberInstance().apply { minimumFractionDigits=1;maximumFractionDigits=1 }.format(if(kotlin.math.abs(it)<.05) 0.0 else it) } ?: context.getString(R.string.hrvt_unavailable)
+        val formatted=value?.let { NumberFormat.getNumberInstance().apply { minimumFractionDigits=1;maximumFractionDigits=1 }.format(if(kotlin.math.abs(it)<.05) 0.0 else it) } ?: when {
+            referenceDays==null->context.getString(R.string.hrva_index_missing)
+            referenceDays<HrvTrends.MIN_NORMAL->(HrvTrends.MIN_NORMAL-referenceDays).let { context.resources.getQuantityString(R.plurals.hrva_index_waiting,it,it) }
+            else->context.getString(R.string.hrva_index_constant)
+        }
         addView(LinearLayout(context).apply {
             gravity=Gravity.CENTER_VERTICAL
             addView(BicycleComponents.text(context,themes,label),LayoutParams(0,-2,1f))
-            addView(BicycleComponents.text(context,themes,formatted).apply { tag="hrva_index_value" },LayoutParams(-2,-2))
+            addView(BicycleComponents.text(context,themes,formatted).apply {
+                tag="hrva_index_value"
+                if(value==null) { textSize=BicycleDesign.analysisLabelSp;maxWidth=BicycleDesign.dp(context,200) }
+            },LayoutParams(-2,-2))
         },LayoutParams(-1,-2))
         addView(object:View(context) {
             private val paint=Paint(Paint.ANTI_ALIAS_FLAG)

@@ -19,14 +19,27 @@ class HrvAutonomicIndicesTest {
         assertEquals(-2/sqrt(14.0/13),indices.activation!!,1e-10)
         assertTrue(indices.pns!!>2)
     }
-    @Test fun missingInsufficientConstantInvalidAndDifferentProtocolDoNotBecomeZero() {
+    @Test fun missingInsufficientConstantAndInvalidDataHaveDistinctReferenceCounts() {
         assertEquals(HrvAutonomicIndices(),HrvAutonomicIndices.from(reference(),day))
-        assertEquals(HrvAutonomicIndices(),HrvAutonomicIndices.from(reference().drop(1)+row(0),day))
-        assertEquals(HrvAutonomicIndices(),HrvAutonomicIndices.from((0L..14L).map { row(it) },day))
+        val short=HrvAutonomicIndices.from(reference().drop(1)+row(0),day)
+        assertNull(short.pns);assertNull(short.activation);assertEquals(13,short.pnsReferenceDays);assertEquals(13,short.activationReferenceDays)
+        val constant=HrvAutonomicIndices.from((0L..14L).map { row(it) },day)
+        assertNull(constant.pns);assertNull(constant.activation);assertEquals(14,constant.pnsReferenceDays)
         assertEquals(HrvAutonomicIndices(),HrvAutonomicIndices.from(reference()+row(0,valid=false),day))
-        assertEquals(HrvAutonomicIndices(),HrvAutonomicIndices.from(reference()+row(0).copy(measureMs=60000),day))
+        val changedProtocol=HrvAutonomicIndices.from(reference()+row(0).copy(measureMs=60000),day)
+        assertNotNull(changedProtocol.pns);assertNotNull(changedProtocol.activation)
         val withoutPulse=HrvAutonomicIndices.from(reference()+row(0).copy(metrics=emptyMap()),day)
-        assertNotNull(withoutPulse.pns);assertNull(withoutPulse.activation)
+        assertNotNull(withoutPulse.pns);assertNull(withoutPulse.activation);assertNull(withoutPulse.activationReferenceDays)
+    }
+    @Test fun importedAndNativeDaysFormOneReferenceAcrossProtocolChanges() {
+        val mixed=reference().mapIndexed { index,r ->
+            if(index<8) r.copy(acceptable=false,importedDay=day.minusDays(index+1L).toString(),restMs=null,measureMs=null)
+            else r.copy(restMs=45000,measureMs=60000)
+        }
+        val result=HrvAutonomicIndices.from(mixed+row(0,3.4,53.0),day)
+        assertEquals(14,result.pnsReferenceDays);assertEquals(14,result.activationReferenceDays)
+        assertEquals(.4/(.1*sqrt(14.0/13)),result.pns!!,1e-10)
+        assertEquals(-2/sqrt(14.0/13),result.activation!!,1e-10)
     }
     @Test fun lastFailedMeasurementDoesNotResurrectEarlierSuccessfulValue() {
         val newer=row(0,valid=false).copy(id="failed",utcMs=row(0).utcMs+1000)

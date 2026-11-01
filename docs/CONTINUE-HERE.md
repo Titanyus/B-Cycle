@@ -24,9 +24,13 @@ Touchslop vom sichtbaren Weg abgezogen, dadurch kein Anfangssprung. Aktuelle Fin
 
 Drei Übergangsfälle erfolgreich in `page-smooth-handoff-tests.log`; fünf von sechs Integrationsfällen sofort erfolgreich in `hrv-day-swipe-smooth-pages-tests.log`; neuer Tageswischfall nach Korrektur eigener Touchverarbeitung und passender Testfenstergröße erfolgreich in `hrv-day-swipe-final-test.log`. Kein Gesamtlauf/Gerätetest. Noch unveröffentlicht.
 
-## Aktuell: gemeinsame PNS-/Aktivierungsreferenz und Erklärung fehlender Werte
+## Lokale Änderung: gemeinsame Indexreferenz und Hinweise
 
-Nutzer ausdrücklich: eine Messhistorie, Importe an der Grenze sauber übernehmen, danach kein separater Datenbestand. PNS/Aktivierung sollen wie bestehender HRV-Korridor die gemeinsame Historie verwenden; Mindestzahl14 gültige frühere Tageswerte innerhalb60 Tagen bleibt. Außerdem kompakter Hinweis statt Strich: Indexname links, rechts „noch XX Tage bis zum ersten Wert“; fehlender Tagesmesswert und fehlende Streuung ebenfalls kurz verständlich benennen. Umsetzung als nächster Schritt.
+Nutzer ausdrücklich: genau eine Messhistorie, Import ist Eingangsadapter. PNS/Aktivierung zählen nun eigene und passend importierte Tageswerte gemeinsam, wie der HRV-Korridor; keine Quell-/Ruheprotokolltrennung. Formeln,60 Tage/14 gültige frühere Tage und Qualitäts-/Letzte-Messung-Regel erhalten. Je Index separate Anzahl positiver gültiger Referenzwerte. Statt Strich rechts neben Namen „noch XX Tage bis zum ersten Wert“; Tagesmesswert fehlt/keine Streuung mit kurzen eigenen Hinweisen. Balken erhalten. Sechs gezielte Fälle erfolgreich in `hrv-shared-reference-hint-tests.log`. [Formeln](hrv-autonomic-index-proposal.md). Noch unveröffentlicht.
+
+## Aktuell: HRV-Kennzahl in detaillierter Auswertung und Weitere-Reihe
+
+Nutzer bestätigt: erste Reihe HRV, Puls, SDNN, RMSSD, Weitere. Weitere klappt drei zusätzliche gleich gestaltete Kacheln pNN50/LF/HF auf; Weitere hervorheben, wenn eine davon aktiv ist, auch eingeklappt. HRV nutzt Tageswert2×lnRMSSD, Korridor und Mittelwert im Diagramm sowie bestehende gemeinsame Zeitnavigation. Umsetzung als nächster Schritt.
 
 ## In Build117 enthalten
 
