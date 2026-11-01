@@ -19,3 +19,5 @@ Nutzerauftrag festhalten, noch nicht umsetzen: Als Nächstes kommen Gestaltungsa
 - Die Bewegung stoppt mit dem vorgesehenen Abstand oben so, dass die detaillierte Auswertung vollständig wie bei direktem Aufruf sichtbar ist.
 - Danach können beide Abschnitte als eine gemeinsame Seite hoch und herunter gescrollt werden. Keine getrennten Screens für Tages- und Detailauswertung.
 - Konkrete Maße über die genannten24dp und den bestehenden sinnvollen oberen Abstand hinaus sind noch nicht festgelegt. Kein neues Tageslayout erfinden; Nutzervorlage abwarten.
+
+Zusätzlicher Wunsch für den Tagesscreen: nachvollziehbare eigene PNS-/SNS-Aktivierungsindikatoren zur Belastungseinschätzung. Keine exakte Kubios-Nachbildung. Fachliche Grenzen und noch festzulegende Berechnung siehe [Vorschlag](hrv-autonomic-index-proposal.md). Noch keine Layout- oder Rechenänderung umgesetzt.
