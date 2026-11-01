@@ -25,6 +25,33 @@ class BikesViewTest {
         shadowOf(Looper.getMainLooper()).idle()
         view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));view.layout(0,0,width,height)
     }
+    @Test fun onlyAssignedOrDiscoveredBluetoothSensorsAreVisibleAcrossProfileTypes() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val app=host.get();val runtime=RideRuntime.get(app)
+            val view=BikesView(app,runtime,{}, {}, {}, { LinearLayout(app) })
+            fun frame(sensor:BikeSensor)=(view.findViewWithTag<View>("bike_sensor_expand_${sensor.name}").parent as View).parent as View
+            for(type in BikeType.entries.filter { it.available }) {
+                runtime.bikes.save(runtime.bikes.current().copy(type=type,bikeAddress=null,heartAddress=null,trainerAddress=null,powerAddress=null,shiftDevices=emptyList()))
+                view.refresh()
+                type.sensors.forEach { sensor -> assertEquals(sensor.name,if(sensor==BikeSensor.GPS) View.VISIBLE else View.GONE,frame(sensor).visibility) }
+                view.beginSearch();view.addCandidate("Power","00:11:22:33:44:55",BikeSensor.POWER) {}
+                assertEquals(View.VISIBLE,frame(BikeSensor.POWER).visibility)
+                view.clearSearch();assertEquals(View.GONE,frame(BikeSensor.POWER).visibility)
+                runtime.bikes.save(runtime.bikes.current().copy(powerAddress="00:11:22:33:44:55",powerEnabled=false));view.refresh()
+                assertEquals("assigned stays visible while disabled",View.VISIBLE,frame(BikeSensor.POWER).visibility)
+                view.beginSearch();view.clearSearch();assertEquals(View.VISIBLE,frame(BikeSensor.POWER).visibility)
+                runtime.disconnectSensor(BikeSensor.POWER);view.refresh()
+                assertEquals("disconnect keeps assignment visible",View.VISIBLE,frame(BikeSensor.POWER).visibility)
+                view.addCandidate("Power","00:11:22:33:44:55",BikeSensor.POWER) {}
+                view.findViewWithTag<View>("bike_remove_POWER").performClick()
+                assertEquals(View.GONE,frame(BikeSensor.POWER).visibility)
+            }
+            runtime.bikes.save(runtime.bikes.current().copy(type=BikeType.EBIKE,powerAddress="00:11:22:33:44:55"));view.refresh()
+            val added=checkNotNull(runtime.bikes.add());runtime.switchBike(added.slot);view.refresh()
+            assertEquals("new profile does not inherit sensor rows",View.GONE,frame(BikeSensor.POWER).visibility)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun searchButtonClearlyExplainsRecordingAndSavingLocksAndRestoresNormalAppearance() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         val r=RideRuntime.get(host.get())

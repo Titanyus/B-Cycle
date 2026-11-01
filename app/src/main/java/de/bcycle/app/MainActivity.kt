@@ -1352,8 +1352,6 @@ class MainActivity : Activity() {
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
         root.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.map_options_title)).apply { tag="map_options_title" })
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
-        val gpx = toggle(getString(R.string.ui_map_gpx), "mapGpxVisible", true)
-        var lastGpxVisibility=gpx.isChecked
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
         val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
@@ -1375,7 +1373,6 @@ class MainActivity : Activity() {
             if(available) edit.putString("mapSource",chosen.name)
             edit.putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
                 .putBoolean(FitElevationCorrection.preference,elevation.isChecked).apply()
-            if(gpx.isChecked!=lastGpxVisibility) { lastGpxVisibility=gpx.isChecked;runtime.mapState.setRouteVisible(gpx.isChecked) }
             mapPanel.refreshSettings()
         }
         root.setPadding(0,0,0,0)

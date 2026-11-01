@@ -1,6 +1,15 @@
-# Aktueller Stand: APK0.8.77 / Build118 veröffentlicht –01.11.2026
+# Aktueller Stand: lokale Verfeinerungen nach Build118 –01.11.2026
 
 [APK direkt](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.77-release-118.apk) · [Buildnachweis](build-118.md) · [Änderungen](release-0.8.77.md). Code147, Quelle`e7478861dedc8a66c0f2b1b62edb78e589fd8797`, 2592869Bytes, SHA-256`b2a6128cc2c44140caffd25609fbef81c7587dc96b1301ab861d925a1fd74369`. GitHubActions erfolgreich; CI-Prüfsumme, dauerhafte Signatur/Update-Kompatibilität, Manifest, Version und ZIP-Ausrichtung geprüft. Tatsächlicher direkter Raw-Download erneut geladen und binär identisch mit Actions-Artefakt. APK-Auftrag erledigt.
+
+## Lokal geändert, noch nicht als APK veröffentlicht
+
+- Kurzempfehlung eigener Absatz, restliche Empfehlung ein zusammenhängender Text. HRV-Kacheln gleiche volle Höhe/zentriert; Weitere als schwebendes rechtsbündiges Dropdown über drei Hauptspalten, Auswahl schließt, Weitere bleibt markiert.
+- HRV-Messdiagramm315dp (+10%), Abstand zum Kreis36dp (+12).
+- Einstellungen „HRV & Tagesbefinden“ direkt nach Fahrradprofile; Erststartangebot einfacher Schalter direkt nach Trenner vor Vibrieren, ohne Erklärung.
+- Fahrradprofile/Karten: GPX-Anzeigeschalter entfernt, Dashboard-Kartensteuerung und gespeicherte Sichtbarkeit erhalten.
+- Sensorübersicht aller freigeschalteten Profiltypen: Bluetooth-Zeilen/Abstand nur bei Zuordnung oder aktuellem Suchfund. Ausschalten und Verbindung trennen lassen zugeordnete Sensoren sichtbar; erst Entfernen löscht die Anzeige (inklusive noch vorhandenem Suchfund). GPS bleibt als integrierter Handysensor verfügbar. Keine Verbindungs-/Aufzeichnungslogik geändert.
+- Gezielte Prüfungen: `hrv-refinement-tests.log` fünf Fälle erfolgreich; Menüfall in `profile-sensor-settings-tests.log` erfolgreich. Sensorgeometrie-/Lebenszyklusfall in `profile-sensor-visibility-tests.log`. Typografie/Atlas und Diff geprüft. Kein neuer APK-Auftrag, nicht auf main pushen.
 
 ## In Build118 enthalten
 
@@ -24,4 +33,4 @@ Build117-Basis enthält getrennte Ansichten gefahrene Strecken/Vorlagen mit pers
 
 Ältere wichtige Grundlagen: Sicherung/Restore per dataSync-FGS/Wake-Lock und Datum im HRV-Dateinamen; gültige Bosch-Fahrdaten bei GPS-Ausfall, echte Höhenlücken nicht füllen; randfüllender Detailkopf, offene Puls-Z1, mitlaufendes rundes X-Raster. [Backup](backup-cloud-reorganization.md), [FIT](fit.md), [Build116](build-116.md).
 
-Alle beauftragten Änderungen umgesetzt. Neue APK nur auf Auftrag ausschließlichGitHubActions; nächste Version voraussichtlich0.8.78/code148/Build119. Dauerhafte Signatur und tatsächlichen Raw-Download prüfen; Appcode nie mit[skip ci] überspringen. Snapshot vorBereinigung: `vor-den-bereinigungen-2026-10-30`.
+Neue APK nur auf Auftrag ausschließlichGitHubActions; nächste Version voraussichtlich0.8.78/code148/Build119. Dauerhafte Signatur und tatsächlichen Raw-Download prüfen; Appcode nie mit[skip ci] überspringen. Snapshot vorBereinigung: `vor-den-bereinigungen-2026-10-30`.

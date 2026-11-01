@@ -70,6 +70,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
     private val statuses = mutableMapOf<BikeSensor, TextView>()
     private val measurementDetails=mutableMapOf<BikeSensor,SensorMeasurementDetails>()
     private val batteries = mutableMapOf<BikeSensor, TextView>()
+    private val sensorRows=mutableMapOf<BikeSensor,List<View>>()
+    private val foundSensors=mutableSetOf<BikeSensor>()
     private val switches = mutableMapOf<BikeSensor, Switch>()
     private val disconnects = mutableMapOf<BikeSensor, Button>()
     private val deviceNames = mutableMapOf<BikeSensor, TextView>()
@@ -95,6 +97,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         override fun afterTextChanged(s: Editable?) = Unit
     }
     private fun rebuild() {
+        if(shownSlot!=runtime.bikes.activeSlot) foundSensors.clear()
+        sensorRows.clear()
         shownSources=RecordingSources.available(runtime.bikes.current(),runtime.barometer.available)
         shownSlot = runtime.bikes.activeSlot;shownType=runtime.bikes.current().type;correctionControls.clear()
         dashboardActions=null;designHeader=null
@@ -268,9 +272,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         val sensorList=LinearLayout(context).apply { orientation=VERTICAL;tag="bike_sensor_list" }
         addView(sensorList,LayoutParams(-1,-2))
         profile.type.sensors.forEach { sensor ->
-            sensorList.addView(BicycleComponents.sectionDivider(context,themes,BicycleDesign.controlGap).apply {
-                alpha=0f // Test the separator-free appearance while preserving existing row spacing.
-            })
+            val separator=BicycleComponents.sectionDivider(context,themes,BicycleDesign.controlGap).apply { alpha=0f }
+            sensorList.addView(separator)
             val toggle=Switch(context).apply {
                 tag="bike_sensor_${sensor.name}";setText(sensor.label);isEnabled=sensor.supported
                 gravity=Gravity.START or Gravity.CENTER_VERTICAL
@@ -296,6 +299,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             frame.expandControl.tag="bike_sensor_expand_${sensor.name}"
             val details=frame.content.apply { tag="bike_sensor_details_${sensor.name}" }
             sensorList.addView(frame,LayoutParams(-1,-2))
+            sensorRows[sensor]=listOf(separator,frame)
             if(sensor==BikeSensor.SHIFT) {
                 shiftView=AxsGroupView(context,runtime)
                 details.addView(shiftView,LayoutParams(-1,-2))
@@ -317,7 +321,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                 val disconnect=BicycleComponents.action(context,themes,context.getString(R.string.bikes_disconnect)) { runtime.disconnectSensor(sensor) }.apply { tag="bike_disconnect_${sensor.name}" }
                 BicycleDialogStyle.actionIcon(disconnect,themes,BicycleIcon.Disconnect)
                 disconnects[sensor]=disconnect;addView(disconnect,LayoutParams(0,-2,1f))
-                if(sensor!=BikeSensor.GPS) addView(BicycleComponents.icon(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.bikes_remove)) { runtime.removeSensor(sensor);refresh() }.apply { tag="bike_remove_${sensor.name}";removes[sensor]=this },LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap);topMargin=dp(BicycleDesign.controlGap) })
+                if(sensor!=BikeSensor.GPS) addView(BicycleComponents.icon(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.bikes_remove)) { foundSensors.remove(sensor);runtime.removeSensor(sensor);refresh() }.apply { tag="bike_remove_${sensor.name}";removes[sensor]=this },LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)).apply { marginStart=dp(BicycleDesign.controlGap);topMargin=dp(BicycleDesign.controlGap) })
             },LayoutParams(-1,-2))
         }
         if (profile.type == BikeType.INDOOR) {
@@ -420,14 +424,29 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         if(header.expanded==false) header.performClick()
         BicycleContentSpacing.revealAfterLayout(header);requestLayout()
     }
-    fun beginSearch() { searchResults.removeAllViews();searchStatus.visibility=VISIBLE }
+    fun beginSearch() { foundSensors.clear();searchResults.removeAllViews();searchStatus.visibility=VISIBLE;refreshSensorVisibility() }
     fun scanStatus(message: String) { BicycleFeedback.update(searchStatus,message,hideWhenEmpty=true) }
     fun addCandidate(name: String, address: String, sensor: BikeSensor, choose: () -> Unit) {
+        foundSensors.add(sensor);refreshSensorVisibility()
         searchResults.addView(BicycleComponents.action(context,themes,context.getString(R.string.bikes_found_sensor,name,context.getString(sensor.label))) { choose() }.apply {
             tag="bike_found_$address";contentDescription=context.getString(R.string.bikes_found_sensor,name,context.getString(sensor.label))
         },LayoutParams(-1,-2))
     }
-    fun clearSearch() { searchResults.removeAllViews();searchStatus.visibility=GONE }
+    fun clearSearch() { foundSensors.clear();searchResults.removeAllViews();searchStatus.visibility=GONE;refreshSensorVisibility() }
+    private fun refreshSensorVisibility() {
+        val profile=runtime.bikes.current()
+        sensorRows.forEach { (sensor,rows) ->
+            val assigned=when(sensor) {
+                BikeSensor.GPS->true // Built into the phone; no Bluetooth assignment required.
+                BikeSensor.EBIKE->!profile.bikeAddress.isNullOrBlank()
+                BikeSensor.HEART->!profile.heartAddress.isNullOrBlank()
+                BikeSensor.TRAINER->!profile.trainerAddress.isNullOrBlank()
+                BikeSensor.POWER->!profile.powerAddress.isNullOrBlank()
+                BikeSensor.SHIFT->profile.shiftDevices.isNotEmpty()
+            }
+            rows.forEach { it.visibility=if(assigned || sensor in foundSensors) VISIBLE else GONE }
+        }
+    }
     private fun paintCards() { strip.show(runtime.bikes.all(),runtime.bikes.activeSlot,runtime.recording || runtime.saving) }
     fun refreshPhoto() { photo?.refresh() }
     fun refresh() {
@@ -436,6 +455,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         if(shownSlot!=runtime.bikes.activeSlot || shownType!=runtime.bikes.current().type || shownSources!=RecordingSources.available(runtime.bikes.current(),runtime.barometer.available)) { rebuild();return }
         binding=true
         try {
+            refreshSensorVisibility()
             val p=runtime.bikes.current();paintCards();autoConnect.isChecked=p.autoConnect;autoStartRecording.isChecked=p.autoStartRecording
             indoorTypeChoice.setSelection(p.indoorType.ordinal)
             findViewWithTag<RideNamingView>("ride_naming")?.refreshLock()
