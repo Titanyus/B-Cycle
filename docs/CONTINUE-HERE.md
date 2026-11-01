@@ -20,6 +20,8 @@ Zusätzlich gewünscht: eigene nachvollziehbare PNS-/SNS-Aktivierungsindikatoren
 
 Tagesscreen-Zusatz: Messkreis-Glow in seiner maximalen Messscreen-Intensität übernehmen, im Tagesscreen dauerhaft ohne Pulsieren. Ein gemeinsamer Glow über den gesamten Kreis, Farbe der HRV-Auswertung, bei gutem Wert leicht grün; keine unterschiedliche Behandlung der Hälften, Ruhepuls bleibt weiß. In der Mockup-Vorgabe dokumentiert.
 
+Letzte Tagesscreen-Präzisierung: Textbutton bleibt (nur im Mockup abgeschnitten). HRV-/Puls-Grenzwerte und bestehende Funktionalität unverändert übernehmen, keine Warnfarbe allein bei HRV oberhalb des Korridors. Bei Bögen und PNS/SNS die mittleren50% für den Normbereich, beidseits25% Puffer. Normierte Darstellung mit0 als Mitte und Referenzbereich−1…+1 auf sichtbarer−2…+2-Skala als Erklärung möglich, keine harte Begrenzung der berechneten Werte. Eigene PNS/SNS-Formel weiterhin nicht festgelegt oder implementiert. Vorgabe in hrv-day-screen-design.md aktualisiert.
+
 ## Danach: Dashboard-Wischverhalten
 
 Erst nach Abschluss der HRV-Änderungen umsetzen. Bereits kurzer seitlicher Drag soll den Dashboardbereich sichtbar dem Finger folgen lassen; nach etwas weiterem Wischen übernimmt die Automatik und vollendet den Wechsel. Aktuell zu langer Wischweg/zu spätes Ansprechen. Footer bleibt fest, Dashboard samt Karte/Buttons bewegt sich wie bisher; keine konkreten Schwellwerte erfunden. [Vorgemerkt](dashboard-page-transition.md). Noch keine Implementierung.
