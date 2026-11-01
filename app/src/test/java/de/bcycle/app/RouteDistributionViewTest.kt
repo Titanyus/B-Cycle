@@ -97,7 +97,7 @@ class RouteDistributionViewTest {
             for (width in listOf(720, 960)) {
                 measure(screen, width)
                 val charts = all(screen).filterIsInstance<RouteDistributionView>()
-                assertEquals(listOf(AnalysisChart.POWER, AnalysisChart.HEART), charts.map { it.distribution.chart })
+                assertEquals(listOf(AnalysisChart.HEART, AnalysisChart.POWER), charts.map { it.distribution.chart })
                 charts.forEach { chart ->
                     assertEquals(chart.width, chart.height)
                     assertTrue(chart.contentDescription.toString().contains("%"))
@@ -124,7 +124,9 @@ class RouteDistributionViewTest {
                     preview.recycle()
                 }
                 val body = screen.getChildAt(0) as ViewGroup
-                assertTrue((0 until body.childCount).single { body.getChildAt(it) is RouteChartView } < body.indexOfChild(charts.first()))
+                val history=body.findViewWithTag<RouteChartGroup>("analysis_chart_group")
+                assertNotNull(history)
+                assertTrue(body.indexOfChild(history) < body.indexOfChild(charts.first()))
             }
         }
         screen.show(analysis.copy(distributions = emptyList()))

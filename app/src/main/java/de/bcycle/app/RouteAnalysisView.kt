@@ -202,7 +202,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             analysis.series.sortedBy { chartOrder.indexOf(it.chart) }.forEach { group.addView(RouteChartView(context, themes, analysis, it,navigation), LinearLayout.LayoutParams(-1, dp(BicycleDesign.analysisChartHeight)).apply { topMargin = dp(BicycleDesign.smallGap) }) }
             body.addView(group,LinearLayout.LayoutParams(-1,-2))
         }
-        analysis.distributions.forEach { distribution ->
+        analysis.distributions.sortedBy { if(it.chart==AnalysisChart.HEART) 0 else 1 }.forEach { distribution ->
             body.addView(RouteDistributionView(context, themes, distribution), LinearLayout.LayoutParams(-1, -2).apply {
                 topMargin = dp(BicycleDesign.smallGap)
             })

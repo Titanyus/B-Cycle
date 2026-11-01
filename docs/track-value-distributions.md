@@ -25,3 +25,5 @@ Balkengeometrie wird beim Größenwechsel gecacht, Farbstopps bei Größe/Theme 
 RouteValueDistributionTest prüft Zeitgewichtung, Lücken/Pausen, exakte Summe, feste Watt-/bpm-Breiten, Zonengrenzen, Messspitzen und begrenzte Größe. Native RouteDistributionViewTest-Fälle prüfen echte Balken/Lücken, Farbwechsel innerhalb eines Balkens, neutrale Werte, Themewechsel, Zonenmarkierungen und Hochformat-Größen in allen Theme-Presets. Keine echte Fahrt für Vorschauen verwendet.
 
 [Vorschau aus synthetischen Daten](previews/track-distributions.png).
+
+Reihenfolge nach Build116: Die beiden Verteilungsdiagramme ganz unten stehen jetzt Puls vor Leistung. Die Darstellung wird in RouteAnalysisView sortiert; Berechnung, Datenreihen und vorhandene Kurvendiagramm-Reihenfolge bleiben erhalten. Fehlende Verteilungen werden weiterhin ausgelassen. Nutzerklärung: Gemeint waren hier ausdrücklich diese beiden unteren Histogramme, nicht nur die zuvor umgeordneten Verlaufskurven.
