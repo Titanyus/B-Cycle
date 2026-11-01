@@ -105,6 +105,17 @@ class HrvDailyAssessmentUiTest {
             }
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun indexDisplayKeepsHalfForNormalAndExtendsOuterBuffersToFourWithoutChangingValues() {
+        assertEquals(0f,hrvIndexOffsetFraction(0.0),0f)
+        for((value,position) in listOf(1.0 to .25f,2.0 to (1f/3),3.0 to (5f/12),4.0 to .5f,10.0 to .5f)) {
+            assertEquals(position,hrvIndexOffsetFraction(value),.000001f)
+            assertEquals(-position,hrvIndexOffsetFraction(-value),.000001f)
+        }
+        assertEquals(.125f,hrvIndexOffsetFraction(.5),0f)
+        val c=org.robolectric.RuntimeEnvironment.getApplication()
+        val index=HrvIndexView(c,ThemeManager(c.getSharedPreferences("index-range",0)),"PNS-Index",5.5)
+        assertEquals("5,5",index.findViewWithTag<TextView>("hrva_index_value").text.toString().replace('.',','))
+    }
     @Test fun detailArrivalPinsDayUntilContactThenPushesItAndCanScrollBack() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

@@ -128,6 +128,14 @@ internal class HrvDayCircle(context:Context,themes:ThemeManager,private val data
     }
 }
 
+/** Signed fraction from the bar centre: ±1 takes the middle half, outer quarters extend to ±4. */
+internal fun hrvIndexOffsetFraction(value:Double):Float {
+    if(!value.isFinite()) return 0f
+    val magnitude=kotlin.math.abs(value)
+    val distance=if(magnitude<=1) magnitude*.25 else .25+((magnitude-1)/3).coerceAtMost(1.0)*.25
+    return (kotlin.math.sign(value)*distance).toFloat()
+}
+
 /** Signed deviation: square at zero, rounded only at its outward end. No diagnostic colors. */
 internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,private val value:Double?,referenceDays:Int?=null):LinearLayout(context) {
     init {
@@ -156,7 +164,7 @@ internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,pri
                 paint.style=Paint.Style.FILL;paint.color=track
                 canvas.drawRoundRect(0f,y-bar/2,width.toFloat(),y+bar/2,bar/2,bar/2,paint)
                 value?.takeIf { it.isFinite() && it!=0.0 }?.let {
-                    val end=center+(it.coerceIn(-2.0,2.0)/4*width).toFloat()
+                    val end=center+hrvIndexOffsetFraction(it)*width
                     val save=canvas.save();canvas.clipRect(minOf(center,end),y-bar/2,maxOf(center,end),y+bar/2)
                     paint.color=foreground
                     canvas.drawRoundRect(minOf(center,end)-if(it>0) bar/2 else 0f,y-bar/2,

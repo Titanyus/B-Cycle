@@ -34,9 +34,11 @@ Erste Reihe HRV, Puls, SDNN, RMSSD, Weitere; Standard jetzt HRV. Weitere öffnet
 
 Sechs relevante Fälle in `hrv-score-more-tiles-tests.log`, vier sofort erfolgreich. Bestehender Bedienfall nach RadioGroup-Korrektur erfolgreich in `hrv-more-tiles-final-tests.log`, schmale Weitere-Kachel nach Innenabstandskorrektur erfolgreich in `hrv-more-tile-native-final-test.log` (320/360dp, Flat/Glow). Monatsnavigation separat in `hrv-score-month-selection-test.log`, native Vorschau geprüft. Noch unveröffentlicht.
 
-## Aktuell: Indexbalken bis±4
+## Lokale Änderung: Indexbalken bis±4
 
-Nutzer bestätigt: persönliche Normzone−1…+1 bleibt mittlere50%, äußere Viertel reichen bis−4/+4. Tatsächliche Zahlenwerte weiter unbegrenzt. Nur Darstellung erweitern, keine Änderung an Indexformeln/Referenzen oder Versuch, proprietäre Kubios-SNS-Zahlen nachzuahmen. Umsetzung als letzter Schritt.
+Bestätigte Abbildung: persönliche−1…+1-Zone mittlere50%, äußere Viertel bis−4/+4 (gröbere Skalierung). Zahlenwerte weiterhin unbegrenzt; keine Formelanpassung oder Kubios-Nachbildung. Zwei gezielte Fälle erfolgreich in `hrv-index-four-range-tests.log`: Norm-/Pufferpositionen und volle Werte, native Tagesdarstellung Flat/Glow. [Formeln](hrv-autonomic-index-proposal.md). Noch unveröffentlicht.
+
+Alle seit Build117 beauftragten Änderungen oben umgesetzt und gezielt geprüft. Keine neue APK seitdem beauftragt. Für Gerätegefühl der weicheren Gesten weiterhin physischer Test nötig.
 
 ## In Build117 enthalten
 
@@ -59,4 +61,4 @@ Build115 enthält BackupWork/dataSync-FGS/Wake-Lock für Sicherung/Restore bei D
 
 Basis Build116: randfüllender TERTIARY-Detailkopf mit8dp unten, linksbündiger Fahrtname, offene Puls-Z1, runde mitlaufende X-Raster und Clipping unter festen Randwerten. [Build116](build-116.md).
 
-Lokale Sticky-Kopf-Korrektur und aktive Intervals-Puls-Untersuchung siehe oben. Neue APK ausschließlich auf Auftrag über GitHubActions. Nächste Version voraussichtlich0.8.77/code147/Build118. Dauerhafte Signatur und tatsächlichen direkten Raw-Download prüfen; Appcode nie mit[skip ci] überspringen. Snapshot vor Bereinigung: `vor-den-bereinigungen-2026-10-30`.
+Lokale Änderungen nach Build117 siehe oben; konkrete Implementierungsaufträge erledigt. Herkunft alter abweichender Intervals-Pulswerte ohne Remote-Verlauf ungeklärt, auf Wunsch aktualisierender Sammellauf aber umgesetzt. Neue APK ausschließlich auf Auftrag über GitHubActions. Nächste Version voraussichtlich0.8.77/code147/Build118. Dauerhafte Signatur und tatsächlichen direkten Raw-Download prüfen; Appcode nie mit[skip ci] überspringen. Snapshot vor Bereinigung: `vor-den-bereinigungen-2026-10-30`.

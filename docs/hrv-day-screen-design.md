@@ -26,7 +26,7 @@ Zusätzliche ausdrückliche Nutzervorgabe: Den pulsierenden Glow innerhalb des M
 - Null liegt in der Mitte. Füllung von dort je nach Vorzeichen nach links oder rechts.
 - Füllung am Nullpunkt gerade abschneiden, nur das äußere linke/rechte Ende abrunden.
 - Mittige FOREGROUND-Linie steht3dp über; darunter kleine„0“.
-- Mittlere50% zeigen persönliche Abweichungen−1…+1, außen25% Puffer bis−2/+2. Tatsächliche Zahlenwerte nicht begrenzen. Ohne ausreichende Referenz „–“. Beide Balken FOREGROUND ohne erfundene Stress-/Warnschwellen. Berechnung und wissenschaftliche Grenzen in hrv-autonomic-index-proposal.md und In-App-Hilfe erklärt.
+- Mittlere50% zeigen persönliche Abweichungen−1…+1, außen25% Puffer bis−4/+4 mit gröberer Skalierung. Tatsächliche Zahlenwerte nicht begrenzen. Ohne ausreichende Referenz steht rechts neben dem Indexnamen „noch XX Tage bis zum ersten Wert“; fehlenden Tagesmesswert/fehlende Streuung kurz benennen. Beide Balken FOREGROUND ohne erfundene Stress-/Warnschwellen. Berechnung und wissenschaftliche Grenzen in hrv-autonomic-index-proposal.md und In-App-Hilfe erklärt.
 
 ## Empfehlung und Ablauf
 
