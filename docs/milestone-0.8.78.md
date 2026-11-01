@@ -11,7 +11,7 @@ Auf Nutzerwunsch am01.11.2026 gesichert: vollständiger Projektstand einschließ
 - APK-SHA256: `998fa47f4765b1a0079ff78160c9c99d3ec4ec70cf7a52fc09fece9592103977`.
 - Dauerhaftes Signierzertifikat SHA256: `94d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b`.
 
-Release-Anhänge: unveränderte geprüfte APK, ihre SHA256-Datei und komprimiertes R8-Mapping `B-Cycle-0.8.78-build-119-mapping.txt.gz`. Der Meilenstein-Tag umfasst zusätzlich die abschließenden Veröffentlichungs-/Prüfnachweise und die unten genannten Planungsentscheidungen; gegenüber dem gebauten Quellstand keine weiteren Appcodeänderungen.
+Dauerhaft versionierte Dateien unter `downloads/`: unveränderte geprüfte APK, ihre SHA256-Datei und komprimiertes R8-Mapping `B-Cycle-0.8.78-build-119-mapping.txt.gz` einschließlich eigener Prüfsumme. Das GitHub-Release verlinkt die Dateien auf unveränderliche Git-Revisionen. Direkte Release-Asset-Uploads wurden vom GitHub-Upload-Endpunkt mit HTTP401 abgewiesen; deshalb Dateien im Repository gesichert. Mapping-SHA256: `f4b39a45d4ead078011e816a962d40458af5ab21a6cb88ec6474b510949f7a02`. Das R8-Mapping wurde nach dem Quelltag in einem separaten Sicherungscommit ergänzt; der Release-Link fixiert genau diesen Commit. Der Meilenstein-Tag umfasst zusätzlich die abschließenden Veröffentlichungs-/Prüfnachweise und die unten genannten Planungsentscheidungen; gegenüber dem gebauten Quellstand keine weiteren Appcodeänderungen.
 
 Enthalten: HRV-Darstellung und schwebende Zusatzkennzahlen, aufgeräumte HRV-/Fahrradeinstellungen, Sensoranzeige nach Zuordnung/Suchfund sowie ruhende Aufnahmeanzeige zwischen den Übergängen. Gezielte Prüfungen und tatsächlicher Raw-Download erfolgreich; kein physischer Gerätetest.
 

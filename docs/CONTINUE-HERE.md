@@ -29,4 +29,4 @@ Physisches Wischgefühl, neue Dropdownbedienung/Animation und Intervals-Sammelak
 
 ## Neuer gesicherter Meilenstein
 
-Auf ausdrücklichen Nutzerwunsch vollständigen aktuellen Stand als annotierten Git-Tag `v0.8.78` und GitHub-Release sichern. APK0.8.78/Build119 samt Prüfsumme und komprimiertem R8-Mapping als dauerhafte Release-Anhänge. [Umfang](milestone-0.8.78.md). Keine Appcodeänderung oder neuer APK-Build.
+Auf ausdrücklichen Nutzerwunsch vollständigen aktuellen Stand als annotierten Git-Tag `v0.8.78` und GitHub-Release sichern. APK0.8.78/Build119 samt Prüfsumme und komprimiertem R8-Mapping dauerhaft im Repository; Release verlinkt unveränderliche Git-Revisionen. Direkter Release-Asset-Upload scheiterte an HTTP401 des Upload-Endpunkts, deshalb erfolgreiche Sicherung im Repo. [Umfang](milestone-0.8.78.md). Keine Appcodeänderung oder neuer APK-Build.
