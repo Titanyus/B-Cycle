@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ListView
 import android.widget.TextView
 import org.junit.Assert.*
@@ -77,4 +78,38 @@ class RouteListLayoutRegressionTest {
             assertEquals(themes.active.tokens.tertiary,image.getPixel(row.width-1,row.height-1));image.recycle()
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun allFourMetricValuesAndUnitsRemainCompleteAfterLongScrollBackAndRecycling() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val c=host.get();val manager=RouteManagerView(c,{}).apply { fullscreen=true }
+            val rides=(0 until 160).map { i ->
+                val speed=if(i%2==0) 5.0 else 39.9
+                val km=if(i%3==0) 999.9 else 7.4+i
+                ManagedRoute("m$i","Fahrt $i",true,"FIT",RouteDetails(1793400000000L-i*86400000L,km*1000,movingMs=(km/speed*3600000).toLong()),true)
+            }
+            c.setContentView(manager);manager.submit(rides,null,false);layout(manager,360)
+            val list=manager.findViewWithTag<ListView>("route_list")
+            org.robolectric.util.ReflectionHelpers.setField(org.robolectric.util.ReflectionHelpers.getField<Any>(list,"mAttachInfo"),"mInTouchMode",true)
+            for(width in listOf(320,360,420)) for(position in listOf(1,100,1,145,1)) {
+                list.setSelectionFromTop(position,0);layout(manager,width)
+                for(i in 0 until list.childCount) {
+                    val row=list.getChildAt(i);val entry=list.adapter.getItem(list.firstVisiblePosition+i) as? ManagedRoute ?: continue
+                    val image=Bitmap.createBitmap(row.width,row.height,Bitmap.Config.ARGB_8888)
+                    row.draw(Canvas(image));image.recycle()
+                    for(kind in listOf("date","distance","moving","average")) {
+                        val value=row.findViewWithTag<TextView>("route_${kind}_${entry.id}")
+                        val group=value.parent as ViewGroup
+                        for(child in (0 until group.childCount).map(group::getChildAt).filterIsInstance<TextView>().filter { it.visibility==View.VISIBLE }) {
+                            val text=child.layout ?: throw AssertionError("No layout: $kind")
+                            assertEquals("$kind ${entry.id}",1,text.lineCount)
+                            assertEquals(child.text.length,text.getLineEnd(0));assertEquals(0,text.getEllipsisCount(0))
+                            assertTrue("$kind ${child.text} at $width: ${text.getLineWidth(0)} > ${child.width}; paint=${child.paint.measureText(child.text.toString())}, sp=${child.textSize}, auto=${child.autoSizeTextType}",text.getLineWidth(0)<=child.width-child.compoundPaddingLeft-child.compoundPaddingRight+1)
+                            assertTrue("$kind starts outside cell",child.left>=-1);assertTrue("$kind ends outside cell",child.right<=group.width+1)
+                        }
+                    }
+                }
+            }
+        } finally { host.pause().stop().destroy() }
+    }
+
 }

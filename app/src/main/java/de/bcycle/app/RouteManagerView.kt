@@ -288,6 +288,7 @@ internal class RouteManagerView(context: Context,
             }, route.id, "moving")
             average.bind(route.details.movingAverageKmh?.let { String.format(Locale.GERMANY, "%.1f", it) }, route.id, "average")
             metrics.tag = "route_metrics_${route.id}"
+            metrics.forceLayout();rideBody.forceLayout();forceLayout();requestLayout()
             preview.points = route.details.preview; preview.contentDescription = if (route.hasRoute) context.getString(R.string.ui_route_preview) else context.getString(R.string.ui_route_no_gps)
             eye.visibility=if(route.hasRoute && !selecting) VISIBLE else GONE
             eye.tag = "route_eye_${route.id}"; eye.isEnabled = !busy && route.hasRoute && route.locallySaved

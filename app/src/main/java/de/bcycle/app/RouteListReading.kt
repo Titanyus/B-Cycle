@@ -10,12 +10,12 @@ import android.widget.TextView
 internal class RouteListReading(context:Context,themes:ThemeManager,labelId: Int? = null, unitId: Int? = null) : LinearLayout(context) {
     val number = BicycleComponents.text(context, themes, "").apply {
         typeface = BicycleDesign.narrowTypeface(context); textSize = BicycleDesign.routeMetricSp
-        gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
+        gravity = Gravity.CENTER; includeFontPadding = false; setSingleLine()
         setAutoSizeTextTypeUniformWithConfiguration(if (labelId == null) 10 else 12, BicycleDesign.routeMetricSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
     }
     val unit = TextView(context).apply {
         text = unitId?.let(context::getString).orEmpty(); typeface = BicycleDesign.narrowTypeface(context)
-        textSize = BicycleDesign.formatSp; gravity = Gravity.CENTER; includeFontPadding = false; maxLines = 1
+        textSize = BicycleDesign.formatSp; gravity = Gravity.CENTER; includeFontPadding = false; setSingleLine()
         BicycleComponents.secondaryText(this,themes)
         setAutoSizeTextTypeUniformWithConfiguration(8, BicycleDesign.formatSp.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_SP)
     }
@@ -31,5 +31,8 @@ internal class RouteListReading(context:Context,themes:ThemeManager,labelId: Int
     fun bind(value: String?, id: String, kind: String) {
         number.text = value.orEmpty(); number.tag = "route_${kind}_$id"
         unit.visibility = if (value == null || unit.text.isEmpty()) GONE else VISIBLE
+        // ListView can recycle equal-sized rows without propagating the new text's layout request.
+        number.forceLayout();unit.forceLayout();getChildAt(0).forceLayout();forceLayout()
+        requestLayout()
     }
 }
