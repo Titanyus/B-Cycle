@@ -146,7 +146,7 @@ class HrvTrendPeriodUiTest {
             var periodTitle="";view.onPeriodSelected={periodTitle=it}
             view.findViewWithTag<View>("hrv_period_MONTH").performClick();layout(view,1100)
             assertEquals(View.GONE,view.findViewWithTag<View>("bicycle_action_footer").visibility)
-            assertTrue(periodTitle.contains("2025"));assertEquals(HrvTrendAxis.from(HrvTrendAggregation.series(series.getValue(HrvTrendMetric.RMSSD),HrvTrendPeriod.MONTH),HrvTrendMetric.RMSSD),chart.axis)
+            assertTrue(periodTitle.contains("2025"));assertEquals(HrvTrendAxis.from(HrvTrendAggregation.series(series.getValue(HrvTrendMetric.HRV),HrvTrendPeriod.MONTH),HrvTrendMetric.HRV),chart.axis)
             val month=LocalDate.of(2024,10,1);val viewport=viewport(chart)
             val x=(40+(HrvTrendPeriod.MONTH.index(month)-(viewport.end-viewport.span))/viewport.span*(chart.width-48)).toFloat()
             val now=android.os.SystemClock.uptimeMillis()
@@ -214,6 +214,7 @@ class HrvTrendPeriodUiTest {
             view.findViewWithTag<View>("hrv_period_MONTH").performClick()
             assertNull(view.findViewWithTag<View>("hrv_trend_selected"))
             assertEquals(rows.size,HrvTrendAggregation.series(series.getValue(HrvTrendMetric.RMSSD),HrvTrendPeriod.MONTH).single().sampleDays)
+            view.findViewWithTag<View>("hrv_trend_more").performClick()
             view.findViewWithTag<View>("hrv_trend_HF").performClick()
             assertEquals(View.VISIBLE,view.findViewWithTag<View>("hrv_trend_empty").visibility)
             assertTrue(view.findViewWithTag<TextView>("hrv_trend_HF").text.toString().endsWith("—"))

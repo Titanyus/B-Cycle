@@ -25,7 +25,17 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
     private val grouped=mutableMapOf<Pair<HrvTrendPeriod,HrvTrendMetric>,List<HrvTrendPoint>>()
     private val axes=mutableMapOf<Pair<HrvTrendPeriod,HrvTrendMetric>,HrvTrendAxis>()
     private val metricButtons=linkedMapOf<HrvTrendMetric,BicycleSegmentButton>()
-    private var metric=HrvTrendMetric.RMSSD
+    private val primaryMetrics=listOf(HrvTrendMetric.HRV,HrvTrendMetric.HR,HrvTrendMetric.SDNN,HrvTrendMetric.RMSSD)
+    private val choices=RadioGroup(context).apply { orientation=HORIZONTAL;tag="hrv_trend_metrics" }
+    private val advancedChoices=RadioGroup(context).apply { orientation=HORIZONTAL;tag="hrv_trend_advanced";visibility=GONE }
+    private val moreArrow=android.graphics.drawable.RotateDrawable().apply { fromDegrees=0f;toDegrees=180f }
+    private val more=BicycleSegmentButton(context,themes).apply {
+        id=generateViewId();tag="hrv_trend_more";text=context.getString(R.string.hrvt_more)
+        textSize=BicycleDesign.analysisLabelSp;toggleOnClick=false
+        val inset=BicycleDesign.dp(context,BicycleDesign.choiceTextGap)/2;setPadding(inset,0,inset,0)
+        compoundDrawablePadding=BicycleDesign.dp(context,2)
+    }
+    private var metric=HrvTrendMetric.HRV
     private var resolution=HrvTrendPeriod.DAY
     private var selected:HrvTrendPoint?=null
     private val dateFormat=DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -70,17 +80,31 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
             },RadioGroup.LayoutParams(0,-2,1f))
         }
         addView(periods,LayoutParams(-1,-2))
-        val choices=RadioGroup(context).apply { orientation=HORIZONTAL;tag="hrv_trend_metrics" }
         BicycleComponents.segmentedControlRow(choices,themes)
-        HrvTrendMetric.entries.forEach { candidate ->
+        BicycleComponents.segmentedControlRow(advancedChoices,themes)
+        fun addMetric(candidate:HrvTrendMetric,row:RadioGroup) {
             val choice=BicycleSegmentButton(context,themes).apply {
                 id=generateViewId();tag="hrv_trend_${candidate.name}"
                 textSize=BicycleDesign.analysisLabelSp;isChecked=candidate==metric
-                setOnCheckedChangeListener { _,checked -> if(checked) { metric=candidate;refresh() } }
+                // Let the native RadioGroup finish its checked-state callback before coordinating both rows.
+                setOnClickListener { chooseMetric(candidate) }
             }
-            metricButtons[candidate]=choice;choices.addView(choice,RadioGroup.LayoutParams(0,-2,1f))
+            metricButtons[candidate]=choice;row.addView(choice,RadioGroup.LayoutParams(0,-2,1f))
+        }
+        primaryMetrics.forEach { addMetric(it,choices) }
+        choices.addView(more,RadioGroup.LayoutParams(0,-2,1f))
+        listOf(HrvTrendMetric.PNN50,HrvTrendMetric.LF,HrvTrendMetric.HF).forEach { addMetric(it,advancedChoices) }
+        more.setOnClickListener {
+            advancedChoices.visibility=if(advancedChoices.visibility==VISIBLE) GONE else VISIBLE
+            moreArrow.level=if(advancedChoices.visibility==VISIBLE) 10000 else 0
+        }
+        BicycleComponents.bindTheme(more,themes) {
+            moreArrow.drawable=BicycleIcons.drawable(context,BicycleIcon.Expand,more.currentTextColor)
+            val size=BicycleDesign.dp(context,10);moreArrow.setBounds(0,0,size,size)
+            more.setCompoundDrawablesRelative(null,null,moreArrow,null)
         }
         addView(choices,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(advancedChoices,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(caption,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(empty);addView(chart,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvTrendGraphHeight)).apply { marginStart=-pad })
         addView(range)
@@ -104,6 +128,12 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         refresh()
     }
     fun focusDay(day:LocalDate) { activeDay=day;refresh();chart.focusDay(day) }
+    private fun chooseMetric(candidate:HrvTrendMetric) {
+        metric=candidate
+        choices.check(if(candidate in primaryMetrics) metricButtons.getValue(candidate).id else more.id)
+        if(candidate in primaryMetrics) advancedChoices.clearCheck() else advancedChoices.check(metricButtons.getValue(candidate).id)
+        refresh()
+    }
     private fun applyColors() {
         val colors=if(colorMode==HrvContextMode.STANDARD) null else colorCache.getOrPut(resolution to colorMode) {
             contextGroups.getOrPut(resolution) { HrvContextColors.aggregate(contextData,resolution) }
@@ -142,7 +172,7 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         }
     }
     private fun refresh(reset:Boolean=false,anchor:LocalDate?=null) {
-        caption.text=context.getString(metric.label)+" · "+context.getString(metric.unit)
+        caption.text=listOf(context.getString(metric.label),context.getString(metric.unit)).filter { it.isNotEmpty() }.joinToString(" · ")
         val points=points(metric)
         val hasValue=points.any { it.value!=null }
         empty.visibility=if(hasValue) GONE else VISIBLE;chart.visibility=if(hasValue) VISIBLE else GONE

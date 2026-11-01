@@ -9,7 +9,8 @@ internal enum class HrvTrendMetric(val key:String,val label:Int,val unit:Int) {
     RMSSD("rmssdMs",R.string.hrvt_rmssd,R.string.hrvt_ms),
     PNN50("pnn50Percent",R.string.hrvt_pnn50,R.string.hrvt_percent),
     LF("lfMs2",R.string.hrvt_lf,R.string.hrvt_ms2),
-    HF("hfMs2",R.string.hrvt_hf,R.string.hrvt_ms2)
+    HF("hfMs2",R.string.hrvt_hf,R.string.hrvt_ms2),
+    HRV("hrvScore",R.string.hrvt_hrv,R.string.hrvt_no_unit)
 }
 internal data class HrvTrendPoint(val row:HrvHistorySummary,val day:LocalDate,val cohort:String,val value:Double?,
     val average:Double?,val lower:Double?,val upper:Double?,
@@ -22,12 +23,12 @@ internal data class HrvTrendPoint(val row:HrvHistorySummary,val day:LocalDate,va
 internal data class HrvTrendAxis(val minimum:Double,val maximum:Double) {
     companion object {
         fun from(points:List<HrvTrendPoint>,metric:HrvTrendMetric):HrvTrendAxis {
-            val values=points.flatMap { listOfNotNull(it.value,it.average,it.lower,it.upper) }.filter { it.isFinite() && it>=0 }
+            val values=points.flatMap { listOfNotNull(it.value,it.average,it.lower,it.upper) }.filter { it.isFinite() && (it>=0 || metric==HrvTrendMetric.HRV) }
             val low=values.minOrNull() ?: return HrvTrendAxis(0.0,1.0)
             val high=values.max()
-            val lowerPadding=if(metric==HrvTrendMetric.HR) 5.0 else low*.05
+            val lowerPadding=if(metric==HrvTrendMetric.HR) 5.0 else if(metric==HrvTrendMetric.HRV) (kotlin.math.abs(low)*.05).coerceAtLeast(.1) else low*.05
             val upperPadding=if(metric==HrvTrendMetric.HR) 5.0 else (high*.05).coerceAtLeast(.1)
-            return HrvTrendAxis((low-lowerPadding).coerceAtLeast(0.0),high+upperPadding)
+            return HrvTrendAxis(if(metric==HrvTrendMetric.HRV) low-lowerPadding else (low-lowerPadding).coerceAtLeast(0.0),high+upperPadding)
         }
     }
 }
@@ -39,6 +40,22 @@ internal object HrvTrends {
     const val MIN_AVERAGE=5
     const val MIN_NORMAL=14
     fun series(rows:List<HrvHistorySummary>,metric:HrvTrendMetric):List<HrvTrendPoint> {
+        if(metric==HrvTrendMetric.HRV) {
+            // Same daily score and transformed corridor as the overview; mean the actual score values.
+            val scores=series(rows,HrvTrendMetric.RMSSD).map {
+                it.copy(cohort=metric.name,value=HrvDailyAssessment.score(it.value),average=null,
+                    lower=HrvDailyAssessment.score(it.lower),upper=HrvDailyAssessment.score(it.upper))
+            }
+            return scores.mapIndexed { index,point ->
+                if(point.value==null) return@mapIndexed point
+                val week=ArrayList<Double>()
+                for(i in index downTo 0) {
+                    if(point.day.toEpochDay()-scores[i].day.toEpochDay()>=AVERAGE_DAYS) break
+                    scores[i].value?.let(week::add)
+                }
+                point.copy(average=week.takeIf { it.size>=MIN_AVERAGE }?.average())
+            }
+        }
         val selected=HrvDailySelection.latest(rows).sortedBy { HrvDailySelection.day(it) }
         val points=selected.map { row ->
             val usable=row.acceptable || row.importedDay!=null && row.hasMeasurement

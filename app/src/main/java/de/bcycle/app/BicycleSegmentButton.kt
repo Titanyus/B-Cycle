@@ -27,6 +27,8 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
     /** Styling opt-out; native checked state and selection callbacks remain intact. */
     var showSelectionHighlight=true
         set(value) { field=value;if(ready) paint(themes.active.tokens) }
+    /** A dropdown trigger displays selection from its choices rather than toggling on opening. */
+    var toggleOnClick=true
     init {
         buttonDrawable=null;buttonTintList=null
         gravity=Gravity.CENTER;typeface=BicycleDesign.bodyTypeface;textSize=BicycleDesign.choiceSp
@@ -54,7 +56,7 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
             ?.let { BicycleComponents.segmentedControlRow(it,themes) }
         super.onAttachedToWindow()
     }
-    override fun toggle() { if(multiple) isChecked=!isChecked else super.toggle() }
+    override fun toggle() { if(toggleOnClick) { if(multiple) isChecked=!isChecked else super.toggle() } }
     override fun getAccessibilityClassName():CharSequence=if(multiple) android.widget.CheckBox::class.java.name else super.getAccessibilityClassName()
     override fun drawableStateChanged() { super.drawableStateChanged();if(ready) paint(themes.active.tokens) }
     private fun paint(tokens:ThemeTokens) {

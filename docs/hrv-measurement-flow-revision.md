@@ -36,3 +36,12 @@ Redundante Aktion „Auswertung“ entfernt. Verbleiben Messergebnis, Tagesbefin
 Nur der obere Tagesbereich erhält denselben PageViewport wie das Dashboard. Horizontal jeweils einen Kalendertag wechseln; fehlende Messungen bleiben als fehlend sichtbar. Grenzen: frühester vorhandener Mess-/Antworttag bis heute, an Grenzen weich zurück. Datum, Empfehlung, Werte und Diagrammauswahl/Tagesaktionen wechseln gemeinsam; Diagrammzoom/-pan liegt außerhalb der Tages-Wischfläche. Footer fest. Erst fertige lokale Tagesansicht einschieben; bis dahin ausgehende Ansicht halten. Maximal16 besuchte Tagesmodelle im Dialog-RAM zwischenspeichern, nach Bearbeiten/Löschen neu laden und Cache leeren. Kein zusätzlicher Sensor-/Kartenbaum und keine neue Speicherung.
 
 Native Integration prüft beide Richtungen, gemeinsame Auswahl/Datum/Diagramm, festen Footer, Snapshotfreigabe und obere Tagesgrenze. Bestehende Bearbeiten-/Löschen-/Header-/vertikale Scrollprüfungen weiterhin erfolgreich; siehe `hrv-day-swipe-final-test.log` und `hrv-day-swipe-smooth-pages-tests.log`.
+
+
+## Kennzahlen in der Detailauswertung nach Build117
+
+Erste Reihe: HRV, Puls, SDNN, RMSSD, Weitere. Standardkennzahl HRV. Weitere klappt darunter drei gleich gestaltete Kacheln pNN50/LF/HF aus; Öffnen allein ändert die aktive Kennzahl nicht. Eine der drei Zusatzkennzahlen markiert zugleich Weitere, auch im eingeklappten Zustand. Primärwahl entfernt diese Markierung. Native RadioGroup-Auswahl erst nach dem eigenen Click-Abschluss über die beiden Reihen koordinieren, um keine gerade gewählte Kachel wieder abzuwählen.
+
+HRV-Tageswerte und Korridor sind dieselben2×lnRMSSD-Werte wie im Tageskreis. Die7-Tage-Mittelwertlinie mittelt die tatsächlich transformierten Tageswerte (mindestens5 gültige Werte), nicht den Logarithmus eines Rohmittelwerts. Wochen-/Monatsaggregation erhält vorhandene Zeitfenster und mittelt vorbereitete Tageswerte/Korridore. Dimensionlose Achse ohne künstliche0–10-Grenze, auch negative Werte darstellbar. Keine neuen gespeicherten Felder.
+
+Prüfung: sechs gezielte Fälle in `hrv-score-more-tiles-tests.log`, vier zunächst erfolgreich. Native RadioGroup-Abfolge und schmale Weitere-Kachel korrigiert; bestehender Diagrammbedienfall danach erfolgreich in `hrv-more-tiles-final-tests.log`, neue320/360dp-Auswahlprüfung in Flat/Glow schließlich erfolgreich in `hrv-more-tile-native-final-test.log`. Native Vorschau visuell geprüft. Angepasste Monatsnavigation separat in `hrv-score-month-selection-test.log`.

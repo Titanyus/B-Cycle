@@ -28,9 +28,15 @@ Drei Übergangsfälle erfolgreich in `page-smooth-handoff-tests.log`; fünf von 
 
 Nutzer ausdrücklich: genau eine Messhistorie, Import ist Eingangsadapter. PNS/Aktivierung zählen nun eigene und passend importierte Tageswerte gemeinsam, wie der HRV-Korridor; keine Quell-/Ruheprotokolltrennung. Formeln,60 Tage/14 gültige frühere Tage und Qualitäts-/Letzte-Messung-Regel erhalten. Je Index separate Anzahl positiver gültiger Referenzwerte. Statt Strich rechts neben Namen „noch XX Tage bis zum ersten Wert“; Tagesmesswert fehlt/keine Streuung mit kurzen eigenen Hinweisen. Balken erhalten. Sechs gezielte Fälle erfolgreich in `hrv-shared-reference-hint-tests.log`. [Formeln](hrv-autonomic-index-proposal.md). Noch unveröffentlicht.
 
-## Aktuell: HRV-Kennzahl in detaillierter Auswertung und Weitere-Reihe
+## Lokale Änderung: HRV-Verlauf und Weitere-Kachelreihe
 
-Nutzer bestätigt: erste Reihe HRV, Puls, SDNN, RMSSD, Weitere. Weitere klappt drei zusätzliche gleich gestaltete Kacheln pNN50/LF/HF auf; Weitere hervorheben, wenn eine davon aktiv ist, auch eingeklappt. HRV nutzt Tageswert2×lnRMSSD, Korridor und Mittelwert im Diagramm sowie bestehende gemeinsame Zeitnavigation. Umsetzung als nächster Schritt.
+Erste Reihe HRV, Puls, SDNN, RMSSD, Weitere; Standard jetzt HRV. Weitere öffnet darunter pNN50/LF/HF als gleich gestaltete Kacheln, Öffnen allein ändert Auswahl nicht. Bei Zusatzkennzahl bleibt Weitere markiert, auch geschlossen. Auswahl über native RadioGroups nach Click-Abschluss koordinieren. HRV-Wert/Korridor wie Tageskreis (2×lnRMSSD),7-Tage-Linie tatsächlicher Score-Mittelwert ab5 gültigen Tagen. Wochen/Monate vorbereitet aggregiert, dimensionlose Achse auch negativ/über10. Keine neue Persistenz. [Ablauf](hrv-measurement-flow-revision.md).
+
+Sechs relevante Fälle in `hrv-score-more-tiles-tests.log`, vier sofort erfolgreich. Bestehender Bedienfall nach RadioGroup-Korrektur erfolgreich in `hrv-more-tiles-final-tests.log`, schmale Weitere-Kachel nach Innenabstandskorrektur erfolgreich in `hrv-more-tile-native-final-test.log` (320/360dp, Flat/Glow). Monatsnavigation separat in `hrv-score-month-selection-test.log`, native Vorschau geprüft. Noch unveröffentlicht.
+
+## Aktuell: Indexbalken bis±4
+
+Nutzer bestätigt: persönliche Normzone−1…+1 bleibt mittlere50%, äußere Viertel reichen bis−4/+4. Tatsächliche Zahlenwerte weiter unbegrenzt. Nur Darstellung erweitern, keine Änderung an Indexformeln/Referenzen oder Versuch, proprietäre Kubios-SNS-Zahlen nachzuahmen. Umsetzung als letzter Schritt.
 
 ## In Build117 enthalten
 
