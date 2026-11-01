@@ -9,7 +9,7 @@
 - SHA-256: `998fa47f4765b1a0079ff78160c9c99d3ec4ec70cf7a52fc09fece9592103977`.
 - Signierzertifikat SHA-256: `94d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b`.
 
-Optimierter Release aus GitHub Actions. CI-Prüfsumme, Version, Manifest ohne Debug-/Test-Flags, ZIP-Ausrichtung und dauerhafte Signatur geprüft. Update-Zertifikat wie Build118.
+Optimierter Release aus GitHub Actions. CI-Prüfsumme, Version, Manifest ohne Debug-/Test-Flags, ZIP-Ausrichtung und dauerhafte Signatur geprüft. Update-Zertifikat wie Build118. Tatsächlichen direkten Raw-Download erneut geladen und binär identisch mit dem geprüften Actions-Artefakt bestätigt.
 
 [Änderungen](release-0.8.78.md): HRV-Kacheln/Dropdown, Empfehlung und Messdiagramm; HRV-Einstellungen; Sensorübersicht und entfernter GPX-Einstellungsschalter; ruhende Aufnahmeanimation zwischen unveränderten Symbolzuständen. Kein VTM-Umbau, kein allgemeiner Akkuschonmodus. Trainingshilfe bleibt ausdrücklich weich überblendet.
 
