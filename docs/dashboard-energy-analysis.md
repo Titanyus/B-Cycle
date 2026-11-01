@@ -95,3 +95,7 @@ Nutzer wünscht zunächst nur einen groben Entscheidungsüberblick; noch keine D
 - GPS seltener erfassen: potenziell wirksamer, aber Geräte können GNSS trotzdem aktiv halten. Längeres Intervall allein garantiert keine entsprechende Energieersparnis. Schlechtere Kurven-/Positionsauflösung und spätere Bewegungs-/Pausenerkennung; deshalb vorerst vollständige1-Hz-Erfassung behalten.
 
 Entscheidungsreihenfolge: unnötige Darstellung und Daueranimationen reduzieren, passive/aktive Statusarbeit prüfen, erst danach bei ausdrücklichem Bedarf Messauflösung ändern. Zusätzliche Hauptbefunde der Quellprüfung sind wiederholte Projektion aller sichtbaren Streckenpunkte, Kompass als weiterer Redraw-Auslöser und Vorbereitung unsichtbarer Graphfenster/Metriken; sie gehören bereits zur Rangfolge oben.
+
+## Verbindliche Nutzerpräzisierung nach Abschluss der Analyse
+
+Sensorfrequenz und weniger Aufzeichnung waren ausschließlich eine Verständnisfrage, kein Optimierungsauftrag. Die App lebt von zuverlässiger vollständiger Erfassung und anschließender Analyse. Für die spätere Akkuoptimierung daher Darstellung/Animationen/gebündelte UI-Updates optimieren; Sensorfrequenz, Rohdatenannahme, reguläre Aufzeichnung und Analyseberechnungen beibehalten. Keine Sensor- oder Datendrosselung aus den vorangegangenen Beispielen ableiten.
