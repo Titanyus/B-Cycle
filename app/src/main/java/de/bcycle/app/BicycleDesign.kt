@@ -34,6 +34,7 @@ object BicycleDesign {
     const val tripleUnitMaxSp=10
     const val hrvCircleHeight=320
     const val hrvGraphHeight=286
+    const val hrvPageContentGap=8
     const val hrvDayIndexHeight=48
     const val hrvTrendGraphHeight=454
     const val hrvTrendMoonSize=12

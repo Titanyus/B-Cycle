@@ -6,7 +6,6 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import java.text.NumberFormat
-import java.time.format.DateTimeFormatter
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -14,7 +13,7 @@ internal class HrvDailyAssessmentView(context:Context,themes:ThemeManager,val as
     init {
         orientation=VERTICAL;tag="hrv_daily_assessment"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
-        setPadding(pad,pad,pad,pad)
+        setPadding(pad,0,pad,pad)
         addView(HrvDayCircle(context,themes,assessment),LayoutParams(-1,-2))
         addView(HrvIndexView(context,themes,context.getString(R.string.hrva_pns),assessment.indices.pns).apply { tag="hrva_pns" },
             LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionCardGap) })
@@ -22,9 +21,6 @@ internal class HrvDailyAssessmentView(context:Context,themes:ThemeManager,val as
             LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(LinearLayout(context).apply {
             orientation=VERTICAL;tag="hrva_advice_text"
-            addView(BicycleComponents.contentHeading(context,themes,context.getString(assessment.advice.label)).apply {
-                tag="hrva_advice";BicycleComponents.bindTheme(this,themes) { setTextColor(assessment.advice.color) }
-            })
             val reason=when(assessment.position) {
                 HrvDayPosition.UNAVAILABLE->R.string.hrva_hrv_missing;HrvDayPosition.COLLECTING->R.string.hrva_collecting
                 HrvDayPosition.LOW->R.string.hrva_low;HrvDayPosition.NORMAL->R.string.hrva_normal;HrvDayPosition.HIGH->R.string.hrva_high
@@ -33,12 +29,12 @@ internal class HrvDailyAssessmentView(context:Context,themes:ThemeManager,val as
                 HrvSubjectiveState.UNKNOWN->R.string.hrva_subjective_unknown;HrvSubjectiveState.GOOD->R.string.hrva_subjective_good
                 HrvSubjectiveState.MIXED->R.string.hrva_subjective_mixed;HrvSubjectiveState.POOR->R.string.hrva_subjective_poor
             }
-            addView(BicycleComponents.text(context,themes,context.getString(reason)+"\n\n"+context.getString(feeling)).apply { tag="hrva_reason" },
-                LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-            val dates=DateTimeFormatter.ofPattern("dd.MM.yyyy")
-            addView(BicycleComponents.description(context,themes,context.getString(R.string.hrva_subjective_period,
-                assessment.day.minusDays(3).format(dates),assessment.day.format(dates),assessment.subjectiveDays)).apply { tag="hrva_subjective_period" },
-                LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+            val advice=context.getString(assessment.advice.label)
+            val paragraph=android.text.SpannableStringBuilder("$advice. ${context.getString(reason)} ${context.getString(feeling)}").apply {
+                setSpan(android.text.style.TypefaceSpan(BicycleDesign.strongTypeface),0,advice.length,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                setSpan(android.text.style.ForegroundColorSpan(assessment.advice.color),0,advice.length,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            addView(BicycleComponents.text(context,themes,"").apply { tag="hrva_advice";text=paragraph },LayoutParams(-1,-2))
         },LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,24) })
     }
 }
@@ -96,7 +92,7 @@ internal class HrvDayCircle(context:Context,themes:ThemeManager,private val data
                 canvas.drawLine(x+c*inside,y+s*inside,x+c*outside,y+s*outside,paint)
                 paint.style=Paint.Style.FILL;paint.typeface=BicycleDesign.bodyTypeface;paint.textSize=BicycleDesign.analysisLabelSp*sp
                 paint.textAlign=if(c<0) Paint.Align.RIGHT else Paint.Align.LEFT
-                val tx=x+c*(outside+4*d);val ty=y+s*(outside+4*d)
+                val tx=x+c*(outside+4*d);val ty=y+s*(outside+4*d)+(if(sweep>0) -3 else 3)*d
                 canvas.drawText(limit.format(v),tx,ty-(paint.ascent()+paint.descent())/2,paint)
                 paint.style=Paint.Style.STROKE
             }

@@ -88,7 +88,8 @@ internal object BicycleContentSpacing {
         }
         val top=if(leading is BicycleSectionHeader) {
             if(BicycleAppearance.flat(body.context)) 0 else BicycleDesign.dp(body.context,BicycleDesign.controlGap)
-        } else BicycleDesign.dp(body.context,BicycleDesign.pageContentGap)
+        } else BicycleDesign.dp(body.context,if(view is HrvEvaluationScrollView || body is HrvMeasurementView)
+            BicycleDesign.hrvPageContentGap else BicycleDesign.pageContentGap)
         if(body.paddingTop!=top) body.setPadding(body.paddingLeft,top,body.paddingRight,body.paddingBottom)
         sections(body)
     }

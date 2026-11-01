@@ -14,9 +14,13 @@ Nutzer hat ausdrücklich Aktualisierung statt Bewahren vorhandener Werte beauftr
 
 Windrose1,8-fach (43,2dp sichtbar bei gleicher24-dp-Ankerfläche), unveränderter korrigierter Mittelpunkt. Nordpfeil in eigener Vektorebene, dynamisch FOREGROUND; Rest schwarz, gemeinsame70% Deckkraft. Bestehender Native-Test mit Pixel-/Theme-/Anker-/Rotations-/Sichtbarkeitsprüfung erfolgreich in `wind-rose-size-north-tests.log`. [Details](map-motion.md). Noch unveröffentlicht.
 
-## Aktuell: kompaktere HRV-Auswertung und weniger oberer Abstand
+## Lokale Änderung: kompakte HRV-Empfehlung und obere Abstände
 
-Nutzer wünscht Empfehlung und subjektives Tagesbefinden ohne Absatz in einem zusammenhängenden Text, zusätzliche Datums-/„4 von4 Tagen“-Zeile entfernen. Mess-/Auswertungsseite etwas näher zum Hauptheader, bisherige sichtbare Kreisabstände zuerst im echten Layout bestimmen. Zusätzliche explizite Vorgabe: obere Grenzwertbeschriftungen3dp nach oben, untere3dp nach unten, Markierungslinien unverändert.
+Empfehlung/HRV-Begründung/subjektives Befinden jetzt ein zusammenhängender Absatz; zusätzliche Zeitraum-/Anzahlzeile entfernt. Beiden HRV-Seiten oben8 statt16dp Seitenabstand; sichtbare Kreisränder ca.14/20 statt22/28dp unter dem Header. Obere Grenzwerttexte3dp hoch, untere3dp runter, Linien unverändert. Zwei gezielte Native-Fälle erfolgreich in `hrv-compact-header-label-tests.log`, Vorschau geprüft. [Gestaltung](hrv-day-screen-design.md). Noch unveröffentlicht.
+
+## Aktuell: weichere Seitenwechsel und HRV-Tageswischen
+
+Nutzer wünscht horizontales Wischen im HRV-Tagesbereich zum Tageswechsel mit derselben Animation wie Dashboard. Gemeinsame Tagesauswahl/Header/Diagramm/Empfehlung erhalten. Dashboard am Gestenbeginn ohne Sprung nach Touchschwelle, bei automatischer Übernahme Fingergeschwindigkeit aufnehmen und weich abbremsen; weiterhin schneller, ruhiger Wechsel. Umsetzung als nächster Schritt.
 
 ## In Build117 enthalten
 

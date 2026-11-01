@@ -19,6 +19,38 @@ import java.time.LocalDate
 @Config(sdk=[33],qualifiers="mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class HrvDailyAssessmentUiTest {
+    @Test fun actualMeasurementAndEvaluationCirclesKeepThePageGapBelowTheHeader() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        try {
+            val a=host.get();val controller=RideRuntime.get(a).hrv
+            fun drain() {
+                val worker=HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(controller) as java.util.concurrent.ExecutorService
+                worker.submit {}.get(10,java.util.concurrent.TimeUnit.SECONDS)
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            }
+            for((method,tag) in listOf("showHrv" to "hrv_circle","showHrvTrends" to "hrva_circle")) {
+                MainActivity::class.java.getDeclaredMethod(method).apply { isAccessible=true }.invoke(a)
+                repeat(2) { drain() }
+                val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+                val decor=screen.window!!.decorView
+                repeat(2) {
+                    decor.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY))
+                    decor.layout(0,0,360,800)
+                }
+                val header=decor.findViewWithTag<View>("bicycle_navigation_header")
+                val circle=decor.findViewWithTag<View>(tag)
+                val h=IntArray(2);val p=IntArray(2);header.getLocationOnScreen(h);circle.getLocationOnScreen(p)
+                val d=a.resources.displayMetrics.density
+                val gap=(p[1]-h[1]-header.height)/d
+                val radius=minOf(circle.width,circle.height)/2f-(if(tag=="hrv_circle") 12 else 24)*d
+                val stroke=BicycleDesign.hrvRingWidth*d*(if(tag=="hrv_circle") 1 else 2)
+                val visibleGap=gap+(circle.height/2f-radius-stroke/2)/d
+                println("$tag: pageGap=$gap dp; visibleRingGap=$visibleGap dp; circle=${circle.width}x${circle.height}")
+                assertEquals(BicycleDesign.hrvPageContentGap.toFloat(),gap,.01f)
+                screen.dismiss()
+            }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun twoArcsAndUnboxedAdviceRenderInBothDesignsAndMissingDataStayUnavailable() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
@@ -32,7 +64,9 @@ class HrvDailyAssessmentUiTest {
                 val content=HrvDailyAssessmentView(a,themes,data)
                 val scroll=ScrollView(a).apply { addView(content) };a.setContentView(scroll)
                 scroll.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(900,View.MeasureSpec.EXACTLY));scroll.layout(0,0,width,900)
-                assertEquals(a.getString(data.advice.label),content.findViewWithTag<TextView>("hrva_advice").text.toString())
+                val advice=content.findViewWithTag<TextView>("hrva_advice").text.toString()
+                assertTrue(advice.startsWith(a.getString(data.advice.label)+". "));assertFalse(advice.contains('\n'))
+                assertNull(content.findViewWithTag<View>("hrva_subjective_period"))
                 assertTrue(content.findViewWithTag<View>("hrva_circle").contentDescription.toString().contains("52 bpm"))
                 assertNull(content.findViewWithTag<View>("hrva_advice_text").background)
                 assertEquals("2,5",content.findViewWithTag<View>("hrva_activation").findViewWithTag<TextView>("hrva_index_value").text.toString().replace('.',','))
@@ -41,7 +75,7 @@ class HrvDailyAssessmentUiTest {
             }
             val missing=HrvDailyAssessmentView(a,themes,HrvDailyAssessment(day,hrv.copy(value=null,lower=null,upper=null),null,null,0))
             assertTrue(missing.findViewWithTag<View>("hrva_circle").contentDescription.toString().contains(a.getString(R.string.hrva_range_missing)))
-            assertEquals(a.getString(R.string.hrva_unavailable),missing.findViewWithTag<TextView>("hrva_advice").text.toString())
+            assertTrue(missing.findViewWithTag<TextView>("hrva_advice").text.startsWith(a.getString(R.string.hrva_unavailable)+". "))
             assertEquals(a.getString(R.string.hrvt_unavailable),missing.findViewWithTag<View>("hrva_pns").findViewWithTag<TextView>("hrva_index_value").text.toString())
         } finally { host.pause().stop().destroy() }
     }
