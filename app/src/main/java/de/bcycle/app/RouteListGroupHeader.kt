@@ -28,7 +28,7 @@ internal class RouteListGroupHeader(context:Context,themes:ThemeManager):LinearL
         addView(LinearLayout(context).apply {
             orientation=HORIZONTAL;isBaselineAligned=false
             listOf(count,distance,moving,average).forEachIndexed { index,reading ->
-                if(index>0) addView(BicycleComponents.divider(context,themes),LayoutParams(BicycleDesign.linePixels(context),-1))
+                if(index>0) addView(BicycleComponents.divider(context,themes).apply { tag="route_group_divider_$index" },LayoutParams(BicycleDesign.linePixels(context),-1))
                 addView(reading,LayoutParams(0,-2,1f))
             }
         },LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.controlGap) })
@@ -40,6 +40,11 @@ internal class RouteListGroupHeader(context:Context,themes:ThemeManager):LinearL
             listOf(count,distance,moving,average).forEach { it.number.tag=null }
             return
         }
+        moving.visibility=if(group.templates) GONE else VISIBLE
+        average.visibility=moving.visibility
+        findViewWithTag<android.view.View>("route_group_divider_2").visibility=moving.visibility
+        findViewWithTag<android.view.View>("route_group_divider_3").visibility=moving.visibility
+        count.label.setText(if(group.templates) R.string.route_template_count else R.string.route_group_activities)
         title.text=group.label
         val key=group.first.toString()
         val missing=context.getString(R.string.analysis_missing)

@@ -83,6 +83,8 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     private val dreeveSummaries=DreeveSummaryLibrary(context.filesDir)
     private var summaries:List<StoredDreeveSummary> = emptyList()
     private val preferences = context.getSharedPreferences("bike", Context.MODE_PRIVATE)
+    private val templatePace=RecentRidePace(preferences)
+    internal val templatePaceKmh get()=templatePace.value
     private var selectedFit: String? = null
     private var workerRoute: GpxRoute? = null
     @Volatile private var mapProfileGeneration=0
@@ -319,6 +321,11 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         val primaryFit=primary?.takeIf { id -> fitEntries.any { it.id==id } }
         val files = (gpxEntries.map { it.id to library.file(it.id) } + fitEntries.map { it.id to fits.file(it.id) } + summaryEntries.map { it.id to dreeveSummaries.file(it.id) })
             .mapNotNull { (id, file) -> if (file.isFile && file.canRead()) id to RouteFileStamp(file.length(), file.lastModified()) else null }.toMap()
+        val paceProfiles=RideProfileColor.catalog(context)
+        templatePace.update((gpxEntries.map { ManagedRoute(it.id,it.name,false,"GPX",it.details,true,it.origin) }+
+            fitEntries.map { ManagedRoute(it.id,it.name,it.recorded,"FIT",it.details,it.hasRoute,it.origin) }+summaryEntries.map { it.managed() }).map { entry ->
+            entry.copy(details=entry.details.copy(bikeType=paceProfiles.values[entry.id]?.type ?: entry.details.bikeType))
+        })
         val displayed = workerRoute
         val corrected=fitEntries.filter { fits.corrected(it.id) }.map { it.id }.toSet()
         handler.post {
@@ -364,13 +371,13 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         context.contentResolver.openInputStream(uri)?.buffered()?.use { input ->
             input.mark(16); val header = ByteArray(12); val bytes = input.read(header); input.reset()
             val isFit = bytes == 12 && header.copyOfRange(8, 12).contentEquals(".FIT".toByteArray())
-            if (recorded || isFit || name.endsWith(".fit", true)) {
+            if (isFit || name.endsWith(".fit", true)) {
                 val entry = fits.add(input, name, recorded) ?: error("FIT konnte nicht übernommen werden")
                 val displayed = FitRead.read(fits.file(entry.id)).route
                 if (displayed != null) { library.select(null); setSelectedFit(entry.id);MapRouteSlots.read(preferences).add(entry.id).write(preferences) }
                 displayed ?: workerRoute
             } else {
-                val displayed = library.add(input, name); setSelectedFit(null)
+                val displayed = library.add(input, name,preserveDate=recorded,origin=if(recorded) TrackOrigin.RECORDED else TrackOrigin.IMPORTED); setSelectedFit(null)
                 library.selected?.let { MapRouteSlots.read(preferences).add(it).write(preferences) };displayed
             }
         } ?: error("Datei kann nicht geöffnet werden")

@@ -83,7 +83,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
             setOnCheckedChangeListener { _,on -> query.displayedOnly=on;refreshAvailability();changed() }
         },LinearLayout.LayoutParams(-1,-2))
 
-        group(R.string.route_filter_kind,{ count(query.kinds.size) }) { section,update ->
+        if(query.scope==null) group(R.string.route_filter_kind,{ count(query.kinds.size) }) { section,update ->
             val segments=LinearLayout(context).apply { BicycleComponents.segmentedControlRow(this,themes) }
             RouteKind.entries.forEach { kind ->
                 segments.addView(BicycleSegmentButton(context,themes,multiple=true).apply {
@@ -168,7 +168,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
         }
         range(R.string.route_filter_distance,{ query.distance },{ query.distance=it })
         range(R.string.route_filter_moving,{ query.moving },{ query.moving=it })
-        range(R.string.route_filter_speed,{ query.speed },{ query.speed=it })
+        if(!query.templates) range(R.string.route_filter_speed,{ query.speed },{ query.speed=it })
         body.addView(BicycleComponents.action(context,themes,context.getString(R.string.route_filter_reset)) { query.clearFilters();changed();dismiss();reset() },LinearLayout.LayoutParams(-1,-2))
         refreshAvailability()
         shell(R.string.route_filter_button)
@@ -197,7 +197,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
             val step=if(time) 5.0/60 else 5.0
             val measured=routes.mapNotNull { route -> when(title) {
                 R.string.route_filter_distance->route.details.distanceM?.div(1000)
-                R.string.route_filter_moving->route.details.movingMs?.div(3600000.0)
+                R.string.route_filter_moving->query.value(RouteSort.MOVING,route)?.div(3600000.0)
                 else->route.details.movingAverageKmh
             } }.filter { it.isFinite() && it>=0 }.maxOrNull()
             val fallback=when(title) { R.string.route_filter_distance->100.0;R.string.route_filter_moving->8.0;else->50.0 }
@@ -258,9 +258,9 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
             })
             BicycleComponents.controlSpacing(button)
         }
-        RouteSort.entries.forEachIndexed { index,sort ->
+        RouteSort.entries.filter { !query.templates || it!=RouteSort.SPEED }.forEachIndexed { index,sort ->
             val button=BicycleSegmentButton(context,themes,standalone=true).apply {
-                tag="route_sort_${sort.name}";setText(labels[index]);stackedIcon(icons[index])
+                tag="route_sort_${sort.name}";setText(labels[sort.ordinal]);stackedIcon(icons[sort.ordinal])
                 isChecked=query.sort==sort;contentDescription=context.getString(sort.label)
                 setOnClickListener {
                     query.sort=sort;choices.forEach { (value,view) -> view.isChecked=value==sort };changed()

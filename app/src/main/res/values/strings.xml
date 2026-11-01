@@ -322,8 +322,8 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_map_legend">CyclOSM-Legende öffnen</string>
     <string name="ui_map_manager_title">Karten</string>
     <string name="ui_file_picker_missing">Keine Dateiauswahl verfügbar</string>
-    <string name="ui_import_planned">Geplante Strecke (GPX / FIT)</string>
-    <string name="ui_import_recorded">Aufgezeichnete Fahrt (FIT)</string>
+    <string name="ui_import_planned">Streckenvorlage (GPX / FIT)</string>
+    <string name="ui_import_recorded">Gefahrene Strecke (GPX / FIT)</string>
     <string name="ui_connection_failed">Verbindung fehlgeschlagen</string>
     <string name="ui_check_settings">Einstellungen prüfen</string>
     <string name="ui_browser_missing">Kein Browser verfügbar</string>
@@ -387,7 +387,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_settings_recovery">Ungespeicherte Fahrten speichern</string>
     <string name="ui_settings_advanced">Erweitert</string>
     <string name="ui_settings_profile">Fahrer</string>
-    <string name="ui_settings_routes">Strecken</string>
+    <string name="ui_settings_routes">Gefahrene Strecken</string>
     <string name="ui_settings_dashboards">Design &amp; UI</string>
     <string name="ui_settings_map">Karten</string>
     <string name="ui_settings_sensors">Sensoren &amp; Aufzeichnung</string>
@@ -493,8 +493,8 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_map_source_cyclosm">CyclOSM · Fahrradkarte</string>
     <string name="ui_map_source_osm">OpenStreetMap · Standardkarte</string>
     <string name="ui_routes_filter_all">Alle</string>
-    <string name="ui_routes_filter_recorded">Gefahren</string>
-    <string name="ui_routes_filter_imported">Importiert</string>
+    <string name="ui_routes_filter_recorded">Gefahrene Strecken</string>
+    <string name="ui_routes_filter_imported">Streckenvorlagen</string>
     <!-- Bikes and profile-bound sensors. -->
     <string name="bikes_title">Bikes</string>
     <string name="bikes_default_name">Bike %1$d</string>

@@ -139,7 +139,7 @@ class FitSplitRecordsTest {
             assertTrue(repaired.hasRoute);assertEquals(entry.id,repaired.id);assertEquals(entry.name,repaired.name)
             assertEquals(entry.origin,repaired.origin);assertEquals(entry.details.dateMs,repaired.details.dateMs)
             assertArrayEquals(bytes,reopened.originalFile(entry.id).readBytes())
-            assertEquals(3,JSONObject(index.readText()).getInt("detailsVersion"))
+            assertEquals(4,JSONObject(index.readText()).getInt("detailsVersion"))
         } finally { root.deleteRecursively() }
     }
 }

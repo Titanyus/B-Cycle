@@ -48,12 +48,12 @@ internal class FitLibrary(root: File) {
     internal fun refreshDetails(id:String) {
         correctedHashes.remove("height:$id");correctedHashes.remove("export:$id")
         val read=readDetails(id)
-        save(entries.map { if(it.id==id) it.copy(details=read.details.copy(dateMs=it.details.dateMs),hasRoute=read.route!=null) else it })
+        save(entries.map { if(it.id==id) it.copy(details=read.details.copy(dateMs=it.details.dateMs,dateFromFile=it.details.dateFromFile,virtualRide=it.details.virtualRide || read.details.virtualRide),hasRoute=read.route!=null) else it })
     }
     fun load() {
         if (index.baseFile.exists() || File(index.baseFile.path + ".bak").exists()) {
             val json = index.openRead().bufferedReader().use { JSONObject(it.readText()) }
-            val refreshMetadata=json.optInt("detailsVersion",0)<1
+            val refreshMetadata=json.optInt("detailsVersion",0)<4
             val recoverSplitRecords=json.optInt("detailsVersion",0)<3
             val array = json.getJSONArray("entries")
             val missingAscent = mutableSetOf<String>()
@@ -67,7 +67,7 @@ internal class FitLibrary(root: File) {
                     RouteDetails.from(item.getJSONObject("details")), item.getBoolean("hasRoute"), origin).also { file(it.id) }
             }
             val upgraded = entries.map { entry -> if (entry.id !in missingAscent || !file(entry.id).isFile) entry else
-                runCatching { val read=readDetails(entry.id);entry.copy(details = read.details.copy(dateMs = entry.details.dateMs),hasRoute=read.route!=null) }.getOrDefault(entry)
+                runCatching { val read=readDetails(entry.id);entry.copy(details = read.details.copy(dateMs = entry.details.dateMs,dateFromFile=entry.details.dateFromFile,virtualRide=entry.details.virtualRide || read.details.virtualRide),hasRoute=read.route!=null) }.getOrDefault(entry)
             }
             json.optJSONArray("excluded")?.let { a -> repeat(a.length()) { excluded += a.getString(it) } }
             json.optJSONArray("seenDownloads")?.let { a -> repeat(a.length()) { seenDownloads += a.getString(it) } }
@@ -124,7 +124,7 @@ internal class FitLibrary(root: File) {
             try { temporary.inputStream().use { it.copyTo(stream) }; target.finishWrite(stream) }
             catch (e: Exception) { target.failWrite(stream); throw e }
             val title = name.trim().removeSuffix(".fit").removeSuffix(".FIT").take(120).ifBlank { "FIT-Strecke" }
-            val details = if (recorded || preserveDate) read.details else read.details.copy(dateMs = System.currentTimeMillis())
+            val details = if (recorded || preserveDate) read.details else read.details.copy(dateMs = System.currentTimeMillis(),dateFromFile=false)
             val entry = StoredFit(id, title, recorded, details, read.route != null)
             save(entries + entry)
             return entry
@@ -151,6 +151,10 @@ internal class FitLibrary(root: File) {
             }
         } catch (_: Exception) { inaccessible++ }
         return inaccessible
+    }
+    internal fun markVirtualRide(id:String) {
+        val next=entries.map { if(it.id==id) it.copy(details=it.details.copy(virtualRide=true)) else it }
+        if(next!=entries) save(next)
     }
     fun rename(id: String, name: String) {
         require(entries.any { it.id == id }); val title = name.trim().take(120)
@@ -181,7 +185,7 @@ internal class FitLibrary(root: File) {
             reexported?.let { install(it,FitReexport.file(directory.parentFile!!,id)) }
             excluded.remove(id.substringAfter('-'))
             save(entries+StoredFit(id,name,origin==TrackOrigin.RECORDED,
-                read.details.copy(dateMs=details.dateMs,bikeType=details.bikeType,
+                read.details.copy(dateMs=details.dateMs,bikeType=details.bikeType,dateFromFile=details.dateFromFile,virtualRide=details.virtualRide || read.details.virtualRide,
                     ascentM=corrected?.let { FitRead.read(it).details.ascentM } ?: read.details.ascentM),read.route!=null,origin))
             return true
         } catch(e:Exception) { targets.forEach { AtomicFile(it).delete() };throw e }
@@ -197,7 +201,7 @@ internal class FitLibrary(root: File) {
         val array = JSONArray()
         next.forEach { array.put(JSONObject().put("id", it.id).put("name", it.name).put("recorded", it.recorded)
             .put("origin", it.origin.name).put("details", it.details.json()).put("hasRoute", it.hasRoute)) }
-        val bytes = JSONObject().put("detailsVersion",3).put("entries", array).put("excluded", JSONArray(excluded.toList()))
+        val bytes = JSONObject().put("detailsVersion",4).put("entries", array).put("excluded", JSONArray(excluded.toList()))
             .put("seenDownloads", JSONArray(seenDownloads.toList())).toString().toByteArray()
         val stream = index.startWrite()
         try { stream.write(bytes); index.finishWrite(stream) } catch (e: Exception) { index.failWrite(stream); throw e }

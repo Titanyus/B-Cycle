@@ -1,0 +1,9 @@
+<resources>
+    <string name="route_templates_title">Streckenvorlagen</string>
+    <string name="route_rides_title">Gefahrene Strecken</string>
+    <string name="route_template_count">Vorlagen</string>
+    <string name="route_created_at">Erstellt am:</string>
+    <string name="route_added_at">Hinzugefügt am:</string>
+    <string name="route_estimated_at">Zeit bei %1$s km/h</string>
+    <string name="route_estimate_missing">--</string>
+</resources>

@@ -10,6 +10,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
     private val profileKeys=setOf("slot","name","type","category","indoorType","sources","wheelMm","autoConnect","autoStartRecording","gpsEnabled","bikeEnabled","heartEnabled",
         "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","powerAddress","powerName","powerEnabled","shiftEnabled","shiftDevices","shiftBatteryWarning","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
+        BackupSection.MAPS to mapOf("bike" to setOf("routeQuery.RECORDED.v1","routeQuery.IMPORTED.v1")),
         BackupSection.RECORDING to mapOf("bike" to setOf(RideNamingSettings.KEY),"route-export" to setOf("tree")),
         BackupSection.DESIGN to mapOf("ride-backup" to setOf("enabled","target"),"message-notifications" to setOf("enabled","messengerOnly","packages","packageOrder","position","durationSeconds")),
         BackupSection.CLOUD to mapOf("intervals-settings" to setOf("enabled","athlete","wifi"),
@@ -45,6 +46,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
             row.keys().forEach { key ->
                 val value=row.get(key)
                 values[key]=when(key) {
+                    "routeQuery.RECORDED.v1","routeQuery.IMPORTED.v1" -> (value as String).also(RouteQuery::validateStored)
                     RideNamingSettings.KEY -> (value as String).also { RideNaming.decode(JSONObject(it)) }
                     "enabled","messengerOnly","wifi","showOnFirstStart","vibrateAtEnd","soundAtEnd" -> (value as? Boolean) ?: error("boolean")
                     "packageOrder" -> (value as String).also { text ->

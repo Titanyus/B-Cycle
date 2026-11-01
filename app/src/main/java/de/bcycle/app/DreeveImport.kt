@@ -106,6 +106,7 @@ internal class DreeveImport(private val context:Context,private val library:GpxL
                         val created=entry.id !in before
                         try {
                             if(created) fits.rename(entry.id,activity.name)
+                            if(activity.sportType=="VirtualRide") fits.markVirtualRide(entry.id)
                             confirm(account,activity.id,entry.id,temporary)
                         } catch(error:Exception) { if(created) fits.delete(entry.id);throw error }
                         return DreeveItemResult(activity.id,if(created) DreeveImportState.IMPORTED else DreeveImportState.DUPLICATE,

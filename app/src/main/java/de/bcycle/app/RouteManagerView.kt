@@ -21,7 +21,7 @@ import kotlin.math.cos
 internal class RouteManagerView(context: Context,
     private val toggle: (ManagedRoute) -> Unit,
     private val themes: ThemeManager = ThemeManager(context.getSharedPreferences("bike", 0)),
-    private val details: (ManagedRoute) -> Unit = {}) : LinearLayout(context),BicycleFooterPage {
+    private val details: (ManagedRoute) -> Unit = {},scope:RouteKind?=null) : LinearLayout(context),BicycleFooterPage {
     private fun dp(value: Int) = BicycleDesign.dp(context, value)
     internal var fullscreen = false
     private var all: List<ManagedRoute> = emptyList()
@@ -31,7 +31,7 @@ internal class RouteManagerView(context: Context,
     private var shownIds:Set<String> = emptySet()
     private var busy = false
     private var importStatus = ""
-    internal val query=RouteQuery()
+    internal val query=RouteQuery(scope).apply { restore(context.getSharedPreferences("bike",0)) }
     var chooseMapSlot:((View,ManagedRoute)->Unit)?=null
     private var assignmentPopup:MapRouteSlotPopup?=null
     internal fun showRouteSlots(popup:MapRouteSlotPopup) { assignmentPopup?.dismiss();assignmentPopup=popup;popup.show() }
@@ -46,7 +46,7 @@ internal class RouteManagerView(context: Context,
     internal fun bindFooterToggle(view:View)=footerVisibility.bindToggle(view)
     fun clearSelection() { checked.clear();updateStatus();rows.notifyDataSetChanged();selectionChanged() }
     private fun toggleSelection(id:String,fromLongPress:Boolean=false) { if(!checked.add(id)) checked.remove(id);if(fromLongPress && selecting) footerVisibility.temporary(true);updateStatus();rows.notifyDataSetChanged();selectionChanged() }
-    fun refreshQuery() { updateRows();queryChanged() }
+    fun refreshQuery() { query.save(context.getSharedPreferences("bike",0));updateRows();queryChanged() }
     private var queryPopup:RouteQueryPopup?=null
     fun showFilters(anchor:View,navigation:DialogNavigation) {
         queryPopup?.dismiss()
@@ -95,7 +95,7 @@ internal class RouteManagerView(context: Context,
         val header = BicycleComponents.header(context, themes).apply { tag = "route_manager_header" }
         header.setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
         header.addView(FrameLayout(context).apply {
-            addView(BicycleComponents.heading(context, themes, context.getString(R.string.ui_route_manager_title)), FrameLayout.LayoutParams(-1, -1))
+            addView(BicycleComponents.heading(context, themes, context.getString(if(query.templates) R.string.route_templates_title else if(query.scope!=null) R.string.route_rides_title else R.string.ui_route_manager_title)), FrameLayout.LayoutParams(-1, -1))
         }, LayoutParams(-1, -1))
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
         addView(status, LayoutParams(-1, -2))
@@ -119,9 +119,10 @@ internal class RouteManagerView(context: Context,
         }
     }
     fun submit(entries: List<ManagedRoute>, active: String?, working: Boolean,
-        numbers:Map<String,Int> = active?.let { mapOf(it to 1) } ?: emptyMap(),shown:Set<String> = numbers.keys) {
+        numbers:Map<String,Int> = active?.let { mapOf(it to 1) } ?: emptyMap(),shown:Set<String> = numbers.keys,estimateKmh:Double?=query.estimateKmh) {
+        query.estimateKmh=estimateKmh
         mapNumbers=numbers;shownIds=shown
-        all = entries; selected = active; busy = working;assignmentPopup?.takeIf { it.isShowing }?.refresh();checked.retainAll(entries.map { it.id }.toSet());updateRows();selectionChanged()
+        all = entries.filter { query.scope==null || RouteKind.of(it)==query.scope }; selected = active; busy = working;assignmentPopup?.takeIf { it.isShowing }?.refresh();checked.retainAll(all.map { it.id }.toSet());updateRows();selectionChanged()
     }
     fun showImportStatus(text: String) {
         if (importStatus == text) return
@@ -141,7 +142,7 @@ internal class RouteManagerView(context: Context,
         updateStatus()
         if(changed) {
             sectionSort=query.sort
-            routeSections=RouteListSections(filtered,query.sort,context.getString(R.string.route_group_missing),title={ kind,upper ->
+            routeSections=RouteListSections(filtered,query.sort,context.getString(R.string.route_group_missing),sortValue=query::value,templates=query.templates,title={ kind,upper ->
                 val number=if(kind==RouteSort.MOVING && upper<1) upper*60 else upper
                 val formatted=String.format(Locale.GERMANY,if(number%1.0==0.0) "%.0f" else "%.1f",number)
                 when(kind) {
@@ -192,12 +193,12 @@ internal class RouteManagerView(context: Context,
         private val average = RouteListReading(context,themes,R.string.route_list_average, R.string.analysis_kmh)
         private val metrics = LinearLayout(context).apply {
             orientation = HORIZONTAL
-            listOf(date, distance, moving, average).forEachIndexed { index, reading ->
+            (if(query.templates) listOf(date,distance,moving) else listOf(date, distance, moving, average)).forEachIndexed { index, reading ->
                 if (index > 0) addView(View(context).apply {
                     tag = "route_metric_divider"; alpha = BicycleDesign.dividerAlpha
                     BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.foreground) }
                 }, LayoutParams(BicycleDesign.linePixels(context), -1))
-                addView(reading, LayoutParams(0, -2, 1f))
+                addView(reading, LayoutParams(0, -2, if(query.templates && reading===date) 1.6f else 1f))
             }
         }
         init {
@@ -280,12 +281,22 @@ internal class RouteManagerView(context: Context,
             date.bind(recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_date_format))), route.id, "date")
             date.label.text = recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_clock_format))).orEmpty()
             date.label.tag = "route_clock_${route.id}"
+            if(query.templates) {
+                val day=recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_date_format)))
+                val clock=recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_clock_format)))
+                date.bind(day?.let { "$it $clock" } ?: context.getString(R.string.route_estimate_missing),route.id,"date")
+                date.label.setText(if(route.details.dateFromFile) R.string.route_created_at else R.string.route_added_at)
+            }
             distance.bind(route.details.distanceM?.takeIf { it.isFinite() && it >= 0 }?.let {
                 String.format(Locale.GERMANY, "%.1f", it / 1000)
             }, route.id, "distance")
-            moving.bind(route.details.movingMs?.takeIf { it >= 0 && (route.details.durationMs == null || it <= route.details.durationMs) }?.let {
-                val minutes = it / 60000; "%d:%02d".format(Locale.GERMANY, minutes / 60, minutes % 60)
-            }, route.id, "moving")
+            val time=if(query.templates) RecentRidePace.duration(route.details.distanceM,query.estimateKmh)
+                else route.details.movingMs?.takeIf { it>=0 && (route.details.durationMs==null || it<=route.details.durationMs) }
+            moving.bind(time?.let {
+                val minutes=it/60000;"%d:%02d".format(Locale.GERMANY,minutes/60,minutes%60)
+            } ?: if(query.templates) context.getString(R.string.route_estimate_missing) else null,route.id,"moving")
+            if(time==null) moving.unit.visibility=GONE
+            if(query.templates) moving.label.text=context.getString(R.string.route_estimated_at,query.estimateKmh?.let { String.format(Locale.GERMANY,"%.1f",it) } ?: context.getString(R.string.route_estimate_missing))
             average.bind(route.details.movingAverageKmh?.let { String.format(Locale.GERMANY, "%.1f", it) }, route.id, "average")
             metrics.tag = "route_metrics_${route.id}"
             metrics.forceLayout();rideBody.forceLayout();forceLayout();requestLayout()

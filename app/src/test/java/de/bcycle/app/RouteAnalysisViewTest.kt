@@ -217,7 +217,7 @@ class RouteAnalysisViewTest {
         try {
             val activity = controller.get()
             descendants(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-            descendants(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag == "settings_ROUTES" }.performClick()
+            descendants(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag == "settings_ROUTE_TEMPLATES" }.performClick()
             val manager = ShadowAlertDialog.getLatestAlertDialog(); val state = RideRuntime.get(activity).mapState
             val until = System.nanoTime() + 10_000_000_000
             while (state.busy && System.nanoTime() < until) { Thread.sleep(10); shadowOf(Looper.getMainLooper()).idle() }

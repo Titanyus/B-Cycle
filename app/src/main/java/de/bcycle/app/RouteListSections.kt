@@ -8,11 +8,13 @@ import java.util.Locale
 import kotlin.math.floor
 
 internal data class RouteListGroup(val label:String,val first:Int,val count:Int,
-    val distanceM:Double?,val movingMs:Double?,val averageKmh:Double?)
+    val distanceM:Double?,val movingMs:Double?,val averageKmh:Double?,val templates:Boolean=false)
 
 /** Prepared once from filtered/sorted rows. Headers and fast navigation use the same boundaries. */
 internal class RouteListSections(entries:List<ManagedRoute>,sort:RouteSort,missing:String,
     zone:ZoneId=ZoneId.systemDefault(),locale:Locale=Locale.getDefault(),
+    sortValue:(RouteSort,ManagedRoute)->Double?={ kind,route -> kind.value(route) },
+    templates:Boolean=false,
     title:(RouteSort,Double)->String={ kind,upper ->
         val unit=when(kind) { RouteSort.DISTANCE->"km";RouteSort.MOVING->if(upper<1) "min" else "h";else->"km/h" }
         val number=if(kind==RouteSort.MOVING && upper<1) upper*60 else upper
@@ -26,7 +28,7 @@ internal class RouteListSections(entries:List<ManagedRoute>,sort:RouteSort,missi
         val month=DateTimeFormatter.ofPattern("LLLL yyyy",locale)
         var previous:Any?=null
         entries.forEachIndexed { index,route ->
-            val value=sort.value(route)
+            val value=sortValue(sort,route)
             val key:Any=when {
                 value==null->"missing"
                 sort==RouteSort.DATE->YearMonth.from(Instant.ofEpochMilli(route.details.dateMs).atZone(zone))
@@ -42,7 +44,7 @@ internal class RouteListSections(entries:List<ManagedRoute>,sort:RouteSort,missi
             }
         }
         labels=names.toTypedArray();starts=positions.toIntArray()
-        groups=starts.indices.map { index -> summarize(labels[index],starts[index],entries.subList(starts[index],starts.getOrNull(index+1) ?: entries.size)) }
+        groups=starts.indices.map { index -> summarize(labels[index],starts[index],entries.subList(starts[index],starts.getOrNull(index+1) ?: entries.size)).let { if(templates) it.copy(movingMs=null,averageKmh=null,templates=true) else it } }
     }
     fun groupAt(position:Int):RouteListGroup?=starts.binarySearch(position).takeIf { it>=0 }?.let(groups::get)
     fun position(section:Int)=if(starts.isEmpty()) 0 else starts[section.coerceIn(0,starts.lastIndex)]

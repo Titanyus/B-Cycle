@@ -32,7 +32,8 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     RESET("", titleResource = R.string.ui_settings_reset),
     SOURCES("", BicycleIcon.Info.resource, R.string.sources_title),
     FONT_LICENSE("", titleResource = R.string.ui_settings_font_license),
-    MAP_LICENSE("", titleResource = R.string.ui_settings_map_license);
+    MAP_LICENSE("", titleResource = R.string.ui_settings_map_license),
+    ROUTE_TEMPLATES("",BicycleIcon.Route.resource,titleResource=R.string.route_templates_title);
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 
@@ -43,8 +44,8 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
     init {
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
-        val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP) } else
-            listOf(SettingsAction.ROUTES,SettingsAction.STATISTICS,SettingsAction.HRV,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
+        val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP,SettingsAction.ROUTE_TEMPLATES) } else
+            listOf(SettingsAction.ROUTES,SettingsAction.ROUTE_TEMPLATES,SettingsAction.STATISTICS,SettingsAction.HRV,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0 && (advanced || action==SettingsAction.PROFILE || action==SettingsAction.ADVANCED))
                 addView(BicycleComponents.divider(context,themes).apply { tag="settings_group_divider" },LayoutParams(-1,BicycleDesign.linePixels(context)).apply {

@@ -33,7 +33,7 @@ internal data class StoredDreeveSummary(val id:String,val activity:DreeveActivit
     val details get():RouteDetails {
         fun duration(metric:AnalysisMetric)=activity.summary.metrics[metric]?.times(1000)?.toLong()
         return RouteDetails(dateMs,activity.distanceM,duration(AnalysisMetric.ELAPSED),ascentM=activity.summary.metrics[AnalysisMetric.ASCENT],
-            movingMs=duration(AnalysisMetric.MOVING),bikeType=bikeType)
+            movingMs=duration(AnalysisMetric.MOVING),bikeType=bikeType,virtualRide=activity.sportType=="VirtualRide")
     }
     companion object {
         private fun localDate(value:String)=runCatching { LocalDateTime.parse(value).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() }.getOrDefault(0L)

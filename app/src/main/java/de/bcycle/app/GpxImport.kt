@@ -6,7 +6,7 @@ import java.io.FilterInputStream
 import java.io.InputStream
 
 data class GpxRoute(val points: List<MapPoint>, val originalPoints: Int, val segments: Int,
-                    val distanceM: Double? = null, val durationMs: Long? = null, val ascentM: Double? = null, val movingMs: Long? = null)
+                    val distanceM: Double? = null, val durationMs: Long? = null, val ascentM: Double? = null, val movingMs: Long? = null,val dateMs:Long?=null,val virtualRide:Boolean=false)
 
 internal data class GpxMeasurement(val point:MapPoint,val time:Long?,val height:Double?,val speed:Double?,
     val power:Double?,val cadence:Double?,val heart:Double?,val temperature:Double?,val intervalSpeed:Double?=speed)
@@ -29,6 +29,7 @@ object GpxImport {
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_DOCDECL, false)
         parser.setInput(limited, null)
         val points = ArrayList<MapPoint>()
+        var fileDate:Long?=null;var virtualRide=false;var metadataDepth=-1
         var total = 0; var segments = 0; var start = true
         var root = false; var trackDepth = -1; var segmentDepth = -1; var routeDepth = -1
         var pointDepth = -1; var firstTime: Long? = null; var lastTime: Long? = null
@@ -49,8 +50,15 @@ object GpxImport {
                 if (parser.depth == 1) {
                     require(name == "gpx" && parser.namespace in listOf("", "http://www.topografix.com/GPX/1/0", "http://www.topografix.com/GPX/1/1")) { "Keine GPX-Datei" }; root = true
                 }
+                if(parser.depth==2 && name=="metadata") metadataDepth=2
                 if (parser.depth == 2 && name == "trk") trackDepth = parser.depth
                 if (parser.depth == 2 && name == "rte") { routeDepth = parser.depth; start = true }
+                if(name=="time" && parser.namespace in gpxNamespaces && (parser.depth==2 || parser.depth==3 && metadataDepth==2)) {
+                    val text=parser.nextText()
+                    fileDate=runCatching { java.time.Instant.parse(text).toEpochMilli() }.getOrNull() ?: fileDate
+                }
+                if(name=="type" && parser.depth==3 && (trackDepth==2 || routeDepth==2) && parser.namespace in gpxNamespaces)
+                    virtualRide=virtualRide || parser.nextText().replace("_","").replace(" ","").equals("VirtualRide",true)
                 if (name == "trkseg" && trackDepth == 2 && parser.depth == 3) { segmentDepth = parser.depth; start = true }
                 val point = (name == "trkpt" && segmentDepth == 3 && parser.depth == 4) ||
                     (name == "rtept" && routeDepth == 2 && parser.depth == 3)
@@ -87,6 +95,7 @@ object GpxImport {
                     if (time != null) { firstTime = minOf(firstTime ?: time, time); lastTime = maxOf(lastTime ?: time, time) }
                 }
             } else if (event == XmlPullParser.END_TAG) {
+                if(parser.depth==metadataDepth) metadataDepth=-1
                 if(parser.depth==extensionDepth) extensionDepth=-1
                 if(parser.depth==garminDepth) garminDepth=-1
                 when (parser.name) {
@@ -118,6 +127,6 @@ object GpxImport {
         val display = points.filterIndexed { index, p -> p.segmentStart || index % step == 0 ||
             index == points.lastIndex || points[index + 1].segmentStart }
         return GpxRoute(display, total, segments, routeDistance(points),
-            firstTime?.let { first -> lastTime?.minus(first)?.takeIf { it > 0 } }, elevation.ascent, moving.value)
+            firstTime?.let { first -> lastTime?.minus(first)?.takeIf { it > 0 } }, elevation.ascent, moving.value,fileDate ?: firstTime,virtualRide)
     }
 }

@@ -565,6 +565,7 @@ class MainActivity : Activity() {
                 SettingsAction.MAP -> mapSettings()
                 SettingsAction.DASHBOARDS -> dashboardSettings()
                 SettingsAction.ROUTES -> routeSettings()
+                SettingsAction.ROUTE_TEMPLATES -> routeSettings(RouteKind.IMPORTED)
                 SettingsAction.STATISTICS -> showStatistics()
                 SettingsAction.ADVANCED -> showMenu(advanced = true)
                 SettingsAction.RECOVERY -> recoverySettings()
@@ -1343,8 +1344,7 @@ class MainActivity : Activity() {
     private fun importRoute(recorded: Boolean = false, archive: Boolean = false) {
         try {
             startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
-                .setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, if (archive) arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream") else if (recorded)
-                    arrayOf("application/vnd.ant.fit", "application/octet-stream") else
+                .setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, if (archive) arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream") else
                     arrayOf("application/gpx+xml", "application/xml", "text/xml", "application/vnd.ant.fit", "application/octet-stream")),
                 if (archive) 15 else if (recorded) 9 else 8)
         } catch (_: android.content.ActivityNotFoundException) {
@@ -1444,13 +1444,14 @@ class MainActivity : Activity() {
         routeOrphanPending=null
         if(runtime.mapState.orphanProfiles().isNotEmpty()) showOrphanProfiles()
     }
-    private fun routeSettings() {
+    private fun routeSettings()=routeSettings(RouteKind.RECORDED)
+    private fun routeSettings(kind:RouteKind) {
         setDashboardEditing(false)
         val state = runtime.mapState
         routeSignature = ""
         val content = RouteManagerView(settingsContext, { entry ->
             state.toggleMapRoute(entry.id)
-        }, themes = settingsThemes, details = ::routeAnalysis)
+        }, themes = settingsThemes, details = ::routeAnalysis,scope=kind)
         content.chooseMapSlot={ anchor,entry -> content.showRouteSlots(MapRouteSlotPopup(anchor,runtime,assignId=entry.id) {}) }
         routeManager = content
         refreshRouteRows()
@@ -1475,6 +1476,7 @@ class MainActivity : Activity() {
         footer.addView(delete,LinearLayout.LayoutParams(0,dp(BicycleDesign.footerHeight),1f))
         content.selectionChanged={ delete.isEnabled=content.selecting && !state.busy;delete.setLabel(if(content.selecting) getString(R.string.route_delete_count,content.checkedIds.size) else getString(R.string.route_action_delete)) }
         content.queryChanged={ filterAction.setLabel(if(content.query.activeCount>0) getString(R.string.route_filter_count,content.query.activeCount) else getString(R.string.route_filter_button)) }
+        content.queryChanged()
         val root = LinearLayout(settingsContext).apply {
             orientation = LinearLayout.VERTICAL
             addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -2259,7 +2261,7 @@ class MainActivity : Activity() {
         if (routeSignature == signature) return
         routeSignature = signature
         manager.submit(state.entries, displayed, state.busy,
-            state.mapSlots.ids.mapIndexedNotNull { index,id -> id?.let { it to index+1 } }.toMap(),state.visibleRouteIds())
+            state.mapSlots.ids.mapIndexedNotNull { index,id -> id?.let { it to index+1 } }.toMap(),state.visibleRouteIds(),estimateKmh=state.templatePaceKmh)
     }
     private fun renameRoute(entry: ManagedRoute) {
         val input = EditText(settingsContext).apply { setText(entry.name); setSingleLine(); selectAll()
