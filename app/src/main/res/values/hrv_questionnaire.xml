@@ -83,7 +83,7 @@
     <string name="hrvq_custom_group">Eigene Angaben</string>
     <string name="hrvq_custom_name">Name der eigenen Angabe %1$d</string>
     <string name="hrvq_custom_hint">Bis zu drei eigene numerische Angaben. Name leer lassen zum Deaktivieren.</string>
-    <string name="hrvq_empty">Keine Fragen aktiviert. Wähle die gewünschten Fragen unter Einstellungen → HRV-Messungen → Tagesbefinden aus.</string>
+    <string name="hrvq_empty">Keine Fragen aktiviert. Wähle die gewünschten Fragen unter Einstellungen → HRV &amp; Tagesbefinden → Tagesbefinden aus.</string>
     <string name="hrvq_time_hint">HH:mm</string>
     <string name="hrvq_invalid_time">Bitte gültige Stunden und Minuten eingeben (Minuten 00–59).</string>
     <string name="hrvq_base">Grundlage</string>

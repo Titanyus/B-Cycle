@@ -6,7 +6,6 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Switch
-import android.view.View
 import android.widget.FrameLayout
 
 internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasurement:()->Unit={},canEdit:()->Boolean={true},openAnalysis:()->Unit={}):LinearLayout(context) {
@@ -28,25 +27,6 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasureme
             BicycleComponents.bindTheme(this,themes) { styleHrvPill(this) }
         }
         addView(FrameLayout(context).apply { addView(analysis,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER)) },LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        val hint=LinearLayout(context).apply {
-            orientation=VERTICAL;tag="hrv_first_start_details";visibility=GONE
-            addView(BicycleComponents.description(context,themes,context.getString(R.string.hrv_first_start_hint)))
-        }
-        val first=Switch(context).apply {
-            tag="hrv_first_start";setText(R.string.hrv_first_start);isChecked=settings.read().showOnFirstStart
-            BicycleDialogStyle.control(this,themes)
-            setOnCheckedChangeListener { _,on -> settings.write(settings.read().copy(showOnFirstStart=on)) }
-        }
-        val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.hrv_first_start)) {
-            val shown=hint.visibility!=VISIBLE;hint.visibility=if(shown) VISIBLE else GONE
-            findViewWithTag<View>("hrv_first_start_expand").apply {
-                rotation=if(shown) 180f else 0f
-                stateDescription=context.getString(if(shown) R.string.zone_expanded else R.string.zone_collapsed)
-            }
-        }.apply { tag="hrv_first_start_expand";stateDescription=context.getString(R.string.zone_collapsed) }
-        addView(LinearLayout(context).apply { BicycleComponents.switchAccordion(this,first,expand,themes,icon=BicycleIcon.Heart) },
-            LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)+2*BicycleDesign.linePixels(context,BicycleDesign.sectionRuleDp)))
-        addView(hint,LayoutParams(-1,-2))
         fun duration(rest:Boolean) {
             val minimum=if(rest) 15 else 60;val maximum=if(rest) 60 else 300
             val initial=settings.read().let { if(rest) it.restSeconds else it.measureSeconds }
@@ -86,6 +66,11 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasureme
         }
         duration(true);duration(false)
         addView(BicycleComponents.sectionDivider(context,themes))
+        addView(Switch(context).apply {
+            tag="hrv_first_start";setText(R.string.hrv_first_start);isChecked=settings.read().showOnFirstStart
+            BicycleDialogStyle.control(this,themes)
+            setOnCheckedChangeListener { _,on -> settings.write(settings.read().copy(showOnFirstStart=on)) }
+        },LayoutParams(-1,-2))
         fun signal(vibrate:Boolean) {
             addView(Switch(context).apply {
                 tag=if(vibrate) "hrv_vibrate_end" else "hrv_sound_end"

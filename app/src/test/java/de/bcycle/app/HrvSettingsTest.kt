@@ -32,9 +32,9 @@ class HrvSettingsTest {
         assertEquals(3,view.findViewWithTag<SeekBar>("hrv_rest_seconds").max)
         assertEquals(16,view.findViewWithTag<SeekBar>("hrv_measure_seconds").max)
         for(tag in listOf("hrv_first_start","hrv_vibrate_end","hrv_sound_end")) assertTrue(view.findViewWithTag<android.widget.Switch>(tag).isChecked)
-        assertEquals(View.GONE,view.findViewWithTag<View>("hrv_first_start_details").visibility)
-        view.findViewWithTag<View>("hrv_first_start_expand").performClick()
-        assertEquals(View.VISIBLE,view.findViewWithTag<View>("hrv_first_start_details").visibility)
+        assertNull(view.findViewWithTag<View>("hrv_first_start_details"))
+        assertNull(view.findViewWithTag<View>("hrv_first_start_expand"))
+        assertEquals(view.indexOfChild(view.findViewWithTag<View>("hrv_first_start"))+1,view.indexOfChild(view.findViewWithTag<View>("hrv_vibrate_end")))
         view.findViewWithTag<android.widget.Switch>("hrv_sound_end").performClick()
         assertFalse(settings.read().soundAtEnd);assertTrue(settings.read().vibrateAtEnd)
     }

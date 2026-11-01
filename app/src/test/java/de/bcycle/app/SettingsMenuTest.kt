@@ -58,19 +58,20 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_ROUTES", "settings_ROUTE_TEMPLATES", "settings_STATISTICS", "settings_HRV", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Gefahrene Strecken", "Streckenvorlagen", "Statistiken", "HRV-Messung", "Wartung", "Fahrer", "Fahrradprofile", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(listOf("settings_ROUTES", "settings_ROUTE_TEMPLATES", "settings_STATISTICS", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_HRV", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Gefahrene Strecken", "Streckenvorlagen", "Statistiken", "Wartung", "Fahrer", "Fahrradprofile", "HRV & Tagesbefinden", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
                 assertEquals(13, body.childCount) // Ten rows, two group dividers and brand image.
                 descendants(body).filter { it.tag=="settings_group_divider" }.forEach { divider ->
                     val margins=divider.layoutParams as ViewGroup.MarginLayoutParams
                     assertEquals(BicycleDesign.dp(controller.get(),32),margins.topMargin)
                     assertEquals(margins.topMargin,margins.bottomMargin)
                 }
-                assertSame(rows[4],body.getChildAt(4));assertSame(rows[5],body.getChildAt(6))
+                assertSame(rows[3],body.getChildAt(3));assertSame(rows[4],body.getChildAt(5))
                 assertSame(rows[8],body.getChildAt(9));assertSame(rows[9],body.getChildAt(11))
                 rows.forEach { row ->
                     assertEquals(width,row.width)
-                    assertEquals(BicycleDesign.dp(controller.get(),54),row.height)
+                    if(row.tag=="settings_HRV") assertTrue(row.height>=BicycleDesign.dp(controller.get(),54))
+                    else assertEquals(BicycleDesign.dp(controller.get(),54),row.height)
                     val label=descendants(row).filterIsInstance<TextView>().single()
                     assertEquals(BicycleDesign.narrowTypeface(controller.get()),label.typeface)
                     assertEquals(BicycleDesign.sectionTitleSp*label.resources.displayMetrics.scaledDensity,label.textSize,.1f)

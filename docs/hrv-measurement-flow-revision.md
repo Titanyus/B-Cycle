@@ -40,8 +40,14 @@ Native Integration prüft beide Richtungen, gemeinsame Auswahl/Datum/Diagramm, f
 
 ## Kennzahlen in der Detailauswertung nach Build117
 
-Erste Reihe: HRV, Puls, SDNN, RMSSD, Weitere. Standardkennzahl HRV. Weitere klappt darunter drei gleich gestaltete Kacheln pNN50/LF/HF aus; Öffnen allein ändert die aktive Kennzahl nicht. Eine der drei Zusatzkennzahlen markiert zugleich Weitere, auch im eingeklappten Zustand. Primärwahl entfernt diese Markierung. Native RadioGroup-Auswahl erst nach dem eigenen Click-Abschluss über die beiden Reihen koordinieren, um keine gerade gewählte Kachel wieder abzuwählen.
+Erste Reihe: HRV, Puls, SDNN, RMSSD, Weitere. Standardkennzahl HRV. Weitere öffnet ein schwebendes Dropdown mit drei gleich gestalteten Kacheln pNN50/LF/HF; Öffnen allein ändert die aktive Kennzahl nicht. Eine der drei Zusatzkennzahlen markiert zugleich Weitere, auch nach dem Schließen. Primärwahl entfernt diese Markierung. Native RadioGroup-Auswahl erst nach dem eigenen Click-Abschluss über die beiden Reihen koordinieren, um keine gerade gewählte Kachel wieder abzuwählen.
 
 HRV-Tageswerte und Korridor sind dieselben2×lnRMSSD-Werte wie im Tageskreis. Die7-Tage-Mittelwertlinie mittelt die tatsächlich transformierten Tageswerte (mindestens5 gültige Werte), nicht den Logarithmus eines Rohmittelwerts. Wochen-/Monatsaggregation erhält vorhandene Zeitfenster und mittelt vorbereitete Tageswerte/Korridore. Dimensionlose Achse ohne künstliche0–10-Grenze, auch negative Werte darstellbar. Keine neuen gespeicherten Felder.
 
 Prüfung: sechs gezielte Fälle in `hrv-score-more-tiles-tests.log`, vier zunächst erfolgreich. Native RadioGroup-Abfolge und schmale Weitere-Kachel korrigiert; bestehender Diagrammbedienfall danach erfolgreich in `hrv-more-tiles-final-tests.log`, neue320/360dp-Auswahlprüfung in Flat/Glow schließlich erfolgreich in `hrv-more-tile-native-final-test.log`. Native Vorschau visuell geprüft. Angepasste Monatsnavigation separat in `hrv-score-month-selection-test.log`.
+
+### Verfeinerungen nach Build118
+
+Messdiagramm315dp hoch,36dp Abstand zum Messkreis (vorher286/24dp). HRV-Kennzahlzeilen ohne Baseline-Ausrichtung, Kacheln füllen die gemeinsame Höhe und zentrieren den gesamten Textblock. Weitere öffnet ein rechtsbündiges Popup über den letzten drei Hauptspalten mit gleicher Kachelbreite; keine Verschiebung des Diagramms, Auswahl schließt das Popup. Beim Verlassen schließen.
+
+Einstellungen: „HRV & Tagesbefinden“ direkt nach „Fahrradprofile“. Erststartangebot als einfacher Schalter direkt nach dem Trenner vor Vibrieren; bisheriger Erklärungstext/Accordion entfallen. Angebot, Speicherung und Tageswechsel bleiben unverändert.
