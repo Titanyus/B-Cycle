@@ -12,6 +12,10 @@ Zusatzfehler: Alle vier Zeilenwerte nach echtem Recycling abgeschnitten. RouteLi
 
 Prüfung:75 fachlich gezielte Fälle für Sammlungen/Metadaten/Import/Backup/Filter/Ansichten;72 zunächst erfolgreich. Danach auf Nutzerwunsch nur offene oder nachgebesserte Fälle erneut geprüft: vier erfolgreiche Einstellungs-/Navigation-/Datums-/Virtual-Fälle in `route-collections-targeted-final-tests.log`; der verbleibende Recyclingfall anschließend erfolgreich wie oben. Getrennte Filter inkl. Backup gezielt erfolgreich in `route-collection-filter-backup-final-tests.log`. Kein Gesamtlauf, kein physischer Gerätetest. Typografie/Atlas/Diff geprüft. Keine neue APK beauftragt.
 
+## Vorgemerkt, Umsetzung wartet auf Tagesscreen-Gestaltung
+
+Nächster Nutzerbeitrag soll die HRV-Tagesscreen-Darstellung festlegen. Noch keine Implementierung dieses HRV-Umbaus: Messung nur Kreis/Diagramm mit24dp mehr Abstand und ohne unteren Button; danach automatisch Tagesfragen, deren unterer Button zur gemeinsamen Auswertung führt. Anfangs nur Tageswert/Empfehlung; Textbutton „Zur genauen Auswertung“. Tagesbereich bleibt zuerst stehen, Detailbereich kommt von unten bis auf den vorgesehenen Abstand heran, schiebt dann den Tagesbereich wie bei einem Sticky-Header nach oben hinaus. Ziel: Detailauswertung mit oberem Abstand vollständig sichtbar. Danach beide Bereiche gemeinsam vertikal scrollbar. Berechnung/Empfehlungen/Diagrammfunktionen erhalten. [Genaue Vorgaben](hrv-measurement-flow-revision.md).
+
 ## Offenes und wichtige Vorarbeit
 
 Intervals-HRV422 betrifft den historischen Tages-PUT, erster Messtag2026-08-28; heutiger Auto-Upload funktionierte. In Build115 unbekannte Schlafdauer bei gleichen Bett-/Aufwachzeiten nicht mehr als0 ableiten und sichere Feldfehlerdiagnose erweitert. Konkreten Backendfehler erst nach erneutem Liveversuch als behoben bezeichnen. [Details](intervals-hrv.md).
