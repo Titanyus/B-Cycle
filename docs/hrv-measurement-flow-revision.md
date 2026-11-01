@@ -1,4 +1,4 @@
-# Vorgemerkt: HRV-Ablauf und gemeinsame Auswertung – 01.11.2026
+# HRV-Ablauf und gemeinsame Auswertung – 01.11.2026
 
 Am01.11.2026 umgesetzt, inklusive bestätigtem Tagesscreen und persönlichen PNS-/Aktivierungsindikatoren. Messberechnung, Tagesempfehlungen und Diagrammfunktionen bleiben erhalten.
 
@@ -18,7 +18,7 @@ Am01.11.2026 umgesetzt, inklusive bestätigtem Tagesscreen und persönlichen PNS
 - Erst ab diesem Kontakt schiebt die weiter nach oben kommende Detailauswertung den Tagesbereich nach oben aus dem sichtbaren Bildschirm, sinngemäß wie das Ablösen eines Sticky-Headers. Der Tagesbereich darf also nicht schon zu Beginn gemeinsam mit dem Detailbereich wegscrollen.
 - Die Bewegung stoppt mit dem vorgesehenen Abstand oben so, dass die detaillierte Auswertung vollständig wie bei direktem Aufruf sichtbar ist.
 - Danach können beide Abschnitte als eine gemeinsame Seite hoch und herunter gescrollt werden. Keine getrennten Screens für Tages- und Detailauswertung.
-- Konkrete Maße über die genannten24dp und den bestehenden sinnvollen oberen Abstand hinaus sind noch nicht festgelegt. Kein neues Tageslayout erfinden; vorliegende Nutzervorlage und die dort offenen Regeln beachten.
+- Übergangsabstand24dp; der Button richtet den Verlauf am bestehenden oberen Seitenabstand aus. Tagesgestaltung gemäß Nutzermockup und bestätigten Präzisierungen.
 
 Messung behält Start/Abbruch/Speicherwiederholung innerhalb des Kreises; nur der untere Navigations-/Ergebnisbereich entfällt. Automatischer Wechsel erst nach abgeschlossener und gespeicherter Messung, nicht bei Abbruch oder Speicherfehler und nicht erneut für ein bereits beim Öffnen vorhandenes Ergebnis. Messdetails/Qualitätshinweise bleiben über den Verlauf zugänglich.
 
