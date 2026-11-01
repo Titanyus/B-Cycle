@@ -11,4 +11,4 @@
 
 Gezielt geprüft: echte Ziffern im angehefteten Kopf, aktualisierender Sammelupload und automatischer Schutz, Windrose/Themewechsel, HRV-Abstände/Text/Indizes, gemeinsame Historie und Hinweise, monotone Geschwindigkeitsübergänge, tatsächliche Tageswechsel, fester Footer, neue HRV-Reihe und Monatsnavigation. Nach Korrekturen nur betroffene Fälle erneut ausgeführt; native Vorschauen320/360dp in Flat/Glow visuell geprüft. Typografie/Atlas/Diff geprüft. Kein Gesamtlauf oder physischer Gerätetest; das Wischgefühl ist am Smartphone noch zu beurteilen.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-118.md).
