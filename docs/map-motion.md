@@ -1,5 +1,7 @@
 # Weiche GPS-Kartenbewegung und Smartphone-Richtung
 
+Aktuell nach Build119: Engine auf Mapsforge-VTM0.25.0 umgestellt, zunächst dieselben Rasterquellen. Fachliche Bewegungs-/Ankerregeln unten bleiben erhalten; Beschreibungen der alten Mapsforge-API/Framebuffer sind historisch. [Aktuelle Anbindung und Prüfnachweise](vtm-migration.md). Nacht-Invertierung vorerst deaktiviert.
+
 Die bestehende Mapsforge-Karte verwendet ausschließlich bereits empfangene GPS-Positionen. Die GNSS-Anfrage bleibt bei 1000 ms Mindestintervall. Die Darstellung spielt einen kleinen Puffer von höchstens acht Anzeigepositionen ab, anfangs um 1100 ms verzögert. Zwischen den tatsächlichen Empfangszeitpunkten wird linear interpoliert, statt nach einem festen 450-ms-Übergang anzuhalten. Die Pufferverzögerung folgt geglättet dem Empfangsintervall (600–2600 ms); Änderungen der Verzögerung werden langsam nachgeführt, damit die sichtbare Position nicht springt oder rückwärts läuft. Maximal alle 33 ms werden Kamera und Kartenebene aktualisiert, ungefähr 30 Bilder/s.
 
 Es gibt keine Extrapolation: Ohne neue Positionen endet die Bewegung am letzten gültigen Punkt. Mehr als fünf Sekunden ohne neuen Fix sowie Sprünge über 200 m werden nicht überbrückt. Erster Fix, Stillstand und Wiederaufnahme nach App-Unterbrechung werden direkt übernommen. Longitude und GPS-Kurs verwenden den kürzesten Winkelweg, Latitude wird in Mercator-Koordinaten interpoliert. GPS-Zähler und alle Live-Messwerte bleiben unverändert; ausschließlich die Anzeige erhält interpolierte Koordinaten.

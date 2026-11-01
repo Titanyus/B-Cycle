@@ -9,10 +9,16 @@ plugins {
 val robolectricSdk33 by configurations.creating
 val robolectricSdk35 by configurations.creating
 val robolectricSdk36 by configurations.creating
+val vtmTestNatives by configurations.creating
 
 dependencies {
     implementation(project(":hrv-core"))
-    implementation("org.mapsforge:mapsforge-map-android:0.25.0")
+    implementation("org.mapsforge:vtm-android:0.25.0")
+    implementation("org.mapsforge:vtm-http:0.25.0")
+    listOf("armeabi-v7a","arm64-v8a","x86","x86_64").forEach { abi ->
+        runtimeOnly("org.mapsforge:vtm-android:0.25.0:natives-$abi@jar")
+    }
+    vtmTestNatives("org.mapsforge:vtm-desktop:0.25.0:natives-linux@jar")
     // Official streaming FIT decoder, reused for activity metadata and map previews.
     implementation("com.garmin:fit:21.218.0")
     // Android URLConnection rejects PROPFIND/MKCOL; WebDAV needs a full HTTP client.
@@ -66,7 +72,12 @@ android {
             val sdkDir = layout.buildDirectory.dir("robolectric-sdk").get().asFile
             it.systemProperty("robolectric.offline", "true")
             it.systemProperty("robolectric.dependency.dir", sdkDir.absolutePath)
-            it.doFirst { copy { from(robolectricSdk33, robolectricSdk35, robolectricSdk36); into(sdkDir) } }
+            val nativeDir=layout.buildDirectory.dir("vtm-test-natives").get().asFile
+            it.jvmArgs("-Djava.library.path=${nativeDir.absolutePath}")
+            it.doFirst {
+                copy { from(robolectricSdk33, robolectricSdk35, robolectricSdk36); into(sdkDir) }
+                copy { from(zipTree(vtmTestNatives.singleFile));include("libvtm-jni64.so");rename { "libvtm-jni.so" };into(nativeDir) }
+            }
         }
     }
 }

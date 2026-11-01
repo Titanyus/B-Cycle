@@ -30,6 +30,8 @@ internal class DashboardPageViewport(context:Context,
     private var generation=0
     var swipeEnabledAt:((Float,Float)->Boolean)?=null
     var changePage:((Int)->Unit)?=null
+    var preparePageSnapshot:(((Boolean)->Unit)->Unit)?=null
+    var releasePageSnapshot:(()->Unit)?=null
     private val touchSlop=ViewConfiguration.get(context).scaledTouchSlop
     private var startX=0f
     private var startY=0f
@@ -55,6 +57,19 @@ internal class DashboardPageViewport(context:Context,
         if(live==null || direction==0 || !animationsEnabled() || !isAttachedToWindow || !isLaidOut || width<=0 || height<=0) {
             cancelTransition();change();return
         }
+        val prepare=preparePageSnapshot
+        if(prepare!=null) {
+            val token=++generation;running=true
+            prepare { ready ->
+                if(token!=generation || !running) { releasePageSnapshot?.invoke();return@prepare }
+                running=false
+                if(ready) startSlide(direction,change) else { cancelTransition();change() }
+                releasePageSnapshot?.invoke()
+            }
+        } else startSlide(direction,change)
+    }
+    private fun startSlide(direction:Int,change:()->Unit) {
+        val live=page ?: return
         val start=live.translationX
         val speed=handoffVelocity;handoffVelocity=0f
         val shot=capture(live) ?: run { cancelTransition();change();return }
@@ -115,7 +130,7 @@ internal class DashboardPageViewport(context:Context,
     fun cancelTransition() {
         waitingForPage=false;handoffVelocity=0f
         resetGesture()
-        generation++;removePending()
+        generation++;removePending();releasePageSnapshot?.invoke()
         animator?.let { it.removeAllListeners();it.removeAllUpdateListeners();it.cancel() };animator=null
         page?.translationX=0f
         picture?.let { old -> old.setImageDrawable(null);removeView(old) }

@@ -14,17 +14,6 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import org.mapsforge.core.model.LatLong
-import org.mapsforge.core.model.Rotation
-import org.mapsforge.core.util.MercatorProjection
-import org.mapsforge.map.android.graphics.AndroidGraphicFactory
-import org.mapsforge.map.android.view.MapView
-import org.mapsforge.map.layer.cache.FileSystemTileCache
-import org.mapsforge.map.layer.cache.TwoLevelTileCache
-import org.mapsforge.map.layer.download.TileDownloadLayer
-import org.mapsforge.map.layer.download.tilesource.OnlineTileSource
-import org.mapsforge.map.view.InputListener
-import java.io.File
 import kotlin.math.abs
 
 enum class MapSource(val title: String, val host: String, val path: String, val attribution: String, val creditUrl: String, val maximumZoom: Int = 19) {
@@ -36,18 +25,13 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
         CYCLOSM -> R.string.ui_map_source_cyclosm; OSM -> R.string.ui_map_source_osm
         OPENTOPOMAP -> R.string.ui_map_source_topo; OPENCYCLEMAP -> R.string.ui_map_source_cycle
     })
-    fun tiles(apiKey: String = "") = object : OnlineTileSource(arrayOf(host), 443) {
-        override fun getTileUrl(tile: org.mapsforge.core.model.Tile): java.net.URL {
-            val base=super.getTileUrl(tile)
-            if(this@MapSource!=OPENCYCLEMAP) return base
-            require(MapProviderSettings.valid(apiKey)) { "Thunderforest API key required" }
-            return java.net.URL(base.toString()+"?apikey="+java.net.URLEncoder.encode(apiKey,"UTF-8"))
+    fun tiles(apiKey:String=""):org.oscim.tiling.source.bitmap.BitmapTileSource {
+        if(this==OPENCYCLEMAP) require(MapProviderSettings.valid(apiKey)) { "Thunderforest API key required" }
+        val suffix=if(this==OPENCYCLEMAP) "?apikey="+java.net.URLEncoder.encode(apiKey,"UTF-8") else ""
+        return org.oscim.tiling.source.bitmap.BitmapTileSource("https://$host",path+"{Z}/{X}/{Y}.png"+suffix,0,maximumZoom).apply {
+            setHttpRequestHeaders(mapOf("User-Agent" to "B-Cycle/${AppVersion.name} (https://github.com/Titanyus/B-Cycle)"))
         }
-        override fun getDefaultTimeToLive() = 7L * 24 * 60 * 60 * 1_000
-    }.setProtocol("https").setBaseUrl(path)
-        .setName(name).setParallelRequestsLimit(2).setZoomLevelMax(maximumZoom.toByte()).apply {
-            setUserAgent("B-Cycle/${AppVersion.name} (https://github.com/Titanyus/B-Cycle)")
-        }
+    }
     companion object { fun decode(id: String?) = entries.firstOrNull { it.name == id } ?: CYCLOSM }
 }
 
@@ -75,10 +59,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private val credit = MapCreditView(context)
     private var observedZoom=Double.NaN
     private val updateZoom=Runnable {
-        val zoom=mapView.model.mapViewPosition.zoom
+        val zoom=mapView.zoom
         if(zoom!=observedZoom) { observedZoom=zoom;updateCamera();if(running && follow) { handler.removeCallbacks(animateCamera);handler.post(animateCamera) } }
     }
-    private val zoomObserver=org.mapsforge.map.model.common.Observer { handler.removeCallbacks(updateZoom);handler.post(updateZoom) }
     private val status = TextView(context)
     private val dataFields = MapDataFieldsView(context)
     private var editing = false
@@ -100,7 +83,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         }
         directionButton.isEnabled = !value && follow
         directionButton.alpha=if(follow) 1f else .4f
-        nightButton.isEnabled = !value
+        nightButton.isEnabled = false
         refreshRouteButton()
         if (value) handler.removeCallbacks(hideControls) else scheduleHide()
         refreshDataFields();updateWindRose()
@@ -115,7 +98,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var moving = false
     private var source = MapProviderSettings.source(context,preferences.getString("mapSource", null))
     private var providerKey=MapProviderSettings.read(context)
-    private var downloads: MapNightLayer
+    private var downloads: VtmRasterLayer
     private var follow = preferences.getBoolean("mapFollow", true)
     private var heading = preferences.getBoolean("mapHeading",true) && !preferences.getBoolean(MapOvalAnchor.preference,false)
     private var gps = GpsValues()
@@ -173,41 +156,35 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         controls.visibility = INVISIBLE; zoomControls.visibility = GONE; routeButton.visibility = GONE; nightButton.visibility = GONE
         updateWindRose();controlsVisibilityChanged?.invoke(false)
     }
-    val mapView: MapView
+    val mapView: BicycleMapView
     private val pinchZoom:MapPinchZoom
-    private val routes by lazy { RouteTrackLayer(resources.displayMetrics.density,mapView.model.mapViewPosition) }
+    private val routes by lazy { RouteTrackLayer(context,mapView) }
 
     init {
-        MapZoom.enableFractional()
-        AndroidGraphicFactory.createInstance(context.applicationContext)
-        setBackgroundColor(Color.rgb(225, 225, 225))
-        mapView = MapView(context).apply {
-            model.displayModel.setFixedTileSize(256)
-            setBuiltInZoomControls(false); mapScaleBar?.isVisible = false
-            touchGestureHandler.setRotationEnabled(false)
-            setZoomLevelMin(MapZoom.minimum.toByte()); setZoomLevelMax(MapZoom.maximum(source).toByte())
-            model.mapViewPosition.setZoom(MapZoom.read(preferences,source),false)
-            val lat = preferences.getFloat("mapLatitude", 51f).toDouble().coerceIn(-85.0, 85.0)
-            val lon = preferences.getFloat("mapLongitude", 10f).toDouble().coerceIn(-180.0, 180.0)
-            setCenter(LatLong(lat, lon))
-            layerManager.pause()
+        setBackgroundColor(Color.rgb(225,225,225))
+        mapView=BicycleMapView(context).apply {
+            setZoomLimits(MapZoom.maximum(source));setZoom(MapZoom.read(preferences,source))
+            setCenter(preferences.getFloat("mapLatitude",51f).toDouble().coerceIn(-85.0,85.0),preferences.getFloat("mapLongitude",10f).toDouble().coerceIn(-180.0,180.0))
+            pauseMap()
         }
         pinchZoom=MapPinchZoom(mapView) { MapZoom.maximum(source) }
-        addView(mapView, LayoutParams(-1, -1))
-        downloads = createDownloadLayer(source)
-        mapView.layerManager.layers.add(downloads)
-        mapView.layerManager.layers.add(routes)
-        mapView.addInputListener(object : InputListener {
-            override fun onMoveEvent() { setFollow(false); revealControls() }
-            override fun onZoomEvent() { revealControls() }
-        })
+        addView(mapView,LayoutParams(-1,-1))
+        downloads=createDownloadLayer(source);mapView.map().layers().add(downloads)
+        addView(routes,LayoutParams(-1,-1))
+        mapView.userMoved={ setFollow(false);revealControls() }
+        mapView.zoomed={ revealControls() }
+        mapView.cameraChanged={ routes.invalidate();handler.removeCallbacks(updateZoom);handler.post(updateZoom);updateWindRose() }
         val detector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean { revealControls(); return true }
+            override fun onScroll(first:MotionEvent?,next:MotionEvent,dx:Float,dy:Float):Boolean {
+                if(next.pointerCount==1) mapView.notifyUserMove()
+                return false
+            }
         })
         mapView.setOnTouchListener { _, event ->
             if (editing) return@setOnTouchListener true
             detector.onTouchEvent(event)
-            // Native Mapsforge handles pan/zoom. A tap never resumes GPS following.
+            // VTM handles one-finger pan/fling; the shared controller handles continuous pinch.
             if (event.actionMasked == MotionEvent.ACTION_DOWN) { touchingMap = true; refreshRoutes(); handler.removeCallbacks(hideControls) }
             if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
                 touchingMap = false
@@ -283,53 +260,42 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             setOnClickListener { requestGps(); revealControls() }
         }
         addView(status, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.START).apply { bottomMargin = dp(23) })
-        mapView.model.mapViewPosition.addObserver(zoomObserver)
         applyNight()
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCamera() }
     }
 
-    private fun createDownloadLayer(source: MapSource): MapNightLayer {
-        // A bounded normal cache, never a region prefetch/offline download.
-        val memory = ViewportTileCache()
-        val disk = FileSystemTileCache(512, File(context.cacheDir, "tiles-${source.name}").apply { mkdirs() }, AndroidGraphicFactory.INSTANCE, true)
-        return MapNightLayer(TwoLevelTileCache(memory, disk), mapView.model.mapViewPosition, source.tiles(providerKey)).apply { night = this@MapPanel.night }
-    }
+    private fun createDownloadLayer(source:MapSource)=VtmRasterLayer(mapView.map(),VtmTileHttp.source(context,source,providerKey)).apply { pause() }
     private fun applyNight() {
-        downloads.night = night
-        val color = if (night) MapNightPalette.background else Color.rgb(225, 225, 225)
-        setBackgroundColor(color); mapView.model.displayModel.backgroundColor = color
-        val icon = if (night) BicycleIcon.Moon else BicycleIcon.Sun
-        nightButton.contentDescription = if (night) context.getString(R.string.ui_map_day_enable) else context.getString(R.string.ui_map_night_enable)
-        MapControlDesign.icon(nightButton, icon)
-        downloads.requestRedraw(); refreshRoutes()
+        // Saved preference remains compatible; inverted raster tiles are deferred during the VTM migration.
+        nightButton.visibility=GONE;nightButton.isEnabled=false
+        setBackgroundColor(Color.rgb(225,225,225));refreshRoutes()
     }
-    fun resume() { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis()); lastTrack = -1L; running = true; mapView.layerManager.proceed(); downloads.onResume(); revealControls(); refresh() }
+    fun resume() { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis());lastTrack=-1L;running=true;mapView.resumeMap();downloads.resume();revealControls();refresh() }
     fun pause() {
-        routePopup?.dismiss()
-        pinchZoom.cancel()
-        running = false; phoneHeading.stop(); stopMotion(); handler.removeCallbacksAndMessages(null); downloads.onPause(); mapView.layerManager.pause(); saveCamera()
+        routePopup?.dismiss();pinchZoom.cancel();running=false;phoneHeading.stop();stopMotion()
+        handler.removeCallbacksAndMessages(null);downloads.pause();mapView.pauseMap();saveCamera()
     }
-    fun destroy() { mapView.model.mapViewPosition.removeObserver(zoomObserver);pause(); mapView.destroyAll() }
+    fun destroy() { pause();routes.dispose();mapView.disposeMap() }
     internal fun refreshProfileSettings() {
         pinchZoom.cancel()
         dataFields.resetTrends()
         refreshSettings()
-        mapView.model.mapViewPosition.setZoom(MapZoom.read(preferences,source),false)
+        mapView.setZoom(MapZoom.read(preferences,source))
         val lat=preferences.getFloat("mapLatitude",51f).toDouble().coerceIn(-85.0,85.0)
         val lon=preferences.getFloat("mapLongitude",10f).toDouble().coerceIn(-180.0,180.0)
-        mapView.setCenter(LatLong(lat,lon))
+        mapView.setCenter(lat,lon)
     }
     fun refreshSettings() {
         val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
         val nextKey=MapProviderSettings.read(context)
         if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey)) {
             pinchZoom.cancel()
-            mapView.layerManager.layers.remove(downloads); downloads.onDestroy(); downloads.tileCache.destroy()
+            mapView.map().layers().remove(downloads);downloads.onDetach()
             source = next; providerKey=nextKey
-            mapView.setZoomLevelMax(MapZoom.maximum(source).toByte())
-            if(mapView.model.mapViewPosition.zoom>MapZoom.maximum(source)) mapView.model.mapViewPosition.setZoom(MapZoom.maximum(source).toDouble(),false)
-            downloads = createDownloadLayer(source); mapView.layerManager.layers.add(0, downloads)
-            if (running) downloads.onResume()
+            mapView.setZoomLimits(MapZoom.maximum(source))
+            if(mapView.zoom>MapZoom.maximum(source)) mapView.setZoom(MapZoom.maximum(source).toDouble())
+            downloads = createDownloadLayer(source); mapView.map().layers().add(downloads)
+            if (running) downloads.resume()
             credit.text = source.attribution
         }
         night = preferences.getBoolean("mapNight", false); applyNight()
@@ -456,7 +422,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     private fun updateWindRose() {
         windRose.visibility=if(follow && !editing && controls.visibility!=VISIBLE && preferences.getBoolean("mapWindRoseVisible",false)) VISIBLE else GONE
-        windRose.rotation=mapView.mapRotation.degrees
+        windRose.rotation=mapView.bearing
     }
     fun showFullscreen(value: Boolean) {
         MapControlDesign.icon(fullButton, if(value) BicycleIcon.Maximize else BicycleIcon.Minimize)
@@ -475,14 +441,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             val bearing=if(heading) displayedGps.bearingDegrees else null
             val now=android.os.SystemClock.uptimeMillis()
             val position=ovalAnchor.at(if(heading) 0.0 else displayedGps.bearingDegrees,runtime.isMoving && displayedGps.latitude!=null,
-                now,width,height,mapView.model.mapViewPosition.zoom)
-            if(follow && mapView.mapViewCenterX!=position.x) mapView.setMapViewCenterX(position.x)
-            if(follow && mapView.mapViewCenterY!=position.y) mapView.setMapViewCenterY(position.y)
-            val rotation=Rotation(-(bearing ?: 0.0).toFloat(),width/2f,height/2f)
-            if(mapView.mapRotation!=rotation) mapView.rotate(rotation)
+                now,width,height,mapView.zoom)
+            if(follow) mapView.setAnchor(position.x,position.y)
+            val rotation=-(bearing ?: 0.0).toFloat()
+            if(mapView.bearing!=rotation) mapView.rotate(rotation)
             if(follow && displayedGps.latitude!=null && displayedGps.longitude!=null && abs(displayedGps.latitude!!)<=85.05112878) {
-                val center=LatLong(displayedGps.latitude!!,displayedGps.longitude!!)
-                if(mapView.model.mapViewPosition.center!=center) mapView.setCenter(center)
+                if(mapView.center.latitude!=displayedGps.latitude || mapView.center.longitude!=displayedGps.longitude) mapView.setCenter(displayedGps.latitude!!,displayedGps.longitude!!)
             }
         }
         updateWindRose()
@@ -503,32 +467,28 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val points=(visible.ifEmpty { runtime.mapState.mapRoutes }).flatMap { it.route.points }
         if (points.isEmpty() || width <= 0 || height <= 0) return
         setFollow(false)
-        mapView.setMapViewCenterX(.5f);mapView.setMapViewCenterY(.5f)
+        mapView.setAnchor(.5f,.5f)
         val lats = points.map { it.latitude }; val lons = points.map { it.longitude }
         val minLat = lats.min(); val maxLat = lats.max(); val minLon = lons.min(); val maxLon = lons.max()
-        mapView.setCenter(LatLong((minLat + maxLat) / 2, (minLon + maxLon) / 2))
-        mapView.rotate(Rotation.NULL_ROTATION)
+        mapView.setCenter((minLat+maxLat)/2,(minLon+maxLon)/2)
+        mapView.rotate(0f)
         var level = MapZoom.maximum(source)
         while (level > MapZoom.minimum) {
-            val size = MercatorProjection.getMapSize(level.toByte(), 256)
-            val dx = abs(MercatorProjection.longitudeToPixelX(maxLon, size) - MercatorProjection.longitudeToPixelX(minLon, size))
-            val dy = abs(MercatorProjection.latitudeToPixelY(maxLat, size) - MercatorProjection.latitudeToPixelY(minLat, size))
+            val size = (256L shl level)
+            val dx = abs((maxLon-minLon)/360*size)
+            val dy = abs((org.oscim.core.MercatorProjection.latitudeToY(maxLat)-org.oscim.core.MercatorProjection.latitudeToY(minLat))*size)
             if (dx < width * .8 && dy < height * .7) break
             level--
         }
-        mapView.model.mapViewPosition.setZoomLevel(level.toByte(), false); revealControls(); refreshRoutes()
+        mapView.setZoom(level.toDouble()); revealControls(); refreshRoutes()
     }
     private fun zoom(delta: Int) {
         pinchZoom.stop()
-        mapView.model.mapViewPosition.setZoom((mapView.model.mapViewPosition.zoom + delta*.5).coerceIn(MapZoom.minimum.toDouble(),MapZoom.maximum(source).toDouble()), false)
+        mapView.setZoom((mapView.zoom+delta*.5).coerceIn(MapZoom.minimum.toDouble(),MapZoom.maximum(source).toDouble()))
         saveCamera()
     }
-    private fun saveCamera() {
-        val position = mapView.model.mapViewPosition
-        preferences.edit().putInt("mapZoom", position.zoomLevel.toInt()).putFloat(MapZoom.preference,position.zoom.toFloat()).putFloat("mapLatitude", position.center.latitude.toFloat())
-            .putFloat("mapLongitude", position.center.longitude.toFloat()).apply()
-    }
-    fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; nightButton.visibility = VISIBLE; updateWindRose();controlsVisibilityChanged?.invoke(true); scheduleHide() }
+    private fun saveCamera() { mapView.save(preferences) }
+    fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; nightButton.visibility = GONE; updateWindRose();controlsVisibilityChanged?.invoke(true); scheduleHide() }
     fun holdControls() { handler.removeCallbacks(hideControls) }
     private fun updateMotionControls() {
         val next = runtime.isMoving

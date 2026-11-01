@@ -1,32 +1,33 @@
-# Aktueller Stand: APK0.8.78 / Build119 veröffentlicht –01.11.2026
+# Aktueller Stand: VTM-Migration lokal umgesetzt, noch keine neue APK
 
-[APK direkt](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.78-release-119.apk) · [Buildnachweis](build-119.md) · [Änderungen](release-0.8.78.md). Code148, Quelle`521e012a3e37ed9cf1dd85fb8e9c856b8ef57bb9`, 2592945Bytes, SHA-256`998fa47f4765b1a0079ff78160c9c99d3ec4ec70cf7a52fc09fece9592103977`. GitHubActions erfolgreich, Version/Manifest/ZIP-Ausrichtung/CI-Prüfsumme/dauerhafte Signatur geprüft. Tatsächlichen direkten Raw-Download geladen und binär identisch bestätigt; APK-Auftrag erledigt.
+## Aktueller Auftrag und Ergebnis
 
-## In Build119 enthalten
+Nutzer hat nach Sicherung des Meilensteins den Austausch Mapsforge → Mapsforge-VTM beauftragt: alle Dashboardkartenfunktionen erhalten, zunächst dieselben Raster-Tiles; invertierte Nachtkarte vorerst unwichtig. Implementierung abgeschlossen, gezielt geprüft. Kein neuer APK-Auftrag, nicht auf main pushen. [Vollständiger Umfang/Prüfnachweise](vtm-migration.md).
 
-- Kurzempfehlung eigener Absatz, restlicher HRV-Text zusammenhängend. Messdiagramm315dp hoch,36dp Abstand zum Kreis.
-- HRV-Kacheln füllen die gemeinsame Höhe, Textblock zentriert. Weitere öffnet rechtsbündiges schwebendes Dropdown über drei Hauptspalten, unveränderte Diagrammposition. Auswahl schließt, Weitere bleibt bei Zusatzkennzahl markiert.
-- HRV & Tagesbefinden direkt nach Fahrradprofile; Erststartangebot einfacher Schalter nach Trenner vor Vibrieren, ohne Erklärung.
-- Fahrradprofile/Karten: redundanter GPX-Anzeigeschalter entfernt, Dashboardsteuerung/gespeicherte Sichtbarkeit erhalten.
-- Sensorübersicht: Bluetooth-Zeilen einschließlich Abstand nur bei Zuordnung oder aktuellem Suchfund. Ausgeschaltet/getrennt weiterhin sichtbar, erst Entfernen löscht Anzeige inklusive Suchfund. GPS bleibt immer. Alle freigeschalteten Profiltypen, keine Änderung an Erfassung/Verbindung.
-- Aufnahmeanzeige: nur zwei500-ms-Übergänge animiert, dazwischen je1,5s Ruhe ohne Frame-Callbacks. Vier-Sekunden-Rhythmus und Kosinusüberblendung erhalten, Abbruch/Neustart und deaktivierte Systemanimation berücksichtigt. Trainingshilfe bleibt weich.
+- Stabile VTM0.25.0-Android-/HTTP-Abhängigkeiten und vier native ABIs, OpenGL ES2. Alte Mapsforge-Map-/Core-Abhängigkeit/Imports entfernt. Anbieter/URLs/Keys/Attributionen unverändert, begrenzter geteilter HTTP-Cache.
+- Kamera, bestehende Präferenzschlüssel und Zoom6–19/0,5-Schritte; OpenTopoMap17; gemeinsame Pinch-/Pan-/Nachlaufsteuerung. GPS-Folgen, Norden/Fahrtrichtung, Vorausschauanker und33-ms-Interpolation erhalten.
+- Drei gespeicherte Strecken plus Livefahrt als native transparente Overlays mit VTM-Projektion, unabhängigem Stil und echten Lücken. Geometrie auf Worker nur bei Punktlistenänderung vorbereiten, Generationsschutz/Profile erhalten. GPS/Genauigkeit/Kompass/Höhe/Windrose sowie Bedienelemente/Editor/Vollbild erhalten.
+- Dashboardübergang: PixelCopy der GL-Fläche höchstens4MB/200ms, anschließend bestehendes Seitenbild höchstens16MB. Abbruch/verspätete Antwort abgesichert; bei fehlendem Bild sofortiger Wechsel. Weiterhin eine lebende Dashboardkarte. Detailvorschau/-vollbild ebenfalls VTM, Lebenszyklus beim Wiederanfügen erhalten.
+- Nacht-Invertierung/Button deaktiviert, gespeicherte Option und Stilbezug erhalten. Kein allgemeiner Sparmodus, keine Vektorquelle und keine Sensor-/Aufzeichnungsänderung.
 
-## Analyse und spätere Planung
+## Prüfnachweise
 
-[Dashboard-Energieanalyse](dashboard-energy-analysis.md) auf Nutzerwunsch dauerhaft festgehalten. Schätzung aus Code, keine Leistungsmessung. Karte bis30Bewegungsschritte/s einschließlich vollständiger Streckenpfade wahrscheinlich größter Grafikposten; Dashboard render pro Sensor-/GPS-/Tickereignis ohne zentrale Drossel; kurze Graphfenster1Hz mit möglichen16-ms-Skalenanimationen, Gesamtgraphen schon10s. Späterer einzelner Akkuschonmodus: Karte alle1–2s statt Zwischenframes, alle Auslöser bündeln; Zahlen1Hz; Graphen5–10s und keine Skalenanimation; statische funktionale Farbwechsel/Warnungen; OLED-Vektorstil und bedarfsgerechte unsichtbare Verarbeitung. Erfassung/FIT/GPS-Sampling unverändert. Nutzer abschließend ausdrücklich: Sensorfragen nur aus Neugier; spätere Akkuoptimierung darf zuverlässige vollständige Sensorerfassung, Aufzeichnung und Analyse nicht drosseln.5s-Kartenstandard wegen35m Weg bei25km/h nicht empfohlen. Keine Akku-Prozentzusage.
+19 betroffene Fälle gezielt geprüft; nach gefundenen Abweichungen nur offene Fälle wiederholt. Kein Gesamtlauf. Native VTM-Projektion mit echtem JNI, Pixel-/Gesten-/Lebenszyklus-/Anbietertests; GL-Aufnahmeablauf getestet. Alte Cache-/Framebuffer-Tests an neue Engine angepasst. `vtm-*.log` unter `/workspace/.tools/`, Details in [Migration](vtm-migration.md).
 
-VTM bislang nur analysiert, noch kein Umbau beauftragt. Mapsforge-Datenkompatibilität ist keine MapView-/Layer-API-Gleichheit; eigener GL-Surface und Dashboard-Snapshot prüfen. Trainingshilfe ausdrücklich erst im künftigen Sparmodus auf harte Farben umstellen. Kein allgemeiner Sparmodus implementiert.
+Debug-Kompilation und Release-Native-/Java-Ressourcenzusammenführung erfolgreich (kein APK-Build): vier ABIs und25 Shader, ARM64 mit16-KB-Alignment. Typografie/Atlas/Diff erfolgreich. JNI für Robolectric pro Sandbox über identische Linuxbibliothek isoliert; Shadow passt nur das Laden und die Android-Testumgebung an.
 
-## Gezielte Prüfnachweise
+Noch am Smartphone prüfen: tatsächliche GL-Tilezeichnung, SurfaceView-Clipping/Überlagerungen/PixelCopy beim Dashboardwechsel, Wischgefühl, mehrere Kartenansichten und App-/Dialogrückkehr. Lokale Tests sind kein GPU-/Akkunachweis.
 
-`hrv-refinement-tests.log`: fünf Fälle erfolgreich. Menüfall in `profile-sensor-settings-tests.log`, Sensorfall in `profile-sensor-visibility-tests.log` erfolgreich. `recording-cue-idle-tests.log`: Kurve, Indoor und Outdoor erfolgreich, neuer Zeitablauffall zunächst nicht wegen ungesteuerter Robolectric-Frames. Letzterer mit expliziten Frames in `recording-cue-idle-final-test.log` erfolgreich. Native HRV-Vorschau320dp visuell geprüft; Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf oder physischer Gerätetest.
+## Letzte veröffentlichte APK und Rückfallstand
 
-## Bestehende Grundlagen und offene Gerätebestätigung
+[APK0.8.78/Build119](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.78-release-119.apk), code148, Quelle`521e012a3e37ed9cf1dd85fb8e9c856b8ef57bb9`, SHA256`998fa47f4765b1a0079ff78160c9c99d3ec4ec70cf7a52fc09fece9592103977`. Dauerhafte Signatur, Version, Manifest, Ausrichtung und tatsächlicher Raw-Download geprüft. [Buildnachweis](build-119.md). Enthält noch Mapsforge, keine VTM-Migration.
 
-Build118: sichtbare Sticky-Summen, aktualisierender manueller Intervals-HRV-Sammelupload, größere Windrose, weiche Tages-/Dashboardgesten, eine gemeinsame Indexhistorie mit14-Tage-Hinweisen,±4-Indexdarstellung und HRV-Verlauf. [Build118](build-118.md). Build117: gefahrene Strecken/Vorlagen und28-Tage-Fahrzeitschätzung, gemeinsame Kartenplätze und gemeinsamer HRV-Tag/Verlauf. [Build117](build-117.md).
+Auf Nutzerwunsch als [Meilensteinv0.8.78](milestone-0.8.78.md) per annotiertem Tag/GitHub-Release gesichert. APK/Prüfsumme und R8-Mapping dauerhaft versioniert/revisionsgebunden verlinkt; direkter Release-Asset-Upload war am Upload-EndpunktHTTP401 gescheitert, Repository-Sicherung erfolgreich.
 
-Physisches Wischgefühl, neue Dropdownbedienung/Animation und Intervals-Sammelaktualisierung am Smartphone noch bestätigen. Alte422-Bestandsmeldung laut Nutzer erledigt; Ursprung früherer Remote-Pulsabweichungen ohne Remote-Historie nicht belegt. Keine privaten Messdaten ins Repo. Weitere APK nur auf Auftrag ausschließlichGitHubActions; nächste Version voraussichtlich0.8.79/code149/Build120. Dauerhafte Signatur und tatsächlichen Raw-Download prüfen; Appcode nie mit[skip ci] überspringen.
+Build119 enthält HRV-Dropdown/volle Kacheln/kompakte Empfehlung/höheres Messdiagramm, aufgeräumte HRV-/Fahrradeinstellungen, Sensoranzeige nach Zuordnung/Suchfund und Aufnahmeanzeige mit ruhenden Zwischenphasen. Build118: Sticky-Summen, aktualisierender manueller Intervals-HRV-Sammelupload, größere Windrose, weiche Tages-/Dashboardgesten, gemeinsame Indexhistorie mit14-Tage-Hinweisen,±4 und HRV-Verlauf. [Build118](build-118.md).
 
-## Neuer gesicherter Meilenstein
+## Festgehaltene spätere Planung
 
-Auf ausdrücklichen Nutzerwunsch vollständigen aktuellen Stand als annotierten Git-Tag `v0.8.78` und GitHub-Release sichern. APK0.8.78/Build119 samt Prüfsumme und komprimiertem R8-Mapping dauerhaft im Repository; Release verlinkt unveränderliche Git-Revisionen. Direkter Release-Asset-Upload scheiterte an HTTP401 des Upload-Endpunkts, deshalb erfolgreiche Sicherung im Repo. [Umfang](milestone-0.8.78.md). Keine Appcodeänderung oder neuer APK-Build.
+[Akkuanalyse](dashboard-energy-analysis.md): später ein gemeinsamer Sparmodus für Anzeige/Animationen – Karte1–2s, Zahlen1Hz, Graphen5–10s/keine Skalenanimation, statische funktionale Farben/Warnungen, OLED-Vektorstil. Trainingshilfe ausdrücklich aktuell weich, harte Farben erst im Sparmodus. Nutzer ausdrücklich: Sensorfragen nur aus Neugier; Sensorerfassung, Aufzeichnung und Analyse bleiben vollständig/zuverlässig. VTM jetzt beauftragt/umgesetzt, Online-Vektorquelle noch offen. Keine privaten Messdaten ins Repo.
+
+Nächste APK nur auf Auftrag ausschließlichGitHubActions, voraussichtlich0.8.79/code149/Build120. Dauerhafte Signatur und tatsächlichen Download prüfen; Appcode nie mit[skip ci] überspringen.

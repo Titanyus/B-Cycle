@@ -126,13 +126,12 @@ class DashboardExpansionTest {
             val a=host.get();val runtime=RideRuntime.get(a)
             val panel=MainActivity::class.java.getDeclaredField("mapPanel").apply { isAccessible=true }.get(a) as MapPanel
             val running=MapPanel::class.java.getDeclaredField("running").apply { isAccessible=true }
-            val active=MapNightLayer::class.java.getDeclaredField("active").apply { isAccessible=true }
             val downloads=MapPanel::class.java.getDeclaredField("downloads").apply { isAccessible=true }.get(panel)
             val gps=runtime.gpsEnabled
             val set=MainActivity::class.java.getDeclaredMethod("setMapFullscreen",Boolean::class.javaPrimitiveType).apply { isAccessible=true }
             for(template in listOf(DashboardTemplate.FULL_DATA,DashboardTemplate.MAP,DashboardTemplate.FULL_NINE)) {
                 runtime.preferences.edit().putString("dashboardTemplate_0",template.name).commit();set.invoke(a,false)
-                assertEquals(template.hasMap,running.getBoolean(panel));assertEquals(template.hasMap,active.getBoolean(downloads))
+                assertEquals(template.hasMap,running.getBoolean(panel));assertEquals(template.hasMap,(downloads as VtmRasterLayer).isEnabled)
                 assertEquals(gps,runtime.gpsEnabled)
             }
         } finally { host.pause().stop().destroy() }

@@ -41,6 +41,27 @@ class DashboardPageViewportTest {
         val event=MotionEvent.obtain(0,time,action,x,y,0)
         try { view.dispatchTouchEvent(event) } finally { event.recycle() }
     }
+    @Test fun asynchronousMapSnapshotKeepsTheOldPageAndIgnoresLateResultsAfterCancellation() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val viewport=DashboardPageViewport(a) { true }
+            val page=View(a).apply { setBackgroundColor(Color.RED) }
+            viewport.setPage(page);a.setContentView(viewport);prepare(viewport)
+            var ready:((Boolean)->Unit)?=null;var changes=0;var releases=0
+            viewport.preparePageSnapshot={ ready=it };viewport.releasePageSnapshot={ releases++ }
+            viewport.slide(1) { changes++;page.setBackgroundColor(Color.BLUE) }
+            assertTrue(viewport.running);assertEquals(0,changes)
+            checkNotNull(ready).invoke(true)
+            assertEquals(1,changes);assertTrue(viewport.running)
+            assertNotNull(viewport.findViewWithTag<View>("dashboard_page_outgoing"));assertTrue(releases>0)
+            viewport.cancelTransition()
+            viewport.slide(1) { changes++ }
+            val late=checkNotNull(ready);viewport.cancelTransition();late(true)
+            assertEquals(1,changes);assertFalse(viewport.running);assertNull(viewport.findViewWithTag<View>("dashboard_page_outgoing"))
+            viewport.slide(1) { changes++ };checkNotNull(ready).invoke(false)
+            assertEquals("unavailable GL snapshot switches once without a broken animation",2,changes);assertFalse(viewport.running)
+        } finally { org.robolectric.shadows.ShadowChoreographer.setPaused(false);host.pause().stop().destroy() }
+    }
     @Test fun velocityHandoffStopsSmoothlyWithoutOvershootingAtAnySupportedInitialSpeed() {
         for(slope in listOf(0f,.2f,1f,2f,3f,10f)) {
             val easing=pageHandoffInterpolator(slope)

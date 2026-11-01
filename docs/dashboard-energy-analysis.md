@@ -99,3 +99,7 @@ Entscheidungsreihenfolge: unnötige Darstellung und Daueranimationen reduzieren,
 ## Verbindliche Nutzerpräzisierung nach Abschluss der Analyse
 
 Sensorfrequenz und weniger Aufzeichnung waren ausschließlich eine Verständnisfrage, kein Optimierungsauftrag. Die App lebt von zuverlässiger vollständiger Erfassung und anschließender Analyse. Für die spätere Akkuoptimierung daher Darstellung/Animationen/gebündelte UI-Updates optimieren; Sensorfrequenz, Rohdatenannahme, reguläre Aufzeichnung und Analyseberechnungen beibehalten. Keine Sensor- oder Datendrosselung aus den vorangegangenen Beispielen ableiten.
+
+## Entwicklungsstand nach der VTM-Umstellung
+
+Die obige Lastabschätzung beschreibt den Mapsforge-Stand von Build119. Danach auf Auftrag die Engine auf VTM mit denselben Rasterquellen umgestellt. Basiskarte jetzt GL, Strecken-/Positionsoverlays weiterhin native Views mit VTM-Projektion. Pfadvorbereitung/Mercator-Koordinaten auf Worker bei Datenänderung gecached, pro Kamerabild affine Projektion. Die bisherigen33-ms-Kartenbewegungen sind erhalten; keine zusätzliche Anzeige-/Sensor-/Aufzeichnungsdrosselung. Deshalb noch keine belastbare Aussage über reale GPU-/CPU-/Akkuänderungen. [Migration](vtm-migration.md).

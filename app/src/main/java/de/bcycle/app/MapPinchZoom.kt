@@ -3,24 +3,23 @@ package de.bcycle.app
 import android.animation.ValueAnimator
 import android.view.MotionEvent
 import android.view.animation.DecelerateInterpolator
-import org.mapsforge.map.android.view.MapView
 import kotlin.math.*
 
 /** Continuous two-finger zoom without Android's minimum-span cutoff; native pan/fling stays intact. */
-internal class MapPinchZoom(private val map:MapView,private val maximum:()->Int) {
+internal class MapPinchZoom(private val map:BicycleMapView,private val maximum:()->Int) {
     private var consuming=false
     private var pointerA=-1;private var pointerB=-1
     private var span=0.0;private var time=0L;private var movedAt=0L
     private var focusX=0.0;private var focusY=0.0
     private var velocity=0.0
     private var animation:ValueAnimator?=null
-    fun stop() { animation?.cancel();animation=null }
+    fun stop() { animation?.cancel();animation=null;map.cancelMotion() }
     fun cancel() { stop();map.parent?.requestDisallowInterceptTouchEvent(false);consuming=false;pointerA=-1;pointerB=-1;span=0.0;velocity=0.0 }
     private fun begin(event:MotionEvent) {
         if(!consuming) {
             val cancel=MotionEvent.obtain(event).apply { action=MotionEvent.ACTION_CANCEL }
             map.onTouchEvent(cancel);cancel.recycle()
-            map.onZoomEvent();consuming=true
+            map.zoomed?.invoke();consuming=true
         }
         stop();map.parent?.requestDisallowInterceptTouchEvent(true)
         pointerA=event.getPointerId(0);pointerB=event.getPointerId(1)
@@ -38,16 +37,16 @@ internal class MapPinchZoom(private val map:MapView,private val maximum:()->Int)
     }
     private fun coast(now:Long) {
         if(movedAt==0L || now-movedAt>120 || abs(velocity)<.15) return
-        val start=map.model.mapViewPosition.zoom
+        val start=map.zoom
         val end=(start+velocity*.16).coerceIn(MapZoom.minimum.toDouble(),maximum().toDouble())
         if(abs(end-start)<.005) return
         animation=ValueAnimator.ofFloat(start.toFloat(),end.toFloat()).apply {
             duration=480;interpolator=DecelerateInterpolator(1.5f)
-            addUpdateListener { map.model.mapViewPosition.setZoom((it.animatedValue as Float).toDouble(),false) }
+            addUpdateListener { map.setZoom((it.animatedValue as Float).toDouble()) }
             start()
         }
     }
-    /** True only for our multi-pointer sequence; one-finger gestures remain Mapsforge-owned. */
+    /** True only for our multi-pointer sequence; one-finger gestures remain VTM-owned. */
     fun onTouch(event:MotionEvent):Boolean {
         if(event.actionMasked==MotionEvent.ACTION_DOWN) { cancel();return false }
         if(event.actionMasked==MotionEvent.ACTION_CANCEL) { val handled=consuming;cancel();return handled }
@@ -57,20 +56,19 @@ internal class MapPinchZoom(private val map:MapView,private val maximum:()->Int)
             MotionEvent.ACTION_MOVE -> if(pointerA>=0 && event.pointerCount>=2) {
                 val next=distance(event)
                 if(next>0 && span>0) {
-                    val before=map.model.mapViewPosition.zoom
+                    val before=map.zoom
                     val zoom=(before+ln(next/span)/ln(2.0)).coerceIn(MapZoom.minimum.toDouble(),maximum().toDouble())
                     val oldX=focusX;val oldY=focusY
                     rememberFocus(event)
                     val ratio=2.0.pow(zoom-before)
-                    val centerX=map.width*map.mapViewCenterX.toDouble()
-                    val centerY=map.height*map.mapViewCenterY.toDouble()
+                    val centerX=map.width*map.anchorX.toDouble()
+                    val centerY=map.height*map.anchorY.toDouble()
                     val dx=focusX-centerX-(oldX-centerX)*ratio
                     val dy=focusY-centerY-(oldY-centerY)*ratio
-                    if(abs(dx)>.001 || abs(dy)>.001) map.onMoveEvent()
-                    map.model.mapViewPosition.setZoom(zoom,false)
+                    if(abs(dx)>.001 || abs(dy)>.001) map.notifyUserMove()
+                    map.setZoom(zoom)
                     if(abs(dx)>.001 || abs(dy)>.001) {
-                        val rotated=org.mapsforge.core.model.Rotation(map.mapRotation.degrees,0f,0f).rotate(dx,dy)
-                        map.model.mapViewPosition.moveCenter(rotated.x,rotated.y,false)
+                        map.panBy(dx.toFloat(),dy.toFloat())
                     }
                     val dt=event.eventTime-time
                     if(dt>0 && dt<=120) {

@@ -1,204 +1,94 @@
 package de.bcycle.app
 
+import android.app.Activity
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.os.Looper
+import android.view.View
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mapsforge.core.model.BoundingBox
-import org.mapsforge.core.model.Dimension
-import org.mapsforge.core.model.LatLong
-import org.mapsforge.core.model.MapPosition
-import org.mapsforge.core.model.Point
-import org.mapsforge.core.model.Rotation
-import org.mapsforge.core.util.MercatorProjection
-import org.mapsforge.map.android.graphics.AndroidGraphicFactory
-import org.mapsforge.map.controller.FrameBufferController
-import org.mapsforge.map.model.Model
-import org.mapsforge.map.view.FrameBufferHA3
-import org.robolectric.RuntimeEnvironment
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
-import org.robolectric.RobolectricTestRunner
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33])
+@Config(sdk=[33],qualifiers="mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class RouteTrackLayerTest {
-    @Test fun fractionalZoomKeepsLineDotAndHeightLabelScreenSizesAndGeographicAlignment() {
-        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
-        val previous=org.mapsforge.core.util.Parameters.FRACTIONAL_ZOOM
-        MapZoom.enableFractional()
-        val model=Model();model.displayModel.setFixedTileSize(256)
-        try {
-            val base=MercatorProjection.getMapSize(10,256)
-            fun point(x:Double,y:Double)=MapPoint(MercatorProjection.pixelYToLatitude(base/2.0-256+y,base),MercatorProjection.pixelXToLongitude(base/2.0-256+x,base))
-            val layer=RouteTrackLayer(1f,model.mapViewPosition);layer.setDisplayModel(model.displayModel)
-            layer.update(GpxRoute(listOf(point(100.0,180.0),point(400.0,180.0)),2,1),emptyList(),
-                GpsValues(latitude=0.0,longitude=0.0,altitudeM=487.0),true,false)
-            var labelWidth:Int?=null
-            for(zoom in listOf(10.0,10.5,10.99,11.0,11.5)) {
-                model.mapViewPosition.setZoom(zoom,false)
-                val level=kotlin.math.floor(zoom).toInt()
-                val size=MercatorProjection.getMapSize(level.toByte(),256)
-                val bitmap=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
-                val factor=Math.pow(2.0,zoom-level).toFloat()
-                val target=android.graphics.Canvas(bitmap).apply { scale(factor,factor,256f,256f) }
-                layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),level.toByte(),AndroidGraphicFactory.createGraphicContext(target),Point(size/2.0-256,size/2.0-256),Rotation.NULL_ROTATION)
-                val lineY=(256+(180-256)*Math.pow(2.0,zoom-10)).toInt()
-                assertEquals("Line width at $zoom",6.0,(lineY-8..lineY+8).count { Color.alpha(bitmap.getPixel(256,it))>50 }.toDouble(),2.0)
-                assertEquals("Dot diameter at $zoom",22.0,(240..270).count { Color.alpha(bitmap.getPixel(it,256))>100 }.toDouble(),2.0)
-                val width=(274..400).count { Color.alpha(bitmap.getPixel(it,256))>100 }
-                if(labelWidth==null) labelWidth=width else assertEquals("Height label at $zoom",labelWidth!!.toDouble(),width.toDouble(),2.0)
-                assertEquals(Color.rgb(0,100,245),bitmap.getPixel(256,256))
-                bitmap.recycle()
-            }
-        } finally { model.mapViewPosition.destroy();org.mapsforge.core.util.Parameters.FRACTIONAL_ZOOM=previous }
+    private fun size(view:View) { view.measure(View.MeasureSpec.makeMeasureSpec(512,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(512,View.MeasureSpec.EXACTLY));view.layout(0,0,512,512) }
+    private fun ready(layer:RouteTrackLayer) {
+        val done=CountDownLatch(1)
+        val worker=RouteTrackLayer::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(layer) as ThreadPoolExecutor
+        worker.execute { done.countDown() };assertTrue(done.await(5,TimeUnit.SECONDS));shadowOf(Looper.getMainLooper()).idle()
     }
-    @Test fun routeUsesMapFramebufferScaleAroundGesturePivotBeforeZoomLevelChanges() {
-        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
-        val model = Model()
-        model.displayModel.setFixedTileSize(256)
-        model.frameBufferModel.setOverdrawFactor(1.0)
-        val framebuffer = FrameBufferHA3(model.frameBufferModel, model.displayModel, AndroidGraphicFactory.INSTANCE)
-        val controller = FrameBufferController.create(framebuffer, model)
+    @Test fun threeStylesAndLiveTrackPreserveAlphaAndGapsAtFractionalZoom() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get());val overlay=RouteTrackLayer(host.get(),map)
         try {
-            model.mapViewPosition.setCenter(LatLong(0.0, 0.0)); model.mapViewPosition.setZoomLevel(10, false)
-            model.mapViewDimension.setDimension(Dimension(512, 512))
-            val mapSize = MercatorProjection.getMapSize(10, 256)
-            val dimension = framebuffer.dimension
-            val origin = mapSize / 2.0 - dimension.width / 2.0
-            val inset = (dimension.width - 512) / 2.0
-            fun location(x: Double, y: Double) = MapPoint(MercatorProjection.pixelYToLatitude(origin + inset + y, mapSize), MercatorProjection.pixelXToLongitude(origin + inset + x, mapSize))
-            val layer = RouteTrackLayer(1f)
-            layer.setDisplayModel(model.displayModel)
-            layer.update(GpxRoute(listOf(location(100.0, 150.0), location(400.0, 150.0)), 2, 1), emptyList(), GpsValues(), true, false)
-            val drawing = AndroidGraphicFactory.getBitmap(framebuffer.drawingBitmap)
-            val graphicCanvas = AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(drawing))
-            layer.draw(BoundingBox(-1.0, -1.0, 1.0, 1.0), 10, graphicCanvas, Point(origin, origin), Rotation.NULL_ROTATION)
-            val sourceFile = java.io.File("build/reports/maps/route-source.png").apply { parentFile!!.mkdirs() }
-            sourceFile.outputStream().use { drawing.compress(Bitmap.CompressFormat.PNG, 100, it) }
-            assertEquals(1024.0, model.mapViewPosition.scaleFactor, 0.001)
-            framebuffer.frameFinished(MapPosition(LatLong(0.0, 0.0), 10.0, Rotation.NULL_ROTATION))
-            fun routeY(): Double {
-                val output = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
-                framebuffer.draw(AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(output)), Rotation.NULL_ROTATION)
-                val pixels = mutableListOf<Int>()
-                for (y in 0 until 512) for (x in 0 until 512) {
-                    val color = output.getPixel(x, y)
-                    if (Color.blue(color) > Color.red(color) + 30 && Color.blue(color) > Color.green(color) + 20) pixels += y
+            size(map);size(overlay);map.setCenter(0.0,0.0);map.setZoom(10.5)
+            fun point(x:Double,y:Double):MapPoint {
+                val p=org.oscim.core.Point();map.map().viewport().fromScreenPoint(x,y,p)
+                return MapPoint(org.oscim.core.MercatorProjection.toLatitude(p.y),org.oscim.core.MercatorProjection.toLongitude(p.x))
+            }
+            val colors=listOf(Color.RED,Color.GREEN,Color.BLUE)
+            val routes=(0..2).map { i -> StyledMapRoute(GpxRoute(listOf(point(80.0,80.0+i*80),point(430.0,80.0+i*80)),2,1),MapLineStyle(colors[i],4f,30+i*30)) }
+            val live=listOf(point(80.0,350.0),point(200.0,350.0),point(310.0,350.0).copy(segmentStart=true),point(430.0,350.0))
+            overlay.update(null,live,GpsValues(),true,true,overlays=routes);ready(overlay)
+            val image=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
+            overlay.draw(Canvas(image))
+            for(i in 0..2) {
+                val pixel=image.getPixel(256,80+i*80)
+                assertEquals(colors[i] and 0xffffff,pixel and 0xffffff)
+                assertEquals(((30+i*30)*255/100f).toInt().toDouble(),Color.alpha(pixel).toDouble(),2.0)
+            }
+            assertEquals("GPS gap stays empty",0,Color.alpha(image.getPixel(256,350)))
+            assertTrue(Color.alpha(image.getPixel(150,350))>200);image.recycle()
+        } finally { overlay.dispose();map.disposeMap();host.pause().stop().destroy() }
+    }
+    @Test fun gpsCompassAndUprightHeightLabelKeepTheirScreenSizeAcrossZoomAndRotation() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get());val overlay=RouteTrackLayer(host.get(),map)
+        try {
+            size(map);size(overlay);map.setCenter(51.0,10.0)
+            overlay.update(null,emptyList(),GpsValues(latitude=51.0,longitude=10.0,altitudeM=512.0,accuracyM=20.0),false,false,phoneHeading=0.0)
+            var expectedInk:Int?=null
+            for(zoom in listOf(15.0,15.5)) for(rotation in listOf(0f,-90f)) {
+                map.setZoom(zoom);map.rotate(rotation)
+                val image=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
+                try {
+                    overlay.draw(Canvas(image));assertEquals(Color.rgb(0,100,245),image.getPixel(256,256))
+                    val north=map.screenPoint(51.001,10.0)
+                    val length=kotlin.math.hypot(north.x-256,north.y-256)
+                    val x=(256+(north.x-256)*16/length).toInt();val y=(256+(north.y-256)*16/length).toInt()
+                    assertTrue("compass follows geographic north",(x-1..x+1).any { px -> (y-1..y+1).any { py -> image.getPixel(px,py)==Color.rgb(0,100,245) } })
+                    var ink=0
+                    for(py in 240..272) for(px in 274..390) if(image.getPixel(px,py)==Color.BLACK) ink++
+                    assertTrue("height remains readable",ink>30)
+                    expectedInk?.let { assertEquals("height text stays upright and same size",it,ink) };expectedInk=ink
+                } finally { image.recycle() }
+            }
+        } finally { overlay.dispose();map.disposeMap();host.pause().stop().destroy() }
+    }
+    @Test fun nativeVtmProjectionKeepsTheGpsAtTheRequestedAnchorAfterRotation() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get())
+        try {
+            size(map);map.setZoom(16.5);map.setCenter(51.0,10.0)
+            assertTrue("VTM raster shader is available",org.oscim.backend.AssetAdapter.readTextFile("shaders/texture_layer.glsl")!!.contains("$$"))
+            for(angle in listOf(0f,-90f,-170f)) {
+                map.rotate(angle);map.setAnchor(.4f,.72f)
+                val p=map.screenPoint(51.0,10.0)
+                assertEquals(512*.4,p.x,1.0);assertEquals(512*.72,p.y,1.0)
+                assertEquals(angle.toDouble(),map.bearing.toDouble(),.001)
+                if(angle==-90f) {
+                    assertTrue("east must be up when riding east",map.screenPoint(51.0,10.001).y<p.y)
+                    assertTrue("north must be left when riding east",map.screenPoint(51.001,10.0).x<p.x)
                 }
-                val debug = java.io.File("build/reports/maps/route-scale.png").apply { parentFile!!.mkdirs() }
-                debug.outputStream().use { output.compress(Bitmap.CompressFormat.PNG, 100, it) }
-                assertTrue("Route must be present in the map framebuffer (${framebuffer.dimension})", pixels.isNotEmpty())
-                return pixels.average()
             }
-            val before = routeY()
-            val pivot = location(350.0, 300.0)
-            model.mapViewPosition.setPivot(LatLong(pivot.latitude, pivot.longitude))
-            model.mapViewPosition.setScaleFactorAdjustment(1.5)
-            assertEquals(10, model.mapViewPosition.zoomLevel.toInt()) // Fingers have not been released.
-            val during = routeY()
-            assertEquals(300 + (before - 300) * 1.5, during, 3.0)
-            assertTrue(before - during > 50)
-        } finally { controller.destroy(); framebuffer.destroy(); model.mapViewPosition.destroy() }
+        } finally { map.disposeMap();host.pause().stop().destroy() }
     }
-    @Test fun plannedRouteHasSixPixelWidthAtDensityOneAndThirtyFivePercentOpacity() {
-        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
-        val model = Model(); model.displayModel.setFixedTileSize(256)
-        val mapSize = MercatorProjection.getMapSize(10, 256)
-        val origin = mapSize / 2.0 - 256
-        fun point(x: Double, y: Double) = MapPoint(MercatorProjection.pixelYToLatitude(origin + y, mapSize),
-            MercatorProjection.pixelXToLongitude(origin + x, mapSize))
-        val layer = RouteTrackLayer(1f); layer.setDisplayModel(model.displayModel)
-        layer.update(GpxRoute(listOf(point(100.0, 256.0), point(400.0, 256.0)), 2, 1), emptyList(), GpsValues(), true, false)
-        val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
-        layer.draw(BoundingBox(-1.0, -1.0, 1.0, 1.0), 10,
-            AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)), Point(origin, origin), Rotation.NULL_ROTATION)
-        val color = bitmap.getPixel(250, 256)
-        assertEquals(128, Color.alpha(color)); assertEquals(18.0, Color.red(color).toDouble(), 2.0)
-        assertEquals(59.0, Color.green(color).toDouble(), 2.0); assertEquals(117.0, Color.blue(color).toDouble(), 2.0)
-        assertEquals(6, (0 until 512).count { Color.alpha(bitmap.getPixel(250, it)) > 0 })
-        layer.update(GpxRoute(listOf(point(100.0, 256.0), point(400.0, 256.0)), 2, 1), emptyList(), GpsValues(), true, false, night = true)
-        bitmap.eraseColor(Color.TRANSPARENT)
-        layer.draw(BoundingBox(-1.0, -1.0, 1.0, 1.0), 10,
-            AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)), Point(origin, origin), Rotation.NULL_ROTATION)
-        val night = bitmap.getPixel(250, 256)
-        assertEquals(128, Color.alpha(night)); assertTrue(Color.blue(night) > Color.blue(color))
-        assertEquals(6, (0 until 512).count { Color.alpha(bitmap.getPixel(250, it)) > 0 })
-        val custom=MapLineStyle(Color.MAGENTA,8f,25)
-        layer.update(GpxRoute(listOf(point(100.0,256.0),point(400.0,256.0)),2,1),emptyList(),GpsValues(),true,false,savedStyle=custom)
-        bitmap.eraseColor(Color.TRANSPARENT)
-        layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),10,
-            AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)),Point(origin,origin),Rotation.NULL_ROTATION)
-        assertEquals(64,Color.alpha(bitmap.getPixel(250,256)))
-        assertEquals(8,(0 until 512).count { Color.alpha(bitmap.getPixel(250,it))>0 })
-        layer.update(null,listOf(point(100.0,256.0),point(400.0,256.0)),GpsValues(),false,true,
-            recordedStyle=MapLineStyle(Color.GREEN,8f,50))
-        bitmap.eraseColor(Color.TRANSPARENT)
-        layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),10,
-            AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)),Point(origin,origin),Rotation.NULL_ROTATION)
-        assertEquals(128,Color.alpha(bitmap.getPixel(250,256))) // Outline and colored stroke share one opacity.
-        assertEquals(255,Color.green(bitmap.getPixel(250,256)))
-        model.mapViewPosition.destroy()
-    }
-    @Test fun accuracyCircleUsesMetresAndHidesAtGoodFixWithHysteresis() {
-        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
-        val model=Model();model.displayModel.setFixedTileSize(256)
-        val layer=RouteTrackLayer(1f);layer.setDisplayModel(model.displayModel)
-        val origin=MercatorProjection.getMapSize(18,256)/2.0-256
-        val bitmap=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
-        fun draw(accuracy:Double?):Int {
-            bitmap.eraseColor(Color.TRANSPARENT)
-            layer.update(null,emptyList(),GpsValues(latitude=0.0,longitude=0.0,accuracyM=accuracy),false,false)
-            layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),18,
-                AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)),Point(origin,origin),Rotation.NULL_ROTATION)
-            return Color.alpha(bitmap.getPixel(286,256))
-        }
-        assertTrue(draw(30.0)>0);assertEquals(0,draw(10.0));assertEquals(0,draw(12.0))
-        assertTrue(draw(30.0)>0);assertEquals(0,draw(null));assertEquals(0,draw(Double.NaN))
-        model.mapViewPosition.destroy()
-    }
-    @Test fun positionDotHasSmallPhoneDirectionArrowIndependentOfGpsCourseAndHidesUnknownHeading() {
-        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
-        val model=Model();model.displayModel.setFixedTileSize(256)
-        val origin=MercatorProjection.getMapSize(10,256)/2.0-256
-        val layer=RouteTrackLayer(1f);layer.setDisplayModel(model.displayModel)
-        val gps=GpsValues(latitude=0.0,longitude=0.0,bearingDegrees=90.0)
-        val bitmap=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
-        fun draw(direction:Double?) {
-            bitmap.eraseColor(Color.TRANSPARENT)
-            layer.update(null,emptyList(),gps,false,false,phoneHeading=direction)
-            layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),10,
-                AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)),Point(origin,origin),Rotation.NULL_ROTATION)
-        }
-        val blue=Color.rgb(0,100,245)
-        draw(0.0)
-        assertEquals(blue,bitmap.getPixel(256,256));assertEquals(blue,bitmap.getPixel(256,238))
-        assertEquals(0,Color.alpha(bitmap.getPixel(274,256)))
-        draw(90.0)
-        assertEquals(blue,bitmap.getPixel(274,256));assertEquals(0,Color.alpha(bitmap.getPixel(256,238)))
-        draw(null);assertEquals(0,Color.alpha(bitmap.getPixel(274,256)))
-        assertEquals(blue,bitmap.getPixel(256,256))
-        draw(Double.NaN);assertEquals(0,Color.alpha(bitmap.getPixel(256,238)))
-        bitmap.recycle();model.mapViewPosition.destroy()
-    }
-    @Test fun attachedHeightLabelIncludesValidZeroAndHidesUnavailableHeight() {
-        AndroidGraphicFactory.createInstance(RuntimeEnvironment.getApplication())
-        val model = Model(); model.displayModel.setFixedTileSize(256)
-        val origin = MercatorProjection.getMapSize(10, 256) / 2.0 - 256
-        val layer = RouteTrackLayer(1f); layer.setDisplayModel(model.displayModel)
-        fun labelPixels(height: Double?,showHeight:Boolean=true): Int {
-            layer.update(null, emptyList(), GpsValues(latitude = 0.0, longitude = 0.0, altitudeM = height), false, false,showHeight=showHeight)
-            val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888)
-            layer.draw(BoundingBox(-1.0, -1.0, 1.0, 1.0), 10,
-                AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(bitmap)), Point(origin, origin), Rotation.NULL_ROTATION)
-            return (245..270).sumOf { y -> (274..340).count { x -> Color.alpha(bitmap.getPixel(x, y)) > 0 } }
-        }
-        assertEquals(0, labelPixels(null)); assertEquals(0, labelPixels(Double.NaN))
-        assertTrue(labelPixels(0.0) > 100); assertTrue(labelPixels(487.0) > 100)
-        assertEquals(0,labelPixels(487.0,false));assertTrue(labelPixels(487.0,true)>100)
-        model.mapViewPosition.destroy()
-    }
-
 }

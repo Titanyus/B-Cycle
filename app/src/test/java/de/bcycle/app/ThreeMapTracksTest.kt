@@ -12,12 +12,6 @@ import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mapsforge.core.model.BoundingBox
-import org.mapsforge.core.model.Point
-import org.mapsforge.core.model.Rotation
-import org.mapsforge.core.util.MercatorProjection
-import org.mapsforge.map.android.graphics.AndroidGraphicFactory
-import org.mapsforge.map.model.Model
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -140,25 +134,6 @@ class ThreeMapTracksTest {
         assertEquals(slots,MapRouteSlots.read(prefs));assertEquals(60,MapRouteStyles.read(prefs,MapLineKind.SAVED_THREE).opacity)
         val corrupt=JSONObject(String(bytes));corrupt.getJSONObject("sections").getJSONObject(BackupSection.MAPS.id).getJSONObject("routeSlots").put("order",JSONArray(listOf(0,0)))
         assertThrows(Exception::class.java) { backup.plan(backup.decode(corrupt.toString().toByteArray()),setOf(BackupSection.MAPS)) }
-    }
-    @Test fun threeOverlaysUseIndependentColoursAndAlphaWithoutReplacingTheLiveTrack() {
-        val c=RuntimeEnvironment.getApplication();AndroidGraphicFactory.createInstance(c)
-        val model=Model();model.displayModel.setFixedTileSize(256)
-        try {
-            val size=MercatorProjection.getMapSize(10,256)
-            fun point(x:Double,y:Double)=MapPoint(MercatorProjection.pixelYToLatitude(size/2.0-256+y,size),MercatorProjection.pixelXToLongitude(size/2.0-256+x,size))
-            val colours=listOf(Color.RED,Color.GREEN,Color.BLUE)
-            val routes=(0..2).map { i -> StyledMapRoute(GpxRoute(listOf(point(80.0,80.0+i*80),point(430.0,80.0+i*80)),2,1),MapLineStyle(colours[i],4f,30+i*30)) }
-            val layer=RouteTrackLayer(1f);layer.setDisplayModel(model.displayModel)
-            layer.update(null,listOf(point(80.0,350.0),point(430.0,350.0)),GpsValues(),true,true,overlays=routes)
-            val image=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
-            layer.draw(BoundingBox(-1.0,-1.0,1.0,1.0),10,AndroidGraphicFactory.createGraphicContext(android.graphics.Canvas(image)),Point(size/2.0-256,size/2.0-256),Rotation.NULL_ROTATION)
-            for(i in 0..2) {
-                val pixel=image.getPixel(256,80+i*80);assertEquals(colours[i] and 0xffffff,pixel and 0xffffff)
-                assertEquals(((30+i*30)*255/100f).toInt().toDouble(),Color.alpha(pixel).toDouble(),1.0)
-            }
-            assertTrue(Color.alpha(image.getPixel(256,350))>200);image.recycle()
-        } finally { model.mapViewPosition.destroy() }
     }
     @Test fun managerShortAndLongEyePressesOfferExplicitNumberedSlotsAndFreeVisibleSelections() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()

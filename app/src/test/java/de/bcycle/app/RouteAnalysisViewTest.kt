@@ -190,17 +190,17 @@ class RouteAnalysisViewTest {
             assertTrue(map.isAttachedToWindow)
             assertTrue("map size ${map.width}x${map.height}", map.width > 0 && map.height > 600)
             assertTrue(map.map.width > 0 && map.map.height > 600)
-            assertTrue(map.map.layerManager.layers[1] is RouteTrackLayer)
-            val zoom = map.map.model.mapViewPosition.zoom
+            assertNotNull(map.findViewWithTag<View>("map_route_overlay"))
+            val zoom = map.map.zoom
             descendants(map).single { it.contentDescription == activity.getString(R.string.analysis_zoom_in) }.performClick()
-            assertEquals(zoom+.5, map.map.model.mapViewPosition.zoom,.0001)
+            assertEquals(zoom+.5, map.map.zoom,.0001)
             descendants(map).single { it.contentDescription == activity.getString(R.string.analysis_zoom_out) }.performClick()
-            assertEquals(zoom, map.map.model.mapViewPosition.zoom,.0001)
-            val center = map.map.model.mapViewPosition.center
-            map.map.model.mapViewPosition.moveCenter(100.0, 0.0)
-            assertNotEquals(center, map.map.model.mapViewPosition.center)
+            assertEquals(zoom, map.map.zoom,.0001)
+            val center = map.map.center
+            map.map.panBy(100f,0f)
+            assertNotEquals(center, map.map.center)
             descendants(map).single { it.contentDescription == activity.getString(R.string.analysis_fit_route) }.performClick()
-            assertEquals(center, map.map.model.mapViewPosition.center)
+            assertEquals(center, map.map.center)
             assertNotNull(screen.window!!.decorView.findViewWithTag<View>("bicycle_fullscreen"))
             testBack(screen)
             assertTrue(destroyed.getBoolean(map))

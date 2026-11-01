@@ -1,15 +1,15 @@
-Mapsforge 0.25.0 – copyright the Mapsforge contributors.
-Source: https://github.com/mapsforge/mapsforge
+Mapsforge-VTM 0.25.0 – copyright the VTM / OpenScienceMap / Mapsforge contributors.
+Source: https://github.com/mapsforge/vtm
 Exact module sources: https://repo.maven.apache.org/maven2/org/mapsforge/
-Modules: mapsforge-core, mapsforge-map, mapsforge-map-reader, mapsforge-map-android (all 0.25.0).
+Modules: vtm, vtm-android, vtm-http and vtm-android native JNI libraries (all 0.25.0).
 Each module has a matching -sources.jar at the above Maven repository.
 
-Mapsforge library is under LGPL v3 license, with an important simplification:
+VTM library is under LGPL v3 license, with an important simplification:
 the constraints mentioned in sections LGPL v3 §4(d) and §4(e) are waived.
 This means that you are allowed to convey a Combined Work without providing
 the user any way to recombine or relink the application and without providing
 any shared library mechanism.
-Source of this notice: https://github.com/mapsforge/mapsforge/blob/master/README.md
+Source of this notice: https://github.com/mapsforge/vtm/blob/master/README.md
 
 AndroidSVG 1.4 – copyright the AndroidSVG contributors, Apache License 2.0.
 Source: https://github.com/BigBadaboom/androidsvg

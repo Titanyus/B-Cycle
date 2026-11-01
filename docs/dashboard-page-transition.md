@@ -32,3 +32,7 @@ Beim Erkennen einer horizontalen Geste den Android-Touchslop vom sichtbaren Weg 
 Die Komponente wird auch für die HRV-Tagesansicht mit Wrap-Content verwendet. Nicht klickbare Kreisflächen müssen die Bewegung im eigenen Touchhandler erkennen, da Android nach eigenem DOWN keine weitere Elterninterzeption ausführt. Lokale Datenvorbereitung kann die ausgehende Seite kurz halten, statt einen Ladehinweis hereinzuschieben. Focusverlust/Detach/Cancel räumt auf.
 
 Drei gezielte Übergangsfälle erfolgreich in `page-smooth-handoff-tests.log`: Geschwindigkeit am Start, ruhendes Ende/Monotonie, tatsächlicher Fingerübergang und Abbruch. Fünf der sechs integrierten HRV-/Dashboard-/Header-/Scrollfälle sofort erfolgreich in `hrv-day-swipe-smooth-pages-tests.log`; der neue HRV-Gestenfall nach Korrektur der nicht klickbaren Fläche und passender Testfenstergröße erfolgreich in `hrv-day-swipe-final-test.log`. Kein Gesamtlauf oder physischer Gerätetest.
+
+## VTM-Anbindung nach Build119
+
+Die GL-Fläche wird vor dem bisherigen Seitenbild asynchron über PixelCopy vorbereitet: begrenzt auf1Mio.Pixel/4MB und200ms, keine zweite lebende Dashboardkarte. Danach zeichnet die GL-View ihre vorbereitete Aufnahme in das bestehende Software-Seitenbild (weiterhin4Mio.Pixel/16MB), und die GL-Aufnahme wird freigegeben. Alte Seite während Vorbereitung halten; nach Cancel/Fokusverlust verspätete Resultate ignorieren; bei fehlender Aufnahme sofort wechseln. HRV-Seiten ohne GL-Fläche verwenden weiterhin den direkten bestehenden Weg. [Umstellung](vtm-migration.md).

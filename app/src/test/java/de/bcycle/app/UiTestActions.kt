@@ -19,11 +19,16 @@ internal fun selectTestSource(dialog: AlertDialog, name: String) {
 internal fun swipeTestDashboard(root: View) {
     val dashboard = testDescendants(root).filterIsInstance<DashboardView>().single()
     val tile = testDescendants(dashboard).first { it.isClickable }
-    val time = SystemClock.uptimeMillis()
-    for ((offset, action, x) in listOf(Triple(0L, MotionEvent.ACTION_DOWN, tile.width - 10f),
-        Triple(40L, MotionEvent.ACTION_MOVE, tile.width / 2f), Triple(80L, MotionEvent.ACTION_UP, 10f))) {
-        val event = MotionEvent.obtain(time, time + offset, action, x, tile.height / 2f, 0)
-        tile.dispatchTouchEvent(event); event.recycle()
+    val viewport=testDescendants(root).filterIsInstance<DashboardPageViewport>().single()
+    val tilePosition=IntArray(2);val viewportPosition=IntArray(2)
+    tile.getLocationOnScreen(tilePosition);viewport.getLocationOnScreen(viewportPosition)
+    val y=tilePosition[1]-viewportPosition[1]+tile.height/2f
+    val left=tilePosition[0]-viewportPosition[0]
+    val time=SystemClock.uptimeMillis()
+    for((offset,action,x) in listOf(Triple(0L,MotionEvent.ACTION_DOWN,left+tile.width-10f),
+        Triple(40L,MotionEvent.ACTION_MOVE,left+tile.width/2f),Triple(80L,MotionEvent.ACTION_UP,left+10f))) {
+        val event=MotionEvent.obtain(time,time+offset,action,x,y,0)
+        viewport.dispatchTouchEvent(event);event.recycle()
     }
 }
 
