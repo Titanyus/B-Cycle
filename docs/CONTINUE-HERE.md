@@ -10,9 +10,13 @@ Streckenmanager: Beim Kontakt des Monatskopfs mit dem Hauptheader verschwanden d
 
 Nutzer hat ausdrücklich Aktualisierung statt Bewahren vorhandener Werte beauftragt. Manueller HRV-Sammellauf ersetzt alle lokal vorhandenen Mess-/Tagesfelder auch bei bestehender/geänderter HRV, insbesondere gemessenen Ruhepuls. Identische Werte werden ausgelassen („unverändert“). Monatsvergleich, frischer Tages-GET, Antwortprüfung, Abbruch und Belege erhalten; alte Nur-Zusatzfelder-Strecke entfernt. Automatische Outbox bleibt bei bisherigem Eigentums-/Fremdschutz. Fehlende lokale Felder nicht erfinden/sonstige Remote-Felder nicht löschen. Acht gezielte Fälle erfolgreich in `intervals-hrv-upsert-tests.log`, darunter Pulsabweichung korrigieren und automatischen Schutz erhalten. [Details](intervals-hrv.md). Herkunft der vom Nutzer bei Intervals gesehenen abweichenden Pulswerte ohne Remote-Verlauf weiter unbestätigt; Quellmessungen in Sicherung korrekt. Keine neue APK beauftragt.
 
-## Danach: Windrose
+## Lokale Änderung: größere Windrose mit FOREGROUND-Norden
 
-Nutzer wünscht1,8-fache Größe und Nordpfeil in FOREGROUND. Umsetzung jetzt als eigener Schritt; bisherige Mittelpunktkorrektur, restliche schwarze Grafik/Deckkraft, Rotation und Sichtbarkeitsregel erhalten.
+Windrose1,8-fach (43,2dp sichtbar bei gleicher24-dp-Ankerfläche), unveränderter korrigierter Mittelpunkt. Nordpfeil in eigener Vektorebene, dynamisch FOREGROUND; Rest schwarz, gemeinsame70% Deckkraft. Bestehender Native-Test mit Pixel-/Theme-/Anker-/Rotations-/Sichtbarkeitsprüfung erfolgreich in `wind-rose-size-north-tests.log`. [Details](map-motion.md). Noch unveröffentlicht.
+
+## Aktuell: kompaktere HRV-Auswertung und weniger oberer Abstand
+
+Nutzer wünscht Empfehlung und subjektives Tagesbefinden ohne Absatz in einem zusammenhängenden Text, zusätzliche Datums-/„4 von4 Tagen“-Zeile entfernen. Mess-/Auswertungsseite etwas näher zum Hauptheader, bisherige sichtbare Kreisabstände zuerst im echten Layout bestimmen. Zusätzliche explizite Vorgabe: obere Grenzwertbeschriftungen3dp nach oben, untere3dp nach unten, Markierungslinien unverändert.
 
 ## In Build117 enthalten
 

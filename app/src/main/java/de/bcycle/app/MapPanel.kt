@@ -59,7 +59,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private val handler = Handler(Looper.getMainLooper())
     private val windRose=android.widget.ImageView(context).apply {
         tag="map_wind_rose";visibility=GONE
-        setImageResource(R.drawable.map_wind_rose);alpha=.70f
+        val north=context.getDrawable(R.drawable.map_wind_rose_north)!!.mutate()
+        setImageDrawable(android.graphics.drawable.LayerDrawable(arrayOf(context.getDrawable(R.drawable.map_wind_rose)!!,north)))
+        BicycleComponents.bindTheme(this,runtime.themes) { north.setTint(it.foreground) }
+        alpha=.70f;scaleX=MapControlDesign.windRoseScale;scaleY=MapControlDesign.windRoseScale
         scaleType=android.widget.ImageView.ScaleType.FIT_CENTER
         importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
         isClickable=false;isFocusable=false

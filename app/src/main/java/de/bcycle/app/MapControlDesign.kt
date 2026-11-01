@@ -13,6 +13,7 @@ internal object MapControlDesign {
     const val compactMinHeight = 24
     const val compactMinWidth = 24
     const val iconSize = 24
+    const val windRoseScale = 1.8f
     const val trackIconSize = 28
     const val iconHorizontalPadding = 10
     const val trackHorizontalPadding = 8

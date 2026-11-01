@@ -61,6 +61,21 @@ class MapPanelTest {
                 assertEquals(BicycleDesign.dp(c,MapControlDesign.iconSize),rose.width)
             }
             checkAnchor()
+            assertEquals(1.8f,rose.scaleX,0f);assertEquals(1.8f,rose.scaleY,0f)
+            fun checkColors() {
+                val image=android.graphics.Bitmap.createBitmap(100,100,android.graphics.Bitmap.Config.ARGB_8888)
+                try {
+                    val drawable=rose.drawable;drawable.setBounds(0,0,100,100);drawable.draw(android.graphics.Canvas(image))
+                    assertEquals(RideRuntime.get(c).themes.active.tokens.foreground,image.getPixel(50,12))
+                    assertEquals(android.graphics.Color.BLACK,image.getPixel(50,50))
+                    assertEquals(android.graphics.Color.BLACK,image.getPixel(88,50))
+                } finally { image.recycle() }
+            }
+            checkColors()
+            val themes=RideRuntime.get(c).themes
+            val light=CustomTheme("custom:wind-rose-test","Windrose",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),android.graphics.Color.BLACK))
+            assertTrue(themes.saveCustom(light).valid);assertTrue(themes.activate(light.id))
+            checkColors()
             val update=MapPanel::class.java.getDeclaredMethod("updateWindRose").apply { isAccessible=true }
             panel.mapView.rotate(org.mapsforge.core.model.Rotation(-90f,0f,0f));update.invoke(panel)
             assertEquals(-90f,rose.rotation,0f)
