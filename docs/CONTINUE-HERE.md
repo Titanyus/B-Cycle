@@ -6,9 +6,13 @@
 
 Streckenmanager: Beim Kontakt des Monatskopfs mit dem Hauptheader verschwanden die vier Summenwerte in der separat gezeichneten Sticky-Kopie. Im Gruppenkopf horizontales Textscrollen für Zahlen/Einheiten deaktiviert; einzeilige native Auto-Größenanpassung erhalten, Fahrtzeilen unverändert. Pixelreproduktion vor Korrektur fehlgeschlagen, danach drei gezielte Fälle erfolgreich in `route-sticky-summary-fixed-tests.log` (alle vier Ziffern sichtbar, Sticky-Verdrängen/Bedienung, Gruppenkopfwerte/Recycling/Filter). Native Vorschau geprüft, Typografie/Atlas/Diff geprüft. [Details](route-list-groups.md). Keine neue APK beauftragt; Build117 enthält diese Korrektur noch nicht.
 
-## Aktive Untersuchung: HRV-Ruhepuls beim Intervals-Sammelupload
+## Lokale Änderung: Intervals-HRV-Sammelupload aktualisiert vorhandene Werte
 
-Massenupload laut Nutzer jetzt erfolgreich; RMSSD/SDNN korrekt, HF teilweise abweichend. Kein Fünferschritt im Mapping; ganze bpm beabsichtigt, RMSSD/SDNN unverändert. Bisherige Sicherung auf Quellzuordnung geprüft. Wahrscheinliche, für die betroffenen Tage noch unbestätigte Ursache ist bewusst erhaltener bereits vorhandener restingHR bei Ergänzung fehlender HRV; Client prüft nur gesendete Felder. Drei vorhandene Mapping-/Transfer-/Fremdschutzfälle erfolgreich in `intervals-hrv-pulse-investigation-tests.log`. Keine Code-/Schutzregeländerung. Konkrete Tage, Soll-/Ist-Puls und native/HRV4-Messquelle per asynchroner Rückfrage angefordert. [Untersuchung](intervals-hrv.md).
+Nutzer hat ausdrücklich Aktualisierung statt Bewahren vorhandener Werte beauftragt. Manueller HRV-Sammellauf ersetzt alle lokal vorhandenen Mess-/Tagesfelder auch bei bestehender/geänderter HRV, insbesondere gemessenen Ruhepuls. Identische Werte werden ausgelassen („unverändert“). Monatsvergleich, frischer Tages-GET, Antwortprüfung, Abbruch und Belege erhalten; alte Nur-Zusatzfelder-Strecke entfernt. Automatische Outbox bleibt bei bisherigem Eigentums-/Fremdschutz. Fehlende lokale Felder nicht erfinden/sonstige Remote-Felder nicht löschen. Acht gezielte Fälle erfolgreich in `intervals-hrv-upsert-tests.log`, darunter Pulsabweichung korrigieren und automatischen Schutz erhalten. [Details](intervals-hrv.md). Herkunft der vom Nutzer bei Intervals gesehenen abweichenden Pulswerte ohne Remote-Verlauf weiter unbestätigt; Quellmessungen in Sicherung korrekt. Keine neue APK beauftragt.
+
+## Danach: Windrose
+
+Nutzer wünscht1,8-fache Größe und Nordpfeil in FOREGROUND. Umsetzung jetzt als eigener Schritt; bisherige Mittelpunktkorrektur, restliche schwarze Grafik/Deckkraft, Rotation und Sichtbarkeitsregel erhalten.
 
 ## In Build117 enthalten
 

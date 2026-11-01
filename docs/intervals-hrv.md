@@ -1,6 +1,6 @@
 # HRV zu intervals.icu
 
-Stand31.10.2026. Basis veröffentlicht inBuild106; aktuelle Ergänzungen veröffentlicht in[0.8.71/Build112](build-112.md).
+Stand01.11.2026. Basis seitBuild106, veröffentlichter Stand Build117; die folgende geänderte manuelle Sammelregel ist lokal nach Build117 umgesetzt und noch unveröffentlicht.
 
 Die bestehende intervals.icu-Aktivierung gilt für Fahrten und HRV. Athleten-ID, geschützter API-Schlüssel und WLAN-Vorgabe bleiben gemeinsam; keine neue Konfiguration und kein zusätzliches Backupfeld. Cloud-Reihenfolge: Lokal, WebDAV, Dreeve, intervals.icu, Strava. Kompakte Angaben: Dreeve IN „FIT-Streckendaten | Wartungsintervalle“, intervals OUT „FIT-Streckendaten | HRV-Daten“.
 
@@ -21,9 +21,11 @@ Die gemeinsame Tagesauswahl und ihre Qualitätsprüfung entsprechen der vorhande
 
 ## Sammelupload
 
-Unter dem bisherigen Fahrtenbutton stehen Beschreibung und „Alle HRV-Daten zu intervals.icu hochladen“, mit unabhängigem Status und Abbruch. Der HRV-Worker erstellt nur tägliche API-Zusammenfassungen; Netzwerk läuft auf dem Einstellungsworker. Monatliche GET-Abfragen erkennen bereits vorhandene HRV-Tage. Ein vorhandener `hrv` **oder** `hrvSDNN` (auch Nullwert0) schützt vor einem erneuten HRV-Upload. Nur nachweislich eigene unveränderte Tage dürfen fehlende neue Zusatzfelder erhalten. JSON-null bedeutet fehlend. Ein Tag mit nur Gewicht, Schlaf oder Ruhepuls blockiert HRV nicht.
+Ausdrückliche Nutzerentscheidung01.11.2026: Vorhandene Werte aktualisieren statt behalten. Der manuelle HRV-Sammellauf überträgt die aus der lokalen Tagesmessung und den vorhandenen Tagesantworten erzeugten Felder auch dann, wenn Intervals dafür bereits andere Werte hat, unabhängig vom bisherigen Eigentumsbeleg. Das umfasst insbesondere den gemessenen Ruhepuls gemeinsam mit RMSSD/SDNN und lokal vorhandene Wellnessangaben. Fremde Felder ohne lokalen Wert werden nicht erfunden oder gelöscht; ein nachweislich eigener veralteter SDNN-Wert kann wie bisher geleert werden, wenn die neue Messung keinen liefert.
 
-Fehlende Tage werden unmittelbar vor PUT erneut gelesen. Es werden nur HRV und fehlende Zusatzfelder ergänzt, keine fremden Wellnesswerte überschrieben. Eigene unveränderte HRV-Tage werden ausschließlich um fehlende sleepScore-/stress-/injury-Felder ergänzt; vorhandene Werte und HRV bleiben unangetastet. Fehlerhafte Antworten, Authentifizierungs-/Dienstfehler, Kontowechsel und Abbruch erlauben keinen blinden Upload; erneuter Start prüft remote neu. Während Messung/Aufnahme/Verarbeitung kein Start, beim Beginn solcher Arbeit abbrechen.
+Monatsabfragen dienen nur noch dem Erkennen vollständig identischer Payloads. Abweichende/fehlende Tage vor PUT erneut lesen und ausschließlich die erlaubten vorhandenen lokalen Felder aktualisieren. Nur identische Werte überspringen; Anzeige „übertragen / unverändert / fehlgeschlagen“. Neuer Sammellauf korrigiert damit auch Tage, deren HRV bereits übertragen war, bei denen aber ein anderer Ruhepuls stehen blieb. RMSSD/SDNN unverändert, Ruhepuls auf einzelne ganze bpm gerundet. Keine Rundung auf Fünferschritte.
+
+Unter dem Fahrtenbutton weiterhin eigener HRV-Sammelbutton, unabhängiger Status und Abbruch. Fehlerhafte Antworten, Authentifizierungs-/Dienstfehler, Kontowechsel und Abbruch erlauben keinen blinden Upload; erneuter Start prüft remote neu. Während Messung/Aufnahme/Verarbeitung kein Start, beim Beginn solcher Arbeit abbrechen. Nur bestätigte API-Antworten erzeugen einen neuen Eigentumsbeleg. Nicht mehr benötigten separaten Nur-Zusatzfelder-Transfer entfernt.
 
 ## Automatisch und dauerhaft
 
@@ -94,3 +96,10 @@ Nutzer meldet erfolgreichen Sammelupload mit korrektem RMSSD/SDNN, aber teilweis
 Wahrscheinliche, noch nicht für einen konkreten betroffenen Tag bestätigte Erklärung: Ein bereits vorhandenes fremdes restingHR wird nach geltender Schutzregel nicht überschrieben, auch wenn derselbe PUT fehlendes hrv/hrvSDNN ergänzt. Dann enthält der erfolgreiche Payload ausdrücklich kein restingHR. Übertragene Felder prüft der Client gegen die API-Antwort; eine abweichende Antwort für einen tatsächlich gesendeten HF-Wert wäre ein Fehler. Spätere Änderungen durch andere Quellen bleiben ebenfalls möglich.
 
 Drei vorhandene gezielte Fälle erfolgreich in `intervals-hrv-pulse-investigation-tests.log`: Mapping/Rundung, Sammelupload bei vorhandenen Wellnessfeldern und automatische Aktualisierung eigener Felder bei Schutz fremder Werte. Kein bestätigter Berechnungs-/Übertragungsfehler und noch keine Code-/Schutzregeländerung. Konkrete Beispieltage mit B|CYCLE-/Intervals-Puls und Messquelle per Rückfrage angefordert; Remote-Vorbelegung gegenüber späterer Fremdänderung damit weiter eingrenzen.
+
+
+## Umsetzung der geänderten Sammelregel nach Pulsrückmeldung
+
+Konkrete genannte Tage in der bereitgestellten Sicherung geprüft: native Messungen, aus denen der Upload jeweils korrekt auf einzelne ganze bpm rundet. Herkunft der bei Intervals gespeicherten abweichenden Werte ohne Remote-Verlauf nicht belegt; keine Herkunft aus einem Standardwert behaupten. Nutzer präzisiert, dass die Werte fest eingetragen sind und sein Basiswert davon abweicht. Anschließend ausdrücklich manuellen Sammelupload zum Aktualisieren aller vorhandenen lokalen Mess-/Tageswerte beauftragt. Die automatische Outbox behält ihre bisherige Eigentums-/Fremdschutzregel.
+
+Acht gezielte Fälle erfolgreich in `intervals-hrv-upsert-tests.log`: bestehende/fehlende Tage, abweichende Kontextwerte und explizite0, identischer Wiederholungslauf, nach Monatsabfrage geänderte HRV, fremde Felder ohne lokalen Wert, gemessener Puls statt abweichendem vorhandenem Puls, bisheriges Mapping sowie unverändert geschützter automatischer Upload und Fehler/Abbruch. Keine privaten Messdateien oder Gesundheitswerte ins Repository übernommen. Kein Livezugriff auf das Nutzerkonto, keine neue APK beauftragt.

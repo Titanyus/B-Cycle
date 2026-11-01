@@ -92,10 +92,6 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         require(patch.has("hrv") && patch.keys().asSequence().all { it in IntervalsWellness.fields })
         patchWellness(day,patch)
     }
-    fun supplementWellness(day:java.time.LocalDate,patch:JSONObject) {
-        require(patch.length()>0 && patch.keys().asSequence().all { it in IntervalsWellness.supplementFields })
-        patchWellness(day,patch)
-    }
     private fun patchWellness(day:java.time.LocalDate,patch:JSONObject) {
         val data=JSONObject(patch.toString())
         val url=request("wellness").build().url.newBuilder().addPathSegment(day.toString()).build()

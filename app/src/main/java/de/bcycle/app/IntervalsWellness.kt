@@ -15,7 +15,6 @@ internal data class IntervalsWellness(val day:LocalDate,val values:JSONObject) {
     fun json()=JSONObject(values.toString()).put("id",day.toString())
     companion object {
         val hrvFields=setOf("hrv","hrvSDNN")
-        val supplementFields=setOf("sleepScore","stress","injury")
         val fields=hrvFields+setOf("restingHR","sleepSecs","sleepScore","sleepQuality","motivation","soreness","fatigue","injury","stress")
         fun from(row:HrvHistorySummary,answers:HrvQuestionnaire?):IntervalsWellness? {
             if(!(row.acceptable || row.importedDay!=null && row.hasMeasurement)) return null
@@ -52,14 +51,10 @@ internal data class IntervalsWellness(val day:LocalDate,val values:JSONObject) {
             else a==b
         fun ownsHrv(remote:JSONObject,receipt:JSONObject?)=receipt!=null && hasHrv(remote) &&
             hrvFields.filter { remote.has(it) && !remote.isNull(it) }.all { receipt.has(it) && same(remote.opt(it),receipt.opt(it)) }
-        fun missingSupplements(record:IntervalsWellness,remote:JSONObject)=JSONObject().apply {
-            supplementFields.filter { record.values.has(it) && (!remote.has(it) || remote.isNull(it)) }
-                .forEach { put(it,record.values.get(it)) }
-        }
-        /** Existing foreign wellness fields are preserved even when that day has no HRV yet. */
-        fun patch(record:IntervalsWellness,remote:JSONObject,receipt:JSONObject?):JSONObject = JSONObject().apply {
+        /** Automatic uploads preserve foreign fields; an explicit bulk upload replaces locally supplied values. */
+        fun patch(record:IntervalsWellness,remote:JSONObject,receipt:JSONObject?,overwriteExisting:Boolean=false):JSONObject = JSONObject().apply {
             record.values.keys().forEach { key ->
-                if(key in hrvFields || !remote.has(key) || remote.isNull(key) || receipt?.has(key)==true && same(remote.opt(key),receipt.opt(key)))
+                if(overwriteExisting || key in hrvFields || !remote.has(key) || remote.isNull(key) || receipt?.has(key)==true && same(remote.opt(key),receipt.opt(key)))
                     put(key,record.values.get(key))
             }
             // Do not leave yesterday's selection of SDNN attached to a newer RMSSD-only measurement.

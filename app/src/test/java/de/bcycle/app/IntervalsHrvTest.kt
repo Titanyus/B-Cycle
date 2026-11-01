@@ -131,76 +131,88 @@ class IntervalsHrvTest {
         val own=IntervalsWellness.patch(record,old,old)
         assertEquals(0,own.getInt("sleepScore"));assertEquals(1,own.getInt("injury"))
     }
-    @Test fun historySkipsAnyExistingHrvButFillsDaysWithOnlyOtherWellnessFields() {
+    @Test fun bulkCreatesMissingHrvAndUpdatesExistingMeasurementsIncludingPulse() {
         configure();val first=record(day.minusDays(1));val second=record()
         MockWebServer().use { server ->
-            server.enqueue(MockResponse().setBody(JSONArray().put(JSONObject().put("id",first.day).put("hrv",0)).put(JSONObject().put("id",day).put("sleepSecs",30000)).toString()))
-            server.enqueue(MockResponse().setBody(JSONObject().put("id",day).put("sleepSecs",30000).put("restingHR",48).toString()))
-            val expected=second.json().apply { remove("restingHR") }
-            server.enqueue(MockResponse().setBody(expected.toString()))
+            val initial=JSONObject().put("id",day).put("sleepSecs",30000).put("restingHR",80)
+            server.enqueue(MockResponse().setBody(JSONArray().put(JSONObject().put("id",first.day).put("hrv",0)).put(initial).toString()))
+            server.enqueue(MockResponse().setBody(JSONObject().put("id",first.day).put("hrv",0).toString()))
+            server.enqueue(MockResponse().setBody(first.json().toString()))
+            server.enqueue(MockResponse().setBody(initial.toString()))
+            server.enqueue(MockResponse().setBody(second.json().put("sleepSecs",30000).toString()))
             val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(first,second),{false}) { _,_,_-> }
-            assertEquals(1,report.count(IntervalsBulkState.EXISTS));assertEquals(1,report.count(IntervalsBulkState.UPLOADED))
+            assertEquals(2,report.count(IntervalsBulkState.UPLOADED));assertEquals(0,report.count(IntervalsBulkState.FAILED))
             val month=server.takeRequest();assertEquals("/api/v1/athlete/i123/wellness.json",month.requestUrl!!.encodedPath)
             assertEquals("2026-10-01",month.requestUrl!!.queryParameter("oldest"))
+            assertEquals("GET",server.takeRequest().method);assertEquals("PUT",server.takeRequest().method)
             assertEquals("GET",server.takeRequest().method)
             val upload=server.takeRequest();assertEquals("PUT",upload.method);assertEquals("/api/v1/athlete/i123/wellness/2026-10-29",upload.path)
             assertEquals(Credentials.basic("API_KEY","test-key"),upload.getHeader("Authorization"))
-            val sent=JSONObject(upload.body.readUtf8());assertFalse(sent.has("id"));assertFalse(sent.has("restingHR"));assertFalse(sent.has("sleepSecs"));assertEquals(42.25,sent.getDouble("hrv"),0.0)
+            val sent=JSONObject(upload.body.readUtf8());assertFalse(sent.has("id"));assertEquals(51,sent.getInt("restingHR"))
+            assertFalse(sent.has("sleepSecs"));assertEquals(42.25,sent.getDouble("hrv"),0.0)
             assertNotNull(IntervalsHrvUploads.receipt(c,"i123",day.toString()))
-            // Explicit history never overwrites even our own acknowledged measurement.
-            server.enqueue(MockResponse().setBody(JSONArray().put(second.json()).toString()))
-            assertEquals(1,IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(record(hrv=60.0)),{false}) { _,_,_-> }.count(IntervalsBulkState.EXISTS))
-            assertEquals(4,server.requestCount)
+            assertEquals(5,server.requestCount)
         }
     }
-    @Test fun bulkSupplementsOnlyMissingOwnFieldsAndRechecksBeforeWriting() {
-        configure();val old=record()
-        IntervalsHrvUploads.confirm(c,"i123",day.toString(),old.values)
-        val next=record(hrv=60.0).apply { values.put("sleepScore",8).put("stress",3).put("injury",1) }
+    @Test fun bulkUpdatesLocallyAvailableDailyAnswersAndSkipsAnIdenticalSecondRun() {
+        configure();val old=record();IntervalsHrvUploads.confirm(c,"i123",day.toString(),old.values)
+        val next=record().apply { values.put("sleepScore",8).put("stress",3).put("injury",1) }
         MockWebServer().use { server ->
             server.enqueue(MockResponse().setBody(JSONArray().put(old.json()).toString()))
-            // A sleep score from another source appeared since the monthly query.
             server.enqueue(MockResponse().setBody(old.json().put("sleepScore",90).toString()))
-            val remote=old.json().put("sleepScore",90).put("stress",3).put("injury",1)
-            server.enqueue(MockResponse().setBody(remote.toString()))
+            server.enqueue(MockResponse().setBody(next.json().toString()))
             val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(next),{false}) { _,_,_-> }
             assertEquals(1,report.count(IntervalsBulkState.UPLOADED))
             server.takeRequest();server.takeRequest()
             val sent=JSONObject(server.takeRequest().body.readUtf8())
-            assertEquals(2,sent.length());assertEquals(3,sent.getInt("stress"));assertEquals(1,sent.getInt("injury"))
-            assertFalse(sent.has("hrv"));assertFalse(sent.has("sleepScore"))
-            val receipt=IntervalsHrvUploads.receipt(c,"i123",day.toString())!!
-            assertEquals(42.25,receipt.getDouble("hrv"),0.0);assertFalse(receipt.has("sleepScore"))
-            server.enqueue(MockResponse().setBody(JSONArray().put(remote).toString()))
+            assertEquals(8,sent.getInt("sleepScore"));assertEquals(3,sent.getInt("stress"));assertEquals(1,sent.getInt("injury"))
+            assertEquals(42.25,sent.getDouble("hrv"),0.0)
+            assertEquals(8,IntervalsHrvUploads.receipt(c,"i123",day.toString())!!.getInt("sleepScore"))
+            server.enqueue(MockResponse().setBody(JSONArray().put(next.json()).toString()))
             assertEquals(1,IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(next),{false}) { _,_,_-> }.count(IntervalsBulkState.EXISTS))
             assertEquals(4,server.requestCount)
         }
     }
-    @Test fun bulkPreservesChangedHrvAndAddsAllThreeFieldsOnlyForAnUnchangedOwnDay() {
+    @Test fun bulkUpdatesChangedHrvAndExplicitZeroAnswersDespiteAnOlderReceipt() {
         configure();val old=record();IntervalsHrvUploads.confirm(c,"i123",day.toString(),old.values)
         val next=record().apply { values.put("sleepScore",0).put("stress",4).put("injury",4) }
         MockWebServer().use { server ->
             server.enqueue(MockResponse().setBody(JSONArray().put(old.json()).toString()))
-            server.enqueue(MockResponse().setBody(old.json().put("hrv",70).toString()))
-            assertEquals(1,IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(next),{false}) { _,_,_-> }.count(IntervalsBulkState.EXISTS))
-            assertEquals(2,server.requestCount)
-            server.enqueue(MockResponse().setBody(JSONArray().put(old.json()).toString()))
-            server.enqueue(MockResponse().setBody(old.json().put("sleepScore",JSONObject.NULL).toString()))
+            server.enqueue(MockResponse().setBody(old.json().put("hrv",70).put("sleepScore",90).toString()))
             server.enqueue(MockResponse().setBody(next.json().toString()))
             assertEquals(1,IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(next),{false}) { _,_,_-> }.count(IntervalsBulkState.UPLOADED))
-            repeat(4) { server.takeRequest() }
+            server.takeRequest();server.takeRequest()
             val patch=JSONObject(server.takeRequest().body.readUtf8())
-            assertEquals(3,patch.length());assertEquals(0,patch.getInt("sleepScore"))
+            assertEquals(42.25,patch.getDouble("hrv"),0.0);assertEquals(0,patch.getInt("sleepScore"))
             assertEquals(4,patch.getInt("stress"));assertEquals(4,patch.getInt("injury"))
         }
     }
-    @Test fun remoteHrvAddedBetweenMonthQueryAndPutIsPreservedIncludingSdnnOnly() {
+    @Test fun bulkUpdatesHrvAddedAfterTheMonthQueryAndPreservesFieldsWeDoNotSupply() {
         configure()
         MockWebServer().use { server ->
             server.enqueue(MockResponse().setBody("[]"))
-            server.enqueue(MockResponse().setBody(JSONObject().put("id",day).put("hrvSDNN",40).toString()))
+            server.enqueue(MockResponse().setBody(JSONObject().put("id",day).put("hrvSDNN",40).put("weight",80).toString()))
+            server.enqueue(MockResponse().setBody(record().json().put("weight",80).toString()))
             val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(record()),{false}) { _,_,_-> }
-            assertEquals(1,report.count(IntervalsBulkState.EXISTS));assertEquals(2,server.requestCount)
+            assertEquals(1,report.count(IntervalsBulkState.UPLOADED));assertEquals(3,server.requestCount)
+            server.takeRequest();server.takeRequest()
+            val patch=JSONObject(server.takeRequest().body.readUtf8());assertEquals(50.5,patch.getDouble("hrvSDNN"),0.0);assertFalse(patch.has("weight"))
+        }
+    }
+    @Test fun bulkCorrectsAnExistingPulseToTheSameWholeBpmAsTheMeasurement() {
+        configure()
+        val source=HrvHistorySummary("synthetic",0,true,42.25,importedDay=day.toString(),metrics=mapOf("restingHrBpm" to 76.2,"sdnnMs" to 50.5))
+        val desired=IntervalsWellness.from(source,null)!!
+        val remote=desired.json().put("restingHR",80).put("sleepScore",90)
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody(JSONArray().put(remote).toString()))
+            server.enqueue(MockResponse().setBody(remote.toString()))
+            server.enqueue(MockResponse().setBody(desired.json().put("sleepScore",90).toString()))
+            val report=IntervalsHrvUpload(c) { config,stop -> api(server,config,stop) }.run(listOf(desired),{false}) { _,_,_-> }
+            assertEquals(1,report.count(IntervalsBulkState.UPLOADED));server.takeRequest();server.takeRequest()
+            val patch=JSONObject(server.takeRequest().body.readUtf8())
+            assertEquals(76,patch.getInt("restingHR"));assertEquals(42.25,patch.getDouble("hrv"),0.0);assertEquals(50.5,patch.getDouble("hrvSDNN"),0.0)
+            assertFalse(patch.has("sleepScore"));assertEquals(76,IntervalsHrvUploads.receipt(c,"i123",day.toString())!!.getInt("restingHR"))
         }
     }
     @Test fun automaticUploadUpdatesOnlyUnchangedOwnFieldsAndRetainsForeignWellnessValues() {

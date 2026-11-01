@@ -14,7 +14,7 @@ import java.time.YearMonth
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
-/** Explicit history upload. A month query avoids a separate GET for every already populated day. */
+/** Explicit daily upsert. A month query skips only days whose uploaded fields already match. */
 internal class IntervalsHrvUpload(private val context:Context,
     private val client:(IntervalsConfig,()->Boolean)->IntervalsClient={ config,stop -> IntervalsClient(config,IntervalsSettings(context).apiKey(),stop) }) {
     fun run(records:List<IntervalsWellness>,cancelled:()->Boolean,progress:(Int,Int,IntervalsBulkItem)->Unit):IntervalsBulkResult = IntervalsHrvUploads.serial {
@@ -30,13 +30,13 @@ internal class IntervalsHrvUpload(private val context:Context,
             val item=try {
                 val month=YearMonth.from(record.day)
                 val known=months.getOrPut(month) { api.wellness(month.atDay(1),month.atEndOfMonth()) }[record.day]
-                if(known!=null && IntervalsWellness.hasHrv(known) &&
-                    (!IntervalsWellness.ownsHrv(known,IntervalsHrvUploads.receipt(context,config.athlete,record.day.toString())) ||
-                        IntervalsWellness.missingSupplements(record,known).length()==0))
+                val receipt=IntervalsHrvUploads.receipt(context,config.athlete,record.day.toString())
+                val patch=IntervalsWellness.patch(record,known ?: JSONObject(),receipt,overwriteExisting=true)
+                if(known!=null && patch.keys().asSequence().all { IntervalsWellness.same(patch.opt(it),known.opt(it)) })
                     IntervalsBulkItem(record.day.toString(),IntervalsBulkState.EXISTS)
                 else {
-                    // Recheck immediately before PUT; preserve a measurement added since the month query.
-                    transfer(context,config,api,record,allowOwnUpdate=false,stopped)
+                    // Re-read the day immediately before the explicit update; never write after a failed GET.
+                    transfer(context,config,api,record,overwriteExisting=true,stopped)
                 }
             } catch(error:Exception) {
                 if(stopped()) return@serial IntervalsBulkResult(result,true,stopReason(settings,token,config))
@@ -59,18 +59,16 @@ internal class IntervalsHrvUpload(private val context:Context,
         if(settings.connectionToken()!=token) R.string.intervals_bulk_changed else if(!IntervalsHrvUploads.network(context,config)) R.string.intervals_bulk_wifi else null
     companion object {
         internal fun transfer(context:Context,config:IntervalsConfig,api:IntervalsClient,record:IntervalsWellness,
-            allowOwnUpdate:Boolean,stopped:()->Boolean):IntervalsBulkItem {
+            overwriteExisting:Boolean,stopped:()->Boolean):IntervalsBulkItem {
             val remote=api.wellness(record.day)
             val receipt=IntervalsHrvUploads.receipt(context,config.athlete,record.day.toString())
-            if(IntervalsWellness.hasHrv(remote) && !IntervalsWellness.ownsHrv(remote,receipt))
+            if(!overwriteExisting && IntervalsWellness.hasHrv(remote) && !IntervalsWellness.ownsHrv(remote,receipt))
                 return IntervalsBulkItem(record.day.toString(),IntervalsBulkState.EXISTS)
-            val supplementOnly=IntervalsWellness.hasHrv(remote) && !allowOwnUpdate
-            val patch=if(supplementOnly) IntervalsWellness.missingSupplements(record,remote)
-                else IntervalsWellness.patch(record,remote,if(allowOwnUpdate) receipt else null)
+            val patch=IntervalsWellness.patch(record,remote,receipt,overwriteExisting)
             if(patch.keys().asSequence().all { IntervalsWellness.same(patch.opt(it),remote.opt(it)) })
                 return IntervalsBulkItem(record.day.toString(),IntervalsBulkState.EXISTS)
             if(stopped()) throw IOException()
-            if(supplementOnly) api.supplementWellness(record.day,patch) else api.updateWellness(record.day,patch)
+            api.updateWellness(record.day,patch)
             // Persist only an acknowledged payload, also if a newer local edit arrived during this PUT.
             IntervalsHrvUploads.confirm(context,config.athlete,record.day.toString(),patch)
             return IntervalsBulkItem(record.day.toString(),IntervalsBulkState.UPLOADED)
@@ -144,7 +142,7 @@ internal object IntervalsHrvUploads {
             var state="saved";var problem=""
             try {
                 val record=IntervalsWellness(java.time.LocalDate.parse(row.getString("day")),row.getJSONObject("data"))
-                IntervalsHrvUpload.transfer(c,config,client(config,apiStopped),record,true,stopped)
+                IntervalsHrvUpload.transfer(c,config,client(config,apiStopped),record,overwriteExisting=false,stopped)
             } catch(error:Exception) {
                 val retry=stopped() || error is IntervalsFailure && error.retryable || error is IOException && error !is IntervalsFailure && error !is javax.net.ssl.SSLException
                 state=if(retry) "pending" else "failed";problem=ServiceProblems.of(error)?.key ?: "response"
