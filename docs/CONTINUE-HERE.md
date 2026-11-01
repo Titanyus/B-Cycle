@@ -6,6 +6,10 @@
 
 Streckenmanager: Beim Kontakt des Monatskopfs mit dem Hauptheader verschwanden die vier Summenwerte in der separat gezeichneten Sticky-Kopie. Im Gruppenkopf horizontales Textscrollen für Zahlen/Einheiten deaktiviert; einzeilige native Auto-Größenanpassung erhalten, Fahrtzeilen unverändert. Pixelreproduktion vor Korrektur fehlgeschlagen, danach drei gezielte Fälle erfolgreich in `route-sticky-summary-fixed-tests.log` (alle vier Ziffern sichtbar, Sticky-Verdrängen/Bedienung, Gruppenkopfwerte/Recycling/Filter). Native Vorschau geprüft, Typografie/Atlas/Diff geprüft. [Details](route-list-groups.md). Keine neue APK beauftragt; Build117 enthält diese Korrektur noch nicht.
 
+## Aktive Untersuchung: HRV-Ruhepuls beim Intervals-Sammelupload
+
+Massenupload laut Nutzer jetzt erfolgreich; RMSSD/SDNN korrekt, HF teilweise abweichend. Kein Fünferschritt im Mapping; ganze bpm beabsichtigt, RMSSD/SDNN unverändert. Bisherige Sicherung auf Quellzuordnung geprüft. Wahrscheinliche, für die betroffenen Tage noch unbestätigte Ursache ist bewusst erhaltener bereits vorhandener restingHR bei Ergänzung fehlender HRV; Client prüft nur gesendete Felder. Drei vorhandene Mapping-/Transfer-/Fremdschutzfälle erfolgreich in `intervals-hrv-pulse-investigation-tests.log`. Keine Code-/Schutzregeländerung. Konkrete Tage, Soll-/Ist-Puls und native/HRV4-Messquelle per asynchroner Rückfrage angefordert. [Untersuchung](intervals-hrv.md).
+
 ## In Build117 enthalten
 
 - Gefahrene Strecken/Streckenvorlagen auf derselben Sammlung, feste Ansichten ohne sichtbaren Streckenartfilter, getrennte Filter/Sortierung inkl. Backup, gemeinsame drei Kartenplätze. Vorlagen: Zeitstempelherkunft, Distanz, geschätzte Zeit aus gespeichertem arithmetischem Mittel der Fahrt-Durchschnitte der letzten28 Tage ohne Virtual-Rides/Indoor; kein Wert→„–“. Import-/Virtual-Metadaten rückwärtskompatibel, Originale erhalten. [Sammlungen](route-collections.md).
@@ -27,4 +31,4 @@ Build115 enthält BackupWork/dataSync-FGS/Wake-Lock für Sicherung/Restore bei D
 
 Basis Build116: randfüllender TERTIARY-Detailkopf mit8dp unten, linksbündiger Fahrtname, offene Puls-Z1, runde mitlaufende X-Raster und Clipping unter festen Randwerten. [Build116](build-116.md).
 
-Angeforderte lokale Korrektur siehe oben; keine weiteren offenen Implementierungsaufträge. Neue APK ausschließlich auf Auftrag über GitHubActions. Nächste Version voraussichtlich0.8.77/code147/Build118. Dauerhafte Signatur und tatsächlichen direkten Raw-Download prüfen; Appcode nie mit[skip ci] überspringen. Snapshot vor Bereinigung: `vor-den-bereinigungen-2026-10-30`.
+Lokale Sticky-Kopf-Korrektur und aktive Intervals-Puls-Untersuchung siehe oben. Neue APK ausschließlich auf Auftrag über GitHubActions. Nächste Version voraussichtlich0.8.77/code147/Build118. Dauerhafte Signatur und tatsächlichen direkten Raw-Download prüfen; Appcode nie mit[skip ci] überspringen. Snapshot vor Bereinigung: `vor-den-bereinigungen-2026-10-30`.

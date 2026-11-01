@@ -85,3 +85,12 @@ Nutzer stellt Einzeldatei und vollständige HRV-Sicherung bereit. Lokal 64 Messu
 Bei 56 Tagen sind Einschlaf- und Aufwachzeit identisch, etwa durch Import-Platzhalter. Daraus bisher abgeleitete null Sekunden sind keine belegte Schlafdauer. Die Ableitung verlangt jetzt eine positive Uhrzeitdifferenz; ausdrücklich eingegebene null Schlafstunden bleiben erhalten. HRV, SDNN, Ruhepuls und sonstige Antworten unverändert.
 
 Die sichere 422-Diagnose erkennt eigene bekannte Feldnamen auch in anderen Validierungsformulierungen, ohne Rohantworten, Werte oder Kontodaten auszugeben. Bei mehreren genannten Feldern keine erfundene Zuordnung. Die konkrete Backend-Ursache bleibt ohne erneuten Liveversuch unbestätigt: nicht behaupten, dass null Sekunden nachweislich abgelehnt wurden.
+
+
+## Untersuchung nach Build117: abweichender Ruhepuls
+
+Nutzer meldet erfolgreichen Sammelupload mit korrektem RMSSD/SDNN, aber teilweise abweichender HF. Mapping und beide Uploadwege geprüft: restingHrBpm wird auf einzelne ganze bpm gerundet, keine Fünferschritte; RMSSD/SDNN bleiben unverändert. Eigene Messung speichert60000/meanNN, Import übernimmt HR unverändert. In der zuvor bereitgestellten Sicherung passen gespeicherte Import-HF zur Originalspalte und alle HF-Werte zum mittleren NN; keine abweichende Halbwert-Rundung Anzeige/Upload in dieser Sicherung. Keine privaten Messwerte/Dateien ins Repository übernommen.
+
+Wahrscheinliche, noch nicht für einen konkreten betroffenen Tag bestätigte Erklärung: Ein bereits vorhandenes fremdes restingHR wird nach geltender Schutzregel nicht überschrieben, auch wenn derselbe PUT fehlendes hrv/hrvSDNN ergänzt. Dann enthält der erfolgreiche Payload ausdrücklich kein restingHR. Übertragene Felder prüft der Client gegen die API-Antwort; eine abweichende Antwort für einen tatsächlich gesendeten HF-Wert wäre ein Fehler. Spätere Änderungen durch andere Quellen bleiben ebenfalls möglich.
+
+Drei vorhandene gezielte Fälle erfolgreich in `intervals-hrv-pulse-investigation-tests.log`: Mapping/Rundung, Sammelupload bei vorhandenen Wellnessfeldern und automatische Aktualisierung eigener Felder bei Schutz fremder Werte. Kein bestätigter Berechnungs-/Übertragungsfehler und noch keine Code-/Schutzregeländerung. Konkrete Beispieltage mit B|CYCLE-/Intervals-Puls und Messquelle per Rückfrage angefordert; Remote-Vorbelegung gegenüber späterer Fremdänderung damit weiter eingrenzen.
