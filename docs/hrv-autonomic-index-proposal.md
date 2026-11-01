@@ -17,3 +17,23 @@ HRV liefert Hinweise auf kardiale autonome Regulation. Parasympathische/vagale M
 - Nachvollziehbare Formeln und Begründungen dokumentieren; bestehende Trainingsempfehlungen ohne gesonderten Auftrag nicht umstellen.
 
 Aktueller Datenbestand: HrvStore speichert meanNnMs/RMSSD/lnRMSSD/SDNN/Puls plus originale BLE-Pakete in capture.jsonl für eigene Messungen. Metrics berechnet diese aus der bereinigten zusammenhängenden NN-Reihe. Aggregierte HRV4-Importe liefern nicht automatisch RR-Rohdaten und damit keinen Baevsky-Index.
+
+## Wissenschaftliche Präzisierung – Vorschlag, nicht implementiert
+
+Nutzer fordert ausdrücklich eine wissenschaftlich begründete, nachvollziehbare eigene Berechnung. Die wissenschaftliche Grundlage der Eingangsgrößen und eine Validierung unseres daraus abgeleiteten Index sind zu unterscheiden.
+
+- Vagal-/PNS-Indikator: `z = (lnRMSSD heute − Mittelwert lnRMSSD der persönlichen Referenz) / Standardabweichung dieser Referenz`. Positive Werte bedeuten höhere, negative niedrigere kurzfristige vagale Modulation gegenüber der eigenen Basis; kein direkter Messwert der Nervenaktivität und kein automatisches Gut-/Schlecht-Urteil. lnRMSSD ist bereits gespeichert. SD1 nicht zusätzlich als vermeintlich unabhängige Information gewichten.
+- Zweiter Indikator: persönlich standardisierte Ruhepulsabweichung mit derselben z-Formel, aber Puls als Eingangsgröße. Als **Aktivierungsindikator**, nicht als validierter isolierter SNS-Index empfehlen. Höherer Puls kann sowohl stärkere sympathische Aktivierung als auch geringeren vagalen Einfluss und weitere Ursachen abbilden. Zwei Indizes sind keine unabhängigen Gegenpole; keinen künstlichen Gegenwert `SNS = −PNS` bilden.
+- Vorhandene Referenzlogik (vorherige60 Kalendertage, mindestens14 vergleichbare gültige Tageswerte, aktuelle Messung nicht in ihre eigene Basis einbeziehen) kann als technische Ausgangsbasis dienen. Fenster und Mindestanzahl sind Produktentscheidungen, keine wissenschaftlich validierten Normgrenzen. Protokoll/Kohorte, Datenqualität und ausreichende Streuung prüfen; fehlende oder nicht belastbare Referenz nicht als0 darstellen.
+- Mittlere50% der Darstellung entsprechen bei dieser Standardisierung−1…+1, außen bis−2/+2 nur Darstellungsreserve. ±1SD bezeichnet persönliche Streuung, weder klinischen Normbereich noch validierte Stressschwelle. Keine Warnfarbe allein aus hohem PNS ableiten; bestehende HRV-Empfehlung unverändert.
+- Baevsky, SD2 oder LF/HF nicht allein wegen des SNS-Wunschs ergänzen. LF/HF ist kein verlässliches Maß einer sympathovagalen Balance; zusätzliche Kennwerte benötigen einen belegten Mehrwert und eine genaue Protokolldefinition. Keine beliebige Gewichtung aus Puls und HRV als wissenschaftlich validierten Stressscore präsentieren.
+- Subjektive Stressfrage separat als Kontext erhalten. HRV-/Pulsabweichungen können ebenso durch Training, Infekt, Schlaf, Temperatur, Flüssigkeit oder Atmung entstehen. Aus einer Einzelmessung keinen zuverlässigen psychischen Stress oder eine Erkrankung diagnostizieren.
+
+Gelesene frei zugängliche Fachquellen am01.11.2026:
+
+1. [Laborde, Mosley & Thayer2017: HRV and Cardiac Vagal Tone – Recommendations](https://doi.org/10.3389/fpsyg.2017.00213): RMSSD als vagal relevantes Maß, Logarithmierung, Messbedingungen und Grenzen der LF/HF-Deutung.
+2. [Shaffer & Ginsberg2017: An Overview of HRV Metrics and Norms](https://doi.org/10.3389/fpubh.2017.00258): Bedeutung kurzfristiger Kennwerte, Protokoll-/Dauerabhängigkeit und Kontext.
+3. [Billman2013: The LF/HF ratio does not accurately measure cardiac sympatho-vagal balance](https://doi.org/10.3389/fphys.2013.00026): keine einfache Trennung oder reziproke Bilanz beider autonomer Zweige.
+4. [Kim et al.2018: Stress and Heart Rate Variability – A Meta-Analysis and Review](https://doi.org/10.30773/pi.2017.08.17): Zusammenhang mit Stress auf Studienebene, keine Validierung unseres persönlichen z-Index oder einer individuellen Diagnose.
+
+Diese Empfehlung ändert noch keine Formel, Beschriftung oder Funktion der App. Insbesondere die bisher gewünschte Beschriftung „SNS-Index“ bleibt fachlich klärungsbedürftig; die ehrliche Alternative ist „Aktivierung“.
