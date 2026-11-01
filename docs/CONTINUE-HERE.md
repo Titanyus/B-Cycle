@@ -20,7 +20,7 @@ Noch am Smartphone prüfen: tatsächliche GL-Tilezeichnung, SurfaceView-Clipping
 
 ## Letzte veröffentlichte APK
 
-[APK0.8.79/Build120](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.79-release-120.apk), code149, Quelle`66a487b5f490df3834644a21b96d97caac309a96`, 2870449Bytes, SHA256`b8e9daffb07e871c836a33d501943328a97170333d589c6b306a0d31aabe980e`. Signatur/Version/Manifest/CI-Prüfsumme/16-KB-ZIP-Ausrichtung geprüft; vier native ABIs und25 Shader in APK vorhanden, JNI-Klassenname nach R8 erhalten. [Buildnachweis](build-120.md).
+[APK0.8.79/Build120](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.79-release-120.apk), code149, Quelle`66a487b5f490df3834644a21b96d97caac309a96`, 2870449Bytes, SHA256`b8e9daffb07e871c836a33d501943328a97170333d589c6b306a0d31aabe980e`. Signatur/Version/Manifest/CI-Prüfsumme/16-KB-ZIP-Ausrichtung geprüft; vier native ABIs und25 Shader in APK vorhanden, JNI-Klassenname nach R8 erhalten. Tatsächlicher Raw-Direktdownload erneut geladen und binär identisch mit dem Artefakt bestätigt. [Buildnachweis](build-120.md).
 
 ## Gesicherter Rückfallstand
 
