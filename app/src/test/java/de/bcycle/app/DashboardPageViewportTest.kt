@@ -37,6 +37,60 @@ class DashboardPageViewportTest {
         android.animation.ValueAnimator::class.java.getDeclaredMethod("setDurationScale",Float::class.javaPrimitiveType).invoke(null,1f)
     }
     private fun animator(view:DashboardPageViewport)=DashboardPageViewport::class.java.getDeclaredField("animator").apply { isAccessible=true }.get(view) as android.animation.ValueAnimator
+    private fun touch(view:View,action:Int,x:Float,y:Float=50f,time:Long=0L) {
+        val event=MotionEvent.obtain(0,time,action,x,y,0)
+        try { view.dispatchTouchEvent(event) } finally { event.recycle() }
+    }
+    @Test fun shortDragFollowsFingerThenCommitsBeforeLiftAndContinuesFromThatPosition() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val viewport=DashboardPageViewport(a) { true }
+            val page=View(a).apply { isClickable=true;setBackgroundColor(Color.RED) }
+            viewport.setPage(page);a.setContentView(viewport);prepare(viewport)
+            var changes=0
+            viewport.swipeEnabledAt={ _,y -> y<300 }
+            viewport.changePage={ delta -> assertEquals(1,delta);viewport.slide(delta) { changes++ } }
+            touch(viewport,MotionEvent.ACTION_DOWN,180f)
+            touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
+            assertEquals(-20f,page.translationX,.01f);assertEquals(0,changes)
+            touch(viewport,MotionEvent.ACTION_MOVE,125f,time=80)
+            assertEquals(1,changes);assertTrue(viewport.running)
+            val picture=viewport.findViewWithTag<ImageView>("dashboard_page_outgoing")
+            assertEquals(-55f,picture.translationX,.01f);assertEquals(305f,page.translationX,.01f)
+            touch(viewport,MotionEvent.ACTION_MOVE,70f,time=110);touch(viewport,MotionEvent.ACTION_UP,70f,time=120)
+            assertEquals(1,changes)
+            viewport.viewTreeObserver.dispatchOnPreDraw()
+            assertTrue(animator(viewport).duration<=300)
+            animator(viewport).currentPlayTime=100
+            assertEquals(360f,page.translationX-picture.translationX,.01f)
+            animator(viewport).end();assertFalse(viewport.running);assertEquals(0f,page.translationX,0f)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun shortUncommittedAndCancelledDragsReturnWhileMapAndVerticalGesturesRemainUntouched() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val viewport=DashboardPageViewport(a) { true };val page=View(a).apply { isClickable=true }
+            viewport.setPage(page);a.setContentView(viewport);prepare(viewport)
+            viewport.swipeEnabledAt={ _,y -> y<300 };viewport.changePage={ fail("unexpected page change") }
+            touch(viewport,MotionEvent.ACTION_DOWN,180f)
+            touch(viewport,MotionEvent.ACTION_MOVE,160f,time=100)
+            touch(viewport,MotionEvent.ACTION_UP,160f,time=500)
+            assertTrue(viewport.running);assertEquals(1,viewport.childCount)
+            animator(viewport).end();assertEquals(0f,page.translationX,0f)
+            touch(viewport,MotionEvent.ACTION_DOWN,180f)
+            touch(viewport,MotionEvent.ACTION_MOVE,160f,time=100)
+            touch(viewport,MotionEvent.ACTION_CANCEL,160f,time=110)
+            animator(viewport).end();assertEquals(0f,page.translationX,0f)
+            touch(viewport,MotionEvent.ACTION_DOWN,180f,400f)
+            touch(viewport,MotionEvent.ACTION_MOVE,80f,400f,100)
+            touch(viewport,MotionEvent.ACTION_UP,80f,400f,200)
+            assertFalse(viewport.running);assertEquals(0f,page.translationX,0f)
+            touch(viewport,MotionEvent.ACTION_DOWN,180f)
+            touch(viewport,MotionEvent.ACTION_MOVE,175f,150f,100)
+            touch(viewport,MotionEvent.ACTION_UP,175f,150f,200)
+            assertFalse(viewport.running);assertEquals(0f,page.translationX,0f)
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun livePageAndOutgoingPictureSlideTogetherWhileFooterStaysFixedAndPictureIsReleased() {
         val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
         try {
@@ -117,7 +171,12 @@ class DashboardPageViewportTest {
             val footer=root.findViewWithTag<View>("ride_toolbar");val footerTop=footer.top
             assertEquals(View.VISIBLE,map.visibility)
             val change=MainActivity::class.java.getDeclaredMethod("changeDashboard",Int::class.javaPrimitiveType).apply { isAccessible=true }
-            change.invoke(a,1);layout(root)
+            touch(viewport,MotionEvent.ACTION_DOWN,180f)
+            touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
+            assertEquals(-20f,viewport.getChildAt(0).translationX,.01f)
+            touch(viewport,MotionEvent.ACTION_MOVE,110f,time=80)
+            touch(viewport,MotionEvent.ACTION_UP,110f,time=90)
+            layout(root)
             val dialogs=MainActivity::class.java.getDeclaredField("dialogs").apply { isAccessible=true }.get(a) as DialogNavigation
             assertTrue("visible=${runtime.visible}, editing=${a.dashboardEditing}, empty=${dialogs.empty}, attached=${viewport.isAttachedToWindow}, laid=${viewport.isLaidOut}, size=${viewport.width}x${viewport.height}, scale=${android.animation.ValueAnimator.getDurationScale()}",viewport.running)
             assertEquals(1,prefs.getInt("dashboardPage",-1));assertEquals(View.GONE,map.visibility)

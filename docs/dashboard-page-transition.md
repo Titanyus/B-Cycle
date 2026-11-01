@@ -1,22 +1,25 @@
 # Gleitender Dashboardwechsel
 
-Beim bestehenden horizontalen Wischen auf den Dashboard-Datenfeldern gleitet der gesamte Dashboardbereich einschließlich Karte und Kartenbuttons in Wischrichtung. Der Footer bleibt außerhalb des Viewports fest stehen; Statuszeile und funktionaler Fenster-Glow bleiben ebenfalls am Fenster. Dauer 300 ms bei normaler Android-Animationsskala, weiches Abbremsen ohne Zoom-/Bounceeffekt.
+Der gesamte Dashboardbereich samt Karte und Kartenbuttons bewegt sich; Footer, Statuszeile und funktionaler Fenster-Glow bleiben fest. Genau eine lebende MapView, keine zusätzlichen Sensorverbindungen oder Kartenquellen.
 
-DashboardPageViewport enthält genau einen lebenden Dashboard-/Kartenbaum. Vor dem Wechsel wird ein kurzlebiges transparentes ARGB-Bild des bisherigen Bereichs erfasst, maximal vier Millionen Pixel (16 MB). Die bestehende Seite wird mit ihren neuen Einstellungen und ihrer passenden Kartenhöhe aufgebaut. Nach deren Layout bewegen ein gemeinsamer ValueAnimator und eine gemeinsame Zeitachse den alten Bildausschnitt hinaus und den lebenden Bereich hinein. Keine zweite MapView, Sensorverbindung, Kartenquelle oder Dateidekodierung. Transparente Bildteile erhalten den funktionalen Fensterhintergrund.
+## Direkte Gesten – 01.11.2026
 
-Der Zwischenstand und Bitmap bleiben nur im RAM. Am Ende/Abbruch werden Listener entfernt, die Transformation zurückgesetzt und Bild/Bitmap freigegeben. Appwechsel, Fokusverlust, Ablösen des Viewports und Breitenänderungen brechen sauber auf die bereits gewählte neue Seite ab. Weitere schnelle Flings während der 300 ms werden nicht aufgestaut; der feste Footer bleibt bedienbar. Kartengesten außerhalb des Übergangs unverändert.
+Nach dem HRV-Umbau umgesetzt: Schon ein kurzer horizontaler Drag auf den Dashboard-Datenfeldern verschiebt den kompletten Bereich direkt um die Fingerbewegung. Die erste vom Elterncontainer abgefangene Bewegung wirkt sofort; nicht erst auf das nächste Move-Ereignis warten. Aktivierung nach Android-Touchslop, klare horizontale Richtung erforderlich. Vertikale Gesten, Kartengesten, normale Klicks, Longpress/Editor und Footer bleiben erhalten. Im Editor oder bei offenem Dialog kein Seitenwischen.
 
-Bei deaktivierten Android-Animationen, vor dem ersten Layout oder wenn keine sichere Bildaufnahme möglich ist, erfolgt der Wechsel unmittelbar. Editor-, Konfigurations- und Profilaktualisierungen mit Delta 0 bleiben sofort; Animation nur bei einer tatsächlichen anderen Dashboardseite.
+Nach48dp bzw.15% der Viewportbreite (der kleinere Wert, mindestens dreifacher Touchslop) übernimmt die Automatik bereits während der Bewegung und vollendet den Wechsel. Ein kürzerer schneller Flick kann beim Loslassen ebenfalls wechseln (mindestens24dp, mindestens400dp/s in Wischrichtung). Nicht ausreichender Drag oder Abbruch geht in180ms auf die Ausgangsposition zurück; kein Seitenwechsel. Mehrfingerbeginn beendet einen noch nicht übernommenen Drag. Keine Folgewisch-Warteschlange während des Übergangs.
 
-Gezielte Native-Tests prüfen Richtung, Zwischenpositionen mit gemeinsamem Abstand, 300-ms-Dauer, festen Footer, Freigabe nach Ende/Cancel/Detach, keine Bitmap bei deaktivierter Animation und den tatsächlichen Activity-Wechsel mit/ohne Karte bei unveränderter MapPanel-Instanz. Editor-/Konfigurationsspeicherung ebenfalls geprüft. Der Test taktet den tatsächlichen ValueAnimator gezielt, statt sich auf automatische Robolectric-Vsync-Zeitsprünge zu verlassen. Kein neuer physischer Gerätetest.
+Die anschließende Animation setzt exakt an der sichtbaren Dragposition fort. Dauer proportional zum verbleibenden Weg, maximal300ms, weiches Abbremsen ohne Zoom/Bounce. Programmatische Wechsel ohne Drag weiterhin300ms. Systemanimation aus: Wechsel unmittelbar, ohne Snapshot; abgebrochener Drag sofort zurücksetzen.
 
-[Native Vorschau eines Zwischenstands](previews/dashboard-page-transition.png): synthetische Daten, in der Testumgebung keine geladenen Kartenkacheln.
+## Darstellung und Lebenszyklus
 
+DashboardPageViewport enthält einen lebenden Dashboard-/Kartenbaum. Erst bei Übernahme des Seitenwechsels wird ein kurzlebiges transparentes ARGB-Bild der bisherigen Seite erfasst, maximal vier Millionen Pixel (16MB). Bei reinem Fingerfolgen oder zurückgenommenem Drag kein Bitmap. Neue Seite mit passenden Datenfeldern und Kartenhöhe aufbauen; ein gemeinsamer ValueAnimator bewegt altes Bild und lebenden Bereich mit einem Seitenabstand hinaus/hinein. Transparente Bildteile erhalten den funktionalen Fensterhintergrund.
 
-Veröffentlicht in [APK 0.8.69 / Build 110](build-110.md). Ältere Angaben zu noch fehlender APK sind Umsetzungshistorie.
+Am Ende/Abbruch Listener, Transformation, Bild und Bitmap freigeben. App-/Fokuswechsel, Detach und Breitenänderung setzen sauber auf die bereits ausgewählte Seite zurück. Ohne Layout oder sichere Aufnahme unmittelbar wechseln. Editor-/Konfigurationsaktualisierungen mit Delta0 weiterhin sofort.
 
-## Vorgemerkt: direktes Wisch-Ansprechverhalten nach HRV – 01.11.2026
+## Gezielte Prüfung
 
-Ausdrückliche Reihenfolge: Erst den vorgemerkten HRV-Umbau einschließlich neuer Tagesscreen-Gestaltung erledigen, danach diese Dashboard-Anpassung umsetzen. Aktuell nur dokumentieren.
+Native Tests: erste kurze Bewegung folgt direkt; Übernahme vor Loslassen; Fortsetzung ohne Sprung und maximal300ms; keine zusätzlichen Wechsel während Bewegung; kurzer/abgebrochener Drag ohne Snapshot zurück; vertikale/Kartenbereiche unverändert; Freigabe/Detach/Animation aus. Tatsächlicher Activity-Wechsel per Geste mit unveränderter MapPanel-Instanz und wechselnder Kartenhöhe, Footer fest. Bestehende Longpress-/Editor- und Kartenbedienung gezielt geprüft. Kein physischer Gerätetest.
 
-Der Wechsel reagiert derzeit zu spät und verlangt einen zu langen seitlichen Wischweg. Künftig soll schon ein kurzer horizontaler Drag den Dashboardbereich sichtbar und direkt dem Finger folgend nach links/rechts verschieben. Bei etwas weiterem Wischen übernimmt die Automatik und schließt den Seitenwechsel ab. Keine erst nach langer Geste beginnende starre Animation. Footer bleibt fest, bisheriger Umfang aus Dashboard/Karte/deren Buttons erhalten. Exakte Ansprech-/Übernahmeschwellen noch nicht numerisch festgelegt; bei Umsetzung passend abstimmen. Bestehendes Ziel eines schnellen, ruhigen Wechsels ohne Gimmick erhalten.
+Erster Lauf neun relevante Fälle: sechs bestanden, drei neue Dragfälle machten die verzögerte erste Move-Verarbeitung sichtbar. Nur diese drei nach Korrektur erneut geprüft; Ergebnis in `dashboard-direct-drag-final-tests.log`. Kein Gesamtlauf.
+
+[Native Zwischenansicht](previews/dashboard-page-transition.png) zeigt den bisherigen Übergang mit synthetischen Daten ohne geladene Kartenkacheln. Ursprüngliche Animation veröffentlicht in [Build110](build-110.md); direktes Dragverhalten lokal nach Build116.

@@ -78,7 +78,6 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var viewportDataHeight = 0
     var template = DashboardTemplate.DATA
         private set
-    var changePage: ((Int) -> Unit)? = null
 
     /** Use the whole dashboard/map viewport so short presets do not look like landscape. */
     fun heightForViewport(width: Int, available: Int): Int {
@@ -255,15 +254,6 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         private val swipe = android.view.GestureDetector(context, object : android.view.GestureDetector.SimpleOnGestureListener() {
             override fun onScroll(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, distanceX: Float, distanceY: Float): Boolean {
                 container.cancelLongPress(); container.isPressed = false; return false
-            }
-            override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-                val first = e1 ?: return false
-                val change = changePage ?: return false
-                val dx = e2.x - first.x; val dy = e2.y - first.y
-                if (kotlin.math.abs(dx) > dp(70) && kotlin.math.abs(dx) > 2 * kotlin.math.abs(dy)) {
-                    change(if (dx < 0) 1 else -1); return true
-                }
-                return false
             }
         })
         val container: LinearLayout = object : LinearLayout(context) {

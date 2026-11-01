@@ -214,7 +214,6 @@ class MainActivity : Activity() {
         dashboard.activateEditor = { setDashboardEditing(true) }
         dashboard.graphWidthChanged={ runtime.liveGraphs.width=it }
         updateMapBack()
-        dashboard.changePage = ::changeDashboard
         dashboard.setTemplate(currentTemplate())
         mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink)
         mapPanel.cameraVisible = { dialogs.empty && currentTemplate().hasMap }
@@ -234,7 +233,14 @@ class MainActivity : Activity() {
         dashboard.visibility = if (mapFullscreen) View.GONE else View.VISIBLE
         if(!currentTemplate().hasMap) { mapFullscreen=false;dashboard.visibility=View.VISIBLE;mapPanel.visibility=View.GONE }
         mapPanel.showFullscreen(mapFullscreen)
-        dashboardViewport=DashboardPageViewport(this).apply { setPage(dashboardArea) }
+        dashboardViewport=DashboardPageViewport(this).apply {
+            setPage(dashboardArea)
+            changePage=::changeDashboard
+            swipeEnabledAt={ x,y ->
+                !dashboardEditing && runtime.visible && dialogs.empty && dashboardPages.all().size>1 &&
+                    dashboard.visibility==View.VISIBLE && x>=dashboard.left && x<dashboard.right && y>=dashboard.top && y<dashboard.bottom
+            }
+        }
         root.addView(dashboardViewport,LinearLayout.LayoutParams(-1,0,1f))
         val toolbar = LinearLayout(this).apply {
             orientation=LinearLayout.HORIZONTAL;gravity=Gravity.BOTTOM;tag="ride_toolbar"

@@ -20,11 +20,13 @@ Tagesscreen mit150°-Bögen, HRV doppelt dick, weißem Puls, festen Korridormark
 
 Messung:24dp zusätzlich zwischen Kreis/Diagramm, keine untere Navigation/Ergebniskarten mehr. Start/Abbruch/Speicherwiederholung im Kreis bleibt. Nach gespeicherter abgeschlossener Messung automatisch Tagesfragen, danach Tagesauswertung mit Textbutton „Zur genauen Auswertung“. Gemeinsame native Scrollfläche: Tagesbereich bleibt bis zum Kontakt stehen, Verlauf schiebt ihn dann heraus, beide gemeinsam scrollbar; kleine Displays bleiben bedienbar. Historisches Tagesdatum im Kopf bleibt korrekt. [Ablauf](hrv-measurement-flow-revision.md).
 
-Gezielt12 HRV-Fälle erfolgreich in `hrv-day-revision-tests.log` (Indizes/Referenzen/Empfehlungen/Native-UI/Messdarstellung/Ablauf). Nach Kopf-/Scrollabsicherung nur vier betroffene UI-/Ablauffälle erneut erfolgreich in `hrv-day-revision-final-tests.log`. Native Vorschau320/360dp in Flat/Glow visuell geprüft. Kein Gesamtlauf, kein physischer Gerätetest, keine neue APK.
+Gezielt12 HRV-Fälle erfolgreich in `hrv-day-revision-tests.log` (Indizes/Referenzen/Empfehlungen/Native-UI/Messdarstellung/Ablauf). Nach Kopf-/Scrollabsicherung nur vier betroffene UI-/Ablauffälle erneut erfolgreich in `hrv-day-revision-final-tests.log`. Native Vorschau320/360dp in Flat/Glow visuell geprüft. Zusätzlich einzelner Scrollfall nach Begrenzung der Kopfaktualisierung auf tatsächliche Bereichswechsel erfolgreich in `hrv-evaluation-section-final-test.log`. Kein Gesamtlauf, kein physischer Gerätetest, keine neue APK.
 
-## Danach: Dashboard-Wischverhalten
+## Dashboard-Wischverhalten umgesetzt – nach HRV
 
-Erst nach Abschluss der HRV-Änderungen umsetzen. Bereits kurzer seitlicher Drag soll den Dashboardbereich sichtbar dem Finger folgen lassen; nach etwas weiterem Wischen übernimmt die Automatik und vollendet den Wechsel. Aktuell zu langer Wischweg/zu spätes Ansprechen. Footer bleibt fest, Dashboard samt Karte/Buttons bewegt sich wie bisher; keine konkreten Schwellwerte erfunden. [Vorgemerkt](dashboard-page-transition.md). Noch keine Implementierung.
+Kurzer klar horizontaler Drag auf Datenfeldern folgt direkt dem Finger; Übernahme bei48dp/15% der Breite (kleinerer Wert, mindestens3×Touchslop), alternativ kurzer schneller Flick beim Loslassen. Automatische Animation setzt ohne Sprung an dieser Position fort, maximal300ms; kurzer/abgebrochener Drag180ms zurück ohne Seitenwechsel/Bitmap. Footer fest; Karten-/Vertikalgesten/Editor unverändert, genau eine MapPanel-Instanz. Abbruch/Fokusverlust/Detach und Animation aus bleiben erhalten. [Details](dashboard-page-transition.md).
+
+Neun gezielte Gesten-/Bestandsfälle in `dashboard-direct-drag-tests.log`: sechs erfolgreich, drei neue Dragfälle zunächst offen. Erste Move-Verarbeitung korrigiert, tatsächliche Test-Touchschwelle16px berücksichtigt (Testdrag20px). Nur diese drei erneut erfolgreich in `dashboard-direct-drag-final-tests.log`. Kein Gesamtlauf/physischer Gerätetest. Typografie/Atlas/Diff geprüft. Keine APK beauftragt.
 
 ## Offenes und wichtige Vorarbeit
 
