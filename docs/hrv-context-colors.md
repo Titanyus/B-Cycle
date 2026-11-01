@@ -1,8 +1,19 @@
 # HRV-Balkenfarben nach Tageskontext
 
-Unter der Zeitraumzeile des Diagramms stehen sechs gleich breite, nur mit Icons beschriftete Auswahlsegmente: Standard, Tagesbefinden, Training, Schlaf, Energie, Muskelkater. Symbole: Tagesbefinden `face-slightly-smiling`, Schlaf `bed`, Energie `biceps-flexed`, Muskelkater `target`; Standard und Training behalten ihre bisherigen Symbole. Der Name der ausgewählten Ansicht steht separat darunter. Keine Legende. Auswahl gilt temporär im geöffneten Screen, bleibt bei Kennzahl-/Zeitraumwechsel und Rückkehr aus Tagesbefinden erhalten. Kein neuer dauerhaft gespeicherter Einstellungswert.
+Unter der Zeitraumzeile des Diagramms stehen sechs gleich breite, nur mit Icons beschriftete Auswahlsegmente: Standard, Tagesbefinden, Training, Schlaf, Energie, Muskelkater. Symbole: Tagesbefinden `face-slightly-smiling`, Schlaf `bed`, Energie `biceps-flexed`, Muskelkater `target`; Standard und Training behalten ihre bisherigen Symbole. Der Name der ausgewählten Ansicht steht separat darunter. Bei Standard bleibt es beim Namen; alle anderen Modi zeigen inline „Name · Extremwert [farbige Quadrate] Extremwert“. Auswahl gilt temporär im geöffneten Screen, bleibt bei Kennzahl-/Zeitraumwechsel und Rückkehr aus Tagesbefinden erhalten. Kein neuer dauerhaft gespeicherter Einstellungswert.
 
-Standard erhält bisherige HRV-Farbe (PRIMARY, unter persönlichem Bereich weiß). Kontextmodi ersetzen nur die Balkenfarbe; HRV-Werte, Kurve, Korridor, Achsen, Auswahlabdunklung und Zoom bleiben gleich. Diagrammhöhe454dp statt504dp (rund10% weniger), zentral für Tag/Woche/Monat. Alle Erklärungstexte und Tageswert-/Referenztextblöcke unter dem Diagramm entfernt. Tagestitel/Kennzahlenwerte oben und Balkenwerte bleiben. Fester Tagesfooter: Auswertung weiterhin deaktiviert, Messergebnis öffnet bisherige Ergebnisansicht, Tagesbefinden direkt die Tagesfragen, Löschen bestätigt die Messungslöschung. Kein zusätzlicher Inline-Ergebnisbutton.
+Standard erhält bisherige HRV-Farbe (PRIMARY, unter persönlichem Bereich weiß). Kontextmodi ersetzen nur die Balkenfarbe; HRV-Werte, Kurve, Korridor, Achsen, Auswahlabdunklung und Zoom bleiben gleich. Diagrammhöhe454dp statt504dp (rund10% weniger), zentral für Tag/Woche/Monat. Alle Erklärungstexte und Tageswert-/Referenztextblöcke unter dem Diagramm entfernt. Tagestitel/Kennzahlenwerte oben und Balkenwerte bleiben. Fester Tagesfooter mit drei Aktionen: Messergebnis öffnet die Ergebnisansicht, Tagesbefinden direkt die Tagesfragen, Löschen bestätigt die Messungslöschung. Redundante Aktion Auswertung entfernt. Zentrale Sichtbarkeitssteuerung mit Schalter im Hauptkopf, initial verborgen; Tagesklick kann temporär einblenden. Tagesansicht, Datum und Tagesaktionen verwenden denselben Tag, bei frischem Einstieg heute. Ohne heutige Messung echte fehlende Werte anzeigen. Kein zusätzlicher Inline-Ergebnisbutton.
+
+## Farblegende – 01.11.2026
+
+Inline-Quadrate aus derselben `HrvContextColors.color`-Zuordnung wie die Balken, keine kopierten Farbwerte. Fünf Felder grün/gelb/orange/rot/violett bei Tagesbefinden, Schlaf, Energie und Muskelkater; vier Felder grau/grün/orange/rot bei Training. Endpunkte gemäß tatsächlicher Zuordnung:
+
+- Tagesbefinden und Schlaf: Gut → Schlecht.
+- Energie: Viel → Wenig (positive gespeicherte Antworten sind invertiert).
+- Muskelkater: Gar nicht → Sehr.
+- Training: Keins → Intensiv.
+
+Schrift und Farben im bestehenden Beschreibungstext; Mittelpunkt als Trenner. ReplacementSpan zeichnet echte Quadrate statt geräteabhängiger Emoji, proportional zur Textgröße und vertikal mittig. Bei größerer Systemschrift darf der Text umbrechen, keine abgeschnittenen Beschriftungen. Screenreader erhält Beschriftung und Endpunkte ohne Objektzeichen. Standard bleibt ohne Legende. Kennzahl, Achsen, Zoom, Auswahltag und Kontextwerte ändern sich durch die Legende nicht.
 
 ## Farben und Rechenregel
 

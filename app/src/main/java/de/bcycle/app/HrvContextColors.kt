@@ -9,9 +9,21 @@ internal enum class HrvContextMode(val label:Int,val icon:BicycleIcon) {
     SLEEP(R.string.hrvc_sleep,BicycleIcon.Sleep),ENERGY(R.string.hrvc_energy,BicycleIcon.Energy),
     SORENESS(R.string.hrvc_soreness,BicycleIcon.Soreness)
 }
+internal data class HrvContextLegend(val low:Int,val high:Int,val colors:List<Int>)
 
 /** Subjective context only: 0 good .. 10 poor; training retains its explicit 0..3 categories. */
 internal object HrvContextColors {
+    fun legend(mode:HrvContextMode):HrvContextLegend? {
+        val ends=when(mode) {
+            HrvContextMode.STANDARD->return null
+            HrvContextMode.TRAINING->R.string.hrvq_rest to R.string.hrvq_intense
+            HrvContextMode.WELLBEING,HrvContextMode.SLEEP->R.string.hrvq_good to R.string.hrvq_bad
+            HrvContextMode.ENERGY->R.string.hrvq_high to R.string.hrvq_low
+            HrvContextMode.SORENESS->R.string.hrvq_not_at_all to R.string.hrvq_very
+        }
+        val values=if(mode==HrvContextMode.TRAINING) listOf(0.0,1.0,2.0,3.0) else listOf(0.0,2.0,4.0,6.0,8.0)
+        return HrvContextLegend(ends.first,ends.second,values.map { color(mode,it) })
+    }
     fun daily(answers:Map<LocalDate,HrvQuestionnaire>):Map<LocalDate,Map<HrvContextMode,Double>> {
         val result=mutableMapOf<LocalDate,MutableMap<HrvContextMode,Double>>()
         answers.forEach { (day,q) ->

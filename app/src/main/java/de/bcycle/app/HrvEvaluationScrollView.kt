@@ -11,9 +11,6 @@ internal class HrvEvaluationScrollView(context:Context,private val day:View,deta
     private val spacer=View(context)
     private val content=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL }
     private val details=details
-    val showingDetails get()=scrollY>=details.top-BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
-    var onSectionChanged:()->Unit={}
-    private var lastSection=false
     init {
         tag="hrv_evaluation_scroll";BicycleComponents.scrollStyle(this)
         content.addView(day,LinearLayout.LayoutParams(-1,-2))
@@ -35,11 +32,7 @@ internal class HrvEvaluationScrollView(context:Context,private val day:View,deta
     override fun onScrollChanged(l:Int,t:Int,oldl:Int,oldt:Int) {
         super.onScrollChanged(l,t,oldl,oldt);pin()
     }
-    private fun pin() {
-        day.translationY=scrollY.coerceIn(0,(spacer.height-gap).coerceAtLeast(0)).toFloat()
-        val section=showingDetails
-        if(section!=lastSection) { lastSection=section;onSectionChanged() }
-    }
+    private fun pin() { day.translationY=scrollY.coerceIn(0,(spacer.height-gap).coerceAtLeast(0)).toFloat() }
     fun showDetails() {
         // Keep the same inset as a direct history visit; a short detail screen may still align at top.
         val target=(details.top-BicycleDesign.dp(context,BicycleDesign.horizontalPadding)).coerceAtLeast(0)

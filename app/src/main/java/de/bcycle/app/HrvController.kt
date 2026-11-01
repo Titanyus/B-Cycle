@@ -197,6 +197,10 @@ internal class HrvController(private val context:Context,private val clock:()->L
         val storage=checkNotNull(store)
         HrvDailyAssessment.from(storage.list(),storage.trendQuestionnaires(),id)
     }
+    fun dailyAssessment(day:java.time.LocalDate,done:(Result<HrvDailyAssessment>)->Unit) = storageTask(done) {
+        val storage=checkNotNull(store)
+        HrvDailyAssessment.forDay(storage.list(),storage.trendQuestionnaires(),day)
+    }
     fun questionnaire(id:String,done:(Result<HrvQuestionnaire?>)->Unit) =
         storageTask(done) { checkNotNull(store).questionnaireForEditing(id) }
     fun saveQuestionnaire(id:String,value:HrvQuestionnaire,done:(Result<Unit>)->Unit) =

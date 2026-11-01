@@ -249,7 +249,7 @@ class HrvQuestionnaireTest {
             assertNotNull(evaluation.findViewWithTag<View>("hrv_trends"))
             assertNotNull(evaluation.findViewWithTag<View>("hrva_circle"))
             assertNotNull(evaluation.findViewWithTag<View>("hrva_details"))
-            assertTrue(evaluation.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").text.toString().contains("21.10.2026"))
+            assertEquals(java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")),evaluation.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").text.toString())
             MainActivity::class.java.getDeclaredMethod("showHrvHistoryResult",String::class.java).apply { isAccessible=true }.invoke(a,id)
             drain();plainHeader(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog())
         } finally { host.pause().stop().destroy() }

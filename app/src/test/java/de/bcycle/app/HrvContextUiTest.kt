@@ -39,11 +39,27 @@ class HrvContextUiTest {
                 assertNull(view.findViewWithTag<View>("hrv_trend_selected"));assertNull(view.findViewWithTag<View>("hrv_trend_statistics"));assertNull(view.findViewWithTag<View>("hrv_trend_detail"))
                 val chart=view.findViewWithTag<HrvTrendChart>("hrv_trend_chart");assertEquals(454,chart.height)
                 val axis=chart.axis
+                val legend=view.findViewWithTag<TextView>("hrv_context_name")
+                for(mode in HrvContextMode.entries) {
+                    view.findViewWithTag<View>("hrv_context_${mode.name}").performClick();layout(width)
+                    val expected=HrvContextColors.legend(mode)
+                    if(expected==null) assertEquals(a.getString(mode.label),legend.text.toString())
+                    else {
+                        val spans=(legend.text as android.text.Spanned).getSpans(0,legend.text.length,HrvLegendSquare::class.java)
+                        assertEquals(expected.colors,spans.map { it.color })
+                        assertTrue(legend.text.startsWith(a.getString(mode.label)+" · "+a.getString(expected.low)))
+                        assertTrue(legend.text.endsWith(a.getString(expected.high)))
+                        assertTrue("legend clipped at $width: ${legend.text}",legend.layout.getEllipsisCount(legend.lineCount-1)==0)
+                    }
+                    assertEquals(axis,chart.axis)
+                }
                 view.findViewWithTag<View>("hrv_context_SLEEP").performClick()
-                assertEquals(a.getString(R.string.hrvc_sleep),view.findViewWithTag<TextView>("hrv_context_name").text.toString());assertEquals(axis,chart.axis)
+                assertTrue(view.findViewWithTag<TextView>("hrv_context_name").text.startsWith(a.getString(R.string.hrvc_sleep)+" · "));assertEquals(axis,chart.axis)
                 val image=Bitmap.createBitmap(chart.width,chart.height,Bitmap.Config.ARGB_8888);val colors=mutableListOf<Int>()
                 chart.draw(object:Canvas(image) { override fun drawRect(l:Float,t:Float,r:Float,b:Float,p:Paint) { colors+=p.color;super.drawRect(l,t,r,b,p) } })
-                assertTrue("Missing answer is grey: $colors",colors.contains(TrainingZoneColors.grey));assertTrue("All five zones are represented: $colors",colors.containsAll(TrainingZoneColors.powerValues.drop(2)));image.recycle()
+                val grey=TrainingZoneColors.grey
+                val selectedGrey=Color.rgb(Color.red(grey)/2,Color.green(grey)/2,Color.blue(grey)/2)
+                assertTrue("Missing answer is grey (selected bar dimmed): $colors",colors.contains(grey) || colors.contains(selectedGrey));assertTrue("All five zones are represented: $colors",colors.containsAll(TrainingZoneColors.powerValues.drop(2)));image.recycle()
                 if(width==360 && !flat) {
                     val preview=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888);Canvas(preview).apply { drawColor(themes.active.tokens.secondary);view.draw(this) }
                     java.io.File("build/reports/ui/hrv-context.png").apply { parentFile!!.mkdirs() }.outputStream().use { preview.compress(Bitmap.CompressFormat.PNG,100,it) };preview.recycle()
@@ -55,7 +71,7 @@ class HrvContextUiTest {
             android.view.MotionEvent.obtain(now,now,0,x,150f,0).also { chart.onTouchEvent(it);it.recycle() }
             android.view.MotionEvent.obtain(now,now+20,1,x,150f,0).also { chart.onTouchEvent(it);it.recycle() }
             view.findViewWithTag<View>("hrv_day_result").performClick();assertEquals("day30",result)
-            assertEquals(4,(view.findViewWithTag<View>("hrv_day_result").parent as android.view.ViewGroup).childCount)
+            assertEquals(3,(view.findViewWithTag<View>("hrv_day_result").parent as android.view.ViewGroup).childCount)
         } finally { host.pause().stop().destroy() }
     }
 }

@@ -100,7 +100,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         BicycleComponents.bindTheme(this,themes) { tokens=it;invalidate() }
     }
     fun show(rows:List<HrvTrendPoint>,reset:Boolean=false,axis:HrvTrendAxis=HrvTrendAxis.from(rows,HrvTrendMetric.RMSSD),
-        resolution:HrvTrendPeriod=HrvTrendPeriod.DAY,anchor:LocalDate?=null) {
+        resolution:HrvTrendPeriod=HrvTrendPeriod.DAY,anchor:LocalDate?=null,selectionDay:LocalDate?=null) {
         stopFling()
         val previousDay=points.firstOrNull { it.row.id==selectedId }?.day
         val modeChanged=this.resolution!=resolution;this.resolution=resolution
@@ -114,13 +114,19 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             }
         } else { moons=emptyList();moonRange=null }
         barLabels=rows.mapNotNull { point -> point.value?.let { point to barNumber.format(it) } }
-        if(reset || modeChanged) viewport.resetIndices(rows.map { resolution.index(it.day) },resolution.index(LocalDate.now()))
+        if(reset || modeChanged) viewport.resetIndices(rows.map { resolution.index(it.day) }+listOfNotNull(selectionDay?.let(resolution::index)),resolution.index(LocalDate.now()))
         if(modeChanged && anchor!=null) {
             selectedId=rows.firstOrNull { !anchor.isBefore(it.day) && !anchor.isAfter(it.periodEnd) }?.row?.id
             selectedId?.let { id -> rows.firstOrNull { it.row.id==id }?.let { viewport.focus(resolution.index(it.day).toDouble()) } }
         }
-        if(!modeChanged && previousDay!=null) selectedId=rows.firstOrNull { it.day==previousDay }?.row?.id
-        if(selectedId==null || rows.none { it.row.id==selectedId }) selectedId=rows.lastOrNull()?.row?.id
+        if(selectionDay!=null) {
+            // A missing selected day is genuinely empty; never substitute the last older measurement.
+            selectedId=rows.firstOrNull { !selectionDay.isBefore(it.day) && !selectionDay.isAfter(it.periodEnd) }?.row?.id
+            if(reset || modeChanged) viewport.focus(resolution.index(selectionDay).toDouble())
+        } else {
+            if(!modeChanged && previousDay!=null) selectedId=rows.firstOrNull { it.day==previousDay }?.row?.id
+            if(selectedId==null || rows.none { it.row.id==selectedId }) selectedId=rows.lastOrNull()?.row?.id
+        }
         rows.firstOrNull { it.row.id==selectedId }?.let { selected(it) }
         changed()
     }

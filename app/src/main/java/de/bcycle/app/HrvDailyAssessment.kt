@@ -40,7 +40,12 @@ internal data class HrvDailyAssessment(val day:LocalDate,val hrv:HrvTrendPoint,v
         fun score(rmssd:Double?)=rmssd?.takeIf { it.isFinite() && it>0 }?.let { 2*ln(it) }
         fun from(rows:List<HrvHistorySummary>,answers:Map<LocalDate,HrvQuestionnaire>,id:String):HrvDailyAssessment {
             val day=HrvDailySelection.day(rows.first { it.id==id })
-            val hrv=HrvTrends.series(rows,HrvTrendMetric.RMSSD).first { it.day==day }
+            return forDay(rows,answers,day)
+        }
+        fun forDay(rows:List<HrvHistorySummary>,answers:Map<LocalDate,HrvQuestionnaire>,day:LocalDate):HrvDailyAssessment {
+            val hrv=HrvTrends.series(rows,HrvTrendMetric.RMSSD).firstOrNull { it.day==day }
+                ?: HrvTrendPoint(HrvHistorySummary("",day.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli(),false,null,
+                    hasMeasurement=false),day,"RMSSD",null,null,null,null)
             val pulse=HrvTrends.series(rows,HrvTrendMetric.HR).firstOrNull { it.day==day }
             val context=HrvContextColors.daily(answers)
             val recent=(0L..3L).mapNotNull { context[day.minusDays(it)]?.get(HrvContextMode.WELLBEING) }

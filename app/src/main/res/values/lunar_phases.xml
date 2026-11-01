@@ -1,5 +1,5 @@
 <resources>
-    <string name="hrvt_dated_title">Auswertung: %1$s</string>
+    <string name="hrvt_dated_title">%1$s</string>
     <string name="moon_new">Neumond</string>
     <string name="moon_first_quarter">Zunehmender Halbmond</string>
     <string name="moon_full">Vollmond</string>

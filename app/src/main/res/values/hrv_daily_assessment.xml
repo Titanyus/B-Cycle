@@ -4,7 +4,6 @@
     <string name="hrva_activation">Aktivierungsindex</string>
     <string name="hrva_details">Zur genauen Auswertung</string>
     <string name="hrva_indices_help">PNS: persönliche Abweichung von ln(RMSSD). Aktivierung: persönliche Abweichung des Ruhepulses, keine isolierte Sympathikusmessung. Jeweils (Tageswert − Referenzmittelwert) / Stichproben-Standardabweichung. Die Referenz nutzt vorherige 60 Kalendertage mit mindestens 14 gültigen Tageswerten bei vergleichbarem Messprotokoll; Importe werden separat betrachtet. 0 entspricht deiner Basis, ±1 deiner persönlichen Streuung, nicht medizinischen Normgrenzen. Ohne ausreichende Referenz oder Streuung erscheint „–“. Zahlen werden nicht auf ±2 begrenzt. Beide Indikatoren sind keine Diagnose und verändern die Trainingsempfehlung nicht.</string>
-    <string name="hrva_dated_title">Tagesauswertung: %1$s</string>
     <string name="hrva_hrv">Herzfrequenzvariabilität</string>
     <string name="hrva_pulse">Ruhepuls</string>
     <string name="hrva_unavailable">Keine Einordnung möglich</string>

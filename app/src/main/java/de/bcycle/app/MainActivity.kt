@@ -777,81 +777,82 @@ class MainActivity : Activity() {
             dialogs.onDismiss(screen) { subscription.close();fade.close() }
         }
     }
-    private fun showHrvDailyAssessment(id:String)=showHrvEvaluation(id)
-    private fun showHrvTrends()=showHrvEvaluation(null)
-    private fun showHrvEvaluation(dayId:String?) {
-        fun datedTitle(day:java.time.LocalDate)=getString(R.string.hrvt_dated_title,day.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+    private fun showHrvTrends()=showHrvEvaluation()
+    private fun showHrvEvaluation() {
+        var selectedDay=java.time.LocalDate.now()
+        val dateFormat=java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")
         val root=LinearLayout(this).apply {
             orientation=LinearLayout.VERTICAL;tag="hrv_trends_host"
             val pad=dp(BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
             addView(BicycleComponents.description(this@MainActivity,runtime.themes,getString(R.string.hrvt_loading)))
         }
-        val footer=bicycleFooter(this,runtime.themes).apply { visibility=View.GONE }
+        val footer=bicycleFooter(this,runtime.themes)
+        val footerControl=BicycleFooterVisibility(this).apply { bindFooter(footer) }
         val daily=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;tag="hrv_daily_assessment_host" }
-        val evaluation=if(dayId!=null) HrvEvaluationScrollView(this,daily,root) else null
-        val body=LinearLayout(this).apply {
+        val evaluation=HrvEvaluationScrollView(this,daily,root)
+        // Bind before showing the dialog so the shared header discovers the footer toggle immediately.
+        val body=object:LinearLayout(this),BicycleFooterPage {
+            override val footerVisibility=footerControl
+        }.apply {
             orientation=LinearLayout.VERTICAL
-            addView(evaluation ?: ScrollView(this@MainActivity).apply { BicycleComponents.scrollStyle(this);addView(root) },LinearLayout.LayoutParams(-1,0,1f))
+            addView(evaluation,LinearLayout.LayoutParams(-1,0,1f))
             addView(footer,LinearLayout.LayoutParams(-1,-2))
         }
-        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(datedTitle(java.time.LocalDate.now()))
-            .setView(body).show()
-        var dailyTitle=getString(R.string.hrva_title)
-        var historyTitle=datedTitle(java.time.LocalDate.now())
-        fun updateTitle() {
-            screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=
-                if(evaluation!=null && !evaluation.showingDetails) dailyTitle else historyTitle
-        }
-        evaluation?.onSectionChanged=::updateTitle
-        fun loadDaily() { if(dayId!=null) {
-            if(daily.childCount==0) daily.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrvt_loading)))
-            runtime.hrv.dailyAssessment(dayId) { outcome ->
-                if(isDestroyed || !screen.isShowing) return@dailyAssessment
-                daily.removeAllViews()
+        val screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true)
+            .setTitle(getString(R.string.hrvt_dated_title,selectedDay.format(dateFormat))).setView(body).show()
+        var dailyRevision=0
+        fun loadDaily() {
+            val requestedDay=selectedDay;val revision=++dailyRevision
+            screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")?.text=getString(R.string.hrvt_dated_title,requestedDay.format(dateFormat))
+            // Keep the history's vertical position while the selected day's worker result is pending.
+            daily.minimumHeight=daily.height
+            daily.removeAllViews()
+            daily.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrvt_loading)))
+            runtime.hrv.dailyAssessment(requestedDay) { outcome ->
+                if(isDestroyed || !screen.isShowing || revision!=dailyRevision || selectedDay!=requestedDay) return@dailyAssessment
+                daily.removeAllViews();daily.minimumHeight=0
                 outcome.fold({ assessment ->
-                    dailyTitle=getString(R.string.hrva_dated_title,assessment.day.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")))
-                    updateTitle()
                     daily.addView(HrvDailyAssessmentView(this,runtime.themes,assessment))
-                    daily.addView(BicycleComponents.textAction(this,runtime.themes,getString(R.string.hrva_details)) { evaluation?.showDetails() }.apply { tag="hrva_details" },LinearLayout.LayoutParams(-1,-2))
+                    daily.addView(BicycleComponents.textAction(this,runtime.themes,getString(R.string.hrva_details)) { evaluation.showDetails() }.apply { tag="hrva_details" },LinearLayout.LayoutParams(-1,-2))
                 },{ daily.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) })
             }
-        } }
+        }
         var content:HrvTrendsView?=null
         fun load(preserveSelection:Boolean=false) {
             loadDaily()
             runtime.hrv.trendsWithContext { result ->
-            if(isDestroyed || screen.window?.decorView?.isAttachedToWindow!=true) return@trendsWithContext
-            result.fold({ presentation ->
-                val series=presentation.series
-                if(content!=null) content!!.updateSeries(series,presentation.context,preserveSelection)
-                else {
-                    root.removeAllViews();root.setPadding(0,0,0,0)
-                    content=HrvTrendsView(this,runtime.themes,series,actionFooter=footer,dayContext=presentation.context,result=::showHrvHistoryResult,assess=::showHrvDailyAssessment,delete={ id ->
-                        dialog(fullscreen=false).setTitle(R.string.hrv_delete_title).setMessage(R.string.hrvt_day_delete_confirm)
-                            .setPositiveButton(R.string.route_action_delete) { _,_ ->
-                                (0 until footer.childCount).forEach { footer.getChildAt(it).isEnabled=false }
-                                runtime.hrv.deleteMeasurement(id) { outcome ->
-                                    (0 until footer.childCount).forEach { footer.getChildAt(it).isEnabled=true }
-                                    if(!isDestroyed && screen.window?.decorView?.isAttachedToWindow==true) outcome.fold(onSuccess={ load() },
-                                        onFailure={ BicycleFeedback.show(this,R.string.hrv_delete_failed) })
-                                }
-                            }.setNegativeButton(R.string.route_cancel,null).show()
-                    },open={ id ->
-                        runtime.hrv.measurement(id) { result ->
-                            if(!isDestroyed && screen.isShowing) result.fold(onSuccess={ row -> showHrvQuestionnaire(row,{ load(true) }) },
-                                onFailure={ BicycleFeedback.show(this,R.string.hrv_result_load_failed) })
+                if(isDestroyed || screen.window?.decorView?.isAttachedToWindow!=true) return@trendsWithContext
+                result.fold({ presentation ->
+                    if(content!=null) content!!.updateSeries(presentation.series,presentation.context,preserveSelection)
+                    else {
+                        root.removeAllViews();root.setPadding(0,0,0,0)
+                        content=HrvTrendsView(this,runtime.themes,presentation.series,actionFooter=footer,dayContext=presentation.context,
+                            initialDay=selectedDay,footerVisibility=footerControl,result=::showHrvHistoryResult,delete={ id ->
+                            dialog(fullscreen=false).setTitle(R.string.hrv_delete_title).setMessage(R.string.hrvt_day_delete_confirm)
+                                .setPositiveButton(R.string.route_action_delete) { _,_ ->
+                                    (0 until footer.childCount).forEach { footer.getChildAt(it).isEnabled=false }
+                                    runtime.hrv.deleteMeasurement(id) { outcome ->
+                                        (0 until footer.childCount).forEach { footer.getChildAt(it).isEnabled=true }
+                                        if(!isDestroyed && screen.window?.decorView?.isAttachedToWindow==true) outcome.fold(onSuccess={ load() },
+                                            onFailure={ BicycleFeedback.show(this,R.string.hrv_delete_failed) })
+                                    }
+                                }.setNegativeButton(R.string.route_cancel,null).show()
+                        },open={ id ->
+                            runtime.hrv.measurement(id) { result ->
+                                if(!isDestroyed && screen.isShowing) result.fold(onSuccess={ row -> showHrvQuestionnaire(row,{ load(true) }) },
+                                    onFailure={ BicycleFeedback.show(this,R.string.hrv_result_load_failed) })
+                            }
+                        }).apply {
+                            onDaySelected={ day -> if(day!=selectedDay) { selectedDay=day;loadDaily() } }
                         }
-                    }).apply {
-                        onDaySelected={ day -> historyTitle=datedTitle(day);updateTitle() }
-                        onPeriodSelected={ label -> historyTitle=getString(R.string.hrvt_dated_title,label);updateTitle() }
+                        root.addView(content,LinearLayout.LayoutParams(-1,-2))
                     }
-                    root.addView(content,LinearLayout.LayoutParams(-1,-2))
-                }
-            },{
-                if(content==null) { root.removeAllViews();root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) }
-                else BicycleFeedback.show(this,R.string.hrv_result_load_failed)
-            })
-        } }
+                },{
+                    if(content==null) { root.removeAllViews();root.addView(BicycleComponents.description(this,runtime.themes,getString(R.string.hrv_result_load_failed))) }
+                    else BicycleFeedback.show(this,R.string.hrv_result_load_failed)
+                })
+            }
+        }
         load()
     }
     private fun offerRideSummary() {
@@ -958,7 +959,7 @@ class MainActivity : Activity() {
             fun show(training:HrvTrainingSummary?) {
                 if(isDestroyed || !screen.isShowing) return
                 root.removeAllViews();root.setPadding(0,0,0,0)
-                root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) { screen.dismiss();if(completed==null) showHrvDailyAssessment(id) } }) { value,done ->
+                root.addView(HrvQuestionnaireView(this,runtime.themes,initial,training,complete={ if(screen.isShowing) { screen.dismiss();if(completed==null) showHrvTrends() } }) { value,done ->
                     runtime.hrv.saveQuestionnaire(id,value) { saved -> done(saved.isSuccess) }
                 },LinearLayout.LayoutParams(-1,-2))
             }

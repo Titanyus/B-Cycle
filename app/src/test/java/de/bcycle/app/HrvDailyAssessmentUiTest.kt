@@ -59,7 +59,6 @@ class HrvDailyAssessmentUiTest {
             val day=View(a).apply { minimumHeight=100 }
             val detail=View(a).apply { minimumHeight=500 }
             val scroll=HrvEvaluationScrollView(a,day,detail);a.setContentView(scroll)
-            var sections=0;scroll.onSectionChanged={ sections++ }
             fun layout() { scroll.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY));scroll.layout(0,0,360,600) }
             layout();assertTrue(detail.top>=600)
             scroll.scrollTo(0,200);assertEquals(200f,day.translationY,0f);assertEquals(0f,day.top+day.translationY-scroll.scrollY,0f)
@@ -73,8 +72,6 @@ class HrvDailyAssessmentUiTest {
                 scroll.computeScroll()
             }
             assertEquals(BicycleDesign.dp(a,BicycleDesign.horizontalPadding),detail.top-scroll.scrollY)
-            assertEquals(1,sections)
-            scroll.scrollTo(0,0);assertEquals(2,sections)
         } finally { host.pause().stop().destroy() }
     }
 }
