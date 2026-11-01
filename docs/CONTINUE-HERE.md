@@ -1,6 +1,6 @@
 # Aktueller Stand: APK0.8.77 / Build118 veröffentlicht –01.11.2026
 
-[APK direkt](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.77-release-118.apk) · [Buildnachweis](build-118.md) · [Änderungen](release-0.8.77.md). Code147, Quelle`e7478861dedc8a66c0f2b1b62edb78e589fd8797`, 2592869Bytes, SHA-256`b2a6128cc2c44140caffd25609fbef81c7587dc96b1301ab861d925a1fd74369`. GitHubActions erfolgreich; CI-Prüfsumme, dauerhafte Signatur/Update-Kompatibilität, Manifest, Version und ZIP-Ausrichtung geprüft. APK-Auftrag erledigt.
+[APK direkt](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.77-release-118.apk) · [Buildnachweis](build-118.md) · [Änderungen](release-0.8.77.md). Code147, Quelle`e7478861dedc8a66c0f2b1b62edb78e589fd8797`, 2592869Bytes, SHA-256`b2a6128cc2c44140caffd25609fbef81c7587dc96b1301ab861d925a1fd74369`. GitHubActions erfolgreich; CI-Prüfsumme, dauerhafte Signatur/Update-Kompatibilität, Manifest, Version und ZIP-Ausrichtung geprüft. Tatsächlicher direkter Raw-Download erneut geladen und binär identisch mit Actions-Artefakt. APK-Auftrag erledigt.
 
 ## In Build118 enthalten
 

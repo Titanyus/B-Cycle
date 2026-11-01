@@ -9,7 +9,7 @@
 - SHA-256: `b2a6128cc2c44140caffd25609fbef81c7587dc96b1301ab861d925a1fd74369`.
 - Signierzertifikat SHA-256: `94d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b`.
 
-Optimierter Release aus GitHub Actions. CI-Prüfsumme, dauerhafte Signatur/Update-Kompatibilität, Version, Manifest ohne Debug-/Test-Flags und ZIP-Ausrichtung geprüft. Zertifikat wie Build117.
+Optimierter Release aus GitHub Actions. CI-Prüfsumme, dauerhafte Signatur/Update-Kompatibilität, Version, Manifest ohne Debug-/Test-Flags und ZIP-Ausrichtung geprüft. Zertifikat wie Build117. Der tatsächlich veröffentlichte direkte Raw-Download wurde erneut geladen und ist binär identisch mit dem geprüften Actions-Artefakt.
 
 [Änderungen](release-0.8.77.md): sichtbare Sticky-Kopfsummen; aktualisierender manueller HRV-Sammelupload; größere Windrose mit FOREGROUND-Norden; kompakter HRV-Tagesscreen; weiche Dashboard-/Tageswechsel; gemeinsame Indexhistorie und Hinweise;±4-Darstellung mit breiter persönlicher Normzone; HRV-Verlauf und Weitere-Kachelreihe.
 
