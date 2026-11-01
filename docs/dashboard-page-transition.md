@@ -14,3 +14,9 @@ Gezielte Native-Tests prüfen Richtung, Zwischenpositionen mit gemeinsamem Absta
 
 
 Veröffentlicht in [APK 0.8.69 / Build 110](build-110.md). Ältere Angaben zu noch fehlender APK sind Umsetzungshistorie.
+
+## Vorgemerkt: direktes Wisch-Ansprechverhalten nach HRV – 01.11.2026
+
+Ausdrückliche Reihenfolge: Erst den vorgemerkten HRV-Umbau einschließlich neuer Tagesscreen-Gestaltung erledigen, danach diese Dashboard-Anpassung umsetzen. Aktuell nur dokumentieren.
+
+Der Wechsel reagiert derzeit zu spät und verlangt einen zu langen seitlichen Wischweg. Künftig soll schon ein kurzer horizontaler Drag den Dashboardbereich sichtbar und direkt dem Finger folgend nach links/rechts verschieben. Bei etwas weiterem Wischen übernimmt die Automatik und schließt den Seitenwechsel ab. Keine erst nach langer Geste beginnende starre Animation. Footer bleibt fest, bisheriger Umfang aus Dashboard/Karte/deren Buttons erhalten. Exakte Ansprech-/Übernahmeschwellen noch nicht numerisch festgelegt; bei Umsetzung passend abstimmen. Bestehendes Ziel eines schnellen, ruhigen Wechsels ohne Gimmick erhalten.

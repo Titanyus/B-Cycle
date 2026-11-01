@@ -16,6 +16,10 @@ Prüfung:75 fachlich gezielte Fälle für Sammlungen/Metadaten/Import/Backup/Fil
 
 Nächster Nutzerbeitrag soll die HRV-Tagesscreen-Darstellung festlegen. Noch keine Implementierung dieses HRV-Umbaus: Messung nur Kreis/Diagramm mit24dp mehr Abstand und ohne unteren Button; danach automatisch Tagesfragen, deren unterer Button zur gemeinsamen Auswertung führt. Anfangs nur Tageswert/Empfehlung; Textbutton „Zur genauen Auswertung“. Tagesbereich bleibt zuerst stehen, Detailbereich kommt von unten bis auf den vorgesehenen Abstand heran, schiebt dann den Tagesbereich wie bei einem Sticky-Header nach oben hinaus. Ziel: Detailauswertung mit oberem Abstand vollständig sichtbar. Danach beide Bereiche gemeinsam vertikal scrollbar. Berechnung/Empfehlungen/Diagrammfunktionen erhalten. [Genaue Vorgaben](hrv-measurement-flow-revision.md).
 
+## Danach: Dashboard-Wischverhalten
+
+Erst nach Abschluss der HRV-Änderungen umsetzen. Bereits kurzer seitlicher Drag soll den Dashboardbereich sichtbar dem Finger folgen lassen; nach etwas weiterem Wischen übernimmt die Automatik und vollendet den Wechsel. Aktuell zu langer Wischweg/zu spätes Ansprechen. Footer bleibt fest, Dashboard samt Karte/Buttons bewegt sich wie bisher; keine konkreten Schwellwerte erfunden. [Vorgemerkt](dashboard-page-transition.md). Noch keine Implementierung.
+
 ## Offenes und wichtige Vorarbeit
 
 Intervals-HRV422 betrifft den historischen Tages-PUT, erster Messtag2026-08-28; heutiger Auto-Upload funktionierte. In Build115 unbekannte Schlafdauer bei gleichen Bett-/Aufwachzeiten nicht mehr als0 ableiten und sichere Feldfehlerdiagnose erweitert. Konkreten Backendfehler erst nach erneutem Liveversuch als behoben bezeichnen. [Details](intervals-hrv.md).
