@@ -1,6 +1,6 @@
 # Mapsforge-VTM: erste Umstellungsstufe mit bisherigen Raster-Tiles
 
-Nutzerauftrag01.11.2026: bisherige Mapsforge-Engine gegen VTM austauschen, alle Kartenfunktionen auf dem Dashboard erhalten und zunächst dieselben Raster-Tiles verwenden. Invertierte Nachtkarte darf zurückgestellt werden. Keine Online-Vektorkarten, kein allgemeiner Akkuschonmodus und kein neuer APK-Build beauftragt. Rückfallstand: [Meilenstein0.8.78/Build119](milestone-0.8.78.md), Git-Tag`v0.8.78`.
+Nutzerauftrag01.11.2026: bisherige Mapsforge-Engine gegen VTM austauschen, alle Kartenfunktionen auf dem Dashboard erhalten und zunächst dieselben Raster-Tiles verwenden. Invertierte Nachtkarte darf zurückgestellt werden. Keine Online-Vektorkarten, kein allgemeiner Akkuschonmodus; APK0.8.79/Build120 danach ausdrücklich beauftragt und über GitHub Actions veröffentlicht. Rückfallstand: [Meilenstein0.8.78/Build119](milestone-0.8.78.md), Git-Tag`v0.8.78`.
 
 ## Implementierung
 
@@ -34,6 +34,6 @@ Logs unter `/workspace/.tools/`: `vtm-smoke-test.log`, `vtm-targeted-tests.log`,
 
 ## Noch auf dem Gerät zu bestätigen
 
-OpenGL-Tilezeichnung, SurfaceView-Zusammensetzung/Clipping während Drag/Vollbild, PixelCopy und das tatsächliche Wischgefühl brauchen einen Android-Gerätetest. Die lokalen Prüfungen belegen numerische Kamera-/Overlay-/Bedienungslogik und verfügbare Ressourcen, keine tatsächliche GPU-Ausgabe oder Verbrauchsersparnis. Mehrere Kartenansichten und Pause/Rückkehr ebenfalls im echten Dialogablauf bestätigen. Erst auf ausdrücklichen APK-Auftrag über GitHub Actions bauen; bestehende Version0.8.78/Build119 enthält diese Migration noch nicht.
+OpenGL-Tilezeichnung, SurfaceView-Zusammensetzung/Clipping während Drag/Vollbild, PixelCopy und das tatsächliche Wischgefühl brauchen einen Android-Gerätetest. Die lokalen Prüfungen belegen numerische Kamera-/Overlay-/Bedienungslogik und verfügbare Ressourcen, keine tatsächliche GPU-Ausgabe oder Verbrauchsersparnis. Mehrere Kartenansichten und Pause/Rückkehr ebenfalls im echten Dialogablauf bestätigen. [APK0.8.79/Build120](build-120.md) enthält die Migration. Der gesicherte Rückfallstand0.8.78/Build119 verwendet weiterhin die alte Engine.
 
 Danach können Vektorquelle/Themes und der getrennt geplante Akkuschonmodus folgen. Sensorerfassung, Aufzeichnung und Analyse bleiben in diesem Umbau unverändert vollständig.

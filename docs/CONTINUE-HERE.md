@@ -1,8 +1,8 @@
-# Aktueller Stand: APK0.8.79 mit VTM beauftragt
+# Aktueller Stand: APK0.8.79/Build120 mit VTM veröffentlicht
 
 ## Aktueller Auftrag und Ergebnis
 
-Nutzer hat nach Sicherung des Meilensteins den Austausch Mapsforge → Mapsforge-VTM beauftragt: alle Dashboardkartenfunktionen erhalten, zunächst dieselben Raster-Tiles; invertierte Nachtkarte vorerst unwichtig. Implementierung abgeschlossen, gezielt geprüft. Neue APK ausdrücklich beauftragt:0.8.79/code149 über GitHub Actions bauen und veröffentlichen. [Vollständiger Umfang/Prüfnachweise](vtm-migration.md).
+Nutzer hat nach Sicherung des Meilensteins den Austausch Mapsforge → Mapsforge-VTM beauftragt: alle Dashboardkartenfunktionen erhalten, zunächst dieselben Raster-Tiles; invertierte Nachtkarte vorerst unwichtig. Implementierung abgeschlossen, gezielt geprüft. APK-Auftrag0.8.79/code149 erfolgreich über GitHub Actions erfüllt; [Build120](build-120.md). [Vollständiger Umfang/Prüfnachweise](vtm-migration.md).
 
 - Stabile VTM0.25.0-Android-/HTTP-Abhängigkeiten und vier native ABIs, OpenGL ES2. Alte Mapsforge-Map-/Core-Abhängigkeit/Imports entfernt. Anbieter/URLs/Keys/Attributionen unverändert, begrenzter geteilter HTTP-Cache.
 - Kamera, bestehende Präferenzschlüssel und Zoom6–19/0,5-Schritte; OpenTopoMap17; gemeinsame Pinch-/Pan-/Nachlaufsteuerung. GPS-Folgen, Norden/Fahrtrichtung, Vorausschauanker und33-ms-Interpolation erhalten.
@@ -18,7 +18,11 @@ Debug-Kompilation und Release-Native-/Java-Ressourcenzusammenführung erfolgreic
 
 Noch am Smartphone prüfen: tatsächliche GL-Tilezeichnung, SurfaceView-Clipping/Überlagerungen/PixelCopy beim Dashboardwechsel, Wischgefühl, mehrere Kartenansichten und App-/Dialogrückkehr. Lokale Tests sind kein GPU-/Akkunachweis.
 
-## Letzte veröffentlichte APK und Rückfallstand
+## Letzte veröffentlichte APK
+
+[APK0.8.79/Build120](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.79-release-120.apk), code149, Quelle`66a487b5f490df3834644a21b96d97caac309a96`, 2870449Bytes, SHA256`b8e9daffb07e871c836a33d501943328a97170333d589c6b306a0d31aabe980e`. Signatur/Version/Manifest/CI-Prüfsumme/16-KB-ZIP-Ausrichtung geprüft; vier native ABIs und25 Shader in APK vorhanden, JNI-Klassenname nach R8 erhalten. [Buildnachweis](build-120.md).
+
+## Gesicherter Rückfallstand
 
 [APK0.8.78/Build119](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.78-release-119.apk), code148, Quelle`521e012a3e37ed9cf1dd85fb8e9c856b8ef57bb9`, SHA256`998fa47f4765b1a0079ff78160c9c99d3ec4ec70cf7a52fc09fece9592103977`. Dauerhafte Signatur, Version, Manifest, Ausrichtung und tatsächlicher Raw-Download geprüft. [Buildnachweis](build-119.md). Enthält noch Mapsforge, keine VTM-Migration.
 
@@ -30,4 +34,4 @@ Build119 enthält HRV-Dropdown/volle Kacheln/kompakte Empfehlung/höheres Messdi
 
 [Akkuanalyse](dashboard-energy-analysis.md): später ein gemeinsamer Sparmodus für Anzeige/Animationen – Karte1–2s, Zahlen1Hz, Graphen5–10s/keine Skalenanimation, statische funktionale Farben/Warnungen, OLED-Vektorstil. Trainingshilfe ausdrücklich aktuell weich, harte Farben erst im Sparmodus. Nutzer ausdrücklich: Sensorfragen nur aus Neugier; Sensorerfassung, Aufzeichnung und Analyse bleiben vollständig/zuverlässig. VTM jetzt beauftragt/umgesetzt, Online-Vektorquelle noch offen. Keine privaten Messdaten ins Repo.
 
-Nächste APK nur auf Auftrag ausschließlichGitHubActions, voraussichtlich0.8.79/code149/Build120. Dauerhafte Signatur und tatsächlichen Download prüfen; Appcode nie mit[skip ci] überspringen.
+Nächste APK nur auf Auftrag ausschließlichGitHubActions, voraussichtlich0.8.80/code150/Build121. Dauerhafte Signatur und tatsächlichen Download prüfen; Appcode nie mit[skip ci] überspringen.

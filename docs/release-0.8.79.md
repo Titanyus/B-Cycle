@@ -10,4 +10,4 @@
 
 Kein allgemeiner Akkuschonmodus und keine Online-Vektorkartenquelle eingeführt. [Gesicherter Rückfallstand0.8.78/Build119](milestone-0.8.78.md).
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-120.md).
