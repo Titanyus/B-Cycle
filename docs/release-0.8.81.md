@@ -11,4 +11,4 @@
 
 Tatsächliche Android-GPU-Darstellung, Umhängen/Snapshot verschiedener Kartenhöhen, Wischgefühl und Akkueffekt am Smartphone noch prüfen. Keine gemessene Akkuersparnis. Minimal-/OLED-Kartenstil, Dashboard-Stilumschalter und Live-Stilimport sind nicht Teil dieser APK.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-122.md).
