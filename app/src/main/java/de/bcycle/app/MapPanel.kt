@@ -290,7 +290,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         nightButton.visibility=GONE;nightButton.isEnabled=false
         setBackgroundColor(Color.rgb(225,225,225));refreshRoutes()
     }
-    fun resume() { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis());lastTrack=-1L;running=true;mapView.resumeMap();downloads.resume();revealControls();refresh() }
+    fun resume(reveal:Boolean=true) { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis());lastTrack=-1L;running=true;mapView.resumeMap();downloads.resume();if(reveal) revealControls() else if(controls.visibility==VISIBLE) scheduleHide();refresh() }
     fun pause() {
         routePopup?.dismiss();pinchZoom.cancel();running=false;phoneHeading.stop();stopMotion()
         saverFrames.cancel();handler.removeCallbacksAndMessages(null);downloads.pause();mapView.pauseMap();saveCamera()
@@ -467,9 +467,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         windRose.visibility=if(follow && !editing && controls.visibility!=VISIBLE && preferences.getBoolean("mapWindRoseVisible",false)) VISIBLE else GONE
         windRose.rotation=mapView.bearing
     }
-    fun showFullscreen(value: Boolean) {
+    fun showFullscreen(value: Boolean, reveal:Boolean=true) {
         MapControlDesign.icon(fullButton, if(value) BicycleIcon.Maximize else BicycleIcon.Minimize)
-        fullButton.contentDescription = if (value) context.getString(R.string.ui_map_return_dashboard) else context.getString(R.string.ui_map_fullscreen); revealControls() }
+        fullButton.contentDescription = if (value) context.getString(R.string.ui_map_return_dashboard) else context.getString(R.string.ui_map_fullscreen)
+        if(reveal) revealControls() }
     fun setFollow(value: Boolean) {
         if (follow == value) return
         if (!value) { ovalAnchor.hold(android.os.SystemClock.uptimeMillis());refreshRoutes() }

@@ -1,4 +1,10 @@
-# Aktueller Stand: GL-Hintergrund nach Screenshotvergleich korrigiert; letzte APK 0.8.83 / Build 124
+# Aktueller Stand: GL-Hintergrund und Footer beim Dashboardwechsel korrigiert; letzte APK 0.8.83 / Build 124
+
+## Aktuelle Korrektur: Footer beim Dashboardwechsel
+
+Nutzer bestätigt: Karte UND Bedienelemente kommen bei sichtbarem Footer zunächst wie ohne Footer herein, beim Loslassen springen sie um. Bisher CENTER_CROP-Aufnahme des gesamten alten MapPanel in neuer Kartengröße; zusätzlich erzwang showFullscreen beim Commit den Footer erneut. Jetzt wird die einzige reale Karte bereits in die Nachbarseite umgehängt und in deren echter Zielhöhe gemessen; die auslaufende Seite bekommt ein begrenztes Standbild. Bei Abbruch/Commit zurücksetzen und Bitmap freigeben. Footer-Zustand über Vorschau/Commit bewahren, normale Vollbildbedienung und erzwungener Footer bei kartenlosen Seiten erhalten. Sichtbare Controls-Ausblendtimer nach Resume wieder planen. Generation/aktive Wischrichtung/Seite/Profil/Lifecycle verwerfen verspätete Aufnahmen vor dem Umhängen.
+
+Vier gezielte Fälle erfolgreich: neue Integration mit beiden Footer-Zuständen inklusive Zoom-Control-Bounds und Abbruch, bestehender Mapless-/echter Dashboardwechsel und verspätete Vorschau nach Abbruch. Nach späterem Guard nur zwei betroffene Fälle wiederholt. Neuer Test reproduzierte vor Fix das erzwungene Footereinblenden. Logs dashboard-footer-before-test.log, dashboard-footer-final-tests.log, dashboard-footer-late-result-tests.log in /workspace/.tools/. [Details](dashboard-page-transition.md). Kompilation/Typografie/Atlas/Diff erfolgreich. Keine neue APK beauftragt/gebaut, Build 124 enthält den Fix noch nicht. Tatsächlichen GL-Neuanschluss/Übergang am Smartphone prüfen.
 
 ## Aktuelle Korrektur nach Vergleichsbildern
 

@@ -77,6 +77,7 @@ class MainActivity : Activity() {
     private val dashboardPages get() = DashboardPages(this,preferences)
     private var mapFullscreen = false
     private var previewMapAttached=false
+    private var dashboardPreviewGeneration=0
     private var controlsVisible = true
     private var displayedMapMessage = ""
     private val dashboardKey get() = if (dashboardPage == 0) "dashboard" else "dashboard_$dashboardPage"
@@ -255,7 +256,7 @@ class MainActivity : Activity() {
         dashboardViewport=DashboardPageViewport(this).apply {
             setPage(dashboardArea)
             preparePageSnapshot={ ready ->
-                if(mapPanel.visibility==View.VISIBLE && currentTemplate().hasMap) mapPanel.mapView.prepareSnapshot(ready)
+                if(mapPanel.parent===dashboardArea && mapPanel.visibility==View.VISIBLE && currentTemplate().hasMap) mapPanel.mapView.prepareSnapshot(ready)
                 else ready(true)
             }
             releasePageSnapshot={ mapPanel.mapView.clearSnapshot() }
@@ -1249,17 +1250,21 @@ class MainActivity : Activity() {
         recordingIndicator?.stop();bikePicker?.dismiss();dialogs.closeAll();editorHandler.removeCallbacks(editorTimeout); settingsWriter.shutdown(); mapPanel.destroy(); super.onDestroy()
     }
 
-    private fun setMapFullscreen(full: Boolean) {
+    private fun setMapFullscreen(full:Boolean) = setMapFullscreen(full,revealControls=true)
+    private fun setMapFullscreen(full: Boolean, revealControls:Boolean) {
         mapFullscreen = full && currentTemplate().hasMap; updateMapBack(); dashboard.visibility = if (mapFullscreen) View.GONE else View.VISIBLE
         val wasVisible=mapPanel.visibility==View.VISIBLE
         mapPanel.visibility=if(currentTemplate().hasMap) View.VISIBLE else View.GONE
         if(runtime.visible && wasVisible!=currentTemplate().hasMap) { if(currentTemplate().hasMap) mapPanel.resume() else mapPanel.pause() }
         if(!currentTemplate().hasMap) mapPanel.revealControls()
         noMapEditorFinish.visibility=if(dashboardEditing && !currentTemplate().hasMap) View.VISIBLE else View.GONE
-        mapPanel.showFullscreen(mapFullscreen); dashboardArea.requestLayout()
+        mapPanel.showFullscreen(mapFullscreen,revealControls); dashboardArea.requestLayout()
     }
     /** Read-only neighboring layout: no page preference writes and no second sensor/map instance. */
     private fun prepareDashboardPreview(delta:Int,ready:(PagePreview?)->Unit) {
+        val request=++dashboardPreviewGeneration
+        val sourcePage=dashboardPage
+        val profile=runtime.profileRevision
         val pages=dashboardPages.all()
         val position=pages.indexOfFirst { it.id==dashboardPage }.coerceAtLeast(0)
         val target=pages[Math.floorMod(position+delta,pages.size)].id
@@ -1283,30 +1288,41 @@ class MainActivity : Activity() {
         }.apply { orientation=LinearLayout.VERTICAL;tag="dashboard_adjacent_preview" }
         preview.addView(data,LinearLayout.LayoutParams(-1,0))
         if(!template.hasMap) { ready(PagePreview(preview));return }
-        if(mapPanel.visibility==View.VISIBLE && mapPanel.parent===dashboardArea) {
-            // Existing map stays live on the current page; only a bounded image is shown next to it.
-            mapPanel.capturePreview { image ->
-                preview.addView(ImageView(this).apply {
-                    scaleType=ImageView.ScaleType.CENTER_CROP
-                    setBackgroundColor(Color.rgb(225,225,225));setImageBitmap(image)
-                },LinearLayout.LayoutParams(-1,0,1f))
-                ready(PagePreview(preview) { image?.recycle() })
+        val hadMap=mapPanel.visibility==View.VISIBLE && mapPanel.parent===dashboardArea
+        fun placeMap(image:android.graphics.Bitmap?) {
+            if(request!=dashboardPreviewGeneration || !dashboardViewport.hasAdjacentDrag(delta) ||
+                !runtime.visible || dashboardEditing || !dialogs.empty ||
+                profile!=runtime.profileRevision || sourcePage!=dashboardPage || mapPanel.parent!==dashboardArea) {
+                image?.recycle();ready(null);return
             }
-        } else {
-            // A page without a map has no GL image. Rehouse the sole map for the incoming preview.
-            previewMapAttached=true
+            // Freeze the outgoing map at its original bounds; lay out the one live map at
+            // the target bounds. Cropping a whole-panel image also crops/moves its controls.
+            val originalIndex=dashboardArea.indexOfChild(mapPanel)
+            val originalParams=LinearLayout.LayoutParams(mapPanel.layoutParams as LinearLayout.LayoutParams)
+            val frozen=if(hadMap) ImageView(this).apply {
+                tag="dashboard_outgoing_map_preview"
+                scaleType=ImageView.ScaleType.FIT_XY
+                setBackgroundColor(Color.rgb(225,225,225));setImageBitmap(image)
+                importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            } else null
+            mapPanel.pause()
             (mapPanel.parent as? android.view.ViewGroup)?.removeView(mapPanel)
+            if(frozen!=null) dashboardArea.addView(frozen,originalIndex,LinearLayout.LayoutParams(originalParams))
+            previewMapAttached=true
             preview.addView(mapPanel,LinearLayout.LayoutParams(-1,0,1f))
             mapPanel.visibility=View.VISIBLE
-            if(runtime.visible) mapPanel.resume()
+            if(runtime.visible) mapPanel.resume(reveal=false)
             ready(PagePreview(preview) {
                 mapPanel.pause();preview.removeView(mapPanel);previewMapAttached=false
-                dashboardArea.addView(mapPanel,LinearLayout.LayoutParams(-1,0,1f-currentTemplate().dataFraction))
+                frozen?.let { dashboardArea.removeView(it);it.setImageDrawable(null) }
+                dashboardArea.addView(mapPanel,originalIndex.coerceIn(0,dashboardArea.childCount),originalParams)
                 mapPanel.visibility=if(currentTemplate().hasMap) View.VISIBLE else View.GONE
-                if(runtime.visible && currentTemplate().hasMap) mapPanel.resume()
+                if(runtime.visible && currentTemplate().hasMap) mapPanel.resume(reveal=false)
                 dashboardArea.requestLayout()
+                image?.recycle()
             })
         }
+        if(hadMap) mapPanel.capturePreview(::placeMap) else placeMap(null)
     }
     private fun changeDashboard(delta: Int) {
         val pages=dashboardPages.all()
@@ -1326,7 +1342,7 @@ class MainActivity : Activity() {
         val template = currentTemplate(); dashboard.setTemplate(template)
         dashboardArea.requestLayout()
         (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
-        setMapFullscreen(false); render()
+        setMapFullscreen(false,revealControls=false); render()
     }
     private fun updateDashboardFullscreen() {
         if(!::runtime.isInitialized) return

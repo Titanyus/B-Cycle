@@ -229,6 +229,7 @@ internal class DashboardPageViewport(context:Context,
         }
         positionAdjacent()
     }
+    internal fun hasAdjacentDrag(direction:Int)=dragging && adjacentDirection==direction && isAttachedToWindow
     private fun positionAdjacent() { adjacent?.view?.translationX=(page?.translationX ?: 0f)+width*adjacentDirection }
     private fun clearAdjacent() {
         adjacentGeneration++;adjacentDirection=0

@@ -221,7 +221,9 @@ class DashboardPageViewportTest {
             viewport.swipeEnabledAt={ _,_ -> true };viewport.changePage={ fail("cancelled") }
             viewport.prepareAdjacentPage={ _,ready -> pending=ready }
             touch(viewport,MotionEvent.ACTION_DOWN,180f);touch(viewport,MotionEvent.ACTION_MOVE,100f,time=300)
+            assertTrue(viewport.hasAdjacentDrag(1))
             viewport.cancelTransition()
+            assertFalse("late GL result must not rehouse the map after cancel",viewport.hasAdjacentDrag(1))
             checkNotNull(pending)(PagePreview(View(a)) { releases++ })
             assertEquals(1,releases);assertEquals(1,viewport.childCount);assertFalse(viewport.running)
         } finally { host.pause().stop().destroy() }
@@ -249,6 +251,71 @@ class DashboardPageViewportTest {
             assertEquals(1,prefs.getInt("dashboardPage",-1));assertSame(original,map.parent);assertEquals(View.VISIBLE,map.visibility)
             assertEquals(1,testDescendants(root).filterIsInstance<BicycleMapView>().size)
             viewport.viewTreeObserver.dispatchOnPreDraw();animator(viewport).end()
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun incomingDashboardMapKeepsTheSameBoundsBeforeAndAfterCommitWithEitherFooterState() {
+        val c=org.robolectric.RuntimeEnvironment.getApplication();val runtime=RideRuntime.get(c);val prefs=runtime.preferences
+        c.getSharedPreferences(HrvSettings.STORE,0).edit().putBoolean("showOnFirstStart",false).commit()
+        SensorSetupLaunch(c).later(runtime.bikes.current())
+        prefs.edit().putInt("dashboardPage",0).putString("dashboardTemplate_0",DashboardTemplate.MAP.name)
+            .putString("dashboardTemplate_1",DashboardTemplate.BALANCED.name).commit()
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        try {
+            val a=host.get();val root=a.window.decorView;prepare(root)
+            org.robolectric.shadows.ShadowSystemClock.advanceBy(Duration.ofSeconds(1))
+            shadowOf(a.application).grantPermissions(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            runtime.setGpsEnabled(true)
+            val gpsListener=GpsSensor::class.java.getDeclaredField("listener").apply { isAccessible=true }.get(runtime.gpsSensor) as android.location.LocationListener
+            gpsListener.onLocationChanged(android.location.Location("gps").apply {
+                latitude=48.0;longitude=11.0;accuracy=3f;speed=4f
+                elapsedRealtimeNanos=android.os.SystemClock.elapsedRealtime()*1_000_000
+            })
+            assertTrue(runtime.isMoving)
+            val viewport=root.findViewWithTag<DashboardPageViewport>("dashboard_page_viewport")
+            val map=testDescendants(root).filterIsInstance<MapPanel>().single()
+            val toolbar=root.findViewWithTag<View>("ride_toolbar")
+            viewport.preparePageSnapshot={ ready -> ready(true) }
+            val show=MainActivity::class.java.getDeclaredMethod("showDashboardPage",Int::class.javaPrimitiveType).apply { isAccessible=true }
+            for(footerVisible in listOf(true,false)) {
+                show.invoke(a,0);map.revealControls();map.holdControls()
+                if(!footerVisible) {
+                    MapPanel::class.java.getDeclaredField("hideControls").apply { isAccessible=true }.get(map).let { it as Runnable }.run()
+                }
+                layout(root)
+                val originalHeight=viewport.height
+                val originalParent=map.parent
+                val originalMapBounds=listOf(map.top,map.height)
+                assertEquals(if(footerVisible) View.VISIBLE else View.GONE,toolbar.visibility)
+                touch(viewport,MotionEvent.ACTION_DOWN,180f,time=0)
+                touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
+                touch(viewport,MotionEvent.ACTION_MOVE,100f,time=60)
+                layout(root)
+                val preview=viewport.findViewWithTag<LinearLayout>("dashboard_adjacent_preview")
+                assertNotNull(preview)
+                val incoming=preview.getChildAt(1)
+                assertSame("preview already uses the sole map at its target size",map,incoming)
+                assertEquals(1,testDescendants(root).filterIsInstance<BicycleMapView>().size)
+                assertNotNull(root.findViewWithTag<View>("dashboard_outgoing_map_preview"))
+                val zoom=map.findViewWithTag<View>("map_zoom_controls")
+                val zoomBounds=listOf(zoom.left,zoom.top,zoom.width,zoom.height)
+                val mapTop=incoming.top;val mapHeight=incoming.height
+                assertEquals("preview honors current viewport with footer=$footerVisible",originalHeight,preview.height)
+                touch(viewport,MotionEvent.ACTION_CANCEL,100f,time=70);animator(viewport).end();layout(root)
+                assertSame("cancel restores original map parent",originalParent,map.parent)
+                assertEquals(originalMapBounds,listOf(map.top,map.height))
+                assertNull(root.findViewWithTag<View>("dashboard_outgoing_map_preview"))
+                assertEquals(0,prefs.getInt("dashboardPage",-1))
+                touch(viewport,MotionEvent.ACTION_DOWN,180f,time=1000)
+                touch(viewport,MotionEvent.ACTION_MOVE,160f,time=1030)
+                touch(viewport,MotionEvent.ACTION_MOVE,100f,time=1060);layout(root)
+                touch(viewport,MotionEvent.ACTION_UP,100f,time=1070);layout(root)
+                assertEquals("footer state preserved at release",if(footerVisible) View.VISIBLE else View.GONE,toolbar.visibility)
+                assertEquals("map top must not jump with footer=$footerVisible",mapTop,map.top)
+                assertEquals("map height must not jump with footer=$footerVisible",mapHeight,map.height)
+                assertEquals("native controls must keep their target positions",zoomBounds,listOf(zoom.left,zoom.top,zoom.width,zoom.height))
+                assertNull(root.findViewWithTag<View>("dashboard_outgoing_map_preview"))
+                viewport.viewTreeObserver.dispatchOnPreDraw();animator(viewport).end()
+            }
         } finally { host.pause().stop().destroy() }
     }
     @Test fun shortUncommittedAndCancelledDragsReturnWhileMapAndVerticalGesturesRemainUntouched() {
