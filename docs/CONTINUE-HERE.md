@@ -1,6 +1,12 @@
-# Aktueller Stand: APK0.8.80/Build121 veröffentlicht
+# Aktueller Stand: GPS/Live-Strecke lokal korrigiert; Nachbarseitenvorschau in Arbeit
 
-## Auftrag02.11.2026 abgeschlossen
+## Aktueller Auftrag nach Build121
+
+Nutzer: gespeicherte Strecken bewegen sich perfekt mit; Standort/Höhe ruckeln, Live-Strecke prüfen. Lokal umgesetzt: alle GPS-Elemente in VtmGpsLayer im GL-Frame, wiederverwendete kleine Glyphen und aufrechtes Höhenlabel, keine zeichnende Android-Kartenoverlayfläche mehr. Live-Strecke behält vorbereitete Geometrie während Worker-Neuberechnung, mit eigener Aufnahme-/Profilgeneration gegen alte Linien. [Umfang/Prüfung](vtm-gps-frame-sync.md). Drei gezielte Fälle und echter Mesa/GLES-Shader-Pixeltest erfolgreich, nur offenen Worker-Test nach Synchronisierung wiederholt; Kompilation/Typografie/Atlas/Diff erfolgreich. Noch keine neue APK beauftragt; nicht pushen. Nächste APK **27 Shader**, einschließlich neuem `bcycle_gps.glsl`.
+
+Zusätzlicher aktiver Auftrag: Nachbarseite soll bei Dashboard-/HRV-Wischen bereits während des Ziehens gleichzeitig hereinlaufen; bisher kommt sie erst nach UP und es bleibt ein leerer Bereich. Vorschau ergänzen, Auswahl erst beim Loslassen festlegen, weiterhin eine lebende Karte und begrenzte Snapshot-Speichergröße. GPS-Korrektur zuerst abschließen, danach diese Aufgabe vollständig umsetzen.
+
+## Letzter APK-Auftrag02.11.2026 abgeschlossen
 
 Neue APK ausdrücklich beauftragt, über GitHub Actions gebaut und geprüft. [Build121](build-121.md), [Änderungen](release-0.8.80.md).
 

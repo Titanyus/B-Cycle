@@ -177,7 +177,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addView(routes,LayoutParams(-1,-1))
         mapView.userMoved={ setFollow(false);revealControls() }
         mapView.zoomed={ revealControls() }
-        mapView.cameraChanged={ routes.invalidate();handler.removeCallbacks(updateZoom);handler.post(updateZoom);updateWindRose() }
+        mapView.cameraChanged={ handler.removeCallbacks(updateZoom);handler.post(updateZoom);updateWindRose() }
         val detector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean { revealControls(); return true }
             override fun onScroll(first:MotionEvent?,next:MotionEvent,dx:Float,dy:Float):Boolean {
@@ -357,6 +357,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             preferences.getBoolean("mapGpxVisible", true), preferences.getBoolean("mapTrackVisible", true), night, displayedPhoneHeading,
             MapRouteStyles.read(preferences,MapLineKind.RECORDED,night),MapRouteStyles.read(preferences,MapLineKind.SAVED,night),
             preferences.getBoolean("mapHeightVisible",true),
+            trackGeneration=runtime.mapState.track.generation,profileGeneration=runtime.profileRevision,
             overlays=runtime.mapState.mapRoutes.filter { runtime.mapState.routeVisible(it.id) }.map { StyledMapRoute(it.route,MapRouteStyles.read(preferences,MapRouteStyles.saved(it.slot),night)) })
     }
     private fun refreshDataFields() {

@@ -29,7 +29,6 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
         }
         layer=VtmBaseMap(context,map.map(),source,MapProviderSettings.read(context),prefs.getBoolean(VtmBaseMap.cyclewaysKey,true))
         overlay=RouteTrackLayer(context,map).apply { update(route,emptyList(),GpsValues(),true,false,night,savedStyle=MapRouteStyles.read(prefs,MapLineKind.SAVED,night)) }
-        map.cameraChanged={ overlay.invalidate() }
         addView(map,LayoutParams(-1,-1));addView(overlay,LayoutParams(-1,-1))
         if (interactive) {
             val buttons = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }

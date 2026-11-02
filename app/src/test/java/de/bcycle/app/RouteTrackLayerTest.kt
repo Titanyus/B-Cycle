@@ -26,7 +26,8 @@ class RouteTrackLayerTest {
     private fun ready(layer:RouteTrackLayer) {
         val done=CountDownLatch(1)
         val worker=RouteTrackLayer::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(layer) as ThreadPoolExecutor
-        worker.execute { done.countDown() };assertTrue(done.await(5,TimeUnit.SECONDS));shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(worker.queue.offer(Runnable { done.countDown() },5,TimeUnit.SECONDS))
+        assertTrue(done.await(5,TimeUnit.SECONDS));shadowOf(Looper.getMainLooper()).idle()
     }
     @Test fun threeStylesAndLiveTrackPreserveAlphaAndGapsAtFractionalZoom() {
         val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get());val overlay=RouteTrackLayer(host.get(),map)
@@ -97,28 +98,68 @@ class RouteTrackLayerTest {
         assertEquals(1,crossing.pieces.size)
         assertTrue(crossing.pieces.single()[0]<0);assertTrue(crossing.pieces.single()[2]>0)
     }
-    @Test fun gpsCompassAndUprightHeightLabelKeepTheirScreenSizeAcrossZoomAndRotation() {
+    @Test fun gpsCompassAndUprightHeightUseTheGlFrameAndKeepTheirScreenSize() {
         val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get());val overlay=RouteTrackLayer(host.get(),map)
+        class Frame:org.oscim.renderer.GLViewport() { fun capture() { copy(map.map().viewport()) } }
         try {
             size(map);size(overlay);map.setCenter(51.0,10.0)
             overlay.update(null,emptyList(),GpsValues(latitude=51.0,longitude=10.0,altitudeM=512.0,accuracyM=20.0),false,false,phoneHeading=0.0)
-            var expectedInk:Int?=null
-            for(zoom in listOf(15.0,15.5)) for(rotation in listOf(0f,-90f)) {
-                map.setZoom(zoom);map.rotate(rotation)
+            val gps=map.map().layers().filterIsInstance<VtmGpsLayer>().single()
+            val snapshot=checkNotNull(gps.snapshot)
+            val glyph=gps.heightGlyph(checkNotNull(snapshot.height))
+            try {
+                var ink=0
+                for(y in 0 until glyph.height) for(x in 0 until glyph.width) if(glyph.getPixel(x,y)==Color.BLACK) ink++
+                assertTrue("height label remains readable",ink>30)
+                for(zoom in listOf(15.0,15.5)) for(rotation in listOf(0f,-90f)) {
+                    map.setZoom(zoom);map.rotate(rotation);map.setAnchor(.4f,.72f)
+                    val frame=Frame().apply { capture() };val pose=GlGpsProjection.pose(frame,snapshot)
+                    assertEquals(512*.4-256,pose.x.toDouble(),.01);assertEquals(512*.72-256,pose.y.toDouble(),.01)
+                    val north=map.screenPoint(51.001,10.0);val center=map.screenPoint(51.0,10.0)
+                    val angle=Math.toDegrees(kotlin.math.atan2(north.x-center.x,-(north.y-center.y)))
+                    assertEquals("compass follows geographic north",angle,checkNotNull(pose.heading).toDouble(),.01)
+                    assertTrue(checkNotNull(pose.accuracyRadius)>0)
+                    map.panBy(200f,-100f)
+                    assertEquals("UI camera must not move a frozen GL marker",pose,GlGpsProjection.pose(frame,snapshot))
+                    frame.capture();val moved=GlGpsProjection.pose(frame,snapshot);val expected=map.screenPoint(51.0,10.0)
+                    assertEquals(expected.x-256,moved.x.toDouble(),.01);assertEquals(expected.y-256,moved.y.toDouble(),.01)
+                    map.setCenter(51.0,10.0)
+                }
                 val image=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
-                try {
-                    overlay.draw(Canvas(image));assertEquals(Color.rgb(0,100,245),image.getPixel(256,256))
-                    val north=map.screenPoint(51.001,10.0)
-                    val length=kotlin.math.hypot(north.x-256,north.y-256)
-                    val x=(256+(north.x-256)*16/length).toInt();val y=(256+(north.y-256)*16/length).toInt()
-                    assertTrue("compass follows geographic north",(x-1..x+1).any { px -> (y-1..y+1).any { py -> image.getPixel(px,py)==Color.rgb(0,100,245) } })
-                    var ink=0
-                    for(py in 240..272) for(px in 274..390) if(image.getPixel(px,py)==Color.BLACK) ink++
-                    assertTrue("height remains readable",ink>30)
-                    expectedInk?.let { assertEquals("height text stays upright and same size",it,ink) };expectedInk=ink
-                } finally { image.recycle() }
-            }
+                overlay.draw(Canvas(image));assertEquals("GPS/height no longer use the delayed Android surface",0,Color.alpha(image.getPixel(256,256)));image.recycle()
+                overlay.update(null,emptyList(),GpsValues(latitude=51.0,longitude=10.0,accuracyM=12.0),false,false,showHeight=false)
+                assertNotNull(gps.snapshot?.accuracy);assertNull(gps.snapshot?.height)
+                overlay.update(null,emptyList(),GpsValues(latitude=51.0,longitude=10.0,accuracyM=9.0),false,false)
+                assertNull(gps.snapshot?.accuracy)
+                overlay.update(null,emptyList(),GpsValues(),false,false);assertNull(gps.snapshot)
+            } finally { glyph.recycle() }
         } finally { overlay.dispose();map.disposeMap();host.pause().stop().destroy() }
+    }
+    @Test fun growingLiveTrackKeepsItsLastGeometryWhileWorkerPreparesTheNewPoints() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get());val overlay=RouteTrackLayer(host.get(),map)
+        val blocked=CountDownLatch(1);val release=CountDownLatch(1)
+        try {
+            size(map);map.setCenter(51.0,10.0)
+            val track=listOf(MapPoint(51.0,10.0,true),MapPoint(51.001,10.001))
+            overlay.update(null,track,GpsValues(),false,true,trackGeneration=1);ready(overlay)
+            val native=map.map().layers().filterIsInstance<VtmRouteLayer>().single()
+            fun lines():List<GlRouteLine> {
+                val snapshot=VtmRouteLayer::class.java.getDeclaredField("snapshot").apply { isAccessible=true }.get(native)
+                @Suppress("UNCHECKED_CAST") return snapshot.javaClass.getDeclaredField("lines").apply { isAccessible=true }.get(snapshot) as List<GlRouteLine>
+            }
+            val old=lines().single().geometry
+            val worker=RouteTrackLayer::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(overlay) as ThreadPoolExecutor
+            worker.execute { blocked.countDown();release.await(5,TimeUnit.SECONDS) };assertTrue(blocked.await(5,TimeUnit.SECONDS))
+            val grown=track+MapPoint(51.002,10.002)
+            overlay.update(null,grown,GpsValues(),false,true,trackGeneration=1)
+            assertSame("existing trail stays visible during preparation",old,lines().single().geometry)
+            release.countDown();ready(overlay)
+            assertEquals(3,lines().single().geometry.starts.size)
+            overlay.update(null,grown+MapPoint(51.003,10.003,true),GpsValues(),false,true,trackGeneration=2)
+            assertTrue("new recording cannot inherit old fallback",lines().isEmpty())
+            overlay.update(null,emptyList(),GpsValues(),false,false,trackGeneration=2);ready(overlay)
+            assertTrue("old worker callback cannot resurrect a hidden track",lines().isEmpty())
+        } finally { release.countDown();overlay.dispose();map.disposeMap();host.pause().stop().destroy() }
     }
     @Test fun nativeVtmProjectionKeepsTheGpsAtTheRequestedAnchorAfterRotation() {
         val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get())

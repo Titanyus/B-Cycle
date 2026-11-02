@@ -71,5 +71,6 @@ assert min(pixel(37,32)[:3])>245,pixel(37,32)
 assert all(abs(v-51)<=1 for v in pixel(42,32)[:3]),pixel(42,32)
 assert gl('glGetError',U,[])()==0
 print('GLES shader compiled/linked; 40% opacity core, white border, outside and endpoint marker verified:',center,border,outside)
-egl('eglMakeCurrent',U,[P,P,P,P])(display,None,None,None)
-egl('eglDestroyContext',U,[P,P])(display,context);egl('eglDestroySurface',U,[P,P])(display,surface);egl('eglTerminate',U,[P])(display)
+if not globals().get('keep_context',False):
+ egl('eglMakeCurrent',U,[P,P,P,P])(display,None,None,None)
+ egl('eglDestroyContext',U,[P,P])(display,context);egl('eglDestroySurface',U,[P,P])(display,surface);egl('eglTerminate',U,[P])(display)

@@ -6,11 +6,12 @@ data class MapPoint(val latitude: Double, val longitude: Double, val segmentStar
 class MapTrack(private val capacity: Int = 20_000) {
     val points = ArrayList<MapPoint>()
     var revision = 0L; private set
+    var generation = 0L; private set
     private var lastTime: Long? = null
     private var gap = true
     private var spacing = 3.0
     init { require(capacity >= 4) }
-    fun clear() { points.clear(); lastTime = null; gap = true; spacing = 3.0; revision++ }
+    fun clear() { generation++;points.clear(); lastTime = null; gap = true; spacing = 3.0; revision++ }
     fun append(sample: RideSample) {
         val lat = sample.latitude; val lon = sample.longitude
         if (lat == null || lon == null || !lat.isFinite() || !lon.isFinite() || lat !in -85.05112878..85.05112878 || lon !in -180.0..180.0) {
