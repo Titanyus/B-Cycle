@@ -8,4 +8,4 @@
 
 Acht eindeutige gezielte Fälle erfolgreich: zwei Hintergrund-/Quellenwechselprüfungen, vier Übergangs-/Abbruchfälle, zwei Profil-/Quellenwahl-/Sicherungsprüfungen. Nach Ergänzungen nur betroffene/offene Fälle wiederholt. Textänderung separat per Ressourcenprüfung validiert. Generator-Reproduzierbarkeit, Kompilation, Typografie/Atlas/Diff erfolgreich; kein Gesamtlauf. Optischen Abgleich der Karte und echten GL-Neuanschluss/Übergang am Smartphone noch prüfen.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-125.md).
