@@ -1,6 +1,10 @@
-# Aktueller Stand: Wischsteuerung bis zum Loslassen; Vektorkarte ergänzt
+# Aktueller Stand: Liberty als flacher Kartenstil; Wischsteuerung überarbeitet
 
 ## Aktueller Auftrag02.11.2026
+
+Liberty als Basis ohne3D, immer Draufsicht: eigene XML-Adaption auf VTM/OpenMapTiles-Regeln mit Liberty-Palette, flache Gebäude ab Zoom13, keine Extrusionen. Quelle jetzt **OpenFreeMap · Liberty**, gespeicherte Kennung VECTOR bleibt. Native Tilt-Grenzen0 zusätzlich zu gesperrten Tilt-Gesten/Kamerapositionen; Fahrtrichtungsdrehung und Radwegeoption erhalten. [Umfang/Grenzen/Prüfung](vtm-liberty-style.md). Zwei gezielte Fälle erfolgreich; finale native Tilt-Sperre im betroffenen Fall ebenfalls erfolgreich geprüft. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf/keine APK; nicht pushen. Minimal-Stil mit großen, aber ohne kleine Straßen/Feldwege nur vorgemerkt.
+
+## Ebenfalls lokal fertig: gemeinsame Wischsteuerung
 
 Dashboard-/HRV-Seitenwechsel: frühe automatische Übernahme während Ziehen entfernt. Bis UP direkte Fingerkontrolle über volle Breite; Entscheidung aus Weg (langsam halbe Breite) und200-ms-Geschwindigkeitsprojektion, mindestens24dp/400dp/s für kurzen Flick. Rückwärtsflick kann auch jenseits der Hälfte abbrechen; letzte UP-Position und Android-Geschwindigkeitsgrenzen berücksichtigen. Vollständig hinausgeschoben → kein leerer Restslide. Bestehender weicher Übergang, PixelCopy, eine lebende Karte und Lebenszyklus bleiben. [Details/gezielte Prüfung](dashboard-page-transition.md). Alle sechs gezielt geprüften Fälle erfolgreich (vier Komponentenfälle, Dashboard und HRV). Die zwei Integrationstests an GL-Testumgebung bzw. eindeutiges Datumsformat der Testdaten angepasst; keine Änderung am HRV-Import. Kompilation/Typografie/Atlas/Diff erfolgreich. Keine APK beauftragt, nicht pushen.
 

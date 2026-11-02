@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rendertheme xmlns="http://opensciencemap.org/rendertheme" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" base-stroke-width="0.7" map-background="#f8f4f0" version="1" xsi:schemaLocation="http://opensciencemap.org/rendertheme https://raw.githubusercontent.com/mapsforge/vtm/master/resources/rendertheme.xsd">
+    <!-- B|CYCLE Liberty adaptation: OpenFreeMap Liberty palette on VTM 0.25.0 OpenMapTiles geometry rules. Sources/licenses: ../Liberty-LICENSE.txt and ../Mapsforge-LICENSE.txt. No 3D/extrusions. -->
+    <tag-transform k="render_height" k-lib="height" />
+    <tag-transform k="render_min_height" k-lib="min_height" />
+    <!-- base style for fixed width lines -->
+    <style-line cap="butt" fix="true" id="fix" width="1.0" />
+    <!-- Road Text -->
+    <style-text fill="#666666" font-family="medium" id="road" k="name" priority="9" size="14" stroke="#ffffff" stroke-width="2.0" />
+    <style-text style="bold" fill="#666666" id="major-road" k="name" priority="7" size="16" stroke="#ffffff" stroke-width="2.0" />
+    <style-text style="bold" fill="#666666" id="road-ref" k="ref" priority="8" size="14" stroke="#ffffff" stroke-width="2.0" />
+    <style-text caption="true" style="bold" fill="#ffffff" id="road-ref-caption" k="ref" priority="8" size="12" bg-fill="#e9ac77" />
+    <!-- Water -->
+    <style-text caption="true" fill="#495e91" font-family="light" id="caption-major-water-name" k="name" size="16" />
+    <style-text caption="true" fill="#495e91" font-family="light" id="caption-water-name" k="name" size="14" />
+    <style-text fill="#74aee9" font-family="light" id="river" k="name" size="12" />
+    <!-- Places -->
+    <style-text style="bold" caption="true" fill="#000000" id="country-caption" k="name" priority="0" size="20" stroke="#ffffff" stroke-width="2.0" />
+    <style-text caption="true" fill="#000000" id="city-lz-caption" k="name" priority="3" size="18" stroke="#ffffff" stroke-width="2.0" />
+    <style-text style="bold" caption="true" fill="#000000" id="city-caption" k="name" priority="1" size="18" stroke="#ffffff" stroke-width="2.0" />
+    <style-text caption="true" fill="#000000" id="town-caption" k="name" priority="4" size="18" stroke="#ffffff" stroke-width="2.0" />
+    <style-text caption="true" fill="#000000" id="village-caption" k="name" priority="5" size="16" stroke="#ffffff" stroke-width="2.0" />
+    <style-text caption="true" fill="#000000" id="suburb-caption" k="name" priority="5" size="16" stroke="#ffffff" stroke-width="2.0" />
+    <style-text caption="true" fill="#000000" id="hamlet-caption" k="name" priority="6" size="14" stroke="#ffffff" stroke-width="2.0" />
+    <!-- Pois -->
+    <style-text caption="true" dy="20" fill="#666666" font-family="medium" id="poi" k="name" size="14" stroke="#ffffff" stroke-width="2.0" />
+    <style-text style="bold" caption="true" dy="12" fill="#4D2F08" id="peak-name-caption" k="name" size="14" stroke="#ffffff" stroke-width="2.0" />
+    <style-text style="bold" caption="true" dy="-12" fill="#4D2F08" id="peak-ele-caption" k="ele" size="12" stroke="#ffffff" stroke-width="2.0" />
+    <style-text style="bold" caption="true" fill="#666666" font-family="condensed" id="housenumber-caption" k="housenumber" priority="12" size="12" />
+    <style-text style="bold" caption="true" fill="#666666" font-family="condensed" id="house-name-caption" k="name" priority="11" size="12" stroke="#ffffff" stroke-width="2.0" />
+    <!-- De Area Styles -->
+    <style-area fade="8" fill="#f2e4cf" id="liberty-residential" />
+    <style-area fade="13" fill="#ffffff" id="liberty-pedestrian" />
+    <style-area fade="8" fill="#e6e0db" id="liberty-industrial" />
+    <style-area fade="8" fill="#eceecc" id="liberty-school" />
+    <style-area fade="8" fill="#d8e8c8" id="liberty-park" />
+    <style-area fade="8" fill="#b3ace38c" id="liberty-forest" />
+    <style-area fade="8" fill="#b0d59a" id="liberty-grass" />
+    <style-area fade="8" fill="#def6c0" id="liberty-campsite" />
+    <style-area fade="8" fill="#d8e0bd" id="liberty-cemetery" />
+    <style-area fade="8" fill="#d6aa95" id="liberty-military" />
+    <style-area fade="8" fill="#e6dcd1" id="liberty-mud" />
+    <style-area fade="8" fill="#e0ecec" id="liberty-ice" />
+    <!-- Avoid patterns and textures because of old GPU issues -->
+    <!--<style-area id="tex1" src="assets:textures/rough.png" />-->
+    <!-- park|common|green|cemetery|golf_course|dog_park -->
+    <style-area fade="11" fill="#d8e8c8" id="park" />
+    <!-- <style-area id="park" fill="#a3ca7b" fade="11" /> -->
+    <style-line cap="butt" fade="14" fix="true" id="park" stroke="#e4f1d7" width="1.0" />
+    <!-- Liberty road palette on VTM road geometry -->
+    <style-line cap="butt" id="liberty-motorway" stroke="#ffcc88" width="2.1" />
+    <style-line cap="butt" id="liberty-trunk" stroke="#ffeeaa" width="2.1" />
+    <style-line id="liberty-primary" stroke="#ffeeaa" width="2.1" />
+    <style-line id="liberty-secondary" stroke="#ffeeaa" width="2.1" />
+    <style-line id="liberty-tertiary" stroke="#ffeeaa" width="2.1" />
+    <style-line id="liberty-unclassified" stroke="#ffffff" width="1.1" />
+    <style-line id="liberty-residential" stroke="#ffffff" width="1.1" />
+    <style-line id="liberty-service" stroke="#ffffff" width="0.5" />
+    <style-line cap="butt" id="liberty-motorway-link" use="liberty-motorway" width="-0.8" />
+    <style-line cap="butt" id="liberty-trunk-link" use="liberty-trunk" width="-0.8" />
+    <style-line cap="butt" fix="true" id="liberty-steps" stipple="2" stipple-stroke="#be6253" stipple-width="1.0" stroke="#aaffffff" width="4.2" />
+    <style-line id="liberty-pedestrian" stroke="#ffffff" width="0.5" />
+    <style-line cap="butt" fix="true" id="liberty-rail" stroke="#bbbbbb" width="0.9" />
+    <!-- Tunnels TODO activate tunnel rendering -->
+    <style-line cap="butt" id="liberty-motorway-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-motorway" />
+    <style-line cap="butt" id="liberty-trunk-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-trunk" />
+    <style-line cap="butt" id="liberty-primary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-primary" />
+    <style-line cap="butt" id="liberty-secondary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-secondary" />
+    <style-line cap="butt" id="liberty-tertiary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-tertiary" />
+    <style-line cap="butt" id="liberty-unclassified-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-unclassified" />
+    <style-line cap="butt" id="liberty-residential-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-residential" />
+    <style-line cap="butt" id="liberty-service-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-service" />
+    <style-line cap="butt" id="liberty-motorway-link-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-motorway-link" />
+    <style-line cap="butt" id="liberty-trunk-link-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-trunk-link" />
+    <!-- Not for motorcycle -->
+    <!-- track|footway|path|cycleway -->
+    <style-line cap="butt" id="footway" stipple="2" stipple-stroke="#c0bdb8" stipple-width="0.6" stroke="#ffffff" width="1.8" />
+    <style-line id="highway:track" stipple="3" stipple-stroke="#c0bdb8" use="footway" width="0.4" stroke="#ffffff" />
+    <style-line fix="true" id="highway:path" stipple="2" stipple-stroke="#c0bdb8" use="footway" width="4.2" stroke="#ffffff" />
+    <!-- Water -->
+    <style-line cap="butt" fix="true" id="water" stroke="#a0c8f0" width="1.0" />
+    <style-line fix="false" id="river" stroke="#a0c8f0" use="water" />
+    <style-area fade="-1" fill="#9ebdff" id="water" />
+    <style-line fade="13" id="building" stroke="#cdcac6" use="fix" />
+    <style-area fade="13" fill="#dcd9d6" id="building" />
+    <!-- Sea -->
+    <m k="layer" v="water">
+        <m k="class">
+            <m v="ocean">
+                <area use="water" />
+            </m>
+        </m>
+    </m>
+    <!-- Landcover -->
+    <m k="layer" v="landcover">
+        <!-- TODO handle subclass -->
+        <m k="class">
+            <m v="ice">
+                <area use="liberty-ice" />
+            </m>
+            <m v="wood">
+                <area use="liberty-forest" />
+            </m>
+            <m v="grass">
+                <area use="liberty-grass" />
+            </m>
+            <m v="wetland">
+                <area use="liberty-wetland" />
+            </m>
+        </m>
+    </m>
+    <!-- Park -->
+    <m k="layer" v="park">
+        <area use="park" />
+    </m>
+    <!-- Landuse -->
+    <m k="layer" v="landuse">
+        <!-- TODO handle subclass -->
+        <m k="class">
+            <m v="military">
+                <area use="liberty-military" />
+            </m>
+            <m v="residential|commercial|retail">
+                <area use="liberty-residential" />
+            </m>
+            <m v="railway|industrial">
+                <area use="liberty-industrial" />
+            </m>
+            <m v="stadium|playground|pitch">
+                <area use="liberty-park" />
+            </m>
+            <m v="grass">
+                <area use="liberty-grass" />
+            </m>
+            <m v="school|university|kindergarten|college">
+                <area use="liberty-school" />
+            </m>
+            <m v="cemetery">
+                <area use="liberty-cemetery" />
+            </m>
+            <m v="hospital">
+                <area fill="#ffddee" />
+            </m>
+        </m>
+    </m>
+    <!-- Lakes, rivers -->
+    <m k="layer" v="water">
+        <m k="class">
+            <m v="lake|river">
+                <area use="water" />
+            </m>
+        </m>
+    </m>
+    <!-- boundary -->
+    <m e="way" k="layer" v="boundary">
+        <m k="admin_level">
+            <m v="4">
+                <line fix="true" stipple="4" stipple-stroke="#888888" stipple-width="1.0" stroke="#dadada" width="1.5" />
+            </m>
+            <m v="2">
+                <line fix="true" stipple="6" stipple-stroke="#647b9c" stipple-width="1.0" stroke="#dadada" width="2" />
+            </m>
+        </m>
+    </m>
+    <!-- TODO aeroway -->
+    <m k="layer" v="waterway">
+        <m k="class">
+            <m v="ditch|drain" zoom-min="14">
+                <line fade="14" use="water" width="0.2" />
+            </m>
+            <m v="canal">
+                <line use="river" width="-0.3" />
+            </m>
+            <m v="stream" zoom-min="13">
+                <line fade="13" use="water" width="0.5" />
+            </m>
+            <m select="first" v="river">
+                <line use="river" width="0.3" />
+            </m>
+        </m>
+        <text use="river" />
+    </m>
+    <m k="layer" v="transportation" zoom-min="6">
+        <!-- outline 0 -->
+        <outline-layer blur="1.0" id="glow" stroke="#000000" width="0.2" />
+        <outline-layer id="0" stroke="#44000000" width="0.1" />
+        <!-- Outlines for DE-Style -->
+        <outline-layer id="liberty-motorway-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="liberty-trunk-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="liberty-primary-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="liberty-secondary-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="liberty-tertiary-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="liberty-unclassified-outline" stroke="#cfcdca" width=".5" />
+        <outline-layer id="liberty-tunnel" stroke="#7c7c7c" width="0.2" />
+        <!-- Bridge casings should be above other roads -->
+        <outline-layer id="bridge" stroke="#000000" width="0.08" />
+        <outline-layer id="liberty-bridge" stroke="#000000" width="0.2" />
+        <m k="class">
+            <m zoom-min="10">
+                <m v="rail|transit" zoom-min="12">
+                    <line use="liberty-rail" />
+                </m>
+                <m v="ferry">
+                    <line stroke="#2d51bc" width="1" />
+                </m>
+                <m v="track">
+                    <m k="brunnel">
+                        <m v="tunnel">
+                            <line outline="liberty-tunnel" use="highway:track" />
+                        </m>
+                        <m v="bridge">
+                            <line outline="bridge" use="highway:track" />
+                        </m>
+                    </m>
+                    <m k="brunnel" v="~">
+                        <line use="highway:track" />
+                    </m>
+                </m>
+                <m v="path" zoom-min="16">
+                    <m k="subclass" v="pedestrian">
+                        <line outline="0" use="liberty-pedestrian" />
+                        <m closed="yes">
+                            <area use="liberty-pedestrian" />
+                            <line cap="butt" fix="true" stroke="#44000000" width="1.0" />
+                        </m>
+                    </m>
+                    <m k="subclass" v="steps">
+                        <line use="liberty-steps" />
+                    </m>
+                    <m k="subclass" v="footway|path|cycleway|bridleway">
+                        <m k="brunnel">
+                            <m v="tunnel">
+                                <line outline="liberty-tunnel" use="highway:path" />
+                            </m>
+                            <m v="bridge">
+                                <line outline="bridge" use="highway:path" />
+                            </m>
+                        </m>
+                        <m k="brunnel" v="~">
+                            <line use="highway:path" />
+                        </m>
+                    </m>
+                </m>
+                <m v="service">
+                    <m k="brunnel">
+                        <m v="tunnel">
+                            <line outline="liberty-tunnel" use="liberty-service" />
+                        </m>
+                        <m v="bridge">
+                            <line outline="bridge" use="liberty-service" />
+                        </m>
+                    </m>
+                    <m k="brunnel" v="~">
+                        <line use="liberty-service" />
+                    </m>
+                </m>
+                <m v="minor">
+                    <m k="brunnel">
+                        <m v="tunnel">
+                            <line outline="liberty-tunnel" use="liberty-unclassified" />
+                        </m>
+                        <m v="bridge">
+                            <line outline="liberty-bridge" use="liberty-unclassified" />
+                        </m>
+                    </m>
+                    <m k="brunnel" v="~">
+                        <line outline="liberty-unclassified-outline" use="liberty-unclassified" />
+                    </m>
+                </m>
+                <m v="tertiary">
+                    <m k="brunnel">
+                        <m v="tunnel">
+                            <line outline="liberty-tunnel" use="liberty-tertiary" />
+                        </m>
+                        <m v="bridge">
+                            <line outline="liberty-bridge" use="liberty-tertiary" />
+                        </m>
+                    </m>
+                    <m k="brunnel" v="~">
+                        <line outline="liberty-tertiary-outline" use="liberty-tertiary" />
+                    </m>
+                </m>
+                <m v="secondary">
+                    <m k="brunnel">
+                        <m v="tunnel">
+                            <line outline="liberty-tunnel" use="liberty-secondary" />
+                        </m>
+                        <m v="bridge">
+                            <line outline="liberty-bridge" use="liberty-secondary" />
+                        </m>
+                    </m>
+                    <m k="brunnel" v="~">
+                        <line outline="liberty-secondary-outline" use="liberty-secondary" />
+                    </m>
+                </m>
+            </m>
+            <m zoom-min="8">
+                <m v="primary">
+                    <m k="brunnel">
+                        <m v="tunnel">
+                            <line outline="liberty-tunnel" use="liberty-primary" />
+                        </m>
+                        <m v="bridge">
+                            <line outline="liberty-bridge" use="liberty-primary" />
+                        </m>
+                    </m>
+                    <m k="brunnel" v="~">
+                        <line outline="liberty-primary-outline" use="liberty-primary" />
+                    </m>
+                </m>
+                <m v="trunk">
+                    <m k="brunnel">
+                        <m v="tunnel">
+                            <line outline="liberty-tunnel" use="liberty-trunk" />
+                        </m>
+                        <m v="bridge">
+                            <line outline="liberty-bridge" use="liberty-trunk" />
+                        </m>
+                    </m>
+                    <m k="brunnel" v="~">
+                        <line outline="liberty-trunk-outline" use="liberty-trunk" />
+                    </m>
+                </m>
+            </m>
+            <m v="motorway">
+                <m k="brunnel">
+                    <m v="tunnel">
+                        <line outline="liberty-tunnel" use="liberty-motorway" />
+                    </m>
+                    <m v="bridge">
+                        <line outline="liberty-bridge" use="liberty-motorway" />
+                    </m>
+                </m>
+                <m k="brunnel" v="~">
+                    <line outline="liberty-motorway-outline" use="liberty-motorway" />
+                </m>
+            </m>
+        </m>
+        <!-- highway one-way markers -->
+        <m k="oneway" v="1" zoom-min="16">
+            <m k="class" v="motorway|trunk|primary|secondary|tertiary|minor">
+                <symbol repeat="true" src="assets:symbols/oneway.svg" />
+            </m>
+        </m>
+    </m>
+    <!-- Building and Housenumbers -->
+    <m k="layer" v="building|building:part">
+        <m v="building">
+            <m zoom-min="13">
+                <m closed="yes">
+                    <area fade="13" use="building" />
+                    <line fade="13" use="building" />
+                </m>
+                <m closed="no">
+                    <line fade="13" use="building" />
+                </m>
+            </m>
+        </m>
+        <m v="building:part">
+            <m zoom-min="16">
+                <m closed="yes">
+                    <area fade="16" use="building" />
+                    <line fade="16" use="building" />
+                </m>
+                <m closed="no">
+                    <line fade="16" use="building" />
+                </m>
+            </m>
+        </m>
+        <m zoom-min="17">
+            </m>
+    </m>
+    <m k="layer" v="housenumber" zoom-min="17">
+        <text use="house-name-caption" />
+        <text use="housenumber-caption" />
+    </m>
+    <m k="layer" v="mountain_peak">
+        <m k="rank" select="first">
+            <m v="1" zoom-min="13">
+                <symbol src="assets:symbols/peak.svg" />
+            </m>
+            <m v="2" zoom-min="14">
+                <symbol src="assets:symbols/peak.svg" />
+            </m>
+            <m zoom-min="15">
+                <symbol src="assets:symbols/peak.svg" />
+            </m>
+            <m select="when-matched">
+                <text use="peak-name-caption" />
+                <text use="peak-ele-caption" />
+            </m>
+        </m>
+    </m>
+    <m k="layer" v="poi" zoom-min="13">
+        <m k="subclass">
+            <!-- Motorcycle POIs -->
+            <m select="first">
+                <m v="fuel">
+                    <symbol src="assets:symbols/transport/fuel.svg" />
+                </m>
+                <m v="motorcycle_parking">
+                    <symbol src="assets:symbols/custom/transport/parking_motorcycle.svg" />
+                </m>
+                <m v="parking" zoom-min="16">
+                    <symbol src="assets:symbols/transport/parking.svg" />
+                </m>
+                <m v="viewpoint">
+                    <symbol src="assets:symbols/tourist/view_point.svg" />
+                </m>
+                <m v="motorcycle|motorcycle_repair">
+                    <symbol src="assets:symbols/shopping/diy.svg" />
+                </m>
+            </m>
+            <m k="name" select="first">
+                <m v="castle">
+                    <symbol src="assets:symbols/tourist/castle2.svg" />
+                </m>
+                <m v="attraction">
+                    <symbol src="assets:symbols/tourist/attraction.svg" />
+                </m>
+                <m v="hospital" zoom-min="15">
+                    <symbol src="assets:symbols/health/hospital.svg" />
+                </m>
+                <m v="pharmacy" zoom-min="16">
+                    <symbol src="assets:symbols/health/pharmacy.svg" />
+                </m>
+                <m v="hotel" zoom-min="16">
+                    <symbol src="assets:symbols/accommodation/hotel2.svg" />
+                </m>
+                <m v="hostel" zoom-min="16">
+                    <symbol src="assets:symbols/accommodation/hostel.svg" />
+                </m>
+                <m v="camp_site" zoom-min="12">
+                    <symbol src="assets:symbols/accommodation/camping.svg" />
+                </m>
+                <m v="caravan_site" zoom-min="12">
+                    <symbol src="assets:symbols/accommodation/caravan_park.svg" />
+                </m>
+                <m v="restaurant" zoom-min="16">
+                    <symbol src="assets:symbols/food/restaurant.svg" />
+                </m>
+                <m v="cafe" zoom-min="16">
+                    <symbol src="assets:symbols/food/cafe.svg" />
+                </m>
+                <m v="pub" zoom-min="16">
+                    <symbol src="assets:symbols/food/pub.svg" />
+                </m>
+                <m v="fast_food" zoom-min="16">
+                    <symbol src="assets:symbols/food/fastfood.svg" />
+                </m>
+            </m>
+            <m select="when-matched">
+                <text use="poi" />
+            </m>
+        </m>
+        <!-- Barriers -->
+        <m k="subclass" zoom-min="16">
+            <m v="bollard">
+                <symbol src="assets:symbols/barrier/bollard.svg" />
+            </m>
+            <m v="block">
+                <symbol src="assets:symbols/barrier/blocks.svg" />
+            </m>
+            <m v="gate">
+                <symbol src="assets:symbols/barrier/gate.svg" />
+            </m>
+            <m v="lift_gate">
+                <symbol src="assets:symbols/barrier/lift_gate.svg" />
+            </m>
+        </m>
+    </m>
+    <!-- Render Labels at last -->
+    <m k="layer" v="water_name">
+        <m k="class">
+            <m v="sea|ocean">
+                <text use="caption-major-water-name" />
+            </m>
+            <m v="lake">
+                <text use="caption-water-name" />
+            </m>
+        </m>
+    </m>
+    <m k="layer" v="place">
+        <m k="class">
+            <m v="hamlet|neighbourhood|isolated_dwelling" zoom-max="14">
+                <text use="hamlet-caption" />
+            </m>
+            <m v="suburb" zoom-max="15" zoom-min="13">
+                <text use="suburb-caption" />
+            </m>
+            <m v="village|island" zoom-max="15" zoom-min="12">
+                <text use="village-caption" />
+            </m>
+            <m v="town" zoom-max="15">
+                <text use="town-caption" />
+            </m>
+            <m v="city" zoom-max="15">
+                <m zoom-max="13" zoom-min="7">
+                    <text use="city-caption" />
+                </m>
+                <m zoom-max="6">
+                    <text priority="6" use="city-lz-caption" />
+                    <!-- It can happen that cities with lower rank are drawn above cities with rank 1 or 2, we should try to avoid this -->
+                    <m k="rank">
+                        <m v="1">
+                            <text priority="1" use="city-lz-caption" />
+                        </m>
+                        <m v="2">
+                            <text priority="2" use="city-lz-caption" />
+                        </m>
+                        <m v="3">
+                            <text priority="3" use="city-lz-caption" />
+                        </m>
+                        <m v="4">
+                            <text priority="4" use="city-lz-caption" />
+                        </m>
+                        <m v="5">
+                            <text priority="5" use="city-lz-caption" />
+                        </m>
+                    </m>
+                </m>
+            </m>
+            <m v="country" zoom-max="6">
+                <text use="country-caption" />
+            </m>
+        </m>
+    </m>
+    <m k="layer" v="transportation_name">
+        <m k="class">
+            <m v="minor|tertiary|secondary">
+                <text use="road" />
+                <text use="road-ref" />
+            </m>
+            <m v="primary|trunk|motorway">
+                <text use="major-road" />
+                <m zoom-max="12">
+                    <text use="road-ref-caption" />
+                </m>
+                <m zoom-min="13">
+                    <text use="road-ref" />
+                </m>
+            </m>
+        </m>
+    </m>
+</rendertheme>

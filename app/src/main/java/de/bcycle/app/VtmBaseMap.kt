@@ -49,10 +49,10 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
     }
 }
 
-/** Extend the bundled OpenMapTiles theme without copying its styles or confusing OSM and MVT tags. */
+/** Liberty adapted to VTM/OpenMapTiles, strictly flat; cycling remains an optional highlight. */
 internal class VtmCycleTheme(private val cycleways:Boolean):ThemeFile by VtmThemes.OPENMAPTILES {
     override fun getRenderThemeAsStream():java.io.InputStream {
-        val base=VtmThemes.OPENMAPTILES.renderThemeAsStream.use { it.bufferedReader().readText() }
+        val base=org.oscim.backend.AssetAdapter.readFileAsStream("styles/liberty-vtm.xml").use { it.bufferedReader().readText() }
         val highlight="""
             <m e="way" k="layer" v="transportation" zoom-min="12">
                 <m k="subclass" v="cycleway">

@@ -1,7 +1,7 @@
 Mapsforge-VTM 0.25.0 – copyright the VTM / OpenScienceMap / Mapsforge contributors.
 Source: https://github.com/mapsforge/vtm
 Exact module sources: https://repo.maven.apache.org/maven2/org/mapsforge/
-Modules: vtm, vtm-android, vtm-http and vtm-android native JNI libraries (all 0.25.0).
+Modules: vtm, vtm-android, vtm-http, vtm-mvt, vtm-themes and vtm-android native JNI libraries (all 0.25.0).
 Each module has a matching -sources.jar at the above Maven repository.
 
 VTM library is under LGPL v3 license, with an important simplification:

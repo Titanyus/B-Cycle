@@ -29,6 +29,32 @@ import org.robolectric.shadows.ShadowAlertDialog
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
 class VtmVectorMapTest {
+    @Test fun libertyUsesItsPaletteWithFlatBuildingsAndCameraAlwaysLooksDown() {
+        val c=RuntimeEnvironment.getApplication();val map=BicycleMapView(c)
+        try {
+            val theme=ThemeLoader.load(VtmCycleTheme(false))
+            assertEquals(Color.rgb(248,244,240),theme.mapBackground)
+            val water=TagSet().apply { add(Tag("layer","water"));add(Tag("class","lake")) }
+            assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,water,16).orEmpty()
+                .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==Color.rgb(158,189,255) })
+            val motorway=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","motorway")) }
+            assertTrue(theme.matchElement(GeometryBuffer.GeometryType.LINE,motorway,16).orEmpty()
+                .filterIsInstance<LineStyle>().any { it.color==Color.rgb(255,204,136) })
+            val building=TagSet().apply { add(Tag("layer","building"));add(Tag("height","40"));add(Tag("min_height","0")) }
+            for(zoom in listOf(13,16,19)) {
+                val styles=theme.matchElement(GeometryBuffer.GeometryType.POLY,building,zoom).orEmpty()
+                assertTrue("flat footprint at zoom $zoom",styles.any { it is org.oscim.theme.styles.AreaStyle })
+                assertFalse("no extrusion even with height at zoom $zoom",styles.any { it is org.oscim.theme.styles.ExtrusionStyle })
+            }
+            assertFalse(map.map().eventLayer.tiltEnabled())
+            map.setCamera(map.camera.apply { tilt=55f;roll=20f;bearing=45f })
+            assertEquals(0f,map.camera.tilt,0f);assertEquals(0f,map.camera.roll,0f)
+            assertEquals("heading rotation remains available",45f,map.bearing,.01f)
+            map.map().viewport().setTilt(55f)
+            assertEquals("native camera also cannot tilt",0f,map.camera.tilt,0f)
+            theme.dispose()
+        } finally { map.disposeMap() }
+    }
     @Test fun realOpenFreeMapTileDecodesAndCyclewaysAreAnOptionalStyle() {
         val map=BicycleMapView(RuntimeEnvironment.getApplication())
         try {

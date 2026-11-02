@@ -45,6 +45,8 @@ class BicycleMapView(context:Context):org.oscim.android.MapView(configure(contex
                 catch(_:java.io.IOException) { BicycleMapView::class.java.getResourceAsStream("/assets/$name") }
         })
         map().eventLayer.apply { enableRotation(false);enableTilt(false);enableZoom(true) }
+        // All map hosts stay in plan view, including native camera animations and gestures.
+        map().viewport().apply { minTilt=0f;maxTilt=0f }
         map().events.bind { _,position ->
             val next=position.zoom
             if(lastEventZoom.isFinite() && kotlin.math.abs(next-lastEventZoom)>.0001) zoomed?.invoke()
