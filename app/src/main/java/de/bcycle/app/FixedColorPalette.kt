@@ -126,7 +126,7 @@ internal class HexColorDrawable(private val color:Int,private val selected:Boole
         paint.style=Paint.Style.FILL;paint.color=color;canvas.drawPath(path,paint)
         if(selected) {
             paint.style=Paint.Style.STROKE;paint.strokeWidth=2*density
-            paint.color=if(ThemeValidator.contrast(color,foreground)>=3) foreground else if(ThemeValidator.contrast(color,Color.BLACK)>ThemeValidator.contrast(color,Color.WHITE)) Color.BLACK else Color.WHITE
+            paint.color=foreground
             canvas.drawPath(path,paint)
         }
     }
