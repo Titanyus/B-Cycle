@@ -1,6 +1,12 @@
-# Aktueller Stand: Online-Vektorkarte ergänzt; Strecken-Nachlauf korrigiert
+# Aktueller Stand: Wischsteuerung bis zum Loslassen; Vektorkarte ergänzt
 
 ## Aktueller Auftrag02.11.2026
+
+Dashboard-/HRV-Seitenwechsel: frühe automatische Übernahme während Ziehen entfernt. Bis UP direkte Fingerkontrolle über volle Breite; Entscheidung aus Weg (langsam halbe Breite) und200-ms-Geschwindigkeitsprojektion, mindestens24dp/400dp/s für kurzen Flick. Rückwärtsflick kann auch jenseits der Hälfte abbrechen; letzte UP-Position und Android-Geschwindigkeitsgrenzen berücksichtigen. Vollständig hinausgeschoben → kein leerer Restslide. Bestehender weicher Übergang, PixelCopy, eine lebende Karte und Lebenszyklus bleiben. [Details/gezielte Prüfung](dashboard-page-transition.md). Alle sechs gezielt geprüften Fälle erfolgreich (vier Komponentenfälle, Dashboard und HRV). Die zwei Integrationstests an GL-Testumgebung bzw. eindeutiges Datumsformat der Testdaten angepasst; keine Änderung am HRV-Import. Kompilation/Typografie/Atlas/Diff erfolgreich. Keine APK beauftragt, nicht pushen.
+
+Zwischenfrage: visueller Karteneditor empfohlen [Maputnik](https://maplibre.org/maputnik/), OpenFreeMap-Demo für fertige Stile. MapLibre-JSON nicht direkt mit VTM-XML kompatibel; keine Stilimportfunktion beauftragt/gebaut.
+
+## Ebenfalls lokal fertig: Vektorkarte
 
 Nutzer: echte Vektorkarte ergänzen; Frage nach OSM-Grundkarte mit Fahrrad-Layer. Lokal umgesetzt: zusätzliche Quelle **OpenFreeMap · Vektorkarte** ohne API-Key, optional **Radwege hervorheben** aus denselben Vektordaten. Rasterquellen bleiben wählbar; bestehende Auswahl unverändert. Fahrradprofilumfang/Backup, Beschriftungen, Dashboard und Streckenvorschau/-vollbild gemeinsam angebunden. Ausgeschilderte Radroutennetze sind noch keine vollständige zusätzliche Ebene. [Umfang/Prüfung](vtm-vector-map.md).
 

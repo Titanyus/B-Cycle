@@ -33,6 +33,8 @@ internal class DashboardPageViewport(context:Context,
     var preparePageSnapshot:(((Boolean)->Unit)->Unit)?=null
     var releasePageSnapshot:(()->Unit)?=null
     private val touchSlop=ViewConfiguration.get(context).scaledTouchSlop
+    private val minimumFlingVelocity=maxOf(400*resources.displayMetrics.density,ViewConfiguration.get(context).scaledMinimumFlingVelocity.toFloat())
+    private val maximumFlingVelocity=ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat()
     private var startX=0f
     private var startY=0f
     private var dragOriginX=0f
@@ -41,7 +43,6 @@ internal class DashboardPageViewport(context:Context,
     private var candidate=false
     private var dragging=false
     private var velocity:VelocityTracker?=null
-    private val commitDistance get()=minOf(BicycleDesign.dashboardSwipeCommitDp*resources.displayMetrics.density,width*.15f).coerceAtLeast(touchSlop*3f)
     var running=false;private set
     init { tag="dashboard_page_viewport";clipChildren=true;clipToPadding=true }
     fun setPage(view:View,wrapContent:Boolean=false) {
@@ -88,6 +89,8 @@ internal class DashboardPageViewport(context:Context,
             override fun onPreDraw():Boolean {
                 removePending()
                 if(!running || token!=generation) return true
+                // A complete manual swipe already placed the new page at its destination.
+                if(abs(distance+start)<1f) { cancelTransition();return true }
                 val motion=ValueAnimator.ofFloat(0f,1f).apply {
                     val remaining=abs(distance+start)
                     val movingSpeed=if(speed*start>0) abs(speed) else 0f
@@ -182,10 +185,15 @@ internal class DashboardPageViewport(context:Context,
                 dragTo(event.x)
             }
             MotionEvent.ACTION_UP -> {
-                velocity?.computeCurrentVelocity(1000)
+                dragTo(event.x)
+                velocity?.computeCurrentVelocity(1000,maximumFlingVelocity)
                 val offset=page?.translationX ?: 0f;val speed=velocity?.xVelocity ?: 0f
-                val fling=abs(offset)>=24*resources.displayMetrics.density && abs(speed)>=400*resources.displayMetrics.density && speed*offset>0
-                if(abs(offset)>=commitDistance || fling) commitDrag() else returnDrag()
+                val fast=abs(speed)>=minimumFlingVelocity
+                // Project 200 ms forward only for a deliberate fling. A reverse fling cancels
+                // the departure even beyond halfway, keeping a last-moment pullback possible.
+                val projection=if(fast && speed*offset>0) abs(speed)*.2f else 0f
+                val enoughDrag=abs(offset)>=24*resources.displayMetrics.density
+                if(enoughDrag && !(fast && speed*offset<0) && abs(offset)+projection>=width*.5f) commitDrag() else returnDrag()
             }
             MotionEvent.ACTION_CANCEL,MotionEvent.ACTION_POINTER_DOWN -> returnDrag()
         }
@@ -193,11 +201,10 @@ internal class DashboardPageViewport(context:Context,
     }
     private fun dragTo(x:Float) {
         page?.translationX=(x-dragOriginX).coerceIn(-width.toFloat(),width.toFloat())
-        if(abs(page?.translationX ?: 0f)>=commitDistance) commitDrag()
     }
     private fun commitDrag() {
         val offset=page?.translationX ?: 0f
-        velocity?.computeCurrentVelocity(1000);handoffVelocity=velocity?.xVelocity ?: 0f
+        velocity?.computeCurrentVelocity(1000,maximumFlingVelocity);handoffVelocity=velocity?.xVelocity ?: 0f
         val change=changePage;resetGesture()
         if(change!=null && offset!=0f) change(if(offset<0) 1 else -1) else returnDrag()
     }

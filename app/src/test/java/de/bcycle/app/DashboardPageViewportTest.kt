@@ -76,7 +76,7 @@ class DashboardPageViewportTest {
             assertTrue(1-easing.getInterpolation(.9999f)<.00001f)
         }
     }
-    @Test fun shortDragFollowsFingerThenCommitsBeforeLiftAndContinuesFromThatPosition() {
+    @Test fun dragStaysUnderFingerUntilLiftThenHandsOffAtItsCurrentPosition() {
         val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
         try {
             val a=host.get();val viewport=DashboardPageViewport(a) { true }
@@ -89,17 +89,74 @@ class DashboardPageViewportTest {
             touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
             assertEquals(-4f,page.translationX,.01f);assertEquals(0,changes)
             touch(viewport,MotionEvent.ACTION_MOVE,109f,time=80)
+            assertEquals(0,changes);assertFalse(viewport.running);assertEquals(-55f,page.translationX,.01f)
+            touch(viewport,MotionEvent.ACTION_MOVE,70f,time=110)
+            assertEquals(0,changes);assertFalse(viewport.running);assertEquals(-94f,page.translationX,.01f)
+            touch(viewport,MotionEvent.ACTION_UP,70f,time=120)
             assertEquals(1,changes);assertTrue(viewport.running)
             val picture=viewport.findViewWithTag<ImageView>("dashboard_page_outgoing")
-            assertEquals(-55f,picture.translationX,.01f);assertEquals(305f,page.translationX,.01f)
-            touch(viewport,MotionEvent.ACTION_MOVE,70f,time=110);touch(viewport,MotionEvent.ACTION_UP,70f,time=120)
-            assertEquals(1,changes)
+            assertEquals(-94f,picture.translationX,.01f);assertEquals(266f,page.translationX,.01f)
             viewport.viewTreeObserver.dispatchOnPreDraw()
             assertTrue(animator(viewport).duration<=300)
             assertTrue("handoff must start moving, not restart at zero speed",animator(viewport).interpolator.getInterpolation(.001f)>.0001f)
             animator(viewport).currentPlayTime=100
             assertEquals(360f,page.translationX-picture.translationX,.01f)
             animator(viewport).end();assertFalse(viewport.running);assertEquals(0f,page.translationX,0f)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun slowDragCanLeaveTheDisplayCompletelyBeforeRelease() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val viewport=DashboardPageViewport(a) { true };val page=View(a).apply { isClickable=true }
+            viewport.setPage(page);a.setContentView(viewport);prepare(viewport)
+            var changes=0
+            viewport.swipeEnabledAt={ _,_ -> true };viewport.changePage={ delta -> viewport.slide(delta) { changes++ } }
+            touch(viewport,MotionEvent.ACTION_DOWN,350f)
+            touch(viewport,MotionEvent.ACTION_MOVE,320f,time=300)
+            touch(viewport,MotionEvent.ACTION_MOVE,100f,time=1800)
+            assertEquals(-234f,page.translationX,.01f);assertFalse(viewport.running);assertEquals(0,changes)
+            touch(viewport,MotionEvent.ACTION_MOVE,-30f,time=2600)
+            assertEquals(-360f,page.translationX,.01f);assertFalse(viewport.running);assertEquals(0,changes)
+            touch(viewport,MotionEvent.ACTION_UP,-30f,time=2900)
+            assertEquals(1,changes);assertEquals(0f,page.translationX,.01f)
+            viewport.viewTreeObserver.dispatchOnPreDraw()
+            assertFalse("no residual slide after a complete manual swipe",viewport.running);assertEquals(1,viewport.childCount)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun releaseUsesSpeedAndDistanceAndAllowsReversingPastHalfway() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val viewport=DashboardPageViewport(a) { true };val page=View(a).apply { isClickable=true }
+            viewport.setPage(page);a.setContentView(viewport);prepare(viewport)
+            var changes=0
+            viewport.swipeEnabledAt={ _,_ -> true };viewport.changePage={ delta -> viewport.slide(delta) { changes++ } }
+            // The same 64 px offset returns when slow and changes page when fast.
+            touch(viewport,MotionEvent.ACTION_DOWN,180f)
+            touch(viewport,MotionEvent.ACTION_MOVE,160f,time=300)
+            touch(viewport,MotionEvent.ACTION_MOVE,100f,time=1600)
+            touch(viewport,MotionEvent.ACTION_UP,100f,time=1900)
+            assertEquals(0,changes);animator(viewport).end()
+            touch(viewport,MotionEvent.ACTION_DOWN,180f,time=3000)
+            touch(viewport,MotionEvent.ACTION_MOVE,160f,time=3020)
+            touch(viewport,MotionEvent.ACTION_MOVE,100f,time=3050)
+            assertEquals(0,changes)
+            touch(viewport,MotionEvent.ACTION_UP,100f,time=3060)
+            assertEquals(1,changes);viewport.viewTreeObserver.dispatchOnPreDraw();animator(viewport).end()
+            // A slow release past halfway commits even without fling speed.
+            touch(viewport,MotionEvent.ACTION_DOWN,340f,time=4000)
+            touch(viewport,MotionEvent.ACTION_MOVE,320f,time=4300)
+            touch(viewport,MotionEvent.ACTION_MOVE,100f,time=5500)
+            assertEquals(1,changes)
+            touch(viewport,MotionEvent.ACTION_UP,100f,time=5800)
+            assertEquals(2,changes);viewport.viewTreeObserver.dispatchOnPreDraw();animator(viewport).end()
+            // Pull back quickly while the page is still more than halfway out: return.
+            touch(viewport,MotionEvent.ACTION_DOWN,340f,time=6000)
+            touch(viewport,MotionEvent.ACTION_MOVE,320f,time=6050)
+            touch(viewport,MotionEvent.ACTION_MOVE,60f,time=6600)
+            touch(viewport,MotionEvent.ACTION_MOVE,130f,time=6650)
+            assertEquals(-194f,page.translationX,.01f);assertEquals(2,changes)
+            touch(viewport,MotionEvent.ACTION_UP,130f,time=6660)
+            assertEquals(2,changes);animator(viewport).end();assertEquals(0f,page.translationX,0f)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun shortUncommittedAndCancelledDragsReturnWhileMapAndVerticalGesturesRemainUntouched() {
@@ -206,12 +263,15 @@ class DashboardPageViewportTest {
             val map=testDescendants(root).filterIsInstance<MapPanel>().single()
             val footer=root.findViewWithTag<View>("ride_toolbar");val footerTop=footer.top
             assertEquals(View.VISIBLE,map.visibility)
+            // This integration case checks page motion. PixelCopy has its own test; Robolectric
+            // has no live GL surface from which a successful system snapshot could be taken.
+            viewport.preparePageSnapshot={ ready -> ready(true) }
             val change=MainActivity::class.java.getDeclaredMethod("changeDashboard",Int::class.javaPrimitiveType).apply { isAccessible=true }
             touch(viewport,MotionEvent.ACTION_DOWN,180f)
             touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
             assertEquals(-4f,viewport.getChildAt(0).translationX,.01f)
-            touch(viewport,MotionEvent.ACTION_MOVE,110f,time=80)
-            touch(viewport,MotionEvent.ACTION_UP,110f,time=90)
+            touch(viewport,MotionEvent.ACTION_MOVE,100f,time=60)
+            touch(viewport,MotionEvent.ACTION_UP,100f,time=70)
             layout(root)
             val dialogs=MainActivity::class.java.getDeclaredField("dialogs").apply { isAccessible=true }.get(a) as DialogNavigation
             assertTrue("visible=${runtime.visible}, editing=${a.dashboardEditing}, empty=${dialogs.empty}, attached=${viewport.isAttachedToWindow}, laid=${viewport.isLaidOut}, size=${viewport.width}x${viewport.height}, scale=${android.animation.ValueAnimator.getDurationScale()}",viewport.running)

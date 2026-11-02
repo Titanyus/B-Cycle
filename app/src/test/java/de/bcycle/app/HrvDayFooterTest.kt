@@ -150,7 +150,7 @@ class HrvDayFooterTest {
             val a=host.get();val controller=RideRuntime.get(a).hrv;drain(controller)
             val today=LocalDate.now();val yesterday=today.minusDays(1)
             val store=HrvStore(File(a.filesDir,"hrv-measurements"))
-            Hrv4TrainingCsv.preview("date,time,rMSSD,HR\n$yesterday,07:15,30,65\n$today,07:15,40,60\n".byteInputStream(),ZoneId.systemDefault()).entries.forEach(store::importHrv4Training)
+            Hrv4TrainingCsv.preview("date,time,rMSSD,HR\n$yesterday,07:15,30,65\n$today,07:15,40,60\n".byteInputStream(),ZoneId.systemDefault(),HrvCsvDateOrder.YEAR_MONTH_DAY).entries.forEach(store::importHrv4Training)
             MainActivity::class.java.getDeclaredMethod("showHrvTrends").apply { isAccessible=true }.invoke(a)
             repeat(2) { drain(controller) }
             val screen=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();val decor=screen.window!!.decorView;layout(decor)
@@ -166,6 +166,8 @@ class HrvDayFooterTest {
             }
             fun motion()=DashboardPageViewport::class.java.getDeclaredField("animator").apply { isAccessible=true }.get(pager) as android.animation.ValueAnimator
             fun selected()=decor.findViewWithTag<HrvDailyAssessmentView>("hrv_daily_assessment").assessment.day
+            val initialChart=decor.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
+            assertEquals("initial chart selection",today,initialChart.actionDay)
             touch(MotionEvent.ACTION_DOWN,120f,0);touch(MotionEvent.ACTION_MOVE,140f,30)
             assertEquals(4f,pager.getChildAt(0).translationX,.01f)
             touch(MotionEvent.ACTION_MOVE,200f,80);touch(MotionEvent.ACTION_UP,200f,90)

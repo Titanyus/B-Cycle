@@ -23,7 +23,6 @@ object BicycleDesign {
     const val dashboardToolbarActionWeight=.8f
     const val dashboardMessageEdgeInset=48
     const val dashboardToolbarHeight=58
-    const val dashboardSwipeCommitDp=48
     const val dashboardDragReturnMs=180L
     const val dashboardRecordIconSize=20
     const val dashboardRecordCircleDiameter=54 // 10% smaller than the previous 60 dp circle.

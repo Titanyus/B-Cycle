@@ -2,13 +2,13 @@
 
 Der gesamte Dashboardbereich samt Karte und Kartenbuttons bewegt sich; Footer, Statuszeile und funktionaler Fenster-Glow bleiben fest. Genau eine lebende MapView, keine zusätzlichen Sensorverbindungen oder Kartenquellen.
 
-## Direkte Gesten – 01.11.2026
+## Direkte Gesten – Stand02.11.2026
 
 Nach dem HRV-Umbau umgesetzt: Schon ein kurzer horizontaler Drag auf den Dashboard-Datenfeldern verschiebt den kompletten Bereich direkt um die Fingerbewegung. Die erste vom Elterncontainer abgefangene Bewegung wirkt sofort; nicht erst auf das nächste Move-Ereignis warten. Aktivierung nach Android-Touchslop, klare horizontale Richtung erforderlich. Vertikale Gesten, Kartengesten, normale Klicks, Longpress/Editor und Footer bleiben erhalten. Im Editor oder bei offenem Dialog kein Seitenwischen.
 
-Nach48dp bzw.15% der Viewportbreite (der kleinere Wert, mindestens dreifacher Touchslop) übernimmt die Automatik bereits während der Bewegung und vollendet den Wechsel. Ein kürzerer schneller Flick kann beim Loslassen ebenfalls wechseln (mindestens24dp, mindestens400dp/s in Wischrichtung). Nicht ausreichender Drag oder Abbruch geht in180ms auf die Ausgangsposition zurück; kein Seitenwechsel. Mehrfingerbeginn beendet einen noch nicht übernommenen Drag. Keine Folgewisch-Warteschlange während des Übergangs.
+Die Seite bleibt bis zum Loslassen vollständig unter Fingerkontrolle, ohne automatische Übernahme während MOVE. Langsames Ziehen darf die Seite bis zu einer ganzen Breite hinausschieben; auch Zurückziehen bleibt möglich. Erst UP entscheidet: mindestens24dp tatsächlicher Drag und mindestens eine halbe Seitenbreite als Summe aus Drag und Geschwindigkeitsprojektion. Bei einem schnellen Wischer (mindestens400dp/s bzw. Android-Mindestfling, Geschwindigkeit auf Android-Maximum begrenzt) werden200ms Bewegung in Wischrichtung vorausgerechnet. Bei langsamen Gesten zählt nur der tatsächliche Weg. Ein schneller Wischer zurück zur Ausgangsposition bricht den Wechsel auch jenseits der halben Breite ab. Die letzte UP-Position wird übernommen. Nicht ausreichender Drag, Cancel oder Mehrfingerbeginn geht in180ms auf die Ausgangsposition zurück; kein Seitenwechsel. Keine Folgewisch-Warteschlange während des Übergangs.
 
-Die anschließende Animation setzt exakt an der sichtbaren Dragposition fort. Dauer proportional zum verbleibenden Weg, maximal300ms, weiches Abbremsen ohne Zoom/Bounce. Programmatische Wechsel ohne Drag weiterhin300ms. Systemanimation aus: Wechsel unmittelbar, ohne Snapshot; abgebrochener Drag sofort zurücksetzen.
+Bei vollständig manuell hinausgeschobener Seite ist nach Bereitstellung der Folgeseite keine Restanimation nötig. Ansonsten setzt die anschließende Animation exakt an der sichtbaren Dragposition fort. Dauer proportional zum verbleibenden Weg, maximal300ms, weiches Abbremsen ohne Zoom/Bounce. Programmatische Wechsel ohne Drag weiterhin300ms. Systemanimation aus: Wechsel unmittelbar, ohne Snapshot; abgebrochener Drag sofort zurücksetzen.
 
 ## Darstellung und Lebenszyklus
 
@@ -36,3 +36,8 @@ Drei gezielte Übergangsfälle erfolgreich in `page-smooth-handoff-tests.log`: G
 ## VTM-Anbindung nach Build119
 
 Die GL-Fläche wird vor dem bisherigen Seitenbild asynchron über PixelCopy vorbereitet: begrenzt auf1Mio.Pixel/4MB und200ms, keine zweite lebende Dashboardkarte. Danach zeichnet die GL-View ihre vorbereitete Aufnahme in das bestehende Software-Seitenbild (weiterhin4Mio.Pixel/16MB), und die GL-Aufnahme wird freigegeben. Alte Seite während Vorbereitung halten; nach Cancel/Fokusverlust verspätete Resultate ignorieren; bei fehlender Aufnahme sofort wechseln. HRV-Seiten ohne GL-Fläche verwenden weiterhin den direkten bestehenden Weg. [Umstellung](vtm-migration.md).
+
+
+## Prüfung der Freigabegeste02.11.2026
+
+Gezielt: Fingerkontrolle ohne frühen Commit/Geschwindigkeitsübergang; langsames vollständiges Hinausschieben ohne Restanimation; langsamer/rascher identischer kurzer Weg, langsamer Weg über die Hälfte und schnelle Richtungsumkehr; kurze/abgebrochene/vertikale/Kartengesten; echte Dashboard- und HRV-Integration. Ergebnisse in `page-release-gesture-tests.log`, `page-release-integration-tests.log` und `page-release-hrv-final.log` unter `/workspace/.tools/`. Alle sechs Fälle nach Anpassung der beiden Integrationstests erfolgreich; Kompilation/Typografie/Atlas/Diff ebenfalls. Die HRV-Testdaten geben ISO-Datumsreihenfolge explizit an, damit die Monatsanfangsdaten nicht gemäß HRV4-Standard als Jahr-Tag-Monat gelesen werden; Produktionsimport unverändert. Kein Gesamtlauf, keine APK. Geräteeindruck noch prüfen. Dashboardintegration simuliert nur die erfolgreiche GL-Aufnahmebereitschaft, da Robolectric keine echte PixelCopy-Surface hat; die separate bestehende Snapshot-Prüfung bleibt erhalten.
