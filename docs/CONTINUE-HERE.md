@@ -1,6 +1,13 @@
-# Aktueller Stand: APK0.8.79/Build120 mit VTM veröffentlicht
+# Aktueller Stand: Strecken-Nachlauf nach Build120 lokal korrigiert
 
-## Aktueller Auftrag und Ergebnis
+## Aktueller Auftrag02.11.2026
+
+Nutzer: VTM funktioniert grundsätzlich, Strecken hinken beim schnellen Ziehen hinterher; danach „bitte weitermachen“. Ursache getrennte GL-/Android-Zeichenflächen. Strecken/Livefahrt und Start-/Endmarker jetzt im gemeinsamen VTM-GL-Frame mit gecachten Vertexdaten. Eigener kleiner Shader erhält Breite/Farbe/Deckkraft/weiße Livefahrt-Umrandung; GPS-Informations-View bleibt separat. Raster beim Anbieterwechsel unter Strecken einfügen. [Umfang/Prüfung](vtm-route-frame-sync.md).
+
+Fünf betroffene Fälle und lokaler Mesa/GLES-Shader-Pixeltest erfolgreich; finale Debug-Kompilation/Typografie/Atlas/Diff. Kein Gesamtlauf, keine neue APK beauftragt, nicht auf main pushen. Nächste APK enthält26 statt25 Shader einschließlich `shaders/bcycle_route.glsl`; Prüfschema anpassen. Schnelles Ziehen auf Android-GPU noch bestätigen.
+
+## Bereits veröffentlicht: VTM-Umstellung
+
 
 Nutzer hat nach Sicherung des Meilensteins den Austausch Mapsforge → Mapsforge-VTM beauftragt: alle Dashboardkartenfunktionen erhalten, zunächst dieselben Raster-Tiles; invertierte Nachtkarte vorerst unwichtig. Implementierung abgeschlossen, gezielt geprüft. APK-Auftrag0.8.79/code149 erfolgreich über GitHub Actions erfüllt; [Build120](build-120.md). [Vollständiger Umfang/Prüfnachweise](vtm-migration.md).
 

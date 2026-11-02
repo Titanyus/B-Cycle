@@ -13,9 +13,9 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import kotlin.math.*
 
-/** Transparent native overlay projected by VTM. Geometry is prepared only when its point list changes. */
+/** GPS display and geometry publisher; all route lines/endpoints belong to VTM's GL frame. */
 internal class RouteTrackLayer(context:Context,private val map:BicycleMapView):View(context) {
-    private data class Geometry(val originX:Double,val originY:Double,val path:Path)
+    private data class Geometry(val native:GlRouteGeometry)
     private data class Line(val points:List<MapPoint>,val style:MapLineStyle,val planned:Boolean)
     private val density=resources.displayMetrics.density
     private val main=Handler(Looper.getMainLooper())
@@ -31,12 +31,10 @@ internal class RouteTrackLayer(context:Context,private val map:BicycleMapView):V
     private var showAccuracy=false
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeJoin=Paint.Join.ROUND;strokeCap=Paint.Cap.ROUND }
     private val heightPaint=Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize=14*density;typeface=BicycleDesign.strongTypeface }
-    private val screenPath=Path()
     private val arrow=Path()
-    private val matrix=Matrix()
-    private val bounds=RectF()
+    private val nativeRoutes=VtmRouteLayer(map,density)
     private fun dp(n:Int)=n*density
-    init { isClickable=false;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO;tag="map_route_overlay" }
+    init { isClickable=false;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO;tag="map_route_overlay";map.map().layers().add(nativeRoutes) }
     fun update(route:GpxRoute?,track:List<MapPoint>,gps:GpsValues,showRoute:Boolean,showTrack:Boolean,night:Boolean=false,phoneHeading:Double?=null,
         recordedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.RECORDED),savedStyle:MapLineStyle=MapRouteStyles.default(MapLineKind.SAVED,night),showHeight:Boolean=true,overlays:List<StyledMapRoute>?=null) {
         if(disposed) return
@@ -58,22 +56,21 @@ internal class RouteTrackLayer(context:Context,private val map:BicycleMapView):V
                 next.forEach { points ->
                     if(points.isNotEmpty()) prepared[points]=previous[points] ?: prepare(points)
                 }
-                main.post { if(!disposed && generation==token) { geometry=prepared;invalidate() } }
+                main.post { if(!disposed && generation==token) { geometry=prepared;publishRoutes();invalidate() } }
             } } catch(_:java.util.concurrent.RejectedExecutionException) { /* Disposed; never block the recording/UI thread. */ }
         }
-        invalidate()
+        publishRoutes();invalidate()
+    }
+    private fun publishRoutes() {
+        nativeRoutes.show(lines.mapNotNull { line -> geometry[line.points]?.let { GlRouteLine(it.native,line.style,line.planned) } })
     }
     private fun prepare(points:List<MapPoint>):Geometry {
-        val ox=MercatorProjection.longitudeToX(points.first().longitude);val oy=MercatorProjection.latitudeToY(points.first().latitude)
-        val path=Path();var previousX=ox;var unwrapped=ox
+        val xy=DoubleArray(points.size*2);val starts=BooleanArray(points.size)
         points.forEachIndexed { i,p ->
-            val x=MercatorProjection.longitudeToX(p.longitude)
-            val delta=wrap(x-previousX);unwrapped+=delta
-            val px=(unwrapped-ox).toFloat();val py=(MercatorProjection.latitudeToY(p.latitude)-oy).toFloat()
-            if(i==0 || p.segmentStart) path.moveTo(px,py) else path.lineTo(px,py)
-            previousX=x
+            xy[i*2]=MercatorProjection.longitudeToX(p.longitude);xy[i*2+1]=MercatorProjection.latitudeToY(p.latitude)
+            starts[i]=i==0 || p.segmentStart
         }
-        return Geometry(ox,oy,path)
+        return Geometry(GlRouteGeometry(xy,starts))
     }
     private fun wrap(x:Double)=x-floor(x+.5)
     override fun onDraw(canvas:Canvas) {
@@ -90,31 +87,6 @@ internal class RouteTrackLayer(context:Context,private val map:BicycleMapView):V
         fun xy(x:Double,y:Double):Point {
             val dx=wrap(x-camera.x);val dy=y-camera.y
             return Point(origin.x+dx*ax+dy*bx,origin.y+dx*ay+dy*by)
-        }
-        fun location(p:MapPoint)=xy(MercatorProjection.longitudeToX(p.longitude),MercatorProjection.latitudeToY(p.latitude))
-        lines.forEach { line ->
-            if(line.style.opacity==0) return@forEach
-            geometry[line.points]?.let { g ->
-                val at=xy(g.originX,g.originY)
-                matrix.setValues(floatArrayOf(ax.toFloat(),bx.toFloat(),at.x.toFloat(),ay.toFloat(),by.toFloat(),at.y.toFloat(),0f,0f,1f))
-                g.path.transform(matrix,screenPath)
-                val group=if(!line.planned && line.style.opacity<100) {
-                    screenPath.computeBounds(bounds,true);bounds.inset(-(line.style.widthDp+2)*density,-(line.style.widthDp+2)*density)
-                    canvas.saveLayerAlpha(bounds,Color.alpha(line.style.argb))
-                } else -1
-                paint.style=Paint.Style.STROKE
-                if(!line.planned) { paint.color=Color.WHITE;paint.strokeWidth=(line.style.widthDp+2)*density;canvas.drawPath(screenPath,paint) }
-                paint.color=if(group>=0) line.style.color else line.style.argb;paint.strokeWidth=line.style.widthDp*density;canvas.drawPath(screenPath,paint)
-                if(group>=0) canvas.restoreToCount(group)
-            }
-            if(line.planned && line.points.isNotEmpty()) {
-                fun endpoint(point:MapPoint,color:Int) {
-                    val p=location(point);paint.style=Paint.Style.FILL
-                    paint.color=Color.WHITE;canvas.drawCircle(p.x.toFloat(),p.y.toFloat(),dp(7),paint)
-                    paint.color=color;canvas.drawCircle(p.x.toFloat(),p.y.toFloat(),dp(5),paint)
-                }
-                endpoint(line.points.first(),Color.rgb(0,150,70));endpoint(line.points.last(),Color.rgb(220,40,30))
-            }
         }
         val lat=gps.latitude;val lon=gps.longitude
         if(lat==null || lon==null || !lat.isFinite() || !lon.isFinite() || abs(lat)>85.05112878) { showAccuracy=false;return }
@@ -144,5 +116,5 @@ internal class RouteTrackLayer(context:Context,private val map:BicycleMapView):V
             heightPaint.color=Color.BLACK;canvas.drawText(text,left+inset,y-(metrics.ascent+metrics.descent)/2,heightPaint)
         }
     }
-    fun dispose() { disposed=true;generation++;worker.queue.clear();worker.shutdownNow();main.removeCallbacksAndMessages(null);geometry.clear() }
+    fun dispose() { disposed=true;generation++;worker.queue.clear();worker.shutdownNow();main.removeCallbacksAndMessages(null);geometry.clear();map.map().layers().remove(nativeRoutes);nativeRoutes.onDetach() }
 }

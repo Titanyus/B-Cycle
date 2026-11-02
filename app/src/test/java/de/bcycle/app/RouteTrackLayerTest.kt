@@ -40,16 +40,62 @@ class RouteTrackLayerTest {
             val routes=(0..2).map { i -> StyledMapRoute(GpxRoute(listOf(point(80.0,80.0+i*80),point(430.0,80.0+i*80)),2,1),MapLineStyle(colors[i],4f,30+i*30)) }
             val live=listOf(point(80.0,350.0),point(200.0,350.0),point(310.0,350.0).copy(segmentStart=true),point(430.0,350.0))
             overlay.update(null,live,GpsValues(),true,true,overlays=routes);ready(overlay)
+            val native=map.map().layers().filterIsInstance<VtmRouteLayer>().single()
+            val snapshot=VtmRouteLayer::class.java.getDeclaredField("snapshot").apply { isAccessible=true }.get(native)
+            @Suppress("UNCHECKED_CAST") val lines=snapshot.javaClass.getDeclaredField("lines").apply { isAccessible=true }.get(snapshot) as List<GlRouteLine>
+            assertEquals(4,lines.size)
+            val batches=GlRouteProjection.batches(lines,map.camera,4000.0)
+            for(i in 0..2) {
+                assertEquals(colors[i],batches[i].style.color)
+                assertEquals(30+i*30,batches[i].style.opacity)
+                assertEquals(1,batches[i].pieces.size);assertEquals(4,batches[i].endpoints.size)
+            }
+            assertEquals("GPS gap stays separate",2,batches.last().pieces.size)
+            assertFalse(batches.last().planned)
             val image=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
             overlay.draw(Canvas(image))
-            for(i in 0..2) {
-                val pixel=image.getPixel(256,80+i*80)
-                assertEquals(colors[i] and 0xffffff,pixel and 0xffffff)
-                assertEquals(((30+i*30)*255/100f).toInt().toDouble(),Color.alpha(pixel).toDouble(),2.0)
-            }
-            assertEquals("GPS gap stays empty",0,Color.alpha(image.getPixel(256,350)))
-            assertTrue(Color.alpha(image.getPixel(150,350))>200);image.recycle()
+            assertEquals("route no longer belongs to the delayed Android view",0,Color.alpha(image.getPixel(256,80)))
+            image.recycle()
         } finally { overlay.dispose();map.disposeMap();host.pause().stop().destroy() }
+    }
+    @Test fun routeProjectionUsesTheFrozenGlFrameEvenWhenTheUiCameraIsAlreadyAhead() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get())
+        class Frame:org.oscim.renderer.GLViewport() { fun capture() { copy(map.map().viewport()) } }
+        try {
+            size(map);map.setCenter(51.0,10.0);map.setZoom(16.5);map.setAnchor(.4f,.72f);map.rotate(-90f)
+            val reference=map.camera;val frame=Frame().apply { capture() }
+            val original=map.screenPoint(51.0,10.0)
+            map.panBy(300f,-180f)
+            fun drawAtOrigin():org.oscim.core.Point {
+                GlRouteProjection.setFrameMatrix(frame,reference)
+                val p=floatArrayOf(0f,0f,0f);frame.mvp.prj(p)
+                return org.oscim.core.Point((p[0]+1)*512/2.0,(1-p[1])*512/2.0)
+            }
+            val old=drawAtOrigin()
+            assertEquals("GL frame keeps its own camera",original.x,old.x,.01);assertEquals(original.y,old.y,.01)
+            assertTrue(kotlin.math.abs(map.screenPoint(51.0,10.0).x-old.x)>100)
+            frame.capture()
+            val moved=drawAtOrigin();val expected=map.screenPoint(51.0,10.0)
+            assertEquals(expected.x,moved.x,.01);assertEquals(expected.y,moved.y,.01)
+            assertFalse("normal pan reuses uploaded geometry",GlRouteProjection.needsRebase(reference,map.camera))
+            map.panBy(800f,0f);assertTrue(GlRouteProjection.needsRebase(reference,map.camera))
+        } finally { map.disposeMap();host.pause().stop().destroy() }
+    }
+    @Test fun clippingKeepsOffscreenSegmentsSeparateAndWrapsAcrossTheDateLine() {
+        val reference=org.oscim.core.MapPosition(0.0,0.0,1024.0)
+        val scale=256*reference.scale
+        val xs=listOf(-10000.0,-500.0,500.0,10000.0)
+        val geometry=GlRouteGeometry(xs.flatMap { listOf(reference.x+it/scale,reference.y) }.toDoubleArray(),booleanArrayOf(true,false,true,false))
+        val style=MapLineStyle(Color.RED,4f,40)
+        val batch=GlRouteProjection.batches(listOf(GlRouteLine(geometry,style,false)),reference,1000.0).single()
+        assertEquals(2,batch.pieces.size)
+        assertArrayEquals(floatArrayOf(-1000f,0f,-500f,0f),batch.pieces[0],.01f)
+        assertArrayEquals(floatArrayOf(500f,0f,1000f,0f),batch.pieces[1],.01f)
+        reference.x=.9995
+        val dateline=GlRouteGeometry(doubleArrayOf(.999,reference.y,.0001,reference.y),booleanArrayOf(true,false))
+        val crossing=GlRouteProjection.batches(listOf(GlRouteLine(dateline,style,true)),reference,1000.0).single()
+        assertEquals(1,crossing.pieces.size)
+        assertTrue(crossing.pieces.single()[0]<0);assertTrue(crossing.pieces.single()[2]>0)
     }
     @Test fun gpsCompassAndUprightHeightLabelKeepTheirScreenSizeAcrossZoomAndRotation() {
         val host=Robolectric.buildActivity(Activity::class.java).setup();val map=BicycleMapView(host.get());val overlay=RouteTrackLayer(host.get(),map)

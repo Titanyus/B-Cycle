@@ -169,7 +169,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         }
         pinchZoom=MapPinchZoom(mapView) { MapZoom.maximum(source) }
         addView(mapView,LayoutParams(-1,-1))
-        downloads=createDownloadLayer(source);mapView.map().layers().add(downloads)
+        downloads=createDownloadLayer(source);mapView.map().layers().add(1,downloads)
         addView(routes,LayoutParams(-1,-1))
         mapView.userMoved={ setFollow(false);revealControls() }
         mapView.zoomed={ revealControls() }
@@ -294,7 +294,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             source = next; providerKey=nextKey
             mapView.setZoomLimits(MapZoom.maximum(source))
             if(mapView.zoom>MapZoom.maximum(source)) mapView.setZoom(MapZoom.maximum(source).toDouble())
-            downloads = createDownloadLayer(source); mapView.map().layers().add(downloads)
+            downloads = createDownloadLayer(source); mapView.map().layers().add(1,downloads)
             if (running) downloads.resume()
             credit.text = source.attribution
         }

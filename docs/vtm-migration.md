@@ -37,3 +37,7 @@ Logs unter `/workspace/.tools/`: `vtm-smoke-test.log`, `vtm-targeted-tests.log`,
 OpenGL-Tilezeichnung, SurfaceView-Zusammensetzung/Clipping während Drag/Vollbild, PixelCopy und das tatsächliche Wischgefühl brauchen einen Android-Gerätetest. Die lokalen Prüfungen belegen numerische Kamera-/Overlay-/Bedienungslogik und verfügbare Ressourcen, keine tatsächliche GPU-Ausgabe oder Verbrauchsersparnis. Mehrere Kartenansichten und Pause/Rückkehr ebenfalls im echten Dialogablauf bestätigen. [APK0.8.79/Build120](build-120.md) enthält die Migration. Der gesicherte Rückfallstand0.8.78/Build119 verwendet weiterhin die alte Engine.
 
 Danach können Vektorquelle/Themes und der getrennt geplante Akkuschonmodus folgen. Sensorerfassung, Aufzeichnung und Analyse bleiben in diesem Umbau unverändert vollständig.
+
+## Korrektur nach Gerätefeedback zu Build120
+
+Strecken hinkten auf der getrennten Android-Zeichenfläche beim schnellen Ziehen hinterher. Lokal anschließend in den gemeinsamen VTM-GL-Frame verlagert, einschließlich Start-/Endmarkern; GPU-Geometriecache, einteilige Livefahrt-Umrandung und gesicherte Raster-Layerreihenfolge. GPS-Informations-View bleibt separat. [Aktuelle Änderung und gezielte Nachweise](vtm-route-frame-sync.md). Noch nicht in Build120 enthalten.

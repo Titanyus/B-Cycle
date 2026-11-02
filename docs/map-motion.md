@@ -48,3 +48,5 @@ Mittelpunktkorrektur: Das SVG hat seinen Innenkreis bei(45.3,46.9), die Zeichenf
 
 
 Nach Build117: Windrose auf Wunsch um80% vergrößert (Scale1,8 auf derselben24-dp-Ankerfläche, sichtbare Größe43,2dp). Mittelpunktkorrektur und Drehpunkt erhalten. Nordpfeil als separate native Vektorebene in aktivem FOREGROUND; übrige Grafik weiterhin schwarz, gemeinsame70% Deckkraft. Keine Änderung an Sichtbarkeits-/Folge-/Rotationslogik. Ein gezielter vorhandener Native-Test prüft Größe/Anker, echte Pixel für Nordpfeil und schwarzen Rest, Themewechsel, Rotation, Bedienungsanzeige und Folgestopp; erfolgreich in `wind-rose-size-north-tests.log`. Erstes Testsetup an gültigen hellen Custom-Theme-Wechsel angepasst, da alle Presets weißes FOREGROUND verwenden. Keine neue APK beauftragt.
+
+Nach Gerätefeedback zu Build120: Strecken und Start-/Endmarker werden lokal im selben VTM-GL-Frame gezeichnet; keine verzögerten Canvas-Streckenoverlays mehr. [Korrektur](vtm-route-frame-sync.md). Bewegungs-/Anker-/Erfassungsregeln unverändert.

@@ -46,6 +46,8 @@ class MapProviderSettingsTest {
         try {
             val activity=controller.get();val runtime=RideRuntime.get(activity)
             runtime.preferences.edit().putString("mapSource","OSM").commit()
+            val panel=testDescendants(activity.window.decorView).filterIsInstance<MapPanel>().single()
+            val nativeRoutes=panel.mapView.map().layers().filterIsInstance<VtmRouteLayer>().single()
             MainActivity::class.java.getDeclaredMethod("mapSettings").apply { isAccessible=true }.invoke(activity)
             shadowOf(Looper.getMainLooper()).idle()
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
@@ -72,6 +74,10 @@ class MapProviderSettingsTest {
             source.setSelection(MapSource.OPENTOPOMAP.ordinal);shadowOf(Looper.getMainLooper()).idle()
             assertEquals("OPENTOPOMAP",runtime.preferences.getString("mapSource",null))
             assertEquals(View.GONE,root.findViewWithTag<View>("map_provider_key_row").visibility)
+            panel.refreshSettings()
+            val layers=panel.mapView.map().layers()
+            assertSame(nativeRoutes,layers.filterIsInstance<VtmRouteLayer>().single())
+            assertTrue("raster source stays beneath the routes",layers.indexOf(layers.filterIsInstance<VtmRasterLayer>().single())<layers.indexOf(nativeRoutes))
         } finally { controller.pause().stop().destroy() }
     }
 }

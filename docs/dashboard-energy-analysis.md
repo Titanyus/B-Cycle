@@ -103,3 +103,5 @@ Sensorfrequenz und weniger Aufzeichnung waren ausschließlich eine Verständnisf
 ## Entwicklungsstand nach der VTM-Umstellung
 
 Die obige Lastabschätzung beschreibt den Mapsforge-Stand von Build119. Danach auf Auftrag die Engine auf VTM mit denselben Rasterquellen umgestellt. Basiskarte jetzt GL, Strecken-/Positionsoverlays weiterhin native Views mit VTM-Projektion. Pfadvorbereitung/Mercator-Koordinaten auf Worker bei Datenänderung gecached, pro Kamerabild affine Projektion. Die bisherigen33-ms-Kartenbewegungen sind erhalten; keine zusätzliche Anzeige-/Sensor-/Aufzeichnungsdrosselung. Deshalb noch keine belastbare Aussage über reale GPU-/CPU-/Akkuänderungen. [Migration](vtm-migration.md).
+
+Nach Gerätefeedback zu Build120 Strecken/Endmarker in den VTM-GL-Frame verlagert. GPU-Vertices werden bei normaler Kamerabewegung wiederverwendet; kein großes Streckenbild pro Kameraframe hochladen. CPU-Geometrie bei Datenänderung bzw. erforderlicher Ausschnitts-Neuzentrierung. Keine gemessene Akkuersparnis behaupten. GPS-Informations-View weiterhin separat. [Änderung](vtm-route-frame-sync.md).
