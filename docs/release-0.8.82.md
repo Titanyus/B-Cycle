@@ -6,4 +6,4 @@
 
 Gezielte Prüfung: zwei betroffene Vektorkartentests, drei Karten-/Dashboard-Übergangsfälle und ein bestehender Menütest erfolgreich. Der neue Bildtest hat den fehlenden Karteninhalt vor der Korrektur reproduziert. Typografie, Atlas und Diff erfolgreich; kein Gesamtlauf. Robolectric prüft die Android-Zeichenroutine mit vorbereiteten Kartenpixeln; tatsächlichen PixelCopy-/Compositor-Übergang am Smartphone noch bestätigen.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-123.md).

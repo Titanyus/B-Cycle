@@ -1,16 +1,16 @@
-# Aktueller Stand: Flächenfarben nach APK 0.8.81/Build 122 korrigiert
+# Aktueller Stand: APK 0.8.82 / Build 123 veröffentlicht
 
-## Aktuelle Korrektur: ausgehende Karte beim Loslassen
+## Aktueller Auftrag abgeschlossen
 
-Nutzer: Neue Karte scrollt herein, alte verschwindet beim UP. Reproduzierter Bildtest: VTMs `setWillNotDraw(true)` überspringt im Elternbaum unsere Software-Snapshot-Routine. `BicycleMapView` setzt jetzt false; vorhandene PixelCopy-Aufnahme wird dadurch ins ausgehende Seitenbild gezeichnet. Keine neue Vorschau-/Animationsarchitektur. Neuer Bildtest vor Änderung fehlgeschlagen, nach Änderung erfolgreich; dazu zwei bestehende Abbruch-/Umhäng-Fälle erfolgreich (3/3). [Details](dashboard-page-transition.md), Log `/workspace/.tools/page-outgoing-map-fix-tests.log`. Noch keine neue APK.
+Neue APK ausdrücklich beauftragt, ausschließlich über GitHub Actions gebaut, Signatur/Prüfsumme/Assets geprüft und veröffentlicht. [Build 123](build-123.md), [Änderungen](release-0.8.82.md).
 
-Nutzerentscheidung: Gruppentrenner im Haupt-Einstellungsmenü auf je 12 dp oben/unten reduziert (vorher je 32 dp). Menüzeilen und erweiterte Einstellungen unverändert. Bestehender gezielter Menütest erfolgreich, ebenso Typografie/Atlas/Diff; keine neue Testklasse. Log `/workspace/.tools/settings-divider-12dp-test.log`.
+- Bright: deckender grüner Wald, hellgrüne Wiesen, gelbgrüne Felder; farmland-/scrub-Regeln und fehlenden wetland-Stil ergänzt. Zwei betroffene Vektorkartentests erfolgreich. [Details](vtm-bright-style.md).
+- Alte Karte verschwand beim Loslassen: VTMs setWillNotDraw(true) übersprang beim Aufnehmen des Elternbaums die Software-Snapshot-Routine. BicycleMapView setzt jetzt false; vorhandene GL-Aufnahme wird ins ausgehende Seitenbild gezeichnet. Neuer Bildtest reproduzierte den Fehler; nach Fix drei betroffene Übergangs-/Abbruch-/Umhängfälle erfolgreich. Keine zusätzliche Karteninstanz oder Übergangsaufnahme. [Details](dashboard-page-transition.md).
+- Gruppentrenner im Haupt-Einstellungsmenü auf ausdrücklichen Wunsch je 12 dp oben/unten (vorher je 32). Menüzeilen und erweitertes Menü unverändert. Ein bestehender Menütest erfolgreich.
 
-## Aktuelle Änderung nach Build 122
+Typografie/Atlas/Diff erfolgreich; kein Gesamtlauf. Tatsächlichen PixelCopy-/Compositor-Übergang und Kartenfarben am Smartphone noch bestätigen. Testlogs in /workspace/.tools/: vtm-bright-rural-tests.log, page-outgoing-map-fix-tests.log, settings-divider-12dp-test.log.
 
-Bright: Wald jetzt deckend grün, Wiesen hellgrün, Ackerflächen gelbgrün; fehlende farmland-/scrub-Regeln und undefinierten wetland-Stil ergänzt. Ursache: Wald bisher nur 10 % Deckkraft, Ackerflächen ohne Regel. [Details](vtm-bright-style.md). Zwei betroffene Vektorkartentests erfolgreich (0 Fehler), ebenso Typografie/Atlas/Diff. Log: `/workspace/.tools/vtm-bright-rural-tests.log`. Noch keine neue APK beauftragt/gebaut; letzter veröffentlichter Build bleibt 122.
-
-## Auftrag 02.11.2026 abgeschlossen
+## Erhaltener Stand aus Build 122
 
 Neue APK ausdrücklich beauftragt, ausschließlich über GitHub Actions gebaut und geprüft. [Build 122](build-122.md), [Änderungen](release-0.8.81.md).
 
@@ -25,15 +25,13 @@ Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf, keine lokale APK
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.81/Build 122](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.81-release-122.apk), code151, Quelle `6ecbd52ae58a0296fe15d08348e237a7cfe79ba2`, 4075040 Bytes, SHA256 `8301a0ac5a7a88f55157deda4aeba35db37b08517c9989c3afce042788ad3b0e`. Signatur/Version/Manifest/CI-Prüfsumme/ZIP-/ARM64-16-KB-Ausrichtung geprüft; vier ABIs, 27 Shader, Bright-XML/Lizenz und MVT-Schema nach R8 nachgewiesen. [Buildnachweis](build-122.md).
+[APK 0.8.82 / Build 123](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.82-release-123.apk), code 152, Quelle `1730b8182c22e6931c919f6f1c97a7ad72eb9eea`, 4075100 Bytes, SHA-256 `298c19b2bd27f7a1c49f9755415a875908cb2320f5936d1b7b51d87f6a207a10`. Dauerhafte Signatur, CI-Prüfsumme, Version/Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 27 Shader und neue Bright-Flächenfarben geprüft. [Buildnachweis](build-123.md).
 
-Vorige APK 0.8.80/Build 121: [Nachweis](build-121.md), noch Liberty und kein allgemeiner Akkusparmodus. Build 120 war die erste VTM-APK mit Rasterkarten. Rückfallstand vor Enginewechsel: [Meilenstein0.8.78/Build 119](milestone-0.8.78.md), dauerhaft per annotiertem Tag/GitHub-Release und revisionsgebundenen APK-/Mapping-Links gesichert. Nicht verändern.
+Vorige APK: [0.8.81 / Build 122](build-122.md), davor [0.8.80 / Build 121](build-121.md). Rückfallstand vor Enginewechsel: [Meilenstein 0.8.78 / Build 119](milestone-0.8.78.md), dauerhaft gesichert; nicht verändern.
 
 ## Weitere Planung
 
 - Kartenstil im Akkusparmodus ausdrücklich noch nicht wechseln. Minimal: kleine Straßen/Feldwege ausblenden, große Straßen erhalten; Orte/Wasser/Wald/Position/gewählte Strecken bleiben. OLED-/Sparstil und mögliche Dashboardoption noch offen, nicht gebaut. Alle Karten vorerst Draufsicht.
 - Maputnik als visueller Browsereditor besprochen; MapLibre-JSON nicht direkt VTM-XML-kompatibel. Kein Live-Stilimport beauftragt.
 - Sensorfrequenz/weniger Aufzeichnung waren nur Verständnisfragen: niemals aus Akkuwünschen eine Drosselung von GPS/BLE, Rohdaten oder Analyse ableiten.
-- Nächste APK nur auf ausdrücklichen Auftrag ausschließlich GitHub Actions, voraussichtlich 0.8.82 / code 152 / Build 123. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur,27 Shader/Bright-Assets und echten direkten Download prüfen.
-
-Downloadnachweis: öffentlicher Raw-Link nach Veröffentlichung abgerufen, 4075040 Bytes und SHA-256 bytegenau identisch zum Actions-Artefakt.
+- Nächste APK nur auf ausdrücklichen Auftrag ausschließlich GitHub Actions, voraussichtlich 0.8.83 / code 153 / Build 124. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur, 27 Shader/Bright-Assets und echten direkten Download prüfen.
