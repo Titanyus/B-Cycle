@@ -35,3 +35,5 @@ Vorige APK: [0.8.81 / Build 122](build-122.md), davor [0.8.80 / Build 121](build
 - Maputnik als visueller Browsereditor besprochen; MapLibre-JSON nicht direkt VTM-XML-kompatibel. Kein Live-Stilimport beauftragt.
 - Sensorfrequenz/weniger Aufzeichnung waren nur Verständnisfragen: niemals aus Akkuwünschen eine Drosselung von GPS/BLE, Rohdaten oder Analyse ableiten.
 - Nächste APK nur auf ausdrücklichen Auftrag ausschließlich GitHub Actions, voraussichtlich 0.8.83 / code 153 / Build 124. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur, 27 Shader/Bright-Assets und echten direkten Download prüfen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4075100 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.

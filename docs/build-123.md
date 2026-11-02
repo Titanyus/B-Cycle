@@ -14,3 +14,5 @@ Optimierter Release ausschließlich aus GitHub Actions. CI-Prüfsumme, dauerhaft
 [Änderungen](release-0.8.82.md): erkennbare ländliche Flächenfarben, alte Karte im ausgehenden Dashboardbild, Trenner im Einstellungsmenü mit jeweils 12 dp Abstand.
 
 Zwei betroffene Vektorkartentests, drei Karten-/Dashboard-Übergangsfälle und ein bestehender Menütest erfolgreich. Der neue Bildtest reproduzierte den fehlenden Karteninhalt vor der Korrektur. Typografie/Atlas/Diff erfolgreich; kein Gesamtlauf und keine lokale APK. Tatsächlichen PixelCopy-/Compositor-Übergang und Farben am Smartphone noch bestätigen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4075100 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
