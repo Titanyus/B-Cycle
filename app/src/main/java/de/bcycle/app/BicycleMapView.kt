@@ -36,6 +36,7 @@ class BicycleMapView(context:Context):org.oscim.android.MapView(configure(contex
     var userMoved:(()->Unit)?=null
     var zoomed:(()->Unit)?=null
     private var snapshot:Bitmap?=null
+    private var snapshotGeneration=0
     private var disposed=false
     private var lastEventZoom=Double.NaN
     init {
@@ -77,24 +78,31 @@ class BicycleMapView(context:Context):org.oscim.android.MapView(configure(contex
     /** Capture the separate GL surface before the outgoing dashboard is drawn into its bounded bitmap. */
     fun prepareSnapshot(done:(Boolean)->Unit) {
         clearSnapshot()
-        if(disposed || !isAttachedToWindow || holder.surface?.isValid!=true || width<=0 || height<=0) { done(false);return }
+        val token=snapshotGeneration
+        captureImage { image ->
+            if(token!=snapshotGeneration || disposed) { image?.recycle();done(false) }
+            else { snapshot=image;done(image!=null) }
+        }
+    }
+    /** Independent ownership for adjacent-page previews; never replaces the outgoing slide image. */
+    internal fun captureImage(done:(Bitmap?)->Unit) {
+        if(disposed || !isAttachedToWindow || holder.surface?.isValid!=true || width<=0 || height<=0) { done(null);return }
         val factor=sqrt(1_000_000.0/(width.toDouble()*height)).coerceAtMost(1.0)
         val image=try { Bitmap.createBitmap((width*factor).toInt().coerceAtLeast(1),(height*factor).toInt().coerceAtLeast(1),Bitmap.Config.ARGB_8888) }
-            catch(_:OutOfMemoryError) { done(false);return }
+            catch(_:OutOfMemoryError) { done(null);return }
         val handler=Handler(Looper.getMainLooper());var completed=false
-        // Keep PixelCopy's destination alive until its callback, even after the UI timeout.
-        val timeout=Runnable { if(!completed) { completed=true;done(false) } }
+        val timeout=Runnable { if(!completed) { completed=true;done(null) } }
         handler.postDelayed(timeout,200)
         try {
             PixelCopy.request(this,image,{ result ->
                 handler.removeCallbacks(timeout)
-                if(completed || disposed) { image.recycle();if(!completed) { completed=true;done(false) };return@request }
+                if(completed || disposed) { image.recycle();if(!completed) { completed=true;done(null) };return@request }
                 completed=true
-                if(result==PixelCopy.SUCCESS) { snapshot=image;done(true) } else { image.recycle();done(false) }
+                if(result==PixelCopy.SUCCESS) done(image) else { image.recycle();done(null) }
             },handler)
-        } catch(_:IllegalArgumentException) { handler.removeCallbacks(timeout);image.recycle();if(!completed) { completed=true;done(false) } }
+        } catch(_:IllegalArgumentException) { handler.removeCallbacks(timeout);image.recycle();if(!completed) { completed=true;done(null) } }
     }
-    fun clearSnapshot() { snapshot?.recycle();snapshot=null }
+    fun clearSnapshot() { snapshotGeneration++;snapshot?.recycle();snapshot=null }
     override fun draw(canvas:Canvas) {
         val shot=snapshot
         if(!canvas.isHardwareAccelerated && shot!=null && !shot.isRecycled) canvas.drawBitmap(shot,null,Rect(0,0,width,height),null)

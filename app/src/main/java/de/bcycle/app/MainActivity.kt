@@ -76,6 +76,7 @@ class MainActivity : Activity() {
     private var dashboardPage = 0
     private val dashboardPages get() = DashboardPages(this,preferences)
     private var mapFullscreen = false
+    private var previewMapAttached=false
     private var controlsVisible = true
     private var displayedMapMessage = ""
     private val dashboardKey get() = if (dashboardPage == 0) "dashboard" else "dashboard_$dashboardPage"
@@ -216,7 +217,7 @@ class MainActivity : Activity() {
         updateMapBack()
         dashboard.setTemplate(currentTemplate())
         mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink)
-        mapPanel.cameraVisible = { dialogs.empty && currentTemplate().hasMap }
+        mapPanel.cameraVisible = { dialogs.empty && (currentTemplate().hasMap || previewMapAttached) }
         mapPanel.finishEditor = ::finishDashboardEditor
         mapPanel.selectMapField = { chooseField(it, mapField = true) }
         dashboardArea = object : LinearLayout(this) {
@@ -240,6 +241,7 @@ class MainActivity : Activity() {
                 else ready(true)
             }
             releasePageSnapshot={ mapPanel.mapView.clearSnapshot() }
+            prepareAdjacentPage=::prepareDashboardPreview
             changePage=::changeDashboard
             swipeEnabledAt={ x,y ->
                 !dashboardEditing && runtime.visible && dialogs.empty && dashboardPages.all().size>1 &&
@@ -442,7 +444,7 @@ class MainActivity : Activity() {
         if(runtime.drinkReminder.update(runtime.recording,runtime.elapsedMs,drinkSettings,drinkVisible && shiftBatteryWarningPanel.visibility!=View.VISIBLE)) {
             drinkReminderPanel.showReminder(drinkSettings.durationSeconds);placeDrinkReminder()
         }
-        if (::mapPanel.isInitialized && currentTemplate().hasMap) mapPanel.refresh()
+        if (::mapPanel.isInitialized && (currentTemplate().hasMap || previewMapAttached)) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
         if (mapMessage != displayedMapMessage) {
             displayedMapMessage = mapMessage
@@ -841,6 +843,25 @@ class MainActivity : Activity() {
             if(cached!=null) show(Result.success(cached)) else runtime.hrv.dailyAssessment(requestedDay,::show)
         }
         dayPager.swipeEnabledAt={ _,_ -> firstDay<java.time.LocalDate.now() && daily.findViewWithTag<View>("hrv_daily_assessment")!=null }
+        dayPager.prepareAdjacentPage={ delta,ready ->
+            val target=selectedDay.plusDays(delta.toLong())
+            if(target<firstDay || target>java.time.LocalDate.now()) ready(null) else {
+                fun preview(assessment:HrvDailyAssessment) {
+                    dailyCache[target]=assessment
+                    if(dailyCache.size>16) dailyCache.remove(dailyCache.keys.first())
+                    val neighbor=LinearLayout(this).apply {
+                        orientation=LinearLayout.VERTICAL;tag="hrv_adjacent_preview"
+                        addView(HrvDailyAssessmentView(this@MainActivity,runtime.themes,assessment))
+                        addView(BicycleComponents.textAction(this@MainActivity,runtime.themes,getString(R.string.hrva_details)) {},LinearLayout.LayoutParams(-1,-2))
+                    }
+                    ready(PagePreview(neighbor))
+                }
+                val cached=dailyCache[target]
+                if(cached!=null) preview(cached) else runtime.hrv.dailyAssessment(target) { outcome ->
+                    if(isDestroyed || !screen.isShowing) ready(null) else outcome.fold({ preview(it) },{ ready(null) })
+                }
+            }
+        }
         dayPager.changePage={ delta ->
             val target=selectedDay.plusDays(delta.toLong())
             if(target<firstDay || target>java.time.LocalDate.now()) dayPager.returnToPage() else loadDaily(target,delta)
@@ -1207,6 +1228,56 @@ class MainActivity : Activity() {
         if(!currentTemplate().hasMap) mapPanel.revealControls()
         noMapEditorFinish.visibility=if(dashboardEditing && !currentTemplate().hasMap) View.VISIBLE else View.GONE
         mapPanel.showFullscreen(mapFullscreen); dashboardArea.requestLayout()
+    }
+    /** Read-only neighboring layout: no page preference writes and no second sensor/map instance. */
+    private fun prepareDashboardPreview(delta:Int,ready:(PagePreview?)->Unit) {
+        val pages=dashboardPages.all()
+        val position=pages.indexOfFirst { it.id==dashboardPage }.coerceAtLeast(0)
+        val target=pages[Math.floorMod(position+delta,pages.size)].id
+        val template=DashboardTemplate.decode(preferences.getString("dashboardTemplate_$target",DashboardTemplate.entries[target].name)).forBike(runtime.bikes.current().type)
+        val fields=DashboardLayout.decode(preferences.getString(if(target==0) "dashboard" else "dashboard_$target",null))
+        val visible=DashboardDataVisibility.read(preferences,target)
+        val help=DashboardTrainingHelp.read(preferences,target)
+        val data=DashboardView(this) {}.apply {
+            bindEditorTheme(runtime.themes);setTemplate(template);showFooter(controlsVisible)
+            showTraining(help.sources(fields,visible),trainingSnapshot,help.mode==TrainingHelpMode.ZONE_TWO)
+            showDataVisibility(visible);showTrendIndicators(TrendIndicatorSettings.read(preferences))
+            showGraphs(GraphOverlayConfig.read(preferences,target),runtime.liveGraphs.frame)
+            show(fields,runtime.dashboardBikeData,runtime.gpsValues,runtime.ride.bike.distanceM,runtime.pulseValues,runtime.trendSnapshot)
+        }
+        val preview=object:LinearLayout(this) {
+            override fun onMeasure(w:Int,h:Int) {
+                val available=View.MeasureSpec.getSize(h)-if(controlsVisible) 0 else dp(58)
+                (data.layoutParams as LayoutParams).height=data.heightForViewport(View.MeasureSpec.getSize(w),available.coerceAtLeast(0))
+                super.onMeasure(w,h)
+            }
+        }.apply { orientation=LinearLayout.VERTICAL;tag="dashboard_adjacent_preview" }
+        preview.addView(data,LinearLayout.LayoutParams(-1,0))
+        if(!template.hasMap) { ready(PagePreview(preview));return }
+        if(mapPanel.visibility==View.VISIBLE && mapPanel.parent===dashboardArea) {
+            // Existing map stays live on the current page; only a bounded image is shown next to it.
+            mapPanel.capturePreview { image ->
+                preview.addView(ImageView(this).apply {
+                    scaleType=ImageView.ScaleType.CENTER_CROP
+                    setBackgroundColor(Color.rgb(225,225,225));setImageBitmap(image)
+                },LinearLayout.LayoutParams(-1,0,1f))
+                ready(PagePreview(preview) { image?.recycle() })
+            }
+        } else {
+            // A page without a map has no GL image. Rehouse the sole map for the incoming preview.
+            previewMapAttached=true
+            (mapPanel.parent as? android.view.ViewGroup)?.removeView(mapPanel)
+            preview.addView(mapPanel,LinearLayout.LayoutParams(-1,0,1f))
+            mapPanel.visibility=View.VISIBLE
+            if(runtime.visible) mapPanel.resume()
+            ready(PagePreview(preview) {
+                mapPanel.pause();preview.removeView(mapPanel);previewMapAttached=false
+                dashboardArea.addView(mapPanel,LinearLayout.LayoutParams(-1,0,1f-currentTemplate().dataFraction))
+                mapPanel.visibility=if(currentTemplate().hasMap) View.VISIBLE else View.GONE
+                if(runtime.visible && currentTemplate().hasMap) mapPanel.resume()
+                dashboardArea.requestLayout()
+            })
+        }
     }
     private fun changeDashboard(delta: Int) {
         val pages=dashboardPages.all()

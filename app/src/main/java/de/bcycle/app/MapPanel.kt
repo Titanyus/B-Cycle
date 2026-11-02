@@ -360,6 +360,27 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             trackGeneration=runtime.mapState.track.generation,profileGeneration=runtime.profileRevision,
             overlays=runtime.mapState.mapRoutes.filter { runtime.mapState.routeVisible(it.id) }.map { StyledMapRoute(it.route,MapRouteStyles.read(preferences,MapRouteStyles.saved(it.slot),night)) })
     }
+    /** Add native controls to the independently owned GL screenshot, bounded to 1M pixels. */
+    private var previewCapture:((android.graphics.Bitmap?)->Unit)?=null
+    internal fun capturePreview(done:(android.graphics.Bitmap?)->Unit) {
+        val previous=previewCapture
+        previewCapture=done
+        if(previous!=null) { previous(null);return }
+        val profile=runtime.profileRevision
+        mapView.captureImage { captured ->
+            val callback=previewCapture;previewCapture=null
+            val image=if(profile==runtime.profileRevision) captured else { captured?.recycle();null }
+            if(image!=null && width>0 && height>0) {
+                val canvas=android.graphics.Canvas(image)
+                canvas.scale(image.width.toFloat()/width,image.height.toFloat()/height)
+                for(i in 0 until childCount) {
+                    val child=getChildAt(i)
+                    if(child!==mapView && child.visibility==VISIBLE) drawChild(canvas,child,drawingTime)
+                }
+            }
+            if(callback!=null) callback(image) else image?.recycle()
+        }
+    }
     private fun refreshDataFields() {
         dataFields.show(runtime.dashboardBikeData, runtime.gpsValues, runtime.ride.bike.distanceM, runtime.pulseValues, runtime.recording, null,runtime.trendSnapshot)
     }

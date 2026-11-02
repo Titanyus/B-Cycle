@@ -159,6 +159,68 @@ class DashboardPageViewportTest {
             assertEquals(2,changes);animator(viewport).end();assertEquals(0f,page.translationX,0f)
         } finally { host.pause().stop().destroy() }
     }
+    @Test fun adjacentPageMovesWithTheFingerAndStaysVisibleDuringReturn() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val viewport=DashboardPageViewport(a) { true };val page=View(a).apply { isClickable=true;setBackgroundColor(Color.RED) }
+            viewport.setPage(page);a.setContentView(viewport);prepare(viewport)
+            var changes=0;var releases=0
+            viewport.swipeEnabledAt={ _,_ -> true };viewport.changePage={ changes++ }
+            viewport.prepareAdjacentPage={ direction,ready -> ready(PagePreview(View(a).apply { tag="neighbor";setBackgroundColor(if(direction>0) Color.BLUE else Color.GREEN) }) { releases++ }) }
+            touch(viewport,MotionEvent.ACTION_DOWN,180f)
+            touch(viewport,MotionEvent.ACTION_MOVE,100f,time=800)
+            layout(viewport)
+            val neighbor=viewport.findViewWithTag<View>("neighbor")
+            assertEquals(-64f,page.translationX,.01f);assertEquals(296f,neighbor.translationX,.01f);assertEquals(0,changes)
+            val image=android.graphics.Bitmap.createBitmap(360,800,android.graphics.Bitmap.Config.ARGB_8888)
+            viewport.draw(android.graphics.Canvas(image));assertEquals(Color.RED,image.getPixel(100,100));assertEquals("next page is already visible before UP",Color.BLUE,image.getPixel(330,100));image.recycle()
+            touch(viewport,MotionEvent.ACTION_MOVE,240f,time=1600);layout(viewport)
+            assertEquals(1,releases);assertEquals(-284f,viewport.findViewWithTag<View>("neighbor").translationX,.01f)
+            touch(viewport,MotionEvent.ACTION_CANCEL,240f,time=1700)
+            animator(viewport).currentPlayTime=90
+            assertEquals(-360f,viewport.findViewWithTag<View>("neighbor").translationX-page.translationX,.01f)
+            animator(viewport).end();assertEquals(2,releases);assertEquals(1,viewport.childCount);assertEquals(0,changes)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun lateAdjacentPageIsReleasedAfterCancellationInsteadOfReappearing() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val viewport=DashboardPageViewport(a) { true };viewport.setPage(View(a).apply { isClickable=true })
+            a.setContentView(viewport);prepare(viewport)
+            var pending:((PagePreview?)->Unit)?=null;var releases=0
+            viewport.swipeEnabledAt={ _,_ -> true };viewport.changePage={ fail("cancelled") }
+            viewport.prepareAdjacentPage={ _,ready -> pending=ready }
+            touch(viewport,MotionEvent.ACTION_DOWN,180f);touch(viewport,MotionEvent.ACTION_MOVE,100f,time=300)
+            viewport.cancelTransition()
+            checkNotNull(pending)(PagePreview(View(a)) { releases++ })
+            assertEquals(1,releases);assertEquals(1,viewport.childCount);assertFalse(viewport.running)
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun maplessDashboardPreviewRehousesOnlyOneMapAndRestoresItOnCancelOrCommit() {
+        val c=org.robolectric.RuntimeEnvironment.getApplication();val runtime=RideRuntime.get(c);val prefs=runtime.preferences
+        c.getSharedPreferences(HrvSettings.STORE,0).edit().putBoolean("showOnFirstStart",false).commit()
+        SensorSetupLaunch(c).later(runtime.bikes.current())
+        prefs.edit().putInt("dashboardPage",0)
+            .putString("dashboardTemplate_0",DashboardTemplate.entries.first { !it.hasMap }.name)
+            .putString("dashboardTemplate_1",DashboardTemplate.entries.first { it.hasMap }.name).commit()
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        try {
+            val root=host.get().window.decorView;prepare(root)
+            val viewport=root.findViewWithTag<DashboardPageViewport>("dashboard_page_viewport")
+            val map=testDescendants(root).filterIsInstance<MapPanel>().single();val original=map.parent
+            assertEquals(View.GONE,map.visibility)
+            touch(viewport,MotionEvent.ACTION_DOWN,180f);touch(viewport,MotionEvent.ACTION_MOVE,100f,time=800);layout(root)
+            assertEquals(0,prefs.getInt("dashboardPage",-1));assertNotSame(original,map.parent);assertEquals(View.VISIBLE,map.visibility)
+            assertEquals(1,testDescendants(root).filterIsInstance<BicycleMapView>().size)
+            touch(viewport,MotionEvent.ACTION_CANCEL,100f,time=900);animator(viewport).end()
+            assertSame(original,map.parent);assertEquals(View.GONE,map.visibility)
+            touch(viewport,MotionEvent.ACTION_DOWN,180f,time=1000)
+            touch(viewport,MotionEvent.ACTION_MOVE,100f,time=1050);touch(viewport,MotionEvent.ACTION_UP,100f,time=1060);layout(root)
+            assertEquals(1,prefs.getInt("dashboardPage",-1));assertSame(original,map.parent);assertEquals(View.VISIBLE,map.visibility)
+            assertEquals(1,testDescendants(root).filterIsInstance<BicycleMapView>().size)
+            viewport.viewTreeObserver.dispatchOnPreDraw();animator(viewport).end()
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun shortUncommittedAndCancelledDragsReturnWhileMapAndVerticalGesturesRemainUntouched() {
         val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
         try {
@@ -271,6 +333,8 @@ class DashboardPageViewportTest {
             touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
             assertEquals(-4f,viewport.getChildAt(0).translationX,.01f)
             touch(viewport,MotionEvent.ACTION_MOVE,100f,time=60)
+            assertEquals(0,prefs.getInt("dashboardPage",-1))
+            assertNotNull(viewport.findViewWithTag<View>("dashboard_adjacent_preview"))
             touch(viewport,MotionEvent.ACTION_UP,100f,time=70)
             layout(root)
             val dialogs=MainActivity::class.java.getDeclaredField("dialogs").apply { isAccessible=true }.get(a) as DialogNavigation

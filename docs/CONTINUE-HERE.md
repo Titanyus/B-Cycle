@@ -1,10 +1,10 @@
-# Aktueller Stand: GPS/Live-Strecke lokal korrigiert; Nachbarseitenvorschau in Arbeit
+# Aktueller Stand: GPS/Live-Strecke und Nachbarseitenvorschau lokal korrigiert
 
 ## Aktueller Auftrag nach Build121
 
 Nutzer: gespeicherte Strecken bewegen sich perfekt mit; Standort/Höhe ruckeln, Live-Strecke prüfen. Lokal umgesetzt: alle GPS-Elemente in VtmGpsLayer im GL-Frame, wiederverwendete kleine Glyphen und aufrechtes Höhenlabel, keine zeichnende Android-Kartenoverlayfläche mehr. Live-Strecke behält vorbereitete Geometrie während Worker-Neuberechnung, mit eigener Aufnahme-/Profilgeneration gegen alte Linien. [Umfang/Prüfung](vtm-gps-frame-sync.md). Drei gezielte Fälle und echter Mesa/GLES-Shader-Pixeltest erfolgreich, nur offenen Worker-Test nach Synchronisierung wiederholt; Kompilation/Typografie/Atlas/Diff erfolgreich. Noch keine neue APK beauftragt; nicht pushen. Nächste APK **27 Shader**, einschließlich neuem `bcycle_gps.glsl`.
 
-Zusätzlicher aktiver Auftrag: Nachbarseite soll bei Dashboard-/HRV-Wischen bereits während des Ziehens gleichzeitig hereinlaufen; bisher kommt sie erst nach UP und es bleibt ein leerer Bereich. Vorschau ergänzen, Auswahl erst beim Loslassen festlegen, weiterhin eine lebende Karte und begrenzte Snapshot-Speichergröße. GPS-Korrektur zuerst abschließen, danach diese Aufgabe vollständig umsetzen.
+Zusätzlicher Auftrag ebenfalls umgesetzt: Dashboard-/HRV-Nachbarseite läuft schon während des Ziehens herein. Schreibgeschützte native Vorschau mit echter Nachbar-Konfiguration/-Tagesauswertung; Auswahl/Datum/Chart erst beim Commit. Eine Karteninstanz: aktuelle Karte als begrenzte unabhängige GL-Aufnahme oder aus kartenloser Seite umhängen, bei Abbruch/Commit zurücksetzen. Abbruch/Richtungswechsel/verspätete Antworten abgesichert. Sechs gezielte Fälle erfolgreich in `page-neighbor-tests.log`. [Umfang/Grenzen/Prüfung](dashboard-page-transition.md). Kompilation/Typografie/Atlas/Diff erfolgreich. Keine APK beauftragt; nicht pushen.
 
 ## Letzter APK-Auftrag02.11.2026 abgeschlossen
 
