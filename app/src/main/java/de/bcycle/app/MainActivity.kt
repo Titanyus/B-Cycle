@@ -50,6 +50,8 @@ class MainActivity : Activity() {
         if(message==null || (dialogs.empty && !dashboardEditing)) messages.receive(message)
     }
     private lateinit var mapPanel: MapPanel
+    private lateinit var dashboardMap:DashboardMapHost
+    private lateinit var mapSlot:DashboardMapHost.Slot
     private lateinit var dashboardArea: LinearLayout
     private var routeManager: RouteManagerView? = null
     private var statisticsView:RideStatisticsView?=null
@@ -76,7 +78,7 @@ class MainActivity : Activity() {
     private var dashboardPage = 0
     private val dashboardPages get() = DashboardPages(this,preferences)
     private var mapFullscreen = false
-    private var previewMapAttached=false
+    private var previewMapActive=false
     private var dashboardPreviewGeneration=0
     private var controlsVisible = true
     private var displayedMapMessage = ""
@@ -236,7 +238,7 @@ class MainActivity : Activity() {
         updateMapBack()
         dashboard.setTemplate(currentTemplate())
         mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink)
-        mapPanel.cameraVisible = { dialogs.empty && (currentTemplate().hasMap || previewMapAttached) }
+        mapPanel.cameraVisible = { dialogs.empty && (currentTemplate().hasMap || previewMapActive) }
         mapPanel.finishEditor = ::finishDashboardEditor
         mapPanel.selectMapField = { chooseField(it, mapField = true) }
         dashboardArea = object : LinearLayout(this) {
@@ -249,14 +251,19 @@ class MainActivity : Activity() {
             }
         }.apply { orientation = LinearLayout.VERTICAL }
         dashboardArea.addView(dashboard, LinearLayout.LayoutParams(-1, 0, currentTemplate().dataFraction))
-        dashboardArea.addView(mapPanel, LinearLayout.LayoutParams(-1, 0, 1f - currentTemplate().dataFraction))
+        dashboardMap=DashboardMapHost(this,mapPanel)
+        mapSlot=dashboardMap.slot()
+        dashboardArea.addView(mapSlot, LinearLayout.LayoutParams(-1, 0, 1f - currentTemplate().dataFraction))
+        mapSlot.visibility=if(currentTemplate().hasMap) View.VISIBLE else View.GONE
+        dashboardMap.select(mapSlot)
         dashboard.visibility = if (mapFullscreen) View.GONE else View.VISIBLE
         if(!currentTemplate().hasMap) { mapFullscreen=false;dashboard.visibility=View.VISIBLE;mapPanel.visibility=View.GONE }
         mapPanel.showFullscreen(mapFullscreen)
         dashboardViewport=DashboardPageViewport(this).apply {
             setPage(dashboardArea)
+            setMapHost(dashboardMap)
             preparePageSnapshot={ ready ->
-                if(mapPanel.parent===dashboardArea && mapPanel.visibility==View.VISIBLE && currentTemplate().hasMap) mapPanel.mapView.prepareSnapshot(ready)
+                if(dashboardMap.active===mapSlot && mapPanel.visibility==View.VISIBLE && currentTemplate().hasMap) mapPanel.mapView.prepareSnapshot(ready)
                 else ready(true)
             }
             releasePageSnapshot={ mapPanel.mapView.clearSnapshot() }
@@ -473,7 +480,7 @@ class MainActivity : Activity() {
         if(runtime.drinkReminder.update(runtime.recording,runtime.elapsedMs,drinkSettings,drinkVisible && shiftBatteryWarningPanel.visibility!=View.VISIBLE)) {
             drinkReminderPanel.showReminder(drinkSettings.durationSeconds);placeDrinkReminder()
         }
-        if (::mapPanel.isInitialized && (currentTemplate().hasMap || previewMapAttached)) mapPanel.refresh()
+        if (::mapPanel.isInitialized && (currentTemplate().hasMap || previewMapActive)) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
         if (mapMessage != displayedMapMessage) {
             displayedMapMessage = mapMessage
@@ -1268,6 +1275,7 @@ class MainActivity : Activity() {
         mapFullscreen = full && currentTemplate().hasMap; updateMapBack(); dashboard.visibility = if (mapFullscreen) View.GONE else View.VISIBLE
         val wasVisible=mapPanel.visibility==View.VISIBLE
         mapPanel.visibility=if(currentTemplate().hasMap) View.VISIBLE else View.GONE
+        mapSlot.visibility=mapPanel.visibility
         if(runtime.visible && wasVisible!=currentTemplate().hasMap) { if(currentTemplate().hasMap) mapPanel.resume() else mapPanel.pause() }
         if(!currentTemplate().hasMap) mapPanel.revealControls()
         noMapEditorFinish.visibility=if(dashboardEditing && !currentTemplate().hasMap) View.VISIBLE else View.GONE
@@ -1301,39 +1309,30 @@ class MainActivity : Activity() {
         }.apply { orientation=LinearLayout.VERTICAL;tag="dashboard_adjacent_preview" }
         preview.addView(data,LinearLayout.LayoutParams(-1,0))
         if(!template.hasMap) { ready(PagePreview(preview));return }
-        val hadMap=mapPanel.visibility==View.VISIBLE && mapPanel.parent===dashboardArea
+        val hadMap=mapPanel.visibility==View.VISIBLE && dashboardMap.active===mapSlot
         fun placeMap(image:android.graphics.Bitmap?) {
             if(request!=dashboardPreviewGeneration || !dashboardViewport.hasAdjacentDrag(delta) ||
                 !runtime.visible || dashboardEditing || !dialogs.empty ||
-                profile!=runtime.profileRevision || sourcePage!=dashboardPage || mapPanel.parent!==dashboardArea) {
+                profile!=runtime.profileRevision || sourcePage!=dashboardPage || dashboardMap.active!==mapSlot) {
                 image?.recycle();ready(null);return
             }
-            // Freeze the outgoing map at its original bounds; lay out the one live map at
-            // the target bounds. Cropping a whole-panel image also crops/moves its controls.
-            val originalIndex=dashboardArea.indexOfChild(mapPanel)
-            val originalParams=LinearLayout.LayoutParams(mapPanel.layoutParams as LinearLayout.LayoutParams)
-            val frozen=if(hadMap) ImageView(this).apply {
-                tag="dashboard_outgoing_map_preview"
-                scaleType=ImageView.ScaleType.FIT_XY
-                setBackgroundColor(Color.rgb(225,225,225));setImageBitmap(image)
-                importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            } else null
-            mapPanel.pause()
-            (mapPanel.parent as? android.view.ViewGroup)?.removeView(mapPanel)
-            if(frozen!=null) dashboardArea.addView(frozen,originalIndex,LinearLayout.LayoutParams(originalParams))
-            previewMapAttached=true
-            preview.addView(mapPanel,LinearLayout.LayoutParams(-1,0,1f))
+            val incomingSlot=dashboardMap.slot()
+            preview.addView(incomingSlot,LinearLayout.LayoutParams(-1,0,1f))
+            if(hadMap) mapSlot.setImageBitmap(image)
+            previewMapActive=true
             mapPanel.visibility=View.VISIBLE
-            if(runtime.visible) mapPanel.resume(reveal=false)
+            if(runtime.visible && !hadMap) mapPanel.resume(reveal=false)
             ready(PagePreview(preview) {
-                mapPanel.pause();preview.removeView(mapPanel);previewMapAttached=false
-                frozen?.let { dashboardArea.removeView(it);it.setImageDrawable(null) }
-                dashboardArea.addView(mapPanel,originalIndex.coerceIn(0,dashboardArea.childCount),originalParams)
+                previewMapActive=false
+                dashboardMap.select(mapSlot)
+                mapSlot.setImageDrawable(null)
                 mapPanel.visibility=if(currentTemplate().hasMap) View.VISIBLE else View.GONE
-                if(runtime.visible && currentTemplate().hasMap) mapPanel.resume(reveal=false)
+                if(runtime.visible && !currentTemplate().hasMap) mapPanel.pause()
                 dashboardArea.requestLayout()
                 image?.recycle()
             })
+            // ready may reject a late preview and release it synchronously.
+            if(incomingSlot.parent!=null && previewMapActive) dashboardMap.select(incomingSlot)
         }
         if(hadMap) mapPanel.capturePreview(::placeMap) else placeMap(null)
     }
@@ -1354,7 +1353,7 @@ class MainActivity : Activity() {
         dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=TrendIndicatorSettings.read(preferences)
         val template = currentTemplate(); dashboard.setTemplate(template)
         dashboardArea.requestLayout()
-        (mapPanel.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
+        (mapSlot.layoutParams as LinearLayout.LayoutParams).weight = 1f - template.dataFraction
         setMapFullscreen(false,revealControls=false); render()
     }
     private fun updateDashboardFullscreen() {
@@ -2096,7 +2095,7 @@ class MainActivity : Activity() {
                                             dashboardLayout=DashboardLayout.decode(preferences.getString(dashboardKey,null))
                                             dashboardGraphs=GraphOverlayConfig.read(preferences,dashboardPage); dashboardTrainingHelp=DashboardTrainingHelp.read(preferences,dashboardPage); dashboardDataVisibility=DashboardDataVisibility.read(preferences,dashboardPage); dashboardTrendIndicators=TrendIndicatorSettings.read(preferences)
                                             dashboard.setTemplate(currentTemplate());dashboardArea.requestLayout()
-                                            (mapPanel.layoutParams as LinearLayout.LayoutParams).weight=1f-currentTemplate().dataFraction
+                                            (mapSlot.layoutParams as LinearLayout.LayoutParams).weight=1f-currentTemplate().dataFraction
                                         }
                                         if(BackupSection.MAPS in selected || BackupSection.DASHBOARD in selected || BackupSection.PROFILE in selected) mapPanel.refreshSettings()
                                         render();screen.dismiss()

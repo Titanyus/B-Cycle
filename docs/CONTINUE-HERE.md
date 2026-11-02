@@ -1,5 +1,11 @@
 # Aktueller Stand: APK 0.8.84 / Build 125 veröffentlicht
 
+## Neuer Auftrag nach Build 125
+
+Nutzer meldet schwere Vektorfehler nach Dashboardwechsel: rechteckige Ortsnamen, fehlende/flimmernde Bereiche und scheinbar vertauschte Tiles. Umhängen der GLSurfaceView trennt sie vom Fenster und verliert den GL-Kontext, während VTM teils alte Textur-IDs hält. Jetzt DashboardMapHost als dauerhafter Elterncontainer; Seiten enthalten nur Slots. Host folgt aktivem Slot per Layout/Drag-/Animationsframe. Kein MapPanel-Reparent/Window-Detach auf Wechsel/Abbruch. Echter Footer-/Vollbild-/Zielgrößenbezug bleibt; auslaufender Slot zeigt begrenzte Aufnahme, Softwarecapture delegiert an aktiven MapPanel. [Details](dashboard-page-transition.md).
+
+Vier gezielte Fälle grün: Vektorkarte beide Footerzustände + Cancel/Commit mit 0 Attach/Detach und gleicher Host-/Layer-/Theme-Identität; kartenlose Vorschau mit stabilem Elterncontainer; echte Dashboardintegration; Kartenpixel in auslaufender Softwareaufnahme + Bitmapfreigabe. Logs dashboard-stable-map-tests.log / dashboard-stable-map-picture-test.log in /workspace/.tools/. Kompilation/Typografie/Atlas/Diff grün, kein Gesamtlauf. Echte Geräte-GPU/Zoom-/Text-/Tileausgabe noch bestätigen. Neue APK ausdrücklich anschließend beauftragt: 0.8.85 / code 155, erwarteter Build 126, nur GitHub Actions.
+
 ## Aktueller Auftrag abgeschlossen
 
 Neue APK ausdrücklich beauftragt, ausschließlich über GitHub Actions gebaut, geprüft und veröffentlicht. [Buildnachweis](build-125.md), [Änderungen](release-0.8.84.md).

@@ -24,6 +24,15 @@ internal data class PagePreview(val view:View,val release:()->Unit={})
 internal class DashboardPageViewport(context:Context,
     private val animationsEnabled:()->Boolean={ValueAnimator.areAnimatorsEnabled()}):FrameLayout(context) {
     private var page:View?=null
+    private var mapHost:DashboardMapHost?=null
+    fun setMapHost(host:DashboardMapHost) { check(mapHost==null);mapHost=host;addView(host,LayoutParams(-1,-1)) }
+    override fun onLayout(changed:Boolean,left:Int,top:Int,right:Int,bottom:Int) {
+        super.onLayout(changed,left,top,right,bottom);mapHost?.sync()
+    }
+    override fun dispatchDraw(canvas:Canvas) {
+        mapHost?.let { host -> host.sync();if(indexOfChild(host)!=childCount-1) host.bringToFront() }
+        super.dispatchDraw(canvas)
+    }
     private var picture:ImageView?=null
     private var bitmap:Bitmap?=null
     private var pending:ViewTreeObserver.OnPreDrawListener?=null
@@ -107,6 +116,7 @@ internal class DashboardPageViewport(context:Context,
                     addUpdateListener {
                         val fraction=it.animatedValue as Float
                         outgoing.translationX=start-(distance+start)*fraction;live.translationX=outgoing.translationX+distance
+                        mapHost?.sync()
                     }
                     addListener(object:AnimatorListenerAdapter() {
                         override fun onAnimationEnd(animation:Animator) { if(token==generation) cancelTransition() }
@@ -145,7 +155,7 @@ internal class DashboardPageViewport(context:Context,
         animator?.let { it.removeAllListeners();it.removeAllUpdateListeners();it.cancel() };animator=null
         page?.translationX=0f
         picture?.let { old -> old.setImageDrawable(null);removeView(old) }
-        picture=null;bitmap?.recycle();bitmap=null;running=false
+        picture=null;bitmap?.recycle();bitmap=null;running=false;mapHost?.sync()
     }
     private fun resetGesture() {
         candidate=false;dragging=false;velocity?.recycle();velocity=null
@@ -230,7 +240,7 @@ internal class DashboardPageViewport(context:Context,
         positionAdjacent()
     }
     internal fun hasAdjacentDrag(direction:Int)=dragging && adjacentDirection==direction && isAttachedToWindow
-    private fun positionAdjacent() { adjacent?.view?.translationX=(page?.translationX ?: 0f)+width*adjacentDirection }
+    private fun positionAdjacent() { adjacent?.view?.translationX=(page?.translationX ?: 0f)+width*adjacentDirection;mapHost?.sync() }
     private fun clearAdjacent() {
         adjacentGeneration++;adjacentDirection=0
         val old=adjacent;adjacent=null

@@ -242,7 +242,7 @@ class DashboardPageViewportTest {
             val map=testDescendants(root).filterIsInstance<MapPanel>().single();val original=map.parent
             assertEquals(View.GONE,map.visibility)
             touch(viewport,MotionEvent.ACTION_DOWN,180f);touch(viewport,MotionEvent.ACTION_MOVE,100f,time=800);layout(root)
-            assertEquals(0,prefs.getInt("dashboardPage",-1));assertNotSame(original,map.parent);assertEquals(View.VISIBLE,map.visibility)
+            assertEquals(0,prefs.getInt("dashboardPage",-1));assertSame("map surface keeps its permanent parent",original,map.parent);assertEquals(View.VISIBLE,map.visibility)
             assertEquals(1,testDescendants(root).filterIsInstance<BicycleMapView>().size)
             touch(viewport,MotionEvent.ACTION_CANCEL,100f,time=900);animator(viewport).end()
             assertSame(original,map.parent);assertEquals(View.GONE,map.visibility)
@@ -258,7 +258,7 @@ class DashboardPageViewportTest {
         c.getSharedPreferences(HrvSettings.STORE,0).edit().putBoolean("showOnFirstStart",false).commit()
         SensorSetupLaunch(c).later(runtime.bikes.current())
         prefs.edit().putInt("dashboardPage",0).putString("dashboardTemplate_0",DashboardTemplate.MAP.name)
-            .putString("dashboardTemplate_1",DashboardTemplate.BALANCED.name).commit()
+            .putString("dashboardTemplate_1",DashboardTemplate.BALANCED.name).putString("mapSource","VECTOR").commit()
         val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         try {
             val a=host.get();val root=a.window.decorView;prepare(root)
@@ -273,6 +273,14 @@ class DashboardPageViewportTest {
             assertTrue(runtime.isMoving)
             val viewport=root.findViewWithTag<DashboardPageViewport>("dashboard_page_viewport")
             val map=testDescendants(root).filterIsInstance<MapPanel>().single()
+            val mapHost=map.parent as DashboardMapHost
+            var attaches=0;var detaches=0
+            map.mapView.addOnAttachStateChangeListener(object:View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(view:View) { attaches++ }
+                override fun onViewDetachedFromWindow(view:View) { detaches++ }
+            })
+            val vector=map.mapView.map().layers().filterIsInstance<org.oscim.layers.tile.vector.VectorTileLayer>().single()
+            val theme=vector.theme
             val toolbar=root.findViewWithTag<View>("ride_toolbar")
             viewport.preparePageSnapshot={ ready -> ready(true) }
             val show=MainActivity::class.java.getDeclaredMethod("showDashboardPage",Int::class.javaPrimitiveType).apply { isAccessible=true }
@@ -284,7 +292,7 @@ class DashboardPageViewportTest {
                 layout(root)
                 val originalHeight=viewport.height
                 val originalParent=map.parent
-                val originalMapBounds=listOf(map.top,map.height)
+                val originalMapBounds=listOf(mapHost.top,map.height)
                 assertEquals(if(footerVisible) View.VISIBLE else View.GONE,toolbar.visibility)
                 touch(viewport,MotionEvent.ACTION_DOWN,180f,time=0)
                 touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
@@ -293,16 +301,18 @@ class DashboardPageViewportTest {
                 val preview=viewport.findViewWithTag<LinearLayout>("dashboard_adjacent_preview")
                 assertNotNull(preview)
                 val incoming=preview.getChildAt(1)
-                assertSame("preview already uses the sole map at its target size",map,incoming)
+                assertSame("preview slot owns only geometry",incoming,mapHost.active)
+                assertSame("GL map never leaves its host",originalParent,map.parent)
                 assertEquals(1,testDescendants(root).filterIsInstance<BicycleMapView>().size)
-                assertNotNull(root.findViewWithTag<View>("dashboard_outgoing_map_preview"))
+                assertEquals(0,attaches);assertEquals(0,detaches)
+                assertSame(theme,vector.theme)
                 val zoom=map.findViewWithTag<View>("map_zoom_controls")
                 val zoomBounds=listOf(zoom.left,zoom.top,zoom.width,zoom.height)
                 val mapTop=incoming.top;val mapHeight=incoming.height
                 assertEquals("preview honors current viewport with footer=$footerVisible",originalHeight,preview.height)
                 touch(viewport,MotionEvent.ACTION_CANCEL,100f,time=70);animator(viewport).end();layout(root)
                 assertSame("cancel restores original map parent",originalParent,map.parent)
-                assertEquals(originalMapBounds,listOf(map.top,map.height))
+                assertEquals(originalMapBounds,listOf(mapHost.top,map.height))
                 assertNull(root.findViewWithTag<View>("dashboard_outgoing_map_preview"))
                 assertEquals(0,prefs.getInt("dashboardPage",-1))
                 touch(viewport,MotionEvent.ACTION_DOWN,180f,time=1000)
@@ -310,12 +320,40 @@ class DashboardPageViewportTest {
                 touch(viewport,MotionEvent.ACTION_MOVE,100f,time=1060);layout(root)
                 touch(viewport,MotionEvent.ACTION_UP,100f,time=1070);layout(root)
                 assertEquals("footer state preserved at release",if(footerVisible) View.VISIBLE else View.GONE,toolbar.visibility)
-                assertEquals("map top must not jump with footer=$footerVisible",mapTop,map.top)
+                assertEquals("map top must not jump with footer=$footerVisible",mapTop,mapHost.top)
                 assertEquals("map height must not jump with footer=$footerVisible",mapHeight,map.height)
                 assertEquals("native controls must keep their target positions",zoomBounds,listOf(zoom.left,zoom.top,zoom.width,zoom.height))
                 assertNull(root.findViewWithTag<View>("dashboard_outgoing_map_preview"))
                 viewport.viewTreeObserver.dispatchOnPreDraw();animator(viewport).end()
+                assertEquals("no GL window detach on commit or cancel",0,detaches)
+                assertEquals("no GL window reattach on commit or cancel",0,attaches)
+                assertSame(theme,vector.theme)
             }
+        } finally { host.pause().stop().destroy() }
+    }
+    @Test fun permanentMapHostStillIncludesTheMapInTheOutgoingPagePicture() {
+        val c=org.robolectric.RuntimeEnvironment.getApplication();val runtime=RideRuntime.get(c)
+        c.getSharedPreferences(HrvSettings.STORE,0).edit().putBoolean("showOnFirstStart",false).commit()
+        SensorSetupLaunch(c).later(runtime.bikes.current())
+        runtime.preferences.edit().putInt("dashboardPage",0).putString("dashboardTemplate_0",DashboardTemplate.MAP.name)
+            .putString("dashboardTemplate_1",DashboardTemplate.BALANCED.name).commit()
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        try {
+            val a=host.get();val root=a.window.decorView;prepare(root)
+            val viewport=root.findViewWithTag<DashboardPageViewport>("dashboard_page_viewport")
+            val map=testDescendants(root).filterIsInstance<MapPanel>().single()
+            val owner=map.parent as DashboardMapHost
+            val sampleY=owner.top+map.height/2
+            val gl=android.graphics.Bitmap.createBitmap(map.width,map.height,android.graphics.Bitmap.Config.ARGB_8888).apply { eraseColor(Color.GREEN) }
+            BicycleMapView::class.java.getDeclaredField("snapshot").apply { isAccessible=true }.set(map.mapView,gl)
+            viewport.preparePageSnapshot={ ready -> ready(true) }
+            val show=MainActivity::class.java.getDeclaredMethod("showDashboardPage",Int::class.javaPrimitiveType).apply { isAccessible=true }
+            viewport.slide(1) { show.invoke(a,1) }
+            val picture=viewport.findViewWithTag<ImageView>("dashboard_page_outgoing")
+            val shot=(picture.drawable as BitmapDrawable).bitmap
+            assertEquals("slot delegates software capture to the permanently hosted map",Color.GREEN,shot.getPixel(map.width/2,sampleY))
+            assertSame(owner,map.parent)
+            viewport.cancelTransition();assertTrue(shot.isRecycled)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun shortUncommittedAndCancelledDragsReturnWhileMapAndVerticalGesturesRemainUntouched() {
@@ -443,10 +481,10 @@ class DashboardPageViewportTest {
             root.draw(android.graphics.Canvas(screenshot))
             java.io.File("build/reports/ui/dashboard-page-transition.png").apply { parentFile!!.mkdirs() }.outputStream().use { screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) };screenshot.recycle()
             animator(viewport).end();assertFalse(viewport.running)
-            assertEquals(1,viewport.childCount);assertSame(map,testDescendants(root).filterIsInstance<MapPanel>().single())
+            assertEquals(2,viewport.childCount);assertSame(map,testDescendants(root).filterIsInstance<MapPanel>().single())
             change.invoke(a,-1);layout(root)
             assertEquals(View.VISIBLE,map.visibility);assertEquals(0,prefs.getInt("dashboardPage",-1))
-            host.pause().stop();assertFalse(viewport.running);assertEquals(1,viewport.childCount)
+            host.pause().stop();assertFalse(viewport.running);assertEquals(2,viewport.childCount)
         } finally { host.destroy() }
     }
 
