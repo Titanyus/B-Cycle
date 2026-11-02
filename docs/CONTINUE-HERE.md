@@ -1,33 +1,21 @@
-# Aktueller Stand: APK0.8.80 beauftragt
+# Aktueller Stand: APK0.8.80/Build121 veröffentlicht
 
-## Aktueller Auftrag02.11.2026
+## Auftrag02.11.2026 abgeschlossen
 
-Neue APK ausdrücklich beauftragt:0.8.80/code150 über GitHub Actions bauen, prüfen und veröffentlichen. Enthält alle lokalen Änderungen seit Build120: native GL-Strecken, OpenFreeMap/Liberty, feste Draufsicht, gemeinsame Wischsteuerung bis zum Loslassen. Push auf main für diesen APK-Auftrag autorisiert.
+Neue APK ausdrücklich beauftragt, über GitHub Actions gebaut und geprüft. [Build121](build-121.md), [Änderungen](release-0.8.80.md).
 
-## Enthaltene Änderungen
+- OpenFreeMap-Vektorkarte ohne API-Key, **OpenFreeMap · Liberty**. Liberty-Adaption für VTM, nicht pixelgleiche MapLibre-Ausführung; flache Gebäude ab Zoom13. Immer Draufsicht, native Tilt-Grenzen0 und keine Extrusionen. Nord-/Fahrtrichtung erhalten. [Stil](vtm-liberty-style.md).
+- Radwegehervorhebung je Fahrradprofil, Backup und gemeinsame Dashboard-/Detailkarten. Vorhandene Rasterkarten erhalten. MVT-Metadaten/Datensatz-URL auf Ladethreads, begrenzter gemeinsamer HTTP-Cache. [Quelle](vtm-vector-map.md).
+- Gespeicherte Strecken/Livefahrt/Start-/Endmarker im selben VTM-GL-Frame, gecachte Geometrien und vorhandene Stile/Lücken. GPS-Informations-View bleibt separat. [Nachlaufkorrektur](vtm-route-frame-sync.md).
+- Dashboard-/HRV-Seiten bis UP am Finger; dann halbe Breite plus Geschwindigkeitsprojektion für schnelle Flicks. Richtungsumkehr möglich, keine Restanimation nach vollständig manuellem Hinausschieben. [Wischen](dashboard-page-transition.md).
 
-Liberty als Basis ohne3D, immer Draufsicht: eigene XML-Adaption auf VTM/OpenMapTiles-Regeln mit Liberty-Palette, flache Gebäude ab Zoom13, keine Extrusionen. Quelle jetzt **OpenFreeMap · Liberty**, gespeicherte Kennung VECTOR bleibt. Native Tilt-Grenzen0 zusätzlich zu gesperrten Tilt-Gesten/Kamerapositionen; Fahrtrichtungsdrehung und Radwegeoption erhalten. [Umfang/Grenzen/Prüfung](vtm-liberty-style.md). Zwei gezielte Fälle erfolgreich; finale native Tilt-Sperre im betroffenen Fall ebenfalls erfolgreich geprüft. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf; neue APK jetzt ausdrücklich beauftragt. Minimal-Stil mit großen, aber ohne kleine Straßen/Feldwege nur vorgemerkt.
+Gezielte Tests je Änderung erfolgreich; nur betroffene/offene Fälle wiederholt, kein Gesamtlauf. Shader zusätzlich lokal mit Mesa/GLES geprüft. Release-R8/Ressourcenprüfung und CI erfolgreich. Keine lokale APK gebaut. Android-Darstellung/Lesbarkeit, schnelle Kartenbewegung, Wischgefühl, PixelCopy und App-/Dialogrückkehr noch am Smartphone prüfen. Sensoren/Aufzeichnung/Analyse unverändert.
 
-## Ebenfalls lokal fertig: gemeinsame Wischsteuerung
+## Letzte veröffentlichte APK
 
-Dashboard-/HRV-Seitenwechsel: frühe automatische Übernahme während Ziehen entfernt. Bis UP direkte Fingerkontrolle über volle Breite; Entscheidung aus Weg (langsam halbe Breite) und200-ms-Geschwindigkeitsprojektion, mindestens24dp/400dp/s für kurzen Flick. Rückwärtsflick kann auch jenseits der Hälfte abbrechen; letzte UP-Position und Android-Geschwindigkeitsgrenzen berücksichtigen. Vollständig hinausgeschoben → kein leerer Restslide. Bestehender weicher Übergang, PixelCopy, eine lebende Karte und Lebenszyklus bleiben. [Details/gezielte Prüfung](dashboard-page-transition.md). Alle sechs gezielt geprüften Fälle erfolgreich (vier Komponentenfälle, Dashboard und HRV). Die zwei Integrationstests an GL-Testumgebung bzw. eindeutiges Datumsformat der Testdaten angepasst; keine Änderung am HRV-Import. Kompilation/Typografie/Atlas/Diff erfolgreich. Neue APK jetzt ausdrücklich beauftragt.
+[APK0.8.80/Build121](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.80-release-121.apk), code150, Quelle`6061cc6379cdce87c5125463bf56cd377b7f8327`, 4074378Bytes, SHA256`44daf0c56e46b407459e18df420757376e022e3d3e24b702ee22aa458096b554`. Signatur/Version/Manifest/CI-Prüfsumme/ZIP-/ARM64-16-KB-Ausrichtung geprüft; vier ABIs,26 Shader, Liberty-XML/Lizenz und MVT-Schema nach R8 nachgewiesen. [Buildnachweis](build-121.md).
 
-Zwischenfrage: visueller Karteneditor empfohlen [Maputnik](https://maplibre.org/maputnik/), OpenFreeMap-Demo für fertige Stile. MapLibre-JSON nicht direkt mit VTM-XML kompatibel; keine Stilimportfunktion beauftragt/gebaut.
-
-## Ebenfalls lokal fertig: Vektorkarte
-
-Nutzer: echte Vektorkarte ergänzen; Frage nach OSM-Grundkarte mit Fahrrad-Layer. Lokal umgesetzt: zusätzliche Quelle **OpenFreeMap · Vektorkarte** ohne API-Key, optional **Radwege hervorheben** aus denselben Vektordaten. Rasterquellen bleiben wählbar; bestehende Auswahl unverändert. Fahrradprofilumfang/Backup, Beschriftungen, Dashboard und Streckenvorschau/-vollbild gemeinsam angebunden. Ausgeschilderte Radroutennetze sind noch keine vollständige zusätzliche Ebene. [Umfang/Prüfung](vtm-vector-map.md).
-
-Sechs betroffene Fälle gezielt geprüft (echte MVT-Kachel/Theme, Metadaten/URL, Vektor-Raster-UI/Lebenszyklus/Backup, drei bestehende Raster-/Anbietertests). Label-Zoomlimit-Konflikt korrigiert, betroffenen Fall erfolgreich wiederholt. Release-R8 und Java-Ressourcenzusammenführung erfolgreich; fehlende SLF4J-Anbindung durch stille Bindung behoben. Typografie/Atlas/Diff erfolgreich. Neue APK jetzt ausdrücklich beauftragt. Nächste APK enthält zusätzlich Theme-/MVT-Ressourcen und weiter26 Shader einschließlich `shaders/bcycle_route.glsl`; Publikationsprüfung anpassen. Smartphone-Darstellung noch prüfen.
-
-## Ebenfalls lokal fertig: Strecken-Nachlauf
-
-Nutzer: VTM funktioniert grundsätzlich, Strecken hinken beim schnellen Ziehen hinterher; danach „bitte weitermachen“. Ursache getrennte GL-/Android-Zeichenflächen. Strecken/Livefahrt und Start-/Endmarker jetzt im gemeinsamen VTM-GL-Frame mit gecachten Vertexdaten. Eigener kleiner Shader erhält Breite/Farbe/Deckkraft/weiße Livefahrt-Umrandung; GPS-Informations-View bleibt separat. Raster beim Anbieterwechsel unter Strecken einfügen. [Umfang/Prüfung](vtm-route-frame-sync.md).
-
-Fünf betroffene Fälle und lokaler Mesa/GLES-Shader-Pixeltest erfolgreich; finale Debug-Kompilation/Typografie/Atlas/Diff. Kein Gesamtlauf, neue APK jetzt ausdrücklich beauftragt. Nächste APK enthält26 statt25 Shader einschließlich `shaders/bcycle_route.glsl`; Prüfschema anpassen. Schnelles Ziehen auf Android-GPU noch bestätigen.
-
-## Bereits veröffentlicht: VTM-Umstellung
-
+## Vorige APK: VTM mit Rasterkarten
 
 Nutzer hat nach Sicherung des Meilensteins den Austausch Mapsforge → Mapsforge-VTM beauftragt: alle Dashboardkartenfunktionen erhalten, zunächst dieselben Raster-Tiles; invertierte Nachtkarte vorerst unwichtig. Implementierung abgeschlossen, gezielt geprüft. APK-Auftrag0.8.79/code149 erfolgreich über GitHub Actions erfüllt; [Build120](build-120.md). [Vollständiger Umfang/Prüfnachweise](vtm-migration.md).
 
@@ -45,7 +33,7 @@ Debug-Kompilation und Release-Native-/Java-Ressourcenzusammenführung erfolgreic
 
 Noch am Smartphone prüfen: tatsächliche GL-Tilezeichnung, SurfaceView-Clipping/Überlagerungen/PixelCopy beim Dashboardwechsel, Wischgefühl, mehrere Kartenansichten und App-/Dialogrückkehr. Lokale Tests sind kein GPU-/Akkunachweis.
 
-## Letzte veröffentlichte APK
+## Voriger Build120
 
 [APK0.8.79/Build120](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.79-release-120.apk), code149, Quelle`66a487b5f490df3834644a21b96d97caac309a96`, 2870449Bytes, SHA256`b8e9daffb07e871c836a33d501943328a97170333d589c6b306a0d31aabe980e`. Signatur/Version/Manifest/CI-Prüfsumme/16-KB-ZIP-Ausrichtung geprüft; vier native ABIs und25 Shader in APK vorhanden, JNI-Klassenname nach R8 erhalten. Tatsächlicher Raw-Direktdownload erneut geladen und binär identisch mit dem Artefakt bestätigt. [Buildnachweis](build-120.md).
 
@@ -61,4 +49,9 @@ Build119 enthält HRV-Dropdown/volle Kacheln/kompakte Empfehlung/höheres Messdi
 
 [Akkuanalyse](dashboard-energy-analysis.md): später ein gemeinsamer Sparmodus für Anzeige/Animationen – Karte1–2s, Zahlen1Hz, Graphen5–10s/keine Skalenanimation, statische funktionale Farben/Warnungen, OLED-Vektorstil. Trainingshilfe ausdrücklich aktuell weich, harte Farben erst im Sparmodus. Nutzer ausdrücklich: Sensorfragen nur aus Neugier; Sensorerfassung, Aufzeichnung und Analyse bleiben vollständig/zuverlässig. VTM jetzt beauftragt/umgesetzt, Online-Vektorquelle noch offen. Keine privaten Messdaten ins Repo.
 
-Nächste APK nur auf Auftrag ausschließlichGitHubActions, voraussichtlich0.8.80/code150/Build121. Dauerhafte Signatur und tatsächlichen Download prüfen; Appcode nie mit[skip ci] überspringen.
+Nächste APK nur auf Auftrag ausschließlichGitHubActions, voraussichtlich0.8.81/code151/Build122. Dauerhafte Signatur und tatsächlichen Download prüfen; Appcode nie mit[skip ci] überspringen.
+
+
+## Weitere vorgemerkte Kartenstile
+
+Minimal: kleine Straßen/Feldwege ausblenden, große Straßen erhalten, Ortschaften/Wasser/Wald/Position/Strecken bleiben. Noch nicht gebaut. Maputnik als visueller Browsereditor besprochen; MapLibre-JSON nicht direkt VTM-XML-kompatibel, kein Live-Stilimport beauftragt. Alle Karten vorerst in Draufsicht.

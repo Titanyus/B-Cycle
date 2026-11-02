@@ -9,4 +9,4 @@
 
 Minimal-Stil, allgemeiner Akkuschonmodus und Live-Stilimport sind vorgemerkt und nicht Teil dieser APK. Sensorerfassung, Aufzeichnung und Analyse nicht gedrosselt.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-121.md).
