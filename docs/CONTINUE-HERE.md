@@ -13,7 +13,7 @@ Gezielte Tests je Änderung erfolgreich; nur betroffene/offene Fälle wiederholt
 
 ## Letzte veröffentlichte APK
 
-[APK0.8.80/Build121](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.80-release-121.apk), code150, Quelle`6061cc6379cdce87c5125463bf56cd377b7f8327`, 4074378Bytes, SHA256`44daf0c56e46b407459e18df420757376e022e3d3e24b702ee22aa458096b554`. Signatur/Version/Manifest/CI-Prüfsumme/ZIP-/ARM64-16-KB-Ausrichtung geprüft; vier ABIs,26 Shader, Liberty-XML/Lizenz und MVT-Schema nach R8 nachgewiesen. [Buildnachweis](build-121.md).
+[APK0.8.80/Build121](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.80-release-121.apk), code150, Quelle`6061cc6379cdce87c5125463bf56cd377b7f8327`, 4074378Bytes, SHA256`44daf0c56e46b407459e18df420757376e022e3d3e24b702ee22aa458096b554`. Signatur/Version/Manifest/CI-Prüfsumme/ZIP-/ARM64-16-KB-Ausrichtung geprüft; vier ABIs,26 Shader, Liberty-XML/Lizenz und MVT-Schema nach R8 nachgewiesen. Tatsächlichen Raw-Direktdownload geladen und binär identisch mit Actions-Artefakt bestätigt. [Buildnachweis](build-121.md).
 
 ## Vorige APK: VTM mit Rasterkarten
 
