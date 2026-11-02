@@ -40,6 +40,9 @@ class BicycleMapView(context:Context):org.oscim.android.MapView(configure(contex
     private var disposed=false
     private var lastEventZoom=Double.NaN
     init {
+        // VTM disables View drawing for its GL surface. Parent snapshots would then bypass
+        // draw(Canvas) entirely and omit our PixelCopy image from the outgoing dashboard.
+        setWillNotDraw(false)
         org.oscim.backend.AssetAdapter.init(object:org.oscim.backend.AssetAdapter() {
             override fun openFileAsStream(name:String):java.io.InputStream? =
                 try { context.applicationContext.assets.open(name) }

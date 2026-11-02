@@ -41,6 +41,36 @@ class DashboardPageViewportTest {
         val event=MotionEvent.obtain(0,time,action,x,y,0)
         try { view.dispatchTouchEvent(event) } finally { event.recycle() }
     }
+    @Test fun outgoingPageSnapshotIncludesTheGlMapUntilItHasLeftTheScreen() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            val a=host.get();val viewport=DashboardPageViewport(a) { true }
+            val map=BicycleMapView(a)
+            val page=LinearLayout(a).apply {
+                orientation=LinearLayout.VERTICAL
+                addView(View(a).apply { isClickable=true;setBackgroundColor(Color.RED) },LinearLayout.LayoutParams(-1,200))
+                addView(map,LinearLayout.LayoutParams(-1,0,1f))
+            }
+            viewport.setPage(page);a.setContentView(viewport);prepare(viewport)
+            val glImage=android.graphics.Bitmap.createBitmap(360,600,android.graphics.Bitmap.Config.ARGB_8888).apply { eraseColor(Color.GREEN) }
+            BicycleMapView::class.java.getDeclaredField("snapshot").apply { isAccessible=true }.set(map,glImage)
+            viewport.releasePageSnapshot={ map.clearSnapshot() }
+            viewport.preparePageSnapshot={ ready -> ready(true) }
+            viewport.swipeEnabledAt={ _,_ -> true }
+            viewport.changePage={ delta -> viewport.slide(delta) { map.visibility=View.GONE } }
+            touch(viewport,MotionEvent.ACTION_DOWN,180f)
+            touch(viewport,MotionEvent.ACTION_MOVE,160f,time=30)
+            touch(viewport,MotionEvent.ACTION_MOVE,100f,time=60)
+            touch(viewport,MotionEvent.ACTION_UP,100f,time=70)
+            val picture=viewport.findViewWithTag<ImageView>("dashboard_page_outgoing")
+            val shot=(picture.drawable as BitmapDrawable).bitmap
+            assertEquals("outgoing map survives release and is part of the page picture",Color.GREEN,shot.getPixel(100,400))
+            assertTrue(glImage.isRecycled)
+            viewport.viewTreeObserver.dispatchOnPreDraw();animator(viewport).currentPlayTime=100
+            assertTrue(picture.translationX<0f);assertEquals(Color.GREEN,shot.getPixel(100,400))
+            animator(viewport).end();assertTrue(shot.isRecycled);map.disposeMap()
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun asynchronousMapSnapshotKeepsTheOldPageAndIgnoresLateResultsAfterCancellation() {
         val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
         try {

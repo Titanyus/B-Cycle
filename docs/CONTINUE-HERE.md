@@ -1,5 +1,11 @@
 # Aktueller Stand: Flächenfarben nach APK 0.8.81/Build 122 korrigiert
 
+## Aktuelle Korrektur: ausgehende Karte beim Loslassen
+
+Nutzer: Neue Karte scrollt herein, alte verschwindet beim UP. Reproduzierter Bildtest: VTMs `setWillNotDraw(true)` überspringt im Elternbaum unsere Software-Snapshot-Routine. `BicycleMapView` setzt jetzt false; vorhandene PixelCopy-Aufnahme wird dadurch ins ausgehende Seitenbild gezeichnet. Keine neue Vorschau-/Animationsarchitektur. Neuer Bildtest vor Änderung fehlgeschlagen, nach Änderung erfolgreich; dazu zwei bestehende Abbruch-/Umhäng-Fälle erfolgreich (3/3). [Details](dashboard-page-transition.md), Log `/workspace/.tools/page-outgoing-map-fix-tests.log`. Noch keine neue APK.
+
+Zusatzfrage: Haupt-Einstellungsmenü hat bei seinen Trennern derzeit je 32 dp oben/unten (2 × sectionDividerGap 16); Menüzeilen je 6 dp vertikales Padding, Mindesthöhe 54 dp. Je 16 dp vorgeschlagen, noch nicht geändert; Nutzer fragt zunächst nach aktuellem Maß.
+
 ## Aktuelle Änderung nach Build 122
 
 Bright: Wald jetzt deckend grün, Wiesen hellgrün, Ackerflächen gelbgrün; fehlende farmland-/scrub-Regeln und undefinierten wetland-Stil ergänzt. Ursache: Wald bisher nur 10 % Deckkraft, Ackerflächen ohne Regel. [Details](vtm-bright-style.md). Zwei betroffene Vektorkartentests erfolgreich (0 Fehler), ebenso Typografie/Atlas/Diff. Log: `/workspace/.tools/vtm-bright-rural-tests.log`. Noch keine neue APK beauftragt/gebaut; letzter veröffentlichter Build bleibt 122.
