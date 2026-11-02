@@ -4,7 +4,7 @@
 
 Nutzer: Neue Karte scrollt herein, alte verschwindet beim UP. Reproduzierter Bildtest: VTMs `setWillNotDraw(true)` überspringt im Elternbaum unsere Software-Snapshot-Routine. `BicycleMapView` setzt jetzt false; vorhandene PixelCopy-Aufnahme wird dadurch ins ausgehende Seitenbild gezeichnet. Keine neue Vorschau-/Animationsarchitektur. Neuer Bildtest vor Änderung fehlgeschlagen, nach Änderung erfolgreich; dazu zwei bestehende Abbruch-/Umhäng-Fälle erfolgreich (3/3). [Details](dashboard-page-transition.md), Log `/workspace/.tools/page-outgoing-map-fix-tests.log`. Noch keine neue APK.
 
-Zusatzfrage: Haupt-Einstellungsmenü hat bei seinen Trennern derzeit je 32 dp oben/unten (2 × sectionDividerGap 16); Menüzeilen je 6 dp vertikales Padding, Mindesthöhe 54 dp. Je 16 dp vorgeschlagen, noch nicht geändert; Nutzer fragt zunächst nach aktuellem Maß.
+Nutzerentscheidung: Gruppentrenner im Haupt-Einstellungsmenü auf je 12 dp oben/unten reduziert (vorher je 32 dp). Menüzeilen und erweiterte Einstellungen unverändert. Bestehender gezielter Menütest erfolgreich, ebenso Typografie/Atlas/Diff; keine neue Testklasse. Log `/workspace/.tools/settings-divider-12dp-test.log`.
 
 ## Aktuelle Änderung nach Build 122
 

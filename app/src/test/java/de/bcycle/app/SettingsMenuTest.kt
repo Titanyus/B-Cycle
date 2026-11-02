@@ -63,7 +63,7 @@ class SettingsMenuTest {
                 assertEquals(13, body.childCount) // Ten rows, two group dividers and brand image.
                 descendants(body).filter { it.tag=="settings_group_divider" }.forEach { divider ->
                     val margins=divider.layoutParams as ViewGroup.MarginLayoutParams
-                    assertEquals(BicycleDesign.dp(controller.get(),32),margins.topMargin)
+                    assertEquals(BicycleDesign.dp(controller.get(),12),margins.topMargin)
                     assertEquals(margins.topMargin,margins.bottomMargin)
                 }
                 assertSame(rows[3],body.getChildAt(3));assertSame(rows[4],body.getChildAt(5))

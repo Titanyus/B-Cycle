@@ -49,7 +49,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
         actions.forEachIndexed { index,action ->
             if(index>0 && (advanced || action==SettingsAction.PROFILE || action==SettingsAction.ADVANCED))
                 addView(BicycleComponents.divider(context,themes).apply { tag="settings_group_divider" },LayoutParams(-1,BicycleDesign.linePixels(context)).apply {
-                    if(!advanced) { topMargin=BicycleDesign.dp(context,2*BicycleDesign.sectionDividerGap);bottomMargin=topMargin }
+                    if(!advanced) { topMargin=BicycleDesign.dp(context,12);bottomMargin=topMargin }
                 })
             addView(BicycleComponents.listRow(context,themes).apply {
                 tag="settings_${action.name}";contentDescription=action.label(context);isClickable=true;isFocusable=true
