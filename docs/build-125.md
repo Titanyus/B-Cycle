@@ -16,3 +16,5 @@ Originale Bright-JSON mit SHA-256 cda8931095c5101cbad5d2a60fa129600a1a0ad3dea27d
 [Änderungen](release-0.8.84.md): tatsächlicher Bright-GL-Hintergrund, echte Kartenvorschau mit passendem Footer, gemeinsame Aufzeichnung in Fahrradprofilen, 8-dp-Dropdown-Abstände und neuer Trainingshilfe-Text.
 
 Acht eindeutige gezielte Fälle erfolgreich (Hintergrund/Quellenwechsel, Dashboardübergang/Abbruch, Profilanordnung/Quellenwahl/Sicherung). Nach Ergänzungen nur betroffene/offene Fälle wiederholt; Textänderung separat per Ressourcenprüfung. Generator/Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf und keine lokale APK. Optischen Kartenvergleich und GL-Neuanschluss/Übergang am Smartphone noch prüfen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4204773 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
