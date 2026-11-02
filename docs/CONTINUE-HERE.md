@@ -1,12 +1,16 @@
-# Aktueller Stand: Liberty als flacher Kartenstil; Wischsteuerung überarbeitet
+# Aktueller Stand: APK0.8.80 beauftragt
 
 ## Aktueller Auftrag02.11.2026
 
-Liberty als Basis ohne3D, immer Draufsicht: eigene XML-Adaption auf VTM/OpenMapTiles-Regeln mit Liberty-Palette, flache Gebäude ab Zoom13, keine Extrusionen. Quelle jetzt **OpenFreeMap · Liberty**, gespeicherte Kennung VECTOR bleibt. Native Tilt-Grenzen0 zusätzlich zu gesperrten Tilt-Gesten/Kamerapositionen; Fahrtrichtungsdrehung und Radwegeoption erhalten. [Umfang/Grenzen/Prüfung](vtm-liberty-style.md). Zwei gezielte Fälle erfolgreich; finale native Tilt-Sperre im betroffenen Fall ebenfalls erfolgreich geprüft. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf/keine APK; nicht pushen. Minimal-Stil mit großen, aber ohne kleine Straßen/Feldwege nur vorgemerkt.
+Neue APK ausdrücklich beauftragt:0.8.80/code150 über GitHub Actions bauen, prüfen und veröffentlichen. Enthält alle lokalen Änderungen seit Build120: native GL-Strecken, OpenFreeMap/Liberty, feste Draufsicht, gemeinsame Wischsteuerung bis zum Loslassen. Push auf main für diesen APK-Auftrag autorisiert.
+
+## Enthaltene Änderungen
+
+Liberty als Basis ohne3D, immer Draufsicht: eigene XML-Adaption auf VTM/OpenMapTiles-Regeln mit Liberty-Palette, flache Gebäude ab Zoom13, keine Extrusionen. Quelle jetzt **OpenFreeMap · Liberty**, gespeicherte Kennung VECTOR bleibt. Native Tilt-Grenzen0 zusätzlich zu gesperrten Tilt-Gesten/Kamerapositionen; Fahrtrichtungsdrehung und Radwegeoption erhalten. [Umfang/Grenzen/Prüfung](vtm-liberty-style.md). Zwei gezielte Fälle erfolgreich; finale native Tilt-Sperre im betroffenen Fall ebenfalls erfolgreich geprüft. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf; neue APK jetzt ausdrücklich beauftragt. Minimal-Stil mit großen, aber ohne kleine Straßen/Feldwege nur vorgemerkt.
 
 ## Ebenfalls lokal fertig: gemeinsame Wischsteuerung
 
-Dashboard-/HRV-Seitenwechsel: frühe automatische Übernahme während Ziehen entfernt. Bis UP direkte Fingerkontrolle über volle Breite; Entscheidung aus Weg (langsam halbe Breite) und200-ms-Geschwindigkeitsprojektion, mindestens24dp/400dp/s für kurzen Flick. Rückwärtsflick kann auch jenseits der Hälfte abbrechen; letzte UP-Position und Android-Geschwindigkeitsgrenzen berücksichtigen. Vollständig hinausgeschoben → kein leerer Restslide. Bestehender weicher Übergang, PixelCopy, eine lebende Karte und Lebenszyklus bleiben. [Details/gezielte Prüfung](dashboard-page-transition.md). Alle sechs gezielt geprüften Fälle erfolgreich (vier Komponentenfälle, Dashboard und HRV). Die zwei Integrationstests an GL-Testumgebung bzw. eindeutiges Datumsformat der Testdaten angepasst; keine Änderung am HRV-Import. Kompilation/Typografie/Atlas/Diff erfolgreich. Keine APK beauftragt, nicht pushen.
+Dashboard-/HRV-Seitenwechsel: frühe automatische Übernahme während Ziehen entfernt. Bis UP direkte Fingerkontrolle über volle Breite; Entscheidung aus Weg (langsam halbe Breite) und200-ms-Geschwindigkeitsprojektion, mindestens24dp/400dp/s für kurzen Flick. Rückwärtsflick kann auch jenseits der Hälfte abbrechen; letzte UP-Position und Android-Geschwindigkeitsgrenzen berücksichtigen. Vollständig hinausgeschoben → kein leerer Restslide. Bestehender weicher Übergang, PixelCopy, eine lebende Karte und Lebenszyklus bleiben. [Details/gezielte Prüfung](dashboard-page-transition.md). Alle sechs gezielt geprüften Fälle erfolgreich (vier Komponentenfälle, Dashboard und HRV). Die zwei Integrationstests an GL-Testumgebung bzw. eindeutiges Datumsformat der Testdaten angepasst; keine Änderung am HRV-Import. Kompilation/Typografie/Atlas/Diff erfolgreich. Neue APK jetzt ausdrücklich beauftragt.
 
 Zwischenfrage: visueller Karteneditor empfohlen [Maputnik](https://maplibre.org/maputnik/), OpenFreeMap-Demo für fertige Stile. MapLibre-JSON nicht direkt mit VTM-XML kompatibel; keine Stilimportfunktion beauftragt/gebaut.
 
@@ -14,13 +18,13 @@ Zwischenfrage: visueller Karteneditor empfohlen [Maputnik](https://maplibre.org/
 
 Nutzer: echte Vektorkarte ergänzen; Frage nach OSM-Grundkarte mit Fahrrad-Layer. Lokal umgesetzt: zusätzliche Quelle **OpenFreeMap · Vektorkarte** ohne API-Key, optional **Radwege hervorheben** aus denselben Vektordaten. Rasterquellen bleiben wählbar; bestehende Auswahl unverändert. Fahrradprofilumfang/Backup, Beschriftungen, Dashboard und Streckenvorschau/-vollbild gemeinsam angebunden. Ausgeschilderte Radroutennetze sind noch keine vollständige zusätzliche Ebene. [Umfang/Prüfung](vtm-vector-map.md).
 
-Sechs betroffene Fälle gezielt geprüft (echte MVT-Kachel/Theme, Metadaten/URL, Vektor-Raster-UI/Lebenszyklus/Backup, drei bestehende Raster-/Anbietertests). Label-Zoomlimit-Konflikt korrigiert, betroffenen Fall erfolgreich wiederholt. Release-R8 und Java-Ressourcenzusammenführung erfolgreich; fehlende SLF4J-Anbindung durch stille Bindung behoben. Typografie/Atlas/Diff erfolgreich. Keine APK beauftragt, nicht auf main pushen. Nächste APK enthält zusätzlich Theme-/MVT-Ressourcen und weiter26 Shader einschließlich `shaders/bcycle_route.glsl`; Publikationsprüfung anpassen. Smartphone-Darstellung noch prüfen.
+Sechs betroffene Fälle gezielt geprüft (echte MVT-Kachel/Theme, Metadaten/URL, Vektor-Raster-UI/Lebenszyklus/Backup, drei bestehende Raster-/Anbietertests). Label-Zoomlimit-Konflikt korrigiert, betroffenen Fall erfolgreich wiederholt. Release-R8 und Java-Ressourcenzusammenführung erfolgreich; fehlende SLF4J-Anbindung durch stille Bindung behoben. Typografie/Atlas/Diff erfolgreich. Neue APK jetzt ausdrücklich beauftragt. Nächste APK enthält zusätzlich Theme-/MVT-Ressourcen und weiter26 Shader einschließlich `shaders/bcycle_route.glsl`; Publikationsprüfung anpassen. Smartphone-Darstellung noch prüfen.
 
 ## Ebenfalls lokal fertig: Strecken-Nachlauf
 
 Nutzer: VTM funktioniert grundsätzlich, Strecken hinken beim schnellen Ziehen hinterher; danach „bitte weitermachen“. Ursache getrennte GL-/Android-Zeichenflächen. Strecken/Livefahrt und Start-/Endmarker jetzt im gemeinsamen VTM-GL-Frame mit gecachten Vertexdaten. Eigener kleiner Shader erhält Breite/Farbe/Deckkraft/weiße Livefahrt-Umrandung; GPS-Informations-View bleibt separat. Raster beim Anbieterwechsel unter Strecken einfügen. [Umfang/Prüfung](vtm-route-frame-sync.md).
 
-Fünf betroffene Fälle und lokaler Mesa/GLES-Shader-Pixeltest erfolgreich; finale Debug-Kompilation/Typografie/Atlas/Diff. Kein Gesamtlauf, keine neue APK beauftragt, nicht auf main pushen. Nächste APK enthält26 statt25 Shader einschließlich `shaders/bcycle_route.glsl`; Prüfschema anpassen. Schnelles Ziehen auf Android-GPU noch bestätigen.
+Fünf betroffene Fälle und lokaler Mesa/GLES-Shader-Pixeltest erfolgreich; finale Debug-Kompilation/Typografie/Atlas/Diff. Kein Gesamtlauf, neue APK jetzt ausdrücklich beauftragt. Nächste APK enthält26 statt25 Shader einschließlich `shaders/bcycle_route.glsl`; Prüfschema anpassen. Schnelles Ziehen auf Android-GPU noch bestätigen.
 
 ## Bereits veröffentlicht: VTM-Umstellung
 
