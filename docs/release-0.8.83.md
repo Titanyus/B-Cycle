@@ -11,4 +11,4 @@ Die hochgeladene Bright-Datei ist jetzt die verbindliche Basis der Vektorkarte. 
 
 Vier gezielte Stil-/Daten-/Linien-/Quellenwechseltests erfolgreich; nur zwei betroffene Fälle nach Ergänzung wiederholt. Generator-Reproduzierbarkeit, Kompilation, Typografie/Atlas/Diff geprüft; kein Gesamtlauf. Physischer Bildvergleich noch offen.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-124.md).
