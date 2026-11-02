@@ -17,8 +17,7 @@ internal class RecordingSourcesView(context:Context,themes:ThemeManager,profile:
                 // The row owns vertical spacing, as with setting sliders. A top-only
                 // child margin plus CENTER_VERTICAL pushes the spinner past the row edge.
                 setTag(R.id.inline_control_row,true)
-                val gap=BicycleDesign.dp(context,BicycleDesign.controlGap)
-                setPadding(0,gap,0,gap)
+                setPadding(0,0,0,0)
             }
             var shown=sources.indexOf(initial.preferred[quantity]).coerceAtLeast(0)
             row.addView(BicycleComponents.text(context,themes,context.getString(quantity.label)),LayoutParams(0,-2,1f).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
@@ -44,7 +43,7 @@ internal class RecordingSourcesView(context:Context,themes:ThemeManager,profile:
                     }
                 }
             }
-            addView(row,LayoutParams(-1,-2))
+            addView(row,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         }
         refreshLock()
     }

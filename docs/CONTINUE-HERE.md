@@ -1,4 +1,10 @@
-# Aktueller Stand: GL-Hintergrund und Footer beim Dashboardwechsel korrigiert; letzte APK 0.8.83 / Build 124
+# Aktueller Stand: Profil-Aufzeichnung und Dropdown-Abstände überarbeitet; letzte APK 0.8.83 / Build 124
+
+## Aktueller Auftrag: Profil-Aufzeichnung zusammenfassen
+
+Gemeinsamer Sticky-Abschnitt „Aufzeichnung“ statt FIT-/Strecken-Aufzeichnung: Fahrt benennen, Höhenkorrektur aus Karte, Rahmen-Accordion „Sensor-Hauptwerte für die .fit-Datei“ (bisherige Erklärung + sechs Quellenwahlen), Rahmen-Accordion „Zu speichernde Daten für die .fit-Datei“ (neue kurze Erklärung + bisherige innere Speichergruppen/Metadaten). Vorhandene Daten/Keys/Listener/Locks erhalten. Dropdownabstände überall bisheriger kleiner controlGap 8 dp: unsichtbare Sensortrenner entfernt, doppelte Quellenzeilen-Paddings durch einzelnen Zeilenabstand ersetzt. [Details](profile-recording-settings.md).
+
+Zwei betroffene bestehende Tests erfolgreich: Profilansicht/Schalterpersistenz und echte Abstände in Flat/Glow × E-Bike/Indoor; Quellenwahl/Locks/Sicherungsrundreise. Offenen Profilfall nach Ergänzung wiederholt. Kein Gesamtlauf, Kompilation/Typografie/Atlas/Diff erfolgreich. Keine APK beauftragt/gebaut; Build 124 enthält diese Änderungen sowie die beiden folgenden Korrekturen noch nicht.
 
 ## Aktuelle Korrektur: Footer beim Dashboardwechsel
 

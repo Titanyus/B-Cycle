@@ -736,10 +736,9 @@ class MainActivity : Activity() {
     private fun recordingControls(): LinearLayout {
         val slot = runtime.bikes.activeSlot
         val current = runtime.config; val selected = current.fields.toMutableSet(); var metadata=current.metadata; val root = column().apply { tag="bike_fit_settings";setPadding(0, 0, 0, 0) }
-        BicycleForm.section(root,settingsThemes,R.string.ui_recording_title).titleView.tag="fit_primary_heading"
+        BicycleForm.section(root,settingsThemes,R.string.bike_recording_title).titleView.tag="bike_recording_heading"
         var previewRevision=Long.MIN_VALUE
         var previewDetails:RouteDetails?=null
-        root.addView(label(getString(R.string.bikes_fit_explanation)).apply { setPadding(0,dp(BicycleDesign.controlGap),0,0) })
         root.addView(RideNamingView(settingsContext,settingsThemes,latestRide={
             if(previewRevision!=runtime.mapState.routeRevision) {
                 previewRevision=runtime.mapState.routeRevision
@@ -747,6 +746,20 @@ class MainActivity : Activity() {
             }
             previewDetails
         }) { runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving })
+        root.addView(Switch(settingsContext).apply {
+            tag="map_elevation_correction";setText(R.string.elevation_enable)
+            isChecked=preferences.getBoolean(FitElevationCorrection.preference,false)
+            setOnCheckedChangeListener { _,enabled ->
+                if(runtime.bikes.activeSlot==slot && isAttachedToWindow)
+                    preferences.edit().putBoolean(FitElevationCorrection.preference,enabled).apply()
+            }
+        },LinearLayout.LayoutParams(-1,-2))
+        fun recordingGroup(title:Int,key:String,icon:BicycleIcon)=BicycleFrameDropdown(settingsContext,settingsThemes,getString(title),
+            open=key in expandedFitSources,leadingIcon=icon) { open ->
+                if(open) expandedFitSources.add(key) else expandedFitSources.remove(key)
+            }.apply { tag=key;root.addView(this,LinearLayout.LayoutParams(-1,-2)) }
+        val primary=recordingGroup(R.string.fit_primary_values_title,"fit_primary_values",BicycleIcon.Sensors)
+        primary.content.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(R.string.bikes_fit_explanation)))
         var sources=current.sourcePreferences ?: RecordingSources.defaults(current,current.indoor)
         lateinit var sourceControls:RecordingSourcesView
         fun saveFields() {
@@ -758,10 +771,10 @@ class MainActivity : Activity() {
         }
         sourceControls=RecordingSourcesView(settingsContext,settingsThemes,runtime.bikes.current(),runtime.barometer.available,sources,
             editable={runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving}) { sources=it;saveFields() }
-        root.addView(sourceControls)
-        BicycleForm.section(root,settingsThemes,R.string.ui_track_recording)
-        root.addView(BicycleComponents.description(settingsContext,settingsThemes,getString(R.string.track_recording_description)).apply { tag="track_recording_description" })
-        root.addView(FitMetadataView(settingsContext,settingsThemes,runtime.bikes.current(),metadata,
+        primary.content.addView(sourceControls,LinearLayout.LayoutParams(-1,-2))
+        val stored=recordingGroup(R.string.fit_stored_values_title,"fit_stored_values",BicycleIcon.Save)
+        stored.content.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(R.string.fit_stored_values_description)).apply { tag="track_recording_description" })
+        stored.content.addView(FitMetadataView(settingsContext,settingsThemes,runtime.bikes.current(),metadata,
             currentProfile=runtime.bikes::current,expanded="FIT_METADATA" in expandedFitSources,onExpand={ if(it) expandedFitSources.add("FIT_METADATA") else expandedFitSources.remove("FIT_METADATA") }) {
             metadata=it;saveFields()
         })
@@ -774,7 +787,7 @@ class MainActivity : Activity() {
             }
             frame.header.apply { tag="fit_source_$source";isAccessibilityHeading=true }
             val content=frame.content.apply { tag="fit_source_content_$source" }
-            root.addView(frame)
+            stored.content.addView(frame)
             for (field in fields) content.addView(Switch(settingsContext).apply {
                 setTag(R.id.compact_choice_role,true)
                 text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(BicycleDesign.touchSize)
@@ -1479,7 +1492,6 @@ class MainActivity : Activity() {
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
-        val elevation = toggle(getString(R.string.elevation_enable), FitElevationCorrection.preference, false).apply { tag="map_elevation_correction" }
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
         root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs) {
             if(runtime.bikes.activeSlot==slot) mapPanel.refreshSettings()
@@ -1498,7 +1510,7 @@ class MainActivity : Activity() {
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
             edit.putBoolean(VtmBaseMap.cyclewaysKey,cycleways.isChecked).putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
-                .putBoolean(FitElevationCorrection.preference,elevation.isChecked).apply()
+                .apply()
             mapPanel.refreshSettings()
         }
         root.setPadding(0,0,0,0)

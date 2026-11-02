@@ -21,16 +21,19 @@ import org.robolectric.shadows.ShadowAlertDialog
 class ProfileSettingsRevisionTest {
     private fun call(a:MainActivity,name:String) { MainActivity::class.java.getDeclaredMethod(name).apply { isAccessible=true }.invoke(a) }
     @Test fun profileOrderAndFramedControlsApplyInBothDesignsAndSupportedBikeTypes() {
-        val host=Robolectric.buildActivity(MainActivity::class.java).setup()
+        org.robolectric.RuntimeEnvironment.getApplication().getSharedPreferences(HrvSettings.STORE,0).edit().putBoolean("showOnFirstStart",false).commit()
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         try {
             val a=host.get();val runtime=RideRuntime.get(a)
             for(flat in listOf(true,false)) for(type in listOf(BikeType.EBIKE,BikeType.INDOOR)) {
                 runtime.themes.setFlatDesign(flat);runtime.changeBikeType(type)
+                runtime.bikes.save(runtime.bikes.current().copy(heartAddress="00:11:22:33:44:55"))
                 call(a,"showSensorManager")
+                shadowOf(android.os.Looper.getMainLooper()).idle()
                 val dialog=ShadowAlertDialog.getLatestAlertDialog();val root=dialog.window!!.decorView
                 val manager=root.findViewWithTag<ViewGroup>("bikes_manager")
                 val headers=(0 until manager.childCount).map(manager::getChildAt).filterIsInstance<BicycleSectionHeader>()
-                val order=listOf(R.string.bikes_sensors,R.string.ui_design_title,R.string.training_help_title,R.string.ui_settings_map,R.string.ui_recording_title,R.string.ui_track_recording)
+                val order=listOf(R.string.bikes_sensors,R.string.ui_design_title,R.string.training_help_title,R.string.ui_settings_map,R.string.bike_recording_title)
                     .filter { it!=R.string.ui_settings_map || type==BikeType.EBIKE }.map(a::getString)
                 assertEquals("bike_name_header",headers.first().tag)
                 assertEquals(order,headers.map { it.contentDescription.toString() }.filter { it in order })
@@ -49,6 +52,22 @@ class ProfileSettingsRevisionTest {
                 assertTrue(appearance.getChildAt(2) is DashboardStatusSettingsView)
                 assertEquals("design_dashboard_divider",appearance.getChildAt(3).tag)
                 assertNull(root.findViewWithTag<View>("design_appearance_divider"))
+                val recording=root.findViewWithTag<android.widget.LinearLayout>("bike_recording_settings")
+                assertTrue(recording.getChildAt(0) is RideNamingView)
+                assertEquals("map_elevation_correction",recording.getChildAt(1).tag)
+                val primary=recording.getChildAt(2) as BicycleFrameDropdown
+                val stored=recording.getChildAt(3) as BicycleFrameDropdown
+                assertEquals(a.getString(R.string.fit_primary_values_title),primary.header.text.toString())
+                assertEquals(a.getString(R.string.fit_stored_values_title),stored.header.text.toString())
+                assertEquals(a.getString(R.string.bikes_fit_explanation),(primary.content.getChildAt(0) as android.widget.TextView).text.toString())
+                assertEquals(6,primary.content.findViewWithTag<RecordingSourcesView>("recording_sources").childCount)
+                assertEquals(a.getString(R.string.fit_stored_values_description),(stored.content.getChildAt(0) as android.widget.TextView).text.toString())
+                primary.setExpanded(true);stored.setExpanded(true)
+                val elevation=recording.getChildAt(1) as Switch
+                elevation.performClick()
+                assertEquals("root attached=${root.isAttachedToWindow}, manager=${manager.isAttachedToWindow}, elevation attached=${elevation.isAttachedToWindow}, slot=${runtime.bikes.activeSlot}, type=$type, flat=$flat, dialog=${dialog.isShowing}",elevation.isChecked,runtime.preferences.getBoolean(FitElevationCorrection.preference,false))
+                val mapSettings=root.findViewWithTag<ViewGroup>("profile_section_content_${a.getString(R.string.ui_settings_map)}")
+                assertNull(mapSettings?.findViewWithTag<View>("map_elevation_correction"))
                 val naming=root.findViewWithTag<View>("ride_naming_toggle").parent.parent as BicycleFrameDropdown
                 naming.header.performClick();assertEquals(View.VISIBLE,naming.content.visibility)
                 assertNotNull(naming.content.findViewWithTag<View>("ride_naming_text"))
@@ -56,6 +75,20 @@ class ProfileSettingsRevisionTest {
                 val wasOpen=metadata.expanded;metadata.header.performClick();assertEquals(!wasOpen,metadata.expanded);metadata.setExpanded(true)
                 assertTrue(metadata.content.paddingBottom>0);assertTrue(metadata.content.paddingTop>metadata.content.paddingBottom)
                 assertNull(root.findViewWithTag<View>("axs_warning_enabled"))
+                root.measure(View.MeasureSpec.makeMeasureSpec(420,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(900,View.MeasureSpec.EXACTLY))
+                root.layout(0,0,420,900)
+                val sensorList=root.findViewWithTag<ViewGroup>("bike_sensor_list")
+                val sensorFrames=(0 until sensorList.childCount).map(sensorList::getChildAt).filter { it.visibility==View.VISIBLE }
+                assertTrue(sensorFrames.all { it is BicycleFrameDropdown })
+                sensorFrames.zipWithNext().forEach { (before,next) ->
+                    assertEquals("sensor accordions use shared small gap",BicycleDesign.dp(a,BicycleDesign.controlGap),next.top-before.bottom)
+                }
+                val sources=primary.content.findViewWithTag<RecordingSourcesView>("recording_sources")
+                val rows=(0 until sources.childCount).map(sources::getChildAt)
+                rows.zipWithNext().forEach { (before,next) ->
+                    assertEquals("source dropdowns use shared small gap",BicycleDesign.dp(a,BicycleDesign.controlGap),next.top-before.bottom)
+                }
+                assertEquals("outer accordions use shared small gap",BicycleDesign.dp(a,BicycleDesign.controlGap),stored.top-primary.bottom)
                 dialog.dismiss();shadowOf(android.os.Looper.getMainLooper()).idle()
             }
         } finally { host.pause().stop().destroy() }

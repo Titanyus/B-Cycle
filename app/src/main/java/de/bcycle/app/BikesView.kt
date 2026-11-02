@@ -277,8 +277,6 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         val sensorList=LinearLayout(context).apply { orientation=VERTICAL;tag="bike_sensor_list" }
         addView(sensorList,LayoutParams(-1,-2))
         profile.type.sensors.forEach { sensor ->
-            val separator=BicycleComponents.sectionDivider(context,themes,BicycleDesign.controlGap).apply { alpha=0f }
-            sensorList.addView(separator)
             val toggle=Switch(context).apply {
                 tag="bike_sensor_${sensor.name}";setText(sensor.label);isEnabled=sensor.supported
                 gravity=Gravity.START or Gravity.CENTER_VERTICAL
@@ -304,7 +302,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             frame.expandControl.tag="bike_sensor_expand_${sensor.name}"
             val details=frame.content.apply { tag="bike_sensor_details_${sensor.name}" }
             sensorList.addView(frame,LayoutParams(-1,-2))
-            sensorRows[sensor]=listOf(separator,frame)
+            sensorRows[sensor]=listOf(frame)
             if(sensor==BikeSensor.SHIFT) {
                 shiftView=AxsGroupView(context,runtime)
                 details.addView(shiftView,LayoutParams(-1,-2))
@@ -374,8 +372,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
                         orientation=VERTICAL
                         tag=when(key) {
                             "bike_profile"->"bike_profile_details"
-                            context.getString(R.string.ui_recording_title)->"bike_fit_settings"
-                            context.getString(R.string.ui_track_recording)->"bike_track_settings"
+                            context.getString(R.string.bike_recording_title)->"bike_recording_settings"
                             else->"profile_section_content_$key"
                         }
                     }

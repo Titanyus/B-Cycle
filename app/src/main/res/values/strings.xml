@@ -293,6 +293,10 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_sensor_bike">Bosch E-Bike</string>
     <string name="ui_sensor_heart">BLE-Pulsmesser</string>
     <string name="ui_recording_title">FIT-Aufzeichnung</string>
+    <string name="bike_recording_title">Aufzeichnung</string>
+    <string name="fit_primary_values_title">Sensor-Hauptwerte für die .fit-Datei</string>
+    <string name="fit_stored_values_title">Zu speichernde Daten für die .fit-Datei</string>
+    <string name="fit_stored_values_description">Diese Daten werden in der .fit-Datei gespeichert.</string>
     <string name="ui_sensors_title">Sensoren &amp; Aufzeichnung</string>
     <string name="ui_connect">Verbinden</string>
     <string name="ui_disconnect">Trennen</string>
