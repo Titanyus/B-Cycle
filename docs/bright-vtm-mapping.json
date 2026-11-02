@@ -1,0 +1,2070 @@
+{
+  "source_sha256": "cda8931095c5101cbad5d2a60fa129600a1a0ad3dea27d802be341fb5eae071f",
+  "sprite_png_sha256": "66f12c218af7bada52ccd319013f73c570f3fe1b90d2c79e26bb4d30f7a121f8",
+  "sprite_json_sha256": "73586a1c10e60b536a3a7b8b3d4e70cd4e6ffa6afe801ff1cb08f38bf38d7cb0",
+  "maplibre_zoom": "VTM zoom - 1 (256 vs 512 pixel world)",
+  "limitations": [
+    "Paint/size functions sampled at integer VTM zoom 0..19; no continuous MapLibre interpolation between tile levels.",
+    "Native VTM solid-line minimum half-width is 1 px; very thin strokes differ from MapLibre.",
+    "Native VTM caps/joins/antialiasing and subpixel dash textures are approximations.",
+    "Native labels use existing localized name and Android fonts/collision placement, not remote Noto glyphs.",
+    "Pattern translation, shifted water copy and building top not applied; map remains flat."
+  ],
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "source-layer": null,
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landcover-glacier",
+      "type": "fill",
+      "source-layer": "landcover",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landuse-residential",
+      "type": "fill",
+      "source-layer": "landuse",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landuse-commercial",
+      "type": "fill",
+      "source-layer": "landuse",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landuse-industrial",
+      "type": "fill",
+      "source-layer": "landuse",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landuse-cemetery",
+      "type": "fill",
+      "source-layer": "landuse",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landuse-hospital",
+      "type": "fill",
+      "source-layer": "landuse",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landuse-school",
+      "type": "fill",
+      "source-layer": "landuse",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landuse-railway",
+      "type": "fill",
+      "source-layer": "landuse",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landcover-wood",
+      "type": "fill",
+      "source-layer": "landcover",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [
+        "fill-antialias",
+        "fill-outline-color"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "landcover-grass",
+      "type": "fill",
+      "source-layer": "landcover",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landcover-grass-park",
+      "type": "fill",
+      "source-layer": "park",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "waterway_tunnel",
+      "type": "line",
+      "source-layer": "waterway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "waterway-other",
+      "type": "line",
+      "source-layer": "waterway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "waterway-other-intermittent",
+      "type": "line",
+      "source-layer": "waterway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "waterway-stream-canal",
+      "type": "line",
+      "source-layer": "waterway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "waterway-stream-canal-intermittent",
+      "type": "line",
+      "source-layer": "waterway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "waterway-river",
+      "type": "line",
+      "source-layer": "waterway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "waterway-river-intermittent",
+      "type": "line",
+      "source-layer": "waterway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "water-offset",
+      "type": "fill",
+      "source-layer": "water",
+      "status": "omitted",
+      "notes": [
+        "No translated water copy; base water retained."
+      ],
+      "approximated_properties": [],
+      "omitted_properties": [
+        "fill-translate"
+      ]
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source-layer": "water",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "water-intermittent",
+      "type": "fill",
+      "source-layer": "water",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "water-pattern",
+      "type": "fill",
+      "source-layer": "water",
+      "status": "mapped",
+      "notes": [
+        "Native repeating pattern; source translation not supported."
+      ],
+      "approximated_properties": [],
+      "omitted_properties": [
+        "fill-translate"
+      ]
+    },
+    {
+      "id": "landcover-ice-shelf",
+      "type": "fill",
+      "source-layer": "landcover",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "landcover-sand",
+      "type": "fill",
+      "source-layer": "landcover",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "building",
+      "type": "fill",
+      "source-layer": "building",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [
+        "fill-antialias"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "building-top",
+      "type": "fill",
+      "source-layer": "building",
+      "status": "omitted",
+      "notes": [
+        "No translated building top (flat view requested)."
+      ],
+      "approximated_properties": [
+        "fill-outline-color"
+      ],
+      "omitted_properties": [
+        "fill-translate"
+      ]
+    },
+    {
+      "id": "tunnel-service-track-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-minor-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-secondary-tertiary-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-trunk-primary-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-motorway-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-path",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-service-track",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-minor",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-secondary-tertiary",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-trunk-primary",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-motorway",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "tunnel-railway",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "ferry",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "aeroway-taxiway-casing",
+      "type": "line",
+      "source-layer": "aeroway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "aeroway-runway-casing",
+      "type": "line",
+      "source-layer": "aeroway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "aeroway-area",
+      "type": "fill",
+      "source-layer": "aeroway",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [],
+      "omitted_properties": []
+    },
+    {
+      "id": "aeroway-taxiway",
+      "type": "line",
+      "source-layer": "aeroway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "aeroway-runway",
+      "type": "line",
+      "source-layer": "aeroway",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "road_area_pier",
+      "type": "fill",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [
+        "fill-antialias"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "road_pier",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-area",
+      "type": "fill",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [],
+      "approximated_properties": [
+        "fill-antialias",
+        "fill-outline-color"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-motorway-link-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-link-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-minor-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-secondary-tertiary-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-primary-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-trunk-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-motorway-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-path",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-motorway-link",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-link",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-minor",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-secondary-tertiary",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-primary",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-trunk",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-motorway",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "railway-transit",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "railway-transit-hatching",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "railway-service",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "railway-service-hatching",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "railway",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "railway-hatching",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-motorway-link-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-link-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-secondary-tertiary-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-trunk-primary-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-motorway-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-path-casing",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-path",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-motorway-link",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-link",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-secondary-tertiary",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-trunk-primary",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-motorway",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-railway",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "bridge-railway-hatching",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "cablecar",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "cablecar-dash",
+      "type": "line",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "boundary-land-level-4",
+      "type": "line",
+      "source-layer": "boundary",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "boundary-land-level-2",
+      "type": "line",
+      "source-layer": "boundary",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "boundary-land-disputed",
+      "type": "line",
+      "source-layer": "boundary",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes."
+      ],
+      "approximated_properties": [
+        "line-dasharray",
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "boundary-water",
+      "type": "line",
+      "source-layer": "boundary",
+      "status": "mapped",
+      "notes": [
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+      ],
+      "approximated_properties": [
+        "line-join",
+        "line-width"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "waterway-name",
+      "type": "symbol",
+      "source-layer": "waterway",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "symbol-spacing",
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": [
+        "text-letter-spacing",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "water-name-lakeline",
+      "type": "symbol",
+      "source-layer": "water_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "symbol-spacing",
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": [
+        "text-letter-spacing",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "water-name-ocean",
+      "type": "symbol",
+      "source-layer": "water_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "symbol-spacing",
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": [
+        "text-letter-spacing",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "water-name-other",
+      "type": "symbol",
+      "source-layer": "water_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "symbol-spacing",
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": [
+        "text-letter-spacing",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "poi-level-3",
+      "type": "symbol",
+      "source-layer": "poi",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-anchor",
+        "text-field",
+        "text-font",
+        "text-offset",
+        "text-padding"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "poi-level-2",
+      "type": "symbol",
+      "source-layer": "poi",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-anchor",
+        "text-field",
+        "text-font",
+        "text-offset",
+        "text-padding"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "poi-level-1",
+      "type": "symbol",
+      "source-layer": "poi",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-anchor",
+        "text-field",
+        "text-font",
+        "text-offset",
+        "text-padding"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "poi-railway",
+      "type": "symbol",
+      "source-layer": "poi",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "icon-allow-overlap",
+        "icon-ignore-placement",
+        "icon-optional",
+        "text-allow-overlap",
+        "text-anchor",
+        "text-field",
+        "text-font",
+        "text-ignore-placement",
+        "text-offset",
+        "text-optional",
+        "text-padding"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "road_oneway",
+      "type": "symbol",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "icon-padding",
+        "symbol-spacing"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "road_oneway_opposite",
+      "type": "symbol",
+      "source-layer": "transportation",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "icon-padding",
+        "symbol-spacing"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-name-path",
+      "type": "symbol",
+      "source-layer": "transportation_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-name-minor",
+      "type": "symbol",
+      "source-layer": "transportation_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": [
+        "text-halo-blur"
+      ]
+    },
+    {
+      "id": "highway-name-major",
+      "type": "symbol",
+      "source-layer": "transportation_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": [
+        "text-halo-blur"
+      ]
+    },
+    {
+      "id": "highway-shield",
+      "type": "symbol",
+      "source-layer": "transportation_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "symbol-spacing",
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-shield-us-interstate",
+      "type": "symbol",
+      "source-layer": "transportation_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "symbol-spacing",
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "highway-shield-us-other",
+      "type": "symbol",
+      "source-layer": "transportation_name",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "symbol-spacing",
+        "text-field",
+        "text-font",
+        "text-rotation-alignment"
+      ],
+      "omitted_properties": []
+    },
+    {
+      "id": "airport-label-major",
+      "type": "symbol",
+      "source-layer": "aerodrome_label",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-anchor",
+        "text-field",
+        "text-font",
+        "text-offset",
+        "text-optional",
+        "text-padding"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "place-other",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-letter-spacing",
+        "text-max-width",
+        "text-transform"
+      ]
+    },
+    {
+      "id": "place-village",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "place-town",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "place-city",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "place-city-capital",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor."
+      ],
+      "approximated_properties": [
+        "text-anchor",
+        "text-field",
+        "text-font",
+        "text-offset"
+      ],
+      "omitted_properties": [
+        "text-max-width"
+      ]
+    },
+    {
+      "id": "place-country-other",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width",
+        "text-transform"
+      ]
+    },
+    {
+      "id": "place-country-3",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width",
+        "text-transform"
+      ]
+    },
+    {
+      "id": "place-country-2",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width",
+        "text-transform"
+      ]
+    },
+    {
+      "id": "place-country-1",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width",
+        "text-transform"
+      ]
+    },
+    {
+      "id": "place-continent",
+      "type": "symbol",
+      "source-layer": "place",
+      "status": "mapped",
+      "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names."
+      ],
+      "approximated_properties": [
+        "text-field",
+        "text-font"
+      ],
+      "omitted_properties": [
+        "text-halo-blur",
+        "text-max-width",
+        "text-transform"
+      ]
+    }
+  ]
+}

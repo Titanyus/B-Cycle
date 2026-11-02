@@ -15,7 +15,6 @@ import org.junit.runner.RunWith
 import org.oscim.core.*
 import org.oscim.layers.tile.vector.VectorTileLayer
 import org.oscim.layers.tile.vector.labeling.LabelLayer
-import org.oscim.theme.ThemeLoader
 import org.oscim.theme.styles.LineStyle
 import org.oscim.tiling.*
 import org.oscim.tiling.source.mvt.TileDecoder
@@ -28,29 +27,29 @@ import org.robolectric.shadows.ShadowAlertDialog
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
+@org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 class VtmVectorMapTest {
     @Test fun brightUsesItsPaletteWithFlatBuildingsAndCameraAlwaysLooksDown() {
         val c=RuntimeEnvironment.getApplication();val map=BicycleMapView(c)
         try {
-            val theme=ThemeLoader.load(VtmCycleTheme(false))
+            val theme=VtmBrightTheme.load(false)
             assertEquals(Color.rgb(248,244,240),theme.mapBackground)
             val water=TagSet().apply { add(Tag("layer","water"));add(Tag("class","lake")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,water,16).orEmpty()
-                .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==Color.rgb(174,207,226) })
-            // OpenMapTiles groups forest/meadow/crops by class, not their OSM subclass.
+                .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==Color.rgb(191,217,242) })
             val ruralAreas=listOf(
-                Triple("wood","forest",Color.rgb(169,207,145)),
-                Triple("grass","meadow",Color.rgb(209,231,181)),
-                Triple("farmland","farmland",Color.rgb(232,229,184)),
-                Triple("farmland","orchard",Color.rgb(232,229,184)),
-                Triple("scrub","scrub",Color.rgb(196,214,173)),
-                Triple("wetland","marsh",Color.rgb(198,222,208))
+                Triple("wood","forest",Color.argb(26,102,170,68)),
+                Triple("grass","meadow",Color.rgb(216,232,200)),
+                Triple("grass","scrub",Color.rgb(216,232,200)),
+                Triple("sand","sand",Color.rgb(245,238,188))
             )
             for((kind,subclass,color) in ruralAreas) for(zoom in listOf(10,14,19)) {
                 val tags=TagSet().apply { add(Tag("layer","landcover"));add(Tag("class",kind));add(Tag("subclass",subclass)) }
-                assertTrue("opaque $kind/$subclass at zoom $zoom",theme.matchElement(GeometryBuffer.GeometryType.POLY,tags,zoom).orEmpty()
-                    .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==color && Color.alpha(it.color)==255 })
+                assertTrue("source color $kind/$subclass at zoom $zoom",theme.matchElement(GeometryBuffer.GeometryType.POLY,tags,zoom).orEmpty()
+                    .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==color })
             }
+            val farmland=TagSet().apply { add(Tag("layer","landcover"));add(Tag("class","farmland")) }
+            assertTrue("reference has no farmland paint",theme.matchElement(GeometryBuffer.GeometryType.POLY,farmland,16).isNullOrEmpty())
             val motorway=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","motorway")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.LINE,motorway,16).orEmpty()
                 .filterIsInstance<LineStyle>().any { it.color==Color.rgb(255,204,136) })
@@ -72,16 +71,20 @@ class VtmVectorMapTest {
     @Test fun realOpenFreeMapTileDecodesAndCyclewaysAreAnOptionalStyle() {
         val map=BicycleMapView(RuntimeEnvironment.getApplication())
         try {
-            val normal=ThemeLoader.load(VtmCycleTheme(false))
-            val cycling=ThemeLoader.load(VtmCycleTheme(true))
+            val normal=VtmBrightTheme.load(false)
+            val cycling=VtmBrightTheme.load(true)
             var features=0;var named=0;var styled=0;var rural=0
             val sink=object:ITileDataSink {
                 override fun process(element:MapElement) {
                     features++
-                    if(element.tags.getValue("layer")=="landcover" && element.tags.getValue("class") in setOf("wood","grass","farmland","scrub","wetland")) {
-                        rural++
-                        assertTrue("real rural polygon ${element.tags}",normal.matchElement(element.type,element.tags,14).orEmpty()
-                            .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { Color.alpha(it.color)==255 })
+                    if(element.tags.getValue("layer")=="landcover") {
+                        val kind=element.tags.getValue("class")
+                        val areas=normal.matchElement(element.type,element.tags,14).orEmpty().filterIsInstance<org.oscim.theme.styles.AreaStyle>()
+                        if(kind=="wood" || kind=="grass") {
+                            rural++
+                            val expected=if(kind=="wood") Color.argb(26,102,170,68) else Color.rgb(216,232,200)
+                            assertTrue("source class $kind/${element.tags.getValue("subclass")}",areas.any { it.color==expected })
+                        } else if(kind=="farmland") assertTrue("no invented farmland style",areas.isEmpty())
                     }
                     if(element.tags.getValue("name")!=null) named++
                     if(!normal.matchElement(element.type,element.tags,14).isNullOrEmpty()) styled++
@@ -102,6 +105,43 @@ class VtmVectorMapTest {
             assertTrue(highlighted(cycling,"path","designated"));assertFalse(highlighted(cycling,"footway"))
             normal.dispose();cycling.dispose()
         } finally { map.disposeMap() }
+    }
+    @Test fun brightRoadHierarchyDashesFiltersAndSchemaAliasesFollowTheReference() {
+        val map=BicycleMapView(RuntimeEnvironment.getApplication())
+        val theme=VtmBrightTheme.load(false)
+        try {
+            fun lines(kind:String,zoom:Int=16,vararg extra:Pair<String,String>):List<LineStyle> {
+                val tags=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class",kind));extra.forEach { add(Tag(it.first,it.second)) } }
+                return theme.matchElement(GeometryBuffer.GeometryType.LINE,tags,zoom).orEmpty().filterIsInstance<LineStyle>()
+            }
+            val road=lines("motorway");val path=lines("path");val track=lines("track")
+            assertEquals(listOf("highway-motorway-casing","highway-motorway"),road.map { it.style })
+            val roadFill=road.last();val pathFill=path.single()
+            val progress=(Math.pow(1.2,8.0)-1)/(Math.pow(1.2,13.0)-1)
+            assertEquals("source exponential width at MapLibre zoom 15 / VTM 16",((.5+17.5*progress)/2).toFloat(),roadFill.width,.001f)
+            assertTrue("paths significantly thinner than major roads",pathFill.width < roadFill.width/2)
+            assertEquals("source path width at MapLibre zoom 15",.6f,pathFill.width,.001f)
+            assertEquals("dash color",Color.rgb(204,187,170),pathFill.color)
+            assertNotNull("actual native dash texture",pathFill.texture);assertFalse(pathFill.randomOffset)
+            assertTrue("fixed widths avoid VTM's latitude multiplier",road.all { it.fixed } && pathFill.fixed)
+            assertEquals(listOf("highway-minor-casing","highway-minor"),track.map { it.style })
+            assertTrue("track narrower than motorway at source zoom 15",track.last().width<roadFill.width)
+            val tunnel=lines("motorway",16,"brunnel" to "tunnel")
+            assertEquals(listOf("tunnel-motorway-casing","tunnel-motorway"),tunnel.map { it.style })
+            assertNotNull(tunnel.first().texture)
+            assertEquals(listOf("bridge-trunk-primary-casing","bridge-trunk-primary"),lines("primary",16,"brunnel" to "bridge").map { it.style })
+            assertEquals(listOf("highway-motorway-link-casing","highway-motorway-link"),lines("motorway",16,"ramp" to "1").map { it.style })
+            assertEquals(listOf("tunnel-minor-casing","tunnel-minor"),lines("minor",16,"brunnel" to "tunnel").map { it.style })
+            assertTrue("source path remains visible at low zoom",lines("path",10).isNotEmpty())
+            assertTrue("one-way sprites available",theme.matchElement(GeometryBuffer.GeometryType.LINE,TagSet().apply {
+                add(Tag("layer","transportation"));add(Tag("class","minor"));add(Tag("oneway","-1"))
+            },16).orEmpty().any { it is org.oscim.theme.styles.SymbolStyle && it.bitmap!=null })
+            val numeric=BrightFilter.compile(org.json.JSONArray("[\"all\",[\">=\",\"rank\",15],[\"<=\",\"rank\",24],[\"any\",[\"!has\",\"level\"],[\"==\",\"level\",0]]]"))
+            assertTrue(numeric(GeometryBuffer.GeometryType.POINT,TagSet().apply { add(Tag("rank","20")) }))
+            assertFalse(numeric(GeometryBuffer.GeometryType.POINT,TagSet().apply { add(Tag("rank","25")) }))
+            assertFalse(numeric(GeometryBuffer.GeometryType.POINT,TagSet().apply { add(Tag("rank","20"));add(Tag("level","1")) }))
+            assertTrue(numeric(GeometryBuffer.GeometryType.POINT,TagSet().apply { add(Tag("rank","20"));add(Tag("level","0.0")) }))
+        } finally { theme.dispose();map.disposeMap() }
     }
     @Test fun vectorAndRasterSwitchKeepRouteLayerAndPersistBikeSettings() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()

@@ -1,14 +1,16 @@
-# Aktueller Stand: APK 0.8.82 / Build 123 veröffentlicht
+# Aktueller Stand: Bright nach gelieferter JSON abgebildet; letzte APK 0.8.82 / Build 123
 
-## Aktueller Auftrag abgeschlossen
+## Aktueller Auftrag: Bright möglichst genau als Basis abbilden
 
-Neue APK ausdrücklich beauftragt, ausschließlich über GitHub Actions gebaut, Signatur/Prüfsumme/Assets geprüft und veröffentlicht. [Build 123](build-123.md), [Änderungen](release-0.8.82.md).
+Nutzer liefert zweimal dieselbe bright.json und bestätigt ausdrücklich: diese Vorlage möglichst genau übernehmen, vorerst keine eigenen Farb-/Breitenkorrekturen. Unverändert als `assets/styles/bright.json` gespeichert, SHA-256 cda8931095c5101cbad5d2a60fa129600a1a0ad3dea27d802be341fb5eae071f. [Aktuelle Zuordnung, Pflege und Grenzen](vtm-bright-style.md).
 
-- Bright: deckender grüner Wald, hellgrüne Wiesen, gelbgrüne Felder; farmland-/scrub-Regeln und fehlenden wetland-Stil ergänzt. Zwei betroffene Vektorkartentests erfolgreich. [Details](vtm-bright-style.md).
-- Alte Karte verschwand beim Loslassen: VTMs setWillNotDraw(true) übersprang beim Aufnehmen des Elternbaums die Software-Snapshot-Routine. BicycleMapView setzt jetzt false; vorhandene GL-Aufnahme wird ins ausgehende Seitenbild gezeichnet. Neuer Bildtest reproduzierte den Fehler; nach Fix drei betroffene Übergangs-/Abbruch-/Umhängfälle erfolgreich. Keine zusätzliche Karteninstanz oder Übergangsaufnahme. [Details](dashboard-page-transition.md).
-- Gruppentrenner im Haupt-Einstellungsmenü auf ausdrücklichen Wunsch je 12 dp oben/unten (vorher je 32). Menüzeilen und erweitertes Menü unverändert. Ein bestehender Menütest erfolgreich.
+- Generator `python3 scripts/build-bright-vtm.py` und `--check`: native XML, 111 lokale Spritevarianten aus referenziertem Atlas, Bericht aller 116 Ebenen. Kein Live-Stileditor/neuer Kartendienst; OpenFreeMap bleibt. VTM-Theme nur über `VtmBrightTheme.load` laden, damit Originalfilter einschließlich numerischer Vergleiche gelten. Keine Änderungen am erzeugten XML von Hand.
+- Farben/Deckkraft, Ebenenfolge, Straßenränder/Füllung, Tunnel/Brücken/Auffahrten, Zoomfunktionen, Breiten/Kappen/Dashes übernommen. Gleicher Maßstab: MapLibre-Zoom = VTM-Zoom − 1. Halbe VTM-Extrusionsbreite/feste Breiten statt zusätzlicher nativer Breitenmultiplikation. Schemaalias minor_road/minor und ramp→*_link. Flach bleiben.
+- Vorlage selbst: Wald 10 % Deckkraft, keine eigene Ackerfarbe, track mit minor/service, path dünn/gestrichelt. Das ersetzt ausdrücklich die kräftigeren Flächenfarben aus Build 123; keine eigenen Overrides. Nutzer bestätigt nochmals JSON als verbindliche Basis, Mapnik-Vergleich nur Hinweis. Nutzer bietet App-/Maputnik-Screenshots an; gleicher Ausschnitt/Maßstab/Nord/Draufsicht erbeten, noch keine eingegangen.
+- Grenzen dokumentiert: ganzzahlige Zoomstufen, native Mindestbreite/Antialiasing/Dashquantisierung, Android-Schriften/lokalisierte Namen/Kollision statt Noto-Remote-Glyphen; keine exakte MapLibre-Textplatzierung/Abstände/Halo-Blur. building-top und water-offset ausgelassen, Wasserpattern vorhanden. Originale Daten/Tracks/GPS/Rasterquellen/Profile erhalten; Radhervorhebung weiterhin getrennte Option, für Referenzvergleich aus.
+- Vier gezielte Fälle erfolgreich; nach Ergänzungen nur zwei betroffene Fälle wiederholt. Generator/Kompilation/Typografie/Atlas/Diff erfolgreich. Logs bright-json-style-tests.log / bright-json-final-tests.log in /workspace/.tools/. Kein Gesamtlauf/keine APK. Physischer Bildvergleich offen.
 
-Typografie/Atlas/Diff erfolgreich; kein Gesamtlauf. Tatsächlichen PixelCopy-/Compositor-Übergang und Kartenfarben am Smartphone noch bestätigen. Testlogs in /workspace/.tools/: vtm-bright-rural-tests.log, page-outgoing-map-fix-tests.log, settings-divider-12dp-test.log.
+Letzte veröffentlichte APK bleibt Build 123: eigene Flächenfarben, ausgehende Karte im Dashboardbild korrigiert (setWillNotDraw(false)), Hauptmenü-Trenner je 12 dp. Diese Korrekturen erhalten. Nächster APK-Assetnachweis muss neue JSON/XML/Sprites/Referenzfarben berücksichtigen, nicht die überholten kräftigen Flächenfarben aus Build 123.
 
 ## Erhaltener Stand aus Build 122
 

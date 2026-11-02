@@ -1,4 +1,8 @@
-B|CYCLE Bright VTM adaptation. Palette reference: https://tiles.openfreemap.org/styles/bright (2026-11-02).
+B|CYCLE Bright VTM adaptation. Reference: user-supplied Bright style JSON (2026-11-02),
+retained verbatim as styles/bright.json. SHA-256 cda8931095c5101cbad5d2a60fa129600a1a0ad3dea27d802be341fb5eae071f.
+Generated native instructions: scripts/build-bright-vtm.py; mapping: docs/bright-vtm-mapping.json.
+Original sprite atlas: https://openmaptiles.github.io/osm-bright-gl-style/sprite.{json,png} (2026-11-02).
+Atlas and derived local sprites retained in styles/bright/; provenance hashes in mapping report.
 Original style: https://github.com/openmaptiles/osm-bright-gl-style
 VTM geometry/style rules: https://github.com/mapsforge/vtm/tree/0.25.0/vtm-themes (LGPL-3.0 with exception; see Mapsforge-LICENSE.txt).
 

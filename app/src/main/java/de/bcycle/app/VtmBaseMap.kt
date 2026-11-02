@@ -8,7 +8,6 @@ import org.oscim.layers.tile.vector.labeling.LabelLayer
 import org.oscim.layers.tile.vector.labeling.LabelTileLoaderHook
 import org.oscim.map.Map
 import org.oscim.theme.ThemeFile
-import org.oscim.theme.ThemeLoader
 import org.oscim.theme.internal.VtmThemes
 
 /** Owns every layer of one base map; saved/live tracks always remain above them. */
@@ -25,7 +24,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
                 fun resumeTiles() { resumeLoaders() }
                 fun pauseTiles() { pauseLoaders(false) }
             }
-            vector.setTheme(ThemeLoader.load(VtmCycleTheme(cycleways)))
+            vector.setTheme(VtmBrightTheme.load(cycleways))
             tiles=vector
             labels=LabelLayer(map,vector,LabelTileLoaderHook(),source.maximumZoom)
             resumeTiles=vector::resumeTiles;pauseTiles=vector::pauseTiles
