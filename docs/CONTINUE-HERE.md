@@ -1,4 +1,8 @@
-# Aktueller Stand: APK 0.8.81/Build 122 veröffentlicht
+# Aktueller Stand: Flächenfarben nach APK 0.8.81/Build 122 korrigiert
+
+## Aktuelle Änderung nach Build 122
+
+Bright: Wald jetzt deckend grün, Wiesen hellgrün, Ackerflächen gelbgrün; fehlende farmland-/scrub-Regeln und undefinierten wetland-Stil ergänzt. Ursache: Wald bisher nur 10 % Deckkraft, Ackerflächen ohne Regel. [Details](vtm-bright-style.md). Zwei betroffene Vektorkartentests erfolgreich (0 Fehler), ebenso Typografie/Atlas/Diff. Log: `/workspace/.tools/vtm-bright-rural-tests.log`. Noch keine neue APK beauftragt/gebaut; letzter veröffentlichter Build bleibt 122.
 
 ## Auftrag 02.11.2026 abgeschlossen
 

@@ -37,6 +37,20 @@ class VtmVectorMapTest {
             val water=TagSet().apply { add(Tag("layer","water"));add(Tag("class","lake")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,water,16).orEmpty()
                 .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==Color.rgb(174,207,226) })
+            // OpenMapTiles groups forest/meadow/crops by class, not their OSM subclass.
+            val ruralAreas=listOf(
+                Triple("wood","forest",Color.rgb(169,207,145)),
+                Triple("grass","meadow",Color.rgb(209,231,181)),
+                Triple("farmland","farmland",Color.rgb(232,229,184)),
+                Triple("farmland","orchard",Color.rgb(232,229,184)),
+                Triple("scrub","scrub",Color.rgb(196,214,173)),
+                Triple("wetland","marsh",Color.rgb(198,222,208))
+            )
+            for((kind,subclass,color) in ruralAreas) for(zoom in listOf(10,14,19)) {
+                val tags=TagSet().apply { add(Tag("layer","landcover"));add(Tag("class",kind));add(Tag("subclass",subclass)) }
+                assertTrue("opaque $kind/$subclass at zoom $zoom",theme.matchElement(GeometryBuffer.GeometryType.POLY,tags,zoom).orEmpty()
+                    .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==color && Color.alpha(it.color)==255 })
+            }
             val motorway=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","motorway")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.LINE,motorway,16).orEmpty()
                 .filterIsInstance<LineStyle>().any { it.color==Color.rgb(255,204,136) })
@@ -60,10 +74,15 @@ class VtmVectorMapTest {
         try {
             val normal=ThemeLoader.load(VtmCycleTheme(false))
             val cycling=ThemeLoader.load(VtmCycleTheme(true))
-            var features=0;var named=0;var styled=0
+            var features=0;var named=0;var styled=0;var rural=0
             val sink=object:ITileDataSink {
                 override fun process(element:MapElement) {
                     features++
+                    if(element.tags.getValue("layer")=="landcover" && element.tags.getValue("class") in setOf("wood","grass","farmland","scrub","wetland")) {
+                        rural++
+                        assertTrue("real rural polygon ${element.tags}",normal.matchElement(element.type,element.tags,14).orEmpty()
+                            .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { Color.alpha(it.color)==255 })
+                    }
                     if(element.tags.getValue("name")!=null) named++
                     if(!normal.matchElement(element.type,element.tags,14).isNullOrEmpty()) styled++
                 }
@@ -73,6 +92,7 @@ class VtmVectorMapTest {
             javaClass.getResourceAsStream("/maps/openfreemap-14-8663-5675.pbf")!!.use {
                 assertTrue(TileDecoder("de").decode(Tile(8663,5675,14),sink,it))
             }
+            assertTrue("real rural polygons",rural>0)
             assertTrue("real geometry",features>50);assertTrue("real labels",named>0);assertTrue("schema matches theme",styled>50)
             fun highlighted(theme:org.oscim.theme.IRenderTheme,subclass:String,bicycle:String?=null):Boolean {
                 val tags=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","path"));add(Tag("subclass",subclass));bicycle?.let { add(Tag("bicycle",it)) } }

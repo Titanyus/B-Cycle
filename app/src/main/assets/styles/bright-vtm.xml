@@ -34,8 +34,11 @@
     <style-area fade="8" fill="#57fff4c2" id="bright-industrial" />
     <style-area fade="8" fill="#f0e8f8" id="bright-school" />
     <style-area fade="8" fill="#d8e8c8" id="bright-park" />
-    <style-area fade="8" fill="#1a66aa44" id="bright-forest" />
-    <style-area fade="8" fill="#d8e8c8" id="bright-grass" />
+    <style-area fade="8" fill="#a9cf91" id="bright-forest" />
+    <style-area fade="8" fill="#d1e7b5" id="bright-grass" />
+    <style-area fade="8" fill="#e8e5b8" id="bright-farmland" />
+    <style-area fade="8" fill="#c4d6ad" id="bright-scrub" />
+    <style-area fade="8" fill="#c6ded0" id="bright-wetland" />
     <style-area fade="8" fill="#def6c0" id="bright-campsite" />
     <style-area fade="8" fill="#e0e4dd" id="bright-cemetery" />
     <style-area fade="8" fill="#d6aa95" id="bright-military" />
@@ -103,6 +106,12 @@
             </m>
             <m v="grass">
                 <area use="bright-grass" />
+            </m>
+            <m v="farmland">
+                <area use="bright-farmland" />
+            </m>
+            <m v="scrub">
+                <area use="bright-scrub" />
             </m>
             <m v="wetland">
                 <area use="bright-wetland" />
