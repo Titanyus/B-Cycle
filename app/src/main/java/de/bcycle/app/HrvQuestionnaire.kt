@@ -29,12 +29,17 @@ internal data class HrvQuestionnaire(
     val legacyRatings:Map<String,Int> = emptyMap(),
     val stress:Int?=null
 ) {
+    /** New 0..7 stress; authorized inverse of old regularity, with originals kept untouched. */
+    val stressRating:Int? get()=ratings["stress"]
+        ?: ratings["lifestyle"]?.let { ((10-it)*7.0/10).roundToInt() }
+        ?: stress?.let { ((it-1)*7.0/3).roundToInt() }
+    val intervalsStress:Int? get()=stressRating?.let { 1+it/2 }
     /** An explicit rest day must not retain hidden exercise inputs for any later evaluation. */
     fun withTraining(level:Int?):HrvQuestionnaire = if(level==0) copy(training=0,ratings=ratings-"rpe",
         trainingKm=null,trainingMinutes=null,trainingSource=null,rideIds=emptyList()) else copy(training=level)
     fun json():JSONObject {
         validate()
-        return JSONObject().put("schema",2).put("day",day).put("ratings",JSONObject().apply { ratings.toSortedMap().forEach { (k,v)->put(k,v) } })
+        return JSONObject().put("schema",3).put("day",day).put("ratings",JSONObject().apply { ratings.toSortedMap().forEach { (k,v)->put(k,v) } })
             .put("legacyRatings",JSONObject().apply { legacyRatings.toSortedMap().forEach { (k,v)->put(k,v) } })
             .put("training",training ?: JSONObject.NULL).put("sport",sport ?: JSONObject.NULL)
             .put("trainingKm",trainingKm ?: JSONObject.NULL).put("trainingMinutes",trainingMinutes ?: JSONObject.NULL)
@@ -47,8 +52,8 @@ internal data class HrvQuestionnaire(
     }
     fun validate() {
         require(LocalDate.parse(day).toString()==day)
-        require(ratings.all { (key,value)->key in ratingKeys && value in 0..10 })
-        require(legacyRatings.all { (key,value)->key in ratingKeys && key!="rpe" && value in 0..8 })
+        require(ratings.all { (key,value)->key in ratingKeys && value in 0..if(key=="stress") 7 else 10 })
+        require(legacyRatings.all { (key,value)->key in ratingKeys && key!="rpe" && key!="stress" && value in 0..8 })
         require(training==null || training in 0..3)
         require(sport==null || sport in sports)
         require(listOf(trainingKm,trainingMinutes).all { it==null || it.isFinite() && it in 0.0..1_000_000.0 })
@@ -72,12 +77,12 @@ internal data class HrvQuestionnaire(
         val extraKeys=setOf("wake","bed","sleepHours","phase","cycle","diet","location","supplements","custom1","custom2","custom3")
         val phases=listOf("base","build","competition","recovery","other")
         val cycles=listOf("menstruation","follicular","ovulation","luteal","unknown")
-        val ratingKeys=setOf("sleep","motivation","condition","energy","soreness","fatigue","lifestyle","rpe")
+        val ratingKeys=setOf("sleep","motivation","condition","energy","soreness","fatigue","lifestyle","rpe","stress")
         val sports=listOf("cycling","running","swimming","strength","other")
         fun forMeasurement(row:JSONObject)=HrvQuestionnaire(
             Instant.ofEpochMilli(row.getLong("utcMs")).atZone(ZoneId.of(row.getString("zone"))).toLocalDate().toString())
         fun decode(row:JSONObject):HrvQuestionnaire {
-            val schema=row.getInt("schema");require(schema in 1..2)
+            val schema=row.getInt("schema");require(schema in 1..3)
             fun int(key:String):Int? {
                 if(row.isNull(key)) return null
                 val value=row.getDouble(key);require(value.isFinite() && value==value.toInt().toDouble());return value.toInt()
@@ -90,7 +95,9 @@ internal data class HrvQuestionnaire(
             require(ids.length()<=10000)
             val original=ratings.keys().asSequence().associateWith { key ->
                 val value=ratings.getDouble(key)
-                require(value.isFinite() && value==value.toInt().toDouble() && value in 0.0..if(schema==1 && key!="rpe") 8.0 else 10.0)
+                require(key!="stress" || schema>=3)
+                val maximum=if(key=="stress") 7.0 else if(schema==1 && key!="rpe") 8.0 else 10.0
+                require(value.isFinite() && value==value.toInt().toDouble() && value in 0.0..maximum)
                 value.toInt()
             }
             val legacy=if(schema==1) original.filterKeys { it!="rpe" } else row.optJSONObject("legacyRatings")?.let { all ->

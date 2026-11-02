@@ -82,8 +82,9 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         val block=LinearLayout(context).apply { orientation=VERTICAL;tag="hrvq_block_$key";setTag(R.id.slider_question_group,true) }
         block.addView(BicycleComponents.fieldLabel(context,themes,context.getString(question.label)))
         val origin=if(key=="soreness" || key=="fatigue") 0 else max/2
+        val selected=if(key=="stress") value.stressRating else value.ratings[key]
         val slider=BicycleRatingSlider(context,themes,origin,max).apply {
-            tag="hrvq_$key";progress=value.ratings[key] ?: origin
+            tag="hrvq_$key";progress=selected ?: origin
             contentDescription=context.getString(question.label)
             minimumHeight=dp(BicycleDesign.touchSize)
             tickMark=GradientDrawable().apply { shape=GradientDrawable.OVAL;setSize(dp(2),dp(2)) }
@@ -91,7 +92,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         fun show() {
             slider.stateDescription=if(key in value.ratings) if(key=="rpe") context.getString(R.string.hrvq_rpe_value,slider.progress) else context.getString(R.string.hrvq_rating_value,slider.progress,max) else context.getString(R.string.hrvq_unanswered)
         }
-        if(key !in value.ratings) change(value.copy(ratings=value.ratings+(key to origin)))
+        if(key !in value.ratings) change(value.copy(ratings=value.ratings+(key to (selected ?: origin))))
         show()
         slider.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(bar:SeekBar)=Unit
@@ -119,7 +120,6 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
         BicycleComponents.segmentedControlRow(row,themes)
         val buttons=labels.mapIndexed { index,id -> BicycleSegmentButton(context,themes).apply {
             this.id=View.generateViewId();setText(id);tag="hrvq_${key}_$index"
-            if(key=="stress") setAutoSizeTextTypeUniformWithConfiguration(BicycleDesign.analysisLabelSp.toInt(),BicycleDesign.choiceSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
         }.also { row.addView(it,RadioGroup.LayoutParams(0,-2,1f)) } }
         selected?.let { buttons.getOrNull(it)?.isChecked=true }
         row.setOnCheckedChangeListener { _,id->buttons.indexOfFirst { it.id==id }.takeIf { it>=0 }?.let(changed) }
@@ -288,9 +288,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
             extraDropdown(body,HrvQuestion.CYCLE,"cycle",HrvQuestionnaire.cycles,listOf(R.string.hrvq_menstruation,R.string.hrvq_follicular,R.string.hrvq_ovulation,R.string.hrvq_luteal,R.string.hrvq_unknown))
         }
         group(R.string.hrvq_lifestyle_group,HrvQuestion.entries.filter { it.group==3 }) { body ->
-            if(enabled(HrvQuestion.STRESS)) choices(body,"stress",context.getString(R.string.hrvq_stress),
-                listOf(R.string.hrvq_stress_low,R.string.hrvq_stress_average,R.string.hrvq_stress_high,R.string.hrvq_stress_extreme),value.stress?.minus(1)) { change(value.copy(stress=it+1)) }
-            rating(body,HrvQuestion.LIFESTYLE,"lifestyle",R.string.hrvq_unstable,R.string.hrvq_normal,R.string.hrvq_routine)
+            rating(body,HrvQuestion.LIFESTYLE,"stress",R.string.hrvq_stress_low,R.string.hrvq_stress_average,R.string.hrvq_stress_extreme,max=7)
             boolean(body,HrvQuestion.TRAVEL,"traveled",value.traveled) { change(value.copy(traveled=it)) }
             if(enabled(HrvQuestion.ALCOHOL)) choices(body,"alcohol",context.getString(R.string.hrvq_alcohol),listOf(R.string.hrvq_none,R.string.hrvq_little,R.string.hrvq_much),value.alcohol) { change(value.copy(alcohol=it)) }
             boolean(body,HrvQuestion.SICK,"sick",value.sick) { change(value.copy(sick=it)) }

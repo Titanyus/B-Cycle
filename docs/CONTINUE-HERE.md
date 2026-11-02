@@ -1,6 +1,10 @@
-# Aktueller Stand: Bright-Basisstil, GPS/Live-Strecke und Nachbarseitenvorschau lokal
+# Aktueller Stand: achtstufiger Stressslider, Bright und Karten-/Wischkorrekturen lokal
 
 ## Aktueller Auftrag nach Build121
+
+Nutzer: getrennte Stress-Vierfachfrage entfernen, Regelmäßigkeitsfrage zu Stress umbauen; ausdrücklich acht Stufen. Historische Richtung bestätigt links/0 viel Stress, rechts/10 wenig Stress → umkehren. Lokal umgesetzt: ein Slider0–7, je zwei Positionen pro Intervals-Stufe1–4. Neue direkte Antwort zuerst, sonst umgekehrte alte Regelmäßigkeit, sonst alte Vierfachantwort. Originale behalten, keine doppelte Umkehr. Fragebogen-/Auswahlschema3, alte1/2 lesen; eine Fragenoption statt zweier, stabile Enum-IDs. HRV/Indizes/Empfehlungsgewichtung unverändert. Sechs gezielte Fälle einschließlich echtem HRV-Backup erfolgreich; Kompilation/Typografie/Atlas/Diff erfolgreich. [Details](hrv-eight-step-stress.md). Noch keine neue APK; nicht pushen.
+
+## Ebenfalls lokal umgesetzt: Bright
 
 Nutzer: vorerst Bright statt Liberty. Aktueller Vektor-Basisstil auf Bright-VTM-Adaption umgestellt, Auswahl **OpenFreeMap · Bright**; Kennung VECTOR bleibt. Draufsicht/flache Gebäude/Radwegeoption bleiben, keine neue Auswahl-/Backupoption. [Umfang](vtm-bright-style.md). Bestehender Stil-/Draufsichttest gezielt erfolgreich; Kompilation/Typografie/Atlas/Diff erfolgreich. Noch keine neue APK; nicht pushen. Für nächste APK: Bright-XML/Lizenz statt Liberty prüfen, weiterhin27 Shader.
 

@@ -77,7 +77,7 @@ class IntervalsHrvTest {
         assertEquals(42.25,result.values.getDouble("hrv"),0.0);assertEquals(50.5,result.values.getDouble("hrvSDNN"),0.0)
         assertEquals(52,result.values.getInt("restingHR"));assertEquals(1,result.values.getInt("sleepQuality"))
         assertEquals(10,result.values.getInt("sleepScore"));assertEquals(4,result.values.getInt("motivation"));assertEquals(2,result.values.getInt("soreness"));assertEquals(0,result.values.getInt("fatigue"))
-        assertEquals(22380,result.values.getInt("sleepSecs"));assertFalse(result.values.has("comments"));assertFalse(result.values.has("mood"));assertFalse(result.values.has("stress"))
+        assertEquals(22380,result.values.getInt("sleepSecs"));assertFalse(result.values.has("comments"));assertFalse(result.values.has("mood"));assertEquals(1,result.values.getInt("stress"))
         assertFalse(result.values.has("lf"));assertFalse(result.values.has("readiness"))
         assertEquals(setOf("hrv","hrvSDNN","restingHR"),IntervalsWellness.from(row,null)!!.values.keys().asSequence().toSet())
         assertNull(IntervalsWellness.from(row.copy(acceptable=false,importedDay=null),null))
@@ -118,11 +118,11 @@ class IntervalsHrvTest {
             assertFalse(values.has("comments"))
         }
         for(stress in 1..4) {
-            val data=IntervalsWellness.from(row,HrvQuestionnaire(day.toString(),stress=stress,ratings=mapOf("lifestyle" to 10)))!!.values
+            val data=IntervalsWellness.from(row,HrvQuestionnaire(day.toString(),stress=stress))!!.values
             assertEquals(stress,data.getInt("stress"))
         }
         val missing=IntervalsWellness.from(row,HrvQuestionnaire(day.toString(),ratings=mapOf("lifestyle" to 0)))!!.values
-        assertFalse(missing.has("injury"));assertFalse(missing.has("sleepScore"));assertFalse(missing.has("stress"))
+        assertFalse(missing.has("injury"));assertFalse(missing.has("sleepScore"));assertEquals(4,missing.getInt("stress"))
         val record=IntervalsWellness.from(row,HrvQuestionnaire(day.toString(),ratings=mapOf("sleep" to 0),injured=false))!!
         val patch=IntervalsWellness.patch(record,JSONObject().put("sleepScore",85).put("injury",2),null)
         assertFalse(patch.has("sleepScore"));assertFalse(patch.has("injury"))

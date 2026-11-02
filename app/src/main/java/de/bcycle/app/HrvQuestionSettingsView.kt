@@ -27,7 +27,7 @@ internal class HrvQuestionSettingsView(context:Context,themes:ThemeManager):Line
         val groups=listOf(R.string.hrvq_sleep_group,R.string.hrvq_training_group,R.string.hrvq_overview_group,R.string.hrvq_lifestyle_group,R.string.hrvq_notes_group)
         groups.forEachIndexed { index,title ->
             addView(BicycleComponents.contentHeading(context,themes,context.getString(title)))
-            HrvQuestion.entries.filter { it.group==index && it !in setOf(HrvQuestion.SPORT,HrvQuestion.BED) }.forEach { question ->
+            HrvQuestion.entries.filter { it.group==index && it !in setOf(HrvQuestion.SPORT,HrvQuestion.BED,HrvQuestion.STRESS) }.forEach { question ->
                 addView(CheckBox(context).apply {
                     tag="hrvq_enabled_${question.name}";setText(if(question==HrvQuestion.WAKE) R.string.hrvq_sleep_times else question.label)
                     val available=question!=HrvQuestion.CYCLE || settings.cycleAvailable()

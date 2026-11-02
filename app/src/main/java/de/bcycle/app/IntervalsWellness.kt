@@ -31,7 +31,7 @@ internal data class IntervalsWellness(val day:LocalDate,val values:JSONObject) {
                     data.put("sleepQuality",1+((10-it)*3.0/10).roundToInt())
                 }
                 q.injured?.let { data.put("injury",if(it) 4 else 1) }
-                q.stress?.let { data.put("stress",it) }
+                q.intervalsStress?.let { data.put("stress",it) }
                 q.ratings["motivation"]?.let { data.put("motivation",1+((10-it)*3.0/10).roundToInt()) }
                 for(key in listOf("soreness","fatigue")) q.ratings[key]?.let { data.put(key,(it*4.0/10).roundToInt()) }
                 val seconds=q.extras["sleepHours"]?.toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..24.0 }?.times(3600)?.roundToInt()
