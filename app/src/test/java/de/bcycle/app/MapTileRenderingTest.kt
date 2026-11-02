@@ -15,7 +15,7 @@ class MapTileRenderingTest {
     @Test fun vtmRetainsRasterProviderPathsHeadersAndSourceLimits() {
         val c=RuntimeEnvironment.getApplication();val tile=Tile(3,4,6)
         val key="0123456789abcdef0123456789abcdef"
-        for(provider in MapSource.entries) {
+        for(provider in MapSource.entries.filter { it!=MapSource.VECTOR }) {
             val source=VtmTileHttp.source(c,provider,key)
             val url=java.net.URL(source.getTileUrl(tile))
             assertEquals(provider.host,url.host)

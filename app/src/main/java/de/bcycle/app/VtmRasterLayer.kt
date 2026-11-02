@@ -3,6 +3,12 @@ package de.bcycle.app
 import android.content.Context
 import okhttp3.Cache
 import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.CacheControl
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.json.JSONObject
+import org.oscim.tiling.source.mvt.OpenMapTilesMvtTileSource
+import java.io.IOException
 import org.oscim.layers.tile.bitmap.BitmapTileLayer
 import org.oscim.tiling.source.HttpEngine
 import org.oscim.tiling.source.OkHttpEngine
@@ -18,13 +24,62 @@ internal class VtmRasterLayer(map:org.oscim.map.Map,source:BitmapTileSource):Bit
 }
 internal object VtmTileHttp {
     private var client:OkHttpClient?=null
-    @Synchronized fun source(context:Context,provider:MapSource,key:String):BitmapTileSource {
-        val http=client ?: OkHttpClient.Builder()
+    @Synchronized private fun client(context:Context):OkHttpClient {
+        return client ?: OkHttpClient.Builder()
             .cache(Cache(File(context.cacheDir,"vtm-raster-http"),64L*1024*1024))
             .connectTimeout(15,TimeUnit.SECONDS).readTimeout(20,TimeUnit.SECONDS)
             .build().also { client=it }
+    }
+    fun source(context:Context,provider:MapSource,key:String):BitmapTileSource {
+        val http=client(context)
         return provider.tiles(key).apply {
             setHttpEngine(HttpEngine.Factory { source -> OkHttpEngine(http,source) })
         }
+    }
+    /** Metadata and tile downloads run on VTM loader threads, never during view creation. */
+    fun vector(context:Context):OpenMapTilesMvtTileSource {
+        val http=client(context)
+        val vectorHttp=http.newBuilder().addInterceptor { chain ->
+            val parts=chain.request().url.encodedPath.removePrefix("/bcycle-vector/").removeSuffix(".pbf").split("/")
+            if(parts.size!=3 || parts.any { it.toIntOrNull()==null }) throw IOException("Invalid vector tile")
+            val url=OpenFreeMapTiles.template(http).replace("{z}",parts[0]).replace("{x}",parts[1]).replace("{y}",parts[2])
+            chain.proceed(chain.request().newBuilder().url(url).build())
+        }.build()
+        return OpenMapTilesMvtTileSource.builder().url("https://tiles.openfreemap.org")
+            .tilePath("/bcycle-vector/{Z}/{X}/{Y}.pbf").locale("de").zoomMin(0).zoomMax(19).overZoom(14)
+            .build().apply {
+                setHttpRequestHeaders(mapOf("User-Agent" to "B-Cycle/${AppVersion.name} (https://github.com/Titanyus/B-Cycle)"))
+                setHttpEngine(HttpEngine.Factory { source -> OkHttpEngine(vectorHttp,source) })
+            }
+    }
+}
+
+/** OpenFreeMap rotates dated tile directories; resolve TileJSON rather than pinning one release. */
+internal object OpenFreeMapTiles {
+    private var cached:String?=null
+    private var expires=0L
+    @Synchronized fun template(http:OkHttpClient):String {
+        val now=android.os.SystemClock.elapsedRealtime()
+        cached?.let { if(now<expires) return it }
+        val request=Request.Builder().url("https://tiles.openfreemap.org/planet")
+            .header("User-Agent","B-Cycle/${AppVersion.name} (https://github.com/Titanyus/B-Cycle)").build()
+        fun read(request:Request):String = http.newCall(request).execute().use { response ->
+            if(!response.isSuccessful) throw IOException("Vector map source HTTP ${response.code}")
+            val json=response.body?.string() ?: throw IOException("Missing vector map source")
+            try { validate(JSONObject(json).getJSONArray("tiles").getString(0)) }
+            catch(e:Exception) { throw IOException("Invalid vector map source",e) }
+        }
+        val value=try { read(request) } catch(e:IOException) {
+            cached ?: read(request.newBuilder().cacheControl(CacheControl.Builder().onlyIfCached().maxStale(7,TimeUnit.DAYS).build()).build())
+        }
+        cached=value;expires=now+TimeUnit.HOURS.toMillis(1)
+        return value
+    }
+    internal fun validate(template:String):String {
+        require(template.contains("{z}") && template.contains("{x}") && template.contains("{y}"))
+        val url=template.replace("{z}","0").replace("{x}","0").replace("{y}","0").toHttpUrl()
+        require(url.isHttps && url.host=="tiles.openfreemap.org" && url.port==443 && url.username.isEmpty() && url.password.isEmpty())
+        require(url.encodedPath.startsWith("/planet/") && url.encodedPath.endsWith(".pbf") && url.query==null && url.fragment==null)
+        return template
     }
 }

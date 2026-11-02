@@ -20,12 +20,15 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
     CYCLOSM("CyclOSM · Fahrradkarte", "a.tile-cyclosm.openstreetmap.fr", "/cyclosm/", "CyclOSM · © OpenStreetMap", "https://www.cyclosm.org/legend.html"),
     OSM("OpenStreetMap · Standardkarte", "tile.openstreetmap.org", "/", "© OpenStreetMap", "https://www.openstreetmap.org/copyright"),
     OPENTOPOMAP("OpenTopoMap", "a.tile.opentopomap.org", "/", "© OpenStreetMap · SRTM · OpenTopoMap (CC-BY-SA)", "https://opentopomap.org/about",17),
-    OPENCYCLEMAP("OpenCycleMap", "tile.thunderforest.com", "/cycle/", "© Thunderforest · © OpenStreetMap", "https://www.thunderforest.com/terms/");
+    OPENCYCLEMAP("OpenCycleMap", "tile.thunderforest.com", "/cycle/", "© Thunderforest · © OpenStreetMap", "https://www.thunderforest.com/terms/"),
+    VECTOR("OpenFreeMap · Vektorkarte", "tiles.openfreemap.org", "/planet", "OpenFreeMap · © OpenMapTiles · © OpenStreetMap", "https://openfreemap.org/");
     fun label(context: Context) = context.getString(when(this) {
         CYCLOSM -> R.string.ui_map_source_cyclosm; OSM -> R.string.ui_map_source_osm
         OPENTOPOMAP -> R.string.ui_map_source_topo; OPENCYCLEMAP -> R.string.ui_map_source_cycle
+        VECTOR -> R.string.ui_map_source_vector
     })
     fun tiles(apiKey:String=""):org.oscim.tiling.source.bitmap.BitmapTileSource {
+        require(this!=VECTOR) { "Vector source uses MVT, not raster tiles" }
         if(this==OPENCYCLEMAP) require(MapProviderSettings.valid(apiKey)) { "Thunderforest API key required" }
         val suffix=if(this==OPENCYCLEMAP) "?apikey="+java.net.URLEncoder.encode(apiKey,"UTF-8") else ""
         return org.oscim.tiling.source.bitmap.BitmapTileSource("https://$host",path+"{Z}/{X}/{Y}.png"+suffix,0,maximumZoom).apply {
@@ -98,7 +101,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var moving = false
     private var source = MapProviderSettings.source(context,preferences.getString("mapSource", null))
     private var providerKey=MapProviderSettings.read(context)
-    private var downloads: VtmRasterLayer
+    private var downloads: VtmBaseMap
+    private var cycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
     private var follow = preferences.getBoolean("mapFollow", true)
     private var heading = preferences.getBoolean("mapHeading",true) && !preferences.getBoolean(MapOvalAnchor.preference,false)
     private var gps = GpsValues()
@@ -169,7 +173,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         }
         pinchZoom=MapPinchZoom(mapView) { MapZoom.maximum(source) }
         addView(mapView,LayoutParams(-1,-1))
-        downloads=createDownloadLayer(source);mapView.map().layers().add(1,downloads)
+        downloads=createDownloadLayer(source)
         addView(routes,LayoutParams(-1,-1))
         mapView.userMoved={ setFollow(false);revealControls() }
         mapView.zoomed={ revealControls() }
@@ -264,7 +268,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCamera() }
     }
 
-    private fun createDownloadLayer(source:MapSource)=VtmRasterLayer(mapView.map(),VtmTileHttp.source(context,source,providerKey)).apply { pause() }
+    private fun createDownloadLayer(source:MapSource)=VtmBaseMap(context,mapView.map(),source,providerKey,cycleways)
     private fun applyNight() {
         // Saved preference remains compatible; inverted raster tiles are deferred during the VTM migration.
         nightButton.visibility=GONE;nightButton.isEnabled=false
@@ -288,13 +292,14 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     fun refreshSettings() {
         val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
         val nextKey=MapProviderSettings.read(context)
-        if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey)) {
+        val nextCycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
+        if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey) || (next==MapSource.VECTOR && nextCycleways!=cycleways)) {
             pinchZoom.cancel()
-            mapView.map().layers().remove(downloads);downloads.onDetach()
-            source = next; providerKey=nextKey
+            downloads.onDetach()
+            source = next; providerKey=nextKey;cycleways=nextCycleways
             mapView.setZoomLimits(MapZoom.maximum(source))
             if(mapView.zoom>MapZoom.maximum(source)) mapView.setZoom(MapZoom.maximum(source).toDouble())
-            downloads = createDownloadLayer(source); mapView.map().layers().add(1,downloads)
+            downloads = createDownloadLayer(source)
             if (running) downloads.resume()
             credit.text = source.attribution
         }

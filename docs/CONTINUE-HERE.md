@@ -1,6 +1,12 @@
-# Aktueller Stand: Strecken-Nachlauf nach Build120 lokal korrigiert
+# Aktueller Stand: Online-Vektorkarte ergänzt; Strecken-Nachlauf korrigiert
 
 ## Aktueller Auftrag02.11.2026
+
+Nutzer: echte Vektorkarte ergänzen; Frage nach OSM-Grundkarte mit Fahrrad-Layer. Lokal umgesetzt: zusätzliche Quelle **OpenFreeMap · Vektorkarte** ohne API-Key, optional **Radwege hervorheben** aus denselben Vektordaten. Rasterquellen bleiben wählbar; bestehende Auswahl unverändert. Fahrradprofilumfang/Backup, Beschriftungen, Dashboard und Streckenvorschau/-vollbild gemeinsam angebunden. Ausgeschilderte Radroutennetze sind noch keine vollständige zusätzliche Ebene. [Umfang/Prüfung](vtm-vector-map.md).
+
+Sechs betroffene Fälle gezielt geprüft (echte MVT-Kachel/Theme, Metadaten/URL, Vektor-Raster-UI/Lebenszyklus/Backup, drei bestehende Raster-/Anbietertests). Label-Zoomlimit-Konflikt korrigiert, betroffenen Fall erfolgreich wiederholt. Release-R8 und Java-Ressourcenzusammenführung erfolgreich; fehlende SLF4J-Anbindung durch stille Bindung behoben. Typografie/Atlas/Diff erfolgreich. Keine APK beauftragt, nicht auf main pushen. Nächste APK enthält zusätzlich Theme-/MVT-Ressourcen und weiter26 Shader einschließlich `shaders/bcycle_route.glsl`; Publikationsprüfung anpassen. Smartphone-Darstellung noch prüfen.
+
+## Ebenfalls lokal fertig: Strecken-Nachlauf
 
 Nutzer: VTM funktioniert grundsätzlich, Strecken hinken beim schnellen Ziehen hinterher; danach „bitte weitermachen“. Ursache getrennte GL-/Android-Zeichenflächen. Strecken/Livefahrt und Start-/Endmarker jetzt im gemeinsamen VTM-GL-Frame mit gecachten Vertexdaten. Eigener kleiner Shader erhält Breite/Farbe/Deckkraft/weiße Livefahrt-Umrandung; GPS-Informations-View bleibt separat. Raster beim Anbieterwechsel unter Strecken einfügen. [Umfang/Prüfung](vtm-route-frame-sync.md).
 

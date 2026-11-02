@@ -15,6 +15,10 @@ dependencies {
     implementation(project(":hrv-core"))
     implementation("org.mapsforge:vtm-android:0.25.0")
     implementation("org.mapsforge:vtm-http:0.25.0")
+    implementation("org.mapsforge:vtm-mvt:0.25.0")
+    implementation("org.mapsforge:vtm-themes:0.25.0")
+    // MVT reader uses SLF4J; bind it without another Android logger or runtime warnings.
+    runtimeOnly("org.slf4j:slf4j-nop:1.7.36")
     listOf("armeabi-v7a","arm64-v8a","x86","x86_64").forEach { abi ->
         runtimeOnly("org.mapsforge:vtm-android:0.25.0:natives-$abi@jar")
     }
@@ -58,7 +62,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-map-vector.pro")
         }
     }
     compileOptions {

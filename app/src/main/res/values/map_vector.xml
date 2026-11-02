@@ -1,0 +1,4 @@
+<resources>
+    <string name="ui_map_source_vector">OpenFreeMap · Vektorkarte</string>
+    <string name="map_vector_cycleways">Radwege hervorheben</string>
+</resources>

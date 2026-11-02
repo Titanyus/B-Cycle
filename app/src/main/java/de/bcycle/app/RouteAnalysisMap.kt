@@ -6,14 +6,14 @@ import android.view.View
 import android.widget.FrameLayout
 import kotlin.math.abs
 
-/** Same VTM raster source and route overlay as the dashboard, without live GPS or camera preferences. */
+/** Same VTM base source and route overlay as the dashboard, without live GPS or camera preferences. */
 internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, private val interactive: Boolean) : FrameLayout(context) {
     private val prefs = context.getSharedPreferences("bike", 0)
     private val night = prefs.getBoolean("mapNight",false)
     private val source = MapProviderSettings.source(context,prefs.getString("mapSource",null))
     internal lateinit var map: BicycleMapView
         private set
-    private lateinit var layer: VtmRasterLayer
+    private lateinit var layer: VtmBaseMap
     private lateinit var overlay:RouteTrackLayer
     private var pinchZoom:MapPinchZoom?=null
     private var destroyed = false; private var fitted = false
@@ -27,8 +27,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             pinchZoom=MapPinchZoom(map) { MapZoom.maximum(source) }
             map.setOnTouchListener { _,event -> pinchZoom!!.onTouch(event) }
         }
-        layer=VtmRasterLayer(map.map(),VtmTileHttp.source(context,source,MapProviderSettings.read(context))).apply { pause() }
-        map.map().layers().add(layer)
+        layer=VtmBaseMap(context,map.map(),source,MapProviderSettings.read(context),prefs.getBoolean(VtmBaseMap.cyclewaysKey,true))
         overlay=RouteTrackLayer(context,map).apply { update(route,emptyList(),GpsValues(),true,false,night,savedStyle=MapRouteStyles.read(prefs,MapLineKind.SAVED,night)) }
         map.cameraChanged={ overlay.invalidate() }
         addView(map,LayoutParams(-1,-1));addView(overlay,LayoutParams(-1,-1))

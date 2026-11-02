@@ -1356,6 +1356,9 @@ class MainActivity : Activity() {
         keyRow.visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
         root.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.map_options_title)).apply { tag="map_options_title" })
+        val cycleways=toggle(getString(R.string.map_vector_cycleways),VtmBaseMap.cyclewaysKey,true).apply {
+            visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE
+        }
         val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
@@ -1367,6 +1370,7 @@ class MainActivity : Activity() {
         observeSettings(root) {
             if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
             val chosen=MapSource.entries[source.selectedItemPosition]
+            cycleways.visibility=if(chosen==MapSource.VECTOR) View.VISIBLE else View.GONE
             keyRow.visibility=if(chosen==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
             val entered=providerKey.text.toString().trim()
             val validKey=entered.isEmpty() || MapProviderSettings.valid(entered)
@@ -1376,7 +1380,7 @@ class MainActivity : Activity() {
             BicycleFeedback.update(providerStatus,if(!available) getString(R.string.map_thunderforest_required) else "",hideWhenEmpty=true)
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
-            edit.putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
+            edit.putBoolean(VtmBaseMap.cyclewaysKey,cycleways.isChecked).putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
                 .putBoolean(FitElevationCorrection.preference,elevation.isChecked).apply()
             mapPanel.refreshSettings()
         }
