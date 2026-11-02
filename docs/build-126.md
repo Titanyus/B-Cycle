@@ -16,3 +16,5 @@ Unveränderte Bright-JSON, generierte XML, eigene GPS-/Streckenshader, 111 refer
 [Änderung](release-0.8.85.md): dauerhafter DashboardMapHost statt Umhängen der GL-Karte beim Dashboardwechsel. Slots bestimmen Position und Zielgröße; Footerbezug und auslaufende Kartenaufnahme erhalten. [Technik](dashboard-page-transition.md).
 
 Vier gezielte Fälle erfolgreich: Vektorkarte mit beiden Footerzuständen/Abbruch/Commit (0 Attach/Detach, gleiches Host-/Layer-/Theme-Objekt), kartenlose Vorschau, echte Dashboardintegration, Kartenpixel in auslaufender Softwareaufnahme und Bitmapfreigabe. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf und keine lokale APK. Echte Geräte-GPU und Zoom-/Text-/Kacheldarstellung nach Update noch bestätigen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4204773 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
