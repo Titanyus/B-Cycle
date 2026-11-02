@@ -14,3 +14,5 @@ Optimierter Release ausschließlich aus GitHub Actions. CI-Prüfsumme, dauerhaft
 Unveränderte Bright-Referenz-JSON in der APK mit SHA-256 cda8931095c5101cbad5d2a60fa129600a1a0ad3dea27d802be341fb5eae071f nachgewiesen. Generierte XML und eigene GPS-/Streckenshader binär mit Quelle verglichen. Alle 111 in der XML referenzierten Sprite-/Patternvarianten sowie Originalatlas/Metadaten bytegenau geprüft. Referenzfarben für Hintergrund, Wald, Gras und Wasser, echte Dash-Regel und fehlende Extrusionen geprüft. Bright-Lizenz/OpenMapTiles-Ressourcen vorhanden.
 
 [Änderungen](release-0.8.83.md), [vollständige Zuordnung und Grenzen](vtm-bright-style.md). Vier gezielte Komponenten-/Daten-/Linien-/Quellenwechseltests erfolgreich, nach Ergänzung nur zwei betroffene Fälle wiederholt. Generator-Reproduzierbarkeit, Kompilation, Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf und keine lokale APK. Physischer Vergleich mit Maputnik noch offen; keine pixelgleiche MapLibre-Darstellung behaupten.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4204369 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
