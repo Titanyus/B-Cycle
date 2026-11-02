@@ -14,3 +14,5 @@ Optimierter Release aus GitHub Actions. CI-Prüfsumme, Version, Manifest ohne De
 [Änderungen](release-0.8.81.md): Akkusparmodus je Fahrradprofil, Bright in Draufsicht, Standort/Höhe im GL-Kartenframe, stabile Live-Strecke, sichtbare Nachbarseite beim Ziehen, achtstufiger Stressslider und FOREGROUND-Farbauswahlrahmen.
 
 Gezielte Komponenten-/Integrations-/Backup-/Aufzeichnungstaktprüfungen je Änderung erfolgreich; GPS-/Streckenshader zusätzlich mit echtem lokalem Mesa/GLES geprüft. Nur betroffene/offene Fälle nach Ergänzungen wiederholt, kein Gesamtlauf und keine lokale APK. Typografie/Atlas/Diff erfolgreich. Tatsächliche Android-GPU-Ausgabe, Snapshot/Umhängen verschiedener Kartenhöhen, Wischgefühl und Akkueffekt am Smartphone noch bestätigen. Keine gemessene Prozentersparnis. Minimal-/OLED-Stil und Live-Stilimport nicht enthalten.
+
+Der veröffentlichte direkte Raw-Download wurde erneut heruntergeladen: 4075040 Bytes, bytegenau gleich dem geprüften Actions-Artefakt und identische SHA-256-Prüfsumme.
