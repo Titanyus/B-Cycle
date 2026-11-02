@@ -1,6 +1,10 @@
-# Aktueller Stand: GPS/Live-Strecke und Nachbarseitenvorschau lokal korrigiert
+# Aktueller Stand: Bright-Basisstil, GPS/Live-Strecke und Nachbarseitenvorschau lokal
 
 ## Aktueller Auftrag nach Build121
+
+Nutzer: vorerst Bright statt Liberty. Aktueller Vektor-Basisstil auf Bright-VTM-Adaption umgestellt, Auswahl **OpenFreeMap · Bright**; Kennung VECTOR bleibt. Draufsicht/flache Gebäude/Radwegeoption bleiben, keine neue Auswahl-/Backupoption. [Umfang](vtm-bright-style.md). Bestehender Stil-/Draufsichttest gezielt erfolgreich; Kompilation/Typografie/Atlas/Diff erfolgreich. Noch keine neue APK; nicht pushen. Für nächste APK: Bright-XML/Lizenz statt Liberty prüfen, weiterhin27 Shader.
+
+## Ebenfalls lokal umgesetzt
 
 Nutzer: gespeicherte Strecken bewegen sich perfekt mit; Standort/Höhe ruckeln, Live-Strecke prüfen. Lokal umgesetzt: alle GPS-Elemente in VtmGpsLayer im GL-Frame, wiederverwendete kleine Glyphen und aufrechtes Höhenlabel, keine zeichnende Android-Kartenoverlayfläche mehr. Live-Strecke behält vorbereitete Geometrie während Worker-Neuberechnung, mit eigener Aufnahme-/Profilgeneration gegen alte Linien. [Umfang/Prüfung](vtm-gps-frame-sync.md). Drei gezielte Fälle und echter Mesa/GLES-Shader-Pixeltest erfolgreich, nur offenen Worker-Test nach Synchronisierung wiederholt; Kompilation/Typografie/Atlas/Diff erfolgreich. Noch keine neue APK beauftragt; nicht pushen. Nächste APK **27 Shader**, einschließlich neuem `bcycle_gps.glsl`.
 

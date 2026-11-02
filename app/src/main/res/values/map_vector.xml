@@ -1,4 +1,4 @@
 <resources>
-    <string name="ui_map_source_vector">OpenFreeMap · Liberty</string>
+    <string name="ui_map_source_vector">OpenFreeMap · Bright</string>
     <string name="map_vector_cycleways">Radwege hervorheben</string>
 </resources>

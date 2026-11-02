@@ -1,5 +1,7 @@
 # Liberty als flacher VTM-Basisstil
 
+Historischer Stand von Build121. Aktueller lokaler Basisstil auf Nutzerwunsch: [Bright](vtm-bright-style.md).
+
 Auftrag02.11.2026: Liberty als Basis, keine3D-Gebäude und grundsätzlich keine geneigte Kartendarstellung. Umsetzung gilt für Dashboard sowie Streckenvorschau/-vollbild.
 
 Die Vektorquelle heißt in der Auswahl jetzt **OpenFreeMap · Liberty**; ihre gespeicherte Kennung `VECTOR` bleibt gleich. Keine zusätzliche Auswahloption/kein neuer Profil- oder Backupschlüssel. Rasterquellen bleiben unverändert.

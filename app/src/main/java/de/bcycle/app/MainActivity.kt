@@ -589,7 +589,7 @@ class MainActivity : Activity() {
                 SettingsAction.FONT_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_font_license_title)).setMessage(assets.open("League-Gothic-OFL.txt").bufferedReader().use { it.readText() }).show()
                 SettingsAction.MAP_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_library_license_title)).setMessage(
                     "Mapsforge-VTM 0.25.0 · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
-                    "\n\nLiberty · BSD / VTM-Adaption\n\n" + assets.open("Liberty-LICENSE.txt").bufferedReader().use { it.readText() } +
+                    "\n\nBright · BSD / VTM-Adaption\n\n" + assets.open("Bright-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkHttp 4.12.0 · Apache-2.0\n\n" + assets.open("OkHttp-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() } +

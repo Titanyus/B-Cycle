@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rendertheme xmlns="http://opensciencemap.org/rendertheme" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" base-stroke-width="0.7" map-background="#f8f4f0" version="1" xsi:schemaLocation="http://opensciencemap.org/rendertheme https://raw.githubusercontent.com/mapsforge/vtm/master/resources/rendertheme.xsd">
-    <!-- B|CYCLE Liberty adaptation: OpenFreeMap Liberty palette on VTM 0.25.0 OpenMapTiles geometry rules. Sources/licenses: ../Liberty-LICENSE.txt and ../Mapsforge-LICENSE.txt. No 3D/extrusions. -->
+    <!-- B|CYCLE Bright adaptation: OpenFreeMap Bright palette on VTM 0.25.0 OpenMapTiles geometry rules. Sources/licenses: ../Bright-LICENSE.txt and ../Mapsforge-LICENSE.txt. No 3D/extrusions. -->
     <tag-transform k="render_height" k-lib="height" />
     <tag-transform k="render_min_height" k-lib="min_height" />
     <!-- base style for fixed width lines -->
@@ -29,60 +29,60 @@
     <style-text style="bold" caption="true" fill="#666666" font-family="condensed" id="housenumber-caption" k="housenumber" priority="12" size="12" />
     <style-text style="bold" caption="true" fill="#666666" font-family="condensed" id="house-name-caption" k="name" priority="11" size="12" stroke="#ffffff" stroke-width="2.0" />
     <!-- De Area Styles -->
-    <style-area fade="8" fill="#f2e4cf" id="liberty-residential" />
-    <style-area fade="13" fill="#ffffff" id="liberty-pedestrian" />
-    <style-area fade="8" fill="#e6e0db" id="liberty-industrial" />
-    <style-area fade="8" fill="#eceecc" id="liberty-school" />
-    <style-area fade="8" fill="#d8e8c8" id="liberty-park" />
-    <style-area fade="8" fill="#b3ace38c" id="liberty-forest" />
-    <style-area fade="8" fill="#b0d59a" id="liberty-grass" />
-    <style-area fade="8" fill="#def6c0" id="liberty-campsite" />
-    <style-area fade="8" fill="#d8e0bd" id="liberty-cemetery" />
-    <style-area fade="8" fill="#d6aa95" id="liberty-military" />
-    <style-area fade="8" fill="#e6dcd1" id="liberty-mud" />
-    <style-area fade="8" fill="#e0ecec" id="liberty-ice" />
+    <style-area fade="8" fill="#4deae6e1" id="bright-residential" />
+    <style-area fade="13" fill="#ffffff" id="bright-pedestrian" />
+    <style-area fade="8" fill="#57fff4c2" id="bright-industrial" />
+    <style-area fade="8" fill="#f0e8f8" id="bright-school" />
+    <style-area fade="8" fill="#d8e8c8" id="bright-park" />
+    <style-area fade="8" fill="#1a66aa44" id="bright-forest" />
+    <style-area fade="8" fill="#d8e8c8" id="bright-grass" />
+    <style-area fade="8" fill="#def6c0" id="bright-campsite" />
+    <style-area fade="8" fill="#e0e4dd" id="bright-cemetery" />
+    <style-area fade="8" fill="#d6aa95" id="bright-military" />
+    <style-area fade="8" fill="#e6dcd1" id="bright-mud" />
+    <style-area fade="8" fill="#ffffff" id="bright-ice" />
     <!-- Avoid patterns and textures because of old GPU issues -->
     <!--<style-area id="tex1" src="assets:textures/rough.png" />-->
     <!-- park|common|green|cemetery|golf_course|dog_park -->
     <style-area fade="11" fill="#d8e8c8" id="park" />
     <!-- <style-area id="park" fill="#a3ca7b" fade="11" /> -->
     <style-line cap="butt" fade="14" fix="true" id="park" stroke="#e4f1d7" width="1.0" />
-    <!-- Liberty road palette on VTM road geometry -->
-    <style-line cap="butt" id="liberty-motorway" stroke="#ffcc88" width="2.1" />
-    <style-line cap="butt" id="liberty-trunk" stroke="#ffeeaa" width="2.1" />
-    <style-line id="liberty-primary" stroke="#ffeeaa" width="2.1" />
-    <style-line id="liberty-secondary" stroke="#ffeeaa" width="2.1" />
-    <style-line id="liberty-tertiary" stroke="#ffeeaa" width="2.1" />
-    <style-line id="liberty-unclassified" stroke="#ffffff" width="1.1" />
-    <style-line id="liberty-residential" stroke="#ffffff" width="1.1" />
-    <style-line id="liberty-service" stroke="#ffffff" width="0.5" />
-    <style-line cap="butt" id="liberty-motorway-link" use="liberty-motorway" width="-0.8" />
-    <style-line cap="butt" id="liberty-trunk-link" use="liberty-trunk" width="-0.8" />
-    <style-line cap="butt" fix="true" id="liberty-steps" stipple="2" stipple-stroke="#be6253" stipple-width="1.0" stroke="#aaffffff" width="4.2" />
-    <style-line id="liberty-pedestrian" stroke="#ffffff" width="0.5" />
-    <style-line cap="butt" fix="true" id="liberty-rail" stroke="#bbbbbb" width="0.9" />
+    <!-- Bright road palette on VTM road geometry -->
+    <style-line cap="butt" id="bright-motorway" stroke="#ffcc88" width="2.1" />
+    <style-line cap="butt" id="bright-trunk" stroke="#ffeeaa" width="2.1" />
+    <style-line id="bright-primary" stroke="#ffeeaa" width="2.1" />
+    <style-line id="bright-secondary" stroke="#ffeeaa" width="2.1" />
+    <style-line id="bright-tertiary" stroke="#ffeeaa" width="2.1" />
+    <style-line id="bright-unclassified" stroke="#ffffff" width="1.1" />
+    <style-line id="bright-residential" stroke="#ffffff" width="1.1" />
+    <style-line id="bright-service" stroke="#ffffff" width="0.5" />
+    <style-line cap="butt" id="bright-motorway-link" use="bright-motorway" width="-0.8" />
+    <style-line cap="butt" id="bright-trunk-link" use="bright-trunk" width="-0.8" />
+    <style-line cap="butt" fix="true" id="bright-steps" stipple="2" stipple-stroke="#be6253" stipple-width="1.0" stroke="#aaffffff" width="4.2" />
+    <style-line id="bright-pedestrian" stroke="#ffffff" width="0.5" />
+    <style-line cap="butt" fix="true" id="bright-rail" stroke="#bbbbbb" width="0.9" />
     <!-- Tunnels TODO activate tunnel rendering -->
-    <style-line cap="butt" id="liberty-motorway-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-motorway" />
-    <style-line cap="butt" id="liberty-trunk-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-trunk" />
-    <style-line cap="butt" id="liberty-primary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-primary" />
-    <style-line cap="butt" id="liberty-secondary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-secondary" />
-    <style-line cap="butt" id="liberty-tertiary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-tertiary" />
-    <style-line cap="butt" id="liberty-unclassified-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-unclassified" />
-    <style-line cap="butt" id="liberty-residential-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-residential" />
-    <style-line cap="butt" id="liberty-service-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-service" />
-    <style-line cap="butt" id="liberty-motorway-link-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-motorway-link" />
-    <style-line cap="butt" id="liberty-trunk-link-tunnel" stipple="10" stipple-stroke="#c5c6be" use="liberty-trunk-link" />
+    <style-line cap="butt" id="bright-motorway-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-motorway" />
+    <style-line cap="butt" id="bright-trunk-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-trunk" />
+    <style-line cap="butt" id="bright-primary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-primary" />
+    <style-line cap="butt" id="bright-secondary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-secondary" />
+    <style-line cap="butt" id="bright-tertiary-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-tertiary" />
+    <style-line cap="butt" id="bright-unclassified-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-unclassified" />
+    <style-line cap="butt" id="bright-residential-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-residential" />
+    <style-line cap="butt" id="bright-service-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-service" />
+    <style-line cap="butt" id="bright-motorway-link-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-motorway-link" />
+    <style-line cap="butt" id="bright-trunk-link-tunnel" stipple="10" stipple-stroke="#c5c6be" use="bright-trunk-link" />
     <!-- Not for motorcycle -->
     <!-- track|footway|path|cycleway -->
-    <style-line cap="butt" id="footway" stipple="2" stipple-stroke="#c0bdb8" stipple-width="0.6" stroke="#ffffff" width="1.8" />
-    <style-line id="highway:track" stipple="3" stipple-stroke="#c0bdb8" use="footway" width="0.4" stroke="#ffffff" />
-    <style-line fix="true" id="highway:path" stipple="2" stipple-stroke="#c0bdb8" use="footway" width="4.2" stroke="#ffffff" />
+    <style-line cap="butt" id="footway" stipple="2" stipple-stroke="#ccbbaa" stipple-width="0.6" stroke="#ccbbaa" width="1.8" />
+    <style-line id="highway:track" stipple="3" stipple-stroke="#ccbbaa" use="footway" width="0.4" stroke="#ccbbaa" />
+    <style-line fix="true" id="highway:path" stipple="2" stipple-stroke="#ccbbaa" use="footway" width="4.2" stroke="#ccbbaa" />
     <!-- Water -->
     <style-line cap="butt" fix="true" id="water" stroke="#a0c8f0" width="1.0" />
     <style-line fix="false" id="river" stroke="#a0c8f0" use="water" />
-    <style-area fade="-1" fill="#9ebdff" id="water" />
-    <style-line fade="13" id="building" stroke="#cdcac6" use="fix" />
-    <style-area fade="13" fill="#dcd9d6" id="building" />
+    <style-area fade="-1" fill="#aecfe2" id="water" />
+    <style-line fade="13" id="building" stroke="#dfdbd7" use="fix" />
+    <style-area fade="13" fill="#f2eae2" id="building" />
     <!-- Sea -->
     <m k="layer" v="water">
         <m k="class">
@@ -96,16 +96,16 @@
         <!-- TODO handle subclass -->
         <m k="class">
             <m v="ice">
-                <area use="liberty-ice" />
+                <area use="bright-ice" />
             </m>
             <m v="wood">
-                <area use="liberty-forest" />
+                <area use="bright-forest" />
             </m>
             <m v="grass">
-                <area use="liberty-grass" />
+                <area use="bright-grass" />
             </m>
             <m v="wetland">
-                <area use="liberty-wetland" />
+                <area use="bright-wetland" />
             </m>
         </m>
     </m>
@@ -118,28 +118,31 @@
         <!-- TODO handle subclass -->
         <m k="class">
             <m v="military">
-                <area use="liberty-military" />
+                <area use="bright-military" />
             </m>
-            <m v="residential|commercial|retail">
-                <area use="liberty-residential" />
+            <m v="residential">
+                <area use="bright-residential" />
             </m>
             <m v="railway|industrial">
-                <area use="liberty-industrial" />
+                <area use="bright-industrial" />
             </m>
             <m v="stadium|playground|pitch">
-                <area use="liberty-park" />
+                <area use="bright-park" />
             </m>
             <m v="grass">
-                <area use="liberty-grass" />
+                <area use="bright-grass" />
             </m>
             <m v="school|university|kindergarten|college">
-                <area use="liberty-school" />
+                <area use="bright-school" />
             </m>
             <m v="cemetery">
-                <area use="liberty-cemetery" />
+                <area use="bright-cemetery" />
             </m>
             <m v="hospital">
                 <area fill="#ffddee" />
+            </m>
+            <m v="commercial|retail">
+                <area fill="#3bf2caca" />
             </m>
         </m>
     </m>
@@ -185,20 +188,20 @@
         <outline-layer blur="1.0" id="glow" stroke="#000000" width="0.2" />
         <outline-layer id="0" stroke="#44000000" width="0.1" />
         <!-- Outlines for DE-Style -->
-        <outline-layer id="liberty-motorway-outline" stroke="#e9ac77" width=".5" />
-        <outline-layer id="liberty-trunk-outline" stroke="#e9ac77" width=".5" />
-        <outline-layer id="liberty-primary-outline" stroke="#e9ac77" width=".5" />
-        <outline-layer id="liberty-secondary-outline" stroke="#e9ac77" width=".5" />
-        <outline-layer id="liberty-tertiary-outline" stroke="#e9ac77" width=".5" />
-        <outline-layer id="liberty-unclassified-outline" stroke="#cfcdca" width=".5" />
-        <outline-layer id="liberty-tunnel" stroke="#7c7c7c" width="0.2" />
+        <outline-layer id="bright-motorway-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="bright-trunk-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="bright-primary-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="bright-secondary-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="bright-tertiary-outline" stroke="#e9ac77" width=".5" />
+        <outline-layer id="bright-unclassified-outline" stroke="#cfcdca" width=".5" />
+        <outline-layer id="bright-tunnel" stroke="#7c7c7c" width="0.2" />
         <!-- Bridge casings should be above other roads -->
         <outline-layer id="bridge" stroke="#000000" width="0.08" />
-        <outline-layer id="liberty-bridge" stroke="#000000" width="0.2" />
+        <outline-layer id="bright-bridge" stroke="#000000" width="0.2" />
         <m k="class">
             <m zoom-min="10">
                 <m v="rail|transit" zoom-min="12">
-                    <line use="liberty-rail" />
+                    <line use="bright-rail" />
                 </m>
                 <m v="ferry">
                     <line stroke="#2d51bc" width="1" />
@@ -206,7 +209,7 @@
                 <m v="track">
                     <m k="brunnel">
                         <m v="tunnel">
-                            <line outline="liberty-tunnel" use="highway:track" />
+                            <line outline="bright-tunnel" use="highway:track" />
                         </m>
                         <m v="bridge">
                             <line outline="bridge" use="highway:track" />
@@ -218,19 +221,19 @@
                 </m>
                 <m v="path" zoom-min="16">
                     <m k="subclass" v="pedestrian">
-                        <line outline="0" use="liberty-pedestrian" />
+                        <line outline="0" use="bright-pedestrian" />
                         <m closed="yes">
-                            <area use="liberty-pedestrian" />
+                            <area use="bright-pedestrian" />
                             <line cap="butt" fix="true" stroke="#44000000" width="1.0" />
                         </m>
                     </m>
                     <m k="subclass" v="steps">
-                        <line use="liberty-steps" />
+                        <line use="bright-steps" />
                     </m>
                     <m k="subclass" v="footway|path|cycleway|bridleway">
                         <m k="brunnel">
                             <m v="tunnel">
-                                <line outline="liberty-tunnel" use="highway:path" />
+                                <line outline="bright-tunnel" use="highway:path" />
                             </m>
                             <m v="bridge">
                                 <line outline="bridge" use="highway:path" />
@@ -244,53 +247,53 @@
                 <m v="service">
                     <m k="brunnel">
                         <m v="tunnel">
-                            <line outline="liberty-tunnel" use="liberty-service" />
+                            <line outline="bright-tunnel" use="bright-service" />
                         </m>
                         <m v="bridge">
-                            <line outline="bridge" use="liberty-service" />
+                            <line outline="bridge" use="bright-service" />
                         </m>
                     </m>
                     <m k="brunnel" v="~">
-                        <line use="liberty-service" />
+                        <line use="bright-service" />
                     </m>
                 </m>
                 <m v="minor">
                     <m k="brunnel">
                         <m v="tunnel">
-                            <line outline="liberty-tunnel" use="liberty-unclassified" />
+                            <line outline="bright-tunnel" use="bright-unclassified" />
                         </m>
                         <m v="bridge">
-                            <line outline="liberty-bridge" use="liberty-unclassified" />
+                            <line outline="bright-bridge" use="bright-unclassified" />
                         </m>
                     </m>
                     <m k="brunnel" v="~">
-                        <line outline="liberty-unclassified-outline" use="liberty-unclassified" />
+                        <line outline="bright-unclassified-outline" use="bright-unclassified" />
                     </m>
                 </m>
                 <m v="tertiary">
                     <m k="brunnel">
                         <m v="tunnel">
-                            <line outline="liberty-tunnel" use="liberty-tertiary" />
+                            <line outline="bright-tunnel" use="bright-tertiary" />
                         </m>
                         <m v="bridge">
-                            <line outline="liberty-bridge" use="liberty-tertiary" />
+                            <line outline="bright-bridge" use="bright-tertiary" />
                         </m>
                     </m>
                     <m k="brunnel" v="~">
-                        <line outline="liberty-tertiary-outline" use="liberty-tertiary" />
+                        <line outline="bright-tertiary-outline" use="bright-tertiary" />
                     </m>
                 </m>
                 <m v="secondary">
                     <m k="brunnel">
                         <m v="tunnel">
-                            <line outline="liberty-tunnel" use="liberty-secondary" />
+                            <line outline="bright-tunnel" use="bright-secondary" />
                         </m>
                         <m v="bridge">
-                            <line outline="liberty-bridge" use="liberty-secondary" />
+                            <line outline="bright-bridge" use="bright-secondary" />
                         </m>
                     </m>
                     <m k="brunnel" v="~">
-                        <line outline="liberty-secondary-outline" use="liberty-secondary" />
+                        <line outline="bright-secondary-outline" use="bright-secondary" />
                     </m>
                 </m>
             </m>
@@ -298,41 +301,41 @@
                 <m v="primary">
                     <m k="brunnel">
                         <m v="tunnel">
-                            <line outline="liberty-tunnel" use="liberty-primary" />
+                            <line outline="bright-tunnel" use="bright-primary" />
                         </m>
                         <m v="bridge">
-                            <line outline="liberty-bridge" use="liberty-primary" />
+                            <line outline="bright-bridge" use="bright-primary" />
                         </m>
                     </m>
                     <m k="brunnel" v="~">
-                        <line outline="liberty-primary-outline" use="liberty-primary" />
+                        <line outline="bright-primary-outline" use="bright-primary" />
                     </m>
                 </m>
                 <m v="trunk">
                     <m k="brunnel">
                         <m v="tunnel">
-                            <line outline="liberty-tunnel" use="liberty-trunk" />
+                            <line outline="bright-tunnel" use="bright-trunk" />
                         </m>
                         <m v="bridge">
-                            <line outline="liberty-bridge" use="liberty-trunk" />
+                            <line outline="bright-bridge" use="bright-trunk" />
                         </m>
                     </m>
                     <m k="brunnel" v="~">
-                        <line outline="liberty-trunk-outline" use="liberty-trunk" />
+                        <line outline="bright-trunk-outline" use="bright-trunk" />
                     </m>
                 </m>
             </m>
             <m v="motorway">
                 <m k="brunnel">
                     <m v="tunnel">
-                        <line outline="liberty-tunnel" use="liberty-motorway" />
+                        <line outline="bright-tunnel" use="bright-motorway" />
                     </m>
                     <m v="bridge">
-                        <line outline="liberty-bridge" use="liberty-motorway" />
+                        <line outline="bright-bridge" use="bright-motorway" />
                     </m>
                 </m>
                 <m k="brunnel" v="~">
-                    <line outline="liberty-motorway-outline" use="liberty-motorway" />
+                    <line outline="bright-motorway-outline" use="bright-motorway" />
                 </m>
             </m>
         </m>

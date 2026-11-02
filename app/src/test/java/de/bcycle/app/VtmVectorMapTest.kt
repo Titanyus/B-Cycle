@@ -29,14 +29,14 @@ import org.robolectric.shadows.ShadowAlertDialog
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[33])
 class VtmVectorMapTest {
-    @Test fun libertyUsesItsPaletteWithFlatBuildingsAndCameraAlwaysLooksDown() {
+    @Test fun brightUsesItsPaletteWithFlatBuildingsAndCameraAlwaysLooksDown() {
         val c=RuntimeEnvironment.getApplication();val map=BicycleMapView(c)
         try {
             val theme=ThemeLoader.load(VtmCycleTheme(false))
             assertEquals(Color.rgb(248,244,240),theme.mapBackground)
             val water=TagSet().apply { add(Tag("layer","water"));add(Tag("class","lake")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,water,16).orEmpty()
-                .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==Color.rgb(158,189,255) })
+                .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==Color.rgb(174,207,226) })
             val motorway=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","motorway")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.LINE,motorway,16).orEmpty()
                 .filterIsInstance<LineStyle>().any { it.color==Color.rgb(255,204,136) })
