@@ -1,4 +1,8 @@
-# Aktueller Stand: APK 0.8.83 / Build 124 mit Bright-JSON-Zuordnung veröffentlicht
+# Aktueller Stand: GL-Hintergrund nach Screenshotvergleich korrigiert; letzte APK 0.8.83 / Build 124
+
+## Aktuelle Korrektur nach Vergleichsbildern
+
+App-/Maputnik-Screenshots erhalten: ungefüllte Flächen in App grau, Grünflächen ähnlich. Ursache bestätigt: VectorTileLayer.setTheme übernimmt nicht MapRenderers Clear-Farbe; Standard LTGRAY (#cccccc) blieb statt Bright #f8f4f0. VtmBaseMap setzt jetzt theme.mapBackground beim Initialisieren und Wiederaufnehmen, weil neue MapView den gemeinsamen Renderer-Hintergrund zurücksetzt. JSON/Stilfarben unverändert. Neuer Test prüft tatsächliche GL-Clear-Farbe plus Rückkehr nach weiterer MapView: vorher rot, danach grün. Bestehender Raster-/Vektorwechsel ebenfalls grün (2 Fälle). [Details](vtm-bright-style.md). Logs bright-background-before-test.log / bright-background-fixed-tests.log. Kein Gesamtlauf, keine neue APK beauftragt/gebaut. Build 124 enthält den Fix noch nicht. Optischen Abgleich nach Fix am Smartphone bestätigen.
 
 ## Aktueller Auftrag abgeschlossen: Bright als Basis und neue APK
 
@@ -6,7 +10,7 @@ Nutzer liefert zweimal dieselbe bright.json und bestätigt ausdrücklich: diese 
 
 - Generator `python3 scripts/build-bright-vtm.py` und `--check`: native XML, 111 lokale Spritevarianten aus referenziertem Atlas, Bericht aller 116 Ebenen. Kein Live-Stileditor/neuer Kartendienst; OpenFreeMap bleibt. VTM-Theme nur über `VtmBrightTheme.load` laden, damit Originalfilter einschließlich numerischer Vergleiche gelten. Keine Änderungen am erzeugten XML von Hand.
 - Farben/Deckkraft, Ebenenfolge, Straßenränder/Füllung, Tunnel/Brücken/Auffahrten, Zoomfunktionen, Breiten/Kappen/Dashes übernommen. Gleicher Maßstab: MapLibre-Zoom = VTM-Zoom − 1. Halbe VTM-Extrusionsbreite/feste Breiten statt zusätzlicher nativer Breitenmultiplikation. Schemaalias minor_road/minor und ramp→*_link. Flach bleiben.
-- Vorlage selbst: Wald 10 % Deckkraft, keine eigene Ackerfarbe, track mit minor/service, path dünn/gestrichelt. Das ersetzt ausdrücklich die kräftigeren Flächenfarben aus Build 123; keine eigenen Overrides. Nutzer bestätigt nochmals JSON als verbindliche Basis, Mapnik-Vergleich nur Hinweis. Nutzer bietet App-/Maputnik-Screenshots an; gleicher Ausschnitt/Maßstab/Nord/Draufsicht erbeten, noch keine eingegangen.
+- Vorlage selbst: Wald 10 % Deckkraft, keine eigene Ackerfarbe, track mit minor/service, path dünn/gestrichelt. Das ersetzt ausdrücklich die kräftigeren Flächenfarben aus Build 123; keine eigenen Overrides. Nutzer bestätigt nochmals JSON als verbindliche Basis, Mapnik-Vergleich nur Hinweis. App-/Maputnik-Screenshots jetzt erhalten; bestätigter Hintergrundfehler oben korrigiert.
 - Grenzen dokumentiert: ganzzahlige Zoomstufen, native Mindestbreite/Antialiasing/Dashquantisierung, Android-Schriften/lokalisierte Namen/Kollision statt Noto-Remote-Glyphen; keine exakte MapLibre-Textplatzierung/Abstände/Halo-Blur. building-top und water-offset ausgelassen, Wasserpattern vorhanden. Originale Daten/Tracks/GPS/Rasterquellen/Profile erhalten; Radhervorhebung weiterhin getrennte Option, für Referenzvergleich aus.
 - Vier gezielte Fälle erfolgreich; nach Ergänzungen nur zwei betroffene Fälle wiederholt. Generator/Kompilation/Typografie/Atlas/Diff erfolgreich. Logs bright-json-style-tests.log / bright-json-final-tests.log in /workspace/.tools/. Kein Gesamtlauf. Neue APK anschließend ausdrücklich beauftragt und über GitHub Actions gebaut/veröffentlicht: [0.8.83 / Build 124](build-124.md), code 153. Physischer Bildvergleich offen.
 

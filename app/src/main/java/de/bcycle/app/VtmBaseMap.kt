@@ -36,10 +36,16 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
         }
         pause()
         map.layers().add(1,tiles)
+        applyBackground()
         labels?.let { map.layers().add(2,it) }
         map.clearMap()
     }
-    fun resume() { tiles.isEnabled=true;labels?.isEnabled=true;resumeTiles();map.updateMap(true) }
+    // VectorTileLayer.setTheme updates tile styles, but unlike Map.setTheme it does not
+    // set the renderer background. VTM also resets that shared color in every new MapView.
+    private fun applyBackground() {
+        (tiles as? VectorTileLayer)?.theme?.let { org.oscim.renderer.MapRenderer.setBackgroundColor(it.mapBackground) }
+    }
+    fun resume() { applyBackground();tiles.isEnabled=true;labels?.isEnabled=true;resumeTiles();map.updateMap(true) }
     fun pause() { tiles.isEnabled=false;labels?.isEnabled=false;pauseTiles() }
     fun onDetach() {
         pause()

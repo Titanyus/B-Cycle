@@ -177,6 +177,23 @@ class VtmVectorMapTest {
             assertSame(routes,layers.filterIsInstance<VtmRouteLayer>().single())
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun brightBackgroundReachesGlAndIsRestoredAfterAnotherMapIsOpened() {
+        val c=RuntimeEnvironment.getApplication();val view=BicycleMapView(c)
+        val base=VtmBaseMap(c,view.map(),MapSource.VECTOR,"",false)
+        fun rendererClear():FloatArray = org.oscim.renderer.MapRenderer::class.java.getDeclaredField("mClearColor")
+            .apply { isAccessible=true }.get(null) as FloatArray
+        val expected=floatArrayOf(248/255f,244/255f,240/255f,1f)
+        try {
+            assertArrayEquals("Bright background must reach actual GL clear color, not just parsed theme",expected,rendererClear(),.00001f)
+            base.resume();base.pause()
+            val other=BicycleMapView(c)
+            try {
+                assertArrayEquals("new VTM renderer resets its shared clear color",floatArrayOf(.8f,.8f,.8f,1f),rendererClear(),.00001f)
+                base.resume()
+                assertArrayEquals("returning dashboard restores reference background",expected,rendererClear(),.00001f)
+            } finally { other.disposeMap() }
+        } finally { base.onDetach();view.disposeMap() }
+    }
     @Test fun datedTileDirectoryIsDiscoveredOnceAndValidated() {
         val template="https://tiles.openfreemap.org/planet/20261025_080012_pt/{z}/{x}/{y}.pbf"
         var requests=0
