@@ -26,6 +26,8 @@ internal class RecordingButtonIndicator(context:Context,private val foreground:I
             return ((1-kotlin.math.cos(linear*Math.PI))/2).toFloat()
         }
     }
+    var powerSaving=false
+        set(value) { if(field!=value) { field=value;stop();if(value) showFraction(1f) } }
     private val stop=BicycleIcons.drawable(context,BicycleIcon.StopRecording,foreground)
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private var animator:ValueAnimator?=null
@@ -42,6 +44,7 @@ internal class RecordingButtonIndicator(context:Context,private val foreground:I
     }
     fun setAnimating(enabled:Boolean) {
         if(!enabled) { if(running || dotFraction!=0f) stop();return }
+        if(powerSaving) { if(running) stop();showFraction(1f);return }
         if(running) return
         if(!ValueAnimator.areAnimatorsEnabled()) { showFraction(1f);return }
         running=true;startedAt=SystemClock.uptimeMillis();advanceCycle()

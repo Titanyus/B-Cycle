@@ -300,12 +300,17 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     }
     init { RideNames.schedule(context);ActivityServiceUploads.all.forEach { runCatching { it.schedule(context) } }; IntervalsUploads.schedule(context); IntervalsHrvUploads.schedule(context); RouteUploads.schedule(context); diagnostics.reset("App=${AppVersion.name} Mode=MCSP Android=${android.os.Build.VERSION.SDK_INT} Device=${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}") }
     fun notifyChanged() {
+        liveGraphs.applyRuntimePolicy(bikes.current().powerSaving,visible)
         if(observers.isNotEmpty()) updateDisplayTrends(SystemClock.elapsedRealtime())
         observers.toList().forEach { it() }
     }
+    internal fun setPowerSaving(enabled:Boolean) {
+        if(bikes.current().powerSaving==enabled) return
+        bikes.save(bikes.current().copy(powerSaving=enabled));notifyChanged()
+    }
     fun setVisible(value: Boolean) {
         val opened=value && !visible
-        visible=value;if(!value) { hrv.abort("APP_BACKGROUND");shiftGroup.stop() };updateActivity()
+        visible=value;liveGraphs.applyRuntimePolicy(bikes.current().powerSaving,value);if(!value) liveGraphs.hideDisplay();if(!value) { hrv.abort("APP_BACKGROUND");shiftGroup.stop() };updateActivity()
         if(opened) {
             autoStartOnConnection(recheck=true)
             MaintenanceRepository.get(context).refresh()

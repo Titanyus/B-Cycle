@@ -17,7 +17,25 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
     private val generationLock=Any()
     @Volatile private var generation=0L
     @Volatile var rolling=false
-    private val interval get()=if(rolling) 1000L else LiveGraphStyle.INTERVAL_MS
+    @Volatile private var powerSaving=false
+    @Volatile private var displayVisible=true
+    @Volatile private var demand:Map<GraphWindow,Set<AnalysisChart>> = emptyMap()
+    private var preparedDemand:Map<GraphWindow,Set<AnalysisChart>>?=null
+    private var policyChanged=false
+    fun applyRuntimePolicy(saving:Boolean,foreground:Boolean) {
+        if(powerSaving!=saving) { powerSaving=saving;policyChanged=true }
+        if(!foreground) displayVisible=false
+    }
+    internal val interval get()=(if(rolling) 1000L else LiveGraphStyle.INTERVAL_MS).let { if(powerSaving) maxOf(it,5000L) else it }
+    fun configureDisplay(saving:Boolean,visible:Boolean,requested:Map<GraphWindow,Set<AnalysisChart>>) {
+        val changed=policyChanged || powerSaving!=saving || saving && (displayVisible!=visible || demand!=requested)
+        policyChanged=false;powerSaving=saving;displayVisible=visible;demand=requested.mapValues { it.value.toSet() }
+        if(changed && (visible || !saving)) {
+            val ride=generation
+            try { worker.execute { if(ride==generation && hasSamples) publish(ride,forceFull=true) } } catch(_:RejectedExecutionException) {}
+        }
+    }
+    fun hideDisplay() { displayVisible=false }
     private var lastFullWall=-LiveGraphStyle.INTERVAL_MS
     @Volatile var width=640
     private var history=GraphHistoryBuffer()
@@ -25,10 +43,11 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
     private var lastPublishWall=-LiveGraphStyle.INTERVAL_MS
     private var sequence=0L
     private var overflow=false
+    @Volatile private var hasSamples=false
     private var active=false
     private var finishing: Runnable?=null
     fun begin() {
-        active=true
+        active=true;hasSamples=false
         finishing?.let(handler::removeCallbacks); finishing=null
         synchronized(generationLock) { generation++; frame=null }; worker.queue.clear(); overflow=false
         val ride=generation
@@ -39,8 +58,8 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
         val ride=generation; val input=if(overflow) point.copy(breaks=31) else point
         try { worker.execute {
             if(ride==generation) {
-                history.append(input)
-                if(point.elapsedMs-lastPublishElapsed >= interval && SystemClock.uptimeMillis()-lastPublishWall >= interval) {
+                history.append(input);hasSamples=true
+                if((!powerSaving || displayVisible) && point.elapsedMs-lastPublishElapsed >= interval && SystemClock.uptimeMillis()-lastPublishWall >= interval) {
                     lastPublishElapsed=point.elapsedMs; publish(ride)
                 }
             }
@@ -48,8 +67,10 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
     }
     private fun publish(ride: Long,forceFull:Boolean=false) {
         val now=SystemClock.uptimeMillis()
-        val refreshFull=forceFull || now-lastFullWall>=LiveGraphStyle.INTERVAL_MS
-        val next=history.frame(++sequence,width,if(refreshFull) null else frame)
+        val requested=if(powerSaving) demand else null
+        val refreshFull=forceFull || now-lastFullWall>=LiveGraphStyle.INTERVAL_MS || preparedDemand!=requested
+        val next=history.frame(++sequence,width,if(refreshFull) null else frame,requested)
+        preparedDemand=requested
         if(refreshFull) lastFullWall=now
         synchronized(generationLock) {
             if(ride!=generation) return

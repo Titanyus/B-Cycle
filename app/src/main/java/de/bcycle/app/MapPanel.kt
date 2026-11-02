@@ -63,7 +63,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var observedZoom=Double.NaN
     private val updateZoom=Runnable {
         val zoom=mapView.zoom
-        if(zoom!=observedZoom) { observedZoom=zoom;updateCamera();if(running && follow) { handler.removeCallbacks(animateCamera);handler.post(animateCamera) } }
+        if(zoom!=observedZoom) { observedZoom=zoom;updateCamera();if(!powerSaving && running && follow) { handler.removeCallbacks(animateCamera);handler.post(animateCamera) } }
     }
     private val status = TextView(context)
     private val dataFields = MapDataFieldsView(context)
@@ -98,6 +98,18 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private lateinit var nightButton: Button
     private var night = preferences.getBoolean("mapNight", false)
     private var running = false
+    private var powerSaving=false
+    private val saverFrames=DisplayUpdateGate(handler) {
+        if(running && isShown && cameraVisible()) {
+            gps=runtime.mapGpsValues;displayedGps=motion.snap(gps);ovalAnchor.hold(android.os.SystemClock.uptimeMillis())
+            displayedPhoneHeading=phoneHeading.current();updateCamera();refreshRoutes()
+        }
+    }.apply { intervalMs=1000 }
+    internal fun setPowerSaving(enabled:Boolean) {
+        if(powerSaving==enabled) return
+        powerSaving=enabled;dataFields.setPowerSaving(enabled);saverFrames.cancel();stopMotion()
+        if(running) { if(enabled) saverFrames.request(immediate=true) else receivePosition() }
+    }
     private var moving = false
     private var source = MapProviderSettings.source(context,preferences.getString("mapSource", null))
     private var providerKey=MapProviderSettings.read(context)
@@ -117,13 +129,16 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     private fun refreshPhoneHeading() {
         val value=phoneHeading.current()
-        if(value!=displayedPhoneHeading) { displayedPhoneHeading=value;refreshRoutes() }
+        if(value!=displayedPhoneHeading) {
+            if(powerSaving) saverFrames.request() else { displayedPhoneHeading=value;refreshRoutes() }
+        }
     }
     private fun headingVisible()=running && isShown && cameraVisible() && runtime.gpsEnabled && gps.latitude!=null
 
     var cameraVisible: () -> Boolean = { true }
     private val animateCamera = object : Runnable {
         override fun run() {
+            if(powerSaving) { saverFrames.request();return }
             if (!running || !isShown || !cameraVisible()) {
                 stopMotion()
                 // Finish the shared pose once when occluded/stopped, without a frame loop.
@@ -141,6 +156,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         ovalAnchor.hold(android.os.SystemClock.uptimeMillis())
     }
     private fun receivePosition() {
+        if(powerSaving) { saverFrames.request();return }
         handler.removeCallbacks(animateCamera)
         displayedGps = motion.move(gps, android.os.SystemClock.uptimeMillis(), running && runtime.isMoving && isShown && cameraVisible())
         updateCamera(); refreshRoutes()
@@ -277,7 +293,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     fun resume() { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis());lastTrack=-1L;running=true;mapView.resumeMap();downloads.resume();revealControls();refresh() }
     fun pause() {
         routePopup?.dismiss();pinchZoom.cancel();running=false;phoneHeading.stop();stopMotion()
-        handler.removeCallbacksAndMessages(null);downloads.pause();mapView.pauseMap();saveCamera()
+        saverFrames.cancel();handler.removeCallbacksAndMessages(null);downloads.pause();mapView.pauseMap();saveCamera()
     }
     fun destroy() { pause();routes.dispose();mapView.disposeMap() }
     internal fun refreshProfileSettings() {
@@ -467,7 +483,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         if((follow || forceRotation) && !touchingMap) {
             val bearing=if(heading) displayedGps.bearingDegrees else null
             val now=android.os.SystemClock.uptimeMillis()
-            val position=ovalAnchor.at(if(heading) 0.0 else displayedGps.bearingDegrees,runtime.isMoving && displayedGps.latitude!=null,
+            val position=ovalAnchor.at(if(heading) 0.0 else displayedGps.bearingDegrees,!powerSaving && runtime.isMoving && displayedGps.latitude!=null,
                 now,width,height,mapView.zoom)
             if(follow) mapView.setAnchor(position.x,position.y)
             val rotation=-(bearing ?: 0.0).toFloat()

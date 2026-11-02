@@ -17,6 +17,8 @@ internal class TrendChevrons(private val host:View,private val settled:()->Unit 
         const val STACK_STEP=.8f*.65f
         val OPACITY=listOf(1f,.85f,.70f)
     }
+    var powerSaving=false
+        set(value) { if(field!=value) { field=value;snap() } }
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeCap=Paint.Cap.ROUND;strokeJoin=Paint.Join.ROUND }
     private val path=Path()
     private var animator:ValueAnimator?=null
@@ -34,7 +36,7 @@ internal class TrendChevrons(private val host:View,private val settled:()->Unit 
         if(next==level) return
         animator?.removeAllListeners();animator?.cancel();animator=null
         level=next.coerceIn(-3,3)
-        if(!host.isAttachedToWindow || !host.isShown || !ValueAnimator.areAnimatorsEnabled()) { snap();return }
+        if(powerSaving || !host.isAttachedToWindow || !host.isShown || !ValueAnimator.areAnimatorsEnabled()) { snap();return }
         val from=weights.copyOf();val to=target()
         animator=ValueAnimator.ofFloat(0f,1f).apply {
             duration=FADE_MS

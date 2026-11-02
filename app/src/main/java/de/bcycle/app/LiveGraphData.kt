@@ -95,22 +95,23 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
         }
         points.clear(); points.addAll(reduced)
     }
-    fun frame(version: Long, width: Int, cachedFull:GraphFrame?=null): GraphFrame {
+    fun frame(version: Long, width: Int, cachedFull:GraphFrame?=null,demand:Map<GraphWindow,Set<AnalysisChart>>?=null): GraphFrame {
         val pixelWidth=width.coerceIn(64,4096)
-        val series=cachedFull?.series ?: AnalysisChart.entries.mapNotNull { chart -> scales.range(chart)?.let { range ->
+        val cached=cachedFull?.series?.let { old -> if(demand==null || old.keys.all { it in demand[GraphWindow.FULL].orEmpty() }) old else old.filterKeys { it in demand[GraphWindow.FULL].orEmpty() } }
+        val series=cached ?: AnalysisChart.entries.filter { demand==null || it in demand[GraphWindow.FULL].orEmpty() }.mapNotNull { chart -> scales.range(chart)?.let { range ->
             chart to GraphSeries(prepare(chart,pixelWidth),range)
         } }.toMap()
         val elapsed=recent.peekLast()?.elapsedMs ?: 0
-        val windows=GraphWindow.entries.filter { it!=GraphWindow.FULL }.associateWith { window ->
+        val windows=GraphWindow.entries.filter { it!=GraphWindow.FULL && (demand==null || !demand[it].isNullOrEmpty()) }.associateWith { window ->
             val start=(elapsed-window.milliseconds).coerceAtLeast(0)
             val history=recent.toList()
             val first=(history.indexOfFirst { it.elapsedMs>=start }.let { if(it<0) history.size else it }-1).coerceAtLeast(0)
             val selected=history.drop(first)
             val windowScales=GraphScaleManager(initialRanges)
             selected.filter { it.elapsedMs>=start }.forEach { point -> point.values.forEachIndexed { i,value ->
-                if(value!=null) windowScales.include(AnalysisChart.entries[i],value)
+                if(value!=null && (demand==null || AnalysisChart.entries[i] in demand[window].orEmpty())) windowScales.include(AnalysisChart.entries[i],value)
             } }
-            AnalysisChart.entries.mapNotNull { chart -> (windowScales.range(chart) ?: initialRanges[chart])?.let { chart to GraphSeries(prepare(chart,pixelWidth,selected,true,window.milliseconds.toDouble(),start.toDouble(),3000.0,6),it) } }.toMap()
+            AnalysisChart.entries.filter { demand==null || it in demand[window].orEmpty() }.mapNotNull { chart -> (windowScales.range(chart) ?: initialRanges[chart])?.let { chart to GraphSeries(prepare(chart,pixelWidth,selected,true,window.milliseconds.toDouble(),start.toDouble(),3000.0,6),it) } }.toMap()
         }
         return GraphFrame(version,distanceM,series,elapsed,windows,points.none { it.distanceM!=null })
     }

@@ -7,7 +7,7 @@ import org.json.JSONObject
 /** Explicit additional public settings. No credentials, upload jobs or OS grants. */
 internal class SettingsBackupSupplement(private val context:Context) {
     private fun prefs(name:String)=context.getSharedPreferences(name,0)
-    private val profileKeys=setOf("slot","name","type","category","indoorType","sources","wheelMm","autoConnect","autoStartRecording","gpsEnabled","bikeEnabled","heartEnabled",
+    private val profileKeys=setOf("slot","name","type","category","indoorType","sources","wheelMm","powerSaving","autoConnect","autoStartRecording","gpsEnabled","bikeEnabled","heartEnabled",
         "bikeAddress","bikeName","heartAddress","heartName","trainerAddress","trainerName","trainerEnabled","powerAddress","powerName","powerEnabled","shiftEnabled","shiftDevices","shiftBatteryWarning","indoorPowerTenths","indoorSpeedTenths","fields","metadata","speed","distance")
     private val files=mapOf(
         BackupSection.MAPS to mapOf("bike" to setOf("routeQuery.RECORDED.v1","routeQuery.IMPORTED.v1")),
@@ -179,6 +179,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
             require(integer(p,"wheelMm") in 500..4000)
             listOf("autoConnect","gpsEnabled","bikeEnabled","heartEnabled").forEach { require(p.get(it) is Boolean) }
             if(p.has("sources") && p.getString("sources").isNotEmpty()) RecordingSources.decode(p.getString("sources"))
+            if(p.has("powerSaving")) require(p.get("powerSaving") is Boolean)
             if(p.has("autoStartRecording")) require(p.get("autoStartRecording") is Boolean)
             if(p.has("powerEnabled")) require(p.get("powerEnabled") is Boolean)
             if(p.has("shiftBatteryWarning")) require(p.get("shiftBatteryWarning") is Boolean)

@@ -250,6 +250,11 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             wheel.error=if(mm==null || mm !in 500..4000) context.getString(R.string.bikes_wheel_error) else null
             if(wheel.error==null) runtime.bikes.save(runtime.bikes.current().copy(wheelMm=mm!!))
         })
+        val powerSaving=Switch(context).apply {
+            tag="bike_power_saving";setText(R.string.bike_battery_saver);isChecked=profile.powerSaving
+            setOnCheckedChangeListener { _,enabled -> if(!binding && runtime.bikes.activeSlot==slot) runtime.setPowerSaving(enabled) }
+        }
+        BicycleDialogStyle.control(powerSaving,themes);addView(powerSaving,LayoutParams(-1,-2))
         section(R.string.bikes_sensors)
         autoStartRecording=Switch(context).apply {
             tag="bike_auto_start_recording";setText(R.string.bikes_auto_start_recording);isChecked=profile.autoStartRecording

@@ -25,6 +25,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private val numbers = BicycleDesign.narrowTypeface(context)
     private val captions = BicycleDesign.compactTypeface
     private val tiles = mutableListOf<Tile>()
+    private var powerSaving=false
+    internal fun setPowerSaving(enabled:Boolean) {
+        if(powerSaving==enabled) return
+        powerSaving=enabled;modeGlow.powerSaving=enabled;tiles.forEach { it.applyPowerSaving() }
+    }
     private var footerVisible=true
     internal fun showFooter(visible:Boolean) {
         footerVisible=visible;updateFooterOffset()
@@ -108,7 +113,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private fun buildTiles(wide: Boolean) {
         removeAllViews(); tiles.clear(); captionGeometry = ""
         val indexed = List(DashboardLayout.FIELD_COUNT) { Tile(it) }
-        tiles.addAll(indexed)
+        tiles.addAll(indexed);tiles.forEach { it.applyPowerSaving() }
         if (template != DashboardTemplate.DATA) {
             orientation = VERTICAL
             template.rows.forEachIndexed { index, slots ->
@@ -212,6 +217,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private fun line() = View(context).apply { setBackgroundColor(Color.rgb(44, 44, 44)); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 
     private inner class Tile(private val index: Int) {
+        fun applyPowerSaving() { zoneGlow.powerSaving=powerSaving;overlay.powerSaving=powerSaving;row.chevrons.powerSaving=powerSaving }
         fun resetTrend() { row.direction=0;row.chevrons.clear() }
         fun footerOffset(offset:Float) {
             title.translationY=offset;row.translationY=offset;batteryGrid.translationY=offset

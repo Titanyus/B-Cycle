@@ -1,6 +1,12 @@
-# Aktueller Stand: achtstufiger Stressslider, Bright und Karten-/Wischkorrekturen lokal
+# Aktueller Stand: profilspezifischer Akkusparmodus und weitere Korrekturen lokal
 
 ## Aktueller Auftrag nach Build121
+
+Akkusparmodus je Fahrradprofil nach Radumfang, Standard aus. Lokal umgesetzt: automatische Karte und Dashboard1Hz, kurze Graphen5s/Gesamtverlauf weiter10s, nur sichtbare Graphen vorbereiten, statische Aufnahme-/Zonen-/Warn-/Chevron-Anzeigen. Direkte Gesten und sämtliche Sensor-/Aufzeichnungs-/Analysepfade erhalten. Runtime-Hintergrundpfad und Karten-Chevrons berücksichtigt. Kartenstil ausdrücklich unverändert; Spar-/OLED-Stil und Dashboardoption noch offen. Profil-JSON/Backup/Booleanvalidierung enthalten. [Details](profile-battery-saver.md). Neun gezielte Fälle erfolgreich, nach letzter Ergänzung nur drei betroffene Fälle erneut erfolgreich. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf/keine neue APK; nicht pushen.
+
+Gemeinsame Farbpalette: ausgewählte Farbe nun immer mit FOREGROUND-Kontur, auch Track3; schwarze Kontrastalternative entfernt. Separater lokaler Commit `c800875`.
+
+## Ebenfalls lokal umgesetzt: Stressslider
 
 Nutzer: getrennte Stress-Vierfachfrage entfernen, Regelmäßigkeitsfrage zu Stress umbauen; ausdrücklich acht Stufen. Historische Richtung bestätigt links/0 viel Stress, rechts/10 wenig Stress → umkehren. Lokal umgesetzt: ein Slider0–7, je zwei Positionen pro Intervals-Stufe1–4. Neue direkte Antwort zuerst, sonst umgekehrte alte Regelmäßigkeit, sonst alte Vierfachantwort. Originale behalten, keine doppelte Umkehr. Fragebogen-/Auswahlschema3, alte1/2 lesen; eine Fragenoption statt zweier, stabile Enum-IDs. HRV/Indizes/Empfehlungsgewichtung unverändert. Sechs gezielte Fälle einschließlich echtem HRV-Backup erfolgreich; Kompilation/Typografie/Atlas/Diff erfolgreich. [Details](hrv-eight-step-stress.md). Noch keine neue APK; nicht pushen.
 

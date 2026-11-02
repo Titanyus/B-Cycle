@@ -6,6 +6,8 @@ import java.util.Locale
 
 /** Cached display geometry below the tile children. No analysis or history reduction in draw(). */
 internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
+    var powerSaving=false
+        set(value) { if(field!=value) { field=value;unscheduleSelf(animation);ranges.clear();rebuild();invalidateSelf() } }
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val plot=RectF()
     private val curve=RectF()
@@ -20,6 +22,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     private val ranges=mutableMapOf<AnalysisChart,GraphRangeTransition>()
     private val animation=Runnable { rebuild();invalidateSelf() }
     fun update(next: GraphFrame?, graphs: List<AnalysisChart>, insets: IntArray, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA,window:GraphWindow=GraphWindow.FULL) {
+        if(powerSaving && window==GraphWindow.FULL && this.window==window && frame!=null && next!=null && frame!!.series===next.series && selected==graphs && padding.contentEquals(insets) && mode==display) return
         if(frame===next && selected==graphs && padding.contentEquals(insets) && mode==display && this.window==window) return
         if(this.window!=window || next==null || next.version<(frame?.version ?: 0)) { ranges.clear();unscheduleSelf(animation) }
         frame=next; selected=graphs; padding=insets; mode=display; this.window=window;rebuild(); invalidateSelf()
@@ -44,7 +47,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         val start=if(window==GraphWindow.FULL) 0 else (f.elapsedMs-window.milliseconds).coerceAtLeast(0)
         val end=if(window==GraphWindow.FULL) f.elapsedMs else maxOf(window.milliseconds,f.elapsedMs)
         shapes=selected.mapNotNull { chart -> seriesByChart[chart]?.let { series ->
-            val range=if(window==GraphWindow.FULL) series.range else ranges.getOrPut(chart) { GraphRangeTransition() }.update(series.range,android.os.SystemClock.uptimeMillis())
+            val range=if(window==GraphWindow.FULL || powerSaving) series.range else ranges.getOrPut(chart) { GraphRangeTransition() }.update(series.range,android.os.SystemClock.uptimeMillis())
             val line=Path();val fill=Path();val pending=ArrayList<PointF>();var fillTop=plot.bottom
             fun finish() {
                 if(pending.isEmpty()) return
@@ -74,7 +77,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     override fun draw(canvas: Canvas) {
         if(shapes.isEmpty()) return
         val now=android.os.SystemClock.uptimeMillis()
-        if(window!=GraphWindow.FULL && ranges.values.any { it.running(now) }) {
+        if(!powerSaving && window!=GraphWindow.FULL && ranges.values.any { it.running(now) }) {
             rebuild();scheduleSelf(animation,now+16)
         }
         val save=canvas.save(); canvas.clipRect(plot)

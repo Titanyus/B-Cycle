@@ -216,7 +216,7 @@ class RecordingFlowTest {
     }
     @Test fun slowUiWorkDoesNotAccumulateDriftBetweenRecordingSeconds() {
         val app = RuntimeEnvironment.getApplication(); provider()
-        val runtime = RideRuntime.get(app); runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER")))
+        val runtime = RideRuntime.get(app); runtime.saveConfig(RecordingConfig(setOf("RIDER_POWER")));runtime.setPowerSaving(true)
         runtime.setVisible(true)
         // Finish initial library notifications before measuring just the recording clock.
         await { !runtime.mapState.busy }

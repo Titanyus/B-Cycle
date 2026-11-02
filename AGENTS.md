@@ -32,6 +32,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 
 ## Profile, Dashboard und Karten
 
+- Akkusparmodus je Fahrradprofil nach Radumfang, standardmäßig aus. Nur Darstellung drosseln: automatische Karte/Dashboard1Hz, Diagramme mindestens5s (Gesamtverlauf10s erhalten), statische Aufnahme-/Zonen-/Warn-/Chevron-Darstellung; Gesten direkt. Sensoren/Rohdaten/Aufzeichnung/Analyse unverändert; Kartenstil nicht automatisch wechseln. [Umfang/Prüfung](docs/profile-battery-saver.md).
 - Stabile Profil-UUIDs und Dashboard-IDs erhalten. Kein automatischer Profilwechsel bei Sensorfund. Fahrradprofil umfasst Sensoren, FIT-Konfiguration, Design, Karten; Fahrerprofil, Uploadkonten und Benachrichtigungen global.
 - Profilreihenfolge: Name, Sensoren, Design & UI, Trainingshilfe, Karten (GPS-Profile), FIT-Aufzeichnung, Strecken-Aufzeichnung. Indoor-Korrektur erhalten. „Aufnahme automatisch starten“ erster Sensorpunkt, danach „Sensoren automatisch verbinden“. Name bleibt separat editierbarer Accordiontitel.
 - Design-Reihenfolge: Flat, Theme, Vollbild-Rahmen, Trenner, kleine Dashboard-Layout-Überschrift und vorhandene Auswahl. Kontextfooter nur im Designabschnitt für Dashboardaktionen. [Details](docs/profile-settings-revision.md).
@@ -47,6 +48,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 - Drei gespeicherte Trackplätze je Profil, eigene Stile, live Aufzeichnung separat. Dashboard-Augenbuttons vertikal ohne Nummer, deckende Trackfarben. Manager-Auge in Trackfarbe; Platzwahl horizontal, belegt mit Auge, leer ohne Symbol, aktueller Platz stärker umrahmt. Kurz sichtbar: Platz freigeben. Kurz nicht sichtbar/immer lang: explizite Platzwahl. Überschreiben/Umplatzieren erhalten. Filter „Auf Karte angezeigt“ ganz oben; alle belegten Trackplätze erfassen, auch ausgeblendete. [Tracks](docs/three-map-tracks.md).
 - Strecken: gemeinsame Sammlung, getrennte feste Ansichten „Gefahrene Strecken“ und „Streckenvorlagen“, Filter/Sortierung je Ansicht gespeichert. Streckenart dort nicht als Filter anzeigen, Importzuordnung und drei gemeinsame Kartenplätze erhalten. Vorlagenzeit aus gespeichertem arithmetischen Mittel der Fahrt-Durchschnitte der letzten28 Tage ohne Virtual-Rides; keine Mittelwert-Neuberechnung beim Zeichnen. [Details](docs/route-collections.md).
 - Trackgeometrien auf Bibliotheksworker cachen, unveränderliche Render-Snapshots, keine Datei-/FIT-Dekodierung auf UI/onDraw. Profilgeneration gegen veraltete Workerantworten schützen.
+- Ausgewählte Farbe der gemeinsamen Trackpalette immer FOREGROUND umranden, keine kontrastabhängige schwarze Auswahlkontur.
 - Farbdialog bleibt offen/selektiert, Helligkeit behält Zelle/Farbton. Erst beim Verlassen in denselben Profilplatz speichern. HEX-Direkteingabe weiterhin sofort. [Stile](docs/map-route-style.md).
 
 ## Sensoren und Aufzeichnung

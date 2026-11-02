@@ -5,6 +5,8 @@ import android.graphics.drawable.Drawable
 
 /** Shared zone transition: radial light in Glow, solid bottom strip in Flat. */
 internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.SystemClock.uptimeMillis() }) : Drawable() {
+    var powerSaving=false
+        set(value) { if(field!=value) { field=value;from=target;started=clock()-1500;unscheduleSelf(frame);invalidateSelf() } }
     var flat=false
         set(value) { if(field!=value) { field=value;invalidateSelf() } }
     private var from = Color.TRANSPARENT
@@ -23,7 +25,7 @@ internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.Syst
     fun update(color: Int?) {
         val next = color ?: Color.TRANSPARENT
         if (next == target) return
-        from = currentColor(); target = next; started = clock(); invalidateSelf()
+        from = if(powerSaving) next else currentColor(); target = next; started = clock()-if(powerSaving) 1500 else 0; invalidateSelf()
     }
     override fun onBoundsChange(bounds: Rect) { cachedColor = null }
     override fun draw(canvas: Canvas) {
@@ -52,7 +54,7 @@ internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.Syst
             paint.blendMode=null; canvas.restoreToCount(save)
         }
         unscheduleSelf(frame)
-        if (isVisible && clock() - started < 1500) scheduleSelf(frame, android.os.SystemClock.uptimeMillis() + 33)
+        if (!powerSaving && isVisible && clock() - started < 1500) scheduleSelf(frame, android.os.SystemClock.uptimeMillis() + 33)
     }
     override fun setVisible(visible: Boolean, restart: Boolean): Boolean {
         if (!visible) unscheduleSelf(frame)

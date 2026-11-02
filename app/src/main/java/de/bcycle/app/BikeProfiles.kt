@@ -31,7 +31,7 @@ internal data class BikeProfile(val slot: Int, val name: String, val type: BikeT
     val trainerAddress:String?=null,val trainerName:String?=null,val trainerEnabled:Boolean=true, val recording: RecordingConfig = RecordingConfig(), val indoorCorrection: IndoorCorrection = IndoorCorrection(),val autoStartRecording:Boolean=false,
     val indoorType:IndoorBikeType=IndoorBikeType.EXERCISE_BIKE,
     val powerAddress:String?=null,val powerName:String?=null,val powerEnabled:Boolean=true,
-    val shiftEnabled:Boolean=true,val shiftDevices:List<AxsDevice> = emptyList())
+    val shiftEnabled:Boolean=true,val shiftDevices:List<AxsDevice> = emptyList(),val powerSaving:Boolean=false)
 
 /** Up to six profiles with stable identities; array order is presentation only. */
 internal class BikeProfileStore(private val context: Context, private val prefs: SharedPreferences,private val initialize:Boolean=true) {
@@ -79,7 +79,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
                     type = BikeType.valueOf(o.getString("type")), category = BikeCategory.valueOf(o.getString("category")),
                     indoorType = runCatching { IndoorBikeType.valueOf(o.optString("indoorType")) }.getOrDefault(IndoorBikeType.EXERCISE_BIKE),
                     wheelMm = o.getInt("wheelMm").takeIf { it in 500..4000 } ?: fallback.wheelMm,
-                    autoConnect = o.getBoolean("autoConnect"), autoStartRecording=o.optBoolean("autoStartRecording",false), gpsEnabled = o.getBoolean("gpsEnabled"),
+                    powerSaving=o.optBoolean("powerSaving",false),autoConnect = o.getBoolean("autoConnect"), autoStartRecording=o.optBoolean("autoStartRecording",false), gpsEnabled = o.getBoolean("gpsEnabled"),
                     bikeEnabled = o.getBoolean("bikeEnabled"), heartEnabled = o.getBoolean("heartEnabled"),
                     bikeAddress = o.optString("bikeAddress").takeIf(String::isNotEmpty), bikeName = o.optString("bikeName").takeIf(String::isNotEmpty),
                     trainerAddress=o.optString("trainerAddress").takeIf(String::isNotEmpty), trainerName=o.optString("trainerName").takeIf(String::isNotEmpty),trainerEnabled=o.optBoolean("trainerEnabled",true),
@@ -140,7 +140,7 @@ internal class BikeProfileStore(private val context: Context, private val prefs:
         .putBoolean("gpsEnabled", p.gpsEnabled).putBoolean("bikeEnabled", p.bikeEnabled).putBoolean("heartEnabled", p.heartEnabled)
         .putStringSet("recordFields", p.recording.fields).putString("recordSpeed", p.recording.speedSource).putString("recordDistance", p.recording.distanceSource).putStringSet("recordMetadata",p.recording.metadata.map { it.name }.toSet()).apply { p.recording.sourcePreferences?.let { putString(RecordingSources.KEY,it.json()) } ?: remove(RecordingSources.KEY) }
     private fun encode(rows: List<BikeProfile>) = JSONArray().apply { rows.forEach { p -> put(JSONObject()
-        .put("slot", p.slot).put("name", p.name).put("type", p.type.name).put("category", p.category.name).put("indoorType",p.indoorType.name).put("wheelMm", p.wheelMm).put("autoConnect", p.autoConnect).put("autoStartRecording",p.autoStartRecording)
+        .put("slot", p.slot).put("name", p.name).put("type", p.type.name).put("category", p.category.name).put("indoorType",p.indoorType.name).put("wheelMm", p.wheelMm).put("powerSaving",p.powerSaving).put("autoConnect", p.autoConnect).put("autoStartRecording",p.autoStartRecording)
         .put("gpsEnabled", p.gpsEnabled).put("bikeEnabled", p.bikeEnabled).put("heartEnabled", p.heartEnabled)
         .put("bikeAddress", p.bikeAddress.orEmpty()).put("bikeName", p.bikeName.orEmpty()).put("heartAddress", p.heartAddress.orEmpty()).put("heartName", p.heartName.orEmpty())
         .put("trainerAddress",p.trainerAddress.orEmpty()).put("trainerName",p.trainerName.orEmpty()).put("trainerEnabled",p.trainerEnabled)

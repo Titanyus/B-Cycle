@@ -64,6 +64,7 @@ internal class MapDataFieldsView(context: Context) : LinearLayout(context) {
     } }
     private val chevrons=values.map { TrendChevrons(it) }
     private var previousElapsed:Long?=null
+    internal fun setPowerSaving(enabled:Boolean) { chevrons.forEach { it.powerSaving=enabled } }
     internal fun resetTrends() { chevrons.forEach { it.clear() };directions.fill(0);previousElapsed=null }
     init {
         tag = "map_data_fields"; orientation = HORIZONTAL; isBaselineAligned = false

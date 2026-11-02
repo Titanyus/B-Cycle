@@ -140,7 +140,25 @@ class MainActivity : Activity() {
     private var pendingReport: String? = null
     private var displayedRecordingStatus: String? = null
     private var rideSummaryPosted=false
-    private val observer: () -> Unit = { render(); refreshSensorRows(); refreshRouteRows();refreshOrphanProfiles();refreshStatistics() }
+    private var displaySignature=""
+    private var forceDashboard=false
+    private val displayUpdates=DisplayUpdateGate(editorHandler) {
+        val saving=runtime.bikes.current().powerSaving
+        if(forceDashboard || !saving || dialogs.empty) render() else {
+            dashboard.setPowerSaving(true);mapPanel.setPowerSaving(true)
+            recordingIndicator?.powerSaving=true;recordingIndicator?.setAnimating(false)
+            runtime.liveGraphs.configureDisplay(true,false,emptyMap())
+        }
+        forceDashboard=false
+        refreshSensorRows();refreshRouteRows();refreshOrphanProfiles();refreshStatistics()
+    }
+    private val observer: () -> Unit = {
+        val saving=runtime.bikes.current().powerSaving
+        val signature="${runtime.profileRevision}:$saving:${runtime.recording}:${runtime.saving}:${runtime.recordingStatus}:${runtime.bikeBatteryWarningLevel}"
+        val urgent=signature!=displaySignature;displaySignature=signature;forceDashboard=forceDashboard || urgent
+        displayUpdates.intervalMs=if(saving && dialogs.empty && !dashboardEditing) 1000 else 0
+        displayUpdates.request(immediate=urgent)
+    }
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
     private val settingsThemes get() = runtime.themes.settings
@@ -382,6 +400,8 @@ class MainActivity : Activity() {
     private var shownProfileRevision=0
     private fun render() {
         if (!::dashboard.isInitialized) return
+        val powerSaving=runtime.bikes.current().powerSaving
+        dashboard.setPowerSaving(powerSaving);mapPanel.setPowerSaving(powerSaving)
         if(::dashboardStatusMonitor.isInitialized) dashboardStatusMonitor.battery(runtime.batterySnapshot.level(BatterySource.PHONE))
         if(::dashboardStatus.isInitialized && (dashboardStatus.bikeLightOn!=(DashboardFullscreen.enabled(preferences) && runtime.currentBikeLight==true) || cornerBikeLight.visibility!=(if(!DashboardFullscreen.enabled(preferences) && dialogs.empty && runtime.currentBikeLight==true) View.VISIBLE else View.GONE))) updateDashboardFullscreen()
         if(::mapPanel.isInitialized && shownProfileRevision!=runtime.profileRevision) {
@@ -409,6 +429,7 @@ class MainActivity : Activity() {
             setSpan(android.text.style.ImageSpan(drawable,android.text.style.ImageSpan.ALIGN_CENTER),0,1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         }
+        recordingIndicator?.powerSaving=powerSaving
         recordingIndicator?.setAnimating(runtime.visible && dialogs.empty)
         startButton.contentDescription=getString(R.string.record_bike_description,status,bike.name)
         startButton.isEnabled = (!runtime.saving || runtime.recording) && !runtime.hrv.busy
@@ -426,6 +447,13 @@ class MainActivity : Activity() {
         dashboard.showDataVisibility(dashboardDataVisibility)
         dashboard.showTrendIndicators(dashboardTrendIndicators)
         runtime.liveGraphs.rolling=dashboardGraphs.windows.indices.any { dashboard.template.supportsGraph(it) && dashboardGraphs.slots[it].isNotEmpty() && dashboardGraphs.windows[it]!=GraphWindow.FULL }
+        val graphDemand=buildMap<GraphWindow,Set<AnalysisChart>> {
+            dashboardGraphs.slots.indices.filter { dashboard.template.supportsGraph(it) }.forEach { index ->
+                val window=dashboardGraphs.windows[index]
+                put(window,get(window).orEmpty()+dashboardGraphs.slots[index])
+            }
+        }.filterValues { it.isNotEmpty() }
+        runtime.liveGraphs.configureDisplay(powerSaving,runtime.visible && dialogs.empty && graphDemand.isNotEmpty(),graphDemand)
         dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
         dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues,runtime.trendSnapshot)
         // Top mode light includes the system/cutout inset; content keeps its safe padding.
@@ -1202,6 +1230,7 @@ class MainActivity : Activity() {
     }
     override fun onStop() {
         if(::dashboardViewport.isInitialized) dashboardViewport.cancelTransition()
+        displayUpdates.cancel()
         statusForeground=false;preferences.unregisterOnSharedPreferenceChangeListener(statusPreferences)
         getSharedPreferences("message-notifications",MODE_PRIVATE).unregisterOnSharedPreferenceChangeListener(statusMessagesPreferences)
         dashboardStatusMonitor.stop()
@@ -1239,7 +1268,7 @@ class MainActivity : Activity() {
         val visible=DashboardDataVisibility.read(preferences,target)
         val help=DashboardTrainingHelp.read(preferences,target)
         val data=DashboardView(this) {}.apply {
-            bindEditorTheme(runtime.themes);setTemplate(template);showFooter(controlsVisible)
+            bindEditorTheme(runtime.themes);setTemplate(template);showFooter(controlsVisible);setPowerSaving(runtime.bikes.current().powerSaving)
             showTraining(help.sources(fields,visible),trainingSnapshot,help.mode==TrainingHelpMode.ZONE_TWO)
             showDataVisibility(visible);showTrendIndicators(TrendIndicatorSettings.read(preferences))
             showGraphs(GraphOverlayConfig.read(preferences,target),runtime.liveGraphs.frame)

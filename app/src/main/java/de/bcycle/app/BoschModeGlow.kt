@@ -31,6 +31,8 @@ internal object BoschModeColors {
 /** Top-only cached shaders, additive light, 1.5 s mode fades and a visible-only low-battery breath. */
 internal class BoschModeGlow(private val edgeWidth: Float,
                             private val clock: () -> Long = { android.os.SystemClock.uptimeMillis() }) : Drawable() {
+    var powerSaving=false
+        set(value) { if(field!=value) { field=value;fromColor=targetColor;started=-1;breathingStarted=clock();unscheduleSelf(frame);rebuild();invalidateSelf() } }
     internal var modeColor: Int? = null; private set
     internal var modeShader: Shader? = null; private set
     private var fromShader: Shader? = null
@@ -68,7 +70,7 @@ internal class BoschModeGlow(private val edgeWidth: Float,
         }
         if (modeColor == color) return
         fromColor = currentColor(); targetColor = color ?: Color.TRANSPARENT
-        modeColor = color; started = clock(); rebuild(); invalidateSelf()
+        modeColor = color; started = if(powerSaving) -1 else clock(); rebuild(); invalidateSelf()
     }
     override fun onBoundsChange(bounds: Rect) { rebuild() }
     private fun shader(color:Int):Shader? {
@@ -89,7 +91,7 @@ internal class BoschModeGlow(private val edgeWidth: Float,
         canvas.drawRect(bounds, paint)
         val t = progress()
         // Cosine easing has zero velocity at both ends: 2 s in, 2 s out.
-        val breath = if (warningColor == null) 0f else
+        val breath = if (warningColor == null) 0f else if(powerSaving) 1f else
             ((1.0 - kotlin.math.cos(((clock() - breathingStarted).coerceAtLeast(0) % 4000) * kotlin.math.PI / 2000)) / 2).toFloat()
         val animatedWidth = (width * (1 + .5f * breath)).coerceAtMost(maximumDepth)
         val save = canvas.save(); canvas.clipRect(bounds)
@@ -108,7 +110,7 @@ internal class BoschModeGlow(private val edgeWidth: Float,
         paint.shader = null; paint.blendMode = null; paint.alpha = 255; canvas.restoreToCount(save)
         unscheduleSelf(frame)
         if (t >= 1) fromShader = null
-        if (isVisible && (t < 1 || warningColor != null))
+        if (!powerSaving && isVisible && (t < 1 || warningColor != null))
             scheduleSelf(frame, android.os.SystemClock.uptimeMillis() + if (t < 1) 16 else 33)
     }
     override fun setVisible(visible: Boolean, restart: Boolean): Boolean {
