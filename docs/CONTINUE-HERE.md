@@ -1,5 +1,7 @@
 # Aktueller Stand: Profil-Aufzeichnung und Dropdown-Abstände überarbeitet; letzte APK 0.8.83 / Build 124
 
+Zusätzlicher Nutzertext für Trainingshilfe in `training_help_explanation` wortgetreu mit typografischen Anführungszeichen übernommen. Nur Erklärung geändert, keine Zonen-/Farblogik; Ressourcen-/Typografie-/Atlas-/Diffprüfung, keine zusätzlichen Unit-Tests dafür.
+
 ## Aktueller Auftrag: Profil-Aufzeichnung zusammenfassen
 
 Gemeinsamer Sticky-Abschnitt „Aufzeichnung“ statt FIT-/Strecken-Aufzeichnung: Fahrt benennen, Höhenkorrektur aus Karte, Rahmen-Accordion „Sensor-Hauptwerte für die .fit-Datei“ (bisherige Erklärung + sechs Quellenwahlen), Rahmen-Accordion „Zu speichernde Daten für die .fit-Datei“ (neue kurze Erklärung + bisherige innere Speichergruppen/Metadaten). Vorhandene Daten/Keys/Listener/Locks erhalten. Dropdownabstände überall bisheriger kleiner controlGap 8 dp: unsichtbare Sensortrenner entfernt, doppelte Quellenzeilen-Paddings durch einzelnen Zeilenabstand ersetzt. [Details](profile-recording-settings.md).
