@@ -1,17 +1,17 @@
-# Aktueller Stand: APK 0.8.84 / Build 125 veröffentlicht
+# Aktueller Stand: APK 0.8.85 / Build 126 mit dauerhaftem GL-Kartenhost veröffentlicht
 
-## Neuer Auftrag nach Build 125
+## Aktueller Auftrag abgeschlossen: Vektorfehler nach Dashboardwechsel
 
-Nutzer meldet schwere Vektorfehler nach Dashboardwechsel: rechteckige Ortsnamen, fehlende/flimmernde Bereiche und scheinbar vertauschte Tiles. Umhängen der GLSurfaceView trennt sie vom Fenster und verliert den GL-Kontext, während VTM teils alte Textur-IDs hält. Jetzt DashboardMapHost als dauerhafter Elterncontainer; Seiten enthalten nur Slots. Host folgt aktivem Slot per Layout/Drag-/Animationsframe. Kein MapPanel-Reparent/Window-Detach auf Wechsel/Abbruch. Echter Footer-/Vollbild-/Zielgrößenbezug bleibt; auslaufender Slot zeigt begrenzte Aufnahme, Softwarecapture delegiert an aktiven MapPanel. [Details](dashboard-page-transition.md).
+Nutzer meldet nach Build 125 rechteckige Ortsnamen, fehlende/flimmernde Bereiche, scheinbar vertauschte Tiles. Umhängen der GLSurfaceView verliert den GL-Kontext, VTM hält teils alte Textur-IDs. DashboardMapHost ist jetzt dauerhafter Elterncontainer; Seiten enthalten nur Slots. Host folgt aktivem Slot per Layout UND Drag-/Animationsframe. Kein MapPanel-Reparent/Window-Detach auf Wechsel/Abbruch. Echte Footer-/Vollbild-/Zielgrößen bleiben; auslaufender Slot zeigt begrenzte Aufnahme, Softwarecapture delegiert an aktiven MapPanel. [Details](dashboard-page-transition.md).
 
-Vier gezielte Fälle grün: Vektorkarte beide Footerzustände + Cancel/Commit mit 0 Attach/Detach und gleicher Host-/Layer-/Theme-Identität; kartenlose Vorschau mit stabilem Elterncontainer; echte Dashboardintegration; Kartenpixel in auslaufender Softwareaufnahme + Bitmapfreigabe. Logs dashboard-stable-map-tests.log / dashboard-stable-map-picture-test.log in /workspace/.tools/. Kompilation/Typografie/Atlas/Diff grün, kein Gesamtlauf. Echte Geräte-GPU/Zoom-/Text-/Tileausgabe noch bestätigen. Neue APK ausdrücklich anschließend beauftragt: 0.8.85 / code 155, erwarteter Build 126, nur GitHub Actions.
+Vier gezielte Fälle grün: Vektorkarte beide Footerzustände + Cancel/Commit mit 0 Attach/Detach und gleicher Host-/Layer-/Theme-Identität; kartenlose Vorschau mit stabilem Elterncontainer; echte Dashboardintegration; Kartenpixel in auslaufender Softwareaufnahme + Bitmapfreigabe. Logs dashboard-stable-map-tests.log / dashboard-stable-map-picture-test.log in /workspace/.tools/. Kompilation/Typografie/Atlas/Diff grün, kein Gesamtlauf. Echte Geräte-GPU/Zoom-/Text-/Tileausgabe noch bestätigen. Neue APK ausdrücklich beauftragt, gebaut und veröffentlicht: [0.8.85 / Build 126](build-126.md), code 155.
 
-## Aktueller Auftrag abgeschlossen
+## Erhaltener Stand aus Build 125
 
 Neue APK ausdrücklich beauftragt, ausschließlich über GitHub Actions gebaut, geprüft und veröffentlicht. [Buildnachweis](build-125.md), [Änderungen](release-0.8.84.md).
 
 - GL-Hintergrund korrigiert: VectorTileLayer.setTheme setzt nicht MapRenderers Clear-Farbe. VtmBaseMap gibt theme.mapBackground beim Initialisieren/Wiederaufnehmen weiter; neue MapView setzt gemeinsame Farbe sonst auf LTGRAY. JSON unverändert, keine eigenen Farbänderungen. Neuer Test tatsächlicher Renderer-Clear-Farbe vor Fix rot, danach inklusive Rückkehr von zweiter MapView grün; bestehender Quellenwechsel ebenfalls grün. [Details](vtm-bright-style.md).
-- Footer beim Dashboardwechsel: reale einzige MapPanel schon in Zielseite messen, auslaufende Karte als begrenztes Standbild. Kein CENTER_CROP-Komplettbild als einlaufende Karte. Footer beim Resume/Commit erhalten, normale Vollbild-/Mapless-Bedienung erhalten. Abbruch/Generation/aktive Richtung/Seite/Profil/Lifecycle sichern späte Aufnahmen vor Umhängen. Vier gezielte Fälle grün, nach Guard nur zwei betroffen erneut. [Details](dashboard-page-transition.md). Physischer GL-Neuanschluss/Übergang noch prüfen.
+- Footer beim Dashboardwechsel: Echte Kartenmaße der Zielseite und auslaufendes Standbild (seit Build 126 durch Slots und permanenten Host, kein Umhängen mehr). Kein CENTER_CROP-Komplettbild als einlaufende Karte. Footer beim Resume/Commit erhalten, normale Vollbild-/Mapless-Bedienung erhalten. Abbruch/Generation/aktive Richtung/Seite/Profil/Lifecycle sichern späte Aufnahmen vor Slotwechsel. Vier gezielte Fälle grün, nach Guard nur zwei betroffen erneut. [Details](dashboard-page-transition.md). Physischer GL-Neuanschluss/Übergang noch prüfen.
 - Fahrradprofile unter gemeinsamem Sticky „Aufzeichnung“: Fahrt benennen, Höhenkorrektur aus Karte, Rahmen-Accordion Hauptwerte (Erklärung + sechs Quellenwahlen), Rahmen-Accordion zu speichernde Daten (Erklärung + bisherige innere Gruppen/Metadaten). Bestehende Keys/Daten/Listener/Locks erhalten. Dropdowns kleiner controlGap 8 dp: unsichtbare Sensortrenner entfernt, doppelte Quellenzeilen-Paddings durch einzelnen Zeilenabstand ersetzt. Profilansicht/Schalterpersistenz/echte Abstände in Flat/Glow × E-Bike/Indoor sowie Quellenwahl/Sperre/Sicherungsrundreise grün. [Details](profile-recording-settings.md).
 - Trainingshilfe-Erklärung nach Nutzerwortlaut mit typografischen Anführungszeichen ersetzt; keine Zonen-/Farblogik geändert. Ressourcenprüfung statt zusätzlicher Unit-Tests.
 
@@ -27,15 +27,13 @@ Acht eindeutige gezielte Fälle erfolgreich; nach Ergänzungen nur betroffene/of
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.84 / Build 125](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.84-release-125.apk), code 154, Quelle `daabf8c8aa69fd0b3e2db8f3a9303a474f622f71`, 4204773 Bytes, SHA-256 `eeeb19933205f7f11a4c04f07249951e37fb69abab9fc7d3ffa3787568a67bf4`. Signatur/CI-Prüfsumme/Version/Manifest/ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 27 Shader, JSON/XML/111 Spritevarianten/Referenzfarben und neue Texte geprüft. [Nachweis](build-125.md).
+[APK 0.8.85 / Build 126](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.85-release-126.apk), code 155, Quelle `73dae6f21d7339e31c2f6d3e5cbb9e89e9dc9279`, 4204773 Bytes, SHA-256 `adb2bd9e24b4ca51fa2ced9af061e8687634448a6ac7a30b82f0155946d2646d`. Signatur/CI-Prüfsumme/Version/Manifest/ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 27 Shader, JSON/XML/111 Spritevarianten/Referenzfarben und bestehende neue Texte geprüft. [Nachweis](build-126.md).
 
-Vorige APK: [0.8.83 / Build 124](build-124.md). Rückfallstand vor Enginewechsel: [Meilenstein 0.8.78 / Build 119](milestone-0.8.78.md), dauerhaft gesichert; nicht verändern.
+Vorige APK: [0.8.84 / Build 125](build-125.md). Rückfallstand vor Enginewechsel: [Meilenstein 0.8.78 / Build 119](milestone-0.8.78.md), dauerhaft gesichert; nicht verändern.
 
 ## Weitere Planung
 
 - Keine automatische Stiländerung im Akkusparmodus. Minimalstil: kleine Straßen/Feldwege ausblenden, große Straßen/Orte/Wasser/Wald/Position/gewählte Tracks erhalten. OLED-/Sparstil und mögliche Dashboardoption noch offen, nicht gebaut.
 - Maputnik als Browsereditor; kein Live-JSON-Stilimport beauftragt. Generator ist Entwicklungswerkzeug.
 - Sensorfrequenz/weniger Aufzeichnung waren nur Verständnisfragen: keine Drosselung von GPS/BLE/Rohdaten/Analyse aus Akkuwünschen ableiten.
-- Nächste APK nur auf ausdrücklichen Auftrag ausschließlich GitHub Actions, voraussichtlich 0.8.85 / code 155 / Build 126. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/27 Shader/Bright-Ressourcen und echten direkten Download prüfen.
-
-Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4204773 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+- Nächste APK nur auf ausdrücklichen Auftrag ausschließlich GitHub Actions, voraussichtlich 0.8.86 / code 156 / Build 127. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/27 Shader/Bright-Ressourcen und echten direkten Download prüfen.

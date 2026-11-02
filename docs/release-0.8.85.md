@@ -6,4 +6,4 @@ Die einlaufende Karte berücksichtigt weiterhin den aktuellen Footer und ihre ec
 
 Vier gezielte Fälle erfolgreich: Vektorkarte mit beiden Footerzuständen und Abbruch/Commit, dabei 0 Fenster-Detach/Attach und gleiche Host-/Layer-/Theme-Identität; kartenlose Vorschau; echte Dashboardintegration; sichtbare Kartenpixel in auslaufender Seitenaufnahme und Bitmapfreigabe. Kompilation/Typografie/Atlas/Diff erfolgreich, kein Gesamtlauf. Echte Geräte-GPU und fehlerfreie Text-/Kacheldarstellung beim Zoomen nach Update noch prüfen.
 
-Buildnachweis und Download folgen nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-126.md).
