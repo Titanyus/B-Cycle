@@ -7,4 +7,4 @@
 
 Drei gezielte Beschriftungs-/Schildprüfungen und drei Layer-/Profil-/Terrain-/UI-Prüfungen erfolgreich. Echte GLES-Pixelprüfung mit vier erzwungenen Attributbelegungen reproduziert den alten Glyphenfehler und bestätigt die Korrektur. Reale Terrainprobe plausibel; Typografie, UI-Katalog, Bright-Generator und Diff-Prüfung grün. Kein Gesamtlauf, keine lokale APK. Gerätebild und Smartphone-GPU/Zoom-Lesbarkeit noch beurteilen.
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-130.md).

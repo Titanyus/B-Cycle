@@ -1,12 +1,12 @@
-# Aktueller Stand: APK 0.8.88 / Build 129 veröffentlicht
+# Aktueller Stand: APK 0.8.89 / Build 130 veröffentlicht
 
-## Laufende Änderungen nach Build 129
+## In Build 130 enthalten
 
-Fehlende Glyphen: drittes Shaderattribut jetzt explizit aktiviert, danach alle Attribute sauber freigegeben. Straßennummer und Schild in gemeinsamer Atlaszelle/Fade. Drei gezielte Java-/native Fälle sowie echte GLES-Pixelprüfung mit vier erzwungenen Treiberbelegungen grün; siehe vtm-label-stability.md. Noch unveröffentlicht. Wichtige Vektorlayer je Profil schaltbar, inklusive öffentlicher Mapzen/AWS-Terrain-Höhenlinien (default aus, ein Worker, DEM bis Zoom 13, Cache/Abbruch, Quellenhinweise). Profil-/Sicherungsumfang und Typvalidierung erweitert. Drei gezielte Layer-/Sicherungs-/Terrain-/UI-Fälle grün, reale Terrainprobe plausibel. Details in [Kartenebenen](vtm-map-layers.md). Neue APK ausdrücklich angefordert: 0.8.89 / code 159 / erwarteter Build 130, Bau ausschließlich über GitHub Actions; Veröffentlichung/Prüfung läuft. Gerätebild folgt.
+Fehlende Glyphen: drittes Shaderattribut explizit aktiviert, danach alle Attribute sauber freigegeben. Straßennummer und Schild in gemeinsamer Atlaszelle/Fade. Drei gezielte Java-/native Fälle sowie echte GLES-Pixelprüfung mit vier erzwungenen Treiberbelegungen grün; siehe [Beschriftung](vtm-label-stability.md).
 
-## Aktueller Auftrag abgeschlossen: neue APK
+Wichtige Vektorlayer je Profil schaltbar, inklusive öffentlicher Mapzen/AWS-Terrain-Höhenlinien (default aus, ein Worker, DEM bis Zoom 13, Cache/Abbruch, Quellenhinweise). Profil-/Sicherungsumfang und strikte Typvalidierung erweitert. Drei gezielte Layer-/Sicherungs-/Terrain-/UI-Fälle grün, reale Terrainprobe plausibel. [Kartenebenen](vtm-map-layers.md). Original-Bright-Assets unverändert. Gerätebild/Zoom-Lesbarkeit weiter beurteilen.
 
-Version 0.8.88 / Build 129 über GitHub Actions gebaut und geprüft. [Änderungen](release-0.8.88.md), [Buildnachweis](build-129.md). Enthält alle folgenden Korrekturen. Smartphone-GPU/Zoom-Eindruck offen.
+Neue APK ausdrücklich angefordert, ausschließlich über GitHub Actions gebaut und geprüft. [Änderungen](release-0.8.89.md), [Buildnachweis](build-130.md).
 
 ## Abgeschlossene Folgeaufträge nach Build 128
 
@@ -45,12 +45,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.88 / Build 129](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.88-release-129.apk), code 158, Quelle `07b8d5b94a566d46e02ff793ec13fd488b50efd0`, 4189008 Bytes, SHA-256 `947936351d20fc760351fe11b88a7be328850470c0a3b926bcb828ac33421fbe`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-Assets, Texte und R8-Namen geprüft. [Nachweis](build-129.md). Vorige APK: [0.8.87 / Build 128](build-128.md).
+[APK 0.8.89 / Build 130](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.89-release-130.apk), code 159, Quelle `fb5438bdc7ed0b2c34b821543821c8267afc2817`, 4207496 Bytes, SHA-256 `53cf66eaee31ddef5ada8f995072f1743da8bbf5c2c703d71154488580c67eb6`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-130.md). Vorige APK: [0.8.88 / Build 129](build-129.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.89 / code 159 / Build 130. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
-
-Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4189008 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.90 / code 160 / Build 131. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
