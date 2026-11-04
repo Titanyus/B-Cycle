@@ -9,4 +9,4 @@
 
 Gezielte API-/Cache-/Diagramm-, native Label-, Editor-/JSON-/Profil-/Backup-, Zeichenreihenfolge-/Grenzen-/Popup- und Flat-Farbprüfungen erfolgreich. Nativer Dateipicker und tatsächliche UTF-8-Ausgabe geprüft. Typografie/UI-Katalog/Bright-Generator/Diff grün, kein Gesamtlauf oder lokale APK. Gerätebild für Dash-Muster/Überdeckung/Zoom und Live-Abgleich mit dem Intervals-Konto noch offen.
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-132.md).

@@ -1,6 +1,6 @@
-# Aktueller Stand: APK 0.8.89 / Build 130 veröffentlicht
+# Aktueller Stand: APK 0.8.90 / Build 132 veröffentlicht
 
-## Änderungen nach Build 130, noch unveröffentlicht
+## In Build 132 enthalten
 
 - Fitness unter Statistiken als letzter Abschnitt (auch ohne lokale Fahrten): CTL/ATL von Intervals, absolute Form CTL−ATL, 7/30/90 Tage, horizontales Panning/Trägheit, Tagesauswahl, Heute/Aktualisieren. Bestehender Zugang/WLAN, Worker und atomarer Kontocache, keine Uploadänderung. [Details](intervals-fitness.md). Drei gezielte API-/Cache-/UI-Fälle grün; echte Nutzerkontoprüfung/Gerätebild offen.
 - Wiederholte Straßenlabels konnten wegen grober Weltzellen dieselbe Fade-Geometrie überschreiben. Nun räumliche Eins-zu-eins-Zuordnung pro Runde mit aktueller Skala; zwei gleichnamige B16-/Donau-Labels bleiben trotz vertauschter Reihenfolge getrennt. Native Label-/Fadefälle grün. Orte beim Rauszoomen eine halbe Stufe länger behalten; neue Schwellen unverändert. [Details](vtm-label-stability.md).
@@ -9,7 +9,7 @@
 - Karteneditor im Ebenen-Dropdown: native Farbauswahl/vier Linienmuster plus Original, Objekt-/Gesamtreset und JSON-Dateiexport über Android-Picker. Stil je Fahrradprofil mit Sicherung/Kopie. Höhenlinien zwischen Gelände und Straßen/Gebäuden; zwei gefilterte Basispässe nur bei aktivierten Höhenlinien, ein Basispass sonst. Zusätzlicher Grenzschalter admin_level 7, initial an. [Editor/Reihenfolge/Prüfung](vtm-map-editor.md).
 - Flat-Sticky-Header global PRIMARY RGB×0,7, automatische Anpassung an das Farbprofil; 2-dp-Linie/TERTIARY-Inhalte/Glow-Geometrie erhalten.
 
-Neue APK danach ausdrücklich angefordert: vorbereitet als 0.8.90 / code 160 / Build 132, ausschließlich GitHub Actions. Letzte gezielte Prüfungen/Veröffentlichung noch abschließen.
+Neue APK ausdrücklich angefordert, über GitHub Actions gebaut und geprüft. Editor/Reihenfolge/Grenzen/Profil-/Backup-Rundreise/Flat-Farben sowie nativer Dokumentpicker/Dateiausgabe gezielt grün. [Änderungen](release-0.8.90.md), [Buildnachweis](build-132.md). Gerätebild bleibt offen.
 
 ## In Build 130 enthalten
 
@@ -56,12 +56,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.89 / Build 130](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.89-release-130.apk), code 159, Quelle `fb5438bdc7ed0b2c34b821543821c8267afc2817`, 4207496 Bytes, SHA-256 `53cf66eaee31ddef5ada8f995072f1743da8bbf5c2c703d71154488580c67eb6`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-130.md). Vorige APK: [0.8.88 / Build 129](build-129.md).
+[APK 0.8.90 / Build 132](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.90-release-132.apk), code 160, Quelle `e52738ee1ca03596786d5ed53ef8645e41205347`, 4244912 Bytes, SHA-256 `6187fe34e965f1e0644ffd4b43b9df78fbe4a1f33a6f92645b8429966009388c`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-132.md). Vorige APK: [0.8.89 / Build 130](build-130.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.90 / code 160 / Build 132. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
-
-Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4207496 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.91 / code 161 / Build 132. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
