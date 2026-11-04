@@ -16,3 +16,5 @@ Bright-JSON/XML, alle drei eigenen Shader, 111 Spritevarianten und Atlas bytegen
 [Änderungen](release-0.8.90.md): Fitness unter Statistiken, getrennte wiederholte Straßen-/Flusslabels, Orte beim Herauszoomen länger behalten, direkter Ebenenbutton, native Farb-/Linienstiländerungen mit JSON-Dateiexport, Höhenlinien unter Straßen/Gebäuden, separater Grenzschalter für admin_level 7 und automatisch abgedunkelte Flat-Sticky-Header.
 
 Gezielte API-/Cache-/Diagramm-, Label-/Fade-, Popup-/Editor-/Profil-/Backup-/Reihenfolge-/Grenzen- und Flat-Farbprüfungen erfolgreich. Tatsächlicher nativer Dateipicker samt UTF-8-Ausgabe geprüft. Typografie/UI-Katalog/Bright-/Diff-Prüfung grün. Kein Gesamtlauf, keine lokale APK. Gerätebild für Dash-Muster/Überdeckung/Zoom und Live-Abgleich mit dem Intervals-Konto noch zu beurteilen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4244912 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
