@@ -95,7 +95,9 @@ internal class RouteManagerView(context: Context,
         val header = BicycleComponents.header(context, themes).apply { tag = "route_manager_header" }
         header.setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
         header.addView(FrameLayout(context).apply {
-            addView(BicycleComponents.heading(context, themes, context.getString(if(query.templates) R.string.route_templates_title else if(query.scope!=null) R.string.route_rides_title else R.string.ui_route_manager_title)), FrameLayout.LayoutParams(-1, -1))
+            addView(BicycleComponents.heading(context, themes, context.getString(if(query.templates) R.string.route_templates_title else if(query.scope!=null) R.string.route_rides_title else R.string.ui_route_manager_title)).apply {
+                setAutoSizeTextTypeUniformWithConfiguration(18,BicycleDesign.headingSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
+            }, FrameLayout.LayoutParams(-1, -1))
         }, LayoutParams(-1, -1))
         addView(header, LayoutParams(-1, dp(BicycleDesign.headerHeight)))
         addView(status, LayoutParams(-1, -2))

@@ -28,6 +28,7 @@ internal class VtmBrightTheme private constructor(
         }
     }
     override fun matchElement(type:GeometryType,tags:TagSet,zoomLevel:Int):Array<RenderStyle<*>>? {
+        when(tags.getValue("layer")) { "poi","aerodrome_label" -> return null }
         val candidates=layers[tags.getValue("layer")].orEmpty()
         val matched=TagSet()
         // The generated native instructions use these only for sprite selection/cycling overlay.

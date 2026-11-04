@@ -34,6 +34,12 @@ class VtmVectorMapTest {
         try {
             val theme=VtmBrightTheme.load(false)
             assertEquals(Color.rgb(248,244,240),theme.mapBackground)
+            for(layer in listOf("poi","aerodrome_label")) for(kind in listOf("fuel","restaurant","railway","aerodrome")) {
+                val poi=TagSet().apply { add(Tag("layer",layer));add(Tag("class",kind));add(Tag("rank","1"));add(Tag("name","POI")) }
+                assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POINT,poi,19).isNullOrEmpty())
+            }
+            val village=TagSet().apply { add(Tag("layer","place"));add(Tag("class","village"));add(Tag("name","Billenhausen")) }
+            assertFalse(theme.matchElement(GeometryBuffer.GeometryType.POINT,village,16).isNullOrEmpty())
             val water=TagSet().apply { add(Tag("layer","water"));add(Tag("class","lake")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,water,16).orEmpty()
                 .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==Color.rgb(191,217,242) })

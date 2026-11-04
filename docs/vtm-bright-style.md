@@ -46,3 +46,7 @@ Der Vergleich zeigte einen Fehler der VTM-Anbindung: `VectorTileLayer.setTheme` 
 `VtmBaseMap` gibt jetzt beim Initialisieren und Wiederaufnehmen einer Vektorkarte deren `theme.mapBackground` an `MapRenderer.setBackgroundColor` weiter. Das Wiederaufnehmen ist notwendig, weil jede neu konstruierte VTM-MapView die gemeinsame Clear-Farbe erneut auf Grau setzt. Dashboard und Streckendetailkarten nutzen dieselbe Korrektur. Keine Änderungen an JSON, erzeugten Stilregeln oder gewählten Flächenfarben.
 
 Neuer gezielter Test prüft die tatsächliche Renderer-Clear-Farbe: vor der Korrektur fehlgeschlagen; danach beim Laden und nach Konstruktion einer weiteren MapView/Wiederaufnahme erfolgreich. Zusätzlich bestehender Raster-/Vektorwechseltest erfolgreich, insgesamt zwei gezielte Fälle. Logs `/workspace/.tools/bright-background-before-test.log` und `bright-background-fixed-tests.log`. Kompilation/Generator/Typografie/Atlas/Diff erfolgreich. Die Hintergrundkorrektur ist in [APK 0.8.84 / Build 125](build-125.md) enthalten.
+
+## POI-Darstellung ab 04.11.2026
+
+Auf ausdrücklichen Nutzerauftrag werden die Quelllayer `poi` und `aerodrome_label` in VtmBrightTheme vor dem Style-Matching ausgeblendet. Damit entfallen Tankstellen und weitere POI-Icons/-Beschriftungen einschließlich Flughafen-Labels; Orts-/Straßenbeschriftung bleibt erhalten. Bright-JSON, generiertes XML und Sprites bleiben als unveränderte Referenz erhalten. Rasterquellen sind nicht betroffen.

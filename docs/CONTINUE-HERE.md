@@ -1,6 +1,12 @@
-# Aktueller Stand: Track-Dropdown-Icons in Trackfarbe; letzte APK 0.8.86 / Build 127
+# Aktueller Stand: Strecken-Haupttitel vollständig und Vektorkarte ohne POIs; letzte APK 0.8.86 / Build 127
 
-## Aktueller Auftrag abgeschlossen: Trackfarben im Dropdown-Kopf
+## Aktueller Auftrag abgeschlossen: Haupttitel und POIs
+
+Haupttitel der gefahrenen Sammlung heißt „Gefahrene Strecke“. Menüeintrag bleibt „Gefahrene Strecken“. Haupttitel der Streckenverwaltung skaliert bei Platzmangel nativ zwischen 18 sp und headingSp, damit er vollständig in den vorhandenen Header passt.
+
+VtmBrightTheme unterdrückt die OpenMapTiles-Ebenen poi und aerodrome_label vor dem nativen Matching, also Tankstellen/übrige POIs samt Icons und Namen sowie Flughafen-Labels. Orts-/Straßennamen, Geometrien, Tracks und Radwege bleiben; kein Schalter, keine Änderung der unveränderten Bright-JSON oder erzeugter Assets. Rasterkarten unverändert. Ein vorhandener gezielter Vektortest grün, ergänzt um POI-Ausschluss und erhaltene Ortsbeschriftung (vector-no-poi-test.log). Ressourcen/Kotlin, Typografie/Atlas/Diff grün. Keine neue APK beauftragt; Gerätesichtprüfung offen.
+
+## Vorheriger Auftrag abgeschlossen: Trackfarben im Dropdown-Kopf
 
 Alle vier Trackrahmen verwenden die jeweils gespeicherte Trackfarbe für ihr Streckenicon. BicycleFrameDropdown.leadingIconColor ist optional; andere Rahmen behalten FOREGROUND. Theme-Neubindung behält die explizite Iconfarbe, Text/Chevron bleiben Themefarben. MapLineStyleView setzt die Farbe beim Aufbau und bei Farbänderungen über HEX oder Palette; Icon bleibt deckend unabhängig von der Linien-Deckkraft. Kein neuer Preference-Key, keine neue APK beauftragt.
 
