@@ -16,3 +16,5 @@ Bright-JSON/XML, alle drei eigenen Shader, 111 Spritevarianten und Atlas bytegen
 [Änderungen](release-0.8.89.md): fehlende Glyphen durch falsche GL-Attributaktivierung korrigiert, Straßennummer und Hintergrund gekoppelt, Kartenebenen je Profil schaltbar, optionale Höhenlinien aus Mapzen/AWS Terrain.
 
 Drei gezielte Beschriftungs-/Schildprüfungen und drei Layer-/Profil-/Terrain-/UI-Prüfungen erfolgreich. Echte GLES-Pixelprüfung mit vier erzwungenen Attributbelegungen reproduziert den alten Glyphenfehler und bestätigt die Korrektur. Reale Terrainprobe plausibel; Typografie/UI-Katalog/Bright-/Diff-Prüfung grün. Kein Gesamtlauf, keine lokale APK. Smartphone-GPU und Zoom-/Terrain-Lesbarkeit noch zu beurteilen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4207496 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
