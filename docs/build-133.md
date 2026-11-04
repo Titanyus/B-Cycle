@@ -16,3 +16,5 @@ Bright-JSON/XML, alle drei eigenen Shader, 111 Spritevarianten und Atlas bytegen
 [Änderungen](release-0.8.91.md): Maximalzoom-Gebäudegeometrie vor signed-short-Packung auf Zieltile begrenzen; größere radiale Abstände gleicher Straßennummern, viewportweite und lückenorientierte Kandidatenauswahl. Vorhandene Editor-/Fitness-/Profilfunktionen erhalten.
 
 Gezielte native Overzoomprüfung Stufen 15–19 und Quellstufe, bestehende Label-/Fadefälle sowie regelmäßige Verteilung bei umgekehrter Kandidatenreihenfolge und 90° Kartendrehung grün. Typografie/Bright-/Diff-Prüfung grün. Kein Gesamtlauf, keine lokale APK. Gerätevergleich der konkret gemeldeten Szene und realen Straßendichte noch offen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4261296 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
