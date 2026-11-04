@@ -9,4 +9,4 @@
 
 15 gezielte Fälle erfolgreich über die einzelnen Aufträge: Auswahl/Persistenz, Benachrichtigungen, Cloud-Abstände/Status, geschützte Wiederherstellung, Track-Sichtbarkeit, HRV-Menü/Zeiten und native Sticky-Darstellung/Scrollen. Zentrale Typografie-/Atlas-/Bright-/Diff-Prüfungen erfolgreich. Kein Gesamtlauf, keine lokale APK. Gerätesichtprüfung offen.
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-127.md).

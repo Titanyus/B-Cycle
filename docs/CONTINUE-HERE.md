@@ -1,10 +1,14 @@
-# Aktueller Stand: Flat-Sticky-Designversuch; letzte APK 0.8.85 / Build 126
+# Aktueller Stand: APK 0.8.86 / Build 127 veröffentlicht
 
-## Aktueller Auftrag: Flat-Sticky-Designversuch
+## Aktueller Auftrag abgeschlossen: neue APK
+
+Version 0.8.86 / Build 127 über GitHub Actions gebaut und geprüft. [Buildnachweis](build-127.md), [Änderungen](release-0.8.86.md). Enthält alle Änderungen seit Build 126 samt Flat-Designversuch; Gerätesichtprüfung offen.
+
+## Flat-Sticky-Designversuch
 
 Vorheriger Stand lokal durch annotierten Git-Tag `design-before-flat-sticky-lines-2026-11-04` gesichert, Ziel `10453de2d9119db0a878f899e07b51ba9b695cd8`. Er enthält alle bisherigen Änderungen einschließlich HRV-Menü und „Dashboards & UI“. Bei Rückkehr spätere fachliche Änderungen nicht pauschal zurücksetzen; gezielt den Designversuch rückgängig machen.
 
-Flat: BicycleSectionHeader zeichnet oben eine 2-dp-Linie mit FOREGROUND/controlBorderAlpha (wie Dropdown-Rahmen). Keine zusätzliche Layout-/Touchhöhe. BicycleSectionCards zeichnet die Inhalts-/Zwischenflächen TERTIARY, einschließlich Accordion-Inhalten und Headergruppen ohne Accordion. Glow-Geometrie/-Farben und Sticky-/Accordion-Funktion bleiben erhalten. Keine neue APK beauftragt oder gebaut; Gerätesichtprüfung offen.
+Flat: BicycleSectionHeader zeichnet oben eine 2-dp-Linie mit FOREGROUND/controlBorderAlpha (wie Dropdown-Rahmen). Keine zusätzliche Layout-/Touchhöhe. BicycleSectionCards zeichnet die Inhalts-/Zwischenflächen TERTIARY, einschließlich Accordion-Inhalten und Headergruppen ohne Accordion. Glow-Geometrie/-Farben und Sticky-/Accordion-Funktion bleiben erhalten. In Build 127 enthalten; Gerätesichtprüfung offen.
 
 Zwei gezielte native Tests erfolgreich: Flat→Glow-Rückwechsel, tatsächliche Linien-/Flächenpixel, unveränderte Geometrie/Accordion und Sticky-Pinning/Push/Release/native Drag-Gesten. Log /workspace/.tools/flat-sticky-trial-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich; kein Gesamtlauf.
 
@@ -14,7 +18,7 @@ Haupteinstellungen beginnen mit zentriertem ausgefülltem BicycleSpecialButton �
 
 „Design & UI“ heißt jetzt „Dashboards & UI“, einschließlich zugehöriger Sicherungsbezeichnung und Hilfetext. Keys und Funktionen bleiben erhalten.
 
-Drei gezielte Tests erfolgreich: kompakter Menüaufbau/Positionen/gefüllte Pille/erweitertes Menü, echter direkter Auswertungseinstieg samt Zurücknavigation sowie HRV-Einstellungen/Sicherungsrundreise. Log /workspace/.tools/hrv-menu-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich; keine neue APK beauftragt oder gebaut. Gerätesichtprüfung offen.
+Drei gezielte Tests erfolgreich: kompakter Menüaufbau/Positionen/gefüllte Pille/erweitertes Menü, echter direkter Auswertungseinstieg samt Zurücknavigation sowie HRV-Einstellungen/Sicherungsrundreise. Log /workspace/.tools/hrv-menu-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich; in Build 127 enthalten. Gerätesichtprüfung offen.
 
 ## Vorheriger Auftrag abgeschlossen: Track-Schalter und HRV-Slider
 
@@ -22,7 +26,7 @@ Trackrahmen heißen „Aktiver Track“ und „User Track 1–3“; rechts jewei
 
 HRV: BicycleSettingSlider mit Zeit direkt im Zugpunkt und kurzen Labels „Ruhephase“/„Messphase“. Bereiche 15–60 s / 60–300 s, 15-s-Schritte, Sperre und Persistenz unverändert. [Details](dropdown-frame.md).
 
-Drei gezielte Fälle grün: HRV-Bereiche/Sicherungsrundreise und Slider-Tastaturänderung; Sichtbarkeitsschalter in den echten Kartenoptionen samt unabhängigen geschlossenen Rahmen und drei Slotzuständen; Bibliotheksfall mit belegten Slots, Master-Sichtbarkeit und unveränderten Zuordnungen. Log /workspace/.tools/track-switch-hrv-slider-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf und keine neue APK; Gerätesichtprüfung offen.
+Drei gezielte Fälle grün: HRV-Bereiche/Sicherungsrundreise und Slider-Tastaturänderung; Sichtbarkeitsschalter in den echten Kartenoptionen samt unabhängigen geschlossenen Rahmen und drei Slotzuständen; Bibliotheksfall mit belegten Slots, Master-Sichtbarkeit und unveränderten Zuordnungen. Log /workspace/.tools/track-switch-hrv-slider-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf; in Build 127 enthalten, Gerätesichtprüfung offen.
 
 ## Vorheriger Auftrag abgeschlossen: übrige Rahmen-Dropdowns
 
@@ -30,7 +34,7 @@ Dashboardauswahl, alle vier Trackdarstellungen und „Benachrichtigung anzeigen�
 
 Die fünf Cloud-Formulare verwenden allein die Standard-Innenabstände des Rahmens (16 dp unten). Leere Live-Statuszeilen beanspruchen keinen Platz; Meldungen werden bei Inhalt wieder sichtbar. Alle drei Wiederherstellungen haben direkt Lokal/WebDAV im Rahmen; bei HRV darunter getrennt der HRV4Training-CSV-Import. Bestehende SAF-/Passwort-/Bestätigungsabläufe bleiben erhalten. [Details](dropdown-frame.md).
 
-Sieben gezielte Tests erfolgreich (Dashboardauswahl, Trackstil, zwei Benachrichtigungsfälle, drei Backup-/Cloudfälle), einschließlich Auswahlpersistenz, unabhängiger Schalter, direkter Wiederherstellung, Schutzbestätigung und tatsächlichem unteren Rahmenabstand aller fünf Dienste. Log: /workspace/.tools/framed-settings-tests.log. Kotlin-/Ressourcenkompilation, Typografie, Atlas und Diff-Prüfung erfolgreich. Kein Gesamtlauf, keine neue APK beauftragt oder gebaut; Sichtkontrolle auf dem Gerät steht aus.
+Sieben gezielte Tests erfolgreich (Dashboardauswahl, Trackstil, zwei Benachrichtigungsfälle, drei Backup-/Cloudfälle), einschließlich Auswahlpersistenz, unabhängiger Schalter, direkter Wiederherstellung, Schutzbestätigung und tatsächlichem unteren Rahmenabstand aller fünf Dienste. Log: /workspace/.tools/framed-settings-tests.log. Kotlin-/Ressourcenkompilation, Typografie, Atlas und Diff-Prüfung erfolgreich. Kein Gesamtlauf; in Build 127 enthalten, Sichtkontrolle auf dem Gerät steht aus.
 
 ## Erhaltener Stand aus Build 126: Vektorfehler nach Dashboardwechsel
 
@@ -59,15 +63,13 @@ Acht eindeutige gezielte Fälle erfolgreich; nach Ergänzungen nur betroffene/of
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.85 / Build 126](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.85-release-126.apk), code 155, Quelle `73dae6f21d7339e31c2f6d3e5cbb9e89e9dc9279`, 4204773 Bytes, SHA-256 `adb2bd9e24b4ca51fa2ced9af061e8687634448a6ac7a30b82f0155946d2646d`. Signatur/CI-Prüfsumme/Version/Manifest/ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 27 Shader, JSON/XML/111 Spritevarianten/Referenzfarben und bestehende neue Texte geprüft. [Nachweis](build-126.md).
+[APK 0.8.86 / Build 127](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.86-release-127.apk), code 156, Quelle `fc7bd1c6a8505ceaf301e9370732b0a3cb9c73e6`, 4204677 Bytes, SHA-256 `9751401de637b7e104394904e768e455bddeaf578d402e1dbe59887973e2de5d`. Signatur/CI-Prüfsumme/Version/Manifest/ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 27 Shader, Bright-Ressourcen und neue Texte geprüft. [Nachweis](build-127.md).
 
-Vorige APK: [0.8.84 / Build 125](build-125.md). Rückfallstand vor Enginewechsel: [Meilenstein 0.8.78 / Build 119](milestone-0.8.78.md), dauerhaft gesichert; nicht verändern.
+Vorige APK: [0.8.85 / Build 126](build-126.md). Meilenstein vor Enginewechsel [0.8.78 / Build 119](milestone-0.8.78.md) unverändert erhalten. Rückkehr-Tag für Flat-Designversuch siehe oben.
 
 ## Weitere Planung
 
 - Keine automatische Stiländerung im Akkusparmodus. Minimalstil: kleine Straßen/Feldwege ausblenden, große Straßen/Orte/Wasser/Wald/Position/gewählte Tracks erhalten. OLED-/Sparstil und mögliche Dashboardoption noch offen, nicht gebaut.
 - Maputnik als Browsereditor; kein Live-JSON-Stilimport beauftragt. Generator ist Entwicklungswerkzeug.
 - Sensorfrequenz/weniger Aufzeichnung waren nur Verständnisfragen: keine Drosselung von GPS/BLE/Rohdaten/Analyse aus Akkuwünschen ableiten.
-- Nächste APK nur auf ausdrücklichen Auftrag ausschließlich GitHub Actions, voraussichtlich 0.8.86 / code 156 / Build 127. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/27 Shader/Bright-Ressourcen und echten direkten Download prüfen.
-
-Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4204773 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+- Nächste APK nur auf ausdrücklichen Auftrag ausschließlich GitHub Actions, voraussichtlich 0.8.87 / code 157 / Build 128. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/27 Shader/Bright-Ressourcen und echten direkten Download prüfen.
