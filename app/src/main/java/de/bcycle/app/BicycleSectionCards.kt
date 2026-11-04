@@ -53,15 +53,15 @@ internal object BicycleSectionCards {
     fun apply(root:View) {
         if(root !is ViewGroup) return
         val headers=(0 until root.childCount).map(root::getChildAt).filterIsInstance<BicycleSectionHeader>()
-            .filter { it.expanded!=null }
         if(headers.isNotEmpty() && installed.put(root,true)==null) {
             val manager=headers.first().manager
             var original=root.background
             val cards=object:Drawable() {
                 private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
                 override fun draw(canvas:Canvas) {
-                    if(BicycleAppearance.flat(root.context)) { original?.let { it.bounds=bounds;it.draw(canvas) };return }
                     val tokens=manager.active.tokens
+                    if(BicycleAppearance.flat(root.context)) { paint.color=tokens.tertiary;canvas.drawRect(bounds,paint);return }
+                    if(headers.none { it.expanded!=null }) { original?.let { it.bounds=bounds;it.draw(canvas) };return }
                     // The section cards need a distinct page surface; dialog styling stays independent.
                     paint.color=tokens.secondary;canvas.drawRect(bounds,paint)
                     paint.color=tokens.tertiary
@@ -85,18 +85,16 @@ internal object BicycleSectionCards {
         }
         (0 until root.childCount).map(root::getChildAt).forEach(::apply)
     }
-    /** Neutral body backgrounds must not cover the rounded shared card; keep Flat's original. */
+    /** Section surfaces use TERTIARY in Flat and the shared card surface in Glow. */
     fun content(content:View,header:BicycleSectionHeader) {
-        var original=content.background
         val transparent=object:Drawable() {
             override fun draw(canvas:Canvas) = Unit
             override fun setAlpha(alpha:Int) = Unit
             override fun setColorFilter(filter:ColorFilter?) = Unit
             @Deprecated("Native drawable contract") override fun getOpacity()=PixelFormat.TRANSPARENT
         }
-        BicycleComponents.bindTheme(content,header.manager) {
-            if(content.background!==transparent) original=content.background
-            content.background=if(BicycleAppearance.flat(content.context)) original else transparent
+        BicycleComponents.bindTheme(content,header.manager) { tokens ->
+            content.background=if(BicycleAppearance.flat(content.context)) android.graphics.drawable.ColorDrawable(tokens.tertiary) else transparent
             (header.parent as? View)?.invalidate()
         }
     }

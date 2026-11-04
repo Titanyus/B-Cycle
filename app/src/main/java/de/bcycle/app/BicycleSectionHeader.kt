@@ -59,9 +59,17 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
         background=object:android.graphics.drawable.GradientDrawable() {
             private val matte=android.graphics.Paint().apply { color=tokens.secondary }
             private val fill=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color=tokens.tertiary }
+            private val rule=android.graphics.Paint().apply {
+                color=(tokens.foreground and 0xffffff) or ((android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
+            }
             private val card=android.graphics.RectF()
             override fun draw(canvas:android.graphics.Canvas) {
-                if(flat) { super.draw(canvas);return }
+                if(flat) {
+                    super.draw(canvas)
+                    canvas.drawRect(bounds.left.toFloat(),bounds.top.toFloat(),bounds.right.toFloat(),
+                        bounds.top+BicycleDesign.dp(context,2).toFloat(),rule)
+                    return
+                }
                 canvas.drawRect(bounds,matte)
                 val saved=canvas.save()
                 canvas.clipRect(bounds)

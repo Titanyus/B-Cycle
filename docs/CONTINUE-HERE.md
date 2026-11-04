@@ -1,6 +1,14 @@
-# Aktueller Stand: HRV-Einstieg im Hauptmenü; letzte APK 0.8.85 / Build 126
+# Aktueller Stand: Flat-Sticky-Designversuch; letzte APK 0.8.85 / Build 126
 
-## Aktueller Auftrag abgeschlossen: HRV-Menü und Bereichsname
+## Aktueller Auftrag: Flat-Sticky-Designversuch
+
+Vorheriger Stand lokal durch annotierten Git-Tag `design-before-flat-sticky-lines-2026-11-04` gesichert, Ziel `10453de2d9119db0a878f899e07b51ba9b695cd8`. Er enthält alle bisherigen Änderungen einschließlich HRV-Menü und „Dashboards & UI“. Bei Rückkehr spätere fachliche Änderungen nicht pauschal zurücksetzen; gezielt den Designversuch rückgängig machen.
+
+Flat: BicycleSectionHeader zeichnet oben eine 2-dp-Linie mit FOREGROUND/controlBorderAlpha (wie Dropdown-Rahmen). Keine zusätzliche Layout-/Touchhöhe. BicycleSectionCards zeichnet die Inhalts-/Zwischenflächen TERTIARY, einschließlich Accordion-Inhalten und Headergruppen ohne Accordion. Glow-Geometrie/-Farben und Sticky-/Accordion-Funktion bleiben erhalten. Keine neue APK beauftragt oder gebaut; Gerätesichtprüfung offen.
+
+Zwei gezielte native Tests erfolgreich: Flat→Glow-Rückwechsel, tatsächliche Linien-/Flächenpixel, unveränderte Geometrie/Accordion und Sticky-Pinning/Push/Release/native Drag-Gesten. Log /workspace/.tools/flat-sticky-trial-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich; kein Gesamtlauf.
+
+## Vorheriger Auftrag abgeschlossen: HRV-Menü und Bereichsname
 
 Haupteinstellungen beginnen mit zentriertem ausgefülltem BicycleSpecialButton „HRV-Messung“ (Herzicon, bisherige Messnavigation). „HRV-Auswertung“ steht als normale Menüzeile im Design der übrigen Einträge zwischen Streckenvorlagen und Statistiken und öffnet die bestehende gemeinsame Tages-/Verlaufsauswertung. Beide Buttons sind aus „HRV & Tagesbefinden“ entfernt; dort bleiben nur Einstellungen. Neue SettingsAction-Werte hinten angehängt; erweiterte Menüauswahl auf ihren bisherigen Enum-Bereich begrenzt.
 
