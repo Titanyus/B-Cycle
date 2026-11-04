@@ -41,9 +41,22 @@ class HrvSettingsTest {
         for(tag in listOf("hrv_first_start","hrv_vibrate_end","hrv_sound_end")) assertTrue(view.findViewWithTag<android.widget.Switch>(tag).isChecked)
         assertNull(view.findViewWithTag<View>("hrv_first_start_details"))
         assertNull(view.findViewWithTag<View>("hrv_first_start_expand"))
-        assertEquals(view.indexOfChild(view.findViewWithTag<View>("hrv_first_start"))+1,view.indexOfChild(view.findViewWithTag<View>("hrv_vibrate_end")))
+        val controls=view.findViewWithTag<android.widget.LinearLayout>("hrv_protocol_settings")
+        assertEquals(controls.indexOfChild(view.findViewWithTag<View>("hrv_first_start"))+1,controls.indexOfChild(view.findViewWithTag<View>("hrv_vibrate_end")))
+        assertEquals(listOf("HRV","Tagesbefinden"),(0 until view.childCount).map { view.getChildAt(it) }.filterIsInstance<BicycleSectionHeader>().map { it.titleView.text.toString() })
         view.findViewWithTag<android.widget.Switch>("hrv_sound_end").performClick()
         assertFalse(settings.read().soundAtEnd);assertTrue(settings.read().vibrateAtEnd)
+        val headers=(0 until view.childCount).map { view.getChildAt(it) }.filterIsInstance<BicycleSectionHeader>()
+        headers.last().performClick()
+        val scroll=BicycleStickyScrollView(c).apply { addView(view) }
+        scroll.measure(View.MeasureSpec.makeMeasureSpec(720,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(900,View.MeasureSpec.EXACTLY));scroll.layout(0,0,720,900)
+        for(header in headers) {
+            val sample=android.graphics.Bitmap.createBitmap(1,1,android.graphics.Bitmap.Config.ARGB_8888)
+            val body=header.cardContent!!
+            view.background.setBounds(0,0,view.width,view.height)
+            val canvas=android.graphics.Canvas(sample);canvas.translate(-view.width/2f,-body.top.toFloat());view.background.draw(canvas)
+            assertEquals(theme.active.tokens.tertiary,sample.getPixel(0,0));sample.recycle()
+        }
     }
     @Test fun onlyHrvMeasurementHeaderUsesWindowColorAndActiveScreenHasNoOutsideInfo() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()

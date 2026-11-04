@@ -9,6 +9,8 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,canEdit:()->B
     init {
         orientation=VERTICAL;tag="hrv_settings"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
+        val hrvHeader=BicycleForm.section(this,themes,R.string.hrvt_hrv)
+        val controls=LinearLayout(context).apply { orientation=VERTICAL;tag="hrv_protocol_settings" }
         val settings=HrvSettings(context)
         fun duration(rest:Boolean) {
             val minimum=if(rest) 15 else 60;val maximum=if(rest) 60 else 300
@@ -38,17 +40,17 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,canEdit:()->B
                     }
                 }
             })
-            addView(settingSliderRow(context,themes,title,slider),LayoutParams(-1,-2))
+            controls.addView(settingSliderRow(context,themes,title,slider),LayoutParams(-1,-2))
         }
         duration(true);duration(false)
-        addView(BicycleComponents.sectionDivider(context,themes))
-        addView(Switch(context).apply {
+        controls.addView(BicycleComponents.sectionDivider(context,themes))
+        controls.addView(Switch(context).apply {
             tag="hrv_first_start";setText(R.string.hrv_first_start);isChecked=settings.read().showOnFirstStart
             BicycleDialogStyle.control(this,themes)
             setOnCheckedChangeListener { _,on -> settings.write(settings.read().copy(showOnFirstStart=on)) }
         },LayoutParams(-1,-2))
         fun signal(vibrate:Boolean) {
-            addView(Switch(context).apply {
+            controls.addView(Switch(context).apply {
                 tag=if(vibrate) "hrv_vibrate_end" else "hrv_sound_end"
                 setText(if(vibrate) R.string.hrv_vibrate_end else R.string.hrv_sound_end)
                 isChecked=settings.read().let { if(vibrate) it.vibrateAtEnd else it.soundAtEnd }
@@ -59,6 +61,7 @@ internal class HrvSettingsView(context:Context,themes:ThemeManager,canEdit:()->B
             },LayoutParams(-1,-2))
         }
         signal(true);signal(false)
+        addView(controls,LayoutParams(-1,-2));hrvHeader.accordion(controls,true)
         val heading=BicycleForm.section(this,themes,R.string.hrvq_title)
         val questions=HrvQuestionSettingsView(context,themes)
         addView(questions,LayoutParams(-1,-2));heading.accordion(questions,false)
