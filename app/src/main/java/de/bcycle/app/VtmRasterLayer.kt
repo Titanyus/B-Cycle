@@ -2,6 +2,7 @@ package de.bcycle.app
 
 import android.content.Context
 import okhttp3.Cache
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.CacheControl
@@ -23,6 +24,7 @@ internal class VtmRasterLayer(map:org.oscim.map.Map,source:BitmapTileSource):Bit
     fun pause() { isEnabled=false;pauseLoaders(false) }
 }
 internal object VtmTileHttp {
+    private val vectorLocks=Array(32) { Any() }
     private var client:OkHttpClient?=null
     @Synchronized internal fun client(context:Context):OkHttpClient {
         return client ?: OkHttpClient.Builder()
@@ -37,13 +39,23 @@ internal object VtmTileHttp {
         }
     }
     /** Metadata and tile downloads run on VTM loader threads, never during view creation. */
-    fun vector(context:Context):OpenMapTilesMvtTileSource {
+    fun vector(context:Context,sharePasses:Boolean=false):OpenMapTilesMvtTileSource {
         val http=client(context)
         val vectorHttp=http.newBuilder().addInterceptor { chain ->
             val parts=chain.request().url.encodedPath.removePrefix("/bcycle-vector/").removeSuffix(".pbf").split("/")
             if(parts.size!=3 || parts.any { it.toIntOrNull()==null }) throw IOException("Invalid vector tile")
             val url=OpenFreeMapTiles.template(http).replace("{z}",parts[0]).replace("{x}",parts[1]).replace("{y}",parts[2])
-            chain.proceed(chain.request().newBuilder().url(url).build())
+            if(!sharePasses) return@addInterceptor chain.proceed(chain.request().newBuilder().url(url).build())
+            synchronized(vectorLocks[(url.hashCode() and Int.MAX_VALUE)%vectorLocks.size]) {
+                // Consume before releasing the lock so the shared disk cache is committed
+                // before a second pass requests this same tile.
+                chain.proceed(chain.request().newBuilder().url(url).build()).use { response ->
+                    val body=response.body ?: throw IOException("Missing vector tile")
+                    val bytes=body.byteStream().use { it.readNBytes(8*1024*1024+1) }
+                    if(bytes.size>8*1024*1024) throw IOException("Vector tile too large")
+                    response.newBuilder().body(bytes.toResponseBody(body.contentType())).build()
+                }
+            }
         }.build()
         return OpenMapTilesMvtTileSource.builder().url("https://tiles.openfreemap.org")
             .tilePath("/bcycle-vector/{Z}/{X}/{Y}.pbf").locale("de").zoomMin(0).zoomMax(19).overZoom(14)

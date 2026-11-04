@@ -35,11 +35,12 @@ class MapVectorLayersTest {
             Triple(MapVectorLayer.PLACE_NAMES,"place","city"),
             Triple(MapVectorLayer.ROAD_NAMES,"transportation_name","primary"),
             Triple(MapVectorLayer.POIS,"poi","fuel"),
-            Triple(MapVectorLayer.LOCAL_BOUNDARIES,"boundary",""))
+            Triple(MapVectorLayer.LOCAL_BOUNDARIES,"boundary",""),
+            Triple(MapVectorLayer.ADMIN_AREAS,"boundary",""))
         try {
             val all=MapVectorLayer.entries.toSet();val enabled=VtmBrightTheme.load(true,MapVectorLayers(all))
             for((category,source,kind) in cases) {
-                val tags=TagSet().apply { add(Tag("layer",source));add(Tag("class",kind));add(Tag("admin_level","8"));add(Tag("name","Example"));add(Tag("rank","1")) }
+                val tags=TagSet().apply { add(Tag("layer",source));add(Tag("class",kind));add(Tag("admin_level",if(category==MapVectorLayer.ADMIN_AREAS) "7" else "8"));add(Tag("name","Example"));add(Tag("rank","1")) }
                 val type=when(source) { "place","poi" -> GeometryBuffer.GeometryType.POINT;"building","landcover","water" -> GeometryBuffer.GeometryType.POLY;else -> GeometryBuffer.GeometryType.LINE }
                 assertFalse("enabled $source/$kind",enabled.matchElement(type,tags,19).isNullOrEmpty())
                 val disabled=VtmBrightTheme.load(true,MapVectorLayers(all-category))

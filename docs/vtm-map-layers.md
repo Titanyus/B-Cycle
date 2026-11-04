@@ -29,3 +29,7 @@ Drei Fälle: tatsächliches Bright-Theme für alle schaltbaren Quellgruppen/Defa
 ## Direktzugriff nach Build 130
 
 Auf der Dashboardkarte neben dem Auge ein Ebenenbutton mit Layers-Icon. Öffnet ein natives scrollbares Dropdown mit denselben Profil-Keys, einschließlich Radwegehervorhebung. Schalter wirken sofort, Dropdown bleibt zum Vergleichen offen; nur Basislayer wechseln, MapView/Kamera/GPS/Strecken bleiben bestehen. Bei Rasterquelle ausgeblendet. Editor/Profilwechsel/Pause schließen das Dropdown; automatische Bedienelement-Ausblendung hält bei offenem Dropdown an. Gemeinsame Kartenbutton-Geometrie und Footer-Inset-Logik erhalten. Gezielter tatsächlicher Popup-/Schaltertest mit Live-Map-Erhalt und Rasterwechsel grün.
+
+## Editor, Reihenfolge und weitere Grenzen
+
+[Editor und Zeichenreihenfolge](vtm-map-editor.md): Höhenlinien zwischen Gelände und Straßen/Gebäuden, native Objektfarben/Linienstile je Profil mit JSON-Dateiexport. Im Ebenen-Dropdown zusätzlich admin_level 7 getrennt schaltbar, initial an. Bisherige Gemeindegrenzen ab Ebene 8 bleiben unabhängig.

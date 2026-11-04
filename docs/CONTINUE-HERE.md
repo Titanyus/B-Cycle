@@ -6,7 +6,10 @@
 - Wiederholte Straßenlabels konnten wegen grober Weltzellen dieselbe Fade-Geometrie überschreiben. Nun räumliche Eins-zu-eins-Zuordnung pro Runde mit aktueller Skala; zwei gleichnamige B16-/Donau-Labels bleiben trotz vertauschter Reihenfolge getrennt. Native Label-/Fadefälle grün. Orte beim Rauszoomen eine halbe Stufe länger behalten; neue Schwellen unverändert. [Details](vtm-label-stability.md).
 - Ebenenbutton neben dem Auge auf der Dashboardkarte: natives Dropdown mit sofort wirksamen Profil-Schaltern, bleibt zum Vergleichen offen. Keine neue MapView; Pause/Profil/Editor/Raster berücksichtigen. Gezielter Popup-/Layerwechseltest grün. [Details](vtm-map-layers.md).
 
-Noch keine neue APK angefordert. Ausschließlich bei neuem Auftrag über GitHub Actions bauen.
+- Karteneditor im Ebenen-Dropdown: native Farbauswahl/vier Linienmuster plus Original, Objekt-/Gesamtreset und JSON-Dateiexport über Android-Picker. Stil je Fahrradprofil mit Sicherung/Kopie. Höhenlinien zwischen Gelände und Straßen/Gebäuden; zwei gefilterte Basispässe nur bei aktivierten Höhenlinien, ein Basispass sonst. Zusätzlicher Grenzschalter admin_level 7, initial an. [Editor/Reihenfolge/Prüfung](vtm-map-editor.md).
+- Flat-Sticky-Header global PRIMARY RGB×0,7, automatische Anpassung an das Farbprofil; 2-dp-Linie/TERTIARY-Inhalte/Glow-Geometrie erhalten.
+
+Neue APK danach ausdrücklich angefordert: vorbereitet als 0.8.90 / code 160 / Build 131, ausschließlich GitHub Actions. Letzte gezielte Prüfungen/Veröffentlichung noch abschließen.
 
 ## In Build 130 enthalten
 

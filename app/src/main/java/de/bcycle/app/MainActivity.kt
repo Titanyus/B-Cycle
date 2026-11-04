@@ -140,6 +140,7 @@ class MainActivity : Activity() {
     private var scan: BikeSensorScanner? = null
     private var pendingSensor: String? = null
     private var pendingStart = false
+    private var pendingMapStyle:String?=null
     private var pendingReport: String? = null
     private var displayedRecordingStatus: String? = null
     private var rideSummaryPosted=false
@@ -187,6 +188,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         runtime = RideRuntime.get(this)
         pendingBikePhotoSlot=savedInstanceState?.getInt("pendingBikePhotoSlot",-1)?.takeIf { it >= 0 && runtime.bikes.all().any { bike -> bike.slot == it } }
+        pendingMapStyle=savedInstanceState?.getString("pendingMapStyle")
         pendingReport = savedInstanceState?.getString("pendingReport")
         pendingBackupExport = savedInstanceState?.getString("settingsBackupPendingFile")?.takeIf { it.matches(Regex("settings-export-[a-f0-9-]{36}\\.zip")) }
             ?.let { java.io.File(cacheDir,it) }?.takeIf { it.isFile }
@@ -237,7 +239,7 @@ class MainActivity : Activity() {
         dashboard.graphWidthChanged={ runtime.liveGraphs.width=it }
         updateMapBack()
         dashboard.setTemplate(currentTemplate())
-        mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink)
+        mapPanel = MapPanel(this, runtime, { setMapFullscreen(!mapFullscreen) }, ::enableGps, ::openMapLink, ::exportMapStyle)
         mapPanel.cameraVisible = { dialogs.empty && (currentTemplate().hasMap || previewMapActive) }
         mapPanel.finishEditor = ::finishDashboardEditor
         mapPanel.selectMapField = { chooseField(it, mapField = true) }
@@ -1105,6 +1107,12 @@ class MainActivity : Activity() {
         }
         runtime.reconnectSensors(); render()
     }
+    private fun exportMapStyle(json:String) {
+        pendingMapStyle=json
+        try { startActivityForResult(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json")
+            .putExtra(Intent.EXTRA_TITLE,"B-Cycle-map-style-${java.time.LocalDate.now()}.json"),20) }
+        catch(_:android.content.ActivityNotFoundException) { pendingMapStyle=null;BicycleFeedback.show(this,R.string.export_unavailable,long=true) }
+    }
     private fun exportDiagnostic() {
         val gps = runtime.gpsValues
         pendingReport = runtime.diagnostics.report() + "\n" + dashboardStatusReport.orEmpty() + "\nRecording=${runtime.recording} GPS accepted=${runtime.ride.gps.accepted} rejected=${runtime.ride.gps.rejected}\n" +
@@ -1113,11 +1121,20 @@ class MainActivity : Activity() {
             .putExtra(Intent.EXTRA_TITLE, "B-Cycle-${AppVersion.name}-diagnose.txt"), 2) }
         catch (_: android.content.ActivityNotFoundException) { pendingReport = null; BicycleFeedback.show(this, R.string.export_unavailable, long = true) }
     }
-    override fun onSaveInstanceState(outState: Bundle) { outState.putString("settingsBackupPendingFile", pendingBackupExport?.name); outState.putString("pendingReport", pendingReport); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState)
+    override fun onSaveInstanceState(outState: Bundle) { outState.putString("settingsBackupPendingFile", pendingBackupExport?.name); outState.putString("pendingReport", pendingReport); outState.putString("pendingMapStyle",pendingMapStyle); outState.putBoolean("mapFullscreen", mapFullscreen); super.onSaveInstanceState(outState)
         pendingBikePhotoSlot?.let { outState.putInt("pendingBikePhotoSlot",it) } }
     @Deprecated("Native document picker callback")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode==20) {
+            val json=pendingMapStyle;pendingMapStyle=null
+            val uri=data?.data
+            if(resultCode==RESULT_OK && json!=null && uri!=null) Thread({
+                val ok=runCatching { contentResolver.openOutputStream(uri,"wt")?.bufferedWriter(Charsets.UTF_8)?.use { it.write(json) } ?: throw IOException() }.isSuccess
+                runOnUiThread { BicycleFeedback.show(applicationContext,if(ok) R.string.export_saved else R.string.export_failed,long=true) }
+            },"B-Cycle-map-style-export").start()
+            return
+        }
         if(requestCode==19) {
             if(resultCode==RESULT_OK) data?.data?.let { uri ->
                 dialog().setTitle(R.string.hrv4_import).setView(ScrollView(settingsContext).apply {

@@ -41,7 +41,7 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
 /** One resizable map. Bike/GPS ownership stays in RideRuntime; phone heading is display-only. */
 class MapPanel(context: Context, private val runtime: RideRuntime, private val fullscreen: () -> Unit,
                private val requestGps: () -> Unit,
-               private val openCredit: (String) -> Unit) : FrameLayout(context) {
+               private val openCredit: (String) -> Unit,private val exportStyle:(String)->Unit={}) : FrameLayout(context) {
     private val preferences = runtime.preferences
     private val handler = Handler(Looper.getMainLooper())
     private val windRose=android.widget.ImageView(context).apply {
@@ -117,6 +117,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var source = MapProviderSettings.source(context,preferences.getString("mapSource", null))
     private var providerKey=MapProviderSettings.read(context)
     private var downloads: VtmBaseMap
+    private var mapStyle=MapStyleOverrides.read(preferences)
     private var vectorLayers=MapVectorLayers.read(preferences)
     private var cycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
     private var follow = preferences.getBoolean("mapFollow", true)
@@ -267,7 +268,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         refreshRouteButton()
         layersButton=icon("",context.getString(R.string.map_vector_layers),null) {
             holdControls();layersPopup?.dismiss()
-            layersPopup=MapLayersPopup(layersButton,runtime,changed={ refreshSettings() },closed={ scheduleHide() }).also { it.show() }
+            layersPopup=MapLayersPopup(layersButton,runtime,changed={ refreshSettings() },closed={ scheduleHide() },export=exportStyle).also { it.show() }
         }.apply { tag="map_layers_button";graphic(this,BicycleIcon.Layers);visibility=if(source==MapSource.VECTOR) VISIBLE else GONE }
         addView(layersButton,LayoutParams(dp(MapControlDesign.dashboardWidth),dp(MapControlDesign.buttonHeight),Gravity.TOP or Gravity.START).apply { topMargin=dp(MapControlDesign.edgeGap);marginStart=dp(MapControlDesign.nightOffset) })
         addView(routeButton, LayoutParams(dp(MapControlDesign.dashboardWidth), dp(MapControlDesign.buttonHeight), Gravity.TOP or Gravity.START).apply { topMargin = dp(MapControlDesign.edgeGap); marginStart = dp(MapControlDesign.edgeGap) })
@@ -293,7 +294,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCamera() }
     }
 
-    private fun createDownloadLayer(source:MapSource)=VtmBaseMap(context,mapView.map(),source,providerKey,cycleways,mapView::queueEvent,vectorLayers)
+    private fun createDownloadLayer(source:MapSource)=VtmBaseMap(context,mapView.map(),source,providerKey,cycleways,mapView::queueEvent,vectorLayers,mapStyle)
     private fun applyNight() {
         // Saved preference remains compatible; inverted raster tiles are deferred during the VTM migration.
         nightButton.visibility=GONE;nightButton.isEnabled=false
@@ -319,12 +320,13 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     fun refreshSettings() {
         val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
         val nextKey=MapProviderSettings.read(context)
+        val nextStyle=MapStyleOverrides.read(preferences)
         val nextLayers=MapVectorLayers.read(preferences)
         val nextCycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
-        if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey) || (next==MapSource.VECTOR && (nextCycleways!=cycleways || nextLayers!=vectorLayers))) {
+        if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey) || (next==MapSource.VECTOR && (nextCycleways!=cycleways || nextLayers!=vectorLayers || nextStyle!=mapStyle))) {
             pinchZoom.cancel()
             downloads.onDetach()
-            source = next; providerKey=nextKey;cycleways=nextCycleways;vectorLayers=nextLayers
+            source = next; providerKey=nextKey;cycleways=nextCycleways;vectorLayers=nextLayers;mapStyle=nextStyle
             mapView.setZoomLimits(MapZoom.maximum(source))
             if(mapView.zoom>MapZoom.maximum(source)) mapView.setZoom(MapZoom.maximum(source).toDouble())
             downloads = createDownloadLayer(source)

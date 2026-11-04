@@ -15,7 +15,8 @@ internal enum class MapVectorLayer(val title:Int,val defaultVisible:Boolean=true
     ROAD_NAMES(R.string.map_layer_road_names),
     POIS(R.string.map_layer_pois,false),
     LOCAL_BOUNDARIES(R.string.map_layer_local_boundaries,false),
-    CONTOURS(R.string.map_layer_contours,false);
+    CONTOURS(R.string.map_layer_contours,false),
+    ADMIN_AREAS(R.string.map_layer_admin_areas);
     val key get()="mapVectorLayer_$name"
 }
 internal data class MapVectorLayers(val visible:Set<MapVectorLayer> = MapVectorLayer.entries.filter { it.defaultVisible }.toSet()) {
@@ -28,7 +29,11 @@ internal data class MapVectorLayers(val visible:Set<MapVectorLayer> = MapVectorL
             "landcover","landuse","park" -> MapVectorLayer.NATURE
             "water","waterway","water_name" -> MapVectorLayer.WATER
             "place" -> MapVectorLayer.PLACE_NAMES
-            "boundary" -> if((tags.getValue("admin_level")?.toIntOrNull() ?: 0)>=8) MapVectorLayer.LOCAL_BOUNDARIES else null
+            "boundary" -> when(tags.getValue("admin_level")?.toIntOrNull()) {
+                7 -> MapVectorLayer.ADMIN_AREAS
+                in 8..99 -> MapVectorLayer.LOCAL_BOUNDARIES
+                else -> null
+            }
             else -> null
         }
         if(category!=null && category !in this) return false

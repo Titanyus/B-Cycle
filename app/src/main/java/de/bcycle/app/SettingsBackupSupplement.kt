@@ -98,6 +98,7 @@ internal class SettingsBackupSupplement(private val context:Context) {
                                     require(item.getString("type")=="boolean" && item.get("value") is Boolean)
                                 }
                                 if(k==MapRouteSlots.KEY) { require(item.getString("type")=="string");MapRouteSlots.parse(JSONObject(item.getString("value"))) }
+                                if(k==MapStyleOverrides.KEY) { require(item.getString("type")=="string");MapStyleOverrides.parse(JSONObject(item.getString("value"))) }
                                 if(k==MapRouteStyles.key) { require(item.getString("type")=="string");MapRouteStyles.validate(JSONObject(item.getString("value"))) }
                                 if(k==DashboardStatusConfig.key) { require(item.getString("type")=="string");DashboardStatusConfig.parse(item.getString("value")) }
                                 if(k==RideNamingSettings.KEY) { require(item.getString("type")=="string");RideNaming.decode(JSONObject(item.getString("value"))) }

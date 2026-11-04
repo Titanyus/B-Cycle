@@ -12,10 +12,12 @@ import org.oscim.theme.styles.RenderStyle
 import org.oscim.theme.styles.TextStyle
 
 /** Source filters remain exact; VTM owns drawing, resource disposal and its bounded style cache. */
+internal enum class VtmMapPass { ALL,GROUND,FOREGROUND }
 internal class VtmBrightTheme private constructor(
     private val native:IRenderTheme,
     source:JSONObject,
-    private val options:MapVectorLayers
+    private val options:MapVectorLayers,
+    private val pass:VtmMapPass
 ):IRenderTheme by native {
     private data class PriorityKey(val styles:Array<RenderStyle<*>>,val priority:Int)
     private val priorityCache=android.util.LruCache<PriorityKey,Array<RenderStyle<*>>>(256)
@@ -33,6 +35,8 @@ internal class VtmBrightTheme private constructor(
     }
     override fun matchElement(type:GeometryType,tags:TagSet,zoomLevel:Int):Array<RenderStyle<*>>? {
         if(!options.accepts(tags)) return null
+        val ground=tags.getValue("layer") in setOf("landcover","landuse","park","water")
+        if(pass==VtmMapPass.GROUND && !ground || pass==VtmMapPass.FOREGROUND && ground) return null
         val candidates=layers[tags.getValue("layer")].orEmpty()
         val matched=TagSet()
         // The generated native instructions use these only for sprite selection/cycling overlay.
@@ -64,13 +68,14 @@ internal class VtmBrightTheme private constructor(
             }.toTypedArray().also { priorityCache.put(key,it) }
         }
     }
+    override fun getMapBackground()=if(pass==VtmMapPass.FOREGROUND) android.graphics.Color.TRANSPARENT else native.mapBackground
     override fun dispose() { priorityCache.evictAll();native.dispose() }
     override fun scaleTextSize(scale:Float) { priorityCache.evictAll();native.scaleTextSize(scale) }
     companion object {
         private val nativeKeys=arrayOf("layer","class","subclass","bicycle","network","ref_length")
-        fun load(cycleways:Boolean,options:MapVectorLayers=MapVectorLayers()):IRenderTheme {
+        fun load(cycleways:Boolean,options:MapVectorLayers=MapVectorLayers(),style:MapStyleOverrides=MapStyleOverrides(),pass:VtmMapPass=VtmMapPass.ALL):IRenderTheme {
             val source=AssetAdapter.readFileAsStream("styles/bright.json").use { JSONObject(it.bufferedReader().readText()) }
-            return VtmBrightTheme(ThemeLoader.load(VtmCycleTheme(cycleways)),source,options)
+            return VtmBrightTheme(ThemeLoader.load(VtmCycleTheme(cycleways,style)),source,options,pass)
         }
     }
 }

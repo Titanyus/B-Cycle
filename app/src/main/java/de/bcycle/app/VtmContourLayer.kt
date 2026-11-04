@@ -25,22 +25,22 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
 /** Optional native vector overlay. DEM decoding/contours only run on its one tile worker. */
-internal class VtmContourLayer(context:Context,map:Map):VectorTileLayer(map,ContourSource(VtmTileHttp.client(context))) {
+internal class VtmContourLayer(context:Context,map:Map,style:MapStyleOverrides=MapStyleOverrides()):VectorTileLayer(map,ContourSource(VtmTileHttp.client(context))) {
     override fun getNumLoaders()=1
-    init { setTheme(ThemeLoader.load(ContourTheme));pause() }
+    init { setTheme(ThemeLoader.load(ContourTheme(style)));pause() }
     override fun onMapEvent(event:Event,position:MapPosition) {
         tileRenderer().setBitmapAlpha(if(position.zoomLevel>=10) 1f else 0f)
         super.onMapEvent(event,position)
     }
     fun resume() { isEnabled=true;resumeLoaders() }
     fun pause() { isEnabled=false;pauseLoaders(false) }
-    private object ContourTheme:ThemeFile by VtmThemes.OPENMAPTILES {
-        override fun getRenderThemeAsStream()="""
+    private class ContourTheme(private val style:MapStyleOverrides):ThemeFile by VtmThemes.OPENMAPTILES {
+        override fun getRenderThemeAsStream()=MapStyleXml.apply("""
             <rendertheme xmlns="http://opensciencemap.org/rendertheme" version="1" map-background="#00000000">
-              <m e="way" k="contour" v="minor"><line stroke="#668b7355" width="0.6" fix="true" /></m>
-              <m e="way" k="contour" v="major"><line stroke="#998b7355" width="1" fix="true" /></m>
+              <m e="way" k="contour" v="minor"><line id="contour-minor" stroke="#668b7355" width="0.6" fix="true" /></m>
+              <m e="way" k="contour" v="major"><line id="contour-major" stroke="#998b7355" width="1" fix="true" /></m>
             </rendertheme>
-        """.trimIndent().byteInputStream()
+        """.trimIndent(),style).byteInputStream()
     }
 }
 
