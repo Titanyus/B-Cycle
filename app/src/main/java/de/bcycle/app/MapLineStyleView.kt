@@ -15,16 +15,11 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
         orientation=VERTICAL;tag="map_line_styles"
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.map_line_heading)))
         MapLineKind.entries.forEach { kind ->
-            val body=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="map_line_body_${kind.id}" }
-            lateinit var toggle:Button
-            toggle=BicycleComponents.action(context,themes,context.getString(kind.title)) {
-                val open=body.visibility==GONE
-                body.visibility=if(open) VISIBLE else GONE
-                toggle.stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-                BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Route,BicycleIcon.Expand)
-            }.apply { tag="map_line_toggle_${kind.id}";stateDescription=context.getString(R.string.zone_collapsed) }
-            BicycleDialogStyle.accordion(toggle,themes)
-            BicycleDialogStyle.actionIcon(toggle,themes,BicycleIcon.Route,BicycleIcon.Expand)
+            val frame=BicycleFrameDropdown(context,themes,context.getString(kind.title),open=false,leadingIcon=BicycleIcon.Route).apply {
+                tag="map_line_frame_${kind.id}"
+                header.tag="map_line_toggle_${kind.id}"
+            }
+            val body=frame.content.apply { tag="map_line_body_${kind.id}" }
             fun current()=MapRouteStyles.read(prefs,kind)
             val preview=MapLinePreview(context,prefs,kind).apply { tag="map_line_preview_${kind.id}" }
             body.addView(preview,LayoutParams(-1,BicycleDesign.dp(context,150)))
@@ -68,7 +63,7 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
                 { context.getString(R.string.map_line_width_value,(it+1)/2f) }) { value ->
                 MapRouteStyles.write(prefs,kind,current().copy(widthDp=(value+1)/2f));preview.invalidate();changed()
             }
-            addView(toggle,LayoutParams(-1,-2));addView(body,LayoutParams(-1,-2))
+            addView(frame,LayoutParams(-1,-2))
         }
     }
     private fun addSlider(parent:LinearLayout,title:Int,maximum:Int,initial:Int,name:String,

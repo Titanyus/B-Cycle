@@ -34,11 +34,9 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
     private val reorder=TileReorder(scroller,row,themes,{ pages.all().map { it.id } }) { id,index ->
         pages.move(id,index).also { if(it) { refresh();changed() } }
     }
-    private val layoutBody=LinearLayout(context).apply { orientation=VERTICAL;tag="dashboard_layout_details";visibility=GONE;BicycleContentSpacing.accordionContent(this) }
-    private val layoutChoice=BicycleComponents.action(context,themes,"") {
-        layoutBody.visibility=if(layoutBody.visibility==GONE) VISIBLE else GONE
-        refreshLayoutChoices()
-    }.apply { tag="dashboard_layout_choice" }
+    private val layoutFrame=BicycleFrameDropdown(context,themes,"",open=false,leadingIcon=BicycleIcon.Dashboard) { refreshLayoutChoices() }
+    private val layoutBody=layoutFrame.content.apply { tag="dashboard_layout_details" }
+    private val layoutChoice=layoutFrame.header.apply { tag="dashboard_layout_choice" }
     private fun dp(n:Int)=BicycleDesign.dp(context,n)
     private fun template(id:Int)=DashboardTemplate.decode(prefs.getString("dashboardTemplate_$id",DashboardTemplate.entries[id].name)).forBike(bikeType)
     init {
@@ -50,12 +48,11 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         layoutChoice.includeFontPadding=false
         layoutChoice.setSingleLine();layoutChoice.ellipsize=android.text.TextUtils.TruncateAt.END
         layoutChoice.compoundDrawablePadding=dp(BicycleDesign.controlGap)
-        BicycleDialogStyle.accordion(layoutChoice,themes)
         BicycleComponents.bindTheme(layoutChoice,themes) { tokens ->
             updateLayoutLabel(tokens.foreground)
         }
-        addView(layoutChoice,LayoutParams(-1,dp(56)))
-        addView(layoutBody,LayoutParams(-1,-2))
+        layoutFrame.tag="dashboard_layout_frame"
+        addView(layoutFrame,LayoutParams(-1,-2))
         refresh()
     }
     fun refresh() {
@@ -108,12 +105,7 @@ internal class DashboardPresetPicker(context:Context, initialPage:Int,
         val preview=DashboardPreview(selected).apply { setBounds(0,0,dp(28),dp(40));setTint(color) }
         layoutChoice.contentDescription=selected.displayTitle(context)
         layoutChoice.text=selected.displayTitle(context)
-        val icon=BicycleIcons.drawable(context,BicycleIcon.Expand,color)
-        val arrow=android.graphics.drawable.RotateDrawable().apply {
-            drawable=icon;fromDegrees=if(layoutBody.visibility==VISIBLE) 180f else 0f;toDegrees=fromDegrees;level=10000
-            setBounds(0,0,dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize))
-        }
         layoutChoice.stateDescription=context.getString(if(layoutBody.visibility==VISIBLE) R.string.zone_expanded else R.string.zone_collapsed)
-        layoutChoice.setCompoundDrawablesRelative(preview,null,arrow,null)
+        layoutChoice.setCompoundDrawablesRelative(preview,null,null,null)
     }
 }
