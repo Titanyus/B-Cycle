@@ -1,0 +1,164 @@
+{
+  "format": "bcycle-input-design",
+  "schema": 1,
+  "theme": "hellfire-color",
+  "accent": "#BF281B",
+  "surface": "#161522",
+  "foreground": "#FFFFFF",
+  "darken": 0.1,
+  "lighten": 0.05,
+  "outline": {
+    "angle": -54,
+    "stroke": 1.5,
+    "stops": [
+      {
+        "id": 1,
+        "pos": 0.16088327301298447,
+        "type": "dark",
+        "color": "#800000",
+        "alpha": 1
+      },
+      {
+        "id": 2,
+        "pos": 0.38801259961955076,
+        "type": "accent",
+        "color": "#bf281b",
+        "alpha": 1
+      },
+      {
+        "id": 3,
+        "pos": 0.47397469245719587,
+        "type": "light",
+        "color": "#ffffff",
+        "alpha": 1
+      },
+      {
+        "id": 4,
+        "pos": 0.7326499995451244,
+        "type": "accent",
+        "color": "#bf281b",
+        "alpha": 1
+      },
+      {
+        "id": 5,
+        "pos": 1,
+        "type": "dark",
+        "color": "#800000",
+        "alpha": 1
+      },
+      {
+        "id": 6,
+        "pos": 0.0031545258456678014,
+        "type": "light",
+        "color": "#BF281B",
+        "alpha": 1
+      }
+    ]
+  },
+  "near": {
+    "enabled": true,
+    "radius": 3.5,
+    "opacity": 0.3,
+    "intensity": 3
+  },
+  "outer": {
+    "enabled": true,
+    "radius": 10,
+    "opacity": 1,
+    "intensity": 2.5
+  },
+  "blend": "screen",
+  "fill": {
+    "angle": 40,
+    "stops": [
+      {
+        "id": 7,
+        "pos": 0.29731864581093553,
+        "type": "accent",
+        "color": "#bf281b",
+        "alpha": 1
+      },
+      {
+        "id": 8,
+        "pos": 1,
+        "type": "dark",
+        "color": "#800000",
+        "alpha": 1
+      }
+    ]
+  },
+  "shape": {
+    "width": 162,
+    "height": 52,
+    "radius": 24
+  },
+  "chromatic": 0.5,
+  "chromaticByTheme": {
+    "hellfire-color": 0.5,
+    "hellfire-dark": 1.5,
+    "solar-flare-color": 2,
+    "solar-flare-dark": 2,
+    "sunstruck-color": 2.6,
+    "sunstruck-dark": 2.6,
+    "acid-pop-color": 1.4,
+    "acid-pop-dark": 1.4,
+    "deep-dive-color": 1.8,
+    "deep-dive-dark": 1.8,
+    "blue-riot-color": 0.8,
+    "blue-riot-dark": 0.7,
+    "purple-haze-color": 1.7,
+    "purple-haze-dark": 1.7
+  },
+  "derived": {
+    "engine": "oklch-chromatic-v1",
+    "colors": {
+      "base": "#BF281B",
+      "light": "#c23b29",
+      "dark": "#a52223"
+    },
+    "outline": [
+      {
+        "position": 0.0031545258456678014,
+        "color": "#c23b29",
+        "opacity": 1
+      },
+      {
+        "position": 0.16088327301298447,
+        "color": "#a52223",
+        "opacity": 1
+      },
+      {
+        "position": 0.38801259961955076,
+        "color": "#BF281B",
+        "opacity": 1
+      },
+      {
+        "position": 0.47397469245719587,
+        "color": "#c23b29",
+        "opacity": 1
+      },
+      {
+        "position": 0.7326499995451244,
+        "color": "#BF281B",
+        "opacity": 1
+      },
+      {
+        "position": 1,
+        "color": "#a52223",
+        "opacity": 1
+      }
+    ],
+    "fill": [
+      {
+        "position": 0.29731864581093553,
+        "color": "#BF281B",
+        "opacity": 1
+      },
+      {
+        "position": 1,
+        "color": "#a52223",
+        "opacity": 1
+      }
+    ]
+  }
+}

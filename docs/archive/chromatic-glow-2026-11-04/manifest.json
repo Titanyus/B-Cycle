@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "87d09583a116cea3f5377571932e56a25bd6fa1b",
+  "sha256": {
+    "app/src/main/java/de/bcycle/app/ChromaticColor.kt": "7001a4df04a397a7f4a05ad41f115ac38f4e75dced9140c2f3cc0f23ba514104",
+    "app/src/main/java/de/bcycle/app/BicycleAccentGradient.kt": "dfa30c6dfadaa289c303549570d313cd0f7084af8697bc9fb069b8f737081ed4",
+    "app/src/main/java/de/bcycle/app/BicycleInputStyle.kt": "02194e52c6d2cf594c273faa87551c23bc17b94de82746f98509021f6117ac84",
+    "app/src/main/java/de/bcycle/app/BicycleInputFrame.kt": "e373418cbec6013a169de72c07f8fbff6c3d6f3cac3a02ac41183154732a6740",
+    "app/src/main/java/de/bcycle/app/BicycleContourBlur.kt": "de727ef77aa03f7c2a9a6698ff4bed3c0eb8c95417aa050cd384883ccce0788d",
+    "app/src/main/java/de/bcycle/app/BicycleChromaticSurface.kt": "7e5a41e50626c81c6eeaa6e40ba38e8357047296fe126d3a09e7dd341080e2d7",
+    "app/src/main/java/de/bcycle/app/BicycleSpecialButton.kt": "1913589ddecb00a342e881f72233ecea4fac75662941a4372f0a6387c597c7b9",
+    "app/src/main/java/de/bcycle/app/BicycleSelectionCard.kt": "787e5ef0f9a8ae1fa955d87a55b97e378e983b41511ecf6465de1962f153de5f",
+    "app/src/main/java/de/bcycle/app/BicycleDesign.kt": "b1f050df7b0141b55b8ff9428402d95e25a5654ab76e316cf1037c8e23abe430",
+    "app/src/main/java/de/bcycle/app/BicycleNavigation.kt": "d7a6169c1f539d1800ea68931d7705969d0f5d7a89a3e7bed360e5fae656b826",
+    "docs/designs/input-design.json": "cc91c26ba659de96db4de430376d20342ed3e5b5c13ddad99f76963e41233807",
+    "docs/input-focus-frame.md": "d516e82050ca36a9fa8c3bb5d0e0f24699625fdf1892d78a4b01f2f566f6b35a",
+    "docs/input-designer.md": "7202a0167ebeb8c0162c9d23e0749ecc6abfba1466d05a40a881668907de454b",
+    "docs/previews/chromatic-color.js": "675a965ed8678d913242d5b5dbb9ae7a72636b684d5873215698e77d77eb0d4f",
+    "docs/previews/input-designer.html": "5270b42f35d83e0326dabeeed63df005e00167c94ffed583f3ad4a51ea3423be",
+    "docs/previews/input-designer.template.html": "e7470dbb13511d25b3488dbc0af382994d96ab4ae16dcb78c6414d38490e7b0f",
+    "scripts/build-input-designer.py": "86a68871db699074d4a0faa842377517d643fb08a34911d29eef2022468ba912",
+    "scripts/test-chromatic-color.cjs": "d35a34875d551645cf14f920423fbf5a331397753b07628f15b678589b1285c2",
+    "app/src/test/java/de/bcycle/app/ChromaticColorTest.kt": "8702648a716c0348527e7846b0c51332686d1f23161103734d7cec076eac4564",
+    "app/src/test/java/de/bcycle/app/InputFocusFrameTest.kt": "bd0ea90525ac222fd1c0e5f1169de08d7e81e644a07b1cb830a32767ba98d0b9",
+    "app/src/test/java/de/bcycle/app/InputDesignConfigurationTest.kt": "2fad0e452dd6c6138046ee6e1d8f50b4d017f5067bea38519aff330f75eb6fa4",
+    "app/src/test/java/de/bcycle/app/GlowChromeTest.kt": "d28c8b39f8dfd9c371373b9bd1f8314a0d758642a804109d62372a4ee08b36bf",
+    "app/src/main/java/de/bcycle/app/BicycleTheme.kt": "3508c24d1fc67245e7fa5cf6c8263c17b53abd83c20d02ab9cf5cb156a40c6b7",
+    "app/src/main/assets/League-Gothic-OFL.txt": "44778c339892f79188c60b7471485dd5af92c59351c7f9629a00fc625c6cae5d"
+  }
+}
