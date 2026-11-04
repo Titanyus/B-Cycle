@@ -1,6 +1,14 @@
-# Aktueller Stand: Track-Sichtbarkeit und HRV-Slider angepasst; letzte APK 0.8.85 / Build 126
+# Aktueller Stand: HRV-Einstieg im Hauptmenü; letzte APK 0.8.85 / Build 126
 
-## Aktueller Auftrag abgeschlossen: Track-Schalter und HRV-Slider
+## Aktueller Auftrag abgeschlossen: HRV-Menü und Bereichsname
+
+Haupteinstellungen beginnen mit zentriertem ausgefülltem BicycleSpecialButton „HRV-Messung“ (Herzicon, bisherige Messnavigation). „HRV-Auswertung“ steht als normale Menüzeile im Design der übrigen Einträge zwischen Streckenvorlagen und Statistiken und öffnet die bestehende gemeinsame Tages-/Verlaufsauswertung. Beide Buttons sind aus „HRV & Tagesbefinden“ entfernt; dort bleiben nur Einstellungen. Neue SettingsAction-Werte hinten angehängt; erweiterte Menüauswahl auf ihren bisherigen Enum-Bereich begrenzt.
+
+„Design & UI“ heißt jetzt „Dashboards & UI“, einschließlich zugehöriger Sicherungsbezeichnung und Hilfetext. Keys und Funktionen bleiben erhalten.
+
+Drei gezielte Tests erfolgreich: kompakter Menüaufbau/Positionen/gefüllte Pille/erweitertes Menü, echter direkter Auswertungseinstieg samt Zurücknavigation sowie HRV-Einstellungen/Sicherungsrundreise. Log /workspace/.tools/hrv-menu-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich; keine neue APK beauftragt oder gebaut. Gerätesichtprüfung offen.
+
+## Vorheriger Auftrag abgeschlossen: Track-Schalter und HRV-Slider
 
 Trackrahmen heißen „Aktiver Track“ und „User Track 1–3“; rechts jeweils unabhängiger Sichtbarkeitsschalter. Der bisherige separate mapTrackVisible-Schalter in den Kartenoptionen entfällt, Key und Aufnahmeverhalten bleiben erhalten. User-Tracks verwenden bestehende MapRouteSlots-Sichtbarkeiten (inklusive Masterzustand), keine neuen Einstellungen/Backupfelder. Die Augenbuttons bleiben gekoppelt, Ausblenden entfernt keine Zuordnung. Track-Komponente erst nach allgemeinem observeSettings-Binding anfügen, damit ihre Listener nicht überschrieben werden.
 

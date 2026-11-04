@@ -1,31 +1,15 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.Switch
-import android.widget.FrameLayout
 
-internal class HrvSettingsView(context:Context,themes:ThemeManager,openMeasurement:()->Unit={},canEdit:()->Boolean={true},openAnalysis:()->Unit={}):LinearLayout(context) {
+internal class HrvSettingsView(context:Context,themes:ThemeManager,canEdit:()->Boolean={true}):LinearLayout(context) {
     init {
         orientation=VERTICAL;tag="hrv_settings"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
         val settings=HrvSettings(context)
-        val open=BicycleComponents.textAction(context,themes,context.getString(R.string.hrv_measurement_open),openMeasurement).apply {
-            tag="hrv_open_measurement";typeface=BicycleDesign.strongTypeface
-            setPadding(pad,0,pad,0);compoundDrawablePadding=BicycleDesign.dp(context,BicycleDesign.controlGap)
-        }
-        BicycleComponents.bindTheme(open,themes) { tokens ->
-            open.setCompoundDrawablesRelativeWithIntrinsicBounds(BicycleIcons.drawable(context,BicycleIcon.Heart,tokens.primary),null,null,null)
-            styleHrvPill(open)
-        }
-        addView(FrameLayout(context).apply { addView(open,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER)) },LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        val analysis=BicycleComponents.textAction(context,themes,context.getString(R.string.hrvt_title),openAnalysis).apply {
-            tag="hrv_open_analysis";setPadding(pad,0,pad,0)
-            BicycleComponents.bindTheme(this,themes) { styleHrvPill(this) }
-        }
-        addView(FrameLayout(context).apply { addView(analysis,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER)) },LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         fun duration(rest:Boolean) {
             val minimum=if(rest) 15 else 60;val maximum=if(rest) 60 else 300
             val initial=settings.read().let { if(rest) it.restSeconds else it.measureSeconds }

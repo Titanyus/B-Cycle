@@ -58,16 +58,18 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_ROUTES", "settings_ROUTE_TEMPLATES", "settings_STATISTICS", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_HRV", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Gefahrene Strecken", "Streckenvorlagen", "Statistiken", "Wartung", "Fahrer", "Fahrradprofile", "HRV & Tagesbefinden", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
-                assertEquals(13, body.childCount) // Ten rows, two group dividers and brand image.
+                assertEquals(listOf("settings_ROUTES", "settings_ROUTE_TEMPLATES", "settings_HRV_ANALYSIS", "settings_STATISTICS", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_HRV", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Gefahrene Strecken", "Streckenvorlagen", "HRV-Auswertung", "Statistiken", "Wartung", "Fahrer", "Fahrradprofile", "HRV & Tagesbefinden", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(15, body.childCount) // Measurement pill, eleven rows, two dividers and brand image.
+                val measure=body.findViewWithTag<BicycleSpecialButton>("hrv_open_measurement")
+                assertTrue(measure.filled);assertSame(body.getChildAt(0),measure.parent)
                 descendants(body).filter { it.tag=="settings_group_divider" }.forEach { divider ->
                     val margins=divider.layoutParams as ViewGroup.MarginLayoutParams
                     assertEquals(BicycleDesign.dp(controller.get(),12),margins.topMargin)
                     assertEquals(margins.topMargin,margins.bottomMargin)
                 }
-                assertSame(rows[3],body.getChildAt(3));assertSame(rows[4],body.getChildAt(5))
-                assertSame(rows[8],body.getChildAt(9));assertSame(rows[9],body.getChildAt(11))
+                assertSame(rows[4],body.getChildAt(5));assertSame(rows[5],body.getChildAt(7))
+                assertSame(rows[9],body.getChildAt(11));assertSame(rows[10],body.getChildAt(13))
                 rows.forEach { row ->
                     assertEquals(width,row.width)
                     if(row.tag=="settings_HRV") assertTrue(row.height>=BicycleDesign.dp(controller.get(),54))
@@ -222,7 +224,7 @@ class SettingsMenuTest {
             val prefs = activity.getSharedPreferences("bike", 0)
             val custom = DashboardLayout.defaults.replace(0, DashboardField("HEART_RATE")).encode()
             prefs.edit().putString("dashboard", custom).commit()
-            for (action in SettingsAction.entries.filter { it !in listOf(SettingsAction.ADVANCED,SettingsAction.SENSORS,SettingsAction.MAP,SettingsAction.DASHBOARDS,SettingsAction.RECOVERY,SettingsAction.GPS_HELP) }) {
+            for (action in SettingsAction.entries.filter { it !in listOf(SettingsAction.HRV_MEASUREMENT,SettingsAction.ADVANCED,SettingsAction.SENSORS,SettingsAction.MAP,SettingsAction.DASHBOARDS,SettingsAction.RECOVERY,SettingsAction.GPS_HELP) }) {
                 val menu = open(activity)
                 var parent=menu
                 if (action.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal)

@@ -150,9 +150,9 @@ class HrvTrendsTest {
             chart.show(series.getValue(HrvTrendMetric.RMSSD),reset=true)
             val image=Bitmap.createBitmap(360,1000,Bitmap.Config.ARGB_8888);scroll.draw(Canvas(image))
             File("build/reports/ui/hrv-trends.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
-            var requested=false
-            val settings=HrvSettingsView(a,themes,openAnalysis={requested=true})
-            settings.findViewWithTag<View>("hrv_open_analysis").performClick();assertTrue(requested)
+            val settings=HrvSettingsView(a,themes)
+            assertNull(settings.findViewWithTag<View>("hrv_open_analysis"))
+            assertNull(settings.findViewWithTag<View>("hrv_open_measurement"))
         } finally { host.pause().stop().destroy() }
     }
     @Test fun realSettingsNavigationOpensEmptyAnalysisAndBackPreservesSettings() {
@@ -160,10 +160,8 @@ class HrvTrendsTest {
         try {
             val a=host.get()
             MainActivity::class.java.getDeclaredMethod("showMenu",Boolean::class.javaPrimitiveType).apply { isAccessible=true }.invoke(a,false)
-            org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().window!!.decorView.findViewWithTag<View>("settings_HRV").performClick()
-            shadowOf(Looper.getMainLooper()).idle()
             val settings=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
-            settings.window!!.decorView.findViewWithTag<View>("hrv_open_analysis").performClick()
+            settings.window!!.decorView.findViewWithTag<View>("settings_HRV_ANALYSIS").performClick()
             repeat(3) { drain(RideRuntime.get(a).hrv) }
             val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             val root=dialog.window!!.decorView
@@ -180,7 +178,7 @@ class HrvTrendsTest {
             assertEquals(SettingsHelpPage.HRV_DAY,SettingsHelp.resolve(dialog))
             assertFalse(root.findViewWithTag<View>("hrv_day_questionnaire").isEnabled)
             dialog.dismiss();shadowOf(Looper.getMainLooper()).idle()
-            assertTrue(settings.isShowing);assertNotNull(settings.window!!.decorView.findViewWithTag<View>("hrv_open_analysis"))
+            assertTrue(settings.isShowing);assertNotNull(settings.window!!.decorView.findViewWithTag<View>("settings_HRV_ANALYSIS"))
         } finally { host.pause().stop().destroy() }
     }
     @Test fun closeFingersContinueZoomingAndPointerChangesDoNotJumpOrChangeTheAxis() {

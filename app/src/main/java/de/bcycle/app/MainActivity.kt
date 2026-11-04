@@ -607,7 +607,9 @@ class MainActivity : Activity() {
                 SettingsAction.PROFILES, SettingsAction.SENSORS -> showSensorManager()
                 SettingsAction.NOTIFICATIONS -> showNotificationSettings()
                 SettingsAction.HRV -> menu=dialog().setTitle(R.string.hrv_settings_title)
-                    .setView(ScrollView(settingsContext).apply { addView(HrvSettingsView(settingsContext,settingsThemes,openMeasurement={ showHrv() },canEdit={ !runtime.hrv.busy },openAnalysis=::showHrvTrends)) }).show()
+                    .setView(ScrollView(settingsContext).apply { addView(HrvSettingsView(settingsContext,settingsThemes,canEdit={ !runtime.hrv.busy })) }).show()
+                SettingsAction.HRV_ANALYSIS -> showHrvTrends()
+                SettingsAction.HRV_MEASUREMENT -> showHrv()
                 SettingsAction.DATA -> dataSettings()
                 SettingsAction.MAINTENANCE -> showMaintenance()
                 SettingsAction.PROFILE -> { menu = showRiderProfile(settingsContext, settingsThemes, dialogs, runtime.riderProfiles) }

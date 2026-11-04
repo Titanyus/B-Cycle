@@ -33,7 +33,9 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     SOURCES("", BicycleIcon.Info.resource, R.string.sources_title),
     FONT_LICENSE("", titleResource = R.string.ui_settings_font_license),
     MAP_LICENSE("", titleResource = R.string.ui_settings_map_license),
-    ROUTE_TEMPLATES("",BicycleIcon.Route.resource,titleResource=R.string.route_templates_title);
+    ROUTE_TEMPLATES("",BicycleIcon.Route.resource,titleResource=R.string.route_templates_title),
+    HRV_ANALYSIS("",BicycleIcon.Heart.resource,titleResource=R.string.hrvt_title),
+    HRV_MEASUREMENT("",BicycleIcon.Heart.resource,titleResource=R.string.hrv_measurement_open);
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 
@@ -44,8 +46,19 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
     init {
         orientation=VERTICAL
         BicycleComponents.background(this,themes,ThemeRole.SECONDARY)
-        val actions=if(advanced) SettingsAction.entries.filter { it.ordinal>=SettingsAction.RECOVERY.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP,SettingsAction.ROUTE_TEMPLATES) } else
-            listOf(SettingsAction.ROUTES,SettingsAction.ROUTE_TEMPLATES,SettingsAction.STATISTICS,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.HRV,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
+        if(!advanced) addView(FrameLayout(context).apply {
+            addView(BicycleComponents.specialFilled(context,themes,context.getString(R.string.hrv_measurement_open)) {
+                selected(SettingsAction.HRV_MEASUREMENT)
+            }.apply {
+                tag="hrv_open_measurement";contentDescription=text
+                compoundDrawablePadding=BicycleDesign.dp(context,BicycleDesign.controlGap)
+                BicycleComponents.bindTheme(this,themes) { _ ->
+                    setCompoundDrawablesRelativeWithIntrinsicBounds(BicycleIcons.drawable(context,BicycleIcon.Heart,android.graphics.Color.WHITE),null,null,null)
+                }
+            },FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
+        },LayoutParams(-1,-2))
+        val actions=if(advanced) SettingsAction.entries.filter { it.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP,SettingsAction.ROUTE_TEMPLATES) } else
+            listOf(SettingsAction.ROUTES,SettingsAction.ROUTE_TEMPLATES,SettingsAction.HRV_ANALYSIS,SettingsAction.STATISTICS,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.HRV,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0 && (advanced || action==SettingsAction.PROFILE || action==SettingsAction.ADVANCED))
                 addView(BicycleComponents.divider(context,themes).apply { tag="settings_group_divider" },LayoutParams(-1,BicycleDesign.linePixels(context)).apply {
