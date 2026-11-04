@@ -20,7 +20,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 - Globale Auswahlkacheln über BicycleSelectionCard, einschließlich Fahrradfilter. Positionen für Benachrichtigung/Trinkhinweis über MessagePositionChoices. Keine eigene parallele Konturdefinition.
 - Schalter immer rechts, Label links; keine Radio-Punkte in Auswahllisten, keine RTL-Positionierungstricks. Native Auswahl-/Mehrfachlogik und Accessibility erhalten.
 - Rahmen-Accordion über BicycleFrameDropdown: Icon/Titel links, Chevron vor optionalem rechtem Schalter/Action. Derselbe Rahmen um Kopf und Inhalt, innen 16 dp seitlich/unten, 24 dp nach dem Header. Titel-/Chevron-Druck hebt die gesamte Rahmenfläche hervor; Schalter bleibt unabhängig.
-- Normale native Spinner-Popups in beiden Designs einfacher Rahmen und TERTIARY, kein zusätzlicher Popup-Glow. Touchhöhe mindestens 48 dp.
+- Normale native Spinner-Popups in beiden Designs einfacher Rahmen und SECONDARY, kein zusätzlicher Popup-Glow. Touchhöhe mindestens 48 dp. Andere Popup-Menüs behalten ihre bisherige Fläche.
 - Formularabstände über controlGap/controlSpacing und BicycleContentSpacing; kleine Überschriften vor Kachelgruppen mit bestehendem Standardabstand. Späte Layoutparameter und Wiederanfügen berücksichtigen, keine doppelten Margins.
 - Eingaben: Label außerhalb links, Feld rechts; Einheiten gedimmt innerhalb des Felds. Alle Zeiteingaben mit fester Zeitmaske, Einheiten nicht editierbar. Native Cursor-/Passwort-/Validierungsfunktionen erhalten.
 - League Gothic für Haupt-/Sticky-Header und Messwerte, zentrale strongTypeface/900 für kleine Überschriften. Keine eigenen Typeface-Erzeugungen. Sticky-Header großgeschrieben; Schriften/Abstände aus zentralen Rollen.

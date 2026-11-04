@@ -335,7 +335,7 @@ internal object BicycleDialogStyle {
                 setLayerGravity(1, Gravity.END or Gravity.CENTER_VERTICAL)
                 setLayerInsetEnd(1, dp(view, BicycleDesign.horizontalPadding))
             }
-            view.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(view.context,tokens))
+            view.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(view.context,tokens,tokens.secondary))
         }
         val selected = view.selectedItemPosition
         val original = view.adapter ?: return

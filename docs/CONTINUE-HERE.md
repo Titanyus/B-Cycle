@@ -1,6 +1,12 @@
-# Aktueller Stand: APK 0.8.86 / Build 127 veröffentlicht
+# Aktueller Stand: einfache Auswahl-Dropdowns SECONDARY; letzte APK 0.8.86 / Build 127
 
-## Aktueller Auftrag abgeschlossen: neue APK
+## Aktueller Auftrag abgeschlossen: Dropdown-Hintergrund
+
+Normale Spinner-Auswahllisten verwenden jetzt SECONDARY in Flat und Glow, zentral in BicycleDialogStyle.spinner. Geschlossener Auswahlkopf war bereits SECONDARY. Fahrradtyp/-untergruppe und alle anderen einfachen Spinner erhalten damit dieselbe Fläche. BicycleComponents.dropdownBackground nimmt einen optionalen Fill entgegen; andere Popup-Menüs behalten ihre bisherige TERTIARY-Fläche. Rahmen, Maße, Auswahl und Persistenz unverändert. Atlas neu generiert; keine neue APK beauftragt.
+
+Ein bestehender gezielter Dropdown-/Abstandstest grün (secondary-spinner-test.log in /workspace/.tools/), Kompilation/Typografie/Atlas/Diff ebenfalls. Kein Gesamtlauf; Gerätesichtprüfung offen.
+
+## Vorheriger Auftrag abgeschlossen: neue APK
 
 Version 0.8.86 / Build 127 über GitHub Actions gebaut und geprüft. [Buildnachweis](build-127.md), [Änderungen](release-0.8.86.md). Enthält alle Änderungen seit Build 126 samt Flat-Designversuch; Gerätesichtprüfung offen.
 

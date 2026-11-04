@@ -516,7 +516,7 @@ object BicycleComponents {
             android.graphics.Color.red(tokens.foreground),android.graphics.Color.green(tokens.foreground),android.graphics.Color.blue(tokens.foreground)))
     }
     /** Shared popup shell: reserve its outline so list contents cannot paint over the border. */
-    internal fun dropdownBackground(context:Context,tokens:ThemeTokens)=controlBackground(context,tokens,tokens.tertiary).apply {
+    internal fun dropdownBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.tertiary)=controlBackground(context,tokens,fill).apply {
         val inset=BicycleDesign.dp(context,BicycleDesign.controlBorder)
         setPadding(inset,inset,inset,inset)
     }
