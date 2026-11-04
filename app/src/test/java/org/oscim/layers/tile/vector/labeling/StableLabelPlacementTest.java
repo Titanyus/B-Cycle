@@ -115,9 +115,9 @@ public class StableLabelPlacementTest {
             assertEquals(2,count);assertTrue(left && right);task.textLayer.clearLabels();
             }
             TextStyle village=style("place-village",50,true);
-            assertTrue("Previously visible places survive another half zoom level",BCycleLabelPolicy.eligible(village,12.5,true));
-            assertFalse(BCycleLabelPolicy.eligible(village,12.4,true));
-            assertFalse("New-label threshold is unchanged",BCycleLabelPolicy.eligible(village,13.3,false));
+            assertTrue("Villages appear earlier",BCycleLabelPolicy.eligible(village,11.5,false));
+            assertFalse(BCycleLabelPolicy.eligible(village,11.4,true));
+            assertEquals(BCycleLabelPolicy.eligible(village,11.5,true),BCycleLabelPolicy.eligible(village,11.5,false));
         } finally { view.disposeMap(); }
     }
     @Test public void captionsRetainTheirPlaceAcrossArrivalOrderAndZoomButExpireWithTheirFeature() throws Exception {
@@ -177,10 +177,13 @@ public class StableLabelPlacementTest {
         BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());
         try {
             TextStyle town=style("place-town",40,true),village=style("place-village",50,true);
-            assertFalse(BCycleLabelPolicy.eligible(village,12,false));
-            assertTrue(BCycleLabelPolicy.eligible(town,12,false));
-            assertFalse(BCycleLabelPolicy.eligible(village,13.3,false));
-            assertTrue(BCycleLabelPolicy.eligible(village,13.3,true));
+            assertTrue(BCycleLabelPolicy.eligible(town,9.5,false));
+            assertFalse(BCycleLabelPolicy.eligible(town,9.4,false));
+            assertTrue(BCycleLabelPolicy.eligible(village,11.5,false));
+            for(double zoom:new double[]{8,9,9.5,10,11,11.5,12,13.5,14.5}) {
+                assertEquals(BCycleLabelPolicy.eligible(town,zoom,true),BCycleLabelPolicy.eligible(town,zoom,false));
+                assertEquals(BCycleLabelPolicy.eligible(village,zoom,true),BCycleLabelPolicy.eligible(village,zoom,false));
+            }
             assertTrue(BCycleLabelPolicy.horizontalGap(village)>village.fontHeight);
             Label visible=new Label(),incoming=new Label();
             visible.text=TextStyle.builder().set(town).priority(4099).build();visible.active=1;visible.label="Herbrechtingen";

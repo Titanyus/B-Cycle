@@ -1,6 +1,6 @@
 # Kleiner Karteneditor und Reihenfolge
 
-Auftrag 04.11.2026 nach Build 130. Auf der Dashboardkarte Ebenenbutton neben dem Auge → Karteneditor. Native Rahmen-Auswahl für Objekttyp, vorhandene Farbauswahl mit Helligkeit und sichtbarem HEX-Wert, Linienstile Original / Durchgezogen / Gestrichelt / Gepunktet / Strich-Punkt. Farbe und Linienstil unabhängig, einzelne oder alle Stiländerungen zurücksetzen, JSON exportieren. Keine freie Auswahl der Zeichenreihenfolge beauftragt; die gewünschte feste Reihenfolge ist unten beschrieben.
+Auftrag 04.11.2026 nach Build 130. Seit 05.11.2026 auf der Dashboardkarte eigener Stiftbutton neben Auge/Ebenen → Karteneditor. Native Objektauswahl, drei RGB-Regler 0–255 mit sichtbarem HEX-Wert und Farbvorschau, Linienstile Original / Durchgezogen / Gestrichelt / Gepunktet / Strich-Punkt. Farbe und Linienstil unabhängig, einzelne oder alle Stiländerungen zurücksetzen, JSON exportieren. Keine freie Auswahl der Zeichenreihenfolge beauftragt; die gewünschte feste Reihenfolge ist unten beschrieben.
 
 ## Stiländerungen
 
@@ -8,7 +8,7 @@ Kuratiertes Objektverzeichnis: Hintergrund, Wald, Gras/Wiesen/Parks, Wohn-/Gewer
 
 `MapStyleOverrides` je Fahrradprofil unter `mapStyleOverridesV1`, mit Kopie/Wechsel und strikter Validierung in MAPS-/Profilbanksicherung. Nur bekannte Objekte/Enums, #RRGGBB-Farben, Schema 1 und aktuelle Bright-Basis zulässig. Native Render-XML-Instruktionen vor ThemeLoader anpassen; Originaldateien bright.json/bright-vtm.xml/Sprites unverändert. Eigene Änderungen als Delta, keine direkte Änderung von MapLibre-JSON-Ausdrücken.
 
-Alle Zoomvarianten der zugeordneten nativen Stile anpassen. Originale Transparenz, Breiten, Zoomregeln, Beschriftungspriorität und Textkonturen bleiben. Straßenfarben verändern die Fahrbahnfarbe; die vorhandenen Ränder behalten ihre Farbe, Linienmuster wirken auch auf zugeordnete Ränder. Native VTM-Dash-Texturen über denselben XML-Parser erzeugen, keine manuell gemeinsam genutzten Texturkopien. Linienmuster nur bei Linienobjekten, Farbpalette auch für Flächen/Text. 180-ms-Vorschau-Bündelung begrenzt Theme-/Layer-Neuaufbau beim Helligkeitsschieben; beim Schließen letzte Änderung anwenden. Schalter bleiben davon unabhängig.
+Alle Zoomvarianten der zugeordneten nativen Stile anpassen. Originale Transparenz, Breiten, Zoomregeln, Beschriftungspriorität und Textkonturen bleiben. Straßenfarben verändern die Fahrbahnfarbe; die vorhandenen Ränder behalten ihre Farbe, Linienmuster wirken auch auf zugeordnete Ränder. Native VTM-Dash-Texturen über denselben XML-Parser erzeugen, keine manuell gemeinsam genutzten Texturkopien. Linienmuster nur bei Linienobjekten, RGB-Farbe auch für Flächen/Text. 180-ms-Vorschau-Bündelung begrenzt Theme-/Layer-Neuaufbau beim RGB-Schieben; beim Schließen letzte Änderung anwenden. Schalter bleiben davon unabhängig.
 
 ## JSON-Datei
 
@@ -41,3 +41,7 @@ Global im Flat-Design Hintergrund aus PRIMARY berechnen: R/G/B × 0,7, Alpha erh
 ## Prüfung
 
 Gezielte native Fälle: tatsächliche VTM-Linientexturen/Farben und ursprüngliche Waldtransparenz nach JSON-/Profil-/Backup-Rundreise, Reihenfolge und Passfilter mit Straße/Gebäude/Gelände/Wasser, kein zusätzlicher Pass ohne Höhenlinien, echte Editorsteuerung/Reset/Export-Snapshot, nativer Dokumentpicker samt UTF-8-Dateiausgabe, berechnete Flat-Farbe für alle Presets. Bestehender Layer-/Popup-/Rasterwechsel und admin_level-7-Filter/Sicherungsrundreise mitgeprüft. Bright-Generator, Typografie, UI-Katalog und Diff-Prüfung erhalten. Kein Gesamtlauf, keine lokale APK. Echtgerät-Lesbarkeit, Dash-Bild und Überdeckung während Zoom weiter beurteilen.
+
+## Folgeänderungen 05.11.2026
+
+[Eigenständiger RGB-Editor, frühere Ortsübersicht und länger sichtbare Radwege](vtm-rgb-and-overview.md). Frühere Wabenpalette nur bei Kartenobjekten ersetzt.

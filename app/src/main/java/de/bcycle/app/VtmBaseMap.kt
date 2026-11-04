@@ -70,18 +70,20 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
 internal class VtmCycleTheme(private val cycleways:Boolean,private val style:MapStyleOverrides=MapStyleOverrides()):ThemeFile by VtmThemes.OPENMAPTILES {
     override fun getRenderThemeAsStream():java.io.InputStream {
         val base=org.oscim.backend.AssetAdapter.readFileAsStream("styles/bright-vtm.xml").use { it.bufferedReader().readText() }
-        val highlight="""
-            <m e="way" k="layer" v="transportation" zoom-min="12">
+        val highlight=listOf(Triple(9,10,.6f),Triple(11,11,.9f),Triple(12,12,1.4f),Triple(13,24,2.5f)).joinToString("\n") { (minimum,maximum,width) ->
+            """
+            <m e="way" k="layer" v="transportation" zoom-min="$minimum" zoom-max="$maximum">
                 <m k="subclass" v="cycleway">
-                    <line id="bcycle-cycleway" stroke="#2478c4" width="2.5" fix="true" cap="round" />
+                    <line id="bcycle-cycleway" stroke="#2478c4" width="$width" fix="true" cap="round" />
                 </m>
                 <m k="subclass" v="path|footway|pedestrian|track">
                     <m k="bicycle" v="designated|official">
-                        <line id="bcycle-cycleway" stroke="#2478c4" width="2.5" fix="true" cap="round" />
+                        <line id="bcycle-cycleway" stroke="#2478c4" width="$width" fix="true" cap="round" />
                     </m>
                 </m>
             </m>
-        """.trimIndent()
+            """.trimIndent()
+        }
         return MapStyleXml.apply(if(cycleways) base.replace("</rendertheme>","$highlight\n</rendertheme>") else base,style).byteInputStream()
     }
 }

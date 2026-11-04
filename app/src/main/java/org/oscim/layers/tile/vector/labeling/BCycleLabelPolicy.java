@@ -21,14 +21,14 @@ final class BCycleLabelPolicy {
         int importance=importance(text);
         if(importance<20) return 0;
         if(importance<30) return 6.25f;
-        if(importance<40) return 9.25f;
-        if(importance<50) return 11.25f;
-        if(importance<60) return 13.25f;
-        if(importance<70) return 15.25f;
-        return 16.25f;
+        if(importance<40) return 8.75f;
+        if(importance<50) return 10.25f;
+        if(importance<60) return 12.25f;
+        if(importance<70) return 14.25f;
+        return 15.25f;
     }
     static boolean eligible(TextStyle text,double zoom,boolean retained) {
-        return !place(text) || zoom >= minimumZoom(text)+(retained ? -.8 : .2);
+        return !place(text) || zoom >= minimumZoom(text)-.8;
     }
     static float horizontalGap(TextStyle text) { return place(text) ? Math.max(32,text.fontHeight*3) : 5; }
     static float verticalGap(TextStyle text) { return place(text) ? Math.max(20,text.fontHeight*1.5f) : 5; }

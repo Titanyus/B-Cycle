@@ -68,3 +68,7 @@ Regression für Straße und Fluss: jeweils zwei B16-/Donau-Labels innerhalb ders
 ## Dichte nach Build 132
 
 Hauptstraßen-Schilder/-namen mit radialem, zoomunabhängigem Wiederholungsabstand und einheitlicher Kennung über Stil-/Leerzeichenvarianten. Neue Hauptstraßenkandidaten über den gesamten Viewport sammeln und größere Lücken bevorzugt auffüllen; aktuelle Namen/Alter behalten. [Befund, offene VTM-Referenzen und native Regression](vtm-maxzoom-and-road-labels.md).
+
+## Frühere Übersicht am 05.11.2026
+
+Einblendeschwelle beim Reinzoomen an dieselbe Ausblendeschwelle angeglichen und Klassenreferenzen vorgezogen: Städte ab VTM 8, towns ab 9,5, Dörfer ab 11,5 auf den bedienbaren halben Stufen. Keine verzögerte Freigabe neuer Orte mehr. Vorhandene 240-ms-Fades/Größenpriorität/Beibehaltung bleiben. [Datenprobe, Schwellen und Prüfung](vtm-rgb-and-overview.md).

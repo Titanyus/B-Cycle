@@ -1,5 +1,12 @@
 # Aktueller Stand: APK 0.8.91 / Build 133 veröffentlicht
 
+## Änderungen nach Build 133, noch unveröffentlicht (05.11.2026)
+
+- Kartenobjekt-Editor mit eigenem Stiftbutton neben Ebenen/Auge statt verschachteltem Dropdown; drei zentrale RGB-Regler 0–255, HEX/Farbvorschau, exakte Werte. JSON/Reset/Stil-/Profilfunktionen erhalten, Trackfarbpalette unverändert. Karten-/Footer-/Popup-Lebenszyklus ergänzt.
+- Neue und vorhandene Ortsnamen nutzen dieselbe Ein-/Ausblendschwelle. Städte/towns/Dörfer deutlich früher, dadurch mehr Orte in der Übersicht. Native Größenpriorität/Fades/Beibehaltung erhalten.
+- Radwegehervorhebung ab VTM 9 statt 12, dünne Breiten 0,6/0,9/1,4 bis 12, ab13 bisher2,5. Quellenprobe belegt frühe Orts-/Radwegdaten, nicht jedes Detail ist in der Übersicht vorhanden.
+- Offizielle VTM-Beispiele gelesen: direkte Styleaktualisierung in ThemeStylerActivity als künftige Vorschauoptimierung nützlich, Stilgruppen und MVT-/Cache-/LabelLayer-Integration ebenfalls. [Umfang/Daten/Prüfung](vtm-rgb-and-overview.md). Gezielte RGB-/Popup-/Label-/Cyclewayfälle grün, kein Gesamtlauf oder neue APK angefordert.
+
 ## In Build 133 enthalten
 
 - Maximalzoom: nativen Overzoom-Gebäudeüberlauf vor signed-short-Packung reproduziert und gepufferte Zielkachel-Clipping-Stufe nachgeschaltet. Quellstufe/Kamera/Styles unverändert, beide Vektorpässe profitieren. Native Regression Stufen 15–19 grün.
