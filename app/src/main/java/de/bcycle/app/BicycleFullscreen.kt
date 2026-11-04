@@ -66,7 +66,8 @@ internal object BicycleFullscreen {
             BicycleContentSpacing.page(spacingTarget)
             host.contentSpacingTarget=spacingTarget
             body.tag = body.tag ?: "bicycle_fullscreen_content"
-            BicycleComponents.bindTheme(body, themes) { body.setBackgroundColor(it.secondary) }
+            val fieldSelection=descendants(original).any { it is FieldPickerView }
+            BicycleComponents.bindTheme(body, themes) { body.setBackgroundColor(if(fieldSelection) it.tertiary else it.secondary) }
             host.addView(body, LinearLayout.LayoutParams(-1, 0, 1f))
         }
         if (content == null) host.addView(android.widget.FrameLayout(context).apply {

@@ -86,7 +86,7 @@ internal object BicycleContentSpacing {
             if(view!==body && (wrapper(view) || view is ListView) && view.paddingTop!=0)
                 view.setPadding(view.paddingLeft,0,view.paddingRight,view.paddingBottom)
         }
-        val top=(scrolling as? BicycleStickyScrollView)?.leadingContentGap?.let { BicycleDesign.dp(body.context,it) } ?: if(leading is BicycleSectionHeader) {
+        val top=if(leading is BicycleSectionHeader) {
             if(BicycleAppearance.flat(body.context)) 0 else BicycleDesign.dp(body.context,BicycleDesign.controlGap)
         } else BicycleDesign.dp(body.context,if(view is HrvEvaluationScrollView || body is HrvMeasurementView)
             BicycleDesign.hrvPageContentGap else BicycleDesign.pageContentGap)

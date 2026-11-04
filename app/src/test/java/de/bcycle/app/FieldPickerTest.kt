@@ -33,7 +33,7 @@ class FieldPickerTest {
         val list = testDescendants(view).single { it.tag == "field_list" } as android.widget.LinearLayout
         val scroll=view.findViewWithTag<ScrollView>("field_picker_scroll")
         BicycleContentSpacing.page(scroll);measure()
-        assertEquals(0,view.paddingTop);assertEquals(0,scroll.getChildAt(0).paddingTop)
+        assertEquals(0,view.paddingTop);assertEquals(BicycleDesign.dp(view.context,BicycleDesign.pageContentGap),scroll.getChildAt(0).paddingTop)
         val panels=scroll.getChildAt(0)
         val sample=android.graphics.Bitmap.createBitmap(1,1,android.graphics.Bitmap.Config.ARGB_8888)
         panels.background.setBounds(0,0,panels.width,panels.height)

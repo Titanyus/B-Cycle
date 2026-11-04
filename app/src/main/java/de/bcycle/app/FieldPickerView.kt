@@ -26,13 +26,13 @@ internal class FieldPickerView(context: Context, data: LiveData, gps: GpsValues,
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
     init {
         orientation = VERTICAL; setPadding(0, 0, 0, 0)
-        BicycleComponents.background(this, themes, ThemeRole.SECONDARY)
+        BicycleComponents.background(this, themes, ThemeRole.TERTIARY)
         val panels=LinearLayout(context).apply {
             orientation=VERTICAL;clipToPadding=false
             setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),0)
         }
         val scroll=BicycleStickyScrollView(context).apply {
-            tag="field_picker_scroll";leadingContentGap=0;sectionBackdrop=ThemeRole.TERTIARY
+            tag="field_picker_scroll";sectionBackdrop=ThemeRole.TERTIARY
             BicycleComponents.background(this,themes,ThemeRole.TERTIARY);addView(panels)
         }
         addView(scroll,LayoutParams(-1,-1))

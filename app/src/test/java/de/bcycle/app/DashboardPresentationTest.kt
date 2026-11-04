@@ -57,6 +57,13 @@ class DashboardPresentationTest {
                 shadowOf(Looper.getMainLooper()).idle();return ShadowAlertDialog.getLatestAlertDialog()
             }
             val screen=choose();val root=screen.window!!.decorView
+            val fieldPicker=testDescendants(root).filterIsInstance<FieldPickerView>().single()
+            val expected=RideRuntime.get(activity).themes.settings.active.tokens.tertiary
+            assertEquals(expected,(fieldPicker.background as android.graphics.drawable.ColorDrawable).color)
+            val fieldScroll=fieldPicker.findViewWithTag<ScrollView>("field_picker_scroll")
+            assertEquals(BicycleDesign.dp(activity,BicycleDesign.pageContentGap),fieldScroll.getChildAt(0).paddingTop)
+            assertEquals(0,fieldPicker.paddingTop)
+
             root.findViewWithTag<View>("graph_SPEED").performClick()
             assertTrue(DashboardDataVisibility.read(prefs,0).visible[2]) // old global flag cannot hide data when adding a graph
             root.findViewWithTag<RadioButton>("training_help_all").isChecked=true
