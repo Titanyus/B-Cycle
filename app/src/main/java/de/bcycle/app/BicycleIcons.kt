@@ -36,7 +36,7 @@ internal enum class BicycleIcon(val resource: Int, val colorRole: ThemeRole = Th
     Date(R.drawable.ic_lucide_calendar_days), Distance(R.drawable.ic_lucide_chart_no_axes_combined),
     Duration(R.drawable.ic_lucide_clock), Ascent(R.drawable.ic_lucide_mountain),
     Bluetooth(R.drawable.ic_lucide_bluetooth), Disconnect(R.drawable.ic_lucide_unplug),
-    Map(R.drawable.ic_lucide_map), Save(R.drawable.ic_lucide_save), Folder(R.drawable.ic_lucide_folder_open),
+    Layers(R.drawable.ic_lucide_layers), Map(R.drawable.ic_lucide_map), Save(R.drawable.ic_lucide_save), Folder(R.drawable.ic_lucide_folder_open),
     Reset(R.drawable.ic_lucide_rotate_ccw), AddSensor(R.drawable.ic_lucide_plus),
     Connection(R.drawable.ic_lucide_link), Info(R.drawable.ic_lucide_info),
     ZoomIn(R.drawable.ic_lucide_plus), ZoomOut(R.drawable.ic_lucide_minus),

@@ -181,6 +181,16 @@ class VtmVectorMapTest {
             val pathSwitch=root.findViewWithTag<Switch>(MapVectorLayer.PATHS.key)
             pathSwitch.isChecked=false;shadowOf(Looper.getMainLooper()).idle()
             assertFalse(MapVectorLayer.PATHS in MapVectorLayers.read(runtime.preferences))
+            val quick=panel.findViewWithTag<android.widget.Button>("map_layers_button")
+            assertEquals(View.VISIBLE,quick.visibility);quick.performClick()
+            val popup=MapPanel::class.java.getDeclaredField("layersPopup").apply { isAccessible=true }.get(panel) as MapLayersPopup
+            assertTrue(popup.isShowing)
+            val liveMap=panel.mapView
+            popup.contentView.findViewWithTag<Switch>("map_quick_${MapVectorLayer.PATHS.key}").isChecked=true
+            assertTrue(MapVectorLayer.PATHS in MapVectorLayers.read(runtime.preferences))
+            assertSame("Layer toggles retain the live GL host",liveMap,panel.mapView)
+            assertTrue("Dropdown stays open for comparing the map",popup.isShowing);popup.dismiss()
+
             val contourSwitch=root.findViewWithTag<Switch>(MapVectorLayer.CONTOURS.key)
             val layers=panel.mapView.map().layers()
             assertTrue(layers.none { it is VtmContourLayer })
@@ -202,7 +212,7 @@ class VtmVectorMapTest {
             backup.apply(backup.plan(backup.decode(bytes),setOf(BackupSection.MAPS)))
             assertEquals("VECTOR",bike.getString("mapSource",null));assertFalse(bike.getBoolean(VtmBaseMap.cyclewaysKey,true))
             spinner.setSelection(MapSource.OSM.ordinal);shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.GONE,toggle.visibility);assertEquals(View.GONE,options.visibility)
+            assertEquals(View.GONE,toggle.visibility);assertEquals(View.GONE,options.visibility);assertEquals(View.GONE,quick.visibility)
             assertTrue(layers.none { it is VectorTileLayer || it is LabelLayer })
             assertTrue(layers.indexOf(layers.filterIsInstance<VtmRasterLayer>().single())<layers.indexOf(routes))
             assertSame(routes,layers.filterIsInstance<VtmRouteLayer>().single())
