@@ -50,7 +50,7 @@ internal object BicycleSectionCards {
         return true
     }
     private val installed=java.util.WeakHashMap<ViewGroup,Boolean>()
-    fun apply(root:View) {
+    fun apply(root:View,backdrop:ThemeRole=ThemeRole.SECONDARY) {
         if(root !is ViewGroup) return
         val headers=(0 until root.childCount).map(root::getChildAt).filterIsInstance<BicycleSectionHeader>()
         if(headers.isNotEmpty() && installed.put(root,true)==null) {
@@ -63,7 +63,7 @@ internal object BicycleSectionCards {
                     if(BicycleAppearance.flat(root.context)) { paint.color=tokens.tertiary;canvas.drawRect(bounds,paint);return }
                     if(headers.none { it.expanded!=null }) { original?.let { it.bounds=bounds;it.draw(canvas) };return }
                     // The section cards need a distinct page surface; dialog styling stays independent.
-                    paint.color=tokens.secondary;canvas.drawRect(bounds,paint)
+                    paint.color=tokens.color(backdrop);canvas.drawRect(bounds,paint)
                     paint.color=tokens.tertiary
                     val radius=BicycleDesign.dp(root.context,BicycleDesign.sectionCardRadius).toFloat()
                     for(i in 0 until root.childCount) {
@@ -83,7 +83,7 @@ internal object BicycleSectionCards {
                 root.invalidate()
             }
         }
-        (0 until root.childCount).map(root::getChildAt).forEach(::apply)
+        (0 until root.childCount).map(root::getChildAt).forEach { apply(it,backdrop) }
     }
     /** Section surfaces use TERTIARY in Flat and the shared card surface in Glow. */
     fun content(content:View,header:BicycleSectionHeader) {

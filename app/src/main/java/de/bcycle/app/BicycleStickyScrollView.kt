@@ -10,6 +10,8 @@ import android.widget.ScrollView
  * overlay container, nested scrolling or content reparenting is needed.
  */
 internal open class BicycleStickyScrollView(context: Context) : ScrollView(context) {
+    var leadingContentGap:Int?=null
+    var sectionBackdrop:ThemeRole=ThemeRole.SECONDARY
     private data class Section(val header: BicycleSectionHeader, val top: Int, val end: Int)
     private var sections = emptyList<Section>()
     init { BicycleComponents.scrollStyle(this) }
@@ -37,7 +39,7 @@ internal open class BicycleStickyScrollView(context: Context) : ScrollView(conte
         return top
     }
     override fun onMeasure(widthMeasureSpec:Int,heightMeasureSpec:Int) {
-        if(childCount>0) { BicycleForm.accordions(getChildAt(0));BicycleContentSpacing.sections(getChildAt(0));BicycleSectionCards.apply(getChildAt(0)) }
+        if(childCount>0) { BicycleForm.accordions(getChildAt(0));BicycleContentSpacing.sections(getChildAt(0));BicycleSectionCards.apply(getChildAt(0),sectionBackdrop) }
         super.onMeasure(widthMeasureSpec,heightMeasureSpec)
     }
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {

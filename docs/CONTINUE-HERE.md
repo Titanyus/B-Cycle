@@ -1,6 +1,14 @@
-# Aktueller Stand: Strecken-Haupttitel vollständig und Vektorkarte ohne POIs; letzte APK 0.8.86 / Build 127
+# Aktueller Stand: stabile Kartennamen, HRV-Karten und Feldbelegungsflächen; letzte APK 0.8.86 / Build 127
 
-## Aktueller Auftrag abgeschlossen: Haupttitel und POIs
+## Aktuelle Aufträge abgeschlossen
+
+- Kartennamen: Größenklasse/Rang bei Orten und Straßenklasse bei Straßen. Bedeutendere Namen gewinnen, bei gleicher Bedeutung bleiben sichtbare Namen. Native Caption-Labels an aktuelle Merkmale über Tile-/Zoom-/Stilwechsel anbinden, fehlende Merkmale entfernen. Drei lokale umbenannte LGPL-VTM-Klassen statt Austausch der Grafikengine; native GL-/Worker-/Tilelebenszyklen erhalten. Priorisierte Textstyles im synchronisierten 256er-Cache, Original-Bright-JSON und generierte Assets unverändert. [Details/Quellen](vtm-label-stability.md).
+- HRV-Einstellungen nutzen jetzt den gemeinsamen Sticky-Scrollhost: oben eigener initial offener Abschnitt „HRV“ mit bisherigen Messoptionen; darunter „Tagesbefinden“ mit bisherigen Fragen. Beide Inhalte/Randflächen als gemeinsame TERTIARY-Karten, keine abweichende SECONDARY-Umrandung. Werte/Listener/Sperren unverändert.
+- „Feld belegen“: führender Abstand 0, auch nach globaler Seitennormalisierung. Scrollfläche und Zwischen-/Restflächen nach Trinkerinnerung TERTIARY. Explizite lokale leadingContentGap/sectionBackdrop-Optionen am Sticky-Host; andere Seiten behalten ihre Vorgaben.
+
+Sechs gezielte Fälle grün: zwei echte VTM-Platzierungsfälle (Priorität, Alter, Tile-/Zoom-/Stilwechsel und Entfernen entfallener Merkmale), tatsächliche Theme-Prioritäten, Vektor-/Raster-Lifecycle mit Tracklayer, HRV-Werte/Sicherungsrundreise samt beiden TERTIARY-Karten, Feldbelegungsnavigation samt Abstand/Restflächenpixel. Logs /workspace/.tools/stable-labels-final-placement-tests.log und stable-labels-and-surfaces-tests.log. Kompilation/Typografie/Atlas/Bright-Generator/Diff grün. Kein Gesamtlauf und keine neue APK beauftragt. Zoom-/Beschriftungswirkung auf echtem Gerät noch beurteilen.
+
+## Vorheriger Auftrag abgeschlossen: Haupttitel und POIs
 
 Haupttitel der gefahrenen Sammlung heißt „Gefahrene Strecke“. Menüeintrag bleibt „Gefahrene Strecken“. Haupttitel der Streckenverwaltung skaliert bei Platzmangel nativ zwischen 18 sp und headingSp, damit er vollständig in den vorhandenen Header passt.
 
