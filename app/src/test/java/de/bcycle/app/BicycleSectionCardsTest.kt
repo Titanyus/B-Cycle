@@ -103,10 +103,12 @@ class BicycleSectionCardsTest {
                     first.background.draw(Canvas(ruleImage))
                     val ruleColor=(tokens.foreground and 0xffffff) or ((Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
                     val reference=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
-                    Canvas(reference).apply { drawColor(tokens.tertiary);drawColor(ruleColor) }
+                    val headerColor=Color.argb(Color.alpha(tokens.primary),(Color.red(tokens.primary)*.7f).toInt(),
+                        (Color.green(tokens.primary)*.7f).toInt(),(Color.blue(tokens.primary)*.7f).toInt())
+                    Canvas(reference).apply { drawColor(headerColor);drawColor(ruleColor) }
                     assertEquals(reference.getPixel(0,0),ruleImage.getPixel(first.width/2,0))
                     reference.recycle()
-                    assertEquals(tokens.tertiary,ruleImage.getPixel(first.width/2,BicycleDesign.dp(a,2)))
+                    assertEquals(headerColor,ruleImage.getPixel(first.width/2,BicycleDesign.dp(a,2)))
                     ruleImage.recycle()
                     assertEquals(0f,(first.background as android.graphics.drawable.GradientDrawable).cornerRadii!![0],0f)
                 }

@@ -9,7 +9,7 @@
 - Karteneditor im Ebenen-Dropdown: native Farbauswahl/vier Linienmuster plus Original, Objekt-/Gesamtreset und JSON-Dateiexport über Android-Picker. Stil je Fahrradprofil mit Sicherung/Kopie. Höhenlinien zwischen Gelände und Straßen/Gebäuden; zwei gefilterte Basispässe nur bei aktivierten Höhenlinien, ein Basispass sonst. Zusätzlicher Grenzschalter admin_level 7, initial an. [Editor/Reihenfolge/Prüfung](vtm-map-editor.md).
 - Flat-Sticky-Header global PRIMARY RGB×0,7, automatische Anpassung an das Farbprofil; 2-dp-Linie/TERTIARY-Inhalte/Glow-Geometrie erhalten.
 
-Neue APK danach ausdrücklich angefordert: vorbereitet als 0.8.90 / code 160 / Build 131, ausschließlich GitHub Actions. Letzte gezielte Prüfungen/Veröffentlichung noch abschließen.
+Neue APK danach ausdrücklich angefordert: vorbereitet als 0.8.90 / code 160 / Build 132, ausschließlich GitHub Actions. Letzte gezielte Prüfungen/Veröffentlichung noch abschließen.
 
 ## In Build 130 enthalten
 
@@ -62,6 +62,6 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.90 / code 160 / Build 131. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.90 / code 160 / Build 132. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
 
 Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4207496 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
