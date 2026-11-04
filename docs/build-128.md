@@ -16,3 +16,5 @@ Bright-JSON/XML, GPS-/Streckenshader, 111 Spritevarianten und Atlas unverändert
 [Änderungen](release-0.8.87.md): einfarbige Controls, SECONDARY-Dropdowns, Track-Iconfarben, vollständiger Streckentitel, Vektorkarte ohne POIs, priorisierte/stabile Kartennamen, TERTIARY-HRV-Karten und Feldbelegungsflächen. Alte dekorative Engine im [Wiederverwendungsarchiv](archive/chromatic-glow-2026-11-04/README.md) erhalten.
 
 Gezielte Prüfungen über die einzelnen Aufträge erfolgreich. Zuletzt sechs Fälle: echte VTM-Platzierung über Tile-/Zoom-/Stilwechsel, Orts-/Straßenprioritäten, Layerwechsel, HRV-Einstellungen/Sicherungsrundreise/Flächen und Feldbelegung. Kompilation/Typografie/Atlas/Bright-Generator/Diff grün; kein Gesamtlauf, keine lokale APK. Gerätesichtprüfung, besonders die Beschriftungsruhe beim Pinch-Zoom, steht aus.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4188317 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
