@@ -80,6 +80,23 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         } catch(error:IntervalsFailure) { throw error } catch(error:IOException) { throw error }
         catch(_:Exception) { throw IntervalsFailure(false,R.string.intervals_response_failed) }
     }
+    /** Only daily provider-calculated CTL/ATL. No activities, HRV or write endpoints involved. */
+    fun fitness(oldest:java.time.LocalDate,newest:java.time.LocalDate):List<IntervalsFitnessDay> {
+        require(newest>=oldest && java.time.temporal.ChronoUnit.DAYS.between(oldest,newest)<=31)
+        val url=request("wellness.json").build().url.newBuilder().addQueryParameter("oldest",oldest.toString())
+            .addQueryParameter("newest",newest.toString()).addQueryParameter("fields","id,ctl,atl").build()
+        try {
+            return IntervalsFitnessDay.decode(execute(request("wellness.json").url(url).get().build()),oldest,newest)
+        } catch(error:IntervalsFailure) {
+            val problem=when(error.problem) {
+                R.string.intervals_upload_failed,R.string.intervals_hrv_rejected -> R.string.intervals_fitness_read_failed
+                R.string.intervals_response_failed -> R.string.intervals_fitness_response_failed
+                else -> error.problem
+            }
+            throw IntervalsFailure(error.retryable,problem,error.httpStatus)
+        } catch(error:IOException) { throw error }
+        catch(_:Exception) { throw IntervalsFailure(false,R.string.intervals_fitness_response_failed) }
+    }
     fun wellness(day:java.time.LocalDate):JSONObject {
         val url=request("wellness").build().url.newBuilder().addPathSegment(day.toString()).build()
         val text=execute(request("wellness").url(url).get().build(),missingAllowed=true)

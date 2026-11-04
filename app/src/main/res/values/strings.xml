@@ -754,4 +754,20 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_layer_contours">Höhenlinien</string>
     <string name="map_layer_contours_info">Höhenlinien ab Zoom 10 aus zusätzlichen Online-Höhendaten. Je nach Zoom 10–100 m Abstand. Die ersten Kacheln können etwas länger laden.</string>
     <string name="map_terrain_credit">Höhendaten: Mapzen / AWS Terrain Tiles · Quellen und Lizenzen</string>
+    <string name="intervals_fitness_read_failed">Fitnessdaten konnten nicht von intervals.icu abgerufen werden.</string>
+    <string name="intervals_fitness_title">Fitness · intervals.icu</string>
+    <string name="intervals_fitness_three_months">3 Monate</string>
+    <string name="intervals_fitness_fitness">Fitness</string>
+    <string name="intervals_fitness_fatigue">Ermüdung</string>
+    <string name="intervals_fitness_form">Form</string>
+    <string name="intervals_fitness_hint">Seitlich wischen für frühere Tage, antippen für Tageswerte. Form = Fitness − Ermüdung (absolut).</string>
+    <string name="intervals_fitness_connect">Aktiviere intervals.icu unter Backup &amp; Cloud, um deine Fitnessdaten abzurufen.</string>
+    <string name="intervals_fitness_loading">Fitnessdaten werden geladen…</string>
+    <string name="intervals_fitness_empty">Für diesen Zeitraum sind keine Fitnessdaten vorhanden.</string>
+    <string name="intervals_fitness_refresh">Aktualisieren</string>
+    <string name="intervals_fitness_today">Heute</string>
+    <string name="intervals_fitness_cached">Gespeicherter Stand: %1$s</string>
+    <string name="intervals_fitness_chart">Fitness, Ermüdung und Form. Seitlich wischen oder einen Tag auswählen.</string>
+    <string name="intervals_fitness_response_failed">intervals.icu hat ungültige Fitnessdaten geliefert.</string>
+    <string name="intervals_in_fitness">Fitness | Ermüdung | Form</string>
 </resources>

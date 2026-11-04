@@ -50,6 +50,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                             }
                             transfer(BicycleIcon.TransferOut,if(action==DataAction.INTERVALS) R.string.intervals_out_data else R.string.backup_fit_data)
                             if(action==DataAction.DREEVE) transfer(BicycleIcon.TransferIn,R.string.dreeve_in_data)
+                            if(action==DataAction.INTERVALS) transfer(BicycleIcon.TransferIn,R.string.intervals_in_fitness)
                         },LayoutParams(-1,-2))
                     }
                     addView(dropdown,LayoutParams(-1,-2))

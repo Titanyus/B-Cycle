@@ -62,7 +62,7 @@ Fehlerdiagnose kennt Bereichsabruf, Einzelprüfung und Übertragung. Bei422 kann
 
 Aktuelle offizielle OpenAPI am31.10.2026 gelesen; Forum nennt422 bei nicht erkannten Wellnessfeldern ([API-Thread, Beitrag243](https://forum.intervals.icu/t/609/243), [Companion-Fall](https://forum.intervals.icu/t/124208/58)). Nicht durch ignoreMissingFields oder blindes Weglassen unbestätigter Messwerte umgehen.
 
-Zusätzliche Nutzerfrage beantwortet, noch kein Implementierungsauftrag: Wellness liefertCTL/Fitness undATL/Ermüdung; Form ausCTL−ATL, bei Darstellung absolute/prozentuale Intervals-Variante berücksichtigen. Keine Fitnessdaten-Abholung oder neue Anzeige eingebaut.
+Frühere Vorplanung inzwischen beauftragt (04.11.2026): CTL/Fitness und ATL/Ermüdung lesen, absolute Form CTL−ATL im letzten Statistikabschnitt. [Abruf/Diagramm/Cache/Prüfung](intervals-fitness.md). HRV-Uploads bleiben unabhängig.
 
 ## Weitere Wellnessfelder und eigene Stressfrage – 31.10.2026
 

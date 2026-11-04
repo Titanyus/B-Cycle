@@ -13,6 +13,7 @@ import java.util.Locale
 
 /** One shared year selection for distance and bike-time statistics. */
 internal class RideStatisticsView(context:Context,private val themes:ThemeManager):LinearLayout(context) {
+    private val fitness=IntervalsFitnessView(context,themes)
     private var shown:RideStatistics?=null
     private val selectedYears=linkedSetOf<Int>()
     private var initialized=false
@@ -34,7 +35,7 @@ internal class RideStatisticsView(context:Context,private val themes:ThemeManage
     fun show(data:RideStatistics) {
         if(shown===data) return
         shown=data;removeAllViews()
-        if(data.rideCount==0) { addView(BicycleComponents.description(context,themes,context.getString(R.string.statistics_empty)));return }
+        if(data.rideCount==0) { addView(BicycleComponents.description(context,themes,context.getString(R.string.statistics_empty)));attach(fitness,LayoutParams(-1,-2));return }
         years=(data.months.keys+data.weeks.keys+data.bikes.keys+data.year).sortedDescending()
         val hadSelection=selectedYears.isNotEmpty();selectedYears.retainAll(years.toSet())
         if(!initialized || hadSelection && selectedYears.isEmpty()) selectedYears.add(if(data.year in data.months) data.year else data.months.keys.maxOrNull() ?: data.year)
@@ -67,6 +68,7 @@ internal class RideStatisticsView(context:Context,private val themes:ThemeManage
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.statistics_bikes)),LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.sectionContentGap) })
         addView(BicycleComponents.description(context,themes,context.getString(R.string.statistics_time_hint)))
         attach(pie,LayoutParams(-1,-2));refresh()
+        attach(fitness,LayoutParams(-1,-2).apply { topMargin=dp(BicycleDesign.sectionContentGap) })
     }
     private fun attach(view:View,params:LayoutParams) { (view.parent as? android.view.ViewGroup)?.removeView(view);addView(view,params) }
     private fun color(year:Int)=palette[(years.indexOf(year)+1)%palette.size]
