@@ -23,26 +23,15 @@ internal class MessageNotificationSettingsView(context: Context, private val the
                 refreshAccess()
             }
         }
-        val details=LinearLayout(context).apply { orientation=VERTICAL;visibility=GONE;tag="notification_access_details" }
+        val frame=BicycleFrameDropdown(context,themes,context.getString(R.string.notifications_enable),open=false,
+            trailing=enabled,leadingIcon=BicycleIcon.Notifications).apply {
+            tag="notification_access_frame";header.tag="notifications_enabled_label";expandControl.tag="notification_access_expand"
+        }
+        val details=frame.content.apply { tag="notification_access_details" }
         details.addView(access,LayoutParams(-1,-2))
         details.addView(BicycleComponents.action(context,themes,context.getString(R.string.notifications_access)) { requestAccess() },LayoutParams(-1,-2))
         details.addView(BicycleComponents.description(context,themes,context.getString(R.string.notifications_privacy)),LayoutParams(-1,-2))
-        addView(LinearLayout(context).apply {
-            tag=BicycleDesign.inlineControlRowTag;gravity=Gravity.CENTER_VERTICAL
-            enabled.gravity=Gravity.START or Gravity.CENTER_VERTICAL
-            val expand=BicycleComponents.icon(context,themes,BicycleIcon.Expand,context.getString(R.string.notifications_enable)) {}.apply {
-                tag="notification_access_expand";stateDescription=context.getString(R.string.zone_collapsed)
-                setOnClickListener {
-                    val open=details.visibility==GONE;details.visibility=if(open) VISIBLE else GONE
-                    rotation=if(open) 180f else 0f
-                    stateDescription=context.getString(if(open) R.string.zone_expanded else R.string.zone_collapsed)
-                }
-            }
-            BicycleComponents.switchAccordion(this,enabled,expand,themes)
-        },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.sectionHeaderMinHeight)))
-        addView(details,LayoutParams(-1,-2))
-        addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.notification_position_heading)),LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
-        addView(MessagePositionChoices(context,themes,settings.position,"notification_position") { settings.position=it },LayoutParams(-1,-2))
+        addView(frame,LayoutParams(-1,-2))
         val slider=BicycleSettingSlider(context,themes) { context.getString(R.string.notifications_seconds,5+it*5) }.apply {
             tag="notification_duration";max=35;progress=(settings.durationSeconds-5)/5;keyProgressIncrement=1
             contentDescription=context.getString(R.string.notifications_duration)
@@ -58,12 +47,15 @@ internal class MessageNotificationSettingsView(context: Context, private val the
             tag="notification_duration_row"
             (getChildAt(0) as TextView).tag="notification_duration_label"
         },LayoutParams(-1,-2))
+        addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.notification_position_heading)),LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
+        addView(MessagePositionChoices(context,themes,settings.position,"notification_position") { settings.position=it }.apply { tag="notification_position" },LayoutParams(-1,-2))
         BicycleForm.section(this,themes,R.string.notifications_apps)
         addView(Switch(context).apply {
             tag="notification_messenger_filter";setText(R.string.notifications_messenger_filter);isChecked=settings.messengerOnly
             BicycleDialogStyle.control(this,themes)
             setOnCheckedChangeListener { _,enabled -> settings.messengerOnly=enabled;refreshApps() }
         },LayoutParams(-1,-2))
+        addView(BicycleComponents.sectionDivider(context,themes).apply { tag="notification_apps_divider" })
         addView(apps,LayoutParams(-1,-2));refreshAccess();refreshApps()
     }
     private fun requestAccess() {
@@ -94,14 +86,15 @@ internal class MessageNotificationSettingsView(context: Context, private val the
         if(candidates.isEmpty()) apps.addView(BicycleComponents.text(context,themes,context.getString(R.string.notifications_no_apps)),LayoutParams(-1,-2))
         candidates.forEach { (name,label) ->
             apps.addView(LinearLayout(context).apply {
-                gravity=Gravity.CENTER_VERTICAL
+                gravity=Gravity.CENTER_VERTICAL;setTag(R.id.inline_control_row,true)
                 addView(ImageView(context).apply {
                     setImageDrawable(runCatching { pm.getApplicationIcon(name) }.getOrNull())
                     importantForAccessibility=View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 },LayoutParams(BicycleDesign.dp(context,32),BicycleDesign.dp(context,32)))
-                addView(CheckBox(context).apply {
+                addView(Switch(context).apply {
                     tag="notification_app_$name";text=label;isChecked=name in settings.packages
                     BicycleDialogStyle.control(this,themes)
+                    setPadding(0,0,0,0)
                     setOnCheckedChangeListener { _,checked -> settings.packages=if(checked) settings.packages+name else settings.packages-name }
                 },LayoutParams(0,-2,1f).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap) })
             },LayoutParams(-1,-2))

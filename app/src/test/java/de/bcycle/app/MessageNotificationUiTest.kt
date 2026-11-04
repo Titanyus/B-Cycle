@@ -36,6 +36,7 @@ class MessageNotificationUiTest {
             val toggle=view.findViewWithTag<Switch>("notifications_enabled")
             val row=toggle.parent as ViewGroup
             assertSame(toggle,row.getChildAt(row.childCount-1))
+            assertTrue(toggle.parent.parent is BicycleFrameDropdown)
             val before=toggle.isChecked
             view.findViewWithTag<View>("notifications_enabled_label").performClick()
             assertEquals(View.VISIBLE,view.findViewWithTag<View>("notification_access_details").visibility)
@@ -55,10 +56,15 @@ class MessageNotificationUiTest {
         val app=RuntimeEnvironment.getApplication();install(app,"com.whatsapp","WhatsApp");install(app,"custom.app","Other")
         val view=MessageNotificationSettingsView(android.view.ContextThemeWrapper(app,R.style.SettingsDialogTheme),ThemeManager(app.getSharedPreferences("bike",0)))
         val settings=MessageNotificationSettings(app)
+        val duration=view.findViewWithTag<View>("notification_duration_row")
+        val positions=view.findViewWithTag<View>("notification_position")
+        assertTrue(view.indexOfChild(duration)<view.indexOfChild(positions))
+        assertNotNull(view.findViewWithTag<View>("notification_apps_divider"))
+        assertEquals(0,view.findViewWithTag<Switch>("notification_app_com.whatsapp").paddingRight)
         assertNotNull(view.findViewWithTag<View>("notification_app_com.whatsapp"));assertNull(view.findViewWithTag<View>("notification_app_custom.app"))
-        view.findViewWithTag<CheckBox>("notification_app_com.whatsapp").isChecked=true
+        view.findViewWithTag<Switch>("notification_app_com.whatsapp").isChecked=true
         view.findViewWithTag<Switch>("notification_messenger_filter").isChecked=false
-        view.findViewWithTag<CheckBox>("notification_app_custom.app").isChecked=true
+        view.findViewWithTag<Switch>("notification_app_custom.app").isChecked=true
         view.findViewWithTag<Switch>("notification_messenger_filter").isChecked=true
         assertEquals(setOf("com.whatsapp","custom.app"),settings.packages)
         val slider=view.findViewWithTag<SeekBar>("notification_duration")
@@ -96,12 +102,12 @@ class MessageNotificationUiTest {
         assertNull(view.findViewWithTag<View>("notification_app_system.updated.service"))
         assertNotNull(view.findViewWithTag<View>("notification_app_system.regular.app"))
         assertNotNull(view.findViewWithTag<View>("notification_app_com.google.android.apps.messaging"))
-        assertTrue(view.findViewWithTag<CheckBox>("notification_app_custom.app").isChecked)
+        assertTrue(view.findViewWithTag<Switch>("notification_app_custom.app").isChecked)
         view.findViewWithTag<Switch>("notification_messenger_filter").isChecked=true
         assertNull(view.findViewWithTag<View>("notification_app_custom.app"))
         assertNotNull(view.findViewWithTag<View>("notification_app_com.google.android.apps.messaging"))
         view.findViewWithTag<Switch>("notification_messenger_filter").isChecked=false
-        assertTrue(view.findViewWithTag<CheckBox>("notification_app_custom.app").isChecked)
+        assertTrue(view.findViewWithTag<Switch>("notification_app_custom.app").isChecked)
         assertEquals(setOf("android.system.service","custom.app"),settings.packages)
         MessageNotifications.observedPackages.remove("android.system.service")
     }
