@@ -25,12 +25,22 @@ final class BCycleLabelFades {
             from=opacity(now);to=next;start=now;duration=milliseconds;
         }
     }
-    private static String identity(TextItem item,double wx,double wy) {
-        String family=BCycleLabelPolicy.place(item.text) ? "place" : item.text.style;
-        return family+'\u0000'+item.label+'\u0000'+Math.round((wx-Math.floor(wx))*32768)+":"+Math.round(wy*32768);
+    private long nextId;
+    private static String family(TextItem item) {
+        return (BCycleLabelPolicy.place(item.text) ? "place" : item.text.style)+'\u0000'+item.label+'\u0000'+item.text.caption;
     }
-    int visibleAge(TextItem item,double wx,double wy,int otherwise) {
-        State state=states.get(identity(item,wx,wy));
+    private State nearest(TextItem item,double wx,double wy,double world,boolean unassigned) {
+        String key=family(item);State best=null;double distance=48*48;
+        for(State candidate:states.values()) {
+            if((unassigned && candidate.seen==generation) || !key.equals(family(candidate.item))) continue;
+            double dx=candidate.wx-wx;dx-=Math.floor(dx+.5);
+            double dy=candidate.wy-wy;double squared=(dx*dx+dy*dy)*world*world;
+            if(squared<distance) { best=candidate;distance=squared; }
+        }
+        return best;
+    }
+    int visibleAge(TextItem item,double wx,double wy,double world,int otherwise) {
+        State state=nearest(item,wx,wy,world,false);
         return state!=null && state.opacity(SystemClock.uptimeMillis())>.005f ? state.age : otherwise;
     }
     void clear() { states.clear(); }
@@ -42,9 +52,8 @@ final class BCycleLabelFades {
         for(Label label=labels;label!=null;label=(Label)label.next) {
             double wx=pos.x+label.x/world,wy=pos.y+label.y/world;
             wx=wx-Math.floor(wx);
-            String id=identity(label,wx,wy);
-            State state=states.get(id);
-            if(state==null) { state=new State();states.put(id,state); }
+            State state=nearest(label,wx,wy,world,true);
+            if(state==null) { state=new State();states.put(Long.toString(++nextId),state); }
             state.target(1,now,duration);state.age=label.active;state.seen=generation;state.wx=wx;state.wy=wy;state.scale=pos.scale;
             TextItem item=state.item;
             item.label=label.label;item.text=label.text;item.width=label.width;item.length=label.length;

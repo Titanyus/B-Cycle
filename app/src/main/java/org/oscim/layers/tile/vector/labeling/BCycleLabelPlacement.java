@@ -293,7 +293,7 @@ public class BCycleLabelPlacement {
         label.clone(item);
         double factor=1.0/(1 << candidate.tile.zoomLevel);
         label.active=fades.visibleAge(item,(candidate.tile.tileX+item.x/Tile.SIZE)*factor,
-                (candidate.tile.tileY+item.y/Tile.SIZE)*factor,mRelabelCnt);
+                (candidate.tile.tileY+item.y/Tile.SIZE)*factor,Tile.SIZE*Math.pow(2,currentZoom),mRelabelCnt);
         label.x=candidate.x;label.y=candidate.y;
         if(label.bbox==null) label.bbox=new OBB2D();
         label.bbox.setNormalized(label.x,label.y,cos,-sin,

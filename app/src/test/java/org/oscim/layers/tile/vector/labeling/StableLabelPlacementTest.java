@@ -50,6 +50,33 @@ public class StableLabelPlacementTest {
         java.lang.reflect.Field field=BCycleLabelPlacement.class.getDeclaredField("mLabels");field.setAccessible(true);
         return (Label)field.get(placement);
     }
+    @Test public void repeatedRoadLabelsInsideOneOldWorldCellRemainSeparateAcrossArrivalOrder() {
+        BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());
+        try {
+            TextStyle road=style("highway-shield-primary",120,false);
+            Label first=new Label();first.clone(item("B16",road,100,100));first.x=100;first.y=100;first.x1=0;first.x2=200;first.y1=first.y2=100;
+            Label second=new Label();second.clone(item("B16",road,250,100));second.x=250;second.y=100;second.x1=350;second.x2=150;second.y1=second.y2=100;
+            first.next=second;
+            BCycleLabelFades fades=new BCycleLabelFades();
+            BCycleLabelTask task=new BCycleLabelTask();task.pos.x=.5;task.pos.y=.5;task.pos.setZoomLevel(16);
+            fades.build(task,first,800,600);
+            assertEquals("Two independently placed labels must not share one fade/geometry state",2,task.textLayer.labels.next==null ? 1 : 2);
+            task.textLayer.clearLabels();
+            first.next=null;second.next=first;
+            fades.build(task,second,800,600);
+            int count=0;boolean left=false,right=false;
+            for(TextItem label=task.textLayer.labels;label!=null;label=label.next) {
+                count++;
+                if(Math.abs(label.x-100)<.01) { left=true;assertTrue(label.x2>label.x1); }
+                if(Math.abs(label.x-250)<.01) { right=true;assertTrue(label.x2<label.x1); }
+            }
+            assertEquals(2,count);assertTrue(left && right);task.textLayer.clearLabels();
+            TextStyle village=style("place-village",50,true);
+            assertTrue("Previously visible places survive another half zoom level",BCycleLabelPolicy.eligible(village,12.5,true));
+            assertFalse(BCycleLabelPolicy.eligible(village,12.4,true));
+            assertFalse("New-label threshold is unchanged",BCycleLabelPolicy.eligible(village,13.3,false));
+        } finally { view.disposeMap(); }
+    }
     @Test public void captionsRetainTheirPlaceAcrossArrivalOrderAndZoomButExpireWithTheirFeature() throws Exception {
         BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());
         Tiles tiles=new Tiles();

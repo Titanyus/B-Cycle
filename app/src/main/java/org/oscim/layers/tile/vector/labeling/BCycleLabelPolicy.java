@@ -18,7 +18,7 @@ final class BCycleLabelPolicy {
         return 16.25f;
     }
     static boolean eligible(TextStyle text,double zoom,boolean retained) {
-        return !place(text) || zoom >= minimumZoom(text)+(retained ? -.3 : .2);
+        return !place(text) || zoom >= minimumZoom(text)+(retained ? -.8 : .2);
     }
     static float horizontalGap(TextStyle text) { return place(text) ? Math.max(32,text.fontHeight*3) : 5; }
     static float verticalGap(TextStyle text) { return place(text) ? Math.max(20,text.fontHeight*1.5f) : 5; }
