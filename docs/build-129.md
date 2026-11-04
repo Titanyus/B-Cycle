@@ -16,3 +16,5 @@ Bright-JSON/XML, GPS-/Streckenshader und neuer bcycle_labels-Shader, 111 Spritev
 [Änderungen](release-0.8.88.md): weniger Ortsnamen, Zoomkohorten mit Hysterese, stabile gleichklassige Namen, 240-ms-GPU-Fades, ausgeblendete Gemeindegrenzen, korrigierte TERTIARY-Feldauswahl mit globalem 16-dp-Abstand und 8-dp-Seiteninset der Glow-Sticky-Kästen.
 
 Acht gezielte native Fälle für Platzierung/Fades, Grenzen, Vollbild-Feldauswahl, Boxgeometrie und Layerwechsel erfolgreich. GLES-Shader-Compile/Link und Alpha-Pixel für Ein-/Ausblendung/Umkehr geprüft. Kompilation/Typografie/Atlas/Bright-/Diff-Prüfung grün; kein Gesamtlauf, keine lokale APK. Smartphone-GPU und subjektiver Zoom-Eindruck noch zu beurteilen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4189008 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.

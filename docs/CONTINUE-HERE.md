@@ -48,3 +48,5 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
 Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.89 / code 159 / Build 130. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4189008 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
