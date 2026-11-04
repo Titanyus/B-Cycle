@@ -1,6 +1,15 @@
-# Aktueller Stand: APK 0.8.87 / Build 128 veröffentlicht
+# Aktueller Stand: weichere Kartennamen und UI-Korrekturen; letzte APK 0.8.87 / Build 128
 
-## Aktueller Auftrag abgeschlossen
+## Aktuelle Folgeaufträge abgeschlossen
+
+- Ortsnamen: weniger Dichte, gemeinsame Zoomkohorten, Hysterese und 240-ms-Ein-/Ausblenden über eigenen GL-Shader. Feinränge neuer Tiles verdrängen keine sichtbaren Namen derselben Größenklasse. Viewportweit sortieren, kurzzeitig fehlende Namen während Fade mit ihrem alten Sichtbarkeitsalter wiederaufnehmen. Native Atlas-/Glyphvertices/Matrizen erhalten; separater Metadata-VBO, begrenzte Historie und GL-Freigabe über zugehörige MapView-Queue. [Details](vtm-label-stability.md). Jetzt 28 Shader einschließlich bcycle_labels.glsl; neue APK-Prüfung anpassen.
+- Gemeinde-/Ortsteilgrenzen (admin_level ≥8) ausblenden, übrige Boundary-Ebenen erhalten. POI-Sperre bleibt. Bright-JSON/Generatorassets unverändert.
+- Feldauswahl korrigiert: globalen pageContentGap 16 dp behalten, nur früheres zusätzliches Außenpadding entfernen. FieldPicker und tatsächlicher Vollbildhost TERTIARY; der Host hatte die Fläche bisher wieder mit SECONDARY übermalt. Überflüssige leadingContentGap=0-Ausnahme entfernt; lokaler sectionBackdrop bleibt TERTIARY.
+- Glow-Sticky-Kästen global außen links/rechts 8 statt 16 dp; Abstand zwischen Kästen weiterhin 24 dp. Inhaltseinstellungen und Flat-Geometrie erhalten.
+
+Acht gezielte native Fälle grün: drei Label-/Gruppen-/Fadefälle (inkl. Nachladen/Umkehr), Gemeindegrenzen/Theme, echter Dashboardeditor mit Vollbildfarbe/16-dp-Abstand, Boxgeometrie/Pinning, Layerwechsel und Feldbelegungsnavigation. Logs /workspace/.tools/label-fades-and-ui-tests.log, label-resource-and-field-tests.log, label-fades-final-placement-tests.log. GLES-Pixelprüfung über scripts/check-vtm-label-shader.py grün; Kompilation/Typografie/Atlas/Bright/Diff grün. Kein Gesamtlauf und keine neue APK beauftragt. Smartphone-GPU/Zoom-Eindruck noch beurteilen.
+
+## Erhaltener Stand aus Build 128
 
 Neue APK ausdrücklich angefordert, ausschließlich über GitHub Actions gebaut und geprüft. [Änderungen](release-0.8.87.md), [Buildnachweis](build-128.md).
 
@@ -34,6 +43,6 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.88 / code 158 / Build 129. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/27 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.88 / code 158 / Build 129. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
 
 Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4188317 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
