@@ -5,4 +5,4 @@
 
 Gezielte native Overzoomprüfung für Stufen 15–19, vorhandene Label-/Fadefälle und gleichmäßige Verteilung bei umgekehrter Eingabereihenfolge/90° Kartenrotation erfolgreich. Typografie/Bright-Generator/Diff grün; kein Gesamtlauf, keine lokale APK. Gerätevergleich der konkret gemeldeten Szene noch offen. [Befund und Open-Source-Referenzen](vtm-maxzoom-and-road-labels.md).
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-133.md).

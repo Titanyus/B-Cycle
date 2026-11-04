@@ -1,10 +1,10 @@
-# Aktueller Stand: APK 0.8.90 / Build 132 veröffentlicht
+# Aktueller Stand: APK 0.8.91 / Build 133 veröffentlicht
 
-## Änderungen nach Build 132, noch unveröffentlicht
+## In Build 133 enthalten
 
 - Maximalzoom: nativen Overzoom-Gebäudeüberlauf vor signed-short-Packung reproduziert und gepufferte Zielkachel-Clipping-Stufe nachgeschaltet. Quellstufe/Kamera/Styles unverändert, beide Vektorpässe profitieren. Native Regression Stufen 15–19 grün.
 - Hauptstraßennamen/-nummern: radialer Wiederholungsabstand mindestens 220 Canvas-dp, gleiche Kennung über Leerzeichen-/Stylevarianten. Neue Straßenkandidaten viewportweit statt Tile-Reihenfolge auswählen, größere Lücken bevorzugt auffüllen; bestehende Labels behalten Alter. Native Fälle plus regelmäßige Verteilung bei umgekehrter Reihenfolge/90° Drehung grün.
-- Öffentliche Referenzen geprüft: Trekarta samt VTM-Fork, offizielle VTM-Beispiele und offene Cachebox-Integration. [Befund/Verfahren/Prüfung](vtm-maxzoom-and-road-labels.md). Fortsetzung als neue APK beauftragt: 0.8.91 / code 161 / erwarteter Build 133, ausschließlich GitHub Actions. Gerätevergleich offen.
+- Öffentliche Referenzen geprüft: Trekarta samt VTM-Fork, offizielle VTM-Beispiele und offene Cachebox-Integration. [Befund/Verfahren/Prüfung](vtm-maxzoom-and-road-labels.md). Fortsetzung als neue APK beauftragt, über GitHub Actions gebaut und geprüft. [Änderungen](release-0.8.91.md), [Buildnachweis](build-133.md). Gerätevergleich offen.
 
 ## In Build 132 enthalten
 
@@ -62,12 +62,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.90 / Build 132](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.90-release-132.apk), code 160, Quelle `e52738ee1ca03596786d5ed53ef8645e41205347`, 4244912 Bytes, SHA-256 `6187fe34e965f1e0644ffd4b43b9df78fbe4a1f33a6f92645b8429966009388c`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-132.md). Vorige APK: [0.8.89 / Build 130](build-130.md).
+[APK 0.8.91 / Build 133](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.91-release-133.apk), code 161, Quelle `48e61a82a21c79c0ad4c8c75e5e3673ca50247f1`, 4261296 Bytes, SHA-256 `8294ffb1fa7536e0d237a22a8f7a3fc01e6ffcc0444b1595f4a27de24ab59d85`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-133.md). Vorige APK: [0.8.90 / Build 132](build-132.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.91 / code 161 / Build 133. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
-
-Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4244912 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.92 / code 162 / Build 134. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
