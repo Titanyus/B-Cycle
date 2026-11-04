@@ -15,7 +15,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 ## Zentrale UI-Konventionen
 
 - BicycleDesign, BicycleComponents, BicycleDialogStyle, ThemeManager und BicycleIcons verwenden. PRIMARY für UI-Hervorhebungen, ACCENT bleibt separate Highlightfarbe. Funktionale Zonen-/Boschfarben nicht an Themefarben binden.
-- Flat/Glow ändern die Einstellungsdekoration auf derselben Bedienungs-/Geometriebasis. Standard Glow. Aktive Chromatic-Konturen/-Flächen aus BicycleInputStyle, keine neuen Farbkopien oder alternativen Glows. Flat ohne dekorative Effekte; ausdrücklich funktionale HRV-/Bosch-Effekte erhalten.
+- Standarddesign Glow. Felder, Buttons, aktive Auswahlkacheln und Schalter verwenden in Flat/Glow dieselben einfarbigen Flächen/PRIMARY-Konturen/Rundungen, ohne Chromatic-Verlauf, dekorativen Glow oder Auswahl-Elevation. Designunterschiede nur Header-/Footer-Schatten, Glow der Trainingshilfe und abgerundete Sticky-Kästen samt Geometrie; Nachrichtenanzeige ohne zusätzlichen Glow-Schatten. Ausdrücklich funktionale HRV-/Bosch-/Trainingszonen-Effekte erhalten. Alte Chromatic-/Blur-Engine aus Appquellen entfernt, ausschließlich im Wiederverwendungsarchiv/Offline-Designer behalten.
 - Normale Rahmen und inaktive Auswahlkacheln: 2 dp, FOREGROUND mit 25 % Deckkraft, 6-dp-Radius. Aktive Auswahl-/Spezialkonturen bleiben unabhängig. Horizontale UI-Trenner verwenden dieselben Rahmenwerte.
 - Globale Auswahlkacheln über BicycleSelectionCard, einschließlich Fahrradfilter. Positionen für Benachrichtigung/Trinkhinweis über MessagePositionChoices. Keine eigene parallele Konturdefinition.
 - Schalter immer rechts, Label links; keine Radio-Punkte in Auswahllisten, keine RTL-Positionierungstricks. Native Auswahl-/Mehrfachlogik und Accessibility erhalten.
@@ -28,7 +28,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 - Unterseiten als bestehender Vollbild-Dialoghost mit fixem Header/Footer. Kurze Bestätigungen kompakt. Links Zurück, Titel unabhängig zentriert, Info rechts. Kein leerer Navigationsfooter.
 - Fachliche Footer über bicycleFooter/BicycleFooterAction. Dashboard-Footer TERTIARY, ohne Rahmen/Schatten in beiden Designs. Footer bei Layouts ohne Karte immer sichtbar.
 - Bestehende Dialoggestaltung nicht pauschal neu einfärben. Der Trinkhinweis bleibt PRIMARY-Alert ohne Header. HRV-Messung/-Ergebnis/-Tagesbefinden/-Auswertung: schlichte SECONDARY-Header ohne Rahmen/Glow, Android-Statusleiste verborgen.
-- Hauptheader auch in Glow einfarbig in ihrer bisherigen Theme-Rolle, ohne Chromatic-Kontur/Glow/Verlauf. Gemeinsame Chromatic-Engine für Eingaben, aktive Auswahlen, Schalter und Spezialbuttons erhalten. Wiederverwendbarer Snapshot inkl. Berechnungsverfahren/Offline-Designer unter docs/archive/chromatic-glow-2026-11-04/README.md.
+- Hauptheader auch in Glow einfarbig in ihrer bisherigen Theme-Rolle, ohne Chromatic-Kontur/Glow/Verlauf. Chromatic-Stil auch aus Eingaben, aktiven Auswahlen, Schaltern und Spezialbuttons entfernt. Wiederverwendbarer Originalsnapshot inkl. Berechnungsverfahren/Offline-Designer unter docs/archive/chromatic-glow-2026-11-04/README.md.
 - UI-Typografie und Atlas: `python3 scripts/check-ui-typography.py`, bei Tokenänderungen `python3 scripts/build-ui-catalog.py`, anschließend `--check`.
 
 ## Profile, Dashboard und Karten

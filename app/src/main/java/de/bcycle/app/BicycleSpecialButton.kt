@@ -26,8 +26,13 @@ internal fun styleSpecialButton(view:android.widget.TextView,tokens:ThemeTokens,
     view.setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled),intArrayOf()),intArrayOf(0x80ffffff.toInt(),Color.WHITE)))
     view.typeface=BicycleDesign.strongTypeface;view.textSize=BicycleDesign.bodySp
     view.backgroundTintList=null
-    val fill=if(filled) BicycleAccentGradient.fill(view.context,tokens,foreground=Color.WHITE,chromatic=BicycleInputStyle.strength(view),radiusDp=BicycleDesign.specialButtonRadius) else null
+    val surface=android.graphics.drawable.GradientDrawable().apply {
+        setColor(if(filled) tokens.primary else Color.TRANSPARENT)
+        cornerRadius=BicycleDesign.dp(view.context,BicycleDesign.specialButtonRadius).toFloat()
+        setStroke(BicycleDesign.linePixels(view.context,BicycleDesign.activeControlStroke),tokens.primary)
+    }
     val padding=intArrayOf(view.paddingLeft,view.paddingTop,view.paddingRight,view.paddingBottom)
-    view.background=RippleDrawable(ColorStateList.valueOf(0x26ffffff),BicycleInputFrame.decorate(view,tokens,true,fill,BicycleDesign.specialButtonRadius,((1.0-BicycleDesign.specialButtonHeightScale)/2).toFloat()),null)
+    view.background=RippleDrawable(ColorStateList.valueOf(0x26ffffff),
+        android.graphics.drawable.InsetDrawable(surface,0f,((1.0-BicycleDesign.specialButtonHeightScale)/2).toFloat(),0f,((1.0-BicycleDesign.specialButtonHeightScale)/2).toFloat()),null)
     view.setPadding(padding[0],padding[1],padding[2],padding[3])
 }

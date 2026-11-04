@@ -1,6 +1,6 @@
 # Gemeinsame Eingabekontur und PRIMARY-Flächen
 
-Stand 04.11.2026: Hauptheader verwenden die nachfolgende Chromatic-Dekoration nicht mehr, sondern eine einfarbige Fläche ihrer bisherigen Theme-Rolle. Eingabekonturen, aktive Auswahlkacheln, Schalter und Spezialbuttons verwenden die gemeinsame Engine weiterhin. Der vollständige Quellsnapshot vor Entfernung der Header-Variante samt Berechnung/Designer ist im [Wiederverwendungsarchiv](archive/chromatic-glow-2026-11-04/README.md) gesichert.
+Stand 04.11.2026: Hauptheader und nach weiterem Nutzerauftrag auch Eingabekonturen, aktive Auswahlkacheln, Schalter und sämtliche Buttons verwenden die nachfolgende Chromatic-Dekoration nicht mehr. Diese Controls verwenden in Flat/Glow dieselbe einfarbige Flat-Darstellung. Die folgenden Absätze beschreiben das frühere Verfahren. Der vollständige Originalsnapshot samt Berechnung/Designer ist im [Wiederverwendungsarchiv](archive/chromatic-glow-2026-11-04/README.md) gesichert.
 
 Die App verwendet jetzt dieselbe OKLCH-Chromatic-Engine wie der Designer. Freigegebene Vorlage: [input-design.json](designs/input-design.json), übernommen aus dem Nutzerexport. Die JSON bleibt zur Nachvollziehbarkeit im Repository; die App liest sie nicht zur Laufzeit. Zentrale Kotlin-Werte stehen in BicycleDesign und BicycleInputStyle, reine Farbrechnung in ChromaticColor. ThemeTokens behalten ihre fünf Rollen und bestehende Sicherungs-/Profilformate. Keine neue App-Einstellung.
 

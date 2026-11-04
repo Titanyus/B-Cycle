@@ -14,11 +14,11 @@ internal object BicycleAppearance {
         view.outlineAmbientShadowColor=shadow;view.outlineSpotShadowColor=shadow
         if(view is Button) {
             view.stateListAnimator=null
-            view.elevation=if(view is BicycleSegmentButton && view.isChecked && !flat) BicycleDesign.dp(view.context,BicycleDesign.selectedControlShadow).toFloat() else 0f
+            view.elevation=0f
         }
     }
     fun selected(view:View,selected:Boolean) {
         view.stateListAnimator=null
-        view.elevation=if(selected && !flat(view.context)) BicycleDesign.dp(view.context,BicycleDesign.selectedControlShadow).toFloat() else 0f
+        view.elevation=0f
     }
 }

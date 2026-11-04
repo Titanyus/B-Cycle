@@ -86,8 +86,7 @@ internal object BicycleDialogStyle {
                 setSize(dp(view,BicycleDesign.switchWidth),dp(view,BicycleDesign.switchHeight))
                 setStroke(BicycleDesign.linePixels(view.context),alpha(tokens.foreground,opacity))
             }
-            val thumb=if(checked && !BicycleAppearance.flat(view.context)) BicycleChromaticSurface(view.context,tokens,BicycleInputStyle.strength(view),BicycleDesign.specialButtonRadius,tokens.primary,true).apply { alpha=(255*opacity).toInt() }
-                else GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(alpha(if(checked) tokens.primary else tokens.foreground,opacity)) }
+            val thumb=GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(alpha(if(checked) tokens.primary else tokens.foreground,opacity)) }
             val pill=LayerDrawable(arrayOf(track,thumb)).apply {
                 setLayerSize(1,dp(view,BicycleDesign.switchThumbDiameter),dp(view,BicycleDesign.switchThumbDiameter))
                 setLayerGravity(1,(if(checked) Gravity.END else Gravity.START) or Gravity.CENTER_VERTICAL)
@@ -251,8 +250,7 @@ internal object BicycleDialogStyle {
                 if (view is Switch) {
                     view.thumbTintList = null
                     fun thumb(on:Boolean,enabled:Boolean):android.graphics.drawable.Drawable {
-                        val circle=if(on && !BicycleAppearance.flat(view.context)) BicycleChromaticSurface(view.context,it,BicycleInputStyle.strength(view),BicycleDesign.specialButtonRadius,it.primary,true)
-                            else GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(if(on) it.primary else it.foreground) }
+                        val circle=GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(if(on) it.primary else it.foreground) }
                         circle.alpha=if(enabled) 255 else 127
                         return circle
                     }

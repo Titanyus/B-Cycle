@@ -1,6 +1,14 @@
-# Aktueller Stand: schlichte Hauptheader und Chromatic-Archiv; letzte APK 0.8.86 / Build 127
+# Aktueller Stand: Controls auch in Glow wie Flat; letzte APK 0.8.86 / Build 127
 
-## Aktueller Auftrag abgeschlossen: Hauptheader ohne Glow/Verlauf
+## Aktueller Auftrag abgeschlossen: Chromatic-Dekoration und Alt-Engine entfernen
+
+Nach Hauptheadern auch Trainingshilfe-/Auswahl-/Spezialbuttons, Schalterkreise, aktive Profil-/Dashboardkacheln und fokussierte Eingabefelder einfarbig wie Flat. PRIMARY-Markierungen/Disabled-Zustände, Auswahl, Fokuslistener, Texte, native Schalteranimation und Speicherung bleiben. Keine Auswahl-Elevation; gemeinsame 6-dp-Controlrundung. InputFrame benötigt keinen Overlayhost/Blurcache mehr. ChromaticColor/BicycleAccentGradient/BicycleChromaticSurface/BicycleContourBlur/BicycleInputStyle samt alten Tokens und reinen Altverfahren-Tests aus aktiven Appquellen entfernt. Quellsuche ohne verbliebene Referenzen; Originale und Tests im Archiv erhalten, zusätzlich ContourBlurAndFillTest gesichert. UI-Atlas ebenfalls ohne alte Engine, Offline-Designer separat erhalten.
+
+Nutzerdefinition: Unterschiede zwischen Glow/Flat nur Header-/Footer-Schatten, Glow der Trainingshilfe und abgerundete Sticky-Kästen samt Geometrie. Zusätzlichen Glow-Schatten der Nachrichtenanzeige an Flat angeglichen. Funktionale HRV/Bosch/Trainingszonen-Visualisierungen erhalten. Keine neue APK beauftragt.
+
+Vier gezielte native Tests grün: Control-Aktionen/-Geometrie, Pillenhöhe, Eingabefokus/Selektion ohne Glow und Flat/Glow-Wechsel samt Sicherungsrundreise. Log /workspace/.tools/removed-glow-engine-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf, Gerätesichtprüfung offen.
+
+## Vorheriger Auftrag abgeschlossen: Hauptheader ohne Glow/Verlauf
 
 BicycleInputFrame.header liefert einfarbige ColorDrawable in der bisherigen Theme-Rolle, ohne Kontur/Glow-Binding. Gilt zentral für BicycleComponents.header und BicycleNavigation in Flat/Glow; bestehende schlichte HRV-Header bleiben erhalten. Gemeinsame Engine wird weiter für Eingaben, aktive Auswahlkacheln, Schalter und Spezialbuttons benötigt und bleibt aktiv.
 

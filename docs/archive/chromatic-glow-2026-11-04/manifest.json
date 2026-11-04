@@ -24,6 +24,7 @@
     "app/src/test/java/de/bcycle/app/InputDesignConfigurationTest.kt": "2fad0e452dd6c6138046ee6e1d8f50b4d017f5067bea38519aff330f75eb6fa4",
     "app/src/test/java/de/bcycle/app/GlowChromeTest.kt": "d28c8b39f8dfd9c371373b9bd1f8314a0d758642a804109d62372a4ee08b36bf",
     "app/src/main/java/de/bcycle/app/BicycleTheme.kt": "3508c24d1fc67245e7fa5cf6c8263c17b53abd83c20d02ab9cf5cb156a40c6b7",
-    "app/src/main/assets/League-Gothic-OFL.txt": "44778c339892f79188c60b7471485dd5af92c59351c7f9629a00fc625c6cae5d"
+    "app/src/main/assets/League-Gothic-OFL.txt": "44778c339892f79188c60b7471485dd5af92c59351c7f9629a00fc625c6cae5d",
+    "app/src/test/java/de/bcycle/app/ContourBlurAndFillTest.kt": "d89fe04af909fa2d18bac547c0ab195d79394e57aa90b8a3bd43dc6963018b49"
   }
 }

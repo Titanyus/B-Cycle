@@ -5,46 +5,36 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ScrollView
-import kotlin.math.cos
-import kotlin.math.ceil
-import kotlin.math.sqrt
-import kotlin.math.roundToInt
-import kotlin.math.sin
 
 /** Focus decoration only. Native focus, editing, padding and validation remain with the field. */
 internal object BicycleInputFrame {
-    fun colors(primary:Int,chromatic:Double=BicycleInputStyle.defaultChromatic)=BicycleInputStyle.resolve(BicycleInputStyle.outline,BicycleAccentGradient.palette(primary,chromatic))
-    fun positions()=BicycleInputStyle.outline.map { it.position }.toFloatArray()
     fun background(view:View,tokens:ThemeTokens):GradientDrawable {
-        val binding=(view.getTag(R.id.input_frame) as? Glow) ?: Glow(view).also { view.setTag(R.id.input_frame,it) }
-        binding.verticalInsetFraction=0f;binding.selected=null;binding.radiusDp=null;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.invalidateSelf()
-        return Frame(view,tokens,{ binding.refresh() })
+        return Frame(view,tokens)
     }
-    /** Shared active outline/halo, with independently chosen fill and corner geometry. */
+    /** Plain active contour; native focus and selection state stay with the owner. */
     fun decorate(view:View,tokens:ThemeTokens,active:Boolean,fill:Drawable?=null,radiusDp:Int=BicycleDesign.inputRadius,verticalInsetFraction:Float=0f):Drawable {
-        val binding=(view.getTag(R.id.input_frame) as? Glow) ?: Glow(view).also { view.setTag(R.id.input_frame,it) }
-        binding.verticalInsetFraction=verticalInsetFraction;binding.selected=active;binding.radiusDp=radiusDp;binding.chromatic=BicycleInputStyle.strength(view);binding.primary=tokens.primary;binding.refresh()
-        val frame=Frame(view,tokens,{ binding.refresh() },active,BicycleDesign.dp(view.context,radiusDp).toFloat())
+        val frame=Frame(view,tokens,active,BicycleDesign.dp(view.context,radiusDp).toFloat())
         val surface=if(fill==null) frame else android.graphics.drawable.LayerDrawable(arrayOf(fill,frame))
         return if(verticalInsetFraction==0f) surface else InsetDrawable(surface,0f,verticalInsetFraction,0f,verticalInsetFraction)
     }
     fun selectionBackground(view:View,tokens:ThemeTokens,selected:Boolean):Drawable {
-        val fill=if(selected) BicycleAccentGradient.fill(view.context,tokens,chromatic=BicycleInputStyle.strength(view),radiusDp=BicycleDesign.inputRadius) else GradientDrawable().apply {
-            setColor(tokens.secondary);cornerRadius=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()
+        val fill=GradientDrawable().apply {
+            setColor(if(selected) tokens.primary else tokens.secondary)
+            cornerRadius=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()
         }
-        val decorated=decorate(view,tokens,selected,fill)
-        return if(selected) decorated else fill
+        if(!selected) return fill
+        val outline=GradientDrawable().apply {
+            setColor(Color.TRANSPARENT);cornerRadius=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()
+            setStroke(BicycleDesign.linePixels(view.context,BicycleDesign.activeControlStroke),tokens.primary)
+        }
+        return android.graphics.drawable.LayerDrawable(arrayOf(fill,outline))
     }
     fun header(view:View,tokens:ThemeTokens,role:ThemeRole=ThemeRole.PRIMARY):Drawable {
         return android.graphics.drawable.ColorDrawable(tokens.color(role))
     }
-    private class Frame(view:View,tokens:ThemeTokens,private val refresh:()->Unit,private val selected:Boolean?=null,private val radius:Float=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()):GradientDrawable() {
+    private class Frame(view:View,tokens:ThemeTokens,private val selected:Boolean?=null,private val radius:Float=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()):GradientDrawable() {
         private val density=view.resources.displayMetrics.density
-        private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeWidth=BicycleDesign.inputFocusStroke*density }
-        private val flat=BicycleAppearance.flat(view.context)
-        private val stops=if(flat) intArrayOf(tokens.primary) else colors(tokens.primary,BicycleInputStyle.strength(view))
+        private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeWidth=BicycleDesign.activeControlStroke*density }
         private val primary=tokens.primary
         private val rect=RectF()
         private var active=selected==true && view.isEnabled
@@ -58,7 +48,7 @@ internal object BicycleInputFrame {
         override fun onStateChange(stateSet:IntArray):Boolean {
             val next=(selected ?: (android.R.attr.state_focused in stateSet)) && android.R.attr.state_enabled in stateSet
             val changed=next!=active;active=next
-            if(changed) { invalidateSelf();refresh() }
+            if(changed) invalidateSelf()
             return super.onStateChange(stateSet) || changed
         }
         override fun onBoundsChange(bounds:Rect) {
@@ -66,106 +56,9 @@ internal object BicycleInputFrame {
             val inset=paint.strokeWidth/2
             rect.set(bounds.left+inset,bounds.top+inset,bounds.right-inset,bounds.bottom-inset)
             paint.color=primary
-            if(!flat && bounds.width()>0 && bounds.height()>0) paint.shader=BicycleAccentGradient.shader(RectF(bounds),BicycleDesign.inputFocusAngle,stops,positions())
         }
         override fun draw(canvas:Canvas) {
             if(active) canvas.drawRoundRect(rect,radius,radius,paint) else super.draw(canvas)
         }
-    }
-    /** Draw in the scroll viewport, so row bounds cannot cut the outer glow in half. */
-    private class Glow(private val field:View):Drawable(),View.OnAttachStateChangeListener {
-        var verticalInsetFraction=0f
-            set(value) { if(field!=value) { field=value;clearCache() } }
-        var selected:Boolean?=null
-        private fun active()=(selected ?: field.isFocused) && field.isEnabled
-        var primary=Color.TRANSPARENT
-            set(value) { if(field!=value) { field=value;clearCache() } }
-        var radiusDp:Int?=null
-            set(value) { if(field!=value) { field=value;clearCache() } }
-        private fun radius()=radiusDp?.let { BicycleDesign.dp(field.context,it).toFloat() } ?: BicycleDesign.dp(field.context,BicycleDesign.inputRadius).toFloat()
-        var chromatic=BicycleInputStyle.defaultChromatic
-            set(value) { if(field!=value) { field=value;clearCache() } }
-        private data class Blurs(val width:Int,val height:Int,val density:Float,val pad:Float,val near:Bitmap,val outer:Bitmap)
-        private var cache:Blurs?=null
-        private fun clearCache() { cache?.let { it.near.recycle();it.outer.recycle() };cache=null }
-        private var host:ViewGroup?=null
-        private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE }
-        private val frame=RectF();private val bitmapBounds=RectF();private val inside=Path()
-        private val fieldPosition=IntArray(2);private val hostPosition=IntArray(2)
-        private val visible=Rect()
-        init {
-            field.addOnAttachStateChangeListener(this)
-            field.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_->refresh() }
-            if(field.isAttachedToWindow) attach()
-        }
-        private fun attach() {
-            var parent=field.parent;var candidate:ViewGroup?=null
-            while(parent is ViewGroup) {
-                candidate=parent
-                if(parent is ScrollView) break
-                parent=parent.parent
-            }
-            if(candidate!==host) { host?.overlay?.remove(this);host=candidate;host?.overlay?.add(this) }
-            refresh()
-        }
-        fun refresh() { if(!active() || BicycleAppearance.flat(field.context)) clearCache();host?.let { setBounds(0,0,it.width,it.height);it.invalidate() };invalidateSelf() }
-        override fun onViewAttachedToWindow(v:View)=attach()
-        override fun onViewDetachedFromWindow(v:View) { host?.overlay?.remove(this);host=null;clearCache() }
-        private fun blurs(density:Float):Blurs {
-            cache?.takeIf { it.width==field.width && it.height==field.height && it.density==density }?.let { return it }
-            clearCache()
-            val wide=BicycleDesign.inputFocusOuterBlur*density
-            val estimate=(field.width+2*wide+8)*(field.height+2*wide+8)
-            val scale=minOf(1f,sqrt(BicycleDesign.inputFocusMaxBlurPixels/estimate))
-            val pad=ceil(wide+3/scale+BicycleDesign.inputFocusStroke*density)
-            val source=Bitmap.createBitmap(ceil((field.width+2*pad)*scale).toInt(),ceil((field.height+2*pad)*scale).toInt(),Bitmap.Config.ARGB_8888)
-            val canvas=Canvas(source);canvas.scale(scale,scale);canvas.translate(pad,pad)
-            val stroke=BicycleDesign.inputFocusStroke*density
-            val inset=(field.height*verticalInsetFraction).toInt().toFloat()
-            val contourBounds=RectF(0f,inset,field.width.toFloat(),field.height-inset)
-            val contour=Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style=Paint.Style.STROKE;strokeWidth=stroke
-                shader=BicycleAccentGradient.shader(contourBounds,BicycleDesign.inputFocusAngle,colors(primary,chromatic),positions())
-            }
-            canvas.drawRoundRect(stroke/2,inset+stroke/2,field.width-stroke/2,field.height-inset-stroke/2,
-                radius(),radius(),contour)
-            try {
-                val near=BicycleContourBlur.blur(source,BicycleDesign.inputFocusNearBlur*density*scale,BicycleDesign.inputFocusNearIntensity)
-                try {
-                    return Blurs(field.width,field.height,density,pad,near,BicycleContourBlur.blur(source,wide*scale,BicycleDesign.inputFocusOuterIntensity)).also { cache=it }
-                } catch(e:Exception) { near.recycle();throw e }
-            } finally { source.recycle() }
-        }
-        override fun draw(canvas:Canvas) {
-            if(BicycleAppearance.flat(field.context)) { clearCache();return }
-            val owner=host ?: return
-            if(!active() || !field.isShown || !field.getGlobalVisibleRect(visible)) return
-            field.getLocationInWindow(fieldPosition);owner.getLocationInWindow(hostPosition)
-            frame.set((fieldPosition[0]-hostPosition[0]).toFloat(),(fieldPosition[1]-hostPosition[1]).toFloat(),
-                (fieldPosition[0]-hostPosition[0]+field.width).toFloat(),(fieldPosition[1]-hostPosition[1]+field.height).toFloat())
-            val density=field.resources.displayMetrics.density
-            val radius=radius()
-            val blurred=blurs(density)
-            inside.reset()
-            val inset=(field.height*verticalInsetFraction).toInt().toFloat()
-            inside.addRoundRect(frame.left,frame.top+inset,frame.right,frame.bottom-inset,radius,radius,Path.Direction.CW)
-            val saved=canvas.save()
-            // Window positions are already viewport coordinates. Parent drawing applies the
-            // host's -scroll offset to this overlay canvas; cancel it exactly once.
-            canvas.translate(owner.scrollX.toFloat(),owner.scrollY.toFloat())
-            canvas.clipRect(0,0,owner.width,owner.height)
-            (owner as? BicycleStickyScrollView)?.clipInputGlow(canvas)
-            bitmapBounds.set(frame.left-blurred.pad,frame.top-blurred.pad,frame.right+blurred.pad,frame.bottom+blurred.pad)
-            paint.blendMode=BlendMode.SCREEN
-            val outer=canvas.save();canvas.clipOutPath(inside)
-            paint.alpha=(255*BicycleDesign.inputFocusOuterAlpha).roundToInt()
-            canvas.drawBitmap(blurred.outer,null,bitmapBounds,paint);canvas.restoreToCount(outer)
-            paint.alpha=(255*BicycleDesign.inputFocusNearAlpha).roundToInt()
-            canvas.drawBitmap(blurred.near,null,bitmapBounds,paint)
-            canvas.restoreToCount(saved)
-        }
-        override fun setAlpha(alpha:Int)=Unit
-        override fun setColorFilter(colorFilter:ColorFilter?)=Unit
-        @Deprecated("Deprecated in Java") override fun getOpacity()=PixelFormat.TRANSLUCENT
     }
 }

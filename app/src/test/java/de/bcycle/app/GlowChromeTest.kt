@@ -48,10 +48,10 @@ class GlowChromeTest {
                 assertNull(header.getTag(R.id.input_frame))
                 assertTrue(section.background is GradientDrawable)
                 val circle=(toggle.thumbDrawable as LayerDrawable).getDrawable(1).current
-                assertEquals(!flat,circle is BicycleChromaticSurface)
+                assertTrue(circle is GradientDrawable)
                 val choice=((listToggle.compoundDrawablesRelative[2].current as InsetDrawable).drawable as LayerDrawable).getDrawable(1)
-                assertEquals(!flat,choice is BicycleChromaticSurface)
-                assertFalse(spinner.popupBackground is BicycleChromaticSurface)
+                assertTrue(choice is GradientDrawable)
+                assertTrue(spinner.popupBackground is GradientDrawable)
                 val row=spinner.getChildAt(0) as TextView
                 assertTrue("selected row bottom ${row.bottom}, spinner ${spinner.height}",row.bottom<=spinner.height-spinner.paddingBottom)
                 assertTrue(row.baseline+row.paint.fontMetrics.descent<=row.height)
@@ -59,8 +59,7 @@ class GlowChromeTest {
                 assertEquals(geometry,listOf(spinner.width,spinner.height,selected.width,selected.height,filled.width,filled.height))
                 val fillImage=Bitmap.createBitmap(filled.width,filled.height,Bitmap.Config.ARGB_8888)
                 filled.background.setBounds(0,0,filled.width,filled.height);filled.background.draw(Canvas(fillImage))
-                if(flat) assertEquals(fillImage.getPixel(filled.width/4,24),fillImage.getPixel(filled.width*3/4,24))
-                else assertNotEquals(fillImage.getPixel(filled.width/4,24),fillImage.getPixel(filled.width*3/4,24))
+                assertEquals(fillImage.getPixel(filled.width/4,24),fillImage.getPixel(filled.width*3/4,24))
                 fillImage.recycle()
                 val image=Bitmap.createBitmap(360,800,Bitmap.Config.ARGB_8888);viewport.draw(Canvas(image))
                 java.io.File("build/reports/ui/chrome-${if(flat) "flat" else "glow"}.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
@@ -114,14 +113,14 @@ class GlowChromeTest {
             listOf(glow,flat,sample).forEach(Bitmap::recycle)
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun popupKeepsTertiaryInteriorAndDrawsItsOutlineAndHalo() {
+    @Test fun popupKeepsSecondaryInteriorAndPlainOutline() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0))
             val spinner=Spinner(a).apply { adapter=ArrayAdapter(a,android.R.layout.simple_spinner_dropdown_item,listOf("A","B")) };BicycleDialogStyle.spinner(spinner,themes)
             val background=spinner.popupBackground;background.setBounds(0,0,240,160)
             val image=Bitmap.createBitmap(240,160,Bitmap.Config.ARGB_8888);background.draw(Canvas(image))
-            assertEquals(themes.active.tokens.tertiary,image.getPixel(120,80))
+            assertEquals(themes.active.tokens.secondary,image.getPixel(120,80))
             assertTrue(Color.alpha(image.getPixel(2,80))>0)
             java.io.File("build/reports/ui/chrome-popup.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
         } finally { host.pause().stop().destroy() }

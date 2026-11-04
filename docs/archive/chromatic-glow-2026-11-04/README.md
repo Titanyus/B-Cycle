@@ -26,4 +26,6 @@ Die Android-Dateien sind ein Quellsnapshot, keine eigenständige Android-Bibliot
 
 ## Verwendung nach der Änderung in B|CYCLE
 
-Die Hauptheader verwenden einfarbig ihre jeweilige Theme-Rolle, ohne diese aktive Kontur, Verlauf und Glow. Die gemeinsame Engine bleibt für fokussierte Eingabefelder, aktive Auswahlkacheln, Glow-Schalter sowie Spezialbuttons im Einsatz. HRV- und Trainingszonen-Effekte sind davon unabhängige funktionale Darstellungen.
+Die Hauptheader verwenden einfarbig ihre jeweilige Theme-Rolle. Nach weiterem Nutzerauftrag wurde die Dekoration auch aus fokussierten Eingaben, aktiven Auswahlkacheln, Schaltern und Buttons entfernt; dort gilt in beiden Designs die einfarbige Flat-Darstellung. Die archivierten Originaldateien bleiben unverändert. HRV- und Trainingszonen-Effekte sind davon unabhängige funktionale Darstellungen.
+
+Anschließend wurden ChromaticColor, BicycleAccentGradient, BicycleChromaticSurface, BicycleContourBlur und BicycleInputStyle einschließlich alter Blur-/Verlaufstokens aus den aktiven Appquellen entfernt. Reine Altverfahren-Tests liegen ebenfalls nur noch im Archiv (zusätzlich ContourBlurAndFillTest). Fokus-/Auswahl-/Aktionsprüfungen bleiben als aktuelle native Tests erhalten. Der aktive UI-Atlas enthält keine alte Chromatic-Engine mehr; der separate Offline-Designer bleibt bewusst als Werkzeug verfügbar.

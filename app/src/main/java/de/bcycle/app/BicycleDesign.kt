@@ -214,23 +214,9 @@ object BicycleDesign {
     const val controlBorder = 2
     const val inputHintAlpha = .5f
     const val inputUnitGap = 4
-    const val inputFocusDarken = .1f
-    const val inputFocusLighten = .05f
-    const val inputFocusAngle = -54
-    const val inputFocusStroke = 1.5f
-    const val inputGlowRadius = 24
+    const val activeControlStroke = 1.5f
     const val specialButtonHeightScale = .8
     const val specialButtonRadius = 1000
-    const val popupGlowInset = 8
-    const val inputFocusNearIntensity = 3f
-    const val inputFocusOuterIntensity = 2.5f
-    const val inputFocusNearBlur = 3.5f
-    const val inputFocusOuterBlur = 10f
-    const val inputFocusNearAlpha = .3f
-    const val inputFocusOuterAlpha = 1f
-    const val selectedControlShadow=4
-    const val accentFillAngle = 40
-    const val inputFocusMaxBlurPixels = 512_000f
     const val sliderScaleLabelAlpha = .5f
     const val fieldLabelGap = controlGap / 2
     const val fieldFeedbackGap = controlGap / 2
@@ -373,7 +359,7 @@ object BicycleComponents {
         })
     }
     internal fun bindTheme(view: View, manager: ThemeManager, apply: (ThemeTokens) -> Unit) {
-        fun refresh(theme:BicycleTheme) { view.setTag(R.id.input_theme_id,theme.id);BicycleAppearance.base(view);apply(theme.tokens) }
+        fun refresh(theme:BicycleTheme) { BicycleAppearance.base(view);apply(theme.tokens) }
         refresh(manager.active)
         var subscription: ThemeSubscription? = null
         fun subscribe() { if (subscription == null) subscription = manager.observe { refresh(it) } }
@@ -508,9 +494,9 @@ object BicycleComponents {
         // Do not clear PasswordTransformationMethod when enforcing mixed-case display.
         if(view.isAllCaps) view.isAllCaps=false
     }
-    internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary,chromatic:Double=BicycleInputStyle.strength(context))=(
-        if(fill==tokens.primary && fill!=tokens.secondary) BicycleAccentGradient.fill(context,tokens,chromatic=chromatic) else GradientDrawable()).apply {
-        setColor(fill);cornerRadius=if(fill==tokens.primary && !BicycleAppearance.flat(context)) BicycleInputStyle.radius(context) else dp(context,BicycleDesign.inputRadius).toFloat()
+    internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=(
+        GradientDrawable()).apply {
+        setColor(fill);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
         setStroke(dp(context,BicycleDesign.controlBorder),android.graphics.Color.argb(
             (android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt(),
             android.graphics.Color.red(tokens.foreground),android.graphics.Color.green(tokens.foreground),android.graphics.Color.blue(tokens.foreground)))

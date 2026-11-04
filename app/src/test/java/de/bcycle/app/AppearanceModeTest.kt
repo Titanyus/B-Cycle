@@ -46,11 +46,11 @@ class AppearanceModeTest {
             }
             snapshot("appearance-glow")
             assertEquals(6f,(edit.background as android.graphics.drawable.GradientDrawable).cornerRadius,0f)
-            assertFalse(themes.flatDesign);assertTrue(selected.elevation>0)
-            val glowFill=fill();assertNotEquals(glowFill.getPixel(glowFill.width/4,glowFill.height/2),glowFill.getPixel(glowFill.width*3/4,glowFill.height/2));glowFill.recycle()
+            assertFalse(themes.flatDesign);assertEquals(0f,selected.elevation,0f)
+            val glowFill=fill();assertEquals(glowFill.getPixel(glowFill.width/4,glowFill.height/2),glowFill.getPixel(glowFill.width*3/4,glowFill.height/2));glowFill.recycle()
             assertEquals(tokens.primary,action.currentTextColor)
             assertNull(toggle.thumbTintList)
-            assertTrue((toggle.thumbDrawable as android.graphics.drawable.LayerDrawable).getDrawable(1).current is BicycleChromaticSurface)
+            assertTrue((toggle.thumbDrawable as android.graphics.drawable.LayerDrawable).getDrawable(1).current is android.graphics.drawable.GradientDrawable)
             themes.setFlatDesign(true);shadowOf(android.os.Looper.getMainLooper()).idle();layout()
             snapshot("appearance-flat")
             assertEquals(6f,(edit.background as android.graphics.drawable.GradientDrawable).cornerRadius,0f)
@@ -62,7 +62,7 @@ class AppearanceModeTest {
             val backup=SettingsBackup(a,themes);val bytes=backup.export(setOf(BackupSection.DESIGN))
             themes.setFlatDesign(false);val doc=backup.decode(bytes);backup.apply(backup.plan(doc,doc.sections.keys));shadowOf(android.os.Looper.getMainLooper()).idle();assertTrue(themes.flatDesign)
             assertEquals(tokens.accent,themes.active.tokens.accent)
-            themes.setFlatDesign(false);shadowOf(android.os.Looper.getMainLooper()).idle();assertTrue(selected.elevation>0);assertEquals(0,events)
+            themes.setFlatDesign(false);shadowOf(android.os.Looper.getMainLooper()).idle();assertEquals(0f,selected.elevation,0f);assertEquals(0,events)
             selected.performClick();assertFalse(selected.isChecked);assertEquals(1,events)
         } finally { host.pause().stop().destroy() }
     }
