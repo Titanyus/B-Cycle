@@ -1,6 +1,14 @@
-# Aktueller Stand: einfache Auswahl-Dropdowns SECONDARY; letzte APK 0.8.86 / Build 127
+# Aktueller Stand: schlichte Hauptheader und Chromatic-Archiv; letzte APK 0.8.86 / Build 127
 
-## Aktueller Auftrag abgeschlossen: Dropdown-Hintergrund
+## Aktueller Auftrag abgeschlossen: Hauptheader ohne Glow/Verlauf
+
+BicycleInputFrame.header liefert einfarbige ColorDrawable in der bisherigen Theme-Rolle, ohne Kontur/Glow-Binding. Gilt zentral für BicycleComponents.header und BicycleNavigation in Flat/Glow; bestehende schlichte HRV-Header bleiben erhalten. Gemeinsame Engine wird weiter für Eingaben, aktive Auswahlkacheln, Schalter und Spezialbuttons benötigt und bleibt aktiv.
+
+[Archiv](archive/chromatic-glow-2026-11-04/README.md): unveränderte Originaldateien vom Quellstand 87d0958, Manifest mit SHA-256, reine Kotlin-/JS-Farbrechnung, Android-Shader/Blur/Integration/Tokens/Tests, Exportparameter und eigenständig nutzbarer Offline-Designer. README erklärt Verfahren, Wiederverwendung und nötige App-Adapter; Archiv ist kein kompiliertes Appmodul. Archivierte JS-Referenzprüfung erfolgreich. Keine neue APK beauftragt.
+
+Ein gezielter nativer Test grün: einfarbiger Hauptheader ohne Glow-Binding in Flat/Glow, weiterhin gestaltete Schalter/Auswahl/Spezialbuttons sowie unveränderte Maße/Aktionen. Log /workspace/.tools/plain-header-test.log. Alle 24 archivierten Originaldateien bytegenau gegen Herkunftscommit und SHA-Manifest geprüft; archivierter JS-Test und Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf; Gerätesichtprüfung offen.
+
+## Vorheriger Auftrag abgeschlossen: Dropdown-Hintergrund
 
 Normale Spinner-Auswahllisten verwenden jetzt SECONDARY in Flat und Glow, zentral in BicycleDialogStyle.spinner. Geschlossener Auswahlkopf war bereits SECONDARY. Fahrradtyp/-untergruppe und alle anderen einfachen Spinner erhalten damit dieselbe Fläche. BicycleComponents.dropdownBackground nimmt einen optionalen Fill entgegen; andere Popup-Menüs behalten ihre bisherige TERTIARY-Fläche. Rahmen, Maße, Auswahl und Persistenz unverändert. Atlas neu generiert; keine neue APK beauftragt.
 

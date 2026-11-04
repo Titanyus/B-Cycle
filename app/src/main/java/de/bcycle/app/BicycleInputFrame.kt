@@ -38,10 +38,7 @@ internal object BicycleInputFrame {
         return if(selected) decorated else fill
     }
     fun header(view:View,tokens:ThemeTokens,role:ThemeRole=ThemeRole.PRIMARY):Drawable {
-        if(BicycleAppearance.flat(view.context)) { decorate(view,tokens,false);return android.graphics.drawable.ColorDrawable(tokens.color(role)) }
-        val fill=if(role==ThemeRole.PRIMARY) BicycleAccentGradient.fill(view.context,tokens,foreground=tokens.foreground,chromatic=BicycleInputStyle.strength(view),radiusDp=0)
-            else android.graphics.drawable.ColorDrawable(tokens.color(role))
-        return decorate(view,tokens,true,fill,0)
+        return android.graphics.drawable.ColorDrawable(tokens.color(role))
     }
     private class Frame(view:View,tokens:ThemeTokens,private val refresh:()->Unit,private val selected:Boolean?=null,private val radius:Float=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()):GradientDrawable() {
         private val density=view.resources.displayMetrics.density

@@ -43,13 +43,15 @@ class GlowChromeTest {
                 themes.setFlatDesign(flat);shadowOf(Looper.getMainLooper()).idle();layout(viewport)
                 val fill=((selected.background as RippleDrawable).getDrawable(0) as LayerDrawable).getDrawable(0) as GradientDrawable
                 assertEquals(6f,fill.cornerRadius,0f)
-                assertEquals(if(flat) ColorDrawable::class.java else LayerDrawable::class.java,header.background.javaClass)
+                assertEquals(ColorDrawable::class.java,header.background.javaClass)
+                assertEquals(themes.active.tokens.primary,(header.background as ColorDrawable).color)
+                assertNull(header.getTag(R.id.input_frame))
                 assertTrue(section.background is GradientDrawable)
                 val circle=(toggle.thumbDrawable as LayerDrawable).getDrawable(1).current
                 assertEquals(!flat,circle is BicycleChromaticSurface)
                 val choice=((listToggle.compoundDrawablesRelative[2].current as InsetDrawable).drawable as LayerDrawable).getDrawable(1)
                 assertEquals(!flat,choice is BicycleChromaticSurface)
-                assertEquals(!flat,spinner.popupBackground is BicycleChromaticSurface)
+                assertFalse(spinner.popupBackground is BicycleChromaticSurface)
                 val row=spinner.getChildAt(0) as TextView
                 assertTrue("selected row bottom ${row.bottom}, spinner ${spinner.height}",row.bottom<=spinner.height-spinner.paddingBottom)
                 assertTrue(row.baseline+row.paint.fontMetrics.descent<=row.height)

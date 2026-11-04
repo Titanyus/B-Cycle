@@ -1,5 +1,7 @@
 # Gemeinsame Eingabekontur und PRIMARY-Flächen
 
+Stand 04.11.2026: Hauptheader verwenden die nachfolgende Chromatic-Dekoration nicht mehr, sondern eine einfarbige Fläche ihrer bisherigen Theme-Rolle. Eingabekonturen, aktive Auswahlkacheln, Schalter und Spezialbuttons verwenden die gemeinsame Engine weiterhin. Der vollständige Quellsnapshot vor Entfernung der Header-Variante samt Berechnung/Designer ist im [Wiederverwendungsarchiv](archive/chromatic-glow-2026-11-04/README.md) gesichert.
+
 Die App verwendet jetzt dieselbe OKLCH-Chromatic-Engine wie der Designer. Freigegebene Vorlage: [input-design.json](designs/input-design.json), übernommen aus dem Nutzerexport. Die JSON bleibt zur Nachvollziehbarkeit im Repository; die App liest sie nicht zur Laufzeit. Zentrale Kotlin-Werte stehen in BicycleDesign und BicycleInputStyle, reine Farbrechnung in ChromaticColor. ThemeTokens behalten ihre fünf Rollen und bestehende Sicherungs-/Profilformate. Keine neue App-Einstellung.
 
 Basis ist immer das aktuelle PRIMARY, unverändert. Highlight-Stärke 5 %, Schatten-Stärke 10 %. Chromatic Strength unterstützt 0–300 % und wird anhand der tatsächlichen Theme-ID gewählt: HELLFIRE 50 % bzw. DARK 150 %, SOLAR FLARE 200 %, SUNSTRUCK 260 %, ACID POP 140 %, DEEP DIVE 180 %, BLUE RIOT 80 % bzw. DARK 70 %, PURPLE HAZE 170 %. Benutzerdefinierte Themes erhalten den Export-Ausgangswert 50 %. Die Theme-ID wird beim gemeinsamen Binden der View mitgeführt, damit Settings-Hellprojektion oder gleiche PRIMARY-Werte nicht die unterschiedlichen Theme-Stärken verlieren.

@@ -28,6 +28,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 - Unterseiten als bestehender Vollbild-Dialoghost mit fixem Header/Footer. Kurze Bestätigungen kompakt. Links Zurück, Titel unabhängig zentriert, Info rechts. Kein leerer Navigationsfooter.
 - Fachliche Footer über bicycleFooter/BicycleFooterAction. Dashboard-Footer TERTIARY, ohne Rahmen/Schatten in beiden Designs. Footer bei Layouts ohne Karte immer sichtbar.
 - Bestehende Dialoggestaltung nicht pauschal neu einfärben. Der Trinkhinweis bleibt PRIMARY-Alert ohne Header. HRV-Messung/-Ergebnis/-Tagesbefinden/-Auswertung: schlichte SECONDARY-Header ohne Rahmen/Glow, Android-Statusleiste verborgen.
+- Hauptheader auch in Glow einfarbig in ihrer bisherigen Theme-Rolle, ohne Chromatic-Kontur/Glow/Verlauf. Gemeinsame Chromatic-Engine für Eingaben, aktive Auswahlen, Schalter und Spezialbuttons erhalten. Wiederverwendbarer Snapshot inkl. Berechnungsverfahren/Offline-Designer unter docs/archive/chromatic-glow-2026-11-04/README.md.
 - UI-Typografie und Atlas: `python3 scripts/check-ui-typography.py`, bei Tokenänderungen `python3 scripts/build-ui-catalog.py`, anschließend `--check`.
 
 ## Profile, Dashboard und Karten
