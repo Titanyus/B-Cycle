@@ -114,6 +114,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var source = MapProviderSettings.source(context,preferences.getString("mapSource", null))
     private var providerKey=MapProviderSettings.read(context)
     private var downloads: VtmBaseMap
+    private var vectorLayers=MapVectorLayers.read(preferences)
     private var cycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
     private var follow = preferences.getBoolean("mapFollow", true)
     private var heading = preferences.getBoolean("mapHeading",true) && !preferences.getBoolean(MapOvalAnchor.preference,false)
@@ -269,7 +270,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addView(editorFinish, LayoutParams(-2, -2, Gravity.CENTER))
         addView(dataFields, LayoutParams(-1, dp(62), Gravity.BOTTOM).apply { bottomMargin = 0 })
         credit.apply {
-            text = source.attribution
+            text = attribution()
             contentDescription = context.getString(R.string.ui_map_attribution)
             setOnClickListener { openCredit(source.creditUrl) }
         }
@@ -284,7 +285,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCamera() }
     }
 
-    private fun createDownloadLayer(source:MapSource)=VtmBaseMap(context,mapView.map(),source,providerKey,cycleways,mapView::queueEvent)
+    private fun createDownloadLayer(source:MapSource)=VtmBaseMap(context,mapView.map(),source,providerKey,cycleways,mapView::queueEvent,vectorLayers)
     private fun applyNight() {
         // Saved preference remains compatible; inverted raster tiles are deferred during the VTM migration.
         nightButton.visibility=GONE;nightButton.isEnabled=false
@@ -305,19 +306,21 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val lon=preferences.getFloat("mapLongitude",10f).toDouble().coerceIn(-180.0,180.0)
         mapView.setCenter(lat,lon)
     }
+    private fun attribution()=source.attribution+if(source==MapSource.VECTOR && MapVectorLayer.CONTOURS in vectorLayers) " · Mapzen Terrain" else ""
     fun refreshSettings() {
         val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
         val nextKey=MapProviderSettings.read(context)
+        val nextLayers=MapVectorLayers.read(preferences)
         val nextCycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
-        if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey) || (next==MapSource.VECTOR && nextCycleways!=cycleways)) {
+        if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey) || (next==MapSource.VECTOR && (nextCycleways!=cycleways || nextLayers!=vectorLayers))) {
             pinchZoom.cancel()
             downloads.onDetach()
-            source = next; providerKey=nextKey;cycleways=nextCycleways
+            source = next; providerKey=nextKey;cycleways=nextCycleways;vectorLayers=nextLayers
             mapView.setZoomLimits(MapZoom.maximum(source))
             if(mapView.zoom>MapZoom.maximum(source)) mapView.setZoom(MapZoom.maximum(source).toDouble())
             downloads = createDownloadLayer(source)
             if (running) downloads.resume()
-            credit.text = source.attribution
+            credit.text = attribution()
         }
         night = preferences.getBoolean("mapNight", false); applyNight()
         dataFields.reload(preferences)

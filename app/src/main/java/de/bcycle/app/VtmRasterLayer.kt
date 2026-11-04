@@ -24,7 +24,7 @@ internal class VtmRasterLayer(map:org.oscim.map.Map,source:BitmapTileSource):Bit
 }
 internal object VtmTileHttp {
     private var client:OkHttpClient?=null
-    @Synchronized private fun client(context:Context):OkHttpClient {
+    @Synchronized internal fun client(context:Context):OkHttpClient {
         return client ?: OkHttpClient.Builder()
             .cache(Cache(File(context.cacheDir,"vtm-raster-http"),64L*1024*1024))
             .connectTimeout(15,TimeUnit.SECONDS).readTimeout(20,TimeUnit.SECONDS)

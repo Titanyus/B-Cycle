@@ -2,7 +2,7 @@
 
 ## Laufende Änderungen nach Build 129
 
-Fehlende Glyphen: drittes Shaderattribut jetzt explizit aktiviert, danach alle Attribute sauber freigegeben. Straßennummer und Schild in gemeinsamer Atlaszelle/Fade. Drei gezielte Java-/native Fälle sowie echte GLES-Pixelprüfung mit vier erzwungenen Treiberbelegungen grün; siehe vtm-label-stability.md. Noch unveröffentlicht. Nächster Auftrag: wichtige Vektorlayer pro Profil schaltbar, einschließlich Höhenlinien mit zusätzlicher Quelle; bestehende OpenFreeMap-Quelle enthält keine Höhenlinien.
+Fehlende Glyphen: drittes Shaderattribut jetzt explizit aktiviert, danach alle Attribute sauber freigegeben. Straßennummer und Schild in gemeinsamer Atlaszelle/Fade. Drei gezielte Java-/native Fälle sowie echte GLES-Pixelprüfung mit vier erzwungenen Treiberbelegungen grün; siehe vtm-label-stability.md. Noch unveröffentlicht. Wichtige Vektorlayer je Profil schaltbar, inklusive öffentlicher Mapzen/AWS-Terrain-Höhenlinien (default aus, ein Worker, DEM bis Zoom 13, Cache/Abbruch, Quellenhinweise). Profil-/Sicherungsumfang und Typvalidierung erweitert. Drei gezielte Layer-/Sicherungs-/Terrain-/UI-Fälle grün, reale Terrainprobe plausibel. Details in [Kartenebenen](vtm-map-layers.md). Keine neue APK angefordert/gebaut; Gerätebild folgt.
 
 ## Aktueller Auftrag abgeschlossen: neue APK
 

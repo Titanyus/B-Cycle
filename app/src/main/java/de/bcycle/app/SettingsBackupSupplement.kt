@@ -94,6 +94,9 @@ internal class SettingsBackupSupplement(private val context:Context) {
                             saved.keys().forEach { k ->
                                 require(BikeUiConfigurationScope.designKey(k)||BikeUiConfigurationScope.mapKey(k))
                                 val item=saved.getJSONObject(k);require(item.getString("type") in setOf("string","boolean","int","long","float","set"))
+                                if(MapVectorLayer.entries.any { it.key==k }) {
+                                    require(item.getString("type")=="boolean" && item.get("value") is Boolean)
+                                }
                                 if(k==MapRouteSlots.KEY) { require(item.getString("type")=="string");MapRouteSlots.parse(JSONObject(item.getString("value"))) }
                                 if(k==MapRouteStyles.key) { require(item.getString("type")=="string");MapRouteStyles.validate(JSONObject(item.getString("value"))) }
                                 if(k==DashboardStatusConfig.key) { require(item.getString("type")=="string");DashboardStatusConfig.parse(item.getString("value")) }

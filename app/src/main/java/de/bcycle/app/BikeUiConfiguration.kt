@@ -11,7 +11,7 @@ internal object BikeUiConfigurationScope {
     private val mapKeys=setOf(VtmBaseMap.cyclewaysKey,MapRouteSlots.KEY,MapRouteStyles.key,"mapSource","mapNight","mapFollow","mapHeading",MapOvalAnchor.preference,"mapTrackVisible","mapGpxVisible","mapHeightVisible","mapWindRoseVisible",
         "mapZoom",MapZoom.preference,"mapLatitude","mapLongitude","displayFitId","displayGpxId",FitElevationCorrection.preference)
     fun designKey(key:String)=key in designKeys || (0 until DashboardPages.MAX).any { key in DashboardPages.keys(it) }
-    fun mapKey(key:String)=key in mapKeys
+    fun mapKey(key:String)=key in mapKeys || MapVectorLayer.entries.any { it.key==key }
     fun capture(prefs:SharedPreferences,selectedGpxRouteId:String?=null)=BikeUiConfiguration(design=prefs.all.filterKeys(::designKey).toMap(),maps=prefs.all.filterKeys(::mapKey).toMap(),selectedGpxRouteId=selectedGpxRouteId)
 }
 

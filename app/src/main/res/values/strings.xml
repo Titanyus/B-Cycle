@@ -740,4 +740,18 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="service_rate_limited">Dienst begrenzt die Anfragen. Bitte warten und später erneut versuchen.</string>
     <string name="map_follow_heading">Fahrtrichtung oben</string>
     <string name="map_follow_north">Genordet</string>
+    <string name="map_vector_layers">Kartenebenen</string>
+    <string name="map_layer_main_roads">Große Straßen</string>
+    <string name="map_layer_minor_roads">Kleine Straßen</string>
+    <string name="map_layer_paths">Feld-, Fuß- und Radwege</string>
+    <string name="map_layer_buildings">Gebäude</string>
+    <string name="map_layer_nature">Wald, Wiesen und Flächennutzung</string>
+    <string name="map_layer_water">Gewässer</string>
+    <string name="map_layer_place_names">Ortsnamen</string>
+    <string name="map_layer_road_names">Straßennamen und Straßennummern</string>
+    <string name="map_layer_pois">POIs und Einrichtungen</string>
+    <string name="map_layer_local_boundaries">Gemeinde- und Ortsteilgrenzen</string>
+    <string name="map_layer_contours">Höhenlinien</string>
+    <string name="map_layer_contours_info">Höhenlinien ab Zoom 10 aus zusätzlichen Online-Höhendaten. Je nach Zoom 10–100 m Abstand. Die ersten Kacheln können etwas länger laden.</string>
+    <string name="map_terrain_credit">Höhendaten: Mapzen / AWS Terrain Tiles · Quellen und Lizenzen</string>
 </resources>

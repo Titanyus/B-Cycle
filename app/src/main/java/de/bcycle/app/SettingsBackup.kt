@@ -83,6 +83,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("displayFitId",bike.getString("displayFitId","")).put("displayGpxId",bike.getString("displayGpxId",""))
                 .put("routeSlots",bike.getString(MapRouteSlots.KEY,null)?.let { MapRouteSlots.parse(JSONObject(it)).json() } ?: JSONObject.NULL)
                 .put("cycleways",bike.getBoolean(VtmBaseMap.cyclewaysKey,true))
+                .put("vectorLayers",JSONObject().apply { MapVectorLayer.entries.forEach { put(it.name,bike.getBoolean(it.key,it.defaultVisible)) } })
                 .put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
                 .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true)).put("oval",bike.getBoolean(MapOvalAnchor.preference,false))
                 .put("showTrack",bike.getBoolean("mapTrackVisible",true)).put("showGpx",bike.getBoolean("mapGpxVisible",true)).put("showHeight",bike.getBoolean("mapHeightVisible",true)).put("showWindRose",bike.getBoolean("mapWindRoseVisible",false))
@@ -291,6 +292,11 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     listOf("displayFitId","displayGpxId").forEach { key -> if(row.has(key)) b[key]=field(row,key,128).also { check(it.isEmpty() || it.matches(Regex("(recorded|imported)-[a-f0-9]{64}|[a-f0-9-]{36}"))) } }
                     b[MapRouteSlots.KEY]=if(row.has("routeSlots") && !row.isNull("routeSlots")) MapRouteSlots.parse(row.getJSONObject("routeSlots")).json().toString() else null
                     if(row.has("routeStyles")) b[MapRouteStyles.key]=MapRouteStyles.validate(row.getJSONObject("routeStyles")).toString()
+                    if(row.has("vectorLayers")) {
+                        val layers=row.getJSONObject("vectorLayers")
+                        check(layers.keys().asSequence().all { key -> MapVectorLayer.entries.any { it.name==key } })
+                        MapVectorLayer.entries.forEach { layer -> if(layers.has(layer.name)) b[layer.key]=boolean(layers,layer.name) }
+                    }
                     if(row.has("source")) b["mapSource"]=field(row,"source",30).also { v -> check(MapSource.entries.any { it.name==v }) }
                     mapOf("cycleways" to VtmBaseMap.cyclewaysKey,"night" to "mapNight","follow" to "mapFollow","heading" to "mapHeading","oval" to MapOvalAnchor.preference,"showTrack" to "mapTrackVisible","showGpx" to "mapGpxVisible","showHeight" to "mapHeightVisible","showWindRose" to "mapWindRoseVisible","elevationCorrection" to FitElevationCorrection.preference).forEach { (public,key) -> if(row.has(public)) b[key]=boolean(row,public) }
                 }

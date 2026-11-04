@@ -27,7 +27,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             pinchZoom=MapPinchZoom(map) { MapZoom.maximum(source) }
             map.setOnTouchListener { _,event -> pinchZoom!!.onTouch(event) }
         }
-        layer=VtmBaseMap(context,map.map(),source,MapProviderSettings.read(context),prefs.getBoolean(VtmBaseMap.cyclewaysKey,true),map::queueEvent)
+        layer=VtmBaseMap(context,map.map(),source,MapProviderSettings.read(context),prefs.getBoolean(VtmBaseMap.cyclewaysKey,true),map::queueEvent,MapVectorLayers.read(prefs))
         overlay=RouteTrackLayer(context,map).apply { update(route,emptyList(),GpsValues(),true,false,night,savedStyle=MapRouteStyles.read(prefs,MapLineKind.SAVED,night)) }
         addView(map,LayoutParams(-1,-1));addView(overlay,LayoutParams(-1,-1))
         if (interactive) {
@@ -43,7 +43,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             addView(buttons, LayoutParams(-2, -2, android.view.Gravity.TOP or android.view.Gravity.END))
         }
         addView(android.widget.TextView(context).apply {
-            text = source.attribution; textSize = BicycleDesign.mapAttributionSp; setTextColor(Color.BLACK)
+            text = source.attribution+if(source==MapSource.VECTOR && MapVectorLayer.CONTOURS in MapVectorLayers.read(prefs)) " · Mapzen Terrain" else ""; textSize = BicycleDesign.mapAttributionSp; setTextColor(Color.BLACK)
             setBackgroundColor(Color.argb(220, 255, 255, 255)); setPadding(4, 2, 4, 2)
         }, LayoutParams(-2, -2, android.view.Gravity.BOTTOM or android.view.Gravity.END))
     }

@@ -14,7 +14,8 @@ import org.oscim.theme.styles.TextStyle
 /** Source filters remain exact; VTM owns drawing, resource disposal and its bounded style cache. */
 internal class VtmBrightTheme private constructor(
     private val native:IRenderTheme,
-    source:JSONObject
+    source:JSONObject,
+    private val options:MapVectorLayers
 ):IRenderTheme by native {
     private data class PriorityKey(val styles:Array<RenderStyle<*>>,val priority:Int)
     private val priorityCache=android.util.LruCache<PriorityKey,Array<RenderStyle<*>>>(256)
@@ -31,8 +32,7 @@ internal class VtmBrightTheme private constructor(
         }
     }
     override fun matchElement(type:GeometryType,tags:TagSet,zoomLevel:Int):Array<RenderStyle<*>>? {
-        when(tags.getValue("layer")) { "poi","aerodrome_label" -> return null }
-        if(tags.getValue("layer")=="boundary" && (tags.getValue("admin_level")?.toIntOrNull() ?: 0)>=8) return null
+        if(!options.accepts(tags)) return null
         val candidates=layers[tags.getValue("layer")].orEmpty()
         val matched=TagSet()
         // The generated native instructions use these only for sprite selection/cycling overlay.
@@ -68,9 +68,9 @@ internal class VtmBrightTheme private constructor(
     override fun scaleTextSize(scale:Float) { priorityCache.evictAll();native.scaleTextSize(scale) }
     companion object {
         private val nativeKeys=arrayOf("layer","class","subclass","bicycle","network","ref_length")
-        fun load(cycleways:Boolean):IRenderTheme {
+        fun load(cycleways:Boolean,options:MapVectorLayers=MapVectorLayers()):IRenderTheme {
             val source=AssetAdapter.readFileAsStream("styles/bright.json").use { JSONObject(it.bufferedReader().readText()) }
-            return VtmBrightTheme(ThemeLoader.load(VtmCycleTheme(cycleways)),source)
+            return VtmBrightTheme(ThemeLoader.load(VtmCycleTheme(cycleways)),source,options)
         }
     }
 }

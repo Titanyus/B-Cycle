@@ -628,6 +628,7 @@ class MainActivity : Activity() {
                 SettingsAction.MAP_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_library_license_title)).setMessage(
                     "Mapsforge-VTM 0.25.0 · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nBright · BSD / VTM-Adaption\n\n" + assets.open("Bright-LICENSE.txt").bufferedReader().use { it.readText() } +
+                    "\n\n" + assets.open("Terrain-ATTRIBUTION.txt").bufferedReader().use { it.readText() } +
                     "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkHttp 4.12.0 · Apache-2.0\n\n" + assets.open("OkHttp-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() } +
@@ -1490,6 +1491,21 @@ class MainActivity : Activity() {
         val cycleways=toggle(getString(R.string.map_vector_cycleways),VtmBaseMap.cyclewaysKey,true).apply {
             visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE
         }
+        val vectorOptions=BicycleFrameDropdown(settingsContext,settingsThemes,getString(R.string.map_vector_layers),open=false,leadingIcon=BicycleIcon.Map).apply {
+            tag="map_vector_layers"
+            visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE
+        }
+        val layerSwitches=MapVectorLayer.entries.associateWith { layer ->
+            Switch(settingsContext).apply {
+                text=getString(layer.title);tag=layer.key;isChecked=preferences.getBoolean(layer.key,layer.defaultVisible)
+                vectorOptions.content.addView(this)
+            }
+        }
+        vectorOptions.content.addView(BicycleComponents.fieldLabel(settingsContext,settingsThemes,getString(R.string.map_layer_contours_info)))
+        vectorOptions.content.addView(BicycleComponents.action(settingsContext,settingsThemes,getString(R.string.map_terrain_credit)) {
+            menu=dialog().setTitle(R.string.map_terrain_credit).setMessage(assets.open("Terrain-ATTRIBUTION.txt").bufferedReader().use { it.readText() }).show()
+        })
+        root.addView(vectorOptions)
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
@@ -1497,6 +1513,7 @@ class MainActivity : Activity() {
             if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
             val chosen=MapSource.entries[source.selectedItemPosition]
             cycleways.visibility=if(chosen==MapSource.VECTOR) View.VISIBLE else View.GONE
+            vectorOptions.visibility=cycleways.visibility
             keyRow.visibility=if(chosen==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
             val entered=providerKey.text.toString().trim()
             val validKey=entered.isEmpty() || MapProviderSettings.valid(entered)
@@ -1506,6 +1523,7 @@ class MainActivity : Activity() {
             BicycleFeedback.update(providerStatus,if(!available) getString(R.string.map_thunderforest_required) else "",hideWhenEmpty=true)
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
+            layerSwitches.forEach { (layer,control) -> edit.putBoolean(layer.key,control.isChecked) }
             edit.putBoolean(VtmBaseMap.cyclewaysKey,cycleways.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
                 .apply()
             mapPanel.refreshSettings()
