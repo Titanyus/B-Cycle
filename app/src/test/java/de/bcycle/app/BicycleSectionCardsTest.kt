@@ -57,8 +57,8 @@ class BicycleSectionCardsTest {
                 if(!flat) {
                     assertEquals(tokens.tertiary,bitmap.getPixel(180,first.bottom+4))
                     assertEquals(tokens.secondary,bitmap.getPixel(1,first.top))
-                    assertEquals(16,first.left);assertEquals(344,first.right)
-                    assertEquals(32,content.left);assertEquals(328,content.right)
+                    assertEquals(8,first.left);assertEquals(352,first.right)
+                    assertEquals(16,content.left);assertEquals(344,content.right)
                     assertEquals(24,second.top-(content.bottom+16))
                     assertEquals(tokens.tertiary,bitmap.getPixel(180,content.bottom+15))
                     assertEquals(tokens.secondary,bitmap.getPixel(180,content.bottom+16))

@@ -65,7 +65,7 @@ object BicycleDesign {
     const val dropdownFramePadding=16
     const val dropdownFrameHeaderGap=24
     const val sectionCardRadius=18
-    const val sectionCardInset=16
+    const val sectionCardInset=8
     const val sectionCardBottomPadding=16
     const val sectionCardGap=24
     const val hrvPromptShadow=24
