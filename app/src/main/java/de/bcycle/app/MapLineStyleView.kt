@@ -51,6 +51,7 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
                 tag="map_line_swatch_${kind.id}";contentDescription=context.getString(R.string.map_line_choose_color)
             }
             fun colorDisplay() {
+                frame.leadingIconColor=current().color
                 updating=true;hex.setText(String.format(java.util.Locale.ROOT,"#%06X",current().color and 0xffffff));hex.error=null;updating=false
                 swatch.background=BicycleComponents.controlBackground(context,themes.active.tokens,current().color)
             }
@@ -66,6 +67,7 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
                     if(text.matches(Regex("[0-9a-fA-F]{6}"))) {
                         hex.error=null
                         MapRouteStyles.write(prefs,kind,current().copy(color=text.toLong(16).toInt() or Color.BLACK))
+                        frame.leadingIconColor=current().color
                         swatch.background=BicycleComponents.controlBackground(context,themes.active.tokens,current().color)
                         preview.invalidate();changed()
                     } else hex.error=context.getString(R.string.map_line_hex_error)

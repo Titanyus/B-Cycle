@@ -22,6 +22,12 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
     /** Explicit typography/background role; generic dialog styling must not add a second frame. */
     internal class Header(context:Context):Button(context)
     val header:Button=Header(context)
+    var leadingIconColor:Int?=null
+        set(value) {
+            field=value
+            header.compoundDrawablesRelative[0]?.setTint(value ?: header.currentTextColor)
+            header.invalidate()
+        }
     val content=LinearLayout(context).apply {
         orientation=VERTICAL
         val pad=BicycleDesign.dp(context,BicycleDesign.dropdownFramePadding)
@@ -66,7 +72,7 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
             arrow.drawable=BicycleIcons.drawable(context,BicycleIcon.Expand,tokens.foreground)
             arrow.level=if(expanded) 10000 else 0
             arrow.setBounds(0,0,size,size)
-            val icon=BicycleTextIcon(header,BicycleIcons.drawable(context,leadingIcon,tokens.foreground)).apply { setBounds(0,0,size,size) }
+            val icon=BicycleTextIcon(header,BicycleIcons.drawable(context,leadingIcon,leadingIconColor ?: tokens.foreground)).apply { setBounds(0,0,size,size) }
             header.setCompoundDrawablesRelative(icon,null,null,null)
             endToggle.setImageDrawable(arrow)
         }

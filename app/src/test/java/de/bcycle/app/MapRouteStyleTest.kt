@@ -56,6 +56,8 @@ class MapRouteStyleTest {
             val a=host.get();val prefs=a.getSharedPreferences("line-style-ui",0);val themes=ThemeManager(prefs)
             var changes=0
             val view=MapLineStyleView(a,prefs,themes,DialogNavigation()) { changes++ };a.setContentView(view)
+            for(kind in MapLineKind.entries) assertEquals(MapRouteStyles.read(prefs,kind).color,
+                view.findViewWithTag<BicycleFrameDropdown>("map_line_frame_${kind.id}").leadingIconColor)
             val body=view.findViewWithTag<View>("map_line_body_recorded")
             assertEquals(View.GONE,body.visibility)
             view.findViewWithTag<View>("map_line_toggle_recorded").performClick();assertEquals(View.VISIBLE,body.visibility)
@@ -65,6 +67,7 @@ class MapRouteStyleTest {
             assertEquals(3.5f,MapRouteStyles.read(prefs,MapLineKind.RECORDED).widthDp,0f)
             view.findViewWithTag<EditText>("map_line_hex_recorded").setText("#00FF00")
             assertEquals(Color.GREEN,MapRouteStyles.read(prefs,MapLineKind.RECORDED).color)
+            assertEquals(Color.GREEN,view.findViewWithTag<BicycleFrameDropdown>("map_line_frame_recorded").leadingIconColor)
             val opacity=view.findViewWithTag<SeekBar>("map_line_opacity_recorded")
             opacity.onKeyDown(KeyEvent.KEYCODE_DPAD_LEFT,KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_LEFT))
             assertEquals(99,MapRouteStyles.read(prefs,MapLineKind.RECORDED).opacity)
@@ -91,6 +94,7 @@ class MapRouteStyleTest {
             assertTrue(dialog.isShowing)
             dialog.dismiss();shadowOf(Looper.getMainLooper()).idle()
             assertEquals(draft,MapRouteStyles.read(prefs,MapLineKind.RECORDED).color)
+            assertEquals(draft,view.findViewWithTag<BicycleFrameDropdown>("map_line_frame_recorded").leadingIconColor)
             assertEquals(50,MapRouteStyles.read(prefs,MapLineKind.SAVED).opacity)
             view.findViewWithTag<EditText>("map_line_hex_recorded").setText("#GGGGGG")
             assertEquals(draft,MapRouteStyles.read(prefs,MapLineKind.RECORDED).color)
