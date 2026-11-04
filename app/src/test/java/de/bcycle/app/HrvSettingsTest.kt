@@ -31,6 +31,13 @@ class HrvSettingsTest {
         val view=HrvSettingsView(c,theme)
         assertEquals(3,view.findViewWithTag<SeekBar>("hrv_rest_seconds").max)
         assertEquals(16,view.findViewWithTag<SeekBar>("hrv_measure_seconds").max)
+        for((tag,expected) in listOf("hrv_rest_seconds" to "1:00 min","hrv_measure_seconds" to "5:00 min")) {
+            val slider=view.findViewWithTag<BicycleSettingSlider>(tag)
+            assertEquals(expected,slider.valueText)
+            slider.onKeyDown(android.view.KeyEvent.KEYCODE_DPAD_LEFT,android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN,android.view.KeyEvent.KEYCODE_DPAD_LEFT))
+        }
+        assertEquals(45,settings.read().restSeconds);assertEquals(285,settings.read().measureSeconds)
+        assertNull(view.findViewWithTag<View>("hrv_rest_value"));assertNull(view.findViewWithTag<View>("hrv_measure_value"))
         for(tag in listOf("hrv_first_start","hrv_vibrate_end","hrv_sound_end")) assertTrue(view.findViewWithTag<android.widget.Switch>(tag).isChecked)
         assertNull(view.findViewWithTag<View>("hrv_first_start_details"))
         assertNull(view.findViewWithTag<View>("hrv_first_start_expand"))

@@ -17,8 +17,8 @@ Empfangene Pakete: %3$d · ausgewertete RR-Intervalle: %4$d</string>
     <string name="hrv_export_done">%1$d HRV-Einträge als ZIP in Downloads/B-Cycle gespeichert.</string>
     <string name="hrv_export_failed">HRV-Export nicht möglich. Bitte eine laufende Messung beenden und prüfen, ob Messungen gespeichert sind und Speicher verfügbar ist.</string>
     <string name="hrv_settings_title">HRV &amp; Tagesbefinden</string>
-    <string name="hrv_rest_duration">Zeit für die Ruhephase</string>
-    <string name="hrv_measure_duration">Zeit für die Messphase</string>
+    <string name="hrv_rest_duration">Ruhephase</string>
+    <string name="hrv_measure_duration">Messphase</string>
     <string name="hrv_duration_value">%1$d:%2$02d min</string>
     <string name="hrv_duration_seconds">%1$d Sekunden</string>
     <string name="hrv_sensor_used">Verwendeter Pulsmesser: %1$s</string>

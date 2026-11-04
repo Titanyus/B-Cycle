@@ -1,6 +1,14 @@
-# Aktueller Stand: Rahmen-Dropdowns vereinheitlicht; letzte APK 0.8.85 / Build 126
+# Aktueller Stand: Track-Sichtbarkeit und HRV-Slider angepasst; letzte APK 0.8.85 / Build 126
 
-## Aktueller Auftrag abgeschlossen: übrige Rahmen-Dropdowns
+## Aktueller Auftrag abgeschlossen: Track-Schalter und HRV-Slider
+
+Trackrahmen heißen „Aktiver Track“ und „User Track 1–3“; rechts jeweils unabhängiger Sichtbarkeitsschalter. Der bisherige separate mapTrackVisible-Schalter in den Kartenoptionen entfällt, Key und Aufnahmeverhalten bleiben erhalten. User-Tracks verwenden bestehende MapRouteSlots-Sichtbarkeiten (inklusive Masterzustand), keine neuen Einstellungen/Backupfelder. Die Augenbuttons bleiben gekoppelt, Ausblenden entfernt keine Zuordnung. Track-Komponente erst nach allgemeinem observeSettings-Binding anfügen, damit ihre Listener nicht überschrieben werden.
+
+HRV: BicycleSettingSlider mit Zeit direkt im Zugpunkt und kurzen Labels „Ruhephase“/„Messphase“. Bereiche 15–60 s / 60–300 s, 15-s-Schritte, Sperre und Persistenz unverändert. [Details](dropdown-frame.md).
+
+Drei gezielte Fälle grün: HRV-Bereiche/Sicherungsrundreise und Slider-Tastaturänderung; Sichtbarkeitsschalter in den echten Kartenoptionen samt unabhängigen geschlossenen Rahmen und drei Slotzuständen; Bibliotheksfall mit belegten Slots, Master-Sichtbarkeit und unveränderten Zuordnungen. Log /workspace/.tools/track-switch-hrv-slider-tests.log. Kompilation/Typografie/Atlas/Diff erfolgreich. Kein Gesamtlauf und keine neue APK; Gerätesichtprüfung offen.
+
+## Vorheriger Auftrag abgeschlossen: übrige Rahmen-Dropdowns
 
 Dashboardauswahl, alle vier Trackdarstellungen und „Benachrichtigung anzeigen“ verwenden BicycleFrameDropdown. Auswahl/Listener/Persistenz bleiben erhalten; Benachrichtigungsschalter und Aufklappen sind unabhängig. Anzeigedauer steht vor Position. App-Auswahl verwendet native animierte Switches am rechten Rand; ein horizontaler Trenner steht unter dem Messengerfilter.
 
