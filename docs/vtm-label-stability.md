@@ -48,3 +48,11 @@ Shaderprogramme sind an den jeweiligen Renderer/GL-Kontext gebunden. VtmBaseMap 
 Prüfung: bestehende reale Tile-/Zoom-/Stiltests ergänzt um kurz verschwindende/wiederkehrende Namen; zusätzlicher Kohorten-/Hysterese-/Tile-Rang-/Fade-Umkehrfall. `python3 scripts/check-vtm-label-shader.py` prüft auf Linux mit surfaceless EGL echten GLES-Compile/Link und Alpha-Pixel für Einblenden, Ausblenden und fortgesetzte/umgekehrte Übergänge. Die Kohorten-/Hysterese-Logik ist durch den nativen Platzierungstest abgedeckt. Layerwechsel-Test ebenfalls grün. Reale Smartphone-GPU und subjektiver Zoom-Eindruck noch offen; keine APK aus lokalen Tests erzeugt.
 
 Der zusätzliche BCycleTextBucket-Drawer basiert auf [TextureBucket.java](https://github.com/mapsforge/vtm/blob/0.25.0/vtm/src/org/oscim/renderer/bucket/TextureBucket.java); seine LGPL-/Copyright-Hinweise sind in der Datei erhalten. BCycleLabelTask, BCycleLabelPolicy und BCycleLabelFades ergänzen die umbenannten VTM-Klassen für Aufgabenübergabe, Auswahlpolitik und Übergangszustand.
+
+## Korrektur nach Build 129: fehlende Glyphen und flimmernde Schilder
+
+VTM GLState.enableVertexArrays verwaltet nur Slots 0/1. Der eigene Textshader hat drei Attribute; vergibt der Treiber UV-Slot 2, wurde dieser nicht aktiviert und die transparente Atlas-Ecke statt der Schrift gelesen. Der Drawer leert nun den nativen Slotcache, aktiviert alle drei tatsächlichen Attributpositionen und deaktiviert sie im finally-Block. Nachfolgende VTM-Layer erhalten einen konsistenten Zustand.
+
+Straßennummern samt Hintergrund werden in derselben Atlaszelle rasterisiert. Dadurch teilen Schild und Zahl ein Quad und denselben Fade statt einer unabhängig sichtbaren weißen Symbolfläche. Übrige Texte behalten die native Atlasgeometrie.
+
+Gezielte Prüfung: Java-GL-Zustandstest mit sieben Treiberbelegungen, nativer Atlas-/Platzierungstest mit weißen Schildpixeln und tatsächlicher schwarzer Zahl sowie bestehender Beibehaltungstest erfolgreich. Erweiterte echte GLES-Pixelprüfung erzwingt vier Attributbelegungen und eine transparente Atlas-Ecke; reproduziert den vorherigen Fehler und prüft Glyphen/Fades nach der Korrektur. Keine lokale APK; Geräteprüfung folgt mit nächstem angeforderten Build.

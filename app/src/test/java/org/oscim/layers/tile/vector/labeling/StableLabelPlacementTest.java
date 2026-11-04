@@ -75,6 +75,34 @@ public class StableLabelPlacementTest {
             tiles.tile=tile(17);placement.updateLabels(new BCycleLabelTask());assertNull(labels(placement));
         } finally { placement.cleanup();view.disposeMap(); }
     }
+    @Test public void roadShieldAndNumberShareOneAtlasCellAndOneFadeInsteadOfASeparatePlate() throws Exception {
+        BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());Tiles tiles=new Tiles();
+        BCycleLabelPlacement placement=new BCycleLabelPlacement(view.map(),tiles,new ZoomLimiter(null,0,20,20));
+        android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(40,24,android.graphics.Bitmap.Config.ARGB_8888);
+        image.eraseColor(android.graphics.Color.WHITE);
+        org.oscim.android.canvas.AndroidBitmap shield=new org.oscim.android.canvas.AndroidBitmap(image);
+        BCycleLabelTask task=new BCycleLabelTask();
+        try {
+            view.measure(View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY));view.layout(0,0,800,600);
+            MapPosition pos=new MapPosition();pos.x=.5;pos.y=.5;pos.setZoomLevel(16);view.map().viewport().setMapPosition(pos);
+            TextStyle text=TextStyle.builder().style("highway-shield").fontSize(14).color(android.graphics.Color.BLACK).textKey("ref").isCaption(true).priority(12000).bitmap(shield).build();
+            tiles.tile=tile(16,item("B 12",text,100,100));assertTrue(placement.updateLabels(task));
+            java.lang.reflect.Field count=org.oscim.renderer.bucket.RenderBucket.class.getDeclaredField("numVertices");count.setAccessible(true);
+            assertEquals("No separately blinking background",0,count.getInt(task.symbolLayer));
+            assertEquals(4,count.getInt(task.textLayer));
+            org.oscim.backend.canvas.Bitmap atlas=task.textLayer.textures.bitmap;
+            int[] pixels=atlas.getPixels();int white=0,ink=0;
+            for(int y=0;y<24;y++) for(int x=0;x<40;x++) {
+                int pixel=pixels[y*atlas.getWidth()+x];
+                if(android.graphics.Color.alpha(pixel)>200 && android.graphics.Color.red(pixel)>240) white++;
+                if(android.graphics.Color.alpha(pixel)>200 && android.graphics.Color.red(pixel)<128) ink++;
+            }
+            assertTrue("Shield rasterized into glyph atlas",white>100);
+            assertTrue("Actual road number rasterized on the shield",ink>10);
+            tiles.tile=tile(16);placement.updateLabels(new BCycleLabelTask());assertNull(labels(placement));
+        } finally { task.textLayer.clear();placement.cleanup();view.disposeMap();shield.recycle(); }
+    }
+
     @Test public void cohortsAndFadeReversalsAreContinuousAndTileRanksCannotEvictAnIncumbent() {
         BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());
         try {

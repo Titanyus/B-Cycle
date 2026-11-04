@@ -510,7 +510,7 @@ public class BCycleLabelPlacement {
         for (Label ti = mLabels; ti != null; ti = (Label) ti.next) {
             /* add caption symbols */
             if (ti.text.caption) {
-                if (ti.text.bitmap != null || ti.text.texture != null) {
+                if (!org.oscim.renderer.bucket.BCycleTextBucket.inlineShield(ti.text) && (ti.text.bitmap != null || ti.text.texture != null)) {
                     SymbolItem s = SymbolItem.pool.get();
                     if (ti.text.bitmap != null)
                         s.bitmap = ti.text.bitmap;

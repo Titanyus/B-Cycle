@@ -1,5 +1,9 @@
 # Aktueller Stand: APK 0.8.88 / Build 129 veröffentlicht
 
+## Laufende Änderungen nach Build 129
+
+Fehlende Glyphen: drittes Shaderattribut jetzt explizit aktiviert, danach alle Attribute sauber freigegeben. Straßennummer und Schild in gemeinsamer Atlaszelle/Fade. Drei gezielte Java-/native Fälle sowie echte GLES-Pixelprüfung mit vier erzwungenen Treiberbelegungen grün; siehe vtm-label-stability.md. Noch unveröffentlicht. Nächster Auftrag: wichtige Vektorlayer pro Profil schaltbar, einschließlich Höhenlinien mit zusätzlicher Quelle; bestehende OpenFreeMap-Quelle enthält keine Höhenlinien.
+
 ## Aktueller Auftrag abgeschlossen: neue APK
 
 Version 0.8.88 / Build 129 über GitHub Actions gebaut und geprüft. [Änderungen](release-0.8.88.md), [Buildnachweis](build-129.md). Enthält alle folgenden Korrekturen. Smartphone-GPU/Zoom-Eindruck offen.
