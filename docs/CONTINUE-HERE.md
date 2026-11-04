@@ -1,13 +1,17 @@
-# Aktueller Stand: weichere Kartennamen und UI-Korrekturen; letzte APK 0.8.87 / Build 128
+# Aktueller Stand: APK 0.8.88 / Build 129 veröffentlicht
 
-## Aktuelle Folgeaufträge abgeschlossen
+## Aktueller Auftrag abgeschlossen: neue APK
+
+Version 0.8.88 / Build 129 über GitHub Actions gebaut und geprüft. [Änderungen](release-0.8.88.md), [Buildnachweis](build-129.md). Enthält alle folgenden Korrekturen. Smartphone-GPU/Zoom-Eindruck offen.
+
+## Abgeschlossene Folgeaufträge nach Build 128
 
 - Ortsnamen: weniger Dichte, gemeinsame Zoomkohorten, Hysterese und 240-ms-Ein-/Ausblenden über eigenen GL-Shader. Feinränge neuer Tiles verdrängen keine sichtbaren Namen derselben Größenklasse. Viewportweit sortieren, kurzzeitig fehlende Namen während Fade mit ihrem alten Sichtbarkeitsalter wiederaufnehmen. Native Atlas-/Glyphvertices/Matrizen erhalten; separater Metadata-VBO, begrenzte Historie und GL-Freigabe über zugehörige MapView-Queue. [Details](vtm-label-stability.md). Jetzt 28 Shader einschließlich bcycle_labels.glsl; neue APK-Prüfung anpassen.
 - Gemeinde-/Ortsteilgrenzen (admin_level ≥8) ausblenden, übrige Boundary-Ebenen erhalten. POI-Sperre bleibt. Bright-JSON/Generatorassets unverändert.
 - Feldauswahl korrigiert: globalen pageContentGap 16 dp behalten, nur früheres zusätzliches Außenpadding entfernen. FieldPicker und tatsächlicher Vollbildhost TERTIARY; der Host hatte die Fläche bisher wieder mit SECONDARY übermalt. Überflüssige leadingContentGap=0-Ausnahme entfernt; lokaler sectionBackdrop bleibt TERTIARY.
 - Glow-Sticky-Kästen global außen links/rechts 8 statt 16 dp; Abstand zwischen Kästen weiterhin 24 dp. Inhaltseinstellungen und Flat-Geometrie erhalten.
 
-Acht gezielte native Fälle grün: drei Label-/Gruppen-/Fadefälle (inkl. Nachladen/Umkehr), Gemeindegrenzen/Theme, echter Dashboardeditor mit Vollbildfarbe/16-dp-Abstand, Boxgeometrie/Pinning, Layerwechsel und Feldbelegungsnavigation. Logs /workspace/.tools/label-fades-and-ui-tests.log, label-resource-and-field-tests.log, label-fades-final-placement-tests.log. GLES-Pixelprüfung über scripts/check-vtm-label-shader.py grün; Kompilation/Typografie/Atlas/Bright/Diff grün. Kein Gesamtlauf und keine neue APK beauftragt. Smartphone-GPU/Zoom-Eindruck noch beurteilen.
+Acht gezielte native Fälle grün: drei Label-/Gruppen-/Fadefälle (inkl. Nachladen/Umkehr), Gemeindegrenzen/Theme, echter Dashboardeditor mit Vollbildfarbe/16-dp-Abstand, Boxgeometrie/Pinning, Layerwechsel und Feldbelegungsnavigation. Logs /workspace/.tools/label-fades-and-ui-tests.log, label-resource-and-field-tests.log, label-fades-final-placement-tests.log. GLES-Pixelprüfung über scripts/check-vtm-label-shader.py grün; Kompilation/Typografie/Atlas/Bright/Diff grün. Kein Gesamtlauf; in Build 129 enthalten. Smartphone-GPU/Zoom-Eindruck noch beurteilen.
 
 ## Erhaltener Stand aus Build 128
 
@@ -37,12 +41,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.87 / Build 128](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.87-release-128.apk), code 157, Quelle `d60be354990fd63f1de57f6666ab9b74751f2f80`, 4188317 Bytes, SHA-256 `1ac96e326420a15ea4980253743ae6dba8b31b87ac92681555c1ea24aacdd9f8`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 27 Shader, Bright-Assets, Texte und R8-Namen geprüft. [Nachweis](build-128.md). Vorige APK: [0.8.86 / Build 127](build-127.md).
+[APK 0.8.88 / Build 129](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.88-release-129.apk), code 158, Quelle `07b8d5b94a566d46e02ff793ec13fd488b50efd0`, 4189008 Bytes, SHA-256 `947936351d20fc760351fe11b88a7be328850470c0a3b926bcb828ac33421fbe`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-Assets, Texte und R8-Namen geprüft. [Nachweis](build-129.md). Vorige APK: [0.8.87 / Build 128](build-128.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.88 / code 158 / Build 129. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
-
-Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4188317 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.89 / code 159 / Build 130. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.

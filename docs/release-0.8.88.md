@@ -8,4 +8,4 @@
 
 Acht gezielte native Fälle für Labelplatzierung/Fades, Grenzen, Feldauswahl, Boxgeometrie und Layerwechsel erfolgreich. GLES-Shader-Compile/Link und Alpha-Pixel für Ein-/Ausblendung und Umkehr geprüft. Kompilation/Typografie/Atlas/Bright-/Diff-Prüfung erfolgreich. Kein Gesamtlauf, keine lokale APK. Smartphone-GPU und subjektiver Zoom-Eindruck noch zu beurteilen.
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-129.md).
