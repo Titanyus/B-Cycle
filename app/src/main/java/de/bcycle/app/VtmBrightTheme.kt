@@ -9,12 +9,15 @@ import org.oscim.core.TagSet
 import org.oscim.theme.IRenderTheme
 import org.oscim.theme.ThemeLoader
 import org.oscim.theme.styles.RenderStyle
+import org.oscim.theme.styles.TextStyle
 
 /** Source filters remain exact; VTM owns drawing, resource disposal and its bounded style cache. */
 internal class VtmBrightTheme private constructor(
     private val native:IRenderTheme,
     source:JSONObject
 ):IRenderTheme by native {
+    private data class PriorityKey(val styles:Array<RenderStyle<*>>,val priority:Int)
+    private val priorityCache=android.util.LruCache<PriorityKey,Array<RenderStyle<*>>>(256)
     private data class Layer(val flag:Tag,val matches:(GeometryType,TagSet)->Boolean)
     private val layers:Map<String,List<Layer>> = buildMap {
         val all=source.getJSONArray("layers")
@@ -35,8 +38,33 @@ internal class VtmBrightTheme private constructor(
         for(key in nativeKeys)
             tags.getValue(key)?.let { matched.add(Tag(key,it)) }
         for(layer in candidates) if(layer.matches(type,tags)) matched.add(layer.flag)
-        return native.matchElement(type,matched,zoomLevel)
+        val styles=native.matchElement(type,matched,zoomLevel) ?: return null
+        val priority=when(tags.getValue("layer")) {
+            "place" -> when(tags.getValue("class")) {
+                "continent"->0;"country"->10;"state","province"->20;"city"->30;"town"->40
+                "village"->50;"hamlet"->60;"suburb","quarter","neighbourhood","isolated_dwelling"->70
+                else->80
+            }*100+(tags.getValue("rank")?.toIntOrNull()?.coerceIn(0,99) ?: 99)
+            "transportation_name" -> when(tags.getValue("class")) {
+                "motorway"->100;"trunk"->110;"primary"->120;"secondary"->130;"tertiary"->140
+                "minor","minor_road","residential","unclassified"->150;"service"->160
+                "track","path","footway","cycleway","pedestrian","steps","bridleway"->170
+                else->180
+            }*100
+            else -> return styles
+        }
+        if(styles.none { it is TextStyle }) return styles
+        // Two tile-loader threads share the theme. Bound native-style variants;
+        // copied text styles borrow the original symbol bitmap, never dispose it twice.
+        synchronized(priorityCache) {
+            val key=PriorityKey(styles,priority)
+            return priorityCache.get(key) ?: styles.map { style ->
+                if(style is TextStyle) TextStyle.builder().set(style).priority(priority).build() else style
+            }.toTypedArray().also { priorityCache.put(key,it) }
+        }
     }
+    override fun dispose() { priorityCache.evictAll();native.dispose() }
+    override fun scaleTextSize(scale:Float) { priorityCache.evictAll();native.scaleTextSize(scale) }
     companion object {
         private val nativeKeys=arrayOf("layer","class","subclass","bicycle","network","ref_length")
         fun load(cycleways:Boolean):IRenderTheme {

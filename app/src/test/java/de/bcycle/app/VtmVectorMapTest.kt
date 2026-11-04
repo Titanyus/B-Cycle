@@ -14,7 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.oscim.core.*
 import org.oscim.layers.tile.vector.VectorTileLayer
-import org.oscim.layers.tile.vector.labeling.LabelLayer
+import org.oscim.layers.tile.vector.labeling.BCycleLabelLayer as LabelLayer
 import org.oscim.theme.styles.LineStyle
 import org.oscim.tiling.*
 import org.oscim.tiling.source.mvt.TileDecoder
@@ -40,6 +40,13 @@ class VtmVectorMapTest {
             }
             val village=TagSet().apply { add(Tag("layer","place"));add(Tag("class","village"));add(Tag("name","Billenhausen")) }
             assertFalse(theme.matchElement(GeometryBuffer.GeometryType.POINT,village,16).isNullOrEmpty())
+            fun priority(layer:String,kind:String)=theme.matchElement(if(layer=="transportation_name") GeometryBuffer.GeometryType.LINE else GeometryBuffer.GeometryType.POINT,
+                TagSet().apply { add(Tag("layer",layer));add(Tag("class",kind));add(Tag("rank","1")) },19).orEmpty()
+                .filterIsInstance<org.oscim.theme.styles.TextStyle>().minOf { it.priority }
+            assertTrue(priority("place","city")<priority("place","town"))
+            assertTrue(priority("place","town")<priority("place","village"))
+            assertTrue(priority("transportation_name","primary")<priority("transportation_name","minor"))
+            assertTrue(priority("transportation_name","minor")<priority("transportation_name","service"))
             val water=TagSet().apply { add(Tag("layer","water"));add(Tag("class","lake")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,water,16).orEmpty()
                 .filterIsInstance<org.oscim.theme.styles.AreaStyle>().any { it.color==Color.rgb(191,217,242) })

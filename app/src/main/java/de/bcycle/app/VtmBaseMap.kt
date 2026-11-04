@@ -4,7 +4,7 @@ import android.content.Context
 import org.oscim.layers.Layer
 import org.oscim.layers.tile.TileLayer
 import org.oscim.layers.tile.vector.VectorTileLayer
-import org.oscim.layers.tile.vector.labeling.LabelLayer
+import org.oscim.layers.tile.vector.labeling.BCycleLabelLayer
 import org.oscim.layers.tile.vector.labeling.LabelTileLoaderHook
 import org.oscim.map.Map
 import org.oscim.theme.ThemeFile
@@ -26,7 +26,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
             }
             vector.setTheme(VtmBrightTheme.load(cycleways))
             tiles=vector
-            labels=LabelLayer(map,vector,LabelTileLoaderHook(),source.maximumZoom)
+            labels=BCycleLabelLayer(map,vector,LabelTileLoaderHook(),source.maximumZoom)
             resumeTiles=vector::resumeTiles;pauseTiles=vector::pauseTiles
         } else {
             val raster=VtmRasterLayer(map,VtmTileHttp.source(context,source,key))
