@@ -4,7 +4,7 @@
 
 - Maximalzoom: nativen Overzoom-Gebäudeüberlauf vor signed-short-Packung reproduziert und gepufferte Zielkachel-Clipping-Stufe nachgeschaltet. Quellstufe/Kamera/Styles unverändert, beide Vektorpässe profitieren. Native Regression Stufen 15–19 grün.
 - Hauptstraßennamen/-nummern: radialer Wiederholungsabstand mindestens 220 Canvas-dp, gleiche Kennung über Leerzeichen-/Stylevarianten. Neue Straßenkandidaten viewportweit statt Tile-Reihenfolge auswählen, größere Lücken bevorzugt auffüllen; bestehende Labels behalten Alter. Native Fälle plus regelmäßige Verteilung bei umgekehrter Reihenfolge/90° Drehung grün.
-- Öffentliche Referenzen geprüft: Trekarta samt VTM-Fork, offizielle VTM-Beispiele und offene Cachebox-Integration. [Befund/Verfahren/Prüfung](vtm-maxzoom-and-road-labels.md). Keine neue APK angefordert; Gerätevergleich offen.
+- Öffentliche Referenzen geprüft: Trekarta samt VTM-Fork, offizielle VTM-Beispiele und offene Cachebox-Integration. [Befund/Verfahren/Prüfung](vtm-maxzoom-and-road-labels.md). Fortsetzung als neue APK beauftragt: 0.8.91 / code 161 / erwarteter Build 133, ausschließlich GitHub Actions. Gerätevergleich offen.
 
 ## In Build 132 enthalten
 
