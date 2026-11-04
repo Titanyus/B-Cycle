@@ -3,7 +3,7 @@
 ## Änderungen nach Build 130, noch unveröffentlicht
 
 - Fitness unter Statistiken als letzter Abschnitt (auch ohne lokale Fahrten): CTL/ATL von Intervals, absolute Form CTL−ATL, 7/30/90 Tage, horizontales Panning/Trägheit, Tagesauswahl, Heute/Aktualisieren. Bestehender Zugang/WLAN, Worker und atomarer Kontocache, keine Uploadänderung. [Details](intervals-fitness.md). Drei gezielte API-/Cache-/UI-Fälle grün; echte Nutzerkontoprüfung/Gerätebild offen.
-- Wiederholte Straßenlabels konnten wegen grober Weltzellen dieselbe Fade-Geometrie überschreiben. Nun räumliche Eins-zu-eins-Zuordnung pro Runde mit aktueller Skala; zwei gleichnamige B16-Labels bleiben trotz vertauschter Reihenfolge getrennt. Native Label-/Fadefälle grün. Orte beim Rauszoomen eine halbe Stufe länger behalten; neue Schwellen unverändert. [Details](vtm-label-stability.md).
+- Wiederholte Straßenlabels konnten wegen grober Weltzellen dieselbe Fade-Geometrie überschreiben. Nun räumliche Eins-zu-eins-Zuordnung pro Runde mit aktueller Skala; zwei gleichnamige B16-/Donau-Labels bleiben trotz vertauschter Reihenfolge getrennt. Native Label-/Fadefälle grün. Orte beim Rauszoomen eine halbe Stufe länger behalten; neue Schwellen unverändert. [Details](vtm-label-stability.md).
 - Ebenenbutton neben dem Auge auf der Dashboardkarte: natives Dropdown mit sofort wirksamen Profil-Schaltern, bleibt zum Vergleichen offen. Keine neue MapView; Pause/Profil/Editor/Raster berücksichtigen. Gezielter Popup-/Layerwechseltest grün. [Details](vtm-map-layers.md).
 
 Noch keine neue APK angefordert. Ausschließlich bei neuem Auftrag über GitHub Actions bauen.

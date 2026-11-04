@@ -50,12 +50,14 @@ public class StableLabelPlacementTest {
         java.lang.reflect.Field field=BCycleLabelPlacement.class.getDeclaredField("mLabels");field.setAccessible(true);
         return (Label)field.get(placement);
     }
-    @Test public void repeatedRoadLabelsInsideOneOldWorldCellRemainSeparateAcrossArrivalOrder() {
+    @Test public void repeatedRoadAndRiverLabelsInsideOneOldWorldCellRemainSeparateAcrossArrivalOrder() {
         BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());
         try {
-            TextStyle road=style("highway-shield-primary",120,false);
-            Label first=new Label();first.clone(item("B16",road,100,100));first.x=100;first.y=100;first.x1=0;first.x2=200;first.y1=first.y2=100;
-            Label second=new Label();second.clone(item("B16",road,250,100));second.x=250;second.y=100;second.x1=350;second.x2=150;second.y1=second.y2=100;
+            for(boolean river:new boolean[]{false,true}) {
+            TextStyle road=style(river ? "waterway-name" : "highway-shield-primary",river ? 1 : 120,false);
+            String name=river ? "Donau" : "B16";
+            Label first=new Label();first.clone(item(name,road,100,100));first.x=100;first.y=100;first.x1=0;first.x2=200;first.y1=first.y2=100;
+            Label second=new Label();second.clone(item(name,road,250,100));second.x=250;second.y=100;second.x1=350;second.x2=150;second.y1=second.y2=100;
             first.next=second;
             BCycleLabelFades fades=new BCycleLabelFades();
             BCycleLabelTask task=new BCycleLabelTask();task.pos.x=.5;task.pos.y=.5;task.pos.setZoomLevel(16);
@@ -71,6 +73,7 @@ public class StableLabelPlacementTest {
                 if(Math.abs(label.x-250)<.01) { right=true;assertTrue(label.x2<label.x1); }
             }
             assertEquals(2,count);assertTrue(left && right);task.textLayer.clearLabels();
+            }
             TextStyle village=style("place-village",50,true);
             assertTrue("Previously visible places survive another half zoom level",BCycleLabelPolicy.eligible(village,12.5,true));
             assertFalse(BCycleLabelPolicy.eligible(village,12.4,true));
