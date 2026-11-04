@@ -71,14 +71,25 @@ class VisualFollowupTest {
             assertEquals(header.top,scroll.scrollY);assertEquals(View.VISIBLE,help.visibility);assertEquals(0,writes)
         } finally { host.pause().stop().destroy() }
     }
-    @Test fun mapDividerPrecedesTrackToggleAndPreservesPreferences() {
+    @Test fun trackVisibilityLivesInStyleHeaderAndPreservesPreferencesUntilToggled() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val prefs=a.getSharedPreferences("bike",0);val before=prefs.getBoolean("mapTrackVisible",true)
             val root=MainActivity::class.java.getDeclaredMethod("mapControls").apply { isAccessible=true }.invoke(a) as LinearLayout
             val track=root.findViewWithTag<View>("mapTrackVisible")
-            assertEquals("map_track_divider",root.getChildAt(root.indexOfChild(track)-1).tag)
+            val frame=root.findViewWithTag<BicycleFrameDropdown>("map_line_frame_recorded")
+            assertTrue(track.parent.parent===frame)
             assertEquals(before,prefs.getBoolean("mapTrackVisible",true))
+            track.performClick();assertEquals(!before,prefs.getBoolean("mapTrackVisible",true))
+            assertEquals(View.GONE,frame.content.visibility)
+            for(kind in listOf(MapLineKind.SAVED,MapLineKind.SAVED_TWO,MapLineKind.SAVED_THREE)) {
+                val toggle=root.findViewWithTag<android.widget.Switch>("map_line_visible_${kind.id}")
+                toggle.performClick()
+                val index=MapLineKind.entries.indexOf(kind)-1
+                assertFalse(RideRuntime.get(a).mapState.mapSlots.visible[index])
+                assertFalse(MapRouteSlots.read(prefs).visible[index])
+                assertNull(RideRuntime.get(a).mapState.mapSlots.ids[index])
+            }
         } finally { host.pause().stop().destroy() }
     }
 }

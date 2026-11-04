@@ -1488,13 +1488,9 @@ class MainActivity : Activity() {
         val cycleways=toggle(getString(R.string.map_vector_cycleways),VtmBaseMap.cyclewaysKey,true).apply {
             visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE
         }
-        val track = toggle(getString(R.string.ui_map_track), "mapTrackVisible", true)
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
-        root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs) {
-            if(runtime.bikes.activeSlot==slot) mapPanel.refreshSettings()
-        },LinearLayout.LayoutParams(-1,-2))
         observeSettings(root) {
             if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
             val chosen=MapSource.entries[source.selectedItemPosition]
@@ -1508,10 +1504,15 @@ class MainActivity : Activity() {
             BicycleFeedback.update(providerStatus,if(!available) getString(R.string.map_thunderforest_required) else "",hideWhenEmpty=true)
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
-            edit.putBoolean(VtmBaseMap.cyclewaysKey,cycleways.isChecked).putBoolean("mapTrackVisible",track.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
+            edit.putBoolean(VtmBaseMap.cyclewaysKey,cycleways.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
                 .apply()
             mapPanel.refreshSettings()
         }
+        root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,setSlotVisible={ index,on ->
+            if(runtime.bikes.activeSlot==slot) runtime.mapState.setRouteSlotVisibility(index,on)
+        }) {
+            if(runtime.bikes.activeSlot==slot) mapPanel.refreshSettings()
+        },LinearLayout.LayoutParams(-1,-2))
         root.setPadding(0,0,0,0)
         BicycleDialogStyle.content(root,settingsThemes)
         return root

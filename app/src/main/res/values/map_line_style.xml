@@ -2,8 +2,8 @@
     <string name="map_line_heading">Trackdarstellung</string>
     <string name="map_line_choose_color">Farbe wählen</string>
     <string name="map_palette_color">Farbe %1$d</string>
-    <string name="map_line_recorded">Aufgezeichnete Strecke</string>
-    <string name="map_line_saved">Track 1</string>
+    <string name="map_line_recorded">Aktiver Track</string>
+    <string name="map_line_saved">User Track 1</string>
     <string name="map_line_color">Farbe &amp; Deckkraft</string>
     <string name="map_line_width">Breite</string>
     <string name="map_line_width_value">%1$.1f dp</string>

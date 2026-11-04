@@ -10,12 +10,29 @@ import android.widget.*
 
 /** Live recording and three saved-route styles; edits reuse the active profile's map preferences. */
 internal class MapLineStyleView(context:Context,private val prefs:SharedPreferences,private val themes:ThemeManager,
-    private val navigation:DialogNavigation,private val changed:()->Unit):LinearLayout(context) {
+    private val navigation:DialogNavigation,
+    private val setSlotVisible:(Int,Boolean)->Unit={ slot,on ->
+        val slots=MapRouteSlots.read(prefs)
+        (if(prefs.getBoolean("mapGpxVisible",true)) slots else slots.all(false)).show(slot,on).write(prefs)
+        prefs.edit().putBoolean("mapGpxVisible",true).apply()
+    },private val changed:()->Unit):LinearLayout(context) {
     init {
         orientation=VERTICAL;tag="map_line_styles"
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.map_line_heading)))
         MapLineKind.entries.forEach { kind ->
-            val frame=BicycleFrameDropdown(context,themes,context.getString(kind.title),open=false,leadingIcon=BicycleIcon.Route).apply {
+            val slot=MapLineKind.entries.indexOf(kind)-1
+            val visible=Switch(context).apply {
+                tag=if(kind==MapLineKind.RECORDED) "mapTrackVisible" else "map_line_visible_${kind.id}"
+                isChecked=if(kind==MapLineKind.RECORDED) prefs.getBoolean("mapTrackVisible",true)
+                    else prefs.getBoolean("mapGpxVisible",true) && MapRouteSlots.read(prefs).visible[slot]
+                BicycleDialogStyle.control(this,themes)
+                setOnCheckedChangeListener { _,on ->
+                    if(kind==MapLineKind.RECORDED) prefs.edit().putBoolean("mapTrackVisible",on).apply()
+                    else setSlotVisible(slot,on)
+                    changed()
+                }
+            }
+            val frame=BicycleFrameDropdown(context,themes,context.getString(kind.title),open=false,trailing=visible,leadingIcon=BicycleIcon.Route).apply {
                 tag="map_line_frame_${kind.id}"
                 header.tag="map_line_toggle_${kind.id}"
             }

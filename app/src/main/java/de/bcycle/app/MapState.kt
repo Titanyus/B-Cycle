@@ -260,8 +260,12 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     }
     internal fun setRouteSlotVisible(slot:Int) {
         if(busy || mapSlots.ids.getOrNull(slot)==null) return
+        setRouteSlotVisibility(slot,!(preferences.getBoolean("mapGpxVisible",true) && mapSlots.visible[slot]))
+    }
+    internal fun setRouteSlotVisibility(slot:Int,visible:Boolean) {
+        require(slot in 0 until MapRouteSlots.COUNT)
         val master=preferences.getBoolean("mapGpxVisible",true)
-        mapSlots=(if(master) mapSlots else mapSlots.all(false)).show(slot,!(master && mapSlots.visible[slot]))
+        mapSlots=(if(master) mapSlots else mapSlots.all(false)).show(slot,visible)
         mapSlots.write(preferences)
         preferences.edit().putBoolean("mapGpxVisible",true).apply()
         routeRevision++;changed()
