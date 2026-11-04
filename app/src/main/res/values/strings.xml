@@ -179,7 +179,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="data_local">Lokale Speicherung</string>
     <string name="data_cloud">Cloud &amp; WebDAV</string>
     <string name="data_back">Zurück</string>
-    <string name="backup_design">Design &amp; UI</string>
+    <string name="backup_design">Dashboards &amp; UI</string>
     <string name="backup_dashboard">Dashboard</string>
     <string name="backup_recording">Aufzeichnung &amp; FIT</string>
     <string name="backup_maps">Karten &amp; Navigation</string>
@@ -313,7 +313,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_record_without_gps">Aufzeichnung startet ohne GPS; präzisen Standort später im Sensormanager erlauben.</string>
     <string name="ui_record_bluetooth_required">Bluetooth-Zugriff ist für die Aufzeichnung erforderlich</string>
     <string name="ui_folder_permission_error">Ordnerzugriff konnte nicht gespeichert werden</string>
-    <string name="ui_design_title">Design &amp; UI</string>
+    <string name="ui_design_title">Dashboards &amp; UI</string>
     <string name="ui_mode_glow">Fahrmodus-Anzeige</string>
     <string name="ui_mode_glow_description">Zeigt den aktiven Bosch-Fahrmodus durch einen farbigen Lichtschein am Rand der Datenfelder.</string>
     <string name="ui_map_source">Kartenquelle</string>
@@ -392,7 +392,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="ui_settings_advanced">Erweitert</string>
     <string name="ui_settings_profile">Fahrer</string>
     <string name="ui_settings_routes">Gefahrene Strecken</string>
-    <string name="ui_settings_dashboards">Design &amp; UI</string>
+    <string name="ui_settings_dashboards">Dashboards &amp; UI</string>
     <string name="ui_settings_map">Karten</string>
     <string name="ui_settings_sensors">Sensoren &amp; Aufzeichnung</string>
     <string name="ui_preset_hero">4 Werte · groß oben / 3 unten</string>
