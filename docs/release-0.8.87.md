@@ -10,4 +10,4 @@
 
 Gezielte Tests für die betroffenen Controls, Auswahl/Persistenz, Trackfarben, POI-/Namensprioritäten, echte Beschriftungsplatzierung, Kartenlayerwechsel und Einstellungsflächen erfolgreich. Zentrale Typografie-/Atlas-/Bright-/Diff-Prüfungen erfolgreich. Kein Gesamtlauf und keine lokale APK. Gerätesichtprüfung, besonders die Beschriftungsruhe bei echtem Pinch-Zoom, steht aus.
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-128.md).
