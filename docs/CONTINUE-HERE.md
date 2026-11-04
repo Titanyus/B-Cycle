@@ -73,3 +73,5 @@ Vorige APK: [0.8.85 / Build 126](build-126.md). Meilenstein vor Enginewechsel [0
 - Maputnik als Browsereditor; kein Live-JSON-Stilimport beauftragt. Generator ist Entwicklungswerkzeug.
 - Sensorfrequenz/weniger Aufzeichnung waren nur Verständnisfragen: keine Drosselung von GPS/BLE/Rohdaten/Analyse aus Akkuwünschen ableiten.
 - Nächste APK nur auf ausdrücklichen Auftrag ausschließlich GitHub Actions, voraussichtlich 0.8.87 / code 157 / Build 128. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/27 Shader/Bright-Ressourcen und echten direkten Download prüfen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4204677 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.

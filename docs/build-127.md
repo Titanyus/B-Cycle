@@ -16,3 +16,5 @@ Bright-JSON/XML, GPS-/Streckenshader, 111 Spritevarianten und Atlas unverändert
 [Änderungen](release-0.8.86.md): Rahmen-Dropdowns, Cloud-Abstände und direkte Wiederherstellung, Track-Sichtbarkeitsschalter, HRV-Slider und Menüeinstiege, Dashboards & UI, Flat-Sticky-Designversuch. Rückkehr-Tag `design-before-flat-sticky-lines-2026-11-04` zeigt auf den Stand vor dem Designversuch.
 
 15 gezielte Fälle über die einzelnen Aufträge erfolgreich; kein Gesamtlauf und keine lokale APK. Gerätesichtprüfung offen.
+
+Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4204677 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
