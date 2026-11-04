@@ -284,7 +284,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCamera() }
     }
 
-    private fun createDownloadLayer(source:MapSource)=VtmBaseMap(context,mapView.map(),source,providerKey,cycleways)
+    private fun createDownloadLayer(source:MapSource)=VtmBaseMap(context,mapView.map(),source,providerKey,cycleways,mapView::queueEvent)
     private fun applyNight() {
         // Saved preference remains compatible; inverted raster tiles are deferred during the VTM migration.
         nightButton.visibility=GONE;nightButton.isEnabled=false

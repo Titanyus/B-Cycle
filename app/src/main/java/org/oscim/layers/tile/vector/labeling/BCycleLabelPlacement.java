@@ -52,7 +52,6 @@ public class BCycleLabelPlacement {
     }
 
     private static final float DISTANCE_COEFFICIENT = 3;
-    private static final float MIN_CAPTION_DIST = 5;
     private static final float MIN_WAY_DIST = 3;
 
     /**
@@ -69,6 +68,8 @@ public class BCycleLabelPlacement {
      * list of current labels
      */
     private Label mLabels;
+    private final BCycleLabelFades fades=new BCycleLabelFades();
+    private double currentZoom;
 
     private float mSquareRadius;
 
@@ -103,8 +104,8 @@ public class BCycleLabelPlacement {
 
     /** Lower style priority wins; ties retain the earlier visible label. */
     static boolean wins(Label candidate, Label visible) {
-        if (candidate.text.priority != visible.text.priority)
-            return candidate.text.priority < visible.text.priority;
+        if (BCycleLabelPolicy.importance(candidate.text) != BCycleLabelPolicy.importance(visible.text))
+            return BCycleLabelPolicy.importance(candidate.text) < BCycleLabelPolicy.importance(visible.text);
         if (candidate.active != visible.active)
             return candidate.active < visible.active;
         // Stable result even when newly loaded tiles arrive in a different order.
@@ -285,50 +286,26 @@ public class BCycleLabelPlacement {
         return l;
     }
 
-    private Label addNodeLabels(MapTile t, Label l, float dx, float dy,
-                                double scale, float cos, float sin) {
-
-        LabelTileData ld = getLabels(t);
-        if (ld == null)
-            return l;
-
-        for (TextItem ti : ld.labels) {
-            if (!ti.text.caption)
-                continue;
-
-            // acquire a TextItem to add to TextLayer
-            if (l == null)
-                l = getLabel();
-
-            l.clone(ti);
-            l.active = mRelabelCnt;
-            l.x = (float) ((dx + ti.x) * scale);
-            l.y = (float) ((dy + ti.y) * scale);
-            if (!isVisible(l.x, l.y))
-                continue;
-
-            if (l.bbox == null)
-                l.bbox = new OBB2D();
-
-            l.bbox.setNormalized(l.x, l.y, cos, -sin,
-                    l.width + MIN_CAPTION_DIST,
-                    l.text.fontHeight + MIN_CAPTION_DIST,
-                    l.text.dy);
-
-            if (checkOverlap(l) != 0) continue;
-
-            addLabel(l);
-            l.item = TextItem.copy(ti);
-            l.tileX = t.tileX;
-            l.tileY = t.tileY;
-            l.tileZ = t.zoomLevel;
-            l.active = mRelabelCnt;
-            l = null;
-        }
-        return l;
+    private Label addNodeLabel(Caption candidate,Label label,float cos,float sin) {
+        TextItem item=candidate.item;
+        if(!BCycleLabelPolicy.eligible(item.text,currentZoom,false) || !isVisible(candidate.x,candidate.y)) return label;
+        if(label==null) label=getLabel();
+        label.clone(item);
+        double factor=1.0/(1 << candidate.tile.zoomLevel);
+        label.active=fades.visibleAge(item,(candidate.tile.tileX+item.x/Tile.SIZE)*factor,
+                (candidate.tile.tileY+item.y/Tile.SIZE)*factor,mRelabelCnt);
+        label.x=candidate.x;label.y=candidate.y;
+        if(label.bbox==null) label.bbox=new OBB2D();
+        label.bbox.setNormalized(label.x,label.y,cos,-sin,
+                label.width+BCycleLabelPolicy.horizontalGap(label.text),
+                label.text.fontHeight+BCycleLabelPolicy.verticalGap(label.text),label.text.dy);
+        if(checkOverlap(label)!=0) return label;
+        addLabel(label);label.item=TextItem.copy(item);
+        label.tileX=candidate.tile.tileX;label.tileY=candidate.tile.tileY;label.tileZ=candidate.tile.zoomLevel;
+        return null;
     }
 
-    boolean updateLabels(LabelTask work) {
+    boolean updateLabels(BCycleLabelTask work) {
 
         /* get current tiles */
         int lastZoom = mZoom;
@@ -354,6 +331,7 @@ public class BCycleLabelPlacement {
             return false;
 
         mRelabelCnt++;
+        currentZoom=Math.log(pos.scale)/Math.log(2);
 
         int cnt = mTileSet.cnt;
         MapTile[] tiles;
@@ -438,7 +416,7 @@ public class BCycleLabelPlacement {
 
             if (l.text.caption) {
                 Caption match = currentCaption(l, captions, tileX, tileY, pos.scale, zoom, maxx);
-                if (match == null || !isVisible(match.x, match.y)) {
+                if (match == null || !isVisible(match.x, match.y) || !BCycleLabelPolicy.eligible(match.item.text,currentZoom,true)) {
                     l = mPool.releaseAndGetNext(l);
                     continue;
                 }
@@ -447,8 +425,8 @@ public class BCycleLabelPlacement {
                 l.item = TextItem.copy(match.item);
                 l.x = match.x; l.y = match.y;
                 l.tileX = match.tile.tileX; l.tileY = match.tile.tileY; l.tileZ = match.tile.zoomLevel;
-                l.bbox.setNormalized(l.x, l.y, cos, -sin, l.width + MIN_CAPTION_DIST,
-                        l.text.fontHeight + MIN_CAPTION_DIST, l.text.dy);
+                l.bbox.setNormalized(l.x, l.y, cos, -sin, l.width + BCycleLabelPolicy.horizontalGap(l.text),
+                        l.text.fontHeight + BCycleLabelPolicy.verticalGap(l.text), l.text.dy);
                 if (checkOverlap(l) == 0) {
                     Label retained = l; l = (Label) l.next;
                     retained.next = null; addLabel(retained);
@@ -521,18 +499,13 @@ public class BCycleLabelPlacement {
             l = addWayLabels(t, l, dx, dy, scale);
         }
 
-        /* add caption */
-        for (int i = 0; i < cnt; i++) {
-            MapTile t = tiles[i];
-            if (!t.state(READY | NEW_DATA))
-                continue;
-
-            float dx = (float) (t.tileX * Tile.SIZE - tileX);
-            float dy = (float) (t.tileY * Tile.SIZE - tileY);
-            dx = flipLongitude(dx, maxx);
-
-            l = addNodeLabels(t, l, dx, dy, scale, cos, sin);
-        }
+        // Choose new captions as one viewport-wide cohort, not in tile arrival order.
+        java.util.List<Caption> ordered=new java.util.ArrayList<>();
+        for(java.util.List<Caption> group:captions.values()) ordered.addAll(group);
+        ordered.sort(java.util.Comparator.comparingInt((Caption c)->BCycleLabelPolicy.importance(c.item.text))
+                .thenComparingInt(c->c.item.text.priority)
+                .thenComparing(c->c.item.label).thenComparingDouble(c->c.x).thenComparingDouble(c->c.y));
+        for(Caption candidate:ordered) l=addNodeLabel(candidate,l,cos,sin);
 
         for (Label ti = mLabels; ti != null; ti = (Label) ti.next) {
             /* add caption symbols */
@@ -604,9 +577,9 @@ public class BCycleLabelPlacement {
         l = (Label) mPool.release(l);
 
         /* draw text to bitmaps and create vertices */
-        work.textLayer.labels = groupLabels(mLabels);
+        fades.build(work,mLabels,mMap.getWidth(),mMap.getHeight());
         work.textLayer.prepare();
-        work.textLayer.labels = null;
+        work.textLayer.prepared();
 
         /* remove tile locks */
         mTileRenderer.releaseTiles(mTileSet);
@@ -615,6 +588,7 @@ public class BCycleLabelPlacement {
     }
 
     public void cleanup() {
+        fades.clear();
         mLabels = (Label) mPool.releaseAll(mLabels);
         mTileSet.releaseTiles();
     }

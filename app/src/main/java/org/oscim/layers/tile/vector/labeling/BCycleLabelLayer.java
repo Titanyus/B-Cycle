@@ -71,14 +71,14 @@ public class BCycleLabelLayer extends Layer implements Map.UpdateListener, TileM
         l.addHook(h);
     }
 
-    class Worker extends SimpleWorker<LabelTask> {
+    class Worker extends SimpleWorker<BCycleLabelTask> {
 
         public Worker(Map map) {
-            super(map, 50, new LabelTask(), new LabelTask());
+            super(map, 50, new BCycleLabelTask(), new BCycleLabelTask());
         }
 
         @Override
-        public boolean doWork(LabelTask t) {
+        public boolean doWork(BCycleLabelTask t) {
 
             if (mLabelPlacer.updateLabels(t)) {
                 mMap.render();
@@ -89,7 +89,7 @@ public class BCycleLabelLayer extends Layer implements Map.UpdateListener, TileM
         }
 
         @Override
-        public void cleanup(LabelTask t) {
+        public void cleanup(BCycleLabelTask t) {
         }
 
         @Override
@@ -123,6 +123,8 @@ public class BCycleLabelLayer extends Layer implements Map.UpdateListener, TileM
 
         mWorker.submit(MAX_RELABEL_DELAY);
     }
+
+    public void releaseRenderer() { ((BCycleTextRenderer)mRenderer).release(); }
 
     @Override
     public void onDetach() {

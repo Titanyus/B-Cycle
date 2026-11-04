@@ -192,7 +192,7 @@ class VtmVectorMapTest {
     }
     @Test fun brightBackgroundReachesGlAndIsRestoredAfterAnotherMapIsOpened() {
         val c=RuntimeEnvironment.getApplication();val view=BicycleMapView(c)
-        val base=VtmBaseMap(c,view.map(),MapSource.VECTOR,"",false)
+        val base=VtmBaseMap(c,view.map(),MapSource.VECTOR,"",false,view::queueEvent)
         fun rendererClear():FloatArray = org.oscim.renderer.MapRenderer::class.java.getDeclaredField("mClearColor")
             .apply { isAccessible=true }.get(null) as FloatArray
         val expected=floatArrayOf(248/255f,244/255f,240/255f,1f)

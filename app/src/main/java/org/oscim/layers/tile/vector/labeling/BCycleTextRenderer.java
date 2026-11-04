@@ -20,25 +20,15 @@
 // docs/vtm-label-stability.md. Original LGPL notice retained above.
 package org.oscim.layers.tile.vector.labeling;
 
-// TODO
-// 1. rewrite. seriously
-// 1.1 test if label is actually visible
-// 2. compare previous to current state
-// 2.1 test for new labels to be placed
-// 2.2 handle collisions
-// 2.3 try to place labels along a way
-// 2.4 use 4 point labeling
-// 3 join segments that belong to one feature
-// 4 handle zoom-level changes
-// 5 QuadTree might be handy
-//
-
 import org.oscim.layers.tile.vector.labeling.BCycleLabelLayer.Worker;
 import org.oscim.renderer.BucketRenderer;
 import org.oscim.renderer.GLState;
 import org.oscim.renderer.GLViewport;
 import org.oscim.renderer.bucket.RenderBucket;
 import org.oscim.renderer.bucket.TextureBucket;
+import org.oscim.renderer.bucket.BCycleTextBucket;
+import org.oscim.renderer.MapRenderer;
+import android.os.SystemClock;
 
 class BCycleTextRenderer extends BucketRenderer {
     static final boolean dbg = false;
@@ -49,12 +39,21 @@ class BCycleTextRenderer extends BucketRenderer {
         mWorker = worker;
     }
 
-    long lastDraw = 0;
+    private long epoch,fadeUntil;
+    private BCycleTextBucket.Drawer textDrawer;
+    @Override public boolean setup() { textDrawer=new BCycleTextBucket.Drawer();return true; }
+
+    public synchronized void release() {
+        buckets.clear();setReady(false);
+        if(textDrawer!=null) {
+            GLState.useProgram(0);org.oscim.backend.GLAdapter.gl.deleteProgram(textDrawer.program);textDrawer=null;
+        }
+    }
 
     @Override
     public synchronized void update(GLViewport v) {
 
-        LabelTask t;
+        BCycleLabelTask t;
         synchronized (mWorker) {
             t = mWorker.poll();
             if (t == null) {
@@ -69,6 +68,7 @@ class BCycleTextRenderer extends BucketRenderer {
         // set new TextLayer to be uploaded and rendered
         buckets.set(t.layers);
         mMapPosition = t.pos;
+        epoch=t.epoch;fadeUntil=t.fadeUntil;
         compile();
     }
 
@@ -83,8 +83,13 @@ class BCycleTextRenderer extends BucketRenderer {
 
         setMatrix(v, false);
 
-        for (RenderBucket l = buckets.get(); l != null; )
-            l = TextureBucket.Renderer.draw(l, v, scale);
+        for (RenderBucket l = buckets.get(); l != null; ) {
+            buckets.vbo.bind();
+            if(l instanceof BCycleTextBucket) {
+                textDrawer.draw((BCycleTextBucket)l,buckets.vbo,v,scale,SystemClock.uptimeMillis()-epoch);l=l.next;
+            } else l=TextureBucket.Renderer.draw(l,v,scale);
+        }
+        if(SystemClock.uptimeMillis()<fadeUntil) MapRenderer.animate();
     }
 
 }

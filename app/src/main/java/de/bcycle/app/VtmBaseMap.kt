@@ -11,8 +11,9 @@ import org.oscim.theme.ThemeFile
 import org.oscim.theme.internal.VtmThemes
 
 /** Owns every layer of one base map; saved/live tracks always remain above them. */
-internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,key:String,cycleways:Boolean) {
+internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,key:String,cycleways:Boolean,private val glQueue:(Runnable)->Unit) {
     companion object { const val cyclewaysKey="mapVectorCycleways" }
+    private var detached=false
     private val tiles:TileLayer
     private val labels:Layer?
     private val resumeTiles:()->Unit
@@ -48,8 +49,13 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
     fun resume() { applyBackground();tiles.isEnabled=true;labels?.isEnabled=true;resumeTiles();map.updateMap(true) }
     fun pause() { tiles.isEnabled=false;labels?.isEnabled=false;pauseTiles() }
     fun onDetach() {
+        if(detached) return
+        detached=true
         pause()
-        labels?.let { map.layers().remove(it);it.onDetach() }
+        labels?.let { layer ->
+            map.layers().remove(layer);layer.onDetach()
+            if(layer is BCycleLabelLayer) glQueue(Runnable { layer.releaseRenderer() })
+        }
         map.layers().remove(tiles);tiles.onDetach()
     }
 }

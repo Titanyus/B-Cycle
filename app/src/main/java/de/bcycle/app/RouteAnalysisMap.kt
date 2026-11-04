@@ -27,7 +27,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             pinchZoom=MapPinchZoom(map) { MapZoom.maximum(source) }
             map.setOnTouchListener { _,event -> pinchZoom!!.onTouch(event) }
         }
-        layer=VtmBaseMap(context,map.map(),source,MapProviderSettings.read(context),prefs.getBoolean(VtmBaseMap.cyclewaysKey,true))
+        layer=VtmBaseMap(context,map.map(),source,MapProviderSettings.read(context),prefs.getBoolean(VtmBaseMap.cyclewaysKey,true),map::queueEvent)
         overlay=RouteTrackLayer(context,map).apply { update(route,emptyList(),GpsValues(),true,false,night,savedStyle=MapRouteStyles.read(prefs,MapLineKind.SAVED,night)) }
         addView(map,LayoutParams(-1,-1));addView(overlay,LayoutParams(-1,-1))
         if (interactive) {

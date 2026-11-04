@@ -4,7 +4,7 @@ Auftrag 04.11.2026: Große Orte und Straßen bevorzugen, bereits sichtbaren Name
 
 ## Priorität
 
-VtmBrightTheme ergänzt ausschließlich die TextStyle-Priorität: Kontinent, Land, Bundesland/Provinz, Stadt, Kleinstadt, Dorf, Weiler, Stadtteil und übrige Orte. Innerhalb einer Ortsklasse zählt der OpenMapTiles-Rang, sofern vorhanden; fehlender Rang steht hinter vorhandenen Rängen derselben Klasse. Das ist eine Einordnung anhand der Kartendaten, keine neue Abfrage von Einwohnerzahlen.
+VtmBrightTheme ergänzt ausschließlich die TextStyle-Priorität: Kontinent, Land, Bundesland/Provinz, Stadt, Kleinstadt, Dorf, Weiler, Stadtteil und übrige Orte. Der OpenMapTiles-Rang sortiert nur neue Kandidaten; er darf innerhalb derselben Größenklasse keinen bereits sichtbaren Namen verdrängen. Fehlender Rang steht bei neuen Kandidaten hinter vorhandenen Rängen derselben Klasse. Das ist eine Einordnung anhand der Kartendaten, keine neue Abfrage von Einwohnerzahlen.
 
 Straßen: Autobahn, Fernstraße, Hauptstraße, sekundäre Straße, tertiäre Straße, Wohn-/Nebenstraße, Zufahrt, Feld-/Fuß-/Radweg. Ortsbeschriftungen bleiben gegenüber Straßen bevorzugt. Kleinere Zahlen gewinnen. Höhere Bedeutung gewinnt vor Sichtbarkeitsalter; bei gleicher Bedeutung bleibt der früher eingeblendete Name. Neue gleichwertige Kandidaten werden bei gleicher Einblendegeneration deterministisch nach Name/Position aufgelöst, damit die Tile-Ladereihenfolge kein Zufallskriterium ist.
 
@@ -31,3 +31,20 @@ Copyright-/LGPL-Hinweise und Änderungsdatum stehen in den Quelldateien; vorhand
 ## Gezielte Prüfung
 
 Zwei native Platzierungstests verwenden reale VTM-Textstyles, Tile-Daten und LabelTasks: Ortsname bleibt trotz späterem gleichwertigem Kandidaten und Zoom-/Stilwechsel, wichtigerer Ort darf verdrängen, fehlendes Merkmal verschwindet; Straßenklasse gewinnt vor Alter, gleichwertiger späterer Name verdrängt nicht. Bestehende Vektortests prüfen Priorität im tatsächlich geladenen Theme und Wechsel Vektor/Raster mit weiter darüberliegenden Tracks. Kein Gesamtlauf und keine lokale APK.
+
+
+## Verfeinerung nach Build 128
+
+Nutzer beobachtet weiter kreisende Ortsnamen und überfüllte Übersicht. Die Platzierung behandelt deshalb die Größenklasse vor dem Einblendealter und erst neue Kandidaten nach ihrem Tile-Feinrang. Neue Caption-Kandidaten werden für den gesamten Viewport gesammelt und gemeinsam geordnet, statt je nach Tile-Reihenfolge einzeln um Plätze zu konkurrieren. Abstände um Ortsnamen wachsen auf mindestens drei Schrifthöhen horizontal und anderthalb vertikal; echte Kartenlinien und Schriftgrößen bleiben gleich.
+
+Zoomkohorten (VTM-256-Pixel-Zoom): Länder ab Übersicht, Regionen ab 6,25, Städte 9,25, Kleinstädte 11,25, Dörfer 13,25, Weiler 15,25, Stadtteile/übrige kleine Orte 16,25. Neue Kandidaten kommen erst 0,2 Stufen oberhalb der Schwelle hinzu; vorhandene dürfen bis 0,3 Stufen darunter bleiben. Beim Verlassen/Hinzunehmen einer Größenklasse beginnen ihre Namen gemeinsam einen zeitlichen 240-ms-Übergang. Das gilt auch bei direkten Zoomsprüngen. Die Schwellen liegen zwischen den bedienbaren halben Zoomstufen; es gibt keine dauerhaft halbtransparenten Gruppen.
+
+BCycleLabelFades führt auf dem vorhandenen Label-Worker eine auf 1024 Einträge begrenzte Übergangshistorie. Namen erhalten bei Ein-/Ausblendung 240 ms mit weicher Interpolation. Kehrt ein Name während des Ausblendens zurück, setzt er bei seiner aktuellen Deckkraft und seinem ursprünglichen Sichtbarkeitsalter fort. Quellenwechsel, nicht mehr passende/offscreen Anker und Cleanup verwerfen die Historie. Nach Fade-Ende werden keine zusätzlichen Animationsframes mehr angefordert.
+
+BCycleLabelTask enthält den spezialisierten BCycleTextBucket. Native sechs-Short-Glyphvertices, UVs, Atlaspackung und Map-Matrizen bleiben erhalten. Ein separater kleiner Metadaten-VBO ergänzt pro Vertex Start-/Zielalpha und Startzeit/Dauer. `bcycle_labels.glsl` (jetzt insgesamt 28 Shader) multipliziert die premultiplizierte Textur mit der zeitlichen Deckkraft; die Größenklassenübergänge werden gemeinsam von der Platzierung ausgelöst. Das Alpha wird pro GL-Frame interpoliert; dafür werden keine Glyphbitmaps pro Animationsframe neu erzeugt. Zusätzliche Frames nur bis Fade-Ende oder durch die laufende Kamerabewegung. Systemweit deaktivierte Animationen schalten Zeit-Fades ab.
+
+Shaderprogramme sind an den jeweiligen Renderer/GL-Kontext gebunden. VtmBaseMap erhält die Queue der zugehörigen MapView und gibt Label-VBOs/Programm beim Detach auf dieser GL-Queue frei; Detach ist idempotent. Keine neue MapView und kein Umhängen des dauerhaften Dashboard-Kartenhosts.
+
+Prüfung: bestehende reale Tile-/Zoom-/Stiltests ergänzt um kurz verschwindende/wiederkehrende Namen; zusätzlicher Kohorten-/Hysterese-/Tile-Rang-/Fade-Umkehrfall. `python3 scripts/check-vtm-label-shader.py` prüft auf Linux mit surfaceless EGL echten GLES-Compile/Link und Alpha-Pixel für Einblenden, Ausblenden und fortgesetzte/umgekehrte Übergänge. Die Kohorten-/Hysterese-Logik ist durch den nativen Platzierungstest abgedeckt. Layerwechsel-Test ebenfalls grün. Reale Smartphone-GPU und subjektiver Zoom-Eindruck noch offen; keine APK aus lokalen Tests erzeugt.
+
+Der zusätzliche BCycleTextBucket-Drawer basiert auf [TextureBucket.java](https://github.com/mapsforge/vtm/blob/0.25.0/vtm/src/org/oscim/renderer/bucket/TextureBucket.java); seine LGPL-/Copyright-Hinweise sind in der Datei erhalten. BCycleLabelTask, BCycleLabelPolicy und BCycleLabelFades ergänzen die umbenannten VTM-Klassen für Aufgabenübergabe, Auswahlpolitik und Übergangszustand.
