@@ -50,3 +50,7 @@ Neuer gezielter Test prüft die tatsächliche Renderer-Clear-Farbe: vor der Korr
 ## POI-Darstellung ab 04.11.2026
 
 Auf ausdrücklichen Nutzerauftrag werden die Quelllayer `poi` und `aerodrome_label` in VtmBrightTheme vor dem Style-Matching ausgeblendet. Damit entfallen Tankstellen und weitere POI-Icons/-Beschriftungen einschließlich Flughafen-Labels; Orts-/Straßenbeschriftung bleibt erhalten. Bright-JSON, generiertes XML und Sprites bleiben als unveränderte Referenz erhalten. Rasterquellen sind nicht betroffen.
+
+## Gemeindegrenzen nach Build 128
+
+Auf Nutzerauftrag blendet VtmBrightTheme Boundary-Features mit admin_level ≥8 aus (Gemeinden und lokale Unterteilungen). Übergeordnete Grenzen bleiben erhalten. Die Referenz-JSON und daraus erzeugte Assets werden dafür nicht verändert. Beschriftungsdichte und weiche Größenklassen-Übergänge sind in [der Platzierungsdokumentation](vtm-label-stability.md) beschrieben.

@@ -38,6 +38,10 @@ class VtmVectorMapTest {
                 val poi=TagSet().apply { add(Tag("layer",layer));add(Tag("class",kind));add(Tag("rank","1"));add(Tag("name","POI")) }
                 assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POINT,poi,19).isNullOrEmpty())
             }
+            for(level in listOf(8,9,10)) assertTrue(theme.matchElement(GeometryBuffer.GeometryType.LINE,
+                TagSet().apply { add(Tag("layer","boundary"));add(Tag("admin_level",level.toString())) },16).isNullOrEmpty())
+            assertFalse(theme.matchElement(GeometryBuffer.GeometryType.LINE,
+                TagSet().apply { add(Tag("layer","boundary"));add(Tag("admin_level","4")) },16).isNullOrEmpty())
             val village=TagSet().apply { add(Tag("layer","place"));add(Tag("class","village"));add(Tag("name","Billenhausen")) }
             assertFalse(theme.matchElement(GeometryBuffer.GeometryType.POINT,village,16).isNullOrEmpty())
             fun priority(layer:String,kind:String)=theme.matchElement(if(layer=="transportation_name") GeometryBuffer.GeometryType.LINE else GeometryBuffer.GeometryType.POINT,
