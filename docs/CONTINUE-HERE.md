@@ -1,5 +1,11 @@
 # Aktueller Stand: APK 0.8.90 / Build 132 veröffentlicht
 
+## Änderungen nach Build 132, noch unveröffentlicht
+
+- Maximalzoom: nativen Overzoom-Gebäudeüberlauf vor signed-short-Packung reproduziert und gepufferte Zielkachel-Clipping-Stufe nachgeschaltet. Quellstufe/Kamera/Styles unverändert, beide Vektorpässe profitieren. Native Regression Stufen 15–19 grün.
+- Hauptstraßennamen/-nummern: radialer Wiederholungsabstand mindestens 220 Canvas-dp, gleiche Kennung über Leerzeichen-/Stylevarianten. Neue Straßenkandidaten viewportweit statt Tile-Reihenfolge auswählen, größere Lücken bevorzugt auffüllen; bestehende Labels behalten Alter. Native Fälle plus regelmäßige Verteilung bei umgekehrter Reihenfolge/90° Drehung grün.
+- Öffentliche Referenzen geprüft: Trekarta samt VTM-Fork, offizielle VTM-Beispiele und offene Cachebox-Integration. [Befund/Verfahren/Prüfung](vtm-maxzoom-and-road-labels.md). Keine neue APK angefordert; Gerätevergleich offen.
+
 ## In Build 132 enthalten
 
 - Fitness unter Statistiken als letzter Abschnitt (auch ohne lokale Fahrten): CTL/ATL von Intervals, absolute Form CTL−ATL, 7/30/90 Tage, horizontales Panning/Trägheit, Tagesauswahl, Heute/Aktualisieren. Bestehender Zugang/WLAN, Worker und atomarer Kontocache, keine Uploadänderung. [Details](intervals-fitness.md). Drei gezielte API-/Cache-/UI-Fälle grün; echte Nutzerkontoprüfung/Gerätebild offen.

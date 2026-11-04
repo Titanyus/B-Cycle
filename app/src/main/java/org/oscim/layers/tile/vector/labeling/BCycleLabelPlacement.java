@@ -108,6 +108,8 @@ public class BCycleLabelPlacement {
             return BCycleLabelPolicy.importance(candidate.text) < BCycleLabelPolicy.importance(visible.text);
         if (candidate.active != visible.active)
             return candidate.active < visible.active;
+        if(BCycleLabelPolicy.majorRoad(candidate.text) && BCycleLabelPolicy.majorRoad(visible.text)
+                && BCycleLabelPolicy.roadIdentity(candidate.label).equals(BCycleLabelPolicy.roadIdentity(visible.label))) return false;
         // Stable result even when newly loaded tiles arrive in a different order.
         int name = candidate.label.compareTo(visible.label);
         if (name != 0) return name < 0;
@@ -117,6 +119,14 @@ public class BCycleLabelPlacement {
 
     private static boolean conflicts(Label a, Label b) {
         if (a.bbox.overlaps(b.bbox)) return true;
+        // Road refs/names need a rotation-independent screen-space repeat distance.
+        // Shields and way text may carry the same ref with different style IDs/spaces.
+        if(BCycleLabelPolicy.majorRoad(a.text) && BCycleLabelPolicy.majorRoad(b.text)
+                && BCycleLabelPolicy.roadIdentity(a.label).equals(BCycleLabelPolicy.roadIdentity(b.label))) {
+            float dx=a.x-b.x,dy=a.y-b.y;
+            float distance=BCycleLabelPolicy.roadRepeatDistance(a.text,b.text,a.width,b.width);
+            return dx*dx+dy*dy<distance*distance;
+        }
         // Preserve VTM's local duplicate suppression across tile/style instances.
         return a.label.equals(b.label) && java.util.Objects.equals(a.text.style, b.text.style)
                 && Math.abs(a.x-b.x) < (a.width+b.width)/2 + 100
@@ -141,8 +151,10 @@ public class BCycleLabelPlacement {
         final MapTile tile;
         final TextItem item;
         final float x, y;
+        final String roadKey;
         Caption(MapTile tile, TextItem item, float x, float y) {
             this.tile = tile; this.item = item; this.x = x; this.y = y;
+            this.roadKey=BCycleLabelPolicy.majorRoad(item.text) ? BCycleLabelPolicy.roadIdentity(item.label) : null;
         }
     }
 
@@ -228,62 +240,56 @@ public class BCycleLabelPlacement {
         l.y2 = l.y + h;
     }
 
-    private Label addWayLabels(MapTile t, Label l, float dx, float dy,
-                               double scale) {
-
-        LabelTileData ld = getLabels(t);
-        if (ld == null)
-            return l;
-
-        for (TextItem ti : ld.labels) {
-            if (ti.text.caption)
-                continue;
-
-            /* acquire a TextItem to add to TextLayer */
-            if (l == null)
-                l = getLabel();
-
-            /* check if path at current scale is long enough */
-            if (!dbg && ti.width > ti.length * scale)
-                continue;
-
-            l.clone(ti);
-            l.active = mRelabelCnt;
-            l.x = (float) ((dx + ti.x) * scale);
-            l.y = (float) ((dy + ti.y) * scale);
-            placeLabelFrom(l, ti);
-
-            if (!wayIsVisible(l))
-                continue;
-
-            byte overlaps = -1;
-
-            if (l.bbox == null)
-                l.bbox = new OBB2D(l.x, l.y, l.x1, l.y1,
-                        l.width + MIN_WAY_DIST,
-                        l.text.fontHeight + MIN_WAY_DIST);
-            else
-                l.bbox.set(l.x, l.y, l.x1, l.y1,
-                        l.width + MIN_WAY_DIST,
-                        l.text.fontHeight + MIN_WAY_DIST);
-
-            if (dbg || ti.width < ti.length * scale)
-                overlaps = checkOverlap(l);
-
-            if (dbg)
-                Debug.addDebugBox(l, ti, overlaps, false, (float) scale);
-
-            if (overlaps == 0) {
-                addLabel(l);
-                l.item = TextItem.copy(ti);
-                l.tileX = t.tileX;
-                l.tileY = t.tileY;
-                l.tileZ = t.zoomLevel;
-                l.active = mRelabelCnt;
-                l = null;
-            }
+    private Label addWayLabel(MapTile tile,TextItem item,Label label,float x,float y,double scale) {
+        if(!dbg && item.width>item.length*scale) return label;
+        if(label==null) label=getLabel();
+        label.clone(item);label.active=mRelabelCnt;label.x=x;label.y=y;placeLabelFrom(label,item);
+        if(!wayIsVisible(label)) return label;
+        if(label.bbox==null) label.bbox=new OBB2D(label.x,label.y,label.x1,label.y1,label.width+MIN_WAY_DIST,label.text.fontHeight+MIN_WAY_DIST);
+        else label.bbox.set(label.x,label.y,label.x1,label.y1,label.width+MIN_WAY_DIST,label.text.fontHeight+MIN_WAY_DIST);
+        byte overlaps=checkOverlap(label);
+        if(dbg) Debug.addDebugBox(label,item,overlaps,false,(float)scale);
+        if(overlaps!=0) return label;
+        addLabel(label);label.item=TextItem.copy(item);label.tileX=tile.tileX;label.tileY=tile.tileY;label.tileZ=tile.zoomLevel;
+        return null;
+    }
+    private Label addWayLabels(MapTile tile,Label label,float dx,float dy,double scale) {
+        LabelTileData data=getLabels(tile);
+        if(data!=null) for(TextItem item:data.labels) {
+            if(item.text.caption || BCycleLabelPolicy.majorRoad(item.text)) continue;
+            label=addWayLabel(tile,item,label,(float)((dx+item.x)*scale),(float)((dy+item.y)*scale),scale);
         }
-        return l;
+        return label;
+    }
+    private final java.util.Map<String,String> roadNames=new java.util.HashMap<>();
+    private String roadKey(String name) { return roadNames.computeIfAbsent(name,BCycleLabelPolicy::roadIdentity); }
+    private double roadGap(Caption candidate) {
+        double nearest=Double.POSITIVE_INFINITY;
+        for(Label label=mLabels;label!=null;label=(Label)label.next) {
+            if(!BCycleLabelPolicy.majorRoad(label.text) || !candidate.roadKey.equals(roadKey(label.label))) continue;
+            double dx=candidate.x-label.x,dy=candidate.y-label.y;nearest=Math.min(nearest,dx*dx+dy*dy);
+        }
+        // Start an unrepresented road near the viewport centre; then fill its largest gaps.
+        return Double.isInfinite(nearest) ? -(candidate.x*candidate.x+candidate.y*candidate.y) : nearest;
+    }
+    private Label addMajorRoadLabels(java.util.List<Caption> candidates,Label scratch,float cos,float sin,double scale) {
+        candidates.sort(java.util.Comparator.comparingInt((Caption c)->BCycleLabelPolicy.importance(c.item.text))
+                .thenComparing(c->c.roadKey).thenComparingDouble(c->c.x).thenComparingDouble(c->c.y)
+                .thenComparing(c->c.item.text.style));
+        while(!candidates.isEmpty()) {
+            int best=0;int importance=BCycleLabelPolicy.importance(candidates.get(0).item.text);
+            double score=roadGap(candidates.get(0));
+            for(int i=1;i<candidates.size();i++) {
+                Caption candidate=candidates.get(i);
+                if(BCycleLabelPolicy.importance(candidate.item.text)!=importance) break;
+                double next=roadGap(candidate);
+                if(next>score) { best=i;score=next; }
+            }
+            Caption candidate=candidates.remove(best);
+            scratch=candidate.item.text.caption ? addNodeLabel(candidate,scratch,cos,sin) :
+                    addWayLabel(candidate.tile,candidate.item,scratch,candidate.x,candidate.y,scale);
+        }
+        return scratch;
     }
 
     private Label addNodeLabel(Caption candidate,Label label,float cos,float sin) {
@@ -386,6 +392,7 @@ public class BCycleLabelPlacement {
 
         java.util.Map<String, java.util.List<Caption>> captions = new java.util.HashMap<>();
         java.util.Set<String> currentWays = new java.util.HashSet<>();
+        java.util.List<Caption> majorRoads=new java.util.ArrayList<>();roadNames.clear();
         for (int i = 0; i < cnt; i++) {
             MapTile tile = tiles[i];
             if (!tile.state(READY | NEW_DATA)) continue;
@@ -394,6 +401,8 @@ public class BCycleLabelPlacement {
             float dx = flipLongitude((float) (tile.tileX * Tile.SIZE - tileX), maxx);
             float dy = (float) (tile.tileY * Tile.SIZE - tileY);
             for (TextItem item : data.labels) {
+                float x=(float)((dx+item.x)*scale),y=(float)((dy+item.y)*scale);
+                if(BCycleLabelPolicy.majorRoad(item.text) && isVisible(x,y)) majorRoads.add(new Caption(tile,item,x,y));
                 if (!item.text.caption) {
                     currentWays.add(captionKey(item.text, item.label));
                     continue;
@@ -505,7 +514,8 @@ public class BCycleLabelPlacement {
         ordered.sort(java.util.Comparator.comparingInt((Caption c)->BCycleLabelPolicy.importance(c.item.text))
                 .thenComparingInt(c->c.item.text.priority)
                 .thenComparing(c->c.item.label).thenComparingDouble(c->c.x).thenComparingDouble(c->c.y));
-        for(Caption candidate:ordered) l=addNodeLabel(candidate,l,cos,sin);
+        for(Caption candidate:ordered) if(!BCycleLabelPolicy.majorRoad(candidate.item.text)) l=addNodeLabel(candidate,l,cos,sin);
+        l=addMajorRoadLabels(majorRoads,l,cos,sin,scale);
 
         for (Label ti = mLabels; ti != null; ti = (Label) ti.next) {
             /* add caption symbols */

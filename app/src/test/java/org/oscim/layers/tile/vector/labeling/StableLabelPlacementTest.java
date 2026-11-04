@@ -50,6 +50,46 @@ public class StableLabelPlacementTest {
         java.lang.reflect.Field field=BCycleLabelPlacement.class.getDeclaredField("mLabels");field.setAccessible(true);
         return (Label)field.get(placement);
     }
+    @Test public void repeatedRoadNumbersUseTheSameSpacingOnHorizontalVerticalAndDiagonalRoads() throws Exception {
+        BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());
+        Tiles tiles=new Tiles();
+        BCycleLabelPlacement placement=new BCycleLabelPlacement(view.map(),tiles,new ZoomLimiter(null,0,20,20));
+        try {
+            view.measure(View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY));view.layout(0,0,1000,1000);
+            MapPosition pos=new MapPosition();pos.x=.5;pos.y=.5;pos.setZoomLevel(16);view.map().viewport().setMapPosition(pos);
+            TextStyle shield=style("highway-shield",120,true);
+            TextStyle otherShield=style("highway-shield-us-other",120,true);
+            tiles.tile=tile(16,item("B16",shield,30,20),item("B 16",otherShield,30,130),item("B16",shield,30,360));
+            placement.updateLabels(new BCycleLabelTask());int count=0;
+            for(Label label=labels(placement);label!=null;label=(Label)label.next) count++;
+            assertEquals("Near vertical refs coalesce across style/spacing variants; distant repeat remains",2,count);
+            float repeat=BCycleLabelPolicy.roadRepeatDistance(shield,shield,30,30);
+            assertTrue(repeat>=220*org.oscim.backend.CanvasAdapter.getScale());
+            assertEquals("A8",BCycleLabelPolicy.roadIdentity("A 8"));
+            assertFalse("Water/place labels have their own policy",BCycleLabelPolicy.majorRoad(style("waterway-name",1,false)));
+        } finally { placement.cleanup();view.disposeMap(); }
+    }
+    @Test public void roadRefsFillAvailableGapsRegularlyIndependentOfInputOrderAndMapRotation() throws Exception {
+        BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());
+        try {
+            view.measure(View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY));view.layout(0,0,1000,1000);
+            TextStyle road=style("highway-shield",120,true);
+            java.util.List<Float> previous=null;
+            for(boolean reverse:new boolean[]{false,true}) {
+                Tiles tiles=new Tiles();BCycleLabelPlacement placement=new BCycleLabelPlacement(view.map(),tiles,new ZoomLimiter(null,0,20,20));
+                try {
+                    MapPosition pos=new MapPosition();pos.x=.5;pos.y=.5;pos.setZoomLevel(16);pos.bearing=reverse ? 90 : 0;view.map().viewport().setMapPosition(pos);
+                    float[] positions={10,30,60,100,140,230,450,670};TextItem[] items=new TextItem[positions.length];
+                    for(int n=0;n<positions.length;n++) { int index=reverse ? positions.length-1-n : n;items[n]=item(index%2==0 ? "B16" : "B 16",road,30,positions[index]); }
+                    tiles.tile=tile(16,items);placement.updateLabels(new BCycleLabelTask());
+                    java.util.List<Float> selected=new java.util.ArrayList<>();for(Label label=labels(placement);label!=null;label=(Label)label.next) selected.add(label.y);
+                    java.util.Collections.sort(selected);
+                    assertEquals(java.util.Arrays.asList(10f,230f,450f,670f),selected);
+                    if(previous!=null) assertEquals(previous,selected);previous=selected;
+                } finally { placement.cleanup(); }
+            }
+        } finally { view.disposeMap(); }
+    }
     @Test public void repeatedRoadAndRiverLabelsInsideOneOldWorldCellRemainSeparateAcrossArrivalOrder() {
         BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());
         try {

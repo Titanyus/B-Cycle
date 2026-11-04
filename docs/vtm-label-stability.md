@@ -64,3 +64,7 @@ Nutzer präzisiert: Autobahn-/Bundesstraßenlabels, Straßennamen und Flussnamen
 Statt Rasterkollision nun räumlich nächste gleiche Textfamilie innerhalb 48 tatsächlicher Kartenpixel, mit Antimeridian-Korrektur und echter aktueller Zoomskala. Pro Platzierungsrunde jeden Zustand höchstens einmal vergeben; neue Platzierungen erhalten eigene IDs. Die aktuelle Labelgeometrie, native Ausrichtung und separaten Fade-VBOs bleiben erhalten. Bereits sichtbare Ortsnamen erhalten zusätzlich 0,5 Zoomstufen mehr Hysterese (0,8 unter der Schwelle statt 0,3), neue Namen unverändert.
 
 Regression für Straße und Fluss: jeweils zwei B16-/Donau-Labels innerhalb derselben alten Weltzelle mit verschiedenen Richtungen bleiben nach vertauschter Ankunftsreihenfolge zwei unabhängige Glyphenpositionen; kein Zusammenfallen mehr. Bestehende native Platzierungs-/Fadefälle ebenfalls grün. Geräteprüfung bei den gemeldeten Autobahn-/Bundesstraßenabschnitten folgt; kein pauschaler Beleg für sämtliche denkbaren Glyphenorientierungen.
+
+## Dichte nach Build 132
+
+Hauptstraßen-Schilder/-namen mit radialem, zoomunabhängigem Wiederholungsabstand und einheitlicher Kennung über Stil-/Leerzeichenvarianten. Neue Hauptstraßenkandidaten über den gesamten Viewport sammeln und größere Lücken bevorzugt auffüllen; aktuelle Namen/Alter behalten. [Befund, offene VTM-Referenzen und native Regression](vtm-maxzoom-and-road-labels.md).

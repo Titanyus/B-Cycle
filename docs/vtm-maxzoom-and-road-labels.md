@@ -1,0 +1,33 @@
+# Maximalzoom und regelmäßigere Straßennummern
+
+Aufträge nach Build 132 (04.11.2026): Gebäude/Flächen zeigen bei Zoom 19 invertierte/rechteckige Artefakte; Hauptstraßen sind mit Nummern gepflastert, teilweise gehäuft mit langen Lücken dazwischen.
+
+## Geometriefehler
+
+VTM OpenMapTiles overzoomt aus Quellstufe 14 bis Kamerastufe 19. Sein OverzoomDataSink beschneidet normale Linien/Polygone, verwendet für Gebäude/Gebäudeteile hingegen nur TileSeparator und skaliert anschließend das vollständige Polygon. Bei Faktor 32 können einzelne Koordinaten außerhalb der darstellbaren signed-short-Vertexkoordinaten landen (COORD_SCALE 8). Daraus können umschlagende/flächig falsche Geometrien entstehen.
+
+`VtmClippedVectorSource` behält native HTTP-/MVT-/Overzoom-Funktionen. Der nachgeschaltete `VtmClippedVectorDataSource` beschneidet bei Overzoom nur Linien/Polygone, die nach der nativen Transformation den gepufferten Zielkachelbereich verlassen. Nativer TileClipper, gleicher 32×CanvasAdapter.getScale-Puffer. Bereits passend beschnittene Geometrien bleiben unverändert; Zoom ≤14 durchreichen. Tags/Typ/Layer und native completion/cancel/dispose erhalten. Es werden keine Quelle, Kamerastufe, Farben oder Styles ausgetauscht; beide optionalen Basispässe verwenden dieselbe Korrektur. App bleibt flache Draufsicht.
+
+Native Regression reproduziert vor der Korrektur einen Gebäude-Überlauf und prüft danach für Gebäude und Landflächen die Stufen 15–19: endliche und packbare Koordinaten, ganzer sichtbarer Tilebereich weiter gefüllt, kein invertierendes Umschlagen; Quellstufe unverändert. Das beweist einen konkreten Fehlermechanismus, ersetzt aber noch nicht den Abgleich mit den tatsächlich betroffenen Straßenzügen am Gerät.
+
+## Beschriftungsdichte und Verteilung
+
+Für highway-shield-Nummern sowie Autobahn-/Fern-/Hauptstraßennamen (native Straßenpriorität 100–129) denselben Straßenschlüssel unabhängig von Stylevariante und Leerzeichen verwenden, etwa B16/B 16. Keine Zusammenlegung unterschiedlicher Straßennummern. Mindestabstand gleicher Kennung radial im Kartenbild, mindestens 220 Canvas-dp oder ausreichend Platz für sehr breite Texte. Damit gilt derselbe Abstand für waagrechte, senkrechte und schräge Straßen; der frühere schmale vertikale Duplikatkorridor entfällt für diese Fälle. Bildschirmabstand unabhängig von Zoom, statt mehr Schilder pro sichtbarem Bereich mit jeder feineren Tile-Stufe zuzulassen.
+
+Neue Kandidaten (Schilder und Wegtext) gemeinsam über den Viewport sammeln. Native Priorität zuerst, für noch nicht vertretene Straßen Kandidat nahe der Kartenmitte. Danach jeweils die größte verfügbare Lücke derselben Kennung bevorzugen. Deterministische Tie-Breaks über Kennung/Koordinate/Stil; bei gleichaltrigen gleichen Straßen behält der bereits ausgewählte Kandidat Vorrang. So setzen Tile-Lade- und Segmentreihenfolge keine zufälligen Häufungen. Vorhandene sichtbare Namen und deren Alter erhalten, Orts-/Gewässerbeschriftungen behalten eigene Regeln. Begrenzter Namenscache pro Platzierungsrunde; keine Änderungen an der originalen Bright-Vorlage oder Font-Atlas-Rasterung.
+
+Ein gleichmäßiges wiederholtes Label an einer beliebigen Stelle lässt sich aus fragmentierten Quelldaten nicht erzwingen: Es werden weiterhin nur vorhandene geeignete Straßenkandidaten verwendet, Kollisionen mit Ortsnamen und anderen Beschriftungen bleiben berücksichtigt. Die Auswahl verbessert die Verteilung, ohne die Straße oder deren Verlauf aus einer Nummer zu erfinden.
+
+## Referenzen
+
+Öffentliche Projekte und Codequellen am 04.11.2026 geprüft:
+
+- [Trekarta](https://github.com/andreynovikov/trekarta): Open-Source-Outdoor-App (GPL-3.0) mit eigenem [VTM-Fork](https://github.com/andreynovikov/vtm) (LGPL-3.0). Dessen LabelPlacement verwendet ebenfalls die grundlegende VTM-Logik; keine fertig nachgewiesene regelmäßige Straßenlabel-Lösung behaupten.
+- [Offizielle VTM Android-Beispiele](https://github.com/mapsforge/vtm/tree/master/vtm-android-example): native Layer-/Kartenintegration, passend zur verwendeten Bibliotheksfamilie.
+- [Cachebox 3.0](https://github.com/Longri/cachebox3.0): offene Geocaching-Anwendung, laut [offizieller VTM-Anwendungsliste](https://github.com/mapsforge/vtm/blob/master/docs/Applications.md) Apache 2.0. Interessante weitere Integrationsreferenz; dessen Labelqualität nicht als gemessen behaupten.
+
+Keine fremde App kopiert oder Kartenengine gewechselt. Ergänzung des eigenen Platzierungsverfahrens; native Clipping-Klassen aus bereits eingebundenem LGPL-VTM verwenden.
+
+## Gezielte Prüfung
+
+Overzoom-/signed-short-Regression plus vorhandene native Platzierungs-/Fadefälle grün. Zusätzlicher Fall mit dichtem Anfang und weiteren Kandidaten entlang derselben Straße ergibt gleichmäßige 220-Pixel-Abstände; Auswahl bleibt bei umgekehrter Eingabereihenfolge und 90° Kartenrotation identisch. Typografie/Bright-Generator/Diff grün. Kein Gesamtlauf, keine lokale APK, kein neuer APK-Auftrag. Gerätevergleich für die gemeldete Maximalzoom-Szene und reale Straßendichte noch offen.
