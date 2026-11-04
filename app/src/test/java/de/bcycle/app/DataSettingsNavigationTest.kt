@@ -99,8 +99,10 @@ class DataSettingsNavigationTest {
             val request=shadowOf(a).nextStartedActivityForResult
             assertEquals(19,request.requestCode);assertEquals(Intent.ACTION_OPEN_DOCUMENT,request.intent.action)
             assertTrue(frame.expanded)
-            click(screen,"data_HRV_RESTORE")
-            val source=latest();click(source,"backup_target_local")
+            val target=frame.content.findViewWithTag<View>("backup_target_local")
+            assertNotNull(frame.content.findViewWithTag<View>("hrv_restore_import_divider"))
+            assertTrue(frame.content.indexOfChild(target.parent as View)<frame.content.indexOfChild(frame.content.findViewWithTag("hrv_restore_import_divider")))
+            target.performClick();assertSame(screen,latest())
             val restore=shadowOf(a).nextStartedActivityForResult
             assertEquals(23,restore.requestCode);assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE,restore.intent.action)
         } finally { host.pause().stop().destroy() }
@@ -177,6 +179,19 @@ class DataSettingsNavigationTest {
             assertEquals(View.VISIBLE,body.visibility)
             root.findViewWithTag<View>("data_expand_INTERVALS").performClick()
             assertEquals(View.GONE,body.visibility);assertFalse(toggle.isChecked)
+            for(action in listOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.DREEVE,DataAction.INTERVALS,DataAction.STRAVA)) {
+                val frame=root.findViewWithTag<BicycleFrameDropdown>("data_frame_${action.name}")
+                frame.setExpanded(true);measure(data)
+                val form=frame.content.getChildAt(frame.content.childCount-1) as ViewGroup
+                assertEquals(0,form.paddingBottom)
+                val last=(0 until form.childCount).map(form::getChildAt).last { it.visibility==View.VISIBLE }
+                assertEquals("only frame bottom inset for $action",BicycleDesign.dp(a,BicycleDesign.dropdownFramePadding),frame.content.height-form.top-last.bottom)
+                val status=(0 until form.childCount).map(form::getChildAt).filterIsInstance<TextView>().lastOrNull { it.accessibilityLiveRegion==View.ACCESSIBILITY_LIVE_REGION_POLITE }
+                if(status!=null) {
+                    status.text="Testmeldung";assertEquals(View.VISIBLE,status.visibility)
+                    status.text="";assertEquals(View.GONE,status.visibility)
+                }
+            }
             assertSame(data,latest());assertFalse(ActivityServiceSettings(a,ActivityService.DREEVE).read().enabled)
             assertFalse(ActivityServiceSettings(a,ActivityService.STRAVA).read().enabled)
         } finally { host.pause().stop().destroy() }
@@ -249,7 +264,7 @@ class DataSettingsNavigationTest {
             waitFor { provider.file.isFile && provider.file.length()>0 }
             val bytes=provider.file.readBytes();assertTrue(SettingsArchive.isZip(bytes));assertEquals(6,SettingsArchive(activity).read(bytes,archivePassword.toCharArray()).sections.size)
             prefs.edit().putBoolean(ThemeManager.settingsLightKey,true).commit()
-            click(data,"data_RESTORE");click(latest(),"backup_target_local");val open=shadowOf(activity).nextStartedActivityForResult
+            click(data,"data_RESTORE");data.window!!.decorView.findViewWithTag<ViewGroup>("data_details_RESTORE").findViewWithTag<View>("backup_target_local").performClick();val open=shadowOf(activity).nextStartedActivityForResult
             assertEquals(Intent.ACTION_OPEN_DOCUMENT,open.intent.action);assertEquals(13,open.requestCode)
             result(activity,13,android.app.Activity.RESULT_OK,Intent().setData(uri))
             waitFor { latest().window!!.decorView.findViewWithTag<View>("settings_archive_password")!=null }

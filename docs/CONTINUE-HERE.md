@@ -1,6 +1,14 @@
-# Aktueller Stand: APK 0.8.85 / Build 126 mit dauerhaftem GL-Kartenhost veröffentlicht
+# Aktueller Stand: Rahmen-Dropdowns vereinheitlicht; letzte APK 0.8.85 / Build 126
 
-## Aktueller Auftrag abgeschlossen: Vektorfehler nach Dashboardwechsel
+## Aktueller Auftrag abgeschlossen: übrige Rahmen-Dropdowns
+
+Dashboardauswahl, alle vier Trackdarstellungen und „Benachrichtigung anzeigen“ verwenden BicycleFrameDropdown. Auswahl/Listener/Persistenz bleiben erhalten; Benachrichtigungsschalter und Aufklappen sind unabhängig. Anzeigedauer steht vor Position. App-Auswahl verwendet native animierte Switches am rechten Rand; ein horizontaler Trenner steht unter dem Messengerfilter.
+
+Die fünf Cloud-Formulare verwenden allein die Standard-Innenabstände des Rahmens (16 dp unten). Leere Live-Statuszeilen beanspruchen keinen Platz; Meldungen werden bei Inhalt wieder sichtbar. Alle drei Wiederherstellungen haben direkt Lokal/WebDAV im Rahmen; bei HRV darunter getrennt der HRV4Training-CSV-Import. Bestehende SAF-/Passwort-/Bestätigungsabläufe bleiben erhalten. [Details](dropdown-frame.md).
+
+Sieben gezielte Tests erfolgreich (Dashboardauswahl, Trackstil, zwei Benachrichtigungsfälle, drei Backup-/Cloudfälle), einschließlich Auswahlpersistenz, unabhängiger Schalter, direkter Wiederherstellung, Schutzbestätigung und tatsächlichem unteren Rahmenabstand aller fünf Dienste. Log: /workspace/.tools/framed-settings-tests.log. Kotlin-/Ressourcenkompilation, Typografie, Atlas und Diff-Prüfung erfolgreich. Kein Gesamtlauf, keine neue APK beauftragt oder gebaut; Sichtkontrolle auf dem Gerät steht aus.
+
+## Erhaltener Stand aus Build 126: Vektorfehler nach Dashboardwechsel
 
 Nutzer meldet nach Build 125 rechteckige Ortsnamen, fehlende/flimmernde Bereiche, scheinbar vertauschte Tiles. Umhängen der GLSurfaceView verliert den GL-Kontext, VTM hält teils alte Textur-IDs. DashboardMapHost ist jetzt dauerhafter Elterncontainer; Seiten enthalten nur Slots. Host folgt aktivem Slot per Layout UND Drag-/Animationsframe. Kein MapPanel-Reparent/Window-Detach auf Wechsel/Abbruch. Echte Footer-/Vollbild-/Zielgrößen bleiben; auslaufender Slot zeigt begrenzte Aufnahme, Softwarecapture delegiert an aktiven MapPanel. [Details](dashboard-page-transition.md).
 

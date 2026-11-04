@@ -90,28 +90,41 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RIDE_BACKUP,DataAction.HRV_EXPORT))
         addView(backupStatus,LayoutParams(-1,-2))
         addView(BicycleComponents.sectionDivider(context,themes))
-        listOf(DataAction.RESTORE,DataAction.RIDE_RESTORE).forEach { action ->
-            addView(BicycleComponents.action(context,themes,context.getString(action.title)) { selected(action) }.apply {
-                tag="data_${action.name}";contentDescription=context.getString(action.title)
-                gravity=Gravity.START or Gravity.CENTER_VERTICAL
-                BicycleDialogStyle.actionIcon(this,themes,action.icon)
-            },LayoutParams(-1,-2))
+        listOf(DataAction.RESTORE,DataAction.RIDE_RESTORE,DataAction.HRV_RESTORE).forEach { action ->
+            val frame=BicycleFrameDropdown(context,themes,context.getString(action.title),false,leadingIcon=action.icon).apply {
+                tag=if(action==DataAction.HRV_RESTORE) "data_HRV_RESTORE_GROUP" else "data_frame_${action.name}"
+                header.tag="data_${action.name}";content.tag="data_details_${action.name}"
+            }
+            frames[action]=frame;bodies[action]=frame.content
+            if(action==DataAction.HRV_RESTORE) {
+                frame.content.addView(BicycleComponents.sectionDivider(context,themes).apply { tag="hrv_restore_import_divider" })
+                frame.content.addView(BicycleComponents.action(context,themes,context.getString(DataAction.HRV_IMPORT.title)) { selected(DataAction.HRV_IMPORT) }.apply {
+                    tag="data_HRV_IMPORT";BicycleDialogStyle.actionIcon(this,themes,DataAction.HRV_IMPORT.icon)
+                },LayoutParams(-1,-2))
+            }
+            addView(frame,LayoutParams(-1,-2))
         }
-        val restore=BicycleFrameDropdown(context,themes,context.getString(R.string.hrv_restore_title),false,leadingIcon=BicycleIcon.RestoreSettings)
-        restore.tag="data_HRV_RESTORE_GROUP"
-        listOf(DataAction.HRV_RESTORE,DataAction.HRV_IMPORT).forEach { action ->
-            restore.content.addView(BicycleComponents.action(context,themes,context.getString(action.title)) { selected(action) }.apply {
-                tag="data_${action.name}";contentDescription=context.getString(action.title)
-            },LayoutParams(-1,-2))
-        }
-        addView(restore,LayoutParams(-1,-2))
         section(R.string.data_routes,listOf(DataAction.IMPORT,DataAction.LOCAL,DataAction.CLOUD,DataAction.DREEVE,DataAction.INTERVALS,DataAction.STRAVA))
     }
     fun install(action:DataAction,content:View,enabled:Switch?=null) {
         if(enabled!=null) frames.getValue(action).setTrailing(enabled)
         // The frame owns the horizontal inset; service forms must not add it a second time.
-        content.setPadding(0,content.paddingTop,0,content.paddingBottom)
-        bodies.getValue(action).addView(content,LayoutParams(-1,-2))
+        content.setPadding(0,0,0,0)
+        fun compactStatuses(view:View) {
+            if(view is TextView && view.accessibilityLiveRegion==View.ACCESSIBILITY_LIVE_REGION_POLITE) {
+                fun refresh() { view.visibility=if(view.text.isNullOrEmpty()) View.GONE else View.VISIBLE }
+                refresh()
+                view.addTextChangedListener(object:android.text.TextWatcher {
+                    override fun beforeTextChanged(text:CharSequence?,start:Int,count:Int,after:Int)=Unit
+                    override fun onTextChanged(text:CharSequence?,start:Int,before:Int,count:Int)=Unit
+                    override fun afterTextChanged(text:android.text.Editable?) { refresh() }
+                })
+            }
+            if(view is android.view.ViewGroup) for(i in 0 until view.childCount) compactStatuses(view.getChildAt(i))
+        }
+        compactStatuses(content)
+        val body=bodies.getValue(action)
+        body.addView(content,if(action in setOf(DataAction.RESTORE,DataAction.RIDE_RESTORE,DataAction.HRV_RESTORE)) 0 else body.childCount,LayoutParams(-1,-2))
     }
 }
 internal class BackupSelectionView(context:Context, themes:ThemeManager, available:Set<BackupSection>) : LinearLayout(context) {
