@@ -13,7 +13,10 @@ import org.oscim.theme.internal.VtmThemes
 /** Owns every layer of one base map; saved/live tracks always remain above them. */
 internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,key:String,cycleways:Boolean,private val glQueue:(Runnable)->Unit,options:MapVectorLayers=MapVectorLayers(),style:MapStyleOverrides=MapStyleOverrides()) {
     companion object { const val cyclewaysKey="mapVectorCycleways" }
-    private var detached=false
+    @Volatile private var detached=false
+    private val colorLock=Any()
+    private var pendingColors:MapStyleOverrides?=null
+    private var colorQueued=false
     private val tiles:TileLayer
     private val foreground:VtmStyledVectorLayer?
     private val contours:VtmContourLayer?
@@ -50,11 +53,34 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
     private fun applyBackground() {
         (tiles as? VectorTileLayer)?.theme?.let { org.oscim.renderer.MapRenderer.setBackgroundColor(it.mapBackground) }
     }
+    /** Coalesce RGB edits without touching tile managers, workers, label placement or geometry buffers. */
+    fun updateColors(previous:MapStyleOverrides,next:MapStyleOverrides):Boolean {
+        if(detached || tiles !is VtmStyledVectorLayer || !next.canUpdateColorsFrom(previous)) return false
+        synchronized(colorLock) {
+            pendingColors=next
+            if(colorQueued) return true
+            colorQueued=true
+        }
+        glQueue(Runnable {
+            val style=synchronized(colorLock) { colorQueued=false;pendingColors.also { pendingColors=null } }
+            if(!detached && style!=null) {
+                (tiles.theme as VtmBrightTheme).applyColors(style)
+                foreground?.let { (it.theme as VtmBrightTheme).applyColors(style) }
+                contours?.applyColors(style)
+                // Include VTM's incoming-tile fade matte as well as the global clear colour.
+                tiles.tileRenderer().setOverdrawColor(tiles.theme.mapBackground)
+                foreground?.tileRenderer()?.setOverdrawColor(0)
+                applyBackground();map.render()
+            }
+        })
+        return true
+    }
     fun resume() { applyBackground();tiles.isEnabled=true;labels?.isEnabled=true;resumeTiles();contours?.resume();foreground?.resumeTiles();foreground?.isEnabled=true;map.updateMap(true) }
     fun pause() { tiles.isEnabled=false;labels?.isEnabled=false;pauseTiles();contours?.pause();foreground?.pauseTiles();foreground?.isEnabled=false }
     fun onDetach() {
         if(detached) return
         detached=true
+        synchronized(colorLock) { pendingColors=null }
         pause()
         labels?.let { layer ->
             map.layers().remove(layer);layer.onDetach()

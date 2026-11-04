@@ -330,6 +330,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val nextStyle=MapStyleOverrides.read(preferences)
         val nextLayers=MapVectorLayers.read(preferences)
         val nextCycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
+        if(next==MapSource.VECTOR && next==source && nextCycleways==cycleways && nextLayers==vectorLayers && nextStyle!=mapStyle
+            && downloads.updateColors(mapStyle,nextStyle)) mapStyle=nextStyle
         if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey) || (next==MapSource.VECTOR && (nextCycleways!=cycleways || nextLayers!=vectorLayers || nextStyle!=mapStyle))) {
             pinchZoom.cancel()
             downloads.onDetach()

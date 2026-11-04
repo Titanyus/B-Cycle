@@ -27,7 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger
 /** Optional native vector overlay. DEM decoding/contours only run on its one tile worker. */
 internal class VtmContourLayer(context:Context,map:Map,style:MapStyleOverrides=MapStyleOverrides()):VectorTileLayer(map,ContourSource(VtmTileHttp.client(context))) {
     override fun getNumLoaders()=1
-    init { setTheme(ThemeLoader.load(ContourTheme(style)));pause() }
+    init { setTheme(VtmLiveTheme(ThemeLoader.load(ContourTheme(style.compiledStyles())) as org.oscim.theme.RenderTheme,style,allowBackground=false));pause() }
+    fun applyColors(style:MapStyleOverrides) { (theme as VtmLiveTheme).applyColors(style) }
     override fun onMapEvent(event:Event,position:MapPosition) {
         tileRenderer().setBitmapAlpha(if(position.zoomLevel>=10) 1f else 0f)
         super.onMapEvent(event,position)

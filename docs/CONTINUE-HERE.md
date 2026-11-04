@@ -5,7 +5,8 @@
 - Kartenobjekt-Editor mit eigenem Stiftbutton neben Ebenen/Auge statt verschachteltem Dropdown; drei zentrale RGB-Regler 0–255, HEX/Farbvorschau, exakte Werte. JSON/Reset/Stil-/Profilfunktionen erhalten, Trackfarbpalette unverändert. Karten-/Footer-/Popup-Lebenszyklus ergänzt.
 - Neue und vorhandene Ortsnamen nutzen dieselbe Ein-/Ausblendschwelle. Städte/towns/Dörfer deutlich früher, dadurch mehr Orte in der Übersicht. Native Größenpriorität/Fades/Beibehaltung erhalten.
 - Radwegehervorhebung ab VTM 9 statt 12, dünne Breiten 0,6/0,9/1,4 bis 12, ab13 bisher2,5. Quellenprobe belegt frühe Orts-/Radwegdaten, nicht jedes Detail ist in der Übersicht vorhanden.
-- Offizielle VTM-Beispiele gelesen: direkte Styleaktualisierung in ThemeStylerActivity als künftige Vorschauoptimierung nützlich, Stilgruppen und MVT-/Cache-/LabelLayer-Integration ebenfalls. [Umfang/Daten/Prüfung](vtm-rgb-and-overview.md). Gezielte RGB-/Popup-/Label-/Cyclewayfälle grün, kein Gesamtlauf oder neue APK angefordert.
+- Direkte Farbaktualisierung eingebaut: vorhandene native LineStyle/AreaStyle-Handles und Texturen beibehalten, auf GL-Queue set/updateStyles/render, RGB-Vorschau alle48ms auch während Bewegung. Beide Basispässe/Höhenlinien/Hintergrund und exaktes Zurücksetzen berücksichtigt. Textfarben/Muster weiter alter Aufbaupfad. Gezielte native Referenz-/Reset-/Queue-/MapPanel-/Dragfälle grün. [Verfahren](vtm-live-colors.md).
+- Offizielle VTM-Beispiele gelesen: direkte Styleaktualisierung aus ThemeStylerActivity für Farben übernommen, Stilgruppen und MVT-/Cache-/LabelLayer-Integration ebenfalls. [Umfang/Daten/Prüfung](vtm-rgb-and-overview.md). Gezielte RGB-/Popup-/Label-/Cyclewayfälle grün, kein Gesamtlauf oder neue APK angefordert.
 
 ## In Build 133 enthalten
 

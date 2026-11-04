@@ -9,7 +9,7 @@ import android.os.Looper
 import android.view.View
 import android.widget.*
 
-/** Small on-map editor. Persist drafts per bike, preview with a bounded debounce, export a portable delta. */
+/** Small on-map editor. Persist per bike, throttle live colours and debounce atlas/pattern changes, export a portable delta. */
 internal class MapStyleEditorView(context:Context,private val prefs:SharedPreferences,private val themes:ThemeManager,
     private val changed:()->Unit,private val export:(String)->Unit):LinearLayout(context) {
     private val profile=prefs.getInt(BikeProfileStore.ACTIVE,0)
@@ -75,10 +75,15 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
     }
     private fun currentProfile()=prefs.getInt(BikeProfileStore.ACTIVE,0)==profile
     private fun current()=MapStyleOverrides.read(prefs).objects[selected] ?: MapObjectStyle()
-    private fun schedule() { handler.removeCallbacks(preview);handler.postDelayed(preview,180) }
+    private fun schedule(live:Boolean=false) {
+        if(live) { if(!handler.hasCallbacks(preview)) handler.postDelayed(preview,48) }
+        else { handler.removeCallbacks(preview);handler.postDelayed(preview,180) }
+    }
     private fun save(value:MapObjectStyle) {
         if(!currentProfile()) return
-        MapStyleOverrides.read(prefs).update(selected,value).write(prefs);schedule()
+        val previous=MapStyleOverrides.read(prefs)
+        val next=previous.update(selected,value)
+        next.write(prefs);schedule(live=next.canUpdateColorsFrom(previous))
     }
     private fun displayColor(value:Int) {
         hex.text=String.format(java.util.Locale.ROOT,"#%06X",value and 0xffffff)

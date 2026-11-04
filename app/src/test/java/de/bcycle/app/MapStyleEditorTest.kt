@@ -37,9 +37,9 @@ class MapStyleEditorTest {
             try {
                 val road=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","primary")) }
                 val lines=theme.matchElement(GeometryBuffer.GeometryType.LINE,road,16).orEmpty().filterIsInstance<LineStyle>()
-                assertTrue(lines.any { it.color==Color.RED && it.dashArray?.size==4 && it.texture!=null })
+                assertTrue(lines.any { it.current().color==Color.RED && it.dashArray?.size==4 && it.texture!=null })
                 val forest=TagSet().apply { add(Tag("layer","landcover"));add(Tag("class","wood")) }
-                assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,forest,16).orEmpty().filterIsInstance<AreaStyle>().any { it.color==Color.argb(26,0,0,255) })
+                assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,forest,16).orEmpty().filterIsInstance<AreaStyle>().any { it.current().color==Color.argb(26,0,0,255) })
             } finally { theme.dispose() }
             val invalid=custom.json();invalid.getJSONObject("objects").getJSONObject("PRIMARY").put("color","url(https://invalid)")
             assertThrows(IllegalArgumentException::class.java) { MapStyleOverrides.parse(invalid) }
@@ -89,6 +89,13 @@ class MapStyleEditorTest {
             target.setSelection(MapStyleTarget.FOREST.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             target.setSelection(MapStyleTarget.PRIMARY.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             assertEquals(listOf(17,92,203),channels.map { it.progress })
+            val beforeDrag=changes
+            channels[0].progress=18
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(24))
+            channels[1].progress=93
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(24))
+            assertTrue("Colour preview runs during continuing slider changes, not just after a pause",changes>beforeDrag)
+            channels[0].progress=17;channels[1].progress=92
             val dash=editor.findViewWithTag<Spinner>("map_style_dash");dash.setSelection(MapDash.DOTTED.ordinal)
             Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
             assertEquals(MapDash.DOTTED,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.dash);assertTrue(changes>0)

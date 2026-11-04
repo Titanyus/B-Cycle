@@ -172,7 +172,7 @@ class VtmVectorMapTest {
             assertEquals(.6f,highlight(9)!!.width,.001f);assertEquals(.9f,highlight(11)!!.width,.001f)
             assertEquals(1.4f,highlight(12)!!.width,.001f);assertEquals(2.5f,highlight(13)!!.width,.001f)
             assertTrue(off.matchElement(GeometryBuffer.GeometryType.LINE,tags,9).orEmpty().none { it is LineStyle && it.style=="bcycle-cycleway" })
-            assertTrue(custom.matchElement(GeometryBuffer.GeometryType.LINE,tags,9).orEmpty().filterIsInstance<LineStyle>().any { it.style=="bcycle-cycleway" && it.color==Color.RED && it.texture!=null })
+            assertTrue(custom.matchElement(GeometryBuffer.GeometryType.LINE,tags,9).orEmpty().filterIsInstance<LineStyle>().any { it.style=="bcycle-cycleway" && it.current().color==Color.RED && it.texture!=null })
             val designated=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","track"));add(Tag("subclass","track"));add(Tag("bicycle","designated")) }
             assertTrue(theme.matchElement(GeometryBuffer.GeometryType.LINE,designated,9).orEmpty().filterIsInstance<LineStyle>().any { it.style=="bcycle-cycleway" })
         } finally { theme.dispose();off.dispose();custom.dispose();view.disposeMap() }
@@ -203,6 +203,17 @@ class VtmVectorMapTest {
             val popup=MapPanel::class.java.getDeclaredField("layersPopup").apply { isAccessible=true }.get(panel) as MapLayersPopup
             assertTrue(popup.isShowing)
             val liveMap=panel.mapView
+            val baseField=MapPanel::class.java.getDeclaredField("downloads").apply { isAccessible=true }
+            val beforeColours=baseField.get(panel)
+            val oldStyle=MapStyleOverrides.read(runtime.preferences)
+            val recoloured=oldStyle.update(MapStyleTarget.GRASS,MapObjectStyle(Color.RED))
+            recoloured.write(runtime.preferences);panel.refreshSettings()
+            assertSame("RGB colour edits must not rebuild the base layers",beforeColours,baseField.get(panel))
+            oldStyle.write(runtime.preferences);panel.refreshSettings()
+            assertSame(beforeColours,baseField.get(panel))
+            recoloured.update(MapStyleTarget.PATH,MapObjectStyle(dash=MapDash.DOTTED)).write(runtime.preferences);panel.refreshSettings()
+            assertNotSame("Pattern changes retain the safe rebuild",beforeColours,baseField.get(panel))
+            oldStyle.write(runtime.preferences);panel.refreshSettings()
             popup.contentView.findViewWithTag<Switch>("map_quick_${MapVectorLayer.PATHS.key}").isChecked=true
             assertTrue(MapVectorLayer.PATHS in MapVectorLayers.read(runtime.preferences))
             assertSame("Layer toggles retain the live GL host",liveMap,panel.mapView)

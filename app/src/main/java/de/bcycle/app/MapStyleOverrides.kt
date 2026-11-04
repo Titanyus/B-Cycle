@@ -40,6 +40,16 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
 }
 internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL)
 internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectStyle> = emptyMap()) {
+    /** Text is baked into glyph atlases; pattern changes create native textures/buckets. */
+    fun canUpdateColorsFrom(previous:MapStyleOverrides)=MapStyleTarget.entries.all { target ->
+        val before=previous.objects[target] ?: MapObjectStyle()
+        val after=objects[target] ?: MapObjectStyle()
+        before.dash==after.dash && (target !in textTargets || before.color==after.color)
+    }
+    /** Keep unmodified native geometry paints as exact per-zoom reset baselines. */
+    fun compiledStyles()=copy(objects=objects.mapValues { (target,value) ->
+        if(target in textTargets) value else value.copy(color=null)
+    }.filterValues { it!=MapObjectStyle() })
     fun json()=JSONObject().put("format","bcycle-map-style").put("version",1).put("base","bright")
         .put("baseSha256",BASE_SHA).put("objects",JSONObject().apply {
             objects.toSortedMap(compareBy { it.name }).forEach { (target,style) -> put(target.name,JSONObject().apply {
@@ -55,6 +65,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
         MapVectorLayer.entries.forEach { put(it.name,prefs.getBoolean(it.key,it.defaultVisible)) }
     }).put("cycleways",prefs.getBoolean(VtmBaseMap.cyclewaysKey,true)).toString(2)
     companion object {
+        private val textTargets=setOf(MapStyleTarget.PLACE_TEXT,MapStyleTarget.ROAD_TEXT,MapStyleTarget.WATER_TEXT)
         const val KEY="mapStyleOverridesV1"
         const val BASE_SHA="cda8931095c5101cbad5d2a60fa129600a1a0ad3dea27d802be341fb5eae071f"
         fun read(prefs:SharedPreferences)=runCatching { parse(JSONObject(prefs.getString(KEY,null) ?: return MapStyleOverrides())) }.getOrDefault(MapStyleOverrides())

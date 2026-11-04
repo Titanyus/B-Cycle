@@ -14,7 +14,7 @@ import org.oscim.theme.styles.TextStyle
 /** Source filters remain exact; VTM owns drawing, resource disposal and its bounded style cache. */
 internal enum class VtmMapPass { ALL,GROUND,FOREGROUND }
 internal class VtmBrightTheme private constructor(
-    private val native:IRenderTheme,
+    private val native:VtmLiveTheme,
     source:JSONObject,
     private val options:MapVectorLayers,
     private val pass:VtmMapPass
@@ -68,6 +68,7 @@ internal class VtmBrightTheme private constructor(
             }.toTypedArray().also { priorityCache.put(key,it) }
         }
     }
+    fun applyColors(style:MapStyleOverrides) { native.applyColors(style) }
     override fun getMapBackground()=if(pass==VtmMapPass.FOREGROUND) android.graphics.Color.TRANSPARENT else native.mapBackground
     override fun dispose() { priorityCache.evictAll();native.dispose() }
     override fun scaleTextSize(scale:Float) { priorityCache.evictAll();native.scaleTextSize(scale) }
@@ -75,7 +76,7 @@ internal class VtmBrightTheme private constructor(
         private val nativeKeys=arrayOf("layer","class","subclass","bicycle","network","ref_length")
         fun load(cycleways:Boolean,options:MapVectorLayers=MapVectorLayers(),style:MapStyleOverrides=MapStyleOverrides(),pass:VtmMapPass=VtmMapPass.ALL):IRenderTheme {
             val source=AssetAdapter.readFileAsStream("styles/bright.json").use { JSONObject(it.bufferedReader().readText()) }
-            return VtmBrightTheme(ThemeLoader.load(VtmCycleTheme(cycleways,style)),source,options,pass)
+            return VtmBrightTheme(VtmLiveTheme(ThemeLoader.load(VtmCycleTheme(cycleways,style.compiledStyles())) as org.oscim.theme.RenderTheme,style),source,options,pass)
         }
     }
 }
