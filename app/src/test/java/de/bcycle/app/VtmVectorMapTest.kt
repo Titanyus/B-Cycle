@@ -160,6 +160,23 @@ class VtmVectorMapTest {
             assertTrue(numeric(GeometryBuffer.GeometryType.POINT,TagSet().apply { add(Tag("rank","20"));add(Tag("level","0.0")) }))
         } finally { theme.dispose();map.disposeMap() }
     }
+    @Test fun cyclewaysRemainThinInTheOverviewAndUseTheExistingEditorAndVisibilitySwitch() {
+        val view=BicycleMapView(RuntimeEnvironment.getApplication())
+        val theme=VtmBrightTheme.load(true)
+        val off=VtmBrightTheme.load(false)
+        val custom=VtmBrightTheme.load(true,style=MapStyleOverrides().update(MapStyleTarget.CYCLE,MapObjectStyle(Color.RED,MapDash.DASHED)))
+        try {
+            val tags=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","path"));add(Tag("subclass","cycleway")) }
+            fun highlight(zoom:Int)=theme.matchElement(GeometryBuffer.GeometryType.LINE,tags,zoom).orEmpty().filterIsInstance<LineStyle>().singleOrNull { it.style=="bcycle-cycleway" }
+            assertNull(highlight(8))
+            assertEquals(.6f,highlight(9)!!.width,.001f);assertEquals(.9f,highlight(11)!!.width,.001f)
+            assertEquals(1.4f,highlight(12)!!.width,.001f);assertEquals(2.5f,highlight(13)!!.width,.001f)
+            assertTrue(off.matchElement(GeometryBuffer.GeometryType.LINE,tags,9).orEmpty().none { it is LineStyle && it.style=="bcycle-cycleway" })
+            assertTrue(custom.matchElement(GeometryBuffer.GeometryType.LINE,tags,9).orEmpty().filterIsInstance<LineStyle>().any { it.style=="bcycle-cycleway" && it.color==Color.RED && it.texture!=null })
+            val designated=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","track"));add(Tag("subclass","track"));add(Tag("bicycle","designated")) }
+            assertTrue(theme.matchElement(GeometryBuffer.GeometryType.LINE,designated,9).orEmpty().filterIsInstance<LineStyle>().any { it.style=="bcycle-cycleway" })
+        } finally { theme.dispose();off.dispose();custom.dispose();view.disposeMap() }
+    }
     @Test fun vectorAndRasterSwitchKeepRouteLayerAndPersistBikeSettings() {
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
@@ -190,6 +207,14 @@ class VtmVectorMapTest {
             assertTrue(MapVectorLayer.PATHS in MapVectorLayers.read(runtime.preferences))
             assertSame("Layer toggles retain the live GL host",liveMap,panel.mapView)
             assertTrue("Dropdown stays open for comparing the map",popup.isShowing);popup.dismiss()
+            assertNull("Editor is no longer nested in layer switches",popup.contentView.findViewWithTag<View>("map_style_editor"))
+            val editorButton=panel.findViewWithTag<android.widget.Button>("map_style_editor_button")
+            assertEquals(View.VISIBLE,editorButton.visibility);editorButton.performClick()
+            val editorPopup=MapPanel::class.java.getDeclaredField("stylePopup").apply { isAccessible=true }.get(panel) as MapStyleEditorPopup
+            assertTrue(editorPopup.isShowing)
+            assertNotNull(editorPopup.contentView.findViewWithTag<View>("map_style_rgb_0"))
+            assertSame(liveMap,panel.mapView);editorPopup.dismiss()
+
 
             val contourSwitch=root.findViewWithTag<Switch>(MapVectorLayer.CONTOURS.key)
             val layers=panel.mapView.map().layers()
@@ -212,7 +237,7 @@ class VtmVectorMapTest {
             backup.apply(backup.plan(backup.decode(bytes),setOf(BackupSection.MAPS)))
             assertEquals("VECTOR",bike.getString("mapSource",null));assertFalse(bike.getBoolean(VtmBaseMap.cyclewaysKey,true))
             spinner.setSelection(MapSource.OSM.ordinal);shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(View.GONE,toggle.visibility);assertEquals(View.GONE,options.visibility);assertEquals(View.GONE,quick.visibility)
+            assertEquals(View.GONE,toggle.visibility);assertEquals(View.GONE,options.visibility);assertEquals(View.GONE,quick.visibility);assertEquals(View.GONE,editorButton.visibility)
             assertTrue(layers.none { it is VectorTileLayer || it is LabelLayer })
             assertTrue(layers.indexOf(layers.filterIsInstance<VtmRasterLayer>().single())<layers.indexOf(routes))
             assertSame(routes,layers.filterIsInstance<VtmRouteLayer>().single())

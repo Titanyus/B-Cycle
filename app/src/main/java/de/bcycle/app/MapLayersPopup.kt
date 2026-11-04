@@ -8,7 +8,7 @@ import android.widget.*
 
 /** Direct profile switches; keep the dropdown open while the unchanged MapView redraws. */
 internal class MapLayersPopup(private val anchor:View,private val runtime:RideRuntime,
-    private val changed:()->Unit,closed:()->Unit,export:(String)->Unit={}):PopupWindow() {
+    private val changed:()->Unit,closed:()->Unit):PopupWindow() {
     private val profile=runtime.bikes.activeSlot
     init {
         val context=anchor.context;val themes=runtime.themes;val prefs=runtime.preferences
@@ -19,11 +19,6 @@ internal class MapLayersPopup(private val anchor:View,private val runtime:RideRu
             val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
         }
         column.addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.map_vector_layers)))
-        column.addView(BicycleComponents.sectionDivider(context,themes))
-        column.addView(BicycleFrameDropdown(context,themes,context.getString(R.string.map_style_editor),open=false,leadingIcon=BicycleIcon.EditDashboard).apply {
-            tag="map_style_editor_dropdown"
-            content.addView(MapStyleEditorView(context,prefs,themes,changed,export))
-        })
         fun toggle(key:String,title:Int,fallback:Boolean) {
             column.addView(Switch(context).apply {
                 tag="map_quick_$key";text=context.getString(title);isChecked=prefs.getBoolean(key,fallback)

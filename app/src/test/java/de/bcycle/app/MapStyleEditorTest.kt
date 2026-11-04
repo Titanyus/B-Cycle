@@ -81,6 +81,14 @@ class MapStyleEditorTest {
             val target=editor.findViewWithTag<Spinner>("map_style_target")
             target.setSelection(MapStyleTarget.PRIMARY.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             assertTrue(MapStyleOverrides.read(prefs).objects.isEmpty())
+            val channels=(0..2).map { editor.findViewWithTag<BicycleSettingSlider>("map_style_rgb_$it") }
+            channels.forEach { assertEquals(255,it.max) }
+            channels[0].progress=17;channels[1].progress=92;channels[2].progress=203
+            assertEquals(Color.rgb(17,92,203),MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.color)
+            assertEquals("#115CCB",editor.findViewWithTag<TextView>("map_style_rgb_hex").text.toString())
+            target.setSelection(MapStyleTarget.FOREST.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            target.setSelection(MapStyleTarget.PRIMARY.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals(listOf(17,92,203),channels.map { it.progress })
             val dash=editor.findViewWithTag<Spinner>("map_style_dash");dash.setSelection(MapDash.DOTTED.ordinal)
             Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
             assertEquals(MapDash.DOTTED,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.dash);assertTrue(changes>0)

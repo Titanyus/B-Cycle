@@ -29,6 +29,7 @@ internal object MapControlDesign {
     const val zoomClearance = 10
     const val collisionGap = 4
     const val nightOffset = edgeGap + dashboardWidth + buttonGap
+    const val editorOffset = nightOffset + dashboardWidth + buttonGap
     const val compactRowOffset = dashboardWidth + edgeGap * 2
     val foreground = Color.WHITE
     val dashboardBackground = Color.argb(225, 25, 25, 25)
