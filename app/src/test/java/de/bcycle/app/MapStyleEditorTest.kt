@@ -25,6 +25,7 @@ class MapStyleEditorTest {
         val prefs=c.getSharedPreferences("bike",0)
         val custom=MapStyleOverrides().update(MapStyleTarget.PRIMARY,MapObjectStyle(Color.RED,MapDash.DASH_DOT))
             .update(MapStyleTarget.FOREST,MapObjectStyle(Color.BLUE))
+            .update(MapStyleTarget.TRACK,MapObjectStyle(Color.MAGENTA,widthPercent=40))
         try {
             custom.write(prefs)
             assertEquals(custom,MapStyleOverrides.parse(JSONObject(custom.export(prefs))))
@@ -41,8 +42,26 @@ class MapStyleEditorTest {
                 val forest=TagSet().apply { add(Tag("layer","landcover"));add(Tag("class","wood")) }
                 assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,forest,16).orEmpty().filterIsInstance<AreaStyle>().any { it.current().color==Color.argb(26,0,0,255) })
             } finally { theme.dispose() }
+            val edited=VtmBrightTheme.load(false,style=custom)
+            val baseline=VtmBrightTheme.load(false)
+            try {
+                for(zoom in listOf(15,16,18)) {
+                    fun lines(t:org.oscim.theme.IRenderTheme,kind:String)=t.matchElement(GeometryBuffer.GeometryType.LINE,
+                        TagSet().apply { add(Tag("layer","transportation"));add(Tag("class",kind)) },zoom).orEmpty().filterIsInstance<LineStyle>()
+                    val original=lines(baseline,"track").single { it.style=="bcycle-track" }
+                    val changed=lines(edited,"track").single { it.style=="bcycle-track" }
+                    assertEquals(Color.MAGENTA,changed.current().color);assertEquals(original.width*.4f,changed.width,.001f)
+                    assertTrue(original.width<lines(baseline,"minor").last().width)
+                    assertNotNull(original.texture)
+                    assertTrue(lines(edited,"minor").none { it.style=="bcycle-track" || it.current().color==Color.MAGENTA })
+                }
+            } finally { edited.dispose();baseline.dispose() }
             val invalid=custom.json();invalid.getJSONObject("objects").getJSONObject("PRIMARY").put("color","url(https://invalid)")
             assertThrows(IllegalArgumentException::class.java) { MapStyleOverrides.parse(invalid) }
+            for(bad in listOf(0,301,50.5,"100")) {
+                val invalidWidth=custom.json();invalidWidth.getJSONObject("objects").getJSONObject("TRACK").put("widthPercent",bad)
+                assertThrows(IllegalArgumentException::class.java) { MapStyleOverrides.parse(invalidWidth) }
+            }
             val invalidDash=MapStyleOverrides().json().put("objects",JSONObject().put("FOREST",JSONObject().put("lineStyle","DOTTED")))
             assertThrows(IllegalArgumentException::class.java) { MapStyleOverrides.parse(invalidDash) }
         } finally { view.disposeMap() }
@@ -100,6 +119,9 @@ class MapStyleEditorTest {
             val dash=editor.findViewWithTag<Spinner>("map_style_dash");dash.setSelection(MapDash.DOTTED.ordinal)
             Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
             assertEquals(MapDash.DOTTED,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.dash);assertTrue(changes>0)
+            val width=editor.findViewWithTag<BicycleSettingSlider>("map_style_width")
+            width.progress=55
+            assertEquals(55,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.widthPercent)
             val alpha=editor.findViewWithTag<BicycleSettingSlider>("map_style_rgb_3")
             assertEquals(255,alpha.progress);alpha.progress=128
             assertEquals(128,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.alpha)
@@ -111,6 +133,7 @@ class MapStyleEditorTest {
             assertEquals(MapStyleOverrides.read(prefs),MapStyleOverrides.parse(JSONObject(exported!!)))
             val reopened=MapStyleEditorView(activity,prefs,themes,{}, {})
             assertEquals(MapStyleTarget.PRIMARY.ordinal,reopened.findViewWithTag<Spinner>("map_style_target").selectedItemPosition)
+            assertEquals(55,reopened.findViewWithTag<BicycleSettingSlider>("map_style_width").progress)
             assertEquals(128,reopened.findViewWithTag<BicycleSettingSlider>("map_style_rgb_3").progress)
             editor.findViewWithTag<View>("map_style_reset_object").performClick();assertTrue(MapStyleOverrides.read(prefs).objects.isEmpty())
         } finally { controller.pause().stop().destroy() }

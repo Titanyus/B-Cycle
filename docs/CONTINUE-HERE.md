@@ -1,4 +1,8 @@
-# Aktueller Stand: APK 0.8.93 / Build 135 veröffentlicht
+# Aktueller Auftrag nach Build 135
+
+Linienbreite im Karteneditor (25–300 % je Zoom-Basis, optionales validiertes widthPercent im Objekt-JSON). Eigenständige Feld-/Wirtschaftswege: class track aus gemeinsamen Straßenstilen abspalten, zunächst halb so breit/braun/gestrichelt ohne breite Umrandung; unabhängig Farbe/Alpha/Muster/Breite bearbeiten. Radwegehervorhebung bis Kameraminimum6 statt9 mit abgestuften Übersichtslinien, soweit Quelldaten vorhanden. Drei gezielte Native-/Editor-/Export-/Profil-/Sicherungsfälle grün; Typografie/UI-Katalog/Bright-Generator/Diff grün. Nachweis: /workspace/.tools/map-width-and-tracks-tests.log. Keine neue APK beauftragt.
+
+## Letzte Veröffentlichung: APK 0.8.93 / Build 135
 
 Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4261284 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
 

@@ -42,7 +42,11 @@ internal class VtmBrightTheme private constructor(
         // The generated native instructions use these only for sprite selection/cycling overlay.
         for(key in nativeKeys)
             tags.getValue(key)?.let { matched.add(Tag(key,it)) }
-        for(layer in candidates) if(layer.matches(type,tags)) matched.add(layer.flag)
+        for(layer in candidates) if(layer.matches(type,tags)) {
+            val track=tags.getValue("layer")=="transportation" && tags.getValue("class")=="track" &&
+                layer.flag.key in setOf("bcycle:bright:highway-minor","bcycle:bright:highway-minor-casing","bcycle:bright:tunnel-service-track","bcycle:bright:tunnel-service-track-casing")
+            matched.add(if(track) Tag(layer.flag.key+"-track","1") else layer.flag)
+        }
         val styles=native.matchElement(type,matched,zoomLevel) ?: return null
         val priority=when(tags.getValue("layer")) {
             "place" -> when(tags.getValue("class")) {

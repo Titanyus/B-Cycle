@@ -168,9 +168,10 @@ class VtmVectorMapTest {
         try {
             val tags=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","path"));add(Tag("subclass","cycleway")) }
             fun highlight(zoom:Int)=theme.matchElement(GeometryBuffer.GeometryType.LINE,tags,zoom).orEmpty().filterIsInstance<LineStyle>().singleOrNull { it.style=="bcycle-cycleway" }
-            assertNull(highlight(8))
-            assertEquals(.6f,highlight(9)!!.width,.001f);assertEquals(.9f,highlight(11)!!.width,.001f)
-            assertEquals(1.4f,highlight(12)!!.width,.001f);assertEquals(2.5f,highlight(13)!!.width,.001f)
+            assertNull(highlight(5))
+            assertEquals(.35f,highlight(6)!!.width,.001f);assertEquals(.6f,highlight(8)!!.width,.001f)
+            assertEquals(.75f,highlight(9)!!.width,.001f);assertEquals(1.1f,highlight(11)!!.width,.001f)
+            assertEquals(1.4f,highlight(12)!!.width,.001f);assertEquals(1.8f,highlight(13)!!.width,.001f);assertEquals(2.5f,highlight(15)!!.width,.001f)
             assertTrue(off.matchElement(GeometryBuffer.GeometryType.LINE,tags,9).orEmpty().none { it is LineStyle && it.style=="bcycle-cycleway" })
             assertTrue(custom.matchElement(GeometryBuffer.GeometryType.LINE,tags,9).orEmpty().filterIsInstance<LineStyle>().any { it.style=="bcycle-cycleway" && it.current().color==Color.RED && it.texture!=null })
             val designated=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","track"));add(Tag("subclass","track"));add(Tag("bicycle","designated")) }

@@ -24,6 +24,12 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
         tag="map_style_rgb_$index";max=255;min=0
         contentDescription=context.getString(listOf(R.string.map_style_red,R.string.map_style_green,R.string.map_style_blue,R.string.map_style_alpha)[index])
     } }
+    private val widthSlider=BicycleSettingSlider(context,themes) { "$it %" }.apply {
+        tag="map_style_width";min=25;max=300;contentDescription=context.getString(R.string.map_style_width)
+    }
+    private val widthRow=settingSliderRow(context,themes,context.getString(R.string.map_style_width),widthSlider).apply {
+        minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize);setPadding(0,0,0,0)
+    }
     private val line=Spinner(context).apply { tag="map_style_dash" }
     private val lineLabel=BicycleComponents.fieldLabel(context,themes,context.getString(R.string.map_style_line))
     private var selected=runCatching { MapStyleTarget.valueOf(prefs.getString(LAST_TARGET,null) ?: "BACKGROUND") }.getOrDefault(MapStyleTarget.BACKGROUND)
@@ -59,6 +65,14 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
                 }
             })
         }
+        addView(widthRow,LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.touchSize)))
+        widthSlider.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(bar:SeekBar)=Unit
+            override fun onStopTrackingTouch(bar:SeekBar)=Unit
+            override fun onProgressChanged(bar:SeekBar,value:Int,fromUser:Boolean) {
+                if(!updating && selected.line && currentProfile()) save(current().copy(widthPercent=value))
+            }
+        })
         addView(lineLabel)
         line.adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,MapDash.entries.map { context.getString(it.title) })
         line.contentDescription=context.getString(R.string.map_style_line);addView(line,LayoutParams(-1,-2))
@@ -118,6 +132,8 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
         rgb[0]=Color.red(initial);rgb[1]=Color.green(initial);rgb[2]=Color.blue(initial);rgb[3]=Color.alpha(initial)
         channels.forEachIndexed { index,slider -> slider.progress=rgb[index] }
         displayColor(initial)
+        widthRow.visibility=if(selected.line) VISIBLE else GONE
+        widthSlider.progress=value.widthPercent ?: 100
         lineLabel.visibility=if(selected.line) VISIBLE else GONE;line.visibility=lineLabel.visibility
         line.setSelection(value.dash.ordinal);updating=false
     }

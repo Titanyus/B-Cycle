@@ -11,6 +11,29 @@ import java.io.StringWriter
 /** Modify native paint instructions before VTM builds its textures. Bundled Bright assets stay untouched. */
 internal object MapStyleXml {
     private fun document(xml:String)=DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml.byteInputStream())
+    /** Split only track geometry from Bright's shared minor/service/track paints. Source stays intact. */
+    fun trackBase(xml:String):String {
+        val doc=document(xml)
+        val rules=doc.getElementsByTagName("m")
+        val originals=(0 until rules.length).map { rules.item(it) as Element }.filter {
+            it.getAttribute("k") in setOf("bcycle:bright:highway-minor","bcycle:bright:tunnel-service-track")
+        }
+        for(rule in originals) {
+            val clone=rule.cloneNode(true) as Element
+            clone.setAttribute("k",rule.getAttribute("k")+"-track")
+            val lines=clone.getElementsByTagName("line")
+            for(i in 0 until lines.length) {
+                val line=lines.item(i) as Element
+                line.setAttribute("id",if(rule.getAttribute("k").contains("tunnel")) "bcycle-track-tunnel" else "bcycle-track")
+                line.setAttribute("stroke","#ffccbbaa")
+                line.setAttribute("width",(line.getAttribute("width").toDouble()*.5).toString())
+                line.setAttribute("dasharray","3,2")
+                line.setAttribute("cap","butt")
+            }
+            rule.parentNode.insertBefore(clone,rule.nextSibling)
+        }
+        return serialize(doc)
+    }
     fun apply(xml:String,overrides:MapStyleOverrides):String {
         if(overrides.objects.isEmpty()) return xml
         val doc=document(xml)
@@ -33,13 +56,16 @@ internal object MapStyleXml {
                     element.setAttribute(attribute,hex((color and 0xffffff) or (alpha shl 24)))
                 }
             }
+            if(element.tagName=="line") style.widthPercent?.let { percent ->
+                if(element.hasAttribute("width")) element.setAttribute("width",(element.getAttribute("width").toDouble()*percent/100).toString())
+            }
             if(element.tagName=="line" && style.dash!=MapDash.ORIGINAL) {
                 element.removeAttribute("dasharray")
                 element.removeAttribute("stipple")
                 if(style.dash!=MapDash.SOLID) element.setAttribute("dasharray",style.dash.pattern!!)
             }
         }
-        val writer=StringWriter();TransformerFactory.newInstance().newTransformer().transform(DOMSource(doc),StreamResult(writer));return writer.toString()
+        return serialize(doc)
     }
     fun defaultColor(xml:String,target:MapStyleTarget):Int {
         val doc=document(xml)
@@ -51,7 +77,10 @@ internal object MapStyleXml {
             val attribute=if(element.tagName=="line") "stroke" else "fill"
             if(element.hasAttribute(attribute)) return Color.parseColor(element.getAttribute(attribute))
         }
-        return when(target) { MapStyleTarget.CYCLE -> Color.rgb(36,120,196);MapStyleTarget.CONTOUR -> Color.argb(102,139,115,85);else -> Color.GRAY }
+        return when(target) { MapStyleTarget.TRACK -> Color.rgb(204,187,170);MapStyleTarget.CYCLE -> Color.rgb(36,120,196);MapStyleTarget.CONTOUR -> Color.argb(102,139,115,85);else -> Color.GRAY }
+    }
+    private fun serialize(doc:org.w3c.dom.Document):String {
+        val writer=StringWriter();TransformerFactory.newInstance().newTransformer().transform(DOMSource(doc),StreamResult(writer));return writer.toString()
     }
     private fun hex(color:Int)=String.format(java.util.Locale.ROOT,"#%08X",color)
 }

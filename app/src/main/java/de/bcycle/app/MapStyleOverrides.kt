@@ -36,15 +36,16 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
     PLACE_TEXT(R.string.map_layer_place_names,false,setOf("place-other","place-village","place-town","place-city","place-city-capital","place-country-other","place-country-3","place-country-2","place-country-1","place-continent")),
     ROAD_TEXT(R.string.map_layer_road_names,false,setOf("highway-name-path","highway-name-minor","highway-name-major","highway-shield","highway-shield-us-interstate","highway-shield-us-other")),
     WATER_TEXT(R.string.map_style_water_text,false,setOf("waterway-name","water-name-lakeline","water-name-ocean","water-name-other")),
-    CONTOUR(R.string.map_layer_contours,true,setOf("contour-minor","contour-major"));
+    CONTOUR(R.string.map_layer_contours,true,setOf("contour-minor","contour-major")),
+    TRACK(R.string.map_style_tracks,true,setOf("bcycle-track","bcycle-track-tunnel"));
 }
-internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null)
+internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null,val widthPercent:Int?=null)
 internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectStyle> = emptyMap()) {
     /** Text is baked into glyph atlases; pattern changes create native textures/buckets. */
     fun canUpdateColorsFrom(previous:MapStyleOverrides)=MapStyleTarget.entries.all { target ->
         val before=previous.objects[target] ?: MapObjectStyle()
         val after=objects[target] ?: MapObjectStyle()
-        before.dash==after.dash && (target !in textTargets || before.color==after.color && before.alpha==after.alpha)
+        before.dash==after.dash && before.widthPercent==after.widthPercent && (target !in textTargets || before.color==after.color && before.alpha==after.alpha)
     }
     /** Keep unmodified native geometry paints as exact per-zoom reset baselines. */
     fun compiledStyles()=copy(objects=objects.mapValues { (target,value) ->
@@ -55,6 +56,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
             objects.toSortedMap(compareBy { it.name }).forEach { (target,style) -> put(target.name,JSONObject().apply {
                 style.color?.let { put("color",String.format(java.util.Locale.ROOT,"#%06X",it and 0xffffff)) }
                 style.alpha?.let { put("alpha",it) }
+                style.widthPercent?.let { put("widthPercent",it) }
                 if(style.dash!=MapDash.ORIGINAL) put("lineStyle",style.dash.name)
             }) }
         })
@@ -81,12 +83,13 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
             return MapStyleOverrides(buildMap {
                 rows.keys().forEach { key ->
                     val target=MapStyleTarget.valueOf(key);val row=rows.getJSONObject(key)
-                    require(row.keys().asSequence().all { it in setOf("color","lineStyle","alpha") })
+                    require(row.keys().asSequence().all { it in setOf("color","lineStyle","alpha","widthPercent") })
                     val color=if(row.has("color")) row.getString("color").also { require(it.matches(Regex("#[0-9a-fA-F]{6}"))) }.let(Color::parseColor) else null
                     val alpha=if(row.has("alpha")) row.get("alpha").also { require(it is Int && it in 0..255) } as Int else null
                     val dash=if(row.has("lineStyle")) MapDash.valueOf(row.getString("lineStyle")) else MapDash.ORIGINAL
-                    require(target.line || dash==MapDash.ORIGINAL)
-                    put(target,MapObjectStyle(color,dash,alpha))
+                    val width=if(row.has("widthPercent")) row.get("widthPercent").also { require(it is Int && it in 25..300) } as Int else null
+                    require(target.line || dash==MapDash.ORIGINAL && width==null)
+                    put(target,MapObjectStyle(color,dash,alpha,width))
                 }
             })
         }
