@@ -10,6 +10,31 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 internal class HrvDailyAssessmentView(context:Context,themes:ThemeManager,val assessment:HrvDailyAssessment):LinearLayout(context) {
+    private var animation:android.animation.ValueAnimator?=null
+    fun animateFrom(previous:HrvDailyAssessment) {
+        animation?.cancel()
+        if(!android.animation.ValueAnimator.areAnimatorsEnabled()) return
+        val circle=findViewWithTag<HrvDayCircle>("hrva_circle")
+        val pns=findViewWithTag<HrvIndexView>("hrva_pns")
+        val activation=findViewWithTag<HrvIndexView>("hrva_activation")
+        fun frame(f:Float) {
+            circle.transition(previous,f)
+            pns.displayValue=hrvTween(previous.indices.pns,assessment.indices.pns,f)
+            activation.displayValue=hrvTween(previous.indices.activation,assessment.indices.activation,f)
+        }
+        frame(0f)
+        animation=android.animation.ValueAnimator.ofFloat(0f,1f).apply {
+            duration=BicycleDesign.dashboardPageTransitionMs
+            interpolator=android.view.animation.PathInterpolator(.42f,0f,.58f,1f)
+            addUpdateListener { frame(it.animatedValue as Float) }
+            start()
+        }
+    }
+    override fun onDetachedFromWindow() { animation?.cancel();animation=null;super.onDetachedFromWindow() }
+    override fun onWindowFocusChanged(hasWindowFocus:Boolean) {
+        super.onWindowFocusChanged(hasWindowFocus)
+        if(!hasWindowFocus) animation?.end()
+    }
     init {
         orientation=VERTICAL;tag="hrv_daily_assessment"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
@@ -39,6 +64,10 @@ internal class HrvDailyAssessmentView(context:Context,themes:ThemeManager,val as
     }
 }
 
+/** Missing measurements remain missing; never animate an absent value from a fictitious zero. */
+internal fun hrvTween(from:Double?,to:Double?,fraction:Float):Double? =
+    if(from==null || to==null) to else from+(to-from)*fraction
+
 /** Fixed corridor placement: 25% / 75%. Today's outliers never move the reference markers. */
 internal fun hrvCorridorFraction(value:Double?,lower:Double?,upper:Double?):Float? {
     if(value==null || lower==null || upper==null || !value.isFinite() || !lower.isFinite() || !upper.isFinite() || upper<=lower) return null
@@ -50,11 +79,17 @@ internal class HrvDayCircle(context:Context,themes:ThemeManager,private val data
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val glow=Paint(Paint.ANTI_ALIAS_FLAG)
     private val bounds=Rect()
+    private val colors=android.animation.ArgbEvaluator()
     private val number=NumberFormat.getNumberInstance().apply { minimumFractionDigits=1;maximumFractionDigits=1 }
     private val limit=NumberFormat.getNumberInstance().apply { maximumFractionDigits=1 }
     private fun formatted(v:Double?)=v?.takeIf(Double::isFinite)?.let(number::format) ?: context.getString(R.string.hrvt_unavailable)
-    private val score=formatted(data.score)
-    private val pulse=data.pulse?.value?.takeIf { it.isFinite() && it>0 }?.let { kotlin.math.round(it).toInt().toString() } ?: context.getString(R.string.hrvt_unavailable)
+    private var previous=data
+    private var fraction=1f
+    internal fun transition(from:HrvDailyAssessment,progress:Float) {
+        previous=from;fraction=progress;glow.shader=null;invalidate()
+    }
+    private val score get()=formatted(hrvTween(previous.score,data.score,fraction))
+    private val pulse get()=hrvTween(previous.pulse?.value,data.pulse?.value,fraction)?.takeIf { it.isFinite() && it>0 }?.let { kotlin.math.round(it).toInt().toString() } ?: context.getString(R.string.hrvt_unavailable)
     init {
         tag="hrva_circle";importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_YES
         fun range(low:Double?,high:Double?)=if(low==null || high==null) context.getString(R.string.hrva_range_missing)
@@ -76,7 +111,8 @@ internal class HrvDayCircle(context:Context,themes:ThemeManager,private val data
         if(radius<=0) return
         val ring=BicycleDesign.hrvRingWidth*d
         val glowRadius=(radius-ring).coerceAtLeast(1f)
-        if(glow.shader==null) glow.shader=RadialGradient(x,y,glowRadius,intArrayOf(data.advice.color,data.advice.color,Color.TRANSPARENT),floatArrayOf(0f,.25f,1f),Shader.TileMode.CLAMP)
+        val color=colors.evaluate(fraction,previous.advice.color,data.advice.color) as Int
+        if(glow.shader==null) glow.shader=RadialGradient(x,y,glowRadius,intArrayOf(color,color,Color.TRANSPARENT),floatArrayOf(0f,.25f,1f),Shader.TileMode.CLAMP)
         glow.alpha=(255*HrvPulseAnimation.PEAK_OPACITY).toInt();canvas.drawCircle(x,y,glowRadius,glow)
         fun arc(start:Float,sweep:Float,stroke:Float,value:Double?,low:Double?,high:Double?,color:Int) {
             paint.style=Paint.Style.STROKE;paint.strokeCap=Paint.Cap.ROUND;paint.strokeWidth=stroke;paint.color=tokens.tertiary;paint.alpha=255
@@ -92,13 +128,13 @@ internal class HrvDayCircle(context:Context,themes:ThemeManager,private val data
                 canvas.drawLine(x+c*inside,y+s*inside,x+c*outside,y+s*outside,paint)
                 paint.style=Paint.Style.FILL;paint.typeface=BicycleDesign.bodyTypeface;paint.textSize=BicycleDesign.analysisLabelSp*sp
                 paint.textAlign=if(c<0) Paint.Align.RIGHT else Paint.Align.LEFT
-                val tx=x+c*(outside+4*d);val ty=y+s*(outside+4*d)+(if(sweep>0) -3 else 3)*d
+                val tx=x+c*(outside+4*d);val ty=y+s*(outside+4*d)+(if(sweep>0) -6 else 6)*d
                 canvas.drawText(limit.format(v),tx,ty-(paint.ascent()+paint.descent())/2,paint)
                 paint.style=Paint.Style.STROKE
             }
         }
-        arc(195f,150f,ring*2,data.score,data.lower,data.upper,data.advice.color)
-        arc(165f,-150f,ring,data.pulse?.value,data.pulse?.lower,data.pulse?.upper,Color.WHITE)
+        arc(195f,150f,ring*2,hrvTween(previous.score,data.score,fraction),hrvTween(previous.lower,data.lower,fraction),hrvTween(previous.upper,data.upper,fraction),color)
+        arc(165f,-150f,ring,hrvTween(previous.pulse?.value,data.pulse?.value,fraction),hrvTween(previous.pulse?.lower,data.pulse?.lower,fraction),hrvTween(previous.pulse?.upper,data.pulse?.upper,fraction),Color.WHITE)
         paint.style=Paint.Style.STROKE;paint.strokeCap=Paint.Cap.BUTT;paint.strokeWidth=2*d;paint.color=tokens.foreground;paint.alpha=64
         canvas.drawLine(x-radius*.7f,y,x+radius*.7f,y,paint)
         paint.alpha=255;paint.style=Paint.Style.FILL
@@ -118,7 +154,7 @@ internal class HrvDayCircle(context:Context,themes:ThemeManager,private val data
                 canvas.drawText(unit,right+4*d,cy-(paint.ascent()+paint.descent())/2,paint)
             }
         }
-        value(score,y-radius*.55f,data.advice.color)
+        value(score,y-radius*.55f,color)
         value(pulse,y+radius*.55f,Color.WHITE,context.getString(R.string.hrv_bpm))
         paint.typeface=BicycleDesign.bodyTypeface;paint.textSize=BicycleDesign.bodySp*sp;paint.textAlign=Paint.Align.CENTER;paint.color=tokens.foreground
         val label=context.getString(R.string.hrva_hrv)
@@ -138,9 +174,13 @@ internal fun hrvIndexOffsetFraction(value:Double):Float {
 
 /** Signed deviation: square at zero, rounded only at its outward end. No diagnostic colors. */
 internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,private val value:Double?,referenceDays:Int?=null):LinearLayout(context) {
+    var displayValue=value
+        set(next) { field=next;refreshValue?.invoke();barView?.invalidate() }
+    private var refreshValue:(()->Unit)?=null
+    private var barView:View?=null
     init {
         orientation=VERTICAL
-        val formatted=value?.let { NumberFormat.getNumberInstance().apply { minimumFractionDigits=1;maximumFractionDigits=1 }.format(if(kotlin.math.abs(it)<.05) 0.0 else it) } ?: when {
+        fun formatted()=displayValue?.let { NumberFormat.getNumberInstance().apply { minimumFractionDigits=1;maximumFractionDigits=1 }.format(if(kotlin.math.abs(it)<.05) 0.0 else it) } ?: when {
             referenceDays==null->context.getString(R.string.hrva_index_missing)
             referenceDays<HrvTrends.MIN_NORMAL->(HrvTrends.MIN_NORMAL-referenceDays).let { context.resources.getQuantityString(R.plurals.hrva_index_waiting,it,it) }
             else->context.getString(R.string.hrva_index_constant)
@@ -148,9 +188,10 @@ internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,pri
         addView(LinearLayout(context).apply {
             gravity=Gravity.CENTER_VERTICAL
             addView(BicycleComponents.text(context,themes,label),LayoutParams(0,-2,1f))
-            addView(BicycleComponents.text(context,themes,formatted).apply {
+            addView(BicycleComponents.text(context,themes,formatted()).apply {
                 tag="hrva_index_value"
                 if(value==null) { textSize=BicycleDesign.analysisLabelSp;maxWidth=BicycleDesign.dp(context,200) }
+                refreshValue={ text=formatted() }
             },LayoutParams(-2,-2))
         },LayoutParams(-1,-2))
         addView(object:View(context) {
@@ -163,7 +204,7 @@ internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,pri
                 val center=width/2f;val y=bar/2+4*d
                 paint.style=Paint.Style.FILL;paint.color=track
                 canvas.drawRoundRect(0f,y-bar/2,width.toFloat(),y+bar/2,bar/2,bar/2,paint)
-                value?.takeIf { it.isFinite() && it!=0.0 }?.let {
+                displayValue?.takeIf { it.isFinite() && it!=0.0 }?.let {
                     val end=center+hrvIndexOffsetFraction(it)*width
                     val save=canvas.save();canvas.clipRect(minOf(center,end),y-bar/2,maxOf(center,end),y+bar/2)
                     paint.color=foreground
@@ -176,6 +217,6 @@ internal class HrvIndexView(context:Context,themes:ThemeManager,label:String,pri
                 paint.typeface=BicycleDesign.bodyTypeface;paint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity;paint.textAlign=Paint.Align.CENTER
                 canvas.drawText("0",center,y+bar/2+6*d-paint.ascent(),paint)
             }
-        },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvDayIndexHeight)))
+        }.also { barView=it },LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.hrvDayIndexHeight)))
     }
 }

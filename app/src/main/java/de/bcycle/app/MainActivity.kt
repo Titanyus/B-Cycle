@@ -850,7 +850,7 @@ class MainActivity : Activity() {
         val footer=bicycleFooter(this,runtime.themes)
         val footerControl=BicycleFooterVisibility(this).apply { bindFooter(footer) }
         val daily=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;tag="hrv_daily_assessment_host" }
-        val dayPager=DashboardPageViewport(this).apply { tag="hrv_day_viewport";setPage(daily,wrapContent=true) }
+        val dayPager=DashboardPageViewport(this).apply { tag="hrv_day_viewport";stationarySwipe=true;setPage(daily,wrapContent=true) }
         val evaluation=HrvEvaluationScrollView(this,dayPager,root)
         // Bind before showing the dialog so the shared header discovers the footer toggle immediately.
         val body=object:LinearLayout(this),BicycleFooterPage {
@@ -881,8 +881,11 @@ class MainActivity : Activity() {
                     if(dailyCache.size>16) dailyCache.remove(dailyCache.keys.first())
                     val change={
                         selectedDay=requestedDay;title()
+                        val previous=daily.findViewWithTag<HrvDailyAssessmentView>("hrv_daily_assessment")?.assessment
                         daily.removeAllViews();daily.minimumHeight=0
-                        daily.addView(HrvDailyAssessmentView(this,runtime.themes,assessment))
+                        daily.addView(HrvDailyAssessmentView(this,runtime.themes,assessment).apply {
+                            if(direction!=0 && previous!=null && runtime.visible) animateFrom(previous)
+                        })
                         daily.addView(BicycleComponents.textAction(this,runtime.themes,getString(R.string.hrva_details)) { evaluation.showDetails() }.apply { tag="hrva_details" },LinearLayout.LayoutParams(-1,-2))
                         if(direction!=0) content?.focusDay(requestedDay)
                     }
@@ -896,25 +899,6 @@ class MainActivity : Activity() {
             if(cached!=null) show(Result.success(cached)) else runtime.hrv.dailyAssessment(requestedDay,::show)
         }
         dayPager.swipeEnabledAt={ _,_ -> firstDay<java.time.LocalDate.now() && daily.findViewWithTag<View>("hrv_daily_assessment")!=null }
-        dayPager.prepareAdjacentPage={ delta,ready ->
-            val target=selectedDay.plusDays(delta.toLong())
-            if(target<firstDay || target>java.time.LocalDate.now()) ready(null) else {
-                fun preview(assessment:HrvDailyAssessment) {
-                    dailyCache[target]=assessment
-                    if(dailyCache.size>16) dailyCache.remove(dailyCache.keys.first())
-                    val neighbor=LinearLayout(this).apply {
-                        orientation=LinearLayout.VERTICAL;tag="hrv_adjacent_preview"
-                        addView(HrvDailyAssessmentView(this@MainActivity,runtime.themes,assessment))
-                        addView(BicycleComponents.textAction(this@MainActivity,runtime.themes,getString(R.string.hrva_details)) {},LinearLayout.LayoutParams(-1,-2))
-                    }
-                    ready(PagePreview(neighbor))
-                }
-                val cached=dailyCache[target]
-                if(cached!=null) preview(cached) else runtime.hrv.dailyAssessment(target) { outcome ->
-                    if(isDestroyed || !screen.isShowing) ready(null) else outcome.fold({ preview(it) },{ ready(null) })
-                }
-            }
-        }
         dayPager.changePage={ delta ->
             val target=selectedDay.plusDays(delta.toLong())
             if(target<firstDay || target>java.time.LocalDate.now()) dayPager.returnToPage() else loadDaily(target,delta)

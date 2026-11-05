@@ -33,3 +33,13 @@ HrvController.dailyAssessment liest vorhandene kleine Verlaufssummaries und Tage
 
 
 Veröffentlichung28.10.2026: Diese Änderungen sind in **APK0.8.59/Build100** enthalten. [Buildnachweis und Download](build-100.md). Frühere Aussagen zu fehlender neuer APK sind Umsetzungshistorie.
+
+## Tageswechsel als Werteübergang (05.11.2026, nach Build139)
+
+Horizontales Wischen auf der Tagesauswertung nutzt weiterhin die bestehende Gestenerkennung mit Geschwindigkeitsprojektion und Tagesgrenzen. Nur dieser Viewport aktiviert `stationarySwipe`: keine seitliche Verschiebung, Nachbarseite oder Bitmapaufnahme. Die Dashboard-Animation bleibt unverändert. Beim bestätigten Wechsel werden Titel, Diagramm und Tagesaktionen zusammen auf den neuen Tag gesetzt.
+
+HRV-Score, Ruhepuls, beide Korridorgrenzen und PNS/Aktivierung interpolieren über300ms; Zahlen, Bögen und Balken folgen derselben Ease-in-out-Kurve (`PathInterpolator(.42,0,.58,1)`). Die Empfehlungsfarbe und der gemeinsame Glow blenden über ARGB mit demselben Fortschritt. Die fachlichen Berechnungen und gespeicherten Messungen werden nicht verändert. Fehlende Mess-/Indexwerte bleiben fehlend, statt von oder zu einer erfundenen Null zu zählen. Systemweit deaktivierte Animationen werden respektiert; bei Fokusverlust wird abgeschlossen, bei Entfernen der View abgebrochen. Weitere Wischgesten werden während des Übergangs nicht vorgemerkt.
+
+Grenzwertbeschriftungen zusätzlich3dp nach außen versetzt: oben insgesamt6dp nach oben, unten6dp nach unten gegenüber der radialen Textposition.
+
+Gezielte Prüfung: HrvDayFooterTest für stationären Tageswechsel/Datum/Diagramm/Footer, Ease-in-out und echte Zwischenwerte sowie Indexwechsel über Null/fehlende Werte; bestehende DashboardPageViewportTest-Fälle für unverändertes Dashboard-Paging. Log: `/workspace/.tools/hrv-morph-final-tests.log`. Optische Bewertung auf dem Gerät bleibt offen.

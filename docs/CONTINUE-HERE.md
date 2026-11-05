@@ -1,5 +1,7 @@
 # Änderungen nach Build139
 
+- HRV-Tageswechsel stationär statt seitlicher Seitenanimation: Werte/Bögen/Indexbalken/Glow synchron300ms Ease-in-out, gleiche Gestenerkennung und synchronisierte Tagesauswahl. Grenzwerttexte zusätzlich3dp oben/unten versetzt. Keine Messberechnung verändert; fehlende Werte ohne erfundene Null. [Details/Prüfung](hrv-daily-assessment.md). Keine APK beauftragt.
+
 - Backup & Restore in „Sichern“, „Wiederherstellen“, „Importieren“ gegliedert. Reaktivierter Streckenimport als vier einzelne Menüzeilen statt Accordion; gemeinsame RouteImportAction-Liste, Handler und Dreeve-Freigabe mit dem Streckenmanager. Drei lokale Picker und Gruppierung sowie Dreeve-Verfügbarkeit gezielt grün, zentrale Typografie/UI-Katalog/Diff grün. [Details/Prüfung](backup-route-import-groups.md). Noch keine neue APK beauftragt.
 
 - Ortsnamen-Flimmern/Barcode reproduziert (UV2108 bei zulässigen2048 am256px-Atlasrand) und durch vollständige Platzprüfung je Zelle behoben. Kleine/größere ein-/zweizeilige Labels sowie sehr große Glyphen als Pixel/UV/Seitenbereiche getestet; Halo-Padding berücksichtigt. [Befund/Prüfung](vtm-label-stability.md).

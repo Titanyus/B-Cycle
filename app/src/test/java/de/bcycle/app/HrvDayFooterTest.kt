@@ -34,6 +34,30 @@ class HrvDayFooterTest {
         (HrvController::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(controller) as ExecutorService).submit {}.get(10,TimeUnit.SECONDS)
         shadowOf(Looper.getMainLooper()).idle()
     }
+    @Test fun indexMorphCountsAcrossZeroAndMissingValuesStayMissing() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
+        try {
+            org.robolectric.shadows.ShadowChoreographer.setPaused(true)
+            android.animation.ValueAnimator::class.java.getDeclaredMethod("setDurationScale",Float::class.javaPrimitiveType).invoke(null,1f)
+            val a=host.get();val day=LocalDate.now()
+            val row=HrvHistorySummary("morph",0,false,null,hasMeasurement=false)
+            val point=HrvTrendPoint(row,day,"RMSSD",40.0,null,30.0,50.0)
+            val target=HrvDailyAssessment(day,point,null,null,0,HrvAutonomicIndices(2.0,-2.0))
+            val view=HrvDailyAssessmentView(a,ThemeManager(a.getSharedPreferences("morph",0)),target)
+            a.setContentView(view);layout(view)
+            view.animateFrom(target.copy(indices=HrvAutonomicIndices(-2.0,2.0)))
+            val animator=HrvDailyAssessmentView::class.java.getDeclaredField("animation").apply { isAccessible=true }.get(view) as android.animation.ValueAnimator
+            val pns=view.findViewWithTag<HrvIndexView>("hrva_pns")
+            val activation=view.findViewWithTag<HrvIndexView>("hrva_activation")
+            assertEquals(-2.0,pns.displayValue!!,0.0);assertEquals(2.0,activation.displayValue!!,0.0)
+            animator.currentPlayTime=150
+            assertEquals(0.0,pns.displayValue!!,.02);assertEquals(0.0,activation.displayValue!!,.02)
+            animator.end()
+            assertEquals(2.0,pns.displayValue!!,0.0);assertEquals(-2.0,activation.displayValue!!,0.0)
+            assertNull(hrvTween(2.0,null,.5f));assertNull(hrvTween(null,null,.5f))
+            assertEquals(2.0,hrvTween(null,2.0,.5f)!!,0.0)
+        } finally { org.robolectric.shadows.ShadowChoreographer.setPaused(false);host.pause().stop().destroy() }
+    }
     @Test fun explicitTapDimsOnlyOneBarAndOpensDayActionsUntilResolutionChanges() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
@@ -144,7 +168,7 @@ class HrvDayFooterTest {
             screen.dismiss()
         } finally { host.pause().stop().destroy() }
     }
-    @Test @Config(qualifiers="w360dp-h1000dp-mdpi") fun horizontalDaySwipesUseTheSharedMotionAndKeepTitleChartAndFooterSynchronized() {
+    @Test @Config(qualifiers="w360dp-h1000dp-mdpi") fun horizontalDaySwipesMorphInPlaceAndKeepTitleChartAndFooterSynchronized() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         try {
             val a=host.get();val controller=RideRuntime.get(a).hrv;drain(controller)
@@ -169,12 +193,11 @@ class HrvDayFooterTest {
             val initialChart=decor.findViewWithTag<HrvTrendChart>("hrv_trend_chart")
             assertEquals("initial chart selection",today,initialChart.actionDay)
             touch(MotionEvent.ACTION_DOWN,120f,0);touch(MotionEvent.ACTION_MOVE,140f,30)
-            assertEquals(4f,pager.getChildAt(0).translationX,.01f)
+            assertEquals(0f,pager.getChildAt(0).translationX,.01f)
             touch(MotionEvent.ACTION_MOVE,200f,80)
             repeat(2) { drain(controller) };layout(decor)
             val adjacent=pager.findViewWithTag<View>("hrv_adjacent_preview")
-            assertNotNull("neighboring day is ready while dragging",adjacent)
-            assertEquals(yesterday,adjacent.findViewWithTag<HrvDailyAssessmentView>("hrv_daily_assessment").assessment.day)
+            assertNull("stationary day changes do not create sliding neighbor pages",adjacent)
             assertEquals("active day remains unchanged until UP",today,selected())
             assertEquals(today,decor.findViewWithTag<HrvTrendChart>("hrv_trend_chart").actionDay)
             touch(MotionEvent.ACTION_UP,200f,90)
@@ -182,6 +205,18 @@ class HrvDayFooterTest {
             assertTrue("day=${selected()} visible=${RideRuntime.get(a).visible} width=${pager.width} x=${pager.getChildAt(0).translationX}",pager.running);assertEquals(yesterday,selected())
             assertEquals(yesterday,decor.findViewWithTag<HrvTrendChart>("hrv_trend_chart").actionDay)
             assertEquals(yesterday.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")),decor.findViewWithTag<android.widget.TextView>("bicycle_dialog_title").text.toString())
+            val dayView=decor.findViewWithTag<HrvDailyAssessmentView>("hrv_daily_assessment")
+            val morph=HrvDailyAssessmentView::class.java.getDeclaredField("animation").apply { isAccessible=true }.get(dayView) as android.animation.ValueAnimator
+            assertEquals(BicycleDesign.dashboardPageTransitionMs,morph.duration)
+            val ease=morph.interpolator
+            assertTrue(ease.getInterpolation(.25f)<.25f);assertTrue(ease.getInterpolation(.75f)>.75f)
+            val circle=dayView.findViewWithTag<HrvDayCircle>("hrva_circle")
+            val score=HrvDayCircle::class.java.getDeclaredMethod("getScore").apply { isAccessible=true }
+            morph.currentPlayTime=0;val start=score.invoke(circle)
+            morph.currentPlayTime=150;val middle=score.invoke(circle)
+            morph.end();val end=score.invoke(circle)
+            assertNotEquals(start,middle);assertNotEquals(middle,end)
+            assertEquals(0f,pager.getChildAt(0).translationX,0f)
             motion().currentPlayTime=80
             val after=IntArray(2);footer.getLocationOnScreen(after);assertEquals(footerPosition[1],after[1])
             motion().end();assertFalse(pager.running);assertEquals(1,pager.childCount)
@@ -189,7 +224,7 @@ class HrvDayFooterTest {
             layout(decor);pager.viewTreeObserver.dispatchOnPreDraw();assertEquals(today,selected());motion().end()
             // Today is the upper boundary: bounce back instead of opening an empty future day.
             touch(MotionEvent.ACTION_DOWN,180f,2000);touch(MotionEvent.ACTION_MOVE,100f,2080);touch(MotionEvent.ACTION_UP,100f,2090)
-            assertEquals(today,selected());motion().end();assertEquals(0f,pager.getChildAt(0).translationX,0f)
+            assertEquals(today,selected());assertFalse(pager.running);assertEquals(0f,pager.getChildAt(0).translationX,0f)
             screen.dismiss()
         } finally { org.robolectric.shadows.ShadowChoreographer.setPaused(false);host.pause().stop().destroy() }
     }
