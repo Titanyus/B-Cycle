@@ -7,4 +7,4 @@
 
 Gezielte Editor-/JSON-/Profil-/Sicherungs-/native Stil-/Alpha-/Reset-/Queue- und Sticky-Header-Tests erfolgreich (drei Testklassen, kein Gesamtlauf). Typografie, UI-Katalog, Bright-Generator und Diff-Prüfung erfolgreich. Darstellung/Bedienung am Gerät noch beurteilen. [Editor](vtm-map-editor.md).
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-135.md).

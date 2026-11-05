@@ -1,6 +1,6 @@
-# Aktueller Auftrag nach Build 134
+# Aktueller Stand: APK 0.8.93 / Build 135 veröffentlicht
 
-FLAT-Sticky-Header SECONDARY. Kompakter RGBA-Karteneditor ohne Überschrift/Erklärung, Farbfeld in der Objekt-Dropdownzeile, vier Regler enger (48dp), vier Iconaktionen in einer Zeile. Alpha zeigt bestehende Originaltransparenz und setzt absolute Deckkraft; optionales JSON-alpha bleibt kompatibel mit alten RGB-Deltas, Profilen und Sicherung. Letztes Objekt nach Schließen wiederherstellen. Gezielte Editor-/Native-Farb-/Sticky-Tests grün; Typografie/UI-Katalog/Bright/Diff grün. Neue APK ausdrücklich beauftragt: 0.8.93 / code163 / erwarteter Build135; Actions-Build/Prüfung/Veröffentlichung läuft.
+FLAT-Sticky-Header SECONDARY. Kompakter RGBA-Karteneditor ohne Überschrift/Erklärung, Farbfeld in der Objekt-Dropdownzeile, vier Regler enger (48dp), vier Iconaktionen in einer Zeile. Alpha zeigt bestehende Originaltransparenz und setzt absolute Deckkraft; optionales JSON-alpha bleibt kompatibel mit alten RGB-Deltas, Profilen und Sicherung. Letztes Objekt nach Schließen wiederherstellen. Gezielte Editor-/Native-Farb-/Sticky-Tests grün; Typografie/UI-Katalog/Bright/Diff grün. Neue APK ausdrücklich beauftragt und über GitHub Actions erfolgreich gebaut/geprüft/veröffentlicht. [Nachweis](build-135.md), [Änderungen](release-0.8.93.md). Optische Geräteprüfung offen.
 
 ## Letzte Veröffentlichung: APK 0.8.92 / Build 134
 
@@ -76,10 +76,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.92 / Build 134](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.92-release-134.apk), code 162, Quelle `52af9e2fbfb291d88a8bb87d345068a51e98549c`, 4261416 Bytes, SHA-256 `6642359f14bd3fffcbf3d53d167699bc9cd9e1075f0cfeb3dc727de214ced685`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-134.md). Vorige APK: [0.8.91 / Build 133](build-133.md).
+[APK 0.8.93 / Build 135](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.93-release-135.apk), code163, Quelle `af4191a9982b39a57fbc0703d281eee812615037`, 4261284 Bytes, SHA-256 `dac5119f9abd1a3b795f85d2f588c36ae46f9b3d242dd2acff3eecb656ec43e1`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-135.md). Vorige APK: [0.8.92 / Build 134](build-134.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.93 / code 163 / Build 135. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.94 / code 164 / Build 136. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
