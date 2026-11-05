@@ -1,5 +1,7 @@
 # Aktueller Stand: APK 0.8.95 / Build 138 veröffentlicht
 
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4279004 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+
 Lange mehrteilige Ortsnamen zweizeilig, ohne Wörter zu trennen: geografische Zusätze zusammen unten, sonst ausgeglichene Wortgruppen. Name/Zuordnung erhalten; native Atlaszeichnung und Kollisionsmaße gemeinsam erweitert. Drei gezielte Pixel-/Platzierungs-/Schilder-/JSON-Ebenen-/Profil-/Sicherungsfälle grün (place-wrap-and-layer-export-tests.log). Aktuelle Ebenenauswahl wird bereits als visibility/cycleways exportiert und gezielt bestätigt. Neue APK über GitHub Actions erfolgreich gebaut, geprüft und veröffentlicht. [Nachweis](build-138.md), [Änderungen](release-0.8.95.md).
 
 Radwege/Radrouten auf Nutzerentscheidung getrennt als eigene Karten-Einstellungen mit Track-Farbe/HEX/Breite/Deckkraft und Schalter umgesetzt. Radrouten als optionale echte Waymarked-Trails-Vektorübersicht, default aus; Radwege behalten bisherigen Schalter und Quelldetailgrenzen. cyclingStyles plus Ebenenauswahl im JSON, Profil/Backup erhalten. Feldwegfarbe: irreführende PATH-Beschriftung getrennt, native Live-Farbe/Dash geprüft. Vier gezielte Optionen-/Vektor-/Profil-/Backup-/Export-/Farb-/Trackfälle plus echte MainActivity-Integration grün. [Umfang/Quelle/Begrenzungen](cycling-map-options.md). In APK0.8.95/Build138 enthalten. Restlicher Designer bleibt Arbeitsmittel für spätere feste Stile.

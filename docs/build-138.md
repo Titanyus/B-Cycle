@@ -16,3 +16,5 @@ Bright-JSON/XML, drei eigene Shader, 111 Spritevarianten und Atlas bytegenau gep
 [Änderungen](release-0.8.95.md): eigene Radwege-/Radrouten-Optionen samt Trackstilreglern, echter optionaler Radrouten-Vektorlayer für die Übersicht, eindeutige Feldweg-Kategorien und zweizeilige lange Ortsnamen. JSON enthält Darstellungen, Schriftparameter und Ebenenauswahl.
 
 Gezielte Prüfungen grün: drei Ortsnamen-/Glyphenpixel-/Platzierungs-/Schilder-/Exportfälle, vier Cycling-/Native-/Profil-/Backup-/JSON-/Cache-/Farb-/Trackfälle und ein echter Karten-Einstellungs-/Raster-/Vektor-Integrationstest. Öffentliche Übersicht und Detailquelle tatsächlich abgerufen. Typografie/UI-Katalog/Bright-/Diff-Prüfung erfolgreich. Kein Gesamtlauf und keine lokale APK. Optische Geräteprüfung offen; einzelne physische Radwege bleiben an Quellzoomdetails gebunden, sehr weite Radroutenansichten priorisieren bis100 größere Routen pro Kachel.
+
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4279004 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
