@@ -201,6 +201,31 @@ class TrainingZoneUiTest {
         glow.update(null);now=4500;assertTrue(Color.alpha(glow.currentColor()) in 1..254)
         now=5250;assertEquals(0,Color.alpha(glow.currentColor()))
     }
+    @Test fun flatTransitionsFollowHueWithoutBrownAndKeepNormalDrawingAndExactEndpoints() {
+        assertEquals(Color.YELLOW,ZoneGlowColors.mixNatural(Color.RED,Color.GREEN,.5f))
+        for(a in TrainingZoneColors.powerValues) for(b in TrainingZoneColors.powerValues) {
+            assertEquals(a,ZoneGlowColors.mixNatural(a,b,0f))
+            assertEquals(b,ZoneGlowColors.mixNatural(a,b,1f))
+        }
+        val before=Color.HSVToColor(floatArrayOf(350f,1f,1f))
+        val after=Color.HSVToColor(floatArrayOf(10f,1f,1f))
+        val wrapped=ZoneGlowColors.mixNatural(before,after,.5f)
+        assertEquals(255,Color.red(wrapped));assertTrue(Color.green(wrapped)<=1 && Color.blue(wrapped)<=1)
+        assertEquals(0x7fff0000,ZoneGlowColors.mixNatural(Color.TRANSPARENT,Color.RED,.5f))
+        assertEquals(ZoneGlowColors.mixNatural(ZoneTwoHelpColors.red,ZoneTwoHelpColors.green,.5f),ZoneTwoHelpColors.color(40.0,55.0,75.0,natural=true))
+        assertEquals(ZoneGlowColors.mix(ZoneTwoHelpColors.red,ZoneTwoHelpColors.green,.5f),ZoneTwoHelpColors.color(40.0,55.0,75.0))
+        assertEquals(ZoneGlowColors.mixNatural(ZoneGlowColors.powerColors[1],ZoneGlowColors.powerColors[2],.5f),ZoneGlowColors.power(75.0,natural=true))
+        var now=0L
+        val flat=ZoneAmbientGlow { now }.apply { this.flat=true;setBounds(0,0,200,100) }
+        flat.update(Color.RED);now=1500;flat.update(Color.GREEN);now=2250
+        assertEquals(Color.YELLOW,flat.currentColor())
+        val image=Bitmap.createBitmap(200,100,Bitmap.Config.ARGB_8888)
+        flat.draw(Canvas(image));assertEquals(Color.YELLOW,image.getPixel(100,96));image.recycle()
+        val glow=ZoneAmbientGlow { now }
+        glow.update(Color.RED);now+=1500;glow.update(Color.GREEN);now+=750
+        assertEquals(ZoneGlowColors.mix(Color.RED,Color.GREEN,.5f),glow.currentColor())
+        flat.powerSaving=true;flat.update(Color.BLUE);assertEquals(Color.BLUE,flat.currentColor())
+    }
     @Test fun flatStripUsesFullTileWidthAndEightPercentHeightWithoutResettingColorTransitions() {
         var now=0L;val zone=ZoneAmbientGlow { now };zone.setBounds(0,0,200,100)
         zone.update(Color.BLUE);now=750;val color=zone.currentColor()

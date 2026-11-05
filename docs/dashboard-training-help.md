@@ -40,3 +40,11 @@ NachfolgendeNutzerentscheidung29.10.2026: Flat-Farbbalken jetzt imZeichenmodusNo
 
 
 Veröffentlichung29.10.2026: Änderungen nachBuild104 sind in **APK0.8.64/Build105** enthalten. [Download und Buildnachweis](build-105.md). Frühere Angaben zu fehlender APK sind Umsetzungshistorie.
+
+## FLAT-Farben: HSV-Übergänge (05.11.2026, nach Build139)
+
+FLAT berechnet die Zwischenfarben in HSV entlang des kürzesten Farbtonbogens: Rot→Orange→Gelb→Grün statt der dunklen RGB-Mischung. Dies gilt sowohl für die bestehenden weichen Zonengrenzen („Alle Zonen“/„Zone2“, aktuelle/Durchschnittswerte für Puls/Leistung) als auch für die zeitliche1500ms-Überblendung. Zonenwerte, Toleranzen, Palette und Dauer bleiben erhalten. Die zeitliche Ease-in-out-Kurve bleibt bestehen.
+
+Gezeichnet wird der deckende Balken weiterhin normal mit SRC_OVER; keine zusätzliche Komposition, keine Farbänderung der Endpunkte. Alpha wird separat interpoliert, transparente Endpunkte übernehmen den Farbton des sichtbaren Endpunkts; neutrale Farben übernehmen den chromatischen Farbton. Eine laufende Überblendung behält beim Designwechsel ihre Interpolationsart, damit die Farbe nicht springt. Glow nutzt bei neuen Übergängen weiterhin das bisherige RGB-Verfahren. Akkusparmodus schaltet nach wie vor direkt zur Zielfarbe.
+
+Gezielte Prüfungen: TrainingZoneUiTest für Rot/Grün-Mitte, Farbtonumlauf, unveränderte Palettenendpunkte, transparente Übergänge, Zone2-/Leistungs-Zonengrenzen, echte normale Balkenzeichnung, unveränderte Glow-Mischung und direkten Sparmoduswechsel; bestehende Balken-/Glow-Tests. Logs `/workspace/.tools/flat-hsv-transition-tests.log` (bestehende Tests grün; erster neuer Umlaufvergleich auf8-Bit-Rundung angepasst) und `/workspace/.tools/flat-hsv-final-test.log`.

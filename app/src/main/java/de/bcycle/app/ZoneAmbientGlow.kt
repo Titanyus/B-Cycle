@@ -11,6 +11,8 @@ internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.Syst
         set(value) { if(field!=value) { field=value;invalidateSelf() } }
     private var from = Color.TRANSPARENT
     private var target = Color.TRANSPARENT
+    // Keep the active interpolation when switching appearance, so the current color never jumps.
+    private var naturalTransition=false
     private var started = -1500L
     private var cachedColor: Int? = null
     private var shader: Shader? = null
@@ -20,12 +22,12 @@ internal class ZoneAmbientGlow(private val clock: () -> Long = { android.os.Syst
     internal fun currentColor(): Int {
         val t = ((clock() - started) / 1500f).coerceIn(0f, 1f)
         val eased = t * t * (3 - 2 * t)
-        return ZoneGlowColors.mix(from, target, eased)
+        return if(naturalTransition) ZoneGlowColors.mixNatural(from,target,eased) else ZoneGlowColors.mix(from, target, eased)
     }
     fun update(color: Int?) {
         val next = color ?: Color.TRANSPARENT
         if (next == target) return
-        from = if(powerSaving) next else currentColor(); target = next; started = clock()-if(powerSaving) 1500 else 0; invalidateSelf()
+        from = if(powerSaving) next else currentColor(); target = next;naturalTransition=flat; started = clock()-if(powerSaving) 1500 else 0; invalidateSelf()
     }
     override fun onBoundsChange(bounds: Rect) { cachedColor = null }
     override fun draw(canvas: Canvas) {

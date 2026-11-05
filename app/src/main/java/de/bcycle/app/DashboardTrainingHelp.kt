@@ -42,10 +42,10 @@ internal data class DashboardTrainingHelp(val mode:TrainingHelpMode=TrainingHelp
 internal object ZoneTwoHelpColors {
     val green=TrainingZoneColors.values[1]
     val red=TrainingZoneColors.values[4]
-    fun color(percent:Double,lower:Double,upper:Double):Int {
+    fun color(percent:Double,lower:Double,upper:Double,natural:Boolean=false):Int {
         val lowerBlend=((percent-(lower-20))/10).coerceIn(0.0,1.0)
         val upperBlend=((upper+.5-percent)/1.0).coerceIn(0.0,1.0)
         val t=minOf(lowerBlend,upperBlend).toFloat()
-        return ZoneGlowColors.mix(red,green,t*t*(3-2*t))
+        return if(natural) ZoneGlowColors.mixNatural(red,green,t*t*(3-2*t)) else ZoneGlowColors.mix(red,green,t*t*(3-2*t))
     }
 }

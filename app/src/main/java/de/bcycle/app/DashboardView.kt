@@ -229,7 +229,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 if(plainBackground==null) plainBackground=container.background
                 zoneShown=true;updateBackground()
             }
-            zoneGlow.update(training.glow(zoneConfig.sources[index],zoneTwoHelp))
+            zoneGlow.update(training.glow(zoneConfig.sources[index],zoneTwoHelp,natural=zoneGlow.flat))
         }
         fun refreshAppearance() { zoneGlow.flat=BicycleAppearance.flat(context);if(plainBackground!=null) updateBackground();container.invalidate() }
         private fun updateBackground() {

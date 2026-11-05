@@ -85,21 +85,21 @@ internal data class TrainingSnapshot(val profile: RiderProfile = RiderProfile(),
     val heartPercent get() = heartPercentFor(heart)
     val heartZone get() = heartZoneFor(heart)
     private fun modelPercentFor(value:Double?)=value?.takeIf { it.isFinite() && it in 1.0..250.0 }?.let { heartModel?.percent(it) }
-    private fun heartColor(value: Double?) = modelPercentFor(value)?.takeIf { heartZoneFor(value)!=null }?.let { ZoneGlowColors.heart(it,heartModel!!.boundariesPercent) }
-    fun glow(source: ZoneGlowSource, zoneTwo:Boolean=false): Int? {
+    private fun heartColor(value: Double?,natural:Boolean=false) = modelPercentFor(value)?.takeIf { heartZoneFor(value)!=null }?.let { ZoneGlowColors.heart(it,heartModel!!.boundariesPercent,natural) }
+    fun glow(source: ZoneGlowSource, zoneTwo:Boolean=false,natural:Boolean=false): Int? {
         if(zoneTwo) return when(source) {
             ZoneGlowSource.OFF -> null
-            ZoneGlowSource.POWER_CURRENT -> powerPercent?.let { ZoneTwoHelpColors.color(it,55.0,75.0) }
-            ZoneGlowSource.POWER_AVERAGE -> powerPercentFor(averagePower)?.let { ZoneTwoHelpColors.color(it,55.0,75.0) }
-            ZoneGlowSource.HEART_CURRENT -> modelPercentFor(heart)?.let { ZoneTwoHelpColors.color(it,heartModel!!.zones[1].fromPercent.toDouble(),heartModel.zones[1].toPercent.toDouble()) }
-            ZoneGlowSource.HEART_AVERAGE -> modelPercentFor(averageHeart)?.let { ZoneTwoHelpColors.color(it,heartModel!!.zones[1].fromPercent.toDouble(),heartModel.zones[1].toPercent.toDouble()) }
+            ZoneGlowSource.POWER_CURRENT -> powerPercent?.let { ZoneTwoHelpColors.color(it,55.0,75.0,natural) }
+            ZoneGlowSource.POWER_AVERAGE -> powerPercentFor(averagePower)?.let { ZoneTwoHelpColors.color(it,55.0,75.0,natural) }
+            ZoneGlowSource.HEART_CURRENT -> modelPercentFor(heart)?.let { ZoneTwoHelpColors.color(it,heartModel!!.zones[1].fromPercent.toDouble(),heartModel.zones[1].toPercent.toDouble(),natural) }
+            ZoneGlowSource.HEART_AVERAGE -> modelPercentFor(averageHeart)?.let { ZoneTwoHelpColors.color(it,heartModel!!.zones[1].fromPercent.toDouble(),heartModel.zones[1].toPercent.toDouble(),natural) }
         }
         return when (source) {
         ZoneGlowSource.OFF -> null
-        ZoneGlowSource.POWER_CURRENT -> powerPercent?.let { ZoneGlowColors.power(it) }
-        ZoneGlowSource.POWER_AVERAGE -> powerPercentFor(averagePower)?.let { ZoneGlowColors.power(it) }
-        ZoneGlowSource.HEART_CURRENT -> heartColor(heart)
-        ZoneGlowSource.HEART_AVERAGE -> heartColor(averageHeart)
+        ZoneGlowSource.POWER_CURRENT -> powerPercent?.let { ZoneGlowColors.power(it,natural) }
+        ZoneGlowSource.POWER_AVERAGE -> powerPercentFor(averagePower)?.let { ZoneGlowColors.power(it,natural) }
+        ZoneGlowSource.HEART_CURRENT -> heartColor(heart,natural)
+        ZoneGlowSource.HEART_AVERAGE -> heartColor(averageHeart,natural)
         }
     }
 }
@@ -150,14 +150,32 @@ internal object ZoneGlowColors {
         fun channel(shift: Int) = (((a ushr shift and 255) * (1 - t)) + ((b ushr shift and 255) * t)).toInt()
         return (channel(24) shl 24) or (channel(16) shl 16) or (channel(8) shl 8) or channel(0)
     }
-    private fun color(percent: Double, boundaries: List<Int>, colors: List<Int>): Int {
+    /** Hue follows the shortest arc; transparency and greys borrow the chromatic endpoint's hue. */
+    fun mixNatural(a:Int,b:Int,fraction:Float):Int {
+        val t=fraction.coerceIn(0f,1f)
+        if(t<=0f || a==b) return a
+        if(t>=1f) return b
+        val first=FloatArray(3);val second=FloatArray(3)
+        android.graphics.Color.colorToHSV(a,first);android.graphics.Color.colorToHSV(b,second)
+        if(android.graphics.Color.alpha(a)==0) second.copyInto(first)
+        if(android.graphics.Color.alpha(b)==0) first.copyInto(second)
+        if(first[1]<.001f) first[0]=second[0]
+        if(second[1]<.001f) second[0]=first[0]
+        val delta=(second[0]-first[0]+540f)%360f-180f
+        first[0]=(first[0]+delta*t+360f)%360f
+        first[1]+=(second[1]-first[1])*t
+        first[2]+=(second[2]-first[2])*t
+        val alpha=(android.graphics.Color.alpha(a)+(android.graphics.Color.alpha(b)-android.graphics.Color.alpha(a))*t).toInt()
+        return android.graphics.Color.HSVToColor(alpha,first)
+    }
+    private fun color(percent: Double, boundaries: List<Int>, colors: List<Int>,natural:Boolean): Int {
         boundaries.forEachIndexed { i, boundary ->
             val width=minOf(3.0,boundaries.getOrNull(i-1)?.let { (boundary-it)/2.0 } ?: 3.0,boundaries.getOrNull(i+1)?.let { (it-boundary)/2.0 } ?: 3.0)
             if (percent < boundary - width) return colors[i]
-            if (percent <= boundary + width) return mix(colors[i], colors[i + 1], ((percent - boundary + width) / (2*width)).toFloat())
+            if (percent <= boundary + width) return (if(natural) ::mixNatural else ::mix)(colors[i], colors[i + 1], ((percent - boundary + width) / (2*width)).toFloat())
         }
         return colors.last()
     }
-    fun power(percent: Double) = color(percent, Coggan.boundaries, powerColors)
-    fun heart(percent: Double,boundaries:List<Int> = listOf(60,70,80,90)) = color(percent,boundaries,TrainingZoneColors.values.toList())
+    fun power(percent: Double,natural:Boolean=false) = color(percent, Coggan.boundaries, powerColors,natural)
+    fun heart(percent: Double,boundaries:List<Int> = listOf(60,70,80,90),natural:Boolean=false) = color(percent,boundaries,TrainingZoneColors.values.toList(),natural)
 }

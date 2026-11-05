@@ -1,5 +1,7 @@
 # Änderungen nach Build139
 
+- FLAT-Trainingshilfe: HSV-Zwischenfarben statt RGB-Braun, sowohl zeitlich als auch an Zonengrenzen (Puls/Leistung, aktuell/Mittel, Alle Zonen/Zone2). Normale SRC_OVER-Zeichnung, Endfarben, Dauer und Akkusparverhalten erhalten. Glow bleibt beim bisherigen Verfahren. [Details/Prüfung](dashboard-training-help.md). Keine APK beauftragt.
+
 - HRV-Tageswechsel stationär statt seitlicher Seitenanimation: Werte/Bögen/Indexbalken/Glow synchron300ms Ease-in-out, gleiche Gestenerkennung und synchronisierte Tagesauswahl. Grenzwerttexte zusätzlich3dp oben/unten versetzt. Keine Messberechnung verändert; fehlende Werte ohne erfundene Null. [Details/Prüfung](hrv-daily-assessment.md). Keine APK beauftragt.
 
 - Backup & Restore in „Sichern“, „Wiederherstellen“, „Importieren“ gegliedert. Reaktivierter Streckenimport als vier einzelne Menüzeilen statt Accordion; gemeinsame RouteImportAction-Liste, Handler und Dreeve-Freigabe mit dem Streckenmanager. Drei lokale Picker und Gruppierung sowie Dreeve-Verfügbarkeit gezielt grün, zentrale Typografie/UI-Katalog/Diff grün. [Details/Prüfung](backup-route-import-groups.md). Noch keine neue APK beauftragt.
