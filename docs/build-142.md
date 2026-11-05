@@ -16,3 +16,7 @@ Release ausschließlich aus GitHub Actions, dauerhafte Signatur, CI-Prüfsumme u
 Gezielte Prüfungen grün: `flat-surfaces-group-rules-tests.log`, `flat-route-popup-final-test.log`, `flat-hsv-final-test.log`, bestehende Balken-/Glow-Fälle aus `flat-hsv-transition-tests.log`, `hrv-morph-final-tests.log` (inkl.17Dashboard-Paging-Fällen), `hrv-repeat-warning-tests.log`, `hrv-repeat-buttons-final-test.log`, `recording-order-final-test.log`, Importnavigation und zuvor dokumentierte native Karten-/Providerfälle. Typografie/UI-Katalog/Bright/Diff grün. Kein Gesamtlauf, keine lokale APK. Optischer Gerätevergleich offen.
 
 Zwischenbuilds140/141 durch spätere Nutzerergänzungen ersetzt und nicht veröffentlicht.
+
+## Direkter Downloadnachweis
+
+Direkten veröffentlichten Raw-Link tatsächlich abgerufen: 4296260 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 aff217735e6dc2d26512ba253495b5b6ade56ebcf24b44af7e3f932aa16c7aac ebenfalls identisch.

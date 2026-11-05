@@ -4,7 +4,9 @@
 
 Alle Aufträge seit Build139 enthalten: Flat-Flächen und obere Streckengruppenlinien, HSV-Trainingshilfe, stationärer HRV-Tageswechsel mit Ease-in-out, HRV-Hinweis vor Wiederholung (Abbrechen/Verstanden nebeneinander), Importgruppen aus gemeinsamer Liste, Aufzeichnung Höhenkorrektur→Fahrt benennen→Trenner, Kartenatlas-/Kontur-/Dash-/Zoom-/Quellenkorrekturen und Statusleistenbeschriftung.
 
-Gezielte lokale Tests und zentrale Prüfungen grün, Actions-Release und Artefaktprüfung erfolgreich; keine Gesamtläufe oder lokale APK. Native Atlas-/UV-/Pixelprüfungen erfolgreich, optischer Gerätevergleich bleibt offen. Build140/141 durch Nachträge ersetzt, nicht veröffentlicht. Keine offenen Implementierungsaufträge.
+Gezielte lokale Tests und zentrale Prüfungen grün, Actions-Release und Artefaktprüfung erfolgreich; keine Gesamtläufe oder lokale APK. Native Atlas-/UV-/Pixelprüfungen erfolgreich, optischer Gerätevergleich bleibt offen. Build140/141 durch Nachträge ersetzt, nicht veröffentlicht. Nächster vom Nutzer gewünschter Schwerpunkt: strukturierte Trainingseinheiten, eigener Menüpunkt und eigene Trainingsdashboards. Noch keine detaillierte Oberfläche/Ablauf vereinbart; nicht in dieser APK implementiert. Intervals-OpenAPI geprüft: Kalender-Events Kategorie WORKOUT, Trainingsbibliothek /workouts, workout_doc sowie resolve=true für Watt/bpm/m/s und Workout-FIT-Download vorhanden.
+
+Direkten veröffentlichten Raw-Link tatsächlich abgerufen: 4296260 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 aff217735e6dc2d26512ba253495b5b6ade56ebcf24b44af7e3f932aa16c7aac ebenfalls identisch.
 
 ## Letzte Veröffentlichung: APK 0.8.96 / Build 139
 
