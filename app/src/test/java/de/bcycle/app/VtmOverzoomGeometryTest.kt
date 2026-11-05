@@ -36,7 +36,7 @@ class VtmOverzoomGeometryTest {
         try {
             val native=read(OverzoomTileDataSource(source(true),14),19).single()
             assertTrue("Reproduce native building overflow before packing",native.points.take(native.pointNextPos).any { it*8>Short.MAX_VALUE })
-            for(building in listOf(true,false)) for(zoom in 15..19) {
+            for(building in listOf(true,false)) for(zoom in 15..21) {
                 val safe=read(VtmClippedVectorDataSource(OverzoomTileDataSource(source(building),14),14),zoom).single()
                 assertEquals(if(building) "building" else "landuse",safe.tags.getValue("layer"))
                 assertTrue(safe.isPoly);assertTrue(safe.pointNextPos>=8)

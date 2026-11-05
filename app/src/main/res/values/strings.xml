@@ -576,8 +576,11 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="intervals_connection_failed">Verbindung zu intervals.icu nicht möglich</string>
     <string name="intervals_check_settings">Gültige Athleten-ID und API-Schlüssel eingeben</string>
     <string name="sources_title">Quellen &amp; Dienste</string>
+    <string name="map_source_raster_heading">Rasterkarten</string>
+    <string name="map_source_vector_heading">Vektorkarten</string>
+    <string name="map_source_bright">Bright</string>
     <string name="sources_maps">Karten</string>
-    <string name="sources_maps_text">Kartendaten: © OpenStreetMap-Mitwirkende (ODbL)\nhttps://www.openstreetmap.org/copyright\n\nCyclOSM\nhttps://www.cyclosm.org/\n\nOpenTopoMap: © OpenStreetMap-Mitwirkende, SRTM · Darstellung CC BY-SA\nhttps://opentopomap.org/about\n\nOpenCycleMap: Thunderforest, Kartendaten © OpenStreetMap-Mitwirkende\nhttps://www.thunderforest.com/</string>
+    <string name="sources_maps_text">Kartendaten: © OpenStreetMap-Mitwirkende (ODbL)\nhttps://www.openstreetmap.org/copyright\n\nCyclOSM\nhttps://www.cyclosm.org/\n\nOpenTopoMap: © OpenStreetMap-Mitwirkende, SRTM · Darstellung CC BY-SA\nhttps://opentopomap.org/about\n\nOpenCycleMap: Thunderforest, Kartendaten © OpenStreetMap-Mitwirkende\nhttps://www.thunderforest.com/\n\nOpenFreeMap · OpenMapTiles\nhttps://openfreemap.org/\nhttps://openmaptiles.org/\n\nWaymarked Trails · Radrouten aus OpenStreetMap\nhttps://cycling.waymarkedtrails.org/</string>
     <string name="sources_elevation">Höhendaten</string>
     <string name="sources_elevation_text">Mapterhorn · regionale Quellen und Lizenzen\nhttps://mapterhorn.com/attribution</string>
     <string name="sources_weather">Wetter</string>

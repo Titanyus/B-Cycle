@@ -335,6 +335,7 @@ internal object BicycleDialogStyle {
             }
             view.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(view.context,tokens,tokens.secondary))
         }
+        if(view is MapSourcePicker) return // Own disabled headings/divider; keep the central frame above.
         val selected = view.selectedItemPosition
         val original = view.adapter ?: return
         view.adapter = object : BaseAdapter(), SpinnerAdapter {

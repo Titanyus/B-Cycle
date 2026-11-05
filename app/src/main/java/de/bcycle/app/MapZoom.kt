@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 /** Fractional camera zoom; retain the legacy integer preference for old settings readers. */
 internal object MapZoom {
     const val minimum=6
-    const val maximum=19
+    const val maximum=21
     const val preference="mapZoomFractional"
     fun maximum(source:MapSource)=minOf(maximum,source.maximumZoom)
     fun read(prefs:SharedPreferences,source:MapSource):Double =

@@ -54,14 +54,15 @@ class MapProviderSettingsTest {
 
             assertNull(root.findViewWithTag<View>("mapHeading"));assertNull(root.findViewWithTag<View>("mapFollow"))
             assertNull(root.findViewWithTag<View>("map_track_divider"));assertNotNull(root.findViewWithTag<View>("map_options_title"))
-            listOf("mapTrackVisible","mapHeightVisible","map_elevation_correction").forEach { assertNotNull(root.findViewWithTag<View>(it)) }
+            listOf("mapTrackVisible","mapHeightVisible").forEach { assertNotNull(root.findViewWithTag<View>(it)) }
+            assertNull("Height correction belongs to recording settings",root.findViewWithTag<View>("map_elevation_correction"))
             assertNull(root.findViewWithTag<View>("mapGpxVisible"))
             val heading=root.findViewWithTag<android.widget.TextView>("map_options_title")
             assertEquals(BicycleDesign.strongTypeface,heading.typeface)
             assertEquals(BicycleDesign.contentHeadingSp*activity.resources.displayMetrics.scaledDensity,heading.textSize,.01f)
             assertTrue((heading.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin>=BicycleDesign.dp(activity,BicycleDesign.sectionContentGap))
             val source=testDescendants(root).filterIsInstance<Spinner>().single()
-            source.setSelection(MapSource.OPENCYCLEMAP.ordinal);shadowOf(Looper.getMainLooper()).idle()
+            source.setSelection(MapSourcePicker.position(MapSource.OPENCYCLEMAP));shadowOf(Looper.getMainLooper()).idle()
             assertEquals("OSM",runtime.preferences.getString("mapSource",null))
             assertEquals(View.VISIBLE,root.findViewWithTag<View>("map_provider_key_row").visibility)
             val key=root.findViewWithTag<EditText>("map_thunderforest_key")
@@ -71,7 +72,7 @@ class MapProviderSettingsTest {
             assertEquals("OPENCYCLEMAP",runtime.preferences.getString("mapSource",null))
             key.setText("x");assertEquals(testKey,MapProviderSettings.read(activity))
             key.setText("");assertEquals(MapSource.CYCLOSM,MapProviderSettings.source(activity,"OPENCYCLEMAP"))
-            source.setSelection(MapSource.OPENTOPOMAP.ordinal);shadowOf(Looper.getMainLooper()).idle()
+            source.setSelection(MapSourcePicker.position(MapSource.OPENTOPOMAP));shadowOf(Looper.getMainLooper()).idle()
             assertEquals("OPENTOPOMAP",runtime.preferences.getString("mapSource",null))
             assertEquals(View.GONE,root.findViewWithTag<View>("map_provider_key_row").visibility)
             panel.refreshSettings()

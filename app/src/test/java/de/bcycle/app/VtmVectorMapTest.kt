@@ -188,7 +188,7 @@ class VtmVectorMapTest {
             shadowOf(Looper.getMainLooper()).idle()
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
             val spinner=testDescendants(root).filterIsInstance<Spinner>().single()
-            spinner.setSelection(MapSource.VECTOR.ordinal);shadowOf(Looper.getMainLooper()).idle()
+            spinner.setSelection(MapSourcePicker.position(MapSource.VECTOR));shadowOf(Looper.getMainLooper()).idle()
             assertEquals("VECTOR",runtime.preferences.getString("mapSource",null))
             val toggle=root.findViewWithTag<Switch>(VtmBaseMap.cyclewaysKey)
             assertEquals(View.VISIBLE,toggle.visibility);toggle.isChecked=false;shadowOf(Looper.getMainLooper()).idle()
@@ -255,7 +255,7 @@ class VtmVectorMapTest {
             bike.edit().putString("mapSource","OSM").putBoolean(VtmBaseMap.cyclewaysKey,true).commit()
             backup.apply(backup.plan(backup.decode(bytes),setOf(BackupSection.MAPS)))
             assertEquals("VECTOR",bike.getString("mapSource",null));assertFalse(bike.getBoolean(VtmBaseMap.cyclewaysKey,true))
-            spinner.setSelection(MapSource.OSM.ordinal);shadowOf(Looper.getMainLooper()).idle()
+            spinner.setSelection(MapSourcePicker.position(MapSource.OSM));shadowOf(Looper.getMainLooper()).idle()
             assertFalse(toggle.isShown);assertEquals(View.GONE,options.visibility);assertEquals(View.GONE,quick.visibility);assertEquals(View.GONE,editorButton.visibility)
             assertTrue(layers.none { it is VectorTileLayer || it is LabelLayer })
             assertTrue(layers.indexOf(layers.filterIsInstance<VtmRasterLayer>().single())<layers.indexOf(routes))

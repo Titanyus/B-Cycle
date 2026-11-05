@@ -21,7 +21,7 @@ enum class MapSource(val title: String, val host: String, val path: String, val 
     OSM("OpenStreetMap · Standardkarte", "tile.openstreetmap.org", "/", "© OpenStreetMap", "https://www.openstreetmap.org/copyright"),
     OPENTOPOMAP("OpenTopoMap", "a.tile.opentopomap.org", "/", "© OpenStreetMap · SRTM · OpenTopoMap (CC-BY-SA)", "https://opentopomap.org/about",17),
     OPENCYCLEMAP("OpenCycleMap", "tile.thunderforest.com", "/cycle/", "© Thunderforest · © OpenStreetMap", "https://www.thunderforest.com/terms/"),
-    VECTOR("OpenFreeMap · Bright", "tiles.openfreemap.org", "/planet", "OpenFreeMap · © OpenMapTiles · © OpenStreetMap", "https://openfreemap.org/");
+    VECTOR("OpenFreeMap · Bright", "tiles.openfreemap.org", "/planet", "OpenFreeMap · © OpenMapTiles · © OpenStreetMap", "https://openfreemap.org/",21);
     fun label(context: Context) = context.getString(when(this) {
         CYCLOSM -> R.string.ui_map_source_cyclosm; OSM -> R.string.ui_map_source_osm
         OPENTOPOMAP -> R.string.ui_map_source_topo; OPENCYCLEMAP -> R.string.ui_map_source_cycle

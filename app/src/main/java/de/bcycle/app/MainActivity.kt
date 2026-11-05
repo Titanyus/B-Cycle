@@ -630,7 +630,6 @@ class MainActivity : Activity() {
                 SettingsAction.MAP_LICENSE -> menu = dialog().setTitle(getString(R.string.ui_library_license_title)).setMessage(
                     "Mapsforge-VTM 0.25.0 · LGPL-3.0 mit Ausnahme\n\n" + assets.open("Mapsforge-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nBright · BSD / VTM-Adaption\n\n" + assets.open("Bright-LICENSE.txt").bufferedReader().use { it.readText() } +
-                    "\n\n" + assets.open("Terrain-ATTRIBUTION.txt").bufferedReader().use { it.readText() } +
                     "\n\nGarmin FIT SDK 21.218.0\n\n" + assets.open("Garmin-FIT-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkHttp 4.12.0 · Apache-2.0\n\n" + assets.open("OkHttp-LICENSE.txt").bufferedReader().use { it.readText() } +
                     "\n\nOkio 3.6.0 · Apache-2.0\n\n" + assets.open("Okio-LICENSE.txt").bufferedReader().use { it.readText() } +
@@ -1484,10 +1483,8 @@ class MainActivity : Activity() {
     private fun mapControls():LinearLayout {
         val slot=runtime.bikes.activeSlot
         val root = column()
-        val source = Spinner(settingsContext).apply {
-            contentDescription=getString(R.string.ui_map_source)
-            adapter = ArrayAdapter(settingsContext, android.R.layout.simple_spinner_dropdown_item, MapSource.entries.map { it.label(this@MainActivity) })
-            setSelection(MapSource.decode(preferences.getString("mapSource", null)).ordinal); root.addView(this)
+        val source = MapSourcePicker(settingsContext,settingsThemes).apply {
+            select(MapSource.decode(preferences.getString("mapSource",null)));root.addView(this)
         }
         BicycleDialogStyle.spinner(source,settingsThemes,BicycleDesign.profileDropdownSp)
         val keyRow=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL;tag="map_provider_key_row" }
@@ -1502,16 +1499,18 @@ class MainActivity : Activity() {
         keyRow.addView(providerKey);root.addView(keyRow)
         val providerStatus=BicycleFeedback.status(settingsContext,settingsThemes).apply { tag="map_provider_status" }
         root.addView(providerStatus)
-        keyRow.visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
+        keyRow.visibility=if(source.selectedSource==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
         root.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.map_options_title)).apply { tag="map_options_title" })
+        val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
+        val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
         val cyclingStyles=MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,
             kinds=listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES),heading=null) {
             if(runtime.bikes.activeSlot==slot) mapPanel.refreshSettings()
-        }.apply { visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE }
+        }.apply { visibility=if(source.selectedSource==MapSource.VECTOR) View.VISIBLE else View.GONE }
         val vectorOptions=BicycleFrameDropdown(settingsContext,settingsThemes,getString(R.string.map_vector_layers),open=false,leadingIcon=BicycleIcon.Map).apply {
             tag="map_vector_layers"
-            visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE
+            visibility=if(source.selectedSource==MapSource.VECTOR) View.VISIBLE else View.GONE
         }
         val layerSwitches=MapVectorLayer.entries.filterNot { it==MapVectorLayer.CYCLE_ROUTES }.associateWith { layer ->
             Switch(settingsContext).apply {
@@ -1520,16 +1519,11 @@ class MainActivity : Activity() {
             }
         }
         vectorOptions.content.addView(BicycleComponents.fieldLabel(settingsContext,settingsThemes,getString(R.string.map_layer_contours_info)))
-        vectorOptions.content.addView(BicycleComponents.action(settingsContext,settingsThemes,getString(R.string.map_terrain_credit)) {
-            menu=dialog().setTitle(R.string.map_terrain_credit).setMessage(assets.open("Terrain-ATTRIBUTION.txt").bufferedReader().use { it.readText() }).show()
-        })
         root.addView(vectorOptions)
-        val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
-        val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
         observeSettings(root) {
             if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
-            val chosen=MapSource.entries[source.selectedItemPosition]
+            val chosen=source.selectedSource
             cyclingStyles.visibility=if(chosen==MapSource.VECTOR) View.VISIBLE else View.GONE
             vectorOptions.visibility=cyclingStyles.visibility
             keyRow.visibility=if(chosen==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
@@ -2182,7 +2176,7 @@ class MainActivity : Activity() {
             R.string.sources_elevation to R.string.sources_elevation_text,R.string.sources_weather to R.string.sources_weather_text,
             R.string.sources_uploads to R.string.sources_uploads_text)) {
             body.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(title)))
-            body.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(description)).apply {
+            body.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(description)+if(title==R.string.sources_elevation) "\n\n"+assets.open("Terrain-ATTRIBUTION.txt").bufferedReader().use { it.readText() } else "").apply {
                 android.text.util.Linkify.addLinks(this,android.text.util.Linkify.WEB_URLS)
                 movementMethod=android.text.method.LinkMovementMethod.getInstance()
                 BicycleComponents.bindTheme(this,settingsThemes) { setLinkTextColor(it.foreground) }

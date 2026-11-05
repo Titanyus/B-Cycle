@@ -58,7 +58,7 @@ internal object VtmTileHttp {
             }
         }.build()
         return VtmClippedVectorSource(OpenMapTilesMvtTileSource.builder().url("https://tiles.openfreemap.org")
-            .tilePath("/bcycle-vector/{Z}/{X}/{Y}.pbf").locale("de").zoomMin(0).zoomMax(19).overZoom(14))
+            .tilePath("/bcycle-vector/{Z}/{X}/{Y}.pbf").locale("de").zoomMin(0).zoomMax(MapSource.VECTOR.maximumZoom).overZoom(14))
             .apply {
                 setHttpRequestHeaders(mapOf("User-Agent" to "B-Cycle/${AppVersion.name} (https://github.com/Titanyus/B-Cycle)"))
                 setHttpEngine(HttpEngine.Factory { source -> OkHttpEngine(vectorHttp,source) })

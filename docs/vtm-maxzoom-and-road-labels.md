@@ -31,3 +31,7 @@ Keine fremde App kopiert oder Kartenengine gewechselt. Ergänzung des eigenen Pl
 ## Gezielte Prüfung
 
 Overzoom-/signed-short-Regression plus vorhandene native Platzierungs-/Fadefälle grün. Zusätzlicher Fall mit dichtem Anfang und weiteren Kandidaten entlang derselben Straße ergibt gleichmäßige 220-Pixel-Abstände; Auswahl bleibt bei umgekehrter Eingabereihenfolge und 90° Kartenrotation identisch. Typografie/Bright-Generator/Diff grün. Kein Gesamtlauf, keine lokale APK, kein neuer APK-Auftrag. Gerätevergleich für die gemeldete Maximalzoom-Szene und reale Straßendichte noch offen.
+
+## Vektor-Zoom21 nach Build139
+
+Expliziter Folgeauftrag: Vektorkarte zwei volle Zoomstufen näher, Rastergrenzen erhalten. MapZoom.maximum21, MapSource.VECTOR.maximumZoom21, native Vektorquelle zoomMax aus dieser Quelle; tatsächliche Datenweiterverwendung ab Quellzoom14 unverändert. Kamera, Pinch, Buttons, gespeicherte Werte und Streckenvorschau verwenden weiterhin MapZoom.maximum(source). Raster19, OpenTopoMap17. Native Clipping-Regression auf15–21 erweitert und erfolgreich. MapPresentationSettingsTest prüft reale Kameragrenzen21/19/17 und gespeicherten20,5-Wert je Quelle.
