@@ -1,6 +1,6 @@
-# Änderungen nach Build138
+# Aktueller Stand: APK 0.8.96 / Build 139 veröffentlicht
 
-Straßen/Wege nach vorhandenen Belagsangaben: unbefestigt ausdrücklich gestrichelt6/4, befestigt/fehlend/unbekannt durchgezogen. Farbige Radwegehervorhebung selbst samt Grundlinie/Umrandung gleich gestrichelt; kein seitlicher Versatz (Nutzerpräzisierung). Radrouten ohne Belagsdaten bleiben durchgezogen/unbekannt. Designer-Straßenmusterwahl durch kompakten Hinweis ersetzt, Farbe/Alpha/Breite behalten. JSON feste Regel roadSurfaceStyle=unpaved-dashed, bestehende Exporte kompatibel. Sechs gezielte Fälle plus Typografie/UI-Katalog/Bright/Diff grün; [Umfang/Prüfung](map-road-surfaces.md). Neue APK ausdrücklich beauftragt: 0.8.96 / code166 / erwarteter Build139; GitHub-Actions-Build und Veröffentlichung laufen. Gerätebild offen.
+Straßen/Wege nach vorhandenen Belagsangaben: unbefestigt ausdrücklich gestrichelt6/4, befestigt/fehlend/unbekannt durchgezogen. Farbige Radwegehervorhebung selbst samt Grundlinie/Umrandung gleich gestrichelt; kein seitlicher Versatz (Nutzerpräzisierung). Radrouten ohne Belagsdaten bleiben durchgezogen/unbekannt. Designer-Straßenmusterwahl durch kompakten Hinweis ersetzt, Farbe/Alpha/Breite behalten. JSON feste Regel roadSurfaceStyle=unpaved-dashed, bestehende Exporte kompatibel. Sechs gezielte Fälle plus Typografie/UI-Katalog/Bright/Diff grün; [Umfang/Prüfung](map-road-surfaces.md). Neue APK über GitHub Actions erfolgreich gebaut, geprüft und veröffentlicht. [Nachweis](build-139.md), [Änderungen](release-0.8.96.md). Gerätebild offen.
 
 ## Letzte Veröffentlichung: APK 0.8.95 / Build 138
 
@@ -100,10 +100,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.95 / Build 138](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.95-release-138.apk), code165, Quelle `9ea2eccca0bd9ea030b1c909491291ffa8d96f92`, 4279004 Bytes, SHA-256 `7dce365074092c1f2ade1b7f2dacdc37c20dbcbbc3ee2c48058f12210b1c8b95`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-/Cycling-Assets, Texte und R8-Namen geprüft. [Nachweis](build-138.md). Vorige APK: [0.8.94 / Build 137](build-137.md).
+[APK 0.8.96 / Build 139](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.96-release-139.apk), code166, Quelle `9fab848d747bd0dad3afca805db501429d970bc3`, 4279128 Bytes, SHA-256 `32393bd51071b2bd15730ae46ab2d58600caf2e52ce5bd15e4decd07d36833f6`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-/Cycling-Assets, Texte und R8-Namen geprüft. [Nachweis](build-139.md). Vorige APK: [0.8.95 / Build 138](build-138.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.96 / code 166 / Build 139. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.97 / code 167 / Build 140. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.

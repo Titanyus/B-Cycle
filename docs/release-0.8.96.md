@@ -6,4 +6,4 @@
 
 Sechs gezielte Fälle erfolgreich: mehrere Straßen-/Wegeklassen und normale/Tunnel-/Brückenlagen, bekannte/fehlende Beläge, native Dash-/Solid-Varianten, Radweg-Overlay, Live-Farben/Reset, Breiten, Editor, Profil/Backup/Export und JSON. Typografie/UI-Katalog/Bright-Generator/Diff grün. Kein Gesamtlauf und keine lokale APK; optische Geräteprüfung offen. [Umsetzung und Prüfung](map-road-surfaces.md).
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-139.md).
