@@ -16,6 +16,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
     private val base=context.assets.open("styles/bright-vtm.xml").bufferedReader().use { it.readText() }
     private val handler=Handler(Looper.getMainLooper())
     private val preview=Runnable { if(currentProfile()) changed() }
+    private val targets=MapStyleTarget.entries.filterNot { it in setOf(MapStyleTarget.CYCLE,MapStyleTarget.CYCLE_ROUTES) }
     private val target=Spinner(context).apply { tag="map_style_target" }
     private val swatch=View(context).apply { tag="map_style_swatch" }
     private val hex=BicycleComponents.text(context,themes,"").apply { tag="map_style_rgb_hex" }
@@ -33,7 +34,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
     private val placeText=MapPlaceTextEditor(context,prefs,themes) { schedule() }
     private val line=Spinner(context).apply { tag="map_style_dash" }
     private val lineLabel=BicycleComponents.fieldLabel(context,themes,context.getString(R.string.map_style_line))
-    private var selected=runCatching { MapStyleTarget.valueOf(prefs.getString(LAST_TARGET,null) ?: "BACKGROUND") }.getOrDefault(MapStyleTarget.BACKGROUND)
+    private var selected=runCatching { MapStyleTarget.valueOf(prefs.getString(LAST_TARGET,null) ?: "BACKGROUND") }.getOrDefault(MapStyleTarget.BACKGROUND).takeIf { it in targets } ?: MapStyleTarget.BACKGROUND
     private var updating=false
     init {
         orientation=VERTICAL;tag="map_style_editor"
@@ -42,8 +43,8 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
             addView(BicycleComponents.fieldLabel(context,themes,context.getString(R.string.map_style_object)),LayoutParams(0,-2,1f))
             addView(hex,LayoutParams(-2,-2))
         },LayoutParams(-1,-2))
-        target.adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,MapStyleTarget.entries.map { context.getString(it.title) })
-        target.setSelection(selected.ordinal)
+        target.adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,targets.map { context.getString(it.title) })
+        target.setSelection(targets.indexOf(selected))
         target.contentDescription=context.getString(R.string.map_style_object)
         addView(LinearLayout(context).apply {
             orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;setTag(R.id.inline_control_row,true)
@@ -82,7 +83,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
             override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) { action(position) }
         } }
         selection(target) {
-            selected=MapStyleTarget.entries[it]
+            selected=targets[it]
             if(currentProfile()) prefs.edit().putString(LAST_TARGET,selected.name).apply()
             render()
         }

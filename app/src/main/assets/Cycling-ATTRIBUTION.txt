@@ -1,0 +1,9 @@
+Optional signed cycling route overlay
+
+Route geometry: Waymarked Trails — https://cycling.waymarkedtrails.org/
+Public API: https://cycling.waymarkedtrails.org/api/v1/
+Underlying route data: © OpenStreetMap contributors — https://www.openstreetmap.org/copyright
+
+B|CYCLE reads public route geometries and renders them with the user's colour, width and opacity.
+No Waymarked Trails source code or raster artwork is bundled.
+The overlay is off by default. The map displays Waymarked Trails attribution while enabled.

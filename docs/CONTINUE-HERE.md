@@ -2,7 +2,7 @@
 
 Lange mehrteilige Ortsnamen zweizeilig, ohne Wörter zu trennen: geografische Zusätze zusammen unten, sonst ausgeglichene Wortgruppen. Name/Zuordnung erhalten; native Atlaszeichnung und Kollisionsmaße gemeinsam erweitert. Drei gezielte Pixel-/Platzierungs-/Schilder-/JSON-Ebenen-/Profil-/Sicherungsfälle grün (place-wrap-and-layer-export-tests.log). Aktuelle Ebenenauswahl wird bereits als visibility/cycleways exportiert und gezielt bestätigt. Keine neue APK beauftragt.
 
-Radwegehervorhebung bleibt langfristig separate Nutzeroption; restlicher Designer dient dem Erarbeiten fester Stile mit vollständigem JSON. Neue Rückmeldung: Radwege verschwinden weiterhin zu früh. Quelle bestätigt: bei10,3/48,4 enthalten Quellzoom7–11 keine Radweg-Features, ab12 vorhanden; Style-Minimum6 genügt nicht. Probe/log cycle-overview-source-probe.log. Keine weitere reine Stilschwellenänderung. Echte Übersichtsdatenquelle/Regiongeometrie erforderlich. Klärung einzelne Radwege vs ausgeschildertes Radroutennetz per asynchroner Frage offen.
+Radwege/Radrouten auf Nutzerentscheidung getrennt als eigene Karten-Einstellungen mit Track-Farbe/HEX/Breite/Deckkraft und Schalter umgesetzt. Radrouten als optionale echte Waymarked-Trails-Vektorübersicht, default aus; Radwege behalten bisherigen Schalter und Quelldetailgrenzen. cyclingStyles plus Ebenenauswahl im JSON, Profil/Backup erhalten. Feldwegfarbe: irreführende PATH-Beschriftung getrennt, native Live-Farbe/Dash geprüft. Vier gezielte Optionen-/Vektor-/Profil-/Backup-/Export-/Farb-/Trackfälle plus echte MainActivity-Integration grün. [Umfang/Quelle/Begrenzungen](cycling-map-options.md). Keine neue APK beauftragt. Restlicher Designer bleibt Arbeitsmittel für spätere feste Stile.
 
 ## Letzte Veröffentlichung: APK 0.8.94 / Build 137
 

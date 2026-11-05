@@ -19,6 +19,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
     private var colorQueued=false
     private val tiles:TileLayer
     private val foreground:VtmStyledVectorLayer?
+    private val cyclingRoutes:VtmCyclingRoutesLayer?
     private val contours:VtmContourLayer?
     private val labels:Layer?
     private val resumeTiles:()->Unit
@@ -29,6 +30,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
             val vector=VtmStyledVectorLayer(context,map,cycleways,options,style,if(split) VtmMapPass.GROUND else VtmMapPass.ALL)
             tiles=vector
             foreground=if(split) VtmStyledVectorLayer(context,map,cycleways,options,style,VtmMapPass.FOREGROUND) else null
+            cyclingRoutes=if(MapVectorLayer.CYCLE_ROUTES in options) VtmCyclingRoutesLayer(context,map,style) else null
             contours=if(split) VtmContourLayer(context,map,style) else null
             labels=BCycleLabelLayer(map,foreground ?: vector,LabelTileLoaderHook(),source.maximumZoom)
             resumeTiles=vector::resumeTiles;pauseTiles=vector::pauseTiles
@@ -36,6 +38,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
             val raster=VtmRasterLayer(map,VtmTileHttp.source(context,source,key))
             tiles=raster
             foreground=null
+            cyclingRoutes=null
             contours=null
             labels=null
             resumeTiles=raster::resume;pauseTiles=raster::pause
@@ -45,7 +48,9 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
         applyBackground()
         contours?.let { map.layers().add(2,it) }
         foreground?.let { map.layers().add(3,it) }
-        labels?.let { map.layers().add(if(contours==null) 2 else 4,it) }
+        val overlayIndex=if(contours==null) 2 else 4
+        cyclingRoutes?.let { map.layers().add(overlayIndex,it) }
+        labels?.let { map.layers().add(overlayIndex+if(cyclingRoutes==null) 0 else 1,it) }
         map.clearMap()
     }
     // VectorTileLayer.setTheme updates tile styles, but unlike Map.setTheme it does not
@@ -67,6 +72,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
                 (tiles.theme as VtmBrightTheme).applyColors(style)
                 foreground?.let { (it.theme as VtmBrightTheme).applyColors(style) }
                 contours?.applyColors(style)
+                cyclingRoutes?.applyColors(style)
                 // Include VTM's incoming-tile fade matte as well as the global clear colour.
                 tiles.tileRenderer().setOverdrawColor(tiles.theme.mapBackground)
                 foreground?.tileRenderer()?.setOverdrawColor(0)
@@ -75,8 +81,8 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
         })
         return true
     }
-    fun resume() { applyBackground();tiles.isEnabled=true;labels?.isEnabled=true;resumeTiles();contours?.resume();foreground?.resumeTiles();foreground?.isEnabled=true;map.updateMap(true) }
-    fun pause() { tiles.isEnabled=false;labels?.isEnabled=false;pauseTiles();contours?.pause();foreground?.pauseTiles();foreground?.isEnabled=false }
+    fun resume() { applyBackground();tiles.isEnabled=true;labels?.isEnabled=true;resumeTiles();contours?.resume();cyclingRoutes?.resume();foreground?.resumeTiles();foreground?.isEnabled=true;map.updateMap(true) }
+    fun pause() { tiles.isEnabled=false;labels?.isEnabled=false;pauseTiles();contours?.pause();cyclingRoutes?.pause();foreground?.pauseTiles();foreground?.isEnabled=false }
     fun onDetach() {
         if(detached) return
         detached=true
@@ -88,6 +94,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
         }
         foreground?.let { map.layers().remove(it);it.onDetach() }
         contours?.let { map.layers().remove(it);it.onDetach() }
+        cyclingRoutes?.let { map.layers().remove(it);it.onDetach() }
         map.layers().remove(tiles);tiles.onDetach()
     }
 }

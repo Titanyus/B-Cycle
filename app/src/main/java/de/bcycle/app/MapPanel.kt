@@ -119,7 +119,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var source = MapProviderSettings.source(context,preferences.getString("mapSource", null))
     private var providerKey=MapProviderSettings.read(context)
     private var downloads: VtmBaseMap
-    private var mapStyle=MapStyleOverrides.read(preferences)
+    private var mapStyle=MapCyclingStyles.effective(preferences)
     private var vectorLayers=MapVectorLayers.read(preferences)
     private var cycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
     private var follow = preferences.getBoolean("mapFollow", true)
@@ -288,7 +288,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         credit.apply {
             text = attribution()
             contentDescription = context.getString(R.string.ui_map_attribution)
-            setOnClickListener { openCredit(source.creditUrl) }
+            setOnClickListener { openCredit(if(source==MapSource.VECTOR && MapVectorLayer.CYCLE_ROUTES in vectorLayers) "https://cycling.waymarkedtrails.org/" else source.creditUrl) }
         }
         addView(credit, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.START))
         status.apply {
@@ -323,11 +323,13 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val lon=preferences.getFloat("mapLongitude",10f).toDouble().coerceIn(-180.0,180.0)
         mapView.setCenter(lat,lon)
     }
-    private fun attribution()=source.attribution+if(source==MapSource.VECTOR && MapVectorLayer.CONTOURS in vectorLayers) " · Mapzen Terrain" else ""
+    private fun attribution()=source.attribution+
+        (if(source==MapSource.VECTOR && MapVectorLayer.CONTOURS in vectorLayers) " · Mapzen Terrain" else "")+
+        (if(source==MapSource.VECTOR && MapVectorLayer.CYCLE_ROUTES in vectorLayers) " · Waymarked Trails" else "")
     fun refreshSettings() {
         val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
         val nextKey=MapProviderSettings.read(context)
-        val nextStyle=MapStyleOverrides.read(preferences)
+        val nextStyle=MapCyclingStyles.effective(preferences)
         val nextLayers=MapVectorLayers.read(preferences)
         val nextCycleways=preferences.getBoolean(VtmBaseMap.cyclewaysKey,true)
         if(next==MapSource.VECTOR && next==source && nextCycleways==cycleways && nextLayers==vectorLayers && nextStyle!=mapStyle

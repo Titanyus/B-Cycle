@@ -44,6 +44,11 @@ class VtmLiveColorsTest {
             val xml=MapStyleXml.apply(RuntimeEnvironment.getApplication().assets.open("styles/bright-vtm.xml").bufferedReader().use { it.readText() },
                 MapStyleOverrides().update(MapStyleTarget.PLACE_TEXT,MapObjectStyle(Color.rgb(17,92,203),alpha=128)))
             assertTrue(xml.contains("#80115CCB"))
+            val track=theme.matchElement(GeometryBuffer.GeometryType.LINE,tags("transportation","track"),16).orEmpty().filterIsInstance<LineStyle>().single { it.style=="bcycle-track" }
+            val recolored=translucent.update(MapStyleTarget.TRACK,MapObjectStyle(Color.MAGENTA))
+            theme.applyColors(recolored)
+            assertEquals(Color.MAGENTA,track.current().color);assertEquals(Color.MAGENTA,track.current().stippleColor)
+            assertSame(track.texture,track.current().texture)
             val reset=MapStyleOverrides().update(MapStyleTarget.PRIMARY,MapObjectStyle(dash=MapDash.DASHED))
             theme.applyColors(reset)
             assertEquals(road.color,road.current().color);assertEquals(forest.color,forest.current().color)

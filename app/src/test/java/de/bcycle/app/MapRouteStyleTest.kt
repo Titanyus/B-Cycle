@@ -56,7 +56,7 @@ class MapRouteStyleTest {
             val a=host.get();val prefs=a.getSharedPreferences("line-style-ui",0);val themes=ThemeManager(prefs)
             var changes=0
             val view=MapLineStyleView(a,prefs,themes,DialogNavigation()) { changes++ };a.setContentView(view)
-            for(kind in MapLineKind.entries) assertEquals(MapRouteStyles.read(prefs,kind).color,
+            for(kind in MapLineKind.entries.take(4)) assertEquals(MapRouteStyles.read(prefs,kind).color,
                 view.findViewWithTag<BicycleFrameDropdown>("map_line_frame_${kind.id}").leadingIconColor)
             val body=view.findViewWithTag<View>("map_line_body_recorded")
             assertEquals(View.GONE,body.visibility)

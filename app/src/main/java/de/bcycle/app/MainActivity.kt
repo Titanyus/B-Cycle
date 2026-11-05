@@ -1505,14 +1505,15 @@ class MainActivity : Activity() {
         keyRow.visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
         fun toggle(title: String, key: String, fallback: Boolean) = Switch(settingsContext).apply { text = title; tag = key; isChecked = preferences.getBoolean(key, fallback); root.addView(this) }
         root.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.map_options_title)).apply { tag="map_options_title" })
-        val cycleways=toggle(getString(R.string.map_vector_cycleways),VtmBaseMap.cyclewaysKey,true).apply {
-            visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE
-        }
+        val cyclingStyles=MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,
+            kinds=listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES),heading=null) {
+            if(runtime.bikes.activeSlot==slot) mapPanel.refreshSettings()
+        }.apply { visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE }
         val vectorOptions=BicycleFrameDropdown(settingsContext,settingsThemes,getString(R.string.map_vector_layers),open=false,leadingIcon=BicycleIcon.Map).apply {
             tag="map_vector_layers"
             visibility=if(MapSource.entries[source.selectedItemPosition]==MapSource.VECTOR) View.VISIBLE else View.GONE
         }
-        val layerSwitches=MapVectorLayer.entries.associateWith { layer ->
+        val layerSwitches=MapVectorLayer.entries.filterNot { it==MapVectorLayer.CYCLE_ROUTES }.associateWith { layer ->
             Switch(settingsContext).apply {
                 text=getString(layer.title);tag=layer.key;isChecked=preferences.getBoolean(layer.key,layer.defaultVisible)
                 vectorOptions.content.addView(this)
@@ -1529,8 +1530,8 @@ class MainActivity : Activity() {
         observeSettings(root) {
             if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
             val chosen=MapSource.entries[source.selectedItemPosition]
-            cycleways.visibility=if(chosen==MapSource.VECTOR) View.VISIBLE else View.GONE
-            vectorOptions.visibility=cycleways.visibility
+            cyclingStyles.visibility=if(chosen==MapSource.VECTOR) View.VISIBLE else View.GONE
+            vectorOptions.visibility=cyclingStyles.visibility
             keyRow.visibility=if(chosen==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
             val entered=providerKey.text.toString().trim()
             val validKey=entered.isEmpty() || MapProviderSettings.valid(entered)
@@ -1541,10 +1542,12 @@ class MainActivity : Activity() {
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
             layerSwitches.forEach { (layer,control) -> edit.putBoolean(layer.key,control.isChecked) }
-            edit.putBoolean(VtmBaseMap.cyclewaysKey,cycleways.isChecked).putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
+            edit.putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
                 .apply()
             mapPanel.refreshSettings()
         }
+        // Keep track-owned switch listeners independent of the generic form observer.
+        root.addView(cyclingStyles,root.indexOfChild(vectorOptions),LinearLayout.LayoutParams(-1,-2))
         root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,setSlotVisible={ index,on ->
             if(runtime.bikes.activeSlot==slot) runtime.mapState.setRouteSlotVisibility(index,on)
         }) {

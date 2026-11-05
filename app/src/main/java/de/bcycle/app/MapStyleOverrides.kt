@@ -28,7 +28,7 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
     PRIMARY(R.string.map_style_primary,true,setOf("highway-primary","highway-trunk","bridge-trunk-primary","tunnel-trunk-primary")),
     SECONDARY(R.string.map_style_secondary,true,setOf("highway-secondary-tertiary","bridge-secondary-tertiary","tunnel-secondary-tertiary")),
     MINOR(R.string.map_layer_minor_roads,true,setOf("highway-minor","highway-link","bridge-link","tunnel-minor","tunnel-service-track")),
-    PATH(R.string.map_layer_paths,true,setOf("highway-path","bridge-path","tunnel-path")),
+    PATH(R.string.map_style_paths,true,setOf("highway-path","bridge-path","tunnel-path")),
     CYCLE(R.string.map_vector_cycleways,true,setOf("bcycle-cycleway")),
     RAIL(R.string.map_style_rail,true,setOf("railway","railway-service","railway-transit","bridge-railway","tunnel-railway")),
     BUILDING(R.string.map_layer_buildings,false,setOf("building")),
@@ -37,7 +37,8 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
     ROAD_TEXT(R.string.map_layer_road_names,false,setOf("highway-name-path","highway-name-minor","highway-name-major","highway-shield","highway-shield-us-interstate","highway-shield-us-other")),
     WATER_TEXT(R.string.map_style_water_text,false,setOf("waterway-name","water-name-lakeline","water-name-ocean","water-name-other")),
     CONTOUR(R.string.map_layer_contours,true,setOf("contour-minor","contour-major")),
-    TRACK(R.string.map_style_tracks,true,setOf("bcycle-track","bcycle-track-tunnel"));
+    TRACK(R.string.map_style_tracks,true,setOf("bcycle-track","bcycle-track-tunnel")),
+    CYCLE_ROUTES(R.string.map_cycling_routes,true,setOf("bcycle-cycle-route"));
 }
 internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null,val widthPercent:Int?=null)
 internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectStyle> = emptyMap(),val placeLabels:Map<MapPlaceClass,MapPlaceTextStyle> = emptyMap()) {
@@ -69,7 +70,9 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
     })
     fun export(prefs:SharedPreferences)=json().put("visibility",JSONObject().apply {
         MapVectorLayer.entries.forEach { put(it.name,prefs.getBoolean(it.key,it.defaultVisible)) }
-    }).put("cycleways",prefs.getBoolean(VtmBaseMap.cyclewaysKey,true)).toString(2)
+    }).put("cycleways",prefs.getBoolean(VtmBaseMap.cyclewaysKey,true)).put("cyclingStyles",JSONObject().apply {
+        for(kind in listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES)) put(kind.id,MapRouteStyles.read(prefs,kind).json())
+    }).toString(2)
     companion object {
         private val textTargets=setOf(MapStyleTarget.PLACE_TEXT,MapStyleTarget.ROAD_TEXT,MapStyleTarget.WATER_TEXT)
         const val KEY="mapStyleOverridesV1"
@@ -77,11 +80,16 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
         fun read(prefs:SharedPreferences)=runCatching { parse(JSONObject(prefs.getString(KEY,null) ?: return MapStyleOverrides())) }.getOrDefault(MapStyleOverrides())
         fun parse(json:JSONObject):MapStyleOverrides {
             require(json.toString().length<=65536)
-            require(json.keys().asSequence().all { it in setOf("format","version","base","baseSha256","objects","visibility","cycleways","placeLabels") })
+            require(json.keys().asSequence().all { it in setOf("format","version","base","baseSha256","objects","visibility","cycleways","placeLabels","cyclingStyles") })
             require(json.getString("format")=="bcycle-map-style" && json.get("version")==1 && json.getString("base")=="bright" && json.getString("baseSha256")==BASE_SHA)
             json.optJSONObject("visibility")?.let { v -> v.keys().forEach { require(MapVectorLayer.entries.any { layer -> layer.name==it } && v.get(it) is Boolean) } }
             if(json.has("visibility")) require(json.get("visibility") is JSONObject)
             if(json.has("cycleways")) require(json.get("cycleways") is Boolean)
+            if(json.has("cyclingStyles")) {
+                val cycling=json.getJSONObject("cyclingStyles")
+                require(cycling.keys().asSequence().all { it in setOf("cycleways","cycleRoutes") })
+                MapRouteStyles.validate(cycling)
+            }
             val labels=buildMap<MapPlaceClass,MapPlaceTextStyle> {
                 if(json.has("placeLabels")) {
                     val entries=json.getJSONObject("placeLabels")

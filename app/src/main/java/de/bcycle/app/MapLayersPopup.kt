@@ -28,7 +28,7 @@ internal class MapLayersPopup(private val anchor:View,private val runtime:RideRu
                 }
             })
         }
-        toggle(VtmBaseMap.cyclewaysKey,R.string.map_vector_cycleways,true)
+        toggle(VtmBaseMap.cyclewaysKey,R.string.map_cycling_ways,true)
         MapVectorLayer.entries.forEach { toggle(it.key,it.title,it.defaultVisible) }
         BicycleDialogStyle.content(column,themes)
         BicycleComponents.bindTheme(column,themes) { tokens -> column.background=BicycleComponents.controlBackground(context,tokens,tokens.tertiary) }

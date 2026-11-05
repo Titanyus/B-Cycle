@@ -813,6 +813,9 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_place_hamlet">Weiler · hamlet</string>
     <string name="map_place_weight">Schriftgewicht</string>
     <string name="map_place_size">Schriftgröße</string>
+    <string name="map_cycling_ways">Radwege</string>
+    <string name="map_cycling_routes">Radrouten</string>
+    <string name="map_style_paths">Fußwege und Radwege</string>
     <string name="map_style_tracks">Feld- und Wirtschaftswege</string>
     <string name="map_style_width">Linienbreite</string>
     <string name="map_style_alpha">Alpha</string>

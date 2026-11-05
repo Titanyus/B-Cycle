@@ -15,19 +15,21 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
         val slots=MapRouteSlots.read(prefs)
         (if(prefs.getBoolean("mapGpxVisible",true)) slots else slots.all(false)).show(slot,on).write(prefs)
         prefs.edit().putBoolean("mapGpxVisible",true).apply()
-    },private val changed:()->Unit):LinearLayout(context) {
+    },private val kinds:List<MapLineKind> = MapLineKind.entries.take(4),private val heading:Int?=R.string.map_line_heading,private val changed:()->Unit):LinearLayout(context) {
     init {
         orientation=VERTICAL;tag="map_line_styles"
-        addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.map_line_heading)))
-        MapLineKind.entries.forEach { kind ->
+        heading?.let { addView(BicycleComponents.contentHeading(context,themes,context.getString(it))) }
+        kinds.forEach { kind ->
             val slot=MapLineKind.entries.indexOf(kind)-1
+            val cyclingKey=when(kind) { MapLineKind.CYCLEWAYS->VtmBaseMap.cyclewaysKey;MapLineKind.CYCLE_ROUTES->MapVectorLayer.CYCLE_ROUTES.key;else->null }
             val visible=Switch(context).apply {
-                tag=if(kind==MapLineKind.RECORDED) "mapTrackVisible" else "map_line_visible_${kind.id}"
-                isChecked=if(kind==MapLineKind.RECORDED) prefs.getBoolean("mapTrackVisible",true)
+                tag=cyclingKey ?: if(kind==MapLineKind.RECORDED) "mapTrackVisible" else "map_line_visible_${kind.id}"
+                isChecked=if(cyclingKey!=null) prefs.getBoolean(cyclingKey,kind==MapLineKind.CYCLEWAYS) else if(kind==MapLineKind.RECORDED) prefs.getBoolean("mapTrackVisible",true)
                     else prefs.getBoolean("mapGpxVisible",true) && MapRouteSlots.read(prefs).visible[slot]
                 BicycleDialogStyle.control(this,themes)
                 setOnCheckedChangeListener { _,on ->
-                    if(kind==MapLineKind.RECORDED) prefs.edit().putBoolean("mapTrackVisible",on).apply()
+                    if(cyclingKey!=null) prefs.edit().putBoolean(cyclingKey,on).apply()
+                    else if(kind==MapLineKind.RECORDED) prefs.edit().putBoolean("mapTrackVisible",on).apply()
                     else setSlotVisible(slot,on)
                     changed()
                 }

@@ -16,7 +16,8 @@ internal enum class MapVectorLayer(val title:Int,val defaultVisible:Boolean=true
     POIS(R.string.map_layer_pois,false),
     LOCAL_BOUNDARIES(R.string.map_layer_local_boundaries,false),
     CONTOURS(R.string.map_layer_contours,false),
-    ADMIN_AREAS(R.string.map_layer_admin_areas);
+    ADMIN_AREAS(R.string.map_layer_admin_areas),
+    CYCLE_ROUTES(R.string.map_cycling_routes,false);
     val key get()="mapVectorLayer_$name"
 }
 internal data class MapVectorLayers(val visible:Set<MapVectorLayer> = MapVectorLayer.entries.filter { it.defaultVisible }.toSet()) {
