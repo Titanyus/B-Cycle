@@ -1,5 +1,7 @@
 # Aktueller Stand: APK 0.8.94 / Build 137 veröffentlicht
 
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4278364 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+
 Linienbreite im Karteneditor (25–300 % je Zoom-Basis, optionales validiertes widthPercent im Objekt-JSON). Eigenständige Feld-/Wirtschaftswege: class track aus gemeinsamen Straßenstilen abspalten, zunächst halb so breit/braun/gestrichelt ohne breite Umrandung; unabhängig Farbe/Alpha/Muster/Breite bearbeiten. Radwegehervorhebung bis Kameraminimum6 statt9 mit abgestuften Übersichtslinien, soweit Quelldaten vorhanden. Drei gezielte Native-/Editor-/Export-/Profil-/Sicherungsfälle grün; Typografie/UI-Katalog/Bright-Generator/Diff grün. Nachweis: /workspace/.tools/map-width-and-tracks-tests.log. Ortsnamen-Folgeauftrag: town/city Black900 und 10 % kleiner, kleine Orte unverändert. Echte lokale Kachelprobe bestätigt Günzburg/Krumbach als town; keine eigenen Einwohnergrenzen. Gezielte Kotlin-Kompilation, Typografie und Diff grün. Neue APK über GitHub Actions erfolgreich gebaut, geprüft und veröffentlicht. [Buildnachweis](build-137.md), [Änderungen](release-0.8.94.md). Gerätebild offen.
 
 Designer-Ergänzung enthalten: geschlossenes Dropdown Ortsbeschriftung für CITY/TOWN/VILLAGE/HAMLET; unabhängige Gewichte100–900 und Größen50–200 %. MapPlaceTextEditorTest für native Gewichte/Metriken, UI, Profil/Backup/JSON/Reset grün.

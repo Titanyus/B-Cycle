@@ -16,3 +16,5 @@ Bright-JSON/XML, drei eigene Shader, 111 Spritevarianten und Atlas bytegenau gep
 [Änderungen](release-0.8.94.md): Linienbreite25–300 %, eigene Feldwegdarstellung, dünnere Radwege-Übersicht ab Kameraminimum. Designer-Dropdown für vier Ortsklassen, Gewicht100–900 und Größe50–200 %, Vorgabe town/cityBlack900/90 %.
 
 Drei gezielte Fälle in MapStyleEditorTest/VtmVectorMapTest erfolgreich; darunter native Feldwegfarbe/Breiten über mehrere Zooms, JSON-/Profil-/Sicherungsrundreise, Editor/Wiederöffnen und Radwege-Übersicht/Schalter/Stil. Ortsnamen-Schriftanpassung gezielt kompiliert. Zusätzlich gezielter MapPlaceTextEditorTest erfolgreich: alle vier Schriftklassen unabhängig, native Gewichte/Größen/Metriken/Prioritäten, Profil/Sicherung/JSON/Wiederöffnen/Reset/Validierung. Typografie/UI-Katalog/Bright-/Diff-Prüfung erfolgreich. Kein Gesamtlauf, keine lokale APK. Optische Geräteprüfung offen.
+
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4278364 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
