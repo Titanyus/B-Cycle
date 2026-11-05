@@ -16,3 +16,5 @@ Bright-JSON/XML, drei eigene Shader, 111 Spritevarianten und Atlas bytegenau gep
 [Änderungen](release-0.8.96.md): Straßen/Wege mit explizit unbefestigtem Belag gestrichelt; befestigt/fehlend/unbekannt solid. Auch die farbige Radwegehervorhebung und Umrandung folgen demselben offenen Muster. Designer-Hinweis und feste JSON-Regel, bestehende Farben/Alpha/Breiten erhalten.
 
 Sechs gezielte Fälle erfolgreich: mehrere Straßen-/Wegeklassen und normale/Tunnel-/Brückenlagen, bekannte/fehlende Beläge, native Dash-/Solid-Varianten, Overlaymuster, Live-Farben/Reset, Breiten, Editor, Profil/Backup/Export und JSON. Typografie/UI-Katalog/Bright-/Diff-Prüfung erfolgreich. Kein Gesamtlauf und keine lokale APK. Optische Geräteprüfung offen; separate Radroutengeometrien ohne Belagsdaten bleiben durchgezogen/unbekannt.
+
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4279128 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.

@@ -1,5 +1,7 @@
 # Aktueller Stand: APK 0.8.96 / Build 139 veröffentlicht
 
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4279128 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+
 Straßen/Wege nach vorhandenen Belagsangaben: unbefestigt ausdrücklich gestrichelt6/4, befestigt/fehlend/unbekannt durchgezogen. Farbige Radwegehervorhebung selbst samt Grundlinie/Umrandung gleich gestrichelt; kein seitlicher Versatz (Nutzerpräzisierung). Radrouten ohne Belagsdaten bleiben durchgezogen/unbekannt. Designer-Straßenmusterwahl durch kompakten Hinweis ersetzt, Farbe/Alpha/Breite behalten. JSON feste Regel roadSurfaceStyle=unpaved-dashed, bestehende Exporte kompatibel. Sechs gezielte Fälle plus Typografie/UI-Katalog/Bright/Diff grün; [Umfang/Prüfung](map-road-surfaces.md). Neue APK über GitHub Actions erfolgreich gebaut, geprüft und veröffentlicht. [Nachweis](build-139.md), [Änderungen](release-0.8.96.md). Gerätebild offen.
 
 ## Letzte Veröffentlichung: APK 0.8.95 / Build 138
