@@ -53,17 +53,18 @@ class ProfileSettingsRevisionTest {
                 assertEquals("design_dashboard_divider",appearance.getChildAt(3).tag)
                 assertNull(root.findViewWithTag<View>("design_appearance_divider"))
                 val recording=root.findViewWithTag<android.widget.LinearLayout>("bike_recording_settings")
-                assertTrue(recording.getChildAt(0) is RideNamingView)
-                assertEquals("map_elevation_correction",recording.getChildAt(1).tag)
-                val primary=recording.getChildAt(2) as BicycleFrameDropdown
-                val stored=recording.getChildAt(3) as BicycleFrameDropdown
+                assertEquals("map_elevation_correction",recording.getChildAt(0).tag)
+                assertTrue(recording.getChildAt(1) is RideNamingView)
+                assertEquals("recording_options_divider",recording.getChildAt(2).tag)
+                val primary=recording.getChildAt(3) as BicycleFrameDropdown
+                val stored=recording.getChildAt(4) as BicycleFrameDropdown
                 assertEquals(a.getString(R.string.fit_primary_values_title),primary.header.text.toString())
                 assertEquals(a.getString(R.string.fit_stored_values_title),stored.header.text.toString())
                 assertEquals(a.getString(R.string.bikes_fit_explanation),(primary.content.getChildAt(0) as android.widget.TextView).text.toString())
                 assertEquals(6,primary.content.findViewWithTag<RecordingSourcesView>("recording_sources").childCount)
                 assertEquals(a.getString(R.string.fit_stored_values_description),(stored.content.getChildAt(0) as android.widget.TextView).text.toString())
                 primary.setExpanded(true);stored.setExpanded(true)
-                val elevation=recording.getChildAt(1) as Switch
+                val elevation=recording.getChildAt(0) as Switch
                 elevation.performClick()
                 assertEquals("root attached=${root.isAttachedToWindow}, manager=${manager.isAttachedToWindow}, elevation attached=${elevation.isAttachedToWindow}, slot=${runtime.bikes.activeSlot}, type=$type, flat=$flat, dialog=${dialog.isShowing}",elevation.isChecked,runtime.preferences.getBoolean(FitElevationCorrection.preference,false))
                 val mapSettings=root.findViewWithTag<ViewGroup>("profile_section_content_${a.getString(R.string.ui_settings_map)}")

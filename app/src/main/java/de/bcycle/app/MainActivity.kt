@@ -750,13 +750,6 @@ class MainActivity : Activity() {
         BicycleForm.section(root,settingsThemes,R.string.bike_recording_title).titleView.tag="bike_recording_heading"
         var previewRevision=Long.MIN_VALUE
         var previewDetails:RouteDetails?=null
-        root.addView(RideNamingView(settingsContext,settingsThemes,latestRide={
-            if(previewRevision!=runtime.mapState.routeRevision) {
-                previewRevision=runtime.mapState.routeRevision
-                previewDetails=runtime.mapState.entries.firstOrNull { it.origin==TrackOrigin.RECORDED }?.details
-            }
-            previewDetails
-        }) { runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving })
         root.addView(Switch(settingsContext).apply {
             tag="map_elevation_correction";setText(R.string.elevation_enable)
             isChecked=preferences.getBoolean(FitElevationCorrection.preference,false)
@@ -765,6 +758,14 @@ class MainActivity : Activity() {
                     preferences.edit().putBoolean(FitElevationCorrection.preference,enabled).apply()
             }
         },LinearLayout.LayoutParams(-1,-2))
+        root.addView(RideNamingView(settingsContext,settingsThemes,latestRide={
+            if(previewRevision!=runtime.mapState.routeRevision) {
+                previewRevision=runtime.mapState.routeRevision
+                previewDetails=runtime.mapState.entries.firstOrNull { it.origin==TrackOrigin.RECORDED }?.details
+            }
+            previewDetails
+        }) { runtime.bikes.activeSlot==slot && !runtime.recording && !runtime.saving })
+        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="recording_options_divider" })
         fun recordingGroup(title:Int,key:String,icon:BicycleIcon)=BicycleFrameDropdown(settingsContext,settingsThemes,getString(title),
             open=key in expandedFitSources,leadingIcon=icon) { open ->
                 if(open) expandedFitSources.add(key) else expandedFitSources.remove(key)
