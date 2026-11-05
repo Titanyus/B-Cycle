@@ -61,47 +61,29 @@ public final class BCycleTextBucket extends TextBucket {
         for (TextItem it = labels; it != null; ) {
 
             BCycleCaptionLayout layout=BCycleCaptionLayout.place(it.text) ? BCycleCaptionLayout.get(it.text,it.label) : null;
-            float width = (layout==null ? it.width : layout.width) + 2 * mFontPadX;
-            float height = (int) (layout==null ? it.text.fontHeight : layout.height) + 0.5f;
+            float padding=BCycleCaptionLayout.padding(it.text);
+            float padX=Math.max(mFontPadX,padding);
+            float bodyHeight=layout==null ? it.text.fontHeight : layout.height;
+            float width=(float)Math.ceil((layout==null ? it.width : layout.width)+2*padX);
+            float height=(float)Math.ceil(bodyHeight+2*padding);
+            width=Math.min(width,2048);height=Math.min(height,1024);
 
             boolean shield=inlineShield(it.text);
             if(shield) {
                 width=Math.max(width,it.text.bitmap.getWidth());
                 height=Math.max(height,it.text.bitmap.getHeight());
             }
-            if (height > TEXTURE_HEIGHT)
-                height = TEXTURE_HEIGHT;
-
-            if (height > advanceY)
-                advanceY = (int) height;
-
-            if (x + width > TEXTURE_WIDTH) {
-                x = 0;
-                y += advanceY;
-                advanceY = (int) (height + 0.5f);
-
-                if (y + height > TEXTURE_HEIGHT) {
-                    t.offset = offsetIndices;
-                    t.indices = (numIndices - offsetIndices);
-                    offsetIndices = numIndices;
-
-                    t.next = pool.get();
-                    t = t.next;
-
-                    mCanvas.setBitmap(t.bitmap);
-
-                    x = 0;
-                    y = 0;
-                    advanceY = (int) height;
-                }
+            // Advance using only the existing row's height. A taller next cell must
+            // independently fit vertically, even if it still fits this row's width.
+            if(x+width>t.width) { x=0;y+=advanceY;advanceY=0; }
+            if(width>t.width || y+height>t.height) {
+                t.offset=offsetIndices;t.indices=numIndices-offsetIndices;offsetIndices=numIndices;
+                t.next=page((int)width,(int)height);t=t.next;mCanvas.setBitmap(t.bitmap);
+                x=0;y=0;advanceY=0;
             }
-
-            xx = x + mFontPadX;
-            yy = y + height - it.text.fontDescent;
-
-            // FIXME !!!
-            if (width > TEXTURE_WIDTH)
-                width = TEXTURE_WIDTH;
+            advanceY=Math.max(advanceY,(int)height);
+            xx=x+padX;
+            yy=y+(height-bodyHeight)/2+bodyHeight-it.text.fontDescent;
 
             if (it.text.bgFill != null)
                 mCanvas.fillRectangle(x + mFontPadX, y + 1, width - 2 * mFontPadX, height, it.text.bgFill.getColor());
@@ -141,6 +123,14 @@ public final class BCycleTextBucket extends TextBucket {
 
         t.offset = offsetIndices;
         t.indices = (numIndices - offsetIndices);
+    }
+
+    private static TextureItem page(int width,int height) {
+        if(width<=TEXTURE_WIDTH && height<=TEXTURE_HEIGHT) return pool.get();
+        int w=TEXTURE_WIDTH,h=TEXTURE_HEIGHT;
+        while(w<width) w*=2;
+        while(h<height) h*=2;
+        return new TextureItem(org.oscim.backend.CanvasAdapter.newBitmap(w,h,0));
     }
 
     @Override protected void addItem(TextItem item,float width,float height,float x,float y) {

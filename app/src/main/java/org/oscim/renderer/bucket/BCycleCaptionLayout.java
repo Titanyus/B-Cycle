@@ -34,8 +34,11 @@ public final class BCycleCaptionLayout {
     public static boolean place(TextStyle style) {
         return style.caption && style.style!=null && (style.style.equals("place-other") || style.style.equals("place-village") || style.style.equals("place-town") || style.style.startsWith("place-city"));
     }
-    public static float height(TextItem item) { return place(item.text) ? get(item.text,item.label).height : item.text.fontHeight; }
-    public static float width(TextItem item) { return place(item.text) ? get(item.text,item.label).width : item.width; }
+    public static float padding(TextStyle style) {
+        return style.style!=null && style.style.startsWith("place-") && style.stroke!=null ? (float)Math.ceil(style.stroke.getStrokeWidth()/2)+1 : 0;
+    }
+    public static float height(TextItem item) { return (place(item.text) ? get(item.text,item.label).height : item.text.fontHeight)+2*padding(item.text); }
+    public static float width(TextItem item) { return place(item.text) ? get(item.text,item.label).width+2*padding(item.text) : item.width; }
     private static String[] split(TextStyle style,String name) {
         if(!place(style)) return new String[]{name};
         String text=name.trim().replaceAll("\\s+"," ");
