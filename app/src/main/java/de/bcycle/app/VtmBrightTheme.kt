@@ -48,6 +48,7 @@ internal class VtmBrightTheme private constructor(
             matched.add(if(track) Tag(layer.flag.key+"-track","1") else layer.flag)
         }
         val styles=native.matchElement(type,matched,zoomLevel) ?: return null
+        val largePlace=tags.getValue("layer")=="place" && tags.getValue("class") in setOf("town","city")
         val priority=when(tags.getValue("layer")) {
             "place" -> when(tags.getValue("class")) {
                 "continent"->0;"country"->10;"state","province"->20;"city"->30;"town"->40
@@ -68,7 +69,13 @@ internal class VtmBrightTheme private constructor(
         synchronized(priorityCache) {
             val key=PriorityKey(styles,priority)
             return priorityCache.get(key) ?: styles.map { style ->
-                if(style is TextStyle) TextStyle.builder().set(style).priority(priority).build() else style
+                if(style is TextStyle) TextStyle.builder().set(style).priority(priority).apply {
+                    if(largePlace) {
+                        fontFamily(org.oscim.backend.canvas.Paint.FontFamily.BLACK)
+                        fontStyle(org.oscim.backend.canvas.Paint.FontStyle.NORMAL)
+                        fontSize(style.fontSize*.9f)
+                    }
+                }.build() else style
             }.toTypedArray().also { priorityCache.put(key,it) }
         }
     }

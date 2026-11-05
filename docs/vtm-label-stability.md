@@ -72,3 +72,9 @@ Hauptstraßen-Schilder/-namen mit radialem, zoomunabhängigem Wiederholungsabsta
 ## Frühere Übersicht am 05.11.2026
 
 Einblendeschwelle beim Reinzoomen an dieselbe Ausblendeschwelle angeglichen und Klassenreferenzen vorgezogen: Städte ab VTM 8, towns ab 9,5, Dörfer ab 11,5 auf den bedienbaren halben Stufen. Keine verzögerte Freigabe neuer Orte mehr. Vorhandene 240-ms-Fades/Größenpriorität/Beibehaltung bleiben. [Datenprobe, Schwellen und Prüfung](vtm-rgb-and-overview.md).
+
+## Schrift größerer Orte nach Build 135
+
+Kartendaten liefern Größenklassen city/town/village/hamlet usw.; keine eigenen Einwohnergrenzen in der App. Lokale echte OpenFreeMap-Kachelproben (9-270-177/10-540-354) bestätigen Günzburg und Krumbach (Schwaben) als town. Native Textvarianten für town und city verwenden FontFamily.BLACK (Android sans-serif-black, Gewicht900), FontStyle.NORMAL, 90 % der bisherigen zoomabhängigen Schriftgröße. Füllung/Halo/Priorität/Zoomschwellen/Fades erhalten; village/hamlet/Ortsteile und übergeordnete Gebiete unverändert. Bestehenden begrenzten Varianten-Cache nutzen, keine zusätzliche Typeface-Erzeugung oder Assetänderung.
+
+Gezielte Kotlin-Kompilation, Typografie und Diff geprüft; keine zusätzlichen Tests für die reine Schriftanpassung. Gerätebild offen.
