@@ -16,3 +16,5 @@ Bright-JSON/XML, drei eigene Shader, 111 Spritevarianten und Atlas bytegenau gep
 [Änderungen](release-0.8.93.md): FLAT-Sticky-Header SECONDARY; kompakter Editor mit Alpha aus Originalstil, Farbfeld in der Objektauswahlzeile, vier Iconaktionen nebeneinander, zuletzt gewähltes Objekt wiederherstellen.
 
 Acht gezielte Fälle in MapStyleEditorTest/VtmLiveColorsTest/BicycleSectionCardsTest erfolgreich; darunter native Alpha-/Reset-/Textur-/Queuefälle, JSON-/Profil-/Sicherungsrundreise, Objektwiederherstellung und SECONDARY über alle Farbprofile. Typografie/UI-Katalog/Bright-/Diff-Prüfung erfolgreich. Kein Gesamtlauf, keine lokale APK. Optische Geräteprüfung offen.
+
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4261284 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
