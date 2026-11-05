@@ -1,6 +1,8 @@
-# Aktueller Auftrag nach Build 135
+# Aktueller Stand: APK 0.8.94 / Build 137 veröffentlicht
 
-Linienbreite im Karteneditor (25–300 % je Zoom-Basis, optionales validiertes widthPercent im Objekt-JSON). Eigenständige Feld-/Wirtschaftswege: class track aus gemeinsamen Straßenstilen abspalten, zunächst halb so breit/braun/gestrichelt ohne breite Umrandung; unabhängig Farbe/Alpha/Muster/Breite bearbeiten. Radwegehervorhebung bis Kameraminimum6 statt9 mit abgestuften Übersichtslinien, soweit Quelldaten vorhanden. Drei gezielte Native-/Editor-/Export-/Profil-/Sicherungsfälle grün; Typografie/UI-Katalog/Bright-Generator/Diff grün. Nachweis: /workspace/.tools/map-width-and-tracks-tests.log. Ortsnamen-Folgeauftrag: town/city Black900 und 10 % kleiner, kleine Orte unverändert. Echte lokale Kachelprobe bestätigt Günzburg/Krumbach als town; keine eigenen Einwohnergrenzen. Gezielte Kotlin-Kompilation, Typografie und Diff grün. Neue APK ausdrücklich angefordert: 0.8.94 / code164 / erwarteter Build137; Build136 zugunsten des Designer-Folgeauftrags abgebrochen. Vier Schriftklassen im kompakten Rahmen-Dropdown, Gewichte100–900/Größen50–200 %, Profil/Backup/Export und native Gewichtung/Metriken gezielt grün. Neuer GitHub-Actions-Build und Veröffentlichung folgen.
+Linienbreite im Karteneditor (25–300 % je Zoom-Basis, optionales validiertes widthPercent im Objekt-JSON). Eigenständige Feld-/Wirtschaftswege: class track aus gemeinsamen Straßenstilen abspalten, zunächst halb so breit/braun/gestrichelt ohne breite Umrandung; unabhängig Farbe/Alpha/Muster/Breite bearbeiten. Radwegehervorhebung bis Kameraminimum6 statt9 mit abgestuften Übersichtslinien, soweit Quelldaten vorhanden. Drei gezielte Native-/Editor-/Export-/Profil-/Sicherungsfälle grün; Typografie/UI-Katalog/Bright-Generator/Diff grün. Nachweis: /workspace/.tools/map-width-and-tracks-tests.log. Ortsnamen-Folgeauftrag: town/city Black900 und 10 % kleiner, kleine Orte unverändert. Echte lokale Kachelprobe bestätigt Günzburg/Krumbach als town; keine eigenen Einwohnergrenzen. Gezielte Kotlin-Kompilation, Typografie und Diff grün. Neue APK über GitHub Actions erfolgreich gebaut, geprüft und veröffentlicht. [Buildnachweis](build-137.md), [Änderungen](release-0.8.94.md). Gerätebild offen.
+
+Designer-Ergänzung enthalten: geschlossenes Dropdown Ortsbeschriftung für CITY/TOWN/VILLAGE/HAMLET; unabhängige Gewichte100–900 und Größen50–200 %. MapPlaceTextEditorTest für native Gewichte/Metriken, UI, Profil/Backup/JSON/Reset grün.
 
 ## Letzte Veröffentlichung: APK 0.8.93 / Build 135
 
@@ -82,10 +84,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.93 / Build 135](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.93-release-135.apk), code163, Quelle `af4191a9982b39a57fbc0703d281eee812615037`, 4261284 Bytes, SHA-256 `dac5119f9abd1a3b795f85d2f588c36ae46f9b3d242dd2acff3eecb656ec43e1`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-135.md). Vorige APK: [0.8.92 / Build 134](build-134.md).
+[APK 0.8.94 / Build 137](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.94-release-137.apk), code164, Quelle `eb3cf0ad148af07bb36ccba004d81fe85a9634a7`, 4278364 Bytes, SHA-256 `0f23fa0ef0a53a656b95e72f94ae26230bb3f81c26ed7e80db19443d3845bcd4`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-137.md). Vorige APK: [0.8.93 / Build 135](build-135.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.94 / code 164 / Build 136. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.95 / code 165 / Build 138. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.

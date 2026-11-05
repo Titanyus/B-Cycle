@@ -7,4 +7,4 @@
 
 Drei gezielte Native-/Editor-/Export-/Profil-/Sicherungsfälle erfolgreich, Schriftanpassung gezielt kompiliert, zusätzlich ein umfassender gezielter UI-/Profil-/Sicherungs-/JSON-/Native-Paint-Test für alle vier Schriftklassen erfolgreich. Typografie/UI-Katalog/Bright-Generator/Diff geprüft. Kein Gesamtlauf und keine lokale APK. Optische Geräteprüfung offen. [Editor](vtm-map-editor.md), [Ortsnamen](vtm-label-stability.md).
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-137.md).
