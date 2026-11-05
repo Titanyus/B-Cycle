@@ -58,7 +58,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     }
     private fun secondaryControl(view:View) {
         BicycleComponents.bindTheme(view,themes) {
-            view.background=BicycleComponents.controlBackground(context,it,it.secondary)
+            view.background=BicycleComponents.controlBackground(context,it,if(view is EditText) it.secondary else BicycleComponents.controlSurface(context,it))
             view.backgroundTintList=null
         }
     }
@@ -284,7 +284,7 @@ internal class RouteQueryPopup(private val context:Context,private val themes:Th
     }
     private fun shell(title:Int) {
         isFocusable=true;isOutsideTouchable=true;inputMethodMode=INPUT_METHOD_NEEDED
-        setBackgroundDrawable(BicycleComponents.controlBackground(context,themes.active.tokens))
+        setBackgroundDrawable(BicycleComponents.controlBackground(context,themes.active.tokens,BicycleComponents.controlSurface(context,themes.active.tokens)))
         // Resolve spacing before measuring; attachment must not make the menu taller afterwards.
         for(i in 0 until body.childCount) if(body.getChildAt(i) is Button) BicycleComponents.controlSpacing(body.getChildAt(i))
         content.contentDescription=context.getString(title)

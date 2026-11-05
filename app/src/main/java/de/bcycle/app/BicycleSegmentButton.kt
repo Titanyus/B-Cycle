@@ -61,7 +61,7 @@ internal class BicycleSegmentButton(context: Context, private val themes: ThemeM
     override fun drawableStateChanged() { super.drawableStateChanged();if(ready) paint(themes.active.tokens) }
     private fun paint(tokens:ThemeTokens) {
         val selected=isChecked && showSelectionHighlight
-        val fill=if(selected) tokens.primary else tokens.secondary
+        val fill=if(selected) tokens.primary else BicycleComponents.controlSurface(context,tokens)
         val foreground=if(!selected || ThemeValidator.contrast(tokens.foreground,fill)>=ThemeValidator.minimumTextContrast) tokens.foreground
             else if(ThemeValidator.contrast(Color.BLACK,fill)>=ThemeValidator.contrast(Color.WHITE,fill)) Color.BLACK else Color.WHITE
         BicycleAppearance.selected(this,selected)

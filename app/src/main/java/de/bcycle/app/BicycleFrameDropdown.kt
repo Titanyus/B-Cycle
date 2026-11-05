@@ -61,7 +61,7 @@ internal class BicycleFrameDropdown(context:Context,themes:ThemeManager,title:St
         addView(row,LayoutParams(-1,-2));addView(content,LayoutParams(-1,-2))
         BicycleComponents.bindTheme(this,themes) { tokens ->
             background=RippleDrawable(ColorStateList.valueOf((tokens.foreground and 0xffffff) or 0x26000000),
-                BicycleComponents.controlBackground(context,tokens),GradientDrawable().apply {
+                BicycleComponents.controlBackground(context,tokens,BicycleComponents.controlSurface(context,tokens)),GradientDrawable().apply {
                     setColor(Color.WHITE);cornerRadius=BicycleDesign.dp(context,BicycleDesign.inputRadius).toFloat()
                 })
         }

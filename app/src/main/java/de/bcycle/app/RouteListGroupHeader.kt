@@ -20,7 +20,15 @@ internal class RouteListGroupHeader(context:Context,themes:ThemeManager):LinearL
     private val average=RouteListReading(context,themes,R.string.route_list_average,R.string.analysis_kmh)
     init {
         orientation=VERTICAL;visibility=GONE
-        BicycleComponents.background(this,themes,ThemeRole.TERTIARY)
+        BicycleComponents.bindTheme(this,themes) { tokens ->
+            background=object:android.graphics.drawable.ColorDrawable(tokens.tertiary) {
+                private val rule=android.graphics.Paint().apply { color=BicycleComponents.sectionRuleColor(tokens) }
+                override fun draw(canvas:android.graphics.Canvas) {
+                    super.draw(canvas)
+                    canvas.drawRect(bounds.left.toFloat(),bounds.top.toFloat(),bounds.right.toFloat(),bounds.top+dp(2).toFloat(),rule)
+                }
+            }
+        }
         setPadding(dp(BicycleDesign.verticalPadding),dp(BicycleDesign.rowGap),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.sectionDividerGap))
         // A heading is not a ride action. ListView can still intercept a vertical scroll here.
         setOnTouchListener { _,_->true }

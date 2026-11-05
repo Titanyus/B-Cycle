@@ -60,7 +60,7 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
             private val matte=android.graphics.Paint().apply { color=tokens.secondary }
             private val fill=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color=tokens.tertiary }
             private val rule=android.graphics.Paint().apply {
-                color=(tokens.foreground and 0xffffff) or ((android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
+                color=BicycleComponents.sectionRuleColor(tokens)
             }
             private val card=android.graphics.RectF()
             override fun draw(canvas:android.graphics.Canvas) {
@@ -77,7 +77,7 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
                 canvas.drawRoundRect(card,radius,radius,fill)
                 canvas.restoreToCount(saved)
             }
-        }.apply { setColor(if(flat) tokens.secondary else tokens.tertiary);cornerRadii=FloatArray(8) { radius } }
+        }.apply { setColor(tokens.tertiary);cornerRadii=FloatArray(8) { radius } }
     }
     /** Opt-in collapsing; the title remains centered by reserving equal icon space on each side. */
     fun accordion(content:View,open:Boolean=true,changed:(Boolean)->Unit={}) {

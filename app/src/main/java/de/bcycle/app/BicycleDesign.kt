@@ -494,6 +494,8 @@ object BicycleComponents {
         // Do not clear PasswordTransformationMethod when enforcing mixed-case display.
         if(view.isAllCaps) view.isAllCaps=false
     }
+    internal fun controlSurface(context:Context,tokens:ThemeTokens)=if(BicycleAppearance.flat(context)) tokens.tertiary else tokens.secondary
+    internal fun sectionRuleColor(tokens:ThemeTokens)=(tokens.foreground and 0xffffff) or ((android.graphics.Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
     internal fun controlBackground(context:Context,tokens:ThemeTokens,fill:Int=tokens.secondary)=(
         GradientDrawable()).apply {
         setColor(fill);cornerRadius=dp(context,BicycleDesign.inputRadius).toFloat()
@@ -518,7 +520,7 @@ object BicycleComponents {
         row.setPadding(border,border,border,border)
     }
     internal fun outlinedControl(view:View,manager:ThemeManager) {
-        bindTheme(view,manager) { view.background=controlBackground(view.context,it).apply { if(view.getTag(R.id.inline_control_row)==true) cornerRadius=dp(view.context,BicycleDesign.inputRadius).toFloat() };view.backgroundTintList=null }
+        bindTheme(view,manager) { view.background=controlBackground(view.context,it,if(view is EditText) it.secondary else controlSurface(view.context,it)).apply { if(view.getTag(R.id.inline_control_row)==true) cornerRadius=dp(view.context,BicycleDesign.inputRadius).toFloat() };view.backgroundTintList=null }
     }
     fun specialFilled(context:Context,manager:ThemeManager,label:String,click:()->Unit):Button=BicycleSpecialButton(context,manager,true).apply { text=label;setOnClickListener { click() } }
     fun specialOutline(context:Context,manager:ThemeManager,label:String,click:()->Unit):Button=BicycleSpecialButton(context,manager,false).apply { text=label;setOnClickListener { click() } }

@@ -19,7 +19,7 @@ internal object BicycleInputFrame {
     }
     fun selectionBackground(view:View,tokens:ThemeTokens,selected:Boolean):Drawable {
         val fill=GradientDrawable().apply {
-            setColor(if(selected) tokens.primary else tokens.secondary)
+            setColor(if(selected) tokens.primary else BicycleComponents.controlSurface(view.context,tokens))
             cornerRadius=BicycleDesign.dp(view.context,BicycleDesign.inputRadius).toFloat()
         }
         if(!selected) return fill

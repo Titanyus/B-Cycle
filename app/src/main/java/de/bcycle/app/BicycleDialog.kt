@@ -280,7 +280,7 @@ internal object BicycleDialogStyle {
                 dp(view, BicycleDesign.horizontalPadding), dp(view, BicycleDesign.verticalPadding))
             BicycleComponents.bindTheme(view, themes) {
                 view.setTextColor(colors(it.foreground)); view.backgroundTintList = null
-                view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), BicycleComponents.controlBackground(view.context,it), null)
+                view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), BicycleComponents.controlBackground(view.context,it,BicycleComponents.controlSurface(view.context,it)), null)
                 view.compoundDrawablesRelative.filterNotNull().forEach { drawable -> drawable.setTint(it.foreground) }
             }
         } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(BicycleComponents.textColor(view,themes,it)) }
@@ -327,13 +327,13 @@ internal object BicycleDialogStyle {
         view.setPadding(border,border,border,border)
         BicycleComponents.bindTheme(view, themes) { tokens ->
             view.backgroundTintList = null
-            view.background = LayerDrawable(arrayOf(BicycleComponents.controlBackground(view.context,tokens),
+            view.background = LayerDrawable(arrayOf(BicycleComponents.controlBackground(view.context,tokens,BicycleComponents.controlSurface(view.context,tokens)),
                 BicycleIcons.drawable(view.context, BicycleIcon.Expand, tokens.foreground))).apply {
                 setLayerSize(1, dp(view, BicycleDesign.iconSize), dp(view, BicycleDesign.iconSize))
                 setLayerGravity(1, Gravity.END or Gravity.CENTER_VERTICAL)
                 setLayerInsetEnd(1, dp(view, BicycleDesign.horizontalPadding))
             }
-            view.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(view.context,tokens,tokens.secondary))
+            view.setPopupBackgroundDrawable(BicycleComponents.dropdownBackground(view.context,tokens,BicycleComponents.controlSurface(view.context,tokens)))
         }
         if(view is MapSourcePicker) return // Own disabled headings/divider; keep the central frame above.
         val selected = view.selectedItemPosition

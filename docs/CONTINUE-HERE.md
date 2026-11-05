@@ -1,4 +1,6 @@
-# Änderungen nach Build139
+# Änderungen für APK0.8.97 / Build140
+
+- Flat-Flächentausch: Sticky-Header TERTIARY, Inhalts-/Zwischenflächen SECONDARY, normale Dropdowns/Accordions/Buttons TERTIARY. Glow, Eingaben und aktive PRIMARY-Flächen erhalten. Streckengruppenköpfe in sämtlichen Sortierungen mit gemeinsamer oberer2dp-Rahmenlinie. Gezielt SectionCards/RouteStickyList grün; zentrale Prüfungen grün. Neue APK beauftragt, Veröffentlichung läuft.
 
 - FLAT-Trainingshilfe: HSV-Zwischenfarben statt RGB-Braun, sowohl zeitlich als auch an Zonengrenzen (Puls/Leistung, aktuell/Mittel, Alle Zonen/Zone2). Normale SRC_OVER-Zeichnung, Endfarben, Dauer und Akkusparverhalten erhalten. Glow bleibt beim bisherigen Verfahren. [Details/Prüfung](dashboard-training-help.md). Keine APK beauftragt.
 

@@ -108,6 +108,9 @@ class RouteStickyListTest {
                     themes.activate(BicycleThemes.presets[if(flat) 0 else 1].id)
                     draw();image.eraseColor(android.graphics.Color.TRANSPARENT);list.draw(Canvas(image))
                     assertEquals(themes.active.tokens.tertiary,image.getPixel(list.paddingLeft+1,2))
+                    val expected=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+                    Canvas(expected).apply { drawColor(themes.active.tokens.tertiary);drawColor(BicycleComponents.sectionRuleColor(themes.active.tokens)) }
+                    assertEquals(expected.getPixel(0,0),image.getPixel(list.paddingLeft+1,0));expected.recycle()
                 }
             } finally { image.recycle() }
         } finally { host.pause().stop().destroy() }

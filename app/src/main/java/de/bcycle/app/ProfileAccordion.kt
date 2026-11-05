@@ -61,7 +61,7 @@ internal class ProfileAccordion(context:Context,themes:ThemeManager,title:String
             addView(body,FrameLayout.LayoutParams(-1,-2))
             (body as? ViewGroup)?.apply { clipChildren=false;clipToPadding=false }
             BicycleComponents.bindTheme(this,themes) { tokens ->
-                setBackgroundColor(tokens.secondary)
+                setBackgroundColor(BicycleComponents.controlSurface(context,tokens))
             }
         }
         addView(header,LayoutParams(-1,-2))

@@ -60,7 +60,7 @@ internal object BicycleSectionCards {
                 private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
                 override fun draw(canvas:Canvas) {
                     val tokens=manager.active.tokens
-                    if(BicycleAppearance.flat(root.context)) { paint.color=tokens.tertiary;canvas.drawRect(bounds,paint);return }
+                    if(BicycleAppearance.flat(root.context)) { paint.color=tokens.secondary;canvas.drawRect(bounds,paint);return }
                     if(headers.none { it.expanded!=null }) { original?.let { it.bounds=bounds;it.draw(canvas) };return }
                     // The section cards need a distinct page surface; dialog styling stays independent.
                     paint.color=tokens.color(backdrop);canvas.drawRect(bounds,paint)
@@ -85,7 +85,7 @@ internal object BicycleSectionCards {
         }
         (0 until root.childCount).map(root::getChildAt).forEach { apply(it,backdrop) }
     }
-    /** Section surfaces use TERTIARY in Flat and the shared card surface in Glow. */
+    /** Section surfaces use SECONDARY in Flat and the shared card surface in Glow. */
     fun content(content:View,header:BicycleSectionHeader) {
         val transparent=object:Drawable() {
             override fun draw(canvas:Canvas) = Unit
@@ -94,7 +94,7 @@ internal object BicycleSectionCards {
             @Deprecated("Native drawable contract") override fun getOpacity()=PixelFormat.TRANSPARENT
         }
         BicycleComponents.bindTheme(content,header.manager) { tokens ->
-            content.background=if(BicycleAppearance.flat(content.context)) android.graphics.drawable.ColorDrawable(tokens.tertiary) else transparent
+            content.background=if(BicycleAppearance.flat(content.context)) android.graphics.drawable.ColorDrawable(tokens.secondary) else transparent
             (header.parent as? View)?.invalidate()
         }
     }

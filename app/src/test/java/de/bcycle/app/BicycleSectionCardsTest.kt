@@ -96,14 +96,14 @@ class BicycleSectionCardsTest {
                     assertEquals(0,first.left);assertEquals(360,first.right)
                     assertEquals(16,content.left);assertEquals(344,content.right)
                     assertEquals(32,second.top-content.bottom)
-                    assertEquals(tokens.tertiary,bitmap.getPixel(180,first.bottom+4))
-                    assertEquals(tokens.tertiary,bitmap.getPixel(content.left+2,content.top+2))
+                    assertEquals(tokens.secondary,bitmap.getPixel(180,first.bottom+4))
+                    assertEquals(tokens.secondary,bitmap.getPixel(content.left+2,content.top+2))
                     val ruleImage=Bitmap.createBitmap(first.width,first.height,Bitmap.Config.ARGB_8888)
                     first.background.setBounds(0,0,first.width,first.height)
                     first.background.draw(Canvas(ruleImage))
                     val ruleColor=(tokens.foreground and 0xffffff) or ((Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
                     val reference=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
-                    val headerColor=tokens.secondary
+                    val headerColor=tokens.tertiary
                     Canvas(reference).apply { drawColor(headerColor);drawColor(ruleColor) }
                     assertEquals(reference.getPixel(0,0),ruleImage.getPixel(first.width/2,0))
                     reference.recycle()
