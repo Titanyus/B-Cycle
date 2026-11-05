@@ -7,4 +7,4 @@
 
 Gezielte Prüfungen erfolgreich: drei Ortsnamen-/Atlas-/Schilder-/Exportfälle; vier Cycling-/Native-/Profil-/Backup-/JSON-/Cache-/Farb-/Trackfälle; ein echter Karten-Einstellungs-/Raster-/Vektor-Integrationstest. Öffentliche Übersichts-/Detaildatenquelle geprüft. Typografie/UI-Katalog/Bright-Generator/Diff grün, kein Gesamtlauf und keine lokale APK. Optische Geräteprüfung offen. [Kartenoptionen](cycling-map-options.md), [Ortsnamen](vtm-label-stability.md).
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-138.md).

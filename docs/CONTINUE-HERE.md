@@ -1,8 +1,10 @@
-# Änderungen nach Build137
+# Aktueller Stand: APK 0.8.95 / Build 138 veröffentlicht
 
-Lange mehrteilige Ortsnamen zweizeilig, ohne Wörter zu trennen: geografische Zusätze zusammen unten, sonst ausgeglichene Wortgruppen. Name/Zuordnung erhalten; native Atlaszeichnung und Kollisionsmaße gemeinsam erweitert. Drei gezielte Pixel-/Platzierungs-/Schilder-/JSON-Ebenen-/Profil-/Sicherungsfälle grün (place-wrap-and-layer-export-tests.log). Aktuelle Ebenenauswahl wird bereits als visibility/cycleways exportiert und gezielt bestätigt. Neue APK ausdrücklich beauftragt: 0.8.95 / code165 / erwarteter Build138; GitHub-Actions-Build und Veröffentlichung laufen.
+Lange mehrteilige Ortsnamen zweizeilig, ohne Wörter zu trennen: geografische Zusätze zusammen unten, sonst ausgeglichene Wortgruppen. Name/Zuordnung erhalten; native Atlaszeichnung und Kollisionsmaße gemeinsam erweitert. Drei gezielte Pixel-/Platzierungs-/Schilder-/JSON-Ebenen-/Profil-/Sicherungsfälle grün (place-wrap-and-layer-export-tests.log). Aktuelle Ebenenauswahl wird bereits als visibility/cycleways exportiert und gezielt bestätigt. Neue APK über GitHub Actions erfolgreich gebaut, geprüft und veröffentlicht. [Nachweis](build-138.md), [Änderungen](release-0.8.95.md).
 
-Radwege/Radrouten auf Nutzerentscheidung getrennt als eigene Karten-Einstellungen mit Track-Farbe/HEX/Breite/Deckkraft und Schalter umgesetzt. Radrouten als optionale echte Waymarked-Trails-Vektorübersicht, default aus; Radwege behalten bisherigen Schalter und Quelldetailgrenzen. cyclingStyles plus Ebenenauswahl im JSON, Profil/Backup erhalten. Feldwegfarbe: irreführende PATH-Beschriftung getrennt, native Live-Farbe/Dash geprüft. Vier gezielte Optionen-/Vektor-/Profil-/Backup-/Export-/Farb-/Trackfälle plus echte MainActivity-Integration grün. [Umfang/Quelle/Begrenzungen](cycling-map-options.md). APK-Auftrag aktiv (0.8.95/code165/Build138). Restlicher Designer bleibt Arbeitsmittel für spätere feste Stile.
+Radwege/Radrouten auf Nutzerentscheidung getrennt als eigene Karten-Einstellungen mit Track-Farbe/HEX/Breite/Deckkraft und Schalter umgesetzt. Radrouten als optionale echte Waymarked-Trails-Vektorübersicht, default aus; Radwege behalten bisherigen Schalter und Quelldetailgrenzen. cyclingStyles plus Ebenenauswahl im JSON, Profil/Backup erhalten. Feldwegfarbe: irreführende PATH-Beschriftung getrennt, native Live-Farbe/Dash geprüft. Vier gezielte Optionen-/Vektor-/Profil-/Backup-/Export-/Farb-/Trackfälle plus echte MainActivity-Integration grün. [Umfang/Quelle/Begrenzungen](cycling-map-options.md). In APK0.8.95/Build138 enthalten. Restlicher Designer bleibt Arbeitsmittel für spätere feste Stile.
+
+Belagsfrage während Build138: Braun gestrichelt zeigt Wegeart; surface=paved/unpaved aus der Quelle wird noch nicht als eigener Belagstil ausgewertet. Nutzer darüber informiert; keine gesonderte Belagimplementierung beauftragt.
 
 ## Letzte Veröffentlichung: APK 0.8.94 / Build 137
 
@@ -92,10 +94,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.94 / Build 137](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.94-release-137.apk), code164, Quelle `eb3cf0ad148af07bb36ccba004d81fe85a9634a7`, 4278364 Bytes, SHA-256 `0f23fa0ef0a53a656b95e72f94ae26230bb3f81c26ed7e80db19443d3845bcd4`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-137.md). Vorige APK: [0.8.93 / Build 135](build-135.md).
+[APK 0.8.95 / Build 138](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.95-release-138.apk), code165, Quelle `9ea2eccca0bd9ea030b1c909491291ffa8d96f92`, 4279004 Bytes, SHA-256 `7dce365074092c1f2ade1b7f2dacdc37c20dbcbbc3ee2c48058f12210b1c8b95`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-/Cycling-Assets, Texte und R8-Namen geprüft. [Nachweis](build-138.md). Vorige APK: [0.8.94 / Build 137](build-137.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.95 / code 165 / Build 138. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.96 / code 166 / Build 139. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
