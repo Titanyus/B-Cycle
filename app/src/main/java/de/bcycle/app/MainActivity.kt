@@ -1716,12 +1716,21 @@ class MainActivity : Activity() {
     }
     private fun routeImportChoice() {
         val anchor = routeImportButton ?: return
-        routeDropdown(anchor, listOf(getString(R.string.ui_import_planned), getString(R.string.ui_import_recorded), getString(R.string.archive_import_title),getString(R.string.dreeve_import_title)),
-            listOf(BicycleIcon.TrackImported, BicycleIcon.TrackRecorded, BicycleIcon.Import,BicycleIcon.Dreeve), listOf("route_import_planned", "route_import_recorded", "route_import_archive","route_import_dreeve"),
-            enabled={ it!=3 || ActivityServiceSettings(this,ActivityService.DREEVE).dreeveImportConfigured() }) {
-            if(it==3) showDreeveImport() else importRoute(recorded = it == 1, archive = it == 2)
+        val actions=RouteImportAction.entries
+        routeDropdown(anchor,actions.map { getString(it.title) },actions.map { it.icon },actions.map { it.viewTag },
+            enabled={ routeImportEnabled(actions[it]) }) { performRouteImport(actions[it]) }
+    }
+    private fun routeImportEnabled(action:RouteImportAction)=action!=RouteImportAction.DREEVE || ActivityServiceSettings(this,ActivityService.DREEVE).dreeveImportConfigured()
+    private fun performRouteImport(action:RouteImportAction) {
+        if(!routeImportEnabled(action)) return
+        when(action) {
+            RouteImportAction.PLANNED->importRoute()
+            RouteImportAction.RECORDED->importRoute(recorded=true)
+            RouteImportAction.ARCHIVE->importRoute(archive=true)
+            RouteImportAction.DREEVE->showDreeveImport()
         }
     }
+
     private fun showArchiveImport(uri:android.net.Uri) {
         val closed=java.util.concurrent.atomic.AtomicBoolean(false)
         var archive:PreparedRideArchive?=null
@@ -1888,7 +1897,7 @@ class MainActivity : Activity() {
         screen.show(); return screen
     }
     private fun dataSettings(focusRoutes:Boolean=false) {
-        val content = DataSettingsView(settingsContext,settingsThemes) { action -> when(action) {
+        val content = DataSettingsView(settingsContext,settingsThemes,importSelected=::performRouteImport,canImport=::routeImportEnabled) { action -> when(action) {
             DataAction.HRV_IMPORT -> try {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
                     .putExtra(Intent.EXTRA_MIME_TYPES,arrayOf("text/csv","text/comma-separated-values","application/csv","text/plain","application/octet-stream","application/vnd.ms-excel")),19)
@@ -1899,7 +1908,7 @@ class MainActivity : Activity() {
             DataAction.RIDE_RESTORE -> chooseBackupSource(R.string.ride_restore_title) { requestRideBackup(it,RideBackupAction.IMPORT) }
             DataAction.BACKUP -> Unit
             DataAction.RESTORE -> chooseBackupSource(R.string.data_restore,::requestSettingsRestore)
-            DataAction.IMPORT -> Unit // Inline accordion; actions reuse importRoute below.
+            DataAction.IMPORT -> Unit // Legacy ID; individual entries use shared RouteImportAction.
             DataAction.RIDE_BACKUP -> Unit
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
             DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)
@@ -1925,7 +1934,7 @@ class MainActivity : Activity() {
         val intervals=intervalsSettings(screen)
         content.install(DataAction.INTERVALS,intervals,intervals.findViewWithTag("intervals_enabled"))
         for(service in listOf(ActivityService.DREEVE,ActivityService.STRAVA)) {
-            val form=activityServiceSettings(service,screen)
+            val form=activityServiceSettings(service,screen,content::refreshImportAvailability)
             content.install(if(service==ActivityService.DREEVE) DataAction.DREEVE else DataAction.STRAVA,form,form.findViewWithTag("service_enabled"))
         }
         if(focusRoutes) content.addOnLayoutChangeListener(object:View.OnLayoutChangeListener {
@@ -2202,7 +2211,7 @@ class MainActivity : Activity() {
             }
         }
     }
-    private fun activityServiceSettings(service:ActivityService,owner:AlertDialog?=null):View {
+    private fun activityServiceSettings(service:ActivityService,owner:AlertDialog?=null,configurationChanged:()->Unit={}):View {
         val settings=ActivityServiceSettings(this,service)
         val worker=java.util.concurrent.Executors.newSingleThreadExecutor()
         val revision=java.util.concurrent.atomic.AtomicLong()
@@ -2251,6 +2260,7 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     if(isDestroyed) return@runOnUiThread
                     content.busy(false)
+                    configurationChanged()
                     if(result.isSuccess && authorization!=null) {
                         runCatching { startActivity(Intent(Intent.ACTION_VIEW,authorization)) }.onFailure {
                             BicycleFeedback.update(content.result,getString(R.string.service_auth_failed))
@@ -2273,6 +2283,7 @@ class MainActivity : Activity() {
                         val input=if(service==ActivityService.DREEVE) content.address else content.clientId
                         input.error=if(result.isFailure) getString(R.string.service_check_settings) else null
                         content.showAccount(settings.read().account)
+                        configurationChanged()
                         if(service==ActivityService.DREEVE) content.nameSync.isEnabled=!syncing && result.isSuccess && settings.dreeveImportConfigured()
                     } }
                 }

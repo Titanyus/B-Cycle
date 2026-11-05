@@ -172,6 +172,9 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
         <item quantity="other">Alter: %d Jahre</item>
     </plurals>
     <string name="data_title">Backup &amp; Cloud</string>
+    <string name="data_group_save">Sichern</string>
+    <string name="data_group_restore">Wiederherstellen</string>
+    <string name="data_group_import">Importieren</string>
     <string name="data_global">Backup &amp; Restore</string>
     <string name="data_routes">Cloud</string>
     <string name="data_backup">Einstellungen sichern</string>

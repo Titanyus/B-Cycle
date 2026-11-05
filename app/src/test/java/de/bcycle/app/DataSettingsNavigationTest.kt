@@ -50,7 +50,7 @@ class DataSettingsNavigationTest {
             val before=settings.read();val (root,data)=open(activity);measure(data)
             val text=views(data.window!!.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(text.indexOf(activity.getString(R.string.data_global))<text.indexOf(activity.getString(R.string.data_routes)))
-            assertEquals(listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_DREEVE","data_INTERVALS","data_STRAVA"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_IMPORT","data_LOCAL","data_CLOUD","data_DREEVE","data_INTERVALS","data_STRAVA") } })
+            assertEquals(listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_DREEVE","data_INTERVALS","data_STRAVA"),views(data.window!!.decorView).mapNotNull { (it.tag as? String)?.takeIf { it in listOf("data_BACKUP","data_RESTORE","data_LOCAL","data_CLOUD","data_DREEVE","data_INTERVALS","data_STRAVA") } })
             val frames=listOf("data_frame_BACKUP","data_frame_RIDE_BACKUP","data_frame_HRV_EXPORT","data_HRV_RESTORE_GROUP").map {
                 data.window!!.decorView.findViewWithTag<BicycleFrameDropdown>(it)
             }
@@ -86,13 +86,28 @@ class DataSettingsNavigationTest {
             assertNull(manager.window!!.decorView.findViewWithTag<View>("route_settings"))
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun routeImportIsDisabledAndHrvRestoreGroupsItsTwoExplicitActions() {
+    @Test fun individualRouteImportsAreEnabledAndHrvRestoreKeepsItsExplicitActions() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val (_,screen)=open(a)
-            assertFalse(screen.window!!.decorView.findViewWithTag<View>("data_IMPORT").isEnabled)
-            assertFalse(screen.window!!.decorView.findViewWithTag<View>("data_expand_IMPORT").isEnabled)
-            assertEquals(View.GONE,screen.window!!.decorView.findViewWithTag<View>("data_details_IMPORT").visibility)
+            val root=screen.window!!.decorView
+            assertNull(root.findViewWithTag<View>("data_IMPORT"))
+            for(action in RouteImportAction.entries) {
+                val row=root.findViewWithTag<View>(action.viewTag)
+                assertNotNull(row);assertFalse(row is BicycleFrameDropdown)
+                assertEquals(action!=RouteImportAction.DREEVE,row.isEnabled)
+            }
+            val content=root.findViewWithTag<DataSettingsView>("data_settings")
+            val headings=listOf("data_group_save","data_group_restore","data_group_import").map { content.findViewWithTag<TextView>(it) }
+            assertEquals(listOf("Sichern","Wiederherstellen","Importieren"),headings.map { it.text.toString() })
+            assertTrue(views(content).indexOf(headings[0])<views(content).indexOf(headings[1]))
+            assertTrue(views(content).indexOf(headings[1])<views(content).indexOf(headings[2]))
+            assertEquals("data_import_divider",(headings[2].parent as ViewGroup).getChildAt((headings[2].parent as ViewGroup).indexOfChild(headings[2])-1).tag)
+            for((tag,code) in listOf("route_import_planned" to 8,"route_import_recorded" to 9,"route_import_archive" to 15)) {
+                root.findViewWithTag<View>(tag).performClick()
+                val selected=shadowOf(a).nextStartedActivityForResult
+                assertEquals(code,selected.requestCode);assertEquals(Intent.ACTION_OPEN_DOCUMENT,selected.intent.action)
+            }
             val frame=screen.window!!.decorView.findViewWithTag<BicycleFrameDropdown>("data_HRV_RESTORE_GROUP")
             frame.header.performClick();measure(screen)
             click(screen,"data_HRV_IMPORT")

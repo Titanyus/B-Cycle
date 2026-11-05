@@ -30,7 +30,7 @@ class DreeveImportNavigationTest {
             manager.window!!.decorView.findViewWithTag<View>("route_import").performClick()
             val popup=MainActivity::class.java.getDeclaredField("routePopup").apply { isAccessible=true }.get(a) as ListPopupWindow
             val list=popup.listView!!
-            assertEquals(4,list.adapter.count)
+            assertEquals(RouteImportAction.entries.size,list.adapter.count)
             val dreeve=list.adapter.getView(3,null,list)
             assertEquals("route_import_dreeve",dreeve.tag)
             assertFalse(list.adapter.isEnabled(3));assertFalse(dreeve.isEnabled);assertEquals(.5f,dreeve.alpha,0f)

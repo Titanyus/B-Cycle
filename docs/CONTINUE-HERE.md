@@ -1,5 +1,7 @@
 # Änderungen nach Build139
 
+- Backup & Restore in „Sichern“, „Wiederherstellen“, „Importieren“ gegliedert. Reaktivierter Streckenimport als vier einzelne Menüzeilen statt Accordion; gemeinsame RouteImportAction-Liste, Handler und Dreeve-Freigabe mit dem Streckenmanager. Drei lokale Picker und Gruppierung sowie Dreeve-Verfügbarkeit gezielt grün, zentrale Typografie/UI-Katalog/Diff grün. [Details/Prüfung](backup-route-import-groups.md). Noch keine neue APK beauftragt.
+
 - Ortsnamen-Flimmern/Barcode reproduziert (UV2108 bei zulässigen2048 am256px-Atlasrand) und durch vollständige Platzprüfung je Zelle behoben. Kleine/größere ein-/zweizeilige Labels sowie sehr große Glyphen als Pixel/UV/Seitenbereiche getestet; Halo-Padding berücksichtigt. [Befund/Prüfung](vtm-label-stability.md).
 - Weiße Ortskonturen doppelt (Orte2,4, Länder/Kontinente4) und100 % Deckkraft. Globale gestrichelte Kartenlinien auf Nutzerwert12/8, reine Punkt-/Bahn-Querstrichsymbolik erhalten. JSON dashPattern/placeTextHalo ergänzt, alte Exporte kompatibel. [Strichregel](map-road-surfaces.md). Native Paint-/JSON-Prüfung grün.
 - Quelleninformationen zentral Erweitert→Quellen, Terrain-Quelle aus Karten/Ebenen entfernt; OpenFreeMap/Waymarked Trails ergänzt. Höhe/Windrose erste Kartenoptionen. Kartenauswahl mit900er disabled Raster-/Vektorüberschriften und Trenner, vier Rasterquellen + Bright, Persistenz weiter stabile Quell-IDs. Echte MainActivity-/Provider-/Recycling-Prüfungen grün. [Details](map-settings-grouping.md).
