@@ -17,7 +17,8 @@ internal class VtmBrightTheme private constructor(
     private val native:VtmLiveTheme,
     source:JSONObject,
     private val options:MapVectorLayers,
-    private val pass:VtmMapPass
+    private val pass:VtmMapPass,
+    private val placeLabels:Map<MapPlaceClass,MapPlaceTextStyle>
 ):IRenderTheme by native {
     private data class PriorityKey(val styles:Array<RenderStyle<*>>,val priority:Int)
     private val priorityCache=android.util.LruCache<PriorityKey,Array<RenderStyle<*>>>(256)
@@ -48,7 +49,8 @@ internal class VtmBrightTheme private constructor(
             matched.add(if(track) Tag(layer.flag.key+"-track","1") else layer.flag)
         }
         val styles=native.matchElement(type,matched,zoomLevel) ?: return null
-        val largePlace=tags.getValue("layer")=="place" && tags.getValue("class") in setOf("town","city")
+        val placeClass=if(tags.getValue("layer")=="place") MapPlaceClass.entries.firstOrNull { it.key==tags.getValue("class") } else null
+        val typography=placeClass?.let { placeLabels[it] ?: if(it in setOf(MapPlaceClass.CITY,MapPlaceClass.TOWN)) it.defaults else null }
         val priority=when(tags.getValue("layer")) {
             "place" -> when(tags.getValue("class")) {
                 "continent"->0;"country"->10;"state","province"->20;"city"->30;"town"->40
@@ -70,12 +72,12 @@ internal class VtmBrightTheme private constructor(
             val key=PriorityKey(styles,priority)
             return priorityCache.get(key) ?: styles.map { style ->
                 if(style is TextStyle) TextStyle.builder().set(style).priority(priority).apply {
-                    if(largePlace) {
-                        fontFamily(org.oscim.backend.canvas.Paint.FontFamily.BLACK)
-                        fontStyle(org.oscim.backend.canvas.Paint.FontStyle.NORMAL)
-                        fontSize(style.fontSize*.9f)
-                    }
-                }.build() else style
+                    typography?.let { fontSize(style.fontSize*it.sizePercent/100) }
+                }.build().also { text -> typography?.let {
+                    org.oscim.android.canvas.BCycleFontWeight.apply(text.paint,it.weight)
+                    text.stroke?.let { stroke -> org.oscim.android.canvas.BCycleFontWeight.apply(stroke,it.weight) }
+                    text.fontHeight=text.paint.fontHeight;text.fontDescent=text.paint.fontDescent
+                } } else style
             }.toTypedArray().also { priorityCache.put(key,it) }
         }
     }
@@ -87,7 +89,7 @@ internal class VtmBrightTheme private constructor(
         private val nativeKeys=arrayOf("layer","class","subclass","bicycle","network","ref_length")
         fun load(cycleways:Boolean,options:MapVectorLayers=MapVectorLayers(),style:MapStyleOverrides=MapStyleOverrides(),pass:VtmMapPass=VtmMapPass.ALL):IRenderTheme {
             val source=AssetAdapter.readFileAsStream("styles/bright.json").use { JSONObject(it.bufferedReader().readText()) }
-            return VtmBrightTheme(VtmLiveTheme(ThemeLoader.load(VtmCycleTheme(cycleways,style.compiledStyles())) as org.oscim.theme.RenderTheme,style),source,options,pass)
+            return VtmBrightTheme(VtmLiveTheme(ThemeLoader.load(VtmCycleTheme(cycleways,style.compiledStyles())) as org.oscim.theme.RenderTheme,style),source,options,pass,style.placeLabels)
         }
     }
 }

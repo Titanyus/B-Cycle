@@ -40,9 +40,9 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
     TRACK(R.string.map_style_tracks,true,setOf("bcycle-track","bcycle-track-tunnel"));
 }
 internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null,val widthPercent:Int?=null)
-internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectStyle> = emptyMap()) {
+internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectStyle> = emptyMap(),val placeLabels:Map<MapPlaceClass,MapPlaceTextStyle> = emptyMap()) {
     /** Text is baked into glyph atlases; pattern changes create native textures/buckets. */
-    fun canUpdateColorsFrom(previous:MapStyleOverrides)=MapStyleTarget.entries.all { target ->
+    fun canUpdateColorsFrom(previous:MapStyleOverrides)=placeLabels==previous.placeLabels && MapStyleTarget.entries.all { target ->
         val before=previous.objects[target] ?: MapObjectStyle()
         val after=objects[target] ?: MapObjectStyle()
         before.dash==after.dash && before.widthPercent==after.widthPercent && (target !in textTargets || before.color==after.color && before.alpha==after.alpha)
@@ -60,6 +60,9 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
                 if(style.dash!=MapDash.ORIGINAL) put("lineStyle",style.dash.name)
             }) }
         })
+        .apply { if(placeLabels.isNotEmpty()) put("placeLabels",JSONObject().apply {
+            placeLabels.forEach { (type,value) -> put(type.name,JSONObject().put("weight",value.weight).put("sizePercent",value.sizePercent)) }
+        }) }
     fun write(prefs:SharedPreferences) { prefs.edit().putString(KEY,json().toString()).apply() }
     fun update(target:MapStyleTarget,value:MapObjectStyle?)=copy(objects=objects.toMutableMap().apply {
         if(value==null || value==MapObjectStyle()) remove(target) else put(target,value)
@@ -74,11 +77,24 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
         fun read(prefs:SharedPreferences)=runCatching { parse(JSONObject(prefs.getString(KEY,null) ?: return MapStyleOverrides())) }.getOrDefault(MapStyleOverrides())
         fun parse(json:JSONObject):MapStyleOverrides {
             require(json.toString().length<=65536)
-            require(json.keys().asSequence().all { it in setOf("format","version","base","baseSha256","objects","visibility","cycleways") })
+            require(json.keys().asSequence().all { it in setOf("format","version","base","baseSha256","objects","visibility","cycleways","placeLabels") })
             require(json.getString("format")=="bcycle-map-style" && json.get("version")==1 && json.getString("base")=="bright" && json.getString("baseSha256")==BASE_SHA)
             json.optJSONObject("visibility")?.let { v -> v.keys().forEach { require(MapVectorLayer.entries.any { layer -> layer.name==it } && v.get(it) is Boolean) } }
             if(json.has("visibility")) require(json.get("visibility") is JSONObject)
             if(json.has("cycleways")) require(json.get("cycleways") is Boolean)
+            val labels=buildMap<MapPlaceClass,MapPlaceTextStyle> {
+                if(json.has("placeLabels")) {
+                    val entries=json.getJSONObject("placeLabels")
+                    entries.keys().forEach { key ->
+                        val type=MapPlaceClass.valueOf(key);val row=entries.getJSONObject(key)
+                        require(row.keys().asSequence().toSet()==setOf("weight","sizePercent"))
+                        val weight=row.get("weight");val size=row.get("sizePercent")
+                        require(weight is Int && weight in 100..900 && weight%100==0)
+                        require(size is Int && size in 50..200)
+                        put(type,MapPlaceTextStyle(weight,size))
+                    }
+                }
+            }
             val rows=json.getJSONObject("objects")
             return MapStyleOverrides(buildMap {
                 rows.keys().forEach { key ->
@@ -91,7 +107,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
                     require(target.line || dash==MapDash.ORIGINAL && width==null)
                     put(target,MapObjectStyle(color,dash,alpha,width))
                 }
-            })
+            },labels)
         }
     }
 }

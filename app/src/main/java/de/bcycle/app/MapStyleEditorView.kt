@@ -30,6 +30,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
     private val widthRow=settingSliderRow(context,themes,context.getString(R.string.map_style_width),widthSlider).apply {
         minimumHeight=BicycleDesign.dp(context,BicycleDesign.touchSize);setPadding(0,0,0,0)
     }
+    private val placeText=MapPlaceTextEditor(context,prefs,themes) { schedule() }
     private val line=Spinner(context).apply { tag="map_style_dash" }
     private val lineLabel=BicycleComponents.fieldLabel(context,themes,context.getString(R.string.map_style_line))
     private var selected=runCatching { MapStyleTarget.valueOf(prefs.getString(LAST_TARGET,null) ?: "BACKGROUND") }.getOrDefault(MapStyleTarget.BACKGROUND)
@@ -89,6 +90,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
             val value=current();val dash=MapDash.entries[it]
             if(value.dash!=dash) save(value.copy(dash=dash))
         } }
+        addView(placeText,LayoutParams(-1,-2))
         addView(LinearLayout(context).apply {
             orientation=HORIZONTAL;tag="map_style_actions";setTag(R.id.inline_control_row,true)
             fun button(icon:BicycleIcon,label:Int,key:String,click:()->Unit) {
@@ -127,6 +129,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
     }
     private fun render() {
         updating=true
+        placeText.render()
         val value=current();val original=MapStyleXml.defaultColor(base,selected)
         val initial=((value.color ?: original) and 0xffffff) or ((value.alpha ?: Color.alpha(original)) shl 24)
         rgb[0]=Color.red(initial);rgb[1]=Color.green(initial);rgb[2]=Color.blue(initial);rgb[3]=Color.alpha(initial)

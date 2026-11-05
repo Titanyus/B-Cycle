@@ -805,6 +805,14 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_style_boundary">Grenzen</string>
     <string name="map_style_water_text">Gewässernamen</string>
     <string name="map_layer_admin_areas">Verwaltungsgebiete zwischen Gemeinden und Landkreisen</string>
+    <string name="map_place_typography">Ortsbeschriftung</string>
+    <string name="map_place_class">Ortsklasse</string>
+    <string name="map_place_city">Großstädte · city</string>
+    <string name="map_place_town">Städte · town</string>
+    <string name="map_place_village">Dörfer · village</string>
+    <string name="map_place_hamlet">Weiler · hamlet</string>
+    <string name="map_place_weight">Schriftgewicht</string>
+    <string name="map_place_size">Schriftgröße</string>
     <string name="map_style_tracks">Feld- und Wirtschaftswege</string>
     <string name="map_style_width">Linienbreite</string>
     <string name="map_style_alpha">Alpha</string>

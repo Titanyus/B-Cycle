@@ -61,3 +61,11 @@ Linienobjekte bekommen den kompakten Regler „Linienbreite“ (25–300 % des j
 Radwegehervorhebung ab VTM6 (unterster Kamera-Zoom) statt9: Breiten 0,35/0,45/0,6/0,75/0,9/1,1/1,4/1,8/2,2 für Zoom6–14, ab15 bisher2,5. Editor-Breitenfaktor wirkt auch hier auf jede Zoomvariante. Zeichnet nur vorhandene Quelldaten; aus niedrigem Quellzoom entfernte Radwege lassen sich durch Stilregeln nicht zurückholen.
 
 Prüfung: drei gezielte Fälle (Editor-/Profil-/Backup-/Export-/Validierungsrundreise samt nativen Feldwegfarben und relativer Breite über mehrere Zooms, Editor-Breitenregler/Wiederöffnen, native Radwege-Übersicht/Schalter/Stil). `map-width-and-tracks-tests.log` erfolgreich; Typografie/UI-Katalog/Bright-Generator/Diff grün, kein Gesamtlauf. Optischer Gerätevergleich noch offen.
+
+## Ortsbeschriftung im Designer
+
+Zunächst geschlossenes Rahmen-Dropdown mit den vier OSM-Klassen city/town/village/hamlet. Darin Klassenauswahl, Gewichts-Dropdown100–900 in100er-Schritten und kompakter Größenregler50–200 % der unveränderten Bright-Schriftgröße. Defaults: city/town900/90 %, village400/100 %, hamlet bisheriger Bold700/100 %. Ein globaler Stilreset setzt auch diese Werte zurück.
+
+Optionales `placeLabels` im gleichen validierten Profil-/Export-/Sicherungsschema, Schlüssel CITY/TOWN/VILLAGE/HAMLET mit ganzzahligem weight/sizePercent. Alte JSON-Dateien ohne diesen Block verwenden die Vorgaben. Native Schriftvarianten nur im vorhandenen 256er-Cache; Gewicht über eine reflektionsfreie AndroidPaint-Paketbrücke und neun einmalig gecachte Android-Typefaces. Füll-/Halo-Paint und Höhen-/Descent-Metriken stimmen überein. Größen-/Gewichtsänderungen laufen über den bisherigen180-ms-Atlasaufbau, reine Farben weiter live.
+
+Gezielter MapPlaceTextEditorTest erfolgreich: vier unabhängige Klassen, keine Änderungen beim Öffnen, exaktes natives Typeface-Gewicht und Schriftgröße/Metriken, erhaltene Priorität, Wiederöffnen, Profil/Sicherung/JSON, Reset und ungültige Gewichte. Nachweis /workspace/.tools/map-place-text-tests.log.
