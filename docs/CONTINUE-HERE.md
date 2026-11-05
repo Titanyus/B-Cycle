@@ -1,6 +1,6 @@
 # Änderungen nach Build138
 
-Straßen/Wege nach vorhandenen Belagsangaben: unbefestigt ausdrücklich gestrichelt6/4, befestigt/fehlend/unbekannt durchgezogen. Farbige Radwegehervorhebung selbst samt Grundlinie/Umrandung gleich gestrichelt; kein seitlicher Versatz (Nutzerpräzisierung). Radrouten ohne Belagsdaten bleiben durchgezogen/unbekannt. Designer-Straßenmusterwahl durch kompakten Hinweis ersetzt, Farbe/Alpha/Breite behalten. JSON feste Regel roadSurfaceStyle=unpaved-dashed, bestehende Exporte kompatibel. Sechs gezielte Fälle plus Typografie/UI-Katalog/Bright/Diff grün; [Umfang/Prüfung](map-road-surfaces.md). Keine neue APK beauftragt, Gerätebild offen.
+Straßen/Wege nach vorhandenen Belagsangaben: unbefestigt ausdrücklich gestrichelt6/4, befestigt/fehlend/unbekannt durchgezogen. Farbige Radwegehervorhebung selbst samt Grundlinie/Umrandung gleich gestrichelt; kein seitlicher Versatz (Nutzerpräzisierung). Radrouten ohne Belagsdaten bleiben durchgezogen/unbekannt. Designer-Straßenmusterwahl durch kompakten Hinweis ersetzt, Farbe/Alpha/Breite behalten. JSON feste Regel roadSurfaceStyle=unpaved-dashed, bestehende Exporte kompatibel. Sechs gezielte Fälle plus Typografie/UI-Katalog/Bright/Diff grün; [Umfang/Prüfung](map-road-surfaces.md). Neue APK ausdrücklich beauftragt: 0.8.96 / code166 / erwarteter Build139; GitHub-Actions-Build und Veröffentlichung laufen. Gerätebild offen.
 
 ## Letzte Veröffentlichung: APK 0.8.95 / Build 138
 
