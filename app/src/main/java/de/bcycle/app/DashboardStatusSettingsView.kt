@@ -30,9 +30,10 @@ internal class DashboardStatusSettingsView(context:Context,private val themes:Th
         frame.content.addView(body,LayoutParams(-1,-2))
         addView(frame,LayoutParams(-1,-2))
         val headings=LinearLayout(context).apply { orientation=HORIZONTAL;isBaselineAligned=false }
-        for(side in 0..1) headings.addView(BicycleComponents.contentHeading(context,themes,context.getString(if(side==0) R.string.dashboard_status_left else R.string.dashboard_status_right)).apply {
-            gravity=(if(side==0) Gravity.START else Gravity.END) or Gravity.CENTER_VERTICAL
-        },LayoutParams(0,-2,1f))
+        for(side in 0..2) headings.addView(BicycleComponents.contentHeading(context,themes,context.getString(
+            listOf(R.string.dashboard_status_left,R.string.dashboard_status_android_bar,R.string.dashboard_status_right)[side])).apply {
+            gravity=(when(side) { 0->Gravity.START;2->Gravity.END;else->Gravity.CENTER }) or Gravity.CENTER_VERTICAL
+        },if(side==1) LayoutParams(-2,-2) else LayoutParams(0,-2,1f))
         body.addView(headings,LayoutParams(-1,-2).apply { bottomMargin=dp(BicycleDesign.controlGap) })
         val slots=LinearLayout(context).apply { orientation=HORIZONTAL;isBaselineAligned=false;tag="dashboard_status_slots";gravity=Gravity.CENTER_VERTICAL }
         for(side in 0..1) {
