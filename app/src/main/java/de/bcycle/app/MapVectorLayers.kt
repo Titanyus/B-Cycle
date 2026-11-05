@@ -4,7 +4,7 @@ import android.content.SharedPreferences
 import org.oscim.core.TagSet
 
 /** Only visual source layers; recorded routes, GPS and sensor data are independent. */
-internal enum class MapVectorLayer(val title:Int,val defaultVisible:Boolean=true) {
+internal enum class MapVectorLayer(val title:Int,val defaultVisible:Boolean=true,val credit:MapCredit?=null) {
     MAIN_ROADS(R.string.map_layer_main_roads),
     MINOR_ROADS(R.string.map_layer_minor_roads),
     PATHS(R.string.map_layer_paths),
@@ -15,9 +15,9 @@ internal enum class MapVectorLayer(val title:Int,val defaultVisible:Boolean=true
     ROAD_NAMES(R.string.map_layer_road_names),
     POIS(R.string.map_layer_pois,false),
     LOCAL_BOUNDARIES(R.string.map_layer_local_boundaries,false),
-    CONTOURS(R.string.map_layer_contours,false),
+    CONTOURS(R.string.map_layer_contours,false,MapCredits.terrain),
     ADMIN_AREAS(R.string.map_layer_admin_areas),
-    CYCLE_ROUTES(R.string.map_cycling_routes,false);
+    CYCLE_ROUTES(R.string.map_cycling_routes,false,MapCredits.cyclingRoutes);
     val key get()="mapVectorLayer_$name"
 }
 internal data class MapVectorLayers(val visible:Set<MapVectorLayer> = MapVectorLayer.entries.filter { it.defaultVisible }.toSet()) {

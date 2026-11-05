@@ -15,6 +15,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
         private set
     private lateinit var layer: VtmBaseMap
     private lateinit var overlay:RouteTrackLayer
+    private var creditsPopup:MapCreditsPopup?=null
     private var pinchZoom:MapPinchZoom?=null
     private var destroyed = false; private var fitted = false
     init {
@@ -42,10 +43,9 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             BicycleComponents.background(buttons, themes, ThemeRole.TERTIARY, BicycleDesign.inputRadius)
             addView(buttons, LayoutParams(-2, -2, android.view.Gravity.TOP or android.view.Gravity.END))
         }
-        addView(android.widget.TextView(context).apply {
-            text = source.attribution+if(source==MapSource.VECTOR && MapVectorLayer.CONTOURS in MapVectorLayers.read(prefs)) " · Mapzen Terrain" else ""; textSize = BicycleDesign.mapAttributionSp; setTextColor(Color.BLACK)
-            setBackgroundColor(Color.argb(220, 255, 255, 255)); setPadding(4, 2, 4, 2)
-        }, LayoutParams(-2, -2, android.view.Gravity.BOTTOM or android.view.Gravity.END))
+        addView(MapCreditView(context,rotated=false).apply {
+            setOnClickListener { creditsPopup?.dismiss();creditsPopup=MapCreditsPopup(this,ThemeManager(prefs),MapCredits.active(source,MapVectorLayers.read(prefs))).also { it.show() } }
+        },LayoutParams(-2,-2,android.view.Gravity.BOTTOM or android.view.Gravity.END))
     }
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -77,10 +77,10 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
         if (visibility == View.VISIBLE) resume() else { layer.pause();map.pauseMap() }
     }
     private fun resume() { if (!destroyed) { map.resumeMap();layer.resume() } }
-    fun dispose() { if (!destroyed) { destroyed = true; layer.pause();map.pauseMap(); pinchZoom?.cancel();overlay.dispose();map.disposeMap() } }
+    fun dispose() { if (!destroyed) { creditsPopup?.dismiss();destroyed = true; layer.pause();map.pauseMap(); pinchZoom?.cancel();overlay.dispose();map.disposeMap() } }
     override fun onDetachedFromWindow() {
         // Fullscreen host rehouses views after showing: detach pauses, the owning screen disposes on close.
-        if (!destroyed) { pinchZoom?.cancel();layer.pause();map.pauseMap() }
+        if (!destroyed) { creditsPopup?.dismiss();pinchZoom?.cancel();layer.pause();map.pauseMap() }
         super.onDetachedFromWindow()
     }
 }

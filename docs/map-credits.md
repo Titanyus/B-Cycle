@@ -1,0 +1,11 @@
+# Kompakte Kartenquellen
+
+Nutzerentscheidung05.11.2026, nach Build142: Auf der Karte bleibt „© OpenStreetMap ⓘ“. Ein Tipp öffnet die vollständigen Angaben zu den aktiven Karten-/Zusatzquellen mit anklickbaren Links. Auf niedrigen Karten keine wachsende mehrzeilige Liste; weiterhin gedrehte Anzeige links am Dashboard, normale Anzeige unten rechts auf der Streckenkarte. Die Quelleangaben bleiben direkt von der Karte zugänglich; ausführliche Texte stehen zusätzlich in Erweitert→Quellen.
+
+`MapCredits` ist die gemeinsame Sammlung. Basisquellen werden aus `MapSource` abgeleitet (OpenFreeMap/OpenMapTiles einzeln verlinkt); externe Vektorebenen registrieren ihr `credit` direkt in `MapVectorLayer`. Aktive Liste filtert nach Quelle und eingeschalteten Ebenen, vollständige Liste sammelt automatisch alle Basis-/Ebenenquellen. Neue externe Layer müssen ihre Metadaten dort mitführen; kein zusätzliches UI-Stringverzeichnis pflegen. Kurztext bleibt unverändert, auch wenn weitere Quellen dazukommen.
+
+Native Quellen-Popupfläche mit begrenzter Größe und ScrollView, keine zweite Karte/GL-Instanz, keine neue Einstellung. Bei Profil-/Quellen-/Ebenenwechsel und beim Verlassen der Karte schließen; Streckenkarten behandeln Detach/Dispose ebenso. Vorhandene Links sowie vollständige Mapzen-Terrain-Attribution in Erweitert bleiben erhalten.
+
+Öffentliche Referenzen gelesen05.11.2026: [OSM-Attributionsrichtlinien](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines), [OpenFreeMap-Attribution](https://github.com/hyperknot/openfreemap#attribution), [OpenMapTiles-Lizenz](https://github.com/openmaptiles/openmaptiles/blob/master/LICENSE.md). Alle Quellenangaben und Lizenzlinks bleiben im direkt erreichbaren Hinweis erhalten; keine pauschale Entfernung von Credits aus der Anwendung.
+
+Gezielte Prüfung: MapPresentationSettingsTest für kompakte einzeilige Anzeige bei120/200/600px, aktive fünf Vektorquellen, Öffnen/Schließen des Quellenhinweises, deaktivierte/rasterfremde Zusatzquellen und vollständige Quellenliste aus sämtlichen Anbieter-/Ebenenmetadaten. Bestehende Dashboard-Kartengeometrie geprüft. Log: `/workspace/.tools/compact-map-credits-tests.log`. Kein Gesamtlauf, keine APK beauftragt; optische Geräteprüfung offen.

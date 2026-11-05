@@ -64,6 +64,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     private var routeShown: Boolean? = null
     private var routePopup:MapRouteSlotPopup?=null
     private val credit = MapCreditView(context)
+    private var creditsPopup:MapCreditsPopup?=null
     private var observedZoom=Double.NaN
     private val updateZoom=Runnable {
         val zoom=mapView.zoom
@@ -80,7 +81,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun setEditing(value: Boolean) {
         editing = value
-        if(value) { routePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss() }
+        if(value) { routePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss() }
         layersButton.isEnabled=!value;styleButton.isEnabled=!value
         dataFields.setEditing(value, runtime.themes.active.tokens.primary)
         editorFinish.visibility = if (value) VISIBLE else GONE
@@ -269,12 +270,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         }
         refreshRouteButton()
         layersButton=icon("",context.getString(R.string.map_vector_layers),null) {
-            holdControls();layersPopup?.dismiss();stylePopup?.dismiss()
+            holdControls();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
             layersPopup=MapLayersPopup(layersButton,runtime,changed={ refreshSettings() },closed={ scheduleHide() }).also { it.show() }
         }.apply { tag="map_layers_button";graphic(this,BicycleIcon.Layers);visibility=if(source==MapSource.VECTOR) VISIBLE else GONE }
         addView(layersButton,LayoutParams(dp(MapControlDesign.dashboardWidth),dp(MapControlDesign.buttonHeight),Gravity.TOP or Gravity.START).apply { topMargin=dp(MapControlDesign.edgeGap);marginStart=dp(MapControlDesign.nightOffset) })
         styleButton=icon("",context.getString(R.string.map_style_editor),null) {
-            holdControls();layersPopup?.dismiss();stylePopup?.dismiss()
+            holdControls();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
             stylePopup=MapStyleEditorPopup(styleButton,runtime,changed={ refreshSettings() },export=exportStyle,closed={ scheduleHide() }).also { it.show() }
         }.apply { tag="map_style_editor_button";graphic(this,BicycleIcon.EditDashboard);visibility=if(source==MapSource.VECTOR) VISIBLE else GONE }
         addView(styleButton,LayoutParams(dp(MapControlDesign.dashboardWidth),dp(MapControlDesign.buttonHeight),Gravity.TOP or Gravity.START).apply { topMargin=dp(MapControlDesign.edgeGap);marginStart=dp(MapControlDesign.editorOffset) })
@@ -286,9 +287,9 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         addView(editorFinish, LayoutParams(-2, -2, Gravity.CENTER))
         addView(dataFields, LayoutParams(-1, dp(62), Gravity.BOTTOM).apply { bottomMargin = 0 })
         credit.apply {
-            text = attribution()
+            text = context.getString(R.string.map_credit_compact)
             contentDescription = context.getString(R.string.ui_map_attribution)
-            setOnClickListener { openCredit(if(source==MapSource.VECTOR && MapVectorLayer.CYCLE_ROUTES in vectorLayers) "https://cycling.waymarkedtrails.org/" else source.creditUrl) }
+            setOnClickListener { creditsPopup?.dismiss();creditsPopup=MapCreditsPopup(credit,runtime.themes,MapCredits.active(source,vectorLayers)).also { it.show() } }
         }
         addView(credit, LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.START))
         status.apply {
@@ -309,12 +310,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun resume(reveal:Boolean=true) { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis());lastTrack=-1L;running=true;mapView.resumeMap();downloads.resume();if(reveal) revealControls() else if(controls.visibility==VISIBLE) scheduleHide();refresh() }
     fun pause() {
-        routePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();pinchZoom.cancel();running=false;phoneHeading.stop();stopMotion()
+        routePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss();pinchZoom.cancel();running=false;phoneHeading.stop();stopMotion()
         saverFrames.cancel();handler.removeCallbacksAndMessages(null);downloads.pause();mapView.pauseMap();saveCamera()
     }
     fun destroy() { pause();routes.dispose();mapView.disposeMap() }
     internal fun refreshProfileSettings() {
-        layersPopup?.dismiss();stylePopup?.dismiss()
+        layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
         pinchZoom.cancel()
         dataFields.resetTrends()
         refreshSettings()
@@ -323,9 +324,6 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val lon=preferences.getFloat("mapLongitude",10f).toDouble().coerceIn(-180.0,180.0)
         mapView.setCenter(lat,lon)
     }
-    private fun attribution()=source.attribution+
-        (if(source==MapSource.VECTOR && MapVectorLayer.CONTOURS in vectorLayers) " · Mapzen Terrain" else "")+
-        (if(source==MapSource.VECTOR && MapVectorLayer.CYCLE_ROUTES in vectorLayers) " · Waymarked Trails" else "")
     fun refreshSettings() {
         val next = MapProviderSettings.source(context,preferences.getString("mapSource", null))
         val nextKey=MapProviderSettings.read(context)
@@ -335,6 +333,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         if(next==MapSource.VECTOR && next==source && nextCycleways==cycleways && nextLayers==vectorLayers && nextStyle!=mapStyle
             && downloads.updateColors(mapStyle,nextStyle)) mapStyle=nextStyle
         if (next != source || (next==MapSource.OPENCYCLEMAP && nextKey!=providerKey) || (next==MapSource.VECTOR && (nextCycleways!=cycleways || nextLayers!=vectorLayers || nextStyle!=mapStyle))) {
+            creditsPopup?.dismiss()
             pinchZoom.cancel()
             downloads.onDetach()
             source = next; providerKey=nextKey;cycleways=nextCycleways;vectorLayers=nextLayers;mapStyle=nextStyle
@@ -342,11 +341,11 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             if(mapView.zoom>MapZoom.maximum(source)) mapView.setZoom(MapZoom.maximum(source).toDouble())
             downloads = createDownloadLayer(source)
             if (running) downloads.resume()
-            credit.text = attribution()
+            credit.text = context.getString(R.string.map_credit_compact)
         }
         layersButton.visibility=if(source==MapSource.VECTOR && controls.visibility==VISIBLE) VISIBLE else GONE
         styleButton.visibility=layersButton.visibility
-        if(source!=MapSource.VECTOR) { layersPopup?.dismiss();stylePopup?.dismiss() }
+        if(source!=MapSource.VECTOR) { layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss() }
         night = preferences.getBoolean("mapNight", false); applyNight()
         dataFields.reload(preferences)
         refreshRouteButton()

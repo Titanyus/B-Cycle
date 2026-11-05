@@ -16,6 +16,39 @@ import org.robolectric.shadows.ShadowAlertDialog
 @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 class MapPresentationSettingsTest {
     private fun nodes(v:View):List<View> = listOf(v)+if(v is ViewGroup) (0 until v.childCount).flatMap { nodes(v.getChildAt(it)) } else emptyList()
+    @Test fun compactCreditsDiscloseAllActiveSourcesAndCentralSourcesIncludeEveryProviderAndOverlay() {
+        val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        try {
+            val a=host.get();val runtime=RideRuntime.get(a)
+            val panel=nodes(a.findViewById(android.R.id.content)).filterIsInstance<MapPanel>().single()
+            runtime.preferences.edit().putString("mapSource",MapSource.VECTOR.name)
+                .putBoolean(MapVectorLayer.CONTOURS.key,true).putBoolean(MapVectorLayer.CYCLE_ROUTES.key,true).commit()
+            panel.refreshSettings()
+            val credit=nodes(panel).filterIsInstance<MapCreditView>().single()
+            assertEquals("© OpenStreetMap ⓘ",credit.text.toString())
+            for(h in listOf(120,200,600)) {
+                credit.measure(View.MeasureSpec.makeMeasureSpec(300,View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(h,View.MeasureSpec.AT_MOST))
+                credit.layout(0,0,credit.measuredWidth,credit.measuredHeight)
+                assertEquals(1,credit.label.layout.lineCount)
+                assertTrue(credit.label.paint.measureText(credit.text.toString())<=credit.label.width-credit.label.paddingLeft-credit.label.paddingRight+.5f)
+            }
+            credit.performClick()
+            val popup=MapPanel::class.java.getDeclaredField("creditsPopup").apply { isAccessible=true }.get(panel) as MapCreditsPopup
+            assertTrue(popup.isShowing)
+            val shown=nodes(popup.contentView).filterIsInstance<TextView>().joinToString("\n") { it.text.toString() }
+            for(entry in MapCredits.active(MapSource.VECTOR,MapVectorLayers.read(runtime.preferences))) assertTrue(entry.url,shown.contains(entry.url))
+            assertEquals(5,MapCredits.active(MapSource.VECTOR,MapVectorLayers.read(runtime.preferences)).size)
+            assertFalse(MapCredits.active(MapSource.OSM,MapVectorLayers.read(runtime.preferences)).contains(MapCredits.terrain))
+            runtime.preferences.edit().putBoolean(MapVectorLayer.CONTOURS.key,false).commit();panel.refreshSettings()
+            assertFalse(popup.isShowing)
+            assertFalse(MapCredits.active(MapSource.VECTOR,MapVectorLayers.read(runtime.preferences)).contains(MapCredits.terrain))
+            MainActivity::class.java.getDeclaredMethod("sourcesSettings").apply { isAccessible=true }.invoke(a)
+            val all=nodes(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).filterIsInstance<TextView>().joinToString("\n") { it.text.toString() }
+            for(entry in MapCredits.all()) assertTrue(entry.url,all.contains(entry.url))
+            for(provider in MapSource.entries) for(entry in MapCredits.base(provider)) assertTrue(entry in MapCredits.all())
+            for(layer in MapVectorLayer.entries) layer.credit?.let { assertTrue(it in MapCredits.all()) }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun settingsStartWithHeightWindUseProviderSpecificZoomAndCentralizeElevationSources() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup().visible()
         try {

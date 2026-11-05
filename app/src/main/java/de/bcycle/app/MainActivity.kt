@@ -2185,6 +2185,7 @@ class MainActivity : Activity() {
             R.string.sources_elevation to R.string.sources_elevation_text,R.string.sources_weather to R.string.sources_weather_text,
             R.string.sources_uploads to R.string.sources_uploads_text)) {
             body.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(title)))
+            if(title==R.string.sources_maps) { MapCredits.append(body,settingsThemes,MapCredits.all());continue }
             body.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(description)+if(title==R.string.sources_elevation) "\n\n"+assets.open("Terrain-ATTRIBUTION.txt").bufferedReader().use { it.readText() } else "").apply {
                 android.text.util.Linkify.addLinks(this,android.text.util.Linkify.WEB_URLS)
                 movementMethod=android.text.method.LinkMovementMethod.getInstance()
