@@ -1,12 +1,12 @@
-# Aktueller Stand: APK 0.8.91 / Build 133 veröffentlicht
+# Aktueller Stand: APK 0.8.92 / Build 134 veröffentlicht
 
-## Änderungen nach Build 133, noch unveröffentlicht (05.11.2026)
+## In Build 134 enthalten (05.11.2026)
 
 - Kartenobjekt-Editor mit eigenem Stiftbutton neben Ebenen/Auge statt verschachteltem Dropdown; drei zentrale RGB-Regler 0–255, HEX/Farbvorschau, exakte Werte. JSON/Reset/Stil-/Profilfunktionen erhalten, Trackfarbpalette unverändert. Karten-/Footer-/Popup-Lebenszyklus ergänzt.
 - Neue und vorhandene Ortsnamen nutzen dieselbe Ein-/Ausblendschwelle. Städte/towns/Dörfer deutlich früher, dadurch mehr Orte in der Übersicht. Native Größenpriorität/Fades/Beibehaltung erhalten.
 - Radwegehervorhebung ab VTM 9 statt 12, dünne Breiten 0,6/0,9/1,4 bis 12, ab13 bisher2,5. Quellenprobe belegt frühe Orts-/Radwegdaten, nicht jedes Detail ist in der Übersicht vorhanden.
 - Direkte Farbaktualisierung eingebaut: vorhandene native LineStyle/AreaStyle-Handles und Texturen beibehalten, auf GL-Queue set/updateStyles/render, RGB-Vorschau alle48ms auch während Bewegung. Beide Basispässe/Höhenlinien/Hintergrund und exaktes Zurücksetzen berücksichtigt. Textfarben/Muster weiter alter Aufbaupfad. Gezielte native Referenz-/Reset-/Queue-/MapPanel-/Dragfälle grün. [Verfahren](vtm-live-colors.md).
-- Offizielle VTM-Beispiele gelesen: direkte Styleaktualisierung aus ThemeStylerActivity für Farben übernommen, Stilgruppen und MVT-/Cache-/LabelLayer-Integration ebenfalls. [Umfang/Daten/Prüfung](vtm-rgb-and-overview.md). Gezielte RGB-/Popup-/Label-/Cyclewayfälle grün, kein Gesamtlauf. Neue APK ausdrücklich angefordert: 0.8.92 / code 162 / erwarteter Build 134, ausschließlich GitHub Actions; Veröffentlichung läuft.
+- Offizielle VTM-Beispiele gelesen: direkte Styleaktualisierung aus ThemeStylerActivity für Farben übernommen, Stilgruppen und MVT-/Cache-/LabelLayer-Integration ebenfalls. [Umfang/Daten/Prüfung](vtm-rgb-and-overview.md). Gezielte RGB-/Popup-/Label-/Cyclewayfälle grün, kein Gesamtlauf. Neue APK ausdrücklich angefordert, über GitHub Actions gebaut und geprüft. [Änderungen](release-0.8.92.md), [Buildnachweis](build-134.md). Gerätevergleich offen.
 
 ## In Build 133 enthalten
 
@@ -70,12 +70,10 @@ Akkusparmodus nur Darstellung: Karte/Dashboard 1 Hz, kurze Diagramme 5 s, Gesamt
 
 ## Letzte veröffentlichte APK
 
-[APK 0.8.91 / Build 133](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.91-release-133.apk), code 161, Quelle `48e61a82a21c79c0ad4c8c75e5e3673ca50247f1`, 4261296 Bytes, SHA-256 `8294ffb1fa7536e0d237a22a8f7a3fc01e6ffcc0444b1595f4a27de24ab59d85`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-133.md). Vorige APK: [0.8.90 / Build 132](build-132.md).
+[APK 0.8.92 / Build 134](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.92-release-134.apk), code 162, Quelle `52af9e2fbfb291d88a8bb87d345068a51e98549c`, 4261416 Bytes, SHA-256 `6642359f14bd3fffcbf3d53d167699bc9cd9e1075f0cfeb3dc727de214ced685`. Dauerhafte Signatur, Manifest, ZIP-/ARM64-16-KB-Ausrichtung, vier ABIs, 28 Shader, Bright-/Terrain-Assets, Texte und R8-Namen geprüft. [Nachweis](build-134.md). Vorige APK: [0.8.91 / Build 133](build-133.md).
 
 ## Weitere Planung
 
 Keine automatische Stiländerung im Akkusparmodus. Minimalstil/OLED und Dashboardoption offen; Maputnik als Browsereditor, kein Live-JSON-Import beauftragt. Sensoren bleiben zuverlässig in voller Auflösung.
 
-Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.92 / code 162 / Build 134. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.
-
-Downloadnachweis: veröffentlichter direkter Raw-Link abgerufen, 4261296 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+Nächste APK nur auf ausdrücklichen Auftrag über GitHub Actions, voraussichtlich 0.8.93 / code 163 / Build 135. Appcode nie mit [skip ci] überspringen. Dauerhafte Signatur/28 Shader/Bright-Ressourcen und tatsächlichen direkten Download prüfen.

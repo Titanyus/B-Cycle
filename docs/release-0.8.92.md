@@ -7,4 +7,4 @@
 
 Gezielte RGB-/Popup-/Label-/Cycleway-, native Farb-/Reset-/Textur-/Layer-/Queue- und Slider-Vorschauprüfungen grün. Typografie/UI-Katalog/Bright-Generator/Diff grün, kein Gesamtlauf und keine lokale APK. Vorschauflüssigkeit, Übersichtsdichte und Radwege am Gerät weiter beurteilen. [RGB und Übersicht](vtm-rgb-and-overview.md), [Live-Farben](vtm-live-colors.md).
 
-Buildnachweis folgt nach erfolgreichem GitHub-Actions-Lauf.
+[Buildnachweis und Download](build-134.md).
