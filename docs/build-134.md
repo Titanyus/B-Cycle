@@ -16,3 +16,5 @@ Bright-JSON/XML, alle drei eigenen Shader, 111 Spritevarianten und Atlas bytegen
 [Änderungen](release-0.8.92.md): eigener Editorbutton, drei RGB-Regler mit direkter Farbaktualisierung vorhandener nativer Stile, frühere symmetrische Ortsnamenfreigabe und länger sichtbare dünne Radwege in der Übersicht.
 
 Gezielte RGB-/Popup-/Label-/Cycleway-, native Farb-/Reset-/Textur-/Layer-/Queue- und Slider-Vorschauprüfungen grün. Typografie/UI-Katalog/Bright-/Diff-Prüfung grün. Kein Gesamtlauf, keine lokale APK. Vorschauflüssigkeit, Übersichtsdichte und Radwege am Gerät weiter beurteilen; Detaildaten sind von der jeweiligen Quellzoomstufe abhängig.
+
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4261416 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.

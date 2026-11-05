@@ -1,5 +1,7 @@
 # Aktueller Stand: APK 0.8.92 / Build 134 veröffentlicht
 
+Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4261416 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
+
 ## In Build 134 enthalten (05.11.2026)
 
 - Kartenobjekt-Editor mit eigenem Stiftbutton neben Ebenen/Auge statt verschachteltem Dropdown; drei zentrale RGB-Regler 0–255, HEX/Farbvorschau, exakte Werte. JSON/Reset/Stil-/Profilfunktionen erhalten, Trackfarbpalette unverändert. Karten-/Footer-/Popup-Lebenszyklus ergänzt.
