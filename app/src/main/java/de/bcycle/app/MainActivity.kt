@@ -825,7 +825,22 @@ class MainActivity : Activity() {
         val body=HrvMeasurementView(this,runtime.themes,runtime.hrv,
             sensor={ runtime.heartName },canStart={ runtime.visible && !runtime.recording && !runtime.saving },questionnaire={ row ->
                 screen.dismiss();showHrvQuestionnaire(row)
-            },autoStart=autoStart)
+            },autoStart=autoStart,confirmStart={ proceed ->
+                runtime.hrv.hasMeasurementToday { result ->
+                    if(isDestroyed || !screen.isShowing) return@hasMeasurementToday
+                    result.fold({ exists ->
+                        if(!exists) proceed(true) else {
+                            var answered=false
+                            val warning=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false)
+                                .setTitle(R.string.hrv_title).setMessage(R.string.hrv_replace_today_hint)
+                                .setNegativeButton(R.string.route_cancel) { _,_ -> answered=true;proceed(false) }
+                                .setPositiveButton(R.string.hrv_replace_understood) { _,_ -> answered=true;proceed(true) }.create()
+                            warning.setOnCancelListener { if(!answered) { answered=true;proceed(false) } }
+                            warning.show()
+                        }
+                    },{ proceed(false);BicycleFeedback.show(this,R.string.hrv_result_load_failed) })
+                }
+            })
         screen=BicycleDialogBuilder(this,runtime.themes,dialogs,headerRole=ThemeRole.SECONDARY,plainHeader=true,hideStatusBar=true).setTitle(R.string.hrv_title)
             .setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(body) }).create()
         dialogs.onDismiss(screen) { runtime.hrv.abort("VIEW_CLOSED") }

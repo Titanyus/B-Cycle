@@ -1,4 +1,6 @@
-# Änderungen für APK0.8.97 / Build140
+# Änderungen für APK0.8.97 / Build141
+
+- Nachtrag vor Veröffentlichung: Hinweis vor erneuter HRV-Tagesmessung bei manuellen/automatischen Starts, Buttons Abbrechen/Verstanden nebeneinander. Neue Messung verwendet bestehende Tagesauswahl, Altwert vor Start unberührt. Build140 wird durch Build141 mit diesem Nachtrag ersetzt.
 
 - Flat-Flächentausch: Sticky-Header TERTIARY, Inhalts-/Zwischenflächen SECONDARY, normale Dropdowns/Accordions/Buttons TERTIARY. Glow, Eingaben und aktive PRIMARY-Flächen erhalten. Streckengruppenköpfe in sämtlichen Sortierungen mit gemeinsamer oberer2dp-Rahmenlinie. Gezielt SectionCards/RouteStickyList grün; zentrale Prüfungen grün. Neue APK beauftragt, Veröffentlichung läuft.
 

@@ -51,3 +51,9 @@ Prüfung: sechs gezielte Fälle in `hrv-score-more-tiles-tests.log`, vier zunäc
 Messdiagramm315dp hoch,36dp Abstand zum Messkreis (vorher286/24dp). HRV-Kennzahlzeilen ohne Baseline-Ausrichtung, Kacheln füllen die gemeinsame Höhe und zentrieren den gesamten Textblock. Weitere öffnet ein rechtsbündiges Popup über den letzten drei Hauptspalten mit gleicher Kachelbreite; keine Verschiebung des Diagramms, Auswahl schließt das Popup. Beim Verlassen schließen.
 
 Einstellungen: „HRV & Tagesbefinden“ direkt nach „Fahrradprofile“. Erststartangebot als einfacher Schalter direkt nach dem Trenner vor Vibrieren; bisheriger Erklärungstext/Accordion entfallen. Angebot, Speicherung und Tageswechsel bleiben unverändert.
+
+## Bestätigung vor erneuter Tagesmessung (05.11.2026)
+
+Vor einem manuellen oder automatischen Messstart wird auf dem bestehenden HRV-Worker geprüft, ob für heute eine echte Messung vorhanden ist (eigene oder importierte Historie; reine Tagesbefindensdaten zählen nicht). Falls ja: kompakter Hinweis, dass die neue Messung den bisherigen Tageswert ersetzt. „Abbrechen“ und „Verstanden“ stehen nebeneinander. Ohne Bestätigung startet keine Messung; Abbrechen/Zurück lässt die vorhandene Messung unverändert. Sensorpakete während der Abfrage öffnen keinen zweiten Hinweis. Vor dem tatsächlichen Start werden Sichtbarkeit und Startbedingungen erneut geprüft. Speicher-/Tagesauswahllogik bleibt erhalten: neu gespeicherte Messung wird Tageswert, Rohhistorie wird nicht vorzeitig gelöscht.
+
+Gezielte echte MainActivity-Prüfung für Erststart ohne Hinweis, manuelle Wiederholung/Abbrechen, automatischen Start/Verstanden und unveränderten Altwert während der neuen Messung: HrvRepeatWarningTest, `/workspace/.tools/hrv-repeat-warning-tests.log`.

@@ -10,8 +10,10 @@ import org.json.JSONObject
 /** Native foreground measurement; colors follow the active dashboard palette. */
 internal class HrvMeasurementView(context:Context,private val themes:ThemeManager,private val controller:HrvController,
     private val sensor:()->String,private val canStart:()->Boolean,
-    private val questionnaire:(JSONObject)->Unit={},autoStart:Boolean=false):LinearLayout(context) {
+    private val questionnaire:(JSONObject)->Unit={},autoStart:Boolean=false,
+    private val confirmStart:((Boolean)->Unit)->Unit={ it(true) }):LinearLayout(context) {
     private var autoStartPending=autoStart
+    private var startPending=false
     private val circle=HrvCircleView(context,themes).apply { tag="hrv_circle" }
     private val status=BicycleFeedback.status(context,themes).apply { tag="hrv_status" }
     private val graph=HrvGraphView(context,themes).apply { tag="hrv_graph" }
@@ -19,7 +21,7 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         autoStartPending=false
         when { controller.state.saveError && controller.canRetrySave -> controller.retrySave()
             controller.busy -> controller.abort()
-            canStart() -> controller.start(sensor()) }
+            canStart() -> requestStart() }
     }.apply { tag="hrv_action" }
     private var startAction=true
     private var subscription:AutoCloseable?=null
@@ -38,6 +40,16 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
         BicycleComponents.bindTheme(action,themes) { styleAction() }
         show(controller.state)
     }
+    private fun requestStart() {
+        if(startPending || controller.busy || !canStart()) return
+        autoStartPending=false;startPending=true;action.isEnabled=false
+        confirmStart { understood ->
+            startPending=false
+            if(!isAttachedToWindow || !isShown) return@confirmStart
+            if(understood && canStart()) controller.start(sensor())
+            show(controller.state)
+        }
+    }
     private fun styleAction() {
         action.typeface=if(startAction) BicycleDesign.strongTypeface else BicycleDesign.bodyTypeface
         if(startAction) styleSpecialButton(action,themes.active.tokens,false) else {
@@ -51,14 +63,14 @@ internal class HrvMeasurementView(context:Context,private val themes:ThemeManage
     private fun show(state:HrvState) {
         if(controller.busy) autoStartPending=false
         if(isAttachedToWindow && isShown && autoStartPending && state.ready && !state.saving && !state.saveError && canStart()) {
-            if(controller.start(sensor())) autoStartPending=false
+            requestStart()
         }
         val running=controller.busy && !state.saveError
         keepScreenOn=running
         circle.show(state);graph.show(state.points,state.elapsedMs,state.phase==Phase.MEASURE && running,state.measureMs)
         action.setText(when { state.saveError && controller.canRetrySave->R.string.hrv_retry_save;running->R.string.hrv_abort
             state.result!=null->R.string.hrv_repeat;else->R.string.hrv_start })
-        action.isEnabled=!state.saving && (state.saveError && controller.canRetrySave || running || state.ready && canStart())
+        action.isEnabled=!startPending && !state.saving && (state.saveError && controller.canRetrySave || running || state.ready && canStart())
         startAction=!running && !(state.saveError && controller.canRetrySave)
         styleAction()
         status.visibility=if(state.saveError || state.phase==Phase.ABORTED) VISIBLE else GONE

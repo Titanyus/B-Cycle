@@ -829,4 +829,6 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_style_red">Rot</string>
     <string name="map_style_green">Grün</string>
     <string name="map_style_blue">Blau</string>
+    <string name="hrv_replace_today_hint">Für heute liegt bereits eine HRV-Messung vor. Wenn du erneut misst, ersetzt die neue Messung den bisherigen Tageswert.</string>
+    <string name="hrv_replace_understood">Verstanden</string>
 </resources>

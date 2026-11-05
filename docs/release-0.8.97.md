@@ -1,5 +1,6 @@
-# B|CYCLE 0.8.97 – Build140
+# B|CYCLE 0.8.97 – Build141
 
+- HRV: Bestätigung vor erneuter Tagesmessung, manuell und automatisch; „Abbrechen“/„Verstanden“ nebeneinander. Neuer Tageswert ersetzt den bisherigen erst beim Speichern.
 - Flat: Sticky-Header TERTIARY, Inhalt/Zwischenflächen SECONDARY; normale Dropdowns, Accordions und Buttons TERTIARY. Glow bleibt unverändert, Eingaben und funktionale Hervorhebungen erhalten. Alle Streckengruppenköpfe mit oberer2dp-Linie in der gemeinsamen Rahmenfarbe.
 - Flat-Trainingshilfe: HSV-Farbübergänge über kräftige Zwischenfarben statt brauner RGB-Mischung, normale SRC_OVER-Zeichnung und originale Endfarben. [Details](dashboard-training-help.md).
 - HRV-Tageswechsel: stationäre, synchronisierte300ms-Ease-in-out-Animation von Zahlen, Bögen, Indexbalken und Glow; Grenzwerttexte zusätzlich3dp nach außen. Titel/Diagramm/Tagesaktionen synchronisiert. [Details](hrv-daily-assessment.md).

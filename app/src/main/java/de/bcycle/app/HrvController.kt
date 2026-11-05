@@ -161,6 +161,10 @@ internal class HrvController(private val context:Context,private val clock:()->L
         try { worker.execute { val result=runCatching(block);main.post { done(result) } } }
         catch(e:java.util.concurrent.RejectedExecutionException) { main.post { done(Result.failure(e)) } }
     }
+    fun hasMeasurementToday(done:(Result<Boolean>)->Unit)=storageTask(done) {
+        val today=java.time.LocalDate.now()
+        checkNotNull(store).daily().any { it.hasMeasurement && HrvDailySelection.day(it)==today }
+    }
     fun measurement(id:String,done:(Result<JSONObject>)->Unit) =
         storageTask(done) { checkNotNull(store).readDaily(id) }
     fun intervalsWellness(done:(Result<List<IntervalsWellness>>)->Unit) =
