@@ -1,4 +1,13 @@
-# Aktueller Stand: APK 0.8.96 / Build 139 veröffentlicht
+# Änderungen nach Build139
+
+- Ortsnamen-Flimmern/Barcode reproduziert (UV2108 bei zulässigen2048 am256px-Atlasrand) und durch vollständige Platzprüfung je Zelle behoben. Kleine/größere ein-/zweizeilige Labels sowie sehr große Glyphen als Pixel/UV/Seitenbereiche getestet; Halo-Padding berücksichtigt. [Befund/Prüfung](vtm-label-stability.md).
+- Weiße Ortskonturen doppelt (Orte2,4, Länder/Kontinente4) und100 % Deckkraft. Globale gestrichelte Kartenlinien auf Nutzerwert12/8, reine Punkt-/Bahn-Querstrichsymbolik erhalten. JSON dashPattern/placeTextHalo ergänzt, alte Exporte kompatibel. [Strichregel](map-road-surfaces.md). Native Paint-/JSON-Prüfung grün.
+- Quelleninformationen zentral Erweitert→Quellen, Terrain-Quelle aus Karten/Ebenen entfernt; OpenFreeMap/Waymarked Trails ergänzt. Höhe/Windrose erste Kartenoptionen. Kartenauswahl mit900er disabled Raster-/Vektorüberschriften und Trenner, vier Rasterquellen + Bright, Persistenz weiter stabile Quell-IDs. Echte MainActivity-/Provider-/Recycling-Prüfungen grün. [Details](map-settings-grouping.md).
+- Vektor-Zoom bis21, Raster19/Topo17 erhalten. Kameragrenzen/Speicherwerte/Providerwechsel und Native-Clipping15–21 geprüft. Vollbild-Dashboard: „Android Statusleiste“ zentriert zwischen Links/Rechts, reine Beschriftung ohne Funktionsänderung.
+
+Gezielte Prüfungen erfolgreich: city-atlas-halo-and-dashes-tests.log, map-halo-global-dash-final-test.log, map-halo-dash-and-overzoom-final-tests.log (Overzoom grün, damalige Länder-Testmerkmale anschließend korrigiert), grouped-map-source-and-settings-tests.log und grouped-map-provider-final-test.log (veraltete Höhenkorrektur-Testannahme korrigiert). Typografie/UI-Katalog/Bright/Diff grün, kein Gesamtlauf. Keine neue APK beauftragt; Gerätevergleich offen.
+
+## Letzte Veröffentlichung: APK 0.8.96 / Build 139
 
 Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4279128 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
 
