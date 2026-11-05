@@ -8,3 +8,5 @@ internal enum class MapPlaceClass(val key:String,val title:Int,val defaultWeight
     val defaults get()=MapPlaceTextStyle(defaultWeight,defaultSize)
 }
 internal data class MapPlaceTextStyle(val weight:Int,val sizePercent:Int)
+
+internal object MapPlaceHalo { const val widthScale=2;const val opacity=1 }

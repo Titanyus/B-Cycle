@@ -77,10 +77,28 @@ internal object MapStyleXml {
                 val rule=doc.createElement("m").apply { setAttribute("k","bcycle:surface");setAttribute("v",if(unpaved) "unpaved" else "other") }
                 val paint=line.cloneNode(true) as Element
                 for(key in listOf("dasharray","stroke-dasharray","stipple","stipple-width","stipple-ratio","stipple-color")) paint.removeAttribute(key)
-                if(unpaved) { paint.setAttribute("dasharray","6,4");paint.setAttribute("cap","butt") }
+                if(unpaved) { paint.setAttribute("dasharray","${MapRoadSurface.dashLength},${MapRoadSurface.gapLength}");paint.setAttribute("cap","butt") }
                 rule.appendChild(paint);line.parentNode.insertBefore(rule,line)
             }
             line.parentNode.removeChild(line)
+        }
+        // All dashed map lines share the chosen 12/8 rhythm. Keep pure dots and
+        // structural railway cross-hatching as their distinct symbol types.
+        val all=doc.getElementsByTagName("*")
+        for(i in 0 until all.length) {
+            val e=all.item(i) as? Element ?: continue
+            val id=e.getAttribute("id")
+            if(e.tagName=="line" && e.hasAttribute("dasharray") && !id.contains("hatching")) {
+                if(e.getAttribute("dasharray")!=MapDash.DOTTED.pattern) {
+                    val pattern=e.getAttribute("dasharray").split(',').mapNotNull { it.trim().toDoubleOrNull() }
+                    if(pattern.size<=2) e.setAttribute("dasharray","${MapRoadSurface.dashLength},${MapRoadSurface.gapLength}")
+                    else e.setAttribute("dasharray",pattern.mapIndexed { index,value -> if(index%2==1) MapRoadSurface.gapLength.toString() else if(value<=1) value.toString() else MapRoadSurface.dashLength.toString() }.joinToString(","))
+                }
+            }
+            if(e.tagName in setOf("text","caption") && id.startsWith("place-")) {
+                if(e.hasAttribute("stroke")) e.setAttribute("stroke","#ffffffff")
+                if(e.hasAttribute("stroke-width")) e.setAttribute("stroke-width",(e.getAttribute("stroke-width").toDouble()*MapPlaceHalo.widthScale).toString())
+            }
         }
         return serialize(doc)
     }

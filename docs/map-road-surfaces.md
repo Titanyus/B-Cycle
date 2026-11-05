@@ -15,3 +15,9 @@ JSON enthält die feste Regel als roadSurfaceStyle="unpaved-dashed" zusätzlich 
 ## Prüfung
 
 Sechs gezielte Fälle grün: RoadSurfaceStyleTest für sieben Wege-/Straßenklassen, normale/Tunnel-/Brückenlagen und mehrere bekannte/fehlende Beläge; echte native Dash-Texturen/solid Varianten, gleiches Overlaymuster/gleiche Phase, Farben/Live-Update/JSON; zwei Editor-/Profil-/Backup-/Exportfälle; bisherige native Live-Farb-/Reset-/Texturprüfung; Straßenhierarchie/Zoom-/Filter-/Schema-Referenz und Radwegeübersicht. Logs /workspace/.tools/road-surface-style-tests.log (fünf erfolgreich, verbleibende veraltete Solid-Offset-Annahme korrigiert) und road-surface-reference-final-test.log (erfolgreich). Typografie/UI-Katalog/Bright-Generator/Diff grün. Kein Gesamtlauf, keine neue APK. Optische Geräteprüfung der Strichwirkung offen.
+
+## Folgeauftrag nach Build139
+
+Strichlänge12 / Lücke8 vor Geräteskalierung, auf ausdrücklichen Wunsch kartenweit für alle gestrichelten Linien, einschließlich Grenzen/Gewässer und Straße/Radwegehervorhebung. Reine Punktmuster bleiben Punkte; Strich-Punkt erhält12er Striche,8er Lücken und seine Punkte. Strukturelle Bahn-Querstriche bleiben Bahnsymbole. Anwendung nach Designer-Breiten/Farben, Original-Bright-Assets unverändert. MapDash.DASHED und DASH_DOT entsprechend angepasst.
+
+JSON ergänzt feste Metadaten dashPattern=[12,8] und placeTextHalo={widthScale:2,opacity:1}; alte Dateien ohne diese Angaben bleiben gültig. MapPaintPolicyTest prüft Source-Linienmuster, native Städte-/Länder-/Kontinent-Halos, Padding und Metadaten. Nach Korrektur der gültigen Länder-/Kontinent-Testmerkmale erfolgreich in map-halo-global-dash-final-test.log.

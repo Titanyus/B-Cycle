@@ -5,8 +5,8 @@ import android.graphics.Color
 import org.json.JSONObject
 
 internal enum class MapDash(val title:Int,val pattern:String?) {
-    ORIGINAL(R.string.map_style_original,null),SOLID(R.string.map_style_solid,""),DASHED(R.string.map_style_dashed,"8,5"),
-    DOTTED(R.string.map_style_dotted,"1,4"),DASH_DOT(R.string.map_style_dash_dot,"8,4,1,4")
+    ORIGINAL(R.string.map_style_original,null),SOLID(R.string.map_style_solid,""),DASHED(R.string.map_style_dashed,"12,8"),
+    DOTTED(R.string.map_style_dotted,"1,4"),DASH_DOT(R.string.map_style_dash_dot,"12,8,1,8")
 }
 internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<String>) {
     BACKGROUND(R.string.map_style_background,false,setOf("background")),
@@ -52,7 +52,8 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
     fun compiledStyles()=copy(objects=objects.mapValues { (target,value) ->
         if(target in textTargets) value else value.copy(color=null,alpha=null)
     }.filterValues { it!=MapObjectStyle() })
-    fun json()=JSONObject().put("roadSurfaceStyle",MapRoadSurface.policy).put("format","bcycle-map-style").put("version",1).put("base","bright")
+    fun json()=JSONObject().put("dashPattern",org.json.JSONArray().put(MapRoadSurface.dashLength).put(MapRoadSurface.gapLength))
+        .put("placeTextHalo",JSONObject().put("widthScale",MapPlaceHalo.widthScale).put("opacity",MapPlaceHalo.opacity)).put("roadSurfaceStyle",MapRoadSurface.policy).put("format","bcycle-map-style").put("version",1).put("base","bright")
         .put("baseSha256",BASE_SHA).put("objects",JSONObject().apply {
             objects.toSortedMap(compareBy { it.name }).forEach { (target,style) -> put(target.name,JSONObject().apply {
                 style.color?.let { put("color",String.format(java.util.Locale.ROOT,"#%06X",it and 0xffffff)) }
@@ -80,7 +81,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
         fun read(prefs:SharedPreferences)=runCatching { parse(JSONObject(prefs.getString(KEY,null) ?: return MapStyleOverrides())) }.getOrDefault(MapStyleOverrides())
         fun parse(json:JSONObject):MapStyleOverrides {
             require(json.toString().length<=65536)
-            require(json.keys().asSequence().all { it in setOf("format","version","base","baseSha256","objects","visibility","cycleways","placeLabels","cyclingStyles","roadSurfaceStyle") })
+            require(json.keys().asSequence().all { it in setOf("format","version","base","baseSha256","objects","visibility","cycleways","placeLabels","cyclingStyles","roadSurfaceStyle","dashPattern","placeTextHalo") })
             require(json.getString("format")=="bcycle-map-style" && json.get("version")==1 && json.getString("base")=="bright" && json.getString("baseSha256")==BASE_SHA)
             json.optJSONObject("visibility")?.let { v -> v.keys().forEach { require(MapVectorLayer.entries.any { layer -> layer.name==it } && v.get(it) is Boolean) } }
             if(json.has("visibility")) require(json.get("visibility") is JSONObject)
@@ -91,6 +92,14 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
                 MapRouteStyles.validate(cycling)
             }
             if(json.has("roadSurfaceStyle")) require(json.get("roadSurfaceStyle")==MapRoadSurface.policy)
+            if(json.has("dashPattern")) {
+                val pattern=json.getJSONArray("dashPattern");require(pattern.length()==2 && pattern.get(0)==MapRoadSurface.dashLength && pattern.get(1)==MapRoadSurface.gapLength)
+            }
+            if(json.has("placeTextHalo")) {
+                val halo=json.getJSONObject("placeTextHalo")
+                require(halo.keys().asSequence().toSet()==setOf("widthScale","opacity"))
+                require(halo.getDouble("widthScale")==MapPlaceHalo.widthScale.toDouble() && halo.getDouble("opacity")==MapPlaceHalo.opacity.toDouble())
+            }
             val labels=buildMap<MapPlaceClass,MapPlaceTextStyle> {
                 if(json.has("placeLabels")) {
                     val entries=json.getJSONObject("placeLabels")
