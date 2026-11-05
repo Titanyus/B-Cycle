@@ -145,6 +145,39 @@ public class StableLabelPlacementTest {
             tiles.tile=tile(17);placement.updateLabels(new BCycleLabelTask());assertNull(labels(placement));
         } finally { placement.cleanup();view.disposeMap(); }
     }
+    @Test public void longPlaceNamesWrapAtWordsAndShareOneAtlasCellWithMatchingCollisionSize() throws Exception {
+        BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());Tiles tiles=new Tiles();
+        BCycleLabelPlacement placement=new BCycleLabelPlacement(view.map(),tiles,new ZoomLimiter(null,0,20,20));
+        BCycleLabelTask task=new BCycleLabelTask();
+        try {
+            TextStyle town=style("place-town",40,true);
+            org.oscim.renderer.bucket.BCycleCaptionLayout kirchheim=org.oscim.renderer.bucket.BCycleCaptionLayout.get(town,"Kirchheim unter Teck");
+            assertEquals("Kirchheim",kirchheim.first);assertEquals("unter Teck",kirchheim.second);
+            org.oscim.renderer.bucket.BCycleCaptionLayout dillingen=org.oscim.renderer.bucket.BCycleCaptionLayout.get(town,"Dillingen an der Donau");
+            assertEquals("Dillingen",dillingen.first);assertEquals("an der Donau",dillingen.second);
+            assertNull(org.oscim.renderer.bucket.BCycleCaptionLayout.get(town,"Herbrechtingen").second);
+            assertNull(org.oscim.renderer.bucket.BCycleCaptionLayout.get(town,"Donaueschingenhausen").second);
+            assertNull(org.oscim.renderer.bucket.BCycleCaptionLayout.get(town,"Bad Urach").second);
+            assertNull(org.oscim.renderer.bucket.BCycleCaptionLayout.get(style("highway-name",120,false),"Dillingen an der Donau").second);
+            assertTrue(dillingen.width<town.paint.measureText("Dillingen an der Donau"));
+            assertTrue(dillingen.height>town.fontHeight*2);
+            view.measure(View.MeasureSpec.makeMeasureSpec(800,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY));view.layout(0,0,800,600);
+            MapPosition pos=new MapPosition();pos.x=.5;pos.y=.5;pos.setZoomLevel(16);view.map().viewport().setMapPosition(pos);
+            tiles.tile=tile(16,item("Dillingen an der Donau",town,100,100));assertTrue(placement.updateLabels(task));
+            assertEquals("Dillingen an der Donau",labels(placement).label);
+            assertEquals(dillingen.width,labels(placement).width,.001f);
+            java.lang.reflect.Field count=org.oscim.renderer.bucket.RenderBucket.class.getDeclaredField("numVertices");count.setAccessible(true);
+            assertEquals("Both lines share one atlas rectangle/fade",4,count.getInt(task.textLayer));
+            org.oscim.backend.canvas.Bitmap atlas=task.textLayer.textures.bitmap;
+            int[] pixels=atlas.getPixels();int upper=0,lower=0;
+            for(int y=0;y<(int)dillingen.height;y++) for(int x=0;x<(int)dillingen.width+8;x++) {
+                if(android.graphics.Color.alpha(pixels[y*atlas.getWidth()+x])>64) {
+                    if(y<town.fontHeight) upper++;else lower++;
+                }
+            }
+            assertTrue("First line has glyph pixels",upper>10);assertTrue("Second line has glyph pixels",lower>10);
+        } finally { task.textLayer.clear();placement.cleanup();view.disposeMap(); }
+    }
     @Test public void roadShieldAndNumberShareOneAtlasCellAndOneFadeInsteadOfASeparatePlate() throws Exception {
         BicycleMapView view=new BicycleMapView(RuntimeEnvironment.getApplication());Tiles tiles=new Tiles();
         BCycleLabelPlacement placement=new BCycleLabelPlacement(view.map(),tiles,new ZoomLimiter(null,0,20,20));

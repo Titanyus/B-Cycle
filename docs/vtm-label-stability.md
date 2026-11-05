@@ -78,3 +78,11 @@ Einblendeschwelle beim Reinzoomen an dieselbe Ausblendeschwelle angeglichen und 
 Kartendaten liefern Größenklassen city/town/village/hamlet usw.; keine eigenen Einwohnergrenzen in der App. Lokale echte OpenFreeMap-Kachelproben (9-270-177/10-540-354) bestätigen Günzburg und Krumbach (Schwaben) als town. Native Textvarianten für town und city verwenden FontFamily.BLACK (Android sans-serif-black, Gewicht900), FontStyle.NORMAL, 90 % der bisherigen zoomabhängigen Schriftgröße. Füllung/Halo/Priorität/Zoomschwellen/Fades erhalten; village/hamlet/Ortsteile und übergeordnete Gebiete unverändert. Bestehenden begrenzten Varianten-Cache nutzen, keine zusätzliche Typeface-Erzeugung oder Assetänderung.
 
 Gezielte Kotlin-Kompilation, Typografie und Diff geprüft; keine zusätzlichen Tests für die reine Schriftanpassung. Gerätebild offen.
+
+## Zweizeilige lange Ortsnamen nach Build137
+
+Lokale echte OpenFreeMap-Kachel9-270-177 bestätigt `name=Kirchheim unter Teck` sowie `name=Dillingen an der Donau` als vollständige Strings, nicht getrennte Zusätze. Caption-Layout für Ortsnamen ab16 Zeichen mit mehreren Wörtern: vor geografischen Präpositionen umbrechen (unter/an/am/bei/im/in/ob/auf/vor/hinter/über), sonst zwei nach gemessener Breite ausgeglichene Wortgruppen. Keine Worttrennung und kein Umbruch kurzer Namen, Straßen oder Straßenschilder. Originalnamen für Zuordnung/Fades behalten.
+
+Ein Atlasrechteck/Quad/Fade für beide zentrierten Zeilen. Platzierung verwendet die maximale Zeilenbreite und gemeinsame Höhe einschließlich12 % Zeilenabstand. Erhaltene und neue Labels sowie Duplikatprüfung berücksichtigen die neue Höhe. Layoutcache synchronisiert und auf256 Einträge begrenzt; Straßen/Schilder behalten bisherigen Pfad ohne Zusatzmessung. Original-Bright-Assets und Shader unverändert.
+
+Drei gezielte Fälle grün: echte Glyphenpixel in beiden Atlaszeilen, korrekte reduzierte Kollisionsbreite und4Vertices, ungetrennte Einzelwörter/kurze Ortsnamen/Straßen, gemeinsame Straßenschilddarstellung, Export der aktuellen Ebenen-/Radwegeauswahl samt bisheriger Profil-/Sicherungs-/Stil-Rundreise. Log /workspace/.tools/place-wrap-and-layer-export-tests.log. Keine neue APK beauftragt; optischer Gerätevergleich offen.

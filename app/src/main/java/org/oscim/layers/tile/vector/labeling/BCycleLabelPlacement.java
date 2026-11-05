@@ -33,6 +33,7 @@ import org.oscim.map.Viewport;
 import org.oscim.renderer.bucket.SymbolBucket;
 import org.oscim.renderer.bucket.SymbolItem;
 import org.oscim.renderer.bucket.TextItem;
+import org.oscim.renderer.bucket.BCycleCaptionLayout;
 import org.oscim.theme.styles.TextStyle;
 import org.oscim.utils.FastMath;
 import org.oscim.utils.Parameters;
@@ -130,7 +131,7 @@ public class BCycleLabelPlacement {
         // Preserve VTM's local duplicate suppression across tile/style instances.
         return a.label.equals(b.label) && java.util.Objects.equals(a.text.style, b.text.style)
                 && Math.abs(a.x-b.x) < (a.width+b.width)/2 + 100
-                && Math.abs(a.y-b.y) < (a.text.fontHeight+b.text.fontHeight)/2 + 30;
+                && Math.abs(a.y-b.y) < (BCycleCaptionLayout.height(a)+BCycleCaptionLayout.height(b))/2 + 30;
     }
 
     private byte checkOverlap(Label candidate) {
@@ -304,7 +305,7 @@ public class BCycleLabelPlacement {
         if(label.bbox==null) label.bbox=new OBB2D();
         label.bbox.setNormalized(label.x,label.y,cos,-sin,
                 label.width+BCycleLabelPolicy.horizontalGap(label.text),
-                label.text.fontHeight+BCycleLabelPolicy.verticalGap(label.text),label.text.dy);
+                BCycleCaptionLayout.height(label)+BCycleLabelPolicy.verticalGap(label.text),label.text.dy);
         if(checkOverlap(label)!=0) return label;
         addLabel(label);label.item=TextItem.copy(item);
         label.tileX=candidate.tile.tileX;label.tileY=candidate.tile.tileY;label.tileZ=candidate.tile.zoomLevel;
@@ -407,6 +408,7 @@ public class BCycleLabelPlacement {
                     currentWays.add(captionKey(item.text, item.label));
                     continue;
                 }
+                item.width=BCycleCaptionLayout.width(item);
                 Caption caption = new Caption(tile, item, (float) ((dx + item.x) * scale),
                         (float) ((dy + item.y) * scale));
                 captions.computeIfAbsent(captionKey(item.text, item.label), key -> new java.util.ArrayList<>()).add(caption);
@@ -435,7 +437,7 @@ public class BCycleLabelPlacement {
                 l.x = match.x; l.y = match.y;
                 l.tileX = match.tile.tileX; l.tileY = match.tile.tileY; l.tileZ = match.tile.zoomLevel;
                 l.bbox.setNormalized(l.x, l.y, cos, -sin, l.width + BCycleLabelPolicy.horizontalGap(l.text),
-                        l.text.fontHeight + BCycleLabelPolicy.verticalGap(l.text), l.text.dy);
+                        BCycleCaptionLayout.height(l) + BCycleLabelPolicy.verticalGap(l.text), l.text.dy);
                 if (checkOverlap(l) == 0) {
                     Label retained = l; l = (Label) l.next;
                     retained.next = null; addLabel(retained);

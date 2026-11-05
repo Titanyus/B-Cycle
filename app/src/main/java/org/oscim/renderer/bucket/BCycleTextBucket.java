@@ -60,8 +60,9 @@ public final class BCycleTextBucket extends TextBucket {
 
         for (TextItem it = labels; it != null; ) {
 
-            float width = it.width + 2 * mFontPadX;
-            float height = (int) (it.text.fontHeight) + 0.5f;
+            BCycleCaptionLayout layout=BCycleCaptionLayout.place(it.text) ? BCycleCaptionLayout.get(it.text,it.label) : null;
+            float width = (layout==null ? it.width : layout.width) + 2 * mFontPadX;
+            float height = (int) (layout==null ? it.text.fontHeight : layout.height) + 0.5f;
 
             boolean shield=inlineShield(it.text);
             if(shield) {
@@ -112,7 +113,12 @@ public final class BCycleTextBucket extends TextBucket {
                 xx=x+(width-it.width)/2;
                 yy=y+(height+it.text.fontHeight)/2-it.text.fontDescent;
             }
-            mCanvas.drawText(it.label, xx, yy, it.text.paint, it.text.stroke);
+            if(layout==null || layout.second==null) mCanvas.drawText(it.label, xx, yy, it.text.paint, it.text.stroke);
+            else {
+                yy=y+(height-layout.height)/2+it.text.fontHeight-it.text.fontDescent;
+                mCanvas.drawText(layout.first,x+(width-layout.firstWidth)/2,yy,it.text.paint,it.text.stroke);
+                mCanvas.drawText(layout.second,x+(width-layout.secondWidth)/2,yy+layout.lineAdvance,it.text.paint,it.text.stroke);
+            }
 
             while (it != null) {
                 addItem(it, width, height, x, y);

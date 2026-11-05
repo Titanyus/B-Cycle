@@ -28,6 +28,10 @@ class MapStyleEditorTest {
             .update(MapStyleTarget.TRACK,MapObjectStyle(Color.MAGENTA,widthPercent=40))
         try {
             custom.write(prefs)
+            prefs.edit().putBoolean(MapVectorLayer.CONTOURS.key,true).putBoolean(MapVectorLayer.POIS.key,false).putBoolean(VtmBaseMap.cyclewaysKey,false).apply()
+            val exported=JSONObject(custom.export(prefs))
+            assertTrue(exported.getJSONObject("visibility").getBoolean("CONTOURS"))
+            assertFalse(exported.getJSONObject("visibility").getBoolean("POIS"));assertFalse(exported.getBoolean("cycleways"))
             assertEquals(custom,MapStyleOverrides.parse(JSONObject(custom.export(prefs))))
             val bank=BikeUiConfigurationStore(prefs);bank.ensure(listOf(0,1));bank.save(0)
             MapStyleOverrides().write(prefs);bank.save(1);bank.apply(0);assertEquals(custom,MapStyleOverrides.read(prefs))

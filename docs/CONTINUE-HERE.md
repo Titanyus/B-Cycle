@@ -1,4 +1,10 @@
-# Aktueller Stand: APK 0.8.94 / Build 137 veröffentlicht
+# Änderungen nach Build137
+
+Lange mehrteilige Ortsnamen zweizeilig, ohne Wörter zu trennen: geografische Zusätze zusammen unten, sonst ausgeglichene Wortgruppen. Name/Zuordnung erhalten; native Atlaszeichnung und Kollisionsmaße gemeinsam erweitert. Drei gezielte Pixel-/Platzierungs-/Schilder-/JSON-Ebenen-/Profil-/Sicherungsfälle grün (place-wrap-and-layer-export-tests.log). Aktuelle Ebenenauswahl wird bereits als visibility/cycleways exportiert und gezielt bestätigt. Keine neue APK beauftragt.
+
+Radwegehervorhebung bleibt langfristig separate Nutzeroption; restlicher Designer dient dem Erarbeiten fester Stile mit vollständigem JSON. Neue Rückmeldung: Radwege verschwinden weiterhin zu früh; Quellen-/Übersichtsdaten untersuchen. Klärung einzelne Radwege vs ausgeschildertes Radroutennetz per asynchroner Frage offen.
+
+## Letzte Veröffentlichung: APK 0.8.94 / Build 137
 
 Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4278364 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
 
