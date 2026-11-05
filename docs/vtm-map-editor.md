@@ -69,3 +69,7 @@ Zunächst geschlossenes Rahmen-Dropdown mit den vier OSM-Klassen city/town/villa
 Optionales `placeLabels` im gleichen validierten Profil-/Export-/Sicherungsschema, Schlüssel CITY/TOWN/VILLAGE/HAMLET mit ganzzahligem weight/sizePercent. Alte JSON-Dateien ohne diesen Block verwenden die Vorgaben. Native Schriftvarianten nur im vorhandenen 256er-Cache; Gewicht über eine reflektionsfreie AndroidPaint-Paketbrücke und neun einmalig gecachte Android-Typefaces. Füll-/Halo-Paint und Höhen-/Descent-Metriken stimmen überein. Größen-/Gewichtsänderungen laufen über den bisherigen180-ms-Atlasaufbau, reine Farben weiter live.
 
 Gezielter MapPlaceTextEditorTest erfolgreich: vier unabhängige Klassen, keine Änderungen beim Öffnen, exaktes natives Typeface-Gewicht und Schriftgröße/Metriken, erhaltene Priorität, Wiederöffnen, Profil/Sicherung/JSON, Reset und ungültige Gewichte. Nachweis /workspace/.tools/map-place-text-tests.log.
+
+## Belagsregel nach Build138
+
+Straßen-/Wege-Strichmuster werden nun aus bekannten Belagsdaten abgeleitet. Der Designer zeigt dafür einen festen kurzen Hinweis statt manueller Musterwahl; übrige Objektmuster/Farben/Alpha/Breiten erhalten. JSON roadSurfaceStyle=unpaved-dashed dokumentiert die Regel und ihren Vorrang vor alten Straßenmustern. [Umsetzung und Prüfung](map-road-surfaces.md).

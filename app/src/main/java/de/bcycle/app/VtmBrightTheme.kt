@@ -40,6 +40,7 @@ internal class VtmBrightTheme private constructor(
         if(pass==VtmMapPass.GROUND && !ground || pass==VtmMapPass.FOREGROUND && ground) return null
         val candidates=layers[tags.getValue("layer")].orEmpty()
         val matched=TagSet()
+        if(tags.getValue("layer")=="transportation") matched.add(Tag("bcycle:surface",if(MapRoadSurface.unpaved(tags.getValue("surface"))) "unpaved" else "other"))
         // The generated native instructions use these only for sprite selection/cycling overlay.
         for(key in nativeKeys)
             tags.getValue(key)?.let { matched.add(Tag(key,it)) }

@@ -52,7 +52,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
     fun compiledStyles()=copy(objects=objects.mapValues { (target,value) ->
         if(target in textTargets) value else value.copy(color=null,alpha=null)
     }.filterValues { it!=MapObjectStyle() })
-    fun json()=JSONObject().put("format","bcycle-map-style").put("version",1).put("base","bright")
+    fun json()=JSONObject().put("roadSurfaceStyle",MapRoadSurface.policy).put("format","bcycle-map-style").put("version",1).put("base","bright")
         .put("baseSha256",BASE_SHA).put("objects",JSONObject().apply {
             objects.toSortedMap(compareBy { it.name }).forEach { (target,style) -> put(target.name,JSONObject().apply {
                 style.color?.let { put("color",String.format(java.util.Locale.ROOT,"#%06X",it and 0xffffff)) }
@@ -80,7 +80,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
         fun read(prefs:SharedPreferences)=runCatching { parse(JSONObject(prefs.getString(KEY,null) ?: return MapStyleOverrides())) }.getOrDefault(MapStyleOverrides())
         fun parse(json:JSONObject):MapStyleOverrides {
             require(json.toString().length<=65536)
-            require(json.keys().asSequence().all { it in setOf("format","version","base","baseSha256","objects","visibility","cycleways","placeLabels","cyclingStyles") })
+            require(json.keys().asSequence().all { it in setOf("format","version","base","baseSha256","objects","visibility","cycleways","placeLabels","cyclingStyles","roadSurfaceStyle") })
             require(json.getString("format")=="bcycle-map-style" && json.get("version")==1 && json.getString("base")=="bright" && json.getString("baseSha256")==BASE_SHA)
             json.optJSONObject("visibility")?.let { v -> v.keys().forEach { require(MapVectorLayer.entries.any { layer -> layer.name==it } && v.get(it) is Boolean) } }
             if(json.has("visibility")) require(json.get("visibility") is JSONObject)
@@ -90,6 +90,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
                 require(cycling.keys().asSequence().all { it in setOf("cycleways","cycleRoutes") })
                 MapRouteStyles.validate(cycling)
             }
+            if(json.has("roadSurfaceStyle")) require(json.get("roadSurfaceStyle")==MapRoadSurface.policy)
             val labels=buildMap<MapPlaceClass,MapPlaceTextStyle> {
                 if(json.has("placeLabels")) {
                     val entries=json.getJSONObject("placeLabels")

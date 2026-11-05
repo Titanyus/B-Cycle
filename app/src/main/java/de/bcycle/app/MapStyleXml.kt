@@ -67,6 +67,23 @@ internal object MapStyleXml {
         }
         return serialize(doc)
     }
+    /** Enforce semantic road dashes after legacy/manual patterns, including casings and bike highlights. */
+    fun roadSurfaces(xml:String):String {
+        val doc=document(xml)
+        val nodes=doc.getElementsByTagName("line")
+        val roads=(0 until nodes.length).map { nodes.item(it) as Element }.filter { MapRoadSurface.roadId(it.getAttribute("id")) }
+        for(line in roads) {
+            for(unpaved in listOf(false,true)) {
+                val rule=doc.createElement("m").apply { setAttribute("k","bcycle:surface");setAttribute("v",if(unpaved) "unpaved" else "other") }
+                val paint=line.cloneNode(true) as Element
+                for(key in listOf("dasharray","stroke-dasharray","stipple","stipple-width","stipple-ratio","stipple-color")) paint.removeAttribute(key)
+                if(unpaved) { paint.setAttribute("dasharray","6,4");paint.setAttribute("cap","butt") }
+                rule.appendChild(paint);line.parentNode.insertBefore(rule,line)
+            }
+            line.parentNode.removeChild(line)
+        }
+        return serialize(doc)
+    }
     fun defaultColor(xml:String,target:MapStyleTarget):Int {
         val doc=document(xml)
         if(target==MapStyleTarget.BACKGROUND) return Color.parseColor(doc.documentElement.getAttribute("map-background"))

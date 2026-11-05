@@ -14,7 +14,7 @@ import org.robolectric.annotation.Config
 @Config(sdk=[33])
 @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 class VtmLiveColorsTest {
-    private fun tags(layer:String,kind:String)=TagSet().apply { add(Tag("layer",layer));add(Tag("class",kind)) }
+    private fun tags(layer:String,kind:String)=TagSet().apply { add(Tag("layer",layer));add(Tag("class",kind));if(layer=="transportation") add(Tag("surface","unpaved")) }
     @Test fun existingNativeHandlesAndDashTexturesRepaintAndResetToExactPerZoomDefaults() {
         val view=BicycleMapView(RuntimeEnvironment.getApplication())
         val initial=MapStyleOverrides().update(MapStyleTarget.PRIMARY,MapObjectStyle(Color.RED,MapDash.DASHED))

@@ -33,6 +33,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
     }
     private val placeText=MapPlaceTextEditor(context,prefs,themes) { schedule() }
     private val line=Spinner(context).apply { tag="map_style_dash" }
+    private val surfaceHint=BicycleComponents.description(context,themes,context.getString(R.string.map_style_surface_hint))
     private val lineLabel=BicycleComponents.fieldLabel(context,themes,context.getString(R.string.map_style_line))
     private var selected=runCatching { MapStyleTarget.valueOf(prefs.getString(LAST_TARGET,null) ?: "BACKGROUND") }.getOrDefault(MapStyleTarget.BACKGROUND).takeIf { it in targets } ?: MapStyleTarget.BACKGROUND
     private var updating=false
@@ -75,6 +76,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
                 if(!updating && selected.line && currentProfile()) save(current().copy(widthPercent=value))
             }
         })
+        addView(surfaceHint)
         addView(lineLabel)
         line.adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,MapDash.entries.map { context.getString(it.title) })
         line.contentDescription=context.getString(R.string.map_style_line);addView(line,LayoutParams(-1,-2))
@@ -87,7 +89,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
             if(currentProfile()) prefs.edit().putString(LAST_TARGET,selected.name).apply()
             render()
         }
-        selection(line) { if(!updating && selected.line) {
+        selection(line) { if(!updating && selected.line && !MapRoadSurface.target(selected)) {
             val value=current();val dash=MapDash.entries[it]
             if(value.dash!=dash) save(value.copy(dash=dash))
         } }
@@ -138,7 +140,8 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
         displayColor(initial)
         widthRow.visibility=if(selected.line) VISIBLE else GONE
         widthSlider.progress=value.widthPercent ?: 100
-        lineLabel.visibility=if(selected.line) VISIBLE else GONE;line.visibility=lineLabel.visibility
+        surfaceHint.visibility=if(MapRoadSurface.target(selected)) VISIBLE else GONE
+        lineLabel.visibility=if(selected.line && !MapRoadSurface.target(selected)) VISIBLE else GONE;line.visibility=lineLabel.visibility
         line.setSelection(value.dash.ordinal);updating=false
     }
     companion object { private const val LAST_TARGET="mapStyleEditorLastTarget" }

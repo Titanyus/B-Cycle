@@ -42,7 +42,7 @@ class MapStyleEditorTest {
             try {
                 val road=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","primary")) }
                 val lines=theme.matchElement(GeometryBuffer.GeometryType.LINE,road,16).orEmpty().filterIsInstance<LineStyle>()
-                assertTrue(lines.any { it.current().color==Color.RED && it.dashArray?.size==4 && it.texture!=null })
+                assertTrue(lines.any { it.current().color==Color.RED && it.dashArray==null && it.texture==null })
                 val forest=TagSet().apply { add(Tag("layer","landcover"));add(Tag("class","wood")) }
                 assertTrue(theme.matchElement(GeometryBuffer.GeometryType.POLY,forest,16).orEmpty().filterIsInstance<AreaStyle>().any { it.current().color==Color.argb(26,0,0,255) })
             } finally { theme.dispose() }
@@ -56,7 +56,7 @@ class MapStyleEditorTest {
                     val changed=lines(edited,"track").single { it.style=="bcycle-track" }
                     assertEquals(Color.MAGENTA,changed.current().color);assertEquals(original.width*.4f,changed.width,.001f)
                     assertTrue(original.width<lines(baseline,"minor").last().width)
-                    assertNotNull(original.texture)
+                    assertNull("Unknown track surface stays solid",original.texture)
                     assertTrue(lines(edited,"minor").none { it.style=="bcycle-track" || it.current().color==Color.MAGENTA })
                 }
             } finally { edited.dispose();baseline.dispose() }
@@ -122,7 +122,7 @@ class MapStyleEditorTest {
             channels[0].progress=17;channels[1].progress=92
             val dash=editor.findViewWithTag<Spinner>("map_style_dash");dash.setSelection(MapDash.DOTTED.ordinal)
             Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
-            assertEquals(MapDash.DOTTED,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.dash);assertTrue(changes>0)
+            assertEquals(View.GONE,dash.visibility);assertEquals(MapDash.ORIGINAL,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.dash);assertTrue(changes>0)
             val width=editor.findViewWithTag<BicycleSettingSlider>("map_style_width")
             width.progress=55
             assertEquals(55,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.widthPercent)
