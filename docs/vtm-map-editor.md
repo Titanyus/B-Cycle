@@ -1,6 +1,6 @@
 # Kleiner Karteneditor und Reihenfolge
 
-Auftrag 04.11.2026 nach Build 130. Seit 05.11.2026 auf der Dashboardkarte eigener Stiftbutton neben Auge/Ebenen → Karteneditor. Native Objektauswahl, drei RGB-Regler 0–255 mit sichtbarem HEX-Wert und Farbvorschau, Linienstile Original / Durchgezogen / Gestrichelt / Gepunktet / Strich-Punkt. Farbe und Linienstil unabhängig, einzelne oder alle Stiländerungen zurücksetzen, JSON exportieren. Keine freie Auswahl der Zeichenreihenfolge beauftragt; die gewünschte feste Reihenfolge ist unten beschrieben.
+Auftrag 04.11.2026 nach Build 130. Seit 05.11.2026 auf der Dashboardkarte eigener Stiftbutton neben Auge/Ebenen → Karteneditor. Native Objektauswahl, vier RGBA-Regler 0–255 mit sichtbarem HEX-Wert und Farbvorschau, Linienstile Original / Durchgezogen / Gestrichelt / Gepunktet / Strich-Punkt. Farbe und Linienstil unabhängig, einzelne oder alle Stiländerungen zurücksetzen, JSON exportieren. Keine freie Auswahl der Zeichenreihenfolge beauftragt; die gewünschte feste Reihenfolge ist unten beschrieben.
 
 ## Stiländerungen
 
@@ -45,3 +45,9 @@ Gezielte native Fälle: tatsächliche VTM-Linientexturen/Farben und ursprünglic
 ## Folgeänderungen 05.11.2026
 
 [Eigenständiger RGB-Editor, frühere Ortsübersicht und länger sichtbare Radwege](vtm-rgb-and-overview.md). Frühere Wabenpalette nur bei Kartenobjekten ersetzt.
+
+## Kompakter Editor ab 05.11.2026 nach Build 134
+
+Keine Überschrift/Erklärung, Farbfeld rechts neben der Objektauswahl, HEX in deren Beschriftungszeile. Vier Regler mit 48-dp-Touchhöhe ohne bisheriges 8-dp-Padding oben/unten. Objektreset/Gesamtreset/JSON/Schließen als vier zugängliche Iconbuttons mit Tooltips in einer Zeile. Popup belegt nur die benötigte Inhaltshöhe (bei kurzen Screens begrenzt/scrollbar). Letztes ausgewähltes Objekt lokal unter `mapStyleEditorLastTarget` merken, auch nach Schließen/Neustart; kein Bestandteil des Kartenstils.
+
+JSON-Version 1 bleibt kompatibel: optionales ganzzahliges `alpha` 0–255 je Objekt; alte reine RGB-Deltas behalten die nativen Transparenzen. Gleiches Schema in Profilen/Sicherung/Export. Alpha wird bei Flächen/Linien/Hintergrund direkt über native Live-Stile gesetzt, bei Text über den bisherigen Atlas-Neuaufbau. Ohne Alpha-Override genaue Transparenz je Stilvariante/Zoom erhalten. Die eine Objektauswahl zeigt den ersten passenden Basisstil (Wald 26, kleine Höhenlinie 102); eine explizite Änderung setzt den gewählten Wert für alle Varianten dieser Objektgruppe.

@@ -16,13 +16,14 @@ internal class MapStyleEditorPopup(private val anchor:View,runtime:RideRuntime,c
         val column=LinearLayout(context).apply {
             orientation=LinearLayout.VERTICAL;tag="map_style_editor_popup"
             val padding=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(padding,padding,padding,padding)
-            addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.map_style_editor)))
-            addView(MapStyleEditorView(context,runtime.preferences,themes,changed,export),LinearLayout.LayoutParams(-1,-2))
+            addView(MapStyleEditorView(context,runtime.preferences,themes,changed,export,::dismiss),LinearLayout.LayoutParams(-1,-2))
         }
         BicycleComponents.bindTheme(column,themes) { tokens -> column.background=BicycleComponents.controlBackground(context,tokens,tokens.tertiary) }
         contentView=ScrollView(context).apply { BicycleComponents.scrollStyle(this);addView(column) }
         width=minOf(BicycleDesign.dp(context,320),context.resources.displayMetrics.widthPixels-BicycleDesign.dp(context,MapControlDesign.edgeGap*2))
-        height=minOf(BicycleDesign.dp(context,640),(context.resources.displayMetrics.heightPixels*.65).toInt())
+        // Size to the compact editor, cap only on short screens; do not reserve empty map area.
+        column.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
+        height=minOf(column.measuredHeight,(context.resources.displayMetrics.heightPixels*.65).toInt())
         setOnDismissListener { closed() }
     }
     fun show() { showAsDropDown(anchor,0,BicycleDesign.dp(anchor.context,MapControlDesign.buttonGap),Gravity.START) }

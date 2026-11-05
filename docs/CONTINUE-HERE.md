@@ -1,4 +1,8 @@
-# Aktueller Stand: APK 0.8.92 / Build 134 veröffentlicht
+# Aktueller Auftrag nach Build 134
+
+FLAT-Sticky-Header SECONDARY. Kompakter RGBA-Karteneditor ohne Überschrift/Erklärung, Farbfeld in der Objekt-Dropdownzeile, vier Regler enger (48dp), vier Iconaktionen in einer Zeile. Alpha zeigt bestehende Originaltransparenz und setzt absolute Deckkraft; optionales JSON-alpha bleibt kompatibel mit alten RGB-Deltas, Profilen und Sicherung. Letztes Objekt nach Schließen wiederherstellen. Gezielte Editor-/Native-Farb-/Sticky-Tests grün; Typografie/UI-Katalog/Bright/Diff grün. Neue APK ausdrücklich beauftragt: 0.8.93 / code163 / erwarteter Build135; Actions-Build/Prüfung/Veröffentlichung läuft.
+
+## Letzte Veröffentlichung: APK 0.8.92 / Build 134
 
 Downloadnachweis: Den veröffentlichten direkten Raw-Link abgerufen: 4261416 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 ebenfalls identisch.
 

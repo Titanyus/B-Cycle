@@ -103,8 +103,7 @@ class BicycleSectionCardsTest {
                     first.background.draw(Canvas(ruleImage))
                     val ruleColor=(tokens.foreground and 0xffffff) or ((Color.alpha(tokens.foreground)*BicycleDesign.controlBorderAlpha).toInt() shl 24)
                     val reference=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
-                    val headerColor=Color.argb(Color.alpha(tokens.primary),(Color.red(tokens.primary)*.7f).toInt(),
-                        (Color.green(tokens.primary)*.7f).toInt(),(Color.blue(tokens.primary)*.7f).toInt())
+                    val headerColor=tokens.secondary
                     Canvas(reference).apply { drawColor(headerColor);drawColor(ruleColor) }
                     assertEquals(reference.getPixel(0,0),ruleImage.getPixel(first.width/2,0))
                     reference.recycle()

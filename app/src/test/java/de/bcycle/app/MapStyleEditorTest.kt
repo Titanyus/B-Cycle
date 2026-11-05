@@ -87,6 +87,7 @@ class MapStyleEditorTest {
             assertEquals(Color.rgb(17,92,203),MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.color)
             assertEquals("#115CCB",editor.findViewWithTag<TextView>("map_style_rgb_hex").text.toString())
             target.setSelection(MapStyleTarget.FOREST.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            assertEquals("Existing forest transparency is shown",26,editor.findViewWithTag<BicycleSettingSlider>("map_style_rgb_3").progress)
             target.setSelection(MapStyleTarget.PRIMARY.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             assertEquals(listOf(17,92,203),channels.map { it.progress })
             val beforeDrag=changes
@@ -99,8 +100,18 @@ class MapStyleEditorTest {
             val dash=editor.findViewWithTag<Spinner>("map_style_dash");dash.setSelection(MapDash.DOTTED.ordinal)
             Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
             assertEquals(MapDash.DOTTED,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.dash);assertTrue(changes>0)
+            val alpha=editor.findViewWithTag<BicycleSettingSlider>("map_style_rgb_3")
+            assertEquals(255,alpha.progress);alpha.progress=128
+            assertEquals(128,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.alpha)
+            assertEquals("#80115CCB",editor.findViewWithTag<TextView>("map_style_rgb_hex").text.toString())
+            assertSame(target.parent,editor.findViewWithTag<View>("map_style_swatch").parent)
+            val buttons=editor.findViewWithTag<LinearLayout>("map_style_actions")
+            assertEquals(4,buttons.childCount);assertEquals(LinearLayout.HORIZONTAL,buttons.orientation)
             editor.findViewWithTag<View>("map_style_export").performClick()
             assertEquals(MapStyleOverrides.read(prefs),MapStyleOverrides.parse(JSONObject(exported!!)))
+            val reopened=MapStyleEditorView(activity,prefs,themes,{}, {})
+            assertEquals(MapStyleTarget.PRIMARY.ordinal,reopened.findViewWithTag<Spinner>("map_style_target").selectedItemPosition)
+            assertEquals(128,reopened.findViewWithTag<BicycleSettingSlider>("map_style_rgb_3").progress)
             editor.findViewWithTag<View>("map_style_reset_object").performClick();assertTrue(MapStyleOverrides.read(prefs).objects.isEmpty())
         } finally { controller.pause().stop().destroy() }
     }
@@ -120,7 +131,7 @@ class MapStyleEditorTest {
             assertEquals(json,file.readText())
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun flatStickyHeadersUseAutomaticallyDarkenedPrimaryAcrossEveryPreset() {
+    @Test fun flatStickyHeadersUseSecondaryAcrossEveryPreset() {
         val controller=Robolectric.buildActivity(Activity::class.java).setup().visible()
         try {
             val activity=controller.get();val themes=ThemeManager(activity.getSharedPreferences("bike",0));themes.setFlatDesign(true)
@@ -128,8 +139,8 @@ class MapStyleEditorTest {
                 themes.activate(preset.id)
                 val header=BicycleSectionHeader(activity,themes,"Test");activity.setContentView(header)
                 header.measure(View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(100,View.MeasureSpec.EXACTLY));header.layout(0,0,400,100)
-                val image=Bitmap.createBitmap(400,100,Bitmap.Config.ARGB_8888);header.draw(Canvas(image));val primary=themes.active.tokens.primary
-                assertEquals(Color.argb(Color.alpha(primary),(Color.red(primary)*.7f).toInt(),(Color.green(primary)*.7f).toInt(),(Color.blue(primary)*.7f).toInt()),image.getPixel(10,50));image.recycle()
+                val image=Bitmap.createBitmap(400,100,Bitmap.Config.ARGB_8888);header.draw(Canvas(image));val secondary=themes.active.tokens.secondary
+                assertEquals(secondary,image.getPixel(10,50));image.recycle()
             }
         } finally { controller.pause().stop().destroy() }
     }

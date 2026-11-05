@@ -14,17 +14,22 @@ internal object MapStyleXml {
     fun apply(xml:String,overrides:MapStyleOverrides):String {
         if(overrides.objects.isEmpty()) return xml
         val doc=document(xml)
-        overrides.objects[MapStyleTarget.BACKGROUND]?.color?.let { doc.documentElement.setAttribute("map-background",hex(it)) }
+        overrides.objects[MapStyleTarget.BACKGROUND]?.let { style ->
+            val original=Color.parseColor(doc.documentElement.getAttribute("map-background"))
+            val color=style.color ?: original
+            doc.documentElement.setAttribute("map-background",hex((color and 0xffffff) or ((style.alpha ?: Color.alpha(original)) shl 24)))
+        }
         val all=doc.getElementsByTagName("*")
         for(i in 0 until all.length) {
             val element=all.item(i) as? Element ?: continue
             val id=element.getAttribute("id")
             val target=MapStyleTarget.entries.firstOrNull { id in it.ids || id.endsWith("-casing") && id.removeSuffix("-casing") in it.ids } ?: continue
             val style=overrides.objects[target] ?: continue
-            if(!id.endsWith("-casing")) style.color?.let { color ->
+            if(!id.endsWith("-casing")) if(style.color!=null || style.alpha!=null) {
                 val attribute=when(element.tagName) { "area","text","caption" -> "fill";"line" -> "stroke";else -> null }
                 if(attribute!=null && element.hasAttribute(attribute)) {
-                    val alpha=Color.alpha(Color.parseColor(element.getAttribute(attribute)))
+                    val color=style.color ?: Color.parseColor(element.getAttribute(attribute))
+                    val alpha=style.alpha ?: Color.alpha(Color.parseColor(element.getAttribute(attribute)))
                     element.setAttribute(attribute,hex((color and 0xffffff) or (alpha shl 24)))
                 }
             }
@@ -44,9 +49,9 @@ internal object MapStyleXml {
             val element=all.item(i) as? Element ?: continue
             if(element.getAttribute("id") !in target.ids) continue
             val attribute=if(element.tagName=="line") "stroke" else "fill"
-            if(element.hasAttribute(attribute)) return Color.parseColor(element.getAttribute(attribute)) or Color.BLACK
+            if(element.hasAttribute(attribute)) return Color.parseColor(element.getAttribute(attribute))
         }
-        return when(target) { MapStyleTarget.CYCLE -> Color.rgb(36,120,196);MapStyleTarget.CONTOUR -> Color.rgb(139,115,85);else -> Color.GRAY }
+        return when(target) { MapStyleTarget.CYCLE -> Color.rgb(36,120,196);MapStyleTarget.CONTOUR -> Color.argb(102,139,115,85);else -> Color.GRAY }
     }
     private fun hex(color:Int)=String.format(java.util.Locale.ROOT,"#%08X",color)
 }

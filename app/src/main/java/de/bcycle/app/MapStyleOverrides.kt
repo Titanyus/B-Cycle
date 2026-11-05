@@ -38,22 +38,23 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
     WATER_TEXT(R.string.map_style_water_text,false,setOf("waterway-name","water-name-lakeline","water-name-ocean","water-name-other")),
     CONTOUR(R.string.map_layer_contours,true,setOf("contour-minor","contour-major"));
 }
-internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL)
+internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null)
 internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectStyle> = emptyMap()) {
     /** Text is baked into glyph atlases; pattern changes create native textures/buckets. */
     fun canUpdateColorsFrom(previous:MapStyleOverrides)=MapStyleTarget.entries.all { target ->
         val before=previous.objects[target] ?: MapObjectStyle()
         val after=objects[target] ?: MapObjectStyle()
-        before.dash==after.dash && (target !in textTargets || before.color==after.color)
+        before.dash==after.dash && (target !in textTargets || before.color==after.color && before.alpha==after.alpha)
     }
     /** Keep unmodified native geometry paints as exact per-zoom reset baselines. */
     fun compiledStyles()=copy(objects=objects.mapValues { (target,value) ->
-        if(target in textTargets) value else value.copy(color=null)
+        if(target in textTargets) value else value.copy(color=null,alpha=null)
     }.filterValues { it!=MapObjectStyle() })
     fun json()=JSONObject().put("format","bcycle-map-style").put("version",1).put("base","bright")
         .put("baseSha256",BASE_SHA).put("objects",JSONObject().apply {
             objects.toSortedMap(compareBy { it.name }).forEach { (target,style) -> put(target.name,JSONObject().apply {
                 style.color?.let { put("color",String.format(java.util.Locale.ROOT,"#%06X",it and 0xffffff)) }
+                style.alpha?.let { put("alpha",it) }
                 if(style.dash!=MapDash.ORIGINAL) put("lineStyle",style.dash.name)
             }) }
         })
@@ -80,11 +81,12 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
             return MapStyleOverrides(buildMap {
                 rows.keys().forEach { key ->
                     val target=MapStyleTarget.valueOf(key);val row=rows.getJSONObject(key)
-                    require(row.keys().asSequence().all { it in setOf("color","lineStyle") })
+                    require(row.keys().asSequence().all { it in setOf("color","lineStyle","alpha") })
                     val color=if(row.has("color")) row.getString("color").also { require(it.matches(Regex("#[0-9a-fA-F]{6}"))) }.let(Color::parseColor) else null
+                    val alpha=if(row.has("alpha")) row.get("alpha").also { require(it is Int && it in 0..255) } as Int else null
                     val dash=if(row.has("lineStyle")) MapDash.valueOf(row.getString("lineStyle")) else MapDash.ORIGINAL
                     require(target.line || dash==MapDash.ORIGINAL)
-                    put(target,MapObjectStyle(color,dash))
+                    put(target,MapObjectStyle(color,dash,alpha))
                 }
             })
         }

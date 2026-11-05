@@ -77,9 +77,7 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
                 canvas.drawRoundRect(card,radius,radius,fill)
                 canvas.restoreToCount(saved)
             }
-        }.apply { setColor(if(flat) android.graphics.Color.argb(android.graphics.Color.alpha(tokens.primary),
-                (android.graphics.Color.red(tokens.primary)*.7f).toInt(),(android.graphics.Color.green(tokens.primary)*.7f).toInt(),
-                (android.graphics.Color.blue(tokens.primary)*.7f).toInt()) else tokens.tertiary);cornerRadii=FloatArray(8) { radius } }
+        }.apply { setColor(if(flat) tokens.secondary else tokens.tertiary);cornerRadii=FloatArray(8) { radius } }
     }
     /** Opt-in collapsing; the title remains centered by reserving equal icon space on each side. */
     fun accordion(content:View,open:Boolean=true,changed:(Boolean)->Unit={}) {
