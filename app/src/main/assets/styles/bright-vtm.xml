@@ -32,7 +32,7 @@
         <m zoom-min="10" zoom-max="10">
             <area id="landcover-glacier" fill="#5cffffff" />
         </m>
-        <m zoom-min="11" zoom-max="19">
+        <m zoom-min="11" zoom-max="21">
             <area id="landcover-glacier" fill="#4cffffff" />
         </m>
     </m>
@@ -49,52 +49,52 @@
         <m zoom-min="16" zoom-max="16">
             <area id="landuse-residential" fill="#40eae6e1" />
         </m>
-        <m zoom-min="17" zoom-max="19">
+        <m zoom-min="17" zoom-max="21">
             <area id="landuse-residential" fill="#33eae6e1" />
         </m>
     </m>
     <m k="bcycle:bright:landuse-commercial" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landuse-commercial" fill="#3bf2caca" />
         </m>
     </m>
     <m k="bcycle:bright:landuse-industrial" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landuse-industrial" fill="#57fff4c2" />
         </m>
     </m>
     <m k="bcycle:bright:landuse-cemetery" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landuse-cemetery" fill="#ffe0e4dd" />
         </m>
     </m>
     <m k="bcycle:bright:landuse-hospital" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landuse-hospital" fill="#ffffddee" />
         </m>
     </m>
     <m k="bcycle:bright:landuse-school" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landuse-school" fill="#fff0e8f8" />
         </m>
     </m>
     <m k="bcycle:bright:landuse-railway" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landuse-railway" fill="#66eae6e1" />
         </m>
     </m>
     <m k="bcycle:bright:landcover-wood" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landcover-wood" fill="#1a66aa44" stroke="#08000000" stroke-width="0.5" />
         </m>
     </m>
     <m k="bcycle:bright:landcover-grass" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landcover-grass" fill="#ffd8e8c8" />
         </m>
     </m>
     <m k="bcycle:bright:landcover-grass-park" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landcover-grass-park" fill="#ccd8e8c8" />
         </m>
     </m>
@@ -113,6 +113,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="waterway_tunnel" stroke="#ffa0c8f0" width="1.66436" fix="true" cap="round" dasharray="6.65745,13.31491" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="waterway_tunnel" stroke="#ffa0c8f0" width="2.24507" fix="true" cap="round" dasharray="8.9803,17.9606" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="waterway_tunnel" stroke="#ffa0c8f0" width="3" fix="true" cap="round" dasharray="12,24" />
         </m>
     </m>
     <m k="bcycle:bright:waterway-other" v="1">
@@ -134,6 +140,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="waterway-other" stroke="#ffa0c8f0" width="0.63574" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="waterway-other" stroke="#ffa0c8f0" width="0.79411" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="waterway-other" stroke="#ffa0c8f0" width="1" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:waterway-other-intermittent" v="1">
         <m zoom-min="1" zoom-max="14">
@@ -153,6 +165,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="waterway-other-intermittent" stroke="#ffa0c8f0" width="0.63574" fix="true" cap="round" dasharray="5.08588,3.81441" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="waterway-other-intermittent" stroke="#ffa0c8f0" width="0.79411" fix="true" cap="round" dasharray="6.35289,4.76467" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="waterway-other-intermittent" stroke="#ffa0c8f0" width="1" fix="true" cap="round" dasharray="8,6" />
         </m>
     </m>
     <m k="bcycle:bright:waterway-stream-canal" v="1">
@@ -174,6 +192,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="waterway-stream-canal" stroke="#ffa0c8f0" width="1.66436" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="waterway-stream-canal" stroke="#ffa0c8f0" width="2.24507" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="waterway-stream-canal" stroke="#ffa0c8f0" width="3" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:waterway-stream-canal-intermittent" v="1">
         <m zoom-min="1" zoom-max="14">
@@ -193,6 +217,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="waterway-stream-canal-intermittent" stroke="#ffa0c8f0" width="1.66436" fix="true" cap="round" dasharray="13.31491,9.98618" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="waterway-stream-canal-intermittent" stroke="#ffa0c8f0" width="2.24507" fix="true" cap="round" dasharray="17.9606,13.47045" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="waterway-stream-canal-intermittent" stroke="#ffa0c8f0" width="3" fix="true" cap="round" dasharray="24,18" />
         </m>
     </m>
     <m k="bcycle:bright:waterway-river" v="1">
@@ -223,6 +253,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="waterway-river" stroke="#ffa0c8f0" width="2.05253" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="waterway-river" stroke="#ffa0c8f0" width="2.4832" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="waterway-river" stroke="#ffa0c8f0" width="3" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:waterway-river-intermittent" v="1">
         <m zoom-min="1" zoom-max="11">
@@ -252,19 +288,25 @@
         <m zoom-min="19" zoom-max="19">
             <line id="waterway-river-intermittent" stroke="#ffa0c8f0" width="2.05253" fix="true" cap="round" dasharray="12.31521,10.26267" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="waterway-river-intermittent" stroke="#ffa0c8f0" width="2.4832" fix="true" cap="round" dasharray="14.8992,12.416" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="waterway-river-intermittent" stroke="#ffa0c8f0" width="3" fix="true" cap="round" dasharray="18,15" />
+        </m>
     </m>
     <m k="bcycle:bright:water" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="water" fill="#ffbfd9f2" />
         </m>
     </m>
     <m k="bcycle:bright:water-intermittent" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="water-intermittent" fill="#b2bfd9f2" />
         </m>
     </m>
     <m k="bcycle:bright:water-pattern" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="water-pattern" fill="#ffffffff" src="assets:styles/bright/icons/wave-s1-r0-a1.png" />
         </m>
     </m>
@@ -299,12 +341,12 @@
         <m zoom-min="10" zoom-max="10">
             <area id="landcover-ice-shelf" fill="#5cffffff" />
         </m>
-        <m zoom-min="11" zoom-max="19">
+        <m zoom-min="11" zoom-max="21">
             <area id="landcover-ice-shelf" fill="#4cffffff" />
         </m>
     </m>
     <m k="bcycle:bright:landcover-sand" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="landcover-sand" fill="#fff5eebc" />
         </m>
     </m>
@@ -312,7 +354,7 @@
         <m zoom-min="1" zoom-max="16">
             <area id="building" fill="#fff2eae2" />
         </m>
-        <m zoom-min="17" zoom-max="19">
+        <m zoom-min="17" zoom-max="21">
             <area id="building" fill="#ffdfdbd7" />
         </m>
     </m>
@@ -328,6 +370,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-service-track-casing" stroke="#ffcfcdca" width="3.43443" fix="true" cap="butt" dasharray="3.43443,1.71721" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-service-track-casing" stroke="#ffcfcdca" width="4.37332" fix="true" cap="butt" dasharray="4.37332,2.18666" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-service-track-casing" stroke="#ffcfcdca" width="5.5" fix="true" cap="butt" dasharray="5.5,2.75" />
         </m>
     </m>
     <m k="bcycle:bright:tunnel-minor-casing" v="1">
@@ -348,6 +396,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-minor-casing" stroke="#ffcfcdca" width="4.97324" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-minor-casing" stroke="#ffcfcdca" width="6.12177" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-minor-casing" stroke="#ffcfcdca" width="7.5" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:tunnel-secondary-tertiary-casing" v="1">
@@ -383,6 +437,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-secondary-tertiary-casing" stroke="#ffe9ac77" width="5.8328" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-secondary-tertiary-casing" stroke="#ffe9ac77" width="7.04516" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-secondary-tertiary-casing" stroke="#ffe9ac77" width="8.5" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:tunnel-trunk-primary-casing" v="1">
@@ -428,6 +488,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-trunk-primary-casing" stroke="#ffe9ac77" width="7.54515" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-trunk-primary-casing" stroke="#ffe9ac77" width="9.11554" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-trunk-primary-casing" stroke="#ffe9ac77" width="11" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:tunnel-motorway-casing" v="1">
         <m zoom-min="1" zoom-max="6">
@@ -472,6 +538,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-motorway-casing" stroke="#ffe9ac77" width="7.54515" fix="true" cap="butt" dasharray="7.54515,3.77258" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-motorway-casing" stroke="#ffe9ac77" width="9.11554" fix="true" cap="butt" dasharray="9.11554,4.55777" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-motorway-casing" stroke="#ffe9ac77" width="11" fix="true" cap="butt" dasharray="11,5.5" />
+        </m>
     </m>
     <m k="bcycle:bright:tunnel-path" v="1">
         <m zoom-min="1" zoom-max="16">
@@ -486,6 +558,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-path" stroke="#ffccbbaa" width="1.2848" fix="true" cap="butt" dasharray="3.8544,1.9272" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-path" stroke="#ffccbbaa" width="1.60989" fix="true" cap="butt" dasharray="4.82967,2.41484" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-path" stroke="#ffccbbaa" width="2" fix="true" cap="butt" dasharray="6,3" />
+        </m>
     </m>
     <m k="bcycle:bright:tunnel-service-track" v="1">
         <m zoom-min="17" zoom-max="17">
@@ -496,6 +574,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-service-track" stroke="#ffffffff" width="2.12705" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-service-track" stroke="#ffffffff" width="2.86475" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-service-track" stroke="#ffffffff" width="3.75" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:tunnel-minor" v="1">
@@ -513,6 +597,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-minor" stroke="#ffffffff" width="3.68265" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-minor" stroke="#ffffffff" width="4.62235" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-minor" stroke="#ffffffff" width="5.75" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:tunnel-secondary-tertiary" v="1">
@@ -552,6 +642,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-secondary-tertiary" stroke="#fffff4c6" width="3.39897" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-secondary-tertiary" stroke="#fffff4c6" width="4.12671" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-secondary-tertiary" stroke="#fffff4c6" width="5" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:tunnel-trunk-primary" v="1">
         <m zoom-min="8" zoom-max="8">
@@ -589,6 +685,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-trunk-primary" stroke="#fffff4c6" width="6.05074" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-trunk-primary" stroke="#fffff4c6" width="7.39131" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-trunk-primary" stroke="#fffff4c6" width="9" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:tunnel-motorway" v="1">
@@ -628,6 +730,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-motorway" stroke="#ffffdaa6" width="6.05074" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-motorway" stroke="#ffffdaa6" width="7.39131" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-motorway" stroke="#ffffdaa6" width="9" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:tunnel-railway" v="1">
         <m zoom-min="1" zoom-max="15">
@@ -645,9 +753,15 @@
         <m zoom-min="19" zoom-max="19">
             <line id="tunnel-railway" stroke="#ffbbbbbb" width="0.62396" fix="true" cap="butt" dasharray="2.49583,2.49583" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="tunnel-railway" stroke="#ffbbbbbb" width="0.78064" fix="true" cap="butt" dasharray="3.12257,3.12257" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="tunnel-railway" stroke="#ffbbbbbb" width="1" fix="true" cap="butt" dasharray="4,4" />
+        </m>
     </m>
     <m k="bcycle:bright:ferry" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <line id="ferry" stroke="#ff6c9fb6" width="0.55" fix="true" cap="butt" dasharray="2.2,2.2" />
         </m>
     </m>
@@ -667,7 +781,7 @@
         <m zoom-min="17" zoom-max="17">
             <line id="aeroway-taxiway-casing" stroke="#ff999999" width="4.17293" fix="true" cap="round" />
         </m>
-        <m zoom-min="18" zoom-max="19">
+        <m zoom-min="18" zoom-max="21">
             <line id="aeroway-taxiway-casing" stroke="#ff999999" width="6" fix="true" cap="round" />
         </m>
     </m>
@@ -687,7 +801,7 @@
         <m zoom-min="17" zoom-max="17">
             <line id="aeroway-runway-casing" stroke="#ff999999" width="18.36466" fix="true" cap="round" />
         </m>
-        <m zoom-min="18" zoom-max="19">
+        <m zoom-min="18" zoom-max="21">
             <line id="aeroway-runway-casing" stroke="#ff999999" width="27.5" fix="true" cap="round" />
         </m>
     </m>
@@ -695,7 +809,7 @@
         <m zoom-min="5" zoom-max="14">
             <area id="aeroway-area" fill="#00ffffff" />
         </m>
-        <m zoom-min="15" zoom-max="19">
+        <m zoom-min="15" zoom-max="21">
             <area id="aeroway-area" fill="#ffffffff" />
         </m>
     </m>
@@ -715,7 +829,7 @@
         <m zoom-min="17" zoom-max="17">
             <line id="aeroway-taxiway" stroke="#ffffffff" width="3.35564" fix="true" cap="round" />
         </m>
-        <m zoom-min="18" zoom-max="19">
+        <m zoom-min="18" zoom-max="21">
             <line id="aeroway-taxiway" stroke="#ffffffff" width="5" fix="true" cap="round" />
         </m>
     </m>
@@ -735,12 +849,12 @@
         <m zoom-min="17" zoom-max="17">
             <line id="aeroway-runway" stroke="#ffffffff" width="16.59549" fix="true" cap="round" />
         </m>
-        <m zoom-min="18" zoom-max="19">
+        <m zoom-min="18" zoom-max="21">
             <line id="aeroway-runway" stroke="#ffffffff" width="25" fix="true" cap="round" />
         </m>
     </m>
     <m k="bcycle:bright:road_area_pier" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="road_area_pier" fill="#fff8f4f0" />
         </m>
     </m>
@@ -751,12 +865,12 @@
         <m zoom-min="17" zoom-max="17">
             <line id="road_pier" stroke="#fff8f4f0" width="1.18182" fix="true" cap="round" />
         </m>
-        <m zoom-min="18" zoom-max="19">
+        <m zoom-min="18" zoom-max="21">
             <line id="road_pier" stroke="#fff8f4f0" width="2" fix="true" cap="round" />
         </m>
     </m>
     <m k="bcycle:bright:highway-area" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <area id="highway-area" fill="#81e3e3e3" stroke="#ffcfcdca" stroke-width="0.5" />
         </m>
     </m>
@@ -782,6 +896,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-motorway-link-casing" stroke="#ffe9ac77" width="4.97324" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-motorway-link-casing" stroke="#ffe9ac77" width="6.12177" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-motorway-link-casing" stroke="#ffe9ac77" width="7.5" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-link-casing" v="1">
         <m zoom-min="14" zoom-max="14">
@@ -802,6 +922,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-link-casing" stroke="#ffe9ac77" width="4.97324" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-link-casing" stroke="#ffe9ac77" width="6.12177" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-link-casing" stroke="#ffe9ac77" width="7.5" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-minor-casing" v="1">
         <m zoom-min="14" zoom-max="14">
@@ -821,6 +947,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="highway-minor-casing" stroke="#ffcfcdca" width="4.97324" fix="true" cap="round" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-minor-casing" stroke="#ffcfcdca" width="6.12177" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-minor-casing" stroke="#ffcfcdca" width="7.5" fix="true" cap="round" />
         </m>
     </m>
     <m k="bcycle:bright:highway-secondary-tertiary-casing" v="1">
@@ -857,6 +989,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-secondary-tertiary-casing" stroke="#ffe9ac77" width="5.8328" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-secondary-tertiary-casing" stroke="#ffe9ac77" width="7.04516" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-secondary-tertiary-casing" stroke="#ffe9ac77" width="8.5" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-primary-casing" v="1">
         <m zoom-min="9" zoom-max="9">
@@ -891,6 +1029,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="highway-primary-casing" stroke="#ffe9ac77" width="7.38098" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-primary-casing" stroke="#ffe9ac77" width="9.02599" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-primary-casing" stroke="#ffe9ac77" width="11" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:highway-trunk-casing" v="1">
@@ -932,6 +1076,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="highway-trunk-casing" stroke="#ffe9ac77" width="7.54515" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-trunk-casing" stroke="#ffe9ac77" width="9.11554" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-trunk-casing" stroke="#ffe9ac77" width="11" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:highway-motorway-casing" v="1">
@@ -977,6 +1127,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-motorway-casing" stroke="#ffe9ac77" width="7.54515" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-motorway-casing" stroke="#ffe9ac77" width="9.11554" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-motorway-casing" stroke="#ffe9ac77" width="11" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-path" v="1">
         <m zoom-min="1" zoom-max="16">
@@ -990,6 +1146,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="highway-path" stroke="#ffccbbaa" width="1.2848" fix="true" cap="butt" dasharray="3.8544,1.9272" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-path" stroke="#ffccbbaa" width="1.60989" fix="true" cap="butt" dasharray="4.82967,2.41484" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-path" stroke="#ffccbbaa" width="2" fix="true" cap="butt" dasharray="6,3" />
         </m>
     </m>
     <m k="bcycle:bright:highway-motorway-link" v="1">
@@ -1011,6 +1173,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-motorway-link" stroke="#ffffcc88" width="3.68265" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-motorway-link" stroke="#ffffcc88" width="4.62235" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-motorway-link" stroke="#ffffcc88" width="5.75" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-link" v="1">
         <m zoom-min="14" zoom-max="14">
@@ -1031,6 +1199,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-link" stroke="#ffffeeaa" width="3.68265" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-link" stroke="#ffffeeaa" width="4.62235" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-link" stroke="#ffffeeaa" width="5.75" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-minor" v="1">
         <m zoom-min="15" zoom-max="15">
@@ -1047,6 +1221,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="highway-minor" stroke="#ffffffff" width="3.68265" fix="true" cap="round" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-minor" stroke="#ffffffff" width="4.62235" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-minor" stroke="#ffffffff" width="5.75" fix="true" cap="round" />
         </m>
     </m>
     <m k="bcycle:bright:highway-secondary-tertiary" v="1">
@@ -1086,6 +1266,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-secondary-tertiary" stroke="#ffffeeaa" width="4.34903" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-secondary-tertiary" stroke="#ffffeeaa" width="5.32674" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-secondary-tertiary" stroke="#ffffeeaa" width="6.5" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-primary" v="1">
         <m zoom-min="10" zoom-max="10">
@@ -1117,6 +1303,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="highway-primary" stroke="#ffffeeaa" width="5.91059" fix="true" cap="round" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-primary" stroke="#ffffeeaa" width="7.31487" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-primary" stroke="#ffffeeaa" width="9" fix="true" cap="round" />
         </m>
     </m>
     <m k="bcycle:bright:highway-trunk" v="1">
@@ -1156,6 +1348,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-trunk" stroke="#ffffeeaa" width="6.05074" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-trunk" stroke="#ffffeeaa" width="7.39131" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-trunk" stroke="#ffffeeaa" width="9" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-motorway" v="1">
         <m zoom-min="8" zoom-max="8">
@@ -1194,6 +1392,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="highway-motorway" stroke="#ffffcc88" width="6.05074" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="highway-motorway" stroke="#ffffcc88" width="7.39131" fix="true" cap="round" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="highway-motorway" stroke="#ffffcc88" width="9" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:railway-transit" v="1">
         <m zoom-min="1" zoom-max="15">
@@ -1211,6 +1415,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="railway-transit" stroke="#c4bababa" width="0.33056" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="railway-transit" stroke="#c4bababa" width="0.40116" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="railway-transit" stroke="#c4bababa" width="0.5" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:railway-transit-hatching" v="1">
         <m zoom-min="16" zoom-max="16">
@@ -1224,6 +1434,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="railway-transit-hatching" stroke="#adbababa" width="1.79667" fix="true" cap="butt" dasharray="0.71867,28.74667" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="railway-transit-hatching" stroke="#adbababa" width="2.29806" fix="true" cap="butt" dasharray="0.91922,36.76889" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="railway-transit-hatching" stroke="#adbababa" width="3" fix="true" cap="butt" dasharray="1.2,48" />
         </m>
     </m>
     <m k="bcycle:bright:railway-service" v="1">
@@ -1242,6 +1458,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="railway-service" stroke="#c4bababa" width="0.33056" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="railway-service" stroke="#c4bababa" width="0.40116" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="railway-service" stroke="#c4bababa" width="0.5" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:railway-service-hatching" v="1">
         <m zoom-min="16" zoom-max="16">
@@ -1255,6 +1477,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="railway-service-hatching" stroke="#adbababa" width="1.79667" fix="true" cap="butt" dasharray="0.71867,28.74667" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="railway-service-hatching" stroke="#adbababa" width="2.29806" fix="true" cap="butt" dasharray="0.91922,36.76889" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="railway-service-hatching" stroke="#adbababa" width="3" fix="true" cap="butt" dasharray="1.2,48" />
         </m>
     </m>
     <m k="bcycle:bright:railway" v="1">
@@ -1273,6 +1501,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="railway" stroke="#ffbbbbbb" width="0.62396" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="railway" stroke="#ffbbbbbb" width="0.78064" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="railway" stroke="#ffbbbbbb" width="1" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:railway-hatching" v="1">
         <m zoom-min="16" zoom-max="16">
@@ -1286,6 +1520,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="railway-hatching" stroke="#ffbbbbbb" width="2.49583" fix="true" cap="butt" dasharray="0.99833,39.93334" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="railway-hatching" stroke="#ffbbbbbb" width="3.12257" fix="true" cap="butt" dasharray="1.24903,49.96112" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="railway-hatching" stroke="#ffbbbbbb" width="4" fix="true" cap="butt" dasharray="1.6,64" />
         </m>
     </m>
     <m k="bcycle:bright:bridge-motorway-link-casing" v="1">
@@ -1310,6 +1550,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-motorway-link-casing" stroke="#ffe9ac77" width="4.97324" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-motorway-link-casing" stroke="#ffe9ac77" width="6.12177" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-motorway-link-casing" stroke="#ffe9ac77" width="7.5" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:bridge-link-casing" v="1">
         <m zoom-min="1" zoom-max="13">
@@ -1332,6 +1578,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-link-casing" stroke="#ffe9ac77" width="4.97324" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-link-casing" stroke="#ffe9ac77" width="6.12177" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-link-casing" stroke="#ffe9ac77" width="7.5" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:bridge-secondary-tertiary-casing" v="1">
@@ -1367,6 +1619,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-secondary-tertiary-casing" stroke="#ffe9ac77" width="9.43995" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-secondary-tertiary-casing" stroke="#ffe9ac77" width="11.5127" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-secondary-tertiary-casing" stroke="#ffe9ac77" width="14" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:bridge-trunk-primary-casing" v="1">
@@ -1412,6 +1670,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-trunk-primary-casing" stroke="#ffeba76b" width="8.87104" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-trunk-primary-casing" stroke="#ffeba76b" width="10.74784" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-trunk-primary-casing" stroke="#ffeba76b" width="13" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:bridge-motorway-casing" v="1">
         <m zoom-min="1" zoom-max="6">
@@ -1456,6 +1720,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-motorway-casing" stroke="#ffe9ac77" width="7.54515" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-motorway-casing" stroke="#ffe9ac77" width="9.11554" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-motorway-casing" stroke="#ffe9ac77" width="11" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:bridge-path-casing" v="1">
         <m zoom-min="1" zoom-max="16">
@@ -1470,6 +1740,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-path-casing" stroke="#fff8f4f0" width="4.70879" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-path-casing" stroke="#fff8f4f0" width="6.65934" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-path-casing" stroke="#fff8f4f0" width="9" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:bridge-path" v="1">
         <m zoom-min="1" zoom-max="16">
@@ -1483,6 +1759,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-path" stroke="#ffccbbaa" width="1.2848" fix="true" cap="butt" dasharray="3.8544,1.9272" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-path" stroke="#ffccbbaa" width="1.60989" fix="true" cap="butt" dasharray="4.82967,2.41484" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-path" stroke="#ffccbbaa" width="2" fix="true" cap="butt" dasharray="6,3" />
         </m>
     </m>
     <m k="bcycle:bright:bridge-motorway-link" v="1">
@@ -1504,6 +1786,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-motorway-link" stroke="#ffffcc88" width="3.68265" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-motorway-link" stroke="#ffffcc88" width="4.62235" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-motorway-link" stroke="#ffffcc88" width="5.75" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:bridge-link" v="1">
         <m zoom-min="14" zoom-max="14">
@@ -1523,6 +1811,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-link" stroke="#ffffeeaa" width="3.68265" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-link" stroke="#ffffeeaa" width="4.62235" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-link" stroke="#ffffeeaa" width="5.75" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:bridge-secondary-tertiary" v="1">
@@ -1562,6 +1856,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-secondary-tertiary" stroke="#ffffeeaa" width="6.71368" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-secondary-tertiary" stroke="#ffffeeaa" width="8.20746" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-secondary-tertiary" stroke="#ffffeeaa" width="10" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:bridge-trunk-primary" v="1">
         <m zoom-min="8" zoom-max="8">
@@ -1599,6 +1899,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-trunk-primary" stroke="#ffffeeaa" width="6.05074" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-trunk-primary" stroke="#ffffeeaa" width="7.39131" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-trunk-primary" stroke="#ffffeeaa" width="9" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:bridge-motorway" v="1">
@@ -1638,6 +1944,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-motorway" stroke="#ffffcc88" width="6.05074" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-motorway" stroke="#ffffcc88" width="7.39131" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-motorway" stroke="#ffffcc88" width="9" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:bridge-railway" v="1">
         <m zoom-min="1" zoom-max="15">
@@ -1655,6 +1967,12 @@
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-railway" stroke="#ffbbbbbb" width="0.62396" fix="true" cap="butt" />
         </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-railway" stroke="#ffbbbbbb" width="0.78064" fix="true" cap="butt" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-railway" stroke="#ffbbbbbb" width="1" fix="true" cap="butt" />
+        </m>
     </m>
     <m k="bcycle:bright:bridge-railway-hatching" v="1">
         <m zoom-min="16" zoom-max="16">
@@ -1668,6 +1986,12 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="bridge-railway-hatching" stroke="#ffbbbbbb" width="2.49583" fix="true" cap="butt" dasharray="0.99833,39.93334" />
+        </m>
+        <m zoom-min="20" zoom-max="20">
+            <line id="bridge-railway-hatching" stroke="#ffbbbbbb" width="3.12257" fix="true" cap="butt" dasharray="1.24903,49.96112" />
+        </m>
+        <m zoom-min="21" zoom-max="21">
+            <line id="bridge-railway-hatching" stroke="#ffbbbbbb" width="4" fix="true" cap="butt" dasharray="1.6,64" />
         </m>
     </m>
     <m k="bcycle:bright:cablecar" v="1">
@@ -1689,6 +2013,9 @@
         <m zoom-min="19" zoom-max="19">
             <line id="cablecar" stroke="#ffb2b2b2" width="1.15625" fix="true" cap="round" />
         </m>
+        <m zoom-min="20" zoom-max="21">
+            <line id="cablecar" stroke="#ffb2b2b2" width="1.25" fix="true" cap="round" />
+        </m>
     </m>
     <m k="bcycle:bright:cablecar-dash" v="1">
         <m zoom-min="14" zoom-max="14">
@@ -1708,6 +2035,9 @@
         </m>
         <m zoom-min="19" zoom-max="19">
             <line id="cablecar-dash" stroke="#ffb2b2b2" width="2.59375" fix="true" cap="round" dasharray="10.375,15.5625" />
+        </m>
+        <m zoom-min="20" zoom-max="21">
+            <line id="cablecar-dash" stroke="#ffb2b2b2" width="2.75" fix="true" cap="round" dasharray="11,16.5" />
         </m>
     </m>
     <m k="bcycle:bright:boundary-land-level-4" v="1">
@@ -1735,7 +2065,7 @@
         <m zoom-min="12" zoom-max="12">
             <line id="boundary-land-level-4" stroke="#ff9e9cab" width="1.18434" fix="true" cap="butt" dasharray="7.10605,2.36868,2.36868,2.36868" />
         </m>
-        <m zoom-min="13" zoom-max="19">
+        <m zoom-min="13" zoom-max="21">
             <line id="boundary-land-level-4" stroke="#ff9e9cab" width="1.5" fix="true" cap="butt" dasharray="9,3,3,3" />
         </m>
     </m>
@@ -1776,7 +2106,7 @@
         <m zoom-min="12" zoom-max="12">
             <line id="boundary-land-level-2" stroke="#ffa4a2ae" width="3.57143" fix="true" cap="round" />
         </m>
-        <m zoom-min="13" zoom-max="19">
+        <m zoom-min="13" zoom-max="21">
             <line id="boundary-land-level-2" stroke="#ffa4a2ae" width="4" fix="true" cap="round" />
         </m>
     </m>
@@ -1817,7 +2147,7 @@
         <m zoom-min="12" zoom-max="12">
             <line id="boundary-land-disputed" stroke="#ffafadb8" width="3.57143" fix="true" cap="round" dasharray="7.14286,21.42857" />
         </m>
-        <m zoom-min="13" zoom-max="19">
+        <m zoom-min="13" zoom-max="21">
             <line id="boundary-land-disputed" stroke="#ffafadb8" width="4" fix="true" cap="round" dasharray="8,24" />
         </m>
     </m>
@@ -1846,22 +2176,22 @@
         <m zoom-min="12" zoom-max="12">
             <line id="boundary-water" stroke="#ff9abdd6" width="3.57143" fix="true" cap="round" />
         </m>
-        <m zoom-min="13" zoom-max="19">
+        <m zoom-min="13" zoom-max="21">
             <line id="boundary-water" stroke="#ff9abdd6" width="4" fix="true" cap="round" />
         </m>
     </m>
     <m k="bcycle:bright:waterway-name" v="1">
-        <m zoom-min="14" zoom-max="19">
+        <m zoom-min="14" zoom-max="21">
             <text id="waterway-name" k="name" size="14" fill="#ff74aee9" stroke="#b2ffffff" stroke-width="1.5" caption="false" priority="10" style="italic" />
         </m>
     </m>
     <m k="bcycle:bright:water-name-lakeline" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <text id="water-name-lakeline" k="name" size="14" fill="#ff74aee9" stroke="#b2ffffff" stroke-width="1.5" caption="false" priority="10" style="italic" />
         </m>
     </m>
     <m k="bcycle:bright:water-name-ocean" v="1">
-        <m zoom-min="1" zoom-max="19">
+        <m zoom-min="1" zoom-max="21">
             <text id="water-name-ocean" k="name" size="14" fill="#ff74aee9" stroke="#b2ffffff" stroke-width="1.5" caption="true" priority="10" style="italic" />
         </m>
     </m>
@@ -1884,12 +2214,12 @@
         <m zoom-min="6" zoom-max="6">
             <text id="water-name-other" k="name" size="13.33333" fill="#ff74aee9" stroke="#b2ffffff" stroke-width="1.5" caption="true" priority="10" style="italic" />
         </m>
-        <m zoom-min="7" zoom-max="19">
+        <m zoom-min="7" zoom-max="21">
             <text id="water-name-other" k="name" size="14" fill="#ff74aee9" stroke="#b2ffffff" stroke-width="1.5" caption="true" priority="10" style="italic" />
         </m>
     </m>
     <m k="bcycle:bright:poi-level-3" v="1">
-        <m zoom-min="17" zoom-max="19">
+        <m zoom-min="17" zoom-max="21">
             <m k="class" v="airfield">
                 <text id="poi-level-3" k="name" size="12" fill="#ff666666" stroke="#ffffffff" stroke-width="1" caption="true" priority="10" style="normal" dy="-7.2" symbol="assets:styles/bright/icons/airfield_11-s1-r0-a1.png" />
             </m>
@@ -2136,7 +2466,7 @@
         </m>
     </m>
     <m k="bcycle:bright:poi-level-2" v="1">
-        <m zoom-min="16" zoom-max="19">
+        <m zoom-min="16" zoom-max="21">
             <m k="class" v="airfield">
                 <text id="poi-level-2" k="name" size="12" fill="#ff666666" stroke="#ffffffff" stroke-width="1" caption="true" priority="10" style="normal" dy="-7.2" symbol="assets:styles/bright/icons/airfield_11-s1-r0-a1.png" />
             </m>
@@ -2383,7 +2713,7 @@
         </m>
     </m>
     <m k="bcycle:bright:poi-level-1" v="1">
-        <m zoom-min="15" zoom-max="19">
+        <m zoom-min="15" zoom-max="21">
             <m k="class" v="airfield">
                 <text id="poi-level-1" k="name" size="12" fill="#ff666666" stroke="#ffffffff" stroke-width="1" caption="true" priority="10" style="normal" dy="-7.2" symbol="assets:styles/bright/icons/airfield_11-s1-r0-a1.png" />
             </m>
@@ -2630,7 +2960,7 @@
         </m>
     </m>
     <m k="bcycle:bright:poi-railway" v="1">
-        <m zoom-min="14" zoom-max="19">
+        <m zoom-min="14" zoom-max="21">
             <m k="class" v="airfield">
                 <text id="poi-railway" k="name" size="12" fill="#ff666666" stroke="#ffffffff" stroke-width="1" caption="true" priority="10" style="normal" dy="-7.2" symbol="assets:styles/bright/icons/airfield_11-s1-r0-a1.png" />
             </m>
@@ -2889,6 +3219,9 @@
         <m zoom-min="19" zoom-max="19">
             <symbol src="assets:styles/bright/icons/oneway-s0.875-r90-a0.5.png" repeat="true" rotate="true" billboard="false" repeat-gap="75" repeat-start="0" />
         </m>
+        <m zoom-min="20" zoom-max="21">
+            <symbol src="assets:styles/bright/icons/oneway-s1-r90-a0.5.png" repeat="true" rotate="true" billboard="false" repeat-gap="75" repeat-start="0" />
+        </m>
     </m>
     <m k="bcycle:bright:road_oneway_opposite" v="1">
         <m zoom-min="16" zoom-max="16">
@@ -2903,14 +3236,17 @@
         <m zoom-min="19" zoom-max="19">
             <symbol src="assets:styles/bright/icons/oneway-s0.875-r-90-a0.5.png" repeat="true" rotate="true" billboard="false" repeat-gap="75" repeat-start="0" />
         </m>
+        <m zoom-min="20" zoom-max="21">
+            <symbol src="assets:styles/bright/icons/oneway-s1-r-90-a0.5.png" repeat="true" rotate="true" billboard="false" repeat-gap="75" repeat-start="0" />
+        </m>
     </m>
     <m k="bcycle:bright:highway-name-path" v="1">
-        <m zoom-min="17" zoom-max="19">
+        <m zoom-min="17" zoom-max="21">
             <text id="highway-name-path" k="name" size="13" fill="#ffb49e88" stroke="#fff8f4f0" stroke-width="0.5" caption="false" priority="8" style="normal" />
         </m>
     </m>
     <m k="bcycle:bright:highway-name-minor" v="1">
-        <m zoom-min="16" zoom-max="19">
+        <m zoom-min="16" zoom-max="21">
             <text id="highway-name-minor" k="name" size="13" fill="#ff776655" stroke="#00000000" stroke-width="1" caption="false" priority="8" style="normal" />
         </m>
     </m>
@@ -2918,7 +3254,7 @@
         <m zoom-min="14" zoom-max="14">
             <text id="highway-name-major" k="name" size="12" fill="#ff776655" stroke="#00000000" stroke-width="1" caption="false" priority="8" style="normal" />
         </m>
-        <m zoom-min="15" zoom-max="19">
+        <m zoom-min="15" zoom-max="21">
             <text id="highway-name-major" k="name" size="13" fill="#ff776655" stroke="#00000000" stroke-width="1" caption="false" priority="8" style="normal" />
         </m>
     </m>
@@ -2943,7 +3279,7 @@
                 <text id="highway-shield" k="ref" size="10" fill="#ff000000" stroke="#00000000" stroke-width="0" caption="true" priority="8" style="normal" symbol="assets:styles/bright/icons/road_1-s1-r0-a1.png" />
             </m>
         </m>
-        <m zoom-min="12" zoom-max="19">
+        <m zoom-min="12" zoom-max="21">
             <m k="ref_length" v="6">
                 <text id="highway-shield" k="ref" size="10" fill="#ff000000" stroke="#00000000" stroke-width="0" caption="false" priority="8" style="normal" symbol="assets:styles/bright/icons/road_6-s1-r0-a1.png" />
             </m>
@@ -3472,7 +3808,7 @@
                 </m>
             </m>
         </m>
-        <m zoom-min="9" zoom-max="19">
+        <m zoom-min="9" zoom-max="21">
             <m k="network" v="us-state">
                 <m k="ref_length" v="6">
                     <text id="highway-shield-us-interstate" k="ref" size="10" fill="#ff000000" stroke="#00000000" stroke-width="0" caption="false" priority="8" style="normal" symbol="assets:styles/bright/icons/us-state_6-s1-r0-a1.png" />
@@ -4488,7 +4824,7 @@
                 </m>
             </m>
         </m>
-        <m zoom-min="12" zoom-max="19">
+        <m zoom-min="12" zoom-max="21">
             <m k="network" v="us-state">
                 <m k="ref_length" v="6">
                     <text id="highway-shield-us-other" k="ref" size="10" fill="#ff000000" stroke="#00000000" stroke-width="0" caption="false" priority="8" style="normal" symbol="assets:styles/bright/icons/us-state_6-s1-r0-a1.png" />
@@ -4997,7 +5333,7 @@
         </m>
     </m>
     <m k="bcycle:bright:airport-label-major" v="1">
-        <m zoom-min="11" zoom-max="19">
+        <m zoom-min="11" zoom-max="21">
             <text id="airport-label-major" k="name" size="12" fill="#ff666666" stroke="#ffffffff" stroke-width="1" caption="true" priority="10" style="normal" dy="-7.2" symbol="assets:styles/bright/icons/airport_11-s1-r0-a1.png" />
         </m>
     </m>
@@ -5011,7 +5347,7 @@
         <m zoom-min="15" zoom-max="15">
             <text id="place-other" k="name" size="12.41758" fill="#ff663333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="bold" />
         </m>
-        <m zoom-min="16" zoom-max="19">
+        <m zoom-min="16" zoom-max="21">
             <text id="place-other" k="name" size="14" fill="#ff663333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="bold" />
         </m>
     </m>
@@ -5031,7 +5367,7 @@
         <m zoom-min="15" zoom-max="15">
             <text id="place-village" k="name" size="19.2135" fill="#ff333333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="normal" />
         </m>
-        <m zoom-min="16" zoom-max="19">
+        <m zoom-min="16" zoom-max="21">
             <text id="place-village" k="name" size="22" fill="#ff333333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="normal" />
         </m>
     </m>
@@ -5051,7 +5387,7 @@
         <m zoom-min="15" zoom-max="15">
             <text id="place-town" k="name" size="21.2135" fill="#ff333333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="normal" />
         </m>
-        <m zoom-min="16" zoom-max="19">
+        <m zoom-min="16" zoom-max="21">
             <text id="place-town" k="name" size="24" fill="#ff333333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="normal" />
         </m>
     </m>
@@ -5068,7 +5404,7 @@
         <m zoom-min="11" zoom-max="11">
             <text id="place-city" k="name" size="20.78092" fill="#ff333333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="normal" />
         </m>
-        <m zoom-min="12" zoom-max="19">
+        <m zoom-min="12" zoom-max="21">
             <text id="place-city" k="name" size="24" fill="#ff333333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="normal" />
         </m>
     </m>
@@ -5085,7 +5421,7 @@
         <m zoom-min="11" zoom-max="11">
             <text id="place-city-capital" k="name" size="20.78092" fill="#ff333333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="normal" dy="0" symbol="assets:styles/bright/icons/star_11-s0.8-r0-a1.png" />
         </m>
-        <m zoom-min="12" zoom-max="19">
+        <m zoom-min="12" zoom-max="21">
             <text id="place-city-capital" k="name" size="24" fill="#ff333333" stroke="#ccffffff" stroke-width="1.2" caption="true" priority="0" style="normal" dy="0" symbol="assets:styles/bright/icons/star_11-s0.8-r0-a1.png" />
         </m>
     </m>
@@ -5102,7 +5438,7 @@
         <m zoom-min="7" zoom-max="7">
             <text id="place-country-other" k="name" size="15.5" fill="#ff333344" stroke="#ccffffff" stroke-width="2" caption="true" priority="0" style="italic" />
         </m>
-        <m zoom-min="8" zoom-max="19">
+        <m zoom-min="8" zoom-max="21">
             <text id="place-country-other" k="name" size="17" fill="#ff333344" stroke="#ccffffff" stroke-width="2" caption="true" priority="0" style="italic" />
         </m>
     </m>
@@ -5119,7 +5455,7 @@
         <m zoom-min="7" zoom-max="7">
             <text id="place-country-3" k="name" size="15.5" fill="#ff333344" stroke="#ccffffff" stroke-width="2" caption="true" priority="0" style="bold" />
         </m>
-        <m zoom-min="8" zoom-max="19">
+        <m zoom-min="8" zoom-max="21">
             <text id="place-country-3" k="name" size="17" fill="#ff333344" stroke="#ccffffff" stroke-width="2" caption="true" priority="0" style="bold" />
         </m>
     </m>
@@ -5133,7 +5469,7 @@
         <m zoom-min="5" zoom-max="5">
             <text id="place-country-2" k="name" size="15" fill="#ff333344" stroke="#ccffffff" stroke-width="2" caption="true" priority="0" style="bold" />
         </m>
-        <m zoom-min="6" zoom-max="19">
+        <m zoom-min="6" zoom-max="21">
             <text id="place-country-2" k="name" size="17" fill="#ff333344" stroke="#ccffffff" stroke-width="2" caption="true" priority="0" style="bold" />
         </m>
     </m>
@@ -5147,7 +5483,7 @@
         <m zoom-min="4" zoom-max="4">
             <text id="place-country-1" k="name" size="15" fill="#ff333344" stroke="#ccffffff" stroke-width="2" caption="true" priority="0" style="bold" />
         </m>
-        <m zoom-min="5" zoom-max="19">
+        <m zoom-min="5" zoom-max="21">
             <text id="place-country-1" k="name" size="17" fill="#ff333344" stroke="#ccffffff" stroke-width="2" caption="true" priority="0" style="bold" />
         </m>
     </m>

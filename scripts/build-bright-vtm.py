@@ -13,6 +13,9 @@ ASSETS = ROOT / 'app/src/main/assets'
 SOURCE = ASSETS / 'styles/bright.json'
 OUTPUT = ASSETS / 'styles/bright-vtm.xml'
 REPORT = ROOT / 'docs/bright-vtm-mapping.json'
+# Match the actual camera range; extending vector zoom must not silently drop all base paints.
+MAX_ZOOM = int(re.search(r'const val maximum=(\d+)',
+    (ROOT / 'app/src/main/java/de/bcycle/app/MapZoom.kt').read_text()).group(1))
 SPRITES = json.loads((ASSETS / 'styles/bright/sprite.json').read_text())
 
 
@@ -105,7 +108,7 @@ def compile_style(style):
         'sprite_json_sha256': hashlib.sha256((ASSETS/'styles/bright/sprite.json').read_bytes()).hexdigest(),
         'maplibre_zoom': 'VTM zoom - 1 (256 vs 512 pixel world)',
         'limitations': [
-            'Paint/size functions sampled at integer VTM zoom 0..19; no continuous MapLibre interpolation between tile levels.',
+            f'Paint/size functions sampled at integer VTM zoom 0..{MAX_ZOOM}; no continuous MapLibre interpolation between tile levels.',
             'Native VTM solid-line minimum half-width is 1 px; very thin strokes differ from MapLibre.',
             'Native VTM caps/joins/antialiasing and subpixel dash textures are approximations.',
             'Native labels use existing localized name and Android fonts/collision placement, not remote Noto glyphs.',
@@ -136,7 +139,7 @@ def compile_style(style):
         if kind not in ('fill','line','symbol'): raise ValueError(f'Unsupported layer {lid}: {kind}')
         parent = elem('m', k='bcycle:bright:'+lid, v='1')
         groups = []
-        for vtm_zoom in range(0, 20):
+        for vtm_zoom in range(MAX_ZOOM + 1):
             z = vtm_zoom - 1
             if not layer.get('minzoom',0) <= z < layer.get('maxzoom',24): continue
             paint = {k: evaluate(v,z) for k,v in layer.get('paint',{}).items()}

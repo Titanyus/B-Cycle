@@ -1,3 +1,7 @@
+# Änderung nach Build142: Basiskarte in höchsten Zoomstufen
+
+Gemeldeten Ausfall bei Zoom20/21 reproduziert und korrigiert: Bright-Generator endete bei19, obwohl Kamera21 erlaubt. Generatorbereich jetzt aus MapZoom.maximum; echte native Zeichenregeln bis21,113Spritevarianten statt111. Original-Bright-JSON unverändert, generierte Dateien erneuert. Neue native Theme-Abdeckungsprüfung vor Fix bei20 fehlgeschlagen, danach sechs Flächen-/Linienklassen19..21 sowie bisherige Geometrieprüfung15..21 grün. Bright/Typografie/UI-Katalog/Diff grün. [Befund/Prüfung](vtm-maxzoom-and-road-labels.md). Noch nicht veröffentlicht; kein neuer APK-Auftrag. Gerätevergleich offen.
+
 # Aktueller Stand: APK0.8.97 / Build142 veröffentlicht
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.97-release-142.apk) · [Buildnachweis](build-142.md) · [Änderungen](release-0.8.97.md)

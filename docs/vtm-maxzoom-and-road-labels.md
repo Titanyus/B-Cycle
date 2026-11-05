@@ -35,3 +35,11 @@ Overzoom-/signed-short-Regression plus vorhandene native Platzierungs-/Fadefäll
 ## Vektor-Zoom21 nach Build139
 
 Expliziter Folgeauftrag: Vektorkarte zwei volle Zoomstufen näher, Rastergrenzen erhalten. MapZoom.maximum21, MapSource.VECTOR.maximumZoom21, native Vektorquelle zoomMax aus dieser Quelle; tatsächliche Datenweiterverwendung ab Quellzoom14 unverändert. Kamera, Pinch, Buttons, gespeicherte Werte und Streckenvorschau verwenden weiterhin MapZoom.maximum(source). Raster19, OpenTopoMap17. Native Clipping-Regression auf15–21 erweitert und erfolgreich. MapPresentationSettingsTest prüft reale Kameragrenzen21/19/17 und gespeicherten20,5-Wert je Quelle.
+
+## Basiskarten-Ausfall bei Zoom20/21 nach Build142
+
+Gemeldetes Verhalten: Basiskarte verschwindet in den höchsten Stufen, separate Radrouten bleiben sichtbar; beim Herauszoomen kommt die Karte zurück. Ursache konkret reproduziert: Die Kamera und Vektorquelle erlauben21, aber `build-bright-vtm.py` erzeugte Bright-Zeichenregeln nur für0..19 (`range(0,20)`). Native `matchElement` liefert für20/21 keine Flächen-/Straßen-/Gebäudestile, während der unabhängig konfigurierte Radroutenlayer weiterzeichnet. Der vorherige reine Geometrie-Clipping-Test konnte diese fehlende Theme-Abdeckung nicht erkennen.
+
+Korrektur: Der Generator liest die maximale Stufe aus `MapZoom.maximum` und wertet die originalen Bright-Funktionen samt Min-/Maxzoom bis einschließlich dieser Stufe aus. Kein pauschales Strecken alter Regeln, keine neue Kamera-/Rastergrenze und kein Wechsel der Datenquelle. Erzeugtes XML und Mapping neu generiert; die Original-JSON bleibt unverändert. Die zusätzlichen Stufen benötigen zwei weitere vorhandene Einbahnstraßen-Spritevarianten (113 statt111).
+
+Regression `VtmOverzoomGeometryTest.brightBaseLayersKeepTheirNativePaintsThroughTheMaximumCameraZoom`: sechs repräsentative Flächen-/Linienklassen (Wohnfläche, Gras, Wasser, Gebäude, Hauptstraße, Feldweg) im echten nativen Bright-Theme auf19..21. Vorher gezielt fehlgeschlagen bei landuse/residential, Zoom20 (`bright-maxzoom-before-test.log`). Nachher beide Tests der Klasse grün (`bright-maxzoom-fix-tests.log`), inklusive vorhandener nativer Overzoom-/Short-Clipping-Prüfung15..21. Bright-Generator/Typografie/UI-Katalog/Diff grün. Kein Gesamtlauf, keine neue APK beauftragt; optischer Gerätevergleich offen.

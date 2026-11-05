@@ -31,6 +31,29 @@ class VtmOverzoomGeometryTest {
             override fun completed(status:QueryResult) { assertEquals(QueryResult.SUCCESS,status) }
         });return result
     }
+    @Test fun brightBaseLayersKeepTheirNativePaintsThroughTheMaximumCameraZoom() {
+        val view=BicycleMapView(RuntimeEnvironment.getApplication())
+        try {
+            val theme=VtmBrightTheme.load(true)
+            try {
+                for(zoom in 19..MapZoom.maximum(MapSource.VECTOR)) {
+                    for((layer,kind,type) in listOf(
+                        Triple("landuse","residential",GeometryBuffer.GeometryType.POLY),
+                        Triple("landcover","grass",GeometryBuffer.GeometryType.POLY),
+                        Triple("water","river",GeometryBuffer.GeometryType.POLY),
+                        Triple("building","building",GeometryBuffer.GeometryType.POLY),
+                        Triple("transportation","primary",GeometryBuffer.GeometryType.LINE),
+                        Triple("transportation","track",GeometryBuffer.GeometryType.LINE)
+                    )) {
+                        val tags=TagSet().apply { add(Tag("layer",layer));add(Tag("class",kind)) }
+                        val paints=theme.matchElement(type,tags,zoom).orEmpty()
+                        assertTrue("Missing $layer/$kind base paints at camera zoom $zoom",paints.isNotEmpty())
+                        assertTrue(paints.any { it is org.oscim.theme.styles.AreaStyle || it is org.oscim.theme.styles.LineStyle })
+                    }
+                }
+            } finally { theme.dispose() }
+        } finally { view.disposeMap() }
+    }
     @Test fun nativeOverzoomBuildingExceedsSignedVertexRangeButClippedSourcePreservesTheFilledTileAtMaxZoom() {
         val view=BicycleMapView(RuntimeEnvironment.getApplication())
         try {

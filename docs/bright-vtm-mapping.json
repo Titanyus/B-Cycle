@@ -4,7 +4,7 @@
   "sprite_json_sha256": "73586a1c10e60b536a3a7b8b3d4e70cd4e6ffa6afe801ff1cb08f38bf38d7cb0",
   "maplibre_zoom": "VTM zoom - 1 (256 vs 512 pixel world)",
   "limitations": [
-    "Paint/size functions sampled at integer VTM zoom 0..19; no continuous MapLibre interpolation between tile levels.",
+    "Paint/size functions sampled at integer VTM zoom 0..21; no continuous MapLibre interpolation between tile levels.",
     "Native VTM solid-line minimum half-width is 1 px; very thin strokes differ from MapLibre.",
     "Native VTM caps/joins/antialiasing and subpixel dash textures are approximations.",
     "Native labels use existing localized name and Android fonts/collision placement, not remote Noto glyphs.",
@@ -1191,6 +1191,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1210,6 +1212,8 @@
       "source-layer": "water_name",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1265,6 +1269,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1284,6 +1290,8 @@
       "source-layer": "water_name",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1323,6 +1331,8 @@
       "notes": [
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1343,6 +1353,8 @@
       "source-layer": "poi",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1370,6 +1382,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1390,6 +1404,8 @@
       "source-layer": "poi",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1424,6 +1440,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1438,6 +1456,8 @@
       "source-layer": "transportation",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1457,6 +1477,8 @@
       "notes": [
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1472,6 +1494,8 @@
       "source-layer": "transportation_name",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1497,6 +1521,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1514,6 +1540,8 @@
       "source-layer": "transportation_name",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1551,6 +1579,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1567,6 +1597,8 @@
       "source-layer": "transportation_name",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1600,6 +1632,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1621,6 +1655,10 @@
       "source-layer": "place",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Case transform omitted to preserve original names.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1694,6 +1732,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1710,6 +1750,8 @@
       "source-layer": "place",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1762,6 +1804,8 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping."
       ],
       "approximated_properties": [
@@ -1778,6 +1822,10 @@
       "source-layer": "place",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Capital star/text centered by native labeling instead of left anchor.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Capital star/text centered by native labeling instead of left anchor.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1870,6 +1918,10 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Case transform omitted to preserve original names.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Case transform omitted to preserve original names."
       ],
       "approximated_properties": [
@@ -1888,6 +1940,10 @@
       "source-layer": "place",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Case transform omitted to preserve original names.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
@@ -1980,6 +2036,10 @@
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Case transform omitted to preserve original names.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Case transform omitted to preserve original names."
       ],
       "approximated_properties": [
@@ -1998,6 +2058,10 @@
       "source-layer": "place",
       "status": "mapped",
       "notes": [
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
+        "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
+        "Case transform omitted to preserve original names.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
         "Case transform omitted to preserve original names.",
         "Native labels: local name, Android font metrics/collision rules; no MapLibre letter spacing/halo blur/text wrapping.",
