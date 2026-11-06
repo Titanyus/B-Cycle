@@ -1892,14 +1892,15 @@ class MainActivity : Activity() {
             list.selector = BicycleComponents.controlBackground(settingsContext,tokens)
         } }
     }
-    private fun dataDialog(title: Int, body: View, action: Int? = null): AlertDialog {
+    private fun dataDialog(title:Int,body:View,action:Int?=null)=dataDialog(getString(title),body,action)
+    private fun dataDialog(title:String,body:View,action:Int?=null):AlertDialog {
         val builder = dialog().setTitle(title).setView(body)
         action?.takeIf { it!=R.string.route_action_save }?.let { builder.setPositiveButton(it, null) }
         val screen = builder.create()
         screen.setCustomTitle(BicycleComponents.header(settingsContext, settingsThemes).apply {
             tag = "bicycle_dialog_header"; setPadding(dp(BicycleDesign.smallGap),0,dp(BicycleDesign.verticalPadding),0)
             addView(BicycleComponents.icon(settingsContext,settingsThemes,BicycleIcon.Back,getString(R.string.data_back)) { screen.dismiss() })
-            addView(BicycleComponents.heading(settingsContext,settingsThemes,getString(title)).apply {
+            addView(BicycleComponents.heading(settingsContext,settingsThemes,title).apply {
                 tag="bicycle_dialog_title";setAutoSizeTextTypeUniformWithConfiguration(18,BicycleDesign.headingSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP)
             },LinearLayout.LayoutParams(0,dp(BicycleDesign.headerHeight),1f))
         })
@@ -1912,12 +1913,12 @@ class MainActivity : Activity() {
     private fun showTraining()=showTraining(null)
     private fun showTraining(initial:List<TrainingWorkout>?) {
         lateinit var content:TrainingManagerView
-        content=TrainingManagerView(settingsContext,settingsThemes,{ runtime.riderProfiles.read() },::trainingImportChoice) { ids ->
+        content=TrainingManagerView(settingsContext,settingsThemes,{ runtime.riderProfiles.read() },::trainingImportChoice,deleteRequested={ ids ->
             dialog(fullscreen=false).setTitle(R.string.route_action_delete).setMessage(getString(R.string.training_delete_message,ids.size))
                 .setNegativeButton(R.string.route_cancel,null).setPositiveButton(R.string.route_action_delete) { _,_ ->
                     trainingRepository().delete(ids) { result -> if(!isDestroyed && trainingManager===content) result.fold(content::render) { content.message(getString(R.string.training_failed)) } }
                 }.show()
-        }
+        },open=::showTrainingDetails)
         trainingManager=content
         val screen=dataDialog(R.string.training_title,content)
         screen.window?.decorView?.findViewWithTag<View>("dialog_back")?.setOnClickListener { if(content.selecting) content.clearSelection() else screen.dismiss() }
@@ -1927,6 +1928,20 @@ class MainActivity : Activity() {
         if(initial!=null) content.render(initial) else {
             content.message(getString(R.string.training_loading))
             trainingRepository().read { result -> if(!isDestroyed && trainingManager===content) result.fold(content::render) { content.message(getString(R.string.training_load_failed)) } }
+        }
+    }
+    private fun showTrainingDetails(workout:TrainingWorkout) {
+        val host=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL }
+        host.addView(BicycleComponents.description(settingsContext,settingsThemes,getString(R.string.training_loading)))
+        val scroll=BicycleStickyScrollView(settingsContext).apply { addView(host) }
+        val screen=dataDialog(workout.name,scroll)
+        trainingRepository().original(workout) { result ->
+            if(!isDestroyed && screen.isShowing) {
+                host.removeAllViews()
+                result.fold({ original -> host.addView(TrainingDetailsView(settingsContext,settingsThemes,workout,runtime.riderProfiles.read(),original)) },{
+                    host.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(R.string.training_load_failed)))
+                })
+            }
         }
     }
     private fun trainingImportChoice(anchor:View) {

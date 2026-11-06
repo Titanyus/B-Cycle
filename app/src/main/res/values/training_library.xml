@@ -32,4 +32,17 @@
     <string name="training_structure_unsupported">Dieses Training verwendet einen noch nicht unterstützten Abschnitt oder eine bedingte Wiederholung. Es wurde nichts an der Sammlung geändert.</string>
     <string name="training_cloud_failed">Die Trainingsbibliothek konnte nicht vollständig abgerufen werden. Bitte Verbindung und Zugang prüfen. Die vorhandene Sammlung bleibt erhalten.</string>
     <string name="training_zones_missing">Für die Zonenfarben fehlen persönliche Referenzwerte.</string>
+    <string name="training_details_overview">Übersicht</string>
+    <string name="training_details_steps">Übernommene Abschnitte</string>
+    <string name="training_details_original">Originaldaten von Intervals.icu</string>
+    <string name="training_details_structure">Verwendete Trainingsstruktur: %1$s</string>
+    <string name="training_details_step">Abschnitt %1$d</string>
+    <string name="training_details_ramp">Rampe</string>
+    <string name="training_details_range">Zielbereich</string>
+    <string name="training_details_target">Ziel</string>
+    <string name="training_details_original_missing">Die Originaldaten wurden bei diesem früheren Import noch nicht gespeichert. Bitte die Trainings einmal erneut von Intervals.icu abrufen. Die bestehenden Vorlagen werden dabei aktualisiert.</string>
+    <string name="training_details_original_file">Dieses Training stammt aus einer Datei. Es liegen keine Originalfelder von Intervals.icu vor.</string>
+    <string name="training_details_more_steps">Weitere Abschnitte anzeigen</string>
+    <string name="training_details_more_fields">Weitere Einträge anzeigen</string>
+    <string name="training_details_more_text">Weiteren Text anzeigen</string>
 </resources>

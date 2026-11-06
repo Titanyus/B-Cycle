@@ -62,6 +62,16 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         } catch(error:IntervalsFailure) { throw error } catch(error:IOException) { throw error }
         catch(_:Exception) { throw IntervalsFailure(false,R.string.training_cloud_invalid) }
     }
+    fun workout(id:Long):JSONObject {
+        require(id>=0)
+        val url=request("workouts").build().url.newBuilder().addPathSegment(id.toString()).build()
+        try {
+            return JSONObject(String(executeData(request("workouts").url(url).get().build(),maxBytes=8*1024*1024),Charsets.UTF_8)).also {
+                require(it.getLong("id")==id && it.getString("name").isNotBlank())
+            }
+        } catch(error:IntervalsFailure) { throw error } catch(error:IOException) { throw error }
+        catch(_:Exception) { throw IntervalsFailure(false,R.string.training_cloud_invalid) }
+    }
     /** Conversion only: this endpoint returns a file, never creates/updates a library entry. */
     fun workoutFit(workout:JSONObject):ByteArray = executeData(request("download-workout.fit")
         .header("Accept","application/octet-stream")

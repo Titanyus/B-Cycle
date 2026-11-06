@@ -115,7 +115,7 @@ class TrainingLibraryTest {
             MainActivity::class.java.getDeclaredMethod("onActivityResult",Int::class.javaPrimitiveType,Int::class.javaPrimitiveType,android.content.Intent::class.java).invoke(a,21,Activity.RESULT_OK,android.content.Intent().setData(android.net.Uri.fromFile(file)))
             drain()
             val list=manager.findViewWithTag<ListView>("training_list");assertEquals(2,list.adapter.count)
-            list.performItemClick(list.getChildAt(1),1,1);screen.window!!.decorView.findViewWithTag<View>("training_delete").performClick()
+            list.onItemLongClickListener!!.onItemLongClick(list,list.getChildAt(1),1,1);screen.window!!.decorView.findViewWithTag<View>("training_delete").performClick()
             val confirm=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             confirm.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();drain()
             assertEquals(0,list.adapter.count)
@@ -133,12 +133,14 @@ class TrainingLibraryTest {
         }
         try {
             val store=TrainingStore(java.io.File(context.filesDir,"training-workouts"))
-            server.enqueue(MockResponse().setBody("[{\"id\":42,\"name\":\"VO2max\"}]"));server.enqueue(MockResponse().setBody(Buffer().write(fit())))
+            server.enqueue(MockResponse().setBody("[{\"id\":42,\"name\":\"VO2max\"}]"))
+            server.enqueue(MockResponse().setBody("{\"id\":42,\"name\":\"VO2max\"}"));server.enqueue(MockResponse().setBody(Buffer().write(fit())))
             var result:Result<List<TrainingWorkout>>?=null
             repository.download({false},{_,_->}) { result=it };drain()
             assertTrue(result!!.isSuccess);val saved=store.read();assertEquals(1,saved.size)
             server.enqueue(MockResponse().setBody("[{\"id\":42,\"name\":\"Updated\"},{\"id\":43,\"name\":\"Broken\"}]"))
-            server.enqueue(MockResponse().setBody(Buffer().write(fit())));server.enqueue(MockResponse().setBody("invalid-fit"))
+            server.enqueue(MockResponse().setBody("{\"id\":42,\"name\":\"Updated\"}"));server.enqueue(MockResponse().setBody(Buffer().write(fit())))
+            server.enqueue(MockResponse().setBody("{\"id\":43,\"name\":\"Broken\"}"));server.enqueue(MockResponse().setBody("invalid-fit"))
             repository.download({false},{_,_->}) { result=it };drain()
             assertTrue(result!!.isFailure);assertEquals(saved,store.read())
             val requests=server.requestCount

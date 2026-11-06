@@ -46,6 +46,7 @@ internal class TrainingRepository(context:android.content.Context,
     }
     fun close() { worker.shutdown() }
     fun read(done:(Result<List<TrainingWorkout>>)->Unit)=task(done) { store.read() }
+    fun original(workout:TrainingWorkout,done:(Result<JSONObject?>)->Unit)=task(done) { workout.sourceData?.let(::JSONObject) }
     fun delete(ids:Set<String>,done:(Result<List<TrainingWorkout>>)->Unit)=task(done) { store.delete(ids) }
     fun importFile(uri:android.net.Uri,done:(Result<List<TrainingWorkout>>)->Unit)=task(done) {
         val name=app.contentResolver.query(uri,arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),null,null,null)?.use { c -> if(c.moveToFirst()) c.getString(0) else null } ?: uri.lastPathSegment.orEmpty()
@@ -63,10 +64,14 @@ internal class TrainingRepository(context:android.content.Context,
         checkActive()
         val client=api(config,settings.apiKey()) { cancelled() || settings.connectionToken()!=token || !network(config) }
         val library=client.workoutLibrary();val parsed=ArrayList<TrainingWorkout>();var bytesRead=0L
-        for((index,row) in library.withIndex()) {
+        for((index,summary) in library.withIndex()) {
             checkActive();main.post { progress(index,library.size) }
-            val bytes=client.workoutFit(row);bytesRead+=bytes.size;require(bytesRead<=32L*1024*1024)
-            val imported=TrainingFileImport.read(bytes,"${row.getString("name")}.fit")
+            val row=client.workout(summary.getLong("id"))
+            bytesRead+=row.toString().toByteArray(Charsets.UTF_8).size;require(bytesRead<=32L*1024*1024)
+            val imported=IntervalsTraining.read(row) ?: run {
+                val bytes=client.workoutFit(row);bytesRead+=bytes.size;require(bytesRead<=32L*1024*1024)
+                TrainingFileImport.read(bytes,"${row.getString("name")}.fit").copy(sourceData=row.toString(),structureSource="fit-conversion")
+            }
             val tags=row.optJSONArray("tags")?.let { a -> (0 until minOf(a.length(),100)).map { a.getString(it).take(100) } }.orEmpty()
             parsed+=imported.copy(id=TrainingWorkout.id("intervals\u0000${config.athlete}\u0000${row.getLong("id")}".toByteArray()),name=row.getString("name").take(512),description=(if(row.isNull("description")) imported.description else row.optString("description").ifBlank { imported.description }).take(20000),sport=row.optString("type").ifBlank { imported.sport },source="Intervals.icu",tags=tags)
             require(parsed.sumOf { it.steps.size }<=50000)

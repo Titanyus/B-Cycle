@@ -15,7 +15,7 @@ internal object TrainingFileImport {
         val extension=filename.substringAfterLast('.',"").lowercase()
         val fallback=filename.substringBeforeLast('.').ifBlank { "Training" }.take(512)
         val result=when(extension) { "fit"->fit(bytes,fallback);"zwo"->zwo(bytes,fallback);"erg"->erg(bytes,fallback);else->throw TrainingImportFailure(R.string.training_format_unsupported) }
-        return result.copy(id=TrainingWorkout.id(bytes),source=filename.take(512),format=extension)
+        return result.copy(id=TrainingWorkout.id(bytes),source=filename.take(512),format=extension,structureSource=extension)
     }
     private fun workout(name:String,description:String,steps:List<TrainingStep>,sport:String="Ride",tags:List<String> = emptyList())=
         TrainingWorkout("0".repeat(64),name.take(512),description.take(20000),sport,"","",steps,tags)

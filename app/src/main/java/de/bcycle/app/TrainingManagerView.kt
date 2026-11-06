@@ -8,7 +8,7 @@ import android.widget.*
 import java.util.Locale
 
 internal class TrainingManagerView(context:Context,private val themes:ThemeManager,private val profile:()->RiderProfile,
-    importClicked:(View)->Unit,private val deleteRequested:(Set<String>)->Unit):LinearLayout(context) {
+    importClicked:(View)->Unit,private val deleteRequested:(Set<String>)->Unit,private val open:((TrainingWorkout)->Unit)?=null):LinearLayout(context) {
     private val selected=linkedSetOf<String>()
     private var rows=emptyList<Any>()
     private var groups=emptyList<Int>()
@@ -86,7 +86,10 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
             if(!selected.add(workout.id)) selected.remove(workout.id)
             delete.isEnabled=selected.isNotEmpty();delete.setLabel(context.getString(R.string.route_action_delete)+if(selected.isEmpty()) "" else " (${selected.size})");adapter.notifyDataSetChanged()
         }
-        list.setOnItemClickListener { _,_,position,_->select(position) }
+        list.setOnItemClickListener { _,_,position,_ ->
+            val workout=rows.getOrNull(position) as? TrainingWorkout
+            if(selecting || open==null) select(position) else if(workout!=null) open.invoke(workout)
+        }
         list.setOnItemLongClickListener { _,_,position,_->select(position);true }
         val footer=bicycleFooter(context,themes)
         lateinit var import:BicycleFooterAction
@@ -133,11 +136,11 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         val types=workout.steps.flatMap { it.targets }.map { it.unit }.toSet()
         val target=when {
             types.any { it in setOf(TrainingUnit.FTP,TrainingUnit.WATTS,TrainingUnit.POWER_ZONE) }->context.getString(R.string.training_target_power)
-            types.any { it in setOf(TrainingUnit.HR_BPM,TrainingUnit.HR_ZONE,TrainingUnit.HR_MAX_PERCENT) }->context.getString(R.string.training_target_hr)
+            types.any { it in setOf(TrainingUnit.HR_BPM,TrainingUnit.HR_ZONE,TrainingUnit.HR_MAX_PERCENT,TrainingUnit.HR_THRESHOLD_PERCENT,TrainingUnit.HR_RESERVE_PERCENT) }->context.getString(R.string.training_target_hr)
             else->context.getString(R.string.training_target_free)
         }
         details.text=listOf(duration,context.resources.getQuantityString(R.plurals.training_steps,workout.steps.size,workout.steps.size),target,workout.sport,workout.source,workout.format.uppercase()).filter { it.isNotBlank() }.joinToString(" · ")
-        if(workout.steps.any { step -> step.target?.let { it.unit in setOf(TrainingUnit.WATTS,TrainingUnit.HR_BPM,TrainingUnit.HR_MAX_PERCENT) && it.zone(profile)==null }==true })
+        if(workout.steps.any { step -> step.target?.let { it.unit in setOf(TrainingUnit.WATTS,TrainingUnit.HR_BPM,TrainingUnit.HR_MAX_PERCENT,TrainingUnit.HR_THRESHOLD_PERCENT,TrainingUnit.HR_RESERVE_PERCENT) && it.zone(profile)==null }==true })
             details.text=details.text.toString()+"\n"+context.getString(R.string.training_zones_missing)
         contentDescription=workout.name+". "+details.text
         isActivated=checked
