@@ -25,6 +25,9 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         private var overlayMoved=false
         init { BicycleComponents.bindTheme(this,themes) {
             pinnedKind=null;pinned=null
+            divider=android.graphics.drawable.ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }
+            dividerHeight=BicycleDesign.dp(context,BicycleDesign.controlBorder)
+            selector=android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)
             val inset=if(BicycleAppearance.flat(context)) 0 else BicycleDesign.dp(context,BicycleDesign.sectionCardInset)
             setPadding(inset,0,inset,0);invalidate()
         } }
@@ -34,7 +37,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
             val actual=getChildAt(position-firstVisiblePosition)
             if(actual!=null && actual.top>=0) return
             val kind=rows[position] as TrainingKind
-            if(pinnedKind!=kind) { pinnedKind=kind;pinned=BicycleSectionHeader(context,themes,context.getString(kind.title)) }
+            if(pinnedKind!=kind) { pinnedKind=kind;pinned=BicycleSectionHeader(context,themes,context.getString(kind.title),topRule=true) }
             val header=pinned ?: return
             val w=width-paddingLeft-paddingRight
             header.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));header.layout(0,0,w,header.measuredHeight)
@@ -58,7 +61,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
             return result
         }
 
-    }.apply { tag="training_list";divider=null;dividerHeight=0 }
+    }.apply { tag="training_list" }
     private val adapter=object:BaseAdapter(),SectionIndexer {
         override fun getCount()=rows.size
         override fun getItem(position:Int)=rows[position]
@@ -72,7 +75,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         override fun getSectionForPosition(position:Int)=groups.indexOfLast { it<=position }.coerceAtLeast(0)
         override fun getView(position:Int,convert:View?,parent:ViewGroup):View {
             val row=rows[position]
-            if(row is TrainingKind) return (convert as? BicycleSectionHeader)?.takeIf { it.contentDescription==context.getString(row.title) } ?: BicycleSectionHeader(context,themes,context.getString(row.title))
+            if(row is TrainingKind) return (convert as? BicycleSectionHeader)?.takeIf { it.contentDescription==context.getString(row.title) } ?: BicycleSectionHeader(context,themes,context.getString(row.title),topRule=true)
             val workout=row as TrainingWorkout
             return ((convert as? TrainingWorkoutView) ?: TrainingWorkoutView(context,themes)).apply { bind(workout,profile(),workout.id in selected) }
         }
@@ -127,11 +130,18 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         addView(intensity,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(chart,LayoutParams(-1,BicycleDesign.dp(context,if(detailAxes) 180 else 96)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(details,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        BicycleComponents.bindTheme(this,themes) { BicycleSelectionCard.apply(this,it,selected) }
+        BicycleComponents.bindTheme(this,themes,::paintState)
         descendantFocusability=ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
+    private fun paintState(tokens:ThemeTokens) {
+        if(detailAxes) BicycleSelectionCard.apply(this,tokens,selected)
+        else {
+            background=android.graphics.drawable.ColorDrawable(if(selected) tokens.tertiary else tokens.secondary)
+            foreground=null
+        }
+    }
     fun bind(workout:TrainingWorkout,profile:RiderProfile,checked:Boolean) {
-        selected=checked;BicycleSelectionCard.apply(this,themes.active.tokens,checked)
+        selected=checked;paintState(themes.active.tokens)
         name.text=workout.name;description.text=workout.description;description.visibility=if(workout.description.isBlank()) GONE else VISIBLE
         val automatic=TrainingIntensity.of(workout,profile)
         intensity.text=automatic?.let { context.getString(R.string.training_auto_tag,context.getString(it.title)) }.orEmpty()
