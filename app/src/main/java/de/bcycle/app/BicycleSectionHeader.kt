@@ -7,7 +7,7 @@ import android.view.View
 import android.widget.LinearLayout
 
 /** Shared category heading. Natural and pinned states use exactly the same native view. */
-internal class BicycleSectionHeader(context: Context, internal val manager: ThemeManager, title: String, private val inlineRules:Boolean=false, private val topRule:Boolean=false) : LinearLayout(context) {
+internal class BicycleSectionHeader(context: Context, internal val manager: ThemeManager, title: String, private val inlineRules:Boolean=false) : LinearLayout(context) {
     /** Optional section boundary, e.g. an independent accordion after the last category. */
     var sectionEnd: View? = null
     var expanded:Boolean?=null;private set
@@ -76,8 +76,6 @@ internal class BicycleSectionHeader(context: Context, internal val manager: Them
                 card.set(bounds.left.toFloat(),bounds.top.toFloat(),bounds.right.toFloat(),bounds.bottom+cardJoinExtension)
                 canvas.drawRoundRect(card,radius,radius,fill)
                 canvas.restoreToCount(saved)
-                if(topRule) canvas.drawRect(bounds.left.toFloat(),bounds.top.toFloat(),bounds.right.toFloat(),
-                    bounds.top+BicycleDesign.dp(context,2).toFloat(),rule)
             }
         }.apply { setColor(tokens.tertiary);cornerRadii=FloatArray(8) { radius } }
     }

@@ -56,4 +56,7 @@
     <string name="training_metric_sections">Abschnitte</string>
     <string name="training_metrics_description">Berechnete Trainingswerte. Belastung: geschätzter TSS-Wert. Intensität: normalisierte Zielleistung relativ zur FTP. Abschnitte: alle Belastungs-, Erholungs-, Aufwärm- und Ausrollabschnitte.</string>
     <string name="training_metrics_explanation">Belastung und Intensität sind Schätzungen aus dem geplanten Leistungsverlauf mit 30-Sekunden-Glättung. Abschnitte zählen auch Aufwärmen, Erholung und Ausrollen. Bei offenen Abschnitten oder fehlenden Leistungszielen erscheint bei den betreffenden Werten ein Strich.</string>
+    <string name="training_sort_group">%1$s · unter %2$s</string>
+    <string name="training_sort_unknown">Ohne berechenbaren Wert</string>
+    <string name="training_group_count">Trainings</string>
 </resources>

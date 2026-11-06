@@ -160,8 +160,11 @@ class TrainingLibraryTest {
             fun layout() { manager.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(780,View.MeasureSpec.EXACTLY));manager.layout(0,0,360,780) }
             layout()
             val list=manager.findViewWithTag<ListView>("training_list")
-            assertEquals(4,list.adapter.count);assertFalse(manager.findViewWithTag<View>("training_filter").isEnabled);assertFalse(manager.findViewWithTag<View>("training_sort").isEnabled)
+            assertEquals(3,list.adapter.count);assertEquals(View.GONE,manager.status.visibility);assertFalse(manager.findViewWithTag<View>("training_filter").isEnabled);assertTrue(manager.findViewWithTag<View>("training_sort").isEnabled)
             manager.findViewWithTag<View>("training_import").performClick();assertEquals(1,imports)
+            val group=list.adapter.getView(0,null,list)
+            assertTrue(nodes(group).filterIsInstance<TextView>().any { it.text.toString()=="Trainings" })
+            assertEquals("2",nodes(group).filterIsInstance<TextView>().single { it.tag?.toString()?.startsWith("route_training_group_count_")==true }.text.toString())
             list.performItemClick(list.getChildAt(1),1,1)
             assertTrue(manager.findViewWithTag<View>("training_delete").isEnabled);manager.findViewWithTag<View>("training_delete").performClick();assertEquals(setOf("a".repeat(64)),deleted)
             val image=Bitmap.createBitmap(360,780,Bitmap.Config.ARGB_8888);manager.draw(Canvas(image))

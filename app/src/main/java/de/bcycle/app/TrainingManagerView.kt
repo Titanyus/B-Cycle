@@ -9,6 +9,11 @@ import java.util.Locale
 
 internal class TrainingManagerView(context:Context,private val themes:ThemeManager,private val profile:()->RiderProfile,
     importClicked:(View)->Unit,private val deleteRequested:(Set<String>)->Unit,private val open:((TrainingWorkout)->Unit)?=null):LinearLayout(context) {
+    private data class Group(val title:String,var count:Int=0)
+    private var workouts=emptyList<TrainingWorkout>()
+    private var sort=TrainingSort.DURATION
+    private var descending=false
+    private var sortingPopup:TrainingSortPopup?=null
     private val selected=linkedSetOf<String>()
     private var rows=emptyList<Any>()
     private var groups=emptyList<Int>()
@@ -17,8 +22,8 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,BicycleDesign.dp(context,BicycleDesign.controlGap),pad,BicycleDesign.dp(context,BicycleDesign.controlGap))
     }
     private val list=object:BicycleFastScrollList(context,themes) {
-        private var pinned:BicycleSectionHeader?=null
-        private var pinnedKind:TrainingKind?=null
+        private var pinned:TrainingGroupHeader?=null
+        private var pinnedKind:Group?=null
         private var overlayBottom=0
         private var overlayGesture=false
         private var overlayStartY=0f
@@ -36,8 +41,8 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
             val position=groups.lastOrNull { it<=firstVisiblePosition } ?: return
             val actual=getChildAt(position-firstVisiblePosition)
             if(actual!=null && actual.top>=0) return
-            val kind=rows[position] as TrainingKind
-            if(pinnedKind!=kind) { pinnedKind=kind;pinned=BicycleSectionHeader(context,themes,context.getString(kind.title),topRule=true) }
+            val kind=rows[position] as Group
+            if(pinnedKind!=kind) { pinnedKind=kind;pinned=TrainingGroupHeader(context,themes).apply { bind(kind.title,kind.count) } }
             val header=pinned ?: return
             val w=width-paddingLeft-paddingRight
             header.measure(View.MeasureSpec.makeMeasureSpec(w,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));header.layout(0,0,w,header.measuredHeight)
@@ -67,15 +72,15 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         override fun getItem(position:Int)=rows[position]
         override fun getItemId(position:Int)=position.toLong()
         override fun getViewTypeCount()=2
-        override fun getItemViewType(position:Int)=if(rows[position] is TrainingKind) 0 else 1
+        override fun getItemViewType(position:Int)=if(rows[position] is Group) 0 else 1
         override fun areAllItemsEnabled()=false
         override fun isEnabled(position:Int)=rows[position] is TrainingWorkout
-        override fun getSections()=groups.map { context.getString((rows[it] as TrainingKind).title) }.toTypedArray()
+        override fun getSections()=groups.map { (rows[it] as Group).title }.toTypedArray()
         override fun getPositionForSection(sectionIndex:Int)=groups.getOrElse(sectionIndex) { 0 }
         override fun getSectionForPosition(position:Int)=groups.indexOfLast { it<=position }.coerceAtLeast(0)
         override fun getView(position:Int,convert:View?,parent:ViewGroup):View {
             val row=rows[position]
-            if(row is TrainingKind) return (convert as? BicycleSectionHeader)?.takeIf { it.contentDescription==context.getString(row.title) } ?: BicycleSectionHeader(context,themes,context.getString(row.title),topRule=true)
+            if(row is Group) return ((convert as? TrainingGroupHeader) ?: TrainingGroupHeader(context,themes)).apply { bind(row.title,row.count) }
             val workout=row as TrainingWorkout
             return ((convert as? TrainingWorkoutView) ?: TrainingWorkoutView(context,themes)).apply { bind(workout,profile(),workout.id in selected) }
         }
@@ -99,19 +104,51 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         import=BicycleFooterAction(context,themes,BicycleIcon.Import,context.getString(R.string.training_footer_import)) { importClicked(import) }.apply { tag="training_import" }
         footer.addView(import,LayoutParams(0,-2,1f))
         footer.addView(BicycleFooterAction(context,themes,BicycleIcon.Filter,context.getString(R.string.route_filter_button)) {}.apply { tag="training_filter";isEnabled=false },LayoutParams(0,-2,1f))
-        footer.addView(BicycleFooterAction(context,themes,BicycleIcon.Sort,context.getString(R.string.route_sort_button)) {}.apply { tag="training_sort";isEnabled=false },LayoutParams(0,-2,1f))
+        lateinit var sorting:BicycleFooterAction
+        sorting=BicycleFooterAction(context,themes,BicycleIcon.Sort,context.getString(R.string.route_sort_button)) {
+            sortingPopup?.dismiss()
+            sortingPopup=TrainingSortPopup(context,themes,sort,descending,{ sort=it;render(workouts);list.setSelection(0) },{ descending=it;render(workouts);list.setSelection(0) }).also { it.show(sorting) }
+        }.apply { tag="training_sort" }
+        footer.addView(sorting,LayoutParams(0,-2,1f))
         footer.addView(delete,LayoutParams(0,-2,1f));addView(footer,LayoutParams(-1,-2))
         render(emptyList())
     }
     val selecting get()=selected.isNotEmpty()
     fun clearSelection() { selected.clear();delete.isEnabled=false;delete.setLabel(context.getString(R.string.route_action_delete));adapter.notifyDataSetChanged() }
-    fun message(text:String) { BicycleFeedback.update(status,text) }
+    fun message(text:String) {
+        BicycleFeedback.update(status,text)
+        status.visibility=if(text.isBlank()) GONE else VISIBLE
+    }
+    override fun onDetachedFromWindow() {
+        sortingPopup?.dismiss();sortingPopup=null
+        super.onDetachedFromWindow()
+    }
     fun render(workouts:List<TrainingWorkout>) {
         selected.retainAll(workouts.map { it.id }.toSet());delete.isEnabled=selected.isNotEmpty()
         delete.setLabel(context.getString(R.string.route_action_delete)+if(selected.isEmpty()) "" else " (${selected.size})")
-        rows=TrainingKind.entries.flatMap { kind -> workouts.filter { it.kind==kind }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name }).let { if(it.isEmpty()) emptyList() else listOf(kind)+it } }
-        groups=rows.indices.filter { rows[it] is TrainingKind }
-        message(if(workouts.isEmpty()) context.getString(R.string.training_empty) else context.resources.getQuantityString(R.plurals.training_count,workouts.size,workouts.size))
+        this.workouts=workouts.toList()
+        val rider=profile()
+        rows=buildList {
+            var previous:Group?=null
+            for(workout in sort.ordered(workouts,rider,descending)) {
+                val value=sort.value(TrainingMetrics.of(workout,rider))
+                val label=if(value==null) context.getString(R.string.training_sort_unknown) else {
+                    val step=when(sort) { TrainingSort.DURATION->1800.0;TrainingSort.LOAD->25.0;TrainingSort.INTENSITY->.1;TrainingSort.SECTIONS->5.0 }
+                    val upper=(kotlin.math.floor((value+1e-9)/step)+1)*step
+                    val amount=when(sort) {
+                        TrainingSort.DURATION->"${(upper/60).toInt()} ${context.getString(R.string.analysis_minutes)}"
+                        TrainingSort.INTENSITY->String.format(Locale.getDefault(),"%.1f",upper)
+                        else->upper.toInt().toString()
+                    }
+                    context.getString(R.string.training_sort_group,context.getString(sort.title),amount)
+                }
+                if(previous?.title!=label) { previous=Group(label);add(previous!!) }
+                previous!!.count++
+                add(workout)
+            }
+        }
+        groups=rows.indices.filter { rows[it] is Group }
+        message(if(workouts.isEmpty()) context.getString(R.string.training_empty) else "")
         adapter.notifyDataSetChanged()
     }
 }

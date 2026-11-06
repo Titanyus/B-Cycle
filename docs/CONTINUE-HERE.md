@@ -1,5 +1,7 @@
 # Aktueller Arbeitsstand nach Build144: Trainingsdetails und native Intervals-Rampen
 
+Training: reine Anzahlzeile unter Hauptheader entfernt, nur echte Status-/Leermeldungen behalten. Sortierung aktiv mit5 Streckenmanager-artigen Kacheln: Dauer/Belastung/Intensität/Abschnitte und Richtung. Nutzerbestätigte Gruppierung nach Sortierwert, global sortiert, unbekannte Werte zuletzt; Filter aus. Gruppenköpfe mit Anzahl und Label „Trainings“ in derselben Titel-/Zahlengeometrie wie Streckenmanager, natürlich/gepinnt identisch. Ausgang Dauer aufsteigend, Zustand für geöffnete Liste. Gezielter Nachweis `/workspace/.tools/training-sort-tests.log`.
+
 Dreeve #2973 und FIT-Insight-README kurz geprüft: automatische Intervallerkennung aus gefahrenen Indoor-/Virtual-Ride-Leistungsdaten in TODO.md vorgemerkt (Quellen verlinkt), noch nicht implementieren.
 
 Vier Kennzahlen über dem Trainingsdiagramm in Liste und Details eingebaut: Dauer, Belastung (geschätzte TSS), Intensität (IF), Abschnitte. RouteListReading-Geometrie wie Streckenmanager; aus tatsächlicher Zielstruktur inklusive Rampen/Erholungen berechnet, keine Quell-Scores. Kontinuierliche30s-Normalisierung, fehlende Daten als Strich; begrenzter Struktur-/FTP-Cache. Gezielter Nachweis `/workspace/.tools/training-metrics-tests.log`. Textblock unter Diagrammen in Übersicht bleibt entfernt.
