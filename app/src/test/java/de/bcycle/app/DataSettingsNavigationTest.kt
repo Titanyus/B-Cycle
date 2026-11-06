@@ -86,17 +86,23 @@ class DataSettingsNavigationTest {
             assertNull(manager.window!!.decorView.findViewWithTag<View>("route_settings"))
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun individualRouteImportsAreEnabledAndHrvRestoreKeepsItsExplicitActions() {
+    @Test fun framedRouteAndTrainingImportsKeepSharedActionsAndHrvRestore() {
         val host=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val a=host.get();val (_,screen)=open(a)
             val root=screen.window!!.decorView
-            assertNull(root.findViewWithTag<View>("data_IMPORT"))
+            val imports=root.findViewWithTag<BicycleFrameDropdown>("data_frame_IMPORT")
+            assertFalse(imports.expanded);imports.header.performClick();measure(screen)
+            val trainings=root.findViewWithTag<BicycleFrameDropdown>("data_training_import")
+            assertFalse(trainings.expanded);trainings.header.performClick();measure(screen)
+            for(action in TrainingImportAction.entries) assertNotNull(trainings.content.findViewWithTag<View>(action.viewTag))
             for(action in RouteImportAction.entries) {
                 val row=root.findViewWithTag<View>(action.viewTag)
                 assertNotNull(row);assertFalse(row is BicycleFrameDropdown)
                 assertEquals(action!=RouteImportAction.DREEVE,row.isEnabled)
             }
+            trainings.content.findViewWithTag<View>("training_import_file").performClick()
+            assertEquals(21,shadowOf(a).nextStartedActivityForResult.requestCode)
             val content=root.findViewWithTag<DataSettingsView>("data_settings")
             val headings=listOf("data_group_save","data_group_restore","data_group_import").map { content.findViewWithTag<TextView>(it) }
             assertEquals(listOf("Sichern","Wiederherstellen","Importieren"),headings.map { it.text.toString() })

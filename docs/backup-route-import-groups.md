@@ -14,3 +14,6 @@ Gezielt geprüft:
 - `DreeveImportNavigationTest.managerKeepsUnconfiguredDreeveVisibleButDisabledAndImportScreenHasNoConfigurationAction`: bestehendes Importmenü und Dreeve-Freigabe.
 - Logs: `/workspace/.tools/shared-route-import-and-backup-tests.log` und `/workspace/.tools/backup-import-groups-final-test.log`, erfolgreich.
 - Typografie, UI-Katalog und `git diff --check` erfolgreich. Kein Gesamttestlauf, keine APK erstellt.
+
+
+06.11.2026: Neuere Nutzerentscheidung ersetzt die flachen Einzelzeilen: Rahmen-Accordion „Strecken importieren“ mit denselben vier zentralen RouteImportAction-Einträgen. Darunter Rahmen-Accordion „Trainings importieren“ mit Cloud-/Dateiimport aus TrainingImportAction, gemeinsam mit Trainingsfooter. Gruppenüberschriften/Trenner und Sicherungsfunktionen erhalten. Siehe [Trainingssammlung](training-library.md).

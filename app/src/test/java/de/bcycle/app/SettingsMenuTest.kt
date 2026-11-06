@@ -58,9 +58,9 @@ class SettingsMenuTest {
                     image.recycle()
                 }
                 val rows=descendants(body).filter { it.isClickable && it.tag?.toString()?.startsWith("settings_")==true }
-                assertEquals(listOf("settings_ROUTES", "settings_ROUTE_TEMPLATES", "settings_HRV_ANALYSIS", "settings_STATISTICS", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_HRV", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
-                assertEquals(listOf("Gefahrene Strecken", "Streckenvorlagen", "HRV-Auswertung", "Statistiken", "Wartung", "Fahrer", "Fahrradprofile", "HRV & Tagesbefinden", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
-                assertEquals(15, body.childCount) // Measurement pill, eleven rows, two dividers and brand image.
+                assertEquals(listOf("settings_ROUTES", "settings_ROUTE_TEMPLATES", "settings_TRAINING", "settings_HRV_ANALYSIS", "settings_STATISTICS", "settings_MAINTENANCE", "settings_PROFILE", "settings_PROFILES", "settings_HRV", "settings_NOTIFICATIONS", "settings_DATA", "settings_ADVANCED"), rows.map { it.tag })
+                assertEquals(listOf("Gefahrene Strecken", "Streckenvorlagen", "Training", "HRV-Auswertung", "Statistiken", "Wartung", "Fahrer", "Fahrradprofile", "HRV & Tagesbefinden", "Benachrichtigungen", "Backup & Cloud", "Erweitert"), rows.map { it.contentDescription.toString() })
+                assertEquals(16, body.childCount) // Measurement pill, twelve rows, two dividers and brand image.
                 val measure=body.findViewWithTag<BicycleSpecialButton>("hrv_open_measurement")
                 assertTrue(measure.filled);assertSame(body.getChildAt(0),measure.parent)
                 descendants(body).filter { it.tag=="settings_group_divider" }.forEach { divider ->
@@ -68,8 +68,8 @@ class SettingsMenuTest {
                     assertEquals(BicycleDesign.dp(controller.get(),12),margins.topMargin)
                     assertEquals(margins.topMargin,margins.bottomMargin)
                 }
-                assertSame(rows[4],body.getChildAt(5));assertSame(rows[5],body.getChildAt(7))
-                assertSame(rows[9],body.getChildAt(11));assertSame(rows[10],body.getChildAt(13))
+                assertSame(rows[5],body.getChildAt(6));assertSame(rows[6],body.getChildAt(8))
+                assertSame(rows[10],body.getChildAt(12));assertSame(rows[11],body.getChildAt(14))
                 rows.forEach { row ->
                     assertEquals(width,row.width)
                     if(row.tag=="settings_HRV") assertTrue(row.height>=BicycleDesign.dp(controller.get(),54))

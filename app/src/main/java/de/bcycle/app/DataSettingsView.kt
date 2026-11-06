@@ -19,7 +19,7 @@ internal enum class DataAction(val title: Int, val icon: BicycleIcon) {
     DREEVE(R.string.dreeve_title,TransferSymbols.dreeve), STRAVA(R.string.strava_title,TransferSymbols.strava)
 }
 /** Inline service forms reuse their existing controls; expanding never enables an upload. */
-internal class DataSettingsView(context: Context, private val themes: ThemeManager,private val importSelected:(RouteImportAction)->Unit={},private val canImport:(RouteImportAction)->Boolean={true},selected: (DataAction)->Unit) : LinearLayout(context) {
+internal class DataSettingsView(context: Context, private val themes: ThemeManager,private val importSelected:(RouteImportAction)->Unit={},private val canImport:(RouteImportAction)->Boolean={true},private val trainingSelected:(TrainingImportAction)->Unit={},selected: (DataAction)->Unit) : LinearLayout(context) {
     val backupStatus=BicycleFeedback.status(context,themes).apply { tag="backup_status" }
     private val importRows=linkedMapOf<RouteImportAction,View>()
     private val frames=mutableMapOf<DataAction,BicycleFrameDropdown>()
@@ -77,6 +77,8 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         }
         addView(BicycleComponents.sectionDivider(context,themes).apply { tag="data_import_divider" })
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.data_group_import)).apply { tag="data_group_import" })
+        val routesImport=BicycleFrameDropdown(context,themes,context.getString(R.string.data_route_import),false,leadingIcon=BicycleIcon.Import).apply { tag="data_frame_IMPORT";header.tag="data_IMPORT" }
+        addView(routesImport,LayoutParams(-1,-2))
         RouteImportAction.entries.forEach { action ->
             val row=LinearLayout(context).apply {
                 orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(BicycleDesign.touchSize)
@@ -91,8 +93,13 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                     BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,BicycleIcon.Forward,it.foreground)) }
                 },LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)))
             }
-            importRows[action]=row;addView(row,LayoutParams(-1,-2))
+            importRows[action]=row;routesImport.content.addView(row,LayoutParams(-1,-2))
         }
+        val trainingImport=BicycleFrameDropdown(context,themes,context.getString(R.string.training_import_title),false,leadingIcon=BicycleIcon.Power).apply { tag="data_training_import" }
+        for(action in TrainingImportAction.entries) trainingImport.content.addView(BicycleComponents.action(context,themes,context.getString(action.title)) { trainingSelected(action) }.apply {
+            tag=action.viewTag;BicycleDialogStyle.actionIcon(this,themes,action.icon)
+        },LayoutParams(-1,-2))
+        addView(trainingImport,LayoutParams(-1,-2))
         refreshImportAvailability()
         section(R.string.data_routes,listOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.DREEVE,DataAction.INTERVALS,DataAction.STRAVA))
     }

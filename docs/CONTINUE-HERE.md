@@ -1,3 +1,9 @@
+# Änderungen nach Build143: Trainingssammlung
+
+Eigener Einstellungsmenüpunkt Training, Sammlung ohne Kalender/Wochentag, nach Trainingsart gruppierte native Liste mit Sticky-Köpfen und Karten aus Titel/Kurzbeschreibung/Zonen-Stufendiagramm/Grunddaten. Footer Import, deaktivierte Filter/Sortierung, bestätigtes Auswahllöschen. Intervals-Bibliothek/Dateikonverter mit bestehenden Zugangsdaten und WLAN; Workout-FIT/ERG/ZWO. Serieller Worker und atomare globale Sammlung, idempotente Updates, Cloud-Abbruch ohne Teilübernahme. Zwei Importframes unter Backup & Restore, zentrale gemeinsame Aktionslisten. Acht gezielte Fälle und zusätzliche Sticky-/Menüprüfung grün; Details/Formatgrenzen/Prüfnachweise in [training-library.md](training-library.md). Keine APK beauftragt.
+
+Zusatzauftrag in Arbeit: übergroße Startbahnen/Pillenform bei Weißenhorn, Gundelfingen, MUC, alle Zoomstufen. Öffentliche MVT-Originalgeometrien geladen und auf aeroway reduziert; noch keine Flughafen-Stiländerung committed.
+
 # Aktueller Stand: APK0.8.98 / Build143 veröffentlicht
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.98-release-143.apk) · [Buildnachweis](build-143.md) · [Änderungen](release-0.8.98.md)

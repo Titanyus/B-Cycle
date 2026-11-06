@@ -35,7 +35,8 @@ internal enum class SettingsAction(val title: String, val icon: Int = 0, val tit
     MAP_LICENSE("", titleResource = R.string.ui_settings_map_license),
     ROUTE_TEMPLATES("",BicycleIcon.Route.resource,titleResource=R.string.route_templates_title),
     HRV_ANALYSIS("",BicycleIcon.Heart.resource,titleResource=R.string.hrvt_title),
-    HRV_MEASUREMENT("",BicycleIcon.Heart.resource,titleResource=R.string.hrv_measurement_open);
+    HRV_MEASUREMENT("",BicycleIcon.Heart.resource,titleResource=R.string.hrv_measurement_open),
+    TRAINING("",BicycleIcon.Power.resource,titleResource=R.string.training_title);
     fun label(context: Context) = if (titleResource == 0) title else context.getString(titleResource)
 }
 
@@ -58,7 +59,7 @@ internal class SettingsMenuView(context: Context, private val themes: ThemeManag
             },FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
         },LayoutParams(-1,-2))
         val actions=if(advanced) SettingsAction.entries.filter { it.ordinal in SettingsAction.RECOVERY.ordinal..SettingsAction.MAP_LICENSE.ordinal && it !in setOf(SettingsAction.RECOVERY,SettingsAction.GPS_HELP,SettingsAction.ROUTE_TEMPLATES) } else
-            listOf(SettingsAction.ROUTES,SettingsAction.ROUTE_TEMPLATES,SettingsAction.HRV_ANALYSIS,SettingsAction.STATISTICS,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.HRV,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
+            listOf(SettingsAction.ROUTES,SettingsAction.ROUTE_TEMPLATES,SettingsAction.TRAINING,SettingsAction.HRV_ANALYSIS,SettingsAction.STATISTICS,SettingsAction.MAINTENANCE,SettingsAction.PROFILE,SettingsAction.PROFILES,SettingsAction.HRV,SettingsAction.NOTIFICATIONS,SettingsAction.DATA,SettingsAction.ADVANCED)
         actions.forEachIndexed { index,action ->
             if(index>0 && (advanced || action==SettingsAction.PROFILE || action==SettingsAction.ADVANCED))
                 addView(BicycleComponents.divider(context,themes).apply { tag="settings_group_divider" },LayoutParams(-1,BicycleDesign.linePixels(context)).apply {

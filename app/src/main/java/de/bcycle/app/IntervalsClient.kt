@@ -16,7 +16,7 @@ internal enum class IntervalsWellnessStage(val label:Int) {
 }
 internal class IntervalsFailure(val retryable:Boolean,val problem:Int,val httpStatus:Int?=null,
     val wellnessStage:IntervalsWellnessStage?=null,val wellnessField:String?=null):IOException()
-/** Activity and daily wellness APIs. Workout APIs remain a separate capability. */
+/** Existing activity/wellness APIs and explicit read/conversion of workout library templates. */
 internal class IntervalsClient(private val config:IntervalsConfig,private val key:String,
     private val cancelled:()->Boolean={false},private val base:HttpUrl="https://intervals.icu/api/v1/".toHttpUrl(),
     private val http:OkHttpClient=client) {
@@ -24,11 +24,11 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         if(path.isNotEmpty()) addPathSegment(path)
     }.build()).header("Authorization",Credentials.basic("API_KEY",key))
         .header("User-Agent","B-Cycle/${AppVersion.name}").header("Accept","application/json")
-    private fun execute(request:Request,missingAllowed:Boolean=false):String {
+    private fun executeData(request:Request,missingAllowed:Boolean=false,maxBytes:Int=1024*1024):ByteArray {
         require(config.athlete.matches(Regex("i?[0-9]{1,15}")) && key.isNotEmpty())
         if(cancelled()) throw IOException()
         val result=http.newCall(request).execute().use { response ->
-            if(missingAllowed && response.code==404) return@use ""
+            if(missingAllowed && response.code==404) return@use ByteArray(0)
             if(!response.isSuccessful) {
                 val stage=when {
                     request.url.pathSegments.lastOrNull()=="wellness.json"->IntervalsWellnessStage.HISTORY
@@ -46,13 +46,26 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
                     ServiceProblems.http(response.code)?.let { if(it==ServiceProblems.Problem.AUTH) R.string.intervals_auth_failed else it.text } ?: R.string.intervals_upload_failed
                 throw IntervalsFailure(response.code==408 || response.code==429 || response.code>=500,problem,response.code,stage,field)
             }
-            val bytes=response.body?.byteStream()?.use { it.readNBytes(1024*1024+1) } ?: throw IOException()
-            if(bytes.size>1024*1024) throw IntervalsFailure(false,R.string.intervals_response_failed)
-            String(bytes,Charsets.UTF_8)
+            val bytes=response.body?.byteStream()?.use { it.readNBytes(maxBytes+1) } ?: throw IOException()
+            if(bytes.size>maxBytes) throw IntervalsFailure(false,R.string.intervals_response_failed)
+            bytes
         }
         if(cancelled()) throw IOException()
         return result
     }
+    private fun execute(request:Request,missingAllowed:Boolean=false)=String(executeData(request,missingAllowed),Charsets.UTF_8)
+    fun workoutLibrary():List<JSONObject> {
+        try {
+            val rows=JSONArray(String(executeData(request("workouts").get().build(),maxBytes=8*1024*1024),Charsets.UTF_8))
+            require(rows.length()<=500)
+            return (0 until rows.length()).map { rows.getJSONObject(it).also { row -> require(row.has("id") && row.getLong("id")>=0 && row.getString("name").isNotBlank()) } }
+        } catch(error:IntervalsFailure) { throw error } catch(error:IOException) { throw error }
+        catch(_:Exception) { throw IntervalsFailure(false,R.string.training_cloud_invalid) }
+    }
+    /** Conversion only: this endpoint returns a file, never creates/updates a library entry. */
+    fun workoutFit(workout:JSONObject):ByteArray = executeData(request("download-workout.fit")
+        .header("Accept","application/octet-stream")
+        .post(workout.toString().toRequestBody("application/json".toMediaType())).build(),maxBytes=TrainingFileImport.MAX_BYTES)
     fun test() {
         val result=JSONObject(execute(request("").get().build()))
         if(result.optString("id")!=config.athlete) throw IntervalsFailure(false,R.string.intervals_response_failed)

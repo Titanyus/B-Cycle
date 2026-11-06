@@ -620,6 +620,7 @@ class MainActivity : Activity() {
                 SettingsAction.ROUTES -> routeSettings()
                 SettingsAction.ROUTE_TEMPLATES -> routeSettings(RouteKind.IMPORTED)
                 SettingsAction.STATISTICS -> showStatistics()
+                SettingsAction.TRAINING -> showTraining()
                 SettingsAction.ADVANCED -> showMenu(advanced = true)
                 SettingsAction.RECOVERY -> recoverySettings()
                 SettingsAction.GPS_HELP -> menu = dialog().setTitle(getString(R.string.ui_gps_help_title)).setMessage(R.string.ui_gps_help_body).show()
@@ -1125,6 +1126,12 @@ class MainActivity : Activity() {
     @Deprecated("Native document picker callback")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode==21) {
+            if(resultCode==RESULT_OK) data?.data?.let { uri ->
+                trainingRepository().importFile(uri) { outcome -> if(!isDestroyed) outcome.fold({ rows -> trainingImportFinished(rows) },{ trainingImportFailure(it) }) }
+            }
+            return
+        }
         if(requestCode==20) {
             val json=pendingMapStyle;pendingMapStyle=null
             val uri=data?.data
@@ -1283,6 +1290,8 @@ class MainActivity : Activity() {
         mapPanel.pause(); runtime.observers.remove(observer); runtime.setVisible(false); window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); super.onStop()
     }
     override fun onDestroy() {
+        trainingDownloadStop?.set(true);trainingRepositoryInstance?.close()
+
         dailyHrvPrompt?.close();dailyHrvPrompt=null
         closeSensorSetupPrompt()
         if(mapBackRegistered) onBackInvokedDispatcher.unregisterOnBackInvokedCallback(mapBack)
@@ -1896,8 +1905,62 @@ class MainActivity : Activity() {
         })
         screen.show(); return screen
     }
+    private var trainingRepositoryInstance:TrainingRepository?=null
+    private fun trainingRepository()=trainingRepositoryInstance ?: TrainingRepository(applicationContext).also { trainingRepositoryInstance=it }
+    private var trainingManager:TrainingManagerView?=null
+    private var trainingDownloadStop:java.util.concurrent.atomic.AtomicBoolean?=null
+    private fun showTraining()=showTraining(null)
+    private fun showTraining(initial:List<TrainingWorkout>?) {
+        lateinit var content:TrainingManagerView
+        content=TrainingManagerView(settingsContext,settingsThemes,{ runtime.riderProfiles.read() },::trainingImportChoice) { ids ->
+            dialog(fullscreen=false).setTitle(R.string.route_action_delete).setMessage(getString(R.string.training_delete_message,ids.size))
+                .setNegativeButton(R.string.route_cancel,null).setPositiveButton(R.string.route_action_delete) { _,_ ->
+                    trainingRepository().delete(ids) { result -> if(!isDestroyed && trainingManager===content) result.fold(content::render) { content.message(getString(R.string.training_failed)) } }
+                }.show()
+        }
+        trainingManager=content
+        val screen=dataDialog(R.string.training_title,content)
+        screen.window?.decorView?.findViewWithTag<View>("dialog_back")?.setOnClickListener { if(content.selecting) content.clearSelection() else screen.dismiss() }
+        val back=android.window.OnBackInvokedCallback { if(content.selecting) content.clearSelection() else screen.dismiss() }
+        screen.window!!.onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,back)
+        dialogs.onDismiss(screen) { screen.window?.onBackInvokedDispatcher?.unregisterOnBackInvokedCallback(back);routePopup?.dismiss();if(trainingManager===content) trainingManager=null }
+        if(initial!=null) content.render(initial) else {
+            content.message(getString(R.string.training_loading))
+            trainingRepository().read { result -> if(!isDestroyed && trainingManager===content) result.fold(content::render) { content.message(getString(R.string.training_load_failed)) } }
+        }
+    }
+    private fun trainingImportChoice(anchor:View) {
+        val actions=TrainingImportAction.entries
+        routeDropdown(anchor,actions.map { getString(it.title) },actions.map { it.icon },actions.map { it.viewTag }) { performTrainingImport(actions[it]) }
+    }
+    private fun performTrainingImport(action:TrainingImportAction) { when(action) {
+        TrainingImportAction.FILE->try {
+            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"),21)
+        } catch(_:android.content.ActivityNotFoundException) { BicycleFeedback.show(this,R.string.backup_picker_error) }
+        TrainingImportAction.INTERVALS->{
+            if(trainingDownloadStop!=null) return
+            val stop=java.util.concurrent.atomic.AtomicBoolean();trainingDownloadStop=stop
+            val progress=dialog(fullscreen=false).setTitle(R.string.training_import_intervals).setMessage(R.string.training_download)
+                .setNegativeButton(R.string.route_cancel) { _,_ -> stop.set(true) }.create()
+            progress.setOnCancelListener { stop.set(true) };progress.show()
+            trainingRepository().download(stop::get,{ index,total -> if(progress.isShowing) progress.setMessage(getString(R.string.training_progress,index+1,total)) }) { result ->
+                progress.dismiss();trainingDownloadStop=null
+                if(!isDestroyed && !stop.get()) result.fold({ rows -> trainingImportFinished(rows) },{ trainingImportFailure(it,cloud=true) })
+            }
+        }
+    } }
+    private fun trainingImportFinished(rows:List<TrainingWorkout>) {
+        val content=trainingManager
+        if(content!=null && content.isShown) content.render(rows) else showTraining(rows)
+        backupMessage(getString(R.string.training_imported))
+    }
+    private fun trainingImportFailure(error:Throwable,cloud:Boolean=false) {
+        val problem=(error as? IntervalsFailure)?.problem ?: (error as? TrainingImportFailure)?.problem
+        val message=getString(if(problem==R.string.intervals_upload_failed) R.string.training_cloud_failed else problem ?: if(cloud) R.string.training_cloud_failed else R.string.training_failed)
+        trainingManager?.message(message);backupMessage(message);BicycleFeedback.show(this,message,long=true)
+    }
     private fun dataSettings(focusRoutes:Boolean=false) {
-        val content = DataSettingsView(settingsContext,settingsThemes,importSelected=::performRouteImport,canImport=::routeImportEnabled) { action -> when(action) {
+        val content = DataSettingsView(settingsContext,settingsThemes,importSelected=::performRouteImport,canImport=::routeImportEnabled,trainingSelected=::performTrainingImport) { action -> when(action) {
             DataAction.HRV_IMPORT -> try {
                 startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
                     .putExtra(Intent.EXTRA_MIME_TYPES,arrayOf("text/csv","text/comma-separated-values","application/csv","text/plain","application/octet-stream","application/vnd.ms-excel")),19)
@@ -1908,7 +1971,7 @@ class MainActivity : Activity() {
             DataAction.RIDE_RESTORE -> chooseBackupSource(R.string.ride_restore_title) { requestRideBackup(it,RideBackupAction.IMPORT) }
             DataAction.BACKUP -> Unit
             DataAction.RESTORE -> chooseBackupSource(R.string.data_restore,::requestSettingsRestore)
-            DataAction.IMPORT -> Unit // Legacy ID; individual entries use shared RouteImportAction.
+            DataAction.IMPORT -> Unit // Shared frame; entries use RouteImportAction.
             DataAction.RIDE_BACKUP -> Unit
             DataAction.LOCAL -> routeExportSettings(RouteExportPart.LOCAL)
             DataAction.CLOUD -> routeExportSettings(RouteExportPart.CLOUD)

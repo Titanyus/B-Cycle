@@ -1,0 +1,35 @@
+<resources>
+    <string name="training_footer_import">Import</string>
+    <string name="training_title">Training</string>
+    <string name="training_import_title">Trainings importieren</string>
+    <string name="training_import_intervals">Von Intervals.icu abrufen</string>
+    <string name="training_import_file">Datei importieren (.fit, .erg, .zwo)</string>
+    <string name="training_empty">Noch keine Trainings gespeichert. Über „Import“ kannst du Vorlagen von Intervals.icu oder aus einer Datei hinzufügen.</string>
+    <string name="training_loading">Trainings werden geladen …</string>
+    <string name="training_download">Trainingsbibliothek wird abgerufen …</string>
+    <string name="training_progress">Training %1$d von %2$d wird übernommen …</string>
+    <string name="training_imported">Trainings übernommen.</string>
+    <string name="training_failed">Training konnte nicht übernommen werden. Prüfe das Dateiformat und den Trainingsaufbau. Bestehende Trainings bleiben erhalten.</string>
+    <string name="training_load_failed">Die gespeicherten Trainings konnten nicht gelesen werden.</string>
+    <string name="training_cloud_invalid">Die Trainingsantwort von Intervals.icu konnte nicht verarbeitet werden.</string>
+    <string name="training_cloud_configure">Bitte zuerst Athleten-ID und API-Schlüssel für Intervals.icu unter Backup &amp; Cloud hinterlegen.</string>
+    <string name="training_delete_message">%1$d ausgewählte Trainings aus der Sammlung löschen?</string>
+    <string name="training_endurance">Ausdauer</string>
+    <string name="training_intervals">Intervalle</string>
+    <string name="training_threshold">Schwelle &amp; Sweet Spot</string>
+    <string name="training_recovery">Regeneration</string>
+    <string name="training_other">Weitere Trainings</string>
+    <string name="training_minutes">Dauer: %1$s min</string>
+    <string name="training_open_duration">Offene Dauer · Diagramm zeigt die Abschnittsfolge</string>
+    <string name="training_target_power">Leistungsziele</string>
+    <string name="training_target_hr">Pulsziele</string>
+    <string name="training_target_free">Weitere / freie Ziele</string>
+    <string name="training_chart_description">Trainingsabschnitte im zeitlichen Verlauf; Farben entsprechend den Zielzonen</string>
+    <plurals name="training_count"><item quantity="one">%d Training</item><item quantity="other">%d Trainings</item></plurals>
+    <plurals name="training_steps"><item quantity="one">%d Abschnitt</item><item quantity="other">%d Abschnitte</item></plurals>
+    <string name="training_format_unsupported">Bitte eine Trainingsdatei im Format .fit, .erg oder .zwo auswählen.</string>
+    <string name="training_fit_not_workout">Diese FIT-Datei enthält kein strukturiertes Training. Eine aufgezeichnete Fahrt ist keine Trainingsvorlage.</string>
+    <string name="training_structure_unsupported">Dieses Training verwendet einen noch nicht unterstützten Abschnitt oder eine bedingte Wiederholung. Es wurde nichts an der Sammlung geändert.</string>
+    <string name="training_cloud_failed">Die Trainingsbibliothek konnte nicht vollständig abgerufen werden. Bitte Verbindung und Zugang prüfen. Die vorhandene Sammlung bleibt erhalten.</string>
+    <string name="training_zones_missing">Für die Zonenfarben fehlen persönliche Referenzwerte.</string>
+</resources>
