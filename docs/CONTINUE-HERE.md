@@ -6,6 +6,8 @@ Alle Trainingsänderungen seit Build144 enthalten: native Intervals-Struktur erh
 
 Gezielte Tests, zentrale Quellenprüfungen, Actions-Build und Artefaktprüfung grün; kein Gesamtlauf oder lokale APK. Persönlicher erneuter Intervals-Abruf und Gerätevergleich offen. Noch nicht implementierte Vereinbarungen: Q+/Q/S/E/E+-Varianten, Kennzahlen stets aus gewählter Struktur; automatische Intervallerkennung aus gefahrenen Indoor-/Virtual-Ride-Daten in TODO.md mit Dreeve#2973/FIT-Insight-Quellen vorgemerkt. Keine weiteren offenen Umsetzungsaufträge.
 
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen: 4369907 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 7314fce2d8d7602a4a0969888e2c4139e010046d2f1ccb19320363e0ef071ebd ebenfalls identisch.
+
 # Aktueller Stand: APK0.8.99 / Build144 veröffentlicht
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.99-release-144.apk) · [Buildnachweis](build-144.md) · [Änderungen](release-0.8.99.md)
