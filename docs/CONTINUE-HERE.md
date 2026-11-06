@@ -1,10 +1,10 @@
 # Änderung nach Build142: kompakte Quellenangabe
 
-Nutzerbestätigt „© OpenStreetMap ⓘ“ auf Dashboard-/Streckenkarten, Tipp öffnet aktive vollständige Quellen/Links. Zentrale MapCredits-Sammlung aus Basiskarten und direkt registrierten MapVectorLayer.credit-Metadaten treibt auch Erweitert→Quellen; künftige Quellen dort registrieren, kein separates Attribution-Stringanhängen. Ausführliche Terrain-/Lizenzhinweise erhalten. [Umfang/Prüfung](map-credits.md). Noch keine neue APK beauftragt.
+Nutzerbestätigt „© OpenStreetMap ⓘ“ auf Dashboard-/Streckenkarten, Tipp öffnet aktive vollständige Quellen/Links. Zentrale MapCredits-Sammlung aus Basiskarten und direkt registrierten MapVectorLayer.credit-Metadaten treibt auch Erweitert→Quellen; künftige Quellen dort registrieren, kein separates Attribution-Stringanhängen. Ausführliche Terrain-/Lizenzhinweise erhalten. [Umfang/Prüfung](map-credits.md). Neue APK0.8.98 beauftragt; Veröffentlichung läuft.
 
 # Änderung nach Build142: Basiskarte in höchsten Zoomstufen
 
-Gemeldeten Ausfall bei Zoom20/21 reproduziert und korrigiert: Bright-Generator endete bei19, obwohl Kamera21 erlaubt. Generatorbereich jetzt aus MapZoom.maximum; echte native Zeichenregeln bis21,113Spritevarianten statt111. Original-Bright-JSON unverändert, generierte Dateien erneuert. Neue native Theme-Abdeckungsprüfung vor Fix bei20 fehlgeschlagen, danach sechs Flächen-/Linienklassen19..21 sowie bisherige Geometrieprüfung15..21 grün. Bright/Typografie/UI-Katalog/Diff grün. [Befund/Prüfung](vtm-maxzoom-and-road-labels.md). Noch nicht veröffentlicht; kein neuer APK-Auftrag. Gerätevergleich offen.
+Gemeldeten Ausfall bei Zoom20/21 reproduziert und korrigiert: Bright-Generator endete bei19, obwohl Kamera21 erlaubt. Generatorbereich jetzt aus MapZoom.maximum; echte native Zeichenregeln bis21,113Spritevarianten statt111. Original-Bright-JSON unverändert, generierte Dateien erneuert. Neue native Theme-Abdeckungsprüfung vor Fix bei20 fehlgeschlagen, danach sechs Flächen-/Linienklassen19..21 sowie bisherige Geometrieprüfung15..21 grün. Bright/Typografie/UI-Katalog/Diff grün. [Befund/Prüfung](vtm-maxzoom-and-road-labels.md). In Vorbereitung für beauftragte APK0.8.98. Gerätevergleich offen.
 
 # Aktueller Stand: APK0.8.97 / Build142 veröffentlicht
 
