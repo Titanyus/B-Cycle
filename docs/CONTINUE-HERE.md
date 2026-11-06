@@ -1,22 +1,10 @@
-# Aktueller Arbeitsstand nach Build144: Trainingsdetails und native Intervals-Rampen
+# Aktueller Stand: APK0.8.100 / Build145 veröffentlicht
 
-Training: reine Anzahlzeile unter Hauptheader entfernt, nur echte Status-/Leermeldungen behalten. Sortierung aktiv mit5 Streckenmanager-artigen Kacheln: Dauer/Belastung/Intensität/Abschnitte und Richtung. Nutzerbestätigte Gruppierung nach Sortierwert, global sortiert, unbekannte Werte zuletzt; Filter aus. Gruppenköpfe mit Anzahl und Label „Trainings“ in derselben Titel-/Zahlengeometrie wie Streckenmanager, natürlich/gepinnt identisch. Ausgang Dauer aufsteigend, Zustand für geöffnete Liste. Gezielter Nachweis `/workspace/.tools/training-sort-tests.log`.
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.100-release-145.apk) · [Buildnachweis](build-145.md) · [Änderungen](release-0.8.100.md)
 
-Dreeve #2973 und FIT-Insight-README kurz geprüft: automatische Intervallerkennung aus gefahrenen Indoor-/Virtual-Ride-Leistungsdaten in TODO.md vorgemerkt (Quellen verlinkt), noch nicht implementieren.
+Alle Trainingsänderungen seit Build144 enthalten: native Intervals-Struktur erhält Rampen, ganze Einzelantwort gespeichert, Details per Tipp/Mehrfachauswahl per Longpress; Volltondiagramme und Detailachsen. Automatische Leistungstags nach Maximalziel; vier berechnete Werte über Diagramm. Liste SECONDARY mit Trennern, fünf Sortierkacheln und numerischen Gruppen samt „Trainings“-Anzahl natürlich/gepinnt. Reine Gesamtanzahlzeile entfällt, Filter weiterhin aus. Frühere Vorlagen einmal erneut von Intervals abrufen. [Formeln/Grenzen](training-library.md).
 
-Vier Kennzahlen über dem Trainingsdiagramm in Liste und Details eingebaut: Dauer, Belastung (geschätzte TSS), Intensität (IF), Abschnitte. RouteListReading-Geometrie wie Streckenmanager; aus tatsächlicher Zielstruktur inklusive Rampen/Erholungen berechnet, keine Quell-Scores. Kontinuierliche30s-Normalisierung, fehlende Daten als Strich; begrenzter Struktur-/FTP-Cache. Gezielter Nachweis `/workspace/.tools/training-metrics-tests.log`. Textblock unter Diagrammen in Übersicht bleibt entfernt.
-
-Trainingsübersicht optisch wie Streckenliste: Einträge SECONDARY ohne Kachelrahmen, horizontale Standardtrenner, Auswahl TERTIARY. Gruppenköpfe mit oberer2dp-Linie auch im Glow/pinned, Details unverändert. Vorhandener gezielter Listen-/Pinned-/Auswahl-/Löschtest grün (`/workspace/.tools/training-list-style-tests.log`), Typografie/Katalog/Diff grün.
-
-Automatische Leistungstags ergänzt: genau ein Tag nach maximaler Zielintensität (Locker <70%FTP, Sweet Spot 88–<95%, Hart ≥95%; Zwischenbereich ohne Tag), Nutzergrenzen bestätigt. Rampen/Zielbereiche und Watt/FTP berücksichtigt, sichtbar auch für bestehende Trainings in Liste/Details; Originaltags erhalten. Gezielter Test: `/workspace/.tools/training-intensity-tests.log`.
-
-Detaildiagramm zusätzlich180dp mit runden Zeitmarken/exaktem Ende und tatsächlicher Watt-Skala, FTP-Prozent mit Fahrer-FTP; keine erfundenen Zeit-/Wattwerte bei fehlenden Referenzen. Kleine Listendiagramme unverändert. Gezielte Tests: `/workspace/.tools/training-chart-axes-tests.log`. Vereinbarte spätere Q+/Q/S/E/E+-Varianten in training-library.md festgehalten, noch nicht implementiert.
-
-Trainingsdiagramme zusätzlich auf Vollton-Zonenfarben ohne vertikalen Farbverlauf umgestellt, gemeinsam für Liste und Detailansicht; Rampen bleiben erhalten.
-
-Implementiert, gezielt geprüft, noch nicht als APK veröffentlicht: Intervals-Liste plus vollständiger Einzelabruf; native workout_doc-Schritte erhalten Rampenrichtung, feste Wiederholungen und Zielbereiche. FIT nur Fallback. Ganze Originalantwort gespeichert, dynamische Detailansicht mit allen Feldern und Abschnittsliste; Tippen öffnet Details, Longpress startet Auswahl. Alte Importe einmal erneut abrufen, stabile IDs aktualisieren vorhandene Vorlagen. [Umfang/Prüfung](training-library.md).
-
-TrainingDetailsTest + TrainingLibraryTest:10 Tests grün, Log `/workspace/.tools/training-original-data-final-tests.log`; Typografie/UI-Katalog/Diff grün. Kein neuer APK-Auftrag; letzter veröffentlichter Build bleibt144. Echter erneuter Abruf im Nutzerkonto/Gerätevergleich offen.
+Gezielte Tests, zentrale Quellenprüfungen, Actions-Build und Artefaktprüfung grün; kein Gesamtlauf oder lokale APK. Persönlicher erneuter Intervals-Abruf und Gerätevergleich offen. Noch nicht implementierte Vereinbarungen: Q+/Q/S/E/E+-Varianten, Kennzahlen stets aus gewählter Struktur; automatische Intervallerkennung aus gefahrenen Indoor-/Virtual-Ride-Daten in TODO.md mit Dreeve#2973/FIT-Insight-Quellen vorgemerkt. Keine weiteren offenen Umsetzungsaufträge.
 
 # Aktueller Stand: APK0.8.99 / Build144 veröffentlicht
 
