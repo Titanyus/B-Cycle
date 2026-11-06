@@ -50,4 +50,10 @@
     <string name="training_tag_hard">Hart</string>
     <string name="training_auto_tag">Automatischer Tag: %1$s</string>
     <string name="training_axis_ftp_missing">Für die Watt-Skala bitte die FTP im Fahrerprofil hinterlegen.</string>
+    <string name="training_metric_duration">Dauer</string>
+    <string name="training_metric_load">Belastung</string>
+    <string name="training_metric_intensity">Intensität</string>
+    <string name="training_metric_sections">Abschnitte</string>
+    <string name="training_metrics_description">Berechnete Trainingswerte. Belastung: geschätzter TSS-Wert. Intensität: normalisierte Zielleistung relativ zur FTP. Abschnitte: alle Belastungs-, Erholungs-, Aufwärm- und Ausrollabschnitte.</string>
+    <string name="training_metrics_explanation">Belastung und Intensität sind Schätzungen aus dem geplanten Leistungsverlauf mit 30-Sekunden-Glättung. Abschnitte zählen auch Aufwärmen, Erholung und Ausrollen. Bei offenen Abschnitten oder fehlenden Leistungszielen erscheint bei den betreffenden Werten ein Strich.</string>
 </resources>

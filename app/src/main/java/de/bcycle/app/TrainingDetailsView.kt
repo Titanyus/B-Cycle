@@ -16,6 +16,7 @@ internal class TrainingDetailsView(context:Context,themes:ThemeManager,val worko
         BicycleForm.section(this,themes,R.string.training_details_overview)
         addView(TrainingWorkoutView(context,themes,detailAxes=true).apply { bind(workout,profile,false) })
         fun text(value:String)=BicycleComponents.text(context,themes,value).apply { setTextIsSelectable(true) }
+        addView(text(context.getString(R.string.training_metrics_explanation)))
         addView(text(context.getString(R.string.training_details_structure,workout.structureSource.ifBlank { workout.format })))
         if(workout.description.isNotEmpty()) addView(text(workout.description))
         BicycleForm.section(this,themes,R.string.training_details_steps)

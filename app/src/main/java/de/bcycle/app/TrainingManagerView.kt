@@ -120,6 +120,18 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
     private val name=BicycleComponents.text(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_name" }
     private val description=BicycleComponents.description(context,themes,"").apply { maxLines=3;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_description" }
     private val intensity=BicycleComponents.description(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;tag="training_intensity" }
+    private val duration=RouteListReading(context,themes,R.string.training_metric_duration,R.string.analysis_minutes)
+    private val load=RouteListReading(context,themes,R.string.training_metric_load)
+    private val effort=RouteListReading(context,themes,R.string.training_metric_intensity)
+    private val sections=RouteListReading(context,themes,R.string.training_metric_sections)
+    private val metrics=LinearLayout(context).apply {
+        orientation=HORIZONTAL;isBaselineAligned=false;tag="training_metrics"
+        listOf(duration,load,effort,sections).forEachIndexed { index,reading ->
+            reading.number.setHorizontallyScrolling(false);reading.unit.setHorizontallyScrolling(false)
+            if(index>0) addView(BicycleComponents.divider(context,themes).apply { alpha=BicycleDesign.dividerAlpha },LayoutParams(BicycleDesign.linePixels(context),-1))
+            addView(reading,LayoutParams(0,-2,1f))
+        }
+    }
     private val chart=TrainingWorkoutChart(context,themes,detailAxes)
     private val details=BicycleComponents.description(context,themes,"").apply { tag="training_details" }
     private var selected=false
@@ -128,6 +140,7 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
         addView(name);addView(description,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(intensity,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(metrics,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(chart,LayoutParams(-1,BicycleDesign.dp(context,if(detailAxes) 180 else 96)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         if(detailAxes) addView(details,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         BicycleComponents.bindTheme(this,themes,::paintState)
@@ -146,6 +159,14 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         val automatic=TrainingIntensity.of(workout,profile)
         intensity.text=automatic?.let { context.getString(R.string.training_auto_tag,context.getString(it.title)) }.orEmpty()
         intensity.visibility=if(automatic==null) GONE else VISIBLE
+        val values=TrainingMetrics.of(workout,profile)
+        val number=java.text.NumberFormat.getNumberInstance().apply { maximumFractionDigits=1 }
+        duration.bind(values.seconds?.let { number.format(it/60) },workout.id,"training_duration")
+        if(values.seconds==null) duration.number.text="–"
+        load.bind(values.load?.let { String.format(Locale.getDefault(),"%.0f",it) } ?: "–",workout.id,"training_load")
+        effort.bind(values.intensity?.let { String.format(Locale.getDefault(),"%.2f",it) } ?: "–",workout.id,"training_intensity")
+        sections.bind(values.sections.toString(),workout.id,"training_sections")
+        metrics.contentDescription=context.getString(R.string.training_metrics_description)
         chart.show(workout,profile)
         val duration=workout.seconds?.let { context.getString(R.string.training_minutes,String.format(Locale.getDefault(),"%.1f",it/60)) } ?: context.getString(R.string.training_open_duration)
         val types=workout.steps.flatMap { it.targets }.map { it.unit }.toSet()

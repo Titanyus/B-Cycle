@@ -1,6 +1,6 @@
 # Aktueller Arbeitsstand nach Build144: Trainingsdetails und native Intervals-Rampen
 
-Textblock unter dem Diagramm in der Trainingsübersicht entfernt, Detailansicht unverändert; Dauer/Abschnittszahl weiterhin für Accessibility verfügbar. Spätere Darstellung der Werte oberhalb im Streckenstil vorgemerkt, noch nicht umgesetzt.
+Vier Kennzahlen über dem Trainingsdiagramm in Liste und Details eingebaut: Dauer, Belastung (geschätzte TSS), Intensität (IF), Abschnitte. RouteListReading-Geometrie wie Streckenmanager; aus tatsächlicher Zielstruktur inklusive Rampen/Erholungen berechnet, keine Quell-Scores. Kontinuierliche30s-Normalisierung, fehlende Daten als Strich; begrenzter Struktur-/FTP-Cache. Gezielter Nachweis `/workspace/.tools/training-metrics-tests.log`. Textblock unter Diagrammen in Übersicht bleibt entfernt.
 
 Trainingsübersicht optisch wie Streckenliste: Einträge SECONDARY ohne Kachelrahmen, horizontale Standardtrenner, Auswahl TERTIARY. Gruppenköpfe mit oberer2dp-Linie auch im Glow/pinned, Details unverändert. Vorhandener gezielter Listen-/Pinned-/Auswahl-/Löschtest grün (`/workspace/.tools/training-list-style-tests.log`), Typografie/Katalog/Diff grün.
 
