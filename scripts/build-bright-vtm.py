@@ -147,7 +147,10 @@ def compile_style(style):
             if layout.get('visibility') == 'none': continue
             instructions = []
             if kind == 'fill':
-                attrs = {'id': lid, 'fill': color(paint.get('fill-color','#000'),paint.get('fill-opacity',1))}
+                attrs = {'id': lid, 'fill': color(paint.get('fill-color','#000'),1 if lid == 'aeroway-area' else paint.get('fill-opacity',1))}
+                if lid == 'aeroway-area':
+                    attrs.update(stroke='#ff999999', stroke_width='0.35')
+                    entry['notes']=['Airport polygons retain their actual footprint with opaque source fill and only a thin edge; no broad centreline casing.']
                 if paint.get('fill-pattern'):
                     name = paint['fill-pattern'];needed.add((name,1,0,1))
                     attrs.update(src='assets:'+sprite_path(name),fill='#ffffffff')
@@ -161,10 +164,17 @@ def compile_style(style):
                 # VTM extrudes a half-width; fixed avoids its latitude/zoom-dependent line multiplier.
                 attrs={'id':lid,'stroke':color(paint.get('line-color','#000'),paint.get('line-opacity',1)),
                        'width':num(width/2),'fix':'true','cap':layout.get('line-cap','butt')}
+                if layer.get('source-layer') == 'aeroway':
+                    # A centreline is not a measured runway footprint. Keep only a narrow,
+                    # flat-ended marker; real polygons carry the actual area and dimensions.
+                    limit = (1.25 if lid.endswith('-casing') else 0.75) if 'runway' in lid else (0.75 if lid.endswith('-casing') else 0.5)
+                    attrs.update(width=num(min(width/2, limit)), cap='butt')
                 if 'line-dasharray' in paint:
                     attrs['dasharray']=','.join(num(v*width) for v in paint['line-dasharray'])
                 instructions.append(elem('line', **attrs))
                 entry['notes']=['Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.']
+                if layer.get('source-layer') == 'aeroway':
+                    entry['notes'].append('Narrow flat-ended centreline marker only on LineString geometry; actual runway/taxiway polygons never receive broad line strokes.')
                 if 'line-dasharray' in paint: entry['notes'].append('Source relative dash lengths converted to pixels; native texture quantizes subpixel dashes.')
             else:
                 text=layout.get('text-field')

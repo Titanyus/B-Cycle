@@ -2,7 +2,7 @@
 
 Eigener Einstellungsmenüpunkt Training, Sammlung ohne Kalender/Wochentag, nach Trainingsart gruppierte native Liste mit Sticky-Köpfen und Karten aus Titel/Kurzbeschreibung/Zonen-Stufendiagramm/Grunddaten. Footer Import, deaktivierte Filter/Sortierung, bestätigtes Auswahllöschen. Intervals-Bibliothek/Dateikonverter mit bestehenden Zugangsdaten und WLAN; Workout-FIT/ERG/ZWO. Serieller Worker und atomare globale Sammlung, idempotente Updates, Cloud-Abbruch ohne Teilübernahme. Zwei Importframes unter Backup & Restore, zentrale gemeinsame Aktionslisten. Acht gezielte Fälle und zusätzliche Sticky-/Menüprüfung grün; Details/Formatgrenzen/Prüfnachweise in [training-library.md](training-library.md). Keine APK beauftragt.
 
-Zusatzauftrag in Arbeit: übergroße Startbahnen/Pillenform bei Weißenhorn, Gundelfingen, MUC, alle Zoomstufen. Öffentliche MVT-Originalgeometrien geladen und auf aeroway reduziert; noch keine Flughafen-Stiländerung committed.
+Zusatzauftrag abgeschlossen: Startbahnen an Original-MVTs Weißenhorn/Gundelfingen/MUC geprüft. Echte Polygone ohne breite Linienumrandung, schmale Mittellinien mit geraden Enden; keine Koordinatenänderung. Weißenhorn liefert in dieser Quelle nur eine runway-Mittellinie, kein runway-Polygon (auch auf Quellzoom14). Generatoradaption und native Geometriefilter, Original-JSON unverändert. AirfieldGeometryTest13..21 sowie beide Overzoom-Regressionen grün; zentrale Prüfungen grün. [Details](map-airfield-footprints.md). Noch nicht veröffentlicht, Gerätevergleich offen.
 
 # Aktueller Stand: APK0.8.98 / Build143 veröffentlicht
 

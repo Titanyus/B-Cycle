@@ -30,7 +30,12 @@ internal class VtmBrightTheme private constructor(
             if(!layer.has("source-layer") || layer.getString("id") in setOf("building-top","water-offset")) continue
             val key=layer.getString("source-layer")
             val predicate=BrightFilter.compile(layer.optJSONArray("filter"))
-            val item=Layer(Tag("bcycle:bright:"+layer.getString("id"),"1"),predicate)
+            // MapLibre's broad aeroway casing also matches polygons. A footprint must
+            // remain an area instead of being inflated by a runway-width perimeter stroke.
+            val linesOnly=key=="aeroway" && layer.getString("type")=="line"
+            val item=Layer(Tag("bcycle:bright:"+layer.getString("id"),"1")) { type,tags ->
+                (!linesOnly || type==GeometryType.LINE) && predicate(type,tags)
+            }
             put(key,get(key).orEmpty()+item)
         }
     }

@@ -766,91 +766,28 @@
         </m>
     </m>
     <m k="bcycle:bright:aeroway-taxiway-casing" v="1">
-        <m zoom-min="13" zoom-max="13">
-            <line id="aeroway-taxiway-casing" stroke="#ff999999" width="1.2406" fix="true" cap="round" />
-        </m>
-        <m zoom-min="14" zoom-max="14">
-            <line id="aeroway-taxiway-casing" stroke="#ff999999" width="1.6015" fix="true" cap="round" />
-        </m>
-        <m zoom-min="15" zoom-max="15">
-            <line id="aeroway-taxiway-casing" stroke="#ff999999" width="2.14286" fix="true" cap="round" />
-        </m>
-        <m zoom-min="16" zoom-max="16">
-            <line id="aeroway-taxiway-casing" stroke="#ff999999" width="2.95489" fix="true" cap="round" />
-        </m>
-        <m zoom-min="17" zoom-max="17">
-            <line id="aeroway-taxiway-casing" stroke="#ff999999" width="4.17293" fix="true" cap="round" />
-        </m>
-        <m zoom-min="18" zoom-max="21">
-            <line id="aeroway-taxiway-casing" stroke="#ff999999" width="6" fix="true" cap="round" />
+        <m zoom-min="13" zoom-max="21">
+            <line id="aeroway-taxiway-casing" stroke="#ff999999" width="0.75" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:aeroway-runway-casing" v="1">
-        <m zoom-min="13" zoom-max="13">
-            <line id="aeroway-runway-casing" stroke="#ff999999" width="3.70301" fix="true" cap="round" />
-        </m>
-        <m zoom-min="14" zoom-max="14">
-            <line id="aeroway-runway-casing" stroke="#ff999999" width="5.50752" fix="true" cap="round" />
-        </m>
-        <m zoom-min="15" zoom-max="15">
-            <line id="aeroway-runway-casing" stroke="#ff999999" width="8.21429" fix="true" cap="round" />
-        </m>
-        <m zoom-min="16" zoom-max="16">
-            <line id="aeroway-runway-casing" stroke="#ff999999" width="12.27444" fix="true" cap="round" />
-        </m>
-        <m zoom-min="17" zoom-max="17">
-            <line id="aeroway-runway-casing" stroke="#ff999999" width="18.36466" fix="true" cap="round" />
-        </m>
-        <m zoom-min="18" zoom-max="21">
-            <line id="aeroway-runway-casing" stroke="#ff999999" width="27.5" fix="true" cap="round" />
+        <m zoom-min="13" zoom-max="21">
+            <line id="aeroway-runway-casing" stroke="#ff999999" width="1.25" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:aeroway-area" v="1">
-        <m zoom-min="5" zoom-max="14">
-            <area id="aeroway-area" fill="#00ffffff" />
-        </m>
-        <m zoom-min="15" zoom-max="21">
-            <area id="aeroway-area" fill="#ffffffff" />
+        <m zoom-min="5" zoom-max="21">
+            <area id="aeroway-area" fill="#ffffffff" stroke="#ff999999" stroke-width="0.35" />
         </m>
     </m>
     <m k="bcycle:bright:aeroway-taxiway" v="1">
-        <m zoom-min="13" zoom-max="13">
-            <line id="aeroway-taxiway" stroke="#ffffffff" width="0.71654" fix="true" cap="round" />
-        </m>
-        <m zoom-min="14" zoom-max="14">
-            <line id="aeroway-taxiway" stroke="#ffffffff" width="1.04135" fix="true" cap="round" />
-        </m>
-        <m zoom-min="15" zoom-max="15">
-            <line id="aeroway-taxiway" stroke="#ffffffff" width="1.52857" fix="true" cap="round" />
-        </m>
-        <m zoom-min="16" zoom-max="16">
-            <line id="aeroway-taxiway" stroke="#ffffffff" width="2.2594" fix="true" cap="round" />
-        </m>
-        <m zoom-min="17" zoom-max="17">
-            <line id="aeroway-taxiway" stroke="#ffffffff" width="3.35564" fix="true" cap="round" />
-        </m>
-        <m zoom-min="18" zoom-max="21">
-            <line id="aeroway-taxiway" stroke="#ffffffff" width="5" fix="true" cap="round" />
+        <m zoom-min="13" zoom-max="21">
+            <line id="aeroway-taxiway" stroke="#ffffffff" width="0.5" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:aeroway-runway" v="1">
-        <m zoom-min="13" zoom-max="13">
-            <line id="aeroway-runway" stroke="#ffffffff" width="3.10677" fix="true" cap="round" />
-        </m>
-        <m zoom-min="14" zoom-max="14">
-            <line id="aeroway-runway" stroke="#ffffffff" width="4.76692" fix="true" cap="round" />
-        </m>
-        <m zoom-min="15" zoom-max="15">
-            <line id="aeroway-runway" stroke="#ffffffff" width="7.25714" fix="true" cap="round" />
-        </m>
-        <m zoom-min="16" zoom-max="16">
-            <line id="aeroway-runway" stroke="#ffffffff" width="10.99248" fix="true" cap="round" />
-        </m>
-        <m zoom-min="17" zoom-max="17">
-            <line id="aeroway-runway" stroke="#ffffffff" width="16.59549" fix="true" cap="round" />
-        </m>
-        <m zoom-min="18" zoom-max="21">
-            <line id="aeroway-runway" stroke="#ffffffff" width="25" fix="true" cap="round" />
+        <m zoom-min="13" zoom-max="21">
+            <line id="aeroway-runway" stroke="#ffffffff" width="0.75" fix="true" cap="butt" />
         </m>
     </m>
     <m k="bcycle:bright:road_area_pier" v="1">

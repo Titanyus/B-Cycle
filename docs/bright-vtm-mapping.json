@@ -505,7 +505,8 @@
       "source-layer": "aeroway",
       "status": "mapped",
       "notes": [
-        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Narrow flat-ended centreline marker only on LineString geometry; actual runway/taxiway polygons never receive broad line strokes."
       ],
       "approximated_properties": [
         "line-join",
@@ -519,7 +520,8 @@
       "source-layer": "aeroway",
       "status": "mapped",
       "notes": [
-        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Narrow flat-ended centreline marker only on LineString geometry; actual runway/taxiway polygons never receive broad line strokes."
       ],
       "approximated_properties": [
         "line-join",
@@ -532,7 +534,9 @@
       "type": "fill",
       "source-layer": "aeroway",
       "status": "mapped",
-      "notes": [],
+      "notes": [
+        "Airport polygons retain their actual footprint with opaque source fill and only a thin edge; no broad centreline casing."
+      ],
       "approximated_properties": [],
       "omitted_properties": []
     },
@@ -542,7 +546,8 @@
       "source-layer": "aeroway",
       "status": "mapped",
       "notes": [
-        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Narrow flat-ended centreline marker only on LineString geometry; actual runway/taxiway polygons never receive broad line strokes."
       ],
       "approximated_properties": [
         "line-join",
@@ -556,7 +561,8 @@
       "source-layer": "aeroway",
       "status": "mapped",
       "notes": [
-        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ."
+        "Integer-zoom sampling; VTM line joins/rasterization and minimum width differ.",
+        "Narrow flat-ended centreline marker only on LineString geometry; actual runway/taxiway polygons never receive broad line strokes."
       ],
       "approximated_properties": [
         "line-join",
