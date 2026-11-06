@@ -1,5 +1,7 @@
 # Aktueller Arbeitsstand nach Build144: Trainingsdetails und native Intervals-Rampen
 
+Textblock unter dem Diagramm in der Trainingsübersicht entfernt, Detailansicht unverändert; Dauer/Abschnittszahl weiterhin für Accessibility verfügbar. Spätere Darstellung der Werte oberhalb im Streckenstil vorgemerkt, noch nicht umgesetzt.
+
 Trainingsübersicht optisch wie Streckenliste: Einträge SECONDARY ohne Kachelrahmen, horizontale Standardtrenner, Auswahl TERTIARY. Gruppenköpfe mit oberer2dp-Linie auch im Glow/pinned, Details unverändert. Vorhandener gezielter Listen-/Pinned-/Auswahl-/Löschtest grün (`/workspace/.tools/training-list-style-tests.log`), Typografie/Katalog/Diff grün.
 
 Automatische Leistungstags ergänzt: genau ein Tag nach maximaler Zielintensität (Locker <70%FTP, Sweet Spot 88–<95%, Hart ≥95%; Zwischenbereich ohne Tag), Nutzergrenzen bestätigt. Rampen/Zielbereiche und Watt/FTP berücksichtigt, sichtbar auch für bestehende Trainings in Liste/Details; Originaltags erhalten. Gezielter Test: `/workspace/.tools/training-intensity-tests.log`.

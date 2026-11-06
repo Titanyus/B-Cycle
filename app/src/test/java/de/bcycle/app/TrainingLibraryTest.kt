@@ -166,7 +166,7 @@ class TrainingLibraryTest {
             assertTrue(manager.findViewWithTag<View>("training_delete").isEnabled);manager.findViewWithTag<View>("training_delete").performClick();assertEquals(setOf("a".repeat(64)),deleted)
             val image=Bitmap.createBitmap(360,780,Bitmap.Config.ARGB_8888);manager.draw(Canvas(image))
             java.io.File("build/reports/ui/training-library.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
-            assertTrue(nodes(manager).filterIsInstance<TextView>().any { it.text.toString().contains("60,0") || it.text.toString().contains("60.0") })
+            assertTrue(nodes(manager).filterIsInstance<TrainingWorkoutView>().any { it.contentDescription.toString().contains("60,0") || it.contentDescription.toString().contains("60.0") })
             manager.clearSelection()
             manager.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(400,View.MeasureSpec.EXACTLY));manager.layout(0,0,360,400)
             list.setSelectionFromTop(1,-20)
