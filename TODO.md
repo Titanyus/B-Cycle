@@ -25,3 +25,11 @@ Vorgemerkt am 23.10.2026, noch kein Umsetzungsauftrag. Protokolle gemeinsam unte
 - [x] intervals.icu-Sammelupload in Daten & Speicher: vorhandene Fahrten prüfen und nur fehlende übertragen, einschließlich bestätigter Dreeve-Importe mit Messdaten. Details docs/intervals-bulk-upload.md.
 - [x] Dreeve-Haken bei als Gefahren importierten FIT-Originalen: vorhandene Kontoverknüpfung auch ohne eigenen Uploadbeleg anzeigen.
 - [x] SRAM-Suche: spätere Namensantworten und priorisierte Kandidaten berücksichtigen, Probe-Timeout verhindert Auswahl nicht. Hardwaretest am Apex bleibt offen.
+
+## Automatische Intervallerkennung aus gefahrenen Trainings
+
+Vorgemerkt am06.11.2026 auf Nutzerwunsch, noch kein Umsetzungsauftrag. Inspiration: [Dreeve #2973 – Automatic workout & interval detection](https://github.com/dreeveapp/dreeve/issues/2973), [FIT Insight – Beispielprojekt](https://github.com/effectpears/fit-training-insight) und [Demo](https://effectpears.github.io/fit-training-insight/).
+
+- [ ] Absolvierte Indoor-/Virtual-Ride-Fahrten anhand ihrer aufgezeichneten Leistung automatisch in Aufwärmen, Belastungen, Erholung, wiederholte Intervallsätze und Ausrollen gliedern. Beispiele:60/60,40/20, längere Schwellenblöcke, mehrstufige Wiederholungen. Kompakte Satzübersicht plus Markierungen im Leistungsdiagramm; bei Fahrten ohne GPS könnte die Intervallübersicht den Kartenbereich ersetzen. Oberfläche vor Umsetzung festlegen.
+- [ ] Vorhandene Workout-/Lap-Marker bevorzugen, sonst erklärbare Mustererkennung aus geglätteter Analysekurve (Schwelle/Hysterese, Mindestdauern, Kontrast und Satzgruppierung). Gleichmäßige Fahrten/Rampen nicht als künstliche Intervalle erkennen; unsichere Ergebnisse kenntlich machen. Anfangs auf Indoor/Virtual Ride begrenzen.
+- [ ] Rohdaten und FIT-Aufzeichnung unverändert lassen: Glättung nur zur Erkennung/Darstellung, Kennzahlen der erkannten Abschnitte aus Originaldaten. Sensorlücken nicht als echte0-W-Erholung werten. Lokale Analyse auf bestehendem Analyseworker/cache, kein zweiter Aufnahmeweg. Beispielprojekt insbesondere bezüglich Lap-Priorisierung, mehrstufiger Sätze und Darstellung prüfen; Lizenz vor eventueller Codeübernahme klären. Abgrenzung: nachträgliche Erkennung gefahrener Intervalle, unabhängig von unseren importierten Trainingsvorlagen und deren Q+/Q/S/E/E+-Varianten.
