@@ -1,10 +1,10 @@
-# Änderung nach Build142: kompakte Quellenangabe
+# Aktueller Stand: APK0.8.98 / Build143 veröffentlicht
 
-Nutzerbestätigt „© OpenStreetMap ⓘ“ auf Dashboard-/Streckenkarten, Tipp öffnet aktive vollständige Quellen/Links. Zentrale MapCredits-Sammlung aus Basiskarten und direkt registrierten MapVectorLayer.credit-Metadaten treibt auch Erweitert→Quellen; künftige Quellen dort registrieren, kein separates Attribution-Stringanhängen. Ausführliche Terrain-/Lizenzhinweise erhalten. [Umfang/Prüfung](map-credits.md). Neue APK0.8.98 beauftragt; Veröffentlichung läuft.
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.98-release-143.apk) · [Buildnachweis](build-143.md) · [Änderungen](release-0.8.98.md)
 
-# Änderung nach Build142: Basiskarte in höchsten Zoomstufen
+Basiskarten-Ausfall bei20/21 korrigiert: Generator folgt MapZoom.maximum21,113Spritevarianten, Original-JSON unverändert. Kompakter Quellenhinweis „© OpenStreetMap ⓘ“ auf Dashboard-/Streckenkarten mit aktiven verlinkten Angaben; MapCredits/MapVectorLayer.credit speist auch Erweitert→Quellen und künftige Ebenen. Gezielt geprüft, zentrale Quellenprüfungen und Actions-Build erfolgreich. Kein Gesamtlauf, optischer Gerätevergleich offen. Kein offener Implementierungsauftrag.
 
-Gemeldeten Ausfall bei Zoom20/21 reproduziert und korrigiert: Bright-Generator endete bei19, obwohl Kamera21 erlaubt. Generatorbereich jetzt aus MapZoom.maximum; echte native Zeichenregeln bis21,113Spritevarianten statt111. Original-Bright-JSON unverändert, generierte Dateien erneuert. Neue native Theme-Abdeckungsprüfung vor Fix bei20 fehlgeschlagen, danach sechs Flächen-/Linienklassen19..21 sowie bisherige Geometrieprüfung15..21 grün. Bright/Typografie/UI-Katalog/Diff grün. [Befund/Prüfung](vtm-maxzoom-and-road-labels.md). In Vorbereitung für beauftragte APK0.8.98. Gerätevergleich offen.
+Nächster gewünschter Schwerpunkt bleibt strukturierter Trainingsabruf/Trainingsmenü/eigene Dashboards; Oberfläche und Ablauf noch nicht im Detail vereinbart, nicht in dieser APK implementiert.
 
 # Aktueller Stand: APK0.8.97 / Build142 veröffentlicht
 
