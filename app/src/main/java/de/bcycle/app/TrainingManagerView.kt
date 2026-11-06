@@ -113,11 +113,11 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
     }
 }
 
-internal class TrainingWorkoutView(context:Context,private val themes:ThemeManager):LinearLayout(context) {
+internal class TrainingWorkoutView(context:Context,private val themes:ThemeManager,private val detailAxes:Boolean=false):LinearLayout(context) {
     private val name=BicycleComponents.text(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_name" }
     private val description=BicycleComponents.description(context,themes,"").apply { maxLines=3;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_description" }
     private val intensity=BicycleComponents.description(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;tag="training_intensity" }
-    private val chart=TrainingWorkoutChart(context)
+    private val chart=TrainingWorkoutChart(context,themes,detailAxes)
     private val details=BicycleComponents.description(context,themes,"").apply { tag="training_details" }
     private var selected=false
     init {
@@ -125,7 +125,7 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
         addView(name);addView(description,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(intensity,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        addView(chart,LayoutParams(-1,BicycleDesign.dp(context,96)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(chart,LayoutParams(-1,BicycleDesign.dp(context,if(detailAxes) 180 else 96)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(details,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         BicycleComponents.bindTheme(this,themes) { BicycleSelectionCard.apply(this,it,selected) }
         descendantFocusability=ViewGroup.FOCUS_BLOCK_DESCENDANTS
@@ -147,13 +147,16 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         details.text=listOf(duration,context.resources.getQuantityString(R.plurals.training_steps,workout.steps.size,workout.steps.size),target,workout.sport,workout.source,workout.format.uppercase()).filter { it.isNotBlank() }.joinToString(" · ")
         if(workout.steps.any { step -> step.target?.let { it.unit in setOf(TrainingUnit.WATTS,TrainingUnit.HR_BPM,TrainingUnit.HR_MAX_PERCENT,TrainingUnit.HR_THRESHOLD_PERCENT,TrainingUnit.HR_RESERVE_PERCENT) && it.zone(profile)==null }==true })
             details.text=details.text.toString()+"\n"+context.getString(R.string.training_zones_missing)
+        if(detailAxes && profile.ftpW==null && TrainingUnit.FTP in types)
+            details.text=details.text.toString()+"\n"+context.getString(R.string.training_axis_ftp_missing)
         contentDescription=listOf(workout.name,intensity.text.toString(),details.text.toString()).filter { it.isNotBlank() }.joinToString(". ")
         isActivated=checked
     }
 }
-internal class TrainingWorkoutChart(context:Context):View(context) {
+internal class TrainingWorkoutChart(context:Context,private val themes:ThemeManager?=null,private val axes:Boolean=false):View(context) {
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val path=Path()
+    private val axisPaint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.bodyTypeface }
     private var workout:TrainingWorkout?=null
     private var profile=RiderProfile()
     fun show(value:TrainingWorkout,p:RiderProfile) { workout=value;profile=p;contentDescription=context.getString(R.string.training_chart_description);invalidate() }
@@ -166,19 +169,64 @@ internal class TrainingWorkoutChart(context:Context):View(context) {
             if(target==null) return .4
             return target.fraction(profile,end) ?: (if(target.ramp) { if(end) target.high else target.low } else (target.low+target.high)/2)/(maxima[target.unit] ?: 1.0)
         }
-        val peak=maxOf(1.5,training.steps.maxOf { maxOf(level(it.target),level(it.target,true)) })
-        var x=0f
+        val watts=if(axes) TrainingChartAxes.watts(training,profile) else null
+        val yStep=watts?.let { TrainingChartAxes.wattStep(it) }
+        val peak=if(watts!=null && yStep!=null) kotlin.math.ceil(watts.coerceAtLeast(yStep)/yStep)*yStep else maxOf(1.5,training.steps.maxOf { maxOf(level(it.target),level(it.target,true)) })
+        val density=resources.displayMetrics.density
+        axisPaint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity
+        val foreground=themes?.active?.tokens?.foreground ?: Color.WHITE
+        val left=if(yStep!=null) axisPaint.measureText("${peak.toInt()} W")+8*density else 0f
+        val right=width.toFloat()
+        val plotTop=if(axes) -axisPaint.fontMetrics.ascent+2*density else 0f
+        val bottom=if(axes) height-axisPaint.fontSpacing-8*density else height.toFloat()
+        if(right<=left || bottom<=plotTop) return
+        fun y(value:Double)=bottom-(value/peak).coerceIn(0.0,1.0).toFloat()*(bottom-plotTop)
+        var x=left
         for(step in training.steps) {
-            val next=x+((if(timed) step.seconds!! else 1.0)/total*width).toFloat()
+            val next=x+((if(timed) step.seconds!! else 1.0)/total*(right-left)).toFloat()
             val target=step.target
-            val start=level(target)
-            val end=if(target?.ramp==true) level(target,true) else start
-            val top=height*(1-(start/peak).coerceIn(.06,1.0)).toFloat()
-            val other=height*(1-(end/peak).coerceIn(.06,1.0)).toFloat()
+            fun power(end:Boolean):Double = target?.let { TrainingChartAxes.targetWatts(it,profile,end) } ?: 0.0
+            val start=if(watts!=null) power(false) else level(target)
+            val end=if(target?.ramp==true) { if(watts!=null) power(true) else level(target,true) } else start
+            val top=if(axes) y(start) else height*(1-(start/peak).coerceIn(.06,1.0)).toFloat()
+            val other=if(axes) y(end) else height*(1-(end/peak).coerceIn(.06,1.0)).toFloat()
             val color=target?.color(profile) ?: TrainingZoneColors.grey
             paint.color=color
-            path.reset();path.moveTo(x,top);path.lineTo(next,other);path.lineTo(next,height.toFloat());path.lineTo(x,height.toFloat());path.close();canvas.drawPath(path,paint)
+            path.reset();path.moveTo(x,top);path.lineTo(next,other);path.lineTo(next,bottom);path.lineTo(x,bottom);path.close();canvas.drawPath(path,paint)
             x=next
+        }
+        if(!axes) return
+        axisPaint.strokeWidth=density
+        if(yStep!=null) {
+            axisPaint.textAlign=Paint.Align.RIGHT
+            for(i in 0..kotlin.math.round(peak/yStep).toInt()) {
+                val value=i*yStep;val at=y(value)
+                axisPaint.color=(foreground and 0x00ffffff) or 0x30000000
+                canvas.drawLine(left,at,right,at,axisPaint)
+                axisPaint.color=foreground
+                canvas.drawText("${value.toInt()} W",left-8*density,at-(axisPaint.ascent()+axisPaint.descent())/2,axisPaint)
+            }
+        }
+        if(timed) {
+            val ticks=TrainingChartAxes.timeTicks(total,(right-left)/(72*density))
+            axisPaint.textAlign=Paint.Align.CENTER
+            var previousEnd=Float.NEGATIVE_INFINITY
+            val endLabel=trainingClock(total)
+            val endStart=right-axisPaint.measureText(endLabel)
+            for(tick in ticks) {
+                val at=left+(tick/total*(right-left)).toFloat()
+                val label=trainingClock(tick)
+                val labelWidth=axisPaint.measureText(label)
+                val half=minOf(labelWidth/2,(right-left)/2)
+                val textX=at.coerceIn(left+half,right-half)
+                val textStart=textX-labelWidth/2
+                if(tick!=total && tick!=0.0 && (textStart<previousEnd+8*density || textX+labelWidth/2>endStart-8*density)) continue
+                axisPaint.color=(foreground and 0x00ffffff) or 0x30000000
+                canvas.drawLine(at,plotTop,at,bottom,axisPaint)
+                axisPaint.color=foreground
+                canvas.drawText(label,textX,height.toFloat()-axisPaint.descent(),axisPaint)
+                previousEnd=textX+labelWidth/2
+            }
         }
     }
 }

@@ -53,3 +53,15 @@ Nutzerbestätigte Grenzen: genau ein automatisch abgeleiteter Tag anhand der hö
 Anzeige in Übersicht und Detailkarte, auch für bestehende Importe ohne erneuten Abruf. Ableitung aus normalisierten Leistungszielen beim Binden, Watt mit aktueller Fahrer-FTP; originale Quelltags und Gruppierung bleiben erhalten, keine Datenmigration/Remoteänderung. Ohne Leistungsziele, bei Watt ohne FTP oder reinen Zonenzielen mit ungenauer Prozentgrenze kein erfundener Tag. Trainings ausschließlich nach Puls werden nicht als Leistungsintensität eingeordnet.
 
 TrainingIntensityTest prüft exakte Grenzwerte, unklassifizierten Zwischenbereich, Rampen/Zielbereiche, harte Spitzen trotz Erholung, Wattumrechnung und fehlende Referenzen. Gezielter Nachweis `/workspace/.tools/training-intensity-tests.log`; zentrale Typografie/Katalog/Diff-Prüfungen.
+
+## Detaildiagramm mit Zeit-/Wattachsen
+
+Nur die Detailkarte verwendet das größere180dp-Diagramm mit Achsen; Listenkarten bleiben96dp ohne Skalen. X zeigt bei vollständig zeitdefiniertem Training runde gleichmäßig verteilte Fahrzeitmarken plus exaktem Anfang/Ende, Abstände nach Dauer/Breite mit Kollisionsprüfung. Offene/Distanzabschnitte bekommen keine erfundene Fahrzeitachse.
+
+Y zeigt tatsächliche Watt, von0 mit runden50/100/200/500…-Schritten nach maximaler Leistung; auch Rampen-Enden bestimmen die Skala. FTP-Prozentziele werden mit Fahrer-FTP umgerechnet, Wattziele direkt; gemischte Watt-/FTP-Ziele teilen eine physikalisch gemeinsame Skala. Normale Zielbereiche bleiben auf ihrem Mittelwert flach, Rampen zeigen den tatsächlichen Verlauf. Keine falschen Wattangaben für Puls-/Zonenziele oder FTP-Ziele ohne Referenz; bei fehlender FTP kompakter Hinweis. Volltonfarben erhalten.
+
+Gezielte Tests TrainingChartAxesTest + TrainingDetailsTest: Watt-/FTP-Mischung, Rampenrichtung, exakte/runde Zeitmarken, fehlende Referenzen, native Diagrammpixel und bisheriger Detailablauf. Log `/workspace/.tools/training-chart-axes-tests.log`.
+
+## Vereinbarte spätere Varianten
+
+Basistraining mit eindeutigem wiederholtem Hauptblock: Varianten Q+, Q, S, E, E+ entsprechen minus2/minus1/Standard/plus1/plus2 Wiederholungen. Aufwärmen/Ausrollen erhalten; Dauer und sämtliche weiteren berechenbaren Kennzahlen ausschließlich aus tatsächlich gewählter Struktur. Orientierung Quick/Extended wie polarized.cc; noch keine Variantenfunktion implementiert. Wiederholungsstruktur muss zusätzlich zur bisher expandierten Abschnittsliste erhalten werden.

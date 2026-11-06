@@ -49,4 +49,5 @@
     <string name="training_tag_sweet_spot">Sweet Spot</string>
     <string name="training_tag_hard">Hart</string>
     <string name="training_auto_tag">Automatischer Tag: %1$s</string>
+    <string name="training_axis_ftp_missing">Für die Watt-Skala bitte die FTP im Fahrerprofil hinterlegen.</string>
 </resources>
