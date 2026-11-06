@@ -14,3 +14,7 @@ Release ausschließlich aus GitHub Actions. CI-Prüfsumme, dauerhafte Signatur, 
 [Änderungen](release-0.8.98.md): Basiskarte in höchsten Zoomstufen wieder sichtbar und kompakte, direkt aufrufbare Quellenanzeige mit zentraler vollständiger Quellenliste.
 
 Gezielte Prüfungen: native Theme-Abdeckung für sechs Klassen19..21 und Geometrie15..21 (`bright-maxzoom-fix-tests.log`); Quellenanzeige bei120/200/600px, fünf aktive Quellen, Ebenenwechsel, vollständige Anbieter-/Quellenliste und bestehende Kartengeometrie (`compact-map-credits-tests.log`). Beide Umfänge erfolgreich; Typografie/UI-Katalog/Bright/Diff grün. Keine unnötigen Wiederholungsläufe und keine lokale APK. Optischer Gerätevergleich offen.
+
+## Direkter Downloadnachweis
+
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen: 4298351 Bytes, bytegenau identisch mit dem geprüften Actions-Artefakt; SHA-256 fd01c7837b133adfe24f22e4a67cc74f437654e80ee237000bf13aa8c55be46e ebenfalls identisch.

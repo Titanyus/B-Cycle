@@ -4,6 +4,8 @@
 
 Basiskarten-Ausfall bei20/21 korrigiert: Generator folgt MapZoom.maximum21,113Spritevarianten, Original-JSON unverändert. Kompakter Quellenhinweis „© OpenStreetMap ⓘ“ auf Dashboard-/Streckenkarten mit aktiven verlinkten Angaben; MapCredits/MapVectorLayer.credit speist auch Erweitert→Quellen und künftige Ebenen. Gezielt geprüft, zentrale Quellenprüfungen und Actions-Build erfolgreich. Kein Gesamtlauf, optischer Gerätevergleich offen. Kein offener Implementierungsauftrag.
 
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen: 4298351 Bytes, bytegenau identisch mit dem geprüften Actions-Artefakt; SHA-256 fd01c7837b133adfe24f22e4a67cc74f437654e80ee237000bf13aa8c55be46e ebenfalls identisch.
+
 Nächster gewünschter Schwerpunkt bleibt strukturierter Trainingsabruf/Trainingsmenü/eigene Dashboards; Oberfläche und Ablauf noch nicht im Detail vereinbart, nicht in dieser APK implementiert.
 
 # Aktueller Stand: APK0.8.97 / Build142 veröffentlicht
