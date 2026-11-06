@@ -1,5 +1,7 @@
 # Aktueller Arbeitsstand nach Build144: Trainingsdetails und native Intervals-Rampen
 
+Trainingsdiagramme zusätzlich auf Vollton-Zonenfarben ohne vertikalen Farbverlauf umgestellt, gemeinsam für Liste und Detailansicht; Rampen bleiben erhalten.
+
 Implementiert, gezielt geprüft, noch nicht als APK veröffentlicht: Intervals-Liste plus vollständiger Einzelabruf; native workout_doc-Schritte erhalten Rampenrichtung, feste Wiederholungen und Zielbereiche. FIT nur Fallback. Ganze Originalantwort gespeichert, dynamische Detailansicht mit allen Feldern und Abschnittsliste; Tippen öffnet Details, Longpress startet Auswahl. Alte Importe einmal erneut abrufen, stabile IDs aktualisieren vorhandene Vorlagen. [Umfang/Prüfung](training-library.md).
 
 TrainingDetailsTest + TrainingLibraryTest:10 Tests grün, Log `/workspace/.tools/training-original-data-final-tests.log`; Typografie/UI-Katalog/Diff grün. Kein neuer APK-Auftrag; letzter veröffentlichter Build bleibt144. Echter erneuter Abruf im Nutzerkonto/Gerätevergleich offen.

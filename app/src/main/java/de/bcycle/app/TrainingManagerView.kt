@@ -171,9 +171,9 @@ internal class TrainingWorkoutChart(context:Context):View(context) {
             val top=height*(1-(start/peak).coerceIn(.06,1.0)).toFloat()
             val other=height*(1-(end/peak).coerceIn(.06,1.0)).toFloat()
             val color=target?.color(profile) ?: TrainingZoneColors.grey
-            paint.shader=LinearGradient(0f,minOf(top,other),0f,height.toFloat(),color,(color and 0xffffff) or 0x28000000,Shader.TileMode.CLAMP)
+            paint.color=color
             path.reset();path.moveTo(x,top);path.lineTo(next,other);path.lineTo(next,height.toFloat());path.lineTo(x,height.toFloat());path.close();canvas.drawPath(path,paint)
-            paint.shader=null;x=next
+            x=next
         }
     }
 }
