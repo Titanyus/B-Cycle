@@ -1,8 +1,12 @@
-# Änderungen nach Build143: Trainingssammlung
+# Aktueller Stand: APK0.8.99 / Build144 veröffentlicht
 
-Eigener Einstellungsmenüpunkt Training, Sammlung ohne Kalender/Wochentag, nach Trainingsart gruppierte native Liste mit Sticky-Köpfen und Karten aus Titel/Kurzbeschreibung/Zonen-Stufendiagramm/Grunddaten. Footer Import, deaktivierte Filter/Sortierung, bestätigtes Auswahllöschen. Intervals-Bibliothek/Dateikonverter mit bestehenden Zugangsdaten und WLAN; Workout-FIT/ERG/ZWO. Serieller Worker und atomare globale Sammlung, idempotente Updates, Cloud-Abbruch ohne Teilübernahme. Zwei Importframes unter Backup & Restore, zentrale gemeinsame Aktionslisten. Acht gezielte Fälle und zusätzliche Sticky-/Menüprüfung grün; Details/Formatgrenzen/Prüfnachweise in [training-library.md](training-library.md). Neue APK0.8.99 beauftragt; Veröffentlichung läuft.
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.99-release-144.apk) · [Buildnachweis](build-144.md) · [Änderungen](release-0.8.99.md)
 
-Zusatzauftrag abgeschlossen: Startbahnen an Original-MVTs Weißenhorn/Gundelfingen/MUC geprüft. Echte Polygone ohne breite Linienumrandung, schmale Mittellinien mit geraden Enden; keine Koordinatenänderung. Weißenhorn liefert in dieser Quelle nur eine runway-Mittellinie, kein runway-Polygon (auch auf Quellzoom14). Generatoradaption und native Geometriefilter, Original-JSON unverändert. AirfieldGeometryTest13..21 sowie beide Overzoom-Regressionen grün; zentrale Prüfungen grün. [Details](map-airfield-footprints.md). Noch nicht veröffentlicht, Gerätevergleich offen.
+Trainingssammlung ohne Kalender/Live-Ausführung: eigene Einstellungsseite, Gruppen nach Trainingsart, native Karten mit Kurzbeschreibung/Zonendiagramm/Grunddaten und Sticky-Köpfen; Import-/Löschfooter, Sortierung/Filterung deaktiviert. Intervals-Bibliothek plus zustandsloser FIT-Konverter, vorhandene Konten/WLAN, lokale Workout-FIT/ERG/ZWO. Atomare globale Sammlung und idempotente Importe. Zwei gemeinsame Importframes unter Backup & Restore. [Details/Grenzen](training-library.md).
+
+Flugplatzkorrektur an Originaldaten geprüft: Polygone ohne breite Linienumrandung, schmale Mittellinien mit geraden Enden. Weißenhorn liefert in dieser Vektorquelle nur eine Mittellinie; keine Fläche/Bahnbreite erfinden. Generator und Laufzeitfilter abgestimmt, Original-Bright-JSON unverändert. [Befund/Prüfung](map-airfield-footprints.md).
+
+Gezielte Tests/zentrale Quellenprüfungen/Actions-Build und Artefaktprüfung erfolgreich; kein Gesamtlauf, keine lokale APK. Echter Intervals-Kontotest und optischer Gerätevergleich offen. Keine offenen Implementierungsaufträge.
 
 # Aktueller Stand: APK0.8.98 / Build143 veröffentlicht
 
