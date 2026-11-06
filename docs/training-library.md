@@ -45,3 +45,11 @@ Mögliche Originalfelder sind unter anderem ID, Name, Beschreibung, Sportart, In
 Bereits gespeicherte Vorlagen bleiben lesbar. Zum Nachladen der Originaldaten und zur Rampenkorrektur einmal erneut von Intervals importieren; derselbe Remote-Schlüssel aktualisiert den bestehenden Eintrag. Lokale Dateien haben keine Intervals-Originalfelder. Kein Kalenderabruf, Trainingsplayer oder neuer Export-/Backupumfang.
 
 Gezielt geprüft: TrainingDetailsTest und TrainingLibraryTest, zusammen10 Tests grün (`/workspace/.tools/training-original-data-final-tests.log`). MockWebServer prüft Liste→vollständiger Einzelabruf ohne FIT-Konvertierung für native Rampen; gespeicherte Auf-/Abwärtsrampen zusätzlich per Diagrammpixel geprüft. Normale Zielbereiche bleiben flach; Wiederholungen, HF-Einheiten, unbekannte verschachtelte Felder und Pagination sowie echter MainActivity-Tap→Details/Longpress→Löschen geprüft. FIT-Fallback weiterhin geprüft. Typografie/UI-Katalog/Diff grün. Screenshot `app/build/reports/ui/training-details.png`. Kein persönlicher Kontozugriff und kein neuer APK-Build.
+
+## Automatische Leistungstags nach Build144
+
+Nutzerbestätigte Grenzen: genau ein automatisch abgeleiteter Tag anhand der höchsten vorgegebenen Leistung über alle Abschnitte: unter70%FTP „Locker“, 88 bis unter95% „Sweet Spot“, ab95% „Hart“. Zwischen70 und88% kein solcher Tag. Keine zeitliche Mittelung: kurze Sprints/An-Aus-Intervalle bleiben „Hart“ trotz langer Pausen; Rampen und Zielbereiche berücksichtigen beide Enden.
+
+Anzeige in Übersicht und Detailkarte, auch für bestehende Importe ohne erneuten Abruf. Ableitung aus normalisierten Leistungszielen beim Binden, Watt mit aktueller Fahrer-FTP; originale Quelltags und Gruppierung bleiben erhalten, keine Datenmigration/Remoteänderung. Ohne Leistungsziele, bei Watt ohne FTP oder reinen Zonenzielen mit ungenauer Prozentgrenze kein erfundener Tag. Trainings ausschließlich nach Puls werden nicht als Leistungsintensität eingeordnet.
+
+TrainingIntensityTest prüft exakte Grenzwerte, unklassifizierten Zwischenbereich, Rampen/Zielbereiche, harte Spitzen trotz Erholung, Wattumrechnung und fehlende Referenzen. Gezielter Nachweis `/workspace/.tools/training-intensity-tests.log`; zentrale Typografie/Katalog/Diff-Prüfungen.

@@ -1,5 +1,7 @@
 # Aktueller Arbeitsstand nach Build144: Trainingsdetails und native Intervals-Rampen
 
+Automatische Leistungstags ergänzt: genau ein Tag nach maximaler Zielintensität (Locker <70%FTP, Sweet Spot 88–<95%, Hart ≥95%; Zwischenbereich ohne Tag), Nutzergrenzen bestätigt. Rampen/Zielbereiche und Watt/FTP berücksichtigt, sichtbar auch für bestehende Trainings in Liste/Details; Originaltags erhalten. Gezielter Test: `/workspace/.tools/training-intensity-tests.log`.
+
 Trainingsdiagramme zusätzlich auf Vollton-Zonenfarben ohne vertikalen Farbverlauf umgestellt, gemeinsam für Liste und Detailansicht; Rampen bleiben erhalten.
 
 Implementiert, gezielt geprüft, noch nicht als APK veröffentlicht: Intervals-Liste plus vollständiger Einzelabruf; native workout_doc-Schritte erhalten Rampenrichtung, feste Wiederholungen und Zielbereiche. FIT nur Fallback. Ganze Originalantwort gespeichert, dynamische Detailansicht mit allen Feldern und Abschnittsliste; Tippen öffnet Details, Longpress startet Auswahl. Alte Importe einmal erneut abrufen, stabile IDs aktualisieren vorhandene Vorlagen. [Umfang/Prüfung](training-library.md).

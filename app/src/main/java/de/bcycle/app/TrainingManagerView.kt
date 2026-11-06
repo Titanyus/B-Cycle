@@ -116,6 +116,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
 internal class TrainingWorkoutView(context:Context,private val themes:ThemeManager):LinearLayout(context) {
     private val name=BicycleComponents.text(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_name" }
     private val description=BicycleComponents.description(context,themes,"").apply { maxLines=3;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_description" }
+    private val intensity=BicycleComponents.description(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;tag="training_intensity" }
     private val chart=TrainingWorkoutChart(context)
     private val details=BicycleComponents.description(context,themes,"").apply { tag="training_details" }
     private var selected=false
@@ -123,6 +124,7 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         orientation=VERTICAL;tag="training_card"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
         addView(name);addView(description,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(intensity,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(chart,LayoutParams(-1,BicycleDesign.dp(context,96)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(details,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         BicycleComponents.bindTheme(this,themes) { BicycleSelectionCard.apply(this,it,selected) }
@@ -131,6 +133,9 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
     fun bind(workout:TrainingWorkout,profile:RiderProfile,checked:Boolean) {
         selected=checked;BicycleSelectionCard.apply(this,themes.active.tokens,checked)
         name.text=workout.name;description.text=workout.description;description.visibility=if(workout.description.isBlank()) GONE else VISIBLE
+        val automatic=TrainingIntensity.of(workout,profile)
+        intensity.text=automatic?.let { context.getString(R.string.training_auto_tag,context.getString(it.title)) }.orEmpty()
+        intensity.visibility=if(automatic==null) GONE else VISIBLE
         chart.show(workout,profile)
         val duration=workout.seconds?.let { context.getString(R.string.training_minutes,String.format(Locale.getDefault(),"%.1f",it/60)) } ?: context.getString(R.string.training_open_duration)
         val types=workout.steps.flatMap { it.targets }.map { it.unit }.toSet()
@@ -142,7 +147,7 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         details.text=listOf(duration,context.resources.getQuantityString(R.plurals.training_steps,workout.steps.size,workout.steps.size),target,workout.sport,workout.source,workout.format.uppercase()).filter { it.isNotBlank() }.joinToString(" · ")
         if(workout.steps.any { step -> step.target?.let { it.unit in setOf(TrainingUnit.WATTS,TrainingUnit.HR_BPM,TrainingUnit.HR_MAX_PERCENT,TrainingUnit.HR_THRESHOLD_PERCENT,TrainingUnit.HR_RESERVE_PERCENT) && it.zone(profile)==null }==true })
             details.text=details.text.toString()+"\n"+context.getString(R.string.training_zones_missing)
-        contentDescription=workout.name+". "+details.text
+        contentDescription=listOf(workout.name,intensity.text.toString(),details.text.toString()).filter { it.isNotBlank() }.joinToString(". ")
         isActivated=checked
     }
 }

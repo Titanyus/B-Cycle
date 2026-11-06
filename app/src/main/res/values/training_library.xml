@@ -45,4 +45,8 @@
     <string name="training_details_more_steps">Weitere Abschnitte anzeigen</string>
     <string name="training_details_more_fields">Weitere Einträge anzeigen</string>
     <string name="training_details_more_text">Weiteren Text anzeigen</string>
+    <string name="training_tag_easy">Locker</string>
+    <string name="training_tag_sweet_spot">Sweet Spot</string>
+    <string name="training_tag_hard">Hart</string>
+    <string name="training_auto_tag">Automatischer Tag: %1$s</string>
 </resources>
