@@ -14,3 +14,7 @@ Release ausschließlich aus GitHub Actions. CI-Prüfsumme, dauerhafte Signatur, 
 [Änderungen](release-0.8.99.md): eigene Trainingssammlung mit Intervals-Bibliotheksabruf und FIT/ERG/ZWO-Import, Karten/Stufendiagrammen/Sticky-Gruppen, Import-/Löschfooter und vorerst deaktivierter Sortierung/Filterung; gemeinsame Importframes; maßhaltige Startbahnflächen und schmale gerade Mittellinien.
 
 Gezielte lokale Prüfungen grün: Trainingsformate, API-Testserver ohne Kalender-/Bibliothekswrites, Atomizität/Dubletten/Löschen/Abbruch, reale Menü-/Datei-/Footer-Navigation, native Diagramme und Sticky-Klickschutz; aktualisierte Einstellungsnavigation; vier Originalflugplatz-MVTs mit nativen Paintregeln13..21, dazu beide Overzoom-Geometriefälle. Logs training-collection-final-tests.log (Trainingsfälle grün, alter Menüindex danach angepasst), training-sticky-and-menu-final-tests.log und airfield-footprints-final-tests.log. Zentrale Typografie/UI-Katalog/Bright/Diff grün. Kein Gesamtlauf und keine lokale APK. Echter Intervals-Kontotest und optischer Gerätevergleich offen. Formatgrenzen in [training-library.md](training-library.md).
+
+## Direkter Downloadnachweis
+
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen: 4334347 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 5ae2e91a60e6b7257938f941eaaeffb58b3aac055d7e8696b401ed4557542c84 ebenfalls identisch.

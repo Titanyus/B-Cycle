@@ -8,6 +8,8 @@ Flugplatzkorrektur an Originaldaten geprüft: Polygone ohne breite Linienumrandu
 
 Gezielte Tests/zentrale Quellenprüfungen/Actions-Build und Artefaktprüfung erfolgreich; kein Gesamtlauf, keine lokale APK. Echter Intervals-Kontotest und optischer Gerätevergleich offen. Keine offenen Implementierungsaufträge.
 
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen: 4334347 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 5ae2e91a60e6b7257938f941eaaeffb58b3aac055d7e8696b401ed4557542c84 ebenfalls identisch.
+
 # Aktueller Stand: APK0.8.98 / Build143 veröffentlicht
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.98-release-143.apk) · [Buildnachweis](build-143.md) · [Änderungen](release-0.8.98.md)
