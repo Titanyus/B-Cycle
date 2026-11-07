@@ -44,6 +44,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private var weatherTask:java.util.concurrent.Future<*>?=null
     private var weatherRevision=0L
     var correctElevation: (() -> Unit)? = null
+    var maximizeMap:((RouteAnalysis,RouteAnalysisMap)->Unit)?=null
     fun correctionStatus(busy:Boolean,error:String="") {
         findViewWithTag<TextView>("analysis_correction_status")?.let { BicycleFeedback.update(it,if(busy) context.getString(R.string.elevation_correcting) else error,hideWhenEmpty=true) }
     }
@@ -189,7 +190,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             }.apply { tag="analysis_map_frame" }
             preview = RouteAnalysisMap(context, route, false)
             frame.addView(preview, FrameLayout.LayoutParams(-1, -1))
-            frame.addView(BicycleComponents.icon(context, themes, BicycleIcon.Maximize, context.getString(R.string.analysis_map_fullscreen)) { fullMap(analysis) }.apply {
+            frame.addView(BicycleComponents.icon(context, themes, BicycleIcon.Maximize, context.getString(R.string.analysis_map_fullscreen)) { preview?.let { map -> maximizeMap?.invoke(analysis,map) ?: fullMap(analysis) } }.apply {
                 BicycleComponents.bindTheme(this,themes) { setColorFilter(android.graphics.Color.BLACK) }
             },
                 FrameLayout.LayoutParams(dp(BicycleDesign.touchSize), dp(BicycleDesign.touchSize), Gravity.TOP or Gravity.END))

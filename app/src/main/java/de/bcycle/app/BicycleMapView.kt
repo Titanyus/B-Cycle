@@ -22,6 +22,13 @@ class BicycleMapView(context:Context):org.oscim.android.MapView(configure(contex
             return context
         }
     }
+    override fun setRenderer(renderer:android.opengl.GLSurfaceView.Renderer) {
+        // Called by MapView's constructor before its renderer thread is created.
+        setEGLContextFactory(BicycleGlContexts.FACTORY)
+        preserveEGLContextOnPause=true
+        super.setRenderer(BicycleGlContexts.wrap(renderer,map()))
+    }
+    override fun queueEvent(action:Runnable) { super.queueEvent(BicycleGlContexts.task(map(),action)) }
     val camera:MapPosition get()=map().mapPosition
     val zoom:Double get()=camera.zoom
     data class Center(val latitude:Double,val longitude:Double)

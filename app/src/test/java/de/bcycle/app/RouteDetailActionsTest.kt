@@ -41,7 +41,7 @@ class RouteDetailActionsTest {
         try {
             val activity = controller.get(); val state = RideRuntime.get(activity).mapState
             views(activity.findViewById(android.R.id.content)).single { it.contentDescription == "Menü öffnen" }.performClick()
-            views(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag == "settings_ROUTES" }.performClick()
+            views(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag == "settings_ROUTE_TEMPLATES" }.performClick()
             val manager = ShadowAlertDialog.getLatestAlertDialog(); waitFor { !state.busy }; measure(manager.window!!.decorView)
             val list = manager.window!!.decorView.findViewWithTag<ListView>("route_list")
             val index = (0 until list.adapter.count).single { (list.adapter.getItem(it) as? ManagedRoute)?.id == id }
@@ -74,10 +74,14 @@ class RouteDetailActionsTest {
             assertTrue(detail.window!!.decorView.findViewWithTag<View>("detail_upload").isEnabled)
             assertNull(detail.window!!.decorView.findViewWithTag<View>("analysis_actions"))
             assertFalse(views(detail.window!!.decorView).filterIsInstance<TextView>().any { it.isShown && it.text.toString() == activity.getString(R.string.analysis_close) })
+            val preview=views(detail.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single()
+            val native=preview.map
             footer.getChildAt(0).performClick(); shadowOf(Looper.getMainLooper()).idle()
             val map = ShadowAlertDialog.getLatestAlertDialog(); measure(map.window!!.decorView)
-            assertTrue(views(map.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single().height > 600)
+            assertSame(preview,views(map.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single());assertSame(native,preview.map)
+            assertTrue(preview.height > 600)
             testBack(map); shadowOf(Looper.getMainLooper()).idle()
+            assertSame(preview,views(detail.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single());assertSame(native,preview.map)
             assertEquals(View.VISIBLE, detail.window!!.decorView.visibility)
             fun matches(button: BicycleFooterAction, kind: BicycleIcon): Boolean {
                 fun pixels(drawable: android.graphics.drawable.Drawable): android.graphics.Bitmap {

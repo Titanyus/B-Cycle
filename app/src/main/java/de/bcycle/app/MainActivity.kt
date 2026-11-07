@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.view.Gravity
 import android.view.WindowInsets
 import android.view.Window
@@ -1571,7 +1572,7 @@ class MainActivity : Activity() {
         }
     }
     private fun routeAnalysis(entry: ManagedRoute) {
-        val content = RouteAnalysisView(settingsContext, settingsThemes, entry.id, ::routeAnalysisMap)
+        val content = RouteAnalysisView(settingsContext, settingsThemes, entry.id) {}.apply { maximizeMap=::routeAnalysisMap }
         val footer = bicycleFooter(settingsContext, settingsThemes)
         content.footerVisibility.bindFooter(footer)
         val root = LinearLayout(settingsContext).apply {
@@ -1622,13 +1623,30 @@ class MainActivity : Activity() {
         }
         load()
     }
-    private fun routeAnalysisMap(analysis: RouteAnalysis) {
-        val route = analysis.route ?: return
-        val map = RouteAnalysisMap(settingsContext, route, true)
-        val screen = dialog().setTitle(analysis.entry.name).setView(map)
-            .create()
-        dialogs.onDismiss(screen, map::dispose)
-        screen.show()
+    private var detailMapOpening=false
+    private fun routeAnalysisMap(analysis: RouteAnalysis,map:RouteAnalysisMap) {
+        if(detailMapOpening) return
+        detailMapOpening=true
+        val parent=map.parent as? ViewGroup ?: run { detailMapOpening=false;return }
+        val camera=org.oscim.core.MapPosition().apply { copy(map.map.camera) }
+        map.map.captureImage { snapshot ->
+            if(isDestroyed || routeDetail?.id!=analysis.entry.id || routeDetail?.screen?.isShowing!=true || map.parent!==parent) {
+                detailMapOpening=false;snapshot?.recycle();return@captureImage
+            }
+            val position=parent.indexOfChild(map);val parameters=map.layoutParams
+            val placeholder=ImageView(settingsContext).apply { tag="analysis_map_placeholder";scaleType=ImageView.ScaleType.FIT_XY;setImageBitmap(snapshot) }
+            parent.removeView(map);parent.addView(placeholder,position,parameters)
+            map.interaction(true)
+            val screen=dialog().setTitle(analysis.entry.name).setView(map).create()
+            dialogs.onDismiss(screen) {
+                (map.parent as? ViewGroup)?.removeView(map)
+                map.interaction(false);map.map.setCamera(camera)
+                val index=parent.indexOfChild(placeholder)
+                if(index>=0) { parent.removeView(placeholder);parent.addView(map,index,parameters) }
+                placeholder.setImageDrawable(null);snapshot?.recycle();detailMapOpening=false
+            }
+            screen.show()
+        }
     }
     private fun canAssignProfiles()=!runtime.recording && !runtime.saving && !runtime.hrv.busy
     private fun refreshOrphanProfiles() {
@@ -2629,7 +2647,7 @@ class MainActivity : Activity() {
         if (runtime.mapState.busy) return
         val entry = detailEntry(detail) ?: return
         when (index) {
-            0 -> detail.analysis?.let(::routeAnalysisMap)
+            0 -> detail.analysis?.let { analysis -> detail.content.findViewWithTag<RouteAnalysisMap>("analysis_map")?.let { map -> routeAnalysisMap(analysis,map) } }
             1 -> renameRoute(entry)
             2 -> detail.content.correctElevation?.invoke()
             3 -> {

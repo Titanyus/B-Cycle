@@ -9,7 +9,7 @@ import org.robolectric.annotation.Implements;
 
 /** Give each Robolectric sandbox its own identical JNI image. All actual VTM camera code still runs. */
 @Implements(value = org.oscim.android.MapView.class, isInAndroidSdk = false)
-public class ShadowVtmMapView extends org.robolectric.shadows.ShadowGLSurfaceView {
+public class ShadowVtmMapView extends ShadowHeadlessGlSurfaceView {
     private static boolean loaded;
     @org.robolectric.annotation.RealObject private org.oscim.android.MapView realMap;
 

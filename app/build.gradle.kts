@@ -32,6 +32,8 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("com.squareup.okhttp3:okhttp-tls:4.12.0")
     testImplementation("junit:junit:4.13.2")
+    // Android javax EGL interfaces are delegated to the parent loader by Robolectric.
+    testImplementation("org.khronos:opengl-api:gl1.1-android-2.1_r1")
     // Independent wire-format encoder used only in JVM tests; absent from the APK.
     testImplementation("com.google.protobuf:protobuf-java:3.25.5")
     // Native Android layout/font verification only; absent from the APK.

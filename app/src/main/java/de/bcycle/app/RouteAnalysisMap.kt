@@ -7,7 +7,7 @@ import android.widget.FrameLayout
 import kotlin.math.abs
 
 /** Same VTM base source and route overlay as the dashboard, without live GPS or camera preferences. */
-internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, private val interactive: Boolean) : FrameLayout(context) {
+internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, private var interactive: Boolean) : FrameLayout(context) {
     private val prefs = context.getSharedPreferences("bike", 0)
     private val night = prefs.getBoolean("mapNight",false)
     private val source = MapProviderSettings.source(context,prefs.getString("mapSource",null))
@@ -17,21 +17,19 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
     private lateinit var overlay:RouteTrackLayer
     private var creditsPopup:MapCreditsPopup?=null
     private var pinchZoom:MapPinchZoom?=null
+    private var zoomControls:View?=null
     private var destroyed = false; private var fitted = false
     init {
         tag = "analysis_map"; contentDescription = context.getString(R.string.analysis_map)
         map=BicycleMapView(context).apply {
             setZoomLimits(MapZoom.maximum(source));setZoom(MapZoom.minimum.toDouble());pauseMap()
-            if(!interactive) setOnTouchListener { _,_ -> true }
         }
-        if(interactive) {
-            pinchZoom=MapPinchZoom(map) { MapZoom.maximum(source) }
-            map.setOnTouchListener { _,event -> pinchZoom!!.onTouch(event) }
-        }
+        pinchZoom=MapPinchZoom(map) { MapZoom.maximum(source) }
+        map.setOnTouchListener { _,event -> if(this.interactive) pinchZoom!!.onTouch(event) else true }
         layer=VtmBaseMap(context,map.map(),source,MapProviderSettings.read(context),prefs.getBoolean(VtmBaseMap.cyclewaysKey,true),map::queueEvent,MapVectorLayers.read(prefs),MapStyleOverrides.read(prefs))
         overlay=RouteTrackLayer(context,map).apply { update(route,emptyList(),GpsValues(),true,false,night,savedStyle=MapRouteStyles.read(prefs,MapLineKind.SAVED,night)) }
         addView(map,LayoutParams(-1,-1));addView(overlay,LayoutParams(-1,-1))
-        if (interactive) {
+        run {
             val buttons = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }
             val themes = ThemeManager(prefs)
             fun control(icon: BicycleIcon, description: Int, action: () -> Unit) {
@@ -40,6 +38,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             control(BicycleIcon.ZoomIn, R.string.analysis_zoom_in) { map.setZoom((map.zoom+.5).coerceAtMost(MapZoom.maximum(source).toDouble())) }
             control(BicycleIcon.ZoomOut, R.string.analysis_zoom_out) { map.setZoom((map.zoom-.5).coerceAtLeast(MapZoom.minimum.toDouble())) }
             control(BicycleIcon.Locate, R.string.analysis_fit_route) { fit(width, height) }
+            zoomControls=buttons;buttons.visibility=if(interactive) VISIBLE else GONE
             BicycleComponents.background(buttons, themes, ThemeRole.TERTIARY, BicycleDesign.inputRadius)
             addView(buttons, LayoutParams(-2, -2, android.view.Gravity.TOP or android.view.Gravity.END))
         }
@@ -47,6 +46,7 @@ internal class RouteAnalysisMap(context: Context, private val route: GpxRoute, p
             setOnClickListener { creditsPopup?.dismiss();creditsPopup=MapCreditsPopup(this,ThemeManager(prefs),MapCredits.active(source,MapVectorLayers.read(prefs))).also { it.show() } }
         },LayoutParams(-2,-2,android.view.Gravity.BOTTOM or android.view.Gravity.END))
     }
+    fun interaction(enabled:Boolean) { interactive=enabled;pinchZoom?.cancel();zoomControls?.visibility=if(enabled) VISIBLE else GONE }
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (!fitted && w > 0 && h > 0) { fit(w, h); fitted = true }

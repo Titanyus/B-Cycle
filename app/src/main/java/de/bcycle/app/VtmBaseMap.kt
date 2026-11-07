@@ -56,7 +56,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
     // VectorTileLayer.setTheme updates tile styles, but unlike Map.setTheme it does not
     // set the renderer background. VTM also resets that shared color in every new MapView.
     private fun applyBackground() {
-        (tiles as? VectorTileLayer)?.theme?.let { org.oscim.renderer.MapRenderer.setBackgroundColor(it.mapBackground) }
+        (tiles as? VectorTileLayer)?.theme?.let { BicycleGlContexts.background(map,it.mapBackground) }
     }
     /** Coalesce RGB edits without touching tile managers, workers, label placement or geometry buffers. */
     fun updateColors(previous:MapStyleOverrides,next:MapStyleOverrides):Boolean {
