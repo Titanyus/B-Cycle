@@ -56,7 +56,7 @@ class MapVectorLayersTest {
             } finally { noMinor.dispose() }
             enabled.dispose()
             val original=MapVectorLayers.read(prefs)
-            assertFalse(MapVectorLayer.POIS in original);assertFalse(MapVectorLayer.CONTOURS in original)
+            assertFalse(MapVectorLayer.HILLSHADE in original);assertFalse(MapVectorLayer.POIS in original);assertFalse(MapVectorLayer.CONTOURS in original)
             val edit=prefs.edit();MapVectorLayer.entries.forEach { edit.putBoolean(it.key,!it.defaultVisible) };edit.commit()
             val selected=MapVectorLayers.read(prefs)
             val store=BikeUiConfigurationStore(prefs);store.ensure(listOf(0,1));store.save(0)

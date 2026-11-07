@@ -1,0 +1,23 @@
+Schummerung: Esri World Hillshade
+
+Sources: Esri, Vantor, Airbus DS, USGS, NGA, NASA, CGIAR, N Robinson, NCEAS, NLS, OS, NMA, Geodatastyrelsen, Rijkswaterstaat, GSA, Geoland, FEMA, Intermap, and the GIS user community
+
+Quelle:
+https://www.arcgis.com/home/item.html?id=1b243539f4514b6ba35e7d995890db1d
+https://server.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer
+
+Lizenz: Esri Master License Agreement
+https://goto.arcgis.com/termsofuse/viewsummary
+https://goto.arcgis.com/termsofuse/viewtermsofuse
+
+Nutzung in B|CYCLE: optionale Online-Kartenebene für die Bildschirmdarstellung.
+Kein Kachelexport, kein Offline-Download, kein persistenter Kachelcache.
+Nur begrenzte temporäre Bild-/Texturkacheln für die Kartendarstellung.
+Die Darstellung reduziert die gelieferten Bildkacheln auf dezente Schattenanteile.
+Keine Geländehöhen werden daraus berechnet oder für Fahrten übernommen.
+
+Der Dienst ist nicht für den Offline-Kachelexport vorgesehen. Esri verweist dafür
+auf das getrennte Angebot „World Hillshade (for Export)“ für ArcGIS-Anwendungen.
+Dieser Hinweis ist keine pauschale Lizenz für Offline-Nutzung oder Weiterverteilung.
+
+Anbieterangaben geprüft am 07.11.2026.

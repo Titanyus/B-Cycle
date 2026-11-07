@@ -35,3 +35,5 @@ Auf der Dashboardkarte neben dem Auge ein Ebenenbutton mit Layers-Icon. Öffnet 
 [Editor und Zeichenreihenfolge](vtm-map-editor.md): Höhenlinien zwischen Gelände und Straßen/Gebäuden, native Objektfarben/Linienstile je Profil mit JSON-Dateiexport. Im Ebenen-Dropdown zusätzlich admin_level 7 getrennt schaltbar, initial an. Bisherige Gemeindegrenzen ab Ebene 8 bleiben unabhängig.
 
 Gemeinsame Quelle, Auflösungsentscheidung und Prüfung fertiger Schummerung: [Mapterhorn-Vereinheitlichung](mapterhorn-unified-dem.md).
+
+Seit07.11.2026 zusätzliche optionale [Online-Schummerung](vtm-hillshade.md), eigener Profilschalter und zentrale Quellenhinweise.

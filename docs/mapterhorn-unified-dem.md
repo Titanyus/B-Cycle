@@ -1,6 +1,6 @@
 # Gemeinsame Höhenquelle und Schummerung
 
-Auftrag07.11.2026: Höhenlinien und nachträgliche Fahrt-Höhenkorrektur auf Mapterhorn vereinheitlichen; geeignete Höhenkacheln und extern vorberechnete dezente Schummerung prüfen. Keine neue APK und noch kein Schummerungs-Layer beauftragt.
+Auftrag07.11.2026: Höhenlinien und nachträgliche Fahrt-Höhenkorrektur auf Mapterhorn vereinheitlichen; geeignete Höhenkacheln und extern vorberechnete dezente Schummerung prüfen. Keine neue APK beauftragt. Anschließender Auftrag zur Online-Schummerung inzwischen umgesetzt: [Schummerung](vtm-hillshade.md).
 
 ## Umsetzung
 
@@ -51,3 +51,5 @@ Ergebnis: Mapterhorn512/Zoom14 mit Rückfall12 für gemeinsame Höhenwerte verwe
 ## Prüfung
 
 Gezielte lokale Tests: `MapterhornElevationsTest`, `MapVectorLayersTest`, `MapPresentationSettingsTest`, `FitElevationCorrectionTest`. Echte verlustfreie512-WebP-Fixtures, Terrarium/Bilinear/Kachelränder, zusammenhängende Linien und identische Nachbarränder, wiederholter Cachezugriff, gemeinsame Nutzung durch beide Verbraucher, regionaler404→12-Rückfall, Fehler/Abbruch/Dispose, vorhandene FIT-Korrektur und Quellenanzeige. Kein Gesamtlauf, kein lokaler APK-Build. Reale Anbieter-Stichproben wie oben; Gerätetest der Linien über Zoomwechsel offen.
+
+Aktualisierung nach anschließendem Nutzerauftrag07.11.2026: Esri als optionale Online-Schummerung eingebaut, ohne Diskcache/Offline-Export; vollständige Quelle/Lizenz in Erweitert. Die obige Prüfung beschreibt die damalige Auswahl, aktuelle Implementierung unter [Schummerung](vtm-hillshade.md).

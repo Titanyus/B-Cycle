@@ -11,6 +11,7 @@ internal object MapCredits {
     val openFreeMap=MapCredit("OpenFreeMap","https://openfreemap.org/")
     val openMapTiles=MapCredit("© OpenMapTiles · CC BY 4.0","https://openmaptiles.org/","https://creativecommons.org/licenses/by/4.0/")
     val terrain=MapCredit("© Mapterhorn · Höhendaten","https://mapterhorn.com/attribution")
+    val hillshade=MapCredit("Esri World Hillshade · © Esri und Datenpartner","https://www.arcgis.com/home/item.html?id=1b243539f4514b6ba35e7d995890db1d","https://goto.arcgis.com/termsofuse/viewtermsofuse")
     val cyclingRoutes=MapCredit("Waymarked Trails · Radrouten aus OpenStreetMap","https://cycling.waymarkedtrails.org/")
     fun base(source:MapSource):List<MapCredit> = when(source) {
         MapSource.VECTOR->listOf(osm,openFreeMap,openMapTiles)

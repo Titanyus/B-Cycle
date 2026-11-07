@@ -22,7 +22,7 @@ class MapPresentationSettingsTest {
             val a=host.get();val runtime=RideRuntime.get(a)
             val panel=nodes(a.findViewById(android.R.id.content)).filterIsInstance<MapPanel>().single()
             runtime.preferences.edit().putString("mapSource",MapSource.VECTOR.name)
-                .putBoolean(MapVectorLayer.CONTOURS.key,true).putBoolean(MapVectorLayer.CYCLE_ROUTES.key,true).commit()
+                .putBoolean(MapVectorLayer.HILLSHADE.key,true).putBoolean(MapVectorLayer.CONTOURS.key,true).putBoolean(MapVectorLayer.CYCLE_ROUTES.key,true).commit()
             panel.refreshSettings()
             val credit=nodes(panel).filterIsInstance<MapCreditView>().single()
             assertEquals("© OpenStreetMap ⓘ",credit.text.toString())
@@ -37,14 +37,16 @@ class MapPresentationSettingsTest {
             assertTrue(popup.isShowing)
             val shown=nodes(popup.contentView).filterIsInstance<TextView>().joinToString("\n") { it.text.toString() }
             for(entry in MapCredits.active(MapSource.VECTOR,MapVectorLayers.read(runtime.preferences))) assertTrue(entry.url,shown.contains(entry.url))
-            assertEquals(5,MapCredits.active(MapSource.VECTOR,MapVectorLayers.read(runtime.preferences)).size)
+            assertEquals(6,MapCredits.active(MapSource.VECTOR,MapVectorLayers.read(runtime.preferences)).size)
             assertFalse(MapCredits.active(MapSource.OSM,MapVectorLayers.read(runtime.preferences)).contains(MapCredits.terrain))
+            assertFalse(MapCredits.active(MapSource.OSM,MapVectorLayers.read(runtime.preferences)).contains(MapCredits.hillshade))
             runtime.preferences.edit().putBoolean(MapVectorLayer.CONTOURS.key,false).commit();panel.refreshSettings()
             assertFalse(popup.isShowing)
             assertFalse(MapCredits.active(MapSource.VECTOR,MapVectorLayers.read(runtime.preferences)).contains(MapCredits.terrain))
             MainActivity::class.java.getDeclaredMethod("sourcesSettings").apply { isAccessible=true }.invoke(a)
             val all=nodes(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).filterIsInstance<TextView>().joinToString("\n") { it.text.toString() }
             for(entry in MapCredits.all()) assertTrue(entry.url,all.contains(entry.url))
+            assertTrue(all.contains("Esri Master License Agreement"));assertTrue(all.contains("Vantor"))
             for(provider in MapSource.entries) for(entry in MapCredits.base(provider)) assertTrue(entry in MapCredits.all())
             for(layer in MapVectorLayer.entries) layer.credit?.let { assertTrue(it in MapCredits.all()) }
         } finally { host.pause().stop().destroy() }

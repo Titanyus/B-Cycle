@@ -21,17 +21,19 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
     private val foreground:VtmStyledVectorLayer?
     private val cyclingRoutes:VtmCyclingRoutesLayer?
     private val contours:VtmContourLayer?
+    private val hillshade:VtmHillshadeLayer?
     private val labels:Layer?
     private val resumeTiles:()->Unit
     private val pauseTiles:()->Unit
     init {
         if(source==MapSource.VECTOR) {
-            val split=MapVectorLayer.CONTOURS in options
+            val split=MapVectorLayer.CONTOURS in options || MapVectorLayer.HILLSHADE in options
             val vector=VtmStyledVectorLayer(context,map,cycleways,options,style,if(split) VtmMapPass.GROUND else VtmMapPass.ALL)
             tiles=vector
             foreground=if(split) VtmStyledVectorLayer(context,map,cycleways,options,style,VtmMapPass.FOREGROUND) else null
             cyclingRoutes=if(MapVectorLayer.CYCLE_ROUTES in options) VtmCyclingRoutesLayer(context,map,style) else null
-            contours=if(split) VtmContourLayer(context,map,style) else null
+            hillshade=if(MapVectorLayer.HILLSHADE in options) VtmHillshadeLayer(map) else null
+            contours=if(MapVectorLayer.CONTOURS in options) VtmContourLayer(context,map,style) else null
             labels=BCycleLabelLayer(map,foreground ?: vector,LabelTileLoaderHook(),source.maximumZoom)
             resumeTiles=vector::resumeTiles;pauseTiles=vector::pauseTiles
         } else {
@@ -40,17 +42,19 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
             foreground=null
             cyclingRoutes=null
             contours=null
+            hillshade=null
             labels=null
             resumeTiles=raster::resume;pauseTiles=raster::pause
         }
         pause()
         map.layers().add(1,tiles)
         applyBackground()
-        contours?.let { map.layers().add(2,it) }
-        foreground?.let { map.layers().add(3,it) }
-        val overlayIndex=if(contours==null) 2 else 4
-        cyclingRoutes?.let { map.layers().add(overlayIndex,it) }
-        labels?.let { map.layers().add(overlayIndex+if(cyclingRoutes==null) 0 else 1,it) }
+        var index=2
+        hillshade?.let { map.layers().add(index++,it) }
+        contours?.let { map.layers().add(index++,it) }
+        foreground?.let { map.layers().add(index++,it) }
+        cyclingRoutes?.let { map.layers().add(index++,it) }
+        labels?.let { map.layers().add(index,it) }
         map.clearMap()
     }
     // VectorTileLayer.setTheme updates tile styles, but unlike Map.setTheme it does not
@@ -81,8 +85,8 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
         })
         return true
     }
-    fun resume() { applyBackground();tiles.isEnabled=true;labels?.isEnabled=true;resumeTiles();contours?.resume();cyclingRoutes?.resume();foreground?.resumeTiles();foreground?.isEnabled=true;map.updateMap(true) }
-    fun pause() { tiles.isEnabled=false;labels?.isEnabled=false;pauseTiles();contours?.pause();cyclingRoutes?.pause();foreground?.pauseTiles();foreground?.isEnabled=false }
+    fun resume() { applyBackground();tiles.isEnabled=true;labels?.isEnabled=true;resumeTiles();hillshade?.resume();contours?.resume();cyclingRoutes?.resume();foreground?.resumeTiles();foreground?.isEnabled=true;map.updateMap(true) }
+    fun pause() { tiles.isEnabled=false;labels?.isEnabled=false;pauseTiles();hillshade?.pause();contours?.pause();cyclingRoutes?.pause();foreground?.pauseTiles();foreground?.isEnabled=false }
     fun onDetach() {
         if(detached) return
         detached=true
@@ -94,6 +98,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
         }
         foreground?.let { map.layers().remove(it);it.onDetach() }
         contours?.let { map.layers().remove(it);it.onDetach() }
+        hillshade?.let { map.layers().remove(it);it.onDetach() }
         cyclingRoutes?.let { map.layers().remove(it);it.onDetach() }
         map.layers().remove(tiles);tiles.onDetach()
     }
@@ -121,7 +126,7 @@ internal class VtmCycleTheme(private val cycleways:Boolean,private val style:Map
     }
 }
 
-/** A second pass exists only while contours are enabled; decoded ground is never painted over them. */
+/** A second pass exists only while contours or hillshade are enabled; decoded ground is never painted over them. */
 internal class VtmStyledVectorLayer(context:Context,map:Map,cycleways:Boolean,options:MapVectorLayers,
     style:MapStyleOverrides,internal val pass:VtmMapPass):VectorTileLayer(map,VtmTileHttp.vector(context,sharePasses=pass!=VtmMapPass.ALL)) {
     override fun getNumLoaders()=1
