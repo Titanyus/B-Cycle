@@ -1,8 +1,10 @@
-# Arbeitsstand nach Build145: Fahrtfeedback und Detailkarten-Vollbild
+# Aktueller Stand: APK0.8.101 / Build146 veröffentlicht
 
-Implementiert,21 gezielte Tests grün, noch nicht als APK veröffentlicht: Fahrtname als umbenennbarer Zusammenfassungstitel, Statistik ohne Icons, RPE0–10 plus autospeichernde vierzeilige Notiz; Detailkopf mit RPE rechts/Notiz vor Wetter und Notizfooter. HRV-Frage ausdrücklich gestriger Gesamteindruck, Vortagssummen und eigener Tages-RPE getrennt. Lokale Metadaten, Datei-/Backupkopien und kontogebundene Cloudänderungen: Intervals natives icu_rpe; Strava/Dreeve Notiz und RPE-Text in Beschreibung unter Erhalt fremder Inhalte. [Umfang/Grenzen](ride-feedback.md).
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.101-release-146.apk) · [Buildnachweis](build-146.md) · [Änderungen](release-0.8.101.md)
 
-Kartenfehler: Vorschau→Vollbild verwendet jetzt dieselbe Detailkarte; keine dritte MapView. VTM-weit geteilte IDs erfordern gemeinsame EGL-Share-Group/GL-State-Abgrenzung. Gezielte Adapter-/UI-Prüfung ohne Geräte-GPU; optischer Gerätevergleich offen. [Befund](vtm-detail-fullscreen-contexts.md). Testlog `/workspace/.tools/ride-feedback-map-tests.log`; Typografie/UI-Katalog/Diff grün; keine neue APK beauftragt, zuletzt veröffentlicht145.
+Fahrtfeedback enthalten: Zusammenfassung mit umbenennbarem Fahrtnamen, Statistik ohne Icons, eigener Fahrt-RPE0–10 und vierzeilige autospeichernde Notiz in normaler Schrift. Detailkopf rechts RPE/Meaning, Notiz vor Wetter, Footer „Notiz“ für Inline-Edit. HRV-Vortagssummen und eigener Gesamteindruck separat, keine Übernahme von Fahrt-RPE. Dateien/Streckensicherung enthalten Feedback; alte lokale Exporte ohne URI einmal neu exportieren. Intervals eigenes RPE-Feld, Strava/Dreeve Beschreibung mit markiertem RPE-Text, vorhandene Beschreibungen erhalten. [Umfang/Grenzen](ride-feedback.md).
+
+Kartenkorrektur enthalten: vorhandene Detailkarte für Vollbild wiederverwenden, keine dritte MapView. Gemeinsame EGL-Share-Group/GL-State-Abgrenzung/GPU-Reihenfolge für VTM-weit geteilte Puffer-/Shader-IDs. [Befund](vtm-detail-fullscreen-contexts.md). 21 gezielte Tests und zentrale Quellenprüfungen grün, Actions-Build/Artefaktprüfung erfolgreich. Kein Gesamtlauf oder lokale APK. Optischer Geräte-GPU-Test des Kartenwechsels und persönliche Cloud-Kontoprüfung offen. Keine weiteren offenen Umsetzungsaufträge; Trainingsvarianten und spätere Intervallerkennung weiterhin nur vorgemerkt.
 
 # Aktueller Stand: APK0.8.100 / Build145 veröffentlicht
 
