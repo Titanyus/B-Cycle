@@ -58,6 +58,8 @@ class MapterhornElevationsTest {
             assertTrue(server.takeRequest().path!!.startsWith("/14/"));assertTrue(server.takeRequest().path!!.startsWith("/12/"))
             server.enqueue(MockResponse().setResponseCode(503))
             MapterhornElevations(java.nio.file.Files.createTempDirectory("dem-fail").toFile(),endpoint=server.url("").toString().trimEnd('/')).use { provider -> assertThrows(IOException::class.java) { provider.height(48.2,10.3) } }
+            server.enqueue(MockResponse().setBody("not a height image"))
+            MapterhornElevations(java.nio.file.Files.createTempDirectory("dem-invalid").toFile(),endpoint=server.url("").toString().trimEnd('/')).use { provider -> assertThrows(IOException::class.java) { provider.height(48.2,10.3) } }
             val before=server.requestCount
             MapterhornElevations(java.nio.file.Files.createTempDirectory("dem-cancel").toFile(),cancelled={true},endpoint=server.url("").toString().trimEnd('/')).use { provider -> assertThrows(IOException::class.java) { provider.height(48.2,10.3) } }
             assertEquals(before,server.requestCount)

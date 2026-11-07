@@ -10,7 +10,7 @@ internal object MapCredits {
     val osm=MapCredit("© OpenStreetMap-Mitwirkende · ODbL","https://www.openstreetmap.org/copyright")
     val openFreeMap=MapCredit("OpenFreeMap","https://openfreemap.org/")
     val openMapTiles=MapCredit("© OpenMapTiles · CC BY 4.0","https://openmaptiles.org/","https://creativecommons.org/licenses/by/4.0/")
-    val terrain=MapCredit("Mapzen / AWS Terrain Tiles","https://registry.opendata.aws/terrain-tiles/")
+    val terrain=MapCredit("© Mapterhorn · Höhendaten","https://mapterhorn.com/attribution")
     val cyclingRoutes=MapCredit("Waymarked Trails · Radrouten aus OpenStreetMap","https://cycling.waymarkedtrails.org/")
     fun base(source:MapSource):List<MapCredit> = when(source) {
         MapSource.VECTOR->listOf(osm,openFreeMap,openMapTiles)

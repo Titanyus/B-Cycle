@@ -759,7 +759,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_layer_local_boundaries">Gemeinde- und Ortsteilgrenzen</string>
     <string name="map_layer_contours">Höhenlinien</string>
     <string name="map_layer_contours_info">Höhenlinien ab Zoom 10 aus zusätzlichen Online-Höhendaten. Je nach Zoom 10–100 m Abstand. Die ersten Kacheln können etwas länger laden.</string>
-    <string name="map_terrain_credit">Höhendaten: Mapzen / AWS Terrain Tiles · Quellen und Lizenzen</string>
+    <string name="map_terrain_credit">Höhendaten: © Mapterhorn · Quellen und Lizenzen</string>
     <string name="intervals_fitness_read_failed">Fitnessdaten konnten nicht von intervals.icu abgerufen werden.</string>
     <string name="intervals_fitness_title">Fitness · intervals.icu</string>
     <string name="intervals_fitness_three_months">3 Monate</string>

@@ -70,8 +70,7 @@ können auf Brücken oder in Tunneln von der Fahrhöhe abweichen. Gleiche Quelle
 GPX-Studio garantiert ohne gleiche Verarbeitung keine identische Höhenmetersumme.
 Mapterhorn-Code BSD-3; Höhendaten haben unterschiedliche offene Quelllizenzen,
 siehe https://mapterhorn.com/attribution . Keine API-Key-Angabe am dokumentierten
-öffentlichen Z/X/Y-Endpunkt. Direkter Anbieterzugriff ist in dieser Entwicklungsumgebung per Proxy-Domainfreigabe
-blockiert; ein echter Dienstabruf konnte hier nicht geprüft werden.
+öffentlichen Z/X/Y-Endpunkt. Aktualisierung07.11.2026: echte Mapterhorn-Kacheln auf Zoom12/14 aus Bayern erfolgreich abgerufen und als512-Pixel-WebP geprüft; Details unter [gemeinsame Höhenquelle](mapterhorn-unified-dem.md).
 
 ## Prüfung
 
@@ -130,5 +129,6 @@ SettingsBackupTest und SettingsDesignMigrationTest. Geprüft: WebP-/Terrarium-De
 Kachelränder, Cache, 404-Fallback, Fehler/Abbruch, unverändertes Original, korrigierte
 Höhen/Summen, Garmin-Validator/CRC, erhaltene Rohfelder und Developer Fields,
 Wiedereinlesen, aktive Version, entwertete Erfolgsstatus und Upload der neuen Datei.
-Release-Build erfolgreich; realer Anbieterzugriff bleibt wegen der Netzwerkfreigabe
-ungeprüft.
+Damals Release-Build erfolgreich; Anbieterzugriff inzwischen gezielt geprüft (siehe Aktualisierung oben).
+
+Seit07.11.2026 verwendet auch der Höhenlinien-Layer denselben `MapterhornTiles`-Downloader und gemeinsamen Cache. Abtastung, Korrekturgrenzen und Höhenmetersummen-Algorithmus bleiben erhalten.

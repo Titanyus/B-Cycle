@@ -82,7 +82,7 @@ class MapPresentationSettingsTest {
             assertEquals(20.5,MapZoom.read(prefs,MapSource.VECTOR),.001);assertEquals(19.0,MapZoom.read(prefs,MapSource.OSM),.001)
             MainActivity::class.java.getDeclaredMethod("sourcesSettings").apply { isAccessible=true }.invoke(a)
             val sources=nodes(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).filterIsInstance<TextView>().joinToString("\n") { it.text.toString() }
-            for(name in listOf("Mapterhorn","Mapzen / AWS Terrain Tiles","OpenFreeMap","Waymarked Trails")) assertTrue(name,sources.contains(name))
+            for(name in listOf("Mapterhorn","Bayerische Vermessungsverwaltung","OpenFreeMap","Waymarked Trails")) assertTrue(name,sources.contains(name))
         } finally { host.pause().stop().destroy() }
     }
 }

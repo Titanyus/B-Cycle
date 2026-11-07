@@ -1,27 +1,763 @@
-Mapzen / AWS Terrain Tiles
+© Mapterhorn · Höhenlinien und Höhenkorrektur
 
-Öffentliche Höhendaten (Terrarium):
-https://registry.opendata.aws/terrain-tiles/
+Terrarium-WebP-Höhenkacheln: https://tiles.mapterhorn.com/{z}/{x}/{y}.webp
+Datenzugriff: https://mapterhorn.com/data-access/
+Quellen und Lizenzen: https://mapterhorn.com/attribution
+Quellenverzeichnis (Stand 07.11.2026): https://download.mapterhorn.com/attribution.json
 
-Quellen und Lizenzhinweise:
-https://github.com/tilezen/joerd/blob/master/docs/attribution.md
-https://github.com/tilezen/joerd/blob/master/docs/data-sources.md
+Die Datenlizenzen gelten je Ursprungsquelle; die Softwarelizenz von Mapterhorn ist keine pauschale Datenlizenz.
 
-* ArcticDEM terrain data DEM(s) were created from DigitalGlobe, Inc., imagery and
-  funded under National Science Foundation awards 1043681, 1559691, and 1542736;
-* Australia terrain data © Commonwealth of Australia (Geoscience Australia) 2017;
-* Austria terrain data © offene Daten Österreichs – Digitales Geländemodell (DGM)
-  Österreich;
-* Canada terrain data contains information licensed under the Open Government
-  Licence – Canada;
-* Europe terrain data produced using Copernicus data and information funded by the
-  European Union - EU-DEM layers;
-* Global ETOPO1 terrain data U.S. National Oceanic and Atmospheric Administration
-* Mexico terrain data source: INEGI, Continental relief, 2016;
-* New Zealand terrain data Copyright 2011 Crown copyright (c) Land Information New
-  Zealand and the New Zealand Government (All rights reserved);
-* Norway terrain data © Kartverket;
-* United Kingdom terrain data © Environment Agency copyright and/or database right
-  2015. All rights reserved;
-* United States 3DEP (formerly NED) and global GMTED2010 and SRTM terrain data
-  courtesy of the U.S. Geological Survey.
+Digital terrain model (aalv)
+Latvijas Ģeotelpiskās informācijas aģentūra · Creative Commons Attribution 4.0 · Datenzugriff 2025
+https://www.lgia.gov.lv/en/Digit%C4%81lais%20reljefa%20modelis
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/aalv/LICENSE.pdf
+
+2024 edition of the 20-meter grid digital terrain model Taiwan (aatw)
+Department of Land Administration, MOI · Open Government Data License, version 1.0 · Datenzugriff 2026
+https://data.gov.tw/en/datasets/169807
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/aatw/LICENSE.pdf
+
+Digitales Geländehöhenmodell (ALS-DGM) - Höhenraster (at1)
+BEV - Bundesamt für Eich- und Vermessungswesen · CC-BY-4.0 · Datenzugriff 2025
+https://www.bev.gv.at/Services/Produkte/Digitales-Gelaendehoehenmodell/ALS-Hoehenraster.html
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/at1/LICENSE.pdf
+
+Digital Elevation Modell (DEM) Austria (at10)
+geoland.at, Land Kärnten. · CC-BY-4.0: Land Kärnten - data.gv.at · Datenzugriff 2025
+https://www.data.gv.at/datasets/b5de6975-417b-4320-afdb-eb2a9e2a1dbf?locale=de
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/at10/LICENSE.pdf
+
+Digitales Geländemodell 5 Meter - Burgenland (atburgenland)
+burgenland.at. Land Burgenland · Creative Commons Namensnennung 4.0 International (CC BY 4.0) · Datenzugriff 2025
+https://www.burgenland.at/service/open-government-data/bestandsliste/detail/digitales-gelaendemodell-5-meter-burgenland/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/atburgenland/LICENSE.pdf
+
+Digitales Gelände- und Oberflächenmodell Kärnten (atkaernten)
+ktn.gv.at. Land Kärnten · CC-BY-4.0: Land Kärnten - data.gv.at · Datenzugriff 2025
+https://www.data.gv.at/katalog/dataset/c4352e0c-f811-4c59-bdac-4ba199684fc2
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/atkaernten/LICENSE.pdf
+
+Digitales Geländemodell (DGM) Land Oberösterreich (atoberoesterreich)
+land-oberoesterreich.gv.at. Land Oberösterreich · Creative Commons Namensnennung 4.0 International (CC BY 4.0) · Datenzugriff 2025
+https://www.data.gv.at/katalog/dataset/d8f39b43-f52b-4387-9b6d-b93b412a2fc2
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/atoberoesterreich/LICENSE.pdf
+
+Digitales Geländemodell 1 m (DGM) Land Salzburg (atsalzburg)
+salzburg.gv.at. Land Salzburg · Creative Commons Namensnennung 4.0 International (CC BY 4.0) · Datenzugriff 2025
+https://www.data.gv.at/katalog/dataset/093d4dec-8397-4faf-b690-b8cbe9a9dc31
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/atsalzburg/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5a)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5a/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5b)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5b/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5c)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5c/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5d)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5d/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5e)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5e/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5f)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5f/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5g)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5g/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5h)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5h/LICENSE.pdf
+
+Digital Elevation Model (DEM) of Australia derived from LiDAR 5 Metre Grid (au5i)
+Geoscience Australia · CC BY 4.0 · Datenzugriff 2026
+https://pid.geoscience.gov.au/dataset/ga/89644
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/au5i/LICENSE.pdf
+
+Tasmanian 2 metre Digital Elevation Model (autas)
+The LIST ©State of Tasmania. Downloaded via Source Coop. · CC BY 3.0 · Datenzugriff 2026
+https://source.coop/alexgleith/tasmania-dem-2m
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/autas/LICENSE.pdf
+
+Digitaal Hoogtemodel Vlaanderen II, DTM, raster, 1 m (beflanders)
+agentschap Digitaal Vlaanderen · Model license for free reuse · Datenzugriff 2025
+https://www.vlaanderen.be/datavindplaats/catalogus/digitaal-hoogtemodel-vlaanderen-ii-dtm-raster-1-m
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/beflanders/LICENSE.pdf
+
+Relief de la Wallonie - Modèle Numérique de Terrain (MNT) 2021-2022 (bewallonie)
+Service public de Wallonie (SPW) · CC-BY 4.0 · Datenzugriff 2025
+https://geoportail.wallonie.be/catalogue/a004e570-99d6-4fe5-b83d-49b774409278.html
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/bewallonie/LICENSE.pdf
+
+Canada DTM 2018-2024 (cahrdem2)
+Natural Resources Canada · Open Government Licence - Canada · Datenzugriff 2026
+https://open.canada.ca/data/en/dataset/0fe65119-e96e-4a57-8bfe-9d9245fba06b
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/cahrdem2/LICENSE.pdf
+
+DTM Kanton Zürich (chzh)
+Kanton Zürich, Amt für Raumentwicklung, Abteilung Geoinformation · CC0 · Datenzugriff 2026
+https://data.stadt-zuerich.ch/dataset/ktzh_digitales_terrainmodell__dtm__2021_bis_2022__ogd_
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/chzh/LICENSE.pdf
+
+Cyprus DTM 2019 (cy)
+Τμήμα Κτηματολογίου και Χωρομετρίας · CC BY 4.0 · Datenzugriff 2025
+https://www.data.gov.cy/el/dataset/ypsometria-inspire
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/cy/LICENSE.pdf
+
+Digital Terrain Model of the Czech Republic, 4th generation (DMR 4G), INSPIRE theme Elevation (EL) - GRID 5 m (cz)
+cuzk.gov.cz. Land Survey Office · CC-BY 4.0 · Datenzugriff 2025
+https://geoportal.cuzk.cz/(S(rtmc0jv2tukm5cadwnkwsgd2))/Default.aspx?lng=EN&mode=TextMeta&side=vyskopis&metadataID=CZ-CUZK-EL&mapid=8&menu=304
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/cz/LICENSE.pdf
+
+Digitales Geländemodell 1m (DGM1) (debayern)
+Bayerische Vermessungsverwaltung · CC BY 4.0 · Datenzugriff 2025
+https://geodaten.bayern.de/opengeodata/OpenDataDetail.html?pn=dgm1
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/debayern/LICENSE.pdf
+
+Digitale Geländemodelle - ATKIS DGM (deberlin)
+Senatsverwaltung für Stadtentwicklung, Bauen und Wohnen Berlin · Datenlizenz Deutschland - Zero - Version 2.0 · Datenzugriff 2025
+https://www.berlin.de/sen/sbw/stadtdaten/geoinformation/landesvermessung/geotopographie-atkis/dgm-digitale-gelaendemodelle/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/deberlin/LICENSE.pdf
+
+Digitales Geländemodell 1m Brandenburg (debrandenburg)
+GeoBasis-DE / LGB · Datenlizenz Deutschland - Namensnennung - Version 2.0 · Datenzugriff 2025
+https://data.geobasis-bb.de/geobasis/daten/dgm/tif/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/debrandenburg/LICENSE.pdf
+
+ATKIS - DGM1 Land Bremen (debremen)
+Landesamt GeoInformation Bremen · CC-BY-4.0 · Datenzugriff 2025
+https://www.metaver.de/trefferanzeige?docuuid=2351ABA6-019D-4155-853F-76EEFC26CA52
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/debremen/LICENSE.pdf
+
+DGM 1 Baden-Württemberg (debw)
+LGL, www.lgl-bw.de, dl-de/by-2-0 · Datenlizenz Deutschland - Namensnennung - Version 2.0 · Datenzugriff 2025
+https://www.lgl-bw.de/Produkte/Open-Data/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/debw/LICENSE.pdf
+
+Baden-Württemberg DGM ALS_3 (debw025)
+LGL, www.lgl-bw.de, dl-de/by-2-0 · Datenlizenz Deutschland - Namensnennung - Version 2.0 · Datenzugriff 2026
+https://www.lgl-bw.de/Produkte/3D-Produkte/Digitale-Gelaendemodelle/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/debw025/LICENSE.pdf
+
+Digitales Höhenmodell Hamburg DGM 1 (dehamburg)
+Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und Vermessung (LGV) · Datenlizenz Deutschland - Namensnennung - Version 2.0 · Datenzugriff 2025
+https://metaver.de/trefferanzeige?docuuid=A39B4E86-15E2-4BF7-BA82-66F9913D5640
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/dehamburg/LICENSE.pdf
+
+ATKIS-DGM 1 (dehessen)
+Hessisches Ministerium für Umwelt, Klimaschutz, Landwirtschaft und Verbraucherschutz · Datenlizenz Deutschland - Zero - Version 2.0 · Datenzugriff 2026
+https://www.metaver.de/trefferanzeige?docuuid=dbf48a95-b44d-48b3-a5b4-981e4c1bd8e6
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/dehessen/LICENSE.pdf
+
+Digitales Geländemodell 1m (DGM1) Mecklenburg-Vorpommern (demv)
+© GeoBasis-DE/M-V 2025 · CC BY 4.0 · Datenzugriff 2025
+https://www.laiv-mv.de/Geoinformation/Geobasisdaten/Gelaendemodelle/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/demv/LICENSE.pdf
+
+Digitales Geländemodell 1m (DGM1) (deniedersachsen)
+Landesamtes für Geoinformation und Landesvermessung Niedersachsen (LGLN) · CC BY 4.0 · Datenzugriff 2025
+https://www.lgln.niedersachsen.de/startseite/geodaten_karten/3d_geobasisdaten/dgm/digitale-gelandemodelle-dgm-143150.html
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/deniedersachsen/LICENSE.pdf
+
+Digitales Geländemodell - Rasterweite 1 m (denrw)
+Ministerium des Innern des Landes Nordrhein-Westfalen · Datenlizenz Deutschland - Zero - Version 2.0 · Datenzugriff 2025
+https://www.opengeodata.nrw.de/produkte/geobasis/hm/dgm1_tiff/dgm1_tiff/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/denrw/LICENSE.pdf
+
+Digitales Geländemodell Gitterweite 1 m (derlp)
+©GeoBasis-DE / LVermGeoRP 2025 · DL-DE->BY-2.0 · Datenzugriff 2025
+https://lvermgeo.rlp.de/geodaten-geoshop/open-data
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/derlp/LICENSE.pdf
+
+DGM 1 Saarland (desaarland)
+GeoBasis DE/LVGL-SL 2025 · Datenlizenz Deutschland – Namensnennung – Version 2.0 · Datenzugriff 2025
+https://www.shop.lvgl.saarland.de/cloud/index.php/s/wWELJP3D5aRsrqi?path=%2FOD_DGM1_tiff_LK
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/desaarland/LICENSE.pdf
+
+Digitales Geländemodell (DGM1) (desachsen)
+GeoSN, dl-de/by-2-0 · Datenlizenz Deutschland - Namensnennung - Version 2.0 · Datenzugriff 2025
+https://www.geodaten.sachsen.de/downloadbereich-digitale-hoehenmodelle-4851.html
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/desachsen/LICENSE.pdf
+
+DGM - Digitales Geländemodell (desachsenanhalt)
+Landesamt für Vermessung und Geoinformation Sachsen-Anhalt (LVermGeo) · Datenlizenz Deutschland - Namensnennung - Version 2.0 · Datenzugriff 2025
+https://www.lvermgeo.sachsen-anhalt.de/de/gdp-dgm-dom-lsa.html
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/desachsenanhalt/LICENSE.pdf
+
+DGM 1 Schleswig-Holstein (desh)
+© GeoBasis-DE/LVermGeo SH/CC BY 4.0 · CC BY 4.0 · Datenzugriff 2025
+https://geodaten.schleswig-holstein.de/gaialight-sh/_apps/dladownload/dl-dgm1.html
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/desh/LICENSE.pdf
+
+DGM 1 Thüringen (dethueringen)
+© GDI-Th · Datenlizenz Deutschland - Namensnennung - Version 2.0 · Datenzugriff 2025
+https://tlbg.thueringen.de/geobasisdaten/3d-informationen/digitale-gelaendemodelle#c75998
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/dethueringen/LICENSE.pdf
+
+Danmarks Højdemodel - Terræn (dk)
+Klimadatastyrelsen Danmark · CC BY 4.0 · Datenzugriff 2025
+https://dataforsyningen.dk/data/930
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/dk/LICENSE.pdf
+
+DTM hæddarmodell (dkfaroe)
+The Faroese Environment Agency, Umhvørvisstovan · Open Government Data · Datenzugriff 2025
+https://www.foroyakort.fo/tak-datur-nidur/dtm-og-dsm-haeddarmodell
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/dkfaroe/LICENSE.pdf
+
+Elevation model Greenland (dkgreenland)
+Klimadatastyrelsen Danmark · CC BY 4.0 · Datenzugriff 2025
+https://dataforsyningen.dk/data/4780
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/dkgreenland/LICENSE.pdf
+
+Elevation Data Estonia 1m (ee)
+Elevation data 2021-2024, Republic of Estonia Land and Spatial Development Board · Republic of Estonia Land and Spatial Development Board opendata licence 2025 · Datenzugriff 2025
+https://geoportaal.maaamet.ee/eng/spatial-data/elevation-data-p308.html
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/ee/LICENSE.pdf
+
+Modelo Digital del Terreno - MDT02 (es2a)
+MDT02-cob2 2015-2021 CC-BY 4.0 scne.es · CC BY 4.0 · Datenzugriff 2025
+https://centrodedescargas.cnig.es/CentroDescargas/modelo-digital-terreno-mdt02-segunda-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/es2a/LICENSE.pdf
+
+Modelo Digital del Terreno - MDT02 (es2b)
+MDT02-cob2 2015-2021 CC-BY 4.0 scne.es · CC BY 4.0 · Datenzugriff 2025
+https://centrodedescargas.cnig.es/CentroDescargas/modelo-digital-terreno-mdt02-segunda-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/es2b/LICENSE.pdf
+
+Modelo Digital del Terreno - MDT02 (es2c)
+MDT02-cob2 2015-2021 CC-BY 4.0 scne.es · CC BY 4.0 · Datenzugriff 2025
+https://centrodedescargas.cnig.es/CentroDescargas/modelo-digital-terreno-mdt02-segunda-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/es2c/LICENSE.pdf
+
+Digital Terrain Model 1st Coverage with 5 m grid spacing (es5a)
+CC-BY 4.0 scne.es 2025 · CC BY 4.0 · Datenzugriff 2025
+https://centrodedescargas.cnig.es/CentroDescargas/modelo-digital-terreno-mdt05-primera-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/es5a/LICENSE.pdf
+
+Digital Terrain Model 1st Coverage with 5 m grid spacing (es5b)
+CC-BY 4.0 scne.es 2025 · CC BY 4.0 · Datenzugriff 2025
+https://centrodedescargas.cnig.es/CentroDescargas/modelo-digital-terreno-mdt05-primera-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/es5b/LICENSE.pdf
+
+Digital Terrain Model 1st Coverage with 5 m grid spacing (es5c)
+CC-BY 4.0 scne.es 2025 · CC BY 4.0 · Datenzugriff 2025
+https://centrodedescargas.cnig.es/CentroDescargas/modelo-digital-terreno-mdt05-primera-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/es5c/LICENSE.pdf
+
+Digital Terrain Model 1st Coverage with 5 m grid spacing (es5d)
+CC-BY 4.0 scne.es 2025 · CC BY 4.0 · Datenzugriff 2025
+https://centrodedescargas.cnig.es/CentroDescargas/modelo-digital-terreno-mdt05-primera-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/es5d/LICENSE.pdf
+
+Modelo Digital del Terreno - MDT50 (esmdt50a)
+CC-BY 4.0 scne.es 2022-2025 · CC BY 4.0 · Datenzugriff 2026
+https://centrodedescargas.cnig.es/CentroDescargas/lidar-tercera-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/esmdt50a/LICENSE.pdf
+
+Modelo Digital del Terreno - MDT50 (esmdt50b)
+CC-BY 4.0 scne.es 2022-2025 · CC BY 4.0 · Datenzugriff 2026
+https://centrodedescargas.cnig.es/CentroDescargas/lidar-tercera-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/esmdt50b/LICENSE.pdf
+
+Modelo Digital del Terreno - MDT50 (esmdt50c)
+CC-BY 4.0 scne.es 2022-2025 · CC BY 4.0 · Datenzugriff 2026
+https://centrodedescargas.cnig.es/CentroDescargas/lidar-tercera-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/esmdt50c/LICENSE.pdf
+
+Modelo Digital del Terreno - MDT50 (esmdt50d)
+CC-BY 4.0 scne.es 2022-2025 · CC BY 4.0 · Datenzugriff 2026
+https://centrodedescargas.cnig.es/CentroDescargas/lidar-tercera-cobertura
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/esmdt50d/LICENSE.pdf
+
+Elevation model 2 m (fi)
+National Land Survey of Finland 2025. Downloaded via GeoCubes. · Attribution 4.0 International (CC BY 4.0) · Datenzugriff 2025
+https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/product-descriptions/elevation-model-2-m
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/fi/LICENSE.pdf
+
+MNT LiDAR HD (frhd2154a)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2026
+https://www.data.gouv.fr/datasets/mnt-lidar-hd
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frhd2154a/LICENSE.pdf
+
+MNT LiDAR HD (frhd2154b)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2026
+https://www.data.gouv.fr/datasets/mnt-lidar-hd
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frhd2154b/LICENSE.pdf
+
+MNT LiDAR HD (frhd2154c)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2026
+https://www.data.gouv.fr/datasets/mnt-lidar-hd
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frhd2154c/LICENSE.pdf
+
+MNT LiDAR HD (frhd2154d)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2026
+https://www.data.gouv.fr/datasets/mnt-lidar-hd
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frhd2154d/LICENSE.pdf
+
+MNT LiDAR HD (frhd2154e)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2026
+https://www.data.gouv.fr/datasets/mnt-lidar-hd
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frhd2154e/LICENSE.pdf
+
+MNT LiDAR HD (frhd2975)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2026
+https://www.data.gouv.fr/datasets/mnt-lidar-hd
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frhd2975/LICENSE.pdf
+
+MNT LiDAR HD (frhd5490)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2026
+https://www.data.gouv.fr/datasets/mnt-lidar-hd
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frhd5490/LICENSE.pdf
+
+RGE ALTI® 1m Guadeloupe, Martinique (frrgealti1caribbean)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti1caribbean/LICENSE.pdf
+
+RGE ALTI® 1m Corsica (frrgealti1corse)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti1corse/LICENSE.pdf
+
+RGE ALTI® 1m French Guiana (frrgealti1guiana)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti1guiana/LICENSE.pdf
+
+RGE ALTI® 1m Mayotte (frrgealti1mayotte)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti1mayotte/LICENSE.pdf
+
+RGE ALTI® 1m Metropolitan France (frrgealti1metro)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti1metro/LICENSE.pdf
+
+RGE ALTI® 1m Reunion (frrgealti1reunion)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti1reunion/LICENSE.pdf
+
+RGE ALTI® 1m Saint Pierre and Miquelon (frrgealti1stpm)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti1stpm/LICENSE.pdf
+
+RGE ALTI® 5m Guadeloupe, Martinique (frrgealti5caribbean)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti5caribbean/LICENSE.pdf
+
+RGE ALTI® 5m Corsica (frrgealti5corse)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti5corse/LICENSE.pdf
+
+RGE ALTI® 5m French Guiana (frrgealti5guiana)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti5guiana/LICENSE.pdf
+
+RGE ALTI® 5m Mayotte (frrgealti5mayotte)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti5mayotte/LICENSE.pdf
+
+RGE ALTI® 5m Metropolitan France (frrgealti5metro)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti5metro/LICENSE.pdf
+
+RGE ALTI® 5m Reunion (frrgealti5reunion)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti5reunion/LICENSE.pdf
+
+RGE ALTI® 5m Saint Pierre and Miquelon (frrgealti5stpm)
+Institut national de l'information géographique et forestière IGN · Licence Ouverte / Open Licence version 2.0 · Datenzugriff 2025
+https://geoservices.ign.fr/rgealti
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/frrgealti5stpm/LICENSE.pdf
+
+COPERNICUS GLO-30 (glo30)
+DLR e.V. 2010-2014, Airbus Defence and Space GmbH 2014-2018, provided under COPERNICUS by the European Union and ESA. All rights reserved. Accessed via OpenTopography and AWS Open Data. · COPERNICUS full, free and open license · Datenzugriff 2025
+https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/glo30/LICENSE.pdf
+
+ÍslandsDEM útgáfa 1.0 (is)
+Natural Science Institute of Iceland · CC BY 4.0 · Datenzugriff 2025
+https://gatt.lmi.is/geonetwork/srv/eng/catalog.search#/metadata/e6712430-a63c-4ae5-9158-c89d16da6361
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/is/LICENSE.pdf
+
+10 meter Digital Elevation Model (DEM) of Israel (isr10)
+ASTER GDEM courtesy of METI and NASA processed by 4cast LTD using VTbuilder · ASTER GDEM Public Domain · Datenzugriff 2026
+https://www.jspacesystems.or.jp/ersdac/GDEM/E/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/isr10/LICENSE.pdf
+
+Modello Digitale del Terreno (DTM) (itaosta)
+Dati estratti dal Modello Digitale del Terreno (DTM) della Regione Autonoma Valle d'Aosta · CC BY 4.0 · Datenzugriff 2025
+https://geoportale.regione.vda.it/download/dtm/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/itaosta/LICENSE.pdf
+
+Digitales Geländemodell (DGM 2,5m) (itbozen)
+Amt für Landesplanung und Kartografie, Autonome Provinz Bozen · Creative Commons CCZero · Datenzugriff 2025
+https://natur-raum.provinz.bz.it/de/digitale-hohenmodelle
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/itbozen/LICENSE.pdf
+
+DTM 5X5 - Modello digitale del terreno (ed. 2015) (itlombardia)
+Regione Lombardia · CC BY 4.0 · Datenzugriff 2026
+https://geodati.gov.it/geoportale/eng/metadata-search-results?keyword=dfc98d60-5f02-4a2b-8113-5ad24cc53a9c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/itlombardia/LICENSE.pdf
+
+RIPRESA AEREA ICE 2009-2011 - DTM 5 (itpiemonte)
+Regione Piemonte - A1613B - Sistema informativo territoriale e ambientale · CC BY 4.0 · Datenzugriff 2026
+https://www.geoportale.piemonte.it/geonetwork/srv/api/records/r_piemon:224de2ac-023e-441c-9ae0-ea493b217a8e
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/itpiemonte/LICENSE.pdf
+
+DTM e DSM passo 1 m fascia costiera 2008 (itsardegnacostiera)
+Regione Autonoma della Sardegna · CC-BY 4.0 · Datenzugriff 2025
+https://webgis2.regione.sardegna.it/geonetwork/srv/ita/catalog.search#/metadata/R_SARDEG:BFPNM
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/itsardegnacostiera/LICENSE.pdf
+
+DTM e DSM passo 1 metro dei centri urbani interni della Sardegna volo 2013 (itsardegnaurban)
+Regione Autonoma della Sardegna · CC-BY 4.0 · Datenzugriff 2025
+https://webgis2.regione.sardegna.it/geonetwork/srv/ita/catalog.search#/metadata/R_SARDEG:7f606501-8ef8-4fa0-99ad-54811f370308
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/itsardegnaurban/LICENSE.pdf
+
+Modello digitale del terreno (MDT) 2m - Volo ATA 2012 2013 (itsicily)
+Regione Siciliana - Assessorato del Territorio e dell'Ambiente - Area 2 Interdipartimentale - Nodo Regionale S.I.T.R · CC-BY 4.0 · Datenzugriff 2025
+https://www.sitr.regione.sicilia.it/geoportale/it/Metadata/Details/946
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/itsicily/LICENSE.pdf
+
+LiDAR PAT 2014 integrato con voli 2018 ed il LiDAR 2011 di Campolongo (ittrentino)
+Provincia Autonoma di Trento - Ufficio Sistemi Informativi - Servizio autorizzazioni e valutazioni ambientali · CC BY 2.5 · Datenzugriff 2026
+http://www.territorio.provincia.tn.it/portal/server.pt?open=514&objID=23954&mode=2
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/ittrentino/LICENSE.pdf
+
+基盤地図情報（数値標高モデル） (jpdem10a)
+国土交通省国土地理院 · 国土地理院コンテンツ利用規約／測量法に基づく国土地理院長承認（使用）R 8JHs 131 · Datenzugriff 2026
+https://service.gsi.go.jp/kiban/app/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/jpdem10a/LICENSE.pdf
+
+基盤地図情報（数値標高モデル） (jpdem10b)
+国土交通省国土地理院 · 国土地理院コンテンツ利用規約／測量法に基づく国土地理院長承認（使用）R 8JHs 131 · Datenzugriff 2026
+https://service.gsi.go.jp/kiban/app/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/jpdem10b/LICENSE.pdf
+
+基盤地図情報（数値標高モデル） (jpdem1a)
+国土交通省国土地理院 · 国土地理院コンテンツ利用規約／測量法に基づく国土地理院長承認（使用）R 8JHs 131 · Datenzugriff 2026
+https://service.gsi.go.jp/kiban/app/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/jpdem1a/LICENSE.pdf
+
+基盤地図情報（数値標高モデル） (jpdem5a)
+国土交通省国土地理院 · 国土地理院コンテンツ利用規約／測量法に基づく国土地理院長承認（使用）R 8JHs 131 · Datenzugriff 2026
+https://service.gsi.go.jp/kiban/app/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/jpdem5a/LICENSE.pdf
+
+基盤地図情報（数値標高モデル） (jpdem5b)
+国土交通省国土地理院 · 国土地理院コンテンツ利用規約／測量法に基づく国土地理院長承認（使用）R 8JHs 131 · Datenzugriff 2026
+https://service.gsi.go.jp/kiban/app/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/jpdem5b/LICENSE.pdf
+
+基盤地図情報（数値標高モデル） (jpdem5c)
+国土交通省国土地理院 · 国土地理院コンテンツ利用規約／測量法に基づく国土地理院長承認（使用）R 8JHs 131 · Datenzugriff 2026
+https://service.gsi.go.jp/kiban/app/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/jpdem5c/LICENSE.pdf
+
+LiDAR 2019 - Modèle numérique de terrain (MNT) (lu)
+Administration du cadastre et de la topographie Luxembourg · CC0 · Datenzugriff 2025
+https://data.public.lu/fr/datasets/lidar-2019-modele-numerique-de-terrain-mnt/#/information
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/lu/LICENSE.pdf
+
+Actueel Hoogtebestand Nederland, AHN5 5m (nlahn5lowresfilled)
+AHN.nl · CC BY 4.0 · Datenzugriff 2025
+https://www.ahn.nl/dataroom
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/nlahn5lowresfilled/LICENSE.pdf
+
+Actueel Hoogtebestand Nederland, Saba, 0.5 m (nlcaribischa)
+AHN.nl · CC BY 4.0 · Datenzugriff 2026
+https://www.beeldmateriaal.nl/dataroom-caribisch-nederland
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/nlcaribischa/LICENSE.pdf
+
+Actueel Hoogtebestand Nederland, St. Eustatius, 0.5 m (nlcaribischb)
+AHN.nl · CC BY 4.0 · Datenzugriff 2026
+https://www.beeldmateriaal.nl/dataroom-caribisch-nederland
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/nlcaribischb/LICENSE.pdf
+
+Actueel Hoogtebestand Nederland, Bonaire, 0.5 m (nlcaribischc)
+AHN.nl · CC BY 4.0 · Datenzugriff 2026
+https://www.beeldmateriaal.nl/dataroom-caribisch-nederland
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/nlcaribischc/LICENSE.pdf
+
+Terrengmodellar (DTM) (no)
+Kartverket · CC BY 4.0 · Datenzugriff 2025
+https://www.kartverket.no/api-og-data/terrengdata
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/no/LICENSE.pdf
+
+Terrengmodell Svalbard (S0 Terrengmodell) (nosvalbard)
+Norwegian Polar Institute · CC BY 4.0 · Datenzugriff 2025
+https://data.npolar.no/dataset/dce53a47-c726-4845-85c3-a65b46fe2fea
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/nosvalbard/LICENSE.pdf
+
+New Zealand LiDAR 1m DEM (nz)
+Toitū Te Whenua Land Information New Zealand · CC BY 4.0 · Datenzugriff 2025
+https://www.linz.govt.nz/products-services/data/types-linz-data/elevation-data/access-elevation-data
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/nz/LICENSE.pdf
+
+Numeryczny Model Terenu 1 m (pl1)
+Head Office of Geodesy and Cartography (GUGiK), National Geodetic and Cartographic Resource (PZGiK), Poland · Open Government Data (Art. 40a. geod. i kartogr.) · Datenzugriff 2025
+https://www.geoportal.gov.pl/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/pl1/LICENSE.pdf
+
+Numeryczny Model Terenu 5 m (pl5)
+Head Office of Geodesy and Cartography (GUGiK), National Geodetic and Cartographic Resource (PZGiK), Poland · Open Government Data (Art. 40a. geod. i kartogr.) · Datenzugriff 2025
+https://www.geoportal.gov.pl/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/pl5/LICENSE.pdf
+
+Digital Elevation Models of mainland Portugal (pt)
+Direção-Geral do Território · CC BY 4.0 · Datenzugriff 2025
+https://cdd.dgterritorio.gov.pt/dgt-fe/catalogos/colecoes?filter=LiDAR+-+Modelos+Digitais+do+Relevo&language=en
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/pt/LICENSE.pdf
+
+Modelo Digital do Terreno (MDT) da Ilha da Madeira (ptmadeira)
+Instituto Geográfico Portugês · CC BY 4.0 · Datenzugriff 2025
+https://catalogo-irig.madeira.gov.pt/geonetwork/srv/eng/catalog.search;jsessionid=38D04EB2937EF1FCD8FDC9E697BF4B3A#/metadata/74238358-6eee-45e1-a8fa-3a518321d4ba
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/ptmadeira/LICENSE.pdf
+
+LAKI II MNT 0.5m (ro)
+www.geoportal.gov.ro · Romanian Open Government License v1.0 (OGL-ROU-1.0) · Datenzugriff 2025
+https://geoportal.ancpi.ro/portal/apps/webappviewer/index.html?id=3f34ee5af71c400396dda574f0d53274
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/ro/LICENSE.pdf
+
+Rwanda 10m Digital Elevation Model (rw)
+the National Land Authority (NLA), Water and Sanitation Corporation (WASAC) Ltd., Rwanda through UNDP, EMD, and windPRO · Creative Commons Namensnennung 4.0 International (CC BY 4.0) · Datenzugriff 2026
+https://github.com/WASAC/rwanda-dem
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/rw/LICENSE.pdf
+
+Markhöjdmodell Nedladdning (se)
+Lantmäteriet · CC0 · Datenzugriff 2025
+https://www.lantmateriet.se/sv/geodata/vara-produkter/produktlista/markhojdmodell-nedladdning/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/se/LICENSE.pdf
+
+DMR - digitalni model reliefa (si)
+Slovenian Environment Agency (ARSO) · Creative Commons Attribution 4.0 · Datenzugriff 2025
+http://www.evode.gov.si/index.php?id=87
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/si/LICENSE.pdf
+
+DMR v 5.0 (sk)
+ÚGKK SR · CC BY Creative Commons Attribution („uvedenie autora“) 4.0 · Datenzugriff 2025
+https://geoportal.gov.sk/gallery/datasets/detail/c310bf1e-68a0-43b9-9955-c7dad13a93aa?csrt=4917832570778447195
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/sk/LICENSE.pdf
+
+swissALTI3D (swissalti3d)
+Federal Office of Topography swisstopo · Open Government Data · Datenzugriff 2026
+https://www.swisstopo.admin.ch/en/height-model-swissalti3d
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/swissalti3d/LICENSE.pdf
+
+TINITALY, a digital elevation model of Italy with a 10 meters cell size (Version 1.1) (tinitaly)
+Istituto Nazionale di Geofisica e Vulcanologia (INGV) · Creative Commons Namensnennung 4.0 International (CC BY 4.0) · Datenzugriff 2025
+https://tinitaly.pi.ingv.it/Download_Area1_1.html
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/tinitaly/LICENSE.pdf
+
+LIDAR Composite Digital Terrain Model (DTM) - 1m (ukengland)
+© Environment Agency · Open Government Licence · Datenzugriff 2025
+https://environment.data.gov.uk/dataset/13787b9a-26a4-4775-8523-806d13af58fc
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/ukengland/LICENSE.pdf
+
+LiDAR for Scotland Phase 1 - DTM (ukscotland)
+Scottish Government · Open Government Licence · Datenzugriff 2025
+https://www.spatialdata.gov.scot/geonetwork/srv/eng/catalog.search#/metadata/40017f89-2857-49cb-a913-e0784f250769
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/ukscotland/LICENSE.pdf
+
+Wales DTM 1m (ukwales)
+Welsh Government and NRW · Open Government License · Datenzugriff 2025
+https://datamap.gov.wales/maps/lidar-data-download/
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/ukwales/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1aa)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1aa/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ba)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ba/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ca)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ca/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1cb)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1cb/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1cc)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1cc/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1da)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1da/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1db)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1db/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1dc)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1dc/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ea)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ea/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1eb)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1eb/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ec)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ec/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1fa)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1fa/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1fb)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1fb/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1fc)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1fc/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ga)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ga/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1gb)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1gb/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1gc)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1gc/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ha)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ha/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1hb)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1hb/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1hc)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1hc/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ia)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ia/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ib)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ib/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ic)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ic/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ja)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ja/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1jb)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1jb/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1jc)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1jc/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ka)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ka/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1kb)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1kb/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1kc)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1kc/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1la)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1la/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1lb)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1lb/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1lc)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1lc/LICENSE.pdf
+
+1 meter Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (us1ma)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2026
+https://www.sciencebase.gov/catalog/item/543e6b86e4b0fd76af69cf4c
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/us1ma/LICENSE.pdf
+
+1/3rd arc-second Digital Elevation Models (DEMs) - USGS National Map 3DEP Downloadable Data Collection (usgs3dep13)
+U.S. Geological Survey · Public Domain (U.S. Government Work) · Datenzugriff 2025
+https://www.sciencebase.gov/catalog/item/4f70aa9fe4b058caae3f8de5
+Lizenz: https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/usgs3dep13/LICENSE.pdf

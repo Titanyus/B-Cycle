@@ -153,15 +153,15 @@ class FitElevationCorrectionTest {
             shadowOf(Looper.getMainLooper()).idle()
             val dialog=ShadowAlertDialog.getLatestAlertDialog()
             assertTrue(dialog.window!!.decorView.findViewWithTag<View>("detail_elevation").isEnabled)
-            assertNull(dialog.window!!.decorView.findViewWithTag<View>("detail_rename"))
+            assertNotNull(dialog.window!!.decorView.findViewWithTag<View>("detail_rename"))
         } finally { controller.pause().stop().destroy() }
     }
-    @Test fun preferenceIsOffByDefaultAndMapSwitchPersistsImmediately() {
+    @Test fun preferenceIsOffByDefaultAndRecordingSwitchPersistsImmediately() {
         assertFalse(FitElevationCorrection.enabled(context))
         val controller=Robolectric.buildActivity(MainActivity::class.java).setup()
         try {
             val activity=controller.get()
-            MainActivity::class.java.getDeclaredMethod("mapSettings").apply { isAccessible=true }.invoke(activity)
+            MainActivity::class.java.getDeclaredMethod("showSensorManager").apply { isAccessible=true }.invoke(activity)
             shadowOf(Looper.getMainLooper()).idle()
             val root=ShadowAlertDialog.getLatestAlertDialog().window!!.decorView
             val switch=root.findViewWithTag<Switch>("map_elevation_correction")

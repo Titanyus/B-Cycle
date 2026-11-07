@@ -12,13 +12,13 @@ Die Boolean-Keys `mapVectorLayer_ENUMNAME` gehören zum Fahrradprofil, zu Profil
 
 ## Höhenlinien
 
-OpenFreeMap/OpenMapTiles enthält in unserer Quelle keine Höhenlinien. Zusätzliche öffentliche [AWS Terrain Tiles / Mapzen Terrarium](https://registry.opendata.aws/terrain-tiles/) werden deshalb nur bei aktiviertem Layer geladen. Kein Schlüssel erforderlich. RGB-Auswertung `R*256+G+B/256−32768` in Metern, transparente/ungültige Werte als Datenlücken. Nur Kartenzeichnung; keine Höhenkorrektur, Änderung von GPS-/Fahrdaten oder Sensordrosselung.
+OpenFreeMap/OpenMapTiles enthält in unserer Quelle keine Höhenlinien. Zusätzliche öffentliche [Mapterhorn-Terrarium-WebP-Kacheln](https://mapterhorn.com/data-access/) werden deshalb nur bei aktiviertem Layer geladen. Kein Schlüssel erforderlich. RGB-Auswertung `R*256+G+B/256−32768` in Metern, transparente/ungültige Werte als Datenlücken. Nur Kartenzeichnung; keine Höhenkorrektur, Änderung von GPS-/Fahrdaten oder Sensordrosselung.
 
-Native zusätzliche VTM-VectorTileLayer unter den Namen und Strecken, ein Tile-Worker. DEM-PNG-Dekodierung und Marching Squares auf diesem Worker, keine Berechnung auf UI-/GL-Thread. Zusammenhängende Linien statt einzelner Zellsegmente, definierte Sattelauflösung, gemeinsame Samples am Ost-/Südrand für passende Kachelanschlüsse. 100-m-Hauptlinien etwas stärker, übrige Linien dünner und transparent braun. Noch keine zusätzlichen Höhenzahlen an den Linien.
+Native zusätzliche VTM-VectorTileLayer unter den Namen und Strecken, ein Tile-Worker. DEM-WebP-Dekodierung und Marching Squares auf diesem Worker, keine Berechnung auf UI-/GL-Thread. Zusammenhängende Linien statt einzelner Zellsegmente, definierte Sattelauflösung, gemeinsame Samples am Ost-/Südrand für passende Kachelanschlüsse. 100-m-Hauptlinien etwas stärker, übrige Linien dünner und transparent braun. Noch keine zusätzlichen Höhenzahlen an den Linien.
 
-VTM-Zoom 10: 100-m-Abstand, 11: 50 m, 12: 20 m, ab 13: 10 m. Native DEM-Kacheln bis Zoom 13, darüber vorhandene Geometrie vergrößern statt immer feinere Downloads; darunter Layer unsichtbar. Der tatsächliche Abstand folgt der gerade geladenen nativen Tile-Stufe, auch während des Zoomübergangs. Unter Zoom 10 keine neuen Terrain-Anfragen. Die Linien sind eine Interpolation aus Rasterhöhen, kein Vermessungsprodukt.
+VTM-Zoom 10: 100-m-Abstand, 11: 50 m, 12: 20 m, ab 13: 10 m. Native DEM-Kacheln bis Zoom 14, darüber vorhandene Geometrie vergrößern statt immer feinere Downloads; darunter Layer unsichtbar. Der tatsächliche Abstand folgt der gerade geladenen nativen Tile-Stufe, auch während des Zoomübergangs. Unter Zoom 10 keine neuen Terrain-Anfragen. Die Linien sind eine Interpolation aus Rasterhöhen, kein Vermessungsprodukt.
 
-Begrenzter gemeinsamer HTTP-Cache 64 MiB, maximal 16 dekodierte DEMs (4 MiB) pro aktivem Höhenlinien-Layer. Höchstens ein Request/Worker gleichzeitig; benachbarte Kacheln teilen ihre DEMs. Pause/Detach und Abbruch bleiben im nativen Lebenszyklus, laufende HTTP-Anfragen werden bei Dispose abgebrochen. Fehlerhafte/fehlende Terrain-Kacheln lassen die normale Karte bestehen. Quellen-/Lizenzhinweise lokal in `assets/Terrain-ATTRIBUTION.txt`, erreichbar im Karten-Accordion und den Bibliothekshinweisen; bei aktivem Layer zusätzliche Kartenattribution „Mapzen Terrain“.
+Gemeinsamer DEM-Zugriff über `MapterhornTiles` für Höhenlinien und Fahrtkorrektur: 512-Pixel-WebP, 64 MiB Plattencache mit 30 Tagen Gültigkeit, maximal 8 MiB dekodierte Float-Höhenwerte über alle Verbraucher. Die Linien nutzen daraus ein 257×257-Raster mit jedem zweiten Originalpixel plus gemeinsamen Nachbarrändern. Fehlende regionale Detailkacheln fallen auf Zoom12 zurück; keine Ersatzhöhe0. Höchstens ein Request/Worker gleichzeitig; benachbarte Kacheln teilen ihre DEMs. Pause/Detach und Abbruch bleiben im nativen Lebenszyklus, laufende HTTP-Anfragen werden bei Dispose abgebrochen. Fehlerhafte/fehlende Terrain-Kacheln lassen die normale Karte bestehen. Quellen-/Lizenzhinweise lokal in `assets/Terrain-ATTRIBUTION.txt`, erreichbar im Karten-Accordion und den Bibliothekshinweisen; bei aktivem Layer zusätzliche Kartenattribution „© Mapterhorn“.
 
 ## Gezielt geprüft
 
@@ -33,3 +33,5 @@ Auf der Dashboardkarte neben dem Auge ein Ebenenbutton mit Layers-Icon. Öffnet 
 ## Editor, Reihenfolge und weitere Grenzen
 
 [Editor und Zeichenreihenfolge](vtm-map-editor.md): Höhenlinien zwischen Gelände und Straßen/Gebäuden, native Objektfarben/Linienstile je Profil mit JSON-Dateiexport. Im Ebenen-Dropdown zusätzlich admin_level 7 getrennt schaltbar, initial an. Bisherige Gemeindegrenzen ab Ebene 8 bleiben unabhängig.
+
+Gemeinsame Quelle, Auflösungsentscheidung und Prüfung fertiger Schummerung: [Mapterhorn-Vereinheitlichung](mapterhorn-unified-dem.md).

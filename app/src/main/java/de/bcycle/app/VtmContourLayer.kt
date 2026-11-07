@@ -1,11 +1,6 @@
 package de.bcycle.app
 
 import android.content.Context
-import android.graphics.BitmapFactory
-import android.util.LruCache
-import okhttp3.Call
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.oscim.core.MapPosition
 import org.oscim.event.Event
 import org.oscim.core.MapElement
@@ -25,7 +20,7 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
 /** Optional native vector overlay. DEM decoding/contours only run on its one tile worker. */
-internal class VtmContourLayer(context:Context,map:Map,style:MapStyleOverrides=MapStyleOverrides()):VectorTileLayer(map,ContourSource(VtmTileHttp.client(context))) {
+internal class VtmContourLayer(context:Context,map:Map,style:MapStyleOverrides=MapStyleOverrides()):VectorTileLayer(map,ContourSource(MapterhornTiles(context))) {
     override fun getNumLoaders()=1
     init { setTheme(VtmLiveTheme(ThemeLoader.load(ContourTheme(style.compiledStyles())) as org.oscim.theme.RenderTheme,style,allowBackground=false));pause() }
     fun applyColors(style:MapStyleOverrides) { (theme as VtmLiveTheme).applyColors(style) }
@@ -45,49 +40,37 @@ internal class VtmContourLayer(context:Context,map:Map,style:MapStyleOverrides=M
     }
 }
 
-/** Terrain Tiles Terrarium RGB, hosted publicly on AWS. Limit detail to native DEM zoom 13. */
-internal class ContourSource(private val http:OkHttpClient):TileSource(10,13) {
-    private val cache=LruCache<String,FloatArray>(16) // 4 MiB maximum decoded DEMs, shared by adjacent tiles.
+/** Mapterhorn's 512 px DEMs; map detail stops at z14 and shares correction's cache. */
+internal class ContourSource(private val tiles:MapterhornTiles):TileSource(10,14) {
     override fun open()=OpenResult.SUCCESS
-    override fun close() { cache.evictAll() }
+    override fun close() { tiles.close() }
     override fun getDataSource():ITileDataSource=object:ITileDataSource {
         private val generation=AtomicInteger()
-        @Volatile private var call:Call?=null
         @Volatile private var disposed=false
-        override fun cancel() { generation.incrementAndGet();call?.cancel() }
+        override fun cancel() { generation.incrementAndGet();tiles.cancel() }
         override fun dispose() { disposed=true;cancel() }
-        private fun dem(z:Int,x:Int,y:Int,token:Int):FloatArray {
-            val count=1 shl z;val key="$z/${Math.floorMod(x,count)}/${y.coerceIn(0,count-1)}"
-            cache.get(key)?.let { return it }
-            if(disposed || generation.get()!=token) throw IOException("Cancelled terrain tile")
-            val request=Request.Builder().url("https://s3.amazonaws.com/elevation-tiles-prod/terrarium/$key.png")
-                .header("User-Agent","B-Cycle/${AppVersion.name} (https://github.com/Titanyus/B-Cycle)").build()
-            val requestCall=http.newCall(request);call=requestCall
-            if(disposed || generation.get()!=token) requestCall.cancel()
-            val bytes=try { requestCall.execute().use { response ->
-                if(!response.isSuccessful) throw IOException("Terrain HTTP ${response.code}")
-                val body=response.body ?: throw IOException("Missing terrain tile")
-                body.byteStream().use { it.readNBytes(1024*1024+1) }.also { if(it.size>1024*1024) throw IOException("Terrain tile too large") }
-            } } finally { call=null }
-            val bitmap=BitmapFactory.decodeByteArray(bytes,0,bytes.size) ?: throw IOException("Invalid terrain PNG")
-            try {
-                if(bitmap.width!=256 || bitmap.height!=256) throw IOException("Invalid terrain size")
-                val pixels=IntArray(256*256);bitmap.getPixels(pixels,0,256,0,0,256,256)
-                return FloatArray(pixels.size) { TerrainContours.elevation(pixels[it]) }.also { cache.put(key,it) }
-            } finally { bitmap.recycle() }
-        }
         override fun query(tile:MapTile,sink:ITileDataSink) {
             val token=generation.get()
             fun cancelled()=disposed || generation.get()!=token
             try {
                 val z=tile.zoomLevel.toInt();val size=257
-                // One shared sample on the east/south edge makes adjacent contour endpoints identical.
-                val center=dem(z,tile.tileX,tile.tileY,token)
-                val east=dem(z,tile.tileX+1,tile.tileY,token)
-                val south=dem(z,tile.tileX,tile.tileY+1,token)
-                val corner=dem(z,tile.tileX+1,tile.tileY+1,token)
+                require(z in 10..14)
+                fun dem(x:Int,y:Int):MapterhornTiles.Dem {
+                    tiles.load(z,x,y,::cancelled)?.let { return it }
+                    // Global data extends to z12. Detailed regional coverage is not universal.
+                    if(z>12) tiles.load(12,Math.floorDiv(x,1 shl (z-12)),Math.floorDiv(y,1 shl (z-12)),::cancelled)?.let { return it }
+                    throw IOException("DEM unavailable")
+                }
+                val center=dem(tile.tileX,tile.tileY)
+                val east=dem(tile.tileX+1,tile.tileY)
+                val south=dem(tile.tileX,tile.tileY+1)
+                val corner=dem(tile.tileX+1,tile.tileY+1)
+                // One map-grid sample per display pixel, not four times as many marching cells.
+                // The shared east/south sample keeps adjacent tile endpoints identical.
                 val grid=FloatArray(size*size) { i -> val x=i%size;val y=i/size
-                    when { x==256 && y==256 -> corner[0];x==256 -> east[y*256];y==256 -> south[x];else -> center[y*256+x] }
+                    val tx=tile.tileX+if(x==256) 1 else 0;val ty=tile.tileY+if(y==256) 1 else 0
+                    val data=when { x==256 && y==256->corner;x==256->east;y==256->south;else->center }
+                    data.at(z,tx,ty,if(x==256) 0 else x*2,if(y==256) 0 else y*2)
                 }
                 val element=MapElement()
                 TerrainContours.trace(grid,size,TerrainContours.interval(z),::cancelled) { line ->

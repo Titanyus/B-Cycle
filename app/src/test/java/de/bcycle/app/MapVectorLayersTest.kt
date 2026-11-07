@@ -79,15 +79,16 @@ class MapVectorLayersTest {
         var requests=0
         val http=OkHttpClient.Builder().addInterceptor { chain ->
             requests++
-            val parts=chain.request().url.pathSegments;val x=parts[parts.size-2].toInt();val y=parts.last().removeSuffix(".png").toInt()
+            val parts=chain.request().url.pathSegments;val x=parts[parts.size-2].toInt();val y=parts.last().removeSuffix(".webp").toInt()
             // At x=0 this slopes 0..255 m, at x=1 256..511 m: shared east/west edge is 256 m.
-            val bitmap=Bitmap.createBitmap(256,256,Bitmap.Config.ARGB_8888)
-            val pixels=IntArray(256*256) { i -> val h=32768+x*256+y*256+i%256+i/256;0xff000000.toInt() or ((h/256) shl 16) or ((h%256) shl 8) }
-            bitmap.setPixels(pixels,0,256,0,0,256,256)
-            val bytes=ByteArrayOutputStream().also { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }.toByteArray();bitmap.recycle()
+            val bitmap=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888)
+            val pixels=IntArray(512*512) { i -> val h=32768.0+x*256+y*256+(i%512+i/512)/2.0;val raw=(h*256).toInt();0xff000000.toInt() or raw }
+            bitmap.setPixels(pixels,0,512,0,0,512,512)
+            val bytes=ByteArrayOutputStream().also { bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSLESS,100,it) }.toByteArray();bitmap.recycle()
             Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(200).message("OK").body(bytes.toResponseBody()).build()
         }.build()
-        val source=ContourSource(http);val data=source.dataSource
+        val directory=java.nio.file.Files.createTempDirectory("contour-dem").toFile()
+        val source=ContourSource(MapterhornTiles(directory,http));val data=source.dataSource
         fun tile(x:Int):List<MapElement> {
             val result=ArrayList<MapElement>()
             data.query(MapTile(null,x,0,13),object:ITileDataSink {
@@ -114,6 +115,49 @@ class MapVectorLayersTest {
             val gapLines=ArrayList<TerrainContours.Line>();TerrainContours.trace(gaps,5,10) { gapLines.add(it) }
             assertTrue(gapLines.isNotEmpty());assertTrue(gapLines.all { line -> line.points.all { it.isFinite() } })
             var emitted=0;TerrainContours.trace(FloatArray(9) { 100f },3,10) { emitted++ };assertEquals(0,emitted)
-        } finally { data.dispose();source.close() }
+        } finally { data.dispose();source.close();directory.deleteRecursively() }
     }
+    @Test fun correctionAndContoursReuseTheSameDemAndGlobalFallback() {
+        for(fallback in listOf(false,true)) {
+            val directory=java.nio.file.Files.createTempDirectory("shared-dem").toFile()
+            var requests=0
+            val bitmap=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888).apply { eraseColor(0xff81f400.toInt()) } // 500 m
+            val bytes=ByteArrayOutputStream().also { bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSLESS,100,it) }.toByteArray();bitmap.recycle()
+            val http=OkHttpClient.Builder().addInterceptor { chain ->
+                requests++
+                val missing=fallback && chain.request().url.pathSegments.first()=="14"
+                Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(if(missing) 404 else 200)
+                    .message("DEM").body((if(missing) byteArrayOf() else bytes).toResponseBody()).build()
+            }.build()
+            val endpoint="https://test-dem.invalid"
+            val source=ContourSource(MapterhornTiles(directory,http,endpoint));val data=source.dataSource
+            try {
+                val lat=48.2;val lon=10.3;val z=14
+                val x=kotlin.math.floor((lon+180)/360*(1 shl z)).toInt()
+                val y=kotlin.math.floor((1-kotlin.math.asinh(kotlin.math.tan(Math.toRadians(lat)))/Math.PI)/2*(1 shl z)).toInt()
+                data.query(MapTile(null,x,y,z),object:ITileDataSink {
+                    override fun process(element:MapElement) { fail("Constant terrain has no contours") }
+                    override fun setTileImage(bitmap:org.oscim.backend.canvas.Bitmap) { fail("Vector overlay") }
+                    override fun completed(query:QueryResult) { assertEquals(QueryResult.SUCCESS,query) }
+                })
+                val before=requests
+                assertEquals(if(fallback) 5 else 4,before)
+                MapterhornElevations(directory,client=http,endpoint=endpoint).use {
+                    assertEquals(500.0,it.height(lat,lon),.001)
+                }
+                // Native DEMs are reused without a request. A different consumer may recheck a
+                // missing regional tile, but must reuse the already downloaded global parent.
+                assertEquals(before+if(fallback) 1 else 0,requests)
+                data.cancel()
+                data.dispose()
+                data.query(MapTile(null,x,y,z),object:ITileDataSink {
+                    override fun process(element:MapElement) { fail("Disposed source") }
+                    override fun setTileImage(bitmap:org.oscim.backend.canvas.Bitmap) { fail("Disposed source") }
+                    override fun completed(query:QueryResult) { assertEquals(QueryResult.FAILED,query) }
+                })
+                assertEquals(before+if(fallback) 1 else 0,requests)
+            } finally { data.dispose();source.close();directory.deleteRecursively() }
+        }
+    }
+
 }
