@@ -6,6 +6,8 @@ Fahrtfeedback enthalten: Zusammenfassung mit umbenennbarem Fahrtnamen, Statistik
 
 Kartenkorrektur enthalten: vorhandene Detailkarte für Vollbild wiederverwenden, keine dritte MapView. Gemeinsame EGL-Share-Group/GL-State-Abgrenzung/GPU-Reihenfolge für VTM-weit geteilte Puffer-/Shader-IDs. [Befund](vtm-detail-fullscreen-contexts.md). 21 gezielte Tests und zentrale Quellenprüfungen grün, Actions-Build/Artefaktprüfung erfolgreich. Kein Gesamtlauf oder lokale APK. Optischer Geräte-GPU-Test des Kartenwechsels und persönliche Cloud-Kontoprüfung offen. Keine weiteren offenen Umsetzungsaufträge; Trainingsvarianten und spätere Intervallerkennung weiterhin nur vorgemerkt.
 
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen: 4387299 Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 b91de0ff6202c68d25bae2f5770b48c9043e22e8f7dfa86253edc813fce20c7b ebenfalls identisch.
+
 # Aktueller Stand: APK0.8.100 / Build145 veröffentlicht
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.100-release-145.apk) · [Buildnachweis](build-145.md) · [Änderungen](release-0.8.100.md)
