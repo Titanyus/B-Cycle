@@ -490,7 +490,9 @@ object BicycleComponents {
         }
     }
     internal fun inputTypography(view:EditText) {
-        view.typeface=BicycleDesign.narrowTypeface(view.context);view.textSize=BicycleDesign.settingsMetricSp
+        val body=view.getTag(R.id.input_body_typography)==true
+        view.typeface=if(body) BicycleDesign.bodyTypeface else BicycleDesign.narrowTypeface(view.context)
+        view.textSize=if(body) BicycleDesign.rowTitleSp else BicycleDesign.settingsMetricSp
         // Do not clear PasswordTransformationMethod when enforcing mixed-case display.
         if(view.isAllCaps) view.isAllCaps=false
     }

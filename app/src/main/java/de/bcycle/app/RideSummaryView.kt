@@ -24,6 +24,10 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
         addView(transfers,LayoutParams(-1,-2).apply {
             topMargin=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);bottomMargin=BicycleDesign.dp(context,BicycleDesign.horizontalPadding)
         })
+        completion.rideId?.let { id ->
+            addView(RideRpe.slider(context,themes,id),LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+            addView(RideNoteEditor(context,themes,id),LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        }
         addView(details)
         showMetrics(emptyMap());updateStatus()
     }
@@ -33,7 +37,7 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
             listOf(AnalysisMetric.AVG_HEART,AnalysisMetric.NP)).forEach { fields ->
             metrics.addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL;isBaselineAligned=false
-                fields.forEach { metric -> addView(AnalysisMetricTile(context,themes,listOf(metric),values),LayoutParams(0,-1,1f)) }
+                fields.forEach { metric -> addView(AnalysisMetricTile(context,themes,listOf(metric),values,showIcon=false),LayoutParams(0,-1,1f)) }
             },LayoutParams(-1,-2))
         }
         if(entry?.details?.bikeType==BikeType.EBIKE) {
@@ -42,7 +46,7 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
                 tag="ride_summary_battery";orientation=HORIZONTAL;isBaselineAligned=false
                 listOf(AnalysisMetric.SHIFT_BATTERY_LEVEL,AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE).forEach { metric ->
                     val saved=completion.shiftBatteryAtEnd?.let { values+(AnalysisMetric.SHIFT_BATTERY_LEVEL to it.toDouble()) } ?: values
-                    addView(AnalysisMetricTile(context,themes,listOf(metric),saved,batteryWarning=metric!=AnalysisMetric.BATTERY_TEMPERATURE),LayoutParams(0,-1,1f))
+                    addView(AnalysisMetricTile(context,themes,listOf(metric),saved,batteryWarning=metric!=AnalysisMetric.BATTERY_TEMPERATURE,showIcon=false),LayoutParams(0,-1,1f))
                 }
             },LayoutParams(-1,-2))
         }

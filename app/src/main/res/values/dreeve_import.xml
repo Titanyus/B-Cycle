@@ -52,8 +52,8 @@
     <string name="route_delete_many_title">Ausgewählte Fahrten entfernen?</string>
     <string name="route_delete_many_message">%1$d Fahrten aus der lokalen Sammlung entfernen? Vorhandene Downloads und Fahrten bei Clouddiensten bleiben erhalten.</string>
     <string name="dreeve_select_filtered">Alle gefilterten</string>
-    <string name="route_name_pending">Verknüpft · Namensabgleich ausstehend</string>
-    <string name="route_name_failed">Verknüpft · Namensabgleich fehlgeschlagen</string>
+    <string name="route_name_pending">Verknüpft · Änderungen ausstehend</string>
+    <string name="route_name_failed">Verknüpft · Änderungen fehlgeschlagen</string>
     <string name="dreeve_duration_format">%1$d:%2$02d h</string>
     <string name="dreeve_import_origin">Herkunft der Fahrten</string>
     <string name="dreeve_import_origin_hint">Gilt für alle ausgewählten Fahrten, auch für Zusammenfassungen ohne GPX. Bereits vorhandene Fahrten bleiben unverändert. Der Import startet keinen Cloud-Upload.</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ride_summary_title">Zusammenfassung</string>
+    <string name="ride_summary_title">Fahrt</string>
     <string name="ride_summary_battery">Akkustand E-Bike</string>
     <string name="ride_summary_temperature">Akkutemperatur</string>
     <string name="ride_summary_celsius">°C</string>

@@ -44,6 +44,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                         .put("details",details.copy(bikeType=RideProfileColor.type(context,id) ?: details.bikeType).json())
                         .put("bike",RideProfileColor.backup(context,id) ?: JSONObject.NULL).put("links",links).put("files",payloads)
                         .put("weather",RideWeatherStore(context).backup(id) ?: JSONObject.NULL)
+                        .put("feedback",RideAnnotations.read(context,id).json())
                     val metadata=jsonFile(temporary,"$id.ride.json",json);require(metadata.length()<=65536)
                     entries.put(send(directory,metadata.name,metadata))
                 } catch(e:Exception) {
@@ -110,6 +111,7 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                 val name=row.getString("name");require(name.isNotBlank() && name.length<=120 && name.none(Char::isISOControl))
                 val origin=TrackOrigin.valueOf(row.getString("origin"));kind=row.getString("kind")
                 val details=RouteDetails.from(row.getJSONObject("details"));require(details.dateMs>=0)
+                val feedback=row.optJSONObject("feedback")?.also { RideAnnotation.decode(it) }
                 val bike=row.optJSONObject("bike")
                 bike?.let {
                     require(BikeIdentities.valid(it.getString("bikeId")) && it.getInt("slot")>=0)
@@ -146,12 +148,13 @@ internal class RideDirectoryBackup(private val context:Context,private val fits:
                     createdId=id;bike?.let { RideProfileColor.confirm(context,id,it.toString()) }
                     restoredLinks.forEach { RideServiceLinks.confirm(context,it) };RideNames.imported(context,id,name)
                     row.optJSONObject("weather")?.let { RideWeatherStore(context).restore(id,it) }
+                    feedback?.let { RideAnnotations.restore(context,id,it) }
                     done++;createdId=null
                 } else duplicates++
             } catch(e:Exception) {
                 createdId?.let { id ->
                     when(kind) { "FIT"->{ fits.delete(id);RideAnalysisFiles.file(context.filesDir,id).delete() }; "GPX"->gpx.delete(id); "SUMMARY"->summaries.delete(id) }
-                    RideProfileColor.forget(context,id);RideServiceLinks.forget(context,id);RideNames.forget(context,id);RideWeatherStore(context).delete(id)
+                    RideProfileColor.forget(context,id);RideServiceLinks.forget(context,id);RideNames.forget(context,id);RideWeatherStore(context).delete(id);RideAnnotations.forget(context,id)
                 }
                 if(e is java.io.InterruptedIOException || Thread.currentThread().isInterrupted || ServiceProblems.of(e)?.let(ServiceProblems::global)==true) throw e
                 failed++

@@ -18,7 +18,7 @@
     <string name="hrvq_swimming">Schwimmen</string>
     <string name="hrvq_strength">Krafttraining</string>
     <string name="hrvq_other">Andere</string>
-    <string name="hrvq_rpe">Wie anstrengend war das Training für dich? (RPE 0–10)</string>
+    <string name="hrvq_rpe">Wie anstrengend war dein Training gestern für dich? (RPE 0–10)</string>
     <string name="hrvq_distance">Distanz · km</string>
     <string name="hrvq_duration">Dauer · min</string>
     <string name="hrvq_rides">Aus %1$d gefahrenen Strecken vom Vortag vorbelegt. Fahrtzeit, ersatzweise Gesamtdauer. Werte sind bearbeitbar.</string>

@@ -508,7 +508,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         val file = if (fit != null) RouteTransferPayload.file(context,id) else if(summary!=null) dreeveSummaries.file(id) else library.file(id)
         val name = RideNames.name(context,id) ?: fit?.name ?: summary?.activity?.name ?: library.entries.single { it.id == id }.name
         RouteLocalSaves.perform(context, id, file, "Downloads/B-Cycle") {
-            DownloadFiles.write(context, file, "$name.${file.extension}")
+            LocalRouteExport.write(context, RideAnnotationFiles.exported(context,id,file), "$name.${file.extension}", "")
         }
     }
     internal fun uploadRoute(id: String,target:RouteTransferTarget?=null) = operate(context.getString(R.string.cloud_uploads_queued)) {
@@ -562,6 +562,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         if (fits.entries.any { it.id == id }) { fits.delete(id); if (selectedFit == id) setSelectedFit(null) } else if(dreeveSummaries.entries.any { it.id==id }) dreeveSummaries.delete(id) else library.delete(id)
         RideAnalysisFiles.file(context.filesDir,id).delete()
         RideNames.forget(context,id)
+        RideAnnotations.forget(context,id)
         RideProfileColor.forget(context,id)
         RouteTransferPayload.forget(context,id)
         RouteLocalSaves.forget(context, id)

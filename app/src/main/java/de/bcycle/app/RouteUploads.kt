@@ -27,6 +27,7 @@ internal object RouteUploads {
     private fun save(context: Context, entries: JSONObject) {
         check(prefs(context).edit().putString("entries", entries.toString()).putLong("revision", System.nanoTime()).commit())
     }
+    fun wasQueued(context:Context,id:String)=synchronized(lock) { entries(context).has(id) }
     fun revision(context: Context) = prefs(context).getLong("revision", 0)
     fun status(context: Context, id: String): String = state(context, id).message
     fun problem(context:Context,id:String):Int?=synchronized(lock) {
@@ -63,7 +64,7 @@ internal object RouteUploads {
         val config = RouteExportSettings(context).read()
         check(config.webdav) { "WebDAV bitte in den Streckeneinstellungen aktivieren" }
         require(eligible(context,id))
-        val file = RouteTransferPayload.file(context,id)
+        val file = RouteTransferPayload.exportFile(context,id)
         require(file.isFile)
         // MapState verifies RECORDED metadata before exposing this action; restored rides
         // may retain an imported-prefixed immutable original after metadata recovery.
@@ -140,7 +141,7 @@ internal object RouteUploads {
             try {
                 check(eligible(context, id)) { "Cloud-Upload nur für selbst gefahrene FIT-Fahrten" }
                 check(RouteTransferPayload.metadataMatches(context,id,item))
-                file=RouteTransferPayload.file(context,id)
+                file=RouteTransferPayload.exportFile(context,id)
                 check(file.isFile) { "Lokale FIT-Datei fehlt" }
                 check(item.getString("target") == target(config)) { "Ziel geändert · Upload erneut anstoßen" }
                 val hash = fingerprint(file)

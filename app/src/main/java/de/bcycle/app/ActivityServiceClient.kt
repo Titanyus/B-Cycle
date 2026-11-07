@@ -103,6 +103,14 @@ internal class DreeveClient(config:ActivityServiceConfig,private val key:String,
         val url=request("activities").build().url.newBuilder().addPathSegment(activityId).build()
         return http.json(request("activities").url(url).build()).getString("name").trim().take(120).also { require(it.isNotBlank()) }
     }
+    fun annotations(activityId:String,value:RideAnnotation) {
+        require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
+        val url=request("activities").build().url.newBuilder().addPathSegment(activityId).build()
+        val existing=http.json(request("activities").url(url).build())
+        if(existing.validId("id")!=activityId) throw ActivityServiceFailure(false,R.string.service_response_failed)
+        val description=RideAnnotations.description(existing.optString("description").takeIf { !existing.isNull("description") }.orEmpty(),value)
+        http.json(request("activities").url(url).patch(JSONObject().put("description",description).toString().toRequestBody("application/json".toMediaType())).build())
+    }
     fun rename(activityId:String,name:String) {
         val url=request("activities").build().url.newBuilder().addPathSegment(activityId).build()
         val body=JSONObject().put("name",name).toString().toRequestBody("application/json".toMediaType())
@@ -208,6 +216,13 @@ internal class StravaClient(private val settings:ActivityServiceSettings,private
         val activity=result.validId("activity_id")
         if(activity!=null && !activity.matches(Regex("[0-9]{1,20}"))) throw ActivityServiceFailure(false,R.string.service_response_failed)
         return UploadProgress(id,activity)
+    }
+    fun annotations(activityId:String,value:RideAnnotation) {
+        require(activityId.matches(Regex("[0-9]{1,20}")))
+        val existing=http.json(request("activities/$activityId").build())
+        if(existing.validId("id")!=activityId) throw ActivityServiceFailure(false,R.string.service_response_failed)
+        val description=RideAnnotations.description(existing.optString("description").takeIf { !existing.isNull("description") }.orEmpty(),value)
+        http.json(request("activities/$activityId").put(FormBody.Builder().add("description",description).build()).build())
     }
     fun rename(activityId:String,name:String) {
         require(activityId.matches(Regex("[0-9]{1,20}")))

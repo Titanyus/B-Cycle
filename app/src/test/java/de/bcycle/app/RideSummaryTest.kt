@@ -56,6 +56,9 @@ class RideSummaryTest {
             assertEquals(3,(rows.getChildAt(0) as ViewGroup).childCount);assertEquals(2,(rows.getChildAt(1) as ViewGroup).childCount)
             var analysis:RouteAnalysis?=null
             runtime.mapState.loadAnalysis(id) { analysis=it.getOrThrow() };drain(runtime)
+            val title=dialog.window!!.decorView.findViewWithTag<android.widget.TextView>("bicycle_dialog_title")
+            assertEquals(analysis!!.entry.name,title.text.toString());assertTrue(title.isClickable)
+            assertNotNull(view.findViewWithTag<View>("ride_note_editor"));assertNotNull(view.findViewWithTag<View>("ride_rpe_slider"))
             val tiles=all(view).filterIsInstance<AnalysisMetricTile>()
             val battery=if(analysis!!.entry.details.bikeType==BikeType.EBIKE) listOf(AnalysisMetric.SHIFT_BATTERY_LEVEL,AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE) else emptyList()
             assertEquals(listOf(AnalysisMetric.DISTANCE,AnalysisMetric.MOVING,AnalysisMetric.AVG_SPEED,AnalysisMetric.AVG_HEART,AnalysisMetric.NP)+battery,tiles.map { it.alternatives.single() })
@@ -73,7 +76,7 @@ class RideSummaryTest {
             for(width in listOf(288,328,380)) {
                 view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
                 view.layout(0,0,width,view.measuredHeight)
-                assertTrue(view.height<600)
+                assertTrue("Summary with four-line note and RPE must remain scrollable",view.height<1100)
                 if(width==328) {
                     val image=Bitmap.createBitmap(width,view.height,Bitmap.Config.ARGB_8888)
                     image.eraseColor(runtime.themes.active.tokens.secondary);view.draw(Canvas(image))

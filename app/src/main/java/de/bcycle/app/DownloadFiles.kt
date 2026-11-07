@@ -7,7 +7,7 @@ import android.provider.MediaStore
 import java.io.File
 
 internal object DownloadFiles {
-    fun write(context: Context, source: File, name: String) {
+    fun write(context: Context, source: File, name: String):android.net.Uri {
         val resolver = context.contentResolver
         val safeName = name.replace(Regex("[\\\\/:*?\"<>|\\p{Cntrl}]"), "_").take(180)
         val values = ContentValues().apply {
@@ -21,5 +21,6 @@ internal object DownloadFiles {
             resolver.openOutputStream(uri, "w")?.use { output -> source.inputStream().use { it.copyTo(output) } } ?: error("Download kann nicht geschrieben werden")
             check(resolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }, null, null) == 1)
         } catch (error: Exception) { resolver.delete(uri, null, null); throw error }
+        return uri
     }
 }

@@ -37,6 +37,61 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             super.dispatchDraw(canvas)
         }
     })
+    private var noteHolder:LinearLayout?=null
+    private var rpeNumber:TextView?=null
+    private var rpeMeaning:TextView?=null
+    private var noteEditing=false
+    var editRpe:(()->Unit)?=null
+    var maximizeMap:((RouteAnalysis,RouteAnalysisMap)->Unit)?=null
+    fun refreshFeedback() {
+        val value=RideAnnotations.read(context,id)
+        rpeNumber?.text=value.rpe?.toString() ?: "–"
+        rpeMeaning?.text=value.rpe?.let { context.getString(RideRpe.label(it)) } ?: context.getString(R.string.ride_rpe_unrated)
+        if(!noteEditing) {
+            noteHolder?.apply {
+                removeAllViews();visibility=if(value.note.isBlank()) GONE else VISIBLE
+                if(value.note.isNotBlank()) {
+                    addView(BicycleComponents.sectionDivider(context,themes).apply { tag="analysis_note_divider" })
+                    addView(BicycleComponents.text(context,themes,value.note).apply { tag="analysis_note_text";typeface=BicycleDesign.bodyTypeface;textSize=BicycleDesign.rowTitleSp;setTextIsSelectable(true) })
+                }
+            }
+        }
+    }
+    override fun dispatchTouchEvent(event:android.view.MotionEvent):Boolean {
+        if(noteEditing && event.actionMasked==android.view.MotionEvent.ACTION_DOWN) {
+            noteHolder?.findViewWithTag<View>("ride_note_editor")?.let { editor ->
+                val rect=android.graphics.Rect();editor.getGlobalVisibleRect(rect)
+                if(!rect.contains(event.rawX.toInt(),event.rawY.toInt())) editor.clearFocus()
+            }
+        }
+        return super.dispatchTouchEvent(event)
+    }
+    fun editNote() {
+        val holder=noteHolder ?: return
+        if(noteEditing) { holder.findViewWithTag<View>("ride_note_editor")?.clearFocus();return }
+        noteEditing=true;holder.removeAllViews();holder.visibility=VISIBLE
+        holder.addView(BicycleComponents.sectionDivider(context,themes))
+        val editor=RideNoteEditor(context,themes,id)
+        fun finish() {
+            if(!noteEditing) return
+            RideAnnotations.flushAsync(context,id);noteEditing=false
+            post { if(!closed) refreshFeedback() }
+        }
+        var keyboardShown=false
+        editor.setOnApplyWindowInsetsListener { _,insets ->
+            val visible=insets.isVisible(android.view.WindowInsets.Type.ime())
+            if(keyboardShown && !visible) editor.clearFocus()
+            keyboardShown=visible;insets
+        }
+        editor.onFocusChangeListener=View.OnFocusChangeListener { _,focused -> if(!focused) finish() }
+        editor.imeOptions=android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+        editor.setOnEditorActionListener { _,action,_ ->
+            if(action==android.view.inputmethod.EditorInfo.IME_ACTION_DONE) { editor.clearFocus();context.getSystemService(android.view.inputmethod.InputMethodManager::class.java).hideSoftInputFromWindow(editor.windowToken,0);true } else false
+        }
+        holder.addView(editor,LinearLayout.LayoutParams(-1,-2))
+        editor.requestFocus()
+        post { smoothScrollTo(0,0);context.getSystemService(android.view.inputmethod.InputMethodManager::class.java).showSoftInput(editor,android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT) }
+    }
     private var preview: RouteAnalysisMap? = null
     private var chartNavigation:RouteChartNavigation?=null
     private var cancelled: (() -> Unit)? = null
@@ -44,15 +99,14 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private var weatherTask:java.util.concurrent.Future<*>?=null
     private var weatherRevision=0L
     var correctElevation: (() -> Unit)? = null
-    var maximizeMap:((RouteAnalysis,RouteAnalysisMap)->Unit)?=null
     fun correctionStatus(busy:Boolean,error:String="") {
         findViewWithTag<TextView>("analysis_correction_status")?.let { BicycleFeedback.update(it,if(busy) context.getString(R.string.elevation_correcting) else error,hideWhenEmpty=true) }
     }
     init { tag = "route_analysis_$id"; BicycleComponents.scrollStyle(this); addView(body); loading() }
     fun cancellation(cancel: () -> Unit) { cancelled = cancel }
-    fun dispose() { chartNavigation?.dispose();closed = true; weatherTask?.cancel(true); cancelled?.invoke(); preview?.dispose() }
+    fun dispose() { RideAnnotations.flushAsync(context,id);chartNavigation?.dispose();closed = true; weatherTask?.cancel(true); cancelled?.invoke(); preview?.dispose() }
     private fun text(resource: Int, heading: Boolean = false) = BicycleComponents.text(context, themes, context.getString(resource), heading)
-    private fun reset() { chartNavigation?.dispose();chartNavigation=null;weatherTask?.cancel(true); weatherRevision++;preview?.dispose(); preview = null; body.removeAllViews() }
+    private fun reset() { noteEditing=false;noteHolder=null;rpeNumber=null;rpeMeaning=null;chartNavigation?.dispose();chartNavigation=null;weatherTask?.cancel(true); weatherRevision++;preview?.dispose(); preview = null; body.removeAllViews() }
     fun loading() { reset(); body.addView(BicycleFeedback.status(context, themes, context.getString(R.string.analysis_loading))) }
     fun failed(retry: () -> Unit) {
         if (closed) return
@@ -83,7 +137,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
         lines.addView(BicycleComponents.text(context,themes,date).apply {
             gravity=Gravity.CENTER;typeface=BicycleDesign.bodyTypeface;tag="analysis_date";textSize=BicycleDesign.rowTitleSp;maxLines=1
         },LinearLayout.LayoutParams(-1,dp(26)))
-        identity.addView(lines,FrameLayout.LayoutParams(-1,dp(52)).apply { marginStart=dp(identityInset);marginEnd=dp(identityInset) })
+        identity.addView(lines,FrameLayout.LayoutParams(-1,dp(52)).apply { marginStart=dp(identityInset);marginEnd=dp(92) })
         val icon=when(analysis.entry.origin) {
             TrackOrigin.IMPORTED->BicycleIcon.TrackImported
             TrackOrigin.RECORDED->BikeTypeIcons.forType(analysis.entry.details.bikeType)
@@ -101,7 +155,16 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
             addView(BicycleComponents.text(context,themes,analysis.entry.format).apply { textSize=BicycleDesign.formatSp;gravity=Gravity.CENTER },LinearLayout.LayoutParams(-1,-2))
             contentDescription=context.getString(R.string.route_file_identity,context.getString(analysis.entry.details.bikeType?.label ?: R.string.ui_route_unknown_origin),analysis.entry.format)
         },FrameLayout.LayoutParams(dp(52),dp(52),Gravity.START or Gravity.CENTER_VERTICAL).apply { if(profileColor!=null) marginStart=dp(5+BicycleDesign.controlGap) })
+        identity.addView(LinearLayout(context).apply {
+            orientation=LinearLayout.VERTICAL;gravity=Gravity.CENTER;tag="analysis_rpe"
+            rpeNumber=BicycleComponents.text(context,themes,"").apply { typeface=BicycleDesign.narrowTypeface(context);textSize=32f;gravity=Gravity.CENTER;includeFontPadding=false }
+            rpeMeaning=BicycleComponents.text(context,themes,"").apply { typeface=BicycleDesign.narrowTypeface(context);textSize=BicycleDesign.formatSp;gravity=Gravity.CENTER;includeFontPadding=false;maxLines=1;setAutoSizeTextTypeUniformWithConfiguration(8,BicycleDesign.formatSp.toInt(),1,android.util.TypedValue.COMPLEX_UNIT_SP) }
+            addView(rpeNumber,LinearLayout.LayoutParams(-1,dp(34)));addView(rpeMeaning,LinearLayout.LayoutParams(-1,dp(18)))
+            contentDescription=context.getString(R.string.ride_rpe_edit);isFocusable=true;setOnClickListener { editRpe?.invoke() }
+        },FrameLayout.LayoutParams(dp(88),dp(52),Gravity.END or Gravity.CENTER_VERTICAL))
         detailHead.addView(identity,LinearLayout.LayoutParams(-1,dp(52)))
+        noteHolder=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;tag="analysis_note" }
+        detailHead.addView(noteHolder,LinearLayout.LayoutParams(-1,-2));refreshFeedback()
         if(analysis.entry.format=="JSON") detailHead.addView(BicycleComponents.description(context,themes,context.getString(R.string.dreeve_summary_notice)).apply { tag="analysis_summary_notice" })
         analysis.weatherTarget?.let { target ->
             val holder=LinearLayout(context).apply { orientation=LinearLayout.VERTICAL;visibility=GONE }
@@ -213,7 +276,7 @@ internal class RouteAnalysisView(context: Context, private val themes: ThemeMana
     private fun dp(n: Int) = BicycleDesign.dp(context, n)
 }
 
-internal class AnalysisMetricTile(context: Context, private val themes: ThemeManager, val alternatives: List<AnalysisMetric>, private val values: Map<AnalysisMetric, Double>, private val batteryWarning:Boolean=false) : FrameLayout(context) {
+internal class AnalysisMetricTile(context: Context, private val themes: ThemeManager, val alternatives: List<AnalysisMetric>, private val values: Map<AnalysisMetric, Double>, private val batteryWarning:Boolean=false, private val showIcon:Boolean=true) : FrameLayout(context) {
     private var index = 0
     private val value = BicycleComponents.text(context, themes, "").apply {
         typeface = BicycleDesign.narrowTypeface(context); textSize = BicycleDesign.analysisMetricSp; gravity = Gravity.CENTER
@@ -236,7 +299,7 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
         tag = "analysis_metric_${alternatives.first().name}"; minimumHeight = dp(BicycleDesign.analysisTileMinHeight)
         val inset = dp(BicycleDesign.smallGap); setPadding(inset, dp(BicycleDesign.verticalPadding), inset, dp(BicycleDesign.verticalPadding))
         background = null
-        metrics.addView(icon, LinearLayout.LayoutParams(dp(BicycleDesign.analysisMetricIconSize), dp(BicycleDesign.analysisMetricIconSize)).apply { gravity = Gravity.CENTER_HORIZONTAL })
+        if(showIcon) metrics.addView(icon, LinearLayout.LayoutParams(dp(BicycleDesign.analysisMetricIconSize), dp(BicycleDesign.analysisMetricIconSize)).apply { gravity = Gravity.CENTER_HORIZONTAL })
         metrics.addView(AnalysisValueRow(context, value, unit,centerValue=true), LinearLayout.LayoutParams(-1, dp(40)))
         metrics.addView(label, LinearLayout.LayoutParams(-1, -2))
         addView(metrics, LayoutParams(-1, -2, Gravity.CENTER))

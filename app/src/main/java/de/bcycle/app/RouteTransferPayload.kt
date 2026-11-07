@@ -46,10 +46,11 @@ internal object RouteTransferPayload {
         } finally { temporary.delete() }
         return target
     }
+    fun exportFile(c:Context,id:String)=RideAnnotationFiles.exported(c,id,file(c,id))
     fun annotate(c:Context,file:File,row:JSONObject):JSONObject {
         val id=file.nameWithoutExtension
         runCatching { FitRead.read(file).details.bikeType }.getOrNull()?.let { row.put("sourceBikeType",it.name) }
-        if(file.canonicalPath.startsWith(directory(c,id).canonicalPath+"/")) {
+        if(file.canonicalPath.startsWith(directory(c,id).canonicalPath+"/") || file.canonicalPath.startsWith(File(c.cacheDir,"ride-feedback").canonicalPath+"/")) {
             val original=source(c,id)
             row.put("sourceLength",original.length()).put("sourceModified",original.lastModified()).put("sourceHash",WebDavClient.hash(original))
         }

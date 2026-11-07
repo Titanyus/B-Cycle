@@ -1,0 +1,16 @@
+<resources>
+    <string name="ride_note">Notiz</string>
+    <string name="ride_note_hint">Bemerkung oder Notiz eintragen</string>
+    <string name="ride_rpe_question">Wie anstrengend war diese Fahrt insgesamt für dich? (RPE 0–10)</string>
+    <string name="ride_rpe_unrated">Noch nicht bewertet</string>
+    <string name="ride_rpe_none">Keine Anstrengung</string>
+    <string name="ride_rpe_very_easy">Sehr leicht</string>
+    <string name="ride_rpe_easy">Leicht</string>
+    <string name="ride_rpe_moderate">Moderat</string>
+    <string name="ride_rpe_somewhat_hard">Etwas schwer</string>
+    <string name="ride_rpe_hard">Schwer</string>
+    <string name="ride_rpe_very_hard">Sehr schwer</string>
+    <string name="ride_rpe_maximum">Maximal</string>
+    <string name="ride_rpe_edit">RPE der Fahrt ändern</string>
+    <string name="ride_note_external_failed">Lokal gespeichert. Die exportierte Datei konnte noch nicht aktualisiert werden.</string>
+</resources>

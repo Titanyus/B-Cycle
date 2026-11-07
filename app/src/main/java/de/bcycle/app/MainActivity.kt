@@ -976,12 +976,18 @@ class MainActivity : Activity() {
                 runtime.mapState.entries.firstOrNull { it.id==id }?.let { entry -> screen.dismiss();routeAnalysis(entry) }
             }
             screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY,plainHeader=true,dashboardSurface=true)
-                .setTitle(R.string.ride_summary_title).setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(content) }).show()
+                .setTitle(RideNames.name(this,id) ?: runtime.mapState.entries.firstOrNull { it.id==id }?.name ?: getString(R.string.ride_summary_title)).setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(content) }).show()
+            val summaryTitle=screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")
+            fun updateSummaryName() { summaryTitle?.text=RideNames.name(this,id) ?: runtime.mapState.entries.firstOrNull { it.id==id }?.name ?: summaryTitle?.text }
+            summaryTitle?.setOnClickListener { runtime.mapState.entries.firstOrNull { it.id==id }?.let(::renameRoute) }
+            val namesPrefs=getSharedPreferences("ride-names",0)
+            val nameListener=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,_->summaryTitle?.post { updateSummaryName() } }
+            namesPrefs.registerOnSharedPreferenceChangeListener(nameListener)
             val backdrop=DashboardModal.blur(dashboardRoot)
             val cancel=runtime.mapState.loadAnalysis(id) { result ->
-                if(!isDestroyed && screen.isShowing) result.fold(content::show) { content.loadingFailed() }
+                if(!isDestroyed && screen.isShowing) result.fold({ content.show(it);updateSummaryName() }) { content.loadingFailed() }
             }
-            dialogs.onDismiss(screen) { cancel();backdrop.close() }
+            dialogs.onDismiss(screen) { RideAnnotations.flushAsync(this,id);namesPrefs.unregisterOnSharedPreferenceChangeListener(nameListener);cancel();backdrop.close() }
         }
     }
     private fun showHrvHistory() {
@@ -1582,14 +1588,17 @@ class MainActivity : Activity() {
         }
         val screen = dialog().setView(root).create()
         val detail = DetailSession(entry.id, screen, content, footer)
-        val labels = listOf(R.string.route_action_map, R.string.route_action_rename, R.string.elevation_correct_action, R.string.route_transfer_upload, R.string.route_action_delete)
-        val captions = listOf(R.string.footer_show, R.string.route_action_rename, R.string.elevation_correct_action, R.string.route_transfer_upload, R.string.route_action_delete)
-        val icons = listOf(BicycleIcon.ShowOnMap, BicycleIcon.RenameTrack, BicycleIcon.CorrectElevation, BicycleIcon.Cloud, BicycleIcon.DeleteTrack)
+        val labels = listOf(R.string.ride_note, R.string.route_action_rename, R.string.elevation_correct_action, R.string.route_transfer_upload, R.string.route_action_delete)
+        val captions = listOf(R.string.ride_note, R.string.route_action_rename, R.string.elevation_correct_action, R.string.route_transfer_upload, R.string.route_action_delete)
+        val icons = listOf(BicycleIcon.RenameTrack, BicycleIcon.RenameTrack, BicycleIcon.CorrectElevation, BicycleIcon.Cloud, BicycleIcon.DeleteTrack)
         val tags = listOf("detail_map", "detail_rename", "detail_elevation", "detail_upload", "detail_delete")
         labels.indices.forEach { index ->
             footer.addView(BicycleFooterAction(settingsContext, settingsThemes, icons[index], getString(captions[index]), getString(labels[index])) {
                 executeDetailAction(detail, index)
             }.apply { tag = tags[index] }, LinearLayout.LayoutParams(0, dp(BicycleDesign.footerHeight), 1f))
+        }
+        content.editRpe={
+            dialog(fullscreen=false).setTitle(R.string.ride_rpe_edit).setView(RideRpe.slider(settingsContext,settingsThemes,entry.id) { content.refreshFeedback() }).show()
         }
         routeDetail = detail
         screen.setCustomTitle(analysisHeader(settingsContext, settingsThemes, entry, rename = { if(!runtime.mapState.busy) detailEntry(detail)?.let(::renameRoute) }, back = { screen.dismiss() }))
@@ -2632,12 +2641,12 @@ class MainActivity : Activity() {
         val signature = "${runtime.mapState.routeRevision}:${runtime.mapState.busy}:${runtime.recording}:${runtime.saving}:${RouteCloudUploads.revision(this)}:${RouteLocalSaves.revision(this)}:${settingsThemes.active.tokens.hashCode()}:${detail.analysis?.route != null}:${entry?.fileStamp}"
         if (signature == detail.signature) return
         detail.signature = signature
-        val kinds = listOf(BicycleIcon.ShowOnMap,BicycleIcon.RenameTrack,BicycleIcon.CorrectElevation,BicycleIcon.Cloud,BicycleIcon.DeleteTrack)
+        val kinds = listOf(BicycleIcon.RenameTrack,BicycleIcon.RenameTrack,BicycleIcon.CorrectElevation,BicycleIcon.Cloud,BicycleIcon.DeleteTrack)
         kinds.indices.forEach { index ->
             val button = detail.footer.getChildAt(index) as BicycleFooterAction
             button.setIcon(kinds[index], settingsThemes.active.tokens.foreground)
             button.isEnabled = !runtime.mapState.busy && entry != null && when (index) {
-                0 -> detail.analysis?.route != null
+                0 -> detail.analysis != null
                 2 -> !runtime.recording && !runtime.saving && entry.format == "FIT" && entry.origin == TrackOrigin.RECORDED && entry.hasRoute
                 else -> true
             }
@@ -2647,7 +2656,7 @@ class MainActivity : Activity() {
         if (runtime.mapState.busy) return
         val entry = detailEntry(detail) ?: return
         when (index) {
-            0 -> detail.analysis?.let { analysis -> detail.content.findViewWithTag<RouteAnalysisMap>("analysis_map")?.let { map -> routeAnalysisMap(analysis,map) } }
+            0 -> detail.content.editNote()
             1 -> renameRoute(entry)
             2 -> detail.content.correctElevation?.invoke()
             3 -> {

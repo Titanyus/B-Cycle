@@ -49,6 +49,7 @@ class RideDirectoryBackupTest {
         val weatherTarget=WeatherTarget(1792483200000L,50.0,8.0)
         val weather=RideWeatherData(1,17.5,60.0,8.0,225.0)
         RideWeatherStore(source.c).write(id,weatherTarget,weather)
+        RideAnnotations.restore(source.c,id,RideAnnotation("Notiz mit Umlaut: schön",0).json())
         val destination=parent(source.c)
         val report=source.backup.export(destination);val folder=destination.child(report.folder,false)
         assertFalse(folder.entries().any { it.name.startsWith("settings") || it.name.startsWith("hrv") || it.name.startsWith("bike-") })
@@ -57,6 +58,7 @@ class RideDirectoryBackupTest {
         val target=Library(context());val restored=target.backup.restore(folder)
         assertEquals(1,restored.completed);assertEquals(0,restored.failed)
         assertEquals(weather,RideWeatherStore(target.c).read(id,weatherTarget))
+        assertEquals(RideAnnotation("Notiz mit Umlaut: schön",0),RideAnnotations.read(target.c,id))
     }
     @Test fun completeFitGpxSummarySettingsAndBikeIdentitiesRoundTripWithoutInventingRecordsOrUploads() {
         val source=Library(context());val target=Library(context())

@@ -178,6 +178,15 @@ internal class IntervalsClient(private val config:IntervalsConfig,private val ke
         if(JSONObject(text).optString("id")!=activityId) throw IntervalsFailure(false,R.string.intervals_response_failed)
         return true
     }
+    fun annotations(activityId:String,value:RideAnnotation) {
+        require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
+        val url=base.newBuilder().addPathSegment("activity").addPathSegment(activityId).build()
+        val existing=JSONObject(execute(request("").url(url).get().build()))
+        require(existing.getString("id")==activityId)
+        val patch=JSONObject().put("description",RideAnnotations.description(existing.optString("description").takeIf { !existing.isNull("description") }.orEmpty(),value,includeRpe=false))
+        value.rpe?.let { patch.put("icu_rpe",it) }
+        execute(request("").url(url).put(patch.toString().toRequestBody("application/json".toMediaType())).build())
+    }
     fun rename(activityId:String,name:String) {
         require(activityId.isNotBlank() && activityId.length<=512 && activityId.none(Char::isISOControl))
         val url=base.newBuilder().addPathSegment("activity").addPathSegment(activityId).build()

@@ -44,7 +44,8 @@ class RouteDetailActionsTest {
             views(ShadowAlertDialog.getLatestAlertDialog().window!!.decorView).single { it.tag == "settings_ROUTE_TEMPLATES" }.performClick()
             val manager = ShadowAlertDialog.getLatestAlertDialog(); waitFor { !state.busy }; measure(manager.window!!.decorView)
             val list = manager.window!!.decorView.findViewWithTag<ListView>("route_list")
-            val index = (0 until list.adapter.count).single { (list.adapter.getItem(it) as? ManagedRoute)?.id == id }
+            val index = (0 until list.adapter.count).firstOrNull { (list.adapter.getItem(it) as? ManagedRoute)?.id == id }
+                ?: error("Recorded ride $id absent from manager; items="+(0 until list.adapter.count).map { list.adapter.getItem(it) })
             val card = list.adapter.getView(index, null, list)
             assertNull(card.findViewWithTag<View>("route_more_$id")); assertNotNull(card.findViewWithTag<View>("route_eye_$id"))
             assertNull(card.findViewWithTag<View>("route_cloud_$id")); assertNull(card.findViewWithTag<View>("route_local_$id"))
@@ -61,7 +62,7 @@ class RouteDetailActionsTest {
             assertEquals(5, footer.childCount)
             assertEquals(listOf("detail_map", "detail_rename", "detail_elevation", "detail_upload", "detail_delete"), (0 until footer.childCount).map { footer.getChildAt(it).tag })
             assertTrue((0 until footer.childCount).all { footer.getChildAt(it) is BicycleFooterAction })
-            assertEquals(listOf("Anzeigen", "Umbenennen", "Höhe korrigieren", "Upload", "Löschen"),
+            assertEquals(listOf("Notiz", "Umbenennen", "Höhe korrigieren", "Upload", "Löschen"),
                 (0 until footer.childCount).map { (footer.getChildAt(it) as android.widget.LinearLayout).getChildAt(1) as TextView }.map { it.text.toString() })
             assertFalse(detail.window!!.decorView.findViewWithTag<View>("detail_elevation").isEnabled)
             assertNull(detail.window!!.decorView.findViewWithTag<View>("analysis_rename"))
@@ -74,14 +75,23 @@ class RouteDetailActionsTest {
             assertTrue(detail.window!!.decorView.findViewWithTag<View>("detail_upload").isEnabled)
             assertNull(detail.window!!.decorView.findViewWithTag<View>("analysis_actions"))
             assertFalse(views(detail.window!!.decorView).filterIsInstance<TextView>().any { it.isShown && it.text.toString() == activity.getString(R.string.analysis_close) })
+            footer.getChildAt(0).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            val note=detail.window!!.decorView.findViewWithTag<EditText>("ride_note_editor")
+            assertNotNull(note);note.setText("Testnotiz nach der Fahrt")
+            assertEquals("Testnotiz nach der Fahrt",RideAnnotations.read(activity,id).note)
+            note.clearFocus();shadowOf(Looper.getMainLooper()).idle()
             val preview=views(detail.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single()
             val native=preview.map
-            footer.getChildAt(0).performClick(); shadowOf(Looper.getMainLooper()).idle()
+            val maximise=views(detail.window!!.decorView).firstOrNull { it.contentDescription==activity.getString(R.string.analysis_map_fullscreen) }
+            assertNotNull("Detail preview must offer maximize",maximise);maximise!!.performClick()
+            shadowOf(Looper.getMainLooper()).idle()
             val map = ShadowAlertDialog.getLatestAlertDialog(); measure(map.window!!.decorView)
-            assertSame(preview,views(map.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single());assertSame(native,preview.map)
+            assertSame(preview,views(map.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single())
+            assertSame(native,preview.map)
             assertTrue(preview.height > 600)
             testBack(map); shadowOf(Looper.getMainLooper()).idle()
-            assertSame(preview,views(detail.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single());assertSame(native,preview.map)
+            assertSame(preview,views(detail.window!!.decorView).filterIsInstance<RouteAnalysisMap>().single())
+            assertSame(native,preview.map)
             assertEquals(View.VISIBLE, detail.window!!.decorView.visibility)
             fun matches(button: BicycleFooterAction, kind: BicycleIcon): Boolean {
                 fun pixels(drawable: android.graphics.drawable.Drawable): android.graphics.Bitmap {

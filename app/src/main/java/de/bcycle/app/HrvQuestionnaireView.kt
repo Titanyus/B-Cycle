@@ -210,7 +210,7 @@ internal class HrvQuestionnaireView(context:Context,private val themes:ThemeMana
     }
     private fun trainingFields(parent:LinearLayout) {
         if(value.training!=0 && (value.training?.let { it>0 }==true || training?.rideIds?.isNotEmpty()==true))
-            rating(parent,HrvQuestion.RPE,"rpe",R.string.hrvq_no_effort,R.string.hrvq_middle,R.string.hrvq_max_effort,10)
+            rating(parent,HrvQuestion.RPE,"rpe",R.string.hrvq_no_effort,R.string.ride_rpe_hard,R.string.hrvq_max_effort,10)
         if(enabled(HrvQuestion.DISTANCE) || enabled(HrvQuestion.DURATION)) {
             parent.addView(BicycleComponents.description(context,themes,context.getString(when {
                 value.trainingSource=="manual"->R.string.hrvq_manual

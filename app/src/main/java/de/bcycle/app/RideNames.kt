@@ -70,11 +70,27 @@ internal object RideNames {
             links.forEach { task(all,it,name) };save(c,all)
         };schedule(c)
     }
+    fun annotated(c:Context,id:String,value:RideAnnotation) {
+        if(!RideAnnotations.contains(c,id)) return
+        val links=RideServiceLinks.links(c,id)
+        synchronized(lock) {
+            val all=data(c)
+            links.forEach { link -> annotationTask(all,link,value) }
+            save(c,all)
+        };schedule(c)
+    }
+    private fun annotationTask(all:JSONObject,link:RideServiceLink,value:RideAnnotation) {
+        tasks(all).put(key(link)+":annotation",JSONObject().put("ride",link.rideId).put("service",link.service.name)
+            .put("account",link.accountId).put("activity",link.activityId).put("annotation",value.json())
+            .put("read",false).put("name","").put("token",UUID.randomUUID().toString()).put("after",0).put("state","pending"))
+    }
     fun confirmed(c:Context,link:RideServiceLink) {
         synchronized(lock) {
             val all=data(c);val row=names(all).optJSONObject(link.rideId)
             if(link.service==RideService.DREEVE) task(all,link,null,read=true)
             else row?.optString("name")?.takeIf { it.isNotBlank() }?.let { task(all,link,it) }
+            val annotation=RideAnnotations.read(c,link.rideId)
+            if(RideAnnotations.contains(c,link.rideId)) annotationTask(all,link,annotation)
             save(c,all)
         };schedule(c)
     }
@@ -83,7 +99,7 @@ internal object RideNames {
         jobs.keys().asSequence().toList().filter { jobs.getJSONObject(it).optString("ride")==id }.forEach(jobs::remove);save(c,all)
     }
     fun missing(c:Context,link:RideServiceLink)=synchronized(lock) {
-        val all=data(c);tasks(all).remove(key(link));save(c,all)
+        val all=data(c);tasks(all).remove(key(link));tasks(all).remove(key(link)+":annotation");save(c,all)
     }
     private fun current(c:Context,job:JSONObject):Boolean=when(RideService.valueOf(job.getString("service"))) {
         RideService.DREEVE->ActivityServiceSettings(c,ActivityService.DREEVE).read().identity(ActivityService.DREEVE)==job.getString("account")
@@ -91,6 +107,7 @@ internal object RideNames {
         RideService.INTERVALS->IntervalsSettings(c).read().athlete==job.getString("account")
     }
     fun settingsChanged(c:Context) {
+        RideAnnotations.recover(c)
         synchronized(lock) { val all=data(c);val jobs=tasks(all);jobs.keys().forEach { key -> val job=jobs.getJSONObject(key);if(job.optString("state")=="failed" && current(c,job)) job.put("state","pending") };save(c,all) }
         schedule(c)
     }
@@ -156,7 +173,22 @@ internal object RideNames {
                 val delay=(job.getLong("after")-System.currentTimeMillis()).coerceAtLeast(0)
                 if(delay>0 && !wait(minOf(delay,3000),{ !valid() })) { retry=true;continue }
                 if(!valid()) continue
-                if(job.getBoolean("read")) {
+                if(job.has("annotation")) {
+                    val wifi=when(link.service) {
+                        RideService.INTERVALS->IntervalsSettings(c).read().wifiOnly
+                        else->ActivityServiceSettings(c,if(link.service==RideService.DREEVE) ActivityService.DREEVE else ActivityService.STRAVA).read().wifiOnly
+                    }
+                    val network=c.getSystemService(android.net.ConnectivityManager::class.java)
+                    if(wifi && network.getNetworkCapabilities(network.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)!=true) { retry=true;continue }
+                    val annotation=RideAnnotation.decode(job.getJSONObject("annotation"))
+                    when(link.service) {
+                        RideService.DREEVE->{ val settings=ActivityServiceSettings(c,ActivityService.DREEVE)
+                            DreeveClient(settings.read(),settings.credentials().getString("secret"),{ !valid() }).annotations(link.activityId,annotation) }
+                        RideService.STRAVA->StravaClient(ActivityServiceSettings(c,ActivityService.STRAVA),{ !valid() }).annotations(link.activityId,annotation)
+                        RideService.INTERVALS->IntervalsClient(IntervalsSettings(c).read(),IntervalsSettings(c).apiKey(),{ !valid() }).annotations(link.activityId,annotation)
+                    }
+                    synchronized(lock) { val all=data(c);if(tasks(all).optJSONObject(key)?.optString("token")==token) { tasks(all).remove(key);save(c,all) } }
+                } else if(job.getBoolean("read")) {
                     val result=(read?.invoke(link) ?: DreeveClient(ActivityServiceSettings(c,ActivityService.DREEVE).read(),
                         ActivityServiceSettings(c,ActivityService.DREEVE).credentials().getString("secret"),{ !valid() }).activityName(link.activityId)).trim().take(120)
                     require(result.isNotBlank())
