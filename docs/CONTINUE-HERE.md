@@ -1,3 +1,7 @@
+# Trainingspillen und Varianten nach Build147 (noch nicht veröffentlicht)
+
+Übersicht mit Härtebadge und Rahmenpille neben Titel, Diagramm82 statt96dp. Variantenwahl Q+→Q→S→Ext→Ext+→Q+; exakter eindeutiger Hauptblock ab5 Wiederholungen, Warmup/Cooldown erhalten, lokale Auswahl je Training. Kennzahlen/Sortierung/Details aus gewählter Struktur; Originaldateien/Anbieterantwort unangetastet. Sieben gezielte Modell-/bestehende UI-Fälle sowie neuer korrigierter UI-Fall bestanden (8 verschiedene Fälle insgesamt), Vorschau geprüft. [Verfahren/Grenzen](training-library.md). Entwicklungsumgebung wieder verfügbar; Strecken-Thumbnail/Flat-Randkorrektur in Arbeit, anschließend APK ausdrücklich angefordert.
+
 # Trainingsdetails nach Build147 (noch nicht veröffentlicht)
 
 Übersichtsinhalt ohne zusätzliche Auswahlkarte/Rahmen und deren doppelten Innenabstand. Trainingstitel nur im Hauptheader, nicht erneut über den Kennzahlen. Gemeinsame Gruppenköpfe und Trainingsliste unverändert. Bestehender Trainingsdetail-Navigationstest bestanden, Vorschau training-details.png visuell geprüft; Typografie/UI-Katalog/Diff grün. Log /workspace/.tools/training-details-unframed-test.log. Keine neue APK angefordert.

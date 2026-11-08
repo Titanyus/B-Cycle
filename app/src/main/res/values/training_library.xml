@@ -45,7 +45,7 @@
     <string name="training_details_more_steps">Weitere Abschnitte anzeigen</string>
     <string name="training_details_more_fields">Weitere Einträge anzeigen</string>
     <string name="training_details_more_text">Weiteren Text anzeigen</string>
-    <string name="training_tag_easy">Locker</string>
+    <string name="training_tag_easy">Leicht</string>
     <string name="training_tag_sweet_spot">Sweet Spot</string>
     <string name="training_tag_hard">Hart</string>
     <string name="training_auto_tag">Automatischer Tag: %1$s</string>
@@ -59,4 +59,7 @@
     <string name="training_sort_group">%1$s · unter %2$s</string>
     <string name="training_sort_unknown">Ohne berechenbaren Wert</string>
     <string name="training_group_count">Trainings</string>
+    <string name="training_variant_description">Trainingslänge: %1$s</string>
+    <string name="training_variant_cycle">Antippen wechselt zur nächsten Variante: Q+, Q, S, Ext, Ext+.</string>
+    <string name="training_variant_unavailable">Standard. Kein eindeutiger wiederholter Hauptblock mit mindestens fünf Intervallen erkannt.</string>
 </resources>

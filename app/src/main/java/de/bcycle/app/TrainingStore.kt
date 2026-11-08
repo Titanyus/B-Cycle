@@ -47,7 +47,7 @@ internal class TrainingRepository(context:android.content.Context,
     fun close() { worker.shutdown() }
     fun read(done:(Result<List<TrainingWorkout>>)->Unit)=task(done) { store.read() }
     fun original(workout:TrainingWorkout,done:(Result<JSONObject?>)->Unit)=task(done) { workout.sourceData?.let(::JSONObject) }
-    fun delete(ids:Set<String>,done:(Result<List<TrainingWorkout>>)->Unit)=task(done) { store.delete(ids) }
+    fun delete(ids:Set<String>,done:(Result<List<TrainingWorkout>>)->Unit)=task(done) { store.delete(ids).also { TrainingVariants.forget(app,ids) } }
     fun importFile(uri:android.net.Uri,done:(Result<List<TrainingWorkout>>)->Unit)=task(done) {
         val name=app.contentResolver.query(uri,arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),null,null,null)?.use { c -> if(c.moveToFirst()) c.getString(0) else null } ?: uri.lastPathSegment.orEmpty()
         val bytes=app.contentResolver.openInputStream(uri)?.use { it.readNBytes(TrainingFileImport.MAX_BYTES+1) } ?: error("Missing workout file")

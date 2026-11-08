@@ -82,7 +82,10 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
             val row=rows[position]
             if(row is Group) return ((convert as? TrainingGroupHeader) ?: TrainingGroupHeader(context,themes)).apply { bind(row.title,row.count) }
             val workout=row as TrainingWorkout
-            return ((convert as? TrainingWorkoutView) ?: TrainingWorkoutView(context,themes)).apply { bind(workout,profile(),workout.id in selected) }
+            return ((convert as? TrainingWorkoutView) ?: TrainingWorkoutView(context,themes,onVariant=::cycleVariant)).apply {
+                val base=workouts.first { it.id==workout.id }
+                bind(workout,profile(),workout.id in selected,TrainingVariants.selected(context,base),TrainingVariants.available(base).size>1)
+            }
         }
     }
     private val delete=BicycleFooterAction(context,themes,BicycleIcon.DeleteTrack,context.getString(R.string.route_action_delete)) { if(selected.isNotEmpty()) deleteRequested(selected.toSet()) }.apply { tag="training_delete";isEnabled=false }
@@ -129,6 +132,15 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         sortingPopup?.dismiss();sortingPopup=null
         super.onDetachedFromWindow()
     }
+    private fun cycleVariant(id:String) {
+        val base=workouts.firstOrNull { it.id==id } ?: return
+        val old=rows.indexOfFirst { it is TrainingWorkout && it.id==id }
+        val top=list.getChildAt(old-list.firstVisiblePosition)?.top ?: 0
+        TrainingVariants.cycle(context,base)
+        render(workouts)
+        val next=rows.indexOfFirst { it is TrainingWorkout && it.id==id }
+        if(next>=0) list.setSelectionFromTop(next,top)
+    }
     fun render(workouts:List<TrainingWorkout>) {
         selected.retainAll(workouts.map { it.id }.toSet());delete.isEnabled=selected.isNotEmpty()
         delete.setLabel(context.getString(R.string.route_action_delete)+if(selected.isEmpty()) "" else " (${selected.size})")
@@ -136,7 +148,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         val rider=profile()
         rows=buildList {
             var previous:Group?=null
-            for(workout in sort.ordered(workouts,rider,descending)) {
+            for(workout in sort.ordered(workouts.map { TrainingVariants.apply(it,TrainingVariants.selected(context,it)) },rider,descending)) {
                 val value=sort.value(TrainingMetrics.of(workout,rider))
                 val label=if(value==null) context.getString(R.string.training_sort_unknown) else {
                     val step=when(sort) { TrainingSort.DURATION->1800.0;TrainingSort.LOAD->25.0;TrainingSort.INTENSITY->.1;TrainingSort.SECTIONS->5.0 }
@@ -159,10 +171,23 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
     }
 }
 
-internal class TrainingWorkoutView(context:Context,private val themes:ThemeManager,private val detailAxes:Boolean=false):LinearLayout(context) {
+internal class TrainingWorkoutView(context:Context,private val themes:ThemeManager,private val detailAxes:Boolean=false,private val onVariant:((String)->Unit)?=null):LinearLayout(context) {
     private val name=BicycleComponents.text(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_name" }
     private val description=BicycleComponents.description(context,themes,"").apply { maxLines=3;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_description" }
     private val intensity=BicycleComponents.description(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;tag="training_intensity" }
+    private val variant=BicycleSpecialButton(context,themes,filled=false).apply {
+        tag="training_variant";maxLines=1
+        val pad=BicycleDesign.dp(context,BicycleDesign.controlGap);setPadding(pad,0,pad,0)
+    }
+    private val hardness=BicycleComponents.text(context,themes,"").apply { tag="training_hardness";gravity=android.view.Gravity.CENTER;maxLines=1 }
+    private var badgeColor:Int?=null
+    private val titleRow=LinearLayout(context).apply {
+        orientation=HORIZONTAL;gravity=android.view.Gravity.CENTER_VERTICAL;isBaselineAligned=false
+        tag="training_title_row";setTag(R.id.inline_control_row,true)
+        addView(name,LayoutParams(0,-2,1f).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(variant,LayoutParams(-2,BicycleDesign.dp(context,BicycleDesign.touchSize)))
+        addView(hardness,LayoutParams(-2,BicycleDesign.dp(context,BicycleDesign.touchSize)).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+    }
     private val duration=RouteListReading(context,themes,R.string.training_metric_duration,R.string.analysis_minutes)
     private val load=RouteListReading(context,themes,R.string.training_metric_load)
     private val effort=RouteListReading(context,themes,R.string.training_metric_intensity)
@@ -175,34 +200,48 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
             addView(reading,LayoutParams(0,-2,1f))
         }
     }
-    private val chart=TrainingWorkoutChart(context,themes,detailAxes)
+    private val chart=TrainingWorkoutChart(context,themes,detailAxes).apply { tag="training_chart" }
     private val details=BicycleComponents.description(context,themes,"").apply { tag="training_details" }
     private var selected=false
     init {
         orientation=VERTICAL;tag="training_card"
         val pad=if(detailAxes) 0 else BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
-        if(!detailAxes) addView(name)
+        if(!detailAxes) addView(titleRow)
         addView(description,LayoutParams(-1,-2).apply { if(!detailAxes) topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        addView(intensity,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        if(detailAxes) addView(intensity,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(metrics,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
-        addView(chart,LayoutParams(-1,BicycleDesign.dp(context,if(detailAxes) 180 else 96)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(chart,LayoutParams(-1,BicycleDesign.dp(context,if(detailAxes) 180 else 82)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         if(detailAxes) addView(details,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         BicycleComponents.bindTheme(this,themes,::paintState)
         descendantFocusability=ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
     private fun paintState(tokens:ThemeTokens) {
+        val badgeTokens=tokens.copy(primary=badgeColor ?: tokens.primary)
+        styleSpecialButton(variant,badgeTokens,false)
+        styleSpecialButton(hardness,badgeTokens,true)
+        val pad=BicycleDesign.dp(context,BicycleDesign.controlGap)
+        hardness.setPadding(pad,0,pad,0)
         if(detailAxes) { background=null;foreground=null }
         else {
             background=android.graphics.drawable.ColorDrawable(if(selected) tokens.tertiary else tokens.secondary)
             foreground=null
         }
     }
-    fun bind(workout:TrainingWorkout,profile:RiderProfile,checked:Boolean) {
+    fun bind(workout:TrainingWorkout,profile:RiderProfile,checked:Boolean,choice:TrainingVariant=TrainingVariant.STANDARD,canVary:Boolean=false) {
         selected=checked;paintState(themes.active.tokens)
         name.text=workout.name;description.text=workout.description;description.visibility=if(workout.description.isBlank()) GONE else VISIBLE
         val automatic=TrainingIntensity.of(workout,profile)
         intensity.text=automatic?.let { context.getString(R.string.training_auto_tag,context.getString(it.title)) }.orEmpty()
         intensity.visibility=if(automatic==null) GONE else VISIBLE
+        badgeColor=when(automatic) { TrainingIntensity.HARD->TrainingZoneColors.red;TrainingIntensity.EASY->TrainingZoneColors.green;TrainingIntensity.SWEET_SPOT->TrainingZoneColors.yellow;null->null }
+        hardness.text=automatic?.let { context.getString(it.title) }.orEmpty()
+        hardness.visibility=if(automatic==null) GONE else VISIBLE
+        variant.text=choice.label
+        variant.contentDescription=context.getString(R.string.training_variant_description,choice.label)
+        variant.stateDescription=if(canVary) context.getString(R.string.training_variant_cycle) else context.getString(R.string.training_variant_unavailable)
+        variant.setOnClickListener(if(canVary && onVariant!=null) View.OnClickListener { onVariant.invoke(workout.id) } else null)
+        variant.isClickable=canVary && onVariant!=null;variant.isFocusable=variant.isClickable
+        paintState(themes.active.tokens)
         val values=TrainingMetrics.of(workout,profile)
         val number=java.text.NumberFormat.getNumberInstance().apply { maximumFractionDigits=1 }
         duration.bind(values.seconds?.let { number.format(it/60) },workout.id,"training_duration")

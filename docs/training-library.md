@@ -62,9 +62,9 @@ Y zeigt tatsächliche Watt, von0 mit runden50/100/200/500…-Schritten nach maxi
 
 Gezielte Tests TrainingChartAxesTest + TrainingDetailsTest: Watt-/FTP-Mischung, Rampenrichtung, exakte/runde Zeitmarken, fehlende Referenzen, native Diagrammpixel und bisheriger Detailablauf. Log `/workspace/.tools/training-chart-axes-tests.log`.
 
-## Vereinbarte spätere Varianten
+## Wählbare Varianten ab08.11.2026
 
-Basistraining mit eindeutigem wiederholtem Hauptblock: Varianten Q+, Q, S, E, E+ entsprechen minus2/minus1/Standard/plus1/plus2 Wiederholungen. Aufwärmen/Ausrollen erhalten; Dauer und sämtliche weiteren berechenbaren Kennzahlen ausschließlich aus tatsächlich gewählter Struktur. Orientierung Quick/Extended wie polarized.cc; noch keine Variantenfunktion implementiert. Wiederholungsstruktur muss zusätzlich zur bisher expandierten Abschnittsliste erhalten werden.
+TrainingVariants erkennt exakt wiederholte Belastungs-/Erholungsblöcke in der normalisierten Struktur, mindestens5 Wiederholungen, höchstens64 Abschnitte je Wiederholung. Genau ein eindeutiger Hauptsatz; zeitoffene, gleichmäßige oder mehrere getrennte Sätze bleiben Standard. Gleiche Ziele/Dauern einschließlich Rampen und Kadenz müssen erhalten sein, Abschnittsnamen spielen keine Rolle. Q+, Q, S, Ext, Ext+ entsprechen minus2/minus1/Standard/plus1/plus2 Wiederholungen. Ein Druck auf die Rahmenpille rotiert zyklisch; lokale Auswahl je unveränderlicher Trainings-ID, beim Löschen entfernen. Aufwärmen/Ausrollen, Originalimport und Anbieterantwort bleiben erhalten. Kennzahlen, Sortiergruppen, Diagramm und Details verwenden die tatsächlich gewählte Struktur. Grenzen4096 Abschnitte/604800s einhalten. Übersicht: Titel links, Rahmenpille und farbige Härtebadge rechts mittig; Rot=Hart, Grün=Leicht, Gelb=Sweet Spot. Kein zusätzlicher Automatischer-Tag-Text in der Liste, Detailinfo erhalten; Listendiagramm82 statt96dp. TrainingVariantsTest und bestehende Intensitäts-/Listen-/Detailfälle geprüft; Logs training-variant-pills-tests.log und training-variant-pills-ui-test.log. Erste UI-Ausführung hatte eine fehlende Testmarkierung am Diagramm, korrigierter Fall bestanden; Screenshot visuell geprüft.
 
 ## Vier Kennzahlen aus der Trainingsstruktur
 
