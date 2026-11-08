@@ -15,4 +15,5 @@
     <item name="route_chart_zoom_in" type="id" />
     <item name="route_chart_zoom_out" type="id" />
     <item name="input_body_typography" type="id" />
+    <item name="control_surface_role" type="id" />
 </resources>

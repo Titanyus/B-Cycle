@@ -27,7 +27,7 @@ class RecordingUpdateUiTest {
         shadowOf(Looper.getMainLooper()).idle()
         val dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
         assertNotNull(dialog?.window?.decorView?.findViewWithTag<android.view.View>("ride_summary"))
-        assertNotNull(dialog?.window?.decorView?.findViewWithTag<android.view.View>("ride_summary_transfer_divider"))
+        assertNotNull(dialog?.window?.decorView?.findViewWithTag<android.view.View>("ride_summary_feedback_start"))
     }
     @Test fun runtimeRefreshesLibraryOnCompletionAndRecoveryButNotProgressOrWriteNotices() {
         val runtime=RideRuntime.get(RuntimeEnvironment.getApplication())

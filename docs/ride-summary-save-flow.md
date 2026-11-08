@@ -23,6 +23,8 @@ Für Intervals/Strava/Dreeve bleiben die bestehenden unveränderlichen Upload-Pa
 
 ## Zusammenfassung und kompakte RPE-Auswahl
 
+Ab Folgeauftrag08.11.2026 unter den Akkuwerten gemeinsame randfüllende TERTIARY-Fläche ab früherer Trennerposition; Trenner unsichtbar, seine Geometrie und alle unteren Abstände erhalten. Buttons mit expliziter TERTIARY-Controlrolle, sonst gleiche Kontur-/Ripplegestaltung.
+
 - Titel weiterhin anklickbarer Fahrtname. Eigenes `showBack=false` am Dialogbuilder entfernt nur hier das Zurück-Chevron; normale Dialoge unverändert.
 - Statistikwerte ohne Icons weiterhin32dp kompakter.
 - Keine sichtbare Frage „Wie anstrengend …“ mehr in der Zusammenfassung; zugängliche RPE-Beschreibung bleibt am Picker.

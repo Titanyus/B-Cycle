@@ -13,20 +13,28 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
     private val transfers=RideSummaryTransfers(context,themes)
     private val transferHeading=BicycleComponents.contentHeading(context,themes,context.getString(R.string.ride_summary_transfer_heading)).apply { tag="ride_summary_transfer_heading" }
     private val problem=BicycleComponents.description(context,themes,context.getString(R.string.ride_summary_loading)).apply { tag="ride_summary_loading" }
+    private val lowerPaint=android.graphics.Paint()
+    private val lowerStart=android.widget.Space(context).apply {
+        tag="ride_summary_feedback_start";importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+        layoutParams=LayoutParams(-1,BicycleDesign.dp(context,BicycleDesign.controlBorder)).apply {
+            topMargin=BicycleDesign.dp(context,BicycleDesign.sectionDividerGap);bottomMargin=topMargin
+        }
+    }
     private var entry:ManagedRoute?=null
     private var feedback:RideSummaryFeedbackRow?=null
-    private val details=BicycleComponents.action(context,themes,context.getString(R.string.ride_summary_details),openDetails).apply { tag="ride_summary_details";isEnabled=false }
+    private val details=BicycleComponents.action(context,themes,context.getString(R.string.ride_summary_details),openDetails).apply { tag="ride_summary_details";setTag(R.id.control_surface_role,ThemeRole.TERTIARY);isEnabled=false }
     init {
         orientation=VERTICAL;tag="ride_summary"
         val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,0,pad,pad)
         addView(metrics,LayoutParams(-1,-2));addView(problem,LayoutParams(-1,-2))
-        addView(BicycleComponents.sectionDivider(context,themes).apply { tag="ride_summary_transfer_divider" })
+        addView(lowerStart)
+        BicycleComponents.bindTheme(this,themes) { lowerPaint.color=it.tertiary;invalidate() }
         completion.rideId?.let { id ->
             feedback=RideSummaryFeedbackRow(context,themes,id).also { addView(it,LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) }) }
         }
         addView(LinearLayout(context).apply {
             tag="ride_summary_actions";orientation=HORIZONTAL;isBaselineAligned=false
-            addView(BicycleComponents.action(context,themes,context.getString(R.string.route_action_save),save).apply { tag="ride_summary_save" },LayoutParams(0,-1,1f).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+            addView(BicycleComponents.action(context,themes,context.getString(R.string.route_action_save),save).apply { tag="ride_summary_save";setTag(R.id.control_surface_role,ThemeRole.TERTIARY) },LayoutParams(0,-1,1f).apply { marginEnd=BicycleDesign.dp(context,BicycleDesign.controlGap) })
             addView(details,LayoutParams(0,-1,1f))
         },LayoutParams(-1,-2))
         addView(status,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
@@ -34,6 +42,10 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
         addView(transfers,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         isFocusableInTouchMode=true
         showMetrics(emptyMap());updateStatus()
+    }
+    override fun dispatchDraw(canvas:android.graphics.Canvas) {
+        canvas.drawRect(0f,lowerStart.top.toFloat(),width.toFloat(),height.toFloat(),lowerPaint)
+        super.dispatchDraw(canvas)
     }
     private fun showMetrics(values:Map<AnalysisMetric,Double>) {
         metrics.removeAllViews()

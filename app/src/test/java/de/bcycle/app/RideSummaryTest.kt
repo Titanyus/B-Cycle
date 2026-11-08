@@ -69,6 +69,8 @@ class RideSummaryTest {
             }
             val status=view.findViewWithTag<android.widget.TextView>("ride_summary_status")
             assertEquals(View.GONE,status.visibility)
+            assertNull(view.findViewWithTag<View>("ride_summary_transfer_divider"))
+            assertNotNull(view.findViewWithTag<View>("ride_summary_feedback_start"))
             assertNull(view.findViewWithTag<View>("ride_summary_state_WEBDAV"))
             val transfer=view.findViewWithTag<View>("ride_summary_transfer_WEBDAV") as ViewGroup
             assertEquals(c.getString(R.string.ride_summary_planned),transfer.stateDescription)
@@ -97,6 +99,10 @@ class RideSummaryTest {
                 if(width==328) {
                     val image=Bitmap.createBitmap(width,view.height,Bitmap.Config.ARGB_8888)
                     image.eraseColor(runtime.themes.active.tokens.secondary);view.draw(Canvas(image))
+                    val start=view.findViewWithTag<View>("ride_summary_feedback_start").top
+                    assertEquals(runtime.themes.active.tokens.secondary,image.getPixel(0,start-1))
+                    assertEquals(runtime.themes.active.tokens.tertiary,image.getPixel(0,start))
+                    assertEquals(runtime.themes.active.tokens.tertiary,image.getPixel(width-1,view.height-1))
                     File("build/reports/ui/ride-summary.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
                 }
             }

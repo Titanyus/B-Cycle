@@ -280,7 +280,7 @@ internal object BicycleDialogStyle {
                 dp(view, BicycleDesign.horizontalPadding), dp(view, BicycleDesign.verticalPadding))
             BicycleComponents.bindTheme(view, themes) {
                 view.setTextColor(colors(it.foreground)); view.backgroundTintList = null
-                view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), BicycleComponents.controlBackground(view.context,it,BicycleComponents.controlSurface(view.context,it)), null)
+                view.background = RippleDrawable(ColorStateList.valueOf(alpha(it.foreground, .15f)), BicycleComponents.controlBackground(view.context,it,BicycleComponents.controlSurface(view,it)), null)
                 view.compoundDrawablesRelative.filterNotNull().forEach { drawable -> drawable.setTint(it.foreground) }
             }
         } else BicycleComponents.bindTheme(view, themes) { view.setTextColor(BicycleComponents.textColor(view,themes,it)) }

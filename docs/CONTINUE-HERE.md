@@ -1,3 +1,7 @@
+# Zusammenfassung: untere Fläche TERTIARY (noch nicht veröffentlicht)
+
+Ab der früheren Trennerposition unter den Akkuwerten durchgehend TERTIARY bis zu den Seiten-/Unterkanten. Linie durch gleich große unsichtbare Space ersetzt, alle Innen-/Außenabstände erhalten; Notiz/RPE/Buttons/Zielicons auf gemeinsamer Fläche. Explizite Control-Surface-Rolle nur für die beiden Summarybuttons, zentrale Kontur/Ripple/Touchgeometrie erhalten. RideSummaryTest und RecordingUpdateUiTest bestanden, Vorschau geprüft; keine Änderungen am Speicherablauf. Log /workspace/.tools/summary-tertiary-lower-tests.log. Bosch-Ladeschutz und Kartenicon-Farben als nächste aktive Aufträge.
+
 # Korrektur nach Build148: Doppelimport eigener RPE-Exportkopie (noch nicht veröffentlicht)
 
 Gemeldeten Ablauf nachgewiesen: nur eine lokale Datei/Cloudqueue, aber zwei interne recorded-Hashes, weil RPE die Exportbytes ändert. LocalRouteExport registriert eigene FIT-Exporthashes vor Veröffentlichung dauerhaft zur Original-ID; FitLibrary erkennt sie bei Scan/manuellem Import und verhindert auch automatisches Wiederauferstehen ausdrücklich gelöschter Originale. Keine heuristische Zusammenfassung/Originaländerung, bestehende ältere Duplikate bleiben erhalten. [Nachweis, Umfang, Grenzen](fit-feedback-export-identity.md).10 gezielte Speicher-/Finish-/Exportfälle grün über die dokumentierten begrenzten Läufe; Typografie/UI-Katalog/Diff grün. Keine neue APK angefordert; letzte veröffentlichte Version weiter0.8.103 / Build148.
