@@ -33,3 +33,17 @@ Vorgemerkt am06.11.2026 auf Nutzerwunsch, noch kein Umsetzungsauftrag. Inspirati
 - [ ] Absolvierte Indoor-/Virtual-Ride-Fahrten anhand ihrer aufgezeichneten Leistung automatisch in Aufwärmen, Belastungen, Erholung, wiederholte Intervallsätze und Ausrollen gliedern. Beispiele:60/60,40/20, längere Schwellenblöcke, mehrstufige Wiederholungen. Kompakte Satzübersicht plus Markierungen im Leistungsdiagramm; bei Fahrten ohne GPS könnte die Intervallübersicht den Kartenbereich ersetzen. Oberfläche vor Umsetzung festlegen.
 - [ ] Vorhandene Workout-/Lap-Marker bevorzugen, sonst erklärbare Mustererkennung aus geglätteter Analysekurve (Schwelle/Hysterese, Mindestdauern, Kontrast und Satzgruppierung). Gleichmäßige Fahrten/Rampen nicht als künstliche Intervalle erkennen; unsichere Ergebnisse kenntlich machen. Anfangs auf Indoor/Virtual Ride begrenzen.
 - [ ] Rohdaten und FIT-Aufzeichnung unverändert lassen: Glättung nur zur Erkennung/Darstellung, Kennzahlen der erkannten Abschnitte aus Originaldaten. Sensorlücken nicht als echte0-W-Erholung werten. Lokale Analyse auf bestehendem Analyseworker/cache, kein zweiter Aufnahmeweg. Beispielprojekt insbesondere bezüglich Lap-Priorisierung, mehrstufiger Sätze und Darstellung prüfen; Lizenz vor eventueller Codeübernahme klären. Abgrenzung: nachträgliche Erkennung gefahrener Intervalle, unabhängig von unseren importierten Trainingsvorlagen und deren Q+/Q/S/E/E+-Varianten.
+
+## Effizienz – statische Durchsicht 08.11.2026
+
+[Fundstellen, behobene Wiederholungen und Prüfungen](docs/efficiency-review-2026-11-08.md). Ohne Profiling/Benchmarks vorgehen; auch kleine nachweislich unnötige Arbeit reduzieren. Sensorabfrage/Aufzeichnung/Analyse erhalten.
+
+- [x] Unsichtbare Live-Graphen auch im Normalmodus nicht vorbereiten; Historie weiterführen, bei Rückkehr frisch aufbereiten. Identische Nachfrage wiederverwenden.
+- [x] Doppelte Pfadberechnung pro Graph-Skalierungsframe entfernen; exakten Endzustand erhalten.
+- [x] Kartenlinienstile begrenzt cachen; Bright-Filter einmal vorbereiten und feste Prüfmengen/Trackzuordnungen wiederverwenden.
+- [x] Erledigte Notiz-Speicheraufträge freigeben und Cloudqueue-Writes bei unverknüpften lokalen Notizen vermeiden.
+- [ ] Prio1: Dashboard-Aufbereitung hinter voll deckenden Seiten aussetzen; sichtbare Seiten/kompakte Dialoge, Aufnahmeende und Rückkehr berücksichtigen.
+- [ ] Prio2: Titel-Marquee während statischer Halte-/Leerphasen ohne laufenden Animator betreiben.
+- [ ] Prio3: unveränderliches Bright-Basis-XML/Vorverarbeitung wiederverwenden; native Theme-/GL-Ressourcen pro Instanz belassen.
+- [ ] Prio4: aktive Legacy-Aufnahmequellenkonfiguration wiederverwenden, mit vollständiger Profil-/Restore-Invalidierung.
+- [ ] Prio5: Graph-Nachfragemap in MainActivity nach Graphkonfiguration/Template wiederverwenden.
