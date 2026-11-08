@@ -53,6 +53,68 @@ class LiveGraphUiTest {
             } finally { image.recycle() }
         }
     }
+    @Test fun scaleAnimationBuildsOncePerFrameAndSettlesExactlyWithoutFurtherWakeups() {
+        var visits=0
+        val values=listOf(GraphPoint(0,0,0.0,listOf(50.0,null,null,null,null)),GraphPoint(30000,30000,100.0,listOf(50.0,null,null,null,null)))
+        val points=object:AbstractList<GraphPoint>() {
+            override val size get()=values.size
+            override fun get(index:Int):GraphPoint { visits++;return values[index] }
+        }
+        fun frame(version:Long,high:Double)=GraphFrame(version,100.0,emptyMap(),30000,
+            mapOf(GraphWindow.SECONDS_30 to mapOf(AnalysisChart.SPEED to GraphSeries(points,GraphRange(0.0,high)))))
+        val drawable=DashboardGraphDrawable(1f);drawable.setBounds(0,0,400,200)
+        var scheduled:Runnable?=null
+        drawable.callback=object:android.graphics.drawable.Drawable.Callback {
+            override fun invalidateDrawable(who:android.graphics.drawable.Drawable)=Unit
+            override fun scheduleDrawable(who:android.graphics.drawable.Drawable,what:Runnable,at:Long) { scheduled=what }
+            override fun unscheduleDrawable(who:android.graphics.drawable.Drawable,what:Runnable) { if(scheduled===what) scheduled=null }
+        }
+        fun show(value:GraphFrame)=drawable.update(value,listOf(AnalysisChart.SPEED),intArrayOf(0,0,0,0),GraphDisplayMode.GRAPH_ONLY,GraphWindow.SECONDS_30)
+        val image=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888)
+        try {
+            show(frame(1,200.0));show(frame(2,100.0));drawable.draw(Canvas(image));assertNotNull(scheduled)
+            visits=0
+            org.robolectric.shadows.ShadowSystemClock.advanceBy(Duration.ofMillis(16))
+            scheduled!!.run();drawable.draw(Canvas(image))
+            assertEquals("One history traversal per animation frame",points.size,visits)
+            org.robolectric.shadows.ShadowSystemClock.advanceBy(Duration.ofMillis(LiveGraphStyle.SCALE_RETURN_MS))
+            val last=scheduled!!;scheduled=null;last.run()
+            val settled=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888)
+            val expected=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888)
+            try {
+                drawable.draw(Canvas(settled));assertNull("No wakeups after settling",scheduled)
+                val reference=DashboardGraphDrawable(1f);reference.setBounds(0,0,400,200)
+                reference.update(frame(3,100.0),listOf(AnalysisChart.SPEED),intArrayOf(0,0,0,0),GraphDisplayMode.GRAPH_ONLY,GraphWindow.SECONDS_30)
+                reference.draw(Canvas(expected));assertTrue("Final geometry reaches the target exactly",settled.sameAs(expected))
+            } finally { settled.recycle();expected.recycle() }
+        } finally { image.recycle() }
+    }
+    @Test fun hiddenGraphsKeepSamplesWithoutPreparingFramesAndRefreshOnReturnInBothModes() {
+        for(saving in listOf(false,true)) {
+            val provider=LiveGraphProvider {}
+            val worker=LiveGraphProvider::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(provider) as ThreadPoolExecutor
+            fun drain() { worker.submit {}.get(5,TimeUnit.SECONDS) }
+            val requested=mapOf(GraphWindow.FULL to setOf(AnalysisChart.POWER))
+            try {
+                provider.configureDisplay(saving,true,requested);provider.begin()
+                provider.append(GraphPoint(0,0,0.0,listOf(null,null,100.0,null,null)));drain()
+                val shown=provider.frame;assertNotNull(shown)
+                provider.configureDisplay(saving,false,requested)
+                org.robolectric.shadows.ShadowSystemClock.advanceBy(Duration.ofSeconds(20))
+                for(i in 1..20) { provider.append(GraphPoint(i*1000L,i*1000L,i.toDouble(),listOf(null,null,100.0+i,null,null)));drain() }
+                drain();assertSame("No hidden frame preparation",shown,provider.frame)
+                provider.configureDisplay(saving,true,requested);drain()
+                val restored=provider.frame!!
+                assertNotSame(shown,restored);assertEquals(20000L,restored.elapsedMs)
+                assertTrue(restored.series.getValue(AnalysisChart.POWER).points.any { it.elapsedMs==20000L })
+                val demandField=LiveGraphProvider::class.java.getDeclaredField("demand").apply { isAccessible=true }
+                val demand=demandField.get(provider)
+                repeat(10) { provider.configureDisplay(saving,true,requested) }
+                drain();assertSame("Unchanged demand is reused",demand,demandField.get(provider))
+                assertSame(restored,provider.frame)
+            } finally { worker.shutdownNow() }
+        }
+    }
     @Test fun orderedChoicesPreventThirdRemainDeselectableAndReloadPerPageAndSlot() {
         val prefs=context.getSharedPreferences("graphs",0);val themes=ThemeManager(prefs)
         val chooser=GraphOverlayPicker(context,themes,emptyList());val boxes=all(chooser).filterIsInstance<CheckBox>()

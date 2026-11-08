@@ -28,11 +28,12 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
     }
     internal val interval get()=(if(rolling) 1000L else LiveGraphStyle.INTERVAL_MS).let { if(powerSaving) maxOf(it,5000L) else it }
     fun configureDisplay(saving:Boolean,visible:Boolean,requested:Map<GraphWindow,Set<AnalysisChart>>) {
-        val changed=policyChanged || powerSaving!=saving || saving && (displayVisible!=visible || demand!=requested)
+        val changed=policyChanged || powerSaving!=saving || displayVisible!=visible || demand!=requested
+        if(!changed) return
         policyChanged=false;powerSaving=saving;displayVisible=visible;demand=requested.mapValues { it.value.toSet() }
-        if(changed && (visible || !saving)) {
+        if(visible) {
             val ride=generation
-            try { worker.execute { if(ride==generation && hasSamples) publish(ride,forceFull=true) } } catch(_:RejectedExecutionException) {}
+            try { worker.execute { if(ride==generation && hasSamples && displayVisible) publish(ride,forceFull=true) } } catch(_:RejectedExecutionException) {}
         }
     }
     fun hideDisplay() { displayVisible=false }
@@ -59,7 +60,7 @@ internal class LiveGraphProvider(private val changed: () -> Unit) {
         try { worker.execute {
             if(ride==generation) {
                 history.append(input);hasSamples=true
-                if((!powerSaving || displayVisible) && point.elapsedMs-lastPublishElapsed >= interval && SystemClock.uptimeMillis()-lastPublishWall >= interval) {
+                if(displayVisible && point.elapsedMs-lastPublishElapsed >= interval && SystemClock.uptimeMillis()-lastPublishWall >= interval) {
                     lastPublishElapsed=point.elapsedMs; publish(ride)
                 }
             }

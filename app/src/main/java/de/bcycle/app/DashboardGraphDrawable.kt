@@ -20,7 +20,8 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     private var mode=GraphDisplayMode.WITH_DATA
     private var window=GraphWindow.FULL
     private val ranges=mutableMapOf<AnalysisChart,GraphRangeTransition>()
-    private val animation=Runnable { rebuild();invalidateSelf() }
+    private var rangeFramePending=false
+    private val animation=Runnable { rangeFramePending=true;invalidateSelf() }
     fun update(next: GraphFrame?, graphs: List<AnalysisChart>, insets: IntArray, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA,window:GraphWindow=GraphWindow.FULL) {
         if(powerSaving && window==GraphWindow.FULL && this.window==window && frame!=null && next!=null && frame!!.series===next.series && selected==graphs && padding.contentEquals(insets) && mode==display) return
         if(frame===next && selected==graphs && padding.contentEquals(insets) && mode==display && this.window==window) return
@@ -77,8 +78,10 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     override fun draw(canvas: Canvas) {
         if(shapes.isEmpty()) return
         val now=android.os.SystemClock.uptimeMillis()
-        if(!powerSaving && window!=GraphWindow.FULL && ranges.values.any { it.running(now) }) {
-            rebuild();scheduleSelf(animation,now+16)
+        if(!powerSaving && window!=GraphWindow.FULL && (rangeFramePending || ranges.values.any { it.running(now) })) {
+            rangeFramePending=false
+            rebuild()
+            if(ranges.values.any { it.running(now) }) scheduleSelf(animation,now+16)
         }
         val save=canvas.save(); canvas.clipRect(plot)
         paint.typeface=BicycleDesign.bodyTypeface; paint.textSize=12.96f*density
