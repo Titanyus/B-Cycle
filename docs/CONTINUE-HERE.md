@@ -1,6 +1,10 @@
-# Zusammenfassung kompakter08.11.2026 (noch nicht veröffentlicht)
+# Neuer Fahrtabschluss08.11.2026 (noch nicht veröffentlicht)
 
-Symbolfreie Messwertkacheln sparen nun die entfernte32-dp-Symbolzeile auch in ihrer Mindesthöhe (120→88dp); normale Detailkacheln mit Symbol unverändert. Notizeditor3 sichtbare Zeilen, weiterer Text scrollbar; Autosave-/Uploadablauf unverändert und im [Fahrtfeedback-Dokument](ride-feedback.md) erläutert. Cloud läuft nach lokaler Speicherung asynchron, neue Notizen/RPE werden automatisch nachgereicht, auch bei noch laufendem Erstupload nach Bestätigung. Prüfungen siehe `/workspace/.tools/summary-spacing-tests.log`; keine APK beauftragt.
+Interne FIT-/Analyse-Sicherung unverändert sofort, externe Ziele zunächst dauerhaft in RideFinishTransfers gehalten. Alle regulären Abschlusswege (Speichern, Details, Android-Zurück, Außentipp, App-Hintergrund) geben denselben einmaligen Workerpfad frei. Prozess-Recovery, Einzelzielretry, Konto-Fingerabdrücke und passende lokale Quittungen; keine persönlichen Daten in Tests. Interne Dateien und Staginggrenzen vor Bereinigung zusätzlich geprüft. Notiz/RPE im Dialog nur intern gespeichert; nach Freigabe aktuelle öffentliche Dateien und unterstützte Cloud-Metadaten. [Vollständiger Ablauf und Nachweise](ride-summary-save-flow.md).
+
+Notiz links3 Zeilen, rechts kompakter vertikaler CR10-Picker in League Gothic. Gemeinsamer Textblock an echten Glyphkanten bündig zum Feld skaliert,0 mit „Keine Anstrengung“, leer weiterhin separat. Kein horizontaler Slider im Summary, kein Zurück-Chevron, nur anklickbarer Fahrtname. Save/Details nebeneinander, darunter konfigurierten Ziele mit Vormerksymbol. Außentipp auf Dialoginhalt beendet Notizfokus/Tastatur. Screenshot visuell geprüft; keine APK beauftragt.
+
+Gezielte Speicher-/Recovery-/UI-Tests bestanden (Logs summary-save-tests.log, summary-save-ui-tests.log, summary-save-transfer-final-tests.log und summary-save-recovery-ui-tests.log unter /workspace/.tools). Bestehende Feedback-/Namensregeln ebenfalls gezielt geprüft; Typografie/UI-Katalog/Bright/Diff grün. Kein Gesamtlauf/Profiling, keine persönlichen Cloudübertragungen. Letzte veröffentlichte APK unverändert Build146; sämtliche neueren Arbeiten hier noch unveröffentlicht.
 
 # Datenreiche Einstellungs-/Detailseiten08.11.2026 (noch nicht veröffentlicht)
 
