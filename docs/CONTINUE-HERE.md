@@ -4,6 +4,8 @@
 
 Alle aktuellen Aufträge enthalten: Strecken-Thumbnail mit TERTIARY,20%-Konturen/100%-Strecke und überlagernder abgerundeter Fahrrad-Badge, Dateityp nur dort entfernt; Flat-Gruppenköpfe volle Breite. Trainingsvarianten Q+→Q→S→Ext→Ext+ und Härtepillen, Detailkarte ohne inneren Rahmen/Titeldopplung. RPE-/Speicher-Typografie und Abstände korrigiert. Actions42478566299 erfolgreich aus7d64bc8, Code173, dauerhafte Signatur und Artefakte geprüft. 4429065Bytes, SHA-256 `31d5fc10ef4ecf9e870cea52f756e034b8157ec23d114231677d6cd5d64508c7`. Gezielte Prüfungen/Vorschauen grün; keine Gesamtläufe/Profiling. Echte Geländekonturen/Gesten am Gerät zu bestätigen.
 
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen:4429065Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 `31d5fc10ef4ecf9e870cea52f756e034b8157ec23d114231677d6cd5d64508c7` ebenfalls identisch.
+
 # Strecken-Thumbnail und Flat-Köpfe (in Build148 veröffentlicht)
 
 Neue Streckenzeilen mit linkem TERTIARY-Thumbnail/20%-Konturen und überlagerndem abgerundeten Fahrradquadrat, Dateityp nur in Übersicht entfernt. Volle Flat-Gruppenkopfbreite; Zahlen ohne VERY_WIDE auch nach langem Recycling. Bestehende Auswahl/Auge/Vorlagen-/Detaildaten erhalten. Asynchrone Vorberechnung und begrenzter Mapterhorn-/Geometrie-/Bitmapcache, Quellen weiterhin Erweitert. [Umfang, Limits und gezielte Nachweise](route-thumbnails.md). Vorschauen visuell geprüft; gezielte UI-/Geometrie-/Offline- und Scrollfälle bestanden, zentrale Prüfungen grün. In Version0.8.103/code173, Actions148 veröffentlicht.
