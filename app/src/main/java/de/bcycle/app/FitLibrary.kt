@@ -104,8 +104,13 @@ internal class FitLibrary(root: File) {
             if (automatic && hash in excluded) return null
             // A Downloads copy may contain our corrected version, whose bytes differ
             // from the immutable original. Match the active version by exact hash too.
-            val existing = entries.firstOrNull { it.id.endsWith(hash) }
+            val direct = entries.firstOrNull { it.id.endsWith(hash) }
                 ?: entries.firstOrNull { correctedHash(it.id)==hash || exportHash(it.id)==hash }
+            val exportOwner=if(direct==null) FitExportIdentities.owner(directory.parentFile!!,hash) else null
+            if(automatic && exportOwner?.substringAfter('-') in excluded) return null
+            val existing=direct ?: exportOwner?.let { owner ->
+                entries.firstOrNull { it.id==owner && originalFile(owner).isFile }
+            }
             if (existing != null) {
                 if (!file(existing.id).isFile) {
                     val original = AtomicFile(file(existing.id)); val output = original.startWrite()

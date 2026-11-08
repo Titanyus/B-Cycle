@@ -15,6 +15,8 @@ Jedes erfolgreich erledigte **Einplanen** wird aus der Restliste entfernt. Fehlg
 
 Bei Prozessabbruch übernimmt recover beim nächsten Runtime-/Appstart auch noch gehaltene Pläne; erfolgreich registrierte Cloudjobs liegen ohnehin bereits in den bestehenden persistenten Queues. Wiederholte Freigabe desselben abgeschlossenen Plans ist wirkungslos. Konto-Fingerabdruckwechsel führt nicht zu einem stillen Upload an ein anderes Konto; die betreffende Vormerkung bleibt offen. Passwörter/Tokens liegen nicht im Plan. Eine absichtlich neu gewählte Cloudverbindung kann weiterhin über die vorhandenen manuellen Uploadaktionen bedient werden.
 
+Lokale FIT-Exporte werden vor ihrer Veröffentlichung per exaktem Exporthash der ursprünglichen Fahrt zugeordnet, damit Downloads-Scan und Wiederimport trotz RPE-/Notizbytes keine zweite Fahrt anlegen. [Nachgewiesener Fehler und Korrektur](fit-feedback-export-identity.md).
+
 Löschen der Fahrt entfernt auch ihre Vormerkung. Original-/Analyse-FIT bleiben sonst unverändert. Der lokale Export erhält die **aktuelle** öffentliche Kopie einschließlich Feedback, seine Quittung bezieht sich wie im bestehenden manuellen Export auf die unveränderte öffentliche Fahrtquelle. Nach dem ersten Export erfolgt ein Feedbackabgleich, damit eine inzwischen in den Details bearbeitete Notiz ebenfalls die neu registrierte Kopie erreicht.
 
 Für Intervals/Strava/Dreeve bleiben die bestehenden unveränderlichen Upload-Payloads und die anschließenden unterstützten Metadatenupdates erhalten: Intervals natives RPE plus Beschreibung; Strava/Dreeve Beschreibung. WebDAV und der externe Ordner erhalten die annotierte öffentliche FIT. Keine neue Aktivität nur wegen einer späteren Notiz.

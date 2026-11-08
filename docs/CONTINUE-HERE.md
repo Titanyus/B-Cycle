@@ -1,3 +1,7 @@
+# Korrektur nach Build148: Doppelimport eigener RPE-Exportkopie (noch nicht veröffentlicht)
+
+Gemeldeten Ablauf nachgewiesen: nur eine lokale Datei/Cloudqueue, aber zwei interne recorded-Hashes, weil RPE die Exportbytes ändert. LocalRouteExport registriert eigene FIT-Exporthashes vor Veröffentlichung dauerhaft zur Original-ID; FitLibrary erkennt sie bei Scan/manuellem Import und verhindert auch automatisches Wiederauferstehen ausdrücklich gelöschter Originale. Keine heuristische Zusammenfassung/Originaländerung, bestehende ältere Duplikate bleiben erhalten. [Nachweis, Umfang, Grenzen](fit-feedback-export-identity.md).10 gezielte Speicher-/Finish-/Exportfälle grün über die dokumentierten begrenzten Läufe; Typografie/UI-Katalog/Diff grün. Keine neue APK angefordert; letzte veröffentlichte Version weiter0.8.103 / Build148.
+
 # Aktuell veröffentlicht: APK0.8.103 / Build148
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.103-release-148.apk) · [Buildnachweis](build-148.md) · [Änderungen](release-0.8.103.md)

@@ -36,6 +36,64 @@ class RouteStorageTest {
         }
         return File(context.cacheDir, "recorded.fit").also { FitWriter.encode(journal, it) }
     }
+    @Test fun summaryExportWithRpeIsOneDownloadAndRemainsOneRideAfterScanAndRestart() {
+        val context=RuntimeEnvironment.getApplication()
+        val provider=Downloads(context.cacheDir).apply { attachInfo(context,ProviderInfo().apply { authority="media" }) }
+        ShadowContentResolver.registerProviderInternal("media",provider)
+        val original=FitLibrary.retainRecording(context.filesDir,fit(context))
+        val id=original.nameWithoutExtension;val before=original.readBytes()
+        val library=FitLibrary(context.filesDir);library.load()
+        RideProfileColor.confirm(context,id,RideProfileColor.snapshot(context))
+        RideNames.generated(context,id,"Meine Feierabendrunde")
+        RideFinishTransfers.hold(context,id,"B-Cycle-2026-11-08-ride.fit",setOf(RecordingDestination.LOCAL_FOLDER),"")
+        RideAnnotations.rpe(context,id,6)
+        RideFinishTransfers.release(context,id)
+        (RideFinishTransfers::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(null) as java.util.concurrent.ExecutorService).submit {}.get(10,java.util.concurrent.TimeUnit.SECONDS)
+        (RideAnnotations::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(null) as java.util.concurrent.ScheduledExecutorService).submit {}.get(10,java.util.concurrent.TimeUnit.SECONDS)
+        assertEquals(1,provider.files.size)
+        val exported=provider.files.values.single()
+        assertFalse(before.contentEquals(exported.readBytes()))
+        assertEquals(60,exported.inputStream().use { com.garmin.fit.FitDecoder().decode(it) }.sessionMesgs.first().workoutRpe.toInt())
+        assertEquals(0,library.discoverDownloads(context))
+        assertEquals(listOf(id),library.entries.map { it.id })
+        val restored=FitLibrary(context.filesDir);restored.load();restored.discoverDownloads(context)
+        assertEquals(listOf(id),restored.entries.map { it.id })
+        assertEquals("Meine Feierabendrunde",RideNames.name(context,id))
+        assertNotNull(RideProfileColor.color(context,id));assertEquals(6,RideAnnotations.read(context,id).rpe)
+        assertArrayEquals(before,original.readBytes())
+        RideAnnotations.forget(context,id)
+    }
+    @Test fun olderAndUpdatedOwnExportsMatchTheOriginalButDifferentRidesStillImport() {
+        val context=RuntimeEnvironment.getApplication()
+        val provider=Downloads(context.cacheDir).apply { attachInfo(context,ProviderInfo().apply { authority="media" }) }
+        ShadowContentResolver.registerProviderInternal("media",provider)
+        val source=fit(context);val original=FitLibrary.retainRecording(context.filesDir,source)
+        val id=original.nameWithoutExtension;val bytes=original.readBytes()
+        val library=FitLibrary(context.filesDir);library.load()
+        RideFinishTransfers.hold(context,id,"unused.fit",emptySet(),"")
+        RideAnnotations.rpe(context,id,0)
+        LocalRouteExport.write(context,RideAnnotationFiles.current(context,id),"B-Cycle-first.fit","")
+        val old=provider.files.values.single().readBytes()
+        RideAnnotations.rpe(context,id,9);RideAnnotations.note(context,id,"Nachtrag")
+        LocalRouteExport.update(context,id,RideAnnotationFiles.current(context,id))
+        val latest=provider.files.values.single().readBytes()
+        assertFalse(old.contentEquals(latest));assertEquals(1,provider.files.size)
+        assertEquals(0,library.discoverDownloads(context));assertEquals(1,library.entries.size)
+        val identities=org.json.JSONObject(File(context.filesDir,"fit-export-identities.json").readText()).getJSONObject("owners")
+        assertTrue(identities.length()>=2)
+        (FitExportIdentities::class.java.getDeclaredField("cache").apply { isAccessible=true }.get(null) as MutableMap<*,*>).clear()
+        val restored=FitLibrary(context.filesDir);restored.load()
+        assertEquals(id,restored.add(old.inputStream(),"Umbenannt.fit",true)!!.id)
+        assertEquals(id,restored.add(latest.inputStream(),"Noch ein Name.fit",true)!!.id)
+        assertEquals(1,restored.entries.size)
+        val different=fit(context,1_791_630_000_000L).inputStream().use { restored.add(it,"Andere Fahrt.fit",true) }!!
+        assertNotEquals(id,different.id);assertEquals(2,restored.entries.size)
+        assertArrayEquals(bytes,original.readBytes());assertEquals(9,RideAnnotations.read(context,id).rpe)
+        restored.delete(id)
+        assertNull(restored.add(latest.inputStream(),"B-Cycle-deleted.fit",true,automatic=true))
+        assertEquals(listOf(different.id),restored.entries.map { it.id })
+        RideFinishTransfers.forget(context,id);RideAnnotations.forget(context,id)
+    }
     @Test fun oldDownloadsJoinGpxInOneManagerAndRenameExportSelectDeletePreserveOriginalsAcrossRestart() {
         val context = RuntimeEnvironment.getApplication()
         val provider = Downloads(context.cacheDir).apply { attachInfo(context, ProviderInfo().apply { authority = "media" }) }
@@ -59,6 +117,7 @@ class RouteStorageTest {
         state.recheckTransfer(ride.id,RouteTransferTarget.LOCAL);await(state)
         assertEquals(3,provider.files.size) // An explicit repeat saves another copy and preserves existing downloads.
         provider.files.values.forEach { assertArrayEquals(bytes, it.readBytes()) }
+        state.selectRoute(null);await(state) // Existing map slots do not change their order when added again.
         state.selectRoute(planned.id); await(state)
         assertEquals(planned.id, state.selectedRoute)
         val restarted = MapState(context) {}; await(restarted)

@@ -11,9 +11,11 @@ internal object LocalRouteExport {
     fun has(c:Context,id:String)=prefs(c).contains(id)
     fun update(c:Context,id:String,file:File) {
         val target=prefs(c).getString(id,null)?.let(Uri::parse) ?: return
+        FitExportIdentities.remember(c.filesDir,id,file)
         c.contentResolver.openOutputStream(target,"wt")?.use { out -> file.inputStream().use { it.copyTo(out) } } ?: error("Notiz konnte nicht in der exportierten Datei gespeichert werden")
     }
     fun write(context: Context, source: File, name: String, tree: String) {
+        FitExportIdentities.remember(context.filesDir,source.nameWithoutExtension,source)
         if (tree.isEmpty()) { remember(context,source.nameWithoutExtension,DownloadFiles.write(context, source, name));return }
         val resolver = context.contentResolver
         val uri = Uri.parse(tree)
