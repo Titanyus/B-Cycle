@@ -4,6 +4,8 @@
 
 Actions42464423685 erfolgreich, Quellstand1ea78cd. Interner Fahrtabschluss sofort, externe Ziele erst beim Verlassen der Zusammenfassung; kompakter vertikaler RPE neben Notiz, Save/Details und Vormerksymbole. Ebenfalls enthalten: gemeinsame Mapterhorn-Quelle, optionale Online-Schummerung, zurückgestellte Kartenupdates in Einstellungen und dokumentierte Effizienzkorrekturen seit Build146. VersionCode172, dauerhaftes Updatezertifikat geprüft.4412213Bytes, SHA-256 `624340019372d6d90a502ea0a20ec51b564d0d62e24503dad5880dae7b9c2f07`. Physisches Wischgefühl/Geräte-GPU/persönliche Cloudziele bleiben offen. Kein lokaler APK-Build und kein zusätzlicher Gesamttestlauf.
 
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen:4412213Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 `624340019372d6d90a502ea0a20ec51b564d0d62e24503dad5880dae7b9c2f07` ebenfalls identisch.
+
 # Neuer Fahrtabschluss08.11.2026 (in Build147 veröffentlicht)
 
 Interne FIT-/Analyse-Sicherung unverändert sofort, externe Ziele zunächst dauerhaft in RideFinishTransfers gehalten. Alle regulären Abschlusswege (Speichern, Details, Android-Zurück, Außentipp, App-Hintergrund) geben denselben einmaligen Workerpfad frei. Prozess-Recovery, Einzelzielretry, Konto-Fingerabdrücke und passende lokale Quittungen; keine persönlichen Daten in Tests. Interne Dateien und Staginggrenzen vor Bereinigung zusätzlich geprüft. Notiz/RPE im Dialog nur intern gespeichert; nach Freigabe aktuelle öffentliche Dateien und unterstützte Cloud-Metadaten. [Vollständiger Ablauf und Nachweise](ride-summary-save-flow.md).
