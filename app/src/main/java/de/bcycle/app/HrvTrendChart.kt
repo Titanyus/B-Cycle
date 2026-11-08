@@ -35,7 +35,13 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
     private val viewport=HrvTrendViewport()
     private var points:List<HrvTrendPoint> = emptyList()
     private var resolution=HrvTrendPeriod.DAY
-    private var barLabels:List<Pair<HrvTrendPoint,String>> = emptyList()
+    private data class BarLabel(val text:String,val halfWidth:Float)
+    private var barLabels:List<BarLabel?> = emptyList()
+    private var widestBarLabel=0f
+    private var pointIndices=LongArray(0)
+    private var sortedIndices=true
+    private var axisLabels=emptyList<String>()
+    private val bandDashes=android.graphics.DashPathEffect(floatArrayOf(.1f*resources.displayMetrics.density,BicycleDesign.hrvTrendBandDotGapDp*resources.displayMetrics.density),0f)
     var axis=HrvTrendAxis(0.0,1.0);private set
     private var selectedId:String?=null
     private var contextColors:Map<LocalDate,Int>?=null
@@ -95,6 +101,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         }
     })
     init {
+        prepareAxisLabels()
         tag="hrv_trend_chart";isFocusable=true;isClickable=true
         contentDescription=context.getString(R.string.hrvt_gestures)
         BicycleComponents.bindTheme(this,themes) { tokens=it;invalidate() }
@@ -113,7 +120,12 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
                 moons=LunarPhases.between(range.first,range.second,range.third).map { it.day(range.third) to it.phase }
             }
         } else { moons=emptyList();moonRange=null }
-        barLabels=rows.mapNotNull { point -> point.value?.let { point to barNumber.format(it) } }
+        pointIndices=LongArray(rows.size) { resolution.index(rows[it].day) }
+        sortedIndices=pointIndices.indices.all { it==0 || pointIndices[it-1]<=pointIndices[it] }
+        paint.textSize=BicycleDesign.hrvTrendBarValueSp*resources.displayMetrics.scaledDensity
+        barLabels=rows.map { point -> point.value?.let { barNumber.format(it).let { label -> BarLabel(label,paint.measureText(label)/2) } } }
+        widestBarLabel=barLabels.maxOfOrNull { it?.halfWidth ?: 0f } ?: 0f
+        prepareAxisLabels()
         if(reset || modeChanged) viewport.resetIndices(rows.map { resolution.index(it.day) }+listOfNotNull(selectionDay?.let(resolution::index)),resolution.index(LocalDate.now()))
         if(modeChanged && anchor!=null) {
             selectedId=rows.firstOrNull { !anchor.isBefore(it.day) && !anchor.isAfter(it.periodEnd) }?.row?.id
@@ -177,11 +189,29 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         if(!scroller.isFinished) postInvalidateOnAnimation()
     }
     override fun onDetachedFromWindow() { stopFling();endPinch();super.onDetachedFromWindow() }
+    private fun prepareAxisLabels() { axisLabels=(0..4).map { i -> String.format(java.util.Locale.getDefault(),if(axis.maximum-axis.minimum>=100) "%.0f" else "%.1f",axis.minimum+(axis.maximum-axis.minimum)*i/4) } }
+    /** Keep crossing segments and labels whose text reaches into the viewport. */
+    private fun visibleIndices(padding:Float=0f,neighbors:Boolean=false):IntRange {
+        if(!sortedIndices) return points.indices
+        val margin=padding/(plotRight-plotLeft).coerceAtLeast(1f)*viewport.span+viewport.span*1e-6
+        val from=viewport.end-viewport.span-margin;val to=viewport.end+margin
+        fun bound(value:Double,after:Boolean):Int {
+            var low=0;var high=pointIndices.size
+            while(low<high) {
+                val mid=(low+high) ushr 1
+                if(pointIndices[mid]<value || after && pointIndices[mid].toDouble()==value) low=mid+1 else high=mid
+            }
+            return low
+        }
+        val first=bound(from,false);val end=bound(to,true)
+        return if(neighbors) maxOf(0,first-1)..minOf(points.lastIndex,end) else first until end
+    }
     override fun onDraw(canvas:Canvas) {
         super.onDraw(canvas)
         val top=16*density;val bottom=(height-32*density).coerceAtLeast(top+1)
         val half=((plotRight-plotLeft)/viewport.span*.32).toFloat().coerceAtMost(12*density)
-        val visible=points.filter { x(it.day)+half>=plotLeft && x(it.day)-half<=plotRight }
+        val visible=visibleIndices(half)
+        val segments=visibleIndices(neighbors=true)
         fun y(value:Double)=bottom-((value-axis.minimum)/(axis.maximum-axis.minimum)*(bottom-top)).toFloat()
         paint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity
         paint.color=alpha(tokens.foreground,.5f);paint.textAlign=Paint.Align.RIGHT
@@ -190,7 +220,7 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
             paint.color=alpha(tokens.foreground,.12f);paint.strokeWidth=density
             canvas.drawLine(plotLeft,at,plotRight,at,paint)
             paint.color=alpha(tokens.foreground,.5f)
-            canvas.drawText(String.format(java.util.Locale.getDefault(),if(axis.maximum-axis.minimum>=100) "%.0f" else "%.1f",value),plotLeft-8*density,at+4*density,paint)
+            canvas.drawText(axisLabels.getOrElse(i) { "" },plotLeft-8*density,at+4*density,paint)
         }
         // The separator is tied to the bar's left edge, never to the label's width.
         val axisSave=canvas.save();canvas.clipRect(plotLeft,top,plotRight,height.toFloat())
@@ -231,7 +261,8 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         canvas.restoreToCount(axisSave)
         canvas.save();canvas.clipRect(plotLeft,top,plotRight,bottom)
         bandEdges.reset()
-        for(index in 1 until points.size) {
+        for(index in segments) {
+            if(index==0) continue
             val a=points[index-1];val b=points[index]
             if(resolution.next(a.day)!=b.day || a.cohort!=b.cohort || a.value==null || b.value==null) continue
             if(a.lower!=null && a.upper!=null && b.lower!=null && b.upper!=null) {
@@ -242,18 +273,18 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
                 bandEdges.moveTo(x(a.day),y(a.upper));bandEdges.lineTo(x(b.day),y(b.upper))
             }
         }
-        visible.forEach { point -> point.value?.let { value ->
+        visible.forEach { index -> val point=points[index];point.value?.let { value ->
             val color=contextColors?.get(point.day) ?: if(contextColors!=null) TrainingZoneColors.grey else if(point.belowNormal) Color.WHITE else tokens.primary
             paint.color=if(resolution==HrvTrendPeriod.DAY && actionDay==point.day) Color.rgb(Color.red(color)/2,Color.green(color)/2,Color.blue(color)/2) else color
             canvas.drawRect(x(point.day)-half,y(value),x(point.day)+half,bottom,paint)
         } }
         paint.color=Color.WHITE;paint.strokeWidth=density*BicycleDesign.hrvTrendBandLineDp
         paint.style=Paint.Style.STROKE;paint.strokeCap=Paint.Cap.ROUND
-        paint.pathEffect=android.graphics.DashPathEffect(floatArrayOf(.1f*density,BicycleDesign.hrvTrendBandDotGapDp*density),0f)
+        paint.pathEffect=bandDashes
         canvas.drawPath(bandEdges,paint)
         paint.pathEffect=null;paint.strokeCap=Paint.Cap.BUTT;paint.style=Paint.Style.FILL
         paint.color=Color.WHITE;paint.strokeWidth=2*density
-        for(index in points.indices) {
+        for(index in segments) {
             val point=points[index];val mean=point.average ?: continue
             val previous=points.getOrNull(index-1)
             // Include the segment crossing either edge; Canvas clips it continuously.
@@ -266,11 +297,12 @@ internal class HrvTrendChart(context:Context,themes:ThemeManager,
         paint.textAlign=Paint.Align.CENTER;paint.color=tokens.foreground
         val gap=BicycleDesign.dp(context,BicycleDesign.hrvTrendBarValueGap).toFloat()
         // Every value stays centered on its own bar, even when adjacent labels overlap.
-        barLabels.forEach { (point,label) ->
-            val center=x(point.day);val halfWidth=paint.measureText(label)/2
+        for(index in visibleIndices(widestBarLabel)) {
+            val point=points[index];val label=barLabels[index] ?: continue
+            val center=x(point.day);val halfWidth=label.halfWidth
             if(center+halfWidth>=plotLeft && center-halfWidth<=plotRight) {
                 val baseline=(y(point.value!!)-gap).coerceAtLeast(top-paint.fontMetrics.ascent)
-                canvas.drawText(label,center,baseline,paint)
+                canvas.drawText(label.text,center,baseline,paint)
             }
         }
         canvas.restore()

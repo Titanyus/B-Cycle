@@ -173,8 +173,9 @@ internal class HrvTrendsView(context:Context,private val themes:ThemeManager,ser
         if(activeDay==null) activeDay=HrvDailySelection.day(point.row)
         metricButtons.forEach { (candidate,choice) ->
             val value=points(candidate).firstOrNull { it.day==point.day }?.value
-            choice.text=context.getString(candidate.label)+"\n"+(value?.let(::number) ?: context.getString(R.string.hrvt_unavailable))
-            choice.contentDescription=context.getString(candidate.label)+" "+(value?.let { number(it)+" "+context.getString(candidate.unit) } ?: context.getString(R.string.hrvt_unavailable))
+            val formatted=value?.let(::number)
+            choice.text=context.getString(candidate.label)+"\n"+(formatted ?: context.getString(R.string.hrvt_unavailable))
+            choice.contentDescription=context.getString(candidate.label)+" "+(formatted?.let { it+" "+context.getString(candidate.unit) } ?: context.getString(R.string.hrvt_unavailable))
         }
         syncActions()
     }

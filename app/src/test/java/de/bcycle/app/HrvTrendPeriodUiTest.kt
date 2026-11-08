@@ -36,6 +36,36 @@ class HrvTrendPeriodUiTest {
     private fun row(day:LocalDate,value:Double=40.0,hr:Double?=60.0)=HrvHistorySummary(day.toString(),day.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),true,value,
         zoneId="UTC",metrics=mapOf("rmssdMs" to value,"sdnnMs" to value+5)+if(hr==null) emptyMap() else mapOf("restingHrBpm" to hr))
     private fun viewport(chart:HrvTrendChart)=HrvTrendChart::class.java.getDeclaredField("viewport").apply { isAccessible=true }.get(chart) as HrvTrendViewport
+    @Test fun visibleWindowMatchesFullHistoryDrawingIncludingBandsGapsMeansAndLabels() {
+        val host=Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(a.getSharedPreferences("hrv-window-test",0))
+            val start=LocalDate.of(2022,1,1)
+            val daily=HrvTrends.series((0..999).map { row(start.plusDays(it.toLong()),38.0+it%17) },HrvTrendMetric.RMSSD)
+                .mapIndexed { index,point -> if(index==497) point.copy(value=null) else point }
+            val axis=HrvTrendAxis.from(daily,HrvTrendMetric.RMSSD)
+            for(mode in HrvTrendPeriod.entries) {
+                val rows=HrvTrendAggregation.series(daily,mode)
+                var reads=0
+                val counted=object:AbstractList<HrvTrendPoint>() {
+                    override val size get()=rows.size
+                    override fun get(index:Int):HrvTrendPoint { reads++;return rows[index] }
+                }
+                val chart=HrvTrendChart(a,themes,{},{_,_->});val reference=HrvTrendChart(a,themes,{},{_,_->})
+                chart.show(counted,true,axis,mode,selectionDay=start.plusDays(500))
+                reference.show(rows,true,axis,mode,selectionDay=start.plusDays(500))
+                HrvTrendChart::class.java.getDeclaredField("sortedIndices").apply { isAccessible=true }.setBoolean(reference,false)
+                layout(chart);layout(reference);reads=0
+                val result=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888)
+                val expected=Bitmap.createBitmap(360,400,Bitmap.Config.ARGB_8888)
+                try {
+                    chart.draw(Canvas(result));reference.draw(Canvas(expected))
+                    assertTrue("Same clipped drawing for $mode",result.sameAs(expected))
+                    if(mode==HrvTrendPeriod.DAY) assertTrue("Draw visits the viewport instead of all 1000 days: $reads",reads<200)
+                } finally { result.recycle();expected.recycle() }
+            }
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun mondayRuleIsTheBarEdgeAtEveryZoomAndLabelStartsToItsRight() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
