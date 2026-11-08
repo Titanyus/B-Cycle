@@ -18,6 +18,13 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
     internal val bikes = BikeProfileStore(context, preferences)
     private var connectionsRequested = bikes.current().autoConnect
     private var autoStartWasConnected=false
+    private var autoStartPending=false
+    private var autoStartReadyAt=0L
+    private var autoStartSawCharger=false
+    private var bikeSpeedGeneration=0L
+    private var autoStartBlockedSpeedGeneration=0L
+    private val autoStartCheck=Runnable { autoStartOnConnection() }
+    internal val bikeChargingForAutoStart get()=!isIndoor && (bikeData.chargerConnected==true || bikeData.chargingActive==true)
     private val disconnectedSensors = mutableSetOf<BikeSensor>()
     val themes = ThemeManager(preferences)
     val riderProfiles = RiderProfileStore(preferences)
@@ -857,8 +864,26 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val connected=if(isIndoor) trainer.subscribed else connection.isLive
         val newlyConnected=connected && (!autoStartWasConnected || recheck)
         autoStartWasConnected=connected
-        if(!newlyConnected || !visible || !bikes.current().autoStartRecording || recording || saving || hrv.busy) return
-        try { context.startForegroundService(Intent(context,RecordingService::class.java).setAction(RecordingService.START)) }
+        if(!connected || !visible || !bikes.current().autoStartRecording || recording || saving || hrv.busy) {
+            autoStartPending=false;handler.removeCallbacks(autoStartCheck);return
+        }
+        val now=SystemClock.elapsedRealtime()
+        if(newlyConnected) {
+            autoStartPending=true;autoStartSawCharger=false;autoStartReadyAt=now+1500
+            handler.removeCallbacks(autoStartCheck)
+            if(!isIndoor) handler.postDelayed(autoStartCheck,1500)
+        }
+        if(!autoStartPending) return
+        if(!isIndoor) {
+            if(bikeChargingForAutoStart) { autoStartSawCharger=true;autoStartBlockedSpeedGeneration=bikeSpeedGeneration;return }
+            // Only a fresh wheel-speed sample proves rolling. GPS drift, cached
+            // battery percentages and an idle BLE connection cannot start a ride.
+            val rolling=(bikeData.speedHundredths ?: 0) in 100..12000 && times[LiveMetric.SPEED]?.let { now-it in 0..2000 }==true && (!autoStartSawCharger || bikeSpeedGeneration>autoStartBlockedSpeedGeneration)
+            val unplugged=bikeData.chargerConnected==false && bikeData.chargingActive==false
+            if(!rolling && (now<autoStartReadyAt || !unplugged || autoStartSawCharger)) return
+        }
+        autoStartPending=false;handler.removeCallbacks(autoStartCheck)
+        try { context.startForegroundService(Intent(context,RecordingService::class.java).setAction(RecordingService.START).putExtra(RecordingService.AUTOMATIC,true)) }
         catch(_:SecurityException) { BicycleFeedback.show(context,R.string.ui_record_permission_error,true) }
         catch(_:IllegalStateException) { BicycleFeedback.show(context,R.string.ui_record_visible_error,true) }
     }
@@ -869,6 +894,7 @@ class RideRuntime private constructor(val context: Context) : BoschConnection.Li
         val now = SystemClock.elapsedRealtime()
         samples.forEach { sample -> LiveMetric.forAddress(sample.address)?.let {
             times[it] = now
+            if(it==LiveMetric.SPEED) bikeSpeedGeneration++
             if (it == LiveMetric.CADENCE && sample.value in 0..it.maxRaw) captureCadence(sample.value / it.divisor,RecordingSource.BIKE,now)
             if (it == LiveMetric.SPEED) {
                 if (sample.address == LiveMetric.SPEED.address) mainBikeSpeedSeen = true

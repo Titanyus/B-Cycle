@@ -321,7 +321,10 @@ class BoschConnection(context: Context, private val listener: Listener, private 
         if (outcome.update.hasValues) {
             listener.onSamples(outcome.samples)
             liveMeasurementsReceived = liveMeasurementsReceived || outcome.samples.any { it.isPush }
+            val previousCharge=liveData.chargerConnected to liveData.chargingActive
             liveData = liveData.merge(outcome.update)
+            if(previousCharge!=(liveData.chargerConnected to liveData.chargingActive))
+                diagnostics.event("BIKE_CHARGING charger=${liveData.chargerConnected} active=${liveData.chargingActive}")
             listener.onData(liveData, true)
             if (phase == Phase.LIVE) reportMeasurementsStatus()
         }

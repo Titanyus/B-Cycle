@@ -29,10 +29,12 @@ class RecordingAutostartTest {
         shadowOf(app).grantPermissions(Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN)
         return RideRuntime.get(app).also { it.setGpsEnabled(false);it.setVisible(true) }
     }
-    private fun bike(runtime:RideRuntime,live:Boolean) {
+    private fun bike(runtime:RideRuntime,live:Boolean,state:LiveData?=LiveData(chargerConnected=false,chargingActive=false)) {
         val phase=runtime.connection.javaClass.getDeclaredField("phase").apply { isAccessible=true }
         phase.set(runtime.connection,phase.type.enumConstants!!.single { it.toString()==if(live) "LIVE" else "STOPPED" })
         runtime.onStatus("test")
+        if(!live) runtime.onData(LiveData(),false) else state?.let { runtime.onData(it,true) }
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(1500))
     }
     private fun flag(runtime:RideRuntime,name:String,value:Boolean)=RideRuntime::class.java.getDeclaredField(name).apply { isAccessible=true }.setBoolean(runtime,value)
     @Test fun ebikeStartsOncePerConnectionAndEnablingWhileConnectedDoesNotStartImmediately() {
@@ -48,6 +50,32 @@ class RecordingAutostartTest {
         flag(r,"recording",true);bike(r,false);bike(r,true);assertNull(shadowOf(app).nextStartedService)
         flag(r,"recording",false);bike(r,true);assertNull(shadowOf(app).nextStartedService)
     }
+    @Test fun chargingAndUnknownStateWaitForFreshRollingAfterUnplugging() {
+        val r=runtime();r.bikes.save(r.bikes.current().copy(autoStartRecording=true))
+        bike(r,true,LiveData(chargerConnected=true,chargingActive=true));assertNull(shadowOf(app).nextStartedService)
+        fun speed(value:Int,data:LiveData) {
+            r.onSamples(listOf(McspSample(LiveMetric.SPEED.address,value.toLong(),true)))
+            r.onData(data.copy(speedHundredths=value),true)
+        }
+        speed(200,LiveData(chargerConnected=true,chargingActive=true));assertNull(shadowOf(app).nextStartedService)
+        r.onData(LiveData(chargerConnected=false,chargingActive=false,speedHundredths=200),true)
+        assertNull(shadowOf(app).nextStartedService) // A wheel sample from while charging is not a fresh departure.
+        speed(150,LiveData(chargerConnected=false,chargingActive=false))
+        assertEquals(RecordingService.START,shadowOf(app).nextStartedService!!.action)
+        speed(200,LiveData(chargerConnected=false,chargingActive=false));assertNull(shadowOf(app).nextStartedService)
+        bike(r,false);bike(r,true,null);assertNull(shadowOf(app).nextStartedService)
+        r.onData(LiveData(speedHundredths=0),true);assertNull(shadowOf(app).nextStartedService)
+        speed(120,LiveData());assertEquals(RecordingService.START,shadowOf(app).nextStartedService!!.action)
+    }
+    @Test fun automaticServiceStartRechecksChargingBeforeOpeningTheJournal() {
+        val r=runtime();r.bikes.save(r.bikes.current().copy(autoStartRecording=true))
+        bike(r,true,LiveData(chargerConnected=true))
+        val host=Robolectric.buildService(RecordingService::class.java).create()
+        try {
+            host.get().onStartCommand(Intent(app,RecordingService::class.java).setAction(RecordingService.START).putExtra(RecordingService.AUTOMATIC,true),0,1)
+            assertFalse(r.recording)
+        } finally { host.destroy() }
+    }
     @Test fun savingAndHrvNeverStartLaterWithoutANewConnection() {
         val r=runtime();r.bikes.save(r.bikes.current().copy(autoStartRecording=true))
         flag(r,"saving",true);bike(r,true);assertNull(shadowOf(app).nextStartedService)
@@ -62,7 +90,7 @@ class RecordingAutostartTest {
     @Test fun openingTheAppWithAnAlreadyReadyBikeStartsButNotDuringHrv() {
         val r=runtime();r.bikes.save(r.bikes.current().copy(autoStartRecording=true))
         flag(r,"visible",false);bike(r,true);assertNull(shadowOf(app).nextStartedService)
-        r.setVisible(true);assertEquals(RecordingService.START,shadowOf(app).nextStartedService!!.action)
+        r.setVisible(true);shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(1500));assertEquals(RecordingService.START,shadowOf(app).nextStartedService!!.action)
         r.setVisible(true);assertNull(shadowOf(app).nextStartedService)
         flag(r,"visible",false)
         HrvController::class.java.getDeclaredField("busy").apply { isAccessible=true }.setBoolean(r.hrv,true)
@@ -94,7 +122,7 @@ class RecordingAutostartTest {
             assertTrue(shadowOf(service).isForegroundStopped)
         } finally { host.destroy();HrvController::class.java.getDeclaredField("busy").apply { isAccessible=true }.setBoolean(r.hrv,false) }
     }
-    @Test fun switchIsBelowWheelAndDividerAndBothProfileValuesSurviveBackupAndOldProfilesDefaultOff() {
+    @Test fun switchIsFirstSensorOptionAndBothProfileValuesSurviveBackupAndOldProfilesDefaultOff() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {
             val a=host.get();val r=RideRuntime.get(a)
@@ -103,8 +131,8 @@ class RecordingAutostartTest {
             val toggle=view.findViewWithTag<Switch>("bike_auto_start_recording")
             assertFalse(toggle.isChecked)
             val parent=toggle.parent as ViewGroup
-            assertSame(view.findViewWithTag<View>("bike_autostart_divider"),parent.getChildAt(parent.indexOfChild(toggle)-1))
-            assertSame(view.findViewWithTag<View>("bike_wheel_row"),parent.getChildAt(parent.indexOfChild(toggle)-2))
+            assertEquals(0,parent.indexOfChild(toggle))
+            assertEquals("bike_auto_connect",parent.getChildAt(1).tag)
             toggle.isChecked=true;assertTrue(r.bikes.current().autoStartRecording)
             val second=r.bikes.add()!!;r.bikes.select(second.slot)
             assertFalse(r.bikes.current().autoStartRecording)

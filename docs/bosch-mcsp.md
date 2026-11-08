@@ -213,3 +213,7 @@ Zuordnung zu einem erfundenen Garmin-Nativfeld. Garmins Decoder/Activity Validat
 prüfen Licht an, aus und fehlend; MCSP-Tests prüfen Requests, ACK/Push und unbekannte
 Werte neben anderen Messwerten; ein nativer UI-Test prüft Farbe/Position und das
 Zusammenspiel mit dem Record-Punkt. Wetterfelder bleiben ausschließlich Anzeigegrößen.
+
+## Optionale Ladeinformationen ab08.11.2026
+
+Operative nullable Zustände0x0089/0x00c4, getrennt von aufgezeichneten Messwerten; priorisierte reine READ/SUBSCRIBE. Quelle, Kodierungsgrenzen, Ladegerät-/Anrollschutz und noch offene Geräteprüfung unter [Bosch-Ladeschutz](bosch-charging-autostart.md).

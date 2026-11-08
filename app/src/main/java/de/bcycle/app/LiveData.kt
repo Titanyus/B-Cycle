@@ -37,11 +37,12 @@ data class LiveData(
     val rangesKm: List<Long>? = null,
     val indoor:Boolean=false,
     val batteries: BatterySnapshot = BatterySnapshot(),
+    val chargerConnected:Boolean?=null,val chargingActive:Boolean?=null,
 ) {
     /** Distinct decoded measurements seen on this connection, not notification count or metadata. */
     val measurementCount get() = LiveMetric.entries.count { value(it) != null } + if (rangesKm?.isNotEmpty() == true) 1 else 0
     val hasValues get() = speedHundredths != null || riderPowerWatts != null || otherValues.isNotEmpty() ||
-        assistNames != null || rangesKm != null
+        assistNames != null || rangesKm != null || chargerConnected!=null || chargingActive!=null
 
     fun merge(update: LiveData) = LiveData(
         update.speedHundredths ?: speedHundredths,
@@ -49,6 +50,7 @@ data class LiveData(
         otherValues + update.otherValues,
         update.assistNames ?: assistNames,
         update.rangesKm ?: rangesKm,
+        chargerConnected=update.chargerConnected ?: chargerConnected,chargingActive=update.chargingActive ?: chargingActive,
     )
 
     fun value(metric: LiveMetric): Long? = when (metric) {

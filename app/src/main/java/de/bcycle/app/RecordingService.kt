@@ -35,6 +35,7 @@ class RecordingService : Service() {
             if (!runtime.saving) { stopForeground(STOP_FOREGROUND_REMOVE); stopSelf() }
             return START_NOT_STICKY
         }
+        if(intent?.getBooleanExtra(AUTOMATIC,false)==true && runtime.bikeChargingForAutoStart) { stopSelf();return START_NOT_STICKY }
         if (!runtime.hasBluetooth()) { stopSelf(); return START_NOT_STICKY }
         var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
         if (runtime.hasGps() && runtime.gpsEnabled) types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
@@ -62,5 +63,5 @@ class RecordingService : Service() {
         super.onDestroy()
     }
     override fun onBind(intent: Intent?) = null
-    companion object { const val START = "de.bcycle.app.START_RIDE"; const val STOP = "de.bcycle.app.STOP_RIDE" }
+    companion object { const val AUTOMATIC="de.bcycle.app.AUTO_START";const val START = "de.bcycle.app.START_RIDE"; const val STOP = "de.bcycle.app.STOP_RIDE" }
 }

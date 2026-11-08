@@ -18,11 +18,12 @@ class McspProtocol {
     private var partial = byteArrayOf()
     private var sequence = 0
     private var displayedSpeedSeen = false
+    private var chargerBooleanConfirmed=false
 
     fun subscriptions() = requests(6)
     fun reads() = requests(0)
 
-    private fun requests(type: Int) = (LiveMetric.entries.map { it.address } + listOf(MODE_NAMES, RANGES)).map { address ->
+    private fun requests(type: Int) = (listOf(CHARGER_CONNECTED,CHARGING_ACTIVE)+LiveMetric.entries.map { it.address } + listOf(MODE_NAMES, RANGES)).map { address ->
         val seq = sequence
         sequence = (sequence + 1) and 15
         val description = "${if (type == 6) "SUBSCRIBE" else "READ"} address=${hex(address)} seq=$seq"
@@ -64,6 +65,7 @@ class McspProtocol {
             }
             var update = LiveData()
             var speedSeen = displayedSpeedSeen
+            var chargerSeen=chargerBooleanConfirmed
             val samples = mutableListOf<McspSample>()
             val replies = mutableListOf<McspTransmission>()
             val events = mutableListOf<String>()
@@ -113,6 +115,14 @@ class McspProtocol {
                 }
                 if (measurementPayload != null) {
                     when (field) {
+                        CHARGER_CONNECTED,CHARGING_ACTIVE -> {
+                            val scalarState=scalar(measurementPayload)
+                            val state=scalarState ?: if(field==CHARGING_ACTIVE || chargerSeen && measurementPayload.isEmpty()) 0 else null
+                            if(state==null) continue // Unverified/unsupported charger encoding stays unknown.
+                            if(state !in 0..1) { events+="MCSP_UNKNOWN_CHARGE_STATE field=${hex(field)} value=$state";continue }
+                            if(field==CHARGER_CONNECTED && scalarState!=null) chargerSeen=true
+                            update=update.merge(if(field==CHARGER_CONNECTED) LiveData(chargerConnected=state==1L) else LiveData(chargingActive=state==1L))
+                        }
                         MODE_NAMES -> update = update.merge(LiveData(assistNames = strings(measurementPayload)))
                         RANGES -> update = update.merge(LiveData(rangesKm = numbers(measurementPayload)))
                         else -> {
@@ -136,6 +146,7 @@ class McspProtocol {
             }
             partial = pending
             displayedSpeedSeen = speedSeen
+            chargerBooleanConfirmed=chargerSeen
             return McspOutcome(update, samples, replies, events, bodies.size, ignored, controls, readResponses)
         } catch (error: IllegalArgumentException) {
             // Never join the next notification onto a damaged partial message.
@@ -212,12 +223,14 @@ class McspProtocol {
 
     private data class Segment(val channel: Int, val complete: Boolean, val body: ByteArray)
     private companion object {
+        const val CHARGER_CONNECTED=0x0089
+        const val CHARGING_ACTIVE=0x00c4
         const val HOST = 0x4080
         const val MODE_NAMES = 0x180d
         const val RANGES = 0x1857
         const val FEATURES = 0x40aa
         const val STAGE = 0x40a9
-        fun isMeasurement(field: Int) = LiveMetric.forAddress(field) != null || field == MODE_NAMES || field == RANGES
+        fun isMeasurement(field: Int) = field==CHARGER_CONNECTED || field==CHARGING_ACTIVE || LiveMetric.forAddress(field) != null || field == MODE_NAMES || field == RANGES
         fun address(bytes: ByteArray, offset: Int) = ((bytes[offset].toInt() and 255) shl 8) or (bytes[offset + 1].toInt() and 255)
         fun hex(value: Int) = "0x${value.toString(16).padStart(4, '0')}"
         fun frame(body: ByteArray) = byteArrayOf((0x30 or (body.size ushr 8)).toByte(), body.size.toByte()) + body

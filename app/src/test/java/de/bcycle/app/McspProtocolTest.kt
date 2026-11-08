@@ -53,18 +53,31 @@ class McspProtocolTest {
         assertEquals(1, flowReply.ignoredMessages)
     }
 
+    @Test fun chargeStatesAreOptionalBooleansAndDoNotBecomeRecordedMetrics() {
+        val protocol=McspProtocol()
+        assertNull(protocol.receive(hex("30 02 80 89")).update.chargerConnected)
+        val on=protocol.receive(hex("30 04 80 89 08 01 30 04 80 c4 08 01")).update
+        assertEquals(true,on.chargerConnected);assertEquals(true,on.chargingActive);assertTrue(on.hasValues)
+        assertEquals(0,on.measurementCount)
+        val off=protocol.receive(hex("30 02 80 89 30 02 80 c4")).update
+        val merged=on.merge(off)
+        assertEquals(false,merged.chargerConnected);assertEquals(false,merged.chargingActive)
+        val unknown=protocol.receive(hex("30 04 80 89 08 02"))
+        assertNull(unknown.update.chargerConnected);assertFalse(unknown.update.hasValues)
+        assertTrue(unknown.events.any { it.contains("UNKNOWN_CHARGE_STATE") })
+    }
     @Test fun readRequestsAndSubscriptionsCannotWriteBikeSettings() {
         val protocol = McspProtocol()
-        assertArrayEquals(hex("30 05 40 80 98 2d 60"), protocol.subscriptions()[0].bytes)
+        assertArrayEquals(hex("30 05 40 80 80 89 60"), protocol.subscriptions()[0].bytes)
         // Fresh protocol for the independent, documented READ grammar.
-        assertArrayEquals(hex("30 05 40 80 98 2d 00"), McspProtocol().reads()[0].bytes)
+        assertArrayEquals(hex("30 05 40 80 80 89 00"), McspProtocol().reads()[0].bytes)
         repeat(40) {
             for (request in protocol.reads() + protocol.subscriptions()) {
                 val type = (request.bytes[6].toInt() and 255) ushr 4
                 assertTrue(type == 0 || type == 6)
                 assertEquals(7, request.bytes.size)
                 val address = ((request.bytes[4].toInt() and 0x7f) shl 8) or (request.bytes[5].toInt() and 255)
-                assertTrue(address in LiveMetric.entries.map { it.address } + listOf(0x180d, 0x1857))
+                assertTrue(address in LiveMetric.entries.map { it.address } + listOf(0x180d, 0x1857,0x0089,0x00c4))
             }
         }
     }

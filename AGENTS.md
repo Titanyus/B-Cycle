@@ -73,6 +73,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 
 - Sensorverbindungen und RecordingService/RideRuntime gemeinsam verwenden, kein zweiter Bosch-/GATT-Client für Anzeigen.
 - Aktive Laufzeit = sichtbar ODER Aufnahme. Ohne Aufnahme im Hintergrund Suche/Verbindungsversuche stoppen, bei Rückkehr fortsetzen. Manuelle Gerätesuche 10 s. Während Aufnahme Wiederverbindung/GPS im Hintergrund erhalten; HRV und gelegentlicher Schaltwerkabruf nur sichtbar.
+- Bosch-Autostart: Ladezustände getrennt von Messwerten read-only abfragen, vor Start Statusphase abwarten. Angeschlossenes Ladegerät/Laden sperrt; unbekannt gemäß Nutzerentscheidung erst bei frischem Anrollen, kein GPS-/Cache-Fallback. Dienststart erneut prüfen, Indoor/manueller Start erhalten. [Quellen/Grenzen/Prüfung](docs/bosch-charging-autostart.md).
 - Aufnahme bis manuellem Stopp, auch bei langen Pausen/Bike aus/Bildschirm aus. Repeated START darf nichts zurücksetzen. Unter 10 s verwerfen. Autostart nur gewähltes Profil, aktive HRV-Messung hat Vorrang, kein späterer Start vorgemerkt.
 - Flexible Hauptquellen RecordingSources pro Messwert mit automatischem Fallback. Smartphone-Barometer unterstützen, kein Quellenwechsel durch reine Darstellungsänderung.
 - SRAM vorerst erstes verbundenes Gerät als Schaltwerk. Letzten Akkustand dauerhaft anzeigen, niemals als frischen Rohwert aufzeichnen. Unter 20 % bei Aufnahmestart immer 10-s-Warnhinweis, kein Optionsschalter. Keine ANT+-/Gangunterstützung behaupten.
