@@ -22,14 +22,14 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
     internal val plotRight get() = width - 8f * density
     internal fun screenX(position: Double) = plotLeft + ((position / analysis.axisEnd-navigation.viewport.start)/navigation.viewport.span).toFloat() * (plotRight - plotLeft)
     private fun baseX(position:Double)=plotLeft+(position/analysis.axisEnd).toFloat()*(plotRight-plotLeft)
-    internal var scale=RouteChartScale(0.0,5.0,emptyList()); private set
+    internal val scale by lazy { RouteChartScale.calculate(series.chart,series.points.mapNotNull { it.value }) }
+    private var geometryDirty=true
     private val minimum get()=scale.minimum
     private val maximum get()=scale.maximum
     private var labelsStart=Double.NaN;private var labelsSpan=Double.NaN
     private var xAxis=RouteChartXAxis.calculate(0.0,1.0)
     private var xLabels=emptyList<String>()
     private val edgeLabels=Array(2) { "" }
-    private val xFormat=java.text.NumberFormat.getNumberInstance(resources.configuration.locales[0]).apply { isGroupingUsed=false }
     private var yLabels = emptyList<String>()
     private val title = context.getString(series.chart.detailLabel)
     private val unit = context.getString(series.chart.unit)
@@ -43,9 +43,11 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
             foreground = tokens.foreground; curve = series.chart.color(themes.baseTokens.secondary); invalidate()
         }
     }
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        scale=RouteChartScale.calculate(series.chart,series.points.mapNotNull { it.value })
-        val top = 12 * density; val bottom = h - 24 * density
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) { geometryDirty=true }
+    private fun prepareGeometry() {
+        if(!geometryDirty) return
+        geometryDirty=false
+        val top = 12 * density; val bottom = height - 24 * density
         area.reset()
         fun y(value: Double) = bottom - ((value - minimum) / (maximum - minimum)).toFloat() * (bottom - top)
         val segments = RouteChartCurve.prepare(series, analysis.distanceAxis, analysis.axisEnd, plotRight - plotLeft)
@@ -92,14 +94,12 @@ internal class RouteChartView(context: Context, themes: ThemeManager, val analys
         return true
     }
     override fun onDraw(canvas: Canvas) {
+        prepareGeometry()
         val viewport=navigation.viewport
         if(labelsStart!=viewport.start || labelsSpan!=viewport.span) {
-            val divisor=if(analysis.distanceAxis) 1 else 60
-            xAxis=RouteChartXAxis.calculate(analysis.axisEnd*viewport.start/divisor,analysis.axisEnd*(viewport.start+viewport.span)/divisor)
-            xFormat.minimumFractionDigits=0;xFormat.maximumFractionDigits=xAxis.decimals
-            xLabels=xAxis.marks.map(xFormat::format)
-            xFormat.minimumFractionDigits=maxOf(1,xAxis.decimals);xFormat.maximumFractionDigits=maxOf(1,xAxis.decimals)
-            edgeLabels[0]=xFormat.format(xAxis.start);edgeLabels[1]=xFormat.format(xAxis.end)
+            val labels=navigation.labels(analysis.axisEnd,analysis.distanceAxis)
+            xAxis=labels.axis;xLabels=labels.values
+            edgeLabels[0]=labels.start;edgeLabels[1]=labels.end
             labelsStart=viewport.start;labelsSpan=viewport.span
         }
         val top = 12 * density; val bottom = height - 24 * density

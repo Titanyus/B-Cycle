@@ -1,6 +1,8 @@
 package de.bcycle.app
 
 import android.app.Activity
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -40,6 +42,27 @@ class RouteChartNavigationTest {
             MotionEvent.obtain(time,time+offset,action,ids.size,properties,coordinates,0,0,1f,1f,0,0,InputDevice.SOURCE_TOUCHSCREEN,0).also { chart.onTouchEvent(it);it.recycle() }
         }
         fun close() { host.pause().stop().destroy() }
+    }
+    @Test fun layoutDefersCurveWorkAndPlotsShareViewportLabelsWithoutLosingScale() {
+        val f=Fixture()
+        try {
+            val dirty=RouteChartView::class.java.getDeclaredField("geometryDirty").apply { isAccessible=true }
+            assertTrue(f.charts.all { dirty.getBoolean(it) })
+            val first=f.navigation.labels(f.analysis.axisEnd,true)
+            assertSame(first,f.navigation.labels(f.analysis.axisEnd,true))
+            val image=Bitmap.createBitmap(360,140,Bitmap.Config.ARGB_8888)
+            try {
+                f.charts.first().draw(Canvas(image))
+                assertFalse(dirty.getBoolean(f.charts.first()))
+                assertTrue("Other offscreen curves stay unprepared",f.charts.drop(1).all { dirty.getBoolean(it) })
+                val scale=f.charts.first().scale
+                f.navigation.zoom(f.charts.first(),2.0)
+                val zoomed=f.navigation.labels(f.analysis.axisEnd,true)
+                assertNotSame(first,zoomed);assertSame(zoomed,f.navigation.labels(f.analysis.axisEnd,true))
+                f.charts.first().draw(Canvas(image));assertSame(scale,f.charts.first().scale)
+                assertFalse("Pan/zoom reuses curve geometry",dirty.getBoolean(f.charts.first()))
+            } finally { image.recycle() }
+        } finally { f.close() }
     }
     @Test fun closeFingersAndPointerReplacementKeepEveryPlotAndYScaleSynchronized() {
         for(distance in listOf(true,false)) {

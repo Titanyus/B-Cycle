@@ -29,6 +29,21 @@ internal class RouteChartViewport {
  */
 internal class RouteChartNavigation(context:Context) {
     val viewport=RouteChartViewport()
+    internal data class Labels(val axis:RouteChartXAxis,val values:List<String>,val start:String,val end:String)
+    private data class AxisKey(val end:Double,val distance:Boolean,val start:Double,val span:Double)
+    private var labelKey:AxisKey?=null
+    private var labelSnapshot:Labels?=null
+    private val number=java.text.NumberFormat.getNumberInstance(context.resources.configuration.locales[0]).apply { isGroupingUsed=false }
+    internal fun labels(end:Double,distance:Boolean):Labels {
+        val key=AxisKey(end,distance,viewport.start,viewport.span)
+        if(key==labelKey) return checkNotNull(labelSnapshot)
+        val divisor=if(distance) 1 else 60
+        val axis=RouteChartXAxis.calculate(end*viewport.start/divisor,end*(viewport.start+viewport.span)/divisor)
+        number.minimumFractionDigits=0;number.maximumFractionDigits=axis.decimals
+        val values=axis.marks.map(number::format)
+        number.minimumFractionDigits=maxOf(1,axis.decimals);number.maximumFractionDigits=maxOf(1,axis.decimals)
+        return Labels(axis,values,number.format(axis.start),number.format(axis.end)).also { labelKey=key;labelSnapshot=it }
+    }
     private val charts=mutableSetOf<RouteChartView>()
     private var host:RouteChartView?=null
     private val scroller=OverScroller(context)
