@@ -176,10 +176,10 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
     private val description=BicycleComponents.description(context,themes,"").apply { maxLines=3;ellipsize=android.text.TextUtils.TruncateAt.END;tag="training_description" }
     private val intensity=BicycleComponents.description(context,themes,"").apply { typeface=BicycleDesign.strongTypeface;tag="training_intensity" }
     private val variant=BicycleSpecialButton(context,themes,filled=false).apply {
-        tag="training_variant";maxLines=1
+        tag="training_variant";maxLines=1;minWidth=BicycleDesign.dp(context,64);minimumWidth=minWidth
         val pad=BicycleDesign.dp(context,BicycleDesign.controlGap);setPadding(pad,0,pad,0)
     }
-    private val hardness=BicycleComponents.text(context,themes,"").apply { tag="training_hardness";gravity=android.view.Gravity.CENTER;maxLines=1 }
+    private val hardness=BicycleComponents.text(context,themes,"").apply { tag="training_hardness";gravity=android.view.Gravity.CENTER;maxLines=1;minWidth=BicycleDesign.dp(context,64) }
     private var badgeColor:Int?=null
     private val titleRow=LinearLayout(context).apply {
         orientation=HORIZONTAL;gravity=android.view.Gravity.CENTER_VERTICAL;isBaselineAligned=false
