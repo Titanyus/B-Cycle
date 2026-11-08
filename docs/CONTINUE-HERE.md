@@ -1,3 +1,7 @@
+# Nachtrag08.11.2026: flüssige Radwege-/Radrouten-Regler
+
+In Einstellungen/Karte erneuern Cycling-Farbe/Deckkraft/Breite und Ein-/Aus nicht mehr bei jedem Schritt die verdeckte Karte. Werte und kleine Feldvorschau bleiben sofort aktuell; einmalige Kartenübernahme beim Schließen der letzten Einstellungs-/Dialogseite zum Dashboard, Fokus als zusätzlicher Rückkehrpfad. Track1–3 und Designer auf der Karte unverändert. Ursache: Breite/Sichtbarkeit lösen native Ebenen-Neuaufbau aus, Deckkraft nur Styleänderung. [Details/gezielte Prüfung](cycling-map-options.md). Zwei gezielte Fälle bestanden: CyclingSettingsRefreshTest sowie bestehender Raster-/Vektor-Einstellungsfall; Log `/workspace/.tools/cycling-settings-refresh-tests.log`. Typografie-/UI-Katalog-/Diff-Prüfungen grün. Keine APK beauftragt.
+
 # Aktueller Entwicklungsstand: gemeinsame Mapterhorn-Höhenquelle und Schummerung (noch nicht veröffentlicht)
 
 Auftrag07.11.2026 umgesetzt: Höhenlinien von Mapzen/AWS auf Mapterhorn umgestellt, gemeinsamer Downloader/validierter512-Pixel-WebP-Decoder/Cache mit der Fahrtkorrektur. Linien nativ10–14, darüber vorhandene Geometrie; regionale Detail-404 fallen auf12 zurück. Korrektur unverändert bilinear14→12 und bisherige Grenzen. Nur Darstellung/Quellenzugriff vereinheitlicht, keine Änderung von Aufzeichnung oder Höhenmeterzählung. Quellenanzeige/Attribution samt offiziellen regionalen Datenlizenzen aktualisiert. [Details, Auflösung und Schummerungsprüfung](mapterhorn-unified-dem.md).

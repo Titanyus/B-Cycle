@@ -196,7 +196,7 @@ class VtmVectorMapTest {
             val routeToggle=root.findViewWithTag<Switch>(MapVectorLayer.CYCLE_ROUTES.key)
             routeToggle.isChecked=true;shadowOf(Looper.getMainLooper()).idle()
             assertTrue(runtime.preferences.getBoolean(MapVectorLayer.CYCLE_ROUTES.key,false))
-            assertTrue(panel.mapView.map().layers().any { it is VtmCyclingRoutesLayer })
+            assertTrue("Hidden map updates when returning to the dashboard",panel.mapView.map().layers().none { it is VtmCyclingRoutesLayer })
             routeToggle.isChecked=false;shadowOf(Looper.getMainLooper()).idle()
             assertFalse(runtime.preferences.getBoolean(MapVectorLayer.CYCLE_ROUTES.key,true))
             assertTrue(panel.mapView.map().layers().none { it is VtmCyclingRoutesLayer })

@@ -3,7 +3,7 @@ package de.bcycle.app
 import android.app.AlertDialog
 
 /** Keep parent dialogs intact, including expanded sections and unsaved selections. */
-internal class DialogNavigation {
+internal class DialogNavigation(private val returnedToDashboard:()->Unit={}) {
     private val stack = mutableListOf<AlertDialog>()
     private val tracked = linkedSetOf<AlertDialog>()
     private val cleanup = mutableMapOf<AlertDialog, () -> Unit>()
@@ -22,6 +22,7 @@ internal class DialogNavigation {
             stack.remove(dialog)
             // A parent's dismiss event may still be queued when a child closes. Never resurrect it.
             if (top) stack.lastOrNull()?.takeIf { it.window?.decorView?.isAttachedToWindow == true }?.show()
+            if(empty) returnedToDashboard()
         }
     }
     fun onDismiss(dialog: AlertDialog, action: () -> Unit) {

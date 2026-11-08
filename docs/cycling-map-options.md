@@ -25,3 +25,13 @@ Der alte Designer-Eintrag „Feld-, Fuß- und Radwege“ war irreführend: er st
 ## Prüfungen
 
 Vier gezielte Fälle in cycling-options-final-tests.log erfolgreich: unabhängige Controls/Profil/Backup/JSON und native Reihenfolge/Farbe/Transparenz, begrenzter Übersichtsdatenabruf/Cache/Dispose, Feldweg-Livefarbe, bisherige Trackpalette. Zusätzlicher echter MainActivity-/Karten-Einstellungstest in cycling-settings-integration-final-test.log erfolgreich, einschließlich beider Schalter und Raster-/Vektorwechsel. Die zentralen Formularbeobachter dürfen die eigenen Listener der Cycling-Frames nicht überschreiben; deshalb diese wie die bisherigen Trackframes erst nach observeSettings einfügen. Typografie/UI-Katalog/Bright-Generator/Diff grün. Kein Gesamtlauf, keine neue APK; optische Geräteprüfung offen.
+
+## Einstellungen ohne verdeckten Kartenaufbau (08.11.2026)
+
+Radwege-/Radrouten-Regler riefen bisher bei jedem Änderungsschritt MapPanel.refreshSettings auf. Deckkraft/Farbe können bestehende Styles aktualisieren; Breitenänderungen und Ein-/Ausschalten bauen die Vektorebenen neu auf. Das blockierte den UI-Thread auch hinter der Einstellungsseite.
+
+In MainActivity markieren die beiden Cycling-Frames die Karte jetzt nur als ausstehend. Speicherung und lokale Vorschau bleiben sofort; keine Änderung am gemeinsamen MapLineStyleView oder an den Track1–3-Reglern. DialogNavigation meldet die Rückkehr aus dem letzten Dialog; dann einmal die aktuellen Einstellungen übernehmen. Das Schließen eines Unterdialogs/der Farbpalette reicht nicht. Dashboard-Fokus ist ein zusätzlicher Rückkehrpfad; das Pending-Flag verhindert doppelte Übernahme. Auf der Karte bleibt der Designer live.
+
+Gezielte Regression: echte Slider-User-Ereignisse für beide Breiten und beide Schalter speichern unmittelbar, behalten hinter Kind-/Elterneinstellungen dieselben nativen Layer und übernehmen erst beim Dashboard neue Layer/effektive Styles. Zweiter Fokuswechsel baut nichts neu. Bestehender Raster-/Vektor-/Ebenen-Einstellungsfall berücksichtigt die verzögerte Cycling-Übernahme. Kein Benchmark oder Gesamtlauf; Gerätegefühl noch zu bestätigen.
+
+Prüfnachweis08.11.2026: beide gezielten Fälle bestanden; `/workspace/.tools/cycling-settings-refresh-tests.log`. Typografie/UI-Katalog/Diff ebenfalls grün.

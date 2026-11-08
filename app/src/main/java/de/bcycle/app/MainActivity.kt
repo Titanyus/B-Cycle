@@ -167,7 +167,8 @@ class MainActivity : Activity() {
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
     private val settingsThemes get() = runtime.themes.settings
-    private val dialogs = DialogNavigation()
+    private val dialogs = DialogNavigation { applyPendingCyclingMapSettings() }
+    private var cyclingMapSettingsPending=false
     private fun dialog(fullscreen: Boolean = true):BicycleDialogBuilder {
         closeSensorSetupPrompt()
         return BicycleDialogBuilder(this,settingsThemes,dialogs,fullscreen)
@@ -1409,7 +1410,16 @@ class MainActivity : Activity() {
     override fun onWindowFocusChanged(hasFocus:Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if(!hasFocus && ::dashboardViewport.isInitialized) dashboardViewport.cancelTransition()
-        if(hasFocus) updateDashboardFullscreen()
+        if(hasFocus) {
+            applyPendingCyclingMapSettings()
+            updateDashboardFullscreen()
+        }
+    }
+    private fun applyPendingCyclingMapSettings() {
+        if(cyclingMapSettingsPending && dialogs.empty && ::mapPanel.isInitialized && !isDestroyed) {
+            cyclingMapSettingsPending=false
+            mapPanel.refreshSettings()
+        }
     }
     private fun dashboardSettings() {
         menu=dialog().setTitle(R.string.ui_design_title).setView(dashboardControls()).show()
@@ -1522,7 +1532,9 @@ class MainActivity : Activity() {
         val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
         val cyclingStyles=MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,
             kinds=listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES),heading=null) {
-            if(runtime.bikes.activeSlot==slot) mapPanel.refreshSettings()
+            // The editor already saves and repaints its own preview. Rebuilding hidden
+            // vector layers on every slider step stalls the main thread.
+            if(runtime.bikes.activeSlot==slot) cyclingMapSettingsPending=true
         }.apply { visibility=if(source.selectedSource==MapSource.VECTOR) View.VISIBLE else View.GONE }
         val vectorOptions=BicycleFrameDropdown(settingsContext,settingsThemes,getString(R.string.map_vector_layers),open=false,leadingIcon=BicycleIcon.Map).apply {
             tag="map_vector_layers"
