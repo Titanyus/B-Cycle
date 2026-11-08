@@ -1,0 +1,8 @@
+# B|CYCLE 0.8.103
+
+- Neue Streckenübersicht: großes Thumbnail links auf TERTIARY, überlagerndes Fahrradquadrat in Profilfarbe, rechts Titel/Werte/Auge. Dateityp nur hier entfernt. Echte, ausgedünnte Mapterhorn-Höhenlinien in derselben Farbe mit20%, Strecke100%; Hintergrundvorbereitung und begrenzte Caches, keine zusätzliche VTM-Instanz. Flat-Gruppenköpfe reichen normal und angeheftet bis zum Rand.
+- Trainingsübersicht mit Härtebadge rechts und Rahmenpille für die Länge. Zyklische Auswahl Q+→Q→S→Ext→Ext+; bei eindeutigem Hauptblock ab5 Wiederholungen zwei/eine Wiederholung weniger oder eine/zwei mehr. Aufwärmen/Ausrollen erhalten, Kennzahlen/Diagramm/Sortierung/Details aus tatsächlicher Variante, Auswahl je Training merken. Diagramm etwa15% niedriger. Trainingsdetails ohne inneren Rahmen und doppelten Titel.
+- Fahrtzusammenfassung: konstante kleinere RPE-Schriften, auch unbewertet; vertikal mittig neben der Notiz, Frage entfernt. Kleine Speicherbeschriftungen mit Zielicons ohne Kalender, eigene900-Black-Überschrift und Abstand unter Buttons.
+- RPE-Bearbeitungsdialog mit16dp Innenrand; zusätzlicher oberer Abstand in Trainingsliste entfernt. Schmale Streckenzahlen bleiben beim Scroll-Recycling vollständig.
+
+Nur gezielte UI-/Recycling-/Vorlagen-/Terrain-/Offline-/Variantenfälle und zentrale Typografie/UI-Katalog/Bright/Diff-Prüfungen, kein Gesamtlauf/Profiling. [Streckenvorschauen](route-thumbnails.md), [Trainingsvarianten](training-library.md), [Fahrtabschluss](ride-summary-save-flow.md). Vorschaubilder kontrolliert; echte Geländekonturen und Gesten am Gerät noch zu bestätigen. Bei fehlenden Höhendaten bleibt die Strecke allein sichtbar und das Gelände wird später ergänzt.

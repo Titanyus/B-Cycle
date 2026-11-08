@@ -1,3 +1,7 @@
+# Strecken-Thumbnail und Flat-Köpfe (APK anschließend angefordert)
+
+Neue Streckenzeilen mit linkem TERTIARY-Thumbnail/20%-Konturen und überlagerndem abgerundeten Fahrradquadrat, Dateityp nur in Übersicht entfernt. Volle Flat-Gruppenkopfbreite; Zahlen ohne VERY_WIDE auch nach langem Recycling. Bestehende Auswahl/Auge/Vorlagen-/Detaildaten erhalten. Asynchrone Vorberechnung und begrenzter Mapterhorn-/Geometrie-/Bitmapcache, Quellen weiterhin Erweitert. [Umfang, Limits und gezielte Nachweise](route-thumbnails.md). Vorschauen visuell geprüft; gezielte UI-/Geometrie-/Offline- und Scrollfälle bestanden, zentrale Prüfungen grün. Nutzer hat danach ausdrücklich neue APK angefordert; nächste Version0.8.103/code173, Actions-Run voraussichtlich148.
+
 # Trainingspillen und Varianten nach Build147 (noch nicht veröffentlicht)
 
 Übersicht mit Härtebadge und Rahmenpille neben Titel, Diagramm82 statt96dp. Variantenwahl Q+→Q→S→Ext→Ext+→Q+; exakter eindeutiger Hauptblock ab5 Wiederholungen, Warmup/Cooldown erhalten, lokale Auswahl je Training. Kennzahlen/Sortierung/Details aus gewählter Struktur; Originaldateien/Anbieterantwort unangetastet. Sieben gezielte Modell-/bestehende UI-Fälle sowie neuer korrigierter UI-Fall bestanden (8 verschiedene Fälle insgesamt), Vorschau geprüft. [Verfahren/Grenzen](training-library.md). Entwicklungsumgebung wieder verfügbar; Strecken-Thumbnail/Flat-Randkorrektur in Arbeit, anschließend APK ausdrücklich angefordert.
@@ -8,7 +12,7 @@
 
 # Zusammenfassungs-Typografie nach Build147 (noch nicht veröffentlicht)
 
-Speicherziel-Labels wieder11sp, vor generischem Dialogstyling geschützt. Vorgemerkte Ziele zeigen nur ihr Dienst-/Lokalicon, ohne Kalender; Accessibility-Status erhalten.24dp Abstand unter Buttons, kleine900-Black-Überschrift „Fahrt wird nach dem Speichern übertragen zu:“, danach8dp bis Icons. Sichtbare RPE-Frage entfernt. Zahl/Beschreibung rechts neben Notiz mit festen64,8/12,6sp (72/14 minus10%), identisch für leer und0–10, anhand sichtbarer Glyphen vertikal mittig; keine dynamische Schriftanpassung. Drei gezielte Fälle aus RideSummaryTest/RideRpePickerTest bestanden, Screenshot geprüft, Typografie/UI-Katalog/Diff grün. Log /workspace/.tools/summary-fixed-type-tests.log. Keine neue APK angefordert; letzter veröffentlichter Stand weiter Build147.
+Speicherziel-Labels wieder11sp, vor generischem Dialogstyling geschützt. Vorgemerkte Ziele zeigen nur ihr Dienst-/Lokalicon, ohne Kalender; Accessibility-Status erhalten.16dp Abstand unter Buttons, kleine900-Black-Überschrift „Fahrt wird nach dem Speichern übertragen zu:“, danach8dp bis Icons. Sichtbare RPE-Frage entfernt. Zahl/Beschreibung rechts neben Notiz mit festen64,8/12,6sp (72/14 minus10%), identisch für leer und0–10, anhand sichtbarer Glyphen vertikal mittig; keine dynamische Schriftanpassung. Drei gezielte Fälle aus RideSummaryTest/RideRpePickerTest bestanden, Screenshot geprüft, Typografie/UI-Katalog/Diff grün. Log /workspace/.tools/summary-fixed-type-tests.log. Keine neue APK angefordert; letzter veröffentlichter Stand weiter Build147.
 
 # Abstandskorrekturen nach Build147 (noch nicht veröffentlicht)
 
