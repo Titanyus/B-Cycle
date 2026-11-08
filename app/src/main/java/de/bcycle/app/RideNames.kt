@@ -73,6 +73,7 @@ internal object RideNames {
     fun annotated(c:Context,id:String,value:RideAnnotation) {
         if(!RideAnnotations.contains(c,id)) return
         val links=RideServiceLinks.links(c,id)
+        if(links.isEmpty()) return
         synchronized(lock) {
             val all=data(c)
             links.forEach { link -> annotationTask(all,link,value) }

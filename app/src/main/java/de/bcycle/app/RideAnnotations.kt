@@ -27,7 +27,7 @@ internal object RideAnnotations {
         require(id.matches(Regex("(recorded|imported)-[a-f0-9]{64}|[a-f0-9-]{36}")))
         val app=c.applicationContext
         synchronized(lock) {
-            val next=update(read(app,id));if(next==read(app,id)) return
+            val before=read(app,id);val next=update(before);if(next==before) return
             // apply updates memory synchronously; Android completes pending writes at lifecycle stops.
             prefs(app).edit().putString(id,next.json().toString()).putBoolean("dirty:$id",true).apply()
             schedule(app,id,1200)
@@ -35,7 +35,13 @@ internal object RideAnnotations {
     }
     private fun schedule(c:Context,id:String,delay:Long) {
         pending.remove(id)?.cancel(false)
-        pending[id]=worker.schedule({ flush(c,id) },delay,java.util.concurrent.TimeUnit.MILLISECONDS)
+        // schedule is called under lock; the completion cannot inspect task before assignment.
+        lateinit var task:java.util.concurrent.ScheduledFuture<*>
+        task=worker.schedule({
+            try { flush(c,id) }
+            finally { synchronized(lock) { if(pending[id]===task) pending.remove(id) } }
+        },delay,java.util.concurrent.TimeUnit.MILLISECONDS)
+        pending[id]=task
     }
     fun flushAsync(c:Context,id:String)=synchronized(lock) { if(prefs(c).getBoolean("dirty:$id",false)) schedule(c.applicationContext,id,0) }
     fun recover(c:Context)=synchronized(lock) { prefs(c).all.keys.filter { it.startsWith("dirty:") }.forEach { schedule(c.applicationContext,it.removePrefix("dirty:"),0) } }

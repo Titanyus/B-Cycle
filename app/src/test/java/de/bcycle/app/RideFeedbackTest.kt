@@ -52,6 +52,21 @@ class RideFeedbackTest {
             view.dispose()
         } finally { RideAnnotations.forget(c,id);host.pause().stop().destroy() }
     }
+    @Test fun localOnlyFeedbackReleasesCompletedJobsAndDoesNotRewriteCloudQueue() {
+        val context=RuntimeEnvironment.getApplication();val id=java.util.UUID.randomUUID().toString()
+        val revision=RideNames.revision(context)
+        try {
+            RideAnnotations.note(context,id,"Lokal gespeichert")
+            RideAnnotations.flushAsync(context,id)
+            val worker=RideAnnotations::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(null) as java.util.concurrent.ScheduledExecutorService
+            worker.submit {}.get(5,java.util.concurrent.TimeUnit.SECONDS)
+            assertEquals("Lokal gespeichert",RideAnnotations.read(context,id).note)
+            assertFalse(context.getSharedPreferences("ride-annotations",0).getBoolean("dirty:$id",false))
+            assertEquals("No cloud queue write without a linked service",revision,RideNames.revision(context))
+            val pending=RideAnnotations::class.java.getDeclaredField("pending").apply { isAccessible=true }.get(null) as Map<*,*>
+            assertFalse("Completed autosave must not remain retained for every edited ride",pending.containsKey(id))
+        } finally { RideAnnotations.forget(context,id) }
+    }
     @Test fun fitExportsContainScaledRpeAndUtf8MemoWithoutChangingMeasurementOrOriginalBytes() {
         val c=RuntimeEnvironment.getApplication();val original=File(c.cacheDir,"annotation-original.fit")
         val encoder=FileEncoder(original,Fit.ProtocolVersion.V2_0)
