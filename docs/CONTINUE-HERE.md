@@ -1,6 +1,6 @@
 # Aktueller Arbeitsstand nach Build148 (noch nicht veröffentlicht)
 
-Arbeitsbranch work enthält zusätzlich folgende vollständig implementierte, gezielt geprüfte Aufträge. Seit Build148 wurde keine neue APK angefordert/gebaut und kein neuer Quellstand nach main gepusht.
+Arbeitsbranch work enthält zusätzlich folgende vollständig implementierte, gezielt geprüfte Aufträge. APK jetzt ausdrücklich angefordert; Version0.8.104/code174 für Actions149 vorbereitet. Veröffentlichung und tatsächlichen Direktdownload noch abschließen.
 
 - **Doppelimport beim Fahrtabschluss:** exakte Exporthash-Zuordnung vor lokaler Veröffentlichung, eine RPE-Datei bleibt eine Fahrt nach Scan/Neustart, alte Versionen und Löschschutz. Vorhandene ältere Duplikate unverändert erhalten. [Ursache/Tests/Grenzen](fit-feedback-export-identity.md), Commit841a08e.
 - **Fahrtzusammenfassung:** ab früherer Trennerposition unter Akkuwerten durchgehend TERTIARY, Linie unsichtbar, bisherige Geometrie/Abstände erhalten; Buttons explizite TERTIARY-Rolle. [Ablauf](ride-summary-save-flow.md), Commit3b3672d.
