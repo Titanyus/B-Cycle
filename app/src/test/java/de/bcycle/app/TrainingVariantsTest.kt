@@ -48,6 +48,35 @@ class TrainingVariantsTest {
         assertEquals(2280.0,shortened.seconds!!,.001);assertTrue(shortened.steps[1].target!!.ramp)
         assertEquals(cloud.sourceData,shortened.sourceData)
     }
+    @Test fun fiveEffortsWithOnlyFourRecoveriesOfferVariantsAndKeepTheFinalEffort() {
+        val bytes=javaClass.getResourceAsStream("/training/5x5-vo2max-intervalle.zwo")!!.use { it.readBytes() }
+        val base=TrainingFileImport.read(bytes,"5x5-vo2max-intervalle.zwo")
+        val original=base.json().toString();val profile=RiderProfile(ftpW=200)
+        assertEquals(5,TrainingVariants.block(base)!!.count)
+        assertEquals(TrainingVariant.entries,TrainingVariants.available(base))
+        val loads=ArrayList<Double>()
+        TrainingVariant.entries.forEach { variant ->
+            val count=5+variant.delta
+            val changed=TrainingVariants.apply(base,variant)
+            assertEquals(1500.0+count*300+(count-1)*240,changed.seconds!!,.001)
+            assertEquals(base.steps.first(),changed.steps.first())
+            assertEquals(base.steps.last(),changed.steps.last())
+            val main=changed.steps.drop(1).dropLast(1)
+            assertEquals(count*2-1,main.size)
+            main.forEachIndexed { i,step -> assertEquals(base.steps[1+i%2],step) }
+            assertEquals(base.steps[1],main.last())
+            assertEquals(base.id,changed.id);assertEquals(base.sourceData,changed.sourceData)
+            val metrics=TrainingMetrics.of(changed,profile)
+            assertEquals(changed.seconds!!,metrics.seconds!!,.001)
+            assertEquals(changed.steps.size,metrics.sections);loads+=metrics.load!!
+        }
+        assertTrue(loads.zipWithNext().all { (a,b)->b>a })
+        assertEquals(original,base.json().toString())
+        val four=base.copy(steps=base.steps.take(8)+base.steps.last())
+        val unequal=base.copy(steps=base.steps.mapIndexed { i,s -> if(i==5) s.copy(seconds=301.0,durationValue=301.0) else s })
+        val twoSets=base.copy(steps=base.steps+base.steps)
+        listOf(four,unequal,twoSets).forEach { assertEquals(listOf(TrainingVariant.STANDARD),TrainingVariants.available(it)) }
+    }
     @Test fun ambiguousOrNonRepeatingTrainingStaysStandardAndLimitsAreRespected() {
         val base=workout()
         val steady=base.copy(steps=List(12) { TrainingStep("steady",180.0,listOf(TrainingTarget(TrainingUnit.FTP,.65))) })
