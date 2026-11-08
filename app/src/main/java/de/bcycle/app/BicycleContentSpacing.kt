@@ -54,6 +54,7 @@ internal object BicycleContentSpacing {
     }
     fun page(view:View) {
         if(view is RouteManagerView) { view.applyPageSpacing();return }
+        if(view is TrainingManagerView) { view.applyPageSpacing();return }
         val scrolling=view
         val body=when(scrolling) { is ScrollView->scrolling.getChildAt(0) ?: view;is ListView->scrolling;else->view }
         // Remove outer wrapper insets on the path to the actual scrolling content.

@@ -1,3 +1,7 @@
+# Abstandskorrekturen nach Build147 (noch nicht veröffentlicht)
+
+RPE-Bearbeitungsdialog der Streckendetails mit zentralem16dp-Innenrand auf allen Seiten. Trainingsmanager wie Streckenmanager von allgemeinem Seiten-Topgap ausgenommen: erster und angehefteter Gruppenkopf beginnen ohne zusätzliches Leerband am Hauptheader. Lade-/Fehlerstatus bleibt bei vorhandenem Text sichtbar. Zwei bestehende gezielte UI-Fälle mit Rand-/Geometrieprüfungen bestanden (RideFeedbackTest.noteSavesWithoutConfirmationAndHeaderEditReturnsToPlainTextWithIndependentRideRpe und TrainingLibraryTest.menuFileImportFooterCommandsAndConfirmedDeleteWorkInTheRealTrainingScreen), Log /workspace/.tools/rpe-training-spacing-tests.log. Typografie/UI-Katalog/Diff grün, Katalogfingerprint erneuert. Keine APK angefordert.
+
 # Aktuell veröffentlicht: APK0.8.102 / Build147
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.102-release-147.apk) · [Buildnachweis](build-147.md) · [Änderungen](release-0.8.102.md)

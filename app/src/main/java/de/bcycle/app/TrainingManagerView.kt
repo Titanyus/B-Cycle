@@ -113,6 +113,12 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         footer.addView(delete,LayoutParams(0,-2,1f));addView(footer,LayoutParams(-1,-2))
         render(emptyList())
     }
+    internal fun applyPageSpacing() {
+        // Group headers meet the main header, just like the route manager.
+        setPadding(paddingLeft,0,paddingRight,paddingBottom)
+        list.setPadding(list.paddingLeft,0,list.paddingRight,list.paddingBottom)
+        list.clipToPadding=false
+    }
     val selecting get()=selected.isNotEmpty()
     fun clearSelection() { selected.clear();delete.isEnabled=false;delete.setLabel(context.getString(R.string.route_action_delete));adapter.notifyDataSetChanged() }
     fun message(text:String) {

@@ -115,6 +115,8 @@ class TrainingLibraryTest {
             MainActivity::class.java.getDeclaredMethod("onActivityResult",Int::class.javaPrimitiveType,Int::class.javaPrimitiveType,android.content.Intent::class.java).invoke(a,21,Activity.RESULT_OK,android.content.Intent().setData(android.net.Uri.fromFile(file)))
             drain()
             val list=manager.findViewWithTag<ListView>("training_list");assertEquals(2,list.adapter.count)
+            assertEquals(0,manager.paddingTop);assertEquals(0,list.top);assertEquals(0,list.paddingTop)
+            assertEquals(0,list.getChildAt(0).top)
             list.onItemLongClickListener!!.onItemLongClick(list,list.getChildAt(1),1,1);screen.window!!.decorView.findViewWithTag<View>("training_delete").performClick()
             val confirm=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
             confirm.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();drain()
