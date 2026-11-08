@@ -40,6 +40,19 @@ class MapterhornElevationsTest {
             assertEquals(1,server.requestCount)
         } finally { server.shutdown() }
     }
+    @Test fun offlineThumbnailReadsCachedTilesWithoutStartingRequests() {
+        val server=MockWebServer();server.start()
+        try {
+            val cache=java.nio.file.Files.createTempDirectory("dem-offline-thumbnail").toFile()
+            MapterhornTiles(cache,endpoint=server.url("").toString().trimEnd('/')).use { tiles ->
+                assertNull(tiles.load(10,512,320,allowNetwork=false));assertEquals(0,server.requestCount)
+                server.enqueue(MockResponse().setBody(Buffer().write(image(500.0))))
+                assertNotNull(tiles.load(10,512,320));assertEquals(1,server.requestCount)
+                assertEquals(500f,tiles.load(10,512,320,allowNetwork=false)!!.heights[0],0f)
+                assertEquals(1,server.requestCount)
+            }
+        } finally { server.shutdown() }
+    }
     @Test fun tileEdgesUseFourNeighborsAndEachIsFetchedOnlyOnce() {
         val server=MockWebServer();server.start()
         try {

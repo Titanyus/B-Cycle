@@ -66,7 +66,7 @@ class RouteListLayoutRegressionTest {
                     val header=list.getChildAt(0)
                     assertTrue(header is RouteListGroupHeader);assertEquals(0,header.top)
                     val image=Bitmap.createBitmap(header.width,header.height,Bitmap.Config.ARGB_8888)
-                    header.draw(Canvas(image));assertEquals(themes.active.tokens.tertiary,image.getPixel(1,1));image.recycle()
+                    header.draw(Canvas(image));assertEquals(themes.active.tokens.tertiary,image.getPixel(1,BicycleDesign.dp(c,2)+1));image.recycle()
                 }
             }
             val position=(0 until list.adapter.count).first { list.adapter.getItem(it) is ManagedRoute }

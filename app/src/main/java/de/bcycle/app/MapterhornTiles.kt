@@ -38,7 +38,7 @@ internal class MapterhornTiles(
             return ((a*(1-fx)+b*fx)*(1-fy)+(c*(1-fx)+d*fx)*fy).toFloat()
         }
     }
-    fun load(z:Int,x:Int,y:Int,stopped:()->Boolean={false},checkActive:()->Unit={}):Dem? {
+    fun load(z:Int,x:Int,y:Int,stopped:()->Boolean={false},checkActive:()->Unit={},allowNetwork:Boolean=true):Dem? {
         require(z in 0..17)
         fun active() { checkActive();if(stopped() || Thread.currentThread().isInterrupted) throw IOException("DEM cancelled") }
         active()
@@ -60,6 +60,7 @@ internal class MapterhornTiles(
                 if(decoded!=null) { memory.put(memoryKey,Cached(decoded,cache.lastModified()));return Dem(z,tx,ty,decoded) }
                 cache.delete()
             }
+            if(!allowNetwork) return null
             if(++downloads>maxDownloads) throw IOException("DEM request limit")
             val request=Request.Builder().url("${endpoint.trimEnd('/')}/$z/$tx/$ty.webp")
                 .header("User-Agent","B-Cycle/${AppVersion.name} (https://github.com/Titanyus/B-Cycle)").build()

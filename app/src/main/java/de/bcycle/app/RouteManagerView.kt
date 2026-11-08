@@ -15,7 +15,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlin.math.cos
 
 /** Fixed header, one native recycled list, no per-row decoding or disk/network I/O. */
 internal class RouteManagerView(context: Context,
@@ -103,9 +102,10 @@ internal class RouteManagerView(context: Context,
         addView(status, LayoutParams(-1, -2))
         addView(RouteStickyList(context,themes) { listRows.getOrNull(it)?.group }.apply {
             tag = "route_list";sectionSteps=true; adapter = rows; dividerHeight = dp(BicycleDesign.controlBorder)
-            setPadding(dp(BicycleDesign.verticalPadding), 0, dp(BicycleDesign.verticalPadding), 0)
             BicycleComponents.scrollStyle(this)
             BicycleComponents.bindTheme(this, themes) {
+                val inset=if(BicycleAppearance.flat(context)) 0 else dp(BicycleDesign.sectionCardInset)
+                setPadding(inset,0,inset,0)
                 divider = ColorDrawable(it.foreground).apply { alpha=(255*BicycleDesign.dividerAlpha).toInt() }; dividerHeight = dp(BicycleDesign.controlBorder)
                 verticalScrollbarThumbDrawable = ColorDrawable(it.foreground)
                 selector = ColorDrawable(Color.TRANSPARENT)
@@ -173,9 +173,7 @@ internal class RouteManagerView(context: Context,
     private inner class Card : LinearLayout(context) {
         private var entry: ManagedRoute? = null
         private val preview = RoutePreviewView(context)
-        private val profileColor=View(context).apply { visibility=GONE;importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO }
         private val origin = ImageView(context)
-        private val format = BicycleComponents.text(context, themes, "").apply { textSize = BicycleDesign.formatSp;setSingleLine() }
         private val title = BicycleComponents.text(context, themes, "").apply {
             textSize = BicycleDesign.rowTitleSp;setSingleLine();setHorizontallyScrolling(false)
             ellipsize = TextUtils.TruncateAt.END; gravity = Gravity.CENTER_VERTICAL
@@ -196,6 +194,7 @@ internal class RouteManagerView(context: Context,
         private val metrics = LinearLayout(context).apply {
             orientation = HORIZONTAL
             (if(query.templates) listOf(date,distance,moving) else listOf(date, distance, moving, average)).forEachIndexed { index, reading ->
+                reading.number.setHorizontallyScrolling(false);reading.unit.setHorizontallyScrolling(false)
                 if (index > 0) addView(View(context).apply {
                     tag = "route_metric_divider"; alpha = BicycleDesign.dividerAlpha
                     BicycleComponents.bindTheme(this, themes) { setBackgroundColor(it.foreground) }
@@ -207,24 +206,38 @@ internal class RouteManagerView(context: Context,
             orientation = VERTICAL; gravity = Gravity.TOP
             setOnClickListener { entry?.takeIf { !busy }?.let { if(selecting) toggleSelection(it.id) else details(it) } }
             setOnLongClickListener { entry?.takeIf { !busy }?.let { toggleSelection(it.id,fromLongPress=true) };true }
-            setPadding(dp(BicycleDesign.verticalPadding), dp(BicycleDesign.rowGap), 0, dp(BicycleDesign.rowGap))
-            addView(rideBody,LayoutParams(-1,-2))
+            setPadding(dp(BicycleDesign.verticalPadding),dp(BicycleDesign.rowGap),dp(BicycleDesign.verticalPadding),dp(BicycleDesign.rowGap))
+            val thumbnail=FrameLayout(context).apply {
+                addView(preview,FrameLayout.LayoutParams(-1,-1).apply { setMargins(dp(4),dp(4),0,0) })
+                val pad=dp(3);origin.setPadding(pad,pad,pad,pad)
+                addView(origin,FrameLayout.LayoutParams(dp(24),dp(24),Gravity.TOP or Gravity.START))
+            }
             rideBody.addView(LinearLayout(context).apply {
                 orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL
-                // The identity prefix owns its natural width, independently of the tiny map preview.
-                addView(LinearLayout(context).apply {
-                    gravity=Gravity.CENTER_VERTICAL
-                    addView(profileColor,LayoutParams(dp(5),dp(24)).apply { marginEnd=dp(BicycleDesign.controlGap) })
-                    addView(origin,LayoutParams(dp(BicycleDesign.iconSize),dp(BicycleDesign.iconSize)))
-                    addView(format,LayoutParams(-2,-2).apply { marginStart=dp(BicycleDesign.verticalPadding) })
-                },LayoutParams(-2,dp(BicycleDesign.touchSize)).apply { marginEnd=dp(BicycleDesign.smallGap) })
                 addView(title,LayoutParams(0,dp(BicycleDesign.touchSize),1f))
                 addView(eye,LayoutParams(dp(BicycleDesign.touchSize),dp(BicycleDesign.touchSize)))
             },LayoutParams(-1,-2))
-            rideBody.addView(LinearLayout(context).apply {
-                orientation=HORIZONTAL
-                addView(preview,LayoutParams(dp(BicycleDesign.previewWidth),dp(BicycleDesign.previewHeight)).apply { marginEnd=dp(BicycleDesign.rowGap) })
-                addView(metrics,LayoutParams(0,-2,1f).apply { topMargin=-dp(BicycleDesign.metadataSpacingTrim)+dp(BicycleDesign.routeMetricTopOffset) })
+            rideBody.addView(metrics,LayoutParams(-1,-2).apply { topMargin=-dp(BicycleDesign.metadataSpacingTrim)+dp(BicycleDesign.routeMetricTopOffset) })
+            addView(object:ViewGroup(context) {
+                init { addView(thumbnail);addView(rideBody) }
+                override fun onMeasure(w:Int,h:Int) {
+                    val width=MeasureSpec.getSize(w);val gap=dp(BicycleDesign.controlGap)
+                    val side=(width*.24f).toInt().coerceIn(dp(64),dp(128)).coerceAtMost((width-gap)/2)
+                    thumbnail.measure(MeasureSpec.makeMeasureSpec(side,MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(side,MeasureSpec.EXACTLY))
+                    rideBody.measure(MeasureSpec.makeMeasureSpec((width-side-gap).coerceAtLeast(1),MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(0,MeasureSpec.UNSPECIFIED))
+                    setMeasuredDimension(resolveSize(width,w),resolveSize(maxOf(side,rideBody.measuredHeight),h))
+                }
+                override fun onLayout(changed:Boolean,l:Int,t:Int,r:Int,b:Int) {
+                    val side=thumbnail.measuredWidth;val gap=dp(BicycleDesign.controlGap)
+                    val ty=(height-thumbnail.measuredHeight)/2;val by=(height-rideBody.measuredHeight)/2
+                    if(layoutDirection==View.LAYOUT_DIRECTION_RTL) {
+                        thumbnail.layout(width-side,ty,width,ty+thumbnail.measuredHeight)
+                        rideBody.layout(0,by,width-side-gap,by+rideBody.measuredHeight)
+                    } else {
+                        thumbnail.layout(0,ty,side,ty+thumbnail.measuredHeight)
+                        rideBody.layout(side+gap,by,width,by+rideBody.measuredHeight)
+                    }
+                }
             },LayoutParams(-1,-2))
             BicycleComponents.bindTheme(this, themes) { paintState(it) }
             // Child icons refresh their default tint when reattached. Restore the current
@@ -250,13 +263,16 @@ internal class RouteManagerView(context: Context,
             }
         }
         private fun paintState(tokens: ThemeTokens) {
-            preview.foreground = tokens.foreground
+            preview.colors(tokens)
             val route = entry ?: return
             background=if(route.id in checked) ColorDrawable(tokens.tertiary) else null
             rideBody.background=null
-            origin.setImageDrawable(BicycleIcons.drawable(context, if(route.id in checked) BicycleIcon.Check else when (route.origin) {
-                TrackOrigin.IMPORTED -> BicycleIcon.TrackImported; TrackOrigin.RECORDED -> BikeTypeIcons.forType(route.details.bikeType); TrackOrigin.UNKNOWN -> BicycleIcon.TrackUnknown
-            }, if(route.id in checked) tokens.primary else tokens.foreground))
+            val type=RideProfileColor.type(context,route.id) ?: route.details.bikeType
+            origin.background=android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius=dp(4).toFloat()
+                setColor(if(route.id in checked) tokens.foreground else RideProfileColor.color(context,route.id) ?: tokens.primary)
+            }
+            origin.setImageDrawable(BicycleIcons.drawable(context,if(route.id in checked) BicycleIcon.Check else BikeTypeIcons.forType(type),if(route.id in checked) tokens.primary else Color.WHITE))
             paintEye(tokens)
         }
         private fun paintEye(tokens:ThemeTokens) {
@@ -274,11 +290,8 @@ internal class RouteManagerView(context: Context,
             title.scrollTo(0,0)
             title.text = route.name; title.tag = "route_name_${route.id}"; title.contentDescription = route.name
             origin.contentDescription = when (route.origin) { TrackOrigin.IMPORTED -> context.getString(R.string.ui_route_imported); TrackOrigin.RECORDED -> context.getString(R.string.ui_route_recorded); TrackOrigin.UNKNOWN -> context.getString(R.string.ui_route_unknown_origin) }
-            profileColor.tag="route_profile_color_${route.id}"
-            val color=RideProfileColor.color(context,route.id)
-            profileColor.visibility=if(color==null) GONE else VISIBLE
-            color?.let(profileColor::setBackgroundColor)
-            format.text = route.format;format.tag="route_format_${route.id}"; format.contentDescription = context.getString(R.string.ui_file_format_description, route.format)
+            origin.tag="route_bike_badge_${route.id}"
+            preview.tag="route_thumbnail_${route.id}"
             val recordedAt = route.details.dateMs.takeIf { it > 0 }?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()) }
             date.bind(recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_date_format))), route.id, "date")
             date.label.text = recordedAt?.format(DateTimeFormatter.ofPattern(context.getString(R.string.route_list_clock_format))).orEmpty()
@@ -309,32 +322,5 @@ internal class RouteManagerView(context: Context,
                 mapNumbers[route.id]?.let { " · "+context.getString(R.string.map_route_slot_number,it) }.orEmpty()
             paintState(themes.active.tokens)
         }
-    }
-}
-
-internal class RoutePreviewView(context: Context) : View(context) {
-    var points: List<MapPoint> = emptyList(); set(value) { field = value; invalidate() }
-    var foreground: Int = 0; set(value) { field = value; paint.color = value; invalidate() }
-    private val path = Path()
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = foreground; style = Paint.Style.STROKE
-        strokeWidth = 2 * resources.displayMetrics.density; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND }
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        val padding = 4 * resources.displayMetrics.density
-        if (points.size < 2) { canvas.drawRect(padding, height * .25f, width - padding, height * .75f, paint); return }
-        val origin = points.first().longitude
-        val factor = cos(Math.toRadians(points.first().latitude))
-        fun x(p: MapPoint): Double = (((p.longitude - origin + 540) % 360) - 180) * factor
-        val minX = points.minOf(::x); val maxX = points.maxOf(::x)
-        val minY = points.minOf { it.latitude }; val maxY = points.maxOf { it.latitude }
-        val scale = minOf((width - padding * 2) / (maxX - minX).coerceAtLeast(.000001),
-            (height - padding * 2) / (maxY - minY).coerceAtLeast(.000001))
-        path.reset()
-        points.forEachIndexed { i, p ->
-            val px = (width / 2.0 + (x(p) - (minX + maxX) / 2) * scale).toFloat()
-            val py = (height / 2.0 - (p.latitude - (minY + maxY) / 2) * scale).toFloat()
-            if (i == 0 || p.segmentStart) path.moveTo(px, py) else path.lineTo(px, py)
-        }
-        canvas.drawPath(path, paint)
     }
 }

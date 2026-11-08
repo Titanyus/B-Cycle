@@ -34,8 +34,8 @@ class RideIdentityUiTest {
                 return r.left+v.compoundPaddingLeft+(v.layout?.getLineLeft(0) ?: 0f)
             }
             assertEquals(left(date),left(title),1.1f)
-            val format=card.findViewWithTag<TextView>("route_format_known")
-            assertEquals(1,format.lineCount);assertTrue(format.width>=format.paint.measureText("FIT")-1)
+            assertNull(card.findViewWithTag<TextView>("route_format_known"))
+            assertNotNull(card.findViewWithTag<View>("route_bike_badge_known"))
         }
     }
     @Test fun detailsShowProfileStripeBeforeIconForItsFullHeightAndOmitUnknownProfileColor() {

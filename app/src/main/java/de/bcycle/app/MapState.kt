@@ -17,6 +17,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
     internal var mapSlots=MapRouteSlots();private set
     internal var mapRoutes:List<DisplayedMapRoute> = emptyList();private set
     private data class CachedMapRoute(val path:String,val length:Long,val modified:Long,val route:GpxRoute)
+    private var thumbnailIds:Set<String>?=null
     private val mapRouteCache=mutableMapOf<String,CachedMapRoute>()
     internal fun routeNumber(id:String)=mapSlots.slot(id)?.plus(1)
     internal fun routeVisible(id:String)=preferences.getBoolean("mapGpxVisible",true) && mapSlots.slot(id)?.let { mapSlots.visible[it] }==true && mapRoutes.any { it.id==id }
@@ -322,6 +323,9 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         val primary=prepared.first.order.lastOrNull()?.let { prepared.first.ids[it] }
         workerRoute=prepared.second.firstOrNull { it.id==primary }?.route
         val gpxEntries = library.entries; val fitEntries = fits.entries; val selected = primary
+        val previews=(gpxEntries.map { it.id to it.details.preview }+fitEntries.map { it.id to it.details.preview })
+        thumbnailIds?.let { previous -> previews.filter { it.first !in previous }.forEach { RouteThumbnails.prepare(context,it.second) } }
+        thumbnailIds=previews.map { it.first }.toSet()
         val primaryFit=primary?.takeIf { id -> fitEntries.any { it.id==id } }
         val files = (gpxEntries.map { it.id to library.file(it.id) } + fitEntries.map { it.id to fits.file(it.id) } + summaryEntries.map { it.id to dreeveSummaries.file(it.id) })
             .mapNotNull { (id, file) -> if (file.isFile && file.canRead()) id to RouteFileStamp(file.length(), file.lastModified()) else null }.toMap()
