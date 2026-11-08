@@ -1,3 +1,7 @@
+# Bosch-Ladeschutz und Kartenfarben (noch nicht veröffentlicht)
+
+Read-only Ladeinformationen mit dokumentierter Quell-/Kodierungsunsicherheit, verzögerter Autostart, Sperre bei Ladegerät/Laden und nutzergewählter Anroll-Fallback bei unbekanntem Zustand; Indoor/manueller Start erhalten, Service-Race erneut geprüft. [Verfahren und Tests](bosch-charging-autostart.md). Kartenbuttons auf TERTIARY/100%, deaktivierte Symbole/Text gedimmt statt gesamtem Button; Nordpfeil PRIMARY, bisherige Windrosen-Geometrie/Transparenz unverändert. Protokoll-/Runtime- und Kartenfälle grün über die begrenzten Läufe. Noch aktiv: kompakter zweispaltiger Karteneditor samt Outlines, echte Trefferfläche/volle Kürzel der Trainingsvarianten, nur Übersicht in Trainingsdetails. Keine neue APK angefordert.
+
 # Zusammenfassung: untere Fläche TERTIARY (noch nicht veröffentlicht)
 
 Ab der früheren Trennerposition unter den Akkuwerten durchgehend TERTIARY bis zu den Seiten-/Unterkanten. Linie durch gleich große unsichtbare Space ersetzt, alle Innen-/Außenabstände erhalten; Notiz/RPE/Buttons/Zielicons auf gemeinsamer Fläche. Explizite Control-Surface-Rolle nur für die beiden Summarybuttons, zentrale Kontur/Ripple/Touchgeometrie erhalten. RideSummaryTest und RecordingUpdateUiTest bestanden, Vorschau geprüft; keine Änderungen am Speicherablauf. Log /workspace/.tools/summary-tertiary-lower-tests.log. Bosch-Ladeschutz und Kartenicon-Farben als nächste aktive Aufträge.

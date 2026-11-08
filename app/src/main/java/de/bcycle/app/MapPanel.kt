@@ -48,7 +48,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         tag="map_wind_rose";visibility=GONE
         val north=context.getDrawable(R.drawable.map_wind_rose_north)!!.mutate()
         setImageDrawable(android.graphics.drawable.LayerDrawable(arrayOf(context.getDrawable(R.drawable.map_wind_rose)!!,north)))
-        BicycleComponents.bindTheme(this,runtime.themes) { north.setTint(it.foreground) }
+        BicycleComponents.bindTheme(this,runtime.themes) { north.setTint(it.primary) }
         alpha=.70f;scaleX=MapControlDesign.windRoseScale;scaleY=MapControlDesign.windRoseScale
         scaleType=android.widget.ImageView.ScaleType.FIT_CENTER
         importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -88,10 +88,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         for (i in 0 until controls.childCount) controls.getChildAt(i).isEnabled = !value
         for (i in 0 until zoomControls.childCount) zoomControls.getChildAt(i).apply {
             isEnabled = !value
-            alpha = if (value) .45f else 1f
+            fadeControl(this,if(value) .45f else 1f)
         }
         directionButton.isEnabled = !value && follow
-        directionButton.alpha=if(follow) 1f else .4f
+        fadeControl(directionButton,if(follow) 1f else .4f)
         nightButton.isEnabled = false
         refreshRouteButton()
         if (value) handler.removeCallbacks(hideControls) else scheduleHide()
@@ -223,7 +223,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         fun icon(symbol: String, description: String, parent: LinearLayout? = controls, action: () -> Unit): Button = Button(context).apply {
             text = symbol; textSize = MapControlDesign.symbolSp; setTextColor(MapControlDesign.foreground); isAllCaps = false
             contentDescription = description; minWidth = 0; minHeight = 0; setPadding(0, 0, 0, 0)
-            background = MapControlDesign.background(context)
+            BicycleComponents.bindTheme(this,runtime.themes) { background=MapControlDesign.background(context,it.tertiary or Color.BLACK) }
             setOnClickListener { pinchZoom.stop();action(); revealControls() }
             setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) handler.removeCallbacks(hideControls)
@@ -377,12 +377,18 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         if (status.text.toString() != next) status.text = next
         status.visibility = if (next.isEmpty()) GONE else VISIBLE
     }
+    private fun fadeControl(view:View,amount:Float) {
+        view.alpha=1f
+        (view as? Button)?.let { button ->
+            button.compoundDrawables.filterNotNull().forEach { it.alpha=(255*amount).toInt() }
+            button.setTextColor((button.currentTextColor and 0x00ffffff) or ((255*amount).toInt() shl 24))
+        }
+    }
     private fun refreshRouteButton() {
         val available = runtime.mapState.mapRoutes.isNotEmpty()
         val shown = runtime.mapState.mapRoutes.any { runtime.mapState.routeVisible(it.id) }
         routePopup?.takeIf { it.isShowing }?.refresh()
         routeButton.isEnabled = available && !runtime.mapState.busy && !editing
-        routeButton.alpha = if (routeButton.isEnabled) 1f else .45f
         routeButton.contentDescription = if (!available) context.getString(R.string.ui_map_route_missing) else if (shown) context.getString(R.string.ui_map_route_hide) else context.getString(R.string.ui_map_route_show)
         if (routeShown != shown) {
             val image = BicycleIcons.drawable(context, BicycleIcon.ShowOnMap, Color.WHITE, negative = !shown)
@@ -390,6 +396,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             routeButton.setCompoundDrawables(null, image, null, null)
             routeShown = shown
         }
+        fadeControl(routeButton,if(routeButton.isEnabled) 1f else .45f)
     }
     private fun refreshRoutes() {
         if (layerTrackRevision != runtime.mapState.track.revision) {
@@ -507,7 +514,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         if (!value) { ovalAnchor.hold(android.os.SystemClock.uptimeMillis());refreshRoutes() }
         follow = value; preferences.edit().putBoolean("mapFollow", value).apply()
         updateWindRose()
-        if(::directionButton.isInitialized) { directionButton.isEnabled=value && !editing;directionButton.alpha=if(value) 1f else .4f }
+        if(::directionButton.isInitialized) { directionButton.isEnabled=value && !editing;fadeControl(directionButton,if(value) 1f else .4f) }
         if (::centerButton.isInitialized) centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (value) Color.rgb(110, 230, 130) else Color.WHITE)
     }
     private fun updateCamera(updateControls: Boolean = true, forceRotation:Boolean=false) {
@@ -532,7 +539,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             MapControlDesign.icon(directionButton, if(effectiveHeading) BicycleIcon.HeadingUp else BicycleIcon.Compass)
         }
         directionButton.isEnabled=follow && !editing
-        directionButton.alpha=if(follow) 1f else .4f
+        fadeControl(directionButton,if(follow) 1f else .4f)
         directionButton.stateDescription=context.getString(if(follow) R.string.ui_selected else R.string.ui_not_selected)
         directionButton.contentDescription = context.getString(if(effectiveHeading) R.string.map_follow_heading else R.string.map_follow_north)
         centerButton.compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (follow) Color.rgb(110, 230, 130) else Color.WHITE)

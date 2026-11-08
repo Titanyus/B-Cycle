@@ -35,8 +35,8 @@ internal object MapControlDesign {
     val dashboardBackground = Color.argb(225, 25, 25, 25)
     val dashboardBorder = Color.DKGRAY
 
-    fun background(context: android.content.Context) = GradientDrawable().apply {
-        setColor(dashboardBackground)
+    fun background(context: android.content.Context,color:Int=dashboardBackground) = GradientDrawable().apply {
+        setColor(color)
         cornerRadius = BicycleDesign.dp(context, radius).toFloat()
         setStroke(BicycleDesign.dp(context, strokeWidth), dashboardBorder)
     }

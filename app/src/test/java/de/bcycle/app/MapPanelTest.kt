@@ -66,12 +66,16 @@ class MapPanelTest {
                 val image=android.graphics.Bitmap.createBitmap(100,100,android.graphics.Bitmap.Config.ARGB_8888)
                 try {
                     val drawable=rose.drawable;drawable.setBounds(0,0,100,100);drawable.draw(android.graphics.Canvas(image))
-                    assertEquals(RideRuntime.get(c).themes.active.tokens.foreground,image.getPixel(50,12))
+                    assertEquals(RideRuntime.get(c).themes.active.tokens.primary,image.getPixel(50,12))
                     assertEquals(android.graphics.Color.BLACK,image.getPixel(50,50))
                     assertEquals(android.graphics.Color.BLACK,image.getPixel(88,50))
                 } finally { image.recycle() }
             }
             checkColors()
+            descendants(panel).filterIsInstance<android.widget.Button>().filter { it.background is android.graphics.drawable.GradientDrawable && it.tag!="dashboard_editor_finish" }.forEach { button ->
+                assertEquals(RideRuntime.get(c).themes.active.tokens.tertiary,(button.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+                assertEquals(1f,button.alpha,0f)
+            }
             val themes=RideRuntime.get(c).themes
             val light=CustomTheme("custom:wind-rose-test","Windrose",ThemeTokens(0xffeeeeee.toInt(),0xffcccccc.toInt(),0xffaaaaaa.toInt(),android.graphics.Color.BLACK))
             assertTrue(themes.saveCustom(light).valid);assertTrue(themes.activate(light.id))
