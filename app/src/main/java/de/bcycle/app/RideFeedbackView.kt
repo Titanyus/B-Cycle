@@ -35,7 +35,7 @@ internal class RideNoteEditor(context:Context,themes:ThemeManager,private val ri
         setTag(R.id.input_body_typography,true)
         tag="ride_note_editor";hint=context.getString(R.string.ride_note_hint)
         inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-        gravity=Gravity.TOP or Gravity.START;setLines(4);setHorizontallyScrolling(false)
+        gravity=Gravity.TOP or Gravity.START;setLines(3);setHorizontallyScrolling(false)
         filters=arrayOf(InputFilter.LengthFilter(RideAnnotation.MAX_NOTE))
         typeface=BicycleDesign.bodyTypeface;textSize=BicycleDesign.rowTitleSp
         setText(RideAnnotations.read(context,rideId).note)

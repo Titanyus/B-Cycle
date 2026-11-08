@@ -1,3 +1,7 @@
+# Zusammenfassung kompakter08.11.2026 (noch nicht veröffentlicht)
+
+Symbolfreie Messwertkacheln sparen nun die entfernte32-dp-Symbolzeile auch in ihrer Mindesthöhe (120→88dp); normale Detailkacheln mit Symbol unverändert. Notizeditor3 sichtbare Zeilen, weiterer Text scrollbar; Autosave-/Uploadablauf unverändert und im [Fahrtfeedback-Dokument](ride-feedback.md) erläutert. Cloud läuft nach lokaler Speicherung asynchron, neue Notizen/RPE werden automatisch nachgereicht, auch bei noch laufendem Erstupload nach Bestätigung. Prüfungen siehe `/workspace/.tools/summary-spacing-tests.log`; keine APK beauftragt.
+
 # Datenreiche Einstellungs-/Detailseiten08.11.2026 (noch nicht veröffentlicht)
 
 Gezielt nachgeprüft und optimiert: Streckenkurven erst bei Zeichenbedarf aufbereiten, feste Y-Skalen wiederverwenden, X-Achsenbeschriftung der5 Diagramme gemeinsam cachen; HRV-Zeichnung auf sichtbare Kalenderindizes plus Randnachbarn begrenzen, Achsen-/Balkentexte und Dash-Effekt vorbereiten; Trainingszielhöhen/-farben je Workout/Fahrerprofil wiederverwenden; Fitness doppelte identische Ergebnisse und überholte Cachezugriffe vermeiden. Verteilungsdiagramme/klassische Statistik bereits mit vorbereiteten Geometrien, dort kein Umbau. [Befunde/Verhalten/Prüfung](data-screens-efficiency-2026-11-08.md).

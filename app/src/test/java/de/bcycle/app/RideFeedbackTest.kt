@@ -40,7 +40,7 @@ class RideFeedbackTest {
             assertEquals(0,RideAnnotations.read(c,id).rpe)
             assertTrue(nodes(view.findViewWithTag("analysis_rpe")).filterIsInstance<TextView>().any { it.text.toString()=="0" })
             view.editNote();val editor=view.findViewWithTag<RideNoteEditor>("ride_note_editor")
-            assertEquals(4,editor.minLines);assertEquals(4,editor.maxLines)
+            assertEquals(3,editor.minLines);assertEquals(3,editor.maxLines)
             BicycleDialogStyle.control(editor,themes);assertEquals(BicycleDesign.bodyTypeface,editor.typeface)
             editor.setText("Schöne Runde\nGegenwind auf dem Rückweg")
             assertEquals(editor.text.toString(),RideAnnotations.read(c,id).note)

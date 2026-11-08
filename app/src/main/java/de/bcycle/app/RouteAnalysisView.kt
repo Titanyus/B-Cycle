@@ -296,7 +296,7 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
     private val switching = ImageView(context)
     private val metrics = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER }
     init {
-        tag = "analysis_metric_${alternatives.first().name}"; minimumHeight = dp(BicycleDesign.analysisTileMinHeight)
+        tag = "analysis_metric_${alternatives.first().name}"; minimumHeight = dp(BicycleDesign.analysisTileMinHeight-if(showIcon) 0 else BicycleDesign.analysisMetricIconSize)
         val inset = dp(BicycleDesign.smallGap); setPadding(inset, dp(BicycleDesign.verticalPadding), inset, dp(BicycleDesign.verticalPadding))
         background = null
         if(showIcon) metrics.addView(icon, LinearLayout.LayoutParams(dp(BicycleDesign.analysisMetricIconSize), dp(BicycleDesign.analysisMetricIconSize)).apply { gravity = Gravity.CENTER_HORIZONTAL })
@@ -310,7 +310,7 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
             setOnClickListener { index = (index + 1) % alternatives.size; update() }
         }
         BicycleComponents.bindTheme(this, themes) { tokens ->
-            icon.setImageDrawable(BicycleIcons.drawable(context, alternatives[index].icon, tokens.foreground))
+            if(showIcon) icon.setImageDrawable(BicycleIcons.drawable(context, alternatives[index].icon, tokens.foreground))
             switching.setColorFilter(tokens.foreground)
             updateValueColor(tokens.foreground)
         }
@@ -336,7 +336,7 @@ internal class AnalysisMetricTile(context: Context, private val themes: ThemeMan
         label.text = context.getString(if(metric==AnalysisMetric.NP) R.string.analysis_np_short else metric.label)
         val tokens = themes.active.tokens
         updateValueColor(tokens.foreground)
-        icon.setImageDrawable(BicycleIcons.drawable(context, metric.icon, tokens.foreground))
+        if(showIcon) icon.setImageDrawable(BicycleIcons.drawable(context, metric.icon, tokens.foreground))
         contentDescription = if (alternatives.size > 1) context.getString(R.string.analysis_switch, label.text, formatted, unitText, context.getString(alternatives[(index + 1) % alternatives.size].let { if(it==AnalysisMetric.NP) R.string.analysis_np_short else it.label }))
             else context.getString(R.string.analysis_metric_description, label.text, formatted, unitText)
         if (metric == AnalysisMetric.FTP) contentDescription = "$contentDescription ${context.getString(R.string.analysis_ftp_explanation)}"

@@ -62,7 +62,11 @@ class RideSummaryTest {
             val tiles=all(view).filterIsInstance<AnalysisMetricTile>()
             val battery=if(analysis!!.entry.details.bikeType==BikeType.EBIKE) listOf(AnalysisMetric.SHIFT_BATTERY_LEVEL,AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE) else emptyList()
             assertEquals(listOf(AnalysisMetric.DISTANCE,AnalysisMetric.MOVING,AnalysisMetric.AVG_SPEED,AnalysisMetric.AVG_HEART,AnalysisMetric.NP)+battery,tiles.map { it.alternatives.single() })
-            tiles.forEach { tile -> assertEquals(AnalysisMetricTile(c,runtime.themes,tile.alternatives,analysis!!.metrics).contentDescription,tile.contentDescription) }
+            tiles.forEach { tile ->
+                val original=AnalysisMetricTile(c,runtime.themes,tile.alternatives,analysis!!.metrics)
+                assertEquals(original.contentDescription,tile.contentDescription)
+                assertEquals(BicycleDesign.dp(c,BicycleDesign.analysisMetricIconSize),original.minimumHeight-tile.minimumHeight)
+            }
             val status=view.findViewWithTag<android.widget.TextView>("ride_summary_status")
             assertEquals(View.GONE,status.visibility)
             fun upload()=view.findViewWithTag<View>("ride_summary_state_WEBDAV").getTag(R.id.summary_transfer_state)
@@ -76,7 +80,7 @@ class RideSummaryTest {
             for(width in listOf(288,328,380)) {
                 view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
                 view.layout(0,0,width,view.measuredHeight)
-                assertTrue("Summary with four-line note and RPE must remain scrollable",view.height<1100)
+                assertTrue("Summary with three-line note and RPE must remain scrollable",view.height<1100)
                 if(width==328) {
                     val image=Bitmap.createBitmap(width,view.height,Bitmap.Config.ARGB_8888)
                     image.eraseColor(runtime.themes.active.tokens.secondary);view.draw(Canvas(image))
