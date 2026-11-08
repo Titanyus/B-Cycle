@@ -9,7 +9,7 @@ internal sealed interface RideCompletion {
     val rideId: String?
     val shiftBatteryAtEnd:Int? get()=null
     data object TooShort : RideCompletion { override val rideId:String?=null }
-    // Remote destinations describe queueing only, never remote upload success.
+    // Destinations describe durable transfer intent, never external save/upload success.
     data class Completed(override val rideId: String, val destinations: Set<RecordingDestination> = emptySet(),
         val warnings: Set<RecordingWarning> = emptySet(), override val shiftBatteryAtEnd:Int?=null) : RideCompletion
     data class LocallyRetained(override val rideId: String, val failedAt: RecordingFinishStage,

@@ -39,7 +39,7 @@ class RideSummaryTest {
             val original=FitLibrary.retainRecording(c.filesDir,encoded);val id=original.nameWithoutExtension
             RideAnalysisFiles.retain(c.filesDir,id,journal)
             RouteExportSettings(c).write(RouteExportConfig(save=false,webdav=true,server="https://cloud.example.org",user="rider",wifiOnly=false))
-            RouteUploads.enqueue(c,original,"summary.fit")
+            RideFinishTransfers.hold(c,id,"summary.fit",setOf(RecordingDestination.WEBDAV),"")
             val completion=RideCompletion.Completed(id,setOf(RecordingDestination.WEBDAV))
             // Finish while backgrounded: show on the next foreground, not underneath settings.
             all(c.findViewById(android.R.id.content)).single { it.contentDescription==c.getString(R.string.ui_menu_open) }.performClick()
@@ -58,7 +58,7 @@ class RideSummaryTest {
             runtime.mapState.loadAnalysis(id) { analysis=it.getOrThrow() };drain(runtime)
             val title=dialog.window!!.decorView.findViewWithTag<android.widget.TextView>("bicycle_dialog_title")
             assertEquals(analysis!!.entry.name,title.text.toString());assertTrue(title.isClickable)
-            assertNotNull(view.findViewWithTag<View>("ride_note_editor"));assertNotNull(view.findViewWithTag<View>("ride_rpe_slider"))
+            assertNotNull(view.findViewWithTag<View>("ride_note_editor"));assertNotNull(view.findViewWithTag<View>("ride_rpe_picker"))
             val tiles=all(view).filterIsInstance<AnalysisMetricTile>()
             val battery=if(analysis!!.entry.details.bikeType==BikeType.EBIKE) listOf(AnalysisMetric.SHIFT_BATTERY_LEVEL,AnalysisMetric.BATTERY_LEVEL,AnalysisMetric.BATTERY_TEMPERATURE) else emptyList()
             assertEquals(listOf(AnalysisMetric.DISTANCE,AnalysisMetric.MOVING,AnalysisMetric.AVG_SPEED,AnalysisMetric.AVG_HEART,AnalysisMetric.NP)+battery,tiles.map { it.alternatives.single() })
@@ -71,16 +71,20 @@ class RideSummaryTest {
             assertEquals(View.GONE,status.visibility)
             fun upload()=view.findViewWithTag<View>("ride_summary_state_WEBDAV").getTag(R.id.summary_transfer_state)
             assertEquals(UploadState.WAITING,upload())
-            assertFalse(RouteUploads.run(c,{false}) { _,_,_,_ -> })
-            shadowOf(Looper.getMainLooper()).idle()
-            assertEquals(UploadState.UPLOADED,upload())
+            assertTrue(RideFinishTransfers.held(c,id));assertFalse(RouteUploads.wasQueued(c,id))
+            assertNull(dialog.window!!.decorView.findViewWithTag<View>("dialog_back"))
+            assertNotNull(view.findViewWithTag<View>("ride_summary_save"))
             val dashboard=c.findViewById<View>(android.R.id.content).findViewWithTag<android.widget.FrameLayout>("dashboard_host").getChildAt(0)
             assertTrue(DashboardModal.blurred(dashboard))
             assertEquals(BicycleDesign.dp(c,BicycleDesign.dashboardModalShadow).toFloat(),dialog.window!!.decorView.elevation,0f)
+            view.findViewWithTag<RideRpePicker>("ride_rpe_picker").performAccessibilityAction(android.R.id.accessibilityActionSetProgress,
+                android.os.Bundle().apply { putFloat(android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE,8f) })
             for(width in listOf(288,328,380)) {
                 view.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
                 view.layout(0,0,width,view.measuredHeight)
                 assertTrue("Summary with three-line note and RPE must remain scrollable",view.height<1100)
+                val note=view.findViewWithTag<View>("ride_note_editor");val picker=view.findViewWithTag<View>("ride_rpe_picker")
+                assertEquals(note.top,picker.top);assertEquals(note.bottom,picker.bottom)
                 if(width==328) {
                     val image=Bitmap.createBitmap(width,view.height,Bitmap.Config.ARGB_8888)
                     image.eraseColor(runtime.themes.active.tokens.secondary);view.draw(Canvas(image))

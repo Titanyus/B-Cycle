@@ -112,26 +112,17 @@ internal class RecordingStore(private val context: Context, private val changed:
                 val details=FitRead.read(RideAnalysisFiles.file(context.filesDir,original.nameWithoutExtension)).details
                 RideNames.generated(context,original.nameWithoutExtension,template.format(details,ZoneId.of(snapshot.getString("zone")),java.util.Locale.forLanguageTag(snapshot.getString("locale"))))
             }
-            val exportFile=FitLibrary.activeFile(context.filesDir,original.nameWithoutExtension)
-            val config = RouteExportSettings(context).read()
-            val upload = runCatching { RouteCloudUploads.enqueue(context, exportFile, "B-Cycle-" + encoded.name) }
-            val local = runCatching { if (config.save) RouteLocalSaves.perform(context, original.nameWithoutExtension, exportFile, config.tree.ifEmpty { "Downloads/B-Cycle" }) {
-                LocalRouteExport.write(context, exportFile, "B-Cycle-" + encoded.name, config.tree)
-            } }
-            stage = RecordingFinishStage.QUEUE_UPLOADS
-            upload.getOrThrow()
-            stage = RecordingFinishStage.EXPORT_LOCAL
-            local.getOrThrow()
-            stage = RecordingFinishStage.FINALIZE
+            val config=RouteExportSettings(context).read()
+            val destinations=RideFinishTransfers.destinations(context)
+            stage=RecordingFinishStage.QUEUE_UPLOADS
+            RideFinishTransfers.hold(context,original.nameWithoutExtension,"B-Cycle-"+encoded.name,destinations,config.tree)
+            stage=RecordingFinishStage.FINALIZE
+            // Cleanup is restricted to staging files, after both permanent internal
+            // files and the durable transfer intent have been created successfully.
+            check(original.isFile && original.length()>0)
+            check(RideAnalysisFiles.file(context.filesDir,original.nameWithoutExtension).let { it.isFile && it.length()>0 })
+            check(source.canonicalFile.parentFile==directory.canonicalFile)
             source.delete(); encoded.delete();appearance.delete();namingFile.delete()
-            val destinations = buildSet {
-                if (RouteExportSettings(context).read().save) add(RecordingDestination.LOCAL_FOLDER)
-                if (RouteExportSettings(context).read().webdav) add(RecordingDestination.WEBDAV)
-                if (IntervalsSettings(context).read().enabled) add(RecordingDestination.INTERVALS)
-                ActivityService.entries.filter { ActivityServiceSettings(context,it).read().enabled }.forEach {
-                    add(when (it) { ActivityService.DREEVE -> RecordingDestination.DREEVE; ActivityService.STRAVA -> RecordingDestination.STRAVA })
-                }
-            }
             if (failed) warnings += RecordingWarning.INCOMPLETE_RECORDING
             return RideCompletion.Completed(original.nameWithoutExtension, destinations, warnings.toSet())
         } catch (_: Exception) {

@@ -30,7 +30,7 @@ internal object RideAnnotations {
             val before=read(app,id);val next=update(before);if(next==before) return
             // apply updates memory synchronously; Android completes pending writes at lifecycle stops.
             prefs(app).edit().putString(id,next.json().toString()).putBoolean("dirty:$id",true).apply()
-            schedule(app,id,1200)
+            if(!RideFinishTransfers.held(app,id)) schedule(app,id,1200)
         }
     }
     private fun schedule(c:Context,id:String,delay:Long) {
@@ -43,9 +43,13 @@ internal object RideAnnotations {
         },delay,java.util.concurrent.TimeUnit.MILLISECONDS)
         pending[id]=task
     }
-    fun flushAsync(c:Context,id:String)=synchronized(lock) { if(prefs(c).getBoolean("dirty:$id",false)) schedule(c.applicationContext,id,0) }
+    fun flushAsync(c:Context,id:String)=synchronized(lock) { if(prefs(c).getBoolean("dirty:$id",false) && !RideFinishTransfers.held(c,id)) schedule(c.applicationContext,id,0) }
     fun recover(c:Context)=synchronized(lock) { prefs(c).all.keys.filter { it.startsWith("dirty:") }.forEach { schedule(c.applicationContext,it.removePrefix("dirty:"),0) } }
+    internal fun resync(c:Context,id:String)=synchronized(lock) {
+        if(contains(c,id)) { prefs(c).edit().putBoolean("dirty:$id",true).apply();schedule(c.applicationContext,id,0) }
+    }
     internal fun flush(c:Context,id:String) {
+        if(RideFinishTransfers.held(c,id)) return
         if(!prefs(c).getBoolean("dirty:$id",false)) return
         val snapshot=read(c,id)
         try {

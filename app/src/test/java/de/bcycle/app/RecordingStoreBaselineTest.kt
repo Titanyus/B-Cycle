@@ -40,20 +40,19 @@ class RecordingStoreBaselineTest {
             assertEquals(1,File(context.filesDir,"fit-library").listFiles { f -> f.extension=="fit" }!!.size)
         } finally { worker(store).shutdownNow() }
     }
-    @Test fun failureAfterLocalRetentionKeepsJournalAndRetryPreservesOriginalBytes() {
+    @Test fun deferredInvalidDestinationNeverChangesTheRetainedInternalBytes() {
         RouteExportSettings(context).write(RouteExportConfig(save=false,webdav=true,server="",user="rider"))
         val store=store()
         try {
             record(store)
-            assertEquals("FIT lokal gespeichert · Ordnerexport oder Upload-Vormerkung fehlgeschlagen. Im Menü erneut versuchen." to false,messages.last())
             val original=File(context.filesDir,"fit-library").listFiles { f -> f.extension=="fit" }!!.single()
             val bytes=original.readBytes()
-            assertEquals(1,pending.listFiles { f -> f.extension=="ride" }!!.size)
-            RouteExportSettings(context).write(RouteExportConfig(save=false,webdav=false))
-            store.retryPending();drain(store)
-            assertEquals("Gespeichert: FIT in Streckensammlung" to false,messages.last())
-            assertArrayEquals(bytes,original.readBytes())
+            assertTrue(RideFinishTransfers.held(context,original.nameWithoutExtension))
+            assertTrue(RideAnalysisFiles.file(context.filesDir,original.nameWithoutExtension).isFile)
             assertTrue(pending.listFiles()!!.isEmpty())
+            store.retryPending();drain(store)
+            assertArrayEquals(bytes,original.readBytes())
+            assertEquals("Keine ungespeicherten Fahrten" to false,messages.last())
         } finally { worker(store).shutdownNow() }
     }
     @Test fun mixedRecoveryCountsOnlyCompleteRidesAndLeavesUnreadableJournal() {

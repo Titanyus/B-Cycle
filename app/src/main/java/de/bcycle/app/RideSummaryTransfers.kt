@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 
-internal data class SummaryTransfer(val target:RouteTransferTarget,val label:String,val state:UploadState)
+internal data class SummaryTransfer(val target:RouteTransferTarget,val label:String,val state:UploadState,val planned:Boolean=false)
 
 /** Compact centered rows; native children retain accessible target/status descriptions. */
 internal class RideSummaryTransfers(context:Context,private val themes:ThemeManager):ViewGroup(context) {
@@ -21,7 +21,7 @@ internal class RideSummaryTransfers(context:Context,private val themes:ThemeMana
         if(items==shown) return
         shown=items;removeAllViews()
         items.forEach { item ->
-            val stateText=context.getString(when(item.state) {
+            val stateText=if(item.planned) context.getString(R.string.ride_summary_planned) else context.getString(when(item.state) {
                 UploadState.UPLOADED->R.string.route_transfer_done
                 UploadState.WAITING->R.string.route_transfer_waiting
                 UploadState.UPLOADING->R.string.route_transfer_uploading
@@ -41,7 +41,7 @@ internal class RideSummaryTransfers(context:Context,private val themes:ThemeMana
                     addView(ImageView(context).apply {
                         tag="ride_summary_state_${item.target.name}";importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                         setTag(R.id.summary_transfer_state,item.state)
-                        val icon=when(item.state) { UploadState.UPLOADED->BicycleIcon.Check
+                        val icon=if(item.planned) BicycleIcon.Date else when(item.state) { UploadState.UPLOADED->BicycleIcon.Check
                             UploadState.WAITING,UploadState.UPLOADING->BicycleIcon.Loading;else->BicycleIcon.Cancel }
                         BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,icon,it.foreground)) }
                     },LinearLayout.LayoutParams(BicycleDesign.dp(context,16),BicycleDesign.dp(context,16)).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap) })

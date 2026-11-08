@@ -35,29 +35,40 @@ class RecordingResultTest {
         assertTrue(result.warnings.isEmpty())
         assertTrue(FitLibrary.activeFile(context.filesDir,result.rideId).isFile)
         assertFalse(source.exists())
-        assertEquals(UploadState.WAITING,RouteUploads.state(context,result.rideId).state)
+        assertTrue(RideFinishTransfers.held(context,result.rideId));assertFalse(RouteUploads.wasQueued(context,result.rideId))
         assertEquals("Gespeichert: FIT in Streckensammlung · Nextcloud-Upload vorgemerkt",text(RecordingUpdate.Finished(result)))
     }
     @Test fun actualExportDistinguishesRetainedRideFromFailureBeforeRetention() {
         RouteExportSettings(context).write(RouteExportConfig(save=false,webdav=true,server="",user="rider"))
         val source=source()
+        val encoded=File(context.cacheDir,"prediction.fit");FitWriter.encode(source,encoded)
+        val original=FitLibrary.retainRecording(context.filesDir,encoded)
+        val blocker=RideAnalysisFiles.file(context.filesDir,original.nameWithoutExtension).parentFile!!.apply { writeText("synthetic blocker") }
         val retained=export(source) as RideCompletion.LocallyRetained
-        assertEquals(RecordingFinishStage.QUEUE_UPLOADS,retained.failedAt)
+        assertEquals(RecordingFinishStage.PREPARE_LOCAL,retained.failedAt)
         assertTrue(FitLibrary.activeFile(context.filesDir,retained.rideId).isFile)
-        assertTrue(source.isFile)
+        assertTrue(source.isFile);blocker.delete()
         val broken=File(source.parentFile,"broken.ride").apply { writeText("broken") }
         val failed=export(broken) as RideCompletion.NotSaved
         assertEquals(RecordingFinishStage.ENCODE_FIT,failed.failedAt)
         assertNull(failed.rideId)
         assertTrue(broken.isFile)
     }
-    @Test fun actualLocalExportFailureDoesNotCancelAlreadyQueuedCloudUpload() {
+    @Test fun deferredLocalFailureKeepsItsIntentWithoutCancellingOtherDestinations() {
         RouteExportSettings(context).write(RouteExportConfig(save=true,tree="content://missing/tree/root",webdav=true,server="https://cloud.example.org",user="rider"))
         val source=source()
-        val result=export(source) as RideCompletion.LocallyRetained
-        assertEquals(RecordingFinishStage.EXPORT_LOCAL,result.failedAt)
-        assertEquals(UploadState.WAITING,RouteUploads.state(context,result.rideId).state)
-        assertTrue(source.isFile)
+        val result=export(source) as RideCompletion.Completed
+        assertEquals(setOf(RecordingDestination.LOCAL_FOLDER,RecordingDestination.WEBDAV),result.destinations)
+        assertTrue(RideFinishTransfers.held(context,result.rideId))
+        val bytes=FitLibrary.activeFile(context.filesDir,result.rideId).readBytes()
+        val prefs=context.getSharedPreferences("ride-finish-transfers",0)
+        val row=org.json.JSONObject(prefs.getString(result.rideId,null)!!).put("held",false)
+        prefs.edit().putString(result.rideId,row.toString()).commit()
+        var cloud=0
+        RideFinishTransfers.runPending(context,result.rideId,local={ _,_,_->throw java.io.IOException("synthetic missing destination") },cloud={ _,_,_->cloud++ })
+        assertEquals(1,cloud)
+        assertEquals(listOf("LOCAL_FOLDER"),org.json.JSONObject(prefs.getString(result.rideId,null)!!).getJSONArray("remaining").let { (0 until it.length()).map(it::getString) })
+        assertArrayEquals(bytes,FitLibrary.activeFile(context.filesDir,result.rideId).readBytes())
     }
     @Test fun recoveryCountsOnlyCompletedResultsAndPreservesSingleRideMessages() {
         val full=RideCompletion.Completed("recorded-test")
@@ -79,7 +90,7 @@ class RecordingResultTest {
         assertEquals(notices,RecordingUpdate.Notice.entries.map { text(it) })
         assertTrue(RecordingUpdate.Notice.entries.none { it.busy })
         val result=RideCompletion.Completed("recorded-test",RecordingDestination.entries.toSet(),RecordingWarning.entries.toSet())
-        assertEquals("Gespeichert: FIT in Streckensammlung · auch im Zielordner · Nextcloud-Upload vorgemerkt · enthält Daten bis zum Speicherfehler · "+
+        assertEquals("Gespeichert: FIT in Streckensammlung · Ordnerexport vorgemerkt · Nextcloud-Upload vorgemerkt · enthält Daten bis zum Speicherfehler · "+
             context.getString(R.string.intervals_queued)+" · Dreeve · Strava · "+context.getString(R.string.elevation_auto_failed),text(RecordingUpdate.Finished(result)))
     }
     @Test fun recoveryKeepsLegacyAsciiCountsRegardlessOfDeviceNumberLocale() {

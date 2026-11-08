@@ -563,6 +563,7 @@ class MapState(private val context: Context, private val changed: () -> Unit) {
         RideAnalysisFiles.file(context.filesDir,id).delete()
         RideNames.forget(context,id)
         RideAnnotations.forget(context,id)
+        RideFinishTransfers.forget(context,id)
         RideProfileColor.forget(context,id)
         RouteTransferPayload.forget(context,id)
         RouteLocalSaves.forget(context, id)

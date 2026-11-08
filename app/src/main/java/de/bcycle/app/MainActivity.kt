@@ -145,6 +145,7 @@ class MainActivity : Activity() {
     private var pendingReport: String? = null
     private var displayedRecordingStatus: String? = null
     private var rideSummaryPosted=false
+    private var rideSummaryScreen:AlertDialog?=null
     private var displaySignature=""
     private var forceDashboard=false
     private val displayUpdates=DisplayUpdateGate(editorHandler) {
@@ -973,12 +974,22 @@ class MainActivity : Activity() {
             if(dashboardEditing) finishDashboardEditor()
             setMapFullscreen(false)
             lateinit var screen:AlertDialog
-            val content=RideSummaryView(this,runtime.themes,completion) {
-                runtime.mapState.entries.firstOrNull { it.id==id }?.let { entry -> screen.dismiss();routeAnalysis(entry) }
-            }
-            screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY,plainHeader=true,dashboardSurface=true)
+            var openDetails=false
+            val content=RideSummaryView(this,runtime.themes,completion,openDetails={ openDetails=true;screen.dismiss() },save={ screen.dismiss() })
+            screen=BicycleDialogBuilder(this,runtime.themes,dialogs,fullscreen=false,headerRole=ThemeRole.SECONDARY,plainHeader=true,dashboardSurface=true,showBack=false)
                 .setTitle(RideNames.name(this,id) ?: runtime.mapState.entries.firstOrNull { it.id==id }?.name ?: getString(R.string.ride_summary_title)).setView(ScrollView(this).apply { BicycleComponents.scrollStyle(this);addView(content) }).show()
+            rideSummaryScreen=screen
+            screen.setCanceledOnTouchOutside(true)
+            val window=screen.window!!
+            val originalCallback=window.callback
+            window.callback=object:android.view.Window.Callback by originalCallback {
+                override fun dispatchTouchEvent(event:android.view.MotionEvent):Boolean {
+                    if(event.actionMasked==android.view.MotionEvent.ACTION_DOWN) content.finishNoteOutside(event.rawX,event.rawY)
+                    return originalCallback.dispatchTouchEvent(event)
+                }
+            }
             val summaryTitle=screen.window?.decorView?.findViewWithTag<TextView>("bicycle_dialog_title")
+            summaryTitle?.setPadding(dp(BicycleDesign.horizontalPadding),0,dp(BicycleDesign.horizontalPadding),0)
             fun updateSummaryName() { summaryTitle?.text=RideNames.name(this,id) ?: runtime.mapState.entries.firstOrNull { it.id==id }?.name ?: summaryTitle?.text }
             summaryTitle?.setOnClickListener { runtime.mapState.entries.firstOrNull { it.id==id }?.let(::renameRoute) }
             val namesPrefs=getSharedPreferences("ride-names",0)
@@ -988,7 +999,13 @@ class MainActivity : Activity() {
             val cancel=runtime.mapState.loadAnalysis(id) { result ->
                 if(!isDestroyed && screen.isShowing) result.fold({ content.show(it);updateSummaryName() }) { content.loadingFailed() }
             }
-            dialogs.onDismiss(screen) { RideAnnotations.flushAsync(this,id);namesPrefs.unregisterOnSharedPreferenceChangeListener(nameListener);cancel();backdrop.close() }
+            dialogs.onDismiss(screen) {
+                if(rideSummaryScreen===screen) rideSummaryScreen=null
+                window.callback=originalCallback
+                RideFinishTransfers.release(this,id);RideAnnotations.flushAsync(this,id)
+                namesPrefs.unregisterOnSharedPreferenceChangeListener(nameListener);cancel();backdrop.close()
+                if(openDetails && !isDestroyed && !isFinishing) runtime.mapState.entries.firstOrNull { it.id==id }?.let(::routeAnalysis)
+            }
         }
     }
     private fun showHrvHistory() {
@@ -1284,6 +1301,7 @@ class MainActivity : Activity() {
         restartEditorTimeout()
     }
     override fun onStop() {
+        rideSummaryScreen?.dismiss()
         if(::dashboardViewport.isInitialized) dashboardViewport.cancelTransition()
         displayUpdates.cancel()
         statusForeground=false;preferences.unregisterOnSharedPreferenceChangeListener(statusPreferences)
