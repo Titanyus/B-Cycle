@@ -14,3 +14,7 @@ Optimierter Release ausschließlich aus GitHub Actions. CI-Prüfsumme, dauerhaft
 [Änderungen](release-0.8.104.md): FIT-Exportidentität verhindert den reproduzierten Doppelimport nach RPE-Änderung; Fahrtzusammenfassung unten TERTIARY, Lade-/Anrollschutz beim Bosch-Autostart, deckende Kartenbuttons und Nordpfeil PRIMARY. Trainingsvarianten mit tatsächlichem Touchbereich und neuen Labels, Details nur Übersicht. Kompakter Zwei-Spalten-Karteneditor mit unabhängigen Straßen-Outlines.
 
 Gezielte Speicher-, Protokoll-, Autostart-, Touch-, Darstellungs- und Editorprüfungen sowie zentrale Typografie/UI-Katalog/Bright/Diff-Prüfungen bestanden. Keine Gesamtläufe/Profiling oder lokalen APK-Builds. Vorschauen geprüft. Bosch-Ladeadressen am echten Rad und neuer Editor am Gerät noch zu bestätigen. Bestehende ältere Duplikate bleiben erhalten. Detaillierte Testlogs und Grenzen in [der Übergabe](CONTINUE-HERE.md) und den Fachberichten.
+
+## Direkter Downloadnachweis
+
+Direkten veröffentlichten Raw-Download tatsächlich abgerufen:4445389Bytes, bytegenau identisch zum geprüften Actions-Artefakt; SHA-256 `24e8dcec0c31344295eb1ca76d3d0833fbaeaa85a1f977090822c6de1ac9b815` ebenfalls identisch. Veröffentlichung:3a809b3.
