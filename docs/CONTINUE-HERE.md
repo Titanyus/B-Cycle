@@ -1,24 +1,30 @@
-# Strecken-Thumbnail und Flat-Köpfe (APK anschließend angefordert)
+# Aktuell veröffentlicht: APK0.8.103 / Build148
 
-Neue Streckenzeilen mit linkem TERTIARY-Thumbnail/20%-Konturen und überlagerndem abgerundeten Fahrradquadrat, Dateityp nur in Übersicht entfernt. Volle Flat-Gruppenkopfbreite; Zahlen ohne VERY_WIDE auch nach langem Recycling. Bestehende Auswahl/Auge/Vorlagen-/Detaildaten erhalten. Asynchrone Vorberechnung und begrenzter Mapterhorn-/Geometrie-/Bitmapcache, Quellen weiterhin Erweitert. [Umfang, Limits und gezielte Nachweise](route-thumbnails.md). Vorschauen visuell geprüft; gezielte UI-/Geometrie-/Offline- und Scrollfälle bestanden, zentrale Prüfungen grün. Nutzer hat danach ausdrücklich neue APK angefordert; nächste Version0.8.103/code173, Actions-Run voraussichtlich148.
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.103-release-148.apk) · [Buildnachweis](build-148.md) · [Änderungen](release-0.8.103.md)
 
-# Trainingspillen und Varianten nach Build147 (noch nicht veröffentlicht)
+Alle aktuellen Aufträge enthalten: Strecken-Thumbnail mit TERTIARY,20%-Konturen/100%-Strecke und überlagernder abgerundeter Fahrrad-Badge, Dateityp nur dort entfernt; Flat-Gruppenköpfe volle Breite. Trainingsvarianten Q+→Q→S→Ext→Ext+ und Härtepillen, Detailkarte ohne inneren Rahmen/Titeldopplung. RPE-/Speicher-Typografie und Abstände korrigiert. Actions42478566299 erfolgreich aus7d64bc8, Code173, dauerhafte Signatur und Artefakte geprüft. 4429065Bytes, SHA-256 `31d5fc10ef4ecf9e870cea52f756e034b8157ec23d114231677d6cd5d64508c7`. Gezielte Prüfungen/Vorschauen grün; keine Gesamtläufe/Profiling. Echte Geländekonturen/Gesten am Gerät zu bestätigen.
 
-Übersicht mit Härtebadge und Rahmenpille neben Titel, Diagramm82 statt96dp. Variantenwahl Q+→Q→S→Ext→Ext+→Q+; exakter eindeutiger Hauptblock ab5 Wiederholungen, Warmup/Cooldown erhalten, lokale Auswahl je Training. Kennzahlen/Sortierung/Details aus gewählter Struktur; Originaldateien/Anbieterantwort unangetastet. Sieben gezielte Modell-/bestehende UI-Fälle sowie neuer korrigierter UI-Fall bestanden (8 verschiedene Fälle insgesamt), Vorschau geprüft. [Verfahren/Grenzen](training-library.md). Entwicklungsumgebung wieder verfügbar; Strecken-Thumbnail/Flat-Randkorrektur in Arbeit, anschließend APK ausdrücklich angefordert.
+# Strecken-Thumbnail und Flat-Köpfe (in Build148 veröffentlicht)
 
-# Trainingsdetails nach Build147 (noch nicht veröffentlicht)
+Neue Streckenzeilen mit linkem TERTIARY-Thumbnail/20%-Konturen und überlagerndem abgerundeten Fahrradquadrat, Dateityp nur in Übersicht entfernt. Volle Flat-Gruppenkopfbreite; Zahlen ohne VERY_WIDE auch nach langem Recycling. Bestehende Auswahl/Auge/Vorlagen-/Detaildaten erhalten. Asynchrone Vorberechnung und begrenzter Mapterhorn-/Geometrie-/Bitmapcache, Quellen weiterhin Erweitert. [Umfang, Limits und gezielte Nachweise](route-thumbnails.md). Vorschauen visuell geprüft; gezielte UI-/Geometrie-/Offline- und Scrollfälle bestanden, zentrale Prüfungen grün. In Version0.8.103/code173, Actions148 veröffentlicht.
+
+# Trainingspillen und Varianten nach Build147 (in Build148 veröffentlicht)
+
+Übersicht mit Härtebadge und Rahmenpille neben Titel, Diagramm82 statt96dp. Variantenwahl Q+→Q→S→Ext→Ext+→Q+; exakter eindeutiger Hauptblock ab5 Wiederholungen, Warmup/Cooldown erhalten, lokale Auswahl je Training. Kennzahlen/Sortierung/Details aus gewählter Struktur; Originaldateien/Anbieterantwort unangetastet. Sieben gezielte Modell-/bestehende UI-Fälle sowie neuer korrigierter UI-Fall bestanden (8 verschiedene Fälle insgesamt), Vorschau geprüft. [Verfahren/Grenzen](training-library.md). Entwicklungsumgebung wieder verfügbar; gemeinsam mit Strecken-Thumbnail/Flat-Randkorrektur in Build148 veröffentlicht.
+
+# Trainingsdetails nach Build147 (in Build148 veröffentlicht)
 
 Übersichtsinhalt ohne zusätzliche Auswahlkarte/Rahmen und deren doppelten Innenabstand. Trainingstitel nur im Hauptheader, nicht erneut über den Kennzahlen. Gemeinsame Gruppenköpfe und Trainingsliste unverändert. Bestehender Trainingsdetail-Navigationstest bestanden, Vorschau training-details.png visuell geprüft; Typografie/UI-Katalog/Diff grün. Log /workspace/.tools/training-details-unframed-test.log. Keine neue APK angefordert.
 
-# Zusammenfassungs-Typografie nach Build147 (noch nicht veröffentlicht)
+# Zusammenfassungs-Typografie nach Build147 (in Build148 veröffentlicht)
 
 Speicherziel-Labels wieder11sp, vor generischem Dialogstyling geschützt. Vorgemerkte Ziele zeigen nur ihr Dienst-/Lokalicon, ohne Kalender; Accessibility-Status erhalten.16dp Abstand unter Buttons, kleine900-Black-Überschrift „Fahrt wird nach dem Speichern übertragen zu:“, danach8dp bis Icons. Sichtbare RPE-Frage entfernt. Zahl/Beschreibung rechts neben Notiz mit festen64,8/12,6sp (72/14 minus10%), identisch für leer und0–10, anhand sichtbarer Glyphen vertikal mittig; keine dynamische Schriftanpassung. Drei gezielte Fälle aus RideSummaryTest/RideRpePickerTest bestanden, Screenshot geprüft, Typografie/UI-Katalog/Diff grün. Log /workspace/.tools/summary-fixed-type-tests.log. Keine neue APK angefordert; letzter veröffentlichter Stand weiter Build147.
 
-# Abstandskorrekturen nach Build147 (noch nicht veröffentlicht)
+# Abstandskorrekturen nach Build147 (in Build148 veröffentlicht)
 
 RPE-Bearbeitungsdialog der Streckendetails mit zentralem16dp-Innenrand auf allen Seiten. Trainingsmanager wie Streckenmanager von allgemeinem Seiten-Topgap ausgenommen: erster und angehefteter Gruppenkopf beginnen ohne zusätzliches Leerband am Hauptheader. Lade-/Fehlerstatus bleibt bei vorhandenem Text sichtbar. Zwei bestehende gezielte UI-Fälle mit Rand-/Geometrieprüfungen bestanden (RideFeedbackTest.noteSavesWithoutConfirmationAndHeaderEditReturnsToPlainTextWithIndependentRideRpe und TrainingLibraryTest.menuFileImportFooterCommandsAndConfirmedDeleteWorkInTheRealTrainingScreen), Log /workspace/.tools/rpe-training-spacing-tests.log. Typografie/UI-Katalog/Diff grün, Katalogfingerprint erneuert. Keine APK angefordert.
 
-# Aktuell veröffentlicht: APK0.8.102 / Build147
+# Vorheriger veröffentlichter Stand: APK0.8.102 / Build147
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.102-release-147.apk) · [Buildnachweis](build-147.md) · [Änderungen](release-0.8.102.md)
 
