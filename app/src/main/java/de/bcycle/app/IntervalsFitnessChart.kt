@@ -21,6 +21,7 @@ internal class IntervalsFitnessChart(context:Context,private val themes:ThemeMan
     var rangeChanged:()->Unit={}
     var selected:(IntervalsFitnessDay)->Unit={}
     private var values:Map<LocalDate,IntervalsFitnessDay> = emptyMap()
+    private var shown:IntervalsFitnessHistory?=null
     private var end=today().toEpochDay().toDouble()
     private var span=7
     private var selectedDay=today()
@@ -59,7 +60,7 @@ internal class IntervalsFitnessChart(context:Context,private val themes:ThemeMan
     fun newest():LocalDate=LocalDate.ofEpochDay(ceil(end).toLong())
     fun period(period:IntervalsFitnessPeriod) { scroller.forceFinished(true);span=period.days;if(selectedDay<oldest() || selectedDay>newest()) select(newest());rebuild();rangeChanged() }
     fun goToday() { scroller.forceFinished(true);end=today().toEpochDay().toDouble();select(today());rebuild();rangeChanged() }
-    fun show(history:IntervalsFitnessHistory) { values=history.days.associateBy { it.day };rebuild();select(selectedDay) }
+    fun show(history:IntervalsFitnessHistory) { if(shown===history) return;shown=history;values=history.days.associateBy { it.day };rebuild();select(selectedDay) }
     private fun select(day:LocalDate) {
         selectedDay=day
         val point=values[day] ?: IntervalsFitnessDay(day,null,null)

@@ -96,7 +96,12 @@ class IntervalsFitnessTest {
             for(flat in listOf(false,true)) {
                 themes.setFlatDesign(flat);c.setContentView(LinearLayout(c).apply { addView(chart,LinearLayout.LayoutParams(-1,600)) })
                 chart.measure(View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY));chart.layout(0,0,1000,600)
-                chart.show(IntervalsFitnessHistory(from,end,days,1));chart.goToday()
+                val history=IntervalsFitnessHistory(from,end,days,1)
+                chart.show(history)
+                val curves=IntervalsFitnessChart::class.java.getDeclaredField("curves").apply { isAccessible=true }
+                val prepared=curves.get(chart);chart.show(history)
+                assertSame("Cache result must not rebuild twice",prepared,curves.get(chart))
+                chart.goToday()
                 assertEquals(end,selected!!.day)
                 chart.period(IntervalsFitnessPeriod.THREE_MONTHS)
                 assertTrue(chart.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD,null))

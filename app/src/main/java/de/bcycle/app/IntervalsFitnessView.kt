@@ -80,6 +80,7 @@ internal class IntervalsFitnessView(context:Context,private val themes:ThemeMana
         refresh.isEnabled=false;BicycleFeedback.update(status,context.getString(R.string.intervals_fitness_loading))
         fun active()=ticket==generation.get() && connection==settings.connectionToken()
         executor.execute {
+            if(!active()) return@execute
             val cached=repository.cached(from,to)
             if(cached!=null) post { if(active() && isAttachedToWindow) show(cached) }
             val result=runCatching {
