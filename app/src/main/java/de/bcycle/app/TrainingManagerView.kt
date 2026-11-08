@@ -180,8 +180,9 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
     private var selected=false
     init {
         orientation=VERTICAL;tag="training_card"
-        val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
-        addView(name);addView(description,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        val pad=if(detailAxes) 0 else BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
+        if(!detailAxes) addView(name)
+        addView(description,LayoutParams(-1,-2).apply { if(!detailAxes) topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(intensity,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(metrics,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         addView(chart,LayoutParams(-1,BicycleDesign.dp(context,if(detailAxes) 180 else 96)).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
@@ -190,7 +191,7 @@ internal class TrainingWorkoutView(context:Context,private val themes:ThemeManag
         descendantFocusability=ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
     private fun paintState(tokens:ThemeTokens) {
-        if(detailAxes) BicycleSelectionCard.apply(this,tokens,selected)
+        if(detailAxes) { background=null;foreground=null }
         else {
             background=android.graphics.drawable.ColorDrawable(if(selected) tokens.tertiary else tokens.secondary)
             foreground=null

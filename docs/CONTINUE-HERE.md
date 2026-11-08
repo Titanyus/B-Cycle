@@ -1,3 +1,7 @@
+# Trainingsdetails nach Build147 (noch nicht veröffentlicht)
+
+Übersichtsinhalt ohne zusätzliche Auswahlkarte/Rahmen und deren doppelten Innenabstand. Trainingstitel nur im Hauptheader, nicht erneut über den Kennzahlen. Gemeinsame Gruppenköpfe und Trainingsliste unverändert. Bestehender Trainingsdetail-Navigationstest bestanden, Vorschau training-details.png visuell geprüft; Typografie/UI-Katalog/Diff grün. Log /workspace/.tools/training-details-unframed-test.log. Keine neue APK angefordert.
+
 # Zusammenfassungs-Typografie nach Build147 (noch nicht veröffentlicht)
 
 Speicherziel-Labels wieder11sp, vor generischem Dialogstyling geschützt. Vorgemerkte Ziele zeigen nur ihr Dienst-/Lokalicon, ohne Kalender; Accessibility-Status erhalten.24dp Abstand unter Buttons, kleine900-Black-Überschrift „Fahrt wird nach dem Speichern übertragen zu:“, danach8dp bis Icons. Sichtbare RPE-Frage entfernt. Zahl/Beschreibung rechts neben Notiz mit festen64,8/12,6sp (72/14 minus10%), identisch für leer und0–10, anhand sichtbarer Glyphen vertikal mittig; keine dynamische Schriftanpassung. Drei gezielte Fälle aus RideSummaryTest/RideRpePickerTest bestanden, Screenshot geprüft, Typografie/UI-Katalog/Diff grün. Log /workspace/.tools/summary-fixed-type-tests.log. Keine neue APK angefordert; letzter veröffentlichter Stand weiter Build147.
