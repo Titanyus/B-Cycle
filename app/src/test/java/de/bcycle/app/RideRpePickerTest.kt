@@ -30,6 +30,18 @@ class RideRpePickerTest {
             assertNull(RideAnnotations.read(c,id).rpe)
             assertEquals(row.note.top,picker.top);assertEquals(row.note.bottom,picker.bottom)
             assertEquals(3,row.note.minLines);assertEquals(3,row.note.maxLines)
+            fun textSizes():List<Float> = listOf("number","description").map { name ->
+                (RideRpePicker::class.java.getDeclaredField(name).apply { isAccessible=true }.get(picker) as android.graphics.Paint).textSize
+            }
+            val fixedSizes=textSizes()
+            assertEquals(listOf(72f*.9f,14f*.9f),fixedSizes)
+            for(value in 0..10) {
+                picker.performAccessibilityAction(android.R.id.accessibilityActionSetProgress,
+                    android.os.Bundle().apply { putFloat(AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE,value.toFloat()) })
+                assertEquals(fixedSizes,textSizes())
+            }
+            picker.performAccessibilityAction(android.R.id.accessibilityActionSetProgress,
+                android.os.Bundle().apply { putFloat(AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE,0f) })
             fun drag(from:Float,to:Float) {
                 for((index,pair) in listOf(MotionEvent.ACTION_DOWN to from,MotionEvent.ACTION_MOVE to to,MotionEvent.ACTION_UP to to).withIndex()) {
                     val event=MotionEvent.obtain(0,index*20L,pair.first,20f,pair.second,0)

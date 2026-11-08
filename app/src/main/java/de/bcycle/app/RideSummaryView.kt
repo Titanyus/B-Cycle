@@ -11,6 +11,7 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
     private val metrics=LinearLayout(context).apply { orientation=VERTICAL }
     private val status=BicycleComponents.description(context,themes,"").apply { tag="ride_summary_status" }
     private val transfers=RideSummaryTransfers(context,themes)
+    private val transferHeading=BicycleComponents.contentHeading(context,themes,context.getString(R.string.ride_summary_transfer_heading)).apply { tag="ride_summary_transfer_heading" }
     private val problem=BicycleComponents.description(context,themes,context.getString(R.string.ride_summary_loading)).apply { tag="ride_summary_loading" }
     private var entry:ManagedRoute?=null
     private var feedback:RideSummaryFeedbackRow?=null
@@ -21,7 +22,6 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
         addView(metrics,LayoutParams(-1,-2));addView(problem,LayoutParams(-1,-2))
         addView(BicycleComponents.sectionDivider(context,themes).apply { tag="ride_summary_transfer_divider" })
         completion.rideId?.let { id ->
-            addView(BicycleComponents.fieldLabel(context,themes,context.getString(R.string.ride_rpe_question)),LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
             feedback=RideSummaryFeedbackRow(context,themes,id).also { addView(it,LayoutParams(-1,-2).apply { bottomMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) }) }
         }
         addView(LinearLayout(context).apply {
@@ -30,6 +30,7 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
             addView(details,LayoutParams(0,-1,1f))
         },LayoutParams(-1,-2))
         addView(status,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
+        addView(transferHeading,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.sectionContentGap) })
         addView(transfers,LayoutParams(-1,-2).apply { topMargin=BicycleDesign.dp(context,BicycleDesign.controlGap) })
         isFocusableInTouchMode=true
         showMetrics(emptyMap());updateStatus()
@@ -78,6 +79,7 @@ internal class RideSummaryView(context:Context,private val themes:ThemeManager,p
             })
         }
         transfers.show(items);transfers.visibility=if(items.isEmpty()) GONE else VISIBLE
+        transferHeading.visibility=transfers.visibility
     }
 }
 

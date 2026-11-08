@@ -13,6 +13,7 @@
     <string name="ride_rpe_maximum">Maximal</string>
     <string name="ride_rpe_edit">RPE der Fahrt ändern</string>
     <string name="ride_note_external_failed">Lokal gespeichert. Die exportierte Datei konnte noch nicht aktualisiert werden.</string>
+    <string name="ride_summary_transfer_heading">Fahrt wird nach dem Speichern übertragen zu:</string>
     <string name="ride_summary_planned">Vorgemerkt</string>
     <string name="ride_finish_pending">Fahrt intern gesichert. Ein Export oder Upload ist noch offen und bleibt vorgemerkt.</string>
 </resources>

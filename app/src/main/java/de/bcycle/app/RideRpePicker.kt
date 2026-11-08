@@ -12,12 +12,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityNodeInfo
-import android.widget.EditText
 import android.view.ViewGroup
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-/** Compact CR10 picker. The two readings scale together to the adjacent note's height. */
+/** Compact CR10 picker with fixed type sizes and a vertically centered reading. */
 internal class RideRpePicker(context:Context,themes:ThemeManager,private val rideId:String):View(context) {
     private val number=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.narrowTypeface(context);textAlign=Paint.Align.CENTER }
     private val description=TextPaint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.narrowTypeface(context) }
@@ -47,32 +46,26 @@ internal class RideRpePicker(context:Context,themes:ThemeManager,private val rid
         if(width<=0 || height<=0) return
         val scaled=resources.displayMetrics.scaledDensity
         val text=value?.let { context.getString(RideRpe.label(it)) } ?: context.getString(R.string.ride_rpe_unrated)
-        data class Fit(val layout:StaticLayout,val numberTop:Int,val numberHeight:Int,val labelTop:Int,val labelBottom:Int)
+        // Fixed for every value, including unset and zero; 10% below the chosen
+        // compact 72sp / 14sp pair. Never resize in response to the current label.
+        number.textSize=72f*.9f*scaled;description.textSize=14f*.9f*scaled
         val bounds=Rect()
-        fun fit(scale:Float):Fit {
-            number.textSize=56*scaled*scale;description.textSize=14*scaled*scale
-            val digits=value?.toString() ?: "–"
-            number.getTextBounds(digits,0,digits.length,bounds)
-            val top=bounds.top;val numberHeight=bounds.height()
-            val layout=StaticLayout.Builder.obtain(text,0,text.length,description,width).setAlignment(Layout.Alignment.ALIGN_CENTER)
-                .setIncludePad(false).build()
-            var labelTop=Int.MAX_VALUE;var labelBottom=Int.MIN_VALUE
-            for(line in 0 until layout.lineCount) {
-                description.getTextBounds(text,layout.getLineStart(line),layout.getLineEnd(line),bounds)
-                labelTop=minOf(labelTop,layout.getLineBaseline(line)+bounds.top)
-                labelBottom=maxOf(labelBottom,layout.getLineBaseline(line)+bounds.bottom)
-            }
-            return Fit(layout,top,numberHeight,labelTop,labelBottom)
+        val digits=value?.toString() ?: "–"
+        number.getTextBounds(digits,0,digits.length,bounds)
+        val numberTop=bounds.top;val numberHeight=bounds.height()
+        val layout=StaticLayout.Builder.obtain(text,0,text.length,description,width).setAlignment(Layout.Alignment.ALIGN_CENTER)
+            .setIncludePad(false).build()
+        var labelTop=Int.MAX_VALUE;var labelBottom=Int.MIN_VALUE
+        for(line in 0 until layout.lineCount) {
+            description.getTextBounds(text,layout.getLineStart(line),layout.getLineEnd(line),bounds)
+            labelTop=minOf(labelTop,layout.getLineBaseline(line)+bounds.top)
+            labelBottom=maxOf(labelBottom,layout.getLineBaseline(line)+bounds.bottom)
         }
-        var low=.1f;var high=4f
-        repeat(14) {
-            val middle=(low+high)/2;val next=fit(middle)
-            val total=next.numberHeight+4*resources.displayMetrics.density*middle+next.labelBottom-next.labelTop
-            if(total<=height-2 && number.measureText(value?.toString() ?: "–")<=width) low=middle else high=middle
-        }
-        val fitted=fit(low);label=fitted.layout
-        numberBaseline=1f-fitted.numberTop
-        descriptionY=height-1f-fitted.labelBottom
+        val gap=4f*.9f*resources.displayMetrics.density
+        val top=(height-numberHeight-gap-(labelBottom-labelTop))/2f
+        label=layout
+        numberBaseline=top-numberTop
+        descriptionY=top+numberHeight+gap-labelTop
     }
 
     override fun onSizeChanged(w:Int,h:Int,oldw:Int,oldh:Int) { prepare() }

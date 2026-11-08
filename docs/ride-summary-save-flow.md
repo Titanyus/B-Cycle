@@ -23,12 +23,12 @@ Für Intervals/Strava/Dreeve bleiben die bestehenden unveränderlichen Upload-Pa
 
 - Titel weiterhin anklickbarer Fahrtname. Eigenes `showBack=false` am Dialogbuilder entfernt nur hier das Zurück-Chevron; normale Dialoge unverändert.
 - Statistikwerte ohne Icons weiterhin32dp kompakter.
-- Frage: „Wie anstrengend war diese Fahrt? (RPE0–10)“.
-- Darunter eine Zeile: links dreizeiliges Notizfeld in normaler Schrift, rechts etwa30% Breite für CR10-Zahl/Beschreibung. Der gemeinsame Block wird über echte Glyphgrenzen skaliert, sodass sichtbare Ober-/Unterkante zum Notizfeld passen. League Gothic wie in den Streckendetails.
+- Keine sichtbare Frage „Wie anstrengend …“ mehr in der Zusammenfassung; zugängliche RPE-Beschreibung bleibt am Picker.
+- Darunter eine Zeile: links dreizeiliges Notizfeld in normaler Schrift, rechts etwa30% Breite für CR10-Zahl/Beschreibung. Feste Schriftgrößen für alle Zustände einschließlich „–“ und0–10:64,8sp Zahl und12,6sp Beschreibung (gewähltes72/14-Paar anschließend10% kleiner). Keine dynamische Schriftanpassung an Wert, Breite oder Höhe; der gemeinsame sichtbare Block wird vertikal mittig zum Notizfeld angeordnet. League Gothic wie in den Streckendetails.
 - Nach oben wischen erhöht, nach unten verringert den Wert. Grenzen0/10 ohne Umlauf. Keine Bewertung bleibt „– / Noch nicht bewertet“; bewusste0 zeigt „0 / Keine Anstrengung“. Ein erster Tap erlaubt0. Andere Einstufungen erhalten. Tastatur-Up/Down und Accessibility-Scroll/SetProgress unterstützt. Nur der Picker beansprucht seine vertikale Wischgeste.
 - Kein horizontaler RPE-Slider in der Zusammenfassung. Der bestehende Slider im Bearbeitungsdialog der Streckendetails bleibt unabhängig erhalten.
 - Ein Druck auf Dialoginhalt außerhalb der fokussierten Notiz entfernt Fokus und schließt die Tastatur; Text bereits intern gespeichert. Window-Callback berücksichtigt Bildschirmposition und sichtbaren Feldbereich.
-- Darunter links „Speichern“, rechts „Zu den Details“, gleich hohe nebeneinanderliegende Buttons. Die vorhandenen konfigurierten Ziele stehen darunter, mit Kalender-/Vormerksymbol und Accessibility-Status „Vorgemerkt“, ohne Erfolgs-Haken oder Lade-Kreis.
+- Darunter links „Speichern“, rechts „Zu den Details“, gleich hohe nebeneinanderliegende Buttons. Mit24dp Abstand folgt die kleine900-Black-Überschrift „Fahrt wird nach dem Speichern übertragen zu:“, darunter nur die Zielicons und kleine11sp-Beschriftungen; keine Kalender-/Statusicons bei vorgemerkten Zielen. Accessibility-Status „Vorgemerkt“ bleibt erhalten. RideSummaryTransfers besitzt seine Typografie selbst und wird nicht vom allgemeinen Dialogstyling auf14sp vergrößert.
 
 Ohne zusätzlich konfigurierte externe Ziele bleibt die interne Fahrt trotzdem gesichert; keine neue Cloud-/Ordnerkonfiguration wird eigenmächtig aktiviert.
 

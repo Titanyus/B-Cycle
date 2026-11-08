@@ -69,8 +69,16 @@ class RideSummaryTest {
             }
             val status=view.findViewWithTag<android.widget.TextView>("ride_summary_status")
             assertEquals(View.GONE,status.visibility)
-            fun upload()=view.findViewWithTag<View>("ride_summary_state_WEBDAV").getTag(R.id.summary_transfer_state)
-            assertEquals(UploadState.WAITING,upload())
+            assertNull(view.findViewWithTag<View>("ride_summary_state_WEBDAV"))
+            val transfer=view.findViewWithTag<View>("ride_summary_transfer_WEBDAV") as ViewGroup
+            assertEquals(c.getString(R.string.ride_summary_planned),transfer.stateDescription)
+            assertEquals(1,all(transfer).filterIsInstance<android.widget.ImageView>().size)
+            val targetLabel=all(transfer).filterIsInstance<android.widget.TextView>().single()
+            assertEquals(BicycleDesign.analysisLabelSp*c.resources.displayMetrics.scaledDensity,targetLabel.textSize,.01f)
+            val heading=view.findViewWithTag<android.widget.TextView>("ride_summary_transfer_heading")
+            assertEquals(c.getString(R.string.ride_summary_transfer_heading),heading.text)
+            assertEquals(BicycleDesign.strongTypeface,heading.typeface)
+            assertFalse(all(view).filterIsInstance<android.widget.TextView>().any { it.text==c.getString(R.string.ride_rpe_question) })
             assertTrue(RideFinishTransfers.held(c,id));assertFalse(RouteUploads.wasQueued(c,id))
             assertNull(dialog.window!!.decorView.findViewWithTag<View>("dialog_back"))
             assertNotNull(view.findViewWithTag<View>("ride_summary_save"))
@@ -85,6 +93,7 @@ class RideSummaryTest {
                 assertTrue("Summary with three-line note and RPE must remain scrollable",view.height<1100)
                 val note=view.findViewWithTag<View>("ride_note_editor");val picker=view.findViewWithTag<View>("ride_rpe_picker")
                 assertEquals(note.top,picker.top);assertEquals(note.bottom,picker.bottom)
+                assertTrue(heading.top-view.findViewWithTag<View>("ride_summary_actions").bottom>=BicycleDesign.dp(c,BicycleDesign.sectionContentGap))
                 if(width==328) {
                     val image=Bitmap.createBitmap(width,view.height,Bitmap.Config.ARGB_8888)
                     image.eraseColor(runtime.themes.active.tokens.secondary);view.draw(Canvas(image))

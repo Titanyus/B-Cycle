@@ -38,10 +38,10 @@ internal class RideSummaryTransfers(context:Context,private val themes:ThemeMana
                         importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                         BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,item.target.icon,it.foreground)) }
                     },LinearLayout.LayoutParams(BicycleDesign.dp(context,BicycleDesign.iconSize),BicycleDesign.dp(context,BicycleDesign.iconSize)))
-                    addView(ImageView(context).apply {
+                    if(!item.planned) addView(ImageView(context).apply {
                         tag="ride_summary_state_${item.target.name}";importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
                         setTag(R.id.summary_transfer_state,item.state)
-                        val icon=if(item.planned) BicycleIcon.Date else when(item.state) { UploadState.UPLOADED->BicycleIcon.Check
+                        val icon=when(item.state) { UploadState.UPLOADED->BicycleIcon.Check
                             UploadState.WAITING,UploadState.UPLOADING->BicycleIcon.Loading;else->BicycleIcon.Cancel }
                         BicycleComponents.bindTheme(this,themes) { setImageDrawable(BicycleIcons.drawable(context,icon,it.foreground)) }
                     },LinearLayout.LayoutParams(BicycleDesign.dp(context,16),BicycleDesign.dp(context,16)).apply { marginStart=BicycleDesign.dp(context,BicycleDesign.controlGap) })
