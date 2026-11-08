@@ -1,18 +1,24 @@
-# Neuer Fahrtabschluss08.11.2026 (noch nicht veröffentlicht)
+# Aktuell veröffentlicht: APK0.8.102 / Build147
+
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.102-release-147.apk) · [Buildnachweis](build-147.md) · [Änderungen](release-0.8.102.md)
+
+Actions42464423685 erfolgreich, Quellstand1ea78cd. Interner Fahrtabschluss sofort, externe Ziele erst beim Verlassen der Zusammenfassung; kompakter vertikaler RPE neben Notiz, Save/Details und Vormerksymbole. Ebenfalls enthalten: gemeinsame Mapterhorn-Quelle, optionale Online-Schummerung, zurückgestellte Kartenupdates in Einstellungen und dokumentierte Effizienzkorrekturen seit Build146. VersionCode172, dauerhaftes Updatezertifikat geprüft.4412213Bytes, SHA-256 `624340019372d6d90a502ea0a20ec51b564d0d62e24503dad5880dae7b9c2f07`. Physisches Wischgefühl/Geräte-GPU/persönliche Cloudziele bleiben offen. Kein lokaler APK-Build und kein zusätzlicher Gesamttestlauf.
+
+# Neuer Fahrtabschluss08.11.2026 (in Build147 veröffentlicht)
 
 Interne FIT-/Analyse-Sicherung unverändert sofort, externe Ziele zunächst dauerhaft in RideFinishTransfers gehalten. Alle regulären Abschlusswege (Speichern, Details, Android-Zurück, Außentipp, App-Hintergrund) geben denselben einmaligen Workerpfad frei. Prozess-Recovery, Einzelzielretry, Konto-Fingerabdrücke und passende lokale Quittungen; keine persönlichen Daten in Tests. Interne Dateien und Staginggrenzen vor Bereinigung zusätzlich geprüft. Notiz/RPE im Dialog nur intern gespeichert; nach Freigabe aktuelle öffentliche Dateien und unterstützte Cloud-Metadaten. [Vollständiger Ablauf und Nachweise](ride-summary-save-flow.md).
 
-Notiz links3 Zeilen, rechts kompakter vertikaler CR10-Picker in League Gothic. Gemeinsamer Textblock an echten Glyphkanten bündig zum Feld skaliert,0 mit „Keine Anstrengung“, leer weiterhin separat. Kein horizontaler Slider im Summary, kein Zurück-Chevron, nur anklickbarer Fahrtname. Save/Details nebeneinander, darunter konfigurierten Ziele mit Vormerksymbol. Außentipp auf Dialoginhalt beendet Notizfokus/Tastatur. Screenshot visuell geprüft; keine APK beauftragt.
+Notiz links3 Zeilen, rechts kompakter vertikaler CR10-Picker in League Gothic. Gemeinsamer Textblock an echten Glyphkanten bündig zum Feld skaliert,0 mit „Keine Anstrengung“, leer weiterhin separat. Kein horizontaler Slider im Summary, kein Zurück-Chevron, nur anklickbarer Fahrtname. Save/Details nebeneinander, darunter konfigurierten Ziele mit Vormerksymbol. Außentipp auf Dialoginhalt beendet Notizfokus/Tastatur. Screenshot visuell geprüft; anschließend in Build147 veröffentlicht.
 
-Gezielte Speicher-/Recovery-/UI-Tests bestanden (Logs summary-save-tests.log, summary-save-ui-tests.log, summary-save-transfer-final-tests.log und summary-save-recovery-ui-tests.log unter /workspace/.tools). Bestehende Feedback-/Namensregeln ebenfalls gezielt geprüft; Typografie/UI-Katalog/Bright/Diff grün. Kein Gesamtlauf/Profiling, keine persönlichen Cloudübertragungen. Letzte veröffentlichte APK unverändert Build146; sämtliche neueren Arbeiten hier noch unveröffentlicht.
+Gezielte Speicher-/Recovery-/UI-Tests bestanden (Logs summary-save-tests.log, summary-save-ui-tests.log, summary-save-transfer-final-tests.log und summary-save-recovery-ui-tests.log unter /workspace/.tools). Bestehende Feedback-/Namensregeln ebenfalls gezielt geprüft; Typografie/UI-Katalog/Bright/Diff grün. Kein Gesamtlauf/Profiling, keine persönlichen Cloudübertragungen. Diese Änderungen sind in Build147 enthalten.
 
-# Datenreiche Einstellungs-/Detailseiten08.11.2026 (noch nicht veröffentlicht)
+# Datenreiche Einstellungs-/Detailseiten08.11.2026 (in Build147 veröffentlicht)
 
 Gezielt nachgeprüft und optimiert: Streckenkurven erst bei Zeichenbedarf aufbereiten, feste Y-Skalen wiederverwenden, X-Achsenbeschriftung der5 Diagramme gemeinsam cachen; HRV-Zeichnung auf sichtbare Kalenderindizes plus Randnachbarn begrenzen, Achsen-/Balkentexte und Dash-Effekt vorbereiten; Trainingszielhöhen/-farben je Workout/Fahrerprofil wiederverwenden; Fitness doppelte identische Ergebnisse und überholte Cachezugriffe vermeiden. Verteilungsdiagramme/klassische Statistik bereits mit vorbereiteten Geometrien, dort kein Umbau. [Befunde/Verhalten/Prüfung](data-screens-efficiency-2026-11-08.md).
 
 14 unterschiedliche gezielte Fälle bestanden, zentrale Typografie/UI-Katalog/Bright/Diff grün. Logs `/workspace/.tools/data-screens-tests.log` und `data-screens-cache-tests.log`; neuer Testzählpunkt nach Workout-Konstruktorvalidierung korrigiert, betroffene Fälle5/5 grün. Kein Profiling/Gesamtlauf/APK. Fahrtdaten, HRV-Korridore/Aggregation, Rampen, Karten-/GL-Lebenszyklus unverändert. Vollständige Virtualisierung komplexer Seiten bleibt ausdrücklich unimplementiert.
 
-# Effizienz-Durchsicht08.11.2026 (noch nicht veröffentlicht)
+# Effizienz-Durchsicht08.11.2026 (in Build147 veröffentlicht)
 
 Statischer Durchgang zentraler Anzeige-/Karten-/HRV-/Datei-/Workerpfade, ohne Profiling/Benchmarks. Behoben: unsichtbare Graphen auch normal nicht vorbereiten (Historie erhalten, Rückkehr sofort), identische Graphnachfrage wiederverwenden, doppelte Graphpfadberechnung pro Skalierungsframe entfernen; Kartenstile begrenzt nach Rohwerten/Nacht/Legacy cachen, Bright-Filter einmal pro Prozess vorbereiten und feste Prüfsets/Trackzuordnungen wiederverwenden; unnötige Sichtbarkeitslisten vermeiden; erledigte Notiz-Speicheraufträge freigeben, Notiz nur einmal dekodieren und Cloudqueue ohne verknüpfte Aktivität nicht neu schreiben. Sensordaten/Aufzeichnung/Analyseformeln unverändert.
 
@@ -22,7 +28,7 @@ Statischer Durchgang zentraler Anzeige-/Karten-/HRV-/Datei-/Workerpfade, ohne Pr
 
 In Einstellungen/Karte erneuern Cycling-Farbe/Deckkraft/Breite und Ein-/Aus nicht mehr bei jedem Schritt die verdeckte Karte. Werte und kleine Feldvorschau bleiben sofort aktuell; einmalige Kartenübernahme beim Schließen der letzten Einstellungs-/Dialogseite zum Dashboard, Fokus als zusätzlicher Rückkehrpfad. Track1–3 und Designer auf der Karte unverändert. Ursache: Breite/Sichtbarkeit lösen native Ebenen-Neuaufbau aus, Deckkraft nur Styleänderung. [Details/gezielte Prüfung](cycling-map-options.md). Zwei gezielte Fälle bestanden: CyclingSettingsRefreshTest sowie bestehender Raster-/Vektor-Einstellungsfall; Log `/workspace/.tools/cycling-settings-refresh-tests.log`. Typografie-/UI-Katalog-/Diff-Prüfungen grün. Keine APK beauftragt.
 
-# Aktueller Entwicklungsstand: gemeinsame Mapterhorn-Höhenquelle und Schummerung (noch nicht veröffentlicht)
+# Aktueller Entwicklungsstand: gemeinsame Mapterhorn-Höhenquelle und Schummerung (in Build147 veröffentlicht)
 
 Auftrag07.11.2026 umgesetzt: Höhenlinien von Mapzen/AWS auf Mapterhorn umgestellt, gemeinsamer Downloader/validierter512-Pixel-WebP-Decoder/Cache mit der Fahrtkorrektur. Linien nativ10–14, darüber vorhandene Geometrie; regionale Detail-404 fallen auf12 zurück. Korrektur unverändert bilinear14→12 und bisherige Grenzen. Nur Darstellung/Quellenzugriff vereinheitlicht, keine Änderung von Aufzeichnung oder Höhenmeterzählung. Quellenanzeige/Attribution samt offiziellen regionalen Datenlizenzen aktualisiert. [Details, Auflösung und Schummerungsprüfung](mapterhorn-unified-dem.md).
 
