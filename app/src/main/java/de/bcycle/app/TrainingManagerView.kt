@@ -26,6 +26,10 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
         private var pinnedKind:Group?=null
         private var overlayBottom=0
         private var overlayGesture=false
+        private var variantHit:Pair<android.widget.Button,String>?=null
+        private var variantDown:android.view.MotionEvent?=null
+        private var variantMoved=false
+        private fun clearVariantTouch() { variantHit?.first?.isPressed=false;variantHit=null;variantDown?.recycle();variantDown=null }
         private var overlayStartY=0f
         private var overlayMoved=false
         init { BicycleComponents.bindTheme(this,themes) {
@@ -52,10 +56,42 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
             val saved=canvas.save();canvas.clipRect(paddingLeft,0,width-paddingRight,height)
             canvas.translate(paddingLeft.toFloat(),offset.toFloat());header.draw(canvas);canvas.restoreToCount(saved)
         }
+        override fun onDetachedFromWindow() { clearVariantTouch();super.onDetachedFromWindow() }
         override fun dispatchTouchEvent(event:android.view.MotionEvent):Boolean {
             if(event.actionMasked==android.view.MotionEvent.ACTION_DOWN) {
                 overlayGesture=event.y<overlayBottom && event.x<width-BicycleDesign.dp(context,32)
                 overlayStartY=event.y;overlayMoved=false
+            }
+            if(event.actionMasked==android.view.MotionEvent.ACTION_DOWN && !overlayGesture) {
+                clearVariantTouch()
+                for(i in 0 until childCount) {
+                    val child=getChildAt(i)
+                    val button=child.findViewWithTag<android.widget.Button>("training_variant") ?: continue
+                    val workout=rows.getOrNull(firstVisiblePosition+i) as? TrainingWorkout ?: continue
+                    val bounds=android.graphics.Rect();button.getDrawingRect(bounds);offsetDescendantRectToMyCoords(button,bounds)
+                    if(button.visibility==View.VISIBLE && bounds.contains(event.x.toInt(),event.y.toInt())) {
+                        variantHit=button to workout.id;variantDown=android.view.MotionEvent.obtain(event);variantMoved=false;button.isPressed=true;return true
+                    }
+                }
+            }
+            variantHit?.let { (button,id) ->
+                val down=variantDown!!
+                val dy=kotlin.math.abs(event.y-down.y);val dx=kotlin.math.abs(event.x-down.x)
+                val slop=android.view.ViewConfiguration.get(context).scaledTouchSlop
+                if(event.actionMasked==android.view.MotionEvent.ACTION_MOVE && dy>slop) {
+                    // Hand a genuine vertical drag back to ListView with its original down.
+                    button.isPressed=false;variantHit=null;variantDown=null
+                    try { super.dispatchTouchEvent(down) } finally { down.recycle() }
+                    return super.dispatchTouchEvent(event)
+                }
+                if(dx>slop) { variantMoved=true;button.isPressed=false }
+                if(event.actionMasked==android.view.MotionEvent.ACTION_UP) {
+                    val bounds=android.graphics.Rect();button.getDrawingRect(bounds);offsetDescendantRectToMyCoords(button,bounds)
+                    val click=!variantMoved && bounds.contains(event.x.toInt(),event.y.toInt())
+                    clearVariantTouch()
+                    if(click) { button.playSoundEffect(android.view.SoundEffectConstants.CLICK);cycleVariant(id) }
+                } else if(event.actionMasked==android.view.MotionEvent.ACTION_CANCEL) clearVariantTouch()
+                return true
             }
             if(overlayGesture && kotlin.math.abs(event.y-overlayStartY)>android.view.ViewConfiguration.get(context).scaledTouchSlop) overlayMoved=true
             val result=if(overlayGesture && !overlayMoved && event.actionMasked==android.view.MotionEvent.ACTION_UP) {
@@ -134,6 +170,7 @@ internal class TrainingManagerView(context:Context,private val themes:ThemeManag
     }
     private fun cycleVariant(id:String) {
         val base=workouts.firstOrNull { it.id==id } ?: return
+        if(TrainingVariants.available(base).size<=1) { BicycleFeedback.show(context,R.string.training_variant_unavailable,true);return }
         val old=rows.indexOfFirst { it is TrainingWorkout && it.id==id }
         val top=list.getChildAt(old-list.firstVisiblePosition)?.top ?: 0
         TrainingVariants.cycle(context,base)

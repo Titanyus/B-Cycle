@@ -1988,18 +1988,8 @@ class MainActivity : Activity() {
         }
     }
     private fun showTrainingDetails(workout:TrainingWorkout) {
-        val host=LinearLayout(settingsContext).apply { orientation=LinearLayout.VERTICAL }
-        host.addView(BicycleComponents.description(settingsContext,settingsThemes,getString(R.string.training_loading)))
-        val scroll=BicycleStickyScrollView(settingsContext).apply { addView(host) }
-        val screen=dataDialog(workout.name,scroll)
-        trainingRepository().original(workout) { result ->
-            if(!isDestroyed && screen.isShowing) {
-                host.removeAllViews()
-                result.fold({ original -> host.addView(TrainingDetailsView(settingsContext,settingsThemes,workout,runtime.riderProfiles.read(),original)) },{
-                    host.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(R.string.training_load_failed)))
-                })
-            }
-        }
+        val content=TrainingDetailsView(settingsContext,settingsThemes,workout,runtime.riderProfiles.read())
+        dataDialog(workout.name,BicycleStickyScrollView(settingsContext).apply { addView(content) })
     }
     private fun trainingImportChoice(anchor:View) {
         val actions=TrainingImportAction.entries

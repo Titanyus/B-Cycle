@@ -3,7 +3,7 @@ package de.bcycle.app
 import android.content.Context
 
 internal enum class TrainingVariant(val delta:Int,val label:String) {
-    QUICK_PLUS(-2,"Q+"),QUICK(-1,"Q"),STANDARD(0,"S"),EXTENDED(1,"Ext"),EXTENDED_PLUS(2,"Ext+")
+    QUICK_PLUS(-2,"Quick+"),QUICK(-1,"Quick"),STANDARD(0,"Std"),EXTENDED(1,"Ext"),EXTENDED_PLUS(2,"Ext+")
 }
 
 /** Conservative recognition from the actual expanded steps, shared by all import formats. */

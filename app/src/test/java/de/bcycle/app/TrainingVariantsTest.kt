@@ -69,11 +69,19 @@ class TrainingVariantsTest {
             fun layout(v:View) { v.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(780,View.MeasureSpec.EXACTLY));v.layout(0,0,360,780) }
             fun card():TrainingWorkoutView=nodes(view).filterIsInstance<TrainingWorkoutView>().single()
             fun click(expected:TrainingVariant,seconds:Double) {
-                card().findViewWithTag<Button>("training_variant").performClick();layout(view)
+                val button=card().findViewWithTag<Button>("training_variant")
+                val list=view.findViewWithTag<ListView>("training_list")
+                val bounds=android.graphics.Rect();button.getDrawingRect(bounds);list.offsetDescendantRectToMyCoords(button,bounds)
+                val previous=opened
+                for(action in listOf(android.view.MotionEvent.ACTION_DOWN,android.view.MotionEvent.ACTION_UP)) {
+                    val event=android.view.MotionEvent.obtain(0,10,action,bounds.exactCenterX(),bounds.exactCenterY(),0)
+                    try { assertTrue(list.dispatchTouchEvent(event)) } finally { event.recycle() }
+                }
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200));layout(view)
+                assertSame("Tapping the pill must not open details",previous,opened)
                 assertEquals(expected,TrainingVariants.selected(a,base))
                 assertEquals(expected.label,card().findViewWithTag<Button>("training_variant").text.toString())
                 assertFalse(view.selecting)
-                val list=view.findViewWithTag<ListView>("training_list")
                 val position=(0 until list.adapter.count).first { list.adapter.getItem(it) is TrainingWorkout }
                 list.performItemClick(card(),position,position.toLong())
                 assertEquals(seconds,opened!!.seconds!!,.001)
@@ -92,11 +100,32 @@ class TrainingVariantsTest {
                 assertTrue(kotlin.math.abs(title.top+title.height/2-pill.top-pill.height/2)<=1)
             }
             layout(view)
+            val list=view.findViewWithTag<ListView>("training_list")
+            val pill=card().findViewWithTag<Button>("training_variant")
+            val hit=android.graphics.Rect();pill.getDrawingRect(hit);list.offsetDescendantRectToMyCoords(pill,hit)
+            val beforeScroll=opened
+            for((action,y) in listOf(android.view.MotionEvent.ACTION_DOWN to hit.exactCenterY(),android.view.MotionEvent.ACTION_MOVE to hit.exactCenterY()-90,android.view.MotionEvent.ACTION_UP to hit.exactCenterY()-90)) {
+                val event=android.view.MotionEvent.obtain(0,10,action,hit.exactCenterX(),y,0)
+                try { list.dispatchTouchEvent(event) } finally { event.recycle() }
+            }
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200));layout(view)
+            assertSame(beforeScroll,opened);assertEquals(TrainingVariant.STANDARD,TrainingVariants.selected(a,base))
             val image=Bitmap.createBitmap(360,780,Bitmap.Config.ARGB_8888);view.draw(Canvas(image))
             File("build/reports/ui/training-variant-pills.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
             click(TrainingVariant.EXTENDED,3360.0)
             val reopened=manager();a.setContentView(reopened);reopened.render(listOf(base));layout(reopened)
             assertEquals("Ext",reopened.findViewWithTag<Button>("training_variant").text.toString())
+            reopened.render(listOf(base.copy(steps=base.steps.take(3)+base.steps.last())));layout(reopened)
+            val fixed=reopened.findViewWithTag<Button>("training_variant")
+            val fixedList=reopened.findViewWithTag<ListView>("training_list")
+            val fixedBounds=android.graphics.Rect();fixed.getDrawingRect(fixedBounds);fixedList.offsetDescendantRectToMyCoords(fixed,fixedBounds)
+            val previous=opened
+            for(action in listOf(android.view.MotionEvent.ACTION_DOWN,android.view.MotionEvent.ACTION_UP)) {
+                val event=android.view.MotionEvent.obtain(0,10,action,fixedBounds.exactCenterX(),fixedBounds.exactCenterY(),0)
+                try { fixedList.dispatchTouchEvent(event) } finally { event.recycle() }
+            }
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
+            assertSame(previous,opened);assertEquals("Std",fixed.text.toString())
         } finally { TrainingVariants.forget(a,setOf(base.id));host.pause().stop().destroy() }
     }
 }

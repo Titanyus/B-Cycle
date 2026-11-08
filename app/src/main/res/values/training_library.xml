@@ -60,6 +60,6 @@
     <string name="training_sort_unknown">Ohne berechenbaren Wert</string>
     <string name="training_group_count">Trainings</string>
     <string name="training_variant_description">Trainingslänge: %1$s</string>
-    <string name="training_variant_cycle">Antippen wechselt zur nächsten Variante: Q+, Q, S, Ext, Ext+.</string>
+    <string name="training_variant_cycle">Antippen wechselt zur nächsten Variante: Quick+, Quick, Std, Ext, Ext+.</string>
     <string name="training_variant_unavailable">Standard. Kein eindeutiger wiederholter Hauptblock mit mindestens fünf Intervallen erkannt.</string>
 </resources>

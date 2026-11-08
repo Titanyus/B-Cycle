@@ -79,20 +79,18 @@ class TrainingDetailsTest {
         val legacy=workout.json().apply { remove("intervalsData");remove("structureSource") }
         assertNull(TrainingWorkout.decode(legacy).sourceData)
     }
-    @Test fun detailsListOriginalFieldsAndNestedUnknownFieldsWithoutDroppingPagedEntries() {
+    @Test fun detailsShowOnlyTheOverviewWithoutDuplicatingTheHeaderTitle() {
         val host=Robolectric.buildActivity(Activity::class.java).setup().visible()
         try {
             val a=host.get();val themes=ThemeManager(a.getSharedPreferences("bike",0));val row=original()
             val workout=IntervalsTraining.read(row)!!
-            val view=TrainingDetailsView(a,themes,workout,RiderProfile(ftpW=200),row)
-            a.setContentView(view)
-            assertTrue(nodes(view).filterIsInstance<TextView>().any { it.text.toString().contains("Rampe: 40") })
-            val future=view.findViewWithTag<BicycleFrameDropdown>("training_original_future_field");future.setExpanded(true)
-            val raw=nodes(future).filterIsInstance<TextView>().map { it.text.toString() }
-            assertTrue(raw.containsAll(listOf("enabled","false","optional","null")))
-            val fields=TrainingJsonView(a,themes,JSONArray((0..69).toList()))
-            repeat(2) { nodes(fields).filterIsInstance<android.widget.Button>().last { it.text==a.getString(R.string.training_details_more_fields) }.performClick() }
-            assertTrue(nodes(fields).filterIsInstance<TextView>().any { it.text.toString()=="69" })
+            val view=TrainingDetailsView(a,themes,workout,RiderProfile(ftpW=200));a.setContentView(view)
+            assertNull(view.findViewWithTag<View>("training_detail_steps"))
+            assertNull(view.findViewWithTag<View>("training_original_fields"))
+            assertNull(view.findViewWithTag<View>("training_name"))
+            assertNotNull(view.findViewWithTag<View>("training_metrics"));assertNotNull(view.findViewWithTag<View>("training_chart"))
+            assertFalse(nodes(view).filterIsInstance<TextView>().any { it.text==a.getString(R.string.training_details_original) || it.text==a.getString(R.string.training_details_steps) })
+            assertEquals(row.toString(),workout.sourceData)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun aTrainingTapOpensDetailsAndLongPressStillSelectsForDelete() {
