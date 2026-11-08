@@ -1,6 +1,6 @@
-# Aktueller Arbeitsstand nach Build148 (noch nicht veröffentlicht)
+# Aktueller Arbeitsstand: APK0.8.104 / Build149 veröffentlicht
 
-Arbeitsbranch work enthält zusätzlich folgende vollständig implementierte, gezielt geprüfte Aufträge. APK jetzt ausdrücklich angefordert; Version0.8.104/code174 für Actions149 vorbereitet. Veröffentlichung und tatsächlichen Direktdownload noch abschließen.
+Alle folgenden Aufträge sind vollständig implementiert, gezielt geprüft und in der ausdrücklich angeforderten APK0.8.104/code174/Build149 enthalten. Veröffentlichung erfolgt; tatsächlichen Direktdownload noch abschließend abgleichen.
 
 - **Doppelimport beim Fahrtabschluss:** exakte Exporthash-Zuordnung vor lokaler Veröffentlichung, eine RPE-Datei bleibt eine Fahrt nach Scan/Neustart, alte Versionen und Löschschutz. Vorhandene ältere Duplikate unverändert erhalten. [Ursache/Tests/Grenzen](fit-feedback-export-identity.md), Commit841a08e.
 - **Fahrtzusammenfassung:** ab früherer Trennerposition unter Akkuwerten durchgehend TERTIARY, Linie unsichtbar, bisherige Geometrie/Abstände erhalten; Buttons explizite TERTIARY-Rolle. [Ablauf](ride-summary-save-flow.md), Commit3b3672d.
@@ -21,10 +21,10 @@ Nur erforderliche gezielte Läufe, keine Gesamtsuite/Profiling. Unter /workspace
 
 Typografie/UI-Katalog/Bright/Diff grün. Hardware-Ladeadressen noch am Nutzerrad bestätigen:0x00c4 in öffentlicher Registry als bool bestätigt,0x0089 dort nur benannt/Typ unbekannt; unbekannte Kodierung bleibt unbekannt, Anroll-Fallback schützt. Kein unbelegter vollständiger Hardware-Nachweis. Optischer neuer Editorabgleich am Gerät noch offen.
 
-# Letzte veröffentlichte APK:0.8.103 / Build148
+# Letzte veröffentlichte APK:0.8.104 / Build149
 
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.103-release-148.apk) · [Buildnachweis](build-148.md) · [Änderungen](release-0.8.103.md)
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.104-release-149.apk) · [Buildnachweis](build-149.md) · [Änderungen](release-0.8.104.md)
 
-Actions42478566299 erfolgreich aus Quellstand7d64bc8a6822c06890e732adad30a81e03a92ce2, VersionCode173, Android13+. Dauerhafte Signatur SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b.4429065Bytes; APK-SHA-25631d5fc10ef4ecf9e870cea52f756e034b8157ec23d114231677d6cd5d64508c7. Tatsächlicher direkter Raw-Download bytegleich zum Actions-Artefakt geprüft; Veröffentlichung/Downloadnachweis zuletzt1c3f016.
+Actions42499777399 erfolgreich aus Quellstand6be53f297ed502ca730b3289e695be35bb529d87, VersionCode174, Android13+. Dauerhafte Signatur SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. 4445389Bytes; APK-SHA-25624e8dcec0c31344295eb1ca76d3d0833fbaeaa85a1f977090822c6de1ac9b815. Artefakt erfolgreich geprüft, Direktdownloadnachweis folgt nach Veröffentlichung.
 
-Build148 enthält Strecken-Thumbnails/überlagernde Fahrrad-Badges, volle Flat-Gruppenköpfe und erste Trainingsvarianten; die oben genannten neuen Korrekturen sind dort noch nicht enthalten. Echte Geländekonturen am Gerät weiter zu bestätigen. Nächste ausdrücklich angeforderte APK voraussichtlich0.8.104/code174/Run149, vor Veröffentlichung Remote/Workflowstand erneut prüfen. APK ausschließlich Actions, keine lokale APK und keinen zweiten Dispatch neben Push.
+Keine offenen Implementierungsaufträge. Bosch-Ladeinformationen und optischer Editorabgleich am Gerät bleiben als Gerätegrenzen dokumentiert. APK ausschließlich Actions, keine lokale APK und keinen zweiten Dispatch neben Push.
