@@ -1,3 +1,9 @@
+# Datenreiche Einstellungs-/Detailseiten08.11.2026 (noch nicht veröffentlicht)
+
+Gezielt nachgeprüft und optimiert: Streckenkurven erst bei Zeichenbedarf aufbereiten, feste Y-Skalen wiederverwenden, X-Achsenbeschriftung der5 Diagramme gemeinsam cachen; HRV-Zeichnung auf sichtbare Kalenderindizes plus Randnachbarn begrenzen, Achsen-/Balkentexte und Dash-Effekt vorbereiten; Trainingszielhöhen/-farben je Workout/Fahrerprofil wiederverwenden; Fitness doppelte identische Ergebnisse und überholte Cachezugriffe vermeiden. Verteilungsdiagramme/klassische Statistik bereits mit vorbereiteten Geometrien, dort kein Umbau. [Befunde/Verhalten/Prüfung](data-screens-efficiency-2026-11-08.md).
+
+14 unterschiedliche gezielte Fälle bestanden, zentrale Typografie/UI-Katalog/Bright/Diff grün. Logs `/workspace/.tools/data-screens-tests.log` und `data-screens-cache-tests.log`; neuer Testzählpunkt nach Workout-Konstruktorvalidierung korrigiert, betroffene Fälle5/5 grün. Kein Profiling/Gesamtlauf/APK. Fahrtdaten, HRV-Korridore/Aggregation, Rampen, Karten-/GL-Lebenszyklus unverändert. Vollständige Virtualisierung komplexer Seiten bleibt ausdrücklich unimplementiert.
+
 # Effizienz-Durchsicht08.11.2026 (noch nicht veröffentlicht)
 
 Statischer Durchgang zentraler Anzeige-/Karten-/HRV-/Datei-/Workerpfade, ohne Profiling/Benchmarks. Behoben: unsichtbare Graphen auch normal nicht vorbereiten (Historie erhalten, Rückkehr sofort), identische Graphnachfrage wiederverwenden, doppelte Graphpfadberechnung pro Skalierungsframe entfernen; Kartenstile begrenzt nach Rohwerten/Nacht/Legacy cachen, Bright-Filter einmal pro Prozess vorbereiten und feste Prüfsets/Trackzuordnungen wiederverwenden; unnötige Sichtbarkeitslisten vermeiden; erledigte Notiz-Speicheraufträge freigeben, Notiz nur einmal dekodieren und Cloudqueue ohne verknüpfte Aktivität nicht neu schreiben. Sensordaten/Aufzeichnung/Analyseformeln unverändert.

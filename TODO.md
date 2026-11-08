@@ -36,6 +36,8 @@ Vorgemerkt am06.11.2026 auf Nutzerwunsch, noch kein Umsetzungsauftrag. Inspirati
 
 ## Effizienz – statische Durchsicht 08.11.2026
 
+- [x] Datenreiche Einstellungs-/Detailseiten geprüft: verzögerte Streckenkurven, gemeinsame X-Labels, sichtbarer HRV-Bereich mit Randsegmenten, Trainingsmodelle und Fitness-Cache-/Auftragsduplikate. [Befunde und gezielte Regressionen](docs/data-screens-efficiency-2026-11-08.md).
+
 [Fundstellen, behobene Wiederholungen und Prüfungen](docs/efficiency-review-2026-11-08.md). Ohne Profiling/Benchmarks vorgehen; auch kleine nachweislich unnötige Arbeit reduzieren. Sensorabfrage/Aufzeichnung/Analyse erhalten.
 
 - [x] Unsichtbare Live-Graphen auch im Normalmodus nicht vorbereiten; Historie weiterführen, bei Rückkehr frisch aufbereiten. Identische Nachfrage wiederverwenden.

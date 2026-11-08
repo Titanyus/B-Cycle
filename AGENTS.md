@@ -33,6 +33,7 @@ Dies ist die aktuelle Arbeitsgrundlage. Die datierten Entwicklungsnotizen stehen
 
 ## Profile, Dashboard und Karten
 
+- Datenreiche Detailseiten: Streckenkurven bei Zeichenbedarf vorbereiten und gemeinsame Viewport-Labels nutzen; HRV-Zeichenbereich eingrenzen, Referenzberechnung weiter aus kompletter Historie. Trainingszielmodelle bei Workout-/Profilwechsel erneuern, identische Fitnessergebnisse nicht doppelt aufbauen. [Prüfung](docs/data-screens-efficiency-2026-11-08.md).
 - Effizienz-Durchsicht08.11.2026: vermeidbare Arbeit auch ohne Laufzeitmessung reduzieren. Live-Graph-Frames nur bei sichtbarer Nachfrage in beiden Modi, Historie/Aufzeichnung unverändert; Rückkehr sofort vorbereiten. Kartenstilcache nach exakten Rohwerten/Legacy/Nacht begrenzen, Bright-Filter als unveränderliche Regeln gemeinsam, native Styles/GL-Ressourcen weiter je Theme. [Befunde/weitere Prioritäten](docs/efficiency-review-2026-11-08.md).
 - Akkusparmodus je Fahrradprofil nach Radumfang, standardmäßig aus. Nur Darstellung drosseln: automatische Karte/Dashboard1Hz, Diagramme mindestens5s (Gesamtverlauf10s erhalten), statische Aufnahme-/Zonen-/Warn-/Chevron-Darstellung; Gesten direkt. Sensoren/Rohdaten/Aufzeichnung/Analyse unverändert; Kartenstil nicht automatisch wechseln. [Umfang/Prüfung](docs/profile-battery-saver.md).
 - Stabile Profil-UUIDs und Dashboard-IDs erhalten. Kein automatischer Profilwechsel bei Sensorfund. Fahrradprofil umfasst Sensoren, FIT-Konfiguration, Design, Karten; Fahrerprofil, Uploadkonten und Benachrichtigungen global.
