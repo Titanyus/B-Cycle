@@ -227,9 +227,15 @@ internal class TrainingWorkoutChart(context:Context,private val themes:ThemeMana
     private val axisPaint=Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface=BicycleDesign.bodyTypeface }
     private var workout:TrainingWorkout?=null
     private var profile=RiderProfile()
-    fun show(value:TrainingWorkout,p:RiderProfile) { workout=value;profile=p;contentDescription=context.getString(R.string.training_chart_description);invalidate() }
-    override fun onDraw(canvas:Canvas) {
-        val training=workout ?: return
+    private data class Block(val weight:Double,val start:Double,val end:Double,val color:Int)
+    private data class Prepared(val timed:Boolean,val total:Double,val step:Double?,val peak:Double,val blocks:List<Block>)
+    private var prepared:Prepared?=null
+    fun show(value:TrainingWorkout,p:RiderProfile) {
+        if(workout===value && profile==p) return
+        workout=value;profile=p;prepared=null
+        contentDescription=context.getString(R.string.training_chart_description);invalidate()
+    }
+    private fun prepare(training:TrainingWorkout):Prepared {
         val timed=training.seconds!=null
         val total=training.seconds ?: training.steps.size.toDouble()
         val maxima=training.steps.mapNotNull { it.target }.groupBy { it.unit }.mapValues { (_,targets) -> targets.maxOf { maxOf(it.low,it.high) }.coerceAtLeast(1.0) }
@@ -240,6 +246,19 @@ internal class TrainingWorkoutChart(context:Context,private val themes:ThemeMana
         val watts=if(axes) TrainingChartAxes.watts(training,profile) else null
         val yStep=watts?.let { TrainingChartAxes.wattStep(it) }
         val peak=if(watts!=null && yStep!=null) kotlin.math.ceil(watts.coerceAtLeast(yStep)/yStep)*yStep else maxOf(1.5,training.steps.maxOf { maxOf(level(it.target),level(it.target,true)) })
+        val blocks=training.steps.map { step ->
+            val target=step.target
+            fun power(end:Boolean)=target?.let { TrainingChartAxes.targetWatts(it,profile,end) } ?: 0.0
+            val from=if(watts!=null) power(false) else level(target)
+            val to=if(target?.ramp==true) { if(watts!=null) power(true) else level(target,true) } else from
+            Block(if(timed) step.seconds!! else 1.0,from,to,target?.color(profile) ?: TrainingZoneColors.grey)
+        }
+        return Prepared(timed,total,yStep,peak,blocks)
+    }
+    override fun onDraw(canvas:Canvas) {
+        val training=workout ?: return
+        val model=prepared ?: prepare(training).also { prepared=it }
+        val timed=model.timed;val total=model.total;val yStep=model.step;val peak=model.peak
         val density=resources.displayMetrics.density
         axisPaint.textSize=BicycleDesign.analysisLabelSp*resources.displayMetrics.scaledDensity
         val foreground=themes?.active?.tokens?.foreground ?: Color.WHITE
@@ -250,16 +269,11 @@ internal class TrainingWorkoutChart(context:Context,private val themes:ThemeMana
         if(right<=left || bottom<=plotTop) return
         fun y(value:Double)=bottom-(value/peak).coerceIn(0.0,1.0).toFloat()*(bottom-plotTop)
         var x=left
-        for(step in training.steps) {
-            val next=x+((if(timed) step.seconds!! else 1.0)/total*(right-left)).toFloat()
-            val target=step.target
-            fun power(end:Boolean):Double = target?.let { TrainingChartAxes.targetWatts(it,profile,end) } ?: 0.0
-            val start=if(watts!=null) power(false) else level(target)
-            val end=if(target?.ramp==true) { if(watts!=null) power(true) else level(target,true) } else start
-            val top=if(axes) y(start) else height*(1-(start/peak).coerceIn(.06,1.0)).toFloat()
-            val other=if(axes) y(end) else height*(1-(end/peak).coerceIn(.06,1.0)).toFloat()
-            val color=target?.color(profile) ?: TrainingZoneColors.grey
-            paint.color=color
+        for(block in model.blocks) {
+            val next=x+(block.weight/total*(right-left)).toFloat()
+            val top=if(axes) y(block.start) else height*(1-(block.start/peak).coerceIn(.06,1.0)).toFloat()
+            val other=if(axes) y(block.end) else height*(1-(block.end/peak).coerceIn(.06,1.0)).toFloat()
+            paint.color=block.color
             path.reset();path.moveTo(x,top);path.lineTo(next,other);path.lineTo(next,bottom);path.lineTo(x,bottom);path.close();canvas.drawPath(path,paint)
             x=next
         }

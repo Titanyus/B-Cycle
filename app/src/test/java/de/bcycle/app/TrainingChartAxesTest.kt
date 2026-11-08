@@ -47,4 +47,27 @@ class TrainingChartAxesTest {
         assertNotEquals(color,bitmap.getPixel(100,175))
         bitmap.recycle()
     }
+    @Test fun repeatedDrawsReusePreparedTargetsButProfileAndWorkoutChangesInvalidateThem() {
+        var reads=0
+        val source=workout(TrainingTarget(TrainingUnit.WATTS,100.0),TrainingTarget(TrainingUnit.FTP,.5,1.0,true))
+        val steps=object:AbstractList<TrainingStep>() {
+            override val size get()=source.steps.size
+            override fun get(index:Int):TrainingStep { reads++;return source.steps[index] }
+        }
+        val value=source.copy(steps=steps)
+        reads=0 // Workout constructor validation is separate from chart preparation.
+        val chart=TrainingWorkoutChart(RuntimeEnvironment.getApplication(),axes=true)
+        chart.show(value,RiderProfile(ftpW=200));chart.layout(0,0,360,180)
+        assertEquals("No target preparation before first draw",0,reads)
+        val first=Bitmap.createBitmap(360,180,Bitmap.Config.ARGB_8888)
+        val second=Bitmap.createBitmap(360,180,Bitmap.Config.ARGB_8888)
+        try {
+            chart.draw(Canvas(first));assertTrue(reads>0);reads=0
+            chart.draw(Canvas(second));assertEquals(0,reads);assertTrue(first.sameAs(second))
+            chart.show(value,RiderProfile(ftpW=400));chart.draw(Canvas(second));assertTrue(reads>0)
+            reads=0;chart.show(value,RiderProfile(ftpW=400));chart.draw(Canvas(second));assertEquals(0,reads)
+            chart.show(source,RiderProfile(ftpW=200));chart.draw(Canvas(second))
+        } finally { first.recycle();second.recycle() }
+    }
+
 }
