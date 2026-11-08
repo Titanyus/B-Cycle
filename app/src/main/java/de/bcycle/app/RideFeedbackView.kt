@@ -11,6 +11,7 @@ internal object RideRpe {
     fun label(value:Int)=when(value) { 0->R.string.ride_rpe_none;1->R.string.ride_rpe_very_easy;2->R.string.ride_rpe_easy;3->R.string.ride_rpe_moderate;4->R.string.ride_rpe_somewhat_hard;5,6->R.string.ride_rpe_hard;7,8,9->R.string.ride_rpe_very_hard;else->R.string.ride_rpe_maximum }
     fun slider(context:Context,themes:ThemeManager,id:String,changed:(Int)->Unit={}):LinearLayout = LinearLayout(context).apply {
         orientation=LinearLayout.VERTICAL;tag="ride_rpe_control"
+        val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
         addView(BicycleComponents.fieldLabel(context,themes,context.getString(R.string.ride_rpe_question)))
         val value=BicycleComponents.text(context,themes,"").apply { tag="ride_rpe_label";gravity=Gravity.CENTER }
         val initial=RideAnnotations.read(context,id).rpe
