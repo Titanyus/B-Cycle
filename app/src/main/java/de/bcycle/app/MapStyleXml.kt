@@ -43,21 +43,36 @@ internal object MapStyleXml {
             doc.documentElement.setAttribute("map-background",hex((color and 0xffffff) or ((style.alpha ?: Color.alpha(original)) shl 24)))
         }
         val all=doc.getElementsByTagName("*")
+        fun zoomKey(element:Element)=generateSequence(element.parentNode) { it.parentNode }.filterIsInstance<Element>()
+            .map { it.getAttribute("zoom-min")+":"+it.getAttribute("zoom-max") }.filter { it!=":" }.joinToString("/")
+        val innerWidths=(0 until all.length).mapNotNull { all.item(it) as? Element }.filter {
+            it.tagName=="line" && !it.getAttribute("id").endsWith("-casing") && it.hasAttribute("width")
+        }.associate { (it.getAttribute("id") to zoomKey(it)) to it.getAttribute("width").toDouble() }
         for(i in 0 until all.length) {
             val element=all.item(i) as? Element ?: continue
             val id=element.getAttribute("id")
             val target=MapStyleTarget.entries.firstOrNull { id in it.ids || id.endsWith("-casing") && id.removeSuffix("-casing") in it.ids } ?: continue
             val style=overrides.objects[target] ?: continue
-            if(!id.endsWith("-casing")) if(style.color!=null || style.alpha!=null) {
+            val casing=id.endsWith("-casing")
+            val colorOverride=if(casing) style.outline?.color else style.color
+            val alphaOverride=if(casing) style.outline?.alpha else style.alpha
+            if(colorOverride!=null || alphaOverride!=null) {
                 val attribute=when(element.tagName) { "area","text","caption" -> "fill";"line" -> "stroke";else -> null }
                 if(attribute!=null && element.hasAttribute(attribute)) {
-                    val color=style.color ?: Color.parseColor(element.getAttribute(attribute))
-                    val alpha=style.alpha ?: Color.alpha(Color.parseColor(element.getAttribute(attribute)))
+                    val color=colorOverride ?: Color.parseColor(element.getAttribute(attribute))
+                    val alpha=alphaOverride ?: Color.alpha(Color.parseColor(element.getAttribute(attribute)))
                     element.setAttribute(attribute,hex((color and 0xffffff) or (alpha shl 24)))
                 }
             }
-            if(element.tagName=="line") style.widthPercent?.let { percent ->
-                if(element.hasAttribute("width")) element.setAttribute("width",(element.getAttribute("width").toDouble()*percent/100).toString())
+            if(element.tagName=="line" && element.hasAttribute("width")) {
+                val original=element.getAttribute("width").toDouble()
+                val innerScale=(style.widthPercent ?: 100)/100.0
+                val borderScale=(style.outline?.widthPercent ?: style.widthPercent ?: 100)/100.0
+                val inner=innerWidths[id.removeSuffix("-casing") to zoomKey(element)]
+                val width=if(casing && style.outline!=null && inner!=null && original>=inner)
+                    inner*innerScale+(original-inner)*borderScale
+                else original*(if(casing) borderScale else innerScale)
+                element.setAttribute("width",width.toString())
             }
             if(element.tagName=="line" && style.dash!=MapDash.ORIGINAL) {
                 element.removeAttribute("dasharray")
@@ -102,13 +117,13 @@ internal object MapStyleXml {
         }
         return serialize(doc)
     }
-    fun defaultColor(xml:String,target:MapStyleTarget):Int {
+    fun defaultColor(xml:String,target:MapStyleTarget,outline:Boolean=false):Int {
         val doc=document(xml)
         if(target==MapStyleTarget.BACKGROUND) return Color.parseColor(doc.documentElement.getAttribute("map-background"))
         val all=doc.getElementsByTagName("*")
         for(i in 0 until all.length) {
             val element=all.item(i) as? Element ?: continue
-            if(element.getAttribute("id") !in target.ids) continue
+            if(if(outline) element.getAttribute("id").removeSuffix("-casing") !in target.ids || !element.getAttribute("id").endsWith("-casing") else element.getAttribute("id") !in target.ids) continue
             val attribute=if(element.tagName=="line") "stroke" else "fill"
             if(element.hasAttribute(attribute)) return Color.parseColor(element.getAttribute(attribute))
         }

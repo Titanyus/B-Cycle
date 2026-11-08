@@ -23,7 +23,7 @@ class MapStyleEditorTest {
     @Test fun exportedEditsRoundTripThroughProfilesAndBackupAndCreateActualNativeStyles() {
         val view=BicycleMapView(c)
         val prefs=c.getSharedPreferences("bike",0)
-        val custom=MapStyleOverrides().update(MapStyleTarget.PRIMARY,MapObjectStyle(Color.RED,MapDash.DASH_DOT))
+        val custom=MapStyleOverrides().update(MapStyleTarget.PRIMARY,MapObjectStyle(Color.RED,MapDash.DASH_DOT,outline=MapOutlineStyle(Color.CYAN,120,150)))
             .update(MapStyleTarget.FOREST,MapObjectStyle(Color.BLUE))
             .update(MapStyleTarget.TRACK,MapObjectStyle(Color.MAGENTA,widthPercent=40))
         try {
@@ -70,6 +70,45 @@ class MapStyleEditorTest {
             assertThrows(IllegalArgumentException::class.java) { MapStyleOverrides.parse(invalidDash) }
         } finally { view.disposeMap() }
     }
+    @Test fun roadOutlinesHaveIndependentPaintAndBorderWidthAndKeepLiveStyleHandles() {
+        val view=BicycleMapView(c)
+        val inside=MapObjectStyle(Color.RED,alpha=160,widthPercent=60,outline=MapOutlineStyle(Color.BLUE,96,200))
+        val style=MapStyleOverrides().update(MapStyleTarget.PRIMARY,inside)
+        assertEquals(style,MapStyleOverrides.parse(JSONObject(style.export(c.getSharedPreferences("bike",0)))))
+        val base=VtmBrightTheme.load(false);val edited=VtmBrightTheme.load(false,style=style)
+        try {
+            val tags=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class","primary")) }
+            fun line(theme:org.oscim.theme.IRenderTheme,zoom:Int,id:String)=theme.matchElement(GeometryBuffer.GeometryType.LINE,tags,zoom).orEmpty().filterIsInstance<LineStyle>().single { it.style==id }
+            for(zoom in listOf(13,16,18)) {
+                val originalInside=line(base,zoom,"highway-primary");val originalOutside=line(base,zoom,"highway-primary-casing")
+                val actualInside=line(edited,zoom,"highway-primary");val actualOutside=line(edited,zoom,"highway-primary-casing")
+                assertEquals(originalInside.width*.6f,actualInside.width,.001f)
+                assertEquals(originalInside.width*.6f+(originalOutside.width-originalInside.width)*2,actualOutside.width,.001f)
+                assertEquals(Color.argb(160,255,0,0),actualInside.current().color)
+                assertEquals(Color.argb(96,0,0,255),actualOutside.current().color)
+            }
+            for((target,kind,id) in listOf(Triple(MapStyleTarget.MOTORWAY,"motorway","highway-motorway"),Triple(MapStyleTarget.SECONDARY,"secondary","highway-secondary-tertiary"),Triple(MapStyleTarget.MINOR,"minor","highway-minor"))) {
+                val road=VtmBrightTheme.load(false,style=MapStyleOverrides().update(target,inside))
+                try {
+                    val roadTags=TagSet().apply { add(Tag("layer","transportation"));add(Tag("class",kind)) }
+                    fun read(t:org.oscim.theme.IRenderTheme,key:String)=t.matchElement(GeometryBuffer.GeometryType.LINE,roadTags,16).orEmpty().filterIsInstance<LineStyle>().single { it.style==key }
+                    val originalInner=read(base,id);val originalOuter=read(base,"$id-casing")
+                    assertEquals(originalInner.width*.6f+(originalOuter.width-originalInner.width)*2,read(road,"$id-casing").width,.001f)
+                    assertEquals(Color.argb(96,0,0,255),read(road,"$id-casing").current().color)
+                } finally { road.dispose() }
+            }
+            val next=style.update(MapStyleTarget.PRIMARY,inside.copy(outline=inside.outline!!.copy(color=Color.GREEN,alpha=130)))
+            assertTrue(next.canUpdateColorsFrom(style));assertEquals(style.compiledStyles(),next.compiledStyles())
+            val handle=line(edited,16,"highway-primary-casing")
+            (edited as VtmBrightTheme).applyColors(next)
+            assertSame(handle,line(edited,16,"highway-primary-casing"));assertEquals(Color.argb(130,0,255,0),handle.current().color)
+            assertEquals(Color.argb(160,255,0,0),line(edited,16,"highway-primary").current().color)
+            val bad=style.json();bad.getJSONObject("objects").getJSONObject("PRIMARY").getJSONObject("outline").put("widthPercent",0)
+            assertThrows(IllegalArgumentException::class.java) { MapStyleOverrides.parse(bad) }
+            val nonRoad=MapStyleOverrides().json().put("objects",JSONObject().put("FOREST",JSONObject().put("outline",JSONObject())))
+            assertThrows(IllegalArgumentException::class.java) { MapStyleOverrides.parse(nonRoad) }
+        } finally { edited.dispose();base.dispose();view.disposeMap() }
+    }
     @Test fun contoursAreBetweenGroundAndRoadsWithOnlyOnePassWhenDisabled() {
         val view=BicycleMapView(c);val map=view.map()
         val options=MapVectorLayers(MapVectorLayers().visible+MapVectorLayer.CONTOURS)
@@ -108,7 +147,7 @@ class MapStyleEditorTest {
             channels.forEach { assertEquals(255,it.max) }
             channels[0].progress=17;channels[1].progress=92;channels[2].progress=203
             assertEquals(Color.rgb(17,92,203),MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.color)
-            assertEquals("#115CCB",editor.findViewWithTag<TextView>("map_style_rgb_hex").text.toString())
+            assertNull(editor.findViewWithTag<TextView>("map_style_rgb_hex"))
             target.setSelection(MapStyleTarget.FOREST.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
             assertEquals("Existing forest transparency is shown",26,editor.findViewWithTag<BicycleSettingSlider>("map_style_rgb_3").progress)
             target.setSelection(MapStyleTarget.PRIMARY.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
@@ -129,8 +168,19 @@ class MapStyleEditorTest {
             val alpha=editor.findViewWithTag<BicycleSettingSlider>("map_style_rgb_3")
             assertEquals(255,alpha.progress);alpha.progress=128
             assertEquals(128,MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.alpha)
-            assertEquals("#80115CCB",editor.findViewWithTag<TextView>("map_style_rgb_hex").text.toString())
+            assertEquals(Color.argb(128,17,92,203),(editor.findViewWithTag<View>("map_style_swatch").background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
             assertSame(target.parent,editor.findViewWithTag<View>("map_style_swatch").parent)
+            assertSame(target.parent,editor.findViewWithTag<View>("map_style_outline_swatch").parent)
+            val outline=(0..3).map { editor.findViewWithTag<BicycleSettingSlider>("map_style_outline_rgb_$it") }
+            assertEquals(listOf(Color.RED,Color.GREEN,Color.BLUE,Color.WHITE),outline.map { it.accentColor })
+            assertTrue(outline.all { it.layoutParams.height==BicycleDesign.dp(activity,38) })
+            outline[0].progress=12;outline[1].progress=34;outline[2].progress=56;outline[3].progress=90
+            editor.findViewWithTag<BicycleSettingSlider>("map_style_outline_width").progress=170
+            assertEquals(MapOutlineStyle(Color.rgb(12,34,56),90,170),MapStyleOverrides.read(prefs).objects[MapStyleTarget.PRIMARY]!!.outline)
+            assertEquals(55,width.progress);assertEquals(128,alpha.progress)
+            editor.measure(View.MeasureSpec.makeMeasureSpec(320,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));editor.layout(0,0,320,editor.measuredHeight)
+            val image=Bitmap.createBitmap(320,editor.height,Bitmap.Config.ARGB_8888);image.eraseColor(themes.active.tokens.tertiary);editor.draw(Canvas(image))
+            java.io.File("build/reports/ui/map-editor-outline.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
             val buttons=editor.findViewWithTag<LinearLayout>("map_style_actions")
             assertEquals(4,buttons.childCount);assertEquals(LinearLayout.HORIZONTAL,buttons.orientation)
             editor.findViewWithTag<View>("map_style_export").performClick()

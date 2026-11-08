@@ -39,18 +39,20 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
     CONTOUR(R.string.map_layer_contours,true,setOf("contour-minor","contour-major")),
     TRACK(R.string.map_style_tracks,true,setOf("bcycle-track","bcycle-track-tunnel")),
     CYCLE_ROUTES(R.string.map_cycling_routes,true,setOf("bcycle-cycle-route"));
+    val outlined get()=this==MOTORWAY || this==PRIMARY || this==SECONDARY || this==MINOR
 }
-internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null,val widthPercent:Int?=null)
+internal data class MapOutlineStyle(val color:Int?=null,val alpha:Int?=null,val widthPercent:Int?=null)
+internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null,val widthPercent:Int?=null,val outline:MapOutlineStyle?=null)
 internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectStyle> = emptyMap(),val placeLabels:Map<MapPlaceClass,MapPlaceTextStyle> = emptyMap()) {
     /** Text is baked into glyph atlases; pattern changes create native textures/buckets. */
     fun canUpdateColorsFrom(previous:MapStyleOverrides)=placeLabels==previous.placeLabels && MapStyleTarget.entries.all { target ->
         val before=previous.objects[target] ?: MapObjectStyle()
         val after=objects[target] ?: MapObjectStyle()
-        before.dash==after.dash && before.widthPercent==after.widthPercent && (target !in textTargets || before.color==after.color && before.alpha==after.alpha)
+        before.dash==after.dash && before.widthPercent==after.widthPercent && before.outline?.widthPercent==after.outline?.widthPercent && (target !in textTargets || before.color==after.color && before.alpha==after.alpha)
     }
     /** Keep unmodified native geometry paints as exact per-zoom reset baselines. */
     fun compiledStyles()=copy(objects=objects.mapValues { (target,value) ->
-        if(target in textTargets) value else value.copy(color=null,alpha=null)
+        if(target in textTargets) value else value.copy(color=null,alpha=null,outline=value.outline?.copy(color=null,alpha=null)?.takeUnless { it==MapOutlineStyle() })
     }.filterValues { it!=MapObjectStyle() })
     fun json()=JSONObject().put("dashPattern",org.json.JSONArray().put(MapRoadSurface.dashLength).put(MapRoadSurface.gapLength))
         .put("placeTextHalo",JSONObject().put("widthScale",MapPlaceHalo.widthScale).put("opacity",MapPlaceHalo.opacity)).put("roadSurfaceStyle",MapRoadSurface.policy).put("format","bcycle-map-style").put("version",1).put("base","bright")
@@ -59,6 +61,10 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
                 style.color?.let { put("color",String.format(java.util.Locale.ROOT,"#%06X",it and 0xffffff)) }
                 style.alpha?.let { put("alpha",it) }
                 style.widthPercent?.let { put("widthPercent",it) }
+                style.outline?.let { outline -> put("outline",JSONObject().apply {
+                    outline.color?.let { put("color",String.format(java.util.Locale.ROOT,"#%06X",it and 0xffffff)) }
+                    outline.alpha?.let { put("alpha",it) };outline.widthPercent?.let { put("widthPercent",it) }
+                }) }
                 if(style.dash!=MapDash.ORIGINAL) put("lineStyle",style.dash.name)
             }) }
         })
@@ -117,13 +123,22 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
             return MapStyleOverrides(buildMap {
                 rows.keys().forEach { key ->
                     val target=MapStyleTarget.valueOf(key);val row=rows.getJSONObject(key)
-                    require(row.keys().asSequence().all { it in setOf("color","lineStyle","alpha","widthPercent") })
+                    require(row.keys().asSequence().all { it in setOf("color","lineStyle","alpha","widthPercent","outline") })
                     val color=if(row.has("color")) row.getString("color").also { require(it.matches(Regex("#[0-9a-fA-F]{6}"))) }.let(Color::parseColor) else null
                     val alpha=if(row.has("alpha")) row.get("alpha").also { require(it is Int && it in 0..255) } as Int else null
                     val dash=if(row.has("lineStyle")) MapDash.valueOf(row.getString("lineStyle")) else MapDash.ORIGINAL
                     val width=if(row.has("widthPercent")) row.get("widthPercent").also { require(it is Int && it in 25..300) } as Int else null
                     require(target.line || dash==MapDash.ORIGINAL && width==null)
-                    put(target,MapObjectStyle(color,dash,alpha,width))
+                    val outline=if(row.has("outline")) {
+                        require(target.outlined)
+                        val border=row.getJSONObject("outline")
+                        require(border.keys().asSequence().all { it in setOf("color","alpha","widthPercent") })
+                        val rgb=if(border.has("color")) border.getString("color").also { require(it.matches(Regex("#[0-9a-fA-F]{6}"))) }.let(Color::parseColor) else null
+                        val a=if(border.has("alpha")) border.get("alpha").also { require(it is Int && it in 0..255) } as Int else null
+                        val w=if(border.has("widthPercent")) border.get("widthPercent").also { require(it is Int && it in 25..300) } as Int else null
+                        MapOutlineStyle(rgb,a,w)
+                    } else null
+                    put(target,MapObjectStyle(color,dash,alpha,width,outline))
                 }
             },labels)
         }
