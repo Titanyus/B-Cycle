@@ -25,7 +25,8 @@ internal object MapRouteStyles {
             MapLineKind.SAVED_THREE->if(night) Color.rgb(190,120,255) else Color.rgb(115,40,165)
             else->if(night) Color.rgb(90,150,255) else Color.rgb(18,59,117)
         },6f,50)
-    fun saved(slot:Int)=listOf(MapLineKind.SAVED,MapLineKind.SAVED_TWO,MapLineKind.SAVED_THREE)[slot]
+    private val savedKinds=listOf(MapLineKind.SAVED,MapLineKind.SAVED_TWO,MapLineKind.SAVED_THREE)
+    fun saved(slot:Int)=savedKinds[slot]
     fun validate(row:JSONObject):JSONObject {
         MapLineKind.entries.forEach { kind -> if(row.has(kind.id)) {
             val v=row.getJSONObject(kind.id)
@@ -36,15 +37,29 @@ internal object MapRouteStyles {
         } }
         return row
     }
-    fun read(prefs:SharedPreferences,kind:MapLineKind,night:Boolean=prefs.getBoolean("mapNight",false)):MapLineStyle =
-        runCatching {
-            val row=JSONObject(prefs.getString(key,"{}")!!);validate(row)
-            row.optJSONObject(kind.id)?.let { MapLineStyle(it.getInt("color") or Color.BLACK,it.getDouble("width").toFloat(),it.getInt("opacity")) }
-        }.getOrNull() ?: if(kind==MapLineKind.CYCLEWAYS) {
-            val old=MapStyleOverrides.read(prefs).objects[MapStyleTarget.CYCLE]
-            val baseline=default(kind,night)
-            baseline.copy(color=old?.color ?: baseline.color,widthDp=((baseline.widthDp*(old?.widthPercent ?: 100)/100*2).roundToInt()/2f).coerceIn(.5f,8f),opacity=((old?.alpha ?: 255)*100/255))
-        } else default(kind,night)
+    private data class ReadKey(val styles:String?,val legacy:String?,val night:Boolean)
+    private val snapshots=object:LinkedHashMap<ReadKey,Map<MapLineKind,MapLineStyle>>(8,.75f,true) {
+        override fun removeEldestEntry(eldest:MutableMap.MutableEntry<ReadKey,Map<MapLineKind,MapLineStyle>>?)=size>8
+    }
+    /** Raw values identify the snapshot, so profile switches, restore and direct edits cannot go stale. */
+    @Synchronized fun read(prefs:SharedPreferences,kind:MapLineKind,night:Boolean=prefs.getBoolean("mapNight",false)):MapLineStyle {
+        val key=ReadKey(prefs.getString(this.key,null),prefs.getString(MapStyleOverrides.KEY,null),night)
+        val snapshot=snapshots.getOrPut(key) {
+            val row=runCatching { validate(JSONObject(key.styles ?: "{}")) }.getOrNull()
+            val legacy=runCatching { MapStyleOverrides.parse(JSONObject(key.legacy ?: "{}")) }.getOrDefault(MapStyleOverrides()).objects[MapStyleTarget.CYCLE]
+            MapLineKind.entries.associateWith { entry ->
+                val stored=row?.optJSONObject(entry.id)
+                if(stored!=null) MapLineStyle(stored.getInt("color") or Color.BLACK,stored.getDouble("width").toFloat(),stored.getInt("opacity"))
+                else if(entry==MapLineKind.CYCLEWAYS) {
+                    val baseline=default(entry,night)
+                    baseline.copy(color=legacy?.color ?: baseline.color,
+                        widthDp=((baseline.widthDp*(legacy?.widthPercent ?: 100)/100*2).roundToInt()/2f).coerceIn(.5f,8f),
+                        opacity=((legacy?.alpha ?: 255)*100/255))
+                } else default(entry,night)
+            }
+        }
+        return snapshot.getValue(kind)
+    }
     fun write(prefs:SharedPreferences,kind:MapLineKind,style:MapLineStyle) {
         val row=runCatching { validate(JSONObject(prefs.getString(key,"{}")!!)) }.getOrDefault(JSONObject())
         row.put(kind.id,style.json());validate(row);prefs.edit().putString(key,row.toString()).apply()
@@ -53,9 +68,10 @@ internal object MapRouteStyles {
 
 /** Display-only cycling options share the track editor/storage; keep native zoom-dependent widths. */
 internal object MapCyclingStyles {
+    private val targets=listOf(MapLineKind.CYCLEWAYS to MapStyleTarget.CYCLE,MapLineKind.CYCLE_ROUTES to MapStyleTarget.CYCLE_ROUTES)
     fun effective(prefs:SharedPreferences):MapStyleOverrides {
         var value=MapStyleOverrides.read(prefs)
-        for((kind,target) in listOf(MapLineKind.CYCLEWAYS to MapStyleTarget.CYCLE,MapLineKind.CYCLE_ROUTES to MapStyleTarget.CYCLE_ROUTES)) {
+        for((kind,target) in targets) {
             val line=MapRouteStyles.read(prefs,kind)
             value=value.update(target,MapObjectStyle(line.color,alpha=Color.alpha(line.argb),widthPercent=(line.widthDp/2.5f*100).roundToInt()))
         }

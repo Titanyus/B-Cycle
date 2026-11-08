@@ -50,6 +50,26 @@ class MapRouteStyleTest {
         assertTrue(runCatching { MapRouteStyles.write(prefs,MapLineKind.SAVED,custom.copy(opacity=101)) }.isFailure)
         assertEquals(custom,MapRouteStyles.read(prefs,MapLineKind.RECORDED))
     }
+    @Test fun unchangedStylesReuseDecodedValuesAndTrackRawEditsLegacyNightAndOtherStores() {
+        val context=RuntimeEnvironment.getApplication()
+        val first=context.getSharedPreferences("cached-lines-a",0);val second=context.getSharedPreferences("cached-lines-b",0)
+        val baseline=MapRouteStyles.read(first,MapLineKind.RECORDED)
+        repeat(20) { assertSame(baseline,MapRouteStyles.read(first,MapLineKind.RECORDED)) }
+        val changed=MapLineStyle(Color.GREEN,4f,75)
+        MapRouteStyles.write(first,MapLineKind.RECORDED,changed)
+        val encoded=first.getString(MapRouteStyles.key,null)
+        assertEquals(changed,MapRouteStyles.read(first,MapLineKind.RECORDED))
+        assertEquals(baseline,MapRouteStyles.read(second,MapLineKind.RECORDED))
+        assertNotEquals(MapRouteStyles.read(second,MapLineKind.SAVED,false).color,MapRouteStyles.read(second,MapLineKind.SAVED,true).color)
+        MapStyleOverrides().update(MapStyleTarget.CYCLE,MapObjectStyle(Color.YELLOW,alpha=128,widthPercent=200)).write(first)
+        val legacy=MapRouteStyles.read(first,MapLineKind.CYCLEWAYS)
+        assertEquals(Color.YELLOW,legacy.color);assertEquals(5f,legacy.widthDp,0f)
+        first.edit().putString(MapRouteStyles.key,"broken JSON").commit()
+        assertEquals(baseline,MapRouteStyles.read(first,MapLineKind.RECORDED))
+        assertEquals(legacy,MapRouteStyles.read(first,MapLineKind.CYCLEWAYS))
+        first.edit().putString(MapRouteStyles.key,encoded).commit()
+        assertEquals(changed,MapRouteStyles.read(first,MapLineKind.RECORDED))
+    }
     @Test fun inlineStyleAndFixedPaletteImmediatelyPersistWithoutAffectingOtherLine() {
         val host=Robolectric.buildActivity(Activity::class.java).setup()
         try {

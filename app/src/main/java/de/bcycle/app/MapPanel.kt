@@ -379,7 +379,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     private fun refreshRouteButton() {
         val available = runtime.mapState.mapRoutes.isNotEmpty()
-        val shown = runtime.mapState.visibleRouteIds().isNotEmpty()
+        val shown = runtime.mapState.mapRoutes.any { runtime.mapState.routeVisible(it.id) }
         routePopup?.takeIf { it.isShowing }?.refresh()
         routeButton.isEnabled = available && !runtime.mapState.busy && !editing
         routeButton.alpha = if (routeButton.isEnabled) 1f else .45f

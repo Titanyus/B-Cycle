@@ -15,7 +15,6 @@ import org.oscim.theme.styles.TextStyle
 internal enum class VtmMapPass { ALL,GROUND,FOREGROUND }
 internal class VtmBrightTheme private constructor(
     private val native:VtmLiveTheme,
-    source:JSONObject,
     private val options:MapVectorLayers,
     private val pass:VtmMapPass,
     private val placeLabels:Map<MapPlaceClass,MapPlaceTextStyle>
@@ -23,25 +22,9 @@ internal class VtmBrightTheme private constructor(
     private data class PriorityKey(val styles:Array<RenderStyle<*>>,val priority:Int)
     private val priorityCache=android.util.LruCache<PriorityKey,Array<RenderStyle<*>>>(256)
     private data class Layer(val flag:Tag,val matches:(GeometryType,TagSet)->Boolean)
-    private val layers:Map<String,List<Layer>> = buildMap {
-        val all=source.getJSONArray("layers")
-        for(i in 0 until all.length()) {
-            val layer=all.getJSONObject(i)
-            if(!layer.has("source-layer") || layer.getString("id") in setOf("building-top","water-offset")) continue
-            val key=layer.getString("source-layer")
-            val predicate=BrightFilter.compile(layer.optJSONArray("filter"))
-            // MapLibre's broad aeroway casing also matches polygons. A footprint must
-            // remain an area instead of being inflated by a runway-width perimeter stroke.
-            val linesOnly=key=="aeroway" && layer.getString("type")=="line"
-            val item=Layer(Tag("bcycle:bright:"+layer.getString("id"),"1")) { type,tags ->
-                (!linesOnly || type==GeometryType.LINE) && predicate(type,tags)
-            }
-            put(key,get(key).orEmpty()+item)
-        }
-    }
     override fun matchElement(type:GeometryType,tags:TagSet,zoomLevel:Int):Array<RenderStyle<*>>? {
         if(!options.accepts(tags)) return null
-        val ground=tags.getValue("layer") in setOf("landcover","landuse","park","water")
+        val ground=tags.getValue("layer") in groundLayers
         if(pass==VtmMapPass.GROUND && !ground || pass==VtmMapPass.FOREGROUND && ground) return null
         val candidates=layers[tags.getValue("layer")].orEmpty()
         val matched=TagSet()
@@ -51,12 +34,12 @@ internal class VtmBrightTheme private constructor(
             tags.getValue(key)?.let { matched.add(Tag(key,it)) }
         for(layer in candidates) if(layer.matches(type,tags)) {
             val track=tags.getValue("layer")=="transportation" && tags.getValue("class")=="track" &&
-                layer.flag.key in setOf("bcycle:bright:highway-minor","bcycle:bright:highway-minor-casing","bcycle:bright:tunnel-service-track","bcycle:bright:tunnel-service-track-casing")
+                layer.flag.key in trackMinorFlags
             matched.add(if(track) Tag(layer.flag.key+"-track","1") else layer.flag)
         }
         val styles=native.matchElement(type,matched,zoomLevel) ?: return null
         val placeClass=if(tags.getValue("layer")=="place") MapPlaceClass.entries.firstOrNull { it.key==tags.getValue("class") } else null
-        val typography=placeClass?.let { placeLabels[it] ?: if(it in setOf(MapPlaceClass.CITY,MapPlaceClass.TOWN)) it.defaults else null }
+        val typography=placeClass?.let { placeLabels[it] ?: if(it==MapPlaceClass.CITY || it==MapPlaceClass.TOWN) it.defaults else null }
         val priority=when(tags.getValue("layer")) {
             "place" -> when(tags.getValue("class")) {
                 "continent"->0;"country"->10;"state","province"->20;"city"->30;"town"->40
@@ -93,15 +76,36 @@ internal class VtmBrightTheme private constructor(
     override fun scaleTextSize(scale:Float) { priorityCache.evictAll();native.scaleTextSize(scale) }
     companion object {
         private val nativeKeys=arrayOf("layer","class","subclass","bicycle","network","ref_length")
-        fun load(cycleways:Boolean,options:MapVectorLayers=MapVectorLayers(),style:MapStyleOverrides=MapStyleOverrides(),pass:VtmMapPass=VtmMapPass.ALL):IRenderTheme {
+        private val groundLayers=setOf("landcover","landuse","park","water")
+        private val trackMinorFlags=setOf("bcycle:bright:highway-minor","bcycle:bright:highway-minor-casing","bcycle:bright:tunnel-service-track","bcycle:bright:tunnel-service-track-casing")
+        private val layers:Map<String,List<Layer>> by lazy {
             val source=AssetAdapter.readFileAsStream("styles/bright.json").use { JSONObject(it.bufferedReader().readText()) }
-            return VtmBrightTheme(VtmLiveTheme(ThemeLoader.load(VtmCycleTheme(cycleways,style.compiledStyles())) as org.oscim.theme.RenderTheme,style),source,options,pass,style.placeLabels)
+            buildMap {
+                val all=source.getJSONArray("layers")
+                for(i in 0 until all.length()) {
+                    val layer=all.getJSONObject(i)
+                    if(!layer.has("source-layer") || layer.getString("id") in setOf("building-top","water-offset")) continue
+                    val key=layer.getString("source-layer")
+                    val predicate=BrightFilter.compile(layer.optJSONArray("filter"))
+                    // Aeroway line styles must never inflate a polygon footprint.
+                    val linesOnly=key=="aeroway" && layer.getString("type")=="line"
+                    val item=Layer(Tag("bcycle:bright:"+layer.getString("id"),"1")) { type,tags ->
+                        (!linesOnly || type==GeometryType.LINE) && predicate(type,tags)
+                    }
+                    put(key,get(key).orEmpty()+item)
+                }
+            }
+        }
+
+        fun load(cycleways:Boolean,options:MapVectorLayers=MapVectorLayers(),style:MapStyleOverrides=MapStyleOverrides(),pass:VtmMapPass=VtmMapPass.ALL):IRenderTheme {
+            return VtmBrightTheme(VtmLiveTheme(ThemeLoader.load(VtmCycleTheme(cycleways,style.compiledStyles())) as org.oscim.theme.RenderTheme,style),options,pass,style.placeLabels)
         }
     }
 }
 
 /** Compile once at theme load; no JSON parsing, HTTP or geometry mutation on tile matching. */
 internal object BrightFilter {
+    private val rampClasses=setOf("motorway","trunk","primary","secondary","tertiary")
     fun compile(filter:JSONArray?):(GeometryType,TagSet)->Boolean {
         if(filter==null) return { _,_ -> true }
         val op=filter.getString(0)
@@ -126,7 +130,7 @@ internal object BrightFilter {
             } else if(key=="class" && tags.getValue("layer")=="transportation") {
                 val raw=tags.getValue(key)
                 // Current OpenMapTiles puts ramps on the base road class, old Bright uses *_link.
-                if(raw in setOf("motorway","trunk","primary","secondary","tertiary") && tags.getValue("ramp")=="1") "${raw}_link"
+                if(raw in rampClasses && tags.getValue("ramp")=="1") "${raw}_link"
                 else if(raw=="minor_road") "minor" else raw
             } else tags.getValue(key)
             // This one old Bright tunnel filter says minor_road; current schema says minor.
