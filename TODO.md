@@ -44,8 +44,9 @@ Vorgemerkt am06.11.2026 auf Nutzerwunsch, noch kein Umsetzungsauftrag. Inspirati
 - [x] Doppelte Pfadberechnung pro Graph-Skalierungsframe entfernen; exakten Endzustand erhalten.
 - [x] Kartenlinienstile begrenzt cachen; Bright-Filter einmal vorbereiten und feste Prüfmengen/Trackzuordnungen wiederverwenden.
 - [x] Erledigte Notiz-Speicheraufträge freigeben und Cloudqueue-Writes bei unverknüpften lokalen Notizen vermeiden.
-- [ ] Prio1: Dashboard-Aufbereitung hinter voll deckenden Seiten aussetzen; sichtbare Seiten/kompakte Dialoge, Aufnahmeende und Rückkehr berücksichtigen.
+- [x] Prio1: Dashboard-Aufbereitung hinter voll deckenden Seiten aussetzen; sichtbare Seiten/kompakte Dialoge, Aufnahmeende und sofortige Rückkehr berücksichtigen. [Umsetzung/Prüfung09.11.2026](docs/dashboard-efficiency-2026-11-09.md).
 - [ ] Prio2: Titel-Marquee während statischer Halte-/Leerphasen ohne laufenden Animator betreiben.
 - [ ] Prio3: unveränderliches Bright-Basis-XML/Vorverarbeitung wiederverwenden; native Theme-/GL-Ressourcen pro Instanz belassen.
 - [ ] Prio4: aktive Legacy-Aufnahmequellenkonfiguration wiederverwenden, mit vollständiger Profil-/Restore-Invalidierung.
-- [ ] Prio5: Graph-Nachfragemap in MainActivity nach Graphkonfiguration/Template wiederverwenden.
+- [x] Prio5: Graph-Nachfragemap in MainActivity nach vollständiger Graphkonfiguration/Template wiederverwenden.
+- [x] Einzelne Dashboardbereiche nur bei eigenen Eingangsänderungen erneuern; Graph-/Trainingszustand wiederverwenden, Zeit/Quelle/Trend/Designwechsel erhalten. [Prüfung](docs/dashboard-efficiency-2026-11-09.md).

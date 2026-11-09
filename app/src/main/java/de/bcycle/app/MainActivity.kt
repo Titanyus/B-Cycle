@@ -147,28 +147,25 @@ class MainActivity : Activity() {
     private var rideSummaryPosted=false
     private var rideSummaryScreen:AlertDialog?=null
     private var displaySignature=""
-    private var forceDashboard=false
+    private val graphDemandCache=DashboardGraphDemand()
     private val displayUpdates=DisplayUpdateGate(editorHandler) {
-        val saving=runtime.bikes.current().powerSaving
-        if(forceDashboard || !saving || dialogs.empty) render() else {
-            dashboard.setPowerSaving(true);mapPanel.setPowerSaving(true)
-            recordingIndicator?.powerSaving=true;recordingIndicator?.setAnimating(false)
-            runtime.liveGraphs.configureDisplay(true,false,emptyMap())
-        }
-        forceDashboard=false
+        render()
         refreshSensorRows();refreshRouteRows();refreshOrphanProfiles();refreshStatistics()
     }
     private val observer: () -> Unit = {
         val saving=runtime.bikes.current().powerSaving
         val signature="${runtime.profileRevision}:$saving:${runtime.recording}:${runtime.saving}:${runtime.recordingStatus}:${runtime.bikeBatteryWarningLevel}"
-        val urgent=signature!=displaySignature;displaySignature=signature;forceDashboard=forceDashboard || urgent
-        displayUpdates.intervalMs=if(saving && dialogs.empty && !dashboardEditing) 1000 else 0
+        val urgent=signature!=displaySignature;displaySignature=signature
+        displayUpdates.intervalMs=if(saving && !dialogs.dashboardCovered && !dashboardEditing) 1000 else 0
         displayUpdates.request(immediate=urgent)
     }
     private val preferences get() = runtime.preferences
     private val settingsContext by lazy { android.view.ContextThemeWrapper(this, R.style.SettingsDialogTheme) }
     private val settingsThemes get() = runtime.themes.settings
-    private val dialogs = DialogNavigation { applyPendingCyclingMapSettings() }
+    private val dialogs = DialogNavigation(returnedToDashboard={ applyPendingCyclingMapSettings() },changed={
+        // Coverage changes are presentation events, even without a new sensor packet.
+        if(statusForeground && !isDestroyed) render()
+    })
     private var cyclingMapSettingsPending=false
     private fun dialog(fullscreen: Boolean = true):BicycleDialogBuilder {
         closeSensorSetupPrompt()
@@ -413,7 +410,8 @@ class MainActivity : Activity() {
     private var shownProfileRevision=0
     private fun render() {
         if (!::dashboard.isInitialized) return
-        val powerSaving=runtime.bikes.current().powerSaving
+        val bike=runtime.bikes.current()
+        val powerSaving=bike.powerSaving
         dashboard.setPowerSaving(powerSaving);mapPanel.setPowerSaving(powerSaving)
         if(::dashboardStatusMonitor.isInitialized) dashboardStatusMonitor.battery(runtime.batterySnapshot.level(BatterySource.PHONE))
         if(::dashboardStatus.isInitialized && (dashboardStatus.bikeLightOn!=(DashboardFullscreen.enabled(preferences) && runtime.currentBikeLight==true) || cornerBikeLight.visibility!=(if(!DashboardFullscreen.enabled(preferences) && dialogs.empty && runtime.currentBikeLight==true) View.VISIBLE else View.GONE))) updateDashboardFullscreen()
@@ -425,8 +423,6 @@ class MainActivity : Activity() {
             updateDashboardFullscreen()
             return
         }
-        val gps = runtime.gpsValues
-        val bike=runtime.bikes.current()
         val status=getString(if(runtime.recording) R.string.ui_record_stop else if(runtime.saving) R.string.ui_record_saving else R.string.ui_record_start)
         val buttonLabel=if(runtime.saving) status else bike.name
         val buttonSignature="${bike.slot}:${bike.type}:$buttonLabel:${runtime.recording}:${runtime.themes.active.tokens.foreground}"
@@ -456,24 +452,23 @@ class MainActivity : Activity() {
         offerRideSummary()
         val trainingNow=android.os.SystemClock.elapsedRealtime()
         trainingSnapshot=trainingPresentation.update(runtime.trainingInputs(trainingNow),runtime.riderProfiles.read(),trainingNow)
-        dashboard.showTraining(dashboardTrainingHelp.sources(dashboardLayout,dashboardDataVisibility),trainingSnapshot,dashboardTrainingHelp.mode==TrainingHelpMode.ZONE_TWO)
-        dashboard.showDataVisibility(dashboardDataVisibility)
-        dashboard.showTrendIndicators(dashboardTrendIndicators)
-        runtime.liveGraphs.rolling=dashboardGraphs.windows.indices.any { dashboard.template.supportsGraph(it) && dashboardGraphs.slots[it].isNotEmpty() && dashboardGraphs.windows[it]!=GraphWindow.FULL }
-        val graphDemand=buildMap<GraphWindow,Set<AnalysisChart>> {
-            dashboardGraphs.slots.indices.filter { dashboard.template.supportsGraph(it) }.forEach { index ->
-                val window=dashboardGraphs.windows[index]
-                put(window,get(window).orEmpty()+dashboardGraphs.slots[index])
+        val graphDemand=graphDemandCache.get(dashboard.template,dashboardGraphs)
+        runtime.liveGraphs.rolling=graphDemand.keys.any { it!=GraphWindow.FULL }
+        val dashboardVisible=!dialogs.dashboardCovered
+        runtime.liveGraphs.configureDisplay(powerSaving,runtime.visible && dashboardVisible && graphDemand.isNotEmpty(),graphDemand)
+        if(dashboardVisible) {
+            val gps=runtime.gpsValues
+            dashboard.showTraining(dashboardTrainingHelp.sources(dashboardLayout,dashboardDataVisibility),trainingSnapshot,dashboardTrainingHelp.mode==TrainingHelpMode.ZONE_TWO)
+            dashboard.showDataVisibility(dashboardDataVisibility)
+            dashboard.showTrendIndicators(dashboardTrendIndicators)
+            dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
+            dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues,runtime.trendSnapshot)
+            // Top mode light includes the system/cutout inset; content keeps its safe padding.
+            if(dashboardHost.background!==dashboard.modeGlow) {
+                dashboard.background=null;dashboardHost.background=dashboard.modeGlow
             }
-        }.filterValues { it.isNotEmpty() }
-        runtime.liveGraphs.configureDisplay(powerSaving,runtime.visible && dialogs.empty && graphDemand.isNotEmpty(),graphDemand)
-        dashboard.showGraphs(dashboardGraphs,runtime.liveGraphs.frame)
-        dashboard.show(dashboardLayout, runtime.dashboardBikeData, gps, runtime.ride.bike.distanceM, runtime.pulseValues,runtime.trendSnapshot)
-        // Top mode light includes the system/cutout inset; content keeps its safe padding.
-        if(dashboardHost.background!==dashboard.modeGlow) {
-            dashboard.background=null;dashboardHost.background=dashboard.modeGlow
+            dashboard.showModeGlow(true, runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.bikeBatteryWarningLevel)
         }
-        dashboard.showModeGlow(true, runtime.currentAssistMode, runtime.bikeData.assistNames, runtime.bikeBatteryWarningLevel)
         val drinkSettings=DrinkReminderSettings.read(preferences)
         val drinkVisible=runtime.visible && dialogs.empty && !dashboardEditing
         val warningEnabled=runtime.shiftEnabled
@@ -485,7 +480,7 @@ class MainActivity : Activity() {
         if(runtime.drinkReminder.update(runtime.recording,runtime.elapsedMs,drinkSettings,drinkVisible && shiftBatteryWarningPanel.visibility!=View.VISIBLE)) {
             drinkReminderPanel.showReminder(drinkSettings.durationSeconds);placeDrinkReminder()
         }
-        if (::mapPanel.isInitialized && (currentTemplate().hasMap || previewMapActive)) mapPanel.refresh()
+        if (dashboardVisible && ::mapPanel.isInitialized && (currentTemplate().hasMap || previewMapActive)) mapPanel.refresh()
         val mapMessage = runtime.mapState.message
         if (mapMessage != displayedMapMessage) {
             displayedMapMessage = mapMessage

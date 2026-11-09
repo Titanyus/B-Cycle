@@ -1,3 +1,7 @@
+# Dashboard-Optimierung09.11.2026 (noch nicht in einer APK)
+
+Explizit beauftragt sind nur drei Punkte aus der Optimierungsbewertung: hinter voll deckenden Seiten Dashboard-/Kartenaufbereitung aussetzen, Graph-Demand nach exakter Konfiguration wiederverwenden, einzelne Kachel-/Trainings-/Graphbereiche bei unveränderten Eingängen nicht neu binden. Implementiert; tatsächliches Show/Dismiss aktualisiert sofort, kompakte Dialoge und Status/Speicher-/Abschlussaktionen weiter versorgt. Sensoren, Rohdaten, WakeLocks und GL-Lebenszyklus unverändert.16 unterschiedliche gezielte Fälle sowie zentrale Prüfungen grün; Details und korrigierte Testannahmen im [Bericht](dashboard-efficiency-2026-11-09.md). Keine neue APK beauftragt; nicht auf main pushen.
+
 # Neue Korrektur nach Build149 (noch nicht in einer APK)
 
 Nutzerauftrag: Varianten auch für die hochgeladene 5x5-VO2max-ZWO erkennen, die nach der fünften Belastung direkt ausrollt. TrainingVariants erkennt nun einen letzten identischen Belastungspräfix ohne abschließende Erholung, zählt ihn als fünfte Wiederholung und erhält dieses Ende bei Quick+/Quick/Std/Ext/Ext+. Vollständige Paare, Warmup/Cooldown, Kennzahlen und Importoriginale bleiben erhalten. Beispieldatei als Testfixture, drei gezielte Struktur-/Kennzahl-/Grenzfalltests grün (training-final-effort-variants-tests.log). Kein APK-Auftrag seit dieser Korrektur, kein neuer Build/Push. [Details](training-library.md).
@@ -31,4 +35,4 @@ Typografie/UI-Katalog/Bright/Diff grün. Hardware-Ladeadressen noch am Nutzerrad
 
 Actions42499777399 erfolgreich aus Quellstand6be53f297ed502ca730b3289e695be35bb529d87, VersionCode174, Android13+. Dauerhafte Signatur SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. 4445389Bytes; APK-SHA-25624e8dcec0c31344295eb1ca76d3d0833fbaeaa85a1f977090822c6de1ac9b815. Artefakt und tatsächlichen Raw-Direktdownload bytegleich geprüft; Veröffentlichung3a809b3.
 
-Die neue Korrektur oben ist noch nicht in Build149 enthalten. Bosch-Ladeinformationen und optischer Editorabgleich am Gerät bleiben als Gerätegrenzen dokumentiert. APK ausschließlich Actions, keine lokale APK und keinen zweiten Dispatch neben Push.
+Die beiden neuen Änderungen oben sind noch nicht in Build149 enthalten. Bosch-Ladeinformationen und optischer Editorabgleich am Gerät bleiben als Gerätegrenzen dokumentiert. APK ausschließlich Actions, keine lokale APK und keinen zweiten Dispatch neben Push.

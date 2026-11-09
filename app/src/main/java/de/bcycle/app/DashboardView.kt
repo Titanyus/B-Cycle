@@ -45,6 +45,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     internal fun bindEditorTheme(themes: ThemeManager) {
         BicycleComponents.bindTheme(this, themes) { tokens ->
             editorColor = tokens.primary
+            trainingAppearanceDirty=true
             tiles.forEach { it.refreshAppearance() }
             tiles.forEach { (it.container.foreground as? DashboardEditOutline)?.color = editorColor }
         }
@@ -53,11 +54,14 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         editing = value
         tiles.forEach { it.markEditable() }
     }
+    private var trainingAppearanceDirty=false
     private var zoneTwoHelp=false
     private var training = TrainingSnapshot()
     private var zoneConfig = ZoneGlowConfig()
     internal fun showTraining(config: ZoneGlowConfig, snapshot: TrainingSnapshot,zoneTwo:Boolean=false) {
-        zoneTwoHelp=zoneTwo;zoneConfig=config;training=snapshot;tiles.forEach { it.updateGlow() }
+        if(!trainingAppearanceDirty && zoneTwoHelp==zoneTwo && zoneConfig==config && training==snapshot) return
+        trainingAppearanceDirty=false
+        zoneTwoHelp=zoneTwo;zoneConfig=config;training=snapshot;template.slots.forEach { tiles[it].updateGlow() }
     }
     private var dataVisibility = DashboardDataVisibility()
     internal fun showDataVisibility(config: DashboardDataVisibility) {
@@ -68,7 +72,8 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
     private var graphFrame: GraphFrame? = null
     var graphWidthChanged: ((Int) -> Unit)? = null
     internal fun showGraphs(config: GraphOverlayConfig, frame: GraphFrame?) {
-        graphConfig=config; graphFrame=frame; tiles.forEach { it.updateGraph() }
+        if(graphConfig==config && graphFrame===frame) return
+        graphConfig=config; graphFrame=frame; template.slots.forEach { tiles[it].updateGraph() }
     }
     private var layout = DashboardLayout.defaults
     private var data = LiveData()
@@ -210,7 +215,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
         this.layout = layout; this.data = data; this.gps = gps; this.bikeDistanceM = bikeDistanceM
         this.trendSnapshot=trendSnapshot
         this.pulse = pulse
-        tiles.forEachIndexed { index, tile -> tile.show(layout.fields[index], data) }
+        template.slots.forEach { index -> tiles[index].show(layout.fields[index],data) }
         updateFooterOffset()
     }
 
@@ -218,7 +223,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
 
     private inner class Tile(private val index: Int) {
         fun applyPowerSaving() { zoneGlow.powerSaving=powerSaving;overlay.powerSaving=powerSaving;row.chevrons.powerSaving=powerSaving }
-        fun resetTrend() { row.direction=0;row.chevrons.clear() }
+        fun resetTrend() { shownField=null;row.direction=0;row.chevrons.clear() }
         fun footerOffset(offset:Float) {
             title.translationY=offset;row.translationY=offset;batteryGrid.translationY=offset
         }
@@ -251,9 +256,11 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
                 updateBackground()
             }
             if(graphShown) overlay.update(graphFrame,selected,intArrayOf(container.paddingLeft,container.paddingTop,container.paddingRight,container.paddingBottom),graphDisplay,graphConfig.windows[index])
-            row.visibility=if(dataVisibility.visible[index]) VISIBLE else INVISIBLE
-            title.visibility=row.visibility
-            showCaption(layout.fields[index])
+            if(layout.fields[index].batterySources==null) {
+                row.visibility=if(dataVisibility.visible[index]) VISIBLE else INVISIBLE
+                title.visibility=row.visibility
+                showCaption(layout.fields[index])
+            }
         }
         private val style = template.tileStyle(index)
         private val threeColumns = style == DashboardTileStyle.THREE
@@ -360,7 +367,25 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             title.text=text
         }
 
+        private var shownField:DashboardField?=null
+        private var shownInput:Any?=null
+        private var shownIndoor=false
+        private var shownNames:List<String>?=null
+        private var shownSeaLevel=false
+        private var shownVisible=false
+        private var shownDirection=0
+        private var shownGraphs:List<AnalysisChart>?=null
+        private var shownLocale:Locale?=null
         fun show(field: DashboardField, data: LiveData) {
+            val input=field.displayInput(data,gps,bikeDistanceM,pulse,training)
+            val direction=if(trendIndicators.shows(field)) trendSnapshot.indicator(field) else 0
+            val visible=dataVisibility.visible[index]
+            val graphs=selectedGraphs()
+            val locale=Locale.getDefault()
+            if(shownField==field && shownInput==input && shownIndoor==data.indoor && shownNames==data.assistNames &&
+                shownSeaLevel==gps.seaLevel && shownVisible==visible && shownDirection==direction && shownGraphs==graphs && shownLocale==locale) return
+            shownField=field;shownInput=input;shownIndoor=data.indoor;shownNames=data.assistNames
+            shownSeaLevel=gps.seaLevel;shownVisible=visible;shownDirection=direction;shownGraphs=graphs;shownLocale=locale
             val batteries=field.batterySources
             if(batteries!=null) {
                 row.visibility=GONE;title.visibility=GONE
@@ -374,8 +399,7 @@ class DashboardView(context: Context, private val selectField: (Int) -> Unit) : 
             val next = field.value(data, gps, bikeDistanceM, pulse, training)
             val caption = if (field.showSource) context.getString(R.string.ui_source_field_description, DashboardTextResources.source(context,field.source(data)), field.title(context,data, gps)) else field.title(context,data, gps)
             showCaption(field)
-            val direction = trendSnapshot.indicator(field)
-            row.direction = if(trendIndicators.shows(field)) direction else 0
+            row.direction = direction
             val compactDistance = if (threeColumns && next.unit == "km") next.text.replace(',', '.').toDoubleOrNull()?.takeIf { kotlin.math.abs(it) >= 100 }
                 ?.let { String.format(Locale.GERMANY, "%.1f", it) } else null
             setText(value, compactDistance ?: next.text)

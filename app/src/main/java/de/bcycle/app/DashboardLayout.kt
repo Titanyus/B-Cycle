@@ -16,8 +16,7 @@ enum class GpsMetric(val title: String, val unit: String, val category: String) 
     GPS_DESCENT("Höhenverlust", "m", "Höhe"),
     GPS_GRADIENT("Steigung", "%", "Höhe");
 
-    fun value(data: GpsValues): DashboardValue {
-        val raw: Double? = when (this) {
+    internal fun rawValue(data:GpsValues):Double? = when(this) {
             GPS_SPEED -> data.speedKmh
             GPS_DISTANCE -> data.distanceM?.div(1000)
             GPS_MOVING_AVERAGE -> data.movingAverageKmh
@@ -31,6 +30,9 @@ enum class GpsMetric(val title: String, val unit: String, val category: String) 
             GPS_DESCENT -> data.descentM
             GPS_GRADIENT -> data.gradientPercent
         }
+
+    fun value(data: GpsValues): DashboardValue {
+        val raw=rawValue(data)
         val text = when {
             raw == null -> "—"
             unit == "h:mm:ss" -> {
@@ -141,6 +143,22 @@ data class DashboardField(val id: String) {
         }
     fun dashboardTitle(context: android.content.Context, data: LiveData): String =
         trainingMetric?.let { context.getString(it.label) } ?: DashboardTextResources.caption(context, id) ?: title(context, data)
+    /** Exact dependencies of this field's value; cached only by its owning dashboard tile. */
+    internal fun displayInput(data:LiveData,gps:GpsValues,distance:Long?,pulse:PulseValues,training:TrainingSnapshot):Any? {
+        if(id=="PHONE_TIME") return java.time.LocalTime.now().let { it.hour*60+it.minute }
+        if(batterySources!=null) return data.batteries
+        if(id=="PHONE_BATTERY" || id=="TRAINER_BATTERY" || id=="SHIFT_BATTERY") return data.batteries.level(BatteryFields.single(id)!!)
+        trainingMetric?.let { return training }
+        if(id.startsWith("HEART_")) return when(id) {
+            "HEART_RATE"->pulse.bpm;"HEART_AVERAGE"->pulse.average;"HEART_MAXIMUM"->pulse.maximum;else->pulse.battery
+        }
+        weatherMetric?.let { return gps.solar }
+        gpsMetric?.let { return it.rawValue(gps) }
+        if(id=="BIKE_DISTANCE") return distance
+        metric?.let { return data.value(it) }
+        // Range values/captions depend on aligned mode names as well as the range array.
+        return data
+    }
     internal fun value(data: LiveData, gps: GpsValues, bikeDistanceM: Long?, pulse: PulseValues, training: TrainingSnapshot): DashboardValue =
         trainingMetric?.value(training) ?: value(data, gps, bikeDistanceM, pulse)
     fun value(data: LiveData, gps: GpsValues = GpsValues(), bikeDistanceM: Long? = null, pulse: PulseValues = PulseValues()): DashboardValue {
