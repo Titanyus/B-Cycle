@@ -23,3 +23,5 @@ Im Anschluss Karten-Chevrons und Runtime-Hintergrundpfad ergänzt; nur die drei 
 Unabhängiger kleiner Fix: ausgewählte Palettenfarbe immer mit FOREGROUND umranden; bisherige kontrastabhängige schwarze Alternative entfernt. Gilt über die gemeinsame Palette auch für Track3. Kein eigener Test für die kosmetische Einzeilenänderung; vorhandenen Palettenfall mit ausgeführt.
 
 Allgemeine Effizienzkorrektur08.11.2026: unsichtbare Graphen werden auch im Normalmodus nicht mehr für die Anzeige vorbereitet; die vollständige Historie läuft weiter, Rückkehr wird sofort aktualisiert. Keine Änderung sichtbarer Normal-/Sparintervalle oder der Aufzeichnung. [Nachweis](efficiency-review-2026-11-08.md).
+
+Korrektur10.11.2026: bei gemischten Kurz-/Gesamtfenstern bleiben Gesamtachse und Kurve als eigener Snapshot synchron, auch im Normalmodus und beim erneuten Binden. Intervalle unverändert. [Befund/Prüfung](mixed-graph-snapshots.md).

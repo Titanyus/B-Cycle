@@ -131,7 +131,7 @@ class BatterySaverTest {
             val graph=DashboardGraphDrawable(1f).apply { powerSaving=true;setBounds(0,0,100,100);this.callback=callback }
             val points=listOf(GraphPoint(0,0,0.0,List(5){100.0}),GraphPoint(1000,1000,10.0,List(5){120.0}))
             val series=mapOf(AnalysisChart.POWER to GraphSeries(points,GraphRange(0.0,200.0)))
-            val a=GraphFrame(1,10.0,series,1000);val b=GraphFrame(2,20.0,series,2000)
+            val a=GraphFrame(1,10.0,series,1000);val b=a.copy(version=2,distanceM=20.0,elapsedMs=2000)
             graph.update(a,listOf(AnalysisChart.POWER),intArrayOf(0,0,0,0));graph.update(b,listOf(AnalysisChart.POWER),intArrayOf(0,0,0,0))
             assertSame("a rolling-frame publication must not shorten the full graph interval",a,DashboardGraphDrawable::class.java.getDeclaredField("frame").apply { isAccessible=true }.get(graph))
             val window=GraphWindow.entries.first { it!=GraphWindow.FULL }

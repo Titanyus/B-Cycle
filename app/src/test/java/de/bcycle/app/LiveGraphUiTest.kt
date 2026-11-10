@@ -163,6 +163,40 @@ class LiveGraphUiTest {
         page.put("graphs",JSONArray(List(8) { if(it==2) JSONArray(listOf("POWER","SPEED","CADENCE")) else JSONArray() }))
         try { b.decode(old.toString().toByteArray());fail("third graph accepted") } catch(_:SettingsBackupFailure) {}
     }
+    @Test fun mixedWindowFramesKeepFullCurveAndAxisTogetherForDistanceAndTimeInBothModes() {
+        for(saving in listOf(false,true)) for(timed in listOf(false,true)) {
+            val provider=LiveGraphProvider {}.apply { rolling=true }
+            val worker=LiveGraphProvider::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(provider) as ThreadPoolExecutor
+            fun drain() { worker.submit {}.get(5,TimeUnit.SECONDS);shadowOf(Looper.getMainLooper()).idle() }
+            fun append(second:Int) {
+                provider.append(GraphPoint(second*1000L,second*1000L,if(timed) null else second*10.0,
+                    listOf(20.0,80.0,100.0+second*5,120.0,500.0)));drain()
+            }
+            fun image(frame:GraphFrame,window:GraphWindow):Bitmap {
+                val graph=DashboardGraphDrawable(1f).apply { powerSaving=saving;setBounds(0,0,360,160) }
+                graph.update(frame,listOf(if(window==GraphWindow.FULL) AnalysisChart.POWER else AnalysisChart.HEART),intArrayOf(0,0,0,0),window=window)
+                return Bitmap.createBitmap(360,160,Bitmap.Config.ARGB_8888).also { graph.draw(Canvas(it)) }
+            }
+            try {
+                provider.begin();provider.configureDisplay(saving,true,mapOf(GraphWindow.FULL to setOf(AnalysisChart.POWER),GraphWindow.SECONDS_30 to setOf(AnalysisChart.HEART)));drain()
+                append(0)
+                for(i in 1..10) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));append(i) }
+                val full=provider.frame!!;assertEquals(10000,full.elapsedMs)
+                val intermediate=if(saving) 15 else 11
+                for(i in 11..intermediate) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));append(i) }
+                val short=provider.frame!!;assertEquals(intermediate*1000L,short.elapsedMs);assertSame(full.series,short.series)
+                val before=image(full,GraphWindow.FULL);val cached=image(short,GraphWindow.FULL)
+                assertTrue("Cached full curve must keep its own axis: saving=$saving timed=$timed",before.sameAs(cached))
+                val rollingBefore=image(full,GraphWindow.SECONDS_30);val rollingAfter=image(short,GraphWindow.SECONDS_30)
+                assertFalse("Short window must continue independently",rollingBefore.sameAs(rollingAfter))
+                for(i in intermediate+1..20) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));append(i) }
+                val updated=provider.frame!!;assertNotSame(full.series,updated.series)
+                assertEquals(20000,updated.series.getValue(AnalysisChart.POWER).points.last().elapsedMs)
+                val fresh=image(updated,GraphWindow.FULL);assertFalse(before.sameAs(fresh))
+                listOf(before,cached,rollingBefore,rollingAfter,fresh).forEach { it.recycle() }
+            } finally { worker.shutdownNow() }
+        }
+    }
     @Test fun oneSharedWorkerPublishesAtTenSecondsStopsAndResetsForNextRide() {
         val p=LiveGraphProvider {};val worker=LiveGraphProvider::class.java.getDeclaredField("worker").apply { isAccessible=true }.get(p) as ThreadPoolExecutor
         fun drain() { worker.submit {}.get(5,TimeUnit.SECONDS);shadowOf(Looper.getMainLooper()).idle() }

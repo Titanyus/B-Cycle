@@ -23,7 +23,9 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     private var rangeFramePending=false
     private val animation=Runnable { rangeFramePending=true;invalidateSelf() }
     fun update(next: GraphFrame?, graphs: List<AnalysisChart>, insets: IntArray, display: GraphDisplayMode=GraphDisplayMode.WITH_DATA,window:GraphWindow=GraphWindow.FULL) {
-        if(powerSaving && window==GraphWindow.FULL && this.window==window && frame!=null && next!=null && frame!!.series===next.series && selected==graphs && padding.contentEquals(insets) && mode==display) return
+        if(window==GraphWindow.FULL && this.window==window && frame!=null && next!=null && next.version>=frame!!.version &&
+            frame!!.series===next.series && frame!!.fullDistanceM==next.fullDistanceM && frame!!.fullElapsedMs==next.fullElapsedMs &&
+            frame!!.fullTimeAxis==next.fullTimeAxis && selected==graphs && padding.contentEquals(insets) && mode==display) return
         if(frame===next && selected==graphs && padding.contentEquals(insets) && mode==display && this.window==window) return
         if(this.window!=window || next==null || next.version<(frame?.version ?: 0)) { ranges.clear();unscheduleSelf(animation) }
         frame=next; selected=graphs; padding=insets; mode=display; this.window=window;rebuild(); invalidateSelf()
@@ -46,7 +48,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             floatArrayOf(0f,.5f,1f),Shader.TileMode.CLAMP)
         val seriesByChart=if(window==GraphWindow.FULL) f.series else f.windows[window].orEmpty()
         val start=if(window==GraphWindow.FULL) 0 else (f.elapsedMs-window.milliseconds).coerceAtLeast(0)
-        val end=if(window==GraphWindow.FULL) f.elapsedMs else maxOf(window.milliseconds,f.elapsedMs)
+        val end=if(window==GraphWindow.FULL) f.fullElapsedMs else maxOf(window.milliseconds,f.elapsedMs)
         shapes=selected.mapNotNull { chart -> seriesByChart[chart]?.let { series ->
             val range=if(window==GraphWindow.FULL || powerSaving) series.range else ranges.getOrPut(chart) { GraphRangeTransition() }.update(series.range,android.os.SystemClock.uptimeMillis())
             val line=Path();val fill=Path();val pending=ArrayList<PointF>();var fillTop=plot.bottom
@@ -59,9 +61,9 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             for(point in series.points) {
                 if(point.breaks and (1 shl chart.ordinal)!=0) finish()
                 val v=point.values[chart.ordinal]
-                if(v==null || !v.isFinite() || window==GraphWindow.FULL && !f.timeAxis && point.distanceM==null) { finish();continue }
-                val fraction=if(window!=GraphWindow.FULL || f.timeAxis) (point.elapsedMs-start).toDouble()/(end-start).coerceAtLeast(1)
-                    else if(f.distanceM>0) point.distanceM!!/f.distanceM else 0.0
+                if(v==null || !v.isFinite() || window==GraphWindow.FULL && !f.fullTimeAxis && point.distanceM==null) { finish();continue }
+                val fraction=if(window!=GraphWindow.FULL || f.fullTimeAxis) (point.elapsedMs-start).toDouble()/(end-start).coerceAtLeast(1)
+                    else if(f.fullDistanceM>0) point.distanceM!!/f.fullDistanceM else 0.0
                 val x=left+fraction.toFloat()*(right-left)
                 val y=plot.bottom-((v-range.low)/(range.high-range.low)).toFloat()*plot.height()
                 fillTop=minOf(fillTop,y);pending+=PointF(x,y)

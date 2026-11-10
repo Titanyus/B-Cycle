@@ -19,7 +19,9 @@ internal data class GraphPoint(val utcMs: Long, val elapsedMs: Long, val distanc
 internal data class GraphRange(val low: Double, val high: Double)
 internal data class GraphSeries(val points: List<GraphPoint>, val range: GraphRange)
 internal data class GraphFrame(val version: Long, val distanceM: Double, val series: Map<AnalysisChart, GraphSeries>, val elapsedMs:Long=0,
-    val windows:Map<GraphWindow,Map<AnalysisChart,GraphSeries>> = emptyMap(),val timeAxis:Boolean=false)
+    val windows:Map<GraphWindow,Map<AnalysisChart,GraphSeries>> = emptyMap(),val timeAxis:Boolean=false,
+    // Full-history curves have a separate cadence; never project them onto a newer short-window axis.
+    val fullDistanceM:Double=distanceM,val fullElapsedMs:Long=elapsedMs,val fullTimeAxis:Boolean=timeAxis)
 
 /** Expands only, using original values before display reduction or smoothing. */
 internal class GraphScaleManager(private val baseline:Map<AnalysisChart,GraphRange> = emptyMap()) {
@@ -113,7 +115,9 @@ internal class GraphHistoryBuffer(private val capacity: Int = LiveGraphStyle.MAX
             } }
             AnalysisChart.entries.filter { demand==null || it in demand[window].orEmpty() }.mapNotNull { chart -> (windowScales.range(chart) ?: initialRanges[chart])?.let { chart to GraphSeries(prepare(chart,pixelWidth,selected,true,window.milliseconds.toDouble(),start.toDouble(),3000.0,6),it) } }.toMap()
         }
-        return GraphFrame(version,distanceM,series,elapsed,windows,points.none { it.distanceM!=null })
+        val timeAxis=points.none { it.distanceM!=null }
+        return GraphFrame(version,distanceM,series,elapsed,windows,timeAxis,
+            cachedFull?.fullDistanceM ?: distanceM,cachedFull?.fullElapsedMs ?: elapsed,cachedFull?.fullTimeAxis ?: timeAxis)
     }
     private fun prepare(chart: AnalysisChart, width: Int, history:List<GraphPoint> = points,
         time:Boolean=points.none { it.distanceM!=null },
