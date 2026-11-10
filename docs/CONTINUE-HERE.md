@@ -1,3 +1,7 @@
+# Kartenstil-Speichern korrigiert, neue APK ausdrücklich angefordert
+
+Native Save/Cancel-Buttons waren von allgemeiner Dialognavigation verborgen; jetzt sichtbare Aktionen im Inhalt. Bright im Save-Dialog vorhanden und überschreibbar, eigener Bright-Snapshot wird in derselben Kartenquellenzeile geladen. Fünf gezielte Fälle mit Sichtbarkeit/realer Fläche sowie Stil-/Profil-/Backupabläufen grün, map-style-save-visible-bright-tests.log. [Details](vtm-map-editor.md). Nutzer hat neue APK angefordert; Version0.8.106/code176 für Actions151 vorbereiten, bauen und veröffentlichen.
+
 # Aktueller Stand: APK0.8.105 / Build150
 
 Alle vier Aufträge seit Build149 implementiert, gezielt geprüft und in der ausdrücklich angeforderten APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlicher direkter Raw-Download abgeschlossen; bytegleich zum Actions-Artefakt.

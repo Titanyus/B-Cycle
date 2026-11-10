@@ -25,6 +25,37 @@ class MapStyleLibraryTest {
     private val prefs get()=c.getSharedPreferences("bike",0)
     private val custom=MapStyleOverrides().update(MapStyleTarget.PRIMARY,MapObjectStyle(Color.RED,alpha=123,widthPercent=70,outline=MapOutlineStyle(Color.BLUE,88,150)))
         .copy(placeLabels=mapOf(MapPlaceClass.CITY to MapPlaceTextStyle(900,80)))
+    private fun pressSave(dialog:AlertDialog) {
+        val decor=dialog.window!!.decorView
+        decor.measure(View.MeasureSpec.makeMeasureSpec(360,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(640,View.MeasureSpec.EXACTLY))
+        decor.layout(0,0,360,640)
+        val button=decor.findViewWithTag<View>("map_style_save_confirm")
+        assertTrue("Save must be visible to the user",button.isShown)
+        val rect=android.graphics.Rect();assertTrue(button.getGlobalVisibleRect(rect));assertFalse(rect.isEmpty)
+        assertTrue(button.isEnabled);button.performClick()
+    }
+    @Test fun builtinBrightIsOfferedAndCanBeSavedOverwrittenAndLoadedWithoutDuplicateRows() {
+        val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        try {
+            val a=host.get();val themes=ThemeManager(prefs)
+            fun open():AlertDialog {
+                MapStyleSaveDialog.show(a,prefs,themes) { true };shadowOf(Looper.getMainLooper()).idle()
+                return ShadowAlertDialog.getLatestAlertDialog()
+            }
+            custom.write(prefs)
+            var dialog=open();val choice=dialog.window!!.decorView.findViewWithTag<Spinner>("map_style_save_choice")
+            assertEquals("Bright",choice.adapter.getItem(1));assertEquals(1,choice.selectedItemPosition)
+            assertEquals("Bright",dialog.window!!.decorView.findViewWithTag<EditText>("map_style_save_name").text.toString())
+            pressSave(dialog);shadowOf(Looper.getMainLooper()).idle()
+            val first=MapStyleLibrary.read(prefs).single();assertEquals("Bright",first.name)
+            MapStyleOverrides().write(prefs);dialog=open();pressSave(dialog);shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(first.id,MapStyleLibrary.read(prefs).single().id)
+            val picker=MapSourcePicker(a,themes,prefs);picker.select(MapSource.VECTOR)
+            assertEquals(8,picker.adapter.count);assertEquals(7,picker.selectedItemPosition);assertEquals(first.id,picker.selectedStyleId)
+            custom.write(prefs);MapStyleLibrary.load(prefs,picker.selectedStyleId)
+            assertEquals(MapStyleOverrides(),MapStyleOverrides.read(prefs))
+        } finally { host.pause().stop().destroy() }
+    }
     @Test fun snapshotsOverwriteByIdentityAndNameRemainIndependentOfDraftAndSurviveProfilesAndBackup() {
         custom.write(prefs)
         prefs.edit().putBoolean(MapVectorLayer.CONTOURS.key,true).putBoolean(MapVectorLayer.POIS.key,true).apply()
@@ -84,20 +115,20 @@ class MapStyleLibraryTest {
             editor.findViewWithTag<View>("map_style_save").performClick();shadowOf(Looper.getMainLooper()).idle()
             var dialog=ShadowAlertDialog.getLatestAlertDialog()
             var name=dialog.window!!.decorView.findViewWithTag<EditText>("map_style_save_name")
-            name.setText("Meine Karte");dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();shadowOf(Looper.getMainLooper()).idle()
+            name.setText("Meine Karte");pressSave(dialog);shadowOf(Looper.getMainLooper()).idle()
             val saved=MapStyleLibrary.read(prefs).single()
             MapStyleOverrides().write(prefs)
             editor.findViewWithTag<View>("map_style_save").performClick();shadowOf(Looper.getMainLooper()).idle()
             dialog=ShadowAlertDialog.getLatestAlertDialog();name=dialog.window!!.decorView.findViewWithTag("map_style_save_name")
             assertEquals("Meine Karte",name.text.toString())
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();shadowOf(Looper.getMainLooper()).idle()
+            pressSave(dialog);shadowOf(Looper.getMainLooper()).idle()
             assertEquals(saved.id,MapStyleLibrary.read(prefs).single().id)
             assertEquals(MapStyleOverrides(),MapStyleOverrides.parse(JSONObject(MapStyleLibrary.read(prefs).single().style)))
             editor.findViewWithTag<View>("map_style_export").performClick();assertNotNull(exported)
             editor.findViewWithTag<View>("map_style_save").performClick();shadowOf(Looper.getMainLooper()).idle()
             dialog=ShadowAlertDialog.getLatestAlertDialog();prefs.edit().putInt(BikeProfileStore.ACTIVE,1).apply()
             dialog.window!!.decorView.findViewWithTag<EditText>("map_style_save_name").setText("Falsches Profil")
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();assertEquals(1,MapStyleLibrary.read(prefs).size)
+            pressSave(dialog);assertEquals(1,MapStyleLibrary.read(prefs).size)
         } finally { host.pause().stop().destroy() }
     }
     @Test fun actualSettingsPickerLoadsSavedStylesAndDoesNotOverwriteDraftOnReopening() {

@@ -11,11 +11,13 @@ internal class MapSourcePicker(context:Context,private val themes:ThemeManager,p
     companion object {
         fun position(source:MapSource)=if(source==MapSource.VECTOR) 7 else source.ordinal+1
     }
-    private val styles=prefs?.let(MapStyleLibrary::read).orEmpty()
+    private val saved=prefs?.let(MapStyleLibrary::read).orEmpty()
+    private val bright=saved.firstOrNull { it.name.equals("Bright",true) }
+    private val styles=saved.filterNot { it===bright }
     private val choices:List<MapSource?> = listOf(null,MapSource.CYCLOSM,MapSource.OSM,MapSource.OPENTOPOMAP,MapSource.OPENCYCLEMAP,null,null,MapSource.VECTOR)+List(styles.size) { MapSource.VECTOR }
     private var fallback=MapSource.CYCLOSM
     val selectedSource get()=choices.getOrNull(selectedItemPosition) ?: fallback
-    val selectedStyleId get()=styles.getOrNull(selectedItemPosition-8)?.id
+    val selectedStyleId get()=if(selectedItemPosition==7) bright?.id else styles.getOrNull(selectedItemPosition-8)?.id
     fun select(source:MapSource) {
         fallback=source
         val saved=if(source==MapSource.VECTOR) styles.indexOfFirst { it.id==prefs?.getString(MapStyleLibrary.ACTIVE,null) } else -1

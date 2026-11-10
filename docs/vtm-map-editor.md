@@ -1,3 +1,11 @@
+# Korrektur Speicherdialog und Bright nach Build150
+
+Gemeldeter Fehler bestätigt: BicycleNavigation.hideNavigationFooter blendet native Standardbuttons „Speichern“/„Abbrechen“ absichtlich aus. Der neue Stildialog hatte genau solche Buttons verwendet; frühere Tests konnten unsichtbare Buttons via performClick auslösen und übersahen damit den Gerätefehler. Jetzt eigene sichtbare Aktionen nebeneinander im Dialoginhalt, gleiche zentrale Buttonkomponente; allgemeine Dialognavigation unverändert. Tests prüfen vor dem Auslösen isShown und eine nichtleere getGlobalVisibleRect-Fläche.
+
+Der Speicherdialog listet zusätzlich Bright als Ausgangs-/Überschreibziel und wählt es ohne eigenen aktiven Stil vor. Speichern erzeugt bei Bedarf einen normalen validierten Bright-Snapshot mit stabiler UUID; weitere Speicherungen überschreiben ihn. MapSourcePicker bindet diesen Snapshot an die bestehende Bright-Zeile, statt eine zweite Bright-Zeile anzulegen. Andere eigene Stile behalten ihre bisherigen Zeilen. Ohne Bright-Snapshot bleibt die ursprüngliche Bright-Vorlage verfügbar; Änderungen an der Arbeitskopie weiterhin separat speichern. Initiales Spinnerereignis überschreibt eingegebenen Namen nicht.
+
+Fünf gezielte MapStyleLibraryTest-Fälle grün, einschließlich sichtbarer Aktionen, Bright neu/überschreiben/laden/einzelner Quellzeile, eigener Namen, Arbeitskopie, Profilwechsel, MAPS/MAPS+PROFILE-Backup und bestehender JSON-Ausgabe. Log map-style-save-visible-bright-tests.log. Typografie/UI-Katalog/Bright/Diff geprüft. Nutzer hat anschließend ausdrücklich neue APK angefordert.
+
 # Interne Kartenstile10.11.2026
 
 Zusätzliche Save-Aktion in der kompakten Editorzeile (jetzt fünf Icons): kleiner Dialog mit „Neuer Stil“/vorhandenen Stilen und Name. Neue Namen erzeugen einen Snapshot, bestehende Auswahl oder derselbe Name (Groß-/Kleinschreibung ignoriert) überschreibt genau den vorhandenen Stil mit stabiler UUID. Aktueller Stil vorausgewählt. Namen1–60 Zeichen, maximal32 Stile, strikt validierte begrenzte JSON-Sammlung. Profilwechsel während des Dialogs verwirft die Save-Aktion. Der bisherige externe JSON-Export bleibt unabhängig und schema-kompatibel.
