@@ -1522,7 +1522,7 @@ class MainActivity : Activity() {
     private fun mapControls():LinearLayout {
         val slot=runtime.bikes.activeSlot
         val root = column()
-        val source = MapSourcePicker(settingsContext,settingsThemes).apply {
+        val source = MapSourcePicker(settingsContext,settingsThemes,preferences).apply {
             select(MapSource.decode(preferences.getString("mapSource",null)));root.addView(this)
         }
         BicycleDialogStyle.spinner(source,settingsThemes,BicycleDesign.profileDropdownSp)
@@ -1543,12 +1543,14 @@ class MainActivity : Activity() {
         root.addView(BicycleComponents.contentHeading(settingsContext,settingsThemes,getString(R.string.map_options_title)).apply { tag="map_options_title" })
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
-        val cyclingStyles=MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,
+        fun newCyclingStyles()=MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,
             kinds=listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES),heading=null) {
             // The editor already saves and repaints its own preview. Rebuilding hidden
             // vector layers on every slider step stalls the main thread.
             if(runtime.bikes.activeSlot==slot) cyclingMapSettingsPending=true
         }.apply { visibility=if(source.selectedSource==MapSource.VECTOR) View.VISIBLE else View.GONE }
+        var cyclingStyles=newCyclingStyles()
+        var loadingStyle=false
         val vectorOptions=BicycleFrameDropdown(settingsContext,settingsThemes,getString(R.string.map_vector_layers),open=false,leadingIcon=BicycleIcon.Map).apply {
             tag="map_vector_layers"
             visibility=if(source.selectedSource==MapSource.VECTOR) View.VISIBLE else View.GONE
@@ -1562,8 +1564,24 @@ class MainActivity : Activity() {
         vectorOptions.content.addView(BicycleComponents.fieldLabel(settingsContext,settingsThemes,getString(R.string.map_layer_contours_info)))
         root.addView(vectorOptions)
         root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
+        var sourcePosition=source.selectedItemPosition
+        source.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent:AdapterView<*>?)=Unit
+            override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) {
+                if(position==sourcePosition) return
+                sourcePosition=position
+                if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow || source.selectedSource!=MapSource.VECTOR) return
+                loadingStyle=true
+                try {
+                    MapStyleLibrary.load(preferences,source.selectedStyleId)
+                    layerSwitches.forEach { (layer,control) -> control.isChecked=preferences.getBoolean(layer.key,layer.defaultVisible) }
+                    val index=root.indexOfChild(cyclingStyles)
+                    if(index>=0) { root.removeView(cyclingStyles);cyclingStyles=newCyclingStyles();root.addView(cyclingStyles,index,LinearLayout.LayoutParams(-1,-2)) }
+                } finally { loadingStyle=false }
+            }
+        }
         observeSettings(root) {
-            if(runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
+            if(loadingStyle || runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
             val chosen=source.selectedSource
             cyclingStyles.visibility=if(chosen==MapSource.VECTOR) View.VISIBLE else View.GONE
             vectorOptions.visibility=cyclingStyles.visibility

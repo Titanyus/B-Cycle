@@ -7,14 +7,20 @@ import android.view.ViewGroup
 import android.widget.*
 
 /** One native spinner with disabled category rows; persisted source IDs remain unchanged. */
-internal class MapSourcePicker(context:Context,private val themes:ThemeManager):Spinner(context) {
+internal class MapSourcePicker(context:Context,private val themes:ThemeManager,private val prefs:android.content.SharedPreferences?=null):Spinner(context) {
     companion object {
         fun position(source:MapSource)=if(source==MapSource.VECTOR) 7 else source.ordinal+1
     }
-    private val choices:List<MapSource?> = listOf(null,MapSource.CYCLOSM,MapSource.OSM,MapSource.OPENTOPOMAP,MapSource.OPENCYCLEMAP,null,null,MapSource.VECTOR)
+    private val styles=prefs?.let(MapStyleLibrary::read).orEmpty()
+    private val choices:List<MapSource?> = listOf(null,MapSource.CYCLOSM,MapSource.OSM,MapSource.OPENTOPOMAP,MapSource.OPENCYCLEMAP,null,null,MapSource.VECTOR)+List(styles.size) { MapSource.VECTOR }
     private var fallback=MapSource.CYCLOSM
     val selectedSource get()=choices.getOrNull(selectedItemPosition) ?: fallback
-    fun select(source:MapSource) { fallback=source;setSelection(position(source)) }
+    val selectedStyleId get()=styles.getOrNull(selectedItemPosition-8)?.id
+    fun select(source:MapSource) {
+        fallback=source
+        val saved=if(source==MapSource.VECTOR) styles.indexOfFirst { it.id==prefs?.getString(MapStyleLibrary.ACTIVE,null) } else -1
+        setSelection(if(saved>=0) 8+saved else position(source))
+    }
     init {
         contentDescription=context.getString(R.string.ui_map_source)
         adapter=object:BaseAdapter(),SpinnerAdapter {
@@ -24,9 +30,9 @@ internal class MapSourcePicker(context:Context,private val themes:ThemeManager):
                 6->context.getString(R.string.map_source_vector_heading)
                 5->""
                 7->context.getString(R.string.map_source_bright)
-                else->choices[position]!!.label(context)
+                else->if(position>=8) styles[position-8].name else choices[position]!!.label(context)
             }
-            override fun getItemId(position:Int)=choices[position]?.ordinal?.toLong() ?: -(position+1L)
+            override fun getItemId(position:Int)=if(position>=8) position.toLong() else choices[position]?.ordinal?.toLong() ?: -(position+1L)
             override fun areAllItemsEnabled()=false
             override fun isEnabled(position:Int)=choices[position]!=null
             private fun row(position:Int,recycled:View?,dropdown:Boolean):View {

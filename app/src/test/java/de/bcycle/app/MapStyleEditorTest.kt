@@ -182,7 +182,7 @@ class MapStyleEditorTest {
             val image=Bitmap.createBitmap(320,editor.height,Bitmap.Config.ARGB_8888);image.eraseColor(themes.active.tokens.tertiary);editor.draw(Canvas(image))
             java.io.File("build/reports/ui/map-editor-outline.png").apply { parentFile!!.mkdirs() }.outputStream().use { image.compress(Bitmap.CompressFormat.PNG,100,it) };image.recycle()
             val buttons=editor.findViewWithTag<LinearLayout>("map_style_actions")
-            assertEquals(4,buttons.childCount);assertEquals(LinearLayout.HORIZONTAL,buttons.orientation)
+            assertEquals(5,buttons.childCount);assertEquals(LinearLayout.HORIZONTAL,buttons.orientation)
             editor.findViewWithTag<View>("map_style_export").performClick()
             assertEquals(MapStyleOverrides.read(prefs),MapStyleOverrides.parse(JSONObject(exported!!)))
             val reopened=MapStyleEditorView(activity,prefs,themes,{}, {})

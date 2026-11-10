@@ -120,6 +120,9 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
             button(BicycleIcon.DeleteTrack,R.string.map_style_reset_all,"map_style_reset_all") {
                 if(currentProfile()) { MapStyleOverrides().write(prefs);render();schedule() }
             }
+            button(BicycleIcon.Save,R.string.map_style_save,"map_style_save") {
+                if(currentProfile()) MapStyleSaveDialog.show(context,prefs,themes,::currentProfile)
+            }
             button(BicycleIcon.ExportTrack,R.string.map_style_export,"map_style_export") {
                 if(currentProfile()) export(MapStyleOverrides.read(prefs).export(prefs))
             }
