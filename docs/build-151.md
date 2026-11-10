@@ -14,3 +14,7 @@ Optimierter Release ausschließlich aus GitHub Actions. CI-Prüfsumme, dauerhaft
 [Änderungen](release-0.8.106.md): Kartenstil-Save/Cancel direkt sichtbar im Dialoginhalt statt ausgeblendeter nativer Standardbuttons. Bright als Vorlage/Überschreibziel, gespeicherte Bright-Werte in derselben Kartenquellenzeile laden. Alle bisherigen Stil-/Profil-/Backup-/JSON-Funktionen erhalten.
 
 Fünf gezielte MapStyleLibraryTest-Fälle bestanden, einschließlich echter Sichtbarkeit und getGlobalVisibleRect-Fläche der Save-Aktion. Log map-style-save-visible-bright-tests.log. Typografie/UI-Katalog/Bright/Diff grün. Keine Gesamtsuite/Profiling oder lokaler APK-Build. [Ursache und Testkorrektur](vtm-map-editor.md); Bediengefühl am Gerät praktisch bestätigen. Frühere Gerätegrenzen unverändert.
+
+## Direkter Downloadnachweis
+
+Veröffentlichten Raw-Download tatsächlich abgerufen:4445809Bytes, binär identisch zum geprüften Actions-Artefakt. SHA-256 `14c4737626c310f9afed8acab26462fae3fb05a8c6fb35bf88b03c0ca13f681b` ebenfalls identisch. Veröffentlichung:aee1e87.
