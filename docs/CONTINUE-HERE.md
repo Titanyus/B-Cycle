@@ -1,3 +1,7 @@
+# Änderungen nach Build152 und ausdrücklicher APK-Auftrag
+
+Neue Kartenquellenbedienung/2s-Editorfreigabe, Ebenen nur Karte, Straßen-/Hausnummernkonturen, Hausnummernebene und Stile löschen/sortieren implementiert. Neun gezielte Methoden grün, map-access-complete-tests.log, zentrale Prüfungen grün. [Details](map-controls-and-label-editor.md). Nutzer hat neue APK ausdrücklich angefordert: Version0.8.108/code178 für Actions153 vorbereiten, bauen/veröffentlichen/Direktdownload prüfen.
+
 # Aktueller Stand: APK0.8.107 / Build152
 
 Auftrag umgesetzt, geprüft und ausdrücklich angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlichen Raw-Direktdownload abgeschlossen; bytegleich zum Actions-Artefakt.

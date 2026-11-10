@@ -6,14 +6,15 @@ import android.view.View
 import android.widget.*
 
 internal object MapStyleSaveDialog {
-    fun show(context:Context,prefs:SharedPreferences,themes:ThemeManager,permitted:()->Boolean) {
+    fun show(context:Context,prefs:SharedPreferences,themes:ThemeManager,permitted:()->Boolean) = show(context,prefs,themes,permitted,null)
+    private fun show(context:Context,prefs:SharedPreferences,themes:ThemeManager,permitted:()->Boolean,selection:String?) {
         val all=MapStyleLibrary.read(prefs)
         val bright=all.firstOrNull { it.name.equals("Bright",true) }
-        val styles=all.filterNot { it===bright }
-        val active=prefs.getString(MapStyleLibrary.ACTIVE,null)
-        val selected=styles.indexOfFirst { it.id==active }.let { if(it>=0) it+2 else 1 }
-        fun selectedStyle(position:Int)=if(position==1) bright else styles.getOrNull(position-2)
-        fun selectedName(position:Int)=if(position==1) context.getString(R.string.map_source_bright) else styles.getOrNull(position-2)?.name.orEmpty()
+        val styles:List<SavedMapStyle?> = if(bright==null) listOf(null)+all else all
+        val active=selection ?: prefs.getString(MapStyleLibrary.ACTIVE,null)
+        val selected=styles.indexOfFirst { it?.id==active }.let { if(it>=0) it+1 else 1+styles.indexOfFirst { it==null || it===bright }.coerceAtLeast(0) }
+        fun selectedStyle(position:Int)=styles.getOrNull(position-1)
+        fun selectedName(position:Int)=if(position==0) "" else selectedStyle(position)?.name ?: context.getString(R.string.map_source_bright)
         val body=LinearLayout(context).apply {
             orientation=LinearLayout.VERTICAL
             val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
@@ -21,7 +22,7 @@ internal object MapStyleSaveDialog {
         val choice=Spinner(context).apply {
             tag="map_style_save_choice"
             adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,
-                listOf(context.getString(R.string.map_style_save_new),context.getString(R.string.map_source_bright))+styles.map { it.name })
+                listOf(context.getString(R.string.map_style_save_new))+styles.map { it?.name ?: context.getString(R.string.map_source_bright) })
             setSelection(selected)
         }
         val name=BicycleComponents.input(context,themes).apply {
@@ -31,14 +32,26 @@ internal object MapStyleSaveDialog {
         body.addView(choice,LinearLayout.LayoutParams(-1,-2))
         body.addView(BicycleComponents.fieldLabel(context,themes,context.getString(R.string.map_style_save_name)))
         body.addView(name,LinearLayout.LayoutParams(-1,-2))
+        val management=mutableListOf<View>()
         var choicePosition=selected
         choice.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent:AdapterView<*>?)=Unit
             override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long) {
-                if(position!=choicePosition) { choicePosition=position;name.setText(selectedName(position)) }
+                if(position!=choicePosition) { choicePosition=position;name.setText(selectedName(position));management.forEach { it.isEnabled=selectedStyle(position)!=null } }
             }
         }
         lateinit var dialog:android.app.AlertDialog
+        body.addView(LinearLayout(context).apply {
+            orientation=LinearLayout.HORIZONTAL
+            fun manage(text:String,key:String,action:(String)->Unit) {
+                addView(BicycleComponents.action(context,themes,text,false) {
+                    if(permitted()) selectedStyle(choice.selectedItemPosition)?.let { action(it.id);dialog.dismiss();show(context,prefs,themes,permitted,it.id) }
+                }.apply { tag=key;isEnabled=selectedStyle(selected)!=null;management+=this },LinearLayout.LayoutParams(0,-2,1f))
+            }
+            manage("↑","map_style_move_up") { MapStyleLibrary.move(prefs,it,-1) }
+            manage("↓","map_style_move_down") { MapStyleLibrary.move(prefs,it,1) }
+            manage(context.getString(R.string.route_action_delete),"map_style_delete") { MapStyleLibrary.delete(prefs,it) }
+        },LinearLayout.LayoutParams(-1,-2))
         body.addView(LinearLayout(context).apply {
             orientation=LinearLayout.HORIZONTAL;setTag(R.id.inline_control_row,true)
             addView(BicycleComponents.action(context,themes,context.getString(R.string.route_cancel),false) { dialog.dismiss() }.apply {
@@ -54,6 +67,6 @@ internal object MapStyleSaveDialog {
             })
         },LinearLayout.LayoutParams(-1,-2))
         dialog=BicycleDialogBuilder(context,themes,DialogNavigation(),fullscreen=false)
-            .setTitle(R.string.map_style_save).setView(body).show()
+            .setTitle(R.string.map_style_save).setView(ScrollView(context).apply { BicycleComponents.scrollStyle(this);addView(body) }).show()
     }
 }

@@ -52,6 +52,7 @@ internal class VtmBrightTheme private constructor(
                 "track","path","footway","cycleway","pedestrian","steps","bridleway"->170
                 else->180
             }*100
+            "housenumber" -> 19000
             else -> return styles
         }
         if(styles.none { it is TextStyle }) return styles
@@ -75,7 +76,7 @@ internal class VtmBrightTheme private constructor(
     override fun dispose() { priorityCache.evictAll();native.dispose() }
     override fun scaleTextSize(scale:Float) { priorityCache.evictAll();native.scaleTextSize(scale) }
     companion object {
-        private val nativeKeys=arrayOf("layer","class","subclass","bicycle","network","ref_length")
+        private val nativeKeys=arrayOf("layer","class","subclass","bicycle","network","ref_length","housenumber")
         private val groundLayers=setOf("landcover","landuse","park","water")
         private val trackMinorFlags=setOf("bcycle:bright:highway-minor","bcycle:bright:highway-minor-casing","bcycle:bright:tunnel-service-track","bcycle:bright:tunnel-service-track-casing")
         private val layers:Map<String,List<Layer>> by lazy {

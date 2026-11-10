@@ -597,6 +597,7 @@ class MainActivity : Activity() {
         runtime.mapState.loadStatistics { if(statisticsView===content) content.show(it) }
     }
     private fun showMenu(advanced: Boolean = false) {
+        mapPanel.hideMapEditors()
         // Capture before settings restore Android's own status bar and change the insets.
         if(::dashboardStatus.isInitialized && dashboardStatus.visibility==View.VISIBLE)
             dashboardStatusReport=dashboardStatus.geometryReport()
@@ -1551,19 +1552,6 @@ class MainActivity : Activity() {
         }.apply { visibility=if(source.selectedSource==MapSource.VECTOR) View.VISIBLE else View.GONE }
         var cyclingStyles=newCyclingStyles()
         var loadingStyle=false
-        val vectorOptions=BicycleFrameDropdown(settingsContext,settingsThemes,getString(R.string.map_vector_layers),open=false,leadingIcon=BicycleIcon.Map).apply {
-            tag="map_vector_layers"
-            visibility=if(source.selectedSource==MapSource.VECTOR) View.VISIBLE else View.GONE
-        }
-        val layerSwitches=MapVectorLayer.entries.filterNot { it==MapVectorLayer.CYCLE_ROUTES }.associateWith { layer ->
-            Switch(settingsContext).apply {
-                text=getString(layer.title);tag=layer.key;isChecked=preferences.getBoolean(layer.key,layer.defaultVisible)
-                vectorOptions.content.addView(this)
-            }
-        }
-        vectorOptions.content.addView(BicycleComponents.fieldLabel(settingsContext,settingsThemes,getString(R.string.map_layer_contours_info)))
-        root.addView(vectorOptions)
-        root.addView(BicycleComponents.sectionDivider(settingsContext,settingsThemes).apply { tag="map_line_style_divider" })
         var sourcePosition=source.selectedItemPosition
         source.onItemSelectedListener=object:AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent:AdapterView<*>?)=Unit
@@ -1574,7 +1562,6 @@ class MainActivity : Activity() {
                 loadingStyle=true
                 try {
                     MapStyleLibrary.load(preferences,source.selectedStyleId)
-                    layerSwitches.forEach { (layer,control) -> control.isChecked=preferences.getBoolean(layer.key,layer.defaultVisible) }
                     val index=root.indexOfChild(cyclingStyles)
                     if(index>=0) { root.removeView(cyclingStyles);cyclingStyles=newCyclingStyles();root.addView(cyclingStyles,index,LinearLayout.LayoutParams(-1,-2)) }
                 } finally { loadingStyle=false }
@@ -1584,7 +1571,6 @@ class MainActivity : Activity() {
             if(loadingStyle || runtime.bikes.activeSlot!=slot || !root.isAttachedToWindow) return@observeSettings
             val chosen=source.selectedSource
             cyclingStyles.visibility=if(chosen==MapSource.VECTOR) View.VISIBLE else View.GONE
-            vectorOptions.visibility=cyclingStyles.visibility
             keyRow.visibility=if(chosen==MapSource.OPENCYCLEMAP) View.VISIBLE else View.GONE
             val entered=providerKey.text.toString().trim()
             val validKey=entered.isEmpty() || MapProviderSettings.valid(entered)
@@ -1594,13 +1580,12 @@ class MainActivity : Activity() {
             BicycleFeedback.update(providerStatus,if(!available) getString(R.string.map_thunderforest_required) else "",hideWhenEmpty=true)
             val edit=preferences.edit()
             if(available) edit.putString("mapSource",chosen.name)
-            layerSwitches.forEach { (layer,control) -> edit.putBoolean(layer.key,control.isChecked) }
             edit.putBoolean("mapHeightVisible",mapHeight.isChecked).putBoolean("mapWindRoseVisible",windRose.isChecked)
                 .apply()
             mapPanel.refreshSettings()
         }
         // Keep track-owned switch listeners independent of the generic form observer.
-        root.addView(cyclingStyles,root.indexOfChild(vectorOptions),LinearLayout.LayoutParams(-1,-2))
+        root.addView(cyclingStyles,LinearLayout.LayoutParams(-1,-2))
         root.addView(MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,setSlotVisible={ index,on ->
             if(runtime.bikes.activeSlot==slot) runtime.mapState.setRouteSlotVisibility(index,on)
         }) {

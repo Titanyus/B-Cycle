@@ -42,6 +42,18 @@ internal object MapStyleLibrary {
         prefs.edit().putString(KEY,encoded).putString(ACTIVE,value.id).apply()
         return value
     }
+    fun delete(prefs:SharedPreferences,id:String) {
+        val rows=parse(prefs.getString(KEY,"[]")!!).filterNot { it.id==id }
+        val edit=prefs.edit().putString(KEY,json(rows).toString())
+        if(prefs.getString(ACTIVE,null)==id) edit.remove(ACTIVE)
+        edit.apply()
+    }
+    fun move(prefs:SharedPreferences,id:String,delta:Int) {
+        val rows=parse(prefs.getString(KEY,"[]")!!).toMutableList();val index=rows.indexOfFirst { it.id==id }
+        if(index<0 || index+delta !in rows.indices) return
+        java.util.Collections.swap(rows,index,index+delta)
+        prefs.edit().putString(KEY,json(rows).toString()).apply()
+    }
     fun load(prefs:SharedPreferences,id:String?) {
         val json=if(id==null) MapStyleOverrides().json().put("visibility",JSONObject().apply {
             MapVectorLayer.entries.forEach { put(it.name,it.defaultVisible) }

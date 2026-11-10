@@ -56,6 +56,11 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     private val controls = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
     private val zoomControls = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; tag = "map_zoom_controls" }
+    private lateinit var sourceButton:Button
+    private var sourcePopup:MapSourcePopup?=null
+    private var editorsVisible=false
+    private var sourceHold:Runnable?=null
+    fun hideMapEditors() { sourceHold?.let(handler::removeCallbacks);editorsVisible=false;sourcePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();if(::layersButton.isInitialized) { layersButton.visibility=GONE;styleButton.visibility=GONE;requestLayout() } }
     private lateinit var styleButton:Button
     private var stylePopup:MapStyleEditorPopup?=null
     private lateinit var layersButton:Button
@@ -81,8 +86,8 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun setEditing(value: Boolean) {
         editing = value
-        if(value) { routePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss() }
-        layersButton.isEnabled=!value;styleButton.isEnabled=!value
+        if(value) { routePopup?.dismiss();sourcePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss() }
+        layersButton.isEnabled=!value;styleButton.isEnabled=!value;sourceButton.isEnabled=!value
         dataFields.setEditing(value, runtime.themes.active.tokens.primary)
         editorFinish.visibility = if (value) VISIBLE else GONE
         for (i in 0 until controls.childCount) controls.getChildAt(i).isEnabled = !value
@@ -181,7 +186,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     var controlsVisibilityChanged: ((Boolean) -> Unit)? = null
     private val hideControls = Runnable {
         if (!running || editing || !runtime.isMoving || routePopup?.isShowing==true || layersPopup?.isShowing==true || stylePopup?.isShowing==true) return@Runnable
-        controls.visibility = INVISIBLE; zoomControls.visibility = GONE; routeButton.visibility = GONE; layersButton.visibility=GONE; styleButton.visibility=GONE; nightButton.visibility = GONE
+        controls.visibility = INVISIBLE; zoomControls.visibility = GONE; routeButton.visibility = GONE; sourceButton.visibility=GONE; layersButton.visibility=GONE; styleButton.visibility=GONE; nightButton.visibility = GONE
         updateWindRose();controlsVisibilityChanged?.invoke(false)
     }
     val mapView: BicycleMapView
@@ -269,16 +274,32 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             tag="map_route_toggle"; gravity = Gravity.CENTER; setPadding(dp(MapControlDesign.trackHorizontalPadding), dp(MapControlDesign.trackTopPadding), dp(MapControlDesign.trackHorizontalPadding), 0)
         }
         refreshRouteButton()
+        sourceButton=icon("",context.getString(R.string.ui_map_source),null) {
+            holdControls();sourcePopup?.dismiss()
+            sourcePopup=MapSourcePopup(sourceButton,runtime,{ refreshSettings() },{ scheduleHide() }).also { it.show() }
+        }.apply {
+            tag="map_source_button";graphic(this,BicycleIcon.Map)
+            var unlocked=false;var cancelled=false;var downX=0f;var downY=0f
+            val reveal=Runnable { unlocked=true;editorsVisible=true;revealControls();requestLayout() };sourceHold=reveal
+            setOnTouchListener { view,event ->
+                when(event.actionMasked) {
+                    android.view.MotionEvent.ACTION_DOWN -> { holdControls();unlocked=false;cancelled=false;downX=event.x;downY=event.y;handler.postDelayed(reveal,2000) }
+                    android.view.MotionEvent.ACTION_MOVE -> if(kotlin.math.abs(event.x-downX)>android.view.ViewConfiguration.get(context).scaledTouchSlop || kotlin.math.abs(event.y-downY)>android.view.ViewConfiguration.get(context).scaledTouchSlop) { cancelled=true;handler.removeCallbacks(reveal) }
+                    android.view.MotionEvent.ACTION_UP,android.view.MotionEvent.ACTION_CANCEL -> { handler.removeCallbacks(reveal);if(!unlocked) scheduleHide();if(unlocked || cancelled) { view.isPressed=false;return@setOnTouchListener true } }
+                };false
+            }
+        }
+        addView(sourceButton,LayoutParams(dp(MapControlDesign.dashboardWidth),dp(MapControlDesign.buttonHeight),Gravity.TOP or Gravity.START).apply { topMargin=dp(MapControlDesign.edgeGap);marginStart=dp(MapControlDesign.nightOffset) })
         layersButton=icon("",context.getString(R.string.map_vector_layers),null) {
-            holdControls();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
+            holdControls();sourcePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
             layersPopup=MapLayersPopup(layersButton,runtime,changed={ refreshSettings() },closed={ scheduleHide() }).also { it.show() }
-        }.apply { tag="map_layers_button";graphic(this,BicycleIcon.Layers);visibility=if(source==MapSource.VECTOR) VISIBLE else GONE }
-        addView(layersButton,LayoutParams(dp(MapControlDesign.dashboardWidth),dp(MapControlDesign.buttonHeight),Gravity.TOP or Gravity.START).apply { topMargin=dp(MapControlDesign.edgeGap);marginStart=dp(MapControlDesign.nightOffset) })
+        }.apply { tag="map_layers_button";graphic(this,BicycleIcon.Layers);visibility=GONE }
+        addView(layersButton,LayoutParams(dp(MapControlDesign.dashboardWidth),dp(MapControlDesign.buttonHeight),Gravity.TOP or Gravity.START).apply { topMargin=dp(MapControlDesign.edgeGap);marginStart=dp(MapControlDesign.editorOffset) })
         styleButton=icon("",context.getString(R.string.map_style_editor),null) {
-            holdControls();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
+            holdControls();sourcePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
             stylePopup=MapStyleEditorPopup(styleButton,runtime,changed={ refreshSettings() },export=exportStyle,closed={ scheduleHide() }).also { it.show() }
-        }.apply { tag="map_style_editor_button";graphic(this,BicycleIcon.EditDashboard);visibility=if(source==MapSource.VECTOR) VISIBLE else GONE }
-        addView(styleButton,LayoutParams(dp(MapControlDesign.dashboardWidth),dp(MapControlDesign.buttonHeight),Gravity.TOP or Gravity.START).apply { topMargin=dp(MapControlDesign.edgeGap);marginStart=dp(MapControlDesign.editorOffset) })
+        }.apply { tag="map_style_editor_button";graphic(this,BicycleIcon.EditDashboard);visibility=GONE }
+        addView(styleButton,LayoutParams(dp(MapControlDesign.dashboardWidth),dp(MapControlDesign.buttonHeight),Gravity.TOP or Gravity.START).apply { topMargin=dp(MapControlDesign.edgeGap);marginStart=dp(MapControlDesign.editorOffset+MapControlDesign.dashboardWidth+MapControlDesign.buttonGap) })
         addView(routeButton, LayoutParams(dp(MapControlDesign.dashboardWidth), dp(MapControlDesign.buttonHeight), Gravity.TOP or Gravity.START).apply { topMargin = dp(MapControlDesign.edgeGap); marginStart = dp(MapControlDesign.edgeGap) })
         addView(zoomControls, LayoutParams(dp(MapControlDesign.dashboardWidth), -2, Gravity.BOTTOM or Gravity.END).apply { bottomMargin = 0; marginEnd = dp(MapControlDesign.edgeGap) })
         dataFields.reload(preferences)
@@ -310,12 +331,13 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
     }
     fun resume(reveal:Boolean=true) { motion.reset();ovalAnchor.hold(android.os.SystemClock.uptimeMillis());lastTrack=-1L;running=true;mapView.resumeMap();downloads.resume();if(reveal) revealControls() else if(controls.visibility==VISIBLE) scheduleHide();refresh() }
     fun pause() {
-        routePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss();pinchZoom.cancel();running=false;phoneHeading.stop();stopMotion()
+        sourceHold?.let(handler::removeCallbacks)
+        routePopup?.dismiss();sourcePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss();pinchZoom.cancel();running=false;phoneHeading.stop();stopMotion()
         saverFrames.cancel();handler.removeCallbacksAndMessages(null);downloads.pause();mapView.pauseMap();saveCamera()
     }
     fun destroy() { pause();routes.dispose();mapView.disposeMap() }
     internal fun refreshProfileSettings() {
-        layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
+        sourcePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss()
         pinchZoom.cancel()
         dataFields.resetTrends()
         refreshSettings()
@@ -343,9 +365,10 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             if (running) downloads.resume()
             credit.text = context.getString(R.string.map_credit_compact)
         }
-        layersButton.visibility=if(source==MapSource.VECTOR && controls.visibility==VISIBLE) VISIBLE else GONE
+        layersButton.visibility=if(editorsVisible && source==MapSource.VECTOR && controls.visibility==VISIBLE) VISIBLE else GONE
         styleButton.visibility=layersButton.visibility
-        if(source!=MapSource.VECTOR) { layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss() }
+        sourceButton.visibility=if(controls.visibility==VISIBLE) VISIBLE else GONE
+        if(source!=MapSource.VECTOR) { sourcePopup?.dismiss();layersPopup?.dismiss();stylePopup?.dismiss();creditsPopup?.dismiss() }
         night = preferences.getBoolean("mapNight", false); applyNight()
         dataFields.reload(preferences)
         refreshRouteButton()
@@ -459,11 +482,12 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         val nightMargin = nightButton.layoutParams as LayoutParams
         nightMargin.height = topHeight
         routeButton.layoutParams.height=topHeight
+        sourceButton.layoutParams.height=topHeight
         layersButton.layoutParams.height=topHeight
         styleButton.layoutParams.height=topHeight
         val nextTopEnd = if (measuredHeight - nextZoomMargin - 2 * buttonHeight - dp(MapControlDesign.collisionGap) < topHeight + dp(MapControlDesign.edgeGap)) dp(MapControlDesign.compactRowOffset) else dp(MapControlDesign.edgeGap)
         var changed = topChanged
-        val leftEdge=dp((if(source==MapSource.VECTOR) MapControlDesign.editorOffset else MapControlDesign.nightOffset)+MapControlDesign.dashboardWidth+MapControlDesign.collisionGap)
+        val leftEdge=dp((if(editorsVisible && source==MapSource.VECTOR) MapControlDesign.editorOffset+MapControlDesign.dashboardWidth+MapControlDesign.buttonGap else MapControlDesign.nightOffset)+MapControlDesign.dashboardWidth+MapControlDesign.collisionGap)
         val controlWidth=((measuredWidth-nextTopEnd-leftEdge)/controls.childCount-dp(MapControlDesign.buttonGap))
             .coerceIn(dp(MapControlDesign.compactMinWidth),dp(MapControlDesign.dashboardWidth))
         for(index in 0 until controls.childCount) {
@@ -487,6 +511,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
             controls.layoutParams = topMargin
             nightButton.layoutParams = nightMargin
             routeButton.layoutParams=routeButton.layoutParams
+            sourceButton.layoutParams=sourceButton.layoutParams
             layersButton.layoutParams=layersButton.layoutParams
             styleButton.layoutParams=styleButton.layoutParams
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -570,7 +595,7 @@ class MapPanel(context: Context, private val runtime: RideRuntime, private val f
         saveCamera()
     }
     private fun saveCamera() { mapView.save(preferences) }
-    fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; layersButton.visibility=if(source==MapSource.VECTOR) VISIBLE else GONE; styleButton.visibility=layersButton.visibility; nightButton.visibility = GONE; updateWindRose();controlsVisibilityChanged?.invoke(true); scheduleHide() }
+    fun revealControls() { controls.visibility = VISIBLE; zoomControls.visibility = VISIBLE; routeButton.visibility = VISIBLE; layersButton.visibility=if(editorsVisible && source==MapSource.VECTOR) VISIBLE else GONE; styleButton.visibility=layersButton.visibility;sourceButton.visibility=VISIBLE; nightButton.visibility = GONE; updateWindRose();controlsVisibilityChanged?.invoke(true); scheduleHide() }
     fun holdControls() { handler.removeCallbacks(hideControls) }
     private fun updateMotionControls() {
         val next = runtime.isMoving

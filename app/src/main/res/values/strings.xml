@@ -839,4 +839,5 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_style_saved">Kartenstil gespeichert</string>
     <string name="map_style_save_error">Bitte einen gültigen Namen eingeben. Maximal 32 Stile können gespeichert werden.</string>
     <string name="map_layer_urban">Stadt- und Siedlungsflächen</string>
+    <string name="map_house_numbers">Hausnummern</string>
 </resources>

@@ -38,8 +38,9 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
     WATER_TEXT(R.string.map_style_water_text,false,setOf("waterway-name","water-name-lakeline","water-name-ocean","water-name-other")),
     CONTOUR(R.string.map_layer_contours,true,setOf("contour-minor","contour-major")),
     TRACK(R.string.map_style_tracks,true,setOf("bcycle-track","bcycle-track-tunnel")),
-    CYCLE_ROUTES(R.string.map_cycling_routes,true,setOf("bcycle-cycle-route"));
-    val outlined get()=this==MOTORWAY || this==PRIMARY || this==SECONDARY || this==MINOR || this==PLACE_TEXT
+    CYCLE_ROUTES(R.string.map_cycling_routes,true,setOf("bcycle-cycle-route")),
+    HOUSE_TEXT(R.string.map_house_numbers,false,setOf("house-number"));
+    val outlined get()=this==MOTORWAY || this==PRIMARY || this==SECONDARY || this==MINOR || this==PLACE_TEXT || this==ROAD_TEXT || this==HOUSE_TEXT
 }
 internal data class MapOutlineStyle(val color:Int?=null,val alpha:Int?=null,val widthPercent:Int?=null)
 internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null,val widthPercent:Int?=null,val outline:MapOutlineStyle?=null)
@@ -81,7 +82,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
         for(kind in listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES)) put(kind.id,MapRouteStyles.read(prefs,kind).json())
     }).toString(2)
     companion object {
-        private val textTargets=setOf(MapStyleTarget.PLACE_TEXT,MapStyleTarget.ROAD_TEXT,MapStyleTarget.WATER_TEXT)
+        private val textTargets=setOf(MapStyleTarget.PLACE_TEXT,MapStyleTarget.ROAD_TEXT,MapStyleTarget.WATER_TEXT,MapStyleTarget.HOUSE_TEXT)
         const val KEY="mapStyleOverridesV1"
         const val BASE_SHA="cda8931095c5101cbad5d2a60fa129600a1a0ad3dea27d802be341fb5eae071f"
         fun read(prefs:SharedPreferences)=runCatching { parse(JSONObject(prefs.getString(KEY,null) ?: return MapStyleOverrides())) }.getOrDefault(MapStyleOverrides())

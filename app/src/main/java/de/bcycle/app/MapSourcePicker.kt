@@ -13,15 +13,15 @@ internal class MapSourcePicker(context:Context,private val themes:ThemeManager,p
     }
     private val saved=prefs?.let(MapStyleLibrary::read).orEmpty()
     private val bright=saved.firstOrNull { it.name.equals("Bright",true) }
-    private val styles=saved.filterNot { it===bright }
-    private val choices:List<MapSource?> = listOf(null,MapSource.CYCLOSM,MapSource.OSM,MapSource.OPENTOPOMAP,MapSource.OPENCYCLEMAP,null,null,MapSource.VECTOR)+List(styles.size) { MapSource.VECTOR }
+    private val styles:List<SavedMapStyle?> = if(bright==null) listOf(null)+saved else saved
+    private val choices:List<MapSource?> = listOf(null,MapSource.CYCLOSM,MapSource.OSM,MapSource.OPENTOPOMAP,MapSource.OPENCYCLEMAP,null,null)+List(styles.size) { MapSource.VECTOR }
     private var fallback=MapSource.CYCLOSM
     val selectedSource get()=choices.getOrNull(selectedItemPosition) ?: fallback
-    val selectedStyleId get()=if(selectedItemPosition==7) bright?.id else styles.getOrNull(selectedItemPosition-8)?.id
+    val selectedStyleId get()=styles.getOrNull(selectedItemPosition-7)?.id
     fun select(source:MapSource) {
         fallback=source
-        val saved=if(source==MapSource.VECTOR) styles.indexOfFirst { it.id==prefs?.getString(MapStyleLibrary.ACTIVE,null) } else -1
-        setSelection(if(saved>=0) 8+saved else position(source))
+        val saved=if(source==MapSource.VECTOR) styles.indexOfFirst { it?.id==prefs?.getString(MapStyleLibrary.ACTIVE,null) } else -1
+        setSelection(if(saved>=0) 7+saved else if(source==MapSource.VECTOR) 7+styles.indexOfFirst { it==null || it===bright }.coerceAtLeast(0) else position(source))
     }
     init {
         contentDescription=context.getString(R.string.ui_map_source)
@@ -31,8 +31,7 @@ internal class MapSourcePicker(context:Context,private val themes:ThemeManager,p
                 0->context.getString(R.string.map_source_raster_heading)
                 6->context.getString(R.string.map_source_vector_heading)
                 5->""
-                7->context.getString(R.string.map_source_bright)
-                else->if(position>=8) styles[position-8].name else choices[position]!!.label(context)
+                else->if(position>=7) styles[position-7]?.name ?: context.getString(R.string.map_source_bright) else choices[position]!!.label(context)
             }
             override fun getItemId(position:Int)=if(position>=8) position.toLong() else choices[position]?.ordinal?.toLong() ?: -(position+1L)
             override fun areAllItemsEnabled()=false

@@ -146,7 +146,7 @@ class MapStyleLibraryTest {
             assertEquals("Meine Karte",source.adapter.getItem(8))
             source.setSelection(8);shadowOf(Looper.getMainLooper()).idle()
             assertEquals(custom,MapStyleOverrides.read(prefs));assertEquals(saved.id,prefs.getString(MapStyleLibrary.ACTIVE,null))
-            assertTrue(dialog.window!!.decorView.findViewWithTag<android.widget.Switch>(MapVectorLayer.CONTOURS.key).isChecked)
+            assertTrue(prefs.getBoolean(MapVectorLayer.CONTOURS.key,false));assertNull(dialog.window!!.decorView.findViewWithTag<android.widget.Switch>(MapVectorLayer.CONTOURS.key))
             val draft=custom.update(MapStyleTarget.FOREST,MapObjectStyle(Color.MAGENTA));draft.write(prefs)
             dialog.dismiss();shadowOf(Looper.getMainLooper()).idle();dialog=settings()
             source=testDescendants(dialog.window!!.decorView).filterIsInstance<MapSourcePicker>().single()

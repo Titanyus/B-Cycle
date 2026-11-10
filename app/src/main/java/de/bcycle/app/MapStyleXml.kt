@@ -110,21 +110,30 @@ internal object MapStyleXml {
                     else e.setAttribute("dasharray",pattern.mapIndexed { index,value -> if(index%2==1) MapRoadSurface.gapLength.toString() else if(value<=1) value.toString() else MapRoadSurface.dashLength.toString() }.joinToString(","))
                 }
             }
-            if(e.tagName in setOf("text","caption") && id.startsWith("place-")) {
-                val outline=style.objects[MapStyleTarget.PLACE_TEXT]?.outline
-                if(e.hasAttribute("stroke")) e.setAttribute("stroke",hex(((outline?.color ?: Color.WHITE) and 0xffffff) or ((outline?.alpha ?: 255) shl 24)))
-                if(e.hasAttribute("stroke-width")) e.setAttribute("stroke-width",(e.getAttribute("stroke-width").toDouble()*MapPlaceHalo.widthScale*(outline?.widthPercent ?: 100)/100.0).toString())
+            if(e.tagName in setOf("text","caption") && (id.startsWith("place-") || id in MapStyleTarget.ROAD_TEXT.ids || id in MapStyleTarget.HOUSE_TEXT.ids)) {
+                val place=id.startsWith("place-")
+                val target=if(place) MapStyleTarget.PLACE_TEXT else if(id in MapStyleTarget.ROAD_TEXT.ids) MapStyleTarget.ROAD_TEXT else MapStyleTarget.HOUSE_TEXT
+                val outline=style.objects[target]?.outline
+                if(e.hasAttribute("stroke")) {
+                    val original=Color.parseColor(e.getAttribute("stroke"))
+                    val color=outline?.color ?: if(place) Color.WHITE else original
+                    val alpha=outline?.alpha ?: if(place) 255 else Color.alpha(original)
+                    e.setAttribute("stroke",hex((color and 0xffffff) or (alpha shl 24)))
+                }
+                if(e.hasAttribute("stroke-width")) e.setAttribute("stroke-width",(e.getAttribute("stroke-width").toDouble()*(if(place) MapPlaceHalo.widthScale else 1)*(outline?.widthPercent ?: 100)/100.0).toString())
             }
         }
         return serialize(doc)
     }
     fun defaultColor(xml:String,target:MapStyleTarget,outline:Boolean=false):Int {
         if(target==MapStyleTarget.PLACE_TEXT && outline) return Color.WHITE
+        if(target==MapStyleTarget.HOUSE_TEXT) return if(outline) Color.WHITE else Color.rgb(85,85,85)
         val doc=document(xml)
         if(target==MapStyleTarget.BACKGROUND) return Color.parseColor(doc.documentElement.getAttribute("map-background"))
         val all=doc.getElementsByTagName("*")
         for(i in 0 until all.length) {
             val element=all.item(i) as? Element ?: continue
+            if(outline && target in setOf(MapStyleTarget.ROAD_TEXT,MapStyleTarget.HOUSE_TEXT) && element.getAttribute("id") in target.ids && element.hasAttribute("stroke")) return Color.parseColor(element.getAttribute("stroke"))
             if(if(outline) element.getAttribute("id").removeSuffix("-casing") !in target.ids || !element.getAttribute("id").endsWith("-casing") else element.getAttribute("id") !in target.ids) continue
             val attribute=if(element.tagName=="line") "stroke" else "fill"
             if(element.hasAttribute(attribute)) return Color.parseColor(element.getAttribute(attribute))
