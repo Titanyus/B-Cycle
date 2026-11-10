@@ -1,3 +1,11 @@
+# Natur-/Stadtflächen und Ortskonturen nach Build151
+
+Eigene URBAN-Ebene für residential/commercial/industrial/hospital/school/railway/military aus landuse; Natur behält landcover, Parks und übrige landuse (z.B. farmland). Bestehende separate Editor-Farbziele bleiben erhalten, neue Sichtbarkeit automatisch Teil von Profil-/JSON-/Stilsammlung und Kartensicherung.
+
+PLACE_TEXT verwendet nun denselben zweispaltigen Editor wie Straßen: links Füll-RGBA, rechts Kontur-RGBA und relative Konturstärke25–300% der bisherigen vollweißen doppelten Kontur. Outline im bestehenden objects.PLACE_TEXT-JSON-Block; alte Stile behalten ihre bisherigen Defaults. Native Glyphen/Atlas bei Konturänderungen neu erstellen, nicht fälschlich nur GL-Farbhandles ändern. Tatsächliche Text-Stroke-Paints/Atlaspadding bleiben zusammenhängend.
+
+Drei gezielte MapPlaceOutlineTest-Fälle grün: getrennte native Tagfilter, Textfüllung/Konturfarbe/Alpha/Stärke für city/town/village/hamlet samt benanntem Stil und Sichtbarkeitspersistenz, zweispaltiger Editor und echter Breitenregler. Log map-place-outline-tests.log; Compile erfolgreich. Keine Gesamtsuite/Profiling. Neue APK ausdrücklich angefordert.
+
 # Korrektur Speicherdialog und Bright nach Build150
 
 Gemeldeter Fehler bestätigt: BicycleNavigation.hideNavigationFooter blendet native Standardbuttons „Speichern“/„Abbrechen“ absichtlich aus. Der neue Stildialog hatte genau solche Buttons verwendet; frühere Tests konnten unsichtbare Buttons via performClick auslösen und übersahen damit den Gerätefehler. Jetzt eigene sichtbare Aktionen nebeneinander im Dialoginhalt, gleiche zentrale Buttonkomponente; allgemeine Dialognavigation unverändert. Tests prüfen vor dem Auslösen isShown und eine nichtleere getGlobalVisibleRect-Fläche.

@@ -18,7 +18,8 @@ internal enum class MapVectorLayer(val title:Int,val defaultVisible:Boolean=true
     CONTOURS(R.string.map_layer_contours,false,MapCredits.terrain),
     ADMIN_AREAS(R.string.map_layer_admin_areas),
     CYCLE_ROUTES(R.string.map_cycling_routes,false,MapCredits.cyclingRoutes),
-    HILLSHADE(R.string.map_layer_hillshade,false,MapCredits.hillshade);
+    HILLSHADE(R.string.map_layer_hillshade,false,MapCredits.hillshade),
+    URBAN(R.string.map_layer_urban);
     val key get()="mapVectorLayer_$name"
 }
 internal data class MapVectorLayers(val visible:Set<MapVectorLayer> = MapVectorLayer.entries.filter { it.defaultVisible }.toSet()) {
@@ -28,7 +29,8 @@ internal data class MapVectorLayers(val visible:Set<MapVectorLayer> = MapVectorL
         val category=when(source) {
             "poi","aerodrome_label" -> MapVectorLayer.POIS
             "building" -> MapVectorLayer.BUILDINGS
-            "landcover","landuse","park" -> MapVectorLayer.NATURE
+            "landuse" -> if(tags.getValue("class") in setOf("residential","commercial","industrial","hospital","school","railway","military")) MapVectorLayer.URBAN else MapVectorLayer.NATURE
+            "landcover","park" -> MapVectorLayer.NATURE
             "water","waterway","water_name" -> MapVectorLayer.WATER
             "place" -> MapVectorLayer.PLACE_NAMES
             "boundary" -> when(tags.getValue("admin_level")?.toIntOrNull()) {

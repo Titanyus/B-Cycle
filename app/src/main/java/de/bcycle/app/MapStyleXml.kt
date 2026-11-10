@@ -83,7 +83,7 @@ internal object MapStyleXml {
         return serialize(doc)
     }
     /** Enforce semantic road dashes after legacy/manual patterns, including casings and bike highlights. */
-    fun roadSurfaces(xml:String):String {
+    fun roadSurfaces(xml:String,style:MapStyleOverrides=MapStyleOverrides()):String {
         val doc=document(xml)
         val nodes=doc.getElementsByTagName("line")
         val roads=(0 until nodes.length).map { nodes.item(it) as Element }.filter { MapRoadSurface.roadId(it.getAttribute("id")) }
@@ -111,13 +111,15 @@ internal object MapStyleXml {
                 }
             }
             if(e.tagName in setOf("text","caption") && id.startsWith("place-")) {
-                if(e.hasAttribute("stroke")) e.setAttribute("stroke","#ffffffff")
-                if(e.hasAttribute("stroke-width")) e.setAttribute("stroke-width",(e.getAttribute("stroke-width").toDouble()*MapPlaceHalo.widthScale).toString())
+                val outline=style.objects[MapStyleTarget.PLACE_TEXT]?.outline
+                if(e.hasAttribute("stroke")) e.setAttribute("stroke",hex(((outline?.color ?: Color.WHITE) and 0xffffff) or ((outline?.alpha ?: 255) shl 24)))
+                if(e.hasAttribute("stroke-width")) e.setAttribute("stroke-width",(e.getAttribute("stroke-width").toDouble()*MapPlaceHalo.widthScale*(outline?.widthPercent ?: 100)/100.0).toString())
             }
         }
         return serialize(doc)
     }
     fun defaultColor(xml:String,target:MapStyleTarget,outline:Boolean=false):Int {
+        if(target==MapStyleTarget.PLACE_TEXT && outline) return Color.WHITE
         val doc=document(xml)
         if(target==MapStyleTarget.BACKGROUND) return Color.parseColor(doc.documentElement.getAttribute("map-background"))
         val all=doc.getElementsByTagName("*")

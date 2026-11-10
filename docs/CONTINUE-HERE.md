@@ -1,3 +1,7 @@
+# Neue Änderungen und APK-Auftrag nach Build151
+
+Natur und Stadtflächen unabhängig schaltbar (URBAN), Ortsnamen mit zweispaltigem Füll-/Kontur-RGBA und Konturstärke. JSON/benannte Stile/Backups erhalten. Drei gezielte native/UI-/Persistenzfälle grün, map-place-outline-tests.log; Details docs/vtm-map-editor.md. APK0.8.107/code177 für Actions152 vorbereiten und veröffentlichen; ausdrücklicher Auftrag vorhanden.
+
 # Aktueller Stand: APK0.8.106 / Build151
 
 Gemeldeten Kartenstil-Speicherfehler behoben und ausdrücklich angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlicher direkter Raw-Download abgeschlossen; bytegleich zum Actions-Artefakt.

@@ -122,7 +122,7 @@ internal class VtmCycleTheme(private val cycleways:Boolean,private val style:Map
             </m>
             """.trimIndent()
         }
-        return MapStyleXml.roadSurfaces(MapStyleXml.apply(if(cycleways) base.replace("</rendertheme>","$highlight\n</rendertheme>") else base,style)).byteInputStream()
+        return MapStyleXml.roadSurfaces(MapStyleXml.apply(if(cycleways) base.replace("</rendertheme>","$highlight\n</rendertheme>") else base,style),style).byteInputStream()
     }
 }
 

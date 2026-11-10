@@ -75,7 +75,7 @@ internal class MapStyleEditorView(context:Context,private val prefs:SharedPrefer
                 override fun onStartTrackingTouch(bar:SeekBar)=Unit
                 override fun onStopTrackingTouch(bar:SeekBar)=Unit
                 override fun onProgressChanged(bar:SeekBar,value:Int,fromUser:Boolean) {
-                    if(updating || !selected.line || !currentProfile()) return
+                    if(updating || (!selected.line && !(outline && selected.outlined)) || !currentProfile()) return
                     val old=current()
                     val next=if(outline) old.copy(outline=(old.outline ?: MapOutlineStyle()).copy(widthPercent=value))
                         else old.copy(widthPercent=value,outline=if(selected.outlined)

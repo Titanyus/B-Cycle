@@ -39,7 +39,7 @@ internal enum class MapStyleTarget(val title:Int,val line:Boolean,val ids:Set<St
     CONTOUR(R.string.map_layer_contours,true,setOf("contour-minor","contour-major")),
     TRACK(R.string.map_style_tracks,true,setOf("bcycle-track","bcycle-track-tunnel")),
     CYCLE_ROUTES(R.string.map_cycling_routes,true,setOf("bcycle-cycle-route"));
-    val outlined get()=this==MOTORWAY || this==PRIMARY || this==SECONDARY || this==MINOR
+    val outlined get()=this==MOTORWAY || this==PRIMARY || this==SECONDARY || this==MINOR || this==PLACE_TEXT
 }
 internal data class MapOutlineStyle(val color:Int?=null,val alpha:Int?=null,val widthPercent:Int?=null)
 internal data class MapObjectStyle(val color:Int?=null,val dash:MapDash=MapDash.ORIGINAL,val alpha:Int?=null,val widthPercent:Int?=null,val outline:MapOutlineStyle?=null)
@@ -48,7 +48,7 @@ internal data class MapStyleOverrides(val objects:Map<MapStyleTarget,MapObjectSt
     fun canUpdateColorsFrom(previous:MapStyleOverrides)=placeLabels==previous.placeLabels && MapStyleTarget.entries.all { target ->
         val before=previous.objects[target] ?: MapObjectStyle()
         val after=objects[target] ?: MapObjectStyle()
-        before.dash==after.dash && before.widthPercent==after.widthPercent && before.outline?.widthPercent==after.outline?.widthPercent && (target !in textTargets || before.color==after.color && before.alpha==after.alpha)
+        before.dash==after.dash && before.widthPercent==after.widthPercent && before.outline?.widthPercent==after.outline?.widthPercent && (target !in textTargets || before.color==after.color && before.alpha==after.alpha && before.outline==after.outline)
     }
     /** Keep unmodified native geometry paints as exact per-zoom reset baselines. */
     fun compiledStyles()=copy(objects=objects.mapValues { (target,value) ->
