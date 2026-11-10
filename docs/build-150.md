@@ -14,3 +14,7 @@ Optimierter Release ausschließlich aus GitHub Actions. CI-Prüfsumme, dauerhaft
 [Änderungen](release-0.8.105.md): Erkennung abschließender Belastungen ohne letzte Erholung, Dashboard-Aufbereitung auf sichtbare/geänderte Inhalte begrenzt, interne benannte Kartenstile mit Überschreiben/Laden/Backup sowie synchroner Gesamtachsen-/Kurvenstand bei gemischten Zeitfenstern. Kurze Fenster1s normal/5s sparend, Gesamtverlauf10s in beiden Modi unverändert.
 
 Gezielte Struktur-/Daten-/Status-/Dialog-/Cache-/Editor-/Backup-/native Graphprüfungen erfolgreich. Details und Testlogs in den Fachberichten der Release-Notizen. Zwei alte fachfremde Editor-Testannahmen beim ersten weiter gefassten Stil-Lauf dokumentiert; aktuelle Funktionsfälle gezielt grün. Zentrale Typografie/UI-Katalog/Bright/Diff-Prüfungen bestanden. Keine Gesamtsuite, kein Profiling und kein lokaler APK-Build. Gerätedarstellung/Gesten weiter praktisch bestätigen; vorherige Bosch-Ladeadressen benötigen weiterhin reale Bestätigung.
+
+## Direkter Downloadnachweis
+
+Veröffentlichten Raw-Download tatsächlich abgerufen:4445809Bytes, binär identisch zum geprüften Actions-Artefakt. SHA-256 `e66e2a432d1d4898dc0a6b88bba97b806b3b5d753a3797f913809cc6fb53c163` ebenfalls identisch. Veröffentlichung:ec66542.
