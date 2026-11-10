@@ -1,14 +1,14 @@
-# Kartenstil-Speichern korrigiert, neue APK ausdrücklich angefordert
+# Aktueller Stand: APK0.8.106 / Build151
 
-Native Save/Cancel-Buttons waren von allgemeiner Dialognavigation verborgen; jetzt sichtbare Aktionen im Inhalt. Bright im Save-Dialog vorhanden und überschreibbar, eigener Bright-Snapshot wird in derselben Kartenquellenzeile geladen. Fünf gezielte Fälle mit Sichtbarkeit/realer Fläche sowie Stil-/Profil-/Backupabläufen grün, map-style-save-visible-bright-tests.log. [Details](vtm-map-editor.md). Nutzer hat neue APK angefordert; Version0.8.106/code176 für Actions151 vorbereiten, bauen und veröffentlichen.
+Gemeldeten Kartenstil-Speicherfehler behoben und ausdrücklich angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlichen Direktdownload nach Veröffentlichung noch abgleichen.
 
-# Aktueller Stand: APK0.8.105 / Build150
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.106-release-151.apk) · [Buildnachweis](build-151.md) · [Änderungen](release-0.8.106.md)
 
-Alle vier Aufträge seit Build149 implementiert, gezielt geprüft und in der ausdrücklich angeforderten APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlicher direkter Raw-Download abgeschlossen; bytegleich zum Actions-Artefakt.
+Actions42877730181 erfolgreich aus Quellstand631c960d173f0bde231dc5a531739a1f65ef6469, VersionCode176, Android13+. 4445809Bytes; SHA-25614c4737626c310f9afed8acab26462fae3fb05a8c6fb35bf88b03c0ca13f681b. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt geprüft; direkter Raw-Downloadnachweis folgt.
 
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.105-release-150.apk) · [Buildnachweis](build-150.md) · [Änderungen](release-0.8.105.md)
+## Korrektur nach Build150
 
-Actions42801216387 erfolgreich aus Quellstandfe75f58d811834a576765532819e636c4751e5f6, VersionCode175, Android13+. 4445809Bytes; SHA-256e66e2a432d1d4898dc0a6b88bba97b806b3b5d753a3797f913809cc6fb53c163. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt und tatsächlicher direkter Raw-Download bytegleich geprüft; Veröffentlichungec66542.
+Native Standardbuttons waren von BicycleNavigation.hideNavigationFooter verborgen worden. Jetzt eigene zentrale Save/Cancel-Aktionen nebeneinander im Dialoginhalt. Vorherige Tests hatten unsichtbare Buttons programmgesteuert ausgelöst; jetzt isShown/getGlobalVisibleRect prüfen. Bright im Save-Dialog als Vorlage/Überschreibziel; normaler validierter Bright-Snapshot mit stabiler ID wird in derselben MapSourcePicker-Zeile geladen, keine doppelte Bright-Zeile. Commit6dfbca6. Fünf gezielte Fälle grün (map-style-save-visible-bright-tests.log), Typografie/UI-Katalog/Bright/Diff grün. [Details](vtm-map-editor.md).
 
 ## Enthaltene Aufträge
 
@@ -21,6 +21,6 @@ Intervalle unverändert1s kurz normal/5s kurz sparend/10s vollständig in beiden
 
 ## Offene Gerätekontrollen
 
-Bediengefühl/Stildarstellung und Graphverhalten am Smartphone bestätigen. Frühere Bosch-Ladeinformationen weiterhin nicht am Nutzerrad bestätigt:0x00c4 öffentliche bool-Bestätigung,0x0089 nur benannt/Typ unbekannt; bei unbekanntem Zustand nutzergewählt Anroll-Fallback. Bestehende ältere Fahrtdubletten bleiben erhalten. [Vorheriger Build149](build-149.md) und Fachberichte enthalten die zugehörigen Nachweise.
+Bediengefühl/Stildarstellung am Smartphone bestätigen. Frühere Bosch-Ladeinformationen weiter nicht am Nutzerrad bestätigt; Anroll-Fallback bei unbekanntem Status. Bestehende ältere Fahrtdubletten bleiben erhalten. [Build150](build-150.md) und Fachberichte enthalten frühere Prüfnachweise/Gerätegrenzen.
 
-APK ausschließlich über Actions, nur bei Nutzerauftrag. Kein lokaler APK-Build, keinen zusätzlichen Dispatch neben Push. Reine Veröffentlichung/Downloadnachweis mit[skip ci].
+APK ausschließlich Actions und nur bei Auftrag. Kein lokaler APK-Build, keinen zusätzlichen Dispatch neben Push. Reine Veröffentlichung/Downloadnachweis mit[skip ci].
