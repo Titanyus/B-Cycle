@@ -19,6 +19,7 @@ import java.time.Duration
 @Config(sdk=[33])
 class MapControlAccessTest {
     private val c get()=RuntimeEnvironment.getApplication()
+    @org.junit.Before fun emptyUserLibrary() { c.getSharedPreferences("bike",0).edit().putString(MapStyleLibrary.KEY,"[]").putBoolean(MapStyleLibrary.INITIALIZED,true).commit() }
     @Test fun roadAndHouseTextHaveIndependentNativeFillHaloAndVisibility() {
         val view=BicycleMapView(c)
         val base=c.assets.open("styles/bright-vtm.xml").bufferedReader().use { it.readText() }

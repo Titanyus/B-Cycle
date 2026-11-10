@@ -1,3 +1,7 @@
+# Neue Änderungen nach Build153 (noch nicht in einer APK)
+
+Bright ist jetzt echter gespeicherter, endgültig löschbarer Stil mit einmaliger Migration/Restoremarker. Virtuelle Ersatzzeile entfernt, leere Sammlung/Arbeitskopie unterstützt. „Beschriftung“ umfasst alle editierbaren Textarten und zusätzliche Ortsklassen mit Größe/Gewicht. Echte Hausnummern in Originalkachel bestätigt (32 Einträge), Anzeigegrenze17→14, Ebene weiterhin standard aus.14 gezielte Methoden und zentrale Prüfungen grün, Log map-library-text-complete-tests.log. [Bericht/Prüfgrenzen](map-bright-typography-house-numbers.md). Kein neuer APK-Auftrag seit dieser Änderung, nicht auf main pushen.
+
 # Aktueller Stand: APK0.8.108 / Build153
 
 Aufträge implementiert, gezielt geprüft und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlicher Raw-Direktdownload abgeschlossen; bytegleich zum Actions-Artefakt.

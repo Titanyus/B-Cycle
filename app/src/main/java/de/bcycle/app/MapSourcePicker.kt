@@ -12,8 +12,7 @@ internal class MapSourcePicker(context:Context,private val themes:ThemeManager,p
         fun position(source:MapSource)=if(source==MapSource.VECTOR) 7 else source.ordinal+1
     }
     private val saved=prefs?.let(MapStyleLibrary::read).orEmpty()
-    private val bright=saved.firstOrNull { it.name.equals("Bright",true) }
-    private val styles:List<SavedMapStyle?> = if(bright==null) listOf(null)+saved else saved
+    private val styles=saved
     private val choices:List<MapSource?> = listOf(null,MapSource.CYCLOSM,MapSource.OSM,MapSource.OPENTOPOMAP,MapSource.OPENCYCLEMAP,null,null)+List(styles.size) { MapSource.VECTOR }
     private var fallback=MapSource.CYCLOSM
     val selectedSource get()=choices.getOrNull(selectedItemPosition) ?: fallback
@@ -21,7 +20,8 @@ internal class MapSourcePicker(context:Context,private val themes:ThemeManager,p
     fun select(source:MapSource) {
         fallback=source
         val saved=if(source==MapSource.VECTOR) styles.indexOfFirst { it?.id==prefs?.getString(MapStyleLibrary.ACTIVE,null) } else -1
-        setSelection(if(saved>=0) 7+saved else if(source==MapSource.VECTOR) 7+styles.indexOfFirst { it==null || it===bright }.coerceAtLeast(0) else position(source))
+        val original=styles.indexOfFirst { it.name.equals("Bright",true) }
+        setSelection(if(source!=MapSource.VECTOR) position(source) else if(saved>=0) 7+saved else if(original>=0) 7+original else -1)
     }
     init {
         contentDescription=context.getString(R.string.ui_map_source)
@@ -31,7 +31,7 @@ internal class MapSourcePicker(context:Context,private val themes:ThemeManager,p
                 0->context.getString(R.string.map_source_raster_heading)
                 6->context.getString(R.string.map_source_vector_heading)
                 5->""
-                else->if(position>=7) styles[position-7]?.name ?: context.getString(R.string.map_source_bright) else choices[position]!!.label(context)
+                else->if(position>=7) styles[position-7].name else choices[position]!!.label(context)
             }
             override fun getItemId(position:Int)=if(position>=8) position.toLong() else choices[position]?.ordinal?.toLong() ?: -(position+1L)
             override fun areAllItemsEnabled()=false

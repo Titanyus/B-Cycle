@@ -9,6 +9,7 @@ import java.util.UUID
 internal data class SavedMapStyle(val id:String,val name:String,val style:String)
 internal object MapStyleLibrary {
     const val KEY="savedVectorStylesV1"
+    const val INITIALIZED="savedVectorStylesInitializedV2"
     const val ACTIVE="mapSavedStyleId"
     const val MAX=32
     fun validId(id:String)=runCatching { UUID.fromString(id).toString()==id }.getOrDefault(false)
@@ -27,11 +28,25 @@ internal object MapStyleLibrary {
         require(values.map { it.name.lowercase(java.util.Locale.ROOT) }.distinct().size==values.size)
         return values
     }
-    fun read(prefs:SharedPreferences)=runCatching { parse(prefs.getString(KEY,"[]")!!) }.getOrDefault(emptyList())
+    fun read(prefs:SharedPreferences):List<SavedMapStyle> {
+        if(!prefs.getBoolean(INITIALIZED,false)) {
+            val rows=runCatching { parse(prefs.getString(KEY,"[]")!!) }.getOrElse { return emptyList() }.toMutableList()
+            if(rows.none { it.name.equals("Bright",true) }) rows.add(0,SavedMapStyle(UUID.randomUUID().toString(),"Bright",baseline().toString()))
+            prefs.edit().putString(KEY,json(rows).toString()).putBoolean(INITIALIZED,true).apply()
+        }
+        return runCatching { parse(prefs.getString(KEY,"[]")!!) }.getOrDefault(emptyList())
+    }
+    private fun baseline()=MapStyleOverrides().json().put("visibility",JSONObject().apply {
+        MapVectorLayer.entries.forEach { put(it.name,it.defaultVisible) }
+    }).put("cycleways",true).put("cyclingStyles",JSONObject().apply {
+        for(kind in listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES)) put(kind.id,MapRouteStyles.default(kind).json())
+    })
+    fun export(prefs:SharedPreferences):JSONArray { read(prefs);return json(parse(prefs.getString(KEY,"[]")!!)) }
     fun json(values:List<SavedMapStyle>)=JSONArray().apply {
         values.forEach { put(JSONObject().put("id",it.id).put("name",it.name).put("style",JSONObject(it.style))) }
     }
     fun save(prefs:SharedPreferences,name:String,replaceId:String?):SavedMapStyle {
+        read(prefs)
         val rows=parse(prefs.getString(KEY,"[]")!!).toMutableList()
         val title=name.trim();require(title.length in 1..60 && title.none { it.isISOControl() })
         val existing=rows.firstOrNull { it.name.equals(title,true) } ?: rows.firstOrNull { it.id==replaceId }
@@ -55,11 +70,7 @@ internal object MapStyleLibrary {
         prefs.edit().putString(KEY,json(rows).toString()).apply()
     }
     fun load(prefs:SharedPreferences,id:String?) {
-        val json=if(id==null) MapStyleOverrides().json().put("visibility",JSONObject().apply {
-            MapVectorLayer.entries.forEach { put(it.name,it.defaultVisible) }
-        }).put("cycleways",true).put("cyclingStyles",JSONObject().apply {
-            for(kind in listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES)) put(kind.id,MapRouteStyles.default(kind).json())
-        }) else JSONObject(read(prefs).first { it.id==id }.style)
+        val json=if(id==null) baseline() else JSONObject(read(prefs).first { it.id==id }.style)
         val overrides=MapStyleOverrides.parse(json)
         val edit=prefs.edit().putString(MapStyleOverrides.KEY,overrides.json().toString()).putString("mapSource",MapSource.VECTOR.name)
         if(id==null) edit.remove(ACTIVE) else edit.putString(ACTIVE,id)

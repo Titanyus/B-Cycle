@@ -108,7 +108,7 @@ internal class VtmBaseMap(context:Context,private val map:Map,source:MapSource,k
 internal class VtmCycleTheme(private val cycleways:Boolean,private val style:MapStyleOverrides=MapStyleOverrides()):ThemeFile by VtmThemes.OPENMAPTILES {
     override fun getRenderThemeAsStream():java.io.InputStream {
         val originalBase=MapStyleXml.trackBase(org.oscim.backend.AssetAdapter.readFileAsStream("styles/bright-vtm.xml").use { it.bufferedReader().readText() })
-        val base=originalBase.replace("</rendertheme>","""<m k="layer" v="housenumber" zoom-min="17"><text id="house-number" k="housenumber" size="11" fill="#ff555555" stroke="#ffffffff" stroke-width="1.2" caption="true" /></m></rendertheme>""")
+        val base=originalBase.replace("</rendertheme>","""<m k="layer" v="housenumber" zoom-min="14"><text id="house-number" k="housenumber" size="11" fill="#ff555555" stroke="#ffffffff" stroke-width="1.2" caption="true" /></m></rendertheme>""")
         val highlight=listOf(Triple(6,6,.35f),Triple(7,7,.45f),Triple(8,8,.6f),Triple(9,9,.75f),Triple(10,10,.9f),Triple(11,11,1.1f),Triple(12,12,1.4f),Triple(13,13,1.8f),Triple(14,14,2.2f),Triple(15,24,2.5f)).joinToString("\n") { (minimum,maximum,width) ->
             """
             <m e="way" k="layer" v="transportation" zoom-min="$minimum" zoom-max="$maximum">

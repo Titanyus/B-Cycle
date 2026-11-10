@@ -84,7 +84,7 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                 .put("routeSlots",bike.getString(MapRouteSlots.KEY,null)?.let { MapRouteSlots.parse(JSONObject(it)).json() } ?: JSONObject.NULL)
                 .put("cycleways",bike.getBoolean(VtmBaseMap.cyclewaysKey,true))
                 .put("vectorStyle",MapStyleOverrides.read(bike).json())
-                .put("savedStyles",MapStyleLibrary.json(MapStyleLibrary.parse(bike.getString(MapStyleLibrary.KEY,"[]")!!))).put("activeStyle",bike.getString(MapStyleLibrary.ACTIVE,null) ?: JSONObject.NULL)
+                .put("savedStyles",MapStyleLibrary.export(bike)).put("activeStyle",bike.getString(MapStyleLibrary.ACTIVE,null) ?: JSONObject.NULL)
                 .put("vectorLayers",JSONObject().apply { MapVectorLayer.entries.forEach { put(it.name,bike.getBoolean(it.key,it.defaultVisible)) } })
                 .put("source",MapSource.decode(bike.getString("mapSource",null)).name).put("night",bike.getBoolean("mapNight",false))
                 .put("follow",bike.getBoolean("mapFollow",true)).put("heading",bike.getBoolean("mapHeading",true)).put("oval",bike.getBoolean(MapOvalAnchor.preference,false))
@@ -294,7 +294,10 @@ internal class SettingsBackup(private val bike: SharedPreferences, private val r
                     listOf("displayFitId","displayGpxId").forEach { key -> if(row.has(key)) b[key]=field(row,key,128).also { check(it.isEmpty() || it.matches(Regex("(recorded|imported)-[a-f0-9]{64}|[a-f0-9-]{36}"))) } }
                     b[MapRouteSlots.KEY]=if(row.has("routeSlots") && !row.isNull("routeSlots")) MapRouteSlots.parse(row.getJSONObject("routeSlots")).json().toString() else null
                     if(row.has("routeStyles")) b[MapRouteStyles.key]=MapRouteStyles.validate(row.getJSONObject("routeStyles")).toString()
-                    if(row.has("savedStyles")) b[MapStyleLibrary.KEY]=MapStyleLibrary.json(MapStyleLibrary.parse(row.getJSONArray("savedStyles").toString())).toString()
+                    if(row.has("savedStyles")) {
+                        b[MapStyleLibrary.KEY]=MapStyleLibrary.json(MapStyleLibrary.parse(row.getJSONArray("savedStyles").toString())).toString()
+                        b[MapStyleLibrary.INITIALIZED]=true
+                    }
                     if(row.has("activeStyle")) b[MapStyleLibrary.ACTIVE]=if(row.isNull("activeStyle")) null else field(row,"activeStyle",36).also { check(MapStyleLibrary.validId(it)) }
                     if(row.has("vectorStyle")) b[MapStyleOverrides.KEY]=MapStyleOverrides.parse(row.getJSONObject("vectorStyle")).json().toString()
                     if(row.has("vectorLayers")) {

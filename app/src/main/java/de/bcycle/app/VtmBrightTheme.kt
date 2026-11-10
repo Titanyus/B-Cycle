@@ -38,7 +38,13 @@ internal class VtmBrightTheme private constructor(
             matched.add(if(track) Tag(layer.flag.key+"-track","1") else layer.flag)
         }
         val styles=native.matchElement(type,matched,zoomLevel) ?: return null
-        val placeClass=if(tags.getValue("layer")=="place") MapPlaceClass.entries.firstOrNull { it.key==tags.getValue("class") } else null
+        val placeClass=when(tags.getValue("layer")) {
+            "place" -> if(tags.getValue("class") in setOf("state","province")) MapPlaceClass.COUNTRY else MapPlaceClass.entries.firstOrNull { it.key==tags.getValue("class") } ?: MapPlaceClass.OTHER
+            "transportation_name" -> MapPlaceClass.ROAD
+            "water_name","waterway" -> MapPlaceClass.WATER
+            "housenumber" -> MapPlaceClass.HOUSE
+            else -> null
+        }
         val typography=placeClass?.let { placeLabels[it] ?: if(it==MapPlaceClass.CITY || it==MapPlaceClass.TOWN) it.defaults else null }
         val priority=when(tags.getValue("layer")) {
             "place" -> when(tags.getValue("class")) {
@@ -53,7 +59,7 @@ internal class VtmBrightTheme private constructor(
                 else->180
             }*100
             "housenumber" -> 19000
-            else -> return styles
+            else -> if(typography!=null) 18000 else return styles
         }
         if(styles.none { it is TextStyle }) return styles
         // Two tile-loader threads share the theme. Bound native-style variants;

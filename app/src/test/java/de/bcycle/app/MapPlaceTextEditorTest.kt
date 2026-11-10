@@ -30,8 +30,8 @@ class MapPlaceTextEditorTest {
             val weights=editor.findViewWithTag<Spinner>("map_place_weight")
             val sizes=editor.findViewWithTag<BicycleSettingSlider>("map_place_size")
             Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
-            assertEquals(4,types.count);assertTrue(MapStyleOverrides.read(prefs).placeLabels.isEmpty())
-            for(type in MapPlaceClass.entries) {
+            assertEquals(MapPlaceClass.entries.size,types.count);assertTrue(MapStyleOverrides.read(prefs).placeLabels.isEmpty())
+            for(type in MapPlaceClass.entries.take(4)) {
                 types.setSelection(type.ordinal);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
                 assertEquals(type.defaultWeight/100-1,weights.selectedItemPosition);assertEquals(type.defaultSize,sizes.progress)
                 weights.setSelection(type.ordinal+1);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
@@ -49,7 +49,7 @@ class MapPlaceTextEditorTest {
             backup.apply(backup.plan(backup.decode(bytes),setOf(BackupSection.MAPS)));assertEquals(saved,MapStyleOverrides.read(prefs))
             val baseline=VtmBrightTheme.load(false);val custom=VtmBrightTheme.load(false,style=saved)
             try {
-                for(type in MapPlaceClass.entries) {
+                for(type in MapPlaceClass.entries.take(4)) {
                     val tags=TagSet().apply { add(Tag("layer","place"));add(Tag("class",type.key));add(Tag("rank","1")) }
                     fun text(theme:org.oscim.theme.IRenderTheme)=theme.matchElement(GeometryBuffer.GeometryType.POINT,tags,17).orEmpty().filterIsInstance<TextStyle>().first()
                     val before=text(baseline);val after=text(custom);val value=saved.placeLabels.getValue(type)

@@ -812,7 +812,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_style_boundary">Grenzen</string>
     <string name="map_style_water_text">Gewässernamen</string>
     <string name="map_layer_admin_areas">Verwaltungsgebiete zwischen Gemeinden und Landkreisen</string>
-    <string name="map_place_typography">Ortsbeschriftung</string>
+    <string name="map_place_typography">Beschriftung</string>
     <string name="map_place_class">Ortsklasse</string>
     <string name="map_place_city">Großstädte · city</string>
     <string name="map_place_town">Städte · town</string>
@@ -840,4 +840,7 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="map_style_save_error">Bitte einen gültigen Namen eingeben. Maximal 32 Stile können gespeichert werden.</string>
     <string name="map_layer_urban">Stadt- und Siedlungsflächen</string>
     <string name="map_house_numbers">Hausnummern</string>
+    <string name="map_text_country">Länder und Regionen</string>
+    <string name="map_text_continent">Kontinente</string>
+    <string name="map_text_other">Weitere Ortsbeschriftungen</string>
 </resources>

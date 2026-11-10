@@ -9,12 +9,11 @@ internal object MapStyleSaveDialog {
     fun show(context:Context,prefs:SharedPreferences,themes:ThemeManager,permitted:()->Boolean) = show(context,prefs,themes,permitted,null)
     private fun show(context:Context,prefs:SharedPreferences,themes:ThemeManager,permitted:()->Boolean,selection:String?) {
         val all=MapStyleLibrary.read(prefs)
-        val bright=all.firstOrNull { it.name.equals("Bright",true) }
-        val styles:List<SavedMapStyle?> = if(bright==null) listOf(null)+all else all
+        val styles=all
         val active=selection ?: prefs.getString(MapStyleLibrary.ACTIVE,null)
-        val selected=styles.indexOfFirst { it?.id==active }.let { if(it>=0) it+1 else 1+styles.indexOfFirst { it==null || it===bright }.coerceAtLeast(0) }
+        val selected=styles.indexOfFirst { it.id==active }.let { if(it>=0) it+1 else if(selection!=null) 0 else styles.indexOfFirst { it.name.equals("Bright",true) }+1 }
         fun selectedStyle(position:Int)=styles.getOrNull(position-1)
-        fun selectedName(position:Int)=if(position==0) "" else selectedStyle(position)?.name ?: context.getString(R.string.map_source_bright)
+        fun selectedName(position:Int)=if(position==0) "" else selectedStyle(position)?.name.orEmpty()
         val body=LinearLayout(context).apply {
             orientation=LinearLayout.VERTICAL
             val pad=BicycleDesign.dp(context,BicycleDesign.horizontalPadding);setPadding(pad,pad,pad,pad)
@@ -22,7 +21,7 @@ internal object MapStyleSaveDialog {
         val choice=Spinner(context).apply {
             tag="map_style_save_choice"
             adapter=ArrayAdapter(context,android.R.layout.simple_spinner_dropdown_item,
-                listOf(context.getString(R.string.map_style_save_new))+styles.map { it?.name ?: context.getString(R.string.map_source_bright) })
+                listOf(context.getString(R.string.map_style_save_new))+styles.map { it.name })
             setSelection(selected)
         }
         val name=BicycleComponents.input(context,themes).apply {

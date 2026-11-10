@@ -23,6 +23,7 @@ import org.robolectric.shadows.ShadowAlertDialog
 class MapStyleLibraryTest {
     private val c get()=RuntimeEnvironment.getApplication()
     private val prefs get()=c.getSharedPreferences("bike",0)
+    @org.junit.Before fun emptyUserLibrary() { prefs.edit().putString(MapStyleLibrary.KEY,"[]").putBoolean(MapStyleLibrary.INITIALIZED,true).commit() }
     private val custom=MapStyleOverrides().update(MapStyleTarget.PRIMARY,MapObjectStyle(Color.RED,alpha=123,widthPercent=70,outline=MapOutlineStyle(Color.BLUE,88,150)))
         .copy(placeLabels=mapOf(MapPlaceClass.CITY to MapPlaceTextStyle(900,80)))
     private fun pressSave(dialog:AlertDialog) {
@@ -35,6 +36,7 @@ class MapStyleLibraryTest {
         assertTrue(button.isEnabled);button.performClick()
     }
     @Test fun builtinBrightIsOfferedAndCanBeSavedOverwrittenAndLoadedWithoutDuplicateRows() {
+        prefs.edit().remove(MapStyleLibrary.KEY).remove(MapStyleLibrary.INITIALIZED).commit()
         val host=Robolectric.buildActivity(android.app.Activity::class.java).setup()
         try {
             val a=host.get();val themes=ThemeManager(prefs)
@@ -132,6 +134,7 @@ class MapStyleLibraryTest {
         } finally { host.pause().stop().destroy() }
     }
     @Test fun actualSettingsPickerLoadsSavedStylesAndDoesNotOverwriteDraftOnReopening() {
+        prefs.edit().remove(MapStyleLibrary.KEY).remove(MapStyleLibrary.INITIALIZED).commit();MapStyleLibrary.read(prefs)
         custom.write(prefs);prefs.edit().putBoolean(MapVectorLayer.CONTOURS.key,true).apply()
         val saved=MapStyleLibrary.save(prefs,"Meine Karte",null)
         MapStyleLibrary.load(prefs,null)
