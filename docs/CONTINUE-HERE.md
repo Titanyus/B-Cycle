@@ -1,10 +1,10 @@
 # Aktueller Stand: APK0.8.108 / Build153
 
-Aufträge implementiert, gezielt geprüft und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlichen Direktdownload nach Veröffentlichung noch abgleichen.
+Aufträge implementiert, gezielt geprüft und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlicher Raw-Direktdownload abgeschlossen; bytegleich zum Actions-Artefakt.
 
 [APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.108-release-153.apk) · [Buildnachweis](build-153.md) · [Änderungen](release-0.8.108.md)
 
-Actions42897947067 erfolgreich aus Quellstand8934ccbf6838d1fb713fb4f9c4bd49e07e1f1c34, VersionCode178, Android13+. 4462157Bytes; SHA-2567b43a80f3a7f7e6d362fdb310cfdfc3d0dbfcb51d818c703c41aa33c44a9d1ea. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt geprüft; direkter Raw-Downloadnachweis folgt.
+Actions42897947067 erfolgreich aus Quellstand8934ccbf6838d1fb713fb4f9c4bd49e07e1f1c34, VersionCode178, Android13+. 4462157Bytes; SHA-2567b43a80f3a7f7e6d362fdb310cfdfc3d0dbfcb51d818c703c41aa33c44a9d1ea. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt und tatsächlichen Raw-Direktdownload bytegleich geprüft; Veröffentlichungc487a42.
 
 ## Letzte Änderung
 

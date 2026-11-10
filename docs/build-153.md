@@ -12,3 +12,7 @@
 Optimierter Release ausschließlich GitHub Actions. CI-Prüfsumme, dauerhafte Update-Signatur, Version, Manifest ohne Debug-/Test-Flags und ZIP-/16KB-Ausrichtung geprüft. ARM64-ELF-LOAD-Segmente passend, vier VTM-ABIs und28Shader vorhanden. Bright-JSON/XML/113Sprites bytegleich zum Quellstand; Terrain-/Cycling-Attribution erhalten. R8-Mapping enthält Quellenpopup, Stilbibliothek/Speicherbedienung und bisherige wesentliche Daten-/Kartenpfade; keine Headless-Testshadows.
 
 [Änderungen](release-0.8.108.md): Straßen-/Hausnummern-Füllung und Konturen, Hausnummernebene, Quellenpopup mit Cycling-Schaltern,2s-Entwicklerfreigabe bis Einstellungen sowie Stil-Löschen/Sortieren. Neun gezielte native/UI-/Gesten-/Verwaltungs-/Profil-/Backupfälle grün, map-access-complete-tests.log. Zentrale Prüfungen grün, keine Gesamtsuite/Profiling oder lokaler APK-Build. [Bericht](map-controls-and-label-editor.md). Optischer/Gestenabgleich am Gerät und bisherige Gerätegrenzen offen.
+
+## Direkter Downloadnachweis
+
+Raw-Download tatsächlich abgerufen:4462157Bytes, binär identisch zum Actions-Artefakt. SHA-256 `7b43a80f3a7f7e6d362fdb310cfdfc3d0dbfcb51d818c703c41aa33c44a9d1ea` identisch. Veröffentlichungc487a42.
