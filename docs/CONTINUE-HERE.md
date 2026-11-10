@@ -1,3 +1,7 @@
+# Neue APK ausdrücklich angefordert10.11.2026
+
+Version0.8.105/code175 für Actions150 vorbereitet; vier Änderungen seit Build149 unten enthalten. Remote vor Vorbereitung4 Commits zurück, keine Divergenz. Build, Veröffentlichung und tatsächlichen Direktdownload abschließen; nur Push, kein zusätzlicher Dispatch.
+
 # Gemischte Live-Graphen10.11.2026 (noch nicht in einer APK)
 
 Gemeldetes sekündliches Schrumpfen des Gesamtverlaufs neben30-s-Graph exakt reproduziert und korrigiert: gecachte Gesamtserie hatte aktuelle Kurzfenster-Achsenwerte bekommen. GraphFrame führt jetzt den eigenen vollständigen Achsensnapshot mit; FULL-Drawable nutzt ihn auch beim neuen Binden und überspringt identische Gesamtstände in beiden Modi. Intervalle1/5s kurz und10s vollständig erhalten. Vier gezielte Methoden grün, nativer Mischtest deckt Normal/Sparen × Zeit/Distanz ab; Abschluss/Reset/unsichtbare Historie geprüft. [Details/Logs](mixed-graph-snapshots.md). Keine APK beauftragt; nicht auf main pushen.
