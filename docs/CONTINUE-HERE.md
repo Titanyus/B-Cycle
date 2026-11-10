@@ -1,21 +1,17 @@
-# Änderungen nach Build152 und ausdrücklicher APK-Auftrag
+# Aktueller Stand: APK0.8.108 / Build153
 
-Neue Kartenquellenbedienung/2s-Editorfreigabe, Ebenen nur Karte, Straßen-/Hausnummernkonturen, Hausnummernebene und Stile löschen/sortieren implementiert. Neun gezielte Methoden grün, map-access-complete-tests.log, zentrale Prüfungen grün. [Details](map-controls-and-label-editor.md). Nutzer hat neue APK ausdrücklich angefordert: Version0.8.108/code178 für Actions153 vorbereiten, bauen/veröffentlichen/Direktdownload prüfen.
+Aufträge implementiert, gezielt geprüft und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlichen Direktdownload nach Veröffentlichung noch abgleichen.
 
-# Aktueller Stand: APK0.8.107 / Build152
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.108-release-153.apk) · [Buildnachweis](build-153.md) · [Änderungen](release-0.8.108.md)
 
-Auftrag umgesetzt, geprüft und ausdrücklich angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlichen Raw-Direktdownload abgeschlossen; bytegleich zum Actions-Artefakt.
-
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.107-release-152.apk) · [Buildnachweis](build-152.md) · [Änderungen](release-0.8.107.md)
-
-Actions42881124412 erfolgreich aus Quellstande7036df0228cc54cb8ac83a7e194abf34df11c98, VersionCode177, Android13+. 4445901Bytes; SHA-2563d7e0a5b2a8f235b609c95f05e4e2e0161b89323e716a9bad23a2e86332921f6. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt und tatsächlichen Raw-Direktdownload bytegleich geprüft; Veröffentlichung557dc6c.
+Actions42897947067 erfolgreich aus Quellstand8934ccbf6838d1fb713fb4f9c4bd49e07e1f1c34, VersionCode178, Android13+. 4462157Bytes; SHA-2567b43a80f3a7f7e6d362fdb310cfdfc3d0dbfcb51d818c703c41aa33c44a9d1ea. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt geprüft; direkter Raw-Downloadnachweis folgt.
 
 ## Letzte Änderung
 
-Commit9798b86: URBAN trennt Siedlungs-landuse von NATURE (Wald/Wiesen/Parks/landwirtschaftliche Flächen). PLACE_TEXT bekommt bestehenden outline-Block mit RGB/Alpha/Breite; Editor rechts RGBA und25–300% Konturstärke, links Schriftfüllung. Native Stroke-Paints und Atlasaufbereitung bei Konturänderungen neu laden; bisheriger Standard ohne Override erhalten. JSON/benannte Stile/Profil-/Backup-Enumerationen erweitert. Drei native/UI-/Persistenzfälle grün, map-place-outline-tests.log. Zentrale Prüfungen grün. [Details](vtm-map-editor.md).
+Commit4eacd70: ROAD_TEXT/HOUSE_TEXT mit Füll-/Kontur-RGBA/Breite; Hausnummern echte OpenMapTiles-Features ab VTM17, default aus und niedrige Priorität. MapSourcePopup neben Auge mit gemeinsamer Quellen-/Stilwahl und Cycling-Schaltern.2s-Hold schaltet Layers/Editor frei; Abbruch/Pause/Settings cancelt Timer, showMenu versteckt Buttons. Ebenen-Accordion aus Einstellungen entfernt. Stile im Save-Dialog ↑/↓/Löschen, UUIDs/Arbeitskopien erhalten, gleiche Reihenfolge in Quellenauswahl/Sicherung. Dialog scrollbar. Neun Fälle grün (MapControlAccessTest4,MapStyleLibraryTest5), Log map-access-complete-tests.log. [Details/weitere Logs](map-controls-and-label-editor.md). Zentrale Typografie/UI-Katalog/Bright/Diff grün. Keine Sensor-/Aufzeichnungs-/GL-Lebenszyklusänderung.
 
 ## Bisheriger Stand und Grenzen
 
-[Build151](build-151.md): sichtbare Stil-Save-Aktionen und überschreibbares Bright ohne doppelte Kartenquellenzeile. [Build150](build-150.md): interne Stilsammlung, Dashboard-Effizienz, Trainingsvarianten und gemischte Graphen. Früher dokumentierte Testannahmen und Gerätegrenzen in den Fachberichten; keine grüne Gesamtsuite behaupten. Bosch-Ladeadressen weiter am Nutzerrad zu bestätigen, unbekannt→Anroll-Fallback. Alte Fahrtdubletten unverändert.
+[Build152](build-152.md): getrennte Natur-/Stadtflächen und Ortskonturen. [Build151](build-151.md): sichtbare Save-Aktionen und Bright-Überschreiben. [Build150](build-150.md): interne Stile, Dashboard-Effizienz, Trainingsvarianten und gemischte Graphen. Frühere Testannahmen/Gerätegrenzen in den Fachberichten; keine grüne Gesamtsuite behaupten. Bosch-Ladeadressen weiter am Rad bestätigen, unbekannt→Anroll-Fallback. Alte Dubletten unverändert. Hausnummerndichte abhängig von den Vektorkacheln; optische/Gestenkontrolle am Gerät offen.
 
-Keine Sensor-/Rohdaten-/Aufzeichnungsänderung, kein Profiling. Optische Kontrolle am Gerät offen. APK nur auf Auftrag über Actions, kein lokaler APK-Build oder zweiter Dispatch neben Push. Veröffentlichung/Downloadnachweis mit[skip ci].
+APK ausschließlich Actions und auf Auftrag, kein lokaler APK-Build/zweiter Dispatch neben Push. Veröffentlichung/Downloadnachweis mit[skip ci].
