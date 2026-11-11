@@ -1,3 +1,7 @@
+# Neue Anpassung nach Build154 (noch nicht in einer APK)
+
+Dashboard-Graphen ohne seitliche Begrenzungslinien; Kurve/Füllung bis zum Kachel-/Bildschirmrand statt horizontalem Zahlenpadding. Labels behalten Innenabstand, Höhe/Skalen/Intervalle unverändert. Drei native Methoden grün, graph-edge-width-tests.log. [Details](dashboard-graph-edges.md). Keine neue APK beauftragt, nicht auf main pushen.
+
 # Aktueller Stand: APK0.8.109 / Build154
 
 Aufträge implementiert, gezielt geprüft und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Veröffentlichung und tatsächlichen Raw-Direktdownload abgeschlossen; bytegleich zum Actions-Artefakt.

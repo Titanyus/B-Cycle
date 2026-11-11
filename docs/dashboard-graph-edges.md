@@ -1,0 +1,5 @@
+# Dashboard-Graphen bis zum Rand11.11.2026
+
+Nutzerauftrag: seitliche Begrenzungslinien entfernen und Anfang/Ende bis an den Bildschirmrand erweitern. DashboardGraphDrawable verwendet jetzt horizontal die vollständigen Drawable-/Kachelgrenzen statt des Zahlenfeld-Paddings. Kurve und Füllung reichen bis zum Kachelrand (bei den graphfähigen vollen Zeilen zum Bildschirmrand). Vertikale80%-Geometrie/Abstände, numerische Beschriftungsabstände, Skalen, Glättung und Aktualisierungsintervalle unverändert. Strukturelle linke/rechte Linien samt eigenem Verlaufsshader entfernt. Weiterhin am tatsächlichen Kachelrand clippen, nicht außerhalb zeichnen.
+
+Bestehenden nativen Begrenzungslinien-Test durch neue Vorgaben ersetzt: ein/zwei Graphen trotz16px Zahlenpadding bis0/400 zeichnen, echte Kurven-/Füllpixel an beiden Kanten; bei fehlenden Daten dort keine strukturellen Linien. Zwei bestehende native Fälle für fehlende Segmente/kein Halo/Füllverlauf und vertikale Begrenzung mitgeprüft. Drei Methoden grün, Log graph-edge-width-tests.log. Typografie/UI-Katalog/Bright/Diff geprüft. Keine neuen Intervalle, Sensor-/Rohdaten-/Aufzeichnungsänderungen, keine APK beauftragt.

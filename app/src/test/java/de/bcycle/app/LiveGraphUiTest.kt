@@ -294,21 +294,22 @@ class LiveGraphUiTest {
         assertEquals(0,Color.alpha(gap.getPixel(200,60)));assertEquals(0,Color.alpha(gap.getPixel(200,80)))
     }
 
-    @Test fun fullWidthCurveBoundariesStayAtPlotEdgesAndFadeAtBothVerticalEnds() {
-        val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
-        // Missing samples retain valid scales, isolating the boundary from curve/fill pixels.
-        val series=GraphSeries(emptyList(),GraphRange(0.0,40.0))
-        d.update(GraphFrame(1,100.0,mapOf(AnalysisChart.SPEED to series,AnalysisChart.CADENCE to series)),
-            listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE),intArrayOf(0,0,0,0))
-        val b=Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888);d.draw(Canvas(b))
-        fun opacity(x: Int,y: Int)=maxOf(Color.alpha(b.getPixel(x,y)),Color.alpha(b.getPixel(x-1,y)))
-        for(x in listOf(1,399)) {
-            val middle=opacity(x,100)
-            assertTrue(middle>0)
-            assertTrue(opacity(x,30)<middle);assertTrue(opacity(x,170)<middle)
-            assertEquals(0,opacity(x,10));assertEquals(0,opacity(x,190))
+    @Test fun fullWidthCurvesReachTileEdgesWithoutStructuralBoundaryLines() {
+        for(graphs in listOf(listOf(AnalysisChart.SPEED),listOf(AnalysisChart.SPEED,AnalysisChart.CADENCE))) {
+            val d=DashboardGraphDrawable(1f);d.setBounds(0,0,400,200)
+            fun image(missing:Boolean):Bitmap {
+                val points=listOf(GraphPoint(0,0,0.0,List(5) { if(missing) null else 30.0 }),GraphPoint(1000,1000,100.0,List(5) { if(missing) null else 30.0 }))
+                val series=GraphSeries(points,GraphRange(0.0,40.0))
+                d.update(GraphFrame(1,100.0,graphs.associateWith { series }),graphs,intArrayOf(16,0,16,0))
+                return Bitmap.createBitmap(400,200,Bitmap.Config.ARGB_8888).also { d.draw(Canvas(it)) }
+            }
+            val shown=image(false)
+            assertEquals(0f,d.plotBounds().left,0f);assertEquals(400f,d.plotBounds().right,0f)
+            for(x in listOf(0,399)) { assertTrue(Color.alpha(shown.getPixel(x,60))>0);assertTrue(Color.alpha(shown.getPixel(x,100))>0);assertEquals(0,shown.getPixel(x,30)) }
+            val missing=image(true)
+            for(x in listOf(0,1,398,399)) for(y in 0 until 200) assertEquals("No structural line at x=$x",0,missing.getPixel(x,y))
+            shown.recycle();missing.recycle()
         }
-        assertEquals(0,opacity(26,100));assertEquals(0,opacity(374,100))
     }
 
     @Test fun hiddenDataKeepsGeometryAndGraphSelectionIndependentFromNumberAndCaptionVisibility() {

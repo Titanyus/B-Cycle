@@ -11,7 +11,6 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     private val plot=RectF()
     private val curve=RectF()
-    private var boundaryShader: Shader?=null
     private data class Shape(val line: Path, val fill: Path, val chart: AnalysisChart, val range: GraphRange, val fillShader: Shader)
     private var shapes=emptyList<Shape>()
     private var selected=emptyList<AnalysisChart>()
@@ -34,18 +33,13 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
     internal fun plotBounds() = RectF(plot)
     internal val axisCount get() = shapes.size
     private fun rebuild() {
-        val inner=RectF(bounds.left+padding[0].toFloat(),bounds.top+padding[1].toFloat(),bounds.right-padding[2].toFloat(),bounds.bottom-padding[3].toFloat())
+        val inner=RectF(bounds.left.toFloat(),bounds.top+padding[1].toFloat(),bounds.right.toFloat(),bounds.bottom-padding[3].toFloat())
         val free=inner.height()*(1-LiveGraphStyle.HEIGHT_FRACTION)/2
         plot.set(inner.left,inner.top+free,inner.right,inner.bottom-free)
         val f=frame
         if(f==null || plot.width()<=0 || plot.height()<=0) { shapes=emptyList(); return }
         val left=plot.left; val right=plot.right
         curve.set(left,plot.top,right,plot.bottom)
-        // Graph boundaries are structural lines, independent of secondary text opacity.
-        val boundaryColor=Color.rgb(163,163,163) and 0x00ffffff
-        boundaryShader=LinearGradient(0f,plot.top,0f,plot.bottom,
-            intArrayOf(boundaryColor,boundaryColor or (140 shl 24),boundaryColor),
-            floatArrayOf(0f,.5f,1f),Shader.TileMode.CLAMP)
         val seriesByChart=if(window==GraphWindow.FULL) f.series else f.windows[window].orEmpty()
         val start=if(window==GraphWindow.FULL) 0 else (f.elapsedMs-window.milliseconds).coerceAtLeast(0)
         val end=if(window==GraphWindow.FULL) f.fullElapsedMs else maxOf(window.milliseconds,f.elapsedMs)
@@ -87,12 +81,6 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
         }
         val save=canvas.save(); canvas.clipRect(plot)
         paint.typeface=BicycleDesign.bodyTypeface; paint.textSize=12.96f*density
-        paint.style=Paint.Style.STROKE; paint.strokeWidth=density
-        paint.color=Color.WHITE; paint.alpha=255; paint.shader=boundaryShader
-        canvas.drawLine(curve.left,curve.top,curve.left,curve.bottom,paint)
-        val boundaryRight=minOf(curve.right,plot.right-density/2)
-        canvas.drawLine(boundaryRight,curve.top,boundaryRight,curve.bottom,paint)
-        paint.shader=null
         shapes.forEachIndexed { index,s ->
             val color=s.chart.color(Color.BLACK)
             val graphSave=canvas.save(); canvas.clipRect(curve)
@@ -106,7 +94,7 @@ internal class DashboardGraphDrawable(private val density: Float) : Drawable() {
             canvas.restoreToCount(graphSave)
             paint.style=Paint.Style.FILL; paint.color=BicycleDesign.dashboardUnitColor
             paint.textAlign=if(index==0) Paint.Align.LEFT else Paint.Align.RIGHT
-            val x=if(index==0) plot.left+2*density else plot.right-2*density
+            val x=if(index==0) plot.left+padding[0]+2*density else plot.right-padding[2]-2*density
             val top=plot.top+paint.textSize; val bottom=plot.bottom-2*density
             val upper=String.format(Locale.getDefault(),"%.0f",s.range.high)
             canvas.drawText(upper,x,top,paint)
