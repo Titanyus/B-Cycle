@@ -1,3 +1,7 @@
+# Nach Build156 noch unveröffentlicht
+
+heart-pulse erneut aus originalem Lucide0.468.0 heruntergeladen und unverändert als Android-Vector übernommen. Vorherige handgezeichnete Pulslinie war zu groß. Beide Originalpfade und Stroke2/runde Enden geprüft. Keine neue APK beauftragt.
+
 # Aktueller Stand: APK0.8.111 / Build156
 
 Menüanpassungen einschließlich Einzüge/Icons umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft.
