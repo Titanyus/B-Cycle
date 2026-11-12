@@ -1,6 +1,6 @@
 # Nach Build159 noch unveröffentlicht
 
-Nutzerkorrektur: Dashboard-Footer samt Seitenbuttons wieder TERTIARY wie vor PRIMARY-Änderung. Einstellungs-/Fachfooter bleiben PRIMARY in Flat/Glow; zentraler dashboard-Parameter trennt Rollen. Dashboard-Schattenlogik und Aufnahmebutton unverändert. Keine neue APK beauftragt.
+Nutzerkorrektur: Dashboard-Footer samt Seitenbuttons wieder TERTIARY wie vor PRIMARY-Änderung. Ausdrücklich alle anderen Footer, einschließlich Streckenmanager/-details, bleiben PRIMARY in Flat/Glow; zentraler dashboard-Parameter trennt Rollen. Dashboard-Schattenlogik und Aufnahmebutton unverändert. Keine neue APK beauftragt.
 
 # Aktueller Stand: APK0.8.114 / Build159
 
