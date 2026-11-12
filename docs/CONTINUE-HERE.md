@@ -1,30 +1,22 @@
-# Weitere Menüanpassung (noch unveröffentlicht)
+# Aktueller Stand: APK0.8.112 / Build157
 
-Menüzeilen-Icons20% kleiner (nur innerhalb der drei Kästen), Gruppen-Icons20% größer, Gruppentitel mit Hauptheadergröße32sp. Innere Kästen: Menüzeilen transparent auf gerundetem SECONDARY-Hintergrund statt rechteckiger eigener Füllung; Clipping am Kastenoutline. Rahmen/Radien unverändert. HRV-Einstellungen rechts nur eine Menüzeile hoch, oben ausgerichtet; Bike/Training behalten gleich hohe Spalten. Kopfzeile inklusive oberem8dp-Innenabstand zwischen Außenrahmen und Innenkasten vertikal zentriert; Baseline-Ausrichtung ausgeschaltet.
+Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Direktdownload nach Veröffentlichung noch prüfen.
 
-# Zusätzlich noch unveröffentlicht
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.112-release-157.apk) · [Buildnachweis](build-157.md) · [Änderungen](release-0.8.112.md)
 
-Bike-Kopf: globale page-Abstandsnormalisierung stieg in ersten settings_box-Container ab und entfernte dessen8dp-Top-Padding. settings_box nun als eigener Inhalt statt Wrapper behandeln; alle Gruppen behalten gleichen Innenabstand.
-
-# Nach Build156 noch unveröffentlicht
-
-heart-pulse erneut aus originalem Lucide0.468.0 heruntergeladen und unverändert als Android-Vector übernommen. Vorherige handgezeichnete Pulslinie war zu groß. Beide Originalpfade und Stroke2/runde Enden geprüft. Keine neue APK beauftragt.
-
-# Aktueller Stand: APK0.8.111 / Build156
-
-Menüanpassungen einschließlich Einzüge/Icons umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft.
-
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.111-release-156.apk) · [Buildnachweis](build-156.md) · [Änderungen](release-0.8.111.md)
-
-Actions43205213885 erfolgreich aus Quellstand4d2e5691baf5442e0dae411fda4216c9bd290b19, VersionCode181, Android13+. 4463689Bytes; SHA-2566816bf5541e899617c30a8cb0c55d495a98d2c8a3322a4c84496237facf4d81e. Dauerhafte Signatur bestätigt. Direktdownload bytegleich geprüft; Veröffentlichung518982c.
+Actions43210505910 aus Quellstandd5aac98deb695430b465de66fe469e0252fee042, VersionCode182, Android13+. 4463721Bytes; SHA-25619bc2a34d4a90a8a959b845099efc6b817943cdf3b820288c1df1a4c90410d00. Dauerhafte Signatur bestätigt.
 
 ## Letzte Änderungen
 
-Menü ohne Chevrons, Überschriften16dp/Menüzeilen8dp eingerückt, Innen-/Außenradius6dp. HRV: heart-pulse/chart-line/wrench, „Einstellungen“ verkürzt. Bisherige Zahnradrollen systemweit wrench. Acht gezielte Menü-/Navigationsmethoden grün, settings-menu-refine-tests.log.
+- Originales Lucide-heart-pulse statt zu großer Pulslinie.
+- Gleicher oberer Innenabstand aller drei Einstellungsgruppen, einschließlich Bike.
+- Gruppen-Icons20% größer, Titel in Hauptheadergröße32sp und zwischen Außenrahmen/Innenkasten vertikal zentriert.
+- Abgerundete Füllung der inneren Kästen, Menüzeilen-Icons20% kleiner.
+- HRV-Einstellungen rechts als einzeiliger, oben ausgerichteter Kasten.
 
-Einstellungen: drei gerahmte TERTIARY-Kästen Bike/Training/HRV, innen feste SECONDARY-Spalten mit Rahmen/Trennern. Links Aktionen, rechts Einstellungen, Training rechts vorerst leer. Erweitert separat, Markenbild/Build erhalten. Training systemweit biceps-flexed, funktionale Leistungssymbole unverändert. Glow-Sticky-Kästen mit normalem2dp-Rahmen, Flat unverändert. Zehn gezielte UI-/Navigationsmethoden erfolgreich; ältere Testannahmen und Geräteprüfgrenzen im [Bericht](settings-boxes.md). Kein Profiling.
+Acht gezielte Menü-/Navigationsmethoden erfolgreich, settings-box-final-layout-tests.log. Regression prüft globale page-Normalisierung ohne Löschen des ersten Kastenpaddings, vertikale Zentrierung sowie kurzen HRV-Kasten. Flat/Glow bei288/360/480dp. Zentrale Prüfungen grün. Originales heart-pulse von Lucide0.468.0, beide SVG-Pfade unverändert übernommen.
 
-Dashboard-Graphen ohne seitliche Begrenzungslinien; Kurve/Füllung horizontal bis zum Kachel-/Bildschirmrand. Zahlenpadding nur für Labels, vertikale Geometrie und Intervalle erhalten. Drei native Methoden erfolgreich, [Details](dashboard-graph-edges.md).
+Vorherige Änderungen aus Build155/156 weiter enthalten: drei zweispaltige TERTIARY/SECONDARY-Kästen, Markenbild/Build, biceps-flexed, wrench, keine Chevrons, Einzüge16/8dp; Glow-Sticky-Kontur und Graphen bis zum Rand. [Details](settings-boxes.md).
 
 ## Bisheriger Stand und Grenzen
 
