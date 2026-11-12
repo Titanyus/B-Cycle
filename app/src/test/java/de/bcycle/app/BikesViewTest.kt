@@ -35,6 +35,9 @@ class BikesViewTest {
                 runtime.bikes.save(runtime.bikes.current().copy(type=type,bikeAddress=null,heartAddress=null,trainerAddress=null,powerAddress=null,shiftDevices=emptyList()))
                 view.refresh()
                 type.sensors.forEach { sensor -> assertEquals(sensor.name,if(sensor==BikeSensor.GPS) View.VISIBLE else View.GONE,frame(sensor).visibility) }
+                val box=view.findViewWithTag<BicycleGroupedBox>("bike_sensor_list")
+                box.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED))
+                assertEquals(0,(0 until box.childCount).count { box.getChildAt(it) !is BicycleFrameDropdown && box.getChildAt(it).visibility==View.VISIBLE })
                 view.beginSearch();view.addCandidate("Power","00:11:22:33:44:55",BikeSensor.POWER) {}
                 assertEquals(View.VISIBLE,frame(BikeSensor.POWER).visibility)
                 view.clearSearch();assertEquals(View.GONE,frame(BikeSensor.POWER).visibility)

@@ -20,10 +20,10 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
         orientation=VERTICAL;tag="map_line_styles"
         heading?.let { addView(BicycleComponents.contentHeading(context,themes,context.getString(it))) }
         val groupedTracks=kinds==MapLineKind.entries.take(4)
-        val trackBox=if(groupedTracks) BicycleGroupedBox(context,themes,standalone=true).apply {
-            tag="map_track_style_group"
+        val trackBox=BicycleGroupedBox(context,themes,standalone=true).apply {
+            tag=if(groupedTracks) "map_track_style_group" else "map_cycling_style_group"
             this@MapLineStyleView.addView(this,LayoutParams(-1,-2))
-        } else null
+        }
         kinds.forEach { kind ->
             val slot=MapLineKind.entries.indexOf(kind)-1
             val cyclingKey=when(kind) { MapLineKind.CYCLEWAYS->VtmBaseMap.cyclewaysKey;MapLineKind.CYCLE_ROUTES->MapVectorLayer.CYCLE_ROUTES.key;else->null }
@@ -89,10 +89,7 @@ internal class MapLineStyleView(context:Context,private val prefs:SharedPreferen
                 { context.getString(R.string.map_line_width_value,(it+1)/2f) }) { value ->
                 MapRouteStyles.write(prefs,kind,current().copy(widthDp=(value+1)/2f));preview.invalidate();changed()
             }
-            if(trackBox!=null) {
-                frame.grouped=true
-                trackBox.addEntry(frame)
-            } else addView(frame,LayoutParams(-1,-2))
+            trackBox.addEntry(frame)
         }
     }
     private fun addSlider(parent:LinearLayout,title:Int,maximum:Int,initial:Int,name:String,

@@ -1,3 +1,9 @@
+# Weitere Gruppierungen nach Build158 (noch unveröffentlicht)
+
+BicycleGroupedBox für Sensorliste (kleine Überschrift Sensoren, bestehender Sticky-Sensorabschnitt/Autostart/Suche erhalten), Radwege/Radrouten (Überschrift Radwege) sowie Backup-Gruppen Sichern3/Wiederherstellen3/Importieren2/Cloud5. Originale Frames, Schalter, IDs, Callbacks/Installationen erhalten, Einzelrahmen entfernt. Dynamische Sensortrenner nur zwischen sichtbaren Einträgen; leere Sensorbox samt kleiner Überschrift verborgen. Bereits vorhandene Glow16dp-/Standalone8dp-Korrektur ebenfalls noch unveröffentlicht. Keine neue APK beauftragt.
+
+Prüfung: grouped-settings-expansion-final-tests.log. Zusätzlicher breiterer Lauf grouped-settings-expansion-tests.log meldete3 Fehler (alter bike_fit_settings-Tag fehlt, Vergleich aller Prefs nach Backup-Aufklappen, fehlende contentDescription des HRV4-Importbuttons); keine grüne Gesamtsuite behaupten. [Details](settings-boxes.md).
+
 # Noch unveröffentlicht nach Build158
 
 Glow-Sticky-Inhalt seitlich16dp vom Außenkasten statt8dp (Bildschirm24dp=8außen+16innen), Flat4+16 unverändert. BicycleGroupedBox als eigenständiges Formularfeld verwendet normalen controlGap8dp zur Überschrift/vorherigem Inhalt; Menüspalten unverändert. Trackdarstellung nutzt diesen standalone-Modus, beseitigt fehlenden Abstand unter Überschrift. Keine neue APK beauftragt.

@@ -91,6 +91,11 @@ class DataSettingsNavigationTest {
         try {
             val a=host.get();val (_,screen)=open(a)
             val root=screen.window!!.decorView
+            for((tag,count) in listOf("data_save_group" to 3,"data_restore_group" to 3,"data_import_group" to 2,"data_cloud_group" to 5)) {
+                val box=root.findViewWithTag<BicycleGroupedBox>(tag)
+                assertEquals(count,(0 until box.childCount).count { box.getChildAt(it) is BicycleFrameDropdown })
+                (0 until box.childCount).map(box::getChildAt).filterIsInstance<BicycleFrameDropdown>().forEach { assertTrue(it.grouped);assertNull(it.background) }
+            }
             val imports=root.findViewWithTag<BicycleFrameDropdown>("data_frame_IMPORT")
             assertFalse(imports.expanded);imports.header.performClick();measure(screen)
             val trainings=root.findViewWithTag<BicycleFrameDropdown>("data_training_import")

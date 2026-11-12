@@ -274,7 +274,8 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
         addView(searchStatus,LayoutParams(-1,-2))
         searchResults=LinearLayout(context).apply { orientation=VERTICAL;tag="bike_scan_results" }
         addView(searchResults,LayoutParams(-1,-2))
-        val sensorList=LinearLayout(context).apply { orientation=VERTICAL;tag="bike_sensor_list" }
+        addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.bikes_sensors)).apply { tag="bike_sensor_list_heading" })
+        val sensorList=BicycleGroupedBox(context,themes,standalone=true).apply { tag="bike_sensor_list" }
         addView(sensorList,LayoutParams(-1,-2))
         profile.type.sensors.forEach { sensor ->
             val toggle=Switch(context).apply {
@@ -301,7 +302,7 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
             frame.expandControl.tag="bike_sensor_expand_${sensor.name}"
             val details=frame.content.apply { tag="bike_sensor_details_${sensor.name}" }
-            sensorList.addView(frame,LayoutParams(-1,-2))
+            sensorList.addEntry(frame)
             sensorRows[sensor]=listOf(frame)
             if(sensor==BikeSensor.SHIFT) {
                 shiftView=AxsGroupView(context,runtime)
@@ -448,6 +449,9 @@ internal class BikesView(context: Context, private val runtime: RideRuntime,
             }
             rows.forEach { it.visibility=if(assigned || sensor in foundSensors) VISIBLE else GONE }
         }
+        val visible=if(sensorRows.values.any { rows -> rows.any { it.visibility==VISIBLE } }) VISIBLE else GONE
+        findViewWithTag<View>("bike_sensor_list")?.visibility=visible
+        findViewWithTag<View>("bike_sensor_list_heading")?.visibility=visible
     }
     private fun paintCards() { strip.show(runtime.bikes.all(),runtime.bikes.activeSlot,runtime.recording || runtime.saving) }
     fun refreshPhoto() { photo?.refresh() }

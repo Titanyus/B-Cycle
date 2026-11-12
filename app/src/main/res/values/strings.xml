@@ -849,4 +849,5 @@ Die appinterne Datei wird gelöscht. Vorhandene Dateien in Downloads oder an der
     <string name="settings_group_hrv_settings">Einstellungen</string>
     <string name="settings_group_routes">Strecken</string>
     <string name="settings_group_messages">Nachrichten</string>
+    <string name="map_cycling_group_title">Radwege</string>
 </resources>

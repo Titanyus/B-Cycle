@@ -23,3 +23,11 @@ Aktiver Track und User Track1–3 teilen eine SECONDARY-Rahmenfläche mit drei h
 Prüfung: settings-grouped-track-final-tests.log für Menü/Navigation/Trackwerte/Sticky. Ein zusätzlich gestarteter CyclingOptionsTest scheiterte bereits bei nativer Zoominitialisierung mit „Zoom limit is out of range“ (settings-grouped-track-tests.log); keine grüne Gesamtsuite behauptet.
 
 BicycleGroupedBox vereinheitlicht gerahmte Listen global:8dp Gesamtzwischenraum zwischen Einträgen, davon2dp Linie und je3dp davor/danach, wie bisheriger Dropdown-Abstand. Menüs und Trackgruppe nutzen denselben Container; gruppierte Dropdowns bekommen keine zusätzlichen automatischen Margins. Prüfung grouped-box-spacing-tests.log erfolgreich.
+
+## Erweiterte Gruppierungen
+
+Sensor-Dropdowns teilen eine Box unter kleiner Überschrift Sensoren; bisherige Sticky-Kategorie und Autostart/Autoconnect/Suche außerhalb erhalten. Nur zugeordnete/entdeckte Sensoren sichtbar; GPS dauerhaft. Separatoren vor unsichtbaren oder ersten sichtbaren Einträgen entfallen, vollständig leere Sensorbox mit Überschrift verborgen.
+
+Radwege/Radrouten unter gemeinsamer Überschrift Radwege mit geteilter Box; Sensor-/Radweg-Schalter und Dropdowns unabhängig. Backup: Sichern3/Wiederherstellen3/Importieren2/Cloud5 jeweils eine gemeinsame Box, sämtliche Originalframes und IDs/Installationen erhalten. Keine Upload-/Account-/Dateilogik geändert.
+
+Tests: explizite Gruppenanzahlen und gemeinsame Rahmen, Sensorzuordnung/Entfernen samt ausgeblendeten Trennern, Dienstschalter/Expansion, Intervals-/Strava-/Dreeve-Formulare und Importaktionen sowie Track-/Cycling-Persistenz in grouped-settings-expansion-final-tests.log. Breiterer Zusatzlauf mit3Fehlern im alten FIT-Testtag, vollständigem Prefs-Vergleich und fehlender Importbutton-contentDescription; keine Gesamtsuite behauptet.

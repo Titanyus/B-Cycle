@@ -1545,7 +1545,7 @@ class MainActivity : Activity() {
         val mapHeight = toggle(getString(R.string.ui_map_height), "mapHeightVisible", true)
         val windRose = toggle(getString(R.string.map_wind_rose), "mapWindRoseVisible", false)
         fun newCyclingStyles()=MapLineStyleView(settingsContext,preferences,settingsThemes,dialogs,
-            kinds=listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES),heading=null) {
+            kinds=listOf(MapLineKind.CYCLEWAYS,MapLineKind.CYCLE_ROUTES),heading=R.string.map_cycling_group_title) {
             // The editor already saves and repaints its own preview. Rebuilding hidden
             // vector layers on every slider step stalls the main thread.
             if(runtime.bikes.activeSlot==slot) cyclingMapSettingsPending=true

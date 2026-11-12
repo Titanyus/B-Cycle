@@ -32,6 +32,8 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
             if(title==R.string.data_global) addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.data_group_save)).apply { tag="data_group_save" })
             addView(BicycleComponents.description(context,themes,context.getString(
                 if(title==R.string.data_global) R.string.backup_section_hint else R.string.cloud_section_hint)),LayoutParams(-1,-2))
+            val box=BicycleGroupedBox(context,themes,standalone=true).apply { tag=if(title==R.string.data_global) "data_save_group" else "data_cloud_group" }
+            addView(box,LayoutParams(-1,-2))
             actions.forEach { action ->
                 val dropdown=BicycleFrameDropdown(context,themes,context.getString(action.title),false,leadingIcon=action.icon).apply {
                     tag="data_frame_${action.name}"
@@ -54,13 +56,15 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                         if(action==DataAction.INTERVALS) transfer(BicycleIcon.TransferIn,R.string.intervals_in_fitness)
                     },LayoutParams(-1,-2))
                 }
-                addView(dropdown,LayoutParams(-1,-2))
+                box.addEntry(dropdown)
             }
         }
         section(R.string.data_global,listOf(DataAction.BACKUP,DataAction.RIDE_BACKUP,DataAction.HRV_EXPORT))
         addView(backupStatus,LayoutParams(-1,-2))
         addView(BicycleComponents.sectionDivider(context,themes))
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.data_group_restore)).apply { tag="data_group_restore" })
+        val restoreBox=BicycleGroupedBox(context,themes,standalone=true).apply { tag="data_restore_group" }
+        addView(restoreBox,LayoutParams(-1,-2))
         listOf(DataAction.RESTORE,DataAction.RIDE_RESTORE,DataAction.HRV_RESTORE).forEach { action ->
             val frame=BicycleFrameDropdown(context,themes,context.getString(action.title),false,leadingIcon=action.icon).apply {
                 tag=if(action==DataAction.HRV_RESTORE) "data_HRV_RESTORE_GROUP" else "data_frame_${action.name}"
@@ -73,12 +77,14 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
                     tag="data_HRV_IMPORT";BicycleDialogStyle.actionIcon(this,themes,DataAction.HRV_IMPORT.icon)
                 },LayoutParams(-1,-2))
             }
-            addView(frame,LayoutParams(-1,-2))
+            restoreBox.addEntry(frame)
         }
         addView(BicycleComponents.sectionDivider(context,themes).apply { tag="data_import_divider" })
         addView(BicycleComponents.contentHeading(context,themes,context.getString(R.string.data_group_import)).apply { tag="data_group_import" })
+        val importBox=BicycleGroupedBox(context,themes,standalone=true).apply { tag="data_import_group" }
+        addView(importBox,LayoutParams(-1,-2))
         val routesImport=BicycleFrameDropdown(context,themes,context.getString(R.string.data_route_import),false,leadingIcon=BicycleIcon.Import).apply { tag="data_frame_IMPORT";header.tag="data_IMPORT" }
-        addView(routesImport,LayoutParams(-1,-2))
+        importBox.addEntry(routesImport)
         RouteImportAction.entries.forEach { action ->
             val row=LinearLayout(context).apply {
                 orientation=HORIZONTAL;gravity=Gravity.CENTER_VERTICAL;minimumHeight=dp(BicycleDesign.touchSize)
@@ -99,7 +105,7 @@ internal class DataSettingsView(context: Context, private val themes: ThemeManag
         for(action in TrainingImportAction.entries) trainingImport.content.addView(BicycleComponents.action(context,themes,context.getString(action.title)) { trainingSelected(action) }.apply {
             tag=action.viewTag;BicycleDialogStyle.actionIcon(this,themes,action.icon)
         },LayoutParams(-1,-2))
-        addView(trainingImport,LayoutParams(-1,-2))
+        importBox.addEntry(trainingImport)
         refreshImportAvailability()
         section(R.string.data_routes,listOf(DataAction.LOCAL,DataAction.CLOUD,DataAction.DREEVE,DataAction.INTERVALS,DataAction.STRAVA))
     }
