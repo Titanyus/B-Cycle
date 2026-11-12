@@ -12,3 +12,7 @@
 Ausschließlich GitHub Actions. Prüfsumme, dauerhafte Update-Signatur, Version, Manifest ohne Debug-/Test-Flags und ZIP-/16KB-Ausrichtung geprüft. Vier VTM-ABIs,28Shader, Bright-JSON/XML/113Sprites und Terrain-/Cycling-Attribution erhalten. Kartenressourcen bytegleich zum Quellstand; Mapping und Ressourcen geprüft.
 
 [Änderungen und gezielte Tests](release-0.8.112.md). Keine grüne Gesamtsuite oder Geräteprüfung behauptet.
+
+## Direkter Downloadnachweis
+
+Raw-Download nach Veröffentlichung29dd0ab tatsächlich abgerufen:4463721Bytes, binär identisch zum Actions-Artefakt. SHA-256 `19bc2a34d4a90a8a959b845099efc6b817943cdf3b820288c1df1a4c90410d00`.
