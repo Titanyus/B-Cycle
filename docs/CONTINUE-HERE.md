@@ -1,3 +1,7 @@
+# Weitere Änderung noch unveröffentlicht
+
+Footer in Flat/Glow wieder durchgehend PRIMARY: zentrale Fachfooter, Dashboard samt Seitenbuttons und Dialog-Buttonleiste. Schatten-/Sichtbarkeitslogik erhalten. Keine neue APK beauftragt.
+
 # Weitere Gruppierungen nach Build158 (noch unveröffentlicht)
 
 BicycleGroupedBox für Sensorliste (kleine Überschrift Sensoren, bestehender Sticky-Sensorabschnitt/Autostart/Suche erhalten), Radwege/Radrouten (Überschrift Radwege) sowie Backup-Gruppen Sichern3/Wiederherstellen3/Importieren2/Cloud5. Originale Frames, Schalter, IDs, Callbacks/Installationen erhalten, Einzelrahmen entfernt. Dynamische Sensortrenner nur zwischen sichtbaren Einträgen; leere Sensorbox samt kleiner Überschrift verborgen. Bereits vorhandene Glow16dp-/Standalone8dp-Korrektur ebenfalls noch unveröffentlicht. Keine neue APK beauftragt.

@@ -49,7 +49,7 @@ class UnifiedSelectionFooterTest {
                 assertEquals(bike.height,tile.height)
                 assertArrayEquals(pixels(bike,false),pixels(tile,false));assertArrayEquals(pixels(bike,true),pixels(tile,true))
                 assertNull(footer.foreground)
-                assertEquals(themes.active.tokens.tertiary,(footer.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
+                assertEquals(themes.active.tokens.primary,(footer.background as android.graphics.drawable.GradientDrawable).color!!.defaultColor)
                 enabled=false;positions.findViewWithTag<View>("position_TOP").performClick();assertEquals(0,changed);assertTrue(tile.isSelected)
                 enabled=true
                 val image=Bitmap.createBitmap(360,800,Bitmap.Config.ARGB_8888)

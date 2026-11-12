@@ -307,7 +307,7 @@ internal object BicycleDialogStyle {
             dp(button, BicycleDesign.horizontalPadding), dp(button, BicycleDesign.verticalPadding))
         BicycleComponents.bindTheme(button, themes) { tokens ->
             button.setTextColor(colors(tokens.foreground)); button.backgroundTintList = null; button.background = null
-            (button.parent as? View)?.setBackgroundColor(tokens.tertiary)
+            (button.parent as? View)?.setBackgroundColor(tokens.primary)
             button.compoundDrawablesRelative.filterNotNull().forEach { it.setTint(tokens.foreground) }
         }
     }
