@@ -71,6 +71,7 @@ internal object BicycleContentSpacing {
             (0 until group.childCount).map(group::getChildAt).firstOrNull { it.visibility!=View.GONE }
         }
         fun wrapper(view:View)=view !is BicycleSectionHeader && view !is ProfileAccordion &&
+            view.tag?.toString()?.startsWith("settings_box_")!=true &&
             (view is ScrollView || view is LinearLayout && view.orientation==LinearLayout.VERTICAL ||
                 view.javaClass==android.widget.FrameLayout::class.java && (view as ViewGroup).childCount==1)
         var current=body

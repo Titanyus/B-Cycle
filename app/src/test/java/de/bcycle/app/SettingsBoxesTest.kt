@@ -27,11 +27,13 @@ class SettingsBoxesTest {
             val page=SettingsMenuView(a,themes,false) { actions+=it };a.setContentView(page)
             for(flat in listOf(false,true)) for(width in listOf(288,360,480)) {
                 themes.setFlatDesign(flat);Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+                BicycleContentSpacing.page(page)
                 page.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));page.layout(0,0,width,page.measuredHeight)
                 assertEquals(5,page.childCount)
                 assertNull(page.findViewWithTag<View>("hrv_open_measurement"))
                 for(title in listOf("Bike","Training","HRV")) {
                     val box=page.findViewWithTag<LinearLayout>("settings_box_$title")
+                    assertEquals(BicycleDesign.dp(a,BicycleDesign.controlGap),box.paddingTop)
                     assertEquals(themes.active.tokens.tertiary,(box.background as GradientDrawable).color!!.defaultColor)
                     val left=page.findViewWithTag<LinearLayout>("settings_column_${title}_left")
                     val right=page.findViewWithTag<LinearLayout>("settings_column_${title}_right")

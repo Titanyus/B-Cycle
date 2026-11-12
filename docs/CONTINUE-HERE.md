@@ -1,3 +1,7 @@
+# Zusätzlich noch unveröffentlicht
+
+Bike-Kopf: globale page-Abstandsnormalisierung stieg in ersten settings_box-Container ab und entfernte dessen8dp-Top-Padding. settings_box nun als eigener Inhalt statt Wrapper behandeln; alle Gruppen behalten gleichen Innenabstand.
+
 # Nach Build156 noch unveröffentlicht
 
 heart-pulse erneut aus originalem Lucide0.468.0 heruntergeladen und unverändert als Android-Vector übernommen. Vorherige handgezeichnete Pulslinie war zu groß. Beide Originalpfade und Stroke2/runde Enden geprüft. Keine neue APK beauftragt.
