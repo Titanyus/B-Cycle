@@ -1,3 +1,7 @@
+# Weitere Kombibox nach Build159 (noch unveröffentlicht)
+
+Unter fit_stored_values bleiben äußeres Accordion und Erklärung erhalten, darunter neue gemeinsame BicycleGroupedBox mit Metadaten und allen Datenquellen (GPS, E-Bike usw.). Originale Frames/Metadaten-Wrapper/Listener/IDs und Expanded-State erhalten, nur Einzelrahmen entfernt, normale8dp-Eintragstrenner. Keine neue APK beauftragt.
+
 # Zentrale Footer-Korrektur nach Build159 (noch unveröffentlicht)
 
 Ursache tatsächlicher TERTIARY-Streckenfooter gefunden: BicycleFullscreen überschrieb zentrale PRIMARY-Fläche beim Umhängen. Jetzt verwenden Fachfooter, Vollbildhost und native Dialog-Buttonleisten ausschließlich styleBicycleFooter aus BicycleFooter.kt; nur Dashboard-Parameter nutzt TERTIARY. Explizite Gerätepfad-Regression für Strecken und Streckenvorlagen in Flat/Glow ergänzt. Keine neue APK beauftragt.

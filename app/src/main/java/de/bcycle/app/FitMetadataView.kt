@@ -8,6 +8,7 @@ import android.widget.Switch
 /** Same native accordion and switches as the remaining profile settings. */
 internal class FitMetadataView(context:Context,themes:ThemeManager,profile:BikeProfile,selected:Set<FitMetadataField>,
     expanded:Boolean=false,onExpand:(Boolean)->Unit={},private val currentProfile:()->BikeProfile={profile},changed:(Set<FitMetadataField>)->Unit):LinearLayout(context) {
+    val frame:BicycleFrameDropdown
     private val profileSlot=profile.slot
     private val switches=linkedMapOf<FitMetadataField,Switch>()
     private val preferences=context.getSharedPreferences("bike",0)
@@ -17,7 +18,7 @@ internal class FitMetadataView(context:Context,themes:ThemeManager,profile:BikeP
     init {
         orientation=VERTICAL;tag="fit_metadata"
         val chosen=selected.toMutableSet()
-        val frame=BicycleFrameDropdown(context,themes,context.getString(R.string.fit_metadata_title),open=expanded,
+        frame=BicycleFrameDropdown(context,themes,context.getString(R.string.fit_metadata_title),open=expanded,
             leadingIcon=BicycleIcon.Info,changed=onExpand)
         frame.header.apply { tag="fit_metadata_toggle";isAccessibilityHeading=true }
         val content=frame.content.apply { tag="fit_metadata_content" }

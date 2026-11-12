@@ -63,6 +63,10 @@ class ProfileSettingsRevisionTest {
                 assertEquals(a.getString(R.string.bikes_fit_explanation),(primary.content.getChildAt(0) as android.widget.TextView).text.toString())
                 assertEquals(6,primary.content.findViewWithTag<RecordingSourcesView>("recording_sources").childCount)
                 assertEquals(a.getString(R.string.fit_stored_values_description),(stored.content.getChildAt(0) as android.widget.TextView).text.toString())
+                val storedBox=stored.content.findViewWithTag<BicycleGroupedBox>("fit_stored_values_group")
+                assertNotNull(storedBox)
+                assertSame(storedBox,stored.content.findViewWithTag<FitMetadataView>("fit_metadata").parent)
+                testDescendants(storedBox).filterIsInstance<BicycleFrameDropdown>().forEach { assertTrue(it.grouped);assertNull(it.background) }
                 primary.setExpanded(true);stored.setExpanded(true)
                 val elevation=recording.getChildAt(0) as Switch
                 elevation.performClick()
@@ -79,8 +83,8 @@ class ProfileSettingsRevisionTest {
                 root.measure(View.MeasureSpec.makeMeasureSpec(420,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(900,View.MeasureSpec.EXACTLY))
                 root.layout(0,0,420,900)
                 val sensorList=root.findViewWithTag<ViewGroup>("bike_sensor_list")
-                val sensorFrames=(0 until sensorList.childCount).map(sensorList::getChildAt).filter { it.visibility==View.VISIBLE }
-                assertTrue(sensorFrames.all { it is BicycleFrameDropdown })
+                val sensorFrames=(0 until sensorList.childCount).map(sensorList::getChildAt).filterIsInstance<BicycleFrameDropdown>().filter { it.visibility==View.VISIBLE }
+                assertTrue(sensorList is BicycleGroupedBox)
                 sensorFrames.zipWithNext().forEach { (before,next) ->
                     assertEquals("sensor accordions use shared small gap",BicycleDesign.dp(a,BicycleDesign.controlGap),next.top-before.bottom)
                 }

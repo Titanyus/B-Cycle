@@ -786,10 +786,14 @@ class MainActivity : Activity() {
         primary.content.addView(sourceControls,LinearLayout.LayoutParams(-1,-2))
         val stored=recordingGroup(R.string.fit_stored_values_title,"fit_stored_values",BicycleIcon.Save)
         stored.content.addView(BicycleComponents.text(settingsContext,settingsThemes,getString(R.string.fit_stored_values_description)).apply { tag="track_recording_description" })
-        stored.content.addView(FitMetadataView(settingsContext,settingsThemes,runtime.bikes.current(),metadata,
+        val storedBox=BicycleGroupedBox(settingsContext,settingsThemes,standalone=true).apply { tag="fit_stored_values_group" }
+        stored.content.addView(storedBox,LinearLayout.LayoutParams(-1,-2))
+        val metadataView=FitMetadataView(settingsContext,settingsThemes,runtime.bikes.current(),metadata,
             currentProfile=runtime.bikes::current,expanded="FIT_METADATA" in expandedFitSources,onExpand={ if(it) expandedFitSources.add("FIT_METADATA") else expandedFitSources.remove("FIT_METADATA") }) {
             metadata=it;saveFields()
-        })
+        }
+        metadataView.frame.grouped=true
+        storedBox.addEntry(metadataView)
         for ((source, fields) in RecordField.options.filter { it.id!="GPS_POSITION" && (!current.indoor || it.id in IndoorFields.allowed) }.groupBy {
             if(current.indoor && (it.id in IndoorFields.trainerIds)) "Indoor-Bike" else it.source
         }) {
@@ -799,7 +803,7 @@ class MainActivity : Activity() {
             }
             frame.header.apply { tag="fit_source_$source";isAccessibilityHeading=true }
             val content=frame.content.apply { tag="fit_source_content_$source" }
-            stored.content.addView(frame)
+            storedBox.addEntry(frame)
             for (field in fields) content.addView(Switch(settingsContext).apply {
                 setTag(R.id.compact_choice_role,true)
                 text = field.titleResource?.let(::getString) ?: DashboardTextResources.recordTitle(this@MainActivity, field.id) ?: DashboardField(field.id).title(this@MainActivity, LiveData()); tag = "record_${field.id}"; isChecked = field.id in selected; minHeight = dp(BicycleDesign.touchSize)
