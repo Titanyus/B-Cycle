@@ -1,16 +1,14 @@
-# Neue Menüanpassungen nach Build155 (noch unveröffentlicht)
+# Aktueller Stand: APK0.8.111 / Build156
 
-Chevrons aus Einstellungsmenüpunkten entfernt, Gruppenüberschriften16dp eingerückt, Menüzeilen8dp links. Innen-/Außenkästen verwenden denselben zentralen6dp-Radius. HRV: heart-pulse für Messung, chart-line für Auswertung, Einstellungen mit wrench. Bisherige Zahnradrollen Advanced/Work systemweit wrench. Neue APK0.8.111/code181 beauftragt; Actions-Build156 folgt.
+Menüanpassungen einschließlich Einzüge/Icons umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Raw-Direktdownload nach Veröffentlichung noch prüfen.
 
-# Aktueller Stand: APK0.8.110 / Build155
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.111-release-156.apk) · [Buildnachweis](build-156.md) · [Änderungen](release-0.8.111.md)
 
-Neue Einstellungsaufteilung, Glow-Sticky-Rahmen und zuvor vorbereitete Graphkanten umgesetzt und angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher direkter Raw-Download geprüft, bytegleich zum Actions-Artefakt.
-
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.110-release-155.apk) · [Buildnachweis](build-155.md) · [Änderungen](release-0.8.110.md)
-
-Actions43202153928 erfolgreich aus Quellstand8b821fb20bd84f1bff1da9735b558372cf3535ef, VersionCode180, Android13+. 4462661Bytes; SHA-256123d5e8f9c3d22a2cb28c1053e9896d0237793209360acd255637c5eea565c3e. Zertifikat SHA-25694d34c46ede28d12e6d37efd8a7d953a75b621596ec2e5b68f61899b8ea7499b. Artefakt und Raw-Direktdownload bytegleich geprüft; Veröffentlichung8957741.
+Actions43205213885 erfolgreich aus Quellstand4d2e5691baf5442e0dae411fda4216c9bd290b19, VersionCode181, Android13+. 4463689Bytes; SHA-2566816bf5541e899617c30a8cb0c55d495a98d2c8a3322a4c84496237facf4d81e. Dauerhafte Signatur bestätigt. Direktdownloadnachweis folgt.
 
 ## Letzte Änderungen
+
+Menü ohne Chevrons, Überschriften16dp/Menüzeilen8dp eingerückt, Innen-/Außenradius6dp. HRV: heart-pulse/chart-line/wrench, „Einstellungen“ verkürzt. Bisherige Zahnradrollen systemweit wrench. Acht gezielte Menü-/Navigationsmethoden grün, settings-menu-refine-tests.log.
 
 Einstellungen: drei gerahmte TERTIARY-Kästen Bike/Training/HRV, innen feste SECONDARY-Spalten mit Rahmen/Trennern. Links Aktionen, rechts Einstellungen, Training rechts vorerst leer. Erweitert separat, Markenbild/Build erhalten. Training systemweit biceps-flexed, funktionale Leistungssymbole unverändert. Glow-Sticky-Kästen mit normalem2dp-Rahmen, Flat unverändert. Zehn gezielte UI-/Navigationsmethoden erfolgreich; ältere Testannahmen und Geräteprüfgrenzen im [Bericht](settings-boxes.md). Kein Profiling.
 
