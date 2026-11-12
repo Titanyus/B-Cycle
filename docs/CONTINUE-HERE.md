@@ -1,40 +1,20 @@
-# Variantenpille (noch unveröffentlicht)
+# Aktueller Stand: APK0.8.115 / Build160
 
-TrainingWorkoutView zeigt Variantenpille nur bei tatsächlich vorhandenen Umschaltoptionen. Nicht variierbare Trainings ohne Std-Pille; Rebinding blendet sie für variierbare Trainings wieder ein. Keine neue APK beauftragt.
+Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Direktdownload nach Veröffentlichung noch prüfen.
 
-# Training: Footer-Schalter und Stärke (noch unveröffentlicht)
+[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.115-release-160.apk) · [Buildnachweis](build-160.md) · [Änderungen](release-0.8.115.md)
 
-TrainingManagerView nutzt zentrale BicycleFooterVisibility mit Header-Schalter, initial verborgen, Auswahl darf temporär einblenden. Sortierauswahl zuerst Stärke, dann Dauer/Belastung/Intensität plus Richtung; Abschnitte als Sortiermethode entfernt, Kennzahl bleibt. Stärke anhand unveränderter bestehender TrainingIntensity-Tags: Leicht/Sweet Spot/Hart; Sweet Spot laut Nutzer eigener Gruppe, unklassifiziert zuletzt mit „Ohne Einstufung“. Keine Änderung der Taggrenzen, Trainingsdaten oder Standard-Dauersortierung. Prüfungen training-strength-footer-final-tests.log. Keine neue APK beauftragt.
-
-# Weitere Kombibox nach Build159 (noch unveröffentlicht)
-
-Unter fit_stored_values bleiben äußeres Accordion und Erklärung erhalten, darunter neue gemeinsame BicycleGroupedBox mit Metadaten und allen Datenquellen (GPS, E-Bike usw.). Originale Frames/Metadaten-Wrapper/Listener/IDs und Expanded-State erhalten, nur Einzelrahmen entfernt, normale8dp-Eintragstrenner. Keine neue APK beauftragt.
-
-# Zentrale Footer-Korrektur nach Build159 (noch unveröffentlicht)
-
-Ursache tatsächlicher TERTIARY-Streckenfooter gefunden: BicycleFullscreen überschrieb zentrale PRIMARY-Fläche beim Umhängen. Jetzt verwenden Fachfooter, Vollbildhost und native Dialog-Buttonleisten ausschließlich styleBicycleFooter aus BicycleFooter.kt; nur Dashboard-Parameter nutzt TERTIARY. Explizite Gerätepfad-Regression für Strecken und Streckenvorlagen in Flat/Glow ergänzt. Keine neue APK beauftragt.
-
-# Nach Build159 noch unveröffentlicht
-
-Nutzerkorrektur: Dashboard-Footer samt Seitenbuttons wieder TERTIARY wie vor PRIMARY-Änderung. Ausdrücklich alle anderen Footer, einschließlich Streckenmanager/-details, bleiben PRIMARY in Flat/Glow; zentraler dashboard-Parameter trennt Rollen. Dashboard-Schattenlogik und Aufnahmebutton unverändert. Keine neue APK beauftragt.
-
-# Aktueller Stand: APK0.8.114 / Build159
-
-Angeforderte APK veröffentlicht. Keine offenen Implementierungsaufträge. Tatsächlicher Raw-Direktdownload bytegleich zum Actions-Artefakt geprüft; Veröffentlichung32da5eaa. Beide Originalbilder im APK auf identische Pixel geprüft.
-
-[APK](https://raw.githubusercontent.com/Titanyus/B-Cycle/main/downloads/B-Cycle-0.8.114-release-159.apk) · [Buildnachweis](build-159.md) · [Änderungen](release-0.8.114.md)
-
-Actions43293374243 aus Quellstanda058ed2429c6fc7da1b65ea08c63f5f20b407d6f, VersionCode184, Android13+. 7129637Bytes; SHA-256c532bef15f069fb1e1bf32903365cf700f40f896585295d410aef16ad52d3404. Dauerhafte Signatur bestätigt.
+Actions43301379105 aus Quellstand31e6f2db5dab263d886a74018591b633b0426af1, VersionCode185, Android13+. 7129785Bytes; SHA-25670d1473f5934fdf9852eb420062f1bf6dca315a2776d787c71d1c405b928db6f. Dauerhafte Signatur bestätigt.
 
 ## Letzte Änderungen
 
-- Bike und Training mit den gelieferten Originalbildern als vollbreiten, oben ausgerichteten Kastenhintergründen.
-- Überschriftenbereiche aller drei Einstellungskästen35% höher; HRV weiterhin ohne Bild.
-- Sensoren, Radwege/Radrouten und Backup-Gruppen Sichern/Wiederherstellen/Importieren/Cloud in gemeinsamen Boxen.
-- Glow-Sticky-Innenabstand16dp und Standardabstand unter Trackdarstellung.
-- Footer in Flat und Glow wieder durchgehend PRIMARY.
+- Zentrale Footer-Gestaltung auch im Vollbildhost: alle Footer PRIMARY, ausschließlich Dashboard TERTIARY.
+- Metadaten und Datenquellen unter der FIT-Speicherauswahl in gemeinsamer Kombibox, vorhandene Feldschalter erhalten.
+- Trainingsfooter über Header-Button ein-/ausblendbar, initial verborgen.
+- Sortierung Stärke als erste Option mit Leicht/Sweet Spot/Hart; Abschnitte nur noch als Kennzahl.
+- Variantenpille bei Trainings ohne umschaltbare Varianten ausgeblendet.
 
-Gezielte Menü-/Navigations-/Trackmethoden erfolgreich, settings-group-image-tests.log sowie grouped-settings-expansion-final-tests.log, glow-box-spacing-tests.log und footer-primary-tests.log. Regression prüft globale page-Normalisierung ohne Löschen des ersten Kastenpaddings, vertikale Zentrierung sowie kurzen HRV-Kasten. Flat/Glow bei288/360/480dp. Zentrale Prüfungen grün. BicycleGroupedBox jetzt auch für Sensoren, Radwege/Radrouten und Backup-Gruppen. Native Bildvorschau geprüft; Original-PNGs aus ZIP unverändert übernommen. Ein zusätzlich gestarteter CyclingOptionsTest scheiterte vor UI-Prüfung an nativer Zoominitialisierung; Details settings-boxes.md.
+Gezielte Menü-/Navigations-/Trackmethoden erfolgreich, central-footer-route-tests.log, fit-stored-group-final-tests.log, training-strength-footer-final-tests.log und training-variant-visibility-tests.log. Regression prüft globale page-Normalisierung ohne Löschen des ersten Kastenpaddings, vertikale Zentrierung sowie kurzen HRV-Kasten. Flat/Glow bei288/360/480dp. Zentrale Prüfungen grün. BicycleGroupedBox jetzt auch für Sensoren, Radwege/Radrouten und Backup-Gruppen. Native Bildvorschau geprüft; Original-PNGs aus ZIP unverändert übernommen. Ein zusätzlich gestarteter CyclingOptionsTest scheiterte vor UI-Prüfung an nativer Zoominitialisierung; Details settings-boxes.md.
 
 Vorherige Änderungen aus Build155/156 weiter enthalten: drei zweispaltige TERTIARY/SECONDARY-Kästen, Markenbild/Build, biceps-flexed, wrench, keine Chevrons, Einzüge16/8dp; Glow-Sticky-Kontur und Graphen bis zum Rand. [Details](settings-boxes.md).
 
