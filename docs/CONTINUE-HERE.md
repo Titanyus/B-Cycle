@@ -1,6 +1,6 @@
 # Neue Menüanpassungen nach Build155 (noch unveröffentlicht)
 
-Chevrons aus Einstellungsmenüpunkten entfernt, Gruppenüberschriften16dp eingerückt, Menüzeilen8dp links. Innen-/Außenkästen verwenden denselben zentralen6dp-Radius. HRV: heart-pulse für Messung, chart-line für Auswertung, Einstellungen mit wrench. Bisherige Zahnradrollen Advanced/Work systemweit wrench. Keine neue APK beauftragt.
+Chevrons aus Einstellungsmenüpunkten entfernt, Gruppenüberschriften16dp eingerückt, Menüzeilen8dp links. Innen-/Außenkästen verwenden denselben zentralen6dp-Radius. HRV: heart-pulse für Messung, chart-line für Auswertung, Einstellungen mit wrench. Bisherige Zahnradrollen Advanced/Work systemweit wrench. Neue APK0.8.111/code181 beauftragt; Actions-Build156 folgt.
 
 # Aktueller Stand: APK0.8.110 / Build155
 
